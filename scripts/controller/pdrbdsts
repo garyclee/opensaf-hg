@@ -1,0 +1,316 @@
+#!/bin/bash
+#
+#           -*- OpenSAF  -*-
+# 
+# (C) Copyright 2008 The OpenSAF Foundation 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php 
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+# 
+# Author(s): Emerson Network Power
+#
+
+#
+# Description:
+# This script is to be invoked from the pseudoDRBD health-check callback
+#
+# usage: pdrbdsts comp_no1 res1 drbd_dev1 comp_no2 res2 drbd_dev2....
+#
+
+######################################################################
+# First set the re-set the nice value of this script and then start 
+# Executing it. We are setting it to 3. Current value is 14.
+# This should be removed with the leap fix to set nice value of the
+# spawned process.
+######################################################################
+renice 3 -p $$ 2> /dev/null
+
+DRBD="/etc/init.d/drbd"
+# DRBD_DISK="/etc/init.d/drbddisk"
+DRBD_DISK="/etc/ha.d/resource.d/drbddisk"		# in MVL
+PSEUDO_DRBD_PIPE="/tmp/pseudo_drbd.fifo"
+DRBD_ADM="/sbin/drbdadm"
+DRBD_SETUP="/sbin/drbdsetup"
+
+#### Be careful while changing the following values;
+#### they have to be inline with those defined in "pdrbd_cb.h"
+GETCS_UNCONFIGURED=0x00050010
+GETCS_STANDALONE=0x00050011
+GETCS_UNCONNECTED=0x00050012
+GETCS_WFCONNECTION=0x00050013
+GETCS_WFREPORTPARAMS=0x00050014
+GETCS_CONNECTED=0x00050015
+GETCS_TIMEOUT=0x00050016
+GETCS_BROKENPIPE=0x00050017
+GETCS_NETWORKFAILURE=0x00050018
+GETCS_WFBITMAPS=0x00050019
+GETCS_WFBITMAPT=0x0005001a
+GETCS_SYNCSOURCE=0x0005001b
+GETCS_SYNCTARGET=0x0005001c
+GETCS_PAUSEDSYNCS=0x0005001d
+GETCS_PAUSEDSYNCT=0x0005001e
+GETCS_OTHER=0x0005001f
+
+GETCS_INVALID=0x000500ff
+
+
+function check_connection_state
+{
+   #### First check whether DRBD running at all or not
+   ST=$( $DRBD_ADM state $RES 2> /dev/null )
+   ## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+   ST=${ST%/*}
+
+   case "$ST" in
+      Primary)   # running as Primary, ok!
+         ;;
+      Secondary) # running as Secondary, ok!
+         ;;
+      *)         # not running
+         echo "`date` In script in c_c_s: $RES not running"
+         echo "$COMP_NO$GETCS_INVALID" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         return
+         ;;
+   esac
+
+   ST=$( $DRBD_ADM cstate $RES 2> /dev/null )
+   ## ST=$( $DRBD_SETUP $DRBD_DEV_NAME cstate )
+   
+   case "$ST" in
+      Unconfigured)
+         echo "`date` In script in c_c_s: $RES Unconfigured"
+         echo "$COMP_NO$GETCS_UNCONFIGURED" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      StandAlone)
+         echo "`date` In script in c_c_s: $RES StandAlone"
+         echo "$COMP_NO$GETCS_STANDALONE" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      Unconnected)
+         echo "`date` In script in c_c_s: $RES Unconnected"
+         echo "$COMP_NO$GETCS_UNCONNECTED" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      WFConnection)
+         echo "`date` In script in c_c_s: $RES WFConnection"
+         ## echo "$COMP_NO$GETCS_WFCONNECTION" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      WFReportParams)
+         echo "`date` In script in c_c_s: $RES WFReportParams"
+         ## echo "$COMP_NO$GETCS_WFREPORTPARAMS" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      Connected)
+         echo "`date` In script in c_c_s: $RES WFReportParams"
+         ## echo "$COMP_NO$GETCS_CONNECTED" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      Timeout)
+         echo "`date` In script in c_c_s: $RES Timeout"
+         echo "$COMP_NO$GETCS_TIMEOUT" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      BrokenPipe)
+         echo "`date` In script in c_c_s: $RES BrokenPipe"
+         echo "$COMP_NO$GETCS_BROKENPIPE" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      NetworkFailure)
+         echo "`date` In script in c_c_s: $RES NetworkFailure"
+         echo "$COMP_NO$GETCS_NETWORKFAILURE" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      WFBitMapS)
+         echo "`date` In script in c_c_s: $RES WFBitMapS"
+         ## echo "$COMP_NO$GETCS_WFBITMAPS" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      WFBitMapT)
+         echo "`date` In script in c_c_s: $RES WFBitMapT"
+         ##echo "$COMP_NO$GETCS_WFBITMAPT" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      SyncSource)
+         echo "`date` In script in c_c_s: $RES SyncSource"
+         ## echo "$COMP_NO$GETCS_SYNCSOURCE" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      SyncTarget)
+         echo "`date` In script in c_c_s: $RES SyncTarget"
+         ## echo "$COMP_NO$GETCS_SYNCTARGET" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      PausedSyncS)
+         echo "`date` In script in c_c_s: $RES PausedSyncS"
+         ## echo "$COMP_NO$GETCS_PAUSEDSYNCS" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      PausedSyncT)
+         echo "`date` In script in c_c_s: $RES PausedSyncT"
+         ## echo "$COMP_NO$GETCS_PAUSEDSYNCT" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+      *)
+         echo "`date` In script in c_c_s: $RES other state = $ST "
+         echo "$COMP_NO$GETCS_OTHER" > $PSEUDO_DRBD_PIPE
+         ## exit 0
+         ;;
+   esac
+   
+   return
+}
+
+
+#### No of arguments supplied
+no_of_args=$#
+
+#### In each iteration we take 3 arguments
+no_of_args=`expr $no_of_args / 3`
+
+while [ $no_of_args -ne 0 ]
+do
+	COMP_NO=$1
+	RES=$2
+	DRBD_DEV_NAME=$3
+	
+	#### First check whether DRBD running at all or not
+	ST=$( $DRBD_ADM state $RES 2> /dev/null )
+	## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+	ST=${ST%/*}
+
+	case "$ST" in
+		Primary)	# running as Primary, ok!
+			;;
+		Secondary)	# running as Secondary, ok!
+			;;
+		*)		# not running
+			echo "`date` In script: get_cs $RES not running"
+			echo "$COMP_NO$GETCS_INVALID" > $PSEUDO_DRBD_PIPE
+			## exit 0
+
+			#### Shift to the next three arguments we're interested in
+			shift
+			shift
+			shift
+
+			let no_of_args=no_of_args-1
+			continue
+			;;
+	esac
+
+	ST=$( $DRBD_ADM cstate $RES 2> /dev/null )
+	## ST=$( $DRBD_SETUP $DRBD_DEV_NAME cstate )
+	case "$ST" in
+		Unconfigured)
+                      	echo "`date` In script: get_cs $RES Unconfigured"
+			echo "$COMP_NO$GETCS_UNCONFIGURED" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		StandAlone)
+                       	echo "`date` In script: get_cs $RES StandAlone, checking again.."
+                       	$DRBD_ADM connect $RES
+                       	sleep 10
+                       	check_connection_state
+			;;
+		Unconnected)
+                       	echo "`date` In script: get_cs $RES Unconnected"
+			echo "$COMP_NO$GETCS_UNCONNECTED" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		WFConnection)
+               		## echo "`date` In script: get_cs $RES WFConnection"
+			## echo "$COMP_NO$GETCS_WFCONNECTION" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		WFReportParams)
+               		## echo "`date` In script: get_cs $RES WFReportParams"
+			## echo "$COMP_NO$GETCS_WFREPORTPARAMS" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		Connected)
+               		## echo "`date` In script: get_cs $RES Connected"
+			## echo "$COMP_NO$GETCS_CONNECTED" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		Timeout)
+                       	echo "`date` In script: get_cs $RES Timeout"
+			echo "$COMP_NO$GETCS_TIMEOUT" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		BrokenPipe)
+                       	echo "`date` In script: get_cs $RES BrokenPipe"
+			echo "$COMP_NO$GETCS_BROKENPIPE" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		NetworkFailure)
+               		echo "`date` In script: get_cs $RES NetworkFailure"                         
+               		sleep 5
+                        		
+			ST=$( $DRBD_ADM cstate $RES 2> /dev/null )
+			## ST=$( $DRBD_SETUP $DRBD_DEV_NAME cstate )
+					
+			if [ "$ST" = "NetworkFailure" ]; then 
+	        		echo "`date` In script: get_cs reconnecting $RES to start receiver thread"
+	        		$DRBD_ADM connect $RES
+               			sleep 5
+               		fi
+                        		
+			check_connection_state
+			## exit 0
+			;;
+		WFBitMapS)
+               		## echo "`date` In script: get_cs $RES WFBitMapS"
+			## echo "$COMP_NO$GETCS_WFBITMAPS" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		WFBitMapT)
+               		## echo "`date` In script: get_cs $RES WFBitMapT"
+			## echo "$COMP_NO$GETCS_WFBITMAPT" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		SyncSource)
+               		## echo "`date` In script: get_cs $RES SyncSource"
+			## echo "$COMP_NO$GETCS_SYNCSOURCE" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		SyncTarget)
+               		## echo "`date` In script: get_cs $RES SyncTarget"
+			## echo "$COMP_NO$GETCS_SYNCTARGET" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		PausedSyncS)
+               		## echo "`date` In script: get_cs $RES PausedSyncS"
+			## echo "$COMP_NO$GETCS_PAUSEDSYNCS" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		PausedSyncT)
+               		## echo "`date` In script: get_cs $RES PausedSyncT"
+			## echo "$COMP_NO$GETCS_PAUSEDSYNCT" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+		*)
+			echo "`date` In script: get_cs $RES other state = $ST "
+			echo "$COMP_NO$GETCS_OTHER" > $PSEUDO_DRBD_PIPE
+			## exit 0
+			;;
+	esac
+
+	#### Shift to the next three arguments we're interested in
+	shift
+	shift
+	shift
+	
+	let no_of_args=no_of_args-1
+done
+
+exit 0
+

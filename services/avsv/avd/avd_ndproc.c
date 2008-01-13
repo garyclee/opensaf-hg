@@ -1,0 +1,834 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation 
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php 
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *   
+ */
+
+/*****************************************************************************
+..............................................................................
+
+
+
+..............................................................................
+
+  DESCRIPTION: This file contains the node related events processing.
+  Some of these node realted events might effect the AvNDs state machine. Some
+  messages might trigger the configuration module processing. It is part of
+  the node submodule.
+
+..............................................................................
+
+  FUNCTIONS INCLUDED in this module:
+
+  avd_msg_sanity_chk -  sanity check w.r.t the message.
+  avd_reg_hlth_func - health check data message response handler.
+  avd_reg_su_func - SU message response handler.
+  avd_reg_comp_func - component message response handler.
+  avd_node_down_func - utility to shut down the node.
+  avd_tmr_rcv_hb_nd_func - heartbeat failure event handler.
+  avd_oper_req_func - operation request message response handler.
+  avd_data_update_req_func - data update message handler.
+
+  
+******************************************************************************
+*/
+
+/*
+ * Module Inclusion Control...
+ */
+
+#include "avd.h"
+
+
+
+/*****************************************************************************
+ * Function: avd_msg_sanity_chk
+ *
+ * Purpose:  This function does a sanity check w.r.t the message received and
+ *           returns the avnd structure related to the node.
+ *
+ * Input: cb - the AVD control block pointer.
+ *        evt - The event information.
+ *        node_id - The node id in the message.
+ *        msg_typ - the message type for which sanity needs to be done.
+ *        
+ *
+ * Return: avnd  - pointer to the avnd structure of the node. NULL if
+ *                 failure.
+ *
+ * NOTES: 
+ *
+ * 
+ **************************************************************************/
+AVD_AVND  * avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt,
+                           SaClmNodeIdT node_id, AVSV_DND_MSG_TYPE msg_typ)
+{
+   AVD_AVND  *avnd=AVD_AVND_NULL;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_msg_sanity_chk");
+   
+   m_AVD_LOG_MSG_DND_RCV_INFO(AVD_LOG_PROC_MSG,evt->info.avnd_msg,node_id);
+
+   if (cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
+   {
+      /* log error that a cluster is admin down */
+      m_AVD_LOG_INVALID_VAL_ERROR(cb->cluster_admin_state);
+      return avnd;
+   }
+   
+   if (cb->init_state < AVD_CFG_DONE)
+   {
+      /* Don't initialise the AvND when the AVD is not
+       * completely initialised with the saved information
+       */
+      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+      return avnd;
+   }
+
+   if (evt->info.avnd_msg->msg_type != msg_typ)
+   {
+      /* log error that a message type is wrong */
+      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.avnd_msg->msg_type);
+      return avnd;
+   }
+
+   if ((avnd = avd_avnd_struc_find_nodeid(cb,node_id)
+      ) == AVD_AVND_NULL)
+   {
+      /* log error that the node id is invalid */
+      m_AVD_LOG_INVALID_VAL_ERROR(node_id);
+      return avnd;
+   }
+
+   if (avnd->row_status != NCS_ROW_ACTIVE)
+   {
+      /* log error that the node is not valid */
+      m_AVD_LOG_INVALID_VAL_ERROR(node_id);
+      return AVD_AVND_NULL;
+   }
+
+   /* sanity check done return the avnd structure */
+   return avnd;
+}
+
+
+/*****************************************************************************
+ * Function: avd_reg_hlth_func
+ *
+ * Purpose:  This function is the handler for reg_hlth event
+ * indicating the arrival of the reg_hlth message response. Based on the state
+ * machine and the error value returned, it will processes the message
+ * accordingly.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ * 
+ **************************************************************************/
+
+void avd_reg_hlth_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_DND_MSG *n2d_msg;
+   AVD_AVND *avnd;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_reg_hlth_func");
+   
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+   
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,n2d_msg->msg_info.n2d_reg_hlt.node_id,AVSV_N2D_REG_HLT_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_reg_hlt.msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* Update the receive id for the node*/
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(n2d_msg->msg_info.n2d_reg_hlt.msg_id));
+ 
+   /* send the Ack message to the node.
+    */
+   if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+   }
+
+   /* check if this is a operator initiated update */
+   if (avnd->node_state == AVD_AVND_STATE_PRESENT)
+   {
+      avd_hlt_ack_msg(cb,n2d_msg);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+ 
+   /* check the ack message for errors. If error stop and free all the
+    * messages in the list and issue HPI restart of the node
+    */
+
+   if (n2d_msg->msg_info.n2d_reg_hlt.error == NCSCC_RC_SUCCESS)
+   {
+      /* the AVND has been successfully updated with the health information
+       */
+      
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* log an error since this shouldn't happen */
+   m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_reg_hlt.error);
+
+   /* call the routine to failover all the effected nodes
+    * due to restarting this node
+    */
+
+   avd_node_down_func(cb,avnd);
+
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+   
+   
+   return;
+}
+
+
+
+/*****************************************************************************
+ * Function: avd_reg_su_func
+ *
+ * Purpose:  This function is the handler for reg_su event
+ * indicating the arrival of the reg_su message response. Based on the state
+ * machine and the error value returned, it will processes the message
+ * accordingly.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES:
+ *
+ * 
+ **************************************************************************/
+
+void avd_reg_su_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_DND_MSG *n2d_msg;
+   AVD_AVND *avnd;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_reg_su_func");
+   
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,n2d_msg->msg_info.n2d_reg_su.node_id,AVSV_N2D_REG_SU_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_reg_su.msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* Update the receive id for the node*/
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(n2d_msg->msg_info.n2d_reg_su.msg_id));
+
+   /* 
+    * Send the Ack message to the node, indicationg that the message with this
+    * message ID is received successfully.
+    */
+   if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+   }
+
+
+   /* check if this is a operator initiated update */
+   if (avnd->node_state == AVD_AVND_STATE_PRESENT)
+   {
+      avd_su_ack_msg(cb,n2d_msg);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+ 
+   /* check the ack message for errors. If error stop and free all the
+    * messages in the list and issue HPI restart of the node
+    */
+
+   if (n2d_msg->msg_info.n2d_reg_su.error == NCSCC_RC_SUCCESS)
+   {
+      /* the AVND has been successfully updated with the SU information
+       */
+      
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* log an error since this shouldn't happen */
+
+   m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_reg_su.error);
+
+
+   /* call the routine to failover all the effected nodes
+    * due to restarting this node
+    */
+
+   avd_node_down_func(cb,avnd);
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+
+   /* checkpoint the AVND structure */
+   return;
+}
+
+
+/*****************************************************************************
+ * Function: avd_reg_comp_func
+ *
+ * Purpose:  This function is the handler for reg of component
+ * event indicating the arrival of the reg_comp message response.
+ * Based on the state machine and the error value returned, it will process the
+ * message accordingly.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES: None.
+ *
+ * 
+ **************************************************************************/
+
+void avd_reg_comp_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_DND_MSG *n2d_msg;
+   AVD_AVND *avnd;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_reg_comp_func");
+   
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,n2d_msg->msg_info.n2d_reg_comp.node_id,AVSV_N2D_REG_COMP_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_reg_comp.msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+   
+   /* Update the receive id for the node*/
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(n2d_msg->msg_info.n2d_reg_comp.msg_id));
+   
+   /* 
+    * Send the Ack message to the node, indicationg that the message with this
+    * message ID is received successfully.
+    */
+   if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+   }
+
+
+   /* check if this is a operator initiated update */
+   if (avnd->node_state == AVD_AVND_STATE_PRESENT)
+   {
+      avd_comp_ack_msg(cb,n2d_msg);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+
+   /* check the ack message for errors. If error stop and free all the
+    * messages in the list and issue HPI restart of the node
+    */
+
+   if (n2d_msg->msg_info.n2d_reg_comp.error == NCSCC_RC_SUCCESS)
+   {
+      /* the AVND has been successfully updated with the 
+       * component information.
+       */
+
+      /* Trigger the node FSM handler for this event. */
+      avd_nd_reg_comp_evt_hdl(cb,avnd);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* log an error since this shouldn't happen */
+   m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_reg_comp.error);
+
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+
+   /* call the routine to failover all the effected nodes
+    * due to restarting this node
+    */
+
+   avd_node_down_func(cb,avnd);   
+   return;
+}
+
+
+/*****************************************************************************
+ * Function: avd_node_down_func
+ *
+ * Purpose:  This function is called to abruptly reset a node. It issues the
+ * AVM HPI request to reset the node, stop the timers if any.
+ *
+ * Input: cb - the AVD control block
+ *        avnd - The AVND pointer of the node that needs to be shutdown.
+ *
+ * Returns: None.
+ *
+ * NOTES: None. 
+ **************************************************************************/
+
+void avd_node_down_func(AVD_CL_CB *cb,AVD_AVND *avnd)
+{
+
+   m_AVD_LOG_FUNC_ENTRY("avd_node_down_func");
+   
+   /* clean up the heartbeat timer for this node. */
+   avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
+   
+   /* call HPI restart */
+   if( avd_avm_send_reset_req(cb, &avnd->node_info.nodeName) == NCSCC_RC_SUCCESS)
+   {
+
+      /* the node is going down the operation state should be made disabled.
+       * make the node status as going down
+       */
+
+
+      /* if we are in shutting down state, dont change the state;we have to
+       * send shutdown responce to avm
+       */
+      if(avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN)
+      {
+         avnd->node_state = AVD_AVND_STATE_GO_DOWN;
+         m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
+      }
+      
+   }
+
+   return;
+}
+
+
+/*****************************************************************************
+ * Function: avd_oper_req_func
+ *
+ * Purpose:  This function is the handler for operation requests response  
+ * event indicating the arrival of the response message to the operation . 
+ * request message. This function will log and ignore the operation based 
+ * on the response in case of error. If success no action.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ *
+ * NOTES:
+ *
+ * 
+ **************************************************************************/
+
+void avd_oper_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_DND_MSG *n2d_msg;
+   AVD_AVND *avnd;
+   
+   m_AVD_LOG_FUNC_ENTRY("avd_oper_req_func");
+
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,n2d_msg->msg_info.n2d_op_req.node_id,AVSV_N2D_OPERATION_REQUEST_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_op_req.msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* Update the receive id for the node*/
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(n2d_msg->msg_info.n2d_op_req.msg_id));
+
+   /* 
+    * Send the Ack message to the node, indicationg that the message with this
+    * message ID is received successfully.
+    */
+   if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+   }
+
+
+   /* check the ack message for errors. If error stop and free all the
+    * messages in the list and issue HPI restart of the node
+    */
+
+   if (n2d_msg->msg_info.n2d_op_req.error == NCSCC_RC_SUCCESS)
+   {
+      /* the AVND has been successfully updated with the operation
+       */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* log an error since this shouldn't happen */
+
+   m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_op_req.error);
+
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+
+   return;
+}
+
+
+/*****************************************************************************
+ * Function: avd_data_update_req_func
+ *
+ * Purpose:  This function is the handler for update request message  
+ * event indicating the arrival of the data update request message. 
+ * This function will update the local structures with the information
+ * provided by this message. This data is not used by AvD for internal processing.
+ * It is used for supporting some of the MIB objects whose values are
+ * are managed by AvND.
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ *
+ * NOTES: The table id object id list handled in the routine from the AvND are
+ *
+ *     NCSMIB_TBL_AVSV_AMF_SU   : saAmfSUPresenceState_ID
+ *     NCSMIB_TBL_AVSV_AMF_COMP : saAmfCompRestartCount_ID
+ *                                saAmfCompOperState_ID
+ *                                saAmfCompPresenceState_ID
+ *
+ * 
+ **************************************************************************/
+
+void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_DND_MSG *n2d_msg;
+   AVD_AVND *avnd;
+   AVD_COMP *comp;
+   AVD_SU *su;
+   uns32 l_val=0;
+   
+   m_AVD_LOG_FUNC_ENTRY("avd_data_update_req_func");
+
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,n2d_msg->msg_info.n2d_data_req.node_id,AVSV_N2D_DATA_REQUEST_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != n2d_msg->msg_info.n2d_data_req.msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+   
+   /* Update the receive message id. */
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(n2d_msg->msg_info.n2d_data_req.msg_id));
+   
+   /* 
+    * Send the Ack message to the node, indicationg that the message with this
+    * message ID is received successfully.
+    */
+   if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+   }
+
+   /* Verify that operation is only modification. */
+   if(n2d_msg->msg_info.n2d_data_req.param_info.act
+      != AVSV_OBJ_OPR_MOD)
+   {
+      /* log error that a the table value is invalid */
+      m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.act);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+   
+   switch(n2d_msg->msg_info.n2d_data_req.param_info.table_id)
+   {
+   case NCSMIB_TBL_AVSV_AMF_COMP:
+        /*  tabel id is that of the component. */
+      /* Find the component record in the database, specified in the message.
+       * The length of name in the param is expected to be in network order.
+       */
+      if((comp = avd_comp_struc_find(cb,n2d_msg->msg_info.n2d_data_req.param_info.name_net,FALSE))
+         == AVD_COMP_NULL)
+      {
+         /* log error that a the component is invalid */
+         m_AVD_LOG_INVALID_VAL_ERROR(0);
+         avsv_dnd_msg_free(n2d_msg);
+         evt->info.avnd_msg = NULL;
+         return;
+      }
+      
+      switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id)
+      {
+      case saAmfCompRestartCount_ID:
+         if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32))
+         {
+            l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+            comp->restart_cnt = m_NCS_OS_NTOHL(l_val);
+            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_RESTART_COUNT);
+         }else
+         {
+            /* log error that a the  value len is invalid */
+            m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.value_len);
+         }
+         break;
+      case saAmfCompOperState_ID:
+         if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32))
+         {
+            l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+            comp->oper_state = m_NCS_OS_NTOHL(l_val);
+            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_OPER_STATE);
+         }else
+         {
+            /* log error that a the  value len is invalid */
+            m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.value_len);
+         }
+         break;
+      case saAmfCompPresenceState_ID:
+         if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32))
+         {
+            l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+            comp->pres_state = m_NCS_OS_NTOHL(l_val);
+            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_PRES_STATE);
+         }else
+         {
+            /* log error that a the  value len is invalid */
+            m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.value_len);
+         }
+         break;
+      case saAmfCompCurrProxyName_ID:
+         if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == 
+               m_NCS_STRLEN(n2d_msg->msg_info.n2d_data_req.param_info.value))
+         {
+            l_val = n2d_msg->msg_info.n2d_data_req.param_info.value_len;
+            comp->proxy_comp_name_net.length = m_NCS_OS_HTONS(l_val);
+            
+            m_NCS_STRCPY(comp->proxy_comp_name_net.value,
+                                             n2d_msg->msg_info.n2d_data_req.param_info.value);
+         }else
+         {
+            /* log error that a the  value len is invalid */
+            m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.value_len);
+         }
+         break;
+      default:
+         /* log error that a the object value is invalid */
+         m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.obj_id);
+         break;
+      } /* switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id) */
+      
+      
+      break; /* case NCSMIB_TBL_AVSV_AMF_COMP */
+   case NCSMIB_TBL_AVSV_AMF_SU:
+        /*  tabel id is that of the SU. */
+      /* Find the component record in the database, specified in the message.
+       * The length of name in the param is expected to be in network order.
+       */
+      if((su = avd_su_struc_find(cb,n2d_msg->msg_info.n2d_data_req.param_info.name_net,FALSE))
+         == AVD_SU_NULL)
+      {
+         /* log error that a the SU is invalid */
+         m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.name_net.value,n2d_msg->msg_info.n2d_data_req.param_info.name_net.length);
+         avsv_dnd_msg_free(n2d_msg);
+         evt->info.avnd_msg = NULL;
+         return;
+      }
+      
+      switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id)
+      {
+      case saAmfSUPresenceState_ID:
+         if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32))
+         {
+            l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
+            su->pres_state = m_NCS_OS_NTOHL(l_val);            
+            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_PRES_STATE);
+         }else
+         {
+            /* log error that a the  value len is invalid */
+            m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.value_len);
+         }
+         break;
+      default:
+         /* log error that a the object value is invalid */
+         m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.obj_id);
+         break;
+      } /* switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id) */
+      
+
+      break; /* case NCSMIB_TBL_AVSV_AMF_SU */
+   default:
+      /* log error that a the table value is invalid */
+      m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_data_req.param_info.table_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+      break;
+   }/* switch(n2d_msg->msg_info.n2d_data_req.param_info.table_id) */
+   
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+ 
+   return;
+
+}

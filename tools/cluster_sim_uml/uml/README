@@ -1,0 +1,106 @@
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+WHAT IS THIS?
+
+This directory (and subdirectories) contains a User Mode Linux - UML simulated
+cluster environment.
+
+The cluster environment is built using:
+- Linux kernel
+- Busybox
+- a few host libraries
+
+All packages are downloaded from the net. Make sure to have proxy settings
+correct if needed. Downloaded packages are stored in the 'archive'
+subdirectories.
+
+For minimising the memory requirements for each UML instance, the major part
+of its root file system consists of links to files on the host file
+system. This concept is called a shadow root, see below.
+
+
+DIRECTORY STRUCTURE
+
+archive   This directory contains linux and busybox downloads.
+
+bin	  This direcory contains the UML binary and a few scripts.
+
+config    This directory contains linux and busybox configuration and
+	  patches.
+
+root_template	This directory contains the template for building initramfs 
+		which is used as root file system.
+
+
+HOW TO BUILD
+
+- Edit the Environment.[bash|sh] file in parent directory to suit your 
+  environment and requirements.
+
+- Execute 'make all' in this directory or 'make all' in the parent directory.
+
+Building means downloading, configuring & building kernel and busybox packages
+from the internet.
+
+Files created by make are removed by 'make clean'. Downloaded files are
+removed by 'make realclean'.
+
+Building adds the following direcories:
+
+root	   This directory structure is used when building the initramfs for 
+	   the kernel. It is created using the root_template and busybox
+	   binary.
+
+linux-*	   This directory contains the extracted linux kernel source package.
+
+busybox-*   This directory contains the extracted busybox source package.
+
+uml_utilities_*	This directory contains the extraed UML utilities
+		source package.
+
+
+HOW TO RUN
+
+To start one UML instance in a shell:
+
+   ./bin/linux
+
+For each UML instance started, the PID of the main thread is saved in a PID
+file in the user's home directory, i.e. ~/.uml/<xxx>/pid.
+
+
+PERFORMANCE
+
+
+Consider applying the SKAS3 patch to the host.
+
+
+SOFTWARE REQUIREMENTS
+
+UML should run on any 2.6 host kernel. If the host kernel is patched for SKAS3
+mode, you will get better guest (UML) kernel performance.
+
+GNU C Library version 2.4 or later
+
+
+REFERENCES
+
+http://user-mode-linux.sourceforge.net/
+http://busybox.net/
+User Mode Linux;	Jeff Dike;	Prentice Hall

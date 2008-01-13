@@ -1,0 +1,102 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+# Add the busybox links (/proc required, but may already be mounted)
+/bin/busybox mount /proc > /dev/null 2>&1
+/bin/busybox mount -o remount -w /
+/bin/busybox --install -s
+
+mount /sys
+mount /tmp
+mount /dev/pts
+
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH
+
+# Set the hostname if specified (before starting the syslog services)
+hostnamecmd=`tr ' ' '\n' < /proc/cmdline | grep hostname`
+if test -n "$hostnamecmd"; then
+    eval $hostnamecmd
+    hostname $hostname
+fi
+
+# Automatically create devices
+mdev -s
+
+# Mount an UML host-dir if specified
+hostfs=/hostfs
+hostdircmd=`tr ' ' '\n' < /proc/cmdline | grep hostdir`
+if test -n "$hostdircmd"; then
+    eval $hostdircmd
+    mkdir -p $hostfs
+    mount none $hostfs -t hostfs -o $hostdir
+fi
+
+# Run customization scripts if they exist
+test -x /hostfs/etc/init.d/umlprep && /hostfs/etc/init.d/umlprep
+test -x /hostfs/etc/init.d/rcS && exec /hostfs/etc/init.d/rcS
+
+# Creates links to a shadow root on /hostfs/root if it exists
+shadowroot=root
+shadowrootcmd=`tr ' ' '\n' < /proc/cmdline | grep shadowroot`
+test -n "$shadowrootcmd" && eval $shadowrootcmd
+r=/hostfs/$shadowroot
+if test -d $r; then
+    if test -r $r/root.cpio; then
+	cd /
+	if cpio -idu < $r/root.cpio > /tmp/root.cpio.log 2>&1; then
+	    echo "Shadow-root archive [$r/root.cpio] unpacked"
+	else
+	    echo "Failed to unpack shadow-root see [/tmp/root.cpio.log]"
+	fi
+    else
+	echo "Shadow-root found at [$r] ..."
+	cd $r
+	items=`find ./`
+	cd /
+	for n in $items; do
+	    if test -d $r/$n; then
+		mkdir -p $n
+	    else
+		ln -fs $r/$n $n
+	    fi
+	done
+	echo "Shadow-root linked in"
+    fi
+fi
+
+# Run customization scripts on the shadowroot
+test -x $r/etc/init.d/umlprep && $r/etc/init.d/umlprep
+test -x $r/etc/init.d/rcS && exec $r/etc/init.d/rcS
+
+# Start syslog
+klogd -c 4
+syslogd
+
+# Sysctl setup
+sysctl -p > /dev/null
+
+# Basic network setup
+ifconfig lo 127.0.0.1
+
+# Start other services
+for n in `find /etc/init.d -name "*.rc" | sort`; do
+    test -x $n && $n start
+done

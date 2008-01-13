@@ -1,0 +1,793 @@
+#!/bin/bash
+#
+#           -*- OpenSAF  -*-
+# 
+# (C) Copyright 2008 The OpenSAF Foundation 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php 
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+# 
+# Author(s): Emerson Network Power
+#
+
+
+#
+# Description:
+# This script is to be invoked from the pseudoDRBD C-code
+#
+# usage: pdrbdctrl set_pri|set_sec|set_qui|remove|terminate|clean_meta comp_no res_name drbd_dev_name mount_pnt
+#                  data_disk_prtn meta_data_prtn
+#
+
+######################################################################
+# First set the re-set the nice value of this script and then start 
+# Executing it. We are setting it to 3. Current value is 14.
+# This should be removed with the leap fix to set nice value of the
+# spawned process.
+######################################################################
+renice 3 -p $$ 2> /dev/null
+
+DRBD="/etc/init.d/drbd"
+DRBDADM="/sbin/drbdadm"
+# DRBD_DISK="/etc/init.d/drbddisk"
+DRBD_DISK="/etc/ha.d/resource.d/drbddisk"		# in MVL
+PSEUDO_DRBD_PIPE="/tmp/pseudo_drbd.fifo"
+DRBD_ADM="/sbin/drbdadm"
+DRBD_SETUP="/sbin/drbdsetup"
+
+DRBD_CONF_PATH="/etc"
+MOTO_DRBD_CONF_PATH="/opt/opensaf/controller/scripts"
+
+DRBD_SYNC_FILE="/etc/opt/opensaf/.drbd_sync_state_"
+
+CMD="$1"
+COMP_NO="$2"
+RES="$3"
+DRBD_DEV_NAME="$4"
+PRTN_MNT_PNT="$5"
+DATA_DISK="$6"
+META_DISK="$7"
+
+#### Be careful while changing the following values;
+#### they have to be inline with those defined in "pdrbd_cb.h"
+SETP_OK=0x00010001
+SETP_MNT_ERR=0x00010005
+SETP_ERR=0x00010002
+SETP_ADM_NOT_FND=0x00010003
+SETP_MOD_LOAD_ERR=0x00010004
+SETP_ADM_ERR=0x00010007
+
+SETS_OK=0x00020001
+SETS_UMNT_ERR=0x00020006
+SETS_ERR=0x00020002
+SETS_ADM_NOT_FND=0x00020003
+SETS_MOD_LOAD_ERR=0x00020004
+SETS_ADM_ERR=0x00020007
+
+SETQ_OK=0x00030001
+SETQ_UMNT_ERR=0x00030006
+SETQ_ERR=0x00030002
+SETQ_ADM_NOT_FND=0x00030003
+SETQ_MOD_LOAD_ERR=0x00030004
+SETQ_ADM_ERR=0x00030007
+
+REMV_UMNT_ERR=0x00040006
+REMV_ADM_NOT_FND=0x00040003
+REMV_ERR=0x0004000b
+REMV_OK=0x0004000a
+
+TERM_UMNT_ERR=0x00060006
+TERM_ADM_NOT_FND=0x00060003
+TERM_ERR=0x0006000d
+TERM_OK=0x0006000c
+
+CLMT_ADM_NOT_FND=0x00070003
+CLMT_MOD_LOAD_ERR=0x00070004
+CLMT_ERR=0x0007000f
+CLMT_OK=0x0007000e
+
+
+function check_disk_consistency
+{
+	while [ 1 ]
+	do
+		ST=$( cat /proc/drbd | grep "$DRBD_DEV_NO: cs:" 2> /dev/null )
+		ST=${ST#*ds:}
+                ST=${ST%/*}
+		if [ "$ST" = "UpToDate" ]; then
+			ST=$( $DRBD_SETUP $DRBD_DEV_NAME cstate )
+			if [ "$ST" = "Connected" ]; then
+				echo "`date` In script in c_d_c: $RES Connected and UpToDate, returning!"
+				
+				#### Clear the Inconsistent sync flag
+				ST=$( cat $DRBD_SYNC_FILE$COMP_NO )
+				if [ "$ST" = "Inconsistent" ]; then 
+					echo "UpToDate" > $DRBD_SYNC_FILE$COMP_NO
+                                else 
+                                    if [ "$ST" = "UpToDate" ]; then
+                                    echo "Disk is UpToDate" 
+                                    else 
+                                    echo "Error : $DRBD_SYNC_FILE$COMP_NO contains $ST"
+                                    fi
+                                fi
+				
+				return
+			fi
+		fi
+	        sleep 4
+	done
+}
+
+
+function deal_with_hostname
+{
+        if [ -f /etc/opt/opensaf/slot_id ] ; then
+              F101_SLOT_NO=`cat /etc/opt/opensaf/slot_id`
+               if [ "$F101_SLOT_NO" != "1" ] && [ "$F101_SLOT_NO" != "2" ]
+                  then
+                  echo " Slot id for system controler should be 1 or 2"
+                     exit
+                fi
+        else
+            echo " slot_id file not available in /etc/opt/opensaf/ "
+            exit
+        fi
+
+	cp -f $MOTO_DRBD_CONF_PATH/drbd.$F101_SLOT_NO.conf $DRBD_CONF_PATH/drbd.conf
+	HNAME=$( uname -n 2> /dev/null )
+	cp -f $DRBD_CONF_PATH/drbd.conf /tmp/drbd.conf
+	cat /tmp/drbd.conf | sed 's/HOST_NAME_LOCAL/'$HNAME'/g' > $DRBD_CONF_PATH/drbd.conf
+	rm -f /tmp/drbd.conf
+}
+
+
+#### Extract the number in the DRBD device name; eg in /dev/drbd2 the no is 2
+DRBD_DEV_NO=${DRBD_DEV_NAME#?????????}
+
+
+case "$CMD" in
+	#### Set Primary role
+	set_pri)
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+
+		#### First check present role
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		case "$ST" in
+			##### if already Primary, then exit
+			Primary)
+                                echo "`date` In script: set_pri $RES already Primary"
+				echo "$COMP_NO$SETP_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+
+			#### if presently Secondary, then transition to Primary
+			Secondary)
+                                echo "`date` In script: set_pri $RES running as Secondary"
+                                
+                                for (( i=0; i<=9; i++ ))
+                                do
+				$DRBD_ADM -- --overwrite-data-of-peer primary $RES
+				ret=$?
+
+				case "$ret" in
+					20)
+						echo "`date` In script: set_pri $RES drbdadm error $i"
+                                                sleep 2
+						;;
+                                        *)
+						echo "`date` In script: set_pri $RES success $i"
+                                                i=10
+				esac
+				
+				if [ $i == 4 ]; then
+					# We have spent enough time in retrying. Try to re-connect
+					# this could solve our problem.
+					echo "`date` In script: set_pri reconnecting $RES to start receiver thread"
+					$DRBD_ADM connect $RES
+				fi
+                                done
+
+				case "$ret" in
+					20)
+						echo "`date` In script: set_pri $RES drbdadm error"
+						echo "$COMP_NO$SETP_ADM_ERR" > $PSEUDO_DRBD_PIPE
+						exit 1
+						;;
+				esac
+
+				#### Check/clean the device before mounting
+				echo "`date` In script: set_pri $RES running e2fsck on partition.."
+				e2fsck -p $DATA_DISK
+				retVal=$?
+				
+				case "$retVal" in
+					0)
+				         	# No error
+				                echo "`date` In script: set_pri $RES partition is clean"
+				                ;;
+				        1)
+				                # File system errors but corrected; run e2fsck again as MVL says
+				                echo "`date` In script: set_pri $RES partition errors corrected, correcting with -y.."
+				                e2fsck -y $DATA_DISK
+				                ;;
+				        *)
+				                echo "`date` In script: set_pri $RES partition is corrupt, correcting with -y.."
+				                e2fsck -y $DATA_DISK
+				                ;;
+                                esac
+
+				#### Mount the DRBD device
+				mount $DRBD_DEV_NAME $PRTN_MNT_PNT
+				ret=$?
+
+				#### mount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: set_pri $RES mount error"
+					echo "$COMP_NO$SETP_MNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+
+				#### Verify Primary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Primary" ]; then
+                                        echo "`date` In script: set_pri $RES done"
+					echo "$COMP_NO$SETP_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_pri $RES error"
+					echo "$COMP_NO$SETP_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+
+			#### DRBD not already running
+			*)
+                                echo "`date` In script: set_pri $RES not running"
+                                
+				#### Load the module only if the component is zero, i.e NCS resource, else just bring up
+				if [ $COMP_NO == 0 ]; then
+					#### Load the module
+					$DRBD start
+					ret=$?
+
+					#### drbd load errors
+					case "$ret" in
+						5)
+							echo "$COMP_NO$SETP_ADM_NOT_FND" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+						20)
+							echo "$COMP_NO$SETP_MOD_LOAD_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+
+					#### Put it in Primary
+					$DRBD_ADM -- --overwrite-data-of-peer primary $RES
+					ret=$?
+
+					case "$ret" in
+						20)
+							echo "`date` In script: set_pri $RES drbdadm error"
+							echo "$COMP_NO$SETP_ADM_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				else
+					#### Bring up the resource
+					$DRBD_ADM up $RES
+					ret=$?
+
+					case "$ret" in
+						20)
+							echo "`date` In script: set_pri $RES drbdadm error"
+							echo "$COMP_NO$SETP_ADM_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				fi
+
+				#### Check/clean the device before mounting
+				echo "`date` In script: set_pri $RES running e2fsck on partition.."
+				e2fsck -p $DATA_DISK
+				retVal=$?
+				
+				case "$retVal" in
+					0)
+				         	# No error
+				                echo "`date` In script: set_pri $RES partition is clean"
+				                ;;
+				        1)
+				                # File system errors but corrected; run e2fsck again as MVL says
+				                echo "`date` In script: set_pri $RES partition errors corrected, correcting with -y.."
+				                e2fsck -y $DATA_DISK
+				                ;;
+				        *)
+				                echo "`date` In script: set_pri $RES partition is corrupt, correcting with -y.."
+				                e2fsck -y $DATA_DISK
+				                ;;
+                                esac
+				
+
+				#### Mount the DRBD device
+				mount $DRBD_DEV_NAME $PRTN_MNT_PNT
+				ret=$?
+
+				#### mount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: set_pri $RES mount error"
+					echo "$COMP_NO$SETP_MNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+
+				#### Verify Primary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Primary" ]; then
+                                        echo "`date` In script: set_pri $RES done"
+					echo "$COMP_NO$SETP_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_pri $RES error"
+					echo "$COMP_NO$SETP_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+		esac
+		;;
+
+	#### Set Secondary role
+	set_sec)
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+	
+		#### First check present role
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		case "$ST" in
+			##### if already Secondary, then exit
+			Secondary)
+                                echo "`date` In script: set_sec $RES already running as Secondary"
+				check_disk_consistency
+				echo "$COMP_NO$SETS_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+
+			#### if presently Primary, then transition to Secondary
+			Primary)
+                                echo "`date` In script: set_sec $RES running as Primary"
+				#### Kill all using the replicated partition
+				# fuser -mk $DRBD_DEV_NAME
+
+				#### Unmount the DRBD device
+				umount -f $PRTN_MNT_PNT
+				ret=$?
+
+				#### umount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: set_sec $RES umount error"
+					echo "$COMP_NO$SETS_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+
+				#### Put it in Secondary
+				$DRBD_ADM secondary $RES
+
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Secondary" ]; then
+					check_disk_consistency
+                                        echo "`date` In script: set_sec $RES done"
+					echo "$COMP_NO$SETS_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_sec $RES error"
+					echo "$COMP_NO$SETS_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+
+			#### DRBD not already running
+			*)
+                                echo "`date` In script: set_sec $RES not running"
+                                
+				#### Load the module only if the component is zero, i.e NCS resource, else just bring up
+				if [ $COMP_NO == 0 ]; then
+					#### Load the module
+					$DRBD start
+					ret=$?
+
+					#### drbd load errors
+					case "$ret" in
+						5)
+							echo "$COMP_NO$SETS_ADM_NOT_FND" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+						20)
+							echo "$COMP_NO$SETS_MOD_LOAD_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				else
+					#### Bring up the resource
+					$DRBD_ADM up $RES
+					ret=$?
+
+					case "$ret" in
+						20)
+							echo "`date` In script: set_sec $RES drbdadm error"
+							echo "$COMP_NO$SETS_ADM_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				fi
+				
+                                #### Probe for our peer and set the Inconsistent flag
+                                for (( i=0; i<9; i++ ))
+                                do
+                                     ST=$( $DRBDADM state $RES 2> /dev/null )
+                                     ## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+                                     ST=${ST#*/}
+                                     if [ "$ST" = "Unknown" ]; then
+                                          if [ $i == 8 ]; then
+                                               echo "`date` In script: set_sec $RES no ACTIVE peer! can not become STDBY"
+                                               echo "$COMP_NO$SETS_ERR" > $PSEUDO_DRBD_PIPE
+                                               exit 1
+                                          fi
+                                          sleep 10
+                                     else
+                                          if [ "$ST" = "Primary" ]; then
+                                               break
+                                          fi
+                                          sleep 4
+                                     fi
+                                done
+
+				ST=$( cat /proc/drbd | grep "$DRBD_DEV_NO: cs:" 2> /dev/null )
+				ST=${ST#*ds:}
+                                ST=${ST%/*}
+                               	echo $ST > $DRBD_SYNC_FILE$COMP_NO
+				
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Secondary" ]; then
+					check_disk_consistency
+                                        echo "`date` In script: set_sec $RES done"
+					echo "$COMP_NO$SETS_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_sec $RES error"
+					echo "$COMP_NO$SETS_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+		esac
+		;;
+
+	#### Set Quiesced role = same as Secondary
+	set_qui)
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+	
+		#### First check present role
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		case "$ST" in
+			##### if already Secondary, then exit
+			Secondary)
+                                echo "`date` In script: set_qui $RES already Quiesced"
+				echo "$COMP_NO$SETQ_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+
+			#### if presently Primary, then transition to Secondary
+			Primary)
+                                echo "`date` In script: set_qui $RES running as Primary"
+				#### Kill all using the replicated partition
+				# fuser -mk $DRBD_DEV_NAME
+
+				#### Unmount the DRBD device
+				umount -f $PRTN_MNT_PNT
+				ret=$?
+
+				#### umount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: set_qui $RES umount error"
+					echo "$COMP_NO$SETQ_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+
+				#### Put it in Secondary
+				$DRBD_ADM secondary $RES
+
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Secondary" ]; then
+                                        echo "`date` In script: set_qui $RES done"
+					echo "$COMP_NO$SETQ_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_qui $RES error"
+					echo "$COMP_NO$SETQ_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+
+			#### DRBD not already running
+			*)
+                                echo "`date` In script: set_qui $RES not running"
+                                
+				#### Load the module only if the component is zero, i.e NCS resource, else just bring up
+				if [ $COMP_NO == 0 ]; then
+					#### Load the module
+					$DRBD start
+					ret=$?
+
+					#### drbd load errors
+					case "$ret" in
+						5)
+							echo "$COMP_NO$SETQ_ADM_NOT_FND" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+						20)
+							echo "$COMP_NO$SETQ_MOD_LOAD_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				else
+					#### Bring up the resource
+					$DRBD_ADM up $RES
+					ret=$?
+
+					case "$ret" in
+						20)
+							echo "`date` In script: set_qui $RES drbdadm error"
+							echo "$COMP_NO$SETQ_ADM_ERR" > $PSEUDO_DRBD_PIPE
+							exit 1
+							;;
+					esac
+				fi
+
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				if [ "$ST" = "Secondary" ]; then
+                                        echo "`date` In script: set_qui $RES done"
+					echo "$COMP_NO$SETQ_OK" > $PSEUDO_DRBD_PIPE
+					exit 0
+				else
+                                        echo "`date` In script: set_qui $RES error"
+					echo "$COMP_NO$SETQ_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				;;
+		esac
+		;;
+
+	#### Remove DRBD (put the devices in Secondary state)
+	remove)
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+	
+		#### First check present role
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		case "$ST" in
+			#### if presently Primary, then stop
+			Primary)
+                                echo "`date` In script: remove $RES running as Primary"
+				#### Kill all using the replicated partition
+				# fuser -mk $DRBD_DEV_NAME
+
+				#### Unmount the DRBD device
+				umount -f $PRTN_MNT_PNT
+				ret=$?
+
+				#### umount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: remove $RES umount error"
+					echo "$COMP_NO$REMV_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+				
+				#### Put it in Secondary
+				$DRBD_ADM secondary $RES
+
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				case "$ST" in
+					#### Still running as Primary
+					Primary)
+                                               	echo "`date` In script: remove $RES error, still as Primary"
+						echo "$COMP_NO$REMV_ERR" > $PSEUDO_DRBD_PIPE
+						exit 1
+						;;
+					#### Running as Secondary
+					Secondary)
+                                               	echo "`date` In script: remove $RES done"
+						echo "$COMP_NO$REMV_OK" > $PSEUDO_DRBD_PIPE
+						exit 0
+						;;
+					#### Some other?
+					*)
+                                               	echo "`date` In script: remove $RES done"
+						echo "$COMP_NO$REMV_OK" > $PSEUDO_DRBD_PIPE
+						exit 0
+						;;
+				esac
+				;;
+
+			##### if presently Secondary, then just return success
+			Secondary)
+                                echo "`date` In script: remove $RES running as Secondary"
+				echo "`date` In script: remove $RES done"
+				echo "$COMP_NO$REMV_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+
+			#### DRBD not already running, then exit
+			*)
+                                echo "`date` In script: remove $RES not running"
+				echo "$COMP_NO$REMV_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+		esac
+		;;
+
+	#### Terminate DRBD (just put the resource in Secondary; actual driver cleanup is done in avanshut script)
+	terminate)
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+	
+		#### First check present role
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		case "$ST" in
+			#### if presently Primary, then stop
+			Primary)
+                                echo "`date` In script: term $RES running as Primary"
+				#### Kill all using the replicated partition
+				# fuser -mk $DRBD_DEV_NAME
+
+				#### Unmount the DRBD device
+				umount -f $PRTN_MNT_PNT
+				ret=$?
+
+				#### umount error
+				if [ $ret -ne 0 ]; then
+                                        echo "`date` In script: term $RES umount error"
+					echo "$COMP_NO$TERM_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					exit 1
+				fi
+
+				#### Put it in Secondary
+				$DRBD_ADM secondary $RES
+
+				#### Verify Secondary is done
+				ST=$( $DRBD_ADM state $RES 2> /dev/null )
+				## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+				ST=${ST%/*}
+
+				case "$ST" in
+					#### Still running as Primary
+					Primary)
+                                               	echo "`date` In script: term $RES error, still as Primary"
+						echo "$COMP_NO$TERM_ERR" > $PSEUDO_DRBD_PIPE
+						exit 1
+						;;
+					#### Running as Secondary
+					Secondary)
+                                               	echo "`date` In script: term $RES done"
+						echo "$COMP_NO$TERM_OK" > $PSEUDO_DRBD_PIPE
+						exit 0
+						;;
+					#### Some other?
+					*)
+                                               	echo "`date` In script: term $RES done"
+						echo "$COMP_NO$TERM_OK" > $PSEUDO_DRBD_PIPE
+						exit 0
+						;;
+				esac
+				;;
+
+			##### if presently Secondary, then just return success
+			Secondary)
+                                echo "`date` In script: term $RES running as Secondary"
+				echo "`date` In script: term $RES done"
+				echo "$COMP_NO$TERM_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+
+			#### DRBD not already running, then exit
+			*)
+                                echo "`date` In script: term $RES not running"
+				echo "$COMP_NO$TERM_OK" > $PSEUDO_DRBD_PIPE
+				exit 0
+				;;
+		esac
+		;;
+
+	#### Stop, clean the metadata and start DRBD
+	clean_meta)
+		#### Simply return if we're Primary but somehow received clean metadata request
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		if [ "$ST" = "Primary" ]; then
+			echo "`date` In script: clean_meta $RES am a Primary, simply returning"
+			echo "$COMP_NO$CLMT_OK" > $PSEUDO_DRBD_PIPE
+			exit 0
+		fi
+	
+	        #### The host name may have been changed; deal with that
+	        deal_with_hostname
+
+                echo "`date` In script: clean_meta bringing down $RES"
+                #### Don't unload the module, other devices might be there
+                #### disconnect and detach only this device
+                $DRBD_ADM down $RES 2> /dev/null
+	
+		#### Clean the metadata
+		dd if=/dev/zero bs=4096 count=1 of=$META_DISK
+
+                echo "`date` In script: clean_meta bringing up $RES"
+                #### Attach and reconnect this device
+                $DRBD_ADM up $RES 2> /dev/null
+
+		#### Verify DRBD is restarted (as Secondary)
+		ST=$( $DRBD_ADM state $RES 2> /dev/null )
+		## ST=$( $DRBD_SETUP $DRBD_DEV_NAME state )
+		ST=${ST%/*}
+
+		if [ "$ST" = "Secondary" ]; then
+			echo "`date` In script: clean_meta $RES done"
+			echo "$COMP_NO$CLMT_OK" > $PSEUDO_DRBD_PIPE
+			exit 0
+		else
+ 			echo "`date` In script: clean_meta $RES error"
+			echo "$COMP_NO$CLMT_ERR" > $PSEUDO_DRBD_PIPE
+			exit 1
+		fi
+		;;
+esac
+
+exit 0
+

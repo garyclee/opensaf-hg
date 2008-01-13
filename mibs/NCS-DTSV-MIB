@@ -1,0 +1,542 @@
+    NCS-DTSV-MIB DEFINITIONS ::= BEGIN
+
+     IMPORTS
+         OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE,
+         Integer32, Counter32, Unsigned32, Counter64  
+             FROM SNMPv2-SMI
+         MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+             FROM SNMPv2-CONF
+
+         RowStatus, TimeInterval, TruthValue,
+         TimeStamp, StorageType, DisplayString
+             FROM SNMPv2-TC
+         TEXTUAL-CONVENTION FROM SNMPv2-TC
+	
+         eccgNcsModules, dtsv
+             FROM ECC-SMI
+         ;
+
+
+     ncsDtsv MODULE-IDENTITY
+         LAST-UPDATED "200402111609Z"  -- April 13, 2004
+         ORGANIZATION "Netplane Core Services"
+         CONTACT-INFO
+             " 	Motorola Inc
+		Embedded Communications Computing
+		http://www.motorola.com/computers/
+
+		Author: Parag Badge
+		e-mail:	g19470@motorola.com
+		Address: Motorola India Pvt Ltd, 
+			 Auriga Block, Ascendas IT Park,
+			 Madhapur, Hyderabad, AP
+			 INDIA
+		Tel:	 +91-40-55727000
+		Fax:	 +91-40-55727001"
+
+         DESCRIPTION
+             "This MIB contains managed object definitions for the
+             'Distributed Tracing Service for Netplane Core 
+              Services."
+         ::= { eccgNcsModules 6}
+
+     --****************************************************************
+
+     ncsdtsvObjects                  OBJECT IDENTIFIER ::= { dtsv 1 }
+
+     ncsDtsvScalars                  OBJECT IDENTIFIER ::= { ncsdtsvObjects 1 }
+     ncsDtsvTables                   OBJECT IDENTIFIER ::= { ncsdtsvObjects 2 }
+
+
+--*********************************************************************
+--    IR 58750 : Textual Conventions added 
+--*********************************************************************
+DtsvLogDevice ::= TEXTUAL-CONVENTION
+   STATUS       current
+   DESCRIPTION
+       "Reprsents textual convention for log device objects for global,
+        node & service levels. The objects denote the log device currently
+        selected for logging.
+        The log device can simultaneously be one or more of:
+         1. Log-File, 2. In-Memory Circular Buffer, 3. console."
+   SYNTAX        BITS { logfile (0),
+                        cirbuffer (1),
+                        console  (2)
+                      }
+
+
+DtsvCategoryBitMap ::= TEXTUAL-CONVENTION
+   STATUS       current
+   DESCRIPTION
+       "Message category filter for global, node & service levels to filter the message depending on the categories of the message."
+   SYNTAX        BITS { apiInvoked(0),
+                        headline(1),
+                        stateTrans(2),
+                        timers (3),
+                        funcEntryPt (4),
+                        events(5),
+                        data (6),
+                        stateMachine(7),
+                        serviceProvider(8),
+                        memory (9),
+                        locks  (10),
+                        interface(11),
+                        funcretfail(12),
+                        syscallfail(13),
+                        msgfmterr(14),
+                        ckptmsg(15),
+                        miscCategory(16),
+                        reserved1(17),
+                        reserved2(18),
+                        reserved3(19),
+                        reserved4(20),
+                        reserved5(21),
+                        reserved6(22),
+                        reserved7(23),
+                        reserved8(24),
+                        reserved9(25),
+                        reserved10(26),
+                        reserved11(27),
+                        reserved12(28),
+                        reserved13(29),
+                        reserved14(30),
+                        reserved15(31)
+                      }   
+
+
+DtsvSeverityBitMap ::= TEXTUAL-CONVENTION
+   STATUS       current
+   DESCRIPTION
+       "Message severity filter for global, node & service levels to filter the message depending on the severities of the message."
+   SYNTAX        BITS { emergency (0),
+                        alert (1),
+                        critical  (2),
+                        error (3),
+                        warning (4),
+                        notice (5),
+                        information (6),
+                        debug (7)
+                      }
+
+
+     --****************************************************************
+     -- DTSV Global Policy Objects
+     --****************************************************************
+
+ncsDtsvGlobalMessageLogging OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will use one log file for entire system and will apply the one 
+        logging policy for entire system. If FALSE, DTSv then will use Node specific
+        logging policies if enable or service specific logging policy"
+   DEFVAL        { false }  -- DTSv will use the Service Specific policies by default if node specific policies are disabled.
+   ::= { ncsDtsvScalars 1 }
+
+
+ncsDtsvGlobalLogDevice OBJECT-TYPE
+   SYNTAX        DtsvLogDevice 
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is used for selecting the logging device if the ncsDtsvGlobalMsgLogging
+    is set to TRUE. The log device can simultaneously be one or more of 1. Log-File, 2. In-Memory Circular Buffer, 3. console."
+   ::= { ncsDtsvScalars 2 }
+
+
+ncsDtsvGlobalLogFileSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (100..1000000)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the log file used for logging. The size is specified in KB."
+   DEFVAL        { 1000 }
+      ::= { ncsDtsvScalars 3 }
+
+ncsDtsvGlobalFileLogCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. 
+        If FALSE, DTSv will expand the terse data and then dump it into the log file."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvScalars 4 }
+
+ncsDtsvGlobalCircularBuffSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (10..100000)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the Circular message log buffer used for logging. 
+        The size is specified in KB."
+   DEFVAL        { 111 }
+      ::= { ncsDtsvScalars 5 }
+
+
+ncsDtsvGlobalCirBuffCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. If FALSE, DTSv will expand the terse data and then dump it into the circular in memory buffer."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvScalars 6 }
+
+
+ncsDtsvGlobalLoggingState OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, enables the logging for entire system. If FALSE, logging will be disabled for entire system."
+   DEFVAL        { true }  -- By default the logging is enabled on entire system.
+   ::= { ncsDtsvScalars 7 }
+
+ncsDtsvGlobalCategoryBitMap OBJECT-TYPE
+   SYNTAX        DtsvCategoryBitMap 
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Message category filter, to filter the message depending on the categories of the message. Set category message filter for all the service, should be used as a shortcut for setting the filter for entire system."
+   ::= { ncsDtsvScalars 8 }
+
+ncsDtsvGlobalSeverityBitMap OBJECT-TYPE
+   SYNTAX        DtsvSeverityBitMap 
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Message severity filter, to filter the message depending on the severities of the message. Set filter for all the services currently registered with the DTSv, should be used as a shortcut for setting the filter for entire system."
+   ::= { ncsDtsvScalars 9 }
+
+
+ncsDtsvGlobalNumOfLogFiles OBJECT-TYPE
+   SYNTAX        Unsigned32 (1..255)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Maximum number of the old log files to be preserved in the system before removing the oldest log files."
+   DEFVAL        { 10 }
+      ::= { ncsDtsvScalars 10 }
+
+ncsDtsvGlobalLogMsgSequencing OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message into output device only after sequencing in chronological order. If FALSE, DTSv will disable the message sequencing, the message will be dumped into the output device when they arrive at DTSv."
+   DEFVAL        { false }  -- DTSv will log without sequencing.
+   ::= { ncsDtsvScalars 11 }
+
+ncsDtsvGlobalCloseOpenFiles OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Performing a SET on this object will cause DTSv to close all open files and create new log files. By default it is set to FALSE."
+   DEFVAL        { false }
+   ::= { ncsDtsvScalars 12 }
+
+     --****************************************************************
+     -- DTSV Node Policy Table Objects
+     --****************************************************************
+
+ncsDtsvNodeLogPolicyTable OBJECT-TYPE
+   SYNTAX        SEQUENCE OF DtsvNodeLogPolicyEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       " This table contains all the node specific policies. Each row of this table 
+       is indexed by Node_ID. The MIB row will be created by when user wants to set 
+       the node based logging policies and tries to modify the policies through the 
+       CLI or SNMP."
+   ::= { ncsDtsvTables 1 }
+
+ncsDtsvNodeLogPolicyEntry OBJECT-TYPE
+   SYNTAX        DtsvNodeLogPolicyEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "An entry in this table is created by user configuration.
+        This entry is indexed by Node_ID."
+   INDEX         {  ncsDtsvNodeIndexNode}
+      ::= { ncsDtsvNodeLogPolicyTable  1 }
+
+DtsvNodeLogPolicyEntry ::= SEQUENCE {
+      ncsDtsvNodeIndexNode                      Unsigned32,
+      ncsDtsvNodeRowStatus                      RowStatus,
+      ncsDtsvNodeMessageLogging                 TruthValue,
+      ncsDtsvNodeLogDevice                      BITS,
+      ncsDtsvNodeLogFileSize                    Unsigned32,
+      ncsDtsvNodeFileLogCompFormat              TruthValue,
+      ncsDtsvNodeCircularBuffSize               Unsigned32,
+      ncsDtsvNodeCirBuffCompFormat              TruthValue,
+      ncsDtsvNodeLoggingState                   TruthValue,
+      ncsDtsvNodeCategoryBitMap                 BITS,
+      ncsDtsvNodeSeverityBitMap                 BITS
+      }
+
+ncsDtsvNodeIndexNode OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This is the node number."
+      ::= { ncsDtsvNodeLogPolicyEntry 1 }
+
+
+ncsDtsvNodeRowStatus    OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "'not in service' on modification of any parameter in this table. 
+       All the other parameters will use default parameters"
+   ::= { ncsDtsvNodeLogPolicyEntry 2 }
+
+ncsDtsvNodeMessageLogging OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will use the per node logging policy. 
+       If FALSE, DTSv will use the Service Specific policy."
+   DEFVAL        { false }  -- DTSv will use the Service Specific policies.
+   ::= { ncsDtsvNodeLogPolicyEntry 3 }
+
+
+ncsDtsvNodeLogDevice OBJECT-TYPE
+   SYNTAX        DtsvLogDevice 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "This object is used for choosing the log device. The log device can simultaneously be one or more of 1. Log-File, 2. In-Memory Circular Buffer, 3. console." 
+   ::= { ncsDtsvNodeLogPolicyEntry 4 }
+
+
+ncsDtsvNodeLogFileSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (100..100000)
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the log file used for logging. The size is specified in KB."
+   DEFVAL        { 1000 }
+      ::= { ncsDtsvNodeLogPolicyEntry 5 }
+
+
+ncsDtsvNodeFileLogCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. 
+        If FALSE, DTSv will expand the terse data and then dump it into the log file."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvNodeLogPolicyEntry 6 }
+
+
+ncsDtsvNodeCircularBuffSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (10..10000)
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the Circular message log buffer used for logging. The size 
+       is specified in KB."
+   DEFVAL        { 120 }
+      ::= { ncsDtsvNodeLogPolicyEntry 7 }
+
+ncsDtsvNodeCirBuffCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. 
+        If FALSE, DTSv will expand the terse data and then dump it into the circular
+        in memory buffer."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvNodeLogPolicyEntry 8 }
+ 
+ncsDtsvNodeLoggingState OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, Per node logging will be enable for the node. 
+       If FALSE, logging will be disabled for the entire node."
+   DEFVAL        { true }  -- When the row is created the default value for this 
+                           -- is to enable the per node logging.
+   ::= { ncsDtsvNodeLogPolicyEntry 9 }
+
+ncsDtsvNodeCategoryBitMap OBJECT-TYPE
+   SYNTAX        DtsvCategoryBitMap 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Message category filter, to filter the message depending on the categories 
+       of the message. Should be used as a shortcut for setting the filter for all services in the node."
+   ::= { ncsDtsvNodeLogPolicyEntry 10 }
+
+
+ncsDtsvNodeSeverityBitMap OBJECT-TYPE
+   SYNTAX        DtsvSeverityBitMap 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Message severity filter, to filter the message depending on the severities 
+       of the message. Should be used as a shortcut for setting the filter for all services in the node."
+   ::= { ncsDtsvNodeLogPolicyEntry 11 }
+
+
+
+
+     --****************************************************************
+     -- DTSV Service Policy Table Objects
+     --****************************************************************
+
+ncsDtsvServiceLogPolicyTable OBJECT-TYPE
+   SYNTAX        SEQUENCE OF DtsvServiceLogPolicyEntry 
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       " This table contains all the service specific policies. Each row of this 
+       table is indexed by Service_ID and Node_ID. The MIB row will be created by 
+       when user tries to modify the policies through the CLI or SNMP."
+   ::= { ncsDtsvTables 2 }
+
+ncsDtsvServiceLogPolicyEntry OBJECT-TYPE
+   SYNTAX        DtsvServiceLogPolicyEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "An entry in this table is created by user configuration.
+        This entry is indexed by Node_ID and Service_ID."
+   INDEX         {  ncsDtsvServiceIndexNode,
+                    ncsDtsvServiceIndexService}
+      ::= { ncsDtsvServiceLogPolicyTable 1 }
+
+DtsvServiceLogPolicyEntry ::= SEQUENCE {
+      ncsDtsvServiceIndexNode                      Unsigned32,
+      ncsDtsvServiceIndexService                   Unsigned32,
+      ncsDtsvServiceRowStatus                      RowStatus,
+      ncsDtsvServiceLogDevice                      BITS,
+      ncsDtsvServiceLogFileSize                    Unsigned32,
+      ncsDtsvServiceFileLogCompFormat              TruthValue,
+      ncsDtsvServiceCircularBuffSize               Unsigned32,
+      ncsDtsvServiceCirBuffCompFormat              TruthValue,
+      ncsDtsvServiceLoggingState                   TruthValue,
+      ncsDtsvServiceCategoryBitMap                 BITS,
+      ncsDtsvServiceSeverityBitMap                 BITS
+      }
+    
+
+ncsDtsvServiceIndexNode OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This is the node number."
+      ::= { ncsDtsvServiceLogPolicyEntry 1 }
+
+ncsDtsvServiceIndexService OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This is the Service ID."
+      ::= { ncsDtsvServiceLogPolicyEntry 2 }
+
+
+ncsDtsvServiceRowStatus    OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "'not in service' on modification of any parameter in this table. All the other 
+         parameters will use default values"
+   ::= { ncsDtsvServiceLogPolicyEntry 3 }
+
+
+ncsDtsvServiceLogDevice OBJECT-TYPE
+   SYNTAX        DtsvLogDevice 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "This object is used for choosing the log device. The log device can simultaneously be one or more of 1. Log-File, 2. In-Memory Circular Buffer, 3. console."
+   ::= { ncsDtsvServiceLogPolicyEntry 4 }
+
+
+ncsDtsvServiceLogFileSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (100..10000)
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the log file used for logging. The size is specified in KB."
+   DEFVAL        { 1000 }
+      ::= { ncsDtsvServiceLogPolicyEntry 5 }
+
+
+ncsDtsvServiceFileLogCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. If FALSE, DTSv will 
+        expand the terse data and then dump it into the log file."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvServiceLogPolicyEntry 6 }
+
+
+ncsDtsvServiceCircularBuffSize OBJECT-TYPE
+   SYNTAX        Unsigned32 (10..1000)
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Maximum size of the Circular message log buffer used for logging. The size is 
+        specified in KB."
+   DEFVAL        { 12 }
+      ::= { ncsDtsvServiceLogPolicyEntry 7 }
+
+
+ncsDtsvServiceCirBuffCompFormat OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, DTSv will log the message in the compressed format. If FALSE, DTSv will
+        expand the terse data and then dump it into the circular in memory buffer."
+   DEFVAL        { false }  -- DTSv will use expanded format.
+   ::= { ncsDtsvServiceLogPolicyEntry 8 }
+
+
+ncsDtsvServiceLoggingState OBJECT-TYPE
+   SYNTAX        TruthValue
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "If TRUE, Per node logging will be enable for the node. If FALSE, Per node 
+       logging will be disabled."
+   DEFVAL        { true }  -- When the row is created the default value for this is to enable the per node logging.
+   ::= { ncsDtsvServiceLogPolicyEntry 9 }
+
+
+ncsDtsvServiceCategoryBitMap OBJECT-TYPE
+   SYNTAX        DtsvCategoryBitMap 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Message category bit map, to filter the message depending on the category of 
+       the message."
+   ::= { ncsDtsvServiceLogPolicyEntry 10 }
+             
+
+ncsDtsvServiceSeverityBitMap OBJECT-TYPE
+   SYNTAX        DtsvSeverityBitMap 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Message severity filter, to filter the message depending on the severity
+        of the message."
+   ::= { ncsDtsvServiceLogPolicyEntry 11 }
+
+END
