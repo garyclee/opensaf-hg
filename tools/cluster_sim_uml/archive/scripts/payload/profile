@@ -1,0 +1,8 @@
+export PATH=$PATH:/opt/opensaf/payload/bin
+export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
+alias ls='ls -F'
+alias ll='ls -Fl'
+alias lrt='ls -lrt'
+alias ..='cd ..'
+alias ...='cd ..;cd ..'
+ulimit -c unlimited

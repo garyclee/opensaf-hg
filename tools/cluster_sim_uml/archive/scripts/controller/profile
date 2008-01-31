@@ -1,0 +1,11 @@
+export PATH=$PATH:/opt/opensaf/controller/bin
+export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+export MIBDIRS=/usr/share/snmp/mibs
+export MIBS=ALL
+alias ls='ls -F'
+alias ll='ls -Fl'
+alias lrt='ls -lrt'
+alias ..='cd ..'
+alias ...='cd ..;cd ..'
+ulimit -c unlimited
+

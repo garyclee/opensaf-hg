@@ -1,0 +1,42 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+# This script is executed last in the UML start sequence
+# and contains preparations of the UML environment
+
+HOSTNAME=`hostname`
+eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
+
+export PATH=$PATH:/opt/opensaf/payload/bin
+export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
+
+mkdir -p /var/opt/opensaf
+
+rm -f /etc/opt/opensaf/slot_id
+rm -f /etc/opt/opensaf/node_id
+echo $hostnumber > /etc/opt/opensaf/slot_id 
+
+# Enabled core dumps for opensaf and AMF started programs
+ulimit -c unlimited
+
+ln -sf /sbin/reboot /etc/opt/opensaf/reboot
+
+# start payload nid
+/opt/opensaf/payload/scripts/nis_pld start&

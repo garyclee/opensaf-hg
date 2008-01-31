@@ -1,0 +1,154 @@
+#!/bin/bash
+#
+#           -*- OpenSAF  -*-
+# 
+# (C) Copyright 2008 The OpenSAF Foundation 
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php 
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+# 
+# Author(s): Emerson Network Power
+#
+#
+
+#
+# Role Distribution Entity daemon startup/shutdown Script
+#
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/opensaf/controller/bin
+DAEMON=ncs_rde
+DESC="Role Distribution Entity Daemon"
+BINPATH=/opt/opensaf/controller/bin
+PIDFILE=/var/run/rde.pid
+HPMCMDPATH=/opt/opensaf/controller/bin
+
+
+NIDFIFO=/tmp/nodeinit.fifo
+NID_MAGIC=AAB49DAA
+SERVICE_CODE=RDF
+
+NID_RDE_DAEMON_STARTED=1
+NID_RDE_DAEMON_NOT_FND=3
+NID_RDE_DAEMON_START_FAILED=5
+
+if [ ":$NCS_STDOUTS_PATH" == ":" ]
+then
+    export NCS_STDOUTS_PATH=/var/opt/opensaf/stdouts
+fi
+
+# Set environment variables
+#
+function rde_set_env_var
+{
+	# Check for environment variable for shelf number.
+	#if [ "$SHELF_NUMBER" = "" ] ; then
+        #        SHELF_NUMBER=`cat /etc/opt/opensaf/shelf_id`
+	#	export SHELF_NUMBER
+	#fi
+
+	# Check for environment variable for slot number.
+	if [ "$SLOT_NUMBER" = "" ] ; then
+                SLOT_NUMBER=`cat /etc/opt/opensaf/slot_id`
+		export SLOT_NUMBER
+	fi
+
+	# Check for environment variable for site number.
+	if [ "$SITE_NUMBER" = "" ] ; then
+		export SITE_NUMBER=0x0F
+	fi
+
+	# Check for environment variable for site number.
+	if [ "$PAYLOAD_BLADES" = "" ] ; then
+		export PAYLOAD_BLADES="3.$SITE_NUMBER 4.$SITE_NUMBER 5.$SITE_NUMBER 6.$SITE_NUMBER 7.$SITE_NUMBER 8.$SITE_NUMBER 9.$SITE_NUMBER 10.$SITE_NUMBER 11.$SITE_NUMBER 12.$SITE_NUMBER 13.$SITE_NUMBER 14.$SITE_NUMBER 15.$SITE_NUMBER 16.$SITE_NUMBER"
+	fi
+	
+}
+
+
+if [ ! -x $BINPATH/$DAEMON ]; then
+   echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+   echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_NOT_FND" > $NIDFIFO
+   exit 0
+fi
+
+# Set env
+rde_set_env_var
+
+set -e
+
+case "$1" in
+  start)
+		rm -f $PIDFILE;
+		if [ -f $PIDFILE ]; then 
+			echo  "$BINPATH/$DAEMON already running..";
+			exit 0
+		fi
+
+
+		echo "."
+                sleep 6
+# Start rde
+  #start-stop-daemon --start --quiet --pidfile $PIDFILE \
+  #        --exec $BINPATH/$DAEMON -- -p $PIDFILE -f $SHELF_NUMBER -s $SLOT_NUMBER -t $SITE_NUMBER
+ 
+  # To get the console prints for debugging
+   /opt/opensaf/controller/bin/ncs_rde >$NCS_STDOUTS_PATH/ncs_rde 2>&1 &
+		echo "Starting $DESC: $BINPATH/$DAEMON";		
+		if [ $? -ne 0 ] ; then
+			echo -n -e "Failed to start $DAEMON.    \n"
+			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > $NIDFIFO
+			exit 0
+                else
+		  echo "Started $DESC: $BINPATH/$DAEMON";		
+		fi
+		echo "."
+		;;
+
+  stop)
+		if [ ! -f $PIDFILE ]; then echo "$BINPATH/$DAEMON is not running..";
+		else echo "Stopping $DESC: $BINPATH/$DAEMON";		
+                 `kill -9 $l_pid`
+		rm -f $PIDFILE;
+
+		fi;
+		echo "."
+        ;;
+
+  restart|force-reload)
+        #
+        #       If the "reload" option is implemented, move the "force-reload"
+        #       option to the "reload" entry above. If not, "force-reload" is
+        #       just the same as "restart".
+        #
+        if [ ! -f $PIDFILE ]; then echo "$BINPATH/$DAEMON is not running.. Use start.";
+  	    else echo "Stopping $DESC: $BINPATH/$DAEMON";			
+             echo "Restarting $DESC: $BINPATH/$DAEMON";		  
+                 `kill -9 $l_pid`
+        rm -f $PIDFILE                
+
+
+		# Start rde
+    /opt/opensaf/controller/bin/ncs_rde >$NCS_STDOUTS_PATH/ncs_rde 2>&1 &
+		if [ $? -ne 0 ] ; then
+			echo -n -e "Failed to start $DAEMON.    \n"
+			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > $NIDFIFO
+			exit 0
+		fi
+		echo "."
+        fi
+        ;;
+  *)
+        # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
+        echo "Usage: /opt/opensaf/controller/scripts/rde_script {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
+

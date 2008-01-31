@@ -1,0 +1,4 @@
+# Shell init
+export TZ=`cat /etc/TZ`
+alias ls='ls -F'
+alias ll='ls -Fl'

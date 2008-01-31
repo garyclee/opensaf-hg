@@ -1,0 +1,37 @@
+#! /bin/bash --norc
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+function errquit() {
+    echo "ERROR: $*"
+    exit 1
+}
+
+
+test -n "$CLUSTER_SIM_UML_DIR" || errquit '$CLUSTER_SIM_UML_DIR is not set'
+UML_DIR=$CLUSTER_SIM_UML_DIR/uml
+
+umlx="$UML_DIR/bin/linux"
+test -x $umlx || errquit "$umlx not executable"
+test -n "$1" || errquit "No processor number specified"
+
+p=$1
+hostdir=`pwd`
+shift
+exec $umlx rw hostdir=$hostdir eth0=daemon,0:0:0:1:1:$p $*
