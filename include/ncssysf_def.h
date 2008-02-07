@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -181,6 +181,7 @@ extern LEAPDLL_API int get_char_from_gui();
 
 
 #define m_NCS_STRCAT(s1,s2)     m_NCS_OS_STRCAT(s1,s2)
+#define m_NCS_STRNCAT(s1,s2,n)  m_NCS_OS_STRNCAT(s1,s2,n)
 #define m_NCS_MEMCMP(d,s,n)     m_NCS_OS_MEMCMP(d,s,n)
 
 /* Caution:  This macro is not THREAD SAFE. 
@@ -301,10 +302,10 @@ EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
  */
 
 
-EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,uns32);
+EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 
 #define m_LEAP_GOTO_DBG_SINK(l,f,r) leap_dbg_sink(l,f,(uns32)r)
-#define m_LEAP_DBG_SINK(r)          leap_dbg_sink(__LINE__,__FILE__,(uns32)r)
+#define m_LEAP_DBG_SINK(r)          leap_dbg_sink(__LINE__,__FILE__,(long)r)
 #define m_LEAP_DBG_SINK_VOID(r)          leap_dbg_sink(__LINE__,__FILE__,(uns32)r)
 
 
@@ -456,19 +457,19 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,uns32);
 /* (relative) stack size options... Most all tasks use MEDIUM */
 
 #ifndef NCS_STACKSIZE_SMALL
-#define NCS_STACKSIZE_SMALL    8000
+#define NCS_STACKSIZE_SMALL    16000
 #endif
 
 #ifndef NCS_STACKSIZE_MEDIUM
-#define NCS_STACKSIZE_MEDIUM   16000
+#define NCS_STACKSIZE_MEDIUM   32000
 #endif
 
 #ifndef NCS_STACKSIZE_LARGE
-#define NCS_STACKSIZE_LARGE    32000
+#define NCS_STACKSIZE_LARGE    64000
 #endif
 
 #ifndef NCS_STACKSIZE_HUGE
-#define NCS_STACKSIZE_HUGE     48000
+#define NCS_STACKSIZE_HUGE     128000
 #endif
 
 /*****************************************************************************

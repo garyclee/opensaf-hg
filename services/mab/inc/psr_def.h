@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -35,7 +35,7 @@
 #define NCS_PSS_CONF_FILE_NAME   256
 
 #define m_PSS_LIB_CONF_FILE_NAME  "/etc/opt/opensaf/pssv_lib_conf"
-#define m_PSS_SPCN_LIST_FILE_NAME "/etc/opt/opensaf/pssv_spcn_list"
+#define m_PSS_SPCN_LIST_FILE_NAME "/var/opt/opensaf/pssv_spcn_list"
 #define NCS_PSS_DEF_PSSV_ROOT_PATH    "/var/opt/opensaf/pssv_store/"
 
 typedef struct mab_pss_tbl_list_tag

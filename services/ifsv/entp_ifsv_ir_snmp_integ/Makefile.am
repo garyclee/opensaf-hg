@@ -1,3 +1,4 @@
+if CONTROLLER
 lib_LTLIBRARIES = libifsv_bind_subagt.la
 
 libifsv_bind_subagt_la_CPPFLAGS = 	-I ../inc/ \
@@ -11,3 +12,4 @@ libifsv_bind_subagt_la_SOURCES =./ifsv_ir_subagt_init.c \
 				./ifsv_ir_subagt_init.h \
 				./ncs_ifsv_bind_mib_agt_stub.c \
 				./ncs_ifsv_bind_mib_agt_stub.h
+endif

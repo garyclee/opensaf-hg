@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -34,6 +34,7 @@
 */
 
 #include "cla.h"
+#include "ncs_main_papi.h"
 
 /* Macro for Verifying the input Handle & global handle */
 #define m_CLA_API_HDL_VERIFY(cbhdl, hdl, o_rc) \
@@ -95,6 +96,13 @@ SaAisErrorT saClmInitialize (SaClmHandleT *o_hdl,
       return SA_AIS_ERR_LIBRARY;
    }
 
+   /* Create AVA/CLA  CB */
+   if (ncs_cla_startup() != NCSCC_RC_SUCCESS)
+   {
+      ncs_agents_shutdown(argc, argv);
+      return SA_AIS_ERR_LIBRARY;
+   }
+
    /* retrieve CLA CB */
    if ( !(cb = (CLA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, gl_cla_hdl)) )
    {
@@ -137,7 +145,10 @@ done:
                  NCSFL_SEV_INFO);
 
    if (SA_AIS_OK != rc)
+   {
+      ncs_cla_shutdown();
       ncs_agents_shutdown(argc, argv);
+   }
 
    return rc;
 }
@@ -274,6 +285,7 @@ done:
    if(pend_dis == 0)
       while(pend_fin != 0)
       {
+         ncs_cla_shutdown();
          ncs_agents_shutdown(argc, argv);
          pend_fin--;
       }
@@ -369,8 +381,11 @@ done:
 
    /* Fialize the environment */  
    if(agent_flag == TRUE)
+   {
+      ncs_cla_shutdown();
       ncs_agents_shutdown(argc, argv);
-   
+   }
+
    return rc;
 }
 

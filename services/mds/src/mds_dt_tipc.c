@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -89,41 +89,6 @@ typedef struct mdtm_ref_hdl_list{
 
 NCS_PATRICIA_TREE     mdtm_reassembly_list;
 
-/* NOTE: The following is for the intermediate release for inservice upgrade after removing the subscriptions to Node-id and process-id 
-         and will be removed in the next inservice upgrade release */
-NCS_PATRICIA_TREE     mdtm_adest_list;
-
-typedef  struct mdtm_adest_key{
-
-   MDS_DEST     adest;
-
-}MDTM_ADEST_KEY;
-
-typedef  struct mdtm_adest_queue{
-    
-    NCS_PATRICIA_NODE               node;
-
-    MDTM_ADEST_KEY    key;
-
-    uns32    snd_seq_num;
-
-}MDTM_ADEST_QUEUE;
-
-static uns32 mdtm_adest_tree_search(MDS_DEST adest, MDTM_ADEST_QUEUE **ptr_adest);
-static uns32 mdtm_adest_tree_add(MDS_DEST adest);
-static uns32 mdtm_adest_tree_del(MDS_DEST adest);
-
-#define m_MMGR_ALLOC_ADEST_LIST m_NCS_MEM_ALLOC(sizeof(MDTM_ADEST_QUEUE),\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_MEM_ADEST_LIST)
-
-#define m_MMGR_FREE_ADEST_LIST(p)  m_NCS_MEM_FREE(p,\
-                                     NCS_MEM_REGION_PERSISTENT,\
-                                     NCS_SERVICE_ID_MDS,\
-                                     MDS_MEM_ADEST_LIST)
-/* End addition */
-
 uns32 mdtm_tipc_init(NODE_ID node_id, uns32 *mds_tipc_ref);
 uns32 mdtm_tipc_destroy(void);
 NCS_BOOL mdtm_tipc_mbx_cleanup(NCSCONTEXT arg, NCSCONTEXT msg);
@@ -175,11 +140,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 /* Tipc actual send, can be made as Macro even*/
 static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len,struct tipc_portid tipc_id);
 
-static uns32 mdtm_pcon_subscribe(void);
-static uns32 mdtm_node_id_bind_subscribe(NODE_ID node_id);
-static uns32 mdtm_process_id_bind_subscribe(uns32 process_id);
-
-static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id, MDTM_ADEST_QUEUE *ptr_adest);
+static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id);
 
 static uns32 mdtm_add_mds_hdr(uns8 *buffer,MDTM_SEND_REQ *req);
 
@@ -269,11 +230,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    pat_tree_params.key_size = sizeof(MDTM_REASSEMBLY_KEY);
    ncs_patricia_tree_init(&mdtm_reassembly_list,&pat_tree_params); 
    
-   /* ADEST TREE */
-   m_NCS_MEMSET(&pat_tree_params, 0, sizeof(pat_tree_params));
-   pat_tree_params.key_size = sizeof(MDTM_ADEST_KEY);
-   ncs_patricia_tree_init(&mdtm_adest_list,&pat_tree_params); 
-
    /* Create the sockets required for Binding, Send, receive and Discovery */
 
 #if MDS_TIPC_1_5
@@ -432,11 +388,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
        return NCSCC_RC_FAILURE;
    }
 
-   /* Bind to Node-id and Process-id */
-   mdtm_pcon_subscribe();
-   mdtm_node_id_bind_subscribe(nodeid);
-   mdtm_process_id_bind_subscribe(addr.addr.id.ref);
-
    return NCSCC_RC_SUCCESS;
 }
 
@@ -459,8 +410,6 @@ uns32 mdtm_tipc_destroy(void)
     MDTM_REF_HDL_LIST *temp_ref_hdl_list_entry=NULL;
     MDTM_REASSEMBLY_QUEUE *reassem_queue=NULL;
     MDTM_REASSEMBLY_KEY reassembly_key;
-    MDTM_ADEST_QUEUE *tmp_adest_queue=NULL;
-    MDS_DEST tmp_adest;
 
     /* close sockets first */
     close(tipc_cb.BSRsock);
@@ -516,21 +465,6 @@ uns32 mdtm_tipc_destroy(void)
                 (&mdtm_reassembly_list,(uns8 *)&reassembly_key);
     }
 
-    /* Delete the pat tree for the adest */
-    tmp_adest_queue = (MDTM_ADEST_QUEUE *)ncs_patricia_tree_getnext
-                (&mdtm_adest_list,(uns8 *)NULL);
-
-    while( NULL!=tmp_adest_queue )
-    {
-       tmp_adest=tmp_adest_queue->key.adest;
-
-       ncs_patricia_tree_del(&mdtm_adest_list, (NCS_PATRICIA_NODE *)tmp_adest_queue);
-       m_MMGR_FREE_ADEST_LIST(tmp_adest_queue);
- 
-       tmp_adest_queue = (MDTM_ADEST_QUEUE *)ncs_patricia_tree_getnext
-                (&mdtm_adest_list,(uns8 *)&tmp_adest);
-    }
-    ncs_patricia_tree_destroy(&mdtm_adest_list);
     ncs_patricia_tree_destroy(&mdtm_reassembly_list);
     mdtm_ref_hdl_list_hdr=NULL;
     num_subscriptions=0;
@@ -1187,45 +1121,6 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
             {
                 m_MDS_LOG_INFO("MDTM: TIPC EVENT UNSUPPORTED for VDEST(other than Publish and Withdraw)\n");
                 return NCSCC_RC_FAILURE;
-            }
-        }
-        break;
-
-        case MDS_PCON_INST_TYPE:
-        {
-            uns32 node_status=0;
- 
-            m_MDS_LOG_INFO("MDTM: Received PCON event\n");
- 
-            node_status=m_MDS_CHECK_TIPC_NODE_ID_RANGE(event.port.node);
-
-            if(NCSCC_RC_SUCCESS==node_status)
-            {
-               adest=((((uns64)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(event.port.node)))<<32)|event.port.ref);
-            }
-            else
-            {
-               m_MDS_LOG_ERR("MDTM:Dropping PCON evt,TIPC NODEid not in the pres. range=0x%08x, Event=%d", event.port.node, discovery_event); 
-               return NCSCC_RC_FAILURE;
-            }
-
-            if (TIPC_PUBLISHED == discovery_event)
-            {
-               if(NCSCC_RC_SUCCESS!=mdtm_adest_tree_add(adest))
-               {
-                  m_MDS_LOG_ERR("MDTM: Failed to add in Adest tree, Adest<%08x,%u>",m_MDS_GET_NODE_ID_FROM_ADEST(adest),m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-                  return NCSCC_RC_FAILURE;
-               }
-               return NCSCC_RC_SUCCESS;
-            }
-            else if (TIPC_WITHDRAWN == discovery_event)
-            {
-               if(NCSCC_RC_SUCCESS!=mdtm_adest_tree_del(adest))
-               {
-                  m_MDS_LOG_ERR("MDTM: Failed to del in Adest tree, Adest<%08x,%u>",m_MDS_GET_NODE_ID_FROM_ADEST(adest),m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-                  return NCSCC_RC_FAILURE;
-               }
-               return NCSCC_RC_SUCCESS;
             }
         }
         break;
@@ -2164,101 +2059,6 @@ static uns32 mdtm_fill_data( MDTM_REASSEMBLY_QUEUE *reassem_queue, uns8 *buffer,
     return NCSCC_RC_FAILURE;
 }
 
-/*********************************************************
-
-  Function NAME: mdtm_adest_tree_search
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_adest_tree_search(MDS_DEST adest, MDTM_ADEST_QUEUE **ptr_adest)
-{
-
-   *ptr_adest = (MDTM_ADEST_QUEUE *)ncs_patricia_tree_get
-                (&mdtm_adest_list,(uns8 *)&adest);
-
-   if (*ptr_adest == NULL)
-   {
-      m_MDS_LOG_INFO("MDTM : adest node doesnt exist in pat tree, ADEST=<0x%08x,%u>",m_MDS_GET_NODE_ID_FROM_ADEST(adest),m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/*********************************************************
-
-  Function NAME: mdtm_adest_tree_add
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_adest_tree_add(MDS_DEST adest)
-{
-   MDTM_ADEST_QUEUE *tmp_adest_ptr=NULL;
- 
-   if(NCSCC_RC_SUCCESS ==mdtm_adest_tree_search(adest,&tmp_adest_ptr))
-   {
-      m_MDS_LOG_ERR("MDTM : adest node already exist in pat tree, ADEST=<0x%08x,%u>",m_MDS_GET_NODE_ID_FROM_ADEST(adest),m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-      return NCSCC_RC_FAILURE;
-   }
-    
-   /* Allocate Memory for adest*/
-   tmp_adest_ptr=m_MMGR_ALLOC_ADEST_LIST;
-   if(tmp_adest_ptr==NULL)
-   {
-       m_MDS_LOG_ERR("MDTM: Memory allocation to adest node failed");
-       return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_MEMSET(tmp_adest_ptr, 0, sizeof(tmp_adest_ptr));
-   tmp_adest_ptr->key.adest=adest;
-   tmp_adest_ptr->node.key_info=(uns8 *)&tmp_adest_ptr->key;
-   return ncs_patricia_tree_add (&mdtm_adest_list, 
-                              (NCS_PATRICIA_NODE *)&tmp_adest_ptr->node);
-}
-
-
-/*********************************************************
-
-  Function NAME: mdtm_adest_tree_del
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_adest_tree_del(MDS_DEST adest)
-{
-   MDTM_ADEST_QUEUE *tmp_adest_ptr=NULL;
- 
-   if(NCSCC_RC_SUCCESS !=mdtm_adest_tree_search(adest,&tmp_adest_ptr))
-   {
-      m_MDS_LOG_ERR("MDTM : adest node doesnt exist in pat tree while delete, ADEST=<0x%08x,%u>",m_MDS_GET_NODE_ID_FROM_ADEST(adest),m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-      return NCSCC_RC_FAILURE;
-   }
-   ncs_patricia_tree_del(&mdtm_adest_list, (NCS_PATRICIA_NODE *)tmp_adest_ptr);
-                           
-   m_MMGR_FREE_ADEST_LIST(tmp_adest_ptr);
-
-   return NCSCC_RC_SUCCESS;
-}
 
 /*********************************************************
 
@@ -3325,7 +3125,6 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
     {
        struct tipc_portid tipc_id;
        USRBUF *usrbuf;
-       MDTM_ADEST_QUEUE  *tmp_adest_ptr=NULL;
 
        uns32 frag_seq_num=0, node_status=0;
 
@@ -3345,15 +3144,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
           return NCSCC_RC_FAILURE;
        }
 
-       /* Added to have the check for seq number from adest to adest */
-       if(NCSCC_RC_SUCCESS!=mdtm_adest_tree_search(req->adest, &tmp_adest_ptr))
-       {
-          frag_seq_num=++mdtm_global_frag_num; /* When no adest seq number check is present */
-       }
-       else
-       {
-          frag_seq_num=++tmp_adest_ptr->snd_seq_num;
-       }
+       frag_seq_num=++mdtm_global_frag_num; 
 
        /* Only for the ack and not for any other message */
        if(req->snd_type==MDS_SENDTYPE_ACK || req->snd_type==MDS_SENDTYPE_RACK)
@@ -3409,7 +3200,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
               if(len>MDTM_NORMAL_MSG_FRAG_SIZE)
               {
                  /* Packet needs to be fragmented and send*/
-                 status=mdtm_frag_and_send(req, frag_seq_num, tipc_id, tmp_adest_ptr); 
+                 status=mdtm_frag_and_send(req, frag_seq_num, tipc_id); 
                  return status;
 
               }
@@ -3531,7 +3322,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
 #define MDTM_FRAG_HDR_PLUS_LEN_2   10
 #endif
 
-static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id, MDTM_ADEST_QUEUE *ptr_adest)
+static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_portid id)
 {
    USRBUF *usrbuf;
    uns32 len=0;
@@ -3654,10 +3445,6 @@ static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_p
       i++;
       frag_val=0;
    }
-   if(ptr_adest!=NULL)
-   {
-      ptr_adest->snd_seq_num=ptr_adest->snd_seq_num+(i-1);
-   }
    return NCSCC_RC_SUCCESS;
 }
 
@@ -3752,139 +3539,6 @@ static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len, struct tipc_portid id)
     }
 }
 
-/*********************************************************
-
-  Function NAME: mdtm_node_id_bind_subscribe
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_node_id_bind_subscribe(NODE_ID node_id)
-{
-    /*
-    STEP 1: Bind to the node id , Now the subscription part is removed as part of the Discovery traffic reduction
-    */
-    uns32 server_type=0, server_inst=0;
-    struct sockaddr_tipc server_addr;
-
-    server_addr.family = AF_TIPC;
-    server_addr.addrtype = TIPC_ADDR_NAMESEQ;
-
-    server_type=server_type|MDS_TIPC_PREFIX|MDS_NODE_INST_TYPE;
-    server_inst|=node_id;
-
-    server_addr.addr.nameseq.type = server_type;
-    server_addr.addr.nameseq.lower = server_inst;
-    server_addr.addr.nameseq.upper = server_inst;
-    server_addr.scope = TIPC_CLUSTER_SCOPE;
-
-    if (0 != bind (tipc_cb.BSRsock, (struct sockaddr*)&server_addr,sizeof(server_addr)))
-    {
-        m_MDS_LOG_ERR("MDTM: NODE-INSTALL Failure\n");
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
-}
-/*********************************************************
-
-  Function NAME: mdtm_process_id_bind_subscribe
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_process_id_bind_subscribe(uns32 process_id)
-
-{
-    /*
-    STEP 1: Bind to the process id , Now the subscription part is removed as part of the Discovery traffic reduction
-    */
-
-    uns32 server_type=0, server_inst=0;
-    struct sockaddr_tipc server_addr;
-
-    server_addr.family = AF_TIPC;
-    server_addr.addrtype = TIPC_ADDR_NAMESEQ;
-
-    server_type=server_type|MDS_TIPC_PREFIX|MDS_PROCESS_INST_TYPE;
-    server_inst|=process_id;
-
-    server_addr.addr.nameseq.type = server_type;
-    server_addr.addr.nameseq.lower = server_inst;
-    server_addr.addr.nameseq.upper = server_inst;
-    server_addr.scope = TIPC_CLUSTER_SCOPE;
-
-    if (0 != bind (tipc_cb.BSRsock, (struct sockaddr*)&server_addr,sizeof(server_addr)))
-    {
-        m_MDS_LOG_ERR("MDTM: PROCESS_ID-INSTALL Failure\n");
-        return NCSCC_RC_FAILURE;
-    }
-
-    return NCSCC_RC_SUCCESS;
-}
-
-/*********************************************************
-
-  Function NAME: mdtm_pcon_subscribe
-
-  DESCRIPTION:
-
-
-  ARGUMENTS:
-
-  RETURNS:  1 - NCSCC_RC_SUCCESS
-            2 - NCSCC_RC_FAILURE
-
-*********************************************************/
-static uns32 mdtm_pcon_subscribe(void)
-{
-    /*
-    STEP 1: Subscribe to the PCON_ID
-    */
-    struct tipc_subscr subscr;
-    uns32 server_type=0;
-
-    if(num_subscriptions>MAX_SUBSCRIPTIONS)
-    {
-       m_MDS_LOG_ERR("MDTM: SYSTEM CRITICAL Crossing =%d subscriptions\n",num_subscriptions);
-       if(num_subscriptions>MAX_SUBSCRIPTIONS_RETURN_ERROR)
-       {
-          m_MDS_LOG_ERR("MDTM: SYSTEM has crossed the max =%d subscriptions , Returning failure to the user",MAX_SUBSCRIPTIONS_RETURN_ERROR);
-          return NCSCC_RC_FAILURE;
-       }
-    }
-
-    server_type=server_type|MDS_TIPC_PREFIX|MDS_PCON_INST_TYPE;
-
-    m_NCS_MEMSET(&subscr, 0, sizeof(subscr));
-    subscr.seq.type=server_type;
-    subscr.seq.lower=0x00000000;
-    subscr.seq.upper=0xffffffff;
-    subscr.timeout=FOREVER;
-    subscr.filter=TIPC_SUB_PORTS;
-    *((uns64 *)subscr.usr_handle)=++handle;
-  
-    if (send(tipc_cb.Dsock,&subscr,sizeof(subscr),0) != sizeof(subscr))
-    {
-       m_MDS_LOG_ERR("MDTM: PCON-SUBSCRIBE Failure");
-       return NCSCC_RC_FAILURE;
-    }
-    
-    ++num_subscriptions;
-    return NCSCC_RC_SUCCESS;
-}
- 
 /****************************************************************************
  *
  * Function Name: mdtm_add_mds_hdr

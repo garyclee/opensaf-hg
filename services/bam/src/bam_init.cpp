@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -136,12 +136,18 @@ ncs_bam_extract_hw_filename(int argc, char *argv[], char *filename)
    if (p_field == NULL)
    {      
       m_NCS_DBG_PRINTF("\nBAM: using HW_VLD_FILE from standard path");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+       /* Fixed IR00085773 on 20/04/2007 */
+      return NCSCC_RC_FAILURE;  
+
    }
    if (sscanf(p_field + strlen("HW_VLD_FILE="), "%s", filename) != 1)
    {      
       m_NCS_DBG_PRINTF("\nBAM: Error in HW_VLD_FILE file argument\n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+       /* Fixed IR00085773 on 20/04/2007 */
+      return NCSCC_RC_FAILURE; 
+
    }
 
    return(NCSCC_RC_SUCCESS);
@@ -355,7 +361,9 @@ ncs_bam_main_loop(SYSF_MBX *bam_mbx)
     ncs_bam_process_message(evt) ;
     m_MMGR_FREE_BAM_DEFAULT_VAL(evt);
   }
-
+  m_LOG_BAM_MSG_TIC(BAM_IPC_RECV_FAIL,NCSFL_SEV_CRITICAL, 
+         "Bam Msg recv failed");
+  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Bam Msg ipc Rcv Failure");
   return ;
 }
 

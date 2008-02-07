@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -802,6 +802,10 @@ uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
    AVND_MSG msg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
+/* IR00085123 :Avd is already UP, reboot the node */
+   if ( m_AVND_CB_IS_AVD_UP(cb) )
+         m_NCS_REBOOT;
+  
    /* send node up message to AvD */
    m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
 
@@ -843,6 +847,9 @@ uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
 uns32 avnd_evt_mds_avd_dn (AVND_CB *cb, AVND_EVT *evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+
+   m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - MDS down received for AVD\n");
+   m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot: MDS down received for AVD\n");
   
    /* reboot this node */
    m_NCS_REBOOT;

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -236,14 +236,14 @@ NCSFL_FMAT cpd_fmat_set[] = {
     {CPD_LID_DB, NCSFL_TYPE_TIC, "CPSv %s : %s : %s\n"},
     {CPD_LID_MEMFAIL, NCSFL_TYPE_TIC, "CPSv %s : %s : %s\n"},
     {CPD_LID_MBCSV,NCSFL_TYPE_TIC, "CPSv %s : %s : %s\n"},
-    {CPD_LID_TIFCL,NCSFL_TYPE_TIFCL,"CPSv %s : %s : %s : %s:%u\n"},
-    {CPD_LID_TICL,NCSFL_TYPE_TICL,"CPSv %s : %s : %s:%u\n"},
-    {CPD_LID_TILCL,NCSFL_TYPE_TILCL,"CPSv %s : %s : %u : %s:%u\n"},
-    {CPD_LID_TICFCL,NCSFL_TYPE_TICFCL,"CPSv %s : %s : %s : %s : %s:%u\n"},
-    {CPD_LID_TILLCL,NCSFL_TYPE_TILLCL,"CPSv %s : %s : %u : %u : %s:%u\n"},
-    {CPD_LID_TICCL,NCSFL_TYPE_TICCL,"CPSv %s : %s : %s : %s:%u\n"},
-    {CPD_LID_TIFFCL,NCSFL_TYPE_TIFFCL,"CPSv %s : %s : %s : %s : %s:%u\n"},
-    {CPD_LID_TICFFCL,NCSFL_TYPE_TICFFCL,"CPSv %s :%s : %s : %s : %s : %s:%u\n"},
+    {CPD_LID_TIFCL,NCSFL_TYPE_TIFCL,"CPSv %s : %s : %s : %s:%lu\n"},
+    {CPD_LID_TICL,NCSFL_TYPE_TICL,"CPSv %s : %s : %s:%lu\n"},
+    {CPD_LID_TILCL,NCSFL_TYPE_TILCL,"CPSv %s : %s : %lu : %s:%lu\n"},
+    {CPD_LID_TICFCL,NCSFL_TYPE_TICFCL,"CPSv %s : %s : %s : %s : %s:%lu\n"},
+    {CPD_LID_TILLCL,NCSFL_TYPE_TILLCL,"CPSv %s : %s : %lu : %lu : %s:%lu\n"},
+    {CPD_LID_TICCL,NCSFL_TYPE_TICCL,"CPSv %s : %s : %s : %s:%lu\n"},
+    {CPD_LID_TIFFCL,NCSFL_TYPE_TIFFCL,"CPSv %s : %s : %s : %s : %s:%lu\n"},
+    {CPD_LID_TICFFCL,NCSFL_TYPE_TICFFCL,"CPSv %s :%s : %s : %s : %s : %s:%lu\n"},
     {0, 0, 0}
 };
 

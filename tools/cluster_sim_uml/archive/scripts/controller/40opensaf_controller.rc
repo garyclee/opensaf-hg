@@ -51,6 +51,11 @@ rm -f /etc/opt/opensaf/slot_id
 rm -f /etc/opt/opensaf/node_id
 echo $hostnumber > /etc/opt/opensaf/slot_id 
 
+touch /var/opt/opensaf/pssv_spcn_list
+chmod 755 /var/opt/opensaf/pssv_spcn_list
+echo "AVD XML" > /var/opt/opensaf/pssv_spcn_list
+echo "AVM XML" >> /var/opt/opensaf/pssv_spcn_list
+
 # Enabled core dumps for opensaf and AMF started programs
 ulimit -c unlimited
 

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -187,7 +187,7 @@ typedef struct nid_child_list {
 #define  MOTO_FIRMWARE_HAPS_INIT_SUCCESS        0x01
 #define  MOTO_FIRMWARE_NCS_INIT_SUCCESS         0x02
 
-
+#if 0
 #define  MOTO_FIRMWARE_HPM_INIT_FAIL                   0x80
 /* vivek_nid */
 #define  MOTO_FIRMWARE_IPMC_UPGRADE_FAIL               0x81
@@ -209,8 +209,31 @@ typedef struct nid_child_list {
 #define  MOTO_FIRMWARE_SUBAGT_INIT_FAIL                0x91 /*61409*/
 #define  MOTO_FIRMWARE_SNMPD_INIT_FAIL                 0x92
 #define  MOTO_FIRMWARE_NCS_INIT_FAIL                   0x93
+#endif
 
-#define  MOTO_FIRMWARE_RDF_INIT_FAIL            0x94
+/* Moving the IPMC/BIOS codes to the end */
+#define  MOTO_FIRMWARE_HPM_INIT_FAIL                   0x80
+#define  MOTO_FIRMWARE_HLFM_INIT_FAIL                  0x81
+#define  MOTO_FIRMWARE_OPENHPI_INIT_FAIL               0x82
+#define  MOTO_FIRMWARE_XND_INIT_FAIL                   0x83
+#define  MOTO_FIRMWARE_LHCD_INIT_FAIL                  0x84
+#define  MOTO_FIRMWARE_LHCR_INIT_FAIL                  0x85
+#define  MOTO_FIRMWARE_NWNG_INIT_FAIL                  0x86
+#define  MOTO_FIRMWARE_DRBD_INIT_FAIL                  0x87
+#define  MOTO_FIRMWARE_TIPC_INIT_FAIL                  0x88
+#define  MOTO_FIRMWARE_IFSVDD_INIT_FAIL                0x89
+#define  MOTO_FIRMWARE_DLSV_INIT_FAIL                  0x8A
+#define  MOTO_FIRMWARE_MASV_INIT_FAIL                  0x8B
+#define  MOTO_FIRMWARE_PSSV_INIT_FAIL                  0x8C
+#define  MOTO_FIRMWARE_GLND_INIT_FAIL                  0x8D
+#define  MOTO_FIRMWARE_EDSV_INIT_FAIL                  0x8E
+#define  MOTO_FIRMWARE_SUBAGT_INIT_FAIL                0x8F /*61409*/
+#define  MOTO_FIRMWARE_SNMPD_INIT_FAIL                 0x90
+#define  MOTO_FIRMWARE_NCS_INIT_FAIL                   0x91
+#define  MOTO_FIRMWARE_IPMC_UPGRADE_FAIL               0x92
+#define  MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_FAIL        0x93
+
+#define  MOTO_FIRMWARE_RDF_INIT_FAIL                   0x94
 
 
 enum fw_prog_notify{

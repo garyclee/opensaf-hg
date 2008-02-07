@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -739,10 +739,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
          if (src->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
             dst->i_param_val.info.i_oct = ncsmem_aid_cpy(ma, src->i_param_val.info.i_oct,
                                                         src->i_param_val.i_length);
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          break;
       }
    case NCSMIB_OP_RSP_SET  :
@@ -753,10 +749,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
          if (src->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
             dst->i_param_val.info.i_oct = ncsmem_aid_cpy(ma, src->i_param_val.info.i_oct,
                                                         src->i_param_val.i_length);
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          break;
       }
    case NCSMIB_OP_RSP_TEST :
@@ -768,10 +760,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
          if (src->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
             dst->i_param_val.info.i_oct = ncsmem_aid_cpy(ma, src->i_param_val.info.i_oct,
                                                         src->i_param_val.i_length);
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          break;
       }
 
@@ -786,10 +774,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
          if (src->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
             dst->i_param_val.info.i_oct = ncsmem_aid_cpy(ma, src->i_param_val.info.i_oct,
                                                         src->i_param_val.i_length);
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          break;
       }
 
@@ -808,10 +792,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
                src->i_usrbuf = NULL;
             }
          }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
          break;
       }
@@ -829,10 +809,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
                src->i_usrbuf = NULL;
             }
          }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
          break;
       }
@@ -850,11 +826,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
                src->i_usrbuf = NULL;
             }
          }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
          break;
       }
 
@@ -873,11 +844,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
                src->i_usrbuf = NULL;
             }
          }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
          break;
       }
 
@@ -895,11 +861,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
               src->i_usrbuf = NULL;
            }
         }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
         break;
      }
      
@@ -917,10 +878,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
               src->o_answer = NULL;
            }
         }
-         if(rsp->rsp.add_info_len > 0)
-           if(rsp->rsp.add_info != NULL)
-              if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
-             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
         break;
      }
 
@@ -932,6 +889,11 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
    default:
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
+
+   if(rsp->rsp.add_info_len > 0)
+       if(rsp->rsp.add_info != NULL)
+          if((req->rsp.add_info = (uns8 *)ncsmem_aid_cpy(ma,(const uns8 *)rsp->rsp.add_info, rsp->rsp.add_info_len)) == NULL)
+             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
    if (ma->status != NCSCC_RC_SUCCESS) /* NCSMEM_AID kept track of its status */
       return NCSCC_RC_FAILURE;
@@ -1038,8 +1000,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          if (rsp->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
             rsp->i_param_val.info.i_oct = ncsmib_oct_memcopy(rsp->i_param_val.i_length,
                                                             rsp->i_param_val.info.i_oct);
-         if(arg->rsp.add_info != NULL)
-              cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
          break;
       }
    case NCSMIB_OP_RSP_GET_INFO:
@@ -1055,9 +1015,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          rspcpy->settable  = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->settable);
          rspcpy->type      = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->type);
          rspcpy->name      = (char *)ncsmib_oct_memcopy(sizeof(uns32), (uns8 *)rsparg->name );
-
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
         #endif
 
          break;
@@ -1073,9 +1030,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
             rsp->i_param_val.info.i_oct = ncsmib_oct_memcopy(rsp->i_param_val.i_length,
                                                             rsp->i_param_val.info.i_oct);
 
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
-
          break;
       }
 
@@ -1088,10 +1042,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          NCSMIB_GETROW_RSP* rsp = &cpy->rsp.info.getrow_rsp;
          if (rsp->i_usrbuf != NULL)
             rsp->i_usrbuf   = m_MMGR_DITTO_BUFR(rsp->i_usrbuf);
-
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
-
          break;
       }
 
@@ -1103,9 +1053,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
 
          rsp->i_next.i_inst_ids = ncsmib_inst_memcopy(rsp->i_next.i_inst_len,
                                                      rsp->i_next.i_inst_ids);
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
-
          break;
       }
 
@@ -1114,8 +1061,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          NCSMIB_MOVEROW_RSP* rsp = &cpy->rsp.info.moverow_rsp;
          if (rsp->i_usrbuf != NULL)
             rsp->i_usrbuf = m_MMGR_DITTO_BUFR(rsp->i_usrbuf);
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
       }
      break;
 
@@ -1125,8 +1070,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          NCSMIB_CLI_RSP* rsp = &cpy->rsp.info.cli_rsp;
          if (rsp->o_answer != NULL)
             rsp->o_answer = m_MMGR_DITTO_BUFR(rsp->o_answer);
-         if(arg->rsp.add_info != NULL)
-            cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
       }
      break;
 
@@ -1191,6 +1134,28 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
          return (NCSMIB_ARG*)NULL;
       }
    }
+   switch (arg->i_op)
+   {
+       case NCSMIB_OP_RSP_GET  :   
+       case NCSMIB_OP_RSP_SET  :
+       case NCSMIB_OP_RSP_TEST :
+       case NCSMIB_OP_RSP_GET_INFO:
+       case NCSMIB_OP_RSP_NEXT :
+       case NCSMIB_OP_RSP_GETROW :
+       case NCSMIB_OP_RSP_SETROW :
+       case NCSMIB_OP_RSP_TESTROW:
+       case NCSMIB_OP_RSP_SETALLROWS:
+       case NCSMIB_OP_RSP_REMOVEROWS:
+       case NCSMIB_OP_RSP_NEXTROW :
+       case NCSMIB_OP_RSP_MOVEROW :
+       case NCSMIB_OP_RSP_CLI :
+       case NCSMIB_OP_RSP_CLI_DONE :
+            if(arg->rsp.add_info != NULL)
+               cpy->rsp.add_info = ncsmib_oct_memcopy(cpy->rsp.add_info_len, cpy->rsp.add_info);
+            break;
+       default:
+            break;
+   }
    return cpy;
 }
 
@@ -1236,13 +1201,6 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
            if ((rsp->i_param_val.i_length != 0) && (rsp->i_param_val.info.i_oct != NULL))
              m_MMGR_FREE_MIB_OCT(rsp->i_param_val.info.i_oct);
            }
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
 
@@ -1263,13 +1221,6 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
              m_MMGR_FREE_MIB_INST_IDS(arg->i_idx.i_inst_ids);
 #endif
            }
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
 
@@ -1282,14 +1233,6 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
          NCSMIB_GETROW_RSP* rsp = &arg->rsp.info.getrow_rsp;
          if(rsp->i_usrbuf != NULL)
            m_MMGR_FREE_BUFR_LIST(rsp->i_usrbuf);
-
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
 
@@ -1305,13 +1248,6 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
         #endif   
          if (rsp->i_next.i_inst_ids != NULL)
            m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids); /* Fix for the bug IR00083690 */
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
 
@@ -1320,14 +1256,6 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
          NCSMIB_MOVEROW_RSP* rsp  = &arg->rsp.info.moverow_rsp;
          if(rsp->i_usrbuf != NULL)
            m_MMGR_FREE_BUFR_LIST(rsp->i_usrbuf);
-
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
       
@@ -1337,27 +1265,10 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
          NCSMIB_CLI_RSP* rsp  = &arg->rsp.info.cli_rsp;
          if(rsp->o_answer != NULL)
            m_MMGR_FREE_BUFR_LIST(rsp->o_answer);
-
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
          break;
       }
 
    case NCSMIB_OP_RSP_GET_INFO:
-      {
-         if(arg->rsp.add_info_len != 0)
-           if(arg->rsp.add_info != NULL)
-           {
-              m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-              arg->rsp.add_info = NULL;
-              arg->rsp.add_info_len = 0;
-           }
-      }  
      break;
 
       /*****************************************************************************
@@ -1420,6 +1331,33 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
         m_LEAP_DBG_SINK_VOID(0);
         return;
       }
+   }
+   switch (arg->i_op)
+   {
+       case NCSMIB_OP_RSP_GET  :
+       case NCSMIB_OP_RSP_SET  :
+       case NCSMIB_OP_RSP_TEST :
+       case NCSMIB_OP_RSP_NEXT :
+       case NCSMIB_OP_RSP_GETROW :
+       case NCSMIB_OP_RSP_SETROW :
+       case NCSMIB_OP_RSP_TESTROW:
+       case NCSMIB_OP_RSP_SETALLROWS:
+       case NCSMIB_OP_RSP_REMOVEROWS:
+       case NCSMIB_OP_RSP_NEXTROW :
+       case NCSMIB_OP_RSP_MOVEROW :
+       case NCSMIB_OP_RSP_CLI:
+       case NCSMIB_OP_RSP_CLI_DONE:
+       case NCSMIB_OP_RSP_GET_INFO:
+             if(arg->rsp.add_info_len != 0)
+               if(arg->rsp.add_info != NULL)
+               {
+                  m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
+                  arg->rsp.add_info = NULL;
+                  arg->rsp.add_info_len = 0;
+               }
+               break;
+        default:
+               break;
    }
 
    m_MMGR_FREE_NCSMIB_ARG(arg);
@@ -2458,12 +2396,12 @@ USRBUF* ncsparm_enc_done(NCSPARM_AID* pa)
 {
    if (pa == NULL)
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
    if ((pa->p_cnt == NULL) || (pa->p_len == NULL))
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
 
@@ -2830,13 +2768,13 @@ USRBUF* ncssetallrows_enc_done(NCSROW_AID* ra)
 {
    if (ra == NULL)
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
    
    if ((ra->p_cnt == NULL) || (ra->p_len == NULL))
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
    
@@ -3105,13 +3043,13 @@ USRBUF* ncsremrow_enc_done(NCSREMROW_AID* rra)
 {
    if (rra == NULL)
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
    
    if ((rra->p_cnt == NULL) || (rra->p_len == NULL))
    {
-      m_LEAP_DBG_SINK((uns32)NULL);
+      m_LEAP_DBG_SINK((long)NULL);
       return (USRBUF*)NULL;
    }
    
@@ -3267,17 +3205,6 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
          {
             m_MMGR_FREE_MIB_OCT(rsp->i_param_val.info.i_oct);
          }
-
-         if(arg->rsp.add_info_len != 0)
-         {
-             if(arg->rsp.add_info != NULL)
-             {
-                 m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-                 arg->rsp.add_info = NULL;
-                 arg->rsp.add_info_len = 0;
-             }
-         } 
-
          break;
       }
 
@@ -3295,16 +3222,6 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
          {
             m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids);
          }
-
-         if(arg->rsp.add_info_len != 0)
-         {
-             if(arg->rsp.add_info != NULL)
-             {
-                 m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-                 arg->rsp.add_info = NULL;
-                 arg->rsp.add_info_len = 0;
-             }
-         } 
          break;
       }
 
@@ -3318,16 +3235,6 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
    case NCSMIB_OP_RSP_CLI:
    case NCSMIB_OP_RSP_CLI_DONE:
       {
-
-         if(arg->rsp.add_info_len != 0)
-         {
-             if(arg->rsp.add_info != NULL)
-             {
-                 m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-                 arg->rsp.add_info = NULL;
-                 arg->rsp.add_info_len = 0;
-             }
-         } 
          break;
       }
 
@@ -3338,16 +3245,6 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
          {
             m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids);
          }
-
-         if(arg->rsp.add_info_len != 0)
-         {
-             if(arg->rsp.add_info != NULL)
-             {
-                 m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
-                 arg->rsp.add_info = NULL;
-                 arg->rsp.add_info_len = 0;
-             }
-         } 
          break;
       }
 
@@ -3400,6 +3297,35 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
    default:
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
+   }
+   switch (op)
+   {
+       case NCSMIB_OP_RSP_GET    :
+       case NCSMIB_OP_RSP_SET    :
+       case NCSMIB_OP_RSP_TEST   :
+       case NCSMIB_OP_RSP_NEXT :
+       case NCSMIB_OP_RSP_GETROW :
+       case NCSMIB_OP_RSP_TESTROW:
+       case NCSMIB_OP_RSP_SETROW :
+       case NCSMIB_OP_RSP_MOVEROW:
+       case NCSMIB_OP_RSP_GET_INFO:
+       case NCSMIB_OP_RSP_SETALLROWS:
+       case NCSMIB_OP_RSP_REMOVEROWS:
+       case NCSMIB_OP_RSP_CLI:
+       case NCSMIB_OP_RSP_CLI_DONE:
+       case NCSMIB_OP_RSP_NEXTROW :
+             if(arg->rsp.add_info_len != 0)
+             {
+                 if(arg->rsp.add_info != NULL)
+                 {
+                     m_MMGR_FREE_MIB_OCT(arg->rsp.add_info);
+                     arg->rsp.add_info = NULL;
+                     arg->rsp.add_info_len = 0;
+                 }
+             } 
+             break;
+       default:
+             break;
    }
 
    m_MMGR_FREE_NCSMIB_ARG(arg);

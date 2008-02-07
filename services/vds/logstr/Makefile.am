@@ -11,4 +11,4 @@ libvds_logstr_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ \
 
 libvds_logstr_la_SOURCES =	./vds_logstr.c
 
-libvds_logstr_la_LDFLAGS = -version-number 2
+libvds_logstr_la_LDFLAGS = -version-number 3

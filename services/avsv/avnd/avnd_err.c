@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -85,6 +85,28 @@ static uns32 avnd_err_restart_esc_level_1(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEV
                                                                           AVSV_ERR_RCVR  *);
 static uns32 avnd_err_restart_esc_level_2(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEVEL  *,
                                                                           AVSV_ERR_RCVR  *);
+
+/* LSB Changes. Strings to represent source of component Error */
+
+static const unsigned char *g_comp_err[AVND_ERR_SRC_MAX]=
+{
+     "noError(0)",
+     "errorReport(1)",
+     "healthCheckFailed(2)",
+     "passiveMonitorFailed(3)",
+     "activeMonitorFailed(4)",
+     "cLCCommandFailed(5)",
+     "healthCheckcallbackTimeout(6)",
+     "healthCheckcallbackFailed(7)",
+     "avaDown(8)",
+     "prxRegTimeout(9)",
+     "csiSetcallbackTimeout(10)",
+     "csiRemovecallbackTimeout(11)",
+     "csiSetcallbackFailed(12)",
+     "csiRemovecallbackFailed(13)"
+};
+
+
 
 /****************************************************************************
   Name          : avnd_evt_ava_err_rep
@@ -214,6 +236,9 @@ uns32 avnd_err_process (AVND_CB       *cb,
 {
    AVSV_ERR_RCVR esc_rcvr = err_info->rcvr;
    uns32         rc = NCSCC_RC_SUCCESS;
+   FILE *fp=NULL;
+   time_t local_time;
+   unsigned char asc_lt[40]; /* ASCII Localtime */
 
    /* Level3 escalation is node failover. we dont expect any
    ** more errors from application as the node is already failed over. 
@@ -261,6 +286,16 @@ uns32 avnd_err_process (AVND_CB       *cb,
     m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -%s faulted due to %d -rcvr=%d",
                     comp->name_net.value, comp->err_info.src, esc_rcvr);
   }
+   fp=fopen(NODE_HA_STATE,"a");
+   if(fp)
+   {
+     /* Get the ascii local time stamp */
+     asc_lt[0] = '\0';
+     m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
+     fprintf(fp,"%s | The component %s failed due to : %s\n",asc_lt,comp->name_net.value, g_comp_err[err_info->src]);
+     fflush(fp);
+     fclose(fp);
+   }
 
    avnd_gen_comp_fail_on_node_trap(cb, err_info->src, comp);
 

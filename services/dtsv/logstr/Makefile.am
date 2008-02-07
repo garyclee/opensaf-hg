@@ -10,4 +10,4 @@ libdts_logstr_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ -DDTS_LOG=1 -DDTA_LOG=1 -DNCS
 
 libdts_logstr_la_SOURCES =	./dts_logstr.c
 
-libdts_logstr_la_LDFLAGS = -version-number 1
+libdts_logstr_la_LDFLAGS = -version-number 2

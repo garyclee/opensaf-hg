@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -306,16 +306,16 @@ NCSFL_FMAT cpnd_fmat_set[] = {
     {CPND_LID_MDSFAIL,NCSFL_TYPE_TIFFFCL,"CPSv %s : %s :: From mds_dest %s To mds_dest %s for ckpt_id %s at %10s:%5u\n"},
     {CPND_LID_CKPTINFO,NCSFL_TYPE_TIFCL,"CPSv %s : %s for ckpt_id %s at %15s:%5u\n"},
 #endif
-    {CPND_LID_TILCL,NCSFL_TYPE_TILCL,"CPSv %s : %s : %u : %s:%u\n"}, 
-    {CPND_LID_TICL,NCSFL_TYPE_TICL,"CPSv %s : %s : %s : %u\n"},
-    {CPND_LID_TIFCL,NCSFL_TYPE_TIFCL,"CPSv %s : %s : %s : %s:%u\n"},
-    {CPND_LID_TICCL,NCSFL_TYPE_TICCL,"CPSv %s : %s : %s : %s:%u\n"},
-    {CPND_LID_TIFFCL,NCSFL_TYPE_TIFFCL,"CPSv %s : %s : %s : %s : %s:%u\n"},
-    {CPND_LID_TIFFLCL,NCSFL_TYPE_TIFFLCL,"CPSv %s : %s : %s : %s : %u : %s:%u\n"},
-    {CPND_LID_TIFFFLCL,NCSFL_TYPE_TIFFFLCL,"CPSv %s : %s : %s : %s : %s : %u : %s:%u\n"},
-    {CPND_LID_TICFCL,NCSFL_TYPE_TICFCL,"CPSv %s : %s : %s : %s : %s:%u\n"},
-    {CPND_LID_TIFLCL,NCSFL_TYPE_TIFLCL,"CPSv %s : %s : %s : %u : %s:%u\n"},
-    {CPND_LID_TICFFFCL,NCSFL_TYPE_TICFFFCL,"CPSv %s : %s : %s : %s: %s : %s : %s :%u\n"},
+    {CPND_LID_TILCL,NCSFL_TYPE_TILCL,"CPSv %s : %s : %lu : %s:%lu\n"}, 
+    {CPND_LID_TICL,NCSFL_TYPE_TICL,"CPSv %s : %s : %s : %lu\n"},
+    {CPND_LID_TIFCL,NCSFL_TYPE_TIFCL,"CPSv %s : %s : %s : %s:%lu\n"},
+    {CPND_LID_TICCL,NCSFL_TYPE_TICCL,"CPSv %s : %s : %s : %s:%lu\n"},
+    {CPND_LID_TIFFCL,NCSFL_TYPE_TIFFCL,"CPSv %s : %s : %s : %s : %s:%lu\n"},
+    {CPND_LID_TIFFLCL,NCSFL_TYPE_TIFFLCL,"CPSv %s : %s : %s : %s : %lu : %s:%lu\n"},
+    {CPND_LID_TIFFFLCL,NCSFL_TYPE_TIFFFLCL,"CPSv %s : %s : %s : %s : %s : %lu : %s:%lu\n"},
+    {CPND_LID_TICFCL,NCSFL_TYPE_TICFCL,"CPSv %s : %s : %s : %s : %s:%lu\n"},
+    {CPND_LID_TIFLCL,NCSFL_TYPE_TIFLCL,"CPSv %s : %s : %s : %lu : %s:%lu\n"},
+    {CPND_LID_TICFFFCL,NCSFL_TYPE_TICFFFCL,"CPSv %s : %s : %s : %s: %s : %s : %s :%lu\n"},
     {0, 0, 0}
 };
 

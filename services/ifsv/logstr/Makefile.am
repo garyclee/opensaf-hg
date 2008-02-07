@@ -11,4 +11,4 @@ libifsv_logstr_la_CPPFLAGS = 	-I ../inc/ \
 
 libifsv_logstr_la_SOURCES = ./ifsv_logstr.c 
 
-libifsv_logstr_la_LDFLAGS = -version-number 1
+libifsv_logstr_la_LDFLAGS = -version-number 2

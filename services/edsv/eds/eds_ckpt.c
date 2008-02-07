@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1207,7 +1207,7 @@ uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
   EDS_CKPT_RETENTION_TIME_CLEAR_MSG *reten_clear=NULL;
   EDS_CKPT_FINALIZE_MSG             *finalize=NULL;  
   MDS_DEST                          *agent_dest=NULL;
-  uns32                             msg_hdl=0;
+  long                             msg_hdl=0;
 
   /* Allocate memory to hold the checkpoint message */
   ckpt_msg=m_MMGR_ALLOC_EDSV_CKPT_DATA;
@@ -1304,7 +1304,7 @@ uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
           break;
      case EDS_CKPT_SUBSCRIBE_REC:
           m_EDSV_DEBUG_CONS_PRINTF("SUBSCRIBE REC: AUPDATE");
-          msg_hdl=(uns32)ckpt_msg;
+          msg_hdl=(long)ckpt_msg;
           rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE); /* think of passing subsribe rec hdl itself */
           if(!rc)
           {
@@ -1317,7 +1317,7 @@ uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
           break;
      case EDS_CKPT_RETEN_REC:
           m_EDSV_DEBUG_CONS_PRINTF("RETEN REC: AUPDATE");
-          msg_hdl=(uns32)ckpt_msg;
+          msg_hdl=(long)ckpt_msg;
           rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
           if(!rc)
           {
@@ -1423,7 +1423,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
   EDS_CKPT_DATA *data=NULL;
 /*  NCS_UBAID *uba=NULL; */
   uns32 num_rec=0;
-  uns32 msg_hdl=0;
+  long msg_hdl=0;
   EDS_CKPT_REG_MSG *reg_rec= NULL;
   EDS_CKPT_CHAN_MSG *chan_rec=NULL;
   EDS_CKPT_CHAN_OPEN_MSG *copen_rec=NULL;
@@ -1637,7 +1637,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
    num_rec=data->header.num_ckpt_records;
    while(num_rec)
    {
-       msg_hdl=(uns32)data;
+       msg_hdl=(long)data;
        rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
        if(!rc)
        {
@@ -1689,7 +1689,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
      {
        while(num_rec)
        {
-           msg_hdl=(uns32)data;
+           msg_hdl=(long)data;
            rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
            if(!rc) /*Encode failed.Zero bytes */
            {
@@ -2048,7 +2048,7 @@ uns32 eds_ckpt_proc_reten_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
    if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
                                                             (uns8*)&copen_id_Net)))
    {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(uns32)co,__FILE__,__LINE__,0);
+      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)co,__FILE__,__LINE__,0);
    }
 
    /* Store the retained event */
@@ -2648,7 +2648,7 @@ uns32 send_async_update(EDS_CB *cb,EDS_CKPT_DATA *ckpt_rec,uns32 action)
    mbcsv_arg.i_mbcsv_hdl=cb->mbcsv_hdl;
    mbcsv_arg.info.send_ckpt.i_action=action;
    mbcsv_arg.info.send_ckpt.i_ckpt_hdl=(NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-   mbcsv_arg.info.send_ckpt.i_reo_hdl=(uns32)ckpt_rec; /*Will be used in encode callback*/
+   mbcsv_arg.info.send_ckpt.i_reo_hdl=(MBCSV_REO_HDL)(long)(ckpt_rec); /*Will be used in encode callback*/
    /* Just store the address of the data to be send as an 
     * async update record in reo_hdl. The same shall then be 
     *dereferenced during encode callback */
@@ -2766,8 +2766,8 @@ uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     
    EDU_INST_SET eds_ckpt_reg_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_reg_rec, 0, 0, 0, sizeof(EDS_CKPT_REG_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_REG_MSG*)0)->reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((EDS_CKPT_REG_MSG*)0)->eda_client_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG*)0)->reg_id,0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG*)0)->eda_client_dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
   };
 
@@ -2826,14 +2826,14 @@ uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_chan_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_chan_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->last_copen_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->chan_attrib,0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,(uns32)&((EDS_CKPT_CHAN_MSG*)0)->chan_opener_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns64, 0, 0, 0,(uns32)&((EDS_CKPT_CHAN_MSG*)0)->chan_create_time, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->cname_len,0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((EDS_CKPT_CHAN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->reg_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->chan_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->last_copen_id,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->chan_attrib,0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,(long)&((EDS_CKPT_CHAN_MSG*)0)->chan_opener_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns64, 0, 0, 0,(long)&((EDS_CKPT_CHAN_MSG*)0)->chan_create_time, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->cname_len,0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -2891,13 +2891,13 @@ uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_copen_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_chan_open_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_OPEN_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_attrib, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_opener_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname_len,0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->reg_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_open_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_attrib, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_opener_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname_len,0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -2956,9 +2956,9 @@ uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_cclose_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_chan_close_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_CLOSE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_open_id,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->reg_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_id,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_open_id,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3016,8 +3016,8 @@ uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
   EDU_INST_SET eds_ckpt_culink_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_chan_ulink_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_UNLINK_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->chan_name, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->reg_id,0, NULL},
+        {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->chan_name, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3075,9 +3075,9 @@ uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_ret_clr_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_ret_clr_rec, 0, 0, 0, sizeof(EDS_CKPT_RETENTION_TIME_CLEAR_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.event_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_open_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.event_id, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3135,9 +3135,9 @@ uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_csum_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_csum_rec, 0, 0, 0, sizeof(EDS_CKPT_DATA_CHECKSUM), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((EDS_CKPT_DATA_CHECKSUM*)0)->reg_csum, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((EDS_CKPT_DATA_CHECKSUM*)0)->copen_csum,0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((EDS_CKPT_DATA_CHECKSUM*)0)->subsc_csum,0, NULL},
+        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->reg_csum, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->copen_csum,0, NULL},
+        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->subsc_csum,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3194,10 +3194,10 @@ uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    EDS_CKPT_UNSUBSCRIBE_MSG *ckpt_usubsc_msg_ptr = NULL, **ckpt_usubsc_msg_dec_ptr;
    EDU_INST_SET eds_ckpt_usubsc_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_usubsc_rec, 0, 0, 0, sizeof(EDS_CKPT_UNSUBSCRIBE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.sub_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.reg_id,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_open_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.sub_id, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3256,7 +3256,7 @@ uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_final_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_finalize_rec, 0, 0, 0, sizeof(EDS_CKPT_FINALIZE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_FINALIZE_MSG*)0)->reg_id,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_FINALIZE_MSG*)0)->reg_id,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -3314,9 +3314,9 @@ uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET eds_ckpt_header_rec_ed_rules[ ] = {
         {EDU_START,eds_edp_ed_header_rec, 0, 0, 0, sizeof(EDS_CKPT_HEADER), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_HEADER*)0)->ckpt_rec_type,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_HEADER*)0)->num_ckpt_records,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_HEADER*)0)->data_len,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->ckpt_rec_type,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->num_ckpt_records,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->data_len,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
                                                                                                                              
@@ -3452,49 +3452,49 @@ uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET eds_ckpt_msg_ed_rules[ ] = {
         {EDU_START, eds_edp_ed_ckpt_msg, 0, 0, 0, sizeof(EDS_CKPT_DATA), 0, NULL},
-        {EDU_EXEC, eds_edp_ed_header_rec, 0, 0, 0, (uns32)&((EDS_CKPT_DATA*)0)->header,0, NULL},
+        {EDU_EXEC, eds_edp_ed_header_rec, 0, 0, 0, (long)&((EDS_CKPT_DATA*)0)->header,0, NULL},
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((EDS_CKPT_DATA*)0)->header, 0, (EDU_EXEC_RTINE )eds_ckpt_msg_test_type},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_DATA*)0)->header, 0, (EDU_EXEC_RTINE )eds_ckpt_msg_test_type},
  
         /* Reg Record */
         {EDU_EXEC, eds_edp_ed_reg_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.reg_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.reg_rec, 0, NULL},
 
         /* Finalize record */
         {EDU_EXEC, eds_edp_ed_finalize_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.finalize_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.finalize_rec, 0, NULL},
         
         /* Channel Create records */
         {EDU_EXEC, eds_edp_ed_chan_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
 
         /* Channel open records */
         {EDU_EXEC, eds_edp_ed_chan_open_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
  
         /* Channel close records */
         {EDU_EXEC, eds_edp_ed_chan_close_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_close_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_close_rec, 0, NULL},
  
         /* Channel unlink records */
         {EDU_EXEC, eds_edp_ed_chan_ulink_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_unlink_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_unlink_rec, 0, NULL},
  
         /* Retention time clear records */
         {EDU_EXEC, eds_edp_ed_ret_clr_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.reten_time_clr_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.reten_time_clr_rec, 0, NULL},
 
         /* UnSubscribe Record */
         {EDU_EXEC, eds_edp_ed_usubsc_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.unsubscribe_rec, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.unsubscribe_rec, 0, NULL},
 
         /* Warm Sync Checksum on data,record */
         {EDU_EXEC, eds_edp_ed_csum_rec, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.warm_sync_csum, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.warm_sync_csum, 0, NULL},
 
         /* Warm Sync Checksum on data,record */
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
-            (uns32)&((EDS_CKPT_DATA*)0)->ckpt_rec.agent_dest, 0, NULL},
+            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.agent_dest, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
   };

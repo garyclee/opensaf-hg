@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -104,7 +104,6 @@ uns32 cpnd_mds_register (CPND_CB *cb)
    uns32             rc = NCSCC_RC_SUCCESS;
    NCSMDS_INFO       svc_info;
    MDS_SVC_ID        svc_id[1] = {NCSMDS_SVC_ID_CPD};
-   NCS_PHY_SLOT_ID phy_slot;
 
    /* STEP1: Get the MDS Handle*/
    rc = cpnd_mds_get_handle(cb);
@@ -368,6 +367,8 @@ static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
            rc = cpsv_data_access_rsp_encode(&pevt->info.cpnd.info.ckpt_nd2nd_data_rsp , io_uba);
            return rc;
+         default :
+           break;
        }
       }
      /* For all other Cases Invoke EDU encode */
@@ -515,6 +516,8 @@ static uns32 cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
              ncs_dec_skip_space(dec_info->io_uba, 12);
              rc = cpsv_data_access_rsp_decode(&msg_ptr->info.cpnd.info.ckpt_nd2nd_data_rsp, dec_info->io_uba);
              goto free;
+          default :
+            break;
          } 
      }
       /* For all other Events otherthan Write/Read Call EDU */
@@ -967,6 +970,7 @@ static uns32 cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
          {
            m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
            cb->cpnd_active_id = phy_slot;
+           cb->is_cpd_up = TRUE;
          }
          else if(svc_evt->i_role == SA_AMF_HA_STANDBY)
          {
@@ -998,6 +1002,7 @@ static uns32 cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
    evt->info.cpnd.info.mds_info.change = svc_evt->i_change;
    evt->info.cpnd.info.mds_info.dest = svc_evt->i_dest;
    evt->info.cpnd.info.mds_info.svc_id = svc_evt->i_svc_id;
+   evt->info.cpnd.info.mds_info.role = svc_evt->i_role;
    
    /* Put it in CPND's Event Queue */
    rc = m_NCS_IPC_SEND(&cb->cpnd_mbx, (NCSCONTEXT)evt, priority);

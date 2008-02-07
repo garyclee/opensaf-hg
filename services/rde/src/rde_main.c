@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -40,11 +40,10 @@
  *                                                               *
 \***************************************************************/
 
-static uns32        rde_daemonize (void);
 static uns32        rde_create_pidfile(void);
 static uns32        rde_main_loop  (void);
 static uns32        rde_shutdown  (void);
-uns32               rde_initialize(void);
+extern uns32               rde_initialize(void);
 
 /*****************************************************************************
 
@@ -65,9 +64,7 @@ main (int    argc, char * argv[])
 {
    uns32          rc    =  NCSCC_RC_FAILURE;
    RDE_CONTROL_BLOCK * rde_cb = rde_get_control_block();
-   NCS_LIB_REQ_INFO req_info;
    char line[256];
-   char *str=NULL;
    FILE *fp;
    NCS_PHY_SLOT_ID slot_id;
 
@@ -111,18 +108,6 @@ main (int    argc, char * argv[])
    m_NCS_CONS_PRINTF ("Log level          : %u\n", rde_cb->options.log_level);
    m_NCS_CONS_PRINTF ("Interactive mode   : %s\n", (rde_cb->options.is_daemon ? "FALSE" : "TRUE")) ;
 
-   /***************************************************************\
-    *                                                               *
-    *         Daemonize, if not being run in interactive mode       *
-    *                                                               *
-   \***************************************************************/
-#if 0
-   if (rde_cb-> options.is_daemon  && rde_daemonize () != NCSCC_RC_SUCCESS)
-   {
-      exit (-1);
-   }
-
-#endif
    /***************************************************************\
     *                                                               *
     *         Create PID file                                       *
@@ -452,88 +437,6 @@ uns32 rde_get_options (
    return rc;
 
 }
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_daemonize
-
-  DESCRIPTION:          Daemonizes the current process
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:                Copied wholesale from the switchagentd code.
-                        This logic should probably be encapsulated
-                        in some common LEAP code that could be reused
-                        by all our daemons.
-
-*****************************************************************************/
-
-static
-uns32 rde_daemonize (void)
-{
-#ifndef _WIN32
-
-   pid_t        pid;
-
-   m_RDE_ENTRY("rde_daemonize");
-
-   /***************************************************************\
-    *                                                               *
-    *         Fork another process to execute RDE code              *
-    *         and exit from the parent process                      *
-    *                                                               *
-   \***************************************************************/
-
-   if ((pid = fork()) < 0)
-   {
-      m_NCS_CONS_PRINTF("Fork failed\n");
-      return NCSCC_RC_FAILURE;
-   }
-   else if (pid != 0)
-   {
-      /* This is the parent process, which will now exit */
-
-      exit(0);
-   }
-   
-   /***************************************************************\
-    *                                                               *
-    *         This is the child [Daemon] process                    *
-    *                                                               *
-   \***************************************************************/
-
-   /* Become session leader */
-   setsid ();
-   
-   /* Close inherited file descriptors to avoid
-    * keeping unnecessary references.
-    */
-   close(0);
-   close(1);
-   close(2);
-
-   /*
-    * Redirect std{in,out,err} to /dev/null, just in case.
-    */
-   open("/dev/null", O_RDWR);
-   dup(0);
-   dup(0);
-
-
-   /* Change dir to root */
-   chdir("/");
-
-   /* clear file creation mask */
-   umask(0);
-
-
-#endif /* linux only */
-
-   return NCSCC_RC_SUCCESS;
-}
-
 
 /*****************************************************************************
 

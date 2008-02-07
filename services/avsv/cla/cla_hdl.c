@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -120,7 +120,8 @@ void cla_hdl_del (CLA_CB *cb)
 ******************************************************************************/
 void cla_hdl_rec_del (CLA_CB *cb, CLA_HDL_DB *hdl_db, CLA_HDL_REC *hdl_rec)
 {
-   uns32 hdl = hdl_rec->hdl;
+   uns32 hdl = 0; 
+   hdl = hdl_rec->hdl;
 
    /* pop the hdl rec */
    ncs_patricia_tree_del(&hdl_db->hdl_db_anchor, &hdl_rec->hdl_node);

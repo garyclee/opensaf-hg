@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -196,6 +196,9 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
          avnd->type = AVSV_AVND_CARD_SYS_CON;
 
    }
+ 
+   /*Intialize the heart beat receive indication value  */
+        avnd->hrt_beat_rcvd = FALSE;
 
    /* send the node up message to the node.
     */
@@ -359,6 +362,27 @@ void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb,AVD_EVT *evt)
       m_AVD_HB_TMR_START(cb,avnd);
    }
 
+   /* check that this is the first heart Beat message after
+      system start or after a heart beat timer expiry .If 
+      yes than inform AVM 
+    */
+  if(FALSE == avnd->hrt_beat_rcvd)
+   {
+     if (NCSCC_RC_SUCCESS != avd_avm_nd_hb_restore_msg(cb,avnd->node_info.nodeId))
+     {
+       /* log error that the node id is invalid */ 
+        m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+        m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+
+        avsv_dnd_msg_free(n2d_msg);
+        evt->info.avnd_msg = NULL;
+        return;
+      }
+      /*Message Successfully sent: RDE informed */
+      /*Set the avnd heart beat received value to True  */  
+       avnd->hrt_beat_rcvd = TRUE;   
+    }
+   
    m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
    /* free the received message */
@@ -419,6 +443,20 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
+
+   /* get avnd ptr to call avd_avm_mark_nd_absent */
+   if( (avnd = avd_avnd_struc_find_nodeid(cb, evt->info.tmr.node_id)) == AVD_AVND_NULL)
+   {
+      /* we can't do anything without getting avnd ptr. just return */
+      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
+      return;
+    }
+
+   /*Reset the first heart beat receive boolean variable
+     present in avnd structure */
+     
+     avnd->hrt_beat_rcvd = FALSE;
+
    /* Inform LFM about the heartbeat loss. All the other processing
     * is delayed until a response is received from LFM
     *
@@ -427,14 +465,6 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb,AVD_EVT *evt)
    if (NCSCC_RC_SUCCESS != avd_avm_nd_hb_lost_msg(cb, evt->info.tmr.node_id))
    {
       /* log error that the node id is invalid */
-      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
-      return;
-   }
-
-   /* get avnd ptr to call avd_avm_mark_nd_absent */
-   if( (avnd = avd_avnd_struc_find_nodeid(cb, evt->info.tmr.node_id)) == AVD_AVND_NULL)
-   {
-      /* we can't do anything without getting avnd ptr. just return */
       m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
       return;
    }
@@ -991,7 +1021,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
             if (avd_snd_susi_msg(cb,su_ptr,rel_ptr,rel_ptr->fsm) != NCSCC_RC_SUCCESS)
             {
                /* log a fatal error that a message couldn't be sent */
-               m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su_ptr));
+               m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
                m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(su_ptr->name_net.value,
                   su_ptr->name_net.length);
             }
@@ -1037,7 +1067,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
             if (avd_snd_susi_msg(cb,su_ptr,rel_ptr,rel_ptr->fsm) != NCSCC_RC_SUCCESS)
             {
                /* log a fatal error that a message couldn't be sent */
-               m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su_ptr));
+               m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
                m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(su_ptr->name_net.value,
                   su_ptr->name_net.length);
             }

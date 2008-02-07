@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -113,14 +113,26 @@ const NID_SVC_STATUS nid_serv_stat_info[]={     \
                       {"NID_XND_HPM_SLOT_GET_ERROR","Failed to get slot-id from HPM"},\
                       {"NID_XND_HPM_PART_NUM_GET_ERROR","Failed to get pat-no from HPM"},\
                       {"NID_XND_PRE_NCS_INIT_FAILURE","Failed Pre-NCS initialization"}}},\
-   {MAXLHCDERR,"LHCD",{{"ERR1","ERR1 in LHCD"},\
-                     {"ERR2","ERR2 in LHCD"},\
-                     {"ERR3","ERR3 in LHCD"},\
-                     {"ERR4","ERR4 in LHCD"}}},\
-   {MAXLHCRERR,"LHCR",{{"ERR1","ERR1 in LHCR"},\
-                     {"ERR2","ERR2 in LHCR"},\
-                     {"ERR3","ERR3 in LHCR"},\
-                     {"ERR4","ERR4 in LHCR"}}},\
+   {NID_MAXLHCDERR,"LHCD",{{" LHCD_NID_CONF_FILE_ERR "," Configuration file is not found"},\
+                    {" LHCD_NID_CMD_LINE_ARG_ERR "," Wrong command line arguments passed to the lhc executable"},\
+                    {" LHCD_NID_DAEMON_INIT_FAILURE "," failure while daemonising the lhc process"},\
+                    {" LHCD_NID_NCS_CORE_AGENTS_STARTUP_FAILURE "," ncs_core_agents_startup failure "},\
+                    {" LHCD_NID_TASK_START_FAILURE "," lhcsc_task_start failure "},\
+                    {" LHCD_NID_DTSV_BIND_FAILURE "," ncs_dtsv_su_req: flexlog bind failure"},\
+                    {" LHCD_NID_CMD_LM_FAILURE "," cmd_lm: failure to init the command line utility"},\
+                    {" LHCD_NID_MAB_REG_FAILURE "," lhc_mab_register_table : Mib table registration failure"},\
+                    {" LHCD_NID_MAB_CLAIM_ROW_FAILURE "," lhc_mab_claim_row_failure"},\
+                    {" LHCD_NID_L2_CONN_FAILURE ","L2 connection failure"}}},\
+   {NID_MAXLHCRERR,"LHCR",{{" LHCR_NID_CONF_FILE_ERR "," Configuration file is not found"},\
+                    {" LHCR_NID_CMD_LINE_ARG_ERR "," Wrong command line arguments passed to the lhc executable"},\
+                    {" LHCR_NID_DAEMON_INIT_FAILURE "," failure while daemonising the lhc process"},\
+                    {" LHCR_NID_NCS_CORE_AGENTS_STARTUP_FAILURE "," ncs_core_agents_startup failure "},\
+                    {" LHCR_NID_TASK_START_FAILURE "," lhcsc_task_start failure "},\
+                    {" LHCR_NID_DTSV_BIND_FAILURE "," ncs_dtsv_su_req: flexlog bind failure"},\
+                    {" LHCR_NID_CMD_LM_FAILURE "," cmd_lm: failure to init the command line utility"},\
+                    {" LHCR_NID_MAB_REG_FAILURE "," lhc_mab_register_table : Mib table registration failure"},\
+                    {" LHCR_NID_MAB_CLAIM_ROW_FAILURE "," lhc_mab_claim_row_failure"},\
+                    {" LHCR_NID_L2_CONN_FAILURE ","L2 connection failure"}}},\
    {NID_MAXNWERR,"Networking",{{"NID_NWNG_FILE_NOT_FND","Network script file not found"},\
                      {"NID_NWNG_FAILED","Failed Configuring Network interfaces"}}},\
    {NID_MAXDRBDERR,"DRBD",{{"NID_DRBD_LOD_ERR","Error loading DRBD."},\

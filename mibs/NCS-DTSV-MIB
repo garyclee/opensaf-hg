@@ -431,7 +431,7 @@ DtsvServiceLogPolicyEntry ::= SEQUENCE {
     
 
 ncsDtsvServiceIndexNode OBJECT-TYPE
-   SYNTAX        Unsigned32
+   SYNTAX        Unsigned32 (1..4294967295)
    MAX-ACCESS    not-accessible
    STATUS        current
    DESCRIPTION

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -52,12 +52,12 @@
 
 #if (MBCSV_LOG == 1)
 
-EXTERN_C uns32 mbcsv_dbg_sink (uns32,char*,uns32, char*);
+EXTERN_C uns32 mbcsv_dbg_sink (uns32,char*,long, char*);
 EXTERN_C uns32 mbcsv_dbg_sink_svc (uns32,char*,uns32, char*, uns32);
 
 /* m_MBCSV_DBG_VOID() used to keep compiler happy @ void return functions */
 
-#define m_MBCSV_DBG_SINK(r, s)  mbcsv_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
+#define m_MBCSV_DBG_SINK(r, s)  mbcsv_dbg_sink(__LINE__,__FILE__,(long)r, (char*)s)
 #define m_MBCSV_DBG_SINK_SVC(r, s, sid)  mbcsv_dbg_sink_svc(__LINE__,__FILE__,(uns32)r, (char*)s, (uns32)sid)
 
 #else

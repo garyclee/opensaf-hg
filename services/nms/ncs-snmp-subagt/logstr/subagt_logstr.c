@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -27,6 +27,8 @@
 #include "t_suite.h"
 #include "subagt_log.h"
 #include "dts_papi.h"  
+
+extern uns32 subagt_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 const NCSFL_STR subagt_log_hdln_str[] =
 {
@@ -383,16 +385,16 @@ NCSFL_FMAT subagt_fmat_set[] =
     { SNMPSUBAGT_FMTID_HDLN,        NCSFL_TYPE_TI   ,  "SNMP SubAgt %s HEADLINE    : %s \n"         },
     { SNMPSUBAGT_FMTID_FUNC_ENTRY,  NCSFL_TYPE_TI   ,  "SNMP SubAgt %s FUNC        : %s \n"         },
     { SNMPSUBAGT_FMTID_MEM,         NCSFL_TYPE_TI   ,  "SNMP Subagt %s MEM         : %s \n"         },
-    { SNMPSUBAGT_FMTID_DATA_DUMP,   NCSFL_TYPE_TIL  ,  "SNMP Subagt %s DATA DUMP   : %s [TABLE/FD] %d \n"}, 
-    { SNMPSUBAGT_FMTID_STATE,       NCSFL_TYPE_TILL ,  "SNMP Subagt %s STATE       : %s Svalue %d %d \n"},
-    { SNMPSUBAGT_FMTID_ERRORS,      NCSFL_TYPE_TILLL,  "SNMP Subagt %s ERROR       : %s Evalue %d %d %d \n"},
+    { SNMPSUBAGT_FMTID_DATA_DUMP,   NCSFL_TYPE_TIL  ,  "SNMP Subagt %s DATA DUMP   : %s [TABLE/FD] %ld \n"}, 
+    { SNMPSUBAGT_FMTID_STATE,       NCSFL_TYPE_TILL ,  "SNMP Subagt %s STATE       : %s Svalue %ld %ld \n"},
+    { SNMPSUBAGT_FMTID_ERRORS,      NCSFL_TYPE_TILLL,  "SNMP Subagt %s ERROR       : %s Evalue %ld %ld %ld \n"},
     { SNMPSUBAGT_FMTID_MEMDUMP,     NCSFL_TYPE_TID,    "SNMP Subagt %s MEMDUMP\n %s\n %s\n"},  
-    { SNMPSUBAGT_FMTID_ERROR_STRS,  NCSFL_TYPE_TICLL,  "SNMP Subagt %s INFORM      : %s String  %s %d %d \n"},
+    { SNMPSUBAGT_FMTID_ERROR_STRS,  NCSFL_TYPE_TICLL,  "SNMP Subagt %s INFORM      : %s String  %s %ld %ld \n"},
     { SNMPSUBAGT_FMTID_GEN_STR,     NCSFL_TYPE_TIC,  "SNMP Subagt %s GEN           : %s %s \n"},
-    { SNMPSUBAGT_FMTID_GEN_ERR,     NCSFL_TYPE_TICL,  "SNMP Subagt %s GEN-ERR      : %s %s %d \n"},
+    { SNMPSUBAGT_FMTID_GEN_ERR,     NCSFL_TYPE_TICL,  "SNMP Subagt %s GEN-ERR      : %s %s %ld \n"},
     { SNMPSUBAGT_FMTID_GEN_OID_LOG,  NCSFL_TYPE_TID,  "SNMP Subagt %s OID\n %s %s\n"},
     { SNMPSUBAGT_FMTID_INTF_INIT_STATE, NCSFL_TYPE_TI,  "SNMP SubAgt %s Interface Init status    : %s \n"         },
-    { SNMPSUBAGT_FMTID_LOG_TABLE_ID, NCSFL_TYPE_TIL  ,  "SNMP Subagt %s TABLE ID    : %s %d \n"         },
+    { SNMPSUBAGT_FMTID_LOG_TABLE_ID, NCSFL_TYPE_TIL  ,  "SNMP Subagt %s TABLE ID    : %s %ld \n"         },
     { 0, 0, 0 } 
 };
 

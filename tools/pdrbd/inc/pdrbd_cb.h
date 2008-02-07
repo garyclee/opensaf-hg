@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 #ifndef PDRBD_CB_H
@@ -23,7 +22,7 @@
 
 
 #define   PSEUDO_TASK_PRIORITY        4
-#define   PSEUDO_TASK_STACK_SIZE      10000
+#define   PSEUDO_TASK_STACK_SIZE      NCS_STACKSIZE_HUGE
 #define   PDRBD_NUM_ARGS              12
 #define   PDRBD_MAX_ARG_SIZE          25
 #define   PDRBD_SCRIPT_MAX_SIZE       100
@@ -203,7 +202,7 @@ typedef struct pseudo_cb
    uns8            nodeId[PDRBD_PROXIED_MAX_NODE_ID_LEN];
    NCSCONTEXT      taskHandle;      /* Pseudo thread/task handle */
    uns32           cb_hdl;          /* Handle for retrieving CB */
-   NCSCONTEXT      mds_hdl;         /* MDS Handle */
+   MDS_HDL      mds_hdl;         /* MDS Handle */
    MDS_DEST        my_pdrbd_dest;   /* My PDRBD Adest */
    MDS_DEST        peer_pdrbd_dest; /* Peer PDRBD Adest */
    uns32           my_evt_number;
@@ -274,7 +273,7 @@ typedef struct pdrbd_evt
       ac++;\
    } \
    if ( NULL != tok ) { \
-      sc[0] = (char)NULL; \
+      sc[0] = (char)(long)NULL; \
       av[0] = NULL; \
       ac = 0; \
    } else \

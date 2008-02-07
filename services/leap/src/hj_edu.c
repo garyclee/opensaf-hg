@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -4256,9 +4256,9 @@ uns64 ncs_decode_tlv_64bit(uns8 **stream)
 {
     uns64 val = 0;  /* Accumulator */
 
-    *(*stream)++;
-    *(*stream)++;
-    *(*stream)++;
+    (*stream)++;
+    (*stream)++;
+    (*stream)++;
     val = m_NCS_OS_NTOHLL_P((*stream));
 
     return val;
@@ -4277,9 +4277,9 @@ uns32 ncs_decode_tlv_32bit(uns8 **stream)
 {
     uns32 val = 0;  /* Accumulator */
 
-    *(*stream)++;
-    *(*stream)++;
-    *(*stream)++;
+    (*stream)++;
+    (*stream)++;
+    (*stream)++;
     val  = (uns32)*(*stream)++ << 24;
     val |= (uns32)*(*stream)++ << 16;
     val |= (uns32)*(*stream)++ << 8;
@@ -4302,7 +4302,7 @@ uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest)
     uns32 val = 0;  /* Accumulator */
     uns16 lcnt = 0, len = 0;
 
-    *(*stream)++;   /* type */
+    (*stream)++;   /* type */
     
     len = (uns16)((uns8)(*(*stream)++) << 8);
     len |= (uns16)*(*stream)++;
@@ -4333,9 +4333,9 @@ uns16 ncs_decode_tlv_16bit(uns8 **stream)
 {
     uns32 val = 0;  /* Accumulator */
 
-    *(*stream)++;
-    *(*stream)++;
-    *(*stream)++;
+    (*stream)++;
+    (*stream)++;
+    (*stream)++;
     val = (uns32)*(*stream)++ << 8;
     val |= (uns32)*(*stream)++;
 
@@ -4356,7 +4356,7 @@ uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest)
     uns16 val = 0;  /* Accumulator */
     uns16 lcnt = 0, len = 0;
 
-    *(*stream)++;   /* type */
+    (*stream)++;   /* type */
     
     len = (uns16)((uns8)(*(*stream)++) << 8);
     len |= (uns16)*(*stream)++;
@@ -4385,9 +4385,9 @@ uns8 ncs_decode_tlv_8bit(uns8 **stream)
 {
     uns32 val = 0;  /* Accumulator */
     
-    *(*stream)++;
-    *(*stream)++;
-    *(*stream)++;
+    (*stream)++;
+    (*stream)++;
+    (*stream)++;
     val = (uns32)*(*stream)++;
     
     return (uns8)(val & 0x000000FF);
@@ -4407,9 +4407,9 @@ uns8* ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
     if (src == NULL)
         return NULL;
 
-    *(src)++;
-    *(src)++;
-    *(src)++;
+    (src)++;
+    (src)++;
+    (src)++;
     if(count != 0)
     {
         m_NCS_MEMCPY(dest, src, count);
@@ -4432,9 +4432,9 @@ uns8* ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
     if (src == NULL)
         return NULL;
 
-    *(src)++;
-    *(src)++;
-    *(src)++;
+    (src)++;
+    (src)++;
+    (src)++;
     m_NCS_MEMCPY(dest, src, count);
     
     return dest;

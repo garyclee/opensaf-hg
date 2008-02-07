@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -234,6 +234,17 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
          "dts_lib_init: IPC attach failed.");
    }
+
+#if (DTS_FLOW == 1)
+   /* Keeping count of messages in DTS mailbox */
+   if (NCSCC_RC_SUCCESS != m_NCS_IPC_CONFIG_USR_COUNTERS(&gl_dts_mbx, NCS_IPC_PRIORITY_LOW, &inst->msg_count))
+   {
+      m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
+      m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
+      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+         "dts_lib_init: Failed to initialize DTS msg counters with LEAP");
+   }
+#endif
 
    /* Smik - initialize the signal handler */
    if ((dts_app_signal_install(SIGUSR1,dts_amf_sigusr1_handler)) == -1) 

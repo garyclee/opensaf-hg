@@ -1,20 +1,19 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
-
 
 /*****************************************************************************
 *                                                                            *
@@ -114,7 +113,6 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    SaHpiSessionIdT    session_id = 0;
    SaHpiRptEntryT     entry;
    /* SaHpiSelInfoT   Info; */
-   SaHpiVersionT      version;
    SaAisErrorT    amf_error;
 
    HPI_SESSION_ARGS * dom_args;
@@ -122,7 +120,11 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    SIM_CB *sim_cb;
    HAM_CB *ham_cb;
    HCD_CB    *hcd_cb;
-   uns32 rc = NCSCC_RC_FAILURE, retry;
+   uns32 rc = NCSCC_RC_FAILURE; 
+#ifdef HPI_A
+   uns32 retry;
+   SaHpiVersionT      version;
+#endif
 
    /* Register with Logging subsystem */
 #if (NCS_HISV_LOG == 1)
@@ -255,7 +257,6 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
          /* discover the HPI resources */
          if (NCSCC_RC_FAILURE == discover_domain(dom_args))
          {
-            m_LOG_HISV_DTS_CONS("hisv_hcd_init: discover_domain error\n");
             dom_args->session_valid = 0;
             dom_args->rediscover = 1;
             /* m_MMGR_FREE_HPI_SESSION_ARGS(dom_args); */
@@ -299,7 +300,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    /* Create HCD-HSM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)hcd_hsm,
                                           0, "HSM", HSM_TASK_PRIORITY,
-                                          NCS_STACKSIZE_MEDIUM,
+                                          NCS_STACKSIZE_HUGE,
                                           &hsm_cb->task_hdl
                                           )))
    {
@@ -328,7 +329,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    /* Create ShIM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)hcd_sim,
                                           0, "SIM", SIM_TASK_PRIORITY,
-                                          NCS_STACKSIZE_MEDIUM,
+                                          NCS_STACKSIZE_HUGE,
                                           &sim_cb->task_hdl
                                           )))
    {
@@ -371,7 +372,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    /* Create HCD-HAM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)hcd_ham,
                                           0, "HAM", HAM_TASK_PRIORITY,
-                                          NCS_STACKSIZE_MEDIUM,
+                                          NCS_STACKSIZE_HUGE,
                                           &ham_cb->task_hdl
                                           )))
    {

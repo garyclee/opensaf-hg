@@ -528,6 +528,8 @@ Notes         :
 static FILE *esmiCreateFile(char *name, char *suffix, char *dirPath)
 {
    char *fullName;
+   DIR  *dir = NULL;
+   char command[1024];
    FILE *fd;
 
    /* Alloc sufficient memory and frame the full name (name + siffix) */
@@ -548,6 +550,16 @@ static FILE *esmiCreateFile(char *name, char *suffix, char *dirPath)
       {
          strcpy(fullName, dirPath);
       }
+
+      /* create esmi specified directories if they doesn't exist */
+      if ((dir = opendir(fullName)) == NULL)
+      {
+         memset(command, 0, sizeof(command));
+         snprintf(command, sizeof(command) - 1,
+                "\\mkdir -p %s", fullName);
+         system(command);
+      }
+
       strcat(fullName, name);
    } /* Directory path not defined */
    else
@@ -6065,7 +6077,12 @@ static void printObjDiscreteValues(FILE *fd, SmiNode *grpNode)
        {
           if (listPtr->nextPtr != NULL)
           {
-              if((((Range *)listPtr->ptr)->export.minValue.len) &&
+              if (smiType->basetype == SMI_BASETYPE_ENUM)
+              {
+                value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.integer32);
+                fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
+              }
+              else if((((Range *)listPtr->ptr)->export.minValue.len) &&
                  (! (((Range *)listPtr->ptr)->export.maxValue.basetype)))
               {
                   
@@ -6086,12 +6103,18 @@ static void printObjDiscreteValues(FILE *fd, SmiNode *grpNode)
                     }
                     else
                        fprintf(fd, "\n                                                   {0x%x, 0x%x},", 
-                                  ((Range *)listPtr->ptr)->export.minValue.value.integer32, ((Range *)listPtr->ptr)->export.maxValue.value.integer32);
+                                  ((Range *)listPtr->ptr)->export.minValue.value.integer32,
+                                  ((Range *)listPtr->ptr)->export.maxValue.value.integer32);
               }
           }
           else /* Last Discrete value */
           {
-              if((((Range *)listPtr->ptr)->export.minValue.len) &&
+              if (smiType->basetype == SMI_BASETYPE_ENUM)
+              {
+                value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.integer32);
+                fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
+              }
+              else if((((Range *)listPtr->ptr)->export.minValue.len) &&
                  (! (((Range *)listPtr->ptr)->export.maxValue.basetype)))
               {
                   
@@ -7193,7 +7216,7 @@ static int print_var_info_miblib (FILE *fd, SmiNode *grpNode, SmiNode *smiNode)
              (strcmp(smiNode->esmi.info.objectInfo.baseAddress, ESMI_NULL_STR)))
           {
              fprintf(fd, "\n   var_info[%s_ID - 1].offset = "
-                         "\n            (uns16)((int)&%s->%s - (int)%s);", 
+                         "\n            (uns16)((long)&%s->%s - (long)%s);", 
                                       smiNode->name,
                                       smiNode->esmi.info.objectInfo.baseAddress,
                                       smiNode->esmi.info.objectInfo.member,
@@ -7868,7 +7891,7 @@ static int  printMibLibOrPssvTblInit(FILE *fd, SmiNode *grpNode, int objCount)
              {
                 /* Print status_offset of the table */
                 fprintf(fd, "\n   tbl_info->status_offset = "
-                            "\n            (uns16)((int)&%s->%s - (int)%s);",
+                            "\n            (uns16)((long)&%s->%s - (long)%s);",
                                       rowStatusNode->esmi.info.objectInfo.baseAddress,
                                       rowStatusNode->esmi.info.objectInfo.member,
                                       rowStatusNode->esmi.info.objectInfo.baseAddress); 

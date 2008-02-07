@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -189,6 +189,8 @@
 #define LOG_PATH   ""
 #endif
 
+#define NODE_ID_FILE "/var/opt/opensaf/node_id"
+
 /**************************************************************************\
 
        L O C A L      D A T A    S T R U C T U R E S
@@ -223,20 +225,10 @@ typedef struct ncs_main_pub_cb
    uns32               dta_use_count;
    uns32               oac_use_count;
 
-   NCS_AGENT_DATA      eda;
    NCS_AGENT_DATA      mbca;
-   NCS_AGENT_DATA      ava;
-   NCS_AGENT_DATA      cla;
-#if 0
-   NCS_AGENT_DATA      spa;
-#endif
-   NCS_AGENT_DATA      mqa;
-   NCS_AGENT_DATA      gla;
-   NCS_AGENT_DATA      cpa;
    NCS_AGENT_DATA      ifa;
    NCS_AGENT_DATA      maa;
    NCS_AGENT_DATA      ncs_hpl;
-   NCS_AGENT_DATA      srma;
 
 } NCS_MAIN_PUB_CB;
 
@@ -337,19 +329,8 @@ unsigned int ncs_agents_shutdown(int argc, char *argv[])
 {
    ncs_maa_shutdown();
    ncs_ifa_shutdown();
-   ncs_cpa_shutdown();
-   ncs_gla_shutdown();
-   ncs_mqa_shutdown();
-#if 0
-   ncs_spa_shutdown();
-#endif
-   ncs_eda_shutdown();
-#if 0
-   ncs_hisv_hpl_shutdown();
-#endif /* 0 */
-   ncs_ava_cla_shutdown();
    ncs_mbca_shutdown();
-   ncs_srma_shutdown();
+
    ncs_core_agents_shutdown();
 
    return NCSCC_RC_SUCCESS;
@@ -398,7 +379,6 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
       m_NCS_AGENT_UNLOCK;
       return NCSCC_RC_FAILURE;
    }
-   
 
    if (sprr_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {      
@@ -628,47 +608,11 @@ uns32 ncs_non_core_agents_startup(int argc, char *argv[])
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
    
-   rc = ncs_ava_cla_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-#if 0
-   rc = ncs_spa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-#endif
-
-   rc = ncs_eda_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-#if 0
-   rc = ncs_hisv_hpl_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-#endif /* 0 */
-
-   rc = ncs_mqa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-   rc = ncs_gla_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-   rc = ncs_cpa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
    rc = ncs_ifa_startup(argc, argv);
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
 
    rc = ncs_maa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-   rc = ncs_srma_startup(argc, argv);
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
 
@@ -781,215 +725,6 @@ unsigned int ncs_mbca_startup(int argc, char *argv[])
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_ava_cla_startup
-
-\***************************************************************************/
-unsigned int ncs_ava_cla_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-#if 0
-   NCS_BOOL         sleep = FALSE;/* BUG 14448 TEMP FIX */
-#endif
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.ava.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.ava.use_count++;
-   }
-   else /*** Init AVA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "AVSV="))
-   {
-      if (gl_ncs_main_pub_cb.ava.use_count > 0)
-      {
-         gl_ncs_main_pub_cb.ava.use_count++;
-      }
-      else
-      {
-         gl_ncs_main_pub_cb.ava.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "ava_lib_req");
-         if (gl_ncs_main_pub_cb.ava.lib_req == NULL)
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nAVSV:AVA:OFF");
-         }
-         else
-         {
-            if ((*gl_ncs_main_pub_cb.ava.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-            {
-               m_NCS_AGENT_UNLOCK;
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            }
-            else
-            {
-               NCSMAINPUB_DBG_TRACE1_ARG1("\nAVSV:AVA:ON");
-               gl_ncs_main_pub_cb.ava.use_count = 1;
-            }
-         }
-      }
-   }
-
-   if (gl_ncs_main_pub_cb.cla.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.cla.use_count++;
-   }
-   else
-   {
-      gl_ncs_main_pub_cb.cla.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "cla_lib_req");
-      if (gl_ncs_main_pub_cb.cla.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nAVSV:CLA:OFF");
-      }
-      else
-      {            
-         if ((*gl_ncs_main_pub_cb.cla.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nAVSV:CLA:ON");
-            gl_ncs_main_pub_cb.cla.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-#if 0
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_spa_startup
-
-\***************************************************************************/
-unsigned int ncs_spa_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-#if 0 /* SPSv disable for NCS2.0 GA - 14-Sep-05 */   
-   m_NCS_AGENT_LOCK;
-
-   /*** Init SPA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "SPSV="))
-   {
-      gl_ncs_main_pub_cb.spa_lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "spa_lib_req");
-      if (gl_ncs_main_pub_cb.spa_lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nSPSV:SPA:OFF");
-      }
-      else
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nSPSV:SPA:ON");
-         if ((*gl_ncs_main_pub_cb.spa_lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-
-         m_NCS_TASK_SLEEP(ir14448_delay);/* 1/2 second */ /* BUG 14448 TEMP FIX */
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-#endif
-   return NCSCC_RC_SUCCESS;
-}
-#endif
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_eda_startup
-
-\***************************************************************************/
-unsigned int ncs_eda_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.eda.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.eda.use_count++;
-   }
-   else
-   /*** Init EDA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "EDSV="))
-   {
-      gl_ncs_main_pub_cb.eda.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "ncs_eda_lib_req");
-      if (gl_ncs_main_pub_cb.eda.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nEDSV:EDA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.eda.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nEDSV:EDA:ON");
-            gl_ncs_main_pub_cb.eda.use_count = 1;
-         }
-      }
-   }
-   
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_hisv_hpl_startup
 
 \***************************************************************************/
@@ -1049,183 +784,6 @@ unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_mqa_startup
-
-\***************************************************************************/
-unsigned int ncs_mqa_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.mqa.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.mqa.use_count++;
-   }
-   else  /*** Init MQA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "MQSV="))
-   {
-      gl_ncs_main_pub_cb.mqa.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mqa_lib_req");
-      if (gl_ncs_main_pub_cb.mqa.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nMQSV:MQA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.mqa.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nMQSV:MQA:ON");
-            gl_ncs_main_pub_cb.mqa.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_gla_startup
-
-\***************************************************************************/
-unsigned int ncs_gla_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.gla.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.gla.use_count++;
-   }
-   else  /*** Init GLA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "GLSV="))
-   {
-      gl_ncs_main_pub_cb.gla.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "gla_lib_req");
-      if (gl_ncs_main_pub_cb.gla.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nGLSV:GLA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.gla.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nGLSV:GLA:ON");
-            gl_ncs_main_pub_cb.gla.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_cpa_startup
-
-\***************************************************************************/
-unsigned int ncs_cpa_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.cpa.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.cpa.use_count++;
-   }
-   else   /*** Init CPA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "CPSV="))
-   {      
-      gl_ncs_main_pub_cb.cpa.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "cpa_lib_req");
-      if (gl_ncs_main_pub_cb.cpa.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nCPSV:CPA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.cpa.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nCPSV:CPA:ON");
-            gl_ncs_main_pub_cb.cpa.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_ifa_startup
 
 \***************************************************************************/
@@ -1273,65 +831,6 @@ unsigned int ncs_ifa_startup(int argc, char *argv[])
          {
             NCSMAINPUB_DBG_TRACE1_ARG1("\nIFSV:IFA:ON");
             gl_ncs_main_pub_cb.ifa.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_srma_startup
-
-\***************************************************************************/
-unsigned int ncs_srma_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.srma.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.srma.use_count++;
-   }
-   else  /*** Init SRMA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "SRMSV="))
-   {      
-      gl_ncs_main_pub_cb.srma.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "srma_lib_req");
-      if (gl_ncs_main_pub_cb.srma.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nSRMSV:SRMA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.srma.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nSRMSV:SRMA:ON");
-            gl_ncs_main_pub_cb.srma.use_count = 1;
          }
       }
    }
@@ -1439,221 +938,6 @@ unsigned int ncs_ifa_shutdown(void)
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_srma_shutdown
-
-\***************************************************************************/
-unsigned int ncs_srma_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.srma.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.srma.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.srma.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.srma.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.srma.use_count = 0;
-   gl_ncs_main_pub_cb.srma.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-   return rc;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_cpa_shutdown
-
-\***************************************************************************/
-unsigned int ncs_cpa_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.cpa.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.cpa.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.cpa.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.cpa.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.cpa.use_count = 0;
-   gl_ncs_main_pub_cb.cpa.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_gla_shutdown
-
-\***************************************************************************/
-unsigned int ncs_gla_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.gla.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.gla.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.gla.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.gla.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.gla.use_count = 0; 
-   gl_ncs_main_pub_cb.gla.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_mqa_shutdown
-
-\***************************************************************************/
-unsigned int ncs_mqa_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.mqa.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.mqa.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.mqa.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.mqa.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.mqa.use_count = 0;
-   gl_ncs_main_pub_cb.mqa.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-
-#if 0
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_spa_shutdown
-
-\***************************************************************************/
-unsigned int ncs_spa_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.spa.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.spa.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.spa.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.spa.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.spa.use_count = 0;
-   gl_ncs_main_pub_cb.spa.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-#endif
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_eda_shutdown
-
-\***************************************************************************/
-unsigned int ncs_eda_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.eda.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.eda.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.eda.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.eda.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.eda.use_count = 0;
-   gl_ncs_main_pub_cb.eda.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_hisv_hpl_shutdown
 
 \***************************************************************************/
@@ -1662,7 +946,7 @@ unsigned int ncs_hisv_hpl_shutdown(void)
    NCS_LIB_REQ_INFO  lib_destroy;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_AGENT_UNLOCK;
+   m_NCS_AGENT_LOCK;
    if (gl_ncs_main_pub_cb.ncs_hpl.use_count > 1)
    {
       /* Still users extis, so just decrement the use_count */
@@ -1689,56 +973,6 @@ unsigned int ncs_hisv_hpl_shutdown(void)
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_ava_cla_shutdown
-
-\***************************************************************************/
-unsigned int ncs_ava_cla_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   m_NCS_AGENT_LOCK;
-   if (gl_ncs_main_pub_cb.cla.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.cla.use_count--;
-   }
-   else if (gl_ncs_main_pub_cb.cla.use_count == 1)
-   {
-      if (gl_ncs_main_pub_cb.cla.lib_req != NULL)
-         rc = (*gl_ncs_main_pub_cb.cla.lib_req)(&lib_destroy);
-
-      gl_ncs_main_pub_cb.cla.lib_req = NULL;
-      gl_ncs_main_pub_cb.cla.use_count = 0;
-   }
-
-   if (gl_ncs_main_pub_cb.ava.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.ava.use_count--;
-   }
-   else if (gl_ncs_main_pub_cb.ava.use_count == 1)
-   {
-      if (gl_ncs_main_pub_cb.ava.lib_req != NULL)
-         rc = (*gl_ncs_main_pub_cb.ava.lib_req)(&lib_destroy);
-
-      gl_ncs_main_pub_cb.ava.lib_req = NULL;
-      gl_ncs_main_pub_cb.ava.use_count = 0;
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
-}
-
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_mbca_shutdown
 
 \***************************************************************************/
@@ -1747,7 +981,7 @@ unsigned int ncs_mbca_shutdown(void)
    NCS_LIB_REQ_INFO  lib_destroy;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_AGENT_UNLOCK;
+   m_NCS_AGENT_LOCK;
    if (gl_ncs_main_pub_cb.mbca.use_count > 1)
    {
       /* Still users extis, so just decrement the use_count */
@@ -2281,7 +1515,15 @@ uns32 mainget_node_id(uns32 *node_id)
    }
    /* Hack ncs_config_root to construct path */
    sprintf(ncs_config_root + d_len, "%s", "/node_id");
+
+
+   /* LSB changes. Pick nodeid from /var/opt/opensaf */
+#if 0 
    fp = fopen(ncs_config_root,"r");
+#endif
+
+   fp = fopen(NODE_ID_FILE,"r");
+
    /* Reverse hack ncs_config_root to original value*/
    ncs_config_root[d_len] = 0;
 #else

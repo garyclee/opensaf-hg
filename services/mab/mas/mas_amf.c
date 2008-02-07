@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -291,7 +291,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
                     }
 
                     /* Fix for IR00085033 */
-                    if((SaAmfHandleT)NULL == gl_mas_amf_attribs.amf_attribs.amfHandle)
+                    if((SaAmfHandleT)(long)NULL == gl_mas_amf_attribs.amf_attribs.amfHandle)
                          mas_amf_comp_terminate_complete();
                 
                     /* clear the bit off for this fd */
@@ -581,7 +581,7 @@ mas_amf_comp_terminate(SaInvocationT invocation, const SaNameT *compName)
     }
 
     /* Fix for IR00085033 */
-    gl_mas_amf_attribs.amf_attribs.amfHandle = (SaAmfHandleT)NULL;
+    gl_mas_amf_attribs.amf_attribs.amfHandle = (SaAmfHandleT)(long)NULL;
 
 }
 
@@ -2226,7 +2226,7 @@ static void mas_process_sig_usr1_signal(void)
     FILE    *fp = NULL; 
 
     /* open the file to read the component name */
-    fp = fopen(m_MAS_COMP_NAME_FILE, "r");/* /etc/opt/opensaf/ncs_mas_comp_name.txt */
+    fp = fopen(m_MAS_COMP_NAME_FILE, "r");/* /var/opt/opensaf/ncs_mas_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */
@@ -2397,7 +2397,7 @@ uns32  mas_amf_mds_quiesced_process(NCSCONTEXT mas_hdl)
 {
     MAS_TBL *inst; 
     
-    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)mas_hdl);
+    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(mas_hdl));
     if(inst == NULL)
     {
         m_LOG_MAB_NO_CB("mas_amf_mds_quiesced_process()"); 
@@ -2409,7 +2409,7 @@ uns32  mas_amf_mds_quiesced_process(NCSCONTEXT mas_hdl)
                   inst->amf_invocation_id, SA_AIS_OK); 
     inst->amf_invocation_id = 0;
     
-    ncshm_give_hdl((uns32)mas_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(mas_hdl));
     return NCSCC_RC_SUCCESS; 
 }
 /****************************************************************************\

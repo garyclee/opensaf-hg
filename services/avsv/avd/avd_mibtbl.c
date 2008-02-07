@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -948,7 +948,7 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
-   m_AVD_LOG_RCVD_VAL(((uns32)evt->info.mib_req));
+   m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
    
    if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE)) 
    {
@@ -961,6 +961,17 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
        */
       m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
       evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
+      evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+      evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+      return;
+   }
+
+   if((cb->init_state >= AVD_CFG_DONE) && 
+     (evt->info.mib_req->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME ))
+   {
+   /* On demand PSS playback not supported */
+      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+      evt->info.mib_req->rsp.i_status = NCSCC_RC_FAILURE;
       evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
       evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
       return;
@@ -1025,6 +1036,9 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
 void avd_qsd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
 {
    
+
+   NCSMIBLIB_REQ_INFO  miblib_req;
+   
    m_AVD_LOG_FUNC_ENTRY("avd_qsd_req_mib_func");
    
    if (evt->info.mib_req == NULL)
@@ -1034,8 +1048,10 @@ void avd_qsd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
-   m_AVD_LOG_RCVD_VAL(((uns32)evt->info.mib_req));
+   m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
    
+   if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE))
+   {    
    /* Log an information message that the AvD will not take 
     * up any new MIB requests in stis state.
     */
@@ -1043,6 +1059,36 @@ void avd_qsd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
       evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
       evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
-
       return;
+    }
+
+   m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
+
+   miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
+   miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
+   miblib_req.info.i_mib_op_info.cb = cb;
+
+   if((evt->info.mib_req->i_op == NCSMIB_OP_REQ_GET) ||
+      (evt->info.mib_req->i_op == NCSMIB_OP_REQ_NEXT))
+   {
+      cb->sync_required = FALSE;
+
+      ncsmiblib_process_req(&miblib_req);
+      ncsmib_memfree(evt->info.mib_req);
+      evt->info.mib_req = NULL;
+
+   }
+   else
+   {
+     /* Log an information message that the AvD will not take 
+     * up any new MIB requests other than GET/NEXT in this state.
+     */
+     m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+     evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
+     evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+     evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+   }
+
+   return;    
+
 }

@@ -22,11 +22,14 @@ This document gives instructions on how to INSTALL OpenSAF and the pre-requisite
 2. PRE-REQUISITES FOR OpenSAF: 
 ------------------------------
 
-OpenSAF is 32-bit compatible. The 32-bit variant of OpenSAF system controller and payload software
-are tested on 32-bit machines and 64-bit machines(OpenSAF running as 32-bit).
+OpenSAF is 32-bit and 64-bit compatible. 
 
-OpenSAF provides 64-bit agent libraries for use by 64-bit user applications. 64-bit user applications
-can link with the OpenSAF 64-bit agents' libraries to access the OpenSAF services functionality on a 64-bit payload node.
+    - The 32-bit variant of OpenSAF system controller and payload software are tested on 32-bit machines and 64-bit machines(OpenSAF running as 32-bit).
+
+    - The 64-bit variant of OpenSAF system controller and payload software are tested on 64-bit machines. Ensure that the prerequisite open source packages(below mentioned) are built as 64-bit versions and are installed correctly.
+
+    - Also OpenSAF provides 64-bit agent libraries for use by 64-bit user applications. 64-bit user applications
+can link with the OpenSAF 64-bit agents' libraries to access the OpenSAF services(OpenSAF running as 32-bit) functionality on a 64-bit machine.
 
 The following is required to be installed and configured first before starting to use OpenSAF.
 
@@ -167,9 +170,11 @@ g) Autotools: OpenSAF build environment uses autotools. The user's development h
  
 3. BUILDING OpenSAF
 -------------------
-OpenSAF uses GNU autotools for it's build system. Following 'configure' options are supported in building opensaf.
+OpenSAF uses GNU autotools for it's build system. OpenSAF enforces to use 'gcc version 4.1.0' and above. If OpenSAF has to build with the lower versions of gcc (< 4.1.0), remove '-Wno-pointer-sign' (for CFLAGS) in <opensaf_home>/configure.ac file.
 
-build_type: To specify the target build being controller functionality OR payload functionalityi OR 64-bit OpenSAF agent libraries.
+Following 'configure' options are supported in building opensaf.
+
+build_type: To specify the target build being controller functionality OR payload functionality OR 64-bit OpenSAF agent libraries.
          Supported values are:
           - controller
           - payload
@@ -254,7 +259,12 @@ NOTE: Before building samples, build controller (Till step 2) and then invoke 'm
 Step 1: cd samples/ 
        For first time, you need to run ./bootstrap.sh. 
 
-Step 2: ./configure 
+Step 2: ./configure
+
+        (or)
+
+        ./configure demolib_suffix=64
+        To build samples for 64-bit machine.
 
 Step 3: make install
 
@@ -340,14 +350,6 @@ This file contains the entries of the loadable application-MIB-libraries (which 
 h) cli_cefslib_conf:
 This file contains the entries of the loadable CLI-CEF-libraries (which contains CLI's command execution functions) of the services/components supporting CLI commands. The entries are of the type <cef-library-name> <cefs_register_lib_req function-name>. This file needs to be edited for adding a service (component) supporting CLI commands. This file gets installed in /etc/opt/opensaf/ directory.
 
-i) pssv_spcn_list:
-This file contains the SPCN entries (PSSv System-clients), and their source-of-configuration, i.e., either XML (NCSSystemBOM.xml) or PSS (persistent-store). Users can choose to set it to PSS or XML and reboot OpenSAF based on whether they want the system to boot from the XML configuration or from the configuration stored in the persistent-store accordingly. The following default values can be observed after installation:
-       AVD XML
-       AVM XML
-This file gets installed in /etc/opt/opensaf/ directory. 
-
-NOTE: After OpenSAF comes up for the first time(with XML), the entries for AVD and AVM gets set to PSS by default. So, any change in the NCSSystemBOM.xml will be effective only if these entries are set back to XML and OpenSAF restarted.
-
 j) vipsample.conf:
 Virtual IP is a feature of the OpenSAF Interface Service which migrates the application IP addresses transparently from active node to the standby node. More information can be obtained from OPENSAF Interface Service Programmer's Reference.
 This file gets installed in /etc/opt/opensaf/ directory.
@@ -358,6 +360,10 @@ k) ncsSnmpSubagt.conf:
   agentxsocket tcp:localhost:705
   agentxPingInterval 1
 
+NOTE: Source of Configuration
+-----------------------------
+The default source-of-configuration for PSSv System-clients (Persistent Store Service)is XML. After OpenSAF comes up for the first time (with XML), the source of playback for the OpenSAF Availability Service (currently the only PSSv System-Clients) gets set to PSS by default. So, any change in the NCSSystemBOM.xml will be effective only if these entries are set back to XML using the PSSv CLI command "set playback-option-from-xml-config ...". For detailed information on this command, please refer the Persistent Store Service Programmer's Reference.
+ 
 
 6. RUNNING OpenSAF
 ------------------
@@ -380,9 +386,14 @@ Step 3: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface informat
 
 Step 4. System Controller can be started/stopped using the following command :
       
-        "/opt/opensaf/controller/scripts/nis_scxb start/stop"
+        "/opt/opensaf/controller/scripts/nis_scxb start/stop"  
+                           OR
+        "/etc/init.d/nis_scxb start/stop"
 
 NOTES: a) The HA role of this system controller can be known by executing the 'get_ha_state' command. This utility is present in /opt/opensaf/controller/scripts directory.
+
+          Also, the "nis_scxb status" command provides the current status of the cluster from the time the node booted up, to a failover. 
+          Similairly, the "nis_pld status" command provides the current status of the components on that particular node from the time the node booted, to a failover. 
 
       b) To know the status of the cluster, the log strings of the following type in /var/opt/opensaf/log/AVD**.log file shall indicate that a OpenSAF node has successfully joined the cluster:
              "AVD: safNode=SC_2_1 Joined Cluster",
@@ -425,6 +436,8 @@ Step 2: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface informat
 Step 3: Payload can be started/stopped using the following command: 
 
         "/opt/opensaf/payload/scripts/nis_pld start/stop"
+                         OR
+        "/etc/init.d/nis_scxb start/stop"
 
 NOTES: 
 
@@ -436,7 +449,8 @@ NOTES:
  
 HOW TO USE 64bit AGENT LIBRARIES?
 ---------------------------------
-OpenSAF system controller and payload functionality are 32-bit compatible. Users developing 64-bit applications can link with the OpenSAF 64-bit agent libraries to access the OpenSAF services' functionality on a 64-bit payload node.
+Users developing 64-bit applications can link with the OpenSAF 64-bit agent libraries to access the OpenSAF services (running as 32-bit)' functionality on a 64-bit machine.
+
 After installing the opensaf_64bit_agent_libs***.rpm on a payload node, the OpenSAF 64-bit agent libraries get installed
 in /opt/opensaf/payload/lib64 directory.
 
@@ -567,6 +581,11 @@ Collect logs using script /opt/opensaf/<controller/payload>/scripts/collect_logs
    Failover can be simulated by killing one of the OpenSAF director components OR rebooting the ACTIVE system controller node.
 
    For eg:- kill -9 `pgrep ncs_cpd`
+
+
+3. LOGGING during IN-SERVICE upgrade:
+
+   Inorder to log the messages of two releases (existing release + new release) during in-service upgrade time, ensure that the log string ASCII spec libraries "lib<svc_name>_logstr.so.<version>" of both the releases exists on the ACTIVE or upcoming ACTIVE controller.
 
 END.
 

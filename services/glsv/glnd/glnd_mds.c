@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -46,7 +46,6 @@ static uns32 glnd_mds_dec_flat(GLND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info);
 static uns32 glnd_mds_rcv(GLND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
 static uns32 glnd_mds_svc_evt(GLND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
 static uns32 glnd_send_agent_going_down_event(GLND_CB *cb, MDS_DEST dest);
-static uns32 glsv_enc_client_info_evt(NCS_UBAID *uba,GLSV_EVT_RESTART_CLIENT_INFO *evt);
 static uns32 glsv_dec_rsc_purge_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt);
 static uns32 glsv_dec_rsc_unlock_evt(NCS_UBAID *uba,GLSV_EVT_RSC_UNLOCK_INFO *evt);
 static uns32 glsv_dec_rsc_lock_evt(NCS_UBAID *uba, GLSV_EVT_RSC_LOCK_INFO *evt);
@@ -412,6 +411,7 @@ static uns32 glnd_mds_enc(GLND_CB *cb, MDS_CALLBACK_ENC_INFO *info)
     m_NCS_CONS_PRINTF("glnd_mds_enc:INVALID MSG FORMAT %d\n",info->o_msg_fmt_ver);
     return NCSCC_RC_FAILURE;
    }
+   return NCSCC_RC_FAILURE;
 }
 
 
@@ -629,6 +629,7 @@ static uns32 glnd_mds_enc_flat(GLND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
    m_NCS_CONS_PRINTF("glnd_mds_enc_flat:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
    return NCSCC_RC_FAILURE;
   }
+  return rc;
 }
 
 
@@ -1267,7 +1268,7 @@ static uns32 glsv_dec_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_dec_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
- uns8        *p8, buf_size=0,local_data[20],size;
+ uns8        *p8, local_data[20],size;
 
  size = (5*8) + (5*4) ;
 
@@ -1600,6 +1601,8 @@ static uns32 glsv_gla_enc_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
 
        ncs_enc_claim_space(uba, size);
   break;
+  default : 
+           break;
  }
  return NCSCC_RC_SUCCESS;
 }

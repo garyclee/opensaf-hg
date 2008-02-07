@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -72,9 +72,9 @@ uns32 ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET saname_rules[ ] = {
         {EDU_START, ncs_edp_sanamet, 0, 0, 0, sizeof(SaNameT), 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT16T, 0, 0, 0, 
-            (uns32)&((SaNameT*)0)->length, 0, NULL},
+            (long)&((SaNameT*)0)->length, 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, 
-            (uns32)&((SaNameT*)0)->value, SA_MAX_NAME_LENGTH, NULL},
+            (long)&((SaNameT*)0)->value, SA_MAX_NAME_LENGTH, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -130,9 +130,9 @@ uns32 ncs_edp_sanamet_net(EDU_HDL *hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET saname_rules[ ] = {
         {EDU_START, ncs_edp_sanamet_net, 0, 0, 0, sizeof(SaNameT), 0, NULL},        
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, 
-            (uns32)&((SaNameT*)0)->length, 2, NULL},
+            (long)&((SaNameT*)0)->length, 2, NULL},
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, 
-            (uns32)&((SaNameT*)0)->value, SA_MAX_NAME_LENGTH, NULL},
+            (long)&((SaNameT*)0)->value, SA_MAX_NAME_LENGTH, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -186,11 +186,11 @@ uns32 ncs_edp_saversiont(EDU_HDL *hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET saversiont_rules[ ] = {
         {EDU_START, ncs_edp_saversiont, 0, 0, 0, sizeof(SaVersionT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, 
-            (uns32)&((SaVersionT*)0)->releaseCode, 0, NULL},
+            (long)&((SaVersionT*)0)->releaseCode, 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, 
-            (uns32)&((SaVersionT*)0)->majorVersion, 0, NULL},
+            (long)&((SaVersionT*)0)->majorVersion, 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, 
-            (uns32)&((SaVersionT*)0)->minorVersion, 0, NULL},
+            (long)&((SaVersionT*)0)->minorVersion, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -242,9 +242,9 @@ uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_saamfhealthcheckkeyt, 0, 0, 0, 
             sizeof(SaAmfHealthcheckKeyT), 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT16T, 0, 0, 0, 
-            (uns32)&((SaAmfHealthcheckKeyT*)0)->keyLen, 0, NULL},
+            (long)&((SaAmfHealthcheckKeyT*)0)->keyLen, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT8T, EDQ_ARRAY, 0, 0, 
-            (uns32)&((SaAmfHealthcheckKeyT*)0)->key, SA_AMF_HEALTHCHECK_KEY_MAX, NULL},
+            (long)&((SaAmfHealthcheckKeyT*)0)->key, SA_AMF_HEALTHCHECK_KEY_MAX, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -321,11 +321,11 @@ uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_saclmnodeaddresst, 0, 0, 0, 
             sizeof(SaClmNodeAddressT), 0, NULL},
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-            (uns32)&((SaClmNodeAddressT*)0)->family, 0, NULL},
+            (long)&((SaClmNodeAddressT*)0)->family, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT16T, 0, 0, 0, 
-            (uns32)&((SaClmNodeAddressT*)0)->length, 0, NULL},
+            (long)&((SaClmNodeAddressT*)0)->length, 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, 
-            (uns32)&((SaClmNodeAddressT*)0)->value, SA_CLM_MAX_ADDRESS_LENGTH, NULL},
+            (long)&((SaClmNodeAddressT*)0)->value, SA_CLM_MAX_ADDRESS_LENGTH, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -381,11 +381,11 @@ uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_saamfprotectiongroupmembert, 0, 0, 0, 
                sizeof(SaAmfProtectionGroupMemberT), 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupMemberT*)0)->compName, 0, NULL},
+            (long)&((SaAmfProtectionGroupMemberT*)0)->compName, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupMemberT*)0)->haState, 0, NULL},
+            (long)&((SaAmfProtectionGroupMemberT*)0)->haState, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupMemberT*)0)->rank, 0, NULL},
+            (long)&((SaAmfProtectionGroupMemberT*)0)->rank, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -436,9 +436,9 @@ uns32 ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_saamfprotectiongroupnotificationt, 0, 0, 0, 
                sizeof(SaAmfProtectionGroupNotificationT), 0, NULL},
         {EDU_EXEC, ncs_edp_saamfprotectiongroupmembert, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupNotificationT*)0)->member, 0, NULL},
+            (long)&((SaAmfProtectionGroupNotificationT*)0)->member, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAAMFPROTECTIONGROUPCHANGEST, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupNotificationT*)0)->change, 0, NULL},
+            (long)&((SaAmfProtectionGroupNotificationT*)0)->change, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 

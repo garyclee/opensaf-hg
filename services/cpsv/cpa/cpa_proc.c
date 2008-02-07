@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -440,8 +440,6 @@ static void cpa_proc_async_open_rsp(CPA_CB *cb, CPA_EVT *evt)
 
          ckpt_size = sizeof(CPSV_CKPT_HDR)+ (gc_node->ckpt_creat_attri.maxSections *
                      (sizeof(CPSV_SECT_HDR)+gc_node->ckpt_creat_attri.maxSectionSize));
-      
-         cpa_proc_shm_open(cb, gc_node, &lc_node->ckpt_name, ckpt_size);
       }
    }
    
@@ -748,15 +746,24 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
                     &evt->info.ackpt_info.ckpt_id, &gc_node, &add_flag);
 
   if(gc_node)
-   {
+  {
      m_NCS_LOCK(&gc_node->cpd_active_sync_lock,NCS_LOCK_WRITE);
      gc_node->active_mds_dest = evt->info.ackpt_info.mds_dest; 
      if(evt->info.ackpt_info.mds_dest) 
+     {
        gc_node->is_active_exists = TRUE;
-     else 
+       m_LOG_CPA_CCLLFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+                          "active_ckpt_info_bcast", __FILE__ ,__LINE__, gc_node->is_active_exists, 
+                          evt->info.ackpt_info.ckpt_id, gc_node->active_mds_dest);
+     }
+     else
+     { 
        gc_node->is_active_exists = FALSE;   
+       m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+                         "active_ckpt_info_bcast", __FILE__ ,__LINE__, gc_node->is_active_exists, 
+                         evt->info.ackpt_info.ckpt_id, gc_node->active_mds_dest);
+     }
      gc_node->is_restart = FALSE;
-
      /*Indicate the Waiting CPA API therad & wake up */
      gc_node->is_active_bcast_came = TRUE;
      if( gc_node->cpd_active_sync_awaited )
@@ -764,8 +771,7 @@ static void cpa_proc_active_ckpt_info_bcast(CPA_CB *cb, CPA_EVT *evt)
           m_NCS_SEL_OBJ_IND(gc_node->cpd_active_sync_sel);  
      } 
      m_NCS_UNLOCK(&gc_node->cpd_active_sync_lock,NCS_LOCK_WRITE);
-
-   }
+  }
 }
 
 /****************************************************************************
@@ -1400,75 +1406,7 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
     }
     return rc;
 }
-/****************************************************************************
-  Name          : cpa_proc_shm_open
-  Description   : Opens Shared Memory for given CheckPoint
-  Arguments     :  cb         ---   CPA control block
-                   ckpt_name  ---   Name of Checkpoint
-                   ckpt_size  ---   Size of Checkpoint
-  Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
-  Notes         : None
-******************************************************************************/
-uns32 cpa_proc_shm_open(CPA_CB *cb,CPA_GLOBAL_CKPT_NODE *gc_node,
-              const SaNameT *ckpt_name,SaSizeT ckpt_size)
-{
 
-   uns8 *buf=NULL,total_length;
-   
-   total_length=ckpt_name->length+sizeof(gc_node->gbl_ckpt_hdl)+sizeof(NODE_ID) \
-                       +5; /* need to remove 5*/
-
-   buf = (uns8 *)m_MMGR_ALLOC_CPA_DEFAULT(total_length);
-   if ( buf == NULL )
-   {
-      /* LOG */
-      return NCSCC_RC_FAILURE;
-
-   }
-
-   m_NCS_MEMSET(buf,'\0',total_length);
-   m_NCS_OS_STRNCPY(buf,ckpt_name->value,ckpt_name->length);
-
-   sprintf(buf+ckpt_name->length-1,"_%d_%llu",m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mds_dest), \
-              gc_node->gbl_ckpt_hdl); 
- /*  sprintf(buf+ckpt_name->length-1,"_%d_%d",(uns32)total_length,gc_node->gbl_ckpt_hdl);  */
-
-   gc_node->open.type=NCS_OS_POSIX_SHM_REQ_OPEN;
-   gc_node->open.info.open.i_size=ckpt_size;
-   gc_node->open.info.open.i_offset=0;
-   gc_node->open.info.open.i_name=buf;
-   gc_node->open.info.open.i_map_flags=MAP_SHARED;
- /*  gc_node->open.info.open.i_flags=O_RDWR|O_CREAT; */
-   gc_node->open.info.open.i_flags=O_RDWR; 
-   
-   ncs_os_posix_shm(&gc_node->open);
-   
-   return NCSCC_RC_SUCCESS;
-   
-}
-/****************************************************************************
-  Name          : cpa_proc_shm_close
-  Description   : procedure to Close Shared Memory for given CheckPoint
-  Arguments     : gc_node  ---  global ckpt node information
-  Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
-  Notes         : None
-******************************************************************************/
-uns32 cpa_proc_shm_close(CPA_GLOBAL_CKPT_NODE *gc_node)
-{
-
-   NCS_OS_POSIX_SHM_REQ_INFO shm_info;
-
-   shm_info.type=NCS_OS_POSIX_SHM_REQ_CLOSE;
-   shm_info.info.close.i_addr=gc_node->open.info.open.o_addr;
-   shm_info.info.close.i_fd=gc_node->open.info.open.o_fd;
-   shm_info.info.close.i_hdl=gc_node->open.info.open.o_hdl;
-   shm_info.info.close.i_size=gc_node->open.info.open.i_size;
-
-   ncs_os_posix_shm(&shm_info);
-   m_MMGR_FREE_CPA_DEFAULT(gc_node->open.info.open.i_name);
-   
-   return NCSCC_RC_SUCCESS;
-}
 /****************************************************************************
   Name          : cpa_proc_check_iovector
   Description   : procedure to check IoVector data size with ckpt max sizes
@@ -1510,7 +1448,7 @@ uns32 cpa_proc_check_iovector(CPA_CB *cb,CPA_LOCAL_CKPT_NODE *lc_node,const SaCk
 void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node)
 {
    NCS_SEL_OBJ_SET set;
-   uns32 timeout = 3000;
+   uns32 timeout = 5000;
 
    m_NCS_LOCK(&gc_node->cpd_active_sync_lock,NCS_LOCK_WRITE); 
    if(gc_node->is_active_bcast_came == TRUE)

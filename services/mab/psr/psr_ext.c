@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -77,7 +77,7 @@ uns32 pss_process_tbl_bind(MAB_MSG * msg)
                         m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card), 0, (uns32)(msg->fr_card));
         /* This MIB table or PCN is not available with PSS. */
         ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
-                       NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_DEBUG,
                        NCSFL_TYPE_TIC, PSS_HDLN_TBL_BIND_RCVD_FROM_MDSDEST, addr_str);
     }
 
@@ -90,7 +90,7 @@ uns32 pss_process_tbl_bind(MAB_MSG * msg)
 
     for(tbl_list = msg->data.data.oac_pss_tbl_bind.pcn_list.tbl_list; tbl_list != NULL; tbl_list = tbl_list->next)
     {
-       m_LOG_PSS_TBL_BIND_EVT(NCSFL_SEV_NOTICE, PSS_TBL_BIND_RCVD, msg->data.data.oac_pss_tbl_bind.pcn_list.pcn, tbl_list->tbl_id);
+       m_LOG_PSS_TBL_BIND_EVT(NCSFL_SEV_DEBUG, PSS_TBL_BIND_RCVD, msg->data.data.oac_pss_tbl_bind.pcn_list.pcn, tbl_list->tbl_id);
     } 
 
     /* Lookup MDS_DEST of the OAA from the oaa_tree */
@@ -126,7 +126,7 @@ uns32 pss_process_tbl_bind(MAB_MSG * msg)
                   m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_TBL_REC_ADD_FAIL, tbl_list->tbl_id);
                   return NCSCC_RC_FAILURE;
                }
-               m_LOG_PSS_TBL_BIND_EVT(NCSFL_SEV_NOTICE, PSS_TBL_BIND_DONE, bind_evt->pcn_list.pcn, tbl_list->tbl_id);
+               m_LOG_PSS_TBL_BIND_EVT(NCSFL_SEV_DEBUG, PSS_TBL_BIND_DONE, bind_evt->pcn_list.pcn, tbl_list->tbl_id);
             } 
             else
             {
@@ -553,7 +553,7 @@ uns32 pss_sort_wbreq_instore_tables_with_rank(PSS_PWE_CB *pwe_cb,
               if(spcn_entry != NULL)
               {
                  no_data_cnt ++;
-                 m_LOG_PSS_WBREQ_II(NCSFL_SEV_NOTICE, PSS_WBREQ_II_SORT_FNC_SPCN_TBL_DATA_NOT_AVAILABLE, rec->tbl_id);
+                 m_LOG_PSS_WBREQ_II(NCSFL_SEV_DEBUG, PSS_WBREQ_II_SORT_FNC_SPCN_TBL_DATA_NOT_AVAILABLE, rec->tbl_id);
               }
               else
               {
@@ -782,6 +782,9 @@ uns32 pss_send_wbreq_to_bam(PSS_PWE_CB *pwe_cb, char *pcn)
     if (code == NCSCC_RC_SUCCESS)
     {
         m_LOG_PSS_BAM_REQ(NCSFL_SEV_NOTICE, PSS_BAM_REQ_SENT, pcn);
+        /* Saving the MIB sets in-memory till the conf_done is received */
+        pwe_cb->p_pss_cb->bam_req_cnt++;
+        pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_ON_DEMAND;
     }
     else
     {
@@ -1123,16 +1126,16 @@ void pss_reset_boolean_in_spcn_entry(PSS_PWE_CB *pwe_cb, PSS_SPCN_LIST *spcn_ent
                                           the persistent store. */
 
     /* Update to the config file pwe_cb->p_pss_cb->spcn_list_file */
-#if (NCS_PSS_RED == 1)
-    if(pwe_cb->p_pss_cb->ha_state != SA_AMF_HA_STANDBY)
-#endif
+if(pss_update_entry_in_spcn_conf_file(pwe_cb->p_pss_cb, spcn_entry) 
+         != NCSCC_RC_SUCCESS)
     {
-       if(pss_update_entry_in_spcn_conf_file(pwe_cb->p_pss_cb, spcn_entry) 
-           != NCSCC_RC_SUCCESS)
-       {
-          /* Log error. */
-          return;
-       }
+       /* Log error. */
+        return;
+
+
+
+
+
     }
 
     return;
@@ -1327,9 +1330,10 @@ NCS_BOOL pss_data_available_for_table(PSS_PWE_CB *pwe_cb, char *p_pcn,
     NCS_PATRICIA_NODE *pNode;
     PSS_MIB_TBL_DATA  *pData;
     uns32             retval = NCSCC_RC_SUCCESS, bytes_read = 0;
-    uns32             file_hdl = 0, buf_size = 0, read_offset = 0;
+    uns32             buf_size = 0, read_offset = 0;
     uns8              *in_buf = NULL;
     NCS_BOOL          file_exists = FALSE;
+    long              file_hdl = 0;
 
     if(pwe_cb->p_pss_cb->mib_tbl_desc[trec->tbl_id]->ptbl_info->table_of_scalars)
     {
@@ -1587,6 +1591,8 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
 {
     PSS_PWE_CB         *pwe_cb = NULL;
     PSS_SPCN_LIST      *spcn_entry = NULL;
+    NCS_BOOL           move_to_save_immediate = FALSE;
+    uns32              retval = NCSCC_RC_SUCCESS;
 
     if(msg->data.data.bam_conf_done.pcn_list.pcn == NULL)
     {
@@ -1619,6 +1625,24 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
     pss_reset_boolean_in_spcn_entry(pwe_cb, spcn_entry);
 
     m_LOG_PSS_CONF_DONE(NCSFL_SEV_INFO, PSS_CONF_DONE_FINISHED, msg->data.data.bam_conf_done.pcn_list.pcn);
+
+    pwe_cb->p_pss_cb->bam_req_cnt--;
+    m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
+       retval, pwe_cb->p_pss_cb->current_profile, pwe_cb->pwe_id, msg->data.data.bam_conf_done.pcn_list.pcn);
+    if(pwe_cb->p_pss_cb->bam_req_cnt == 0)
+        move_to_save_immediate = TRUE;
+
+    if(TRUE == move_to_save_immediate)
+    {
+       pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_IMMEDIATE;
+       if (NCSCC_RC_SUCCESS != pss_save_current_configuration(pwe_cb->p_pss_cb))
+       {
+          pss_free_tbl_list(msg->data.data.bam_conf_done.pcn_list.tbl_list);
+          m_MMGR_FREE_MAB_PCN_STRING(msg->data.data.bam_conf_done.pcn_list.pcn);
+          return NCSCC_RC_FAILURE;
+       }
+    }
+
     pss_free_tbl_list(msg->data.data.bam_conf_done.pcn_list.tbl_list);
     m_MMGR_FREE_MAB_PCN_STRING(msg->data.data.bam_conf_done.pcn_list.pcn);
     return NCSCC_RC_SUCCESS;
@@ -2047,7 +2071,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                                                  NCS_PATRICIA_NODE * pNode, uns8 * cur_key,
                                                  uns8 * cur_data, uns32 cur_rows_left,
                                                  uns8 * cur_buf, uns8 * cur_ptr,
-                                                 uns32 cur_file_hdl, uns32 buf_size,
+                                                 long cur_file_hdl, uns32 buf_size,
                                                  uns32 cur_file_offset,
                                                  NCSMIB_IDX * first_idx, NCSMIB_IDX * idx,
 #if (NCS_PSS_RED == 1)
@@ -2488,7 +2512,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
     uns8               *cur_buf = NULL, *alt_buf = NULL;
     uns8               *cur_ptr, *alt_ptr;
     NCS_BOOL           cur_file_exists = FALSE, alt_file_exists = FALSE;
-    uns32              cur_file_hdl = 0, alt_file_hdl = 0;
+    long               cur_file_hdl = 0, alt_file_hdl = 0;
     uns32              cur_file_offset = 0, alt_file_offset = 0;
     uns32              buf_size = 0, max_num_rows = 0, bytes_read = 0;
     uns8               *cur_data = NULL;
@@ -4149,6 +4173,7 @@ uns32 pss_process_set_plbck_option_for_spcn(PSS_CB * inst, NCSMIB_ARG * arg)
 *****************************************************************************/
 uns32 pss_update_entry_in_spcn_conf_file(PSS_CB *inst, PSS_SPCN_LIST *entry)
 {
+
     FILE *fh;
     PSS_SPCN_LIST *tmp = inst->spcn_list;
 
@@ -4162,6 +4187,7 @@ uns32 pss_update_entry_in_spcn_conf_file(PSS_CB *inst, PSS_SPCN_LIST *entry)
 
     while(tmp != NULL)
     {
+
         if(tmp->plbck_frm_bam)
            sysf_fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_BAM); /* Add entry */
         else
@@ -4204,7 +4230,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    uns32      rc = NCSCC_RC_SUCCESS;
    USRBUF    *lcl_ubuf = NULL;
    char                       dest_file_path[NCS_PSSTS_MAX_PATH_LEN];
-   uns32                      file_hdl = 0;
+   long                      file_hdl = 0;
    PSS_TABLE_PATH_RECORD      ps_file_record;
    PSS_TABLE_DETAILS_HEADER   hdr;
    NCS_OS_FILE                inst_file;
@@ -4510,7 +4536,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
                return NCSCC_RC_FAILURE;
             }
            
-            file_hdl = (uns32) inst_file.info.open.o_file_handle;
+            file_hdl = (long) inst_file.info.open.o_file_handle;
 
 
             /* Filling the current persistent format version, profile, pwe_id, pcn and table_id in ps_file_record */
@@ -4584,11 +4610,12 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
                         uns32 tbl_id, NCSMIB_ARG *arg, FILE *fh)
 {
    uns32     retval = NCSCC_RC_SUCCESS;
-   uns32     curr_file_hdl = 0, bytes_read = 0, j = 0;
+   uns32     bytes_read = 0, j = 0;
    uns8     *curr_data = NULL;
    PSS_MIB_TBL_INFO   *tbl_info = inst->mib_tbl_desc[tbl_id];
    PSS_TABLE_PATH_RECORD      ps_file_record;
    PSS_TABLE_DETAILS_HEADER   hdr;
+   long curr_file_hdl = 0;
 
    /* Allocate memory for the buffers and keys */
    curr_data = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_row_length);
@@ -4628,8 +4655,6 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
       sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
       goto cleanup;
    }
-   m_NCS_CONS_PRINTF("\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
-                     hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
    sysf_fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
                      hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
  
@@ -4781,9 +4806,9 @@ void pss_dump_mib_var(FILE *fh, NCSMIB_PARAM_VAL *pv, PSS_MIB_TBL_INFO *tbl_info
       sysf_fprintf(fh, "\n");
       break;
    case NCSMIB_FMAT_BOOL:
-      sysf_fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:BOOL, LEN:%d, VAL:%d\n", 
+      sysf_fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:BOOL, LEN:%ld, VAL:%d\n", 
          pv->i_param_id, var_info->var_name, (var_info->var_info.is_index_id ? "YES":"NO"), 
-         sizeof(NCS_BOOL), pv->info.i_int);
+         (long)sizeof(NCS_BOOL), pv->info.i_int);
       break;
    default:
       sysf_fprintf(fh, "PARAM-INFO:ERROR - Invalid FMAT_ID\n");
@@ -4799,7 +4824,8 @@ uns32 pss_dump_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
    uns32     retval = NCSCC_RC_SUCCESS, num_items = 0, item_size = 0;
    uns32     bytes_read = 0, j = 0, row_size = 0;
    uns32     file_size = 0, rem_file_size = 0, max_num_rows = 0, buf_size = 0;
-   uns32     file_hdl = 0, read_offset = 0, i = 0;
+   uns32     read_offset = 0, i = 0;
+   long      file_hdl = 0;
    uns8      *in_buf = NULL, *ptr = NULL;
    PSS_MIB_TBL_INFO   *tbl_info = inst->mib_tbl_desc[tbl_id];
    NCS_BOOL  is_last_chunk = FALSE;
@@ -5279,7 +5305,7 @@ uns32 pss_send_ack_for_msg_to_oaa(PSS_PWE_CB *pwe_cb, MAB_MSG *msg)
       m_LOG_PSS_ACK_EVT(NCSFL_SEV_ERROR, PSS_OAA_ACK_SEND_FAIL, msg->data.seq_num);
    }
 
-   return NCSCC_RC_SUCCESS;
+   return code;
 }
 
 #if (NCS_PSS_RED == 1)

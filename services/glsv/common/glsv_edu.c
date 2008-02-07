@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -204,8 +204,8 @@ static uns32 glsv_edp_glnd_evt_agent_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_agent_info, 0, 0, 0, sizeof(GLSV_EVT_AGENT_INFO), 0, NULL},        
          
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_AGENT_INFO*)0)->process_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_AGENT_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_AGENT_INFO*)0)->process_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_AGENT_INFO*)0)->agent_mds_dest, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -254,10 +254,10 @@ static uns32 glsv_edp_glnd_evt_client_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_client_info, 0, 0, 0, sizeof(GLSV_EVT_CLIENT_INFO), 0, NULL},        
          
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_CLIENT_INFO*)0)->client_proc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_CLIENT_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_saversiont, 0, 0, 0, (uns32)&((GLSV_EVT_CLIENT_INFO*)0)->version, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (uns32)&((GLSV_EVT_CLIENT_INFO*)0)->cbk_reg_info, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_CLIENT_INFO*)0)->client_proc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_CLIENT_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_saversiont, 0, 0, 0, (long)&((GLSV_EVT_CLIENT_INFO*)0)->version, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((GLSV_EVT_CLIENT_INFO*)0)->cbk_reg_info, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -306,8 +306,8 @@ static uns32 glsv_edp_glnd_evt_finalize_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_finalize_info, 0, 0, 0, sizeof(GLSV_EVT_FINALIZE_INFO), 0, NULL},        
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_FINALIZE_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_FINALIZE_INFO*)0)->handle_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_FINALIZE_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_FINALIZE_INFO*)0)->handle_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -356,16 +356,16 @@ static uns32 glsv_edp_glnd_evt_rsc_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_rsc_info, 0, 0, 0, sizeof(GLSV_EVT_RSC_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->client_handle_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->resource_name, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->lcl_resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->lcl_resource_id_count, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->call_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->timeout, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_INFO*)0)->flag, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->client_handle_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->resource_name, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->lcl_resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->lcl_resource_id_count, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->call_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->timeout, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_INFO*)0)->flag, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -414,18 +414,18 @@ static uns32 glsv_edp_glnd_evt_rsc_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_rsc_lock_info, 0, 0, 0, sizeof(GLSV_EVT_RSC_LOCK_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->client_handle_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lcl_resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lcl_lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lock_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->timeout, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lockFlags, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->call_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->status, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_LOCK_INFO*)0)->waiter_signal, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->client_handle_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lcl_resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lcl_lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lock_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->timeout, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->lockFlags, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->call_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->status, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_LOCK_INFO*)0)->waiter_signal, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -474,14 +474,14 @@ static uns32 glsv_edp_glnd_evt_rsc_unlock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_rsc_unlock_info, 0, 0, 0, sizeof(GLSV_EVT_RSC_UNLOCK_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->client_handle_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->lcl_lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->call_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->timeout, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->client_handle_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->lcl_lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->call_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_RSC_UNLOCK_INFO*)0)->timeout, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -529,19 +529,19 @@ static uns32 glsv_edp_glnd_evt_node_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_node_lock_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_LCK_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lcl_resource_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->client_handle_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->glnd_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lcl_lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lock_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockFlags, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockStatus, 0, NULL},
-      {EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->waiter_signal, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->mode_held, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->error, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_LCK_INFO*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lcl_resource_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->client_handle_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->glnd_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lcl_lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lock_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockFlags, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->lockStatus, 0, NULL},
+      {EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->waiter_signal, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->mode_held, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_LCK_INFO*)0)->invocation, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -590,8 +590,8 @@ static uns32 glsv_edp_glnd_evt_node_lock_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_lock_list_info, EDQ_LNKLIST, 0, 0, sizeof(GLND_LOCK_LIST_INFO), 0, NULL},     
-      {EDU_EXEC, glsv_edp_lock_req_info, 0, 0, 0, (uns32)&((GLND_LOCK_LIST_INFO*)0)->lock_info, 0, NULL},
-      {EDU_TEST_LL_PTR, glsv_edp_glnd_lock_list_info, 0, 0, 0,(uns32)&((GLND_LOCK_LIST_INFO*)0)->next, 0, NULL},
+      {EDU_EXEC, glsv_edp_lock_req_info, 0, 0, 0, (long)&((GLND_LOCK_LIST_INFO*)0)->lock_info, 0, NULL},
+      {EDU_TEST_LL_PTR, glsv_edp_glnd_lock_list_info, 0, 0, 0,(long)&((GLND_LOCK_LIST_INFO*)0)->next, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -647,10 +647,10 @@ static uns32 glsv_edp_glnd_evt_glnd_rsc_info(EDU_HDL *edu_hdl,
     
     EDU_INST_SET    glsv_glnd_create_rules[ ] = {
        {EDU_START, glsv_edp_glnd_evt_glnd_rsc_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_RSC_INFO), 0, NULL},     
-       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_INFO*)0)->resource_id, 0, NULL},
-       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_INFO*)0)->glnd_mds_dest, 0, NULL},
-       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_INFO*)0)->num_requests, 0, NULL},
-       {EDU_EXEC, glsv_edp_glnd_lock_list_info, EDQ_POINTER, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_INFO*)0)->list_of_req, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_INFO*)0)->resource_id, 0, NULL},
+       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_INFO*)0)->glnd_mds_dest, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_INFO*)0)->num_requests, 0, NULL},
+       {EDU_EXEC, glsv_edp_glnd_lock_list_info, EDQ_POINTER, 0, 0, (long)&((GLSV_EVT_GLND_RSC_INFO*)0)->list_of_req, 0, NULL},
        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
     
@@ -697,9 +697,9 @@ static uns32 glsv_edp_glnd_evt_glnd_rsc_info(EDU_HDL *edu_hdl,
 
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_res_master_list_info,0, 0, 0, sizeof(GLSV_GLND_RSC_MASTER_INFO_LIST), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->master_dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->master_status, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->master_dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_RSC_MASTER_INFO_LIST*)0)->master_status, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    if(op == EDP_OP_TYPE_ENC)
@@ -747,9 +747,9 @@ static uns32 glsv_edp_glnd_evt_rsc_master_info(EDU_HDL *edu_hdl,
 
     EDU_INST_SET    glsv_glnd_create_rules[ ] = {
        {EDU_START, glsv_edp_glnd_evt_rsc_master_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_RSC_MASTER_INFO), 0, NULL},
-       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_MASTER_INFO *)0)->no_of_res, 0, NULL},
-       {EDU_EXEC, glsv_edp_glnd_res_master_list_info, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, (uns32)&((GLSV_EVT_GLND_RSC_MASTER_INFO*)0)->rsc_master_list, \
-                                        (uns32)&((GLSV_EVT_GLND_RSC_MASTER_INFO*)0)->no_of_res, NULL},
+       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_MASTER_INFO *)0)->no_of_res, 0, NULL},
+       {EDU_EXEC, glsv_edp_glnd_res_master_list_info, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, (long)&((GLSV_EVT_GLND_RSC_MASTER_INFO*)0)->rsc_master_list, \
+                                        (long)&((GLSV_EVT_GLND_RSC_MASTER_INFO*)0)->no_of_res, NULL},
        {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_GLND /* Svc-ID */, NULL, 0, NCS_SERVICE_GLND_SUB_ID_GLND_RES_MASTER_LIST_INFO /* Sub-ID */, 0, NULL},
        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -796,11 +796,11 @@ static uns32 glsv_edp_glnd_evt_rsc_master_info(EDU_HDL *edu_hdl,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_dd_info_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_GLND_DD_INFO_LIST), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_DD_INFO_LIST*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_GLND_DD_INFO_LIST*)0)->blck_dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_GLND_DD_INFO_LIST*)0)->blck_hdl_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_GLND_DD_INFO_LIST*)0)->lck_id, 0, NULL},
-      {EDU_TEST_LL_PTR, glsv_edp_glnd_dd_info_list, 0, 0, 0,(uns32)&((GLSV_GLND_DD_INFO_LIST*)0)->next, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_DD_INFO_LIST*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_GLND_DD_INFO_LIST*)0)->blck_dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_GLND_DD_INFO_LIST*)0)->blck_hdl_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_GLND_DD_INFO_LIST*)0)->lck_id, 0, NULL},
+      {EDU_TEST_LL_PTR, glsv_edp_glnd_dd_info_list, 0, 0, 0,(long)&((GLSV_GLND_DD_INFO_LIST*)0)->next, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -855,12 +855,12 @@ static uns32 glsv_edp_glnd_evt_dd_probe_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     
     EDU_INST_SET    glsv_glnd_create_rules[ ] = {
        {EDU_START, glsv_edp_glnd_evt_dd_probe_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_DD_PROBE_INFO), 0, NULL},     
-       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->rsc_id, 0, NULL},
-       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->lcl_rsc_id, 0, NULL},
-       {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->hdl_id, 0, NULL},
-       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->dest_id, 0, NULL},
-       {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->lck_id, 0, NULL},
-       {EDU_EXEC, glsv_edp_glnd_dd_info_list, EDQ_POINTER, 0, 0, (uns32)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->dd_info_list, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->rsc_id, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->lcl_rsc_id, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->hdl_id, 0, NULL},
+       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->dest_id, 0, NULL},
+       {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->lck_id, 0, NULL},
+       {EDU_EXEC, glsv_edp_glnd_dd_info_list, EDQ_POINTER, 0, 0, (long)&((GLSV_EVT_GLND_DD_PROBE_INFO*)0)->dd_info_list, 0, NULL},
        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
     
@@ -909,12 +909,12 @@ static uns32 glsv_edp_glnd_evt_rsc_gld_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_rsc_gld_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_RSC_GLD_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->rsc_name, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->master_dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->can_orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->orphan_mode, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->rsc_name, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->master_dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->can_orphan, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->orphan_mode, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_RSC_GLD_INFO*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -961,8 +961,8 @@ static uns32 glsv_edp_glnd_evt_non_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
 
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_non_master_info, 0, 0, 0, sizeof(GLND_EVT_GLND_NON_MASTER_STATUS), 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLND_EVT_GLND_NON_MASTER_STATUS *)0)->dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLND_EVT_GLND_NON_MASTER_STATUS *)0)->status, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLND_EVT_GLND_NON_MASTER_STATUS *)0)->dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLND_EVT_GLND_NON_MASTER_STATUS *)0)->status, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
 
@@ -1008,11 +1008,11 @@ static uns32 glsv_edp_glnd_evt_new_master_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tk
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt_new_master_info, 0, 0, 0, sizeof(GLSV_EVT_GLND_NEW_MAST_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->master_dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->orphan_lck_mode, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->status, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->master_dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->orphan, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->orphan_lck_mode, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_EVT_GLND_NEW_MAST_INFO*)0)->status, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -1061,16 +1061,16 @@ static uns32 glsv_edp_lock_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_create_rules[ ] = {
       {EDU_START, glsv_edp_lock_req_info, 0, 0, 0, sizeof(GLSV_LOCK_REQ_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->lockid, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->handleId, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->lock_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->timeout, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->lockFlags, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->lockStatus, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->call_type, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->agent_mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((GLSV_LOCK_REQ_INFO*)0)->waiter_signal, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->lockid, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->handleId, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->lock_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->timeout, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->lockFlags, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->lockStatus, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->call_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->agent_mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((GLSV_LOCK_REQ_INFO*)0)->waiter_signal, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
    
@@ -1119,61 +1119,61 @@ uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_glnd_evt_rules[ ] = {
       {EDU_START, glsv_edp_glnd_evt, 0, 0, 0, sizeof(GLSV_GLND_EVT), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_EVT*)0)->type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_EVT*)0)->shm_index, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLND_EVT*)0)->type, 0, glsv_glnd_evt_test_type_fnc},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_EVT*)0)->type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_EVT*)0)->shm_index, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLND_EVT*)0)->type, 0, glsv_glnd_evt_test_type_fnc},
       
       /* For GLSV_EVT_AGENT_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_agent_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.agent_info, 0, NULL},        
+      (long)&((GLSV_GLND_EVT*)0)->info.agent_info, 0, NULL},        
       
       /* For GLSV_EVT_CLIENT_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_client_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.client_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.client_info, 0, NULL},
       
       /* For GLSV_EVT_FINALIZE_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_finalize_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.finalize_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.finalize_info, 0, NULL},
       
       /* For GLSV_EVT_RSC_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_rsc_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.rsc_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.rsc_info, 0, NULL},
       
       /* For GLSV_EVT_RSC_LOCK_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_rsc_lock_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.rsc_lock_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.rsc_lock_info, 0, NULL},
       
       /* For GLSV_EVT_RSC_UNLOCK_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_rsc_unlock_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.rsc_unlock_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.rsc_unlock_info, 0, NULL},
 
       /* For GLSV_EVT_GLND_LCK_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_node_lock_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.node_lck_info, 0, NULL},        
+      (long)&((GLSV_GLND_EVT*)0)->info.node_lck_info, 0, NULL},        
       
       /* For GLSV_EVT_GLND_RSC_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_glnd_rsc_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.node_rsc_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.node_rsc_info, 0, NULL},
       
       /* For GLSV_EVT_GLND_DD_PROBE_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_dd_probe_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.dd_probe_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.dd_probe_info, 0, NULL},
       
       /* For GLSV_EVT_GLND_RSC_GLD_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_rsc_gld_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.rsc_gld_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.rsc_gld_info, 0, NULL},
       
       /* For GLSV_EVT_GLND_NEW_MAST_INFO */
       {EDU_EXEC, glsv_edp_glnd_evt_new_master_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.new_master_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.new_master_info, 0, NULL},
       
       /* For GLSV_EVT_GLND_RSC_MASTER_INFO*/
       {EDU_EXEC, glsv_edp_glnd_evt_rsc_master_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.rsc_master_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.rsc_master_info, 0, NULL},
 
       /* For GLND_EVT_GLND_NON_MASTER_STATUS*/
       {EDU_EXEC, glsv_edp_glnd_evt_non_master_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLND_EVT*)0)->info.non_master_info, 0, NULL},
+      (long)&((GLSV_GLND_EVT*)0)->info.non_master_info, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -1264,9 +1264,9 @@ uns32 glsv_edp_gld_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt_rsc_open_info, 0, 0, 0, sizeof(GLSV_RSC_OPEN_INFO), 0, NULL},     
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((GLSV_RSC_OPEN_INFO*)0)->rsc_name, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_OPEN_INFO*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_OPEN_INFO*)0)->flag, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_RSC_OPEN_INFO*)0)->rsc_name, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_OPEN_INFO*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_OPEN_INFO*)0)->flag, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
    
@@ -1315,10 +1315,10 @@ uns32 glsv_edp_gld_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START,glsv_edp_gld_evt_rsc_details, 0, 0, 0, sizeof(GLSV_RSC_DETAILS), 0, NULL},     
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_DETAILS*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_DETAILS*)0)->orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_DETAILS*)0)->lck_mode, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_RSC_DETAILS*)0)->lcl_ref_cnt, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_DETAILS*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_DETAILS*)0)->orphan, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_DETAILS*)0)->lck_mode, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_RSC_DETAILS*)0)->lcl_ref_cnt, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
    
@@ -1366,8 +1366,8 @@ static uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_NODE_LIST
 ), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_NODE_LIST *)0)->dest_id, 0, NULL},
-      {EDU_TEST_LL_PTR, glsv_edp_gld_node_list, 0, 0, 0,(uns32)&((GLSV_NODE_LIST
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_NODE_LIST *)0)->dest_id, 0, NULL},
+      {EDU_TEST_LL_PTR, glsv_edp_gld_node_list, 0, 0, 0,(long)&((GLSV_NODE_LIST
 *)0)->next, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -1417,8 +1417,8 @@ uns32 glsv_edp_gld_evt_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_NODE_LIST), 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_NODE_LIST*)0)->dest_id, 0, NULL},
-      {EDU_TEST_LL_PTR, glsv_edp_gld_evt_node_list, 0, 0, 0,(uns32)&((GLSV_NODE_LIST*)0)->next, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_NODE_LIST*)0)->dest_id, 0, NULL},
+      {EDU_TEST_LL_PTR, glsv_edp_gld_evt_node_list, 0, 0, 0,(long)&((GLSV_NODE_LIST*)0)->next, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
 
@@ -1472,10 +1472,10 @@ uns32 glsv_edp_gld_evt_a2s_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt_a2s_node_list, EDQ_LNKLIST, 0, 0, sizeof(GLSV_A2S_NODE_LIST), 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_A2S_NODE_LIST*)0)->dest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_NODE_LIST*)0)->node_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_NODE_LIST*)0)->status, 0, NULL},
-      {EDU_TEST_LL_PTR, glsv_edp_gld_evt_a2s_node_list, 0, 0, 0,(uns32)&((GLSV_A2S_NODE_LIST*)0)->next, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_A2S_NODE_LIST*)0)->dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_NODE_LIST*)0)->node_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_NODE_LIST*)0)->status, 0, NULL},
+      {EDU_TEST_LL_PTR, glsv_edp_gld_evt_a2s_node_list, 0, 0, 0,(long)&((GLSV_A2S_NODE_LIST*)0)->next, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
 
@@ -1529,11 +1529,11 @@ uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt_a2s_rsc_details, 0, 0, 0, sizeof(GLSV_GLD_A2S_RSC_DETAILS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->resource_name, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->can_orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->orphan_lck_mode, 0, NULL},
-      {EDU_EXEC, glsv_edp_gld_evt_a2s_node_list, EDQ_POINTER, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->node_list, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->resource_name, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->can_orphan, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->orphan_lck_mode, 0, NULL},
+      {EDU_EXEC, glsv_edp_gld_evt_a2s_node_list, EDQ_POINTER, 0, 0, (long)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->node_list, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
    if(op == EDP_OP_TYPE_ENC)
@@ -1623,7 +1623,7 @@ uns32 glsv_edp_gld_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt_glnd_mds_info, 0, 0, 0, sizeof(GLSV_GLD_GLND_MDS_INFO), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_GLND_MDS_INFO *)0)->mds_dest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_GLND_MDS_INFO *)0)->mds_dest_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
 
@@ -1671,19 +1671,19 @@ uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    
    EDU_INST_SET    glsv_gld_evt_rules[ ] = {
       {EDU_START, glsv_edp_gld_evt, 0, 0, 0, sizeof(GLSV_GLD_EVT), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_EVT*)0)->evt_type, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_EVT*)0)->evt_type, 0, glsv_gld_evt_test_type_fnc},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_EVT*)0)->evt_type, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_GLD_EVT*)0)->evt_type, 0, glsv_gld_evt_test_type_fnc},
       
       /* For GLSV_RSC_OPEN_INFO */
       {EDU_EXEC, glsv_edp_gld_evt_rsc_open_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLD_EVT*)0)->info.rsc_open_info, 0, NULL},        
+      (long)&((GLSV_GLD_EVT*)0)->info.rsc_open_info, 0, NULL},        
       
       /* For GLSV_RSC_DETAILS */
       {EDU_EXEC, glsv_edp_gld_evt_rsc_details, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLD_EVT*)0)->info.rsc_details, 0, NULL},        
+      (long)&((GLSV_GLD_EVT*)0)->info.rsc_details, 0, NULL},        
       
       {EDU_EXEC, glsv_edp_gld_evt_glnd_mds_info, 0, 0, EDU_EXIT, 
-      (uns32)&((GLSV_GLD_EVT*)0)->info.glnd_mds_info, 0, NULL},        
+      (long)&((GLSV_GLD_EVT*)0)->info.glnd_mds_info, 0, NULL},        
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -1732,10 +1732,10 @@ uns32 glsv_edp_gld_a2s_evt_rsc_open_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_a2s_evt_rsc_open_info, 0, 0, 0, sizeof(GLSV_A2S_RSC_OPEN_INFO), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_name, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_id, 0, NULL}, 
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_OPEN_INFO*)0)->mdest_id, 0, NULL},
-      {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_creation_time, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_name, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_id, 0, NULL}, 
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_A2S_RSC_OPEN_INFO*)0)->mdest_id, 0, NULL},
+      {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0, (long)&((GLSV_A2S_RSC_OPEN_INFO*)0)->rsc_creation_time, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    }; 
    if(op == EDP_OP_TYPE_ENC)
@@ -1781,11 +1781,11 @@ uns32 glsv_edp_gld_a2s_evt_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START,glsv_edp_gld_a2s_evt_rsc_details, 0, 0, 0, sizeof(GLSV_A2S_RSC_DETAILS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_DETAILS*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_DETAILS*)0)->orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_DETAILS*)0)->lck_mode, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_DETAILS*)0)->mdest_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_A2S_RSC_DETAILS*)0)->lcl_ref_cnt, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_RSC_DETAILS*)0)->rsc_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_RSC_DETAILS*)0)->orphan, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_RSC_DETAILS*)0)->lck_mode, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_A2S_RSC_DETAILS*)0)->mdest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((GLSV_A2S_RSC_DETAILS*)0)->lcl_ref_cnt, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
 
@@ -1823,7 +1823,7 @@ uns32 glsv_edp_gld_a2s_evt_glnd_mds_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
    EDU_INST_SET    glsv_gld_create_rules[ ] = {
       {EDU_START, glsv_edp_gld_a2s_evt_glnd_mds_info, 0, 0, 0, sizeof(GLSV_A2S_GLND_MDS_INFO), 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((GLSV_A2S_GLND_MDS_INFO*)0)->mdest_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((GLSV_A2S_GLND_MDS_INFO*)0)->mdest_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
    };
 

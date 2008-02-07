@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #ifndef GLSV_DEFS_H
@@ -27,10 +27,10 @@
 #define GLSV_LOCK_UNLOCK_CBK_REG 0x08
 
 #define m_GLD_TASK_PRIORITY   (5)
-#define m_GLD_STACKSIZE       (8000)
+#define m_GLD_STACKSIZE       NCS_STACKSIZE_HUGE
 
 #define m_GLND_TASK_PRIORITY   (5)
-#define m_GLND_STACKSIZE       (8000)
+#define m_GLND_STACKSIZE      NCS_STACKSIZE_HUGE
 
 #define m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
 
@@ -96,6 +96,7 @@ typedef SaUint32T SaLckResourceIdT;
 
 /* Timeout constants */
 #define GLSV_LOCK_DEFAULT_TIMEOUT          10000000000LL
+#define GLSV_GLA_TMR_DEFAULT_TIMEOUT       11000000000LL
 #define GLSV_CKPT_OPEN_DEFAULT_TIMEOUT     10000000000LL
 
 #define GLND_MAX_RESOURCES_PER_NODE                         1000
@@ -106,6 +107,6 @@ typedef SaUint32T SaLckResourceIdT;
 #define GLND_CKPT_RETENTION_DURATION                        100000000000LL
 
 /* DTSv versioning support */
-#define GLSV_LOG_VERSION 2
+#define GLSV_LOG_VERSION 3
 
 #endif /* GLSV_DEFS_H */

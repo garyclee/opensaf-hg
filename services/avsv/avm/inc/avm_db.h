@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -191,6 +191,7 @@ struct avm_ent
    struct avm_tmr            ipmc_tmr;
    struct avm_tmr            ipmc_mod_tmr;
    struct avm_tmr            role_chg_wait_tmr;
+   struct avm_tmr            bios_failover_tmr;
 };
 
 #define AVM_ENT_INFO_NULL ((AVM_ENT_INFO_T*)0x0)
@@ -325,11 +326,12 @@ avm_add_ent_str_info(
                       AVM_ENT_INFO_T       *ent_info, 
                       AVM_ENT_PATH_STR_T   *ep
                     );
-
+/* IR00082362 */
 extern AVM_ENT_INFO_T* 
 avm_find_ent_str_info(
                        AVM_CB_T            *avm_cb, 
-                       AVM_ENT_PATH_STR_T  *ep
+                       AVM_ENT_PATH_STR_T  *ep,
+                       NCS_BOOL            is_host_order
                      );
 
 extern AVM_ENT_INFO_T* 

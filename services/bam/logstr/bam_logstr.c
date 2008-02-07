@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -94,6 +94,7 @@ const NCSFL_STR bam_info_set[] =
    { BAM_START_PARSE,                "Starting Parsing Of" },
    { BAM_APP_FILE,                   "AppConfig.xml" },
    { BAM_APP_NOT_PRES,               "is not present or could not be open" },
+   { BAM_IPC_RECV_FAIL,              "Bam message IPC recv. failure" },
    { 0,0 }
 };
 
@@ -146,11 +147,11 @@ NCSFL_FMAT bam_fmat_set[] =
    { BAM_LID_HDLN,           NCSFL_TYPE_TI,     "%s BAM HEADLINE : %s\n"     },
    { BAM_LID_MEMFAIL,        NCSFL_TYPE_TI,     "%s BAM MEM_ERR: %s\n"        },
    { BAM_LID_API,            NCSFL_TYPE_TI,     "%s BAM API: %s\n"           },
-   { BAM_LID_MSG,            NCSFL_TYPE_TIL,    "%s BAM MSG: %s rcvd frm:%d\n"},
-   { BAM_LID_MSG_TIL,       NCSFL_TYPE_TIL,    "%s BAM INFO: %s info %d \n"},
+   { BAM_LID_MSG,            NCSFL_TYPE_TIL,    "%s BAM MSG: %s rcvd frm:%ld\n"},
+   { BAM_LID_MSG_TIL,       NCSFL_TYPE_TIL,    "%s BAM INFO: %s info %ld \n"},
    { BAM_LID_MSG_TIC,       NCSFL_TYPE_TIC,    "%s BAM INFO: %s info %s \n"},
    { BAM_LID_SVC_PRVDR,      NCSFL_TYPE_TI,     "%s BAM SVC PRVDR: %s \n"},
-   { BAM_LID_MDS_SND,        NCSFL_TYPE_TICL,   "%s BAM MDS: %s at %s:%d \n"},
+   { BAM_LID_MDS_SND,        NCSFL_TYPE_TICL,   "%s BAM MDS: %s at %s:%ld \n"},
    { BAM_LID_MSG_TII,        NCSFL_TYPE_TII,    "%s BAM: %s %s \n"},
    { 0, 0, 0 }
 };

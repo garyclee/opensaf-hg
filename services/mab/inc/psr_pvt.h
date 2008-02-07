@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -46,6 +46,7 @@
 #define NCS_PSS_MAX_CHUNK_SIZE   1024
 #define NCS_PSS_MAX_PROFILE_DESC 256
 #define NCS_PSS_UNBOUNDED_OCTET_SOFT_LIMITED_SIZE 0x200
+#define NCS_PSS_MAX_IN_STORE_MEM_SIZE 2300000 /* approx. 2.2 MB */
 
 /* Bounds on the rank of the MIB Tables */
 #define NCSPSS_MIB_TBL_RANK_MIN  NCSMIB_TBL_RANK_MIN
@@ -57,7 +58,7 @@
 #define m_PSS_SPCN_SOURCE_BAM           "XML"
 #define m_PSS_SPCN_SOURCE_PSSV          "PSS"
 
-#define m_PSS_COMP_NAME_FILE "/etc/opt/opensaf/ncs_pss_comp_name.txt"
+#define m_PSS_COMP_NAME_FILE "/var/opt/opensaf/ncs_pss_comp_name"
 #define m_PSS_PID_FILE "/var/run/ncs_psr.pid"
 
 typedef enum {
@@ -319,6 +320,7 @@ typedef struct pss_spcn_list_tag
    NCS_BOOL    plbck_frm_bam;      
 
    struct pss_spcn_list_tag *next;
+
 }PSS_SPCN_LIST;
 
 typedef struct pss_cb_tag
@@ -372,6 +374,9 @@ typedef struct pss_cb_tag
 
   SYSF_MBX            *mbx; 
 
+  uns32               mem_in_store; /* denotes the memory allocated to store
+                                     MIB SET(ROW/ALLROWS) in memory */
+  uns32               bam_req_cnt;
 } PSS_CB;
 
 /* Used only during warmboot playback */
@@ -852,7 +857,7 @@ EXTERN_C uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb,
                                     NCS_PATRICIA_NODE * pNode, uns8 * cur_key,
                                     uns8 * cur_data, uns32 cur_rows_left,
                                     uns8 * cur_buf, uns8 * cur_ptr,
-                                    uns32 cur_file_hdl, uns32 buf_size,
+                                    long cur_file_hdl, uns32 buf_size,
                                     uns32 cur_file_offset,
                                     NCSMIB_IDX * first_idx, NCSMIB_IDX * idx,
 #if (NCS_PSS_RED == 1)

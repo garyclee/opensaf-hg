@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -604,7 +604,7 @@ mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve,
       else {
          /* Send Async update at active side by filling the track info*/
          m_NCS_OS_MEMCPY(&(track.track.object),&(nresolve->object),sizeof(SaNameT));
-         m_NTOH_SANAMET_LEN(track.track.object.length);
+       /*  m_NTOH_SANAMET_LEN(track.track.object.length);*/
          track.track.val=ASAPi_TRACK_ENABLE;
          track.dest = info->dest;
          track.to_svc = info->to_svc;
@@ -616,7 +616,7 @@ mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve,
          
    if(MQSV_OBJ_QGROUP == pObjNode->oinfo.type) {
       m_NCS_OS_MEMCPY(&msg.info.nresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
-      m_NTOH_SANAMET_LEN(msg.info.nresp.oinfo.group.length);
+      /* m_NTOH_SANAMET_LEN(msg.info.nresp.oinfo.group.length);*/
       msg.info.nresp.oinfo.policy = pObjNode->oinfo.info.qgrp.policy;
    }
          
@@ -725,7 +725,7 @@ mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue,
 
    /* Polulate the queue fields */         
    m_NCS_OS_MEMCPY(&msg.info.vresp.queue.name, &pObjNode->oinfo.name, sizeof(SaNameT));
-   m_NTOH_SANAMET_LEN(msg.info.vresp.queue.name.length);
+   /*m_NTOH_SANAMET_LEN(msg.info.vresp.queue.name.length);*/
    mqd_qparam_fill(&pObjNode->oinfo.info.q, &msg.info.vresp.queue);         
 
 send_resp:
@@ -856,7 +856,7 @@ mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info
    if(MQSV_OBJ_QGROUP == pObjNode->oinfo.type) 
    {
       m_NCS_OS_MEMCPY(&msg.info.tresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
-      m_NTOH_SANAMET_LEN(msg.info.tresp.oinfo.group.length);
+      /*m_NTOH_SANAMET_LEN(msg.info.tresp.oinfo.group.length); */
       msg.info.tresp.oinfo.policy = pObjNode->oinfo.info.qgrp.policy;
    }
 
@@ -985,7 +985,7 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
 
    if(MQSV_OBJ_QGROUP == pObjInfo->type) {
       m_NCS_OS_MEMCPY(&msg.info.tntfy.oinfo.group, &pObjInfo->name, sizeof(SaNameT));
-      m_NTOH_SANAMET_LEN(msg.info.tntfy.oinfo.group.length);   
+      /*m_NTOH_SANAMET_LEN(msg.info.tntfy.oinfo.group.length);   */
       msg.info.tntfy.oinfo.policy = pObjInfo->info.qgrp.policy;  
    }
    
@@ -1117,7 +1117,7 @@ mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue,
       
       /* Polulate the queue fields */         
       m_NCS_OS_MEMCPY(&pQueue->name, &pObjInfo->name, sizeof(SaNameT));
-      m_NTOH_SANAMET_LEN(pQueue->name.length);       
+      /*m_NTOH_SANAMET_LEN(pQueue->name.length);        */
       mqd_qparam_fill(&pObjInfo->info.q, pQueue);
       qcnt = 1;
    }
@@ -1388,9 +1388,9 @@ mqd_asapi_obj_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
    MQD_OBJ_NODE   *pObjNode = 0;
 
    /* Get hold of the MQD controll block */
-   m_HTON_SANAMET_LEN(name->length);
+   /*m_HTON_SANAMET_LEN(name->length); */
    pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb, (char *)name);
-   m_NTOH_SANAMET_LEN(name->length);
+   /*m_NTOH_SANAMET_LEN(name->length); */
    
    *o_node = pObjNode;   
    if(pObjNode) return TRUE;       

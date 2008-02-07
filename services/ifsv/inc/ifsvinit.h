@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -36,7 +36,7 @@ DESCRIPTION: This file contains:
 /**** Macro for IFSV task priority ****/
 #define m_IFSV_PRIORITY (5)
 /**** Macro for IFSV task stack size ****/
-#define m_IFSV_STACKSIZE (8000)
+#define m_IFSV_STACKSIZE NCS_STACKSIZE_HUGE
 
 /* Maximum size of the component name */
 #define IFSV_MAX_COMP_NAME (255)

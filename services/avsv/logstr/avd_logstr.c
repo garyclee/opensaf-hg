@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -147,7 +147,7 @@ const NCSFL_STR avsv_ckpt_set[] =
    { AVD_STBY_UNAVAIL_FOR_RCHG,            "Standby Is not Available for Role change"  },
    { AVD_ROLE_CHANGE_FAILURE,              "AVD Role change Failure"     },
    { AVD_HB_MSG_SND_FAILURE,               "HB message send Failure"     },
-   { AVD_HB_MISS_WITH_PEER,                "Heart bit missed with the peer"     },
+   { AVD_HB_MISS_WITH_PEER,                "Heart Beat missed with the peer"     },
    { 0,0 }
 };
 
@@ -240,24 +240,24 @@ NCSFL_SET avd_str_set[] =
 NCSFL_FMAT avd_fmat_set[] = 
 {
    { AVD_LID_HDLN,           NCSFL_TYPE_TIC,    "%s AVD: %s %s\n"},
-   { AVD_LID_HDLN_VAL,       NCSFL_TYPE_TICLL,  "%s AVD: %s at %s:%d val %d\n"},
-   { AVD_LID_HDLN_VAL_NAME,  "TICLP",           "%s AVD: %s at %s:%d val %s\n"},   
+   { AVD_LID_HDLN_VAL,       NCSFL_TYPE_TICLL,  "%s AVD: %s at %s:%ld val %ld\n"},
+   { AVD_LID_HDLN_VAL_NAME,  "TICLP",           "%s AVD: %s at %s:%ld val %s\n"},   
    { AVD_LID_MEMFAIL,        NCSFL_TYPE_TI,     "%s AVD: %s\n"},
-   { AVD_LID_MEMFAIL_LOC,    NCSFL_TYPE_TICL,   "%s AVD: %s at %s:%d%\n"},
-   { AVD_LID_MSG_INFO,       NCSFL_TYPE_ILTIL,  "AVD: %s 0x%08x %s %s %d\n"},
+   { AVD_LID_MEMFAIL_LOC,    NCSFL_TYPE_TICL,   "%s AVD: %s at %s:%ld%\n"},
+   { AVD_LID_MSG_INFO,       NCSFL_TYPE_ILTIL,  "AVD: %s 0x%08lx %s %s %ld\n"},
    { AVD_LID_MSG_DND_DTL,    NCSFL_TYPE_TID,    "%s AVD: %s %s\n"},
    { AVD_LID_FUNC_RETVAL,    NCSFL_TYPE_TII,    "%s AVD: %s %s\n"},
-   { AVD_LID_EVT_VAL,        NCSFL_TYPE_TIL,    "%s AVD: %s %d\n"},
-   { AVD_LID_EVT_CKPT,       "TIL",             "%s AVD: %s %d\n"},
+   { AVD_LID_EVT_VAL,        NCSFL_TYPE_TIL,    "%s AVD: %s %ld\n"},
+   { AVD_LID_EVT_CKPT,       "TIL",             "%s AVD: %s %ld\n"},
    { AVD_LID_ADMIN,          "TCI",             "%s AVD: %s Admin State Changed to %s\n"},
    { AVD_LID_SI_UNASSIGN,    "TCI",             "%s AVD: %s %s\n"},
    { AVD_LID_OPER,           "TCI",             "%s AVD: %s Oper State Changed to %s\n"},
    { AVD_LID_SUSI_HA,        "TCCI",            "%s AVD: %s %s HA State Changed to %s\n"},
    { AVD_LID_CLM,            "TCII",            "%s AVD: %s %s %s\n"},
-   { AVD_LID_TRAP_EVT,       "TIL",             "%s AVD: %s %d\n"},
-   { AVD_LID_TRAP_NCS_SUCC,  "TIL",             "%s AVD: %s 0x%08x\n"},
+   { AVD_LID_TRAP_EVT,       "TIL",             "%s AVD: %s %ld\n"},
+   { AVD_LID_TRAP_NCS_SUCC,  "TIL",             "%s AVD: %s 0x%08lx\n"},
    { AVD_LID_SUSI_HA_CHG_START, "TCCI",         "%s AVD: %s %s HA State Changing to %s\n"},
-   { AVD_LID_HDLN_SVAL,      "TICLC",           "%s AVD: %s at %s:%d val %s\n"},   
+   { AVD_LID_HDLN_SVAL,      "TICLC",           "%s AVD: %s at %s:%ld val %s\n"},   
    { 0, 0, 0 }
 };
 

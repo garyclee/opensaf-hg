@@ -1,24 +1,32 @@
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
+
+%define lib_dir /opt/opensaf/payload/%{LIB_SUFFIX}
+%define bin_dir /opt/opensaf/payload/bin
+%define scripts_dir /opt/opensaf/payload/scripts
+%define conf_dir /etc/opt/opensaf
+%define var_dir /var/opt/opensaf
+%define inc_dir /opt/opensaf/include
+
 
 Summary: OpenSAF Services Payload Blade RPM
 Name: opensaf_payload
 Version:1.0 
 Distribution: linux
-Release:5
+Release:6
 Source: %{name}.tgz
 License: High-Availability Operating Environment Software License
 Vendor: OpenSAF
@@ -26,7 +34,7 @@ Packager: user@opensaf.org
 Group: System
 AutoReqProv: 0
 Requires: tipc
-Conflicts: opensaf<=1.0.5
+Conflicts: opensaf<=1.0.6
 
 %description
 This package contains the OpenSAF Payload executables & Libraries.
@@ -60,25 +68,31 @@ cp -r etc $RPM_BUILD_ROOT
 %pre 
 #######################################
 mkdir -p /opt/opensaf/payload/
-mkdir -p /etc/opt/opensaf/
+mkdir -p %{conf_dir}/
 
 #######################################
 %post 
 #######################################
 
-mkdir -p /var/opt/opensaf/log
-mkdir -p /var/opt/opensaf/mdslog
-mkdir -p /var/opt/opensaf/nidlog
+mkdir -p %{var_dir}/log
+mkdir -p %{var_dir}/mdslog
+mkdir -p %{var_dir}/nidlog
+mkdir -p /opt/TIPC
 
-ln -sf /sbin/reboot /etc/opt/opensaf/reboot
+ln -sf /sbin/reboot %{conf_dir}/reboot
+ln -s %{scripts_dir}/nis_pld /etc/init.d/nis_pld
 
 # if [ "%{name}" = "opensaf_payload" ]
 # then
-# echo "1" > /etc/opt/opensaf/init_role
+# echo "1" > %{conf_dir}/init_role
 # fi
 
 cd /opt/opensaf/
-ln -s /opt/opensaf/payload/lib lib
+ln -s %{lib_dir} lib
+
+mv %{scripts_dir}/tipc_reset.sh /opt/TIPC
+#mv %{scripts_dir}/node_id %{var_dir}/node_id
+#mv %{scripts_dir}/node_ha_state %{var_dir}/node_ha_state
 
 # Add an entry to /etc/profile for enabling coredump
 # echo "ulimit -c 300000  # NCS_COREDUMP enable" >> /etc/profile
@@ -87,10 +101,10 @@ ln -s /opt/opensaf/payload/lib lib
 
 ## Adding the LD_LIBRARY_PATH into /etc/ld.so.conf
 
-check=`grep "/opt/opensaf/payload/lib/" /etc/ld.so.conf `
+check=`grep "%{lib_dir}/" /etc/ld.so.conf `
 if [ "$check" == "" ]
 then
-   echo "/opt/opensaf/payload/lib/" >>/etc/ld.so.conf
+   echo "%{lib_dir}/" >>/etc/ld.so.conf
 fi
 
 /sbin/ldconfig
@@ -99,7 +113,7 @@ fi
 # Create alias for get_ha_state and nis_scxb
 #######################################################################
 
-echo "alias 'nis_pld=/opt/opensaf/payload/scripts/nis_pld'" >> /root/.bashrc
+echo "alias 'nis_pld=%{scripts_dir}/nis_pld'" >> /root/.bashrc
 source /root/.bashrc
 
 
@@ -115,10 +129,11 @@ source /root/.bashrc
 %postun
 #######################################
 rm -rf /opt/opensaf/payload/
-rm -rf /opt/opensaf/include/
+rm -rf %{inc_dir}/
 rm /opt/opensaf/lib
-rm -rf /var/opt/opensaf/
-rm -rf /etc/opt/opensaf/
+rm -rf %{var_dir}/
+rm -rf %{conf_dir}/
+unlink /etc/init.d/nis_pld
 
 ########################################
 %files 
@@ -128,16 +143,16 @@ rm -rf /etc/opt/opensaf/
 %defattr(755,root,root)
 ###############################
 #/opt/opensaf/payload/
-#/etc/opt/opensaf/
-#/var/opt/opensaf/log
-/opt/opensaf/payload/bin/ncs_cpnd
-/opt/opensaf/payload/bin/ncs_glnd
-/opt/opensaf/payload/bin/ncs_ifnd
-/opt/opensaf/payload/bin/ncs_ifsv_ip_installer
-/opt/opensaf/payload/bin/ncs_mqnd
-/opt/opensaf/payload/bin/ncs_nid
-/opt/opensaf/payload/bin/ncs_pcap
-/opt/opensaf/payload/bin/ncs_srmnd
+#%{conf_dir}/
+#%{var_dir}/log
+%{bin_dir}/ncs_cpnd
+%{bin_dir}/ncs_glnd
+%{bin_dir}/ncs_ifnd
+%{bin_dir}/ncs_ifsv_ip_installer
+%{bin_dir}/ncs_mqnd
+%{bin_dir}/ncs_nid
+%{bin_dir}/ncs_pcap
+%{bin_dir}/ncs_srmnd
 
 
 ###############################
@@ -146,86 +161,86 @@ rm -rf /etc/opt/opensaf/
 ###############################
 ###############################
 
-/opt/opensaf/include/cpsv_papi.h
-/opt/opensaf/include/dta_papi.h
-/opt/opensaf/include/dts_papi.h
-/opt/opensaf/include/hpl_api.h
-/opt/opensaf/include/hpl_msg.h
-/opt/opensaf/include/ifa_papi.h
-/opt/opensaf/include/ifsv_cli_papi.h
-/opt/opensaf/include/ifsv_papi.h
-/opt/opensaf/include/ipxs_papi.h
-/opt/opensaf/include/lfm_avm_intf.h
-/opt/opensaf/include/mab_penv.h
-/opt/opensaf/include/mac_papi.h
-/opt/opensaf/include/mbcsv_papi.h
-/opt/opensaf/include/mds_papi.h
-/opt/opensaf/include/ncs_cli.h
-/opt/opensaf/include/ncs_dl.h
-/opt/opensaf/include/ncs_edu_pub.h
-/opt/opensaf/include/ncsencdec_pub.h
-/opt/opensaf/include/ncsgl_defs.h
-/opt/opensaf/include/ncs_hdl_pub.h
-/opt/opensaf/include/ncs_ip.h
-/opt/opensaf/include/ncs_iplib.h
-/opt/opensaf/include/ncs_ipv4.h
-/opt/opensaf/include/ncs_ipv6.h
-/opt/opensaf/include/ncs_lib.h
-/opt/opensaf/include/ncs_log.h
-/opt/opensaf/include/ncs_main_papi.h
-/opt/opensaf/include/ncs_mda_papi.h
-/opt/opensaf/include/ncs_mds_def.h
-/opt/opensaf/include/ncsmiblib.h
-/opt/opensaf/include/ncsmib_mem.h
-/opt/opensaf/include/ncs_mib_pub.h
-/opt/opensaf/include/ncs_mtbl.h
-/opt/opensaf/include/ncs_mtree.h
-/opt/opensaf/include/ncs_osprm.h
-/opt/opensaf/include/ncspatricia.h
-/opt/opensaf/include/ncs_posix_tmr.h
-/opt/opensaf/include/ncs_queue.h
-/opt/opensaf/include/ncs_saf.h
-/opt/opensaf/include/ncs_scktprm.h
-/opt/opensaf/include/ncs_sprr_papi.h
-/opt/opensaf/include/ncs_stack_pub.h
-/opt/opensaf/include/ncs_svd.h
-/opt/opensaf/include/ncssysf_def.h
-/opt/opensaf/include/ncssysf_ipc.h
-/opt/opensaf/include/ncssysf_lck.h
-/opt/opensaf/include/ncssysf_mem.h
-/opt/opensaf/include/ncssysfpool.h
-/opt/opensaf/include/ncssysf_sem.h
-/opt/opensaf/include/ncssysf_tmr.h
-/opt/opensaf/include/ncssysf_tsk.h
-/opt/opensaf/include/ncs_tmr.h
-/opt/opensaf/include/ncs_trap.h
-/opt/opensaf/include/ncs_ubaid.h
-/opt/opensaf/include/ncsusrbuf.h
-/opt/opensaf/include/ncs_xmtre.h
-/opt/opensaf/include/nid_api.h
-/opt/opensaf/include/nid_err.h
-/opt/opensaf/include/oac_papi.h
-/opt/opensaf/include/os_defs.h
-/opt/opensaf/include/psr_mib_load.h
-/opt/opensaf/include/psr_papi.h
-/opt/opensaf/include/rda_papi.h
-/opt/opensaf/include/saAis.h
-/opt/opensaf/include/saAmf.h
-/opt/opensaf/include/saCkpt.h
-/opt/opensaf/include/saClm.h
-/opt/opensaf/include/saEvt.h
-/opt/opensaf/include/SaHpi.h
-/opt/opensaf/include/saLck.h
-/opt/opensaf/include/saMsg.h
-/opt/opensaf/include/sckt_defs.h
-/opt/opensaf/include/srma_papi.h
-/opt/opensaf/include/srmsv_papi.h
-/opt/opensaf/include/subagt_mab.h
-/opt/opensaf/include/subagt_oid_db.h
-/opt/opensaf/include/sysf_ip.h
-/opt/opensaf/include/ip_defs.h
-/opt/opensaf/include/ncs_ipprm.h
-/opt/opensaf/include/trg_defs.h
+%{inc_dir}/cpsv_papi.h
+%{inc_dir}/dta_papi.h
+%{inc_dir}/dts_papi.h
+%{inc_dir}/hpl_api.h
+%{inc_dir}/hpl_msg.h
+%{inc_dir}/ifa_papi.h
+%{inc_dir}/ifsv_cli_papi.h
+%{inc_dir}/ifsv_papi.h
+%{inc_dir}/ipxs_papi.h
+%{inc_dir}/lfm_avm_intf.h
+%{inc_dir}/mab_penv.h
+%{inc_dir}/mac_papi.h
+%{inc_dir}/mbcsv_papi.h
+%{inc_dir}/mds_papi.h
+%{inc_dir}/ncs_cli.h
+%{inc_dir}/ncs_dl.h
+%{inc_dir}/ncs_edu_pub.h
+%{inc_dir}/ncsencdec_pub.h
+%{inc_dir}/ncsgl_defs.h
+%{inc_dir}/ncs_hdl_pub.h
+%{inc_dir}/ncs_ip.h
+%{inc_dir}/ncs_iplib.h
+%{inc_dir}/ncs_ipv4.h
+%{inc_dir}/ncs_ipv6.h
+%{inc_dir}/ncs_lib.h
+%{inc_dir}/ncs_log.h
+%{inc_dir}/ncs_main_papi.h
+%{inc_dir}/ncs_mda_papi.h
+%{inc_dir}/ncs_mds_def.h
+%{inc_dir}/ncsmiblib.h
+%{inc_dir}/ncsmib_mem.h
+%{inc_dir}/ncs_mib_pub.h
+%{inc_dir}/ncs_mtbl.h
+%{inc_dir}/ncs_mtree.h
+%{inc_dir}/ncs_osprm.h
+%{inc_dir}/ncspatricia.h
+%{inc_dir}/ncs_posix_tmr.h
+%{inc_dir}/ncs_queue.h
+%{inc_dir}/ncs_saf.h
+%{inc_dir}/ncs_scktprm.h
+%{inc_dir}/ncs_sprr_papi.h
+%{inc_dir}/ncs_stack_pub.h
+%{inc_dir}/ncs_svd.h
+%{inc_dir}/ncssysf_def.h
+%{inc_dir}/ncssysf_ipc.h
+%{inc_dir}/ncssysf_lck.h
+%{inc_dir}/ncssysf_mem.h
+%{inc_dir}/ncssysfpool.h
+%{inc_dir}/ncssysf_sem.h
+%{inc_dir}/ncssysf_tmr.h
+%{inc_dir}/ncssysf_tsk.h
+%{inc_dir}/ncs_tmr.h
+%{inc_dir}/ncs_trap.h
+%{inc_dir}/ncs_ubaid.h
+%{inc_dir}/ncsusrbuf.h
+%{inc_dir}/ncs_xmtre.h
+%{inc_dir}/nid_api.h
+%{inc_dir}/nid_err.h
+%{inc_dir}/oac_papi.h
+%{inc_dir}/os_defs.h
+%{inc_dir}/psr_mib_load.h
+%{inc_dir}/psr_papi.h
+%{inc_dir}/rda_papi.h
+%{inc_dir}/saAis.h
+%{inc_dir}/saAmf.h
+%{inc_dir}/saCkpt.h
+%{inc_dir}/saClm.h
+%{inc_dir}/saEvt.h
+%{inc_dir}/SaHpi.h
+%{inc_dir}/saLck.h
+%{inc_dir}/saMsg.h
+%{inc_dir}/sckt_defs.h
+%{inc_dir}/srma_papi.h
+%{inc_dir}/srmsv_papi.h
+%{inc_dir}/subagt_mab.h
+%{inc_dir}/subagt_oid_db.h
+%{inc_dir}/sysf_ip.h
+%{inc_dir}/ip_defs.h
+%{inc_dir}/ncs_ipprm.h
+%{inc_dir}/trg_defs.h
 
 ###############################
 #Ncs Services SCXB Shareable libraries 
@@ -233,98 +248,100 @@ rm -rf /etc/opt/opensaf/
 ###############################
 ###############################
 
-/opt/opensaf/payload/lib/libSaAmf.so
-/opt/opensaf/payload/lib/libSaAmf.so.0
-/opt/opensaf/payload/lib/libSaAmf.so.0.0.0
-/opt/opensaf/payload/lib/libSaCkpt.so
-/opt/opensaf/payload/lib/libSaCkpt.so.0
-/opt/opensaf/payload/lib/libSaCkpt.so.0.0.0
-/opt/opensaf/payload/lib/libSaClm.so
-/opt/opensaf/payload/lib/libSaClm.so.0
-/opt/opensaf/payload/lib/libSaClm.so.0.0.0
-/opt/opensaf/payload/lib/libSaEvt.so
-/opt/opensaf/payload/lib/libSaEvt.so.0
-/opt/opensaf/payload/lib/libSaEvt.so.0.0.0
-/opt/opensaf/payload/lib/libSaLck.so
-/opt/opensaf/payload/lib/libSaLck.so.0
-/opt/opensaf/payload/lib/libSaLck.so.0.0.0
-/opt/opensaf/payload/lib/libSaMsg.so
-/opt/opensaf/payload/lib/libSaMsg.so.0
-/opt/opensaf/payload/lib/libSaMsg.so.0.0.0
-/opt/opensaf/payload/lib/libavsv_common.so
-/opt/opensaf/payload/lib/libavsv_common.so.0
-/opt/opensaf/payload/lib/libavsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libcpsv_common.so
-/opt/opensaf/payload/lib/libcpsv_common.so.0
-/opt/opensaf/payload/lib/libcpsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libedsv_common.so
-/opt/opensaf/payload/lib/libedsv_common.so.0
-/opt/opensaf/payload/lib/libedsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libglsv_common.so
-/opt/opensaf/payload/lib/libglsv_common.so.0
-/opt/opensaf/payload/lib/libglsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libifa.so
-/opt/opensaf/payload/lib/libifa.so.0
-/opt/opensaf/payload/lib/libifa.so.0.0.0
-/opt/opensaf/payload/lib/libifsv_common.so
-/opt/opensaf/payload/lib/libifsv_common.so.0
-/opt/opensaf/payload/lib/libifsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libipxs_subagt.so
-/opt/opensaf/payload/lib/libipxs_subagt.so.0
-/opt/opensaf/payload/lib/libipxs_subagt.so.0.0.0
-/opt/opensaf/payload/lib/libmaa.so
-/opt/opensaf/payload/lib/libmaa.so.0
-/opt/opensaf/payload/lib/libmaa.so.0.0.0
-/opt/opensaf/payload/lib/libmbca.so
-/opt/opensaf/payload/lib/libmbca.so.0
-/opt/opensaf/payload/lib/libmbca.so.0.0.0
-/opt/opensaf/payload/lib/libmqsv_common.so
-/opt/opensaf/payload/lib/libmqsv_common.so.0
-/opt/opensaf/payload/lib/libmqsv_common.so.0.0.0
-/opt/opensaf/payload/lib/libncs_core.so
-/opt/opensaf/payload/lib/libncs_core.so.0
-/opt/opensaf/payload/lib/libncs_core.so.0.0.0
-/opt/opensaf/payload/lib/librda.so
-/opt/opensaf/payload/lib/librda.so.0
-/opt/opensaf/payload/lib/librda.so.0.0.0
-/opt/opensaf/payload/lib/libsaf_common.so
-/opt/opensaf/payload/lib/libsaf_common.so.0
-/opt/opensaf/payload/lib/libsaf_common.so.0.0.0
-/opt/opensaf/payload/lib/libsrma.so
-/opt/opensaf/payload/lib/libsrma.so.0
-/opt/opensaf/payload/lib/libsrma.so.0.0.0
+%{lib_dir}/libSaAmf.so
+%{lib_dir}/libSaAmf.so.0
+%{lib_dir}/libSaAmf.so.0.0.0
+%{lib_dir}/libSaCkpt.so
+%{lib_dir}/libSaCkpt.so.0
+%{lib_dir}/libSaCkpt.so.0.0.0
+%{lib_dir}/libSaClm.so
+%{lib_dir}/libSaClm.so.0
+%{lib_dir}/libSaClm.so.0.0.0
+%{lib_dir}/libSaEvt.so
+%{lib_dir}/libSaEvt.so.0
+%{lib_dir}/libSaEvt.so.0.0.0
+%{lib_dir}/libSaLck.so
+%{lib_dir}/libSaLck.so.0
+%{lib_dir}/libSaLck.so.0.0.0
+%{lib_dir}/libSaMsg.so
+%{lib_dir}/libSaMsg.so.0
+%{lib_dir}/libSaMsg.so.0.0.0
+%{lib_dir}/libavsv_common.so
+%{lib_dir}/libavsv_common.so.0
+%{lib_dir}/libavsv_common.so.0.0.0
+%{lib_dir}/libcpsv_common.so
+%{lib_dir}/libcpsv_common.so.0
+%{lib_dir}/libcpsv_common.so.0.0.0
+%{lib_dir}/libedsv_common.so
+%{lib_dir}/libedsv_common.so.0
+%{lib_dir}/libedsv_common.so.0.0.0
+%{lib_dir}/libglsv_common.so
+%{lib_dir}/libglsv_common.so.0
+%{lib_dir}/libglsv_common.so.0.0.0
+%{lib_dir}/libifa.so
+%{lib_dir}/libifa.so.0
+%{lib_dir}/libifa.so.0.0.0
+%{lib_dir}/libifsv_common.so
+%{lib_dir}/libifsv_common.so.0
+%{lib_dir}/libifsv_common.so.0.0.0
+%{lib_dir}/libmaa.so
+%{lib_dir}/libmaa.so.0
+%{lib_dir}/libmaa.so.0.0.0
+%{lib_dir}/libmbca.so
+%{lib_dir}/libmbca.so.0
+%{lib_dir}/libmbca.so.0.0.0
+%{lib_dir}/libmqsv_common.so
+%{lib_dir}/libmqsv_common.so.0
+%{lib_dir}/libmqsv_common.so.0.0.0
+%{lib_dir}/libncs_core.so
+%{lib_dir}/libncs_core.so.0
+%{lib_dir}/libncs_core.so.0.0.0
+%{lib_dir}/librda.so
+%{lib_dir}/librda.so.0
+%{lib_dir}/librda.so.0.0.0
+%{lib_dir}/libsaf_common.so
+%{lib_dir}/libsaf_common.so.0
+%{lib_dir}/libsaf_common.so.0.0.0
+%{lib_dir}/libsrma.so
+%{lib_dir}/libsrma.so.0
+%{lib_dir}/libsrma.so.0.0.0
 
-###############################
-#Ncs Services related SCXB conf file
-###############################
-%defattr(755,root,root)
  
-# Startup scripts
 ###############################
-%config /etc/opt/opensaf/chassis_id
-%config /etc/opt/opensaf/slot_id
-%config /etc/opt/opensaf/nodeinit.conf
-/etc/opt/opensaf/tipc_reset.sh
+# Config files 
+###############################
+%defattr(644,root,root)
+
+%config %{conf_dir}/chassis_id
+%config %{conf_dir}/slot_id
+%config %{conf_dir}/nodeinit.conf
+
+########################################
+# Variable Data files & Startup scripts 
+########################################
+%defattr(755,root,root)
+
+%{scripts_dir}/tipc_reset.sh
 
 
-/opt/opensaf/payload/scripts/find_pid.sh
-/opt/opensaf/payload/scripts/ncs_cpnd_clean.sh
-/opt/opensaf/payload/scripts/ncs_cpnd_start.sh
-/opt/opensaf/payload/scripts/ncs_glnd_clean.sh
-/opt/opensaf/payload/scripts/ncs_glnd_start.sh
-/opt/opensaf/payload/scripts/ncs_ifnd_clean.sh
-/opt/opensaf/payload/scripts/ncs_ifnd_start.sh
-/opt/opensaf/payload/scripts/ncs_mqnd_clean.sh
-/opt/opensaf/payload/scripts/ncs_mqnd_start.sh
-/opt/opensaf/payload/scripts/ncs_srmnd_clean.sh
-/opt/opensaf/payload/scripts/ncs_srmnd_start.sh
-/opt/opensaf/payload/scripts/nid_tipc.sh
-/opt/opensaf/payload/scripts/nis_pld
-/opt/opensaf/payload/scripts/pld_cor_time
-/opt/opensaf/payload/scripts/fabric_bond_conf
-/opt/opensaf/payload/scripts/S31dhclnt
-/opt/opensaf/payload/scripts/dhclnt_clean.sh
-/opt/opensaf/payload/scripts/dhclnt_start.sh
-/opt/opensaf/payload/scripts/ncs_ifsv_ip_ins_script
-/opt/opensaf/payload/scripts/collect_logs.sh
+%{scripts_dir}/find_pid.sh
+%{scripts_dir}/ncs_cpnd_clean.sh
+%{scripts_dir}/ncs_cpnd_start.sh
+%{scripts_dir}/ncs_glnd_clean.sh
+%{scripts_dir}/ncs_glnd_start.sh
+%{scripts_dir}/ncs_ifnd_clean.sh
+%{scripts_dir}/ncs_ifnd_start.sh
+%{scripts_dir}/ncs_mqnd_clean.sh
+%{scripts_dir}/ncs_mqnd_start.sh
+%{scripts_dir}/ncs_srmnd_clean.sh
+%{scripts_dir}/ncs_srmnd_start.sh
+%{scripts_dir}/nid_tipc.sh
+%{scripts_dir}/nis_pld
+%{scripts_dir}/pld_cor_time
+%{scripts_dir}/fabric_bond_conf
+%{scripts_dir}/S31dhclnt
+%{scripts_dir}/dhclnt_clean.sh
+%{scripts_dir}/dhclnt_start.sh
+%{scripts_dir}/ncs_ifsv_ip_ins_script
+%{scripts_dir}/collect_logs.sh
 

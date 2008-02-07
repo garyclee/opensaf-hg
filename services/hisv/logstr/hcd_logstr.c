@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -216,15 +216,15 @@ NCSFL_FMAT hcd_fmat_set[] =
    { HCD_LID_HDLN,           NCSFL_TYPE_TI,     "%s HCD HEADLINE : %s\n"     },
    { HCD_LID_MEMFAIL,        NCSFL_TYPE_TI,     "%s HCD MEMERR: %s\n"        },
    { HCD_LID_API,            NCSFL_TYPE_TI,     "%s HCD API: %s\n"           },
-   { HCD_LID_FWPROG,         NCSFL_TYPE_TILL,   "%s HCD FWPROG: %s : Board Number %d\n"  },
-   { HCD_LID_FWERR,          NCSFL_TYPE_TILL,   "%s HCD FWERR: %s : Board Number %d\n"   },
-   { HCD_LID_EVT,            NCSFL_TYPE_TILL,   "%s HCD EVT: %s <rsc id:%d> <rcvd frm:%d>\n"},
+   { HCD_LID_FWPROG,         NCSFL_TYPE_TILL,   "%s HCD FWPROG: %s : Board Number %ld\n"  },
+   { HCD_LID_FWERR,          NCSFL_TYPE_TILL,   "%s HCD FWERR: %s : Board Number %ld\n"   },
+   { HCD_LID_EVT,            NCSFL_TYPE_TILL,   "%s HCD EVT: %s <rsc id:%ld> <rcvd frm:%ld>\n"},
    { HCD_LID_SVC_PRVDR,      NCSFL_TYPE_TI,     "%s HCD SVC PRVDR: %s\n"           },
-   { HCD_LID_LCK_OPER,       NCSFL_TYPE_TICLL,  "%s HCD LCK OPER: %s <rsc name:%s> <rsc id:%d> <rcvd frm:%d>\n"},
+   { HCD_LID_LCK_OPER,       NCSFL_TYPE_TICLL,  "%s HCD LCK OPER: %s <rsc name:%s> <rsc id:%ld> <rcvd frm:%ld>\n"},
    { HCD_LID_GEN_INFO,       NCSFL_TYPE_TC,     "%s HCD LOG: %s "   },  
    { HCD_LID_GEN_INFO2,      "TCP",             "%s HCD GEN: %s %s "},
    { HCD_LID_GEN_INFO3,      "TCC",             "%s HCD GEN: %s %s "},
-   { HCD_LID_GEN_INFO4,      NCSFL_TYPE_TILL,   "%s HCD EVT: %s %d is:\n"},
+   { HCD_LID_GEN_INFO4,      NCSFL_TYPE_TILL,   "%s HCD EVT: %s %ld is:\n"},
    { 0, 0, 0 }
 };
 

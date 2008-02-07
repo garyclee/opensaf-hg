@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
 #
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 
@@ -21,7 +21,7 @@
 XTERM=" "
 PIDPATH=/var/run
 PIDFILE=ncs_dts.pid
-COMPNAMEFILE=/etc/opt/opensaf/ncs_dts_comp_name
+COMPNAMEFILE=/var/opt/opensaf/ncs_dts_comp_name
 export DTS_AMF_HELATH_CHECK_KEY="A9FD64E12C12"
 
 echo "Executing DTS init-script..."
@@ -36,13 +36,13 @@ echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 echo $SA_AMF_COMPONENT_NAME
 
-#remove the existing /etc/opt/opensaf/ncs_dts_comp_name.txt
-#rm -rf /etc/opt/opensaf/ncs_dts_comp_name.txt
+#remove the existing /var/opt/opensaf/ncs_dts_comp_name
+#rm -rf /var/opt/opensaf/ncs_dts_comp_name
 rm -rf $COMPNAMEFILE
 
 
 #echo the component name into a temporary text file
-#echo $SA_AMF_COMPONENT_NAME > /etc/opt/opensaf/ncs_dts_comp_name.txt
+#echo $SA_AMF_COMPONENT_NAME > /var/opt/opensaf/ncs_dts_comp_name
 echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
 
 #echo $NCS_ENV_NODE_ID

@@ -12,4 +12,4 @@ libbam_logstr_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ -DNCS_BAM=1 -DNCS_DTS=1 \
 
 libbam_logstr_la_SOURCES =	./bam_logstr.c
 
-libbam_logstr_la_LDFLAGS = -version-number 1
+libbam_logstr_la_LDFLAGS = -version-number 2

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -85,7 +85,7 @@ mas_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
     }
 
     /* plant MAB subcomponent's control block in MAB_MSG */
-    ((MAB_MSG*)msg)->yr_hdl = (NCSCONTEXT)inst->hm_hdl; 
+    ((MAB_MSG*)msg)->yr_hdl = NCS_INT32_TO_PTR_CAST(inst->hm_hdl); 
     ((MAB_MSG*)msg)->fr_card = fr_card;
     if(((MAB_MSG*)msg)->fr_svc == 0)
         ((MAB_MSG*)msg)->fr_svc = fr_svc;
@@ -339,7 +339,7 @@ mas_mds_mbx_post(NCSMDS_CALLBACK_INFO *cbinfo, MAB_SVC_OP evt)
         return (NCSCC_RC_OUT_OF_MEM); 
       
     m_NCS_MEMSET(mm, 0, sizeof(MAB_MSG)); 
-    mm->yr_hdl = (NCSCONTEXT)inst->hm_hdl;  
+    mm->yr_hdl = NCS_INT32_TO_PTR_CAST(inst->hm_hdl);  
     mm->fr_card = cbinfo->info.svc_evt.i_dest; 
     mm->fr_svc = cbinfo->info.svc_evt.i_svc_id; 
     mm->fr_anc = cbinfo->info.svc_evt.i_anc; 

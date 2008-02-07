@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -78,7 +78,7 @@ uns32 mds_log_init (char *log_file_name, char *line_prefix)
     {
     asc_tod[0] = '\0';
     m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
-    sysf_fprintf(fh,"NCSMDS|%s|%s|BEGIN MDS LOGGING| PROCESS_ID=%d|ARCH=%d|64bit=%d\n", log_line_prefix, asc_tod, process_id, MDS_ARCH_TYPE,MDS_WORD_SIZE_TYPE);
+    sysf_fprintf(fh,"NCSMDS|%s|%s|BEGIN MDS LOGGING| PROCESS_ID=%d|ARCH=%d|64bit=%ld\n", log_line_prefix, asc_tod, process_id, MDS_ARCH_TYPE,(long)MDS_WORD_SIZE_TYPE);
     sysf_fclose(fh);
     }
     else

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1613,7 +1613,7 @@ uns32 oac_pss_tbl_decode_bind_req(NCS_UBAID *uba, MAB_PSS_TBL_BIND_EVT *bind_req
           }
           m_NCS_MEMSET(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
 
-          data = ncs_dec_flatten_space(uba, (uns8*)&p_tbl->tbl_id, 2);
+          data = ncs_dec_flatten_space(uba, (uns8*)&p_tbl->tbl_id, 4);
           if(data == NULL)
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
           p_tbl->tbl_id = ncs_decode_32bit(&data);

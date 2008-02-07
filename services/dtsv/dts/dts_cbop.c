@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -157,7 +157,7 @@ static void dtsv_populate_cirbuff_op_var_info(NCSMIB_VAR_INFO *pInfo)
 {
    /* dtsvCirbuffOpIndexNode_Id */
    pInfo[dtsvCirbuffOpIndexNode_Id - 1].offset = 
-      (uns16)((int)&CIR_BUFFER_OP_TABLE_NULL->my_key.node - (int)CIR_BUFFER_OP_TABLE_NULL);
+      (uns16)((long)&CIR_BUFFER_OP_TABLE_NULL->my_key.node - (long)CIR_BUFFER_OP_TABLE_NULL);
    pInfo[dtsvCirbuffOpIndexNode_Id-1].len = sizeof(CIR_BUFFER_OP_TABLE_NULL->my_key.node);
    pInfo[dtsvCirbuffOpIndexNode_Id-1].access = NCSMIB_ACCESS_READ_WRITE;
    pInfo[dtsvCirbuffOpIndexNode_Id-1].status = NCSMIB_OBJ_CURRENT;
@@ -167,7 +167,7 @@ static void dtsv_populate_cirbuff_op_var_info(NCSMIB_VAR_INFO *pInfo)
 
    /* dtsvCirbuffOpIndexService_Id */
    pInfo[dtsvCirbuffOpIndexService_Id - 1].offset = 
-      (uns16)((int)&CIR_BUFFER_OP_TABLE_NULL->my_key.ss_svc_id - (int)CIR_BUFFER_OP_TABLE_NULL);
+      (uns16)((long)&CIR_BUFFER_OP_TABLE_NULL->my_key.ss_svc_id - (long)CIR_BUFFER_OP_TABLE_NULL);
    pInfo[dtsvCirbuffOpIndexService_Id-1].len = sizeof(CIR_BUFFER_OP_TABLE_NULL->my_key.ss_svc_id);
    pInfo[dtsvCirbuffOpIndexService_Id-1].access = NCSMIB_ACCESS_READ_WRITE;
    pInfo[dtsvCirbuffOpIndexService_Id-1].status = NCSMIB_OBJ_CURRENT;
@@ -177,7 +177,7 @@ static void dtsv_populate_cirbuff_op_var_info(NCSMIB_VAR_INFO *pInfo)
 
    /* dtsvCirbuffOpOperation */
    pInfo[dtsvCirbuffOpOperation - 1].offset = 
-      (uns16)((int)&CIR_BUFFER_OP_TABLE_NULL->operation - (int)CIR_BUFFER_OP_TABLE_NULL);
+      (uns16)((long)&CIR_BUFFER_OP_TABLE_NULL->operation - (long)CIR_BUFFER_OP_TABLE_NULL);
    pInfo[dtsvCirbuffOpOperation-1].len = sizeof(CIR_BUFFER_OP_TABLE_NULL->operation);
    pInfo[dtsvCirbuffOpOperation-1].access = NCSMIB_ACCESS_READ_WRITE;
    pInfo[dtsvCirbuffOpOperation-1].status = NCSMIB_OBJ_CURRENT;
@@ -188,7 +188,7 @@ static void dtsv_populate_cirbuff_op_var_info(NCSMIB_VAR_INFO *pInfo)
 
    /* dtsvCirbuffOpDevice */
    pInfo[dtsvCirbuffOpOperation - 1].offset = 
-      (uns16)((int)&CIR_BUFFER_OP_TABLE_NULL->op_device - (int)CIR_BUFFER_OP_TABLE_NULL);
+      (uns16)((long)&CIR_BUFFER_OP_TABLE_NULL->op_device - (long)CIR_BUFFER_OP_TABLE_NULL);
    pInfo[dtsvCirbuffOpDevice-1].len = sizeof(CIR_BUFFER_OP_TABLE_NULL->op_device);
    pInfo[dtsvCirbuffOpDevice-1].access = NCSMIB_ACCESS_READ_WRITE;
    pInfo[dtsvCirbuffOpDevice-1].status = NCSMIB_OBJ_CURRENT;

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -118,6 +118,17 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
     * next heart beat message. */
 
    m_AVD_RCV_HB_TMR_START(cb);
+   
+   /* Inform AVM About the first heart beat recevied 
+      from peer AVD */
+
+   if(FALSE == cb->avd_hrt_beat_rcvd)
+   {
+     avd_avm_d_hb_restore_msg(cb, cb->node_id_avd_other);
+     /* message sent to AVM */
+     cb->avd_hrt_beat_rcvd = TRUE;
+   }
+ 
    m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
    return;
@@ -216,6 +227,9 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
 
    /* Inform AVM About this */
    avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
+  
+   /*Set the first heat beat variable to False */
+    cb->avd_hrt_beat_rcvd = FALSE;
 
    /* get avnd ptr to call avd_avm_mark_nd_absent */
    if( (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other)) == AVD_AVND_NULL)
@@ -338,6 +352,9 @@ void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
       m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
       return;
    }
+
+  /*Set the first heat beat variable to False */
+   cb->avd_hrt_beat_rcvd = FALSE;
 
    /* Inform AVM About this */
    avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);

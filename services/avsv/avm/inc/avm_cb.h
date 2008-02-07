@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -151,7 +151,7 @@ struct avm_cb
    AVM_VALID_INFO_STATE_T   valid_info_state;  
    uns32                    config_cnt;
    uns32                    dummy_parent_cnt;
-   HEALTH_STATUS            hlt_status[4];
+   HEALTH_STATUS            hlt_status[HEALTH_STATUS_MAX];
    NCS_BOOL                 is_platform;
    AVM_TMR_T                dhcp_fail_tmr;  /* Timer for handling dhcp script failure */
    AVM_UPGD_ERR             upgrade_error_type;

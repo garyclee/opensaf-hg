@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1570,7 +1570,7 @@ mas_red_data_req_dec(NCS_MBCSV_CB_DEC *dec)
     }
 
     /* update the context info to build the data response */
-    dec->o_req_context = (uns32) warm_sync_cntxt; 
+    dec->o_req_context = NCS_PTR_TO_UNS64_CAST(warm_sync_cntxt); 
 
     return NCSCC_RC_SUCCESS; 
 }
@@ -1637,7 +1637,7 @@ mas_red_sync(MAS_TBL* inst, MAB_MSG* msg, MAS_ASYNC_UPDATE_TYPE type)
     mbcsv_arg.i_mbcsv_hdl = inst->red.mbcsv_hdl;
     mbcsv_arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
     mbcsv_arg.info.send_ckpt.i_ckpt_hdl = inst->red.ckpt_hdl;
-    mbcsv_arg.info.send_ckpt.i_reo_hdl  = (uns32)msg;
+    mbcsv_arg.info.send_ckpt.i_reo_hdl  = (MBCSV_REO_HDL)(long)msg;
     /* set the type of data */
     mbcsv_arg.info.send_ckpt.i_reo_type = (uns32)type;
     mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_USR_ASYNC; 
@@ -1778,7 +1778,7 @@ mas_red_updt_dec(MAS_TBL* inst, NCS_MBCSV_CB_DEC* dec)
             m_MMGR_FREE_MAB_MSG(inst->red.process_msg); 
             
         /* this message will be freed in the next cycle */
-        pmsg->yr_hdl = (NCSCONTEXT)inst->hm_hdl;
+        pmsg->yr_hdl = NCS_INT32_TO_PTR_CAST(inst->hm_hdl);
         inst->red.process_msg = pmsg; 
     }
 
@@ -2289,7 +2289,7 @@ static void mas_dump_vcard(FILE *fp, MDS_DEST mds_dest)
        fprintf(fp,"\n\t\t\t\tVDEST:%d", 
               m_MDS_GET_VDEST_ID_FROM_MDS_DEST(mds_dest));
     else
-       fprintf(fp,"\n\t\t\t\tADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+       fprintf(fp,"\n\t\t\t\tADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
               m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest), 0, 
               (long)(mds_dest));
     return; 

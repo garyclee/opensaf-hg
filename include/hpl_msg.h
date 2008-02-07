@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -20,7 +20,7 @@
 
   $Header:
 
-..............................................................................
+  ..............................................................................
 
   DESCRIPTION:
   This file containts the message structures shared between AvM and other
@@ -105,6 +105,7 @@ typedef enum hpi_fwprog_events
 /******************************************************************************
  firmware progress error events
  ******************************************************************************/
+#if 0
 /* vivek_hisv */
 typedef enum hpi_fwerr_events
 {
@@ -113,6 +114,7 @@ typedef enum hpi_fwerr_events
    HPI_FWERR_IPMC_UPGRADE_FAILED,
    HPI_FWERR_PHOENIXBIOS_UPGRADE_FAILED,
    HPI_FWERR_HLFM_INIT_FAILED,
+   HPI_FWERR_OPENHPI_INIT_FAILED,
    HPI_FWERR_SWITCH_INIT_FAILED,
    HPI_FWERR_LHC_DMN_INIT_FAILED,
    HPI_FWERR_LHC_RSP_INIT_FAILED,
@@ -131,7 +133,35 @@ typedef enum hpi_fwerr_events
    HPI_FWERR_UNKNOWN_EVT_FAILED
 
 } HPI_FWERR_EVENTS;
+#endif
 
+/* Moving IPMC/BIOS codes to end */
+typedef enum hpi_fwerr_events
+{
+   /* Firmware error event logging messages */
+   HPI_FWERR_HPM_INIT_FAILED = HPI_SE_FWPROG_CODE_OFFSET,
+   HPI_FWERR_HLFM_INIT_FAILED,
+   HPI_FWERR_OPENHPI_INIT_FAILED,
+   HPI_FWERR_SWITCH_INIT_FAILED,
+   HPI_FWERR_LHC_DMN_INIT_FAILED,
+   HPI_FWERR_LHC_RSP_INIT_FAILED,
+   HPI_FWERR_NW_SCRIPT_INIT_FAILED,
+   HPI_FWERR_DRBD_INIT_FAILED,
+   HPI_FWERR_TIPC_INIT_FAILED,
+   HPI_FWERR_IFSD_INIT_FAILED,
+   HPI_FWERR_DTSV_INIT_FAILED,
+   HPI_FWERR_MASV_INIT_FAILED,
+   HPI_FWERR_PSSV_INIT_FAILED,
+   HPI_FWERR_GLND_INIT_FAILED,
+   HPI_FWERR_EDSV_INIT_FAILED,
+   HPI_FWERR_SUBAGT_INIT_FAILED,
+   HPI_FWERR_SNMPD_INIT_FAILED,
+   HPI_FWERR_NCS_INIT_FAILED,
+   HPI_FWERR_IPMC_UPGRADE_FAILED,
+   HPI_FWERR_PHOENIXBIOS_UPGRADE_FAILED,
+   HPI_FWERR_UNKNOWN_EVT_FAILED
+
+} HPI_FWERR_EVENTS;
 
 
 /* OEM inventory data structure to hold MAC address entries */

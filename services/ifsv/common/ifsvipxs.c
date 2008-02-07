@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "ifa.h"
@@ -65,10 +65,10 @@ ipxs_ifip_record_add(IPXS_CB *cb, NCS_PATRICIA_TREE *ifip_tbl, IPXS_IFIP_NODE *i
         m_NCS_LOCK(&cb->ipxs_db_lock, NCS_LOCK_WRITE); 
       rc = ncs_patricia_tree_add(ifip_tbl, &ifip_node->patnode);
       if(rc == NCSCC_RC_SUCCESS)
-          m_IFA_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IFIP_NODE_ID_TBL_ADD_SUCCESS,\
+          m_IFSV_LOG_HEAD_LINE_NORMAL(cb->my_svc_id,IFSV_LOG_IFIP_NODE_ID_TBL_ADD_SUCCESS,\
                               ifip_node->ifip_info.ifindexNet, 0);
       else
-          m_IFA_LOG_HEAD_LINE(IFSV_LOG_IFIP_NODE_ID_TBL_ADD_FAILURE,\
+          m_IFSV_LOG_HEAD_LINE(cb->my_svc_id,IFSV_LOG_IFIP_NODE_ID_TBL_ADD_FAILURE,\
                               ifip_node->ifip_info.ifindexNet, 0);
       if(cb->my_svc_id == NCS_SERVICE_ID_IFND)
        m_NCS_UNLOCK(&cb->ipxs_db_lock, NCS_LOCK_WRITE);
@@ -76,7 +76,7 @@ ipxs_ifip_record_add(IPXS_CB *cb, NCS_PATRICIA_TREE *ifip_tbl, IPXS_IFIP_NODE *i
    }
    else
    {
-      m_IFA_LOG_HEAD_LINE(IFSV_LOG_IFIP_NODE_ID_TBL_ADD_FAILURE,\
+      m_IFSV_LOG_HEAD_LINE(cb->my_svc_id,IFSV_LOG_IFIP_NODE_ID_TBL_ADD_FAILURE,\
                               ifip_node->ifip_info.ifindexNet, 0);
       return NCSCC_RC_FAILURE;
    }
@@ -109,7 +109,7 @@ ipxs_ifip_record_del(IPXS_CB *cb, NCS_PATRICIA_TREE *ifip_tbl, IPXS_IFIP_NODE *i
    if(cb->ifip_tbl_up)
       ncs_patricia_tree_del(ifip_tbl, &ifip_node->patnode);
 
-   m_IFA_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IFIP_NODE_ID_TBL_DEL_SUCCESS,\
+   m_IFSV_LOG_HEAD_LINE_NORMAL(cb->my_svc_id,IFSV_LOG_IFIP_NODE_ID_TBL_DEL_SUCCESS,\
                               ifip_node->ifip_info.ifindexNet, 0);
 
    /* Free the node */
@@ -156,7 +156,7 @@ ipxs_ifip_ippfx_add(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info, IPXS_IFIP_IP_INFO *i
 
       if(!new_list)
       {
-         m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+         m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          if(cb->my_svc_id == NCS_SERVICE_ID_IFND)
           m_NCS_UNLOCK(&cb->ipxs_db_lock, NCS_LOCK_WRITE);
          return NCSCC_RC_FAILURE;
@@ -218,7 +218,7 @@ ipxs_ifip_ippfx_del(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info, IPXS_IFIP_IP_INFO *i
              m_MMGR_ALLOC_IPXS_DEFAULT((old_cnt)*sizeof(IPXS_IFIP_IP_INFO));
       if(temp_list == NULL)
       {
-         m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+         m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          if(cb->my_svc_id == NCS_SERVICE_ID_IFND)
           m_NCS_UNLOCK(&cb->ipxs_db_lock, NCS_LOCK_WRITE);
          return NCSCC_RC_FAILURE;
@@ -263,7 +263,7 @@ ipxs_ifip_ippfx_del(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info, IPXS_IFIP_IP_INFO *i
             if(!ifip_info->ipaddr_list)
             {
                ifip_info->ipaddr_list = old_list;
-               m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+               m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
                rc = NCSCC_RC_FAILURE;
                goto free_mem;
             }
@@ -375,7 +375,7 @@ ipxs_ifip_ippfx_add_to_os(IPXS_CB *cb, NCS_IFSV_IFINDEX ifindex,IPXS_IFIP_IP_INF
    if(intf_data == NULL)
    {
       ncshm_give_hdl(ifsv_hdl);
-      m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
       return rc;
    }
 
@@ -399,7 +399,7 @@ uns32 ifsv_add_to_os(IFSV_INTF_DATA *intf_data,IPXS_IFIP_IP_INFO *ippfx,uns32 cn
 
    if(intf_data == NULL)
    {
-      m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
       return rc;
    }
 
@@ -530,7 +530,7 @@ ipxs_ifip_ippfx_del_from_os(IPXS_CB *cb,NCS_IFSV_IFINDEX ifindex ,
    if(intf_data == NULL)
    {
       ncshm_give_hdl(ifsv_hdl);
-      m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
       return rc;
    }
    rc = ifsv_del_from_os(intf_data, ippfx, cnt, ifsv_cb);
@@ -548,7 +548,7 @@ uns32 ifsv_del_from_os(IFSV_INTF_DATA *intf_data,NCS_IPPFX *ippfx,uns32 cnt,IFSV
 
   if(intf_data == NULL)
   {
-     m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+     m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
      return rc;
   }
   
@@ -661,7 +661,7 @@ uns32 ipxs_ipdb_init(IPXS_IPDB *iptbl)
       if ((ncs_patricia_tree_init(&iptbl->ptree, &params)) 
                                                    != NCSCC_RC_SUCCESS)
       {
-         m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO, "IP DB not initiated",0);
+         m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO, "IP DB not initiated",0);
 
          rc = NCSCC_RC_FAILURE;
       }
@@ -743,7 +743,7 @@ uns32 ipxs_iprec_get(IPXS_CB *cb, IPXS_IP_KEY *ipkeyNet,
       *ip_node = m_MMGR_ALLOC_IPXS_IP_NODE;
       if(!*ip_node)
       {
-         m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+         m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_FAILURE;
       }
 
@@ -763,12 +763,12 @@ uns32 ipxs_iprec_get(IPXS_CB *cb, IPXS_IP_KEY *ipkeyNet,
       if(ncs_patricia_tree_add (&cb->ip_tbl[index].ptree, (NCSCONTEXT)*ip_node) != NCSCC_RC_SUCCESS)
       {
          m_MMGR_FREE_IPXS_IP_NODE(*ip_node);
-         m_IFA_LOG_HEAD_LINE(IFSV_LOG_IP_TBL_ADD_FAILURE,\
+         m_IFSV_LOG_HEAD_LINE(cb->my_svc_id,IFSV_LOG_IP_TBL_ADD_FAILURE,\
                              index, 0);
          return NCSCC_RC_FAILURE;
       }
       else
-         m_IFA_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IP_TBL_ADD_SUCCESS,\
+         m_IFSV_LOG_HEAD_LINE_NORMAL(cb->my_svc_id,IFSV_LOG_IP_TBL_ADD_SUCCESS,\
                              index, 0);
    }
 
@@ -837,7 +837,7 @@ void ipxs_ip_record_list_del(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info)
   m_MMGR_FREE_IPXS_DEFAULT(ifip_info->ipaddr_list);
   ifip_info->ipaddr_cnt = 0;
   ifip_info->ipam = ifip_info->ipam & ~(NCS_IPXS_IPAM_ADDR);
-  m_IFA_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IFIP_NODE_ID_TBL_DEL_SUCCESS,\
+  m_IFSV_LOG_HEAD_LINE_NORMAL(cb->my_svc_id,IFSV_LOG_IFIP_NODE_ID_TBL_DEL_SUCCESS,\
                               index, 0);
 
 }
@@ -877,7 +877,7 @@ uns32 ipxs_update_ifadd(NCS_SERVICE_ID svc_id, IFSV_INTF_DATA *intf_data)
 
    if (cb == NULL)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO, "ncshm_take_hdl returned NULL",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO, "ncshm_take_hdl returned NULL",0);
       return NCSCC_RC_FAILURE;
    }
  
@@ -886,7 +886,7 @@ uns32 ipxs_update_ifadd(NCS_SERVICE_ID svc_id, IFSV_INTF_DATA *intf_data)
    if(!ifip_node)
    {
       ncshm_give_hdl(ipxs_hdl);
-      m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+      m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
       return NCSCC_RC_FAILURE;
    }
    m_NCS_OS_MEMSET(ifip_node, 0, sizeof(IPXS_IFIP_NODE));
@@ -926,14 +926,14 @@ uns32 ipxs_update_ifdel(NCS_SERVICE_ID svc_id, uns32 if_index)
 
    if (cb == NULL)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO, "ncshm_take_hdl returned NULL",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO, "ncshm_take_hdl returned NULL",0);
       return NCSCC_RC_FAILURE;
    }
    ifip_node = ipxs_ifip_record_get(&cb->ifip_tbl, if_index);
    if(!ifip_node)
    {
       ncshm_give_hdl(ipxs_hdl);
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                        "Couldn't find IFIP info for index : ",if_index);
       return NCSCC_RC_FAILURE;
    }
@@ -999,7 +999,7 @@ ipxs_ifa_app_if_info_indicate(IFSV_INTF_DATA *actual_data,
       send_rec.spt = actual_data->spt_info;
       rc = ifsv_intf_info_cpy(&actual_data->if_info, 
                 &send_rec.if_info, IFSV_MALLOC_FOR_MDS_SEND);
-      m_IFND_LOG_FUNC_ENTRY_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                       "Rec Add info being sent to App. Index is ",\
                        actual_data->if_index);
 
@@ -1012,7 +1012,7 @@ ipxs_ifa_app_if_info_indicate(IFSV_INTF_DATA *actual_data,
       send_rec.if_info.if_am = attr;
       rc = ifsv_intf_info_cpy(&actual_data->if_info, 
                 &send_rec.if_info, IFSV_MALLOC_FOR_MDS_SEND);
-      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                       "Rec Upd info being sent to App. Index is ",\
                        actual_data->if_index);
 
@@ -1025,7 +1025,7 @@ ipxs_ifa_app_if_info_indicate(IFSV_INTF_DATA *actual_data,
       send_rec.spt = actual_data->spt_info;
       rc = ifsv_intf_info_cpy(&actual_data->if_info, 
                 &send_rec.if_info, IFSV_MALLOC_FOR_MDS_SEND);
-      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                       "Rec Destroy info being sent to App. Index is ",\
                        actual_data->if_index);
 
@@ -1041,7 +1041,7 @@ ipxs_ifa_app_if_info_indicate(IFSV_INTF_DATA *actual_data,
       else
       {
          ncshm_give_hdl(ipxs_hdl);
-         m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+         m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                           "ncshm_give_hdl returned NULL pointer", 0);
          rc = NCSCC_RC_FAILURE;
          break;
@@ -1131,7 +1131,7 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
    send_rec.spt = actual_data->spt_info;
    send_rec.if_info.if_am = NCS_IFSV_IAM_SVDEST;
 
-   m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                       "SVCD info being sent to App. Index is ",\
                        actual_data->if_index);
    
@@ -1143,7 +1143,7 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
 
       if(send_rec.if_info.addsvd_list == 0)
       {
-         m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+         m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       }
       m_NCS_OS_MEMCPY(send_rec.if_info.addsvd_list, 
@@ -1156,7 +1156,7 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
          (NCS_SVDEST *) m_MMGR_ALLOC_IFSV_NCS_SVDEST(1);
       if(send_rec.if_info.delsvd_list == 0)
       {
-         m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+         m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       } 
       m_NCS_OS_MEMCPY(send_rec.if_info.delsvd_list, 
@@ -1287,7 +1287,7 @@ IPXS_IFIP_IP_INFO* ncs_ipxs_ippfx_list_alloc(uns32 i_pfx_cnt)
    /* Allocate the IPPFX list */
    pfx_list = (IPXS_IFIP_IP_INFO *) m_MMGR_ALLOC_IPXS_DEFAULT(i_pfx_cnt*sizeof(IPXS_IFIP_IP_INFO));
    if(pfx_list == NULL)
-       m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
+       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
    return pfx_list;
 }
 

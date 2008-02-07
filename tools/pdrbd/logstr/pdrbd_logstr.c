@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*
@@ -277,14 +276,14 @@ NCSFL_SET pdrbd_str_set[] =
 
 NCSFL_FMAT pdrbd_fmat_set[] =
 {                                         /*  T,State,SVCID, pwe, anch, ....*/
-    { PDRBD_LID_HDLN,           "TIL",       " [%s] PDRBD HEADLINE: %s  %d \n\n" },
-    { PDRBD_LID_AMF,            "TIL",       " [%s] PDRBD AMF EVENT: %s %d \n\n" },
-    { PDRBD_LID_PIPE,           "TIL",       " [%s] PDRBD PIPE EVENT: %s %d \n\n" },
-    { PDRBD_LID_MEM,            "TIL",       " [%s] PDRBD MEM EVENT: %s %d \n\n"},
-    { PDRBD_LID_SCRIPT,         "TIL",       " [%s] PDRBD SCRIPT EVENT: %s %d \n\n"},
+    { PDRBD_LID_HDLN,           "TIL",       " [%s] PDRBD HEADLINE: %s  %ld \n\n" },
+    { PDRBD_LID_AMF,            "TIL",       " [%s] PDRBD AMF EVENT: %s %ld \n\n" },
+    { PDRBD_LID_PIPE,           "TIL",       " [%s] PDRBD PIPE EVENT: %s %ld \n\n" },
+    { PDRBD_LID_MEM,            "TIL",       " [%s] PDRBD MEM EVENT: %s %ld \n\n"},
+    { PDRBD_LID_SCRIPT,         "TIL",       " [%s] PDRBD SCRIPT EVENT: %s %ld \n\n"},
     { PDRBD_LID_MISC,           "TIC",       " [%s] PDRBD MISC EVENT FOR COMP:   %s %s \n\n"},
     { PDRBD_LID_MISC_INDEX,     "TI",        " [%s] PDRBD MISC EVENT %s \n\n"},  
-    { PDRBD_LID_OTHER,          "TCL",       " [%s] PDRBD LOG: %s  %d \n\n" },
+    { PDRBD_LID_OTHER,          "TCL",       " [%s] PDRBD LOG: %s  %ld \n\n" },
     { 0, 0, 0 }
 };
 

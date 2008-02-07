@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -665,38 +665,38 @@ NCSFL_SET mab_str_set[] =
 NCSFL_FMAT mab_fmat_set[] = 
 {
     { MAB_LID_HDLN,           NCSFL_TYPE_TI,    "MAB %s HEADLINE : %s\n"     },
-    { MAB_LID_SVC_PRVDR_FLEX, NCSFL_TYPE_TILL,  "MAB %s SVC PRVDR: %s, %d, %d\n"     },
+    { MAB_LID_SVC_PRVDR_FLEX, NCSFL_TYPE_TILL,  "MAB %s SVC PRVDR: %s, %ld, %ld\n"     },
     { MAB_LID_LOCKS,          NCSFL_TYPE_TIL,   "MAB %s LOCK     : %s (%p)\n"},
     { MAB_LID_MEMFAIL,        "TIC",             "MAB %s MEM FAIL:%s in %s\n\n"}, 
     { MAB_LID_API,            NCSFL_TYPE_TI ,   "MAB %s API      : %s\n"     },
     { MAB_LID_EVT,            NCSFL_TYPE_TI,    "MAB %s EVENT    : %s\n"     },
-    { MAB_LID_TBL_DET,        NCSFL_TYPE_TILL,  "MAB %s TABLE    : %s Env-id: %d, Tbl-id: %d\n"     },
-    { MAB_LID_FLTR_DET,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s Tbl-id: %d, Fltr-id: %d, Fltr-Type: %d\n"     },
-    { MAB_LID_SVC_PRVDR_EVT,  NCSFL_TYPE_TICLLL,"MAB %s SVC PRVDR: %s\n\t\tFrom:%s, \n\t\tFrom Svc-id: %d, NewState: %d, Anchor:%d\n\n"     },
-    { MAB_LID_SVC_PRVDR_MSG,  NCSFL_TYPE_TICLL, "MAB %s SVC PRVDR: %s\n\t\tFrom:%s,\n\t\tFrom Svc-id: %d, MsgType: %d\n\n"     },
-    { MAB_LID_FLTR_RANGE,     "TILLLLL",        "MAB %s FLTR     : %s\n\t\tEnv-id:%d, Tbl-id: %d, Fltr-id: %d, idx-len: %d, bgn-idx:%d\n"},
+    { MAB_LID_TBL_DET,        NCSFL_TYPE_TILL,  "MAB %s TABLE    : %s Env-id: %ld, Tbl-id: %ld\n"     },
+    { MAB_LID_FLTR_DET,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s Tbl-id: %ld, Fltr-id: %ld, Fltr-Type: %ld\n"     },
+    { MAB_LID_SVC_PRVDR_EVT,  NCSFL_TYPE_TICLLL,"MAB %s SVC PRVDR: %s\n\t\tFrom:%s, \n\t\tFrom Svc-id: %ld, NewState: %ld, Anchor:%ld\n\n"     },
+    { MAB_LID_SVC_PRVDR_MSG,  NCSFL_TYPE_TICLL, "MAB %s SVC PRVDR: %s\n\t\tFrom:%s,\n\t\tFrom Svc-id: %ld, MsgType: %ld\n\n"     },
+    { MAB_LID_FLTR_RANGE,     "TILLLLL",        "MAB %s FLTR     : %s\n\t\tEnv-id:%ld, Tbl-id: %ld, Fltr-id: %ld, idx-len: %ld, bgn-idx:%ld\n"},
     { MAB_LID_FLTR_RANGE_INDEX,"TID",           "MAB %s FLTR     : %s\n\t\t %s\n"},
-    { MAB_LID_FLTR_ANY,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s\n\t\tEnv-id:%d, Tbl-id: %d, Fltr-id: %d\n\n"     },
-    { MAB_LID_FLTR_SA,        NCSFL_TYPE_TILLLL,"MAB %s FLTR     : %s\n\t\tEnv-id:%d, Tbl-id: %d, Fltr-id: %d, sameAsTbl-id:%d\n\n"     },
-    { MAB_LID_FLTR_DEF,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s\n\t\tEnv-id:%d, Tbl-id: %d, Fltr-id: %d\n\n"     },
+    { MAB_LID_FLTR_ANY,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s\n\t\tEnv-id:%ld, Tbl-id: %ld, Fltr-id: %ld\n\n"     },
+    { MAB_LID_FLTR_SA,        NCSFL_TYPE_TILLLL,"MAB %s FLTR     : %s\n\t\tEnv-id:%ld, Tbl-id: %ld, Fltr-id: %ld, sameAsTbl-id:%ld\n\n"     },
+    { MAB_LID_FLTR_DEF,       NCSFL_TYPE_TILLL, "MAB %s FLTR     : %s\n\t\tEnv-id:%ld, Tbl-id: %ld, Fltr-id: %ld\n\n"     },
     { MAB_LID_NO_CB,          NCSFL_TYPE_TIC,   "MAB %s HEADLINE : %s function: %s\n"     },
-    { MAB_LID_ERR_II,         NCSFL_TYPE_TILL,  "MAB %s ERROR : %s   %d    %d\n"     },
-    { MAB_LID_ERR_I,          NCSFL_TYPE_TIL,   "MAB %s ERROR : %s %d \n"     },
-    { MAB_LID_CSI,            "TILCCL",        "MAB %s CSI DATA: %s\n\t\tcsiFlags: %d,\n\t\tCompName: %s\n\t\tcsiName:%s\n\t\tHA State: %d\n\n"}, 
-    { MAB_LID_ST_CHG,        NCSFL_TYPE_TILL,   "MAB %s STATE CHG: %s\n\t\tCurr State:%d, New State: %d\n\n"},
-    { MAB_LID_MEM,           "TILD" ,    "MAB %s MEMORY   : %s\n idx-len: %d,\n index: %s\n"},
+    { MAB_LID_ERR_II,         NCSFL_TYPE_TILL,  "MAB %s ERROR : %s   %ld    %ld\n"     },
+    { MAB_LID_ERR_I,          NCSFL_TYPE_TIL,   "MAB %s ERROR : %s %ld \n"     },
+    { MAB_LID_CSI,            "TILCCL",        "MAB %s CSI DATA: %s\n\t\tcsiFlags: %ld,\n\t\tCompName: %s\n\t\tcsiName:%s\n\t\tHA State: %ld\n\n"}, 
+    { MAB_LID_ST_CHG,        NCSFL_TYPE_TILL,   "MAB %s STATE CHG: %s\n\t\tCurr State:%ld, New State: %ld\n\n"},
+    { MAB_LID_MEM,           "TILD" ,    "MAB %s MEMORY   : %s\n idx-len: %ld,\n index: %s\n"},
     { MAB_LID_ERROR,          NCSFL_TYPE_TI,   "MAB %s ERROR : %s\n"},
-    { MAB_LID_HDLN_I,         NCSFL_TYPE_TIL, "MAB %s HEADLINE : %s data1: %d\n"},
-    { MAB_LID_HDLN_II,        NCSFL_TYPE_TILL, "MAB %s HEADLINE : %s data1: %d, data2: %d\n"},
-    { MAB_LID_OAA_BIND_EVT,   "TCL" ,    "OAA %s TBL-BIND: PCN:%s,TBL-ID:%d\n"     },
-    { MAB_LID_OAA_UNBIND_EVT, "TL" ,    "OAA %s TBL-UNBIND: TBL-ID:%d\n"     },
-    { MAB_LID_FLTR_EXACT,     "TILLLLL",        "MAB %s EXACT FLTR     : %s\n\t\tEnv-id:%d, Tbl-id: %d, Fltr-id: %d, idx-len: %d, bgn-idx:%d\n"},
+    { MAB_LID_HDLN_I,         NCSFL_TYPE_TIL, "MAB %s HEADLINE : %s data1: %ld\n"},
+    { MAB_LID_HDLN_II,        NCSFL_TYPE_TILL, "MAB %s HEADLINE : %s data1: %ld, data2: %ld\n"},
+    { MAB_LID_OAA_BIND_EVT,   "TCL" ,    "OAA %s TBL-BIND: PCN:%s,TBL-ID:%ld\n"     },
+    { MAB_LID_OAA_UNBIND_EVT, "TL" ,    "OAA %s TBL-UNBIND: TBL-ID:%ld\n"     },
+    { MAB_LID_FLTR_EXACT,     "TILLLLL",        "MAB %s EXACT FLTR     : %s\n\t\tEnv-id:%ld, Tbl-id: %ld, Fltr-id: %ld, idx-len: %ld, bgn-idx:%ld\n"},
     { MAB_LID_FLTR_EXACT_INDEX,"TID",           "MAB %s EXACT FLTR     : %s\n\t\t %s\n"},
-    { MAB_LID_OAA_PCN_INFO_I, "TIL",          "OAA %s INFO : %s\n\t\t PCN=<NULL>, TBL=%d\n"},
-    { MAB_LID_OAA_PCN_INFO_II, "TICL",         "OAA %s INFO : %s\n\t\t PCN=%s, TBL=%d\n"},
-    { MAB_LID_OAA_WARMBOOTREQ_INFO_I, "TILL", "OAA %s WARMBOOT REQ: %s\n\t\t PSS=%d MAS=%d \n"},
-    { MAB_LID_OAA_WARMBOOTREQ_INFO_II, "TICLL", "OAA %s WARMBOOT REQ INFO: %s\n\t\t PCN=%s, is_system_client=%d, TBL_ID=%d \n"},
-    { MAB_LID_OAA_WARMBOOTREQ_INFO_III, "TICLLL", "OAA %s WARMBOOT REQ INFO: %s\n\t\t PCN=%s, is_system_client=%d, TBL_ID=%d, wbreq_hdl=%d\n"},
+    { MAB_LID_OAA_PCN_INFO_I, "TIL",          "OAA %s INFO : %s\n\t\t PCN=<NULL>, TBL=%ld\n"},
+    { MAB_LID_OAA_PCN_INFO_II, "TICL",         "OAA %s INFO : %s\n\t\t PCN=%s, TBL=%ld\n"},
+    { MAB_LID_OAA_WARMBOOTREQ_INFO_I, "TILL", "OAA %s WARMBOOT REQ: %s\n\t\t PSS=%ld MAS=%ld \n"},
+    { MAB_LID_OAA_WARMBOOTREQ_INFO_II, "TICLL", "OAA %s WARMBOOT REQ INFO: %s\n\t\t PCN=%s, is_system_client=%ld, TBL_ID=%ld \n"},
+    { MAB_LID_OAA_WARMBOOTREQ_INFO_III, "TICLLL", "OAA %s WARMBOOT REQ INFO: %s\n\t\t PCN=%s, is_system_client=%ld, TBL_ID=%ld, wbreq_hdl=%ld\n"},
     { MAB_LID_ANC, "TF", "MAB %s ANCHOR INFO: %s\n"},
     { 0, 0, 0 }
 };

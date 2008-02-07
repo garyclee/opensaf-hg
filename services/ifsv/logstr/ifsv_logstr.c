@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -47,6 +47,7 @@
 #include "dts_papi.h"
 #include "ifsv_papi.h"
 #include "ifsv_log.h"
+#include "ifsv_logstr.h"
 
 const NCSFL_STR ifsv_log_evt_str[] =
 {
@@ -488,45 +489,45 @@ NCSFL_SET ifsv_log_str_set[] =
  *****************************************************************************/
 NCSFL_FMAT ifsv_log_fmat_set[] = 
 {
-   { IFSV_LFS_EVENT_L,           NCSFL_TYPE_TICL,      "[%s] %s %s  %d\n"     },
-   { IFSV_LFS_EVENT_LL,          NCSFL_TYPE_TICLL,     "[%s] %s %s  %d %d\n"     },
-   { IFSV_LFS_EVENT_LLL,         NCSFL_TYPE_TICLLL,    "[%s] %s %s  %d %d %d\n"     },
-   { IFSV_LFS_EVENT_INIT,        NCSFL_TYPE_TIL,      "[%s] %s %d\n"     },
-   { IFSV_LFS_EVENT_IFINDEX,     NCSFL_TYPE_TIL,      "[%s] %s Ifindex %d\n"     },
+   { IFSV_LFS_EVENT_L,           NCSFL_TYPE_TICL,      "[%s] %s %s  %ld\n"     },
+   { IFSV_LFS_EVENT_LL,          NCSFL_TYPE_TICLL,     "[%s] %s %s  %ld %ld\n"     },
+   { IFSV_LFS_EVENT_LLL,         NCSFL_TYPE_TICLLL,    "[%s] %s %s  %ld %ld %ld\n"     },
+   { IFSV_LFS_EVENT_INIT,        NCSFL_TYPE_TIL,      "[%s] %s %ld\n"     },
+   { IFSV_LFS_EVENT_IFINDEX,     NCSFL_TYPE_TIL,      "[%s] %s Ifindex %ld\n"     },
    
-   { IFSV_LFS_MEMORY,            NCSFL_TYPE_TIL,      "[%s] %s  %d\n"     },
+   { IFSV_LFS_MEMORY,            NCSFL_TYPE_TIL,      "[%s] %s  %ld\n"     },
 
-   { IFSV_LFS_LOCKS,             NCSFL_TYPE_TIL,      "[%s] %s  %d\n"     },
+   { IFSV_LFS_LOCKS,             NCSFL_TYPE_TIL,      "[%s] %s  %ld\n"     },
 
-   { IFSV_LFS_TIMER,             NCSFL_TYPE_TIL,      "[%s] %s  Timer ID %d\n"     },
+   { IFSV_LFS_TIMER,             NCSFL_TYPE_TIL,      "[%s] %s  Timer ID %ld\n"     },
 
-   { IFSV_LFS_SYS_CALL_FAIL,     NCSFL_TYPE_TIL,      "[%s] %s (ID - %d)\n"     },
+   { IFSV_LFS_SYS_CALL_FAIL,     NCSFL_TYPE_TIL,      "[%s] %s (ID - %ld)\n"     },
    
-   { IFSV_LFS_HEADLINE,          NCSFL_TYPE_TILL,     "[%s] %s  (Info - %d,%d)\n"    },
+   { IFSV_LFS_HEADLINE,          NCSFL_TYPE_TILL,     "[%s] %s  (Info - %ld,%ld)\n"    },
 
-   { IFSV_LFS_ADD_MOD_REC,       NCSFL_TYPE_TICLLLLL, "[%s] %s  Route Add Mod (%s) Attr - %d MTU - %d if speed - %d admin status - %d oper status %d\n"    },
+   { IFSV_LFS_ADD_MOD_REC,       NCSFL_TYPE_TICLLLLL, "[%s] %s  Route Add Mod (%s) Attr - %ld MTU - %ld if speed - %ld admin status - %ld oper status %ld\n"    },
 
-   { IFSV_LFS_DEL_REC,           NCSFL_TYPE_TICL,     "[%s] %s  Route Del (%s) ifindex - %d\n"    },
+   { IFSV_LFS_DEL_REC,           NCSFL_TYPE_TICL,     "[%s] %s  Route Del (%s) ifindex - %ld\n"    },
 
-   { IFSV_LFS_IF_STAT_INFO,      NCSFL_TYPE_TICLLLLL, "[%s] %s  Intf statistics (%s) status - %d in_octs - %d in_dscrds - %d out_octs - %d out_dscrds - %d\n"    },
+   { IFSV_LFS_IF_STAT_INFO,      NCSFL_TYPE_TICLLLLL, "[%s] %s  Intf statistics (%s) status - %ld in_octs - %ld in_dscrds - %ld out_octs - %ld out_dscrds - %ld\n"    },
 
-   { IFSV_LFS_FUNC_ENTRY_L,      NCSFL_TYPE_TIL,      "[%s] %s  Arg : %d \n"    },
-   { IFSV_LFS_FUNC_ENTRY_LL,     NCSFL_TYPE_TILL,     "[%s] %s  Arg : %d, %d\n"    },
-   { IFSV_LFS_FUNC_ENTRY_LLL,    NCSFL_TYPE_TILLL,    "[%s] %s  Arg : %d, %d %d\n" },
-   { IFSV_LFS_FUNC_ENTRY_LLLL,   NCSFL_TYPE_TILLLL,   "[%s] %s  Arg : %d, %d %d %d\n" },
-   { IFSV_LFS_FUNC_ENTRY_LLLLL,  NCSFL_TYPE_TILLLLL,  "[%s] %s  Arg : %d, %d %d %d %d\n" },
-   { IFSV_LFS_FUNC_ENTRY_LLLLLL, NCSFL_TYPE_TILLLLLL, "[%s] %s  Arg : %d, %d %d %d %d %d\n" },
+   { IFSV_LFS_FUNC_ENTRY_L,      NCSFL_TYPE_TIL,      "[%s] %s  Arg : %ld \n"    },
+   { IFSV_LFS_FUNC_ENTRY_LL,     NCSFL_TYPE_TILL,     "[%s] %s  Arg : %ld, %ld\n"    },
+   { IFSV_LFS_FUNC_ENTRY_LLL,    NCSFL_TYPE_TILLL,    "[%s] %s  Arg : %ld, %ld %ld\n" },
+   { IFSV_LFS_FUNC_ENTRY_LLLL,   NCSFL_TYPE_TILLLL,   "[%s] %s  Arg : %ld, %ld %ld %ld\n" },
+   { IFSV_LFS_FUNC_ENTRY_LLLLL,  NCSFL_TYPE_TILLLLL,  "[%s] %s  Arg : %ld, %ld %ld %ld %ld\n" },
+   { IFSV_LFS_FUNC_ENTRY_LLLLLL, NCSFL_TYPE_TILLLLLL, "[%s] %s  Arg : %ld, %ld %ld %ld %ld %ld\n" },
 
 
-   { IFSV_LFS_API_L,             NCSFL_TYPE_TIL,      "[%s] %s  Arg : %d \n"   },
-   { IFSV_LFS_API_LL,            NCSFL_TYPE_TILL,     "[%s] %s  Arg : %d %d\n" },
-   { IFSV_LFS_API_LLL,           NCSFL_TYPE_TILLL,    "[%s] %s  Arg : %d %d %d\n"   },
-   { IFSV_LFS_API_LLLL,          NCSFL_TYPE_TILLLL,   "[%s] %s  Arg : %d %d %d %d\n" },
-   { IFSV_LFS_API_LLLLL,         NCSFL_TYPE_TILLLLL,  "[%s] %s  Arg : %d %d %d %d %d\n" },
+   { IFSV_LFS_API_L,             NCSFL_TYPE_TIL,      "[%s] %s  Arg : %ld \n"   },
+   { IFSV_LFS_API_LL,            NCSFL_TYPE_TILL,     "[%s] %s  Arg : %ld %ld\n" },
+   { IFSV_LFS_API_LLL,           NCSFL_TYPE_TILLL,    "[%s] %s  Arg : %ld %ld %ld\n"   },
+   { IFSV_LFS_API_LLLL,          NCSFL_TYPE_TILLLL,   "[%s] %s  Arg : %ld %ld %ld %ld\n" },
+   { IFSV_LFS_API_LLLLL,         NCSFL_TYPE_TILLLLL,  "[%s] %s  Arg : %ld %ld %ld %ld %ld\n" },
    { IFSV_VIP_FLC_API,           NCSFL_TYPE_TI,       "[%s] %s \n"},
    { IFSV_LFS_LOG_STR_2_ERROR,   NCSFL_TYPE_TCIC,     "[%s] %s %s %s \n"},
-   { IFSV_LFS_LOG_STR_ERROR,     NCSFL_TYPE_TICL,     "[%s] %s %s %d \n"},
-   { IFSV_LFS_REQ_ORIG_INFO,     NCSFL_TYPE_TICLLLLLLL,  "[%s] %s %s %d %d %d %d %d %d %d  \n"},
+   { IFSV_LFS_LOG_STR_ERROR,     NCSFL_TYPE_TICL,     "[%s] %s %s %ld \n"},
+   { IFSV_LFS_REQ_ORIG_INFO,     NCSFL_TYPE_TICLLLLLLL,  "[%s] %s %s %ld %ld %ld %ld %ld %ld %ld  \n"},
    { 0, 0, 0 }
 };
 
@@ -589,7 +590,6 @@ NCSFL_ASCII_SPEC ifd_ascii_spec =
 void ifsv_flx_log_ascii_set_reg(void)
 {
    NCS_DTSV_REG_CANNED_STR arg;
-   NCSFL_ASCII_SPEC        *ascii_set;
 
    m_NCS_MEMSET(&arg,0,sizeof(NCS_DTSV_REG_CANNED_STR));
 

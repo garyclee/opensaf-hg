@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*****************************************************************************
@@ -257,61 +256,61 @@ SNMPTM_CB* snmptm_cb_create(void)
       tblsix_key.count = 1;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 101;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW1");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW1");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 2;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 102;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW2");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW2");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 3;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 103;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW3");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW3");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 4;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 104;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW4");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW4");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 5;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 105;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW5");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW5");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 6;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 106;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW6");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW6");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 7;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 107;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW7");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW7");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 8;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 108;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW8");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW8");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 9;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 109;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW9");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW9");
 
       m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 10;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 110;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TSIXROW10");
+      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW10");
    }
 
    /* Add entries into TBLTEN*/

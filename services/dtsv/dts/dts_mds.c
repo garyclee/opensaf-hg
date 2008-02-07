@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -402,6 +402,60 @@ uns32 dts_mds_rcv(NCSMDS_CALLBACK_INFO * cbinfo)
   msg->node      = cbinfo->info.receive.i_node_id;  /* Replace it by MDS provided value */
   msg->rsp_reqd  = cbinfo->info.receive.i_rsp_reqd;
   msg->msg_ctxt  = cbinfo->info.receive.i_msg_ctxt;
+
+#if (DTS_FLOW == 1)
+  /* Check for DTS message threshold value.DTS defines MAX threshold of 30000
+   * messages after which all messages will be dropped.
+   */
+  if (msg->msg_type == DTA_LOG_DATA)
+  {
+    if(inst->msg_count > DTS_MAX_THRESHOLD)
+    {
+         m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+         if(msg->data.data.msg.log_msg.uba.ub != NULL)
+            m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.ub);
+         if(0 != msg)
+             m_MMGR_FREE_DTSV_MSG(msg);
+         return NCSCC_RC_SUCCESS;
+    }
+
+    else if(inst->msg_count > DTS_AVG_THRESHOLD)
+    {
+        if (msg->data.data.msg.log_msg.hdr.severity <= NCSFL_SEV_ERROR)
+        {
+            m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+            if(msg->data.data.msg.log_msg.uba.ub != NULL)
+               m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.ub);
+            if(0 != msg)
+                m_MMGR_FREE_DTSV_MSG(msg);
+            return NCSCC_RC_SUCCESS;
+         }
+    }
+
+    else if(inst->msg_count > DTS_MIN_THRESHOLD)
+    {
+        if (msg->data.data.msg.log_msg.hdr.severity <= NCSFL_SEV_NOTICE)
+        {
+            m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+            if(msg->data.data.msg.log_msg.uba.ub != NULL)
+               m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.ub);
+            if(0 != msg)
+               m_MMGR_FREE_DTSV_MSG(msg);
+            return NCSCC_RC_SUCCESS; 
+        }
+    }
+  }
+  else if(msg->msg_type == DTA_FLOW_CONTROL)
+  {
+     if(inst->msg_count > DTS_MIN_THRESHOLD)
+     {
+       if(0 != msg)
+          m_MMGR_FREE_DTSV_MSG(msg);
+        return NCSCC_RC_SUCCESS; 
+     }
+  }
+
+#endif
 
   /* 
    * Put it in DTS's work queue; If message is registration Message then send at Normal

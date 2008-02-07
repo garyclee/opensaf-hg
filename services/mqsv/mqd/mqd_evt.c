@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -463,7 +463,6 @@ static uns32 mqd_cb_dump(void)
   m_NCS_OS_PRINTF("CB Structure Handle is :%u \n",pMqd->hdl);
   m_NCS_OS_PRINTF("OAC Handle is          :%u \n",pMqd->oac_hdl);
   m_NCS_OS_PRINTF("Component Active flag is:%u \n",pMqd->active);
-  m_NCS_OS_PRINTF("EDU Handle is           : %u \n",pMqd->edu_hdl);
   m_NCS_OS_PRINTF(" Invocation of Quisced State is:%llu \n",pMqd->invocation);
   m_NCS_OS_PRINTF(" IS the invocation from the Quisced state set :%u \n",pMqd->is_quisced_set);
 
@@ -566,9 +565,9 @@ mqd_obj_next_validate(MQD_CB *pMqd, SaNameT *name, MQD_OBJ_NODE **o_node)
    MQD_OBJ_NODE   *pObjNode = 0;
 
    /* Get hold of the MQD controll block */
-   m_HTON_SANAMET_LEN(name->length);
+   /*m_HTON_SANAMET_LEN(name->length); */
    pObjNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb, (char *)name);
-   m_NTOH_SANAMET_LEN(name->length);
+   /*m_NTOH_SANAMET_LEN(name->length); */
 
    *o_node = pObjNode;
    if(pObjNode) return TRUE;

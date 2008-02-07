@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -811,8 +811,8 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
 
           /* add it to to tree db*/
           if ( cpnd_ckpt_node_add(cb,cp_node) == NCSCC_RC_FAILURE) {
-              m_LOG_CPND_CFCL(CPND_CKPT_NODE_ADDITION_FAILED,CPND_FC_CKPTINFO,NCSFL_SEV_ERROR,\
-                              ckpt_name.value,client_hdl , __FILE__,__LINE__);
+              m_LOG_CPND_FFCL(CPND_CKPT_NODE_ADDITION_FAILED,CPND_FC_CKPTINFO,NCSFL_SEV_ERROR,\
+                              cp_node->ckpt_id,client_hdl , __FILE__,__LINE__);
               send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_RESOURCES;
               goto ckpt_shm_node_free_error;
           } 
@@ -904,6 +904,8 @@ agent_rsp2:
      }
 
      send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_LIBRARY;
+     m_LOG_CPND_CFCL(CPND_CKPT_OPEN_FAILURE,CPND_FC_EVT,NCSFL_SEV_ERROR,ckpt_name.value, \
+                             client_hdl,__FILE__,__LINE__);
      goto agent_rsp;
 
 ckpt_shm_node_free_error:
@@ -1098,12 +1100,24 @@ static uns32 cpnd_evt_proc_ckpt_unlink(CPND_CB *cb,
    else {
       if ( out_evt && out_evt->info.cpnd.info.ulink_ack.error != SA_AIS_OK) {
          send_evt.info.cpa.info.ulinkRsp.error=out_evt->info.cpnd.info.ulink_ack.error;
-         goto out_evt_free;
+         goto agent_rsp;
       }
    }
 
    cp_node=cpnd_ckpt_node_find_by_name(cb,evt->info.ulinkReq.ckpt_name);   
+   if(cp_node == NULL) {
+       if(out_evt!=NULL)
+          send_evt.info.cpa.info.ulinkRsp.error=out_evt->info.cpnd.info.ulink_ack.error;
+       else
+          send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_ERR_TIMEOUT;
 
+      m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,\
+                       evt->info.ulinkReq.ckpt_name.value, __FILE__,__LINE__);
+      goto agent_rsp;
+   }
+   cp_node->cpa_sinfo = *(sinfo);
+   cp_node->cpa_sinfo_flag = TRUE;
+#if 0
    if(cp_node != NULL) {
 
       cpnd_restart_ckpt_name_length_reset(cb,cp_node);
@@ -1127,16 +1141,19 @@ static uns32 cpnd_evt_proc_ckpt_unlink(CPND_CB *cb,
 
    m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,evt->info.ulinkReq.ckpt_name.value,\
     __FILE__,__LINE__);
+#endif
 
-out_evt_free:
+  if(out_evt)
+      cpnd_evt_destroy(out_evt);
+
+   return rc;
+
 agent_rsp:
    send_evt.type=CPSV_EVT_TYPE_CPA;
    send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_UNLINK_RSP;
    rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-
    if(out_evt)
       cpnd_evt_destroy(out_evt);
-
    return rc;
 }
 /****************************************************************************
@@ -1158,28 +1175,40 @@ static uns32 cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
    uns32           rc = NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE  *cp_node=NULL;
    SaAisErrorT     error;
+   CPSV_SEND_INFO  sinfo_cpa;
+   CPSV_EVT        send_evt;
+   NCS_BOOL        sinfo_cpa_flag=FALSE;
 
+   m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
    cpnd_ckpt_node_get(cb,evt->info.ckpt_ulink.ckpt_id,&cp_node);
    if (cp_node == NULL ) {
       m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_INFO,evt->info.ckpt_ulink.ckpt_id,\
                      __FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
+      rc = NCSCC_RC_FAILURE;
+      send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_ERR_NOT_EXIST;
+      goto agent_rsp;
    }
 
+   sinfo_cpa = cp_node->cpa_sinfo;
+   sinfo_cpa_flag = cp_node->cpa_sinfo_flag;
    if (cp_node->is_close == TRUE) {
+    send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_OK;
       /* check timer is present,if yes...stop the timer and destroy shm_info and the node*/
-      cpnd_tmr_stop(&cp_node->ret_tmr);
+    cpnd_tmr_stop(&cp_node->ret_tmr);
    
       if(!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)) {
          if (cpnd_is_noncollocated_replica_present_on_payload(cb, cp_node)) {
-            return NCSCC_RC_SUCCESS;
+             rc = NCSCC_RC_SUCCESS;
+             goto agent_rsp;
          }
       }
+
       rc = cpnd_ckpt_replica_destroy(cb,cp_node,&error);
       if (rc == NCSCC_RC_FAILURE) {
+
          m_LOG_CPND_FLCL(CPND_CKPT_REPLICA_DESTROY_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
            error, __FILE__, __LINE__);
-         return NCSCC_RC_FAILURE;
+         goto agent_rsp;
       }
       m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,cp_node->ckpt_id,\
                         __FILE__, __LINE__);
@@ -1188,8 +1217,7 @@ static uns32 cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
       cpnd_ckpt_node_destroy(cb, cp_node);
    }
    else {
-      /* The below processing shud not be done by that guy who has unlinked earlier in unlink call */ 
-      if(!cp_node->is_unlink) {
+
          cpnd_restart_ckpt_name_length_reset(cb,cp_node);     
 
          cp_node->is_unlink = TRUE;
@@ -1198,12 +1226,23 @@ static uns32 cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
          if(cp_node->cpnd_rep_create) 
          {
             rc = cpnd_ckpt_hdr_update(cp_node);
+
          }
          m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE,\
                           cp_node->ckpt_id,__FILE__,__LINE__);
-      }
+
+         send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_OK;
    }
-  
+
+agent_rsp:
+
+   if(sinfo_cpa_flag==1){      
+   send_evt.type=CPSV_EVT_TYPE_CPA;
+   send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_UNLINK_RSP;
+   rc = cpnd_mds_send_rsp(cb, &sinfo_cpa, &send_evt);
+
+   }  
+
    return rc;
 }
 
@@ -4645,10 +4684,18 @@ static uns32 cpnd_evt_proc_mds_evt (CPND_CB *cb,CPND_EVT *evt)
        cpnd_proc_cpa_up(cb,evt->info.mds_info.dest);
    }   
    else if (( evt->info.mds_info.change == NCSMDS_RED_UP) && \
-             evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPD)
+            ( evt->info.mds_info.role == SA_AMF_HA_ACTIVE) && \
+            ( evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPD))
    {
        cpnd_proc_cpd_new_active(cb);
    }
+   else if (( evt->info.mds_info.change == NCSMDS_CHG_ROLE) && \
+            ( evt->info.mds_info.role == SA_AMF_HA_ACTIVE) && \
+            ( evt->info.mds_info.svc_id == NCSMDS_SVC_ID_CPD))
+   {
+      cpnd_proc_cpd_new_active(cb);
+   }
+
    return rc;
 }
 
@@ -4707,6 +4754,7 @@ static uns32 cpnd_proc_cpd_new_active(CPND_CB *cb)
                m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_UNLINK_FAILED,CPND_FC_EVT,NCSFL_SEV_ERROR,\
                out_evt->info.cpnd.info.ulink_ack.error,__FILE__,__LINE__);
             }
+            
             break;
 
          case CPD_EVT_ND2D_CKPT_RDSET:

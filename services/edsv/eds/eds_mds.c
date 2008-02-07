@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "eds.h"
@@ -282,7 +282,7 @@ eds_dec_chan_unlink_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
   Notes         : None.
 ******************************************************************************/
 uns32
-eds_dec_publish_msg(NCS_UBAID *uba, uns32 msg_hdl, uns8 ckpt_flag)
+eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag)
 {
    uns8         *p8;
    uns32        total_bytes = 0;
@@ -472,7 +472,7 @@ eds_dec_publish_msg(NCS_UBAID *uba, uns32 msg_hdl, uns8 ckpt_flag)
   Notes         : None.
 ******************************************************************************/
 uns32
-eds_dec_subscribe_msg(NCS_UBAID *uba, uns32 msg_hdl, uns8 ckpt_flag)
+eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag)
 {
    uns8         *p8;
    uns32        x;
@@ -1126,7 +1126,7 @@ eds_mds_dec(struct ncsmds_callback_info *info)
    NCS_UBAID *uba = info->info.dec.io_uba;
    uns8      local_data[20];
    uns32     total_bytes = 0;
-   uns32     msg_hdl=0; 
+   long     msg_hdl=0; 
    EDSV_MSG *msg=NULL;
 
    if(0== m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
@@ -1188,12 +1188,12 @@ eds_mds_dec(struct ncsmds_callback_info *info)
          break;
       case EDSV_EDA_PUBLISH:
          msg=&evt->info.msg;
-         msg_hdl=(uns32)msg; /* Pass the handle */
+         msg_hdl=(long)msg; /* Pass the handle */
          total_bytes += eds_dec_publish_msg(uba, msg_hdl, FALSE);
          break;
       case EDSV_EDA_SUBSCRIBE:
          msg=&evt->info.msg;
-         msg_hdl=(uns32)msg; /* Pass the handle */
+         msg_hdl=(long)msg; /* Pass the handle */
          total_bytes += eds_dec_subscribe_msg(uba, msg_hdl, FALSE);
          break;
       case EDSV_EDA_UNSUBSCRIBE:

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -88,18 +88,14 @@ avm_update_dependents(
    AVM_ENT_INFO_LIST_T *temp_ent_info_list;
    AVM_ENT_INFO_LIST_T *t_ent_info_list;
    AVM_ENT_INFO_LIST_T *temp;
-   AVM_ENT_PATH_STR_T   ep_str;
    
-   m_NCS_MEMSET(&ep_str, '\0', sizeof(ep_str));
 
    dest->dependents = src->dependents;
 
    for(temp_ent_info_list = src->dependents; temp_ent_info_list != AVM_ENT_INFO_LIST_NULL; temp_ent_info_list = temp_ent_info_list->next)
    {
-      ep_str.length = m_NCS_OS_NTOHS(temp_ent_info_list->ent_info->ep_str.length);
-      m_NCS_MEMCPY(ep_str.name, temp_ent_info_list->ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
 
-      ent_info = avm_find_ent_str_info(cb, &ep_str);
+      ent_info = avm_find_ent_str_info(cb, &temp_ent_info_list->ent_info->ep_str ,FALSE);
 
       if(AVM_ENT_INFO_NULL == ent_info)   
       {
@@ -273,6 +269,11 @@ uns32 avm_ckpt_update_ent_db(
          ent_info_lp->is_fru           = ent_info->is_fru;
          ent_info_lp->act_policy       = ent_info->act_policy;
          ent_info_lp->node_name.length = ent_info->node_name.length;
+
+         ent_info_lp->adm_lock      = ent_info->adm_lock;
+         ent_info_lp->adm_shutdown  = ent_info->adm_shutdown;
+         ent_info_lp->adm_req       = ent_info->adm_req;
+
          m_NCS_MEMCPY(ent_info_lp->node_name.value, ent_info->node_name.value, SA_MAX_NAME_LENGTH);
     
          if(ent_info_lp->is_node)

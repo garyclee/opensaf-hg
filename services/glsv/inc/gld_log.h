@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #ifndef GLD_LOG_H
@@ -251,6 +251,11 @@ EXTERN_C void gld_log_lck_oper(uns8 lck_id, uns8 sev ,
                                uns32 node);
 EXTERN_C void gld_mbcsv_log(uns8 id, uns8 sev); 
 EXTERN_C void gld_log_timer(uns8 id, uns32 type);
+void
+gld_flx_log_reg (void);
+
+void
+gld_flx_log_dereg(void);
 
 #define m_LOG_GLD_MBCSV(id,sev)             gld_mbcsv_log(id,sev)
 #define m_LOG_GLD_HEADLINE(id, sev)        gld_log_headline(id,sev)

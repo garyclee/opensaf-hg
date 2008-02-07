@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -44,7 +44,7 @@ static uns32 rda_parse_msg    (const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int
 static uns32 rda_connect      (int *sockfd);
 static uns32 rda_disconnect   (int sockfd);
 static uns32 rda_callback_req (int sockfd);
-
+extern RDA_CONTROL_BLOCK *rda_get_control_block (void);
 
 #if (RDA_SPOOF != 0)
 
@@ -200,7 +200,7 @@ uns32 rda_callback_task (RDA_CALLBACK_CB *rda_callback_cb)
  *
  * Notes         : None
  *****************************************************************************/
-int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *task_cb)
+int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, long *task_cb)
 {
 
     uns32  rc = PCSRDA_RC_SUCCESS;
@@ -213,7 +213,7 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *tas
     rda_spoof_callback_cb.callback_handle = cb_handle;
     rda_spoof_callback_cb.task_terminate  = FALSE;
 
-    *task_cb = (uns32) &rda_spoof_callback_cb;
+    *task_cb = (long) &rda_spoof_callback_cb;
 
 #else
 
@@ -221,7 +221,7 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *tas
     NCS_BOOL         is_task_spawned = FALSE;
     RDA_CALLBACK_CB *rda_callback_cb = NULL;
 
-    *task_cb = (uns32) 0;
+    *task_cb = (long) 0;
 
     /*
     ** Connect
@@ -277,7 +277,7 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *tas
            rda_callback_cb,
            "RDATASK_CALLBACK",
            0,
-           8192,
+           NCS_STACKSIZE_HUGE,
            &rda_callback_cb-> task_handle) != NCSCC_RC_SUCCESS)
         {
            
@@ -295,7 +295,7 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *tas
         }
 
         is_task_spawned = TRUE;
-        *task_cb = (uns32) rda_callback_cb;
+        *task_cb = (long) rda_callback_cb;
 
     }while (0);
 
@@ -329,7 +329,7 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, uns32 *tas
  *
  * Notes         : None
  *****************************************************************************/
-int pcs_rda_unreg_callback (uns32 task_cb)
+int pcs_rda_unreg_callback (long task_cb)
 {   
     uns32            rc              = PCSRDA_RC_SUCCESS;
     RDA_CALLBACK_CB *rda_callback_cb = NULL;
@@ -772,6 +772,175 @@ PCS_RDA_CMD cmd;
     */
     return rc;
 
+}
+
+/****************************************************************************
+ * Name          : pcs_rda_avd_hb_restore
+ *
+ * Description   : 
+ *                 
+ *
+ * Arguments     : 
+ *
+ * Return Values : 
+ *
+ * Notes         : None
+ *****************************************************************************/
+int pcs_rda_avd_hb_restore (void)
+{
+
+    uns32   rc = PCSRDA_RC_SUCCESS;
+
+#if (RDA_SPOOF != 0)
+
+    /*
+    ** For spoof implementation this is a no-op.
+    */
+    if (rda_spoof_callback_cb.callback_ptr != NULL)
+         (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS);
+
+#else
+
+    int     sockfd;
+    char    msg [64]          = {0};
+    int     value             = -1;
+    RDE_RDA_CMD_TYPE cmd_type = 0;
+
+    /*
+    ** Connect
+    */
+    rc = rda_connect (&sockfd);
+    if (rc != PCSRDA_RC_SUCCESS)
+    {
+        return rc;
+    }
+
+    do
+    {
+        /*
+        ** Send heart beat error messgae
+        */
+        sprintf (msg, "%d", RDE_RDA_AVD_HB_RESTORE_REQ);
+        rc = rda_write_msg (sockfd, msg);
+        if (rc != PCSRDA_RC_SUCCESS)
+        {
+            break;
+        }
+
+        /*
+        ** Recv heart beat error response
+        */
+        rc = rda_read_msg (sockfd, msg, sizeof (msg));
+        if (rc != PCSRDA_RC_SUCCESS)
+        {
+            break;
+        }
+
+        rda_parse_msg (msg, &cmd_type, &value);
+        if (cmd_type != RDE_RDA_AVD_HB_RESTORE_ACK)
+        {
+            rc = PCSRDA_RC_AVD_HB_RESTORE_FAILED;
+            break;
+        }
+
+    }while (0);
+
+    /*
+    ** Disconnect
+    */
+    rda_disconnect (sockfd);
+
+#endif
+
+    /*
+    ** Done
+    */
+    return rc;
+
+}
+
+/****************************************************************************
+ * Name          : pcs_rda_avnd_hb_restore
+ *
+ * Description   : 
+ *                 
+ *
+ * Arguments     : 
+ *
+ * Return Values : 
+ *
+ * Notes         : None
+ *****************************************************************************/
+int pcs_rda_avnd_hb_restore (uns32 phy_slot_id)
+{
+
+    uns32   rc = PCSRDA_RC_SUCCESS;
+
+#if (RDA_SPOOF != 0)
+
+   /*
+   ** Intimate registered client about this event
+   */
+   if (rda_spoof_callback_cb.callback_ptr != NULL)
+      (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS);
+
+#else
+
+    int     sockfd;
+    char    msg [64]          = {0};
+    int     value             = -1;
+    RDE_RDA_CMD_TYPE cmd_type = 0;
+
+    /*
+    ** Connect
+    */
+    rc = rda_connect (&sockfd);
+    if (rc != PCSRDA_RC_SUCCESS)
+    {
+        return rc;
+    }
+
+    do
+    {
+        /*
+        ** Send heart beat error messgae
+        */
+        sprintf (msg, "%d %d", RDE_RDA_AVND_HB_RESTORE_REQ, phy_slot_id);
+        rc = rda_write_msg (sockfd, msg);
+        if (rc != PCSRDA_RC_SUCCESS)
+        {
+            break;
+        }
+
+        /*
+        ** Recv heart beat error response
+        */
+        rc = rda_read_msg (sockfd, msg, sizeof (msg));
+        if (rc != PCSRDA_RC_SUCCESS)
+        {
+            break;
+        }
+
+        rda_parse_msg (msg, &cmd_type, &value);
+        if (cmd_type != RDE_RDA_AVND_HB_RESTORE_ACK)
+        {
+            rc = PCSRDA_RC_AVND_HB_RESTORE_FAILED;
+            break;
+        }
+
+    }while (0);
+
+    /*
+    ** Disconnect
+    */
+    rda_disconnect (sockfd);
+
+#endif
+
+    /*
+    ** Done
+    */
+    return rc;
 }
 
 /*****************************************************************************

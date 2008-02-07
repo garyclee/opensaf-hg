@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -32,7 +32,7 @@
 
 
 #include "avm.h"
-
+#include "nid_api.h"
 
 
 static uns32
@@ -78,6 +78,18 @@ quiesced_avnd_hb_lost(
                );
 
 static uns32
+active_avd_hb_restore(
+                   AVM_CB_T    *cb,
+                   AVM_EVT_T   *evt  
+                  );
+
+static uns32
+active_avnd_hb_restore(
+                   AVM_CB_T    *cb,
+                   AVM_EVT_T   *evt  
+                  );
+
+static uns32
 standby_avm_chg(
                   AVM_CB_T   *cb,
                   AVM_EVT_T  *evt
@@ -99,6 +111,12 @@ standby_avd_hb_lost(
                      AVM_CB_T   *cb,
                      AVM_EVT_T  *evt
                    );
+
+static uns32
+standby_avd_hb_restore(
+                     AVM_CB_T   *cb,
+                     AVM_EVT_T  *evt
+                   );
 static uns32
 quiesced_rde_set(
                   AVM_CB_T   *cb,
@@ -116,6 +134,12 @@ quiesced_avd_ack(
                  );
 static uns32
 quiesced_avd_hb_lost(
+                  AVM_CB_T   *cb,
+                  AVM_EVT_T  *evt
+               );
+
+static uns32
+quiesced_avd_hb_restore(
                   AVM_CB_T   *cb,
                   AVM_EVT_T  *evt
                );
@@ -159,7 +183,9 @@ AVM_ROLE_FSM_FUNC_PTR_T avm_role_fsm_table_g[][AVM_ROLE_EVT_MAX + 1] =
       active_avnd_hb_lost,
       active_adm_switch,
       role_evt_invalid,
-      active_mds_quiesced_ack
+      active_mds_quiesced_ack,
+      active_avd_hb_restore,
+      active_avnd_hb_restore
    },
 
    {
@@ -171,6 +197,8 @@ AVM_ROLE_FSM_FUNC_PTR_T avm_role_fsm_table_g[][AVM_ROLE_EVT_MAX + 1] =
       role_evt_invalid,
       role_evt_invalid,
       role_evt_invalid,
+      role_evt_invalid,
+      standby_avd_hb_restore,
       role_evt_invalid
    },
 
@@ -183,10 +211,14 @@ AVM_ROLE_FSM_FUNC_PTR_T avm_role_fsm_table_g[][AVM_ROLE_EVT_MAX + 1] =
       quiesced_avnd_hb_lost,
       role_evt_invalid,
       role_evt_invalid,
+      role_evt_invalid,
+      quiesced_avd_hb_restore,
       role_evt_invalid
    },
 
    {
+      role_evt_invalid,
+      role_evt_invalid,
       role_evt_invalid,
       role_evt_invalid,
       role_evt_invalid,
@@ -296,6 +328,8 @@ active_adm_switch(
                  )
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   time_t local_time;
+   unsigned char asc_lt[40]; /* Ascii Localtime */
 
    m_AVM_LOG_FUNC_ENTRY("active_adm_switch");
 
@@ -415,6 +449,19 @@ active_adm_switch(
 
    rc = avm_avd_role(cb, SA_AMF_HA_QUIESCED, AVM_ADMIN_SWITCH_OVER);
 
+   /* Update the cluster status file. LSB related changes */
+
+   FILE *fp=NULL;
+   fp=fopen(NODE_HA_STATE,"a");
+   if(fp) 
+   {
+      /* Get the ascii local time stamp */
+      asc_lt[0] = '\0';
+      m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
+      fprintf(fp,"%s | Administrative Role Switchover\n",asc_lt);
+      fclose(fp);
+   }
+
    return rc;
    
 }
@@ -523,6 +570,58 @@ active_avd_hb_lost(
    return rc;
 }
 
+/*************************************************************************
+ * Function: active_avd_hb_restore
+ *
+ * Purpose:  This function is called when AvM recives heart beat restore from 
+ *           AvD
+ *
+ * Input: cb    - the AvM control block
+ *        evt   - Evt received at AvM
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+ *
+********************************************************************/
+static uns32
+active_avd_hb_restore(
+                  AVM_CB_T    *cb,
+                  AVM_EVT_T   *evt  
+               )
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+
+   /* HB is a message recived from AvD when it start heart beat 
+    * with other AvD. AvM will not make any decisions when it receives
+      Heart Beat restore. It just inform RDE. */ 
+
+   m_AVM_LOG_FUNC_ENTRY("active_avd_hb_restore");
+   m_AVM_LOG_DEBUG("AVD HB Restore", NCSFL_SEV_NOTICE);
+
+   /* Inform RDE abt hrt bt restore */
+   m_NCS_DBG_PRINTF("\n rde_hrt_bt_restore on Active \n");
+   rc = avm_notify_rde_hrt_bt_restore(cb);
+   
+   return rc;
+}
+
+/*************************************************************************
+ * Function: quiesced_avnd_hb_lost
+ *
+ * Purpose:  This function is called when AvM recives heart beat lost from 
+ *           AvD
+ *
+ * Input: cb    - the AvM control block
+ *        evt   - Evt received at AvM
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+ *
+********************************************************************/
 static uns32
 quiesced_avnd_hb_lost(
                   AVM_CB_T    *cb,
@@ -571,7 +670,7 @@ active_avnd_hb_lost(
       return NCSCC_RC_FAILURE;
    }
 
-   node_id = msg->avd_avm_msg.avnd_hb_lost.node_id;
+   node_id = msg->avd_avm_msg.avnd_hb_info.node_id;
 
    /* Convert the logical node to Physical node */
 
@@ -583,9 +682,60 @@ active_avnd_hb_lost(
    
    if(cb->is_platform == FALSE)
    {
-      avm_avd_node_reset_resp(cb,  AVM_NODE_RESET_SUCCESS, msg->avd_avm_msg.avnd_hb_lost.node_name);
+      avm_avd_node_reset_resp(cb,  AVM_NODE_RESET_SUCCESS, msg->avd_avm_msg.avnd_hb_info.node_name);
    }
    
+   return rc;
+}
+
+/*************************************************************************
+ * Function: active_avnd_hb_restore
+ *
+ * Purpose:  This function is called when AvM recives heart beat restore from 
+ *           AvD for a payload blade
+ *
+ * Input: cb    - the AvM control block
+ *        evt   - Evt received at AvM
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+ *
+********************************************************************/
+static uns32
+active_avnd_hb_restore(
+                  AVM_CB_T    *cb,
+                  AVM_EVT_T   *evt  
+               )
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVM_MSG_T *msg = NULL;
+   uns32 node_id = 0;
+   uns8  chassis_id=0, sub_slot_id=0, phy_slot_id=0;
+
+   /* AvM wan't perform any action , only report it to 
+      RDE */
+
+   m_AVM_LOG_FUNC_ENTRY("active_avnd_hb_restore");
+  
+   /* Extract the node_id and convert it to phy_slot_id */
+   if((msg = evt->evt.avd_evt) == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_AVM_LOG_DEBUG("AvND HB Restore ", NCSFL_SEV_NOTICE);
+
+   node_id = msg->avd_avm_msg.avnd_hb_info.node_id;
+
+   /* Convert the logical node to Physical node */
+
+   m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, &chassis_id,
+                                  &phy_slot_id, &sub_slot_id);
+
+   rc = avm_notify_rde_nd_hrt_bt_restore(cb, phy_slot_id);
+  
    return rc;
 }
 
@@ -949,13 +1099,51 @@ standby_avd_hb_lost(
    m_AVM_LOG_ROLE_OP(AVM_LOG_RDA_HB, cb->ha_state, NCSFL_SEV_NOTICE);
 
    if(FALSE == cb->cold_sync)
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(0);
-      return NCSCC_RC_FAILURE;
-   }
+      m_AVM_LOG_INVALID_VAL_ERROR(0);
 
    m_NCS_DBG_PRINTF("\n rde_hrt_bt_lost on Standby \n");
    rc = avm_notify_rde_hrt_bt_lost(cb);
+
+   return rc;
+}
+
+/*************************************************************************
+ * Function: standby_avd_hb_restore
+ *
+ * Purpose:  This function is called when Standby AvM recives 
+ *           HRT beat restore info from AvD 
+ *
+ * Input: cb    - the AvM control block
+ *        evt   - Evt received at AvM
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+ *
+********************************************************************/
+static uns32
+standby_avd_hb_restore(
+                    AVM_CB_T   *cb,
+                    AVM_EVT_T  *evt
+                   )
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+
+   /* hb_lost is a message exchanged between AvD and AvM lying on same card */
+  
+   m_AVM_LOG_FUNC_ENTRY("standby_avd_hb_restore");
+   
+   /* If Standby AvM recived heart beat restore message from Standby AvD, AvM 
+      just informs about it to RDE.Retore of Heart beat means active is present
+      and due to network delay the heart beat message was delivered with delay */
+
+   m_AVM_LOG_DEBUG("AVD HB Restore", NCSFL_SEV_NOTICE);
+
+   if(FALSE == cb->cold_sync)
+      m_AVM_LOG_INVALID_VAL_ERROR(0);
+
+   rc = avm_notify_rde_hrt_bt_restore(cb);
 
    return rc;
 }
@@ -1227,6 +1415,35 @@ quiesced_avd_hb_lost(
 
    m_NCS_DBG_PRINTF("\n rde_hrt_bt_lost on Quisced \n");
    rc = avm_notify_rde_hrt_bt_lost(cb);
+
+   return rc;
+}
+
+/*************************************************************************
+ * Function: quiesced_avd_hb_restore
+ *
+ * Purpose:  This function is called when Quisced AvM recives 
+ *           hrt beat restore from AvD 
+ *
+ * Input: cb    - the AvM control block
+ *        evt   - Evt received at AvM
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+********************************************************************/
+static uns32
+quiesced_avd_hb_restore(
+                  AVM_CB_T   *cb,
+                  AVM_EVT_T  *evt
+               )
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+  
+   m_AVM_LOG_FUNC_ENTRY("quiesced_avd_hb_restore");
+
+   rc = avm_notify_rde_hrt_bt_restore(cb);
 
    return rc;
 }

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -34,12 +34,12 @@
 */
 
 #include "gla.h"
-
+#if 0
 extern uns32 gl_gla_hdl;
 
 #define m_GLSV_GLA_RETRIEVE_GLA_CB  ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl)
 #define m_GLSV_GLA_GIVEUP_GLA_CB    ncshm_give_hdl(gl_gla_hdl)
-
+#endif
 #define NCS_SAF_MIN_ACCEPT_TIME  10
 
 
@@ -71,6 +71,13 @@ SaAisErrorT  saLckInitialize(SaLckHandleT *lckHandle,
    rc = ncs_agents_startup(0,0);
    if(rc != SA_AIS_OK)
       return SA_AIS_ERR_LIBRARY;
+
+   rc = ncs_gla_startup();
+   if(rc != SA_AIS_OK)
+   {
+      ncs_agents_shutdown(0,0);
+      return SA_AIS_ERR_LIBRARY;
+   }
 
    m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Called \n");
 
@@ -194,7 +201,9 @@ SaAisErrorT  saLckInitialize(SaLckHandleT *lckHandle,
       m_GLSV_GLA_GIVEUP_GLA_CB;
    m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Failed \n");
 
+   ncs_gla_shutdown();
    ncs_agents_shutdown(0,0);
+
    return rc;
 }
 
@@ -546,7 +555,11 @@ done:
       m_GLSV_DEBUG_CONS_PRINTF("\n SaLckFinalize Called -  FAILURE \n");
 
    if(rc == SA_AIS_OK)
+   {
+      ncs_gla_shutdown();
       ncs_agents_shutdown(0,0);
+   }
+
    return rc;
 }
 
@@ -736,7 +749,7 @@ SaAisErrorT  saLckResourceOpenAsync(SaLckHandleT lckHandle,
    GLA_CB            *gla_cb = NULL;
    GLA_CLIENT_INFO   *client_info = NULL;
    GLSV_GLND_EVT     res_open_evt;
-   SaAisErrorT          rc = SA_AIS_ERR_LIBRARY;
+   SaAisErrorT       rc = SA_AIS_ERR_LIBRARY;
 
    /* validate the inputs */
    if(lockResourceName == NULL)
@@ -802,6 +815,12 @@ SaAisErrorT  saLckResourceOpenAsync(SaLckHandleT lckHandle,
    }
    res_id_node->lock_handle_id = lckHandle; 
 
+   res_id_node->res_async_tmr.client_hdl = lckHandle;
+   res_id_node->res_async_tmr.clbk_info.callback_type = GLSV_LOCK_RES_OPEN_CBK;
+   res_id_node->res_async_tmr.clbk_info.resourceId = res_id_node->lcl_res_id;;
+   res_id_node->res_async_tmr.clbk_info.invocation = invocation;
+   
+
    /* populate the evt */
    m_NCS_OS_MEMSET(&res_open_evt, 0, sizeof(GLSV_GLND_EVT));
    res_open_evt.type = GLSV_GLND_EVT_RSC_OPEN;
@@ -814,9 +833,13 @@ SaAisErrorT  saLckResourceOpenAsync(SaLckHandleT lckHandle,
    res_open_evt.info.rsc_info.flag = resourceFlags;
 
 
+   /* start the timer anyway */
+   gla_start_tmr( &res_id_node->res_async_tmr);
+
    /* send the event */
    if(gla_mds_msg_async_send(gla_cb,&res_open_evt)!= NCSCC_RC_SUCCESS)
    {
+      gla_stop_tmr(&res_id_node->res_async_tmr);
       m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE,
          m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),GLSV_GLND_EVT_RSC_OPEN);
       goto done;
@@ -1368,6 +1391,12 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
    lock_id_node->mode = lockMode;
    *lockId = lock_id_node->lcl_lock_id;
 
+   lock_id_node->lock_async_tmr.client_hdl = res_id_info->lock_handle_id;
+   lock_id_node->lock_async_tmr.clbk_info.callback_type = GLSV_LOCK_GRANT_CBK;
+   lock_id_node->lock_async_tmr.clbk_info.resourceId    = res_id_info->lcl_res_id; 
+   lock_id_node->lock_async_tmr.clbk_info.lcl_lockId    = lock_id_node->lcl_lock_id;
+   lock_id_node->lock_async_tmr.clbk_info.invocation    = invocation;
+ 
 
    /* populate the evt */
    m_NCS_OS_MEMSET(&res_lock_evt, 0, sizeof(GLSV_GLND_EVT));
@@ -1399,10 +1428,14 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
      return SA_AIS_ERR_NO_MEMORY;
    }
 #endif
+
+   gla_start_tmr( &lock_id_node->lock_async_tmr );
+
    /* send the event */
     ret = gla_mds_msg_async_send(gla_cb,&res_lock_evt); 
    if(ret != NCSCC_RC_SUCCESS ) 
    {
+      gla_stop_tmr( &lock_id_node->lock_async_tmr);
       m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE,
          m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),GLSV_GLND_EVT_RSC_LOCK);
       goto done;
@@ -1699,6 +1732,12 @@ SaAisErrorT  saLckResourceUnlockAsync(SaInvocationT invocation,
        return SA_AIS_ERR_TRY_AGAIN;
    }
 
+   lock_id_info->unlock_async_tmr.client_hdl = lock_id_info->lock_handle_id;
+   lock_id_info->unlock_async_tmr.clbk_info.callback_type = GLSV_LOCK_UNLOCK_CBK;
+   lock_id_info->unlock_async_tmr.clbk_info.resourceId    = lock_id_info->lcl_res_id;
+   lock_id_info->unlock_async_tmr.clbk_info.lcl_lockId    = lock_id_info->lcl_lock_id;
+   lock_id_info->unlock_async_tmr.clbk_info.invocation    = invocation;
+
 
    /* populate the evt */
    m_NCS_OS_MEMSET(&res_unlock_evt, 0, sizeof(GLSV_GLND_EVT));
@@ -1714,9 +1753,13 @@ SaAisErrorT  saLckResourceUnlockAsync(SaInvocationT invocation,
    res_unlock_evt.info.rsc_unlock_info.timeout = GLSV_LOCK_DEFAULT_TIMEOUT;
 
    
+   /* start the timer anyway */
+   gla_start_tmr(&lock_id_info->unlock_async_tmr);
+
    /* send the event */
    if(gla_mds_msg_async_send(gla_cb,&res_unlock_evt) != NCSCC_RC_SUCCESS)
    {
+      gla_stop_tmr( &lock_id_info->unlock_async_tmr);
       m_LOG_GLA_DATA_SEND(GLA_MDS_SEND_FAILURE,
          m_NCS_NODE_ID_FROM_MDS_DEST(gla_cb->gla_mds_dest),GLSV_GLND_EVT_RSC_UNLOCK);
       goto done;

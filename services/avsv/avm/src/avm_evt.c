@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -432,19 +432,50 @@ avm_validate_fru(AVM_ENT_INFO_T *ent_info, HPI_EVT_T *fsm_evt)
 static uns32 
 avm_list_nodes_chgd(AVM_ENT_INFO_T *ent_info, AVM_LIST_HEAD_T *head)
 {
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
+   AVM_LIST_NODE_T *temp_node = AVM_LIST_NODE_NULL ;
+
    head->count = 0;
    head->node  = AVM_LIST_NODE_NULL;   
 
-   head->node  = m_MMGR_ALLOC_AVM_AVD_LIST_NODE;
-   if(AVM_LIST_NODE_NULL == head->node)
-   {
+  /* Store the first node  */
+
+  temp_node  = m_MMGR_ALLOC_AVM_AVD_LIST_NODE;
+  if(AVM_LIST_NODE_NULL == temp_node)
+    {
       m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
       return NCSCC_RC_FAILURE;
+    }
+   m_NCS_MEMCPY(&temp_node->node_name, &ent_info->node_name, sizeof(SaNameT));
+
+ /* Incremnent the node counts  */
+   head->count++;
+   temp_node->next = AVM_LIST_NODE_NULL;
+   head->node = temp_node ;
+
+  /* Traverse through child entity and form the node name list  */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+   {
+     if(TRUE == child->ent_info->is_node)
+      {
+       /* Child entity represent a Node , Add the node name to the list  */
+
+         temp_node->next  = m_MMGR_ALLOC_AVM_AVD_LIST_NODE;
+         if(AVM_LIST_NODE_NULL == temp_node->next)
+         {
+            m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
+            return NCSCC_RC_FAILURE;
+          }
+      
+          temp_node = temp_node->next; 
+          m_NCS_MEMCPY(&temp_node->node_name, &child->ent_info->node_name, sizeof(SaNameT));
+          head->count++;
+          temp_node->next = AVM_LIST_NODE_NULL ;
+       
+      }
+     
    }
 
-   m_NCS_MEMCPY(&head->node->node_name, &ent_info->node_name, sizeof(SaNameT));
-   head->node->next = AVM_LIST_NODE_NULL;
-   head->count++;
    return NCSCC_RC_SUCCESS;
 }
 
@@ -480,19 +511,19 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    hpi_evt = ((AVM_EVT_T*)fsm_evt)->evt.hpi_evt; 
 
    m_AVM_LOG_FUNC_ENTRY("avm_not_present_ins_pend"); 
-   m_NCS_CONS_PRINTF("avm_ins_pend : Entering\n");
 
    /*****************************************************************
        While IPMC upgrade is going on, this event is not supposed
        to come. If this event comes, stop the ipmc timer. And log
        CRITICAL error.
    *****************************************************************/ 
-   str[0] = '\0';     
+   str[0] = '\0';
    if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
       sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
+
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
@@ -529,7 +560,7 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
    if(TRUE == ent_info->depends_on_valid)
    {
-      dep_ent_info = avm_find_ent_str_info(avm_cb, &ent_info->dep_ep_str);
+      dep_ent_info = avm_find_ent_str_info(avm_cb, &ent_info->dep_ep_str,TRUE);
 
       if(AVM_ENT_INFO_NULL == dep_ent_info)
       {
@@ -567,7 +598,6 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
               /* Update the DHCP configuration here */
              if (((AVM_EVT_T*)fsm_evt)->src != AVM_EVT_SSU)
              {
-                m_NCS_CONS_PRINTF("avm_ins_pend : INVOKING avm_ssu_dhconf\n");
                 avm_ssu_dhconf(avm_cb, ent_info, fsm_evt, 1);
              }  
              return NCSCC_RC_SUCCESS;   
@@ -589,7 +619,6 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
          /* Update the DHCP configuration here */
          if (((AVM_EVT_T*)fsm_evt)->src != AVM_EVT_SSU)
          {
-            m_NCS_CONS_PRINTF("avm_ins_pend : INVOKING avm_ssu_dhconf\n");
             avm_ssu_dhconf(avm_cb, ent_info, fsm_evt, 1);
          } 
          m_AVM_LOG_GEN_EP_STR("FRU validation Successful:", ent_info->ep_str.name, NCSFL_SEV_INFO);
@@ -765,6 +794,7 @@ static uns32
 avm_not_pres_ext_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32            rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T  head;
    
    m_AVM_LOG_GEN_EP_STR("Ext Req in Not Present", ent_info->ep_str.name, NCSFL_SEV_NOTICE); 
@@ -772,6 +802,11 @@ avm_not_pres_ext_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in inactive state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+       avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
    avm_assign_state(ent_info, AVM_ENT_INACTIVE);
 
    return rc;
@@ -957,7 +992,7 @@ avm_not_pres_resource_rest(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
       rc = avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
       rc = avm_hisv_api_cmd(ent_info, HS_RESOURCE_INACTIVE_SET, 0);
       avm_assign_state(ent_info, AVM_ENT_INACTIVE);
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
       ent_info->adm_lock     = AVM_ADM_LOCK;
       return rc;   
    }
@@ -1051,6 +1086,10 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    uns32 rc = NCSCC_RC_SUCCESS;
    uns8 str[AVM_LOG_STR_MAX_LEN];
 
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV returned error, so this entity could not be activated but has been unlocked in AVM db";
+
    m_AVM_LOG_GEN_EP_STR("Unlock issued in INACTIVE state for", ent_info->ep_str.name, NCSFL_SEV_INFO);
 
    /*****************************************************************
@@ -1069,7 +1108,7 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+       sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
@@ -1078,13 +1117,21 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
    if(NCSCC_RC_SUCCESS != rc)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_INSERTION", ent_info->ep_str.name, NCSFL_SEV_INFO);
    }
 
    if((ent_info->adm_shutdown) || (ent_info->adm_lock != AVM_ADM_UNLOCK))
    {
      ent_info->adm_lock     = AVM_ADM_UNLOCK;
-     ent_info->adm_shutdown = 0;
+     ent_info->adm_shutdown = FALSE;
    }
 
    return rc;
@@ -1132,6 +1179,7 @@ avm_inactive_active(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
       sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
+  
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
@@ -1227,12 +1275,21 @@ avm_inactive_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
        to come. If this event comes, stop the ipmc timer. And log
        CRITICAL error.
    *****************************************************************/ 
-   str[0] = '\0';     
-   if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
+   /*this event will come when the IPMC is resetted after the ipmc upgrade is done
+     The shmm will lose the communication with ipmc while its resetting and hence will
+     send this hotswap event where it will render the blade as extracted. So this is a success
+     scenario in case of IPMC upgrade and we should check if the blade is in adm lock state before
+     rendering this event as an erroneous one. - change*/
+
+   str[0] = '\0';
+   if((ent_info->ipmc_tmr.status == AVM_TMR_RUNNING) &&
+                 (((ent_info->dhcp_serv_conf.ipmc_upgd_state == IPMC_UPGD_DONE)||
+                  (ent_info->dhcp_serv_conf.ipmc_upgd_state == 0))))
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
       sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
+
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
@@ -1251,6 +1308,7 @@ static uns32
 avm_inactive_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32            rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T  head;
    uns8 str[AVM_LOG_STR_MAX_LEN];
    
@@ -1276,7 +1334,14 @@ avm_inactive_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
    }
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in not-present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+       avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
+  /* Set parent entity in not-present state */
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
+
    return rc;
 }
 
@@ -1330,6 +1395,10 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 {
    uns32 rc = NCSCC_RC_SUCCESS;
 
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV returned error, so entity could not be shutdown";
+
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_shutdown_req"); 
 
    if((AVM_ADM_LOCK != ent_info->adm_lock)  && (!ent_info->adm_shutdown))
@@ -1337,10 +1406,18 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       rc = avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
       if(NCSCC_RC_SUCCESS != rc)
       {
+         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+         evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+ 
+         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
          m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
       }else
       {
-         ent_info->adm_shutdown = 1;
+         ent_info->adm_shutdown = TRUE;
       }
    }
 
@@ -1368,13 +1445,16 @@ static uns32
 avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV returned error, so entity could not be locked";
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_lock"); 
 
 
    if(ent_info->adm_shutdown)
    {
-     ent_info->adm_shutdown = 0;
+     ent_info->adm_shutdown = FALSE;
      ent_info->adm_lock = AVM_ADM_LOCK;
      return rc;
    }
@@ -1382,6 +1462,14 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    rc =  avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
    if(NCSCC_RC_SUCCESS != rc)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
    {
@@ -1412,14 +1500,34 @@ static uns32
 avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_FAILURE;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg1 = "Unlock can not be done because lock operation is already in progress, try after lock is done";
+   uns8 *cli_msg2 = "Unlock operation on an active entity is not allowed";
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_unlock"); 
 
    if(AVM_ADM_LOCK == ent_info->adm_lock)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Lock not yet completed", ent_info->ep_str.name, NCSFL_SEV_INFO); 
    }else
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Unlock not valid in Active", ent_info->ep_str.name, NCSFL_SEV_INFO); 
    }
 
@@ -1468,7 +1576,7 @@ avm_active_extract_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       {
          ent_info->adm_lock = AVM_ADM_LOCK;
       }
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
       rc = avm_scope_fault(avm_cb, ent_info, AVM_SCOPE_EXTRACTION);
       avm_assign_state(ent_info, AVM_ENT_EXTRACT_REQ); 
    }else
@@ -1501,6 +1609,9 @@ static uns32
 avm_active_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "Either lock or shutdown of this entity is in progress as well as a locked entity can not be reset";
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_reset_req"); 
 
@@ -1510,6 +1621,14 @@ avm_active_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       avm_assign_state(ent_info, AVM_ENT_RESET_REQ);
    }else
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       rc = NCSCC_RC_FAILURE;
    }   
    return  rc;
@@ -1539,6 +1658,11 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
    uns32 rc = NCSCC_RC_SUCCESS;
    AVM_NODE_RESET_RESP_T resp;
 
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg1 = "HISV resource reset returned error.";
+   uns8 *cli_msg2 = "Either lock or shutdown of this entity is in progress as well as a locked entity can not be reset.";
+
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_reset_req"); 
 
    if((!ent_info->adm_shutdown) && (AVM_ADM_LOCK != ent_info->adm_lock))
@@ -1554,6 +1678,14 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
       if(NCSCC_RC_SUCCESS != rc)
       {
+         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+
+         evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+
          m_AVM_LOG_GEN_EP_STR("Cold/Adm Hard Reset Failure", ent_info->ep_str.name, NCSFL_SEV_ERROR);
       }else
       { 
@@ -1562,6 +1694,14 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       avm_avd_node_reset_resp(avm_cb, resp, ent_info->node_name);  
    }else
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Two un-compatible admin Operations", ent_info->ep_str.name, NCSFL_SEV_INFO); 
       rc = NCSCC_RC_FAILURE;
    }
@@ -1572,10 +1712,16 @@ static uns32
 avm_active_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T head;
    
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in not-present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+       avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
    
    return rc;
@@ -1715,7 +1861,7 @@ avm_active_surp_extract(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock     = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
    rc = avm_scope_fault(avm_cb, ent_info,AVM_SCOPE_SURP_EXTRACTION);    
    return rc;
@@ -1744,9 +1890,10 @@ avm_active_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    AVM_LIST_HEAD_T head;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_extracted");
- 
+
    /* stop the upgrade progress timer */
    if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
       avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
@@ -1754,11 +1901,16 @@ avm_active_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock     = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
-   
+
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+     avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT); 
+
+  /*All child traversed now the parent one  */
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
 
    return rc;
@@ -1786,7 +1938,9 @@ static uns32
 avm_active_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T head;
+   
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_extracted");
  
@@ -1797,11 +1951,18 @@ avm_active_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock     = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
-   
+
+   /*Select all the nodes which have got impacted */
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in inactive state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+        avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
+  /* Inactive state for the parent one */
    avm_assign_state(ent_info, AVM_ENT_INACTIVE);
 
    return rc;
@@ -2021,7 +2182,7 @@ avm_reset_req_extract_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
    {
       if(ent_info->adm_shutdown)
       {
-         ent_info->adm_shutdown = 0;
+         ent_info->adm_shutdown = FALSE;
          ent_info->adm_lock = AVM_ADM_LOCK; 
       }
 
@@ -2070,7 +2231,6 @@ avm_reset_req_node_shutdown_resp(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
    {
       m_AVM_LOG_GEN_EP_STR("Entity Locked, Ignore the Soft Reset by admin", ent_info->ep_str.name, NCSFL_SEV_WARNING);
       rc = avm_hisv_api_cmd(ent_info, HS_RESOURCE_INACTIVE_SET, 0);
-      avm_assign_state(ent_info, AVM_ENT_INACTIVE);
       return rc;
    }
 
@@ -2211,10 +2371,16 @@ static uns32
 avm_reset_req_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T head;
    
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in not present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+      avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
    return rc;
 
@@ -2299,9 +2465,22 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    AVM_NODE_RESET_RESP_T resp;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg1 = "HISV resource reset returned error.";
+   uns8 *cli_msg2 = "Either lock or shutdown of this entity is in progress as well as a locked entity can not be reset.";
+   
    
    if((AVM_ADM_LOCK == ent_info->adm_lock) || (ent_info->adm_shutdown))
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Entity Locked, Ignore the Hard Reset by admin", ent_info->ep_str.name, NCSFL_SEV_WARNING);
       return NCSCC_RC_FAILURE;
    } 
@@ -2309,6 +2488,14 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
    rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
    if(NCSCC_RC_SUCCESS != rc)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Hard/Cold Reset failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
    {
@@ -2344,6 +2531,17 @@ static uns32
 avm_reset_req_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_FAILURE;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "Shutdown is not allowed while entity reset is in progress";
+
+   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+   evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
    m_AVM_LOG_GEN_EP_STR("Shutdown while Reset not valid", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    return rc;
@@ -2371,13 +2569,23 @@ static uns32
 avm_reset_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV returned error, so entity could not be locked";
 
    m_AVM_LOG_FUNC_ENTRY("avm_reset_req_adm_lock");
 
-   m_NCS_CONS_PRINTF("avm_reset_req_adm_lock: Sending SAHPI_HS_ACTION_EXTRACTION\n");
    rc = avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
    if(NCSCC_RC_SUCCESS != rc)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
    {
@@ -2410,8 +2618,20 @@ static uns32
 avm_reset_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_FAILURE;
+
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "Unlock operation is rejected because entity reset is in progress.";
   
    m_AVM_LOG_FUNC_ENTRY("avm_reset_req_adm_unlock");
+
+   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+   evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
  
    m_AVM_LOG_GEN_EP_STR("Adm Unock invalid in Reset Req state", ent_info->ep_str.name, NCSFL_SEV_ERROR);
 
@@ -2445,6 +2665,7 @@ static uns32
 avm_reset_req_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void*fsm_evt)
 {
    AVM_LIST_HEAD_T head;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* stop the upgrade progress timer */
@@ -2454,10 +2675,15 @@ avm_reset_req_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void*fsm_evt
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in not present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+      avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
    
    return rc;
@@ -2490,6 +2716,7 @@ static uns32
 avm_reset_req_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void*fsm_evt)
 {
    AVM_LIST_HEAD_T head;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* stop the upgrade progress timer */
@@ -2499,10 +2726,15 @@ avm_reset_req_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void*fsm_evt)
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in inactive state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+      avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
    avm_assign_state(ent_info, AVM_ENT_INACTIVE);
    
    return rc;
@@ -2556,7 +2788,7 @@ avm_ext_req_node_shutdown_resp(
       m_AVM_LOG_GEN("AvD rejected shutdown request for the node", ent_info->node_name.value, SA_MAX_NAME_LENGTH, NCSFL_SEV_ERROR);
       
       ent_info->adm_lock = AVM_ADM_UNLOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
 
       /* Push the unlock mib set to PSS store */
       avm_push_admin_mib_set_to_psr(avm_cb, ent_info, AVM_ADM_UNLOCK);
@@ -2819,8 +3051,20 @@ static uns32
 avm_ext_req_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_FAILURE;
+
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "Soft reset of an entity in extraction-pending state is not valid";
   
-   m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_soft_reset_req"); 
+   m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_soft_reset_req");
+
+   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+   evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len); 
 
    return rc;
 }
@@ -2830,12 +3074,23 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 {
    uns32 rc;
    AVM_NODE_RESET_RESP_T resp;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV resource reset returned error.";
   
    m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_hard_reset_req"); 
 
    rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
    if(NCSCC_RC_SUCCESS != rc)
    {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Adm Hard Reset/Cold Fail", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
    { 
@@ -2862,12 +3117,23 @@ static uns32
 avm_ext_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc;
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "HISV returned error, so entity could not be locked";
   
    m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_lock");
 
    rc = avm_hisv_api_cmd(ent_info, HS_RESOURCE_INACTIVE_SET, 0);
    if(NCSCC_RC_SUCCESS != rc)
-   {
+   {  
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
       m_AVM_LOG_GEN_EP_STR("Adm Lock Failed in Ext-Req", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
    {
@@ -2882,6 +3148,18 @@ static uns32
 avm_ext_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc =  NCSCC_RC_FAILURE;
+
+   AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+
+   uns8 *cli_msg = "Unlock can not be done on the entity in extraction pending state.";
+ 
+   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+   evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
   
    m_AVM_LOG_GEN_EP_STR("AdM Unlock invalid in Ext-Req", ent_info->ep_str.name, NCSFL_SEV_INFO);
    return rc;
@@ -2910,6 +3188,7 @@ static uns32
 avm_ext_req_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T head;
 
    /* stop the upgrade progress timer */
@@ -2919,11 +3198,17 @@ avm_ext_req_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    if(ent_info->adm_shutdown)
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
-      ent_info->adm_shutdown = 0;
+      ent_info->adm_shutdown = FALSE;
    }
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity in not present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+      avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
+
    return rc;
 }
 
@@ -2931,10 +3216,16 @@ static uns32
 avm_ext_req_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
    AVM_LIST_HEAD_T head;
    
    avm_list_nodes_chgd(ent_info, &head);
    avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ABSENT);
+
+  /* Set child entity  in not present state */
+   for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+        avm_assign_state(child->ent_info, AVM_ENT_NOT_PRESENT);
+
    avm_assign_state(ent_info, AVM_ENT_NOT_PRESENT);
    return rc;
 }
@@ -2973,20 +3264,17 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
    evt_state = (uns8)hpi_event->EventDataUnion.SensorEvent.EventState;
    evt_state = (evt_state >> 1);
 
-   m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: evt_state = %d\n", evt_state);
    /* Get the Firmware progress event type */
    if (hpi_event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_SENSOR_SPECIFIC)
    {
       evt_type = hpi_event->EventDataUnion.SensorEvent.SensorSpecific;
       ent_info->boot_prg_status = (evt_state << 16) | (evt_type << 8) | 0xff;
-      m_NCS_CONS_PRINTF("Entity: %s boot_prg_stat_1: %x\n", ent_info->ep_str.name, ent_info->boot_prg_status);
    }
    else
    if (hpi_event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_OEM)
    {
       evt_type = (hpi_event->EventDataUnion.SensorEvent.Oem) >> 8;
       ent_info->boot_prg_status = (evt_state << 16) | evt_type | 0xfd00;
-      m_NCS_CONS_PRINTF("Entity: %s boot_prg_stat_2: %x\n", ent_info->ep_str.name, ent_info->boot_prg_status);
    }
    else
    {
@@ -2994,7 +3282,6 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: evt_type = %x\n", evt_type);
 
    /* Boot Progress trap */
    avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmBootProgress_ID);
@@ -3037,7 +3324,9 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       /* check if the new bios boots up successfully               */
       else if (evt_type == HPI_FWPROG_PHOENIXBIOS_UPGRADE_SUCCESS)
       {
-          m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: Starting PHOENIXBIOS_UPGRADE_SUCCESS timer\n");
+          sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
+          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
+
           m_AVM_SSU_BIOS_UPGRADE_TMR_START(avm_cb, ent_info);   
           ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_STARTED; 
           m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
@@ -3048,9 +3337,9 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       /* timer                                                   */
       else if (evt_type == HPI_FWPROG_SYS_BOOT)
       {
+         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
+         m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
-         m_NCS_CONS_PRINTF("BIOS UP: STOPPING TIMER\n");
-         m_NCS_CONS_PRINTF("DHCP PRGS FLAG = %d\n", ent_info->dhcp_serv_conf.upgd_prgs);
          avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr);
          ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* reset the bios_upgd_state */
          m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
@@ -3069,7 +3358,6 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
    {
       if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
       {
-         m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: Firmware Error Case\n");
          avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
          /* 
           * Upgrade Error. Rollback to old label.
@@ -3079,7 +3367,17 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
          /* and bios bank should be switched                       */
          if(ent_info->bios_upgrade_tmr.status == AVM_TMR_RUNNING)
          {
-            m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: Bios Upgrade Timer Is Running\n");
+/* Means upgraded Bios is faulty. We would defer the rollback action  */
+/* till Bios upgrade timer expiry.                                    */
+/* Going for above because during failover scenarion, when we process */
+/* System firmware error code, we wont be able to switch bios bank    */
+/* unless openhpi infrastructure is UP. That range could be 1-->3 mins*/
+/* Hence handling bios boot failure case using timer expiry only      */
+/* It helps us avoid infrastructure constraint caused by openhpi      */
+/* Once above openhpi constraint is removed, below code can be made   */
+/* functional                                                         */
+
+#if 0
             avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr);
             ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_STOPPED;
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
@@ -3103,7 +3401,14 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 
             ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* switching done */
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-         }  
+#endif
+            /* async update */
+            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
+            m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
+
+            m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+            return rc;
+         } 
          sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
                     ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,ent_info->boot_prg_status);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
@@ -3111,7 +3416,6 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
         avm_cb->upgrade_module = NCS_BIOS;
         avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmSwFwUpgradeFailure_ID);
 
-         m_NCS_CONS_PRINTF("avm_handle_fw_progress_event: Invoking avm_handle_fw_progress_event\n");
          avm_ssu_dhcp_rollback(avm_cb, ent_info);
          sysf_sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
                                ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
@@ -3127,7 +3431,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             ent_info->dhcp_serv_conf.bios_upgd_state = 0;
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
             logbuf[0] = '\0';
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Rollback failed", ent_info->ep_str.name);
+            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
             return NCSCC_RC_FAILURE;
          } 
@@ -3203,6 +3507,22 @@ avm_handle_invalid_event(
    uns32 rc = NCSCC_RC_FAILURE;
 
    evt = (AVM_EVT_T*)fsm_evt;
+   uns8 *cli_msg = "Soft/Hard reset issued in Not Persent or Inactive state";
+
+   if( (evt->fsm_evt_type == AVM_EVT_ADM_SOFT_RESET_REQ)|| (evt->fsm_evt_type == AVM_EVT_ADM_HARD_RESET_REQ) )
+   {
+      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+
+      evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+
+      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+
+      m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_INSERTION", ent_info->ep_str.name, NCSFL_SEV_INFO);
+      return rc;
+   }
+
    if(evt->src == AVM_EVT_AVD)
    {
       rc = avm_handle_avd_error(avm_cb, ent_info, evt);

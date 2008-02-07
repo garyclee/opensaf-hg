@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*****************************************************************************
@@ -71,7 +70,7 @@ typedef  void (*LT_TEST_APPLICATION)(SYSF_MBX *mbx);    /* Demo part */
 
 LT_TEST_APP_CB      gl_app1_cb, gl_app2_cb;
 #define m_LT_TEST_APP_PRIORITY     (2)
-#define m_LT_TEST_APP_STACKSIZE (8000)
+#define m_LT_TEST_APP_STACKSIZE NCS_STACKSIZE_HUGE
 
 #define m_MMGR_ALLOC_LT_EVT m_NCS_MEM_ALLOC(sizeof(LT_EVT), \
                                                NCS_MEM_REGION_PERSISTENT,\

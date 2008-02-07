@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -320,7 +320,7 @@ OAC_FLTR* oac_fltr_rmv(OAC_FLTR** head, uns32 fltr_id)
   
   if(head == NULL)
   {
-    return (OAC_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+    return (OAC_FLTR*) m_MAB_DBG_SINK((long)NULL);
   }
   
   fltr = *head;
@@ -362,7 +362,7 @@ OAC_FLTR* oac_fltr_find(OAC_FLTR** head, uns32 fltr_id)
   
   if(head == NULL)
   {
-    return (OAC_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+    return (OAC_FLTR*) m_MAB_DBG_SINK((long)NULL);
   }
   
   fltr = *head;
@@ -403,7 +403,7 @@ OAC_FLTR* oac_fltr_create(OAC_TBL* inst,NCSMAB_FLTR* mab_fltr)
   {
     m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAC_FLTR_CREATE_FAILED, 
                       "oac_fltr_create()"); 
-    return (OAC_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+    return (OAC_FLTR*) m_MAB_DBG_SINK((long)NULL);
   }
   
   m_NCS_OS_MEMSET(ret,0,sizeof(OAC_FLTR));
@@ -438,7 +438,7 @@ OAC_FLTR* oac_fltr_create(OAC_TBL* inst,NCSMAB_FLTR* mab_fltr)
    if (status != NCSCC_RC_SUCCESS)
    {
        m_MMGR_FREE_OAC_FLTR(ret);
-       return (OAC_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+       return (OAC_FLTR*) m_MAB_DBG_SINK((long)NULL);
    }
   
   return ret;

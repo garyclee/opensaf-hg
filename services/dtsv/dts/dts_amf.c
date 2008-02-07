@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -34,7 +34,7 @@
 
 #include "dts.h"
 
-#define m_DTS_COMP_NAME_FILE "/etc/opt/opensaf/ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE "/var/opt/opensaf/ncs_dts_comp_name"
 #define DTS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 static void dts_saf_CSI_set_callback(SaInvocationT invocation,
@@ -68,7 +68,8 @@ dts_healthcheck_start(DTS_CB *cb);
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
- * Notes         : Changed the function to do intialize of callbacks & selection                   objects. Called from dts_amf_register. 
+ * Notes         : Changed the function to do intialize of callbacks & selection 
+ *                 objects. Called from dts_amf_register. 
  *****************************************************************************/
 uns32
 dts_amf_init (DTS_CB *dts_cb_inst)
@@ -318,6 +319,8 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
 {
    DTS_CB *dts_cb_inst = &dts_cb;
    SaAisErrorT error = SA_AIS_OK;
+   SaAmfHAStateT prev_haState=dts_cb_inst->ha_state;
+
 
     if(((SA_AMF_CSI_ADD_ONE == csiDescriptor.csiFlags) && 
         (dts_cb_inst->csi_set == TRUE)) ||
@@ -364,6 +367,11 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
        {
            saAmfResponse(dts_cb_inst->amf_hdl,invocation, error);
            m_LOG_DTS_API(DTS_CSI_SET_CB_RESP);
+       }
+       if( ((prev_haState == SA_AMF_HA_STANDBY) ||
+        (prev_haState == SA_AMF_HA_QUIESCED)) && (haState == SA_AMF_HA_ACTIVE))
+       { 
+
            if(dts_stby_update_dta_config() != NCSCC_RC_SUCCESS)                                      
            {
                if(saAmfComponentErrorReport(dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, 0, SA_AMF_COMPONENT_RESTART, 0) != SA_AIS_OK)

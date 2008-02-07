@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "gld.h"
@@ -271,7 +271,7 @@ static uns32 gld_rsc_close(GLSV_GLD_EVT* evt)
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details, 
                                             (uns8*) &node_id)) == NULL)
    {
-      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_ERROR);
+      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE);
       return NCSCC_RC_FAILURE;
    }
 
@@ -326,7 +326,7 @@ static uns32 gld_rsc_set_orphan(GLSV_GLD_EVT* evt)
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
                                             (uns8*) &node_id)) == NULL)
    {
-      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_ERROR);
+      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE);
       return NCSCC_RC_FAILURE;
    }
 
@@ -451,7 +451,7 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB   *gld_cb,GLSV_GLD_GLND_DETAIL
    GLSV_GLND_EVT           glnd_evt;
    NCSMDS_INFO             snd_mds;
    uns32                   index = 0;
-   GLSV_GLND_RSC_MASTER_INFO_LIST  rsc_master_list[GLND_MAX_RESOURCES_PER_NODE] ={ 0};
+   GLSV_GLND_RSC_MASTER_INFO_LIST  rsc_master_list[GLND_MAX_RESOURCES_PER_NODE] ={{0},{0},{0},{0}};
   
 
    m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
@@ -533,7 +533,7 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT* evt)
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
                         (uns8*) &node_id)) == NULL)
    {
-      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_ERROR);
+      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE);
       return NCSCC_RC_SUCCESS;
    }
    node_details->status = GLND_RESTART_STATE;
@@ -709,7 +709,7 @@ static uns32 gld_process_tmr_node_restart_wait_timeout(GLSV_GLD_EVT *evt)
   
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,(uns8*) &node_id)) == NULL)
    {
-      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_ERROR);
+      m_LOG_GLD_HEADLINE(GLD_UNKNOWN_GLND_EVT, NCSFL_SEV_NOTICE);
       return NCSCC_RC_FAILURE;
    }
 
@@ -820,7 +820,8 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB  *gld_cb,GLSV_GLD_GL
  *****************************************************************************/
 static uns32 gld_debug_dump_cb(GLSV_GLD_EVT* evt)
 {
-   GLSV_GLD_CB             *gld_cb = evt->gld_cb;
+   GLSV_GLD_CB             *gld_cb = NULL;
+   gld_cb = evt->gld_cb;
    gld_dump_cb();
    return NCSCC_RC_SUCCESS;
 }

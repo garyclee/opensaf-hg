@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -38,6 +38,7 @@
 #include "dts.h"
 
 #if (DTS_LOG == 1)
+
 
 /******************************************************************************
  Logging stuff for Headlines 
@@ -293,27 +294,27 @@ NCSFL_FMAT dts_fmat_set[] =
     { DTS_LID_LOCKS,          "TIL",    "DTS %s LOCK     : %s (%p)\n\n"},
     { DTS_LID_MEMFAIL,        "TI",     "DTS %s MEMERR   : %s\n\n"     },
     { DTS_LID_API,            "TI" ,    "DTS %s API      : %s\n\n"     },
-    { DTS_LID_EVT,            "TILLL",  "DTS %s EVENT    : %s \n svc_id = %d, node_id = 0x%08x dest process_id = %d. \n\n"},
-    { DTS_LID_CB_LOG,         "TILL",   "DTS %s CBOP     : %s svc_id = %d, node_id = 0x%08x\n\n"     },
+    { DTS_LID_EVT,            "TILLL",  "DTS %s EVENT    : %s \n svc_id = %ld, node_id = 0x%08lx dest process_id = %ld. \n\n"},
+    { DTS_LID_CB_LOG,         "TILL",   "DTS %s CBOP     : %s svc_id = %ld, node_id = 0x%08lx\n\n"     },
     { DTS_LID_STR,            "TIC",    "DTS %s DBG INFO : %s %s\n\n"     },
-    { DTS_LID_STRL,           "TICCL",  "DTS %s DBG INFO : %s %s \n %s %d\n\n"     },
-    { DTS_LID_STRL_SVC,       "TICCLL", "DTS %s DBG INFO : %s %s \n %s %d , SVC = %d\n\n"     },
-    { DTS_LID_STRL_SVC_NAME,  "TICCLC", "DTS %s DBG INFO : %s %s \n %s %d , SVC_NAME = %s\n\n"     },
-    { DTS_LID_STRLL,          "TICLL",  "DTS %s DBG INFO : %s %s %d %d\n\n"     },
-    { DTS_LID_LFILE,          "TCLL",  "DTS %s New Log file created : %s. Node: %d, Svc: %d \n\n" },
-    { DTS_LID_LOGDEL,         "TLLL",  "DTS %s Deleting old log file. Node: %d, Svc:%d, Count:%d \n\n" },
+    { DTS_LID_STRL,           "TICCL",  "DTS %s DBG INFO : %s %s \n %s %ld\n\n"     },
+    { DTS_LID_STRL_SVC,       "TICCLL", "DTS %s DBG INFO : %s %s \n %s %ld , SVC = %ld\n\n"     },
+    { DTS_LID_STRL_SVC_NAME,  "TICCLC", "DTS %s DBG INFO : %s %s \n %s %ld , SVC_NAME = %s\n\n"     },
+    { DTS_LID_STRLL,          "TICLL",  "DTS %s DBG INFO : %s %s %ld %ld\n\n"     },
+    { DTS_LID_LFILE,          "TCLL",  "DTS %s New Log file created : %s. Node: %ld, Svc: %ld \n\n" },
+    { DTS_LID_LOGDEL,         "TLLL",  "DTS %s Deleting old log file. Node: %ld, Svc:%ld, Count:%ld \n\n" },
     { DTS_LID_CHKP,           "TI",    "DTS %s CHKP EVT  : %s\n\n" },
-    { DTS_LID_MDS_EVT,        "TIL",   "DTS %s MDS EVT : %s %d\n\n"},
-    { DTS_LID_AMF_EVT,        "TILL",  "DTS %s AMF EVT : %s from:%d to:%d\n\n"},
-    { DTS_LID_SPEC_ERR_EVT,   "TILLC", "DTS %s ASCII_SPEC ERROR:%s %d SVC:%d SVC-NAME:%s\n\n"},
-    { DTS_LID_SPEC_REG,       "TILCL", "DTS %s ASCII_SPEC %s SVC:%d SVC-NAME:%s VERSION:%d\n\n"},
-    { DTS_LID_LOG_ERR,        "TILLC", "DTS %s LOGGING ERROR:%s %d SVC:%d SVC_NAME:%s\n\n"},
-    { DTS_LID_LOG_ERR1,       "TILLLC", "DTS %s LOGGING ERROR:%s Value Passed:%d Value Compared:%d SVC:%d, SVC_NAME:%s\n\n"},
-    { DTS_LID_LOG_ERR2,       "TILL",  "DTS %s LOGGING ERROR:%s %d SVC:%d\n\n"},
-    { DTS_LID_WSYNC_ERR,      "TILLLLLLLL", "DTS %s WARM SYNC ERROR: %s SENT UPDT COUNT:{svc_reg=%d dta_list=%d global_policy=%d log_updt=%d} RECEIVED UPDT COUNT:{svc_reg=%d dta_list=%d global_policy=%d log_updt=%d}\n\n"},
-    { DTS_LID_ASYNC_UPDT,     "TILLLL", "DTS %s CKPT EVT: %s OP:%d NODE:%d SVC:%d MDS_DEST:%d\n\n"},
-    { DTS_LID_FLOW_UP,        "TLL",    "DTS %s CONGESTION EVENT HIT. INFO & DEBUG severity logs will be dropped for NODE: 0x%08x & Process Id: %d\n\n"},
-    { DTS_LID_FLOW_DOWN,      "TLL",    "DTS %s CONGESTION EVENT CLEARED. NODE: 0x%08x Process Id: %d\n\n"},
+    { DTS_LID_MDS_EVT,        "TIL",   "DTS %s MDS EVT : %s %ld\n\n"},
+    { DTS_LID_AMF_EVT,        "TILL",  "DTS %s AMF EVT : %s from:%ld to:%ld\n\n"},
+    { DTS_LID_SPEC_ERR_EVT,   "TILLC", "DTS %s ASCII_SPEC ERROR:%s %ld SVC:%ld SVC-NAME:%s\n\n"},
+    { DTS_LID_SPEC_REG,       "TILCL", "DTS %s ASCII_SPEC %s SVC:%ld SVC-NAME:%s VERSION:%ld\n\n"},
+    { DTS_LID_LOG_ERR,        "TILLC", "DTS %s LOGGING ERROR:%s %ld SVC:%ld SVC_NAME:%s\n\n"},
+    { DTS_LID_LOG_ERR1,       "TILLLC", "DTS %s LOGGING ERROR:%s Value Passed:%ld Value Compared:%ld SVC:%ld, SVC_NAME:%s\n\n"},
+    { DTS_LID_LOG_ERR2,       "TILL",  "DTS %s LOGGING ERROR:%s %ld SVC:%ld\n\n"},
+    { DTS_LID_WSYNC_ERR,      "TILLLLLLLL", "DTS %s WARM SYNC ERROR: %s SENT UPDT COUNT:{svc_reg=%ld dta_list=%ld global_policy=%ld log_updt=%ld} RECEIVED UPDT COUNT:{svc_reg=%ld dta_list=%ld global_policy=%ld log_updt=%ld}\n\n"},
+    { DTS_LID_ASYNC_UPDT,     "TILLLL", "DTS %s CKPT EVT: %s OP:%ld NODE:%ld SVC:%ld MDS_DEST:%ld\n\n"},
+    { DTS_LID_FLOW_UP,        "TLL",    "DTS %s CONGESTION EVENT HIT. INFO & DEBUG severity logs will be dropped for NODE: 0x%08lx & Process Id: %ld\n\n"},
+    { DTS_LID_FLOW_DOWN,      "TLL",    "DTS %s CONGESTION EVENT CLEARED. NODE: 0x%08lx Process Id: %ld\n\n"},
     { 0, 0, 0 }
   };
 

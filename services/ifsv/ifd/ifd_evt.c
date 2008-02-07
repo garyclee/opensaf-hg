@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -52,6 +52,13 @@ static uns32 ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb);
 static uns32 ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb);
 
 uns32 ifd_svcd_upd_from_ifnd_proc_data (IFSV_EVT* evt, IFSV_CB *cb);
+void get_next_info_no_ret_tmr(IFSV_CB* cb,IFSV_INTF_REC **intf_rec,
+                          #if(NCS_IFSV_IPXS == 1)
+                                           IPXS_CB          *ipxs_cb,
+                                           IPXS_IFIP_INFO   **ip_info,
+                          #endif
+                              NCS_IFSV_IFINDEX   *ifindex);
+
 /* IfD dispatch table */
 const IFSV_EVT_HANDLER ifd_evt_dispatch_tbl[IFD_EVT_MAX - IFD_EVT_BASE] =
 {
@@ -129,7 +136,6 @@ ifd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
 {  
    uns32 res;
    IFSV_INTF_DESTROY_INFO *dest_info;
-   char log_info[45];
    uns32 ifindex = 0;
 
 
@@ -540,6 +546,60 @@ ifd_intf_rec_sync (IFSV_EVT* evt, IFSV_CB *cb)
 
    return (res);
 }
+/****************************************************************************
+ * Name          : get_next_info_no_ret_tmr
+ *
+ * Description   : This function retreives the next intf rec info for an 
+ *                 interface for which no retention timer is running.
+ *                 Interfaces for which retention timer is running need
+ *                 not be sent to IFND.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+void get_next_info_no_ret_tmr(IFSV_CB* cb,IFSV_INTF_REC **intf_rec,
+                              #if(NCS_IFSV_IPXS == 1)
+                                           IPXS_CB          *ipxs_cb,
+                                           IPXS_IFIP_INFO   **ip_info,
+                              #endif
+                              NCS_IFSV_IFINDEX   *ifindex)
+{
+   NCS_PATRICIA_NODE  *if_node;
+ #if(NCS_IFSV_IPXS == 1)
+   IPXS_IFIP_NODE   *ifip_node = NULL;
+ #endif
+   do
+   {
+     NODE_ID node_id;
+     IFND_NODE_ID_INFO *node_id_info = NULL;
+
+     if_node = ncs_patricia_tree_getnext(&cb->if_tbl,
+                                      (uns8*)ifindex);
+     *intf_rec = (IFSV_INTF_REC*)if_node;
+
+     #if(NCS_IFSV_IPXS == 1)
+       ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
+                                   (&ipxs_cb->ifip_tbl, (uns8*)ifindex);
+       *ip_info = (IPXS_IFIP_INFO *)&ifip_node->ifip_info;
+    #endif
+
+     if((*intf_rec == NULL)
+     #if(NCS_IFSV_IPXS == 1)
+      || (*ip_info == IFSV_NULL)
+     #endif
+      )
+     {
+      break;
+     }
+
+     *ifindex = (*intf_rec)->intf_data.if_index;
+     node_id = m_NCS_NODE_ID_FROM_MDS_DEST(
+                     (*intf_rec)->intf_data.current_owner_mds_destination);
+     node_id_info = ifd_ifnd_node_id_info_get(node_id, cb);
+     if(node_id_info == NULL)
+     break;
+    }while(1);
+
+}
 
 /****************************************************************************
  * Name          : ifd_intf_rec_send_no_ret_tmr
@@ -559,7 +619,6 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
 {
    NCS_LOCK           *intf_rec_lock = &cb->intf_rec_lock;
    IFSV_INTF_REC      *intf_rec;
-   NCS_PATRICIA_NODE  *if_node;
    NCS_IFSV_IFINDEX   ifindex = 0;
    uns32 res = NCSCC_RC_SUCCESS;
    IFSV_EVT    *evt = NULL;
@@ -568,7 +627,6 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
 #if(NCS_IFSV_IPXS == 1)
    IPXS_CB  *ipxs_cb;
    uns32    ipxs_hdl;
-   IPXS_IFIP_NODE   *ifip_node = NULL;
    IPXS_IFIP_INFO   *ip_info = NULL;
    NCS_IPXS_IPINFO  ipxs_ip_info;
 #endif
@@ -593,15 +651,9 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
 
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
 
-   if_node = ncs_patricia_tree_getnext(&cb->if_tbl,
-      (uns8*)&ifindex);
-   intf_rec = (IFSV_INTF_REC*)if_node;
-   
-#if(NCS_IFSV_IPXS == 1)
-   ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)&ifindex);
-   ip_info = (IPXS_IFIP_INFO *)&ifip_node->ifip_info;
-#endif
+   get_next_info_no_ret_tmr(cb,&intf_rec,ipxs_cb,
+                         &ip_info,&ifindex);
+
 
    while ((intf_rec != IFSV_NULL)
 #if(NCS_IFSV_IPXS == 1)
@@ -653,16 +705,11 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
                                 (NCSCONTEXT)&evt, mds_dest, NCSMDS_SVC_ID_IFND);
       }
 #endif
- 
-      if_node = ncs_patricia_tree_getnext(&cb->if_tbl,
-         (uns8*)&ifindex);
-      intf_rec = (IFSV_INTF_REC*)if_node;
 
-#if(NCS_IFSV_IPXS == 1)
-      ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)&ifindex);
-      ip_info = (IPXS_IFIP_INFO *)&ifip_node->ifip_info;
-#endif
+      get_next_info_no_ret_tmr(cb,&intf_rec,ipxs_cb,
+                         &ip_info,&ifindex);
+
+ 
    }
 
    if(no_data)

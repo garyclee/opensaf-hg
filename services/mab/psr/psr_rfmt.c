@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 /*****************************************************************************
 ..............................................................................
@@ -35,7 +35,7 @@ static uns32 pss_store_reformatting_higher_to_2(PSS_CB *inst, uns32 ts_hdl,
                                          PSS_TABLE_PATH_RECORD *rec);
 static uns32 pss_store_reformatting_higher_to_1ext(PSS_CB *inst, uns32 ts_hdl, PSS_TABLE_PATH_RECORD *rec);
 static uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl, PSS_TABLE_PATH_RECORD *rec);
-static uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, uns32 file_hdl, uns32 file_size,
+static uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_size,
                               PSS_TABLE_PATH_RECORD *rec, PSS_TABLE_DETAILS_HEADER *hdr);
 
 static uns32 pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl, uns32 cur_ps_format);
@@ -93,7 +93,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
 {
    NCS_OS_FILE                inst_file;
    uns32                      rem_file_size;
-   uns32                      src_file_handle = 0, dest_file_handle = 0;
+   long                      src_file_handle = 0, dest_file_handle = 0;
    uns8                       buff[NCS_PSS_MAX_CHUNK_SIZE];
    uns32                      bytes_read = 0; /* represents no. of bytes read */
    uns32                      read_bytes = 0; /* represents no. of bytes to be read */
@@ -127,7 +127,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    if(NCSCC_RC_SUCCESS != m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_OPEN))
        return PSSRC_SRCFILEOPEN_FAILURE;
 
-   src_file_handle = (uns32) inst_file.info.open.o_file_handle;
+   src_file_handle = (long) inst_file.info.open.o_file_handle;
 
    /* Now open dest file for appending */
    m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
@@ -146,7 +146,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
       return PSSRC_DESTFILEOPEN_FAILURE;
    }
 
-   dest_file_handle = (uns32) inst_file.info.open.o_file_handle;
+   dest_file_handle = (long) inst_file.info.open.o_file_handle;
 #if 0
    m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* Moving till the offset location in the source file */
@@ -287,7 +287,7 @@ int persistent_file_filter(const struct dirent *ps_file)
 *                                                                                *
 \********************************************************************************/
 
-uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, uns32 tfile_hdl, PSS_TABLE_PATH_RECORD *rec,
+uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl, PSS_TABLE_PATH_RECORD *rec,
                                   PSS_TABLE_DETAILS_HEADER *hdr)
 {
    uns32  retval = NCSCC_RC_SUCCESS;
@@ -333,7 +333,7 @@ uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, uns32 tfile_hdl, P
 *                                                                                 *
 \*********************************************************************************/
 
-uns32 pss_tbl_details_header_write(PSS_CB *inst, uns32 ts_hdl, uns32 tfile_hdl,
+uns32 pss_tbl_details_header_write(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl,
                                    PSS_TABLE_PATH_RECORD *rec)
 {
    uns32                    retval = NCSCC_RC_SUCCESS;
@@ -380,7 +380,7 @@ uns32 pss_store_reformatting_1_to_1ext(PSS_CB *inst, PSS_TABLE_PATH_RECORD *rec)
 {
    uns32         retval = NCSCC_RC_SUCCESS;
    uns32         final_retval = NCSCC_RC_SUCCESS;
-   uns32         tfile_hdl = 0;
+   long         tfile_hdl = 0;
 
    m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_1_TO_1EXT");
 
@@ -596,7 +596,7 @@ uns32 pss_store_reformatting_higher_to_2(PSS_CB *inst, uns32 ts_hdl,
    uns32         final_retval = NCSCC_RC_SUCCESS;
    PSS_RETURN_CODES           pss_retval = PSSRC_SUCCESS;
    PSS_TABLE_DETAILS_HEADER   hdr;
-   uns32         tfile_hdl = 0, file_hdl = 0;
+   long          tfile_hdl = 0, file_hdl = 0;
    char          source_file_path[NCS_PSSTS_MAX_PATH_LEN] = "\0";
    char          temp_file_path[NCS_PSSTS_MAX_PATH_LEN] = "\0";
    char          dest_file[]="temp_file";
@@ -710,7 +710,7 @@ uns32 pss_store_reformatting_higher_to_1ext(PSS_CB *inst, uns32 ts_hdl,
    uns32         retval = NCSCC_RC_SUCCESS;
    uns32         final_retval = NCSCC_RC_SUCCESS;
    PSS_RETURN_CODES           pss_retval = PSSRC_SUCCESS;
-   uns32         tfile_hdl = 0;
+   long          tfile_hdl = 0;
    char          source_file_path[NCS_PSSTS_MAX_PATH_LEN];
    char          temp_file_path[NCS_PSSTS_MAX_PATH_LEN];
    char          dest_file[]="temp_file";
@@ -817,7 +817,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
 {
    uns32                      retval = NCSCC_RC_SUCCESS;
    uns32                      final_retval = NCSCC_RC_SUCCESS;
-   uns32                      file_hdl = 0;
+   long                       file_hdl = 0;
    NCS_OS_FILE                inst_file;
    char                       dest_file_path[NCS_PSSTS_MAX_PATH_LEN];
    PSS_TABLE_DETAILS_HEADER   hdr;
@@ -979,11 +979,11 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
 *                                                                                  *
 \**********************************************************************************/
 
-uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, uns32 file_hdl, uns32 file_size,
+uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_size,
                          PSS_TABLE_PATH_RECORD *rec, PSS_TABLE_DETAILS_HEADER *hdr)
 {
    uns32                      retval = NCSCC_RC_SUCCESS;
-   uns32                      tfile_hdl = 0;
+   long                       tfile_hdl = 0;
    NCS_OS_FILE                inst_file;
    PSS_MIB_TBL_INFO           *tbl_info = inst->mib_tbl_desc[rec->tbl_id];
    uns32                      hdr_data_length = 0, cb_data_length = 0;
@@ -1049,7 +1049,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, uns32 file_hdl, uns32 file_si
       m_NCS_CONS_PRINTF("\nhdr->header_len: %d > PSS_TABLE_DETAILS_HEADER_LEN: %d ", hdr->header_len, PSS_TABLE_DETAILS_HEADER_LEN);
       /* Moving the file position indicator to point the first record */
       m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
-      inst_file.info.seek.i_file_handle = (void *) file_hdl;
+      inst_file.info.seek.i_file_handle = (void *)(long) file_hdl;
       inst_file.info.seek.i_offset = hdr->header_len - PSS_TABLE_DETAILS_HEADER_LEN;
       retval = m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_SEEK);
       if (NCSCC_RC_SUCCESS != retval)

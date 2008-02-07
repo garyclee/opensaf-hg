@@ -14,4 +14,4 @@ libsrmsv_logstr_la_SOURCES =	./srmsv_logstr.c \
 				./srma_logstr.c \
 				./srmnd_logstr.c
 
-libsrmsv_logstr_la_LDFLAGS = -version-number 2
+libsrmsv_logstr_la_LDFLAGS = -version-number 3

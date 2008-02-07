@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 #include "ncsgl_defs.h"
@@ -277,7 +276,7 @@ lt_taskManager2(int argc, char **argv)
                               (void *)(long) tsk_num,
                               "TSKT",
                               NCS_TASK_PRIORITY_4,
-                              8192,
+                              NCS_STACKSIZE_HUGE,
                               &taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
         {
             m_NCS_CONS_PRINTF("Failed! to create task %d\n", tsk_num);
@@ -382,7 +381,7 @@ lt_taskManager(int argc, char **argv)
                           &gl_dummy_mbx,
                           "TSKT",
                           NCS_TASK_PRIORITY_4,
-                          8192,
+                          NCS_STACKSIZE_HUGE,
                           &gl_dummy_task_hdl) != NCSCC_RC_SUCCESS)
     {
         m_NCS_IPC_RELEASE(&gl_dummy_mbx, NULL);
@@ -1059,7 +1058,7 @@ lt_taskprio(int argc, char **argv)
                             NULL,
                             "test_thread_1",
                             NCS_OS_TASK_PRIORITY_16,
-                            8192,
+                            NCS_STACKSIZE_HUGE,
                             &taskhandle1) != NCSCC_RC_SUCCESS)
     {
        m_NCS_CONS_PRINTF("Failed! to create task 1\n");
@@ -1070,7 +1069,7 @@ lt_taskprio(int argc, char **argv)
                             NULL,
                             "test_thread_2",
                             NCS_OS_TASK_PRIORITY_16,
-                            8192,
+                            NCS_STACKSIZE_HUGE,
                             &taskhandle2) != NCSCC_RC_SUCCESS)
     {
        m_NCS_CONS_PRINTF("Failed! to create task 2\n");

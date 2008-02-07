@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
 #
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 
@@ -134,9 +134,9 @@ lsmod | grep $MODULE
    fi
 
 
-printf "00%02x%02x0f\n" $CHASSIS_ID $SLOT_ID > /etc/opt/opensaf/node_id
+printf "00%02x%02x0f\n" $CHASSIS_ID $SLOT_ID > /var/opt/opensaf/node_id
 
-NODE_ID_READ=`cat /etc/opt/opensaf/node_id`
+NODE_ID_READ=`cat /var/opt/opensaf/node_id`
 
 VAL_MSB_NIBBLE=$((0x$NODE_ID_READ % $MASK_LAST_1NIBBLE)) 
 VAL1=$((0x$NODE_ID_READ >> $SHIFT4))

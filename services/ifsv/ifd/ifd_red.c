@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /*****************************************************************************
@@ -784,7 +785,6 @@ uns32
 ifd_a2s_vip_rec_modify_handler (VIP_REDUNDANCY_RECORD *info, IFSV_CB *cb)
 {
     NCS_PATRICIA_NODE            *pPatEntry;
-    IFSV_IFD_VIPD_RECORD         *pVipd;
     uns32                         rc;
 
     if (cb == IFSV_NULL || info == IFSV_NULL)
@@ -1530,7 +1530,7 @@ void data_dump_VIP_REDUNDANCY_RECORD(VIP_REDUNDANCY_RECORD *pVipChkptPkt)
   int i = 0;
   printf("\n Data Dump of VIP_REDUNDANCY_RECORD"); 
   printf("\n ========================================\n\n"); 
-  printf("pVipChkptPkt->handle is %lld\n", pVipChkptPkt->handle);
+  printf("pVipChkptPkt->handle.poolHdl is %d\n", pVipChkptPkt->handle.poolHdl);
   printf("pVipChkptPkt->vip_entry_attr is %d\n", pVipChkptPkt->vip_entry_attr);
   printf("pVipChkptPkt->ref_cnt is %d\n", pVipChkptPkt->ref_cnt);
   printf("pVipChkptPkt->ip_list_cnt is %d\n\n", pVipChkptPkt->ip_list_cnt);

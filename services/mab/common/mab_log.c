@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -115,7 +115,7 @@ uns32 log_mab_svc_prvdr_evt(uns8 sev, uns32 id, uns32 svc_id,
         sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
     else
         sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
-                m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (long)(addr)); 
+                m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (addr)); 
 
     /* now log the message */ 
     return ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_SVC_PRVDR_EVT, 
@@ -133,7 +133,7 @@ uns32 log_mab_svc_prvdr_msg(uns8 sev, uns32 id, uns32 svc_id,
         sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
     else
         sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
-                m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (long)(addr)); 
+                m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (addr)); 
 
     /* now log the message */ 
     return ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_SVC_PRVDR_MSG, 
@@ -233,7 +233,7 @@ log_mab_oaa_and_fltr_data(uns8      sev,
        sprintf(addr_str, exist == 1?"Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu"
                                    :"New ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
                 m_NCS_NODE_ID_FROM_MDS_DEST(fltr->vcard), 0, 
-                (long)(fltr->vcard));
+                (fltr->vcard));
        
     ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
                NCSFL_LC_HEADLINE, sev,

@@ -85,7 +85,7 @@ SUBDIRS = 	services/common \
 endif
 
 rpm:install
-	./rpms/create_opensaf_rpm.sh $(TARG_ARCH) $(BUILD_TYPE) $(HW_MGMT_STR) $(MOT_ATCA_STR)
+	./rpms/create_opensaf_rpm.sh $(TARG_ARCH) $(BUILD_TYPE) $(LIB_SUFFIX) $(HW_MGMT_STR) $(MOT_ATCA_STR)
 
 DISTCLEANFILES = `cat ./tools/smidump/generated_files_to_clean`
 

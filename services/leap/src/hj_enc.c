@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -200,7 +200,7 @@ ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int length)
   pch = m_MMGR_RESERVE_AT_START(&pbuf, length, uns8 *);
   if (pch == NULL)
     {
-    m_LEAP_DBG_SINK(BNULL);
+    m_LEAP_DBG_SINK((long)BNULL);
     return BNULL;
     }
   
@@ -217,7 +217,7 @@ ncs_prepend_uns16( USRBUF *pbuf, uns16 val16 )
   p16 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns16), uns8 *);
   if (p16 == NULL)   
     {
-    m_LEAP_DBG_SINK(BNULL);
+    m_LEAP_DBG_SINK((long)BNULL);
     return BNULL;
     }
   *p16++ = (uns8)(val16>>8);
@@ -235,7 +235,7 @@ ncs_prepend_uns32( USRBUF *pbuf, uns32 val32 )
   p32 = m_MMGR_RESERVE_AT_START(&pbuf, (uns32)sizeof(uns32), uns8 *);
   if (p32 == NULL)   
     {
-    m_LEAP_DBG_SINK(BNULL);
+    m_LEAP_DBG_SINK((long)BNULL);
     return BNULL;
     }
   *p32++ = (uns8)(val32>>24);
@@ -253,7 +253,7 @@ ncs_prepend_uns64( USRBUF *pbuf, uns64 val64 )
   p64 = m_MMGR_RESERVE_AT_START(&pbuf, 8, uns8 *);
   if (p64 == NULL)   
     {
-    m_LEAP_DBG_SINK(BNULL);
+    m_LEAP_DBG_SINK((long)BNULL);
     return BNULL;
     }
 

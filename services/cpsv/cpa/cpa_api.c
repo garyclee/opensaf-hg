@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -74,6 +74,14 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
       return SA_AIS_ERR_LIBRARY; 
    }
    
+   proc_rc = ncs_cpa_startup();
+   if(NCSCC_RC_SUCCESS != proc_rc)
+   {
+      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CkptInit:agents_startup", __FILE__ ,__LINE__, proc_rc);
+      ncs_agents_shutdown(0,0);
+      return SA_AIS_ERR_LIBRARY; 
+   }
+
    if ( (!ckptHandle) || (!version))
    {
       rc = SA_AIS_ERR_INVALID_PARAM;
@@ -230,7 +238,7 @@ lock_fail1:
       finalize_evt.type = CPSV_EVT_TYPE_CPND;
       finalize_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_FINALIZE;
       finalize_evt.info.cpnd.info.finReq.client_hdl = cl_node->cl_hdl;
-      
+
       if(locked)
       {
          m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -277,8 +285,11 @@ lock_fail:
                               "CkptInit", __FILE__ ,__LINE__, SA_AIS_OK, cl_node->cl_hdl);
    }
 end:
-     if(rc != SA_AIS_OK)
+     if (rc != SA_AIS_OK)
+     {
+        ncs_cpa_shutdown();
         ncs_agents_shutdown(0,0);
+     }
    return rc;    
 }
 
@@ -583,6 +594,7 @@ lock_fail:
    {
       m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
                             "CkptFinalize", __FILE__ ,__LINE__, rc, ckptHandle);
+      ncs_cpa_shutdown();
       ncs_agents_shutdown(0,0);
    }
 
@@ -830,8 +842,6 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
          
          ckpt_size=sizeof(CPSV_CKPT_HDR)+(gc_node->ckpt_creat_attri.maxSections *
                   (sizeof(CPSV_SECT_HDR)+gc_node->ckpt_creat_attri.maxSectionSize));
-            
-         cpa_proc_shm_open(cb,gc_node,checkpointName,ckpt_size);
       }
 
       gc_node->ref_cnt++;
@@ -1663,8 +1673,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
       goto fail1;      
    }
 
-   gc_node->is_active_bcast_came = FALSE;
-   
+   gc_node->is_active_bcast_came = FALSE;   
    /* Populate the event & send it to CPND */
    m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
@@ -2064,17 +2073,28 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
       goto fail1;
    }
-   
-   if(sectionCreationAttributes->sectionId->idLen > 
-                     gc_node->ckpt_creat_attri.maxSectionIdSize)
-   {
-      rc = SA_AIS_ERR_INVALID_PARAM;
-      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+   /* IR85950 */
+   if(sectionCreationAttributes->sectionId->id != NULL)
+   {    if((sectionCreationAttributes->sectionId->idLen > gc_node->ckpt_creat_attri.maxSectionIdSize)||
+           (sectionCreationAttributes->sectionId->idLen==0))
+      { 
+         rc = SA_AIS_ERR_INVALID_PARAM;
+         m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
-      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-      goto fail1;
+         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         goto fail1;
+      }
    }
-
+   else
+   {    if(sectionCreationAttributes->sectionId->idLen!=0)
+        {
+            rc = SA_AIS_ERR_INVALID_PARAM;
+            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                            "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+            goto fail1;
+       }
+   }
    if(!gc_node->is_active_exists)
    {
      rc = SA_AIS_ERR_NOT_EXIST;
@@ -2178,7 +2198,12 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
          if(out_evt->info.cpa.info.sec_creat_rsp.sec_id.id != NULL && out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen != 0)
             m_MMGR_FREE_CPSV_DEFAULT_VAL(out_evt->info.cpa.info.sec_creat_rsp.sec_id.id,NCS_SERVICE_ID_CPND);
 
-      }     
+      }
+      else
+      {
+         m_LOG_CPA_CCLLFF(CPA_API_FAILED,NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle, gc_node->active_mds_dest);
+      }
       m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);  
    }
    else

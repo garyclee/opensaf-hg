@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -536,9 +536,56 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
   /* check the event type */
    if(evt->type == GLSV_GLA_CALLBK_EVT)
    {
-      /*allocate the memory */
-      gla_callbk_info = m_MMGR_ALLOC_GLA_CALLBACK_INFO;
-      m_NCS_MEMCPY(gla_callbk_info,&evt->info.gla_clbk_info,sizeof(GLSV_GLA_CALLBACK_INFO));
+     /*allocate the memory */
+     gla_callbk_info = m_MMGR_ALLOC_GLA_CALLBACK_INFO;
+     m_NCS_MEMCPY(gla_callbk_info,&evt->info.gla_clbk_info,sizeof(GLSV_GLA_CALLBACK_INFO));
+      /* Stop & Destroy the timer */
+     switch(gla_callbk_info->callback_type)
+     {
+        case GLSV_LOCK_RES_OPEN_CBK:
+        {
+             GLA_RESOURCE_ID_INFO *res_id_node = NULL; 
+             res_id_node = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
+                              NCS_SERVICE_ID_GLA,  gla_callbk_info->resourceId);
+             if(res_id_node)
+             {
+                gla_stop_tmr(&res_id_node->res_async_tmr); 
+                ncshm_give_hdl(gla_callbk_info->resourceId);
+             }
+        }
+        break;
+        case GLSV_LOCK_GRANT_CBK:
+        {
+             GLSV_LOCK_GRANT_PARAM *param = &gla_callbk_info->params.lck_grant;
+             GLA_LOCK_ID_INFO *lock_id_node = NULL;
+             lock_id_node  = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
+                                                NCS_SERVICE_ID_GLA, param->lcl_lockId);
+             
+             if(lock_id_node)
+             {
+                gla_stop_tmr(&lock_id_node->lock_async_tmr); 
+                ncshm_give_hdl(param->lcl_lockId);
+             }  
+        }
+        break;
+        case GLSV_LOCK_UNLOCK_CBK:
+        {
+             GLSV_LOCK_UNLOCK_PARAM *param = &gla_callbk_info->params.unlock;
+             GLA_LOCK_ID_INFO *lock_id_node = NULL;
+             lock_id_node  = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
+                                                NCS_SERVICE_ID_GLA, param->lockId);
+
+             if(lock_id_node)
+             {
+                gla_stop_tmr(&lock_id_node->unlock_async_tmr); 
+                ncshm_give_hdl(param->lockId);
+             }
+        }
+        break;
+        case GLSV_LOCK_WAITER_CBK:
+        break;
+     }
+
       /* Put it in place it in the Queue */
      rc = glsv_gla_callback_queue_write(cb,evt->handle,gla_callbk_info);
 
@@ -560,8 +607,8 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 #if 0
              res_id_node = gla_res_tree_find_and_add(cb, gla_callbk_info->resourceId,FALSE);
 #endif
-             if(res_id_node = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
-                               NCS_SERVICE_ID_GLA, gla_callbk_info->resourceId))
+             if((res_id_node = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
+                               NCS_SERVICE_ID_GLA, gla_callbk_info->resourceId)))
 
              {
                 res_id_node->gbl_res_id = param->resourceId;
@@ -948,7 +995,7 @@ static uns32 glsv_enc_finalize_evt(NCS_UBAID *uba, GLSV_EVT_FINALIZE_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
- uns8        *p8, buf_size=0,size;
+ uns8        *p8, size;
 
  size = (5*8) + (5*4) + 2;
 
@@ -989,7 +1036,7 @@ static uns32 glsv_enc_rsc_open_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 ******************************************************************************/
 static uns32 glsv_enc_rsc_close_evt(NCS_UBAID *uba, GLSV_EVT_RSC_INFO *evt)
 {
- uns8        *p8, buf_size=0,size;
+ uns8        *p8, size;
 
  size = (5*8) + (5*4) ;
 
@@ -1324,6 +1371,8 @@ static uns32 glsv_gla_dec_api_resp_evt(NCS_UBAID *uba, GLSV_GLA_API_RESP_INFO *e
        ncs_dec_skip_space(uba, size);
   break;
 
+  default:
+   break;
  }
  return NCSCC_RC_SUCCESS;
 }

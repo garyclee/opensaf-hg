@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -167,24 +167,24 @@ uns32 mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_a2s_msg, 0, 0, 0,
                     sizeof(MQD_A2S_MSG), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_MSG*)0)->type, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->type, 0, NULL},
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_MSG*)0)->type, 0,
+                    (long)&((MQD_A2S_MSG*)0)->type, 0,
                                 mqd_a2s_msg_test_type_fnc},
         {EDU_EXEC, mqsv_edp_mqd_asapi_reg_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.reg, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.reg, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_asapi_dereg_info, 0, 0,EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.dereg, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.dereg, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_track_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.track, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.track, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_a2s_queue_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.qinfo, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.qinfo, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.user_evt, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.user_evt, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.nd_stat_evt, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.nd_stat_evt, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, EDU_EXIT,
-                    (uns32)&((MQD_A2S_MSG*)0)->info.nd_tmr_exp_evt, 0, NULL},
+                    (long)&((MQD_A2S_MSG*)0)->info.nd_tmr_exp_evt, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -237,13 +237,13 @@ static uns32 mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_asapi_reg_info, 0, 0, 0,
                     sizeof(ASAPi_REG_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_REG_INFO*)0)->objtype, 0, NULL},
+                    (long)&((ASAPi_REG_INFO*)0)->objtype, 0, NULL},
         {EDU_EXEC, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
-                    (uns32)&((ASAPi_REG_INFO*)0)->queue, 0,NULL},
+                    (long)&((ASAPi_REG_INFO*)0)->queue, 0,NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((ASAPi_REG_INFO*)0)->group, 0, NULL},
+                    (long)&((ASAPi_REG_INFO*)0)->group, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0,0,
-                    (uns32)&((ASAPi_REG_INFO*)0)->policy, 0, NULL},
+                    (long)&((ASAPi_REG_INFO*)0)->policy, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -297,23 +297,23 @@ static uns32 mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_asapi_que_param, 0, 0, 0,
                     sizeof(ASAPi_QUEUE_PARAM), 0, NULL},
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->addr, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->addr, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->retentionTime, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->retentionTime, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->name, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->name, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->status, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->status, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->hdl, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->hdl, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->owner, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->owner, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->is_mqnd_down, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->is_mqnd_down, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->creationFlags, 0, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->creationFlags, 0, NULL},
         {EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
-                    (uns32)&((ASAPi_QUEUE_PARAM*)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY+1, NULL},
+                    (long)&((ASAPi_QUEUE_PARAM*)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY+1, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -365,11 +365,11 @@ static uns32 mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_asapi_dereg_info, 0, 0, 0,
                     sizeof(ASAPi_DEREG_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((ASAPi_DEREG_INFO*)0)->objtype, 0, NULL},
+                    (long)&((ASAPi_DEREG_INFO*)0)->objtype, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((ASAPi_DEREG_INFO*)0)->group, 0, NULL},
+                    (long)&((ASAPi_DEREG_INFO*)0)->group, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((ASAPi_DEREG_INFO*)0)->queue, 0, NULL},
+                    (long)&((ASAPi_DEREG_INFO*)0)->queue, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -422,9 +422,9 @@ static uns32 mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
                     sizeof(ASAPi_TRACK_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((ASAPi_TRACK_INFO*)0)->object, 0, NULL},
+                    (long)&((ASAPi_TRACK_INFO*)0)->object, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-                    (uns32)&((ASAPi_TRACK_INFO*)0)->val, 0, NULL},
+                    (long)&((ASAPi_TRACK_INFO*)0)->val, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -478,7 +478,7 @@ static uns32 mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_a2s_user_evt_info, 0, 0, 0,
                     sizeof(MQD_A2S_USER_EVENT_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-                    (uns32)&((MQD_A2S_USER_EVENT_INFO*)0)->dest, 0, NULL},
+                    (long)&((MQD_A2S_USER_EVENT_INFO*)0)->dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -533,11 +533,11 @@ static uns32 mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_a2s_nd_stat_info, 0, 0, 0,
                     sizeof(MQD_A2S_ND_STAT_INFO), 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_ND_STAT_INFO*)0)->nodeid, 0, NULL},
+                    (long)&((MQD_A2S_ND_STAT_INFO*)0)->nodeid, 0, NULL},
         {EDU_EXEC,ncs_edp_ncs_bool, 0, 0, 0,
-                    (uns32)&((MQD_A2S_ND_STAT_INFO*)0)->is_restarting, 0, NULL},
+                    (long)&((MQD_A2S_ND_STAT_INFO*)0)->is_restarting, 0, NULL},
         {EDU_EXEC,m_NCS_EDP_SATIMET, 0, 0, 0,
-                    (uns32)&((MQD_A2S_ND_STAT_INFO*)0)->downtime, 0, NULL},
+                    (long)&((MQD_A2S_ND_STAT_INFO*)0)->downtime, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -593,7 +593,7 @@ static uns32 mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_a2s_nd_timer_exp_info, 0, 0, 0,
                     sizeof(MQD_A2S_ND_TIMER_EXP_INFO), 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_ND_TIMER_EXP_INFO*)0)->nodeid, 0, NULL},
+                    (long)&((MQD_A2S_ND_TIMER_EXP_INFO*)0)->nodeid, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -648,25 +648,25 @@ uns32 mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_a2s_queue_info, 0, 0, 0,
                     sizeof(MQD_A2S_QUEUE_INFO), 0, NULL},
         {EDU_EXEC,ncs_edp_sanamet, 0, 0, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->name, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->name, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->type, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->type, 0, NULL},
         {EDU_TEST,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->type, 0, 
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->type, 0, 
                                 mqd_a2s_que_info_test_type_func},
         {EDU_EXEC,mqsv_edp_mqd_queue_param, 0, 0, 6,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->info.q, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->info.q, 0, NULL},
         {EDU_EXEC,mqsv_edp_mqd_qgroup_param, 0, 0, 6,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->info.qgrp, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->info.qgrp, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->ilist_cnt, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->ilist_cnt, 0, NULL},
         {EDU_EXEC,ncs_edp_sanamet, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->ilist_info, (uns32)&((MQD_A2S_QUEUE_INFO*)0)->ilist_cnt, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->ilist_info, (long)&((MQD_A2S_QUEUE_INFO*)0)->ilist_cnt, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_QUEUE_INFO*)0)->track_cnt, 0, NULL},
+                    (long)&((MQD_A2S_QUEUE_INFO*)0)->track_cnt, 0, NULL},
         {EDU_EXEC,mqsv_edp_mqd_track_info, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-                   (uns32)&((MQD_A2S_QUEUE_INFO*)0)->track_info, (uns32)&((MQD_A2S_QUEUE_INFO*)0)->track_cnt, NULL},
+                   (long)&((MQD_A2S_QUEUE_INFO*)0)->track_info, (long)&((MQD_A2S_QUEUE_INFO*)0)->track_cnt, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
@@ -721,23 +721,23 @@ static uns32 mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_queue_param, 0, 0, 0,
                     sizeof(MQD_QUEUE_PARAM), 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->send_state, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->send_state, 0, NULL},
         {EDU_EXEC,m_NCS_EDP_SATIMET, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->retentionTime, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->retentionTime, 0, NULL},
         {EDU_EXEC,ncs_edp_mds_dest, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->dest, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->dest, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->owner, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->owner, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->hdl, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->hdl, 0, NULL},
         {EDU_EXEC,m_NCS_EDP_SAUINT8T, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->adv, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->adv, 0, NULL},
         {EDU_EXEC,m_NCS_EDP_SAUINT8T, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->is_mqnd_down, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->is_mqnd_down, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->creationFlags, 0, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->creationFlags, 0, NULL},
         {EDU_EXEC, ncs_edp_uns64, EDQ_ARRAY, 0, 0,
-                    (uns32)&((MQD_QUEUE_PARAM*)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY+1, NULL},
+                    (long)&((MQD_QUEUE_PARAM*)0)->size, SA_MSG_MESSAGE_LOWEST_PRIORITY+1, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -789,7 +789,7 @@ static uns32 mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_qgroup_param, 0, 0, 0,
                     sizeof(MQD_QGROUP_PARAM), 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_QGROUP_PARAM*)0)->policy, 0, NULL},
+                    (long)&((MQD_QGROUP_PARAM*)0)->policy, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 
@@ -882,11 +882,11 @@ static uns32 mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, mqsv_edp_mqd_track_info, 0, 0, 0,
                     sizeof(MQD_A2S_TRACK_INFO), 0, NULL},
         {EDU_EXEC,ncs_edp_mds_dest, 0, 0, 0,
-                    (uns32)&((MQD_A2S_TRACK_INFO*)0)->dest, 0, NULL},
+                    (long)&((MQD_A2S_TRACK_INFO*)0)->dest, 0, NULL},
         {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((MQD_A2S_TRACK_INFO*)0)->to_svc, 0, NULL},
+                    (long)&((MQD_A2S_TRACK_INFO*)0)->to_svc, 0, NULL},
         {EDU_EXEC,mqsv_edp_mqd_asapi_track_info, 0, 0, 0,
-                    (uns32)&((MQD_A2S_TRACK_INFO*)0)->track, 0, NULL},
+                    (long)&((MQD_A2S_TRACK_INFO*)0)->track, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
     };
 

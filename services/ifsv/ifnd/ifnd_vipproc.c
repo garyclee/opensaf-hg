@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #if (NCS_VIP == 1)
@@ -106,7 +106,7 @@ uns32 ifnd_create_mark_vip_entry_stale_evt(IFSV_CB *cb, uns8 * applName,uns32 hd
    if(m_IFND_EVT_SEND(mbx, ifsv_evt, NCS_IPC_PRIORITY_NORMAL)
       == NCSCC_RC_FAILURE)
    {
-      m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_SEND_FAIL,mbx);
+      m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_SEND_FAIL,(long)mbx);
       m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "IFND_EVT_SEND failed in ifnd_create_mark_vip_entry_stale_evt()"," ");
       m_MMGR_FREE_IFSV_EVT(ifsv_evt);

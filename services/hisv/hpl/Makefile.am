@@ -5,6 +5,7 @@ libhpl_la_CPPFLAGS =  	@NCS_CORE_CPP_DEFINES@ \
 			-I $(top_srcdir)/services/leap/inc/ \
 			-I $(top_srcdir)/services/mds/inc/ \
 			-I $(top_srcdir)/services/mab/inc/ \
+			-I $(top_srcdir)/services/common/inc/ \
 			-I $(top_srcdir)/include/  
 
 libhpl_la_SOURCES =	./hpl_init.c \

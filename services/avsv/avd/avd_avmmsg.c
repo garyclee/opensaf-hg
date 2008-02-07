@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -414,15 +414,62 @@ uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    /* Find the node from the node ID */
    if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node)))
    {
+     m_AVD_LOG_INVALID_VAL_ERROR(node);
       return NCSCC_RC_FAILURE;
    }
 
-   snd_msg->avd_avm_msg.avd_hb_lost.node_name.length = 
+   snd_msg->avd_avm_msg.avd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avd_hb_lost.node_name.value, 
+   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
-                snd_msg->avd_avm_msg.avd_hb_lost.node_name.length);
+                snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
+
+   rc = avd_avm_send_msg(cb, snd_msg);
+
+   if(rc != NCSCC_RC_SUCCESS)
+      m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
+
+   return rc;
+}
+
+/****************************************************************************
+*  Name          : avd_avm_d_hb_restore_msg
+* 
+*  Description   : This is a routine that is invoked to send a hb restore
+*                  message to AvM.
+* 
+*  Arguments     : cb    - AvD control block Handle.
+* 
+*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+* 
+*  Notes         : 
+******************************************************************************/
+uns32 avd_avm_d_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
+{
+   AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
+   AVD_AVND *avnd;
+   uns32 rc = NCSCC_RC_SUCCESS;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_avm_hb_restore_msg");
+
+   /* Fill in the message */
+   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_RESTORE_MSG;
+
+   /* Find the node from the node ID */
+   if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node)))
+   {
+      m_AVD_LOG_INVALID_VAL_ERROR(node);
+      return NCSCC_RC_FAILURE;
+   }
+
+   snd_msg->avd_avm_msg.avd_hb_info.node_name.length = 
+        m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+
+   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
+                avnd->node_info.nodeName.value, 
+                snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
 
    rc = avd_avm_send_msg(cb, snd_msg);
 
@@ -454,7 +501,7 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_LOST_MSG;
    /* Fill in the logical node_id */
-   snd_msg->avd_avm_msg.avnd_hb_lost.node_id = node;
+   snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
 
 
    /* Find the node from the node ID */
@@ -464,12 +511,12 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
       return NCSCC_RC_FAILURE;
    }
 
-   snd_msg->avd_avm_msg.avnd_hb_lost.node_name.length = 
+   snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avnd_hb_lost.node_name.value, 
+   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
-                snd_msg->avd_avm_msg.avnd_hb_lost.node_name.length);
+                snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
 
 
    rc = avd_avm_send_msg(cb, snd_msg);
@@ -480,6 +527,56 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    return rc;
 }
 
+/****************************************************************************
+*  Name          : avd_avm_nd_hb_restore_msg
+* 
+*  Description   : This is a routine that is invoked to send a hb restore 
+*                  message to AvM.
+* 
+*  Arguments     : cb    - AvD control block Handle.
+* 
+*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+* 
+*  Notes         : 
+******************************************************************************/
+uns32 avd_avm_nd_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
+{
+   AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
+   AVD_AVND *avnd;
+   uns32 rc = NCSCC_RC_SUCCESS;
+
+   /* Fill in the message */
+   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_RESTORE_MSG;
+
+   /*Using the lost Heart beat structure only , as same information is 
+     is to be send */
+   /* Fill in the logical node_id */
+   snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
+
+
+   /* Find the node from the node ID */
+   if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node)))
+   {
+      m_AVD_LOG_INVALID_VAL_FATAL(node);
+      return NCSCC_RC_FAILURE;
+   }
+
+   snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = 
+        m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+
+   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
+                avnd->node_info.nodeName.value, 
+                snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
+
+
+   rc = avd_avm_send_msg(cb, snd_msg);
+
+   if(rc != NCSCC_RC_SUCCESS)
+      m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
+
+   return rc;
+}
 
 /****************************************************************************\
  * Function: avd_avm_node_reset_rsp

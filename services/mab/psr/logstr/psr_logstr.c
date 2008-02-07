@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -314,12 +314,13 @@ const NCSFL_STR pss_hdln_set[] =
     { PSS_HDLN_TBL_NODE_NOT_FND_FOR_TBL_ID, "Table node not found in OAA hash-list"},
     { PSS_HDLN_OAA_DOWN_EVENT_FAILED, "pss_handle_oaa_down_event failed "},
     { PSS_HDLN_OAA_DOWN_EVENT_SUCCESS, "pss_handle_oaa_down_event success "},
-    { PSS_HDLN_STDBY_OAA_DOWN_LIST_ADD_FAILED, "pss_stdby_oaa_down_list_update failed to add "},
-    { PSS_HDLN_STDBY_OAA_DOWN_LIST_ADD_SUCCESS, "pss_stdby_oaa_down_list_update success to add "},
-    { PSS_HDLN_STDBY_OAA_DOWN_LIST_DELETE_FAILED, "pss_stdby_oaa_down_list_update failed to delete "},
-    { PSS_HDLN_STDBY_OAA_DOWN_LIST_DELETE_SUCCESS, "pss_stdby_oaa_down_list_update success to delete "},
+    { PSS_HDLN_STDBY_OAA_DOWN_LIST_ADD_FAILED, "Failed to Add this OAA to STBY OAA_DOWN BUFFER "},
+    { PSS_HDLN_STDBY_OAA_DOWN_LIST_ADD_SUCCESS, "OAA successfully added to STBY OAA_DOWN BUFFER "},
+    { PSS_HDLN_STDBY_OAA_DOWN_LIST_DELETE_FAILED, "Failed to delete this OAA from STBY OAA_DOWN BUFFER "},
+    { PSS_HDLN_STDBY_OAA_DOWN_LIST_DELETE_SUCCESS, "OAA successfully deleted from STBY OAA_DOWN BUFFER "},
     { PSS_HDLN_OAA_ENTRY_NOT_FOUND, "oaa entyr not found in oaa tree"},
     { PSS_HDLN_PSS_VERSION, "PSS Version: "},
+    { PSS_HDLN_OAA_ACK_FAILED, "PSS Warmboot Playback Failure: OAA ACK sent failed " },
     { PSS_HDLN_REFORMAT_REQUEST, "PSS Reformat request type:" },
     { PSS_HDLN_PROFILE_FOUND, "PSS profile found: "},
     { PSS_HDLN_PWE_FOUND, "PSS PWE found: "},
@@ -350,6 +351,7 @@ const NCSFL_STR pss_hdln_set[] =
     { PSS_HDLN_MDS_ENC_FAILURE, "Incompatile Message format to encode"},
     { PSS_HDLN_MDS_DEC_FAILURE, "Incompatile Message format to decode"},
     { PSS_HDLN_INVALID_MBCSV_PEER_VER, "Incompatible MBCSv peer version"},
+    { PSS_HDLN_READ_LIB_CONF_FAIL, "read on pssv_lib_conf failed while reading the entry: "},
     { 0,0 }
 };
 
@@ -493,44 +495,44 @@ const NCSFL_STR pss_lock_set[] =
 NCSFL_FMAT pss_fmat_set[] = 
   {
     { PSS_LID_HDLN,           NCSFL_TYPE_TI,    "PSS %s HEADLINE : %s\n"     },
-    { PSS_LID_SVC_PRVDR_FLEX, NCSFL_TYPE_TILL,  "PSS %s SVC PRVDR: %s, %d, %d\n"     },
+    { PSS_LID_SVC_PRVDR_FLEX, NCSFL_TYPE_TILL,  "PSS %s SVC PRVDR: %s, %ld, %ld\n"     },
     { PSS_LID_LOCKS,          NCSFL_TYPE_TIL,   "PSS %s LOCK     : %s (%p)\n"},
     { PSS_LID_MEMFAIL,        "TIC",            "PSS %s MEM FAIL:%s in %s\n\n"}, 
     { PSS_LID_API,            NCSFL_TYPE_TI ,   "PSS %s API      : %s\n"     },
-    { PSS_LID_STORE,         "TICLL",    "PSS %s STORE : %s, pcn=%s,pwe=%d,tbl=%d\n" },
+    { PSS_LID_STORE,         "TICLL",    "PSS %s STORE : %s, pcn=%s,pwe=%ld,tbl=%ld\n" },
     { PSS_LID_LIB,           "TIC",    "PSS %s : %s dl_error=%s\n" },
     { PSS_LID_LIB_INFO,      "TICC",   "PSS %s : %s %s, %s\n" },
-    { PSS_LID_VAR_INFO,      "TILLLLLLLLLLLLLLLL", "PSS %s : %s TBL:%d,PSSOFSET:%d,PARMID:%d,OFFSET:%d,LEN:%d,IS_INDX:%d,ACCSS:%d,STATUS:%d,SETWHENDOWN:%d,FMTID:%d,OBJTYPE:%d,INT_MIN:%d,INT_MAX:%d,OCT_MIN:%d,OCT_MAX:%d,IS_READONLY_PERSISTENT:%d\n" },
-    { PSS_LID_INFO,          "TICL",   "PSS %s : %s PCN=%s, Playback-from-BOM=%d\n" },
-    { PSS_LID_TBL_INFO,      "TICLLLLLLLL",   "PSS %s : %s TBL=%s, TBL_ID=%d, RNK=%d, NUM_OBJ=%d, NUM_INSTS=%d, MAYKEY=%d, MAXROW=%d, CAP=%d, BMAP_LEN=%d\n" },
-    { PSS_LID_WBREQ_INFO,    "TICLLL",  "PSS %s : %s PCN=%s, pwe_id=%d, is_system_client=%d, tbl_id=%d\n" },
-    { PSS_LID_PLBCK,         "TICL",   "PSS %s : %s PCN=%s, pwe_id=%d\n" },
-    { PSS_LID_LAST_UPDT_INFO, "TICLL",   "PSS %s : %s PCN=%s, pwe_id=%d, tbl_id=%d\n" },
-    { PSS_LID_CLIENT_ENTRY,  "TICL",   "PSS %s : %s PCN=%s, pwe_id=%d\n" },
-    { PSS_LID_SNMP_REQ,      "TILL",   "PSS %s : %s pwe_id=%d, tbl_id=%d\n" },
+    { PSS_LID_VAR_INFO,      "TILLLLLLLLLLLLLLLL", "PSS %s : %s TBL:%ld,PSSOFSET:%ld,PARMID:%ld,OFFSET:%ld,LEN:%ld,IS_INDX:%ld,ACCSS:%ld,STATUS:%ld,SETWHENDOWN:%ld,FMTID:%ld,OBJTYPE:%ld,INT_MIN:%ld,INT_MAX:%ld,OCT_MIN:%ld,OCT_MAX:%ld,IS_READONLY_PERSISTENT:%ld\n" },
+    { PSS_LID_INFO,          "TICL",   "PSS %s : %s PCN=%s, Playback-from-BOM=%ld\n" },
+    { PSS_LID_TBL_INFO,      "TICLLLLLLLL",   "PSS %s : %s TBL=%s, TBL_ID=%ld, RNK=%ld, NUM_OBJ=%ld, NUM_INSTS=%ld, MAYKEY=%ld, MAXROW=%ld, CAP=%ld, BMAP_LEN=%ld\n" },
+    { PSS_LID_WBREQ_INFO,    "TICLLL",  "PSS %s : %s PCN=%s, pwe_id=%ld, is_system_client=%ld, tbl_id=%ld\n" },
+    { PSS_LID_PLBCK,         "TICL",   "PSS %s : %s PCN=%s, pwe_id=%ld\n" },
+    { PSS_LID_LAST_UPDT_INFO, "TICLL",   "PSS %s : %s PCN=%s, pwe_id=%ld, tbl_id=%ld\n" },
+    { PSS_LID_CLIENT_ENTRY,  "TICL",   "PSS %s : %s PCN=%s, pwe_id=%ld\n" },
+    { PSS_LID_SNMP_REQ,      "TILL",   "PSS %s : %s pwe_id=%ld, tbl_id=%ld\n" },
     { PSS_LID_MEMDUMP,       "TID",    "PSS %s : %s, [DATA]=%s\n" },
-    { PSS_LID_HDLN_I,        NCSFL_TYPE_TIL, "PSS %s HEADLINE: %s data: %d\n"},  
-    { PSS_LID_HDLN2_I,       NCSFL_TYPE_TIL, "PSS %s HEADLINE: %s data: %d\n"},  
+    { PSS_LID_HDLN_I,        NCSFL_TYPE_TIL, "PSS %s HEADLINE: %s data: %ld\n"},  
+    { PSS_LID_HDLN2_I,       NCSFL_TYPE_TIL, "PSS %s HEADLINE: %s data: %ld\n"},  
     { PSS_LID_HDLN_C,        NCSFL_TYPE_TIC, "PSS %s HEADLINE: %s String: %s\n"},  
-    { PSS_LID_HDLN_II,       NCSFL_TYPE_TILL,"PSS %s HEADLINE: %s data1: %d, data2: %d\n"},  
-    { PSS_LID_HDLN_III,      NCSFL_TYPE_TILLL,"PSS %s HEADLINE: %s data1: %d, data2: %d data3:%d\n"},  
+    { PSS_LID_HDLN_II,       NCSFL_TYPE_TILL,"PSS %s HEADLINE: %s data1: %ld, data2: %ld\n"},  
+    { PSS_LID_HDLN_III,      NCSFL_TYPE_TILLL,"PSS %s HEADLINE: %s data1: %ld, data2: %ld data3:%ld\n"},  
     { PSS_LID_STR,           NCSFL_TYPE_TIC, "PSS %s: %s data: %s\n"}, 
     { PSS_LID_ERROR,         "TI",     "PSS %s ERROR: %s\n" }, /* 15 */ 
-    { PSS_LID_ERR_I,         "TIL",    "PSS %s ERROR: %s, error: %d\n" },
-    { PSS_LID_ERR_II,        "TILL",   "PSS %s ERROR: %s, error: %d error: %d\n" },
-    { PSS_LID_CSI,           "TILCCL", "PSS %s CSI DATA: %s\n\t\tcsiFlags: %d,\n\t\tCompName: %s\n\t\tcsiName:%s\n\t\tHA State: %d\n\n"}, 
-    { PSS_LID_ST_CHG,        "TILL",   "PSS %s STATE CHG: %s\n\t\tCurr State:%d, New State: %d\n\n"},
+    { PSS_LID_ERR_I,         "TIL",    "PSS %s ERROR: %s, error: %ld\n" },
+    { PSS_LID_ERR_II,        "TILL",   "PSS %s ERROR: %s, error: %ld error: %ld\n" },
+    { PSS_LID_CSI,           "TILCCL", "PSS %s CSI DATA: %s\n\t\tcsiFlags: %ld,\n\t\tCompName: %s\n\t\tcsiName:%s\n\t\tHA State: %ld\n\n"}, 
+    { PSS_LID_ST_CHG,        "TILL",   "PSS %s STATE CHG: %s\n\t\tCurr State:%ld, New State: %ld\n\n"},
     { PSS_LID_CONF_DONE,     "TIC",   "PSS %s CONF_DONE: %s PCN:%s\n\n"},
     { PSS_LID_BAM_REQ,     "TIC",   "PSS %s BAM REQ: %s PCN:%s\n\n"},
-    { PSS_LID_PLBCK_SET_COUNT, "TICLLL",   "PSS %s %s PCN:%s TBL:%d CPBLTY:%d CNT:%d\n\n"},
-    { PSS_LID_TBL_BIND, "TICL",   "PSS %s %s PCN:%s TBL:%d \n\n"},
-    { PSS_LID_TBL_UNBIND, "TIL",   "PSS %s %s TBL:%d \n\n"},
-    { PSS_LID_WBREQ_I, "TICL",   "PSS %s %s PCN=%s, PWE=%d \n\n"},
-    { PSS_LID_WBREQ_II, "TIL",   "PSS %s %s tbl_id=%d \n\n"},
-    { PSS_LID_OAA_ACK_EVT, "TIL",   "PSS %s %s seq_num=%d \n\n"},
+    { PSS_LID_PLBCK_SET_COUNT, "TICLLL",   "PSS %s %s PCN:%s TBL:%ld CPBLTY:%ld CNT:%ld\n\n"},
+    { PSS_LID_TBL_BIND, "TICL",   "PSS %s %s PCN:%s TBL:%ld \n\n"},
+    { PSS_LID_TBL_UNBIND, "TIL",   "PSS %s %s TBL:%ld \n\n"},
+    { PSS_LID_WBREQ_I, "TICL",   "PSS %s %s PCN=%s, PWE=%ld \n\n"},
+    { PSS_LID_WBREQ_II, "TIL",   "PSS %s %s tbl_id=%ld \n\n"},
+    { PSS_LID_OAA_ACK_EVT, "TIL",   "PSS %s %s seq_num=%ld \n\n"},
     { PSS_LID_NO_CB,          NCSFL_TYPE_TIC,   "PSS %s HEADLINE : %s MDS DEST: %s\n"     },
-    { PSS_LID_TBL_DTLS,      "TILLLLLLLL","PSS %s : %s \nDetails from Persistent Store:\n\t Table Version: %d, Max Row Len: %d Max Key Len: %d Bitmap Len: %d \nDetails from Loaded Libraries:\n\t Table Version: %d, Max Row Len: %d Max Key Len: %d Bitmap Len: %d \n"},
-    { PSS_LID_HDLN_CLL,       NCSFL_TYPE_TICLL, "PSS %s HEADLINE: %s data1: %s, data2: %d data3:%d\n"},
+    { PSS_LID_TBL_DTLS,      "TILLLLLLLL","PSS %s : %s \nDetails from Persistent Store:\n\t Table Version: %ld, Max Row Len: %ld Max Key Len: %ld Bitmap Len: %ld \nDetails from Loaded Libraries:\n\t Table Version: %ld, Max Row Len: %ld Max Key Len: %ld Bitmap Len: %ld \n"},
+    { PSS_LID_HDLN_CLL,       NCSFL_TYPE_TICLL, "PSS %s HEADLINE: %s data1: %s, data2: %ld data3:%ld\n"},
     { 0, 0, 0 }
   };
 

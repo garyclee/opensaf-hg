@@ -10,4 +10,4 @@ libpssv_logstr_la_CPPFLAGS= @NCS_CORE_CPP_DEFINES@ \
 
 libpssv_logstr_la_SOURCES = ./psr_logstr.c
 
-libpssv_logstr_la_LDFLAGS = -version-number 3
+libpssv_logstr_la_LDFLAGS = -version-number 4

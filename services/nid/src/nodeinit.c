@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -2256,17 +2256,19 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
        fprintf(fp,"%s","System Controller Initialization Failed");
     if ( !service->recovery_matrix[NID_RESET].retry_count ) {
     if(fp)
-       fprintf(fp,"%s","System Controller Initialization Failed");
+       fprintf(fp,"%s","Init fail: dropped to shell for troubleshooting");
     logme(NID_LOG2FILE_CONS,"DROPPING TO SHELL FOR TROUBLE-SHOOTING!!!\n");
     }
     else {
     if(fp)
-       fprintf(fp,"%s","System Controller Initialization Failed");
+       fprintf(fp,"%s","Init fail: System Restarting in a while");
     logme(NID_LOG2FILE_CONS,"SYSTEM GOING TO RESTART IN A WHILE!!!\n");
     }
-    if (fp != NULL)
+    if (fp)
+    {
+       fflush(fp); 
        fclose(fp);
-
+    }
     return NCSCC_RC_FAILURE;
 
 }
@@ -2868,6 +2870,15 @@ main(int argc, char **argv)
 
    logme(NID_LOG2FILE_CONS,"Node Initialization Successful. \n");
    logme(NID_LOG2CONS,"SUCCESSFULLY SPAWNED ALL SERVICES!!!\n");
+
+   FILE *fp=NULL;
+   fp=fopen(NODE_HA_STATE,"a");
+   if(fp)
+   {
+     fprintf(fp,"%s","Node Initialization Successful.\n");
+     fflush(fp);
+     fclose(fp);
+   }
 
    notify_bis("SUCCESS\n");
 

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1019,7 +1019,9 @@ pss_amf_csi_set_all(SaInvocationT invocation,
        int            ps_cnt=0;
        struct dirent  **ps_list;
        int            ps_format_version = 0, tmp_ps0 = 0, tmp_ps1 = 0;
-
+       NCS_OS_FILE file;
+       uns32      retval;
+       uns8       buf[NCS_PSSTS_MAX_PATH_LEN];
 
     /* Get the existing persistent-store's format versions.
        -> There could two formats of persistent stores. One PSS_PS_FORMAT_VERSION and
@@ -1028,6 +1030,19 @@ pss_amf_csi_set_all(SaInvocationT invocation,
           formatting need to be done on this version. [This is required
              as MIB reformatting need to be done for every switch-over].
         */
+
+       m_NCS_MEMSET(&buf, '\0', sizeof(buf));
+       sprintf(buf, "%s%d", NCS_PSS_DEF_PSSV_ROOT_PATH, PSS_PS_FORMAT_VERSION);
+
+       /* Now create the directory */
+       m_NCS_MEMSET(&file, '\0', sizeof(NCS_OS_FILE));
+       file.info.create_dir.i_dir_name = buf;
+
+       retval = m_NCS_FILE_OP (&file, NCS_OS_FILE_CREATE_DIR);
+       if (retval != NCSCC_RC_SUCCESS)
+           return;
+
+       m_NCS_CONS_PRINTF ("Persistent store with format %d created successfully", PSS_PS_FORMAT_VERSION);
 
        /* Using snprintf directly, because the leap routine does not accept variable arguments,
                                                       which leads to multiple function calls */
@@ -1365,7 +1380,8 @@ pss_amf_ACTIVE_process(void                *data,
    }
 
    m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-   mm->yr_hdl = (NCSCONTEXT)csi_node->pwe_cb;
+   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   mm->yr_hdl = NCS_INT32_TO_PTR_CAST(csi_node->pwe_cb->hm_hdl);
    mm->op = MAB_PSS_RE_RESUME_ACTIVE_ROLE_FUNCTIONALITY;
 
    if(m_PSS_SND_MSG(csi_node->pwe_cb->mbx, mm) == NCSCC_RC_FAILURE)
@@ -1639,6 +1655,11 @@ pss_amf_csi_remove_all(void)
     }
 
     gl_pss_amf_attribs.ha_state = NCS_APP_AMF_HA_STATE_NULL;
+
+    /* Fixed as a part of IR00085797 */
+    /* It is required to set the PSS Control block HA state to NULL */
+    gl_pss_amf_attribs.pss_cb->ha_state = NCS_APP_AMF_HA_STATE_NULL;
+
     if (saf_status == SA_AIS_OK)
     {
         /* log that all the CSIs are destroyed */ 
@@ -2178,7 +2199,7 @@ pss_amf_component_name_set(void)
     char    comp_name[256] = {0}; 
 
     /* open the file to read the component name */
-    fp = fopen(m_PSS_COMP_NAME_FILE, "r");/* /etc/opt/opensaf/ncs_pss_comp_name.txt */
+    fp = fopen(m_PSS_COMP_NAME_FILE, "r");/* /var/opt/opensaf/ncs_pss_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */
@@ -2340,7 +2361,8 @@ uns32 pss_amf_vdest_role_chg_api_callback(MDS_CLIENT_HDL handle)
    }
 
    m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-   mm->yr_hdl = (NCSCONTEXT)pwe_cb;
+   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   mm->yr_hdl = NCS_INT64_TO_PTR_CAST(handle);
    mm->op = MAB_PSS_VDEST_ROLE_QUIESCED;
 
    ncshm_give_hdl((uns32)handle);

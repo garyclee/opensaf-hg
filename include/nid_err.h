@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -140,21 +140,34 @@ enum nid_swmgstat_cods{
 
 /* LHCD initialization Error Codes */
 enum lhcdstat_cods{
-   LHCD_ERR1=2,
-   LHCD_ERR2,
-   LHCD_ERR3,
-   LHCD_ERR4,
-   MAXLHCDERR
+   LHCD_NID_CONF_FILE_ERR=2,
+   LHCD_NID_CMD_LINE_ARG_ERR,
+   LHCD_NID_DAEMON_INIT_FAILURE,
+   LHCD_NID_NCS_CORE_AGENTS_STARTUP_FAILURE,
+   LHCD_NID_TASK_START_FAILURE,
+   LHCD_NID_DTSV_BIND_FAILURE,
+   LHCD_NID_CMD_LM_FAILURE,
+   LHCD_NID_MAB_REG_FAILURE,
+   LHCD_NID_MAB_CLAIM_ROW_FAILURE,
+   LHCD_NID_L2_CONN_FAILURE,
+   NID_MAXLHCDERR
 };
 
 /* LHCR initialization Error Codes */
 enum lhcrstat_cods{
-   LHCR_ERR1=2,
-   LHCR_ERR2,
-   LHCR_ERR3,
-   LHCR_ERR4,
-   MAXLHCRERR
+   LHCR_NID_CONF_FILE_ERR=2,
+   LHCR_NID_CMD_LINE_ARG_ERR,
+   LHCR_NID_DAEMON_INIT_FAILURE,
+   LHCR_NID_NCS_CORE_AGENTS_STARTUP_FAILURE,
+   LHCR_NID_TASK_START_FAILURE,
+   LHCR_NID_DTSV_BIND_FAILURE,
+   LHCR_NID_CMD_LM_FAILURE,
+   LHCR_NID_MAB_REG_FAILURE,
+   LHCR_NID_MAB_CLAIM_ROW_FAILURE,
+   LHCR_NID_L2_CONN_FAILURE,
+   NID_MAXLHCRERR
 };
+/*LHC-NID -e*/
 
 /* Network initialization Error Codes */
 enum nid_nw_stat_cods {

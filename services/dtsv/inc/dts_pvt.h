@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -151,7 +151,7 @@ extern uns32 gl_severity_filter; /* To allow manipulat at init-time */
 #define       DTS_LOG_DEV_VAL_MAX   32 
 
 /* Versioning support - define for current DTS log version */
-#define       DTS_LOG_VERSION    1
+#define       DTS_LOG_VERSION    2
 #define       DTS_MBCSV_VERSION  1
 #define       DTS_MBCSV_VERSION_MIN  1
 
@@ -596,6 +596,10 @@ typedef struct dts_cb
    SPEC_CKPT   last_spec_loaded; /* Contains data to ckpt the details for last
                                     spec loaded for this service.
                                     Needed only for checkpointing.*/
+   #if (DTS_FLOW == 1)
+   uns32              msg_count;
+   #endif
+
  
 } DTS_CB;
 
@@ -1362,6 +1366,6 @@ DTS_LOCK_ID)
 /* Offset to calculate start of DTA_DEST_LIST after get frm patricia tree */
 #define DTA_DEST_LIST_NODE_ADDR &((DTA_DEST_LIST*)0)->node
 #define DTA_DEST_LIST_QEL_ADDR  &((DTA_DEST_LIST*)0)->qel
-#define DTA_DEST_LIST_OFFSET  ((uns32)DTA_DEST_LIST_NODE_ADDR - (uns32)DTA_DEST_LIST_QEL_ADDR)
+#define DTA_DEST_LIST_OFFSET  ((long)DTA_DEST_LIST_NODE_ADDR - (long)DTA_DEST_LIST_QEL_ADDR)
 
 #endif /* DTS_PVT_H */

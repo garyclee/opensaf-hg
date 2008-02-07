@@ -1,6 +1,9 @@
 #!/bin/bash
 
-echo "############################################################"
-cat /var/opt/opensaf/node_ha_state
-echo 
-echo "############################################################"
+PIDFILE=/var/run/nodeinit.pid
+
+if [ ! -f $PIDFILE ]; then
+    echo "OpenSAF is stopped."
+else
+   cat /var/opt/opensaf/node_ha_state
+fi

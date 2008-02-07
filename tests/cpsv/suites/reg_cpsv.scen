@@ -1,0 +1,6 @@
+all
+	"Start executing..."
+        :parallel:
+         /reg_cpsv.sh
+         :endparallel:
+        "completed"

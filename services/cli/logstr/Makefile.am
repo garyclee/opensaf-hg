@@ -10,4 +10,4 @@ libcli_logstr_la_CPPFLAGS =  @NCS_CORE_CPP_DEFINES@ -DNCSCLI_LOG=1 -DNCS_DTS=1 \
 
 libcli_logstr_la_SOURCES =	./cli_logstr.c
 
-libcli_logstr_la_LDFLAGS = -version-number 1
+libcli_logstr_la_LDFLAGS = -version-number 2

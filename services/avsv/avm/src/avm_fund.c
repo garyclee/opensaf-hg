@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************/
@@ -90,7 +90,6 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
     out_usr_buf.cmd_parm.cmd_id = htons(cmd_id);
     /* send the ipmb address in char format */
     sprintf(out_usr_buf.cmd_parm.payload_ipaddr, "%x", ent_info->dhcp_serv_conf.ipmb_addr);
-    m_NCS_CONS_PRINTF("IPMB ADDR = %s\n", out_usr_buf.cmd_parm.payload_ipaddr);
 #if 0
     out_usr_buf.cmd_parm.payload_ipaddr[0] = '0' +  (ent_info->dhcp_serv_conf.ipmb_addr/10);
     out_usr_buf.cmd_parm.payload_ipaddr[1] = '0' +  (ent_info->dhcp_serv_conf.ipmb_addr%10);
@@ -180,7 +179,7 @@ uns32 avm_fund_resp_func (NCSMIB_ARG *resp)
    if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, ent_info->cb_hdl)))
    {
       m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-      /* TBD - anything else need to be done?? - JPL */
+      ncshm_give_hdl(resp->i_usr_key);
       return NCSCC_RC_FAILURE;
    }
    cb_hdl = ent_info->cb_hdl;
@@ -191,6 +190,7 @@ uns32 avm_fund_resp_func (NCSMIB_ARG *resp)
    {
       m_AVM_LOG_MEM(AVM_LOG_EVT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
       ncshm_give_hdl(cb_hdl);
+      ncshm_give_hdl(resp->i_usr_key);
       return NCSCC_RC_FAILURE;
    }
    
@@ -203,7 +203,8 @@ uns32 avm_fund_resp_func (NCSMIB_ARG *resp)
    {
       m_AVM_LOG_MAS(AVM_LOG_MIB_CPY, AVM_LOG_MAS_FAILURE, NCSFL_SEV_EMERGENCY);
       m_MMGR_FREE_AVM_EVT(evt);
-      ncshm_give_hdl(cb_hdl); /* Return CB hdl */
+      ncshm_give_hdl(cb_hdl); 
+      ncshm_give_hdl(resp->i_usr_key);
       return NCSCC_RC_FAILURE;
    }
 
@@ -212,23 +213,24 @@ uns32 avm_fund_resp_func (NCSMIB_ARG *resp)
    {
       m_AVM_LOG_MBX(AVM_LOG_MBX_SEND, AVM_LOG_MBX_FAILURE, NCSFL_SEV_EMERGENCY);
       m_MMGR_FREE_AVM_EVT(evt);
-      ncshm_give_hdl(cb_hdl); /*Return CB hdl */
+      ncshm_give_hdl(cb_hdl);
+      ncshm_give_hdl(resp->i_usr_key); 
       return NCSCC_RC_FAILURE;
    }
 
    ncshm_give_hdl(cb_hdl);
+   ncshm_give_hdl(resp->i_usr_key);
    return NCSCC_RC_SUCCESS;
 }
 
 uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 {
-   struct  slot_info sss;
    NCSMIB_ARG *resp;
-   AVM_ENT_PATH_STR_T ep;
 
    AVM_ENT_INFO_T *ent_info;  
    uns8 unlock=0, failure=0, rollback=0;
    uns8 str[AVM_LOG_STR_MAX_LEN];
+   uns32 retStat = NCSCC_RC_SUCCESS; 
 
    uns32   buff_len = 0;
    uns8    *buff_ptr;
@@ -251,8 +253,6 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       return NCSCC_RC_FAILURE;
    }
    str[0] = '\0';
-   m_NCS_CONS_PRINTF("avm_proc_fund: Entering\n");
-   m_NCS_CONS_PRINTF("avm_proc_fund: CMD ID = %d\n", resp->rsp.info.cli_rsp.i_cmnd_id);
 
    /* Check for the role_chg_wait_tmr, if it is running, stop it */
    if(ent_info->role_chg_wait_tmr.status == AVM_TMR_RUNNING)
@@ -273,7 +273,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                if(buff_len <= 0 || buff_len > 2)
                {
                   /* IPMC UPGRADE Command failed. Log it. Send the trap */
-                  sprintf(str,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD failed - unknown resp length",ent_info->ep_str.name);
+                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: Unknown resp length",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                   cb->upgrade_error_type = UNKNOWN_ERROR;
                   cb->upgrade_module = IPMC_PLD;  
@@ -289,6 +289,10 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                                local_buf)) == (uns8 *)0)
                   {
                      /* Log Error */
+                     sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                     m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+
+                     ncshm_give_hdl(resp->i_usr_key);
                      return NCSCC_RC_SUCCESS;
                   }
 
@@ -309,7 +313,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                            cb->upgrade_error_type = UNKNOWN_ERROR;  
                            rollback = IPMC_PLD_BLD;
                      }
-                     sprintf(str,"AVM-SSU: Payload blade %s: Payload IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type); 
+                     sprintf(str,"AVM-SSU: Payload %s: Payload IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type); 
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                      cb->upgrade_module = IPMC_PLD_BLD;
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
@@ -325,11 +329,15 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         if (pld_bld_status == PAYLOAD_IPMC_UPGD_SUCCESS)   
                         {
                            ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status; 
+#if 0
+                           m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+#endif
                            cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
                         }
                         else
                         {
                            cb->upgrade_prg_evt = AVM_SAME_VERSION;
+                           ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status;
                         }
                         cb->upgrade_module = IPMC_PLD_BLD;
                         sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD Upgrade Success: Progress Tpye=%d ",ent_info->ep_str.name,cb->upgrade_prg_evt); 
@@ -371,6 +379,9 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         if (pld_rtm_status == PAYLOAD_IPMC_UPGD_SUCCESS) 
                         {
                            ent_info->dhcp_serv_conf.pld_rtm_ipmc_status = pld_rtm_status; 
+#if 0
+                           m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+#endif
                            if(rollback)   
                            {
                               /* If AVM already decided to rollback the payload blade, rollback the payload rtm also*/  
@@ -382,6 +393,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         }
                         else if (pld_rtm_status == IPMC_SAME_VERSION)
                         {
+                           ent_info->dhcp_serv_conf.pld_rtm_ipmc_status = pld_rtm_status;
                            cb->upgrade_prg_evt = AVM_SAME_VERSION;
                            cb->upgrade_module = IPMC_PLD_RTM;
                            avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
@@ -410,6 +422,9 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
             }
             if( failure)
             { 
+              sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Handle Failure",ent_info->ep_str.name);
+              m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
+
                /* Check the type of upgrade */
                if (INTEG == ent_info->dhcp_serv_conf.upgrade_type)
                {
@@ -417,28 +432,32 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                   AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
 
-                  /* change the state to upgrade failure */
-                  ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
+                  if (ent_info->dhcp_serv_conf.curr_act_label->other_label->status != SSU_UPGD_FAILED)
+                  {
+                     /* change the state to upgrade failure */
+                     ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
 
-                  /* rollback the preferred label */
-                  if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
-                      dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
-                  else
-                      dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
+                     /* rollback the preferred label */
+                     if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
+                         dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
+                     else
+                         dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
 
-                  dhcp_conf->default_label = dhcp_conf->default_label->other_label;
-                  /* Set the preferred label also to other label */
-                  dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-                  m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
-                               dhcp_conf->pref_label.length);
+                     dhcp_conf->default_label = dhcp_conf->default_label->other_label;
 
-                  dhcp_conf->default_chg = FALSE;      /* TBD - JPL */
+                     /* Set the preferred label also to other label */
+                     dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
+                     m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                                  dhcp_conf->pref_label.length);
+
+                     dhcp_conf->default_chg = FALSE;      /* TBD - JPL */
   
-                  sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
-                                        ent_info->ep_str.name,dhcp_conf->pref_label.name);
-                  m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
+                     sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
+                                           ent_info->ep_str.name,dhcp_conf->pref_label.name);
+                     m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
 
-                  m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+                     m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+                  }
                }
                if (rollback == IPMC_PLD_BLD)
                {
@@ -452,8 +471,9 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                   m_AVM_UPGD_IPMC_PLD_MOD_TMR_START(cb,ent_info);
-
-                  return avm_gen_fund_mib_set(cb, ent_info, AVM_FUND_PLD_BLD_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+                  retStat = avm_gen_fund_mib_set(cb, ent_info, AVM_FUND_PLD_BLD_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+                  ncshm_give_hdl(resp->i_usr_key);
+                  return retStat;
                }
                if (rollback == IPMC_PLD)
                {
@@ -470,8 +490,10 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                   m_AVM_UPGD_IPMC_PLD_TMR_START(cb,ent_info);
-
-                  return avm_gen_fund_mib_set(cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+                  retStat = avm_gen_fund_mib_set(cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,
+                                                 ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+                  ncshm_give_hdl(resp->i_usr_key);
+                  return retStat;
                }
 
                ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -502,7 +524,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                }
 
@@ -511,8 +533,12 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
+                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                }
 
@@ -529,6 +555,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                    avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
                    ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                    m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                   ncshm_give_hdl(resp->i_usr_key);
                    return NCSCC_RC_FAILURE;
                } 
                if (pld_bld_status == PAYLOAD_IPMC_UPGD_SUCCESS) 
@@ -561,6 +588,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                    avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
                    ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                    m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                   ncshm_give_hdl(resp->i_usr_key);
                    return NCSCC_RC_FAILURE;
                }
             }
@@ -588,6 +616,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                }
 
@@ -596,8 +625,12 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
+                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                }
                pld_rtm_status = buff_ptr[0];
@@ -613,6 +646,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                } 
                if (pld_rtm_status == PAYLOAD_IPMC_UPGD_SUCCESS) 
@@ -646,6 +680,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                    ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                    m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                   ncshm_give_hdl(resp->i_usr_key);
                    return NCSCC_RC_FAILURE;
                }
             }
@@ -670,6 +705,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   cb->upgrade_error_type = GEN_ERROR;
                   cb->upgrade_module = IPMC_PLD;  
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
+                  failure = 1;
                }
                else 
                {
@@ -679,8 +715,12 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
+                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  ncshm_give_hdl(resp->i_usr_key);
                   return NCSCC_RC_FAILURE;
                }
                if (buff_len == 1)
@@ -698,6 +738,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   cb->upgrade_module = IPMC_PLD_BLD;
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
+                  failure = 1;
                }
                else
                {
@@ -707,7 +748,9 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   if((pld_bld_status == IPMC_SAME_VERSION) || (pld_bld_status == PAYLOAD_IPMC_UPGD_SUCCESS ))
                   {
                      if (pld_bld_status == IPMC_SAME_VERSION)
+                     {
                          cb->upgrade_prg_evt = AVM_SAME_VERSION;
+                     }
                      else
                          cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
 
@@ -730,6 +773,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                  ent_info->ep_str.name,cb->upgrade_error_type); 
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
+                     failure = 1;
                   }  
 
                   if ((pld_rtm_status >= GEN_ERROR) && (pld_rtm_status <= UNKNOWN_RTM_TYPE)) 
@@ -740,6 +784,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                  ent_info->ep_str.name,cb->upgrade_error_type);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID); 
+                     failure = 1;
                   }
                   else if ((pld_rtm_status >= IPMC_SAME_VERSION) && (pld_rtm_status  <= PAYLOAD_RTM_NOT_PRESENT)) 
                   {
@@ -769,6 +814,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                  ent_info->ep_str.name,cb->upgrade_error_type);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info, ncsAvmSwFwUpgradeFailure_ID); 
+                     failure = 1;
                   }
                } 
                }             
@@ -814,9 +860,10 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       AVM_EVT_T          fsm_evt;
       uns32              rc;
       /* unlock the target payload blade, after upgrading the IPMC */
-      m_NCS_CONS_PRINTF("avm_proc_fund: Unlocking\n");
-      m_NCS_CONS_PRINTF("avm_proc_fund: ent_info->current_state = %d\n", ent_info->current_state);
-      m_NCS_CONS_PRINTF("avm_proc_fund: CMD ID = %d\n", resp->rsp.info.cli_rsp.i_cmnd_id);
+
+      sprintf(str,"AVM-SSU: Payload  %s Unlocked : IPMC CMD :%d", ent_info->ep_str.name,resp->rsp.info.cli_rsp.i_cmnd_id);
+      m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
+
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_DONE;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
 
@@ -825,7 +872,11 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(cb, ent_info, AVM_CKPT_ENT_ADM_OP);
    }
    if (failure) 
+   {
+      ncshm_give_hdl(resp->i_usr_key);
       return NCSCC_RC_FAILURE; 
+   }
+   ncshm_give_hdl(resp->i_usr_key);
    return NCSCC_RC_SUCCESS;
 }
 
@@ -834,6 +885,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 {
    AVM_ENT_INFO_T *ent_info;
    uns8 str[AVM_LOG_STR_MAX_LEN];
+   uns32 rc;
 
    str[0] = '\0';
    m_AVM_LOG_FUNC_ENTRY("avm_proc_ipmc_upgd_tmr_exp"); 
@@ -889,26 +941,31 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
          /* if the type is INTEG */
          AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
  
-         /* change the state to upgrade failure */
-         ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
+         if (ent_info->dhcp_serv_conf.curr_act_label->other_label->status != SSU_UPGD_FAILED)
+         {
+            /* change the state to upgrade failure */
+            ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
  
-         /* rollback the preferred label */
-         if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
-            dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
-         else
-            dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
+            /* rollback the preferred label */
+            if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
+               dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
+            else
+               dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
  
-         dhcp_conf->default_label = dhcp_conf->default_label->other_label;
-         /* Set the preferred label also to other label */
-         dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-         m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
-                      dhcp_conf->pref_label.length);
+            dhcp_conf->default_label = dhcp_conf->default_label->other_label;
+
+            /* Set the preferred label also to other label */
+            dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
+            m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                         dhcp_conf->pref_label.length);
          
-         dhcp_conf->default_chg = FALSE; 
+            dhcp_conf->default_chg = FALSE; 
+            m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
    
-         sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
-                     ent_info->ep_str.name,dhcp_conf->pref_label.name);
-         m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
+            sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
+                                                            ent_info->ep_str.name,dhcp_conf->pref_label.name);
+            m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
+         }
       } 
 
       avm_cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
@@ -918,10 +975,13 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmUpgradeProgress_ID);
 
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_ROLLBACK_IN_PRG;
+      m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
       m_AVM_UPGD_IPMC_PLD_TMR_START(avm_cb,ent_info);
       /* ncshm_give_hdl ?? - TBD - JPL*/
-      return avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,
+      rc = avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,
                                     ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+      ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+      return rc;
    }
    ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
    return NCSCC_RC_SUCCESS;
@@ -977,14 +1037,18 @@ avm_proc_ipmc_mod_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
    {
        /* TBD - JPL */
    }
+   ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
    return NCSCC_RC_SUCCESS;
 }
-
+#if 0
 extern uns32
+#endif
+uns32
 avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 {
    AVM_ENT_INFO_T *ent_info;
    uns8 str[AVM_LOG_STR_MAX_LEN];
+   uns32 rc = NCSCC_RC_SUCCESS;
 
    str[0] = '\0';
    m_AVM_LOG_FUNC_ENTRY("avm_proc_role_chg_wait_tmr_exp");
@@ -1005,35 +1069,92 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
    avm_stop_tmr(avm_cb, &ent_info->role_chg_wait_tmr);
 
+   sprintf(str,"AVM-SSU: Payload blade %s: Role change timer expired: Ipmc state: %d", ent_info->ep_str.name, ent_info->dhcp_serv_conf.ipmc_upgd_state);
+   m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
+
+
    /* Check the state of ipmc upgrade and take appropriate action */
    switch(ent_info->dhcp_serv_conf.ipmc_upgd_state)
    {
       case IPMC_UPGD_IN_PRG:
       {
          m_AVM_UPGD_IPMC_PLD_TMR_START(avm_cb,ent_info);
-         return avm_gen_fund_mib_set(avm_cb, ent_info,AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD,
+         rc = avm_gen_fund_mib_set(avm_cb, ent_info,AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD,
                                              ent_info->dhcp_serv_conf.curr_act_label->other_label->file_name.name);
+         if (rc != NCSCC_RC_SUCCESS)
+         {
+            if(INTEG == ent_info->dhcp_serv_conf.upgrade_type)
+            {
+
+               sprintf(str,"AVM-SSU: Payload %s: Role change timer expired: INTEG Failure ", ent_info->ep_str.name);
+               m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
+
+               AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
+               ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
+
+               m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label1.status,
+                                    ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
+               m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label2.status,
+                                    ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
+
+               if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
+                   dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
+               else
+                   dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
+
+               dhcp_conf->default_label = dhcp_conf->default_label->other_label;
+               dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
+               m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                            dhcp_conf->pref_label.length);
+
+               m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name,
+                                       ncsAvmEntDHCPConfPrefLabel_ID,
+                                       ent_info, ent_info->dhcp_serv_conf.pref_label.length );
+
+               dhcp_conf->default_chg = FALSE;
+               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+
+               ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
+               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);          
+            }
+            else if (IPMC == ent_info->dhcp_serv_conf.upgrade_type)
+            {
+               sprintf(str,"AVM-SSU: Payload %s: Role change timer expired: IPMC Failure ", ent_info->ep_str.name);
+               m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
+
+               ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
+               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+            }
+         }
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+         return rc;
       }
       break;
 
       case IPMC_ROLLBACK_IN_PRG:
       {
          m_AVM_UPGD_IPMC_PLD_TMR_START(avm_cb,ent_info);
-         return avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         rc = avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+         return rc;
       }
       break;
 
       case IPMC_PLD_BLD_ROLLBACK_IN_PRG:
       {
          m_AVM_UPGD_IPMC_PLD_MOD_TMR_START(avm_cb,ent_info);
-         return avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         rc = avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_BLD_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+         return rc;
       }
       break;
 
       case IPMC_PLD_RTM_ROLLBACK_IN_PRG:
       {
          m_AVM_UPGD_IPMC_PLD_MOD_TMR_START(avm_cb,ent_info);
-         return avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_RTM_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         rc = avm_gen_fund_mib_set(avm_cb, ent_info, AVM_FUND_PLD_RTM_IPMC_DNGD_CMD,ent_info->dhcp_serv_conf.curr_act_label->file_name.name);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+         return rc;
       }
       break;
 
@@ -1041,6 +1162,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       {
          sprintf(str,"AVM-SSU: Payload blade %s: role change timer expired at wrong ipmc state - DEBUG it ",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
          return NCSCC_RC_FAILURE;
       }
    }

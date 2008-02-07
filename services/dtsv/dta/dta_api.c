@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -433,22 +433,33 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
     
     m_DTA_UNLK(&inst->lock);
 
-#if (DTA_FLOW == 1)    
-    if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
-#else
-    if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
-#endif
+    if (!dts_sync_up_flag)
     {
-        /* Try Again another time */
-#if (DTA_FLOW == 1)
-        if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
-#else
-        if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
-#endif
-        {
+       if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)
+       {
            return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+                         "dta_reg_svc: MDS async send failed", svc_id);
+       }
+    }
+    else
+    {
+#if (DTA_FLOW == 1)
+       if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
+#else
+       if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
+#endif
+       {
+           /* Try Again another time */
+#if (DTA_FLOW == 1)
+           if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
+#else
+           if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
+#endif
+           {
+              return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
                          "dta_reg_svc: MDS sync send failed", svc_id);
-        }
+           }
+       }
     }
 
     return NCSCC_RC_SUCCESS;
@@ -747,6 +758,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
     NCS_UBAID*     uba = NULL;
     uns8*         data;
     uns32         send_pri;
+    int warning_rmval = 0;
 
     /*************************************************************************\
     * As different fields of the log-message are encoded, the minimum DTS     
@@ -810,7 +822,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
        if(inst->msg_count > DTA_MAX_THRESHOLD)
        {
           m_DTA_UNLK(&inst->lock);
-          m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: DTA queued msgs exceeds 2000. Message will be dropped.");
+           warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: DTA queued msgs exceeds 2000. Message will be dropped.");
           return NCSCC_RC_FAILURE;
        }
     }
@@ -1071,7 +1083,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                 sysf_sprintf(str, "%f", va_arg(argp, double));
                 if(NULL == str)
                 {
-                   m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Float to string conversion gives NULL");
+                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Float to string conversion gives NULL");
                    goto reserve_error;
                 }
                 length = m_NCS_STRLEN(str) + 1;
@@ -1106,7 +1118,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
 
                 if(NULL == str)
                 {
-                   m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: long long to string conversion gives NULL");
+                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: long long to string conversion gives NULL");
                    goto reserve_error;
                 }
 
@@ -1141,7 +1153,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                 sysf_sprintf(str, "%llu", va_arg(argp, unsigned long long));
                 if(NULL == str)
                 {
-                   m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: unsigned long long to string conversion gives NULL");
+                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: unsigned long long to string conversion gives NULL");
                    goto reserve_error;
                 }
 
@@ -1177,7 +1189,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
 
                 if(NULL == str)
                 {
-                   m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: 64bit hex to string conversion gives NULL");
+                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: 64bit hex to string conversion gives NULL");
                    goto reserve_error;
                 }
 
@@ -1295,6 +1307,7 @@ void dta_do_evts( SYSF_MBX*  mbx)
 {
    uns32           status;
    NCS_IPC_MSG     *msg;
+   int warning_rmval = 0;
  
    while((msg = m_NCS_IPC_RECEIVE(mbx,NULL)) != NULL)
    {
@@ -1302,7 +1315,7 @@ void dta_do_evts( SYSF_MBX*  mbx)
        if (status != NCSCC_RC_SUCCESS)
        {
           /* log the error */
-          m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evts: Error returned");
+           warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evts: Error returned");
        }
    }/* end of while */
    /* IR 85261 - Deferred indication on destroy sel obj */
@@ -1323,6 +1336,7 @@ uns32 dta_do_evt( DTSV_MSG* msg)
    DTA_BUFFERED_LOG  *buf = NULL;
    DTSV_MSG          *bmsg = NULL;
    uns32             i, count;
+   int warning_rmval = 0;
 
    if(msg == NULL)
      return NCSCC_RC_SUCCESS;
@@ -1352,7 +1366,7 @@ uns32 dta_do_evt( DTSV_MSG* msg)
               svc_id = bmsg->data.data.msg.log_msg.hdr.ss_id;
               if(dta_mds_async_send(bmsg, inst) != NCSCC_RC_SUCCESS)
               {
-                 m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+                  warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
                  rc = NCSCC_RC_FAILURE;
               }
               m_MMGR_FREE_OCT(bmsg->data.data.msg.log_msg.hdr.fmat_type);
@@ -1372,74 +1386,36 @@ uns32 dta_do_evt( DTSV_MSG* msg)
      case DTA_LOG_DATA:
      {
 #if (DTA_FLOW == 1)
-        uns32             sync_send_interval;
-        
-        sync_send_interval = (inst->dts_congested)? DTA_CONGESTION_LOG_LIMIT : DTA_UNCONGESTED_LOG_LIMIT;
 
-        /* Check how many log messages have already been sent.
-         * If more than sync_send_interval, then do MDS_SEND to 
+        /* Check how many log messages have already been received.
+         * If more than dta congestion log limit, then do MDS_SEND to
          * DTS to control the flow.
          */
-        if(inst->logs_sent > sync_send_interval)
+        inst->logs_received++;
+        if(inst->logs_received > DTA_CONGESTION_LOG_LIMIT)
         {
            DTSV_MSG flow_msg;
 
            m_NCS_MEMSET(&flow_msg, '\0', sizeof(DTSV_MSG));
            flow_msg.msg_type = DTA_FLOW_CONTROL;
-           if(dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS)
+           while(dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS)
            {
               /* Set congestion flag */
               inst->dts_congested = TRUE;
-
-              /* Send an indication to log DTS congestion */
-              m_NCS_MEMSET(&flow_msg, '\0', sizeof(DTSV_MSG));
-              flow_msg.msg_type = DTS_CONGESTION_HIT;
-              if(dta_mds_async_send(&flow_msg, inst) != NCSCC_RC_SUCCESS)
-              {
-                  m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed");
-              }
-              
-              if(msg->data.data.msg.log_msg.hdr.severity < NCSFL_SEV_NOTICE)
-              {
-                 m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
-                 if(msg->data.data.msg.log_msg.uba.start != NULL)
-                   m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
-                 if (0 != msg)
-                    m_MMGR_FREE_DTSV_MSG(msg);
-
-                 return NCSCC_RC_SUCCESS;
-              }
-           }/*end of mds_send_fail */
-           else if(inst->dts_congested == TRUE)
-           {
-              inst->dts_congested = FALSE;
-              /* Send a no-congestion msg to DTS */
-              m_NCS_MEMSET(&flow_msg, '\0', sizeof(DTSV_MSG));
-              flow_msg.msg_type = DTS_CONGESTION_CLEAR;
-              if(dta_mds_async_send(&flow_msg, inst) != NCSCC_RC_SUCCESS)
-              {
-                  m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed");
-              }
            }
-           /* Reset the count till next MDS SYNC send */
-           inst->logs_sent = 0;
 
-        }/*end of logs_sent>limit*/
+           inst->dts_congested = FALSE;
+           inst->logs_received = 0;
+         }
 #endif
 
         svc_id = msg->data.data.msg.log_msg.hdr.ss_id;
         if(dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS)
         {
-           m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+            warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
            /*m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);*/
            rc = NCSCC_RC_FAILURE;
         }
-#if (DTA_FLOW == 1)
-        else
-        {
-           inst->logs_sent++;
-        }
-#endif
  
         m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 
@@ -1453,7 +1429,7 @@ uns32 dta_do_evt( DTSV_MSG* msg)
         svc_id = msg->data.data.unreg.svc_id;
         if(dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS)
         {
-           m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+            warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
            rc = NCSCC_RC_FAILURE; 
         }
      }
@@ -1467,7 +1443,7 @@ uns32 dta_do_evt( DTSV_MSG* msg)
 
      default:
      {
-        m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: Invalid message type in DTA mailbox");
+         warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: Invalid message type in DTA mailbox");
         rc = NCSCC_RC_FAILURE; 
      }
      break;

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -588,11 +588,13 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          if (current != SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error saHpiRptEntryGet\n");
+            m_NCS_CONS_PRINTF ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
             return NCSCC_RC_FAILURE;
          }
          else
          {
             m_LOG_HISV_DTS_CONS("dispatch_hotswap: Empty RPT\n");
+            m_NCS_CONS_PRINTF ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
             rc = NCSCC_RC_FAILURE;
             break;
          }
@@ -1302,9 +1304,12 @@ hsm_clear_sel(HSM_CB *hsm_cb)
 static uns32
 hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 {
-   SaHpiVersionT      version;
    SaErrorT           val, err;
-   uns32 retry, rc = NCSCC_RC_SUCCESS;
+#ifdef HPI_A
+   SaHpiVersionT      version;
+   uns32 retry ;
+#endif
+   uns32 rc = NCSCC_RC_SUCCESS;
 
    if (!hsm_cb->args->session_valid)
    {
@@ -1461,10 +1466,13 @@ hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
 {
 #ifdef HPI_A
    uns32 rc, j, i, k;
+   uns32 retry=0;
    SaHpiEntryIdT  current_rdr, next_rdr;
    SaErrorT err;
    HISV_INV_DATA *inv_var;
    SaHpiInventoryDataT *inv_data;
+
+CHECK:
 
    /* find the RDR which has got inventory data associated with it */
    next_rdr = SAHPI_FIRST_ENTRY;
@@ -1554,6 +1562,16 @@ hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
       {
          m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiEntityInventoryDataRead() failed.\n");
          m_LOG_HISV_DTS_CONS("hcd_hsm: Product Info in the FRU is not configured at right offset.\n");
+         /*RDR wasn't updated , try once more retreiving the Rdr */
+         if(retry <= 1)
+         { 
+            retry ++;
+            m_MMGR_FREE_HPI_INV_DATA(*event_data);
+            *actual_size = 0;
+            *invdata_size = 0;
+            m_NCS_OS_MEMSET(Rdr, 0, sizeof(SaHpiRdrT));
+            goto CHECK;
+         }
 #if 0
          m_MMGR_FREE_HPI_INV_DATA(*event_data);
          *event_data = NULL;
@@ -1683,7 +1701,7 @@ hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
          /* if we have got OEM MAC address data, it should be at least 13 bytes */
          if (inv_data->DataRecords[k] == NULL)
          {
-            m_LOG_HISV_DTS_CONS("Mac address data is missing in OEM record\n");
+            m_LOG_HISV_DTS_CONS("Mac address data is missing in OEM record , It is Null \n");
             inv_var->oem_inv_data.num_mac_entries = 0;
          }
          else
@@ -1760,14 +1778,13 @@ hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
    }
    return NCSCC_RC_SUCCESS;
 #else
-   uns32 rc, j, i, k;
    SaHpiEntryIdT current_rdr, next_rdr;
-   SaHpiEntryIdT current_area, next_area;
-   SaHpiEntryIdT current_field, next_field;
+   SaHpiEntryIdT  next_area;
+   SaHpiEntryIdT  next_field;
    SaHpiIdrInfoT idrInfo;
    SaHpiIdrIdT idrId;
    SaHpiIdrAreaHeaderT areaInfo;
-   SaHpiIdrFieldT product_name, product_version, mac1, mac2;
+   SaHpiIdrFieldT product_name, product_version;
    SaErrorT err;
    HISV_INV_DATA *inv_var;
    int rediscover_flag;

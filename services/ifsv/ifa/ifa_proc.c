@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /*****************************************************************************
@@ -86,7 +87,7 @@ uns32 ifsv_ifa_subscribe (IFA_CB *ifa_cb, NCS_IFSV_SUBSCR *i_subr)
    if(i_subr->i_ifsv_cb == NULL)
       return NCSCC_RC_FAILURE;
    
-   if(i_subr->i_usrhdl == (uns64)NULL)
+   if(i_subr->i_usrhdl == (uns64)(long)NULL)
       return NCSCC_RC_FAILURE;
    
    /* Allocate the memory for storing subscription info */
@@ -113,7 +114,7 @@ uns32 ifsv_ifa_subscribe (IFA_CB *ifa_cb, NCS_IFSV_SUBSCR *i_subr)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Subs Success",\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Subs Success",\
                       IFSV_COMP_IFA);
       return NCSCC_RC_SUCCESS;
    }
@@ -155,7 +156,7 @@ uns32 ifsv_ifa_subscribe (IFA_CB *ifa_cb, NCS_IFSV_SUBSCR *i_subr)
       m_MMGR_FREE_IFSV_EVT(evt);
 
    if(rc == NCSCC_RC_SUCCESS)
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"Subscription Successful.",\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"Subscription Successful.",\
                       IFSV_COMP_IFA);
       return NCSCC_RC_SUCCESS;
    return rc;
@@ -197,7 +198,7 @@ uns32 ifsv_ifa_unsubscribe (IFA_CB *ifa_cb, NCS_IFSV_UNSUBSCR *i_unsubr)
    /* Free the Subscription info */
    m_MMGR_FREE_IFSV_SUBSCR_INFO(subr);
 
-   m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"Un-Subscription Successful.",\
+   m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"Un-Subscription Successful.",\
                       IFSV_COMP_IFA);
 
    return NCSCC_RC_SUCCESS;
@@ -232,7 +233,7 @@ uns32 ifsv_ifa_ifrec_get (IFA_CB *ifa_cb, NCS_IFSV_IFREC_GET *i_ifget,
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-    m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
+    m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -292,7 +293,7 @@ uns32 ifsv_ifa_ifrec_get (IFA_CB *ifa_cb, NCS_IFSV_IFREC_GET *i_ifget,
    {
       if(i_ifget->i_info_type == NCS_IFSV_IFSTATS_INFO)
       {
-        m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+        m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                         "Stats Req cann't be processed in sync.",\
                         IFSV_COMP_IFA);
         rc = NCSCC_RC_FAILURE;
@@ -423,7 +424,7 @@ uns32 ifsv_ifa_ifrec_add (IFA_CB *ifa_cb,  NCS_IFSV_INTF_REC *i_ifrec)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-    m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
+    m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -474,7 +475,7 @@ uns32 ifsv_ifa_ifrec_add (IFA_CB *ifa_cb,  NCS_IFSV_INTF_REC *i_ifrec)
    {
      m_MMGR_FREE_IFSV_EVT(evt);
      
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Sync Send Error in rec add. Error is : ",\
                      rc);
    }
@@ -482,7 +483,7 @@ uns32 ifsv_ifa_ifrec_add (IFA_CB *ifa_cb,  NCS_IFSV_INTF_REC *i_ifrec)
    if(rc == NCSCC_RC_SUCCESS)
    {
     i_ifrec->if_index = o_evt->info.ifa_evt.info.if_add_rsp_idx;
-    m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"Rec added with index : ",\
+    m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"Rec added with index : ",\
                    i_ifrec->if_index);
    }
 
@@ -519,7 +520,7 @@ uns32 ifsv_ifa_ifrec_del (IFA_CB *ifa_cb,  NCS_IFSV_SPT *i_ifdel)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -548,7 +549,7 @@ uns32 ifsv_ifa_ifrec_del (IFA_CB *ifa_cb,  NCS_IFSV_SPT *i_ifdel)
    {
      m_IFA_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"unable to delete record. MDS Sync send failed with value :",rc);
    
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Sync Send Error in rec del. Error is : ",\
                       rc);
       m_MMGR_FREE_IFSV_EVT(evt);
@@ -598,7 +599,7 @@ uns32 ifsv_ifa_svcd_upd (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_UPD *i_svcd)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -635,7 +636,7 @@ uns32 ifsv_ifa_svcd_upd (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_UPD *i_svcd)
          m_MMGR_FREE_IFSV_EVT(&evt);
 */
       
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Sync Send Error in SVCD Upd. Error is : ",\
                       rc);
      return rc;
@@ -670,7 +671,7 @@ uns32 ifsv_ifa_svcd_get (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_GET *i_svcd)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"IfND is not up. Req Not processed",\
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -697,7 +698,7 @@ uns32 ifsv_ifa_svcd_get (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_GET *i_svcd)
    }
    else
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Sync Send Error in SVCD Get. Error is : ",\
                       rc);
      return rc;
@@ -760,7 +761,7 @@ ifa_lib_init (NCS_LIB_CREATE *create)
    if ((rc = ifsv_flx_log_reg(IFSV_COMP_IFA)) != NCSCC_RC_SUCCESS)
    {
       m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ifsv_flx_log_reg() returned failure"," ");
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"ifsv_flx_log_reg failure",\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"ifsv_flx_log_reg failure",\
                       IFSV_COMP_IFA);
       return(NCSCC_RC_FAILURE);
    }

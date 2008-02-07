@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #ifndef EDSV_DEFS_H
@@ -21,7 +21,7 @@
 #include "ncs_util.h"
 
 #define EDS_TASK_PRIORITY     5
-#define EDS_STACKSIZE         8000
+#define EDS_STACKSIZE         NCS_STACKSIZE_HUGE
 
 #define EDA_POOL_ID           1 
 
@@ -82,6 +82,6 @@
    m_NCS_OS_HTONLL_P(param->info.i_oct,value); \
 
 /* DTSv versioning support */
-#define EDSV_LOG_VERSION 1
+#define EDSV_LOG_VERSION 2
 
 #endif /* EDSV_DEFS_H */

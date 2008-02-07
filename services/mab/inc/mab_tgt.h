@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -368,13 +368,13 @@ typedef struct ncs_pssts_arg_open_file
     uns16  i_pwe_id;
     uns32  i_tbl_id;
     uns8   i_mode;    /* Mode in which the file is to be opened */
-    uns32  o_handle;
+    long  o_handle;
 } NCS_PSSTS_ARG_OPEN_FILE;
 
 
 typedef struct ncs_pssts_arg_read_file
 {
-    uns32  i_handle;
+    long  i_handle;
     uns32  i_bytes_to_read;
     uns32  i_offset;
     uns8 * io_buffer;
@@ -384,7 +384,7 @@ typedef struct ncs_pssts_arg_read_file
 
 typedef struct ncs_pssts_arg_write_file
 {
-    uns32  i_handle;
+    long  i_handle;
     uns8 * i_buffer;
     uns32  i_buf_size;
 } NCS_PSSTS_ARG_WRITE_FILE;
@@ -392,7 +392,7 @@ typedef struct ncs_pssts_arg_write_file
 
 typedef struct ncs_pssts_arg_close_file
 {
-    uns32 i_handle;
+    long i_handle;
 } NCS_PSSTS_ARG_CLOSE_FILE;
 
 
@@ -486,7 +486,7 @@ typedef struct ncs_pssts_arg_set_config
 
 typedef struct ncs_pssts_arg_open_temp_file
 {
-    uns32  o_handle;             /* Handle to the opened file */
+    long  o_handle;             /* Handle to the opened file */
 } NCS_PSSTS_ARG_OPEN_TEMP_FILE;
 
 

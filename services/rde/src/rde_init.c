@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -42,6 +42,8 @@
 static uns32 rde_task_create        (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_task_main          (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_process_port_io    (RDE_CONTROL_BLOCK * rde_cb);
+uns32     rde_initialize(void);
+extern uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb);
 
 /*****************************************************************************
 
@@ -61,7 +63,6 @@ uns32 rde_initialize (void)
 {
    uns32               rc       = NCSCC_RC_FAILURE;
    RDE_CONTROL_BLOCK  *rde_cb   = rde_get_control_block();
-   FILE    * fp        = NULL;
    RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
    NCS_BOOL e;
    char  log[RDE_LOG_MSG_SIZE] = {0};
@@ -100,12 +101,12 @@ uns32 rde_initialize (void)
 
    if (rc != RDE_RDE_RC_SUCCESS)
    {
-   sprintf (log, "Configuration Parameters : hostip = 0x%x, hostportnum = %d, servip = 0x%x, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
+   sprintf (log, "Configuration Parameters : hostip = %s, hostportnum = %d, servip = %s, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
         return NCSCC_RC_FAILURE;
    }
 
-   sprintf (log, "Configuration Parameters : hostip = 0x%x, hostportnum = %d, servip = 0x%x, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
+   sprintf (log, "Configuration Parameters : hostip = %s, hostportnum = %d, servip = %s, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
    m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_RDE_INFO, log);
       /***************************************************************\
       *                                                               *
@@ -242,7 +243,7 @@ uns32 rde_task_create (RDE_CONTROL_BLOCK * rde_cb)
           rde_cb,
           "RDETASK",
           0,
-          8192,
+          NCS_STACKSIZE_HUGE,
           &rde_cb-> task_handle) != NCSCC_RC_SUCCESS)
    {
       return NCSCC_RC_FAILURE;

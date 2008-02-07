@@ -12,4 +12,4 @@ libcpsv_logstr_la_SOURCES =	./cpa_logstr.c \
 				./cpd_logstr.c \
 				./cpnd_logstr.c
 
-libcpsv_logstr_la_LDFLAGS = -version-number 1
+libcpsv_logstr_la_LDFLAGS = -version-number 2

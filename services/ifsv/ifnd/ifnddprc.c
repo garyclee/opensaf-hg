@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "ifnd.h"
@@ -98,8 +98,8 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          {
              m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "Mail box create failed :ifnd_idim_init() "," ");
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
-            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_CREATE_FAIL,ifsv_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
+            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_CREATE_FAIL,(long)ifsv_cb);
             return (NCSCC_RC_FAILURE);
          }
          
@@ -107,8 +107,8 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          {
              m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "Mail box Attach failed :ifnd_idim_init() "," ");
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
-            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_CREATE_FAIL,ifsv_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
+            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_CREATE_FAIL,(long)ifsv_cb);
             return (NCSCC_RC_FAILURE);
          }
          
@@ -122,7 +122,7 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
             /* Log for memory failure */
             m_NCS_IPC_RELEASE(&m_IFSV_IDIM_GET_MBX_HDL, NULL);
             res = NCSCC_RC_FAILURE;
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
             m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,\
                0);
             break;
@@ -155,8 +155,8 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          {
              m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "Idim process mailbox thread creation failed :ifnd_idim_init() "," ");
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
-            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_TASK_CREATE_FAIL,idim_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
+            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_TASK_CREATE_FAIL,(long)idim_cb);
             m_NCS_IPC_RELEASE(&m_IFSV_IDIM_GET_MBX_HDL, NULL);
             m_MMGR_FREE_IFND_IDIM_CB(idim_cb);
             return (NCSCC_RC_FAILURE);
@@ -166,8 +166,8 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          {
              m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "Idim mailbox thread start failed :ifnd_idim_init() "," ");
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
-            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_TASK_CREATE_FAIL,idim_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
+            m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_TASK_CREATE_FAIL,(long)idim_cb);
             m_NCS_TASK_RELEASE(m_IFSV_IDIM_GET_TASK_HDL);
             m_NCS_IPC_RELEASE(&m_IFSV_IDIM_GET_MBX_HDL, NULL);
             m_MMGR_FREE_IFND_IDIM_CB(idim_cb);
@@ -182,7 +182,7 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          {
              m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
              "Idim handle manager failed :ifnd_idim_init() "," ");
-            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,ifsv_cb);
+            m_IFND_LOG_API_L(IFSV_LOG_IDIM_INIT_FAILURE,(long)ifsv_cb);
             m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_HDL_MGR_FAIL,ifsv_cb->comp_type);
             m_NCS_TASK_RELEASE(m_IFSV_IDIM_GET_TASK_HDL);
             m_NCS_IPC_RELEASE(&m_IFSV_IDIM_GET_MBX_HDL, NULL);

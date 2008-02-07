@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 /*****************************************************************************
 *                                                                            *
@@ -91,6 +92,14 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
         m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
         return SA_AIS_ERR_LIBRARY;
    }
+
+   if( (rc = ncs_eda_startup()) != SA_AIS_OK )
+   {
+        m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+        ncs_agents_shutdown(0,0);
+        return SA_AIS_ERR_LIBRARY;
+   }
+
    /* Retrieve EDA_CB */
    if ( NULL == (eda_cb = (EDA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, gl_eda_hdl)))
    {
@@ -103,6 +112,7 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
    {   
        ncshm_give_hdl(gl_eda_hdl);
        m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,SA_AIS_ERR_INVALID_PARAM,__FILE__,__LINE__,0);
+       ncs_eda_shutdown();
        ncs_agents_shutdown(0,0); 
        return SA_AIS_ERR_INVALID_PARAM;
    }
@@ -121,6 +131,7 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
       io_version->releaseCode = EDSV_RELEASE_CODE; 
       m_EDA_FILL_VERSION(io_version);
       ncshm_give_hdl(gl_eda_hdl);
+      ncs_eda_shutdown();
       ncs_agents_shutdown(0,0); 
       rc = SA_AIS_ERR_VERSION;
       return rc;
@@ -129,9 +140,10 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
    if (!eda_cb->eds_intf.eds_up)
    {
        ncshm_give_hdl(gl_eda_hdl);
+       ncs_eda_shutdown();
        ncs_agents_shutdown(0,0); 
        rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,eda_cb->eds_intf.eds_up);
+       m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,eda_cb->eds_intf.eds_up);
        return rc;
    }
 
@@ -147,6 +159,7 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
       m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,MDS_SENDTYPE_SNDRSP);
       rc = SA_AIS_ERR_TRY_AGAIN;
       ncshm_give_hdl(gl_eda_hdl);
+      ncs_eda_shutdown();
       ncs_agents_shutdown(0,0); 
       return rc;
    }
@@ -186,7 +199,10 @@ err3:
    ncshm_give_hdl(gl_eda_hdl);
    
    if(rc != SA_AIS_OK)
+   {
+      ncs_eda_shutdown();
       ncs_agents_shutdown(0,0); 
+   }
    else
       m_LOG_EDSV_AF(EDA_INITIALIZE_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__,reg_id, *o_evtHandle);
    return rc;
@@ -443,7 +459,9 @@ saEvtFinalize( SaEvtHandleT evtHandle )
    ncshm_give_hdl(gl_eda_hdl);
    if(rc == SA_AIS_OK)
       m_LOG_EDSV_AF(EDA_FINALIZE_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,reg_id,evtHandle);
+   ncs_eda_shutdown();
    ncs_agents_shutdown(0,0);
+
    return rc;
 }
 
@@ -1929,7 +1947,7 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
        ncshm_give_hdl(hdl_rec->local_hdl);
        ncshm_give_hdl(gl_eda_hdl);
        rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,eventHandle);
+       m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0,eventHandle);
        return rc;
    }
    

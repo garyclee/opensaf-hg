@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /******************************************************************************
@@ -182,9 +183,9 @@ NCSFL_SET eds_str_set[] =
 
 NCSFL_FMAT eds_fmat_set[] = 
 {
-   { EDS_LID_HDLN,           NCSFL_TYPE_TCLILL, "%s EDS %14s:%5u:%s:%u:%u\n"                   },
-   { EDS_LID_HDLNF,          NCSFL_TYPE_TCLILLF, "%s EDS %14s:%5u:%s:%u:%u:%s\n"                   },
-   { EDS_LID_EVENT,          NCSFL_TYPE_TICLLLL, "%s EDS EVENT: %s %s, ID:0x%0x, PubTime:0x%08x, Prio:%0x, RetTime:0x%08x\n"},
+   { EDS_LID_HDLN,           NCSFL_TYPE_TCLILL, "%s EDS %14s:%5lu:%s:%lu:%lu\n"                   },
+   { EDS_LID_HDLNF,          NCSFL_TYPE_TCLILLF, "%s EDS %14s:%5lu:%s:%lu:%lu:%s\n"                   },
+   { EDS_LID_EVENT,          NCSFL_TYPE_TICLLLL, "%s EDS EVENT: %s %s, ID:0x%0lx, PubTime:0x%08lx, Prio:%0lx, RetTime:0x%08lx\n"},
    { 0, 0, 0 }
 };
 

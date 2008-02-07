@@ -1,22 +1,27 @@
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#!/bin/bash
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 
 TARGET_ARCH=$1
 RPM_TARGET_ARCH=$1
 RPM_TYPE=$2
+
+LIB_SUFFIX=$3
+export LIB_SUFFIX
+
 RPM_SPEC_FILE=rpms/opensaf_"$RPM_TYPE"_rpm.spec
 
 if [ "$RPM_TYPE" = "controller" ]
@@ -56,11 +61,11 @@ then
 ##################################################
 ######    Set 64 bit library dependencies        #
 ##################################################
-export LIBDIR=$PWD/opt/opensaf/payload/lib64
+export LIBDIR=$PWD/opt/opensaf/payload/$LIB_SUFFIX
 mkdir -p $LIBDIR
 
 echo " Copying all 64bit agent  libraries "
-cd targets/$TARGET_ARCH/lib64/
+cd targets/$TARGET_ARCH/$LIB_SUFFIX/
 for i in `ls lib*so*`
 do
         #echo "cp -d $i $LIBDIR/$i"
@@ -100,7 +105,8 @@ else
 ##################################################
 
 export INCDIR=$PWD/opt/opensaf/include
-export LIBDIR=$PWD/opt/opensaf/$RPM_TYPE/lib
+export LIBDIR=$PWD/opt/opensaf/$RPM_TYPE/$LIB_SUFFIX
+#export LIBDIR
 export BINDIR=$PWD/opt/opensaf/$RPM_TYPE/bin
 export SCRIPTSDIR=$PWD/opt/opensaf/$RPM_TYPE/scripts
 export CONFDIR=$PWD/etc/opt/opensaf
@@ -133,8 +139,8 @@ then
 fi
 
 
-echo "Copying all libraries from ../targets/$TARGET_ARCH/lib/" 
-cd targets/$TARGET_ARCH/lib/
+echo "Copying all libraries from ../targets/$TARGET_ARCH/$LIB_SUFFIX/"
+cd targets/$TARGET_ARCH/$LIB_SUFFIX/
 for i in `ls lib*so*`
 do
 	cp -d $i $LIBDIR/$i
@@ -190,19 +196,19 @@ mv $TAR_NAME var/tmp/$RPM_TYPE/SOURCES/
 
 fi ##### End, else (controller/payload related settings)  #########
 
-if [ "$3" = "hw_mgmt" ] || [ "$4" = "hw_mgmt" ]
+if [ "$4" = "hw_mgmt" ] || [ "$5" = "hw_mgmt" ]
 then
-	sed '/hisv/s/#\/opt/\/opt/g' -i $RPM_SPEC_FILE
+	sed '/hisv/s/#%/%/g' -i $RPM_SPEC_FILE
 fi
 
-if [ "$3" = "mot_atca" ] || [ "$4" = "mot_atca" ]
+if [ "$4" = "mot_atca" ] || [ "$5" = "mot_atca" ]
 then
-	sed '/lfm_avm_intf/s/#\/opt/\/opt/g' -i $RPM_SPEC_FILE
+	sed '/lfm_avm_intf/s/#%/%/g' -i $RPM_SPEC_FILE
 fi
 
 echo "Creating RPM"
 
-rpmbuild -bb  --target $RPM_TARGET_ARCH --define "_topdir $PWD/var/tmp/$RPM_TYPE" --define "__spec_install_post :" --define "_unpackaged_files_terminate_build 0" --buildroot $PWD/var/opensaf/$RPM_TYPE $RPM_SPEC_FILE
+rpmbuild -bb  --target $RPM_TARGET_ARCH --define "LIB_SUFFIX $LIB_SUFFIX" --define "_topdir $PWD/var/tmp/$RPM_TYPE" --define "__spec_install_post :" --define "_unpackaged_files_terminate_build 0" --buildroot $PWD/var/opensaf/$RPM_TYPE $RPM_SPEC_FILE
 
 
 #echo "Moving rpm from $PWD/var/tmp/$RPM_TYPE/RPMS/$RPM_TARGET_ARCH/  to  $PWD/rpm/"
@@ -226,12 +232,12 @@ fi
 
 rm -rf var
 
-if [ "$3" = "hw_mgmt" ] || [ "$4" = "hw_mgmt" ]
+if [ "$4" = "hw_mgmt" ] || [ "$5" = "hw_mgmt" ]
 then
-	sed '/hisv/s/\/opt/#\/opt/g' -i $RPM_SPEC_FILE
+	sed '/hisv/s/%/#%/g' -i $RPM_SPEC_FILE
 fi
 
-if [ "$3" = "mot_atca" ] || [ "$4" = "mot_atca" ]
+if [ "$4" = "mot_atca" ] || [ "$5" = "mot_atca" ]
 then
-sed '/lfm_avm_intf/s/\/opt/#\/opt/g' -i $RPM_SPEC_FILE
+sed '/lfm_avm_intf/s/%/#%/g' -i $RPM_SPEC_FILE
 fi

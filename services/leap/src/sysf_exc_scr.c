@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -311,47 +311,55 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
          /*printf("\n%d Process terminated, callback given\n",exec_pid->pid);*/
          m_NCS_OS_PROCESS_TERMINATE(exec_pid->pid);
          exec_pid->exec_info_type = SYSF_EXEC_INFO_TIME_OUT;  /* IR00061181 */
+         cb_info.exec_stat.info.exit_with_code.exit_code = WEXITSTATUS(status);
       }
       else
       {
+
+         /* Initialize the exit-code value. May be overridden below */
+         cb_info.exec_stat.info.exit_with_code.exit_code = WEXITSTATUS(status);
+
          /* First stop timer */
          exec_pid->exec_info_type =  SYSF_EXEC_INFO_SIG_CHLD;  /* IR00061181 */
          ncs_exc_mdl_stop_timer(exec_pid);
-         status = status>>8;
-         /*printf("\n Stat value = %d \n", stat);*/
-         /* Give a call-back */
-         if (status == 128)
+
+         /* Earlier "status = status >>8" now replaced with WEXITSTATUS macro */
+         if (WIFEXITED(status) && (WEXITSTATUS(status) == 128))
          {
             cb_info.exec_stat.value = NCS_OS_PROC_EXEC_FAIL;
          }
-         else if (status == 0)
+         else if (WIFEXITED(status) && (WEXITSTATUS(status) == 0))
          {
             cb_info.exec_stat.value = NCS_OS_PROC_EXIT_NORMAL;
          }
-         else
+         else if(WIFSIGNALED(status))
+         {
+            cb_info.exec_stat.value = NCS_OS_PROC_EXIT_ON_SIGNAL;
+            cb_info.exec_stat.info.exit_on_signal.signal_num = WTERMSIG(status);
+         }
+         else /* Just consider it to tbe EXIT-WITH-CODE .... */
          {
             cb_info.exec_stat.value = NCS_OS_PROC_EXIT_WITH_CODE;
-            cb_info.exec_stat.info.exit_with_code.exit_code = status;
          }
       }
 
-      cb_info.exec_stat.info.exit_with_code.exit_code = status;
       cb_info.i_usr_hdl = exec_pid->usr_hdl;
       cb_info.i_exec_hdl = exec_pid->exec_hdl;
 
       exec_pid->exec_cb(&cb_info);
       if(type != SYSF_EXEC_INFO_TIME_OUT)  /*IR00061181*/
       {
-                  
+
          /* Remove entry from pat tree */
-         ncs_patricia_tree_del(&module_cb.pid_list, 
+         ncs_patricia_tree_del(&module_cb.pid_list,
                             (NCS_PATRICIA_NODE *)exec_pid);
- 
+
          m_MMGR_FREE_PRO_EXC(exec_pid);
-      }   
+      }
    }
    m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 }
+
 /**************************************************************************\
  *
  * add_new_req_pid_in_list

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -419,7 +419,7 @@ void vda_sync_with_vds() /*IR00059145 */
         svc_info.i_op = MDS_INSTALL;
         svc_info.info.svc_install.i_mds_q_ownership = FALSE;
         svc_info.info.svc_install.i_svc_cb = vda_mds_callback;
-        svc_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)&gl_vda_info;
+        svc_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)(long)&gl_vda_info;
         svc_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
         svc_info.info.svc_install.i_mds_svc_pvt_ver = VDA_SVC_PVT_VER;
         m_NCS_DBG_PRINTF("VDA MDS INSTALL service-id:%d VDA_SVC_PVT_VER: %d \n",NCSMDS_SVC_ID_VDA,VDA_SVC_PVT_VER);

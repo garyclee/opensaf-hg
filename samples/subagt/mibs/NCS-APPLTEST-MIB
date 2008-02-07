@@ -539,7 +539,7 @@ ncsTestTableSixData    OBJECT-TYPE
    ::= { ncsTestTableSixEntry 2 }
 
 ncsTestTableSixName    OBJECT-TYPE
-   SYNTAX        OCTET STRING(SIZE(9))
+   SYNTAX        OCTET STRING(SIZE(8..12))
    MAX-ACCESS    read-only
    STATUS        current
    DESCRIPTION

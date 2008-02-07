@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -187,6 +187,7 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    cb->role_switch = SA_FALSE;
    cb->stby_sync_state = AVD_STBY_IN_SYNC;
    cb->sync_required = TRUE;
+   cb->avd_hrt_beat_rcvd = FALSE;
 
     /* set the mailbox selection object to the list */
    mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->avd_mbx);
@@ -564,7 +565,7 @@ static uns32 avd_initialize(NCS_LIB_REQ_INFO *req_info)
       return NCSCC_RC_FAILURE;
    }
    
-   m_AVD_LOG_RCVD_VAL((uns32)cb);
+   m_AVD_LOG_RCVD_VAL((long)cb);
 
    m_NCS_MEMSET(cb,'\0',sizeof(AVD_CL_CB));
 
@@ -943,7 +944,7 @@ void avd_hb_init_proc(uns32 *avd_hdl_ptr)
          continue;
       }
       
-      m_AVD_LOG_RCVD_VAL((uns32)cb);
+      m_AVD_LOG_RCVD_VAL((long)cb);
 
       if (m_NCS_SEL_OBJ_ISSET (mbx_sel_obj, &sel_obj_set))
       {
@@ -979,6 +980,9 @@ void avd_hb_init_proc(uns32 *avd_hdl_ptr)
       ncshm_give_hdl(g_avd_hdl);
 
    } /* end of the infinite loop */
+
+  m_AVD_LOG_INVALID_VAL_FATAL(0);
+  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Avd-HB Thread Failed");
 
 } /* avd_main_proc */
 

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -1101,13 +1101,13 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
 {
    HPL_CB   *hpl_cb = NULL;
    MDS_DEST  ham_dest = {0};
-   HISV_MSG  hisv_msg = {0}, *msg = NULL;
+   HISV_MSG  hisv_msg, *msg = NULL;
    uns32     rc, len = 0, ret_len = 0;
    uns16     epath_len;
    uns8     *hpl_data = NULL;
    HPL_TLV  *hpl_tlv = NULL;
    uns32     status_len = sizeof(uns32);
-
+   m_NCS_OS_MEMSET(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
    if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
    {
@@ -1195,13 +1195,14 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
 {
    HPL_CB   *hpl_cb = NULL;
    MDS_DEST  ham_dest = {0}; 
-   HISV_MSG  hisv_msg = {0}, *msg = NULL;
+   HISV_MSG  hisv_msg, *msg = NULL;
    uns16     epath_len;
    uns32     rc;
    uns8     *hpl_data = NULL;
    HPL_TLV  *hpl_tlv  = NULL;
    uns32     status_len = sizeof(uns32);
 
+   m_NCS_OS_MEMSET(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
    if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
    {

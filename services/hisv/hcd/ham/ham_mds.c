@@ -1,20 +1,19 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
-
 
 /*****************************************************************************
 *                                                                            *
@@ -49,6 +48,7 @@ static uns32 ham_mds_vdest_destroy (HAM_CB *ham_cb);
 /* function to put the received event to HAM mailbox */
 static uns32 hpl_evt_mbx_put(HAM_CB *ham_cb, struct ncsmds_callback_info *mds_cb_info);
 
+const MDS_CLIENT_MSG_FORMAT_VER hcd_hpl_msg_fmt_map_table[HCD_HPL_SUB_PART_VER_MAX] = {HISV_MSG_FMT_VER};
 
 /****************************************************************************
  * Name          : ham_mds_callback
@@ -102,7 +102,7 @@ static uns32 ham_mds_callback(struct ncsmds_callback_info *info)
 static uns32 ham_mds_cb_cpy(struct ncsmds_callback_info *info)
 {
    HISV_MSG *msg, *hisv_msg;
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
+   info->info.cpy.o_msg_fmt_ver = HISV_MSG_FMT_VER;
    /* get the message */
    msg = (HISV_MSG*)info->info.cpy.i_msg;
 
@@ -140,8 +140,21 @@ static uns32 ham_mds_cb_enc (struct ncsmds_callback_info *info)
    int32           total_bytes = 0;
    uns32           data_len = sizeof(MDS_DEST);
 
+  if(NCSMDS_SVC_ID_HPL == info->info.enc.i_to_svc_id )
+  {
+    info->info.enc.o_msg_fmt_ver =  m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+                                   HCD_HPL_SUB_PART_VER_MIN,
+                                   HCD_HPL_SUB_PART_VER_MAX,
+                                   hcd_hpl_msg_fmt_map_table);
 
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
+
+    if(info->info.enc.o_msg_fmt_ver  < HISV_MSG_FMT_VER)
+    {
+      m_LOG_HISV_DTS_CONS("Mds Encode fails :Message being sent to incompatiable version \n");
+      return NCSCC_RC_FAILURE;
+    }
+  } 
+ 
    /* get the message */
    msg = (HISV_MSG*)info->info.enc.i_msg;
    uba = info->info.enc.io_uba;
@@ -221,10 +234,19 @@ ham_mds_cb_dec (struct ncsmds_callback_info *info)
    NCS_UBAID *uba = info->info.dec.io_uba;
    uns8       local_data[20];
    uns32      data_len, total_bytes = 0;
-   
-   /* Drop the msg if the msg fmt version does not match */
-   if ( info->info.dec.i_msg_fmt_ver != HISV_MSG_FMT_VER ) 
+ 
+  if(NCSMDS_SVC_ID_HPL ==info->info.dec.i_fr_svc_id)
+  {
+     if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+                                   HCD_HPL_SUB_PART_VER_MIN,
+                                   HCD_HPL_SUB_PART_VER_MAX,
+                                   hcd_hpl_msg_fmt_map_table))
+    {
+      m_LOG_HISV_DTS_CONS("Mds Decode fails: Message received from incompatiable version \n");
       return NCSCC_RC_FAILURE;
+    }
+  }                            
+ 
    /** allocate an HISV_EVENT now **/
    if (NULL == (evt = m_MMGR_ALLOC_HISV_EVT))
    {
@@ -300,7 +322,23 @@ ham_mds_cb_enc_flat(struct ncsmds_callback_info *info)
    int32           total_bytes = 0;
    uns32           data_len = sizeof(MDS_DEST);
 
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
+
+  if(NCSMDS_SVC_ID_HPL == info->info.enc.i_to_svc_id )
+  {
+   info->info.enc.o_msg_fmt_ver =  m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+                                   HCD_HPL_SUB_PART_VER_MIN,
+                                   HCD_HPL_SUB_PART_VER_MAX,
+                                   hcd_hpl_msg_fmt_map_table);
+
+
+    if(info->info.enc.o_msg_fmt_ver  < HISV_MSG_FMT_VER)
+    {
+      m_LOG_HISV_DTS_CONS("Mds Encode fails :Message being sent to incompatiable version \n");
+      return NCSCC_RC_FAILURE;
+
+    }
+  }
+ 
    /* get the message */
    msg = (HISV_MSG*)info->info.enc.i_msg;
    uba = info->info.enc.io_uba;
@@ -383,9 +421,17 @@ ham_mds_cb_dec_flat(struct ncsmds_callback_info *info)
       m_LOG_HISV_DTS_CONS("ham_mds_cb_dec_flat: invalid service-id in ham_mds_cb_dec_flat\n");
       return NCSCC_RC_FAILURE;
    }
-    /* Drop the msg if the msg fmt version does not match */
-   if ( info->info.dec.i_msg_fmt_ver != HISV_MSG_FMT_VER ) 
+
+   if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec_flat.i_msg_fmt_ver,
+                                   HCD_HPL_SUB_PART_VER_MIN,
+                                   HCD_HPL_SUB_PART_VER_MAX,
+                                   hcd_hpl_msg_fmt_map_table))
+   {
+      m_LOG_HISV_DTS_CONS("ham_mds_cb_dec_flat fails :Message received from incompatiable version \n");
       return NCSCC_RC_FAILURE;
+      /* Drop the msg if the msg fmt version does not match */
+   }                            
+
    /** allocate an HISV_EVENT now **/
    if (NULL == (evt = m_MMGR_ALLOC_HISV_EVT))
    {
@@ -752,8 +798,8 @@ ham_mds_vdest_create(HAM_CB *ham_cb)
        return rc;
    }
    /* Store the info returned by MDS */
-   ham_cb->mds_hdl          = (NCSCONTEXT)vda_info.info.vdest_create.o_mds_pwe1_hdl;
-   ham_cb->mds_vdest_hdl    = (NCSCONTEXT)vda_info.info.vdest_create.o_mds_vdest_hdl;
+   ham_cb->mds_hdl          = vda_info.info.vdest_create.o_mds_pwe1_hdl;
+   ham_cb->mds_vdest_hdl    = vda_info.info.vdest_create.o_mds_vdest_hdl;
 
 #if 0
    /* Assign Role Now */
@@ -838,7 +884,7 @@ uns32 ham_mds_initialize(HAM_CB *ham_cb)
    /* Install your service into MDS */
    m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl        = (MDS_HDL)ham_cb->mds_hdl;
+   mds_info.i_mds_hdl        = ham_cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
    mds_info.i_op             = MDS_INSTALL;
 
@@ -857,7 +903,7 @@ uns32 ham_mds_initialize(HAM_CB *ham_cb)
    /* Now subscribe for HAM events in MDS */
    m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl        = (MDS_HDL)ham_cb->mds_hdl;
+   mds_info.i_mds_hdl        = ham_cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
    mds_info.i_op             = MDS_SUBSCRIBE;
 
@@ -931,7 +977,7 @@ uns32 ham_mds_finalize (HAM_CB *cb)
    /* Un-install HAM service from MDS */
    m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl        = (MDS_HDL)cb->mds_hdl;
+   mds_info.i_mds_hdl        = cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
    mds_info.i_op             = MDS_UNINSTALL;
 
@@ -979,7 +1025,7 @@ uns32 ham_mds_msg_send (HAM_CB *cb, HISV_MSG *msg, MDS_DEST *dest,
    /* populate the mds params */
    m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl = (MDS_HDL)cb->mds_hdl;
+   mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HCD;
    mds_info.i_op = MDS_SEND;
 

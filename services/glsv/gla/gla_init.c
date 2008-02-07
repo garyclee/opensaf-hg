@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -37,6 +37,21 @@
 
 /* global cb handle */
 uns32 gl_gla_hdl = 0;
+static uns32 gla_use_count=0;
+
+/* GLA Agent creation specific LOCK */
+static uns32 gla_agent_lock_create = 0;
+NCS_LOCK gla_agent_lock;
+
+#define m_GLA_AGENT_LOCK                        \
+   if (!gla_agent_lock_create++)                \
+   {                                            \
+      m_NCS_LOCK_INIT(&gla_agent_lock);         \
+   }                                            \
+   gla_agent_lock_create = 1;                   \
+   m_NCS_LOCK(&gla_agent_lock, NCS_LOCK_WRITE);
+
+#define m_GLA_AGENT_UNLOCK m_NCS_UNLOCK(&gla_agent_lock, NCS_LOCK_WRITE)
 
 static void gla_sync_with_glnd(GLA_CB *cb);
 static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT  hdl_id);
@@ -840,9 +855,11 @@ uns32 gla_res_tree_delete_node(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO *res_info)
 
     ncshm_give_hdl(res_info->lcl_res_id);
     ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, res_info->lcl_res_id);
-   /* free the mem */
-   m_MMGR_FREE_GLA_RES_ID_INFO(res_info);
-   return NCSCC_RC_SUCCESS;
+
+    gla_stop_tmr(&res_info->res_async_tmr);
+    /* free the mem */
+    m_MMGR_FREE_GLA_RES_ID_INFO(res_info);
+    return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1055,10 +1072,13 @@ uns32 gla_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info)
    {
       /* TBD log message */
    }
-
+   
    ncshm_give_hdl(lock_info->lcl_lock_id); 
 
    ncshm_destroy_hdl(NCS_SERVICE_ID_GLA, lock_info->lcl_lock_id);
+
+   gla_stop_tmr(&lock_info->lock_async_tmr);
+   gla_stop_tmr(&lock_info->unlock_async_tmr);
    /* free the mem */
    m_MMGR_FREE_GLA_LOCK_ID_INFO(lock_info);
    return NCSCC_RC_SUCCESS;
@@ -1172,6 +1192,93 @@ void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb, GLA_RESOURCE_ID_INFO 
 
    return;
 }
+
+
+/****************************************************************************
+  Name          :  ncs_gla_startup
+
+  Description   :  This routine creates a GLSv agent infrastructure to interface
+                   with GLSv service. Once the infrastructure is created from
+                   then on use_count is incremented for every startup request.
+
+  Arguments     :  - NIL-
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_gla_startup(void)
+{
+   NCS_LIB_REQ_INFO lib_create;
+
+
+   m_GLA_AGENT_LOCK;
+   if (gla_use_count > 0)
+   {
+      /* Already created, so just increment the use_count */
+      gla_use_count++;
+      m_GLA_AGENT_UNLOCK;
+      return NCSCC_RC_SUCCESS;
+   }
+
+   /*** Init GLA ***/
+   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   lib_create.i_op = NCS_LIB_REQ_CREATE;
+   if (gla_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
+   {
+      m_GLA_AGENT_UNLOCK;
+      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+   }
+   else
+   {
+      m_NCS_DBG_PRINTF("\nGLSV:GLA:ON");
+      gla_use_count = 1;
+   }
+
+   m_GLA_AGENT_UNLOCK;
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
+  Name          :  ncs_gla_shutdown 
+
+  Description   :  This routine destroys the GLSv agent infrastructure created 
+                   to interface GLSv service. If the registered users are > 1, 
+                   it just decrements the use_count.   
+
+  Arguments     :  - NIL -
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_gla_shutdown(void)
+{
+   uns32   rc = NCSCC_RC_SUCCESS;
+
+   m_GLA_AGENT_LOCK;
+   if (gla_use_count > 1)
+   {
+      /* Still users extis, so just decrement the use_count */
+      gla_use_count--;
+   }
+   else if (gla_use_count == 1)
+   {
+      NCS_LIB_REQ_INFO  lib_destroy;
+
+      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+
+      rc = gla_lib_req(&lib_destroy);
+
+      gla_use_count = 0;
+   }
+
+   m_GLA_AGENT_UNLOCK;
+   return rc;
+}
+
 #if 0 /* cleanup of unnecessary data structures */ 
 /****************************************************************************
   Name          : gla_rev_lock_tree_delete_node
