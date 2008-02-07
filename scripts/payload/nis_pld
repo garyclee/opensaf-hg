@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
 #
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 #
@@ -21,6 +21,15 @@
 # Node Initialization Daemon startup/shutdown Script
 #
 
+### BEGIN INIT INFO
+# Provides: $nis_pld
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 4 6
+# Short-Description: Start OpenSAF services
+# Description: Start OpenSAF Payload services
+#              that are part of a cluster .
+### END INIT INFO
+
 CORE_FILE_SIZE=="unlimited"
 CORE_PATTERN="/var/crash/core_%t_%e_%p"
 CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
@@ -28,7 +37,7 @@ CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/opensaf/payload/bin
 export PATH
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/payload/lib # For loading libraries
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/payload/lib:/opt/opensaf/lib # For loading libraries
 export LEAP_TMR_THREAD_RT=1
 export LEAP_THREADS_NON_RT=1
 
@@ -61,8 +70,11 @@ test -f $BINPATH/$DAEMON || exit 0
 
 #set -e
 set +x
-case "$1" in
-  start)
+
+#Function to start teh services
+start()
+{
+       ### Remove TIPC if already installed.
         lsmod | grep $MODULE
 
         if [ $? -eq 0 ] ; then
@@ -73,8 +85,9 @@ case "$1" in
            fi
         fi
 
-        rm -f /dev/shm/*
-
+        ### Remove shared memory files created by us.
+        rm -f /dev/shm/CPND_CHECKPOINT_INFO*  /dev/shm/NCS_* 
+ 
         if [ -f $PIDFILE ]
         then 
            echo  "$BINPATH/$DAEMON already running..";
@@ -191,6 +204,7 @@ case "$1" in
         echo "Cannot create named pipe";
         exit 1;
         } 	
+        echo "Starting OpenSAF Payload Services..." > /var/opt/opensaf/node_ha_state
         $BINPATH/$DAEMON > $NISPIPE &
         date;
 	read -t $INITTIMEOUT NISSTATUS < $NISPIPE
@@ -205,6 +219,8 @@ case "$1" in
 	echo "Status: $NISSTATUS";
         if [ "${NISSTATUS}" = "SUCCESS" ]; then 
            echo "SERVICE Initialization Success";
+           date >> /var/opt/opensaf/node_ha_state;
+           echo "Node Initialization Success" >> /var/opt/opensaf/node_ha_state;
 	elif [ "${NISSTATUS}" = "FAILED" ]; then 
              echo "SERVICE Initialization Failed";
              rm -rf $PIDFILE
@@ -213,8 +229,11 @@ case "$1" in
         rm -f $SPCAPFIFO;
 	rm -rf $NISPIPE;
 	echo "."
-        ;;
-  stop)
+
+} ## End start()
+
+stop()
+{
 	if [ ! -f $PIDFILE ]; then echo "$BINPATH/$DAEMON is not running..";
 	else echo "Stopping OpenSAF Services... ";fi;		
         
@@ -266,17 +285,38 @@ case "$1" in
 
 	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         echo "."
+  
+} # End of function stop()
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
         ;;
   restart|force-reload)
+	stop
+	start
+	;;
+  reload|force-reload)
         #
         #       THis option not supported for bladeinitd 
         #
-	echo "This option not supported for bladeinitd"
+	echo "This option is currently not supported"
         echo "."
+        ;;
+  status)
+        if [ ! -f $PIDFILE ]; then
+            echo "OpenSAF is stopped"
+        else
+           cat /var/opt/opensaf/node_ha_state
+        echo ""
+        fi
         ;;
   *)
         # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-        echo "Usage: $ETCPATH/nis_pld {start|stop|restart|force-reload}" >&2
+        echo "Usage: $ETCPATH/nis_pld {start|stop|restart|try-restart|reload|force-reload|status}" >&2
         exit 1
         ;;
 esac 2>/dev/null

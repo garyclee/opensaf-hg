@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -122,6 +122,7 @@ typedef enum
 
 typedef struct bam_evt
 {
+   NCS_IPC_MSG next;
    uns32 cb_hdl;
    NCS_BAM_EVT_TYPE evt_type;
    union {
@@ -139,7 +140,7 @@ typedef enum
 /* TBD Temp placed here */
 #define NCS_BAM_NAME_STR "BAM"
 #define NCS_BAM_PRIORITY 0
-#define NCS_BAM_STCK_SIZE 8192
+#define NCS_BAM_STCK_SIZE NCS_STACKSIZE_HUGE
 #define BAM_MAX_FILE_LEN 200
 #define BAM_MAX_CSIS 50
 

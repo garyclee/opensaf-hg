@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -418,7 +418,7 @@ avm_open_trap_channel(AVM_CB_T *avm_cb)
 
    if (status != SA_AIS_OK)
    {
-      /* log the error code here */
+      m_AVM_LOG_EDA_VAL(status, AVM_LOG_EDA_CHANNEL_OPEN, AVM_LOG_EDA_FAILURE, NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;
    }
 

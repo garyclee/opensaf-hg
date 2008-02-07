@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -265,8 +265,20 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
          (avnd->node_state == AVD_AVND_STATE_NO_CONFIG) ||
          (avnd->node_state == AVD_AVND_STATE_NCS_INIT))
       {
-         tmpNode = tmpNode->next;
-         avd_avm_send_shutdown_resp(cb, &avnd->node_info.nodeName, NCSCC_RC_SUCCESS);
+        tmpNode = tmpNode->next;
+
+        if (avnd->type != AVSV_AVND_CARD_SYS_CON)
+        {
+           m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+          /* clean up the heartbeat timer for this node. */
+           avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
+           m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+         }
+        /* Mark the Node as Shutting Down */ 
+        avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN; 
+        /*Mark the Node as Absent */
+         avd_avm_mark_nd_absent(cb, avnd);
+
          continue;
       }
 

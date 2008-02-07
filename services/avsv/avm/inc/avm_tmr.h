@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -49,6 +49,7 @@
 #define AVM_BOOT_SUCC_TMR_INTVL  (48000)
 #define AVM_DHCP_FAIL_TMR_INTVL  (6000)    
 #define AVM_BIOS_UPGRADE_TMR_INTVL  (15000) /*(48000)*/
+#define AVM_BIOS_FAIL_TMR_INTVL  (18000)
 
 /* IPMC upgrade takes around 4-5 mins                              */
 /* First value below takes care of both ipmc/rtm ipmc upgrade time */
@@ -69,7 +70,7 @@ typedef enum avm_tmr_status_type
 /* timer type enums */
 typedef enum avm_tmr_type
 {
-   AVM_TMR_INIT_EDA,          /* EDA LIB REQ timer  */ 
+   AVM_TMR_INIT_EDA = 1,          /* EDA LIB REQ timer  */ 
    AVM_TMR_SSU,               /* timer used by SSU */
    AVM_UPGD_SUCCESS,          /* Upgrade success timer */
    AVM_BOOT_SUCCESS,          /* Boot Success Timer */
@@ -78,6 +79,7 @@ typedef enum avm_tmr_type
    AVM_UPGD_IPMC,             /* IPMC Upgrade Timer */
    AVM_UPGD_IPMC_MOD,         /* IPMC Single Module Upgrade Timer */
    AVM_ROLE_CHG_WAIT,         /* When the avm changes the role and if the IPMC upgrade in progress, wait for the FUND to get freed */
+   AVM_BIOS_FAIL,             /* After failover, avm starts the timer, to wait for openhpi initialization                          */
    AVM_TMR_MAX 
 } AVM_TMR_TYPE_T;
 
@@ -181,6 +183,13 @@ typedef struct avm_time
    avm_start_tmr(cb, &ent_info->role_chg_wait_tmr, intvl); \
 }
 
+#define m_AVM_SSU_BIOS_FAILOVER_TMR_START(avm_cb, ent_info) \
+{\
+   ent_info->bios_failover_tmr.cb_hdl = avm_cb->cb_hdl; \
+   ent_info->bios_failover_tmr.ent_hdl = ent_info->ent_hdl; \
+   ent_info->bios_failover_tmr.type   = AVM_BIOS_FAIL; \
+   avm_start_tmr(avm_cb, &ent_info->bios_failover_tmr, AVM_BIOS_FAIL_TMR_INTVL); \
+}
 /*** Extern function declarations ***/
 
 EXTERN_C void avm_tmr_exp(void *);

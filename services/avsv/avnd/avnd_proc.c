@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -145,6 +145,7 @@ void avnd_main_process (void *arg)
    NCS_SEL_OBJ        highest_sel_obj;
    NCS_SEL_OBJ        ncs_srm_sel_obj;
    SaSelectionObjectT srm_sel_obj;
+   NCS_BOOL           avnd_exit = FALSE;
 
    /* get cb-hdl */
    cb_hdl = *((uns32 *)arg);
@@ -190,8 +191,9 @@ void avnd_main_process (void *arg)
       /* avnd mbx processing */
       if ( m_NCS_SEL_OBJ_ISSET(mbx_sel_obj, &wait_sel_objs) )
       {
-         if(TRUE == avnd_mbx_process(mbx))
-            break;
+          avnd_exit = avnd_mbx_process(mbx);
+          if(TRUE == avnd_exit)
+             break;
       }
 
       /* edsv event processing - TBD in future */
@@ -206,6 +208,12 @@ void avnd_main_process (void *arg)
       m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
       m_NCS_SEL_OBJ_SET(ncs_srm_sel_obj, &wait_sel_objs);
    }
+
+  if(FALSE == avnd_exit)
+  {
+    m_AVND_LOG_INVALID_VAL_ERROR(0);
+    m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Avnd Func. Thread Exited"); 
+  }
 
    /* Give some time for cleanup and reboot scipts */
    sleep(20);

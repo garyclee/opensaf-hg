@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -60,7 +60,8 @@ uns32 pss_mds_grcv(MDS_HDL pwe_hdl,    MDS_CLIENT_HDL yr_svc_hdl,
 
   /* plant MAB subcomponent's control block in MAB_MSG */
 
-  ((MAB_MSG*)msg)->yr_hdl  = pwe_cb;
+  /*  Fixed as a part of IR00085797 */
+  ((MAB_MSG*)msg)->yr_hdl  = NCS_INT64_TO_PTR_CAST(yr_svc_hdl);
   ((MAB_MSG*)msg)->pwe_hdl = pwe_hdl;
   /* ##### MDS changes here */
   ((MAB_MSG*)msg)->fr_card = fr_card;
@@ -160,7 +161,8 @@ uns32 pss_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
       }
       m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-      mm->yr_hdl = (NCSCONTEXT)pwe_cb; 
+      /*  Fixed as a part of IR00085797 */
+      mm->yr_hdl = NCS_INT64_TO_PTR_CAST(yr_svc_hdl); 
       mm->fr_card = cbinfo->info.svc_evt.i_dest;
       mm->fr_svc = cbinfo->info.svc_evt.i_svc_id;
       mm->data.data.pss_mds_svc_evt.role = cbinfo->info.svc_evt.i_role;

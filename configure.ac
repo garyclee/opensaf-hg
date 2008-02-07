@@ -90,41 +90,54 @@ AM_CONDITIONAL([AGENTS_LIB64], [test "$build_type" = "64bit_agent_libs"])
 # Set install path (libdir and bindir) for libraries and binaries
 #############################################
 AC_ARG_VAR(libdir_suffix, [Set this to 64 if library install directory needs to be .../lib64 ]) 
+
+case $target_cpu in 
+     x86_64|ia64|mips64|ppc64|sparc64|parisc64|s390x) # As of now, some known values
+           LIB_SUFFIX=lib64
+           ;;
+     *)
+           LIB_SUFFIX=lib
+           ;;
+esac
+
+AC_SUBST(LIB_SUFFIX)
+
 if test "$build_type" = "controller";
 then
 	echo "Building for build_type=controller"
 	mkdir -p $PWD/targets/$host/controller
-        mkdir -p $PWD/targets/$host/lib
+        mkdir -p $PWD/targets/$host/$LIB_SUFFIX
 	bindir=$PWD/targets/$host/controller
-        libdir=$PWD/targets/$host/lib
-        CFLAGS="-fPIC -m32" 
-        CXXFLAGS="-fPIC -m32"
+        libdir=$PWD/targets/$host/$LIB_SUFFIX
+ 
+        CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror" 
+        CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
 elif test "$build_type" = "payload";
 then
 	echo "Building for build_type=payload"
         mkdir -p $PWD/targets/$host/payload
-        mkdir -p $PWD/targets/$host/lib
+        mkdir -p $PWD/targets/$host/$LIB_SUFFIX
         bindir=$PWD/targets/$host/payload
-        libdir=$PWD/targets/$host/lib
-        CFLAGS="-fPIC -m32"
-        CXXFLAGS="-fPIC -m32"
+        libdir=$PWD/targets/$host/$LIB_SUFFIX
+        CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
+        CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
 elif test "$build_type" = "64bit_agent_libs";
 then
-        case $host_cpu in
-                i686*|i386*|arm*|m68k|ns32k|sh3*|sparc|vax)
+        LIB_SUFFIX=lib64
+  	case $host_cpu in
+    		i686*|i386*|arm*|m68k|ns32k|sh3*|sparc|vax)
                 echo "********************************************************************"
-                echo "Error: You are trying to configure 64-bit build on a 32-bit machine"
-                echo "Please Specify correct --host value if you are cross compiling"
+                echo "Warning: You are trying to configure 64-bit build on a 32-bit machine"
+                echo "Please Specify correct --host value if you are cross compiling"  
                 echo "********************************************************************"
-                exit
                 ;;
-        esac
+  	esac
 
         echo "Building 64bit agent libraries"
-        mkdir -p $PWD/targets/$host/lib64
-        libdir=$PWD/targets/$host/lib64
-        CFLAGS="-fPIC"
-        CXXFLAGS="-fPIC"
+        mkdir -p $PWD/targets/$host/$LIB_SUFFIX
+        libdir=$PWD/targets/$host/$LIB_SUFFIX
+        CFLAGS="$CFLAGS -fPIC"
+        CXXFLAGS="$CXXFLAGS -fPIC"
 else
 	echo "You must specify build_type=[payload/controller/64bit_agent_libs]"
 	exit 1
@@ -362,3 +375,4 @@ AC_CONFIG_FILES([Makefile
                  tools/pdrbd/src/Makefile])
 
 AC_OUTPUT
+

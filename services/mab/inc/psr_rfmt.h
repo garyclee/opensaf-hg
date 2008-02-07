@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 /*****************************************************************************
 ..............................................................................
@@ -91,8 +91,8 @@ typedef enum return_codes
   PSS Reformatting routines
 *************************************************************************/
 EXTERN_C uns32 pss_check_n_reformat(PSS_CB *inst, uns32 ps_format_version);
-EXTERN_C uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, uns32 tfile_hdl, PSS_TABLE_PATH_RECORD *rec, PSS_TABLE_DETAILS_HEADER *hdr);
-EXTERN_C uns32 pss_tbl_details_header_write(PSS_CB *inst, uns32 ts_hdl, uns32 tfile_hdl, PSS_TABLE_PATH_RECORD *rec);
+EXTERN_C uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl, PSS_TABLE_PATH_RECORD *rec, PSS_TABLE_DETAILS_HEADER *hdr);
+EXTERN_C uns32 pss_tbl_details_header_write(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl, PSS_TABLE_PATH_RECORD *rec);
 EXTERN_C int persistent_file_filter(const struct dirent *ps_file);
 
 #endif

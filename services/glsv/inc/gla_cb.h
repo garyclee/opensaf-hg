@@ -1,22 +1,27 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #ifndef GLA_CB_H
 #define GLA_CB_H
+
+extern uns32 gl_gla_hdl;
+#define m_GLSV_GLA_RETRIEVE_GLA_CB  ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl)
+#define m_GLSV_GLA_GIVEUP_GLA_CB    ncshm_give_hdl(gl_gla_hdl)
+
 
 #define m_GLSV_MEMSET_SANAME(name) \
 {\
@@ -42,6 +47,21 @@ typedef struct gla_client_res_info_tag
    SaLckResourceIdT        gbl_res_id;
    uns32                   lcl_res_cnt;
 }GLA_CLIENT_RES_INFO;
+typedef struct glsv_gla_tmr_callback_info 
+{
+   GLA_CALLBK_TYPE      callback_type;
+   SaInvocationT     invocation; 
+   SaLckResourceIdT resourceId;
+   SaLckLockIdT lcl_lockId;
+}GLSV_GLA_TMR_CALLBACK_INFO;
+
+typedef struct gla_tmr_tag
+{
+   tmr_t        tmr_id;
+   SaLckHandleT client_hdl;
+   NCS_BOOL     is_active;
+   GLSV_GLA_TMR_CALLBACK_INFO clbk_info;
+}GLA_TMR;
 
 
 typedef struct gla_resource_id_info_tag
@@ -50,6 +70,7 @@ typedef struct gla_resource_id_info_tag
    SaLckResourceHandleT    lcl_res_id; /* index for the tree */
    SaLckHandleT            lock_handle_id; 
    SaLckResourceIdT        gbl_res_id;  
+   GLA_TMR                 res_async_tmr;
 }GLA_RESOURCE_ID_INFO;
 
 
@@ -70,6 +91,9 @@ typedef struct gla_lock_id_info_tag
    SaLckResourceIdT        lcl_res_id;
    SaLckLockIdT            gbl_lock_id;
    SaLckLockModeT          mode;
+   GLA_TMR                 lock_async_tmr;
+   GLA_TMR                 unlock_async_tmr;
+
 }GLA_LOCK_ID_INFO;
 
 /*****************************************************************************
@@ -173,5 +197,10 @@ GLA_LOCK_ID_INFO *gla_rev_lock_tree_find_and_add(GLA_CB *gla_cb,
 #endif
 
 EXTERN_C uns32 gla_client_info_send(GLA_CB *gla_cb);
+
+EXTERN_C uns32 gla_start_tmr (GLA_TMR *tmr);
+EXTERN_C void gla_stop_tmr(GLA_TMR *tmr);
+EXTERN_C void gla_tmr_exp(NCSCONTEXT uarg);
+
 #endif
 

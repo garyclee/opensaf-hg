@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
 #
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 #
@@ -121,15 +121,12 @@ case "$ROLE_NAME" in
         echo "Executing snmpd-init-script..."
         echo "Giving Command $SNMP_HOME/snmpd restart"
         $SNMP_HOME/snmpd restart;
-
+        echo "1" > /tmp/snmp_status
        ;;
        *)
          echo "snmp start script will not be executed by NIS in this state"
+       echo "1" > /tmp/snmp_status
        ;;
 esac
 
 
-
-#send response to NID
-
-echo "$NID_MAGIC:$SERVICE_CODE:$NID_SNMPD_SUCCESS" > $NIDFIFO

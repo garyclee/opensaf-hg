@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "ifa.h"
@@ -50,7 +50,7 @@ uns32 ncs_ipxs_svc_req(NCS_IPXS_REQ_INFO *info)
    /* Validate the received information */
    if(info == NULL)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "NULL pointer rcved in ncs_ipxs_svc_req",0); 
       return NCSCC_RC_FAILURE;
    }
@@ -60,7 +60,7 @@ uns32 ncs_ipxs_svc_req(NCS_IPXS_REQ_INFO *info)
    cb_hdl = m_IFA_GET_CB_HDL();
    if(cb_hdl == 0)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "m_IFA_GET_CB_HDL returned NULL",0); 
      return NCSCC_RC_FAILURE;
    }
@@ -68,7 +68,7 @@ uns32 ncs_ipxs_svc_req(NCS_IPXS_REQ_INFO *info)
 
    if(ifa_cb == NULL)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "ncshm_take_hdl returned NULL",0); 
       return NCSCC_RC_FAILURE;
    }
@@ -127,7 +127,7 @@ uns32 ncs_ipxs_mem_free_req(NCS_IPXS_REQ_INFO *info)
    /* Validate the received information */
    if(info == NULL)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "NULL pointer rcved in ncs_ipxs_mem_free_req",0);
       return res;
    }
@@ -236,7 +236,7 @@ static uns32 ipxs_subscribe (IFA_CB *cb, NCS_IPXS_SUBCR *i_subr)
    /* If IFND is not UP return from Here */
    if(!cb->is_ifnd_up)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,"IfND is not up. Subs Success",\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,"IfND is not up. Subs Success",\
                        IFSV_COMP_IFA);
 
       return NCSCC_RC_SUCCESS;
@@ -267,7 +267,7 @@ static uns32 ipxs_subscribe (IFA_CB *cb, NCS_IPXS_SUBCR *i_subr)
              cb->ifnd_dest, NCSMDS_SVC_ID_IFND);
    }
    if(rc == NCSCC_RC_SUCCESS)
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,"Subscription Successful.",\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,"Subscription Successful.",\
                        IFSV_COMP_IFA);
 
    return rc;
@@ -307,7 +307,7 @@ static uns32 ipxs_unsubscribe (IFA_CB *ifa_cb, NCS_IPXS_UNSUBCR *i_unsubr)
    /* Free the Subscription info */
    m_MMGR_FREE_IPXS_SUBCR_INFO(subr);
    
-   m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,"Un-Subscription Successful.",\
+   m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,"Un-Subscription Successful.",\
                       IFSV_COMP_IFA);
 
    return NCSCC_RC_SUCCESS;
@@ -334,7 +334,7 @@ static uns32 ipxs_ipinfo_get (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_GET *ip_get)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-    m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+    m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
 
     return NCS_IFSV_IFND_DOWN_ERROR;
@@ -364,7 +364,7 @@ static uns32 ipxs_ipinfo_get (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_GET *ip_get)
       /* In case of async requests, application has to provide "i_subr_hdl" */
       if(ip_get->i_subr_hdl == 0)
       {
-         m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+         m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                           "ip_get->i_subr_hdl is NULL",IFSV_COMP_IFA);
          return NCSCC_RC_FAILURE;
       }
@@ -418,11 +418,11 @@ static uns32 ipxs_ipinfo_get (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_GET *ip_get)
 
    if(rc != NCSCC_RC_SUCCESS)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "IP info get request unsuccessful.",IFSV_COMP_IFA);
    }
    else
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "IP info get request successful.",IFSV_COMP_IFA);
 
    return rc;
@@ -449,7 +449,7 @@ static uns32 ipxs_proc_is_loc_req (IFA_CB *ifa_cb, NCS_IPXS_ISLOCAL *isloc)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -471,7 +471,7 @@ static uns32 ipxs_proc_is_loc_req (IFA_CB *ifa_cb, NCS_IPXS_ISLOCAL *isloc)
 
    if(rc != NCSCC_RC_SUCCESS)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "Is loc request unsuccessful.",IFSV_COMP_IFA);
      return rc;
    }
@@ -487,7 +487,7 @@ static uns32 ipxs_proc_is_loc_req (IFA_CB *ifa_cb, NCS_IPXS_ISLOCAL *isloc)
    else
       return NCSCC_RC_FAILURE;
 
-   m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+   m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "Is loc request successful.",IFSV_COMP_IFA);
    return rc;
 }
@@ -572,7 +572,7 @@ static uns32 ipxs_ipinfo_upd (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_SET *ip_upd)
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;   
    }
@@ -591,7 +591,7 @@ static uns32 ipxs_ipinfo_upd (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_SET *ip_upd)
    
    if(rc != NCSCC_RC_SUCCESS)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,"ipxs_ipinfo_cpy error",rc);
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,"ipxs_ipinfo_cpy error",rc);
       goto free_mem;
    }
 
@@ -602,7 +602,7 @@ static uns32 ipxs_ipinfo_upd (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_SET *ip_upd)
 
    if(rc != NCSCC_RC_SUCCESS)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                        "Sync Send Error in IP info upd. Error is : ",\
                         rc);
       goto free_mem;
@@ -628,7 +628,7 @@ free_mem:
 
    if(rc == NCSCC_RC_SUCCESS)
    {
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "IP Info upd request successful.",IFSV_COMP_IFA);
    }
    return rc;
@@ -654,7 +654,7 @@ static uns32 ipxs_proc_node_info_get (IFA_CB *ifa_cb, NCS_IPXS_GET_NODE_REC *nod
    /* If IFND is not UP return from Here */
    if(!ifa_cb->is_ifnd_up)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;
    }
@@ -674,7 +674,7 @@ static uns32 ipxs_proc_node_info_get (IFA_CB *ifa_cb, NCS_IPXS_GET_NODE_REC *nod
 
    if(rc != NCSCC_RC_SUCCESS)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                      "Sync Send Error in node info Get. Error is : ",\
                       rc);
 
@@ -691,7 +691,7 @@ static uns32 ipxs_proc_node_info_get (IFA_CB *ifa_cb, NCS_IPXS_GET_NODE_REC *nod
    else
       return NCSCC_RC_FAILURE;
 
-   m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO,\
+   m_IFA_LOG_EVT_L(IFSV_LOG_IFA_IPXS_EVT_INFO,\
                       "node info get request successful.",IFSV_COMP_IFA);
    return rc;
 }

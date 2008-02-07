@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -165,6 +165,29 @@ static uns32 mqd_lib_init(void)
       return rc;
    }
    m_LOG_MQSV_D(MQD_AMF_INIT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+     /* Create the mail box */
+   rc = m_NCS_IPC_CREATE(&pMqd->mbx);
+   if(NCSCC_RC_SUCCESS != rc)
+   {
+      m_LOG_MQSV_D(MQD_AMF_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+#if NCS_2_0 /* Required for NCS 2.0 */
+      saAmfFinalize(pMqd->amf_hdl);
+#endif
+      mqd_cb_shut(pMqd);
+      return rc;
+   }
+
+    /* Attach IPC */
+   rc = m_NCS_IPC_ATTACH(&pMqd->mbx);
+   if(NCSCC_RC_SUCCESS != rc) {
+   m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
+   m_LOG_MQSV_D(MQD_AMF_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+#if NCS_2_0 /* Required for NCS 2.0 */
+   saAmfFinalize(pMqd->amf_hdl);
+#endif
+   mqd_cb_shut(pMqd);
+   return rc;
+   }
 
    rc = mqd_mds_init(pMqd);
    if(NCSCC_RC_SUCCESS != rc) {     /* Handle failure */
@@ -616,17 +639,6 @@ static void mqd_cb_shut(MQD_CB *pMqd)
 static uns32 mqd_lm_init(MQD_CB *pMqd)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-
-   /* Create the mail box */
-   rc = m_NCS_IPC_CREATE(&pMqd->mbx);
-   if(NCSCC_RC_SUCCESS != rc) return rc;
-   
-   /* Attach IPC */
-   rc = m_NCS_IPC_ATTACH(&pMqd->mbx);
-   if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-      return rc;
-   }
 
    /* Create MQD Task */
    rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqd_main_process,

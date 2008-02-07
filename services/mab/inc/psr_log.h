@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -308,6 +308,7 @@ typedef enum pss_hdln_flex
     PSS_HDLN_STDBY_OAA_DOWN_LIST_DELETE_SUCCESS,
     PSS_HDLN_OAA_ENTRY_NOT_FOUND, 
     PSS_HDLN_PSS_VERSION,
+    PSS_HDLN_OAA_ACK_FAILED,
     PSS_HDLN_REFORMAT_REQUEST,
     PSS_HDLN_PROFILE_FOUND,
     PSS_HDLN_PWE_FOUND,
@@ -337,8 +338,8 @@ typedef enum pss_hdln_flex
     PSS_HDLN_STORE_REFORMATTING_FROM_HIGHER_TO_2_SUCCESS,
     PSS_HDLN_MDS_ENC_FAILURE,
     PSS_HDLN_MDS_DEC_FAILURE,
-    PSS_HDLN_INVALID_MBCSV_PEER_VER
-
+    PSS_HDLN_INVALID_MBCSV_PEER_VER,
+    PSS_HDLN_READ_LIB_CONF_FAIL
 
 } PSS_HDLN_FLEX;
 
@@ -874,7 +875,7 @@ EXTERN_C void pss_log_memdump(uns8 id, NCSFL_MEM mem);
 EXTERN_C void pss_log_ncsmib_arg(NCSMIB_ARG *mib_arg);
 
 /* DTSv versioning support */
-#define PSSV_LOG_VERSION 3
+#define PSSV_LOG_VERSION 4
 
 #if (PSR_LOG == 1)
 
@@ -893,7 +894,7 @@ EXTERN_C void pss_log_ncsmib_arg(NCSMIB_ARG *mib_arg);
 #define m_LOG_PSS_LOCK(id, lck)\
          ncs_logmsg(NCS_SERVICE_ID_PSS, PSS_LID_LOCKS, PSS_FC_LOCKS, \
                     NCSFL_LC_MISC, NCSFL_SEV_DEBUG,\
-                    NCSFL_TYPE_TIL, id, (uns32)lck)
+                    NCSFL_TYPE_TIL, id, (long)lck)
 
 #define m_LOG_PSS_MEMFAIL(s, id, func_name)\
         ncs_logmsg(NCS_SERVICE_ID_PSS, PSS_LID_MEMFAIL, \

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #if (NCS_DTS == 1)
@@ -477,7 +477,7 @@ NCSFL_FMAT avnd_fmat_set[] =
    { AVND_LID_EVT3    , NCSFL_TYPE_TIII ,  "[%s] %s %s %s\n"                          },
 
    /* <Clm Db Create/Destroy/..> <Success/Failure>; NodeId: <node-id> */
-   { AVND_LID_CLM_DB  , NCSFL_TYPE_TIIL ,  "[%s] %s %s; NodeId: %d\n"                 },
+   { AVND_LID_CLM_DB  , NCSFL_TYPE_TIIL ,  "[%s] %s %s; NodeId: %ld\n"                 },
 
    /* <PG Db Create/Destroy/..> <Success/Failure>; CSI: <csi-name> */
    { AVND_LID_PG_DB  , NCSFL_TYPE_TIIC ,   "[%s] %s %s; CSI: %s\n"                    },
@@ -513,7 +513,7 @@ NCSFL_FMAT avnd_fmat_set[] =
    { AVND_LID_MISC2   , NCSFL_TYPE_TIC  ,   "[%s] Invoked %s Script for Comp: %s\n" },
 
    /* Failover Events at AVND on AVD fail-over*/
-   { AVND_LID_FOVER   , NCSFL_TYPE_TICLL  , "[%s] Role Change Event %s %s %d %d\n" },
+   { AVND_LID_FOVER   , NCSFL_TYPE_TICLL  , "[%s] Role Change Event %s %s %ld %ld\n" },
 
    /* COMPONENT /Instantiation/Termination/Cleanup Failed*/
    { AVND_LID_TRAP_CLC   , "TCII"  , "[%s] %s %s %s\n" },
@@ -527,13 +527,13 @@ NCSFL_FMAT avnd_fmat_set[] =
    /* Proxy Component Failed Proxied Component Orphaned */
    { AVND_LID_TRAP_PROXIED   , "TCICI"  , "[%s] %s %s %s %s\n" },
 
-   { AVND_LID_TRAP_EVT,       "TIL",             "[%s] AvND: %s %d\n"},
+   { AVND_LID_TRAP_EVT,       "TIL",             "[%s] AvND: %s %ld\n"},
 
-   { AVND_LID_TRAP_COMP_FAIL,  "TCLI",           "[%s] %s Failed on Node Id:  0x%08x Error Src: %s\n"},
+   { AVND_LID_TRAP_COMP_FAIL,  "TCLI",           "[%s] %s Failed on Node Id:  0x%08lx Error Src: %s\n"},
    { AVND_LID_HDLN,            "TIC",    "[%s] TRACE INFO : %s %s\n"},
-   { AVND_LID_HDLN_VAL,        "TICLL",  "[%s] TRACE INFO : %s at %s:%d val %d\n"},
-   { AVND_LID_HDLN_VAL_NAME,   "TICLP",  "[%s] TRACE INFO : %s at %s:%d val %s\n"},   
-   { AVND_LID_HDLN_STRING,     "TICLC",  "[%s] TRACE INFO : %s at %s:%d val %s\n"},
+   { AVND_LID_HDLN_VAL,        "TICLL",  "[%s] TRACE INFO : %s at %s:%ld val %ld\n"},
+   { AVND_LID_HDLN_VAL_NAME,   "TICLP",  "[%s] TRACE INFO : %s at %s:%ld val %s\n"},   
+   { AVND_LID_HDLN_STRING,     "TICLC",  "[%s] TRACE INFO : %s at %s:%ld val %s\n"},
 
    { 0, 0, 0 }
 };

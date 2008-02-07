@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -58,7 +58,7 @@ static NCS_BOOL mqd_track_obj_cmp(void* key, void* elem);
 \****************************************************************************/
 uns32 mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
-   m_HTON_SANAMET_LEN(pNode->oinfo.name.length);
+   /*m_HTON_SANAMET_LEN(pNode->oinfo.name.length);*/
    pNode->node.key_info = (uns8 *)&pNode->oinfo.name;
    return ncs_patricia_tree_add(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
 } /* End of mqd_db_node_add() */

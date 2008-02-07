@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -70,6 +70,9 @@
 uns32 avd_snd_node_update_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
 {
    AVD_DND_MSG *d2n_msg;
+   FILE *fp=NULL;
+   time_t local_time;
+   unsigned char asc_lt[40]; /* Ascii Localtime */
    
    m_AVD_LOG_FUNC_ENTRY("avd_snd_node_update_msg");
    
@@ -106,6 +109,13 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
       cb->cluster_view_number;
    d2n_msg->msg_info.d2n_clm_node_update.clm_info.member = 
       avnd->node_info.member;
+
+   fp=fopen(NODE_HA_STATE,"a"); 
+
+   /* Get the ascii local time stamp */
+   asc_lt[0] = '\0';
+   m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
+
    if(avnd->node_info.member == SA_TRUE)
    {
       d2n_msg->msg_info.d2n_clm_node_update.clm_info.boot_timestamp = 
@@ -116,13 +126,27 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
          avnd->node_info.nodeName;
       d2n_msg->msg_info.d2n_clm_node_update.clm_info.view_number =
          avnd->node_info.initialViewNumber;
+
+      if(fp)
+      {
+         fprintf(fp,"%s | Node %s Joined the cluster.\n",asc_lt,avnd->node_info.nodeName.value);
+      }
+
       avd_clm_node_join_trap(cb,avnd);
    }
    else
    {
+      if(fp)
+      {
+         fprintf(fp,"%s | Node %s Exited the cluster.\n",asc_lt,avnd->node_info.nodeName.value);
+      }
       avd_clm_node_exit_trap(cb,avnd);
    }
-
+   if(fp)
+   {
+      fflush(fp); 
+      fclose(fp);
+   } 
    m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_CLM_NODE_UPDATE_MSG,0);
 
    if (avd_d2n_msg_bcast(cb, d2n_msg) != NCSCC_RC_SUCCESS)

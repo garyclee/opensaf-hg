@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -476,7 +476,7 @@ avm_decode_ckpt_ent_add_dependent(AVM_CB_T             *cb,
       return NCSCC_RC_FAILURE;
    }
    
-   if(AVM_ENT_INFO_NULL == (dep_ent_info = avm_find_ent_str_info(cb, &temp_ent_info->dep_ep_str)))
+   if(AVM_ENT_INFO_NULL == (dep_ent_info = avm_find_ent_str_info(cb, &temp_ent_info->dep_ep_str,TRUE)))
    {
       m_AVM_LOG_INVALID_VAL_ERROR(dec->i_reo_type);
       return NCSCC_RC_FAILURE;
@@ -687,7 +687,6 @@ uns32 avm_decode_cold_sync_rsp(AVM_CB_T             *cb,
    {
      cb->config_state = AVM_CONFIG_DONE;
    }
-
    return status;
 
 }
@@ -721,7 +720,6 @@ avm_decode_cold_sync_rsp_ent_cfg(AVM_CB_T             *cb,
    AVM_ENT_INFO_LIST_T *temp_ent_info_list;
    AVM_ENT_INFO_LIST_T *t_ent_info_list;
    AVM_ENT_INFO_LIST_T *temp;
-   AVM_ENT_PATH_STR_T   ep_str;
 
    uns32                num_of_inst;
    uns32                temp_ent_cnt = 0;
@@ -732,7 +730,6 @@ avm_decode_cold_sync_rsp_ent_cfg(AVM_CB_T             *cb,
 
    m_AVM_LOG_FUNC_ENTRY("avm_decode_cold_sync_rsp_ckpt_ent_cfg");
 
-   m_NCS_MEMSET(&ep_str, '\0', sizeof(ep_str));
 
    buff = ncs_dec_flatten_space(&dec->i_uba, (uns8*)&num_of_inst, sizeof(uns32));
    num_of_inst = ncs_decode_32bit(&buff);
@@ -783,9 +780,7 @@ avm_decode_cold_sync_rsp_ent_cfg(AVM_CB_T             *cb,
           m_AVM_ENT_IS_VALID(temp_ent_info_list->ent_info, rc)
           if(!rc)
           {
-             ep_str.length = m_NCS_OS_NTOHS(temp_ent_info_list->ep_str->length);
-             m_NCS_MEMCPY(ep_str.name, temp_ent_info_list->ep_str->name, AVM_MAX_INDEX_LEN);
-             t_ent_info = avm_find_ent_str_info(cb, &ep_str);
+             t_ent_info = avm_find_ent_str_info(cb, temp_ent_info_list->ep_str ,FALSE);
              if(AVM_ENT_INFO_NULL == t_ent_info)
              {
                for(t_ent_info_list = ent_info->dependents; t_ent_info_list != AVM_ENT_INFO_LIST_NULL;)
@@ -935,7 +930,7 @@ avm_decode_warm_sync_rsp(
    }
   
    m_NCS_MEMSET(sprbuf, '\0', sizeof(sprbuf));   
-   sprintf(sprbuf, " Standby ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d \n Active  ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d \n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt, cb->async_updt_cnt.hlt_status_updt, cb->async_updt_cnt.ent_dhconf_updt, cb->async_updt_cnt.ent_dhstate_updt, updt_cnt->ent_updt, updt_cnt->ent_cfg_updt, updt_cnt->ent_adm_op_updt, updt_cnt->evt_id_updt, updt_cnt->hlt_status_updt, updt_cnt->ent_dhconf_updt, updt_cnt->ent_dhstate_updt);
+   sprintf(sprbuf, " Standby ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d \n Active  ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d upgd_state_updt = %d\n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt, cb->async_updt_cnt.hlt_status_updt, cb->async_updt_cnt.ent_dhconf_updt, cb->async_updt_cnt.ent_dhstate_updt, updt_cnt->ent_updt, updt_cnt->ent_cfg_updt, updt_cnt->ent_adm_op_updt, updt_cnt->evt_id_updt, updt_cnt->hlt_status_updt, updt_cnt->ent_dhconf_updt, updt_cnt->ent_dhstate_updt, updt_cnt->ent_upgd_state_updt);
    
    m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_INFO);
    

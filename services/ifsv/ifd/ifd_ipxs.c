@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "ifd.h"
@@ -277,7 +277,7 @@ uns32 ipxs_mib_tbl_req (struct ncsmib_arg *args)
 
    if(cb == NULL)
    {
-      m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+      m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "ncshm_take_hdl returned NULL",0);
 
       return NCSCC_RC_FAILURE;
@@ -331,7 +331,7 @@ static uns32 ipxs_reg_with_mab(IPXS_CB *cb)
       
       if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
       {
-        m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+        m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "Reg with mab failed, SVC id : ",cb->my_svc_id);
         return NCSCC_RC_FAILURE;       
       }
@@ -342,7 +342,7 @@ static uns32 ipxs_reg_with_mab(IPXS_CB *cb)
       
       if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
       {
-        m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+        m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "Reg with mab failed, SVC id : ",cb->my_svc_id);
          return NCSCC_RC_FAILURE;       
       }
@@ -380,7 +380,7 @@ static uns32 ipxs_unreg_with_mab(IPXS_CB *cb)
       mab_arg.i_tbl_id = tbl_id;      
       if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
       {
-        m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+        m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "Unreg with mab failed, SVC id : ",cb->my_svc_id);
         return NCSCC_RC_FAILURE;       
       }
@@ -467,7 +467,7 @@ static uns32 ipxs_ifd_ipaddr_info_bcast(IPXS_CB *cb, NCS_IPPFX *ip_pfx,
 
    if(ifsv_cb == NULL)
    {
-      m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+      m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "ncshm_take_hdl returned NULL",cb->my_svc_id);
       return (NCSCC_RC_FAILURE);
    }
@@ -581,7 +581,7 @@ uns32 ipxs_ifd_ifip_info_bcast(IPXS_CB *cb,
 
    if(ifsv_cb == NULL)
    {
-      m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+      m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "ncshm_take_hdl returned NULL",cb->my_svc_id);
       return (NCSCC_RC_FAILURE);
    }
@@ -641,7 +641,7 @@ static uns32 ifd_ipxs_proc_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt, IFSV_SEND_
 
    if(ifsv_cb == NULL)
    {
-      m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+      m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "ncshm_take_hdl returned NULL",cb->my_svc_id);
       return (NCSCC_RC_FAILURE);
    }
@@ -721,7 +721,7 @@ ifd_ipxs_proc_data_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
 
    if(ifip_info == NULL)
    {
-      m_IFD_LOG_API_LL(IFSV_LOG_IFD_IPXS_EVT_INFO,\
+      m_IFD_LOG_EVT_L(IFSV_LOG_IFD_IPXS_EVT_INFO,\
                      "No IFIP info exists for index : ",\
                       *if_index);
       goto free_mem;

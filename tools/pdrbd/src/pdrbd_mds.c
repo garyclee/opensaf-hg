@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*
@@ -83,7 +82,7 @@ uns32 pdrbd_mds_install_and_subscribe(void)
    NCSMDS_INFO  mds_info;
    MDS_SVC_ID   svc_ids_array[2];
 
-   if (pseudoCB.mds_hdl == NULL)
+   if (pseudoCB.mds_hdl == 0)
    {
       m_LOG_PDRBD_MISC(PDRBD_MISC_MDS_HDL_IS_NULL, NCSFL_SEV_ERROR, NULL);
       return NCSCC_RC_FAILURE;
@@ -101,7 +100,7 @@ uns32 pdrbd_mds_install_and_subscribe(void)
    mds_info.i_op = MDS_INSTALL;
    mds_info.info.svc_install.i_mds_q_ownership = FALSE;
    mds_info.info.svc_install.i_svc_cb = pdrbd_mds_callback;
-   mds_info.info.svc_install.i_yr_svc_hdl = (NCSCONTEXT)pseudoCB.cb_hdl;
+   mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)((long)pseudoCB.cb_hdl);
    mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE; /* Total PWE scope */
    if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS)
    {
@@ -227,7 +226,7 @@ uns32 pdrbd_mds_callback(NCSMDS_CALLBACK_INFO * cbinfo)
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 pdrbd_mds_rcv(NCSCONTEXT yr_svc_hdl, NCSCONTEXT msg)
+uns32 pdrbd_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 {
    PSEUDO_CB      *cb;
 
@@ -261,7 +260,7 @@ uns32 pdrbd_mds_rcv(NCSCONTEXT yr_svc_hdl, NCSCONTEXT msg)
  * Notes         : None.
 \*****************************************************************************/
 void pdrbd_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
-                   NCSCONTEXT  yr_svc_hdl)
+                   MDS_CLIENT_HDL  yr_svc_hdl)
 {
    int32 i;
    PSEUDO_CB     *cb;
@@ -332,7 +331,7 @@ done:
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 pdrbd_mds_enc(NCSCONTEXT yr_svc_hdl, NCSCONTEXT msg,
+uns32 pdrbd_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
                   SS_SVC_ID to_svc,     NCS_UBAID* uba)
   {
   uns8*    data;
@@ -397,7 +396,7 @@ uns32 pdrbd_mds_enc(NCSCONTEXT yr_svc_hdl, NCSCONTEXT msg,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 pdrbd_mds_dec(NCSCONTEXT yr_svc_hdl, NCSCONTEXT* msg,
+uns32 pdrbd_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
                   SS_SVC_ID to_svc,     NCS_UBAID*  uba)
   {
   uns8*    data;

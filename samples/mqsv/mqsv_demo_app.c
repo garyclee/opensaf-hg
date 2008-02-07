@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*****************************************************************************
@@ -346,7 +345,7 @@ void message_send_async(void)
 
   /* Create a thread and wait in select() */
   rc = m_NCS_TASK_CREATE((NCS_OS_CB)select_thread, (NCSCONTEXT)&msgHandle,
-                          "mqa_sendasync_thread", 5, 8000, &thread_handle);
+                          "mqa_sendasync_thread", 5, NCS_STACKSIZE_HUGE, &thread_handle);
 
   if (rc != NCSCC_RC_SUCCESS)
   {

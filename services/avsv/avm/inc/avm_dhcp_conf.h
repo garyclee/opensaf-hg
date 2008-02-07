@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -278,21 +278,20 @@ struct slot_info
 #define m_AVM_SSU_PSSV_PUSH_INT(avm_cb, push_val, push_obj, ent_info) \
       { \
          AVM_PSSV_PUSH  avm_pssv; \
+         uns8 push_logbuf[500]; \
          avm_pssv.int_val = push_val; \
-         uns8               avm_push_logbuf[500]; \
-         avm_push_logbuf[0] = '\0'; \
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_INT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sysf_sprintf(avm_push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
-            m_AVM_LOG_DEBUG(avm_push_logbuf, NCSFL_SEV_ERROR); \
+            m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sysf_sprintf(avm_push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
-            m_AVM_LOG_DEBUG(avm_push_logbuf, NCSFL_SEV_NOTICE); \
+            m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \
       }                                                                         
  
@@ -301,23 +300,22 @@ struct slot_info
                          push_length) \
       { \
          AVM_PSSV_PUSH  avm_pssv; \
-         uns8               avm_push_logbuf[500]; \
-         avm_push_logbuf[0] = '\0'; \
+         uns8 push_logbuf[500]; \
          m_NCS_MEMSET(&avm_pssv.oct_str.name, '\0', AVM_NAME_STR_LENGTH); \
          avm_pssv.oct_str.length = push_length; \
          m_NCS_MEMCPY(&avm_pssv.oct_str.name, push_str, avm_pssv.oct_str.length); \
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_OCT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sysf_sprintf(avm_push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
-            m_AVM_LOG_DEBUG(avm_push_logbuf, NCSFL_SEV_ERROR); \
+            m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sysf_sprintf(avm_push_logbuf, "AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
-            m_AVM_LOG_DEBUG(avm_push_logbuf, NCSFL_SEV_NOTICE); \
+            m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \
       }
 
@@ -353,11 +351,16 @@ extern NCS_BOOL
 avm_is_the_helper_payload_present(AVM_CB_T *avm_cb, AVM_ENT_PATH_STR_T helper_ent_path);
 extern NCS_BOOL
 avm_validate_state_for_dhcp_conf_change(AVM_ENT_INFO_T *ent_info, AVM_PER_LABEL_CONF *self_label, AVM_PER_LABEL_CONF *other_label);
+extern void
+avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb);
 
 extern uns32
 avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_VAL param_val, AVM_PER_LABEL_CONF *label, AVM_LABEL_NUM label_no);
 
 extern uns32
 avm_send_dynamic_data(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_ID param_id, NCSMIB_FMAT_ID fmt_id, AVM_PSSV_PUSH *avm_pss);
+
+extern void
+avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb);
 
 #endif /*__AVM_DHCP_CONF_H__*/

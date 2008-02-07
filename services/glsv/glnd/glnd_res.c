@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -746,7 +746,7 @@ SaLckLockIdT      lcl_lock_id)
    lck_list_info->res_info = res_info;
    if(m_GLND_IS_LOCAL_NODE(&req_node_mds_dest,&cb->glnd_mdest_id)==0)
    {
-      lck_list_info->lock_info.lockid = m_ASSIGN_LCK_HANDLE_ID((uns32)lck_list_info);
+      lck_list_info->lock_info.lockid = m_ASSIGN_LCK_HANDLE_ID(NCS_PTR_TO_UNS64_CAST(lck_list_info));
       glnd_client_node_resource_lock_req_add(client_info,res_info,lck_list_info);
    }
    else
@@ -1006,7 +1006,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB  *cb,
    lck_list_info->req_mdest_id = cb->glnd_mdest_id;
    lck_list_info->lck_info_hdl_id = 
       ncshm_create_hdl((uns8)cb->pool_id,NCS_SERVICE_ID_GLND,(NCSCONTEXT)lck_list_info);
-   lck_list_info->lock_info.lockid = m_ASSIGN_LCK_HANDLE_ID((uns32)lck_list_info);
+   lck_list_info->lock_info.lockid = m_ASSIGN_LCK_HANDLE_ID(NCS_PTR_TO_UNS64_CAST(lck_list_info));
    
    /* add it to the list */
    lck_list_info->next = res_info->lcl_lck_req_info;

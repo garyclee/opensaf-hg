@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -67,8 +67,12 @@ typedef enum
 #define VDS_CKPT_MAX_ADESTS            10
 #define VDS_CKPT_DBINFO_RET_TIME       SA_TIME_END
 #define VDS_CKPT_MAX_DBINFO_SECS       1000  /* NCS_MDS_MAX_VDEST, reduced to 1000*/
-#define VDS_CKPT_SEC_DBINFO_SIZE       sizeof(VDS_CKPT_DBINFO);
-#define VDS_CKPT_DBINFO_SIZE           ((VDS_CKPT_MAX_DBINFO_SECS -1) * sizeof(VDS_CKPT_DBINFO))
+#if (MOT_ATCA ==1)
+   #define VDS_CKPT_SEC_DBINFO_SIZE    360
+#else
+   #define VDS_CKPT_SEC_DBINFO_SIZE    356  /* take care of this */
+#endif
+#define VDS_CKPT_DBINFO_SIZE           ((VDS_CKPT_MAX_DBINFO_SECS -1) * VDS_CKPT_SEC_DBINFO_SIZE)
 #define VDS_CKPT_TIMEOUT               6000000000LL
 
 #define VDS_CKPT_NO_OF_SECTIONS_TOWRITE 1
@@ -91,10 +95,10 @@ typedef enum
 
 typedef struct vds_ckpt_dbinfo
 {
-   SaNameT   vdest_name;     /* Key to this structure */
-   MDS_DEST  vdest_id;
-   NCS_BOOL  persistent;
    uns16     adest_count; 
+   SaNameT   vdest_name;     /* Key to this structure */
+   NCS_BOOL  persistent;
+   MDS_DEST  vdest_id;
    MDS_DEST  adest[VDS_CKPT_MAX_ADESTS];
 } VDS_CKPT_DBINFO;
 

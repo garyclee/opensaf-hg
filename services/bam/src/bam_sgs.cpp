@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -725,6 +725,8 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
    NCSMIB_FMAT_ID       format;
    char                 rowStatus[4];
    
+   m_NCS_MEMSET(csiName, 0, BAM_MAX_INDEX_LEN);
+   
    if(!node)
    {
       m_LOG_BAM_MSG_TIC(BAM_INVALID_DOMNODE, NCSFL_SEV_ERROR, siName);
@@ -759,12 +761,13 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
                continue;
             }
             /* its tricky here think about this and do it better way*/
-            if(csiName)
+            if(csiName[0] != 0)
             {
                ncs_bam_build_mib_idx(&mib_idx, csiName, NCSMIB_FMAT_OCT);
                
                ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, val, format); 
                ncs_bam_free(mib_idx.i_inst_ids);
+	       
             }
 
          }

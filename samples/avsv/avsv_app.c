@@ -1,18 +1,17 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
  */
 
 /*****************************************************************************
@@ -64,7 +63,7 @@ uns32 gl_count = 0;
 
 /* AvSv application task related parameters  */
 #define AVSV_APP_TASK_PRIORITY   (5)
-#define AVSV_APP_STACKSIZE       (8000)
+#define AVSV_APP_STACKSIZE       NCS_STACKSIZE_HUGE
 
 /* Time duration (in ms) after which counter value is incremented */
 #define AVSV_APP_COUNTER_UPDATE_TIME (1000)

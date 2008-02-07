@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1494,16 +1494,16 @@ uns32 ifsv_drv_edp_intf_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_intf_rules[ ] = {
         {EDU_START, ifsv_drv_edp_intf_info, 0, 0, 0, sizeof(NCS_IFSV_INTF_INFO), 0, NULL},        
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_am, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_descr, IFSV_IF_DESC_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->mtu, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_speed, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->phy_addr, 6, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->admin_state, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->oper_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_am, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_descr, IFSV_IF_DESC_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->mtu, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_speed, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->phy_addr, 6, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->admin_state, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->oper_state, 0, NULL},
         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->last_change, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->last_change, 0, NULL},
         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1552,9 +1552,9 @@ uns32 ifsv_drv_edp_idim_ifnd_up_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_hw_ifnd_up_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_ifnd_up_info, 0, 0, 0, sizeof(NCS_IFND_UP_INFO), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->vrid, 0, NULL},         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->nodeid, 0, NULL},                 
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->ifnd_addr, 0, NULL},                
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->vrid, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->nodeid, 0, NULL},                 
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->ifnd_addr, 0, NULL},                
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1602,9 +1602,9 @@ uns32 ifsv_drv_edp_idim_hw_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_hw_ifnd_up_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_ifnd_up_info, 0, 0, 0, sizeof(NCS_IFSV_HW_REQ_INFO), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->svc_id, 0, NULL},                         
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->dest_addr, 0, NULL},         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->app_hdl, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->svc_id, 0, NULL},                         
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->dest_addr, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->app_hdl, 0, NULL},         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1654,8 +1654,8 @@ uns32 ifsv_drv_edp_idim_port_type(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_port_type_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_port_type, 0, 0, 0, sizeof(NCS_IFSV_PORT_TYPE), 0, NULL},        
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_TYPE*)0)->port_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_TYPE*)0)->type, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_TYPE*)0)->port_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_TYPE*)0)->type, 0, NULL},        
         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1705,24 +1705,24 @@ uns32 ifsv_drv_edp_idim_hw_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_idim_hw_req_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_hw_req_info, 0, 0, 0, sizeof(NCS_IFSV_HW_DRV_REQ), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, NULL},         
-   {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->subscr_scope, 0, NULL}, /*EXT_INT*/ 
-        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->port_type, 0, NULL},         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->drv_data, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, NULL},         
+   {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->subscr_scope, 0, NULL}, /*EXT_INT*/ 
+        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->port_type, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->drv_data, 0, NULL},         
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, ifsv_drv_hw_req_evt_test_type_fnc},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, ifsv_drv_hw_req_evt_test_type_fnc},
 
         /* For NCS_IFSV_HW_DRV_STATS */
         {EDU_EXEC, ifsv_drv_edp_idim_hw_req, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.req_info, 0, NULL},        
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.req_info, 0, NULL},        
 
       /* For NCS_IFSV_HW_DRV_IFND_UP */
         {EDU_EXEC, ifsv_drv_edp_idim_ifnd_up_info, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.ifnd_info, 0, NULL},        
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.ifnd_info, 0, NULL},        
 
             /* For NCS_IFSV_HW_DRV_SET_PARAM */
         {EDU_EXEC, ifsv_drv_edp_intf_info, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.set_param, 0, NULL},            
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.set_param, 0, NULL},            
               
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1771,7 +1771,7 @@ uns32 ifsv_drv_edp_idim_port_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_port_status_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_port_status, 0, 0, 0, sizeof(NCS_IFSV_PORT_STATUS), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATUS*)0)->oper_state, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATUS*)0)->oper_state, 0, NULL},         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1820,15 +1820,15 @@ uns32 ifsv_drv_edp_idim_port_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_port_info_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_port_info, 0, 0, 0, sizeof(NCS_IFSV_PORT_INFO), 0, NULL},        
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->if_am, 0, NULL},
-        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->port_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->phy_addr, 6, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->oper_state, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->admin_state, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->mtu, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->speed, 0, NULL},                
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->if_am, 0, NULL},
+        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->port_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->phy_addr, 6, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->oper_state, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->admin_state, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->mtu, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->speed, 0, NULL},                
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->dest, 0, NULL},
         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1879,19 +1879,19 @@ uns32 ifsv_drv_edp_stats_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_stats_info_rules[ ] = {
         {EDU_START, ifsv_drv_edp_stats_info, 0, 0, 0, sizeof(NCS_IFSV_INTF_STATS), 0, NULL},        
         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->last_chg, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_octs, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_upkts, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_nupkts, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_dscrds, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_errs, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_unknown_prots, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_octs, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_upkts, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_nupkts, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_dscrds, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_errs, 0, NULL},        
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_qlen, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->last_chg, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_octs, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_upkts, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_nupkts, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_dscrds, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_errs, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_unknown_prots, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_octs, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_upkts, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_nupkts, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_dscrds, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_errs, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_qlen, 0, NULL},        
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1939,11 +1939,11 @@ uns32 ifsv_drv_edp_idim_port_stats(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_port_stats_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_port_stats, 0, 0, 0, sizeof(NCS_IFSV_PORT_STATS), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->status, 0, NULL},         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->app_svc_id, 0, NULL},                 
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->app_dest, 0, NULL},
-        {EDU_EXEC, ifsv_drv_edp_stats_info, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->stats, 0, NULL},         
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->usr_hdl, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->status, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->app_svc_id, 0, NULL},                 
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->app_dest, 0, NULL},
+        {EDU_EXEC, ifsv_drv_edp_stats_info, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->stats, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->usr_hdl, 0, NULL},         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1991,23 +1991,23 @@ uns32 ifsv_drv_edp_idim_hw_rcv_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_idim_hw_info_rules[ ] = {
         {EDU_START, ifsv_drv_edp_idim_hw_rcv_info, 0, 0, 0, sizeof(NCS_IFSV_HW_INFO), 0, NULL},                
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, NULL},         
-   {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->subscr_scope, 0, NULL},/*EXT_INT */
-        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->port_type, 0, NULL},        
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, NULL},         
+   {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->subscr_scope, 0, NULL},/*EXT_INT */
+        {EDU_EXEC, ifsv_drv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->port_type, 0, NULL},        
         
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, ifsv_drv_hw_resp_evt_test_type_fnc},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, ifsv_drv_hw_resp_evt_test_type_fnc},
 
         /* For NCS_IFSV_HW_DRV_STATS */
         {EDU_EXEC, ifsv_drv_edp_idim_port_stats, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.stats, 0, NULL},        
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.stats, 0, NULL},        
 
       /* For NCS_IFSV_HW_DRV_PORT_REG */
         {EDU_EXEC, ifsv_drv_edp_idim_port_info, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.reg_port, 0, NULL},        
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.reg_port, 0, NULL},        
 
             /* For NCS_IFSV_HW_DRV_PORT_STATUS */
         {EDU_EXEC, ifsv_drv_edp_idim_port_status, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.port_status, 0, NULL},            
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.port_status, 0, NULL},            
               
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -2052,8 +2052,6 @@ uns32 ifsv_drv_edp_idim_hw_rcv_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 NCS_IFSV_SUBSCR_SCOPE  ifsv_drv_scope_update(uns8 *name)
 {
    FILE *fp;
-   uns32 file_port_id;
-   uns32 file_intf_type_info;
    uns8 pres_word[10]={'\0'};
    uns32 rc = NCSCC_RC_SUCCESS; 
 

@@ -1,20 +1,19 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
-
 
 /*****************************************************************************
 *                                                                            *
@@ -53,6 +52,7 @@ static uns32 hpl_msg_proc        (HPL_CB *hpl_cb, HISV_MSG *hisv_msg,
 static uns32 hpl_mds_send_adest(HPL_CB *hpl_cb, MDS_DEST *vdest);
 #endif /* 0 */
 
+const MDS_CLIENT_MSG_FORMAT_VER hpl_hcd_msg_fmt_map_table[HPL_HCD_SUB_PART_VER_MAX] = {HPL_MSG_FMT_VER};
 
 /****************************************************************************
  * Name          : hpl_mds_callback
@@ -116,7 +116,7 @@ static uns32 hpl_mds_cb_cpy(struct ncsmds_callback_info *info)
       m_LOG_HISV_DEBUG("m_MMGR_ALLOC_HISV_EVT failed\n");
       return NCSCC_RC_FAILURE;
    }
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
+   info->info.cpy.o_msg_fmt_ver = HPL_MSG_FMT_VER;
    info->info.cpy.o_cpy = (uns8*)evt;
    m_NCS_MEMSET(evt, '\0', sizeof(HISV_EVT));
    m_NCS_MEMCPY(&evt->msg, hisv_msg, sizeof(HISV_MSG));
@@ -168,8 +168,22 @@ static uns32 hpl_mds_cb_enc (struct ncsmds_callback_info *info)
    uns32           data_len;
    int32           total_bytes = 0;
 
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
-   /* get the message */
+
+  if( NCSMDS_SVC_ID_HCD == info->info.enc.i_to_svc_id )
+  {
+     info->info.enc.o_msg_fmt_ver =  m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+                                     HPL_HCD_SUB_PART_VER_MIN,
+                                     HPL_HCD_SUB_PART_VER_MAX,
+                                     hpl_hcd_msg_fmt_map_table);
+   
+   
+    if(info->info.enc.o_msg_fmt_ver  < HPL_MSG_FMT_VER)
+    {
+       m_LOG_HISV_DEBUG("Mds Encode fails :Message being sent to incompatiable version \n");
+       return NCSCC_RC_FAILURE;
+    } 
+  }
+
    msg = (HISV_MSG*)info->info.enc.i_msg;
    uba = info->info.enc.io_uba;
 
@@ -229,10 +243,21 @@ hpl_mds_cb_dec (struct ncsmds_callback_info *info)
    uns32     mds_dest_size = sizeof(MDS_DEST);
    uns8      local_data[sizeof(MDS_DEST) + 1];
    uns32     total_bytes = 0, data_len = 0;
-   
-   /* Drop the msg if the version does not match */
-   if ( info->info.dec.i_msg_fmt_ver != HISV_MSG_FMT_VER )
-          return NCSCC_RC_FAILURE;
+  
+
+  if ((info->i_yr_svc_id == NCSMDS_SVC_ID_HPL) 
+     && (info->info.dec.i_fr_svc_id == NCSMDS_SVC_ID_HCD))
+  {
+    if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+                                   HPL_HCD_SUB_PART_VER_MIN,
+                                   HPL_HCD_SUB_PART_VER_MAX,
+                                   hpl_hcd_msg_fmt_map_table))
+    {
+      m_LOG_HISV_DEBUG("Mds Decode fails: Message received from incompatiable version \n");
+      return NCSCC_RC_FAILURE;
+    }
+  }
+ 
    /** Allocate a new msg in both sync/async cases
     **/
    msg = m_MMGR_ALLOC_HISV_MSG;
@@ -331,7 +356,22 @@ hpl_mds_cb_enc_flat(struct ncsmds_callback_info *info)
    NCS_UBAID       *uba;
    uns32           data_len;
 
-   info->info.enc.o_msg_fmt_ver = HISV_MSG_FMT_VER;
+
+  if( NCSMDS_SVC_ID_HCD == info->info.enc_flat.i_to_svc_id )
+  {
+    info->info.enc.o_msg_fmt_ver =  m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
+                                   HPL_HCD_SUB_PART_VER_MIN,
+                                   HPL_HCD_SUB_PART_VER_MAX,
+                                   hpl_hcd_msg_fmt_map_table);
+   
+   
+    if(info->info.enc.o_msg_fmt_ver  < HPL_MSG_FMT_VER)
+    {
+      m_LOG_HISV_DEBUG("Mds Encode fails :Message being sent to incompatiable version \n");
+      return NCSCC_RC_FAILURE;
+    }
+  }
+ 
    /* get the message */
    msg = (HISV_MSG*)info->info.enc_flat.i_msg;
    uba = info->info.enc_flat.io_uba;
@@ -380,9 +420,21 @@ hpl_mds_cb_dec_flat(struct ncsmds_callback_info *info)
    uns32     mds_dest_size = sizeof(MDS_DEST);
    uns8      local_data[sizeof(MDS_DEST) + 1];
    uns32     total_bytes = 0, data_len = 0;
-   
-   if ( info->info.dec.i_msg_fmt_ver != HISV_MSG_FMT_VER )
-          return NCSCC_RC_FAILURE;
+  
+
+  if ((info->i_yr_svc_id == NCSMDS_SVC_ID_HPL) 
+     && (info->info.dec_flat.i_fr_svc_id == NCSMDS_SVC_ID_HCD))
+  {
+    if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec_flat.i_msg_fmt_ver,
+                                   HPL_HCD_SUB_PART_VER_MIN,
+                                   HPL_HCD_SUB_PART_VER_MAX,
+                                   hpl_hcd_msg_fmt_map_table))
+    {
+      m_LOG_HISV_DEBUG("Mds Decode fails: Message received from incompatiable version \n");
+      return NCSCC_RC_FAILURE;
+    }
+  }
+
    /** Allocate a new msg in both sync/async cases
     **/
    msg = m_MMGR_ALLOC_HISV_MSG;
@@ -776,7 +828,7 @@ uns32 hpl_mds_msg_async_send (HPL_CB *cb, HISV_MSG *i_msg,
       return NCSCC_RC_FAILURE;
 
    m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
-   mds_info.i_mds_hdl = (MDS_HDL)cb->mds_hdl;
+   mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HPL;
    mds_info.i_op = MDS_SEND;
 
@@ -821,7 +873,7 @@ HISV_MSG* hpl_mds_msg_sync_send (HPL_CB *cb, HISV_MSG *i_msg,
       return NULL;
 
    m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
-   mds_info.i_mds_hdl = (MDS_HDL)cb->mds_hdl;
+   mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HPL;
    mds_info.i_op = MDS_SEND;
 
@@ -964,7 +1016,7 @@ uns32 hpl_mds_initialize(HPL_CB *hpl_cb)
 
    /** Store the info obtained from MDS ADEST creation
     **/
-   hpl_cb->mds_hdl   = (NCSCONTEXT)ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
+   hpl_cb->mds_hdl   = ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
    hpl_cb->hpl_dest  = ada_info.info.adest_get_hdls.o_adest;
 
    hpl_cb->ham_inst = NULL;
@@ -972,7 +1024,7 @@ uns32 hpl_mds_initialize(HPL_CB *hpl_cb)
    m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
 
    /* Do common stuff */
-   mds_info.i_mds_hdl = (MDS_HDL)hpl_cb->mds_hdl;
+   mds_info.i_mds_hdl = hpl_cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HPL; /* see ncs_mdsev.h */
 
    /* Install with MDS */
@@ -992,7 +1044,7 @@ uns32 hpl_mds_initialize(HPL_CB *hpl_cb)
    /* Now subscribe for events that will be generated by MDS */
    m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl = (MDS_HDL)hpl_cb->mds_hdl;
+   mds_info.i_mds_hdl = hpl_cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HPL; /* see ncs_mdsev.h */
    mds_info.i_op = MDS_SUBSCRIBE;
 
@@ -1029,7 +1081,7 @@ uns32 hpl_mds_finalize (HPL_CB *hpl_cb)
    No need to cancel the services that are subscribed*/
    m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
-   mds_info.i_mds_hdl     = (MDS_HDL)hpl_cb->mds_hdl;
+   mds_info.i_mds_hdl     = hpl_cb->mds_hdl;
    mds_info.i_svc_id      = NCSMDS_SVC_ID_HPL;
    mds_info.i_op          = MDS_UNINSTALL;
 

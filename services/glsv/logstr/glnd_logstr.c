@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /******************************************************************************
@@ -220,17 +221,17 @@ NCSFL_SET glnd_str_set[] =
 NCSFL_FMAT glnd_fmat_set[] = 
 {
    { GLND_LID_HDLN,        NCSFL_TYPE_TI,     "%s GLND HEADLINE : %s\n"                       },
-   { GLND_LID_HDLN_TIL,    NCSFL_TYPE_TIL,     "%s GLND HEADLINE : %s Res id %d \n"     },  
-   { GLND_LID_HDLN_TILL,   NCSFL_TYPE_TILL,     "%s GLND HEADLINE : %s Res id %d , Node id %d \n"     },  
-   { GLND_LID_HDLN_TILLL,  NCSFL_TYPE_TILLL,   "%s GLND HEADLINE : %s Handle  %d Res id %d lockid %d \n"     },  
+   { GLND_LID_HDLN_TIL,    NCSFL_TYPE_TIL,     "%s GLND HEADLINE : %s Res id %ld \n"     },  
+   { GLND_LID_HDLN_TILL,   NCSFL_TYPE_TILL,     "%s GLND HEADLINE : %s Res id %ld , Node id %ld \n"     },  
+   { GLND_LID_HDLN_TILLL,  NCSFL_TYPE_TILLL,   "%s GLND HEADLINE : %s Handle  %ld Res id %ld lockid %ld \n"     },  
    { GLND_LID_MEMFAIL,     NCSFL_TYPE_TI,     "%s GLND MEMERR: %s\n"                          },
    { GLND_LID_API,         NCSFL_TYPE_TI,     "%s GLND API: %s\n"                             },
    { GLND_LID_NCS_LOCK,    NCSFL_TYPE_TI,     "%s GLND NCSLOCK: %s\n"                         },
-   { GLND_LID_EVT,         NCSFL_TYPE_TILLLL,    "%s GLND EVT: %s  event_id :%d Node:%d Hdl:%d Rsc:%d Lock:%d\n"},
-   { GLND_LID_SYS_CALL,    NCSFL_TYPE_TIL,    "%s GLND SYSCALL: %s client_id :%d \n"          },
-   { GLND_LID_DATA_SEND,   NCSFL_TYPE_TILL,   "%s GLND DATA SEND: %s node_id :%d evt: %d \n"  },
-   { GLND_LID_TIMER,       NCSFL_TYPE_TIL,    "%s GLND TIMER: %s type :%d \n"                 },
-   { GLND_LID_LOG,   NCSFL_TYPE_TCLILLLL,"%s GLND : %14s:%u : %s Ret:%u Handle  %d Res id %d lockid %d \n"     },  
+   { GLND_LID_EVT,         NCSFL_TYPE_TILLLL,    "%s GLND EVT: %s  event_id :%ld Node:%ld Hdl:%ld Rsc:%ld Lock:%ld\n"},
+   { GLND_LID_SYS_CALL,    NCSFL_TYPE_TIL,    "%s GLND SYSCALL: %s client_id :%ld \n"          },
+   { GLND_LID_DATA_SEND,   NCSFL_TYPE_TILL,   "%s GLND DATA SEND: %s node_id :%ld evt: %ld \n"  },
+   { GLND_LID_TIMER,       NCSFL_TYPE_TIL,    "%s GLND TIMER: %s type :%ld \n"                 },
+   { GLND_LID_LOG,   NCSFL_TYPE_TCLILLLL,"%s GLND : %14s:%lu : %s Ret:%lu Handle  %ld Res id %ld lockid %ld \n"     },  
    { 0, 0, 0 }
 };
 

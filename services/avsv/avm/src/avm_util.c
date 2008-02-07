@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -141,9 +141,6 @@ avm_map_hpi2fsm(
 
    m_AVM_LOG_FUNC_ENTRY("avm_map_hpi2fsm");
    hpi_event = evt->hpi_event;
-#if 0
-   m_NCS_CONS_PRINTF("avm_map_hpi2fsm: hpi_event.EventType = %d\n", hpi_event.EventType);
-#endif
 
    switch(hpi_event.EventType)
    {
@@ -167,9 +164,6 @@ avm_map_hpi2fsm(
       case SAHPI_ET_HOTSWAP:
       {
          m_AVM_LOG_HPI_HS_EVT(AVM_LOG_EVT_HOTSWAP, hpi_event.EventDataUnion.HotSwapEvent.HotSwapState, hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState, ent_info->ep_str.name);
-#if 0
-         m_NCS_CONS_PRINTF("avm_map_hpi2fsm: HotSwap State = %d\n", hpi_event.EventDataUnion.HotSwapEvent.HotSwapState);
-#endif
          if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_INSERTION_PENDING)
          {
             *fsm_evt_type = AVM_EVT_INSERTION_PENDING;
@@ -1232,10 +1226,9 @@ avm_hisv_api_cmd(
          rc = hpl_bootbank_get (chassis_id, entity_path, &bootbank_number);
          if (rc != NCSCC_RC_SUCCESS)
          {
-            m_NCS_CONS_PRINTF("avm_hisv_api_cmd: BOOT BANK GET FAILED\n"); 
+            ncshm_give_hdl(g_avm_hdl);
             break;
          }
-         m_NCS_CONS_PRINTF("avm_hisv_api_cmd: BOOT BANK = %d\n",bootbank_number);
          if (bootbank_number == 0)
          {
             ent_info->dhcp_serv_conf.bios_upgd_state = 
@@ -1243,7 +1236,6 @@ avm_hisv_api_cmd(
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);  
             ncshm_give_hdl(g_avm_hdl);
             rc = hpl_bootbank_set (chassis_id, entity_path, 1);
-            m_NCS_CONS_PRINTF("avm_hisv_api_cmd: SET BOOT BANK = 1\n");
          }
          else if (bootbank_number == 1)
          {
@@ -1252,10 +1244,10 @@ avm_hisv_api_cmd(
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);  
             ncshm_give_hdl(g_avm_hdl);
             rc = hpl_bootbank_set (chassis_id, entity_path, 0);
-            m_NCS_CONS_PRINTF("avm_hisv_api_cmd: SET BOOT BANK = 0\n");
          }  
          else
          {
+            ncshm_give_hdl(g_avm_hdl);
             rc = NCSCC_RC_FAILURE;
             break;
          }
@@ -1821,7 +1813,7 @@ avm_rmv_frm_dependee(
    m_AVM_LOG_FUNC_ENTRY("avm_rmv_frm_dependee");
    if(TRUE == ent_info->depends_on_valid)
    {
-      dependee = avm_find_ent_str_info(avm_cb, &ent_info->dep_ep_str);
+      dependee = avm_find_ent_str_info(avm_cb, &ent_info->dep_ep_str,TRUE);
 
       if((AVM_ENT_INFO_NULL != dependee) && (AVM_ENT_INFO_LIST_NULL != dependee->dependents)) 
       {

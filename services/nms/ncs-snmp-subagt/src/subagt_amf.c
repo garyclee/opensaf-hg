@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1691,7 +1691,7 @@ subagt_process_sig_usr1_signal(NCSSA_CB *cb)
     uns32 status = NCSCC_RC_SUCCESS;
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_SIGUSR1_SIGNAL);
 
-    fp = fopen(m_SUBAGENT_COMP_NAME_FILE, "r");/* /etc/opt/opensaf/ncs_subagent_comp_name.txt */
+    fp = fopen(m_SUBAGENT_COMP_NAME_FILE, "r");/* /var/opt/opensaf/ncs_subagent_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */

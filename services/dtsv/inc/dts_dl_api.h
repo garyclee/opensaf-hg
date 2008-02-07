@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -66,5 +66,14 @@ EXTERN_C int32 dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
 
 /* Define for cmd for cleaning /var/opt/opensaf/log directory */
 #define DTS_RM_LOG_FILES  "rm -f /var/opt/opensaf/log/*"
+
+#if (DTS_FLOW == 1)
+
+/* Define threshold value for DTS mailbox */
+#define DTS_MAX_THRESHOLD 30000
+#define DTS_AVG_THRESHOLD 27000
+#define DTS_MIN_THRESHOLD 20000
+
+#endif
 
 #endif /* DTS_DL_API_H */

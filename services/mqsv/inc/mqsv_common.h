@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -91,6 +91,7 @@
 
 EXTERN_C uns32 machineEndianness(void);
 EXTERN_C uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerhandle);
+EXTERN_C NCS_PHY_SLOT_ID  mqsv_get_phy_slot_id(MDS_DEST dest);
 typedef  unsigned int MSG_FRMT_VER;
 
 #define m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
@@ -101,6 +102,6 @@ typedef  unsigned int MSG_FRMT_VER;
 #define NCSFL_LC_MQSV_SEND_RCV   0x00001000    /* MQSV New Logs */
 
 /* DTSv versioning support */
-#define MQSV_LOG_VERSION 2
+#define MQSV_LOG_VERSION 3
 
 #endif

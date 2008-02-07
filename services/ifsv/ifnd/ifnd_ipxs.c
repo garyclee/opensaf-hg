@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "ifnd.h"
@@ -171,7 +171,7 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
    {
        rc = NCSCC_RC_FAILURE;
        m_NCS_CONS_PRINTF("\nLock create failure\n");
-       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,cb);
+       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,(long)cb);
        goto ipxs_lock_create_fail;
    }
 
@@ -195,7 +195,7 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
    }
 
    if ((rc = m_NCS_TASK_CREATE ((NCS_OS_CB)ifnd_netlink_process,
-         (NCSCONTEXT)create->ifsv_hdl,
+         (NCSCONTEXT)((long)create->ifsv_hdl),
          NCS_IFSV_NETLINK_TASKNAME,
          NCS_IFSV_NETLINK_PRIORITY,
          NCS_IFSV_NETLINK_STACKSIZE,
@@ -209,7 +209,7 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
         != NCSCC_RC_SUCCESS)
    {
       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_TASK_CREATE_FAIL,\
-         gl_ifsv_netlink_task_hdl);
+         (long)gl_ifsv_netlink_task_hdl);
       goto ipxs_task_start_fail;
    }
 #endif /* #if(NCS_IFSV_USE_NETLINK == 1) */
@@ -388,7 +388,7 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
     numfds->raise_obj = 0;
     numfds->rmv_obj = 0;
     m_NCS_SEL_OBJ_ZERO(readfds);
-
+    return NCSCC_RC_SUCCESS;
 }
 
 
@@ -416,7 +416,8 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
 static void ifnd_netlink_process(NCSCONTEXT info)
 {
    IFSV_CB             *ifsv_cb = NULL;
-   uns32               cb_hdl = (uns32)info, ipxs_hdl = 0, fd = 0,res;
+   unsigned long       cb_hdl = (long)info, ipxs_hdl = 0,res;
+   SYSF_MBX *fd;
    NCS_SEL_OBJ_SET     readfds;
    NCS_SEL_OBJ         netlink_fd, numfds , mbx_fd;
    IPXS_CB             *ipxs_cb = NULL;
@@ -463,13 +464,13 @@ static void ifnd_netlink_process(NCSCONTEXT info)
    mbx = ipxs_cb->mbx;
    mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&ipxs_cb->mbx);
 
-   fd = ipxs_cb->netlink_fd;
+   fd = (SYSF_MBX *)(&ipxs_cb->netlink_fd);
    ncshm_give_hdl(cb_hdl);
    ncshm_give_hdl(ipxs_hdl);
 
    numfds.raise_obj = 0;
    numfds.rmv_obj = 0;
-   netlink_fd = m_NCS_IPC_GET_SEL_OBJ(&fd);
+   netlink_fd = m_NCS_IPC_GET_SEL_OBJ(fd);
    m_NCS_SEL_OBJ_ZERO(&readfds);
    m_NCS_SEL_OBJ_SET(netlink_fd,&readfds);
    m_NCS_SEL_OBJ_SET(mbx_fd,&readfds);
@@ -924,7 +925,7 @@ static uns32 ifnd_ipxs_proc_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    NCS_IPXS_IPINFO *rcv_ifip_info;
-   m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                      "Got IFIP info from IfD, index",\
                      ipxs_evt->info.nd.dtond_upd.if_index);
 
@@ -1149,7 +1150,7 @@ ifnd_ipxs_data_proc_ifip_info (IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    } /* if(ifip_node) */      
    else
    {
-     m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+     m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
      rc = NCSCC_RC_FAILURE;
    }
      return rc;
@@ -1290,7 +1291,7 @@ static uns32 ifnd_ipxs_proc_get_ifip_req(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
                                          IFSV_SEND_INFO *sinfo)
 {
    uns32          rc;
-   m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                      "Got IFIP get req from IfA, usr_hdl : ",\
                      ipxs_evt->info.nd.get.usr_hdl);
 
@@ -1372,7 +1373,7 @@ static uns32 ifnd_ipxs_node_rec_get(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    IPXS_EVT          send_evt;
    IFSV_EVT          evt;
     uns32            rc;
-   m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                   "Got IPXS_EVT_ATOND_NODE_REC_GET event from IfA",\
                    0);
 
@@ -1407,7 +1408,7 @@ static uns32 ifnd_ipxs_proc_isloc(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    uns32             in_v4mask;
    
    rcv_is_loc = &ipxs_evt->info.nd.is_loc;
-   m_IFND_LOG_API_LLL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
        "Got IPXS_EVT_ATOND_IS_LOCAL event from IfA, ipaddr type and V4 : ",\
                      rcv_is_loc->ip_addr.type,rcv_is_loc->ip_addr.info.v4);
 
@@ -1506,7 +1507,7 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
 #endif
    intf_rec = &ipxs_evt->info.nd.atond_upd;
    
-   m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,\
+   m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
                      "Got IFIP up event from IfA, index : ",\
                      intf_rec->if_index);
 
@@ -1792,7 +1793,7 @@ uns32 ipxs_ifnd_if_info_attr_cpy(IPXS_CB *cb, uns32 ifindex,
    if(data == 0)
    {
       ncshm_give_hdl(ifsv_hdl);
-      m_IFND_LOG_API_LL(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
+      m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,"Coudn't get IFIP rec",0);
       return NCSCC_RC_FAILURE;
    }
    intf_rec->spt = data->spt_info;

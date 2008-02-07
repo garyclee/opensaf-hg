@@ -62,4 +62,5 @@ IPMC_BOARD:LINUX_PC_SCXB
 /opt/opensaf/controller/bin/ncs_psr:PSSV:E::4000:4:2:1::
 /opt/opensaf/controller/bin/ncs_eds:EDSV:E::5000:4:2:1::
 /opt/opensaf/controller/bin/ncs_snmp_subagt:SUBAGT:E::5000:4:2:1::
+/opt/opensaf/controller/scripts/ip_inst_script:IFSVDD:S:/opt/opensaf/controller/scripts/ip_inst_script:10000:4:2:1:start:stop
 /opt/opensaf/controller/bin/ncs_scap:SCAP:E::192000:-6:0:1::

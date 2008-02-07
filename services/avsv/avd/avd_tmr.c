@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -194,7 +194,7 @@ void avd_tmr_exp (void *uarg)
          evt->cb_hdl = tmr->cb_hdl;
          evt->info.tmr = *tmr;
          evt->rcv_evt = (tmr->type - AVD_TMR_SND_HB) + AVD_EVT_TMR_SND_HB;
-         m_AVD_LOG_RCVD_VAL(((uns32)evt));
+         m_AVD_LOG_RCVD_VAL(((long)evt));
          m_AVD_LOG_EVT_INFO(AVD_SND_TMR_EVENT,evt->rcv_evt);
         
          if((tmr->cb_hdl == cb_hdl) && (evt->rcv_evt == AVD_EVT_TMR_SND_HB)) 

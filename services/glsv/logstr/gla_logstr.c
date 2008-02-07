@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -153,9 +153,9 @@ NCSFL_FMAT gla_fmat_set[] =
    { GLA_LID_MEMFAIL,        NCSFL_TYPE_TI,     "%s GLA MEMERR: %s\n"                        },
    { GLA_LID_API,            NCSFL_TYPE_TI,     "%s GLA API: %s\n"                           },
    { GLA_LID_NCS_LOCK,       NCSFL_TYPE_TI,     "%s GLA NCSLOCK: %s\n"                       },
-   { GLA_LID_EVT,            NCSFL_TYPE_TIL,    "%s GLA EVT: %s  client_id :%d \n"           },
-   { GLA_LID_SYS_CALL,       NCSFL_TYPE_TIL,    "%s GLA SYSCALL: %s client_id :%d \n"        },
-   { GLA_LID_DATA_SEND,      NCSFL_TYPE_TILL,   "%s GLA SYSCALL: %s node_id :%d evt: %d \n"  },
+   { GLA_LID_EVT,            NCSFL_TYPE_TIL,    "%s GLA EVT: %s  client_id :%ld \n"           },
+   { GLA_LID_SYS_CALL,       NCSFL_TYPE_TIL,    "%s GLA SYSCALL: %s client_id :%ld \n"        },
+   { GLA_LID_DATA_SEND,      NCSFL_TYPE_TILL,   "%s GLA SYSCALL: %s node_id :%ld evt: %ld \n"  },
    { 0, 0, 0 }
 };
 

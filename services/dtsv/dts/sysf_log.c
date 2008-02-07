@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -39,7 +39,7 @@ $Header: /ncs/software/leap/targsvcs/common/src/sysf_log.c 18    6/02/01 3:43p A
 #include "dts.h"
 
 static uns32 dts_get_and_return_val(char* t_str, char *ch, char* time, NCS_UBAID* uba,
-                                     NCSFL_ASCII_SPEC* spec, NCSFL_SET* set, uns32* arg_list,
+                                     NCSFL_ASCII_SPEC* spec, NCSFL_SET* set, long * arg_list,
                                      uns32 *log_msg_len, uns8 msg_fmat_ver);
 
 /*****************************************************************************
@@ -410,7 +410,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
    time_t           tod;
    char             asc_tod[32];
    char             *sev;
-   uns32            args[30];
+   long            args[30];
    uns32            log_msg_len = 0;
    NCSFL_NORMAL     *msg = &logmsg->log_msg;
 
@@ -523,7 +523,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
 
 static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time, 
                                     NCS_UBAID* uba, NCSFL_ASCII_SPEC* spec, 
-                                    NCSFL_SET* set, uns32* arg_list, 
+                                    NCSFL_SET* set, long * arg_list, 
                                     uns32 *log_msg_len, uns8 msg_fmat_ver)
 {
    uns8* data = NULL;
@@ -537,7 +537,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
       {
       case 'T':
          {
-            arg_list[cnt] = (uns32)time;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(time);
             *log_msg_len += 15;
             break;
          }
@@ -561,7 +561,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
                return NCSCC_RC_FAILURE;
             }
             
-            arg_list[cnt] = (uns32)m_NCSFL_MAKE_STR(set, idx);
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(m_NCSFL_MAKE_STR(set, idx));
             *log_msg_len += m_NCS_STRLEN((char*)arg_list[cnt]);
             
             break;
@@ -577,7 +577,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             lval = ncs_decode_32bit(&data);
             ncs_dec_skip_space(uba, sizeof(uns32));
             
-            arg_list[cnt] = (uns32)lval;
+            arg_list[cnt] = (long)lval;
             *log_msg_len += 10;
             break;
          }
@@ -592,7 +592,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             u16_val = ncs_decode_16bit(&data);
             ncs_dec_skip_space(uba, sizeof(uns16));
             
-            arg_list[cnt] = (uns32)u16_val;
+            arg_list[cnt] = (long)u16_val;
             *log_msg_len += 10;
             break;
          }
@@ -607,7 +607,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             u8_val = ncs_decode_8bit(&data);
             ncs_dec_skip_space(uba, sizeof(uns8));
             
-            arg_list[cnt] = (uns32)u8_val;
+            arg_list[cnt] = (long)u8_val;
             *log_msg_len += 3;
             break;
          }
@@ -672,7 +672,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             
             m_MMGR_FREE_OCT(mem_d.dump);
             
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = (long)t_str;
             *log_msg_len += (m_NCS_STRLEN(t_str)+1);
             t_str+= (*log_msg_len);
             break;
@@ -701,7 +701,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             
             m_MMGR_FREE_OCT(pdu.dump);
             
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             
             *log_msg_len += (m_NCS_STRLEN(t_str)+1);
             t_str+= (*log_msg_len);
@@ -712,7 +712,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             NCS_IP_ADDR ipa;
             decode_ip_address(uba, &ipa);
             m_NCSFL_MAKE_STR_FRM_IPADDR(ipa, t_str);
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             *log_msg_len += (m_NCS_STRLEN(t_str)+1);
             t_str+= (*log_msg_len);
             break;
@@ -732,7 +732,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             t_str+=(m_NCS_STRLEN(t_str)+1);
             *log_msg_len += length;
             break;
@@ -752,7 +752,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             ncs_dec_skip_space(uba, sizeof(uns32));
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             t_str+=(m_NCS_STRLEN(t_str)+1);
             *log_msg_len += length;
             break;
@@ -771,7 +771,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             ncs_dec_skip_space(uba, sizeof(uns32));
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             t_str+=(m_NCS_STRLEN(t_str)+1);
             *log_msg_len += length;
             break;
@@ -790,7 +790,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             ncs_dec_skip_space(uba, sizeof(uns32));
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             t_str+=(m_NCS_STRLEN(t_str)+1);
             *log_msg_len += length;
             break;
@@ -809,7 +809,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             ncs_dec_skip_space(uba, sizeof(uns32));
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
-            arg_list[cnt] = (uns32)t_str;
+            arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             t_str+=(m_NCS_STRLEN(t_str)+1);
             *log_msg_len += length;
             break;

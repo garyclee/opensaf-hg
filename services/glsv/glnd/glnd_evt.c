@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -1773,7 +1773,7 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
       return NCSCC_RC_SUCCESS;
    }
    
-err:
+/*err: */
    /* send back the non-master glnd about the failure */
       m_GLND_RESOURCE_NODE_LCK_INFO_FILL(glnd_evt,GLSV_GLND_EVT_LCK_RSP,
       lck_req->resource_id,
@@ -1904,7 +1904,7 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
       }
    }
 
-   err:
+/*   err: */
     /* send back the non-master glnd about the failure */
      m_GLND_RESOURCE_NODE_LCK_INFO_FILL(glnd_evt,GLSV_GLND_EVT_UNLCK_RSP,
                   lck_req->resource_id,
@@ -3509,7 +3509,7 @@ static uns32 glnd_process_non_master_lck_req_status(GLND_CB *glnd_cb, GLND_RESOU
 {
      if(node_status->status == GLND_DOWN_STATE)
      {
-          if(lock_list_info->lock_info.lockStatus = SA_LCK_LOCK_GRANTED)
+          if(lock_list_info->lock_info.lockStatus == SA_LCK_LOCK_GRANTED)
           {
               /* delete the lock */
               glnd_resource_lock_req_delete(res_node,lock_list_info);

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -349,6 +349,8 @@ EXTERN_C void  rde_log_condition_float  (uns32 line, const char * file, const ch
 EXTERN_C void  rde_log_condition_string (uns32 line, const char * file, const char * func, uns8 sev, uns8 id, const char * val);
 EXTERN_C void  rde_log_mem_fail         (uns32 line, const char * file, const char * func, uns8 id);
 EXTERN_C void  rde_log_event            (uns32 line, const char * file, const char * func, uns8 sev, uns8 id);
+EXTERN_C const char * rde_get_log_level_str (uns32 log_level);
+EXTERN_C void rdeSysLog (uns32 severity, char * logMessage);
 
 
 
@@ -386,6 +388,6 @@ EXTERN_C void  rde_log_event            (uns32 line, const char * file, const ch
 #define m_RDE_DBG_FILE_LINE_ARG    __FILE__,__LINE__
 
 /* DTSv versioning changes */
-#define NCS_RDE_VERSION 1
+#define NCS_RDE_VERSION 2
 
 #endif /* RDE_LOG_H */

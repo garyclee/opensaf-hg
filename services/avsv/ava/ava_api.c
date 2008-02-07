@@ -1,30 +1,37 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
-
 
 /*****************************************************************************
 ..............................................................................
+
+
+
+..............................................................................
+
   DESCRIPTION:
 
   This file contains the AMF API implementation.
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-******************************************************************************/
+  
+
+******************************************************************************
+*/
 
 #include "ava.h"
 
@@ -133,6 +140,13 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    {
       return SA_AIS_ERR_LIBRARY;
    }
+ 
+   /* Create AVA/CLA  CB */ 
+   if (ncs_ava_startup() != NCSCC_RC_SUCCESS)
+   {
+      ncs_agents_shutdown(argc, argv);
+      return SA_AIS_ERR_LIBRARY;
+   }
 
    /* if comp-name is not set, it should be available now */
    cb = (AVA_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVA, gl_ava_hdl);
@@ -196,7 +210,10 @@ done:
    m_AVA_API_POST_PROCESSING(AVSV_AMF_INITIALIZE, gl_ava_hdl, cb, 0, 0, 0, rc);
 
    if (SA_AIS_OK != rc)
+   {
+      ncs_ava_shutdown();
       ncs_agents_shutdown(argc, argv);
+   }
 
    return rc;
 }
@@ -309,6 +326,7 @@ done:
       while(pend_fin != 0)
       {
          /* call agent shutdown,for each finalize done before */
+         ncs_ava_shutdown();
          ncs_agents_shutdown(argc, argv);
          pend_fin--;
       }
@@ -367,7 +385,7 @@ SaAisErrorT saAmfFinalize (SaAmfHandleT hdl)
    m_AVA_AMF_FINALIZE_MSG_FILL(msg, cb->ava_dest, hdl, cb->comp_name_net);
    rc = ava_mds_send(cb, &msg, 0);
    if (NCSCC_RC_SUCCESS != rc)
-      rc = SA_AIS_ERR_NO_RESOURCES;
+      rc = SA_AIS_ERR_TRY_AGAIN;
 
    /* delete the hdl rec */
    if (SA_AIS_OK == rc) ava_hdl_rec_del(cb, hdl_db, hdl_rec);
@@ -389,7 +407,10 @@ done:
 
    /* we are not in any dispatch context, we can do agent shutdown */
    if(agent_flag == TRUE) 
+   {
+      ncs_ava_shutdown();
       ncs_agents_shutdown(argc, argv);
+   }
 
    return rc;
 }

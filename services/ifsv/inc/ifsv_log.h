@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -825,6 +825,16 @@ ifsv_flx_log_TICLLLLL_fmt(uns32 scv_id, uns32 cat, uns32 str_set, uns32 sev,
 void
 ifsv_flx_log_TIL_fmt(uns32 scv_id, uns32 cat, uns32 str_set, uns32 sev, 
                      uns32 fmt_id, uns32 indx, uns32 info);
+void
+ifsv_flx_log_TICLLLLLL_fmt(uns32 scv_id, uns32 cat, uns32 str_set, uns32 sev,
+                          uns32 fmt_id, uns32 indx, uns8 *info1, uns32 info2,
+                          uns32 info3, uns32 info4, uns32 info5, uns32 info6,
+                          uns32 info7);
+void
+ifsv_flx_log_TICLLLLLLL_fmt(uns32 scv_id, uns32 cat, uns32 str_set, uns32 sev,
+                          uns32 fmt_id, uns32 indx, uns8 *info1, uns32 info2,
+                          uns32 info3, uns32 info4, uns32 info5, uns32 info6,
+                          uns32 info7, uns32 info8);
 
 void
 ifsv_flx_log_TILL_fmt(uns32 scv_id, uns32 cat, uns32 str_set, 
@@ -876,7 +886,7 @@ void m_IFSV_LOG_SPT_INFO(uns32 index, NCS_IFSV_SPT_MAP *spt_map,uns8 *info2);
 
 
 /* DTSv versioning support */
-#define IFSV_LOG_VERSION 1
+#define IFSV_LOG_VERSION 2
 
 #endif /*#ifndef IFSV_LOG_H*/
 

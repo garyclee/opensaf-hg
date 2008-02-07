@@ -1,3 +1,4 @@
+if CONTROLLER
 lib_LTLIBRARIES = libipxs_subagt.la
 
 libipxs_subagt_la_CPPFLAGS = 	-I ../inc/ \
@@ -11,3 +12,4 @@ libipxs_subagt_la_SOURCES = 	./ipxs_subagt_init.c \
 				./ipxs_subagt_init.h \
 				./ncs_ifsv_ifip_mib_agt_stub.c \
 				./ncs_ifsv_ifip_mib_agt_stub.h
+endif

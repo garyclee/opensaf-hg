@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -383,3 +383,61 @@ avm_rda_cb(
    return ;
 }
 
+/******************************************************************
+ * Name          : avm_notify_rde_hrt_bt_restore
+ *
+ * Description   : This function informs AVD hrt beat restore info to RDE
+ *
+ * Arguments     : AVM_CB_T*    - Pointer to AvM CB
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None
+*********************************************************************
+ *****/
+extern uns32
+avm_notify_rde_hrt_bt_restore(AVM_CB_T *cb)
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+   PCS_RDA_REQ pcs_rda_req;
+   
+   pcs_rda_req.req_type = PCS_RDA_AVD_HB_RESTORE;
+   if(PCSRDA_RC_SUCCESS != pcs_rda_request(&pcs_rda_req))
+   {
+      m_AVM_LOG_ROLE(AVM_LOG_RDA_HB, AVM_LOG_RDA_FAILURE, NCSFL_SEV_ERROR); 
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_AVM_LOG_ROLE(AVM_LOG_RDA_HB, AVM_LOG_RDA_SUCCESS, NCSFL_SEV_INFO); 
+   return rc;
+}
+
+/******************************************************************
+ * Name          : avm_notify_rde_nd_hrt_bt_restore
+ *
+ * Description   : This function informs AvND hrt beat restore info to RDE
+ *
+ * Arguments     : AVM_CB_T*    - Pointer to AvM CB
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None
+*********************************************************** *****/
+extern uns32
+avm_notify_rde_nd_hrt_bt_restore(AVM_CB_T *cb, uns32 phy_slot_id)
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+   PCS_RDA_REQ pcs_rda_req;
+   
+   pcs_rda_req.req_type = PCS_RDA_AVND_HB_RESTORE;
+   pcs_rda_req.info.phy_slot_id = phy_slot_id;
+
+   if(PCSRDA_RC_SUCCESS != pcs_rda_request(&pcs_rda_req))
+   {
+      m_AVM_LOG_ROLE(AVM_LOG_RDA_HB, AVM_LOG_RDA_FAILURE, NCSFL_SEV_ERROR); 
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_AVM_LOG_ROLE(AVM_LOG_RDA_HB, AVM_LOG_RDA_SUCCESS, NCSFL_SEV_INFO); 
+   return rc;
+}

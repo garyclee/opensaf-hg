@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -288,17 +288,17 @@ NCSFL_SET mbcsv_str_set[] =
 NCSFL_FMAT mbcsv_fmat_set[] = 
 {                                         /*  T,State,SVCID, pwe, anch, ....*/
     { MBCSV_LID_HDLN,           "TI",        "%s MBCA HEADLINE : %s \n\n" },
-    { MBCSV_LID_SVC_PRVDR_FLEX, "TLCI",      "%s MDS EVENT for pwe = %d, peer = %s \n SVC PRVDR: %s \n\n" },
+    { MBCSV_LID_SVC_PRVDR_FLEX, "TLCI",      "%s MDS EVENT for pwe = %ld, peer = %s \n SVC PRVDR: %s \n\n" },
     { MBCSV_LID_GL_LOCKS,       "TIL",       "%s MBCA GLOBAL LOCK : %s (%p) \n\n"},
-    { MBCSV_LID_SVC_LOCKS,      "TILL",      "%s MBCA SVC LOCK : %s SVC = %d (%p) \n\n"},
+    { MBCSV_LID_SVC_LOCKS,      "TILL",      "%s MBCA SVC LOCK : %s SVC = %ld (%p) \n\n"},
     { MBCSV_LID_MEMFAIL,        "TII",       "%s %s MBCA MEMERR : %s \n\n" },
-    { MBCSV_LID_API,            "TILLI",     "%s %s MBCA %d %d API : %s \n\n" },
-    { MBCSV_LID_PEER_EVT,       "TILLCI",    "%s %s MBCA svc = %d, pwe = %d, peer = %s \nPEER_EVENT: %s \n\n"},
-    { MBCSV_LID_FSM_EVT,        "TILLCII",   "%s %s MBCA svc = %d, pwe = %d, peer = %s \nFSM_EVENT: fsm state %s event %s \n\n"},
-    { MBCSV_LID_TMR,            "TILLCII",   "%s %s MBCA svc = %d, pwe = %d, peer = %s \nTMR : %s %s \n\n" },
-    { MBCSV_LID_STR,            "TILLC",     "%s %s MBCA %d %d \nDBG INFO : %s \n\n" },
-    { MBCSV_LID_DBG_SNK,        "TCCL",      "%s MBCA %s \nFile: %s Line: %d \n\n" },
-    { MBCSV_LID_DBG_SNK_SVC,    "TCLCL",     "%s MBCA %s Svc %d \nFile %s Line %d \n\n" },
+    { MBCSV_LID_API,            "TILLI",     "%s %s MBCA %ld %ld API : %s \n\n" },
+    { MBCSV_LID_PEER_EVT,       "TILLCI",    "%s %s MBCA svc = %ld, pwe = %ld, peer = %s \nPEER_EVENT: %s \n\n"},
+    { MBCSV_LID_FSM_EVT,        "TILLCII",   "%s %s MBCA svc = %ld, pwe = %ld, peer = %s \nFSM_EVENT: fsm state %s event %s \n\n"},
+    { MBCSV_LID_TMR,            "TILLCII",   "%s %s MBCA svc = %ld, pwe = %ld, peer = %s \nTMR : %s %s \n\n" },
+    { MBCSV_LID_STR,            "TILLC",     "%s %s MBCA %ld %ld \nDBG INFO : %s \n\n" },
+    { MBCSV_LID_DBG_SNK,        "TCCL",      "%s MBCA %s \nFile: %s Line: %ld \n\n" },
+    { MBCSV_LID_DBG_SNK_SVC,    "TCLCL",     "%s MBCA %s Svc %ld \nFile %s Line %ld \n\n" },
     { 0, 0, 0 }
 };
 

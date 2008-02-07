@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -249,6 +249,7 @@ uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree,
 {
    /* Store the client_info pointer as msghandle. */
    lc_node->patnode.key_info = (uns8*)&lc_node->lcl_ckpt_hdl;
+   
  
    if(ncs_patricia_tree_add (lcl_ckpt_tree, &lc_node->patnode) != NCSCC_RC_SUCCESS)
    {
@@ -407,9 +408,9 @@ uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
       
       m_NCS_OS_MEMSET(*gc_node, 0, sizeof(CPA_GLOBAL_CKPT_NODE));
       (*gc_node)->gbl_ckpt_hdl = (SaCkptCheckpointHandleT) *gc_hdl;
-
-      m_NCS_LOCK_INIT(&((*gc_node)->cpd_active_sync_lock));
       
+      m_NCS_LOCK_INIT(&((*gc_node)->cpd_active_sync_lock));
+
       rc = cpa_gbl_ckpt_node_add(gbl_ckpt_tree, *gc_node);
       
       if(rc != NCSCC_RC_SUCCESS)
@@ -487,9 +488,6 @@ uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node)
    {
       rc =   NCSCC_RC_FAILURE;
    }
-  
-   /* Free the Client Node and shared memory */
-   cpa_proc_shm_close(gc_node);
 
    if(gc_node)
       m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(gc_node);

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -151,7 +151,7 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
       return NCSCC_RC_FAILURE;
    }
    
-   m_AVD_LOG_RCVD_VAL(((uns32)dst_msg));
+   m_AVD_LOG_RCVD_VAL(((long)dst_msg));
  
    if (NCSCC_RC_SUCCESS != 
       avsv_dnd_msg_copy(dst_msg, (AVSV_DND_MSG *)cpy_info->i_msg))
@@ -217,7 +217,7 @@ uns32 avd_mds_dec (uns32 cb_hdl,MDS_CALLBACK_DEC_INFO *dec_info)
       return rc;
    }
 
-   m_AVD_LOG_RCVD_VAL(((uns32)dec_info->o_msg));
+   m_AVD_LOG_RCVD_VAL(((long)dec_info->o_msg));
    m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_DEC_CBK);
    return rc;
 
@@ -458,7 +458,7 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg)
       return NCSCC_RC_FAILURE;
    }
    
-   m_AVD_LOG_RCVD_VAL(((uns32)evt));
+   m_AVD_LOG_RCVD_VAL(((long)evt));
 
    /* get the CB from the handle manager */
    if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD,cb_hdl)) ==

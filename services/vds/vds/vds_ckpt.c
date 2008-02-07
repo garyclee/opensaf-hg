@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -79,7 +79,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_INIT,
                           VDS_LOG_CKPT_FAILURE,
-                                NCSFL_SEV_CRITICAL, rc);
+                                NCSFL_SEV_ERROR, rc);
       /* Added by vishal : for VDS error handling enhancement */
       if (rc == SA_AIS_ERR_TRY_AGAIN)
       {
@@ -116,7 +116,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_OPEN,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
       if (rc == SA_AIS_ERR_TRY_AGAIN)
       {
           m_NCS_TASK_SLEEP(1000);
@@ -128,7 +128,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
 
          m_VDS_LOG_CKPT(VDS_LOG_CKPT_FIN,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
       }
       cb->ckpt.ckpt_hdl = 0;
       /* Added by vishal : for VDS error handling enhancement */
@@ -167,7 +167,7 @@ uns32 vds_ckpt_finalize(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_CLOSE,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
    }
 
    cb->ckpt.checkpointHandle = 0;
@@ -177,7 +177,7 @@ uns32 vds_ckpt_finalize(VDS_CB *cb)
    {  
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_FIN,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
       
       /* Added by vishal : for VDS error handling enhancement */
       /* saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
@@ -311,7 +311,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
        {
            m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_CB_OVERWRITE,
                                      VDS_LOG_CKPT_FAILURE,
-                                           NCSFL_SEV_CRITICAL, rc);
+                                           NCSFL_SEV_ERROR, rc);
            if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
            {
                 return NCSCC_RC_FAILURE;
@@ -354,7 +354,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
    {
         m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_CB_CWRITE,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
 
         if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
         {
@@ -488,7 +488,7 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    {
       m_VDS_LOG_MEM(VDS_LOG_MEM_VDS_CKPT_BUFFER,
                             VDS_LOG_MEM_ALLOC_FAILURE,
-                                        NCSFL_SEV_CRITICAL);
+                                        NCSFL_SEV_ERROR);
 
        return NCSCC_RC_FAILURE;
    }
@@ -525,7 +525,7 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    {
        m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_CWRITE,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
        if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
        {
             return NCSCC_RC_FAILURE;
@@ -572,7 +572,7 @@ uns32 vds_ckpt_dbinfo_overwrite(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    {
       m_VDS_LOG_MEM(VDS_LOG_MEM_VDS_CKPT_BUFFER,
                             VDS_LOG_MEM_ALLOC_FAILURE,
-                                        NCSFL_SEV_CRITICAL);
+                                        NCSFL_SEV_ERROR);
 
       return NCSCC_RC_FAILURE;
    }
@@ -594,7 +594,7 @@ uns32 vds_ckpt_dbinfo_overwrite(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_OVERWRITE,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
        if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
        {
             return NCSCC_RC_FAILURE;
@@ -706,7 +706,7 @@ uns32 vds_ckpt_dbinfo_delete(VDS_CB *cb, MDS_DEST *vdest_id)
    {
        m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DELETE,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
        if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
        {
             return NCSCC_RC_FAILURE;
@@ -765,7 +765,7 @@ VDS_VDEST_DB_INFO  *vds_ckpt_new_vdest(VDS_CB *vds_cb,
    {
      m_VDS_LOG_TREE(VDS_LOG_PAT_ADD_NAME,
                                VDS_LOG_PAT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
    }
    else
      m_VDS_LOG_TREE(VDS_LOG_PAT_ADD_NAME,
@@ -781,7 +781,7 @@ VDS_VDEST_DB_INFO  *vds_ckpt_new_vdest(VDS_CB *vds_cb,
    {
      m_VDS_LOG_TREE(VDS_LOG_PAT_ADD_ID,
                                VDS_LOG_PAT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
    }
    else
      m_VDS_LOG_TREE(VDS_LOG_PAT_ADD_ID,
@@ -871,7 +871,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
         {
             m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_VDS_VERSION_CREATE,
                                      VDS_LOG_CKPT_FAILURE,
-                                           NCSFL_SEV_CRITICAL ,rc);
+                                           NCSFL_SEV_ERROR ,rc);
             if (rc == SA_AIS_ERR_TRY_AGAIN)
              {
                  m_NCS_TASK_SLEEP(1000);
@@ -885,7 +885,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
     {
         m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_VDS_VERSION_READ,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL ,rc);
+                                       NCSFL_SEV_ERROR ,rc);
         if (rc == SA_AIS_ERR_TRY_AGAIN)
          {
                  m_NCS_TASK_SLEEP(1000);
@@ -905,7 +905,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_ITER_INIT,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL ,rc);
+                                       NCSFL_SEV_ERROR ,rc);
       
       /* Added by vishal : for VDS error handling enhancement */
       if (rc == SA_AIS_ERR_TRY_AGAIN)
@@ -964,7 +964,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           {
              m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_CB_READ,
                                     VDS_LOG_CKPT_FAILURE,
-                                            NCSFL_SEV_CRITICAL, rc);
+                                            NCSFL_SEV_ERROR, rc);
 
              /* Added by vishal : for VDS error handling enhancement */
              if (rc == SA_AIS_ERR_TRY_AGAIN)
@@ -1003,7 +1003,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           {
              m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_READ,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
              
              /* Added by vishal : for VDS error handling enhancement */
              if (rc == SA_AIS_ERR_TRY_AGAIN)
@@ -1059,7 +1059,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_ITER_NEXT,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL ,rc_while);
+                                       NCSFL_SEV_ERROR ,rc_while);
       
       /* Added by vishal : for VDS error handling enhancement */
       if (rc_while == SA_AIS_ERR_TRY_AGAIN)
@@ -1081,7 +1081,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_ITER_FIN,
                                  VDS_LOG_CKPT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
    }
    return NCSCC_RC_SUCCESS;
 }

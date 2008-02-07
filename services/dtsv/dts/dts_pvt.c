@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -50,7 +50,7 @@
 
 #include "dts.h"
 
-#define m_DTS_COMP_NAME_FILE "/etc/opt/opensaf/ncs_dts_comp_name.txt"
+#define m_DTS_COMP_NAME_FILE "/var/opt/opensaf/ncs_dts_comp_name"
 
 static uns32 dts_stby_initialize(DTS_CB *cb);
 
@@ -940,9 +940,6 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
 uns32 dts_handle_fail_over(void)
 {
     DTS_CB            *inst = &dts_cb;
-    DTSV_MSG          *msg = NULL;
-    DTA_DEST_LIST     *dta_reg = NULL;
-    MDS_DEST           dta_key;
     uns32              status = NCSCC_RC_SUCCESS;
 
     m_DTS_LK(&inst->lock);
@@ -3102,7 +3099,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
       spec_entry = svc->spec_list;
       while(spec_entry != NULL)
       {
-         fprintf(fp, "\n\tMDS DEST: %d, lib_hdl: 0x%08x, spec_hdl: 0x%08x name: %s\n", spec_entry->dta_addr, spec_entry->lib_struct, spec_entry->spec_struct, spec_entry->svc_name);
+         fprintf(fp, "\n\tMDS DEST: %ld, lib_hdl: 0x%08lx, spec_hdl: 0x%08lx name: %s\n", (long)spec_entry->dta_addr, (long)spec_entry->lib_struct, (long)spec_entry->spec_struct, spec_entry->svc_name);
          spec_entry = spec_entry->next_spec_entry;
       }
  
@@ -3135,7 +3132,7 @@ void dts_print_cb(DTS_CB *cb, FILE *fp)
    fprintf(fp, "***DTS control block info***");
    fprintf(fp, "\n--------------***-----------------\n");
 
-   fprintf(fp, "\ndts created = %d\ndts_enbl = %d\nVdest Id = %d\nLog Path = %s\nSAF Component Name = %s\nHealthCheck key = %s\nIn-sync = %d\nCold-Sync in Progress = %d\nCold-Sync Status = %d\nAsync update count :\n\tsvc reg updates = %u\n\tdta dest updates = %u\n\tglobal policy updates = %u\n\tlog updates = %u\nConsole Device(Serial) = %s\nConsole Device(Serial) fd = %ld\nCLI Bit Map = %d", cb->created, cb->dts_enbl, cb->vaddr, cb->log_path, cb->comp_name.value, cb->health_chk_key.key, cb->in_sync, cb->cold_sync_in_progress, cb->cold_sync_done, cb->async_updt_cnt.dts_svc_reg_tbl_updt, cb->async_updt_cnt.dta_dest_list_updt, cb->async_updt_cnt.global_policy_updt, cb->async_updt_cnt.dts_log_updt, cb->cons_dev, cb->cons_fd, cb->cli_bit_map);
+   fprintf(fp, "\ndts created = %d\ndts_enbl = %d\nVdest Id = %d\nLog Path = %s\nSAF Component Name = %s\nHealthCheck key = %s\nIn-sync = %d\nCold-Sync in Progress = %d\nCold-Sync Status = %d\nAsync update count :\n\tsvc reg updates = %u\n\tdta dest updates = %u\n\tglobal policy updates = %u\n\tlog updates = %u\nConsole Device(Serial) = %s\nConsole Device(Serial) fd = %d\nCLI Bit Map = %d", cb->created, cb->dts_enbl, cb->vaddr, cb->log_path, cb->comp_name.value, cb->health_chk_key.key, cb->in_sync, cb->cold_sync_in_progress, cb->cold_sync_done, cb->async_updt_cnt.dts_svc_reg_tbl_updt, cb->async_updt_cnt.dta_dest_list_updt, cb->async_updt_cnt.global_policy_updt, cb->async_updt_cnt.dts_log_updt, cb->cons_dev, cb->cons_fd, cb->cli_bit_map);
  
    fprintf(fp, "\nGlobal Policy info:\n-------------------");
    fprintf(fp, "\nGlobal Logging = %d\nDefault Logging = %d\nMax number of Log Files = %u\nMax number of console devices = %d\nEnable Sequencing = %d", cb->g_policy.global_logging, cb->g_policy.dflt_logging, cb->g_policy.g_num_log_files, cb->g_policy.g_num_cons_dev, cb->g_policy.g_enable_seq);
@@ -3260,7 +3257,7 @@ void dts_print_reg_tbl_dbg(void)
       spec_entry = svc->spec_list;
       while(spec_entry != NULL)
       {
-         printf("\n\tMDS DEST: %d, lib_hdl: 0x%08x, spec_hdl: 0x%08x name: %s\n", spec_entry->dta_addr, spec_entry->lib_struct, spec_entry->spec_struct, spec_entry->svc_name);
+         printf("\n\tMDS DEST: %ld, lib_hdl: 0x%08lx, spec_hdl: 0x%08lx name: %s\n", (long)spec_entry->dta_addr, (long)spec_entry->lib_struct, (long)spec_entry->spec_struct, spec_entry->svc_name);
          spec_entry = spec_entry->next_spec_entry;
       }
 
@@ -3289,7 +3286,7 @@ void dts_print_cb_dbg(void)
   
    m_DTS_LK(&cb->lock);
 
-   printf("\ndts created = %d\ndts_enbl = %d\nVdest Id = %d\nLog Path = %s\nSAF Component Name = %s\nHealthCheck key = %s\nIn-sync = %d\nCold-Sync in Progress = %d\nCold-Sync Status = %d\nAsync update count :\n\tsvc reg updates = %u\n\tdta dest updates = %u\n\tglobal policy updates = %u\n\tlog updates = %u\nConsole Device(Serial) = %s\nConsole Device(Serial) fd = %ld\nCLI Bit Map = %d", cb->created, cb->dts_enbl, cb->vaddr, cb->log_path, cb->comp_name.value, cb->health_chk_key.key, cb->in_sync, cb->cold_sync_in_progress, cb->cold_sync_done, cb->async_updt_cnt.dts_svc_reg_tbl_updt, cb->async_updt_cnt.dta_dest_list_updt, cb->async_updt_cnt.global_policy_updt, cb->async_updt_cnt.dts_log_updt, cb->cons_dev, cb->cons_fd, cb->cli_bit_map);
+   printf("\ndts created = %d\ndts_enbl = %d\nVdest Id = %d\nLog Path = %s\nSAF Component Name = %s\nHealthCheck key = %s\nIn-sync = %d\nCold-Sync in Progress = %d\nCold-Sync Status = %d\nAsync update count :\n\tsvc reg updates = %u\n\tdta dest updates = %u\n\tglobal policy updates = %u\n\tlog updates = %u\nConsole Device(Serial) = %s\nConsole Device(Serial) fd = %d\nCLI Bit Map = %d", cb->created, cb->dts_enbl, cb->vaddr, cb->log_path, cb->comp_name.value, cb->health_chk_key.key, cb->in_sync, cb->cold_sync_in_progress, cb->cold_sync_done, cb->async_updt_cnt.dts_svc_reg_tbl_updt, cb->async_updt_cnt.dta_dest_list_updt, cb->async_updt_cnt.global_policy_updt, cb->async_updt_cnt.dts_log_updt, cb->cons_dev, cb->cons_fd, cb->cli_bit_map);
 
    printf("\nGlobal Policy info:\n-------------------");
    printf("\nGlobal Logging = %d\nDefault Logging = %d\nMax number of Log Files = %u\nMax number of console devices = %d\nEnable Sequencing = %d", cb->g_policy.global_logging, cb->g_policy.dflt_logging, cb->g_policy.g_num_log_files, cb->g_policy.g_num_cons_dev, cb->g_policy.g_enable_seq);

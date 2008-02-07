@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -803,6 +803,8 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
 
     inst->profile_tbl_row_hdl = 0;
     inst->trigger_scl_row_hdl = 0;
+    inst->mem_in_store = 0; 
+    inst->bam_req_cnt = 0; 
 
     /* update the handler */ 
     inst->hm_hdl = ncshm_create_hdl(inst->hmpool_id, NCS_SERVICE_ID_PSS,
@@ -1853,15 +1855,15 @@ void pss_cb_data_dump( )
 
          for(i = 0; i < MAB_MIB_ID_HASH_TBL_SIZE; i++)
          {
-             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%x\n", i, (unsigned int)oaa_entry->hash[i]);
+             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, (long)(oaa_entry->hash[i]));
              fflush(fh);
 
              for(j = 0, oaa_clt_entry = oaa_entry->hash[i]; 
                  oaa_clt_entry != NULL;
                  oaa_clt_entry = oaa_clt_entry->next, ++j)
              {
-                sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %x, tbl_id = %d, tbl_name = %s\n", 
-                   j, (unsigned int)oaa_clt_entry->tbl_rec, oaa_clt_entry->tbl_rec->tbl_id,
+                sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
+                   j, (long)oaa_clt_entry->tbl_rec, oaa_clt_entry->tbl_rec->tbl_id,
                    gl_pss_amf_attribs.pss_cb->mib_tbl_desc[oaa_clt_entry->tbl_rec->tbl_id]->ptbl_info->mib_tbl_name);
                 fflush(fh);
              }
@@ -1885,20 +1887,20 @@ void pss_cb_data_dump( )
 
          for(i = 0; i < MAB_MIB_ID_HASH_TBL_SIZE; i++)
          {
-             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%x\n", i, 
-                (unsigned int)clt_node->hash[i]);
+             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, 
+                (long)clt_node->hash[i]);
              fflush(fh);
 
              for(j = 0, trec = clt_node->hash[i]; trec != NULL; trec = trec->next, ++j)
              {
                 if(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id] != NULL) /* Fix for IR00083040 */
                 {
-                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %x, tbl_id = %d, tbl_name = %s\n", 
-                      j, (unsigned int)trec, trec->tbl_id,
+                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
+                      j, (long)trec, trec->tbl_id,
                       gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id]->ptbl_info->mib_tbl_name);
                    sysf_fprintf(fh, "\t\t\t\t - dirty:%d, is_scalar:%d,\n", trec->dirty, trec->is_scalar);
                    sysf_fprintf(fh, "\t\t\t\t - client_key:%s\n", trec->pss_client_key->pcn);
-                   sysf_fprintf(fh, "\t\t\t\t - oaa_entry-pointer:%x\n", (unsigned int)trec->p_oaa_entry);
+                   sysf_fprintf(fh, "\t\t\t\t - oaa_entry-pointer:%lx\n", (long)trec->p_oaa_entry);
                    sysf_fprintf(fh, "\t\t\t\t -  Related OAA-MDS_DEST:%x:%x:%x:%x:%x:%x:%x:%x:\n",
                       ((uns8*)&trec->p_oaa_entry->key.mds_dest)[0], 
                       ((uns8*)&trec->p_oaa_entry->key.mds_dest)[1],
@@ -1913,7 +1915,7 @@ void pss_cb_data_dump( )
                 }
                 else  /* Fix for IR00083040 */
                 {
-                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %x, tbl_id = %d, tbl_description = NULL!!!\n", j, (unsigned int)trec, trec->tbl_id);
+                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_description = NULL!!!\n", j, (long)trec, trec->tbl_id);
                    fflush(fh);
                 }
              }

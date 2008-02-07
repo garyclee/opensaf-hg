@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -75,6 +75,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *, AVND_COMP *,
 
 static uns32 avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 static uns32 avnd_instfail_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
+static uns8*  avnd_prep_attr_env_var (AVND_COMP *, uns32 * ); 
 
 
 /***************************************************************************
@@ -288,7 +289,7 @@ uns32 avnd_evt_clc_resp (AVND_CB *cb, AVND_EVT *evt)
               {
                  /* mark that the inst cmd has been successfully executed */
                  m_AVND_COMP_INST_CMD_SUCC_SET(comp);
-   
+                 
                  if ( !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp) ||
                     m_AVND_COMP_IS_REG(comp) )
                     /* all set... proceed with inst-succ evt for the fsm */
@@ -298,7 +299,12 @@ uns32 avnd_evt_clc_resp (AVND_CB *cb, AVND_EVT *evt)
                     m_AVND_TMR_COMP_REG_START(cb, *comp, rc);
               }
               else
+              {
+                   if (NCS_OS_PROC_EXIT_WITH_CODE == clc_evt->exec_stat.value)
+                      comp->clc_info.inst_code_rcvd = clc_evt->exec_stat.info.exit_with_code.exit_code ;
+                   
                  ev = AVND_COMP_CLC_PRES_FSM_EV_INST_FAIL;
+              } 
             break;
 
          case AVND_COMP_CLC_CMD_TYPE_TERMINATE:
@@ -1358,7 +1364,8 @@ uns32 avnd_comp_clc_insting_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
    AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   if (clc_info->inst_retry_cnt < clc_info->inst_retry_max)
+   if((clc_info->inst_retry_cnt < clc_info->inst_retry_max) &&
+      (AVND_COMP_INST_EXIT_CODE_NO_RETRY != clc_info->inst_code_rcvd )) 
    {
       /* => keep retrying */
       /* instantiate the comp */
@@ -2248,34 +2255,40 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
    uns8                     env_var_name[] = "SA_AMF_COMPONENT_NAME";
    uns8                     env_var_nodeid[] = "NCS_ENV_NODE_ID";
    uns8                     env_var_comp_err[] = "NCS_ENV_COMPONENT_ERROR_SRC";
+   uns8                     env_var_attr[] = "NCS_ENV_COMPONENT_CSI_ATTR";
+   uns8                     *env_attr_val= 0 ;
    AVND_CLC_EVT             clc_evt;
    AVND_EVT                 *evt = 0;
    AVND_COMP_CLC_INFO       *clc_info = &comp->clc_info;
    char                     scr[SAAMF_CLC_LEN];
    char                     *argv[AVND_COMP_CLC_PARAM_MAX+2];
    char                     tmp_argv[AVND_COMP_CLC_PARAM_MAX+2][AVND_COMP_CLC_PARAM_SIZE_MAX];
-   uns32                    argc = 0, rc = NCSCC_RC_SUCCESS;
+   uns32                    argc = 0, result, rc = NCSCC_RC_SUCCESS;
 
    m_NCS_OS_MEMSET(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
    m_NCS_OS_MEMSET(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
-   m_NCS_OS_MEMSET(env_set, 0, 2 * sizeof(NCS_OS_ENVIRON_SET_NODE));
+   m_NCS_OS_MEMSET(env_set, 0, 3 * sizeof(NCS_OS_ENVIRON_SET_NODE));
 
    m_NCS_OS_MEMSET(&env_val_name, '\0', sizeof(SaNameT));
    m_NCS_OS_MEMSET(env_val_nodeid, '\0', sizeof(env_val_nodeid));
    m_NCS_STRNCPY(env_val_name.value, comp->name_net.value, 
                  m_NCS_OS_NTOHS(comp->name_net.length));
 
+
    /*** populate the env variable set ***/
    /* comp name env */
    env_set[0].overwrite = 1;
    env_set[0].name = (char *)env_var_name;
    env_set[0].value = (char *)(env_val_name.value);
+   arg.num_args++ ;
 
    /* node id env */
    env_set[1].overwrite = 1;
    env_set[1].name = (char *)env_var_nodeid;
    sprintf((char *)env_val_nodeid, "%u", (uns32)(cb->clmdb.node_info.nodeId));
    env_set[1].value = (char *)env_val_nodeid;
+   arg.num_args++ ;
+
 
    /* Note:- we will set NCS_ENV_COMPONENT_ERROR_SRC only for 
     * cleanup script
@@ -2290,10 +2303,38 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
       env_set[2].name = (char *)env_var_comp_err;
       sprintf((char *)env_val_comp_err, "%u", (uns32)(comp->err_info.src));
       env_set[2].value = (char *)env_val_comp_err;
-      arg.num_args = 3;
+      arg.num_args++ ;
    }
-   else
-      arg.num_args = 2;
+
+  /*Note :- For the Npi Components Csi Attributes 
+     are Passed as Env Variable , The List of Csi attr
+     will be send in "Name1=Value1,Name2=value2" form
+     This format will be Retained when Env. Variable will be
+     added in CLC command */
+
+
+   if((AVND_COMP_CLC_CMD_TYPE_INSTANTIATE == cmd_type) && (!m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)))
+   {
+   
+     /*Special case :The CSI attributes given as Name/Value 
+       pair are to be Passed as Env. for NPI .NPI will have one 
+       CSI assign at a point of time , so get the csi from comp DB */
+        
+       env_attr_val = avnd_prep_attr_env_var(comp,&result);
+
+       if(NCSCC_RC_FAILURE == result)
+          goto err;
+
+       if((uns8*)0 != env_attr_val) 
+       { 
+         /*Csi Attributes env */
+          env_set[2].overwrite = 1;
+          env_set[2].name = (char *)env_var_attr;
+          env_set[2].value = (char *)env_attr_val;
+          arg.num_args++ ;
+       }
+         
+   }
 
    arg.env_arg = env_set;
 
@@ -2354,6 +2395,11 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
 err:
    /* free the event */
    if (evt) avnd_evt_destroy(evt);
+   if (env_attr_val) 
+   {
+     /* Free the Memory allocated for CLC command environment Sets */
+      m_MMGR_FREE_AVND_DEFAULT_VAL(env_attr_val);
+   }
 
    return rc;
 }
@@ -2425,4 +2471,88 @@ done:
 }
 
 
+/****************************************************************************
+  Name          : avnd_prep_attr_env_var
+ 
+  Description   : This routine prep. the env. variable from csi attribute and
+                  cl env variables
+ 
+  Arguments     : comp          - ptr to the comp. 
+                  ret_status    - ptr to the return status
+                                
+ 
+  Return Values : ptr to Environment attributes.
+ 
+  Notes         : None.
+******************************************************************************/
+uns8*  avnd_prep_attr_env_var (AVND_COMP    *comp, 
+                               uns32      *ret_status)
+{
+
+   AVND_COMP_CSI_REC        *curr_csi = 0;
+   NCS_AVSV_ATTR_NAME_VAL    *attr_list=0;
+   uns8                      *env_val=0;
+   uns32                     mem_length=0;
+   uns32                     count= 0;
+
+   /* There should be a CSI Assigned to the component else will never come
+      this path  */
+   
+   *ret_status = NCSCC_RC_SUCCESS; 
+ 
+    curr_csi = m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+    m_AVSV_ASSERT(curr_csi);
+         
+
+    if( 0 != curr_csi->attrs.number)
+     {   
+       attr_list =(NCS_AVSV_ATTR_NAME_VAL*)curr_csi->attrs.list ;
+              
+      /*First get the length of the Memory to be allocated */
+
+       for (count=0 ; count < (curr_csi->attrs.number); count++,attr_list++)
+       {
+         /* Adding 2 to account for the "=" and "," to be added */
+          mem_length = mem_length + attr_list->name.length  + attr_list->value.length + 2;
+       }
+     }
+     else 
+     {
+       /* No attributes present */
+       *ret_status = NCSCC_RC_SUCCESS;  
+        return env_val; 
+     }    
+
+     
+   /*Allocate the Memory of mem_length + 1 */
+    env_val =(mem_length)?(uns8 *)m_MMGR_ALLOC_AVND_DEFAULT_VAL(mem_length +1):(uns8 *)0;
+
+
+    if(NULL == env_val)/* Mem failure */
+    {
+     *ret_status = NCSCC_RC_FAILURE;  
+     return env_val ; 
+    }
+
+     m_NCS_OS_MEMSET(env_val, '\0', (mem_length+1));
+
+    /* Now make the Env. variable */
+    if( 0 != curr_csi->attrs.number )
+     {   
+       attr_list =(NCS_AVSV_ATTR_NAME_VAL*)curr_csi->attrs.list ;
+              
+       for (count=0 ; count < (curr_csi->attrs.number); count++,attr_list++)
+       {
+           /* If only one attribute No "," */
+            if(0 != count)
+             m_NCS_STRNCAT(env_val,",",1);
+
+             m_NCS_STRNCAT(env_val,attr_list->name.value,attr_list->name.length);
+             m_NCS_STRNCAT(env_val,"=",1);
+             m_NCS_STRNCAT(env_val,attr_list->value.value,attr_list->value.length);
+       }
+     }
+ return env_val ;    
+
+}
 

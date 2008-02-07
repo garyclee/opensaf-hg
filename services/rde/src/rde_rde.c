@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -37,6 +37,11 @@
 #include "rde_cb.h"
 static uns32 rde_rde_process_send_slot_number (void);
 static uns32 rde_rde_exchange_slot_number(RDE_CONTROL_BLOCK * rde_cb);
+
+extern uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb);
+extern uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb);
+
+
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_rde_parse_config_file
@@ -117,8 +122,8 @@ uns32 rde_rde_parse_config_file()
           rde_cb->rde_rde_cb.maxNoClientRetries= atoi(str++);
        }
      }
-      
-     rc = fclose(fp);
+     if(fp)
+        rc = fclose(fp);
      if ( rc != 0 )
      {
         m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_FAIL_TO_CLOSE_CONFIG_FILE, "config_file");
@@ -999,11 +1004,12 @@ void rde_rde_strip(char* name)
 uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
 {
 
-  int i=0,rc =0,index,actPos;
-  char line[256],tmp[256];
-  char *lines[10];
+  int index;
   index = 0;
   char  log[RDE_LOG_MSG_SIZE] = {0};
+  time_t local_time;
+  unsigned char asc_lt[40]; /* Ascii Localtime */
+
   RDE_CONTROL_BLOCK * rde_cb = rde_get_control_block();
   RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
   
@@ -1022,18 +1028,18 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
   m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
 
 /* Update the HA state to the /var/opt/opensaf/node_ha_state file */
-   FILE *fp = fopen(NODE_HA_STATE,"w");
-   if (fp ==NULL)
+   FILE *fp = NULL;
+   fp=fopen(NODE_HA_STATE,"a");
+   if(fp)
    {
-       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_UNABLE_TO_OPEN_CONFIG_FILE,NODE_HA_STATE);
-       return RDE_RDE_RC_FAILURE;
+      /* Get the ascii local time stamp */
+      asc_lt[0] = '\0';
+      m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
+      fprintf(fp,"%s | This System Controller is assigned : %s\n",asc_lt,((role == 0) ? "HA ACTIVE STATE":"HA STANDBY STATE"));
+      fflush(fp);
+      fclose(fp);
    }
-   fprintf(fp,"%s %s","This System Controller is in",((role == 0) ? "HA ACTIVE State":"HA STANDBY State"));
-   rc = fclose(fp);
-   if ( rc != 0 )
-   {
-       m_RDE_LOG_COND_C(RDE_SEV_ERROR,RDE_RDE_FAIL_TO_CLOSE_CONFIG_FILE,NODE_HA_STATE);
-   }
+
       return RDE_RDE_RC_SUCCESS;
 }
 

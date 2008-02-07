@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -59,11 +59,11 @@ uns32 ifsv_edp_spt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_spt_rules[ ] = {
         {EDU_START, ifsv_edp_spt, 0, 0, 0, sizeof(NCS_IFSV_SPT), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT*)0)->shelf, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT*)0)->slot, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT*)0)->port, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT*)0)->type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT*)0)->subscr_scope, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->shelf, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->slot, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->port, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->subscr_scope, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -112,8 +112,8 @@ uns32 ifsv_edp_ncs_svdest(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_edp_ncs_svdest_rules[ ] = {
         {EDU_START, ifsv_edp_ncs_svdest, 0, 0, 0, sizeof(NCS_SVDEST), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_SVDEST*)0)->svcid, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_SVDEST*)0)->dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_SVDEST*)0)->svcid, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_SVDEST*)0)->dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -162,34 +162,34 @@ uns32 ifsv_edp_intf_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_spt_rules[ ] = {
         {EDU_START, ifsv_edp_intf_info, 0, 0, 0, sizeof(NCS_IFSV_INTF_INFO), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_am, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_descr, IFSV_IF_DESC_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->mtu, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->if_speed, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->phy_addr, 6, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->admin_state, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->oper_state, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->last_change, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->addsvd_cnt, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_am, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_descr, IFSV_IF_DESC_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->mtu, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->if_speed, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->phy_addr, 6, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->admin_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->oper_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->last_change, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->addsvd_cnt, 0, NULL},
 
         {EDU_EXEC, ifsv_edp_ncs_svdest, EDQ_VAR_LEN_DATA, ncs_edp_uns8, 0,
-                    (uns32)&((NCS_IFSV_INTF_INFO*)0)->addsvd_list,
-                    (uns32)&((NCS_IFSV_INTF_INFO*)0)->addsvd_cnt, NULL},
+                    (long)&((NCS_IFSV_INTF_INFO*)0)->addsvd_list,
+                    (long)&((NCS_IFSV_INTF_INFO*)0)->addsvd_cnt, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0, NCS_IFSV_SVC_SUB_ID_NCS_SVDEST /* Sub-ID */, 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->delsvd_cnt, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->delsvd_cnt, 0, NULL},
 
         {EDU_EXEC, ifsv_edp_ncs_svdest, EDQ_VAR_LEN_DATA, ncs_edp_uns8, 0,
-                    (uns32)&((NCS_IFSV_INTF_INFO*)0)->delsvd_list,
-                    (uns32)&((NCS_IFSV_INTF_INFO*)0)->delsvd_cnt, NULL},
+                    (long)&((NCS_IFSV_INTF_INFO*)0)->delsvd_list,
+                    (long)&((NCS_IFSV_INTF_INFO*)0)->delsvd_cnt, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0, NCS_IFSV_SVC_SUB_ID_NCS_SVDEST /* Sub-ID */, 0, NULL},
 #if (NCS_IFSV_BOND_INTF == 1)
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->bind_master_ifindex, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->bind_slave_ifindex, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->bind_num_slaves, 0, NULL},
-        {EDU_EXEC, ifsv_edp_nodeid_ifname, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->bind_master_info, 0, NULL},
-        {EDU_EXEC, ifsv_edp_nodeid_ifname, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_INFO*)0)->bind_slave_info, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->bind_master_ifindex, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->bind_slave_ifindex, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->bind_num_slaves, 0, NULL},
+        {EDU_EXEC, ifsv_edp_nodeid_ifname, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->bind_master_info, 0, NULL},
+        {EDU_EXEC, ifsv_edp_nodeid_ifname, 0, 0, 0, (long)&((NCS_IFSV_INTF_INFO*)0)->bind_slave_info, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -239,8 +239,8 @@ uns32 ifsv_edp_spt_map(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_spt_map_rules[ ] = {
         {EDU_START, ifsv_edp_spt_map, 0, 0, 0, sizeof(NCS_IFSV_SPT_MAP), 0, NULL},
 
-        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((NCS_IFSV_SPT_MAP*)0)->spt, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SPT_MAP*)0)->if_index, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((NCS_IFSV_SPT_MAP*)0)->spt, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT_MAP*)0)->if_index, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -289,19 +289,19 @@ uns32 ifsv_edp_stats_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_stats_info, 0, 0, 0, sizeof(NCS_IFSV_INTF_STATS), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->last_chg, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_octs, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_upkts, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_nupkts, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_dscrds, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_errs, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->in_unknown_prots, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_octs, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_upkts, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_nupkts, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_dscrds, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_errs, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_STATS*)0)->out_qlen, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->last_chg, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_octs, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_upkts, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_nupkts, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_dscrds, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_errs, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->in_unknown_prots, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_octs, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_upkts, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_nupkts, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_dscrds, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_errs, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_STATS*)0)->out_qlen, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -349,8 +349,8 @@ uns32 ifsv_edp_idim_port_type(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_port_type_rules[ ] = {
         {EDU_START, ifsv_edp_idim_port_type, 0, 0, 0, sizeof(NCS_IFSV_PORT_TYPE), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_TYPE*)0)->port_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_TYPE*)0)->type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_TYPE*)0)->port_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_TYPE*)0)->type, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -402,15 +402,15 @@ uns32 ifsv_edp_idim_port_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_port_info_rules[ ] = {
         {EDU_START, ifsv_edp_idim_port_info, 0, 0, 0, sizeof(NCS_IFSV_PORT_INFO), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->if_am, 0, NULL},
-        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->port_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->phy_addr, 6, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->oper_state, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->admin_state, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->mtu, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->speed, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_INFO*)0)->dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->if_am, 0, NULL},
+        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->port_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->phy_addr, 6, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->oper_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->admin_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->mtu, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->if_name, IFSV_IF_NAME_SIZE, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->speed, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_PORT_INFO*)0)->dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -458,7 +458,7 @@ uns32 ifsv_edp_idim_port_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_port_status_rules[ ] = {
         {EDU_START, ifsv_edp_idim_port_status, 0, 0, 0, sizeof(NCS_IFSV_PORT_STATUS), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATUS*)0)->oper_state, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATUS*)0)->oper_state, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -506,9 +506,9 @@ uns32 ifsv_edp_idim_ifnd_up_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_hw_ifnd_up_rules[ ] = {
         {EDU_START, ifsv_edp_idim_ifnd_up_info, 0, 0, 0, sizeof(NCS_IFND_UP_INFO), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->vrid, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->nodeid, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFND_UP_INFO*)0)->ifnd_addr, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->vrid, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->nodeid, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFND_UP_INFO*)0)->ifnd_addr, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -556,25 +556,25 @@ uns32 ifsv_edp_idim_hw_rcv_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_idim_hw_info_rules[ ] = {
         {EDU_START, ifsv_edp_idim_hw_rcv_info, 0, 0, 0, sizeof(NCS_IFSV_HW_INFO), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, NULL},
 /*EXT_INT*/
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->subscr_scope, 0, NULL},         
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->subscr_scope, 0, NULL},         
    
-        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->port_type, 0, NULL},
+        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->port_type, 0, NULL},
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, ifsv_hw_resp_evt_test_type_fnc},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_INFO*)0)->msg_type, 0, ifsv_hw_resp_evt_test_type_fnc},
 
         /* For NCS_IFSV_HW_DRV_STATS */
         {EDU_EXEC, ifsv_edp_idim_port_stats, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.stats, 0, NULL},
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.stats, 0, NULL},
 
       /* For NCS_IFSV_HW_DRV_PORT_REG */
         {EDU_EXEC, ifsv_edp_idim_port_info, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.reg_port, 0, NULL},
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.reg_port, 0, NULL},
 
             /* For NCS_IFSV_HW_DRV_PORT_STATUS */
         {EDU_EXEC, ifsv_edp_idim_port_status, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_INFO*)0)->info.port_status, 0, NULL},
+            (long)&((NCS_IFSV_HW_INFO*)0)->info.port_status, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -623,9 +623,9 @@ uns32 ifsv_edp_idim_hw_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_hw_ifnd_up_rules[ ] = {
         {EDU_START, ifsv_edp_idim_ifnd_up_info, 0, 0, 0, sizeof(NCS_IFSV_HW_REQ_INFO), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->svc_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->dest_addr, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_REQ_INFO*)0)->app_hdl, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->svc_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->dest_addr, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_REQ_INFO*)0)->app_hdl, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -674,26 +674,26 @@ uns32 ifsv_edp_idim_hw_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_idim_hw_req_rules[ ] = {
         {EDU_START, ifsv_edp_idim_hw_req_info, 0, 0, 0, sizeof(NCS_IFSV_HW_DRV_REQ), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, NULL},
 /*EXT_INT */
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->subscr_scope, 0, NULL},    
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->subscr_scope, 0, NULL},    
    
-        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->port_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->drv_data, 0, NULL},
+        {EDU_EXEC, ifsv_edp_idim_port_type, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->port_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->drv_data, 0, NULL},
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, ifsv_hw_req_evt_test_type_fnc},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_HW_DRV_REQ*)0)->req_type, 0, ifsv_hw_req_evt_test_type_fnc},
 
         /* For NCS_IFSV_HW_DRV_STATS */
         {EDU_EXEC, ifsv_edp_idim_hw_req, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.req_info, 0, NULL},
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.req_info, 0, NULL},
 
       /* For NCS_IFSV_HW_DRV_IFND_UP */
         {EDU_EXEC, ifsv_edp_idim_ifnd_up_info, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.ifnd_info, 0, NULL},
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.ifnd_info, 0, NULL},
 
             /* For NCS_IFSV_HW_DRV_SET_PARAM */
         {EDU_EXEC, ifsv_edp_intf_info, 0, 0, EDU_EXIT,
-            (uns32)&((NCS_IFSV_HW_DRV_REQ*)0)->info.set_param, 0, NULL},
+            (long)&((NCS_IFSV_HW_DRV_REQ*)0)->info.set_param, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -742,11 +742,11 @@ uns32 ifsv_edp_idim_port_stats(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_port_stats_rules[ ] = {
         {EDU_START, ifsv_edp_idim_port_stats, 0, 0, 0, sizeof(NCS_IFSV_PORT_STATS), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->status, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->app_svc_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->app_dest, 0, NULL},
-        {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->stats, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_PORT_STATS*)0)->usr_hdl, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->status, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->app_svc_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->app_dest, 0, NULL},
+        {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->stats, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_PORT_STATS*)0)->usr_hdl, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1036,18 +1036,18 @@ uns32 ifsv_edp_intf_data(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_intf_data_rules[ ] = {
         {EDU_START, ifsv_edp_intf_data, 0, 0, 0, sizeof(IFSV_INTF_DATA), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->if_index, 0, NULL},
-        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->spt_info, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->originator, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->originator_mds_destination, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->current_owner, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->current_owner_mds_destination, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->active, 0, NULL},
-        {EDU_EXEC, ifsv_edp_intf_info, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->if_info, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->rec_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->last_msg, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->no_data, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DATA*)0)->evt_orig, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->if_index, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->spt_info, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->originator, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->originator_mds_destination, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->current_owner, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->current_owner_mds_destination, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->active, 0, NULL},
+        {EDU_EXEC, ifsv_edp_intf_info, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->if_info, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->rec_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->last_msg, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->no_data, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DATA*)0)->evt_orig, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1096,9 +1096,9 @@ uns32 ifsv_edp_create_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_create_rules[ ] = {
         {EDU_START, ifsv_edp_create_info, 0, 0, 0, sizeof(IFSV_INTF_CREATE_INFO), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_CREATE_INFO*)0)->if_attr, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_CREATE_INFO*)0)->evt_orig, 0, NULL},
-        {EDU_EXEC, ifsv_edp_intf_data, 0, 0, 0, (uns32)&((IFSV_INTF_CREATE_INFO*)0)->intf_data, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_CREATE_INFO*)0)->if_attr, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_CREATE_INFO*)0)->evt_orig, 0, NULL},
+        {EDU_EXEC, ifsv_edp_intf_data, 0, 0, 0, (long)&((IFSV_INTF_CREATE_INFO*)0)->intf_data, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1147,9 +1147,9 @@ uns32 ifsv_edp_destroy_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_destroy_rules[ ] = {
         {EDU_START, ifsv_edp_destroy_info, 0, 0, 0, sizeof(IFSV_INTF_DESTROY_INFO), 0, NULL},
 
-        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((IFSV_INTF_DESTROY_INFO*)0)->spt_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_INTF_DESTROY_INFO*)0)->orign, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_INTF_DESTROY_INFO*)0)->own_dest, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((IFSV_INTF_DESTROY_INFO*)0)->spt_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_INTF_DESTROY_INFO*)0)->orign, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_INTF_DESTROY_INFO*)0)->own_dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1198,8 +1198,8 @@ uns32 ifsv_edp_init_done_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_init_done_rules[ ] = {
         {EDU_START, ifsv_edp_init_done_info, 0, 0, 0, sizeof(IFSV_EVT_INIT_DONE_INFO), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_INIT_DONE_INFO*)0)->init_done, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_EVT_INIT_DONE_INFO*)0)->my_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_INIT_DONE_INFO*)0)->init_done, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_EVT_INIT_DONE_INFO*)0)->my_dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1248,9 +1248,9 @@ uns32 ifsv_edp_spt_map_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifsv_spt_map_rules[ ] = {
         {EDU_START, ifsv_edp_spt_map_info, 0, 0, 0, sizeof(IFSV_EVT_SPT_MAP_INFO), 0, NULL},
 
-        {EDU_EXEC, ifsv_edp_spt_map, 0, 0, 0, (uns32)&((IFSV_EVT_SPT_MAP_INFO*)0)->spt_map, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_SPT_MAP_INFO*)0)->app_svc_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_EVT_SPT_MAP_INFO*)0)->app_dest, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt_map, 0, 0, 0, (long)&((IFSV_EVT_SPT_MAP_INFO*)0)->spt_map, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_SPT_MAP_INFO*)0)->app_svc_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_EVT_SPT_MAP_INFO*)0)->app_dest, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1335,10 +1335,10 @@ uns32 ifsv_edp_ifkey_info (EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_spt_map_rules[ ] = {
         {EDU_START, ifsv_edp_ifkey_info, 0, 0, 0, sizeof(NCS_IFSV_IFKEY), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_IFKEY*)0)->type, 0, NULL},
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_IFKEY*)0)->type, 0, ifsv_ifkey_type_test_fnc},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_IFKEY*)0)->info.iface, 0, NULL},
-        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((NCS_IFSV_IFKEY*)0)->info.spt, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_IFKEY*)0)->type, 0, NULL},
+        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_IFKEY*)0)->type, 0, ifsv_ifkey_type_test_fnc},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_IFKEY*)0)->info.iface, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((NCS_IFSV_IFKEY*)0)->info.spt, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1387,8 +1387,8 @@ uns32 ifsv_edp_age_tmr_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_age_tmr_rules[ ] = {
         {EDU_START, ifsv_edp_age_tmr_info, 0, 0, 0, sizeof(IFSV_EVT_TMR), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_TMR*)0)->tmr_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_TMR*)0)->info.ifindex, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_TMR*)0)->tmr_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_TMR*)0)->info.ifindex, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1437,10 +1437,10 @@ uns32 ifsv_edp_svcd_upd(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_edp_svcd_upd_rules[ ] = {
         {EDU_START, ifsv_edp_svcd_upd, 0, 0, 0, sizeof(NCS_IFSV_SVC_DEST_UPD), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_ifindex, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_svdest.svcid, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_svdest.dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_ifindex, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_svdest.svcid, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_UPD*)0)->i_svdest.dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1489,10 +1489,10 @@ uns32 ifsv_edp_svcd_get(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_edp_svcd_get_rules[ ] = {
         {EDU_START, ifsv_edp_svcd_get, 0, 0, 0, sizeof(NCS_IFSV_SVC_DEST_GET), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_GET*)0)->i_ifindex, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_GET*)0)->i_svcid, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_GET*)0)->o_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_SVC_DEST_GET*)0)->o_answer, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_GET*)0)->i_ifindex, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_GET*)0)->i_svcid, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_GET*)0)->o_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SVC_DEST_GET*)0)->o_answer, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1541,7 +1541,7 @@ uns32 ifsv_edp_rec_sync_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_rec_sync_rules[ ] = {
         {EDU_START, ifsv_edp_rec_sync_info, 0, 0, 0, sizeof(IFSV_EVT_INTF_REC_SYNC), 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_REC_SYNC*)0)->ifnd_vcard_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_EVT_INTF_REC_SYNC*)0)->ifnd_vcard_id, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1589,12 +1589,12 @@ uns32 ifsv_edp_intf_get_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_intf_info_rules[ ] = {
         {EDU_START, ifsv_edp_intf_get_info, 0, 0, 0, sizeof(IFSV_EVT_INTF_INFO_GET), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->get_type, 0, NULL},
-        {EDU_EXEC, ifsv_edp_ifkey_info, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->ifkey, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->info_type ,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->my_svc_id ,0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->my_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_INTF_INFO_GET*)0)->usr_hdl ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->get_type, 0, NULL},
+        {EDU_EXEC, ifsv_edp_ifkey_info, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->ifkey, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->info_type ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->my_svc_id ,0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->my_dest, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_INTF_INFO_GET*)0)->usr_hdl ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1642,12 +1642,12 @@ uns32 ifsv_edp_stats_get_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_stats_get_info, 0, 0, 0, sizeof(IFSV_EVT_STATS_INFO), 0, NULL},
-           {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->spt_type, 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->status ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->svc_id ,0, NULL},
-           {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->dest, 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->usr_hdl ,0, NULL},
-           {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (uns32)&((IFSV_EVT_STATS_INFO*)0)->stat_info ,0, NULL},
+           {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->spt_type, 0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->status ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->svc_id ,0, NULL},
+           {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->dest, 0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->usr_hdl ,0, NULL},
+           {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (long)&((IFSV_EVT_STATS_INFO*)0)->stat_info ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1695,11 +1695,11 @@ uns32 ifsv_edp_ifa_ifrec_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_ifrec_info, 0, 0, 0, sizeof(NCS_IFSV_INTF_REC), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_REC*)0)->if_index, 0, NULL},
-        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_REC*)0)->spt_info, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_REC*)0)->info_type, 0, NULL},
-        {EDU_EXEC, ifsv_edp_intf_info, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_REC*)0)->if_info, 0, NULL},
-        {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (uns32)&((NCS_IFSV_INTF_REC*)0)->if_stats, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_REC*)0)->if_index, 0, NULL},
+        {EDU_EXEC, ifsv_edp_spt, 0, 0, 0, (long)&((NCS_IFSV_INTF_REC*)0)->spt_info, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_INTF_REC*)0)->info_type, 0, NULL},
+        {EDU_EXEC, ifsv_edp_intf_info, 0, 0, 0, (long)&((NCS_IFSV_INTF_REC*)0)->if_info, 0, NULL},
+        {EDU_EXEC, ifsv_edp_stats_info, 0, 0, 0, (long)&((NCS_IFSV_INTF_REC*)0)->if_stats, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1748,9 +1748,9 @@ uns32 ifsv_edp_ifa_intf_create_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_intf_create_info, 0, 0, 0, sizeof(IFA_EVT), 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->usrhdl, 0, NULL},
-           {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifa_ifrec_info, 0, 0, 0, (uns32)&((IFA_EVT*)0)->info.if_add_upd, 0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->usrhdl, 0, NULL},
+           {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
+           {EDU_EXEC, ifsv_edp_ifa_ifrec_info, 0, 0, 0, (long)&((IFA_EVT*)0)->info.if_add_upd, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1799,8 +1799,8 @@ uns32 ifsv_edp_ifa_intf_destroy_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_intf_destroy_info, 0, 0, 0, sizeof(IFA_EVT), 0, NULL},
-        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
-        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->info.if_del, 0, NULL},
+        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
+        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->info.if_del, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1849,8 +1849,8 @@ uns32 ifsv_edp_ifa_intf_create_rsp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_edp_ifa_intf_create_rsp_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_intf_create_rsp_info, 0, 0, 0, sizeof(IFA_EVT), 0, NULL},
-        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
-        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->info.if_add_rsp_idx, 0, NULL},
+        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
+        {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->info.if_add_rsp_idx, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1899,8 +1899,8 @@ uns32 ifsv_edp_ifa_ifget_info_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_stats_get_info, 0, 0, 0, sizeof(NCS_IFSV_IFGET_RSP), 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_IFGET_RSP*)0)->error, 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifa_ifrec_info, 0, 0, 0, (uns32)&((NCS_IFSV_IFGET_RSP*)0)->if_rec, 0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_IFGET_RSP*)0)->error, 0, NULL},
+           {EDU_EXEC, ifsv_edp_ifa_ifrec_info, 0, 0, 0, (long)&((NCS_IFSV_IFGET_RSP*)0)->if_rec, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -1948,9 +1948,9 @@ uns32 ifsv_edp_ifa_ifget_rsp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_get_stats_info_rules[ ] = {
         {EDU_START, ifsv_edp_stats_get_info, 0, 0, 0, sizeof(IFA_EVT), 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->usrhdl, 0, NULL},
-           {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (uns32)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifa_ifget_info_info, 0, 0, 0, (uns32)&((IFA_EVT*)0)->info.ifget_rsp, 0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->usrhdl, 0, NULL},
+           {EDU_EXEC,  ncs_edp_uns32, 0, 0, 0, (long)&((IFA_EVT*)0)->subscr_scope, 0, NULL},
+           {EDU_EXEC, ifsv_edp_ifa_ifget_info_info, 0, 0, 0, (long)&((IFA_EVT*)0)->info.ifget_rsp, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2191,106 +2191,106 @@ uns32 ifsv_edp_ifsv_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    test_ifsv_evt_rules[ ] = {
          {EDU_START, ifsv_edp_ifsv_evt, 0, 0, 0, sizeof(IFSV_EVT), 0, NULL},
-         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT*)0)->type, 0, NULL},
-         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT*)0)->error, 0, NULL},
-         {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT*)0)->type, 0, ifsv_evt_test_type_fnc},
+         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT*)0)->type, 0, NULL},
+         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT*)0)->error, 0, NULL},
+         {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_EVT*)0)->type, 0, ifsv_evt_test_type_fnc},
 
             /* For IFD_EVT_INTF_CREATE */
          {EDU_EXEC, ifsv_edp_create_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_create, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_create, 0, NULL},
 
             /* For IFD_EVT_INTF_DESTROY */
          {EDU_EXEC, ifsv_edp_destroy_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_destroy, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_destroy, 0, NULL},
 
             /* For IFD_EVT_INIT_DONE */
          {EDU_EXEC, ifsv_edp_init_done_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.init_done, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifd_evt.info.init_done, 0, NULL},
 
             /* For IFD_EVT_IFINDEX_REQ */
          {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
 
            /* For IFD_EVT_IFINDEX_CLEANUP */
          {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
 
            /* For IFSV_EVT_AGING_TMR */
          {EDU_EXEC, ifsv_edp_age_tmr_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.tmr_exp, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifd_evt.info.tmr_exp, 0, NULL},
 
            /* For IFD_EVT_INTF_REC_SYNC */
          {EDU_EXEC, ifsv_edp_rec_sync_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.rec_sync, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifd_evt.info.rec_sync, 0, NULL},
 
          /* For IFD_EVT_SVCD_UPD */
          {EDU_EXEC, ifsv_edp_svcd_upd, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.svcd, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifd_evt.info.svcd, 0, NULL},
 
             /* For IFND_EVT_INTF_CREATE */
          {EDU_EXEC, ifsv_edp_create_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_create, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_create, 0, NULL},
 
             /* For IFND_EVT_INTF_DESTROY */
          {EDU_EXEC, ifsv_edp_destroy_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_destroy, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_destroy, 0, NULL},
 
            /* For IFND_EVT_INIT_DONE */
         {EDU_EXEC, ifsv_edp_init_done_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.init_done, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.init_done, 0, NULL},
 
             /* For IFND_EVT_INTF_INFO_GET */
          {EDU_EXEC, ifsv_edp_intf_get_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.if_get, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.if_get, 0, NULL},
 
            /* For IFND_EVT_IDIM_STATS_RESP */
          {EDU_EXEC, ifsv_edp_stats_get_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.stats_info, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.stats_info, 0, NULL},
 
             /* For IFSV_EVT_TMR */
          {EDU_EXEC, ifsv_edp_age_tmr_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.tmr_exp, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.tmr_exp, 0, NULL},
 
          /* For IFND_EVT_SVCD_UPD_FROM_IFA */
          {EDU_EXEC, ifsv_edp_svcd_upd, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd, 0, NULL},
 
          /* For IFND_EVT_SVCD_UPD_FROM_IFD */
          {EDU_EXEC, ifsv_edp_svcd_upd, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd, 0, NULL},
 
          /* For IFND_EVT_SVCD_GET */
          {EDU_EXEC, ifsv_edp_svcd_get, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd_get, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.svcd_get, 0, NULL},
 
             /* For IFND_EVT_IFINDEX_RESP */
          {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.spt_map, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.ifnd_evt.info.spt_map, 0, NULL},
 
            /* For IFA_EVT_INTF_CREATE & IFA_EVT_INTF_UPDATE*/
          {EDU_EXEC, ifsv_edp_ifa_intf_create_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
 
            /* For IFA_EVT_INTF_DESTROY */
          {EDU_EXEC, ifsv_edp_ifa_intf_destroy_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
 
            /* For IFA_EVT_IFINFO_GET_RSP */
          {EDU_EXEC, ifsv_edp_ifa_ifget_rsp_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
 
           /* For IFA_EVT_INTF_CREATE_RSP */
          {EDU_EXEC, ifsv_edp_ifa_intf_create_rsp_info, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifa_evt, 0, NULL},
 
          /* For IFA_EVT_SVCD_GET_RSP */
          {EDU_EXEC, ifsv_edp_svcd_get, 0, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ifa_evt.info.svcd_rsp, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ifa_evt.info.svcd_rsp, 0, NULL},
 
 #if(NCS_IFSV_IPXS == 1)
            /* For IFSV_IPXS_EVT */
          {EDU_EXEC, ifsv_edp_ifsv_ipxs_info, EDQ_POINTER, 0, EDU_EXIT,
-           (uns32)&((IFSV_EVT*)0)->info.ipxs_evt, 0, NULL},
+           (long)&((IFSV_EVT*)0)->info.ipxs_evt, 0, NULL},
 #endif
 
 #if (NCS_VIP == 1)
@@ -2302,47 +2302,47 @@ uns32 ifsv_edp_ifsv_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
             /* For IFA_VIPD_INFO_ADD_REQ */
         {EDU_EXEC, ifsv_edp_ifa_vip_add, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifaVipAdd, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifaVipAdd, 0, NULL},
 
             /* For IFND_VIPD_INFO_ADD_REQ_RESP */
         {EDU_EXEC, ifsv_edp_ifnd_vip_add, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipAdd, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipAdd, 0, NULL},
 
             /* For IFA_VIP_FREE_REQ */
         {EDU_EXEC, ifsv_edp_ifa_vip_free, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifaVipFree, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifaVipFree, 0, NULL},
 
             /* For IFND_VIP_FREE_REQ */
         {EDU_EXEC, ifsv_edp_ifnd_vip_free, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFree, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFree, 0, NULL},
 
             /* For IFND_VIP_INFO_ADD_RESP */
         {EDU_EXEC, ifsv_edp_ifnd_info_add_resp, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipAddResp, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipAddResp, 0, NULL},
 
            /*  For IFD_VIP_INFO_ADD_RESP */
         {EDU_EXEC, ifsv_edp_ifd_info_add_resp, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifdVipAddResp, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifdVipAddResp, 0, NULL},
 
             /* For IFND_VIP_FREE_RESP */
         {EDU_EXEC, ifsv_edp_ifnd_free_resp, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFreeResp, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFreeResp, 0, NULL},
 
             /* For IFD_VIP_FREE_RESP */
         {EDU_EXEC, ifsv_edp_ifd_free_resp, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFreeResp, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.ifndVipFreeResp, 0, NULL},
 
            /* For IFSV_VIP_ERROR_EVT */
         {EDU_EXEC, ifsv_edp_vip_err_evt, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.errEvt, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.errEvt, 0, NULL},
 
            /* For VIP_COMMON_EVT */
         {EDU_EXEC, ifsv_edp_vip_common_event, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.vipCommonEvt, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.vipCommonEvt, 0, NULL},
 
            /* For VIP_IP_FROM_STALE_ENTRY_EVT */
         {EDU_EXEC, ifsv_edp_ip_from_stale_entry, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.staleIp, 0, NULL},
+            (long)&((IFSV_EVT*)0)->info.vip_evt.info.staleIp, 0, NULL},
 
 #endif
 
@@ -2471,9 +2471,9 @@ uns32 ifsv_edp_ifd_a2s_ifindex_spt_map_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_ifindex_spt_map_evt, 0, 0, 0,
          sizeof(IFD_A2S_IFINDEX_SPT_MAP_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFINDEX_SPT_MAP_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_IFINDEX_SPT_MAP_EVT*)0)->type, 0, NULL},
         {EDU_EXEC, ifsv_edp_spt_map, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFINDEX_SPT_MAP_EVT*)0)->info, 0, NULL},
+         (long)&((IFD_A2S_IFINDEX_SPT_MAP_EVT*)0)->info, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2526,9 +2526,9 @@ uns32 ifsv_edp_ifd_a2s_intf_data_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_intf_data_evt, 0, 0, 0,
          sizeof(IFD_A2S_INTF_DATA_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_INTF_DATA_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_INTF_DATA_EVT*)0)->type, 0, NULL},
         {EDU_EXEC, ifsv_edp_intf_data, 0, 0, 0,
-         (uns32)&((IFD_A2S_INTF_DATA_EVT*)0)->info, 0, NULL},
+         (long)&((IFD_A2S_INTF_DATA_EVT*)0)->info, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2581,9 +2581,9 @@ uns32 ifsv_edp_ifd_a2s_svc_dest_upd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_svc_dest_upd_evt, 0, 0, 0,
          sizeof(IFD_A2S_SVC_DEST_UPD_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_SVC_DEST_UPD_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_SVC_DEST_UPD_EVT*)0)->type, 0, NULL},
         {EDU_EXEC, ifsv_edp_svcd_upd, 0, 0, 0,
-         (uns32)&((IFD_A2S_SVC_DEST_UPD_EVT*)0)->info, 0, NULL},
+         (long)&((IFD_A2S_SVC_DEST_UPD_EVT*)0)->info, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2637,9 +2637,9 @@ uns32 ifsv_edp_ifd_a2s_ifnd_up_down_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_ifnd_up_down_evt, 0, 0, 0,
          sizeof(IFD_A2S_IFND_UP_DOWN_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFND_UP_DOWN_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_IFND_UP_DOWN_EVT*)0)->type, 0, NULL},
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFND_UP_DOWN_EVT*)0)->mds_dest, 0, NULL},
+         (long)&((IFD_A2S_IFND_UP_DOWN_EVT*)0)->mds_dest, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2693,9 +2693,9 @@ uns32 ifsv_edp_ifd_a2s_ifindex_upd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_ifindex_upd_evt, 0, 0, 0,
          sizeof(IFD_A2S_IFINDEX_UPD_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFINDEX_UPD_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_IFINDEX_UPD_EVT*)0)->type, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_IFINDEX_UPD_EVT*)0)->ifindex, 0, NULL},
+         (long)&((IFD_A2S_IFINDEX_UPD_EVT*)0)->ifindex, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -2749,13 +2749,13 @@ uns32 ifsv_edp_ifd_a2s_iaps_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_iaps_evt, 0, 0, 0,
          sizeof(IFAP_INFO_LIST_A2S), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFAP_INFO_LIST_A2S*)0)->max_ifindex, 0, NULL},
+         (long)&((IFAP_INFO_LIST_A2S*)0)->max_ifindex, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFAP_INFO_LIST_A2S*)0)->num_free_ifindex, 0, NULL},
+         (long)&((IFAP_INFO_LIST_A2S*)0)->num_free_ifindex, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, EDQ_VAR_LEN_DATA,
-         ncs_edp_uns32, 0, (uns32)&((IFAP_INFO_LIST_A2S *)0)->free_list,
-        (uns32)&((IFAP_INFO_LIST_A2S *)0)->num_free_ifindex, NULL},
+         ncs_edp_uns32, 0, (long)&((IFAP_INFO_LIST_A2S *)0)->free_list,
+        (long)&((IFAP_INFO_LIST_A2S *)0)->num_free_ifindex, NULL},
 
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0,
          NCS_IFSV_SVC_SUB_ID_NCS_IAPS /* Sub-ID */, 0, NULL},
@@ -2811,40 +2811,40 @@ uns32 ifsv_edp_ifd_a2s_msg_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     EDU_INST_SET    ifd_a2s_msg_evt_rules[ ] = {
          {EDU_START, ifsv_edp_ifd_a2s_msg_evt, 0, 0, 0, sizeof(IFD_A2S_MSG), 0,
                     NULL},
-         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFD_A2S_MSG*)0)->type, 0,
+         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFD_A2S_MSG*)0)->type, 0,
                     NULL},
-         {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFD_A2S_MSG*)0)->type, 0,
+         {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((IFD_A2S_MSG*)0)->type, 0,
                     ifd_a2s_evt_type_test_fnc},
 
          /* For IFD_A2S_EVT_IFINDEX_SPT_MAP */
          {EDU_EXEC, ifsv_edp_ifd_a2s_ifindex_spt_map_evt, 0, 0, EDU_EXIT,
-            (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifindex_spt_map_evt, 0,
+            (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifindex_spt_map_evt, 0,
             NULL},
 
             /* For IFD_A2S_EVT_INTF_DATA */
          {EDU_EXEC, ifsv_edp_ifd_a2s_intf_data_evt, 0, 0, EDU_EXIT,
-            (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_intf_data_evt, 0, NULL},
+            (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_intf_data_evt, 0, NULL},
 
             /* For IFD_A2S_EVT_SVC_DEST_UPD */
          {EDU_EXEC, ifsv_edp_ifd_a2s_svc_dest_upd_evt, 0, 0, EDU_EXIT,
-            (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_svc_dest_upd_evt, 0, NULL},
+            (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_svc_dest_upd_evt, 0, NULL},
 
            /* For IFD_A2S_EVT_IFND_UP_DOWN */
          {EDU_EXEC, ifsv_edp_ifd_a2s_ifnd_up_down_evt, 0, 0, EDU_EXIT,
-           (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifnd_up_down_evt, 0, NULL},
+           (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifnd_up_down_evt, 0, NULL},
 
            /* For IFD_A2S_EVT_IFINDEX_UPD */
          {EDU_EXEC, ifsv_edp_ifd_a2s_ifindex_upd_evt, 0, 0, EDU_EXIT,
-           (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifindex_upd_evt, 0, NULL},
+           (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ifindex_upd_evt, 0, NULL},
 
 #if(NCS_IFSV_IPXS == 1)
             /* For IFD_A2S_EVT_IPXS_INTF_INFO */
          {EDU_EXEC, ifsv_edp_ifd_a2s_ipxs_intf_info_evt, 0, 0, EDU_EXIT,
-           (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ipxs_intf_info_evt, 0, NULL},
+           (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_ipxs_intf_info_evt, 0, NULL},
 #endif
 #if(NCS_VIP == 1)
          {EDU_EXEC, ifsv_edp_ifd_a2s_vip_rec_info_evt, 0, 0, EDU_EXIT,
-           (uns32)&((IFD_A2S_MSG*)0)->info.ifd_a2s_vip_rec_info_evt, 0, NULL},
+           (long)&((IFD_A2S_MSG*)0)->info.ifd_a2s_vip_rec_info_evt, 0, NULL},
 #endif
          {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -3251,9 +3251,9 @@ uns32 ifsv_edp_ifsv_vip_hdl(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     NCS_IFSV_VIP_INT_HDL   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_vip_hdl_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, sizeof(NCS_IFSV_VIP_INT_HDL), 0, NULL},
-           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_VIP_INT_HDL*)0)->vipApplName, m_NCS_IFSV_VIP_APPL_NAME, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_VIP_INT_HDL*)0)->poolHdl ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_VIP_INT_HDL*)0)->ipPoolType ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_VIP_INT_HDL*)0)->vipApplName, m_NCS_IFSV_VIP_APPL_NAME, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_VIP_INT_HDL*)0)->poolHdl ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_VIP_INT_HDL*)0)->ipPoolType ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3301,11 +3301,11 @@ uns32 ifsv_edp_ifa_vip_add(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     /*write a function for the "ifsv_edp_ifsv_vip_hdl"   TBComplemented */
     EDU_INST_SET    ifsv_ifa_vip_add_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_vip_add, 0, 0, 0, sizeof(IFA_VIPD_INFO_ADD), 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((IFA_VIPD_INFO_ADD*)0)->handle ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((IFA_VIPD_INFO_ADD*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
-           {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (uns32)&((IFA_VIPD_INFO_ADD*)0)->ipAddr ,0, NULL},
+           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((IFA_VIPD_INFO_ADD*)0)->handle ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((IFA_VIPD_INFO_ADD*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
+           {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (long)&((IFA_VIPD_INFO_ADD*)0)->ipAddr ,0, NULL},
 #if (VIP_HALS_SUPPORT == 1)
-           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(uns32)&((IFA_VIPD_INFO_ADD*)0)->infraFlag, 0, NULL},
+           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(long)&((IFA_VIPD_INFO_ADD*)0)->infraFlag, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -3355,11 +3355,11 @@ uns32 ifsv_edp_ifnd_vip_add(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     /*write a function for the "ifsv_edp_ifsv_vip_hdl"   TBComplemented */
     EDU_INST_SET    ifsv_ifnd_vip_add_info_rules[ ] = {
         {EDU_START, ifsv_edp_ifnd_vip_add, 0, 0, 0, sizeof(IFND_VIPD_INFO_ADD), 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((IFND_VIPD_INFO_ADD*)0)->handle ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((IFND_VIPD_INFO_ADD*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
-           {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (uns32)&((IFND_VIPD_INFO_ADD*)0)->ipAddr ,0, NULL},
+           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((IFND_VIPD_INFO_ADD*)0)->handle ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((IFND_VIPD_INFO_ADD*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
+           {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (long)&((IFND_VIPD_INFO_ADD*)0)->ipAddr ,0, NULL},
 #if (VIP_HALS_SUPPORT == 1)
-           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(uns32)&((IFND_VIPD_INFO_ADD*)0)->infraFlag, 0, NULL},
+           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(long)&((IFND_VIPD_INFO_ADD*)0)->infraFlag, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -3408,9 +3408,9 @@ uns32 ifsv_edp_ifa_vip_free(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFA_VIP_FREE   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifa_vip_free_rules[ ] = {
         {EDU_START, ifsv_edp_ifa_vip_free, 0, 0, 0, sizeof(IFA_VIP_FREE), 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((IFA_VIP_FREE*)0)->handle ,0, NULL},
+           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((IFA_VIP_FREE*)0)->handle ,0, NULL},
 #if (VIP_HALS_SUPPORT == 1)
-           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(uns32)&((IFA_VIP_FREE*)0)->infraFlag, 0, NULL},
+           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(long)&((IFA_VIP_FREE*)0)->infraFlag, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -3459,9 +3459,9 @@ uns32 ifsv_edp_ifnd_vip_free(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFND_VIP_FREE   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifnd_vip_free_rules[ ] = {
         {EDU_START, ifsv_edp_ifnd_vip_free, 0, 0, 0, sizeof(IFND_VIP_FREE), 0, NULL},
-        {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((IFND_VIP_FREE*)0)->handle ,0, NULL},
+        {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((IFND_VIP_FREE*)0)->handle ,0, NULL},
 #if (VIP_HALS_SUPPORT == 1)
-           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(uns32)&((IFND_VIP_FREE*)0)->infraFlag, 0, NULL},
+           {EDU_EXEC,ncs_edp_uns32, 0, 0, 0,(long)&((IFND_VIP_FREE*)0)->infraFlag, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -3509,7 +3509,7 @@ uns32 ifsv_edp_ifnd_info_add_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFND_VIPD_INFO_ADD_RESP   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifnd_info_add_resp_rules[ ] = {
         {EDU_START, ifsv_edp_ifnd_info_add_resp, 0, 0, 0, sizeof(IFND_VIPD_INFO_ADD_RESP), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFND_VIPD_INFO_ADD_RESP*)0)->err ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFND_VIPD_INFO_ADD_RESP*)0)->err ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3559,7 +3559,7 @@ uns32 ifsv_edp_ifd_info_add_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFD_VIPD_INFO_ADD_RESP   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifd_info_add_resp_rules[ ] = {
         {EDU_START, ifsv_edp_ifd_info_add_resp, 0, 0, 0, sizeof(IFD_VIPD_INFO_ADD_RESP), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFD_VIPD_INFO_ADD_RESP*)0)->err ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFD_VIPD_INFO_ADD_RESP*)0)->err ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3608,7 +3608,7 @@ uns32 ifsv_edp_ifnd_free_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFND_VIP_FREE_RESP   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifnd_free_resp_rules[ ] = {
         {EDU_START, ifsv_edp_ifnd_free_resp, 0, 0, 0, sizeof(IFND_VIP_FREE_RESP), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFND_VIP_FREE_RESP*)0)->err ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFND_VIP_FREE_RESP*)0)->err ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3655,7 +3655,7 @@ uns32 ifsv_edp_ifd_free_resp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFD_VIP_FREE_RESP   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_ifd_free_resp_rules[ ] = {
         {EDU_START, ifsv_edp_ifd_free_resp, 0, 0, 0, sizeof(IFD_VIP_FREE_RESP), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFD_VIP_FREE_RESP*)0)->err ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFD_VIP_FREE_RESP*)0)->err ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3704,7 +3704,7 @@ uns32 ifsv_edp_vip_common_event(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_COMMON_EVENT       *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET       ifsv_vip_common_event_rules[ ] = {
         {EDU_START, ifsv_edp_vip_common_event, 0, 0, 0, sizeof(VIP_COMMON_EVENT), 0, NULL},
-        {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((VIP_COMMON_EVENT*)0)->handle ,0, NULL},
+        {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((VIP_COMMON_EVENT*)0)->handle ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3751,7 +3751,7 @@ uns32 ifsv_edp_ip_from_stale_entry(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_IP_FROM_STALE_ENTRY       *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET       ifsv_vip_ip_from_stale_entry_rules[ ] = {
         {EDU_START, ifsv_edp_ip_from_stale_entry, 0, 0, 0, sizeof(VIP_IP_FROM_STALE_ENTRY), 0, NULL},
-        {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (uns32)&((VIP_IP_FROM_STALE_ENTRY*)0)->ipAddr ,0, NULL},
+        {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (long)&((VIP_IP_FROM_STALE_ENTRY*)0)->ipAddr ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3803,7 +3803,7 @@ uns32 ifsv_edp_vip_err_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     IFSV_VIP_ERROR_EVT   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_vip_err_evt_rules[ ] = {
         {EDU_START, ifsv_edp_vip_err_evt, 0, 0, 0, sizeof(IFSV_VIP_ERROR_EVT), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_VIP_ERROR_EVT*)0)->err ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((IFSV_VIP_ERROR_EVT*)0)->err ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3862,9 +3862,9 @@ uns32 ifsv_edp_ifd_a2s_vip_rec_info_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ifsv_edp_ifd_a2s_vip_rec_info_evt, 0, 0, 0,
          sizeof(IFD_A2S_VIP_REC_INFO_EVT), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (uns32)&((IFD_A2S_VIP_REC_INFO_EVT*)0)->type, 0, NULL},
+         (long)&((IFD_A2S_VIP_REC_INFO_EVT*)0)->type, 0, NULL},
         {EDU_EXEC,ifsv_edp_vip_chk_pt_full_rec , 0, 0, 0,
-         (uns32)&((IFD_A2S_VIP_REC_INFO_EVT*)0)->info, 0, NULL},
+         (long)&((IFD_A2S_VIP_REC_INFO_EVT*)0)->info, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -3914,30 +3914,30 @@ uns32 ifsv_edp_vip_chk_pt_full_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_REDUNDANCY_RECORD   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_vip_chk_pt_full_rec_info_rules[ ] = {
         {EDU_START, ifsv_edp_vip_chk_pt_full_rec, 0, 0, 0, sizeof(VIP_REDUNDANCY_RECORD), 0, NULL},
-           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->handle ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->vip_entry_attr ,0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->ref_cnt ,0, NULL},
+           {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->handle ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->vip_entry_attr ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->ref_cnt ,0, NULL},
 
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->ip_list_cnt ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->ip_list_cnt ,0, NULL},
            {EDU_EXEC, ifsv_edp_vip_chk_pt_ip_data, 
                       EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, 
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->ipInfo,
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->ip_list_cnt, NULL},
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->ipInfo,
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->ip_list_cnt, NULL},
            {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0, NCS_IFSV_SVC_SUB_ID_NCS_SVDEST /* Sub-ID */, 0, NULL},
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->intf_list_cnt ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->intf_list_cnt ,0, NULL},
            {EDU_EXEC, ifsv_edp_vip_chk_pt_intf_data, 
                       EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, 
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->intfInfo ,
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->intf_list_cnt, NULL},
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->intfInfo ,
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->intf_list_cnt, NULL},
            {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0, NCS_IFSV_SVC_SUB_ID_NCS_SVDEST /* Sub-ID */, 0, NULL},
 
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->alloc_ip_list_cnt ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->alloc_ip_list_cnt ,0, NULL},
 
-           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_REDUNDANCY_RECORD*)0)->owner_list_cnt ,0, NULL},
+           {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_REDUNDANCY_RECORD*)0)->owner_list_cnt ,0, NULL},
            {EDU_EXEC, ifsv_edp_vip_chk_pt_owner_data, 
                       EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, 
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->ownerInfo ,
-                      (uns32)&((VIP_REDUNDANCY_RECORD*)0)->owner_list_cnt, NULL},
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->ownerInfo ,
+                      (long)&((VIP_REDUNDANCY_RECORD*)0)->owner_list_cnt, NULL},
            {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_IFSV /* Svc-ID */, NULL, 0, NCS_IFSV_SVC_SUB_ID_NCS_SVDEST /* Sub-ID */, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -3987,9 +3987,9 @@ uns32 ifsv_edp_vip_chk_pt_ip_data(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_RED_IP_NODE   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_edp_vip_chk_pt_ip_data_info_rules[ ] = {
         {EDU_START, ifsv_edp_vip_chk_pt_ip_data, 0, 0, 0, sizeof(VIP_RED_IP_NODE), 0, NULL},
-        {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (uns32)&((VIP_RED_IP_NODE*)0)->ip_addr ,0, NULL},
-        {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((VIP_RED_IP_NODE*)0)->ipAllocated ,0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((VIP_RED_IP_NODE*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
+        {EDU_EXEC, ncs_edp_ippfx, 0, 0, 0, (long)&((VIP_RED_IP_NODE*)0)->ip_addr ,0, NULL},
+        {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((VIP_RED_IP_NODE*)0)->ipAllocated ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((VIP_RED_IP_NODE*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -4038,8 +4038,8 @@ uns32 ifsv_edp_vip_chk_pt_intf_data(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_RED_INTF_NODE   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_edp_vip_chk_pt_intf_data_info_rules[ ] = {
         {EDU_START, ifsv_edp_vip_chk_pt_intf_data, 0, 0, 0, sizeof(VIP_RED_INTF_NODE), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((VIP_RED_INTF_NODE*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
-        {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((VIP_RED_INTF_NODE*)0)->active_standby ,0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((VIP_RED_INTF_NODE*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
+        {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((VIP_RED_INTF_NODE*)0)->active_standby ,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 
@@ -4086,9 +4086,9 @@ uns32 ifsv_edp_vip_chk_pt_owner_data(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     VIP_RED_OWNER_NODE   *struct_ptr = NULL, **d_ptr = NULL;
     EDU_INST_SET    ifsv_edp_vip_chk_pt_owner_data_info_rules[ ] = {
         {EDU_START, ifsv_edp_vip_chk_pt_owner_data, 0, 0, 0, sizeof(VIP_RED_OWNER_NODE), 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((VIP_RED_OWNER_NODE*)0)->owner, 0, NULL},
+        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((VIP_RED_OWNER_NODE*)0)->owner, 0, NULL},
 #if (VIP_HALS_SUPPORT == 1)
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((VIP_RED_OWNER_NODE*)0)->infraFlag, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((VIP_RED_OWNER_NODE*)0)->infraFlag, 0, NULL},
 #endif
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -4132,8 +4132,8 @@ uns32 ifsv_edp_nodeid_ifname(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET    ifsv_nodeid_ifname_rules[ ] = {
         {EDU_START, ifsv_edp_nodeid_ifname, 0, 0, 0, sizeof(NCS_IFSV_NODEID_IFNAME), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_IFSV_NODEID_IFNAME*)0)->node_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((NCS_IFSV_NODEID_IFNAME*)0)->if_name, 20, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_NODEID_IFNAME*)0)->node_id, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IFSV_NODEID_IFNAME*)0)->if_name, 20, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 

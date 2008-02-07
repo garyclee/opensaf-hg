@@ -10,4 +10,4 @@ libmab_logstr_la_CPPFLAGS= @NCS_CORE_CPP_DEFINES@ \
 
 libmab_logstr_la_SOURCES = ./mab_logstr.c
 
-libmab_logstr_la_LDFLAGS = -version-number 2
+libmab_logstr_la_LDFLAGS = -version-number 3

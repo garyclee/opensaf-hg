@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -305,7 +305,7 @@ NCSFL_FMAT vds_fmat_set[] =
    { VDS_LID_TIM , NCSFL_TYPE_TII, "[%s] %s %s\n"                            },
 
     /* <PAT tree> <Success/Failure> */
-   { VDS_LID_TREE  , NCSFL_TYPE_TIIL,  "[%s] %s %s %d \n"                         },
+   { VDS_LID_TREE  , NCSFL_TYPE_TIIL,  "[%s] %s %s %ld \n"                         },
 
    /* <Memory Alloc> <Success/Failure> */
    { VDS_LID_MEM  , NCSFL_TYPE_TII,  "[%s] %s %s\n"                          },
@@ -314,19 +314,19 @@ NCSFL_FMAT vds_fmat_set[] =
    { VDS_LID_EVT  , NCSFL_TYPE_TII,  "[%s] %s %s\n"                          },
    
    /* <AMF> <Success/Failure> */
-   { VDS_LID_AMF  , NCSFL_TYPE_TIIL,  "[%s] %s %s %u\n"                          },
+   { VDS_LID_AMF  , NCSFL_TYPE_TIIL,  "[%s] %s %s %lu\n"                          },
    
    /* <CKPT> <Success/Failure> */
-   { VDS_LID_CKPT  , NCSFL_TYPE_TIIL,  "[%s] %s %s %u\n"                          },
+   { VDS_LID_CKPT  , NCSFL_TYPE_TIIL,  "[%s] %s %s %lu\n"                          },
 
    /* <VDS Miscelleneous...> */
    { VDS_LID_MISC   , NCSFL_TYPE_TII,   "[%s] %s  %s\n"                          },
 
-   { VDS_LID_VDEST, "TCLC", "[%s] VDEST Name %s VDESTID %u Persistance %s\n"     },
+   { VDS_LID_VDEST, "TCLC", "[%s] VDEST Name %s VDESTID %lu Persistance %s\n"     },
    
    { VDS_LID_AMF_STATE ,"TCC", "[%s] CSI Assignment done from %s  to %s\n" }, 
-   { VDS_LID_GENERIC, "TCLC","[%s]  %s   %u  %s  \n"},
-   { VDS_LID_MSG_FMT, "TCCLCL", "[%s] %s %s  Service ID %u with  %s  %u \n" },
+   { VDS_LID_GENERIC, "TCLC","[%s]  %s   %lu  %s  \n"},
+   { VDS_LID_MSG_FMT, "TCCLCL", "[%s] %s %s  Service ID %lu with  %s  %lu \n" },
    {0,0,0}
 };
 

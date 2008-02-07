@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -89,19 +89,23 @@ char *pcsrda_role_str[] =
 #define PCS_RDA_SYM_GET_ROLE           "pcs_rda_get_role"
 #define PCS_RDA_SYM_AVD_HB_ERR         "pcs_rda_avd_hb_err"
 #define PCS_RDA_SYM_AVND_HB_ERR        "pcs_rda_avnd_hb_err"
+#define PCS_RDA_SYM_AVD_HB_RESTORE         "pcs_rda_avd_hb_restore"
+#define PCS_RDA_SYM_AVND_HB_RESTORE        "pcs_rda_avnd_hb_restore"
 
-typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, uns32*);
+typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, long*);
 typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (uns32);
 typedef int (*PCS_RDA_PTR_SET_ROLE)       (PCS_RDA_ROLE);
 typedef int (*PCS_RDA_PTR_GET_ROLE)       (PCS_RDA_ROLE*);
 typedef int (*PCS_RDA_PTR_AVD_HB_ERR)     (void);
 typedef int (*PCS_RDA_PTR_AVND_HB_ERR)     (uns32);
+typedef int (*PCS_RDA_PTR_AVD_HB_RESTORE)     (void);
+typedef int (*PCS_RDA_PTR_AVND_HB_RESTORE)     (uns32);
 
 /*
 ** Global data
 */
 static void * pcs_rda_lib_handle    = NULL;
-static uns32  pcs_rda_callback_cb   = 0;
+static long  pcs_rda_callback_cb   = 0;
 
 
 /*
@@ -115,7 +119,8 @@ static int pcs_rda_lib_set_role      (PCS_RDA_ROLE    role);
 static int pcs_rda_lib_get_role      (PCS_RDA_ROLE   *role);
 static int pcs_rda_lib_avd_hb_err    (void);
 static int pcs_rda_lib_avnd_hb_err   (uns32 phy_slot_id);
-
+static int pcs_rda_lib_avd_hb_restore(void);
+static int pcs_rda_lib_avnd_hb_restore(uns32 phy_slot_id);
 
 /****************************************************************************
  * Name          : pcs_rda_request
@@ -174,7 +179,13 @@ int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req)
     case PCS_RDA_AVND_HB_ERR:
                 ret = pcs_rda_lib_avnd_hb_err (pcs_rda_req->info.phy_slot_id);
                 break;
-                
+    case PCS_RDA_AVD_HB_RESTORE:
+                ret = pcs_rda_lib_avd_hb_restore();
+                break;
+    case PCS_RDA_AVND_HB_RESTORE:
+                ret = pcs_rda_lib_avnd_hb_restore(pcs_rda_req->info.phy_slot_id);
+                break;
+    
 
     default:
                 ret = PCSRDA_RC_INVALID_PARAMETER;
@@ -440,4 +451,59 @@ static int pcs_rda_lib_avnd_hb_err(uns32 phy_slot_id)
    ** handle avnd heartbeat loss
    */
    return (*pcs_rda_avnd_hb_err) (phy_slot_id);
+}
+
+static int pcs_rda_lib_avd_hb_restore (void)
+{
+    PCS_RDA_PTR_AVD_HB_RESTORE pcs_rda_avd_hb_restore;
+
+    /*
+    ** Is the libray already loaded?
+    */
+    if (pcs_rda_lib_handle == NULL)
+        {
+                /* No */
+                return PCSRDA_RC_LIB_NOT_INITIALIZED;
+
+        }
+
+        pcs_rda_avd_hb_restore = (PCS_RDA_PTR_AVD_HB_RESTORE) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_AVD_HB_RESTORE);
+        if (pcs_rda_avd_hb_restore == NULL)
+        {
+                printf ("%s\n", dlerror());
+                return PCSRDA_RC_LIB_SYM_FAILED;
+        
+        }
+
+        /*
+        ** Avd Heart beat restore 
+        */
+        return (*pcs_rda_avd_hb_restore) ();
+
+}
+static int pcs_rda_lib_avnd_hb_restore(uns32 phy_slot_id)
+{
+   PCS_RDA_PTR_AVND_HB_RESTORE pcs_rda_avnd_hb_restore;
+
+   /*
+   ** Is the libray already loaded?
+   */
+   if (pcs_rda_lib_handle == NULL)
+   {
+      /* No */
+      return PCSRDA_RC_LIB_NOT_INITIALIZED;
+   }
+
+   pcs_rda_avnd_hb_restore = (PCS_RDA_PTR_AVND_HB_RESTORE) dlsym (pcs_rda_lib_handle, 
+                                                      PCS_RDA_SYM_AVND_HB_RESTORE);
+   if (pcs_rda_avnd_hb_restore == NULL)
+   {
+      printf ("%s\n", dlerror());
+      return PCSRDA_RC_LIB_SYM_FAILED;
+   }
+
+   /*
+   ** handle avnd heartbeat restore
+   */
+   return (*pcs_rda_avnd_hb_restore) (phy_slot_id);
 }

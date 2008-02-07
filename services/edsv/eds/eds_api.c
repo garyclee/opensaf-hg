@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -117,7 +117,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    fp = fopen(pidfilename, "w");
    if(fp == NULL)
    {
-      m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(uns32)fp,__FILE__,__LINE__,0);
+      m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
       m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid OPEN FOR WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
@@ -130,7 +130,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    if(fprintf(fp, "%d", getpid()) < 1)
    {
       fclose(fp);
-      m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(uns32)fp,__FILE__,__LINE__,0);
+      m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
       m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid FILE WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
@@ -217,7 +217,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
                                           &eds_cb->mbx,
                                           "EDS",
                                           EDS_TASK_PRIORITY,
-                                          NCS_STACKSIZE_MEDIUM,
+                                          NCS_STACKSIZE_HUGE,
                                           &eds_cb->task_hdl
                                           )))
    {

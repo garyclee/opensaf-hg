@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 /*****************************************************************************
 ..............................................................................
@@ -67,9 +67,9 @@ uns32 avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             sizeof(NCS_AVSV_ATTR_NAME_VAL), 0, NULL},
 
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-            (uns32)&((NCS_AVSV_ATTR_NAME_VAL*)0)->name, 0, NULL},
+            (long)&((NCS_AVSV_ATTR_NAME_VAL*)0)->name, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-            (uns32)&((NCS_AVSV_ATTR_NAME_VAL*)0)->value, 0, NULL},
+            (long)&((NCS_AVSV_ATTR_NAME_VAL*)0)->value, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -126,9 +126,9 @@ uns32 avsv_edp_csi_attr_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             sizeof(NCS_AVSV_CSI_ATTRS), 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-            (uns32)&((NCS_AVSV_CSI_ATTRS*)0)->number, 0, NULL},
+            (long)&((NCS_AVSV_CSI_ATTRS*)0)->number, 0, NULL},
         {EDU_EXEC, avsv_edp_attr_val, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0,
-            (uns32)&((NCS_AVSV_CSI_ATTRS*)0)->list, (uns32)&((NCS_AVSV_CSI_ATTRS*)0)->number, NULL},
+            (long)&((NCS_AVSV_CSI_ATTRS*)0)->list, (long)&((NCS_AVSV_CSI_ATTRS*)0)->number, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -185,10 +185,10 @@ uns32 avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *ed
         {EDU_START, avsv_edp_saamfprotectiongroupnotificationbuffert, 0, 0, 0,
                sizeof(SaAmfProtectionGroupNotificationBufferT), 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0,
-            (uns32)&((SaAmfProtectionGroupNotificationBufferT*)0)->numberOfItems, 0, NULL},
+            (long)&((SaAmfProtectionGroupNotificationBufferT*)0)->numberOfItems, 0, NULL},
         {EDU_EXEC, ncs_edp_saamfprotectiongroupnotificationt, EDQ_VAR_LEN_DATA, m_NCS_EDP_SAUINT32T, 0,
-            (uns32)&((SaAmfProtectionGroupNotificationBufferT*)0)->notification,
-            (uns32)&((SaAmfProtectionGroupNotificationBufferT*)0)->numberOfItems, NULL},
+            (long)&((SaAmfProtectionGroupNotificationBufferT*)0)->notification,
+            (long)&((SaAmfProtectionGroupNotificationBufferT*)0)->numberOfItems, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL, 0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };

@@ -1,9 +1,8 @@
 lib_LTLIBRARIES = libsnmptm_pssv.la
 
-libsnmptm_pssv_la_CPPFLAGS= -m32 -DNCS_SAF=1 \
+libsnmptm_pssv_la_CPPFLAGS= -DNCS_SAF=1 \
             -I ../inc/ \
 	@DEMO_INC_DIR@
-libsnmptm_pssv_la_LDFLAGS= -m32
 
 libsnmptm_pssv_la_SOURCES =	./mcg_ncs_test_mib_pssv_mib.h \
 							./snmptm_pssv_init.h \

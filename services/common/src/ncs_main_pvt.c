@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -102,6 +102,13 @@
 #include "ifnd_dl_api.h"
 #endif
 
+#if (NCS_CPD == 1)
+#include "cpd_dl_api.h"
+#endif
+#if (NCS_CPND == 1)
+#include "cpnd_dl_api.h"
+#endif
+
 #if (NCS_SRMA == 1)
 #include "srma_dl_api.h"
 #endif
@@ -120,7 +127,7 @@
 #include "mqd_dl_api.h"
 #endif
 #if (NCS_MQND == 1)
-
+#include "mqnd_dl_api.h"
 #endif
 
 #if (NCS_DTA == 1)
@@ -247,7 +254,6 @@ static void main_avnd_usr1_signal_hdlr(int signal);
 /* NID specific NCS service global variable */
 uns16 gl_nid_svc_id = 0;
 static void ncs_get_nid_svc_id(int argc, char *argv[], uns16 *o_nid_svc_id);
-static void mainsnmpset_help_print();
 uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type,
               char *i_param_val, uns32 val_len, char *index); /* FIXME:Phani_11_july_06  Unused. Cleanup? */
 
@@ -412,17 +418,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       }
 #endif
 
-   /*** Init SRMA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "SRMSV="))
-   {
-      /*** Init SRMA ***/
-      if (ncs_srma_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_SRMA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-   }
-
    if ('n' != ncs_util_get_char_option(argc, argv, "AVSV="))
    {
 #if (NCS_AVD == 1)
@@ -455,13 +450,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       }
       m_NCS_DBG_PRINTF("\n AvM thread created");
 #endif
-
-      /*** Init AVA ***/
-      if (ncs_ava_cla_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_AVA_CLA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
    }
 
     /*** Init SRMND ***/
@@ -644,12 +632,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       else
         m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
 #endif
-      /*** Init EDA ***/
-      if (ncs_eda_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_EDA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
    }
    
    if ('n' != ncs_util_get_char_option(argc, argv, "SNMP="))
@@ -722,12 +704,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
-      /*** Init CPA ***/
-      if (ncs_cpa_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_CPA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
    }
 
 
@@ -754,12 +730,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
-      /*** Init MQA ***/
-      if (ncs_mqa_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_MQA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
    }
 
    if ('n' != ncs_util_get_char_option(argc, argv, "GLSV="))
@@ -782,12 +752,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
-      /*** Init GLA ***/
-      if (ncs_gla_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_GLA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
    }
 #if 0   
    if ('n' != ncs_util_get_char_option(argc, argv, "CPSV="))
@@ -810,13 +774,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
-      /*** Init CPA ***/
-      if (ncs_cpa_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NID_NCS_CPA_STARTUP_FAILED);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
-   }
 #endif
    /*** Init VDS ***/
 #if (NCS_VDS == 1)
@@ -1030,7 +987,7 @@ mainindex_extract_from_token(char *word, uns32 *instance_ids, uns32 *instance_id
 static uns32
 mainget_the_index(char *const i_inst_str, uns32 *instance_ids, uns32 *instance_id_len) ;
 static void
-mainsnmpset_help_print();
+mainsnmpset_help_print(void);
 static uns32
 mainmib_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
                             NCSMIB_PARAM_ID     i_param_id, 
@@ -1359,7 +1316,7 @@ mainget_the_index(char *const i_inst_str, uns32 *instance_ids, uns32 *instance_i
 }
 
 static void
-mainsnmpset_help_print()
+mainsnmpset_help_print(void)
 {
     m_NCS_CONS_PRINTF("Give proper arguments...\n");
     m_NCS_CONS_PRINTF(" =================================================================================\n");

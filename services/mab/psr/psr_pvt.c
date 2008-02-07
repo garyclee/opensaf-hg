@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -85,11 +85,16 @@ pss_do_evts(SYSF_MBX*  mbx)
 uns32
 pss_do_evt( MAB_MSG* msg, NCS_BOOL free_msg)
 {  
+  
+  NCSCONTEXT  yr_svc_hdl = msg->yr_hdl;
+  NCSCONTEXT  validate_hdl = NULL;
   uns32 status = NCSCC_RC_SUCCESS; 
 
 #if (NCS_PSS_RED == 1)
-  if( ((gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_STANDBY) &&
-       (free_msg == TRUE)) )
+  /* Fixed as a part of IR00085797: A NULL STATE check has been added */ 
+  if(((gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_STANDBY) || 
+      (gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_NULL)) &&
+      (free_msg == TRUE)) 
   {
      /* Need allow all events to Standy since the same function is being used
         in the MBCSv callback. */
@@ -97,6 +102,32 @@ pss_do_evt( MAB_MSG* msg, NCS_BOOL free_msg)
      return status;
   }
 #endif
+
+  /* Fixed as a part of IR00085797 */
+  /* Do not validate if the message type is AMF initialization retry, 
+     as the MAB message wont contain any Handle */
+  if(msg->op != MAB_PSS_AMF_INIT_RETRY)
+  {
+     /* Validate the Handle */
+     validate_hdl = (NCSCONTEXT)m_PSS_VALIDATE_HDL((long)yr_svc_hdl);
+
+     /* Check if the handle is Invalid. log the Error and 
+     return failure */
+     if (validate_hdl == NULL)
+     {
+        m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_INVALID_PWE_HDL);
+  
+        pss_free_mab_msg(msg, free_msg);
+
+        return NCSCC_RC_FAILURE;
+     } 
+
+     /* Now the Handle is valid thus set the Handle to point Control Block */
+     msg->yr_hdl = validate_hdl;
+
+     /* Release the Handle, we need not to keep this handle */
+     ncshm_give_hdl((long)yr_svc_hdl);
+  }
 
   switch (msg->op)
   {
@@ -205,7 +236,8 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
            {
               /* Fix for IR00085164 */
               char addr_str[255] = {0};
-              status = pss_stdby_oaa_down_list_update(msg->fr_card,msg->yr_hdl,PSS_STDBY_OAA_DOWN_BUFFER_DELETE);
+              /*  Fixed as a part of IR00085797, need to pass PWE Control block handle  */
+              status = pss_stdby_oaa_down_list_update(msg->fr_card,(NCSCONTEXT)((long)pwe_cb->hm_hdl),PSS_STDBY_OAA_DOWN_BUFFER_DELETE);
               if(NCSCC_RC_SUCCESS != status)
               {
                  if (m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card) == 0)
@@ -257,16 +289,16 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
        case NCSMDS_NO_ACTIVE:
           /* Treating this as DOWN event */
           pwe_cb->is_mas_alive = FALSE;
-          m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_MAS_MDS_NO_ACTIVE);
+          m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_MAS_MDS_NO_ACTIVE);
           break;
 
        case NCSMDS_NEW_ACTIVE:
-          m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_MAS_MDS_NEW_ACTIVE);
+          m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_MAS_MDS_NEW_ACTIVE);
           if(pwe_cb->is_mas_alive == FALSE)
           {
              /* Treating this as UP event */
              pwe_cb->is_mas_alive = TRUE;
-             m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_MAS_MDS_NEW_ACTIVE_AS_UP_EVT);
+             m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_MAS_MDS_NEW_ACTIVE_AS_UP_EVT);
 
              /* If some services wanted playback to be done from the BAM,
                 forward the list of those PCNs to the BAM now. */
@@ -279,7 +311,7 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
 
        case NCSMDS_UP:
           pwe_cb->is_mas_alive = TRUE;
-          m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_MAS_MDS_UP);
+          m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_MAS_MDS_UP);
 
           /* If some services wanted playback to be done from the BAM, 
              forward the list of those PCNs to the BAM now. */
@@ -300,22 +332,22 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
        case NCSMDS_DOWN:
           pwe_cb->p_pss_cb->is_bam_alive = FALSE;
           m_NCS_MEMSET(&pwe_cb->p_pss_cb->bam_address, 0, sizeof(MDS_DEST)); 
-          m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_BAM_MDS_DOWN); 
+          m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_BAM_MDS_DOWN); 
           break;
 
        case NCSMDS_NO_ACTIVE:
           /* Treating this as DOWN event */
           pwe_cb->p_pss_cb->is_bam_alive = FALSE;
-          m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_BAM_MDS_NO_ACTIVE);
+          m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_BAM_MDS_NO_ACTIVE);
           break;
 
        case NCSMDS_NEW_ACTIVE:
-          m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_BAM_MDS_NEW_ACTIVE);
+          m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_BAM_MDS_NEW_ACTIVE);
           if(pwe_cb->p_pss_cb->is_bam_alive == FALSE)
           {
              /* Treating this as UP event */
              pwe_cb->p_pss_cb->is_bam_alive = TRUE;
-             m_LOG_PSS_HEADLINE2(NCSFL_SEV_NOTICE, PSS_HDLN2_BAM_MDS_NEW_ACTIVE_AS_UP_EVT);
+             m_LOG_PSS_HEADLINE2(NCSFL_SEV_DEBUG, PSS_HDLN2_BAM_MDS_NEW_ACTIVE_AS_UP_EVT);
 
              pwe_cb->p_pss_cb->bam_address = msg->fr_card;
              /* Since BAM is a local PWE specific service, right now!!! */
@@ -332,7 +364,7 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
 
        case NCSMDS_UP:
           pwe_cb->p_pss_cb->is_bam_alive = TRUE;
-          m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_BAM_MDS_UP);
+          m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_BAM_MDS_UP);
 
           pwe_cb->p_pss_cb->bam_address = msg->fr_card;
 
@@ -398,7 +430,28 @@ uns32 pss_process_snmp_request(MAB_MSG * msg)
     }
 
     tbl_id = msg->data.data.snmp->i_tbl_id;
-    pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
+   
+    retval = pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
+
+    if(NCSCC_RC_SUCCESS != retval)
+    {
+       char  addr_str[255] = {0};
+       uns16 num_of_char=0;
+
+       if (m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card) == 0)
+          num_of_char = snprintf(addr_str, (size_t)255, "VDEST:%d, SEQ No.: %d ",
+                        m_MDS_GET_VDEST_ID_FROM_MDS_DEST(msg->fr_card), msg->data.seq_num);
+       else
+          num_of_char = snprintf(addr_str, (size_t)255, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu, SEQ No.: %d ",
+                        m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card), 0, msg->fr_card, msg->data.seq_num);
+
+       if(num_of_char >= 255)
+           addr_str[255 - 1] = '\0';
+
+       m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_OAA_ACK_FAILED, addr_str);
+
+       return retval;
+    }
 
      /* This table has not been registered */
     if ((tbl_id >= MIB_UD_TBL_ID_END) ||
@@ -483,6 +536,10 @@ uns32 pss_process_snmp_request(MAB_MSG * msg)
 
     ncsmib_arg_free_resources(msg->data.data.snmp, FALSE);
 
+    if(inst->mem_in_store > NCS_PSS_MAX_IN_STORE_MEM_SIZE)
+    {
+       pss_save_current_configuration(inst);
+    }
     return retval;
 }
 
@@ -558,7 +615,27 @@ uns32 pss_process_oac_warmboot(MAB_MSG * msg)
 #endif
 
     /* This function works both in A-mode and SQ2A-mode. */
-    pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
+    retval = pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
+
+    if(NCSCC_RC_SUCCESS != retval)
+    {
+       char  addr_str[255] = {0};
+       uns16 num_of_char=0;
+
+       if (m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card) == 0)
+          num_of_char = snprintf(addr_str, (size_t)255, "VDEST:%d, SEQ No.: %d ",
+                        m_MDS_GET_VDEST_ID_FROM_MDS_DEST(msg->fr_card), msg->data.seq_num);
+       else
+          num_of_char = snprintf(addr_str, (size_t)255, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu, SEQ No.: %d ",
+                        m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card), 0, msg->fr_card, msg->data.seq_num);
+
+       if(num_of_char >= 255)
+           addr_str[255 - 1] = '\0';
+
+       m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_OAA_ACK_FAILED, addr_str);
+      
+       return retval;
+    }
 
     /* Just log the info */
     for(wbreq = &msg->data.data.oac_pss_warmboot_req; wbreq != NULL;
@@ -1014,6 +1091,7 @@ uns32 pss_process_set_request(MAB_MSG * msg)
             (tbl_data->entry_on_disk == FALSE))
         {
             retval = pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             if (retval != NCSCC_RC_SUCCESS)
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -1025,6 +1103,7 @@ uns32 pss_process_set_request(MAB_MSG * msg)
              * deltas.
              */
             retval = pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             if (retval != NCSCC_RC_SUCCESS)
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -1062,12 +1141,14 @@ uns32 pss_process_set_request(MAB_MSG * msg)
             if ((tbl_data->deleted == TRUE) && (tbl_data->entry_on_disk == FALSE)) \
             { \
                retval = pss_delete_inst_node_from_tree(pTree, pNode); \
+               pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length); \
                if (retval != NCSCC_RC_SUCCESS) \
                   return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
             } \
             else if (tbl_data->dirty == FALSE) \
             { \
                retval = pss_delete_inst_node_from_tree(pTree, pNode); \
+               pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length); \
                if (retval != NCSCC_RC_SUCCESS) \
                   return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
             } \
@@ -1263,6 +1344,7 @@ uns32 pss_process_setrow_request(MAB_MSG * msg, NCS_BOOL is_move_row)
         (tbl_data->entry_on_disk == FALSE))
     {
         retval = pss_delete_inst_node_from_tree(pTree, pNode);
+        pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
         if (retval != NCSCC_RC_SUCCESS)
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
@@ -1273,6 +1355,7 @@ uns32 pss_process_setrow_request(MAB_MSG * msg, NCS_BOOL is_move_row)
         * deltas.
         */
         retval = pss_delete_inst_node_from_tree(pTree, pNode);
+        pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
         if (retval != NCSCC_RC_SUCCESS)
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
@@ -1313,12 +1396,14 @@ uns32 pss_process_setrow_request(MAB_MSG * msg, NCS_BOOL is_move_row)
                if ((tbl_data->deleted == TRUE) && (tbl_data->entry_on_disk == FALSE)) \
                { \
                   retval = pss_delete_inst_node_from_tree(pTree, pNode); \
+                  pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length); \
                   if (retval != NCSCC_RC_SUCCESS) \
                      return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
                } \
                else if (tbl_data->dirty == FALSE) \
                { \
                   retval = pss_delete_inst_node_from_tree(pTree, pNode); \
+                  pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length); \
                   if (retval != NCSCC_RC_SUCCESS) \
                      return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
                } \
@@ -1546,6 +1631,7 @@ uns32 pss_process_setallrows_request(MAB_MSG * msg)
             (tbl_data->entry_on_disk == FALSE))
         {
             retval = pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             if (retval != NCSCC_RC_SUCCESS)
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -1556,6 +1642,7 @@ uns32 pss_process_setallrows_request(MAB_MSG * msg)
          * deltas.
          */
             retval = pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             if (retval != NCSCC_RC_SUCCESS)
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -1765,6 +1852,7 @@ uns32 pss_process_removerows_request(MAB_MSG * msg)
             (tbl_data->entry_on_disk == FALSE))
         {
             retval = pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             if (retval != NCSCC_RC_SUCCESS)
             {
                 PSS_FREE_ERROR_COND_FOR_REMOVEROWS
@@ -1917,10 +2005,10 @@ PSS_TBL_REC * pss_find_table_tree(PSS_PWE_CB *pwe_cb, PSS_CLIENT_ENTRY *client_n
            if(oaa_node != NULL)
            {
               if (m_NCS_NODE_ID_FROM_MDS_DEST(oaa_node->key.mds_dest) == 0)
-                 sprintf(addr_str, "VDEST:%d", m_MDS_GET_VDEST_ID_FROM_MDS_DEST(oaa_node->key.mds_dest));
+                 sprintf(addr_str, "VDEST:%d, Table-id: %d ", m_MDS_GET_VDEST_ID_FROM_MDS_DEST(oaa_node->key.mds_dest), tbl_id);
               else
-                 sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%d",
-                        m_NCS_NODE_ID_FROM_MDS_DEST(oaa_node->key.mds_dest), 0, (uns32)(oaa_node->key.mds_dest));
+                 sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%d, , Table-id: %d",
+                        m_NCS_NODE_ID_FROM_MDS_DEST(oaa_node->key.mds_dest), 0, (uns32)(oaa_node->key.mds_dest), tbl_id);
               /* This MIB table or PCN is not available with PSS. */
               ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                        NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
@@ -2067,6 +2155,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
 
     /* The entry does not exist in the tree. Create a new one */
     tbl_data = m_MMGR_ALLOC_PSS_MIB_TBL_DATA;
+    pwe_cb->p_pss_cb->mem_in_store += sizeof(PSS_MIB_TBL_DATA);
     pNode = (NCS_PATRICIA_NODE *) tbl_data;
     if (pNode == NULL)
     {
@@ -2079,6 +2168,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
     tbl_data->deleted = FALSE;
     tbl_data->dirty   = FALSE;
     tbl_data->key = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_key_length);
+    pwe_cb->p_pss_cb->mem_in_store += tbl_info->max_key_length;
     if (tbl_data->key == NULL)
     {
         m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_OCT_ALLOC_FAIL,
@@ -2088,6 +2178,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
     }
 
     tbl_data->data = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_row_length);
+    pwe_cb->p_pss_cb->mem_in_store += tbl_info->max_row_length;
     if (tbl_data->data == NULL)
     {
         m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MIB_ROW_DATA_ALLOC_FAIL,
@@ -2754,7 +2845,7 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
                           NCS_BOOL * entry_found)
 {
     PSS_MIB_TBL_INFO * tbl_info = pwe_cb->p_pss_cb->mib_tbl_desc[tbl_id];
-    uns32              file_hdl = 0;
+    long              file_hdl = 0;
     uns8 *             pkey;
     PSS_MIB_TBL_DATA * tbl_data = (PSS_MIB_TBL_DATA *)pNode;
     uns8 *             buffer = tbl_data->data;
@@ -2851,7 +2942,6 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
         if ((retval != NCSCC_RC_SUCCESS) ||
             (pssts_arg.info.read_file.o_bytes_read != buf_len))
         {
-            m_NCS_CONS_PRINTF("\npss_read_from_store(): read failed: bytes_read: %d buf_len: %d", pssts_arg.info.read_file.o_bytes_read, buf_len);
             /* Close the file */
             m_NCS_PSSTS_FILE_CLOSE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl, retval, file_hdl);
             m_MMGR_FREE_PSS_OCT(pkey);
@@ -2880,7 +2970,7 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
     if (*entry_found == TRUE)
         m_LOG_PSS_HDLN_I(NCSFL_SEV_INFO, PSS_HDLN_ENTRY_FOUND, tbl_id);
     else
-        m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_ENTRY_NOT_FOUND, tbl_id);
+        m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_ENTRY_NOT_FOUND, tbl_id);
 
     m_NCS_PSSTS_FILE_CLOSE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl, retval, file_hdl);
     m_MMGR_FREE_PSS_OCT(pkey);
@@ -2905,7 +2995,7 @@ uns32 pss_read_from_sclr_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
                           uns32 tbl_id, NCS_BOOL * entry_found)
 {
     PSS_MIB_TBL_INFO * tbl_info = pwe_cb->p_pss_cb->mib_tbl_desc[tbl_id];
-    uns32              file_hdl = 0;
+    long              file_hdl = 0;
     uns32              buf_len;
     NCS_PSSTS_ARG      pssts_arg;
     uns32              retval, file_size = 0, temp_file_size = 0;
@@ -2993,7 +3083,7 @@ uns32 pss_read_from_sclr_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
     if (*entry_found == TRUE)
         m_LOG_PSS_HDLN_I(NCSFL_SEV_INFO, PSS_HDLN_ENTRY_FOUND, tbl_id);
     else
-        m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_ENTRY_NOT_FOUND, tbl_id);
+        m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_ENTRY_NOT_FOUND, tbl_id);
 
     m_NCS_PSSTS_FILE_CLOSE(pwe_cb->p_pss_cb->pssts_api,
         pwe_cb->p_pss_cb->pssts_hdl, retval, file_hdl);
@@ -3171,7 +3261,8 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
     uns32 *      pinst_re_ids = NULL;
 #endif
     uns32        retval = NCSCC_RC_SUCCESS, buf_size, item_size;
-    uns32        bytes_read, num_items, file_hdl = 0;
+    uns32        bytes_read, num_items;
+    long         file_hdl = 0;
     uns32        max_num_rows;
     uns32        offset = 0, i, j;
     NCSMIB_PARAM_VAL pv;
@@ -3807,7 +3898,8 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
     PSS_CB             *inst = pwe_cb->p_pss_cb;
     uns32              retval = NCSCC_RC_SUCCESS;
     NCS_BOOL           curr_file_exists = FALSE;
-    uns32              curr_file_hdl = 0, bytes_read = 0, j = 0, lcl_params_max = 0;
+    uns32              bytes_read = 0, j = 0, lcl_params_max = 0;
+    long               curr_file_hdl = 0;
     uns8               *curr_data = NULL;
     PSS_MIB_TBL_INFO   *tbl_info = pwe_cb->p_pss_cb->mib_tbl_desc[tbl_rec->tbl_id];
 
@@ -4207,7 +4299,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
     uns8             * key = NULL;
     uns32              in_rows_left = 0, row_size, buf_size, max_num_rows;
     uns32              out_rows_filled = 0, read_offset = 0;
-    uns32              file_hdl = 0, tfile_hdl = 0;
+    long               file_hdl = 0, tfile_hdl = 0;
     uns32              retval = NCSCC_RC_SUCCESS;
     NCS_BOOL           file_exists;
     uns32              bytes_read;
@@ -4286,7 +4378,6 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
     }
     if (file_exists == FALSE)
     {
-        m_NCS_CONS_PRINTF("\npss_save_to_store(): File does not exist: %d", tbl_id);
      /* 3.0.b addition: Writing Table details header temp file */ 
 
         m_NCS_MEMSET(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
@@ -4299,7 +4390,6 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         retval = pss_tbl_details_header_write(inst, inst->pssts_hdl, tfile_hdl, &ps_file_record);
         if (retval != NCSCC_RC_SUCCESS)
         {
-            m_NCS_CONS_PRINTF("\npss_save_to_store(): Write table details fail");
             m_LOG_PSS_STORE(NCSFL_SEV_ERROR,PSS_MIB_WRITE_FAIL,
                 pwe_cb->pwe_id,p_pcn,tbl_id);
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -4374,6 +4464,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
                 out_rows_filled++;
             }
             pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
             pNode = NULL;
             if(pTree->n_nodes != 0)
                pNode = ncs_patricia_tree_getnext(pTree, NULL);
@@ -4509,6 +4600,7 @@ write_tree_to_file:
                 out_rows_filled++;
             }
             pss_delete_inst_node_from_tree(pTree, pNode);
+            pwe_cb->p_pss_cb->mem_in_store -= (sizeof(PSS_MIB_TBL_DATA) + tbl_info->max_key_length + tbl_info->max_row_length);
 
             pNode = NULL;
             if(pTree->n_nodes != 0)
@@ -4625,7 +4717,7 @@ uns32 pss_save_to_sclr_store(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
     PSS_MIB_TBL_INFO * tbl_info;
     uns8             * pData;
     uns32              row_size, buf_size;
-    uns32              tfile_hdl = 0;
+    long              tfile_hdl = 0;
     uns32              retval = NCSCC_RC_SUCCESS;
     NCS_BOOL           file_exists;
     PSS_TABLE_PATH_RECORD      ps_file_record;
@@ -4675,7 +4767,6 @@ uns32 pss_save_to_sclr_store(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
     retval = pss_tbl_details_header_write(inst, inst->pssts_hdl, tfile_hdl, &ps_file_record);
     if (retval != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("\npss_save_to_sclr_store(): Write table details fail");
         m_LOG_PSS_STORE(NCSFL_SEV_ERROR,PSS_MIB_WRITE_FAIL,
             pwe_cb->pwe_id,p_pcn,tbl_id);
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -5168,7 +5259,8 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
 {
     uns32              retval = NCSCC_RC_SUCCESS;
     NCS_BOOL           alt_file_exists = FALSE, first_set_ready = FALSE;
-    uns32              alt_file_hdl = 0, bytes_read = 0, j = 0, lcl_params_max = 0;
+    uns32              bytes_read = 0, j = 0, lcl_params_max = 0;
+    long               alt_file_hdl = 0;
     uns8               *alt_data = NULL;
     PSS_MIB_TBL_INFO   *tbl_info = pwe_cb->p_pss_cb->mib_tbl_desc[tbl_rec->tbl_id];
     char               *p_pcn = (char*)&tbl_rec->pss_client_key->pcn;
@@ -6015,7 +6107,10 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
     PSS_PWE_CB         *pwe_cb = NULL;
     PSS_STDBY_OAA_DOWN_BUFFER_NODE *new_node, *curr_node, *prev_node;
    
-    pwe_cb = (PSS_PWE_CB*)yr_hdl;
+    /* Fixed as a part of IR00085797 */
+    /* Validate the Handle */
+    pwe_cb = (PSS_PWE_CB *)m_PSS_VALIDATE_HDL((long)yr_hdl);
+
     if(pwe_cb == NULL)
     {
         m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_INVALID_PWE_HDL);
@@ -6075,6 +6170,10 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
 
         m_MMGR_FREE_STDBY_PSS_BUFFER_NODE(curr_node);
     }
+
+    /* Release the Handle, Added as a part of IR00085797  */
+    ncshm_give_hdl((long)yr_hdl);
+
     return NCSCC_RC_SUCCESS;
 }
 /* Fix for IR00085164 */

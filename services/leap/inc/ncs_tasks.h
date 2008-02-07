@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -117,7 +117,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 **************************************************************************/
 
 #ifndef NCS_TMR_STACKSIZE
-#define NCS_TMR_STACKSIZE     NCS_STACKSIZE_MEDIUM
+#define NCS_TMR_STACKSIZE     NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_TMR_PRIORITY
@@ -138,7 +138,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 **************************************************************************/
 
 #ifndef NCS_EXEC_MOD_STACKSIZE
-#define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_MEDIUM
+#define NCS_EXEC_MOD_STACKSIZE     NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_EXEC_MOD_PRIORITY
@@ -1202,7 +1202,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* CLI */
 
 #ifndef NCS_CLI_STACKSIZE      
-#define NCS_CLI_STACKSIZE      NCS_STACKSIZE_LARGE
+#define NCS_CLI_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_CLI_PRIORITY
@@ -1216,7 +1216,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* CLI SHIM */
 
 #ifndef NCS_CLI_SHIM_STACKSIZE
-#define NCS_CLI_SHIM_STACKSIZE NCS_STACKSIZE_MEDIUM
+#define NCS_CLI_SHIM_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_CLI_SHIM_PRIORITY
@@ -1229,7 +1229,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
    /*    DTS Task    */
 #ifndef NCS_DTS_STACKSIZE      
-#define NCS_DTS_STACKSIZE      NCS_STACKSIZE_LARGE
+#define NCS_DTS_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_DTS_PRIORITY
@@ -1242,7 +1242,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
    /*    DTA Task    */
 #ifndef NCS_DTA_STACKSIZE      
-#define NCS_DTA_STACKSIZE      NCS_STACKSIZE_LARGE
+#define NCS_DTA_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_DTA_PRIORITY
@@ -1271,7 +1271,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* OAC */
 
 #ifndef NCS_MAB_OAC_STACKSIZE
-#define NCS_MAB_OAC_STACKSIZE NCS_STACKSIZE_MEDIUM
+#define NCS_MAB_OAC_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_MAB_OAC_PRIORITY
@@ -1285,7 +1285,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* MAC */
 
 #ifndef NCS_MAB_MAC_STACKSIZE
-#define NCS_MAB_MAC_STACKSIZE NCS_STACKSIZE_MEDIUM
+#define NCS_MAB_MAC_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_MAB_MAC_PRIORITY
@@ -1299,7 +1299,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* MAS */
 
 #ifndef NCS_MAB_MAS_STACKSIZE
-#define NCS_MAB_MAS_STACKSIZE NCS_STACKSIZE_MEDIUM
+#define NCS_MAB_MAS_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_MAB_MAS_PRIORITY
@@ -1313,7 +1313,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* PSR */
 
 #ifndef NCS_MAB_PSR_STACKSIZE
-#define NCS_MAB_PSR_STACKSIZE NCS_STACKSIZE_MEDIUM
+#define NCS_MAB_PSR_STACKSIZE NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_MAB_PSR_PRIORITY

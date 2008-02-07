@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #include "gld.h"
@@ -31,11 +31,11 @@ static uns32  glsv_gld_mbcsv_enc_async_update(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_A
 static uns32  glsv_gld_mbcsv_enc_warm_sync_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *arg);
 static uns32  glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *arg);
 static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *arg);
-static void gld_glnd_details_tree_destroy(GLSV_GLD_CB *cb);
-static void gld_rsc_info_tree_destroy(GLSV_GLD_CB *cb);
-static uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb);
-static uns32 gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_details);
-static uns32 gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info);
+/*static void gld_glnd_details_tree_destroy(GLSV_GLD_CB *cb); */
+/*static void gld_rsc_info_tree_destroy(GLSV_GLD_CB *cb); */
+/*static uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb); */
+/*static uns32 gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_details);*/
+/*static uns32 gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info);*/
 
 /**********************************************************************************************
  * Name                   : gld_mbcsv_async_update
@@ -727,15 +727,15 @@ static uns32  glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
  * Notes         : None.
- *****************************************************************************/
+ *****************************************************************************
 uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb)
 {  
    
    gld_glnd_details_tree_destroy(cb);
    gld_rsc_info_tree_destroy(cb);
    return NCSCC_RC_SUCCESS;
-}
-
+}*/
+#if 0
 /****************************************************************************
   Name          : 
   Description   : This routine destroys the .
@@ -760,7 +760,8 @@ uns32 gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_detai
    return rc;
 
 }
-
+#endif
+#if 0
 /****************************************************************************
   Name          : gld_glnd_details_tree_destroy
   Description   : This routine destroys the .
@@ -789,6 +790,8 @@ void gld_glnd_details_tree_destroy(GLSV_GLD_CB *cb)
   
    return;
 }
+#endif
+#if 0
 /****************************************************************************
   Name          :
   Description   : This routine destroys the tree.
@@ -822,6 +825,8 @@ uns32 gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info)
    return rc;
 
 }
+#endif
+#if 0
 /****************************************************************************
   Name          :gld_rsc_info_tree_destroy 
   Description   : This routine destroys the tree.
@@ -850,6 +855,7 @@ void gld_rsc_info_tree_destroy(GLSV_GLD_CB *cb)
 
     return;
 }
+#endif
 
 /************************************************************************************
  * Name           :glsv_gld_mbcsv_dec_sync_resp 

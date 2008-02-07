@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -276,7 +276,7 @@ uns32 mas_get_crd_role(MDS_HDL  mds_hdl, MDS_DEST dest, MAB_ANCHOR anc, V_DEST_R
             if (m_NCS_NODE_ID_FROM_MDS_DEST(dest) == 0)
                sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(dest));
             else
-               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(dest), 0, (long)(dest));
 
             /* now log the message */
@@ -473,7 +473,7 @@ MAS_FLTR* mas_fltr_rmv(MAS_FLTR** head, MAS_FLTR *del_me)
     MAS_FLTR* prev_fltr = NULL;
 
     if(head == NULL)
-        return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+        return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
 
     if (del_me == NULL)
         return NULL; 
@@ -542,7 +542,7 @@ MAS_FLTR* mas_get_wild_card_fltr(MAS_FLTR **head)
 
   /* No filters?? */
   if (head == NULL)
-    return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+    return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
 
   fltr = *head;
 
@@ -579,7 +579,7 @@ MAS_FLTR* mas_fltr_find(MAS_TBL* inst,MAS_FLTR** head, uns32 fltr_id,MAB_ANCHOR 
   
   if(head == NULL)
   {
-    return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+    return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
   }
   
   fltr = *head;
@@ -600,7 +600,7 @@ MAS_FLTR* mas_fltr_find(MAS_TBL* inst,MAS_FLTR** head, uns32 fltr_id,MAB_ANCHOR 
             /* log the failure */ 
         m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_MAS_ERR_FLTR_SA_INVALID_TBL, 
                           fltr->fltr.fltr.same_as.i_table_id);  
-        return (void*)m_MAB_DBG_SINK((uns32)NULL);
+        return (void*)m_MAB_DBG_SINK((long)NULL);
       }
 
         /* get the filter details */
@@ -650,7 +650,7 @@ MAS_FLTR* mas_fltr_create(MAS_TBL*     inst,
         m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, 
                           MAB_MF_MAS_FLTR_CREATE_FAILED,  
                           "mas_fltr_create()"); 
-        return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+        return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
     }
     m_NCS_MEMSET(ret,0,sizeof(MAS_FLTR));
 
@@ -663,7 +663,7 @@ MAS_FLTR* mas_fltr_create(MAS_TBL*     inst,
     {
         /* log the error */ 
         m_MAS_FLTR_FREE(ret); 
-        return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+        return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
     }
 
     /* copy the test function */
@@ -699,7 +699,7 @@ MAS_FLTR* mas_fltr_create(MAS_TBL*     inst,
     if (status != NCSCC_RC_SUCCESS)
     {
         m_MAS_FLTR_FREE(ret);
-        return (MAS_FLTR*) m_MAB_DBG_SINK((uns32)NULL);
+        return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
     }
 
     /* return the new filter */ 
@@ -791,7 +791,7 @@ void* mas_classify_range(MAS_TBL* inst, NCSMAB_FLTR* fltr, uns32* inst_ids, uns3
       return NULL;
   }
   m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAS_FLTR_INVALID_RANGES);  
-  return (void*) m_MAB_DBG_SINK((uns32)NULL);
+  return (void*) m_MAB_DBG_SINK((long)NULL);
 }
 
 
@@ -829,7 +829,7 @@ void* mas_classify_same_as(MAS_TBL* inst, NCSMAB_FLTR* fltr, uns32* inst_ids, un
                                       )) == NULL)
   {
     m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAS_FLTR_SA_NO_OAA); 
-    return (void*)m_MAB_DBG_SINK((uns32)NULL);
+    return (void*)m_MAB_DBG_SINK((long)NULL);
   }
   
   return match_fltr;
@@ -880,7 +880,7 @@ void* mas_classify_exact(MAS_TBL* inst, NCSMAB_FLTR* fltr, uns32* inst_ids, uns3
         if (res > 0)
             return fltr; 
     }
-    return (void*) m_MAB_DBG_SINK((uns32)NULL);
+    return (void*) m_MAB_DBG_SINK((long)NULL);
 }
 
 /*****************************************************************************
@@ -1007,7 +1007,7 @@ uns32 mas_flush_fltrs(MAS_TBL* inst,MDS_DEST vcard,MAB_ANCHOR anc,uns32 ss_id)
        sprintf(addr_str, "VDEST:%d", 
                m_MDS_GET_VDEST_ID_FROM_MDS_DEST(vcard));
     else
-       sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+       sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                 m_NCS_NODE_ID_FROM_MDS_DEST(vcard), 0, 
                 (long)(vcard));
 
@@ -1172,7 +1172,7 @@ uns32 mas_info_request(MAB_MSG* msg)
 
     m_MAB_DBG_TRACE("\nmas_info_request():entered.");
 
-    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     if(inst == NULL)
     {
         m_LOG_MAB_NO_CB("mas_info_request()"); 
@@ -1244,7 +1244,7 @@ uns32 mas_info_request(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
@@ -1281,7 +1281,7 @@ uns32 mas_info_request(MAB_MSG* msg)
             /* release the locks */ 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             
             /* sync done message to standby */ 
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
@@ -1308,7 +1308,7 @@ uns32 mas_info_request(MAB_MSG* msg)
             
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
             mas_relay_msg_to_mac(msg,inst,TRUE); 
 
@@ -1330,7 +1330,7 @@ uns32 mas_info_request(MAB_MSG* msg)
             /* release the locks */ 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             
             /* sync done message to standby */ 
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
@@ -1385,7 +1385,7 @@ uns32 mas_info_request(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
             /* sync done message to standby */ 
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
@@ -1483,7 +1483,7 @@ uns32 mas_info_request(MAB_MSG* msg)
         /* sync done message to standby */ 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
 
         /* finally inform the sad news to MAA */ 
@@ -1518,7 +1518,7 @@ uns32 mas_info_request(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
             /* MAHESH - RESPONSE to MAA is missing */ 
 
@@ -1538,7 +1538,7 @@ uns32 mas_info_request(MAB_MSG* msg)
 
                 m_MAS_UNLK(&inst->lock);
                 m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 ncsmib_arg_free_resources(mib_req,TRUE);
                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -1555,7 +1555,7 @@ uns32 mas_info_request(MAB_MSG* msg)
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
 
         /* sync done message to standby */ 
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_req->i_tbl_id);
 
         /* send the message to the OAA */ 
@@ -1599,7 +1599,7 @@ uns32 mas_info_request(MAB_MSG* msg)
             if (m_NCS_NODE_ID_FROM_MDS_DEST(match_fltr->vcard) == 0)
                sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(match_fltr->vcard));
             else
-               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(match_fltr->vcard), 0, (long)(match_fltr->vcard));
 
             /* now log the message */
@@ -1641,7 +1641,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
     m_MAB_DBG_TRACE("\nmas_info_response():entered.");
 
-    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     if(inst == NULL)
     {
         m_LOG_MAB_NO_CB("mas_info_response()"); 
@@ -1663,7 +1663,7 @@ uns32 mas_info_response(MAB_MSG* msg)
         if(mib_rsp->rsp.i_status != NCSCC_RC_SUCCESS)
         {
             /* sync done message to standby */ 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
 
             m_LOG_MAB_HDLN_I(NCSFL_SEV_ERROR, MAB_HDLN_MAS_MOVEROW_RSP_FAILED, 
@@ -1724,7 +1724,7 @@ uns32 mas_info_response(MAB_MSG* msg)
                                       inst->vrid, mib_rsp->i_tbl_id);
 
                 /* sync done message to standby */ 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
 
                 m_MAS_UNLK(&inst->lock);
@@ -1776,7 +1776,7 @@ uns32 mas_info_response(MAB_MSG* msg)
             m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAS_MOVEROW_POP_XSE);
 
             /* sync done message to standby */ 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
 
             m_MAS_UNLK(&inst->lock);
@@ -1796,7 +1796,7 @@ uns32 mas_info_response(MAB_MSG* msg)
             m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR,MAB_HDLN_MAS_MOVEROW_POP_XSE);
 
             /* sync done message to standby */ 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
 
             m_MAS_UNLK(&inst->lock);
@@ -1811,7 +1811,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             
             /* sync done message to standby */ 
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1825,7 +1825,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             
             /* sync done message to standby */ 
             m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1835,7 +1835,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1851,7 +1851,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1871,7 +1871,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1887,7 +1887,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1906,7 +1906,7 @@ uns32 mas_info_response(MAB_MSG* msg)
 
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
         /* sync done message to standby */ 
         m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
@@ -1918,7 +1918,7 @@ uns32 mas_info_response(MAB_MSG* msg)
                  mib_rsp->i_tbl_id, fltr_id, -1); 
 
     /* sync done message to standby */ 
-    ncshm_give_hdl((uns32)msg->yr_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     m_MAS_RE_MIB_ARG_SYNC_DONE(inst, msg, mib_rsp->i_tbl_id);
 
     /* CLI response for the wild-card request, forward the response to MAC
@@ -2243,7 +2243,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
     m_MAB_DBG_TRACE("\nmas_info_register():entered.");
 
-    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     if(inst == NULL)
     {
         m_MMGR_FREE_MAB_MSG(msg);
@@ -2269,7 +2269,7 @@ uns32 mas_info_register(MAB_MSG* msg)
         /* log the received filter */  
         m_LOG_MAB_FLTR_DATA(NCSFL_SEV_NOTICE, inst->vrid, reg_req->tbl_id, reg_req->fltr_id, &reg_req->fltr);
         mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         m_MMGR_FREE_MAB_MSG(msg);
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -2318,7 +2318,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             
             /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
@@ -2339,7 +2339,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                             "mas_info_register()");
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr); 
             m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2376,7 +2376,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             m_LOG_MAB_EVT(NCSFL_SEV_ERROR,MAB_EV_LM_MAS_FLTR_REG_SS_MM);
             inst->lm_cbfnc(&mle);
 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr); 
@@ -2407,7 +2407,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                 sprintf(str_ptr, "Existing VDEST:%d, ",
                         m_MDS_GET_VDEST_ID_FROM_MDS_DEST(tbl_rec->dfltr.vcard));
             else
-                    sprintf(str_ptr, "Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+                    sprintf(str_ptr, "Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                             m_NCS_NODE_ID_FROM_MDS_DEST(tbl_rec->dfltr.vcard), 0,
                             (long)(tbl_rec->dfltr.vcard));
             
@@ -2418,7 +2418,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                 sprintf(str_ptr, "Request From VDEST:%d, ",
                         m_MDS_GET_VDEST_ID_FROM_MDS_DEST(msg->fr_card));
             else
-                sprintf(str_ptr, "Request From ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+                sprintf(str_ptr, "Request From ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card), 0,
                         (long)(msg->fr_card));
 
@@ -2429,7 +2429,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -2450,7 +2450,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
 
             /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
@@ -2479,7 +2479,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
             m_MMGR_FREE_MAB_MSG(msg);
             /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
@@ -2492,7 +2492,7 @@ uns32 mas_info_register(MAB_MSG* msg)
         {
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
 
             /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
@@ -2514,7 +2514,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             }
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             
             /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
@@ -2531,7 +2531,7 @@ uns32 mas_info_register(MAB_MSG* msg)
         if (new_fltr == NULL)
         {
             /* problem in creating the new filter, log the error */ 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr); 
             m_MMGR_FREE_MAB_MSG(msg);
             m_LOG_MAB_HEADLINE(NCSFL_SEV_CRITICAL, MAB_NEW_MAS_FLTR_FAILED);
@@ -2574,7 +2574,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                     m_MAS_FLTR_FREE(new_fltr);
 
                     /* free the received message */  
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2603,7 +2603,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                     m_MAS_FLTR_FREE(new_fltr);
 
                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     m_MMGR_FREE_MAB_MSG(msg);
 
                     m_MAS_UNLK(&inst->lock);
@@ -2637,7 +2637,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                     /* free the just created filter */  
                     m_MAS_FLTR_FREE(new_fltr);
 
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2652,7 +2652,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                 {
                     m_MAS_FLTR_FREE(new_fltr);
 
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2697,7 +2697,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                 m_MAS_FLTR_FREE(new_fltr);
 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2724,7 +2724,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                 m_MAS_FLTR_FREE(new_fltr);
 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2757,7 +2757,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                 m_MAS_FLTR_FREE(new_fltr);
 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2770,7 +2770,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                             m_MAB_DBG_TRACE2_MAS_MF_OP(inst,mas_fltr,tbl_rec->tbl_id,MFM_MODIFY);
 
                             /* Sync Done message to the Standby */ 
-                            ncshm_give_hdl((uns32)msg->yr_hdl);
+                            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                             m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                             m_MAS_UNLK(&inst->lock);
@@ -2799,7 +2799,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 {
                                     m_MAS_FLTR_FREE(new_fltr);
 
-                                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2812,7 +2812,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 m_MAB_DBG_TRACE2_MAS_MF_OP(inst,mas_fltr,tbl_rec->tbl_id,MFM_MODIFY);
 
                                 /* Sync Done message to the Standby */ 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                                 m_MAS_UNLK(&inst->lock);
@@ -2838,7 +2838,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                             m_MAS_FLTR_FREE(new_fltr);
 
-                            ncshm_give_hdl((uns32)msg->yr_hdl);
+                            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                             m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2876,7 +2876,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                 m_MAS_FLTR_FREE(new_fltr);
 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2896,7 +2896,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 m_MAB_DBG_TRACE2_MAS_MF_OP(inst,new_fltr,tbl_rec->tbl_id,MFM_CREATE);
 
                                 /* Sync Done message to the Standby */ 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                                 m_MAS_UNLK(&inst->lock);
@@ -2923,7 +2923,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                             m_MAS_FLTR_FREE(new_fltr);
 
-                            ncshm_give_hdl((uns32)msg->yr_hdl);
+                            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                             m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2952,7 +2952,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                         {
                                             m_MAS_FLTR_FREE(new_fltr);
 
-                                            ncshm_give_hdl((uns32)msg->yr_hdl);
+                                            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                             m_MMGR_FREE_MAB_MSG(msg);
 
@@ -2966,7 +2966,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                         m_MAB_DBG_TRACE2_MAS_MF_OP(inst,mas_fltr->next,tbl_rec->tbl_id,MFM_MODIFY);
 
                                         /* Sync Done message to the Standby */ 
-                                        ncshm_give_hdl((uns32)msg->yr_hdl);
+                                        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                         m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                                         m_MAS_UNLK(&inst->lock);
@@ -2992,7 +2992,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                     m_MAS_FLTR_FREE(new_fltr);
 
-                                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -3010,7 +3010,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 m_MAB_DBG_TRACE2_MAS_MF_OP(inst,new_fltr,tbl_rec->tbl_id,MFM_CREATE);
 
                                 /* Sync Done message to the Standby */ 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                                 m_MAS_UNLK(&inst->lock);
@@ -3026,7 +3026,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                             m_MAB_DBG_TRACE2_MAS_MF_OP(inst,new_fltr,tbl_rec->tbl_id,MFM_CREATE);
 
                             /* Sync Done message to the Standby */ 
-                            ncshm_give_hdl((uns32)msg->yr_hdl);
+                            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                             m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                             m_MAS_UNLK(&inst->lock);
@@ -3060,7 +3060,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                 }
                 m_MAS_FLTR_FREE(new_fltr);
 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                 m_MMGR_FREE_MAB_MSG(msg);
 
@@ -3108,7 +3108,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 /* We are a backup and we already have this filter */
                                 m_MAS_UNLK(&inst->lock);
                                 m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MMGR_FREE_MAB_MSG(msg);
                                 m_MAB_DBG_TRACE("\nmas_info_register():left.");
                                 return NCSCC_RC_SUCCESS;
@@ -3128,7 +3128,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                                     m_MAS_UNLK(&inst->lock);
                                     m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
-                                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                     m_MMGR_FREE_MAB_MSG(msg);
 
@@ -3142,7 +3142,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 m_MAB_DBG_TRACE2_MAS_MF_OP(inst,cur_fltr,tbl_rec->tbl_id,MFM_MODIFY);
 
                                 /* Sync Done message to the Standby */ 
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
                                 m_MAS_UNLK(&inst->lock);
@@ -3163,7 +3163,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                 m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  /* IR00060853 */
                 m_MAS_FLTR_FREE(new_fltr);
 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 m_MMGR_FREE_MAB_MSG(msg);
                 m_MAS_UNLK(&inst->lock);
                 m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3196,7 +3196,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 mle.i_which_mab     = NCSMAB_MAS;
                                 m_LOG_MAB_EVT(NCSFL_SEV_ERROR,MAB_EV_LM_MAS_FLTR_REG_INV_SA);
                                 inst->lm_cbfnc(&mle);
-                                ncshm_give_hdl((uns32)msg->yr_hdl);
+                                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                                 m_MAS_FLTR_FREE(new_fltr);
                                 m_MMGR_FREE_MAB_MSG(msg);
                                 m_LOG_MAB_TBL_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
@@ -3243,7 +3243,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
 
     /* Sync Done message to the Standby */ 
-    ncshm_give_hdl((uns32)msg->yr_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
 
     m_MAS_UNLK(&inst->lock);
@@ -3271,7 +3271,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
 
     m_MAB_DBG_TRACE("\nmas_info_unregister():entered.");
 
-    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     if(inst == NULL)
     {
         m_LOG_MAB_NO_CB("mas_info_unregister()"); 
@@ -3293,7 +3293,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
     {
         m_LOG_MAB_TBL_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                     MAB_MAS_FIND_REQ_TBL_FAILED, inst->vrid, unreg_req->tbl_id);
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         m_MMGR_FREE_MAB_MSG(msg);
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3316,7 +3316,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
 
         m_LOG_MAB_FLTR_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, MAB_MAS_FLTR_RMV_FAILED,
                                unreg_req->tbl_id, unreg_req->fltr_id, -1); 
-        ncshm_give_hdl((uns32)msg->yr_hdl);
+        ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
         m_MMGR_FREE_MAB_MSG(msg);
         m_MAS_UNLK(&inst->lock);
         m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3346,7 +3346,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                                    MAB_MAS_FLTR_RMV_FAILED, unreg_req->tbl_id, 
                                    unreg_req->fltr_id, -1); 
 
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
 
             m_MAS_UNLK(&inst->lock);
@@ -3362,7 +3362,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
             if (status != NCSCC_RC_SUCCESS)
             {
                 /* log the error */ 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 m_MMGR_FREE_MAB_MSG(msg);
 
                 m_MAS_UNLK(&inst->lock);
@@ -3385,7 +3385,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                     MAB_MAS_RMV_ROW_REC_FAILED, 
                     inst->vrid, 
                     unreg_req->tbl_id);
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     m_MMGR_FREE_MAB_MSG(msg);
                     m_MAS_UNLK(&inst->lock);
                     m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3407,7 +3407,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
         {
             m_LOG_MAB_TBL_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, MAB_MAS_RMV_ROW_REC_FAILED, 
             inst->vrid, unreg_req->tbl_id);
-            ncshm_give_hdl((uns32)msg->yr_hdl);
+            ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3438,7 +3438,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                 m_LOG_MAB_FLTR_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, MAB_MAS_FLTR_RMV_FAILED,
                 unreg_req->tbl_id, unreg_req->fltr_id, tbl_rec->fltr_list->fltr.type); 
 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 m_MMGR_FREE_MAB_MSG(msg);
 
                 m_MAS_UNLK(&inst->lock);
@@ -3497,7 +3497,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                     MAB_MAS_FLTR_RMV_FAILED, unreg_req->tbl_id, 
                     unreg_req->fltr_id, -1); 
 
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     m_MMGR_FREE_MAB_MSG(msg);
 
                     m_MAS_UNLK(&inst->lock);
@@ -3532,7 +3532,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                 MAB_MAS_FLTR_RMV_FAILED, unreg_req->tbl_id, 
                 unreg_req->fltr_id, -1); 
 
-                ncshm_give_hdl((uns32)msg->yr_hdl);
+                ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                 m_MMGR_FREE_MAB_MSG(msg);
 
                 m_MAS_UNLK(&inst->lock);
@@ -3596,7 +3596,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                     m_LOG_MAB_TBL_DETAILS(NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                                           MAB_MAS_RMV_ROW_REC_FAILED, 
                                           inst->vrid, unreg_req->tbl_id);
-                    ncshm_give_hdl((uns32)msg->yr_hdl);
+                    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
                     m_MMGR_FREE_MAB_MSG(msg);
                     m_MAS_UNLK(&inst->lock);
                     m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
@@ -3614,7 +3614,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
     } /* else if(unreg_req->fltr_id == 1) */ 
 
     /* give the handle */ 
-    ncshm_give_hdl((uns32)msg->yr_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
     /* Sync Done message to the Standby */ 
     m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
@@ -4401,7 +4401,7 @@ static uns32
 mas_oaa_down_process(MAB_MSG *msg)
 {
     uns32       status; 
-    MAS_TBL* inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    MAS_TBL* inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
     m_MAB_DBG_TRACE("\nmas_oaa_down_process():entered.");
 
@@ -4423,7 +4423,7 @@ mas_oaa_down_process(MAB_MSG *msg)
     /* log that filter flushing is done for this OAA */ 
 
     /* give the handle before it is freed */
-    ncshm_give_hdl((uns32)msg->yr_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
     /* update the standby about this OAA Down */ 
     /* m_MAS_RE_OAA_DOWN_SYNC_DONE(inst, msg); */
@@ -4454,7 +4454,7 @@ mas_oaa_role_chg_process(MAB_MSG *msg)
     uns32       status, i;
     MAS_FLTR    *prev_fltr, *fltr;
     MAS_ROW_REC *tbl_rec; 
-    MAS_TBL* inst = (MAS_TBL*)m_MAS_VALIDATE_HDL((uns32)msg->yr_hdl);
+    MAS_TBL* inst = (MAS_TBL*)m_MAS_VALIDATE_HDL(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
     m_MAB_DBG_TRACE("\nmas_oaa_role_chg_process():entered.");
 
@@ -4515,7 +4515,7 @@ mas_oaa_role_chg_process(MAB_MSG *msg)
     m_MAS_UNLK(&inst->lock);
     m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
     
-    ncshm_give_hdl((uns32)msg->yr_hdl);
+    ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
     m_MAB_DBG_TRACE("\nmas_oaa_down_process():left.");
     return NCSCC_RC_SUCCESS; 
 }

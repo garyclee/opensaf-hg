@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -238,8 +238,10 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
 {
     uns32       status = NCSCC_RC_SUCCESS;
     uns8        counter64_in_octs[I64CHARSZ+1] = {0};  /* I64CHARSZ, defined in net-snmp package */
+#if 0
     NCSSA_CB    *cb = m_SNMPSUBAGT_CB_GET;
     SaAisErrorT saf_status = SA_AIS_OK;
+#endif
     uns8        *temp_oid_ptr = NULL;
 
     /* Log the Function Entry */
@@ -296,6 +298,7 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
     io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET; 
     io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET; 
 
+   #if 0 
     if ((is_sparse_table == TRUE) && (i_req_type == NCSMIB_OP_REQ_NEXT))
     {
         /* Disable the health monitoring */
@@ -316,6 +319,7 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
            m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AMF_HLTH_CHECK_STOPPED);
         }
     }
+   #endif
 
     /* LOG MIBARG Data */ 
     snmpsa_log_ncsmib_arg(io_mib_arg); 
@@ -339,7 +343,8 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
          status = snmpsubagt_mab_getnext_column_process(io_mib_arg, ma, space, space_size, i_time_val, 
                                                 i_table_id, i_param_id, obj_details,obj_count,is_sparse_table);
     }
-    
+   
+   #if 0 
     if ((is_sparse_table == TRUE) && (i_req_type == NCSMIB_OP_REQ_NEXT))
     {
         /* start the healthcheck */
@@ -362,6 +367,7 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
            m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AMF_HLTH_CHECK_STARTED);
         }
     }
+   #endif
     return status;
 }
 

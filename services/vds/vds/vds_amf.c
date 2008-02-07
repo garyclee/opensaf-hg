@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -160,7 +160,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    { 
          m_VDS_LOG_AMF(VDS_LOG_AMF_INIT,
                                VDS_LOG_AMF_FAILURE,
-                                       NCSFL_SEV_CRITICAL, status);         
+                                       NCSFL_SEV_ERROR, status);         
          
          return NCSCC_RC_FAILURE; 
    }   
@@ -172,7 +172,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    {     
       m_VDS_LOG_AMF(VDS_LOG_AMF_GET_SEL_OBJ,
                                 VDS_LOG_AMF_FAILURE,
-                                        NCSFL_SEV_CRITICAL, status);  
+                                        NCSFL_SEV_ERROR, status);  
       
       return NCSCC_RC_FAILURE; 
    }
@@ -184,7 +184,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    {   
       m_VDS_LOG_AMF(VDS_LOG_AMF_GET_COMP_NAME,
                                 VDS_LOG_AMF_FAILURE,
-                                        NCSFL_SEV_CRITICAL, status); 
+                                        NCSFL_SEV_ERROR, status); 
       return NCSCC_RC_FAILURE;
    }
 
@@ -194,7 +194,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_REG_COMP,
                                 VDS_LOG_AMF_FAILURE,
-                                        NCSFL_SEV_CRITICAL, status); 
+                                        NCSFL_SEV_ERROR, status); 
       return NCSCC_RC_FAILURE;
    }
 
@@ -218,7 +218,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    {   
       m_VDS_LOG_AMF(VDS_LOG_AMF_START_HLTCHECK,
                                 VDS_LOG_AMF_FAILURE,
-                                        NCSFL_SEV_CRITICAL, status); 
+                                        NCSFL_SEV_ERROR, status); 
       return NCSCC_RC_FAILURE;
    }
    return NCSCC_RC_SUCCESS; 
@@ -259,7 +259,7 @@ uns32 vds_amf_finalize(VDS_CB *vds)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_STOP_HLTCHECK,
                                 VDS_LOG_AMF_FAILURE,
-                                        NCSFL_SEV_CRITICAL, status); 
+                                        NCSFL_SEV_ERROR, status); 
       /* continue finalization */
    } 
 
@@ -276,7 +276,7 @@ uns32 vds_amf_finalize(VDS_CB *vds)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_UNREG_COMP,
                                VDS_LOG_AMF_FAILURE,
-                                      NCSFL_SEV_CRITICAL, status); 
+                                      NCSFL_SEV_ERROR, status); 
       
       /* continue finalization */
    } 
@@ -287,7 +287,7 @@ uns32 vds_amf_finalize(VDS_CB *vds)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_FIN,
                                VDS_LOG_AMF_FAILURE,
-                                       NCSFL_SEV_CRITICAL, status); 
+                                       NCSFL_SEV_ERROR, status); 
       /* continue finalization */
    } 
    
@@ -361,7 +361,7 @@ void vds_amf_health_check_callback(SaInvocationT invocation,
    {
        m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                                  VDS_LOG_HDL_FAILURE,
-                                         NCSFL_SEV_CRITICAL);
+                                         NCSFL_SEV_ERROR);
       /* No association record?? :-( ok log it & return error */
       return;
    }
@@ -420,7 +420,7 @@ void vds_amf_csi_set_callback(SaInvocationT  invocation,
       /* No association record?? :-( ok log it & return */      
        m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                                  VDS_LOG_HDL_FAILURE,
-                                         NCSFL_SEV_CRITICAL);
+                                         NCSFL_SEV_ERROR);
       return;      
    }
 
@@ -478,7 +478,7 @@ uns32 vds_invalid_state_process(VDS_CB *vds, SaInvocationT invocation)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                   VDS_LOG_AMF_FAILURE,
-                                          NCSFL_SEV_CRITICAL, status);
+                                          NCSFL_SEV_ERROR, status);
    }
 
    m_VDS_LOG_AMF(VDS_LOG_AMF_INVALID,
@@ -524,7 +524,7 @@ uns32 vds_active_process(VDS_CB *vds, SaInvocationT invocation)
                      
         m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                   VDS_LOG_AMF_FAILURE,
-                                          NCSFL_SEV_CRITICAL, status);
+                                          NCSFL_SEV_ERROR, status);
       }
    }   
    else
@@ -578,7 +578,7 @@ uns32 vds_standby_process(VDS_CB *vds, SaInvocationT invocation)
       {
          m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                VDS_LOG_AMF_FAILURE,
-                                      NCSFL_SEV_CRITICAL, status);
+                                      NCSFL_SEV_ERROR, status);
       }  
    }   
    else
@@ -619,7 +619,7 @@ uns32 vds_quiescing_quiesced_process(VDS_CB *vds,
     
       m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                   VDS_LOG_AMF_FAILURE,
-                                          NCSFL_SEV_CRITICAL, status);
+                                          NCSFL_SEV_ERROR, status);
    }
 
    m_VDS_LOG_AMF(VDS_LOG_AMF_QUIESCING_QUIESCED,
@@ -713,7 +713,7 @@ uns32 vds_quiescing_process(VDS_CB *vds, SaInvocationT invocation)
         VDS_TRACE1_ARG1("vds_quiescing_process: Failed in SA_AIS_OK response\n"); 
         m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                              VDS_LOG_AMF_FAILURE,
-                                   NCSFL_SEV_CRITICAL, status);
+                                   NCSFL_SEV_ERROR, status);
      }   
    }
  
@@ -752,7 +752,7 @@ void vds_amf_component_terminate_callback(SaInvocationT invocation,
       /* No association record?? :-( ok log it & return */
       m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                                  VDS_LOG_HDL_FAILURE,
-                                         NCSFL_SEV_CRITICAL);
+                                         NCSFL_SEV_ERROR);
       return;
    }
 
@@ -760,7 +760,7 @@ void vds_amf_component_terminate_callback(SaInvocationT invocation,
    {
      m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                              VDS_LOG_AMF_FAILURE,
-                                   NCSFL_SEV_CRITICAL, status);
+                                   NCSFL_SEV_ERROR, status);
    }
    
    ncshm_give_hdl((uns32)gl_vds_hdl);
@@ -813,7 +813,7 @@ void vds_amf_csi_remove_callback(SaInvocationT  invocation,
    {
       m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                               VDS_LOG_HDL_FAILURE,
-                                      NCSFL_SEV_CRITICAL);
+                                      NCSFL_SEV_ERROR);
       /* No association record?? :-( ok log it & return */      
       return;      
    }
@@ -829,7 +829,7 @@ void vds_amf_csi_remove_callback(SaInvocationT  invocation,
 
          m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                              VDS_LOG_AMF_FAILURE,
-                                   NCSFL_SEV_CRITICAL, status);
+                                   NCSFL_SEV_ERROR, status);
       }
     }
 

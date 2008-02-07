@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -792,10 +792,10 @@ ifd_amf_init (IFSV_CB *ifsv_cb)
       {         
          /* Log */
          res = NCSCC_RC_FAILURE;
-         m_IFD_LOG_API_L(IFSV_LOG_AMF_INIT_FAILURE,ifsv_cb);
+         m_IFD_LOG_API_L(IFSV_LOG_AMF_INIT_FAILURE,(long)ifsv_cb);
          break;
       }
-      m_IFD_LOG_API_L(IFSV_LOG_AMF_INIT_DONE,ifsv_cb);
+      m_IFD_LOG_API_L(IFSV_LOG_AMF_INIT_DONE,(long)ifsv_cb);
    } while(0);
    return (res);
 }
@@ -854,10 +854,10 @@ ifd_init_cb (IFSV_CB *ifsv_cb)
          == NCSCC_RC_FAILURE)
       {         
          res = NCSCC_RC_FAILURE;
-         m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,ifsv_cb);
+         m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,(long)ifsv_cb);
          break;
       }
-      m_IFD_LOG_LOCK(IFSV_LOG_LOCK_CREATE,&ifsv_cb->intf_rec_lock);
+      m_IFD_LOG_LOCK(IFSV_LOG_LOCK_CREATE,(long)(&ifsv_cb->intf_rec_lock));
       
       /* initialze interface tree */
       
@@ -868,10 +868,10 @@ ifd_init_cb (IFSV_CB *ifsv_cb)
       {         
          m_NCS_OS_LOCK(&ifsv_cb->intf_rec_lock, NCS_OS_LOCK_RELEASE, 0);
          res = NCSCC_RC_FAILURE;
-         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;           
       }
-      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATED,&ifsv_cb->if_tbl,0);
+      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATED,(long)(&ifsv_cb->if_tbl),0);
       
       /* initialze shelf/slot/port/type/scope tree */
       
@@ -883,10 +883,10 @@ ifd_init_cb (IFSV_CB *ifsv_cb)
          m_NCS_OS_LOCK(&ifsv_cb->intf_rec_lock, NCS_OS_LOCK_RELEASE, 0);
          ncs_patricia_tree_destroy(&ifsv_cb->if_tbl);
          res = NCSCC_RC_FAILURE;
-         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;         
       }
-      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATED,&ifsv_cb->if_map_tbl,0);
+      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATED,(long)(&ifsv_cb->if_map_tbl),0);
 
       params.key_size = sizeof(NODE_ID);
       params.info_size = 0;
@@ -897,10 +897,10 @@ ifd_init_cb (IFSV_CB *ifsv_cb)
          ncs_patricia_tree_destroy(&ifsv_cb->if_tbl);
          ncs_patricia_tree_destroy(&ifsv_cb->if_map_tbl);
          res = NCSCC_RC_FAILURE;
-         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFND_NODE_ID_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFND_NODE_ID_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;
       }
-       m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFND_NODE_ID_TBL_CREATED,ifsv_cb,0);
+       m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFND_NODE_ID_TBL_CREATED,(long)ifsv_cb,0);
 
       params.key_size = sizeof(uns32);
       params.info_size = 0;

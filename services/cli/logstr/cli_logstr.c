@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -139,9 +139,9 @@ NCSFL_FMAT cli_fmat_set[] = {
     { CLI_LID_CCC, "TICCC",
         "CLI %s : %s str1: %s str2: %s str3: %s\n" },
     { CLI_LID_CI, "TICL",
-        "CLI %s : %s str: %s integer: %d\n" },
+        "CLI %s : %s str: %s integer: %ld\n" },
     { CLI_LID_I, "TIL",
-        "CLI %s : %s integer: %d\n" },
+        "CLI %s : %s integer: %l\n" },
     { 0, 0, 0 }
 };
 

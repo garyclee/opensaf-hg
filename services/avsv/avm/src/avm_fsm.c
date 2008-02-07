@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -114,6 +114,9 @@ avm_proc_bios_upgrade_tmr_exp(
                AVM_EVT_T *my_evt,
                AVM_CB_T  *avm_cb
             );
+
+static uns32 avm_proc_bios_failover_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
+
 /*
 extern uns32
 avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
@@ -196,6 +199,12 @@ avm_msg_handler(
       case AVM_EVT_ROLE_CHG_WAIT:
       {
          rc = avm_proc_role_chg_wait_tmr_exp(evt, avm_cb);
+      }
+      break;
+      
+      case AVM_EVT_BIOS_FAILOVER:
+      {
+         rc = avm_proc_bios_failover_tmr_exp(evt, avm_cb);
       }
       break;
 
@@ -380,10 +389,9 @@ avm_proc_hpi(
        (IPMC_BLD_LOCKED == ent_info->dhcp_serv_conf.ipmc_upgd_state))
    {
       str[0] = '\0';
-      sprintf(str,"AVM-SSU: Payload blade %s: IPMC UPGRADE TRIGGERED",
+      sprintf(str,"AVM-SSU: Payload blade %s: IPMC UPGRADE TRIGGERED AS BLADE GOT LOCKED",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
-      m_NCS_CONS_PRINTF("avm_proc_hpi: INVOKING avm_upgrade_ipmc\n");
       avm_upgrade_ipmc(avm_cb,ent_info);
    }
  
@@ -438,6 +446,19 @@ avm_proc_avd(
    else if(AVD_AVM_SYS_CON_ROLE_ACK_MSG == avd_avm->evt.avd_evt->msg_type)
    {
       avd_avm->fsm_evt_type = AVM_ROLE_EVT_AVD_ACK;
+      rc = avm_role_fsm_handler(avm_cb, avd_avm);
+      return rc;
+   }
+   else if(AVD_AVM_D_HRT_BEAT_RESTORE_MSG ==  avd_avm->evt.avd_evt->msg_type)
+   {
+      m_NCS_DBG_PRINTF("Heart Beat Restore in AvM");
+      avd_avm->fsm_evt_type = AVM_ROLE_EVT_AVD_HB_RESTORE;
+      rc = avm_role_fsm_handler(avm_cb, avd_avm);
+      return rc;
+   }
+   else if(AVD_AVM_ND_HRT_BEAT_RESTORE_MSG ==  avd_avm->evt.avd_evt->msg_type)
+   {
+      avd_avm->fsm_evt_type = AVM_ROLE_EVT_AVND_HB_RESTORE;
       rc = avm_role_fsm_handler(avm_cb, avd_avm);
       return rc;
    }
@@ -588,6 +609,15 @@ avm_proc_mib(
       return NCSCC_RC_FAILURE;
    }
 
+  if((AVM_CONFIG_DONE == avm_cb->config_state) &&
+     (mib_req->evt.mib_req->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME ))
+  {
+   /* On demand PSS playback not supported */
+      m_AVM_LOG_DEBUG("On demand playback not supported", NCSFL_SEV_NOTICE);
+      return NCSCC_RC_FAILURE;
+  }
+
+
    m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
@@ -659,6 +689,12 @@ avm_proc_tmr(
       return NCSCC_RC_SUCCESS;
    }
 
+   if( AVM_EDA_DONE == avm_cb->eda_init)
+    {
+       m_AVM_LOG_DEBUG("Wrong EDA timer Exp. Event, EDA is already initialized ",NCSFL_SEV_ERROR);
+       return NCSCC_RC_SUCCESS;
+    }
+
    rc = avm_eda_initialize(avm_cb);
 
    switch(rc)
@@ -684,6 +720,7 @@ avm_proc_tmr(
 
          m_AVM_LOG_DEBUG("EDA sel obj set in CB", NCSFL_SEV_INFO);
          avm_stop_tmr(avm_cb, &tmr->evt.tmr);
+         m_AVM_LOG_EDA(AVM_LOG_EDA_CREATE, AVM_LOG_EDA_SUCCESS, NCSFL_SEV_INFO);
       }
       break;
 
@@ -793,10 +830,6 @@ avm_fsm_handler(
         (avm_fsm_table_g[ent_info->current_state][fsm_evt->fsm_evt_type].evt
                                                            == fsm_evt->fsm_evt_type))
       {
-#if 0
-         m_NCS_CONS_PRINTF("avm_fsm_handler: current state = %d\n", ent_info->current_state);
-         m_NCS_CONS_PRINTF("avm_fsm_handler: fsm evt = %d\n", fsm_evt->fsm_evt_type);
-#endif
          rc = avm_fsm_table_g[ent_info->current_state][fsm_evt->fsm_evt_type].f_ptr(avm_cb, ent_info, fsm_evt);
       }else
       {
@@ -1009,7 +1042,6 @@ avm_proc_upgd_succ_tmr_exp(
    uns8           logbuf[500];
 
    m_AVM_LOG_FUNC_ENTRY("avm_proc_upgd_succ_tmr_exp");
-   m_NCS_CONS_PRINTF("avm_proc_upgd_succ_tmr_exp: Entering\n");
 
    /* retrieve AvM CB */
    if(avm_cb == AVM_CB_NULL)
@@ -1031,8 +1063,11 @@ avm_proc_upgd_succ_tmr_exp(
                  ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,ent_info->boot_prg_status);
    m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
-   m_NCS_CONS_PRINTF("avm_proc_upgd_succ_tmr_exp: INVOKING avm_ssu_dhcp_rollback\n");
    avm_ssu_dhcp_rollback(avm_cb, ent_info);
+
+   ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
+   m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+
    sysf_sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
                          ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
    m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
@@ -1067,7 +1102,6 @@ avm_proc_boot_succ_tmr_exp(
 {
    AVM_ENT_INFO_T *ent_info;
    uns8           logbuf[500];
-   AVM_NODE_INFO_T  *node_info = AVM_NODE_INFO_NULL;
    uns32 chassis;
    uns8  *entity_path     = NULL;
    uns32 res = NCSCC_RC_SUCCESS;
@@ -1175,7 +1209,7 @@ avm_proc_dhcp_fail_tmr_exp(
 
    avm_stop_tmr(avm_cb, &avm_cb->dhcp_fail_tmr);
    
-   if (rc = m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG))
+   if ((rc = m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG)))
    {
       m_AVM_LOG_DEBUG("AVM-SSU: DHCP STOP failed again. Restarting DHCP FAIL timer.",NCSFL_SEV_ERROR);
       m_AVM_SSU_DHCP_FAIL_TMR_START(avm_cb);
@@ -1216,7 +1250,6 @@ avm_proc_bios_upgrade_tmr_exp(
    logbuf[0] = '\0';
 
    m_AVM_LOG_FUNC_ENTRY("avm_proc_bios_upgrade_tmr_exp");
-   m_NCS_CONS_PRINTF("avm_proc_bios_upgrade_tmr_exp: Entering\n");
 
    /* retrieve AvM CB */
    if(avm_cb == AVM_CB_NULL)
@@ -1235,41 +1268,221 @@ avm_proc_bios_upgrade_tmr_exp(
    
    if(ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
    {
+      avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
       ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_EXPIRED;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
 
-      sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Going to switch Bios Bank", ent_info->ep_str.name);
+      sysf_sprintf(logbuf, "AVM-SSU: Payload  %s :Bios Upgrade Tmr Exp :Switch Bios Bank", ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
-      m_NCS_CONS_PRINTF("avm_proc_bios_upgrade_tmr_exp: SWITCHING BIOS BANK\n");
       rc = avm_hisv_api_cmd(ent_info, HISV_PAYLOAD_BIOS_SWITCH, 0);
 
       if (rc != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("avm_proc_bios_upgrade_tmr_exp: SWITCH FAILURE\n");
          logbuf[0] = '\0';
          ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
          m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
 
-         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
+         sysf_sprintf(logbuf, "AVM-SSU: Payload %s :Bios Upgrade Tmr Exp :Failed to switch Bios Bank", ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
          return NCSCC_RC_FAILURE;
       }
       /* Rollback the NCS and Rollback the IPMC if required */
       avm_ssu_dhcp_rollback(avm_cb, ent_info);
+      ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
       ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* Role back done */
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+      /* async update */
+      m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
    } 
    else
    {
-      m_NCS_CONS_PRINTF("avm_proc_bios_upgrade_tmr_exp: BIOS ROLLBACK FAILURE\n");
       ent_info->dhcp_serv_conf.bios_upgd_state = 0;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
 
       /* If it is not in upgrade case, might be in rollback case */  
-      sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Rollback Failed", ent_info->ep_str.name);
+      sysf_sprintf(logbuf, "AVM-SSU: Payload %s :Bios Upgrade Tmr Exp :Rollback Failed", ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+      ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
       return NCSCC_RC_FAILURE;
    }
    return NCSCC_RC_SUCCESS;
 }
+/***********************************************************************
+ ******
+ * Name          : avm_proc_bios__failover_tmr_exp
+ *
+ * Description   : 
+ *                 
+ *
+ * Arguments     :
+ *             
+ *           
+ *          
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ ************************************************************************
+ ******/
+static uns32
+avm_proc_bios_failover_tmr_exp(
+               AVM_EVT_T *my_evt,
+               AVM_CB_T  *avm_cb
+            )
+{
+   AVM_ENT_INFO_T *ent_info = NULL;
+   uns8  *entity_path_str   = NULL;
+   uns32 rc;
+   uns32 chassis_id;
+   uns8  bootbank_number;
+   uns8 logbuf[AVM_LOG_STR_MAX_LEN];
 
+   logbuf[0] = '\0';
+
+   /* retrieve AvM CB */
+   if(avm_cb == AVM_CB_NULL)
+   {
+      m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* Take the entity handle to retrive DHCP related stuff */
+   if(NULL == (ent_info =
+      (AVM_ENT_INFO_T *)ncshm_take_hdl(NCS_SERVICE_ID_AVM, my_evt->evt.tmr.ent_hdl)))
+   {
+      return NCSCC_RC_FAILURE;
+   }
+   avm_stop_tmr(avm_cb, &ent_info->bios_failover_tmr);
+
+   
+   if(ent_info->dhcp_serv_conf.bios_upgd_state)
+   {
+      rc = avm_convert_entity_path_to_string(ent_info->entity_path, &entity_path_str);
+
+      if(NCSCC_RC_SUCCESS != rc)
+      {
+         m_AVM_LOG_GEN("Cant convert the entity path to string:", ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT), NCSFL_SEV_ERROR);
+         ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+         return NCSCC_RC_FAILURE;
+      }
+
+      rc = avm_find_chassis_id(&ent_info->entity_path, &chassis_id);
+
+     sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Bios Failover Tmr Exp: Bios State=%d", ent_info->ep_str.name, 
+                                                                                        ent_info->dhcp_serv_conf.bios_upgd_state);
+     m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_DEBUG);
+
+      switch(ent_info->dhcp_serv_conf.bios_upgd_state)
+      {
+            case BIOS_TMR_EXPIRED:
+            {
+               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Going to switch Bios Bank", ent_info->ep_str.name);
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
+               rc = avm_hisv_api_cmd(ent_info, HISV_PAYLOAD_BIOS_SWITCH, 0);
+
+
+               if (rc != NCSCC_RC_SUCCESS)
+               {
+                  logbuf[0] = '\0';
+                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
+                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+                  ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+                  return NCSCC_RC_FAILURE;
+               }
+               /* Rollback the NCS and Rollback the IPMC if required */
+               avm_ssu_dhcp_rollback(avm_cb, ent_info);
+               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
+               ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* Role back done */
+               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+            }
+            break;
+
+            case BIOS_EXP_BANK_0:
+            {
+               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
+               if (rc != NCSCC_RC_SUCCESS)
+               {
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Bios Failover Tmr Exp: Get Bios Bank", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
+                  break;
+               }
+               if (bootbank_number == 0)
+               {
+                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 1);
+               }
+
+               if (rc != NCSCC_RC_SUCCESS)
+               {
+                  logbuf[0] = '\0';
+
+                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
+                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+                  ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+                  return NCSCC_RC_FAILURE;
+               }
+               /* Rollback the NCS and Rollback the IPMC if required */
+               avm_ssu_dhcp_rollback(avm_cb, ent_info);
+               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
+               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* switching done, reset the state */
+               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+
+            }
+            break;
+
+            case BIOS_EXP_BANK_1:
+            {
+               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
+               if (rc != NCSCC_RC_SUCCESS)
+               {
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Bios Failover Tmr Exp: Get Bios Bank", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
+                  break;
+               }
+               if (bootbank_number == 1)
+               {
+                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 0);
+               }
+
+               if (rc != NCSCC_RC_SUCCESS)
+               {
+                  logbuf[0] = '\0';
+
+                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
+                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+                  ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+                  return NCSCC_RC_FAILURE;
+               }
+
+               /* Rollback the NCS and Rollback the IPMC if required */
+               avm_ssu_dhcp_rollback(avm_cb, ent_info);
+               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
+               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* switching done, reset the state */
+               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+            }
+            break;
+
+            default:
+            {
+               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Invalid bios_upgd_state:%d",
+                                        ent_info->ep_str.name,ent_info->dhcp_serv_conf.bios_upgd_state);
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
+            }
+            break;
+      }
+   }
+   ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+   return NCSCC_RC_SUCCESS;
+}

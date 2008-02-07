@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -46,7 +46,7 @@ void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
 void mqnd_process_evt(MQSV_EVT *evt);
 static uns32 mqnd_proc_mds_mqa_up(MQND_CB *cb,MQSV_EVT *evt);
 
-extern mqnd_mqa_msg_fmt_table[];
+extern MSG_FRMT_VER mqnd_mqa_msg_fmt_table[];
 /*******************************************************************************/
 
 void mqnd_process_evt(MQSV_EVT *evt)
@@ -1414,13 +1414,20 @@ uns32 mqnd_evt_proc_tmr_expiry (MQND_CB *cb, MQSV_EVT *evt)
          qtrans_evt->type = MQSV_EVT_MQP_REQ;
          qtrans_evt->msg.mqp_req.type = MQP_EVT_TRANSFER_QUEUE_COMPLETE;
          qtrans_evt->msg.mqp_req.info.transferComplete.queueHandle = qhdl;
-         if(m_NCS_MDS_DEST_EQUAL(&qinfo->oinfo.qparam->addr, &cb->my_dest) == 0) 
-           qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_SUCCESS;
+         if(qinfo->oinfo.qparam)
+         {
+
+           if(m_NCS_MDS_DEST_EQUAL(&qinfo->oinfo.qparam->addr, &cb->my_dest) == 0) 
+             qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_SUCCESS;
+           else
+           {
+             if(qinfo->oinfo.qparam->owner == MQSV_QUEUE_OWN_STATE_PROGRESS) 
+               qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_FAILURE;  
+           }
+         }
          else
-          {
-           if(qinfo->oinfo.qparam->owner == MQSV_QUEUE_OWN_STATE_PROGRESS) 
-             qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_FAILURE;  
-          }
+           qtrans_evt->msg.mqp_req.info.transferComplete.error = NCSCC_RC_FAILURE;
+         
          rc = m_NCS_IPC_SEND(&cb->mbx, (NCSCONTEXT)qtrans_evt, NCS_IPC_PRIORITY_NORMAL); 
 
     error:
@@ -1608,9 +1615,9 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 
       offset = qnode->qinfo.shm_queue_index; 
       mqnd_dump_queue_status(cb, &qnode->qinfo.queueStatus, offset);
-      m_NCS_OS_PRINTF("\n\n Queue Total Size          : %lu\n",qnode->qinfo.totalQueueSize);
+      m_NCS_OS_PRINTF("\n\n Queue Total Size          : %u\n",qnode->qinfo.totalQueueSize);
       m_NCS_OS_PRINTF(" Queue Total Used Size     : %llu\n", shm_base_addr[offset].QueueStatsShm.totalQueueUsed);
-      m_NCS_OS_PRINTF(" Queue Total No of Messages: %lu\n",shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
+      m_NCS_OS_PRINTF(" Queue Total No of Messages: %u\n",shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
       m_NCS_OS_PRINTF("\n~~~~~~~~~~ MIB Related Queue Info ~~~~~~~~~~\n");
       m_NCS_OS_PRINTF(" Queue Creation Time:  %llu\n",qnode->qinfo.creationTime);
       for(i=SA_MSG_MESSAGE_HIGHEST_PRIORITY;i< SA_MSG_MESSAGE_LOWEST_PRIORITY+1;i++)
@@ -1658,7 +1665,7 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
    MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
    m_NCS_OS_PRINTF("~~~~~~~~~~ Queue Status Parameters ~~~~~~~~~~\n");
-   m_NCS_OS_PRINTF(" Creation Flags: %lu\n",queueStatus->creationFlags);
+   m_NCS_OS_PRINTF(" Creation Flags: %u\n",queueStatus->creationFlags);
    m_NCS_OS_PRINTF(" Retention time: %llu\n",queueStatus->retentionTime);
    m_NCS_OS_PRINTF(" Close Time    : %llu\n",queueStatus->closeTime);
 
@@ -1667,9 +1674,9 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
    for(i= SA_MSG_MESSAGE_HIGHEST_PRIORITY;i<SA_MSG_MESSAGE_LOWEST_PRIORITY+1;i++)
    {
       m_NCS_OS_PRINTF("\n Priority: %d",i);
-      m_NCS_OS_PRINTF("     Queue Size: %lu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
+      m_NCS_OS_PRINTF("     Queue Size: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
       m_NCS_OS_PRINTF("     Queue Used: %llu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueUsed);
-      m_NCS_OS_PRINTF("     No of messages: %lu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
+      m_NCS_OS_PRINTF("     No of messages: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
    }
 }
 

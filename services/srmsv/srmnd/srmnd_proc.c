@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -819,8 +819,8 @@ void  srmnd_samples_dump(SRMND_SAMPLE_DATA *sample, FILE *fp)
 
    while (sample)
    {
-      fprintf(fp, "\n Sample ptr: 0x%x", (uns32)sample);
-      fprintf(fp, "\n Next sample ptr: 0x%x", (uns32)sample->next_sample);
+      fprintf(fp, "\n Sample ptr: 0x%lx", (long)sample);
+      fprintf(fp, "\n Next sample ptr: 0x%lx", (long)sample->next_sample);
       m_NCS_OS_MEMSET(update_time, 0, sizeof(update_time));
       m_GET_ASCII_DATE_TIME_STAMP(sample->when_updated, update_time);
       fprintf(fp, "\n\t Updated time: %s", update_time);
@@ -996,7 +996,7 @@ void srmnd_value_dump(NCS_SRMSV_VALUE *value, FILE *fp)
 
    case NCS_SRMSV_VAL_TYPE_INT32:
        fprintf(fp, "\n\t Value Type: long");
-       fprintf(fp, "\n\t Value: %ld", value->val.i_val32);
+       fprintf(fp, "\n\t Value: %d", value->val.i_val32);
        break;
 
    case NCS_SRMSV_VAL_TYPE_UNS32:
@@ -1046,7 +1046,7 @@ void srmnd_rsrc_dump(SRMND_RSRC_MON_NODE *rsrc, FILE *fp)
       return;
    }
 
-   fprintf(fp, "\n\n Resource ptr: 0x%x", (uns32)(SRMND_RSRC_MON_NODE *)rsrc);
+   fprintf(fp, "\n\n Resource ptr: 0x%lx", (long)(SRMND_RSRC_MON_NODE *)rsrc);
    fprintf(fp, "\n Resource Type: %d", rsrc->rsrc_type_node->rsrc_type);
    fprintf(fp, "\n Monitor Type: %d", rsrc->mon_data.monitor_data.monitor_type);
    fprintf(fp, "\n SRMND Rsrc Mon Hdl: 0x%x", rsrc->rsrc_mon_hdl);
@@ -1054,12 +1054,12 @@ void srmnd_rsrc_dump(SRMND_RSRC_MON_NODE *rsrc, FILE *fp)
    fprintf(fp, "\n Threshold Event SENT flag: %d", rsrc->sent_flag);
 
    fprintf(fp, "\n User List Ptr's:");
-   fprintf(fp, "\n\t Prev-ptr: 0x%x", (uns32)(SRMND_RSRC_MON_NODE *)rsrc->prev_srma_usr_rsrc);
-   fprintf(fp, "\n\t Next-ptr: 0x%x", (uns32)(SRMND_RSRC_MON_NODE *)rsrc->next_srma_usr_rsrc);
+   fprintf(fp, "\n\t Prev-ptr: 0x%lx", (long)(SRMND_RSRC_MON_NODE *)rsrc->prev_srma_usr_rsrc);
+   fprintf(fp, "\n\t Next-ptr: 0x%lx", (long)(SRMND_RSRC_MON_NODE *)rsrc->next_srma_usr_rsrc);
 
    fprintf(fp, "\n Rsrc Type List Ptr's:");
-   fprintf(fp, "\n\t Prev-ptr: 0x%x", (uns32)(SRMND_RSRC_MON_NODE *)rsrc->prev_rsrc_type_ptr);
-   fprintf(fp, "\n\t Next-ptr: 0x%x", (uns32)(SRMND_RSRC_MON_NODE *)rsrc->next_rsrc_type_ptr);
+   fprintf(fp, "\n\t Prev-ptr: 0x%lx", (long)(SRMND_RSRC_MON_NODE *)rsrc->prev_rsrc_type_ptr);
+   fprintf(fp, "\n\t Next-ptr: 0x%lx", (long)(SRMND_RSRC_MON_NODE *)rsrc->next_rsrc_type_ptr);
 
    if ((rsrc->rsrc_type_node->rsrc_type == NCS_SRMSV_RSRC_PROC_EXIT) &&
        (rsrc->descendant_pids != NULL))
@@ -1125,12 +1125,12 @@ void srmnd_rsrc_type_dump(SRMND_RSRC_TYPE_NODE *rsrc_type, FILE *fp)
    while (rsrc_type != NULL)
    { 
       fprintf(fp, "\n\n\n %d.RSRC TYPE: %d", ++rsrc_type_count, rsrc_type->rsrc_type);
-      fprintf(fp, "\n\t WaterMark rsrc ptr: 0x%x", (uns32)rsrc_type->watermark_rsrc);
-      fprintf(fp, "\n\t RSRC_MON list start_ptr: 0x%x", (uns32)rsrc_type->start_rsrc_mon_list);
-      fprintf(fp, "\n\t SUBSCR list start_ptr: 0x%x", (uns32)rsrc_type->start_rsrc_subs_list);
+      fprintf(fp, "\n\t WaterMark rsrc ptr: 0x%lx", (long)rsrc_type->watermark_rsrc);
+      fprintf(fp, "\n\t RSRC_MON list start_ptr: 0x%lx", (long)rsrc_type->start_rsrc_mon_list);
+      fprintf(fp, "\n\t SUBSCR list start_ptr: 0x%lx", (long)rsrc_type->start_rsrc_subs_list);
       fprintf(fp, "\n\t RSRC TYPE list ptr's:");
-      fprintf(fp, "\n\t\t Prev ptr: 0x%x", (uns32)rsrc_type->prev_rsrc_type);
-      fprintf(fp, "\n\t\t Next ptr: 0x%x", (uns32)rsrc_type->next_rsrc_type);
+      fprintf(fp, "\n\t\t Prev ptr: 0x%lx", (long)rsrc_type->prev_rsrc_type);
+      fprintf(fp, "\n\t\t Next ptr: 0x%lx", (long)rsrc_type->next_rsrc_type);
 
       if ((rsrc_type->rsrc_type == NCS_SRMSV_RSRC_PROC_EXIT) ||
           (rsrc_type->rsrc_type == NCS_SRMSV_RSRC_PROC_MEM)  ||
@@ -1212,10 +1212,10 @@ void srmnd_srma_dump(SRMND_MON_SRMA_USR_NODE *usr, FILE *fp)
       return;
    }
 
-   fprintf(fp, "\n\n RSRC_MON list start ptr: 0x%x", (uns32)usr->start_rsrc_mon_node);
+   fprintf(fp, "\n\n RSRC_MON list start ptr: 0x%lx", (long)usr->start_rsrc_mon_node);
    fprintf(fp, "\n SRMA list ptr's:");
-   fprintf(fp, "\n\t Prev ptr: 0x%x", (uns32)usr->prev_srma_node);
-   fprintf(fp, "\n\t Next ptr: 0x%x", (uns32)usr->next_srma_node);
+   fprintf(fp, "\n\t Prev ptr: 0x%lx", (long)usr->prev_srma_node);
+   fprintf(fp, "\n\t Next ptr: 0x%lx", (long)usr->next_srma_node);
 
    while (usr)
    {
@@ -1308,8 +1308,8 @@ void srmnd_cb_dump(SRMND_CB *srmnd, FILE *fp)
    fprintf(fp, "\n\t Oper Status: %d", srmnd->oper_status);
    fprintf(fp, "\n\t Health Chk Started Flg: %d", srmnd->health_check_started);
    fprintf(fp, "\n\t AMF Handle: 0x%x", (uns32)srmnd->amf_handle);
-   fprintf(fp, "\n\t SRMA list start ptr: 0x%x", (uns32)srmnd->start_srma_node);
-   fprintf(fp, "\n\t Rsrc Type List ptr: 0x%x \n", (uns32)srmnd->start_rsrc_type);
+   fprintf(fp, "\n\t SRMA list start ptr: 0x%lx", (long)srmnd->start_srma_node);
+   fprintf(fp, "\n\t Rsrc Type List ptr: 0x%lx \n", (long)srmnd->start_rsrc_type);
 
    fflush(fp);
    return;

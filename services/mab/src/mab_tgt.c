@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -351,7 +351,7 @@ static uns32 pssts_open_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_OPEN_FILE *open
             if (retval != NCSCC_RC_SUCCESS)
                 return NCSCC_RC_FAILURE;
 
-            open->o_handle = NCS_PTR_TO_INT32_CAST(file.info.open.o_file_handle);
+            open->o_handle = (long)(file.info.open.o_file_handle);
 
             return NCSCC_RC_SUCCESS;
         }
@@ -383,7 +383,7 @@ static uns32 pssts_open_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_OPEN_FILE *open
             if (retval != NCSCC_RC_SUCCESS)
                 return NCSCC_RC_FAILURE;
 
-            open->o_handle = NCS_PTR_TO_INT32_CAST(file.info.open.o_file_handle);
+            open->o_handle = (long)(file.info.open.o_file_handle);
 
             return NCSCC_RC_SUCCESS;
         }
@@ -401,14 +401,14 @@ static uns32 pssts_read_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_READ_FILE * rea
     NCS_OS_FILE  file;
 
     /* Seek the particular offset and then read from it */
-    file.info.seek.i_file_handle = NCS_INT32_TO_PTR_CAST(read->i_handle);
+    file.info.seek.i_file_handle = (void *)(long)(read->i_handle);
     file.info.seek.i_offset      = read->i_offset;
 
     retval = m_NCS_FILE_OP (&file, NCS_OS_FILE_SEEK);
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    file.info.read.i_file_handle = NCS_INT32_TO_PTR_CAST(read->i_handle);
+    file.info.read.i_file_handle = (void *)(long)(read->i_handle);
     file.info.read.i_buf_size    = read->i_bytes_to_read;
     file.info.read.i_buffer      = read->io_buffer;
 
@@ -426,7 +426,7 @@ static uns32 pssts_write_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_WRITE_FILE * w
 {
     NCS_OS_FILE file;
 
-    file.info.write.i_file_handle = NCS_INT32_TO_PTR_CAST(write->i_handle);
+    file.info.write.i_file_handle = (void *)(long)(write->i_handle);
     file.info.write.i_buf_size    = write->i_buf_size;
     file.info.write.i_buffer      = write->i_buffer;
 
@@ -438,7 +438,7 @@ static uns32 pssts_close_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_CLOSE_FILE * c
 {
     NCS_OS_FILE file;
 
-    file.info.close.i_file_handle = NCS_INT32_TO_PTR_CAST(close->i_handle);
+    file.info.close.i_file_handle = (void *)(long)(close->i_handle);
 
     return m_NCS_FILE_OP ( &file, NCS_OS_FILE_CLOSE);
 }
@@ -832,7 +832,7 @@ static uns32 pssts_open_temp_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_OPEN_TEMP_
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    open_tfile->o_handle = NCS_PTR_TO_INT32_CAST(file.info.open.o_file_handle);
+    open_tfile->o_handle = (long)(file.info.open.o_file_handle);
     return NCSCC_RC_SUCCESS;
 }
 

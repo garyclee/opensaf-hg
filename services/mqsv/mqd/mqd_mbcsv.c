@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -542,6 +542,8 @@ static uns32 mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
        #endif
        rc = NCSCC_RC_SUCCESS;
        break;
+       default:
+        break;
 
     }
     
@@ -1070,7 +1072,7 @@ static uns32  mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
    queue_index_name = pMqd->record_qindex_name;
 
    m_NCS_LOCK(q_rec_lock, NCS_LOCK_WRITE);
-   m_HTON_SANAMET_LEN(queue_index_name.length);
+/*   m_HTON_SANAMET_LEN(queue_index_name.length);*/
 
    q_node = ncs_patricia_tree_getnext(&pMqd->qdb,
       (char*)&queue_index_name);
@@ -1380,7 +1382,7 @@ static uns32 mqd_a2s_make_record_from_coldsync(MQD_CB* pMqd,MQD_A2S_QUEUE_INFO q
    /* Read the data of queueinformation and write to the q_obj_node */
    m_NCS_OS_MEMSET( &record_qindex_name,0,sizeof(SaNameT));
    record_qindex_name = q_data_msg.name;
-   m_HTON_SANAMET_LEN(record_qindex_name.length);
+  /* m_HTON_SANAMET_LEN(record_qindex_name.length);a*/
    q_obj_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb,
                                                       (uns8 *)&record_qindex_name);
    if(!q_obj_node)
@@ -1402,7 +1404,7 @@ static uns32 mqd_a2s_make_record_from_coldsync(MQD_CB* pMqd,MQD_A2S_QUEUE_INFO q
    for(index=0;index<q_data_msg.ilist_cnt;index++)
    {
        record_qindex_name = q_data_msg.ilist_info[index];
-       m_HTON_SANAMET_LEN(record_qindex_name.length);
+      /* m_HTON_SANAMET_LEN(record_qindex_name.length); */
        q_node = (MQD_OBJ_NODE *)ncs_patricia_tree_get(&pMqd->qdb,
                                                    (uns8 *)&record_qindex_name);
        if(!q_node)

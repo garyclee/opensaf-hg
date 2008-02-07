@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -43,9 +43,11 @@ $Header:
 
 #define m_RETURN_AVSV_CLI_DONE(st,s,k)   avsv_cli_done(st,s,k)
 
-#define NCS_CLI_MIB_REQ_TIMEOUT  600
+#define NCS_CLI_MIB_REQ_TIMEOUT  1000
 #define AVM_DEFAULT_HIERARCHY_LVL 2
 #define AVM_EXT_HIERARCHY_LVL     3
+
+#define FLUSHIN(c) while(((c = m_NCS_CONS_GETCHAR()) != EOF) && (c != '\n'))
 
 uns32
 avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data);
@@ -70,7 +72,7 @@ avsv_cli_cfg_mib_arg(NCSMIB_ARG *mib, uns32 *index, uns32 index_len,
 
 uns32
 avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
-                                NCSMIB_IDX *mib_idx, char *val, NCSMIB_FMAT_ID format, NCSMIB_REQ_FNC reqfnc);
+                                NCSMIB_IDX *mib_idx, char *val, NCSMIB_FMAT_ID format, NCSMIB_REQ_FNC reqfnc, uns32 cli_hdl);
 
 uns32 ncsavsv_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq);
 
@@ -315,7 +317,7 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
 
    avsv_cli_build_mib_idx(&mib_idx, index->cmd.strval, NCSMIB_FMAT_OCT, cli_hdl);
  
-   rc = avsv_cli_build_and_generate_mibsets( table_id, param_id, &mib_idx, val, NCSMIB_FMAT_INT, reqfnc);
+   rc = avsv_cli_build_and_generate_mibsets( table_id, param_id, &mib_idx, val, NCSMIB_FMAT_INT, reqfnc, cli_hdl);
 
    m_MMGR_FREE_CLI_DEFAULT_VAL(mib_idx.i_inst_ids);
 
@@ -484,6 +486,7 @@ avm_cef_set_ent_adm_req(
     uns32              rc      = NCSCC_RC_SUCCESS;
     uns32              cli_hdl = cef_data->i_bindery->i_cli_hdl;
     int8               set_val[sizeof(uns32)];
+    int8               ans;
     
 
     m_NCS_MEMSET(entity_instance, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);
@@ -541,7 +544,24 @@ avm_cef_set_ent_adm_req(
            sprintf(set_val, "%d", 1);
         }else if(!m_NCS_STRCMP(value->cmd.strval, "lock"))
         {
-           sprintf(set_val, "%d", 2);
+           avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is abrupt operation. It may harm the node due to that node may not come after doing unlock. Shutdown operation is suggested to be used instead of lock, Shutdown will do the same thing in smooth manner.\n");
+
+           avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
+           ans = m_NCS_CONS_GETCHAR(); 
+           if((ans=='Y') || (ans=='y'))
+              sprintf(set_val, "%d", 2);
+           else if(ans=='\n')
+           {
+              m_RETURN_AVSV_CLI_DONE("\nLock operation has been cancelled", NCSCC_RC_SUCCESS, cli_hdl);
+              return NCSCC_RC_SUCCESS; 
+           }
+           else
+           {
+              FLUSHIN(ans);
+              m_RETURN_AVSV_CLI_DONE("\nLock operation has been cancelled", NCSCC_RC_SUCCESS, cli_hdl);
+              return NCSCC_RC_SUCCESS;
+           }
+           FLUSHIN(ans);
         }else if(!m_NCS_STRCMP(value->cmd.strval, "unlock"))
         {
            sprintf(set_val, "%d", 3);
@@ -558,7 +578,7 @@ avm_cef_set_ent_adm_req(
 
     avsv_cli_build_mib_idx(&mib_idx, ep, NCSMIB_FMAT_OCT, cli_hdl);
     
-    rc = avsv_cli_build_and_generate_mibsets(table_id, param_id, &mib_idx, set_val, NCSMIB_FMAT_INT, req_fnc);
+    rc = avsv_cli_build_and_generate_mibsets(table_id, param_id, &mib_idx, set_val, NCSMIB_FMAT_INT, req_fnc, cli_hdl);
     
     m_MMGR_FREE_CLI_DEFAULT_VAL(mib_idx.i_inst_ids);
    
@@ -621,7 +641,7 @@ avm_cef_set_adm_switch(
     mib_idx.i_inst_len = 0;
     mib_idx.i_inst_ids = NULL;
 
-    rc = avsv_cli_build_and_generate_mibsets(table_id, param_id, &mib_idx, set_val, NCSMIB_FMAT_INT, req_fnc);
+    rc = avsv_cli_build_and_generate_mibsets(table_id, param_id, &mib_idx, set_val, NCSMIB_FMAT_INT, req_fnc, cli_hdl);
    
     if(NCSCC_RC_SUCCESS == rc)
     {
@@ -794,7 +814,7 @@ avsv_cli_cfg_mib_arg(NCSMIB_ARG    *mib,
 
 uns32
 avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
-                                NCSMIB_IDX *mib_idx, char *val, NCSMIB_FMAT_ID format, NCSMIB_REQ_FNC reqfnc)
+                                NCSMIB_IDX *mib_idx, char *val, NCSMIB_FMAT_ID format, NCSMIB_REQ_FNC reqfnc, uns32 cli_hdl)
 {
    NCSMIB_ARG  mib_arg;
    uns8        space[1024];
@@ -838,8 +858,11 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    {
       /* Sent the request to MAB, and the response is in mib_arg
        *
-       * Want to do anything ??
        */
+      if(mib_arg.rsp.add_info_len > 0)
+      {
+         avsv_cli_display(cli_hdl, mib_arg.rsp.add_info);
+      }
       return mib_arg.rsp.i_status;
    }
    return status;

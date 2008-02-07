@@ -11,4 +11,4 @@ librde_logstr_la_CPPFLAGS =	@NCS_CORE_CPP_DEFINES@ \
 
 librde_logstr_la_SOURCES = ./rde_log_str.c
 
-librde_logstr_la_LDFLAGS = -version-number 1
+librde_logstr_la_LDFLAGS = -version-number 2

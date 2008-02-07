@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -694,7 +694,7 @@ end:
 
   PROCEDURE NAME: pss_cef_reload_pssv_spcn_list
 
-  DESCRIPTION   : Sends the request to reload the /etc/opt/opensaf/pssv_spcn_list
+  DESCRIPTION   : Sends the request to reload the /var/opt/opensaf/pssv_spcn_list
                   configuration file.
 
   ARGUMENTS     :
@@ -970,13 +970,13 @@ uns32 pss_cli_cmd_mib_resp_set_playback_option_from_xml(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        m_NCS_CONS_PRINTF("\nFailed to update SPCN entry in /etc/opt/opensaf/pssv_spcn_list file...\n");
+        m_NCS_CONS_PRINTF("\nFailed to update SPCN entry in /var/opt/opensaf/pssv_spcn_list file...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
         
     case NCSCC_RC_SUCCESS:
-        m_NCS_CONS_PRINTF("\nSPCN Entry updated in /etc/opt/opensaf/pssv_spcn_list file...\n");
+        m_NCS_CONS_PRINTF("\nSPCN Entry updated in /var/opt/opensaf/pssv_spcn_list file...\n");
         break;
        
     default:

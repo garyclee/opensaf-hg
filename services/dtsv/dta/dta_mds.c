@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -115,7 +115,7 @@ uns32 dta_mds_install_and_subscribe(void)
    mds_info.i_op = MDS_INSTALL;
    mds_info.info.svc_install.i_mds_q_ownership = FALSE;
    mds_info.info.svc_install.i_svc_cb = dta_mds_callback;
-   mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)&dta_cb;
+   mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)(long)&dta_cb;
    mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE; /* Total PWE scope */
    
    /* versioning changes - set version no. with which DTA is installing */
@@ -436,6 +436,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
    uns8         severity_bit_map, data_buff[DTSV_DTS_DTA_MSG_HDR_SIZE];
    uns8         *data;
    uns32    svc_count, count, svc_id, enable_log, category_bit_map;
+   int warning_rmval = 0;
 
 
    if(inst->created == FALSE)
@@ -480,7 +481,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
       }
    case DTS_FAIL_OVER:
       {
-         m_DTA_DBG_SINK(NCSCC_RC_SUCCESS, "dta_mds_rcv : Message received from newly Act DTS.");
+         warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_SUCCESS, "dta_mds_rcv : Message received from newly Act DTS.");
           
          uba = &((DTSV_MSG*)msg)->data.data.msg.log_msg.uba;
          ncs_dec_init_space(uba, uba->start); 
@@ -555,6 +556,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
 {
   DTA_CB* inst = (DTA_CB *)(long)yr_svc_hdl;
   uns32         retval;
+  int warning_rmval = 0;
 
    if(inst->created == FALSE)
    {
@@ -618,7 +620,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
                
                if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)
                {
-                  m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_evt: MDS async send failed.");
+                  warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_evt: MDS async send failed.");
                }
                svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, (const uns8*)&svc->svc_id);
             }
@@ -637,7 +639,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
                if(msg == NULL)
                {
                   m_DTA_UNLK(&inst->lock);
-                  m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failed for DTSV_MSG for sending buffered messages");
+                  warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failed for DTSV_MSG for sending buffered messages");
                   return;
                }
                m_NCS_OS_MEMSET(msg, '\0', sizeof(DTSV_MSG)); 
@@ -647,7 +649,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
                {
                   m_DTA_UNLK(&inst->lock);
                   m_MMGR_FREE_DTSV_MSG(msg);
-                  m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_evt: Send to DTA msgbox failed");
+                  warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_evt: Send to DTA msgbox failed");
                   return;
                } 
             }
@@ -983,6 +985,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
   {
 
   DTSV_MSG* mm;
+  int warning_rmval = 0;
   
   if(msg == NULL)
     return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_cpy : Message is NULL");
@@ -1047,7 +1050,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
    }
 
   if(mm->msg_type == DTS_FAIL_OVER)
-     m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_cpy: Received copy callback for DTS_FAIL_OVER msg");
+     warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_cpy: Received copy callback for DTS_FAIL_OVER msg");
      
   return NCSCC_RC_SUCCESS;
   }

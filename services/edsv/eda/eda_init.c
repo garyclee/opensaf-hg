@@ -1,23 +1,21 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
-..............................................................................
-
 ..............................................................................
 
   DESCRIPTION:
@@ -26,7 +24,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
 
 ******************************************************************************
 */
@@ -35,7 +32,21 @@
 
 /* global cb handle */
 uns32 gl_eda_hdl = 0;
+static uns32 eda_use_count=0;
 
+/* EDA Agent creation specific LOCK */
+static uns32 eda_agent_lock_create = 0;
+NCS_LOCK eda_agent_lock;
+
+#define m_EDA_AGENT_LOCK                        \
+   if (!eda_agent_lock_create++)                \
+   {                                            \
+      m_NCS_LOCK_INIT(&eda_agent_lock);         \
+   }                                            \
+   eda_agent_lock_create = 1;                   \
+   m_NCS_LOCK(&eda_agent_lock, NCS_LOCK_WRITE);
+
+#define m_EDA_AGENT_UNLOCK m_NCS_UNLOCK(&eda_agent_lock, NCS_LOCK_WRITE)
 
 /****************************************************************************
   Name          : ncs_eda_lib_req
@@ -203,3 +214,89 @@ void eda_destroy (NCS_LIB_DESTROY *destroy_info)
 
    return;
 }
+
+
+/****************************************************************************
+  Name          :  ncs_eda_startup
+
+  Description   :  This routine creates a EDSv agent infrastructure to interface
+                   with EDSv service. Once the infrastructure is created from
+                   then on use_count is incremented for every startup request.
+
+  Arguments     :  - NIL-
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_eda_startup(void)
+{
+   NCS_LIB_REQ_INFO lib_create;
+
+   m_EDA_AGENT_LOCK;
+   if (eda_use_count > 0)
+   {
+      /* Already created, so just increment the use_count */
+      eda_use_count++;
+      m_EDA_AGENT_UNLOCK;
+      return NCSCC_RC_SUCCESS;
+   }
+
+   /*** Init EDA ***/
+   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   lib_create.i_op = NCS_LIB_REQ_CREATE;
+   if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
+   {
+      m_EDA_AGENT_UNLOCK;
+      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+   }
+   else
+   {
+      m_NCS_DBG_PRINTF("\nEDSV:EDA:ON");
+      eda_use_count = 1;
+   }
+
+   m_EDA_AGENT_UNLOCK;
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
+  Name          :  ncs_eda_shutdown 
+
+  Description   :  This routine destroys the EDSv agent infrastructure created 
+                   to interface EDSv service. If the registered users are > 1, 
+                   it just decrements the use_count.   
+
+  Arguments     :  - NIL -
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_eda_shutdown(void)
+{
+   uns32  rc = NCSCC_RC_SUCCESS;
+
+   m_EDA_AGENT_LOCK;
+   if (eda_use_count > 1)
+   {
+      /* Still users extis, so just decrement the use_count */
+      eda_use_count--;
+   }
+   else if (eda_use_count == 1)
+   {
+      NCS_LIB_REQ_INFO  lib_destroy;
+
+      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+
+      rc = ncs_eda_lib_req(&lib_destroy);
+
+      eda_use_count = 0;
+   }
+
+   m_EDA_AGENT_UNLOCK;
+   return rc;
+}
+

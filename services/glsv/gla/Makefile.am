@@ -15,4 +15,5 @@ libgla_la_SOURCES =	./gla_api.c \
 			./gla_init.c \
 			./gla_log.c \
 			./gla_mds.c \
-			./gla_queue.c
+			./gla_queue.c \
+                        ./gla_tmr.c

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -1295,7 +1295,7 @@ ifnd_amf_init (IFSV_CB *ifsv_cb)
    {   
       /* Log */
       res = NCSCC_RC_FAILURE;
-      m_IFND_LOG_API_L(IFSV_LOG_AMF_INIT_FAILURE,ifsv_cb);
+      m_IFND_LOG_API_L(IFSV_LOG_AMF_INIT_FAILURE,(long)ifsv_cb);
       m_IFND_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
                  "ifnd_amf_init : saAmfInitialize failed, error = ",error);
    }
@@ -1328,7 +1328,7 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
       if (m_NCS_SEM_CREATE(&ifsv_cb->health_sem) == NCSCC_RC_FAILURE)
       {         
          res = NCSCC_RC_FAILURE;
-         m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_SEM_CREATE_FAIL,ifsv_cb);
+         m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_SEM_CREATE_FAIL,(long)ifsv_cb);
          break;
       }
       
@@ -1337,10 +1337,10 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
       {         
          m_NCS_SEM_RELEASE(ifsv_cb->health_sem);
          res = NCSCC_RC_FAILURE;
-         m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,ifsv_cb);
+         m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,(long)ifsv_cb);
          break;
       }
-      m_IFND_LOG_LOCK(IFSV_LOG_LOCK_CREATE,&ifsv_cb->intf_rec_lock);
+      m_IFND_LOG_LOCK(IFSV_LOG_LOCK_CREATE,(long)(&ifsv_cb->intf_rec_lock));
             
       /* initialze interface tree */
       
@@ -1352,10 +1352,10 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
          m_NCS_SEM_RELEASE(ifsv_cb->health_sem);
          m_NCS_OS_LOCK(&ifsv_cb->intf_rec_lock, NCS_OS_LOCK_RELEASE, 0);
          res = NCSCC_RC_FAILURE;
-         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;            
       }
-      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATED,&ifsv_cb->if_tbl,0);
+      m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATED,(long)(&ifsv_cb->if_tbl),0);
       
       /* initialze shelf/slot/port/type/scope tree */
       
@@ -1368,7 +1368,7 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
          m_NCS_OS_LOCK(&ifsv_cb->intf_rec_lock, NCS_OS_LOCK_RELEASE, 0);
          ncs_patricia_tree_destroy(&ifsv_cb->if_tbl);
          res = NCSCC_RC_FAILURE;
-         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;
       }
 
@@ -1382,11 +1382,11 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
          ncs_patricia_tree_destroy(&ifsv_cb->if_tbl);
          ncs_patricia_tree_destroy(&ifsv_cb->if_map_tbl);
          res = NCSCC_RC_FAILURE;
-         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,ifsv_cb,0);
+         m_IFND_LOG_HEAD_LINE(IFSV_LOG_IF_MAP_TBL_CREATE_FAILURE,(long)ifsv_cb,0);
          break;
       }
 
-      m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IF_MAP_TBL_CREATED,&ifsv_cb->if_map_tbl,0);
+      m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IF_MAP_TBL_CREATED,(long)(&ifsv_cb->if_map_tbl),0);
       
       /* initialze VIP database cache tree */
 #if (NCS_VIP == 1)      
@@ -1518,7 +1518,7 @@ ifnd_intf_ifinfo_send (IFSV_CB *cb,  IFSV_EVT_INTF_INFO_GET  *if_get,
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_STATE_INFO, cb->ifnd_state, 0);
 
    m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
-   evt->info.ifa_evt.usrhdl = (NCSCONTEXT)if_get->usr_hdl;
+   evt->info.ifa_evt.usrhdl = (NCSCONTEXT)((long)if_get->usr_hdl);
 
    if(if_get->get_type == IFSV_INTF_GET_ALL)
    {
@@ -1731,7 +1731,7 @@ ifnd_intf_statsinfo_send (IFSV_CB *cb,  IFSV_EVT_STATS_INFO  *stats_info)
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_STATE_INFO, cb->ifnd_state, 0);
 
    m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
-   evt->info.ifa_evt.usrhdl = (NCSCONTEXT)stats_info->usr_hdl;
+   evt->info.ifa_evt.usrhdl = (NCSCONTEXT)((long)stats_info->usr_hdl);
    evt->type = IFA_EVT_IFINFO_GET_RSP;
 
    ifget_rsp = &evt->info.ifa_evt.info.ifget_rsp;

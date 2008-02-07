@@ -1,18 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
 #
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
 #
@@ -21,6 +21,17 @@
 # Node Initialization Daemon startup/shutdown Script
 #
 
+### BEGIN INIT INFO
+# Provides: $nis_scxb 
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 4 6
+# Short-Description: Start OpenSAF services
+# Description: Start OpenSAF System Controller services 
+#         with HA role ACTIVE or STANDBY in the cluster. 
+### END INIT INFO
+
+
+# Define the Core generation settings
 CORE_FILE_SIZE="unlimited"
 CORE_PATTERN="/var/crash/core_%t_%e_%p"
 CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
@@ -31,11 +42,12 @@ export PATH
 # NCS SNMP Subagent requires this path to locate its configuration file
 export SNMPCONFPATH=/usr/share/snmp
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/controller/lib:/opt/opensaf/controller/lib:/usr/local/lib # For loading libraries
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/controller/lib:/opt/opensaf/lib:/usr/local/lib # For loading libraries
 
 
 export LEAP_TMR_THREAD_RT=1
 export LEAP_THREADS_NON_RT=1
+export MDS_QUIESCED_TMR_VAL_IN_10MS=40
 
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
@@ -65,8 +77,12 @@ test -f $BINPATH/$DAEMON || exit 0
 
 #set -e
 set +x
-case "$1" in
-  start)
+
+# Function to start the services
+
+start()
+{
+        ### Remove TIPC if already installed.
         lsmod | grep $MODULE
         if [ $? -eq 0 ] ; then
            rmmod tipc.ko
@@ -75,8 +91,10 @@ case "$1" in
               exit 0
            fi
         fi
+        
+        ### Remove shared memory files created by us. This step wont be needed on a chassis.
+	rm -f /dev/shm/CPND_CHECKPOINT_INFO*  /dev/shm/NCS_*  /dev/shm/vds_vdest*
 
-        rm -f /dev/shm/*
 
 	if [ -f $PIDFILE ]
         then 
@@ -85,6 +103,7 @@ case "$1" in
 	else 
 	    	echo "Starting $DESC: $BINPATH/$DAEMON"; 
 	fi;
+/opt/motorola/etc/init.d/pre-nis start &
 
         ####################################################
         # NID_CONFIG_PATH is to configure the path for
@@ -188,7 +207,8 @@ case "$1" in
 	mkfifo -m 660 $NISPIPE || {
         echo "Cannot create named pipe";
         exit 1;
-        } 	
+        } 
+        echo "Starting OpenSAF Services..." > /var/opt/opensaf/node_ha_state
         $BINPATH/$DAEMON > $NISPIPE &
         date;
 	read -t $INITTIMEOUT NISSTATUS < $NISPIPE
@@ -211,8 +231,13 @@ case "$1" in
         rm -f $SPCAPFIFO;
 	rm -rf $NISPIPE;
 	echo "."
-        ;;
-  stop)
+
+} #End of start()
+
+# Function to stop the servcies
+
+stop()
+{
 	if [ ! -f $PIDFILE ]; then echo "$BINPATH/$DAEMON is not running..";
 	else echo "Stopping OpenSAF Services... ";fi;		
          
@@ -262,22 +287,41 @@ case "$1" in
         killall nid_tipc.sh
         sleep 2
         rmmod tipc
-        echo "The System Controller has been stopped" > /var/opt/opensaf/node_ha_state 
 	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         echo "."
+
+} # End of function stop()
+
+
+case "$1" in
+  start)
+        start
         ;;
-  restart|force-reload)
-        #
-        #       THis option not supported for bladeinitd 
-        #
-	echo "This option not supported for bladeinitd"
+  stop)
+        stop
+        ;;
+  restart|try-restart)
+        stop
+        start
+        ;;
+  reload|force-reload)
+	echo "This option is currently not supported"
         echo "."
         ;;
+  status)
+        if [ ! -f $PIDFILE ]; then
+            echo "OpenSAF is stopped"
+        else 
+           cat /var/opt/opensaf/node_ha_state
+        echo ""
+        fi
+        ;;
   *)
-        echo "Usage: $ETCPATH/nis_scxb {start|stop|restart|force-reload}" >&2
+        echo "Usage: $ETCPATH/nis_scxb {start|stop|restart|try-restart|reload|force-reload|status}" >&2
         exit 1
         ;;
 esac 2>/dev/null
 
 exit 0
+
 

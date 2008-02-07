@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -65,7 +65,7 @@
 
 /*FIXME: osprims does not have private header file, hence the declaration here */ 
 
-
+extern int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int kind);
  /* IR00058994  fix */
 NCS_OS_LOCK gl_ncs_atomic_mtx;
 #ifndef NDEBUG
@@ -281,13 +281,13 @@ NCS_BOOL ncs_is_root(void) { return TRUE; }
  *
  ****************************************************************************/
 
-static struct timeval  tmr_now;
+/*static struct timeval  tmr_now;
 static struct timeval  tmr_old;
 static unsigned long   tmr_period_ns;
 static NCS_OS_CB       tmr_os_cb;
 static void *          tmr_cb_arg;
-static void *          status = NULL;
-
+static void *          status = NULL;*/
+#if 0
 static void *
 timer_engine(void * arg)
 {
@@ -341,7 +341,9 @@ select_sleep:
       pthread_testcancel();   
    }
 }
+#endif
 
+#if 0
 unsigned int
 ncs_os_timer(NCS_OS_TIMER *timer, NCS_OS_TIMER_REQUEST request)
 {
@@ -427,7 +429,7 @@ ncs_os_timer(NCS_OS_TIMER *timer, NCS_OS_TIMER_REQUEST request)
 
    return rc;
 }
-
+#endif
 /* IR00084911 */
 int
 ncs_logscreen(const char *fmt,... )
@@ -683,6 +685,12 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             rc = pthread_attr_setschedpolicy(&attr, policy);
             assert(0 == rc);
 
+            if (task->info.create.i_stack_nbytes < PTHREAD_STACK_MIN)
+               task->info.create.i_stack_nbytes = PTHREAD_STACK_MIN;
+            rc = pthread_attr_setstacksize(&attr, task->info.create.i_stack_nbytes);
+            if (rc != 0)
+               return NCSCC_RC_INVALID_INPUT;
+
             max_prio = sched_get_priority_max(policy);
             min_prio = sched_get_priority_min(policy);
             if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16 ) /* IR00059585 */ /* IR00059586 IR00059755 */
@@ -757,7 +765,11 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             /* 13-Apr-2006: Commenting the PRINTF as it interferes with BBS command functions 
                viz. lhccmd, switchcmd, etc.*/
 #if 0
-            m_NCS_CONS_PRINTF("\nLEAP: Task Create::Task name=%s, Task Priority=%d, Linux Priority=%d, Policy=%s\n", task->info.create.i_name, task->info.create.i_priority, sp.sched_priority, (policy==SCHED_OTHER?"SCHED_OTHER":"SCHED_FIFO"));  
+            m_NCS_CONS_PRINTF("LEAP: Task Create::Task name=%s, Task Priority=%d,"
+                              " Linux Priority=%d, Policy=%s, Stack Size=%d\n",
+                              task->info.create.i_name, task->info.create.i_priority,
+                              sp.sched_priority, (policy==SCHED_OTHER?"SCHED_OTHER":"SCHED_FIFO"),
+                              task->info.create.i_stack_nbytes);
 #endif
             
             rc = pthread_create(task->info.create.o_handle,
@@ -1067,7 +1079,7 @@ ncs_os_lock(NCS_OS_LOCK         *lock,
  * Notes:
  *
  ****************************************************************************/
-#define NCS_OS_MQ_MSG_DATA_OFFSET ( (int)(((NCS_OS_MQ_MSG*)(0))->data) )
+#define NCS_OS_MQ_MSG_DATA_OFFSET ( (long)(((NCS_OS_MQ_MSG*)(0))->data) )
 
 uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 {
@@ -3348,10 +3360,16 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
        if (save_errno == EINTR)
        {
            eintr_cnt++;
-           if (eintr_cnt > 10)
+           if ((eintr_cnt == 10) ||
+               ((eintr_cnt % 50) == 0)) /* 50, 100,..., eintr_cnt can't be zero. */
            {
+                m_NCS_SYSLOG(NCS_LOG_WARNING, "ncs_sel_obj_select:Too many interrupts (%d)", 
+                     eintr_cnt); 
+
+#if 0 /* IR00086215: Never quit inspite of several EINTRs */
                 rc = -1;
                 break;
+#endif 
            }
        }
 

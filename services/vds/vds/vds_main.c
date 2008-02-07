@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -77,7 +77,7 @@ uns32 vds_lib_req(NCS_LIB_REQ_INFO *req_info)
       {
          m_VDS_LOG_MISC(VDS_LOG_MISC_VDS_CREATE,
                                 VDS_LOG_MISC_FAILURE,
-                                        NCSFL_SEV_CRITICAL);
+                                        NCSFL_SEV_ERROR);
       }
       break;
        
@@ -93,7 +93,7 @@ uns32 vds_lib_req(NCS_LIB_REQ_INFO *req_info)
       {
          m_VDS_LOG_MISC(VDS_LOG_MISC_VDS_DESTROY,
                                 VDS_LOG_MISC_FAILURE,
-                                        NCSFL_SEV_CRITICAL);
+                                        NCSFL_SEV_ERROR);
       }
       break;
        
@@ -143,7 +143,7 @@ uns32 vds_create(NCS_LIB_CREATE *create_info)
    {
       m_VDS_LOG_TIM(VDS_LOG_MBX_CREATE,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       vds_destroy(VDS_DONT_CANCEL_THREAD);
       return rc;    
    }
@@ -160,7 +160,7 @@ uns32 vds_create(NCS_LIB_CREATE *create_info)
    {
       m_VDS_LOG_TIM(VDS_LOG_TASK_CREATE,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       vds_destroy(VDS_CANCEL_THREAD);
   
       return rc;    
@@ -220,7 +220,7 @@ uns32 vds_destroy(NCS_BOOL vds_thread_cancel)
    {
       m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                             VDS_LOG_HDL_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;      
    }
 
@@ -232,7 +232,7 @@ uns32 vds_destroy(NCS_BOOL vds_thread_cancel)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_FINALIZE,
                             VDS_LOG_AMF_FAILURE,
-                                    NCSFL_SEV_CRITICAL, rc);
+                                    NCSFL_SEV_ERROR, rc);
       /* continue destory */
    } 
    else
@@ -248,7 +248,7 @@ uns32 vds_destroy(NCS_BOOL vds_thread_cancel)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_FINALIZE,
                             VDS_LOG_CKPT_FAILURE,
-                                    NCSFL_SEV_CRITICAL, rc);
+                                    NCSFL_SEV_ERROR, rc);
    } 
    else
    {
@@ -262,7 +262,7 @@ uns32 vds_destroy(NCS_BOOL vds_thread_cancel)
    {
       m_VDS_LOG_TIM(VDS_LOG_MBX_DESTROY,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
    }
    else
    {
@@ -315,7 +315,7 @@ VDS_CB *vds_cb_create()
    {
       m_VDS_LOG_MEM(VDS_LOG_MEM_VDS_CB,
                             VDS_LOG_MEM_ALLOC_FAILURE,
-                                        NCSFL_SEV_CRITICAL);    
+                                        NCSFL_SEV_ERROR);    
       return VDS_CB_NULL;
    }
    
@@ -342,7 +342,7 @@ VDS_CB *vds_cb_create()
    {
        m_VDS_LOG_HDL(VDS_LOG_HDL_CREATE_CB,
                              VDS_LOG_HDL_FAILURE,
-                                     NCSFL_SEV_CRITICAL); 
+                                     NCSFL_SEV_ERROR); 
 
       vds_cb_destroy(cb);
       return VDS_CB_NULL;      
@@ -363,7 +363,7 @@ VDS_CB *vds_cb_create()
    {
       m_VDS_LOG_TREE(VDS_LOG_PAT_INIT,
                              VDS_LOG_PAT_FAILURE,
-                                     NCSFL_SEV_CRITICAL, rc);
+                                     NCSFL_SEV_ERROR, rc);
 
       vds_cb_destroy(cb);
       return  VDS_CB_NULL;
@@ -382,7 +382,7 @@ VDS_CB *vds_cb_create()
    {
       m_VDS_LOG_TREE(VDS_LOG_PAT_INIT,
                              VDS_LOG_PAT_FAILURE,
-                                     NCSFL_SEV_CRITICAL, rc);
+                                     NCSFL_SEV_ERROR, rc);
       vds_cb_destroy(cb);
       return  VDS_CB_NULL;
    }
@@ -423,7 +423,7 @@ uns32 vds_mbx_create (VDS_CB *cb)
       /* LOG the message */
       m_VDS_LOG_TIM(VDS_LOG_IPC_CREATE,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL); 
+                                    NCSFL_SEV_ERROR); 
       return rc;
    }
    
@@ -437,7 +437,7 @@ uns32 vds_mbx_create (VDS_CB *cb)
    {
        m_VDS_LOG_TIM(VDS_LOG_IPC_ATTACH,
                              VDS_LOG_TIM_FAILURE,
-                                     NCSFL_SEV_CRITICAL);
+                                     NCSFL_SEV_ERROR);
       /* destroy the mailbox */
       vds_mbx_destroy(cb);
       return rc;
@@ -479,7 +479,7 @@ uns32 vds_task_create ()
    {
       m_VDS_LOG_TIM(VDS_LOG_TASK_CREATE,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL); 
+                                    NCSFL_SEV_ERROR); 
       return rc;
    }
    else
@@ -495,7 +495,7 @@ uns32 vds_task_create ()
    {
       m_VDS_LOG_TIM(VDS_LOG_TASK_START,
                             VDS_LOG_TIM_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       /* release the task */
       m_NCS_TASK_RELEASE(gl_vds_task_hdl);      
    }
@@ -560,7 +560,7 @@ void vds_db_scavanger(VDS_CB *cb)
       {
           m_VDS_LOG_TREE(VDS_LOG_PAT_DEL_NAME,
                                VDS_LOG_PAT_FAILURE,
-                                       NCSFL_SEV_CRITICAL, rc);
+                                       NCSFL_SEV_ERROR, rc);
       }
       else
        m_VDS_LOG_TREE(VDS_LOG_PAT_DEL_NAME,
@@ -574,7 +574,7 @@ void vds_db_scavanger(VDS_CB *cb)
       {
          m_VDS_LOG_TREE(VDS_LOG_PAT_DEL_ID,
                                 VDS_LOG_PAT_FAILURE,
-                                        NCSFL_SEV_CRITICAL, rc);
+                                        NCSFL_SEV_ERROR, rc);
       }
       else
        m_VDS_LOG_TREE(VDS_LOG_PAT_DEL_ID,
@@ -666,7 +666,7 @@ uns32 vds_mbx_destroy (VDS_CB *cb)
       /* LOG the message */
       m_VDS_LOG_TIM(VDS_LOG_IPC_DETACH,
                             VDS_LOG_TIM_FAILURE,
-                                NCSFL_SEV_CRITICAL);
+                                NCSFL_SEV_ERROR);
       return rc;
    }
 
@@ -676,7 +676,7 @@ uns32 vds_mbx_destroy (VDS_CB *cb)
    { 
       m_VDS_LOG_TIM(VDS_LOG_IPC_RELEASE,
                         VDS_LOG_TIM_FAILURE,
-                            NCSFL_SEV_CRITICAL);
+                            NCSFL_SEV_ERROR);
       return rc;
    }  
 
@@ -748,7 +748,7 @@ void vds_main_process(void *arg)
    {
       m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                             VDS_LOG_HDL_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       vds_destroy(VDS_DONT_CANCEL_THREAD);
       return;
    }
@@ -759,7 +759,7 @@ void vds_main_process(void *arg)
    {
       m_VDS_LOG_AMF(VDS_LOG_AMF_INITIALIZE,
                             VDS_LOG_AMF_FAILURE,
-                                    NCSFL_SEV_CRITICAL, rc);
+                                    NCSFL_SEV_ERROR, rc);
 
       ncshm_give_hdl(cb_hdl);
       vds_destroy(VDS_DONT_CANCEL_THREAD);
@@ -884,7 +884,7 @@ void vds_debug_dump(void)
    {
       m_VDS_LOG_HDL(VDS_LOG_HDL_RETRIEVE_CB,
                             VDS_LOG_HDL_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       return;
    }
 

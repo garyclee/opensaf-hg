@@ -1,30 +1,33 @@
-#           -*- OpenSAF  -*-
-# 
-# (C) Copyright 2008 The OpenSAF Foundation 
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
 # under the GNU Lesser General Public License Version 2.1, February 1999.
 # The complete license can be accessed from the following location:
-# http://opensource.org/licenses/lgpl-license.php 
+# http://opensource.org/licenses/lgpl-license.php
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
-# 
+#
 # Author(s): Emerson Network Power
 #
+
+%define lib_dir /opt/opensaf/payload/lib64
 
 Summary: OpenSAF Services Payload Blade RPM
 Name: opensaf_64bit_agent_libs
 Version:1.0 
 Distribution: linux
-Release:5
+Release:6
 Source: %{name}.tgz
 License: High-Availability Operating Environment Software License
 Vendor: OpenSAF
 Packager: users@opensaf.org
 Group: System
 AutoReqProv: 0
+Conflicts: opensaf<=1.0.6
 
 %description
 This package contains the OpenSAF Payload Libraries for lib64.
@@ -64,10 +67,13 @@ mkdir -p /opt/opensaf/payload/
 
 ln -sf /sbin/reboot /etc/opt/opensaf/reboot
 
-check=`grep "/opt/opensaf/payload/lib64/" /etc/ld.so.conf `
+cd /opt/opensaf/
+ln -s %{lib_dir} lib
+
+check=`grep "%{lib_dir}/" /etc/ld.so.conf `
 if [ "$check" == "" ]
 then
-   echo "/opt/opensaf/payload/lib64/" >>/etc/ld.so.conf
+   echo "%{lib_dir}/" >>/etc/ld.so.conf
 fi
 
 
@@ -93,57 +99,57 @@ fi
 
 # adding 64bit agent libraries
 
-/opt/opensaf/payload/lib64/libncs_core.so
-/opt/opensaf/payload/lib64/libncs_core.so.0
-/opt/opensaf/payload/lib64/libncs_core.so.0.0.0
-/opt/opensaf/payload/lib64/libSaAmf.so
-/opt/opensaf/payload/lib64/libSaAmf.so.0
-/opt/opensaf/payload/lib64/libSaAmf.so.0.0.0
-/opt/opensaf/payload/lib64/libSaCkpt.so
-/opt/opensaf/payload/lib64/libSaCkpt.so.0
-/opt/opensaf/payload/lib64/libSaCkpt.so.0.0.0
-/opt/opensaf/payload/lib64/libSaClm.so
-/opt/opensaf/payload/lib64/libSaClm.so.0
-/opt/opensaf/payload/lib64/libSaClm.so.0.0.0
-/opt/opensaf/payload/lib64/libSaEvt.so
-/opt/opensaf/payload/lib64/libSaEvt.so.0
-/opt/opensaf/payload/lib64/libSaEvt.so.0.0.0
-/opt/opensaf/payload/lib64/libSaLck.so
-/opt/opensaf/payload/lib64/libSaLck.so.0
-/opt/opensaf/payload/lib64/libSaLck.so.0.0.0
-/opt/opensaf/payload/lib64/libSaMsg.so
-/opt/opensaf/payload/lib64/libSaMsg.so.0
-/opt/opensaf/payload/lib64/libSaMsg.so.0.0.0
-/opt/opensaf/payload/lib64/libmaa.so
-/opt/opensaf/payload/lib64/libmaa.so.0
-/opt/opensaf/payload/lib64/libmaa.so.0.0.0
-/opt/opensaf/payload/lib64/libmbca.so
-/opt/opensaf/payload/lib64/libmbca.so.0
-/opt/opensaf/payload/lib64/libmbca.so.0.0.0
-/opt/opensaf/payload/lib64/libsrma.so
-/opt/opensaf/payload/lib64/libsrma.so.0
-/opt/opensaf/payload/lib64/libsrma.so.0.0.0
-/opt/opensaf/payload/lib64/libifa.so
-/opt/opensaf/payload/lib64/libifa.so.0
-/opt/opensaf/payload/lib64/libifa.so.0.0.0
-/opt/opensaf/payload/lib64/libsaf_common.so
-/opt/opensaf/payload/lib64/libsaf_common.so.0
-/opt/opensaf/payload/lib64/libsaf_common.so.0.0.0
-/opt/opensaf/payload/lib64/libavsv_common.so
-/opt/opensaf/payload/lib64/libavsv_common.so.0
-/opt/opensaf/payload/lib64/libavsv_common.so.0.0.0
-/opt/opensaf/payload/lib64/libcpsv_common.so
-/opt/opensaf/payload/lib64/libcpsv_common.so.0
-/opt/opensaf/payload/lib64/libcpsv_common.so.0.0.0
-/opt/opensaf/payload/lib64/libmqsv_common.so
-/opt/opensaf/payload/lib64/libmqsv_common.so.0
-/opt/opensaf/payload/lib64/libmqsv_common.so.0.0.0
-/opt/opensaf/payload/lib64/libedsv_common.so
-/opt/opensaf/payload/lib64/libedsv_common.so.0
-/opt/opensaf/payload/lib64/libedsv_common.so.0.0.0
-/opt/opensaf/payload/lib64/libifsv_common.so
-/opt/opensaf/payload/lib64/libifsv_common.so.0
-/opt/opensaf/payload/lib64/libifsv_common.so.0.0.0
+%{lib_dir}/libncs_core.so
+%{lib_dir}/libncs_core.so.0
+%{lib_dir}/libncs_core.so.0.0.0
+%{lib_dir}/libSaAmf.so
+%{lib_dir}/libSaAmf.so.0
+%{lib_dir}/libSaAmf.so.0.0.0
+%{lib_dir}/libSaCkpt.so
+%{lib_dir}/libSaCkpt.so.0
+%{lib_dir}/libSaCkpt.so.0.0.0
+%{lib_dir}/libSaClm.so
+%{lib_dir}/libSaClm.so.0
+%{lib_dir}/libSaClm.so.0.0.0
+%{lib_dir}/libSaEvt.so
+%{lib_dir}/libSaEvt.so.0
+%{lib_dir}/libSaEvt.so.0.0.0
+%{lib_dir}/libSaLck.so
+%{lib_dir}/libSaLck.so.0
+%{lib_dir}/libSaLck.so.0.0.0
+%{lib_dir}/libSaMsg.so
+%{lib_dir}/libSaMsg.so.0
+%{lib_dir}/libSaMsg.so.0.0.0
+%{lib_dir}/libmaa.so
+%{lib_dir}/libmaa.so.0
+%{lib_dir}/libmaa.so.0.0.0
+%{lib_dir}/libmbca.so
+%{lib_dir}/libmbca.so.0
+%{lib_dir}/libmbca.so.0.0.0
+%{lib_dir}/libsrma.so
+%{lib_dir}/libsrma.so.0
+%{lib_dir}/libsrma.so.0.0.0
+%{lib_dir}/libifa.so
+%{lib_dir}/libifa.so.0
+%{lib_dir}/libifa.so.0.0.0
+%{lib_dir}/libsaf_common.so
+%{lib_dir}/libsaf_common.so.0
+%{lib_dir}/libsaf_common.so.0.0.0
+%{lib_dir}/libavsv_common.so
+%{lib_dir}/libavsv_common.so.0
+%{lib_dir}/libavsv_common.so.0.0.0
+%{lib_dir}/libcpsv_common.so
+%{lib_dir}/libcpsv_common.so.0
+%{lib_dir}/libcpsv_common.so.0.0.0
+%{lib_dir}/libmqsv_common.so
+%{lib_dir}/libmqsv_common.so.0
+%{lib_dir}/libmqsv_common.so.0.0.0
+%{lib_dir}/libedsv_common.so
+%{lib_dir}/libedsv_common.so.0
+%{lib_dir}/libedsv_common.so.0.0.0
+%{lib_dir}/libifsv_common.so
+%{lib_dir}/libifsv_common.so.0
+%{lib_dir}/libifsv_common.so.0.0.0
 
 
 

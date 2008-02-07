@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -35,6 +35,19 @@ MBCSv.
 #include "ncs_edu_pub.h"
 
 static uns32 pss_red_err_ind_handle(NCS_MBCSV_CB_ARG *arg);
+
+static char chk_pt_states[8][50] = {   
+                                 "PSS_COLD_SYNC_IDLE",
+                                 "PSS_COLD_SYNC_DATA_RESP_FAIL",
+                                 "PSS_COLD_SYNC_COMPLETE",
+                                 "PSS_COLD_SYNC_FAIL",
+                                 "PSS_WARM_SYNC_COMPLETE",
+                                 "PSS_WARM_SYNC_WAIT_FOR_DATA_RESP",
+                                 "PSS_WARM_SYNC_DATA_RESP_FAIL",
+                                 "PSS_WARM_SYNC_FAIL"
+                                };
+
+static char addrstr[255] = {0};
 
 /****************************************************************************
  * Name          : psv_mbcsv_register
@@ -81,7 +94,7 @@ uns32 pss_mbcsv_register(PSS_CB *pss_cb)
       m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_GET_SELECT_OBJ_FAIL);
       return NCSCC_RC_FAILURE;
    }
-   m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_MBCSV_GET_SELECT_OBJ_SUCCESS,
+   m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_GET_SELECT_OBJ_SUCCESS,
       sel_obj_arg.info.sel_obj_get.o_select_obj);
 
    /* Update the CB with mbcsv selectionobject */
@@ -183,7 +196,7 @@ uns32 pss_mbcsv_open_ckpt(PSS_PWE_CB *pwe_cb)
       m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_OPEN_FAIL);
       return NCSCC_RC_FAILURE;
    }
-   m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_MBCSV_OPEN_SUCCESS, pwe_cb->pwe_id);
+   m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_OPEN_SUCCESS, pwe_cb->pwe_id);
 
    pwe_cb->ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
    pwe_cb->ckpt_state = PSS_COLD_SYNC_IDLE;
@@ -328,7 +341,7 @@ uns32 pss_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
       
    case NCS_MBCSV_MSG_COLD_SYNC_REQ:
       /* Encode cold sync request */
-      m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_COLD_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
       if(pwe_cb->is_cold_sync_done)
       {
          ncshm_give_hdl(cbk_arg->i_client_hdl);
@@ -367,7 +380,7 @@ uns32 pss_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
       
    case NCS_MBCSV_MSG_WARM_SYNC_REQ:
       /* Encode warm sync 'request' data */
-      m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_WARM_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_WARM_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
       break;
       
    case NCS_MBCSV_MSG_WARM_SYNC_RESP:
@@ -528,14 +541,14 @@ uns32 pss_ckpt_enc_warmsync_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba)
 uns32 pss_ckpt_enc_data_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 peer_mbcsv_version)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-   NCS_BOOL enc_lib_conf = FALSE;
-
+   NCS_BOOL   enc_lib_conf = FALSE;
+ 
    /* Currently, we shall send all the PWE-data in one send.
     * This shall avoid "delta data" problems that are associated during
     * multiple sends.
-    */
-    if(peer_mbcsv_version == 1)
-       enc_lib_conf = TRUE;
+    */   
+   if(peer_mbcsv_version == 1)
+      enc_lib_conf = TRUE;
 
    if(pss_enc_pwe_data_for_sync_with_standby(pwe_cb, io_uba, enc_lib_conf, peer_mbcsv_version) != NCSCC_RC_SUCCESS)
    {
@@ -563,8 +576,8 @@ uns32 pss_ckpt_enc_data_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 peer_m
 uns32 pss_ckpt_dec_data_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 peer_mbcsv_version)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-   NCS_BOOL dec_lib_conf = FALSE;
-
+   NCS_BOOL   dec_lib_conf = FALSE;
+ 
    /* Currently, we are sending all the PWE-data in one send.
     * This shall avoid "delta data" problems that are associated during
     * multiple sends.
@@ -664,6 +677,8 @@ uns32 pss_enc_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
             m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ENC_PCN_FAIL, wbreq->pcn);
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
          }
+         /* Fix for IR00090889  */
+         pend_wbreq_cnt++;
       }
    }
    ncs_encode_16bit(&p_pend_wbreq_cnt, pend_wbreq_cnt);
@@ -1128,9 +1143,11 @@ uns32 pss_ckpt_decode_async_update(NCS_MBCSV_CB_ARG *cbk_arg)
       return rc;
    }
 
-   rc = pss_ckpt_convert_n_process_event(pwe_cb, &data, cbk_arg);
-
+   /* Fixed as a part of IR00085797: Release the Handle, as we need to take this handle again
+      in pss_do_evt() call */
    ncshm_give_hdl(cbk_arg->i_client_hdl);
+
+   rc = pss_ckpt_convert_n_process_event(pwe_cb, &data, cbk_arg);
 
    return rc;
 }
@@ -1156,6 +1173,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    PSS_PWE_CB *pwe_cb = NULL;
    uns16      mbcsv_version = 0;
 
+   m_NCS_MEMSET(addrstr, '\0', 255); 
    m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_DEC_CB_INVOKED);
 
    mbcsv_version =  m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
@@ -1178,7 +1196,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    {
    case NCS_MBCSV_MSG_ASYNC_UPDATE:
       /* Decode async update */
-      m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_ASYNC_UPDATE_DEC_STARTED, pwe_cb->pwe_id);
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_ASYNC_UPDATE_DEC_STARTED, pwe_cb->pwe_id);
       rc = pss_ckpt_decode_async_update(cbk_arg);
       if(rc != NCSCC_RC_SUCCESS)
       {
@@ -1190,11 +1208,15 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
                0, /* errorDetectionTime; AvNd will provide this value */
                SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
                /* log a notify headline, which says that an error report has been sent */ 
-            m_LOG_PSS_HDLN2_III(NCSFL_SEV_NOTICE, PSS_HDLN_MBCSV_ERR_IND_AMF_ERR_REPORT, 
+            m_LOG_PSS_HDLN2_III(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ERR_IND_AMF_ERR_REPORT, 
                pwe_cb->pwe_id, cbk_arg->info.error.i_code, saf_status);
          }
+         sprintf(addrstr, "PWE-id:%d, STATUS: FAILURE", pwe_cb->pwe_id);
+         ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,NCSFL_LC_HEADLINE,
+                    NCSFL_SEV_ERROR, NCSFL_TYPE_TIC, PSS_HDLN_ASYNC_UPDATE_DEC_STATUS, addrstr);
+
       }
-      m_LOG_PSS_HDLN_II(NCSFL_SEV_NOTICE, PSS_HDLN_ASYNC_UPDATE_DEC_STATUS, pwe_cb->pwe_id, rc);
+
       break;
       
    case NCS_MBCSV_MSG_COLD_SYNC_REQ:
@@ -1206,20 +1228,26 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
       if(pwe_cb->ckpt_state != PSS_COLD_SYNC_COMPLETE)
       {
-         m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
+         m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_COLD_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
          rc = pss_ckpt_dec_coldsync_resp(pwe_cb, &cbk_arg->info.decode.i_uba, cbk_arg->info.decode.i_peer_version);
          if (rc != NCSCC_RC_SUCCESS)
          {
             m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_COLD_SYNC_RESP_DEC_FAIL, pwe_cb->pwe_id, rc);
             pwe_cb->ckpt_state = PSS_COLD_SYNC_FAIL;
-            m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
+                       NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr); 
          }
          else
          {
             m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_RESP_DEC_SUCCESS, pwe_cb->pwe_id);
             pwe_cb->ckpt_state = PSS_COLD_SYNC_COMPLETE;
             pwe_cb->is_cold_sync_done = TRUE;
-            m_LOG_PSS_HDLN_II(NCSFL_SEV_NOTICE, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                       NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
             if(pwe_cb->is_amfresponse_for_active_pending)
             {
                /* If there is a pending AMF response to be sent, do it now */
@@ -1247,34 +1275,53 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
       if(pwe_cb->p_pss_cb->ha_state == SA_AMF_HA_STANDBY)
       {
-         m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_WARM_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
+         m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_WARM_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
          rc = pss_ckpt_dec_warmsync_resp(pwe_cb, &cbk_arg->info.decode.i_uba,  is_in_sync);
 
          if (rc != NCSCC_RC_SUCCESS)
          {
             m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_WARM_SYNC_RESP_DEC_FAIL, pwe_cb->pwe_id, rc);
             pwe_cb->ckpt_state = PSS_WARM_SYNC_FAIL;
-            m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
+                       NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr); 
          }
          else
          {
-            m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_WARM_SYNC_RESP_DEC_SUCCESS, pwe_cb->pwe_id);
+            sprintf(addrstr, "PWE-id:%d, STATUS: SUCCESS", pwe_cb->pwe_id);
+            ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_DEBUG,
+                       NCSFL_TYPE_TIC, PSS_HDLN_WARM_SYNC_RESP_DEC_SUCCESS, addrstr);
+            m_NCS_MEMSET(addrstr, '\0', 255);           
             if(*is_in_sync == TRUE)
             {
                pwe_cb->ckpt_state = PSS_WARM_SYNC_COMPLETE;
-               m_LOG_PSS_HDLN_II(NCSFL_SEV_NOTICE, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                          NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                          NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
             }
             else
             {
                pwe_cb->ckpt_state = PSS_WARM_SYNC_WAIT_FOR_DATA_RESP;
                pwe_cb->warm_sync_in_progress = TRUE;
-               m_LOG_PSS_HDLN_II(NCSFL_SEV_NOTICE, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                          NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                          NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
+
                if(pss_send_data_req(pwe_cb->ckpt_hdl)
                   != NCSCC_RC_SUCCESS)
                {
                   m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_SEND_DATA_REQ_FAIL, pwe_cb->pwe_id);
                   pwe_cb->ckpt_state = PSS_WARM_SYNC_FAIL;
-                  m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+                  m_NCS_MEMSET(addrstr, '\0', 255); 
+                  sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+                  ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                             NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
+                             NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
+
                   ncshm_give_hdl(cbk_arg->i_client_hdl);
                   return NCSCC_RC_FAILURE;
                }
@@ -1317,12 +1364,18 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
                m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, 
                  PSS_HDLN_DATA_RESP_DEC_FAIL_WITH_COLD_SYNC_COMPLT_BUT_WARM_SYNC_FAIL, pwe_cb->pwe_id);
                pwe_cb->ckpt_state = PSS_WARM_SYNC_DATA_RESP_FAIL;
-               m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                          NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
+                          NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
             }
             else
             {
                pwe_cb->ckpt_state = PSS_COLD_SYNC_FAIL;
-               m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_CKPT_STATE, pwe_cb->pwe_id, pwe_cb->ckpt_state);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
+                          NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
+                          NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
             }
             if(gl_pss_amf_attribs.amf_attribs.amfHandle != 0)
             {
@@ -1470,7 +1523,7 @@ uns32 pss_set_ckpt_role(PSS_PWE_CB *pwe_cb, SaAmfHAStateT role)
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_SET_CKPT_ROLE_FAIL, role);
       return NCSCC_RC_FAILURE;
    }
-   m_LOG_PSS_HDLN_II(NCSFL_SEV_NOTICE, PSS_HDLN_MBCSV_SET_CKPT_ROLE_SUCCESS, pwe_cb->pwe_id, role);
+   m_LOG_PSS_HDLN_II(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_SET_CKPT_ROLE_SUCCESS, pwe_cb->pwe_id, role);
 
    return NCSCC_RC_SUCCESS;
 }
@@ -1525,7 +1578,7 @@ uns32 pss_send_data_req(NCS_MBCSV_CKPT_HDL ckpt_hdl)
 uns32 pss_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
    /* Currently nothing to be done */
-   m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_MBCSV_PERR_INFO_CB_INVOKED);
+   m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_PERR_INFO_CB_INVOKED);
    return NCSCC_RC_SUCCESS;
 }
 
@@ -1596,7 +1649,9 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
    MAB_MSG        mab_msg;
 
    m_NCS_MEMSET(&mab_msg, '\0', sizeof(mab_msg));
-   mab_msg.yr_hdl = (NCSCONTEXT)pwe_cb;
+
+   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   mab_msg.yr_hdl = NCS_INT64_TO_PTR_CAST(cbk_arg->i_client_hdl);
 
    type = (PSS_CKPT_DATA_TYPE)cbk_arg->info.decode.i_reo_type;
    m_LOG_PSS_HDLN_II(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_ASYNC_EVT_HANDLING_START, pwe_cb->pwe_id, type);
@@ -1974,7 +2029,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
    mbcsv_arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_ADD;
    mbcsv_arg.info.send_ckpt.i_ckpt_hdl = pwe_cb->ckpt_hdl;
-   mbcsv_arg.info.send_ckpt.i_reo_hdl  = (uns32)&msg;
+   mbcsv_arg.info.send_ckpt.i_reo_hdl  = (MBCSV_REO_HDL)(long)(&msg);
    /* set the type of data */
    mbcsv_arg.info.send_ckpt.i_reo_type = (uns32)ckpt_type;
    mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_USR_ASYNC;
@@ -2068,7 +2123,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
    mbcsv_arg.info.send_ckpt.i_action = act_type;
    mbcsv_arg.info.send_ckpt.i_ckpt_hdl = pwe_cb->ckpt_hdl;
-   mbcsv_arg.info.send_ckpt.i_reo_hdl  = (uns32)&msg;
+   mbcsv_arg.info.send_ckpt.i_reo_hdl  = (MBCSV_REO_HDL)(long)(&msg);
    /* set the type of data */
    mbcsv_arg.info.send_ckpt.i_reo_type = (uns32)ckpt_type;
    mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_USR_ASYNC;
@@ -3210,6 +3265,9 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
 {
    uns32 status = NCSCC_RC_SUCCESS, i = 0, cnt = 0;
    char libname[256], fullname[256], appname[64], funcname[256];
+   char file_libname[16][256]={"\0"}, file_appname[16][64]={"\0"};
+   int  loop=0, read = 0;
+   NCS_BOOL entry_exists = FALSE;
    uns8 *p8 = NULL;
    uns32 (*app_routine)(NCSCONTEXT) = NULL; 
    NCS_OS_DLIB_HDL     *lib_hdl = NULL;
@@ -3227,14 +3285,25 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
    ncs_dec_skip_space(uba, 2);
 
    pss_flush_all_mib_tbl_info(pwe_cb->p_pss_cb);  /* Removes all earlier load MIB description info */
-   unlink((char*)&pwe_cb->p_pss_cb->lib_conf_file); /* Delete existing version */
-   fh = sysf_fopen((char*)&pwe_cb->p_pss_cb->lib_conf_file, "a+"); /* Create new file again */
+   fh = sysf_fopen((char*)&pwe_cb->p_pss_cb->lib_conf_file, "r+"); /* Create new file again */
    if(fh == NULL)
    {
       m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_LIB_CONF_FILE_OPEN_IN_APPEND_MODE_FAIL);
       return NCSCC_RC_FAILURE;
    }
 
+   while(((read = fscanf(fh, "%s %s", (char*)file_libname[loop], (char*)file_appname[loop])) == 2) &&
+         (read != EOF) && loop++ < 16);
+
+   if(read != EOF)
+   {
+      /* Log error occured while reading pssv_lib_conf, also log loop value */
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_READ_LIB_CONF_FAIL, loop);
+      sysf_fclose(fh);
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* Merging the contents of the resident pssv_lib_conf and received lib_conf information */
    for(i = 0; i < cnt; i++)
    {
       m_NCS_MEMSET(&libname, '\0', sizeof(libname));
@@ -3251,8 +3320,23 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
          sysf_fclose(fh);
          return NCSCC_RC_FAILURE;
       }
-      sysf_fprintf(fh, "%s %s\n", libname, appname);
 
+      for(loop = 0, entry_exists = FALSE; loop < 16; loop++)
+      {
+         if((strcmp(libname, file_libname[loop]) == 0) && (strcmp(appname, file_appname[loop]) == 0))
+            entry_exists = TRUE;
+      }
+      if(entry_exists == FALSE)
+         sysf_fprintf(fh, "%s %s\n", libname, appname);
+   }
+
+   fseek(fh, 0L, SEEK_SET);
+
+   m_NCS_MEMSET(&libname, '\0', sizeof(libname));
+   m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+   while(((read = fscanf(fh, "%s %s", (char*)&libname, (char*)&appname)) == 2) &&
+         (read != EOF))
+   {
       /* Load the library, and invoke the lib-register-function */
       m_NCS_MEMSET(&fullname, '\0', sizeof(fullname));
       sysf_sprintf((char*)&fullname, "%s", (char*)&libname);
@@ -3286,6 +3370,8 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
       }
       m_LOG_PSS_LIB_INFO(NCSFL_SEV_INFO, PSS_LIB_INFO_CONF_FILE_ENTRY_LOADED, &libname, &funcname);
       m_NCS_OS_DLIB_CLOSE(lib_hdl);
+      m_NCS_MEMSET(&libname, '\0', sizeof(libname));
+      m_NCS_MEMSET(&appname, '\0', sizeof(appname));
    }
    sysf_fclose(fh);
 
@@ -3429,7 +3515,6 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
    }
    pwe_cb->p_pss_cb->spcn_list = list;
 
-   pss_update_entry_in_spcn_conf_file(pwe_cb->p_pss_cb, NULL /* For all SPCNs */); /* This modifies the file contents */
    sysf_fclose(fh);
 
    return NCSCC_RC_SUCCESS;

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -72,7 +72,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
       {
           m_VDS_LOG_MDS(VDS_LOG_VDA_ROLECHANGE,
                              VDS_LOG_MDS_FAILURE,
-                                     NCSFL_SEV_CRITICAL);
+                                     NCSFL_SEV_ERROR);
       }
       else
       {
@@ -119,6 +119,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
    {
       m_VDS_LOG_MDS_VER("MDS_INTALL","FAILURE",NCSMDS_SVC_ID_VDS,\
                         "VDS_SVC_PVT_VER",svc_info.info.svc_install.i_mds_svc_pvt_ver);
+
       return NCSCC_RC_FAILURE;
    }
    else
@@ -144,7 +145,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
    {
       m_VDS_LOG_MDS(VDS_LOG_MDS_SUBSCRIBE,
                             VDS_LOG_MDS_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       
       vds_mds_unreg(vds);                      /* review MDS vds_mds_unreg should be 
                                                       call */
@@ -165,7 +166,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
 
       m_VDS_LOG_MDS(VDS_LOG_VDA_ROLECHANGE,
                              VDS_LOG_MDS_FAILURE,
-                                     NCSFL_SEV_CRITICAL);
+                                     NCSFL_SEV_ERROR);
       return rc;
    }
    else
@@ -181,7 +182,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_INITIALIZE,
                              VDS_LOG_CKPT_FAILURE,
-                                     NCSFL_SEV_CRITICAL, rc);
+                                     NCSFL_SEV_ERROR, rc);
        ncshm_give_hdl((uns32)gl_vds_hdl);
       vds_destroy(VDS_DONT_CANCEL_THREAD);
       return rc;   
@@ -229,7 +230,7 @@ uns32  vds_mds_unreg(VDS_CB *vds)
    {
       m_VDS_LOG_MDS(VDS_LOG_MDS_UNREG,
                                VDS_LOG_MDS_FAILURE,
-                                        NCSFL_SEV_CRITICAL);
+                                        NCSFL_SEV_ERROR);
    }
    else
    {
@@ -457,7 +458,6 @@ uns32 vds_mds_cb_enc(VDS_CB *vds, struct ncsmds_callback_info *info)
    m_VDS_LOG_MDS(VDS_LOG_MDS_ENC_CBK,
                            VDS_LOG_MDS_NOTHING,
                                   NCSFL_SEV_INFO); 
-
    /* The is the VDS's response to a NCSVDA_VDEST_CREATE request */
    vda_info = info->info.enc.i_msg;
 
@@ -561,7 +561,7 @@ uns32 vds_mds_role_ack(VDS_CB *vds, struct ncsmds_callback_info *info)
             {
                m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                   VDS_LOG_AMF_FAILURE,
-                                          NCSFL_SEV_CRITICAL, status);
+                                          NCSFL_SEV_ERROR, status);
             }
             vds_role_ack_to_state = VDS_HA_STATE_NULL;
 
@@ -579,7 +579,7 @@ uns32 vds_mds_role_ack(VDS_CB *vds, struct ncsmds_callback_info *info)
     {
        m_VDS_LOG_AMF(VDS_LOG_AMF_RESPONSE,
                                   VDS_LOG_AMF_FAILURE,
-                                          NCSFL_SEV_CRITICAL, status);
+                                          NCSFL_SEV_ERROR, status);
     } 
     vds_role_ack_to_state = VDS_HA_STATE_NULL;
    }
@@ -623,7 +623,7 @@ uns32 vds_mds_cb_dec_flat(VDS_CB *vds, struct ncsmds_callback_info *info)
    {  
       m_VDS_LOG_MDS(VDS_LOG_MEM_VDA_INFO,
                             VDS_LOG_MEM_ALLOC_FAILURE,
-                                    NCSFL_SEV_CRITICAL);
+                                    NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;
    }
    info->info.dec_flat.o_msg = vda_info;
@@ -801,7 +801,7 @@ uns32 vds_mds_send(VDS_CB *vds, VDS_EVT *vds_evt)
    {
       m_VDS_LOG_MDS(VDS_LOG_MDS_SEND,
                         VDS_LOG_MDS_FAILURE,
-                            NCSFL_SEV_CRITICAL);
+                            NCSFL_SEV_ERROR);
    }
 
    return rc;

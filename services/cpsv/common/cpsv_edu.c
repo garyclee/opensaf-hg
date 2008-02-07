@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -346,7 +346,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_SAERR_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -361,7 +361,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_INIT_REQ), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_saversiont, 0, 0, 0, (uns32)&((DS*)0)->version, 0, NULL},
+      {EDU_EXEC,ncs_edp_saversiont, 0, 0, 0, (long)&((DS*)0)->version, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -376,7 +376,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_FINALIZE_REQ), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -391,12 +391,12 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->creationFlags, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->checkpointSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->retentionDuration, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->maxSections, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->maxSectionSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->maxSectionIdSize, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->creationFlags, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->checkpointSize, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->retentionDuration, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->maxSections, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->maxSectionSize, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->maxSectionIdSize, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -411,13 +411,13 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_OPEN_REQ), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->ckpt_attrib, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_flags, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->invocation, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->timeout, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->ckpt_attrib, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_flags, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->invocation, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->timeout, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -433,8 +433,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_CKPT_CLOSE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -459,8 +459,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_INIT_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckptHandle, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckptHandle, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -476,13 +476,13 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_OPEN_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->gbl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->creation_attr, 0, NULL},
-      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((DS*)0)->is_active_exists,0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->active_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->gbl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->creation_attr, 0, NULL},
+      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS*)0)->is_active_exists,0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->active_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
 #if 0
       {EDU_EXEC,ncs_edp_uns32 , EDQ_POINTER , 0, 0, (uns32)&((DS*)0)->addr, 0, NULL},
 #endif
@@ -503,9 +503,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(SaCkptCheckpointDescriptorT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->checkpointCreationAttributes, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->numberOfSections, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->memoryUsed, 0, NULL},
+      {EDU_EXEC, FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->checkpointCreationAttributes, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->numberOfSections, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->memoryUsed, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -520,9 +520,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_STATUS), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, FUNC_NAME(SaCkptCheckpointDescriptorT), 0, 0, 0, (uns32)&((DS*)0)->status, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)(long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, FUNC_NAME(SaCkptCheckpointDescriptorT), 0, 0, 0, (long)&((DS*)0)->status, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -539,11 +539,11 @@ FUNC_DECLARATION(DS)
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_READ_DATA), 0, 0, 0, sizeof(DS), 0, NULL},
       /* {EDU_EXEC,ncs_edp_uns32, EDQ_POINTER , 0, 0, (uns32)&((DS*)0)->data, 0, NULL}, */
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->read_size, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->read_size, 0, NULL},
       {EDU_EXEC, ncs_edp_uns8, EDQ_VAR_LEN_DATA, ncs_edp_uns32, 0, \
-            (uns32)&((DS*)0)->data, (uns32)&((DS*)0)->read_size, NULL},
+            (long)&((DS*)0)->data, (long)&((DS*)0)->read_size, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA /* Svc-ID */, NULL, 0, 6/* Sub-ID */, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->err, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->err, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -558,7 +558,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_READ_MAP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32,0, 0, 0, (uns32)&((DS*)0)->offset_index, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32,0, 0, 0, (long)&((DS*)0)->offset_index, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -613,25 +613,25 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->num_of_elmts, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->size, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->from_svc, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, (void *)TEST_FUNC(CPSV_ND2A_DATA_ACCESS_RSP)},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->num_of_elmts, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->size, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->from_svc, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, (void *)TEST_FUNC(CPSV_ND2A_DATA_ACCESS_RSP)},
 
 
-      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_MAP),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0,(uns32)&((DS*)0)->info.read_mapping,(uns32)&((DS*)0)->size, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_MAP),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0,(long)&((DS*)0)->info.read_mapping,(long)&((DS*)0)->size, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, 0 /* Sub-ID */, 0, NULL},
 
-      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_DATA),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (uns32)&((DS*)0)->info.read_data,(uns32)&((DS*)0)->size, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_READ_DATA),EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (long)&((DS*)0)->info.read_data,(long)&((DS*)0)->size, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, CPSV_SVC_SUB_ID_CPSV_ND2A_READ_DATA/* Sub-ID */, 0, NULL},
 
-      {EDU_EXEC,ncs_edp_uns32,EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (uns32)&((DS*)0)->info.write_err_index,(uns32)&((DS*)0)->size, NULL},
+      {EDU_EXEC,ncs_edp_uns32,EDQ_VAR_LEN_DATA,ncs_edp_uns32, 0, (long)&((DS*)0)->info.write_err_index,(long)&((DS*)0)->size, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPA/* Svc-ID */, NULL, EDU_EXIT, CPSV_SVC_SUB_ID_CPSV_SaUint32T /* Sub-ID */, 0, NULL},
 
-      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO), 0, 0, EDU_EXIT, (uns32)&((DS*)0)->info.ovwrite_error, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO), 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ovwrite_error, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -647,9 +647,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(SaCkptSectionIdT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns16 , 0, 0, 0, (uns32)&((DS*)0)->idLen, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns16 , 0, 0, 0, (long)&((DS*)0)->idLen, 0, NULL},
       {EDU_EXEC, ncs_edp_uns8, EDQ_VAR_LEN_DATA, ncs_edp_uns16, 0, \
-            (uns32)&((DS*)0)->id, (uns32)&((DS*)0)->idLen, NULL},
+            (long)&((DS*)0)->id, (long)&((DS*)0)->idLen, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPND /* Svc-ID */, NULL, 0, CPSV_SVC_SUB_ID_CPSV_DEFAULT_VAL /* Sub-ID */, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -665,11 +665,11 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(SaCkptSectionDescriptorT), 0, 0, 0, sizeof(DS), 0, NULL}, 
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sectionId, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->expirationTime, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->sectionSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (uns32)&((DS*)0)->sectionState, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lastUpdate, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->sectionId, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->expirationTime, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->sectionSize, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (long)&((DS*)0)->sectionState, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lastUpdate, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -686,11 +686,11 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_SECT_ITER_GETNEXT_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->iter_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionDescriptorT), 0, 0, 0, (uns32)&((DS*)0)->sect_desc, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->n_secs_trav, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->iter_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionDescriptorT), 0, 0, 0, (long)&((DS*)0)->sect_desc, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->n_secs_trav, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -706,10 +706,10 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_SYNC_RSP), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -728,9 +728,9 @@ FUNC_DECLARATION(DS)
                                                              
    {EDU_START,FUNC_NAME(CPSV_ND2D_USR_INFO),
 0, 0, 0, sizeof(DS), 0, NULL},
-   {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-   {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (uns32)&((DS*)0)->info_type, 0, NULL},
-   {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_flags, 0, NULL},
+   {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+   {EDU_EXEC,ncs_edp_uns32 , 0, 0, 0, (long)&((DS*)0)->info_type, 0, NULL},
+   {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_flags, 0, NULL},
    {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
                                                              
     };
@@ -747,9 +747,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2D_CKPT_CREATE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->attributes, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_flags, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->attributes, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_flags, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -766,8 +766,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
  
       {EDU_START,FUNC_NAME(CPSV_CKPT_SEC_INFO_UPD), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->info_type, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->info_type, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    
    };
@@ -782,7 +782,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_ID_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -797,7 +797,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2D_CKPT_UNLINK), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -812,7 +812,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_NAME_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -829,8 +829,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_RDSET), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->reten_time, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->reten_time, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -845,8 +845,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_DEST_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->mds_dest, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->mds_dest, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -861,14 +861,14 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_DESTLIST_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->mds_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->active_dest, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->attributes, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_flags, 0, NULL}, 
-      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((DS*)0)->is_cpnd_restart,0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->dest_cnt, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPSV_CPND_DEST_INFO),EDQ_VAR_LEN_DATA,ncs_edp_uns32,EDU_EXIT, (uns32)&((DS*)0)->dest_list,(uns32)&((DS*)0)->dest_cnt,NULL},
+      {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->mds_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->active_dest, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->attributes, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_flags, 0, NULL}, 
+      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS*)0)->is_cpnd_restart,0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->dest_cnt, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_CPND_DEST_INFO),EDQ_VAR_LEN_DATA,ncs_edp_uns32,EDU_EXIT, (long)&((DS*)0)->dest_list,(long)&((DS*)0)->dest_cnt,NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -889,7 +889,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_CKPT_UNLINK), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -903,7 +903,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_ACTIVE_REP_SET), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -918,7 +918,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_STATUS_GET), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -933,8 +933,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(SaCkptSectionCreationAttributesT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT),EDQ_POINTER ,0,0,(uns32)&((DS*)0)->sectionId, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->expirationTime, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT),EDQ_POINTER ,0,0,(long)&((DS*)0)->sectionId, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->expirationTime, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -951,12 +951,12 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_SECT_CREATE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->agent_mdest, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionCreationAttributesT),0,0,0,(uns32)&((DS*)0)->sec_attri,0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->init_size, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns8,EDQ_VAR_LEN_DATA,ncs_edp_uns64,0,(uns32)&((DS*)0)->init_data,(uns32)&((DS*)0)->init_size, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->agent_mdest, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionCreationAttributesT),0,0,0,(long)&((DS*)0)->sec_attri,0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->init_size, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns8,EDQ_VAR_LEN_DATA,ncs_edp_uns64,0,(long)&((DS*)0)->init_data,(long)&((DS*)0)->init_size, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_CPND /* Svc-ID */, NULL, 0, CPSV_SVC_SUB_ID_CPSV_DEFAULT_VAL /* Sub-ID */, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -971,10 +971,10 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_SECT_DELETE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sec_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->agent_mdest, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->sec_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->agent_mdest, 0, NULL},
   
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -989,9 +989,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_SECT_EXP_TIME), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sec_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->exp_time, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->sec_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->exp_time, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1006,12 +1006,12 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_SECT_ITER_GETNEXT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->section_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->iter_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->filter, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->n_secs_trav, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->exp_tmr, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->section_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->iter_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->filter, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->n_secs_trav, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->exp_tmr, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1026,14 +1026,14 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_DATA),EDQ_LNKLIST, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sec_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->expirationTime, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->dataSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->readSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns8,EDQ_VAR_LEN_DATA,ncs_edp_uns64,0,(uns32)&((DS*)0)->data,(uns32)&((DS*)0)->dataSize, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->sec_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->expirationTime, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->dataSize, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->readSize, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns8,EDQ_VAR_LEN_DATA,ncs_edp_uns64,0,(long)&((DS*)0)->data,(long)&((DS*)0)->dataSize, NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->dataOffset, 0, NULL},
-      {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_CKPT_DATA),0,0,0,(uns32)&((DS*)0)->next,0,NULL}, 
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->dataOffset, 0, NULL},
+      {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_CKPT_DATA),0,0,0,(long)&((DS*)0)->next,0,NULL}, 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1048,12 +1048,12 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_ND2A_ARRIVAL_MSG), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->mdest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->num_of_elmts, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DATA),EDQ_POINTER,0,0,(uns32)&((DS*)0)->ckpt_data, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->mdest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->num_of_elmts, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DATA),EDQ_POINTER,0,0,(long)&((DS*)0)->ckpt_data, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
     NCS_ENC_DEC_REM_FLOW(DS)
@@ -1091,25 +1091,25 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_ACCESS), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->agent_mdest, 0, NULL}, 
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->num_of_elmts, 0, NULL},
-      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((DS*)0)->all_repl_evt_flag,0, NULL}, 
-      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DATA),EDQ_POINTER,0,0,(uns32)&((DS*)0)->data, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->seqno, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((DS*)0)->last_seq, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.invocation, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.client_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.is_ckpt_open, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.cpa_sinfo.dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.cpa_sinfo.stype, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.cpa_sinfo.to_svc, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((DS*)0)->ckpt_sync.cpa_sinfo.ctxt.length, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((DS*)0)->ckpt_sync.cpa_sinfo.ctxt.data, MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->agent_mdest, 0, NULL}, 
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->num_of_elmts, 0, NULL},
+      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS*)0)->all_repl_evt_flag,0, NULL}, 
+      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DATA),EDQ_POINTER,0,0,(long)&((DS*)0)->data, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->seqno, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((DS*)0)->last_seq, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.invocation, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.client_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.is_ckpt_open, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.cpa_sinfo.dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.cpa_sinfo.stype, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.cpa_sinfo.to_svc, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((DS*)0)->ckpt_sync.cpa_sinfo.ctxt.length, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((DS*)0)->ckpt_sync.cpa_sinfo.ctxt.data, MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1124,16 +1124,16 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_CKPT_SYNC), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->invocation, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->is_ckpt_open, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->cpa_sinfo.dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->cpa_sinfo.stype, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->cpa_sinfo.to_svc, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((DS*)0)->cpa_sinfo.ctxt.length, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (uns32)&((DS*)0)->cpa_sinfo.ctxt.data, MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->invocation, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->is_ckpt_open, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->cpa_sinfo.dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->cpa_sinfo.stype, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->cpa_sinfo.to_svc, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((DS*)0)->cpa_sinfo.ctxt.length, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((DS*)0)->cpa_sinfo.ctxt.data, MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1148,7 +1148,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_A2ND_ARRIVAL_REG), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->client_hdl, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->client_hdl, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1164,7 +1164,7 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CPND_DEST_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->dest, 0, NULL},
   #if 0 
      {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_CPND_DEST_INFO),0,0,0,(uns32)&((DS*)0)->next,0,NULL}, 
   #endif 
@@ -1184,15 +1184,15 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_D2ND_CKPT_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
 
-      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (uns32)&((DS*)0)->is_active_exists,0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (uns32)&((DS*)0)->attributes, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->active_dest, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_rep_create, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->dest_cnt, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPSV_CPND_DEST_INFO),EDQ_VAR_LEN_DATA,ncs_edp_uns32,EDU_EXIT, (uns32)&((DS*)0)->dest_list,(uns32)&((DS*)0)->dest_cnt,NULL},
+      {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, (long)&((DS*)0)->is_active_exists,0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, (long)&((DS*)0)->attributes, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->active_dest, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_rep_create, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->dest_cnt, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_CPND_DEST_INFO),EDQ_VAR_LEN_DATA,ncs_edp_uns32,EDU_EXIT, (long)&((DS*)0)->dest_list,(long)&((DS*)0)->dest_cnt,NULL},
       {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -1209,8 +1209,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_D2ND_CKPT_CREATE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (uns32)&((DS *)0)->ckpt_name,0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->ckpt_info, 0, NULL},
+      {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((DS *)0)->ckpt_name,0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->ckpt_info, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1225,9 +1225,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
                                                                           
       {EDU_START,FUNC_NAME(CPSV_CKPT_USED_SIZE), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_used_size, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_used_size, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
                                                                           
     };
@@ -1242,9 +1242,9 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_NUM_SECTIONS), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->ckpt_num_sections, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->ckpt_num_sections, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1264,11 +1264,11 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_SECT_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->ckpt_id, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sec_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->lcl_ckpt_id, 0, NULL},
-      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->agent_mdest, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (long)&((DS*)0)->sec_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->lcl_ckpt_id, 0, NULL},
+      {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->agent_mdest, 0, NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1285,8 +1285,8 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(MDS_SYNC_SND_CTXT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((DS*)0)->length, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0,(uns32)&((DS*)0)->data,10,NULL},
+      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((DS*)0)->length, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0,(long)&((DS*)0)->data,10,NULL},
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1492,69 +1492,69 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPND_EVT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->error, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPND_EVT)},
-     {EDU_EXEC,FUNC_NAME(CPSV_INIT_REQ) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.initReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_FINALIZE_REQ) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.finReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_OPEN_REQ) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.openReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_CLOSE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.closeReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_UNLINK) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ulinkReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.rdsetReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_ACTIVE_REP_SET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arsetReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS_GET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.statReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_CREATE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_creatReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_DELETE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_delReq, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_EXP_TIME) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_expset, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_ITER_GETNEXT) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.iter_getnext, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_write, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_read, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_SYNC) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_sync, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_ARRIVAL_REG) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arr_ntfy, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_info, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_USED_SIZE) , 0, 0, EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_mem_size, 0,NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DESTLIST_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_add, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_del, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_CREATE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_create, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_destroy, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_ulink, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.rdset, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.active_set, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.cl_ack, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ulink_ack, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.rdset_ack, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPND_EVT)},
+     {EDU_EXEC,FUNC_NAME(CPSV_INIT_REQ) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.initReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_FINALIZE_REQ) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.finReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_OPEN_REQ) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.openReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_CLOSE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.closeReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_UNLINK) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ulinkReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rdsetReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_ACTIVE_REP_SET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arsetReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS_GET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.statReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_CREATE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_creatReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_DELETE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_delReq, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_EXP_TIME) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_expset, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_ITER_GETNEXT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.iter_getnext, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_write, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_read, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_SYNC) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_sync, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_ARRIVAL_REG) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arr_ntfy, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_info, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_USED_SIZE) , 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ckpt_mem_size, 0,NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DESTLIST_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_add, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_del, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_D2ND_CKPT_CREATE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_create, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_destroy, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_ulink, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rdset, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.active_set, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cl_ack, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ulink_ack, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rdset_ack, 0, NULL},
 
 #if 0
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0, 0, (uns32)&((DS*)0)->info.crset_ack, 0, NULL},
 #endif
 
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arep_ack, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.destroy_ack, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arep_ack, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.destroy_ack, 0, NULL},
 
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0, EDU_EXIT,(uns32)&((DS*)0)->info.cpnd_restart, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DESTLIST_INFO) , 0, 0, EDU_EXIT,(uns32)&((DS*)0)->info.cpnd_restart_done, 0, NULL}, 
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0, EDU_EXIT,(long)&((DS*)0)->info.cpnd_restart, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DESTLIST_INFO) , 0, 0, EDU_EXIT,(long)&((DS*)0)->info.cpnd_restart_done, 0, NULL}, 
      
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS_GET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.stat_get, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.status, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_CREATE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.active_sec_creat, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_creat_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.active_sec_creat_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_delete_req, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_delete_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_EXP_TIME) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_exp_set, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_exp_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_SYNC) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sync_req, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_nd2nd_sync, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS_GET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.stat_get, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.status, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_CREATE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.active_sec_creat, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_creat_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.active_sec_creat_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_delete_req, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_delete_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_EXP_TIME) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_exp_set, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_exp_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_SYNC) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sync_req, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_sync, 0, NULL},
 
 #if 0
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0, 0, (uns32)&((DS*)0)->info.active_sync_rsp, 0, NULL},
 #endif
 
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_nd2nd_data, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_nd2nd_data_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_ITER_GETNEXT) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.getnext_req, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SECT_ITER_GETNEXT_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_nd2nd_getnext_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NUM_SECTIONS) , 0, 0, EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_sections, 0,NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_data, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_data_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_A2ND_SECT_ITER_GETNEXT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.getnext_req, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SECT_ITER_GETNEXT_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_getnext_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NUM_SECTIONS) , 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ckpt_sections, 0,NULL},
       
 
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -1632,20 +1632,20 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPD_EVT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPD_EVT)},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPD_EVT)},
 
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_CKPT_CREATE) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_create, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_CKPT_UNLINK) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_ulink, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.rd_set, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arep_set, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_close, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_destroy, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SEC_INFO_UPD) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_sec_info, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_USR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_usr_info, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_USED_SIZE), 0, 0, EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_mem_used, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NAME_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_destroy_byname, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NUM_SECTIONS), 0, 0, EDU_EXIT, (uns32)&((DS*)0)->info.ckpt_created_sections, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_CKPT_CREATE) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_create, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_CKPT_UNLINK) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_ulink, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_RDSET) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rd_set, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arep_set, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_close, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ID_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_destroy, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SEC_INFO_UPD) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_sec_info, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2D_USR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_usr_info, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_USED_SIZE), 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ckpt_mem_used, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NAME_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_destroy_byname, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_NUM_SECTIONS), 0, 0, EDU_EXIT, (long)&((DS*)0)->info.ckpt_created_sections, 0, NULL},
      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1737,25 +1737,25 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPA_EVT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPA_EVT)},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPA_EVT)},
 
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_INIT_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.initRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.finRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_OPEN_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.openRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.closeRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ulinkRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.rdsetRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arsetRsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.status, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_creat_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_delete_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_exptmr_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SECT_ITER_GETNEXT_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.iter_next_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sec_data_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SYNC_RSP) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.sync_rsp, 0, NULL},
-     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.ackpt_info, 0, NULL},  
-     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_ARRIVAL_MSG) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.arr_msg, 0, NULL},  
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_INIT_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.initRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.finRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_OPEN_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.openRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.closeRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ulinkRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rdsetRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arsetRsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_STATUS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.status, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_SECT_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_creat_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_delete_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_exptmr_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SECT_ITER_GETNEXT_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.iter_next_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sec_data_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_SYNC_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sync_rsp, 0, NULL},
+     {EDU_EXEC,FUNC_NAME(CPSV_CKPT_DEST_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ackpt_info, 0, NULL},  
+     {EDU_EXEC,FUNC_NAME(CPSV_ND2A_ARRIVAL_MSG) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arr_msg, 0, NULL},  
      
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -1809,11 +1809,11 @@ FUNC_DECLARATION(DS)
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_EVT),0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->type, 0, NULL},
-      {EDU_TEST, ncs_edp_uns32, 0, 0,0, (uns32)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPSV_EVT)},
-      {EDU_EXEC,FUNC_NAME(CPA_EVT) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.cpa, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPND_EVT) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.cpnd, 0, NULL},
-      {EDU_EXEC,FUNC_NAME(CPD_EVT) , 0, 0,EDU_EXIT, (uns32)&((DS*)0)->info.cpd, 0, NULL},
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      {EDU_TEST, ncs_edp_uns32, 0, 0,0, (long)&((DS*)0)->type, 0,(void *)TEST_FUNC(CPSV_EVT)},
+      {EDU_EXEC,FUNC_NAME(CPA_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpa, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPND_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpnd, 0, NULL},
+      {EDU_EXEC,FUNC_NAME(CPD_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpd, 0, NULL},
 #if 0
       {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_EVT),0,0,0,(uns32)&((DS*)0)->next,0,NULL}, 
 #endif

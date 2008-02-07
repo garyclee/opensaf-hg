@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -362,30 +362,30 @@ NCSFL_SET avm_str_set[] =
 NCSFL_FMAT avm_fmat_set[] = 
 {
    { AVM_LID_HDLN,         NCSFL_TYPE_TIC,     "%s AVM: %s %s\n"},
-   { AVM_LID_HDLN_VAL,     NCSFL_TYPE_TICLL,   "%s AVM: %s at %s:%d val %d\n"},
-   { AVM_LID_HDLN_STR,     "TICLP",            "%s AVM: %s at %s:%d val %s\n"},
-   { AVM_LID_PATRICIA_VAL, "TIIP",             "%s AVM: %s %s val %d\n"},
+   { AVM_LID_HDLN_VAL,     NCSFL_TYPE_TICLL,   "%s AVM: %s at %s:%ld val %ld\n"},
+   { AVM_LID_HDLN_STR,     "TICLP",            "%s AVM: %s at %s:%ld val %s\n"},
+   { AVM_LID_PATRICIA_VAL, "TIIP",             "%s AVM: %s %s val %ld\n"},
    { AVM_LID_PATRICIA_VAL_STR,    "TIIC",       "%s AVM: %s %s val %s\n"}, 
-   { AVM_LID_MAS,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s Id %d \n"}, 
-   { AVM_LID_EDA,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s Id %d \n"},
-   { AVM_LID_TMR,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s %d \n"}, 
-   { AVM_LID_TMR_IGN,      NCSFL_TYPE_TICL,    "%s AVM %s  %s Id %d\n"}, 
-   { AVM_LID_MEM,          NCSFL_TYPE_TIICL,   "%s AVM: %s %s at %s:%d\n"},
-   { AVM_LID_ROLE,         NCSFL_TYPE_TIL,    "%s AVM: %s %d \n"},
-   { AVM_LID_ROLE_SRC,     NCSFL_TYPE_TILL,    "%s AVM: %s Role %d Rsp %d\n"},
-   { AVM_LID_MBCSV,        NCSFL_TYPE_TIIL,    "%s AVM: %s %s %d\n"}, 
+   { AVM_LID_MAS,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s Id %ld \n"}, 
+   { AVM_LID_EDA,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s Id %ld \n"},
+   { AVM_LID_TMR,          NCSFL_TYPE_TIIL,   "%s AVM: %s %s %ld \n"}, 
+   { AVM_LID_TMR_IGN,      NCSFL_TYPE_TICL,    "%s AVM %s  %s Id %ld\n"}, 
+   { AVM_LID_MEM,          NCSFL_TYPE_TIICL,   "%s AVM: %s %s at %s:%ld\n"},
+   { AVM_LID_ROLE,         NCSFL_TYPE_TIL,    "%s AVM: %s %ld \n"},
+   { AVM_LID_ROLE_SRC,     NCSFL_TYPE_TILL,    "%s AVM: %s Role %ld Rsp %ld\n"},
+   { AVM_LID_MBCSV,        NCSFL_TYPE_TIIL,    "%s AVM: %s %s %ld\n"}, 
    { AVM_LID_HPL_API,      NCSFL_TYPE_TICI,    "%s AVM: %s %s \n"}, 
 
    { AVM_LID_FUNC_RETVAL,  NCSFL_TYPE_TII,     "%s AVM: %s %s\n"},
-   { AVM_LID_HPI_HS_EVT,     "TICLL",           "%s AVM: %s %s %d %d\n"},
-   { AVM_LID_HPI_RES_EVT,     "TCIL",           "%s AVM: %s %s  Event: %d\n"},
+   { AVM_LID_HPI_HS_EVT,     "TICLL",           "%s AVM: %s %s %ld %ld\n"},
+   { AVM_LID_HPI_RES_EVT,     "TCIL",           "%s AVM: %s %s  Event: %ld\n"},
    { AVM_LID_EVT_AVD_DTL,      "TIP",              "%s AVM: %s %s \n"},
-   { AVM_LID_EVT,               NCSFL_TYPE_TILL,    "%s AVM: %s %d %d\n"},
-   { AVM_LID_ENT_INFO,          NCSFL_TYPE_TILLL,   "%s AVM: %s Current State: %d Previous State: %d FSM_EVT: %d\n"},
+   { AVM_LID_EVT,               NCSFL_TYPE_TILL,    "%s AVM: %s %ld %ld\n"},
+   { AVM_LID_ENT_INFO,          NCSFL_TYPE_TILLL,   "%s AVM: %s Current State: %ld Previous State: %ld FSM_EVT: %ld\n"},
    { AVM_LID_GEN_INFO1,         NCSFL_TYPE_TC,     "%s AVM:  %s\n"},  
    { AVM_LID_GEN_INFO2,        "TCP",              "%s AVM: %s %s \n"},
    { AVM_LID_GEN_INFO3,        "TCC",              "%s AVM: %s %s \n"},
-   { AVM_LID_EVT_Q,             NCSFL_TYPE_TILL,   "%s AVM: %s Event Id : %d Boolean : %d\n"},
+   { AVM_LID_EVT_Q,             NCSFL_TYPE_TILL,   "%s AVM: %s Event Id : %ld Boolean : %ld\n"},
    { 0, 0, 0 }
 };
 

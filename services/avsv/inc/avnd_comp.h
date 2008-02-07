@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -50,6 +50,9 @@ struct avnd_srm_req_tag;
 /* cmd param definitions */
 #define AVND_COMP_CLC_PARAM_MAX       10
 #define AVND_COMP_CLC_PARAM_SIZE_MAX  100
+
+/*Return Exit Codes by Instantiate Code  */
+#define AVND_COMP_INST_EXIT_CODE_NO_RETRY   200 
 
 /* clc event handler declaration */
 typedef uns32 (*AVND_COMP_CLC_FSM_FN)(struct avnd_cb_tag *, struct avnd_comp_tag *);
@@ -114,6 +117,9 @@ typedef struct avnd_comp_clc_info {
    /* comp reg tmr info */
    SaTimeT  inst_cmd_ts; /* instantiate cmd start timestamp */
    AVND_TMR clc_reg_tmr; /* comp reg tmr */
+  
+   uns32                   inst_code_rcvd;  /* Store the error value 
+                                                      received from the instantiate script */
 
 } AVND_COMP_CLC_INFO;
 
@@ -598,7 +604,7 @@ typedef struct avnd_comp_tag {
       ac++;\
    } \
    if ( NULL != tok ) { \
-      sc[0] = (char)NULL; \
+      sc[0] = (char)(long)NULL; \
       av[0] = NULL; \
       ac = 0; \
    } else \

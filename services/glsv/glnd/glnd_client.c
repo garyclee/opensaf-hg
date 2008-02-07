@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -125,7 +125,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB    *glnd_cb,
    else
    {
      /* assign the memory space as the client's handle id */
-     client_info->app_handle_id = m_ASSIGN_LCK_HANDLE_ID((uns32)client_info);
+     client_info->app_handle_id = m_ASSIGN_LCK_HANDLE_ID((long)client_info);
    }
    client_info->agent_mds_dest = agent_mds_dest;
 

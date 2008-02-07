@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -248,7 +248,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
 
    /* Create the task for MQND */
    if ((rc = m_NCS_TASK_CREATE ((NCS_OS_CB)mqnd_main_process,
-      (NCSCONTEXT)cb->cb_hdl, m_MQND_TASKNAME, m_MQND_TASK_PRI,
+      (NCSCONTEXT)(long)cb->cb_hdl, m_MQND_TASKNAME, m_MQND_TASK_PRI,
       m_MQND_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS)
    {
      m_LOG_MQSV_ND(MQND_TASK_CREATE_FAIL,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
@@ -712,7 +712,7 @@ static void mqnd_main_process(NCSCONTEXT info)
    NCS_SEL_OBJ         amf_ncs_sel_obj, highest_sel_obj ;
 
 
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, ((uns32)info));
+   cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, ((long)info));
    if(!cb) {
       return;
    }

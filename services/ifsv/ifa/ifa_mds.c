@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -52,7 +52,7 @@ uns32 ifa_mds_callback (NCSMDS_CALLBACK_INFO *info)
 
    if((cb = (IFA_CB*)ncshm_take_hdl(NCS_SERVICE_ID_IFA, cb_hdl)) == NULL)
    {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,"ncshm_take_hdl returned NULL",0);
+      m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,"ncshm_take_hdl returned NULL",0);
       return NCSCC_RC_SUCCESS;
    }
 
@@ -109,7 +109,7 @@ uns32 ifa_mds_callback (NCSMDS_CALLBACK_INFO *info)
    if(rc != NCSCC_RC_SUCCESS)
    {
     /*
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Error in ifa_mds_callback processing",0);
      */
        m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Error in ifa_mds_callback processing"," ");
@@ -147,7 +147,7 @@ uns32 ifa_mds_adest_get (IFA_CB *cb)
    if(rc != NCSCC_RC_SUCCESS)
    {
     /*
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Couldn't get MDS handle",0);
      */
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ncsada_api() returned failure"," ");
@@ -203,7 +203,7 @@ uns32 ifa_mds_init (IFA_CB *cb)
    if (rc != NCSCC_RC_SUCCESS)
    {
     /*
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Couldn't install mds",0);
      */
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ncsmds_api() returned failure,Couldn't install mds"," ");
@@ -227,7 +227,7 @@ uns32 ifa_mds_init (IFA_CB *cb)
    if (rc != NCSCC_RC_SUCCESS)
    {
     /*
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Couldn't subscribe mds",0);
      */
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ncsmds_api() returned failure,Couldn't subscribe mds"," ");
@@ -273,7 +273,7 @@ void ifa_mds_shut (IFA_CB *cb)
    if (rc != NCSCC_RC_SUCCESS)
    {
     /*
-     m_IFA_LOG_API_LL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_L(IFSV_LOG_IFA_EVT_INFO,\
                      "Couldn't uninstall mds",0);
      */
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ncsmds_api() returned failure,Couldn't uninstall mds"," ");
@@ -307,7 +307,7 @@ uns32 ifa_mds_svc_evt(IFA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
    switch (svc_evt->i_change)
    {
    case NCSMDS_DOWN:
-         m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+         m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_SVC_DOWN event rcv. svc_evt->i_svc_id,\
           svc_evt->i_node_id",svc_evt->i_svc_id,svc_evt->i_node_id);
          if(svc_evt->i_svc_id == NCSMDS_SVC_ID_IFND)
@@ -316,7 +316,7 @@ uns32 ifa_mds_svc_evt(IFA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
          }
          break;
    case NCSMDS_UP:
-         m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+         m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_SVC_UP event rcv. svc_evt->i_svc_id,\
           svc_evt->i_node_id",svc_evt->i_svc_id,svc_evt->i_node_id);
       if(svc_evt->i_svc_id == NCSMDS_SVC_ID_IFND)
@@ -384,7 +384,7 @@ uns32 ifa_mds_rcv(IFA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    if(evt == NULL)
       return NCSCC_RC_FAILURE;
 
-   m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+   m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_RCV_MSG event rcv. rcv_info->i_fr_svc_id,\
          cb->cb_hdl",rcv_info->i_fr_svc_id,cb->cb_hdl);
 
@@ -516,7 +516,7 @@ uns32 ifa_mds_enc(IFA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
                                IFA_WRT_IFND_MSG_FMT_ARRAY);
    if(0 == enc_info->o_msg_fmt_ver)
    {
-    m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+    m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_ENC_FAILURE. enc_info->i_to_svc_id,\
           enc_info->i_rem_svc_pvt_ver",\
           enc_info->i_to_svc_id,enc_info->i_rem_svc_pvt_ver);
@@ -530,13 +530,13 @@ uns32 ifa_mds_enc(IFA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"m_NCS_EDU_EXEC() returned failure"," ");
       /* Free calls to be added here. */
       m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+      m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_ENC_FAILURE. enc_info->i_to_svc_id,\
           ((IFSV_EVT*)(enc_info->i_msg))->type",\
          enc_info->i_to_svc_id,((IFSV_EVT*)(enc_info->i_msg))->type);
       return rc;
    }
-   m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+   m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_ENC_SUCCESS. enc_info->i_to_svc_id,\
          ((IFSV_EVT*)(enc_info->i_msg))->type",\
          enc_info->i_to_svc_id,((IFSV_EVT*)(enc_info->i_msg))->type);
@@ -573,7 +573,7 @@ uns32 ifa_mds_dec (IFA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
                                       IFA_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT,
                                       IFA_WRT_IFND_MSG_FMT_ARRAY))
    {
-      m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+      m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_DEC_FAILURE. dec_info->i_fr_svc_id,\
          dec_info->i_msg_fmt_ver",\
          dec_info->i_fr_svc_id,dec_info->i_msg_fmt_ver);
@@ -595,13 +595,13 @@ uns32 ifa_mds_dec (IFA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"m_NCS_EDU_EXEC() returned failure"," ");
       m_MMGR_FREE_IFSV_EVT(ifsv_evt);
       m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+      m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_DEC_FAILURE. dec_info->i_fr_svc_id,\
          ifsv_evt->type",\
          dec_info->i_fr_svc_id,ifsv_evt->type);
       return rc;
    }
-     m_IFA_LOG_API_LLL(IFSV_LOG_IFA_EVT_INFO,\
+     m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_DEC_SUCCESS. dec_info->i_fr_svc_id,\
          ifsv_evt->type",\
          dec_info->i_fr_svc_id,ifsv_evt->type);

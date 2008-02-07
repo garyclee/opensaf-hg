@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /*****************************************************************************
@@ -1817,7 +1818,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
      
      if(ifd_ifap_max_num_free_ifindex_get(&num_free_index) != NCSCC_RC_SUCCESS)
      {
-       m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get"," ");
+       m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get",0);
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
       "Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE",0);
       m_NCS_CONS_PRINTF("Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get");

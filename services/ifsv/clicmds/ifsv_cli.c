@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -585,8 +585,8 @@ ifsv_cef_show_intf_info(NCSCLI_ARG_SET *arg_list,NCSCLI_CEF_DATA *cef_data)
        if((strcmp(arg_list->i_arg_record[1].cmd.strval,"shelf") == 0) &&
          (strcmp(arg_list->i_arg_record[3].cmd.strval,"slot") == 0))
        {
-          shelf = (uns32)arg_list->i_arg_record[2].cmd.strval;
-          slot = (uns32)arg_list->i_arg_record[4].cmd.strval;
+          shelf = (long)arg_list->i_arg_record[2].cmd.strval;
+          slot = (long)arg_list->i_arg_record[4].cmd.strval;
 
 /*
           printf("IFSV CLI:: Given Shelf::%d Slot::%d", shelf,slot);

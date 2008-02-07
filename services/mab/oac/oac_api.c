@@ -1,22 +1,21 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
-..............................................................................
 
   $Header: /ncs/software/release/UltraLinq/MAB/MAB1.1/base/products/mab/oac/oac_api.c 49    9/12/01 6:22p Questk $ 
 
@@ -26,8 +25,7 @@
   This file contains all Public APIs for the Object Access Client (OAC) portion
   of the MIB Acess Broker (MAB) subsystem.
 
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-*/
+*******************************************************************************/
 
 #include "mab.h"
 
@@ -874,7 +872,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
        m_MMGR_FREE_MAB_OAA_PCN_LIST(tmp);
        return NULL;
    }
-   m_NCS_MEMSET(tmp->pcn, '\0', sizeof(m_NCS_STRLEN(pcn)+1));
+   m_NCS_MEMSET(tmp->pcn, '\0', (m_NCS_STRLEN(pcn)+1));
    m_NCS_STRCPY(tmp->pcn, pcn);
    tmp->tbl_id = tbl_id;
    if(prv_tmp != NULL)
@@ -1438,7 +1436,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
           oac_free_pss_tbl_list(req->pcn_list.tbl_list);
           return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(req->pcn_list.pcn, '\0', sizeof(m_NCS_STRLEN(in_wbreq->i_pcn)+1));
+      m_NCS_MEMSET(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(in_wbreq->i_pcn)+1));
       m_NCS_STRCPY(req->pcn_list.pcn, in_wbreq->i_pcn);
       req->is_system_client = in_wbreq->is_system_client; 
     }
@@ -1583,7 +1581,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
                "oac_ss_tbl_reg()");
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(bind_evt.pcn_list.pcn, '\0', sizeof(m_NCS_STRLEN(p_pcn->pcn)+1));
+         m_NCS_MEMSET(bind_evt.pcn_list.pcn, '\0', (m_NCS_STRLEN(p_pcn->pcn)+1));
          m_NCS_STRCPY(bind_evt.pcn_list.pcn, p_pcn->pcn);
 
          if((bind_evt.pcn_list.tbl_list = m_MMGR_ALLOC_MAB_PSS_TBL_LIST) == NULL)

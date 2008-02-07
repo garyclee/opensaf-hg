@@ -11,4 +11,4 @@ libpdrbd_logstr_la_CPPFLAGS = 	-I ../inc/ \
 
 libpdrbd_logstr_la_SOURCES = ./pdrbd_logstr.c 
 
-libpdrbd_logstr_la_LDFLAGS = -version-number 1
+libpdrbd_logstr_la_LDFLAGS = -version-number 2

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -100,7 +100,9 @@ typedef enum avm_role_fsm_events_type
    AVM_ROLE_EVT_ADM_SWITCH,
    AVM_ROLE_EVT_AVD_UP,
    AVM_ROLE_EVT_MDS_QUIESCED_ACK,
-   AVM_ROLE_EVT_MAX = AVM_ROLE_EVT_MDS_QUIESCED_ACK
+   AVM_ROLE_EVT_AVD_HB_RESTORE,   /* AvD to inform AvD Heart Beat is Restored to AvM */
+   AVM_ROLE_EVT_AVND_HB_RESTORE, /* AvD to inform AvND Heart Beat is Restored to AvM */
+   AVM_ROLE_EVT_MAX = AVM_ROLE_EVT_AVND_HB_RESTORE 
 }AVM_ROLE_FSM_EVT_TYPE_T;
 
 /* AvM events received from HPI, AVD and Admin */

@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -721,6 +721,8 @@ uns32 dtsv_service_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
    m_NCS_MEMSET(&uba, '\0', sizeof(uba));
 
    ncs_dec_init_space(&uba, buf);
+   arg->req.info.cli_req.i_usrbuf = NULL;
+
    if(flag == TRUE)
       buf_ptr = ncs_dec_flatten_space(&uba, data_buff, DTSV_ADD_SVC_CONS_SIZE);
    else
@@ -803,6 +805,8 @@ uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
 
    /* Decode the req to get the node_id */
    ncs_dec_init_space(&uba, buf);
+   arg->req.info.cli_req.i_usrbuf = NULL;
+ 
    dec_ptr = ncs_dec_flatten_space(&uba, data_buff, 2*sizeof(uns32));
    if(dec_ptr == NULL)
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_node_conf_console: ncs_dec_flatten_space returns NULL");

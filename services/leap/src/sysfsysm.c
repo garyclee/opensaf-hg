@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -976,7 +976,7 @@ uns32 sm_init()
       &gl_sysmon.sysmon_mbx,
       gl_sysmon.sysmon_task_name,
       0,
-      8192,
+      NCS_STACKSIZE_HUGE,
       &gl_sysmon.sysmon_task_hdl) != NCSCC_RC_SUCCESS)
     {
       m_NCS_IPC_RELEASE(&gl_sysmon.sysmon_mbx, NULL);
@@ -996,7 +996,7 @@ uns32 sm_init()
       NULL,
       "SM_MEM_WATCH",
       0,
-      8192,
+      NCS_STACKSIZE_HUGE,
       &gl_sysmon.sm_mem_watch_task_hdl) != NCSCC_RC_SUCCESS)
     {
       m_NCS_IPC_RELEASE(&gl_sysmon.sysmon_mbx, NULL);
@@ -1021,7 +1021,7 @@ uns32 sm_init()
       NULL,
       "SM_CPU_WATCH",
       0,
-      8192,
+      NCS_STACKSIZE_HUGE,
       &gl_sysmon.sm_cpu_watch_task_hdl) != NCSCC_RC_SUCCESS)
     {
       m_NCS_IPC_RELEASE(&gl_sysmon.sysmon_mbx, NULL);
@@ -1052,7 +1052,7 @@ uns32 sm_init()
       NULL,
       "SM_BUF_WATCH",
       0,
-      8192,
+      NCS_STACKSIZE_HUGE,
       &gl_sysmon.sm_buf_watch_task_hdl) != NCSCC_RC_SUCCESS)
     {
       m_NCS_IPC_RELEASE(&gl_sysmon.sysmon_mbx, NULL);
@@ -1089,7 +1089,7 @@ uns32 sm_init()
       NULL,
       "SM_IPC_WATCH",
       0,
-      8192,
+      NCS_STACKSIZE_HUGE,
       &gl_sysmon.sm_ipc_watch_task_hdl) != NCSCC_RC_SUCCESS)
     {
       m_NCS_IPC_RELEASE(&gl_sysmon.sysmon_mbx, NULL);

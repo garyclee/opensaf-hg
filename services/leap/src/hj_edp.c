@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -2830,26 +2830,26 @@ uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
     EDU_INST_SET ncs_key_rules[ ] = {
         {EDU_START, ncs_edp_ncs_key, 0, 0, 0, sizeof(NCS_KEY), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((NCS_KEY*)0)->svc, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((NCS_KEY*)0)->type, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (uns32)&((NCS_KEY*)0)->fmat, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_KEY*)0)->svc, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((NCS_KEY*)0)->type, 0, NULL},
+        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, (long)&((NCS_KEY*)0)->fmat, 0, NULL},
 
         {EDU_TEST, ncs_edp_uns8, 0, 0, 0, 
-            (uns32)&((NCS_KEY*)0)->fmat, 0, ncs_edu_ncs_key_test_fmat_fnc},
+            (long)&((NCS_KEY*)0)->fmat, 0, ncs_edu_ncs_key_test_fmat_fnc},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_KEY*)0)->val.num, 0, NULL},
+            (long)&((NCS_KEY*)0)->val.num, 0, NULL},
 #if 0
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
             (uns32)&((NCS_KEY*)0)->val.hdl, 0, NULL},
 #endif
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, EDU_EXIT, 
-            (uns32)&((NCS_KEY*)0)->val.str, SYSF_MAX_KEY_LEN, NULL},
+            (long)&((NCS_KEY*)0)->val.str, SYSF_MAX_KEY_LEN, NULL},
 
         {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, 
-            (uns32)&((NCS_KEY*)0)->val.oct.len, 0, NULL},
+            (long)&((NCS_KEY*)0)->val.oct.len, 0, NULL},
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, EDU_EXIT, 
-            (uns32)&((NCS_KEY*)0)->val.oct.data, SYSF_MAX_KEY_LEN, NULL},
+            (long)&((NCS_KEY*)0)->val.oct.data, SYSF_MAX_KEY_LEN, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -2973,23 +2973,23 @@ uns32 ncs_edp_ncsmib_param_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_ncsmib_param_val, 0, 0, 0, 
                     sizeof(NCSMIB_PARAM_VAL), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCSMIB_PARAM_VAL*)0)->i_param_id, 0, NULL},
+                    (long)&((NCSMIB_PARAM_VAL*)0)->i_param_id, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCSMIB_PARAM_VAL*)0)->i_fmat_id, 0, NULL},
+                    (long)&((NCSMIB_PARAM_VAL*)0)->i_fmat_id, 0, NULL},
         {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, 
-                    (uns32)&((NCSMIB_PARAM_VAL*)0)->i_length, 0, NULL},
+                    (long)&((NCSMIB_PARAM_VAL*)0)->i_length, 0, NULL},
 
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCSMIB_PARAM_VAL*)0)->i_fmat_id, 0, 
+                    (long)&((NCSMIB_PARAM_VAL*)0)->i_fmat_id, 0, 
                                 ncs_edu_ncsmib_param_val_test_fmat_fnc},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-            (uns32)&((NCSMIB_PARAM_VAL*)0)->info.i_int, 0, NULL},
+            (long)&((NCSMIB_PARAM_VAL*)0)->info.i_int, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns8, EDQ_VAR_LEN_DATA, 
                     ncs_edp_uns16, 0, 
-                        (uns32)&((NCSMIB_PARAM_VAL*)0)->info.i_oct, 
-                        (uns32)&((NCSMIB_PARAM_VAL*)0)->i_length, NULL},
+                        (long)&((NCSMIB_PARAM_VAL*)0)->info.i_oct, 
+                        (long)&((NCSMIB_PARAM_VAL*)0)->i_length, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_COMMON /* Svc-ID */, NULL, 0, 2 /* Sub-ID */,
                    0, NULL},
 
@@ -3074,11 +3074,11 @@ uns32 ncs_edp_ncsmib_idx(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_ncsmib_idx, 0, 0, 0, 
                     sizeof(NCSMIB_IDX), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCSMIB_IDX*)0)->i_inst_len, 0, NULL},
+                    (long)&((NCSMIB_IDX*)0)->i_inst_len, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, EDQ_VAR_LEN_DATA, 
-                    ncs_edp_uns32, 0, (uns32)&((NCSMIB_IDX*)0)->i_inst_ids,
-                        (uns32)&((NCSMIB_IDX*)0)->i_inst_len, NULL},
+                    ncs_edp_uns32, 0, (long)&((NCSMIB_IDX*)0)->i_inst_ids,
+                        (long)&((NCSMIB_IDX*)0)->i_inst_len, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_COMMON /* Svc-ID */, NULL, 0, 4/* Sub-ID */,
                    0, NULL},
 
@@ -3146,19 +3146,19 @@ ncs_edp_ncs_trap_varbind(EDU_HDL    *edu_hdl,
     
     /* to encode/decode the table-id */
     {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((NCS_TRAP_VARBIND*)0)->i_tbl_id, 0, NULL},
+            (long)&((NCS_TRAP_VARBIND*)0)->i_tbl_id, 0, NULL},
      
     /* to encode/decode the NCSMIB_PARAM_VAL structure */
     {EDU_EXEC, ncs_edp_ncsmib_param_val, 0, 0, 0, 
-            (uns32)&((NCS_TRAP_VARBIND*)0)->i_param_val, 0, NULL},
+            (long)&((NCS_TRAP_VARBIND*)0)->i_param_val, 0, NULL},
      
     /* to encode/decode the NCSMIB_IDX structure */
     {EDU_EXEC, ncs_edp_ncsmib_idx, 0, 0, 0, 
-            (uns32)&((NCS_TRAP_VARBIND*)0)->i_idx, 0, NULL},
+            (long)&((NCS_TRAP_VARBIND*)0)->i_idx, 0, NULL},
 
     /* to encode/decode the linked list of trap varbinds */
     {EDU_TEST_LL_PTR, ncs_edp_ncs_trap_varbind, 0, 0, 0, 
-            (uns32)&((NCS_TRAP_VARBIND*)0)->next_trap_varbind, 0, NULL},
+            (long)&((NCS_TRAP_VARBIND*)0)->next_trap_varbind, 0, NULL},
 
     /* end of the instructions to EDU */
     {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
@@ -3232,15 +3232,15 @@ uns32 ncs_edp_ncs_trap(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_START, ncs_edp_ncs_trap, 0, 0, 0, sizeof(NCS_TRAP),
             0, NULL},
         {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, 
-            (uns32)&((NCS_TRAP*)0)->i_version, 0, NULL},
+            (long)&((NCS_TRAP*)0)->i_version, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((NCS_TRAP*)0)->i_trap_tbl_id, 0, NULL},
+            (long)&((NCS_TRAP*)0)->i_trap_tbl_id, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((NCS_TRAP*)0)->i_trap_id, 0, NULL},
+            (long)&((NCS_TRAP*)0)->i_trap_id, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((NCS_TRAP*)0)->i_inform_mgr, 0, NULL},
+            (long)&((NCS_TRAP*)0)->i_inform_mgr, 0, NULL},
         {EDU_EXEC, ncs_edp_ncs_trap_varbind, EDQ_POINTER, 0, 0,
-            (uns32)&((NCS_TRAP*)0)->i_trap_vb, 0, NULL},
+            (long)&((NCS_TRAP*)0)->i_trap_vb, 0, NULL},
         {EDU_END, NULL, 0, 0, 0, 0, 0, NULL}
     };
 

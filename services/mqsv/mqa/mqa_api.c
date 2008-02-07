@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -69,7 +69,7 @@ static SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
                  MQA_SEND_MESSAGE_PARAM *param, MQA_CB *mqa_cb);
 static void msgget_timer_expired(void *arg);
 
-extern mqa_mqnd_msg_fmt_table[];
+extern MSG_FRMT_VER mqa_mqnd_msg_fmt_table[];
 
 MSG_FRMT_VER mqa_mqa_msg_fmt_table[MQA_WRT_MQA_SUBPART_VER_RANGE] = { 0,2 };  /*With version 1 it is not backward compatible*/
 
@@ -154,6 +154,13 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
    if ((rc = ncs_agents_startup(argc, argv)) != NCSCC_RC_SUCCESS)
    {
       m_LOG_MQSV_A(MQA_NCS_AGENTS_START_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      return SA_AIS_ERR_LIBRARY;
+   }
+
+   if ((rc = ncs_mqa_startup()) != NCSCC_RC_SUCCESS)
+   {
+      m_LOG_MQSV_A(MQA_NCS_AGENTS_START_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      ncs_agents_shutdown(argc, argv);
       return SA_AIS_ERR_LIBRARY;
    }
 
@@ -298,6 +305,7 @@ final1:
       else
               m_LOG_MQSV_A(MQA_API_MSG_INITIALIZE_FAIL,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
            
+       ncs_mqa_shutdown();
        ncs_agents_shutdown(argc, argv);
    }
    else
@@ -439,7 +447,6 @@ saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags)
    mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
    if(!mqa_cb) {
       rc = SA_AIS_ERR_BAD_HANDLE;
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
    }
 
@@ -674,6 +681,7 @@ lock_fail:
    }
    else
    {
+      ncs_mqa_shutdown();
       ncs_agents_shutdown(argc, argv);
    }
 
@@ -928,7 +936,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
           
           rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqa_queue_reader, 
                                  (NCSCONTEXT)openRsp,
-                                 "mqa_queue_reader", 5, 8000, &thread_handle);
+                                 "mqa_queue_reader", 5, NCS_STACKSIZE_HUGE, &thread_handle);
           if (rc != NCSCC_RC_SUCCESS)
           {
              rc = SA_AIS_ERR_NO_RESOURCES;
@@ -1998,7 +2006,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
    MDS_DEST          destination_mqnd;
    SaNameT           sender;
    NCS_BOOL          lock_taken = FALSE;
-   uns32             length,o_msg_fmt_ver,to_dest_ver,to_dest_slotid;
+   uns32             length,o_msg_fmt_ver,to_dest_ver;
 
    sender.length = 0;
    sender.value[0] = '\0';
@@ -2033,8 +2041,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
       return rc;
    }
    
-   if(!((message->priority >= SA_MSG_MESSAGE_HIGHEST_PRIORITY) &&
-       (message->priority <= SA_MSG_MESSAGE_LOWEST_PRIORITY)))
+   if(message->priority > SA_MSG_MESSAGE_LOWEST_PRIORITY )
    {
       rc =  SA_AIS_ERR_INVALID_PARAM;
       m_LOG_MQSV_A(MQA_INVALID_PARAM,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
@@ -2456,7 +2463,7 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
    MQA_SENDERID_INFO    *sender_info=NULL;
    static int           first=1;
    MQSV_DSEND_EVT       *stats = NULL, *statsrsp = NULL;
-   uns32                mds_rc,to_dest_ver,o_msg_fmt_ver,to_dest_slotid;
+   uns32                mds_rc,to_dest_ver,o_msg_fmt_ver;
    tmr_t                tmr_id;
    MQP_CANCEL_REQ       *timer_arg;
    NCS_BOOL             is_timer_present = FALSE;
@@ -3309,8 +3316,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       return rc;
    }
    
-   if(!((sendMessage->priority >= SA_MSG_MESSAGE_HIGHEST_PRIORITY) &&
-       (sendMessage->priority <= SA_MSG_MESSAGE_LOWEST_PRIORITY))) {
+   if(sendMessage->priority > SA_MSG_MESSAGE_LOWEST_PRIORITY) {
       rc = SA_AIS_ERR_INVALID_PARAM;
       m_LOG_MQSV_A(MQA_INVALID_MSG_PRIORITY,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
@@ -4096,6 +4102,7 @@ saMsgMessageReplyAsync(SaMsgHandleT msgHandle,
    if(m_MQSV_IS_ACKFLAGS_NOT_VALID(ackFlags)) 
    {
       m_LOG_MQSV_A(MQA_INVALID_PARAM,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_FLAGS,__FILE__,__LINE__);
+      m_MQSV_MQA_GIVEUP_MQA_CB;
       return SA_AIS_ERR_BAD_FLAGS;
    }
    if (ackFlags & SA_MSG_MESSAGE_DELIVERED_ACK) 

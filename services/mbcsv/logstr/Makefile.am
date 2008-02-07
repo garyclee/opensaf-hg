@@ -10,4 +10,4 @@ libmbcsv_logstr_la_CPPFLAGS= @NCS_CORE_CPP_DEFINES@ \
 
 libmbcsv_logstr_la_SOURCES = ./mbcsv_logstr.c
 
-libmbcsv_logstr_la_LDFLAGS = -version-number 1
+libmbcsv_logstr_la_LDFLAGS = -version-number 2

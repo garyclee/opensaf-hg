@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -439,7 +439,7 @@ static void avd_qsd_ignore_func(AVD_CL_CB *cb,AVD_EVT *evt)
    AVD_DND_MSG *n2d_msg;
 
    m_AVD_LOG_FUNC_ENTRY("avd_qsd_ignore_func");
-   m_AVD_LOG_RCVD_VAL(((uns32)evt));
+   m_AVD_LOG_RCVD_VAL(((long)evt));
    m_AVD_LOG_RCVD_NAME_VAL(evt,sizeof(AVD_EVT));
 
    /* we need not send sync update to stanby */
@@ -515,7 +515,7 @@ void avd_main_proc(AVD_CL_CB *cb)
          continue;
       }
       
-      m_AVD_LOG_RCVD_VAL((uns32)cb_now);
+      m_AVD_LOG_RCVD_VAL((long)cb_now);
 
       if (m_NCS_SEL_OBJ_ISSET (mbx_sel_obj, &sel_obj_set))
       {
@@ -601,7 +601,7 @@ void avd_main_proc(AVD_CL_CB *cb)
          {
             /* log fatal error that invalid event id was received
              */
-            m_AVD_LOG_RCVD_VAL(((uns32)evt));
+            m_AVD_LOG_RCVD_VAL(((long)evt));
             m_AVD_LOG_RCVD_NAME_VAL(evt,sizeof(AVD_EVT));
             m_AVD_LOG_EVT_INVAL(evt->rcv_evt);
             m_MMGR_FREE_AVD_EVT(evt);
@@ -632,6 +632,12 @@ void avd_main_proc(AVD_CL_CB *cb)
 
    } /* end of the infinite loop */
 
+  m_AVD_LOG_INVALID_VAL_FATAL(0);
+  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Avd-Functional Thread Failed");
+
+  sleep(3);/*Let the DTSV log be Printed */
+  exit(0);
+
 } /* avd_main_proc */
 
 /*****************************************************************************
@@ -652,7 +658,7 @@ void avd_main_proc(AVD_CL_CB *cb)
 
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
-   m_AVD_LOG_RCVD_VAL(((uns32)evt));
+   m_AVD_LOG_RCVD_VAL(((long)evt));
    m_AVD_LOG_RCVD_NAME_VAL(evt,sizeof(AVD_EVT));
    m_AVD_LOG_EVT_INFO(AVD_RCVD_EVENT,evt->rcv_evt);
 
@@ -726,7 +732,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 
 void avd_process_hb_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
-   m_AVD_LOG_RCVD_VAL(((uns32)evt));
+   m_AVD_LOG_RCVD_VAL(((long)evt));
    m_AVD_LOG_RCVD_NAME_VAL(evt,sizeof(AVD_EVT));
    m_AVD_LOG_EVT_INFO(AVD_RCVD_EVENT,evt->rcv_evt);
 

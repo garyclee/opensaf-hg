@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 /*****************************************************************************
 ..............................................................................
@@ -106,19 +106,19 @@ uns32 avsv_edp_nd_cla_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, avsv_edp_nd_cla_msg, 0, 0, 0,
                     sizeof(AVSV_NDA_CLA_MSG), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_NDA_CLA_MSG*)0)->type, 0, NULL},
+                    (long)&((AVSV_NDA_CLA_MSG*)0)->type, 0, NULL},
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_NDA_CLA_MSG*)0)->type, 0,
+                    (long)&((AVSV_NDA_CLA_MSG*)0)->type, 0,
                                 avsv_nd_cla_msg_test_type_fnc},
 
         {EDU_EXEC, avsv_edp_cla_api_info, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_NDA_CLA_MSG*)0)->info.api_info, 0, NULL},
+            (long)&((AVSV_NDA_CLA_MSG*)0)->info.api_info, 0, NULL},
 
         {EDU_EXEC, avsv_edp_cla_cbq_info, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_NDA_CLA_MSG*)0)->info.cbk_info, 0, NULL},
+            (long)&((AVSV_NDA_CLA_MSG*)0)->info.cbk_info, 0, NULL},
 
         {EDU_EXEC, avsv_edp_cla_api_resp_info, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_NDA_CLA_MSG*)0)->info.api_resp_info, 0, NULL},
+            (long)&((AVSV_NDA_CLA_MSG*)0)->info.api_resp_info, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -175,41 +175,41 @@ uns32 avsv_edp_cla_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, avsv_edp_cla_api_info, 0, 0, 0,
                     sizeof(AVSV_CLM_API_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_INFO*)0)->prc_id, 0, NULL},
+                    (long)&((AVSV_CLM_API_INFO*)0)->prc_id, 0, NULL},
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_INFO*)0)->dest, 0, NULL},
+                    (long)&((AVSV_CLM_API_INFO*)0)->dest, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_INFO*)0)->type, 0, NULL},
+                    (long)&((AVSV_CLM_API_INFO*)0)->type, 0, NULL},
         {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_INFO*)0)->is_sync_api, 0, NULL},
+                    (long)&((AVSV_CLM_API_INFO*)0)->is_sync_api, 0, NULL},
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_INFO*)0)->type, 0,
+                    (long)&((AVSV_CLM_API_INFO*)0)->type, 0,
                                 avsv_nd_cla_api_test_type_fnc},
 
         {EDU_EXEC, m_NCS_EDP_SACLMHANDLET, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.finalize.hdl, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.finalize.hdl, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SACLMHANDLET, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.track_start.hdl, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.track_start.hdl, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.track_start.flags, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.track_start.flags, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.track_start.viewNumber, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.track_start.viewNumber, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SACLMHANDLET, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.track_stop.hdl, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.track_stop.hdl, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SACLMHANDLET, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.node_get.hdl, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.node_get.hdl, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.node_get.node_id, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.node_get.node_id, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SACLMHANDLET, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.hdl, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.hdl, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAINVOCATIONT, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.inv, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.inv, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.node_id, 0, NULL},
+            (long)&((AVSV_CLM_API_INFO*)0)->param.node_async_get.node_id, 0, NULL},
 
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -263,32 +263,32 @@ uns32 avsv_edp_cla_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, avsv_edp_cla_cbq_info, 0, 0, 0,
                     sizeof(AVSV_CLM_CBK_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_CBK_INFO*)0)->hdl, 0, NULL},
+                    (long)&((AVSV_CLM_CBK_INFO*)0)->hdl, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_CBK_INFO*)0)->type, 0, NULL},
+                    (long)&((AVSV_CLM_CBK_INFO*)0)->type, 0, NULL},
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_CBK_INFO*)0)->type, 0,
+                    (long)&((AVSV_CLM_CBK_INFO*)0)->type, 0,
                                 avsv_nd_cla_cbq_test_type_fnc},
 
         {EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.viewNumber, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.viewNumber, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.numberOfItems, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.numberOfItems, 0, NULL},
         {EDU_EXEC, avsv_edp_saclmclusternotificationt, EDQ_VAR_LEN_DATA, m_NCS_EDP_SAUINT32T, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.notification, 
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.numberOfItems, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.notification, 
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.notify.numberOfItems, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.mem_num, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.mem_num, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.track.err, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.track.err, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SAINVOCATIONT, 0, 0, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.inv, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.inv, 0, NULL},
         {EDU_EXEC, avsv_edp_saclmclusternodet, 0, 0, 0,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.node, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.node, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.err, 0, NULL},
+            (long)&((AVSV_CLM_CBK_INFO*)0)->param.node_get.err, 0, NULL},
 
 
 
@@ -343,25 +343,25 @@ uns32 avsv_edp_cla_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_START, avsv_edp_cla_api_resp_info, 0, 0, 0,
                     sizeof(AVSV_CLM_API_RESP_INFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->type, 0, NULL},
+                    (long)&((AVSV_CLM_API_RESP_INFO*)0)->type, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->rc, 0, NULL},
+                    (long)&((AVSV_CLM_API_RESP_INFO*)0)->rc, 0, NULL},
         {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->type, 0,
+                    (long)&((AVSV_CLM_API_RESP_INFO*)0)->type, 0,
                                 avsv_nd_cla_api_resp_test_type_fnc},
 
         {EDU_EXEC, avsv_edp_saclmclusternodet, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->param.node_get, 0, NULL},
+            (long)&((AVSV_CLM_API_RESP_INFO*)0)->param.node_get, 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SAINVOCATIONT, 0, 0, EDU_EXIT,
-            (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->param.inv, 0, NULL},
+            (long)&((AVSV_CLM_API_RESP_INFO*)0)->param.inv, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns16, 0, 0, 0,
-            (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.num, 0, NULL},
+            (long)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.num, 0, NULL},
 
         {EDU_EXEC, avsv_edp_saclmclusternotificationt, EDQ_VAR_LEN_DATA, ncs_edp_uns16, 0,
-            (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.notify, 
-            (uns32)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.num, NULL},
+            (long)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.notify, 
+            (long)&((AVSV_CLM_API_RESP_INFO*)0)->param.track.num, NULL},
         {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_AVSV, NULL, 0, NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL, 0, NULL},
 
 
@@ -417,17 +417,17 @@ uns32 avsv_edp_saclmclusternodet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                     sizeof(SaClmClusterNodeT), 0, NULL},
 
         {EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->nodeId, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->nodeId, 0, NULL},
         {EDU_EXEC, ncs_edp_saclmnodeaddresst, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->nodeAddress, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->nodeAddress, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->nodeName, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->nodeName, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SABOOLT, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->member, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->member, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->bootTimestamp, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->bootTimestamp, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0,
-            (uns32)&((SaClmClusterNodeT*)0)->initialViewNumber, 0, NULL},
+            (long)&((SaClmClusterNodeT*)0)->initialViewNumber, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -482,9 +482,9 @@ uns32 avsv_edp_saclmclusternotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                     sizeof(SaClmClusterNotificationT), 0, NULL},
 
         {EDU_EXEC, avsv_edp_saclmclusternodet, 0, 0, 0,
-            (uns32)&((SaClmClusterNotificationT*)0)->clusterNode, 0, NULL},
+            (long)&((SaClmClusterNotificationT*)0)->clusterNode, 0, NULL},
         {EDU_EXEC, m_NCS_EDP_SACLMCLUSTERCHANGEST, 0, 0, 0,
-            (uns32)&((SaClmClusterNotificationT*)0)->clusterChange, 0, NULL},
+            (long)&((SaClmClusterNotificationT*)0)->clusterChange, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };

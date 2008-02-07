@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -39,7 +39,7 @@
 #include "dts_papi.h"
 
 /* DTSv version support */
-#define BAM_LOG_VERSION 1
+#define BAM_LOG_VERSION 2
 
 /******************************************************************************
  Logging offset indexes for Headline logging
@@ -119,7 +119,8 @@ typedef enum bam_info_flex
    BAM_PSS_NAME,
    BAM_START_PARSE,
    BAM_APP_FILE,
-   BAM_APP_NOT_PRES
+   BAM_APP_NOT_PRES,
+   BAM_IPC_RECV_FAIL
 }BAM_INFO_FLEX;
 
 /******************************************************************************

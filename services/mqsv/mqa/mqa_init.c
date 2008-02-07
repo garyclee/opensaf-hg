@@ -1,25 +1,21 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
-..............................................................................
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -28,17 +24,31 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-  
 
 ******************************************************************************
 */
-
 
 #include "mqa.h"
 
 /* global cb handle */
 MQADLL_API uns32 gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
+static uns32 mqa_use_count = 0;
+
+/* MQA Agent creation specific LOCK */
+static uns32 mqa_agent_lock_create = 0;
+NCS_LOCK mqa_agent_lock;
+
+#define m_MQA_AGENT_LOCK                        \
+   if (!mqa_agent_lock_create++)                \
+   {                                            \
+      m_NCS_LOCK_INIT(&mqa_agent_lock);         \
+   }                                            \
+   mqa_agent_lock_create = 1;                   \
+   m_NCS_LOCK(&mqa_agent_lock, NCS_LOCK_WRITE);
+
+#define m_MQA_AGENT_UNLOCK m_NCS_UNLOCK(&mqa_agent_lock, NCS_LOCK_WRITE)
+
 
 static void mqa_sync_with_mqnd(MQA_CB *cb);
 static void mqa_sync_with_mqd(MQA_CB *cb);
@@ -52,6 +62,8 @@ static uns32 mqa_destroy (NCS_LIB_DESTROY *destroy_info);
 static uns32 mqa_asapi_register (MQA_CB *cb);
 static uns32 mqa_client_tree_init (MQA_CB *cb);
 static uns32 mqa_queue_tree_init (MQA_CB *cb);
+
+
 /****************************************************************************
   Name          : mqa_lib_req
  
@@ -983,3 +995,90 @@ uns32 mqa_queue_tree_delete_node(MQA_CB *mqa_cb, SaMsgQueueHandleT hdl_id)
    m_MMGR_FREE_MQA_QUEUE_INFO(queue_info);
    return NCSCC_RC_SUCCESS;
 }
+
+
+/****************************************************************************
+  Name          :  ncs_mqa_startup
+
+  Description   :  This routine creates a MQSv agent infrastructure to interface
+                   with MQSv service. Once the infrastructure is created from
+                   then on use_count is incremented for every startup request.
+
+  Arguments     :  - NIL-
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_mqa_startup(void)
+{
+   NCS_LIB_REQ_INFO lib_create;
+
+   m_MQA_AGENT_LOCK;
+   if (mqa_use_count > 0)
+   {
+      /* Already created, so just increment the use_count */
+      mqa_use_count++;
+      m_MQA_AGENT_UNLOCK;
+      return NCSCC_RC_SUCCESS;
+   }
+
+   /*** Init MQA ***/
+   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   lib_create.i_op = NCS_LIB_REQ_CREATE;
+   if (mqa_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
+   {
+      m_MQA_AGENT_UNLOCK;
+      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+   }
+   else
+   {
+      m_NCS_DBG_PRINTF("\nMQSV:MQA:ON");
+      mqa_use_count = 1;
+   }
+
+   m_MQA_AGENT_UNLOCK;
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
+  Name          :  ncs_mqa_shutdown 
+
+  Description   :  This routine destroys the MQSv agent infrastructure created 
+                   to interface MQSv service. If the registered users are > 1, 
+                   it just decrements the use_count.   
+
+  Arguments     :  - NIL -
+
+  Return Values :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         :  None
+******************************************************************************/
+unsigned int ncs_mqa_shutdown(void)
+{
+   uns32  rc = NCSCC_RC_SUCCESS;
+
+   m_MQA_AGENT_LOCK;
+   if (mqa_use_count > 1)
+   {
+      /* Still users extis, so just decrement the use_count */
+      mqa_use_count--;
+   }
+   else if (mqa_use_count == 1)
+   {
+      NCS_LIB_REQ_INFO  lib_destroy;
+
+      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+
+      rc = mqa_lib_req(&lib_destroy);
+
+      mqa_use_count = 0;
+   }
+
+   m_MQA_AGENT_UNLOCK;
+   return rc;
+}
+
+

@@ -13,4 +13,4 @@ libglsv_logstr_la_SOURCES =	./gla_logstr.c \
 			./gld_logstr.c \
 			./glnd_logstr.c
 
-libglsv_logstr_la_LDFLAGS = -version-number 2
+libglsv_logstr_la_LDFLAGS = -version-number 3

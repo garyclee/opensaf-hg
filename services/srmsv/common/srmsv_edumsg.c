@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -164,29 +164,29 @@ uns32 srmsv_edp_value(EDU_HDL *edu_hdl,
                     sizeof(NCS_SRMSV_VALUE), 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_VALUE*)0)->val_type, 0, NULL},
+                    (long)&((NCS_SRMSV_VALUE*)0)->val_type, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_VALUE*)0)->scale_type, 0, NULL},
+                    (long)&((NCS_SRMSV_VALUE*)0)->scale_type, 0, NULL},
 
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_VALUE*)0)->val_type, 0, 
+                    (long)&((NCS_SRMSV_VALUE*)0)->val_type, 0, 
                                 srmsv_value_test_type_fnc},
 
         {EDU_EXEC, ncs_edp_double, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_SRMSV_VALUE*)0)->val.f_val, 0, NULL},
+            (long)&((NCS_SRMSV_VALUE*)0)->val.f_val, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int32, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_SRMSV_VALUE*)0)->val.i_val32, 0, NULL},
+            (long)&((NCS_SRMSV_VALUE*)0)->val.i_val32, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_SRMSV_VALUE*)0)->val.u_val32, 0, NULL},
+            (long)&((NCS_SRMSV_VALUE*)0)->val.u_val32, 0, NULL},
         
         {EDU_EXEC, ncs_edp_int64, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_SRMSV_VALUE*)0)->val.i_val64, 0, NULL},
+            (long)&((NCS_SRMSV_VALUE*)0)->val.i_val64, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns64, 0, 0, EDU_EXIT, 
-            (uns32)&((NCS_SRMSV_VALUE*)0)->val.u_val64, 0, NULL},
+            (long)&((NCS_SRMSV_VALUE*)0)->val.u_val64, 0, NULL},
         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -478,25 +478,25 @@ uns32 srmsv_edp_threshold(EDU_HDL *edu_hdl,
     
         /* resource statistics samples to be consider for threshold level checks */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                   (uns32)&((NCS_SRMSV_THRESHOLD_CFG*)0)->samples, 0, NULL},
+                   (long)&((NCS_SRMSV_THRESHOLD_CFG*)0)->samples, 0, NULL},
 
         /* Threshold level value */
         {EDU_EXEC, srmsv_edp_value, 0, 0, 0, 
-                   (uns32)&((NCS_SRMSV_THRESHOLD_CFG*)0)->threshold_val, 0, NULL},
+                   (long)&((NCS_SRMSV_THRESHOLD_CFG*)0)->threshold_val, 0, NULL},
 
         /* Condition applied on threshold conditions */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                   (uns32)&((NCS_SRMSV_THRESHOLD_CFG*)0)->condition, 0, NULL},
+                   (long)&((NCS_SRMSV_THRESHOLD_CFG*)0)->condition, 0, NULL},
 
         /* Test Condition on threshold level condition defined */
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                   (uns32)&((NCS_SRMSV_THRESHOLD_CFG*)0)->condition, 0,
+                   (long)&((NCS_SRMSV_THRESHOLD_CFG*)0)->condition, 0,
                    srma_condition_test_type_fnc},
         
         /* Tolerable value to be consider in case of above condition is 
            AT or NOT_AT */
         {EDU_EXEC, srmsv_edp_value, 0, 0, 0, 
-                   (uns32)&((NCS_SRMSV_THRESHOLD_CFG*)0)->tolerable_val, 0, NULL},
+                   (long)&((NCS_SRMSV_THRESHOLD_CFG*)0)->tolerable_val, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -564,10 +564,10 @@ uns32 srmsv_edp_leaky_bucket(EDU_HDL *edu_hdl,
                     sizeof(NCS_SRMSV_LEAKY_BUCKET_CFG), 0, NULL},
         
         {EDU_EXEC, srmsv_edp_value, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_LEAKY_BUCKET_CFG*)0)->bucket_size, 0, NULL},
+                    (long)&((NCS_SRMSV_LEAKY_BUCKET_CFG*)0)->bucket_size, 0, NULL},
 
         {EDU_EXEC, srmsv_edp_value, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_LEAKY_BUCKET_CFG*)0)->fill_size, 0, NULL},
+                    (long)&((NCS_SRMSV_LEAKY_BUCKET_CFG*)0)->fill_size, 0, NULL},
         
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -636,24 +636,24 @@ uns32 srmsv_edp_rsrc_info(EDU_HDL *edu_hdl,
         
         /* Resource type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->rsrc_type, 0, NULL},
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->rsrc_type, 0, NULL},
 
         /* User type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->usr_type, 0, NULL},
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->usr_type, 0, NULL},
 
         /* Test Condition on rsrc-type */
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->rsrc_type, 0,
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->rsrc_type, 0,
                     srma_rsrc_test_type_fnc},
 
         /* child level for process specific resource type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->child_level, 0, NULL},
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->child_level, 0, NULL},
 
         /* PID for process specific resource type */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->pid, 0, NULL},
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->pid, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -720,29 +720,29 @@ uns32 srmsv_edp_mon_data(EDU_HDL *edu_hdl,
                     sizeof(NCS_SRMSV_MON_DATA), 0, NULL},
         
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->monitoring_rate, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->monitoring_rate, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->monitoring_interval, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->monitoring_interval, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->monitor_type, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->monitor_type, 0, NULL},
 
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->monitor_type, 0,
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->monitor_type, 0,
                     srma_monitor_test_type_fnc},
         
         {EDU_EXEC, srmsv_edp_threshold, 0, 0, 8, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.threshold, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.threshold, 0, NULL},
         
         {EDU_EXEC, ncs_edp_int, 0, 0, 8, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.watermark_type, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.watermark_type, 0, NULL},
 
         {EDU_EXEC, srmsv_edp_leaky_bucket, 0, 0, 8, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.leaky_bucket, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->mon_cfg.leaky_bucket, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_MON_DATA*)0)->evt_severity, 0, NULL},
+                    (long)&((NCS_SRMSV_MON_DATA*)0)->evt_severity, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -810,20 +810,20 @@ uns32 srmsv_edp_get_watermark(EDU_HDL *edu_hdl,
 
         /* Resource type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_GET_WATERMARK*)0)->rsrc_type, 0, NULL},
+                    (long)&((SRMA_GET_WATERMARK*)0)->rsrc_type, 0, NULL},
 
         /* Watermark type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_GET_WATERMARK*)0)->wm_type, 0, NULL},
+                    (long)&((SRMA_GET_WATERMARK*)0)->wm_type, 0, NULL},
 
         /* Test Condition on rsrc-type */
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_GET_WATERMARK*)0)->rsrc_type, 0,
+                    (long)&((SRMA_GET_WATERMARK*)0)->rsrc_type, 0,
                     srma_get_wm_rsrc_test_type_fnc},
 
         /* PID for process specific resource type */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((NCS_SRMSV_RSRC_INFO*)0)->pid, 0, NULL},
+                    (long)&((NCS_SRMSV_RSRC_INFO*)0)->pid, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -891,20 +891,20 @@ uns32 srmsv_edp_create_rsrc_mon(EDU_HDL *edu_hdl,
 
         /* Resource specific SRMA handle */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMA_CREATE_RSRC_MON*)0)->rsrc_hdl, 0, NULL},
+                    (long)&((SRMA_CREATE_RSRC_MON*)0)->rsrc_hdl, 0, NULL},
 
         /* EDP procedure for rsrc_info */
         {EDU_EXEC, srmsv_edp_rsrc_info, 0, 0, 0, 
-                    (uns32)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.rsrc_info, 0, NULL},
+                    (long)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.rsrc_info, 0, NULL},
 
         /* Test Condition on user type */
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.rsrc_info.usr_type, 0,
+                    (long)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.rsrc_info.usr_type, 0,
                     srma_user_test_type_fnc},
 
         /* ED procedure for mon-data */
         {EDU_EXEC, srmsv_edp_mon_data, 0, 0, 0, 
-                    (uns32)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.monitor_data, 0, NULL},
+                    (long)&((SRMA_CREATE_RSRC_MON*)0)->mon_info.monitor_data, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -973,16 +973,16 @@ uns32 srma_edp_enc_all_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMA_RSRC_MON), 0, NULL},
         
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                   (uns32)&((SRMA_RSRC_MON*)0)->rsrc_mon_hdl, 0, NULL},     
+                   (long)&((SRMA_RSRC_MON*)0)->rsrc_mon_hdl, 0, NULL},     
                     
         {EDU_EXEC, srmsv_edp_rsrc_info, 0, 0, 0, 
-                   (uns32)&((SRMA_RSRC_MON*)0)->rsrc_info, 0, NULL},
+                   (long)&((SRMA_RSRC_MON*)0)->rsrc_info, 0, NULL},
 
         {EDU_EXEC, srmsv_edp_mon_data, 0, 0, 0, 
-                   (uns32)&((SRMA_RSRC_MON*)0)->monitor_data, 0, NULL},
+                   (long)&((SRMA_RSRC_MON*)0)->monitor_data, 0, NULL},
         
         {EDU_TEST_LL_PTR, srma_edp_enc_all_rsrc, 0, 0, 0, 
-                (uns32)&((SRMA_RSRC_MON*)0)->next_srmnd_rsrc, 0, NULL},
+                (long)&((SRMA_RSRC_MON*)0)->next_srmnd_rsrc, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1032,10 +1032,10 @@ uns32 srma_edp_dec_all_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMA_CREATE_RSRC_MON_NODE), 0, NULL},        
                     
         {EDU_EXEC, srmsv_edp_create_rsrc_mon, 0, 0, 0, 
-                   (uns32)&((SRMA_CREATE_RSRC_MON_NODE*)0)->rsrc, 0, NULL},
+                   (long)&((SRMA_CREATE_RSRC_MON_NODE*)0)->rsrc, 0, NULL},
 
         {EDU_TEST_LL_PTR, srmnd_edp_dec_all_rsrc, 0, 0, 0, 
-                (uns32)&((SRMA_CREATE_RSRC_MON_NODE*)0)->next_rsrc_mon, 0, NULL},
+                (long)&((SRMA_CREATE_RSRC_MON_NODE*)0)->next_rsrc_mon, 0, NULL},
                     
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1098,7 +1098,7 @@ uns32 srma_edp_enc_all_appl_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMA_SRMND_USR_NODE), 0, NULL},
         
         {EDU_EXEC, srma_edp_enc_all_rsrc, EDQ_POINTER, 0, 0, 
-                   (uns32)&((SRMA_SRMND_USR_NODE*)0)->start_rsrc_mon, 0, NULL},     
+                   (long)&((SRMA_SRMND_USR_NODE*)0)->start_rsrc_mon, 0, NULL},     
                             
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1151,18 +1151,18 @@ uns32 srmsv_edp_agent_enc_bulk_create(EDU_HDL *edu_hdl,
         
         /* Event message type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->msg_type, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->msg_type, 0, NULL},
 
         /* Boolean to represents whether it is a broadcast message */
         {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->bcast, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->bcast, 0, NULL},
 
         /* User specific SRMA handle */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->handle, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->handle, 0, NULL},
 
         {EDU_EXEC, srma_edp_enc_all_appl_rsrc, EDQ_POINTER, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->info.bulk_create_mon.srmnd_usr_rsrc, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->info.bulk_create_mon.srmnd_usr_rsrc, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
    };
@@ -1223,7 +1223,7 @@ uns32 srmsv_edp_agent_dec_bulk_create(EDU_HDL *edu_hdl,
                     sizeof(SRMA_BULK_CREATE_RSRC_MON), 0, NULL},
         
         {EDU_EXEC, srma_edp_dec_all_rsrc, EDQ_POINTER, 0, 0, 
-                   (uns32)&((SRMA_BULK_CREATE_RSRC_MON*)0)->bulk_rsrc, 0, NULL},        
+                   (long)&((SRMA_BULK_CREATE_RSRC_MON*)0)->bulk_rsrc, 0, NULL},        
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1482,13 +1482,13 @@ uns32 srmnd_edp_enc_all_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMND_RSRC_MON_NODE), 0, NULL},
         
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_RSRC_MON_NODE*)0)->srma_rsrc_hdl, 0, NULL},     
+                    (long)&((SRMND_RSRC_MON_NODE*)0)->srma_rsrc_hdl, 0, NULL},     
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_RSRC_MON_NODE*)0)->rsrc_mon_hdl, 0, NULL},
+                    (long)&((SRMND_RSRC_MON_NODE*)0)->rsrc_mon_hdl, 0, NULL},
 
         {EDU_TEST_LL_PTR, srmnd_edp_enc_all_rsrc, 0, 0, 0, 
-                (uns32)&((SRMND_RSRC_MON_NODE*)0)->next_srma_usr_rsrc, 0, NULL},
+                (long)&((SRMND_RSRC_MON_NODE*)0)->next_srma_usr_rsrc, 0, NULL},
                     
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1538,13 +1538,13 @@ uns32 srmnd_edp_dec_all_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMND_CREATED_RSRC_MON), 0, NULL},
         
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_CREATED_RSRC_MON*)0)->srma_rsrc_hdl, 0, NULL},      
+                    (long)&((SRMND_CREATED_RSRC_MON*)0)->srma_rsrc_hdl, 0, NULL},      
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_CREATED_RSRC_MON*)0)->srmnd_rsrc_hdl, 0, NULL},
+                    (long)&((SRMND_CREATED_RSRC_MON*)0)->srmnd_rsrc_hdl, 0, NULL},
 
         {EDU_TEST_LL_PTR, srmnd_edp_dec_all_rsrc, 0, 0, 0, 
-                (uns32)&((SRMND_CREATED_RSRC_MON*)0)->next_srmnd_rsrc_mon, 0, NULL},
+                (long)&((SRMND_CREATED_RSRC_MON*)0)->next_srmnd_rsrc_mon, 0, NULL},
                     
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1607,7 +1607,7 @@ uns32 srmnd_edp_enc_all_srma_rsrc(EDU_HDL *edu_hdl,
                     sizeof(SRMND_MON_SRMA_USR_NODE), 0, NULL},
         
         {EDU_EXEC, srmnd_edp_enc_all_rsrc, EDQ_POINTER, 0, 0, 
-                   (uns32)&((SRMND_MON_SRMA_USR_NODE*)0)->start_rsrc_mon_node, 0, NULL},     
+                   (long)&((SRMND_MON_SRMA_USR_NODE*)0)->start_rsrc_mon_node, 0, NULL},     
                             
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1658,10 +1658,10 @@ uns32 srmsv_edp_nd_enc_bulk_created(EDU_HDL *edu_hdl,
                     sizeof(SRMND_MSG), 0, NULL},
         
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->msg_type, 0, NULL},
+                    (long)&((SRMND_MSG*)0)->msg_type, 0, NULL},
 
         {EDU_EXEC, srmnd_edp_enc_all_srma_rsrc, EDQ_POINTER, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->info.bulk_rsrc_mon.srma_usr_node,
+                    (long)&((SRMND_MSG*)0)->info.bulk_rsrc_mon.srma_usr_node,
                     0, NULL},       
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
@@ -1721,7 +1721,7 @@ uns32 srmsv_edp_nd_dec_bulk_created(EDU_HDL *edu_hdl,
                     sizeof(SRMND_BULK_CREATED_RSRC_MON), 0, NULL},
         
         {EDU_EXEC, srmnd_edp_dec_all_rsrc, EDQ_POINTER, 0, 0, 
-                   (uns32)&((SRMND_BULK_CREATED_RSRC_MON*)0)->bulk_rsrc_mon, 0, NULL},      
+                   (long)&((SRMND_BULK_CREATED_RSRC_MON*)0)->bulk_rsrc_mon, 0, NULL},      
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1786,65 +1786,65 @@ uns32 srmsv_edp_nd_msg(EDU_HDL *edu_hdl,
                     sizeof(SRMND_MSG), 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->msg_type, 0, NULL},
+                    (long)&((SRMND_MSG*)0)->msg_type, 0, NULL},
 
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->msg_type, 0, 
+                    (long)&((SRMND_MSG*)0)->msg_type, 0, 
                                 srmnd_msg_test_type_fnc},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
+                    (long)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
 
         /* Update it for SRMND_CREATED_MON_MSG */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-            (uns32)&((SRMND_MSG*)0)->info.srmnd_rsrc_mon_hdl, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.srmnd_rsrc_mon_hdl, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
+                    (long)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
 
         /* Update it for SRMND APPL-NOTIF MSG */
         {EDU_EXEC, srmsv_edp_value, 0, 0, EDU_EXIT, 
-            (uns32)&((SRMND_MSG*)0)->info.notify_val, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.notify_val, 0, NULL},
 
         /* Update it for SRMND APPL-NOTIF MSG */
         {EDU_EXEC, srmsv_edp_nd_dec_bulk_created, 0, 0, EDU_EXIT, 
-            (uns32)&((SRMND_MSG*)0)->info.bulk_rsrc_mon, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.bulk_rsrc_mon, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-                    (uns32)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
+                    (long)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
 
         /*Update watermark msg data */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
+            (long)&((SRMND_MSG*)0)->srma_rsrc_hdl, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.rsrc_type, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.rsrc_type, 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.pid, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.pid, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.wm_type, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.wm_type, 0, NULL},
 
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.wm_exist, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.wm_exist, 0, NULL},
 
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->info.wm_val.wm_exist, 0, 
+                    (long)&((SRMND_MSG*)0)->info.wm_val.wm_exist, 0, 
                                 srmnd_test_wm_exist_fnc},
 
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMND_MSG*)0)->info.wm_val.wm_type, 0, 
+                    (long)&((SRMND_MSG*)0)->info.wm_val.wm_type, 0, 
                                 srmnd_test_wm_type_fnc},
 
         {EDU_EXEC, srmsv_edp_value, 0, 0, 0, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.low_val, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.low_val, 0, NULL},
 
         {EDU_EXEC, srmsv_edp_value, 0, 0, EDU_EXIT, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.high_val, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.high_val, 0, NULL},
 
         {EDU_EXEC, srmsv_edp_value, 0, 0, EDU_EXIT, 
-            (uns32)&((SRMND_MSG*)0)->info.wm_val.low_val, 0, NULL},
+            (long)&((SRMND_MSG*)0)->info.wm_val.low_val, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -1917,36 +1917,36 @@ uns32 srmsv_edp_agent_msg(EDU_HDL *edu_hdl,
 
         /* Event message type */
         {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->msg_type, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->msg_type, 0, NULL},
 
         /* Boolean to represents whether it is a broadcast message */
         {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->bcast, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->bcast, 0, NULL},
 
         /* User specific SRMA handle */
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->handle, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->handle, 0, NULL},
 
         /* Test Condition on message type */
         {EDU_TEST, ncs_edp_int, 0, 0, 0, 
-                    (uns32)&((SRMA_MSG*)0)->msg_type, 0, 
+                    (long)&((SRMA_MSG*)0)->msg_type, 0, 
                                 srma_msg_test_type_fnc},
         
         /* EDP procedure for Create request */ 
         {EDU_EXEC, srmsv_edp_create_rsrc_mon, 0, 0, EDU_EXIT, 
-                    (uns32)&((SRMA_MSG*)0)->info.create_mon, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->info.create_mon, 0, NULL},
 
         /* EDP procedure for Delete request */ 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
-                    (uns32)&((SRMA_MSG*)0)->info.del_rsrc_mon.srmnd_rsrc_hdl, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->info.del_rsrc_mon.srmnd_rsrc_hdl, 0, NULL},
 
         /* EDP procedure for Bulk Create request */ 
         {EDU_EXEC, srmsv_edp_agent_dec_bulk_create, 0, 0, EDU_EXIT, 
-                    (uns32)&((SRMA_MSG*)0)->info.bulk_create_mon, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->info.bulk_create_mon, 0, NULL},
 
         /* EDP procedure for Create request */ 
         {EDU_EXEC, srmsv_edp_get_watermark, 0, 0, EDU_EXIT, 
-                    (uns32)&((SRMA_MSG*)0)->info.get_wm, 0, NULL},
+                    (long)&((SRMA_MSG*)0)->info.get_wm, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };

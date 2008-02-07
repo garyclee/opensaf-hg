@@ -9,4 +9,4 @@ libavm_logstr_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ -DNCS_DTS=1 -I ../inc/ \
 
 libavm_logstr_la_SOURCES =	./avm_logstr.c
 
-libavm_logstr_la_LDFLAGS = -version-number 1
+libavm_logstr_la_LDFLAGS = -version-number 2

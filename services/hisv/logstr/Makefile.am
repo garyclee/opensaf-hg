@@ -14,7 +14,7 @@ libhisv_logstr_la_CPPFLAGS =	@NCS_CORE_CPP_DEFINES@ \
 
 libhisv_logstr_la_SOURCES = ./hcd_logstr.c
 
-libhisv_logstr_la_LDFLAGS = -version-number 1
+libhisv_logstr_la_LDFLAGS = -version-number 2
 
 endif
 

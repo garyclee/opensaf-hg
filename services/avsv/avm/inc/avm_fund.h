@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 #ifndef __NCS_AVM_FUND_H__
@@ -69,15 +69,16 @@ typedef enum
   AVM_ROLLBACK_SUCCESS 
 }AVM_TRAP_UPG_PRG;
 
+/*changed in conformance with 64 bit changes*/
 typedef struct
 {
     uns32 cmd_id;
     uns32 node_num;
     uns32 slot_num;
-    uns8 device_name[16];
+    uns8 device_name[255];
     uns8 mark_flag;
     uns8 mark_bank_num;
-    char filename[256];
+    char filename[255];
     char payload_ipaddr[20];
 }AVM_FUND_CMD_PARM;
 
@@ -101,16 +102,19 @@ avm_fund_send_mib_req(AVM_CB_T *avm_cb, NCSMIB_ARG *mib_arg);
 
 extern uns32
 avm_fund_send_mib_req(AVM_ENT_INFO_T *ent_info, NCSMIB_ARG *mib_arg);
+extern uns32
+avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
+
 /*
 extern uns32
 avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
 
 extern uns32
 avm_proc_ipmc_mod_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
-
+*/
 extern uns32
 avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
-*/
+
 uns32 avm_fund_resp_func (NCSMIB_ARG *resp);
 
 #if 0 /* remove later - JPL */

@@ -1,19 +1,20 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
+
 
 
 /******************************************************************************
@@ -228,11 +229,11 @@ NCSFL_FMAT gld_fmat_set[] =
    { GLD_LID_HDLN,           NCSFL_TYPE_TI,     "%s GLD HEADLINE : %s\n"     },
    { GLD_LID_MEMFAIL,        NCSFL_TYPE_TI,     "%s GLD MEMERR: %s\n"        },
    { GLD_LID_API,            NCSFL_TYPE_TI,     "%s GLD API: %s\n"           },
-   { GLD_LID_EVT,            NCSFL_TYPE_TILL,    "%s GLD EVT: %s <rsc id:%d> <rcvd frm:%d>\n"},
+   { GLD_LID_EVT,            NCSFL_TYPE_TILL,    "%s GLD EVT: %s <rsc id:%ld> <rcvd frm:%ld>\n"},
    { GLD_LID_SVC_PRVDR,      NCSFL_TYPE_TI,     "%s GLD SVC PRVDR: %s\n"           },
-   { GLD_LID_LCK_OPER,       NCSFL_TYPE_TICLL,  "%s GLD LCK OPER: %s <rsc name:%s> <rsc id:%d> <rcvd frm:%d>\n"},
+   { GLD_LID_LCK_OPER,       NCSFL_TYPE_TICLL,  "%s GLD LCK OPER: %s <rsc name:%s> <rsc id:%ld> <rcvd frm:%ld>\n"},
    { GLD_LID_MBCSV,          NCSFL_TYPE_TI,     "%s GLD MBCSV: %s\n"     },
-   { GLD_LID_TIMER,          NCSFL_TYPE_TIL,    "%s GLD TIMER: %s type :%d \n"},
+   { GLD_LID_TIMER,          NCSFL_TYPE_TIL,    "%s GLD TIMER: %s type :%ld \n"},
    { 0, 0, 0 }
 };
 

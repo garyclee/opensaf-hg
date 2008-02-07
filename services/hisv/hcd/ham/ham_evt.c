@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -46,8 +46,10 @@ static void set_hisv_msg(HISV_MSG *hisv_msg);
 static uns32 ham_adest_update(HISV_MSG *msg, HAM_CB *ham_cb);
 
 /* boot bank GET/SET functions */
+#ifdef HPI_A
 static uns32 ham_bootbank_get (HISV_EVT *evt);
 static uns32 ham_bootbank_set (HISV_EVT *evt);
+#endif
 
 
 /****************************************************************************
@@ -183,6 +185,7 @@ ham_resource_power_set(HISV_EVT *evt)
    {
          rc = NCSCC_RC_FAILURE;
          m_LOG_HISV_DTS_CONS("ham_resource_power_set: error saHpiResourcePowerStateSet\n");
+         m_NCS_CONS_PRINTF ("ham_resource_power_set: saHpiResourcePowerStateSet, HPI error code = %d\n", err);
    }
    /** populate the mds message with return value, to send across to the HPL
     **/
@@ -291,6 +294,7 @@ ham_resource_reset(HISV_EVT *evt)
    else
    {
       m_LOG_HISV_DTS_CONS("ham_resource_reset: error in saHpiResourceResetStateSet; Attempting cold reset\n");
+      m_NCS_CONS_PRINTF ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
       err =  saHpiResourceResetStateSet(ham_cb->args->session_id, resourceid,
                                         (SaHpiResetActionT)SAHPI_COLD_RESET);
       if (SA_OK == err)
@@ -298,6 +302,7 @@ ham_resource_reset(HISV_EVT *evt)
       else
       {
          m_NCS_CONS_PRINTF("ham_resource_reset: cold reset attempt failed in saHpiResourceResetStateSet\n");
+         m_NCS_CONS_PRINTF ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
          rc = NCSCC_RC_FAILURE;
       }
    }
@@ -1004,7 +1009,7 @@ ham_alarm_add(HISV_EVT *evt)
    }
    /* get the value of 'timeout' requested */
    AlarmT = (SaHpiAlarmT *)((uns8 *)msg->info.api_info.data+4);
-   m_NCS_CONS_PRINTF("ham_alarm_add: AlarmT = %d\n", (uns32)AlarmT);
+   m_NCS_CONS_PRINTF("ham_alarm_add: AlarmT = %ld\n", (long)AlarmT);
 
    /** Invoke HPI call to add the alarm on HPI DAT.
     **/
@@ -1368,6 +1373,8 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
    SaHpiRptEntryT  entry;
    SaErrorT       err;
    uns32    rc = NCSCC_RC_FAILURE;
+   int      get_res_id_retry_count = 0;
+
 #ifndef HPI_A
    uns32 i;
 #endif
@@ -1394,6 +1401,8 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
       ncshm_give_hdl(gl_ham_hdl);
       return NCSCC_RC_FAILURE;
    }
+
+GET_RES_ID:
    next = SAHPI_FIRST_ENTRY;
    do
    {
@@ -1411,11 +1420,21 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
          if (current != SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("get_resourceid: Error first entry\n");
-            break;
+            m_NCS_CONS_PRINTF ("get_resourceid: saHpiRptEntryGet, HPI error code = %d\n", err);
+
+            if (get_res_id_retry_count < 4)
+            {
+                get_res_id_retry_count++;
+                m_NCS_TASK_SLEEP(1000);
+                goto GET_RES_ID;
+            }
+            else
+                break;
          }
          else
          {
             m_LOG_HISV_DTS_CONS("get_resourceid: Empty RPT\n");
+            m_NCS_CONS_PRINTF ("get_resourceid: saHpiRptEntryGet, HPI error code = %d\n", err);
             break;
          }
       }
@@ -1738,7 +1757,7 @@ ham_chassis_id_resend(HISV_EVT *evt)
 static uns32 
 ham_bootbank_get (HISV_EVT *evt)
 {
-   HISV_MSG          *msg = &evt->msg, hisv_msg = {0};
+   HISV_MSG          *msg = &evt->msg, hisv_msg;
    SaHpiResourceIdT   resourceid;
    HAM_CB            *ham_cb = NULL;
    SaErrorT           err;
@@ -1747,6 +1766,7 @@ ham_bootbank_get (HISV_EVT *evt)
    uns16              arg_len = sizeof(SaHpiCtrlStateDiscreteT);
    SaHpiCtrlStateDiscreteT discrete_val = 0;
 
+   m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
    set_hisv_msg(&hisv_msg);
    m_LOG_HISV_DTS_CONS("ham_bootbank_get : Invoked\n");
    
@@ -1829,7 +1849,7 @@ ret:
 static uns32
 ham_bootbank_set (HISV_EVT *evt)
 {
-   HISV_MSG           *msg = &evt->msg, hisv_msg = {0};
+   HISV_MSG           *msg = &evt->msg, hisv_msg;
    HAM_CB             *ham_cb = NULL;
    SaErrorT            err;
    SaHpiResourceIdT    resourceid;
@@ -1840,6 +1860,7 @@ ham_bootbank_set (HISV_EVT *evt)
    SaHpiCtrlStateT     state;
 
    m_LOG_HISV_DTS_CONS("ham_bootbank_set : Invoked\n");
+   m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
    set_hisv_msg (&hisv_msg);
 
    /** retrieve HAM CB

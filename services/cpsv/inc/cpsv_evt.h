@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -254,6 +254,7 @@ typedef struct cpsv_mds_info
    MDS_DEST        dest;
    MDS_SVC_ID      svc_id;
    NODE_ID         node_id;
+   V_DEST_RL       role;
 }CPSV_MDS_INFO;
 
 /* Struct used for convaying MDS dest info of a ckpt */
@@ -897,7 +898,7 @@ EXTERN_C uns32 cpsv_ckpt_access_encode(CPSV_CKPT_ACCESS *ckpt_data ,NCS_UBAID *i
 EXTERN_C uns32 cpsv_nd2a_read_data_encode(CPSV_ND2A_READ_DATA *read_data ,NCS_UBAID *io_uba);
 EXTERN_C uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID* io_uba);
 EXTERN_C uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data , NCS_UBAID *io_uba);
-
+EXTERN_C uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp , NCS_UBAID* io_uba);
 
 /*
  * m_CPSV_DBG_SINK

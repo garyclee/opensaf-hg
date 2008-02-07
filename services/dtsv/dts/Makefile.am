@@ -1,7 +1,7 @@
 noinst_LTLIBRARIES = libdts.la
 
 libdts_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ \
-		-DNCS_DTS=1 -DDTS_LOG=1 -DNCS_DTA=1 \
+		-DNCS_DTS=1 -DDTS_LOG=1 -DNCS_DTA=1 -DDTS_FLOW=1 \
 		-I ../inc/ \
 		-I $(top_srcdir)/services/leap/inc/ \
 		-I $(top_srcdir)/services/mds/inc/ \

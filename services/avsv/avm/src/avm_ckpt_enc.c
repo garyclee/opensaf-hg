@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -491,7 +491,14 @@ avm_encode_ckpt_ent_upgd_state_chg(AVM_CB_T           *cb,
       these fields. So, just return Success   
    ***************************************************************/  
    if(enc->i_peer_version < 2)
+   {
+      /* vivsp4 */
+      /* Should return failure otherwise mbcsv send empty message to peer */
+#if 0
       return NCSCC_RC_SUCCESS;
+#endif
+      return NCSCC_RC_FAILURE;
+   }
 
    status = ncs_edu_exec(&cb->edu_hdl, avm_edp_ckpt_msg_ent, &enc->io_uba, 
                           EDP_OP_TYPE_ENC, (AVM_ENT_INFO_T*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)), &ederror, 2, 2, 26);

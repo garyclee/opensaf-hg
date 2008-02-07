@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -55,11 +55,11 @@ uns32 ham_start_tmr (HAM_CB *cb, SaTimeT period)
    /* create the timer (if not already created */
    if (cb->tmr_id == TMR_T_NULL)
    {
-      m_NCS_TMR_CREATE (cb->tmr_id, period , ham_tmr_exp, (void*)cb->cb_hdl);
+      m_NCS_TMR_CREATE (cb->tmr_id, period , ham_tmr_exp, (void*)((long)cb->cb_hdl));
    }
 
    /* start the timer to execure ham_tmr_exp routine after expiry */
-   m_NCS_TMR_START (cb->tmr_id, (uns32)period, ham_tmr_exp, (void*)cb->cb_hdl);
+   m_NCS_TMR_START (cb->tmr_id, (uns32)period, ham_tmr_exp, (void*)((long)cb->cb_hdl));
 
    if (TMR_T_NULL == cb->tmr_id)
       return NCSCC_RC_FAILURE;
@@ -116,7 +116,7 @@ void ham_tmr_exp (void *uarg)
 {
    HISV_EVT * hisv_evt;
    HAM_CB  *cb = NULL;
-   uns32 ham_cb_hdl = (uns32)uarg;
+   uns32 ham_cb_hdl = (long)uarg;
 
   /* clearing SEL is affecting other functionality of HPI so
    * for now, just return here

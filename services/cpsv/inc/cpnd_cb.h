@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -204,6 +204,8 @@ typedef struct cpnd_ckpt_node
 
    NCS_BOOL                           is_cpa_created_ckpt_replica; /* Flag to indicate whether replica created by CPA/CPD */
    CPSV_EVT                           *evt_bckup_q;
+   CPSV_SEND_INFO                     cpa_sinfo; /* Used in unlink flow while sending response to CPA */
+   NCS_BOOL                           cpa_sinfo_flag;
 }CPND_CKPT_NODE;
 
 #define CPND_CKPT_NODE_NULL  ((CPND_CKPT_NODE *)0)

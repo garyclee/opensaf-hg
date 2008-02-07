@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -133,7 +133,9 @@ typedef enum avd_avm_msg_type
    AVD_AVM_NODE_RESET_REQ_MSG,
    AVD_AVM_SYS_CON_ROLE_ACK_MSG,
    AVD_AVM_D_HRT_BEAT_LOST_MSG,
-   AVD_AVM_ND_HRT_BEAT_LOST_MSG
+   AVD_AVM_ND_HRT_BEAT_LOST_MSG,
+   AVD_AVM_D_HRT_BEAT_RESTORE_MSG,
+   AVD_AVM_ND_HRT_BEAT_RESTORE_MSG
 
 }AVD_AVM_MSG_TYPE_T;
 
@@ -250,17 +252,19 @@ typedef struct avd_avm_sys_con_role_ack_type
     uns32                    rc;
 }AVD_AVM_SYS_CON_ROLE_ACK_T;
 
-typedef struct avd_avm_hrt_beat_lost_type
+/* This Structure is used for both HB  restore and
+   lost message type */
+typedef struct avd_avm_hrt_beat_type
 {
     SaNameT                  node_name;
-}AVD_AVM_D_HRT_BEAT_LOST_T;
+}AVD_AVM_D_HRT_BEAT_T;
 
-typedef struct avd_avm_nd_hrt_beat_lost_type
+typedef struct avd_avm_nd_hrt_beat_type
 {
     uns32     node_id;
     SaNameT   node_name;
 
-}AVD_AVM_ND_HRT_BEAT_LOST_T;
+}AVD_AVM_ND_HRT_BEAT_T;
 
 /* Structure reprsenting messages from AVM to AVD */
 struct avm_avd_msg_t
@@ -292,8 +296,8 @@ struct avd_avm_msg_t
       AVD_AVM_FAULT_DOMAIN_REQ_T     fault_domain_req;
       AVD_AVM_NODE_RESET_REQ_T       reset_req;
       AVD_AVM_SYS_CON_ROLE_ACK_T     role_ack;
-      AVD_AVM_D_HRT_BEAT_LOST_T      avd_hb_lost;
-      AVD_AVM_ND_HRT_BEAT_LOST_T     avnd_hb_lost;
+      AVD_AVM_D_HRT_BEAT_T           avd_hb_info;  /* Structure of HB lost and restore message type */
+      AVD_AVM_ND_HRT_BEAT_T          avnd_hb_info; /* Structure of HB lost and restore message type */
    }avd_avm_msg;
 
 };

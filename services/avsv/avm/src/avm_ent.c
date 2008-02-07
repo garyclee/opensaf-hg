@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -178,6 +178,8 @@ ncsavmentdeploytableentry_set(
  
    avm_cb->config_cnt++;
 
+   fsm_evt.evt.mib_req = arg;
+
    m_NCS_MEMSET(ep.name, '\0', AVM_MAX_INDEX_LEN);
 
    ep.length   = arg->i_idx.i_inst_ids[0];
@@ -187,7 +189,7 @@ ncsavmentdeploytableentry_set(
       ep.name[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
    }
 
-   ent_info = avm_find_ent_str_info(avm_cb, &ep);
+   ent_info = avm_find_ent_str_info(avm_cb, &ep,TRUE);
 
    if(AVM_ENT_INFO_NULL == ent_info) 
    {
@@ -534,18 +536,24 @@ ncsavmentdeploytableentry_set(
             if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label1.status)
             {
                ent_info->dhcp_serv_conf.label1.status = SSU_COMMITTED;
+               /* Push it into PSSV */
+               m_AVM_SSU_PSSV_PUSH_INT(cb, ent_info->dhcp_serv_conf.label1.status, ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
+
                ent_info->dhcp_serv_conf.default_chg = FALSE;
                ckpt_dhstate = TRUE;
                sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);  
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
             }
             else if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label2.status)
             {
                ent_info->dhcp_serv_conf.label2.status = SSU_COMMITTED;
+               /* Push it into PSSV */
+               m_AVM_SSU_PSSV_PUSH_INT(cb, ent_info->dhcp_serv_conf.label2.status, ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
+
                ent_info->dhcp_serv_conf.default_chg = FALSE;
                ckpt_dhstate = TRUE;
                sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);  
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
             }
             else
             {
@@ -556,9 +564,13 @@ ncsavmentdeploytableentry_set(
             ent_info->dhcp_serv_conf.default_label = ent_info->dhcp_serv_conf.curr_act_label;
 
             /* Set the preferred label also to other label */
+            m_NCS_MEMSET(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
             ent_info->dhcp_serv_conf.pref_label.length = ent_info->dhcp_serv_conf.default_label->name.length;
             m_NCS_MEMCPY(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.default_label->name.name,
                 ent_info->dhcp_serv_conf.pref_label.length);
+
+            /* Push the preferred label into pssv */
+            m_AVM_SSU_PSSV_PUSH_STR(cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length);
 
             ckpt_dhconf = TRUE;
 
@@ -576,6 +588,16 @@ ncsavmentdeploytableentry_set(
 
       case ncsAvmEntDHCPConfTFTPServerIp_ID:
       {
+         if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
+         {
+            /* If it is playback from PSS, just store it. Don't act on it  */   
+            m_NCS_MEMCPY(ent_info->dhcp_serv_conf.tftp_serve_ip,
+            arg->req.info.set_req.i_param_val.info.i_oct,4);
+
+            ckpt_dhconf = TRUE; /* Checkpoint it */
+            break;
+         }
+
          /* If same Value, return Success */
          if (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.tftp_serve_ip,
             arg->req.info.set_req.i_param_val.info.i_oct,4))
@@ -1529,7 +1551,7 @@ ncsavmentdeploytableentry_get(
       ep_str.name[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
    }
 
-   ent_info = avm_find_ent_str_info(avm_cb, &ep_str);
+   ent_info = avm_find_ent_str_info(avm_cb, &ep_str,TRUE);
 
    if(AVM_ENT_INFO_NULL == ent_info)
    {
@@ -1732,7 +1754,7 @@ ncsavmentupgradetableentry_set(
                             )
 {
    AVM_CB_T          *avm_cb;
-   AVM_ENT_INFO_T    *ent_info, *helper_ent_info;
+   AVM_ENT_INFO_T    *ent_info;
    NCS_BOOL           ckpt_dhconf=FALSE, ckpt_dhstate=FALSE, ckpt_upgd_state=TRUE;
    uns8               logbuf[AVM_LOG_STR_MAX_LEN];
    
@@ -1763,7 +1785,7 @@ ncsavmentupgradetableentry_set(
       ep.name[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
    }
 
-   ent_info = avm_find_ent_str_info(avm_cb, &ep);
+   ent_info = avm_find_ent_str_info(avm_cb, &ep,TRUE);
 
    if(AVM_ENT_INFO_NULL == ent_info) 
    {
@@ -1817,13 +1839,30 @@ ncsavmentupgradetableentry_set(
             m_AVM_LOG_DEBUG("AVM-SSU: not a valid node_id", NCSFL_SEV_ERROR);
             goto failure;
          }
-         /* Check for the presense of helper payload blade */
-         if (FALSE == avm_is_the_helper_payload_present(avm_cb,helper_ep))
+
+         /*saumya-fix for IR00086315*/
+         if ((ent_info->ep_str.length == helper_ep.length)
+             &&
+             (!m_NCS_MEMCMP(ent_info->ep_str.name,
+                            helper_ep.name,
+                            helper_ep.length)))         
          {
-            /* log the error */
-            sprintf(logbuf,"AVM-SSU: Payload blade %s : Helper blade not present. IPMC upgrade failed",ent_info->ep_str.name);
+            sprintf(logbuf,"AVM-SSU: Payload blade %s : Helper blade same as target payload blade. IPMC upgrade failed",ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
             return NCSCC_RC_INV_VAL;
+         }
+
+
+         if (!(arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME))
+         {
+            /* Check for the presense of helper payload blade */
+            if (FALSE == avm_is_the_helper_payload_present(avm_cb,helper_ep))
+            {
+               /* log the error */
+               sprintf(logbuf,"AVM-SSU: Payload blade %s : Helper blade not present. IPMC upgrade failed",ent_info->ep_str.name);
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
+               return NCSCC_RC_INV_VAL;
+            }
          }
          /* store the helper entity path, for future reference */
          ent_info->dhcp_serv_conf.ipmc_helper_ent_path.length = helper_ep.length;
@@ -1919,7 +1958,6 @@ ncsavmentupgradetableentry_set(
                 ent_info->dhcp_serv_conf.pref_label.length);
 
             /* Push preferred label into PSSv */
-            /* vivek_push */
             m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length );
 
             ckpt_dhconf = TRUE;
@@ -1934,52 +1972,87 @@ ncsavmentupgradetableentry_set(
             if ((ent_info->dhcp_serv_conf.ipmc_upgd_state != 0) || (ent_info->dhcp_serv_conf.upgd_prgs == TRUE))
             {
                 /* Upgrade is already in progress */
+                sysf_sprintf(logbuf, "AVM-SSU: Payload %s: Upgrade is already in progress. Upgrade not allowed", ent_info->ep_str.name);
+                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                 goto failure;
             }
+            /*saumya-fix for IR00086294*/
+            if (ent_info->dhcp_serv_conf.curr_act_label == NULL)
+            {
+               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: No current active label. Upgrade not allowed",ent_info->ep_str.name);
+               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
+               goto failure;
+            }
+
             /* Check for the uType. The uType should be either INTEG or IPMC */
             if( (IPMC == ent_info->dhcp_serv_conf.upgrade_type) )
             {
-               /* TBD - JPL: check for the combination of preffered label and utype: IPMC */ 
                ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_TRIGGERED;
                m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
-               ent_info->dhcp_serv_conf.adm_oper = 
-                  arg->req.info.set_req.i_param_val.info.i_int;
+               ent_info->dhcp_serv_conf.adm_oper = arg->req.info.set_req.i_param_val.info.i_int;
                /* Trigger the IPMC Upgrade */
-               avm_upgrade_ipmc_trigger(avm_cb,ent_info);
+               /*saumya- fix for IR00086299*/ 
+               rc =  avm_upgrade_ipmc_trigger(avm_cb,ent_info);
+               if (rc == NCSCC_RC_FAILURE)
+               {
+                  sysf_sprintf(logbuf, "AVM-SSU: Payload %s: IPMC upgrade trigger failed", ent_info->ep_str.name);
+                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
+
+                  ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
+                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+                  goto failure; 
+               }  
             }
             else if(INTEG == ent_info->dhcp_serv_conf.upgrade_type)  
             {
                /* Check for the preffered label. If it is the current active label, no need to upgrade. *
                 * If the preffered label is passive label, trigger the upgrade.                         */  
-               if (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,
-                    ent_info->dhcp_serv_conf.pref_label.length))
+
+               /*saumya-fix for IR00086310*/
+
+               if ((ent_info->dhcp_serv_conf.pref_label.length ==
+                    ent_info->dhcp_serv_conf.curr_act_label->name.length)
+                   &&
+                   (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,
+                                  ent_info->dhcp_serv_conf.curr_act_label->name.name,
+                                  ent_info->dhcp_serv_conf.pref_label.length)))
                {
                   sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: Preferred label is the current active label. No Upgrade",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                }
-               else if (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,ent_info->dhcp_serv_conf.curr_act_label->other_label->name.name,
-                             ent_info->dhcp_serv_conf.pref_label.length))
+               else if ((ent_info->dhcp_serv_conf.pref_label.length == ent_info->dhcp_serv_conf.curr_act_label->other_label->name.length)
+                        &&
+                        (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,
+                                       ent_info->dhcp_serv_conf.curr_act_label->other_label->name.name,
+                                       ent_info->dhcp_serv_conf.pref_label.length)))
                {
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_TRIGGERED;
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
                   ent_info->dhcp_serv_conf.adm_oper = 
                      arg->req.info.set_req.i_param_val.info.i_int;
                   /* Trigger the INTEG (IPMC + SW-BIOS i.e mother of all upgrades...) Upgrade */
-                  m_NCS_CONS_PRINTF ("avm_ent.c: Going for INTEG UPGRADE\n");
                   rc = avm_upgrade_ipmc_trigger(avm_cb,ent_info);
+ 
                   if (rc == NCSCC_RC_FAILURE)
                   {
+                     sysf_sprintf(logbuf, "AVM-SSU: Payload %s: INTEG upgrade trigger failed", ent_info->ep_str.name);
+                     m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
+
+                     /*saumya- fix for IR00086299*/ 
+                     ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
+
                      /* This is taken as upgrade failure */
                      /* We would rollback the labels     */
                      AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
                      /* change the state to upgrade failure */
                      ent_info->dhcp_serv_conf.curr_act_label->other_label->status = SSU_UPGD_FAILED;
 
-                     /* vivek_push */
                      /* Push the Label1 state into PSSV */
-                     m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label1.status, ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
+                     m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label1.status, 
+                                             ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
                      /* Push the Label2 state into PSSV */
-                     m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label2.status, ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
+                     m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label2.status, 
+                                             ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
 
                      /* rollback the preferred label */
                      if (dhcp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
@@ -1993,12 +2066,15 @@ ncsavmentupgradetableentry_set(
                                   dhcp_conf->pref_label.length);
 
                      /* Push preferred label into PSSv */
-                     /* vivek_push */
-                     m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length );
+                     m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name, 
+                                             ncsAvmEntDHCPConfPrefLabel_ID, ent_info, 
+                                             ent_info->dhcp_serv_conf.pref_label.length );
 
                      dhcp_conf->default_chg = FALSE;    
-                     /* vivek_ckpt */
                      m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
+
+                     ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
+                     m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
                   }
                }
                else
@@ -2033,7 +2109,9 @@ ncsavmentupgradetableentry_set(
    if (ckpt_dhstate == TRUE)
       m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
    if(ckpt_upgd_state == TRUE)
+   {
       m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
+   }
 
    return NCSCC_RC_SUCCESS;
 
@@ -2116,7 +2194,7 @@ ncsavmentupgradetableentry_get(
       ep_str.name[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
    }
 
-   ent_info = avm_find_ent_str_info(avm_cb, &ep_str);
+   ent_info = avm_find_ent_str_info(avm_cb, &ep_str,TRUE);
 
    if(AVM_ENT_INFO_NULL == ent_info)
    {

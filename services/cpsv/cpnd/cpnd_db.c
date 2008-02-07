@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 
@@ -521,7 +521,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
    CPND_CKPT_SECTION_INFO *pSecPtr=NULL;
    int32 lcl_sec_id=0;
    uns32 rc = NCSCC_RC_SUCCESS;
-   uns32 value=0,i=0;
+   uns32 value=0,i=0,j=0;
 
   /* get the lcl_sec_id */
 
@@ -551,7 +551,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
          pSecPtr->sec_id.idLen = cp_node->create_attrib.maxSectionIdSize;
 
       /* convert the lcl_sec_id to Network order */
-      value = m_NCS_OS_HTONL(lcl_sec_id);
+      value = lcl_sec_id;
       pSecPtr->sec_id.id=m_MMGR_ALLOC_CPND_DEFAULT(pSecPtr->sec_id.idLen);
       if(pSecPtr->sec_id.id == NULL)
       {
@@ -560,9 +560,10 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
       }
       m_NCS_MEMSET(pSecPtr->sec_id.id,'\0',pSecPtr->sec_id.idLen);
 
-      for(i=0;i<pSecPtr->sec_id.idLen;i++)
+      for(i=(CPSV_GEN_SECTION_ID_SIZE - pSecPtr->sec_id.idLen); i<CPSV_GEN_SECTION_ID_SIZE; i++)
       {
-         pSecPtr->sec_id.id[i] = (value >> (24 - (8*i))) & 0xff;
+         pSecPtr->sec_id.id[j] = (value >> (24 - (8*i))) & 0xff;
+         j++;
       }
    }
    else
@@ -663,7 +664,7 @@ void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
 void cpnd_evt_backup_queue_add(CPND_CKPT_NODE *cp_node,CPND_EVT *evt)
 {
    #define offset_of(TYPE,MEMBER) \
-  ((int) &((TYPE *)0)->MEMBER)
+  ((long) &((TYPE *)0)->MEMBER)
 
    #define container_of(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \

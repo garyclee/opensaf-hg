@@ -11,4 +11,4 @@ libsubagt_logstr_la_CPPFLAGS =	-I ../inc/ \
 								
 libsubagt_logstr_la_SOURCES =	./subagt_logstr.c	
 
-libsubagt_logstr_la_LDFLAGS = -version-number 1
+libsubagt_logstr_la_LDFLAGS = -version-number 2

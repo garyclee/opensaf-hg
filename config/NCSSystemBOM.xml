@@ -2,19 +2,19 @@
 <!--
  *      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
 -->
 <!--
      All the timeouts specified in this file are in milliseconds (ms)
@@ -74,15 +74,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_cpnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -146,15 +137,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_mqnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-							<maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>4</instantiationLevel>
 
@@ -217,15 +199,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_glnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-							<maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>5</instantiationLevel>
 
@@ -288,15 +261,6 @@
 							<command>/opt/opensaf/payload/scripts/ncs_cpnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -359,15 +323,6 @@
 							<command>/opt/opensaf/payload/scripts/ncs_ifnd_clean.sh</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-							<maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -426,15 +381,6 @@
 							<command>/opt/opensaf/payload/scripts/ncs_mqnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>2</instantiationLevel>
 
@@ -497,15 +443,6 @@
 							<command>/opt/opensaf/payload/scripts/ncs_glnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>3</instantiationLevel>
 
@@ -569,15 +506,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_snmpsubagt_cleanup.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>8</instantiationLevel>
 
@@ -643,15 +571,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_eds_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -717,15 +636,6 @@
                                                         <command>/opt/opensaf/controller/scripts/ncs_cpd_clean.sh</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
-                                                <amStartCommand>
-                                                        <command>startNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-                                                </amStartCommand>
-                                                <amStopCommand>
-                                                        <command>stopNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                </amStopCommand>
                                         </clcCommands>
                                         <instantiationLevel>1</instantiationLevel>
 
@@ -791,15 +701,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_gld_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>6</instantiationLevel>
 
@@ -865,15 +766,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_ifd_clean.sh</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -939,15 +831,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_ifnd_clean.sh</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
 
@@ -1011,15 +894,6 @@
                                                         <command>/opt/opensaf/controller/scripts/ncs_dts_cleanup.sh</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
-                                                <amStartCommand>
-                                                        <command>startNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-                                                </amStartCommand>
-                                                <amStopCommand>
-                                                        <command>stopNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                </amStopCommand>
                                         </clcCommands>
                                         <instantiationLevel>2</instantiationLevel>
 
@@ -1085,15 +959,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_mas_cleanup.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>3</instantiationLevel>
 
@@ -1159,15 +1024,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_pss_cleanup.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>4</instantiationLevel>
 
@@ -1233,15 +1089,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_mqd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>5</instantiationLevel>
 
@@ -1310,15 +1157,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_hisv_clean.sh</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>7</instantiationLevel>
                                         -->  
@@ -1396,15 +1234,6 @@
 							<command>/opt/opensaf/controller/scripts/ncs_srmnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>3</instantiationLevel>
 
@@ -1468,15 +1297,6 @@
 							<command>/opt/opensaf/payload/scripts/ncs_srmnd_clean.sh</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
-						<amStartCommand>
-							<command>startNewNcs()</command>
-							<timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-						</amStartCommand>
-						<amStopCommand>
-							<command>stopNewNcs()</command>
-							<timeout>10</timeout>
-						</amStopCommand>
 					</clcCommands>
 					<instantiationLevel>1</instantiationLevel>
                                        
@@ -1536,15 +1356,6 @@
                                                         <command>/opt/opensaf/controller/scripts/ncs_vds_clean.sh</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
-                                                <amStartCommand>
-                                                        <command>startNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-                                                </amStartCommand>
-                                                <amStopCommand>
-                                                        <command>stopNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                </amStopCommand>
                                         </clcCommands>
                                         <instantiationLevel>9</instantiationLevel>
 
@@ -1613,15 +1424,6 @@
                                                         <command>/opt/opensaf/controller/scripts/ncs_drbd_r0_clean.sh</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
-                                                <amStartCommand>
-                                                        <command>startNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-                                                </amStartCommand>
-                                                <amStopCommand>
-                                                        <command>stopNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                </amStopCommand>
                                         </clcCommands>
                                         <instantiationLevel>1</instantiationLevel>
                                         -->
@@ -1695,15 +1497,6 @@
                                                         <command>/opt/opensaf/controller/scripts/drbd_clean.sh</command>
                                                         <timeout>500</timeout>
                                                 </cleanupCommand>
-                                                <amStartCommand>
-                                                        <command>startNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                        <maxAmStartRetries>1</maxAmStartRetries>
-                                                </amStartCommand>
-                                                <amStopCommand>
-                                                        <command>stopNewNcs()</command>
-                                                        <timeout>10</timeout>
-                                                </amStopCommand>
                                         </clcCommands>
                                         <instantiationLevel>1</instantiationLevel>
                                         -->

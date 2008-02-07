@@ -1,18 +1,18 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation 
+ * (C) Copyright 2008 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
  * under the GNU Lesser General Public License Version 2.1, February 1999.
  * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php 
+ * http://opensource.org/licenses/lgpl-license.php
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
  * Author(s): Emerson Network Power
- *   
+ *
  */
 
 /*****************************************************************************
@@ -558,7 +558,14 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
             if(svcreg->my_key.ss_svc_id == 0) /*Node policy change*/
             {
                /* update the policy for all services in the node */
-               svc_ptr = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl,(const uns8*)&nt_key);
+               if ((svc_ptr = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8*)&nt_key)) == NULL)
+               {
+                  m_DTS_UNLK(&cb->lock);
+                  m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
+                  m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, 0);
+                  return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_svc_reg : Node entry not found in the patricia tree");
+               }
+
                /* Update this node first */
                m_DTS_SET_SVC_REG_TBL(svc_ptr, svcreg);
                m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_UPDT, key.ss_svc_id, key.node, 0);
@@ -624,7 +631,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                   m_DTS_UNLK(&cb->lock);
                   m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
                   m_LOG_DTS_EVT(DTS_EV_SVC_REG_NOTFOUND, key.ss_svc_id, key.node, 0);
-                  return m_DTS_DBG_SINK(NCSCC_RC_SUCCESS, "dtsv_ckpt_add_rmv_updt_svc_reg : Service entry not found in the patricia tree");
+                  return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_svc_reg : Service entry not found in the patricia tree");
                }
                else
                {
