@@ -537,7 +537,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
          (uns8*)&spir_key);
 
       if ((spir_entry == NULL) ||
-          (0 != strcmp(((const char *)spir_entry->key.sp_abstract_name, (const char *)spir_key.sp_abstract_name)))
+        ( 0 != strcmp((const char *)spir_entry->key.sp_abstract_name,(const char *)spir_key.sp_abstract_name)))
       {
          /* There is no such entry. Reject this request */
          rc = NCSCC_RC_NO_OBJECT;
