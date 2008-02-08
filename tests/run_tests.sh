@@ -28,6 +28,7 @@ function build_ifsv_reg_scen_file()
 function single_node_test()
 { 
    export TET_ROOT=/usr/local/tet
+   export PATH=$PATH:/usr/local/tet/bin
 
    cd $OPENSAF_TETWARE_DIR/$1/suites
    if [ ":$REG_TYPE" == ":" ]; then
@@ -55,10 +56,14 @@ function single_node_test()
       mkdir $RESULTS_DIR/$MOVE_NOW/
       mv $RES_DIR/$1_jrnl $RES_DIR/$1.txt $RESULTS_DIR/$MOVE_NOW/.
    fi
+   echo "Starting Tests for $1 service..."  
    tcc -e -s $OPENSAF_SCEN_FILE -j $RES_DIR/$1_jrnl $PWD
-   rm $OPENSAF_SCEN_FILE
+   echo "Done."
+   rm -f $OPENSAF_SCEN_FILE
    cd $RES_DIR
+   echo "Generating result in text format..."
    grw -c 6 -f text -o $1.txt $1_jrnl
+   echo "Check $1.txt for the results."
 }
 
 
