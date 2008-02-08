@@ -270,6 +270,13 @@ Step 3: make install
 
 Step 4: You can find binaries of samples in bin/[host-tuple]/
 
+NOTE: The 'configure' options for cross-compilation are the same as explained in Section 3) ABOVE.
+
+HOW TO BUILD & RUN OpenSAF Test Suites?
+---------------------------------------
+OpenSAF should be built('make' & 'make install') first before building the test suites.
+Please refer the opensaf/tests/README for procedure to build and run the OpenSAF test suites.
+
  
 4. INSTALLING THE OpenSAF BINARY RPMS ON TARGETS 
 ------------------------------------------------
@@ -461,8 +468,8 @@ HOW TO RUN SAMPLE APPLICATIONS?
 export LD_LIBRARY_PATH to point to opensaf libraries.
 
 For eg:-
-=> For controller "export LD_LIBRARY_PATH=/opt/opensaf/controller/lib/"
-=> For payload "export LD_LIBRARY_PATH=/opt/opensaf/payload/lib/"
+=> For controller "export LD_LIBRARY_PATH=/opt/opensaf/controller/<lib/lib64>/"
+=> For payload "export LD_LIBRARY_PATH=/opt/opensaf/payload/<lib/lib64>/"
  
 Please check the Sample applications documentation for instructions to run them.
  
