@@ -42,7 +42,7 @@ i) Install open source TETware 3.7 and apply tware-patch on it. TETware 3.7 can 
 
 ii)  OpenSAF release 1.6 or above.
 
-iii) OpenSAF system controller or payload libraries on 32-bit or 64-bit target machines. Typically the OpenSAF libraries is generated in the <OpenSAF home>/targets/<$host>/<lib/lib64> directory after a successful make and make install of OpenSAF. For more information, refer <OpenSAF home>/README and <OpenSAF home>/INSTALL files.
+iii) OpenSAF system controller or payload libraries on 32-bit or 64-bit target machines. Typically the OpenSAF libraries is generated in the <OpenSAF home>/targets/<$host>/<lib/lib64> directory after a successful make and make rpm  of OpenSAF. For more information, refer <OpenSAF home>/README and <OpenSAF home>/INSTALL files.
 
    
 3. CONFIGURATION
