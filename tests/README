@@ -70,8 +70,8 @@ After a successful build, a tar-zipped file also gets created which contains the
 --------------------
 The OpenSAF system controller or payload node for 32-bit or 64-bit should be up and running, before you run the test suites. For more information on running OpenSAF system controller and payload blades, refer <OpenSAF home>/README and <OpenSAF home>/INSTALL files.
 
-i) Go to <OpenSAF home>/tests/ directory.
-    # cd <OpenSAF home>/tests/
+i) Go to <OpetSAF Test Dir > directory.
+    # cd <OpetSAF Test Dir >
 
 ii) Set up the environment:
     # ./test_utils.sh setup_env  <linux/linux-64>
@@ -143,6 +143,6 @@ ii) Building the test infrastructure
 
 iii) Running the test infrastructure
 
-     a) Un-tar the tet_suites_<ppc-mvl-linux-gnu>.tgz file on the target system controller or payload node.
+     a) Un-tar the tet_suites<ppc-mvl-linux-gnu>.tgz file on the target system controller or payload node.
      b) Execute the steps explained in Section 5.
 
