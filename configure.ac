@@ -92,7 +92,7 @@ AM_CONDITIONAL([AGENTS_LIB64], [test "$build_type" = "64bit_agent_libs"])
 AC_ARG_VAR(libdir_suffix, [Set this to 64 if library install directory needs to be .../lib64 ]) 
 
 case $target_cpu in 
-     x86_64|ia64|mips64|ppc64|sparc64|parisc64|s390x) # As of now, some known values
+     x86_64|ia64|mips64|ppc64|sparc64|parisc64|s390x|*64*) # As of now, some known values
            LIB_SUFFIX=lib64
            ;;
      *)
