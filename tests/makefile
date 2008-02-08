@@ -43,7 +43,7 @@ TET_LIB=$(TARGET)
 all:$(TET_LIB) 
 
 $(TET_LIB): $(OBJS)
-		$(CC) $(LD_FLAGS) $@ -L$(TARGET_LIB_PATH) $(OBJS) $(OPENSAF_TOT_LIBS);
+		$(CC) $(CFLAGS) $(LD_FLAGS) $@ -L$(TARGET_LIB_PATH) $(OBJS) $(OPENSAF_TOT_LIBS);
 	@rm -rf $(OBJS)
            
 
