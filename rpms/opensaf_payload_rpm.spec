@@ -26,7 +26,7 @@ Summary: OpenSAF Services Payload Blade RPM
 Name: opensaf_payload
 Version:1.0 
 Distribution: linux
-Release:6
+Release:7
 Source: %{name}.tgz
 License: High-Availability Operating Environment Software License
 Vendor: OpenSAF
@@ -34,7 +34,7 @@ Packager: user@opensaf.org
 Group: System
 AutoReqProv: 0
 Requires: tipc
-Conflicts: opensaf<=1.0.6
+Conflicts: opensaf<=1.0.7
 
 %description
 This package contains the OpenSAF Payload executables & Libraries.

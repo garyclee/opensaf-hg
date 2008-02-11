@@ -25,7 +25,7 @@ Summary: OpenSAF Services Controller Blade RPM
 Name: opensaf_controller
 Version:1.0 
 Distribution: linux
-Release:6
+Release:7
 Source: %{name}.tgz
 License: High-Availability Operating Environment Software License
 Vendor: OpenSAF
