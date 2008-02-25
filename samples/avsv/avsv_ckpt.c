@@ -324,9 +324,11 @@ void avsv_ckpt_process (void)
       return;
 
    m_NCS_CONS_PRINTF("\n CKPT :: Checkpoint Opened !!!\n");
-
+#if 0 
+  /* Fix for Ticket #11 */
    sectionCreationAttributes.sectionId = (SaCkptSectionIdT*) malloc(sizeof \
                                                         (SaCkptSectionIdT));
+#endif
    sectionCreationAttributes.sectionId = &sec_id;
    sectionCreationAttributes.expirationTime = SA_TIME_END;
                                                                                                                              
