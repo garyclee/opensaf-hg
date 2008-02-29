@@ -53,8 +53,8 @@ DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
 BINPATH=/opt/opensaf/controller/bin
 ETCPATH=/opt/opensaf/controller/scripts/
-export STDOUTSPATH="/var/opt/opensaf/stdouts/"
-export OLD_STDOUTSPATH="/var/opt/opensaf/old_stdouts/"
+export STDOUTSPATH="/var/opt/opensaf/stdouts"
+export OLD_STDOUTSPATH="/var/opt/opensaf/old_stdouts"
 PIDFILE=/var/run/nodeinit.pid
 NISPIPE=/tmp/nisfifo
 SPCAPFIFO=/tmp/nodeinit.fifo
@@ -73,7 +73,7 @@ MODULE=tipc
 export NID_ROLE_CONFIG="ACTIVE"
 
 
-test -f $BINPATH/$DAEMON || exit 0
+test -f $BINPATH/$DAEMON || exit 1
 
 #set -e
 set +x
@@ -83,12 +83,11 @@ set +x
 start()
 {
         ### Remove TIPC if already installed.
-        lsmod | grep $MODULE
-        if [ $? -eq 0 ] ; then
-           rmmod tipc.ko
+        if grep $MODULE /proc/modules >& /dev/null; then
+           rmmod $MODULE
            if [ $? -eq 1 ] ; then
               echo "TIPC is already installed, Please remove TIPC module first..."
-              exit 0
+              exit 1
            fi
         fi
         
@@ -99,7 +98,7 @@ start()
 	if [ -f $PIDFILE ]
         then 
 		echo  "$BINPATH/$DAEMON already running..";
-		exit;
+		exit 1;
 	else 
 	    	echo "Starting $DESC: $BINPATH/$DAEMON"; 
 	fi;
@@ -147,7 +146,7 @@ start()
                 export NCS_SIMULATION_CONFIG_ROOTDIR="/etc/opt/opensaf/$2"
             else
                 echo "ERROR: /etc/opt/opensaf/$2 not found"
-                exit 0
+                exit 1
             fi
         fi
  
@@ -286,8 +285,10 @@ stop()
         fi 
         killall nid_tipc.sh
         sleep 2
-        rmmod tipc
-	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
+        if grep $MODULE /proc/modules >& /dev/null; then
+            rmmod $MODULE
+        fi
+        rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         echo "."
 
 } # End of function stop()
