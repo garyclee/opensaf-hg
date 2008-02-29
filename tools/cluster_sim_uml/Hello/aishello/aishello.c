@@ -140,7 +140,7 @@ static void healthcheckCallback(
     const SaNameT *compName,
     SaAmfHealthcheckKeyT *healthcheckKey)
 {
-    syslog(LOG_DEBUG, "healthcheckCallback: ...");
+    /*    syslog(LOG_DEBUG, "healthcheckCallback: ..."); */
     aisCallq(saAmfResponse, amfHandle, invocation, SA_AIS_OK);
 }
 static void componentTerminateCallback(

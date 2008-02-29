@@ -26,7 +26,12 @@ HOSTNAME=`hostname`
 eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
 
 export PATH=$PATH:/opt/opensaf/controller/bin
-export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+
+if test `uname -m` = "x86_64"; then
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
+else
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+fi
 
 export SNMPCONFPATH=/etc/snmp
 export MIBDIRS=/usr/share/snmp/mibs
@@ -62,4 +67,4 @@ ulimit -c unlimited
 ln -sf /sbin/reboot /etc/opt/opensaf/reboot
 
 # start controller nid
-/opt/opensaf/controller/scripts/nis_scxb start&
+/opt/opensaf/controller/scripts/nis_scxb start

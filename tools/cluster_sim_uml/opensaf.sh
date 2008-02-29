@@ -27,6 +27,7 @@ die() {
 
 test -f "$PWD/opensaf.sh" || die 'Must execute opensaf.sh from directory where it is located'
 export CLUSTER_SIM_UML_DIR=$PWD
+export PATH=${PWD}/uml/bin:${PATH}
 test -d ./root.controller || die "No shadow root at [./root]"
 test -d ./root.payload || die "No shadow root at [./root]"
 
@@ -37,6 +38,7 @@ test -x $UML_DIR/bin/uml_start || die "Not executable [$UML_DIR/bin/uml_start]"
 NUMNODES=${2:-5}
 IPADDRBASE=${IPADDRBASE:-192.168.0}
 PIDFILEDIR=/tmp/${USER}_opensaf
+uid=`id -u`
 
 cluster_start() {
     numnodes=$1
@@ -57,9 +59,9 @@ cluster_start() {
     echo "127.0.0.1       localhost" > root.controller/etc/hosts
 
     # Start network if necessary
-    if ! pgrep uml_switch > /dev/null; then
+    if ! pgrep -U $uid uml_switch > /dev/null; then
         xterm -iconic -geometry 60x8-0+110 \
-            -T UML-network -e $UML_DIR/bin/uml_switch &
+            -T UML-network -e $UML_DIR/bin/uml_switch -unix /tmp/uml-${uid}.ctl &
         echo $! >> $PIDFILEDIR/uml_pids
     fi
 
@@ -76,7 +78,7 @@ cluster_start() {
         fi
         hostname=$node_name_prefix$p
         xterm -hold -geometry 90x20+$x+$y -T $hostname -e \
-            $UML_DIR/bin/uml_start $p umid=$hostname mem=128M hostname=$hostname shadowroot=$rootdir &
+            $UML_DIR/bin/uml_start $p umid=$hostname mem=128M hostname=$hostname shadowroot=$rootdir $$ &
         echo $! >> $PIDFILEDIR/uml_pids
         y=$((y+dy))
 

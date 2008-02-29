@@ -18,13 +18,7 @@
 
 aishello := Hello/aishello/aishello
 
-ifeq ($(TIPCUTILSVER),)
-	TIPCUTILSVER := 1.0.4
-endif
-
-ifeq ($(TIPCUTILSURL),)
-	TIPCUTILSURL := http://prdownloads.sourceforge.net/tipc/tipcutils-$(TIPCUTILSVER).tar.gz
-endif
+ARCH := $(shell arch)
 
 ROOT_CONTROLLER_DEPS := 		\
 	$(OPENSAF_CONTROLLER_RPM) 	\
@@ -43,15 +37,17 @@ ROOT_PAYLOAD_DEPS := 			\
 INSTALL_DIR := install/opensaf_cluster_sim
 
 all: root.controller/root.cpio root.payload/root.cpio
-	make -C uml all
+
+uml/linux-$(KVER)/net/tipc/tipc.ko:
+	make -C uml bin/linux
 
 root.controller/root.cpio: $(ROOT_CONTROLLER_DEPS)
-	rm -rf root.controller
-	./bin/install.sh controller
+	@rm -rf root.controller
+	@./bin/install.sh controller
 
 root.payload/root.cpio: $(ROOT_PAYLOAD_DEPS)
-	rm -rf root.payload
-	./bin/install.sh payload
+	@rm -rf root.payload
+	@./bin/install.sh payload
 
 $(aishello):
 	make -C Hello/aishello
@@ -69,8 +65,9 @@ archive/tipcutils-$(TIPCUTILSVER).tar.gz:
 uml/linux-$(KVER):
 	make -C uml all
 
-install: root.controller/root.cpio root.payload/root.cpio
-	rm -rf $(INSTALL_DIR)
+# This target creates a movable development environment
+dev_env: root.controller/root.cpio root.payload/root.cpio
+	@rm -rf $(INSTALL_DIR)
 	mkdir -p $(INSTALL_DIR)/bin
 	cp bin/mklndircpio $(INSTALL_DIR)/bin
 	cp archive/Makefile.dev_env $(INSTALL_DIR)/Makefile
@@ -86,24 +83,24 @@ install: root.controller/root.cpio root.payload/root.cpio
 	mkdir -p $(INSTALL_DIR)/include
 	cp ../../include/sa*.h $(INSTALL_DIR)/include
 	mkdir -p $(INSTALL_DIR)/lib/$(ARCH)
-	cp -a root.controller/opt/opensaf/controller/lib/libSa* $(INSTALL_DIR)/lib/$(ARCH)
-	cp -a root.controller/opt/opensaf/controller/lib/libncs_core.* $(INSTALL_DIR)/lib/$(ARCH)
-	cp -a root.controller/opt/opensaf/controller/lib/lib*_common.* $(INSTALL_DIR)/lib/$(ARCH)
-
-dev_env: install
+	cp -a root.controller/opt/opensaf/controller/$(LIB_SUFFIX)/libSa* $(INSTALL_DIR)/$(LIB_SUFFIX)/$(ARCH)
+	cp -a root.controller/opt/opensaf/controller/$(LIB_SUFFIX)/libncs_core.* $(INSTALL_DIR)/$(LIB_SUFFIX)/$(ARCH)
+	cp -a root.controller/opt/opensaf/controller/$(LIB_SUFFIX)/lib*_common.* $(INSTALL_DIR)/$(LIB_SUFFIX)/$(ARCH)
 	tar --directory=install -czf cluster_sim_uml_dev_env.tgz .
 
 clean:
-	rm -rf tipcutils-$(TIPCUTILSVER)
 	rm -rf root.controller root.payload
 	rm -rf repl-opensaf
 	rm -rf install
 	rm -f cluster_sim_uml_dev_env.tgz
+	make -C tipcutils-$(TIPCUTILSVER) clean
 	make -C uml clean
 	make -C Hello/aishello clean
 
-realclean: clean
-	rm -rf archive/tipcutils-$(TIPCUTILSVER).tar.gz
+realclean:
+	rm -rf tipcutils-$(TIPCUTILSVER)
 	make -C uml realclean
 
 distclean: realclean
+	make -C uml distclean
+	rm -rf archive/tipcutils-$(TIPCUTILSVER).tar.gz

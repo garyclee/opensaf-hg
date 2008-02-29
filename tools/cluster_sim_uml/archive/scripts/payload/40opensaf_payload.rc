@@ -25,7 +25,12 @@ HOSTNAME=`hostname`
 eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
 
 export PATH=$PATH:/opt/opensaf/payload/bin
-export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
+
+if test `uname -m` = "x86_64"; then
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
+else
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+fi
 
 mkdir -p /var/opt/opensaf
 
@@ -39,4 +44,4 @@ ulimit -c unlimited
 ln -sf /sbin/reboot /etc/opt/opensaf/reboot
 
 # start payload nid
-/opt/opensaf/payload/scripts/nis_pld start&
+/opt/opensaf/payload/scripts/nis_pld start

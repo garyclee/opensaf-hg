@@ -34,4 +34,5 @@ test -n "$1" || errquit "No processor number specified"
 p=$1
 hostdir=`pwd`
 shift
-exec $umlx rw hostdir=$hostdir eth0=daemon,0:0:0:1:1:$p $*
+uid=`id -u`
+exec $umlx rw hostdir=$hostdir eth0=daemon,2:0:0:1:1:$p,unix,/tmp/uml-${uid}.ctl con0=fd:0,fd:1 con=pts $*
