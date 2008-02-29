@@ -1,0 +1,327 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+#
+
+#
+# Node Initialization Daemon startup/shutdown Script
+#
+
+### BEGIN INIT INFO
+# Provides: $nis_scxb 
+# Default-Start: 3 5
+# Default-Stop: 0 1 2 4 6
+# Short-Description: Start OpenSAF services
+# Description: Start OpenSAF System Controller services 
+#         with HA role ACTIVE or STANDBY in the cluster. 
+### END INIT INFO
+
+
+# Define the Core generation settings
+CORE_FILE_SIZE="unlimited"
+CORE_PATTERN="/var/crash/core_%t_%e_%p"
+CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/opensaf/controller/bin:/opt/opensaf/controller/scripts:
+export PATH
+
+# NCS SNMP Subagent requires this path to locate its configuration file
+export SNMPCONFPATH=/usr/share/snmp
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/controller/lib:/opt/opensaf/lib:/usr/local/lib # For loading libraries
+
+
+export LEAP_TMR_THREAD_RT=1
+export LEAP_THREADS_NON_RT=1
+export MDS_QUIESCED_TMR_VAL_IN_10MS=40
+
+DAEMON=ncs_nid
+DESC="Node Initialization Daemon"
+BINPATH=/opt/opensaf/controller/bin
+ETCPATH=/opt/opensaf/controller/scripts/
+export STDOUTSPATH="/var/opt/opensaf/stdouts/"
+export OLD_STDOUTSPATH="/var/opt/opensaf/old_stdouts/"
+PIDFILE=/var/run/nodeinit.pid
+NISPIPE=/tmp/nisfifo
+SPCAPFIFO=/tmp/nodeinit.fifo
+INITTIMEOUT=1000
+TERMTIMEOUT=100
+NISSTATUS="NONE"
+SPCAPPIDFILE=/var/run/ncsspcap.pid
+MODULE=tipc
+
+####################################################
+# NID_ROLE_CONFIG is for flexibility to configure
+# role for NID. 
+# For Active:  export NID_ROLE_CONFIG=ACTIVE
+# For standby: export NID_ROLE_CONFIG=STDBY
+####################################################
+export NID_ROLE_CONFIG="ACTIVE"
+
+
+test -f $BINPATH/$DAEMON || exit 0
+
+#set -e
+set +x
+
+# Function to start the services
+
+start()
+{
+        ### Remove TIPC if already installed.
+        lsmod | grep $MODULE
+        if [ $? -eq 0 ] ; then
+           rmmod tipc.ko
+           if [ $? -eq 1 ] ; then
+              echo "TIPC is already installed, Please remove TIPC module first..."
+              exit 0
+           fi
+        fi
+        
+        ### Remove shared memory files created by us. This step wont be needed on a chassis.
+	rm -f /dev/shm/CPND_CHECKPOINT_INFO*  /dev/shm/NCS_*  /dev/shm/vds_vdest*
+
+
+	if [ -f $PIDFILE ]
+        then 
+		echo  "$BINPATH/$DAEMON already running..";
+		exit;
+	else 
+	    	echo "Starting $DESC: $BINPATH/$DAEMON"; 
+	fi;
+/opt/motorola/etc/init.d/pre-nis start &
+
+        ####################################################
+        # NID_CONFIG_PATH is to configure the path for
+        # NID to pickup nodeinit.conf file
+        ####################################################
+        export NID_CONFIG_PATH="/etc/opt/opensaf/"
+        export CONSOLE=/dev/tty
+
+        ####################################################
+        # NID_NCS_LOG_PATH is the path where NID would
+        # place logfiles created per service by NID
+        ####################################################
+        export NID_NCS_LOG_PATH="/var/opt/opensaf/nidlog"
+        NID_NCS_OLD_LOG_PATH="/var/opt/opensaf/old_nidlog"
+
+        ####################################################
+        #  OpenSAF settings
+        ####################################################
+        if [ `ulimit -c` = 0 ]; then
+            ulimit -Sc $CORE_FILE_SIZE
+        fi
+
+        if [ $CORE_PATTERN_CURRENT = "core" ]; then
+            echo $CORE_PATTERN > /proc/sys/kernel/core_pattern
+        fi
+       
+        ####################################################################################                                 
+        # NCS_SIMULATION_CONFIG_ROOTDIR = This the directory from where node-configuration
+        # files are read. It is recognized only in SIM builds, where multiple-nodes need
+        # to be simulated on a single linux-desktop for testing purposes.
+        # It is ignored in NCS release builds.
+        ####################################################################################
+        if [ ":$2" == ":" ]
+        then
+            NODE_NAME=""
+            export NCS_SIMULATION_CONFIG_ROOTDIR="/etc/opt/opensaf"
+        else
+            NODE_NAME=$2
+            if [ -r /etc/opt/opensaf/$2 ]
+            then
+                export NCS_SIMULATION_CONFIG_ROOTDIR="/etc/opt/opensaf/$2"
+            else
+                echo "ERROR: /etc/opt/opensaf/$2 not found"
+                exit 0
+            fi
+        fi
+ 
+        ###  NCS_LOG_PATH = This the directory where OPENSAF logs are stored.
+        ###  It is recommended that this variable not be
+        ###  modified other than for SIMULATION mode.
+        if [ ":$3" == ":" ]
+        then
+            ### No explicit NCS_LOG_PATH argument.
+            ### Create it using NODE_NAME
+            export NCS_LOG_PATH=/var/opt/opensaf/log$NODE_NAME
+            NCS_OLD_LOG_PATH=/var/opt/opensaf/old_log$NODE_NAME
+        else
+            export NCS_LOG_PATH=$3
+        fi
+
+        if [ -e $NID_NCS_LOG_PATH ]
+        then
+            if [ -e $NID_NCS_OLD_LOG_PATH ]; then
+               rm -rf $NID_NCS_OLD_LOG_PATH
+            fi
+            echo -n "Moving $NID_NCS_LOG_PATH to $NID_NCS_OLD_LOG_PATH ..."
+            mv $NID_NCS_LOG_PATH $NID_NCS_OLD_LOG_PATH
+            echo "Done."
+        fi
+
+        if [ -e $STDOUTSPATH ]
+        then
+            if [ -e $OLD_STDOUTSPATH ]; then
+               rm -rf $OLD_STDOUTSPATH
+            fi
+            echo -n "Moving $STDOUTSPATH to $OLD_STDOUTSPATH ..."
+            mv $STDOUTSPATH $OLD_STDOUTSPATH
+            echo "Done."
+        fi
+
+
+#        if [ -e $NCS_LOG_PATH ]
+#        then
+#            if [ -e $NCS_OLD_LOG_PATH ]; then
+#               rm -rf $NCS_OLD_LOG_PATH
+#            fi
+#            echo -n "Moving $NCS_LOG_PATH to $NCS_OLD_LOG_PATH ..."
+#            mv $NCS_LOG_PATH $NCS_OLD_LOG_PATH
+#            echo "Done."
+#        fi
+        mkdir -p /tmp
+        mkdir -p $NID_NCS_LOG_PATH
+        mkdir -p $NCS_LOG_PATH
+        mkdir -p $STDOUTSPATH 
+
+        ######################################################
+        #  NCS Settings END
+        #####################################################
+
+	rm -f $NISPIPE;	
+	mkfifo -m 660 $NISPIPE || {
+        echo "Cannot create named pipe";
+        exit 1;
+        } 
+        echo "Starting OpenSAF Services..." > /var/opt/opensaf/node_ha_state
+        $BINPATH/$DAEMON > $NISPIPE &
+        date;
+	read -t $INITTIMEOUT NISSTATUS < $NISPIPE
+	ERR=$?;
+	if [ $ERR = 1 ] 
+	then 
+		echo "SERVICE Initialization Failed Error: Timed out" 
+                kill -s SIGKILL `cat $PIDFILE`
+	        rm -rf $NISPIPE $PIDFILE
+                exit 1
+	fi 
+	echo "Status: $NISSTATUS";
+        if [ "${NISSTATUS}" = "SUCCESS" ]; then 
+           echo "SERVICE Initialization Success";
+	elif [ "${NISSTATUS}" = "FAILED" ]; then 
+             echo "SERVICE Initialization Failed";
+             rm -rf $PIDFILE
+	fi;
+        date;
+        rm -f $SPCAPFIFO;
+	rm -rf $NISPIPE;
+	echo "."
+
+} #End of start()
+
+# Function to stop the servcies
+
+stop()
+{
+	if [ ! -f $PIDFILE ]; then echo "$BINPATH/$DAEMON is not running..";
+	else echo "Stopping OpenSAF Services... ";fi;		
+         
+	if [ -f $SPCAPPIDFILE ]
+        then 
+            ###########################################################
+            # We just need to open the pipe for writing so that
+            # the read command below will timeout appropriately
+            # else read blocks indefinitely
+            ###########################################################
+            SPCAPPID=`cat $SPCAPPIDFILE`
+            SPCAPPROCFILE=/proc/$SPCAPPID
+            if [ -d $SPCAPPROCFILE ]
+            then
+	     rm -f $SPCAPFIFO	
+	     mkfifo -m 660 $SPCAPFIFO || {
+             echo "Cannot create named pipe";
+             exit 1;
+             }
+             kill -s SIGUSR1 `cat $SPCAPPIDFILE` 2>/dev/null
+             sleep $TERMTIMEOUT & 
+             read STATUS < $SPCAPFIFO
+            fi
+        fi
+        ###########################################################
+        # NCS services cleanup, Needs to be removed once these
+        # services are componentized into AMF. cause AMF will
+        # bring them down... but all this in future.
+        ###########################################################
+        killall ncs_ifnd 2>/dev/null
+        sleep 2
+        killall ncs_scap 2>/dev/null
+        killall ifsv_demo 2>/dev/null
+        
+        echo "Status: $STATUS"
+	  if [ "${STATUS}" = "DONE" ] 
+        then 
+           echo "OpenSAF Services Termination Success"
+        else
+           # The formal way to cleanup failed.
+           # Go ahead to kill if still services are running
+           pkill ncs
+           kill -9 `pgrep ncs_nid`
+           echo ""   
+           echo "OpenSAF Services Termination Success"
+        fi 
+        killall nid_tipc.sh
+        sleep 2
+        rmmod tipc
+	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
+        echo "."
+
+} # End of function stop()
+
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|try-restart)
+        stop
+        start
+        ;;
+  reload|force-reload)
+	echo "This option is currently not supported"
+        echo "."
+        ;;
+  status)
+        if [ ! -f $PIDFILE ]; then
+            echo "OpenSAF is stopped"
+        else 
+           cat /var/opt/opensaf/node_ha_state
+        echo ""
+        fi
+        ;;
+  *)
+        echo "Usage: $ETCPATH/nis_scxb {start|stop|restart|try-restart|reload|force-reload|status}" >&2
+        exit 1
+        ;;
+esac 2>/dev/null
+
+exit 0
+
+

@@ -1,0 +1,70 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+# This script is executed last in the UML start sequence
+# and contains preparations of the UML environment
+
+REPL_DIR=repl-opensaf
+HOSTNAME=`hostname`
+eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
+
+export PATH=$PATH:/opt/opensaf/controller/bin
+
+if test `uname -m` = "x86_64"; then
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
+else
+   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+fi
+
+export SNMPCONFPATH=/etc/snmp
+export MIBDIRS=/usr/share/snmp/mibs
+/etc/init.d/snmpd start
+
+mkdir -p /var/opt/opensaf
+
+# Simulate a replicated partition (DRBD)
+rm -f /var/opt/opensaf/pssv_store
+ln -s /hostfs/$REPL_DIR/pssv_store /var/opt/opensaf/
+
+rm -f /var/opt/opensaf/log
+ln -s /hostfs/$REPL_DIR/log /var/opt/opensaf/log
+
+rm -f /etc/opt/opensaf/rde_rde_config_file
+ln -s  /etc/opt/opensaf/rde_rde_config_file.`hostname` /etc/opt/opensaf/rde_rde_config_file
+
+rm -f /etc/opt/opensaf/init_role
+echo $hostnumber > /etc/opt/opensaf/init_role
+
+rm -f /etc/opt/opensaf/slot_id
+rm -f /etc/opt/opensaf/node_id
+echo $hostnumber > /etc/opt/opensaf/slot_id 
+
+touch /var/opt/opensaf/pssv_spcn_list
+chmod 755 /var/opt/opensaf/pssv_spcn_list
+echo "AVD XML" > /var/opt/opensaf/pssv_spcn_list
+echo "AVM XML" >> /var/opt/opensaf/pssv_spcn_list
+
+# Enabled core dumps for opensaf and AMF started programs
+ulimit -c unlimited
+
+ln -sf /sbin/reboot /etc/opt/opensaf/reboot
+
+# start controller nid
+/opt/opensaf/controller/scripts/nis_scxb start

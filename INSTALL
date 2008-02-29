@@ -1,0 +1,598 @@
+
+TABLE OF CONTENTS
+=================
+
+1. INTRODUCTION
+2. PRE-REQUISITES
+3. BUILDING & PACKAGING OpenSAF 
+4. INSTALLING OpenSAF
+5. CONFIGURING OpenSAF 
+6. RUNNING OpenSAF
+7. TROUBLESHOOTING
+8. OpenSAF ADMIN OPERATIONS
+9. END
+
+
+
+1. INTRODUCTION: 
+----------------
+
+This document gives instructions on how to INSTALL OpenSAF and the pre-requisite opensource packages, and on how to configure, run and troubleshoot OpenSAF.
+
+2. PRE-REQUISITES FOR OpenSAF: 
+------------------------------
+
+OpenSAF is 32-bit and 64-bit compatible. 
+
+    - The 32-bit variant of OpenSAF system controller and payload software are tested on 32-bit machines and 64-bit machines(OpenSAF running as 32-bit).
+
+    - The 64-bit variant of OpenSAF system controller and payload software are tested on 64-bit machines. Ensure that the prerequisite open source packages(below mentioned) are built as 64-bit versions and are installed correctly.
+
+    - Also OpenSAF provides 64-bit agent libraries for use by 64-bit user applications. 64-bit user applications
+can link with the OpenSAF 64-bit agents' libraries to access the OpenSAF services(OpenSAF running as 32-bit) functionality on a 64-bit machine.
+
+The following is required to be installed and configured first before starting to use OpenSAF.
+
+a) Redhat linux with kernel version 2.6.9 or above.
+
+b) XERCES 2.7.0: This package is mandatory.
+   Follow the installation instructions of xerces available in http://xml.apache.org/xerces-c/.
+   Do 'make install' so that the Xerces library is available at /usr/local/lib/ and 
+   Xerces include files are available in the directories /usr/local/include/xercesc/util, parsers, dom, etc. 
+   OpenSAF uses Xerces library and include files in compilation.
+
+   The following typical steps can be followed while building/installing Xerces:
+
+   Step1: export XERCESCROOT= <install_path/xerces-c-src_2_7_0/>
+   Step2: cd  <install_path/xerces-c-src_2_7_0/src/xercesc>
+   Step3: autoconf
+   Step4: ./runConfigure -plinux  -minmem -nsocket -tnative -rpthread -c<C compiler> -x<C++ compiler>
+   Step5: make
+   Step6: make install
+   
+
+c) NET-SNMP 5.4: This package is Mandatory. Download the net-snmp sources from below location:
+   http://net-snmp.sourceforge.net/download.html. Follow the installation instructions of the package.
+   
+   The following configure options may be used to configure net-snmp:
+	--prefix=/usr.
+   By default, OpenSAF assumes net-snmp files to be installed with /usr prefix.
+
+   The following modules may be enabled/disabled based on their availability on your linux distribution:
+	--without-openssl 
+        --disable-embedded-perl
+        --without-perl-modules
+        --without-rpm
+   For eg:-
+   ./configure --prefix=/usr --without-openssl --disable-embedded-perl --without-perl-modules --without-rpm <other user options>
+   For more configuration details of net-snmp please refer to net-snmp documentation available at http://net-snmp.sourceforge.net/docs/readmefiles.html . Refer the ChangeLog of net-snmp while migrating from an older net-snmp version to net-snmp 5.4.
+
+d) TIPC:  TIPC is used for intra cluster communication in OpenSAF. 
+   Download the TIPC sources from http://tipc.sourceforge.net/download.html relevent to your kernel and build it. After that copy tipc.ko and tipc-config to /opt/TIPC.
+   
+   The following typical steps can be followed while building tipc as a kernel module:
+
+   Step1: cd <tipc-install-dir> 
+   Step2: make KINCLUDE=/usr/src/kernels/<kernel-src-dir>/include/
+          Here <kernel-src-dir> can be obtained from the output of the 'uname -a' command on your machine. 
+
+          #uname -a
+          #Linux localhost.localdomain 2.6.9-11.ELsmp #1 SMP Fri May 20 18:26:27 EDT 2005 i686 i686 i386 GNU/Linux
+
+          From the above output the kernel include path would be /usr/src/kernels/<2.6.9-11.EL-smp-i686>/include
+          
+
+NOTE:If your kernel is already including tipc, build TIPC as a kernel module and copy tipc.ko in to /opt/TIPC. You also need to download tipc-utilities package  (not included as part of standard kernel) compile it and copy tipc-config to /opt/TIPC.
+ 
+e) DRBD 8.0.0: This is an optional package.
+     In Opensaf, two system controllers are used as Active/Standby pair to eliminate single point of failure in the system. The state information to be replicated between two system controllers is placed in a directory called "/repl_opensaf". Target systems can use any standard replication mechanisms. DRBD is one such tested replication mechanism in OpenSAF.
+
+     The version of the DRBD package used is drbd-8.0.0 available from http://oss.linbit.com/drbd/
+     The following typical steps can be followed while building DRBD as a kernel module:
+
+     Step1: cd <drbd-install-dir>
+     Step2: make KINCLUDE=/usr/src/kernels/<kernel-src-dir>/include/
+            Here <kernel-src-dir> will be like for eg:- 2.6.9-11.EL-smp-i686
+     Step3: make install
+   
+     The drbd configuration used in opensaf is to have seperate user data partition (minimum size 2GB) and seperate metadata partition (minimum size 128MB).
+
+DRBD Configuration:
+-------------------
+If DRBD is chosen for data replication, please do the following steps, else skip them:
+   ==> Mount the data replicated partition on /repl_opensaf.
+   ==> Install the opensaf RPM.
+   ==> Edit the file /etc/opt/opensaf/NCSSystemBOM.xml :
+       1. Uncoment PDRBD related lines.
+       2. Uncomment REPL related lines.
+   ==> Unmount the data replicated partition /repl_opensaf.
+   ==> Uncomment DRBD entry line in /etc/opt/opensaf/nodeinit.conf.
+   ==> The following Scripts needs to be changed :
+       (A) DRBD is controlled through the drbd.conf configuration file. In opensaf, controller nodes are given logical slotid 1 and 2 and thus the configuration files are named as drbd1.conf and drbd2.conf.
+
+           Edit /opt/opensaf/controller/scripts/drbd.1.conf :
+
+           Configure the parameters for the host machine, like as below:
+           HOST_NAME_LOCAL {
+              device     /dev/drbd0;
+              disk       /dev/sda5;
+              address    10.232.91.203:7788;
+              meta-disk  /dev/sda6[0];
+              }
+
+           1. Edit user data partition disk name (/dev/sda5)
+           2. Edit Host IP address (10.232.91.203). Don't change the port number (7788).
+           3. Edit meta-data partition name(/dev/sda6, let [0] be here).
+
+           Configure the parameters for the remote machine for sync up, like as below:
+           HOST_NAME_REMOTE {
+              device     /dev/drbd0;
+              disk       /dev/sda5;
+              address    10.232.91.201:7788;
+              meta-disk  /dev/sda6[0];
+              }
+
+           1. Set user data partition name (for eg:- /dev/sda5).
+           2. Set Remote IP address (10.232.91.201). Don't change the port number (7788).
+           3. Set remote meta-data partition name(for eg:- /dev/sda6, let [0] be unchanged).
+
+           Edit /opt/opensaf/controller/scripts/drbd.2.conf : 
+           Like in the case of drbd.1.conf, here HOST_NAME_REMOTE
+           parameters will be set to HOST_NAME_LOCAL and vice-versa.
+
+       (B) Edit /opt/opensaf/controller/scripts/pdrbd_proxied.conf:
+           1. Set user data partition name (for eg:- /dev/sda5)
+           2. Set meta-data partition name(for eg:- /dev/sda6)
+
+       (C) Edit /opt/opensaf/controller/scripts/drbdctrl
+           1. Set replicated partition name (for eg:- MOT_REPL_PRTN="/dev/sda5")
+           2. Set meta-data partition name (for eg:- MOT_META_PRTN="/dev/sda6")
+
+   ==> Copy /opt/opensaf/controller/scripts/drbd.1.conf or drbd.2.conf (slot 1 or 2 respective m/c) to /etc/drbd.conf and run the following command (These commands are needed to run on metadata partition for drbd-8.0.0): 
+          drbdmeta /dev/drbd0 v08 /dev/sda6 0 create-md
+          drbdadm create-md r0
+       Here /dev/drbd0, /dev/sda6, r0 can be replaced with the attributes as specified in drbd.1.conf or drbd.2.conf.
+
+f) OPENHPI: Follow the standard OpenHPI installation procedures. OpenSAF works with both HPI B.02.01 and HPI-B.01.01 compliant  HPI implementations. 
+
+    HPI-B.02.01 Support: - Build OpenSAF with hw_mgmt=1 flag.
+			 - Do the required Openhpi configuration
+
+    HPI-B.01.01 Support: - overwrite SaHpi.h in the opensaf/include folder with B.01.01 compliant SaHpi.h (OpenSAF bydefault ships B.02.01 file)
+			 - Build OpenSAF with hw_mgmt=2 flag.
+			 - Do the required Openhpi configuration
+
+ 
+   NOTE: Opensaf is tested with IPMI direct plug-in only on Motorola ATCA platform.
+
+g) Autotools: OpenSAF build environment uses autotools. The user's development host is expected to have autotools package installed.
+
+ 
+3. BUILDING OpenSAF
+-------------------
+OpenSAF uses GNU autotools for it's build system. OpenSAF enforces to use 'gcc version 4.1.0' and above. If OpenSAF has to build with the lower versions of gcc (< 4.1.0), remove '-Wno-pointer-sign' (for CFLAGS) in <opensaf_home>/configure.ac file.
+
+Following 'configure' options are supported in building opensaf.
+
+build_type: To specify the target build being controller functionality OR payload functionality OR 64-bit OpenSAF agent libraries.
+         Supported values are:
+          - controller
+          - payload
+          - 64bit_agent_libs
+
+hw_mgmt: This option (hw_mgmt=1) enables building HPI interface service of OpenSAF. As mentioned in the prerequisites, openhpi is needed on the machine where opensaf is build as well.
+
+The following options are used while configuring for a cross compilation:
+
+host: To specify the host-tuple of the target machine. Autotools generally define host-tuple format as "host_cpu-os_distribution-os_type", like for Eg:- i686-pc-linux.
+
+      If the 'host' option is not used, configure will get this input by executing config.guess and does a native compilation. While configuring OpenSAF for a cross compilation, specify the output of the config.sub command as input to the 'host' option:
+
+      For eg:- "./config.sub ppc-mvl-linux" will give an output of "powerpc-mvl-linux-gnu". Use "powerpc-mvl-linux-gnu" to specify the 'host' value.
+
+cc_exec_prefix: This variable needs to be specified only if cross compiler toolchain doesn't start with standard cross-compilation prefix(i.e. host-tuple). 
+
+      Eg:- In case of montavista toolchain, gcc is prefixed with ppc_74xx-gcc, and host-tuple is powerpc-mvl-linux. Here, cc_exec_prefix is set to ppc_74xx while executing ./configure. 
+
+cc_lib_dir: This variable needs to be specified if user has some cross-compiled libraries located in some different directory and the same needs to be linked with opensaf executables. Internally, it is instructing linker via LDFLAGS to pick libraries from this directory while linking.
+
+ - To do a native compilation, configure can be done as below:
+      "./configure build_type=controller/payload"
+
+ - To do a cross compilation, configure can be done as below, for say a powerpc platform:
+      "./configure build_type=controller/payload cc_exec_prefix=ppc_74xx cc_lib_dir=<lib path> host=powerpc-mvl-linux-gnu"
+
+
+HOW TO BUILD OpenSAF AND PACKAGE THE TARGET RPMS?
+-------------------------------------------------
+
+The opensaf source code has to be built for system controller or payload targets accordingly and the corresponding rpm binary packages have to be generated. The following topics explain the same.
+
+Step 0: ./bootstrap.sh
+
+- Copy tipc.h from <tipc_install_dir>/include/net/tipc/ to opensaf/services/mds/inc/tipc.h
+NOTE: If your kernel is already including tipc, build TIPC as a kernel module and copy tipc.h to opensaf/services/mds/inc/.
+ 
+CONTROLLER BUILD
+----------------
+Step 1: ./configure build_type=controller
+
+Step 2: make
+
+Step 3: make rpm 
+
+
+PAYLOAD BUILD
+-------------
+
+Step 1: ./configure build_type=payload
+
+Step 2: make
+
+Step 3: make rpm
+
+
+BUILDING 64BIT AGENT LIBRARIES 
+------------------------------
+
+Step 1: ./configure build_type=64bit_agent_libs
+
+Step 2: make
+
+Step 3: make rpm
+
+
+
+NOTES: a) 'make install' doesn't install OpenSAF on local machine. It just moves some files to temporary location for rpm generation.
+
+       b) 'make clean', 'make uninstall' must be done before re-'configure'ing for a new build_type.
+
+       c) Run 'make distclean' to clean all files generated by autotools and smidump. Once 'make distclean' is done, './bootstrap.sh' should be done first before 'configure'ing.
+
+      d) The MIB code generation through smidump is done only once and only if user has configured with build_type as controller.
+    
+ 
+HOW TO BUILD OpenSAF SAMPLE APPLICATIONS?
+-----------------------------------------
+NOTE: Before building samples, build controller (Till step 2) and then invoke 'make install' in OpenSAF base.
+ 
+Step 1: cd samples/ 
+       For first time, you need to run ./bootstrap.sh. 
+
+Step 2: ./configure
+
+        (or)
+
+        ./configure demolib_suffix=64
+        To build samples for 64-bit machine.
+
+Step 3: make install
+
+Step 4: You can find binaries of samples in bin/[host-tuple]/
+
+NOTE: The 'configure' options for cross-compilation are the same as explained in Section 3) ABOVE.
+
+HOW TO BUILD & RUN OpenSAF Test Suites?
+---------------------------------------
+OpenSAF should be built('make' & 'make install') first before building the test suites.
+Please refer the opensaf/tests/README for procedure to build and run the OpenSAF test suites.
+
+ 
+4. INSTALLING THE OpenSAF BINARY RPMS ON TARGETS 
+------------------------------------------------
+ 
+The opensaf_***.rpm will be available in the opensaf/rpms directory by following instructions in section 3.
+
+Pick the above rpm and execute the following commands
+
+rpm -ivh opensaf_controller***.rpm on a machine acting as a system controller, 
+OR
+rpm -ivh opensaf_payload***.rpm on a machine acting as a payload.
+OR
+rpm -ivh opensaf_64bit_agent_libs***.rpm on a machine acting as a payload.
+
+
+NOTE: OpenSAF rpm checks if the pre-requisite opensource packages are already installed. The rpm dependency check will fail in a case if you have not installed these packages as rpm. If the rpm dependency fails, use the following commands, but ensure to have the
+dependant packages installed before starting OpenSAF services:
+
+rpm -ivh --nodeps opensaf_controller***.rpm 
+OR
+rpm -ivh --nodeps opensaf_payload***.rpm
+
+
+5. CONFIGURING OpenSAF:
+-----------------------
+
+OpenSAF configuration information is located in the /etc/opt/opensaf directory.
+Following is the brief description of each of the configuration file.
+
+a) nodeinit.conf:
+This is the input file to the Node Initialization Daemon for serializing the opensaf services startup.
+
+
+For sample usage details please refer to nodeinit.conf file in /etc/opt/opensaf/ directory.
+
+NOTE: The interface number and network id arguments to the nid_tipc.sh entry in nodeinit.conf would get installed with default values. Please change this accordingly to reflect your correct interface and network-id information. i.e. please change the highlighted values below for the following entry in nodeinit.conf :
+
+/opt/opensaf/controller/scripts/nid_tipc.sh:TIPC:S:/opt/opensaf/controller/scripts/nid_tipc.sh:
+ 4000::2:1:start eth2 2351:stop
+
+In the above line, eth2 refers to the interface information and 2351 refers to a sample tipc network id. Please change them accordingly. This tipc-network id should be the same across all system controllers and payloads.
+
+b) slot_id: 
+The slot_id shall specify a unique value that represents a physical slot identifier for the node in a chassis environment. The same applies for a simulation environment on a PC. System controllers shall be assigned slot ids 1 and 2. Payloads shall be assigned slot ids > 3.i.e. 3,4,5 etc. This file gets installed in /etc/opt/opensaf/ directory.
+
+c) chassis_id: 
+The chassis_id represents an identifier for the chassis (Distributed Computing Environment) and should be set to an integer value. The same applies for a simulation environment on a PC. The default value is set to 2. If the user changes this value, the NCSSystemBOM.xml must be changed accordingly to reflect the same. This file gets installed in /etc/opt/opensaf/ directory.
+
+d) rde_rde_config_file: You need to configure this file only if you are using reference implementation of RDF. This file contains information pertaining to RDF configuration and the following parameters have to be set accordingly:
+
+HA_ROLE=0
+HOSTIPADDRESS=10.232.91.176
+HOSTPORTNUM=8789
+SERVERIPADDRESS=10.232.91.127
+SERVERPORTNUM=8787
+MAX_CLIENT_RETRIES=10
+
+- The fields, HOSTIPADDRESS and HOSTPORTNUM specify the ip address and port number of the controller blade. 
+
+- The SERVERIPADDRESS and SERVERPORTNUM specify the ip address and port number of the peer system controller blade. 
+
+- The field HA_ROLE takes 0 OR 1 as valid values and specifies whether the controller blade has been 
+  configured as ACTIVE OR STANDDBY respectively.
+
+- The field MAX_CLIENT_RETRIES specifies how many times the booting controller blade should try connecting to another controller blade (if this is already up and running). After the MAX_CLIENT_RETRIES times, it declares itself as ACTIVE. Even if the HA_ROLE specified in configuration file is 1(STANDBY), and retry count reaches MAX_CLIENT_RETRIES value, the HA role of RDF is set to ACTIVE (0) and the HA_ROLE is updated in the node_ha_state file.
+
+Th node_ha_state file gets updated whenever a HA role change happens on the system controller. This file gets installed in /var/opt/opensaf/ directory.
+
+e) NCSSystemBOM.xml
+This file contains NCS system description (for complete details refer to the NCS 2.0 System Description user document). This file needs to be edited based on the target system configuration. Note that the default location, /etc/opt/opensaf/, is where the ncs_scap binary retrieves configuration information. This file gets installed in /etc/opt/opensaf/ directory.
+ 
+f) NCSConfig.xsd: 
+This file is used by the XML parser to validate the NCSSystemBom.xml file. The user should not edit this file. This file gets installed in /etc/opt/opensaf/ directory.
+
+g) subagt_lib_conf: 
+This file contains the entries of the loadable application-MIB-libraries (which contains the application MIB definitions) of the services/components. (More information on the use of this file can be found in Appendix E of the Management Access User Document.) This file gets installed in /etc/opt/opensaf/ directory.
+
+h) cli_cefslib_conf:
+This file contains the entries of the loadable CLI-CEF-libraries (which contains CLI's command execution functions) of the services/components supporting CLI commands. The entries are of the type <cef-library-name> <cefs_register_lib_req function-name>. This file needs to be edited for adding a service (component) supporting CLI commands. This file gets installed in /etc/opt/opensaf/ directory.
+
+j) vipsample.conf:
+Virtual IP is a feature of the OpenSAF Interface Service which migrates the application IP addresses transparently from active node to the standby node. More information can be obtained from OPENSAF Interface Service Programmer's Reference.
+This file gets installed in /etc/opt/opensaf/ directory.
+
+k) ncsSnmpSubagt.conf:
+   This file specifies the configuration parameters for the OpenSAF SNMP subagent. It gets installed in /usr/share/snmp/ directory (assuming that net-snmp was configured with --prefix=/usr option) during OpenSAF target rpm installation. The subagent reads this file from the directory set by the SNMPCONFPATH environment variable in the 'nis_scxb' script. This path has to be changed accordingly if net-snmp configuration files get installed in a directory other than /usr/share/snmp i.e. if --prefix=/usr option was not used while configuring net-snmp, Also the ncsSnmpSubagt.conf file has to be moved to the $SNMPCONFPATH directory.
+  The following basic net-snmp configuration values can be set accordingly:
+  agentxsocket tcp:localhost:705
+  agentxPingInterval 1
+
+NOTE: Source of Configuration
+-----------------------------
+The default source-of-configuration for PSSv System-clients (Persistent Store Service)is XML. After OpenSAF comes up for the first time (with XML), the source of playback for the OpenSAF Availability Service (currently the only PSSv System-Clients) gets set to PSS by default. So, any change in the NCSSystemBOM.xml will be effective only if these entries are set back to XML using the PSSv CLI command "set playback-option-from-xml-config ...". For detailed information on this command, please refer the Persistent Store Service Programmer's Reference.
+ 
+
+6. RUNNING OpenSAF
+------------------
+
+
+HOW TO RUN OpenSAF SYSTEM CONTROLLER?
+-------------------------------------
+
+Copy tipc.ko from <<tipc_install_dir>>/net/tipc/ to /opt/TIPC/ and tipc-config from <<tipc_install_dir>>/tools/ to /opt/TIPC on the target machine.
+
+NOTE: If the target system's kernel is already including tipc, build TIPC as a kernel module and copy tipc.ko to /opt/TIPC on the target system. You also need to download tipc-utilities package (not included as part of standard kernel) compile it and copy tipc-config to /opt/TIPC on the target system.
+
+After installing opensaf controller RPM,
+
+Step 1. Modify /etc/opt/opensaf/slot_id to add slot-id.
+
+Step 2. Modify /etc/opt/opensaf/rde_rde_config_file to add your ip address and peer controller ip address.
+
+Step 3: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface information and tipc network id, accordingly as described in the above page.
+
+Step 4. System Controller can be started/stopped using the following command :
+      
+        "/opt/opensaf/controller/scripts/nis_scxb start/stop"  
+                           OR
+        "/etc/init.d/nis_scxb start/stop"
+
+NOTES: a) The HA role of this system controller can be known by executing the 'get_ha_state' command. This utility is present in /opt/opensaf/controller/scripts directory.
+
+          Also, the "nis_scxb status" command provides the current status of the cluster from the time the node booted up, to a failover. 
+          Similairly, the "nis_pld status" command provides the current status of the components on that particular node from the time the node booted, to a failover. 
+
+      b) To know the status of the cluster, the log strings of the following type in /var/opt/opensaf/log/AVD**.log file shall indicate that a OpenSAF node has successfully joined the cluster:
+             "AVD: safNode=SC_2_1 Joined Cluster",
+             "AVD: NCS Initialization Successful on Node Id : 0x0002010f", 
+         And the following logstring indicates that a OpenSAF node has exited the cluster:
+             "AVD: safNode=SC_2_2 Exited Cluster"
+
+         Here, "safNode=SC_2_1" is the node description as specified in the NCSSystemBOM.xml.
+ 
+      c) A default OpenSAF CLI user by name "opensaf" with view permissions is created with the password "moto123". The root user is given ncs_cli_superuser permissions. 
+
+      d) The nis_scxb script can be appropriately added in RC scipts to automatically start opensaf services during system bootup.
+
+      e) If user chooses to use net-snmp master agent, please do the following steps:
+
+         - export SNMPCONFPATH=/usr/share/snmp , if net-snmp was 'configure'd with --prefix=/usr option, otherwise set SNMPCONFPATH=/usr/local/share/snmp.
+
+         - export MIBDIRS. This variable is needed to use the snmp utility commands like snmpget, snmpset, snmpwalk, etc.
+  
+         - start the net-snmp 'snmpd' daemon with the options "-x tcp:localhost:705 -I -intefaces".
+           Here "-x tcp:localhost:705" option indicates that the snmpd runs in agentx mode listening for connections from agentx  subagents. The "-I -interfaces" option indicates that snmpd runs without having the ownership of the 'interfaces' group of the MIB-II. The 'interfaces' group is registered by the NCS SNMP Subagent.
+
+           For eg:- "/usr/sbin/snmpd -x tcp:localhost:705 -I -interfaces"
+
+       f) snmpd should be started on both the active and standby system controllers (in a PC simulation environment), before doing any OpenSAF Admin Operations like switchover, failover, etc. through OPENSAF MIBS. Copy all OPENSAF mibs to the standard net-snmp mibs directory. i.e. /usr/share/snmp/mibs OR /usr/local/share/snmp/mibs before using any net-snmp utility commands.
+
+ 
+HOW TO RUN OpenSAF PAYLOAD?
+---------------------------
+Copy tipc.ko from <<tipc_install_dir>>/net/tipc/ to /opt/TIPC/ and tipc-config from <<tipc_install_dir>>/tools/ to /opt/TIPC on the target machine.
+
+NOTE: If the target system's kernel is already including tipc, build TIPC as a kernel module and copy tipc.ko to /opt/TIPC on the target system. You also need to download tipc-utilities package (not included as part of standard kernel) compile it and copy tipc-config to /opt/TIPC on the target system.
+
+After installing opensaf payload RPM,
+
+Step 1: Modify /etc/opt/opensaf/slot_id to add slot-id. 
+
+Step 2: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface information and tipc network id, accordingly as described in the above page.
+
+Step 3: Payload can be started/stopped using the following command: 
+
+        "/opt/opensaf/payload/scripts/nis_pld start/stop"
+                         OR
+        "/etc/init.d/nis_scxb start/stop"
+
+NOTES: 
+
+     a) The nis_pld script can be appropriately added in RC scipts to automatically start opensaf services during system bootup.
+
+     b) To know the payload's status in the cluster, look for the following log strings in /var/opt/opensaf/log/AVD**.log.
+            "AVD: safNode=PL_2_3 Joined Cluster",
+            "AVD: NCS Initialization Successful on Node Id : 0x0002030f"
+ 
+HOW TO USE 64bit AGENT LIBRARIES?
+---------------------------------
+Users developing 64-bit applications can link with the OpenSAF 64-bit agent libraries to access the OpenSAF services (running as 32-bit)' functionality on a 64-bit machine.
+
+After installing the opensaf_64bit_agent_libs***.rpm on a payload node, the OpenSAF 64-bit agent libraries get installed
+in /opt/opensaf/payload/lib64 directory.
+
+
+HOW TO RUN SAMPLE APPLICATIONS?
+-------------------------------
+
+export LD_LIBRARY_PATH to point to opensaf libraries.
+
+For eg:-
+=> For controller "export LD_LIBRARY_PATH=/opt/opensaf/controller/<lib/lib64>/"
+=> For payload "export LD_LIBRARY_PATH=/opt/opensaf/payload/<lib/lib64>/"
+ 
+Please check the Sample applications documentation for instructions to run them.
+ 
+7. TROUBLESHOOTING:
+-------------------
+The OpenSAF services on a system controller fail to start during any of the following error scenarios:
+------------------------------------------------------------------------------------------------------
+
+1. The following error "insmod: error inserting 'tipc.ko': -1 Invalid module format" indicates that user had not compiled tipc with proper kernel files. Please compile tipc with appropriate kernel header files(like for eg:- they are different for an smp kernel, etc.).
+
+2. Incorrect TIPC configuration:
+   The following TIPC configuration parameters should be set appropriately in nodeinit.conf:
+
+   - TIPC network id should be the same as ACTIVE system controller's network id.
+   - The interface information in nodeinit.conf is set with default values. This should be set 
+     correctly to ensure connectivity between the system controller payload nodes. 
+
+   The following are currently hardcoded, but the user has to check for the following if he has changed them:
+   - zone id should be the same as ACTIVE system controller's zone id.
+   - cluster id should be the same as ACTIVE system controller's cluster id.
+
+3. Incorrect slot_id:
+   The slot_id should be unique and different from any other node.
+   The system controllers shall use slot_id values of 1 and 2. The payload nodes should be >2. i.e. 3,4,5 etc. 
+   The default NCSSystemBOM.xml is containing definitions for 5 physical slots (1 to 5). 
+   User can edit the NCSSystemBOM.xml to add definitions for slots >5.
+
+4. Incorrect RDE configuration:
+   The rde_rde_config file should be configured with values (mainly the ipaddress and port numbers) as mentioned above in "CONFIGURATION OF OpenSAF".
+    
+5. Incorrect open source libraries: 
+   Ensure that the following opensource packages are installed ('make install') in their default paths:
+   - The Xerces library is available at /usr/local/lib/ and Xerces include files are available in the directories /usr/local/include/xercesc/util,parsers,dom, etc.   
+   - Net-snmp libraries are present installed in /usr/lib (and the softlinks of libnetsnmp**.so** are valid) and the header files are present in /usr/include/net-snmp/. These directories are valid if user specified --prefix=/usr while 'configure'ing net-snmp 5.2.4 and did a make install on the target machine.
+   - DRBD is installed and configured as described in section 2.
+
+6. Incorrect Chassis_id:
+   The chassis_id should be the same as ACTIVE system controller. This value should be the same in the NCSSystemBOM.xml
+
+7. OpenSAF CLI: 
+
+   a) The following error message "ncs cli user is not an authenticated cli user...exiting CLI process" could be observed sometimes while starting opensaf CLI interface i.e. while running /opt/opensaf/controller/bin/ncs_cli_maa. In such cases, from the same shell prompt where this error was observed, run the command "id". The output of this command should contain the following string listed: "9001(ncs_cli_superuser)". If not, Please run the OpenSAF CLI from a different shell prompt. Otherwise, please check your machine's user group settings. 
+
+   b) Error Messages during OpenSAF installation and uninstallation related to groupadd and groupdel accordingly may not impact the OPENSAF CLI services' functionality, For eg:- "groupdel: cannot remove user's primary group" In such cases, please check the user group settings on your machine. Change the 'root' user's primary group from being 'ncs_cli_superuser' to any other group, such that OPENSAF rpm packages can add or delete the 'ncs_cli_superuser' group accordingly.
+
+   c) For Error Messages related to useradd and userdel, please check your /home partition settings. During OpenSAF rpm installation, A default user by name "opensaf" with view permissions is created for OPENSAF CLI with the password "moto123". Also, the "root" is given super user permissions for running the OPENSAF CLI commands. The default home directory for this opensaf user is /home/opensaf.
+      OpenSAF rpm installation may fail to add or delete this user if the /home partition OR any other settings related to useradd and userdel command settings on your machine is not correct. In such cases, please rectify the same before going ahead to use the opensaf user for NCS CLI access.  As such, these errors should not affect the OPENSAF CLI functionality for the 'root' user.  For more information on OPENSAF CLI, please check the OPENSAF CLI Programmer's Reference.
+
+8. The HA role of a system controller can be known by executing the command 'get_ha_state' in /opt/opensaf/controller/scripts/ directory.
+
+9. The status of nodes joining and leaving the cluster can be known by checking the logs of AVD(Availability Director) present in /var/opt/opensaf/log/ .
+
+10. To diagnose problems during OpenSAF startup, the following logs provide preliminary information:
+    - stdouts of services started by NID in /var/opt/opensaf/nidlog/ ,
+    - logs of AVD and AvND_**node_id** present in /var/opt/opensaf/log/ directories. 
+
+    For eg:- logstrings of the following type indicate a node's initialization status:
+    "AVD: safNode=SC_2_1 Joined Cluster",
+    "AVD: NCS Initialization Successful on Node Id : 0x0002010f" and
+    "AVD: safNode=SC_2_2 Exited Cluster"
+ 
+    For specific information, the service specific logs have to be checked for diagnosis in /var/opt/opensaf/log directory. 
+   
+Payloads fail to start in any of the following error scenarios:
+---------------------------------------------------------------
+
+1. The following error "insmod: error inserting 'tipc.ko': -1 Invalid module format" indicates that user had not compiled tipc with proper kernel files. Please compile tipc with appropriate kernel header files(like for eg:- they are different for an smp kernel, etc.).
+
+2. Incorrect TIPC configuration:
+   The following TIPC configuration parameters should be set appropriately in nodeinit.conf:
+
+   - TIPC network id should be the same as ACTIVE system controller's network id.
+   - The interface information in nodeinit.conf is set with default values. This should be set correctly to ensure connectivity between the system controller payload nodes. 
+
+3. Incorrect slot_id:
+   The slot_id (>3) should be unique and different from any other node.
+4. Incorrect Chassis_id:
+   The chassis_id should be the same as ACTIVE & STANDBY system controllers
+
+
+Core-Dump generations:
+----------------------
+
+OpenSAF dumps the core files to "/var/crash/" directory. If the user is not defined the size of the core files to create through 'ulimit -c <size>' command, OpenSAF defaults the size to "unlimited".
+
+
+Further Help:
+-------------
+
+Collect logs using script /opt/opensaf/<controller/payload>/scripts/collect_logs.sh, and send the generated tar along with your setup and problem details to users@list.opensaf.org. 
+
+
+8. OpenSAF ADMIN OPERATIONS
+---------------------------
+
+1. SWITCHOVER:
+   Administrative switchover of system controller hosts can be performed through the CLI or the MIB interface.
+
+   From the CLI interface, the command "admswitch" triggers a switchover of system controller hosts.
+   This command can be given through the following steps:
+   Step 1:  /opt/opensaf/controller/bin/ncs_cli_maa   starts the CLI.
+   Step 2:  en
+   Step 3:  conf t 
+   Step 4:  avsv
+   Step 5:  admswitch
+   Step 6:  exit
+ 
+   From the SNMP interface, an snmpset command on the NCS-AVM-MIB object will trigger a switchover.
+   For eg:- 
+   Run the following commands,
+   export MIBDIRS=/usr/share/snmp/mibs/
+   snmpset -v2c -c public -m /usr/share/snmp/mibs/NCS-AVM-MIB localhost ncsAvmAdmSwitch.0 i 1
+   NOTE: Copy all OpenSAF mibs to the standard net-snmp mibs directory. i.e. /usr/share/snmp/mibs OR /usr/local/share/snmp/mibs.
+
+2. FAILOVER:
+   Failover can be simulated by killing one of the OpenSAF director components OR rebooting the ACTIVE system controller node.
+
+   For eg:- kill -9 `pgrep ncs_cpd`
+
+
+3. LOGGING during IN-SERVICE upgrade:
+
+   Inorder to log the messages of two releases (existing release + new release) during in-service upgrade time, ensure that the log string ASCII spec libraries "lib<svc_name>_logstr.so.<version>" of both the releases exists on the ACTIVE or upcoming ACTIVE controller.
+
+END.
+
