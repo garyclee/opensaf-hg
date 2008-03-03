@@ -1,19 +1,19 @@
+#
 #      -*- OpenSAF  -*-
 #
-#  Copyright (c) 2007, Ericsson AB
+# (C) Copyright 2008 The OpenSAF Foundation
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-# file and program are licensed under High-Availability Operating 
-# Environment Software License Version 1.4.
-# Complete License can be accesseble from below location.
-# http://www.opensaf.org/license 
-# See the Copying file included with the OpenSAF distribution for
-# full licensing terms.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
 #
-# Author(s):
-#   
+# Author(s): Ericsson AB
+#
 #
 
 WHAT IS THIS?
@@ -50,16 +50,13 @@ root_template	This directory contains the template for building initramfs
 
 HOW TO BUILD
 
-- Edit the Environment.[bash|sh] file in parent directory to suit your 
-  environment and requirements.
-
-- Execute 'make all' in this directory or 'make all' in the parent directory.
+- Execute 'build_uml' in this directory or in the parent directory.
 
 Building means downloading, configuring & building kernel and busybox packages
 from the internet.
 
-Files created by make are removed by 'make clean'. Downloaded files are
-removed by 'make realclean'.
+Files created are removed by 'clean_uml'. Downloaded files are
+removed manually by deleting them from the archive.
 
 Building adds the following direcories:
 
@@ -70,6 +67,8 @@ root	   This directory structure is used when building the initramfs for
 linux-*	   This directory contains the extracted linux kernel source package.
 
 busybox-*   This directory contains the extracted busybox source package.
+
+tipcutils-*  This directory contains the extracted tipc utils source package.
 
 uml_utilities_*	This directory contains the extraed UML utilities
 		source package.

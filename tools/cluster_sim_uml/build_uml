@@ -1,27 +1,53 @@
 #! /bin/bash
-
+#
 #      -*- OpenSAF  -*-
 #
-#  Copyright (c) 2007, Ericsson AB
+# (C) Copyright 2008 The OpenSAF Foundation
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-# file and program are licensed under High-Availability Operating 
-# Environment Software License Version 1.4.
-# Complete License can be accesseble from below location.
-# http://www.opensaf.org/license 
-# See the Copying file included with the OpenSAF distribution for
-# full licensing terms.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
 #
-# Author(s):
-#   
+# Author(s): Ericsson AB
 #
+#
+
+arch=$(arch)
+if [ $arch = x86_64 ]; then
+    lib_dir=lib64
+else
+    lib_dir=lib
+fi
+
+# XERCES_PREFIX and NETSNMP_PREFIX can be set in the environment to point to an
+# alternative installation directory. Set the variables to the directory above 
+# where the lib and bin directories are located. See the default setting below.
+xerces_prefix=${XERCES_PREFIX:-"/usr"}
+xerces_lib=$xerces_prefix/$lib_dir
+netsnmp_prefix=${NETSNMP_PREFIX:-"/usr"}
+netsnmp_lib=$netsnmp_prefix/$lib_dir
+
+opensaf_home=$PWD/../..
+host_tuple=$(${opensaf_home}/config.guess)
+
+opensaf_version=$(grep 'Version:' ${opensaf_home}/rpms/opensaf_controller_rpm.spec | cut -d: -f2 | tr -d ' ')
+opensaf_release=$(grep 'Release:' ${opensaf_home}/rpms/opensaf_controller_rpm.spec | cut -d: -f2 | tr -d ' ')
+opensaf_controller_rpm=$opensaf_home/rpms/opensaf_controller-$opensaf_version-$opensaf_release.$arch.rpm
+opensaf_payload_rpm=$opensaf_home/rpms/opensaf_payload-$opensaf_version-$opensaf_release.$arch.rpm
+export OPENSAF_INCLUDE=$opensaf_home/include
+export OPENSAF_LIB=$opensaf_home/targets/$host_tuple/$lib_dir
+
 
 top=`pwd`
 bin=$top/bin
 archive=$top/archive
 scripts=$archive/scripts
+kver=${KVER:-2.6.24.3}
 
 die() {
     echo "ERROR: $*"
@@ -33,12 +59,12 @@ test -x ./bin/install.sh ||\
     die "This script must be executed in the [`pwd/..`] directory"
 
 # Check that we can find everything needed
-test -e $top/tipcutils-$TIPCUTILSVER/tipc-config || die "cannot find tipc-config"
-test -e $top/uml/linux-$KVER/net/tipc/tipc.ko || die "cannot find tipc kernel module"
-test -e $OPENSAF_CONTROLLER_RPM || "cannot find rpm: $OPENSAF_CONTROLLER_RPM"
-test -e $OPENSAF_PAYLOAD_RPM || "cannot find rpm: $OPENSAF_PAYLOAD_RPM"
-test -e ${NETSNMP_LIB}/libnetsnmp.so.*.?.? || die "cannot find net-snmp libraries in: ${NETSNMP_LIB}"
-test -e $XERCES_LIB/libxerces-c.so || die "Cannot find xerces libraries in: ${XERCES_LIB}"
+test -e $top/uml/bin/tipc-config || die "cannot find tipc-config"
+test -e $top/uml/linux-$kver/net/tipc/tipc.ko || die "cannot find tipc kernel module"
+test -e $opensaf_controller_rpm || "cannot find rpm: $opensaf_controller_rpm"
+test -e $opensaf_payload_rpm || "cannot find rpm: $opensaf_payload_rpm"
+test -e $netsnmp_lib/libnetsnmp.so.*.?.? || die "cannot find net-snmp libraries in: $netsnmp_lib"
+test -e $xerces_lib/libxerces-c.so || die "Cannot find xerces libraries in: $xerces_lib"
 
 create_controller_root()
 {
@@ -50,34 +76,34 @@ create_controller_root()
     if ! test -d $root; then
         mkdir $root
         cd $root
-	    mkdir -p usr/$LIB_SUFFIX
-	    cp -a ${NETSNMP_LIB}/libnetsnmp*.so* usr/$LIB_SUFFIX
+	    mkdir -p usr/$lib_dir
+	    cp -a $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
 	    mkdir -p usr/sbin
-	    cp $NETSNMP_PREFIX/sbin/snmp* usr/sbin
+	    cp $netsnmp_prefix/sbin/snmp* usr/sbin
 	    mkdir -p usr/bin
-	    cp $NETSNMP_PREFIX/bin/snmp* usr/bin
+	    cp $netsnmp_prefix/bin/snmp* usr/bin
 	    mkdir -p usr/share/snmp/mibs
-	    cp $NETSNMP_PREFIX/share/snmp/mibs/* usr/share/snmp/mibs
+	    cp $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
 
         # Get libraries that snmpd depends on
-        mkdir -p $LIB_SUFFIX
-        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$LIB_SUFFIX | \
-            grep -v usr | sed -e 's,/tls,,'` $root/$LIB_SUFFIX
-        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /usr/$LIB_SUFFIX | \
-            sed -e 's,/tls,,'` $root/usr/$LIB_SUFFIX
+        mkdir -p $lib_dir
+        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
+            grep -v usr | sed -e 's,/tls,,'` $root/$lib_dir
+        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /usr/$lib_dir | \
+            sed -e 's,/tls,,'` $root/usr/$lib_dir
 #        mkdir -p $root/usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE
 #        cp /usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE/libperl.so \
 #            $root/usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE
 
         # Unpack opensaf rpm build result
-        rpm2cpio $OPENSAF_CONTROLLER_RPM | cpio -dim >& /dev/null
+        rpm2cpio $opensaf_controller_rpm | cpio -dim >& /dev/null
         rm -rf $root/opt/opensaf/include
 
         # Do controller rpm spec post install
         mkdir -p $root/usr/share/snmp/mibs
-	    cp -a $OPENSAF_HOME/mibs/SAF* $root/usr/share/snmp/mibs
-	    cp -a $OPENSAF_HOME/mibs/NCS* $root/usr/share/snmp/mibs
-	    cp -a $OPENSAF_HOME/mibs/ECC-SMI $root/usr/share/snmp/mibs
+	    cp -a $opensaf_home/mibs/SAF* $root/usr/share/snmp/mibs
+	    cp -a $opensaf_home/mibs/NCS* $root/usr/share/snmp/mibs
+	    cp -a $opensaf_home/mibs/ECC-SMI $root/usr/share/snmp/mibs
         mkdir -p $root/usr/share/snmp/
         cp $root/etc/opt/opensaf/ncsSnmpSubagt.conf $root/usr/share/snmp/
         mkdir -p $root/var/opt/opensaf/mdslog
@@ -104,15 +130,15 @@ create_controller_root()
         # Copy needed extra programs
         mkdir -p $root/bin
         cp /bin/bash $root/bin
-        mkdir -p $root/$LIB_SUFFIX
+        mkdir -p $root/$lib_dir
         
         # Get libraries that bash depends on
-        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$LIB_SUFFIX | sed -e 's,/tls,,'` $root/$LIB_SUFFIX
+        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
 
         # Get libraries that opensaf depends on
-        cp /$LIB_SUFFIX/librt.so.* $root/$LIB_SUFFIX
-        cp /$LIB_SUFFIX/libgcc_s.so.* $root/$LIB_SUFFIX
-        cp -a /usr/$LIB_SUFFIX/libstdc++.* $root/$LIB_SUFFIX
+        cp /$lib_dir/librt.so.* $root/$lib_dir
+        cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
+        cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
 
         mkdir -p $root/usr/bin
         mkdir -p $root/usr/share/snmp/mibs
@@ -122,17 +148,17 @@ create_controller_root()
         cp $archive/group $root/etc
 
         cp -f $archive/rde* $root/etc/opt/opensaf/
-        cp -a $XERCES_LIB/libxerces-c.so* $root/$LIB_SUFFIX
+        cp -a $xerces_lib/libxerces-c.so* $root/$lib_dir
 
         # Get libraries that xerces depends on
-        cp -L `ldd $XERCES_LIB/libxerces-c.so | tr -s ' \t' '\n' | grep /usr/$LIB_SUFFIX | sed -e 's,/tls,,'` $root/usr/$LIB_SUFFIX
+        cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | grep /usr/$lib_dir | sed -e 's,/tls,,'` $root/usr/$lib_dir
 
         $top/Hello/install.sh $root
         cp -d $top/Hello/AppConfig.xml $root/etc/opt/opensaf
 
         mkdir -p $root/opt/TIPC
-        cp $top/tipcutils-$TIPCUTILSVER/tipc-config $root/opt/TIPC
-        cp $top/uml/linux-$KVER/net/tipc/tipc.ko $root/opt/TIPC
+        cp $top/uml/bin/tipc-config $root/opt/TIPC
+        cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
 
         # Copy local timezone settings
         test -f /etc/localtime && cp /etc/localtime $root/etc
@@ -143,7 +169,6 @@ create_controller_root()
 
     echo "Creating [$root/root.cpio] ..."
     $bin/mklndircpio $root $root/root.cpio /hostfs/root.controller >& /dev/null
-
 }
 
 create_payload_root()
@@ -156,7 +181,7 @@ create_payload_root()
     if ! test -d $root; then
         mkdir $root
         cd $root
-        rpm2cpio $OPENSAF_PAYLOAD_RPM | cpio -dim >& /dev/null
+        rpm2cpio $opensaf_payload_rpm | cpio -dim >& /dev/null
         rm -rf $root/opt/opensaf/include
         sed -e s/INITTIMEOUT=1000/INITTIMEOUT=10000/g $root/opt/opensaf/payload/scripts/nis_pld > \
             $root/opt/opensaf/payload/scripts/nis_pld.new
@@ -175,15 +200,15 @@ create_payload_root()
         # Copy needed extra programs
         mkdir -p $root/bin
         cp /bin/bash $root/bin
-        mkdir -p $root/$LIB_SUFFIX
+        mkdir -p $root/$lib_dir
 
         # Get libraries that bash depends on
-        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$LIB_SUFFIX | sed -e 's,/tls,,'` $root/$LIB_SUFFIX
+        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
 
         # Get libraries that opensaf depends on
-        cp /$LIB_SUFFIX/librt.so.* $root/$LIB_SUFFIX
-        cp /$LIB_SUFFIX/libgcc_s.so.* $root/$LIB_SUFFIX
-        cp -a /usr/$LIB_SUFFIX/libstdc++.* $root/$LIB_SUFFIX
+        cp /$lib_dir/librt.so.* $root/$lib_dir
+        cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
+        cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
 
         mkdir -p $root/usr/bin
         mkdir -p $root/var/opt/opensaf/stdouts
@@ -191,8 +216,8 @@ create_payload_root()
         $top/Hello/install.sh $root
 
         mkdir -p $root/opt/TIPC
-        cp -L $top/tipcutils-$TIPCUTILSVER/tipc-config $root/opt/TIPC
-        cp $top/uml/linux-$KVER/net/tipc/tipc.ko $root/opt/TIPC
+        cp $top/uml/bin/tipc-config $root/opt/TIPC
+        cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
 
         # Copy local timezone settings
         test -f /etc/localtime && cp /etc/localtime $root/etc
@@ -205,17 +230,11 @@ create_payload_root()
     $bin/mklndircpio $root $root/root.cpio /hostfs/root.payload >& /dev/null
 }
 
-case "$1" in
-    controller)
-	    create_controller_root
-	    ;;
-    payload)
-	    create_payload_root
-	    ;;
-    *)
-	    create_controller_root
-	    create_payload_root
-	    ;;
-esac
+# Build the Linux UML binary
+uml/build_uml
+
+# Build shadow root file systems
+create_controller_root
+create_payload_root
 
 exit 0

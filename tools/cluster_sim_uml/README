@@ -1,19 +1,19 @@
+#
 #      -*- OpenSAF  -*-
 #
-#  Copyright (c) 2007, Ericsson AB
+# (C) Copyright 2008 The OpenSAF Foundation
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
-# file and program are licensed under High-Availability Operating 
-# Environment Software License Version 1.4.
-# Complete License can be accesseble from below location.
-# http://www.opensaf.org/license 
-# See the Copying file included with the OpenSAF distribution for
-# full licensing terms.
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
 #
-# Author(s):
-#   
+# Author(s): Ericsson AB
+#
 #
 
 WHAT IS THIS?
@@ -44,10 +44,9 @@ See the README file in the uml subdirectory for more information about UML.
 DIRECTORY STRUCTURE
 
 archive	  This directory contains a number of configuration files for the
-	  cluster. Downloaded packages are also stored. The 'scripts'
-	  subdirectory contains the init scripts that are executed during UML
-	  startup. The scripts are copied from this directory to the shadow
-	  root by the make system. Do not edit.
+	  cluster. The 'scripts' subdirectory contains the init scripts that are
+      executed during UML startup. The scripts are copied from this directory
+      to the shadow root by the build system. Do not edit.
 
 bin	  This directory contains shell scripts used during the installation
 	  and to start the cluster.
@@ -71,21 +70,19 @@ uml	  This directory contains the UML kernel build, the busybox build and
 HOW TO BUILD
 
 Make sure you have generated opensaf rpms and have netsnmp and xerces
-libraries available.
+libraries available. If these libraries are in a non-standard location, setup
+environment variables to point the right location. See 'build_uml'.
 
 Please note the netsnmp has to be configured with:
 
 	--without-openssl --disable-embedded-perl --without-perl-modules --without-rpm
 
-- Edit the Envsettings.bash file to suit your environment and requirements.
-- Source the Envsettings.bash file.
-- Execute 'make'.
+- Execute './build_uml'.
 
 Building means downloading, configuring & building packages from the
 internet, creating shadow root file systems for controller and payload nodes.
 
-Files created by make are removed by 'make clean'. Downloaded files are
-removed by 'make realclean'.
+Files created and generated are removed by 'clean_uml'.
 
 Building adds the following direcories:
 
@@ -94,15 +91,6 @@ root.controller	   This directory contains a shadow root direcory for
 
 root.payload	   This directory contains a shadow root direcory for
 		   payload nodes. Do not edit.
-
-tipcutils-x.y.z	   This directory contains the extracted tipcutils source
-		   package and generated files from the build of it.
-
-
-It is also possible to create a development environment for application
-components including the simulated cluster. Execute 'make dev_env' and a .tgz file
-will be created. This file is possible to use on another system to build and
-test applications in the simulated cluster.
 
 
 HOW TO RUN
@@ -191,6 +179,8 @@ SOFTWARE REQUIREMENTS
 
 UML should run on any 2.6 host kernel. If the host kernel is patched for SKAS3
 mode, you will get better guest (UML) kernel performance.
+
+32 and 64 bit are verified.
 
 GNU C Library version 2.4 or later
 
