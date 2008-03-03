@@ -55,12 +55,7 @@ die() {
     exit 1
 }
 
-test -x ./bin/install.sh ||\
-    die "This script must be executed in the [`pwd/..`] directory"
-
 # Check that we can find everything needed
-test -e $top/uml/bin/tipc-config || die "cannot find tipc-config"
-test -e $top/uml/linux-$kver/net/tipc/tipc.ko || die "cannot find tipc kernel module"
 test -e $opensaf_controller_rpm || "cannot find rpm: $opensaf_controller_rpm"
 test -e $opensaf_payload_rpm || "cannot find rpm: $opensaf_payload_rpm"
 test -e $netsnmp_lib/libnetsnmp.so.*.?.? || die "cannot find net-snmp libraries in: $netsnmp_lib"

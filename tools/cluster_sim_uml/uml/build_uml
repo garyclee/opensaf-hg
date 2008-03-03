@@ -27,7 +27,6 @@ umlutilsver=20070815
 umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
 arch=$(arch)
 gid=$(id -g)
-top=$(pwd)
 
 test -x ./uml/build_uml || exit 1
 
@@ -109,7 +108,9 @@ build_linux()
 
     # Install modules into initramfs and rebuild Linux kernel
     INSTALL_MOD_PATH=$top/root make -C linux-$kver arch=um modules_install
-    rm -f root/$lib_dir/modules/$kver/build root/$lib_dir/modules/$kver/source
+    rm -f root/$lib_dir/modules/$kver/build \
+        root/$lib_dir/modules/$kver/source \
+        linux-$kver/initramfs_list
     ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
         $top/root $top/root/dev/initramfs_list \
         > linux-$kver/initramfs_list
@@ -179,6 +180,7 @@ build_tipcutils()
 }
 
 cd uml
+top=$PWD
 get_and_extract_tipcutils
 get_and_extract_linux
 get_and_extract_busybox
