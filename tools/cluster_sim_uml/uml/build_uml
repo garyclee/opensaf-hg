@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -x
 #
 #      -*- OpenSAF  -*-
 #
@@ -42,7 +42,8 @@ get_and_extract_linux()
 
 	if ! test -e $archive; then
 		if ! wget -O $archive $kurl; then
-            echo "Could not download $kurl"
+            echo "Error, could not download $kurl"
+            rm -f $archive
             exit 1
         fi
 	fi
@@ -58,7 +59,8 @@ get_and_extract_busybox()
 
     if ! test -e $archive; then
 		if ! wget -O $archive $bburl; then
-            echo "Could not download $bburl"
+            echo "Error, could not download $bburl"
+            rm -f $archive
             exit 1
         fi
     fi
@@ -74,7 +76,8 @@ get_and_extract_umlutils()
 
     if ! test -e $archive; then
 		if ! wget -O $archive $umlutilsurl; then
-            echo "Could not download $umlutilsurl"
+            echo "Error, could not download $umlutilsurl"
+            rm -f $archive
             exit 1
         fi
     fi
@@ -94,7 +97,8 @@ get_and_extract_tipcutils()
 
 	if ! test -e $archive; then
 		if ! wget -O $archive $tipcutilsurl; then
-            echo "Could not download $tipcutilsurl"
+            echo "Error, could not download $tipcutilsurl"
+            rm -f $archive
             exit 1
         fi
 	fi
@@ -204,3 +208,5 @@ build_linux
 get_and_extract_umlutils
 build_umlutils
 cd - > /dev/null
+
+exit 0
