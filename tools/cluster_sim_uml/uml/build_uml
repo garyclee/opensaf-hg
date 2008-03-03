@@ -180,6 +180,7 @@ build_tipcutils()
 }
 
 cd uml
+mkdir -p archive
 top=$PWD
 get_and_extract_tipcutils
 get_and_extract_linux
