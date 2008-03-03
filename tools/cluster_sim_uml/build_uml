@@ -84,11 +84,6 @@ create_controller_root()
         mkdir -p $lib_dir
         cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
             grep -v usr | sed -e 's,/tls,,'` $root/$lib_dir
-        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /usr/$lib_dir | \
-            sed -e 's,/tls,,'` $root/usr/$lib_dir
-#        mkdir -p $root/usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE
-#        cp /usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE/libperl.so \
-#            $root/usr/lib/perl5/5.8.8/x86_64-linux-thread-multi/CORE
 
         # Unpack opensaf rpm build result
         rpm2cpio $opensaf_controller_rpm | cpio -dim >& /dev/null

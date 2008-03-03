@@ -1,4 +1,4 @@
-#! /bin/bash -x
+#! /bin/bash
 #
 #      -*- OpenSAF  -*-
 #
@@ -36,75 +36,22 @@ else
     lib_dir=lib
 fi
 
-get_and_extract_linux()
+get_and_extract()
 {
-	local archive=archive/linux-$kver.tar.bz2
+	local file=archive/$1
+    local url=$2
+    local dir=$3
 
-	if ! test -e $archive; then
-		if ! wget -O $archive $kurl; then
-            echo "Error, could not download $kurl"
-            rm -f $archive
-            exit 1
-        fi
-	fi
+	test -e $dir && return
 
-	if ! test -d linux-$kver; then
-        tar xjf $archive
-    fi
-}
-
-get_and_extract_busybox()
-{
-    local archive=archive/busybox-$bbver.tar.bz2
-
-    if ! test -e $archive; then
-		if ! wget -O $archive $bburl; then
-            echo "Error, could not download $bburl"
-            rm -f $archive
-            exit 1
-        fi
+    if ! wget -O $file $url; then
+        echo "Error, could not download $url"
+        rm -f $file
+        exit 1
     fi
 
-    if ! test -d busybox-$bbver; then
-        tar xjf $archive
-    fi
-}
-
-get_and_extract_umlutils()
-{
-    local archive=$PWD/archive/uml_utilities_${umlutilsver}.tar.bz2
-
-    if ! test -e $archive; then
-		if ! wget -O $archive $umlutilsurl; then
-            echo "Error, could not download $umlutilsurl"
-            rm -f $archive
-            exit 1
-        fi
-    fi
-
-    if ! test -d uml_utilities_${umlutilsver}; then
-        mkdir -p uml_utilities_${umlutilsver}
-        pushd uml_utilities_${umlutilsver}
-        tar xjf $archive
-        popd
-    fi
-}
-
-
-get_and_extract_tipcutils()
-{
-	local archive=archive/tipcutils-$tipcutilsver.tar.gz
-
-	if ! test -e $archive; then
-		if ! wget -O $archive $tipcutilsurl; then
-            echo "Error, could not download $tipcutilsurl"
-            rm -f $archive
-            exit 1
-        fi
-	fi
-
-	if ! test -d tipcutils-$tipcutilsver; then
-        tar xzf $archive
+	if ! test -d $dir; then
+        tar xjf $file
     fi
 }
 
@@ -175,15 +122,15 @@ build_umlutils()
         return
     fi
 
-    make -C uml_utilities_${umlutilsver}/tools-$umlutilsver/lib
-    make -C uml_utilities_${umlutilsver}/tools-$umlutilsver/uml_switch
-    cp uml_utilities_${umlutilsver}/tools-${umlutilsver}/uml_switch/uml_switch bin
-    make -C uml_utilities_${umlutilsver}/tools-$umlutilsver/port-helper
-    cp uml_utilities_${umlutilsver}/tools-${umlutilsver}/port-helper/port-helper bin
-    make -C uml_utilities_${umlutilsver}/tools-$umlutilsver/tunctl
-    cp uml_utilities_${umlutilsver}/tools-${umlutilsver}/tunctl/tunctl bin
-    make -C uml_utilities_${umlutilsver}/tools-$umlutilsver/mconsole
-    cp uml_utilities_${umlutilsver}/tools-${umlutilsver}/mconsole/uml_mconsole bin
+    make -C tools-$umlutilsver/lib
+    make -C tools-$umlutilsver/uml_switch
+    cp tools-${umlutilsver}/uml_switch/uml_switch bin
+    make -C tools-$umlutilsver/port-helper
+    cp tools-${umlutilsver}/port-helper/port-helper bin
+    make -C tools-$umlutilsver/tunctl
+    cp tools-${umlutilsver}/tunctl/tunctl bin
+    make -C tools-$umlutilsver/mconsole
+    cp tools-${umlutilsver}/mconsole/uml_mconsole bin
 }
 
 build_tipcutils()
@@ -198,14 +145,14 @@ build_tipcutils()
 cd uml
 mkdir -p archive
 top=$PWD
-get_and_extract_tipcutils
-get_and_extract_linux
-get_and_extract_busybox
+get_and_extract tipcutils-$tipcutilsver.tar.gz $tipcutilsurl tipcutils-$tipcutilsver
+get_and_extract linux-$kver.tar.bz2 $kurl linux-$kver
+get_and_extract busybox-$bbver.tar.bz2 $bburl busybox-$bbver
 build_tipcutils
 build_busybox
 create_initramfs
 build_linux
-get_and_extract_umlutils
+get_and_extract uml_utilities_${umlutilsver}.tar.bz2 $umlutilsurl tools-${umlutilsver}
 build_umlutils
 cd - > /dev/null
 

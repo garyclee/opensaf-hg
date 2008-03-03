@@ -27,9 +27,9 @@ eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
 export PATH=$PATH:/opt/opensaf/payload/bin
 
 if test `uname -m` = "x86_64"; then
-   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
+   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib64
 else
-   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
 fi
 
 mkdir -p /var/opt/opensaf
