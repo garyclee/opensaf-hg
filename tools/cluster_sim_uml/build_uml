@@ -226,10 +226,13 @@ create_payload_root()
 }
 
 # Build the Linux UML binary
-uml/build_uml
-
-# Build shadow root file systems
-create_controller_root
-create_payload_root
+if uml/build_uml; then
+    # Build shadow root file systems
+    create_controller_root
+    create_payload_root
+else
+    echo "build of UML Linux kernel failed"
+    exit 1
+fi
 
 exit 0
