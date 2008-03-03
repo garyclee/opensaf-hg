@@ -173,10 +173,6 @@ create_payload_root()
         cd $root
         rpm2cpio $opensaf_payload_rpm | cpio -dim >& /dev/null
         rm -rf $root/opt/opensaf/include
-        sed -e s/INITTIMEOUT=1000/INITTIMEOUT=10000/g $root/opt/opensaf/payload/scripts/nis_pld > \
-            $root/opt/opensaf/payload/scripts/nis_pld.new
-        mv $root/opt/opensaf/payload/scripts/nis_pld.new $root/opt/opensaf/payload/scripts/nis_pld
-        chmod +x $root/opt/opensaf/payload/scripts/nis_pld
         cd - >& /dev/null
 
         # rpm post install
