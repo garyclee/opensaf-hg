@@ -41,7 +41,10 @@ get_and_extract_linux()
 	local archive=archive/linux-$kver.tar.bz2
 
 	if ! test -e $archive; then
-		wget -O $archive $kurl
+		if ! wget -O $archive $kurl; then
+            echo "Could not download $kurl"
+            exit 1
+        fi
 	fi
 
 	if ! test -d linux-$kver; then
@@ -54,7 +57,10 @@ get_and_extract_busybox()
     local archive=archive/busybox-$bbver.tar.bz2
 
     if ! test -e $archive; then
-        wget -O $archive $bburl
+		if ! wget -O $archive $bburl; then
+            echo "Could not download $bburl"
+            exit 1
+        fi
     fi
 
     if ! test -d busybox-$bbver; then
@@ -67,7 +73,10 @@ get_and_extract_umlutils()
     local archive=$PWD/archive/uml_utilities_${umlutilsver}.tar.bz2
 
     if ! test -e $archive; then
-        wget -O $archive $umlutilsurl
+		if ! wget -O $archive $umlutilsurl; then
+            echo "Could not download $umlutilsurl"
+            exit 1
+        fi
     fi
 
     if ! test -d uml_utilities_${umlutilsver}; then
@@ -84,7 +93,10 @@ get_and_extract_tipcutils()
 	local archive=archive/tipcutils-$tipcutilsver.tar.gz
 
 	if ! test -e $archive; then
-		wget -O $archive $tipcutilsurl
+		if ! wget -O $archive $tipcutilsurl; then
+            echo "Could not download $tipcutilsurl"
+            exit 1
+        fi
 	fi
 
 	if ! test -d tipcutils-$tipcutilsver; then
