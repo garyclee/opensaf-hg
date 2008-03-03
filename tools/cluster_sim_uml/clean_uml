@@ -19,7 +19,7 @@
 
 rm -rf root.controller root.payload
 rm -rf repl-opensaf
-uml/uml_clean
+uml/clean_uml
 make -C Hello/aishello clean
 
 exit 0
