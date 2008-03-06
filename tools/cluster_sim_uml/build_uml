@@ -68,94 +68,91 @@ create_controller_root()
 
     echo "Creating root file system for controller..."
 
-    if ! test -d $root; then
-        mkdir $root
-        cd $root
-	    mkdir -p usr/$lib_dir
-	    cp -a $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
-	    mkdir -p usr/sbin
-	    cp $netsnmp_prefix/sbin/snmp* usr/sbin
-	    mkdir -p usr/bin
-	    cp $netsnmp_prefix/bin/snmp* usr/bin
-	    mkdir -p usr/share/snmp/mibs
-	    cp $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
+    rm -rf $root
+    mkdir $root
+    cd $root
+    mkdir -p usr/$lib_dir
+    cp -a $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
+    mkdir -p usr/sbin
+    cp $netsnmp_prefix/sbin/snmp* usr/sbin
+    mkdir -p usr/bin
+    cp $netsnmp_prefix/bin/snmp* usr/bin
+    mkdir -p usr/share/snmp/mibs
+    cp $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
 
-        # Get libraries that snmpd depends on
-        mkdir -p $lib_dir
-        cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
-            grep -v usr | sed -e 's,/tls,,'` $root/$lib_dir
+    # Get libraries that snmpd depends on
+    mkdir -p $lib_dir
+    cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
+        grep -v usr | sed -e 's,/tls,,'` $root/$lib_dir
 
-        # Unpack opensaf rpm build result
-        rpm2cpio $opensaf_controller_rpm | cpio -dim >& /dev/null
-        rm -rf $root/opt/opensaf/include
+    # Unpack opensaf rpm build result
+    rpm2cpio $opensaf_controller_rpm | cpio -dim >& /dev/null
+    rm -rf $root/opt/opensaf/include
 
-        # Do controller rpm spec post install
-        mkdir -p $root/usr/share/snmp/mibs
-	    cp -a $opensaf_home/mibs/SAF* $root/usr/share/snmp/mibs
-	    cp -a $opensaf_home/mibs/NCS* $root/usr/share/snmp/mibs
-	    cp -a $opensaf_home/mibs/ECC-SMI $root/usr/share/snmp/mibs
-        mkdir -p $root/usr/share/snmp/
-        cp $root/etc/opt/opensaf/ncsSnmpSubagt.conf $root/usr/share/snmp/
-        mkdir -p $root/var/opt/opensaf/mdslog
-        mkdir -p $root/var/opt/opensaf/nidlog
+    # Do controller rpm spec post install
+    mkdir -p $root/usr/share/snmp/mibs
+    cp -a $opensaf_home/mibs/SAF* $root/usr/share/snmp/mibs
+    cp -a $opensaf_home/mibs/NCS* $root/usr/share/snmp/mibs
+    cp -a $opensaf_home/mibs/ECC-SMI $root/usr/share/snmp/mibs
+    mkdir -p $root/usr/share/snmp/
+    cp $root/etc/opt/opensaf/ncsSnmpSubagt.conf $root/usr/share/snmp/
+    mkdir -p $root/var/opt/opensaf/mdslog
+    mkdir -p $root/var/opt/opensaf/nidlog
+    mkdir -p $root/var/opt/opensaf/saflog
 
-        # Copy default config files
-        cp -L $archive/NCSSystemBOM.xml $root/etc/opt/opensaf
+    # Copy default config files
+    cp -L $archive/NCSSystemBOM.xml $root/etc/opt/opensaf
 
-        cd - >& /dev/null
+    cd - >& /dev/null
 
-        # Required by e.g. the snmpd script
-        mkdir -p $root/etc/snmp
-        cp $archive/snmp*d.conf $root/etc/snmp
-        mkdir -p $root/sbin
-        mkdir -p $root/etc/default
-        
-        mkdir -p $root/etc/init.d
-        cp $archive/scripts/controller/snmpd $root/etc/init.d
-        chmod +x $root/etc/init.d/snmpd
-        
-        cp $scripts/controller/*.rc $root/etc/init.d
-        cp $scripts/controller/profile $root/etc/
-        
-        # Copy needed extra programs
-        mkdir -p $root/bin
-        cp /bin/bash $root/bin
-        mkdir -p $root/$lib_dir
-        
-        # Get libraries that bash depends on
-        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
+    # Required by e.g. the snmpd script
+    mkdir -p $root/etc/snmp
+    cp $archive/snmp*d.conf $root/etc/snmp
+    mkdir -p $root/sbin
+    mkdir -p $root/etc/default
+    
+    mkdir -p $root/etc/init.d
+    cp $archive/scripts/controller/snmpd $root/etc/init.d
+    chmod +x $root/etc/init.d/snmpd
+    
+    cp $scripts/controller/*.rc $root/etc/init.d
+    cp $scripts/controller/profile $root/etc/
+    
+    # Copy needed extra programs
+    mkdir -p $root/bin
+    cp /bin/bash $root/bin
+    mkdir -p $root/$lib_dir
+    
+    # Get libraries that bash depends on
+    cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
 
-        # Get libraries that opensaf depends on
-        cp /$lib_dir/librt.so.* $root/$lib_dir
-        cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
-        cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
+    # Get libraries that opensaf depends on
+    cp /$lib_dir/librt.so.* $root/$lib_dir
+    cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
+    cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
 
-        mkdir -p $root/usr/bin
-        mkdir -p $root/usr/share/snmp/mibs
-        mkdir -p $root/var/opt/opensaf/stdouts
+    mkdir -p $root/usr/bin
+    mkdir -p $root/usr/share/snmp/mibs
+    mkdir -p $root/var/opt/opensaf/stdouts
 
-        # CLI unique group names
-        cp $archive/group $root/etc
+    # CLI unique group names
+    cp $archive/group $root/etc
 
-        cp -f $archive/rde* $root/etc/opt/opensaf/
-        cp -a $xerces_lib/libxerces-c.so* $root/$lib_dir
+    cp -f $archive/rde* $root/etc/opt/opensaf/
+    cp -a $xerces_lib/libxerces-c.so* $root/$lib_dir
 
-        # Get libraries that xerces depends on
-        cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | grep /usr/$lib_dir | sed -e 's,/tls,,'` $root/usr/$lib_dir
+    # Get libraries that xerces depends on
+    cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | grep /usr/$lib_dir | sed -e 's,/tls,,'` $root/usr/$lib_dir
 
-        $top/Hello/install.sh $root
-        cp -d $top/Hello/AppConfig.xml $root/etc/opt/opensaf
+    $top/Hello/install.sh $root
+    cp -d $top/Hello/AppConfig.xml $root/etc/opt/opensaf
 
-        mkdir -p $root/opt/TIPC
-        cp $top/uml/bin/tipc-config $root/opt/TIPC
-        cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
+    mkdir -p $root/opt/TIPC
+    cp $top/uml/bin/tipc-config $root/opt/TIPC
+    cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
 
-        # Copy local timezone settings
-        test -f /etc/localtime && cp /etc/localtime $root/etc
-
-    else
-        echo "Using existing [./root], remove it to enforce re-build"
-    fi
+    # Copy local timezone settings
+    test -f /etc/localtime && cp /etc/localtime $root/etc
 
     echo "Creating [$root/root.cpio] ..."
     $bin/mklndircpio $root $root/root.cpio /hostfs/root.controller >& /dev/null
@@ -168,49 +165,45 @@ create_payload_root()
 
     echo "Creating root file system for payload..."
 
-    if ! test -d $root; then
-        mkdir $root
-        cd $root
-        rpm2cpio $opensaf_payload_rpm | cpio -dim >& /dev/null
-        rm -rf $root/opt/opensaf/include
-        cd - >& /dev/null
+    rm -rf $root
+    mkdir $root
+    cd $root
+    rpm2cpio $opensaf_payload_rpm | cpio -dim >& /dev/null
+    rm -rf $root/opt/opensaf/include
+    cd - >& /dev/null
 
-        # rpm post install
-        mkdir -p $root/var/opt/opensaf/mdslog
-        mkdir -p $root/var/opt/opensaf/nidlog
+    # rpm post install
+    mkdir -p $root/var/opt/opensaf/mdslog
+    mkdir -p $root/var/opt/opensaf/nidlog
 
-        mkdir -p $root/etc/init.d
-        cp $scripts/payload/*.rc $root/etc/init.d
-        cp $scripts/payload/profile $root/etc/
+    mkdir -p $root/etc/init.d
+    cp $scripts/payload/*.rc $root/etc/init.d
+    cp $scripts/payload/profile $root/etc/
 
-        # Copy needed extra programs
-        mkdir -p $root/bin
-        cp /bin/bash $root/bin
-        mkdir -p $root/$lib_dir
+    # Copy needed extra programs
+    mkdir -p $root/bin
+    cp /bin/bash $root/bin
+    mkdir -p $root/$lib_dir
 
-        # Get libraries that bash depends on
-        cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
+    # Get libraries that bash depends on
+    cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
 
-        # Get libraries that opensaf depends on
-        cp /$lib_dir/librt.so.* $root/$lib_dir
-        cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
-        cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
+    # Get libraries that opensaf depends on
+    cp /$lib_dir/librt.so.* $root/$lib_dir
+    cp /$lib_dir/libgcc_s.so.* $root/$lib_dir
+    cp -a /usr/$lib_dir/libstdc++.* $root/$lib_dir
 
-        mkdir -p $root/usr/bin
-        mkdir -p $root/var/opt/opensaf/stdouts
+    mkdir -p $root/usr/bin
+    mkdir -p $root/var/opt/opensaf/stdouts
 
-        $top/Hello/install.sh $root
+    $top/Hello/install.sh $root
 
-        mkdir -p $root/opt/TIPC
-        cp $top/uml/bin/tipc-config $root/opt/TIPC
-        cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
+    mkdir -p $root/opt/TIPC
+    cp $top/uml/bin/tipc-config $root/opt/TIPC
+    cp $top/uml/linux-$kver/net/tipc/tipc.ko $root/opt/TIPC
 
-        # Copy local timezone settings
-        test -f /etc/localtime && cp /etc/localtime $root/etc
-
-    else
-        echo "Using existing [./root], remove it to enforce re-build"
-    fi
+    # Copy local timezone settings
+    test -f /etc/localtime && cp /etc/localtime $root/etc
 
     echo "Creating [$root/root.cpio] ..."
     $bin/mklndircpio $root $root/root.cpio /hostfs/root.payload >& /dev/null
