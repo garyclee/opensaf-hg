@@ -18,8 +18,7 @@
 #
 
 cd uml
-rm -rf root linux* tipcutils* uml_utilities* busybox*
-rm -rf bin
+rm -rf root linux* tipcutils* uml_utilities* busybox* tools-*
 cd - > /dev/null
 
 exit 0
