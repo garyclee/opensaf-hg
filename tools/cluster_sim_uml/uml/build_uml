@@ -38,20 +38,31 @@ fi
 
 get_and_extract()
 {
-	local file=archive/$1
+    local file=archive/$1
     local url=$2
     local dir=$3
 
-	test -e $dir && return
+    test -d $dir && return
 
-    if ! wget -O $file $url; then
-        echo "Error, could not download $url"
-        rm -f $file
-        exit 1
+    if ! test -e $file; then
+        if ! wget -O $file $url; then
+            echo "Error, could not download $url"
+            rm -f $file
+            exit 1
+        fi
     fi
 
-	if ! test -d $dir; then
+    rm -rf $dir
+
+    if echo $file | grep bz2; then
         tar xjf $file
+    else
+        tar xzf $file
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "extraction of '$file' failed, consider delete it and start over"
+        exit 1
     fi
 }
 
