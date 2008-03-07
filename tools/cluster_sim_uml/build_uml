@@ -41,7 +41,7 @@ opensaf_controller_rpm=$opensaf_home/rpms/opensaf_controller-$opensaf_version-$o
 opensaf_payload_rpm=$opensaf_home/rpms/opensaf_payload-$opensaf_version-$opensaf_release.$arch.rpm
 export OPENSAF_INCLUDE=$opensaf_home/include
 export OPENSAF_LIB=$opensaf_home/targets/$host_tuple/$lib_dir
-
+bom_xml=$opensaf_home/config/NCSSystemBOM.xml
 
 top=`pwd`
 bin=$top/bin
@@ -98,10 +98,10 @@ create_controller_root()
     cp $root/etc/opt/opensaf/ncsSnmpSubagt.conf $root/usr/share/snmp/
     mkdir -p $root/var/opt/opensaf/mdslog
     mkdir -p $root/var/opt/opensaf/nidlog
-    mkdir -p $root/var/opt/opensaf/saflog
 
-    # Copy default config files
-    cp -L $archive/NCSSystemBOM.xml $root/etc/opt/opensaf
+    # Get default BOM xml, reduce waiting time
+    cat $bom_xml | sed 's/<clusterInitTime>40000/<clusterInitTime>4000/g' > \
+        $root/etc/opt/opensaf/$(basename $bom_xml)
 
     cd - >& /dev/null
 
