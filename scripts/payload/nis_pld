@@ -34,7 +34,7 @@ CORE_FILE_SIZE=="unlimited"
 CORE_PATTERN="/var/crash/core_%t_%e_%p"
 CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
 
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/opensaf/payload/bin
+PATH=$PATH:/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/opt/opensaf/payload/bin
 export PATH
 
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/opensaf/payload/lib:/opt/opensaf/lib # For loading libraries
@@ -43,10 +43,10 @@ export LEAP_THREADS_NON_RT=1
 
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
-BINPATH=/opt/opensaf/payload/bin/
-ETCPATH=/opt/opensaf/payload/scripts/
-export STDOUTS_PATH="/var/opt/opensaf/stdouts/"
-export OLD_STDOUTS_PATH="/var/opt/opensaf/old_stdouts/"
+BINPATH=/opt/opensaf/payload/bin
+ETCPATH=/opt/opensaf/payload/scripts
+export STDOUTS_PATH="/var/opt/opensaf/stdouts"
+export OLD_STDOUTS_PATH="/var/opt/opensaf/old_stdouts"
 PIDFILE=/var/run/nodeinit.pid
 NISPIPE=/tmp/nisfifo
 SPCAPFIFO=/tmp/nodeinit.fifo
@@ -66,7 +66,7 @@ MODULE=tipc
 export NID_ROLE_CONFIG="ACTIVE"
 
 
-test -f $BINPATH/$DAEMON || exit 0
+test -f $BINPATH/$DAEMON || exit 1
 
 #set -e
 set +x
@@ -75,23 +75,21 @@ set +x
 start()
 {
        ### Remove TIPC if already installed.
-        lsmod | grep $MODULE
-
-        if [ $? -eq 0 ] ; then
-           rmmod tipc.ko
+        if grep $MODULE /proc/modules >& /dev/null; then
+           rmmod $MODULE 
            if [ $? -eq 1 ] ; then
               echo "TIPC is already installed, Please remove TIPC module first..."
-              exit 0
+              exit 1
            fi
         fi
 
-        ### Remove shared memory files created by us.
+        ### Remove shared memory files created by OpenSAF services.
         rm -f /dev/shm/CPND_CHECKPOINT_INFO*  /dev/shm/NCS_* 
  
         if [ -f $PIDFILE ]
         then 
            echo  "$BINPATH/$DAEMON already running..";
-           exit;
+           exit 1;
         else 
            echo "Starting $DESC: $BINPATH/$DAEMON"; 
         fi;
@@ -100,7 +98,7 @@ start()
         # NID_CONFIG_PATH is to configure the path for
         # NID to pickup nodeinit.conf file
         ####################################################
-        export NID_CONFIG_PATH="/etc/opt/opensaf/"
+        export NID_CONFIG_PATH="/etc/opt/opensaf"
         export CONSOLE=/dev/tty
 
         ####################################################
@@ -125,7 +123,6 @@ start()
         # NCS_SIMULATION_CONFIG_ROOTDIR = This the directory from where node-configuration
         # files are read. It is recognized only in SIM builds, where multiple-nodes need
         # to be simulated on a single linux-desktop for testing purposes.
-        # It is ignored in NCS release builds.
         ####################################################################################
         if [ ":$2" == ":" ]
         then
@@ -138,11 +135,11 @@ start()
                 export NCS_SIMULATION_CONFIG_ROOTDIR="/etc/opt/opensaf/$2"
             else
                 echo "ERROR: /etc/opt/opensaf/$2 not found"
-                exit 0
+                exit 1
             fi
         fi
  
-        ###  NCS_LOG_PATH = This the directory where NCS logs are stored.
+        ###  NCS_LOG_PATH = This the directory where OpenSAF logs are stored.
         ###  It is recommended that this variable not be
         ###  modified other than for SIMULATION mode.
         if [ ":$3" == ":" ]
@@ -181,15 +178,6 @@ start()
         fi
 
 
-#        if [ -e $NCS_LOG_PATH ]
-#        then
-#            if [ -e $NCS_OLD_LOG_PATH ]; then
-#               rm -rf $NCS_OLD_LOG_PATH
-#            fi
-#            echo -n "Moving $NCS_LOG_PATH to $NCS_OLD_LOG_PATH ..."
-#            mv $NCS_LOG_PATH $NCS_OLD_LOG_PATH
-#            echo "Done."
-#        fi
      
         mkdir -p /tmp
         mkdir -p $NID_NCS_LOG_PATH
@@ -281,7 +269,9 @@ stop()
            echo "OpenSAF Services Termination Success"
         fi 
         killall nid_tipc.sh
-        rmmod tipc
+        if grep $MODULE /proc/modules >& /dev/null; then
+            rmmod $MODULE
+        fi
 
 	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         echo "."
