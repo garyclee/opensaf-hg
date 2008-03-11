@@ -19,7 +19,6 @@
 
 # get role from RDA.
 # if role is active then call snmpd start script
-# how to get the comp name ..?
 
 ROLE_NAME=$1
 
@@ -28,7 +27,5 @@ if [ "$ROLE_NAME" = "ACTIVE" ]; then
    SNMP_HOME="/etc/init.d"
    echo "Executing snmpd-clean-script..."
    echo "Giving Command $SNMP_HOME/snmpd stop"
-#   $SNMP_HOME/snmpd stop;
-   /opt/motorola/ncs/scxb/etc/nis_snmpd_start.sh ACTIVE &
 fi
 

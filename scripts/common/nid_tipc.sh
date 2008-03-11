@@ -19,6 +19,7 @@
 
 # This file will only configure the TIPC in network mode and it is assumed that TIPC 
 #       and tipc-config executable is present in the "/opt/TIPC" directory.     
+# tipc-config can also be located in the path.
 
 # constants
 MASK_LAST_3NIBBLES=4096
@@ -37,30 +38,38 @@ SLOT_ID_FILE=/etc/opt/opensaf/slot_id
 # IMPORTANT : This script receives command in the form :
 #/opt/opensaf/controller/scripts/ncs_tipc.sh start intf_name[eth0] core_id[1234] TIPC
 
+# Make sure tipc-config is available, either in path or in default location
+tipc_config=`which tipc-config 2> /dev/null`
+test $? -ne 0 && tipc_config="/opt/TIPC/tipc-config"
+if ! [ -x ${tipc_config} ]; then
+    echo "error: tipc-config is not available"
+    exit 1
+fi
+
 # Get the Chassis Id and Slot Id from /etc/opt/opensaf/chassis_id and /etc/opt/opensaf/slot_id
 
 if ! test -f $CHASSIS_ID_FILE; then
    echo "$CHASSIS_ID_FILE doesnt exists, exiting ...." 
-   exit 0
+   exit 1
 fi
 CHASSIS_ID=`cat $CHASSIS_ID_FILE`
 if [ "$CHASSIS_ID" -gt "16" ] || [ "$CHASSIS_ID" -lt "1" ]  
     then 
       echo "CHASSIS ID Should be in the range of 1 to 16"
       echo "Quitting......"
-      exit 0
+      exit 1
 fi
 
 if ! test -f $SLOT_ID_FILE; then
    echo "$SLOT_ID_FILE doesnt exists, exiting ...." 
-   exit 0
+   exit 1
 fi
 SLOT_ID=`cat $SLOT_ID_FILE`
 if [ "$SLOT_ID" -gt "16" ] || [ "$SLOT_ID" -lt "1" ]  
     then 
       echo "SLOT ID Should be in the range of 1 to 16"
       echo "Quitting......"
-      exit 0
+      exit 1
 fi
 
 if [ "$#" -lt "1" ] ||  [ "$#" -gt "4" ]
@@ -71,23 +80,12 @@ if [ "$#" -lt "1" ] ||  [ "$#" -gt "4" ]
      echo " Usage: $0 start <ETH_Interface_nam > <number[1-9999]> &"
      echo " Example: if u want to set ethernet interface as eth0 and number as 1000"
      echo " $0 start eth0 1000 &"
-      exit 0
+     exit 1
 fi
 
 if ! test -d $TIPC_D ; then
    echo "/opt/TIPC Directory doesnt exists, exiting ...." 
-   exit 0
-fi
-
-if ! test -f $TIPC_D/tipc-config  ; then
-   echo "/opt/TIPC/tipc-config File doesnt exists, exiting ...." 
-   exit 0
-fi
-
-
-if ! test -f $TIPC_D/tipc.ko  ; then
-   echo "/opt/TIPC/tipc.ko File doesnt exists, exiting ...." 
-   exit 0
+   exit 1
 fi
 
 ETH_NAME=$2
@@ -101,38 +99,9 @@ if [ $# -gt 1 ] ; then
       then 
         echo "CORE ID Should be in the range of 1 to 9999"
         echo "Quitting......"
-        exit 0
+        exit 1
     fi
 fi    
-
-lsmod | grep $MODULE
-   if ! [ $? -eq 0 ] ; then
-      echo "Inserting TIPC mdoule..."
-      
-      insmod tipc.ko
-      
-      ret_val=$?
-      if [ $ret_val -ne 0 ] ; then 
-         #echo "Unable to load the TIPC module, Please check the module format, Exitting...."
-         echo " TIPC Module not insmoded " > /var/log/messages
-         echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_LOAD_MODULE_ERR" > $NIDFIFO
-         exit 1
-         #exit 0
-      fi
-
-      ./tipc-config -max_nodes=2000 
-      ret_val=$?
-      if [ $ret_val -ne 0 ] ; then 
-         echo "Unable to set the Max_nodes to 2000, Exitting ....."
-         exit 0
-      fi
-
-   else
-      echo "TIPC module already present , Please remove the TIPC module to configure and rerun the script again"
-      echo "Quitting......"
-      exit 0
-   fi
-
 
 printf "00%02x%02x0f\n" $CHASSIS_ID $SLOT_ID > /var/opt/opensaf/node_id
 
@@ -142,53 +111,84 @@ VAL_MSB_NIBBLE=$((0x$NODE_ID_READ % $MASK_LAST_1NIBBLE))
 VAL1=$((0x$NODE_ID_READ >> $SHIFT4))
 VAL_3NIBBLES_AFTER_SHIFT4=$(($VAL1 % $MASK_LAST_3NIBBLES))
 
-    if [ "$VAL_3NIBBLES_AFTER_SHIFT4" -gt "256" ]  
-      then 
-        echo "Node id or Physical Slot id out of range"
-        echo "Quitting......"
-        exit 0
-    fi
+if [ "$VAL_3NIBBLES_AFTER_SHIFT4" -gt "256" ]  
+    then 
+    echo "Node id or Physical Slot id out of range"
+    echo "Quitting......"
+    exit 1
+fi
 
 TIPC_NODEID=$(($VAL_MSB_NIBBLE + $VAL_3NIBBLES_AFTER_SHIFT4))
 
+function tipc_configure ()
+{
+    echo "Inserting TIPC mdoule..."
+    
+    if ! test -f $TIPC_D/tipc.ko  ; then
+        echo "/opt/TIPC/tipc.ko File doesnt exists, exiting ...." 
+        exit 1
+    fi
 
+    insmod tipc.ko
+    
+    ret_val=$?
+    if [ $ret_val -ne 0 ] ; then 
+        logger -p user.err " TIPC Module could not be insmoded "
+        echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_LOAD_MODULE_ERR" > $NIDFIFO
+        exit 1
+    fi
+    
+    ${tipc_config} -max_nodes=2000 
+    ret_val=$?
+    if [ $ret_val -ne 0 ] ; then 
+        echo "Unable to set the Max_nodes to 2000, Exitting ....."
+        exit 1
+    fi
 
-if [ $# -eq 1 ] ; then 
+    if [ $# -eq 1 ] ; then
+            echo "Configuring TIPC in Non-Networking Mode..."
+            ################ Address config and check #########
+            ${tipc_config} -a=1.1.$TIPC_NODEID 
+            ret_z1=$?
+            if [ $ret_z1 -ne 0 ] ; then 
+                echo "Unable to Configure TIPC address, Please try again, exiting" 
+                echo "Removing TIPC module ...."
+                rmmod tipc
+                exit 1
+            fi
+    else
+        echo "Configuring TIPC in Networking Mode..."
+        ################ Address config and check #########
+        ${tipc_config} -netid=$CORE_ID -a=1.1.$TIPC_NODEID  
+        ret_z2=$?
+        if [ $ret_z2 -ne 0 ] ; then 
+            echo "Unable to Configure TIPC address, Please try again, exiting" 
+            echo "Removing TIPC module ...."
+            rmmod tipc
+            exit 1
+        fi
+        ################ Interface config and check #########
+        ${tipc_config} -be=eth:$ETH_NAME 
+        ret_z3=$?
+        if [ $ret_z3 -ne 0 ] ; then 
+            echo "Unable to Configure TIPC bearer interface, Please try again, exiting" 
+            echo "Removing TIPC module ...."
+            rmmod tipc
+            exit 1
+        fi
+    fi   
 
-   echo "Configuring TIPC in Non-Networking Mode..."
-   ################ Address config and check #########
-   ./tipc-config -a=1.1.$TIPC_NODEID 
-   ret_z1=$?
-   if [ $ret_z1 -ne 0 ] ; then 
-       echo "Unable to Configure TIPC address, Please try again, exiting" 
-       echo "Removing TIPC module ...."
-       rmmod tipc
-       exit 0
-   fi
+    echo " TIPC Module is Present and Configured Success in network mode " 
+}
+
+if ! grep tipc /proc/modules >& /dev/null; then
+    tipc_configure
 else
-   echo "Configuring TIPC in Networking Mode..."
-   ################ Address config and check #########
-   ./tipc-config -netid=$CORE_ID -a=1.1.$TIPC_NODEID  
-   ret_z2=$?
-   if [ $ret_z2 -ne 0 ] ; then 
-       echo "Unable to Configure TIPC address, Please try again, exiting" 
-       echo "Removing TIPC module ...."
-       rmmod tipc
-       exit 0
-   fi
-   ################ Interface config and check #########
-   ./tipc-config -be=eth:$ETH_NAME 
-   ret_z3=$?
-   if [ $ret_z3 -ne 0 ] ; then 
-       echo "Unable to Configure TIPC bearer interface, Please try again, exiting" 
-       echo "Removing TIPC module ...."
-       rmmod tipc
-       exit 0
-   fi
-fi   
+    echo "TIPC module already present , Please remove the TIPC module to configure and rerun the script again"
+    echo "Quitting......"
+    exit 1
+fi
 
-
-echo " TIPC Module is Present and Configured Success in network mode " 
 echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_INSTALL_SUCCESS" > $NIDFIFO
 
 echo "Running Permanent loop to clean MDS Logs..."
@@ -209,4 +209,3 @@ do
     sleep 15
 done
       
-

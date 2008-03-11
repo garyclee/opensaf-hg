@@ -15,41 +15,40 @@
 #
 # Author(s): Emerson Network Power
 #
-# /opt/TIPC/tipc.ko
-#
 
-#Constants
+# Constants
 MASK_LAST_3NIBBLES=4096
 MASK_LAST_1NIBBLE=16
 SHIFT4=4
 
+# Make sure tipc-config is available, either in path or in default location
+tipc_config=`which tipc-config 2> /dev/null`
+test $? -ne 0 && tipc_config="/opt/TIPC/tipc-config"
+if ! [ -x ${tipc_config} ]; then
+    echo "error: tipc-config is not available"
+    exit 1
+fi
+
 echo " Executing TIPC Link reset script"
 
-if [ "$#" -lt "1" ]
-   then
-     echo " Usage: $0 <Node_id>"
-     exit 0
+if [ "$#" -lt "1" ]; then
+    echo " Usage: $0 <Node_id>"
+    exit 1
 fi
 
 NODE_ID_READ=0x$1
+VAL_MSB_NIBBLE=$(($NODE_ID_READ % $MASK_LAST_1NIBBLE))
+VAL1=$(($NODE_ID_READ >> $SHIFT4))
+VAL_3NIBBLES_AFTER_SHIFT4=$(($VAL1 % $MASK_LAST_3NIBBLES))
 
-#echo "$NODE_ID_READ"
-TIPC_NODEID=`/opt/TIPC/tipc-config -a|cut -d"." -f3|cut -d">" -f1`
-SELF_TIPC_NODE_ID=1.1.$TIPC_NODEID
-#echo "$SELF_TIPC_NODE_ID"
+if [ "$VAL_3NIBBLES_AFTER_SHIFT4" -gt "256" ]; then
+    echo "Node id or Physical Slot id out of range"
+    echo "Quitting......"
+    exit 1
+fi
 
-        VAL_MSB_NIBBLE=$(($NODE_ID_READ % $MASK_LAST_1NIBBLE))
-        VAL1=$(($NODE_ID_READ >> $SHIFT4))
-        VAL_3NIBBLES_AFTER_SHIFT4=$(($VAL1 % $MASK_LAST_3NIBBLES))
+PEER_TIPC_NODEID=1.1.$(($VAL_MSB_NIBBLE + $VAL_3NIBBLES_AFTER_SHIFT4))
 
-        if [ "$VAL_3NIBBLES_AFTER_SHIFT4" -gt "256" ]
-          then
-              echo "Node id or Physical Slot id out of range"
-              echo "Quitting......"
-              exit 0
-        fi
+${tipc_config} -lt=`${tipc_config} -l | grep "$PEER_TIPC_NODEID" | cut -d: -f1-3`/500
 
-        PEER_TIPC_NODEID=1.1.$(($VAL_MSB_NIBBLE + $VAL_3NIBBLES_AFTER_SHIFT4))
-        #echo "$PEER_TIPC_NODEID"
-
-        /opt/TIPC/tipc-config -lt=`/opt/TIPC/tipc-config -l | grep "$PEER_TIPC_NODEID" | cut -d: -f1-3`/500
+exit $?
