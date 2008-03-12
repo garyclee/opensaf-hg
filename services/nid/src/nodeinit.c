@@ -1894,7 +1894,6 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    {
         if((errno == EINTR) && (n < 0))
         {
-          logme(NID_LOG2FILE,"%s, Error: %d\n",strerror(errno),errno);
           FD_ZERO(&set);
           FD_SET(select_fd,&set);
           continue;
@@ -1914,7 +1913,6 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
      {
          if (errno == EINTR)
          {
-            logme(NID_LOG2FILE,"Error reading NID FIFO: %s\n",strerror(errno));
             continue;
          }
          else
