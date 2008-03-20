@@ -1206,7 +1206,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
           m_NCS_GET_PHYINFO_FROM_NODE_ID(mds_info->node_id,NULL,&phy_slot,NULL);
           cb->cpd_remote_id = phy_slot;
           cb->is_rem_cpnd_up = TRUE;
-          cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot];
+          cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot-1];
        }
        else
           break;
@@ -1223,15 +1223,15 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        if(mds_info->svc_id == NCSMDS_SVC_ID_CPND)
        {
           phy_slot = cpd_get_phy_slot_id(mds_info->dest);
-          cb->cpnd_dests[phy_slot] = mds_info->dest;
+          cb->cpnd_dests[phy_slot-1] = mds_info->dest;
        }  
       
      /*  if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(mds_info->dest)))*/
-       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
        {
           cb->is_loc_cpnd_up = TRUE;   
         /*  cb->loc_cpnd_dest = mds_info->dest;*/
-          cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot];
+          cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot-1];
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
           { 
@@ -1271,11 +1271,11 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        }
        /* When CPND ON STANDBY COMES UP */
       /* if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(mds_info->dest)))*/
-       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
        {
           cb->is_rem_cpnd_up = TRUE;
          /* cb->rem_cpnd_dest  = mds_info->dest;*/
-          cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot];
+          cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot-1];
     
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
