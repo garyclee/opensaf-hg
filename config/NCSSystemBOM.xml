@@ -96,14 +96,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A1B2">
-							<period>8000</period>
-							<maxDuration>4000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
        
                                         <!--
@@ -159,14 +159,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="E5F6">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -221,14 +221,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A1B2">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -282,14 +282,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A1B2">
-							<period>8000</period>
-							<maxDuration>4000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -403,14 +403,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="E5F6">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -465,14 +465,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A1B2">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -531,14 +531,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A9FD64E12C">
-							<period>4000</period>
-							<maxDuration>12000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -597,13 +597,13 @@
                                                 -->
                                                 <healthCheck key="E5F6">
                                                         <period>240000</period>
-                                                        <maxDuration>240000</maxDuration>
+                                                        <maxDuration>180000</maxDuration>
                                                 </healthCheck>
                                                 <disableRestart>1</disableRestart>
-                                                <QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-                                                <terminationTimeout>5000</terminationTimeout>
-                                                <csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-                                                <csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
                                         </saAwareComponent>
 
                                         <!--
@@ -665,10 +665,10 @@
 							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -726,14 +726,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A1B2">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -792,13 +792,13 @@
                                                 -->
 						<healthCheck key="C3D4">
 							<period>180000</period>
-							<maxDuration>240000</maxDuration>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -923,10 +923,10 @@
                                                         <maxDuration>180000</maxDuration>
                                                 </healthCheck>
                                                 <disableRestart>1</disableRestart>
-                                                <QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-                                                <terminationTimeout>5000</terminationTimeout>
-                                                <csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-                                                <csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
                                         </saAwareComponent>
 
                                         <!--
@@ -984,14 +984,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A9FD64E12D">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -1049,11 +1049,11 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A9FD64E12F">
-							<period>60000</period>
-							<maxDuration>30000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>30000</QuiescingDoneTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
 						<terminationTimeout>30000</terminationTimeout>
 						<csiSetCallbackTimeout>30000</csiSetCallbackTimeout>
 						<csiRmvCallbackTimeout>30000</csiRmvCallbackTimeout>
@@ -1114,14 +1114,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="E5F6">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>1</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -1190,14 +1190,14 @@
                                                 -->
                                                 <!--
 						<healthCheck key="F6C7">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
                                         -->
 
@@ -1256,14 +1256,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A9A9">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -1320,14 +1320,14 @@
                                                      Configure the Health check Key here
                                                 -->
 						<healthCheck key="A9A9">
-							<period>2000</period>
-							<maxDuration>1000</maxDuration>
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
 						</healthCheck>
 						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-						<terminationTimeout>5000</terminationTimeout>
-						<csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
 
                                         <!--
@@ -1381,14 +1381,14 @@
                                                      Configure the Health check Key here
                                                 -->
                                                 <healthCheck key="B9B9">
-                                                        <period>30000</period>
-                                                        <maxDuration>30000</maxDuration>
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
                                                 </healthCheck>
                                                 <disableRestart>0</disableRestart>
-                                                <QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-                                                <terminationTimeout>5000</terminationTimeout>
-                                                <csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-                                                <csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
                                         </saAwareComponent>
 
                                         <!--
@@ -1529,8 +1529,8 @@
                                                 -->
                                                 <!--
                                                 <healthCheck key="A5A5">
-                                                        <period>60000</period>
-                                                        <maxDuration>80000</maxDuration>
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
                                                 </healthCheck>
                                                 <disableRestart>1</disableRestart>
                                                 <QuiescingDoneTimeout>120000</QuiescingDoneTimeout>
