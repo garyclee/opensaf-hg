@@ -27,7 +27,7 @@ fi
 # XERCES_PREFIX and NETSNMP_PREFIX can be set in the environment to point to an
 # alternative installation directory. Set the variables to the directory above 
 # where the lib and bin directories are located. See the default setting below.
-xerces_prefix=${XERCES_PREFIX:-"/usr"}
+xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
 xerces_lib=$xerces_prefix/$lib_dir
 netsnmp_prefix=${NETSNMP_PREFIX:-"/usr"}
 netsnmp_lib=$netsnmp_prefix/$lib_dir

@@ -81,8 +81,12 @@ Please note the netsnmp has to be configured with:
 
 Building means downloading, configuring & building packages from the
 internet, creating shadow root file systems for controller and payload nodes.
+When 'build_uml' is executed a second time, only the shadow root file systems
+are recreated.
 
-Files created and generated are removed by 'clean_uml'.
+Files created and generated are removed by 'clean_uml'. Files downloaded from
+the internet are not deleted. They have to be manually deleted from uml/archive
+to start from scratch.
 
 Building adds the following direcories:
 
