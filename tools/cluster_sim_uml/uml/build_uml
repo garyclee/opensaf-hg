@@ -77,7 +77,6 @@ build_linux()
     ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
         $top/root $top/root/dev/initramfs_list \
         > linux-$kver/initramfs_list
-    make -C linux-$kver ARCH=um oldconfig
     make -C linux-$kver ARCH=um
 
     # Install modules into initramfs and rebuild Linux kernel
@@ -102,7 +101,6 @@ build_busybox()
 
     mkdir -p bin
     cp -L config/busybox-config busybox-$bbver/.config
-    make -C busybox-$bbver oldconfig
     make -C busybox-$bbver
     cp busybox-$bbver/busybox bin
 }
@@ -149,7 +147,7 @@ build_tipcutils()
     if test -e bin/tipc-config; then
         return
     fi
-    make KERNELDIR=$top/uml/linux-$KVER -C tipcutils-$tipcutilsver
+    make KERNELDIR=$top/linux-$kver -C tipcutils-$tipcutilsver
     cp tipcutils-$tipcutilsver/tipc-config bin
 }
 
