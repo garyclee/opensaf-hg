@@ -19,8 +19,8 @@ libncs_common_la_CPPFLAGS =	@NCS_CORE_CPP_DEFINES@ -DNCS_DTA=1 \
 libncs_common_la_LDFLAGS  = -static
 
 libncs_common_la_SOURCES = 	./src/ncs_main_pub.c \
-							./src/ncs_sprr.c
-
+				./src/ncs_sprr.c \
+				./src/logtrace.c
 
 
 libsaf_common_la_CPPFLAGS =	@NCS_CORE_CPP_DEFINES@ \
