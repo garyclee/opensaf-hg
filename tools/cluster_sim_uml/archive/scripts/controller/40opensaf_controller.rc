@@ -66,5 +66,8 @@ ulimit -c unlimited
 
 ln -sf /sbin/reboot /etc/opt/opensaf/reboot
 
+# Configure OpenSAF
+ln -s /hostfs/repl-opensaf /repl_opensaf
+
 # start controller nid
 /opt/opensaf/controller/scripts/nis_scxb start

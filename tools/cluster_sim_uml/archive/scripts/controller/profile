@@ -1,4 +1,3 @@
-export PATH=$PATH:/opt/opensaf/controller/bin
 if test `uname -m` = "x86_64"; then
    export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
 else
@@ -15,3 +14,6 @@ ulimit -c unlimited
 
 alias 'get_ha_state=/opt/opensaf/controller/scripts/get_ha_state'
 alias 'nis_scxb=/opt/opensaf/controller/scripts/nis_scxb'
+alias 'saflogdump=/opt/opensaf/controller/scripts/opensaf_lgs.sh dump'
+alias 'saflogger=/opt/opensaf/controller/bin/saflogger'
+

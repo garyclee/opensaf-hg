@@ -34,6 +34,10 @@ typedef SaUint64T             SaOffsetT;
 typedef SaUint64T             SaSelectionObjectT;
 typedef SaUint64T             SaNtfIdentifierT;
 
+typedef float                 SaFloatT;
+typedef double                SaDoubleT;
+typedef char*                 SaStringT;
+
 #define SA_TIME_END              0x7FFFFFFFFFFFFFFFLL
 #define SA_TIME_BEGIN            0x0
 #define SA_TIME_UNKNOWN          0x8000000000000000LL
@@ -67,6 +71,14 @@ typedef enum {
     SA_DISPATCH_ALL = 2,
     SA_DISPATCH_BLOCKING = 3
 } SaDispatchFlagsT;
+
+typedef union {
+    SaInt64T int64Value;
+    SaUint64T uint64Value;
+    SaTimeT timeValue;
+    SaFloatT floatValue;
+    SaDoubleT doubleValue;
+} SaLimitValueT;
 
 typedef enum {
    SA_AIS_OK = 1,

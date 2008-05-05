@@ -267,6 +267,7 @@ AC_CONFIG_FILES([Makefile
                  lib/lib_SaEvt/Makefile
                  lib/lib_SaClm/Makefile
                  lib/lib_SaLck/Makefile
+                 lib/lib_SaLog/Makefile
                  lib/lib_ncs_core/Makefile
                  services/Makefile
                  services/avsv/Makefile
@@ -333,6 +334,10 @@ AC_CONFIG_FILES([Makefile
                  services/ifsv/logstr/Makefile
                  services/ifsv/snmp_integ/Makefile
                  services/leap/Makefile
+                 services/logsv/Makefile
+                 services/logsv/lga/Makefile
+                 services/logsv/lgs/Makefile
+                 services/logsv/utils/Makefile
                  services/mab/Makefile
                  services/mab/logstr/Makefile
                  services/mab/mac/Makefile
