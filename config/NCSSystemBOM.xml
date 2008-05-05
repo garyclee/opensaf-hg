@@ -1610,6 +1610,44 @@
                                         </saAwareComponent>
                                 </componentPrototype>
 
+                                <!--
+                                   The Configuration for LOG SERVICE component CompT_SAFLOG
+                                -->
+				<componentPrototype name="safComp=CompT_SAFLOG" finalPrototype="1">
+					<clcCommands>
+						<instantiateCommand>
+							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+					<csiPrototypeName>safCsi=Csi_SAFLOG</csiPrototypeName>
+					<saAwareComponent>
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>1</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+                                                <healthCheck key="F1B2">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
+                                                <terminationTimeout>5000</terminationTimeout>
+                                                <csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
 
                                 <!--
                                      Leave this junk prototype if you dont have
@@ -1731,7 +1769,7 @@
                                                 -->
                                                 <componentPrototype>safComp=CompT_SSA</componentPrototype>
                                                 <componentPrototype>safComp=CompT_VDS</componentPrototype>
-
+                                                <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
 					</componentPrototypeList>
 				</SUPrototype>
 
@@ -2141,6 +2179,10 @@
                                                 </CSIInstance>
                                                 <CSIInstance name="safCsi=Csi_VDS" rank="9">
                                                         <prototypeName>safCsi=Csi_VDS</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_SAFLOG" rank="10">
+                                                        <prototypeName>safCsi=Csi_SAFLOG</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>
 					</CSIList>

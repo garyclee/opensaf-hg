@@ -113,6 +113,8 @@ fi
 #######################################################################
 
 echo "alias 'nis_pld=%{scripts_dir}/nis_pld'" >> /root/.bashrc
+echo "alias 'saflogger=%{bin_dir}/saflogger'" >> /root/.bashrc
+
 source /root/.bashrc
 
 
@@ -152,7 +154,7 @@ unlink /etc/init.d/nis_pld
 %{bin_dir}/ncs_nid
 %{bin_dir}/ncs_pcap
 %{bin_dir}/ncs_srmnd
-
+%{bin_dir}/saflogger
 
 ###############################
 #NCS Services public header files
@@ -262,6 +264,9 @@ unlink /etc/init.d/nis_pld
 %{lib_dir}/libSaLck.so
 %{lib_dir}/libSaLck.so.0
 %{lib_dir}/libSaLck.so.0.0.0
+%{lib_dir}/libSaLog.so
+%{lib_dir}/libSaLog.so.0
+%{lib_dir}/libSaLog.so.0.0.0
 %{lib_dir}/libSaMsg.so
 %{lib_dir}/libSaMsg.so.0
 %{lib_dir}/libSaMsg.so.0.0.0

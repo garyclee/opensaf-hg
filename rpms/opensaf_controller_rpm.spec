@@ -78,6 +78,7 @@ mkdir -p /usr/share/snmp/
 cp %{conf_dir}/ncsSnmpSubagt.conf /usr/share/snmp/
 mkdir -p %{var_dir}/mdslog
 mkdir -p %{var_dir}/nidlog
+mkdir -p %{var_dir}/saflog
 
 ########################################
 ####  Create soft links 
@@ -217,6 +218,7 @@ fi
 
 echo "alias 'get_ha_state=%{scripts_dir}/get_ha_state'" >> /root/.bashrc
 echo "alias 'nis_scxb=%{scripts_dir}/nis_scxb'" >> /root/.bashrc
+echo "alias 'saflogger=%{bin_dir}/saflogger'" >> /root/.bashrc
 
 source /root/.bashrc
 
@@ -292,7 +294,8 @@ unlink /etc/init.d/nis_scxb
 %{bin_dir}/ncs_srmnd
 %{bin_dir}/ncs_vds
 %{bin_dir}/ncs_pdrbd
-
+%{bin_dir}/opensaf_saflogd
+%{bin_dir}/saflogger
 
 ###############################
 #NCS Services public header files 
@@ -370,7 +373,9 @@ unlink /etc/init.d/nis_scxb
 %{inc_dir}/saEvt.h
 %{inc_dir}/SaHpi.h
 %{inc_dir}/saLck.h
+%{inc_dir}/saLog.h
 %{inc_dir}/saMsg.h
+%{inc_dir}/saNtf.h
 %{inc_dir}/sckt_defs.h
 %{inc_dir}/srma_papi.h
 %{inc_dir}/srmsv_papi.h
@@ -402,6 +407,9 @@ unlink /etc/init.d/nis_scxb
 %{lib_dir}/libSaLck.so
 %{lib_dir}/libSaLck.so.0
 %{lib_dir}/libSaLck.so.0.0.0
+%{lib_dir}/libSaLog.so
+%{lib_dir}/libSaLog.so.0
+%{lib_dir}/libSaLog.so.0.0.0
 %{lib_dir}/libSaMsg.so
 %{lib_dir}/libSaMsg.so.0
 %{lib_dir}/libSaMsg.so.0.0.0
@@ -592,6 +600,7 @@ unlink /etc/init.d/nis_scxb
 %config %{conf_dir}/.drbd_sync_state_3
 %config %{conf_dir}/.drbd_sync_state_4
 %config %{conf_dir}/nodeinit.conf
+%config %{conf_dir}/saflog.conf
 
 ########################################
 # Variable Data files & Startup Scripts 
@@ -653,6 +662,7 @@ unlink /etc/init.d/nis_scxb
 %{scripts_dir}/openhpid_start.sh
 %{scripts_dir}/openhpisubagt_clean.sh
 %{scripts_dir}/openhpisubagt_start.sh
+%{scripts_dir}/opensaf_lgs.sh
 %{scripts_dir}/rde_script
 %{scripts_dir}/drbd.1.conf
 %{scripts_dir}/drbd.2.conf
