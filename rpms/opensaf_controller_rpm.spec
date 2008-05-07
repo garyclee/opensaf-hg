@@ -23,7 +23,7 @@
  
 Summary: OpenSAF Services Controller Blade RPM
 Name: opensaf_controller
-Version:1.0.8
+Version:1.0.9
 Distribution: linux
 Release:1
 Source: %{name}.tgz
