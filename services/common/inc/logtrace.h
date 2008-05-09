@@ -34,6 +34,10 @@
 
 #include <syslog.h>
 
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
 /* TRACE categories */
 #define CAT_TRACE       0
 #define CAT_TRACE1      1
@@ -57,9 +61,8 @@
  * 
  * @param pathname The pathname parameter should contain a valid
  * path name for a file if tracing is to be enabled. The user must have write
- * access to that file. If the file already exist, it is appended. If the
- * environment variable is not set or the file name is not valid, no tracing is
- * performed.
+ * access to that file. If the file already exist, it is appended. If the file
+ * name is not valid, no tracing is performed.
  * 
  * @return int - 0 if OK, -1 otherwise
  */
@@ -112,5 +115,9 @@ extern void _trace(const char* file, unsigned int line, unsigned int category,
 #define TRACE_ENTER2(format, args...) _trace(__FILE__, __LINE__, CAT_TRACE_ENTER, "%s: "format, __FUNCTION__, ##args)
 #define TRACE_LEAVE()                 _trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s ", __FUNCTION__)
 #define TRACE_LEAVE2(format, args...) _trace(__FILE__, __LINE__, CAT_TRACE_LEAVE, "%s: "format, __FUNCTION__, ##args)
+
+#ifdef  __cplusplus
+}
+#endif
 
 #endif

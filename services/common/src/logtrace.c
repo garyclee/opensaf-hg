@@ -32,7 +32,7 @@
 
 #include "logtrace.h"
 
-static int trace_fd;
+static int trace_fd = -1;
 static int category_mask;
 static char *prefix_name[] = {"EM", "AL", "CR", "ER", "WA", "NO", "IN",
     "TR", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", ">>", "<<"};
