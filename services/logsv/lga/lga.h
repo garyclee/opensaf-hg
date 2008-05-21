@@ -27,6 +27,7 @@
 #include <mds_papi.h>
 #include <ncs_hdl_pub.h>
 #include <ncsencdec_pub.h>
+#include <ncs_util.h>
 #include <logtrace.h>
 
 #include "lgsv_msg.h"
@@ -55,7 +56,7 @@ typedef struct lga_log_stream_hdl_rec
 /* LGA client record */
 typedef struct lga_client_hdl_rec
 {
-   unsigned int    lgs_reg_id;            /* handle value returned by LGS for this client */
+   unsigned int    lgs_client_id;         /* handle value returned by LGS for this client */
    unsigned int    local_hdl;             /* LOG handle (derived from hdl-mngr) */
    SaLogCallbacksT reg_cbk;               /* callbacks registered by the application */
    lga_log_stream_hdl_rec_t *stream_list; /* List of open streams per client */
@@ -87,11 +88,11 @@ extern lga_cb_t lga_cb;
 extern uns32 lga_mds_init (lga_cb_t *cb);
 extern void  lga_mds_finalize (lga_cb_t *cb);
 extern uns32 lga_mds_msg_sync_send (lga_cb_t *cb, 
-                                    struct lgsv_msg *i_msg, 
-                                    struct lgsv_msg **o_msg, 
+                                    lgsv_msg_t *i_msg, 
+                                    lgsv_msg_t **o_msg, 
                                     uns32 timeout);
 extern uns32 lga_mds_msg_async_send (lga_cb_t *cb, 
-                                     struct lgsv_msg *i_msg,
+                                     lgsv_msg_t *i_msg,
                                      uns32 prio);
 extern void lgsv_lga_evt_free (struct lgsv_msg *);
 
@@ -103,7 +104,7 @@ extern unsigned int lga_shutdown(void);
 extern SaAisErrorT lga_hdl_cbk_dispatch (lga_cb_t *, lga_client_hdl_rec_t *, SaDispatchFlagsT);
 extern lga_client_hdl_rec_t *lga_hdl_rec_add (lga_cb_t *lga_cb, 
                                      const SaLogCallbacksT *reg_cbks,
-                                     uns32 reg_id);
+                                     uns32 client_id);
 extern lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hdl_rec, 
                         uns32               log_stream_id, 
                         uns32               log_stream_open_id,
@@ -118,7 +119,7 @@ extern NCS_BOOL lga_validate_lga_client_hdl(lga_cb_t *lga_cb,
                                             lga_client_hdl_rec_t *find_hdl_rec);
 
 /* lga_util.c */
-extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 reg_id);
-extern void lga_msg_destroy(LGSV_MSG *msg);
+extern lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_id);
+extern void lga_msg_destroy(lgsv_msg_t *msg);
 
 #endif /* !LGA_H */

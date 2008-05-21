@@ -74,13 +74,3 @@ void saLogInitialize_09(void)
     result(rc, SA_AIS_ERR_VERSION);
 }
 
-void saLogInitialize_10(void)
-{
-    tet_printf("saLogInitialize() invalid ptr to handle");
-#if 0
-    rc = saLogInitialize((SaLogHandleT *)-1, &logCallbacks, &logVersion);
-    result(rc, SA_AIS_ERR_VERSION);
-#endif
-    tet_result(TET_FAIL);
-}
-

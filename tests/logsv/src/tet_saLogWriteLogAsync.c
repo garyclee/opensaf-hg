@@ -1,4 +1,5 @@
 #include "tet_log.h"
+#include <sys/time.h>
 
 void saLogWriteLogAsync_01(void)
 {
@@ -146,19 +147,73 @@ void saLogWriteLogAsync_07(void)
     result(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
-void saLogWriteLogAsync_08(void)
+void saLogWriteLogAsync_09(void)
 {
-    tet_printf("saLogWriteAsyncLog() with invalid logRecord ptr");
-#if 0
+    SaInvocationT invocation;
+    tet_printf("saLogWriteAsyncLog() logSvcUsrName == NULL ");
+    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+    genLogRecord.logHeader.genericHdr.logSvcUsrName = NULL;
+    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+
+    result(rc, SA_AIS_ERR_INVALID_PARAM);
+}
+
+void saLogWriteLogAsync_10(void)
+{
+    SaInvocationT invocation;
+    assert(setenv("SA_AMF_COMPONENT_NAME", "safComp=CompT_test_svc", 1) == 0);
+    tet_printf("saLogWriteAsyncLog() logSvcUsrName == NULL and envset");
+    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+    genLogRecord.logHeader.genericHdr.logSvcUsrName = NULL;
+    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+
+    result(rc, SA_AIS_OK);
+}
+void saLogWriteLogAsync_11(void)
+{
+    struct timeval currentTime;
+    SaInvocationT invocation;
+    tet_printf("saLogWriteAsyncLog() with logTimeStamp set");
+    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+    /* Fetch current system time for time stamp value */
+    (void)gettimeofday(&currentTime, 0);
+    genLogRecord.logTimeStamp = 
+       ((unsigned)currentTime.tv_sec * 1000000000ULL) + \
+       ((unsigned)currentTime.tv_usec * 1000ULL);
+
+    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+
+    result(rc, SA_AIS_OK);
+}
+
+void saLogWriteLogAsync_12(void)
+{
+    SaInvocationT invocation;
+
+    tet_printf("saLogWriteAsyncLog() without logTimeStamp set");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
     assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
     assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
                              SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
-    rc = saLogWriteLogAsync(logStreamHandle, 1, 0, (const SaLogRecordT *)-1);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
     assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
-#endif
-    tet_result(TET_FAIL);
+
+    result(rc, SA_AIS_OK);
 }
 

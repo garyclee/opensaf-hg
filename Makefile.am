@@ -23,7 +23,7 @@ if AGENTS_LIB64
 #Set the subdirs for the 64 bit agent libraries
 #In the Current release the agents(linkable with user applications) are provided as 64-bit.
 
-SUBDIRS = services/leap services/common services/mds services/vds/vda services/mab/oac services/dtsv/dta lib/lib_ncs_core services/avsv/ava services/avsv/common lib/lib_SaAmf services/cpsv/common services/cpsv/cpa lib/lib_SaCkpt services/avsv/cla lib/lib_SaClm services/edsv/common services/edsv/eda lib/lib_SaEvt services/glsv/gla lib/lib_SaLck lib/lib_SaLog services/mqsv/common services/mqsv/mqa lib/lib_SaMsg services/mab/mac services/mbcsv/src services/srmsv/srma services/ifsv/ifa services/ifsv/common
+SUBDIRS = services/leap services/common services/mds services/vds/vda services/mab/oac services/dtsv/dta lib/lib_ncs_core services/avsv/ava services/avsv/common lib/lib_SaAmf services/cpsv/common services/cpsv/cpa lib/lib_SaCkpt services/avsv/cla lib/lib_SaClm services/edsv/common services/edsv/eda lib/lib_SaEvt services/glsv/gla lib/lib_SaLck services/logsv/lga lib/lib_SaLog services/mqsv/common services/mqsv/mqa lib/lib_SaMsg services/mab/mac services/mbcsv/src services/srmsv/srma services/ifsv/ifa services/ifsv/common
 
 else
 

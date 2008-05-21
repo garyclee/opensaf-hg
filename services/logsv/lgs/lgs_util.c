@@ -22,7 +22,7 @@
 #define ALARM_STREAM_ENV_PREFIX "ALARM"
 #define NOTIFICATION_STREAM_ENV_PREFIX "NOTIFICATION"
 #define SYSTEM_STREAM_ENV_PREFIX "SYSTEM"
-
+#define LGS_CREATE_CLOSE_TIME_LEN 16
 #define START_YEAR 1900
 #define LOG_VER_EXP "LOG_SVC_VERSION:"
 #define FMAT_EXP "FORMAT:"
@@ -30,53 +30,72 @@
 #define CFG_EXP_FIXED_LOG_REC_SIZE "FIXED_LOG_REC_SIZE:"
 #define CFG_EXP_LOG_FULL_ACTION "LOG_FULL_ACTION:"
 
-void lgs_fillConfigDataValues(configurationFileDataT
-                              *configFileData,
-                              log_stream_t* stream)
+/**
+ * Create config file according to spec.
+ * @param abspath
+ * @param stream
+ * 
+ * @return int
+ */
+int lgs_create_config_file(log_stream_t* stream)
 {
-    m_GET_MY_VERSION(configFileData->version);
-    configFileData->action = DEFAULT_ALM_ACTION;
-    configFileData->maxLogFileSize = stream->maxLogFileSize;
-    configFileData->fixedLogRecordSize = stream->fixedLogRecordSize;
-    configFileData->numberOfRotations = stream->maxFilesRotated;
-    configFileData->formatExpression = stream->logFileFormat;
-}
+    int rc, n;
+    char pathname[PATH_MAX + NAME_MAX];
+    FILE *filp;
 
-void lgs_writeLogFileConfigFile(FILE *filePtr,
-    configurationFileDataT *configurationFileData)
-{
+    /* create absolute path for config file */
+    n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg", lgs_cb->logsv_root_dir,
+                 stream->pathName, stream->fileName);
+
+    /* Check if path got truncated */
+    if (n == sizeof(pathname))
+    {
+        LOG_ER("Path too long");
+        rc = -1;
+        goto done;
+    }
+
+    if ((filp = fopen(pathname, "w")) == NULL)
+    {
+        LOG_ER("ERROR: cannot open %s", strerror(errno));
+        rc = -1;
+        goto done;
+    }
+
     /* version */
-    fprintf(filePtr,
-            "%s %c.%d.%d\n",
-            LOG_VER_EXP,
-            configurationFileData->version.releaseCode,
-            configurationFileData->version.majorVersion,
-            configurationFileData->version.minorVersion);
+    if ((rc = fprintf(filp, "%s %c.%d.%d\n", LOG_VER_EXP,
+                      lgs_cb->log_version.releaseCode,
+                      lgs_cb->log_version.majorVersion,
+                      lgs_cb->log_version.minorVersion)) == -1)
+        goto fprintf_done;
 
     /* Format expression */
-    fprintf(filePtr,
-            "%s%s\n",
-            FMAT_EXP,
-            configurationFileData->formatExpression);
+    if ((rc = fprintf(filp, "%s%s\n", FMAT_EXP, stream->logFileFormat)) == -1)
+        goto fprintf_done;
 
     /* Max logfile size */
-    fprintf(filePtr,
-            "%s %d\n",
-            CFG_EXP_MAX_FILE_SIZE,
-            (int)configurationFileData->maxLogFileSize);
+    if ((rc = fprintf(filp, "%s %llu\n", CFG_EXP_MAX_FILE_SIZE,
+                      stream->maxLogFileSize)) == -1)
+        goto fprintf_done;
 
     /* Fixed log record size */
-    fprintf(filePtr,
-            "%s %d\n",
-            CFG_EXP_FIXED_LOG_REC_SIZE,
-            configurationFileData->fixedLogRecordSize);
+    if ((rc = fprintf(filp, "%s %d\n", CFG_EXP_FIXED_LOG_REC_SIZE,
+                      stream->fixedLogRecordSize)) == -1)
+        goto fprintf_done;
 
     /* Log file full action */
-    fprintf(filePtr,
-            "%s %s %d\n",
-            CFG_EXP_LOG_FULL_ACTION,
-            configurationFileData->action,
-            configurationFileData->numberOfRotations);
+    rc = fprintf(filp, "%s %s %d\n", CFG_EXP_LOG_FULL_ACTION,
+                 DEFAULT_ALM_ACTION, stream->maxFilesRotated);
+
+fprintf_done:
+    if (rc == -1)
+        LOG_ER("Could not write to file '%s'", pathname);
+
+    if ((rc = fclose(filp)) == -1)
+        LOG_ER("Could not close file '%s' - '%s'", pathname, strerror(errno));
+
+done:
+    return rc;
 }
 
 /**
@@ -160,23 +179,6 @@ SaTimeT lgs_get_SaTime(void)
     return time(NULL) * SA_TIME_ONE_SECOND;
 }
 
-uns32 lgs_setFmtString(log_stream_t *stream, char* fmatStr)
-{
-    int sz = strlen(fmatStr)+1;
-
-    if (stream->logFileFormat != NULL)
-        free(stream->logFileFormat);
-
-    stream->logFileFormat = malloc(sz);
-    if (NULL == stream->logFileFormat)
-    {
-        TRACE("could not alloc memory\n");
-        return NCSCC_RC_OUT_OF_MEM;
-    }
-    strncpy(stream->logFileFormat, fmatStr, sz);
-    return NCSCC_RC_SUCCESS;
-}
-
 int lgs_dir_exist(char *baseDir)
 {
     int rv=-1;
@@ -212,14 +214,16 @@ int lgs_dir_exist(char *baseDir)
  * @return int
  */
 int lgs_file_rename(const char *path, const char *old_name,
-                const char *time_stamp, const char *suffix)
+                    const char *time_stamp, const char *suffix)
 {
     int ret;
     char oldpath[PATH_MAX + NAME_MAX];
     char newpath[PATH_MAX + NAME_MAX];
 
-    sprintf(oldpath, "%s/%s%s", path, old_name, suffix);
-    sprintf(newpath, "%s/%s_%s%s", path, old_name, time_stamp, suffix);
+    sprintf(oldpath, "%s/%s/%s%s", lgs_cb->logsv_root_dir,
+            path, old_name, suffix);
+    sprintf(newpath, "%s/%s/%s_%s%s", lgs_cb->logsv_root_dir, path,
+            old_name, time_stamp, suffix);
     TRACE_4("Rename file from %s", oldpath);
     TRACE_4("              to %s", newpath);
     if ((ret = rename(oldpath, newpath)) == -1)
@@ -284,7 +288,7 @@ static uns32 init_stream(log_stream_t **stream, SaUint32T stream_id,
     strcpy(name.value, streamName);
     name.length = strlen(name.value);
 
-    /* FileName _must_ be configured according to spec. */
+    /* FileName _must_ be co nfigured according to spec. */
     sprintf(env, "LOG_%s_FILE_NAME", env_prefix);
     if ((filename = getenv(env)) == NULL)
     {
@@ -305,10 +309,10 @@ static uns32 init_stream(log_stream_t **stream, SaUint32T stream_id,
     sprintf(env, "LOG_%s_LOG_FILE_FORMAT", env_prefix);
     if ((format = getenv(env)) != NULL)
     {
-        if (lgs_validateFormatExpression((SaStringT) format, streamType,
+        if (lgs_is_valid_format_expression((SaStringT) format, streamType,
                                      &twelveHourModeFlag) == SA_FALSE)
         {
-            LOG_WA("validateFormatExpression for '%s' FAILED, using default", format);
+            LOG_WA("Bad format expression for '%s', using default", format);
             format = fmtExpr;
         }
     }
@@ -331,10 +335,12 @@ static uns32 init_stream(log_stream_t **stream, SaUint32T stream_id,
         maxFilesRotated = atoi(value);
 
     *stream = log_stream_new(&name, filename, path, maxLogFileSize,
-                             fixedLogRecordSize, SA_TRUE, maxFilesRotated,
+                             fixedLogRecordSize, maxFilesRotated,
                              SA_LOG_FILE_FULL_ACTION_ROTATE, format,
-                             streamType, STREAM_NEW);
-    (*stream)->twelveHourModeFlag = twelveHourModeFlag; // FIX??
+                             streamType, STREAM_NEW, twelveHourModeFlag, 0);
+
+    if (stream == NULL)
+        rc = NCSCC_RC_FAILURE;
 
 done:
     TRACE_LEAVE();

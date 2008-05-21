@@ -42,7 +42,7 @@ DIRECTORY STRUCTURE
 
 services/logsv/inc	Common header files used by both lga and lgs
 services/logsv/lga	LOG library implementation
-services/logsv/lga	LOG server
+services/logsv/lgs	LOG server
 services/logsv/utils	saflogger command
 lib/lib_SaLog		LOG library staging
 tests/logsv/src		Test suite
@@ -72,6 +72,20 @@ Also contains a list of Client-Stream association objects, see below.
 instance per open stream. Contains a stream ID. Access through client
 descriptor.
 
+lga uses the following data structures:
+
+- Control block. Statically allocated, one instance per library. Access
+through a global variable. The control block contains the head of a linked
+list with client descriptors.
+
+- Client descriptor. Dynamically allocated. One instance per call to
+saLogInitialize(). Contains callback pointers, handles and the head of a
+linked list with streams descriptors for this client.
+
+- Stream descriptor. Dynamically allocated. One instance per call to
+saLogStreamOpen_2() or saLogStreamOpenAsync_2(). Contains internals IDs
+and handles.
+
 
 CONFIGURATION
 
@@ -92,12 +106,18 @@ The online (in an executing system) location of the configuration file is:
 
 The following environment variables are required:
 
+LOGSV_ROOT_DIRECTORY
 LOG_ALARM_FILE_NAME
 LOG_ALARM_PATH_NAME
 LOG_NOTIFICATION_FILE_NAME
 LOG_NOTIFICATION_PATH_NAME
 LOG_SYSTEM_FILE_NAME
 LOG_SYSTEM_PATH_NAME
+
+The 'LOGSV_ROOT_DIRECTORY' variable is needed to configure the
+"implementation defined root directory" as mentioned in the spec. All log files
+will be stored directly in this directory or in a subdirectory. Make sure to 
+to configure this directory to a replicated (shared & persistent) partition.
 
 The following environment variables are optional and a default value will be
 used by LOG if not configured:
@@ -135,10 +155,9 @@ To enable traces from the very start of the log server, uncomment the line:
 
         #export LOGSV_TRACE_CATEGORIES=ALL
 
-in <path>/opensaf/scripts/controller/opensaf_lgs.sh and rebuild the controller
-rpm.
+in saflog.conf (see CONFIGURATION above) and restart the controllers.
 
-For fatal error syslog is used.
+For fatal errors syslog is used.
 
 
 To enable traces in the LOG library, export the variable LOGSV_TRACE_PATHNAME
@@ -154,7 +173,7 @@ $ cat /tmp/log.trace
 TEST
 
 Currently a "tetware like" test suite can be found in 'tests/logsv/src'. Enter
-that directory, give command 'make' and run the binary produced on controller
+that directory, give command 'make' and run the binary produced on controllers
 and payloads.
 
 
@@ -171,13 +190,14 @@ TODO
 - Implement CLM interaction as described in 3.2
 - Implement Log filtering (IMM needed for configuration)
 - Implement log file full actions other than rotate
-- Set time in library (bug)
 - Write optimization, no sync for log write
 - Cleanup/act on "FIX" and "TODO" comments
 - Revisit trace statements, cleanup
 - Cleanup remains of edsv (search for 'channel')
 - Implement "5 log Service Administration API" (IMM needed)
 - Implement "6 Alarms and Notifications" (NTF needed)
+- On standby, query local MDS-layer for status of an agent before updating data
+  structures during sync.
 - Port test suite to tetware
 - Distributed testing
 - Document manual test cases

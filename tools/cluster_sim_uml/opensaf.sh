@@ -111,6 +111,7 @@ delete_persistent_store() {
     rm -rf $CLUSTER_SIM_UML_DIR/root.payload/var/*
     rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/log/*
     rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/pssv_store/*
+    rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/saflog/*
 }
 
 case "$1" in

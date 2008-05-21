@@ -64,16 +64,18 @@ extern log_stream_t *log_stream_new(SaNameT *name,
                                     const char *pathname,
                                     SaUint64T maxLogFileSize,
                                     SaUint32T fixedLogRecordSize,
-                                    SaBoolT haProperty,
                                     SaLogFileFullActionT logFullAction,
                                     SaUint32T maxFilesRotated,
                                     const char *logFileFormat,
                                     logStreamTypeT streamType,
-                                    int stream_id);
+                                    int stream_id,
+                                    SaBoolT twelveHourModeFlag,
+                                    uint32_t logRecordId);
 
 extern SaAisErrorT log_stream_open(log_stream_t *stream);
 
 extern int log_stream_close(log_stream_t *stream);
+extern int log_stream_file_close(log_stream_t *stream);
 extern int log_stream_write(log_stream_t *stream, const char *buf);
 extern void log_stream_id_print(void);
 
