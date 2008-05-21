@@ -18,6 +18,8 @@
 #include "lgs.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
+#define LGS_LOG_FILE_EXT ".log"
+#define LGS_LOG_FILE_CONFIG_EXT ".cfg"
 
 static NCS_PATRICIA_TREE stream_dn_tree;
 
@@ -128,10 +130,11 @@ void log_stream_delete(log_stream_t **s)
 {
     log_stream_t *stream;
 
-    TRACE_ENTER();
-
     assert(s != NULL && *s != NULL);
     stream = *s;
+
+    TRACE_ENTER2("%s", stream->name);
+
 
     if (stream->streamId != 0)
         lgs_stream_array_remove(stream->streamId);
@@ -147,37 +150,54 @@ void log_stream_delete(log_stream_t **s)
     TRACE_LEAVE();
 }
 
+/**
+ * Create a new stream object.
+ * @param name
+ * @param filename
+ * @param pathname
+ * @param maxLogFileSize
+ * @param fixedLogRecordSize
+ * @param logFullAction
+ * @param maxFilesRotated
+ * @param logFileFormat
+ * @param streamType
+ * @param stream_id
+ * @param is_relative_path set to true if a relative path, false if absolute
+ * 
+ * @return log_stream_t*
+ */
 log_stream_t *log_stream_new(SaNameT *name,
                              const char *filename,
                              const char *pathname,
                              SaUint64T maxLogFileSize,
                              SaUint32T fixedLogRecordSize,
-                             SaBoolT haProperty,
                              SaLogFileFullActionT logFullAction,
                              SaUint32T maxFilesRotated,
                              const char *logFileFormat,
                              logStreamTypeT streamType,
-                             int stream_id)
+                             int stream_id,
+                             SaBoolT twelveHourModeFlag,
+                             uint32_t logRecordId)
 {
     int rc;
     log_stream_t *stream = NULL;
 
     assert(name != NULL);
-    TRACE_ENTER();
+    TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
 
     stream = calloc(1, sizeof(log_stream_t));
     if (stream == NULL)
     {
-        LOG_ER("calloc FAILED");
+        LOG_WA("calloc FAILED");
         goto done;
     }
     memcpy(stream->name, name->value, name->length);
     stream->name[SA_MAX_NAME_LENGTH] = '\0';
     strncpy(stream->fileName, filename, sizeof(stream->pathName));
-    strncpy(stream->pathName, pathname, sizeof(stream->pathName));
+    strcpy(stream->pathName, pathname);
     stream->maxLogFileSize = maxLogFileSize;
     stream->fixedLogRecordSize = fixedLogRecordSize;
-    stream->haProperty = haProperty;
+    stream->haProperty = SA_TRUE;
     stream->logFullAction = logFullAction;
     stream->streamId = stream_id;
     stream->logFileFormat = strdup(logFileFormat);
@@ -190,6 +210,8 @@ log_stream_t *log_stream_new(SaNameT *name,
     stream->creationTimeStamp = lgs_get_SaTime();
     stream->fd = -1;
     stream->streamType = streamType;
+    stream->twelveHourModeFlag = twelveHourModeFlag;
+    stream->logRecordId = logRecordId;
 
     /* Add stream to tree */
     if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS)
@@ -215,11 +237,13 @@ done:
     return stream;
 }
 
-static int log_file_open(const char *path, const char *file)
+static int log_file_open(log_stream_t *stream)
 {
     int fd;
     char pathname[PATH_MAX + NAME_MAX + 1];
-    sprintf(pathname, "%s/%s.log", path, file);
+
+    sprintf(pathname, "%s/%s/%s.log",
+            lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
 
     fd = open(pathname,
               O_CREAT|O_RDWR|O_SYNC|O_APPEND,
@@ -234,23 +258,16 @@ static int log_file_open(const char *path, const char *file)
 SaAisErrorT log_stream_open(log_stream_t *stream)
 {
     SaAisErrorT rc = SA_AIS_OK;
-    configurationFileDataT configData;
 
     assert(stream != NULL);
-    TRACE_ENTER();
-    TRACE("%s", stream->name);
+    TRACE_ENTER2("%s", stream->name);
 
     /* first time open? */
     if (stream->numOpeners == 0)
     {
-        char pathname[PATH_MAX + NAME_MAX + 1];
-        FILE *cfp;
-        char *command = alloca(strlen(stream->pathName) + 16);
+        char command[PATH_MAX + 16];
 
-        sprintf(pathname, "%s/%s.cfg", stream->pathName, stream->fileName);
-        TRACE("Open: %s", pathname);
-
-        sprintf(command, "mkdir -p %s", stream->pathName);
+        sprintf(command, "mkdir -p %s/%s", lgs_cb->logsv_root_dir, stream->pathName);
         if (system(command) != 0)
         {
             TRACE("mkdir '%s' failed", stream->pathName);
@@ -258,24 +275,11 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
             goto done;
         }
 
-        /* open and write config file */
-        lgs_fillConfigDataValues(&configData, stream);
-
-        cfp = fopen(pathname, "w");
-        if (cfp == NULL)
-        {
-            TRACE("ERROR: cannot open %s", strerror(errno));
-            rc = SA_AIS_ERR_FAILED_OPERATION;
+        if (lgs_create_config_file(stream) != 0)
             goto done;
-        }
-
-        lgs_writeLogFileConfigFile(cfp, &configData);
-        fclose(cfp);
 
         sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, lgs_get_time());
-
-        stream->fd = log_file_open(stream->pathName, stream->logFileCurrent);
-        if (stream->fd == -1)
+        if ((stream->fd = log_file_open(stream)) == -1)
             goto done;
 
         stream->numOpeners++;
@@ -288,7 +292,7 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
     else
     {
         /* Fail over, standby opens files when it becomes active */
-        stream->fd = log_file_open(stream->pathName, stream->logFileCurrent);
+        stream->fd = log_file_open(stream);
     }
 
 done:
@@ -299,7 +303,8 @@ done:
 }
 
 /**
- * Close the associated file, rename it and delete the stream object.
+ * if ref. count allows, close the associated file, rename it and delete the
+ * stream object.
  * @param stream
  * 
  * @return int
@@ -309,10 +314,9 @@ int log_stream_close(log_stream_t *stream)
     int rc = 0;
 
     assert(stream != NULL);
-    assert(stream->numOpeners > 0);
-    TRACE_ENTER();
-    TRACE("%s", stream->name);
+    TRACE_ENTER2("%s", stream->name);
 
+    assert(stream->numOpeners > 0);
     stream->numOpeners--;
 
     if (stream->numOpeners == 0)
@@ -341,6 +345,33 @@ int log_stream_close(log_stream_t *stream)
     }
 
 done:
+    TRACE_LEAVE();
+    return rc;
+}
+
+/**
+ * Close the stream associated file.
+ * @param stream
+ * 
+ * @return int
+ */
+int log_stream_file_close(log_stream_t *stream)
+{
+    int rc = 0;
+
+    assert(stream != NULL);
+    TRACE_ENTER2("%s", stream->name);
+
+    assert(stream->numOpeners > 0);
+
+    if (stream->fd != -1)
+    {
+        if ((rc = close(stream->fd)) == -1)
+            LOG_ER("close FAILED: %s",  strerror(errno));
+        else
+            stream->fd = -1;
+    }
+
     TRACE_LEAVE();
     return rc;
 }
@@ -400,6 +431,7 @@ static int check_oldest(char* line, char* fname_prefix, int fname_prefix_size,
     return 0;
 }
 
+/* Filter function used by scandir. */
 static char file_prefix[NAME_MAX];
 static int filter_func(const struct dirent * finfo)
 {
@@ -416,28 +448,28 @@ static int filter_func(const struct dirent * finfo)
  * 
  * @return int
  */
-static int check_oldest_log(log_stream_t* logStream, char* oldest_file)
+static int get_number_of_log_files(log_stream_t* logStream, char* oldest_file)
 {
     struct dirent **namelist;
-    int n, old_date=-1, old_time=-1, old_ind=-1, ret, i, failed=0;
+    int n, old_date=-1, old_time=-1, old_ind=-1, files, i, failed=0;
+    char path[PATH_MAX];
+
+    assert(oldest_file != NULL);
 
     /* Initialize the filter */
     strcpy(file_prefix, logStream->fileName);
 
-    n = scandir(logStream->pathName, &namelist, filter_func, alphasort);
-    ret = n;
+    sprintf(path, "%s/%s", lgs_cb->logsv_root_dir, logStream->pathName);
+    files = n = scandir(path, &namelist, filter_func, alphasort);
     if (n < 0)
     {
-        TRACE("scandir:%s %s",  strerror(errno),logStream->pathName);
+        LOG_ER("scandir:%s %s",  strerror(errno), path);
         return -1;
     }
 
     TRACE_3("There are %d files", n);
-
-    if (oldest_file == NULL|| n ==0)
-    {
-        return ret; 
-    }
+    if (n == 0)
+        return files; 
 
     while (n--)
     {
@@ -455,39 +487,20 @@ static int check_oldest_log(log_stream_t* logStream, char* oldest_file)
     if (old_ind != -1)
     {
         TRACE_1(" oldest: %s", namelist[old_ind]->d_name);
-        strncpy(oldest_file, logStream->pathName, NAME_MAX);
-        strncat(oldest_file, "/", NAME_MAX);
-        strncat(oldest_file, namelist[old_ind]->d_name, NAME_MAX);
+        sprintf(oldest_file, "%s/%s", path, namelist[old_ind]->d_name);
     }
     else
     {
         TRACE("Only file/files with wrong format found");
     }
-    for (i=0; i<ret; i++)
-    {
+
+    /* Free scandir allocated memory */
+    for (i = 0; i < files; i++)
         free(namelist[i]);
-    }
     free(namelist);
 
-    return(ret-failed);
+    return(files - failed);
 }
-
-static int removeOldestIfNeeded(log_stream_t* logStream)
-{
-    char oldest_file[NAME_MAX];
-    int rc;
-
-    rc = check_oldest_log(logStream, oldest_file);
-    if (rc >= logStream->maxFilesRotated)
-    {
-        TRACE_1("remove oldest file: %s", oldest_file);
-        rc = unlink(oldest_file);
-        if (rc == -1)
-            LOG_ER("could not unlink: %s", oldest_file); /* FIX? */
-    }
-
-    return rc;
-}  
 
 /**
  * log_stream_write will write a number of bytes to the associated file. If
@@ -496,14 +509,14 @@ static int removeOldestIfNeeded(log_stream_t* logStream)
  * @param stream
  * @param buf
  * 
- * @return int
+ * @return int -1 on error, 0 otherwise
  */
 int log_stream_write(log_stream_t *stream, const char *buf)
 {
     int rc, bytes_written = 0;
 
-    TRACE_ENTER();
     assert(stream != NULL && buf != NULL);
+    TRACE_ENTER2("%s", stream->name);
 
     if (stream->fd == -1)
     {
@@ -513,14 +526,14 @@ int log_stream_write(log_stream_t *stream, const char *buf)
     }
 
 retry:
-    rc = write(stream->fd, &buf[bytes_written], stream->fixedLogRecordSize- bytes_written);
+    rc = write(stream->fd, &buf[bytes_written],
+               stream->fixedLogRecordSize - bytes_written);
     if (rc == -1)
     {
         if (errno == EINTR)
             goto retry;
 
         LOG_ER("write FAILED: %s", strerror(errno));
-        rc = -1;
         goto done;
     }
     else
@@ -536,7 +549,8 @@ retry:
 
     if (stream->curFileSize >= stream->maxLogFileSize)
     {
-        char pathname[PATH_MAX + NAME_MAX + 1];
+        char *current_time = lgs_get_time();
+        char oldest_file[PATH_MAX + NAME_MAX];
 
         if ((rc = close(stream->fd)) == -1)
         {
@@ -546,7 +560,7 @@ retry:
         stream->fd = -1;
 
         rc = lgs_file_rename(stream->pathName, stream->logFileCurrent,
-                             lgs_get_time(), LGS_LOG_FILE_EXT);
+                             current_time, LGS_LOG_FILE_EXT);
         if (rc == -1)
             goto done;
 
@@ -554,19 +568,25 @@ retry:
         stream->logFileCurrent[0] = 0;
 
         /* Remove oldest file if needed */
-        if ((rc = removeOldestIfNeeded(stream)) == -1)
+        if ((rc = get_number_of_log_files(stream, oldest_file)) == -1)
             goto done;
 
-        stream->creationTimeStamp = lgs_get_SaTime();
-        sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, lgs_get_time());
-        sprintf(pathname, "%s/%s.log", stream->pathName, stream->logFileCurrent);
-        TRACE_2("open: %s", pathname);
-        
-        stream->fd = open(pathname, O_CREAT|O_RDWR|O_SYNC|O_APPEND,
-                          S_IRUSR|S_IWUSR|S_IRGRP);
-        if (stream->fd == -1)
+        if (rc >= stream->maxFilesRotated)
         {
-            LOG_ER("open FAILED: %s for %s ", strerror(errno), pathname);
+            TRACE_1("remove oldest file: %s", oldest_file);
+            rc = unlink(oldest_file);
+            if (rc == -1)
+            {
+                LOG_ER("could not unlink: %s", oldest_file); /* FIX? */
+                goto done;
+            }
+        }
+
+        rc = 0;
+        stream->creationTimeStamp = lgs_get_SaTime();
+        sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+        if ((stream->fd = log_file_open(stream)) == -1)
+        {
             rc = -1;
             goto done;
         }

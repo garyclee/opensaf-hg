@@ -19,6 +19,7 @@
  *   INCLUDE FILES
  * ========================================================================
  */
+
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
@@ -36,10 +37,6 @@
  * ========================================================================
  */ 
 
-#define ALARM_LOG_FILENAME_BASE "saLogAlarm"
-#define NOTIF_LOG_FILENAME_BASE "saLogNotification"
-#define SYSTEM_LOG_FILENAME_BASE "saLogSystem"
-
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
@@ -53,19 +50,19 @@
 static lgs_cb_t _lgs_cb;
 lgs_cb_t *lgs_cb = &_lgs_cb;
 
+static int category_mask;
+
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
  */ 
 
 /**
- * Toggle trace categories
+ * USR1 signal handler to enable/disable trace (toggle)
  * @param sig
  */
 static void usr1_sig_handler(int sig)
 {
-    static int category_mask;
-
     if (category_mask == 0)
     {
         category_mask = CATEGORY_ALL;
@@ -82,38 +79,43 @@ static void usr1_sig_handler(int sig)
 }
 
 /**
- * Dump information from all data structures
+ * USR2 signal handler to dump information from all data structures
  * @param sig
  */
 static void usr2_sig_handler(int sig)
 {
     log_stream_t *stream;
-    lga_reg_rec_t *reg_rec;
+    log_client_t *client;
+    int old_category_mask = category_mask;
+
+    if (trace_category_set(CATEGORY_ALL) == -1)
+        printf("trace_category_set failed");
 
     TRACE("Control block information");
-    TRACE("  comp_name:   %s", lgs_cb->comp_name.value);
-    TRACE("  log_version: %c.%02d.%02d", lgs_cb->log_version.releaseCode,
+    TRACE("  comp_name:      %s", lgs_cb->comp_name.value);
+    TRACE("  log_version:    %c.%02d.%02d", lgs_cb->log_version.releaseCode,
            lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion);
-    TRACE("  mds_role:    %u", lgs_cb->mds_role);
-    TRACE("  last_reg_id: %u", lgs_cb->last_reg_id);
-    TRACE("  ha_state:    %u", lgs_cb->ha_state);
-    TRACE("  ckpt_state:  %u", lgs_cb->ckpt_state);
+    TRACE("  mds_role:       %u", lgs_cb->mds_role);
+    TRACE("  last_client_id: %u", lgs_cb->last_client_id);
+    TRACE("  ha_state:       %u", lgs_cb->ha_state);
+    TRACE("  ckpt_state:     %u", lgs_cb->ckpt_state);
+    TRACE("  root_dir:       %s", lgs_cb->logsv_root_dir);
 
     TRACE("Client information");
-    reg_rec = (lga_reg_rec_t *) ncs_patricia_tree_getnext(&lgs_cb->lga_reg_list, NULL);
-    while (reg_rec != NULL)
+    client = (log_client_t *) ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL);
+    while (client != NULL)
     {
-        lgs_stream_list_t *s = reg_rec->first_stream;
-        TRACE("  reg_id: %u", reg_rec->reg_id);
-        TRACE("    lga_client_dest: %llx", reg_rec->lga_client_dest);
+        lgs_stream_list_t *s = client->stream_list_root;
+        TRACE("  client_id: %u", client->client_id);
+        TRACE("    lga_client_dest: %llx", client->mds_dest);
 
         while (s != NULL)
         {
             TRACE("    stream id: %u", s->stream_id);
             s = s->next;
         }
-        reg_rec = (lga_reg_rec_t *) ncs_patricia_tree_getnext(&lgs_cb->lga_reg_list,
-                                                              (uns8 *)&reg_rec->reg_id_Net);
+        client = (log_client_t *) ncs_patricia_tree_getnext(&lgs_cb->client_tree,
+                                                            (uns8 *)&client->client_id_net);
     }
 
     TRACE("Streams information");
@@ -124,6 +126,9 @@ static void usr2_sig_handler(int sig)
         stream = (log_stream_t *) log_stream_getnext_by_name(stream->name);
     }
     log_stream_id_print();
+
+    if (trace_category_set(old_category_mask) == -1)
+        printf("trace_category_set failed");
 }
 
 /**
@@ -131,7 +136,7 @@ static void usr2_sig_handler(int sig)
  * 
  * @return uns32
  */
-static uns32 lgs_init(const char *progname)
+static uns32 initialize_lgs(const char *progname)
 {
     uns32          rc;
     FILE           *fp = NULL;
@@ -190,7 +195,7 @@ static uns32 lgs_init(const char *progname)
         goto done;
     }
 
-    if ((rc = lgs_amf_init(lgs_cb)) != NCSCC_RC_SUCCESS)
+    if ((rc = lgs_amf_init(lgs_cb)) != SA_AIS_OK)
     {
         TRACE("lgs_amf_init FAILED %d", rc);
         goto done;
@@ -211,9 +216,10 @@ done:
 }
 
 /**
- * Forever wait on events on AMF, MBCSV & LGS Mailbox and then process them.
+ * Forever wait on events on AMF, MBCSV & LGS Mailbox file descriptors
+ * and process them.
  */
-static void lgs_main_process(void)
+static void main_process(void)
 {
     NCS_SEL_OBJ_SET     all_sel_obj;
     NCS_SEL_OBJ         mbx_fd, amf_ncs_sel_obj, mbcsv_sel_obj , numfds;
@@ -237,7 +243,7 @@ static void lgs_main_process(void)
 
         /* Get the selection object from the MBX */
         /* Set the fd for internal events */
-        m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
+        m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
         numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
 
         /* Set the fd for amf events */
@@ -251,11 +257,11 @@ static void lgs_main_process(void)
 
         /** LGS thread main processing loop.
          **/
-        count = m_NCS_SEL_OBJ_SELECT(numfds, &all_sel_obj,0,0,0); 
+        count = m_NCS_SEL_OBJ_SELECT(numfds, &all_sel_obj, 0, 0, 0); 
         if (count > 0)
         {
             /* process all the AMF messages */
-            if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj,&all_sel_obj))
+            if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj))
             {
                 /* dispatch all the AMF pending function */
                 error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL);
@@ -264,13 +270,13 @@ static void lgs_main_process(void)
             }
 
             /* process all mbcsv messages */
-            if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj,&all_sel_obj))
+            if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj, &all_sel_obj))
             {
                 rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl);
                 if (rc != NCSCC_RC_SUCCESS)
                     TRACE("MBCSV DISPATCH FAILED: %u", rc);
                 else
-                    m_NCS_SEL_OBJ_CLR(mbcsv_sel_obj,&all_sel_obj);
+                    m_NCS_SEL_OBJ_CLR(mbcsv_sel_obj, &all_sel_obj);
             }
 
             /* Process the LGS Mail box, if lgs is ACTIVE. */
@@ -295,10 +301,10 @@ int main(int argc, char *argv[])
 {
     char *value;
 
-    /* Initialize trace system first of all so we can see what is going. */
+    /* Initialize trace system first of all so we can see what is going on. */
     if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
     {
-        if (logtrace_init("lgs", value) != 0)
+        if (logtrace_init("opensaf-lgs", value) != 0)
         {
             syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
             goto done;
@@ -311,19 +317,44 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS)
+    /*
+    ** Get LOGSV root directory path. All created log files will be stored
+    ** relative to this directory as described in spec.
+    */
+    if ((value = getenv("LOGSV_ROOT_DIRECTORY")) == NULL)
+    {
+        syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
         goto done;
+    }
 
-    if (lgs_init(argv[0]) != NCSCC_RC_SUCCESS)
+    /* Save path in control block */
+    lgs_cb->logsv_root_dir = value;
+
+    if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("ncspvt_svcs_startup failed");
         goto done;
+    }
+
+    if (initialize_lgs(argv[0]) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("initialize_lgs failed");
+        goto done;
+    }
 
     if (signal(SIGUSR1, usr1_sig_handler) == SIG_ERR)
+    {
+        LOG_ER("signal SIGUSR1 failed");
         goto done;
+    }
 
     if (signal(SIGUSR2, usr2_sig_handler) == SIG_ERR)
+    {
+        LOG_ER("signal SIGUSR2 failed");
         goto done;
+    }
 
-    lgs_main_process();
+    main_process();
 
 done:
     LOG_ER("lgs initialization failed, exiting...");

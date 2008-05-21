@@ -73,11 +73,13 @@ error:
  */
 static void lga_destroy(void)
 {
-   /* delete the hdl db */
-   lga_hdl_list_del(&lga_cb.client_list);
+    TRACE_ENTER();
 
-   /* unregister with MDS */
-   lga_mds_finalize(&lga_cb);
+    /* delete the hdl db */
+    lga_hdl_list_del(&lga_cb.client_list);
+
+    /* unregister with MDS */
+    lga_mds_finalize(&lga_cb);
 }
 
 /****************************************************************************
@@ -95,9 +97,9 @@ static void lga_destroy(void)
  *****************************************************************************/
 static NCS_BOOL lga_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-    LGSV_MSG *cbk, *pnext;
+    lgsv_msg_t *cbk, *pnext;
 
-    pnext = cbk = (LGSV_MSG *)msg;
+    pnext = cbk = (lgsv_msg_t *)msg;
     while (pnext)
     {
         pnext = cbk->next;
@@ -146,15 +148,15 @@ static void lga_log_stream_hdl_rec_list_del(lga_log_stream_hdl_rec_t **plstr_hdl
   Notes         : None
 ******************************************************************************/
 static void lga_hdl_cbk_rec_prc(lga_cb_t         *cb, 
-                                LGSV_MSG         *msg,
+                                lgsv_msg_t         *msg,
                                 SaLogCallbacksT  *reg_cbk)
 {
-    LGSV_CBK_INFO *cbk_info = &msg->info.cbk_info;
+    lgsv_cbk_info_t *cbk_info = &msg->info.cbk_info;
 
     /* invoke the corresponding callback */
     switch (cbk_info->type)
     {
-        case LGSV_LGS_WRITE_LOG_CBK:
+        case LGSV_WRITE_LOG_CALLBACK_IND:
             {
 
                 if (reg_cbk->saLogWriteLogCallback)
@@ -183,14 +185,14 @@ static void lga_hdl_cbk_rec_prc(lga_cb_t         *cb,
 static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb,
                                             lga_client_hdl_rec_t *hdl_rec)
 {
-    LGSV_MSG         *cbk_msg;
+    lgsv_msg_t         *cbk_msg;
     SaAisErrorT rc = SA_AIS_OK;
 
     /* Nonblk receive to obtain the message from priority queue*/
-    while (NULL != (cbk_msg = (LGSV_MSG *)
+    while (NULL != (cbk_msg = (lgsv_msg_t *)
                     m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
     {
-        if ( cbk_msg->info.cbk_info.type == LGSV_LGS_WRITE_LOG_CBK)
+        if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
         {
             lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
             lga_msg_destroy(cbk_msg);
@@ -221,15 +223,15 @@ static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb,
 ******************************************************************************/
 static uns32 lga_hdl_cbk_dispatch_all (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
-    LGSV_MSG   *cbk_msg;
+    lgsv_msg_t   *cbk_msg;
     uns32       rc = SA_AIS_OK;
 
     /* Recv all the cbk notifications from the queue & process them */
     do
     {
-        if (NULL == (cbk_msg = (LGSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
+        if (NULL == (cbk_msg = (lgsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
             break;
-        if ( cbk_msg->info.cbk_info.type == LGSV_LGS_WRITE_LOG_CBK)
+        if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
         {
             TRACE_2("LGSV_LGS_DELIVER_EVENT");
             lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
@@ -263,16 +265,16 @@ static uns32 lga_hdl_cbk_dispatch_all (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_r
 ******************************************************************************/
 static uns32 lga_hdl_cbk_dispatch_block (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
-    LGSV_MSG   *cbk_msg;
+    lgsv_msg_t   *cbk_msg;
     uns32 rc = SA_AIS_OK;
 
     for (;;)
     {
-        if (NULL != (cbk_msg = (LGSV_MSG *)
+        if (NULL != (cbk_msg = (lgsv_msg_t *)
                      m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg)))
         {
 
-            if ( cbk_msg->info.cbk_info.type == LGSV_LGS_WRITE_LOG_CBK)
+            if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
             {
                 TRACE_2("LGSV_LGS_DELIVER_EVENT");
                 lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
@@ -296,29 +298,38 @@ static uns32 lga_hdl_cbk_dispatch_block (lga_cb_t *cb, lga_client_hdl_rec_t *hdl
  */
 unsigned int lga_startup(void)
 {
-   pthread_mutex_lock(&lga_lock);
+    unsigned int rc = NCSCC_RC_SUCCESS;
+    pthread_mutex_lock(&lga_lock);
 
-   if (lga_use_count > 0)
-   {
-      /* Already created, just increment the use_count */
-      lga_use_count++;
-      pthread_mutex_unlock(&lga_lock);
-      return NCSCC_RC_SUCCESS;
-   }
-   else
-   {
-       if (lga_create() != NCSCC_RC_SUCCESS)
-       {
-           pthread_mutex_unlock(&lga_lock);
-           return NCSCC_RC_FAILURE;
-       }
-       else
-           lga_use_count = 1;
-   }
+    TRACE_ENTER2("lga_use_count: %u", lga_use_count);
+    if (lga_use_count > 0)
+    {
+        /* Already created, just increment the use_count */
+        lga_use_count++;
+        goto done;
+    }
+    else
+    {
+        if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS)
+        {
+            TRACE("ncs_agents_startup FAILED");
+            goto done;
+        }
 
-   pthread_mutex_unlock(&lga_lock);
+        if ((rc = lga_create()) != NCSCC_RC_SUCCESS)
+        {
+            ncs_agents_shutdown(0, 0);
+            goto done;
+        }
+        else
+            lga_use_count = 1;
+    }
 
-   return NCSCC_RC_SUCCESS;
+done:
+    pthread_mutex_unlock(&lga_lock);
+
+    TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
+    return rc;
 }
 
 /**
@@ -328,6 +339,9 @@ unsigned int lga_startup(void)
  */
 unsigned int lga_shutdown(void)
 {
+    unsigned int rc = NCSCC_RC_SUCCESS;
+
+    TRACE_ENTER2("lga_use_count: %u", lga_use_count);
     pthread_mutex_lock(&lga_lock);
 
     if (lga_use_count > 1)
@@ -338,12 +352,14 @@ unsigned int lga_shutdown(void)
     else if (lga_use_count == 1)
     {
         lga_destroy();
+        rc = ncs_agents_shutdown(0, 0);
         lga_use_count = 0;
     }
 
     pthread_mutex_unlock(&lga_lock);
 
-    return NCSCC_RC_SUCCESS;
+    TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
+    return rc;
 }
 
 /****************************************************************************
@@ -357,7 +373,7 @@ unsigned int lga_shutdown(void)
  *
  * Notes         : None.
  *****************************************************************************/
-void lga_msg_destroy(LGSV_MSG *msg)
+void lga_msg_destroy(lgsv_msg_t *msg)
 {
    if (LGSV_LGA_API_MSG == msg->type)
    {
@@ -373,16 +389,16 @@ void lga_msg_destroy(LGSV_MSG *msg)
 /****************************************************************************
   Name          : lga_find_hdl_rec_by_regid
  
-  Description   : This routine looks up a lga_client_hdl_rec by reg_id
+  Description   : This routine looks up a lga_client_hdl_rec by client_id
  
   Arguments     : cb      - ptr to the LGA control block
-                  reg_id  - cluster wide unique allocated by LGS
+                  client_id  - cluster wide unique allocated by LGS
 
   Return Values : LGA_CLIENT_HDL_REC * or NULL
  
   Notes         : None
 ******************************************************************************/
-lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 reg_id)
+lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_id)
 {
     lga_client_hdl_rec_t *lga_hdl_rec;
 
@@ -390,7 +406,7 @@ lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 reg_id)
          lga_hdl_rec != NULL; 
          lga_hdl_rec = lga_hdl_rec->next)
     {
-        if (lga_hdl_rec->lgs_reg_id == reg_id)
+        if (lga_hdl_rec->lgs_client_id == client_id)
             return lga_hdl_rec;
     }
 
@@ -630,7 +646,7 @@ lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hd
  
   Arguments     : cb       - ptr tot he LGA control block
                   reg_cbks - ptr to the set of registered callbacks
-                  reg_id   - obtained from LGS.
+                  client_id   - obtained from LGS.
  
   Return Values : ptr to the lga handle record
  
@@ -638,7 +654,7 @@ lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hd
 ******************************************************************************/
 lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, 
                                       const SaLogCallbacksT *reg_cbks,
-                                      uns32 reg_id)
+                                      uns32 client_id)
 {
     lga_client_hdl_rec_t *rec = calloc(1, sizeof(lga_client_hdl_rec_t));
 
@@ -660,9 +676,9 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb,
     if (reg_cbks)
         memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaLogCallbacksT));
 
-    /** Associate with the reg_id obtained from LGS
+    /** Associate with the client_id obtained from LGS
      **/
-    rec->lgs_reg_id = reg_id;
+    rec->lgs_client_id = client_id;
 
     /** Initialize and attach the IPC/Priority queue
      **/

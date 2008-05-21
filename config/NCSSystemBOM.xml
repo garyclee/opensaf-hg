@@ -1640,10 +1640,10 @@
                                                         <maxDuration>180000</maxDuration>
                                                 </healthCheck>
                                                 <disableRestart>1</disableRestart>
-                                                <QuiescingDoneTimeout>5000</QuiescingDoneTimeout>
-                                                <terminationTimeout>5000</terminationTimeout>
-                                                <csiSetCallbackTimeout>5000</csiSetCallbackTimeout>
-                                                <csiRmvCallbackTimeout>5000</csiRmvCallbackTimeout>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
                                         </saAwareComponent>
                                         <enableAM>0</enableAM>
                                 </componentPrototype>

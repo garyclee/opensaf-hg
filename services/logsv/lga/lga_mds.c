@@ -36,11 +36,11 @@ static MDS_CLIENT_MSG_FORMAT_VER
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_enc_initialize_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_enc_initialize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8 *p8;
     uns32 total_bytes = 0;
-    LGSV_LGA_INIT_PARAM *param = &msg->info.api_info.param.init;
+    lgsv_initialize_req_t *param = &msg->info.api_info.param.init;
 
     TRACE_ENTER();
     assert(uba != NULL);
@@ -74,11 +74,11 @@ static uns32 lga_enc_initialize_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_enc_finalize_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_enc_finalize_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8 *p8;
     uns32 total_bytes = 0;
-    LGSV_LGA_FINALIZE_PARAM *param = &msg->info.api_info.param.finalize;
+    lgsv_finalize_req_t *param = &msg->info.api_info.param.finalize;
 
     TRACE_ENTER();
 
@@ -91,7 +91,7 @@ static uns32 lga_enc_finalize_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("NULL pointer");
         return 0;
     }
-    ncs_encode_32bit(&p8, param->reg_id);
+    ncs_encode_32bit(&p8, param->client_id);
     ncs_enc_claim_space(uba, 4);
     total_bytes += 4;
 
@@ -111,11 +111,12 @@ static uns32 lga_enc_finalize_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
+    int len;
     uns8 *p8;
     uns32 total_bytes = 0;
-    LGSV_LGA_LSTR_OPEN_SYNC_PARAM *param = &msg->info.api_info.param.lstr_open_sync;
+    lgsv_stream_open_req_t *param = &msg->info.api_info.param.lstr_open_sync;
 
     TRACE_ENTER();
     assert(uba != NULL);
@@ -127,7 +128,7 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("p8 NULL!!!");
         return 0;
     }
-    ncs_encode_32bit(&p8, param->reg_id);
+    ncs_encode_32bit(&p8, param->client_id);
     ncs_encode_16bit(&p8, param->lstr_name.length);
     ncs_enc_claim_space(uba, 6);
     total_bytes += 6;
@@ -144,15 +145,18 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("p8 NULL!!!");
         goto done;
     }
-    ncs_encode_16bit(&p8, param->logFileName.length);
+    if (param->logFileName != NULL)
+        len = strlen(param->logFileName) + 1;
+    else
+        len = 0;
+    ncs_encode_16bit(&p8, len);
     ncs_enc_claim_space(uba, 2);
     total_bytes += 2;
 
-    if (param->logFileName.length != 0)
+    if (param->logFileName != NULL)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFileName.value, 
-                                   param->logFileName.length);
-        total_bytes += param->logFileName.length;
+        ncs_encode_n_octets_in_uba(uba, param->logFileName, len);
+        total_bytes += len;
     }
 
     /* Encode logFilePathName if initiated */
@@ -162,15 +166,18 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("p8 NULL!!!");  
         goto done;
     }
-    ncs_encode_16bit(&p8, param->logFilePathName.length);
+    if (param->logFilePathName)
+        len = strlen(param->logFilePathName) + 1;
+    else
+        len = 0;
+    ncs_encode_16bit(&p8, len);
     ncs_enc_claim_space(uba, 2);
     total_bytes += 2;
 
-    if (param->logFilePathName.length != 0)
+    if (param->logFilePathName != NULL)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFilePathName.value, 
-                                   param->logFilePathName.length);
-        total_bytes += param->logFilePathName.length;
+        ncs_encode_n_octets_in_uba(uba, param->logFilePathName, len);
+        total_bytes += len;
     }
 
     /* Encode format string if initiated */
@@ -180,20 +187,23 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("p8 NULL!!!");  
         goto done;
     }
+    if (param->logFileFmt != NULL)
+        len = strlen(param->logFileFmt) + 1;
+    else
+        len = 0;
     ncs_encode_64bit(&p8, param->maxLogFileSize);
     ncs_encode_32bit(&p8, param->maxLogRecordSize);
     ncs_encode_32bit(&p8, (uns32)param->haProperty);
     ncs_encode_32bit(&p8, (uns32)param->logFileFullAction);
     ncs_encode_16bit(&p8, param->maxFilesRotated);
-    ncs_encode_16bit(&p8, param->logFileFmtLength);
+    ncs_encode_16bit(&p8, len);
     ncs_enc_claim_space(uba, 24);
     total_bytes += 24;
 
-    if (param->logFileFmtLength != 0)
+    if (len > 0)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFileFmt, 
-                                   (uns32)param->logFileFmtLength); 
-        total_bytes += (uns32)param->logFileFmtLength;   
+        ncs_encode_n_octets_in_uba(uba, param->logFileFmt, len);
+        total_bytes += len;   
     }
 
     /* Encode last item in struct => open flags!!!! */
@@ -204,7 +214,7 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         goto done;
     }
 
-    ncs_encode_8bit(&p8,  param->lstr_open_flags);
+    ncs_encode_8bit(&p8, param->lstr_open_flags);
     ncs_enc_claim_space(uba, 1);
     total_bytes += 1;
 
@@ -225,26 +235,25 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_enc_lstr_close_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_enc_lstr_close_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8 *p8;
     uns32 total_bytes = 0;
-    LGSV_LGA_LSTR_CLOSE_PARAM *param = &msg->info.api_info.param.lstr_close;
+    lgsv_stream_close_req_t *param = &msg->info.api_info.param.lstr_close;
 
     assert(uba != NULL);
 
     /** encode the contents **/
-    p8 = ncs_enc_reserve_space(uba, 12);
+    p8 = ncs_enc_reserve_space(uba, 8);
     if (!p8)
     {
         TRACE("p8 NULL!!!");      
         return 0;
     }
-    ncs_encode_32bit(&p8, param->reg_id);
+    ncs_encode_32bit(&p8, param->client_id);
     ncs_encode_32bit(&p8, param->lstr_id);
-    ncs_encode_32bit(&p8, param->lstr_open_id);
-    ncs_enc_claim_space(uba, 12);
-    total_bytes += 12;
+    ncs_enc_claim_space(uba, 8);
+    total_bytes += 8;
 
     return total_bytes;
 }
@@ -261,18 +270,18 @@ static uns32 lga_enc_lstr_close_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8 *p8;
     uns32 total_bytes = 0;
-    LGSV_LGA_WRITE_LOG_ASYNC_PARAM *param = &msg->info.api_info.param.write_log_async;
+    lgsv_write_log_async_req_t *param = &msg->info.api_info.param.write_log_async;
     const SaLogNtfLogHeaderT  *ntfLogH;
     const SaLogGenericLogHeaderT *genLogH;
 
     assert(uba != NULL);
 
     /** encode the contents **/
-    p8 = ncs_enc_reserve_space(uba, 24);
+    p8 = ncs_enc_reserve_space(uba, 20);
     if (!p8)
     {
         TRACE("Could not reserve space");
@@ -280,11 +289,10 @@ static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, LGSV_MSG *msg)
     }
     ncs_encode_64bit(&p8, param->invocation);
     ncs_encode_32bit(&p8, param->ack_flags);
-    ncs_encode_32bit(&p8, param->reg_id);
+    ncs_encode_32bit(&p8, param->client_id);
     ncs_encode_32bit(&p8, param->lstr_id);
-    ncs_encode_32bit(&p8, param->lstr_open_id);
-    ncs_enc_claim_space(uba, 24);
-    total_bytes += 24;
+    ncs_enc_claim_space(uba, 20);
+    total_bytes += 20;
 
     p8 = ncs_enc_reserve_space(uba, 12);
     if (!p8)
@@ -292,7 +300,7 @@ static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, LGSV_MSG *msg)
         TRACE("Could not reserve space");
         return 0;
     }
-    ncs_encode_64bit(&p8,param->logRecord->logTimeStamp);
+    ncs_encode_64bit(&p8,*param->logTimeStamp);
     ncs_encode_32bit(&p8,(uns32)param->logRecord->logHdrType);
     ncs_enc_claim_space(uba, 12);
     total_bytes += 12;
@@ -360,14 +368,14 @@ static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, LGSV_MSG *msg)
             ncs_encode_32bit(&p8, 0);
             ncs_encode_16bit(&p8, 0);
             ncs_encode_16bit(&p8, 0);
-            ncs_encode_16bit(&p8, genLogH->logSvcUsrName->length);
+            ncs_encode_16bit(&p8, param->logSvcUsrName->length);
             ncs_enc_claim_space(uba, 10);
             total_bytes += 10;
 
             ncs_encode_n_octets_in_uba(uba,
-                                       (uns8*)genLogH->logSvcUsrName->value, 
-                                       (uns32)genLogH->logSvcUsrName->length);
-            total_bytes += genLogH->logSvcUsrName->length;
+                                       (uns8*)param->logSvcUsrName->value, 
+                                       (uns32)param->logSvcUsrName->length);
+            total_bytes += param->logSvcUsrName->length;
 
             p8 = ncs_enc_reserve_space(uba, 2);
             if (!p8)
@@ -427,7 +435,7 @@ static uns32 lga_enc_write_log_async_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_lgs_msg_proc(lga_cb_t *cb, LGSV_MSG *lgsv_msg,
+static uns32 lga_lgs_msg_proc(lga_cb_t *cb, lgsv_msg_t *lgsv_msg,
     MDS_SEND_PRIORITY_TYPE prio)
 {
     TRACE_ENTER();    
@@ -437,7 +445,7 @@ static uns32 lga_lgs_msg_proc(lga_cb_t *cb, LGSV_MSG *lgsv_msg,
         case LGSV_LGS_CBK_MSG:
             switch (lgsv_msg->info.cbk_info.type)
             {
-                case LGSV_LGS_WRITE_LOG_CBK:
+                case LGSV_WRITE_LOG_CALLBACK_IND:
                     {
                         lga_client_hdl_rec_t  *lga_hdl_rec;    
 
@@ -451,10 +459,10 @@ static uns32 lga_lgs_msg_proc(lga_cb_t *cb, LGSV_MSG *lgsv_msg,
                          ** the callback is instantaneous.
                          **/
 
-                        /** Lookup the hdl rec by reg_id  **/
+                        /** Lookup the hdl rec by client_id  **/
                         if (NULL == (lga_hdl_rec = 
                                      lga_find_hdl_rec_by_regid(cb, 
-                                                               lgsv_msg->info.cbk_info.lgs_reg_id)))
+                                                               lgsv_msg->info.cbk_info.lgs_client_id)))
                         {
                             TRACE("regid not found");
                             lga_msg_destroy(lgsv_msg);
@@ -478,12 +486,6 @@ static uns32 lga_lgs_msg_proc(lga_cb_t *cb, LGSV_MSG *lgsv_msg,
                     return NCSCC_RC_FAILURE;
                     break;
             }
-            break;
-        case LGSV_LGS_MISC_MSG:
-            /** No messages conceived yet **/
-            TRACE_2("LGSV_LGS_MISC_MSG\n");
-            TRACE_LEAVE();
-            return NCSCC_RC_FAILURE;
             break;
         default:
             /** Unexpected message **/
@@ -575,7 +577,7 @@ static uns32 lga_mds_svc_evt(struct ncsmds_callback_info *mds_cb_info)
 
 static uns32 lga_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
-    LGSV_MSG *lgsv_msg = (LGSV_MSG *)mds_cb_info->info.receive.i_msg;
+    lgsv_msg_t *lgsv_msg = (lgsv_msg_t *)mds_cb_info->info.receive.i_msg;
     uns32 rc;
 
     pthread_mutex_lock(&lga_cb.cb_lock);
@@ -607,7 +609,7 @@ static uns32 lga_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 ******************************************************************************/
 static uns32 lga_mds_enc(struct ncsmds_callback_info *info)
 {
-    LGSV_MSG        *msg;
+    lgsv_msg_t        *msg;
     NCS_UBAID       *uba;
     uns8            *p8;
     uns32           total_bytes = 0;
@@ -628,7 +630,7 @@ static uns32 lga_mds_enc(struct ncsmds_callback_info *info)
     }
     info->info.enc.o_msg_fmt_ver = msg_fmt_version;
 
-    msg = (LGSV_MSG*)info->info.enc.i_msg;
+    msg = (lgsv_msg_t*)info->info.enc.i_msg;
     uba = info->info.enc.io_uba;
 
     if (uba == NULL)
@@ -668,23 +670,23 @@ static uns32 lga_mds_enc(struct ncsmds_callback_info *info)
         TRACE_2("api_info.type: %d\n", msg->info.api_info.type);
         switch (msg->info.api_info.type)
         {
-            case LGSV_LGA_INITIALIZE:
+            case LGSV_INITIALIZE_REQ:
                 total_bytes += lga_enc_initialize_msg(uba, msg);
                 break;
 
-            case LGSV_LGA_FINALIZE:
+            case LGSV_FINALIZE_REQ:
                 total_bytes += lga_enc_finalize_msg(uba, msg);
                 break;
 
-            case LGSV_LGA_LSTR_OPEN_SYNC:
+            case LGSV_STREAM_OPEN_REQ:
                 total_bytes += lga_enc_lstr_open_sync_msg(uba, msg);
                 break;
 
-            case LGSV_LGA_LSTR_CLOSE:
+            case LGSV_STREAM_CLOSE_REQ:
                 total_bytes += lga_enc_lstr_close_msg(uba, msg);
                 break;
 
-            case LGSV_LGA_WRITE_LOG_ASYNC:
+            case LGSV_WRITE_LOG_ASYNC_REQ:
                 total_bytes += lga_enc_write_log_async_msg(uba, msg);
                 break;
 
@@ -710,19 +712,78 @@ static uns32 lga_mds_enc(struct ncsmds_callback_info *info)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_dec_initialize_rsp_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_dec_initialize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8     *p8;
     uns32    total_bytes = 0;
-    LGSV_LGA_INITIALIZE_RSP *param = &msg->info.api_resp_info.param.init_rsp;
+    lgsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
     uns8     local_data[100];
 
     assert(uba != NULL);
 
     p8  = ncs_dec_flatten_space(uba, local_data, 4);
-    param->reg_id = ncs_decode_32bit(&p8);
+    param->client_id = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(uba, 4);
     total_bytes += 4;
+
+    return total_bytes;
+}
+
+/****************************************************************************
+  Name          : lga_dec_finalize_rsp_msg
+ 
+  Description   : This routine decodes an finalize sync response message
+ 
+  Arguments     : NCS_UBAID *msg,
+                  LGSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+static uns32 lga_dec_finalize_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
+{
+    uns8     *p8;
+    uns32    total_bytes = 0;
+    lgsv_finalize_rsp_t *param = &msg->info.api_resp_info.param.finalize_rsp;
+    uns8     local_data[100];
+
+    assert(uba != NULL);
+
+    p8  = ncs_dec_flatten_space(uba, local_data, 4);
+    param->client_id = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(uba, 4);
+    total_bytes += 4;
+
+    return total_bytes;
+}
+
+/****************************************************************************
+  Name          : lga_dec_lstr_close_rsp_msg
+ 
+  Description   : This routine decodes a close response message
+ 
+  Arguments     : NCS_UBAID *msg,
+                  LGSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+static uns32 lga_dec_lstr_close_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
+{
+    uns8     *p8;
+    uns32    total_bytes = 0;
+    lgsv_stream_close_rsp_t *param = &msg->info.api_resp_info.param.close_rsp;
+    uns8     local_data[100];
+
+    assert(uba != NULL);
+
+    p8  = ncs_dec_flatten_space(uba, local_data, 8);
+    param->client_id = ncs_decode_32bit(&p8);
+    param->lstr_id = ncs_decode_32bit(&p8);
+    ncs_dec_skip_space(uba, 8);
+    total_bytes += 8;
 
     return total_bytes;
 }
@@ -739,11 +800,11 @@ static uns32 lga_dec_initialize_rsp_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_dec_write_cbk_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_dec_write_cbk_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8     *p8;
     uns32    total_bytes = 0;
-    LGSV_LGA_WRITE_CKB *param = &msg->info.cbk_info.write_cbk;
+    lgsv_write_log_callback_ind_t *param = &msg->info.cbk_info.write_cbk;
     uns8     local_data[100];
 
     assert(uba != NULL);
@@ -768,11 +829,11 @@ static uns32 lga_dec_write_cbk_msg(NCS_UBAID *uba, LGSV_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-static uns32 lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, LGSV_MSG *msg)
+static uns32 lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 {
     uns8      *p8;
     uns32    total_bytes = 0;
-    LGSV_LGA_LSTR_OPEN_SYNC_RSP *param = 
+    lgsv_stream_open_rsp_t *param = 
         &msg->info.api_resp_info.param.lstr_open_rsp;
     uns8     local_data[100];
 
@@ -802,7 +863,7 @@ static uns32 lga_dec_lstr_open_sync_rsp_msg(NCS_UBAID *uba, LGSV_MSG *msg)
 static uns32 lga_mds_dec(struct ncsmds_callback_info *info)
 {
     uns8      *p8;
-    LGSV_MSG  *msg;
+    lgsv_msg_t  *msg;
     NCS_UBAID *uba = info->info.dec.io_uba;
     uns8      local_data[20];
     uns32     total_bytes = 0;
@@ -820,7 +881,7 @@ static uns32 lga_mds_dec(struct ncsmds_callback_info *info)
 
     /** Allocate a new msg in both sync/async cases 
      **/
-    if (NULL == (msg = calloc(1, sizeof(LGSV_MSG))))
+    if (NULL == (msg = calloc(1, sizeof(lgsv_msg_t))))
     {
         TRACE("calloc failed\n");
         return NCSCC_RC_FAILURE;
@@ -846,11 +907,17 @@ static uns32 lga_mds_dec(struct ncsmds_callback_info *info)
 
                 switch (msg->info.api_resp_info.type)
                 {
-                    case LGSV_LGA_INITIALIZE_RSP_MSG:
+                    case LGSV_INITIALIZE_RSP:
                         total_bytes += lga_dec_initialize_rsp_msg(uba, msg);
                         break;
-                    case LGSV_LGA_LSTR_OPEN_SYNC_RSP_MSG:
+                    case LGSV_FINALIZE_RSP:
+                        total_bytes += lga_dec_finalize_rsp_msg(uba, msg);
+                        break;
+                    case LGSV_STREAM_OPEN_RSP:
                         total_bytes += lga_dec_lstr_open_sync_rsp_msg(uba, msg);
+                        break;
+                    case LGSV_STREAM_CLOSE_RSP:
+                        total_bytes += lga_dec_lstr_close_rsp_msg(uba, msg);
                         break;
                     default:
                         TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
@@ -862,14 +929,14 @@ static uns32 lga_mds_dec(struct ncsmds_callback_info *info)
             {
                 p8 = ncs_dec_flatten_space(uba, local_data, 16);
                 msg->info.cbk_info.type       = ncs_decode_32bit(&p8);
-                msg->info.cbk_info.lgs_reg_id = ncs_decode_32bit(&p8);
+                msg->info.cbk_info.lgs_client_id = ncs_decode_32bit(&p8);
                 msg->info.cbk_info.inv        = ncs_decode_64bit(&p8);
                 ncs_dec_skip_space(uba, 16);
                 total_bytes += 16;
                 TRACE_2("LGSV_LGS_CBK_MSG");
                 switch (msg->info.cbk_info.type)
                 {
-                    case LGSV_LGS_WRITE_LOG_CBK:
+                    case LGSV_WRITE_LOG_CALLBACK_IND:
                         TRACE_2("decode writelog message");
                         total_bytes += lga_dec_write_cbk_msg(uba, msg);
                         break;
@@ -1112,8 +1179,8 @@ void lga_mds_finalize(lga_cb_t *cb)
   Notes         : None.
 ******************************************************************************/
 uns32 lga_mds_msg_sync_send(lga_cb_t   *cb, 
-                            LGSV_MSG *i_msg, 
-                            LGSV_MSG **o_msg, 
+                            lgsv_msg_t *i_msg, 
+                            lgsv_msg_t **o_msg, 
                             uns32    timeout)
 {
     NCSMDS_INFO  mds_info;
@@ -1141,11 +1208,11 @@ uns32 lga_mds_msg_sync_send(lga_cb_t   *cb,
     if (NCSCC_RC_SUCCESS == (rc = ncsmds_api(&mds_info)))
     {
         /* Retrieve the response and take ownership of the memory  */
-        *o_msg = (LGSV_MSG *)mds_info.info.svc_send.info.sndrsp.o_rsp;
+        *o_msg = (lgsv_msg_t *)mds_info.info.svc_send.info.sndrsp.o_rsp;
         mds_info.info.svc_send.info.sndrsp.o_rsp = NULL;
     }
     else
-        TRACE("lga_mds_msg_sync_send FAILED"); 
+        TRACE("lga_mds_msg_sync_send FAILED: %u", rc); 
 
     TRACE_LEAVE();     
     return rc;

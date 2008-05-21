@@ -139,10 +139,10 @@ typedef enum {
     STREAM_TYPE_APPLICATION
 } logStreamTypeT;
 
-extern SaBoolT lgs_validateFormatExpression(const SaStringT,
+extern SaBoolT lgs_is_valid_format_expression(const SaStringT,
                                             logStreamTypeT,
                                             SaBoolT *);
-extern SaAisErrorT lgs_formatLogRecord(SaLogRecordT *,
+extern SaAisErrorT lgs_format_log_record(SaLogRecordT *,
                                        const SaStringT,
                                        const SaUint16T,
                                        SaStringT,

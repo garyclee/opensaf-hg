@@ -36,7 +36,7 @@ extern SaTimeT getSaTimeT(void);
 #define DEFAULT_NOT_LOG_BUFFER "Notification stream test" 
 #define DEFAULT_NOTIFYING_OBJECT "safSu=ntfyo,safSg=ntfyo,safApp=ntfyo" 
 #define DEFAULT_NOTIFICATION_OBJECT "safSu=ntfo,safSg=ntfo,safApp=ntfo"
-#define DEFAULT_APP_FILE_PATH_NAME "/repl_opensaf/saflog/logtest"
+#define DEFAULT_APP_FILE_PATH_NAME "logtest"
 #define DEFAULT_APP_FILE_NAME "app1"
 #define DEFAULT_MAX_FILE_ROTATED 4
 

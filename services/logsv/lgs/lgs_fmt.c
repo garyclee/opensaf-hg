@@ -547,25 +547,6 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr,
 
 /**
  * 
- * 
- * @return SaTimeT
- */
-static SaTimeT setLogTime(void)
-{
-    struct timeval currentTime;
-    SaTimeT logTime;
-
-    /* Fetch current system time for time stamp value */
-    (void)gettimeofday(&currentTime, 0);
-
-    logTime = ((unsigned)currentTime.tv_sec * 1000000000ULL) + \
-              ((unsigned)currentTime.tv_usec * 1000ULL);
-
-    return logTime;  
-}
-
-/**
- * 
  * @param fmtExpPtr
  * @param fmtExpPtrOffset
  * @param truncationLetterPos
@@ -1164,16 +1145,16 @@ static SaStringT extractSystemField(SaStringT fmtExpPtr,
 }
 
 /**
- * 
+ * Validate a format expression
  * @param formatExpression
- * @param logStreamId
+ * @param logStreamType
  * @param twelveHourModeFlag
  * 
  * @return SaBoolT
  */
-SaBoolT lgs_validateFormatExpression(const SaStringT formatExpression,
-                                     logStreamTypeT logStreamType,
-                                     SaBoolT *twelveHourModeFlag)
+SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
+                                       logStreamTypeT logStreamType,
+                                       SaBoolT *twelveHourModeFlag)
 {
     SaBoolT   formatExpressionOk = SA_FALSE;
     SaBoolT   tokenOk = SA_FALSE;
@@ -1262,22 +1243,20 @@ SaBoolT lgs_validateFormatExpression(const SaStringT formatExpression,
 }  
 
 /**
- * 
- * @param commonData
- * @param ntfHeader
- * @param genHeader
+ * Format and write a log record
+ * @param logRecord
  * @param formatExpression
  * @param fixedLogRecordSize
  * @param outputLogRecord
- * @param twelveHourModeFlag
+ * @param logRecordIdCounter
  * 
  * @return SaAisErrorT
  */
-SaAisErrorT lgs_formatLogRecord(SaLogRecordT *logRecord,
-                            const SaStringT formatExpression,
-                            const SaUint16T fixedLogRecordSize,
-                            SaStringT outputLogRecord,
-                            SaUint32T logRecordIdCounter)
+SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
+                                  const SaStringT formatExpression,
+                                  const SaUint16T fixedLogRecordSize,
+                                  SaStringT outputLogRecord,
+                                  SaUint32T logRecordIdCounter)
 {
     SaAisErrorT error = SA_AIS_OK;
     SaStringT fmtExpPtr = &formatExpression[0];
@@ -1303,11 +1282,6 @@ SaAisErrorT lgs_formatLogRecord(SaLogRecordT *logRecord,
     /* Init output vector with a '\0' */
     (void)strcpy(outputLogRecord, "");
 
-    /* Set timeStamp data if not provided by application user */
-    if (logRecord->logTimeStamp == SA_TIME_UNKNOWN)
-    {
-        logRecord->logTimeStamp = setLogTime();
-    }
     totalTime = (logRecord->logTimeStamp / (SaTimeT)SA_TIME_ONE_SECOND);
 
     /* Split timestamp in timeStampData */

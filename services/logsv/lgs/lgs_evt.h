@@ -47,7 +47,7 @@ typedef struct lgsv_lgs_evt
    LGSV_LGS_EVT_TYPE  evt_type;
    union
    {
-      LGSV_MSG             msg;
+      lgsv_msg_t             msg;
       lgsv_lgs_mds_info_t  mds_info;
    } info;
 } lgsv_lgs_evt_t;
@@ -56,17 +56,12 @@ typedef struct lgsv_lgs_evt
 typedef uns32 (*LGSV_LGS_LGA_API_MSG_HANDLER) (lgs_cb_t *, lgsv_lgs_evt_t *evt);
 typedef uns32 (*LGSV_LGS_EVT_HANDLER) (lgsv_lgs_evt_t *evt);
 
-extern int lgs_alarmFilter(const struct dirent * finfo);
-extern int lgs_notificationFilter(const struct dirent * finfo);
-extern int lgs_systemFilter(const struct dirent * finfo);
-extern int lgs_applogFilter(const struct dirent * finfo);
-extern uns32 lgs_stream_remove(const char *key);
-extern SaAisErrorT lgs_create_new_app_stream(
-    LGSV_LGA_LSTR_OPEN_SYNC_PARAM  *open_sync_param,
-    log_stream_t **o_stream);
-extern int lgs_add_stream_to_reg_id(uns32 reg_id, log_stream_t *stream);
-extern void lgs_remove_stream_id_from_rec(uns32 reg_id, uns32 stream_id);
-extern uns32 lgs_remove_reglist_entry (lgs_cb_t *cb, uns32 reg_id, NCS_BOOL remove_all);
-extern uns32 lgs_remove_regid_by_mds_dest(lgs_cb_t *cb, MDS_DEST mds_dest);
+extern int lgs_client_stream_add(uns32 client_id, uns32 stream_id);
+extern int lgs_client_stream_rmv(uns32 client_id, uns32 stream_id);
+extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id,
+                             lgs_stream_list_t *stream_list);
+extern int lgs_client_add_stream(log_client_t *client, uns32 stream_id);
+extern int lgs_client_delete(uns32 client_id);
+extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest);
 
 #endif /*!LGS_EVT_H */

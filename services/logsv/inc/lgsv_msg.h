@@ -14,7 +14,7 @@
  * Author(s): Ericsson AB
  *
  */
-      
+
 /*
 * Module Inclusion Control...
 */
@@ -23,55 +23,45 @@
 
 #include "saLog.h"
 
-/* to be simple in the begining we use fixed size*/
-#define LGS_MAX_STRING_LEN 64
-#define LGS_CREATE_CLOSE_TIME_LEN 16
-#define LGS_LOG_FILE_EXT_LEN 5
-#define LGS_LOG_FILE_EXT ".log"
-#define LGS_LOG_FILE_CONFIG_EXT ".cfg"
-#define UNDERSCORE "_"
-#define UNDERSCORE_LEN 2
-
-/* AMF API enums */
-typedef enum lgsv_msg_type
+/* Message type enums */
+typedef enum
 {
-   LGSV_BASE_MSG,
-   LGSV_LGA_API_MSG = LGSV_BASE_MSG,
-   LGSV_LGA_MISC_MSG,
-   LGSV_LGS_MISC_MSG,
-   LGSV_LGS_CBK_MSG,
-   LGSV_LGA_API_RESP_MSG,
-   LGSV_MSG_MAX
-} LGSV_MSG_TYPE;
+    LGSV_BASE_MSG,
+    LGSV_LGA_API_MSG = LGSV_BASE_MSG,
+    LGSV_LGS_CBK_MSG,
+    LGSV_LGA_API_RESP_MSG,
+    LGSV_MSG_MAX
+} lgsv_msg_type_t;
 
 /* LGSV API enums */
-typedef enum lgsv_api_msg_type
+typedef enum
 {
-   LGSV_API_BASE_MSG,
-   LGSV_LGA_INITIALIZE = LGSV_API_BASE_MSG,
-   LGSV_LGA_FINALIZE,
-   LGSV_LGA_LSTR_OPEN_SYNC,
-   LGSV_LGA_LSTR_CLOSE,
-   LGSV_LGA_WRITE_LOG_ASYNC,
-   LGSV_API_MAX
-} LGSV_API_TYPE;
+    LGSV_API_BASE_MSG,
+    LGSV_INITIALIZE_REQ = LGSV_API_BASE_MSG,
+    LGSV_FINALIZE_REQ,
+    LGSV_STREAM_OPEN_REQ,
+    LGSV_STREAM_CLOSE_REQ,
+    LGSV_WRITE_LOG_ASYNC_REQ,
+    LGSV_API_MAX
+} lgsv_api_msg_type_t;
 
 /* LGSV Callback enums */
-
-typedef enum lgsv_cbk_msg_type
+typedef enum
 {
-   LGSV_CBK_BASE_MSG,
-   LGSV_LGS_LSTR_OPEN = LGSV_CBK_BASE_MSG,
-   LGSV_LGS_WRITE_LOG_CBK, 
-   LGSV_LGS_CBK_MAX
-} LGSV_CBK_TYPE;
+    LGSV_CBK_BASE_MSG,
+    LGSV_WRITE_LOG_CALLBACK_IND = LGSV_CBK_BASE_MSG,
+    LGSV_LGS_CBK_MAX
+} lgsv_cbk_msg_type_t;
 
-typedef enum lgsv_api_resp_msg_type
+typedef enum
 {
-   LGSV_LGA_INITIALIZE_RSP_MSG = 1,
-   LGSV_LGA_LSTR_OPEN_SYNC_RSP_MSG,
-   LGSV_LGA_API_RSP_MAX
-} LGSV_API_RSP_TYPE;
+    LGSV_RSP_BASE_MSG,
+    LGSV_INITIALIZE_RSP = LGSV_RSP_BASE_MSG,
+    LGSV_FINALIZE_RSP,
+    LGSV_STREAM_OPEN_RSP,
+    LGSV_STREAM_CLOSE_RSP,
+    LGSV_LGA_API_RSP_MAX
+} lgsv_api_resp_msg_type;
 
 /* 
 * API & callback API parameter definitions.
@@ -82,160 +72,133 @@ typedef enum lgsv_api_resp_msg_type
 */
 
 /*** API Parameter definitions ***/
-typedef struct lgsv_lga_init_param_tag
+typedef struct
 {
-    SaVersionT                version;
-} LGSV_LGA_INIT_PARAM;
+    SaVersionT version;
+} lgsv_initialize_req_t;
 
-typedef struct lgsv_lga_finalize_param_tag
+typedef struct
 {
-   uns32                     reg_id;
-} LGSV_LGA_FINALIZE_PARAM;
+    uns32 client_id;
+} lgsv_finalize_req_t;
 
-typedef struct lgsv_lga_lstr_open_sync_param_tag
+typedef struct
 {
-   uns32     reg_id;
-   SaNameT   lstr_name;
-   SaNameT   logFileName;
-   SaNameT   logFilePathName;
-   SaUint64T maxLogFileSize;
-   SaUint32T maxLogRecordSize;
-   SaBoolT haProperty;
-   SaLogFileFullActionT logFileFullAction;
-   SaUint16T maxFilesRotated;
-   SaUint16T logFileFmtLength;
-   SaUint8T  logFileFmt[LGS_MAX_STRING_LEN];
-   SaUint8T  lstr_open_flags;
-} LGSV_LGA_LSTR_OPEN_SYNC_PARAM;
+    uns32     client_id;
+    SaNameT   lstr_name;
+    char      logFileName[NAME_MAX];
+    char      logFilePathName[PATH_MAX];
+    SaUint64T maxLogFileSize;
+    SaUint32T maxLogRecordSize;
+    SaBoolT   haProperty;
+    SaLogFileFullActionT logFileFullAction;
+    SaUint16T maxFilesRotated;
+    SaUint16T logFileFmtLength;
+    SaStringT logFileFmt;
+    SaUint8T  lstr_open_flags;
+} lgsv_stream_open_req_t;
 
-typedef struct lgsv_lga_chan_open_async_param_tag
+typedef struct
 {
-   uns32                     reg_id;
-   uns8                      chan_open_flags;
-   SaNameT                   chan_name;
-} LGSV_LGA_CHAN_OPEN_ASYNC_PARAM;
+    uns32 client_id;
+    uns32 lstr_id;
+} lgsv_stream_close_req_t;
 
-typedef struct lgsv_lga_lstr_close_param_tag
+typedef struct
 {
-   uns32                     reg_id;
-   uns32                     lstr_id;
-   uns32                     lstr_open_id;
-} LGSV_LGA_LSTR_CLOSE_PARAM;
-
-typedef struct lgsv_lga_write_log_async_param_tag
-{
-   SaInvocationT             invocation;
-   uns32                     ack_flags;
-   uns32                     reg_id;
-   uns32                     lstr_id;
-   uns32                     lstr_open_id;
-   SaLogRecordT              *logRecord;
-} LGSV_LGA_WRITE_LOG_ASYNC_PARAM;
+    SaInvocationT             invocation;
+    uns32                     ack_flags;
+    uns32                     client_id;
+    uns32                     lstr_id;
+    SaLogRecordT              *logRecord;
+    SaNameT                   *logSvcUsrName;
+    SaTimeT                   *logTimeStamp;
+} lgsv_write_log_async_req_t;
 
 /* API param definition */
-typedef struct lgsv_api_info_tag
+typedef struct
 {
-   LGSV_API_TYPE    type;   /* api type */
-   union 
-   {
-      LGSV_LGA_INIT_PARAM                 init;
-      LGSV_LGA_FINALIZE_PARAM             finalize;
-      LGSV_LGA_LSTR_OPEN_SYNC_PARAM       lstr_open_sync;
-      LGSV_LGA_LSTR_CLOSE_PARAM           lstr_close;
-      LGSV_LGA_WRITE_LOG_ASYNC_PARAM      write_log_async;
-   } param;
-} LGSV_API_INFO;
+    lgsv_api_msg_type_t    type;   /* api type */
+    union 
+    {
+        lgsv_initialize_req_t        init;
+        lgsv_finalize_req_t          finalize;
+        lgsv_stream_open_req_t       lstr_open_sync;
+        lgsv_stream_close_req_t      lstr_close;
+        lgsv_write_log_async_req_t   write_log_async;
+    } param;
+} lgsv_api_info_t;
 
 
 /*** Callback Parameter definitions ***/
 
-typedef struct lgsv_lga_chan_open_cb_param_tag
+typedef struct
 {
-   SaNameT                   chan_name;
-   uns32                     chan_id;
-   uns32                     chan_open_id;
-   uns8                      chan_open_flags;
-   uns32                     lga_chan_hdl; /* filled in at the LGA with channelHandle, use 0 at LGS */
-   SaAisErrorT                  error;
-} LGSV_LGA_CHAN_OPEN_CBK_PARAM;
-
-
-typedef struct lgsv_lga_write_tag
-{
-    SaAisErrorT              error;
-}LGSV_LGA_WRITE_CKB;
+    SaAisErrorT error;
+} lgsv_write_log_callback_ind_t;
 
 /* wrapper structure for all the callbacks */
-typedef struct lgsv_cbk_info
+typedef struct
 {
-   LGSV_CBK_TYPE    type;        /* callback type */
-   uns32            lgs_reg_id;  /* lgs reg_id */
-   SaInvocationT    inv;         /* invocation value */   
-   LGSV_LGA_WRITE_CKB  write_cbk;
-} LGSV_CBK_INFO;
+    lgsv_cbk_msg_type_t type;        /* callback type */
+    uns32               lgs_client_id;  /* lgs client_id */
+    SaInvocationT       inv;         /* invocation value */   
+    lgsv_write_log_callback_ind_t  write_cbk;
+} lgsv_cbk_info_t;
 
 /* API Response parameter definitions */
-typedef struct lgsv_lga_initialize_rsp_tag
+typedef struct
 {
-   uns32                     reg_id;
-} LGSV_LGA_INITIALIZE_RSP;
+    uns32 client_id;
+} lgsv_initialize_rsp_t;
 
-typedef struct lgsv_lga_lstr_open_sync_rsp_tag
+typedef struct
 {
-   uns32                     lstr_id;
-} LGSV_LGA_LSTR_OPEN_SYNC_RSP;
+    uns32 client_id;
+    uns32 lstr_id;
+} lgsv_stream_open_rsp_t;
 
-typedef struct lgsv_lga_publish_rsp_tag
+typedef struct
 {
-   void *dummy;
-} LGSV_LGA_PUBLISH_RSP;
+    uns32 client_id;
+} lgsv_finalize_rsp_t;
+
+typedef struct
+{
+    uns32 client_id;
+    uns32 lstr_id;
+} lgsv_stream_close_rsp_t;
 
 /* wrapper structure for all API responses 
  */
-typedef struct lgsv_api_rsp_info_tag
+typedef struct
 {
-   LGSV_API_RSP_TYPE    type; /* callback type */
-   SaAisErrorT             rc;   /* return code */
-   union 
-   {
-      LGSV_LGA_INITIALIZE_RSP         init_rsp;
-      LGSV_LGA_LSTR_OPEN_SYNC_RSP     lstr_open_rsp;
-   } param;
-} LGSV_API_RSP_INFO;
-
-/* wrapper structure for LGA-LGS misc messages 
- */
-typedef struct lgsv_lga_misc_info_tag
-{
-   void *dummy;
-} LGSV_LGA_MISC_MSG_INFO;
-
-/* wrapper structure for LGA-LGS misc messages 
- */
-typedef struct lgsv_lgs_misc_info_tag
-{
-   void *dummy;
-} LGSV_LGS_MISC_MSG_INFO;
+    lgsv_api_resp_msg_type  type; /* callback type */
+    SaAisErrorT             rc;   /* return code */
+    union 
+    {
+        lgsv_initialize_rsp_t   init_rsp;
+        lgsv_stream_open_rsp_t  lstr_open_rsp;
+        lgsv_finalize_rsp_t     finalize_rsp;
+        lgsv_stream_close_rsp_t close_rsp;
+    } param;
+} lgsv_api_rsp_info_t;
 
 /* message used for LGA-LGS interaction */
 typedef struct lgsv_msg
 {
-   struct lgsv_msg *next;   /* for mailbox processing */
-   LGSV_MSG_TYPE    type;   /* message type */
-   union 
-   {
-      /* elements encoded by LGA (& decoded by LGS) */
-      LGSV_API_INFO              api_info;       /* api info */
-      LGSV_LGA_MISC_MSG_INFO     lgsv_lga_misc_info; 
-      
-      /* elements encoded by LGS (& decoded by LGA) */
-      LGSV_CBK_INFO          cbk_info;       /* callbk info */
-      LGSV_API_RSP_INFO      api_resp_info;  /* api response info */
-      LGSV_LGS_MISC_MSG_INFO lgsv_lgs_misc_info;
-   } info;
-} LGSV_MSG;
+    struct lgsv_msg *next; /* for mailbox processing */
+    lgsv_msg_type_t  type; /* message type */
+    union 
+    {
+        /* elements encoded by LGA (& decoded by LGS) */
+        lgsv_api_info_t          api_info;       /* api info */
 
-#define LGSV_WAIT_TIME 500  
+        /* elements encoded by LGS (& decoded by LGA) */
+        lgsv_cbk_info_t          cbk_info;       /* callbk info */
+        lgsv_api_rsp_info_t      api_resp_info;  /* api response info */
+    } info;
+} lgsv_msg_t;
 
 #endif /* !LGSV_MSG_H*/
 

@@ -19,6 +19,15 @@
 #include "lga.h"
 
 #define NCS_SAF_MIN_ACCEPT_TIME 10
+#define LGS_WAIT_TIME 1000  
+
+/* Macro to validate the dispatch flags */
+#define m_DISPATCH_FLAG_IS_VALID(flag) \
+   ( (SA_DISPATCH_ONE == flag) || \
+     (SA_DISPATCH_ALL == flag) || \
+     (SA_DISPATCH_BLOCKING == flag) )
+
+#define LGSV_NANOSEC_TO_LEAPTM 10000000
 
 /* The main controle block */
 lga_cb_t lga_cb = {
@@ -26,29 +35,22 @@ lga_cb_t lga_cb = {
 };
 
 static void populate_open_params(
-                                LGSV_LGA_LSTR_OPEN_SYNC_PARAM *open_param, 
-                                const SaNameT *logStreamName, 
-                                lga_client_hdl_rec_t  *hdl_rec, 
-                                SaLogFileCreateAttributesT_2 *logFileCreateAttributes, 
-                                SaLogStreamOpenFlagsT logStreamOpenFlags)
+    lgsv_stream_open_req_t *open_param, 
+    const SaNameT *logStreamName, 
+    lga_client_hdl_rec_t  *hdl_rec, 
+    SaLogFileCreateAttributesT_2 *logFileCreateAttributes, 
+    SaLogStreamOpenFlagsT logStreamOpenFlags)
 {
     TRACE_ENTER();
-    open_param->reg_id = hdl_rec->lgs_reg_id;
+    open_param->client_id = hdl_rec->lgs_client_id;
     open_param->lstr_name = *logStreamName;
 
     if (logFileCreateAttributes == NULL ||
-        strcmp((const char *)logStreamName->value, 
-               SA_LOG_STREAM_NOTIFICATION) == 0 ||
-        strcmp((const char *)logStreamName->value, 
-               SA_LOG_STREAM_ALARM) == 0 ||
-        strcmp((const char *)logStreamName->value, 
-               SA_LOG_STREAM_SYSTEM) == 0)
+        strcmp((const char *)logStreamName->value, SA_LOG_STREAM_NOTIFICATION) == 0 ||
+        strcmp((const char *)logStreamName->value, SA_LOG_STREAM_ALARM) == 0 ||
+        strcmp((const char *)logStreamName->value, SA_LOG_STREAM_SYSTEM) == 0)
     {
-        open_param->logFileName.length = 0;
-        open_param->logFileName.value[0] = '\0';
-        open_param->logFilePathName.length = 0;
-        open_param->logFilePathName.value[0] = '\0';
-        open_param->logFileFmt[0] = '\0';
+        open_param->logFileFmt = NULL;
         open_param->logFileFmtLength = 0;
         open_param->maxLogFileSize = 0;
         open_param->maxLogRecordSize = 0;
@@ -59,41 +61,21 @@ static void populate_open_params(
     }
     else
     {
-        if (logFileCreateAttributes->logFileFmt == NULL)
-        {
-            open_param->logFileFmtLength = 0;
-        }
+        if (logFileCreateAttributes->logFileFmt != NULL)
+            open_param->logFileFmt = logFileCreateAttributes->logFileFmt;
         else
-        {
-            open_param->logFileFmtLength = 
-                strlen(logFileCreateAttributes->logFileFmt) + 1;
-            (void)memcpy(open_param->logFileFmt,
-                         logFileCreateAttributes->logFileFmt,
-                         open_param->logFileFmtLength);
-        }
+            /* Assign default expression */
+            open_param->logFileFmt = DEFAULT_APP_SYS_FORMAT_EXP;
+            
+        strncpy(open_param->logFileName,
+                logFileCreateAttributes->logFileName, NAME_MAX);
 
-        open_param->logFileName.length = 
-            strlen(logFileCreateAttributes->logFileName) + 1;
-        (void)memcpy(open_param->logFileName.value,
-                     logFileCreateAttributes->logFileName,
-                     open_param->logFileName.length);
-
+        /* A NULL pointer refers to impl defined directory */
         if (logFileCreateAttributes->logFilePathName == NULL)
-        {
-            open_param->logFilePathName.length = 2;
-            (void)memcpy(open_param->logFilePathName.value,
-                         ".",
-                         open_param->logFilePathName.length);
-
-        }
+            strcpy(open_param->logFilePathName, ".");
         else
-        {
-            open_param->logFilePathName.length = 
-                strlen(logFileCreateAttributes->logFilePathName) + 1;
-            (void)memcpy(open_param->logFilePathName.value,
-                         logFileCreateAttributes->logFilePathName,
-                         open_param->logFilePathName.length);
-        }
+            strncpy(open_param->logFilePathName,
+                   logFileCreateAttributes->logFilePathName, PATH_MAX);
 
         open_param->maxLogFileSize = logFileCreateAttributes->maxLogFileSize;
         open_param->maxLogRecordSize = logFileCreateAttributes->maxLogRecordSize;
@@ -103,6 +85,25 @@ static void populate_open_params(
         open_param->lstr_open_flags = logStreamOpenFlags;
     }   
     TRACE_LEAVE();
+}
+
+/**
+ * 
+ * 
+ * @return SaTimeT
+ */
+static SaTimeT setLogTime(void)
+{
+    struct timeval currentTime;
+    SaTimeT logTime;
+
+    /* Fetch current system time for time stamp value */
+    (void)gettimeofday(&currentTime, 0);
+
+    logTime = ((unsigned)currentTime.tv_sec * 1000000000ULL) + \
+              ((unsigned)currentTime.tv_usec * 1000ULL);
+
+    return logTime;  
 }
 
 /***************************************************************************
@@ -128,9 +129,9 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle,
                             SaVersionT *version)
 {
     lga_client_hdl_rec_t *lga_hdl_rec; 
-    LGSV_MSG i_msg, *o_msg;
+    lgsv_msg_t i_msg, *o_msg;
     SaAisErrorT rc;
-    uns32 reg_id;
+    uns32 client_id;
 
     TRACE_ENTER();
 
@@ -141,61 +142,54 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle,
         goto done;
     }
 
-    if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS)
-    {
-        TRACE("ncs_agents_startup FAILED");
-        rc = SA_AIS_ERR_LIBRARY;
-        goto done;
-    }
-
     if ((rc = lga_startup()) != NCSCC_RC_SUCCESS)
     {
-        TRACE("lga_startup FAILED");
+        TRACE("lga_startup FAILED: %u", rc);
         rc = SA_AIS_ERR_LIBRARY;
         goto done;
     }
 
     /* validate the version */
-    if ((version->releaseCode == LGSV_RELEASE_CODE) &&
-        (version->majorVersion <= LGSV_MAJOR_VERSION))
+    if ((version->releaseCode == LOG_RELEASE_CODE) &&
+        (version->majorVersion <= LOG_MAJOR_VERSION))
     {
-        version->majorVersion = LGSV_MAJOR_VERSION;
-        version->minorVersion = LGSV_MINOR_VERSION;
+        version->majorVersion = LOG_MAJOR_VERSION;
+        version->minorVersion = LOG_MINOR_VERSION;
     }
     else
     {
         TRACE("version FAILED, required: %c.%u.%u, supported: %c.%u.%u\n",
               version->releaseCode, version->majorVersion, version->minorVersion,
-              LGSV_RELEASE_CODE, LGSV_MAJOR_VERSION, LGSV_MINOR_VERSION);
-        version->releaseCode = LGSV_RELEASE_CODE;
-        version->majorVersion = LGSV_MAJOR_VERSION;
-        version->minorVersion = LGSV_MINOR_VERSION;
-        ncs_agents_shutdown(0,0); 
+              LOG_RELEASE_CODE, LOG_MAJOR_VERSION, LOG_MINOR_VERSION);
+        version->releaseCode = LOG_RELEASE_CODE;
+        version->majorVersion = LOG_MAJOR_VERSION;
+        version->minorVersion = LOG_MINOR_VERSION;
+        lga_shutdown();
         rc = SA_AIS_ERR_VERSION;
         goto done;
     }
 
     if (!lga_cb.lgs_up)
     {
-        ncs_agents_shutdown(0,0);
+        lga_shutdown();
         TRACE("LGS server is down");
         rc = SA_AIS_ERR_TRY_AGAIN;
         goto done;
     }
 
     /* Populate the message to be sent to the LGS */
-    memset(&i_msg, 0, sizeof(LGSV_MSG));
+    memset(&i_msg, 0, sizeof(lgsv_msg_t));
     i_msg.type = LGSV_LGA_API_MSG;
-    i_msg.info.api_info.type = LGSV_LGA_INITIALIZE;
+    i_msg.info.api_info.type = LGSV_INITIALIZE_REQ;
     i_msg.info.api_info.param.init.version = *version;
 
-    /* Send a message to LGS to obtain a reg_id/server ref id which is cluster
+    /* Send a message to LGS to obtain a client_id/server ref id which is cluster
     * wide unique.
     */
-    rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGSV_WAIT_TIME);
+    rc = lga_mds_msg_sync_send(&lga_cb, &i_msg, &o_msg, LGS_WAIT_TIME);
     if (rc != NCSCC_RC_SUCCESS)
     {
-        ncs_agents_shutdown(0,0); 
+        lga_shutdown(); 
         rc = SA_AIS_ERR_TRY_AGAIN;
         goto done;
     }
@@ -209,13 +203,14 @@ SaAisErrorT saLogInitialize(SaLogHandleT *logHandle,
         goto err;
     }
 
-    /** Store the regId returned by the LGS 
-     ** to pass into the next routine
+    /** Store the cient ID returned by
+     *  the LGS to pass into the next
+     *  routine
      **/
-    reg_id = o_msg->info.api_resp_info.param.init_rsp.reg_id;
+    client_id = o_msg->info.api_resp_info.param.init_rsp.client_id;
 
     /* create the hdl record & store the callbacks */
-    lga_hdl_rec = lga_hdl_rec_add(&lga_cb, callbacks, reg_id);
+    lga_hdl_rec = lga_hdl_rec_add(&lga_cb, callbacks, client_id);
     if (lga_hdl_rec == NULL)
     {
         rc = SA_AIS_ERR_NO_MEMORY;
@@ -234,7 +229,7 @@ err:
     if (rc != SA_AIS_OK)
     {
         TRACE_2("LGA INIT FAILED\n");
-        ncs_agents_shutdown(0,0); 
+        lga_shutdown(); 
     }
 
 done:
@@ -336,7 +331,7 @@ SaAisErrorT saLogDispatch(SaLogHandleT logHandle,
 
     TRACE_ENTER();
 
-    if (!m_LGA_DISPATCH_FLAG_IS_VALID(dispatchFlags))
+    if (!m_DISPATCH_FLAG_IS_VALID(dispatchFlags))
     {
         TRACE("Invalid dispatchFlags"); 
         rc = SA_AIS_ERR_INVALID_PARAM;
@@ -388,9 +383,9 @@ done:
 SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
 {
     lga_client_hdl_rec_t *hdl_rec;
-    LGSV_MSG msg;
-    SaAisErrorT rc;
-    uns32 reg_id;
+    lgsv_msg_t msg, *o_msg = NULL;
+    SaAisErrorT rc = SA_AIS_OK;
+    uns32 mds_rc;
 
     TRACE_ENTER();
 
@@ -411,44 +406,57 @@ SaAisErrorT saLogFinalize(SaLogHandleT logHandle)
         goto done_give_hdl;
     }
 
-    /* For Logging the Data */
-    reg_id = hdl_rec->lgs_reg_id;
-
     /** populate & send the finalize message 
      ** and make sure the finalize from the server
      ** end returned before deleting the local records.
      **/
-    memset(&msg, 0, sizeof(LGSV_MSG));
+    memset(&msg, 0, sizeof(lgsv_msg_t));
     msg.type = LGSV_LGA_API_MSG;
-    msg.info.api_info.type = LGSV_LGA_FINALIZE;
-    msg.info.api_info.param.finalize.reg_id = hdl_rec->lgs_reg_id;
+    msg.info.api_info.type = LGSV_FINALIZE_REQ;
+    msg.info.api_info.param.finalize.client_id = hdl_rec->lgs_client_id;
 
-    rc = lga_mds_msg_async_send(&lga_cb, &msg, MDS_SEND_PRIORITY_MEDIUM);
-    if (rc != NCSCC_RC_SUCCESS)
+    mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME);
+    switch (mds_rc)
     {
-        rc = SA_AIS_ERR_TRY_AGAIN;
-        goto done_give_hdl;
+        case NCSCC_RC_SUCCESS:
+            break;
+        case NCSCC_RC_REQ_TIMOUT:
+            rc = SA_AIS_ERR_TIMEOUT;
+            TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+            goto done_give_hdl;
+        default:
+            TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+            rc = SA_AIS_ERR_NO_RESOURCES;
+            goto done_give_hdl;
     }
 
-    /** delete the hdl rec 
-     ** including all its channel hdls and events
-     ** if MDS send is succesful. 
-     **/
-    rc = lga_hdl_rec_del(&lga_cb.client_list, hdl_rec);
-    if (rc != NCSCC_RC_SUCCESS)
-        rc = SA_AIS_ERR_BAD_HANDLE;
+    if (o_msg != NULL)
+    {
+        rc = o_msg->info.api_resp_info.rc;
+        lga_msg_destroy(o_msg);
+    }
+    else
+        rc = SA_AIS_ERR_NO_RESOURCES;
 
-    goto done_give_hdl;
-
-    rc = lga_shutdown();
-    if (rc != NCSCC_RC_SUCCESS)
-        TRACE("lga_shutdown ");
-    ncs_agents_shutdown(0,0);
+    if (rc == SA_AIS_OK)
+    {
+        rc = lga_hdl_rec_del(&lga_cb.client_list, hdl_rec);
+        if (rc != NCSCC_RC_SUCCESS)
+            rc = SA_AIS_ERR_BAD_HANDLE;
+    }
 
 done_give_hdl:
     ncshm_give_hdl(logHandle);
+
+    if (rc == SA_AIS_OK)
+    {
+        rc = lga_shutdown();
+        if (rc != NCSCC_RC_SUCCESS)
+            TRACE("lga_shutdown ");
+    }
+
 done:
-    TRACE_LEAVE();
+    TRACE_LEAVE2("rc = %u", rc);
     return rc;
 }
 
@@ -477,12 +485,9 @@ static SaAisErrorT validate_open_params(
 
     /* Check log stream input parameters */
     /* The well known log streams */
-    if (strcmp((const char *)logStreamName->value, /* Well known log streams*/
-               SA_LOG_STREAM_ALARM) == 0 ||
-        strcmp((const char *)logStreamName->value, 
-               SA_LOG_STREAM_NOTIFICATION) == 0 ||
-        strcmp((const char *)logStreamName->value, 
-               SA_LOG_STREAM_SYSTEM) == 0)
+    if (strcmp(logStreamName->value, SA_LOG_STREAM_ALARM) == 0 ||
+        strcmp(logStreamName->value, SA_LOG_STREAM_NOTIFICATION) == 0 ||
+        strcmp(logStreamName->value, SA_LOG_STREAM_SYSTEM) == 0)
     {
         /* SA_AIS_ERR_INVALID_PARAM, bullet 3 in SAI-AIS-LOG-A.02.01 
            Section 3.6.1, Return Values */
@@ -502,7 +507,7 @@ static SaAisErrorT validate_open_params(
             *header_type = (uns32)SA_LOG_NTF_HEADER;
         }
     }
-    else /* Static application log stream*/
+    else /* Application log stream*/
     {
         /* SA_AIS_ERR_INVALID_PARAM, bullet 1 in SAI-AIS-LOG-A.02.01 
            Section 3.6.1, Return Values */
@@ -531,7 +536,6 @@ static SaAisErrorT validate_open_params(
         }
 
         /* SA_AIS_ERR_BAD_FLAGS */
-        TRACE_2("logStreamOpenFlags = %u\n", logStreamOpenFlags);
         if (logStreamOpenFlags > (uns32)SA_LOG_STREAM_CREATE)
         {
             TRACE("logStreamOpenFlags");
@@ -581,22 +585,19 @@ static SaAisErrorT validate_open_params(
     if (NULL != logFileCreateAttributes)
     {
         len = strlen(logFileCreateAttributes->logFileName);
-        if (len > LGS_MAX_STRING_LEN)
+        if (len > NAME_MAX)
         {
-            TRACE("LGS_MAX_STRING_LEN");
+            TRACE("logFileName");
             return SA_AIS_ERR_INVALID_PARAM;
         }
-        len = strlen(logFileCreateAttributes->logFilePathName);
-        if (len > LGS_MAX_STRING_LEN)
+        if (logFileCreateAttributes->logFilePathName != NULL)
         {
-            TRACE("LGS_MAX_STRING_LEN");
-            return SA_AIS_ERR_INVALID_PARAM;
-        }
-        len = strlen(logFileCreateAttributes->logFileFmt);
-        if (len > LGS_MAX_STRING_LEN)
-        {
-            TRACE("LGS_MAX_STRING_LEN");
-            return SA_AIS_ERR_INVALID_PARAM;
+            len = strlen(logFileCreateAttributes->logFilePathName);
+            if (len > PATH_MAX)
+            {
+                TRACE("logFilePathName");
+                return SA_AIS_ERR_INVALID_PARAM;
+            }
         }
     }
 
@@ -617,17 +618,17 @@ done:
  * @return SaAisErrorT
  */
 SaAisErrorT saLogStreamOpen_2(
-                             SaLogHandleT logHandle,
-                             const SaNameT *logStreamName,
-                             const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
-                             SaLogStreamOpenFlagsT  logStreamOpenFlags, 
-                             SaTimeT timeOut,
-                             SaLogStreamHandleT *logStreamHandle)
+    SaLogHandleT logHandle,
+    const SaNameT *logStreamName,
+    const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
+    SaLogStreamOpenFlagsT  logStreamOpenFlags, 
+    SaTimeT timeOut,
+    SaLogStreamHandleT *logStreamHandle)
 {
     lga_log_stream_hdl_rec_t  *lstr_hdl_rec = NULL;
     lga_client_hdl_rec_t  *hdl_rec;
-    LGSV_MSG            msg, *o_msg = NULL;
-    LGSV_LGA_LSTR_OPEN_SYNC_PARAM *open_param;
+    lgsv_msg_t            msg, *o_msg = NULL;
+    lgsv_stream_open_req_t *open_param;
     SaAisErrorT         rc;
     uns32               timeout;
     uns32               log_stream_id;
@@ -654,10 +655,10 @@ SaAisErrorT saLogStreamOpen_2(
     /** Populate a sync MDS message to obtain a log stream id and an
      **  instance open id.
      **/
-    memset(&msg, 0, sizeof(LGSV_MSG));
+    memset(&msg, 0, sizeof(lgsv_msg_t));
     msg.type = LGSV_LGA_API_MSG;
-    msg.info.api_info.type = LGSV_LGA_LSTR_OPEN_SYNC;
-    open_param =  &msg.info.api_info.param.lstr_open_sync;
+    msg.info.api_info.type = LGSV_STREAM_OPEN_REQ;
+    open_param = &msg.info.api_info.param.lstr_open_sync;
 
     populate_open_params(open_param, 
                          logStreamName, 
@@ -684,7 +685,7 @@ SaAisErrorT saLogStreamOpen_2(
     }
 
     /* Send a sync MDS message to obtain a log stream id */
-    rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, (uns32)timeOut); /* timeout or timeOut?? FIX */
+    rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, timeout);
     if (rc != NCSCC_RC_SUCCESS)
     {
         if (o_msg)
@@ -801,9 +802,14 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 {
     lga_log_stream_hdl_rec_t *lstr_hdl_rec;
     lga_client_hdl_rec_t *hdl_rec;
-    LGSV_MSG msg;
+    lgsv_msg_t msg;
     SaAisErrorT rc = SA_AIS_OK; 
-
+    SaNameT logSvcUsrName;
+    SaTimeT logTimeStamp;
+    lgsv_write_log_async_req_t* write_param;
+    
+    memset(&(msg), 0, sizeof(lgsv_msg_t)); 
+    write_param = &msg.info.api_info.param.write_log_async;
     TRACE_ENTER();
 
     if ( NULL == logRecord )
@@ -822,12 +828,24 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
             rc = SA_AIS_ERR_INVALID_PARAM;
             goto done;
         }
-        if (logRecord->logBuffer->logBufSize >= SA_MAX_NAME_LENGTH)
-        {
-            TRACE("logBufSize >= SA_MAX_NAME_LENGTH");
-            rc = SA_AIS_ERR_INVALID_PARAM;
-            goto done;
-        }
+    }
+
+    if ((ackFlags != 0) && (ackFlags != SA_LOG_RECORD_WRITE_ACK))
+    {
+        TRACE("SA_AIS_ERR_INVALID_PARAM => ackFlags");
+        rc = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
+    }
+
+    /* Set timeStamp data if not provided by application user */
+    if (logRecord->logTimeStamp == SA_TIME_UNKNOWN)
+    {
+       logTimeStamp = setLogTime();
+       write_param->logTimeStamp = &logTimeStamp;
+    }
+    else
+    {
+       write_param->logTimeStamp =(SaTimeT*) &logRecord->logTimeStamp;
     }
 
     /* SA_AIS_ERR_INVALID_PARAM, bullet 2 in SAI-AIS-LOG-A.02.01 
@@ -836,9 +854,31 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
     {
         if (logRecord->logHeader.genericHdr.logSvcUsrName == NULL)
         {
-            TRACE("logSvcUsrName == NULL");
-            rc = SA_AIS_ERR_INVALID_PARAM;
-            goto done;
+           char *logSvcUsrChars = NULL;
+           TRACE("logSvcUsrName == NULL");
+           logSvcUsrChars = getenv("SA_AMF_COMPONENT_NAME");
+           if (logSvcUsrChars == NULL)
+           {
+              rc = SA_AIS_ERR_INVALID_PARAM;
+              goto done;              
+           }
+           logSvcUsrName.length = strlen(logSvcUsrChars);
+           if (logSvcUsrName.length > SA_MAX_NAME_LENGTH) {
+              rc = SA_AIS_ERR_INVALID_PARAM;
+              goto done;              
+           }
+           strcpy(logSvcUsrName.value, logSvcUsrChars);
+           write_param->logSvcUsrName = &logSvcUsrName;
+        }
+        else
+        {
+           if (logRecord->logHeader.genericHdr.logSvcUsrName->length > SA_MAX_NAME_LENGTH) {
+              rc = SA_AIS_ERR_INVALID_PARAM;
+              goto done;              
+           }
+           logSvcUsrName.length =
+              logRecord->logHeader.genericHdr.logSvcUsrName->length;
+           write_param->logSvcUsrName = (SaNameT*)logRecord->logHeader.genericHdr.logSvcUsrName;
         }
     }
 
@@ -884,18 +924,13 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
     /** populate the mds message to send across to the LGS
     ** whence it will possibly get published
     **/
-    memset(&(msg), 0, sizeof(LGSV_MSG)); 
-    LGSV_LGA_WRITE_LOG_ASYNC_PARAM* write_param = 
-        &msg.info.api_info.param.write_log_async;
     msg.type = LGSV_LGA_API_MSG; 
-    msg.info.api_info.type = LGSV_LGA_WRITE_LOG_ASYNC;
+    msg.info.api_info.type = LGSV_WRITE_LOG_ASYNC_REQ;
     write_param->invocation = invocation;
     write_param->ack_flags = ackFlags;
-    write_param->reg_id = hdl_rec->lgs_reg_id;
-    write_param->lstr_id = lstr_hdl_rec->lgs_log_stream_id; /* fix ? */
-    write_param->lstr_open_id = lstr_hdl_rec->lgs_log_stream_open_id;/* fix? */
+    write_param->client_id = hdl_rec->lgs_client_id;
+    write_param->lstr_id = lstr_hdl_rec->lgs_log_stream_id;
     write_param->logRecord = (SaLogRecordT *) logRecord;
-
     /** Send the message out to the LGS
      **/
     if (NCSCC_RC_SUCCESS != lga_mds_msg_async_send(&lga_cb, &msg, MDS_SEND_PRIORITY_MEDIUM))
@@ -920,9 +955,10 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
 {
     lga_log_stream_hdl_rec_t  *lstr_hdl_rec;
     lga_client_hdl_rec_t  *hdl_rec;
-    LGSV_MSG            msg;
+    lgsv_msg_t            msg, *o_msg = NULL;
     SaAisErrorT rc = SA_AIS_OK; 
     uns32               lstr_id; 
+    uns32 mds_rc;
 
     TRACE_ENTER();
 
@@ -938,20 +974,17 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
     hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, lstr_hdl_rec->parent_hdl->local_hdl);
     if (hdl_rec == NULL)
     {
-        TRACE("ncshm_take_hdl logHandle "); 
-        ncshm_give_hdl(logStreamHandle);
+        TRACE("ncshm_take_hdl logHandle ");
         rc = SA_AIS_ERR_LIBRARY;
-        goto done;
+        goto done_give_hdl_stream;
     }
 
     /* Check Whether LGS is up or not */
     if (!lga_cb.lgs_up)
     {
-        ncshm_give_hdl(logStreamHandle);
-        ncshm_give_hdl(hdl_rec->local_hdl);
         TRACE("LGS is down"); 
         rc = SA_AIS_ERR_TRY_AGAIN;
-        goto done;
+        goto done_give_hdl_all;
     }
 
     /* For logging */
@@ -960,51 +993,55 @@ SaAisErrorT saLogStreamClose(SaLogStreamHandleT logStreamHandle)
     /** Populate a MDS message to send to the LGS for a channel
      *  close operation.
      **/
-    memset(&msg, 0, sizeof(LGSV_MSG));
+    memset(&msg, 0, sizeof(lgsv_msg_t));
     msg.type = LGSV_LGA_API_MSG;
-    msg.info.api_info.type = LGSV_LGA_LSTR_CLOSE;
-    msg.info.api_info.param.lstr_close.reg_id = hdl_rec->lgs_reg_id;
+    msg.info.api_info.type = LGSV_STREAM_CLOSE_REQ;
+    msg.info.api_info.param.lstr_close.client_id = hdl_rec->lgs_client_id;
     msg.info.api_info.param.lstr_close.lstr_id =
         lstr_hdl_rec->lgs_log_stream_id;
-    msg.info.api_info.param.lstr_close.lstr_open_id =
-        lstr_hdl_rec->lgs_log_stream_open_id;
-
-    pthread_mutex_lock(&lga_cb.cb_lock);
-
-    /** Delete this log stream & the associated resources with this
-     *  instance of log stream open.
-     **/
-    if (NCSCC_RC_SUCCESS != lga_log_stream_hdl_rec_del(&hdl_rec->stream_list, lstr_hdl_rec))
+    mds_rc = lga_mds_msg_sync_send(&lga_cb, &msg, &o_msg, LGS_WAIT_TIME);
+    switch (mds_rc)
     {
-        TRACE("Unable to delete log stream"); 
+        case NCSCC_RC_SUCCESS:
+            break;
+        case NCSCC_RC_REQ_TIMOUT:
+            rc = SA_AIS_ERR_TIMEOUT;
+            TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+            goto done_give_hdl_all;
+        default:
+            TRACE("lga_mds_msg_sync_send FAILED: %u", rc);
+            rc = SA_AIS_ERR_NO_RESOURCES;
+            goto done_give_hdl_all;
+    }
+
+    if (o_msg != NULL)
+    {
+        rc = o_msg->info.api_resp_info.rc;
+        lga_msg_destroy(o_msg);
+    }
+    else
+        rc = SA_AIS_ERR_NO_RESOURCES;
+
+    if (rc == SA_AIS_OK)
+    {
+        pthread_mutex_lock(&lga_cb.cb_lock);
+
+        /** Delete this log stream & the associated resources with this
+         *  instance of log stream open.
+        **/
+        if (NCSCC_RC_SUCCESS != lga_log_stream_hdl_rec_del(&hdl_rec->stream_list, lstr_hdl_rec))
+        {
+            TRACE("Unable to delete log stream"); 
+            rc = SA_AIS_ERR_LIBRARY;
+        }
+        
         pthread_mutex_unlock(&lga_cb.cb_lock);
-        ncshm_give_hdl(logStreamHandle);
-        ncshm_give_hdl(hdl_rec->local_hdl);
-        rc = SA_AIS_ERR_LIBRARY;
-        goto done;
     }
 
-    pthread_mutex_unlock(&lga_cb.cb_lock);
-
-    /** Send an async message notification to the server
-     ** that this instance of channel open is being closed
-     *  and so the LGS must take the appropriate actions upon
-     *  receipt of this message.
-     **/
-    if (NCSCC_RC_SUCCESS != (rc = lga_mds_msg_async_send(
-                                                        &lga_cb, &msg, MDS_SEND_PRIORITY_MEDIUM)))
-    {
-        TRACE("mds_msg_async_send "); 
-        ncshm_give_hdl(hdl_rec->local_hdl);
-        rc = SA_AIS_ERR_TRY_AGAIN;
-        goto done;
-    }
-
-    /** Give all the handles that were
-     *  taken except the log stream hdl as it must have been already
-     *  destroyed.
-     **/
+done_give_hdl_all:
     ncshm_give_hdl(hdl_rec->local_hdl);
+done_give_hdl_stream:
+    ncshm_give_hdl(logStreamHandle);
 
 done:
     TRACE_LEAVE();

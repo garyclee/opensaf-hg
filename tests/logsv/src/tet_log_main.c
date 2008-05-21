@@ -175,7 +175,6 @@ extern void saLogInitialize_06(void);
 extern void saLogInitialize_07(void);
 extern void saLogInitialize_08(void);
 extern void saLogInitialize_09(void);
-extern void saLogInitialize_10(void);
 extern void saLogSelectionObjectGet_01(void);
 extern void saLogFinalize_01(void);
 extern void saLogFinalize_02(void);
@@ -187,7 +186,6 @@ extern void saLogStreamOpen_2_03(void);
 extern void saLogStreamOpen_2_04(void);
 extern void saLogStreamOpen_2_05(void);
 extern void saLogStreamOpen_2_06(void);
-extern void saLogStreamOpen_2_07(void);
 extern void saLogStreamOpen_2_08(void);
 extern void saLogStreamOpen_2_09(void);
 extern void saLogStreamOpen_2_10(void);
@@ -196,6 +194,10 @@ extern void saLogStreamOpen_2_12(void);
 extern void saLogStreamOpen_2_13(void);
 extern void saLogStreamOpen_2_14(void);
 extern void saLogStreamOpen_2_15(void);
+extern void saLogStreamOpen_2_16(void);
+extern void saLogStreamOpen_2_17(void);
+extern void saLogStreamOpen_2_18(void);
+extern void saLogStreamOpen_2_19(void);
 
 extern void saLogStreamOpenAsync_2_01(void);
 extern void saLogStreamOpenCallbackT_01(void);
@@ -207,7 +209,10 @@ extern void saLogWriteLogAsync_04(void);
 extern void saLogWriteLogAsync_05(void);
 extern void saLogWriteLogAsync_06(void);
 extern void saLogWriteLogAsync_07(void);
-extern void saLogWriteLogAsync_08(void);
+extern void saLogWriteLogAsync_09(void);
+extern void saLogWriteLogAsync_10(void);
+extern void saLogWriteLogAsync_11(void);
+extern void saLogWriteLogAsync_12(void);
 extern void saLogWriteLogCallbackT_01(void);
 extern void saLogWriteLogCallbackT_02(void);
 extern void saLogStreamClose_01(void);
@@ -225,7 +230,6 @@ static struct tet_testlist api_testlist[] =
     {saLogInitialize_07, 1},
     {saLogInitialize_08, 1},
     {saLogInitialize_09, 1},
-    {saLogInitialize_10, 1},
     {saLogSelectionObjectGet_01, 2},
     {saLogDispatch_01, 3},
     {saLogFinalize_01, 4},
@@ -238,7 +242,6 @@ static struct tet_testlist api_testlist[] =
     {saLogStreamOpen_2_04, 5},
     {saLogStreamOpen_2_05, 5},
     {saLogStreamOpen_2_06, 5},
-    {saLogStreamOpen_2_07, 5},
     {saLogStreamOpen_2_08, 5},
     {saLogStreamOpen_2_09, 5},
     {saLogStreamOpen_2_10, 5},
@@ -247,6 +250,10 @@ static struct tet_testlist api_testlist[] =
     {saLogStreamOpen_2_13, 5},
     {saLogStreamOpen_2_14, 5},
     {saLogStreamOpen_2_15, 5},
+    {saLogStreamOpen_2_16, 5},
+    {saLogStreamOpen_2_17, 5},
+    {saLogStreamOpen_2_18, 5},
+    {saLogStreamOpen_2_19, 5},
     {saLogStreamOpenAsync_2_01, 6},
     {saLogStreamOpenCallbackT_01, 7},
     {saLogWriteLog_01, 8},
@@ -257,7 +264,10 @@ static struct tet_testlist api_testlist[] =
     {saLogWriteLogAsync_05, 9},
     {saLogWriteLogAsync_06, 9},
     {saLogWriteLogAsync_07, 9},
-    {saLogWriteLogAsync_08, 9},
+    {saLogWriteLogAsync_09, 9},
+    {saLogWriteLogAsync_10, 9},
+    {saLogWriteLogAsync_11, 9},
+    {saLogWriteLogAsync_12, 9},
     {saLogWriteLogCallbackT_01, 10},
     {saLogWriteLogCallbackT_02, 10},
     {saLogFilterSetCallbackT_01, 11},
@@ -289,6 +299,7 @@ int main(int argc, char **argv)
             printf("\n");
 #endif
         curr_comp_number = test->icref;
+        //usleep(100000);
     }
 
     /* Print result */
