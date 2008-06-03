@@ -1559,7 +1559,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     {
     case NCS_OS_FILE_CREATE: /* Create a new file for writing */
         {
-          m_NCS_CONS_PRINTF(" CREATING FILE %s",(const char *)pfile->info.create.i_file_name);
             FILE *file_handle =
                 fopen ((const char *)pfile->info.create.i_file_name, "w");
             pfile->info.create.o_file_handle = (void *) file_handle;
@@ -1574,7 +1573,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
         {
             const char * mode;
             FILE * file_handle;
-            m_NCS_CONS_PRINTF(" OPENING FILE %s",(const char *)pfile->info.open.i_file_name);
 
             switch (pfile->info.open.i_read_write_mask)
             {
@@ -1628,7 +1626,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_WRITE:
         {
-            m_NCS_CONS_PRINTF(" WRITING FILE ");
             size_t bytes_written =
                 fwrite(pfile->info.write.i_buffer, 1,
                     pfile->info.write.i_buf_size,
@@ -1658,7 +1655,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_COPY:
         {
             char command[1024];
-            m_NCS_CONS_PRINTF(" COPYING FILE %s to %s\n",pfile->info.copy.i_file_name,pfile->info.copy.i_new_file_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1672,7 +1668,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_RENAME:
         {
-            m_NCS_CONS_PRINTF(" RENAMING FILE %s to %s",pfile->info.rename.i_file_name,pfile->info.rename.i_new_file_name);
             int ret = rename((const char *) pfile->info.rename.i_file_name,
                                     (const char *) pfile->info.rename.i_new_file_name);
 
@@ -1685,7 +1680,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_REMOVE:
         {
-            m_NCS_CONS_PRINTF(" REMOVING FILE %s\n",pfile->info.remove.i_file_name);
             int ret = remove((const char*) pfile->info.remove.i_file_name);
 
             if (ret == -1)
@@ -1754,7 +1748,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_CREATE_DIR:
         {
             char command[1024];
-            m_NCS_CONS_PRINTF(" CREATING DIR %s \n",pfile->info.create_dir.i_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1768,7 +1761,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_DELETE_DIR:
         {
             char command[1024];
-            m_NCS_CONS_PRINTF(" DELETING DIR %s \n",pfile->info.delete_dir.i_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1782,7 +1774,6 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_COPY_DIR:
         {
             char command[1024];
-            m_NCS_CONS_PRINTF(" COPYING DIR %s to %s\n",pfile->info.copy_dir.i_dir_name,pfile->info.copy_dir.i_new_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
