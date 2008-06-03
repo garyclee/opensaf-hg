@@ -75,6 +75,8 @@ export NID_ROLE_CONFIG="ACTIVE"
 
 test -f $BINPATH/$DAEMON || exit 1
 
+# Make sure this (Linux) system has POSIX shared memory configured
+test -d /dev/shm || exit 1
 #set -e
 set +x
 
@@ -92,8 +94,8 @@ start()
         fi
         
         ### Remove shared memory files created by OpenSAF services.
-	rm -f /dev/shm/CPND_CHECKPOINT_INFO*  /dev/shm/NCS_*  /dev/shm/vds_vdest*
-
+        rm -rf /dev/shm/opensaf
+        mkdir -p /dev/shm/opensaf
 
 	if [ -f $PIDFILE ]
         then 
@@ -279,6 +281,7 @@ stop()
             rmmod $MODULE
         fi
         rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
+        rm -rf /dev/shm/opensaf
         echo "."
 
 } # End of function stop()

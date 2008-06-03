@@ -1431,6 +1431,7 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
    uns32 prot_flag;
    int32 ret_flag;
    long shm_size;
+   char shm_name[PATH_MAX];
 
    switch(req->type)
    {
@@ -1450,7 +1451,8 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
              return NCSCC_RC_FAILURE;
          }
          shm_size = (long)req->info.open.i_size;
-         req->info.open.o_fd=shm_open(req->info.open.i_name,req->info.open.i_flags,0666);
+         snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.open.i_name);
+         req->info.open.o_fd=shm_open(shm_name,req->info.open.i_flags,0666);
          if (req->info.open.o_fd < 0)
          {
             return NCSCC_RC_FAILURE;
@@ -1500,7 +1502,8 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 
       case NCS_OS_POSIX_SHM_REQ_UNLINK:   /* unlink is shm_unlink */
 
-         ret_flag=shm_unlink(req->info.unlink.i_name);
+         snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.unlink.i_name);
+         ret_flag=shm_unlink(shm_name);
          if ( ret_flag < 0 ) {
             printf("shm_unlink failed with errno value %d\n",errno);
             return NCSCC_RC_FAILURE;
@@ -1556,6 +1559,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     {
     case NCS_OS_FILE_CREATE: /* Create a new file for writing */
         {
+          m_NCS_CONS_PRINTF(" CREATING FILE %s",(const char *)pfile->info.create.i_file_name);
             FILE *file_handle =
                 fopen ((const char *)pfile->info.create.i_file_name, "w");
             pfile->info.create.o_file_handle = (void *) file_handle;
@@ -1570,6 +1574,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
         {
             const char * mode;
             FILE * file_handle;
+            m_NCS_CONS_PRINTF(" OPENING FILE %s",(const char *)pfile->info.open.i_file_name);
 
             switch (pfile->info.open.i_read_write_mask)
             {
@@ -1623,6 +1628,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_WRITE:
         {
+            m_NCS_CONS_PRINTF(" WRITING FILE ");
             size_t bytes_written =
                 fwrite(pfile->info.write.i_buffer, 1,
                     pfile->info.write.i_buf_size,
@@ -1652,6 +1658,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_COPY:
         {
             char command[1024];
+            m_NCS_CONS_PRINTF(" COPYING FILE %s to %s\n",pfile->info.copy.i_file_name,pfile->info.copy.i_new_file_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1665,6 +1672,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_RENAME:
         {
+            m_NCS_CONS_PRINTF(" RENAMING FILE %s to %s",pfile->info.rename.i_file_name,pfile->info.rename.i_new_file_name);
             int ret = rename((const char *) pfile->info.rename.i_file_name,
                                     (const char *) pfile->info.rename.i_new_file_name);
 
@@ -1677,6 +1685,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
 
     case NCS_OS_FILE_REMOVE:
         {
+            m_NCS_CONS_PRINTF(" REMOVING FILE %s\n",pfile->info.remove.i_file_name);
             int ret = remove((const char*) pfile->info.remove.i_file_name);
 
             if (ret == -1)
@@ -1745,6 +1754,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_CREATE_DIR:
         {
             char command[1024];
+            m_NCS_CONS_PRINTF(" CREATING DIR %s \n",pfile->info.create_dir.i_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1758,6 +1768,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_DELETE_DIR:
         {
             char command[1024];
+            m_NCS_CONS_PRINTF(" DELETING DIR %s \n",pfile->info.delete_dir.i_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
@@ -1771,6 +1782,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
     case NCS_OS_FILE_COPY_DIR:
         {
             char command[1024];
+            m_NCS_CONS_PRINTF(" COPYING DIR %s to %s\n",pfile->info.copy_dir.i_dir_name,pfile->info.copy_dir.i_new_dir_name);
 
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
