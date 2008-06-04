@@ -3360,7 +3360,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 
        /* STEP: If too many consecutive EINTR, then break with error */
        save_errno = errno;
-       if (save_errno == EINTR)
+       if ((rc == -1) && (save_errno == EINTR))
        {
            eintr_cnt++;
            if ((eintr_cnt == 10) ||
