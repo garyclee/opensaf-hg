@@ -76,7 +76,7 @@ uns32 avd_init_heartbeat(AVD_CL_CB *cb)
             NCSFL_SEV_EMERGENCY, NCSCC_RC_FAILURE);
    }
 
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
    avd_stop_tmr(cb, &cb->heartbeat_send_avd);
    m_AVD_SND_HB_TMR_START(cb);
