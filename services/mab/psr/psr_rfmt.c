@@ -880,7 +880,21 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
       }
 
       m_NCS_CONS_PRINTF("\nfile_size : %d, hdr.max_row_length: %d", file_size, hdr.max_row_length);
-      if(file_size != 0)
+
+      if(file_size == 0)
+      {
+
+        /* Log that the ps_file is not consistent */
+        m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_INVALID_FILE_SIZE, file_size);
+
+        if (file_hdl != 0)
+           m_NCS_PSSTS_FILE_CLOSE(inst->pssts_api, ts_hdl, retval, file_hdl);
+        /* Delete the ps_file */
+        m_NCS_PSSTS_FILE_DELETE(inst->pssts_api, ts_hdl, retval, rec->profile,
+                                           rec->pwe_id, rec->pcn, rec->tbl_id);
+        return NCSCC_RC_FAILURE;
+      }
+      else
       {
          temp_file_size = file_size - hdr.header_len;
          if(temp_file_size == 0)
