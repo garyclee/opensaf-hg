@@ -1397,7 +1397,7 @@ NCS_BOOL pss_data_available_for_table(PSS_PWE_CB *pwe_cb, char *p_pcn,
         return FALSE;
     }
     m_NCS_MEMSET(in_buf, '\0', buf_size);
-
+    read_offset = PSS_TABLE_DETAILS_HEADER_LEN;
     m_NCS_PSSTS_FILE_READ(pwe_cb->p_pss_cb->pssts_api, 
         pwe_cb->p_pss_cb->pssts_hdl, retval, file_hdl,
         buf_size, read_offset, in_buf, bytes_read);
@@ -2688,6 +2688,8 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
        m_NCS_MEMSET(pinst_re_ids, '\0', tbl_info->num_inst_ids * sizeof(uns32));
     }
 #endif
+
+    alt_file_offset = cur_file_offset = PSS_TABLE_DETAILS_HEADER_LEN;
 
     /* Now open the files and read in data from them */
     if (alt_file_exists == TRUE)
@@ -4661,7 +4663,7 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
  /* End of 3.0.b addition */
 
    m_NCS_PSSTS_FILE_READ(inst->pssts_api, inst->pssts_hdl, retval, curr_file_hdl,
-      tbl_info->max_row_length, 0, curr_data, bytes_read);
+      tbl_info->max_row_length, hdr.header_len, curr_data, bytes_read);
    if(retval != NCSCC_RC_SUCCESS)
    {
       m_LOG_PSS_STORE(NCSFL_SEV_ERROR,PSS_MIB_READ_FAIL,
