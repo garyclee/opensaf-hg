@@ -2482,22 +2482,12 @@ insert_role_svcid(NID_SPAWN_INFO *service)
     *      Insert the role only if its available                *
     ************************************************************/
    if( role ){
-     if(service->app_type == NID_SCRIPT){
-       if(role == SA_AMF_HA_ACTIVE) service->serv_args[f++] = "ACTIVE";
-       else if(role == SA_AMF_HA_STANDBY) service->serv_args[f++] = "STDBY";
-     }
-     else {
        sysf_sprintf(rolebuff,"ROLE=%d",role);
        service->serv_args[f++] = rolebuff;
-     }
    }
-
-   if(service->app_type == NID_SCRIPT)
-     service->serv_args[f++] = nid_serv_stat_info[service->servcode].nid_serv_name;
-   else {
-     sysf_sprintf(svc_id,"NID_SVC_ID=%d",service->servcode);
-     service->serv_args[f++] = svc_id;
-   }
+     /* Set the service-id to be passed */
+   sysf_sprintf(svc_id,"NID_SVC_ID=%d",service->servcode);
+   service->serv_args[f++] = svc_id;
 
    service->serv_args[f] = NULL;
 
