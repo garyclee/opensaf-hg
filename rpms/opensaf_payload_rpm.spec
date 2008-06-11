@@ -329,6 +329,8 @@ unlink /etc/init.d/nis_pld
 
 
 %{scripts_dir}/find_pid.sh
+%{scripts_dir}/ncs_pcap_clean.sh
+%{scripts_dir}/ncs_pcap_start.sh
 %{scripts_dir}/ncs_cpnd_clean.sh
 %{scripts_dir}/ncs_cpnd_start.sh
 %{scripts_dir}/ncs_glnd_clean.sh

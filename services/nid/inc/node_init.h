@@ -49,7 +49,7 @@
 /****************************************************************
 *      MAX limits used for fields in nodeinit.conf entries      *
 ****************************************************************/
-#define NID_MAXSFILE                 50
+#define NID_MAXSFILE                 100
 #define NID_MAXSNAME                 15
 #define NID_MAXAPPTYPE_LEN           1
 #define NID_MAXPARMS                 50

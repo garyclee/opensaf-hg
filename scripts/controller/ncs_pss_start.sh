@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #
 #      -*- OpenSAF  -*-
 #
@@ -16,15 +16,29 @@
 # Author(s): Emerson Network Power
 #
 
-
 XTERM=""
-PIDPATH=/var/run
-PIDFILE=ncs_psr.pid
+#XTERM="xterm -T OpenSAF-PSS -e "
 
-echo "Executing PSS init-script..."
-###  The following environment variables are useful when running in 
-###  in SIMULATION mode, where multiple NODEs are simulated on the
-###  on the same linux Desktop
+#XTERM="xterm -T OpenSAF-PSS -e /usr/bin/gdb "
+# Set this if debugging required.
+
+DAEMON=ncs_psr
+PIDPATH=/var/run
+BINPATH=/opt/opensaf/controller/bin
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:$BINPATH
+PIDFILE=ncs_psr.pid
+COMPNAMEFILE=/var/opt/opensaf/ncs_pss_comp_name
+NIDFIFO=/tmp/nodeinit.fifo
+NID_MAGIC=AAB49DAA
+SERVICE_CODE=PSSV
+
+NID_PSS_DAEMON_STARTED=1
+NID_PSS_DAEMON_NOT_FND=2
+NID_PSS_DAEMON_START_FAILED=3
+
+
+echo "Executing PSSv init-script..."
+
 if [ ":$NCS_STDOUTS_PATH" == ":" ]
 then
     export NCS_STDOUTS_PATH=/var/opt/opensaf/stdouts
@@ -32,40 +46,75 @@ fi
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 
-echo $SA_AMF_COMPONENT_NAME
+#Function to start/spawn a service.
+start()
+{
 
-#remove the existing /var/opt/opensaf/ncs_pss_comp_name
-rm -f /var/opt/opensaf/ncs_pss_comp_name
-
-#echo the component name into a temporary text file
-echo $SA_AMF_COMPONENT_NAME > /var/opt/opensaf/ncs_pss_comp_name
-
-# check for the PID availability
-if test -f $PIDPATH/$PIDFILE
-then
-   l_pid=`cat $PIDPATH/$PIDFILE`
-   echo $l_pid
-fi
-if [ "$l_pid" ]
-   then 
-   echo "Sending the SIGUSR1 to ncs_psr ..."
-   `kill -USR1 $l_pid`
-else
-
-    echo "Restarting PSS..."
+    echo "Starting PSSv..."
+    #Check if daemon is installed.
+    if [ ! -x $BINPATH/$DAEMON ]; then
+       echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+       echo "$NID_MAGIC:$SERVICE_CODE:$NID_PSS_DAEMON_NOT_FND" > $NIDFIFO
+       exit 1
+    fi
     killall ncs_psr
     $XTERM /opt/opensaf/controller/bin/ncs_psr >$NCS_STDOUTS_PATH/ncs_psr.log 2>&1 &
-    sleep 10s
-    if test -f $PIDPATH/$PIDFILE
-    then
-      l_pid=`cat $PIDPATH/$PIDFILE`
-    fi
-    echo $l_pid
-    if [ "$l_pid" ]
-    then `kill -USR1 $l_pid`
-    fi
-fi
-exit 0
+    echo "Starting $DESC: $BINPATH/$DAEMON";		
+   
+    if [ $? -ne 0 ] ; then
+	echo -n -e "Failed to start $DAEMON.    \n"
+	echo "$NID_MAGIC:$SERVICE_CODE:$NID_PSS_DAEMON_START_FAILED" > $NIDFIFO
+	exit 0
+     else
+         echo "Started $DESC: $BINPATH/$DAEMON";		
+     fi
+
+} # End start()
 
 
+case "$1" in
+   start)
+        start
+        # Report Status to NID
+        echo "$NID_MAGIC:$SERVICE_CODE:$NID_PSS_DAEMON_STARTED" > $NIDFIFO
+	echo "."
+        ;;
+   "")
+        # AMF would call with no arguments
+	echo $SA_AMF_COMPONENT_NAME
+
+	#remove the existing $COMPNAMEFILE
+	rm -f $COMPNAMEFILE 
+
+	#echo the component name into a temporary text file
+	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
+
+	# check for the PID availability
+	if test -f $PIDPATH/$PIDFILE
+	then
+	   l_pid=`cat $PIDPATH/$PIDFILE`
+	fi
+      
+	if [ "$l_pid" ]
+   	then
+	   echo "Sending the SIGUSR1 to ncs_psr ..."
+	   `kill -USR1 $l_pid`
+	else
+            echo "Re-Starting PSSv"
+		start ;
+		sleep 10s
+		#Check if the process is running and send a signal
+		if test -f $PIDPATH/$PIDFILE
+		then
+			l_pid=`cat $PIDPATH/$PIDFILE`
+		fi
+
+		echo $l_pid
+		if [ "$l_pid" ]
+		then `kill -USR1 $l_pid`
+        	fi
+	fi
+     exit 0 # Report to AMF.
+     ;;
+esac;
 

@@ -57,10 +57,9 @@ IPMC_BOARD:LINUX_PC_SCXB
 /opt/opensaf/controller/scripts/rde_script:RDF:S:/opt/opensaf/controller/scripts/rde_script:12000:-6:2:1:start:stop
 #/opt/opensaf/controller/scripts/drbdctrl:DRBD:S:/opt/opensaf/controller/scripts/drbdctrl:800::2::start all:stop all
 #/opt/opensaf/controller/scripts/nis_snmpd_start.sh:SNMPD:S:/opt/opensaf/controller/scripts/nis_snmpd_clean.sh:10000:4:5:1::
-/opt/opensaf/controller/bin/ncs_dts:DTSV:E::4000:4:2:1::
-/opt/opensaf/controller/bin/ncs_mas:MASV:E::4000:4:2:1::
-/opt/opensaf/controller/bin/ncs_psr:PSSV:E::4000:4:2:1::
-/opt/opensaf/controller/bin/ncs_eds:EDSV:E::5000:4:2:1::
-/opt/opensaf/controller/bin/ncs_snmp_subagt:SUBAGT:E::5000:4:2:1::
-/opt/opensaf/controller/scripts/ip_inst_script:IFSVDD:S:/opt/opensaf/controller/scripts/ip_inst_script:10000:4:2:1:start:stop
-/opt/opensaf/controller/bin/ncs_scap:SCAP:E::192000:-6:0:1::
+/opt/opensaf/controller/scripts/ncs_dts_start.sh:DTSV:S:/opt/opensaf/controller/scripts/ncs_dts_clean.sh:4000:4:2:1:start:
+/opt/opensaf/controller/scripts/ncs_mas_start.sh:MASV:S:/opt/opensaf/controller/scripts/ncs_mas_clean.sh:4000:4:2:1:start:
+/opt/opensaf/controller/scripts/ncs_pss_start.sh:PSSV:S:/opt/opensaf/controller/scripts/ncs_pss_clean.sh:4000:4:2:1:start:
+/opt/opensaf/controller/scripts/ncs_eds_start.sh:EDSV:S:/opt/opensaf/controller/scripts/ncs_eds_clean.sh:5000:4:2:1:start:
+/opt/opensaf/controller/scripts/ncs_snmpsubagt_start.sh:SUBAGT:S:/opt/opensaf/controller/scripts/ncs_snmpsubagt_cleanup.sh:5000:4:2:1:start:
+/opt/opensaf/controller/scripts/ncs_scap_start.sh:SCAP:S:/opt/opensaf/controller/scripts/ncs_scap_clean.sh:192000:-6:0:1:start:

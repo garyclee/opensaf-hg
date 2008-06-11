@@ -54,4 +54,4 @@
 #############################################################################
 IPMC_BOARD:LINUX_PC
 /opt/opensaf/payload/scripts/nid_tipc.sh:TIPC:S:/opt/opensaf/payload/scripts/nid_tipc.sh:4000::2:1:start eth0 1234:stop
-/opt/opensaf/payload/bin/ncs_pcap:PCAP:E::99000::0:1::
+/opt/opensaf/payload/scripts/ncs_pcap_start.sh:PCAP:S:/opt/opensaf/payload/scripts/ncs_pcap_clean.sh:99000::0:1:start:

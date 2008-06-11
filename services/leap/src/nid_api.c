@@ -152,7 +152,10 @@ const NID_SVC_STATUS nid_serv_stat_info[]={     \
                {"NID_SNMPD_VIP_ADDR_NOT_FOUND", "SNMPD VIP Address not found in vip config file"},\
                {"NID_SNMPD_VIP_INTF_NOT_FOUND", "SNMPD VIP Interface not found in vip config file"}}},\
    /* NCS specific error codes & the respective strings */
-   {NID_NCS_MAX_ERR,"NCS", {{"NID_NCS_WRONG_SVC_FILE_NAME",    "Wrong service file name"},\
+   {NID_NCS_MAX_ERR,"NCS", {
+               {"NID_NCS_DAEMON_NOT_FOUND",    "Daemon Not Found"},\
+               {"NID_NCS_PROCESS_START_FAILED",    "Process Start Failed"},\
+               {"NID_NCS_WRONG_SVC_FILE_NAME",    "Wrong service file name"},\
                {"NID_NCS_GET_SLOT_ID_FAILED",      "Not able to get the SLOT ID"},\
                {"NID_NCS_GET_SHELF_ID_FAILED",     "Not able to get the SHELF ID"},\
                {"NID_NCS_GET_NODE_ID_FAILED",      "Not able to get the NODE ID"},\

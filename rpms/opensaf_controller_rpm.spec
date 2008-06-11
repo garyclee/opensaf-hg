@@ -617,6 +617,8 @@ unlink /etc/init.d/nis_scxb
 %{scripts_dir}/drbd_start.sh
 %{scripts_dir}/fabric_bond_conf
 %{scripts_dir}/find_pid.sh
+%{scripts_dir}/ncs_scap_clean.sh
+%{scripts_dir}/ncs_scap_start.sh
 %{scripts_dir}/ncs_cpd_clean.sh
 %{scripts_dir}/ncs_cpd_start.sh
 %{scripts_dir}/ncs_cpnd_clean.sh
