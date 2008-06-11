@@ -765,15 +765,18 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
     pss_mib_tbl_rank_init(inst);
     pss_mib_tbl_desc_init(inst);
 
-    m_NCS_PSSTS_SET_PSS_CONFIG(inst->pssts_api, inst->pssts_hdl, retval, "current");
-    if(retval != NCSCC_RC_SUCCESS)
+    if(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE)
     {
-        m_PSS_UNLK(&inst->lock);
-        m_LOG_PSS_LOCK(PSS_LK_UNLOCKED,&inst->lock);
-        m_PSS_LK_DLT(&inst->lock);
-        m_LOG_PSS_LOCK(PSS_LK_DELETED,&inst->lock);
-        m_MMGR_FREE_PSS_CB(inst);
-        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+        m_NCS_PSSTS_SET_PSS_CONFIG(inst->pssts_api, inst->pssts_hdl, retval, "current");
+        if(retval != NCSCC_RC_SUCCESS)
+        {
+            m_PSS_UNLK(&inst->lock);
+            m_LOG_PSS_LOCK(PSS_LK_UNLOCKED,&inst->lock);
+            m_PSS_LK_DLT(&inst->lock);
+            m_LOG_PSS_LOCK(PSS_LK_DELETED,&inst->lock);
+            m_MMGR_FREE_PSS_CB(inst);
+            return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+        }
     }
 
     m_NCS_OS_LOG_SPRINTF((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
