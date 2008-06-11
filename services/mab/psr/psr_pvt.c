@@ -2266,6 +2266,9 @@ uns32 pss_find_scalar_node(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
           return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        }
     }
+    else
+        return NCSCC_RC_SUCCESS;
+
     m_NCS_MEMSET(tbl_rec->info.scalar.data, 0, tbl_rec->info.scalar.row_len);
 
     retval = pss_read_from_sclr_store(pwe_cb, profile_name, tbl_rec->info.scalar.data,
@@ -2276,6 +2279,7 @@ uns32 pss_find_scalar_node(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
         tbl_rec->info.scalar.data = NULL;
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
+
 
     if(!entry_found)
         *created_new = TRUE;
@@ -3973,7 +3977,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
     }
 
     m_NCS_PSSTS_FILE_READ(inst->pssts_api, inst->pssts_hdl, retval, curr_file_hdl, 
-        tbl_info->max_row_length, 0, curr_data, bytes_read);
+        tbl_info->max_row_length, PSS_TABLE_DETAILS_HEADER_LEN, curr_data, bytes_read);
     if (retval != NCSCC_RC_SUCCESS)
     {
         m_LOG_PSS_STORE(NCSFL_SEV_ERROR,PSS_MIB_READ_FAIL,
@@ -5334,7 +5338,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
     }
 
     m_NCS_PSSTS_FILE_READ(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
-        retval, alt_file_hdl,  tbl_info->max_row_length, 0, alt_data, bytes_read);
+        retval, alt_file_hdl,  tbl_info->max_row_length, PSS_TABLE_DETAILS_HEADER_LEN, alt_data, bytes_read);
     if (retval != NCSCC_RC_SUCCESS)
     {
         m_LOG_PSS_STORE(NCSFL_SEV_ERROR,PSS_MIB_READ_FAIL,
