@@ -51,7 +51,6 @@ $Header: $
 #define RDE_RDE_RC_FAILURE 0
 #define RDE_RDE_MSG_WRT_SUCCESS 1
 #define RDE_RDE_MSG_WRT_FAILURE 0
-#define RDE_RDE_CONFIG_FILE "/etc/opt/opensaf/rde_rde_config_file"
 #define RDE_RDE_CLIENT_ROLE_REQUEST 8 
 #define RDE_RDE_CLIENT_ROLE_RESPONSE 9 
 #define RDE_RDE_REBOOT_CMD 10 
@@ -60,6 +59,7 @@ $Header: $
 
 #define RDE_RDE_WAIT_CNT 4 
     
+#define RDE_MAX_NO_CLIENT_RETRIES  3
 
 /***************************************************************************
 
@@ -74,10 +74,10 @@ typedef struct
    int     fd;                    /* File descr32 rde_rde_write_msg (int fd, char *msg)  */
    int     clientfd;              
    int     flags;                 /* Flags specified for open */
-   char    hostip[256];           /* Server IP Address */   
-   int     hostportnum;           /* Port Number */
-   char    servip[256];           /* Server IP Address */   
-   int     servportnum;           /* Port Number */
+   unsigned long    hostip;           /* Server IP Address. Stored in Network Order */   
+   unsigned short   hostportnum;           /* Port Number. Stored in Network Order */
+   unsigned long    servip;           /* Server IP Address. Stored in Network Order*/   
+   unsigned short   servportnum;           /* Port Number. Stored in Network Order */
    NCS_BOOL    connRecv;           /* If a the other rde client is connected to the current rde */
    NCS_BOOL    clientConnected;     /* flag whether this rde is connected to the other rde */
    int     clientReconnCount;   /* number of times the connect to the other rde was attempted */

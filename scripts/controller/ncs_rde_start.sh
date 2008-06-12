@@ -28,6 +28,16 @@ DESC="Role Distribution Entity Daemon"
 BINPATH=/opt/opensaf/controller/bin
 RDE_SCRIPT=/opt/opensaf/controller/scripts/rde_script
 
+source /etc/opt/opensaf/rde.conf
+/sbin/ifconfig > ifs
+if grep $CONTROLLER1 ifs; then
+ export RDE_SELF_IP_ADDR=$CONTROLLER1
+ export RDE_PEER_IP_ADDR=$CONTROLLER2
+else
+ export RDE_SELF_IP_ADDR=$CONTROLLER2
+ export RDE_PEER_IP_ADDR=$CONTROLLER1
+fi
+
 #
 #To start ncs_rde from gdb
 #RDE_SCRIPT=xterm -e /usr/bin/gdb /opt/opensaf/controller/bin/ncs_rde

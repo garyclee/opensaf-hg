@@ -61,75 +61,45 @@ extern uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb);
 
 uns32 rde_rde_parse_config_file()
  {
-  char line[256];
-  char *str=NULL;
-  int rc,i;
-   
-  FILE *fp;
- RDE_CONTROL_BLOCK * rde_cb; 
- rde_cb = rde_get_control_block();
-  
-  fp = fopen(RDE_RDE_CONFIG_FILE, "r");  /*This CONFIGPATH can be declared in etc/rde file*/
-  if (fp == NULL)
+  char *tmp_ptr = NULL;
+  RDE_CONTROL_BLOCK * rde_cb; 
+ 
+  rde_cb = rde_get_control_block();
+
+  /* Fill the no of retires. */ 
+  rde_cb->rde_rde_cb.maxNoClientRetries = RDE_MAX_NO_CLIENT_RETRIES;
+
+  tmp_ptr = getenv("RDE_SELF_IP_ADDR");
+  if(tmp_ptr)
   {
-        m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_UNABLE_TO_OPEN_CONFIG_FILE , RDE_RDE_CONFIG_FILE); 
-        return RDE_RDE_RC_FAILURE;
+     rde_cb->rde_rde_cb.hostip= inet_addr(tmp_ptr);
+     m_NCS_CONS_PRINTF("\nrde_cb->rde_rde_cb.hostip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.hostip));
+     tmp_ptr = NULL;
   }
-  while(fgets (line, sizeof (line), fp) != NULL)
+  else
+   m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_SELF_IP_ADDR is NULL\n");
+ 
+  tmp_ptr = getenv("RDE_PEER_IP_ADDR");
+  if(tmp_ptr)
   {
-       i = strncmp (line, "HOSTIPADDRESS",13);
-       if (i == 0) 
-       {
-          str=strstr(line,"=");
-          str++;
-          strcpy(rde_cb->rde_rde_cb.hostip,str);
-          rde_rde_strip(rde_cb->rde_rde_cb.hostip);
-       }      
-       i = strncmp (line, "HOSTPORTNUM",11);
-       if (i == 0)
-       {
-          str=strstr(line,"=");
-          str++;
-          rde_cb->rde_rde_cb.hostportnum = atoi(str++);
-       }
-       i = strncmp (line, "SERVERIPADDRESS",15);
-       if (i == 0) 
-       {
-          str=strstr(line,"=");
-          str++;
-          strcpy(rde_cb->rde_rde_cb.servip,str++);
-          rde_rde_strip(rde_cb->rde_rde_cb.servip);
-       }      
-       i = strncmp (line, "SERVERPORTNUM",13);
-       if (i == 0)
-       {
-          str=strstr(line,"=");
-          str++;
-          rde_cb->rde_rde_cb.servportnum = atoi(str++);
-       }
-       i = strncmp (line,"HA_ROLE",7);
-       if (i == 0)
-       {
-          str=strstr(line,"=");
-          str++;
-          rde_cb->ha_role = atoi(str++);
-       }
-       i = strncmp (line,"MAX_CLIENT_RETRIES",11);
-       if (i == 0)
-       {
-          str=strstr(line,"=");
-          str++;
-          rde_cb->rde_rde_cb.maxNoClientRetries= atoi(str++);
-       }
-     }
-     if(fp)
-        rc = fclose(fp);
-     if ( rc != 0 )
-     {
-        m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_FAIL_TO_CLOSE_CONFIG_FILE, "config_file");
-        return RDE_RDE_RC_FAILURE;
-     }
-    return  RDE_RDE_RC_SUCCESS;   
+     rde_cb->rde_rde_cb.servip = inet_addr(tmp_ptr);
+     m_NCS_CONS_PRINTF("\nrde_cb->rde_rde_cb.servip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.servip));
+     tmp_ptr = NULL;
+  }
+  else
+     m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_PEER_IP_ADDR is NULL\n");
+ 
+  tmp_ptr = getenv("RDE_PORT_NUMBER");
+  if(tmp_ptr)
+  {
+     rde_cb->rde_rde_cb.hostportnum = rde_cb->rde_rde_cb.servportnum = htons(atoi(tmp_ptr));
+     m_NCS_CONS_PRINTF("\nRde port number %d\n",ntohs(rde_cb->rde_rde_cb.hostportnum));
+     tmp_ptr = NULL;
+  }
+  else
+     m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_PORT_NUMBER is NULL\n");
+
+  return  RDE_RDE_RC_SUCCESS;   
     
 }
 
@@ -174,8 +144,8 @@ uns32 rde_rde_open (RDE_RDE_CB *rde_rde_cb)
    \***************************************************************/
    
    rde_rde_cb->host_addr.sin_family = AF_INET;
-   rde_rde_cb->host_addr.sin_addr.s_addr = inet_addr(rde_rde_cb->hostip);
-   rde_rde_cb->host_addr.sin_port = htons(rde_rde_cb->hostportnum);
+   rde_rde_cb->host_addr.sin_addr.s_addr = rde_rde_cb->hostip;
+   rde_rde_cb->host_addr.sin_port = rde_rde_cb->hostportnum;
 
    
    if (rde_rde_sock_init(rde_rde_cb) != RDE_RDE_RC_SUCCESS)
@@ -693,8 +663,8 @@ uns32 rde_rde_client_socket_init(RDE_RDE_CB *rde_rde_cb)
    bzero( &rde_rde_cb->serv_addr, sizeof(rde_rde_cb->serv_addr));
 
    rde_rde_cb->serv_addr.sin_family = AF_INET;
-   rde_rde_cb->serv_addr.sin_addr.s_addr = inet_addr(rde_rde_cb->servip);
-   rde_rde_cb->serv_addr.sin_port = htons(rde_rde_cb->servportnum);
+   rde_rde_cb->serv_addr.sin_addr.s_addr = rde_rde_cb->servip;
+   rde_rde_cb->serv_addr.sin_port = rde_rde_cb->servportnum;
 
    return rc;   
 }
