@@ -58,7 +58,7 @@ $Header: $
 #define RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ 11 
 #define RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_RESP 12
 
-#define RDE_RDE_WAIT_CNT 2 
+#define RDE_RDE_WAIT_CNT 4 
     
 
 /***************************************************************************
@@ -89,6 +89,7 @@ typedef struct
                       connection goes down. */ 
    uns32 peer_slot_number;
    uns32 nid_ack_sent; /* To respond NID when it comes up. */
+   NCS_BOOL conn_needed; /* If STDBY is waiting for Reboot command, there is not need to call connect. */
   
 }RDE_RDE_CB;
 

@@ -758,6 +758,10 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
         char msg [RDE_RDE_MSG_SIZE] = {0};
         char  log[RDE_LOG_MSG_SIZE] = {0};
 
+		/* Don't connect if STDBY RDE is waiting for Reboot.*/
+        if(rde_rde_cb->conn_needed == FALSE)
+		  return RDE_RDE_RC_SUCCESS;
+
         if (((rde_rde_cb->clientReconnCount <  rde_rde_cb->maxNoClientRetries) && (FALSE == rde_rde_cb->clientConnected)) ||
             rde_rde_cb->retry == TRUE)
         {
@@ -1193,10 +1197,12 @@ uns32 rde_rde_hb_err ()
             If it doesn't get reboot command then send reboot command to ACT. */
          m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received.  Waiting for reboot cmd from other RDE\n");
            rde_rde_cb->hb_loss = TRUE;
+		   rde_rde_cb->conn_needed = FALSE;
        }
        else
        {
          rde_rde_cb->hb_loss = TRUE;
+		 rde_rde_cb->conn_needed = FALSE;
          /* Log a message. */
          m_RDE_LOG_COND_C(RDE_SEV_CRITICAL, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received. RDE-RDE not connected\n");
        }
@@ -1277,6 +1283,7 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
 {
   char msg [RDE_RDE_MSG_SIZE] = {0};
   int msg_size   = 0;
+  int rc = 0;
   RDE_RDE_CB  *rde_rde_cb  = &rde_cb->rde_rde_cb;
 
   if(rde_rde_cb->hb_loss == TRUE)
@@ -1286,6 +1293,7 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
     rde_rde_cb->count = 0;
     rde_rde_cb->hb_loss = FALSE;
     rde_cb->ha_role = PCS_RDA_ACTIVE;
+	rde_rde_cb->conn_needed = TRUE;
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Wait Time Over : Switching STDBY to ACTIVE\n");
     rde_rde_update_config_file(rde_cb->ha_role);
     rde_rda_send_role (rde_cb->ha_role);
@@ -1304,6 +1312,23 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
             }
             else
             {
+               /* Since the peer has been rebooted so reinitiate socket fds. */
+                rde_cb->rde_rde_cb.retry = TRUE;
+                rde_cb->rde_rde_cb.clientConnected = FALSE;
+                rde_cb->rde_rde_cb.clientReconnCount = 0;
+                if( rde_rde_client_socket_init(rde_rde_cb)!= RDE_RDE_RC_SUCCESS)
+                 {
+                    /* If the socket initialization fails then we need to exit */
+                     return RDE_RDE_RC_FAILURE;
+                 }
+                /* Close the recvFd and mark it not connected. */
+			    rc = close(rde_rde_cb->recvFd);
+				rde_rde_cb->connRecv = FALSE;
+			    if ( rc < 0)
+		        {
+                   m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
+                }
+
                return RDE_RDE_RC_SUCCESS;
             }
     }
