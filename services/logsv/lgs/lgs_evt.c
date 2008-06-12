@@ -62,7 +62,7 @@ LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[LGSV_API_MAX - LGSV_API_
  * 
  * @return log_client_t*
  */
-static log_client_t *lgs_client_get_by_id(uns32 client_id)
+log_client_t *lgs_client_get_by_id(uns32 client_id)
 {
     uns32 client_id_net;
     log_client_t *rec;
@@ -101,7 +101,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id,
 
     if (NULL == (client = calloc(1, sizeof(log_client_t))))
     {
-        TRACE("calloc FAILED");
+        LOG_WA("calloc FAILED");
         goto done;
     }
 
@@ -117,14 +117,14 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id,
     /** Insert the record into the patricia tree **/
     if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&lgs_cb->client_tree, &client->pat_node))
     {
-        TRACE("FAILED: ncs_patricia_tree_add");
+        LOG_WA("FAILED: ncs_patricia_tree_add, client_id %u", client_id);
         free(client);
         client = NULL;
         goto done;
     }
 
 done:
-    TRACE_LEAVE2("client_id %u", client->client_id);
+    TRACE_LEAVE2("client_id %u", client_id);
     return client;
 }
 
@@ -197,7 +197,13 @@ int lgs_client_stream_add(uns32 client_id, uns32 stream_id)
         goto err_exit;
     }
 
-    stream = malloc(sizeof(lgs_stream_list_t));
+    if ((stream = malloc(sizeof(lgs_stream_list_t))) == NULL)
+    {
+        LOG_WA("malloc FAILED");
+        rs = -1;
+        goto err_exit;
+    }
+
     stream->next = client->stream_list_root;
     stream->stream_id = stream_id;
     client->stream_list_root = stream;
@@ -467,11 +473,11 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
     if (cb->ha_state == SA_AMF_HA_ACTIVE)
     {
         memset(&ckpt, 0, sizeof(ckpt)); 
-        ckpt.header.ckpt_rec_type = LGS_CKPT_INITIALIZE_REC;
+        ckpt.header.ckpt_rec_type = LGS_CKPT_CLIENT_INITIALIZE;
         ckpt.header.num_ckpt_records = 1;
         ckpt.header.data_len = 1;
-        ckpt.ckpt_rec.reg_rec.client_id = cb->last_client_id;
-        ckpt.ckpt_rec.reg_rec.mds_dest = evt->fr_dest;
+        ckpt.ckpt_rec.initialize_client.client_id = cb->last_client_id;
+        ckpt.ckpt_rec.initialize_client.mds_dest = evt->fr_dest;
         async_rc = lgs_send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD); 
     }
 
@@ -512,10 +518,10 @@ static uns32 proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         goto snd_rsp;
     }
 
-    ckpt.header.ckpt_rec_type = LGS_CKPT_FINALIZE_REC;
+    ckpt.header.ckpt_rec_type = LGS_CKPT_CLIENT_FINALIZE;
     ckpt.header.num_ckpt_records = 1;
     ckpt.header.data_len = 1;
-    ckpt.ckpt_rec.finalize_rec.client_id = client_id;
+    ckpt.ckpt_rec.finalize_client.client_id = client_id;
     (void) lgs_send_async_update(lgs_cb, &ckpt, NCS_MBCSV_ACT_RMV);
 
 snd_rsp:
@@ -917,10 +923,10 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         ckpt.header.ckpt_rec_type=LGS_CKPT_LOG_WRITE;
         ckpt.header.num_ckpt_records = 1;
         ckpt.header.data_len = 1;
-        ckpt.ckpt_rec.writeLog.recordId = stream->logRecordId;
-        ckpt.ckpt_rec.writeLog.streamId = stream->streamId;
-        ckpt.ckpt_rec.writeLog.curFileSize = stream->curFileSize;
-        ckpt.ckpt_rec.writeLog.logFileCurrent = stream->logFileCurrent;
+        ckpt.ckpt_rec.write_log.recordId = stream->logRecordId;
+        ckpt.ckpt_rec.write_log.streamId = stream->streamId;
+        ckpt.ckpt_rec.write_log.curFileSize = stream->curFileSize;
+        ckpt.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
 
         (void) lgs_send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
     }

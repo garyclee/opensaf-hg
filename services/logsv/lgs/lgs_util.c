@@ -15,6 +15,8 @@
  *
  */
 
+#include <stdlib.h>
+
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
@@ -380,5 +382,13 @@ uns32 lgs_create_known_streams(lgs_cb_t *lgs_cb)
 done:
     TRACE_LEAVE();
     return rc;
+}
+
+void lgs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr)
+{
+    LOG_ER("Exiting with message: %s", msg);
+    (void) saAmfComponentErrorReport(lgs_cb->amf_hdl, &lgs_cb->comp_name, 0,
+                                     rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
+    exit(EXIT_FAILURE);
 }
 

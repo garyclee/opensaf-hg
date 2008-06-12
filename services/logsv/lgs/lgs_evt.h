@@ -60,6 +60,7 @@ extern int lgs_client_stream_add(uns32 client_id, uns32 stream_id);
 extern int lgs_client_stream_rmv(uns32 client_id, uns32 stream_id);
 extern log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id,
                              lgs_stream_list_t *stream_list);
+extern log_client_t *lgs_client_get_by_id(uns32 client_id);
 extern int lgs_client_add_stream(log_client_t *client, uns32 stream_id);
 extern int lgs_client_delete(uns32 client_id);
 extern int lgs_client_delete_by_mds_dest(MDS_DEST mds_dest);

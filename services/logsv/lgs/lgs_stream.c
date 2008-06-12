@@ -748,7 +748,7 @@ uns32 log_stream_init(void)
     stream_array = calloc(1, sizeof(log_stream_t *) * stream_array_size);
     if (stream_array == NULL)
     {
-        LOG_ER("calloc FAILED");
+        LOG_WA("calloc FAILED");
         return NCSCC_RC_FAILURE;
     }
 

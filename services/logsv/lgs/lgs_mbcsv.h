@@ -30,12 +30,12 @@
  * can be mapped straight with lgsv message types
  */
 
-typedef enum lgsv_ckpt_rec_type
+typedef enum
 {
     LGS_CKPT_MSG_BASE, 
-    LGS_CKPT_INITIALIZE_REC=LGS_CKPT_MSG_BASE,
-    LGS_CKPT_FINALIZE_REC,
-    LGS_CKPT_AGENT_DOWN,
+    LGS_CKPT_CLIENT_INITIALIZE=LGS_CKPT_MSG_BASE,
+    LGS_CKPT_CLIENT_FINALIZE,
+    LGS_CKPT_CLIENT_DOWN,
     LGS_CKPT_LOG_WRITE,
     LGS_CKPT_OPEN_STREAM,
     LGS_CKPT_CLOSE_STREAM,
@@ -44,19 +44,19 @@ typedef enum lgsv_ckpt_rec_type
 
 /* Structures for Checkpoint data(to be replicated at the standby) */
 
-/* Registrationlist checkpoint record, used in cold/async checkpoint updates */
+/* Initialize checkpoint record, used in cold/async checkpoint updates */
 typedef struct
 {
     uns32               client_id; /* Client Id at Active */
     MDS_DEST            mds_dest;  /* Handy when an LGA instance goes away */
     lgs_stream_list_t  *stream_list;
-} lgs_ckpt_reg_msg_t;
+} lgs_ckpt_initialize_msg_t;
 
-/* finalize checkpoint record, used in cold/async checkpoint updates */
+/* Finalize checkpoint record, used in cold/async checkpoint updates */
 typedef struct
 {
     uns32 client_id; /* Client Id at Active */
-} lgsv_ckpt_finalize_msg_t;
+} lgs_ckpt_finalize_msg_t;
 
 typedef struct
 {
@@ -108,9 +108,9 @@ typedef struct
     lgsv_ckpt_header_t header;
     union
     {
-        lgs_ckpt_reg_msg_t        reg_rec;
-        lgsv_ckpt_finalize_msg_t  finalize_rec;
-        lgs_ckpt_write_log_t      writeLog;  
+        lgs_ckpt_initialize_msg_t initialize_client;
+        lgs_ckpt_finalize_msg_t   finalize_client;
+        lgs_ckpt_write_log_t      write_log;  
         MDS_DEST                  agent_dest;
         lgs_ckpt_stream_open_t    stream_open;
         lgs_ckpt_stream_close_t   stream_close;
@@ -122,4 +122,5 @@ uns32 lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
 uns32 lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 uns32 lgs_send_async_update(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action);
+
 #endif /* !LGSV_CKPT_H*/
