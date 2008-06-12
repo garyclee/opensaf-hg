@@ -590,7 +590,7 @@ unlink /etc/init.d/nis_scxb
 %config %{conf_dir}/cli_cefslib_conf
 %config %{conf_dir}/ncsSnmpSubagt.conf
 %config %{conf_dir}/pssv_lib_conf
-%config %{conf_dir}/rde_rde_config_file
+%config %{conf_dir}/rde.conf
 %config %{conf_dir}/slot_id
 %config %{conf_dir}/subagt_lib_conf
 %config %{conf_dir}/vipsample.conf

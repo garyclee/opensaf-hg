@@ -325,23 +325,16 @@ The slot_id shall specify a unique value that represents a physical slot identif
 c) chassis_id: 
 The chassis_id represents an identifier for the chassis (Distributed Computing Environment) and should be set to an integer value. The same applies for a simulation environment on a PC. The default value is set to 2. If the user changes this value, the NCSSystemBOM.xml must be changed accordingly to reflect the same. This file gets installed in /etc/opt/opensaf/ directory.
 
-d) rde_rde_config_file: You need to configure this file only if you are using reference implementation of RDF. This file contains information pertaining to RDF configuration and the following parameters have to be set accordingly:
+d) rde.conf: You need to configure this file only if you are using reference implementation of RDF. This file contains information pertaining to RDF configuration and the following parameters have to be set accordingly:
 
-HA_ROLE=0
-HOSTIPADDRESS=10.232.91.176
-HOSTPORTNUM=8789
-SERVERIPADDRESS=10.232.91.127
-SERVERPORTNUM=8787
-MAX_CLIENT_RETRIES=10
+export CONTROLLER1=10.232.92.160
+export CONTROLLER2=10.232.92.206
+export RDE_PORT_NUMBER=5003
 
-- The fields, HOSTIPADDRESS and HOSTPORTNUM specify the ip address and port number of the controller blade. 
 
-- The SERVERIPADDRESS and SERVERPORTNUM specify the ip address and port number of the peer system controller blade. 
+- The fields, CONTROLLER1 and CONTROLLER2 specify the ip addresses of the controllers and RDE_PORT_NUMBER specify port number,which RDE uses to communicate for its TCP communication. So, if user application is using this port number, then it should be changed accordingly. 
 
-- The field HA_ROLE takes 0 OR 1 as valid values and specifies whether the controller blade has been 
-  configured as ACTIVE OR STANDDBY respectively.
-
-- The field MAX_CLIENT_RETRIES specifies how many times the booting controller blade should try connecting to another controller blade (if this is already up and running). After the MAX_CLIENT_RETRIES times, it declares itself as ACTIVE. Even if the HA_ROLE specified in configuration file is 1(STANDBY), and retry count reaches MAX_CLIENT_RETRIES value, the HA role of RDF is set to ACTIVE (0) and the HA_ROLE is updated in the node_ha_state file.
+- This file should be the same on both the controllers. 
 
 Th node_ha_state file gets updated whenever a HA role change happens on the system controller. This file gets installed in /var/opt/opensaf/ directory.
 
@@ -387,7 +380,7 @@ After installing opensaf controller RPM,
 
 Step 1. Modify /etc/opt/opensaf/slot_id to add slot-id.
 
-Step 2. Modify /etc/opt/opensaf/rde_rde_config_file to add your ip address and peer controller ip address.
+Step 2. Modify /etc/opt/opensaf/rde.conf to add both controllers ip address.
 
 Step 3: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface information and tipc network id, accordingly as described in the above page.
 
@@ -498,7 +491,7 @@ The OpenSAF services on a system controller fail to start during any of the foll
    User can edit the NCSSystemBOM.xml to add definitions for slots >5.
 
 4. Incorrect RDE configuration:
-   The rde_rde_config file should be configured with values (mainly the ipaddress and port numbers) as mentioned above in "CONFIGURATION OF OpenSAF".
+   The rde.conf file should be configured with values (mainly the ipaddress and port number) as mentioned above in "CONFIGURATION OF OpenSAF".
     
 5. Incorrect open source libraries: 
    Ensure that the following opensource packages are installed ('make install') in their default paths:

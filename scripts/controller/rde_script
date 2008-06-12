@@ -28,6 +28,16 @@ BINPATH=/opt/opensaf/controller/bin
 PIDFILE=/var/run/rde.pid
 HPMCMDPATH=/opt/opensaf/controller/bin
 
+source /etc/opt/opensaf/rde.conf
+/sbin/ifconfig > ifs
+if grep $CONTROLLER1 ifs; then
+ export RDE_SELF_IP_ADDR=$CONTROLLER1
+ export RDE_PEER_IP_ADDR=$CONTROLLER2
+else
+ export RDE_SELF_IP_ADDR=$CONTROLLER2
+ export RDE_PEER_IP_ADDR=$CONTROLLER1
+fi
+
 
 NIDFIFO=/tmp/nodeinit.fifo
 NID_MAGIC=AAB49DAA
