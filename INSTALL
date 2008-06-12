@@ -332,7 +332,7 @@ export CONTROLLER2=10.232.92.206
 export RDE_PORT_NUMBER=5003
 
 
-- The fields, CONTROLLER1 and CONTROLLER2 specify the ip addresses of the controllers and RDE_PORT_NUMBER specify port number,which RDE uses to communicate for its TCP communication. So, if user application is using this port number, then it should be changed accordingly. 
+- The fields, CONTROLLER1 and CONTROLLER2 specify the IP addresses of the controllers and RDE_PORT_NUMBER specify port number,which RDE uses to communicate for its TCP communication. So, if user application is using this port number, then it should be changed accordingly. 
 
 - This file should be the same on both the controllers. 
 
@@ -380,7 +380,7 @@ After installing opensaf controller RPM,
 
 Step 1. Modify /etc/opt/opensaf/slot_id to add slot-id.
 
-Step 2. Modify /etc/opt/opensaf/rde.conf to add both controllers ip address.
+Step 2. Modify /etc/opt/opensaf/rde.conf to add both controllers IP address.
 
 Step 3: Modify /etc/opt/opensaf/nodeinit.conf to reflect your interface information and tipc network id, accordingly as described in the above page.
 
