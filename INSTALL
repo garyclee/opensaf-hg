@@ -173,7 +173,7 @@ g) Autotools: OpenSAF build environment uses autotools. The user's development h
 OpenSAF uses GNU autotools for it's build system. OpenSAF enforces to use 'gcc version 4.1.0' and above. If OpenSAF has to build with the lower versions of gcc (< 4.1.0), remove '-Wno-pointer-sign' (for CFLAGS) in <opensaf_home>/configure.ac file.
 
 NOTES: - Standard autotools package and 
-       - Flex/Bison for building smidump toolchain, are expected to be present on your linux distribution for building OpenSAF.
+       - Flex/Bison for building smidump toolchain, are required to be present on your linux distribution for building OpenSAF.
 
 Following 'configure' options are supported in building opensaf.
 
