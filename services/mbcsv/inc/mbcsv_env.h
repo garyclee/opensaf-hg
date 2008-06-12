@@ -225,11 +225,11 @@ typedef struct peer_inst
 
     /* We need to store data request context and pass it
        back to user in data resp encode */
-    uns32                req_context; 
+    uns64                req_context; 
     
     /* Call again parameters to be preserved */
     uns32                 call_again_reo_type;
-    uns32                 call_again_reo_hdl;
+    MBCSV_REO_HDL         call_again_reo_hdl;
     NCS_MBCSV_ACT_TYPE    call_again_action;
     uns8                  call_again_event;
 
