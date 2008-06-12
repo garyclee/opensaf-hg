@@ -143,6 +143,7 @@ uns32 rde_initialize (void)
    rde_rde_cb->hb_loss = FALSE;
    rde_rde_cb->retry = FALSE;
    rde_rde_cb->nid_ack_sent = FALSE;
+   rde_rde_cb->conn_needed = TRUE;
 
 /* Initialise the rde rde client */
    rc = rde_rde_client_socket_init(rde_rde_cb);
@@ -519,10 +520,14 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
        /* if this RDE is not connected to the other RDE then connect */
         if (!rde_rde_cb->clientConnected)
         {
+		   if(rde_rde_cb->conn_needed == TRUE)
+		   {
+ 		      /* Connect only if it is needed. */
               if (rde_rde_connect(rde_rde_cb)!=RDE_RDE_RC_SUCCESS)
               {
                   return NCSCC_RC_FAILURE;
               }
+		   }
         }
         /* we will not send a request for role here because that will be taken care by clCheckConnect */
         rc = NCSCC_RC_SUCCESS;
