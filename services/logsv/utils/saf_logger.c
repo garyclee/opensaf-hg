@@ -131,11 +131,13 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
 
     do
     {
-        /* Only add a unique ID if have a logBuffer AND periodic writes are requiested */
+        i++;
+
+        /* Only add a unique ID if have a logBuffer AND periodic writes are requested */
         if (logRecord->logBuffer != NULL && write_count > 1)
         {
             /* add unique ID to each log */
-            sprintf(&logRecord->logBuffer->logBuf[write_index], " - %u", i++);
+            sprintf(&logRecord->logBuffer->logBuf[write_index], " - %u", i);
             logRecord->logBuffer->logBufSize = strlen(logRecord->logBuffer->logBuf);
         }
 
@@ -170,10 +172,16 @@ poll_retry:
         if (ret == EINTR)
             goto poll_retry;
 
-        if (ret <= 0)
+        if (ret == -1)
         {
             fprintf(stderr, "poll FAILED: %u\n", ret);
-            return SA_AIS_ERR_TIMEOUT;
+            return SA_AIS_ERR_BAD_OPERATION;
+        }
+
+        if (ret == 0)
+        {
+            fprintf(stderr, "poll timeout, message %u was most likely lost\n", i);
+            continue;
         }
 
         errorCode = saLogDispatch(logHandle, SA_DISPATCH_ONE);
