@@ -1,0 +1,203 @@
+    NCS-IFSV-MIB DEFINITIONS ::= BEGIN
+
+     IMPORTS
+         OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE,
+         Integer32, Counter32, Unsigned32
+             FROM SNMPv2-SMI
+
+         MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+             FROM SNMPv2-CONF
+
+--         IANAifType
+--             FROM IANAifType-MIB
+
+         InterfaceIndex, ifNumber, ifEntry 
+	     FROM IF-MIB
+	
+         eccgNcsModules, ifsv
+             FROM ECC-SMI;	
+
+     ncsIfsvMIB MODULE-IDENTITY
+         LAST-UPDATED "200411281730Z"
+         ORGANIZATION "Netplane Core Services"
+         CONTACT-INFO
+	       "Motorola Inc
+		Embedded Communications Computing
+		http://www.motorola.com/computers/
+
+		Author:	Sudhakar Reddy
+		e-mail:	sudhakarr@motorola.com
+		Address: Motorola India Pvt Ltd, 
+			 Auriga Block, Ascendas IT Park,
+			 Madhapur, Hyderabad, AP
+			 INDIA
+		Tel:	 +91-40-55727000
+		Fax:	 +91-40-55727001"
+
+         DESCRIPTION
+             "This MIB contains managed object definitions for the
+             'Interface Service for Netplane Core 
+              Services."
+         ::= { eccgNcsModules 2 }
+
+     --****************************************************************
+     ncsifsvIfobjects	       OBJECT IDENTIFIER ::= { ifsv 1 }
+
+     --****************************************************************
+     -- NCS IFSV Interface Object Extentions
+     --****************************************************************
+
+     ncsIfsvIfXTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsIfsvIfXEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A list of interface entries.  The number of entries is
+            given by the value of ifNumber.  This table contains NCS 
+            IFSV additional objects for the interface table."
+         ::= { ncsifsvIfobjects 1 }
+
+     ncsIfsvIfXEntry OBJECT-TYPE
+         SYNTAX      NcsIfsvIfXEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "An entry containing NCS Interface Service additional management
+              information applicable to a particular interface."
+         AUGMENTS    { ifEntry }
+         ::= { ncsIfsvIfXTable 1 }
+
+     NcsIfsvIfXEntry ::= SEQUENCE {
+         ncsIfsvIfShelfId                   Integer32,
+         ncsIfsvIfSlotId                    Integer32,
+         ncsIfsvIfPortId                    Integer32
+     }
+
+     ncsIfsvIfShelfId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The Shelf number in the system."
+         ::= { ncsIfsvIfXEntry 1 }
+
+     ncsIfsvIfSlotId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Slot number in a particular chassis."
+         ::= { ncsIfsvIfXEntry 2 }
+
+     ncsIfsvIfPortId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The interface Port number in a particular Slot."
+         ::= { ncsIfsvIfXEntry 3 }
+
+
+
+     --****************************************************************
+     -- NCS IFSV Interface Map Table Objects 
+     --****************************************************************
+          
+     ncsIfsvIfMapTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsIfsvIfMapEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "This Table will contain the mapping infomation 
+              between physical parameters (shelf, Slot, port and IfType)
+              and IfIndex."
+         ::= { ncsifsvIfobjects 2 }
+
+     ncsIfsvIfMapEntry OBJECT-TYPE
+         SYNTAX      NcsIfsvIfMapEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "An entry containing mapping information between physical parameters
+              and IfIndex applicable to a particular interface."
+         INDEX     { ncsIfsvIfMapEntryShelfId,
+                     ncsIfsvIfMapEntrySlotId,
+                     ncsIfsvIfMapEntryPortId,
+                     ncsIfsvIfMapEntryIfType,
+                     ncsIfsvIfMapEntryIfSubscrScope }
+         ::= { ncsIfsvIfMapTable 1 }
+
+     NcsIfsvIfMapEntry ::= SEQUENCE {
+         ncsIfsvIfMapEntryShelfId                   Integer32,
+         ncsIfsvIfMapEntrySlotId                    Integer32,
+         ncsIfsvIfMapEntryPortId                    Integer32,
+         ncsIfsvIfMapEntryIfType                    Integer32,
+         ncsIfsvIfMapEntryIfSubscrScope             Integer32,
+         ncsIfsvIfMapEntryIfIndex                   InterfaceIndex,
+         ncsIfsvIfMapEntryIfInfo                    OCTET STRING
+     }
+
+     ncsIfsvIfMapEntryShelfId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Shelf number in the system."
+         ::= { ncsIfsvIfMapEntry 1 }
+
+     ncsIfsvIfMapEntrySlotId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "Slot number in a particular chassis."
+         ::= { ncsIfsvIfMapEntry 2 }
+
+     ncsIfsvIfMapEntryPortId OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The interface Port number in a particular Slot."
+         ::= { ncsIfsvIfMapEntry 3 }
+
+     ncsIfsvIfMapEntryIfType OBJECT-TYPE 
+         SYNTAX      Integer32
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The type of interface. these values have been very specific to IFSV Service "
+         ::= { ncsIfsvIfMapEntry 4 }
+
+     ncsIfsvIfMapEntryIfSubscrScope OBJECT-TYPE
+         SYNTAX      Integer32(0..2)
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Subscripscope of an Interface ."
+         ::= { ncsIfsvIfMapEntry 5 }
+
+
+     ncsIfsvIfMapEntryIfIndex OBJECT-TYPE 
+         SYNTAX      InterfaceIndex
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "A unique value, greater than zero, for each interface.  It
+            is recommended that values are assigned contiguously
+            starting from 1.  The value for each interface sub-layer
+            must remain constant at least from one re-initialization of
+            the entity's network management system to the next re-
+            initialization."
+         ::= { ncsIfsvIfMapEntry 6 }
+
+     ncsIfsvIfMapEntryIfInfo OBJECT-TYPE
+         SYNTAX      OCTET STRING
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             " "
+         ::= { ncsIfsvIfMapEntry 7 }
+
+
+END
