@@ -6082,6 +6082,11 @@ static void printObjDiscreteValues(FILE *fd, SmiNode *grpNode)
                 value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.integer32);
                 fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
               }
+              else if (smiType->basetype == SMI_BASETYPE_BITS)
+              {
+                value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.unsigned32);
+                fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
+              }
               else if((((Range *)listPtr->ptr)->export.minValue.len) &&
                  (! (((Range *)listPtr->ptr)->export.maxValue.basetype)))
               {
@@ -6112,6 +6117,11 @@ static void printObjDiscreteValues(FILE *fd, SmiNode *grpNode)
               if (smiType->basetype == SMI_BASETYPE_ENUM)
               {
                 value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.integer32);
+                fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
+              }
+              else if (smiType->basetype == SMI_BASETYPE_BITS)
+              {
+                value = (int)(((NamedNumber *)listPtr->ptr)->export.value.value.unsigned32);
                 fprintf(fd, "\n                                                   {0x%x, 0x%x},", value, value);
               }
               else if((((Range *)listPtr->ptr)->export.minValue.len) &&
