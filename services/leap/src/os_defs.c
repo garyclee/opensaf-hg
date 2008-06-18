@@ -3318,17 +3318,15 @@ int ncs_sel_obj_rmv_ind( NCS_SEL_OBJ i_ind_obj,
     }/* End of infinite loop */
 }
 
-/* IR 83120 Fix */
 int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
-                         NCS_SEL_OBJ_SET *rfds,
-                         NCS_SEL_OBJ_SET *wfds,
-                         NCS_SEL_OBJ_SET *efds,
-                         uns32 *timeout_in_10ms)
+                       NCS_SEL_OBJ_SET *rfds,
+                       NCS_SEL_OBJ_SET *wfds,
+                       NCS_SEL_OBJ_SET *efds,
+                       uns32 *timeout_in_10ms)
 {
     struct timeval tmout_in_tv = {0,0};
     struct timeval *p_tmout_in_tv;
     int rc;
-    int save_errno = 0, eintr_cnt = 0;
     uns32 rem10ms=0, old_rem10ms = 0;
     NCS_SEL_OBJ_SET save_rfds, save_wfds, save_efds;
 
@@ -3340,7 +3338,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
     if (wfds) save_wfds = *wfds;
     if (efds) save_efds = *efds;
 
-    do /* BUG 14755: EINTR handling for selection-object primitives. */
+    do
     {
         if (rfds) *rfds = save_rfds; /* IR00060294 */
         if (wfds) *wfds = save_wfds;
@@ -3358,25 +3356,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 
        rc = select(highest_sel_obj.rmv_obj+1, rfds, wfds, efds, p_tmout_in_tv);
 
-       /* STEP: If too many consecutive EINTR, then break with error */
-       save_errno = errno;
-       if ((rc == -1) && (save_errno == EINTR))
-       {
-           eintr_cnt++;
-           if ((eintr_cnt == 10) ||
-               ((eintr_cnt % 50) == 0)) /* 50, 100,..., eintr_cnt can't be zero. */
-           {
-                m_NCS_SYSLOG(NCS_LOG_WARNING, "ncs_sel_obj_select:Too many interrupts (%d)", 
-                     eintr_cnt); 
-
-#if 0 /* IR00086215: Never quit inspite of several EINTRs */
-                rc = -1;
-                break;
-#endif 
-           }
-       }
-
-      if (timeout_in_10ms != NULL)
+       if (timeout_in_10ms != NULL)
        {
            rem10ms = (tmout_in_tv.tv_sec*100);
            rem10ms += ((tmout_in_tv.tv_usec+5000)/10000);
@@ -3394,7 +3374,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
            old_rem10ms = rem10ms;
        }
 
-    }while ((rc < 0) && (errno == EINTR));
+    } while ((rc == -1) && (errno == EINTR));
 
     if (timeout_in_10ms != NULL)
     {
