@@ -412,7 +412,7 @@ uns32 hcd_hsm()
          )
 
       {
-         SaHpiTimeoutT auto_exttime = HPI_AUTO_HS_STOP_TMR;
+         SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
 
 #ifdef HPI_A
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
@@ -611,7 +611,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
       /* if it is a FRU and hotswap managable then publish outstanding inspending events */
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
       {
-         SaHpiTimeoutT auto_exttime = HPI_AUTO_HS_STOP_TMR;
+         SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
          if (saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime) != SA_OK)
          {
             m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error in setting Auto Insertion timeout\n");
