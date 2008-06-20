@@ -32,6 +32,75 @@ static unsigned int numb_of_streams;
 static int lgs_stream_array_insert(log_stream_t *stream, int id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, int *id);
 static int lgs_stream_array_remove(int id);
+static int get_number_of_log_files(log_stream_t* logStream, char* oldest_file);
+
+/**
+ * Delete config file.
+ * @param stream
+ * 
+ * @return int
+ */
+static int delete_config_file(log_stream_t* stream)
+{
+    int rc, n;
+    char pathname[PATH_MAX + NAME_MAX];
+
+    /* create absolute path for config file */
+    n = snprintf(pathname, PATH_MAX, "%s/%s/%s.cfg", lgs_cb->logsv_root_dir,
+                 stream->pathName, stream->fileName);
+
+    assert(n < sizeof(pathname));
+
+    if ((rc = unlink(pathname)) == -1)
+    {
+        if (errno == ENOENT)
+            rc = 0;
+        else
+            LOG_ER("could not unlink: %s - %s", pathname, strerror(errno));
+    }
+
+    return rc;
+}
+
+static int rotate_if_needed(log_stream_t *stream)
+{
+    char oldest_file[PATH_MAX + NAME_MAX];
+    int rc = 0;
+    int file_cnt;
+
+    TRACE_ENTER();
+
+    /* Rotate out files from previous lifes */
+    if ((file_cnt = get_number_of_log_files(stream, oldest_file)) == -1)
+    {
+        rc = -1;
+        goto done;
+    }
+
+    /*
+    ** Remove until we have one less than allowed, we are just about to
+    ** create a new one again.
+    */
+    while (file_cnt >= stream->maxFilesRotated)
+    {
+        TRACE_1("remove oldest file: %s", oldest_file);
+        if ((rc = unlink(oldest_file)) == -1)
+        {
+            LOG_ER("could not unlink: %s - %s", oldest_file, strerror(errno));
+            goto done;
+        }
+
+        if ((file_cnt = get_number_of_log_files(stream, oldest_file)) == -1)
+        {
+            rc = -1;
+            goto done;
+        }
+    }
+
+done:
+    TRACE_LEAVE2("rc: %d", rc);
+    return rc;
+}
 
 static uns32 log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
 {
@@ -267,6 +336,13 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
     {
         char command[PATH_MAX + 16];
 
+        /* Delete to get counting right. It might not exist. */
+        (void) delete_config_file(stream);
+
+        /* Remove files from a previous life if needed */
+        if (rotate_if_needed(stream) == -1)
+            goto done;
+
         sprintf(command, "mkdir -p %s/%s", lgs_cb->logsv_root_dir, stream->pathName);
         if (system(command) != 0)
         {
@@ -461,6 +537,9 @@ static int get_number_of_log_files(log_stream_t* logStream, char* oldest_file)
 
     sprintf(path, "%s/%s", lgs_cb->logsv_root_dir, logStream->pathName);
     files = n = scandir(path, &namelist, filter_func, alphasort);
+    if (n == -1 && errno == ENOENT)
+        return 0;
+
     if (n < 0)
     {
         LOG_ER("scandir:%s %s",  strerror(errno), path);
@@ -550,7 +629,6 @@ retry:
     if (stream->curFileSize >= stream->maxLogFileSize)
     {
         char *current_time = lgs_get_time();
-        char oldest_file[PATH_MAX + NAME_MAX];
 
         if ((rc = close(stream->fd)) == -1)
         {
@@ -568,21 +646,9 @@ retry:
         stream->logFileCurrent[0] = 0;
 
         /* Remove oldest file if needed */
-        if ((rc = get_number_of_log_files(stream, oldest_file)) == -1)
+        if ((rc = rotate_if_needed(stream)) == -1)
             goto done;
 
-        if (rc >= stream->maxFilesRotated)
-        {
-            TRACE_1("remove oldest file: %s", oldest_file);
-            rc = unlink(oldest_file);
-            if (rc == -1)
-            {
-                LOG_ER("could not unlink: %s", oldest_file); /* FIX? */
-                goto done;
-            }
-        }
-
-        rc = 0;
         stream->creationTimeStamp = lgs_get_SaTime();
         sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
         if ((stream->fd = log_file_open(stream)) == -1)
@@ -748,7 +814,7 @@ uns32 log_stream_init(void)
     stream_array = calloc(1, sizeof(log_stream_t *) * stream_array_size);
     if (stream_array == NULL)
     {
-        LOG_ER("calloc FAILED");
+        LOG_WA("calloc FAILED");
         return NCSCC_RC_FAILURE;
     }
 
