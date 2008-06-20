@@ -274,8 +274,9 @@ stop()
            echo ""   
            echo "OpenSAF Services Termination Success"
         fi 
-        killall nid_tipc.sh
         pkill ncs
+        pkill opensaf_saflogd
+        kill -9 `pgrep nid_tipc.sh`
         sleep 2
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE
