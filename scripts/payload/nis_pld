@@ -268,10 +268,11 @@ stop()
            # The formal way to cleanup failed.
            # Go ahead to kill if still services are running
            pkill ncs
-           kill -9 `pgrep ncs_nid`
            echo "OpenSAF Services Termination Success"
-        fi 
-        killall nid_tipc.sh
+        fi
+        kill -9 `pgrep ncs_nid`
+        kill -9 `ncs_ifsv_ip_installer`
+        kill -9 `pgrep nid_tipc.sh`
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE
         fi
