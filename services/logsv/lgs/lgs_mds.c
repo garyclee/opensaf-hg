@@ -184,7 +184,12 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     /* Decode format string if initiated */
     if (len > 0)
     {
-        param->logFileFmt = malloc(len);
+        if ((param->logFileFmt = malloc(len)) == NULL)
+        {
+            LOG_WA("malloc FAILED");
+            total_bytes = 0;
+            goto done;
+        }
         ncs_decode_n_octets_from_uba(uba, param->logFileFmt, len);
         total_bytes += len;
     }
@@ -195,6 +200,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     ncs_dec_skip_space(uba, 1);
     total_bytes += 1;
 
+done:
     TRACE_8("LGSV_STREAM_OPEN_REQ");
     return total_bytes;
 }
@@ -260,7 +266,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     param->logRecord = malloc(sizeof(SaLogRecordT));
     if (!param->logRecord)
     {
-        TRACE("could not alloc memory");
+        LOG_WA("malloc FAILED");
         return(0);
     }
     /* ************* SaLogRecord decode ***************/
@@ -291,7 +297,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             ntfLogH->notificationObject = malloc(sizeof(SaNameT) + 1);
             if (!ntfLogH->notificationObject)
             {
-                TRACE("could not alloc memory");
+                LOG_WA("malloc FAILED");
                 return(0);
             }
 
@@ -313,7 +319,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             ntfLogH->notifyingObject = malloc(sizeof(SaNameT) + 1);
             if (!ntfLogH->notifyingObject)
             {
-                TRACE("could not alloc memory");
+                LOG_WA("malloc FAILED");
                 return(0);
             }
             p8 = ncs_dec_flatten_space(uba, local_data, 2);
@@ -336,7 +342,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             ntfLogH->notificationClassId = malloc(sizeof(SaNtfClassIdT));
             if (!ntfLogH->notificationClassId)
             {
-                TRACE("could not alloc memory");
+                LOG_WA("malloc FAILED");
                 return(0);
             }
             p8 = ncs_dec_flatten_space(uba, local_data, 16);
@@ -353,7 +359,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             genLogH->notificationClassId = malloc(sizeof(SaNtfClassIdT));
             if (!genLogH->notificationClassId)
             {
-                TRACE("could not alloc memory");
+                LOG_WA("malloc FAILED");
                 return(0);
             }
             p8 = ncs_dec_flatten_space(uba, local_data, 10);
@@ -364,7 +370,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             logSvcUsrName = malloc(sizeof(SaNameT) + 1);
             if (!logSvcUsrName)
             {
-                TRACE("could not alloc memory");
+                LOG_WA("malloc FAILED");
                 return(0);
             }
 
@@ -401,7 +407,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     param->logRecord->logBuffer = malloc(sizeof(SaLogBufferT));
     if (!param->logRecord->logBuffer)
     {
-        TRACE("could not alloc memory");
+        LOG_WA("malloc FAILED");
         return(0); /* FIX no error handling! */
     }
     p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -413,7 +419,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     param->logRecord->logBuffer->logBuf = malloc(param->logRecord->logBuffer->logBufSize + 1);
     if (param->logRecord->logBuffer->logBuf == NULL)
     {
-        TRACE("malloc failed");
+        LOG_WA("malloc FAILED");
         return(0); /* FIX no error handling! */
     }
     if (param->logRecord->logBuffer->logBufSize > 0)
@@ -759,7 +765,7 @@ static uns32 mds_dec(struct ncsmds_callback_info *info)
     /** allocate an LGSV_LGS_EVENT now **/
     if (NULL == (evt = calloc(1, sizeof(lgsv_lgs_evt_t))))
     {
-        TRACE("calloc failed");
+        LOG_WA("calloc FAILED");
         goto err;
     }
 
@@ -923,7 +929,7 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
     /** allocate an LGSV_LGS_EVENT now **/
     if (NULL == (lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t))))
     {
-        TRACE("memory alloc FAILED");
+        LOG_WA("calloc FAILED");
         goto err;
     }
 
@@ -992,8 +998,8 @@ static uns32 mds_svc_event(struct ncsmds_callback_info *info)
             /* As of now we are only interested in LGA events */
             if (NULL == (evt = calloc(1, sizeof(lgsv_lgs_evt_t))))
             {
+                LOG_WA("calloc FAILED");
                 rc = NCSCC_RC_FAILURE;
-                TRACE("mem alloc FAILURE  ");
                 goto done;
             }
 

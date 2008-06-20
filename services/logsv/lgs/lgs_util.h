@@ -49,6 +49,7 @@ extern int lgs_file_rename(const char *path, const char *old_name,
                        const char *time_stamp, const char *suffix);
 extern int lgs_file_exist(const char *i_filename);
 extern uns32 lgs_create_known_streams(lgs_cb_t *lgs_cb);
+extern void lgs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr);
 
 #endif   /* ifndef __LGS_UTIL_H */
 

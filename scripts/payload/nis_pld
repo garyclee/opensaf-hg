@@ -208,6 +208,9 @@ start()
                 exit 1
 	fi 
 	echo "Status: $NISSTATUS";
+        date;
+        rm -f $SPCAPFIFO;
+	rm -rf $NISPIPE;
         if [ "${NISSTATUS}" = "SUCCESS" ]; then 
            echo "SERVICE Initialization Success";
            date >> /var/opt/opensaf/node_ha_state;
@@ -215,10 +218,8 @@ start()
 	elif [ "${NISSTATUS}" = "FAILED" ]; then 
              echo "SERVICE Initialization Failed";
              rm -rf $PIDFILE
+             exit 1
 	fi;
-        date;
-        rm -f $SPCAPFIFO;
-	rm -rf $NISPIPE;
 	echo "."
 
 } ## End start()
@@ -268,10 +269,11 @@ stop()
            # The formal way to cleanup failed.
            # Go ahead to kill if still services are running
            pkill ncs
-           kill -9 `pgrep ncs_nid`
            echo "OpenSAF Services Termination Success"
-        fi 
-        killall nid_tipc.sh
+        fi
+        kill -9 `pgrep ncs_nid`
+        kill -9 `ncs_ifsv_ip_installer`
+        kill -9 `pgrep nid_tipc.sh`
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE
         fi
@@ -316,4 +318,3 @@ case "$1" in
 esac 2>/dev/null
 
 exit 0
-

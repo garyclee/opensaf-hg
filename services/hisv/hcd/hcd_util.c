@@ -448,7 +448,7 @@ discover_domain(HPI_SESSION_ARGS *ptr)
    SaHpiSessionIdT session_id;
    SaHpiRptEntryT  entry;
    int32 chassis_id;
-   SaHpiInt64T auto_instime = HPI_AUTO_HS_STOP_TMR;
+   SaHpiInt64T auto_instime = SAHPI_TIMEOUT_BLOCK;
    uns32  rc = NCSCC_RC_SUCCESS;
 
     m_LOG_HISV_DTS_CONS("discover_domain: Function invoked\n");

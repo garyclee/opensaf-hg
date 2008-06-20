@@ -604,6 +604,6 @@ Collect logs using script /opt/opensaf/<controller/payload>/scripts/collect_logs
              - Here 131343 is the node_id (0002010f), 49 is the service id of PSSv (from ncs_svd.h)
 
    Step6: clishut
-   The same can be done through SNMP MIB operations on NCS-DTSV-MIB objects, as well. 
+   The same can be done through SNMP MIB operations on NCS-DTSV-MIB objects, as well.
 
 END.

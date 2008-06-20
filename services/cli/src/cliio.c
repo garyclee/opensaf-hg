@@ -628,12 +628,15 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          }
          
          cmd_len = m_NCS_OS_STRLEN(buffer);
-         for(index=cmd_len-1; index>=1; index--) {
-            if(buffer[index] == CLI_CONS_BLANK_SPACE) {
-               buffer[index] = '\0';
-               chCnt--;
+         if (cmd_len > 0)
+         {
+            for(index=cmd_len-1; index>=1; index--) {
+               if(buffer[index] == CLI_CONS_BLANK_SPACE) {
+                 buffer[index] = '\0';
+                 chCnt--;
+               }
+               else break;
             }
-            else break;
          }
          
          cmd_len = m_NCS_OS_STRLEN(buffer);

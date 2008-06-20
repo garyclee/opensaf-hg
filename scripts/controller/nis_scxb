@@ -203,7 +203,7 @@ start()
         date;
 	read -t $INITTIMEOUT NISSTATUS < $NISPIPE
 	ERR=$?;
-	if [ $ERR = 1 ] 
+	if [ $ERR = 1 ]
 	then 
 		echo "SERVICE Initialization Failed Error: Timed out" 
                 kill -s SIGKILL `cat $PIDFILE`
@@ -211,16 +211,17 @@ start()
                 exit 1
 	fi 
 	echo "Status: $NISSTATUS";
+        date;
+        rm -f $SPCAPFIFO;
+	rm -rf $NISPIPE;
         if [ "${NISSTATUS}" = "SUCCESS" ]; then 
            echo "SERVICE Initialization Success";
 	elif [ "${NISSTATUS}" = "FAILED" ]; then 
              echo "SERVICE Initialization Failed";
              rm -rf $PIDFILE
+             exit 1
 	fi;
-        date;
-        rm -f $SPCAPFIFO;
-	rm -rf $NISPIPE;
-	echo "."
+        echo ".";
 
 } #End of start()
 
@@ -270,12 +271,13 @@ stop()
            # The formal way to cleanup failed.
            # Go ahead to kill if still services are running
            pkill ncs
-           kill -9 `pgrep ncs_nid`
-           echo ""   
+           echo ""
            echo "OpenSAF Services Termination Success"
-        fi 
-        killall nid_tipc.sh
-        pkill ncs
+        fi
+        pkill opensaf_saflogd
+        kill -9 `pgrep ncs_nid`
+        kill -9 `ncs_ifsv_ip_installer`
+        kill -9 `pgrep nid_tipc.sh`
         sleep 2
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE

@@ -314,9 +314,11 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     for(i = 0 ; i<numofgroups ; i++) {
         retry1: gp = m_NCS_GETGRGID(list[i]);
         if(gp){
-            if(m_NCS_STRCMP(gp->gr_name , pCli->cli_user_group.ncs_cli_superuser)==0){
-            return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_SUPERUSER_ACCESS-1));
-        }
+            if((m_NCS_STRCMP(gp->gr_name , pCli->cli_user_group.ncs_cli_superuser)==0) ||
+               (m_NCS_STRCMP(gp->gr_name , "root")==0))
+            {
+                return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_SUPERUSER_ACCESS-1));
+            }
        }
        else if(gp == NULL){
            m_NCS_CONS_PRINTF("\nError %d occured while fetching the group name of the cli user\n",errno);

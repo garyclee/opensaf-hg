@@ -1,10 +1,32 @@
+
+Changes from OpenSAF 1.1.0 to OpenSAF 1.2.1
+-------------------------------------------
+
+Changes from OpenSAF 1.0.9 to OpenSAF 1.1.0
+-------------------------------------------
+
+2008-05-29 Hans Feldt <Hans.Feldt@ericsson.com>, Arne Eriksson, Niklas Nilsson
+
+	* An initial release Log Service was contributed by Ericsson Team.
+
+Changes from OpenSAF 1.0.8 to OpenSAF 1.0.9
+-------------------------------------------
+	* Some Trivial Fixes
+
+Changes from OpenSAF 1.0.7 to OpenSAF 1.0.8
+-------------------------------------------
+
+2008-04-08 OpenSAF Foudation
+
+	* OpenSAF Foundation is formed (With Emerson Network Power, Ericsson, Nokia Siemens Networks, HP and Sun Microsystems as founding members) and code base is moved to mercurial server.
+
 Changes from OpenSAF 1.0.5 to OpenSAF 1.0.7
 -------------------------------------------
 
 2008-01-08 Alla Venkata Mahesh <mahesh.alla@emerson.com>
 
 	* OpenSAF provides tetware based test infrastructure, and contains Single Node API & Functionality related test suites for all OpenSAF services. For details, refer README file at opensaf/tests directory.
-      * OpenSAF enforces to use 'gcc version 4.1.0' and above. Can also be build with the lower versions by removing '-Wno-pointer-sign' flag from configure.ac.
+	* OpenSAF enforces to use 'gcc version 4.1.0' and above. Can also be build with the lower versions by removing '-Wno-pointer-sign' flag from configure.ac.
 
 2008-01-08 Nagendra Kumar <nagendra.kumar@emerson.com>
 
