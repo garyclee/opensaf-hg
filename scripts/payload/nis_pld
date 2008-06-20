@@ -208,6 +208,9 @@ start()
                 exit 1
 	fi 
 	echo "Status: $NISSTATUS";
+        date;
+        rm -f $SPCAPFIFO;
+	rm -rf $NISPIPE;
         if [ "${NISSTATUS}" = "SUCCESS" ]; then 
            echo "SERVICE Initialization Success";
            date >> /var/opt/opensaf/node_ha_state;
@@ -215,10 +218,8 @@ start()
 	elif [ "${NISSTATUS}" = "FAILED" ]; then 
              echo "SERVICE Initialization Failed";
              rm -rf $PIDFILE
+             exit 1
 	fi;
-        date;
-        rm -f $SPCAPFIFO;
-	rm -rf $NISPIPE;
 	echo "."
 
 } ## End start()
@@ -317,4 +318,3 @@ case "$1" in
 esac 2>/dev/null
 
 exit 0
-
