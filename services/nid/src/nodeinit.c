@@ -2251,16 +2251,11 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
     logme(NID_LOG2FILE_CONS,"%s Initialization failed\n",nid_serv_stat_info[service->servcode].nid_serv_name);
     logme(NID_LOG2FILE_CONS,"Tried all recoveries, couldn't recover! NID exiting!!!!!\n");
     if(fp)
-       fprintf(fp,"%s","System Controller Initialization Failed");
+       fprintf(fp,"%s","OpenSAF Initialization Failed");
     if ( !service->recovery_matrix[NID_RESET].retry_count ) {
     if(fp)
-       fprintf(fp,"%s","Init fail: dropped to shell for troubleshooting");
-    logme(NID_LOG2FILE_CONS,"DROPPING TO SHELL FOR TROUBLE-SHOOTING!!!\n");
-    }
-    else {
-    if(fp)
-       fprintf(fp,"%s","Init fail: System Restarting in a while");
-    logme(NID_LOG2FILE_CONS,"SYSTEM GOING TO RESTART IN A WHILE!!!\n");
+       fprintf(fp,"%s","Dropping to shell for Trouble-shooting");
+    logme(NID_LOG2CONS,"Dropping to shell for Trouble-shooting!!!\n");
     }
     if (fp)
     {
