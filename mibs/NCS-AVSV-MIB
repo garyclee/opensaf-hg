@@ -1,0 +1,613 @@
+    NCS-AVSV-MIB DEFINITIONS ::= BEGIN
+
+     IMPORTS
+         OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE,
+         Integer32, Counter32, Unsigned32, Counter64  
+             FROM SNMPv2-SMI
+
+         MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+             FROM SNMPv2-CONF
+
+         RowStatus, TimeInterval, TruthValue,
+         TimeStamp, StorageType, DisplayString
+             FROM SNMPv2-TC
+
+         SafTimeStamp
+             FROM SAF-TC-MIB
+
+        saAmfSUSISuName, saAmfSUSISiName, saAmfSUSIHAState
+             FROM SAF-AMF-MIB 
+
+        eccgNcsModules, avsv
+	     FROM ECC-SMI
+
+         ;
+
+     avsvMIB MODULE-IDENTITY
+         LAST-UPDATED "200409291609Z"  -- september 29, 2004
+         ORGANIZATION "Netplane Core Services"
+         CONTACT-INFO
+		"Motorola Inc
+		 Embedded Communications Computing
+		 http://www.motorola.com/computers/
+
+		 Author:  Sugadeesh Gudipalli
+		 e-mail:  g19449@motorola.com
+		 Address: Motorola India Pvt Ltd, 
+			  Auriga Block, Ascendas IT Park,
+			  Madhapur, Hyderabad, AP
+			  INDIA
+		 Tel:	  +91-40-55727000
+		 Fax:	  +91-40-55727001"
+
+         DESCRIPTION
+             "This MIB contains managed object definitions for the
+             'Availability Service for Netplane Core 
+              Services."
+         ::= { eccgNcsModules 1}
+
+     --****************************************************************
+     avsvObjects                  OBJECT IDENTIFIER ::= { avsv 1 }
+     avsvNotifications            OBJECT IDENTIFIER ::= { avsv 2 }
+
+     avsvScalars                  OBJECT IDENTIFIER ::= { avsvObjects 1 }
+     avsvTables                   OBJECT IDENTIFIER ::= { avsvObjects 2 }
+
+     --****************************************************************
+     -- AVSV Scalar Objects
+     --****************************************************************
+     ncsAvDHeartbeatSendInt OBJECT-TYPE 
+         SYNTAX      SafTimeStamp
+         MAX-ACCESS  read-write
+         STATUS      current
+
+         DESCRIPTION
+             "This is the heartbeat interval at which
+              heartbeat messages are sent by the AVD
+              and AVNDs. The value is in units of
+              nano seconds. The minimum value is
+              10 milli seconds(10000000). This object
+              value has to be less than half of
+              ncsAvDHeartbeatDownInt. Default value 
+              is 300000000" 
+         ::= { avsvScalars 1 }
+
+     ncsAvDHeartbeatDownInt OBJECT-TYPE
+         SYNTAX      SafTimeStamp
+         MAX-ACCESS  read-write
+         STATUS      current
+
+         DESCRIPTION
+             "This is the interval within which
+              heartbeat messages are received by 
+              the AVD from other AVD and AVNDs. 
+              The value is in units of nano seconds. 
+              The minimum value is 
+              10 milli seconds(10000000).This object
+              value has to be more than two times of
+              ncsAvDHeartbeatSendInt. Defualt value 
+              is 2000000000"
+         ::= { avsvScalars 2 }
+
+     ncsCLViewNumber OBJECT-TYPE
+         SYNTAX      Counter64
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The object denotes the current view
+              number of the cluster membership."
+         ::= { avsvScalars 3 }
+
+
+     --****************************************************************
+     -- AVSV Node Table Objects
+     --****************************************************************
+     ncsNDTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsNDTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Node Table identifies
+              the properties of the nodes w.r.t 
+              NCS."
+              
+         ::= { avsvTables 1 }
+
+     ncsNDTableEntry OBJECT-TYPE
+         SYNTAX      NcsNDTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A node row is automatically
+              created or destroyed by 
+              virtue of the row creation 
+              or deletion in saAmfNodeTable."
+         INDEX       {  ncsNDNodeName  }
+         ::= { ncsNDTable 1 }
+
+     NcsNDTableEntry ::= SEQUENCE {
+         ncsNDNodeName               OCTET STRING,
+         ncsNDNodeId                 Unsigned32,
+         ncsNDIsSysCtrl              INTEGER
+     }
+
+     ncsNDNodeName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  accessible-for-notify
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies the
+              node within the scope of the cluster
+              for which the amf configuration
+              is already specified."
+         ::= { ncsNDTableEntry 1 }
+
+     ncsNDNodeId OBJECT-TYPE 
+         SYNTAX      Unsigned32
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "This object uniquely
+              identifies a node in a cluster.
+              The value should be configured.
+              if not the node will not come
+              up and join the cluster. Can
+              be modified only when
+              saAmfNodeRowStatus is not active."
+         ::= { ncsNDTableEntry 2 }
+
+     ncsNDIsSysCtrl OBJECT-TYPE 
+         SYNTAX      INTEGER { false(0), true(1) }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "This object is used
+              for configuring if the node
+              is a system controller or not.
+              The default value is false.Can
+              be modified only when
+              saAmfNodeRowStatus is not active."
+         ::= { ncsNDTableEntry 3 }
+
+     --****************************************************************
+     -- AVSV SG Table Objects
+     --****************************************************************
+
+          
+     ncsSGTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSGTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The SG Table identifies
+              the properties of the SG w.r.t 
+              NCS."
+              
+         ::= { avsvTables 2 }
+
+     ncsSGTableEntry OBJECT-TYPE
+         SYNTAX      NcsSGTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A SG row is automatically
+              created or destroyed by 
+              virtue of the row creation 
+              or deletion in saAmfSGTable."
+         INDEX       {  ncsSGName  }
+         ::= { ncsSGTable 1 }
+
+     NcsSGTableEntry ::= SEQUENCE {
+         ncsSGName               OCTET STRING,
+         ncsSGIsNcs              INTEGER,
+         ncsSGAdjustState        INTEGER
+     }
+
+     ncsSGName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies the
+              SG within the scope of the cluster
+              for which the amf configuration
+              is already specified."
+         ::= { ncsSGTableEntry 1 }
+
+     ncsSGIsNcs OBJECT-TYPE 
+         SYNTAX      INTEGER { false(0), true(1) }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "This object is used
+              for configuring if the SG
+              is a NCS specific SG.
+              The default value is false.Can
+              be modified only when
+              saAmfSGRowStatus is not active."
+         ::= { ncsSGTableEntry 2 }
+
+     ncsSGAdjustState OBJECT-TYPE 
+         SYNTAX      INTEGER { stable(0), adjust(1) }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "The administrative operation of this SG, 
+              using which the operator realigns the SG.
+              adjust is the only value that an operator
+              can set. The object value will change
+              to stable when realignment is done."
+         ::= { ncsSGTableEntry 3 }
+
+
+
+     --****************************************************************
+     -- AVSV SU Table Objects
+     --****************************************************************
+
+          
+     ncsSUTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSUTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The SU Table identifies
+              the properties of the SU w.r.t 
+              NCS."
+              
+         ::= { avsvTables 3 }
+
+     ncsSUTableEntry OBJECT-TYPE
+         SYNTAX      NcsSUTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A SU row is automatically
+              created or destroyed by 
+              virtue of the row creation 
+              or deletion in saAmfSUTable."
+         INDEX       {  ncsSUName  }
+         ::= { ncsSUTable 1 }
+
+     NcsSUTableEntry ::= SEQUENCE {
+         ncsSUName               OCTET STRING,
+         ncsSUSwitchState        INTEGER,
+         ncsSUTermState          TruthValue
+     }
+
+     ncsSUName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies the
+              SU within the scope of the cluster
+              for which the amf configuration
+              is already specified."
+         ::= { ncsSUTableEntry 1 }
+
+     ncsSUSwitchState OBJECT-TYPE 
+         SYNTAX      INTEGER { stable(0), switch(1) }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "This is a action object used for switching
+             over of the SIs assigned to the SU. 
+             The object by default is stable.
+             This object is applicable only for SUs in 
+             2N redundancy model"
+         ::= { ncsSUTableEntry 2 }
+
+     ncsSUTermState OBJECT-TYPE 
+         SYNTAX      TruthValue
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "When this object is set to true, the
+              SU will be terminated and not 
+              instantiated till set to false.
+              Default value is false. This objects
+              can be set to true only if 
+              saAmfSUAdminState is locked."
+         ::= { ncsSUTableEntry 3 }
+         
+
+     --****************************************************************
+     -- AVSV SI Table Objects
+     --****************************************************************
+
+          
+     ncsSITable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSITableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The SI Table identifies
+              the properties of the SU w.r.t 
+              NCS."
+              
+         ::= { avsvTables 4 }
+
+     ncsSITableEntry OBJECT-TYPE
+         SYNTAX      NcsSITableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A SI row is automatically
+              created or destroyed by 
+              virtue of the row creation 
+              or deletion in saAmfSITable."
+         INDEX       {  ncsSIName  }
+         ::= { ncsSITable 1 }
+
+     NcsSITableEntry ::= SEQUENCE {
+         ncsSIName               OCTET STRING,
+         ncsSISwitchState        INTEGER
+     }
+
+     ncsSIName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies the
+              SI within the scope of the cluster
+              for which the amf configuration
+              is already specified."
+         ::= { ncsSITableEntry 1 }
+
+     ncsSISwitchState OBJECT-TYPE 
+         SYNTAX      INTEGER { stable(0), switch(1) }
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "This is a action object used for switching
+              over of the SI. The object by default is
+              stable. This object is not applicable for 
+              SIs in N-way Active and No redundancy models"
+         ::= { ncsSITableEntry 2 }
+
+     --****************************************************************
+     -- AVSV Status Node Table Objects
+     --****************************************************************
+
+          
+     ncsSNDTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSNDTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Status Node Table identifies
+              the status of the nodes that 
+              currently exists in the cluster."
+              
+         ::= { avsvTables 5 }
+
+     ncsSNDTableEntry OBJECT-TYPE
+         SYNTAX      NcsSNDTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A node row is automatically
+              created or destroyed by 
+              virtue of the nodes availability 
+              service comming up or shutting down"
+         INDEX       {  ncsSNDNodeId  }
+         ::= { ncsSNDTable 1 }
+
+     NcsSNDTableEntry ::= SEQUENCE {
+         ncsSNDNodeId                            Unsigned32,
+         ncsSNDSuFailoverCount                   Counter32
+     }
+
+     ncsSNDNodeId OBJECT-TYPE 
+         SYNTAX     Unsigned32
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "This is the index of this
+              table that uniquely
+              identifies a node in a cluster"
+         ::= { ncsSNDTableEntry 1 }
+
+     ncsSNDSuFailoverCount OBJECT-TYPE 
+         SYNTAX      Counter32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The number of times Sus
+              have failed over in this
+              probation period."
+         ::= { ncsSNDTableEntry 2 }
+
+
+     --****************************************************************
+     -- AVSV Status Servive Unit Table Objects
+     --****************************************************************
+
+          
+     ncsSSUTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSSUTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Status Service unit Table
+              identifies the status of the SUs  
+              that currently exists in the cluster."
+              
+         ::= { avsvTables 6 }
+
+     ncsSSUTableEntry OBJECT-TYPE
+         SYNTAX      NcsSSUTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A SU row is automatically
+              created or destroyed by 
+              virtue of the node on which
+              the SU exists booting up
+              or shutting down"
+         INDEX       {  ncsSSUSuName  }
+         ::= { ncsSSUTable 1 }
+
+     NcsSSUTableEntry ::= SEQUENCE {
+         ncsSSUSuName                            OCTET STRING,
+         ncsSSUSuRestartCount                    Counter32,
+         ncsSSUCompRestartCount                    Counter32
+     }
+
+     ncsSSUSuName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "This object is opaque octate string
+              that denotes a Service Unit name
+              that exists in the cluster"
+         ::= { ncsSSUTableEntry 1 }
+
+     ncsSSUSuRestartCount OBJECT-TYPE 
+         SYNTAX      Counter32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The number of times the Su
+              has restarted in this
+              probation period."
+         ::= { ncsSSUTableEntry 2 }
+
+     ncsSSUCompRestartCount OBJECT-TYPE 
+         SYNTAX      Counter32
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The number of times the Comp
+              has restarted in this
+              probation period."
+         ::= { ncsSSUTableEntry 3 }
+
+
+     --****************************************************************
+     -- AVSV Status Component Table Objects
+     --****************************************************************
+
+          
+     ncsSCompTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsSCompTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The Status Component Table
+              identifies the status of the Components  
+              that currently exists in the cluster."
+              
+         ::= { avsvTables 7 }
+
+     ncsSCompTableEntry OBJECT-TYPE
+         SYNTAX      NcsSCompTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "A Component row is automatically
+              created or destroyed by 
+              virtue of the node on which
+              the Component exists booting up
+              or shutting down"
+         INDEX       {  ncsSCompCompName  }
+         ::= { ncsSCompTable 1 }
+
+     NcsSCompTableEntry ::= SEQUENCE {
+         ncsSCompCompName                        OCTET STRING,
+         ncsSCompErrSrc                          INTEGER,
+         ncsSCompErrDetectTime                   SafTimeStamp
+     }
+
+     ncsSCompCompName OBJECT-TYPE 
+         SYNTAX     OCTET STRING(SIZE(1..256))
+         MAX-ACCESS  accessible-for-notify
+         STATUS      current
+         DESCRIPTION
+             "This object is opaque octate string
+              that denotes a component name
+              that exists in the cluster"
+         ::= { ncsSCompTableEntry 1 }
+
+     ncsSCompErrSrc OBJECT-TYPE 
+         SYNTAX      INTEGER { noError(0),
+                               errorReport(1),
+                               healthCheckFailed(2),
+                               passiveMonitorFailed(3),
+                               activeMonitorFailed(4),
+                               cLCCommandFailed(5),
+                               healthCheckcallbackTimeout(6),
+                               healthCheckcallbackFailed(7),
+                               avaDown(8),
+                               prxRegTimeout(9), 
+                               csiSetcallbackTimeout(10),
+                               csiRemovecallbackTimeout(11),
+                               csiSetcallbackFailed(12),
+                               csiRemovecallbackFailed(13) }
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Indicates the source of component error."
+         ::= { ncsSCompTableEntry 2 }
+
+     ncsSCompErrDetectTime OBJECT-TYPE 
+         SYNTAX      SafTimeStamp
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Indicates the time when the error was
+              detected. The value is in units of
+              nano seconds."
+         ::= { ncsSCompTableEntry 3 }
+
+     -- ****************************************************************************
+     -- AVSV Status Traps
+     -- ****************************************************************************
+     
+     ncsTraps       OBJECT IDENTIFIER ::= { avsvNotifications 1 }
+
+     -- ***************************************************************************
+     --   NCS Traps
+     -- ***************************************************************************
+
+
+ncsInitSuccessOnNode NOTIFICATION-TYPE
+        OBJECTS {
+                  ncsNDNodeId,
+                  ncsNDNodeName
+        }
+        STATUS             current
+        DESCRIPTION
+           "NCS Initialization is successful on a node."
+        ::= { ncsTraps 1 }
+
+ncsAlarmCompFailOnNode NOTIFICATION-TYPE
+        OBJECTS {
+                  ncsNDNodeId,
+                  ncsSCompCompName,
+                  ncsSCompErrSrc
+           }
+        STATUS             current
+        DESCRIPTION
+           "This trap notifies the system administrator about a  
+            component failure with reason."
+       ::= { ncsTraps 2 }
+
+ncsAlarmStateChgStartSUHaState NOTIFICATION-TYPE
+        OBJECTS {
+                saAmfSUSISuName, 
+                saAmfSUSISiName, 
+                saAmfSUSIHAState 
+        }
+        STATUS             current
+        DESCRIPTION
+           "This trap Produced when the HA state of a SU 'saAmfSUSISuName' 
+            start changing for a particular SI 'saAmfSUSISiName' 
+            assigned to the SU." 
+        ::= { ncsTraps 3 }
+
+
+END
