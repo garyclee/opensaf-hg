@@ -46,9 +46,6 @@ ln -s /hostfs/$REPL_DIR/pssv_store /var/opt/opensaf/
 rm -f /var/opt/opensaf/log
 ln -s /hostfs/$REPL_DIR/log /var/opt/opensaf/log
 
-rm -f /etc/opt/opensaf/rde.conf
-ln -s  /etc/opt/opensaf/rde.conf /etc/opt/opensaf/rde.conf
-
 rm -f /etc/opt/opensaf/init_role
 echo $hostnumber > /etc/opt/opensaf/init_role
 
