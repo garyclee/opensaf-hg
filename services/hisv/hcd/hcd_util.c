@@ -437,7 +437,7 @@ get_chassis_id(SaHpiEntityPathT *epath, int32 *chassis_id)
 uns32
 discover_domain(HPI_SESSION_ARGS *ptr)
 {
-   SaErrorT        err;
+   SaErrorT        err, autoinsert_err;
 #ifdef HPI_A
    SaHpiRptInfoT   rpt_info_before;
 #endif
@@ -457,8 +457,20 @@ discover_domain(HPI_SESSION_ARGS *ptr)
    session_id = ptr->session_id;
    ptr->discover_domain_err = FALSE;
 
-   if (saHpiAutoInsertTimeoutSet(session_id, auto_instime) != SA_OK)
-      m_LOG_HISV_DTS_CONS("discover_domain: Error in setting Auto Insertion timeout\n");
+   autoinsert_err = saHpiAutoInsertTimeoutSet(session_id, auto_instime);
+
+   if (autoinsert_err != SA_OK)
+   {
+      if (autoinsert_err == SA_ERR_HPI_READ_ONLY)
+      {
+         /* Allow for the case where the insertion timeout is read-only. */
+         m_LOG_HISV_DTS_CONS("discover_domain: saHpiAutoInsertTimeoutSet is read-only\n");
+      }
+      else
+      {
+         m_LOG_HISV_DTS_CONS("discover_domain: Error in setting Auto Insertion timeout\n");
+      }
+   }
 
    /* discover the resources on this session */
 #ifdef HPI_A
@@ -544,7 +556,9 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
-   if (type != SAHPI_ENT_PHYSICAL_SLOT)
+   /* Allow for the case where blades are ATCA or non-ATCA.                        */
+   if ((type != SAHPI_ENT_PHYSICAL_SLOT) && (type != SAHPI_ENT_SYSTEM_BLADE) &&
+       (type != SAHPI_ENT_SWITCH_BLADE))
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Current Hotswap state of non-board resource is: ");
@@ -589,7 +603,9 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
-   if (type != SAHPI_ENT_PHYSICAL_SLOT)
+   /* Allow for the case where blades are ATCA or non-ATCA.                        */
+   if ((type != SAHPI_ENT_PHYSICAL_SLOT) && (type != SAHPI_ENT_SYSTEM_BLADE) &&
+       (type != SAHPI_ENT_SWITCH_BLADE))
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Previous Hotswap state of non-board resource is: ");

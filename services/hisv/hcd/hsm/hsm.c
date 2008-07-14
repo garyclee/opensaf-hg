@@ -69,7 +69,7 @@ uns32 hcd_hsm()
 
    SaHpiDomainIdT *domain_id;
    SaHpiSessionIdT *session_id;
-   SaErrorT val;
+   SaErrorT val, hotswap_err, autoextract_err;
    SaHpiUint32T   actual_size, invdata_size=sizeof(HISV_INV_DATA);
    HSM_CB *hsm_cb = 0;
    SIM_CB *sim_cb = 0;
@@ -214,12 +214,15 @@ uns32 hcd_hsm()
 
 #ifndef HPI_A
       /* The only events we care about are from the controller and the payload blades */
+      /* Allow for the case where blades are ATCA or non-ATCA.                        */
       if (!((RptEntry.ResourceEntity.Entry[1].EntityLocation > 0) &&
           (RptEntry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-          (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) &&
+          ((RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
+           (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT)) &&
           (
 #ifdef HPI_B_02
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
+           (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
       {
@@ -358,10 +361,17 @@ uns32 hcd_hsm()
              }
          }
 #else
-         print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
-                        event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
-                        RptEntry.ResourceEntity.Entry[1].EntityLocation,
-                        RptEntry.ResourceEntity.Entry[1].EntityType);
+         /* Allow for the case where blades are ATCA or non-ATCA.                           */
+         if (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)
+           print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+                          event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
+                          RptEntry.ResourceEntity.Entry[0].EntityLocation,
+                          RptEntry.ResourceEntity.Entry[0].EntityType);
+         else
+           print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+                          event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
+                          RptEntry.ResourceEntity.Entry[1].EntityLocation,
+                          RptEntry.ResourceEntity.Entry[1].EntityType);
          switch (event.EventDataUnion.HotSwapEvent.HotSwapState)
          {
             case SAHPI_HS_STATE_INACTIVE:
@@ -393,10 +403,21 @@ uns32 hcd_hsm()
 #ifdef HPI_A
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
 #else
-         if (saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId) != SA_OK)
+         hotswap_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
+
+         if (hotswap_err != SA_OK)
 #endif
          {
-            m_LOG_HISV_DTS_CONS("hcd_hsm: Error taking control of resource\n");
+            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+            {
+               /* Allow for the case where the hotswap policy cannot be canceled because it */
+               /* has already begun to execute.                                             */
+               m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("hcd_hsm: Error taking control of resource\n");
+            }
          }
       }
       /* if it is hotswap event transitioning to Insertion Pending state */
@@ -417,19 +438,40 @@ uns32 hcd_hsm()
 #ifdef HPI_A
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
 #else
-         if (saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId) != SA_OK)
+         hotswap_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
+
+         if (hotswap_err != SA_OK)
 #endif
          {
-            m_LOG_HISV_DTS_CONS("hcd_hsm: Error taking control of resource\n");
+            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+            {
+               /* Allow for the case where the hotswap policy cannot be canceled because it */
+               /* has already begun to execute.                                             */
+               m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("hcd_hsm: Error taking control of resource\n");
+            }
          }
-         if (saHpiAutoExtractTimeoutSet(*session_id, RptEntry.ResourceId, auto_exttime) != SA_OK)
+         autoextract_err = saHpiAutoExtractTimeoutSet(*session_id, RptEntry.ResourceId, auto_exttime);
+
+         if (autoextract_err != SA_OK)
          {
-            m_LOG_HISV_DTS_CONS("hcd_hsm: Error in setting Auto Insertion timeout\n");
+            if (autoextract_err == SA_ERR_HPI_READ_ONLY)
+            {
+               /* Allow for the case where the extraction timeout is read-only. */
+               m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiAutoExtractTimeoutSet is read-only\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("hcd_hsm: Error in setting Auto Extraction timeout\n");
+            }
          }
          if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
              &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
          {
-            m_LOG_HISV_DTS_CONS("hcs_hsm: Inventory data not found\n");
+            m_LOG_HISV_DTS_CONS("hcd_hsm: Inventory data not found\n");
          }
       }
       /* if inventory data not available, just publish event and entity path */
@@ -545,7 +587,7 @@ static uns32
 dispatch_hotswap(HSM_CB *hsm_cb)
 {
    SaHpiHsStateT  state;
-   SaErrorT        err, hpi_rc;
+   SaErrorT       err, hpi_rc, hotswap_err, autoextract_err;
 #ifdef HPI_A
    SaHpiRptInfoT   rpt_info_before;
 #endif
@@ -609,21 +651,44 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          saHpiEventLogClear(session_id, entry.ResourceId);
       }
       /* if it is a FRU and hotswap managable then publish outstanding inspending events */
-      if (entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU)
+      /* Test to make sure resource is a FRU and has managed-hotswap capability.         */
+      if ((entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
+          (entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
       {
          SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
-         if (saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime) != SA_OK)
+         autoextract_err = saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime);
+
+         if (autoextract_err != SA_OK)
          {
-            m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error in setting Auto Insertion timeout\n");
+            if (autoextract_err == SA_ERR_HPI_READ_ONLY)
+            {
+               /* Allow for the case where the extraction timeout is read-only. */
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiAutoExtractTimeoutSet is read-only\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error in setting Auto Extraction timeout\n");
+            }
          }
 
 #ifdef HPI_A
          if (saHpiHotSwapControlRequest(session_id, entry.ResourceId) != SA_OK)
 #else
-         if (saHpiHotSwapPolicyCancel(session_id, entry.ResourceId) != SA_OK)
+         hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry.ResourceId);
+
+         if (hotswap_err != SA_OK)
 #endif
          {
-            m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error taking control of resource\n");
+            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+            {
+               /* Allow for the case where the hotswap policy cannot be canceled because it */
+               /* has already begun to execute.                                             */
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error taking control of resource\n");
+            }
          }
          hpi_rc = saHpiHotSwapStateGet(session_id, entry.ResourceId, &state);
          if (hpi_rc != SA_OK)
@@ -693,12 +758,15 @@ dispatch_hotswap(HSM_CB *hsm_cb)
                /* publish_fwprog_events(hsm_cb, &entry); */
             }
 #else
+            /* Allow for the case where blades are ATCA or non-ATCA.                        */
             if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
                   (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-                  (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) &&
+                  ((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+                   (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)) &&
                   (
 #ifdef HPI_B_02
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
+                   (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
 
@@ -833,7 +901,10 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
                   RptEntry->ResourceEntity.Entry[2].EntityType);
 #else
    for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      if (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) {
+      /* Allow for the case where blades are ATCA or non-ATCA.                        */
+      if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
          slot_ind = i;
          break;
       }
@@ -948,7 +1019,10 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
                   RptEntry->ResourceEntity.Entry[2].EntityType);
 #else
    for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      if (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) {
+      /* Allow for the case where blades are ATCA or non-ATCA.                        */
+      if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
          slot_ind = i;
          break;
       }
@@ -1979,7 +2053,7 @@ static uns32
 publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
 {
    SaHpiEventT     event;
-   SaErrorT        hpi_rc;
+   SaErrorT        hpi_rc, hotswap_err;
    SaHpiHsStateT   state;
    SaHpiDomainIdT domain_id;
    SaHpiSessionIdT session_id;
@@ -2000,10 +2074,21 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
 #ifdef HPI_A
       if (saHpiHotSwapControlRequest(session_id, entry->ResourceId) != SA_OK)
 #else
-      if (saHpiHotSwapPolicyCancel(session_id, entry->ResourceId) != SA_OK)
+      hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry->ResourceId);
+
+      if (hotswap_err != SA_OK)
 #endif
       {
-         m_LOG_HISV_DTS_CONS("publish_curr_hs_state_evt: Error taking control of resource\n");
+         if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+         {
+            /* Allow for the case where the hotswap policy cannot be canceled because it */
+            /* has already begun to execute.                                             */
+            m_LOG_HISV_DTS_CONS("publish_curr_hs_state_evt: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
+         }
+         else
+         {
+            m_LOG_HISV_DTS_CONS("publish_curr_hs_state_evt: Error taking control of resource\n");
+         }
       }
       hpi_rc = saHpiHotSwapStateGet(session_id, entry->ResourceId, &state);
       if (hpi_rc != SA_OK)

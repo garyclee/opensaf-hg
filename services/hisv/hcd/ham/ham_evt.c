@@ -551,8 +551,17 @@ ham_config_hotswap(HISV_EVT *evt)
       rc = NCSCC_RC_SUCCESS;
    else
    {
-      m_LOG_HISV_DTS_CONS("ham_config_hotswap: saHpiAutoInsertTimeout Error\n");
-      rc = NCSCC_RC_FAILURE;
+      if (err == SA_ERR_HPI_READ_ONLY)
+      {
+         /* Allow for the case where the insertion timeout is read-only. */
+         m_LOG_HISV_DTS_CONS("ham_config_hotswap: saHpiAutoInsertTimeoutSet is read-only\n");
+         rc = NCSCC_RC_SUCCESS;
+      }
+      else
+      {
+         m_LOG_HISV_DTS_CONS("ham_config_hotswap: saHpiAutoInsertTimeoutSet Error\n");
+         rc = NCSCC_RC_FAILURE;
+      }
    }
    m_NCS_CONS_PRINTF("ham_config_hotswap: Timeout = %d\n",(uns32)Timeout);
    /** populate the mds message with return value, to send across to the HPL
@@ -1449,12 +1458,15 @@ GET_RES_ID:
           (entry.ResourceEntity.Entry[0].EntityType != 160))
          continue;
 #else
+      /* Allow for the case where blades are ATCA or non-ATCA.                        */
       if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
             (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-            (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) &&
+            ((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)) &&
             (
 #ifdef HPI_B_02
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
+             (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
       {
