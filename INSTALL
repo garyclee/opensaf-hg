@@ -213,8 +213,9 @@ The opensaf source code has to be built for system controller or payload targets
 
 Step 0: ./bootstrap.sh
 
-- Copy tipc.h from <tipc_install_dir>/include/net/tipc/ to opensaf/services/mds/inc/tipc.h
-NOTE: If your kernel is already including tipc, build TIPC as a kernel module and copy tipc.h to opensaf/services/mds/inc/.
+- If using TIPC distributed with linux kernel, Copy tipc.h from <kernel_src_dir>/include/linux/ to opensaf/services/mds/inc/tipc.h
+
+- If using TIPC from source package (i.e. not bundled with kernel), Copy tipc.h from <tipc_src_dir>/include/net/tipc/ to opensaf/services/mds/inc/tipc.h
  
 CONTROLLER BUILD
 ----------------
