@@ -30,7 +30,7 @@
 #              that are part of a cluster .
 ### END INIT INFO
 
-CORE_FILE_SIZE=="unlimited"
+CORE_FILE_SIZE="unlimited"
 CORE_PATTERN="/var/crash/core_%t_%e_%p"
 CORE_PATTERN_CURRENT=`cat /proc/sys/kernel/core_pattern`
 
