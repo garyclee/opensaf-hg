@@ -59,7 +59,7 @@ PIDFILE=/var/run/nodeinit.pid
 NISPIPE=/tmp/nisfifo
 SPCAPFIFO=/tmp/nodeinit.fifo
 INITTIMEOUT=1000
-TERMTIMEOUT=100
+TERMTIMEOUT=5
 NISSTATUS="NONE"
 SPCAPPIDFILE=/var/run/ncsspcap.pid
 MODULE=tipc
@@ -73,7 +73,10 @@ MODULE=tipc
 export NID_ROLE_CONFIG="ACTIVE"
 
 
-test -f $BINPATH/$DAEMON || exit 1
+if [ ! -x $BINPATH/$DAEMON ]; then
+   echo "NID Daemon Not Found. Did OpenSAF installation succeed?"
+   exit 1;
+fi
 
 # Make sure this (Linux) system has POSIX shared memory configured
 test -d /dev/shm || exit 1
@@ -214,7 +217,14 @@ start()
         date;
         rm -f $SPCAPFIFO;
 	rm -rf $NISPIPE;
-        if [ "${NISSTATUS}" = "SUCCESS" ]; then 
+        if [ "${NISSTATUS}" = "SUCCESS" ]; then
+           # Save the SCAP pid file, will be used during shutdown
+           if [ ! -f $SPCAPPIDFILE ]; then
+              #Write only if NID has not written already.
+              #NID would write when scap is spawned as daemon.
+              sleep 1 # Give time for proper pgrep
+              pgrep -fn ncs_scap > $SPCAPPIDFILE ;
+           fi
            echo "SERVICE Initialization Success";
 	elif [ "${NISSTATUS}" = "FAILED" ]; then 
              echo "SERVICE Initialization Failed";
@@ -250,41 +260,57 @@ stop()
              }
              kill -s SIGUSR1 `cat $SPCAPPIDFILE` 2>/dev/null
              sleep $TERMTIMEOUT & 
-             read STATUS < $SPCAPFIFO
+             read -t $TERMTIMEOUT STATUS < $SPCAPFIFO
+            fi
+        else
+            # First Check if master is alive.
+            if pgrep -fn ncs_scap >& /dev/null; then
+               # Master is alive but scap pid info not found.
+               # pgrep command failed. OR
+               # User pressed Ctrl + C during 'nis_scxb start', i.e.
+               # before nis_scxb && ncs_scap could complete handshake.
+                echo "SCAP PID not found.";
+                echo "Warning: Terminating Forcefully...DONE."
+                killall ncs >& /dev/null;
+                killall opensaf >& /dev/null;
+            else
+               # Master not found. 'nis_scxb stop' was issued without 'nis_scxb start'.
+               # kill all OpenSAF children if any (There shouldn't be).
+                if pgrep -fn ncs >& /dev/null; then
+                   killall ncs >& /dev/null;
+                   killall opensaf >& /dev/null;
+                fi
+                echo "OpenSAF Services Termination Success."
+                exit 0;
             fi
         fi
-        ###########################################################
-        # OpenSAF services cleanup, Needs to be removed once these
-        # services are componentized into AMF. cause AMF will
-        # bring them down... but all this in future.
-        ###########################################################
-        killall ncs_ifnd 2>/dev/null
-        sleep 2
-        killall ncs_scap 2>/dev/null
-        killall ifsv_demo 2>/dev/null
+        ####################################################
+        # The components would have been terminated by now.
+        # The master(SCAP) would have exited by now.
+        ####################################################
         
-        echo "Status: $STATUS"
-	  if [ "${STATUS}" = "DONE" ] 
-        then 
-           echo "OpenSAF Services Termination Success"
-        else
-           # The formal way to cleanup failed.
-           # Go ahead to kill if still services are running
-           pkill ncs
-           echo ""
-           echo "OpenSAF Services Termination Success"
+	if [ "${STATUS}" != "DONE" ]; then
+            STATUS="MISSED"
+           # Missed the message from avnd.
+           # This could be because the low priority script couldn't
+           # just read the "DONE" status from AVND.
+           # But this is okay since avnd would have anyway cleaned up stuff.
         fi
-        pkill opensaf_saflogd
-        kill -9 `pgrep ncs_nid`
-        kill -9 `ncs_ifsv_ip_installer`
+        echo "Status: Hand Shake $STATUS"
+
+        pkill opensaf_saflogd #Can be removed later.
+
+        #Kill the miscellaneous & non-amf.
+        kill -9 `pgrep ncs_ifsv_ip_installer`
         kill -9 `pgrep nid_tipc.sh`
-        sleep 2
+        kill -9 `pgrep ncs_nid`
+        sleep 1 # Give time for tipc to release.
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE
         fi
         rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         rm -rf /dev/shm/opensaf
-        echo "."
+        echo "OpenSAF Services Termination Success."
 
 } # End of function stop()
 
@@ -298,6 +324,7 @@ case "$1" in
         ;;
   restart|try-restart)
         stop
+        sleep 1
         start
         ;;
   reload|force-reload)
@@ -313,6 +340,7 @@ case "$1" in
         fi
         ;;
   *)
+        # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
         echo "Usage: $ETCPATH/nis_scxb {start|stop|restart|try-restart|reload|force-reload|status}" >&2
         exit 1
         ;;

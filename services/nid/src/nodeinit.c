@@ -2652,6 +2652,11 @@ spawn_services(uns8 * strbuf)
         ********************************************************/
        if((service->servcode == NID_SCAP) || (service->servcode == NID_PCAP))
        {
+         /* If type is script, nis_scxb && nis_pld start scripts 
+            will write the pid accordingly
+          */
+         if(service->app_type == NID_DAEMN)
+         {
          int32 lfd;
          uns8 filename[30],str[15];
          sysf_sprintf(filename,"/var/run/%s.pid","ncsspcap");
@@ -2660,6 +2665,7 @@ spawn_services(uns8 * strbuf)
          sysf_sprintf(str,"%d\n",service->pid);
          m_NCS_POSIX_WRITE(lfd,str,m_NCS_STRLEN(str));
          m_NCS_POSIX_CLOSE(lfd);
+         }
        }
 
        /***********************************************************
