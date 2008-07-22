@@ -216,7 +216,8 @@ void avnd_main_process (void *arg)
   }
 
    /* Give some time for cleanup and reboot scipts */
-   sleep(20);
+   sleep(5);
+   exit(0);
 
    return;
 }

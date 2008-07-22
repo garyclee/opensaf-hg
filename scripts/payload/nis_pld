@@ -51,7 +51,7 @@ PIDFILE=/var/run/nodeinit.pid
 NISPIPE=/tmp/nisfifo
 SPCAPFIFO=/tmp/nodeinit.fifo
 INITTIMEOUT=1000
-TERMTIMEOUT=100
+TERMTIMEOUT=5
 NISSTATUS="NONE"
 SPCAPPIDFILE=/var/run/ncsspcap.pid
 MODULE=tipc
@@ -66,14 +66,17 @@ MODULE=tipc
 export NID_ROLE_CONFIG="ACTIVE"
 
 
-test -f $BINPATH/$DAEMON || exit 1
+if [ ! -x $BINPATH/$DAEMON ]; then
+   echo "NID Daemon Not Found. Did OpenSAF installation succeed?"
+   exit 1;
+fi
 
 # Make sure this (Linux) system has POSIX shared memory configured
 test -d /dev/shm || exit 1
 #set -e
 set +x
 
-#Function to start teh services
+# Function to start the services
 start()
 {
        ### Remove TIPC if already installed.
@@ -212,6 +215,13 @@ start()
         rm -f $SPCAPFIFO;
 	rm -rf $NISPIPE;
         if [ "${NISSTATUS}" = "SUCCESS" ]; then 
+           # Save the PCAP pid file, will be used during shutdown
+           if [ ! -f $SPCAPPIDFILE ]; then
+              #Write only if NID has not written already.
+              #NID would write when pcap is spawned as daemon.
+              sleep 1 # Give time for proper pgrep
+              pgrep -fn ncs_pcap > $SPCAPPIDFILE ;
+           fi
            echo "SERVICE Initialization Success";
            date >> /var/opt/opensaf/node_ha_state;
            echo "Node Initialization Success" >> /var/opt/opensaf/node_ha_state;
@@ -247,40 +257,56 @@ stop()
              }
              kill -s SIGUSR1 `cat $SPCAPPIDFILE` 2>/dev/null
              sleep $TERMTIMEOUT & 
-             read STATUS < $SPCAPFIFO
+             read -t $TERMTIMEOUT STATUS < $SPCAPFIFO
             fi
-        fi
-        ###########################################################
-        # OpenSAF services cleanup, Needs to be removed once these
-        # services are componentized into AMF. cause AMF will
-        # bring them down... but all this in future.
-        ###########################################################
-        killall ncs_ifnd 2>/dev/null
-        sleep 2
-        killall ncs_pcap 2>/dev/null
-        # The above is a formal way of stopping services
-        # Go ahead to kill if still services are up
-
-        echo "Status: $STATUS"
-	if [ "${STATUS}" = "DONE" ] 
-        then 
-           echo "OpenSAF Services Termination Success"
         else
-           # The formal way to cleanup failed.
-           # Go ahead to kill if still services are running
-           pkill ncs
-           echo "OpenSAF Services Termination Success"
+            # First Check if master is alive.
+            if pgrep -fn ncs_pcap >& /dev/null; then
+               # Master is alive but pcap pid info not found.
+               # pgrep command failed. OR
+               # User pressed Ctrl + C during 'nis_pld start', i.e.
+               # before nis_pld && ncs_pcap could complete handshake.
+                echo "PCAP PID not found.";
+                echo "Warning: Terminating Forcefully...DONE."
+                killall ncs >& /dev/null;
+                killall opensaf >& /dev/null;
+            else
+               # Master not found. 'nis_pld stop' was issued without 'nis_pld start'.
+               # kill all OpenSAF children if any (There shouldn't be).
+                if pgrep -fn ncs >& /dev/null; then
+                   killall ncs >& /dev/null;
+                   killall opensaf >& /dev/null;
+                fi
+                echo "OpenSAF Services Termination Success."
+                exit 0;
+            fi
+
         fi
-        kill -9 `pgrep ncs_nid`
+        ##########################################################
+        # The components would have been terminated by now.
+        # The master(PCAP) would have exited by now.
+        ##########################################################
+
+	if [ "${STATUS}" != "DONE" ]; then
+            STATUS="MISSED"
+           # Missed the message from avnd.
+           # This could be because the low priority script couldn't
+           # just read the "DONE" status from AVND.
+           # But this is okay since avnd would have anyway cleaned up stuff.
+        fi
+        echo "Status: Hand Shake $STATUS"
+        #Kill the miscellaneous & non-amf.
         kill -9 `ncs_ifsv_ip_installer`
         kill -9 `pgrep nid_tipc.sh`
+        kill -9 `pgrep ncs_nid`
+        sleep 1 # Give time for tipc to release.
         if grep $MODULE /proc/modules >& /dev/null; then
             rmmod $MODULE
         fi
 
 	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
         rm -rf /dev/shm/opensaf
-        echo "."
+        echo "OpenSAF Services Termination Success."
   
 } # End of function stop()
 
@@ -291,8 +317,9 @@ case "$1" in
   stop)
 	stop
         ;;
-  restart|force-reload)
+  restart|try-restart)
 	stop
+        sleep 1;
 	start
 	;;
   reload|force-reload)
