@@ -1,6 +1,56 @@
 
+Changes from OpenSAF 1.2.1 to OpenSAF 1.2.2
+-------------------------------------------
+The following issues were fixed for 1.2.2
+
+2008-07-24 Michael Bishop <michael.bishop@hp.com>
+	* HiSV needs to handle FRUs that are not ATCA (full 5-state hotswap model).
+
+2008-07-28 Mathivanan <mathivanan.np@emerson.com>
+	* seg fault in ncs_cli_maa pressing tab key.
+	* Stopping/shutdown of OpenSAF services not working properly.
+	* ChangeLog/RPM spec Updates.
+
+2008-07-27 Ramesh Babu <ramesh.betham@emerson.com>
+	* No core dumps generated on payloads nodes.
+	* Wrong path to tipc.h file in the Instalation and Configuration User's Huide and other Documentation updates.
+
 Changes from OpenSAF 1.1.0 to OpenSAF 1.2.1
 -------------------------------------------
+The following fixes/enhancements were done for 1.2.1.
+
+2008-06-18 Ramesh Babu <ramesh.betham@emerson.com>
+
+	* CLI commands fail for dtsv on 64-bit and CLI segaults for empty commands.
+	* ncs_mas exits due to seg fault.
+	* ncs_sel_obj_select logs "Too many interrupts" erroneously.
+
+2008-06-12 Hans Feldt <Hans.Feldt@ericsson.com>
+	* seg fault in opensaf_saflogd - lgs_client_new.
+	* Log file rotation does not work at cold start.
+
+2008-06-02 Alla Venkata Mahesh <mahesh.alla@emerson.com>
+	* OpenSAF does not clean all checkpoints from POSIX Shared memory.
+
+2008-06-12 Nagendra Kumar <nagendra.kumar@emerson.com>
+	* ncs_scap exits due to already started timer.
+	* Enhancing rde_rde_config_file.
+	* Controller Redundancy Issues.
+
+2008-06-20 Mathivanan <mathivanan.np@emerson.com>
+	* OpenSAF failed start not handled properly.
+	* OpenSAF CLI fails on a system with only a root user.
+	* PSS division by zero.
+	* NCSScalars Persistance problem.
+	* Support to start all pre-scap/scap processes as 'scripts' by NID.
+	* PSS on standby controller writes to file system.
+	* NIS Not all OpenSAF processes are stopped.
+	* smidump build error.
+	* update INSTALL file with more trouble shooting instructions.
+	* ChangeLog Updates.
+
+2008-06-19 Michael Bishop <michael.bishop@hp.com>
+	* HISv using incorrect value for #define HPI_AUTO_HS_STOP_TMR.
 
 Changes from OpenSAF 1.0.9 to OpenSAF 1.1.0
 -------------------------------------------
