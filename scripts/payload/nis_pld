@@ -233,6 +233,20 @@ start()
 	echo "."
 
 } ## End start()
+clean_the_rest()
+{
+   kill -9 `ncs_ifsv_ip_installer`
+   kill -9 `pgrep nid_tipc.sh`
+   kill -9 `pgrep ncs_nid`
+   sleep 2 # Give time for tipc to release.
+   if grep $MODULE /proc/modules >& /dev/null; then
+      rmmod $MODULE
+   fi
+
+   rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
+   rm -rf /dev/shm/opensaf
+}
+
 
 stop()
 {
@@ -266,19 +280,24 @@ stop()
                # pgrep command failed. OR
                # User pressed Ctrl + C during 'nis_pld start', i.e.
                # before nis_pld && ncs_pcap could complete handshake.
+               # We can either get the pid again and send SIGUSR1 for regular stop OR
+               # Force kill. For now, we shall force kill,
+               # shall enforce pgrep(equivalent) works on all platforms.
+
                 echo "PCAP PID not found.";
                 echo "Warning: Terminating Forcefully...DONE."
-                killall ncs >& /dev/null;
-                killall opensaf >& /dev/null;
+                pkill ncs >& /dev/null;
+                pkill opensaf >& /dev/null;
             else
                # Master not found. 'nis_pld stop' was issued without 'nis_pld start'.
                # kill all OpenSAF children if any (There shouldn't be).
                 if pgrep -fn ncs >& /dev/null; then
-                   killall ncs >& /dev/null;
-                   killall opensaf >& /dev/null;
+                   pkill ncs >& /dev/null;
+                   pkill opensaf >& /dev/null;
+                   clean_the_rest
                 fi
                 echo "OpenSAF Services Termination Success."
-                exit 0;
+                return;
             fi
 
         fi
@@ -294,18 +313,9 @@ stop()
            # just read the "DONE" status from AVND.
            # But this is okay since avnd would have anyway cleaned up stuff.
         fi
-        echo "Status: Hand Shake $STATUS"
+        echo "Status: Hand Shake With PCAP: $STATUS."
         #Kill the miscellaneous & non-amf.
-        kill -9 `ncs_ifsv_ip_installer`
-        kill -9 `pgrep nid_tipc.sh`
-        kill -9 `pgrep ncs_nid`
-        sleep 1 # Give time for tipc to release.
-        if grep $MODULE /proc/modules >& /dev/null; then
-            rmmod $MODULE
-        fi
-
-	rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
-        rm -rf /dev/shm/opensaf
+        clean_the_rest
         echo "OpenSAF Services Termination Success."
   
 } # End of function stop()
@@ -316,6 +326,7 @@ case "$1" in
 	;;
   stop)
 	stop
+        exit 0;
         ;;
   restart|try-restart)
 	stop
