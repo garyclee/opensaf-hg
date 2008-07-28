@@ -960,10 +960,12 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
       /* Tab */
       case CLI_CONS_TAB:
          if(TRUE == passwd_flag) break;
-         
-         if(' ' == buffer[chCnt - 1]) {
-            m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);
-            break;
+         if(chCnt > 0)
+         {
+            if(' ' == buffer[chCnt - 1]) {
+               m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);
+               break;
+            }
          }
          
          buffer[chCnt] = '\0';    
