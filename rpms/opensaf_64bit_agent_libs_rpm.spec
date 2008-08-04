@@ -18,7 +18,7 @@
 
 Summary: OpenSAF Services Payload Blade RPM
 Name: opensaf_64bit_agent_libs
-Version: 1.2.2-CF
+Version: 1.2.2
 Distribution: linux
 Release:1
 Source: %{name}.tgz
