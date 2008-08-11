@@ -474,6 +474,18 @@ uns32 hcd_hsm()
             m_LOG_HISV_DTS_CONS("hcd_hsm: Inventory data not found\n");
          }
       }
+      else {
+        if (event.EventType == SAHPI_ET_HOTSWAP) {
+           /* A hotswap state other than INSERTION_PENDING.              */
+           /* Try to get the inventory info - and provide inv data       */
+           /* in the published event.                                    */
+           if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
+               &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
+           {
+              m_LOG_HISV_DTS_CONS("hcd_hsm: Inventory data not found\n");
+           }
+        }
+      }
       /* if inventory data not available, just publish event and entity path */
       if (event_data == NULL)
       {
@@ -499,9 +511,24 @@ uns32 hcd_hsm()
           (RptEntry.ResourceEntity.Entry[0].EntityType != 160))
          epath.Entry[0].EntityType = RptEntry.ResourceEntity.Entry[0].EntityType;
 #else
-      slot_ind = 1;
+      if ((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+          (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+         /* NON-ATCA: Do not strip off leaf entry. */
+         slot_ind = 0;
+      }
+      else {
+         /* ATCA: Strip off leaf entry. */
+         slot_ind = 1;
+      }
       for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-         epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
+         /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
+         if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
+            slot_ind = 1;
+            i--;
+         }
+         else {
+            epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
+         }
          if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
             /* don't need to copy anymore */
             break;
@@ -911,8 +938,20 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    }
 
    m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+       (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+      /* NON-ATCA: Do not strip off leaf entry. */
+      slot_ind = 0;
+   }
    for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+      /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
+      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
+         slot_ind = 1;
+         i--;
+      }
+      else {
+         epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+      }
       if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
          /* don't need to copy anymore */
          break;
@@ -1029,8 +1068,20 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    }
 
    m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+       (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+      /* NON-ATCA: Do not strip off leaf entry. */
+      slot_ind = 0;
+   }
    for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+      /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
+      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
+         slot_ind = 1;
+         i--;
+      }
+      else {
+         epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+      }
       if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
          /* don't need to copy anymore */
          break;
