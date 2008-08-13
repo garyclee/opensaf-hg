@@ -114,6 +114,7 @@ AC_CONFIG_FILES([Makefile
 		edsv/Makefile
 		dtsv/Makefile
 		glsv/Makefile
+		hisv/Makefile
 		leap/Makefile
 		masv/Makefile
 		mqsv/Makefile
