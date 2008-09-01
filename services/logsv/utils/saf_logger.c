@@ -93,7 +93,7 @@ static void usage(void)
     printf("  -s SEV or --severity=SEV       use severity SEV, default INFO\n");
     printf("  -i INT or --interval=INT       write with interval INT (only with --count, default 1s)\n");
     printf("  -c CNT or --count=CNT          write CNT number of times, -1 forever (with interval INT) \n");
-    printf("      valid severity names: emerg, alert, crit, err, warn , notice, info\n");
+    printf("      valid severity names: emerg, alert, crit, error, warn, notice, info\n");
 }
 
 static void logWriteLogCallbackT(SaInvocationT invocation, SaAisErrorT error)
@@ -210,25 +210,25 @@ poll_retry:
 static SaLogSeverityT get_severity(char *severity)
 {
     if (strcmp(severity, "emerg") == 0)
-        return SA_LOG_SEV_FLAG_EMERGENCY;
+        return SA_LOG_SEV_EMERGENCY;
 
     if (strcmp(severity, "alert") == 0)
-        return SA_LOG_SEV_FLAG_ALERT;
+        return SA_LOG_SEV_ALERT;
 
     if (strcmp(severity, "crit") == 0)
-        return SA_LOG_SEV_FLAG_CRITICAL;
+        return SA_LOG_SEV_CRITICAL;
 
     if (strcmp(severity, "error") == 0)
-        return SA_LOG_SEV_FLAG_ERROR;
+        return SA_LOG_SEV_ERROR;
 
     if (strcmp(severity, "warn") == 0)
-        return SA_LOG_SEV_FLAG_WARNING;
+        return SA_LOG_SEV_WARNING;
 
     if (strcmp(severity, "notice") == 0)
-        return SA_LOG_SEV_FLAG_NOTICE;
+        return SA_LOG_SEV_NOTICE;
 
     if (strcmp(severity, "info") == 0)
-        return SA_LOG_SEV_FLAG_INFO;
+        return SA_LOG_SEV_INFO;
 
     usage();
     exit(EXIT_FAILURE);
@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
     logRecord.logTimeStamp = SA_TIME_UNKNOWN; /* LOG service should supply timestamp */
     logRecord.logHdrType = SA_LOG_GENERIC_HEADER;
     logRecord.logHeader.genericHdr.notificationClassId = NULL;
-    logRecord.logHeader.genericHdr.logSeverity = SA_LOG_SEV_FLAG_INFO;
+    logRecord.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
     logRecord.logHeader.genericHdr.logSvcUsrName = &logSvcUsrName;
     logRecord.logBuffer = NULL;
     appLogFileCreateAttributes.logFilePathName = "saflogger";
