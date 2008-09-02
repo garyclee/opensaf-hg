@@ -33,18 +33,28 @@ int raw = 0;
 
 #include "hisv_events_demo_app.h"
 
+void err_usage() {
+   m_NCS_CONS_PRINTF("\nINCORRECT ARGUMENTS:\n USAGE: hisv_events_demo\n");
+   m_NCS_CONS_PRINTF(" or\n");
+   m_NCS_CONS_PRINTF("        hisv_events_demo --raw\n");
+}
+
 int main(int argc, char*argv[])
 {
-
-   if (((argc != 1) && (argc != 2)) ||
-       ((argc == 2) && (strcmp(argv[1], "--raw") != 0))) {
-      m_NCS_CONS_PRINTF("\nINCORRECT ARGUMENTS:\n USAGE: hisv_events_demo\n");
-      m_NCS_CONS_PRINTF(" or\n");
-      m_NCS_CONS_PRINTF("        hisv_events_demo --raw\n");
-      return (NCSCC_RC_FAILURE);
+   if (argc > 2) {
+     err_usage();
+     return (NCSCC_RC_FAILURE);
    }
-   if (argc == 2) {
-     raw = 1;
+   else {
+      if (argc == 2) {
+         if (strcmp(argv[1], "--raw") == 0) {
+            raw = 1;
+         }
+         else {
+            err_usage();
+            return (NCSCC_RC_FAILURE);
+         }
+      }
    }
 
    m_NCS_CONS_PRINTF("\n\n ################################################### \n");

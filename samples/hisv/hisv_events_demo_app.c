@@ -454,14 +454,19 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    uns32                     rc;
    uns32                     num_patterns;
    uns32                     pattern_size;
-   HPI_EVT_T               *hpi_event     = NULL;
-   SaUint8T                  hpi_event_type_string[30];
-   SaUint8T                  hpi_hs_state_string[30];
-   SaUint8T                  hpi_entity_path_buffer[50];
+   HPI_EVT_T                *hpi_event     = NULL;
+   SaUint8T                  hpi_event_type_string[50];
+   SaUint8T                  hpi_event_sev_string[50];
+   SaUint8T                  hpi_hs_state_string[50];
+   SaUint8T                  hpi_sensor_type_string[50];
+   SaUint8T                  hpi_sensor_es_string[50];
+   SaUint8T                  hpi_entity_path_buffer[100];
+   /* SaUint8T                  hpipower_string[100]; */
    SaUint8T                  hpi_entity_path[8][50];
    uns32                     hpi_entity_path_depth = 0;
    uns32                     hpi_entity_path_max = 8;
    SaInt32T		     i;
+   SaInt32T		     hpi_event_slot;
 
    /* Prepare an appropriate-sized data buffer.  */
    data_len = event_data_size;
@@ -542,9 +547,15 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
       /* m_NCS_CONS_PRINTF(" hpi rc         =    %d\n", rc); */
    if (raw) {
       m_NCS_CONS_PRINTF(" hpi prod namel =    %d\n", hpi_event->inv_data.product_name.DataLength);
-      m_NCS_CONS_PRINTF(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
+      if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
+         m_NCS_CONS_PRINTF(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
+      else
+         m_NCS_CONS_PRINTF(" hpi prod name  = \n");
       m_NCS_CONS_PRINTF(" hpi prod versl =    %d\n", hpi_event->inv_data.product_version.DataLength);
-      m_NCS_CONS_PRINTF(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
+      if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
+         m_NCS_CONS_PRINTF(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
+      else
+         m_NCS_CONS_PRINTF(" hpi prod vers  = \n");
       m_NCS_CONS_PRINTF(" hpi event res  =    %d\n", hpi_event->hpi_event.Source);
       m_NCS_CONS_PRINTF(" hpi event type =    %d\n", hpi_event->hpi_event.EventType);
       m_NCS_CONS_PRINTF(" hpi event sev  =    %d\n", hpi_event->hpi_event.Severity);
@@ -602,6 +613,33 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             break;
       }
       m_NCS_CONS_PRINTF("       Event Type : %s\n", hpi_event_type_string);
+      switch (hpi_event->hpi_event.Severity) {
+         case 0:
+            strcpy (hpi_event_sev_string, "SAHPI_CRITICAL");
+            break;
+         case 1:
+            strcpy (hpi_event_sev_string, "SAHPI_MAJOR");
+            break;
+         case 2:
+            strcpy (hpi_event_sev_string, "SAHPI_MINOR");
+            break;
+         case 3:
+            strcpy (hpi_event_sev_string, "SAHPI_INFORMATIONAL");
+            break;
+         case 4:
+            strcpy (hpi_event_sev_string, "SAHPI_OK");
+            break;
+         case 240:
+            strcpy (hpi_event_sev_string, "SAHPI_DEBUG");
+            break;
+         case 255:
+            strcpy (hpi_event_sev_string, "SAHPI_ALL_SEVERITIES");
+            break;
+         default:
+            strcpy (hpi_event_sev_string, "UNKNOWN");
+            break;
+      }
+      m_NCS_CONS_PRINTF("   Event Severity : %s\n", hpi_event_sev_string);
       if (hpi_event->hpi_event.EventType == SAHPI_ET_HOTSWAP) {
          switch (hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState) {
             case 0:
@@ -626,6 +664,72 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
   
          m_NCS_CONS_PRINTF("    HotSwap State : %s\n", hpi_hs_state_string);
       }
+      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.SensorType) {
+            case 1:
+               strcpy (hpi_sensor_type_string, "SAHPI_TEMPERATURE");
+               break;
+            case 2:
+               strcpy (hpi_sensor_type_string, "SAHPI_VOLTAGE");
+               break;
+            case 3:
+               strcpy (hpi_sensor_type_string, "SAHPI_CURRENT");
+               break;
+            case 4:
+               strcpy (hpi_sensor_type_string, "SAHPI_FAN");
+               break;
+            case 5:
+               strcpy (hpi_sensor_type_string, "SAHPI_PHYSICAL_SECURITY");
+               break;
+            case 6:
+               strcpy (hpi_sensor_type_string, "SAHPI_PLATFORM_VIOLATION");
+               break;
+            case 7:
+               strcpy (hpi_sensor_type_string, "SAHPI_PROCESSOR");
+               break;
+            case 8:
+               strcpy (hpi_sensor_type_string, "SAHPI_POWER_SUPPLY");
+               break;
+            case 9:
+               strcpy (hpi_sensor_type_string, "SAHPI_POWER_UNIT");
+               break;
+            case 10:
+               strcpy (hpi_sensor_type_string, "SAHPI_COOLING_DEVICE");
+               break;
+            default:
+               strcpy (hpi_sensor_type_string, "UNKNOWN");
+               break;
+         } 
+  
+         m_NCS_CONS_PRINTF("      Sensor Type : %s\n", hpi_sensor_type_string);
+      }
+      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
+            case 1:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_MINOR");
+               break;
+            case 2:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_MAJOR");
+               break;
+            case 4:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_CRIT");
+               break;
+            case 8:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_MINOR");
+               break;
+            case 16:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_MAJOR");
+               break;
+            case 32:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_CRIT");
+               break;
+            default:
+               strcpy (hpi_sensor_es_string, "UNKNOWN");
+               break;
+         } 
+  
+         m_NCS_CONS_PRINTF(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+      }
       for (i = 0; i<hpi_entity_path_max; i++) {
          hpi_entity_path_depth++;
          if (hpi_event->entity_path.Entry[i].EntityType == SAHPI_ENT_ROOT)
@@ -635,39 +739,39 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
       for (i = 0; i < hpi_entity_path_depth; i++) {
          switch (hpi_event->entity_path.Entry[i].EntityType) {
             case SAHPI_ENT_ROOT:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_ROOT, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{ROOT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_RACK:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_RACK, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{RACK,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_ADVANCEDTCA_CHASSIS, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{ADVANCEDTCA_CHASSIS,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_SYSTEM_CHASSIS:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_SYSTEM_CHASSIS, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{SYSTEM_CHASSIS,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_PHYSICAL_SLOT:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_PHYSICAL_SLOT, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{PHYSICAL_SLOT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_PICMG_FRONT_BLADE:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_PICMG_FRONT_BLADE, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{PICMG_FRONT_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_SYSTEM_BLADE:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_SYSTEM_BLADE, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{SYSTEM_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             case SAHPI_ENT_SWITCH_BLADE:
-            sprintf(hpi_entity_path_buffer, "{SAHPI_ENT_SWITCH_BLADE, %d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            sprintf(hpi_entity_path_buffer, "{SWITCH_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             default:
-            sprintf(hpi_entity_path_buffer, "{UNKNOWN, 0}"); 
+            sprintf(hpi_entity_path_buffer, "{UNKNOWN,0}"); 
             break; 
          }
          strcpy(hpi_entity_path[i], hpi_entity_path_buffer);
@@ -675,21 +779,32 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
 
       m_NCS_CONS_PRINTF("Entity Path Depth : %d\n", hpi_entity_path_depth);
       m_NCS_CONS_PRINTF("      Entity Path : ");
-      for (i = 0; i < hpi_entity_path_depth; i++) {
-         if (i == (hpi_entity_path_depth - 1)) {
+      for (i = (hpi_entity_path_depth - 1); i > -1; i--) {
+         if (i == 0)
             m_NCS_CONS_PRINTF("%s\n", hpi_entity_path[i]);
-         }
-         else {
-            m_NCS_CONS_PRINTF("%s <-- ", hpi_entity_path[i]);
-         }
+         else
+            m_NCS_CONS_PRINTF("%s", hpi_entity_path[i]);
       }
-      m_NCS_CONS_PRINTF("    Slot Location : %d\n", hpi_event->entity_path.Entry[0].EntityLocation);
+      hpi_event_slot = hpi_event->entity_path.Entry[0].EntityLocation;
+      m_NCS_CONS_PRINTF("    Slot Location : %d\n", hpi_event_slot);
 
       /* Make sure we have a good data length before printing product name and version.  */
       if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
          m_NCS_CONS_PRINTF("     Product Name : %s\n", hpi_event->inv_data.product_name.Data);
       if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
          m_NCS_CONS_PRINTF("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
+
+      /* Now test to see if we shutdown a blade. Use system call to OpenHPI to shutdown the blade. */
+/*
+      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+         if ((strcmp(hpi_sensor_type_string, "SAHPI_TEMPERATURE") == 0) &&
+             (strcmp(hpi_event_sev_string, "SAHPI_CRITICAL") == 0)) {
+            m_NCS_CONS_PRINTF("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n", hpi_event_slot);
+            sprintf(hpipower_string, "/usr/bin/hpipower -d -b %d > /dev/null", hpi_event_slot);
+            system(hpipower_string);
+         }
+      }
+*/
    }
 
    m_NCS_CONS_PRINTF("--------------------------------------------------------\n\n");
