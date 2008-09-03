@@ -33,9 +33,11 @@ source /etc/opt/opensaf/rde.conf
 if grep $CONTROLLER1 ifs; then
  export RDE_SELF_IP_ADDR=$CONTROLLER1
  export RDE_PEER_IP_ADDR=$CONTROLLER2
+ export RDE_HA_ROLE=0 # PCS_RDA_ACTIVE
 else
  export RDE_SELF_IP_ADDR=$CONTROLLER2
  export RDE_PEER_IP_ADDR=$CONTROLLER1
+ export RDE_HA_ROLE=1 # PCS_RDA_STANDBY
 fi
 
 

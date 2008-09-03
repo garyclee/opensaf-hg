@@ -32,7 +32,7 @@
 
 ******************************************************************************/
 
-
+#include <syslog.h>
 #include "rde.h"
 #include "rde_cb.h"
 static uns32 rde_rde_process_send_slot_number (void);
@@ -60,8 +60,8 @@ extern uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb);
 *****************************************************************************/
 
 uns32 rde_rde_parse_config_file()
- {
-  char *tmp_ptr = NULL;
+{
+  char *tmp_ptr;
   RDE_CONTROL_BLOCK * rde_cb; 
  
   rde_cb = rde_get_control_block();
@@ -73,31 +73,37 @@ uns32 rde_rde_parse_config_file()
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.hostip= inet_addr(tmp_ptr);
-     m_NCS_CONS_PRINTF("\nrde_cb->rde_rde_cb.hostip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.hostip));
-     tmp_ptr = NULL;
+     m_NCS_CONS_PRINTF("rde_cb->rde_rde_cb.hostip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.hostip));
   }
   else
-   m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_SELF_IP_ADDR is NULL\n");
+      return RDE_RDE_RC_FAILURE;
  
   tmp_ptr = getenv("RDE_PEER_IP_ADDR");
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.servip = inet_addr(tmp_ptr);
-     m_NCS_CONS_PRINTF("\nrde_cb->rde_rde_cb.servip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.servip));
-     tmp_ptr = NULL;
+     m_NCS_CONS_PRINTF("rde_cb->rde_rde_cb.servip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.servip));
   }
   else
-     m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_PEER_IP_ADDR is NULL\n");
+      return RDE_RDE_RC_FAILURE;
  
   tmp_ptr = getenv("RDE_PORT_NUMBER");
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.hostportnum = rde_cb->rde_rde_cb.servportnum = htons(atoi(tmp_ptr));
-     m_NCS_CONS_PRINTF("\nRde port number %d\n",ntohs(rde_cb->rde_rde_cb.hostportnum));
-     tmp_ptr = NULL;
+     m_NCS_CONS_PRINTF("Rde port number %d\n",ntohs(rde_cb->rde_rde_cb.hostportnum));
   }
   else
-     m_NCS_CONS_PRINTF("\ntmp_ptr for RDE_PORT_NUMBER is NULL\n");
+      return RDE_RDE_RC_FAILURE;
+
+  tmp_ptr = getenv("RDE_HA_ROLE");
+  if(tmp_ptr)
+  {
+     rde_cb->ha_role = atoi(tmp_ptr);
+     m_NCS_CONS_PRINTF("Rde initial HA role %d\n", rde_cb->ha_role);
+  }
+  else
+      return RDE_RDE_RC_FAILURE;
 
   return  RDE_RDE_RC_SUCCESS;   
     
@@ -555,9 +561,11 @@ uns32 rde_rde_parse_msg(char * msg,RDE_RDE_CB  * rde_rde_cb)
     else if(req == RDE_RDE_REBOOT_CMD)
     {
       m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Received RDE_RDE_REBOOT_CMD from other RDE\n");
+      syslog(LOG_INFO, "Received reboot command from other RDE");
       sleep(5);
       rde_rde_close(rde_rde_cb);
       sleep(5);
+      syslog(LOG_NOTICE, "Rebooting the system...");
       m_NCS_REBOOT;  
       exit(0); 
     }
@@ -604,7 +612,6 @@ uns32 rde_rde_process_send_role ()
     conn_estab = rde_rde_get_set_established(FALSE);
     if(conn_estab == FALSE)
     {
-      rde_cb->ha_role = PCS_RDA_ACTIVE;
       rde_rde_get_set_established(TRUE);
       rde_rde_update_config_file(rde_cb->ha_role);
       rde_rda_send_role (rde_cb->ha_role);
@@ -986,7 +993,9 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
 
   RDE_CONTROL_BLOCK * rde_cb = rde_get_control_block();
   RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
-  
+
+  syslog(LOG_NOTICE, "This System Controller is assigned : %s", ((role == 0) ? "HA ACTIVE STATE":"HA STANDBY STATE"));
+
   /* Check that the NID reponse has been sent or not. */ 
   if(rde_rde_cb->nid_ack_sent == FALSE)
   {
@@ -1135,6 +1144,7 @@ uns32 rde_rde_hb_err ()
        {
          /* Send reboot command to STDBY. */
             m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Role ACTIVE. Heart Beat Loss Msg received. Sending Reboot Command to other RDE\n");
+            syslog(LOG_NOTICE, "Heart Beat Loss Msg received, sending Reboot Command to other RDE");
             rde_rda_send_node_reset_to_avm(rde_rde_cb);
             sprintf(msg,"%d",RDE_RDE_REBOOT_CMD);
             msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg)); 
@@ -1274,6 +1284,7 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
          /* Send reboot command to STDBY. */
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Reboot Cmd Not received from ACT. So sending Reboot Cmd to ACT\n");
             sprintf(msg,"%d",RDE_RDE_REBOOT_CMD);
+            syslog(LOG_NOTICE, "Reboot Cmd Not received from ACT, sending Reboot Command to other RDE");
             msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg));
             if (msg_size < 0)
             {
