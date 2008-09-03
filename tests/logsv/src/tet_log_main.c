@@ -38,7 +38,7 @@ SaNameT notificationObject =
     .length = sizeof(DEFAULT_NOTIFICATION_OBJECT)
 };
 
-static char buf[256];
+static char buf[2048];
 
 SaLogBufferT alarmStreamBuffer =
 {
@@ -213,6 +213,7 @@ extern void saLogWriteLogAsync_09(void);
 extern void saLogWriteLogAsync_10(void);
 extern void saLogWriteLogAsync_11(void);
 extern void saLogWriteLogAsync_12(void);
+extern void saLogWriteLogAsync_13(void);
 extern void saLogWriteLogCallbackT_01(void);
 extern void saLogWriteLogCallbackT_02(void);
 extern void saLogStreamClose_01(void);
@@ -268,6 +269,7 @@ static struct tet_testlist api_testlist[] =
     {saLogWriteLogAsync_10, 9},
     {saLogWriteLogAsync_11, 9},
     {saLogWriteLogAsync_12, 9},
+    {saLogWriteLogAsync_13, 9},
     {saLogWriteLogCallbackT_01, 10},
     {saLogWriteLogCallbackT_02, 10},
     {saLogFilterSetCallbackT_01, 11},
