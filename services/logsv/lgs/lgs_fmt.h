@@ -18,6 +18,9 @@
 #ifndef LGS_FMT_H
 #define LGS_FMT_H
 
+#include <saAis.h>
+#include <saLog.h>
+
 #define TOKEN_START_SYMBOL '@'
 #define STRING_END_CHARACTER '\0'
 #define TERMINATION_CHARACTER '\n'
