@@ -15,9 +15,14 @@
  *
  */
 
-#include "lgs.h"
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <time.h>
+
 #include "lgs_fmt.h"
-#include "lgs_util.h"
 
 /**
  * 
@@ -30,10 +35,10 @@ static SaInt32T checkFieldSize(SaStringT inputString,
                                SaUint16T *numOfDigits)
 {
     SaInt32T result = 0;
-    SaInt8T tempString[SA_MAX_NAME_LENGTH];
+    SaInt8T dest[SA_MAX_NAME_LENGTH];
     char **endptr = NULL;
 
-    (void)strcpy(tempString, ""); /* Init tempString */
+    (void)strcpy(dest, ""); /* Init dest */
     *numOfDigits = 0;
 
     /* Build string of characters */
@@ -41,10 +46,10 @@ static SaInt32T checkFieldSize(SaStringT inputString,
            (*numOfDigits < SA_MAX_NAME_LENGTH))
     {
         *numOfDigits = *numOfDigits + 1;
-        (void)strncat(tempString, inputString++, sizeof(SaInt8T)); 
+        (void)strncat(dest, inputString++, sizeof(SaInt8T)); 
     }
 
-    result = strtol(tempString, endptr, 0); 
+    result = strtol(dest, endptr, 0); 
     return result;
 }
 
@@ -558,22 +563,20 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr,
  * 
  * @return SaStringT
  */
-static SaStringT extractCommonField(SaStringT fmtExpPtr, 
-                                    SaUint16T *fmtExpPtrOffset,
-                                    SaInt32T *truncationLetterPos,
-                                    SaInt32T inputPos,
-                                    SaUint32T logRecordIdCounter,
-                                    const SaBoolT *twelveHourModeFlag,
-                                    const struct tm *timeStampData,
-                                    const SaLogRecordT *logRecord)
+static int extractCommonField(char *dest, size_t dest_size,
+                              SaStringT fmtExpPtr,
+                              SaUint16T *fmtExpPtrOffset,
+                              SaInt32T *truncationLetterPos,
+                              SaInt32T inputPos,
+                              SaUint32T logRecordIdCounter,
+                              const SaBoolT *twelveHourModeFlag,
+                              const struct tm *timeStampData,
+                              const SaLogRecordT *logRecord)
 {
     SaInt32T fieldSize;
-    SaInt32T stringSize;
+    size_t stringSize;
     SaUint16T fieldSizeOffset = 0;
-    SaInt32T characters = 0;
-    static SaInt8T tempString[SA_MAX_NAME_LENGTH];
-
-    tempString[SA_MAX_NAME_LENGTH - 1] = TERMINATION_CHARACTER; 
+    int characters = 0;
 
     *fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
@@ -581,16 +584,14 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
     { /* input points to a possible field size */
         case C_LR_ID_LETTER:
             stringSize = 11 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "% 10d", 
                                   (int)logRecordIdCounter);
             break; 
 
         case C_LR_TIME_STAMP_LETTER: 
             stringSize = 19 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%#016llx", 
                                   logRecord->logTimeStamp);  
             break;
@@ -599,15 +600,13 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
             stringSize = 3 * sizeof (char);
             if (*twelveHourModeFlag == SA_TRUE)
             {
-                characters = snprintf(tempString, 
-                                      (size_t)stringSize, 
+                characters = snprintf(dest, dest_size, 
                                       "%02d", 
                                       (timeStampData->tm_hour % 12));
             }
             else
             {
-                characters = snprintf(tempString, 
-                                      (size_t)stringSize, 
+                characters = snprintf(dest, dest_size, 
                                       "%02d", 
                                       timeStampData->tm_hour);
             } 
@@ -615,16 +614,14 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
 
         case C_TIME_STAMP_MINUTE_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize,
+            characters = snprintf(dest, dest_size,
                                   "%02d", 
                                   timeStampData->tm_min);
             break;
 
         case C_TIME_STAMP_SECOND_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%02d", 
                                   timeStampData->tm_sec);
             break;
@@ -633,18 +630,17 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
             stringSize = 3 * sizeof(char);
             if (timeStampData->tm_hour >= 00 && timeStampData->tm_hour < 12)
             {
-                characters = snprintf(tempString, (size_t)stringSize, "am");
+                characters = snprintf(dest, dest_size, "am");
             }
             else
             {
-                characters = snprintf(tempString, (size_t)stringSize, "pm");
+                characters = snprintf(dest, dest_size, "pm");
             }
             break;
 
         case C_TIME_STAMP_MONTH_LETTER:
             stringSize = 3 * sizeof(char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%02d", 
                                   (timeStampData->tm_mon + 1));
             break;
@@ -654,55 +650,55 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
             switch (timeStampData->tm_mon)
             {
                 case MONTH_JANUARY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jan"); 
+                    characters = snprintf(dest, dest_size, "Jan"); 
                     break;
 
                 case MONTH_FEBRUARY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Feb"); 
+                    characters = snprintf(dest, dest_size, "Feb"); 
                     break;
 
                 case MONTH_MARCH:
-                    characters = snprintf(tempString, (size_t)stringSize, "Mar"); 
+                    characters = snprintf(dest, dest_size, "Mar"); 
                     break;
 
                 case MONTH_APRIL:
-                    characters = snprintf(tempString, (size_t)stringSize, "Apr"); 
+                    characters = snprintf(dest, dest_size, "Apr"); 
                     break;
 
                 case MONTH_MAY:
-                    characters = snprintf(tempString, (size_t)stringSize, "May"); 
+                    characters = snprintf(dest, dest_size, "May"); 
                     break;
 
                 case MONTH_JUNE:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jun"); 
+                    characters = snprintf(dest, dest_size, "Jun"); 
                     break;
 
                 case MONTH_JULY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jul"); 
+                    characters = snprintf(dest, dest_size, "Jul"); 
                     break;
 
                 case MONTH_AUGUST:
-                    characters = snprintf(tempString, (size_t)stringSize, "Aug"); 
+                    characters = snprintf(dest, dest_size, "Aug"); 
                     break;
 
                 case MONTH_SEPTEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Sep"); 
+                    characters = snprintf(dest, dest_size, "Sep"); 
                     break;
 
                 case MONTH_OCTOBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Oct"); 
+                    characters = snprintf(dest, dest_size, "Oct"); 
                     break;
 
                 case MONTH_NOVEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Nov"); 
+                    characters = snprintf(dest, dest_size, "Nov"); 
                     break;
 
                 case MONTH_DECEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Dec"); 
+                    characters = snprintf(dest, dest_size, "Dec"); 
                     break;
 
                 default:
-                    (void)strcpy(tempString, "");
+                    (void)strcpy(dest, "");
                     break;
 
             }
@@ -711,32 +707,28 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
 
         case C_TIME_STAMP_DAY_LETTER:
             stringSize = 3 * sizeof(char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%02d", 
                                   timeStampData->tm_mday);
             break;
 
         case C_TIME_STAMP_YEAR_LETTER:
             stringSize = 3 * sizeof(char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%02d", 
                                   timeStampData->tm_year);
             break;
 
         case C_TIME_STAMP_FULL_YEAR_LETTER:
             stringSize = 5 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "%d", 
                                   (timeStampData->tm_year + START_YEAR));
             break;
 
         case C_NOTIFICATION_CLASS_ID_LETTER:
             stringSize = 30 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, dest_size, 
                                   "NCI[%#08x,%#04x,%#04x]",
                                   (unsigned int)logRecord->logHeader.genericHdr.notificationClassId->vendorId,
                                   logRecord->logHeader.genericHdr.notificationClassId->majorId,
@@ -746,66 +738,60 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
         case C_LR_TRUNCATION_INFO_LETTER:
             stringSize = 2 * sizeof (char);
             /* A space inserted at the truncationCharacter:s position */
-            characters = snprintf(tempString, (size_t)stringSize, " ");                                   
+            characters = snprintf(dest, dest_size, " ");                                   
             *truncationLetterPos = inputPos; /* The position of the truncation 
                                                 character in the log record */
             break;
 
         case C_LR_STRING_BODY_LETTER:
             fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset); 
+            stringSize = logRecord->logBuffer->logBufSize + 1;
             if (fieldSize == 0)
-            {
-                /* Copy whole body */
-                stringSize = (SaInt32T)logRecord->logBuffer->logBufSize + 1;
-                characters = snprintf(tempString,
-                                      (size_t)stringSize,
+            {   /* Copy whole body */
+
+                if (stringSize > dest_size)
+                    stringSize = dest_size;
+                characters = snprintf(dest, stringSize,
                                       "%s",
                                       (SaStringT)logRecord->logBuffer->logBuf);
             }
             else
-            {
-                /* Truncate or pad the body with blanks until fieldSize */ 
-                stringSize = (size_t)fieldSize + 1;
-                characters = snprintf(tempString,
-                                      stringSize,
+            {   /* Truncate or pad the body with blanks until fieldSize */ 
+                characters = snprintf(dest, dest_size,
                                       "%*.*s", 
                                       (int)-fieldSize, 
                                       (int)fieldSize, 
                                       (SaStringT)logRecord->logBuffer->logBuf);
             }
-            if (stringSize < (SA_MAX_NAME_LENGTH - 1))
-            {
-                tempString[stringSize + 1] = TERMINATION_CHARACTER; /* '\0' terminate */
-            }
+
+            /* a value of size or more means that the output was truncated */
+            if (characters >= stringSize)
+                characters = logRecord->logBuffer->logBufSize;
 
             *fmtExpPtrOffset = *fmtExpPtrOffset + fieldSizeOffset;
             break;
 
         case C_LR_HEX_CHAR_BODY_LETTER:  
             stringSize = (SaInt32T)logRecord->logBuffer->logBufSize;
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize,
+            characters = snprintf(dest, dest_size,
                                   "%lx",
                                   (long unsigned int)logRecord->logBuffer->logBuf);
             break;
 
         default:
-            characters = 0; 
+            characters = 0;
             break;
 
     }
 
     /* Error */
     if (characters == -1)
-    {
-        (void)strcpy(tempString, ""); /* Only '\0' */
-    }
-    else
-    {
-        tempString[characters] = STRING_END_CHARACTER; /* NULL terminate */
-    }
+        characters = 0;
 
-    return tempString;
+    if (characters > dest_size)
+        characters = dest_size;
+
+    return characters;
 }
 
 /**
@@ -818,14 +804,14 @@ static SaStringT extractCommonField(SaStringT fmtExpPtr,
  * 
  * @return SaStringT
  */
-static SaStringT extractNotificationField(SaStringT fmtExpPtr, 
-                                          SaUint16T *fmtExpPtrOffset,
-                                          const SaBoolT *twelveHourModeFlag,
-                                          const SaLogRecordT *logRecord)
+static int extractNotificationField(char *dest, size_t dest_size,
+                                    SaStringT fmtExpPtr, 
+                                    SaUint16T *fmtExpPtrOffset,
+                                    const SaBoolT *twelveHourModeFlag,
+                                    const SaLogRecordT *logRecord)
 {
     struct tm *eventTimeData;
     SaTimeT totalTime;
-    static SaInt8T tempString[SA_MAX_NAME_LENGTH];
     SaInt32T fieldSize;
     SaInt32T stringSize;
     SaInt32T characters = 0;
@@ -843,16 +829,16 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
     {
         case N_NOTIFICATION_ID_LETTER:
             stringSize = 19 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%#016llx", 
                                   logRecord->logHeader.ntfHdr.notificationId); 
             break;
 
         case N_EVENT_TIME_LETTER:
             stringSize = 19 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%#016llx", 
                                   logRecord->logHeader.ntfHdr.eventTime);
             break;
@@ -861,15 +847,15 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
             stringSize = 3 * sizeof (char);
             if (*twelveHourModeFlag == SA_TRUE)
             {
-                characters = snprintf(tempString, 
-                                      (size_t)stringSize, 
+                characters = snprintf(dest, 
+                                      dest_size, 
                                       "%02d", 
                                       (eventTimeData->tm_hour % 12));
             }
             else
             {
-                characters = snprintf(tempString, 
-                                      (size_t)stringSize, 
+                characters = snprintf(dest, 
+                                      dest_size, 
                                       "%02d", 
                                       eventTimeData->tm_hour);
             }
@@ -877,30 +863,30 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
 
         case N_EVENT_TIME_MINUTE_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, (size_t)stringSize, "%02d", eventTimeData->tm_min);
+            characters = snprintf(dest, dest_size, "%02d", eventTimeData->tm_min);
             break;
 
         case N_EVENT_TIME_SECOND_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, (size_t)stringSize, "%02d", eventTimeData->tm_sec);
+            characters = snprintf(dest, dest_size, "%02d", eventTimeData->tm_sec);
             break;
 
         case N_EVENT_TIME_12_24_MODE_LETTER:
             stringSize = 3 * sizeof (char);
             if (eventTimeData->tm_hour >= 00 && eventTimeData->tm_hour < 12)
             {
-                characters = snprintf(tempString, (size_t)stringSize, "am");
+                characters = snprintf(dest, dest_size, "am");
             }
             else
             {
-                characters = snprintf(tempString, (size_t)stringSize, "pm");
+                characters = snprintf(dest, dest_size, "pm");
             }
             break;
 
         case N_EVENT_TIME_MONTH_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%02d", 
                                   (eventTimeData->tm_mon + 1));
             break;
@@ -910,55 +896,55 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
             switch (eventTimeData->tm_mon)
             {
                 case MONTH_JANUARY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jan"); 
+                    characters = snprintf(dest, dest_size, "Jan"); 
                     break;
 
                 case MONTH_FEBRUARY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Feb"); 
+                    characters = snprintf(dest, dest_size, "Feb"); 
                     break;
 
                 case MONTH_MARCH:
-                    characters = snprintf(tempString, (size_t)stringSize, "Mar"); 
+                    characters = snprintf(dest, dest_size, "Mar"); 
                     break;
 
                 case MONTH_APRIL:
-                    characters = snprintf(tempString, (size_t)stringSize, "Apr"); 
+                    characters = snprintf(dest, dest_size, "Apr"); 
                     break;
 
                 case MONTH_MAY:
-                    characters = snprintf(tempString, (size_t)stringSize, "May"); 
+                    characters = snprintf(dest, dest_size, "May"); 
                     break;
 
                 case MONTH_JUNE:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jun"); 
+                    characters = snprintf(dest, dest_size, "Jun"); 
                     break;
 
                 case MONTH_JULY:
-                    characters = snprintf(tempString, (size_t)stringSize, "Jul"); 
+                    characters = snprintf(dest, dest_size, "Jul"); 
                     break;
 
                 case MONTH_AUGUST:
-                    characters = snprintf(tempString, (size_t)stringSize, "Aug"); 
+                    characters = snprintf(dest, dest_size, "Aug"); 
                     break;
 
                 case MONTH_SEPTEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Sep"); 
+                    characters = snprintf(dest, dest_size, "Sep"); 
                     break;
 
                 case MONTH_OCTOBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Oct"); 
+                    characters = snprintf(dest, dest_size, "Oct"); 
                     break;
 
                 case MONTH_NOVEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Nov"); 
+                    characters = snprintf(dest, dest_size, "Nov"); 
                     break;
 
                 case MONTH_DECEMBER:
-                    characters = snprintf(tempString, (size_t)stringSize, "Dec"); 
+                    characters = snprintf(dest, dest_size, "Dec"); 
                     break;
 
                 default:
-                    (void)strcpy(tempString, "");
+                    (void)strcpy(dest, "");
                     break;
 
             }
@@ -966,24 +952,24 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
 
         case N_EVENT_TIME_DAY_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%02d", 
                                   eventTimeData->tm_mday);
             break;
 
         case N_EVENT_TIME_YEAR_LETTER:
             stringSize = 3 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%02d", 
                                   eventTimeData->tm_year);
             break;
 
         case N_EVENT_TIME_FULL_YEAR_LETTER:
             stringSize = 5 * sizeof (char);
-            characters = snprintf(tempString, 
-                                  (size_t)stringSize, 
+            characters = snprintf(dest, 
+                                  dest_size, 
                                   "%d", 
                                   (eventTimeData->tm_year + START_YEAR));
             break;
@@ -993,7 +979,7 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
             fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
             /* TODO!!! Fit hex output to size => two steps for non strings */
             /* 0x included in total field size */
-            characters = snprintf(tempString, 
+            characters = snprintf(dest, 
                                   ((size_t)fieldSize + 1), /* Incl NULL */
                                   "%#.*x", 
                                   (int)(fieldSize - 2), 
@@ -1004,7 +990,7 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
         case N_NOTIFICATION_OBJECT_LETTER:
             /* Check field size and trunkate alternative pad with blanks */
             fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-            characters = snprintf(tempString, 
+            characters = snprintf(dest, 
                                   ((size_t)fieldSize + 1), /* Incl NULL */
                                   "%*.*s", 
                                   (int)-fieldSize, 
@@ -1016,7 +1002,7 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
         case N_NOTIFYING_OBJECT_LETTER:
             /* Check field size and trunkate alternative pad with blanks */
             fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
-            characters = snprintf(tempString, 
+            characters = snprintf(dest, 
                                   ((size_t)fieldSize + 1), /* Incl NULL */
                                   "%*.*s", 
                                   (int)-fieldSize, 
@@ -1026,21 +1012,18 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
             break;
 
         default:
-            (void)strcpy(tempString,"");
+            characters = 0;
             break;
     }
 
     /* Error */
     if (characters == -1)
-    {
-        (void)strcpy(tempString, "");
-    }
-    else
-    {
-        tempString[characters] = STRING_END_CHARACTER; /* NULL terminate */
-    }
+        characters = 0;
 
-    return tempString;
+    if (characters > dest_size)
+        characters = dest_size;
+
+    return characters;
 }
 
 /**
@@ -1052,15 +1035,15 @@ static SaStringT extractNotificationField(SaStringT fmtExpPtr,
  * 
  * @return SaStringT
  */
-static SaStringT extractSystemField(SaStringT fmtExpPtr, 
-                                    SaUint16T *fmtExpPtrOffset,
-                                    const SaLogRecordT *logRecord)
+static int extractSystemField(char *dest, size_t dest_size,
+                              SaStringT fmtExpPtr, 
+                              SaUint16T *fmtExpPtrOffset,
+                              const SaLogRecordT *logRecord)
 {
     SaInt32T fieldSize;
     SaInt32T stringSize;
-    SaInt32T characters = 0;
+    SaInt32T characters;
     SaUint16T fieldSizeOffset = 0;
-    static SaInt8T tempString[SA_MAX_NAME_LENGTH];
     *fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
     switch (*fmtExpPtr++)
@@ -1069,9 +1052,7 @@ static SaStringT extractSystemField(SaStringT fmtExpPtr,
             fieldSize = checkFieldSize(fmtExpPtr, &fieldSizeOffset);
             if (fieldSize != 0)
             {
-                characters = snprintf(
-                                     tempString,
-                                     ((size_t)fieldSize + 1), /* Incl NULL */
+                characters = snprintf(dest, dest_size,
                                      "%*.*s", 
                                      (int)-fieldSize, 
                                      (int)fieldSize, 
@@ -1079,9 +1060,7 @@ static SaStringT extractSystemField(SaStringT fmtExpPtr,
             }
             else
             {
-                characters = snprintf(
-                                     tempString, 
-                                     sizeof (tempString), 
+                characters = snprintf(dest, dest_size,
                                      "%s", 
                                      logRecord->logHeader.genericHdr.logSvcUsrName->value);
             }
@@ -1093,55 +1072,54 @@ static SaStringT extractSystemField(SaStringT fmtExpPtr,
             switch (logRecord->logHeader.genericHdr.logSeverity)
             {
                 case SA_LOG_SEV_EMERGENCY:
-                    characters = snprintf(tempString, (size_t)stringSize, "EM");
+                    characters = snprintf(dest, dest_size, "EM");
                     break;
 
                 case SA_LOG_SEV_ALERT:
-                    characters = snprintf(tempString, (size_t)stringSize, "AL");
+                    characters = snprintf(dest, dest_size, "AL");
                     break;
 
                 case SA_LOG_SEV_CRITICAL:
-                    characters = snprintf(tempString, (size_t)stringSize, "CR");
+                    characters = snprintf(dest, dest_size, "CR");
                     break;
 
                 case SA_LOG_SEV_ERROR:
-                    characters = snprintf(tempString, (size_t)stringSize, "ER");
+                    characters = snprintf(dest, dest_size, "ER");
                     break;
 
                 case SA_LOG_SEV_WARNING:
-                    characters = snprintf(tempString, (size_t)stringSize, "WA");
+                    characters = snprintf(dest, dest_size, "WA");
                     break;
 
                 case SA_LOG_SEV_NOTICE:
-                    characters = snprintf(tempString, (size_t)stringSize, "NO");
+                    characters = snprintf(dest, dest_size, "NO");
                     break;
 
                 case SA_LOG_SEV_INFO:
-                    characters = snprintf(tempString, (size_t)stringSize, "IN");
+                    characters = snprintf(dest, dest_size, "IN");
                     break;
 
                 default:
-                    (void)strcpy(tempString, "");
+                    (void)strcpy(dest, "");
                     break;
 
             }
             break;
 
         default:
-            (void)strcpy(tempString, "");
+            (void)strcpy(dest, "");
             break;
 
     }
-    if (characters == -1)
-    {
-        (void)strcpy(tempString, "");
-    }
-    else
-    {
-        tempString[characters] = STRING_END_CHARACTER; /* NULL terminate */
-    }
 
-    return tempString;
+    /* Error */
+    if (characters == -1)
+        characters = 0;
+
+    if (characters > dest_size)
+        characters = dest_size;
+
+    return characters;
 }
 
 /**
@@ -1247,32 +1225,28 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
  * @param logRecord
  * @param formatExpression
  * @param fixedLogRecordSize
- * @param outputLogRecord
+ * @param dest
  * @param logRecordIdCounter
  * 
  * @return SaAisErrorT
  */
 SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
                                   const SaStringT formatExpression,
-                                  const SaUint16T fixedLogRecordSize,
-                                  SaStringT outputLogRecord,
+                                  SaUint16T dest_size,
+                                  const SaStringT dest,
                                   SaUint32T logRecordIdCounter)
 {
     SaAisErrorT error = SA_AIS_OK;
     SaStringT fmtExpPtr = &formatExpression[0];
     SaStringT fmtExpPtrSnabel = &formatExpression[1];
     SaTimeT totalTime;
-    SaInt8T tempString[SA_MAX_NAME_LENGTH];
     SaInt8T truncationCharacter = (SaInt8T)COMPLETED_LOG_RECORD;
     SaUint16T fmtExpTokenOffset = 1;
     SaInt32T truncationLetterPos = -1;
-    SaUint32T logRecordCharCounter = 0; 
-    SaInt32T characters = 0;
     struct tm *timeStampData;
     SaBoolT _twelveHourModeFlag;
     const SaBoolT *twelveHourModeFlag = &_twelveHourModeFlag;
-
-    TRACE_ENTER();
+    int i = 0;
 
     if (formatExpression == NULL)
     {
@@ -1280,7 +1254,7 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
     }
 
     /* Init output vector with a '\0' */
-    (void)strcpy(outputLogRecord, "");
+    (void)strcpy(dest, "");
 
     totalTime = (logRecord->logTimeStamp / (SaTimeT)SA_TIME_ONE_SECOND);
 
@@ -1298,105 +1272,86 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
             {
                 /* Check log record field types if a new token is present */
                 case COMMON_LOG_RECORD_FIELD_TYPE:  
-                    (void)strncpy(tempString, 
-                                  extractCommonField(fmtExpPtrSnabel, 
-                                                     &fmtExpTokenOffset,
-                                                     &truncationLetterPos,
-                                                     (SaInt32T)strlen(outputLogRecord),
-                                                     logRecordIdCounter,
-                                                     twelveHourModeFlag,
-                                                     timeStampData,
-                                                     logRecord), 
-                                  sizeof (tempString));
+                    i += extractCommonField(&dest[i],
+                                            dest_size - i,
+                                            fmtExpPtrSnabel, 
+                                            &fmtExpTokenOffset,
+                                            &truncationLetterPos,
+                                            (SaInt32T)strlen(dest),
+                                            logRecordIdCounter,
+                                            twelveHourModeFlag,
+                                            timeStampData,
+                                            logRecord);
                     break;
 
                 case NOTIFICATION_LOG_RECORD_FIELD_TYPE:
-                    (void)strncpy(tempString, 
-                                  extractNotificationField(fmtExpPtrSnabel, 
-                                                           &fmtExpTokenOffset,
-                                                           twelveHourModeFlag,  
-                                                           logRecord),
-                                  sizeof (tempString));
+                    i += extractNotificationField(&dest[i],
+                                                  dest_size - i,
+                                                  fmtExpPtrSnabel, 
+                                                  &fmtExpTokenOffset,
+                                                  twelveHourModeFlag,  
+                                                  logRecord);
                     break;
 
                 case SYSTEM_LOG_RECORD_FIELD_TYPE: 
-                    (void)strncpy(tempString, 
-                                  extractSystemField(fmtExpPtrSnabel, 
-                                                     &fmtExpTokenOffset,  
-                                                     logRecord),
-                                  sizeof (tempString));
+                    i += extractSystemField(&dest[i],
+                                            dest_size - i,
+                                            fmtExpPtrSnabel, 
+                                            &fmtExpTokenOffset,  
+                                            logRecord);
                     break;
 
                 default:
+                    error = SA_AIS_ERR_INVALID_PARAM;
                     goto error_exit;
 
-            }
-            logRecordCharCounter += strlen(tempString);
-
-            /* Check truncation */
-            if (logRecordCharCounter > fixedLogRecordSize)
-            {
-                truncationCharacter = (SaInt8T)TRUNCATED_LOG_RECORD;
-                (void)strncat(
-                             outputLogRecord, 
-                             tempString, 
-                             strlen(tempString) - \
-                             ((logRecordCharCounter - fixedLogRecordSize) + 1));
-            }
-            else
-            {
-                (void)strncat(outputLogRecord, tempString, strlen(tempString));
             }
 
         }
         else
         { /* All chars between tokens */        
             fmtExpTokenOffset = 1;
-            logRecordCharCounter += 1;
             /* Insert litteral chars i.e. [:, ,/ and "] */ 
-            if (logRecordCharCounter < fixedLogRecordSize)
+            if (i < dest_size)
             {
-                (void)strncat(outputLogRecord, 
-                              (const char *)&fmtExpPtr[0], 
-                              sizeof (char));
+                dest[i++] = *fmtExpPtr;
             }
             else
             { /* Truncation exists */
                 truncationCharacter = (SaInt8T)TRUNCATED_LOG_RECORD;
                 break;
             }
+
             if (*fmtExpPtrSnabel == STRING_END_CHARACTER)
-            {
                 break; /* End of formatExpression */
-            }
         }
 
         /* Step forward */
         fmtExpPtr += fmtExpTokenOffset;
         if (*fmtExpPtr == STRING_END_CHARACTER)
-        {
             break;  /* End of formatExpression */
-        }
+
         fmtExpPtrSnabel = (fmtExpPtr + 1); 
     } /* for ( ; ; ) */
 
-    /* Pad log record to fixed log record fieldSize */ /* TODO!! FIX OVERFLOW ISSUE!!!!*/
-    characters = sprintf(outputLogRecord,   
-                         "%*.*s", 
-                         -(fixedLogRecordSize - 1), 
-                         (fixedLogRecordSize - 1), 
-                         outputLogRecord);
+    /* Pad log record to fixed log record fieldSize */
+    if (i < dest_size)
+    {
+        dest[i++] = '\n';
+        memset(&dest[i], 0, dest_size - i);
+    }
+    else
+    {
+        dest[i - 2] = '\n';
+        dest[i - 1] = '\0';
+    }
 
     if (truncationLetterPos != -1)
     { /* Insert truncation info letter */
-        outputLogRecord[truncationLetterPos] = truncationCharacter;
+        dest[truncationLetterPos] = truncationCharacter;
     }
-    outputLogRecord[characters] = STRING_END_CHARACTER; /* NULL terminate */
-    /* Insert termination character before '\0' */
-    outputLogRecord[characters - 1] = TERMINATION_CHARACTER;
 
-    error_exit:
-    TRACE_LEAVE();
+error_exit:
     return error;
 }
 
