@@ -1,5 +1,6 @@
-#include "tet_log.h"
 #include <sys/time.h>
+#include <unistd.h>
+#include "tet_log.h"
 
 void saLogWriteLogAsync_01(void)
 {
@@ -212,6 +213,37 @@ void saLogWriteLogAsync_12(void)
     assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
                              SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+
+    result(rc, SA_AIS_OK);
+}
+
+void saLogWriteLogAsync_13(void)
+{
+    SaLogFileCreateAttributesT_2 appStream1LogFileCreateAttributes = {
+        .logFilePathName = DEFAULT_APP_FILE_PATH_NAME,
+        .logFileName = (SaStringT) "ticket203",
+        .maxLogFileSize = DEFAULT_APP_LOG_FILE_SIZE,
+        .maxLogRecordSize = 2048,
+        .haProperty = SA_TRUE,
+        .logFileFullAction = SA_LOG_FILE_FULL_ACTION_ROTATE,
+        .maxFilesRotated = DEFAULT_MAX_FILE_ROTATED,
+        .logFileFmt = DEFAULT_FORMAT_EXPRESSION
+    };
+    SaInvocationT invocation;
+    SaNameT appStreamName = {
+        .value = "safLgStr=ticket203",
+        .length = sizeof(appStreamName.value)
+    };
+
+    tet_printf("saLogWriteAsyncLog() 1800 bytes logrecord (ticket #203)");
+    memset(genLogRecord.logBuffer->logBuf, 'X', 1800);
+    genLogRecord.logBuffer->logBufSize = 1800;
+    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    assert(saLogStreamOpen_2(logHandle, &appStreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    sleep(1);
     assert(saLogFinalize(logHandle) == SA_AIS_OK);
 
     result(rc, SA_AIS_OK);
