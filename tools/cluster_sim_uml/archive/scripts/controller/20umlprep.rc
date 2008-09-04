@@ -34,3 +34,4 @@ mkdir -p /usr/bin /usr/lib /usr/sbin /etc/default
 mkdir -p /usr/share/snmp/mibs/
 rm -f /etc/hosts
 ln -s /hostfs/root.controller/etc/hosts /etc/hosts
+rm /bin/killall

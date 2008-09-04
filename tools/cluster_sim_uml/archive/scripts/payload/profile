@@ -10,3 +10,5 @@ alias lrt='ls -lrt'
 alias ..='cd ..'
 alias ...='cd ..;cd ..'
 ulimit -c unlimited
+
+alias 'nis_pld=/opt/opensaf/payload/scripts/nis_pld'
