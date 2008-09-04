@@ -122,6 +122,9 @@ create_controller_root()
     mkdir -p $root/bin
     cp /bin/bash $root/bin
     mkdir -p $root/$lib_dir
+    cp /usr/bin/pgrep $root/usr/bin
+    cp /usr/bin/pkill $root/usr/bin
+    cp /usr/bin/killall $root/usr/bin
     
     # Get libraries that bash depends on
     cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
@@ -184,6 +187,10 @@ create_payload_root()
     mkdir -p $root/bin
     cp /bin/bash $root/bin
     mkdir -p $root/$lib_dir
+    mkdir -p $root/usr/bin
+    cp /usr/bin/pgrep $root/usr/bin
+    cp /usr/bin/pkill $root/usr/bin
+    cp /usr/bin/killall $root/usr/bin
 
     # Get libraries that bash depends on
     cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` $root/$lib_dir
