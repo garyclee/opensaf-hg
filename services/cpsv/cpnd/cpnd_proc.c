@@ -441,6 +441,12 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    uns8 *buf,size=0,total_length;
    int32 sec_cnt=0;
    
+   /* Return Error no resource */
+   if(!(cb->num_rep < CPND_MAX_REPLICAS))
+   {
+      return NCSCC_RC_FAILURE;
+   }     
+
    size=cp_node->ckpt_name.length;
    total_length=size+sizeof(cp_node->ckpt_id)+sizeof(NODE_ID)+5;
 
@@ -460,12 +466,6 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    cp_node->replica_info.open.info.open.i_map_flags=MAP_SHARED;
    cp_node->replica_info.open.info.open.o_addr=NULL;
    cp_node->replica_info.open.info.open.i_flags=O_RDWR;
-
-       /* Return Error no resource */
-   if(!(cb->num_rep < CPND_MAX_REPLICAS))
-   {
-      return NCSCC_RC_FAILURE;
-   }     
 
 again:
    rc = ncs_os_posix_shm(&cp_node->replica_info.open);
