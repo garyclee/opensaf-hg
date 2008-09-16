@@ -48,6 +48,7 @@
 #include "mqnd_proc.h"
 #include "mqnd_saf.h"
 #include "saf_mem.h"
+#include "saClm.h"
 /*For MIBs */
 #include "mqnd_mib.h"
 #include "./snmp_inc/mqsv_mapi.h"

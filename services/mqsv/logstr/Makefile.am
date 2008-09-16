@@ -14,4 +14,4 @@ libmqsv_logstr_la_SOURCES =	./mqa_logstr.c \
 				./mqnd_logstr.c \
 				./mqd_logstr.c 
 
-libmqsv_logstr_la_LDFLAGS = -version-number 3
+libmqsv_logstr_la_LDFLAGS = -version-number 4

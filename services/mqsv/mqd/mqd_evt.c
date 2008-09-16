@@ -684,10 +684,10 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
    else if(qnode->oinfo.type == MQSV_OBJ_QUEUE)
    { 
      m_NCS_OS_PRINTF("Queue Name is : %s\n",qnode->oinfo.name.value);
-     if(qnode->oinfo.info.q.send_state ==SA_MSG_QUEUE_AVAILABLE)
-        m_NCS_OS_PRINTF("The sending state is : SA_MSG_QUEUE_AVAILABLE \n");
-     else if(qnode->oinfo.info.q.send_state ==SA_MSG_QUEUE_UNAVAILABLE)
-        m_NCS_OS_PRINTF("The sending state is : SA_MSG_QUEUE_UNAVAILABLE \n");
+     if(qnode->oinfo.info.q.send_state ==MSG_QUEUE_AVAILABLE)
+        m_NCS_OS_PRINTF("The sending state is : MSG_QUEUE_AVAILABLE \n");
+     else if(qnode->oinfo.info.q.send_state ==MSG_QUEUE_UNAVAILABLE)
+        m_NCS_OS_PRINTF("The sending state is : MSG_QUEUE_UNAVAILABLE \n");
      m_NCS_OS_PRINTF(" Retention Time is : %llu \n",qnode->oinfo.info.q.retentionTime);
      m_NCS_OS_PRINTF(" MDS Destination is :%llu \n",qnode->oinfo.info.q.dest);
      m_NCS_OS_PRINTF(" Node id from the MDS Destination of the queue is :%u \n",m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));

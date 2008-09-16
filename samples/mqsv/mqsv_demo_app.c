@@ -652,6 +652,7 @@ void message_rcv_sync(void)
  SaTimeT timeout = APP_TIMEOUT;
  char data[MAX_MESSAGE_SIZE];
  int32 i,j;
+ SaTimeT newRetentionTime;
 
  version.releaseCode= 'B';
  version.majorVersion = 1;
@@ -691,6 +692,16 @@ void message_rcv_sync(void)
    }
 
  m_NCS_CONS_PRINTF("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+/* retention time set test */
+ newRetentionTime = 20000000000ll;
+ rc = saMsgQueueRetentionTimeSet(queue_handle, &newRetentionTime); 
+ 
+ if (rc != SA_AIS_OK)
+   {
+     m_NCS_CONS_PRINTF("saMsgQueueRetentionTimeSet failed with rc - %d\n", rc);
+     goto finalize;
+   }
+ m_NCS_CONS_PRINTF("Retention time set function passed \n");
 
  for (i=0;i< NUM_MESSAGES_SENT; i++)
    {

@@ -41,5 +41,6 @@ ncs_mqnd_SOURCES = $(top_srcdir)/services/common/src/ncs_main_pvt.c
 
 ncs_mqnd_LDADD = $(top_srcdir)/lib/lib_ncs_core/libncs_core.la \
                  $(top_srcdir)/lib/lib_SaAmf/libSaAmf.la \
+                 $(top_srcdir)/lib/lib_SaClm/libSaClm.la \
                  ./mqnd/libmqnd.la \
                  ./common/libmqsv_common.la

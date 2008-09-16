@@ -85,6 +85,8 @@ const NCSFL_STR mqnd_hdln_set[] = {
   { MQND_CB_HDL_GIVE_FAILED,"MQND - CB Give Failed"},
   { MQND_CB_HDL_DESTROY_FAILED,"MQND - CB Destroy Failed"},
 
+  { MQND_CLM_DISPATCH_FAILURE,"MQND - CLM Dispatch Failed"},
+
   { MQND_ASAPI_BAD_RESP,"MQND - ASAPi Bad Response Received"},
 
 
@@ -232,6 +234,8 @@ const NCSFL_STR mqnd_hdln_set[] = {
   { MQND_CKPT_READ_SUCCESS,"MQND - Reading from the Ckpt Success"},
   { MQND_SHM_CREATE_FAILED, "MQND - Shared memory creation failed"},
   { MQND_MSG_FRMT_VER_INVALID,"MQND - Message Format Version Invalid"},
+  { MQND_CLM_INIT_FAILED, "MQND - CLM init failed"},
+  { MQND_CLM_NODE_GET_FAILED, "MQND - CLM node get failed"},
   {0,0}
 };
 

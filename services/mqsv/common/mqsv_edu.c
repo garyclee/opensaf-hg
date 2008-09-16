@@ -518,7 +518,9 @@ static int mqsv_mqp_req_test_type_fnc(NCSCONTEXT arg)
         LCL_TEST_JUMP_OFFSET_MQP_EVT_SEND_MSG=41,
         LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_REQ=53,
         LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_COMPLETE=60,
-        LCL_TEST_JUMP_OFFSET_MQP_EVT_UPDATE_STATS=62
+        LCL_TEST_JUMP_OFFSET_MQP_EVT_UPDATE_STATS=62,
+	LCL_TEST_JUMP_OFFSET_MQP_EVT_RET_TIME_SET_REQ=65,
+        LCL_TEST_JUMP_OFFSET_MQP_EVT_CLM_NOTIFY=67
 
     }LCL_TEST_JUMP_OFFSET;
     MQP_REQ_TYPE   type;
@@ -562,6 +564,10 @@ static int mqsv_mqp_req_test_type_fnc(NCSCONTEXT arg)
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_COMPLETE;
     case MQP_EVT_STAT_UPD_REQ:
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_UPDATE_STATS;
+    case MQP_EVT_Q_RET_TIME_SET_REQ:
+	return LCL_TEST_JUMP_OFFSET_MQP_EVT_RET_TIME_SET_REQ;
+    case MQP_EVT_CLM_NOTIFY:
+	return LCL_TEST_JUMP_OFFSET_MQP_EVT_CLM_NOTIFY;
    
     default:
         break;
@@ -847,8 +853,20 @@ static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             (long)&((MQP_REQ_MSG*)0)->info.statsReq.priority, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
             (long)&((MQP_REQ_MSG*)0)->info.statsReq.size, 0, NULL},
+	
+	/* MQP_EVT_Q_RET_TIME_SET_REQ */
+        {EDU_EXEC, m_NCS_EDP_SAMSGQUEUEHANDLET, 0, 0, 0,
+            (long)&((MQP_REQ_MSG*)0)->info.retTimeSetReq.queueHandle, 0, NULL},
+        {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
+            (long)&((MQP_REQ_MSG*)0)->info.retTimeSetReq.retentionTime, 0, NULL},
+
+	/* MQP_EVT_CLM_NOTIFY */
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+            (long)&((MQP_REQ_MSG*)0)->info.clmNotify.node_joined, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+
+
     };
 
     if(op == EDP_OP_TYPE_ENC)
@@ -1023,6 +1041,7 @@ static int mqsv_mqp_rsp_test_type_fnc(NCSCONTEXT arg)
         LCL_TEST_JUMP_OFFSET_MQP_EVT_SEND_MSG_RSP,
         LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_RSP,
         LCL_TEST_JUMP_OFFSET_MQP_EVT_ND_RESTART_RSP=29,
+	LCL_TEST_JUMP_OFFSET_MQP_EVT_RET_TIME_SET_RSP,
 
     }LCL_TEST_JUMP_OFFSET;
     MQP_RSP_TYPE   type;
@@ -1056,7 +1075,8 @@ static int mqsv_mqp_rsp_test_type_fnc(NCSCONTEXT arg)
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_RSP;
     case MQP_EVT_MQND_RESTART_RSP:
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_ND_RESTART_RSP; 
-   
+    case MQP_EVT_Q_RET_TIME_SET_RSP:
+	return LCL_TEST_JUMP_OFFSET_MQP_EVT_RET_TIME_SET_RSP;  
     default:
         break;
     }
@@ -1176,6 +1196,11 @@ static uns32 mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         /* MQP_EVT_MQND_RESTART_RSP  */
         {EDU_EXEC,ncs_edp_uns32, 0, 0, EDU_EXIT,
             (long)&((MQP_RSP_MSG*)0)->info.restartRsp.restart_done,0,NULL}, 
+
+        /* MQP_EVT_Q_RET_TIME_SET_RSP */
+        {EDU_EXEC, m_NCS_EDP_SAMSGQUEUEHANDLET, 0, 0, 0,
+            (long)&((MQP_RSP_MSG*)0)->info.retTimeSetRsp.queueHandle, 0, NULL},
+
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 

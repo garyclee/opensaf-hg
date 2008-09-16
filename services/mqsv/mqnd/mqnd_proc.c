@@ -33,6 +33,8 @@ static uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OP
 static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
                                   MQSV_SEND_INFO *rcvr_mqa_sinfo, MDS_DEST *old_owner,
                                   SaMsgQueueHandleT old_hdl, MQP_REQ_TYPE openType);
+void mqnd_proc_ckpt_clm_node_left(MQND_CB *cb);
+void mqnd_proc_ckpt_clm_node_joined(MQND_CB *cb);
 uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 {
     SaMsgQueueHandleT qhdl;
@@ -868,7 +870,7 @@ uns32 mqnd_proc_queue_open (MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *s
          m_LOG_MQSV_ND(MQND_QUEUE_CREAT_FLAG_NOT_SET,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_NOT_EXIST,__FILE__,__LINE__);
          goto error;
       }
-
+      
       /* Create the new Queue and return the handle */
       rc = mqnd_queue_create(cb, open, &sinfo->dest, &qhdl, NULL, &err);
       if (rc != NCSCC_RC_SUCCESS) 
@@ -964,10 +966,10 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 
    timeout = m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(qnode->qinfo.queueStatus.retentionTime);
    
-   if((qnode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE) ||
+   if((qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE) ||
        (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT) && (timeout== 0))) {
 
-      if(qnode->qinfo.sendingState == SA_MSG_QUEUE_AVAILABLE) {
+      if(qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) {
 
          /* Deregister the Queue with ASAPi */
          m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
@@ -1022,7 +1024,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
          if(opr.info.msg.resp)
             asapi_msg_free(&opr.info.msg.resp);
       }
-      if( (timeout== 0) && qnode && (qnode->qinfo.sendingState == SA_MSG_QUEUE_AVAILABLE) &&
+      if( (timeout== 0) && qnode && (qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) &&
                               (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT)))
       {
          mqnd_unreg_mib_row(cb,NCSMIB_TBL_MQSV_MSGQTBL,qnode->qinfo.mab_rec_row_hdl);
@@ -1224,3 +1226,95 @@ uns32 mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
       m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
    return rc;
 }
+ /*****************************************************************************************
+ *
+ *  Name  : mqnd_clm_cluster_track_cbk 
+ *
+ *  Description : We will get the callback from CLM for the cluster track
+ *
+ ******************************************************************************************/
+void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,
+					SaUint32T numberOfMembers, SaAisErrorT error)
+{
+    MQND_CB *cb;
+    uns32 counter=0;
+    uns32    cb_hdl = m_MQND_GET_HDL( );
+
+    /* Get the CB from the handle */
+    cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
+
+    if(cb == NULL)
+    {
+       return;
+    }
+    else
+    {
+      	for(counter=0;counter < notificationBuffer->numberOfItems;counter++)
+      	{
+			/* Proceed further only if event is for my node */
+			if (cb->nodeid == notificationBuffer->notification[counter].clusterNode.nodeId)
+			{
+				if(notificationBuffer->notification[counter].clusterChange == SA_CLM_NODE_LEFT)
+                                {
+                  	           mqnd_proc_ckpt_clm_node_left(cb);
+                                   cb->clm_node_joined = 0;
+           		        }
+            	                else if(notificationBuffer->notification[counter].clusterChange == (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED ))
+            	                {
+                	           mqnd_proc_ckpt_clm_node_joined(cb);
+                                   cb->clm_node_joined = 1;
+            	                }
+         	        }
+        }
+    }
+
+    /* Return the Handle */
+    ncshm_give_hdl(cb_hdl);
+
+    return;
+}
+
+
+/**************************************************************************
+ * Name         : mqnd_proc_ckpt_clm_node_left
+ *
+ * Description  :   
+ *
+ *************************************************************************/
+void mqnd_proc_ckpt_clm_node_left(MQND_CB *cb)
+{
+    
+    MQSV_EVT send_evt;
+
+    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(MQSV_EVT));  
+    send_evt.type = MQSV_EVT_MQP_REQ;
+    send_evt.msg.mqp_req.type = MQP_EVT_CLM_NOTIFY;
+    send_evt.msg.mqp_req.info.clmNotify.node_joined = 0;
+	
+    mqnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_MQA);
+    
+    return;
+}
+
+/**************************************************************************
+ * Name         : mqnd_proc_ckpt_clm_node_joined
+ *
+ * Description  :    
+ *
+ *************************************************************************/
+void mqnd_proc_ckpt_clm_node_joined(MQND_CB *cb)
+{
+    
+    MQSV_EVT send_evt;
+
+    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(MQSV_EVT));  
+    send_evt.type = MQSV_EVT_MQP_REQ;
+    send_evt.msg.mqp_req.type = MQP_EVT_CLM_NOTIFY;
+    send_evt.msg.mqp_req.info.clmNotify.node_joined = 1;
+
+    mqnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_MQA);
+    
+    return;
+
+}
+

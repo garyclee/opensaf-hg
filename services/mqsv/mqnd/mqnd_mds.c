@@ -42,7 +42,6 @@ static uns32 mqnd_mds_rcv(MQND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info);
 static uns32 mqnd_mds_direct_rcv(MQND_CB *cb, MDS_CALLBACK_DIRECT_RECEIVE_INFO *direct_rcv_info);
 static uns32 mqnd_mds_svc_evt(MQND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt);
 static uns32 mqnd_mds_get_handle(MQND_CB *cb);
-/*static uns32 mqnd_mds_bcast_send (MQND_CB *cb,MQSV_EVT *evt,NCSMDS_SVC_ID to_svc);*/
 
 /*To store the message format versions*/
 MSG_FRMT_VER mqnd_mqa_msg_fmt_table[MQND_WRT_MQA_SUBPART_VER_RANGE]={0,2}; /*With version 1 it is not backward compatible*/
@@ -976,9 +975,7 @@ uns32 mqnd_mds_send (MQND_CB *cb, uns32 to_svc,
  *
  * Notes         : None.
  *****************************************************************************/
-#if 0
-static uns32
-mqnd_mds_bcast_send (MQND_CB *cb,
+uns32 mqnd_mds_bcast_send (MQND_CB *cb,
                      MQSV_EVT *evt,
                      NCSMDS_SVC_ID to_svc)
 {
@@ -996,7 +993,7 @@ mqnd_mds_bcast_send (MQND_CB *cb,
    info.info.svc_send.i_priority = NCS_IPC_PRIORITY_HIGH;
    info.info.svc_send.i_sendtype = MDS_SENDTYPE_BCAST;
    info.info.svc_send.i_to_svc   = to_svc;
-   info.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_NONE;
+   info.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_INTRANODE;
 
    res = ncsmds_api(&info);
    if ( res != NCSCC_RC_SUCCESS)
@@ -1005,5 +1002,4 @@ mqnd_mds_bcast_send (MQND_CB *cb,
    }
    return(res);
 }
-#endif
 

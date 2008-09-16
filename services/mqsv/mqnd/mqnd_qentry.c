@@ -214,7 +214,7 @@ uns32  samsgqueueentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
        return NCSCC_RC_NO_INSTANCE;
     }
   /* Checking for an unlinked queue */
-   if(qNode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)
+   if(qNode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)
    {
        ncshm_give_hdl(pcb->cb_hdl);
        return NCSCC_RC_NO_INSTANCE;
@@ -280,7 +280,7 @@ uns32  samsgqueueentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
    /* For an unlinked queue get the next queue which is not unlinked */
-   while(qNode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)
+   while(qNode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)
    {
      queuename= qNode->qinfo.queueName;  
      mqnd_qname_node_getnext(pcb,queuename,&pNode);

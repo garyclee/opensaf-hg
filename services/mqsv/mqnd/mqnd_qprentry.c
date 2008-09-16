@@ -136,7 +136,7 @@ uns32  samsgqueuepriorityentry_get(NCSCONTEXT pcb, NCSMIB_ARG *arg, NCSCONTEXT *
    }
 
   /* Checking for an unlinked queue */
-   if(qNode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)
+   if(qNode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)
    {
        ncshm_give_hdl(cb->cb_hdl);
        return NCSCC_RC_NO_INSTANCE;
@@ -234,7 +234,7 @@ uns32  samsgqueuepriorityentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    }
 
 /* Checking for an unlinked queue */
-   while(qNode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)
+   while(qNode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)
    {
      queuename= qNode->qinfo.queueName;
      mqnd_qname_node_getnext(cb,queuename,&pNode);

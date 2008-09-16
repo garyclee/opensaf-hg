@@ -30,6 +30,7 @@
 
 #include "mqnd.h"
 
+#define MQND_SAF_ACCEPT_TIME 1000
 uns32 gl_mqnd_cb_hdl = 0;
 
 /* Static Function Declerations */
@@ -168,8 +169,14 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    SaAmfHealthcheckKeyT healthy;
    int8*       health_key=0;
    SaAisErrorT amf_error;
-
-
+   NCS_OS_FILE file, file_read;
+   char * file1 = "/proc/sys/kernel/msgmax";
+   char * file2 = "/proc/sys/kernel/msgmni";
+   char * file3 = "/proc/sys/kernel/msgmnb";
+   SaClmCallbacksT clm_cbk; 
+   SaClmClusterNodeT    cluster_node;
+   SaVersionT      clm_version;
+   char str_vector[10]="";
 
    mqnd_flx_log_reg( );
    
@@ -182,10 +189,57 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
       m_LOG_MQSV_ND(MQND_CB_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
    }
-   
    m_NCS_MEMSET(cb, 0, sizeof(MQND_CB));
    cb->hm_pool       = info->pool_id;
+  
+   /*** Set attributes of queue in global variable ***/ 
+   file.info.open.i_file_name = file1;
+   file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
+   m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
    
+   file_read.info.read.i_file_handle = file.info.open.o_file_handle;
+   file_read.info.read.i_buffer      = (uns8 *)str_vector;
+   file_read.info.read.i_buf_size    = sizeof(uns32);
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+
+   cb->gl_msg_max_msg_size = atoi(str_vector);
+
+   file_read.info.close.i_file_handle = file.info.open.o_file_handle; 
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+
+   file.info.open.i_file_name = file2;
+   file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
+   m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
+   
+   file_read.info.read.i_file_handle = file.info.open.o_file_handle;
+   file_read.info.read.i_buffer      = (uns8 *)str_vector;
+   file_read.info.read.i_buf_size    = sizeof(uns32);
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+
+   cb->gl_msg_max_no_of_q = atoi(str_vector);
+
+   file_read.info.close.i_file_handle = file.info.open.o_file_handle; 
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+   
+   file.info.open.i_file_name = file3;
+   file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
+   m_NCS_OS_FILE(&file, NCS_OS_FILE_OPEN);
+   
+   file_read.info.read.i_file_handle = file.info.open.o_file_handle;
+   file_read.info.read.i_buffer      = (uns8 *)str_vector;
+   file_read.info.read.i_buf_size    = sizeof(uns32);
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_READ);
+
+   cb->gl_msg_max_q_size = atoi(str_vector);
+
+   file_read.info.close.i_file_handle = file.info.open.o_file_handle; 
+   m_NCS_OS_FILE(&file_read, NCS_OS_FILE_CLOSE);
+
+   /* As there is no specific limit for priority queue size at present it is kept as max msg size */
+   cb->gl_msg_max_prio_q_size = cb->gl_msg_max_q_size;
+
+   /*** END: Set attributes of queue in global variable ***/ 
+
    /* Init the EDU Handle */
    m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
    
@@ -246,6 +300,39 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    }
    m_LOG_MQSV_ND(MQND_AMF_REGISTER_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
 
+   /* B301 changes */
+
+   m_MQSV_GET_AMF_VER(clm_version);
+   clm_cbk.saClmClusterNodeGetCallback = NULL;
+   clm_cbk.saClmClusterTrackCallback   = mqnd_clm_cluster_track_cbk;
+  
+   rc = saClmInitialize(&cb->clm_hdl,&clm_cbk,&clm_version);
+   if(rc != SA_AIS_OK) 
+   {
+      m_LOG_MQSV_ND(MQND_CLM_INIT_FAILED,MQND_FC_HDLN,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      m_NCS_CONS_PRINTF("saClmInitialize Failed %d\n",rc); 
+      goto mqnd_mds_fail;
+   }
+    
+   rc = saClmClusterNodeGet(cb->clm_hdl,SA_CLM_LOCAL_NODE_ID,MQND_SAF_ACCEPT_TIME,&cluster_node);
+   if(rc != SA_AIS_OK)
+   {
+      m_LOG_MQSV_ND(MQND_CLM_NODE_GET_FAILED,MQND_FC_HDLN,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      m_NCS_CONS_PRINTF("saClmClusterNodeGet Failed %d\n",rc);
+      goto mqnd_clm_fail;
+   }
+
+   cb->nodeid = cluster_node.nodeId; 
+
+   rc  = saClmClusterTrack(cb->clm_hdl,(SA_TRACK_CURRENT |SA_TRACK_CHANGES) ,NULL);
+   if ( rc != SA_AIS_OK)
+   {
+       m_NCS_CONS_PRINTF("saClmClusterTrack Failed\n");
+       goto mqnd_clm_fail;
+   }   
+   
+   cb->clm_node_joined = 1;
+
    /* Create the task for MQND */
    if ((rc = m_NCS_TASK_CREATE ((NCS_OS_CB)mqnd_main_process,
       (NCSCONTEXT)(long)cb->cb_hdl, m_MQND_TASKNAME, m_MQND_TASK_PRI,
@@ -270,6 +357,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
      goto mqnd_mds_fail;
    }
    m_LOG_MQSV_ND(MQND_MDS_REGISTER_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+
 
    /* Bind with ASAPi */
    mqnd_asapi_bind(cb);
@@ -317,6 +405,8 @@ amf_reg_err:
    mqnd_amf_de_init(cb);
 amf_init_err:
    mqnd_mds_unregister(cb);
+mqnd_clm_fail:
+   saClmFinalize(cb->clm_hdl);   
 mqnd_mds_fail:
    m_NCS_TASK_STOP(cb->task_hdl);
    
@@ -378,6 +468,8 @@ static uns32 mqnd_lib_destroy (MQSV_DESTROY_INFO *info)
       return rc;
    }
 
+   saClmFinalize(cb->clm_hdl);
+   cb->clm_node_joined = 0;
 
    m_NCS_TASK_STOP(cb->task_hdl);
    
@@ -706,10 +798,10 @@ static void mqnd_main_process(NCSCONTEXT info)
    SYSF_MBX            mbx;
    MQSV_EVT            *evt = NULL;
    MQSV_DSEND_EVT      *dsend_evt = NULL;
-   SaSelectionObjectT  amf_sel_obj;
+   SaSelectionObjectT  amf_sel_obj, clm_sel_obj;
    SaAmfHandleT        amf_hdl;
-   SaAisErrorT            amf_error;
-   NCS_SEL_OBJ         amf_ncs_sel_obj, highest_sel_obj ;
+   SaAisErrorT            amf_error, clm_error;
+   NCS_SEL_OBJ         amf_ncs_sel_obj, highest_sel_obj, clm_ncs_sel_obj;
 
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, ((long)info));
@@ -737,6 +829,17 @@ static void mqnd_main_process(NCSCONTEXT info)
                                                                                                                              
    highest_sel_obj  = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj,mbx_fd);
 
+   if(saClmSelectionObjectGet(cb->clm_hdl,&clm_sel_obj) != SA_AIS_OK)
+   {
+      m_NCS_CONS_PRINTF("CLM Selection Object Get failed\n");
+      return;
+   }
+
+   m_SET_FD_IN_SEL_OBJ((uns32)clm_sel_obj,clm_ncs_sel_obj);
+   m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj,&all_sel_obj);
+
+   highest_sel_obj  = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, clm_ncs_sel_obj);
+
    while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj,&all_sel_obj,0,0,0) != -1)
    {
 
@@ -748,6 +851,17 @@ static void mqnd_main_process(NCSCONTEXT info)
          if (amf_error != SA_AIS_OK)
          {
             m_LOG_MQSV_ND(MQND_AMF_DISPATCH_FAILURE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,amf_error,__FILE__,__LINE__);
+         }
+      }
+
+      /* Process all Clm Messages */
+      if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj,&all_sel_obj))
+      {
+         /* dispatch all the CLM pending function */
+	 clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
+         if(clm_error != SA_AIS_OK)
+         {
+            m_LOG_MQSV_ND(MQND_CLM_DISPATCH_FAILURE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,clm_error,__FILE__,__LINE__);
          }
       }
 
@@ -774,7 +888,7 @@ static void mqnd_main_process(NCSCONTEXT info)
       }
       m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
       m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
-
+      m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj,&all_sel_obj);
    }     
    return;
 }

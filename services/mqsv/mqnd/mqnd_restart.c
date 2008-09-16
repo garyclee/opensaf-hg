@@ -303,7 +303,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE* qnode)
     mqnd_queue_node_add(cb, qnode);
 
     /* For unlinked queues, don't add it to MIB and name DB */
-    if(!(qnode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE))
+    if(!(qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE))
     {
 
        /* IF not unlinked, add it to name DB and MIB */

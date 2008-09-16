@@ -100,7 +100,7 @@ typedef struct mqa_client_info {
    SYSF_MBX             callbk_mbx;
    NCS_PATRICIA_TREE    mqa_track_tree;
    uns8                 finalize; 
-
+   SaVersionT           version;
 
 }MQA_CLIENT_INFO;
 
@@ -181,6 +181,7 @@ typedef struct mqa_cb {
  
    /*To store versions of MQND across cluster */
    SVC_SUBPART_VER     ver_mqnd[MQA_MAX_NODES];
+   uns32		clm_node_joined;
 }MQA_CB;
 
 EXTERN_C NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info,

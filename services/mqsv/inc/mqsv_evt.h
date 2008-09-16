@@ -65,7 +65,9 @@ typedef enum mqp_req_type
    MQP_EVT_REPLY_MSG_ASYNC,
    MQP_EVT_SEND_MSG,
    MQP_EVT_SEND_MSG_ASYNC, 
-   MQP_EVT_CB_DUMP               /* For CPND CB Dump */
+   MQP_EVT_CB_DUMP,               /* For CPND CB Dump */
+   MQP_EVT_Q_RET_TIME_SET_REQ,
+   MQP_EVT_CLM_NOTIFY
 }MQP_REQ_TYPE;
 
 /* Enums for MQP Message Types */
@@ -85,7 +87,7 @@ typedef enum mqp_rsp_type
    MQP_EVT_TRANSFER_QUEUE_RSP,
    MQP_EVT_MQND_RESTART_RSP,
    MQP_EVT_STAT_UPD_RSP,
-
+   MQP_EVT_Q_RET_TIME_SET_RSP
 }MQP_RSP_TYPE;
 
 /* Enums for MQD messages */
@@ -189,6 +191,22 @@ typedef struct mqp_finalize_rsp {
 
    SaMsgHandleT msgHandle;
 }MQP_FINALIZE_RSP;
+
+typedef struct mqp_q_ret_time_set_req {
+
+   SaMsgQueueHandleT queueHandle;
+   SaTimeT retentionTime;
+
+}MQP_Q_RET_TIME_SET_REQ;
+
+typedef struct mqp_clm_req {
+   uns32 node_joined;
+}MQP_CLM_NOTIFY;
+
+typedef struct mqp_q_ret_time_set_rsp {
+
+   SaMsgQueueHandleT queueHandle;
+}MQP_Q_RET_TIME_SET_RSP;
 
 
 /* saMsgQueueOpen(): */
@@ -431,6 +449,8 @@ typedef struct  mqp_req_msg
       MQP_TRANSFERQ_REQ          transferReq;
       MQP_TRANSFERQ_COMPLETE     transferComplete;
       MQP_UPDATE_STATS           statsReq;
+      MQP_Q_RET_TIME_SET_REQ     retTimeSetReq;
+      MQP_CLM_NOTIFY		 clmNotify;
    }info;
 }MQP_REQ_MSG;
 
@@ -451,6 +471,7 @@ typedef struct mqp_rsp_msg
       MQP_STATS_RSP              statsRsp;
       MQP_QUEUE_REPLY_RSP        replyRsp;
       MQP_SEND_MSG_RSP           sendMsgRsp;
+      MQP_Q_RET_TIME_SET_RSP     retTimeSetRsp;
    }info;
 }MQP_RSP_MSG;
 
