@@ -1320,7 +1320,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
    AVA_HDL_REC  *hdl_rec = 0;
    AVSV_NDA_AVA_MSG msg;
    AVSV_NDA_AVA_MSG *msg_rsp = 0;
-   NCS_BOOL         is_syn = FALSE;
+   NCS_BOOL         is_syn = FALSE, create_memory = FALSE;
    SaAisErrorT      rc = SA_AIS_OK;
    uns32            i = 0;
 
@@ -1371,6 +1371,18 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
       is_syn = TRUE;
    }
 
+   /* Check whether we have to allocate the memory */
+   if ((flags & SA_TRACK_CURRENT) && buf)
+   {
+     if(buf->notification == NULL)
+	 {
+       /* This means that we have to allocate the memory. In this case we will ignore buf->numberOfItems */
+	   is_syn = TRUE;
+	   create_memory = TRUE;
+
+	 }
+   }
+
    /* populate & send the pg start message */
    m_AVA_PG_START_MSG_FILL(msg, cb->ava_dest, hdl, *csi_name, flags, 
                            is_syn);
@@ -1389,7 +1401,8 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 
          /* get the notify buffer from the resp msg */
          rsp_buf = &msg_rsp->info.cbk_info->param.pg_track.buf;
-
+         if(create_memory == FALSE)
+		 {
          /* now copy the msg-resp buffer contents to appl provided buffer */
          if (rsp_buf->numberOfItems <= buf->numberOfItems)
          {
@@ -1415,6 +1428,37 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
                buf->notification[i].member.compName.length = 
                   m_NCS_OS_NTOHS(buf->notification[i].member.compName.length);
          }
+		 }
+		 else /* if(create_memory == FALSE) */
+		 {
+           /* create_momory is TRUE, so let us create the memory for the Use, User has to free it. */
+           buf->numberOfItems = rsp_buf->numberOfItems;
+		   if(buf->numberOfItems != 0)
+		   {
+		     buf->notification = malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+			 if(buf->notification != NULL)
+			 {
+                  m_NCS_OS_MEMCPY(buf->notification, rsp_buf->notification, 
+                     buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+
+                  /* convert comp-name len into host order */
+                  for (i = 0; i < buf->numberOfItems; i++)
+                     buf->notification[i].member.compName.length = 
+                        m_NCS_OS_NTOHS(buf->notification[i].member.compName.length);
+			 }
+			 else
+			 {
+                  rc = SA_AIS_ERR_NO_MEMORY;
+                  buf->numberOfItems = 0; 
+			 }
+		   }
+		   else /* if(buf->numberOfItems != 0) */
+		   {
+              /* buf->numberOfItems is zero. Nothing to be done. */
+
+		   }
+
+		 } /* else of if(create_memory == FALSE) */
       }
       else
       {
