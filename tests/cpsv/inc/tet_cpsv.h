@@ -197,6 +197,12 @@ struct SafCheckpointSectionDelete{
         SaAisErrorT exp_output;
         char *result_string;
 };
+struct SafCheckpointSectionFree{
+        SaCkptCheckpointHandleT *checkpointHandle;
+        const SaCkptSectionIdT *sectionId;
+         SaAisErrorT exp_output;
+        char *result_string;
+};
                                                                                                                                                                      
                                                                                                                                                                      
 struct SafCheckpointClose {
@@ -326,6 +332,10 @@ typedef enum {
     CKPT_OPEN_ERR_NOT_EXIST_T,
     CKPT_OPEN_ALL_MODES_SUCCESS_T,
     CKPT_OPEN_INVALID_CR_FLAGS_T,
+    CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T,
+    CKPT_OPEN_SUCCESS_EXIST2_T,
+    CKPT_OPEN_WEAK_CREATE_READ_SUCCESS_T,
+    CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,
 }CKPT_OPEN_TC_TYPE;
                                                                                                                                                                      
 typedef enum {
@@ -574,7 +584,9 @@ typedef enum {
     CKPT_DEL_SUCCESS3_T,
 }CKPT_DEL_TC_TYPE;
                                                                                                                                                                      
-                                                                                                                                                                     
+typedef enum {                                                                                                                                                                     
+CKPT_FREE_GEN_T=1   
+}CKPT_FREE_TC_TYPE;
 typedef enum {
     CKPT_UNLINK_BAD_HANDLE_T=1,
     CKPT_UNLINK_SUCCESS_T,

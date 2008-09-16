@@ -115,6 +115,8 @@ uns32 cpnd_proc_fill_sec_desc(CPND_CKPT_SECTION_INFO *pTmpSecPtr, \
                         SaCkptSectionDescriptorT *sec_des);
 
 uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb, CPND_CKPT_NODE *cp_node, CPSV_CKPT_ACCESS *in_evt, CPSV_SEND_INFO *sinfo);
+uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb);
+uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb);
 
 NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT_NODE *cp_node);
 uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error);
@@ -126,6 +128,7 @@ void cpnd_proc_cpa_up(CPND_CB *cb,MDS_DEST dest);
 void cpnd_proc_app_status(CPND_CB *cb);
 uns32 cpnd_ckpt_client_find(CPND_CKPT_NODE *cp_node, CPND_CKPT_CLIENT_NODE *cl_node);
 uns32 cpnd_all_repl_rsp_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info);
+uns32 cpnd_open_active_sync_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info);
 void cpnd_proc_free_read_data(CPSV_EVT *evt);
 /* End cpnd_proc.c */
 
@@ -169,6 +172,7 @@ uns32 cpnd_evt_node_add(CPND_CB *cb, CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 uns32 cpnd_evt_node_del(CPND_CB *cb,CPSV_CPND_ALL_REPL_EVT_NODE *evt_node);
 CPND_CKPT_NODE * cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id);
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id);
 uns32 cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id);
 CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id);
 CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectionIdT *id,SaTimeT exp_time,uns32 gen_flag );

@@ -390,6 +390,14 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
               ncs_encode_n_octets_in_uba(o_ub, (uns8*)data_rsp->info.write_err_index, size);
          }
       }
+      else if(i_evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT)
+      {
+               /* Do nothing */
+      }
+      else if(i_evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED)
+      {
+	       /* Do nothing */
+      }
       else if(i_evt->info.cpa.type == CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY)
       {
          CPSV_CKPT_DATA *data = i_evt->info.cpa.info.arr_msg.ckpt_data;
@@ -952,7 +960,18 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
          }
         break;
        }
-
+	case CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT:
+	{         
+         /* do nothing */
+          
+        break; 
+       }
+	case CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED:
+	{ 
+          /*do nothing*/
+                     
+        break; 
+       }
        case CPA_EVT_ND2A_CKPT_ARRIVAL_NTFY:
        { 
            CPSV_CKPT_DATA *data;

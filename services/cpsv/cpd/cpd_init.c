@@ -229,7 +229,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       m_NCS_CONS_PRINTF("CPD_MDS_REGISTER_FAILED %d\n",rc);
       goto cpd_mds_fail;
    }
-
+      
    /* Initialise with the AMF service */
    if(cpd_amf_init(cb) != NCSCC_RC_SUCCESS)
    {
@@ -237,6 +237,10 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       m_NCS_CONS_PRINTF("CPD_AMF_INIT_FAILED %d\n",rc);
       goto amf_init_err;
    }
+
+     cb->cold_or_warm_sync_on=TRUE;
+    
+
                                                                                                                              
    /* register with the AMF service */
    if(cpd_amf_register(cb) != NCSCC_RC_SUCCESS)
@@ -267,12 +271,13 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
 
    if ( saClmClusterTrack(cb->clm_hdl,SA_TRACK_CHANGES_ONLY,NULL)!= SA_AIS_OK)
    {
-       m_NCS_CONS_PRINTF("CPD_CLM_CLUSTER_TRACK FAIL\n");
+      m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+       m_NCS_CONS_PRINTF("CPD_CLM_CLUSTER_TRACK_FAIL \n");
        goto cpd_clm_fail;
    }
 
-   m_NCS_OS_STRCPY(cb->safSpecVer.value,"B.01.01");
-   cb->safSpecVer.length = m_NCS_STRLEN("B.01.01");
+   m_NCS_OS_STRCPY(cb->safSpecVer.value,"B.02.02"); 
+   cb->safSpecVer.length = m_NCS_STRLEN("B.02.02");
    m_NCS_OS_STRCPY(cb->safAgtVen.value,"OpenSAF");
    cb->safAgtVen.length = m_NCS_STRLEN("OpenSAF");
    cb->safAgtVenPro = 2;
@@ -312,24 +317,9 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       goto cpd_mab_fail;
    }
 
-#if 0
   /* Register with CLM */
-   cpd_clm_cbk.saClmClusterNodeGetCallback = NULL;
-   cpd_clm_cbk.saClmClusterTrackCallback   = cpd_clm_cluster_track_cb;
 
-   if ( saClmInitialize(&cb->clm_hdl,&cpd_clm_cbk,&clm_version) != SA_AIS_OK)
-   {
-       m_LOG_CPD_HEADLINE(CPD_CLM_REGISTER_FAIL,NCSFL_SEV_ERROR);
-       m_NCS_CONS_PRINTF("CPD_CLM_REGISTER_FAIL\n");
-       goto cpd_clm_fail;
-   }
 
-   if ( saClmClusterTrack(cb->clm_hdl,SA_TRACK_CHANGES_ONLY,NULL)!= SA_AIS_OK)
-   {
-       m_NCS_CONS_PRINTF("CPD_CLM_CLUSTER_TRACK FAIL\n");
-       goto cpd_clm_fail;
-   }
-#endif
 
  
    m_NCS_MEMSET(&healthy,0,sizeof(healthy));
@@ -357,11 +347,12 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    m_LOG_CPD_HEADLINE(CPD_INIT_SUCCESS, NCSFL_SEV_INFO);
    return NCSCC_RC_SUCCESS;
    
-cpd_clm_fail:
-     saClmFinalize(cb->clm_hdl);
+
 
 cpd_mab_fail:
      cpd_mds_unregister(cb);
+cpd_clm_fail:
+     saClmFinalize(cb->clm_hdl);
 
 cpd_task_start_fail:      
    m_NCS_TASK_RELEASE(cb->task_hdl);
@@ -489,7 +480,7 @@ static uns32 cpd_lib_destroy (CPD_DESTROY_INFO *info)
 static NCS_BOOL cpd_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
 {   
    CPSV_EVT  *pEvt = (CPSV_EVT *)msg;
-   CPSV_EVT  *pnext;
+   CPSV_EVT  *pnext=NULL;
    pnext = pEvt;
    while (pnext)
    {
@@ -523,7 +514,7 @@ static void cpd_main_process(NCSCONTEXT info)
    NCS_SEL_OBJ_SET     all_sel_obj;
    NCS_SEL_OBJ         mbx_fd;
    SYSF_MBX            mbx = cb->cpd_mbx;
-   CPSV_EVT            *evt = 0;
+   CPSV_EVT            *evt  =NULL;
    SaSelectionObjectT  amf_sel_obj,clm_sel_obj;
    SaAmfHandleT        amf_hdl;
    SaAisErrorT         amf_error;
@@ -550,6 +541,7 @@ static void cpd_main_process(NCSCONTEXT info)
 
    if(saClmSelectionObjectGet(cb->clm_hdl,&clm_sel_obj) != SA_AIS_OK)
    {
+      m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
       m_NCS_CONS_PRINTF("CLM Selection Object Get failed\n");
       return;
    }
@@ -582,7 +574,7 @@ static void cpd_main_process(NCSCONTEXT info)
          /* dispatch all the CLM pending function */
          if(saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL) != SA_AIS_OK)
          {
-            m_LOG_CPD_HEADLINE(CPD_AMF_DISPATCH_FAILURE,NCSFL_SEV_ERROR);
+            m_LOG_CPD_HEADLINE(CPD_CLM_DISPATCH_FAILURE,NCSFL_SEV_ERROR);
          }
       }
 

@@ -263,7 +263,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
    VDS_TRACE1_ARG1("vds_ckpt_cbinfo_write\n");
    
 #if 0
-   SaCkptIOVectorElementT  io_vector;
+   SaCkptIOVectorElementT  io_vector[1];
    SaUint32T  *erroneous_vector_index = NULL;
 #endif 
 
@@ -473,7 +473,7 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    VDS_CKPT_DBINFO   *temp_vds_ckpt_dbinfo_ptr = NULL;
 #if 0
    SaUint32T               *erroneous_vector_index = NULL;
-   SaCkptIOVectorElementT  io_vector;
+   SaCkptIOVectorElementT  io_vector[1];
 #endif
    SaAisErrorT       rc = SA_AIS_OK;
    SaCkptSectionIdT  section_id;
@@ -818,7 +818,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
    VDS_CKPT_DBINFO          vds_ckpt_dbinfo_node;
    VDS_VDEST_DB_INFO        *vdest_db_info_node = NULL;
    VDS_VDEST_ADEST_INFO     *tmp_adest_node = NULL;
-   SaCkptIOVectorElementT   io_vector;
+   SaCkptIOVectorElementT   io_vector[1];
    SaUint32T                *erroneous_vector_index = NULL;
    SaAisErrorT              rc = SA_AIS_OK;
    SaAisErrorT              rc_while = SA_AIS_OK;
@@ -838,21 +838,21 @@ uns32 vds_ckpt_read(VDS_CB *cb)
 
    /* Create a section for VDS version if not present */
 
-   m_NCS_OS_MEMSET(&io_vector, 0, sizeof(SaCkptIOVectorElementT));
+   m_NCS_OS_MEMSET(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
    m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT));
 
    section_id.id = (SaUint8T *)VDS_CKPT_VERSION_SECTIONID;
    section_id.idLen = VDS_CKPT_VERSION_SECTIONID_LEN;
 
-   io_vector.sectionId  = section_id;
-   io_vector.dataBuffer = &vds_version_obtained;
-   io_vector.dataOffset = 0;
-   io_vector.readSize   = 0;
-   io_vector.dataSize = sizeof(vds_version_obtained);
+   io_vector[0].sectionId  = section_id;
+   io_vector[0].dataBuffer = &vds_version_obtained;
+   io_vector[0].dataOffset = 0;
+   io_vector[0].readSize   = 0;
+   io_vector[0].dataSize = sizeof(vds_version_obtained);
 
     /* Read VDS version section if it exists */
     rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
-                            &io_vector,
+                            io_vector,
                             VDS_CKPT_NO_OF_SECTIONS_TOREAD,
                             erroneous_vector_index);
     /* If VDS version section doesn't exist, create one */
@@ -930,12 +930,12 @@ uns32 vds_ckpt_read(VDS_CB *cb)
     
        m_VDS_LOG_GENERIC("SECTIONID in ",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(*((uns64 *)sec_desc.sectionId.id)),"CKPTREAD -ITnext");
        sec_iter_count++;
-       m_NCS_OS_MEMSET(&io_vector, 0, sizeof(SaCkptIOVectorElementT));
+       m_NCS_OS_MEMSET(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
        
        /* Fill io_vector */
-       io_vector.sectionId  = sec_desc.sectionId;
-       io_vector.dataOffset = 0;
-       io_vector.readSize   = 0;
+       io_vector[0].sectionId  = sec_desc.sectionId;
+       io_vector[0].dataOffset = 0;
+       io_vector[0].readSize   = 0;
 
        /* checks for section with VDS_CKPT_LATEST_VDEST_SECTIONID */    
        if (((sec_desc.sectionId.idLen == VDS_CKPT_LATEST_VDEST_SECTIONID_LEN) &&
@@ -944,20 +944,20 @@ uns32 vds_ckpt_read(VDS_CB *cb)
                                VDS_CKPT_LATEST_VDEST_SECTIONID_LEN)))))
        {
           
-          io_vector.dataBuffer = &temp_latest_allocated_vdest;
+          io_vector[0].dataBuffer = &temp_latest_allocated_vdest;
           /* Fill io_vector datasize */
-          io_vector.dataSize = sizeof(MDS_DEST);
+          io_vector[0].dataSize = sizeof(MDS_DEST);
           
           /* reads the section with VDS_CKPT_LATEST_VDEST_SECTIONID 
              as sectionId */   
           rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
-                                    &io_vector,
+                                    io_vector,
                                     VDS_CKPT_NO_OF_SECTIONS_TOREAD,
                                     erroneous_vector_index);
           if (rc == SA_AIS_OK)
           { 
              /* copies the section content into latest_allocated_vdest */
-             cb->latest_allocated_vdest = m_NCS_OS_NTOHLL_P(io_vector.dataBuffer);
+             cb->latest_allocated_vdest = m_NCS_OS_NTOHLL_P(io_vector[0].dataBuffer);
              initial_vdest = FALSE;
           }
           else
@@ -988,15 +988,15 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           m_NCS_OS_MEMSET(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
 
           /* Fill io_vector datasize */
-          io_vector.dataSize = VDS_CKPT_BUFFER_SIZE;
+          io_vector[0].dataSize = VDS_CKPT_BUFFER_SIZE;
 
            m_NCS_OS_MEMSET(vds_data_buffer, 0 ,VDS_CKPT_BUFFER_SIZE);
 
-          io_vector.dataBuffer = vds_data_buffer;
+          io_vector[0].dataBuffer = vds_data_buffer;
 
           /* reads the section with vdest_id as section id */ 
           rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
-                                    &io_vector,
+                                    io_vector,
                                     VDS_CKPT_NO_OF_SECTIONS_TOREAD,
                                     erroneous_vector_index);
           if (rc != SA_AIS_OK)

@@ -75,7 +75,7 @@ SaTimeT timeout = 2000000000; /* expiration time */
 uns32 avsv_ckpt_init(void);
 
 /* Routine to write the Data into CheckPoint */
-void avsv_ckpt_data_write(uns32 *);
+void avsv_ckpt_data_write(uns32 *,uns32 *);
 
 /* Routine to Read the Data from the CheckPoint */
 void avsv_ckpt_data_read(void);
@@ -97,8 +97,8 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT ,
 #define m_AVSV_CKPT_VER_GET(ver) \
 { \
    ver.releaseCode = 'B'; \
-   ver.majorVersion = 0x01; \
-   ver.minorVersion = 0x01; \
+   ver.majorVersion = 0x02; \
+   ver.minorVersion = 0x02; \
 };
                                                                                                                              
 #define APP_CPSV_CKPT_RET_TIME 0 /* In Nano Seconds (=60 Seconds) */
@@ -109,7 +109,8 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT ,
                        Extern Function Decalarations
 ############################################################################*/
 
-extern uns32 gl_count;
+extern uns32 gl_count1;
+extern uns32 gl_count2;
 extern SaAmfHAStateT gl_ha_state;
 
 /*############################################################################
@@ -175,9 +176,10 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT    ckptHandle,
                                SaCkptIOVectorElementT   *ioVector,
                                SaUint32T numberOfElements)
 {
-   SaCkptIOVectorElementT readVector;
+   SaCkptIOVectorElementT readVector[2];
    SaUint32T erroneousVectorIndex;
-   uns32 read_buff;
+   uns32 read_buff1;
+    uns32 read_buff2;
    SaAisErrorT rc;
                                                                                                                              
    /* Read the data only in standby state */
@@ -188,21 +190,29 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT    ckptHandle,
                       Demonstrating the use of saCkptCheckpointRead()
    ######################################################################*/
                                                                                                                              
-   memset(&read_buff, 0, sizeof(uns32));
-   memset(&readVector, 0, sizeof(SaCkptIOVectorElementT));
+   memset(&read_buff1, 0, sizeof(uns32));
+   memset(readVector, 0, (sizeof(SaCkptIOVectorElementT) * 2));   
    memset(&erroneousVectorIndex, 0, sizeof(erroneousVectorIndex));
                                                                                                                              
-   readVector.sectionId  = ioVector->sectionId;
-   readVector.dataBuffer = (SaUint8T *)&read_buff;
-   readVector.dataSize   = ioVector->dataSize;
-   readVector.dataOffset = ioVector->dataOffset;
+   readVector[0].sectionId  = ioVector[0].sectionId;
+   readVector[0].dataBuffer = (SaUint8T *)&read_buff1;
+   readVector[0].dataSize   = ioVector[0].dataSize;
+   readVector[0].dataOffset = ioVector[0].dataOffset;
+  readVector[1].sectionId  = ioVector[1].sectionId;
+   readVector[1].dataBuffer = (SaUint8T *)&read_buff2;
+   readVector[1].dataSize   = ioVector[1].dataSize;
+   readVector[1].dataOffset = ioVector[1].dataOffset;
                                                                                                                              
-   rc = saCkptCheckpointRead(ckptHandle,&readVector,1,&erroneousVectorIndex);
+   rc = saCkptCheckpointRead(ckptHandle,readVector,2,&erroneousVectorIndex);
                                                                                                                              
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n CKPT :: Read %d from the CheckPoint", read_buff);
+   {
+   	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -A ---%d from the CheckPoint", read_buff1);
+	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -B ---%d from the CheckPoint", read_buff2);
+   }
 
-   gl_count = read_buff;
+   gl_count1 = read_buff1;
+     gl_count2 = read_buff2;
 }
 
                                                                                                                              
@@ -213,9 +223,10 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT    ckptHandle,
 
 void avsv_ckpt_data_read(void)
 {
-   SaCkptIOVectorElementT readVector;
+   SaCkptIOVectorElementT readVector[2];
    SaUint32T erroneousVectorIndex = 0;
-   uns32 read_buff;
+   uns32 read_buff1;
+    uns32 read_buff2;
    SaAisErrorT   rc;
    SaCkptSectionIdT sec_id={.idLen=8,.id="counter"};
                                                                                                                              
@@ -223,21 +234,30 @@ void avsv_ckpt_data_read(void)
                       Demonstrating the use of saCkptCheckpointRead()
    ######################################################################*/
                                                                                                                              
-   readVector.sectionId = sec_id;
-   readVector.dataBuffer =  (SaUint8T*)&read_buff;
-   readVector.dataSize   = sizeof(uns32);
-   readVector.dataOffset = 0;
+   readVector[0].sectionId = sec_id;
+   readVector[0].dataBuffer =  (SaUint8T*)&read_buff1;
+   readVector[0].dataSize   = sizeof(uns32);
+   readVector[0].dataOffset = 0;
                                                                                                                              
-   memset(&read_buff, 0, sizeof(uns32));
+   memset(&read_buff1, 0, sizeof(uns32));
 
+   readVector[1].sectionId = sec_id;
+   readVector[1].dataBuffer =  (SaUint8T*)&read_buff2;
+   readVector[1].dataSize   = sizeof(uns32);
+   readVector[1].dataOffset = 5;
+   memset(&read_buff2, 0, sizeof(uns32));
    rc = saCkptCheckpointRead(checkpointHandle,
-                     &readVector,1,&erroneousVectorIndex);
+                     readVector,2,&erroneousVectorIndex);
                                                                                                                              
    if(rc == SA_AIS_OK)
    {  
-      gl_count = read_buff;
-      m_NCS_CONS_PRINTF("\n CKPT :: Read %d during initial read\n", read_buff);
+      gl_count1 = read_buff1;
+      m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A --%d during initial read\n", read_buff1);
+      gl_count2 = read_buff2;
+      m_NCS_CONS_PRINTF("\n CKPT :: ReadVector B --%d during initial read\n", read_buff2);
    }
+   else
+   	 m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A & B saCkptCheckpointRead fail -RC-%d during initial read\n", rc);
 
 }
 
@@ -400,9 +420,9 @@ void avsv_ckpt_process (void)
  This routine writes the CKPT Data Received from the application
  ***************************************************************/
 
-void avsv_ckpt_data_write(uns32 *write_buff)
+void avsv_ckpt_data_write(uns32 *write_buff1,uns32 *write_buff2)
 {
-   SaCkptIOVectorElementT writeVector;
+   SaCkptIOVectorElementT writeVector[2];
    SaUint32T erroneousVectorIndex;
    SaAisErrorT rc;
    SaCkptSectionIdT sec_id = {.id="counter",.idLen=8};
@@ -412,16 +432,23 @@ void avsv_ckpt_data_write(uns32 *write_buff)
    ######################################################################*/
                                                                                                                              
    /* Build the writeVector */
-   writeVector.sectionId = sec_id;
-   writeVector.dataBuffer = (SaUint8T*)write_buff;
-   writeVector.dataSize = sizeof(uns32);
-   writeVector.dataOffset = 0;
-   writeVector.readSize = 0;
+   writeVector[0].sectionId = sec_id;
+   writeVector[0].dataBuffer = (SaUint8T*)write_buff1;
+   writeVector[0].dataSize = sizeof(uns32);
+   writeVector[0].dataOffset = 0;
+   writeVector[0].readSize = 0;
+   writeVector[1].sectionId = sec_id;
+   writeVector[1].dataBuffer = (SaUint8T*)write_buff2;
+   writeVector[1].dataSize = sizeof(uns32);
+   writeVector[1].dataOffset = 5;
+   writeVector[1].readSize = 0;
                                                                                                                              
-   rc = saCkptCheckpointWrite(checkpointHandle,&writeVector,1,&erroneousVectorIndex);
+   rc = saCkptCheckpointWrite(checkpointHandle,writeVector,2,&erroneousVectorIndex);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n CKPT :: Wrote %d to the CheckPoint\n", *write_buff);
-
+   {
+      m_NCS_CONS_PRINTF("\n CKPT :: writeVector-A-- %d to the CheckPoint\n", *write_buff1);
+      m_NCS_CONS_PRINTF("\n CKPT :: writeVectort-B-- %d to the CheckPoint\n", *write_buff2);
+   }
    return;
 }
 

@@ -140,7 +140,7 @@ void cpa_sync_with_cpnd(CPA_CB *cb)
 ******************************************************************************/
 static uns32 cpa_create (NCS_LIB_CREATE *create_info)
 {
-   CPA_CB      *cb=0;
+   CPA_CB      *cb=NULL;
    uns32       rc;
 
    /* validate create info */
@@ -220,10 +220,12 @@ edu_init_fail:
    cpa_mds_unregister(cb);
 
 mds_reg_fail:
+   cb->is_cpnd_joined_clm = FALSE;
    cpa_db_destroy(cb);
    
 db_init_fail:
    /* destroy the lock */
+   cb->is_cpnd_joined_clm = FALSE;
    m_NCS_LOCK_DESTROY(&cb->cb_lock);
    
 lock_init_fail:
@@ -256,7 +258,7 @@ cb_alloc_fail:
 ******************************************************************************/
 static uns32 cpa_destroy (NCS_LIB_DESTROY *destroy_info)
 {
-   CPA_CB *cb = 0;
+   CPA_CB *cb = NULL;
 
 
    /* validate the CB */

@@ -1,10 +1,35 @@
-
-/*
-
-  Header file of SA Forum AIS APIs (SAI-AIS-B.01.00.04)
-  compiled on 14SEP2004 by sayandeb.saha@motorola.com.
-
-*/
+/*******************************************************************************
+**
+** FILE:
+**   SaAis.h
+**
+** DESCRIPTION: 
+**   This file contains the prototypes and type definitions required by all
+**   Service Availability(TM) Forum's AIS services. 
+**   
+** SPECIFICATION VERSION:
+**   SAI-Overview-B.03.01
+**
+** DATE: 
+**   Mon  Dec   18  2006  
+**
+** LEGAL:
+**   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
+**
+** Copyright 2006 by the Service Availability Forum. All rights reserved.
+**
+** Permission to use, copy, modify, and distribute this software for any
+** purpose without fee is hereby granted, provided that this entire notice
+** is included in all copies of any software which is or includes a copy
+** or modification of this software and in all copies of the supporting
+** documentation for such software.
+**
+** THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+** WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+** REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+** OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
+**
+*******************************************************************************/
 
 #ifndef _SA_AIS_H
 #define _SA_AIS_H
@@ -12,11 +37,6 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
-
-typedef enum {
-    SA_FALSE = 0,
-    SA_TRUE = 1
-} SaBoolT;
 
 typedef char                  SaInt8T;
 typedef short                 SaInt16T;
@@ -27,58 +47,45 @@ typedef unsigned short        SaUint16T;
 typedef unsigned int          SaUint32T;
 typedef unsigned long long    SaUint64T;
 
+/** Types used by the NTF/IMMS service **/
+typedef float                 SaFloatT;
+typedef double                SaDoubleT;
+typedef char*                 SaStringT;
+
 typedef SaInt64T              SaTimeT;
 typedef SaUint64T             SaInvocationT;
 typedef SaUint64T             SaSizeT;
 typedef SaUint64T             SaOffsetT;
 typedef SaUint64T             SaSelectionObjectT;
-typedef SaUint64T             SaNtfIdentifierT;
-
-typedef float                 SaFloatT;
-typedef double                SaDoubleT;
-typedef char*                 SaStringT;
 
 #define SA_TIME_END              0x7FFFFFFFFFFFFFFFLL
-#define SA_TIME_BEGIN            0x0
+#define SA_TIME_BEGIN            0x0LL
 #define SA_TIME_UNKNOWN          0x8000000000000000LL
 
-#define SA_TIME_ONE_MICROSECOND 1000
-#define SA_TIME_ONE_MILLISECOND 1000000
-#define SA_TIME_ONE_SECOND      1000000000
-#define SA_TIME_ONE_MINUTE      60000000000
-#define SA_TIME_ONE_HOUR        3600000000000ULL
-#define SA_TIME_ONE_DAY         86400000000000ULL
+#define SA_TIME_ONE_MICROSECOND 1000LL
+#define SA_TIME_ONE_MILLISECOND 1000000LL
+#define SA_TIME_ONE_SECOND      1000000000LL
+#define SA_TIME_ONE_MINUTE      60000000000LL
+#define SA_TIME_ONE_HOUR        3600000000000LL
+#define SA_TIME_ONE_DAY         86400000000000LL
 #define SA_TIME_MAX             SA_TIME_END
 
 #define SA_MAX_NAME_LENGTH 256
-typedef struct {
-    SaUint16T length;
-    SaUint8T value[SA_MAX_NAME_LENGTH];
-} SaNameT;
-
-typedef struct {
-    SaUint8T releaseCode;
-    SaUint8T majorVersion;
-    SaUint8T minorVersion;
-} SaVersionT;
 
 #define SA_TRACK_CURRENT 0x01
 #define SA_TRACK_CHANGES 0x02
 #define SA_TRACK_CHANGES_ONLY 0x04
 
 typedef enum {
+    SA_FALSE = 0,
+    SA_TRUE = 1
+} SaBoolT;
+
+typedef enum {
     SA_DISPATCH_ONE = 1,
     SA_DISPATCH_ALL = 2,
     SA_DISPATCH_BLOCKING = 3
 } SaDispatchFlagsT;
-
-typedef union {
-    SaInt64T int64Value;
-    SaUint64T uint64Value;
-    SaTimeT timeValue;
-    SaFloatT floatValue;
-    SaDoubleT doubleValue;
-} SaLimitValueT;
 
 typedef enum {
    SA_AIS_OK = 1,
@@ -107,13 +114,55 @@ typedef enum {
    SA_AIS_ERR_QUEUE_NOT_AVAILABLE = 24,
    SA_AIS_ERR_BAD_FLAGS = 25,
    SA_AIS_ERR_TOO_BIG = 26,
-   SA_AIS_ERR_NO_SECTIONS = 27
+   SA_AIS_ERR_NO_SECTIONS = 27,
+   SA_AIS_ERR_NO_OP = 28,          
+   SA_AIS_ERR_REPAIR_PENDING = 29,
+   SA_AIS_ERR_NO_BINDINGS = 30,
+   SA_AIS_ERR_UNAVAILABLE = 31,
 } SaAisErrorT;
+
+typedef enum {
+    SA_SVC_HPI  =  1,
+    SA_SVC_AMF  =  2,
+    SA_SVC_CLM  =  3,
+    SA_SVC_CKPT =  4,
+    SA_SVC_EVT  =  5,
+    SA_SVC_MSG  =  6,
+    SA_SVC_LCK  =  7,
+    SA_SVC_IMMS =  8, 
+    SA_SCV_LOG  =  9,
+    SA_SVC_NTF  =  10,
+    SA_SVC_NAM  =  11,
+    SA_SVC_TMR  =  12
+} SaServicesT;
+
+typedef struct {
+   SaSizeT   bufferSize;
+   SaUint8T  *bufferAddr;
+} SaAnyT;
+
+typedef struct {
+    SaUint16T length;
+    SaUint8T value[SA_MAX_NAME_LENGTH];
+} SaNameT;
+
+typedef struct {
+    SaUint8T releaseCode;
+    SaUint8T majorVersion;
+    SaUint8T minorVersion;
+} SaVersionT;
+
+typedef union {
+    SaInt64T int64Value;
+    SaUint64T uint64Value;
+    SaTimeT timeValue;
+    SaFloatT floatValue;
+    SaDoubleT doubleValue;
+} SaLimitValueT;
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif  /* _SA_AIS_H */
-
 

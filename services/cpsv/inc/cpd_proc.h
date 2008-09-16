@@ -93,7 +93,7 @@ EXTERN_C void cpd_cb_dump(void);
 EXTERN_C uns32 cpd_mbcsv_chgrole(CPD_CB *cb);
 
 EXTERN_C void cpd_ckpt_reflist_del(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,CPSV_CPND_DEST_INFO  *dest_list);
-EXTERN_C uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
 EXTERN_C void  cpd_a2s_ckpt_unlink_set(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node);
 EXTERN_C void cpd_a2s_ckpt_rdset(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node);
 EXTERN_C void cpd_a2s_ckpt_arep_set(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node);
@@ -101,17 +101,17 @@ EXTERN_C void cpd_a2s_ckpt_dest_add(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS
 EXTERN_C void  cpd_a2s_ckpt_dest_del(CPD_CB *cb,SaCkptCheckpointHandleT ckpt_hdl,MDS_DEST *cpnd_dest,NCS_BOOL ckptid_flag);
 EXTERN_C void cpd_a2s_ckpt_usr_info(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node);
 EXTERN_C void cpd_a2s_ckpt_dest_down(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *sinfo);
-EXTERN_C uns32 ncs_mbcsv_dec_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
-EXTERN_C uns32  ncs_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32  cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
 EXTERN_C uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg);
-EXTERN_C uns32 ncs_mbcsv_enc_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32 cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
 EXTERN_C uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg);
-EXTERN_C uns32  ncs_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32  cpd_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
 EXTERN_C uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest);
 EXTERN_C NCS_PHY_SLOT_ID  cpd_get_phy_slot_id(MDS_DEST dest);
 EXTERN_C uns32 cpd_mbcsv_register(CPD_CB *cb);
 EXTERN_C uns32 cpd_mbcsv_finalize(CPD_CB *cb); 
-EXTERN_C uns32  ncs_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
+EXTERN_C uns32  cpd_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg);
 EXTERN_C uns32 cpd_mbcsv_close(CPD_CB *cb);
 EXTERN_C NCS_BOOL cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 #endif

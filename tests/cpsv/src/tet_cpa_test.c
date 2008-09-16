@@ -281,7 +281,7 @@ void fill_testcase_data()
 {
    /* Variables for initialization */
    fill_ckpt_version(&tcd.version_err,'A',0x01,0x01);
-   fill_ckpt_version(&tcd.version_supported,'B',0x01,0x01);
+   fill_ckpt_version(&tcd.version_supported,'B',0x02,0x02);
    fill_ckpt_version(&tcd.version_err2,'C',0x01,0x01);
 
    fill_ckpt_callbacks(&tcd.general_callbks,AppCkptOpenCallback,AppCkptSyncCallback);
@@ -679,8 +679,8 @@ void cpsv_it_init_08()
   if(result == TET_PASS)
   {
      if(tcd.version_err2.releaseCode == 'B' &&
-        tcd.version_err2.majorVersion == 1 &&
-        tcd.version_err2.minorVersion == 1)
+        tcd.version_err2.majorVersion == 2 &&
+        tcd.version_err2.minorVersion == 2)
         result = TET_PASS;
       else
         result = TET_FAIL;
@@ -1432,7 +1432,7 @@ void cpsv_it_open_22()
      goto final2;
 
   fill_ckpt_attri(&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_COLLOCATED|SA_CKPT_WR_ACTIVE_REPLICA,1069,1000000,2,600,3);
-  result = tet_test_ckptOpen(CKPT_OPEN_ERR_EXIST2_T,TEST_NONCONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_SUCCESS_EXIST2_T,TEST_CONFIG_MODE);
   tet_ckpt_cleanup(CPSV_CLEAN_COLLOCATED_REPLICAS_CKPT);
 
 final2:
@@ -2136,7 +2136,7 @@ void cpsv_it_open_48()
   select(tcd.selobj + 1, &read_fd, NULL, NULL, &tv);
                                                                                                                              
   result = tet_test_ckptDispatch(CKPT_DISPATCH_ONE_T,TEST_NONCONFIG_MODE);
-  if(result == TET_PASS && tcd.open_clbk_invo == 1019 && tcd.open_clbk_err == SA_AIS_ERR_EXIST)
+  if(result == TET_PASS && tcd.open_clbk_invo == 1019 && tcd.open_clbk_err == SA_AIS_OK)
      result = TET_PASS;
   else
      result = TET_FAIL;
@@ -2490,7 +2490,7 @@ void cpsv_it_close_06()
   FD_ZERO(&read_fd);
   FD_SET(tcd.selobj, &read_fd);
   result = select(tcd.selobj + 1, &read_fd, NULL, NULL, NULL);
-  printf("\n Select returned %d \n",result);
+  printf("\n Select ckptSynchronizeAsync returned  %d \n",result);
 
   result = tet_test_ckptClose(CKPT_CLOSE_SUCCESS7_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
@@ -2505,9 +2505,9 @@ void cpsv_it_close_06()
      result = TET_PASS;
   else
   {
-     printf("\n Select returned %d \n",result);
+     printf("\n Select ckptClose returned  %d \n",result);
      result = tet_test_ckptDispatch(CKPT_DISPATCH_ALL_T,TEST_NONCONFIG_MODE);
-     if(tcd.sync_clbk_invo == 0)
+     if(tcd.sync_clbk_invo == 2117 &&  tcd.sync_clbk_err == SA_AIS_ERR_BAD_HANDLE)
         result = TET_PASS;
      else
         result = TET_FAIL;
@@ -2893,7 +2893,7 @@ void cpsv_it_rdset_01()
      goto final1;
 
   fill_ckpt_attri(&tcd.active_replica,SA_CKPT_WR_ACTIVE_REPLICA,169,SA_TIME_ONE_HOUR,2,85,3);
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final2;
 
@@ -2940,7 +2940,7 @@ void cpsv_it_rdset_04()
      goto final1;
 
   fill_ckpt_attri(&tcd.active_replica,SA_CKPT_WR_ACTIVE_REPLICA,169,SA_TIME_ONE_HOUR,2,85,3);
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final2;
 
@@ -2966,7 +2966,7 @@ void cpsv_it_rdset_05()
      goto final1;
 
   fill_ckpt_attri(&tcd.active_replica,SA_CKPT_WR_ACTIVE_REPLICA,169,SA_TIME_ONE_HOUR,2,85,3);
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final2;
 
@@ -3148,7 +3148,7 @@ void cpsv_it_status_01()
      goto final1;
 
   fill_ckpt_attri(&tcd.replica_weak,SA_CKPT_WR_ACTIVE_REPLICA_WEAK,85,100,1,85,3);
-  result = tet_test_ckptOpen(CKPT_OPEN_WEAK_CREATE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_WEAK_CREATE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final2;
 
@@ -3560,6 +3560,47 @@ final1:
   printResult(result);
 }
 
+ void cpsv_it_seccreate_18()
+{
+  int result;
+  printHead("To verify free of section create with generated sectionId");
+  result = tet_test_ckptInitialize(CKPT_INIT_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final1;
+  result = tet_test_ckptInitialize(CKPT_INIT_SYNC_NULL_CBK_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final1;
+  result = tet_test_ckptOpen(CKPT_OPEN_COLLOCATE_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final2;
+  result = tet_test_ckptOpen(CKPT_OPEN_COLLOCATE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
+  result = tet_test_ckptOpen(CKPT_OPEN_COLLOCATE_WRITE_SUCCESS2_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
+  result = tet_test_ckptReplicaSet(CKPT_SET_SUCCESS_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
+  result = tet_test_ckptSectionCreate(CKPT_SECTION_CREATE_GEN_T,TEST_NONCONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
+#if 0
+    result = tet_test_ckptSectionDelete(CKPT_DEL_GEN_T,TEST_CONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
+ #endif 
+   result = tet_test_saCkptSectionIdFree(CKPT_FREE_GEN_T,TEST_CONFIG_MODE);
+   if(result != TET_PASS)
+     goto final3;
+final3:
+  tet_ckpt_cleanup(CPSV_CLEAN_COLLOCATED_REPLICAS_CKPT);
+final2:
+  tet_cpsv_cleanup(CPSV_CLEAN_INIT_SUCCESS_T);
+  tet_cpsv_cleanup(CPSV_CLEAN_INIT_SYNC_NULL_CBK_T);
+final1:
+  printResult(result);
+}
 void cpsv_it_seccreate_16() 
 {
   int result;
@@ -4074,7 +4115,7 @@ void cpsv_it_iterinit_05()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -4116,7 +4157,7 @@ void cpsv_it_iterinit_06()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -4310,7 +4351,7 @@ void cpsv_it_iternext_08()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -4344,7 +4385,7 @@ void cpsv_it_iternext_09()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -4385,7 +4426,7 @@ void cpsv_it_iterfin_01()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -4431,7 +4472,7 @@ void cpsv_it_iterfin_04()
   if(result != TET_PASS)
      goto final2;
 
-  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T,TEST_CONFIG_MODE);
+  result = tet_test_ckptOpen(CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T,TEST_CONFIG_MODE);
   if(result != TET_PASS)
      goto final3;
 
@@ -6877,7 +6918,7 @@ void cpsv_it_unlinktest()
         };
 
         SaVersionT      version; 
-        fill_ckpt_version(&version,'B',0x01,0x01);
+        fill_ckpt_version(&version,'B',0x02,0x02);
         int ret = TET_UNRESOLVED;
                                                                                                                             
         char name_open[] = "checkpoint";
@@ -7088,6 +7129,9 @@ void cpsv_it_read_withnullbuf()
   if(result != TET_PASS)
      goto final3;
 
+  result = tet_test_ckptWrite(CKPT_WRITE_SUCCESS2_T,TEST_NONCONFIG_MODE);
+  if(result != TET_PASS)
+     goto final3;
   result = tet_test_ckptRead(CKPT_READ_BUFFER_NULL_T,TEST_NONCONFIG_MODE);
 
 final3:
@@ -7399,6 +7443,7 @@ struct tet_testlist cpsv_single_node_testlist[]={
   {cpsv_it_arr_invalid_param,234,0},
   {cpsv_it_seccreate_16,235,0},
   {cpsv_it_seccreate_17,236,0},
+  {cpsv_it_seccreate_18,237,0},
 #if 0
   /* Test procedure unknown */
   {cpsv_it_onenode_10,222,0},

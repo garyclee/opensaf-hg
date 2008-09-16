@@ -272,7 +272,7 @@ uns32 cpa_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
-   CPSV_EVT  *evt;
+   CPSV_EVT  *evt=NULL;
    NCS_UBAID *uba = info->io_uba;
    uns32 rc = NCSCC_RC_SUCCESS;
   
@@ -325,7 +325,7 @@ static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 ******************************************************************************/
 static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
-   CPSV_EVT   *evt;
+   CPSV_EVT   *evt=NULL;
    NCS_UBAID   *uba = info->io_uba;
    uns32 rc=NCSCC_RC_SUCCESS;
    NCS_BOOL is_valid_msg_fmt = FALSE;
@@ -390,6 +390,7 @@ static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 
 static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
+   uns32 rc =NCSCC_RC_SUCCESS;
 
    CPSV_EVT    *evt = (CPSV_EVT *)rcv_info->i_msg;
 
@@ -398,12 +399,13 @@ static uns32 cpa_mds_rcv(CPA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    evt->sinfo.to_svc = rcv_info->i_fr_svc_id;
 
    /* Process the received event at CPA */
-   cpa_process_evt(cb, evt);
+  if( cpa_process_evt(cb, evt) != NCSCC_RC_SUCCESS)
+  	rc = NCSCC_RC_FAILURE;
    
    /* Free the Event */
    m_MMGR_FREE_CPSV_EVT(evt, NCS_SERVICE_ID_CPA);
 
-   return NCSCC_RC_SUCCESS;
+   return rc;
 }
 
 
@@ -493,7 +495,7 @@ static uns32 cpa_mds_svc_evt(CPA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 ******************************************************************************/
 static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-   CPSV_EVT  *pevt;
+   CPSV_EVT  *pevt=NULL;
    EDU_ERR   ederror = 0;
    NCS_UBAID *io_uba = enc_info->io_uba;
    uns32 rc = NCSCC_RC_SUCCESS;
@@ -566,7 +568,7 @@ static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 ******************************************************************************/
 static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
-   CPSV_EVT  *msg_ptr;
+   CPSV_EVT  *msg_ptr=NULL;
    EDU_ERR ederror = 0;
    uns32   rc = NCSCC_RC_SUCCESS ;
    uns8 local_data[20];
@@ -608,6 +610,20 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
            goto free;
 
          } /* if(msg_ptr->info.cpa.type == CPA_EVT_ND2A_CKPT_DATA_RSP) */
+	  #if 0
+         else if(msg_ptr->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED)
+	  {
+           ncs_dec_skip_space(dec_info->io_uba, 8);
+           rc = NCSCC_RC_SUCCESS;
+           goto free;
+         }
+	  else if(msg_ptr->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT)
+	  {
+           ncs_dec_skip_space(dec_info->io_uba, 8);
+           rc = NCSCC_RC_SUCCESS;
+           goto free;
+         }
+	  #endif
  
      } /* if( msg_ptr->type == CPSV_EVT_TYPE_CPA) */
      /* For all Other Cases Other Than CPA( Read / Write Rsp Follow EDU rules */
@@ -758,7 +774,7 @@ uns32 cpa_mds_msg_sync_reply (NCSCONTEXT cpa_mds_hdl,
 
    NCSMDS_INFO                mds_info;
    uns32                      rc;
-   CPA_CB                    *cpa_cb;
+   CPA_CB                    *cpa_cb=NULL;
 
    /* retrieve CPA CB */
    cpa_cb = (CPA_CB *)m_CPSV_CPA_RETRIEVE_CPA_CB;
@@ -836,7 +852,7 @@ uns32 cpa_mds_msg_async_reply (NCSCONTEXT cpa_mds_hdl,
 
    NCSMDS_INFO                mds_info;
    uns32 rc;
-   CPA_CB                    *cpa_cb;
+   CPA_CB                    *cpa_cb=NULL;
 
    if(!i_evt)
       return NCSCC_RC_FAILURE;

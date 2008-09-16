@@ -26,7 +26,7 @@ typedef enum cpa_tmr_type
    CPA_TMR_TYPE_CPND_RETENTION=1,
    CPA_TMR_TYPE_OPEN,
    CPA_TMR_TYPE_SYNC,
-   CPA_TMR_TYPE_MAX = CPA_TMR_TYPE_SYNC, 
+   CPA_TMR_TYPE_MAX = CPA_TMR_TYPE_SYNC 
 }CPA_TMR_TYPE;
 
 typedef struct cpa_tmr

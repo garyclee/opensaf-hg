@@ -28,7 +28,7 @@
 #include "cpd.h"
  uns32 cpd_evt_proc_cb_dump(CPD_CB *cb);
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
-                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo,MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver);
 static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt,CPSV_SEND_INFO *sinfo);
 /*static uns32 cpd_evt_proc_ckpt_sync_info(CPD_CB *cb,CPD_EVT *evt,CPSV_SEND_INFO *sinfo);*/
 static uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb,CPD_EVT *evt,
@@ -117,7 +117,7 @@ void cpd_process_evt(CPSV_EVT *evt)
       rc = cpd_evt_proc_timer_expiry(cb, &evt->info.cpd);
       break;
    case CPD_EVT_ND2D_CKPT_CREATE:
-      rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo);
+      rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo,evt->info.cpd.info.ver_info.i_msg_fmt_ver);
       break;
    case CPD_EVT_ND2D_CKPT_USR_INFO:
       rc = cpd_evt_proc_ckpt_usr_info(cb,&evt->info.cpd, &evt->sinfo);
@@ -178,7 +178,7 @@ void cpd_process_evt(CPSV_EVT *evt)
  * Notes         : None.
  *****************************************************************************/
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
-                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo,MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver)
 {
    CPSV_EVT                send_evt;
    SaAisErrorT             rc = SA_AIS_OK;
@@ -191,21 +191,38 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
    cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_create->ckpt_name, &map_info);
    if(map_info)
    {
+      if (i_msg_fmt_ver == 2)
+      {
    /*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
       if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
         (!m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &map_info->attributes)))   
+          {
+             m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_NOTICE,ckpt_create->ckpt_name.value, \
+                                                    sinfo->dest,__FILE__,__LINE__);
+             rc = SA_AIS_ERR_EXIST;
+             goto send_rsp;
+          }
+      }
+      else if (i_msg_fmt_ver == 1)
       {
-         m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_ERROR,ckpt_create->ckpt_name.value, \
+              if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
+            (!m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &map_info->attributes)))   
+          {
+             m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_NOTICE,ckpt_create->ckpt_name.value, \
                                                 sinfo->dest,__FILE__,__LINE__);
          rc = SA_AIS_ERR_EXIST;
          goto send_rsp;
+          }
       }
    }
    else
    {
+       SaCkptCheckpointCreationAttributesT    ckpt_local_attrib;  
+    m_NCS_OS_MEMSET(&ckpt_local_attrib,0,sizeof(SaCkptCheckpointCreationAttributesT));
    /*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length); */
       is_first_rep = TRUE;
-      if(!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE))
+      if(!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
+         (m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &ckpt_local_attrib) ) )  
       {
          m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_ERROR,ckpt_create->ckpt_name.value, \
                                                 sinfo->dest,__FILE__,__LINE__);

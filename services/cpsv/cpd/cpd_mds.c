@@ -45,7 +45,7 @@ static uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb);
 
 MDS_CLIENT_MSG_FORMAT_VER cpd_cpnd_msg_fmt_table[CPD_WRT_CPND_SUBPART_VER_RANGE] =
                  {
-                    1
+                    1,2
                  };
 
 MDS_CLIENT_MSG_FORMAT_VER cpd_cpa_msg_fmt_table[CPD_WRT_CPA_SUBPART_VER_RANGE] =
@@ -322,7 +322,7 @@ uns32 cpd_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uns32 cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-   CPSV_EVT  *msg_ptr;
+   CPSV_EVT  *msg_ptr=NULL;
    EDU_ERR   ederror = 0;   
   
    /* Get the Msg Format version from the SERVICE_ID & RMT_SVC_PVT_SUBPART_VERSION */
@@ -493,7 +493,7 @@ static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 ******************************************************************************/
 static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
-   CPSV_EVT   *evt;
+   CPSV_EVT   *evt=NULL;
    uns32 rc = NCSCC_RC_SUCCESS;
    NCS_UBAID   *uba = info->io_uba;
    NCS_BOOL is_valid_msg_fmt = FALSE;
@@ -556,7 +556,8 @@ static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
    uns32    rc = NCSCC_RC_SUCCESS;
    CPSV_EVT *pEvt = (CPSV_EVT *)rcv_info->i_msg;
-   
+   pEvt->info.cpd.info.ver_info.i_msg_fmt_ver = rcv_info->i_msg_fmt_ver;
+     
    pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
    pEvt->sinfo.dest = rcv_info->i_fr_dest;
    pEvt->sinfo.to_svc = rcv_info->i_fr_svc_id;

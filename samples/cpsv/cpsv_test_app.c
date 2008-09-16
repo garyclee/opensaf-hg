@@ -106,8 +106,8 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    callbk.saCkptCheckpointOpenCallback = AppCkptOpenCallback;
    callbk.saCkptCheckpointSynchronizeCallback = AppCkptSyncCallback;
    version.releaseCode= 'B';
-   version.majorVersion = 1;
-   version.minorVersion = 1;
+   version.majorVersion = 2;
+   version.minorVersion = 2;
    
     
    m_NCS_TASK_SLEEP(1000);                                                                                                                                                                

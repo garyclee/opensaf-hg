@@ -132,6 +132,27 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);   
    if(cb) {
+       
+     if ((cb->ha_state == SA_AMF_HA_STANDBY)  && (haState == SA_AMF_HA_ACTIVE)){
+       if (cb->cold_or_warm_sync_on == TRUE)
+        {
+              m_NCS_CONS_PRINTF("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+           saErr=SA_AIS_ERR_TRY_AGAIN;
+            saAmfResponse(cb->amf_hdl, invocation, saErr);
+        ncshm_give_hdl(cb->cpd_hdl);
+        m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+        m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "cpd_role_change: Failed to send Error report to AMF for Active role assignment during Cold-Sync");
+        return;
+        }
+        }   
+
+     if ((cb->ha_state == SA_AMF_HA_ACTIVE)  && (haState == SA_AMF_HA_QUIESCED)){
+       if (cb->cold_or_warm_sync_on == TRUE)
+        {
+              m_NCS_CONS_PRINTF("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+        }
+        }
+     
        cb->ha_state = haState;
   
  /*     saAmfResponse(cb->amf_hdl, invocation, saErr); */

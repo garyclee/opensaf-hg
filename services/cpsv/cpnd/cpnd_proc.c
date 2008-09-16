@@ -178,7 +178,7 @@ uns32 cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node,
 {
    uns32       rc=NCSCC_RC_SUCCESS;
    
-   CPND_CKPT_CKPT_LIST_NODE *cplist;
+   CPND_CKPT_CKPT_LIST_NODE *cplist=NULL;
    CPND_CKPT_CKPT_LIST_NODE *ptr_cp_node=cl_node->ckpt_list;
 
    cplist=m_MMGR_ALLOC_CPND_CKPT_LIST_NODE;
@@ -313,6 +313,62 @@ uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPSV_
     return rc;
 }
 
+uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
+{
+    CPSV_EVT send_evt;
+    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));  
+    uns32 rc= NCSCC_RC_SUCCESS;
+     cb->is_joined_cl = FALSE;
+#if 0
+    CPND_CKPT_CLIENT_NODE *cl_node=NULL;
+    SaCkptHandleT prev_ckpt_hdl;
+      cpnd_client_node_getnext(cb,0,&cl_node);
+      while(cl_node)
+      {
+         prev_ckpt_hdl=cl_node->ckpt_app_hdl;
+         if ((cl_node->version.majorVersion > 1 ) && (cl_node->version.minorVersion > 1 ))
+         {
+        	  send_evt.type = CPSV_EVT_TYPE_CPA;
+	          send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
+	          rc=cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest ,&send_evt);
+         }
+        cpnd_client_node_getnext(cb,prev_ckpt_hdl,&cl_node);
+    }  
+ #else
+         send_evt.type = CPSV_EVT_TYPE_CPA;
+          send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
+	 rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
+#endif
+    return rc;
+}
+uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
+{
+    CPSV_EVT send_evt;
+    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));  
+    uns32 rc= NCSCC_RC_SUCCESS;
+    cb->is_joined_cl = TRUE;
+ #if 0
+     CPND_CKPT_CLIENT_NODE *cl_node=NULL;
+    SaCkptHandleT prev_ckpt_hdl;
+      cpnd_client_node_getnext(cb,0,&cl_node);
+      while(cl_node)
+      {
+         prev_ckpt_hdl=cl_node->ckpt_app_hdl;
+         if ((cl_node->version.majorVersion > 1 ) && (cl_node->version.minorVersion > 1 ))
+         {
+         	send_evt.type = CPSV_EVT_TYPE_CPA;
+          	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
+              rc=cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest ,&send_evt);
+         }
+          cpnd_client_node_getnext(cb,prev_ckpt_hdl,&cl_node);
+      }  
+#else
+	send_evt.type = CPSV_EVT_TYPE_CPA;
+	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
+	rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
+#endif
+    return rc;
+}
 
 
 /****************************************************************************
@@ -755,8 +811,8 @@ void cpnd_proc_cpd_down(CPND_CB *cb)
  *****************************************************************************/
 void cpnd_proc_cpa_down(CPND_CB *cb,MDS_DEST dest)
 {
-   CPND_CKPT_CLIENT_NODE *cl_node;
-   CPND_CKPT_NODE *cp_node;
+   CPND_CKPT_CLIENT_NODE *cl_node=NULL;
+   CPND_CKPT_NODE *cp_node=NULL;
    SaCkptHandleT prev_ckpt_hdl;
    SaAisErrorT error;
    uns32  rc = NCSCC_RC_SUCCESS;
@@ -828,7 +884,7 @@ void cpnd_proc_cpa_down(CPND_CB *cb,MDS_DEST dest)
  *****************************************************************************/
 void cpnd_proc_cpa_up(CPND_CB *cb,MDS_DEST dest)
 {
-   CPND_CKPT_CLIENT_NODE *cl_node;
+   CPND_CKPT_CLIENT_NODE *cl_node=NULL;
    SaCkptHandleT prev_ckpt_hdl;
 
    cpnd_client_node_getnext(cb,0,&cl_node);
@@ -860,7 +916,7 @@ void cpnd_proc_cpa_up(CPND_CB *cb,MDS_DEST dest)
  *****************************************************************************/
 void cpnd_proc_app_status(CPND_CB *cb)
 {
-   CPND_CKPT_CLIENT_NODE *cl_node;
+   CPND_CKPT_CLIENT_NODE *cl_node=NULL;
    SaCkptHandleT prev_ckpt_hdl;
    CPSV_EVT       send_evt,*evt=NULL;
    uns32          rc = NCSCC_RC_SUCCESS;
@@ -917,7 +973,7 @@ uns32 cpnd_ckpt_update_replica(CPND_CB *cb,CPND_CKPT_NODE *cp_node ,\
     data=write_data->data;
     for(;i<write_data->num_of_elmts;i++)
     {
-       sec_info=cpnd_ckpt_sec_get(cp_node,&data->sec_id);
+       sec_info=cpnd_ckpt_sec_get_create(cp_node,&data->sec_id);
        if ( sec_info  == NULL)
        {
           if (type ==  CPSV_CKPT_ACCESS_SYNC ) 
@@ -1086,7 +1142,7 @@ cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node)
 {
 
    CPSV_CKPT_DATA *tmp_sec_data=NULL,*sec_data=NULL;
-   CPND_CKPT_SECTION_INFO *tmp_sec_info;
+   CPND_CKPT_SECTION_INFO *tmp_sec_info=NULL;
    uns32 i;
 
    tmp_sec_info=cp_node->replica_info.section_info;
@@ -1604,8 +1660,8 @@ uns32
 cpnd_proc_sec_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
 {
 
-   CPND_CKPT_NODE *cp_node;
-   CPND_CKPT_SECTION_INFO *pSec_info;
+   CPND_CKPT_NODE *cp_node=NULL;
+   CPND_CKPT_SECTION_INFO *pSec_info=NULL;
    CPSV_EVT send_evt,*out_evt=NULL; 
    uns32 rc=NCSCC_RC_SUCCESS;
 
@@ -1693,6 +1749,39 @@ cpnd_proc_sec_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
  *
  * Notes         : None.
  *****************************************************************************/
+uns32
+cpnd_open_active_sync_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
+{
+		   uns32 rc=NCSCC_RC_SUCCESS;
+		   CPSV_EVT des_evt, *out_evt=NULL;
+		   CPSV_EVT send_evt;
+ 	  	   m_NCS_MEMSET(&des_evt,'\0',sizeof(CPSV_EVT));
+		   m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
+  		   des_evt.type=CPSV_EVT_TYPE_CPD;
+ 		   des_evt.info.cpd.type=CPD_EVT_ND2D_CKPT_DESTROY;
+		   des_evt.info.cpd.info.ckpt_destroy.ckpt_id=tmr_info->ckpt_id;
+ 		   rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPD,cb->cpd_mdest_id, &des_evt,&out_evt, CPSV_WAIT_TIME);
+		    if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
+               	m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_FAILED,CPND_FC_EVT,NCSFL_SEV_ERROR,\
+               	out_evt->info.cpnd.info.destroy_ack.error,__FILE__,__LINE__);
+                 }
+		   if(out_evt)
+                 cpnd_evt_destroy(out_evt);
+                send_evt.info.cpa.info.openRsp.error= SA_AIS_ERR_TIMEOUT;
+  		  send_evt.type = CPSV_EVT_TYPE_CPA;
+		  send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_OPEN_RSP;
+		  send_evt.info.cpa.info.openRsp.lcl_ckpt_hdl=tmr_info->lcl_ckpt_hdl;
+		  if ( tmr_info->sinfo.stype == MDS_SENDTYPE_SNDRSP )
+		  {
+		        rc = cpnd_mds_send_rsp(cb, &tmr_info->sinfo, &send_evt);
+		  }
+		  else 
+		  {
+		        send_evt.info.cpa.info.openRsp.invocation= tmr_info->invocation;
+		        rc = cpnd_mds_msg_send(cb,tmr_info->sinfo.to_svc,tmr_info->sinfo.dest,&send_evt);
+		   }
+   return NCSCC_RC_SUCCESS;
+} 
 uns32
 cpnd_all_repl_rsp_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
 {
@@ -2009,7 +2098,7 @@ uns32 cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info,CPND_CKPT_NODE *cp_no
  *****************************************************************************/
 void cpnd_cb_dump(void)
 {
-   CPND_CB *cb;
+   CPND_CB *cb=NULL;
 
    uns32    cb_hdl = m_CPND_GET_CB_HDL;
 

@@ -54,7 +54,7 @@ MDS_CLIENT_MSG_FORMAT_VER cpnd_cpnd_msg_fmt_table[CPND_WRT_CPND_SUBPART_VER_RANG
 
 MDS_CLIENT_MSG_FORMAT_VER cpnd_cpd_msg_fmt_table[CPND_WRT_CPD_SUBPART_VER_RANGE] =
                  {
-                    1 
+                    1,2
                  };
 
 /****************************************************************************
@@ -273,7 +273,7 @@ uns32 cpnd_mds_callback(struct ncsmds_callback_info *info)
 ******************************************************************************/
 static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 {
-   CPSV_EVT  *pevt;
+   CPSV_EVT  *pevt=NULL;
    EDU_ERR   ederror = 0;   
    NCS_UBAID *io_uba = enc_info->io_uba;
    uns8* pstream = NULL;
@@ -323,6 +323,30 @@ static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
            rc = cpsv_data_access_rsp_encode(&pevt->info.cpa.info.sec_data_rsp , io_uba);
            return rc;
          }
+	  #if 0 
+	  else if(pevt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT)
+	  {
+           pstream = ncs_enc_reserve_space(io_uba, 8);
+           if(!pstream)
+            return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpnd_mds_enc \n");
+           ncs_encode_32bit(&pstream , pevt->type);         /* Type */
+           ncs_encode_32bit(&pstream , pevt->info.cpa.type);
+           ncs_enc_claim_space(io_uba, 8);
+           rc = NCSCC_RC_SUCCESS;
+           return rc;
+         }
+	  else if(pevt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED)
+	  {
+           pstream = ncs_enc_reserve_space(io_uba, 8);
+           if(!pstream)
+            return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpnd_mds_enc \n");
+           ncs_encode_32bit(&pstream , pevt->type);         /* Type */
+           ncs_encode_32bit(&pstream , pevt->info.cpa.type);
+           ncs_enc_claim_space(io_uba, 8);
+           rc = NCSCC_RC_SUCCESS;
+           return rc;
+         }
+	  #endif
  
       }
       else if(pevt->type == CPSV_EVT_TYPE_CPND)
@@ -447,7 +471,7 @@ uns32 cpsv_ckpt_access_decode(CPSV_CKPT_ACCESS  *ckpt_data, NCS_UBAID *io_uba )
 static uns32 cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 {
   
-   CPSV_EVT  *msg_ptr;
+   CPSV_EVT  *msg_ptr=NULL;
    EDU_ERR ederror = 0;
    uns32   rc = NCSCC_RC_SUCCESS;
    uns8 *pstream;
@@ -555,7 +579,7 @@ free:if(rc != NCSCC_RC_SUCCESS)
 ******************************************************************************/
 static uns32 cpnd_mds_enc_flat(CPND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 {
-   CPSV_EVT  *evt;
+   CPSV_EVT  *evt=NULL;
    uns32 rc=NCSCC_RC_SUCCESS;
    NCS_UBAID *uba = info->io_uba;
    
@@ -621,7 +645,7 @@ static uns32 cpnd_mds_enc_flat(CPND_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 ******************************************************************************/
 static uns32 cpnd_mds_dec_flat(CPND_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 {
-   CPSV_EVT   *evt;
+   CPSV_EVT   *evt=NULL;
    NCS_UBAID   *uba = info->io_uba;
    uns32 rc=NCSCC_RC_SUCCESS;
    NCS_BOOL is_valid_msg_fmt = FALSE;
@@ -883,7 +907,7 @@ cpnd_mds_bcast_send (CPND_CB *cb,
    info.info.svc_send.i_priority = MDS_SEND_PRIORITY_MEDIUM;
    info.info.svc_send.i_sendtype = MDS_SENDTYPE_BCAST;
    info.info.svc_send.i_to_svc   = to_svc;
-   info.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_NONE;
+   info.info.svc_send.info.bcast.i_bcast_scope = NCSMDS_SCOPE_INTRANODE;
 
    res = ncsmds_api(&info);
    return(res);
@@ -907,7 +931,7 @@ cpnd_mds_bcast_send (CPND_CB *cb,
 
 static uns32 cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
-   CPSV_EVT *evt;
+   CPSV_EVT *evt=NULL;
    uns32 rc=NCSCC_RC_SUCCESS, priority = NCS_IPC_PRIORITY_HIGH;
    NCS_PHY_SLOT_ID phy_slot;
 

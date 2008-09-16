@@ -150,8 +150,8 @@ void cpa_client_tree_destroy(CPA_CB *cb)
 ******************************************************************************/
 void cpa_client_tree_cleanup(CPA_CB *cb)
 {
-   CPA_CLIENT_NODE  * clnode;
-   SaCkptHandleT *temp_ptr=0;
+   CPA_CLIENT_NODE  *clnode=NULL;
+   SaCkptHandleT *temp_ptr=NULL;
    SaCkptHandleT temp_hdl=0;
    
    /* scan the entire handle db & delete each record */

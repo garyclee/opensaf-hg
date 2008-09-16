@@ -166,7 +166,7 @@ cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_inf
  *****************************************************************************/
 static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
 {
-   CPND_CB        *cb;
+   CPND_CB        *cb=NULL;
    uns32          rc = NCSCC_RC_SUCCESS;
    SaAmfHealthcheckKeyT healthy;   
    int8*       health_key;
@@ -177,6 +177,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    m_NCS_MEMSET(&cpnd_open_req,'\0',sizeof(cpnd_open_req));
    SaVersionT      clm_version;
    SaClmClusterNodeT    cluster_node;
+   SaClmHandleT clmHandle;
 
 
    m_CPSV_GET_AMF_VER(clm_version);
@@ -237,6 +238,37 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
        m_NCS_CONS_PRINTF("CPND_IPC_ATTACH_FAIL IN CPND_INIT\n");
       goto cpnd_ipc_att_fail;
    }
+   gen_cbk.saClmClusterNodeGetCallback = NULL;
+   gen_cbk.saClmClusterTrackCallback   = cpnd_clm_cluster_track_cb;
+   rc = saClmInitialize(&clmHandle,&gen_cbk,&clm_version);
+   if(rc != SA_AIS_OK) 
+   {
+      m_LOG_CPND_CL(CPND_CLM_INIT_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      m_NCS_CONS_PRINTF("saClmInitialize Failed %d\n",rc); 
+      goto cpnd_clm_init_fail;
+   }
+   cb->clm_hdl = clmHandle;
+   rc = saClmClusterNodeGet(cb->clm_hdl,SA_CLM_LOCAL_NODE_ID,NCS_SAF_ACCEPT_TIME,&cluster_node);
+   if(rc != SA_AIS_OK)
+   {
+      m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      m_NCS_CONS_PRINTF("saClmClusterNodeGet Failed %d\n",rc);
+      goto cpnd_clm_fail;
+   }
+   cb->nodeid = cluster_node.nodeId; 
+   rc  = saClmClusterTrack(cb->clm_hdl,(SA_TRACK_CURRENT |SA_TRACK_CHANGES) ,NULL);
+   if ( rc != SA_AIS_OK)
+   {
+      m_LOG_CPND_CL(CPND_CLM_INIT_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+       m_NCS_CONS_PRINTF("saClmClusterTrack Failed\n");
+       goto cpnd_clm_fail;
+   }
+   if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj)))
+   {
+     m_LOG_CPND_CL(CPND_CLM_INIT_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+     m_NCS_CONS_PRINTF("CLM Selection Object Get failed\n");
+     return rc;
+   }
    /* Initialise with the AMF service */
    if(cpnd_amf_init(cb) != NCSCC_RC_SUCCESS)
    {
@@ -271,23 +303,8 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
       goto cpnd_task_start_fail;            
    }
 
-   rc = saClmInitialize(&cb->clm_hdl,&gen_cbk,&clm_version);
-   if(rc != SA_AIS_OK) 
-   {
-      m_LOG_CPND_CL(CPND_CLM_INIT_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("saClmInitialize Failed %d\n",rc); 
-      goto cpnd_mds_fail;
-   }
  
-   rc = saClmClusterNodeGet(cb->clm_hdl,SA_CLM_LOCAL_NODE_ID,NCS_SAF_ACCEPT_TIME,&cluster_node);
-   if(rc != SA_AIS_OK)
-   {
-      m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("saClmClusterNodeGet Failed %d\n",rc);
-      goto cpnd_clm_fail;
-   }
 
-   cb->nodeid = cluster_node.nodeId; 
 
    /* CODE  FOR THE NO REDUNDANCY */
    m_NCS_MEMSET(&gbl_shm_addr,0,sizeof(GBL_SHM_PTR));
@@ -343,13 +360,14 @@ amf_reg_err:
 amf_init_err:
    cpnd_mds_unregister(cb);
 
-cpnd_clm_fail:
-      saClmFinalize(cb->clm_hdl);   
 
 cpnd_mds_fail:
    m_NCS_TASK_STOP(cb->task_hdl);
 
+cpnd_clm_fail:
+      saClmFinalize(cb->clm_hdl);   
 
+cpnd_clm_init_fail:
 cpnd_task_start_fail:      
    m_NCS_TASK_RELEASE(cb->task_hdl);
    
@@ -389,7 +407,7 @@ cpnd_cb_alloc_fail:
  *****************************************************************************/
 static uns32 cpnd_lib_destroy (CPND_DESTROY_INFO *info)
 { 
-   CPND_CB *cb;
+   CPND_CB *cb=NULL;
    uns32 rc=NCSCC_RC_SUCCESS;
 
    m_CPND_RETRIEVE_CB(cb);
@@ -543,11 +561,12 @@ static void cpnd_main_process(NCSCONTEXT info)
    NCS_SEL_OBJ_SET     all_sel_obj;
    NCS_SEL_OBJ         mbx_fd;
    SYSF_MBX            mbx = cb->cpnd_mbx;
-   CPSV_EVT            *evt = 0;
+   CPSV_EVT            *evt =NULL;
    SaSelectionObjectT  amf_sel_obj;
    SaAmfHandleT        amf_hdl;
    SaAisErrorT            amf_error;
-   NCS_SEL_OBJ         amf_ncs_sel_obj, highest_sel_obj ;
+    SaAisErrorT            clm_error;
+   NCS_SEL_OBJ         amf_ncs_sel_obj, clm_ncs_sel_obj, highest_sel_obj ;
 
    mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&cb->cpnd_mbx);
    m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
@@ -566,6 +585,9 @@ static void cpnd_main_process(NCSCONTEXT info)
                                                                                                                              
    highest_sel_obj  = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj,mbx_fd);
 
+   m_SET_FD_IN_SEL_OBJ((uns32)cb->clm_sel_obj,clm_ncs_sel_obj);
+   m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+   highest_sel_obj  = m_GET_HIGHER_SEL_OBJ(clm_ncs_sel_obj,highest_sel_obj);
    while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj,&all_sel_obj,0,0,0) != -1)
    {
 
@@ -580,6 +602,15 @@ static void cpnd_main_process(NCSCONTEXT info)
          }
       }
 
+      if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj,&all_sel_obj))
+      {
+         clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
+         if (clm_error != SA_AIS_OK)
+         {
+            m_LOG_CPND_CL(CPND_AMF_DISPATCH_FAILURE,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+	     m_NCS_CONS_PRINTF("CLM Clm Dispatch failed\n");
+         }
+      }
       /* process the CPND Mail box */
       if (m_NCS_SEL_OBJ_ISSET(mbx_fd,&all_sel_obj))
       {        
@@ -590,6 +621,7 @@ static void cpnd_main_process(NCSCONTEXT info)
             cpnd_process_evt(evt);
          }
       }
+      m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);  
       m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
       m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
 
