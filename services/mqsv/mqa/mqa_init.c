@@ -34,7 +34,6 @@
 MQADLL_API uns32 gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
 static uns32 mqa_use_count = 0;
-
 /* MQA Agent creation specific LOCK */
 static uns32 mqa_agent_lock_create = 0;
 NCS_LOCK mqa_agent_lock;
@@ -273,6 +272,10 @@ static uns32 mqa_create (NCS_LIB_CREATE *create_info)
    } 
    else
       m_LOG_MQSV_A(MQA_MDS_REGISTER_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
+
+   /* Update clm_node_joined flag to 1 */
+
+   cb->clm_node_joined = 1;
 
    mqa_sync_with_mqd(cb);
 

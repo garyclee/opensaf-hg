@@ -209,6 +209,13 @@ typedef struct mqnd_cb
    NCS_BOOL             is_create_ckpt;
    uns32                mqa_counter;
    MQND_SHM_INFO        mqnd_shm;
+   SaClmHandleT         clm_hdl;
+   SaClmNodeIdT         nodeid;
+   uns32		clm_node_joined;
+   uns32                gl_msg_max_q_size;
+   uns32 		gl_msg_max_msg_size;
+   uns32 		gl_msg_max_no_of_q;
+   uns32 		gl_msg_max_prio_q_size;
 }MQND_CB;
 
 #define MQND_QUEUE_INFO_NULL ((MQND_QUEUE_INFO *)0)
@@ -258,6 +265,7 @@ EXTERN_C uns32  mqnd_amf_register (MQND_CB *mqnd_cb);
 EXTERN_C uns32  mqnd_amf_deregister (MQND_CB *mqnd_cb);
 
 /*OTHER FUNCTIONS*/
-EXTERN_C uns32 mqnd_evt_proc_tmr_expiry (MQND_CB *cb, MQSV_EVT *evt);
+EXTERN_C uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt);
+
 #endif /* MQND_DB_H */
 

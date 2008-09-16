@@ -174,28 +174,15 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
    *msgHandle = 0;
 
     /* Validate the version */
-   if((version->releaseCode == MQA_RELEASE_CODE) &&
-      (version->majorVersion <= MQA_MAJOR_VERSION))
-   {
-      version->majorVersion = MQA_MAJOR_VERSION;
-      version->minorVersion = MQA_MINOR_VERSION;
-   }
-   else
+   if(!((version->releaseCode == MQA_RELEASE_CODE)&&(((version->majorVersion == MQA_MAJOR_VERSION)&&(version->minorVersion == MQA_MINOR_VERSION))||((version->majorVersion == MQA_BASE_MAJOR_VERSION) && (version->minorVersion == MQA_BASE_MINOR_VERSION)))))
    {
       m_LOG_MQSV_A(MQA_VERSION_INCOMPATIBLE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-                                                                                                                             
+
       /* Implimentation is supporting the required release code */
-      if(MQA_RELEASE_CODE > version->releaseCode)
-      {
-         version->releaseCode = MQA_RELEASE_CODE;
-      }
-      else if (MQA_RELEASE_CODE < version->releaseCode)
-      {
-          version->releaseCode = MQA_RELEASE_CODE;
-      }
+      version->releaseCode = MQA_RELEASE_CODE;
       version->majorVersion = MQA_MAJOR_VERSION;
       version->minorVersion = MQA_MINOR_VERSION;
-                                                                                                                             
+      
       rc = SA_AIS_ERR_VERSION;
       goto final1;
    }
@@ -261,14 +248,19 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
 
       /* create the client node and populate it */
       client_info = mqa_client_tree_find_and_add(mqa_cb,0,TRUE); 
-      
+     
       if(client_info == NULL)
       {
          rc = SA_AIS_ERR_NO_MEMORY;
          m_LOG_MQSV_A(MQA_CLIENT_TREE_ADD_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
          goto final2;
       }
-     
+    
+      /* Update version passed in initialize */
+      client_info->version.releaseCode = version->releaseCode;
+      client_info->version.majorVersion = version->majorVersion;
+      client_info->version.minorVersion = version->minorVersion;
+
       if (mqsv_mqa_callback_queue_init(client_info) != NCSCC_RC_SUCCESS)
       {
          
@@ -362,13 +354,12 @@ saMsgSelectionObjectGet(SaMsgHandleT msgHandle,
       m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done0;
    }
-
    /* get the client_info*/
    if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
    {
       rc = SA_AIS_ERR_LIBRARY;
       m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      goto done;
+      goto done1;
    }
   if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
   {
@@ -383,14 +374,23 @@ saMsgSelectionObjectGet(SaMsgHandleT msgHandle,
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
    }
-
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
+   }
    
    *selectionObject = (SaSelectionObjectT)m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&client_info->callbk_mbx));
 
 
 done:
-
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+
+done1:
 
    /* return MQA CB */
    m_MQSV_MQA_GIVEUP_MQA_CB;
@@ -449,7 +449,7 @@ saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags)
       rc = SA_AIS_ERR_BAD_HANDLE;
       return rc;
    }
-
+   
   /* get the client_info*/
    if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
       rc = SA_AIS_ERR_LIBRARY;
@@ -459,18 +459,30 @@ saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags)
 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up) {
       rc= SA_AIS_ERR_TRY_AGAIN;
+      m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
       goto done;
    }
 
    client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);  
+
    if (!client_info) {
       m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       rc = SA_AIS_ERR_BAD_HANDLE; 
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
    }
-
+   
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
    switch (dispatchFlags) {
@@ -827,11 +839,11 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
    }
 
    /* get the client_info*/
-      if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
    {
       rc = SA_AIS_ERR_LIBRARY;
       m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      goto done;
+      goto done1;
    }
    
    
@@ -847,6 +859,16 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
       rc = SA_AIS_ERR_BAD_HANDLE; 
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
    }
 
  
@@ -974,6 +996,7 @@ done:
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
+done1:
    /* return MQA CB */
    m_MQSV_MQA_GIVEUP_MQA_CB;
 
@@ -1104,7 +1127,7 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
    {
       rc = SA_AIS_ERR_LIBRARY;
       m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      goto done;
+      goto done1;
    }
 
 
@@ -1120,6 +1143,16 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
       rc = SA_AIS_ERR_BAD_HANDLE; 
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
+   }
+   
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
    }
 
     /* check to see if the grant callback was registered */
@@ -1244,7 +1277,6 @@ saMsgQueueClose(SaMsgQueueHandleT queueHandle)
    int64             mqa_timeout;
    uns32             mds_rc;
 
-
 #if (NCS_MQA_DEBUG==1)
    m_NCS_CONS_PRINTF("\n saMsgQueueClose Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
@@ -1283,6 +1315,19 @@ saMsgQueueClose(SaMsgQueueHandleT queueHandle)
       m_LOG_MQSV_A(MQA_QUEUE_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
    }
+
+   if(queue_node->client_info->version.majorVersion == MQA_MAJOR_VERSION && queue_node->client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
+   }
+
    queue_node->is_closed = TRUE;
 
    /* populate the evt */
@@ -1427,7 +1472,7 @@ saMsgQueueStatusGet(SaMsgHandleT msgHandle,
    {
       rc = SA_AIS_ERR_LIBRARY;
       m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      goto done;
+      goto done1;
    }
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
    {
@@ -1443,7 +1488,17 @@ saMsgQueueStatusGet(SaMsgHandleT msgHandle,
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
    }
-   
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
+   }
+ 
     m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
     if ( (rc = mqa_queue_name_to_destination(queueName, &queueHandle, &mqnd_mds_dest, 
@@ -1505,10 +1560,13 @@ done:
    if(out_evt)
       m_MMGR_FREE_MQA_EVT(out_evt);
 
+   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+
+done1:   
+
    /* return MQA CB */
    m_MQSV_MQA_GIVEUP_MQA_CB;
 
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
    if(rc!=SA_AIS_OK)
    {
@@ -1525,6 +1583,138 @@ done:
       m_NCS_CONS_PRINTF("\n saMsgQueueStatusGet Called -  SUCCESS Queue Name - %s \n",queueName->value);
    else
       m_NCS_CONS_PRINTF("\n saMsgQueueStatusGet Called -  FAILURE \n");
+#endif
+   return rc;
+
+}
+
+/****************************************************************************
+  Name          : saMsgQueueRetentionTimeSet
+nTime
+
+  Description   : This API changes retention time of queue.
+
+  Arguments     : SaMsgHandleT msgHandle - message handle of this library.
+                  SaTimeT *retentionTime - Retention time to be set
+
+  Return Values : SaAisErrorT
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT
+saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *retentionTime)
+{
+   MQA_CB            *mqa_cb = NULL;
+   MQSV_EVT          qret_time_evt;
+   MQSV_EVT          *out_evt = NULL;
+   SaAisErrorT       rc = SA_AIS_ERR_LIBRARY;
+   MQA_QUEUE_INFO    *queue_node=NULL;
+   int64             mqa_timeout;
+   uns32             mds_rc;
+
+
+#if (NCS_MQA_DEBUG==1)
+   m_NCS_CONS_PRINTF("\n SaMsgQueueHandleT Called with Handle %d \n",(uns32)queueHandle) ;
+#endif
+
+
+   /* retrieve MQA CB */
+   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+   if(!mqa_cb)
+   {
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      return rc;
+   }
+
+   /* take the cb lock */
+   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+   {
+      rc = SA_AIS_ERR_LIBRARY;
+      m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      return rc;
+   }
+
+   if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
+   {
+      rc= SA_AIS_ERR_TRY_AGAIN;
+      m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
+      goto done;
+   }
+
+   if ( (queue_node = mqa_queue_tree_find_and_add(mqa_cb, queueHandle, FALSE, NULL, 0)) == NULL)
+   {
+      m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_QUEUE_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      return rc;
+   }
+
+   if(queue_node->client_info->version.majorVersion == MQA_MAJOR_VERSION && queue_node->client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
+   }
+
+   /* populate the evt */
+   m_NCS_OS_MEMSET(&qret_time_evt, 0, sizeof(MQSV_EVT));
+   qret_time_evt.type = MQSV_EVT_MQP_REQ;
+   qret_time_evt.msg.mqp_req.type = MQP_EVT_Q_RET_TIME_SET_REQ;
+   qret_time_evt.msg.mqp_req.info.retTimeSetReq.queueHandle = queueHandle;
+   qret_time_evt.msg.mqp_req.info.retTimeSetReq.retentionTime = *retentionTime;
+   qret_time_evt.msg.mqp_req.agent_mds_dest = mqa_cb->mqa_mds_dest;
+
+   mqa_timeout = MQSV_WAIT_TIME;
+
+   /* send the event */
+   mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &(mqa_cb->mqnd_mds_dest),&qret_time_evt, &out_evt,(uns32)mqa_timeout);
+
+   switch (mds_rc)
+   {
+       case NCSCC_RC_SUCCESS:
+           break;
+       case NCSCC_RC_REQ_TIMOUT:
+           m_LOG_MQSV_A(MQA_MDS_SEND_TIMEOUT,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_INFO,m_NCS_NODE_ID_FROM_MDS_DEST(mqa_cb->mqa_mds_dest),__FILE__,__LINE__);
+           rc = SA_AIS_ERR_TIMEOUT;
+	   goto done;
+        case NCSCC_RC_FAILURE:
+           m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_INFO,m_NCS_NODE_ID_FROM_MDS_DEST(mqa_cb->mqa_mds_dest),__FILE__,__LINE__);
+           rc = SA_AIS_ERR_TRY_AGAIN;
+	   goto done;
+       default:
+           m_LOG_MQSV_A(MQA_MDS_SEND_FAILURE,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,m_NCS_NODE_ID_FROM_MDS_DEST(mqa_cb->mqa_mds_dest),__FILE__,__LINE__);
+           rc = SA_AIS_ERR_NO_RESOURCES;
+           goto done;
+   }
+
+   if(out_evt)
+      rc = out_evt->msg.mqp_rsp.error;
+   else
+      rc =  SA_AIS_ERR_NO_RESOURCES;
+ 
+done:
+
+   if(out_evt)
+      m_MMGR_FREE_MQA_EVT(out_evt);
+
+   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+ 
+   /* return MQA CB */
+   m_MQSV_MQA_GIVEUP_MQA_CB;
+
+#if (NCS_MQA_DEBUG==1)
+   if(rc == SA_AIS_OK)
+      m_NCS_CONS_PRINTF("\n saMsgQueueRetentionTimeSet Called -  SUCCESS Res_id %d \n",queueHandle);
+   else
+      m_NCS_CONS_PRINTF("\n saMsgQueueRetentionTimeSet Called -  FAILURE \n");
 #endif
    return rc;
 
@@ -1611,6 +1801,16 @@ saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
       rc = SA_AIS_ERR_BAD_HANDLE; 
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
    }
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -2288,6 +2488,7 @@ saMsgMessageSend(SaMsgHandleT msgHandle,
    MQA_SEND_MESSAGE_PARAM  param;
    SaMsgAckFlagsT ackFlags;
    SaAisErrorT    rc;
+   MQA_CLIENT_INFO   *client_info=NULL;
    
    /* retrieve MQA CB */
    mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -2295,6 +2496,25 @@ saMsgMessageSend(SaMsgHandleT msgHandle,
    {
       m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       return SA_AIS_ERR_BAD_HANDLE;
+   }
+
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+
+   if (!client_info)
+   {
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
    }
 
    if(m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE)
@@ -2321,6 +2541,7 @@ saMsgMessageSend(SaMsgHandleT msgHandle,
 done:
    /* return MQA CB */
    m_MQSV_MQA_GIVEUP_MQA_CB;
+
    if(rc!=SA_AIS_OK)
    {  
      if(rc != SA_AIS_ERR_TRY_AGAIN)
@@ -2368,10 +2589,12 @@ saMsgMessageSendAsync(SaMsgHandleT msgHandle,
    MQA_SEND_MESSAGE_PARAM param;
    MQP_ASYNC_RSP_MSG   mqp_async_rsp;
    SaAisErrorT    rc;
+   MQA_CLIENT_INFO   *client_info=NULL;
 
    param.async_flag  = TRUE;
    param.info.invocation = invocation;
-   
+
+
    /* retrieve MQA CB */
    mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
    if(!mqa_cb)
@@ -2379,6 +2602,26 @@ saMsgMessageSendAsync(SaMsgHandleT msgHandle,
       m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       return SA_AIS_ERR_BAD_HANDLE;
    }
+
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+
+   if (!client_info)
+   {
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
+   }
+
 
    if ( ackFlags & SA_MSG_MESSAGE_DELIVERED_ACK) 
    {
@@ -2407,6 +2650,7 @@ saMsgMessageSendAsync(SaMsgHandleT msgHandle,
 done:
    /* return MQA CB */
    m_MQSV_MQA_GIVEUP_MQA_CB;
+
    if(rc!=SA_AIS_OK)
    {
      if(rc != SA_AIS_ERR_TRY_AGAIN)
@@ -2508,6 +2752,16 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
      rc = SA_AIS_ERR_BAD_HANDLE;
      m_LOG_MQSV_A(MQA_QUEUE_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
      goto done;
+   }
+
+   if(queue_node->client_info->version.majorVersion == MQA_MAJOR_VERSION && queue_node->client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
    }
    
    if (!message || !senderId)
@@ -3126,7 +3380,18 @@ saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
       m_MQSV_MQA_GIVEUP_MQA_CB;
       return SA_AIS_ERR_BAD_HANDLE;
    }
-   
+   if(queue_node->client_info->version.majorVersion == MQA_MAJOR_VERSION && queue_node->client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
+   }
+ 
    cancel_message_count = queue_node->msg_get_count;
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -3367,6 +3632,18 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       m_MQSV_MQA_GIVEUP_MQA_CB;
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       return SA_AIS_ERR_BAD_HANDLE; 
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
    }
 
    /* Get the destination MQND from ASAPi */
@@ -3995,6 +4272,7 @@ saMsgMessageReply(SaMsgHandleT msgHandle,
    MQA_SEND_MESSAGE_PARAM  param;
    SaAisErrorT rc;
    SaMsgAckFlagsT ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
+   MQA_CLIENT_INFO   *client_info=NULL;
 
 #if (NCS_MQA_DEBUG==1)
    m_NCS_CONS_PRINTF("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
@@ -4006,6 +4284,26 @@ saMsgMessageReply(SaMsgHandleT msgHandle,
    {
       m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       return SA_AIS_ERR_BAD_HANDLE;
+   }
+
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+
+   if (!client_info)
+   {
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      return rc;
+   }
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
    }
 
    if(m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE)
@@ -4083,6 +4381,7 @@ saMsgMessageReplyAsync(SaMsgHandleT msgHandle,
    MQA_SEND_MESSAGE_PARAM  param;
    SaAisErrorT rc;
    MQP_ASYNC_RSP_MSG mqp_async_rsp;
+   MQA_CLIENT_INFO   *client_info=NULL;
 
 #if (NCS_MQA_DEBUG==1)
    m_NCS_CONS_PRINTF("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
@@ -4094,6 +4393,26 @@ saMsgMessageReplyAsync(SaMsgHandleT msgHandle,
    {
       m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       return SA_AIS_ERR_BAD_HANDLE;
+   }
+
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+
+   if (!client_info)
+   {
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      return rc;
+   }
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_MQSV_MQA_GIVEUP_MQA_CB;
+         return rc;
+      }
    }
 
    param.async_flag  = TRUE;
@@ -4249,6 +4568,18 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
       goto done;
    }
 
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
+
+
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
    asapi_or.type = ASAPi_OPR_MSG;
@@ -4379,6 +4710,17 @@ saMsgQueueGroupDelete(SaMsgHandleT msgHandle,
       m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
       m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
    }
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -4533,6 +4875,18 @@ saMsgQueueGroupInsert(SaMsgHandleT msgHandle,
       goto done;
    }
 
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
+
+
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
    if (!client_info)
@@ -4680,6 +5034,18 @@ saMsgQueueGroupRemove(SaMsgHandleT msgHandle,
       m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       goto done;
    }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
+
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -4847,24 +5213,37 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
       m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       goto done;
    }
-#if 0
-/* Checking is postponed for the B0104 changes */
-   if (!((trackFlags & SA_TRACK_CURRENT) && (notificationBuffer))&&
-          (!client_info->msgCallbacks.saMsgQueueGroupTrackCallback))
-   {
-     rc = SA_AIS_ERR_INIT; 
-     m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
-     goto done;
-   }
-#endif
-   if(!client_info->msgCallbacks.saMsgQueueGroupTrackCallback)
-   {
-     rc = SA_AIS_ERR_INIT; 
-     m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-     m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
-     goto done;
-   }
 
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+
+      /* Retruning ERR_INIT if notification callback isn't registered
+         and user has given otion to track */
+      if (!((trackFlags & SA_TRACK_CURRENT) && (notificationBuffer))&&
+             (!client_info->msgCallbacks.saMsgQueueGroupTrackCallback))
+      {
+         rc = SA_AIS_ERR_INIT; 
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
+   else
+   {
+      if(!client_info->msgCallbacks.saMsgQueueGroupTrackCallback)
+      {
+         rc = SA_AIS_ERR_INIT; 
+         m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
    
    m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
@@ -5149,6 +5528,18 @@ saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle,
       m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
       goto done;
    }
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+         goto done;
+      }
+   }
+
+
    track_info = mqa_track_tree_find_and_add(client_info,
                                             (SaNameT *)queueGroupName,FALSE);
    
@@ -5217,6 +5608,158 @@ done:
    return rc;
 
 }
+/*****************************************************************************
+  Name          : saMsgQueueGroupNotificationFree 
+
+  Description   : This routine free memory pointed to notification.
+
+  Arguments     : SaMsgHandleT msgHandle - The message handle
+                  SaMsgQueueGroupNotificationT *notificatio - Pointer to notification buffer
+
+  Return Values : SaAisErrorT
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT
+saMsgQueueGroupNotificationFree(SaMsgHandleT msgHandle, 
+				SaMsgQueueGroupNotificationT *notification)
+{
+
+   MQA_CB            *mqa_cb;
+   MQA_CLIENT_INFO   *client_info = NULL;
+   SaAisErrorT          rc = SA_AIS_OK;
+   
+   /* retrieve MQA CB */
+   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+   if(!mqa_cb)
+   {
+      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      return SA_AIS_ERR_BAD_HANDLE;
+   }
+
+   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+   {
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_LIBRARY,__FILE__,__LINE__);
+      return SA_AIS_ERR_LIBRARY;
+   }
+   /* get the client_info*/
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+   if (!client_info)
+   {
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
+   }
+
+
+   if (notification == NULL)
+   {
+      rc = SA_AIS_ERR_INVALID_PARAM;
+      goto done;      
+   }
+
+   free(notification);
+   rc = SA_AIS_OK;
+   
+done:
+   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+   m_MQSV_MQA_GIVEUP_MQA_CB;
+
+   return rc;
+}
+
+/*****************************************************************************
+  Name          : saMsgMessageDataFree 
+
+  Description   : This routine free memory pointed to notification.
+
+  Arguments     : SaMsgHandleT msgHandle - The message handle
+		  void *data - Data pointer to be freed
+
+  Return Values : SaAisErrorT
+
+  Notes         : None
+******************************************************************************/
+SaAisErrorT
+saMsgMessageDataFree(SaMsgHandleT msgHandle,
+		 	void *data)
+{
+   MQA_CB            *mqa_cb;
+   MQA_CLIENT_INFO   *client_info = NULL;
+   SaAisErrorT          rc = SA_AIS_OK;
+
+   /* retrieve MQA CB */
+   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+   if(!mqa_cb)
+   {
+      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      return SA_AIS_ERR_BAD_HANDLE;
+   }
+
+   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+   {
+      m_MQSV_MQA_GIVEUP_MQA_CB;
+      m_LOG_MQSV_A(MQA_LOCK_WRITE_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_LIBRARY,__FILE__,__LINE__);
+      return SA_AIS_ERR_LIBRARY;
+   }
+
+   /* get the client_info*/
+   client_info = mqa_client_tree_find_and_add(mqa_cb,msgHandle,FALSE);
+   if (!client_info)
+   {
+      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
+      rc = SA_AIS_ERR_BAD_HANDLE;
+      goto done;
+   }
+
+   if(client_info->version.majorVersion == MQA_MAJOR_VERSION && client_info->version.minorVersion == MQA_MINOR_VERSION)
+   {
+      if(!mqa_cb->clm_node_joined)
+      {
+         rc = SA_AIS_ERR_UNAVAILABLE;
+         m_LOG_MQSV_A(MQA_MQD_OR_MQND_DOWN,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+         goto done;
+      }
+   }
+
+   if (data == NULL)
+   {
+      rc = SA_AIS_ERR_INVALID_PARAM;
+      goto done;
+   }
+
+   free(data);
+   rc = SA_AIS_OK;
+
+done:
+   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+   m_MQSV_MQA_GIVEUP_MQA_CB;
+
+   return rc;
+}
+/*****************************************************************************
+  Name          : msgget_timer_expired 
+
+  Description   : 
+
+  Arguments     : 
+                  
+
+  Return Values : SaAisErrorT
+
+  Notes         : None
+******************************************************************************/
 
 static void msgget_timer_expired(void *arg)
 {

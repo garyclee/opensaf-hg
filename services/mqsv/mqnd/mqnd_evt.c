@@ -40,6 +40,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt);
 static uns32 mqnd_evt_proc_qattr_get(MQND_CB *cb, MQSV_EVT *evt);
 static uns32 mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt);
 static uns32 mqnd_evt_proc_cb_dump(void);
+static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt);
 static void  mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, uns32 offset);
 static void mqnd_dump_timer_info(MQND_TMR tmr);
 void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
@@ -178,6 +179,9 @@ static uns32 mqnd_proc_mqp_req_msg(MQND_CB *cb, MQSV_EVT *evt)
       break;
    case MQP_EVT_CB_DUMP:
       rc = mqnd_evt_proc_cb_dump();
+      break;
+   case MQP_EVT_Q_RET_TIME_SET_REQ:
+      rc = mqnd_evt_proc_ret_time_set(cb, evt);
       break;
    default:
       rc = NCSCC_RC_FAILURE;
@@ -369,8 +373,15 @@ static uns32 mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
 
    send_evt.type = MQSV_EVT_MQP_RSP;
    send_evt.msg.mqp_rsp.type = MQP_EVT_INIT_RSP;
-   if(cb->is_restart_done)
+
+   if(!cb->clm_node_joined)
+   {
+      send_evt.msg.mqp_rsp.error = SA_AIS_ERR_UNAVAILABLE;
+   }
+   else if(cb->is_restart_done)
+   {
       send_evt.msg.mqp_rsp.error = SA_AIS_OK;
+   }
    else
    {
       send_evt.msg.mqp_rsp.error = SA_AIS_ERR_TRY_AGAIN;
@@ -593,7 +604,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
       goto send_rsp;
    }
    
-   if(qnode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)
+   if(qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)
    {
      err = SA_AIS_ERR_NOT_EXIST;
      m_LOG_MQSV_ND(MQND_QUEUE_UNLINK_RESP_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
@@ -687,7 +698,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
    else
    {
       /* Set the Sending state to unavilable */
-      qnode->qinfo.sendingState = SA_MSG_QUEUE_UNAVAILABLE;
+      qnode->qinfo.sendingState = MSG_QUEUE_UNAVAILABLE;
 
       /* MQND Restart. In the else case, the sending state is updated.
       Update the checkpointing service of this queue node updation*/
@@ -697,7 +708,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
       mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
       if(rc != SA_AIS_OK) {
          m_LOG_MQSV_ND(MQND_CKPT_SECTION_OVERWRITE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-         qnode->qinfo.sendingState = SA_MSG_QUEUE_AVAILABLE;  
+         qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;  
          err = SA_AIS_ERR_NO_RESOURCES;                      
          goto send_rsp;
       }
@@ -746,7 +757,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
        if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || (opr.info.msg.resp->info.dresp.err.flag)) 
        { 
           m_LOG_MQSV_ND(MQND_ASAPI_DEREG_HDLR_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-          qnode->qinfo.sendingState = SA_MSG_QUEUE_AVAILABLE;
+          qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
           mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
 
           mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
@@ -1082,6 +1093,13 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
    qsize = qnode->qinfo.size[snd_msg->message.priority];
    qused = shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[snd_msg->message.priority].queueUsed;
 
+   /* Check if message size is less than system defined msg size */
+   if (snd_msg->message.size > cb->gl_msg_max_msg_size)
+   {
+   	err = SA_AIS_ERR_TOO_BIG;
+        rc = NCSCC_RC_FAILURE;
+        goto send_resp;
+   }
    /* Check to see if the message fits into the queue as per user defined statistics */
    if (snd_msg->message.size > (qsize - qused)) {
         qnode->qinfo.numberOfFullErrors[snd_msg->message.priority]++;
@@ -1507,6 +1525,74 @@ send_rsp:
    return rc;
 }
 
+
+/****************************************************************************
+ * Name          : mqnd_evt_proc_ret_time_set 
+ *
+ * Description   : Function to set retention time of queue 
+ *
+ * Arguments     :
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
+{
+   uns32          rc = NCSCC_RC_SUCCESS;
+   MQND_QUEUE_NODE *qnode=NULL;
+   SaAisErrorT        err=SA_AIS_OK;
+   MQSV_EVT        rsp_evt;
+   
+   if(cb->is_restart_done)
+      err = SA_AIS_OK;
+   else
+   {
+      err = SA_AIS_ERR_TRY_AGAIN;
+      m_LOG_MQSV_ND(MQND_INITIALIZATION_INCOMPLETE,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_INFO,err,__FILE__,__LINE__);
+      goto send_rsp;
+   }
+
+   mqnd_queue_node_get(cb, evt->msg.mqp_req.info.retTimeSetReq.queueHandle, &qnode);
+   
+   /* If queue not found */
+   if(!qnode)
+   {
+      err = SA_AIS_ERR_BAD_HANDLE;
+      m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,err,__FILE__,__LINE__);
+      goto send_rsp;
+   }
+   
+   /* Set retention time only if timer is not started */
+   if(!qnode->qinfo.tmr.is_active)
+   {
+      qnode->qinfo.queueStatus.retentionTime = evt->msg.mqp_req.info.retTimeSetReq.retentionTime;
+   }
+   else
+   {
+      err = SA_AIS_ERR_BAD_HANDLE;
+      goto send_rsp;
+   }
+
+send_rsp:
+   /*Send the resp to MQA */
+   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+
+   rsp_evt.type = MQSV_EVT_MQP_RSP;
+   rsp_evt.msg.mqp_rsp.type = MQP_EVT_Q_RET_TIME_SET_RSP;
+   rsp_evt.msg.mqp_rsp.error = err;
+   rsp_evt.msg.mqp_rsp.info.retTimeSetRsp.queueHandle = evt->msg.mqp_req.info.retTimeSetReq.queueHandle;
+   
+
+   rc = mqnd_mds_send_rsp(cb, &evt->sinfo, &rsp_evt);
+   if(rc != NCSCC_RC_SUCCESS)
+      m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+   else
+      m_LOG_MQSV_ND(MQND_MDS_SND_RSP_SUCCESS,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
+
+   return rc;
+
+}
 /****************************************************************************
  * Name          : mqnd_evt_proc_cb_dump
  *
@@ -1578,11 +1664,11 @@ static uns32 mqnd_evt_proc_cb_dump(void)
       m_NCS_OS_PRINTF(" Message Handle : %llu\n",qnode->qinfo.msgHandle);
       m_NCS_OS_PRINTF(" Queue Handle   : %llu\n",qnode->qinfo.queueHandle);
 
-      if(qnode->qinfo.sendingState == SA_MSG_QUEUE_UNAVAILABLE)  
-         m_NCS_OS_PRINTF("\n Sending State  : SA_MSG_QUEUE_UNAVAILABLE\n");
+      if(qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)  
+         m_NCS_OS_PRINTF("\n Sending State  : MSG_QUEUE_UNAVAILABLE\n");
       else
-        if(qnode->qinfo.sendingState == SA_MSG_QUEUE_AVAILABLE)
-         m_NCS_OS_PRINTF("\n Sending State  : SA_MSG_QUEUE_AVAILABLE\n");
+        if(qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE)
+         m_NCS_OS_PRINTF("\n Sending State  : MSG_QUEUE_AVAILABLE\n");
       switch(qnode->qinfo.owner_flag)
        {
         case MQSV_QUEUE_OWN_STATE_ORPHAN:

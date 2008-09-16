@@ -531,8 +531,8 @@ unlink /etc/init.d/nis_scxb
 %{lib_dir}/libmqsv_common.so.0
 %{lib_dir}/libmqsv_common.so.0.0.0
 %{lib_dir}/libmqsv_logstr.so
-%{lib_dir}/libmqsv_logstr.so.3
-%{lib_dir}/libmqsv_logstr.so.3.0.0
+%{lib_dir}/libmqsv_logstr.so.4
+%{lib_dir}/libmqsv_logstr.so.4.0.0
 %{lib_dir}/libmqsv_subagt.so
 %{lib_dir}/libmqsv_subagt.so.0
 %{lib_dir}/libmqsv_subagt.so.0.0.0

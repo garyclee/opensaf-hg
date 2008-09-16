@@ -494,8 +494,7 @@ static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
         m_MMGR_FREE_MQA_EVT(evt);
       return rc;
    }
-
-   else if(MQSV_EVT_ASAPI == evt->type) 
+   else if(evt->type == MQSV_EVT_ASAPI) 
    {
       ASAPi_OPR_INFO opr;
 
@@ -510,6 +509,11 @@ static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
         m_MMGR_FREE_MQA_EVT(evt);
      return rc;
 
+   }
+   else if(evt->type == MQSV_EVT_MQP_REQ)
+   {
+      cb->clm_node_joined = evt->msg.mqp_req.info.clmNotify.node_joined;
+      return rc;
    }
 
    if(evt)

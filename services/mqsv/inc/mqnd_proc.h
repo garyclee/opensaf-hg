@@ -136,4 +136,7 @@ EXTERN_C uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req);
 
 EXTERN_C uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode, MQP_TRANSFERQ_RSP *transfer_rsp);
 
+EXTERN_C void mqnd_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,
+                                                SaUint32T numberOfMembers, SaAisErrorT error);
+
 #endif

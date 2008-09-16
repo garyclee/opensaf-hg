@@ -347,7 +347,7 @@ void init_mqsv_test_env()
 {
    char *data = "Message Queue Service Send Message";
    char *rcv_msg_data = NULL;
-   SaMsgQueueGroupNotificationT *inv_notif;
+   SaMsgQueueGroupNotificationT *inv_notif=0x06; /* some  value */
    SaMsgQueueGroupNotificationT *notification;
    char inst_num_char[10] = {0};
    char *inst_char = NULL;
@@ -381,7 +381,7 @@ void init_mqsv_test_env()
    mqsv_fill_msg_clbks(&gl_mqa_env.null_rcv_clbks,App_saMsgQueueOpenCallback,
                        App_saMsgQueueGroupTrackCallback,App_saMsgMessageDeliveredCallback,NULL);
 
-   mqsv_fill_msg_version(&gl_mqa_env.version,'B',1,1);
+   mqsv_fill_msg_version(&gl_mqa_env.version,'B',3,1);
 
    mqsv_fill_q_grp_names(&gl_mqa_env.pers_q,"pers_queue",inst_char);
    mqsv_fill_q_grp_names(&gl_mqa_env.non_pers_q,"non_pers_queue",inst_char);

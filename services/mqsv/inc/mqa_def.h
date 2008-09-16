@@ -36,8 +36,11 @@
 
 /* All the defines go here. */
 #define MQA_RELEASE_CODE 'B'
-#define MQA_MAJOR_VERSION 1
+#define MQA_MAJOR_VERSION 3
 #define MQA_MINOR_VERSION 1
+
+#define MQA_BASE_MAJOR_VERSION 1
+#define MQA_BASE_MINOR_VERSION 1
 
 #define m_MQA_VER_IS_VALID(ver) \
    ( (ver->releaseCode == 'B') && \
@@ -143,4 +146,5 @@ EXTERN_C uns32 mqa_mds_msg_async_reply_direct(uns32 mqa_mds_hdl,
 
 EXTERN_C void mqa_flx_log_reg ();
 EXTERN_C void mqa_flx_log_dereg ();
+
 #endif

@@ -96,7 +96,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 
    qnode->qinfo.queueStatus.closeTime = 0;
    qnode->qinfo.listenerHandle = 0;
-   qnode->qinfo.sendingState = SA_MSG_QUEUE_AVAILABLE;
+   qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
    qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
    
 

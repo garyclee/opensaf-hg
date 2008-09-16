@@ -52,8 +52,8 @@ typedef enum {
 /* The enum SaMsgQueueSendingStateT is withdrawn from B.1.1, i
    As MQSv is using this internally, This structure is defined here */
 typedef enum {
-    SA_MSG_QUEUE_UNAVAILABLE = 1,
-    SA_MSG_QUEUE_AVAILABLE = 2
+    MSG_QUEUE_UNAVAILABLE = 1,
+    MSG_QUEUE_AVAILABLE = 2
 } SaMsgQueueSendingStateT;
 
 
