@@ -259,12 +259,15 @@ typedef struct cpsv_mds_info
    V_DEST_RL       role;
 }CPSV_MDS_INFO;
 
+#if 0
 /* Structure for passing VER info to components */
 typedef struct cpsv_ver_info
 {
     MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver;   
     
 }CPSV_VER_INFO;
+#endif
+
 
 /* Struct used for convaying MDS dest info of a ckpt */
 typedef struct cpsv_ckpt_dest_info
@@ -879,7 +882,9 @@ typedef struct cpd_evt
       CPSV_CKPT_DEST_INFO     arep_set;
       CPD_TMR_INFO            tmr_info;
       CPSV_MDS_INFO           mds_info;
+      #if 0
       CPSV_VER_INFO            ver_info;
+      #endif
     
    }info;
 }CPD_EVT;

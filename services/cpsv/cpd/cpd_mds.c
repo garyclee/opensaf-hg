@@ -556,7 +556,9 @@ static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
    uns32    rc = NCSCC_RC_SUCCESS;
    CPSV_EVT *pEvt = (CPSV_EVT *)rcv_info->i_msg;
+   #if 0
    pEvt->info.cpd.info.ver_info.i_msg_fmt_ver = rcv_info->i_msg_fmt_ver;
+   #endif
      
    pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
    pEvt->sinfo.dest = rcv_info->i_fr_dest;
