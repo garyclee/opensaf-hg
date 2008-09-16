@@ -348,7 +348,7 @@ uns32  cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 
 /*******************************************************************************************
- * Name           : ncs_mbcsv_enc_async_update
+ * Name           : cpd_mbcsv_enc_async_update
  *
  * Description    : To encode the data and to send it to Standby at the time of Async Update
 
@@ -359,7 +359,7 @@ uns32  cpd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
  * Notes          : from io_reo_type - the event is determined and based on the event we encode the MBCSv_MSG
                     This is called at the active side
 *******************************************************************************************/
-uns32  ncs_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32  cpd_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
    CPD_MBCSV_MSG   *cpd_msg;
    uns32 rc = NCSCC_RC_SUCCESS;
@@ -475,7 +475,7 @@ uns32  ncs_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
 
 /*****************************************************************************************************
- * Name            : ncs_mbcsv_enc_msg_resp
+ * Name            : cpd_mbcsv_enc_msg_resp
  *
  * Description     : To encode the message that is to be sent to Standby for Cold Sync
 
@@ -490,7 +490,7 @@ uns32  ncs_mbcsv_enc_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
  |------------------|---------------------------|------|-----------|-----------|
  *****************************************************************************************************/
 
-uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
    CPD_CKPT_INFO_NODE *ckpt_node;
    CPD_A2S_CKPT_CREATE ckpt_create;
@@ -515,6 +515,8 @@ uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
    {
       rc = NCSCC_RC_SUCCESS;
       arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+      cb->cold_or_warm_sync_on=FALSE;
+      
       return rc;
    }
   
@@ -617,6 +619,8 @@ uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
       {
          arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
          cb->prev_ckpt_id = 0;
+      cb->cold_or_warm_sync_on=FALSE;
+     
       }
       else
       {
@@ -624,6 +628,8 @@ uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
          {
             arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE; 
             cb->prev_ckpt_id = 0;
+         cb->cold_or_warm_sync_on=FALSE;
+    
          }
       }
      
@@ -634,7 +640,7 @@ uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
        
     
 /************************************************************************************************
- * Name          :  ncs_mbcsv_enc_warm_sync_resp
+ * Name          :  cpd_mbcsv_enc_warm_sync_resp
 
  * Description   : To encode the message that is to be sent to Standby at the time of warm sync
 
@@ -644,7 +650,7 @@ uns32 ncs_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
  *
  * Notes : This is called at the active side
 ************************************************************************************************/
-uns32 ncs_mbcsv_enc_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32 cpd_mbcsv_enc_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    uns8 *wsync_ptr;
@@ -699,14 +705,14 @@ uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
    {
      
       case NCS_MBCSV_MSG_ASYNC_UPDATE:
-         rc = ncs_mbcsv_enc_async_update(cb,arg); 
+         rc = cpd_mbcsv_enc_async_update(cb,arg); 
          break;
       
       case NCS_MBCSV_MSG_COLD_SYNC_REQ:
          break;
 
       case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-            rc =  ncs_mbcsv_enc_msg_resp(cb,arg);
+            rc =  cpd_mbcsv_enc_msg_resp(cb,arg);
             return rc;
          #if 0
          else
@@ -721,14 +727,14 @@ uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
          break;
     
       case NCS_MBCSV_MSG_WARM_SYNC_RESP:
-         rc = ncs_mbcsv_enc_warm_sync_resp(cb,arg);
+         rc = cpd_mbcsv_enc_warm_sync_resp(cb,arg);
          break;
 
       case NCS_MBCSV_MSG_DATA_REQ:
          break;
  
       case NCS_MBCSV_MSG_DATA_RESP:
-         rc = ncs_mbcsv_enc_msg_resp(cb,arg);  
+         rc = cpd_mbcsv_enc_msg_resp(cb,arg);  
          break;
       
       default: 
@@ -749,7 +755,7 @@ uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 
 
 /***********************************************************************************
- * Name        : ncs_mbcsv_dec_async_update
+ * Name        : cpd_mbcsv_dec_async_update
  *
  * Description : To decode the async update at the Standby, so the first field is decoded which will tell the type
                  and based on the event, a corresponding action will be taken
@@ -759,7 +765,7 @@ uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
  * Return Values : Success / Error
 ***********************************************************************************/
 
-uns32 ncs_mbcsv_dec_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
    uns8* ptr;
    uns8 data[4];
@@ -981,7 +987,7 @@ end:
 
 
 /************************************************************************************
- * Name           : ncs_mbcsv_dec_cold_sync_resp 
+ * Name           : cpd_mbcsv_dec_sync_resp 
  *
  * Description    : Decode the message at Standby for cold sync and update the database
 
@@ -989,7 +995,7 @@ end:
  *
  * Return Values  : Success / Error
 *************************************************************************************/
-uns32  ncs_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32  cpd_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
    uns8 *ptr,num_of_ckpts,data[16];
    CPD_MBCSV_MSG mbcsv_msg;
@@ -1060,7 +1066,7 @@ uns32  ncs_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
 
 /*********************************************************************************
- * Name          : ncs_mbcsv_dec_warm_sync_resp
+ * Name          : cpd_mbcsv_dec_warm_sync_resp
  *
  * Description   : To decode the message at the warm sync at the standby
 
@@ -1068,7 +1074,7 @@ uns32  ncs_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
  * 
  * Return Values : Success / Error
 *********************************************************************************/
-uns32  ncs_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
+uns32  cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 {
     uns32 num_of_async_upd,rc = NCSCC_RC_SUCCESS;
     uns8 data[16],*ptr;
@@ -1079,15 +1085,18 @@ uns32  ncs_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
     ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(int32));
     num_of_async_upd = ncs_decode_32bit(&ptr);
     ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(int32));    
- 
+
     if(cb->cpd_sync_cnt == num_of_async_upd)
     {
        return rc;
     }
     else
     {
+       cb->cold_or_warm_sync_on=TRUE;
+    
        m_LOG_CPD_LLCL(CPD_MBCSV_WARM_SYNC_COUNT_MISMATCH,CPD_FC_MBCSV,NCSFL_SEV_ERROR,cb->cpd_sync_cnt,num_of_async_upd,__FILE__,__LINE__);
-       cpd_cb_db_destroy(cb); 
+       /* cpd_cb_db_destroy(cb); */
+       cpd_ckpt_tree_node_destroy(cb);
        ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
        ncs_arg.i_mbcsv_hdl =  cb->mbcsv_handle;
        ncs_arg.info.send_data_req.i_ckpt_hdl = cb->o_ckpt_hdl;
@@ -1118,6 +1127,7 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 {
   CPD_CB *cb;
   uns16 msg_fmt_version;
+  uns32 status;
   m_CPD_RETRIEVE_CB(cb);  /* finally give up the handle */
   if(cb == NULL)
   {
@@ -1135,36 +1145,51 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
     {
     
        case NCS_MBCSV_MSG_ASYNC_UPDATE:
-          ncs_mbcsv_dec_async_update(cb,arg);
+          cpd_mbcsv_dec_async_update(cb,arg);
           break;
 
        case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+           cb->cold_or_warm_sync_on = TRUE;
+         m_NCS_CONS_PRINTF("Cold sync started\n"); 
        break; 
 
        case NCS_MBCSV_MSG_COLD_SYNC_RESP:
        case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-          ncs_mbcsv_dec_sync_resp(cb,arg);       
+       cb->cold_or_warm_sync_on=TRUE;
+          status= cpd_mbcsv_dec_sync_resp(cb,arg);       
           if(arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE)
           {
-           ncshm_give_hdl(cb->cpd_hdl);
-           return NCSCC_RC_SUCCESS;
+              if (status == NCSCC_RC_SUCCESS){
+              cb->cold_or_warm_sync_on=FALSE;
+            m_NCS_CONS_PRINTF("Cold sync completed\n");
+          }
+           
+                 ncshm_give_hdl(cb->cpd_hdl);
+                 return NCSCC_RC_SUCCESS;
           }
        break;
        
-       case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+       case NCS_MBCSV_MSG_WARM_SYNC_REQ:           
        break;
 
        case NCS_MBCSV_MSG_WARM_SYNC_RESP:
        case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
-          ncs_mbcsv_dec_warm_sync_resp(cb,arg);
-       break;
+       status=cpd_mbcsv_dec_warm_sync_resp(cb,arg);
+     break;
 
        case NCS_MBCSV_MSG_DATA_REQ:
        break;
 
        case NCS_MBCSV_MSG_DATA_RESP:
        case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-          ncs_mbcsv_dec_sync_resp(cb,arg);
+        status=  cpd_mbcsv_dec_sync_resp(cb,arg);
+    if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type)
+       {
+           if (status == NCSCC_RC_SUCCESS){
+            cb->cold_or_warm_sync_on = FALSE;
+          m_NCS_CONS_PRINTF("Warm sync completed\n"); 
+         }
+    }  
        break;
        default:
           ncshm_give_hdl(cb->cpd_hdl);

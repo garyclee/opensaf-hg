@@ -24,7 +24,7 @@ typedef enum cpa_callback_type
    CPA_CALLBACK_TYPE_OPEN = 1,
    CPA_CALLBACK_TYPE_SYNC,
    CPA_CALLBACK_TYPE_ARRIVAL_NTFY,
-   CPA_CALLBACK_TYPE_MAX = CPA_CALLBACK_TYPE_SYNC,
+   CPA_CALLBACK_TYPE_MAX = CPA_CALLBACK_TYPE_SYNC
 }CPA_CALLBACK_TYPE;
 
 /* Info required for Call back */
@@ -40,11 +40,11 @@ typedef struct cpa_callback_info
    SaAisErrorT                sa_err;  
 }CPA_CALLBACK_INFO;
 
-EXTERN_C void cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
+EXTERN_C uns32 cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt);
 EXTERN_C uns32 cpa_version_validate (SaVersionT *version);
 EXTERN_C uns32 cpa_open_attr_validate (const SaCkptCheckpointCreationAttributesT 
                                                *checkpointCreationAttributes,
-                                 SaCkptCheckpointOpenFlagsT checkpointOpenFlags);
+                                 SaCkptCheckpointOpenFlagsT checkpointOpenFlags,const SaNameT *checkpointName);
 
 EXTERN_C uns32 cpa_callback_ipc_init (CPA_CLIENT_NODE  *client_info);
 EXTERN_C void cpa_callback_ipc_destroy (CPA_CLIENT_NODE  *client_info);
@@ -71,7 +71,7 @@ EXTERN_C uns32 cpa_proc_replica_read(CPA_CB *cb,SaUint32T numberOfElements,
           
 EXTERN_C uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
           SaCkptIOVectorElementT *ioVector,CPSV_ND2A_READ_DATA *read_data,
-          SaUint32T **erroneousVectorIndex);
+          SaUint32T **erroneousVectorIndex, SaVersionT   *version);
           
 EXTERN_C void cpa_proc_free_read_data(CPSV_ND2A_DATA_ACCESS_RSP *rmt_read_rsp);          
 

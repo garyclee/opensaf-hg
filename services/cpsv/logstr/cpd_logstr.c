@@ -124,6 +124,9 @@ const NCSFL_STR cpd_hdln_set[] = {
    {CPD_CKPT_RDSET_SUCCESS,"CPD - CKPT RDSET SUCCESS"},
    {CPD_CKPT_ACTIVE_SET_SUCCESS,"CPD - Ckpt Active Replica Set Success: ckpt_id/New active_mdest"},
    {CPD_CKPT_ACTIVE_CHANGE_SUCCESS,"CPD - Ckpt Active Replica changed :ckpt_id/New active_mdest"},
+   {CPD_CLM_GET_SEL_OBJ_FAILURE, "CPD - CLM Selection Obj Get Failed"},
+   {CPD_CLM_DISPATCH_FAILURE, "CPD - CLM Dispatch Failed"},   
+   {CPD_CLM_CLUSTER_TRACK_FAIL, " CPD - CLM CLUSTER TRACK FAILED"},
   
    {0,0}
 };

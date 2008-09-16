@@ -38,8 +38,8 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
 {
    CPND_TMR *tmr = (CPND_TMR*)uarg;
    NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
-   CPND_CB  *cb;
-   CPSV_EVT *evt;
+   CPND_CB  *cb=NULL;
+   CPSV_EVT *evt=NULL;
    uns32    cpnd_hdl;
 
    if (tmr != NULL)
@@ -56,7 +56,7 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
       }
       else
       {
-	 return;
+     return;
       }
 
       cpnd_hdl = tmr->uarg;
@@ -94,6 +94,13 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
                evt->info.cpnd.info.tmr_info.agent_dest = tmr->agent_dest;
                evt->info.cpnd.info.tmr_info.write_type = tmr->write_type;   
                break;
+        case CPND_TMR_OPEN_ACTIVE_SYNC:
+          evt->info.cpnd.info.tmr_info.type=CPND_TMR_OPEN_ACTIVE_SYNC;
+                  evt->info.cpnd.info.tmr_info.ckpt_id=tmr->ckpt_id;
+                  evt->info.cpnd.info.tmr_info.invocation=tmr->invocation;
+          evt->info.cpnd.info.tmr_info.sinfo=tmr->sinfo;
+          evt->info.cpnd.info.tmr_info.lcl_ckpt_hdl=tmr->lcl_ckpt_hdl;
+               break;
             default:
                m_LOG_CPND_CL(CPND_EVT_UNKNOWN, CPND_FC_EVT,NCSFL_SEV_ERROR,__FILE__,__LINE__);
                  
@@ -128,7 +135,7 @@ cpnd_tmr_start (CPND_TMR *tmr, SaTimeT duration)
       m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpnd_timer_expiry, (void*)tmr);
       tmr->is_active = TRUE;
    }
-   else
+   else if (tmr->is_active == TRUE)
    {
       m_NCS_TMR_STOP(tmr->tmr_id);
       m_NCS_TMR_START(tmr->tmr_id, (uns32)duration, cpnd_timer_expiry, (void*)tmr);

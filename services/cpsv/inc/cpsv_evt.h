@@ -87,6 +87,8 @@ typedef enum cpa_evt_type
    CPND_EVT_ND2A_CKPT_BCAST_SEND,
    CPA_EVT_D2A_NDRESTART,
    CPA_EVT_CB_DUMP,
+   CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT,
+   CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED,
    CPA_EVT_MAX
 }CPA_EVT_TYPE;
 
@@ -256,6 +258,13 @@ typedef struct cpsv_mds_info
    NODE_ID         node_id;
    V_DEST_RL       role;
 }CPSV_MDS_INFO;
+
+/* Structure for passing VER info to components */
+typedef struct cpsv_ver_info
+{
+    MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver;   
+    
+}CPSV_VER_INFO;
 
 /* Struct used for convaying MDS dest info of a ckpt */
 typedef struct cpsv_ckpt_dest_info
@@ -727,6 +736,9 @@ typedef struct cpnd_tmr_info
    uns32                     lcl_sec_id;
    MDS_DEST                  agent_dest;
    SaUint32T                 write_type;  
+   CPSV_SEND_INFO      sinfo;
+   SaInvocationT                          invocation; 
+   SaCkptCheckpointHandleT                lcl_ckpt_hdl;
 }CPND_TMR_INFO;
 
 /******************************************************************************
@@ -867,6 +879,8 @@ typedef struct cpd_evt
       CPSV_CKPT_DEST_INFO     arep_set;
       CPD_TMR_INFO            tmr_info;
       CPSV_MDS_INFO           mds_info;
+      CPSV_VER_INFO            ver_info;
+    
    }info;
 }CPD_EVT;
 
@@ -883,7 +897,8 @@ typedef struct cpsv_evt
       CPND_EVT    cpnd;
       CPD_EVT     cpd;
    }info;
-   CPSV_SEND_INFO sinfo;   /* MDS Sender information */
+   CPSV_SEND_INFO sinfo;   /* MDS Sender information */   
+   
 }CPSV_EVT;
 
 /* Event Declerations */

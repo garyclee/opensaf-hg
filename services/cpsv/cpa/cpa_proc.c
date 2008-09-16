@@ -53,10 +53,12 @@ static void cpa_process_callback_info (CPA_CB *cb, CPA_CLIENT_NODE *cl_node,
 uns32 cpa_version_validate (SaVersionT *version)
 {
    if((version->releaseCode == CPA_RELEASE_CODE) && 
-      (version->majorVersion <= CPA_MAJOR_VERSION))
+      (((version->majorVersion  == CPA_MAJOR_VERSION) &&
+      (version->minorVersion == CPA_MINOR_VERSION) ) ||
+      ((version->majorVersion  == CPA_BASE_MAJOR_VERSION) && 
+      (version->minorVersion  == CPA_BASE_MINOR_VERSION))))
    {
-      version->majorVersion = CPA_MAJOR_VERSION;
-      version->minorVersion = CPA_MINOR_VERSION;
+      
       return SA_AIS_OK;
    }
    else
@@ -95,12 +97,11 @@ uns32 cpa_version_validate (SaVersionT *version)
 ******************************************************************************/
 uns32 cpa_open_attr_validate (const SaCkptCheckpointCreationAttributesT 
                                             *checkpointCreationAttributes,
-                                 SaCkptCheckpointOpenFlagsT checkpointOpenFlags)
+                                 SaCkptCheckpointOpenFlagsT checkpointOpenFlags,const SaNameT *checkpointName)
 {
    SaCkptCheckpointCreationFlagsT creationFlags=0;
    /* Check the Open Flags is set, it should  */
-   if(checkpointOpenFlags != 0)
-   {
+   
       if (!(checkpointOpenFlags & (SA_CKPT_CHECKPOINT_READ | SA_CKPT_CHECKPOINT_WRITE 
                | SA_CKPT_CHECKPOINT_CREATE)))
       {
@@ -108,7 +109,7 @@ uns32 cpa_open_attr_validate (const SaCkptCheckpointCreationAttributesT
                                              "open_attr_validate", __FILE__ ,__LINE__, SA_AIS_ERR_BAD_FLAGS);
          return SA_AIS_ERR_BAD_FLAGS;
       }
-   }
+   
    
    if(checkpointCreationAttributes)
    {
@@ -493,7 +494,7 @@ send_cb_evt:
 static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 {
    uns32        proc_rc = NCSCC_RC_SUCCESS;
-   CPA_CALLBACK_INFO    *callback;
+   CPA_CALLBACK_INFO    *callback=NULL;
    CPA_CLIENT_NODE      *cl_node = NULL;
    CPA_LOCAL_CKPT_NODE  *lc_node = NULL;
    
@@ -554,7 +555,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
 static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb,CPA_EVT *evt)
 {
    uns32        proc_rc = NCSCC_RC_SUCCESS, i=0;
-   CPA_CALLBACK_INFO    *callback;
+   CPA_CALLBACK_INFO    *callback=NULL;
    CPA_CLIENT_NODE      *cl_node = NULL;
    CPA_LOCAL_CKPT_NODE  *lc_node = NULL;
    CPSV_CKPT_DATA *ckpt_data=NULL;
@@ -659,6 +660,26 @@ free_mem:
                                                                                                                              
 }
 
+static uns32 cpa_proc_ckpt_clm_status_changed(CPA_CB *cb,CPSV_EVT *evt)
+{
+	NCS_BOOL          locked = TRUE;
+      if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+      {
+      		m_LOG_CPA_CCL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"Clm_status_changed:LOCK", __FILE__ ,__LINE__);
+     		return NCSCC_RC_FAILURE;
+      }
+	if (evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT)
+	{
+	  cb->is_cpnd_joined_clm=FALSE;
+	}
+	else if (evt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED)
+	{	
+	 cb->is_cpnd_joined_clm=TRUE;
+	}
+	if(locked)
+       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -673,7 +694,7 @@ static void cpa_proc_tmr_expiry(CPA_CB *cb, CPA_EVT *evt)
 {
    uns32                proc_rc = NCSCC_RC_SUCCESS;
    CPA_TMR_INFO         *tmr_info = &evt->info.tmr_info;
-   CPA_CALLBACK_INFO    *callback;
+   CPA_CALLBACK_INFO    *callback=NULL;
    CPA_CLIENT_NODE      *cl_node = NULL;
    CPA_LOCAL_CKPT_NODE  *lc_node = NULL;
    
@@ -804,8 +825,9 @@ static void cpa_proc_active_nd_down_bcast(CPA_CB *cb, CPA_EVT *evt)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-void cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
+uns32  cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
 {
+  uns32 rc = NCSCC_RC_SUCCESS;
    switch(evt->info.cpa.type)
    {
     case CPA_EVT_ND2A_CKPT_OPEN_RSP:
@@ -832,11 +854,16 @@ void cpa_process_evt(CPA_CB *cb, CPSV_EVT *evt)
     case CPA_EVT_D2A_NDRESTART:
        cpa_proc_active_nd_down_bcast(cb, &evt->info.cpa);
        break; 
+    case CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT:
+    case CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED:
+	if (cpa_proc_ckpt_clm_status_changed(cb, evt) != NCSCC_RC_SUCCESS)
+		rc = NCSCC_RC_FAILURE;
+      break; 
 
     default:
        break;
    }
-   return;
+   return rc ;
 }
 
 
@@ -907,6 +934,15 @@ uns32 cpa_hdl_callbk_dispatch_one (CPA_CB            *cb,
       }
       else
       { 
+              if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+		if ((callback->type == CPA_CALLBACK_TYPE_OPEN) ||
+			(callback->type == CPA_CALLBACK_TYPE_SYNC))
+		 {
+			 callback->sa_err =SA_AIS_ERR_BAD_HANDLE; 
+	        	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	        	 cpa_process_callback_info(cb, cl_node, callback); 
+		 	 return SA_AIS_OK;
+		 }
          m_MMGR_FREE_CPA_CALLBACK_INFO(callback);
          continue;
       }
@@ -962,8 +998,26 @@ uns32 cpa_hdl_callbk_dispatch_all(CPA_CB            *cb,
       }
       else
       {
+	 if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+	 {
+		  if ((callback->type == CPA_CALLBACK_TYPE_OPEN) ||
+		  	(callback->type == CPA_CALLBACK_TYPE_SYNC))
+		  {
+		 	 callback->sa_err = SA_AIS_ERR_BAD_HANDLE;
+	       	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	         	 cpa_process_callback_info(cb, cl_node, callback);
+		  }
+		  else
+		  {
           m_MMGR_FREE_CPA_CALLBACK_INFO(callback);
           break;
+		  }
+	 }
+	 else
+	 {
+	         	 m_MMGR_FREE_CPA_CALLBACK_INFO(callback);
+		  	 break;  
+	 }
       } 
 
       if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
@@ -1057,10 +1111,29 @@ uns32 cpa_hdl_callbk_dispatch_block(CPA_CB  *cb, SaCkptHandleT ckptHandle)
          }
          else
          {
+	 if((client_info->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (client_info->version.minorVersion > CPA_BASE_MINOR_VERSION))
+	 {
+		   if ((callback->type == CPA_CALLBACK_TYPE_OPEN) ||
+		   	(callback->type == CPA_CALLBACK_TYPE_SYNC))
+		   {
+		   	 callback->sa_err = SA_AIS_ERR_BAD_HANDLE;
+	            	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	           	 cpa_process_callback_info(cb, client_info, callback);
+	           }
+		    else
+		    {
             m_MMGR_FREE_CPA_CALLBACK_INFO(callback);
             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
             return SA_AIS_OK;
          }
+	 }
+	 else
+	 {
+	           	 m_MMGR_FREE_CPA_CALLBACK_INFO(callback);
+	           	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		    	 return SA_AIS_OK;  
+	  }
+        }
       } 
       else
       {
@@ -1329,7 +1402,9 @@ uns32 cpa_proc_replica_read(CPA_CB *cb,SaUint32T numberOfElements,
       (*ioVector)[iter].readSize=read_map[iter].read_size;
 
       if(read_map[iter].read_size == 0)
+      {
          continue;
+      }
       else
       {
         if ((*ioVector)[iter].dataBuffer == NULL)
@@ -1370,11 +1445,11 @@ uns32 cpa_proc_replica_read(CPA_CB *cb,SaUint32T numberOfElements,
 ******************************************************************************/
 uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
           SaCkptIOVectorElementT *ioVector,CPSV_ND2A_READ_DATA *read_data,
-          SaUint32T **erroneousVectorIndex)
+          SaUint32T **erroneousVectorIndex, SaVersionT   *version)
 {
     uns32 iter=0,rc=NCSCC_RC_SUCCESS;
 
-    for(;iter < numberOfElements;iter++)
+    for(iter=0;iter < numberOfElements;iter++)
     {
        if(read_data[iter].err==1)
        {
@@ -1391,8 +1466,11 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
              continue;
           if (ioVector[iter].dataBuffer == NULL)
           {
+             if((version->majorVersion > CPA_BASE_MAJOR_VERSION) && (version->minorVersion > CPA_BASE_MINOR_VERSION))
              ioVector[iter].dataBuffer= \
                      m_MMGR_ALLOC_CPA_DEFAULT(read_data[iter].read_size);
+            else
+		 ioVector[iter].dataBuffer= (uns8 *) malloc(read_data[iter].read_size);
              if(ioVector[iter].dataBuffer == NULL)
              {
                 m_LOG_CPA_MEMFAIL(CPA_DATA_BUFF_ALLOC_FAILED);
@@ -1485,7 +1563,7 @@ void cpa_sync_with_cpd_for_active_replica_set(CPA_GLOBAL_CKPT_NODE *gc_node)
  *****************************************************************************/
 void cpa_cb_dump(void )
 {
-   CPA_CB *cb;
+   CPA_CB *cb=NULL;
    
    /* retrieve CPA CB */
    m_CPA_RETRIEVE_CB(cb);
@@ -1521,7 +1599,7 @@ void cpa_cb_dump(void )
       
       /* Print the Client tree Details */
       {
-         CPA_CLIENT_NODE  * clnode;
+         CPA_CLIENT_NODE  * clnode=NULL;
          SaCkptHandleT *temp_ptr=0;
          SaCkptHandleT temp_hdl=0;
          

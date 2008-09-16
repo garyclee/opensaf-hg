@@ -9,6 +9,7 @@
 #define _SA_AMF_H
 
 #include "saAis.h"
+#include "saNtf.h"
 
 #ifdef  __cplusplus
 extern "C" {

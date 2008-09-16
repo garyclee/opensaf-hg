@@ -26,6 +26,7 @@ typedef struct cpa_client_node
    SaCkptCallbacksT             ckpt_callbk;
    SYSF_MBX                     callbk_mbx;   /* Mailbox Queue for client messages */
    ncsCkptCkptArrivalCallbackT  ckptArrivalCallback; /* NCS callback extention */
+   SaVersionT   version;
 }CPA_CLIENT_NODE;
 
 
@@ -110,6 +111,7 @@ typedef struct cpa_cb
    /* Information about CPND */
    MDS_DEST          cpnd_mds_dest;
    NCS_BOOL          is_cpnd_up;
+   NCS_BOOL          is_cpnd_joined_clm;
    CPA_TMR           cpnd_down_tmr;
 
    /* CPA data */

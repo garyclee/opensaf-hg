@@ -41,7 +41,6 @@
 EXTERN_C uns32 cpa_mds_callback(struct ncsmds_callback_info *info);
 EXTERN_C uns32 cpa_mds_register (CPA_CB *cb);
 EXTERN_C void cpa_mds_unregister (CPA_CB *cb);
-EXTERN_C uns32 cpa_mds_callback(struct ncsmds_callback_info *info);
 EXTERN_C uns32 cpa_mds_msg_sync_send (uns32 cpa_mds_hdl,
                              MDS_DEST  *destination,
                              CPSV_EVT   *i_evt,

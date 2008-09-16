@@ -283,13 +283,13 @@ struct SafCheckpointOpen API_Open[]={
     [CKPT_OPEN_ALL_CREATE_SUCCESS_T] = {&tcd.ckptHandle,&tcd.all_replicas_ckpt,&tcd.all_replicas,SA_CKPT_CHECKPOINT_CREATE,
                                          APP_TIMEOUT,&tcd.all_replicas_Createhdl,SA_AIS_OK,"ckpt with ALL_REPLICAS created"},
 
-    [CKPT_OPEN_ALL_WRITE_SUCCESS_T]   = {&tcd.ckptHandle,&tcd.all_replicas_ckpt,NULL,SA_CKPT_CHECKPOINT_WRITE,
+    [CKPT_OPEN_ALL_WRITE_SUCCESS_T]   = {&tcd.ckptHandle,&tcd.all_replicas_ckpt,NULL,(SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_READ),
                                         APP_TIMEOUT,&tcd.all_replicas_Writehdl ,SA_AIS_OK,"ckpt with ALL_REPLICAS opened for writing"},   
 
     [CKPT_OPEN_ALL_READ_SUCCESS_T]    = {&tcd.ckptHandle,&tcd.all_replicas_ckpt,NULL,SA_CKPT_CHECKPOINT_READ,
                                          APP_TIMEOUT,&tcd.all_replicas_Readhdl ,SA_AIS_OK,"ckpt with ALL_REPLICAS opened for reading"},
 
-    [CKPT_OPEN_ACTIVE_CREATE_SUCCESS_T] = {&tcd.ckptHandle,&tcd.active_replica_ckpt,&tcd.active_replica,SA_CKPT_CHECKPOINT_CREATE,
+    [CKPT_OPEN_ACTIVE_CREATE_SUCCESS_T] = {&tcd.ckptHandle,&tcd.active_replica_ckpt,&tcd.active_replica,(SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_READ),
                                             APP_TIMEOUT,&tcd.active_replica_Createhdl ,SA_AIS_OK,"ckpt with ACTIVE REPLICA created"},
 
     [CKPT_OPEN_ACTIVE_WRITE_SUCCESS_T]  = {&tcd.ckptHandle,&tcd.active_replica_ckpt,NULL,SA_CKPT_CHECKPOINT_WRITE,
@@ -310,7 +310,7 @@ struct SafCheckpointOpen API_Open[]={
     [CKPT_OPEN_WEAK_READ_SUCCESS_T]     = {&tcd.ckptHandle,&tcd.weak_replica_ckpt,NULL,SA_CKPT_CHECKPOINT_READ,
                                            APP_TIMEOUT,&tcd.weak_replica_Readhdl ,SA_AIS_OK,"ckpt with WEAK REPLICA opened for reading"},
 
-    [CKPT_OPEN_COLLOCATE_SUCCESS_T]     = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.collocated,SA_CKPT_CHECKPOINT_CREATE,
+    [CKPT_OPEN_COLLOCATE_SUCCESS_T]     = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.collocated,(SA_CKPT_CHECKPOINT_CREATE |SA_CKPT_CHECKPOINT_READ) ,
                                           APP_TIMEOUT,&tcd.active_colloc_Createhdl ,SA_AIS_OK,"ckpt with ACTIVE|COLLOCATED created"},
 
     [CKPT_OPEN_COLLOCATE_SUCCESS2_T]    = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.collocated,SA_CKPT_CHECKPOINT_CREATE,
@@ -343,7 +343,7 @@ struct SafCheckpointOpen API_Open[]={
     [CKPT_OPEN_COLLOCATE_READ_SUCCESS_T]    = {&tcd.ckptHandle,&tcd.collocated_ckpt,NULL,SA_CKPT_CHECKPOINT_READ,
                                               APP_TIMEOUT,&tcd.active_colloc_Readhdl ,SA_AIS_OK,"ckpt with ACTIVE|COLLOCATED opened for reading"},
 
-    [CKPT_OPEN_COLLOCATE_WRITE_SUCCESS2_T]  = {&tcd.ckptHandle,&tcd.collocated_ckpt,NULL,SA_CKPT_CHECKPOINT_WRITE,
+    [CKPT_OPEN_COLLOCATE_WRITE_SUCCESS2_T]  = {&tcd.ckptHandle,&tcd.collocated_ckpt,NULL,(SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_READ),
                                               APP_TIMEOUT,&tcd.active_colloc_Writehdl ,SA_AIS_OK,"ckpt with ACTIVE|COLLOCATED opened for writing"},
 
     [CKPT_OPEN_ERR_EXIST_T]                 = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.active_replica,SA_CKPT_CHECKPOINT_CREATE,
@@ -390,6 +390,14 @@ struct SafCheckpointOpen API_Open[]={
 
     [CKPT_OPEN_INVALID_CR_FLAGS_T]     = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_CREATE,
                                           APP_TIMEOUT,&tcd.active_colloc_Createhdl ,SA_AIS_ERR_INVALID_PARAM,"ckpt with COLLOCATED cr_flags"},
+   [CKPT_OPEN_ACTIVE_CREATE_WRITE_SUCCESS_T] = {&tcd.ckptHandle,&tcd.active_replica_ckpt,&tcd.active_replica,(SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_WRITE),
+                                            APP_TIMEOUT,&tcd.active_replica_Createhdl ,SA_AIS_OK,"ckpt with ACTIVE REPLICA created"},
+    [CKPT_OPEN_SUCCESS_EXIST2_T]                = {&tcd.ckptHandle,&tcd.collocated_ckpt,&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_CREATE,
+                                               APP_TIMEOUT,&tcd.testHandle,SA_AIS_OK,"Open already existing ckpt but  different retention duration"},
+   [CKPT_OPEN_WEAK_CREATE_READ_SUCCESS_T]   = {&tcd.ckptHandle,&tcd.weak_replica_ckpt,&tcd.replica_weak,(SA_CKPT_CHECKPOINT_CREATE | SA_CKPT_CHECKPOINT_READ) ,
+                                          APP_TIMEOUT,&tcd.weak_replica_Createhdl ,SA_AIS_OK,"ckpt with WEAK REPLICA created"},
+    [CKPT_OPEN_ACTIVE_WRITE_READ_SUCCESS_T]  = {&tcd.ckptHandle,&tcd.active_replica_ckpt,NULL,(SA_CKPT_CHECKPOINT_WRITE | SA_CKPT_CHECKPOINT_READ),
+                                           APP_TIMEOUT,&tcd.active_replica_Writehdl ,SA_AIS_OK,"ckpt with ACTIVE REPLICA opened for writing"},
 
 
     /* NULL ckptHandle, */
@@ -1318,10 +1326,22 @@ retry:
      {
          m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
          m_TET_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
-#if 0
+#if 1      
+         if(i == CKPT_READ_BUFFER_NULL_T) 
+         { 
          m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
-         if(i == CKPT_READ_SUCCESS2_T)
-            free(API_Read[i].ioVector[j].dataBuffer);
+	  	 if (API_Read[i].ioVector[j].readSize != 0)
+	  	 rc = saCkptIOVectorElementDataFree(*(API_Read[i].checkpointHandle),(API_Read[i].ioVector[j].dataBuffer));
+               else
+		  rc = SA_AIS_OK;
+		 if ( rc == SA_AIS_OK)
+	   	  m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCCESS  \n");
+	 	 else
+	 	 {
+	     		 m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
+			 result = TET_FAIL;
+	 	 }
+         }
 #endif
      }
   }
@@ -1347,10 +1367,22 @@ int tet_test_red_ckptRead(int i,CONFIG_FLAG cfg_flg)
          {
              m_TET_CPSV_PRINTF(" DataSize:%llu\n",API_Read[i].ioVector[j].dataSize);
              m_TET_CPSV_PRINTF(" ReadSize:%llu\n",API_Read[i].ioVector[j].readSize);
-#if 0
+#if 1      
+         if(i == CKPT_READ_BUFFER_NULL_T)
+         { 
              m_TET_CPSV_PRINTF(" DataBuffer:%s\n",(char *)API_Read[i].ioVector[j].dataBuffer);
-         if(i == CKPT_READ_SUCCESS2_T)
-            free(API_Read[i].ioVector[j].dataBuffer);
+	        if (API_Read[i].ioVector[j].readSize != 0)
+	  	 rc = saCkptIOVectorElementDataFree(*(API_Read[i].checkpointHandle),(API_Read[i].ioVector[j].dataBuffer));
+               else
+		  rc = SA_AIS_OK;
+		 if ( rc == SA_AIS_OK)
+	   	  m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer SUCESS  \n");
+	 	 else
+	     	{
+	     		 m_TET_CPSV_PRINTF(" saCkptIOVectorElementDataFree of dataBuffer FAIL rc-%d\n",rc);
+			 result = TET_FAIL;
+	 	 }
+         }
 #endif
          }
       }
@@ -1950,6 +1982,9 @@ int tet_test_red_ckptIterationFin(int i,CONFIG_FLAG cfg_flg)
   return result;
 }
 
+struct SafCheckpointSectionFree API_SectionFree[]={
+[CKPT_FREE_GEN_T] = {&tcd.active_colloc_Writehdl ,&tcd.gen_sec,SA_AIS_OK,"Section Free of Gen  "},
+};
 
 /**************** Section Delete ********************/
 
@@ -1993,6 +2028,17 @@ retry:
   if(rc == SA_AIS_ERR_TRY_AGAIN)
      goto retry;
   
+  return result;
+}
+int tet_test_saCkptSectionIdFree(int i,CONFIG_FLAG cfg_flg) 
+{
+  SaAisErrorT rc;
+  int result;
+retry:
+  rc=saCkptSectionIdFree(*(API_SectionFree[i].checkpointHandle),API_SectionFree[i].sectionId->id);
+  result = cpsv_test_result(rc,API_SectionFree[i].exp_output,API_SectionFree[i].result_string,cfg_flg);
+  if(rc == SA_AIS_ERR_TRY_AGAIN)
+     goto retry;
   return result;
 }
 

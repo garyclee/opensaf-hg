@@ -41,10 +41,10 @@
 
 
 /*30B Versioning Changes */
-#define CPD_MDS_PVT_SUBPART_VERSION 1
+#define CPD_MDS_PVT_SUBPART_VERSION 2
 /*CPD -CPND communication */
 #define CPD_WRT_CPND_SUBPART_VER_MIN 1
-#define CPD_WRT_CPND_SUBPART_VER_MAX 1
+#define CPD_WRT_CPND_SUBPART_VER_MAX 2
    
 #define CPD_WRT_CPND_SUBPART_VER_RANGE \
         (CPD_WRT_CPND_SUBPART_VER_MAX - \
@@ -221,7 +221,7 @@ typedef struct cpd_cb_tag{
 
    SaInvocationT        amf_invocation;
 
-   NCS_BOOL             is_cold_sync_on;
+   NCS_BOOL             cold_or_warm_sync_on;
    /* for mib */
    SaNameT       safSpecVer;
    SaNameT       safAgtVen;
@@ -319,6 +319,7 @@ EXTERN_C void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node,
 EXTERN_C void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer,
          SaUint32T numberOfMembers, SaAisErrorT error); 
 
+EXTERN_C void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
 #if 0
 EXTERN_C void cpd_ckpt_reflist_del(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,CPSV_CPND_DEST_INFO  *dest_list);
 EXTERN_C uns32 cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest);

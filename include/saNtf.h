@@ -10,49 +10,43 @@
 **   for user API functions
 **   
 ** SPECIFICATION VERSION:
-**   SAI-AIS-NTF-A.01.01
+**   SAI-AIS-NTF-A.02.01
 **
 ** DATE: 
-**   Fri  Nov   18  2005  
+**   Mon  Dec   18  2006  
 **
 ** LEGAL:
-**   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS. 
-**   The Specification and all worldwide copyrights therein are
-**   the exclusive property of Licensor.  You may not remove, obscure, or
-**   alter any copyright or other proprietary rights notices that are in or
-**   on the copy of the Specification you download.  You must reproduce all
-**   such notices on all copies of the Specification you make.  Licensor
-**   may make changes to the Specification, or to items referenced therein,
-**   at any time without notice.  Licensor is not obligated to support or
-**   update the Specification. 
-**   
-**   Copyright(c) 2005, Service Availability(TM) Forum. All rights
-**   reserved. 
+**   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
+**
+** Copyright 2006 by the Service Availability Forum. All rights reserved.
+**
+** Permission to use, copy, modify, and distribute this software for any
+** purpose without fee is hereby granted, provided that this entire notice
+** is included in all copies of any software which is or includes a copy
+** or modification of this software and in all copies of the supporting
+** documentation for such software.
+**
+** THIS SOFTWARE IS BEING PROVIDED "AS IS", WITHOUT ANY EXPRESS OR IMPLIED
+** WARRANTY.  IN PARTICULAR, THE SERVICE AVAILABILITY FORUM DOES NOT MAKE ANY
+** REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
+** OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
 **
 *******************************************************************************/
 
 #ifndef _SA_NTF_H
 #define _SA_NTF_H
 
-#include <saAis.h>
+#include "saAis.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
 
-/*  3.12.1.1        SaNtfHandleT  */
 typedef SaUint64T SaNtfHandleT;
-
-/*  3.12.1.2        SaNtfNotificationHandleT  */
 typedef SaUint64T SaNtfNotificationHandleT;
-
-/*  3.12.1.3        SaNtfNotificationFilterHandleT  */
 typedef SaUint64T SaNtfNotificationFilterHandleT;
-
-/*  3.12.1.4        SaNtfReadHandleT */
 typedef SaUint64T SaNtfReadHandleT;
 
-/*  3.12.3  SaNtfNotificationTypeT  */
 typedef enum
 {
     SA_NTF_TYPE_OBJECT_CREATE_DELETE = 0x1000,
@@ -62,12 +56,20 @@ typedef enum
     SA_NTF_TYPE_SECURITY_ALARM = 0x5000
 } SaNtfNotificationTypeT;
 
-/*  3.12.4  SaNtfEventTypeT  */
+typedef enum {
+    SA_NTF_TYPE_OBJECT_CREATE_DELETE_BIT = 0x0001,
+    SA_NTF_TYPE_ATTRIBUTE_CHANGE_BIT = 0x0002,
+    SA_NTF_TYPE_STATE_CHANGE_BIT = 0x0004,
+    SA_NTF_TYPE_ALARM_BIT = 0x0008,
+    SA_NTF_TYPE_SECURITY_ALARM_BIT = 0x0010,
+} SaNtfNotificationTypeBitsT;
+
+/*  
+ * Event types enum, these are only generic
+ * types as defined by the X.73x standards  
+ */
 #define SA_NTF_NOTIFICATIONS_TYPE_MASK 0xF000
 
-/*  Event types enum, these are only generic
- *  types as defined by the X.73x standards  
- */
 typedef enum
 {
     SA_NTF_OBJECT_NOTIFICATIONS_START = SA_NTF_TYPE_OBJECT_CREATE_DELETE,
@@ -98,13 +100,6 @@ typedef enum
     SA_NTF_TIME_VIOLATION
 } SaNtfEventTypeT;
 
-/*  3.12.5  Notification Object  */
-/*  Use SaNameT.  */
-
-/*  3.12.6  Notifying Object  */
-/*  Use SaNameT.  */
-
-/*  3.12.7  SaNtfClassIdT  */
 typedef struct 
 { 
     SaUint32T vendorId; 
@@ -114,83 +109,73 @@ typedef struct
 
 #define SA_NTF_VENDOR_ID_SAF 18568
 
-/* 3.12.8 SaServicesT */
-/* defined in saAis.h */
-
-/*  3.12.9  SaNtfElementIdT  */
 typedef SaUint16T SaNtfElementIdT;
 
-/*  3.12.10  SaNtfIdentifierT  */
-/*typedef SaUint64T SaNtfIdentifierT;*/
+typedef SaUint64T SaNtfIdentifierT;
 
-#define SA_NTF_IDENTIFIER_UNUSED   ((SaNtfIdentifierT) 0)
+#define SA_NTF_IDENTIFIER_UNUSED   ((SaNtfIdentifierT) 0LL)
 
-
-/*  3.12.11 Event Time  */
-/*  Use SaTimeT.  */
-
-/*  3.12.12 SaNtfValueTypeT  */
 typedef enum {
-    SA_NTF_VALUE_UINT8,	    /* A byte long - unsigned int */
-    SA_NTF_VALUE_INT8,	    /* A byte long - signed int */
+    SA_NTF_VALUE_UINT8,     /* 1 byte long - unsigned int */
+    SA_NTF_VALUE_INT8,      /* 1 byte long - signed int */
     SA_NTF_VALUE_UINT16,    /* 2 bytes long - unsigned int */
-    SA_NTF_VALUE_INT16,	    /* 2 bytes long - signed int */
+    SA_NTF_VALUE_INT16,     /* 2 bytes long - signed int */
     SA_NTF_VALUE_UINT32,    /* 4 bytes long - unsigned int */
-    SA_NTF_VALUE_INT32,	    /* 4 bytes long - signed int */
-    SA_NTF_VALUE_FLOAT,	    /* 4 bytes long - float */
+    SA_NTF_VALUE_INT32,     /* 4 bytes long - signed int */
+    SA_NTF_VALUE_FLOAT,     /* 4 bytes long - float */
     SA_NTF_VALUE_UINT64,    /* 8 bytes long - unsigned int */
-    SA_NTF_VALUE_INT64,	    /* 8 bytes long - signed int */
+    SA_NTF_VALUE_INT64,     /* 8 bytes long - signed int */
     SA_NTF_VALUE_DOUBLE,    /* 8 bytes long - double */
     SA_NTF_VALUE_LDAP_NAME, /* SaNameT type */
     SA_NTF_VALUE_STRING,    /* '\0' terminated char array (UTF-8
-			       encoded) */
+                               encoded) */
     SA_NTF_VALUE_IPADDRESS, /* IPv4 or IPv6 address as '\0' terminated
-			       char array */
+                               char array */
     SA_NTF_VALUE_BINARY,    /* Binary data stored in bytes - number of
-			       bytes stored separately */
-    SA_NTF_VALUE_ARRAY	    /* Array of some data type - size of elements
-			       and number of elements stored separately */
+                               bytes stored separately */
+    SA_NTF_VALUE_ARRAY      /* Array of some data type - size of elements
+                               and number of elements stored separately */
 } SaNtfValueTypeT;
 
-/*  3.12.13 SaNtfValueT  */
 typedef union
 {
-    /* The first few are fixed size data types	*/
-    SaUint8T	uint8Val;	/* SA_NTF_VALUE_UINT8 */
-    SaInt8T	int8Val;	/* SA_NTF_VALUE_INT8 */
-    SaUint16T	uint16Val;	/* SA_NTF_VALUE_UINT16 */
-    SaInt16T	int16Val;	/* SA_NTF_VALUE_INT16 */
-    SaUint32T	uint32Val;	/* SA_NTF_VALUE_UINT32 */
-    SaInt32T	int32Val;	/* SA_NTF_VALUE_INT32 */
-    SaFloatT	floatVal;	/* SA_NTF_VALUE_FLOAT */
-    SaUint64T	uint64Val;	/* SA_NTF_VALUE_UINT64 */
-    SaInt64T	int64Val;	/* SA_NTF_VALUE_INT64 */
-    SaDoubleT	doubleVal;	/* SA_NTF_VALUE_DOUBLE */
+    SaUint8T  uint8Val;    /* SA_NTF_VALUE_UINT8 */
+    SaInt8T   int8Val;      /* SA_NTF_VALUE_INT8 */
+    SaUint16T uint16Val;  /* SA_NTF_VALUE_UINT16 */
+    SaInt16T  int16Val;    /* SA_NTF_VALUE_INT16 */
+    SaUint32T uint32Val;  /* SA_NTF_VALUE_UINT32 */
+    SaInt32T  int32Val;    /* SA_NTF_VALUE_INT32 */
+    SaFloatT  floatVal;    /* SA_NTF_VALUE_FLOAT */
+    SaUint64T uint64Val;  /* SA_NTF_VALUE_UINT64 */
+    SaInt64T  int64Val;    /* SA_NTF_VALUE_INT64 */
+    SaDoubleT doubleVal;  /* SA_NTF_VALUE_DOUBLE */
 
-    /* This struct can represent variable length fields like        
-    * LDAP names, strings, IP addresses and binary data. 
-    * It may only be used in conjunction with the data type values 
-    * SA_NTF_VALUE_LDAP_NAME, SA_NTF_VALUE_STRING, 
-    * SA_NTF_VALUE_IPADDRESS and SA_NTF_VALUE_BINARY.
-    * This field shall not be directly accessed. 
-    * To initialise this structure and to set a pointer to the real data   
-    * use saNtfPtrValAllocate(). The function saNtfPtrValGet() shall be used        
-    * for retrieval of the real data.
-    */
+    /* 
+     * This struct can represent variable length fields like        
+     * LDAP names, strings, IP addresses and binary data. 
+     * It may only be used in conjunction with the data type values 
+     * SA_NTF_VALUE_LDAP_NAME, SA_NTF_VALUE_STRING, 
+     * SA_NTF_VALUE_IPADDRESS and SA_NTF_VALUE_BINARY.
+     * This field shall not be directly accessed. 
+     * To initialise this structure and to set a pointer to the real data   
+     * use saNtfPtrValAllocate(). The function saNtfPtrValGet() shall be used
+     * for retrieval of the real data.
+     */
     struct
     {
         SaUint16T dataOffset;
         SaUint16T dataSize;
-
     } ptrVal;
 
-    /* This struct represents sets of data of identical type        
-    * like notification identifiers, attributes  etc. 
-    * It may only be used in conjunction with the data type value 
-    * SA_NTF_VALUE_ARRAY. Functions        
-    * SaNtfArrayValAllocate() or SaNtfArrayValGet() shall be used to       
-    * get a pointer for accessing the real data. Direct access is not allowed.
-    */
+    /* 
+     * This struct represents sets of data of identical type        
+     * like notification identifiers, attributes  etc. 
+     * It may only be used in conjunction with the data type value 
+     * SA_NTF_VALUE_ARRAY. Functions        
+     * SaNtfArrayValAllocate() or SaNtfArrayValGet() shall be used to       
+     * get a pointer for accessing the real data. Direct access is not allowed.
+     */
+
     struct
     {
         SaUint16T arrayOffset;
@@ -200,71 +185,30 @@ typedef union
 
 } SaNtfValueT;
 
-/*  3.12.14 Additional Text  */
-/*  Use SaStringT. A string consists of UTF-8 encoded characters and is
-    terminated by the '\0' character. */
-
-/*  3.12.15 SaNtfAdditionalInfoT  */
 typedef struct
 {
     SaNtfElementIdT infoId;
     /* API user is expected to define this field    */
-
     SaNtfValueTypeT infoType;
-
     SaNtfValueT infoValue;
-
 } SaNtfAdditionalInfoT;
 
-/*  3.12.28     SaNtfNotificationHeaderT  */
 typedef struct 
 {
     SaNtfEventTypeT *eventType;
-    /* This will point to the event type in *
-    * the internal notification structure   */
-
     SaNameT *notificationObject;
-    /* This will point to the notification object   *
-    * in the internal notification structure        */
-
     SaNameT *notifyingObject;
-    /* This will point to the notifying object      *
-    * in the internal notification structure     */
-
     SaNtfClassIdT *notificationClassId;
-    /* This will point to the notification class identifier */
-
     SaTimeT *eventTime;
-    /* Points to eventTime  */
-
     SaUint16T numCorrelatedNotifications;
-    /* Number of correlated notifications in the notification       */
-
     SaUint16T lengthAdditionalText;
-    /* Length of additional text    */
-
     SaUint16T numAdditionalInfo;
-    /* Number of additional info fields     */
-
     SaNtfIdentifierT *notificationId;
-    /* Points to the notification ID in             *
-    * the internal notification structure   */
-
     SaNtfIdentifierT *correlatedNotifications;
-    /* Points to the correlated             *
-    * notification identifiers array        */
-
     SaStringT additionalText;
-    /* Points to the additional text in     *
-     * the internal notification structure (\0 terminated, UTF-8 encoded) */
-
     SaNtfAdditionalInfoT *additionalInfo;
-    /* Points to the additional info array in       *
-    * the internal notification structure   */
-
 } SaNtfNotificationHeaderT;
 
-/*  3.12.22     SaNtfSourceIndicatorT  */
 typedef enum
 {
     SA_NTF_OBJECT_OPERATION = 0,
@@ -272,77 +216,40 @@ typedef enum
     SA_NTF_MANAGEMENT_OPERATION = 2
 } SaNtfSourceIndicatorT;
 
-/*  3.12.25     SaNtfAttributeChangeT  */
 typedef struct
 {
     SaNtfElementIdT attributeId;
-    /* API user is expected to define this field    */
-
     SaNtfValueTypeT attributeType;
-
     SaBoolT oldAttributePresent;
     SaNtfValueT oldAttributeValue;
-
     SaNtfValueT newAttributeValue;
-
 } SaNtfAttributeChangeT;
 
-/*  3.12.30 SaNtfAttributeChangeNotificationT  */
 typedef struct
 {
     SaNtfNotificationHandleT notificationHandle;
-    /* A handle to the internal notification structure      */
-
     SaNtfNotificationHeaderT notificationHeader;
-    /* Pointers to the notification header  */
-
     SaUint16T numAttributes;
-    /* Number of changed attributes in the notification     */
-
     SaNtfSourceIndicatorT *sourceIndicator;
-    /* Points to the source indicator       *
-    * field in the internal notification structure  */
-
     SaNtfAttributeChangeT *changedAttributes;
-    /* Points to changed attributes *
-    * array in the internal notification structure  */
-
 } SaNtfAttributeChangeNotificationT;
 
-/*  3.12.24     SaNtfAttributeT  */
 typedef struct
 {
     SaNtfElementIdT attributeId;
-    /* API user is expected to define this field    */
-
     SaNtfValueTypeT attributeType;
-
     SaNtfValueT attributeValue;
-
 } SaNtfAttributeT;
 
-/*  3.12.29 SaNtfObjectCreateDeleteNotificationT  */
 typedef struct
 {
     SaNtfNotificationHandleT notificationHandle;
-    /* A handle to the internal notification structure      */
-
     SaNtfNotificationHeaderT notificationHeader;
-    /* Notification header  */
-
     SaUint16T numAttributes;
-    /* Number of object attributes in the notification      */
-
     SaNtfSourceIndicatorT *sourceIndicator;
-    /* Points to the source indicator       *
-    * field in the internal notification structure  */
-
     SaNtfAttributeT *objectAttributes;
-    /* Pointer to attributes array in the internal notification structure   */
-
 } SaNtfObjectCreateDeleteNotificationT;
 
-/*  3.12.23     SaNtfStateChangeT  */
 typedef struct
 {
     SaNtfElementIdT stateId;
@@ -351,28 +258,15 @@ typedef struct
     SaUint16T newState;
 } SaNtfStateChangeT;
 
-/*  3.12.31 SaNtfStateChangeNotificationT  */
 typedef struct
 {
     SaNtfNotificationHandleT notificationHandle;
-    /* A handle to the internal notification structure      */
-
     SaNtfNotificationHeaderT notificationHeader;
-    /* Pointers to the notification header  */
-
     SaUint16T numStateChanges;
-    /* Number of state changes in the notification  */
-
     SaNtfSourceIndicatorT *sourceIndicator;
-    /* Points to the source indicator       *
-    * field in the internal notification structure  */
-
     SaNtfStateChangeT *changedStates;
-    /* Points to changed states array in the internal notification structure        */
-
 } SaNtfStateChangeNotificationT;
 
-/*  3.12.16     SaNtfProbableCauseT  */
 typedef enum
 {
     SA_NTF_ADAPTER_ERROR,
@@ -453,23 +347,14 @@ typedef enum
 
 } SaNtfProbableCauseT;
 
-/*  3.12.17 SaNtfSpecificProblemT  */
 typedef struct
 {
     SaNtfElementIdT problemId;
-    /* API user is expected to define this field    */
-
     SaNtfClassIdT problemClassId;
-    /* optional field to identify problemId values from other NCIs,
-    needed for correlation between clear and non-clear alarms */
-
     SaNtfValueTypeT problemType;
-
     SaNtfValueT problemValue;
-
 } SaNtfSpecificProblemT;
 
-/*  3.12.18     SaNtfSeverityT  */
 typedef enum
 {
     SA_NTF_SEVERITY_CLEARED, /* alarm notification, only */
@@ -480,7 +365,6 @@ typedef enum
     SA_NTF_SEVERITY_CRITICAL
 } SaNtfSeverityT;
 
-/*  3.12.19     SaNtfSeverityTrendT  */
 typedef enum
 {
     SA_NTF_TREND_MORE_SEVERE,
@@ -488,288 +372,137 @@ typedef enum
     SA_NTF_TREND_LESS_SEVERE
 } SaNtfSeverityTrendT;
 
-/*  3.12.20 SaNtfThresholdInformationT  */
 typedef struct
 {
     SaNtfElementIdT thresholdId;
-    /* API user is expected to define this field    */
-
     SaNtfValueTypeT thresholdValueType;
-
     SaNtfValueT thresholdValue;
-
     SaNtfValueT thresholdHysteresis;
     /* This has to be of the same type as threshold */
-
     SaNtfValueT observedValue;
-
     SaTimeT armTime;
-
 } SaNtfThresholdInformationT;
 
-/*  3.12.21     SaNtfProposedRepairActionT  */
 typedef struct
 {
     SaNtfElementIdT actionId;
-    /* API user is expected to define this field    */
-
     SaNtfValueTypeT actionValueType;
-
     SaNtfValueT actionValue;
-
 } SaNtfProposedRepairActionT;
 
-/*  3.12.32     SaNtfAlarmNotificationT  */
 typedef struct 
 {
     SaNtfNotificationHandleT notificationHandle;
-    /* A handle to the internal notification structure  */
-
     SaNtfNotificationHeaderT notificationHeader;
-    /* Pointers to the notification header  */
-
     SaUint16T numSpecificProblems;
-    /* Number of specific problems  */
-
     SaUint16T numMonitoredAttributes;
-    /* Number of monitored attributes       */
-
     SaUint16T numProposedRepairActions;
-    /* Number of proposed repair actions    */
-
     SaNtfProbableCauseT *probableCause;
-    /* Points to the probable cause field   */
-
     SaNtfSpecificProblemT *specificProblems;
-    /* Points to the array of specific problems     */
-
     SaNtfSeverityT *perceivedSeverity;
-    /* Points to perceived severity */
-
     SaNtfSeverityTrendT *trend;
-    /* Points to trend of severity  */
-
     SaNtfThresholdInformationT *thresholdInformation;
-    /* Points to the threshold information field    */
-
     SaNtfAttributeT *monitoredAttributes;
-    /* Monitored attributes array   */
-
     SaNtfProposedRepairActionT *proposedRepairActions;
-    /* Proposed repair actions array */
-
 } SaNtfAlarmNotificationT;
 
-/*  3.12.27     SaNtfSecurityAlarmDetectorT  */
 typedef struct
 {
     SaNtfValueTypeT valueType;
-
     SaNtfValueT value;
-
 } SaNtfSecurityAlarmDetectorT;
 
-/*  3.12.26     SaNtfServiceUserT  */
 typedef struct
 {
     SaNtfValueTypeT valueType;
-
     SaNtfValueT value;
-
 } SaNtfServiceUserT;
 
-/*  3.12.33 SaNtfSecurityAlarmNotificationT  */
 typedef struct
 {
     SaNtfNotificationHandleT notificationHandle;
-    /* A handle to the internal notification structure  */
-
     SaNtfNotificationHeaderT notificationHeader;
-    /* Pointers to the notification header  */
-
     SaNtfProbableCauseT *probableCause;
-    /* Points to the probable cause field   */
-
     SaNtfSeverityT *severity;
-    /* Points to severity field     */
-
     SaNtfSecurityAlarmDetectorT *securityAlarmDetector;
-    /* Pointer to the alarm detector field  */
-
     SaNtfServiceUserT*serviceUser;
-    /* Pointer to the service user field    */
-
     SaNtfServiceUserT *serviceProvider;
-    /* Pointer to the service user field    */
-
 } SaNtfSecurityAlarmNotificationT;
 
-
-/*  3.12.34 Default variable notification data size  */
-
-/* Default for API user when not sure how much memory is in sum needed to accommodate the variable size data */
+/* 
+ * Default for API user when not sure how much memory is in sum needed to 
+ * accommodate the variable size data 
+ */
 #define SA_NTF_ALLOC_SYSTEM_LIMIT    (-1)
 
-/*  3.12.35     SaNtfSubscriptionIdT  */
 typedef SaUint32T SaNtfSubscriptionIdT; 
 
-/*  3.12.36     SaNtfNotificationFilterHeaderT  */
 typedef struct 
 {
     SaUint16T numEventTypes;
-    /* number of event types */
-
     SaNtfEventTypeT *eventTypes;
-    /* the array of event types */
-
     SaUint16T numNotificationObjects;
-    /* number of notification objects */
-
     SaNameT *notificationObjects;
-    /* the array of notification objects */
-
     SaUint16T numNotifyingObjects;
-    /* number of notifying objects */
-
     SaNameT *notifyingObjects;
-    /* the array of notifying objects */
-
     SaUint16T numNotificationClassIds;
-    /* number of notification class ids */
-
     SaNtfClassIdT *notificationClassIds;
-    /* the array of notification class ids */
-
 } SaNtfNotificationFilterHeaderT;
 
-/*  3.12.37 SaNtfObjectCreateDeleteNotificationFilterT  */
 typedef struct
 {
     SaNtfNotificationFilterHandleT notificationFilterHandle;
-    /* a handle to the internal notification filter structure */
-
     SaNtfNotificationFilterHeaderT notificationFilterHeader;
-    /* the notification filter header */
-
     SaUint16T numSourceIndicators;
-    /* number of source indicators */
-
     SaNtfSourceIndicatorT *sourceIndicators;
-    /* the array of source indicators */
-
 } SaNtfObjectCreateDeleteNotificationFilterT;
 
-/*  3.12.38 SaNtfAttributeChangeNotificationFilterT  */
 typedef struct
 {
     SaNtfNotificationFilterHandleT notificationFilterHandle;
-    /* a handle to the internal notification filter structure */
-
     SaNtfNotificationFilterHeaderT notificationFilterHeader;
-    /* the notification filter header */
-
     SaUint16T numSourceIndicators;
-    /* number of source indicators */
-
     SaNtfSourceIndicatorT *sourceIndicators;
-    /* the array of source indicators */
-
 } SaNtfAttributeChangeNotificationFilterT;
 
-/*  3.12.39 SaNtfStateChangeNotificationFilterT  */
 typedef struct
 {
     SaNtfNotificationFilterHandleT notificationFilterHandle;
-    /* a handle to the internal notification filter structure */
-
     SaNtfNotificationFilterHeaderT notificationFilterHeader;
-    /* the notification filter header */
-
     SaUint16T numSourceIndicators;
-    /* number of source indicators */
-
     SaNtfSourceIndicatorT *sourceIndicators;
-    /* the array of source indicators */
-
     SaUint16T numStateChanges;
-    /* number of state changes */
+    SaNtfElementIdT *stateId;
+} SaNtfStateChangeNotificationFilterT_2;
 
-    SaNtfStateChangeT *changedStates;
-    /* the array of changed states */
-
-} SaNtfStateChangeNotificationFilterT;
-
-/*  3.12.40 SaNtfAlarmNotificationFilterT  */
 typedef struct 
 {
     SaNtfNotificationFilterHandleT notificationFilterHandle;
-    /* a handle to the internal notification filter structure */
-
     SaNtfNotificationFilterHeaderT notificationFilterHeader;
-    /* the notification filter header */
-
     SaUint16T numProbableCauses;
-    /* number of probable causes */
-
     SaUint16T numPerceivedSeverities;
-    /* number of perceived severities */
-
     SaUint16T numTrends;
-    /* number of severity trends */
-
     SaNtfProbableCauseT *probableCauses;
-    /* the array of probable causes */
-
     SaNtfSeverityT *perceivedSeverities;
-    /* the array of perceived severities */
-
     SaNtfSeverityTrendT *trends;
-    /* the array of severity trends */
-
 } SaNtfAlarmNotificationFilterT;
 
-/*  3.12.41 SaNtfSecurityAlarmNotificationFilterT  */
 typedef struct
 {
     SaNtfNotificationFilterHandleT notificationFilterHandle;
-    /* a handle to the internal notification filter structure */
-
     SaNtfNotificationFilterHeaderT notificationFilterHeader;
-    /* the notification filter header */
-
     SaUint16T numProbableCauses;
-    /* number of probable causes */
-
     SaUint16T numSeverities;
-    /* number of severities */
-
     SaUint16T numSecurityAlarmDetectors;
-    /* number of security alarm detectors */
-
     SaUint16T numServiceUsers;
-    /* number of service users */
-
     SaUint16T numServiceProviders;
-    /* number of service providers */
-
     SaNtfProbableCauseT *probableCauses;
-    /* the array of probable causes */
-
     SaNtfSeverityT *severities;
-    /* the array of severities */
-
     SaNtfSecurityAlarmDetectorT *securityAlarmDetectors;
-    /* the array of security alarm detectors */
-
     SaNtfServiceUserT *serviceUsers;
-    /* the array of service users */
-
     SaNtfServiceUserT *serviceProviders;
-    /* the array of service providers */
-
 } SaNtfSecurityAlarmNotificationFilterT;
 
-/*  3.12.42 SaNtfSearchModeT  */
 typedef enum
 {
     SA_NTF_SEARCH_BEFORE_OR_AT_TIME = 1,
@@ -781,27 +514,27 @@ typedef enum
     SA_NTF_SEARCH_ONLY_FILTER = 7
 } SaNtfSearchModeT;
 
-/*  3.12.43     SaNtfSearchCriteriaT  */
 typedef struct
 {
     SaNtfSearchModeT searchMode;
-    /* indicates the search mode */
-
     SaTimeT eventTime;
-    /* event time (relevant only if searchMode is one of SA_NTF_SEARCH_*_TIME) */
+    /* 
+     * event time (relevant only if searchMode is one of SA_NTF_SEARCH_*_TIME) 
+     */
 
     SaNtfIdentifierT notificationId;
-    /* notification ID (relevant only if searchMode is SA_NTF_SEARCH_NOTIFICATION_ID) */
+    /* 
+     * notification ID (relevant only if searchMode is 
+     * SA_NTF_SEARCH_NOTIFICATION_ID) 
+     */
 } SaNtfSearchCriteriaT;
 
-/*  3.12.44     SaNtfSearchDirectionT  */
 typedef enum
 {
     SA_NTF_SEARCH_OLDER = 1,
     SA_NTF_SEARCH_YOUNGER = 2
 } SaNtfSearchDirectionT;
 
-/*  3.12.45     SaNtfNotificationTypeFilterHandlesT  */
 typedef struct
 {
     SaNtfNotificationFilterHandleT objectCreateDeleteFilterHandle;
@@ -813,9 +546,6 @@ typedef struct
 
 #define SA_NTF_FILTER_HANDLE_NULL       ((SaNtfNotificationFilterHandleT) NULL)
 
-#define SA_NTF_TYPE_FILTER_HANDLE_NULL       ((SaNtfNotificationTypeFilterHandlesT) NULL)
-
-/*  3.12.46     SaNtfNotificationsT  */
 typedef struct
 {
     SaNtfNotificationTypeT notificationType;
@@ -829,52 +559,59 @@ typedef struct
     } notification;
 } SaNtfNotificationsT;
 
-/* 3.15.3.3 SaNtfNotificationCallbackT */
+typedef enum {
+    SA_NTF_STATIC_FILTER_STATE = 1,
+    SA_NTF_SUBSCRIBER_STATE = 2,
+} SaNtfStateT;
+
+typedef enum {
+    SA_NTF_STATIC_FILTER_STATE_INACTIVE = 1,
+    SA_NTF_STATIC_FILTER_STATE_ACTIVE = 2,
+} SaNtfStaticFilterStateT;
+
+typedef enum {
+    SA_NTF_SUBSCRIBER_STATE_FORWARD_NOT_OK = 1,
+    SA_NTF_SUBSCRIBER_STATE_FORWARD_OK = 2,
+} SaNtfSubscriberStateT;
+
 typedef void (*SaNtfNotificationCallbackT)(
     SaNtfSubscriptionIdT subscriptionId,
     const SaNtfNotificationsT *notification);
 
-/* 3.15.3.4 SaNtfNotificationDiscardedCallbackT */
 typedef void (*SaNtfNotificationDiscardedCallbackT)(
     SaNtfSubscriptionIdT subscriptionId,
     SaNtfNotificationTypeT notificationType,
     SaUint32T numberDiscarded,
     const SaNtfIdentifierT *discardedNotificationIdentifiers);
 
-/*  3.12.2.1        SaNtfCallbacksT  */
+typedef void (*SaNtfStaticSuppressionFilterSetCallbackT)(
+    SaNtfHandleT ntfHandle,
+    SaUint16T notificationTypeBitmap);
+
 typedef struct {
     SaNtfNotificationCallbackT saNtfNotificationCallback;
     SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
-} SaNtfCallbacksT;
+    SaNtfStaticSuppressionFilterSetCallbackT
+        saNtfStaticSuppressionFilterSetCallback;
+} SaNtfCallbacksT_2;
 
-/*  3.13    Library Life Cycle  */
+extern SaAisErrorT
+saNtfInitialize_2(SaNtfHandleT *ntfHandle,
+                  const SaNtfCallbacksT_2 *ntfCallbacks,
+                  SaVersionT *version);
 
-/*  3.13.1  saNtfInitialize()  */
-SaAisErrorT
-saNtfInitialize(
-                SaNtfHandleT *ntfHandle,
-                const SaNtfCallbacksT *ntfCallbacks,
-                SaVersionT *version);
-
-/*  3.13.2  saNtfSelectionObjectGet()  */
-SaAisErrorT
-saNtfSelectionObjectGet(
-                        SaNtfHandleT ntfHandle,
+extern SaAisErrorT
+saNtfSelectionObjectGet(SaNtfHandleT ntfHandle,
                         SaSelectionObjectT *selectionObject);
 
-/*  3.13.3  saNtfDispatch()  */
-SaAisErrorT 
-saNtfDispatch(
-              SaNtfHandleT ntfHandle,
+extern SaAisErrorT 
+saNtfDispatch(SaNtfHandleT ntfHandle,
               SaDispatchFlagsT dispatchFlags);
 
-/*  3.13.4  saNtfFinalize()  */
-SaAisErrorT saNtfFinalize(
-                          SaNtfHandleT ntfHandle);
+extern SaAisErrorT 
+saNtfFinalize(SaNtfHandleT ntfHandle);
 
-/*  3.14        Producer Operations  */
-/*  3.14.1      saNtfObjectCreateDeleteNotificationAllocate()  */
-SaAisErrorT 
+extern SaAisErrorT 
 saNtfObjectCreateDeleteNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfObjectCreateDeleteNotificationT *notification,
@@ -884,8 +621,7 @@ saNtfObjectCreateDeleteNotificationAllocate(
     SaUint16T numAttributes,
     SaInt16T variableDataSize);
 
-/*  3.14.2      saNtfAttributeChangeNotificationAllocate()  */
-SaAisErrorT 
+extern SaAisErrorT 
 saNtfAttributeChangeNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfAttributeChangeNotificationT *notification,
@@ -895,8 +631,7 @@ saNtfAttributeChangeNotificationAllocate(
     SaUint16T numAttributes,
     SaInt16T variableDataSize);
 
-/*  3.14.3      saNtfStateChangeNotificationAllocate()  */
-SaAisErrorT 
+extern SaAisErrorT 
 saNtfStateChangeNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfStateChangeNotificationT *notification,
@@ -906,8 +641,8 @@ saNtfStateChangeNotificationAllocate(
     SaUint16T numStateChanges,
     SaInt16T variableDataSize);
 
-/*  3.14.4      saNtfAlarmNotificationAllocate()  */
-SaAisErrorT saNtfAlarmNotificationAllocate( 
+extern SaAisErrorT 
+saNtfAlarmNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfAlarmNotificationT *notification,
     SaUint16T numCorrelatedNotifications,
@@ -918,66 +653,69 @@ SaAisErrorT saNtfAlarmNotificationAllocate(
     SaUint16T numProposedRepairActions,
     SaInt16T variableDataSize);
 
-/*  3.14.5	saNtfSecurityAlarmNotificationAllocate()  */
-SaAisErrorT saNtfSecurityAlarmNotificationAllocate( 
+extern SaAisErrorT 
+saNtfSecurityAlarmNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfSecurityAlarmNotificationT *notification,
     SaUint16T numCorrelatedNotifications,
     SaUint16T lengthAdditionalText,
     SaUint16T numAdditionalInfo,
-    SaInt16T variableDataSize);	
+    SaInt16T variableDataSize);    
 
-/*  3.14.6	saNtfPtrValAllocate()  */
-SaAisErrorT saNtfPtrValAllocate(
+extern SaAisErrorT 
+saNtfPtrValAllocate(
     SaNtfNotificationHandleT notificationHandle,
     SaUint16T dataSize,
     void **dataPtr,
     SaNtfValueT *value);
 
-/*  3.14.7	saNtfArrayValAllocate()  */
-SaAisErrorT saNtfArrayValAllocate(
+extern SaAisErrorT 
+saNtfArrayValAllocate(
     SaNtfNotificationHandleT notificationHandle,
     SaUint16T numElements,
     SaUint16T elementSize,
     void **arrayPtr,
     SaNtfValueT *value);
 
-/*  3.14.8	saNtfNotificationSend()  */
-SaAisErrorT saNtfNotificationSend(
+extern SaAisErrorT 
+saNtfNotificationSend(
     SaNtfNotificationHandleT notificationHandle);
 
-/*  3.14.9	saNtfNotificationFree()  */
-SaAisErrorT saNtfNotificationFree(
+extern SaAisErrorT 
+saNtfNotificationFree(
     SaNtfNotificationHandleT notificationHandle);
 
-/*  3.15	Consumer Operations  */
-/*  3.15.2	Common Operations  */
-/*  3.15.2.1	saNtfLocalizedMessageGet()  */
-SaAisErrorT saNtfLocalizedMessageGet(
+extern SaAisErrorT
+SaNtfVariableDataSizeGet(
+    SaNtfNotificationHandleT notificationHandle,
+    SaUint16T *variableDataSpaceAvailable);
+
+extern SaAisErrorT 
+saNtfLocalizedMessageGet(
     SaNtfNotificationHandleT notificationHandle,
     SaStringT *message);
 
-/*  3.15.2.2 saNtfLocalizedMessageFree() */
-SaAisErrorT saNtfLocalizedMessageFree(
+extern SaAisErrorT 
+saNtfLocalizedMessageFree_2(
+    SaNtfHandleT ntfHandle,
     SaStringT message);
 
-/*  3.15.2.3	saNtfPtrValGet()  */
-SaAisErrorT saNtfPtrValGet(
+extern SaAisErrorT saNtfPtrValGet(
     SaNtfNotificationHandleT notificationHandle,
     SaNtfValueT *value,
     void **dataPtr,
     SaUint16T *dataSize);
 
-/*  3.15.2.4	saNtfArrayValGet()  */
-SaAisErrorT saNtfArrayValGet(
+extern SaAisErrorT 
+saNtfArrayValGet(
     SaNtfNotificationHandleT notificationHandle,
     SaNtfValueT *value,
     void **arrayPtr,
     SaUint16T *numElements,
     SaUint16T *elementSize);
 
-/* 3.15.2.5  saNtfObjectCreateDeleteNotificationFilterAllocate() */
-SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate( 
+extern SaAisErrorT 
+saNtfObjectCreateDeleteNotificationFilterAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfObjectCreateDeleteNotificationFilterT *notificationFilter,
     SaUint16T numEventTypes,
@@ -986,8 +724,8 @@ SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(
     SaUint16T numNotificationClassIds,
     SaUint16T numSourceIndicators);
 
-/*  3.15.2.6	saNtfAttributeChangeNotificationFilterAllocate()  */
-SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate( 
+extern SaAisErrorT 
+saNtfAttributeChangeNotificationFilterAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfAttributeChangeNotificationFilterT *notificationFilter,
     SaUint16T numEventTypes,
@@ -996,10 +734,10 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(
     SaUint16T numNotificationClassIds,
     SaUint32T numSourceIndicators);
 
-/*  3.15.2.7	saNtfStateChangeNotificationFilterAllocate()  */
-SaAisErrorT saNtfStateChangeNotificationFilterAllocate( 
+extern SaAisErrorT 
+saNtfStateChangeNotificationFilterAllocate_2( 
     SaNtfHandleT ntfHandle,
-    SaNtfStateChangeNotificationFilterT *notificationFilter,
+    SaNtfStateChangeNotificationFilterT_2 *notificationFilter,
     SaUint16T numEventTypes,
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
@@ -1007,8 +745,8 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(
     SaUint32T numSourceIndicators,
     SaUint32T numChangedStates);
 
-/*  3.15.2.8	saNtfAlarmNotificationFilterAllocate()  */
-SaAisErrorT saNtfAlarmNotificationFilterAllocate( 
+extern SaAisErrorT 
+saNtfAlarmNotificationFilterAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfAlarmNotificationFilterT *notificationFilter,
     SaUint16T numEventTypes,
@@ -1019,8 +757,8 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(
     SaUint32T numPerceivedSeverities,
     SaUint32T numTrends);
 
-/*  3.15.2.9	saNtfSecurityAlarmNotificationFilterAllocate()  */
-SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate( 
+extern SaAisErrorT 
+saNtfSecurityAlarmNotificationFilterAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfSecurityAlarmNotificationFilterT *notificationFilter,
     SaUint16T numEventTypes,
@@ -1033,36 +771,31 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(
     SaUint32T numServiceUsers,
     SaUint32T numServiceProviders);
 
-/*  3.15.2.10	saNtfNotificationFilterFree()  */
-SaAisErrorT saNtfNotificationFilterFree(
+extern SaAisErrorT 
+saNtfNotificationFilterFree(
     SaNtfNotificationFilterHandleT notificationFilterHandle);
 
-/*  3.15.3	Subscriber Operations   */
-/*  3.15.3.1	saNtfNotificationSubscribe()  */
-SaAisErrorT saNtfNotificationSubscribe(
+extern SaAisErrorT 
+saNtfNotificationSubscribe(
     const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
     SaNtfSubscriptionIdT subscriptionId);
 
-/*  3.15.3.2	saNtfNotificationUnsubscribe()  */
-SaAisErrorT saNtfNotificationUnsubscribe(
+extern SaAisErrorT 
+saNtfNotificationUnsubscribe_2(
+    SaNtfHandleT ntfHandle,
     SaNtfSubscriptionIdT subscriptionId);
 
-/*  3.15.4	 Reader Operations  */
-/*  3.15.4.1	saNtfNotificationReadInitialize()  */
-SaAisErrorT saNtfNotificationReadInitialize(
-	SaNtfSearchCriteriaT searchCriteria,
-	const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-	SaNtfReadHandleT *readHandle);
+extern SaAisErrorT 
+saNtfNotificationReadInitialize_2(
+    const SaNtfSearchCriteriaT *searchCriteria,
+    const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+    SaNtfReadHandleT *readHandle);
 
-/*  3.15.4.2	saNtfNotificationReadNext()  */
-SaAisErrorT saNtfNotificationReadNext(
-	SaNtfReadHandleT readHandle,
-	SaNtfSearchDirectionT searchDirection,
-	SaNtfNotificationsT *notification);
-
-/*  3.15.4.2	saNtfNotificationReadFinalize()  */
-SaAisErrorT saNtfNotificationReadFinalize(
-    	SaNtfReadHandleT readhandle);
+extern SaAisErrorT 
+saNtfNotificationReadNext(
+    SaNtfReadHandleT readHandle,
+    SaNtfSearchDirectionT searchDirection,
+    SaNtfNotificationsT *notification);
 
 #ifdef __cplusplus
 }

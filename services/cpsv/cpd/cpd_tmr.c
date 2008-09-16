@@ -41,7 +41,7 @@ cpd_timer_expiry (NCSCONTEXT uarg)
    CPD_TMR *tmr = (CPD_TMR*)uarg;
    NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
    CPD_CB  *cb;
-   CPSV_EVT *evt;
+   CPSV_EVT *evt=NULL;
    uns32    cpd_hdl = m_CPD_GET_CB_HDL;
 
    /* post a message to the corresponding component */

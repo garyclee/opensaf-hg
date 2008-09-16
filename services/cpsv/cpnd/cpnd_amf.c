@@ -72,7 +72,7 @@ cpnd_saf_health_chk_callback (SaInvocationT invocation,
                              const SaNameT *compName,
                              const SaAmfHealthcheckKeyT *checkType)
 {
-   CPND_CB  *cpnd_cb;
+   CPND_CB  *cpnd_cb=NULL;
    SaAisErrorT error = SA_AIS_OK;
    uns32    cb_hdl = m_CPND_GET_CB_HDL;
    
@@ -249,7 +249,7 @@ void
 cpnd_amf_comp_terminate_callback(SaInvocationT invocation,
                                 const SaNameT *compName)
 {
-   CPND_CB      *cb = 0;
+   CPND_CB      *cb = NULL;
    SaAisErrorT    saErr = SA_AIS_OK;
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
@@ -279,7 +279,7 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
                          const SaNameT *csiName,
                          const SaAmfCSIFlagsT *csiFlags)
 {
-   CPND_CB      *cb = 0;
+   CPND_CB      *cb = NULL;
    SaAisErrorT    saErr = SA_AIS_OK;
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
@@ -337,10 +337,10 @@ void cpnd_saf_csi_set_cb(SaInvocationT invocation,
                          SaAmfCSIDescriptorT csiDescriptor)
 
 {
-   CPND_CB      *cb = 0;
+   CPND_CB      *cb = NULL;
    SaAisErrorT    saErr = SA_AIS_OK;
 #if 0
-   CPSV_EVT    *pEvt = 0;
+   CPSV_EVT    *pEvt  =NULL;
    uns32       rc = NCSCC_RC_SUCCESS;
    V_DEST_RL   mds_role;
    V_CARD_QA   anchor;

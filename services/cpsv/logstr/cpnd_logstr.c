@@ -228,6 +228,7 @@ const NCSFL_STR cpnd_api_set[] = {
    { CPND_CKPT_OPEN_FAILURE,"CPND - Checkpoint Open Failed , cli_hdl/ckpt_id/ckpt_name:lcl_ref_cnt"},
    { CPND_CLIENT_CKPT_CLOSE_SUCCESS,"CPND - Checkpoint Close Success , cli_hdl/ckpt_id/lcl_ref_cnt"},
    { CPND_PROC_CKPT_UNLINK_SUCCESS,"CPND - Ckpt Unlink event Success ,ckpt_name "},
+   { CPND_OPEN_ACTIVE_SYNC_EXPIRY_FAILED,"CPND - Open active Sync receive Failed "},
    { 0,0 }
 
 };
@@ -273,6 +274,8 @@ const NCSFL_STR cpnd_ckptinfo_set[] = {
    { CPND_CKPT_REPLICA_CREATE_SUCCESS,"CPND - Checkpoint Replica Create Success ,ckpt_id"},
    { CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,"CPND - Non collocated rep create Success ,ckpt_id"},
    { CPND_CKPT_CLIENT_DEL_SUCCESS,"CPND - Client Del Success/CPA Down ,cli_hdl"},
+   { CPND_OPEN_ACTIVE_SYNC_START_TMR_SUCCESS,"CPND - Checkpoint open active sync tmr started , ckpt_id"},
+   { CPND_OPEN_ACTIVE_SYNC_STOP_TMR_SUCCESS,"CPND - Checkpoint open active sync tmr stoped , ckpt_id"},
    { 0,0 }
 };
 

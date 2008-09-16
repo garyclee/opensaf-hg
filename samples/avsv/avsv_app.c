@@ -55,7 +55,8 @@
 NCSCONTEXT gl_app_task_hdl = 0;
 
 /* Counter Value */
-uns32 gl_count = 0;
+uns32 gl_count1 = 0;
+uns32 gl_count2 = 0;
 
 /*############################################################################
                             Macro Definitions
@@ -77,7 +78,7 @@ extern uns32 avsv_app_init(void);
 
 extern SaAmfHAStateT gl_ha_state;
 
-extern void avsv_ckpt_data_write(uns32 *);
+extern void avsv_ckpt_data_write(uns32 *,uns32 *);
 
 /*############################################################################
                        Static Function Decalarations
@@ -149,11 +150,12 @@ void avsv_app_process (void)
    {
       if ( SA_AMF_HA_ACTIVE == gl_ha_state )
       {
-         gl_count++;
-         m_NCS_CONS_PRINTF("\n\n COUNTER VALUE: %d \n\n", gl_count);
+         gl_count1++;
+	 gl_count2 = gl_count1 +500;
+       //  m_NCS_CONS_PRINTF("\n\n COUNTER VALUE: %d \n\n", gl_count1);
 
          /* Update the standby with this value */
-         avsv_ckpt_data_write(&gl_count);
+         avsv_ckpt_data_write(&gl_count1,&gl_count2);
       }
 
       m_NCS_TASK_SLEEP(AVSV_APP_COUNTER_UPDATE_TIME);

@@ -39,8 +39,8 @@ typedef struct vds_ckpt_attrib
 #define m_VDS_CKPT_VER_GET(ver) \
 { \
    ver.releaseCode = 'B'; \
-   ver.majorVersion = 0x01; \
-   ver.minorVersion = 0x01; \
+   ver.majorVersion = 0x02; \
+   ver.minorVersion = 0x02; \
 };
 
 typedef enum

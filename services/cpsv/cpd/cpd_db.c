@@ -1334,5 +1334,21 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
    return;
 }
 
+void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
+{
+   if(!cb->is_ckpt_tree_up)
+      return;
+   cpd_ckpt_tree_cleanup(cb);
+   if(!cb->is_ckpt_map_up)
+      return;
+   cpd_ckpt_map_tree_cleanup(cb);
+   if(!cb->is_cpnd_tree_up)
+      return;
+   cpd_cpnd_info_tree_cleanup(cb);
+   if(!cb->is_ckpt_reploc_up)
+     return;
+   cpd_ckpt_reploc_cleanup(cb);
+   return;
+}
 
  

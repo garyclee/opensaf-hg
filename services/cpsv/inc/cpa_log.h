@@ -155,7 +155,7 @@ typedef enum cpa_api_log_flex
    CPA_API_CKPT_REG_ARR_CBK_SUCCESS,
    CPA_API_CKPT_REG_ARR_CBK_FAILED,
    CPA_API_CKPT_SECT_ID_FREE_SUCCESS,
-   CPA_API_CKPT_SECT_ID_FREE_FAILED,
+   CPA_API_CKPT_SECT_ID_FREE_FAILED
 } CPA_API_LOG_FLEX;
 
 
@@ -168,7 +168,7 @@ typedef enum cpa_db_log_flex
    CPA_SECT_ITER_NODE_DELETE_FAILED,
    CPA_BUILD_DATA_ACCESS_FAILED,
    CPA_PROC_REPLICA_READ_FAILED,
-   CPA_PROC_RMT_REPLICA_READ_FAILED,
+   CPA_PROC_RMT_REPLICA_READ_FAILED
 }CPA_DB_LOG_FLEX;
 
 /******************************************************************************
@@ -177,7 +177,7 @@ typedef enum cpa_db_log_flex
 typedef enum cpa_data_send_log_flex
 {
    CPA_MDS_SEND_FAILURE,
-   CPA_MDS_SEND_TIMEOUT,
+   CPA_MDS_SEND_TIMEOUT
 } CPA_DATA_SEND_LOG_FLEX;
 
 
@@ -187,7 +187,7 @@ typedef enum cpa_generic_log_flex
    CPA_API_FAILED,
    CPA_PROC_SUCCESS,
    CPA_PROC_FAILED,
-   CPA_MEM_ALLOC_FAILED,
+   CPA_MEM_ALLOC_FAILED
 } CPA_GENERIC_LOG_FLEX;
 
 /******************************************************************************
@@ -201,7 +201,7 @@ typedef enum cpa_flex_sets
    CPA_FC_MEMFAIL,
    CPA_FC_API,
    CPA_FC_DATA_SEND,
-   CPA_FC_DB,
+   CPA_FC_DB
 }CPA_FLEX_SETS;
 
 typedef enum cpa_log_ids
@@ -216,7 +216,7 @@ typedef enum cpa_log_ids
    CPA_LID_TICCLLF,
    CPA_LID_TICCLLFF,
    CPA_LID_TICCLFFF,
-   CPA_LID_TICCLLFFF,
+   CPA_LID_TICCLLFFF
 } CPA_LOG_IDS;
 
 EXTERN_C void cpa_flx_log_reg(void);

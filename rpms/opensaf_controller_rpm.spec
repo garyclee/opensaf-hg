@@ -447,8 +447,8 @@ unlink /etc/init.d/nis_scxb
 %{lib_dir}/libcpsv_common.so.0
 %{lib_dir}/libcpsv_common.so.0.0.0
 %{lib_dir}/libcpsv_logstr.so
-%{lib_dir}/libcpsv_logstr.so.2
-%{lib_dir}/libcpsv_logstr.so.2.0.0
+%{lib_dir}/libcpsv_logstr.so.3
+%{lib_dir}/libcpsv_logstr.so.3.0.0
 %{lib_dir}/libcpsv_subagt.so
 %{lib_dir}/libcpsv_subagt.so.0
 %{lib_dir}/libcpsv_subagt.so.0.0.0

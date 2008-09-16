@@ -66,6 +66,12 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
  #define m_CPND_IS_CREAT_ATTRIBUTE_EQUAL(x_attr1,x_attr2) \
        (((x_attr1.creationFlags == x_attr2.creationFlags)&& \
             (x_attr1.checkpointSize == x_attr2.checkpointSize ) && \
+            (x_attr1.maxSections == x_attr2.maxSections) && \
+            (x_attr1.maxSectionSize == x_attr2.maxSectionSize ) && \
+            (x_attr1.maxSectionIdSize == x_attr2.maxSectionIdSize )!= 0)?TRUE:FALSE)
+ #define m_CPND_IS_CREAT_ATTRIBUTE_EQUAL_B_1_1(x_attr1,x_attr2) \
+       (((x_attr1.creationFlags == x_attr2.creationFlags)&& \
+            (x_attr1.checkpointSize == x_attr2.checkpointSize ) && \
             (x_attr1.retentionDuration == x_attr2.retentionDuration ) && \
             (x_attr1.maxSections == x_attr2.maxSections) && \
             (x_attr1.maxSectionSize == x_attr2.maxSectionSize ) && \
@@ -86,7 +92,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 #define m_CPND_IS_ON_SCXB(m,n) ((m==n)?1:0)
 
 /*30B Versioning Changes */
-#define CPND_MDS_PVT_SUBPART_VERSION 1
+#define CPND_MDS_PVT_SUBPART_VERSION 2
 
 /*CPND - CPA communication */
 #define CPND_WRT_CPA_SUBPART_VER_MIN 1
@@ -106,7 +112,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 
 /*CPND - CPD communication */
 #define CPND_WRT_CPD_SUBPART_VER_MIN 1
-#define CPND_WRT_CPD_SUBPART_VER_MAX 1
+#define CPND_WRT_CPD_SUBPART_VER_MAX 2
 
 #define CPND_WRT_CPD_SUBPART_VER_RANGE \
         (CPND_WRT_CPD_SUBPART_VER_MAX - \
@@ -206,6 +212,7 @@ typedef struct cpnd_ckpt_node
    CPSV_EVT                           *evt_bckup_q;
    CPSV_SEND_INFO                     cpa_sinfo; /* Used in unlink flow while sending response to CPA */
    NCS_BOOL                           cpa_sinfo_flag;
+   CPND_TMR                            open_active_sync_tmr;
 }CPND_CKPT_NODE;
 
 #define CPND_CKPT_NODE_NULL  ((CPND_CKPT_NODE *)0)
@@ -287,6 +294,7 @@ typedef struct cpnd_cb_tag
    /* Information about the CPD */
    MDS_DEST             cpd_mdest_id;
    NCS_BOOL             is_cpd_up;
+   NCS_BOOL            is_joined_cl;
    uns32                num_rep; /* Number of shared memory segments */
 
    uns32                gl_cpnd_shm_id;  /* the global Checkpoint Shared
@@ -299,6 +307,7 @@ typedef struct cpnd_cb_tag
    NCS_PATRICIA_TREE    ckpt_info_db;      /* CPND_CKPT_NODE - node */
    NCS_PATRICIA_TREE    writeevt_db;       /*All replica write evt node*/ 
    SaClmHandleT         clm_hdl; 
+   SaSelectionObjectT  clm_sel_obj;
    SaClmNodeIdT         nodeid;  
    SaAmfHandleT         amf_hdl;          /* AMF handle, obtained thru AMF init        */   
    uns8*                cpnd_res_shm_name;  
@@ -361,6 +370,7 @@ EXTERN_C int32 cpnd_find_ckpt_exists(CPND_CB *cb,CPND_CKPT_NODE *cp_node);
 EXTERN_C NCS_BOOL cpnd_match_evt(void *key, void *qelem);
 EXTERN_C NCS_BOOL cpnd_match_dest(void *key, void *qelem);
 EXTERN_C void cpnd_restart_reset_close_flag(CPND_CB *cb,CPND_CKPT_NODE *cp_node);
+EXTERN_C void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer, SaUint32T numberOfMembers, SaAisErrorT error);
 #define m_CPSV_CONVERT_EXPTIME_TEN_MILLI_SEC(t) \
      SaTimeT now; \
      t = (( (t) - (m_GET_TIME_STAMP(now)*(1000000000)))/(10000000));

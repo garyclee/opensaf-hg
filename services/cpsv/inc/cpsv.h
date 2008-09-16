@@ -24,7 +24,7 @@
   DESCRIPTION:
 
   This module is the main include file for the entire CheckPoint Service.
-  
+
 ******************************************************************************
 */
 
@@ -68,6 +68,13 @@
 #define m_COMPARE_CREATE_ATTR(attr1, attr2)                       \
   (((attr1)->creationFlags == (attr2)->creationFlags) &&          \
    ((attr1)->checkpointSize == (attr2)->checkpointSize) &&        \
+   ((attr1)->maxSections == (attr2)->maxSections) &&              \
+   ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&        \
+   ((attr1)->maxSectionIdSize == (attr2)->maxSectionIdSize))      \
+
+#define m_COMPARE_CREATE_ATTR_B_1_1(attr1, attr2)                       \
+  (((attr1)->creationFlags == (attr2)->creationFlags) &&          \
+   ((attr1)->checkpointSize == (attr2)->checkpointSize) &&        \
    ((attr1)->retentionDuration == (attr2)->retentionDuration) &&  \
    ((attr1)->maxSections == (attr2)->maxSections) &&              \
    ((attr1)->maxSectionSize == (attr2)->maxSectionSize) &&        \
@@ -75,7 +82,7 @@
 
 #define m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(attr)                  \
     ((attr)->creationFlags & SA_CKPT_CHECKPOINT_COLLOCATED)
-                                   
+
 #define m_IS_ASYNC_UPDATE_OPTION(attr)                            \
    ((attr)->creationFlags & (SA_CKPT_WR_ACTIVE_REPLICA | SA_CKPT_WR_ACTIVE_REPLICA_WEAK))
 
@@ -92,7 +99,7 @@
                    FUNC_NAME(DS)(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, \
                    NCSCONTEXT ptr, uns32 *ptr_data_len, \
                    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, \
-                   EDU_ERR *o_err) 
+                   EDU_ERR *o_err)
 
 
 
@@ -138,7 +145,7 @@
 
 
 /* DTSv version support */
-#define CPSV_LOG_VERSION 2 
+#define CPSV_LOG_VERSION 3
 
 #define m_NCS_OS_SPRINTF         sprintf
 

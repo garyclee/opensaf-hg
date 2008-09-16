@@ -20,8 +20,10 @@
 
 /* Macros for Validating Version */
 #define CPA_RELEASE_CODE 'B'
-#define CPA_MAJOR_VERSION 0x01
-#define CPA_MINOR_VERSION 0x01
+#define CPA_MAJOR_VERSION 0x02
+#define CPA_MINOR_VERSION 0x02
+#define CPA_BASE_MAJOR_VERSION 0x01
+#define CPA_BASE_MINOR_VERSION 0x01
 
 #define m_CPA_VER_IS_VALID(ver) \
    ((ver->releaseCode == CPA_RELEASE_CODE) && \

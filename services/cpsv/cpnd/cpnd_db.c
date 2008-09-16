@@ -135,7 +135,7 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
 
   CPND_CKPT_CLLIST_NODE *cllist_node =  cp_node->clist;
   CPND_CKPT_CLLIST_NODE *free_cllist_node=NULL;
-  CPSV_CPND_DEST_INFO *tmp,*free_tmp=NULL;
+  CPSV_CPND_DEST_INFO *tmp=NULL,*free_tmp=NULL;
   CPND_CKPT_CLIENT_NODE   *cl_node=NULL;
 
 
@@ -409,6 +409,39 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node,SaCkptSectionI
    return NULL;
 }
 /****************************************************************************
+ * Name          : cpnd_ckpt_sec_get_create
+ *
+ * Description   : Function to Find the section in a checkpoint before create.
+ *
+ * Arguments     : CPND_CKPT_NODE *cp_node - Check point node.
+ *               : SaCkptSectionIdT id - Section Identifier
+ *                 
+ * Return Values :  NULL/CPND_CKPT_SECTION_INFO
+ *
+ * Notes         : None.
+ *****************************************************************************/
+CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id)
+{
+   CPND_CKPT_SECTION_INFO *pSecPtr=NULL;
+   if ( cp_node->replica_info.n_secs == 0)
+   { 
+      m_LOG_CPND_FCL(CPND_REPLICA_HAS_NO_SECTIONS,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,cp_node->ckpt_id,\
+      __FILE__,__LINE__);
+      return NULL;
+   }
+   pSecPtr=cp_node->replica_info.section_info;
+   while(pSecPtr != NULL)
+   {
+       if ( (pSecPtr->sec_id.idLen == id->idLen) && \
+             (m_NCS_MEMCMP(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
+       {
+          return pSecPtr;
+       }
+       pSecPtr=pSecPtr->next;
+   }
+   return NULL;
+}
+/****************************************************************************
  * Name          : cpnd_ckpt_sec_find
  *
  * Description   : Function to Find the section in a checkpoint.
@@ -623,7 +656,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
  *****************************************************************************/
 void cpnd_ckpt_delete_all_sect(CPND_CKPT_NODE *cp_node)
 {
-   CPND_CKPT_SECTION_INFO *pSecPtr;
+   CPND_CKPT_SECTION_INFO *pSecPtr=NULL;
 
    /* delete it from the list and return the pointer */
    do
@@ -786,9 +819,9 @@ uns32 cpnd_client_node_tree_init(CPND_CB *cb)
 void cpnd_ckpt_node_tree_cleanup(CPND_CB *cb)
 {
 
-   CPND_CKPT_NODE  *cp_node;
-   CPND_CKPT_CLLIST_NODE *cp_cl_ref,*tmp_ref;
-   CPSV_CPND_DEST_INFO *cpnd_dest_list,*tmp_dest;
+   CPND_CKPT_NODE  *cp_node=NULL;
+   CPND_CKPT_CLLIST_NODE *cp_cl_ref=NULL,*tmp_ref=NULL;
+   CPSV_CPND_DEST_INFO *cpnd_dest_list=NULL,*tmp_dest=NULL;
    SaAisErrorT error;
 
    while((cp_node = (CPND_CKPT_NODE *) ncs_patricia_tree_getnext(&cb->ckpt_info_db,(uns8*)0)))
@@ -849,8 +882,8 @@ void cpnd_ckpt_node_tree_destroy(CPND_CB *cb)
 void cpnd_client_node_tree_cleanup(CPND_CB *cb)
 {
 
-   CPND_CKPT_CLIENT_NODE *cl_node;
-   CPND_CKPT_CKPT_LIST_NODE *cl_ckpt_ref,*tmp_ref;
+   CPND_CKPT_CLIENT_NODE *cl_node=NULL;
+   CPND_CKPT_CKPT_LIST_NODE *cl_ckpt_ref=NULL,*tmp_ref=NULL;
 
    while((cl_node = (CPND_CKPT_CLIENT_NODE *) ncs_patricia_tree_getnext(&cb->client_info_db,(uns8*)0)))
    {
@@ -920,8 +953,8 @@ uns32 cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb)
 void cpnd_allrepl_write_evt_node_tree_cleanup(CPND_CB *cb)
 {
 
-   CPSV_CPND_ALL_REPL_EVT_NODE *evt_node;
-   CPSV_CPND_UPDATE_DEST *evt_ckpt_ref,*tmp_ref;
+   CPSV_CPND_ALL_REPL_EVT_NODE *evt_node=NULL;
+   CPSV_CPND_UPDATE_DEST *evt_ckpt_ref=NULL,*tmp_ref=NULL;
 
    while((evt_node = (CPSV_CPND_ALL_REPL_EVT_NODE*) ncs_patricia_tree_getnext(&cb->writeevt_db,(uns8*)0)))
    {
@@ -984,7 +1017,7 @@ NCS_PHY_SLOT_ID  cpnd_get_phy_slot_id(MDS_DEST dest)
  *****************************************************************************************/
 void cpnd_agent_dest_add(CPND_CKPT_NODE *cp_node,MDS_DEST adest)
 {
-   CPSV_CPND_DEST_INFO *cpnd_dest;
+   CPSV_CPND_DEST_INFO *cpnd_dest=NULL;
    cpnd_dest = m_MMGR_ALLOC_CPND_DEST_INFO;
    if(cpnd_dest)
    {
@@ -1052,7 +1085,7 @@ void cpnd_agent_dest_del(CPND_CKPT_NODE *cp_node,MDS_DEST adest)
 
 void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest)
 {
-   CPSV_EVT *bck_evt; 
+   CPSV_EVT *bck_evt=NULL; 
    uns32 err_flag=0;
    CPSV_SEND_INFO *sinfo = NULL;
    
@@ -1077,3 +1110,49 @@ void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest
    }
 }
 
+   void cpnd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificationBuffer, SaUint32T numberOfMembers, SaAisErrorT error)
+   {
+      CPND_CB *cb=NULL;
+      SaClmNodeIdT node_id;
+      uns32 counter=0; 
+      if (error != SA_AIS_OK)
+	return;
+      m_CPND_RETRIEVE_CB(cb);
+      if(cb == NULL)
+      {
+         m_LOG_CPND_CL(CPND_CB_RETRIEVAL_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+         return; 
+      }      
+        if (notificationBuffer != NULL)               
+        for(counter=0;counter < notificationBuffer->numberOfItems;counter++)
+        {
+           if(notificationBuffer->notification[counter].clusterChange == SA_CLM_NODE_LEFT)
+           {
+                node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+		  if (node_id == cb->nodeid )
+		  {
+			  if( cpnd_proc_ckpt_clm_node_left(cb) != NCSCC_RC_SUCCESS)
+			  {
+			  	 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_left  to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+			  	 m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+			  }
+		  }
+		  m_NCS_CONS_PRINTF("node_left -%d -%s line-%d clusterChange-%d \n",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+           }
+	    else  if(notificationBuffer->notification[counter].clusterChange == (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED ))
+	    {
+		  node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+		  if (node_id == cb->nodeid )
+		  {
+		 	 if( cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS)
+		  	{
+			 	m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+				 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_joined to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+                	 }
+		  }
+		  m_NCS_CONS_PRINTF("node_joined -%d -%s line-%d clusterChange-%d\n ",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+     	 }  
+      	}
+	m_CPND_GIVEUP_CB;
+      return;
+}
