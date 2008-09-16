@@ -27,8 +27,13 @@
 
 #include "cpd.h"
  uns32 cpd_evt_proc_cb_dump(CPD_CB *cb);
+#if 0
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
                          CPD_EVT *evt, CPSV_SEND_INFO *sinfo,MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver);
+#else
+static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
+                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
+#endif
 static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt,CPSV_SEND_INFO *sinfo);
 /*static uns32 cpd_evt_proc_ckpt_sync_info(CPD_CB *cb,CPD_EVT *evt,CPSV_SEND_INFO *sinfo);*/
 static uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb,CPD_EVT *evt,
@@ -117,7 +122,11 @@ void cpd_process_evt(CPSV_EVT *evt)
       rc = cpd_evt_proc_timer_expiry(cb, &evt->info.cpd);
       break;
    case CPD_EVT_ND2D_CKPT_CREATE:
+      #if 0
       rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo,evt->info.cpd.info.ver_info.i_msg_fmt_ver);
+      #else
+	rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo);
+	#endif
       break;
    case CPD_EVT_ND2D_CKPT_USR_INFO:
       rc = cpd_evt_proc_ckpt_usr_info(cb,&evt->info.cpd, &evt->sinfo);
@@ -177,8 +186,13 @@ void cpd_process_evt(CPSV_EVT *evt)
  *
  * Notes         : None.
  *****************************************************************************/
+ #if 0
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
                          CPD_EVT *evt, CPSV_SEND_INFO *sinfo,MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver)
+ #else
+ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, 
+                         CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
+ #endif
 {
    CPSV_EVT                send_evt;
    SaAisErrorT             rc = SA_AIS_OK;
@@ -187,11 +201,16 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
    CPD_CKPT_MAP_INFO       *map_info=NULL;
    CPSV_ND2D_CKPT_CREATE   *ckpt_create = &evt->info.ckpt_create;
    NCS_BOOL                is_first_rep = FALSE,is_new_noncol=FALSE;
+   #if 0
+   MDS_CLIENT_MSG_FORMAT_VER   fmt_ver = i_msg_fmt_ver;
+   #else
+   MDS_CLIENT_MSG_FORMAT_VER   fmt_ver = 2;
+   #endif
 
    cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_create->ckpt_name, &map_info);
    if(map_info)
    {
-      if (i_msg_fmt_ver == 2)
+      if (fmt_ver == 2)
       {
    /*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
       if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
@@ -203,7 +222,7 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
              goto send_rsp;
           }
       }
-      else if (i_msg_fmt_ver == 1)
+      else if (fmt_ver == 1)
       {
               if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
             (!m_COMPARE_CREATE_ATTR_B_1_1(&ckpt_create->attributes, &map_info->attributes)))   
