@@ -1207,30 +1207,6 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
   
   m_NCS_OS_MEMSET(&phy_slot,0,sizeof(NCS_PHY_SLOT_ID));    
 
- 
- #if 0 
-   if(mds_info->svc_id != NCSMDS_SVC_ID_CPND)
-   {
-      /*RSR:TBD Log the error */
-      return NCSCC_RC_FAILURE;
-   }
-   cpd_cpnd_info_node_get(&cb->cpnd_tree,&mds_info->dest,&node_info);
-   if(!node_info)
-   {
-      /* No Checkpoints on this node, */
-      return NCSCC_RC_SUCCESS;
-   }
-
-   /* Get the CPD_CPND_INFO_NODE (CPND from where this ckpt is created) */
-   proc_rc = cpd_cpnd_info_node_find_add(&cb->cpnd_tree, 
-                                        &mds_info->dest, &node_info, &add_flag);
-   
-   if(!node_info)
-   {
-      /* No Checkpoints on this node, */
-      return NCSCC_RC_SUCCESS;
-   }
-#endif
    switch(mds_info->change)
    {
 
@@ -1260,13 +1236,14 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        {
           phy_slot = cpd_get_phy_slot_id(mds_info->dest);
           cb->cpnd_dests[phy_slot-1] = mds_info->dest;
+       if(cb->cpd_remote_id == phy_slot)
+	       cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot-1];
+
        }  
       
-     /*  if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(mds_info->dest)))*/
        if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
        {
           cb->is_loc_cpnd_up = TRUE;   
-        /*  cb->loc_cpnd_dest = mds_info->dest;*/
           cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot-1];
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
@@ -1291,13 +1268,8 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
                       cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info); 
                       if(map_info)
                       {
-                     /*    ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length);   */
-                     /*    cpd_noncolloc_ckpt_rep_create(cb,&mds_info->dest,ckpt_node,map_info); */
                           cpd_noncolloc_ckpt_rep_create(cb,&cb->loc_cpnd_dest,ckpt_node,map_info);
-
                       }
-                /*      else 
-                      ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length); */
                    }
                 }
 
@@ -1306,11 +1278,9 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
           }
        }
        /* When CPND ON STANDBY COMES UP */
-      /* if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(mds_info->dest)))*/
        if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
        {
           cb->is_rem_cpnd_up = TRUE;
-         /* cb->rem_cpnd_dest  = mds_info->dest;*/
           cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot-1];
     
 
@@ -1336,13 +1306,9 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
                       cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
                       if(map_info)
                       {
-                    /*     ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length);  */
-                    /*     cpd_noncolloc_ckpt_rep_create(cb,&mds_info->dest,ckpt_node,map_info); */
                           cpd_noncolloc_ckpt_rep_create(cb,&cb->rem_cpnd_dest,ckpt_node,map_info);
 
                       }
-                 /*     else
-                         ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length);  */
                    }
                 }
 
@@ -1350,6 +1316,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
              } 
           }
        } 
+
        if(cb->ha_state == SA_AMF_HA_ACTIVE)
        { 
           cpd_cpnd_info_node_get(&cb->cpnd_tree,&mds_info->dest,&node_info);
@@ -1359,7 +1326,9 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
             return NCSCC_RC_SUCCESS;
           }
           else
+          {
             cpnd_up_process(cb,mds_info,node_info);
+          }
        }
     
        if(cb->ha_state == SA_AMF_HA_STANDBY)
@@ -1394,6 +1363,9 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
         {
           cb->is_rem_cpnd_up = FALSE;
         }
+        /* MDS address for this CPND is no longer valid */
+        phy_slot = cpd_get_phy_slot_id(mds_info->dest);
+        cb->cpnd_dests[phy_slot-1] = 0;
         if(cb->ha_state == SA_AMF_HA_ACTIVE)
         { 
            cpd_cpnd_info_node_get(&cb->cpnd_tree,&mds_info->dest,&node_info);
@@ -1419,25 +1391,6 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
            cpd_tmr_start(&node_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
         }
 
-#if 0
-   cpd_process_cpnd_down(cb, &mds_info->dest);
-      /* This support will come with CPND Restart */
-      /* CPND is gone, start the timer */
-      /* Create the handle to protect the CPA_TMR structure (part of lcl_ckpt_node */
-      if(node_info->cpnd_ret_timer.uarg)
-      {
-         /* create the association with hdl-mngr */
-         if (!(node_info->cpnd_ret_timer.uarg = ncshm_create_hdl(cb->hm_poolid,NCS_SERVICE_ID_CPD, (NCSCONTEXT)&node_info->cpnd_ret_timer)))
-  {
-            /* Handle not found, what to do??? TBD */
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      cpnd_down_process(cb,mds_info);
-    /*  node_info->cpnd_ret_timer.type = CPD_TMR_TYPE_CPND_RETENTION;
-      node_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
-      cpd_tmr_start(&node_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);*/
-#endif
       break;
     default:
          
