@@ -595,11 +595,12 @@ static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
    CPSV_EVT *evt=NULL;
    uns32    rc;
+
+   if(svc_evt->i_svc_id == NCSMDS_SVC_ID_CPA)
+    return NCSCC_RC_SUCCESS;
    
    evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
   
-   if(svc_evt->i_svc_id == NCSMDS_SVC_ID_CPA)
-    return NCSCC_RC_SUCCESS;
      
    if(!evt)
    {
