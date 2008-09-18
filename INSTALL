@@ -477,22 +477,11 @@ Please check the Sample applications documentation for instructions to run them.
 7.1 General
 -----------
 
-The entrypoint for troubleshooting an OpenSAF cluster is normally the system
-log on the controller nodes (normally /var/log/messages). From there you can
-see high level cluster events such as nodes leaving and joining, controller
-fail over etc. If a specific node is having problems, continue with the system
-log on that node.
+The entrypoint for troubleshooting an OpenSAF cluster is normally the system log on the controller nodes (normally /var/log/messages). From there you can see high level cluster events such as nodes leaving and joining, controller fail over etc. If a specific node is having problems, continue with the system log on that node.
 
-Next stop would be the AMF logs, AVD and AvND. The AVD logs contains the AMF
-cluster view (nodes, SUs & SIs). The AvND logs contain the AMF node view on a
-component level (SUs, components, CSIs, CLC-CLI). AVD and AvND logs are found
-in the directory '/var/opt/opensaf/log' on the controllers.
+Next stop would be the AMF logs, AVD and AvND. The AVD logs contains the AMF cluster view (nodes, SUs & SIs). The AvND logs contain the AMF node view on a component level (SUs, components, CSIs, CLC-CLI). AVD and AvND logs are found in the directory '/var/opt/opensaf/log' on the controllers.
 
-If there is no system or AMF problem in the cluster, the logs from the
-application should be investigated. If they indicate problems with an
-OpenSAF service (other than AMF), please refer to the OpenSAF service
-specific logs such cpnd, EDA etc. all found in '/var/opt/opensaf/log' on the
-controllers.
+If there is no system or AMF problem in the cluster, the logs from the application should be investigated. If they indicate problems with an OpenSAF service (other than AMF), please refer to the OpenSAF service specific logs such cpnd, EDA etc. all found in '/var/opt/opensaf/log' on the controllers.
 
 7.2 The OpenSAF services on a system controller fail to start during any of the following error scenarios:
 ------------------------------------------------------------------------------------------------------
