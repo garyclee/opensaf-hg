@@ -1704,11 +1704,9 @@ uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 
    if (TRUE == su->is_ncs)
    {
-     m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - NCS SU :- %s Termination-failed \n",
-          su->name_net.value);
-     m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot - NCS SU :- %s Termination-failed \n",
-                    su->name_net.value);
-     m_NCS_REBOOT;
+       char reason [SA_MAX_NAME_LENGTH + 64];
+       sprintf(reason, "SU '%s' Termination-failed", su->name_net.value);
+       ncs_reboot(reason);
    }   
 
    /* Now check if in the context of shutdown all app SUs 

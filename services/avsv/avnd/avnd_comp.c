@@ -835,9 +835,9 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
          (!m_AVND_COMP_IS_FAILED(comp)) &&
          (!m_AVND_COMP_TYPE_IS_PROXIED(comp)))
    {
-      m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -%s unregistered\n",
+      m_NCS_DBG_PRINTF("\nAvSv: %s unregistered\n",
             comp->name_net.value);
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -%s unregistered",
+      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: %s unregistered",
             comp->name_net.value);
    }
 

@@ -416,7 +416,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb,AVD_EVT *evt)
    AVD_AVND * avnd = AVD_AVND_NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_nd_func");
-   
+
    if (evt->info.tmr.type != AVD_TMR_RCV_HB_ND)
    {
       /* log error that a wrong timer type value */
@@ -443,6 +443,8 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
+   syslog(LOG_WARNING, "AVD: Heart Beat missed with node director on %x",
+          evt->info.tmr.node_id);
 
    /* get avnd ptr to call avd_avm_mark_nd_absent */
    if( (avnd = avd_avnd_struc_find_nodeid(cb, evt->info.tmr.node_id)) == AVD_AVND_NULL)
@@ -695,10 +697,7 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb,AVD_AVND *avnd)
    /* reboot the AvD if the AvND matches self and AVD is quiesced.*/
    if( (avnd->node_info.nodeId == cb->node_id_avd) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED) )
    {
-      /* Call leap macro to shutdown this node */
-      m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - Card failed in qsd state\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Card going for reboot - Card failed in qsd state");
-      m_NCS_REBOOT;
+      ncs_reboot("Node failed in qsd state");
    }
 
    return;

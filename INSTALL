@@ -473,7 +473,28 @@ Please check the Sample applications documentation for instructions to run them.
  
 7. TROUBLESHOOTING:
 -------------------
-The OpenSAF services on a system controller fail to start during any of the following error scenarios:
+
+7.1 General
+-----------
+
+The entrypoint for troubleshooting an OpenSAF cluster is normally the system
+log on the controller nodes (normally /var/log/messages). From there you can
+see high level cluster events such as nodes leaving and joining, controller
+fail over etc. If a specific node is having problems, continue with the system
+log on that node.
+
+Next stop would be the AMF logs, AVD and AvND. The AVD logs contains the AMF
+cluster view (nodes, SUs & SIs). The AvND logs contain the AMF node view on a
+component level (SUs, components, CSIs, CLC-CLI). AVD and AvND logs are found
+in the directory '/var/opt/opensaf/log' on the controllers.
+
+If there is no system or AMF problem in the cluster, the logs from the
+application should be investigated. If they indicate problems with an
+OpenSAF service (other than AMF), please refer to the OpenSAF service
+specific logs such cpnd, EDA etc. all found in '/var/opt/opensaf/log' on the
+controllers.
+
+7.2 The OpenSAF services on a system controller fail to start during any of the following error scenarios:
 ------------------------------------------------------------------------------------------------------
 
 1. The following error "insmod: error inserting 'tipc.ko': -1 Invalid module format" indicates that user had not compiled tipc with proper kernel files. Please compile tipc with appropriate kernel header files(like for eg:- they are different for an smp kernel, etc.).
@@ -521,6 +542,7 @@ The OpenSAF services on a system controller fail to start during any of the foll
 9. The status of nodes joining and leaving the cluster can be known by checking the logs of AVD(Availability Director) present in /var/opt/opensaf/log/ .
 
 10. To diagnose problems during OpenSAF startup, the following logs/commands provide preliminary information:
+    - The system log on all nodes (normally /var/log/messages)
     - /etc/init.d/nis_scxb status
     - stdouts of services started by NID in /var/opt/opensaf/nidlog/ ,
     - logs of AVD and AvND_**node_id** present in /var/opt/opensaf/log/ directories. 
@@ -532,7 +554,7 @@ The OpenSAF services on a system controller fail to start during any of the foll
  
     For specific information, the service specific logs have to be checked for diagnosis in /var/opt/opensaf/log directory.
    
-Payloads fail to start in any of the following error scenarios:
+7.3 Payloads fail to start in any of the following error scenarios:
 ---------------------------------------------------------------
 
 1. The following error "insmod: error inserting 'tipc.ko': -1 Invalid module format" indicates that user had not compiled tipc with proper kernel files. Please compile tipc with appropriate kernel header files(like for eg:- they are different for an smp kernel, etc.).
@@ -550,7 +572,7 @@ Payloads fail to start in any of the following error scenarios:
 
 5. The command "/etc/init.d/nis_pld status" can be used to know the status of the components on a payload node.
 
-Core-Dump generations:
+7.4 Core-Dump generations:
 ----------------------
 
 OpenSAF dumps the core files to "/var/crash/" directory. If the user has not defined the size of the core files to create through 'ulimit -c <size>' command, OpenSAF defaults the size to "unlimited".

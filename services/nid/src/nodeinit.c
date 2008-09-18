@@ -1305,8 +1305,8 @@ fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
      close_ipmc_intf();
 
      prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
-     if(prio_stat < 0) logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
-     else logme(NID_LOG2FILE,"%s Service has been set a priority value of %d",nid_serv_stat_info[service->servcode].nid_serv_name,prio_stat);
+     if(prio_stat < 0)
+         logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
 
      if ( nid_log_filename )
      {
@@ -1423,8 +1423,8 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
       close_ipmc_intf();
  
       prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
-      if(prio_stat < 0) logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
-      else logme(NID_LOG2FILE,"%s Service has been set a priority value of %d",nid_serv_stat_info[service->servcode].nid_serv_name,prio_stat);
+      if(prio_stat < 0)
+          logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
 
      if ( nid_log_filename )
      {
@@ -1522,9 +1522,8 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fi
      if ( service )
      {
           prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
-          if(prio_stat < 0) logme(NID_LOG2FILE,"Failed setting priority for %s,nid_serv_stat_info[service->servcode].nid_serv_name");
-          else logme(NID_LOG2FILE,"%s Service has been set a priority value of %d",nid_serv_stat_info[service->servcode].nid_serv_name,prio_stat);
-
+          if(prio_stat < 0)
+              logme(NID_LOG2FILE,"Failed setting priority for %s,nid_serv_stat_info[service->servcode].nid_serv_name");
      }
      else
      {

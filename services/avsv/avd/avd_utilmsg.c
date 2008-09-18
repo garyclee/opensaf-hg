@@ -131,15 +131,16 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
       {
          fprintf(fp,"%s | Node %s Joined the cluster.\n",asc_lt,avnd->node_info.nodeName.value);
       }
-
+      syslog(LOG_INFO, "Node %s Joined the cluster.", avnd->node_info.nodeName.value);
       avd_clm_node_join_trap(cb,avnd);
    }
    else
    {
       if(fp)
       {
-         fprintf(fp,"%s | Node %s Exited the cluster.\n",asc_lt,avnd->node_info.nodeName.value);
+         fprintf(fp,"%s | Node %s Left the cluster.\n",asc_lt,avnd->node_info.nodeName.value);
       }
+      syslog(LOG_INFO, "Node %s Left the cluster.", avnd->node_info.nodeName.value);
       avd_clm_node_exit_trap(cb,avnd);
    }
    if(fp)
