@@ -211,9 +211,10 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
    AVD_AVND *avnd = AVD_AVND_NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_d_func");
-   
    m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, 
          NCSFL_SEV_NOTICE, cb->node_id_avd_other);
+   syslog(LOG_WARNING, "AVD: Heart Beat missed with standby director on %x",
+          cb->node_id_avd_other);
 
    /* we need not do a sync send to stanby */
    cb->sync_required = FALSE;
@@ -342,6 +343,8 @@ void avd_mds_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
 void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
 {
    m_AVD_LOG_FUNC_ENTRY("avd_standby_tmr_rcv_hb_d_func");
+   syslog(LOG_WARNING, "AVD: Heart Beat missed with active director on %x",
+          cb->node_id_avd_other);
 
    m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, 
          NCSFL_SEV_NOTICE, cb->node_id_avd_other);

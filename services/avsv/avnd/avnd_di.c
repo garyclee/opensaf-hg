@@ -804,7 +804,7 @@ uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
 
 /* IR00085123 :Avd is already UP, reboot the node */
    if ( m_AVND_CB_IS_AVD_UP(cb) )
-         m_NCS_REBOOT;
+       ncs_reboot("AVD is already up");
   
    /* send node up message to AvD */
    m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
@@ -848,11 +848,7 @@ uns32 avnd_evt_mds_avd_dn (AVND_CB *cb, AVND_EVT *evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - MDS down received for AVD\n");
-   m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot: MDS down received for AVD\n");
-  
-   /* reboot this node */
-   m_NCS_REBOOT;
+   ncs_reboot("MDS down received for AVD");
 
    return rc;
 }

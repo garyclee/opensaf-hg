@@ -500,10 +500,8 @@ uns32 avnd_evt_avd_node_update_msg (AVND_CB *cb, AVND_EVT *evt)
    {
       if(SA_FALSE == info->clm_info.member)
       {
-         /* we got a node down for ourself, reboot this node */
-         m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -This node exited cluster\n");
-         m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -This node exited cluster");
-         avnd_evt_mds_avd_dn(cb, NULL);
+          /* we got a node down for ourself, reboot this node */
+          ncs_reboot("This node exited the cluster");
       }
       goto done;
    }

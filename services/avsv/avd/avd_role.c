@@ -314,6 +314,7 @@ static uns32 avd_role_switch_actv_qsd (AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    m_AVD_LOG_FUNC_ENTRY("avd_role_switch_actv_qsd");
    m_NCS_DBG_PRINTF("\nROLE SWITCH Active --> Quiesced");
+   syslog(LOG_NOTICE, "ROLE SWITCH Active --> Quiesced");
 
    if(cb->init_state != AVD_APP_STATE)
    {
@@ -411,7 +412,7 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    m_AVD_LOG_FUNC_ENTRY("avd_role_failover");
    m_NCS_DBG_PRINTF("\nFAILOVER StandBy --> Active");
-
+   syslog(LOG_NOTICE, "FAILOVER StandBy --> Active");
 
    /* If we are in the middle of admin switch, ignore it */
    if(cb->role_switch == SA_TRUE)
@@ -521,7 +522,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    m_AVD_LOG_FUNC_ENTRY("avd_role_failover_qsd_actv");
    m_NCS_DBG_PRINTF("\nFAILOVER Quiesced --> Active");
-
+   syslog(LOG_NOTICE, "FAILOVER Quiesced --> Active");
 
    /* If we are in the middle of admin switch, ignore it */
    if(cb->role_switch == SA_TRUE)
@@ -768,6 +769,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    m_AVD_LOG_FUNC_ENTRY("avd_role_switch_stdby_actv");
    m_NCS_DBG_PRINTF("\nROLE SWITCH StandBy --> Active");
+   syslog(LOG_NOTICE, "ROLE SWITCH StandBy --> Active");
 
    /*
     * Check whether Standby is in sync with Active. If yes then
@@ -882,6 +884,7 @@ static uns32 avd_role_switch_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
 {
    m_AVD_LOG_FUNC_ENTRY("avd_role_switch_qsd_actv");
    m_NCS_DBG_PRINTF("\nROLE SWITCH Quiesced --> Active");
+   syslog(LOG_NOTICE, "ROLE SWITCH Quiesced --> Active");
 
   return avd_role_switch_stdby_actv(cb, role);
 }
@@ -909,9 +912,7 @@ static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    m_AVD_LOG_FUNC_ENTRY("avd_role_switch_qsd_stdby");
    m_NCS_DBG_PRINTF("\nROLE SWITCH Quiesced --> StandBy");
-
-
-
+   syslog(LOG_NOTICE, "ROLE SWITCH Quiesced --> StandBy");
 
     /* Change MDS role to Standby*/
   if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, SA_AMF_HA_STANDBY)))

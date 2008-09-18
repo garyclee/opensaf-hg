@@ -214,6 +214,8 @@ extern LEAPDLL_API int get_char_from_gui();
 /* IR00061535 */
 #define m_NCS_REBOOT                   m_NCS_OS_REBOOT
 
+extern void ncs_reboot(const char *reason);
+
 
 /*****************************************************************************
  **                                                                         **

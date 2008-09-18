@@ -287,9 +287,9 @@ uns32 avnd_evt_ava_resp (AVND_CB *cb, AVND_EVT *evt)
                /* Console Print to help debugging */
                if(comp->su->is_ncs == TRUE) 
                {
-                   m_NCS_DBG_PRINTF( "\nAvSv: Card going for reboot -%s got failure for qsd cbk\n",
+                   m_NCS_DBG_PRINTF( "\nAvSv: %s got failure for qsd cbk\n",
                          comp->name_net.value);
-                   m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -%s got failure for qsd cbk",
+                   m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: %s got failure for qsd cbk",
                          comp->name_net.value);
                }
 
@@ -429,9 +429,9 @@ uns32 avnd_evt_tmr_cbk_resp (AVND_CB *cb, AVND_EVT *evt)
       /* Console Print to help debugging */
       if(rec->comp->su->is_ncs == TRUE) 
       {
-          m_NCS_DBG_PRINTF( "\nAvSv: Card going for reboot -%s got qsd cbk timeout\n",
+          m_NCS_DBG_PRINTF( "\nAvSv: %s got qsd cbk timeout\n",
                 rec->comp->name_net.value);
-          m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Card going for reboot -%s got qsd cbk timeout",
+          m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: %s got qsd cbk timeout",
                 rec->comp->name_net.value);
       }
 

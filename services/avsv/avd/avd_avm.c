@@ -779,10 +779,7 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
    /* common for both the success/failure response */
    if(avnd->node_info.nodeId == cb->node_id_avd)
    {
-      /* Call leap macro to shutdown this node */
-      m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - Some one has reset this card\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot - Some one has reset this card");
-      m_NCS_REBOOT;
+      ncs_reboot("A reset has been trigerred for this node");
    }
    else if(avnd->node_state != AVD_AVND_STATE_ABSENT) 
    {
@@ -880,10 +877,7 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
          /* common for both the success/failure response */
          if(avnd->node_info.nodeId == cb->node_id_avd)
          {
-            /* Call leap macro to shutdown this node */
-            m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot - Got absent for this node\n");
-            m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot - Got absent for this node");
-            m_NCS_REBOOT;
+            ncs_reboot("AVD received 'node extracted' event from avm");
          }else if(avnd->node_state != AVD_AVND_STATE_ABSENT)
          {
             /* Extraction was done so mark the AvND to ABSENT */

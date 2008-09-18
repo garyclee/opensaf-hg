@@ -1552,6 +1552,7 @@ ncs_os_file(NCS_OS_FILE  *pfile,
            NCS_OS_FILE_REQUEST request)
 
 {
+    int ret;
 
    /** Supported Request codes
     **/
@@ -1660,9 +1661,15 @@ ncs_os_file(NCS_OS_FILE  *pfile,
             snprintf(command, sizeof(command) - 1,
                 "\\cp -f %s %s", pfile->info.copy.i_file_name,
                 pfile->info.copy.i_new_file_name);
-            system(command);
-
-            return NCSCC_RC_SUCCESS;
+            ret = system(command);
+            if (ret != 0)
+            {
+                syslog(LOG_ERR, "cp file '%s' to '%s' failed: %d",
+                       pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name, ret);
+                return NCSCC_RC_FAILURE;
+            }
+            else
+                return NCSCC_RC_SUCCESS;
         }
         break;
 
@@ -1752,9 +1759,14 @@ ncs_os_file(NCS_OS_FILE  *pfile,
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
                 "\\mkdir -p %s", pfile->info.create_dir.i_dir_name);
-            system(command);
-
-            return NCSCC_RC_SUCCESS;
+            ret = system(command);
+            if (ret != 0)
+            {
+                syslog(LOG_ERR, "mkdir '%s' failed: %d", pfile->info.create_dir.i_dir_name, ret);
+                return NCSCC_RC_FAILURE;
+            }
+            else
+                return NCSCC_RC_SUCCESS;
         }
         break;
 
@@ -1765,7 +1777,14 @@ ncs_os_file(NCS_OS_FILE  *pfile,
             memset(command, 0, sizeof(command));
             snprintf(command, sizeof(command) - 1,
                 "\\rm -f -r %s", pfile->info.delete_dir.i_dir_name);
-            system(command);
+            ret = system(command);
+            if (ret != 0)
+            {
+                syslog(LOG_ERR, "rmdir %s failed: %d", pfile->info.delete_dir.i_dir_name, ret);
+                return NCSCC_RC_FAILURE;
+            }
+            else
+                return NCSCC_RC_SUCCESS;
 
             return NCSCC_RC_SUCCESS;
         }
@@ -1779,7 +1798,16 @@ ncs_os_file(NCS_OS_FILE  *pfile,
             snprintf(command, sizeof(command) - 1,
                 "\\cp -f -r %s %s", pfile->info.copy_dir.i_dir_name,
                 pfile->info.copy_dir.i_new_dir_name);
-            system(command);
+            ret = system(command);
+            if (ret != 0)
+            {
+                syslog(LOG_ERR, "cp dir '%s' to '%s' failed: %d",
+                       pfile->info.copy_dir.i_dir_name,
+                       pfile->info.copy_dir.i_new_dir_name, ret);
+                return NCSCC_RC_FAILURE;
+            }
+            else
+                return NCSCC_RC_SUCCESS;
 
             return NCSCC_RC_SUCCESS;
         }
