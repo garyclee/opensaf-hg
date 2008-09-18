@@ -684,4 +684,21 @@ uns32 leap_env_destroy()
 }
 
 
+/**
+ * Print message and reboot the system
+ * @param reason
+ */
+void ncs_reboot(const char *reason)
+{
+   struct timeval tv;
+   char time_str[128];
+ 
+   gettimeofday(&tv, NULL);
+   strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
+   fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
+   syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
+
+   system("/etc/opt/opensaf/reboot");
+}
+ 
 
