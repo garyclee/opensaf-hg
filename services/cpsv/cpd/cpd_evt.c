@@ -1217,11 +1217,12 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        {
           m_NCS_GET_PHYINFO_FROM_NODE_ID(mds_info->node_id,NULL,&phy_slot,NULL);
           cb->cpd_remote_id = phy_slot;
-          cb->is_rem_cpnd_up = TRUE;
-          cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot-1];
        }
-       else
+       else 
+       {          
+          /* Don't handle RED_UP from our own node */
           break;
+       }
 
 
     case NCSMDS_UP:
@@ -1234,6 +1235,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
 
        if(mds_info->svc_id == NCSMDS_SVC_ID_CPND)
        {
+            /* Save MDS address for this CPND */
           phy_slot = cpd_get_phy_slot_id(mds_info->dest);
           cb->cpnd_dests[phy_slot-1] = mds_info->dest;
        if(cb->cpd_remote_id == phy_slot)
