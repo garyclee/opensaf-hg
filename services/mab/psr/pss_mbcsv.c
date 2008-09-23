@@ -1234,7 +1234,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
          {
             m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_COLD_SYNC_RESP_DEC_FAIL, pwe_cb->pwe_id, rc);
             pwe_cb->ckpt_state = PSS_COLD_SYNC_FAIL;
-            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
             ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                        NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                        NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr); 
@@ -1244,7 +1244,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
             m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_RESP_DEC_SUCCESS, pwe_cb->pwe_id);
             pwe_cb->ckpt_state = PSS_COLD_SYNC_COMPLETE;
             pwe_cb->is_cold_sync_done = TRUE;
-            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
             ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                        NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
                        NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
@@ -1282,7 +1282,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
          {
             m_LOG_PSS_HDLN_II(NCSFL_SEV_ERROR, PSS_HDLN_WARM_SYNC_RESP_DEC_FAIL, pwe_cb->pwe_id, rc);
             pwe_cb->ckpt_state = PSS_WARM_SYNC_FAIL;
-            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+            sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
             ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                        NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                        NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr); 
@@ -1297,7 +1297,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
             if(*is_in_sync == TRUE)
             {
                pwe_cb->ckpt_state = PSS_WARM_SYNC_COMPLETE;
-               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                           NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
                           NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
@@ -1306,7 +1306,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
             {
                pwe_cb->ckpt_state = PSS_WARM_SYNC_WAIT_FOR_DATA_RESP;
                pwe_cb->warm_sync_in_progress = TRUE;
-               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                           NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
                           NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
@@ -1317,7 +1317,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
                   m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_SEND_DATA_REQ_FAIL, pwe_cb->pwe_id);
                   pwe_cb->ckpt_state = PSS_WARM_SYNC_FAIL;
                   m_NCS_MEMSET(addrstr, '\0', 255); 
-                  sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+                  sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                   ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                              NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                              NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
@@ -1364,7 +1364,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
                m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, 
                  PSS_HDLN_DATA_RESP_DEC_FAIL_WITH_COLD_SYNC_COMPLT_BUT_WARM_SYNC_FAIL, pwe_cb->pwe_id);
                pwe_cb->ckpt_state = PSS_WARM_SYNC_DATA_RESP_FAIL;
-               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                           NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                           NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
@@ -1372,7 +1372,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
             else
             {
                pwe_cb->ckpt_state = PSS_COLD_SYNC_FAIL;
-               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state-1]);
+               sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                           NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
                           NCSFL_TYPE_TIC, PSS_HDLN_CKPT_STATE, addrstr);
