@@ -62,9 +62,8 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    }
    m_NCS_OS_MEMSET(eds_cb, '\0',sizeof(EDS_CB));
 
-   /* Obtain the hdl for EDS_CB from hdl-mgr
-    * TBD- Pool id is to be set 
-    */
+   /* Obtain the hdl for EDS_CB from hdl-mgr */
+
    gl_eds_hdl = eds_cb->my_hdl = ncshm_create_hdl(1,
       NCS_SERVICE_ID_EDS, (NCSCONTEXT)eds_cb);
 
@@ -212,6 +211,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    m_NCS_SEL_OBJ_CREATE(&eds_cb->sighdlr_sel_obj);
 
    m_LOG_EDSV_S(EDS_INSTALL_SIGHDLR_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
+
    /* Create EDS's thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)eds_main_process,
                                           &eds_cb->mbx,
@@ -367,6 +367,9 @@ eds_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
        
        /* End association from the AMF lib */
        saAmfFinalize(eds_cb->amf_hdl);
+
+       /* Finalize with CLM */
+       saClmFinalize(eds_cb->clm_hdl);
 
        /* Clean up all internal structures */
        eds_remove_reglist_entry(eds_cb, 0, TRUE);

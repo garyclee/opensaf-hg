@@ -11,6 +11,13 @@ extern int maa_switch(int);
 /*Initializing Global Varibles*/
 int gl_jCount=0;
 int gl_err=1;
+int gl_major_version=0x01;
+int gl_minor_version=0x01;
+
+SaEvtLimitIdT  gl_limitId;
+SaLimitValueT  gl_limitValue;
+
+
 SaTimeT gl_timeout=100000000000.0;
 SaInvocationT gl_invocation=3;
 SaEvtEventPatternT gl_pattern[2]=
@@ -52,7 +59,13 @@ const char *gl_saf_error[] =
     "SA_AIS_ERR_BAD_FLAGS",
     "SA_AIS_ERR_TOO_BIG",
     "SA_AIS_ERR_NO_SECTIONS",
-  };
+   /* B03 Additions */
+    "SA_AIS_ERR_NO_OP",
+    "SA_AIS_ERR_REPAIR_PENDING",
+    "SA_AIS_ERR_NO_BINDINGS",
+    "SA_AIS_ERR_UNAVAILABLE",
+};
+
 /***********************************************/
 /*******************API Testing*****************/
 /***********************************************/
@@ -236,13 +249,37 @@ void tet_saEvtInitializeCases(int iOption)
       
     case 14:
       var_initialize();
-
-      
       tet_saEvtInitialize(&gl_evtHandle);
-      
-
       tet_saEvtFinalize(&gl_evtHandle);
       break;
+
+    case 15:
+      gl_major_version=0x03;
+      gl_minor_version=0x01;
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      tet_saEvtFinalize(&gl_evtHandle);
+      break;
+    
+    case 16:
+      printf("Sleeping for 60 seconds to do a node lock\n");
+      sleep(60);
+      gl_major_version=0x03;
+      gl_minor_version=0x01;
+      gl_evtCallbacks.saEvtChannelOpenCallback=EvtOpenCallback;
+      gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback;
+
+      gl_rc=saEvtInitialize(&gl_evtHandle,&gl_evtCallbacks,&gl_version);
+      result("saEvtInitialize() after locking the node",SA_AIS_ERR_UNAVAILABLE);
+
+      printf("\nVersion Delivered : %c %d %d",gl_version.releaseCode,
+             gl_version.majorVersion,gl_version.minorVersion);
+      tet_printf("Version Delivered : %c %d %d",gl_version.releaseCode,
+                 gl_version.majorVersion,gl_version.minorVersion);
+
+      break;
+     
+
     }
   printf("\n-------------------- END : %d ------------------------",iOption);
 }
@@ -2278,6 +2315,127 @@ void tet_saEvtEventAttributesGetCases(int iOption)
       tet_saEvtChannelUnlink(&gl_evtHandle);
 
       tet_saEvtFinalize(&gl_evtHandle);            
+      break;
+
+     case 15:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+
+      gl_channelOpenFlags=SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER
+        |SA_EVT_CHANNEL_PUBLISHER;
+      tet_saEvtChannelOpen(&gl_evtHandle,&gl_channelHandle);
+
+      tet_saEvtEventAllocate(&gl_channelHandle,&gl_eventHandle);
+
+      gl_patternArray.patternsNumber=1;
+      gl_patternArray.patterns=maxPatternSize;
+      gl_allocatedNumber=1;
+      gl_patternLength=5;
+      tet_saEvtEventAttributesSet(&gl_eventHandle);
+
+      temp=(SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
+      temp->patternsNumber=1;
+      temp->allocatedNumber=1;
+      temp->patterns=(SaEvtEventPatternT *)malloc(sizeof(SaEvtEventPatternT));
+      temp->patterns->allocatedSize=255;
+      temp->patterns->patternSize=255;
+      temp->patterns->pattern=(SaUint8T *)malloc(255);
+      gl_rc=saEvtEventAttributesGet(gl_eventHandle,temp,&gl_priority,
+                                    &gl_retentionTime,&gl_publisherName,
+                                    &gl_publishTime,&gl_evtId);
+      result("saEvtEventAttributesGet() with pattern size greater than 256",
+             SA_AIS_OK);
+      temp->patterns=NULL;
+      gl_rc=saEvtEventPatternFree(gl_eventHandle,temp->patterns);
+      result("saEvtEventPatternsFree() with NULL patterns",
+             SA_AIS_ERR_INVALID_PARAM);
+      tet_saEvtEventFree(&gl_eventHandle);
+
+      tet_saEvtChannelClose(&gl_channelHandle);
+
+      tet_saEvtChannelUnlink(&gl_evtHandle);
+
+      tet_saEvtFinalize(&gl_evtHandle);
+      break;
+
+     case 16:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+
+      gl_channelOpenFlags=SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER
+        |SA_EVT_CHANNEL_PUBLISHER;
+      tet_saEvtChannelOpen(&gl_evtHandle,&gl_channelHandle);
+
+      tet_saEvtEventAllocate(&gl_channelHandle,&gl_eventHandle);
+
+      gl_patternArray.patternsNumber=1;
+      gl_patternArray.patterns=maxPatternSize;
+      gl_allocatedNumber=1;
+      gl_patternLength=5;
+      tet_saEvtEventAttributesSet(&gl_eventHandle);
+
+      temp=(SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
+      temp->patternsNumber=1;
+      temp->allocatedNumber=1;
+      temp->patterns=(SaEvtEventPatternT *)malloc(sizeof(SaEvtEventPatternT));
+      temp->patterns->allocatedSize=255;
+      temp->patterns->patternSize=255;
+      temp->patterns->pattern=(SaUint8T *)malloc(255);
+      gl_rc=saEvtEventAttributesGet(gl_eventHandle,temp,&gl_priority,
+                                    &gl_retentionTime,&gl_publisherName,
+                                    &gl_publishTime,&gl_evtId);
+      result("saEvtEventAttributesGet() with pattern size greater than 256",
+             SA_AIS_OK);
+      tet_saEvtEventFree(&gl_eventHandle);
+      gl_rc=saEvtEventPatternFree(gl_eventHandle,temp->patterns);
+      result("saEvtEventPatternsFree() for already saEvtEventFreed patterns",
+             SA_AIS_ERR_BAD_HANDLE);
+
+      tet_saEvtChannelClose(&gl_channelHandle);
+
+      tet_saEvtChannelUnlink(&gl_evtHandle);
+
+      tet_saEvtFinalize(&gl_evtHandle);
+      break;
+
+     case 17:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+
+      gl_channelOpenFlags=SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER
+        |SA_EVT_CHANNEL_PUBLISHER;
+      tet_saEvtChannelOpen(&gl_evtHandle,&gl_channelHandle);
+
+      tet_saEvtEventAllocate(&gl_channelHandle,&gl_eventHandle);
+
+      gl_patternArray.patternsNumber=1;
+      gl_patternArray.patterns=maxPatternSize;
+      gl_allocatedNumber=1;
+      gl_patternLength=5;
+      tet_saEvtEventAttributesSet(&gl_eventHandle);
+
+      temp=(SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
+      temp->patternsNumber=1;
+      temp->allocatedNumber=1;
+      temp->patterns=(SaEvtEventPatternT *)malloc(sizeof(SaEvtEventPatternT));
+      temp->patterns->allocatedSize=255;
+      temp->patterns->patternSize=255;
+      temp->patterns->pattern=(SaUint8T *)malloc(255);
+      gl_rc=saEvtEventAttributesGet(gl_eventHandle,temp,&gl_priority,
+                                    &gl_retentionTime,&gl_publisherName,
+                                    &gl_publishTime,&gl_evtId);
+      result("saEvtEventAttributesGet() with pattern size greater than 256",
+             SA_AIS_OK);
+      gl_rc=saEvtEventPatternFree(gl_eventHandle,temp->patterns);
+      result("saEvtEventPatternsFree() Success Case",
+             SA_AIS_OK);
+      tet_saEvtEventFree(&gl_eventHandle);
+
+      tet_saEvtChannelClose(&gl_channelHandle);
+
+      tet_saEvtChannelUnlink(&gl_evtHandle);
+
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
     }
   printf("\n-------------------- END : %d ------------------------",iOption);
@@ -4430,7 +4588,108 @@ void tet_RetentionTimeClear_Thread()
 
 }
 
+void tet_saEvtLimitGetCases(int iOption)
+{
+  printf("\n---------- tet_saEvtLimitGetCases : %d -------------",
+         iOption);
 
+  switch(iOption)
+    {
+
+    case 1:
+
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,NULL);
+      result("saEvtLimitGet() with NULL LimitValue",
+             SA_AIS_ERR_INVALID_PARAM);
+      break;
+
+    case 2:
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_rc=saEvtLimitGet((SaEvtHandleT)(long)NULL,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with NULL event handle",
+             SA_AIS_ERR_BAD_HANDLE);
+      break;
+
+    case 3:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID+1;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with biggerlimitId value",
+             SA_AIS_ERR_INVALID_PARAM);
+      break;
+      
+    case 4:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = 0;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with zero limitId value",
+             SA_AIS_ERR_INVALID_PARAM);
+      break;
+
+    case 5:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_NUM_CHANNELS_ID;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with limitId = Max Number of Channels",
+             SA_AIS_OK);
+      tet_printf("MaxNumChannels Limit Receieved = %ld",gl_limitValue.uint64Value);
+      break;
+
+    case 6:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_EVT_SIZE_ID;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with limitId = Max Event Size",
+             SA_AIS_OK);
+      tet_printf("MaxEventSizeLimit Receieved = %ld",gl_limitValue.uint64Value);
+      break;
+
+    case 7:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_PATTERN_SIZE_ID;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with limitId = Max Pattern Size",
+             SA_AIS_OK);
+      tet_printf("MaxPatternSizeLimit Receieved = %ld",gl_limitValue.uint64Value);
+      break;
+
+    case 8:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_NUM_PATTERNS_ID;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with limitId = Max Num Patterns",
+             SA_AIS_OK);
+      tet_printf("MaxNumPatterns Limit Receieved = %ld",gl_limitValue.uint64Value);
+      break;
+
+    case 9:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID;
+      gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
+      result("saEvtLimitGet() with limitId = Max RetentionTime Duration",
+             SA_AIS_OK);
+      tet_printf("MaxRetentionTime Duration Limit Receieved = %ld",gl_limitValue.timeValue);
+      break;
+    } /* End Switch */
+  printf("\n------------ END -----------\n");
+
+}
 /*******Stress Test*******/
 
 void tet_stressTest()
@@ -4580,6 +4839,7 @@ struct tet_testlist edsv_test[]=
   {
     {tet_saEvtInitializeCases,1,1},
     {tet_saEvtInitializeCases,1,2},
+#if 0 
     /*    {tet_saEvtInitializeCases,1,3},*/
     {tet_saEvtInitializeCases,1,4},
     {tet_saEvtInitializeCases,1,5},
@@ -4775,12 +5035,13 @@ struct tet_testlist edsv_test[]=
     {tet_saEvtEventRetentionTimeClearCases,17,9},
     {tet_saEvtEventRetentionTimeClearCases,17,10},
     {tet_saEvtEventRetentionTimeClearCases,17,11},
-
+#endif
     {NULL,0}
   };
 struct tet_testlist api_test[]=
   {
     {tet_Initialize,1},
+#if 0 
     {tet_ChannelOpen,2},
     {tet_ChannelOpenAsync,3},
     {tet_Subscribe,4},
@@ -4797,11 +5058,13 @@ struct tet_testlist api_test[]=
     {tet_ChannelClose,15},
     {tet_ChannelUnlink,16},
     {tet_Finalize,17},
+#endif
     {NULL,0}
   };
 struct tet_testlist func_test[]=
   {
     {tet_ChannelOpen_SingleEvtHandle,1},
+#if 0 
     {tet_ChannelOpen_SingleEvtHandle_SamePatterns,2},
     {tet_ChannelOpen_SingleEvtHandle_DifferentPatterns,3},
     {tet_ChannelOpen_MultipleEvtHandle,4},
@@ -4848,8 +5111,29 @@ struct tet_testlist func_test[]=
     {tet_EventUnsubscribe_EventPublish,45},
     {tet_EventAttributesGet_LessPatternsNumber,46},
     {tet_Simple_Test,47},
+#endif
 #if gl_red == 1
 #endif
+    {NULL,0}
+  };
+
+struct tet_testlist b03_test[]=
+  {
+    {tet_saEvtInitializeCases,1,15},
+    {tet_saEvtInitializeCases,1,16}, /* Manual test for SA_AIS_ERR_UNAVAILABLE */
+    {tet_saEvtLimitGetCases,2,1},
+    {tet_saEvtLimitGetCases,2,2},
+    {tet_saEvtLimitGetCases,2,3},
+    {tet_saEvtLimitGetCases,2,4},
+    {tet_saEvtLimitGetCases,2,5},
+    {tet_saEvtLimitGetCases,2,6},
+    {tet_saEvtLimitGetCases,2,7},
+    {tet_saEvtLimitGetCases,2,8},
+    {tet_saEvtLimitGetCases,2,9},
+    {tet_saEvtEventAttributesGetCases,3,15},/*saEvtEventPatternFree cases by EventAlloc*/
+    {tet_saEvtEventAttributesGetCases,3,16},
+    {tet_saEvtEventAttributesGetCases,3,17},
+    {tet_PatternFree_ReceivedEvent,18},
     {NULL,0}
   };
 
@@ -4858,6 +5142,7 @@ struct tet_testlist *edsv_testlist[]=
     [EDSV_TEST]=edsv_test,
     [EDSV_API_TEST] = api_test,
     [EDSV_FUNC_TEST] = func_test,
+    [EDSV_CLM_TEST] = b03_test,
   };
 
 void tet_edsv_startup()
@@ -4995,10 +5280,11 @@ void tet_run_edsv_app()
 {
   int iterCount=0,listCount=0;
   gl_defs();
+      tet_test_start(gl_tCase,b03_test);
+#if 0 
 #ifndef TET_ALL
 
   tware_mem_ign();
-
   for(iterCount=1;iterCount<=gl_iteration;iterCount++)
     {
       printf("\n---------------- ITERATION : %d --------------\n",iterCount);
@@ -5006,7 +5292,7 @@ void tet_run_edsv_app()
       if(gl_listNumber==-1)
         {
             {
-              for(listCount=1;listCount<4;listCount++)
+              for(listCount=1;listCount<=4;listCount++)
                 {
                   tet_test_start(gl_tCase,edsv_testlist[listCount]);
                 }
@@ -5043,8 +5329,10 @@ void tet_run_edsv_app()
 
       tet_test_start(gl_tCase,func_test);
 
-    }
+      tet_test_start(gl_tCase,b03_test);
 
+    }
+#endif
 #endif
 }
 

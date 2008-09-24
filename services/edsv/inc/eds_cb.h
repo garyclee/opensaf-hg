@@ -59,6 +59,7 @@ struct eda_reg_list_tag;
 #define EDS_MAX_EVENT_DATA_SIZE 1024
 #define EDS_MAX_NUM_FILTERS EDS_MAX_NUM_PATTERNS
 #define EDS_MAX_FILTER_SIZE EDS_MAX_PATTERN_SIZE
+#define EDSV_CLM_TIMEOUT 1000
 
 typedef enum eds_svc_state
 {
@@ -244,11 +245,22 @@ typedef struct eds_cname_list_tag  /* cname list maintained by EDS for snmp mib 
     EDS_WORKLIST  *wp_rec;
 }EDS_CNAME_REC;
 
-typedef struct eda_down_list_tag 
+typedef struct eda_down_list_tag
 {
-  MDS_DEST mds_dest;   
+  MDS_DEST mds_dest;
   struct eda_down_list_tag *next;
 }EDA_DOWN_LIST;
+
+/* List of current nodes in the cluster */
+typedef struct node_info_tag
+{
+  NODE_ID                node_id;
+  /* Place holder for multi-cluster!
+   * Thinking way too far.
+   */
+  uns32                  cluster_id;
+  struct node_info_tag   *next;
+}NODE_INFO;
 
 typedef struct eds_cb_tag
 {
@@ -292,6 +304,10 @@ typedef struct eds_cb_tag
    uns32                   mab_hdl;    /* mab handle for mib operations */
    NCS_BOOL                csi_assigned;
    EDSV_MIBTBL_ROW_HANDLE  row_handle;
+   NODE_ID                 node_id;
+   SaClmHandleT            clm_hdl; /* CLM handle */
+   SaSelectionObjectT      clm_sel_obj; /* Selection object to wait for CLM events */
+   NODE_INFO               *cluster_node_list;
 } EDS_CB;
 
 #define EDS_MIB_SCALAR_NULL ((EDS_MIB_SCALAR *)0)
@@ -395,5 +411,13 @@ EXTERN_C uns32 eds_start_tmr (EDS_CB         *cb,
 EXTERN_C void eds_stop_tmr (EDS_TMR *tmr);
 EXTERN_C void eds_tmr_exp (void *uarg);
 
+EXTERN_C void
+update_node_db(EDS_CB *, NODE_ID , SaClmClusterChangesT );
+
+EXTERN_C void 
+send_clm_status_change(EDS_CB *, SaClmClusterChangesT , NODE_ID );
+
+EXTERN_C NCS_BOOL
+is_node_a_member(EDS_CB *,NODE_ID);
 void eds_init_mib_objects(EDS_CB *cb);
 #endif

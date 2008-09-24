@@ -47,7 +47,8 @@ typedef enum
    NCS_SERVICE_SUB_ID_EDSV_EDS_EVT,
    NCS_SERVICE_SUB_ID_EDS_RETAINED_EVT,
    NCS_SERVICE_EDS_CNAME_REC,
-   NCS_SERVICE_EDA_DOWN_LIST
+   NCS_SERVICE_EDA_DOWN_LIST,
+   NCS_SERVICE_EDS_CLUSTER_NODE_LIST, 
 } NCS_SERVICE_EDS_SUBID;
 
 
@@ -185,5 +186,14 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDA_DOWN_LIST)
 
+#define m_MMGR_ALLOC_CLUSTER_NODE_LIST(size)    m_NCS_MEM_ALLOC(size, \
+                                            NCS_MEM_REGION_PERSISTENT, \
+                                            NCS_SERVICE_ID_EDS, \
+                                            NCS_SERVICE_EDS_CLUSTER_NODE_LIST)
+
+#define m_MMGR_FREE_CLUSTER_NODE_LIST(p)        m_NCS_MEM_FREE(p, \
+                                            NCS_MEM_REGION_PERSISTENT, \
+                                            NCS_SERVICE_ID_EDS, \
+                                            NCS_SERVICE_EDS_CLUSTER_NODE_LIST)
 
 #endif /* !EDS_MEM_H */

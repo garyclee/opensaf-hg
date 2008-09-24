@@ -367,10 +367,6 @@ eds_amf_CSI_set_callback (SaInvocationT invocation,
       else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY))
       {  /* It is a switch over */
          eds_cb->ckpt_state = COLD_SYNC_IDLE;
-         /* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
-          * Also, change role of mds, mbcsv during quiesced has to be done after mds
-          * supports the same.  TBD
-          */
        }
        if((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
        {
@@ -697,7 +693,7 @@ eds_amf_init(EDS_CB *eds_cb)
 
  Purpose:  Function which registers EDS with AMF.  
 
- Input:    None 
+ Input:    Pointer to the EDS control block. 
 
  Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
 
@@ -813,4 +809,248 @@ ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
     return sigaction(i_sig_num, &sig_act, NULL);
 
 }
-                                                                                                                
+
+/**************************************************************************
+ * Function: eds_clm_init
+ *
+ * Purpose:  Function to register with the CLM service (Currently B01.01). 
+ * Input  :    None
+ *
+ * Returns: SaAisErrorT  type
+ *
+ * Notes  : The CLM registration is done only after AMF registration is
+ * done and not during the pre-amf period.
+ **************************************************************************/
+                                                                                             
+SaAisErrorT eds_clm_init(EDS_CB *cb)
+{
+   SaVersionT         clm_version;
+   SaClmCallbacksT  clm_cbk;
+   SaClmClusterNodeT  cluster_node;
+   SaClmClusterNotificationBufferT  notify_buff;
+   SaAisErrorT        rc = SA_AIS_OK;
+   SaTimeT            timeout = EDSV_CLM_TIMEOUT;
+     
+   m_NCS_OS_MEMSET(&clm_version,0,sizeof(SaVersionT));
+   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   m_NCS_OS_MEMSET(&notify_buff,0,sizeof(SaClmClusterNotificationBufferT));
+
+   /* Fill version */
+   m_EDSV_GET_CLM_VER(clm_version);
+
+   clm_cbk.saClmClusterNodeGetCallback = NULL;
+   clm_cbk.saClmClusterTrackCallback = eds_clm_cluster_track_cbk;
+
+   /* Say Hello */ 
+   rc = saClmInitialize (&cb->clm_hdl,&clm_cbk,&clm_version);
+   if (rc != SA_AIS_OK)
+   {
+      m_LOG_EDSV_S(EDS_CLM_INIT_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+      return rc;
+   }
+   /* Get the FD */
+   if (SA_AIS_OK != (rc = saClmSelectionObjectGet(cb->clm_hdl, &cb->clm_sel_obj)))
+   {
+      m_LOG_EDSV_S(EDS_CLM_SEL_OBJ_GET_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+     /* Log it */
+     return rc;
+   }
+
+   rc = saClmClusterNodeGet (cb->clm_hdl,SA_CLM_LOCAL_NODE_ID,timeout,&cluster_node);
+   if (rc != SA_AIS_OK)
+   {
+      m_LOG_EDSV_S(EDS_CLM_NODE_GET_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+      return rc;
+   }
+   /* Get my node_id. Not sure if i need this at all */
+   cb->node_id = cluster_node.nodeId;
+   
+   notify_buff.notification = NULL;
+   rc  = saClmClusterTrack (cb->clm_hdl,(SA_TRACK_CURRENT|SA_TRACK_CHANGES),&notify_buff);
+   if (rc != SA_AIS_OK)
+      m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+
+  return rc;
+
+}
+
+/**************************************************************************
+ * Function: eds_clm_cluster_track_cbk
+ *
+ * Purpose: The cluster track callback invoked by CLM whenever thereis a 
+ *          change in the status of a node in the CLUSTER. 
+ *          This callback is invoked whenever any of the following events
+ *          occur on a cluster node:
+ *          - SA_CLM_NODE_JOINED
+ *          - SA_CLM_NODE_EXITED
+ *          - SA_CLM_NODE_NO_CHANGE
+ *          - SA_CLM_NODE_RECONFIGURED
+ * Input  : none 
+ * Output : NotificationBuffer that contains information of all nodes in the 
+ *          cluster and the corresponding change that occured on that node.
+ * Returns:   None 
+ *
+ * Notes  : Upon invocation of this callback, if a node joined or left the cluster,
+ * EDS shall send an update to all the EDAs on that particular node.
+ * This function updates the nodes list (in the cluster) accordingly
+ * This list is checked while processing init messages from EDAs. All current 
+ * member nodes of the cluster are maintained in this list. SA_AIS_ERR_UNAVAILABLE 
+ * is retured for an saEvtInitialize() originating from a non member node.
+ **************************************************************************/
+
+void eds_clm_cluster_track_cbk (const SaClmClusterNotificationBufferT *notificationBuffer, \
+                                                SaUint32T numberOfMembers, SaAisErrorT error)
+{
+   EDS_CB                 *cb = NULL;
+   NODE_ID                node_id;
+   SaClmClusterChangesT   cluster_change;
+   uns32                  counter = 0;
+
+   if (error == SA_AIS_OK)
+   {
+      /* Get EDS CB Handle. */
+      if (NULL == (cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
+      {
+         m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,1);
+         return;
+      }
+
+      if (notificationBuffer != NULL)
+      {
+         for (counter=0;counter < notificationBuffer->numberOfItems;counter++)
+         {
+             /* Send the update to EDA clients */
+             cluster_change = notificationBuffer->notification[counter].clusterChange;
+             if ((cluster_change == SA_CLM_NODE_JOINED) || (cluster_change == SA_CLM_NODE_LEFT))
+             {
+                 node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+                 update_node_db(cb, node_id, cluster_change);
+                 /* Send to all EDAs on node_id */
+                 m_NCS_CONS_PRINTF("Sending ClusterChange Update to Agents on NodeId = %d\n",node_id);
+                 send_clm_status_change(cb, cluster_change, node_id);
+             }
+          }
+      }
+ 
+      ncshm_give_hdl(gl_eds_hdl);
+      m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,error,__FILE__,__LINE__,0);
+   }
+   else
+       m_LOG_EDSV_S(EDS_CLM_CLUSTER_TRACK_CBK_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,1);
+
+   return;
+ 
+}
+
+/**************************************************************************
+ * Function: update_node_db 
+ *
+ * Purpose: The cluster track callback invoked by CLM whenever thereis a
+ *          change in the status of a node in the CLUSTER.
+ * Input  : none
+ * Output : NotificationBuffer that contains information of all nodes in the
+ *          cluster and the corresponding change that occured on that node.
+ * Returns:   None
+ *
+ * Notes  : Upon invocation of this callback, if a node joined or left the cluster,
+ *  EDS shall send an update to all the EDAs on that particular node.
+ **************************************************************************/
+
+void update_node_db(EDS_CB *cb, NODE_ID node_id, SaClmClusterChangesT cluster_change)
+{
+   NODE_INFO *prev= NULL, *cur = NULL, *new = NULL;
+
+   prev=cur=cb->cluster_node_list; /* Get the list head */
+   
+   /* If list is null, there is nothing to delete! */
+   if ((cur == NULL) && (cluster_change == SA_CLM_NODE_LEFT))
+      return;
+   /* See if node is already in the Cluster */
+   while (cur != NULL)
+   {
+         if (node_id == cur->node_id)
+         {
+            if (cluster_change == SA_CLM_NODE_JOINED)
+               return;
+            else if (cluster_change == SA_CLM_NODE_LEFT)
+            {
+               prev = cur->next;
+               m_MMGR_FREE_CLUSTER_NODE_LIST(cur);
+               return;
+            }
+         }
+      prev = cur;
+      cur = cur->next;
+   }
+   /* Its a new node to the cluster, add to the list */
+   if (cluster_change == SA_CLM_NODE_JOINED)
+   {
+     /* Add a new node to the list after prev*/
+     new = m_MMGR_ALLOC_CLUSTER_NODE_LIST(sizeof(NODE_INFO));
+     m_NCS_MEMSET(new,0,sizeof(NODE_INFO));
+     new->node_id = node_id;
+     new->next = NULL;
+     if (prev == NULL)
+        prev = new; /* first node to join */
+     else
+        prev->next = new; /* Add to the end */
+   }
+}
+
+/**************************************************************************
+ * Function: send_clm_status_change 
+ *
+ * Purpose: The cluster track callback invoked by CLM whenever thereis a
+ *          change in the status of a node in the CLUSTER.
+ * Input  : pointer to eds CB, cluster change and the node_id for this change.
+ * Returns:   None
+ * Notes  : Sends an asynch update message to all EDAs residing on the nodes
+ * that have had a change in their cluster membership ((Re)joined/left).
+ **************************************************************************/
+
+void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NODE_ID node_id)
+{
+   EDSV_MSG       msg;
+   EDA_REG_REC    *reg_rec = NULL;
+   uns32          rc = NCSCC_RC_SUCCESS;
+
+   m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(msg,cluster_change);
+   reg_rec=(EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8 *)0);
+   while (reg_rec != NULL)
+   {
+      if (node_id == (m_EDS_GET_NODE_ID_FROM_ADEST(reg_rec->eda_client_dest)))
+      {
+         rc = eds_mds_msg_send(cb, &msg, &reg_rec->eda_client_dest, NULL,
+                                         MDS_SEND_PRIORITY_MEDIUM);
+         if (rc != NCSCC_RC_SUCCESS)
+            m_LOG_EDSV_S(EDS_CLUSTER_CHANGE_NOTIFY_SEND_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
+        else
+            m_NCS_CONS_PRINTF("ClusterNodeUpdate = %d send to %d Success\n",cluster_change, node_id);
+      }
+      reg_rec=(EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8*)&reg_rec->reg_id_Net);
+   }
+   
+}
+
+/**************************************************************************
+ * Function: is_node_a_member
+ *
+ * Purpose : This function walks through the cluster_node_list to see if
+ * the input node_id is present in the list or not.
+ *
+ * Input   : pointer to eds CB, the node_id.
+ * Returns : TRUE/FALSE. 
+ **************************************************************************/
+
+NCS_BOOL is_node_a_member (EDS_CB *cb, NODE_ID node_id)
+{
+  NODE_INFO *tmp_rec=NULL;
+  tmp_rec=cb->cluster_node_list;
+  while ( tmp_rec != NULL)
+  {
+     if(tmp_rec->node_id == node_id)
+        return TRUE;
+     tmp_rec = tmp_rec->next;
+  }
+  return FALSE;
+}

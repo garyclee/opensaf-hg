@@ -708,11 +708,54 @@ eds_enc_initialize_rsp_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
    if(!p8)
    {
       m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+      return 0;
    }
 
    ncs_encode_32bit(&p8, param->reg_id);
    ncs_enc_claim_space(uba, 4);
    total_bytes += 4;
+
+   return total_bytes;
+}
+
+/****************************************************************************
+  Name          : eds_enc_limit_get_rsp_msg
+ 
+  Description   : This routine encodes an Limit Get resp msg
+ 
+  Arguments     : NCS_UBAID *msg,
+                  EDSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+
+static uns32
+eds_enc_limit_get_rsp_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
+{
+   uns8        *p8;
+   uns32       total_bytes = 0;
+   EDSV_EDA_LIMIT_GET_RSP *param = &msg->info.api_resp_info.param.limit_get_rsp;
+
+   if (uba == NULL)
+   {
+      return 0;
+   }
+   /* Decode the limits */
+   p8 = ncs_enc_reserve_space(uba, 40);
+   if(!p8)
+   {
+     return 0;
+   }
+   ncs_encode_64bit(&p8, param->max_chan);
+   ncs_encode_64bit(&p8, param->max_evt_size);
+   ncs_encode_64bit(&p8, param->max_ptrn_size);
+   ncs_encode_64bit(&p8, param->max_num_ptrns);
+   ncs_encode_64bit(&p8, param->max_ret_time);
+
+   ncs_enc_claim_space(uba, 40);
+   total_bytes += 40;
 
    return total_bytes;
 }
@@ -960,6 +1003,33 @@ eds_enc_delv_evt_cbk_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
    return total_bytes;
 }
 
+static uns32
+eds_enc_clm_status_cbk_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
+{
+   uns8        *p8;
+   uns32       total_bytes = 0;
+   EDSV_EDA_CLM_STATUS_CBK_PARAM *param = 
+      &msg->info.cbk_info.param.clm_status_cbk;
+
+   if (uba == NULL)
+   {
+      m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+      return 0;
+   }
+
+   /* ClmNodeStatus */
+   p8 = ncs_enc_reserve_space(uba, 2);
+   if(!p8)
+   {
+      m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+   }
+   ncs_encode_16bit(&p8, param->node_status);
+   ncs_enc_claim_space(uba, 2);
+   total_bytes += 2;
+
+   return total_bytes;
+}
+
 /****************************************************************************
  * Name          : eds_mds_cpy
  *
@@ -1066,6 +1136,9 @@ eds_mds_enc(struct ncsmds_callback_info *info)
          break;
       case EDSV_EDA_CHAN_RETENTION_TIME_CLEAR_SYNC_RSP_MSG:
          break;
+      case EDSV_EDA_LIMIT_GET_RSP_MSG:
+           total_bytes += eds_enc_limit_get_rsp_msg(uba,msg);
+         break;
       default:
          m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,msg->info.api_resp_info.type);
          break;
@@ -1092,6 +1165,9 @@ eds_mds_enc(struct ncsmds_callback_info *info)
          break;
       case EDSV_EDS_DELIVER_EVENT:
          total_bytes += eds_enc_delv_evt_cbk_msg(uba, msg);
+         break;
+      case EDSV_EDS_CLMNODE_STATUS:
+         total_bytes += eds_enc_clm_status_cbk_msg(uba, msg);
          break;
       default:
          m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,msg->info.api_resp_info.type);
@@ -1201,6 +1277,9 @@ eds_mds_dec(struct ncsmds_callback_info *info)
          break;
       case EDSV_EDA_RETENTION_TIME_CLR:
          total_bytes += eds_dec_retention_time_clr_msg(uba, &evt->info.msg);
+         break;
+      case EDSV_EDA_LIMIT_GET:
+         /* Nothing to be decoded here */
          break;
       default:
          m_LOG_EDSV_S(EDS_MDS_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,evt->info.msg.info.api_info.type);

@@ -110,5 +110,9 @@ int32
 ncs_app_signal_install(int i_sig_num,  SIG_HANDLR i_sig_handler);
 
 uns32 pcs_rda_get_init_role(EDS_CB* eds_cb);
+SaAisErrorT eds_clm_init(EDS_CB *cb);
+void eds_clm_cluster_track_cbk (const SaClmClusterNotificationBufferT *notificationBuffer, \
+                                                SaUint32T numberOfMembers, SaAisErrorT error);
+void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NODE_ID node_id);
 
 #endif   /* _EDS_AMF_H */

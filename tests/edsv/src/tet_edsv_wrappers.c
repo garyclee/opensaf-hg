@@ -13,6 +13,10 @@ extern SaInvocationT gl_invocation;
 extern SaEvtEventPatternT gl_pattern[2];
 extern SaEvtEventFilterT gl_filter[1];
 extern const char *gl_saf_error[28];
+extern int gl_major_version;
+extern int gl_minor_version;
+extern int gl_b03_flag;
+
 /****************************************************************/
 /***************** EDSV CALLBACK FUNCTIONS **********************/
 /****************************************************************/
@@ -36,6 +40,30 @@ channel hdl %llu\n",gl_invocation,gl_channelHandle);
     {
       gl_node_id=error;
     }
+}
+
+void b03EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
+                        SaEvtEventHandleT deliverEventHandle, 
+                        SaSizeT eventDataSize)
+{
+  gl_cbk=1;
+  printf("\nEvent Deliver Handle (in deliver callback): %llu",
+         deliverEventHandle);
+  gl_eventDeliverHandle=deliverEventHandle;
+  gl_dupSubscriptionId=subscriptionId;
+  printf("\n\nSubscription id : %u",subscriptionId);
+
+  if(subscriptionId!=37)
+    {
+      tet_saEvtEventDataGet(&gl_eventDeliverHandle);
+    }
+  printf("\nDeliver Callback function");
+
+  gl_jCount++;
+  printf("\nInvoked these many times : %d",gl_jCount);
+
+  tet_saEvtEventAttributesGet(&gl_eventDeliverHandle);
+  subCount++;
 }
 
 void EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
@@ -363,8 +391,14 @@ void tet_saEvtEventAttributesGet(SaEvtEventHandleT *ptrEventHandle)
   printf("\nPublish Time: %llu",gl_publishTime);
   printf("\nEvent Id: %llu\n",gl_evtId);
   printf("\n******************************\n"); 
-
+  if(gl_b03_flag) 
+  {
+    gl_rc = saEvtEventPatternFree(*ptrEventHandle,ptrPatternArray->patterns);
+    result("saEvtEventPatternFree() from a DeliverCallback()",
+             SA_AIS_OK);
+  }
 }
+
 void tet_saEvtEventAttributesSet(SaEvtEventHandleT *ptrEventHandle)
 {
   static int try_again_count;
@@ -660,8 +694,8 @@ uns32 tet_create_task(NCS_OS_CB task_startup)
 void var_initialize()
 {
   gl_version.releaseCode='B';
-  gl_version.majorVersion=1;
-  gl_version.minorVersion=1;
+  gl_version.majorVersion=gl_major_version;
+  gl_version.minorVersion=gl_minor_version;
   gl_evtCallbacks.saEvtChannelOpenCallback=EvtOpenCallback;
   gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback; 
   gl_timeout=100000000000.0; 

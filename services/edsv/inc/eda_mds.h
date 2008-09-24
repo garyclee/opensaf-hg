@@ -188,6 +188,14 @@ do { \
    (m)->event_data_size = (n)->data_len; \
 } while (0);
 
+/* Macro to populate the 'Limit Get' message */
+#define m_EDA_EDSV_LIMIT_GET_MSG_FILL(m) \
+do { \
+   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   (m).type = EDSV_EDA_API_MSG; \
+   (m).info.api_info.type = EDSV_EDA_LIMIT_GET; \
+} while (0);
+
 /*** Extern function declarations ***/
 
 

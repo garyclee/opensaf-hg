@@ -119,7 +119,10 @@
 /* Edsv checkpoint header */ 
 #include "eds_ckpt.h"
 
-/* EDA CB global handle declaration */
+/* CLM header */
+#include "saClm.h"
+
+/* EDS CB global handle declaration */
 EXTERN_C uns32 gl_eds_hdl;
 
 

@@ -72,8 +72,29 @@ do { \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_INITIALIZE_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
-   (m).info.api_resp_info.param.init_rsp.reg_id = (regid); \
+   if (rs == SA_AIS_OK);             \
+   {                                 \
+      (m).info.api_resp_info.param.init_rsp.reg_id = (regid); \
+   } \
 } while (0);
+
+/* Macro to populate the limit get response message */
+#define m_EDS_EDSV_LIMIT_GET_MSG_FILL(m, rs) \
+do { \
+   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   (m).type = EDSV_EDA_API_RESP_MSG; \
+   (m).info.api_resp_info.type = EDSV_EDA_LIMIT_GET_RSP_MSG; \
+   (m).info.api_resp_info.rc = (rs); \
+   if (rs == SA_AIS_OK);             \
+   {                                 \
+      (m).info.api_resp_info.param.limit_get_rsp.max_chan = EDSV_MAX_CHANNELS;\
+      (m).info.api_resp_info.param.limit_get_rsp.max_evt_size = SA_EVENT_DATA_MAX_SIZE;\
+      (m).info.api_resp_info.param.limit_get_rsp.max_ptrn_size = EDSV_MAX_PATTERN_SIZE;\
+      (m).info.api_resp_info.param.limit_get_rsp.max_num_ptrns = EDSV_MAX_PATTERNS;\
+      (m).info.api_resp_info.param.limit_get_rsp.max_ret_time = EDSV_MAX_RETENTION_TIME;\
+   } \
+} while (0);
+
 
 /* Macro to populate the 'EVT Channel Open' response message */
 #define m_EDS_EDSV_CHAN_OPEN_SYNC_MSG_FILL(m, rs, chanid, copenid) \
@@ -145,6 +166,15 @@ do { \
    (m).info.cbk_info.param.evt_deliver_cbk.data =        (buf); \
 } while (0);
 
+/* Macro to populate the 'CLM Cluster Node Status' callback message */
+#define m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(m, cluster_change) \
+do { \
+   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   (m).type = EDSV_EDS_CBK_MSG; \
+   (m).info.cbk_info.type = EDSV_EDS_CLMNODE_STATUS; \
+   (m).info.cbk_info.param.clm_status_cbk.node_status = (cluster_change); \
+} while (0);
 
+#define m_EDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uns64)adest >> 32)
 #endif /* !EDS_MDS_H */
 

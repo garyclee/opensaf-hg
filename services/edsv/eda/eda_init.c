@@ -144,6 +144,8 @@ uns32 eda_create (NCS_LIB_CREATE *create_info)
    }
    
    eda_sync_with_eds(cb);
+   cb->node_status = SA_CLM_NODE_JOINED;
+
    return rc;
 
 error:
