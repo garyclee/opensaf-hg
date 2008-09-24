@@ -770,6 +770,29 @@ eda_dec_delv_evt_cbk_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
    return total_bytes;
 }
 
+static uns32
+eda_dec_clm_status_cbk_msg (NCS_UBAID *uba,  EDSV_MSG *msg)
+{
+   uns8     *p8;
+   int32    total_bytes = 0;
+   EDSV_EDA_CLM_STATUS_CBK_PARAM *param = 
+      &msg->info.cbk_info.param.clm_status_cbk;
+   uns8     local_data[256];
+
+   if (uba == NULL)
+   {
+      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+      return 0;
+   }
+
+   /* ClmNodeStatus */
+   p8  = ncs_dec_flatten_space(uba, local_data, 2);
+   param->node_status = ncs_decode_16bit(&p8);
+   ncs_dec_skip_space(uba, 2);
+   total_bytes += 2;
+   return total_bytes;
+}
+
 /****************************************************************************
   Name          : eda_eds_msg_proc
  
@@ -1002,6 +1025,14 @@ eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio
                 return NCSCC_RC_FAILURE;
              }
              
+         }
+         break;
+      case EDSV_EDS_CLMNODE_STATUS:
+         {
+           EDSV_EDA_CLM_STATUS_CBK_PARAM *clm_status_param =
+                &edsv_msg->info.cbk_info.param.clm_status_cbk;
+
+           eda_cb->node_status = (SaClmClusterChangesT)clm_status_param->node_status;
          }
          break;
       default:
@@ -1253,6 +1284,9 @@ static uns32 eda_mds_enc (struct ncsmds_callback_info *info)
       case EDSV_EDA_RETENTION_TIME_CLR:
          total_bytes += eda_enc_retention_time_clr_msg(uba, msg);
          break;
+      case EDSV_EDA_LIMIT_GET:
+         /* Nothing to encode in this request*/
+         break;
       default:
          break;
       }
@@ -1289,11 +1323,65 @@ eda_dec_initialize_rsp_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
    p8  = ncs_dec_flatten_space(uba, local_data, 4);
    param->reg_id = ncs_decode_32bit(&p8);
    ncs_dec_skip_space(uba, 4);
-
    total_bytes += 4;
 
    return total_bytes;
 }
+
+/****************************************************************************
+  Name          : eda_dec_limit_get_rsp_msg
+ 
+  Description   : This routine decodes an limit get sync response message
+ 
+  Arguments     : NCS_UBAID *msg,
+                  EDSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+static uns32
+eda_dec_limit_get_rsp_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
+{
+   uns8     *p8;
+   uns32    total_bytes = 0;
+   EDSV_EDA_LIMIT_GET_RSP *param = &msg->info.api_resp_info.param.limit_get_rsp;
+   uns8     local_data[100];
+
+   if (NULL == uba)
+   {
+      m_NCS_CONS_PRINTF("NULL uba received for decoding limit get response message\n");
+      return 0;
+   }
+
+   p8  = ncs_dec_flatten_space(uba, local_data, 8);
+   param->max_chan = ncs_decode_64bit(&p8);
+   ncs_dec_skip_space(uba, 8);
+   total_bytes += 8;
+
+   p8  = ncs_dec_flatten_space(uba, local_data, 8);
+   param->max_evt_size = ncs_decode_64bit(&p8);
+   ncs_dec_skip_space(uba, 8);
+   total_bytes += 8;
+
+   p8  = ncs_dec_flatten_space(uba, local_data, 8);
+   param->max_ptrn_size = ncs_decode_64bit(&p8);
+   ncs_dec_skip_space(uba, 8);
+   total_bytes += 8;
+
+   p8  = ncs_dec_flatten_space(uba, local_data, 8);
+   param->max_num_ptrns = ncs_decode_64bit(&p8);
+   ncs_dec_skip_space(uba, 8);
+   total_bytes += 8;
+
+   p8  = ncs_dec_flatten_space(uba, local_data, 8);
+   param->max_ret_time = ncs_decode_64bit(&p8);
+   ncs_dec_skip_space(uba, 8);
+   total_bytes += 8;
+
+   return total_bytes;
+}
+
 
 /****************************************************************************
   Name          : eda_dec_chan_open_sync_rsp_msg
@@ -1402,6 +1490,9 @@ eda_mds_dec (struct ncsmds_callback_info *info)
          case EDSV_EDA_CHAN_OPEN_SYNC_RSP_MSG:
             total_bytes += eda_dec_chan_open_sync_rsp_msg(uba, msg);
             break;
+         case EDSV_EDA_LIMIT_GET_RSP_MSG:
+            total_bytes += eda_dec_limit_get_rsp_msg(uba, msg);
+            break;
          default:
             break;
          }
@@ -1423,6 +1514,8 @@ eda_mds_dec (struct ncsmds_callback_info *info)
          case EDSV_EDS_DELIVER_EVENT:
             total_bytes += eda_dec_delv_evt_cbk_msg(uba, msg);
             break;
+         case EDSV_EDS_CLMNODE_STATUS:
+            total_bytes += eda_dec_clm_status_cbk_msg(uba, msg);
          default:
             break;
          }

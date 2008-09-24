@@ -68,6 +68,7 @@ typedef enum edsv_api_msg_type
    EDSV_EDA_SUBSCRIBE,
    EDSV_EDA_UNSUBSCRIBE,
    EDSV_EDA_RETENTION_TIME_CLR,
+   EDSV_EDA_LIMIT_GET,
    EDSV_API_MAX
 } EDSV_API_TYPE;
 
@@ -78,6 +79,7 @@ typedef enum edsv_cbk_msg_type
    EDSV_CBK_BASE_MSG,
    EDSV_EDS_CHAN_OPEN = EDSV_CBK_BASE_MSG,
    EDSV_EDS_DELIVER_EVENT,
+   EDSV_EDS_CLMNODE_STATUS,
    EDSV_EDS_CBK_MAX
 } EDSV_CBK_TYPE;
 
@@ -87,6 +89,7 @@ typedef enum edsv_api_resp_msg_type
    EDSV_EDA_CHAN_OPEN_SYNC_RSP_MSG,
    EDSV_EDA_CHAN_UNLINK_SYNC_RSP_MSG,
    EDSV_EDA_CHAN_RETENTION_TIME_CLEAR_SYNC_RSP_MSG,
+   EDSV_EDA_LIMIT_GET_RSP_MSG,
    EDSV_EDA_API_RSP_MAX
 } EDSV_API_RSP_TYPE;
 
@@ -268,8 +271,13 @@ typedef struct edsv_eda_evt_deliver_cb_param_tag
    uns32                     event_hdl; /* filled in at the EDA with eventHandle use 0 at EDS */
    uns32                     ret_evt_ch_oid;
    SaSizeT                   data_len;
-   uns8                     *data;
+   uns8                      *data;
 } EDSV_EDA_EVT_DELIVER_CBK_PARAM;
+
+typedef struct edsv_eda_clm_status_param_tag
+{
+   uns16                     node_status;
+} EDSV_EDA_CLM_STATUS_CBK_PARAM;
 
 /* wrapper structure for all the callbacks */
 typedef struct edsv_cbk_info
@@ -282,14 +290,25 @@ typedef struct edsv_cbk_info
    {
       EDSV_EDA_CHAN_OPEN_CBK_PARAM         chan_open_cbk;
       EDSV_EDA_EVT_DELIVER_CBK_PARAM       evt_deliver_cbk;
+      EDSV_EDA_CLM_STATUS_CBK_PARAM        clm_status_cbk;
    } param;
 } EDSV_CBK_INFO;
 
 /* API Response parameter definitions */
 typedef struct edsv_eda_initialize_rsp_tag
 {
-   uns32                     reg_id;
+   uns32                     reg_id; /* Map to evtHandle */
 } EDSV_EDA_INITIALIZE_RSP;
+
+typedef struct edsv_eda_limit_get_rsp_tag
+{
+   /* Event Service Limits */
+   SaUint64T                 max_chan;
+   SaUint64T                 max_evt_size;
+   SaUint64T                 max_ptrn_size;
+   SaUint64T                 max_num_ptrns;
+   SaTimeT                   max_ret_time;
+} EDSV_EDA_LIMIT_GET_RSP;
 
 typedef struct edsv_eda_chan_open_sync_rsp_tag
 {
@@ -302,6 +321,7 @@ typedef struct edsv_eda_publish_rsp_tag
    void *dummy;
 } EDSV_EDA_PUBLISH_RSP;
 
+
 /* wrapper structure for all API responses 
  */
 typedef struct edsv_api_rsp_info_tag
@@ -313,6 +333,7 @@ typedef struct edsv_api_rsp_info_tag
       EDSV_EDA_INITIALIZE_RSP         init_rsp;
       EDSV_EDA_CHAN_OPEN_SYNC_RSP     chan_open_rsp;
       EDSV_EDA_CHAN_UNLINK_SYNC_RSP   chan_unlink_rsp;
+      EDSV_EDA_LIMIT_GET_RSP      limit_get_rsp;
    } param;
 } EDSV_API_RSP_INFO;
 
@@ -335,7 +356,7 @@ typedef struct edsv_msg
 {
    struct edsv_msg *next;   /* for mailbox processing */
    EDSV_MSG_TYPE    type;   /* message type */
-   union 
+   union
    {
       /* elements encoded by EDA (& decoded by EDS) */
       EDSV_API_INFO              api_info;       /* api info */

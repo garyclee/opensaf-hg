@@ -17,6 +17,7 @@ ncs_eds_SOURCES =  $(top_srcdir)/services/common/src/ncs_main_pvt.c
 
 ncs_eds_LDADD = $(top_srcdir)/lib/lib_ncs_core/libncs_core.la \
                  $(top_srcdir)/lib/lib_SaAmf/libSaAmf.la \
+                 $(top_srcdir)/lib/lib_SaClm/libSaClm.la \
                  $(top_srcdir)/services/mbcsv/src/libmbca.la \
 		./common/libedsv_common.la \
 		./eds/libeds.la

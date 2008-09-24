@@ -12,4 +12,4 @@ libedsv_logstr_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ \
 libedsv_logstr_la_SOURCES =	./eds_logstr.c \
 				./eda_logstr.c
 
-libedsv_logstr_la_LDFLAGS = -version-number 2
+libedsv_logstr_la_LDFLAGS = -version-number 3

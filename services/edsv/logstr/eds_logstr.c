@@ -61,15 +61,9 @@ const NCSFL_STR eds_hdln_set[] =
    { EDS_MDS_INIT_FAILED,            "EDS MDS INIT FAILED"             },
    { EDS_MDS_UNINSTALL_FAILED,       "EDS MDS UNINSTALL FAILED"        },
    { EDS_MDS_VDEST_DESTROY_FAILED,   "EDS MDS VDEST DESTROY FAILED"    },
-   
-   
-
-
-
 
    /* Memory Allocation Failures */
    { EDS_MEM_ALLOC_FAILED,           "EDS MEMORY ALLOCATION FAILED"     },
-
 
    /* Logging stuff for Service providers (AMF) */
    { EDS_AMF_REMOVE_CALLBACK_CALLED,              "EDS AMF Termincate callback called"  },
@@ -156,6 +150,17 @@ const NCSFL_STR eds_hdln_set[] =
    { EDS_RETENTION_TMR_EXP_FAILURE,               "EDS Channel Retentiontimer Expiry Processing Failed"},
    { EDS_EVT_UNKNOWN,                             "EDS Event Unknown"},
    { EDS_REMOVE_CALLBACK_CALLED,                  "EDS CSI Remove Callback called"},
+
+   /* CLM related error codes */
+   { EDS_CLM_INIT_FAILED,            "EDS CLM INIT API FAILED"         },
+   { EDS_CLM_REGISTRATION_FAILED,    "EDS CLM REGISTRATION FAILED"     },
+   { EDS_CLM_REGISTRATION_SUCCESS,   "EDS CLM REGISTRATION SUCCESS"    },
+   { EDS_CLM_SEL_OBJ_GET_FAILED,     "EDS CLM SELECTION OBJECT API FAILED" },
+   { EDS_CLM_NODE_GET_FAILED,        "EDS CLM NODE GET API FAILED"         },
+   { EDS_CLM_CLUSTER_TRACK_FAILED,   "EDS CLM CLUSTER TRACK API FAILED"    },
+   { EDS_CLM_CLUSTER_TRACK_CBK_SUCCESS,"EDS CLM CLUSTER TRACK CALLBACK SUCCESS" },
+   { EDS_CLM_CLUSTER_TRACK_CBK_FAILED,"EDS CLM CLUSTER TRACK CALLBACK FAILED" },
+   { EDS_CLUSTER_CHANGE_NOTIFY_SEND_FAILED,"EDS CLUSTER CHANGE NOTIFY SEND FAILED" },
    { 0,0 }
 };
 

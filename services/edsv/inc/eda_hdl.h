@@ -43,7 +43,9 @@ eda_event_inst_rec_del (EDA_EVT_INST_REC **list_head, EDA_EVT_INST_REC *rm_node)
 
 EXTERN_C EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb, 
                                      const SaEvtCallbacksT *reg_cbks,
-                                     uns32 reg_id);
+                                     uns32 reg_id,
+                                     SaVersionT version);
+
 EXTERN_C EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec, 
                         uns32               chan_id, 
                         uns32               chan_open_id,

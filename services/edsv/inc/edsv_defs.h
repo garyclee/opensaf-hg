@@ -26,18 +26,26 @@
 #define EDA_POOL_ID           1 
 
 #define EDSV_RELEASE_CODE 'B'
-#define EDSV_MAJOR_VERSION 1
-#define EDSV_MINOR_VERSION 1
+#define EDSV_MAJOR_VERSION 0x03
+#define EDSV_MINOR_VERSION 0x01
+#define EDSV_BASE_MAJOR_VERSION 0x01
+#define EDSV_BASE_MINOR_VERSION 0x01
 
 /* Macro to validate the EVT version */
 #define m_EDA_VER_IS_VALID(ver)   \
-   ( (ver->releaseCode == 'B') && \
-     (ver->minorVersion == 0x01 || ver->minorVersion == 0xff))
+       (ver->releaseCode  == EDSV_RELEASE_CODE) && \
+       (((ver->majorVersion == EDSV_MAJOR_VERSION) && \
+         (ver->minorVersion == EDSV_MINOR_VERSION)) || \
+        ((ver->majorVersion == EDSV_BASE_MAJOR_VERSION) && \
+         (ver->minorVersion == EDSV_BASE_MINOR_VERSION))) \
 
+#define m_IS_B03_CLIENT(ver)  \
+   (version->releaseCode == 'B') && (version->majorVersion >= 0x03)
+    
 #define m_EDA_FILL_VERSION(ver) \
-         io_version->releaseCode = EDSV_RELEASE_CODE;\
-         io_version->majorVersion = EDSV_MAJOR_VERSION;\
-         io_version->minorVersion = EDSV_MINOR_VERSION; 
+         ver->releaseCode = EDSV_RELEASE_CODE;\
+         ver->majorVersion = EDSV_MAJOR_VERSION;\
+         ver->minorVersion = EDSV_MINOR_VERSION; 
 
 /* Macro to validate the dispatch flags */
 #define m_EDA_DISPATCH_FLAG_IS_VALID(flag) \
@@ -47,7 +55,7 @@
 
 #define m_GET_MY_VERSION(ver) \
      ver.releaseCode = 'B';  \
-     ver.majorVersion = 0x01;  \
+     ver.majorVersion = 0x03;  \
      ver.minorVersion = 0x01;
 
 #define m_GET_MY_VENDOR(vendor) \
@@ -75,6 +83,9 @@
 #define EDSV_NANOSEC_TO_LEAPTM 10000000
 
 #define m_EDSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
+
+#define m_EDSV_GET_CLM_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
+
 #define m_EDSV_UNS64_TO_VB(param,buffer,value)\
    param->i_fmat_id = NCSMIB_FMAT_OCT; \
    param->i_length = 8; \
@@ -82,6 +93,21 @@
    m_NCS_OS_HTONLL_P(param->info.i_oct,value); \
 
 /* DTSv versioning support */
-#define EDSV_LOG_VERSION 2
+#define EDSV_LOG_VERSION 3
 
+/* Define our limits */
+/* EDSv maximum channels for this implementation */
+#define EDSV_MAX_CHANNELS      1024
+
+/* EDSv maximum length of data of an event(in bytes) */
+#define SA_EVENT_DATA_MAX_SIZE   4096
+
+/* EDSv maximum length of a pattern size */
+#define EDSV_MAX_PATTERN_SIZE    255
+
+/* EDSv maximum number of patterns */
+#define EDSV_MAX_PATTERNS        255
+
+/* EDSv maximum event retention time */
+#define EDSV_MAX_RETENTION_TIME  100000000000000.0 /* Revisit This */
 #endif /* EDSV_DEFS_H */

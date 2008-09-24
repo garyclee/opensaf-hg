@@ -44,6 +44,7 @@ static uns32  eds_proc_publish_msg(EDS_CB *, EDSV_EDS_EVT *);
 static uns32  eds_proc_subscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
 static uns32  eds_proc_unsubscribe_msg(EDS_CB *, EDSV_EDS_EVT *);
 static uns32  eds_proc_retention_time_clr_msg(EDS_CB *, EDSV_EDS_EVT *);
+static uns32  eds_proc_limit_get_msg(EDS_CB *, EDSV_EDS_EVT *);
 
 static uns32  eds_proc_eda_updn_mds_msg (EDSV_EDS_EVT  *evt);
 static uns32  eds_process_api_evt (EDSV_EDS_EVT  *evt);
@@ -106,7 +107,8 @@ EDSV_EDS_EDA_API_MSG_HANDLER eds_eda_api_msg_dispatcher[EDSV_API_MAX - EDSV_API_
    eds_proc_publish_msg,
    eds_proc_subscribe_msg,
    eds_proc_unsubscribe_msg,
-   eds_proc_retention_time_clr_msg
+   eds_proc_retention_time_clr_msg,
+   eds_proc_limit_get_msg
 };
 
 /* Pattern for 'LOST EVENT' event */
@@ -131,23 +133,39 @@ SaEvtEventPatternT gl_lost_evt_pattern[1] =
 static uns32 
 eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
 {
-   uns32              rc = NCSCC_RC_SUCCESS;
+   uns32              rc = SA_AIS_OK;
    uns32              async_rc = NCSCC_RC_SUCCESS;
    uns32              loop_count=0;
    SaVersionT         *version=NULL;
    EDSV_MSG           msg;
    EDS_CKPT_DATA      ckpt;
    
-   m_EDSV_DEBUG_CONS_PRINTF(" INITIALIZE EVENT....\n");   
+   m_EDSV_DEBUG_CONS_PRINTF(" INITIALIZE EVENT....\n");
+
    /* Validate the version */
    version = &(evt->info.msg.info.api_info.param.init.version);
    if (!m_EDA_VER_IS_VALID(version))
-   {
-      /* Send response back with error code */
       rc = SA_AIS_ERR_VERSION;
+  
+   /* Check if this EDA is a b03 client, and is on a cluster member node. 
+    */
+   if (m_IS_B03_CLIENT(version))
+   {
+      /* Are we already assigned HA_STATE and is our node DB is populated ? */
+      if ((cb->ha_state != EDS_HA_INIT_STATE) && (cb->cluster_node_list != NULL))
+      {
+         /* Check if this node is in the cluster */
+            if (!is_node_a_member(cb,evt->fr_node_id))
+               rc = SA_AIS_ERR_UNAVAILABLE;
+      }
+   }
+
+   if (rc != SA_AIS_OK)
+   {
       m_LOG_EDSV_SF(EDS_INIT_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,evt->fr_dest);
+      /* Return a default reg_id */
       m_EDS_EDSV_INIT_MSG_FILL(msg, rc, 0)
-         rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+      rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
                                MDS_SEND_PRIORITY_HIGH);
       if(rc != NCSCC_RC_SUCCESS)
          m_LOG_EDSV_SF(EDS_INIT_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,evt->fr_dest);
@@ -155,9 +173,8 @@ eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       return(rc);
    }
 
-
    /*
-    * I'm allocating new reg_id's this way on the wild chance we wrap
+    * Allocating new reg_id's this way on the wild chance we wrap
     * around the MAX_INT value and try to use a value that's still in use
     * and valid at the begining of the range. This way we'll keep trying
     * until we find the next open slot. But we'll only try a max of
@@ -1023,6 +1040,35 @@ eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rs,__FILE__,__LINE__,rc,evt->fr_dest);
    }
    return rs;
+}
+
+/****************************************************************************
+ * Name          : eds_proc_limit_get_msg
+ *
+ * Description   : This function is called when eds receives a limit_get 
+ *                 message from the EDA.
+ * Arguments     : msg  - Message that was posted to the EDS Mail box.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uns32
+eds_proc_limit_get_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
+{
+   uns32        rc = SA_AIS_OK;
+   EDSV_MSG     msg;
+   
+   m_EDSV_DEBUG_CONS_PRINTF("LIMIT GET EVENT ...\n");
+   m_EDS_EDSV_LIMIT_GET_MSG_FILL(msg, rc)
+   rc = eds_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt,
+                               MDS_SEND_PRIORITY_HIGH);
+   if (rc != NCSCC_RC_SUCCESS)
+      m_EDSV_DEBUG_CONS_PRINTF("LIMIT GET Response Send Failed...\n");
+
+    return(rc);
+
 }
 
 /****************************************************************************

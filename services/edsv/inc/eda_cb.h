@@ -105,6 +105,7 @@ typedef struct eda_client_hdl_rec_tag
 {
    uns32             eds_reg_id;      /* handle value returned by EDS for this instantiation */
    uns32             local_hdl;       /* EVT handle (derived from hdl-mngr) */
+   SaVersionT        version;
    SaEvtCallbacksT   reg_cbk;         /* callbacks registered by the application */
    EDA_CHANNEL_HDL_REC  *chan_list;
    SYSF_MBX          mbx;             /* priority q mbx b/w MDS & Library */  
@@ -135,6 +136,15 @@ typedef struct eda_cb_tag
    NCS_BOOL      eds_sync_awaited ;
    NCS_LOCK      eds_sync_lock;
    NCS_SEL_OBJ   eds_sync_sel; 
+#if 0 
+   /* Event Service Limits - Obtained from EDS */
+   SaUint64T     max_chan;
+   SaUint64T     max_evt_size;
+   SaUint64T     max_ptrn_size;
+   SaUint64T     max_num_ptrns;
+   SaTimeT       max_ret_time;
+#endif
+   SaClmClusterChangesT node_status;
 } EDA_CB;
 
 /*** Extern function declarations ***/

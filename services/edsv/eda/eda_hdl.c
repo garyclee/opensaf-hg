@@ -746,14 +746,16 @@ eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec,
   Arguments     : cb       - ptr tot he EDA control block
                   reg_cbks - ptr to the set of registered callbacks
                   reg_id   - obtained from EDS.
+                  version  - version of the client.
  
   Return Values : ptr to the eda handle record
  
   Notes         : None
 ******************************************************************************/
-EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb, 
+EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
                                      const SaEvtCallbacksT *reg_cbks,
-                                     uns32 reg_id)
+                                     uns32 reg_id,
+                                     SaVersionT version)
 {
    EDA_CLIENT_HDL_REC *rec = 0;
 
@@ -782,6 +784,9 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
    /** Associate with the reg_id obtained from EDS
     **/
    rec->eds_reg_id = reg_id;
+   rec->version.releaseCode = version.releaseCode;
+   rec->version.majorVersion = version.majorVersion;
+   rec->version.minorVersion = version.minorVersion;
 
    /** Initialize and attach the IPC/Priority queue
     **/
@@ -1279,3 +1284,4 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
       }/* End if from_pattern_array->patternsNumber != 0 */
       return  error;
 }
+

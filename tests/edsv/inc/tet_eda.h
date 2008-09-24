@@ -46,6 +46,10 @@ void EvtOpenCallback(SaInvocationT invocationCallback,
 void EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
                         SaEvtEventHandleT deliverEventHandle, 
                         SaSizeT eventDataSize);
+
+void b03EvtDeliverCallback(SaEvtSubscriptionIdT subscriptionId, 
+                        SaEvtEventHandleT deliverEventHandle, 
+                        SaSizeT eventDataSize);
 struct gl_list
 {
   int data;
@@ -62,6 +66,7 @@ typedef enum
     EDSV_TEST=1,
     EDSV_API_TEST,
     EDSV_FUNC_TEST,
+    EDSV_CLM_TEST,
   }EDSV_TEST_LIST;
 
 typedef struct gl_variables
@@ -477,3 +482,4 @@ void tet_DataGet_without_Memory(void);
 void eda_selection_thread (void);
 void var_initialize(void);
 void AttributesGet_Thread(void);
+void tet_PatternFree_ReceivedEvent(void);

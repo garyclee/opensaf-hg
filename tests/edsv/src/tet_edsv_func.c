@@ -12,7 +12,7 @@ extern SaInvocationT gl_invocation;
 extern SaEvtEventPatternT gl_pattern[2];
 extern SaEvtEventFilterT gl_filter[1];
 extern const char *gl_saf_error[28];
-
+int gl_b03_flag=0;
 /***********************************************/
 /*************Functionality Testing*************/
 /***********************************************/
@@ -1469,6 +1469,106 @@ get used in event deliver callback");
     
   
 }
+
+
+void tet_PatternFree_ReceivedEvent()
+     /* Patternfree for a received event */
+{
+  int iCmpCount=0;
+  char *tempData;
+  SaSizeT tempDataSize;
+  tet_printf(" PatternsFree for a Received Event");
+  gl_b03_flag=1;
+  
+  var_initialize();
+  gl_evtCallbacks.saEvtEventDeliverCallback=b03EvtDeliverCallback; 
+  
+  tet_saEvtInitialize(&gl_evtHandle);
+        
+  gl_channelOpenFlags=SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER
+    |SA_EVT_CHANNEL_PUBLISHER;
+  tet_saEvtChannelOpen(&gl_evtHandle,&gl_channelHandle);
+
+  gl_filterArray.filtersNumber=1;
+  gl_filterArray.filters=gl_filter;
+
+  tet_saEvtEventSubscribe(&gl_channelHandle,&gl_subscriptionId);
+        
+  tet_saEvtEventAllocate(&gl_channelHandle,&gl_eventHandle);
+
+  gl_patternArray.patternsNumber=2;
+  gl_patternArray.patterns=gl_pattern;
+  gl_retentionTime=10000000000000.0;
+  gl_allocatedNumber=2;
+  gl_patternLength=5;
+  tet_saEvtEventAttributesSet(&gl_eventHandle);
+    
+
+  printf("\n NumUsers= 1 : NumSubscribers= 1 : NumPublishers= 1 \n");
+  
+    
+
+   strcpy (gl_eventData,"Publish Case 14");
+  tempData=gl_eventData;
+  tempDataSize=gl_eventDataSize; 
+  tet_saEvtEventPublish(&gl_eventHandle,&gl_evtId);
+  
+  gl_allocatedNumber=2;
+  gl_patternLength=5;
+    
+  thread_creation(&gl_evtHandle);
+  DISPATCH_SLEEP();
+
+  if(gl_eventDataSize==tempDataSize&&gl_subscriptionId==gl_dupSubscriptionId)
+    {
+      iCmpCount++;
+    }
+  printf("\n\nComparison Count: %d",iCmpCount);
+
+  tet_saEvtEventRetentionTimeClear(&gl_channelHandle,&gl_evtId);
+
+  tet_saEvtEventFree(&gl_eventHandle);
+
+  tet_saEvtChannelClose(&gl_channelHandle);
+
+  tet_saEvtChannelUnlink(&gl_evtHandle);
+
+  tet_saEvtFinalize(&gl_evtHandle);
+
+  if(iCmpCount==1&&gl_error==1)
+    {
+      printf("\nTest Case: PASSED");
+      printf("\nThe event has been delivered to subscriber and attributes get \
+used in event deliver callback");
+      tet_printf("\nThe event has been delivered to subscriber and attributes \
+get used in event deliver callback");
+      tet_result(TET_PASS);
+    }
+  else
+    {
+      if(gl_error==1)
+        {
+          printf("\nTest Case: FAILED");      
+          printf("\nThe event has not been delivered to subscriber");
+          tet_printf("\nThe event has not been delivered to subscriber");
+          tet_result(TET_FAIL);
+        }
+      else
+        {
+          printf("\nTest Case: UNRESOLVED");
+          printf("\nAPI call has failed");
+          tet_printf("\nTest Case: UNRESOLVED");
+          tet_infoline("API call has failed");
+          tet_result(TET_UNRESOLVED);
+        }
+    }
+
+  gl_b03_flag=0;
+  printf("\n\n*************Case 14 End*************");
+  
+}
+
+
 
 void tet_EventPublish_NullPatternArray()  
      /* Event Publish for Null Pattern Array */
