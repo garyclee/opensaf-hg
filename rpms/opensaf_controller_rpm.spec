@@ -468,8 +468,8 @@ unlink /etc/init.d/nis_scxb
 %{lib_dir}/libedsv_common.so.0
 %{lib_dir}/libedsv_common.so.0.0.0
 %{lib_dir}/libedsv_logstr.so
-%{lib_dir}/libedsv_logstr.so.2
-%{lib_dir}/libedsv_logstr.so.2.0.0
+%{lib_dir}/libedsv_logstr.so.3
+%{lib_dir}/libedsv_logstr.so.3.0.0
 %{lib_dir}/libedsv_subagt.so
 %{lib_dir}/libedsv_subagt.so.0
 %{lib_dir}/libedsv_subagt.so.0.0.0
