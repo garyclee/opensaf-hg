@@ -181,12 +181,37 @@ function tipc_configure ()
     echo " TIPC Module is Present and Configured Success in network mode " 
 }
 
-if ! grep tipc /proc/modules >& /dev/null; then
+# Consider that TIPC could be statically linked
+if ! grep TIPC /proc/net/protocols >& /dev/null; then
     tipc_configure
 else
-    echo "TIPC module already present , Please remove the TIPC module to configure and rerun the script again"
-    echo "Quitting......"
-    exit 1
+    # TIPC is already present, is it configured properly?
+    configured_tipc_addr=`tipc-config -addr | tr -s '<>' % | cut -d% -f2`
+    opensaf_tipc_addr=1.1.$TIPC_NODEID
+    if [ $configured_tipc_addr != $opensaf_tipc_addr ]; then
+        logger -t opensaf -s "TIPC node address not configured to OpenSAF requirements, exiting..."
+        exit 1
+    fi
+
+    configured_net_id=`tipc-config -netid | cut -d: -f2`
+    opensaf_net_id=$CORE_ID
+    if [ $configured_net_id != $opensaf_net_id ]; then
+        logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
+        exit 1
+    fi
+    configured_net_id=`tipc-config -netid | cut -d: -f2`
+    opensaf_net_id=$CORE_ID
+    if [ $configured_net_id != $opensaf_net_id ]; then
+        logger -t opensaf -s "TIPC network ID not configured to OpenSAF requirements, exiting..."
+        exit 1
+    fi
+
+    configured_bearer=`tipc-config -b | grep -v Bearer | cut -d: -f2`
+    opensaf_bearer=$ETH_NAME
+    if [ $configured_bearer != $opensaf_bearer ]; then
+        logger -t opensaf -s "TIPC bearer not configured to OpenSAF requirements, exiting..."
+        exit 1
+    fi
 fi
 
 echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_INSTALL_SUCCESS" > $NIDFIFO
