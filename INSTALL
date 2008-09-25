@@ -68,6 +68,11 @@ c) NET-SNMP 5.4: This package is Mandatory. Download the net-snmp sources from b
    For more configuration details of net-snmp please refer to net-snmp documentation available at http://net-snmp.sourceforge.net/docs/readmefiles.html . Refer the ChangeLog of net-snmp while migrating from an older net-snmp version to net-snmp 5.4.
 
 d) TIPC:  TIPC is used for intra cluster communication in OpenSAF. 
+
+   If you want OpenSAF to manage TIPC follow the instructions below. If not,
+   leave directory /opt/TIPC empty and make sure TIPC has been configured 
+   according to OpenSAF requirements.
+
    Download the TIPC sources from http://tipc.sourceforge.net/download.html relevent to your kernel and build it. After that copy tipc.ko and tipc-config to /opt/TIPC.
    
    The following typical steps can be followed while building tipc as a kernel module:

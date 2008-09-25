@@ -54,7 +54,16 @@ INITTIMEOUT=1000
 TERMTIMEOUT=5
 NISSTATUS="NONE"
 SPCAPPIDFILE=/var/run/ncsspcap.pid
-MODULE=tipc
+
+TIPC_DIR=/opt/TIPC
+TIPC_MODULE=tipc.ko
+TIPC_MANAGE=YES
+
+# If the TIPC kernel module is not present in the OpenSAF specified location,
+# OpenSAF should not manage TIPC.
+if ! test -f ${TIPC_DIR}/${TIPC_MODULE}; then
+    TIPC_MANAGE=NO
+fi
 
 ####################################################
 # NID_ROLE_CONFIG is for flexibility to configure
@@ -80,8 +89,8 @@ set +x
 start()
 {
        ### Remove TIPC if already installed.
-        if grep $MODULE /proc/modules >& /dev/null; then
-           rmmod $MODULE 
+        if [ "$TIPC_MANAGE" == "YES" ] && grep $TIPC_MODULE /proc/modules >& /dev/null; then
+           rmmod $TIPC_MODULE 
            if [ $? -eq 1 ] ; then
               echo "TIPC is already installed, Please remove TIPC module first..."
               exit 1
@@ -239,8 +248,8 @@ clean_the_rest()
    kill -9 `pgrep nid_tipc.sh`
    kill -9 `pgrep ncs_nid`
    sleep 2 # Give time for tipc to release.
-   if grep $MODULE /proc/modules >& /dev/null; then
-      rmmod $MODULE
+   if [ "$TIPC_MANAGE" == "YES" ] && grep $TIPC_MODULE /proc/modules >& /dev/null; then
+      rmmod $TIPC_MODULE
    fi
 
    rm -f $PIDFILE $SPCAPPIDFILE $SPCAPFIFO
