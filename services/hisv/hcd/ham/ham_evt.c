@@ -1486,8 +1486,16 @@ GET_RES_ID:
          }
       }
 
-      if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
-         continue;
+      /* Allow for the case where blades are ATCA or non-ATCA.  */
+      if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+          (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+         if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
+            continue;
+      }
+      else {
+         if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
+            continue;
+      }
 #endif
 
       /** got the resource-id of resource with given entity-path
