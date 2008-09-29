@@ -24,7 +24,7 @@
 
 Summary: OpenSAF Services Payload Blade RPM
 Name: opensaf_payload
-Version: 2.0.0
+Version: 3.0.B1
 Distribution: linux
 Release:1
 Source: %{name}.tgz
