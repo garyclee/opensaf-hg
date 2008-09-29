@@ -69,6 +69,8 @@ uns32 hpl_resource_reset(uns32 chassis_id, uns8 *entity_path, uns32 reset_type)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
 
    /** retrieve HPL CB
     **/
@@ -152,6 +154,8 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
 
    /* validate the requested power state */
    if ((power_state < HISV_RES_POWER_OFF) || (power_state > HISV_RES_POWER_CYCLE))
@@ -386,6 +390,8 @@ uns32 hpl_config_hs_indicator(uns32 chassis_id, uns8 *entity_path,
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    if ((hs_ind_cmd != HS_INDICATOR_STATE_GET)
         && (hs_ind_cmd != HS_INDICATOR_STATE_SET))
    {
@@ -476,6 +482,8 @@ uns32 hpl_config_hs_state_get(uns32 chassis_id, uns8 *entity_path, uns32 *arg)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    /** retrieve HPL CB
     **/
    if (NULL == (hpl_cb = (HPL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HPL, gl_hpl_hdl)))
@@ -562,6 +570,8 @@ uns32 hpl_config_hs_autoextract(uns32 chassis_id, uns8 *entity_path,
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    if ((hs_config_cmd != HS_AUTO_EXTRACT_TIMEOUT_GET)
         && (hs_config_cmd != HS_AUTO_EXTRACT_TIMEOUT_SET))
    {
@@ -666,6 +676,8 @@ uns32 hpl_manage_hotswap(uns32 chassis_id, uns8 *entity_path,
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    if ((hs_manage_cmd != HS_POLICY_CANCEL)
         && (hs_manage_cmd != HS_RESOURCE_ACTIVE_SET)
         && (hs_manage_cmd != HS_RESOURCE_INACTIVE_SET)
@@ -976,6 +988,8 @@ uns32 hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    if ((evlog_time_cmd != EVENTLOG_TIMEOUT_GET)
         && (evlog_time_cmd != EVENTLOG_TIMEOUT_SET))
    {
@@ -1114,6 +1128,8 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
       m_NCS_CONS_PRINTF("hpl_bootbank_get : Error - Entity path supplied is wrong\n");
       return NCSCC_RC_FAILURE;
    } 
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
    
    /** retrieve HPL CB
     **/
@@ -1209,6 +1225,8 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
       m_NCS_CONS_PRINTF("hpl_bootbank_set : Error - Entity path supplied is wrong\n");
       return NCSCC_RC_FAILURE;
    }
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
 
    /** retrieve HPL CB
     **/
