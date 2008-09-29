@@ -33,6 +33,16 @@
 /* HISv Toolkit header file */
 #include "../../include/hpl_api.h"
 #include "../../include/hpl_msg.h"
+
+#include "../../include/mds_papi.h"
+#include "../../include/ncssysf_tmr.h"
+#include "../../include/ncssysf_lck.h"
+#include "../../services/hisv/inc/hcd_mem.h"
+#include "../../services/hisv/inc/hcd_util.h"
+#include "../../services/hisv/inc/hisv_msg.h"
+#include "../../services/hisv/inc/ham_cb.h"
+
+#include "../../services/hisv/inc/hpl_cb.h"
 #include "hisv_events_demo_app.h"
 
 EXTERN_C int raw;
@@ -461,12 +471,17 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    SaUint8T                  hpi_sensor_type_string[50];
    SaUint8T                  hpi_sensor_es_string[50];
    SaUint8T                  hpi_entity_path_buffer[100];
-   /* SaUint8T                  hpipower_string[100]; */
+   SaUint8T                  hpipower_string[100];
    SaUint8T                  hpi_entity_path[8][50];
    uns32                     hpi_entity_path_depth = 0;
    uns32                     hpi_entity_path_max = 8;
    SaInt32T		     i;
    SaInt32T		     hpi_event_slot;
+   uns32                     hisv_power_res = 0;
+   SaUint8T                  hpi_entity_path2[300];
+   NCS_LIB_REQ_INFO          req_info;
+   HPL_CB                    *hpl_cb;
+   NCS_LIB_CREATE            hisv_create_info;
 
    /* Prepare an appropriate-sized data buffer.  */
    data_len = event_data_size;
@@ -795,16 +810,40 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
          m_NCS_CONS_PRINTF("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
 
       /* Now test to see if we shutdown a blade. Use system call to OpenHPI to shutdown the blade. */
-/*
       if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
          if ((strcmp(hpi_sensor_type_string, "SAHPI_TEMPERATURE") == 0) &&
              (strcmp(hpi_event_sev_string, "SAHPI_CRITICAL") == 0)) {
             m_NCS_CONS_PRINTF("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n", hpi_event_slot);
+
+
+            /* Uncomment these 2 lines to shut off the blade using OpenHPI, or ... */
+            /*
             sprintf(hpipower_string, "/usr/bin/hpipower -d -b %d > /dev/null", hpi_event_slot);
             system(hpipower_string);
+            */
+
+
+            /* ... uncomment this section of lines to shut off the blade using HISv. */
+            /*
+            rc = hpl_initialize(&hisv_create_info);
+            m_NCS_CONS_PRINTF("\n***** hpl_initialize rc = %d\n", rc);
+            */
+
+            /* Need to sleep for a few seconds before calling the HISv APIs. */
+            /*
+            sleep(3);
+
+            sprintf(hpi_entity_path2, "{{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,2}}", hpi_event_slot);
+            m_NCS_CONS_PRINTF("\n***** Shutting down resource: %s\n", hpi_entity_path2);
+            hisv_power_res = hpl_resource_power_set(2, hpi_entity_path2, HISV_RES_POWER_OFF);
+            m_NCS_CONS_PRINTF("\n***** hisv_power_res = %d\n", hisv_power_res);
+            if (hisv_power_res == NCSCC_RC_SUCCESS)
+               m_NCS_CONS_PRINTF("\n*****          BLADE SUCCESSFULLY SHUTDOWN          *****\n");
+            else
+               m_NCS_CONS_PRINTF("\n*****          BLADE COULD NOT BE SHUTDOWN          *****\n");
+            */
          }
       }
-*/
    }
 
    m_NCS_CONS_PRINTF("--------------------------------------------------------\n\n");
