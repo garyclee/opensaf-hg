@@ -2556,7 +2556,6 @@ spawn_services(uns8 * strbuf)
    ******************************************************/
    if(nid_open_ipc(&select_fd,strbuf) != NCSCC_RC_SUCCESS)  return NCSCC_RC_FAILURE;
 
-   logme(NID_LOG2FILE_CONS,"Starting OpenSAF Services...\n");
    while(sp_list.head != NULL)
    {
        service = sp_list.head;
