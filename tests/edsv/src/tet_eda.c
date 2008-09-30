@@ -4839,7 +4839,7 @@ struct tet_testlist edsv_test[]=
   {
     {tet_saEvtInitializeCases,1,1},
     {tet_saEvtInitializeCases,1,2},
-#if 0 
+#if 1 
     /*    {tet_saEvtInitializeCases,1,3},*/
     {tet_saEvtInitializeCases,1,4},
     {tet_saEvtInitializeCases,1,5},
@@ -5041,7 +5041,7 @@ struct tet_testlist edsv_test[]=
 struct tet_testlist api_test[]=
   {
     {tet_Initialize,1},
-#if 0 
+#if 1 
     {tet_ChannelOpen,2},
     {tet_ChannelOpenAsync,3},
     {tet_Subscribe,4},
@@ -5064,7 +5064,7 @@ struct tet_testlist api_test[]=
 struct tet_testlist func_test[]=
   {
     {tet_ChannelOpen_SingleEvtHandle,1},
-#if 0 
+#if 1 
     {tet_ChannelOpen_SingleEvtHandle_SamePatterns,2},
     {tet_ChannelOpen_SingleEvtHandle_DifferentPatterns,3},
     {tet_ChannelOpen_MultipleEvtHandle,4},
@@ -5280,8 +5280,7 @@ void tet_run_edsv_app()
 {
   int iterCount=0,listCount=0;
   gl_defs();
-      tet_test_start(gl_tCase,b03_test);
-#if 0 
+#if 1 
 #ifndef TET_ALL
 
   tware_mem_ign();
