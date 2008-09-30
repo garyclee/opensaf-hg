@@ -372,7 +372,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    /* Create HCD-HAM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)hcd_ham,
                                           0, "HAM", HAM_TASK_PRIORITY,
-                                          NCS_STACKSIZE_HUGE,
+                                          NCS_STACKSIZE_HUGEX2,
                                           &ham_cb->task_hdl
                                           )))
    {
