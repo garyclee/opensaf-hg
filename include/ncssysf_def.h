@@ -474,6 +474,10 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 #define NCS_STACKSIZE_HUGE     128000
 #endif
 
+#ifndef NCS_STACKSIZE_HUGEX2
+#define NCS_STACKSIZE_HUGEX2   256000
+#endif
+
 /*****************************************************************************
  **                                                                         **
  **                   Replacement strtoks                                   **
