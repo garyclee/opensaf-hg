@@ -1,3 +1,17 @@
+Changes from OpenSAF 2.0.0 to OpenSAF 3.0.0
+-------------------------------------------
+
+2008-09-24 Mathi <Mathivanan.NP@emerson.com>
+	* EDSV B0301 spec changes with backward compatibility.
+	* Applications can initialize with B0101 OR B0301 functionality.
+
+2008-09-16 Mahesh <mahesh.alla@emerson.com>
+	* CPSV B0202 spec changes with backward compatibility.
+	* Applications can initialize with B0202 OR B0101 functionality.
+
+2008-09-16 Vishal <Vishal.Soni@emerson.com>
+	* MQSV B0301 spec changes with backward compatibility.
+	* Applications can initialize with B0101 OR B0301 functionality.
 
 Changes from OpenSAF 1.2.1 to OpenSAF 1.2.2
 -------------------------------------------
