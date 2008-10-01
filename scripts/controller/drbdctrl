@@ -41,7 +41,15 @@ DRBD_SYNC_FILE="/etc/opt/opensaf/.drbd_sync_state_0"
 
 RES="$2"
 ROLE_NAME="$3"
-echo "Parms : $0 $1 $2 $3 $4 $5 $6 $7"
+if [ "$3" = "ROLE=1" ] ; then
+   ROLE_NAME="ACTIVE"
+elif [ "$3" = "ROLE=2" ] ; then
+   ROLE_NAME="STDBY"
+else
+   ROLE_NAME=""
+fi
+
+echo "Parms : $0 $1 $2 $ROLE_NAME $4 $5 $6 $7"
 echo "Finished"
 NID_MAGIC_NO="AAB49DAA"
 SERV_CODE="DRBD"
