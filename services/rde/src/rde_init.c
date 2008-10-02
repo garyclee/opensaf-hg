@@ -313,7 +313,7 @@ static uns32 rde_task_main (RDE_CONTROL_BLOCK * rde_cb)
                 rc = rde_rde_clCheckConnect(rde_rde_cb);
                 rc = rde_count_testing();
        }
-       if(rde_rde_cb->retry == TRUE)
+       if ((rde_rde_cb->retry == TRUE) && (rde_cb->ha_role != PCS_RDA_ACTIVE))
        {
         /* Once the connection has been established and then gone down
             Try reconnecting for indefinite. */  
