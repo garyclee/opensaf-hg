@@ -246,7 +246,7 @@ uns32 pss_lib_init()
       if(ps_cnt > 2)
       {
          /* Log that there are multiple formats of persistent store */
-         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "pss_check_n_reformat(): Too many formats of persistent store found");
+         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "Too many formats of persistent store found");
          for(;ps_cnt > 0; ps_cnt--)
             free(ps_list[ps_cnt-1]);
          free(ps_list);
@@ -284,7 +284,7 @@ uns32 pss_lib_init()
       else
       {
          /* if none of the formats returned by scandir is PSS_PS_FORMAT_VERSION, return FAILURE */
-         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "pss_check_n_reformat(): Invalid formats of persistent store found");
+         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "Invalid formats of persistent store found");
          for(;ps_cnt > 0; ps_cnt--)
             free(ps_list[ps_cnt-1]);
          free(ps_list);
@@ -294,6 +294,11 @@ uns32 pss_lib_init()
       m_NCS_CONS_PRINTF("ps_format_version: %d\n", ps_format_version);
    }
  /* End of 3.0.a addition */
+
+   if(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE && ps_format_version != 0)
+   {
+      pss_check_n_reformat(gl_pss_amf_attribs.pss_cb, ps_format_version);
+   }
 
    /* create the task */ 
    if(m_NCS_TASK_CREATE((NCS_OS_CB)pss_mbx_amf_process,
@@ -342,11 +347,6 @@ uns32 pss_lib_init()
 
    /* log a headline that PSS is intialized successfully */ 
    m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_CREATE_SUCCESS); 
-
-   if(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE && ps_format_version != 0)
-   {
-      pss_check_n_reformat(gl_pss_amf_attribs.pss_cb, ps_format_version);
-   }
 
    return rc;
 }
