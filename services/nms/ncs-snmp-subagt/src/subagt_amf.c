@@ -194,6 +194,7 @@ snmpsubagt_amf_initialize(NCSSA_CB *cb)
 { 
     uns32   ret_code = NCSCC_RC_SUCCESS; 
     SaAisErrorT status = SA_AIS_OK; 
+    SaVersionT          safVersion; 
  
     /* Log the entry into this function */
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_AMF_INIT);
@@ -214,11 +215,17 @@ snmpsubagt_amf_initialize(NCSSA_CB *cb)
                                 ret_code, 0, 0);
         return SA_AIS_ERR_INVALID_PARAM; 
     }
+
+
+    /* initialize the SAF version details */
+    safVersion.releaseCode = 'B';
+    safVersion.majorVersion = 0x01;
+    safVersion.minorVersion = 0x01;
     
     /* Initialize the AMF Library */
     status = saAmfInitialize(&cb->amfHandle, /* AMF Handle */
                     &cb->amfCallbacks, /* AMF Callbacks */ 
-                    &cb->safVersion /*Version of the AMF*/);
+                    &safVersion /*Version of the AMF*/);
     if (status != SA_AIS_OK) 
     { 
         /* log the error */ 

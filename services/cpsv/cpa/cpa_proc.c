@@ -58,7 +58,9 @@ uns32 cpa_version_validate (SaVersionT *version)
       ((version->majorVersion  == CPA_BASE_MAJOR_VERSION) && 
       (version->minorVersion  == CPA_BASE_MINOR_VERSION))))
    {
-      
+     version->releaseCode = CPA_RELEASE_CODE;
+      version->majorVersion = CPA_MAJOR_VERSION;
+      version->minorVersion = CPA_MINOR_VERSION;
       return SA_AIS_OK;
    }
    else

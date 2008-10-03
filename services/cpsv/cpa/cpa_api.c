@@ -66,6 +66,9 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
    uns32             proc_rc = NCSCC_RC_SUCCESS;
    CPA_CLIENT_NODE   *cl_node=NULL;
    NCS_BOOL          locked = TRUE;
+   SaVersionT        client_version;
+
+
 
    proc_rc = ncs_agents_startup(0,0);
    if(NCSCC_RC_SUCCESS != proc_rc)
@@ -91,6 +94,8 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
 
 
    *ckptHandle = 0;
+
+   m_NCS_OS_MEMCPY(&client_version, version, sizeof(SaVersionT)); 
 
    /* Draft Validations : Version */   
    rc = cpa_version_validate(version);
@@ -295,7 +300,7 @@ clm_left:
 
    if(rc == SA_AIS_OK)
    {
-       m_NCS_OS_MEMCPY(&(cl_node->version), version, sizeof(SaVersionT)); 
+       m_NCS_OS_MEMCPY(&(cl_node->version), &client_version, sizeof(SaVersionT)); 
       /* Went well, return ckptHandle to the application */   
       *ckptHandle = cl_node->cl_hdl;
       m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
@@ -364,13 +369,15 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle,
    }
 
    /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
+   if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
    {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-       rc= SA_AIS_ERR_UNAVAILABLE; 
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
        	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
+         goto clm_left;
+      }
    }
    
    *selectionObject = (SaSelectionObjectT)
@@ -446,15 +453,16 @@ SaAisErrorT saCkptDispatch(SaCkptHandleT ckptHandle,
    }
 
    /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
+   if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
    {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
+         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         goto clm_left;
+      }
    }
-
    /* IR000060492 cpa deadlock in arrival callback ,do unlock and then do the dispatch processing  */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -729,17 +737,20 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
    }
 
     /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
+   if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
    {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-     if(locked)
-      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	  locked = FALSE;
-       goto clm_left;
-   }	
-   
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
+         if (locked)
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+	 locked = FALSE;
+         goto clm_left;
+      }	
+   }
+
    /* Allocate the CPA_LOCAL_CKPT_NODE & Populate lcl_ckpt_hdl with self 
       pointer and also fill app_hdl*/
    lc_node = (CPA_LOCAL_CKPT_NODE *)m_MMGR_ALLOC_CPA_LOCAL_CKPT_NODE;
@@ -1036,17 +1047,21 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle,
    }
 
     /* Checking Node availability */ 
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
+   if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
    {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-      if(locked)
-       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-      locked = FALSE;
-       goto clm_left;
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+          rc= SA_AIS_ERR_UNAVAILABLE; 
+
+          if (locked)
+             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+
+          locked = FALSE;
+          goto clm_left;
+      }
    }
-   
+
    if(cl_node->ckpt_callbk.saCkptCheckpointOpenCallback == NULL)
    {
       rc = SA_AIS_ERR_INIT;
@@ -1274,14 +1289,16 @@ SaAisErrorT  saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
 
 
     /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+       if (cb->is_cpnd_joined_clm  != TRUE) 
+       {
+          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+          rc= SA_AIS_ERR_UNAVAILABLE; 
+	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+          goto clm_left;
+       }
+    }
 
    /* Populate evt.info.cpnd.info.closeReq &Call MDS sync Send */   
    m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
@@ -1480,15 +1497,16 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
       goto fail1;
    }
      /* Checking Node availability */ 
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
+   if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
    {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
-	
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+   }	
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
    /* Populate evt.info.cpnd.info.unlinkReq & Call MDS sync Send */
@@ -1628,7 +1646,7 @@ SaAisErrorT  saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkp
       }
 
    /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
     {
 
 	    if (cb->is_cpnd_joined_clm  != TRUE) 
@@ -1788,14 +1806,16 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
       }
    
    /* Checking Node availability */ 
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+    }
    
    /* Don't allow Active replica Set, in case if SA_CKPT_CHECKPOINT_WRITE is 
     not set */
@@ -1985,7 +2005,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
       }
 
    /* Checking Node availability */ 
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
      {
 	    if (cb->is_cpnd_joined_clm  != TRUE) 
 	   {
@@ -2002,7 +2022,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
 	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	      goto fail1;
 	   }
-   }
+     }
    proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                &lc_node->gbl_ckpt_hdl, &gc_node, &add_flag);
 
@@ -2258,14 +2278,16 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 
 
     /* Checking Node availability */ 
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {    
+       if (cb->is_cpnd_joined_clm  != TRUE) 
+       {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
+	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         goto clm_left;
+       }
+    }
    
    if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_WRITE))
    {
@@ -2389,10 +2411,11 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
          {
             if(out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen)
             { 
-               if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-               app_ptr.id = (SaUint8T *)m_MMGR_ALLOC_CPA_DEFAULT(out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));
-               else
-               app_ptr.id = (SaUint8T *)malloc(out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));
+               if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION)){
+               app_ptr.id = (SaUint8T *)m_MMGR_ALLOC_CPA_DEFAULT(out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));}
+               else{
+               app_ptr.id = (SaUint8T *)malloc(out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));}
+
                if(app_ptr.id == NULL)
                {
                   m_LOG_CPA_MEMFAIL(CPA_DATA_BUFF_ALLOC_FAILED);
@@ -2514,14 +2537,16 @@ saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle,SaUint8T *id)
       }
    
     /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+        if (cb->is_cpnd_joined_clm  != TRUE) 
+        {
+           m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+           rc= SA_AIS_ERR_UNAVAILABLE; 
 	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+           goto clm_left;
+        }
+    }
 
       /* id is  Null , so return INVALID_PARAM */
    if(id == NULL) 
@@ -2630,14 +2655,16 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
 
 
     /* Checking Node availability */ 
-     if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+       if (cb->is_cpnd_joined_clm  != TRUE) 
+       {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
+	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         goto clm_left;
+       }
+    }
    
   /* Don't allow the delete, in case if SA_CKPT_CHECKPOINT_WRITE is 
     not set */
@@ -2827,14 +2854,16 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
 
 
      /* Checking Node availability */ 
-     if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+     {
+         if (cb->is_cpnd_joined_clm  != TRUE) 
+         {
+             m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+             rc= SA_AIS_ERR_UNAVAILABLE; 
+	     m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+             goto clm_left;
+         }
+    }
    
   /* Don't allow the exp time set, in case if SA_CKPT_CHECKPOINT_WRITE is 
      not set */
@@ -3024,7 +3053,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
 
 
     /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
     {
     	   if (cb->is_cpnd_joined_clm  != TRUE) 
 	   {
@@ -3065,7 +3094,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
 
       if(!gc_node->is_active_exists)
        {
-         if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+          if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
        	  {     
 	         if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
 	         {
@@ -3075,9 +3104,9 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
 	        	goto done;
 	         }
          }
-	  else
-	  {
-        rc = SA_AIS_ERR_NOT_EXIST;
+	 else
+	 {
+                rc = SA_AIS_ERR_NOT_EXIST;
         	m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                 "SectIterInit",__FILE__ ,__LINE__, rc, checkpointHandle);
         	goto done;
@@ -3288,14 +3317,16 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
       }
 
     /* Checking Node availability */ 
-    if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+         rc= SA_AIS_ERR_UNAVAILABLE; 
+	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         goto clm_left;
+      }
+    }
    
    proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                            &sect_iter_node->gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -3341,25 +3372,26 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
            rc = SA_AIS_ERR_BAD_HANDLE;
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail1;
-      }
-         if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+        }
+
+         if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
 	 {
-	 	   if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
+	 	 if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
 	         {
-        rc = SA_AIS_ERR_NOT_EXIST;
-        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-        m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                     rc = SA_AIS_ERR_NOT_EXIST;
+                     m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+                     m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                 "SectIterNext",__FILE__ ,__LINE__, rc, sectionIterationHandle);
-        goto sect_iter_get_fail;
-       }
+                     goto sect_iter_get_fail;
+                 }
          }
-	  else
-	  {
+	 else
+	 {
 	       	 rc = SA_AIS_ERR_NOT_EXIST;
 	       	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 	       	 m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
 	                                "SectIterNext",__FILE__ ,__LINE__, rc, sectionIterationHandle);
-	        	goto sect_iter_get_fail;
+	         goto sect_iter_get_fail;
 	  }
 	  
        }
@@ -3566,14 +3598,16 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail1;
       }
-     if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+        if (cb->is_cpnd_joined_clm  != TRUE) 
+        {
+           m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+           rc= SA_AIS_ERR_UNAVAILABLE; 
 	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+           goto clm_left;
+        }
+    }
 
    proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                            &sect_iter_node->gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -3781,14 +3815,16 @@ SaAisErrorT  saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
          rc = SA_AIS_ERR_BAD_HANDLE;
           goto ckpt_node_get_fail;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+    }
    proc_rc=cpa_proc_check_iovector(cb,lc_node,ioVector,numberOfElements);
    if (proc_rc != NCSCC_RC_SUCCESS)
    {
@@ -4031,14 +4067,16 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
          rc = SA_AIS_ERR_BAD_HANDLE;
           goto ckpt_node_get_fail;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+    }
    
    /* Don't allow the Overwrite, in case if SA_CKPT_CHECKPOINT_WRITE is 
     not set */
@@ -4257,14 +4295,17 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
          rc = SA_AIS_ERR_BAD_HANDLE;
           goto ckpt_node_get_fail;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+
+    }
 
    proc_rc=cpa_proc_check_iovector(cb,lc_node,ioVector,numberOfElements);
    if (proc_rc != NCSCC_RC_SUCCESS)
@@ -4512,14 +4553,17 @@ saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHandle,void *dat
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+    if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+    {
+      if (cb->is_cpnd_joined_clm  != TRUE) 
+      {
+        m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+        rc= SA_AIS_ERR_UNAVAILABLE; 
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        goto clm_left;
+      }
+    }
+
    m_MMGR_FREE_CPA_DEFAULT(data);
     m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
   lock_fail:
@@ -4597,14 +4641,16 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
 	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-      rc= SA_AIS_ERR_UNAVAILABLE; 
-	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+      if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+      {
+          if (cb->is_cpnd_joined_clm  != TRUE) 
+          {
+              m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+              rc= SA_AIS_ERR_UNAVAILABLE; 
+	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+              goto clm_left;
+          }
+      }
    
    /* Don't allow the sync, in case if SA_CKPT_CHECKPOINT_WRITE is 
     not set */
@@ -4801,14 +4847,16 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
 	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
-      if((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-    if (cb->is_cpnd_joined_clm  != TRUE) 
-   {
-      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-     rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto clm_left;
-   }
+      if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
+      {
+           if (cb->is_cpnd_joined_clm  != TRUE) 
+           {
+              m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+              rc= SA_AIS_ERR_UNAVAILABLE; 
+	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+              goto clm_left;
+           }
+      }
    
    /* Don't allow the sync, in case if SA_CKPT_CHECKPOINT_WRITE is 
     not set */

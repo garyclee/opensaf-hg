@@ -138,13 +138,14 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
                 SaVersionT *version)
 {
    MQA_CB            *mqa_cb=NULL;
-   SaAisErrorT          rc = SA_AIS_OK;
+   SaAisErrorT       rc = SA_AIS_OK;
    MQSV_EVT          initialize_evt;
    MQSV_EVT          *out_evt=NULL;
    MQA_CLIENT_INFO   *client_info=NULL;
    uns32             mds_rc;
-   int argc = 0;
-   char **argv=NULL;
+   int               argc = 0;
+   char              **argv=NULL;
+   SaVersionT        client_version;
 
 #if (NCS_MQA_DEBUG==1)
    m_NCS_CONS_PRINTF("\n saMsgInitialize Called \n");
@@ -185,6 +186,15 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
       
       rc = SA_AIS_ERR_VERSION;
       goto final1;
+   }
+   else
+   {
+            /* Implimentation is supporting the required release code */
+           version->releaseCode = MQA_RELEASE_CODE;
+           version->majorVersion = MQA_MAJOR_VERSION;
+           version->minorVersion = MQA_MINOR_VERSION;
+
+
    }
 
    /* retrieve MQA CB */
@@ -257,9 +267,9 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
       }
     
       /* Update version passed in initialize */
-      client_info->version.releaseCode = version->releaseCode;
-      client_info->version.majorVersion = version->majorVersion;
-      client_info->version.minorVersion = version->minorVersion;
+      client_info->version.releaseCode = client_version.releaseCode;
+      client_info->version.majorVersion = client_version.majorVersion;
+      client_info->version.minorVersion = client_version.minorVersion;
 
       if (mqsv_mqa_callback_queue_init(client_info) != NCSCC_RC_SUCCESS)
       {
