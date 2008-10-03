@@ -188,7 +188,7 @@ uns32 pdrbd_handle_script_resp(PSEUDO_CB *cb, PDRBD_EVT *evt)
       };
    }
 
-   rsrc_num = ((PDRBD_PROXIED_INFO*)((long)(evt->evt_data.info.i_usr_hdl)))->rsrc_num;
+   rsrc_num = evt->evt_data.info.i_usr_hdl;
 
    /* Find script context. If it is already cleared then return success */
    for (i=0; i<=SCRIPT_SPAWN_PLACE_MAX; i++)
