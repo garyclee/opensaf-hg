@@ -24,7 +24,7 @@
 *  DESCRIPTION                                                               *
 *  This module contains the client library APIs for EDSv (a.k.a. EDA)        *
 *  as defined in by Service Availability Forum (SAF) Application Interface   *
-*  Specification SAI-AIS-A.01.01 section 8; SA Event Service API.            *
+*  Specification SAI-AIS-B.03.01 section 3; SA Event Service API.            *
 *                                                                            *
 *  APIs                                                                      *
 *                                                                            *
@@ -56,7 +56,7 @@
 #define NCS_SAF_MIN_ACCEPT_TIME 10
 
 /***************************************************************************
- * 8.4.1
+ * 3.5.1
  *
  * saEvtInitialize()
  *
@@ -120,6 +120,9 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
        return SA_AIS_ERR_INVALID_PARAM;
    }
    
+   /* Populate the message to be sent to the EDS */
+    m_EDA_EDSV_INIT_MSG_FILL(i_msg, (*io_version));
+
    /* Validate the version. Should be either B0101 or B0301, intermittent releases are not supported for now */
 
    if (m_EDA_VER_IS_VALID(io_version))
@@ -148,9 +151,6 @@ saEvtInitialize( SaEvtHandleT          *o_evtHandle,
        m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,eda_cb->eds_intf.eds_up);
        return rc;
    }
-
-   /* Populate the message to be sent to the EDS */
-    m_EDA_EDSV_INIT_MSG_FILL(i_msg, (*io_version));
 
    /* Send a message to EDS to obtain a reg_id/server ref id which is cluster
     * wide unique.
@@ -215,7 +215,7 @@ err3:
 
 
 /***************************************************************************
- * 8.4.2
+ * 3.5.2
  *
  * saEvtSelectionObjectGet()
  *
@@ -303,7 +303,7 @@ err1:
 
 
 /***************************************************************************
- * 8.4.3
+ * 3.5.3
  *
  * saEvtDispatch()
  *
@@ -362,7 +362,8 @@ saEvtDispatch( SaEvtHandleT      evtHandle,
       {
          rc = SA_AIS_ERR_UNAVAILABLE;
          m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,dispatchFlags,evtHandle);
-         goto err2;
+         ncshm_give_hdl(evtHandle);
+         ncshm_give_hdl(gl_eda_hdl);
       }
    }
 
@@ -370,7 +371,7 @@ saEvtDispatch( SaEvtHandleT      evtHandle,
 
    if(rc != SA_AIS_OK)
       m_LOG_EDSV_AF(EDA_DISPATCH_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,dispatchFlags,evtHandle);
-   if (hdl_rec) 
+   if (hdl_rec)
       ncshm_give_hdl(evtHandle);
 
 err2:
@@ -386,7 +387,7 @@ err1:
 
 
 /***************************************************************************
- * 8.4.4
+ * 3.5.4
  *
  * saEvtFinalize()
  *
@@ -410,11 +411,11 @@ err1:
 SaAisErrorT
 saEvtFinalize( SaEvtHandleT evtHandle )
 {
-   EDA_CB       *eda_cb = 0;
+   EDA_CB              *eda_cb = 0;
    EDA_CLIENT_HDL_REC  *hdl_rec = 0;
-   EDSV_MSG     msg;
-   SaAisErrorT     rc = SA_AIS_OK;
-   uns32 reg_id;
+   EDSV_MSG            msg;
+   SaAisErrorT         rc = SA_AIS_OK;
+   uns32               reg_id;
 
    /* retrieve EDA CB */
    if (NULL == 
@@ -492,7 +493,7 @@ saEvtFinalize( SaEvtHandleT evtHandle )
 
 
 /***************************************************************************
- * 8.5.1
+ * 3.6.1 
  *
  * saEvtChannelOpen()
  *
@@ -593,6 +594,7 @@ saEvtChannelOpen( SaEvtHandleT            evtHandle,
       {
          rc = SA_AIS_ERR_UNAVAILABLE;
          m_LOG_EDSV_AF(EDA_OPEN_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,channelOpenFlags,evtHandle);
+         ncshm_give_hdl(evtHandle);
          ncshm_give_hdl(gl_eda_hdl);
          return rc;
       }
@@ -708,6 +710,7 @@ saEvtChannelOpen( SaEvtHandleT            evtHandle,
 
 
 /*********************************************************************************************
+   3.6.1
    saEvtChannelOpenAsync()
 
    synopsis: opens an event cahnell according to the semantics of the 
@@ -781,6 +784,7 @@ saEvtChannelOpenAsync( SaEvtHandleT            evtHandle,
       {
          rc = SA_AIS_ERR_UNAVAILABLE;
          m_LOG_EDSV_AF(EDA_OPEN_ASYNC_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,channelOpenFlags,evtHandle);
+         ncshm_give_hdl(evtHandle);
          ncshm_give_hdl(gl_eda_hdl);
          return rc;
       }
@@ -839,7 +843,7 @@ saEvtChannelOpenAsync( SaEvtHandleT            evtHandle,
 
 
 /****************************************************************************
- * 8.5.2
+ * 3.6.3 
  *
  * saEvtChannelClose()
  *
@@ -976,7 +980,7 @@ saEvtChannelClose(SaEvtChannelHandleT channelHandle )
 
 
 /***************************************************************************
- * 8.5.3
+ * 3.6.4
  *
  * saEvtChannelUnlink()
  *
@@ -1044,6 +1048,7 @@ saEvtChannelClose(SaEvtChannelHandleT channelHandle )
       {
          rc = SA_AIS_ERR_UNAVAILABLE;
          m_LOG_EDSV_AF(EDA_UNLINK_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,evtHandle);
+         ncshm_give_hdl(evtHandle);
          ncshm_give_hdl(gl_eda_hdl);
          return rc;
       }
@@ -1109,7 +1114,7 @@ saEvtChannelClose(SaEvtChannelHandleT channelHandle )
 
 
 /***************************************************************************
- * 8.6.1
+ * 3.7.1
  *
  * saEvtEventAllocate()
  *
@@ -1252,7 +1257,7 @@ saEvtEventAllocate( SaEvtChannelHandleT   channelHandle,
 
 
 /***************************************************************************
- * 8.6.2
+ * 3.7.2
  *
  * saEvtEventFree()
  *
@@ -1357,7 +1362,7 @@ saEvtEventFree(SaEvtEventHandleT eventHandle )
 
 
 /***************************************************************************
- * 8.6.3
+ * 3.7.3
  *
  * saEvtEventAttributesSet()
  *
@@ -1431,6 +1436,9 @@ saEvtEventAttributesSet( SaEvtEventHandleT              eventHandle,
       ncshm_give_hdl(gl_eda_hdl);
       return rc;
    }
+   /* Give it anyway. */
+   ncshm_give_hdl(gl_eda_hdl);
+
    /* retrieve event hdl record */
    if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(
                                        NCS_SERVICE_ID_EDA, eventHandle)))
@@ -1536,7 +1544,7 @@ saEvtEventAttributesSet( SaEvtEventHandleT              eventHandle,
 
 
 /***************************************************************************
- * 8.6.4
+ * 3.7.4
  *
  * saEvtEventAttributesGet()
  *
@@ -1627,6 +1635,9 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
       ncshm_give_hdl(gl_eda_hdl);
       return rc;
    }
+
+   /* Give it anyway */
+   ncshm_give_hdl(gl_eda_hdl);
 
    /* Retrieve event hdl record */
    if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(
@@ -1755,7 +1766,7 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
 }
 
 /***************************************************************************
- * 8.4.WHAT?
+ * 3.7.5
  *
  *  saEvtEventPatternFree()
  *
@@ -1831,7 +1842,7 @@ saEvtEventPatternFree( SaEvtEventHandleT eventHandle,
 }
 
 /***************************************************************************
- * 8.6.5
+ * 3.7.6
  *
  * saEvtEventDataGet()
  *
@@ -1898,6 +1909,9 @@ saEvtEventDataGet( SaEvtEventHandleT   eventHandle,
       ncshm_give_hdl(gl_eda_hdl);
       return rc;
    }
+
+   /* Give the handle anyway. */
+   ncshm_give_hdl(gl_eda_hdl);
 
    /** Retrieve event hdl record 
     **/
@@ -1987,7 +2001,7 @@ saEvtEventDataGet( SaEvtEventHandleT   eventHandle,
 
 
 /***************************************************************************
- * 8.6.7
+ * 3.7.8 
  *
  * saEvtEventPublish()
  *
@@ -2307,7 +2321,7 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
 
 
 /***************************************************************************
- * 8.6.8
+ * 3.7.9
  *
  * saEvtEventSubscribe()
  *
@@ -2527,7 +2541,7 @@ saEvtEventSubscribe( SaEvtChannelHandleT            channelHandle,
 
 
 /***************************************************************************
- * 8.6.9
+ * 3.7.10 
  *
  * saEvtEventUnsubscribe()
  *
@@ -2664,7 +2678,7 @@ saEvtEventUnsubscribe( SaEvtChannelHandleT    channelHandle,
 
 
 /***************************************************************************
- * 8.6.10
+ * 3.7.11
  *
  * saEvtEventRetentionTimeClear()
  *
@@ -2867,7 +2881,7 @@ saEvtEventRetentionTimeClear( SaEvtChannelHandleT  channelHandle,
 }
 
 /***************************************************************************
- * 8.4.WHAT?
+ * 3.8.1
  *
  *  saEvtLimitGet()
  *
