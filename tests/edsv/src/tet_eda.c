@@ -208,9 +208,15 @@ void tet_saEvtInitializeCases(int iOption)
       gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback;
 
       gl_rc=saEvtInitialize(&gl_evtHandle,&gl_evtCallbacks,&gl_version);
-      result("saEvtInitialize() with minor version set to 0",SA_AIS_OK);
-
+      result("saEvtInitialize() with minor version set to 0",SA_AIS_ERR_VERSION);
+      printf("\nVersion Delivered : %c %d %d",gl_version.releaseCode,
+             gl_version.majorVersion, gl_version.minorVersion);
+      tet_printf("Version Delivered : %c %d %d",gl_version.releaseCode,
+                 gl_version.majorVersion,
+                 gl_version.minorVersion);
+#if 0 
       tet_saEvtFinalize(&gl_evtHandle);
+#endif
       break;
       
     case 12:
@@ -237,14 +243,16 @@ void tet_saEvtInitializeCases(int iOption)
       gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback;
 
       gl_rc=saEvtInitialize(&gl_evtHandle,&gl_evtCallbacks,&gl_version);
-      result("saEvtInitialize() with major version set to 0",SA_AIS_OK);
+      result("saEvtInitialize() with major version set to 0",SA_AIS_ERR_VERSION);
 
       printf("\nVersion Delivered : %c %d %d",gl_version.releaseCode,
              gl_version.majorVersion,gl_version.minorVersion);
       tet_printf("Version Delivered : %c %d %d",gl_version.releaseCode,
                  gl_version.majorVersion,gl_version.minorVersion);
 
+#if 0 
       tet_saEvtFinalize(&gl_evtHandle);
+#endif
       break;
       
     case 14:
@@ -2006,15 +2014,20 @@ void tet_saEvtEventAttributesGetCases(int iOption)
   switch(iOption)
     {
     case 1:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventAttributesGet((SaEvtEventHandleT)(long)NULL,&gl_patternArray,
                                     &gl_priority,&gl_retentionTime,
                                     &gl_publisherName,&gl_publishTime,
                                     &gl_evtId);
       result("saEvtEventAttributesGet() with NULL event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 2:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_eventHandle=(SaEvtEventHandleT)(long)NULL;
 
       gl_rc=saEvtEventAttributesGet(gl_eventHandle,&gl_patternArray,
@@ -2023,14 +2036,18 @@ void tet_saEvtEventAttributesGetCases(int iOption)
                                     &gl_evtId);
       result("saEvtEventAttributesGet() with uninitialized event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 3:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventAttributesGet(123,&gl_patternArray,&gl_priority,
                                     &gl_retentionTime,&gl_publisherName,
                                     &gl_publishTime,&gl_evtId);
       result("saEvtEventAttributesGet() with garbage event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 4:
@@ -2496,14 +2513,19 @@ void tet_saEvtEventAttributesSetCases(int iOption)
   switch(iOption)
     {
     case 1:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventAttributesSet((SaEvtEventHandleT)(long)NULL,&gl_patternArray,
                                     gl_priority,gl_retentionTime,
                                     &gl_publisherName);
       result("saEvtEventAttributesSet() with NULL event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
       
     case 2:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_eventHandle=(SaEvtEventHandleT)(long)NULL;
 
       gl_rc=saEvtEventAttributesSet(gl_eventHandle,&gl_patternArray,
@@ -2511,13 +2533,17 @@ void tet_saEvtEventAttributesSetCases(int iOption)
                                     &gl_publisherName);
       result("saEvtEventAttributesSet() with uninitialized event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 3:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventAttributesSet(123,&gl_patternArray,gl_priority,
                                     gl_retentionTime,&gl_publisherName);
       result("saEvtEventAttributesSet() with garbage event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 4:
@@ -2913,24 +2939,33 @@ void tet_saEvtEventDataGetCases(int iOption)
   switch(iOption)
     {
     case 1:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventDataGet((SaEvtEventHandleT)(long)NULL,&gl_eventData,
                               &gl_eventDataSize);
       result("saEvtEventDataGet() with NULL event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
       
     case 2:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_eventHandle=(SaEvtEventHandleT)(long)NULL;
 
       gl_rc=saEvtEventDataGet(gl_eventHandle,&gl_eventData,&gl_eventDataSize);
       result("saEvtEventDataGet() with uninitialized event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 3:
+      var_initialize();
+      tet_saEvtInitialize(&gl_evtHandle);
       gl_rc=saEvtEventDataGet(123,&gl_eventData,&gl_eventDataSize);
       result("saEvtEventDataGet() with garbage event handle",
              SA_AIS_ERR_BAD_HANDLE);
+      tet_saEvtFinalize(&gl_evtHandle);
       break;
 
     case 4:
@@ -4839,7 +4874,6 @@ struct tet_testlist edsv_test[]=
   {
     {tet_saEvtInitializeCases,1,1},
     {tet_saEvtInitializeCases,1,2},
-#if 1 
     /*    {tet_saEvtInitializeCases,1,3},*/
     {tet_saEvtInitializeCases,1,4},
     {tet_saEvtInitializeCases,1,5},
@@ -4941,7 +4975,7 @@ struct tet_testlist edsv_test[]=
     {tet_saEvtEventFreeCases,10,3},
     {tet_saEvtEventFreeCases,10,4},
     {tet_saEvtEventFreeCases,10,5},
-    /*    {tet_saEvtEventFreeCases,10,6},*/
+    {tet_saEvtEventFreeCases,10,6},
 
     {tet_saEvtEventAttributesSetCases,11,1},
     {tet_saEvtEventAttributesSetCases,11,2},
@@ -5035,13 +5069,11 @@ struct tet_testlist edsv_test[]=
     {tet_saEvtEventRetentionTimeClearCases,17,9},
     {tet_saEvtEventRetentionTimeClearCases,17,10},
     {tet_saEvtEventRetentionTimeClearCases,17,11},
-#endif
     {NULL,0}
   };
 struct tet_testlist api_test[]=
   {
     {tet_Initialize,1},
-#if 1 
     {tet_ChannelOpen,2},
     {tet_ChannelOpenAsync,3},
     {tet_Subscribe,4},
@@ -5058,7 +5090,6 @@ struct tet_testlist api_test[]=
     {tet_ChannelClose,15},
     {tet_ChannelUnlink,16},
     {tet_Finalize,17},
-#endif
     {NULL,0}
   };
 struct tet_testlist func_test[]=
@@ -5120,7 +5151,9 @@ struct tet_testlist func_test[]=
 struct tet_testlist b03_test[]=
   {
     {tet_saEvtInitializeCases,1,15},
+#if 0 
     {tet_saEvtInitializeCases,1,16}, /* Manual test for SA_AIS_ERR_UNAVAILABLE */
+#endif
     {tet_saEvtLimitGetCases,2,1},
     {tet_saEvtLimitGetCases,2,2},
     {tet_saEvtLimitGetCases,2,3},
@@ -5329,7 +5362,6 @@ void tet_run_edsv_app()
       tet_test_start(gl_tCase,func_test);
 
       tet_test_start(gl_tCase,b03_test);
-
     }
 #endif
 #endif

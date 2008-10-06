@@ -3427,7 +3427,7 @@ void tet_Complex_Subscriber_Publisher()
 
   gl_patternArray.patternsNumber=5;
   gl_patternArray.patterns=multiplePattern;
-  gl_retentionTime=1000000000000000.0;
+  gl_retentionTime=100000000000000.0;
   gl_allocatedNumber=5;
   gl_patternLength=6;
   tet_saEvtEventAttributesSet(&gl_eventHandle);
@@ -3437,7 +3437,7 @@ void tet_Complex_Subscriber_Publisher()
    
   gl_patternArray.patternsNumber=3;
   gl_patternArray.patterns=diffPattern;
-  gl_retentionTime=1000000000000000.0;
+  gl_retentionTime=100000000000000.0;
   gl_allocatedNumber=5;
   gl_patternLength=6;
   tet_saEvtEventAttributesSet(&gl_eventHandle);
