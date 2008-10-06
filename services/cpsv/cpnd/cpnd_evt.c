@@ -484,7 +484,7 @@ static uns32 cpnd_evt_proc_ckpt_init(CPND_CB *cb,
    cb->cli_id_gen++;
 
    if(rc == SA_AIS_OK)
-       m_LOG_CPND_FCL(CPND_CLIENT_INF0_UPDATE_SUCCESS,CPND_FC_RESTART,NCSFL_SEV_NOTICE ,\
+       m_LOG_CPND_FCL(CPND_CLIENT_INF0_UPDATE_SUCCESS,CPND_FC_RESTART,NCSFL_SEV_INFO ,\
        cl_node->ckpt_app_hdl,__FILE__,__LINE__);
 
 agent_rsp:
@@ -551,7 +551,7 @@ static uns32 cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
       if (rc != NCSCC_RC_SUCCESS) {
           m_LOG_CPND_CL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
       }
-      m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE ,\
+      m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO ,\
                   cl_node->ckpt_app_hdl, cp_node->ckpt_id,cp_node->ckpt_lcl_ref_cnt ,__FILE__,__LINE__);
 
       rc = cpnd_ckpt_replica_close(cb, cp_node, &error);
@@ -564,7 +564,7 @@ static uns32 cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
    }
 
    /* CPND RESTART - FREE THE GLOBAL SHARED MEMORY */   
-   m_LOG_CPND_FCL(CPND_CLIENT_FINALIZE_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE ,\
+   m_LOG_CPND_FCL(CPND_CLIENT_FINALIZE_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO ,\
                   cl_node->ckpt_app_hdl,__FILE__,__LINE__);
    cpnd_restart_client_node_del(cb,cl_node);  
    
@@ -684,7 +684,7 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
              send_evt.info.cpa.info.openRsp.is_active_exists = TRUE;
              send_evt.info.cpa.info.openRsp.active_dest = cp_node->active_mds_dest;
           }
-      m_LOG_CPND_FFFLCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,client_hdl,cp_node->ckpt_id,\
+      m_LOG_CPND_FFFLCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,client_hdl,cp_node->ckpt_id,\
                            cp_node->active_mds_dest,cp_node->ckpt_lcl_ref_cnt,__FILE__,__LINE__);
 
       goto agent_rsp;
@@ -921,7 +921,7 @@ agent_rsp2:
           }
           if(send_evt.info.cpa.info.openRsp.error == SA_AIS_OK)
           {
-             m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,ckpt_name.value,client_hdl,cp_node->ckpt_id,\
+             m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,ckpt_name.value,client_hdl,cp_node->ckpt_id,\
                                    cp_node->active_mds_dest ,__FILE__,__LINE__);
           }
           goto agent_rsp;
@@ -1044,7 +1044,7 @@ static uns32 cpnd_evt_proc_ckpt_close(CPND_CB *cb,
                       evt->info.closeReq.client_hdl,evt->info.closeReq.ckpt_id,__FILE__,__LINE__);
       /* For now go ahread and close the queue, we need to think of a better way to handle this */
    }
-   m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE ,\
+   m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO ,\
                    cl_node->ckpt_app_hdl, cp_node->ckpt_id,cp_node->ckpt_lcl_ref_cnt, __FILE__,__LINE__);
 
    rc = cpnd_ckpt_replica_close(cb, cp_node, &error);
@@ -1139,7 +1139,7 @@ static uns32 cpnd_evt_proc_ckpt_unlink(CPND_CB *cb,
        else
           send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_ERR_TIMEOUT;
 
-      m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,\
+      m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,\
                        evt->info.ulinkReq.ckpt_name.value, __FILE__,__LINE__);
       goto agent_rsp;
    }
@@ -1162,12 +1162,12 @@ static uns32 cpnd_evt_proc_ckpt_unlink(CPND_CB *cb,
            m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
          }
       }
-      m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE,\
+      m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
                           cp_node->ckpt_id,__FILE__,__LINE__);
    }
    send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_OK;
 
-   m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,evt->info.ulinkReq.ckpt_name.value,\
+   m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,evt->info.ulinkReq.ckpt_name.value,\
     __FILE__,__LINE__);
 #endif
 
@@ -1238,7 +1238,7 @@ static uns32 cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
            error, __FILE__, __LINE__);
          goto agent_rsp;
       }
-      m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,cp_node->ckpt_id,\
+      m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_INFO,cp_node->ckpt_id,\
                         __FILE__, __LINE__);
 
       cpnd_restart_shm_ckpt_free(cb,cp_node);
@@ -1256,7 +1256,7 @@ static uns32 cpnd_evt_proc_ckpt_unlink_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEN
             rc = cpnd_ckpt_hdr_update(cp_node);
 
          }
-         m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE,\
+         m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
                           cp_node->ckpt_id,__FILE__,__LINE__);
 
          send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_OK;
@@ -1759,7 +1759,7 @@ static uns32 cpnd_evt_proc_ckpt_active_set(CPND_CB *cb,
    {
       cp_node->is_active_exist = TRUE;
       cp_node->active_mds_dest=evt->info.active_set.mds_dest;
-      m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS,CPND_FC_HDLN,NCSFL_SEV_NOTICE,\
+      m_LOG_CPND_FFCL(CPND_ACTIVE_REP_SET_SUCCESS,CPND_FC_HDLN,NCSFL_SEV_INFO,\
                             cp_node->ckpt_id,cp_node->active_mds_dest,__FILE__,__LINE__);
    }
    cp_node->is_restart = FALSE;
@@ -1926,7 +1926,7 @@ static uns32 cpnd_evt_proc_ckpt_rep_del(CPND_CB *cb, \
                      __FILE__,__LINE__);  
      return NCSCC_RC_FAILURE;
    }
-   m_LOG_CPND_FFCL(CPND_REP_DEL_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,\
+   m_LOG_CPND_FFCL(CPND_REP_DEL_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,\
                              cp_node->ckpt_id,evt->info.ckpt_del.mds_dest,__FILE__,__LINE__);
 
    return NCSCC_RC_SUCCESS;
@@ -4452,7 +4452,7 @@ cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
                      send_evt.info.cpa.info.openRsp.is_active_exists = TRUE;
                      send_evt.info.cpa.info.openRsp.active_dest = cp_node->active_mds_dest;
                  }
-                 m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,cp_node->ckpt_name.value,evt->info.ckpt_nd2nd_sync.ckpt_sync.client_hdl,\
+                 m_LOG_CPND_CFFFCL(CPND_CKPT_OPEN_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,cp_node->ckpt_name.value,evt->info.ckpt_nd2nd_sync.ckpt_sync.client_hdl,\
                                                                   cp_node->ckpt_id,cp_node->active_mds_dest,__FILE__,__LINE__);
 		  }
 		  else 		
@@ -4931,7 +4931,7 @@ cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, \
 
    }
 
-   m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,\
+   m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_INFO,\
                      cp_node->ckpt_id ,__FILE__ , __LINE__);
    cpnd_restart_shm_ckpt_free(cb,cp_node); 
    cpnd_ckpt_node_destroy(cb, cp_node);
@@ -5090,7 +5090,7 @@ static uns32 cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
    } 
 
 end:
-   m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE,\
+   m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
                      cp_node->ckpt_id ,__FILE__ , __LINE__);
    return rc;
                

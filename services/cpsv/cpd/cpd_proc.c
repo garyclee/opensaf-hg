@@ -120,7 +120,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
       
    rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
    
-   m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,ckpt_node->ckpt_id, \
+   m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,ckpt_node->ckpt_id, \
                       *cpnd_dest,__FILE__,__LINE__);
    return rc;
 }
@@ -373,7 +373,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    cpd_ckpt_ref_info_add(node_info, cref_info);
 
 #if 0
-   m_LOG_CPD_CFCL(CPD_DB_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,map_info->ckpt_name.value,\
+   m_LOG_CPD_CFCL(CPD_DB_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,map_info->ckpt_name.value,\
      map_info->ckpt_id,__FILE__,__LINE__);
 #endif
    return NCSCC_RC_SUCCESS;
@@ -475,7 +475,7 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb,
          send_evt.info.cpnd.info.ckpt_destroy.ckpt_id = ckpt_node->ckpt_id;
    
          if(cpd_mds_msg_send(cb, NCSMDS_SVC_ID_CPND, nref_info->dest, &send_evt) == NCSCC_RC_SUCCESS)
-            m_LOG_CPD_FFCL(CPD_NON_COLOC_CKPT_DESTROY_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE, \
+            m_LOG_CPD_FFCL(CPD_NON_COLOC_CKPT_DESTROY_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO, \
                                  ckpt_node->ckpt_id, nref_info->dest,__FILE__,__LINE__);
 
          /* Delete the node info, incase there are no ckpts on that CPND */
@@ -683,7 +683,7 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
    {
       *o_ckpt_node_deleted = FALSE;
       *o_is_active_changed = FALSE;
-      m_LOG_CPD_FCL(CPD_CKPT_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,ckpt_node->ckpt_id,\
+      m_LOG_CPD_FCL(CPD_CKPT_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,ckpt_node->ckpt_id,\
                      __FILE__,__LINE__);
       /* Remove the ckpt_node */
       cpd_ckpt_node_delete(cb, ckpt_node);
@@ -822,7 +822,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
          send_evt.info.cpnd.info.ckpt_del.mds_dest = *cpnd_dest;
          if(ckpt_node->dest_cnt == 0)
          {
-            m_LOG_CPD_FCL(CPD_CKPT_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,ckpt_node->ckpt_id,\
+            m_LOG_CPD_FCL(CPD_CKPT_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,ckpt_node->ckpt_id,\
                      __FILE__,__LINE__);
             cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
 
@@ -840,7 +840,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
          {
              /* Broadcast the info to all CPNDs */
              proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-             m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,ckpt_node->ckpt_id,*cpnd_dest,\
+             m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,ckpt_node->ckpt_id,*cpnd_dest,\
                             __FILE__,__LINE__);
          
              if(m_NCS_MDS_DEST_NODEID_EQUAL(m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),m_NCS_NODE_ID_FROM_MDS_DEST( *cpnd_dest)))
@@ -895,7 +895,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                 send_evt.info.cpnd.info.active_set.mds_dest = ckpt_node->active_dest;
 
                 proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-                m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_CHANGE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,ckpt_node->ckpt_id,\
+                m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_CHANGE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,ckpt_node->ckpt_id,\
                                ckpt_node->active_dest,__FILE__,__LINE__);
 
                 /*To broadcast the active MDS_DEST info of ckpt to all CPA's*/
