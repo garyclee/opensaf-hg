@@ -303,7 +303,7 @@ clm_left:
        m_NCS_OS_MEMCPY(&(cl_node->version), &client_version, sizeof(SaVersionT)); 
       /* Went well, return ckptHandle to the application */   
       *ckptHandle = cl_node->cl_hdl;
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                               "CkptInit", __FILE__ ,__LINE__, SA_AIS_OK, cl_node->cl_hdl);
    }
 end:
@@ -393,7 +393,7 @@ lock_fail:
    m_CPA_GIVEUP_CB;
 
    if(rc == SA_AIS_OK)
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE, 
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO, 
                             "CkptSelectObjGet", __FILE__ ,__LINE__, rc, ckptHandle);
 
    return rc;
@@ -638,7 +638,7 @@ lock_fail:
 
    if(rc==SA_AIS_OK)
    {
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                             "CkptFinalize", __FILE__ ,__LINE__, rc, ckptHandle);
       ncs_cpa_shutdown();
       ncs_agents_shutdown(0,0);
@@ -917,7 +917,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
     locked=FALSE;
    m_CPA_GIVEUP_CB;
-   m_LOG_CPA_CCLFFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+   m_LOG_CPA_CCLFFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                         "CkptOpen", __FILE__ , __LINE__, ckptHandle , *checkpointHandle,lc_node->gbl_ckpt_hdl );
    return SA_AIS_OK;
 
@@ -1173,7 +1173,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle,
    }
      
    m_CPA_GIVEUP_CB;
-   m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+   m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                         "CkptOpenAsync", __FILE__ , __LINE__, SA_AIS_OK , ckptHandle);
    return SA_AIS_OK;
 
@@ -1420,7 +1420,7 @@ clm_left:
 done:
    if ( rc == SA_AIS_OK)
    { 
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                                     "CkptClose", __FILE__ ,__LINE__, rc , checkpointHandle);
    }
 
@@ -1567,7 +1567,7 @@ clm_left:
 done: 
    if ( rc == SA_AIS_OK)
    {
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                                        "CkptUnlink", __FILE__ ,__LINE__, rc , ckptHandle);
    }
    return rc;
@@ -1916,7 +1916,7 @@ done:
 
    if ( rc == SA_AIS_OK)
    {
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                            "ActiveRepSet", __FILE__ ,__LINE__, rc, checkpointHandle);
    }
 
@@ -2129,7 +2129,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
       if(rc == SA_AIS_OK)
       {
          *checkpointStatus = out_evt->info.cpa.info.status.status;
-         m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+         m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                                  "StatusGet", __FILE__ ,__LINE__, proc_rc , checkpointHandle);
       }
       
@@ -2938,7 +2938,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "SectExpTimeSet", __FILE__ ,__LINE__, rc , checkpointHandle);
       else
-         m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+         m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                              "SectExpTimeSet", __FILE__ ,__LINE__, rc , checkpointHandle);
    }
    else
@@ -3201,7 +3201,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
       if ( out_evt != NULL)
          m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
       
-      m_LOG_CPA_CCLLFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                              "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle, *sectionIterationHandle);
       goto done;
    }
@@ -3706,7 +3706,7 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
 
       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
       m_CPA_GIVEUP_CB;
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                           "SectIterFinalize", __FILE__ ,__LINE__, rc , sectionIterationHandle);
       goto done;
    }
@@ -4770,7 +4770,7 @@ clm_left:
 done:   
    if( rc == SA_AIS_OK)
    {
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                              "CkptSynchronize", __FILE__ ,__LINE__, rc, checkpointHandle);
    }
    return rc;
@@ -5000,7 +5000,7 @@ clm_left:
 done:   
    if ( SA_AIS_OK == rc )
    {
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                        "CkptSynchronizeAsync", __FILE__ ,__LINE__, rc, checkpointHandle);
    }
 
@@ -5143,7 +5143,7 @@ lock_fail:
 done:  
    if(SA_AIS_OK == rc)
    {
-       m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+       m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
                        "CkptArrivalCallback", __FILE__ ,__LINE__, rc, ckptHandle);
    }
    return rc;      

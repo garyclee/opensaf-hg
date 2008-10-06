@@ -472,7 +472,7 @@ send_cb_evt:
       /* Send the event */
       proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
        
-      m_LOG_CPA_CCLLFFF(CPA_PROC_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,
+      m_LOG_CPA_CCLLFFF(CPA_PROC_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
             "async_open_rsp", __FILE__ ,__LINE__, proc_rc, lc_node->cl_hdl,
                    evt->info.openRsp.lcl_ckpt_hdl, lc_node->gbl_ckpt_hdl);
    }

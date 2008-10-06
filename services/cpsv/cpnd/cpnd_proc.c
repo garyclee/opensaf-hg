@@ -586,7 +586,7 @@ uns32 cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node,
    cpnd_mdest->dest=mds_info;
    
    cp_node->cpnd_dest_list=cpnd_mdest;
-   m_LOG_CPND_FFCL(CPND_REP_ADD_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE,\
+   m_LOG_CPND_FFCL(CPND_REP_ADD_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,\
                              cp_node->ckpt_id,mds_info,__FILE__,__LINE__);
 
    return rc;
@@ -845,7 +845,7 @@ void cpnd_proc_cpa_down(CPND_CB *cb,MDS_DEST dest)
             if (rc != NCSCC_RC_SUCCESS) {
                m_LOG_CPND_CL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
             }
-            m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_NOTICE ,\
+            m_LOG_CPND_FFLCL(CPND_CLIENT_CKPT_CLOSE_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO ,\
                              cl_node->ckpt_app_hdl, cp_node->ckpt_id,cp_node->ckpt_lcl_ref_cnt ,__FILE__,__LINE__);
           
             rc = cpnd_ckpt_replica_close(cb, cp_node, &error);
@@ -857,7 +857,7 @@ void cpnd_proc_cpa_down(CPND_CB *cb,MDS_DEST dest)
          } 
  
          /* CPND RESTART - FREE THE GLOBAL SHARED MEMORY */
-         m_LOG_CPND_FCL(CPND_CKPT_CLIENT_DEL_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE ,\
+         m_LOG_CPND_FCL(CPND_CKPT_CLIENT_DEL_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO ,\
                   cl_node->ckpt_app_hdl,__FILE__,__LINE__);
          cpnd_restart_client_node_del(cb,cl_node);      
          cpnd_client_node_del(cb,cl_node);
@@ -1000,7 +1000,7 @@ uns32 cpnd_ckpt_update_replica(CPND_CB *cb,CPND_CKPT_NODE *cp_node ,\
                          data->dataOffset,write_data->type);
        if ( rc == NCSCC_RC_FAILURE) 
        {
-          m_LOG_CPND_CFCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_INFO,\
+          m_LOG_CPND_CFCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,\
                 data->sec_id.id,cp_node->ckpt_id,__FILE__,__LINE__);
           *err_type=CKPT_UPDATE_REPLICA_RES_ERR;
           return rc;
@@ -2518,7 +2518,7 @@ uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT 
           cpnd_tmr_start(&cp_node->ret_tmr,
           m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(cp_node->create_attrib.retentionDuration));
 
-         m_LOG_CPND_FCL(CPND_CKPT_RET_TMR_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_NOTICE ,\
+         m_LOG_CPND_FCL(CPND_CKPT_RET_TMR_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO ,\
                          cp_node->ckpt_id, __FILE__,__LINE__);
       }
       else {
@@ -2534,7 +2534,7 @@ uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT 
                            __FILE__,__LINE__);
             return NCSCC_RC_FAILURE;
          }
-         m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,cp_node->ckpt_id,\
+         m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_INFO,cp_node->ckpt_id,\
                         __FILE__, __LINE__);
       
          cpnd_restart_shm_ckpt_free(cb,cp_node);

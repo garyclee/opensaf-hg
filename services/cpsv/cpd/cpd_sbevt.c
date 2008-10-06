@@ -261,7 +261,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
    }
 
 
-   m_LOG_CPD_CFCL(CPD_STANDBY_CREATE_EVT,CPD_FC_MBCSV,NCSFL_SEV_NOTICE,map_info->ckpt_name.value,\
+   m_LOG_CPD_CFCL(CPD_STANDBY_CREATE_EVT,CPD_FC_MBCSV,NCSFL_SEV_INFO,map_info->ckpt_name.value,\
      map_info->ckpt_id,__FILE__,__LINE__);
 
    goto end;

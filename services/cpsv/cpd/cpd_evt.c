@@ -304,7 +304,7 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
          proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->loc_cpnd_dest,
                                        ckpt_node, map_info);
          if(proc_rc == NCSCC_RC_SUCCESS)
-            m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE, \
+            m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO, \
                                  ckpt_create->ckpt_name.value,cb->loc_cpnd_dest,__FILE__,__LINE__);
          else
             m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_NOTICE, \
@@ -317,7 +317,7 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
          proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->rem_cpnd_dest,
                                        ckpt_node, map_info);
          if(proc_rc == NCSCC_RC_SUCCESS)
-            m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE, \
+            m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO, \
                                  ckpt_create->ckpt_name.value,cb->rem_cpnd_dest,__FILE__,__LINE__);
          else
             m_LOG_CPD_CFCL(CPD_NON_COLOC_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_NOTICE, 
@@ -409,13 +409,13 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
       send_evt.info.cpnd.info.ckpt_add.is_cpnd_restart = FALSE;
       
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-      m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,map_info->ckpt_id,sinfo->dest,__FILE__,__LINE__);
+      m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,map_info->ckpt_id,sinfo->dest,__FILE__,__LINE__);
    }
    if(is_first_rep)
-      m_LOG_CPD_CFFCL(CPD_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,map_info->ckpt_name.value, \
+      m_LOG_CPD_CFFCL(CPD_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,map_info->ckpt_name.value, \
                                  sinfo->dest,map_info->ckpt_id,__FILE__,__LINE__);
    else
-      m_LOG_CPD_FFCL(CPD_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE, \
+      m_LOG_CPD_FFCL(CPD_CKPT_CREATE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO, \
                                  sinfo->dest,map_info->ckpt_id,__FILE__,__LINE__);
       
    return proc_rc;
@@ -598,7 +598,7 @@ send_rsp:
       send_evt.info.cpnd.info.ckpt_ulink.ckpt_id = ckpt_node->ckpt_id;
    
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-      m_LOG_CPD_CFCL(CPD_EVT_UNLINK_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,evt->info.ckpt_ulink.ckpt_name.value,\
+      m_LOG_CPD_CFCL(CPD_EVT_UNLINK_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,evt->info.ckpt_ulink.ckpt_name.value,\
                        sinfo->dest ,__FILE__,__LINE__);
    }
 
@@ -711,7 +711,7 @@ send_rsp:
       send_evt.info.cpa.info.ackpt_info.ckpt_id =  evt->info.arep_set.ckpt_id;
       send_evt.info.cpa.info.ackpt_info.mds_dest = evt->info.arep_set.mds_dest;
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
-      m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_SET_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,evt->info.arep_set.ckpt_id,\
+      m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_SET_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,evt->info.arep_set.ckpt_id,\
                      evt->info.arep_set.mds_dest,__FILE__,__LINE__);
      }
   
@@ -770,7 +770,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
       
       /* Broadcast to all the ND's */   
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-      m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,evt->info.ckpt_destroy.ckpt_id,sinfo->dest,\
+      m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,evt->info.ckpt_destroy.ckpt_id,sinfo->dest,\
                      __FILE__,__LINE__);
    }
       
@@ -794,7 +794,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
       send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
       send_evt.info.cpa.info.ackpt_info.mds_dest = ckpt_node->active_dest;
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
-      m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_CHANGE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,evt->info.ckpt_destroy.ckpt_id,ckpt_node->active_dest,\
+      m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_CHANGE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,evt->info.ckpt_destroy.ckpt_id,ckpt_node->active_dest,\
                      __FILE__,__LINE__);
    }
 
@@ -982,7 +982,7 @@ static uns32 cpnd_down_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_
          send_evt.info.cpnd.info.ckpt_del.ckpt_id = cref_info->ckpt_node->ckpt_id;
          send_evt.info.cpnd.info.ckpt_del.mds_dest = cpnd_info->cpnd_ret_timer.info.cpnd_dest;
          proc_rc =  cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-         m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,cref_info->ckpt_node->ckpt_id,cpnd_info->cpnd_ret_timer.info.cpnd_dest,\
+         m_LOG_CPD_FFCL(CPD_REP_DEL_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,cref_info->ckpt_node->ckpt_id,cpnd_info->cpnd_ret_timer.info.cpnd_dest,\
                         __FILE__,__LINE__);
       }
       cref_info = cref_info->next;
@@ -1149,7 +1149,7 @@ static uns32 cpnd_up_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_NO
          }
 
          proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
-         m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_NOTICE,cref_info->ckpt_node->ckpt_id, \
+         m_LOG_CPD_FFCL(CPD_REP_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,cref_info->ckpt_node->ckpt_id, \
                          cpnd_info->cpnd_ret_timer.info.cpnd_dest,__FILE__,__LINE__);
 
          if(send_evt.info.cpnd.info.ckpt_add.dest_list)
