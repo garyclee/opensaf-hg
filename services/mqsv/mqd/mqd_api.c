@@ -224,8 +224,8 @@ static uns32 mqd_lib_init(void)
 #endif
 
    /* Initialize the MIBs scalar objects */
-   m_NCS_OS_STRCPY(pMqd->safSpecVer.value,"B.01.01");
-   pMqd->safSpecVer.length = m_NCS_STRLEN("B.01.01");
+   m_NCS_OS_STRCPY(pMqd->safSpecVer.value,"B.03.01");
+   pMqd->safSpecVer.length = m_NCS_STRLEN("B.03.01");
    m_NCS_OS_STRCPY(pMqd->safAgtVen.value,"OpenSAF");
    pMqd->safAgtVen.length = m_NCS_STRLEN("OpenSAF");
    pMqd->safAgtVenPro = 2;
