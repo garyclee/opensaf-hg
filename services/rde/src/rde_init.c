@@ -101,12 +101,12 @@ uns32 rde_initialize (void)
 
    if (rc != RDE_RDE_RC_SUCCESS)
    {
-   sprintf (log, "Configuration Parameters : hostip = 0x%lX, hostportnum = %d, servip = 0x%lX, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
+   sprintf (log, "Configuration Parameters : hostip = 0x%lX, hostportnum = %d, servip = 0x%lX, servportnum = %d, maxNoClientRetries = %d, ha_role = %d",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
         return NCSCC_RC_FAILURE;
    }
 
-   sprintf (log, "Configuration Parameters : hostip = 0x%lX, hostportnum = %d, servip = 0x%lX, servportnum = %d, maxNoClientRetries = %d, ha_role = %d\n",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
+   sprintf (log, "Configuration Parameters : hostip = 0x%lX, hostportnum = %d, servip = 0x%lX, servportnum = %d, maxNoClientRetries = %d, ha_role = %d",rde_rde_cb->hostip,rde_rde_cb->hostportnum,rde_rde_cb->servip,rde_rde_cb->servportnum,rde_rde_cb->maxNoClientRetries,rde_cb->ha_role);
    m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_RDE_INFO, log);
       /***************************************************************\
       *                                                               *
@@ -318,7 +318,7 @@ static uns32 rde_task_main (RDE_CONTROL_BLOCK * rde_cb)
         /* Once the connection has been established and then gone down
             Try reconnecting for indefinite. */  
            m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
-           sprintf(log,"Role = %d, RDE Got disconnected\n",rde_cb->ha_role);
+           sprintf(log,"Role = %d, RDE Got disconnected",rde_cb->ha_role);
            m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
            rc = rde_rde_clCheckConnect(rde_rde_cb);
            
