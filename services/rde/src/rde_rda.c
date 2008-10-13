@@ -876,7 +876,7 @@ uns32 rde_rda_send_role (int role)
     m_NCS_LOCK(&rde_cb->lock, NCS_LOCK_WRITE);
 
     rde_rda_cb = &rde_cb->rde_rda_cb;
-    sprintf(log,"Sending role %d to RDA\n",role);
+    sprintf(log,"Sending role %d to RDA",role);
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
     /*
     ** Send role to all async clients
@@ -973,7 +973,7 @@ uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb)
     /* Get the alternate slot which need to be reset */
     phy_slot = rde_rde_cb->peer_slot_number;
 
-    sprintf(log,"Sending node reset cmd to AVM for slot id %d\n",phy_slot);
+    sprintf(log,"Sending node reset cmd to AVM for slot id %d",phy_slot);
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
 /*
 ** Send this to AVM only as this is only one user presently.
