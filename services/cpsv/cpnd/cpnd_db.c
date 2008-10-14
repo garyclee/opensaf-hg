@@ -163,6 +163,10 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
       m_MMGR_FREE_CPND_DEST_INFO(free_tmp);
    }
    cp_node->cpnd_dest_list = tmp;
+
+   if (cp_node->ret_tmr.is_active)
+       cpnd_tmr_stop(&cp_node->ret_tmr);
+
    m_MMGR_FREE_CPND_CKPT_NODE(cp_node);
 
 }
