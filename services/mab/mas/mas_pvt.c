@@ -3266,7 +3266,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
     NCS_BOOL      do_del_fltr = TRUE;
     MAS_FLTR     *rem_fltr_ids = NULL;  
     uns32        status; 
-
+    uns32        table_id;
     m_MAS_LK_INIT;
 
     m_MAB_DBG_TRACE("\nmas_info_unregister():entered.");
@@ -3300,6 +3300,8 @@ uns32 mas_info_unregister(MAB_MSG* msg)
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
 
+     table_id = tbl_rec->tbl_id;
+ 
     if(tbl_rec->ss_id != msg->fr_svc)
     {
         MAB_LM_EVT          mle;
@@ -3617,7 +3619,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
     ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
     /* Sync Done message to the Standby */ 
-    m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, tbl_rec->tbl_id);
+    m_MAS_RE_REG_UNREG_SYNC_DONE(inst, msg, table_id);
 
     m_MAS_UNLK(&inst->lock);
     m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
