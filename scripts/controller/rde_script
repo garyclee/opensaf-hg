@@ -105,6 +105,10 @@ case "$1" in
 
 		echo "."
 
+                # Wait to allow the other controller to complete a potentially
+                # ongoing fail over.
+                sleep 12
+
 # Start rde
   #start-stop-daemon --start --quiet --pidfile $PIDFILE \
   #        --exec $BINPATH/$DAEMON -- -p $PIDFILE -f $SHELF_NUMBER -s $SLOT_NUMBER -t $SITE_NUMBER
