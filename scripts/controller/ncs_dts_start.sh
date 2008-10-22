@@ -60,7 +60,8 @@ start()
        exit 1
     fi
     killall ncs_dts
-    $XTERM /opt/opensaf/controller/bin/ncs_dts >$NCS_STDOUTS_PATH/ncs_dts.log 2>&1 &
+    rm -f $PIDPATH/$PIDFILE
+    $XTERM /opt/opensaf/controller/bin/ncs_dts $* >$NCS_STDOUTS_PATH/ncs_dts.log 2>&1 &
     echo "Starting $DESC: $BINPATH/$DAEMON";		
    
     if [ $? -ne 0 ] ; then
@@ -76,10 +77,8 @@ start()
 
 case "$1" in
    start)
-        start
-	# Report Status to NID
-	echo "$NID_MAGIC:$SERVICE_CODE:$NID_DTS_DAEMON_STARTED" > $NIDFIFO
-	echo "."
+        shift
+        start $*
         ;;
    "")
         # AMF would call with no arguments

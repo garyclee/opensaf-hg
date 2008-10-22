@@ -30,7 +30,8 @@ fi
 
 if [ "$l_pid" ]
 then
-    echo "AMF error code: $NCS_ENV_COMPONENT_ERROR_SRC"
+   rm $PIDPATH/$PIDFILE
+   echo "AMF error code: $NCS_ENV_COMPONENT_ERROR_SRC"
    sleep 3
    if [ $NCS_ENV_COMPONENT_ERROR_SRC -ne 0 ]
    then
