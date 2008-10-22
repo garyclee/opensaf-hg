@@ -55,7 +55,7 @@ start()
        exit 1
     fi
     killall ncs_pcap
-    $XTERM /opt/opensaf/payload/bin/ncs_pcap $1 $2 >$NCS_STDOUTS_PATH/ncs_pcap.log 2>&1 &
+    $XTERM /opt/opensaf/payload/bin/ncs_pcap $* >$NCS_STDOUTS_PATH/ncs_pcap.log 2>&1 &
     echo "Starting $DESC: $BINPATH/$DAEMON";
    
     if [ $? -ne 0 ] ; then
@@ -71,7 +71,8 @@ start()
 
 case "$1" in
    start)
-        start $2 $3
+        shift
+        start $*
         # Don't Report Status to NID. PCAP will notify NID.
 	echo "."
         ;;

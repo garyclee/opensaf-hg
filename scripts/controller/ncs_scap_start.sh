@@ -55,7 +55,7 @@ start()
        exit 1
     fi
     killall ncs_scap
-    $XTERM /opt/opensaf/controller/bin/ncs_scap $1 $2 >$NCS_STDOUTS_PATH/ncs_scap.log 2>&1 &
+    $XTERM /opt/opensaf/controller/bin/ncs_scap $* >$NCS_STDOUTS_PATH/ncs_scap.log 2>&1 &
     echo "Starting $DESC: $BINPATH/$DAEMON";
    
     if [ $? -ne 0 ] ; then
@@ -71,7 +71,8 @@ start()
 
 case "$1" in
    start)
-        start $2 $3
+        shift
+        start $*
         # Don't Report Status to NID. Scap will notify NID.
 	echo "."
         ;;
