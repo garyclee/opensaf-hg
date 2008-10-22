@@ -40,6 +40,7 @@
  * Module Inclusion Control...
  */
 
+#include <sched.h>
 #include "avnd.h"
 
 
@@ -146,6 +147,15 @@ void avnd_main_process (void *arg)
    NCS_SEL_OBJ        ncs_srm_sel_obj;
    SaSelectionObjectT srm_sel_obj;
    NCS_BOOL           avnd_exit = FALSE;
+
+   /* Only change scheduling class to real time on payload nodes. */
+   if (getenv("AVD") == NULL)
+   {
+       struct sched_param param = {.sched_priority = 79};
+
+       if (sched_setscheduler(0, SCHED_RR, &param) == -1)
+           syslog(LOG_ERR, "Could not set scheduling class for avnd: %s", strerror(errno));
+   }
 
    /* get cb-hdl */
    cb_hdl = *((uns32 *)arg);

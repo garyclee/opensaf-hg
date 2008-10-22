@@ -2776,6 +2776,14 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
    status = fork();
    if(status == 0)
    {
+       /*
+       ** Make sure forked processes have default scheduling class
+       ** independent of the callers scheduling class.
+       */
+       struct sched_param param = {.sched_priority = 0};
+       if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
+           syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
+
       /* set the environment variables */
       for(;count>0;count--)
       {
@@ -2855,6 +2863,14 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
    if((pid = fork()) == 0)
    {
+       /*
+       ** Make sure forked processes have default scheduling class
+       ** independent of the callers scheduling class.
+       */
+       struct sched_param param = {.sched_priority = 0};
+       if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
+          syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
+
       if (-1 == nice(10)) /* IR00061137 */
       {
          perror("nice failed");

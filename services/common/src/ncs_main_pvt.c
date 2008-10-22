@@ -423,6 +423,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 #if (NCS_AVD == 1)
       /*** Init AVD ***/
       m_NCS_DBG_PRINTF("\nAVSV:AVD:ON");
+      setenv("AVD", "ON", 1);
       if (avd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
          m_NCS_NID_NOTIFY(NID_NCS_AVD_LIB_REQ_FAILED);
