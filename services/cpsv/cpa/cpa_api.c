@@ -686,7 +686,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
    CPA_GLOBAL_CKPT_NODE *gc_node = NULL;
    CPA_CLIENT_NODE      *cl_node = NULL;
    uns32 proc_rc = NCSCC_RC_SUCCESS;
-   NCS_BOOL       locked = TRUE;
+   NCS_BOOL       locked = FALSE;
   
   
    if((checkpointName == NULL) || (checkpointHandle == NULL)||(checkpointName->length == 0))
@@ -724,7 +724,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
                                              "CkptOpen:LOCK", __FILE__ ,__LINE__, rc , ckptHandle);
       goto lock_fail;
    }
-
+   locked = TRUE;
 
    /* Get the Client info */
    rc = cpa_client_node_get(&cb->client_tree, &ckptHandle, &cl_node);
@@ -934,6 +934,16 @@ gl_node_add_fail:
    
 mds_send_fail:
 lcl_ckpt_node_free:
+   if ((!locked) && (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS))
+   {
+      rc = SA_AIS_ERR_LIBRARY;
+      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                           "CkptOpen:LOCK", __FILE__ ,__LINE__, rc , ckptHandle);
+      goto lock_fail;
+   }
+   else
+      locked = TRUE;
+
    cpa_lcl_ckpt_node_delete(cb, lc_node);
    lc_node = NULL;
 
