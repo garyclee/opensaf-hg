@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -34,9 +36,9 @@
 #define NCS_PSS_MAX_PROFILE_NAME 256
 #define NCS_PSS_CONF_FILE_NAME   256
 
-#define m_PSS_LIB_CONF_FILE_NAME  "/etc/opt/opensaf/pssv_lib_conf"
-#define m_PSS_SPCN_LIST_FILE_NAME "/var/opt/opensaf/pssv_spcn_list"
-#define NCS_PSS_DEF_PSSV_ROOT_PATH    "/var/opt/opensaf/pssv_store/"
+#define m_PSS_LIB_CONF_FILE_NAME  SYSCONFDIR "pssv_lib_conf"
+#define m_PSS_SPCN_LIST_FILE_NAME LOCALSTATEDIR "pssv_spcn_list"
+#define NCS_PSS_DEF_PSSV_ROOT_PATH    LOCALSTATEDIR "pssv_store/"
 
 typedef struct mab_pss_tbl_list_tag
 {

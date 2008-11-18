@@ -11,23 +11,30 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Ericsson AB
+# Author(s): Wind River Systems
+#            Ericsson AB
 #
-#
+
+MAINTAINERCLEANFILES = Makefile.in
+
+noinst_HEADERS = \
+	inc/lga.h
 
 noinst_LTLIBRARIES = liblga.la
 
-liblga_la_CPPFLAGS = 	@NCS_CORE_CPP_DEFINES@ \
-			-I ../inc/ \
-			-I $(top_srcdir)/services/leap/inc/ \
-			-I $(top_srcdir)/services/mds/inc/ \
-			-I $(top_srcdir)/services/mab/inc/ \
-			-I $(top_srcdir)/services/common/inc/ \
-			-I $(top_srcdir)/include/ 
-
-liblga_la_LDFLAGS = -static
+liblga_la_CPPFLAGS = \
+	@NCS_CORE_CPP_DEFINES@ \
+	-I $(top_srcdir)/services/logsv/inc \
+	-I $(top_srcdir)/services/leap/inc \
+	-I $(top_srcdir)/services/mds/inc \
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/services/common/inc \
+	-I $(top_srcdir)/include \
+	-I $(top_srcdir)/services/logsv/lga/inc
 
 liblga_la_SOURCES = \
 	lga_api.c \
 	lga_util.c \
 	lga_mds.c
+
+liblga_la_LDFLAGS = -static

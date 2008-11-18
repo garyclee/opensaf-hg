@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -441,6 +443,6 @@ typedef struct cli_cb {
 } CLI_CB;
 
 /* location to read the CEFs to be loaded into CLI Engine */ 
-#define m_NCSCLI_CEFS_CONFIG_FILE "/etc/opt/opensaf/cli_cefslib_conf"
+#define m_NCSCLI_CEFS_CONFIG_FILE SYSCONFDIR  "cli_cefslib_conf"
 
 #endif

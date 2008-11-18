@@ -19,13 +19,12 @@
 
 ********************************************************************/
 
-#include "ncsgl_defs.h"
-
-#include "ncs_osprm.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
-#include "ncssysf_tmr.h"
-#include "ncssysfpool.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncssysf_tmr.h>
+#include <opensaf/ncssysfpool.h>
 #include "leaptest.h"
 
 

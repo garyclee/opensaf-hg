@@ -15,10 +15,9 @@
  */
 
 
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncssysfpool.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysfpool.h>
 #include "leaptest.h"
 
 /****************************************************************************************

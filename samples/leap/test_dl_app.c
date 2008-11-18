@@ -14,10 +14,9 @@
  * Author(s): Emerson Network Power
  */
 
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncssysf_def.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
 #include "leaptest.h"
 
 /* Global status variable */

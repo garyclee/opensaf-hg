@@ -23,15 +23,15 @@
 *******************************************************************************/
 
 #include <stdio.h>
-#include "ncs_lib.h"
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_main_papi.h"
-#include "ncssysf_tsk.h"
-#include "ncs_svd.h"
-#include "mbcsv_papi.h"
-#include "ncssysf_lck.h"
-#include "ncssysf_def.h"
+#include <opensaf/ncs_lib.h>
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncs_svd.h>
+#include <opensaf/mbcsv_papi.h>
+#include <opensaf/ncssysf_lck.h>
+#include <opensaf/ncssysf_def.h>
 
 #define  TIME_MULT         100
 #define  MBCSV_DUMMY_SVC1  UD_DTSV_DEMO_SERVICE1

@@ -208,7 +208,7 @@ ncs_snmpsubagt_create(int32 argc, uns8 **argv)
     }
 
     /* open the file to write the component name */
-    fp = sysf_fopen(m_SUBAGT_PID_FILE, "w");/* /var/run/ncs_snmp_subagt.pid */
+    fp = sysf_fopen(m_SUBAGT_PID_FILE, "w");/* PIDPATH/ncs_snmp_subagt.pid */
     if (fp == NULL)
     {
         return NCSCC_RC_FAILURE;

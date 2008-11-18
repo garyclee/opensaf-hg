@@ -19,8 +19,8 @@
 */
 
 
-#include "ncs_cli.h"
-#include "mac_papi.h"
+#include <opensaf/ncs_cli.h>
+#include <opensaf/mac_papi.h>
 
 uns32 dummycli_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq);
 static uns32 dummy_cli_register(NCSCLI_BINDERY *);

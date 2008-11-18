@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -55,7 +57,7 @@ $Header: $
 **
 */
 
-#define   RDE_DEFAULT_PID_FILE                  "/var/run/rde.pid"
+#define   RDE_DEFAULT_PID_FILE                  PIDPATH "rde.pid"
 #define   RDE_DEFAULT_LOG_LEVEL             5
 #define   RDE_DEFAULT_SHELF_NUMBER          2
 #define   RDE_DEFAULT_SLOT_NUMBER           1

@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
  
@@ -37,12 +39,12 @@
 #define MAX_HA_STATE 4 
 
 /*Component file name path */ 
-#define m_EDS_COMP_NAME_FILE "/var/opt/opensaf/ncs_eds_comp_name"
+#define m_EDS_COMP_NAME_FILE LOCALSTATEDIR "ncs_eds_comp_name"
 #define EDS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 /*eds.pid file name path */
-#define EDS_PID_FILE               "/var/run/eds.pid" /* 16 */
-#define EDS_PID_FILE_NAME_LEN  16 + 10 + 1 /* 10 = strlen("4000000000") */
+#define EDS_PID_FILE               PIDPATH "eds.pid" /* 16 */
+#define EDS_PID_FILE_NAME_LEN FILENAME_MAX
 
 typedef uns32 (*eds_HAStateHandler)(EDS_CB *cb,
                                       SaInvocationT invocation);

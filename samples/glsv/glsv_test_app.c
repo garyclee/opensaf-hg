@@ -25,14 +25,14 @@ MODULE NAME: glsv_test_app.c  (GLSv Test Functions)
     
       
 ******************************************************************************/
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_osprm.h"
-#include "saAis.h"
-#include "saLck.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
 
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
+#include <saAis.h>
+#include <saLck.h>
 
 void glsv_test_sync_app1_process(NCSCONTEXT info);
 void glsv_test_neagtive_handle_process(NCSCONTEXT info);

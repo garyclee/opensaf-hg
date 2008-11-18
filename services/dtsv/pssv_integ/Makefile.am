@@ -1,19 +1,59 @@
-lib_LTLIBRARIES = libdts_pssv.la
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Wind River Systems
+#
 
-libdts_pssv_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@ \
-			-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 \
-			-DNCS_PSS_DEBUG=0 -DNCS_MBCSV=1 \
-			-DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
-                        -I ../inc/ \
-                        -I $(top_srcdir)/services/leap/inc/ \
-                        -I $(top_srcdir)/services/mds/inc/ \
-                        -I $(top_srcdir)/services/common/inc/ \
-                        -I $(top_srcdir)/services/mab/inc/ \
-                        -I $(top_srcdir)/include/
+MAINTAINERCLEANFILES = Makefile.in
 
-libdts_pssv_la_SOURCES =./dts_pssv_init.c \
-			./dts_pssv_init.h \
-			./ncs_dtsv_mib_pssv_mib.h \
-			./ncsdtsvnodelogpolicyentry_pssv_mib.c \
-			./ncsdtsvscalars_pssv_mib.c \
-			./ncsdtsvservicelogpolicyentry_pssv_mib.c
+pkglib_LTLIBRARIES = libdts_pssv.la
+
+PSSV_GENERATED_FILES = \
+	$(top_builddir)/services/dtsv/pssv_integ/dts_pssv_init.c \
+	$(top_builddir)/services/dtsv/pssv_integ/dts_pssv_init.h \
+	$(top_builddir)/services/dtsv/pssv_integ/ncs_dtsv_mib_pssv_mib.h \
+	$(top_builddir)/services/dtsv/pssv_integ/ncsdtsvnodelogpolicyentry_pssv_mib.c \
+	$(top_builddir)/services/dtsv/pssv_integ/ncsdtsvscalars_pssv_mib.c \
+	$(top_builddir)/services/dtsv/pssv_integ/ncsdtsvservicelogpolicyentry_pssv_mib.c
+
+libdts_pssv_la_CPPFLAGS = \
+	@NCS_CORE_CPP_DEFINES@ \
+	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 -DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
+	-I $(top_srcdir)/services/dtsv/inc \
+	-I $(top_srcdir)/services/leap/inc \
+	-I $(top_srcdir)/services/mds/inc \
+	-I $(top_srcdir)/services/common/inc \
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/include
+
+nodist_libdts_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
+
+libdts_pssv_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+
+$(PSSV_GENERATED_FILES): pssv
+
+pssv:
+	for file in $(PSSV_GENERATED_FILES); do \
+		if [ ! -f $$file ]; then \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export PATH=$(top_srcdir)/tools/smidump/bin:$$PATH; \
+			smidump -R $(top_srcdir)/OpenSAFCopyRights \
+			-f ncspssv \
+			-d $(top_builddir)/services \
+			-o dts NCS-DTSV-MIB; \
+		fi \
+	done
+
+CLEANFILES = \
+	$(PSSV_GENERATED_FILES) \
+	TEMP_ESMI_DUMP.MIB

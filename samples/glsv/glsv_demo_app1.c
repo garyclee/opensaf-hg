@@ -16,10 +16,10 @@
 
 
 #include <stdio.h>
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_osprm.h"
-#include "ncssysf_tsk.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_tsk.h>
 
 int glsv_demo_appl1(void );
 

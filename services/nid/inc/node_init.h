@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -61,10 +63,10 @@
 
 
 
-#define NID_PLAT_CONF_PATH          "/etc/opt/opensaf/"
+#define NID_PLAT_CONF_PATH          SYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
-#define NID_NCSLOGPATH              "/var/opt/opensaf/log/nid/"
-#define NID_PID_FILE                "/var/run/nodeinit.pid"
+#define NID_NCSLOGPATH              LOCALSTATEDIR "log/nid/"
+#define NID_PID_FILE                PIDPATH "nodeinit.pid"
 #define NID_RUNNING_DIR             "/"
 #define NID_CNSL                    "/dev/console"
 #define NID_VT_MASTER               "/dev/tty0"
@@ -128,7 +130,7 @@ typedef int32 (*NID_FORK_FUNC)(NID_SPAWN_INFO *, uns8 *, char * args[],uns8 *, u
 
 /*****************************************************************
  *       Structures Used by nodeinitd to store the parsed info   *
- *       from /etc/opt/opensaf/nodeinit.conf, and used while    *
+ *       from SYSCONFDIR/nodeinit.conf, and used while    *
  *       spawning                                                *
  *****************************************************************/
 typedef struct nid_recovery_list {

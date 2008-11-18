@@ -14,13 +14,12 @@
  * Author(s): Emerson Network Power
  */
 
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncssysf_mem.h"
-#include "ncssysf_def.h"
-#include "ncsencdec_pub.h"
-#include "ncs_ubaid.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_mem.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncsencdec_pub.h>
+#include <opensaf/ncs_ubaid.h>
 #include "leaptest.h"
 
 static uns32 lt_test_uba_encdec_ops(void);

@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -199,8 +201,8 @@ typedef struct mas_mbx
 
 *************************************************************************/
 
-#define m_MAS_COMP_NAME_FILE "/var/opt/opensaf/ncs_mas_comp_name"
-#define m_MAS_PID_FILE "/var/run/ncs_mas.pid"
+#define m_MAS_COMP_NAME_FILE LOCALSTATEDIR "ncs_mas_comp_name"
+#define m_MAS_PID_FILE PIDPATH "ncs_mas.pid"
 
 /************************************************************************
   MAC tasking loop function

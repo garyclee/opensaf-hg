@@ -14,12 +14,11 @@
  * Author(s): Emerson Network Power
  */
 
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncssysf_mem.h"
-#include "ncssysf_def.h"
-#include "ncspatricia.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_mem.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncspatricia.h>
 #include "leaptest.h"
 
 /* Control block which houses the patricia tree */

@@ -45,7 +45,6 @@
 #include <xercesc/dom/DOMAttr.hpp>
 #include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMErrorHandler.hpp>
-#include <iostream.h>
 
 XERCES_CPP_NAMESPACE_USE
 

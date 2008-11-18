@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -227,7 +229,7 @@ NCSSA_CB *g_snmpsubagt_cb;
 /* return the Global Control Block */
 #define m_SNMPSUBAGT_CB_GET g_snmpsubagt_cb
 
-#define m_SUBAGT_PID_FILE "/var/run/ncs_snmp_subagt.pid"
+#define m_SUBAGT_PID_FILE PIDPATH "ncs_snmp_subagt.pid"
 
 /* A valid address in which the data is present shall be
  * returned to the NET-SNMP library as part of the 

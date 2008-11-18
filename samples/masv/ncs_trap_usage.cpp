@@ -17,22 +17,21 @@
 
 #include <stdio.h>
 extern "C"{
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-#include "ncs_main_papi.h"
-#include "ncs_svd.h"
-#include "ncssysfpool.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
-
-#include "ncs_trap.h"
-#include "ncs_edu_pub.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncs_svd.h>
+#include <opensaf/ncssysfpool.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncs_trap.h>
+#include <opensaf/ncs_edu_pub.h>
 /* #include "avsv_mapi.h" */
 }
 
 /* SAF header files */
-#include "saAis.h"
-#include "saEvt.h"
+#include <saAis.h>
+#include <saEvt.h>
 
 const int SUD_SAF_RELEASE_CODE_VERSION = 'B';
 const int SUD_SAF_MAJOR_VERSION = 1;

@@ -1,2 +1,2 @@
 #! /bin/sh
-exec autoreconf -vi
+exec autoreconf -vfi

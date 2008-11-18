@@ -85,7 +85,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
                 return NCSCC_RC_SUCCESS;
                 
             /* open the file to read the component name */
-            fp = sysf_fopen(m_MAS_PID_FILE, "w");/* /var/run/mas_pid.txt */
+            fp = sysf_fopen(m_MAS_PID_FILE, "w");/* PIDPATH/mas_pid.txt */
             if (fp == NULL)
             {
                return NCSCC_RC_FAILURE;

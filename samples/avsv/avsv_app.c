@@ -38,13 +38,13 @@
 
 
 /* Common header files */
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
 
-#include "saAis.h"
-#include "saAmf.h"
+#include <saAis.h>
+#include <saAmf.h>
 
 
 /*############################################################################

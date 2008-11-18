@@ -11,12 +11,16 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Ericsson AB
-#
+# Author(s): Wind River Systems
+#            Ericsson AB
 #
 
-if CONTROLLER
-SUBDIRS = lgs utils
-else
-SUBDIRS = utils
-endif
+MAINTAINERCLEANFILES = Makefile.in
+
+CONTROLLER_SUBDIRS = lgs
+
+SUBDIRS = utils $(CONTROLLER_SUBDIRS)
+
+noinst_HEADERS = \
+	inc/lgsv_defs.h \
+	inc/lgsv_msg.h

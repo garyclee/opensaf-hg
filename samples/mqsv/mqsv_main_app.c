@@ -15,11 +15,11 @@
  */
 
 
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_osprm.h"
-#include "ncssysf_def.h"
-#include "ncs_main_papi.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncs_main_papi.h>
 
 
 #define MQSV_DEMO_MAIN_MAX_INPUT 9

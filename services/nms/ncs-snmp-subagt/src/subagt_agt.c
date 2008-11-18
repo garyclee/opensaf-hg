@@ -26,6 +26,7 @@
 
                This file has the OID Database mgmt routines as well.
   ***************************************************************************/
+#include <limits.h>
 #include "subagt.h"
 
 #include "net-snmp/net-snmp-config.h"

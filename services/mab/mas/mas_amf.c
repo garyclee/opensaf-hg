@@ -2226,7 +2226,7 @@ static void mas_process_sig_usr1_signal(void)
     FILE    *fp = NULL; 
 
     /* open the file to read the component name */
-    fp = fopen(m_MAS_COMP_NAME_FILE, "r");/* /var/opt/opensaf/ncs_mas_comp_name */
+    fp = fopen(m_MAS_COMP_NAME_FILE, "r");/* LOCALSTATEDIR/ncs_mas_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */

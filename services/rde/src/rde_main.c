@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -68,10 +70,10 @@ main (int    argc, char * argv[])
    FILE *fp;
    NCS_PHY_SLOT_ID slot_id;
 
-   fp = fopen("/etc/opt/opensaf/slot_id", "r");
+   fp = fopen(SYSCONFDIR "slot_id", "r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF ("/etc/opt/opensaf/slot_id couldn't be opened\n");
+      m_NCS_CONS_PRINTF (SYSCONFDIR "slot_id couldn't be opened\n");
       return RDE_RDE_RC_FAILURE;
    }
 

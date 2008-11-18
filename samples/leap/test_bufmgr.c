@@ -14,12 +14,11 @@
  * Author(s): Emerson Network Power
  */
 
-#include "ncsgl_defs.h"
-
-#include "ncs_osprm.h"
-#include "ncsusrbuf.h"
-#include "ncssysf_def.h"
-#include "ncssysf_mem.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncsusrbuf.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_mem.h>
 #include "leaptest.h"
 
 /********************************************************************

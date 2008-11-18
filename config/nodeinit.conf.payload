@@ -53,5 +53,5 @@
 #                       processes.                                          #
 #############################################################################
 IPMC_BOARD:LINUX_PC
-/opt/opensaf/payload/scripts/nid_tipc.sh:TIPC:S:/opt/opensaf/payload/scripts/nid_tipc.sh:4000::2:1:start eth0 1234:stop
-/opt/opensaf/payload/scripts/ncs_pcap_start.sh:PCAP:S:/opt/opensaf/payload/scripts/ncs_pcap_clean.sh:99000::0:1:start:
+xxBINDIRxx/nid_tipc:TIPC:S:xxBINDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxBINDIRxx/ncs_pcap_start:PCAP:S:xxBINDIRxx/ncs_pcap_clean:99000::0:1:start:

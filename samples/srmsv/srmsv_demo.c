@@ -18,19 +18,17 @@
 #include <stdio.h>
 
 /* Common header files */
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
-
-#include "saAis.h"
-#include "ncs_lib.h"
-
-#include "mds_papi.h"
-
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncs_lib.h>
+#include <opensaf/mds_papi.h>
+#include <opensaf/srmsv_papi.h>
+#include <opensaf/srma_papi.h>
 #include "srmsv_demo.h"
-#include "srmsv_papi.h"
-#include "srma_papi.h"
+
+#include <saAis.h>
 
 /*======================================================================
                       Global Variables

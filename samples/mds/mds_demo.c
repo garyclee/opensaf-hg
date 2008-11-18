@@ -26,10 +26,10 @@
 ******************************************************************************
 */
 
-#include "mds_papi.h"
-#include "ncsencdec_pub.h" /*  This is for encode and decode utilities */
-#include "ncs_mda_papi.h"
-#include "ncs_main_papi.h"
+#include <opensaf/mds_papi.h>
+#include <opensaf/ncsencdec_pub.h> /*  This is for encode and decode utilities */
+#include <opensaf/ncs_mda_papi.h>
+#include <opensaf/ncs_main_papi.h>
 
 /********************************************************\
 ** Sample application's MAIN ROUTINE and relevant data  **

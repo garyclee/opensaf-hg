@@ -15,6 +15,7 @@
  *
  */
 
+#include <limits.h>
 #include "lgs.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64

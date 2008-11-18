@@ -32,8 +32,6 @@
 
 
 #include <stdlib.h>
-#include <iostream.h>
-#include <fstream.h>
 
 /* NCS specific include files */
 #include <ncs_opt.h>

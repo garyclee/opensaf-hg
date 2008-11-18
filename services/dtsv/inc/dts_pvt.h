@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -42,7 +44,7 @@
 
 
 #ifdef __NCSINC_LINUX__
-#define LOG_PATH "/var/opt/opensaf/log"
+#define LOG_PATH LOCALSTATEDIR "log"
 #else
 #define LOG_PATH   ""
 #endif
@@ -145,7 +147,7 @@ extern uns32 gl_severity_filter; /* To allow manipulat at init-time */
 /* Limit for console device names */
 #define       DTS_CONS_DEV_MAX      20
 /* DTS ASCII SPEC table loading file define */
-#define DTS_ASCII_SPEC_CONFIG_FILE "/etc/opt/opensaf/dts_ascii_spec_config"
+#define DTS_ASCII_SPEC_CONFIG_FILE SYSCONFDIR "dts_ascii_spec_config"
 
 /* IR 59525 - define for checking log device SET values */
 #define       DTS_LOG_DEV_VAL_MAX   32 

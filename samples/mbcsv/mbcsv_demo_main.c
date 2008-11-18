@@ -16,11 +16,11 @@
 
 
 #include <stdio.h>
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_main_papi.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncssysfpool.h>
 #include "mbcsv_demo_app.h"
-#include "ncssysfpool.h"
 
 
 int main(int argc, char *argv[])

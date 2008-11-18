@@ -51,7 +51,7 @@
 #include "saClm.h"
 /*For MIBs */
 #include "mqnd_mib.h"
-#include "./snmp_inc/mqsv_mapi.h"
+#include "mqsv_mapi.h"
 #include "oac_papi.h"
 #endif
 

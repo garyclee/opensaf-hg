@@ -26,7 +26,7 @@
      All SIs inside a SG must have unique order number (SI Rank should be unique).
 
      If you edit this file make sure to tell the AMF to read this file by editing the
-     /etc/opt/opensaf/pssv_spcn_list file
+     xxSYSCONFDIRxx/pssv_spcn_list file
 -->
 <SystemConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="NCSConfig.xsd" name="NCSDescription">
 
@@ -62,16 +62,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_cpnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_cpnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_cpnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -125,16 +125,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -187,16 +187,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_glnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_glnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_glnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -249,16 +249,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_cpnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_cpnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_cpnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -311,16 +311,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_ifnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_ifnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_ifnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -369,16 +369,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_mqnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_mqnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_mqnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -431,16 +431,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_glnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_glnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_glnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -494,16 +494,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_snmpsubagt_start.sh</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_snmpsubagt_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_snmpsubagt_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -559,16 +559,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_eds_start.sh</command>
+							<command>xxBINDIRxx/ncs_eds_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_eds_clean.sh</command>
+							<command>xxBINDIRxx/ncs_eds_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_eds_clean.sh</command>
+							<command>xxBINDIRxx/ncs_eds_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -624,16 +624,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_cpd_start.sh</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_cpd_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_cpd_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -689,16 +689,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_gld_start.sh</command>
+							<command>xxBINDIRxx/ncs_gld_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_gld_clean.sh</command>
+							<command>xxBINDIRxx/ncs_gld_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_gld_clean.sh</command>
+							<command>xxBINDIRxx/ncs_gld_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -754,16 +754,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifd_start.sh</command>
+							<command>xxBINDIRxx/ncs_ifd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -819,16 +819,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_ifnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -882,16 +882,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_dts_start.sh</command>
+                                                        <command>xxBINDIRxx/ncs_dts_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_dts_cleanup.sh</command>
+                                                        <command>xxBINDIRxx/ncs_dts_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_dts_cleanup.sh</command>
+                                                        <command>xxBINDIRxx/ncs_dts_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -947,16 +947,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mas_start.sh</command>
+							<command>xxBINDIRxx/ncs_mas_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mas_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_mas_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mas_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_mas_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1012,16 +1012,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_pss_start.sh</command>
+							<command>xxBINDIRxx/ncs_pss_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_pss_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_pss_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_pss_cleanup.sh</command>
+							<command>xxBINDIRxx/ncs_pss_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1077,16 +1077,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqd_start.sh</command>
+							<command>xxBINDIRxx/ncs_mqd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_mqd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_mqd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1145,16 +1145,16 @@
                                         <!--
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_hisv_start.sh</command>
+							<command>xxBINDIRxx/ncs_hisv_start</command>
 							<timeout>300000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_hisv_clean.sh</command>
+							<command>xxBINDIRxx/ncs_hisv_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_hisv_clean.sh</command>
+							<command>xxBINDIRxx/ncs_hisv_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1222,16 +1222,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_srmnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_srmnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/ncs_srmnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1285,16 +1285,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_srmnd_start.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_srmnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/payload/scripts/ncs_srmnd_clean.sh</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1344,16 +1344,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_vds_start.sh</command>
+                                                        <command>xxBINDIRxx/ncs_vds_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_vds_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_vds_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_vds_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_vds_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1421,7 +1421,7 @@
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_drbd_r0_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_drbd_r0_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1485,16 +1485,16 @@
                                         <!--
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/drbd_start.sh</command>
+                                                        <command>xxBINDIRxx/drbd_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/drbd_clean.sh</command>
+                                                        <command>xxBINDIRxx/drbd_clean</command>
                                                         <timeout>500</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/drbd_clean.sh</command>
+                                                        <command>xxBINDIRxx/drbd_clean</command>
                                                         <timeout>500</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1562,16 +1562,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_rde_start.sh</command>
+                                                        <command>xxBINDIRxx/ncs_rde_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_rde_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_rde_clean</command>
                                                         <timeout>500</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/opt/opensaf/controller/scripts/ncs_rde_clean.sh</command>
+                                                        <command>xxBINDIRxx/ncs_rde_clean</command>
                                                         <timeout>30000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1616,16 +1616,16 @@
 				<componentPrototype name="safComp=CompT_SAFLOG" finalPrototype="1">
 					<clcCommands>
 						<instantiateCommand>
-							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh start</command>
+							<command>xxBINDIRxx/opensaf_lgs start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh clean</command>
+							<command>xxBINDIRxx/opensaf_lgs clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/opt/opensaf/controller/scripts/opensaf_lgs.sh clean</command>
+							<command>xxBINDIRxx/opensaf_lgs clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>

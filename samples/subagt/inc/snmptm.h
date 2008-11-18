@@ -34,31 +34,31 @@
 /*****************************************************************************
                       Common Include Files.
 *****************************************************************************/
-#include "ncsgl_defs.h"
-#include "ncs_mib_pub.h"
-#include "ncs_ubaid.h"
-#include "ncs_svd.h"
-#include "ncspatricia.h"
-#include "ncs_iplib.h"
-#include "ncsmiblib.h"
-#include "ncs_edu_pub.h"
-#include "oac_papi.h"
-#include "ncssysf_tsk.h"
-#include "ncssysf_lck.h"
-#include "ncs_main_papi.h"
-#include "ncssysf_def.h"
-#include "ncs_hdl_pub.h"
-#include "ncssysfpool.h"
-#include "ncssysf_mem.h"
-#include "ncs_cli.h"
-#include "mac_papi.h"
-#include "ncs_trap.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_mib_pub.h>
+#include <opensaf/ncs_ubaid.h>
+#include <opensaf/ncs_svd.h>
+#include <opensaf/ncspatricia.h>
+#include <opensaf/ncs_iplib.h>
+#include <opensaf/ncsmiblib.h>
+#include <opensaf/ncs_edu_pub.h>
+#include <opensaf/oac_papi.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncssysf_lck.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncs_hdl_pub.h>
+#include <opensaf/ncssysfpool.h>
+#include <opensaf/ncssysf_mem.h>
+#include <opensaf/ncs_cli.h>
+#include <opensaf/mac_papi.h>
+#include <opensaf/ncs_trap.h>
+#include <opensaf/mds_papi.h>
 
 /* SAF specific includes */
-#include "saAis.h"
-#include "saAmf.h"
-#include "saEvt.h"
-#include "mds_papi.h"
+#include <saAis.h>
+#include <saAmf.h>
+#include <saEvt.h>
 
 /*****************************************************************************
                       SNMPTM Base Include Files.
