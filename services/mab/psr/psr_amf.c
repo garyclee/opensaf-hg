@@ -2199,7 +2199,7 @@ pss_amf_component_name_set(void)
     char    comp_name[256] = {0}; 
 
     /* open the file to read the component name */
-    fp = fopen(m_PSS_COMP_NAME_FILE, "r");/* /var/opt/opensaf/ncs_pss_comp_name */
+    fp = fopen(m_PSS_COMP_NAME_FILE, "r");/* LOCALSTATEDIR/ncs_pss_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */

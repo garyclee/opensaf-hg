@@ -647,7 +647,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nSNMP: SUB AGENT:ON");
 
       /* load the subagent library */
-      lib_subagt_hdl = m_NCS_OS_DLIB_LOAD("libncs_snmp_subagt.so",  
+      lib_subagt_hdl = m_NCS_OS_DLIB_LOAD("libncs_snmp_subagt.so.3",  
                                               m_NCS_OS_DLIB_ATTR); 
       if (lib_subagt_hdl == NULL)
       {

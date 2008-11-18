@@ -26,6 +26,7 @@ DESCRIPTION:
 This include file contains SE api instrumentation for EDS
           
 *******************************************************************************/
+#include <config.h>
 #include "eds.h"
 
 /* global cb handle */
@@ -117,7 +118,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    if(fp == NULL)
    {
       m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid OPEN FOR WRITE FAILED......\n");
+      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid OPEN FOR WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
@@ -130,7 +131,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    {
       fclose(fp);
       m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid FILE WRITE FAILED......\n");
+      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
@@ -141,7 +142,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    fclose(fp);
 
    m_LOG_EDSV_S(EDS_PID_FILE_WRITE_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid EDS PID FILE WRITE SUCCESS......\n");
+   m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid EDS PID FILE WRITE SUCCESS......\n");
 
    m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
@@ -149,7 +150,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&eds_cb->mbx)))
    {
       m_LOG_EDSV_S(EDS_IPC_CREATE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : /var/run/eds.pid FILE WRITE FAILED......\n");
+      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
       /* Release EDU handle */
       m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
       /* Destroy the hdl for this CB */

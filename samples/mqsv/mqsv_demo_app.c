@@ -32,16 +32,16 @@
 
 /* OpenSAF Include */
 
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_osprm.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
 
 /* SAF Include */
 
-#include "saAis.h"
-#include "saMsg.h"
+#include <saAis.h>
+#include <saMsg.h>
 
 #define APP_TIMEOUT 10000000000ll /* Timeout in nano seconds */
 #define NUM_MESSAGES_SENT 5

@@ -11,18 +11,23 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Ericsson AB
+# Author(s): Wind River Systems
+#            Ericsson AB
 #
-#
+
+MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = saflogger
 
+noinst_HEADERS = \
+	inc/saf_error.h
+
 saflogger_CPPFLAGS = \
-	-I $(top_srcdir)/include
+	-I $(top_srcdir)/include \
+	-I $(top_srcdir)/services/logsv/utils/inc
 
 saflogger_SOURCES = \
-	./saf_logger.c \
-	./saf_error.c
+	saf_logger.c \
+	saf_error.c
 
-saflogger_LDADD = $(top_srcdir)/lib/lib_SaLog/libSaLog.la
-
+saflogger_LDADD = $(top_builddir)/lib/lib_SaLog/libSaLog.la

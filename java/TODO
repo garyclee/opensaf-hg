@@ -1,0 +1,5 @@
+Oct 2. 2008.
+  - Execute protection group manager tests that were disabled by bug #202
+  - Write comprehensive design documentation especially on the SelectionObjectMediator
+  - Create testing principles
+  - Improve logging features in C and Java parts too

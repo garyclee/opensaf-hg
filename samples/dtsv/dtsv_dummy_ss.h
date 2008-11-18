@@ -29,8 +29,8 @@
 #ifndef DUMMY_LOG_H
 #define DUMMY_LOG_H
 
-#include "dta_papi.h"
-#include "dts_papi.h"
+#include <opensaf/dta_papi.h>
+#include <opensaf/dts_papi.h>
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 

@@ -32,7 +32,7 @@
 #include "ncs_lib.h"
 #include "ncssysf_tmr.h"
 #include "ncs_main_papi.h"
-#include "tipc.h"
+#include <linux/tipc.h>
 
 
 /* This file is private to the MDTM layer. - Surya */

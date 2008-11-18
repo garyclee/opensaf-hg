@@ -31,18 +31,19 @@
 */
 
 /* HISv Toolkit header file */
-#include "../../include/hpl_api.h"
-#include "../../include/hpl_msg.h"
+#include <opensaf/hpl_api.h>
+#include <opensaf/hpl_msg.h>
 
-#include "../../include/mds_papi.h"
-#include "../../include/ncssysf_tmr.h"
-#include "../../include/ncssysf_lck.h"
+#include <opensaf/mds_papi.h>
+#include <opensaf/ncssysf_tmr.h>
+#include <opensaf/ncssysf_lck.h>
+/* FIXME: Shouldn't be using internal header for sample
 #include "../../services/hisv/inc/hcd_mem.h"
 #include "../../services/hisv/inc/hcd_util.h"
 #include "../../services/hisv/inc/hisv_msg.h"
 #include "../../services/hisv/inc/ham_cb.h"
 
-#include "../../services/hisv/inc/hpl_cb.h"
+#include "../../services/hisv/inc/hpl_cb.h"*/
 #include "hisv_events_demo_app.h"
 
 EXTERN_C int raw;

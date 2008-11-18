@@ -15,6 +15,7 @@
  *
  */
 
+#include <config.h>
 
 
 /******************************************************************************
@@ -33,8 +34,8 @@ const NCSFL_STR eds_hdln_set[] =
    { EDS_PCS_RDA_LIB_INIT_FAILED,    "EDS PCS RDA LIB INIT FAILED"     },
    { EDS_PCS_RDA_GET_ROLE_FAILED,    "EDS PCS RDA GET ROLE FAILED"     },
    { EDS_RDA_SET_HA_STATE_NULL,      "EDS RDA HA state = NULL"            }, 
-   { EDS_PID_FILE_OPEN_FOR_WRITE_FAILED, "EDS /var/run/eds.pid FILE OPEN FOR WRITE FAILED"},
-   { EDS_PID_FILE_WRITE_FAILED,      "EDS /var/run/eds.pid FILE WRITE FAILED"},
+   { EDS_PID_FILE_OPEN_FOR_WRITE_FAILED, "EDS " PIDPATH "eds.pid FILE OPEN FOR WRITE FAILED"},
+   { EDS_PID_FILE_WRITE_FAILED,      "EDS " PIDPATH "eds.pid FILE WRITE FAILED"},
    { EDS_MBCSV_INIT_FAILED,          "EDS MBCSV INIT FAILED"           },
    { EDS_INSTALL_SIGHDLR_FAILED,    "EDS INSTALL SIGNAL HANDLER FAILED"},
    { EDS_MAB_REGISTER_FAILED,       "EDS MAB REGISTER FAILED"},
@@ -71,7 +72,7 @@ const NCSFL_STR eds_hdln_set[] =
    { EDS_CB_INIT_SUCCESS,                         "EDS CB init success"             },
    { EDS_RDA_SET_HA_STATE_ACTIVE,                 "RDA HA state = ACTIVE"           },
    { EDS_RDA_SET_HA_STATE_STANDBY,                "RDA HA state = STANDBY"                      },
-   { EDS_PID_FILE_WRITE_SUCCESS,                  "EDS /var/run/eds.pid file write success"     },
+   { EDS_PID_FILE_WRITE_SUCCESS,                  "EDS " PIDPATH "eds.pid file write success"     },
    { EDS_MAIL_BOX_CREATE_ATTACH_SUCCESS,          "EDS Mail Box create and attach success" },
    { EDS_MDS_VDEST_CREATE_SUCCESS,                "MDS vdest create success"               },
    { EDS_MDS_VDEST_CREATE_FAILED,                 "MDS vdest create failed"                },
@@ -101,8 +102,8 @@ const NCSFL_STR eds_hdln_set[] =
    { EDS_AMF_INIT_ERROR,                          "AMF Initialize error"            },
    { EDS_AMF_GET_SEL_OBJ_SUCCESS,                 "AMF selection object get success" },
    { EDS_AMF_GET_SEL_OBJ_FAILURE,                 "AMF selection object get failed" },
-   { EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL,        "EDS AMF /etc/opt/opensaf/ncs_eds_comp_name file open for read failed" },
-   { EDS_AMF_COMP_FILE_READ_FAIL,                 "EDS AMF /etc/opt/opensaf/ncs_eds_comp_name file read failed"},
+   { EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL,        "EDS AMF " SYSCONFDIR "ncs_eds_comp_name file open for read failed" },
+   { EDS_AMF_COMP_FILE_READ_FAIL,                 "EDS AMF " SYSCONFDIR "ncs_eds_comp_name file read failed"},
    { EDS_AMF_ENV_NAME_SET_FAIL,                   "EDS AMF SA_AMF_COMPONENT_NAME Env variable set failed"},
    { EDS_AMF_COMP_NAME_GET_SUCCESS,               "AMF Comp name get success"        },
    { EDS_AMF_COMP_NAME_GET_FAIL,                  "AMF Comp name get failed"        },

@@ -48,9 +48,11 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
+#include <config.h>
+
 #include "dts.h"
 
-#define m_DTS_COMP_NAME_FILE "/var/opt/opensaf/ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE LOCALSTATEDIR "ncs_dts_comp_name"
 
 static uns32 dts_stby_initialize(DTS_CB *cb);
 
@@ -1807,7 +1809,7 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
  Function: dts_ascii_spec_reload
 
  Purpose:  Function used for reloading ASCII_SPEC table specified in   
-           /etc/opt/opensaf/dts_ascii_spec_config.
+           SYSCONFDIR/dts_ascii_spec_config.
 
  Input:    None.
 
@@ -1850,7 +1852,7 @@ uns32 dts_ascii_spec_reload(DTS_CB *cb)
    /* Set this to indicate that CLI reload command has been issued */
    cb->cli_reload_cmd = TRUE;
  
-   /* Now force a fresh read on /etc/opt/opensaf/dts_ascii_spec_config to reload
+   /* Now force a fresh read on SYSCONFDIR/dts_ascii_spec_config to reload
     * all ASCII_SPEC tables.
     */  
    dts_apps_ascii_spec_load(DTS_ASCII_SPEC_CONFIG_FILE, 1); 
@@ -2956,7 +2958,7 @@ uns32 dts_free_msg_content (NCSFL_NORMAL*  msg)
   DESCRIPTION:    Prints the DTS Service registration info to file.
 
   RETURNS:        NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-  NOTES:          Configuration data is printed to /var/opt/opensaf/log/DTS_<date>.config
+  NOTES:          Configuration data is printed to LOCALSTATEDIR/log/DTS_<date>.config
                   file.   
 *****************************************************************************/
 uns32 dts_print_current_config(DTS_CB *cb)

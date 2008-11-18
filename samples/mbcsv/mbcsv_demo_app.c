@@ -27,14 +27,14 @@
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
-#include "ncsgl_defs.h"
-#include "ncs_lib.h"
-#include "os_defs.h"
-#include "ncs_main_papi.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_lib.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncssysfpool.h>
+#include <opensaf/ncsencdec_pub.h>
 #include "mbcsv_demo_app.h"
-#include "ncssysf_tsk.h"
-#include "ncssysfpool.h"
-#include "ncsencdec_pub.h"
 
 #define CS_FAKE_NUM_ELEM     1
 #define WS_FAKE_NUM_ELEM     1

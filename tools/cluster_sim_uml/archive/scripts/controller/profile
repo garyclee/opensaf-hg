@@ -14,6 +14,6 @@ ulimit -c unlimited
 
 alias 'get_ha_state=/opt/opensaf/controller/scripts/get_ha_state'
 alias 'nis_scxb=/opt/opensaf/controller/scripts/nis_scxb'
-alias 'saflogdump=/opt/opensaf/controller/scripts/opensaf_lgs.sh dump'
+alias 'saflogdump=/opt/opensaf/controller/scripts/opensaf_lgs dump'
 alias 'saflogger=/opt/opensaf/controller/bin/saflogger'
 

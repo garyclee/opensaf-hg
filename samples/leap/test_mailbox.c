@@ -31,13 +31,12 @@
 
 
 ****************************************************************************/
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-
-#include "ncssysf_mem.h"
-#include "ncssysf_def.h"
-#include "ncssysf_ipc.h"
-#include "ncssysf_tsk.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_mem.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_ipc.h>
+#include <opensaf/ncssysf_tsk.h>
 #include "leaptest.h"
 
 typedef int32   LtHandle;   /* Unique handle for application */

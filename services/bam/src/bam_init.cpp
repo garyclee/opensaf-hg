@@ -29,6 +29,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 /* NCS specific include files */
 
 #include <gl_defs.h>
@@ -550,7 +552,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, "/etc/opt/opensaf/NCSSystemBOM.xml");
+      m_NCS_STRCPY(filename, SYSCONFDIR "NCSSystemBOM.xml");
    }
 
    /* Now set the NCS filename inthe CB */
@@ -564,7 +566,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, "/etc/opt/opensaf/AppConfig.xml");
+      m_NCS_STRCPY(filename, SYSCONFDIR "AppConfig.xml");
    }
 
    /* Now set the filename inthe CB */
@@ -582,7 +584,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, "/etc/opt/opensaf/ValidationConfig.xml");
+      m_NCS_STRCPY(filename, SYSCONFDIR "ValidationConfig.xml");
    }
 
    /* Now set the filename inthe CB */

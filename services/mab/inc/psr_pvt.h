@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -58,8 +60,8 @@
 #define m_PSS_SPCN_SOURCE_BAM           "XML"
 #define m_PSS_SPCN_SOURCE_PSSV          "PSS"
 
-#define m_PSS_COMP_NAME_FILE "/var/opt/opensaf/ncs_pss_comp_name"
-#define m_PSS_PID_FILE "/var/run/ncs_psr.pid"
+#define m_PSS_COMP_NAME_FILE LOCALSTATEDIR "ncs_pss_comp_name"
+#define m_PSS_PID_FILE PIDPATH "ncs_psr.pid"
 
 typedef enum {
    PSS_RET_NORMAL = 1,

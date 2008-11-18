@@ -20,6 +20,8 @@
  * ========================================================================
  */
 
+#include <config.h>
+
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
@@ -161,7 +163,7 @@ static uns32 initialize_lgs(const char *progname)
     }
 
     /* Create pidfile */
-    sprintf(path, "/var/run/%s.pid", basename(progname));
+    sprintf(path, PIDPATH "%s.pid", basename(progname));
     if ((fp = fopen(path, "w")) == NULL)
     {
         LOG_ER("Could not open %s", path);

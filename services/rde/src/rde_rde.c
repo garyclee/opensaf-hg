@@ -1027,7 +1027,7 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
   sprintf(log,"Updating Node's HA state to %d",role);
   m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
 
-/* Update the HA state to the /var/opt/opensaf/node_ha_state file */
+/* Update the HA state to the LOCALSTATEDIR/node_ha_state file */
    FILE *fp = NULL;
    fp=fopen(NODE_HA_STATE,"a");
    if(fp)

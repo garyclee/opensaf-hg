@@ -102,7 +102,7 @@ If the default values in this file does not fit your system, edit this file and
 rebuild the controller rpm in order to setup your system properly.
 
 The online (in an executing system) location of the configuration file is:
-/etc/opt/opensaf/saflog.conf
+SYSCONFDIR/saflog.conf
 
 The following environment variables are required:
 
@@ -149,7 +149,7 @@ saflogd process. Every time the trace state is toggled.
 
 Traces are written to the file:
 
-/var/opt/opensaf/stdouts/opensaf_saflogd
+LOCALSTATEDIR/stdouts/opensaf_saflogd
 
 To enable traces from the very start of the log server, uncomment the line:
 

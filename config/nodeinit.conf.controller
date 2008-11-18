@@ -53,13 +53,13 @@
 #                       processes.                                          #
 #############################################################################
 IPMC_BOARD:LINUX_PC_SCXB
-/opt/opensaf/controller/scripts/nid_tipc.sh:TIPC:S:/opt/opensaf/controller/scripts/nid_tipc.sh:4000::2:1:start eth0 1234:stop
-/opt/opensaf/controller/scripts/rde_script:RDF:S:/opt/opensaf/controller/scripts/rde_script:12000:-6:2:1:start:stop
-#/opt/opensaf/controller/scripts/drbdctrl:DRBD:S:/opt/opensaf/controller/scripts/drbdctrl:800::2::start all:stop all
-#/opt/opensaf/controller/scripts/nis_snmpd_start.sh:SNMPD:S:/opt/opensaf/controller/scripts/nis_snmpd_clean.sh:10000:4:5:1::
-/opt/opensaf/controller/scripts/ncs_dts_start.sh:DTSV:S:/opt/opensaf/controller/scripts/ncs_dts_clean.sh:4000:4:2:1:start:
-/opt/opensaf/controller/scripts/ncs_mas_start.sh:MASV:S:/opt/opensaf/controller/scripts/ncs_mas_clean.sh:4000:4:2:1:start:
-/opt/opensaf/controller/scripts/ncs_pss_start.sh:PSSV:S:/opt/opensaf/controller/scripts/ncs_pss_clean.sh:4000:4:2:1:start:
-/opt/opensaf/controller/scripts/ncs_eds_start.sh:EDSV:S:/opt/opensaf/controller/scripts/ncs_eds_clean.sh:5000:4:2:1:start:
-/opt/opensaf/controller/scripts/ncs_snmpsubagt_start.sh:SUBAGT:S:/opt/opensaf/controller/scripts/ncs_snmpsubagt_cleanup.sh:5000:4:2:1:start:
-/opt/opensaf/controller/scripts/ncs_scap_start.sh:SCAP:S:/opt/opensaf/controller/scripts/ncs_scap_clean.sh:192000:-6:0:1:start:
+xxBINDIRxx/nid_tipc:TIPC:S:xxBINDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxBINDIRxx/rde_script:RDF:S:xxBINDIRxx/rde_script:12000:-6:2:1:start:stop
+#xxBINDIRxx/drbdctrl:DRBD:S:xxBINDIRxx/drbdctrl:800::2::start all:stop all
+#xxBINDIRxx/nis_snmpd_start:SNMPD:S:xxBINDIRxx/nis_snmpd_clean:10000:4:5:1::
+xxBINDIRxx/ncs_dts_start:DTSV:S:xxBINDIRxx/ncs_dts_clean:4000:4:2:1:start:
+xxBINDIRxx/ncs_mas_start:MASV:S:xxBINDIRxx/ncs_mas_clean:4000:4:2:1:start:
+xxBINDIRxx/ncs_pss_start:PSSV:S:xxBINDIRxx/ncs_pss_clean:4000:4:2:1:start:
+xxBINDIRxx/ncs_eds_start:EDSV:S:xxBINDIRxx/ncs_eds_clean:5000:4:2:1:start:
+xxBINDIRxx/ncs_snmpsubagt_start:SUBAGT:S:xxBINDIRxx/ncs_snmpsubagt_clean:5000:4:2:1:start:
+xxBINDIRxx/ncs_scap_start:SCAP:S:xxBINDIRxx/ncs_scap_clean:192000:-6:0:1:start:

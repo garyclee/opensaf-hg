@@ -19,21 +19,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "ncsgl_defs.h"
-#include "ncs_main_papi.h"
-#include "ncssysf_def.h"
-#include "ncs_mtbl.h"
-#include "ncs_stack_pub.h"
-#include "ncs_mib_pub.h"
-#include "mac_papi.h"
-#include "snmptm_tblid.h"
-#include "ncssysf_mem.h"
-#include "ncsmib_mem.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_main_papi.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncs_mtbl.h>
+#include <opensaf/ncs_stack_pub.h>
+#include <opensaf/ncs_mib_pub.h>
+#include <opensaf/mac_papi.h>
+#include <opensaf/ncssysf_mem.h>
+#include <opensaf/ncsmib_mem.h>
+#include <../subagt/inc/snmptm_tblid.h>
 #ifdef __cplusplus
 }
 #endif
 
-#include "saAis.h"
+#include <saAis.h>
 
 const SaTimeT NCS_SYNC_CALL_TIMEOUT = 5000; /*5 seconds.*/
 

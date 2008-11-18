@@ -614,7 +614,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
 
   PROCEDURE NAME: pss_cef_reload_pssv_lib_conf
 
-  DESCRIPTION   : Sends the request to reload the /etc/opt/opensaf/pssv_lib_conf
+  DESCRIPTION   : Sends the request to reload the SYSCONFDIR/pssv_lib_conf
                   configuration file.
 
   ARGUMENTS     :
@@ -694,7 +694,7 @@ end:
 
   PROCEDURE NAME: pss_cef_reload_pssv_spcn_list
 
-  DESCRIPTION   : Sends the request to reload the /var/opt/opensaf/pssv_spcn_list
+  DESCRIPTION   : Sends the request to reload the LOCALSTATEDIR/pssv_spcn_list
                   configuration file.
 
   ARGUMENTS     :
@@ -970,13 +970,13 @@ uns32 pss_cli_cmd_mib_resp_set_playback_option_from_xml(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        m_NCS_CONS_PRINTF("\nFailed to update SPCN entry in /var/opt/opensaf/pssv_spcn_list file...\n");
+        m_NCS_CONS_PRINTF("\nFailed to update SPCN entry in " LOCALSTATEDIR "pssv_spcn_list file...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
         
     case NCSCC_RC_SUCCESS:
-        m_NCS_CONS_PRINTF("\nSPCN Entry updated in /var/opt/opensaf/pssv_spcn_list file...\n");
+        m_NCS_CONS_PRINTF("\nSPCN Entry updated in " LOCALSTATEDIR "pssv_spcn_list file...\n");
         break;
        
     default:

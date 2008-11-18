@@ -28,12 +28,12 @@
 #define _MDS_DT2C_H
 
 #if __AFSINC_LINUX__
-#include "tipc.h"
+#include <linux/tipc.h>
 #endif
 
 #include "gl_defs.h"
 #include "mds_papi.h"
-#include "tipc.h"
+#include <linux/tipc.h>
 
 /* Specification of the interface between MCM and MDTM */
 

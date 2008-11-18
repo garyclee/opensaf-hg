@@ -36,16 +36,17 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
+#include <config.h>
 #include "dts.h"
 #include "rda_papi.h"
 
 static NCS_BOOL
 dts_clear_mbx (NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
-#define DTS_ASCII_SPEC_CONFIG_FILE "/etc/opt/opensaf/dts_ascii_spec_config"
-#define DTS_PID_FILE               "/var/run/ncs_dts.pid" /* 16 */
-#define m_DTS_SLOT_ID_FILE    "/etc/opt/opensaf/slot_id"
-#define DTS_PID_FILE_NAME_LEN  16 + 10 + 1 /* 10 = strlen("4000000000") */
+#define DTS_ASCII_SPEC_CONFIG_FILE SYSCONFDIR "dts_ascii_spec_config"
+#define DTS_PID_FILE               PIDPATH "ncs_dts.pid" /* 16 */
+#define m_DTS_SLOT_ID_FILE    SYSCONFDIR "slot_id"
+#define DTS_PID_FILE_NAME_LEN  FILENAME_MAX
 
 /****************************************************************************
  * Name          : dts_lib_req
@@ -175,14 +176,14 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    if(fp == NULL)
    {
        dts_amf_finalize(inst);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to open /etc/opt/opensaf/slotid for read");
+       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to open "SYSCONFDIR "slotid for read");
    }
 
    if(fscanf(fp, "%d", &init_role) != 1)
    {
        fclose(fp);
        dts_amf_finalize(inst);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to retrieve role from /etc/opt/opensaf/slotid");
+       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to retrieve role from " SYSCONFDIR "slotid");
    }
    fclose(fp);
 
@@ -203,7 +204,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    fp = fopen(pidfilename, "w");
    if(fp == NULL)
    {
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to open /var/run/dts_stb_pid for write");
+      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to open " PIDPATH "dts_stb_pid for write");
    }
 
    if(fprintf(fp, "%d", getpid()) < 1)

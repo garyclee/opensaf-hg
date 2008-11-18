@@ -15,6 +15,8 @@
  *
  */
 
+#include <config.h>
+
 /*****************************************************************************
 ..............................................................................
 
@@ -44,7 +46,7 @@
 #define MAX_NCS_CONFIG_FILEPATH_LEN \
    (MAX_NCS_CONFIG_ROOTDIR_LEN + MAX_NCS_CONFIG_FILENAME_LEN)
 
-#define NCS_DEF_CONFIG_FILEPATH  "/etc/opt/opensaf"
+#define NCS_DEF_CONFIG_FILEPATH  SYSCONFDIR
 
 typedef struct ncs_sys_params
 {

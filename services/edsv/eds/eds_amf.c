@@ -616,7 +616,7 @@ eds_amf_init(EDS_CB *eds_cb)
    /* Read the component name file now, AMF should have populated it by now */
    m_NCS_OS_ASSERT(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
 
-   fp = fopen(compfilename, "r");/*/var/opt/opensaf/ncs_eds_comp_name */
+   fp = fopen(compfilename, "r");/*LOCALSTATEDIR/ncs_eds_comp_name */
    if(fp == NULL)
    {   
       m_LOG_EDSV_S(EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);

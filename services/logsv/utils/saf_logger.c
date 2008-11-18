@@ -36,6 +36,7 @@
 #include <time.h>
 #include <poll.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <saAis.h>
 #include <saLog.h>
@@ -258,7 +259,7 @@ int main(int argc, char *argv[])
         {0, 0, 0, 0}
     };
     int interval = 1;
-    char hostname[HOST_NAME_MAX];
+    char hostname[_POSIX_HOST_NAME_MAX];
     int write_count = 1;
     SaAisErrorT error;
     SaLogHandleT logHandle;
@@ -267,7 +268,7 @@ int main(int argc, char *argv[])
 
     srandom(getpid());
 
-    if (gethostname(hostname, HOST_NAME_MAX) == -1)
+    if (gethostname(hostname, _POSIX_HOST_NAME_MAX) == -1)
     {
         fprintf(stderr, "gethostname failed: %s\n", strerror(errno));
         exit(EXIT_FAILURE);

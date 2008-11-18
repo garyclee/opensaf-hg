@@ -26,16 +26,16 @@
 #define EDSV_DEMO_APP_H
 
 /* Common header files */
-#include "ncsgl_defs.h"
-#include "ncs_osprm.h"
-#include "ncs_svd.h"
-#include "ncssysfpool.h"
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncs_svd.h>
+#include <opensaf/ncssysfpool.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
 
 /* SAF header files */
-#include "saAis.h"
-#include "saEvt.h"
+#include <saAis.h>
+#include <saEvt.h>
 
 #define NCS_SERVICE_ID_EDSVTM  (UD_SERVICE_ID_END + 2)
 

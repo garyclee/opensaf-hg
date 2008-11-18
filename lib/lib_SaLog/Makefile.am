@@ -11,15 +11,26 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Ericsson AB
+# Author(s): Wind River Systems
+#            Ericsson AB
 #
-#
+
+MAINTAINERCLEANFILES = Makefile.in
+
+EXTRA_DIST = \
+	libSaLog.version
 
 lib_LTLIBRARIES = libSaLog.la
 
 libSaLog_la_SOURCES = 
-libSaLog_la_CPPFLAGS = @NCS_CORE_CPP_DEFINES@
-libSaLog_la_LDFLAGS = -Wl,-version-script=libSaLog.version
-libSaLog_la_LIBADD = $(top_srcdir)/lib/lib_ncs_core/libncs_core.la \
-			$(top_srcdir)/services/common/libsaf_common.la \
-			$(top_srcdir)/services/logsv/lga/liblga.la
+
+libSaLog_la_CPPFLAGS = \
+	@NCS_CORE_CPP_DEFINES@
+
+libSaLog_la_LDFLAGS = -Wl,-version-script=$(top_srcdir)/lib/lib_SaLog/libSaLog.version \
+                      -version-info @OPENSAF_LIB_VERSION@
+
+libSaLog_la_LIBADD = \
+	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
+	$(top_builddir)/services/common/libsaf_common.la \
+	$(top_builddir)/services/logsv/lga/liblga.la

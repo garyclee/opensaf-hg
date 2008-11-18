@@ -25,14 +25,14 @@ MODULE NAME: cpsv_test_app.c  (CPSv Test Functions)
     
       
 ******************************************************************************/
-#include "ncsgl_defs.h"
-#include "os_defs.h"
-#include "ncs_osprm.h"
-#include "saAis.h"
-#include "saCkpt.h"
+#include <opensaf/ncsgl_defs.h>
+#include <opensaf/os_defs.h>
+#include <opensaf/ncs_osprm.h>
+#include <opensaf/ncssysf_def.h>
+#include <opensaf/ncssysf_tsk.h>
 
-#include "ncssysf_def.h"
-#include "ncssysf_tsk.h"
+#include <saAis.h>
+#include <saCkpt.h>
 
 void AppCkptOpenCallback(SaInvocationT invocation, SaCkptCheckpointHandleT checkpointHandle, SaAisErrorT error);
 void AppCkptSyncCallback(SaInvocationT invocation, SaAisErrorT error);

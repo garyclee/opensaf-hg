@@ -20,16 +20,15 @@ set -e
 
 if ! test -f tools/smidump/smidump_generated
 then
-        echo "**********************************"
-        echo "Building SMIDUMP tool"
-        echo "**********************************"
-
+   echo "**********************************"
+   echo "Building SMIDUMP tool"
+   echo "**********************************"
 
 	cd ./tools/smidump/src
-	./configure  --enable-static --disable-shared	
+	./configure --enable-static --disable-shared
 	make
 	cd -
+   mkdir -p ./tools/smidump/bin
 	cp ./tools/smidump/src/tools/smidump ./tools/smidump/bin/
-
-        touch tools/smidump/smidump_generated
+   touch ./tools/smidump/smidump_generated
 fi
