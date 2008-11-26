@@ -42,23 +42,39 @@ AC_ARG_WITH([smidump],
 
 AM_CONDITIONAL([WITH_SMIDUMP], [test "x$with_smidump" = xyes])
 
+
+dnl Enable HPI hardware management support
+AC_ARG_WITH([hpi],
+   [AS_HELP_STRING([--with-hpi],
+      [enable hardware management with HPI [default=yes]])],
+   [],
+   [with_hpi=yes])
+
+AM_CONDITIONAL([WITH_HPI], [test "x$with_hpi" = xyes])
+
+
 dnl Enable OpenHPI as the HPI implementation used
 AC_ARG_WITH([openhpi],
    [AS_HELP_STRING([--with-openhpi],
-      [enable hardware management with OpenHPI [default=yes]])],
-   [],
-   [with_openhpi=yes])
+      [enable OpenHPI as the HPI implementation [default=yes]])],
+   [ if test "x$with_hpi" = xyes; then
+       with_openhpi="$withval"
+     fi
+   ],
+   [ if test "x$with_hpi" = xyes; then
+       with_openhpi=yes
+     else
+       with_openhpi=no
+     fi
+   ])
 
 AM_CONDITIONAL([WITH_OPENHPI], [test "x$with_openhpi" = xyes])
-
-#TODO: Fix this when supporting more than one HPI implementation
-AM_CONDITIONAL([WITH_HPI], [test "x$with_openhpi" = xyes])
 
 
 dnl Specifies the SAI-HPI specification used by the HPI implementation
 AC_ARG_WITH([hpirev],
    [AS_HELP_STRING([--with-hpirev=@<:@ARG@:>@],
-      [HPI implementation is SAI-HPI-B.02.01 (ARG=B02); HPI implementation is
+      [HPI implementation is SAI-HPI-B.02.01 (ARG=B02 default); HPI implementation is
       SAI-HPI-B.01.01 (ARG=B01); HPI implementation is SAI-HPI-A.01.01
       (ARG=A01)])],
    [ if test "x$withval" = xB02; then
@@ -256,8 +272,10 @@ AC_SUBST( MDS_WORD_ARCH_FLAGS," -DMDS_ARCH_TYPE=$mdsarchtype" )
 #############################################
 # Checks for libraries.
 #############################################
-if test "x$with_openhpi" = xyes; then
-   PKG_CHECK_MODULES(HPI, openhpi)
+if test "x$with_hpi" = xyes; then
+   if test "x$with_openhpi" = xyes; then
+      PKG_CHECK_MODULES(HPI, openhpi)
+   fi
 fi
 
 # TODO: Fix the hardcoded locations, and add flexible --with
@@ -564,6 +582,7 @@ echo "${ECHO_T} MIBSDIR: ${MIBSDIR}"
 echo ""
 echo "OpenSAF Options:"
 echo "${ECHO_T} Enable Java AIS Mapping: ${with_java}"
+echo "${ECHO_T} Enable HPI support: ${with_hpi}"
 echo "${ECHO_T} Enable OpenHPI: ${with_openhpi}"
 echo "${ECHO_T} Enable Building NCS smidump: ${with_smidump}"
 echo "======================================================="

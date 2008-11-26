@@ -1,6 +1,7 @@
 # The default values should mirror the default values from configure.ac
 # Read: If neither macro exists, then add the default definition.
 %{!?_with_smidump: %{!?_without_smidump: %define _with_smidump --with-smidump}}
+%{!?_with_hpi: %{!?_without_hpi: %define _with_hpi --with-hpi}}
 %{!?_with_openhpi: %{!?_without_openhpi: %define _with_openhpi --with-openhpi}}
 %{!?_with_java: %{!?_without_java: %define _without_java --without-java}}
 
@@ -112,6 +113,8 @@ The Java AIS interface mapping for AMF and CLM
    %{?_without_smidump} \
    %{?_with_java} \
    %{?_without_java} \
+   %{?_with_hpi} \
+   %{?_without_hpi} \
    %{?_with_openhpi} \
    %{?_without_openhpi}
 
