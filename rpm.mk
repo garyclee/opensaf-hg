@@ -22,6 +22,12 @@ else
 RPM_WITH_OPTIONS_ARGS += --without smidump
 endif
 
+if WITH_HPI
+RPM_WITH_OPTIONS_ARGS += --with hpi
+else
+RPM_WITH_OPTIONS_ARGS += --without hpi
+endif
+
 if WITH_OPENHPI
 RPM_WITH_OPTIONS_ARGS += --with openhpi
 else
