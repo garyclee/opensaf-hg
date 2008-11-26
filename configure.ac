@@ -224,15 +224,17 @@ fi
 #############################################
 # Checks for programs.
 #############################################
-AC_PROG_CXX
 AC_PROG_AWK
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_PROG_CXX
+AC_PROG_GCC_TRADITIONAL
 AC_PROG_INSTALL
+AC_PROG_LEX
 AC_PROG_LIBTOOL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_GCC_TRADITIONAL
+AC_PROG_YACC
 AC_CHECK_TOOL(NETSNMP, net-snmp-config, MISSING)
 
 if test "x$with_java" = xyes; then
