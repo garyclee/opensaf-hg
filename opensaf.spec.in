@@ -269,7 +269,7 @@ fi
 %{_bindir}/ncs_gld
 %{_bindir}/ncs_glnd
 #TODO: To be changed when supporting other HPI
-%if %{?_with_openhpi:1}%{!?_with_openhpi:0}
+%if %{?_with_hpi:1}%{!?_with_hpi:0}
 %{_bindir}/ncs_hisv
 %endif
 %{_bindir}/ncs_ifd
@@ -373,7 +373,7 @@ fi
 %{_libdir}/%{name}/libglsv_logstr.so.*
 %{_libdir}/%{name}/libglsv_subagt.so.*
 #TODO: To be changed when supporting other HPI
-%if %{?_with_openhpi:1}%{!?_with_openhpi:0}
+%if %{?_with_hpi:1}%{!?_with_hpi:0}
 %{_libdir}/%{name}/libhisv_logstr.so.*
 %endif
 %{_libdir}/libhpl.so.*
