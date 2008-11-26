@@ -27,6 +27,9 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # distro specific spec file, and detect distro at configure time
 #BuildRequires: net-snmp-devel xerces-c-devel openhpi-devel
 #Requires: net-snmp xerces-c
+Requires(post): chkconfig /sbin/service /sbin/ldconfig
+Requires(preun): chkconfig /sbin/service
+Requires(postun): /sbin/ldconfig
 
 #%{?_with_java:BuildRequires: java-1.6.0-openjdk-devel ant}
 #%{?_with_java:Requires: java-1.6.0-openjdk-devel}
@@ -45,6 +48,7 @@ The OpenSAF project was launched in mid 2007 and has been under development by
 an informal group of supporters of the OpenSAF initiative. The OpenSAF
 Foundation was founded on January 22nd 2008 with Emerson Network Power,
 Ericsson, Nokia Siemens Networks, HP and Sun Microsystems as founding members.
+
 
 %package controller
 Group: System Environment/Daemons
@@ -97,6 +101,7 @@ Requires: %{name}-devel = %{version}-%{release}
 The Java AIS interface mapping for AMF and CLM
 %endif
 
+
 %prep
 %setup -q
 
@@ -128,7 +133,16 @@ The Java AIS interface mapping for AMF and CLM
 
 
 %post
-/sbin/ldconfig
+# If we're being upgraded
+if [ "$1" = "2" ]; then
+   /sbin/service opensafd condrestart >/dev/null 2>&1 || :
+else # If we're being installed
+   /sbin/chkconfig --add opensafd
+   /sbin/chkconfig opensafd off
+fi
+
+
+%post libs -p /sbin/ldconfig
 
 
 %post controller
@@ -139,8 +153,15 @@ The Java AIS interface mapping for AMF and CLM
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
 
 
-%postun
-/sbin/ldconfig
+%preun
+# Execute this only if we are NOT doing an upgrade
+if [ "$1" = "0" ]; then
+    /sbin/service opensafd stop >/dev/null 2>&1 || :
+    /sbin/chkconfig --del opensafd
+fi
+
+
+%postun libs -p /sbin/ldconfig
 
 
 %preun controller
