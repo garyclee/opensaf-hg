@@ -338,14 +338,23 @@ avm_rda_cb(
      entity_path.Entry[2].EntityType = SAHPI_ENT_ROOT;
      entity_path.Entry[2].EntityInstance = 0;
 #else
-     entity_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-     entity_path.Entry[0].EntityLocation = cmd.info.node_reset_info.slot_id;
+     /* Attempt to lookup the array-based entity-path first using the HISv lookup fn */
+     rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, cmd.info.node_reset_info.shelf_id,
+                                 cmd.info.node_reset_info.slot_id, (uns8 *) &entity_path);
+     if ((rc == NCSCC_RC_SUCCESS) && (entity_path.Entry[0].EntityType != 0)) {
+        m_NCS_CONS_PRINTF("HPL lookup of entity path successful\n");
+     }
+     else {
+        /* Lookup failed - so hardcode the entity-path instead - this is the old way of doing it */
+        entity_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
+        entity_path.Entry[0].EntityLocation = cmd.info.node_reset_info.slot_id;
 
-     entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
-     entity_path.Entry[1].EntityLocation = cmd.info.node_reset_info.shelf_id;
+        entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+        entity_path.Entry[1].EntityLocation = cmd.info.node_reset_info.shelf_id;
 
-     entity_path.Entry[2].EntityType = SAHPI_ENT_ROOT;
-     entity_path.Entry[2].EntityLocation = 0;
+        entity_path.Entry[2].EntityType = SAHPI_ENT_ROOT;
+        entity_path.Entry[2].EntityLocation = 0;
+     }
 #endif
 
      if(AVM_ENT_INFO_NULL == (ent_info = avm_find_ent_info(cb, &entity_path)))

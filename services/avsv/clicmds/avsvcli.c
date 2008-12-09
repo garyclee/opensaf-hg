@@ -37,6 +37,7 @@ $Header:
 #include "avsv.h"
 #include "mac_papi.h"
 #include "ncs_cli.h"
+#include "hpl_api.h"
 #include "SaHpi.h"
 
 #define AVSV_BUFFER_LEN   200
@@ -87,6 +88,32 @@ avm_cef_set_adm_switch(
                          NCSCLI_ARG_SET  *arg_list, 
                          NCSCLI_CEF_DATA *cef_data
                       );
+
+/*****************************************************************************
+  PROCEDURE NAME: avsv_cli_hisv_init
+  DESCRIPTION   : Initialize the HISv client library for use by the CLI.
+  ARGUMENTS     :
+  RETURNS       : SUCCESS or FAILURE
+  NOTES         : CLI needs to lookup entity paths using an HISv API.
+*****************************************************************************/
+static uns32 avsv_cli_hisv_init() {
+   uns32		rc = NCSCC_RC_SUCCESS;
+   SaEvtHandleT 	gl_evt_hdl = 0;
+   SaEvtCallbacksT 	reg_callback_set;
+   NCS_LIB_CREATE 	hisv_create_info;
+   SaVersionT 		ver;
+
+   /* Initialize the event subsystem for communication with HISv */
+   ver.releaseCode = 'B';
+   ver.majorVersion = 0x01;
+   ver.minorVersion  = 0x01;
+   rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver);
+
+   /* Initialize the HPL client-side library */
+   rc = hpl_initialize(&hisv_create_info);
+   return(rc);
+}
+
 /*****************************************************************************
   PROCEDURE NAME: avsv_cli_cmds_reg
   DESCRIPTION   : Registers the AVSV commands with the CLI.
@@ -160,8 +187,15 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
    for (idx=0; idx < data.i_cmd_count; idx++)
       data.i_command_list[idx] = avsv_cli_cmds[idx];
 
+   /* Attempt to initialize the HISv client library */
+   rc = avsv_cli_hisv_init();
+   if (rc == NCSCC_RC_FAILURE) {
+      m_NCS_CONS_PRINTF("\nWarning: could not initialize HISv hpl_api library\n");
+   }
+
    req.info.i_register.i_cmdlist = &data;
    rc = ncscli_opr_request(&req);
+
    return rc;
 }
 
@@ -431,6 +465,7 @@ avm_constr_ep(
 {
     uns32 rc = NCSCC_RC_SUCCESS;
     uns32 len = 0;
+    uns32 ep_flag = 1;  /* 1 = lookup numerical string version for the entity path */
    
     if(ent_type_cnt == ent_inst_cnt)
     {
@@ -446,7 +481,20 @@ avm_constr_ep(
 #ifdef HPI_A
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
-       len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+       /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
+       rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep);
+       if (rc == NCSCC_RC_SUCCESS) {
+          if (m_NCS_STRLEN(ep) == 0) {
+             m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
+             /* A zero length entity path means that HISv is working - but could not find the entity path */
+             rc = NCSCC_RC_FAILURE;
+          }
+       }
+       else {
+          /* HISv is not running - so create the entity path using the original hardcoded values */
+          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+          rc = NCSCC_RC_SUCCESS;
+       }
 #endif
     }
     return rc;

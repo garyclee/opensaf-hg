@@ -109,7 +109,7 @@ int pcs_rda_avnd_hb_err    (uns32);
 int pcs_rda_avd_hb_restore (void);
 int pcs_rda_avnd_hb_restore (uns32 phy_slot_id);
 
-#define RDE_RDA_SHELF_ID    6 /* As per BOM file. To send it to AVM*/
+#define RDE_RDA_SHELF_ID    2 /* As per BOM file. To send it to AVM*/
 
 #endif /* RDA_H */
 

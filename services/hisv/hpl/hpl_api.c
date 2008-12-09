@@ -1361,3 +1361,82 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    return rc;
 }
 
+/****************************************************************************
+ * Name          : hpl_entity_path_lookup
+ *
+ * Description   : This function can be used to get an entity-path based on
+ *                 chassis number (chassisID)  and a blade number (bladeID).
+ *                 Check return value for success or failure of the call.
+ *                 Check return string length for zero and non-zero to see
+ *                 if lookup found a match.
+ *                 flag is set to 0 - return full string format entity path.
+ *                 flag is set to 1 - return numeric string format entity path.
+ *                 flag is set to 2 - return array-based format entity path.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path)
+{
+   HPL_CB      *hpl_cb;
+   MDS_DEST    ham_dest;
+   HISV_MSG    hisv_msg, *msg;
+   uns32       rc;
+   uns8        *hpl_data;
+   HPL_PAYLOAD *hpl_pload;
+   uns16       ret_len=0;
+
+   /** retrieve HPL CB
+    **/
+   if (NULL == (hpl_cb = (HPL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HPL, gl_hpl_hdl)))
+   {
+      m_NCS_CONS_PRINTF("Could not retrieve entity path lookup. Failed to get HPL control block.\n");
+      return NCSCC_RC_FAILURE;
+   }
+
+  /** get the MDS VDEST of HAM which is managing the chassis
+    ** identified by chassis_id. Function uses lock internally.
+    **/
+   if (NCSCC_RC_FAILURE == (rc = get_ham_dest(hpl_cb, &ham_dest, chassis_id)))
+   {
+      m_NCS_CONS_PRINTF("No HAM managing chassis %d\n", chassis_id);
+      ncshm_give_hdl(gl_hpl_hdl);
+      return rc;
+   }
+
+   hpl_data = m_MMGR_ALLOC_HPL_DATA(sizeof(HPL_PAYLOAD));
+   hpl_pload = (HPL_PAYLOAD *)hpl_data;
+   hpl_pload->d_tlv.d_type = LOOKUP;
+   hpl_pload->d_tlv.d_len = (sizeof(HPL_PAYLOAD));
+   hpl_pload->d_chassisID = chassis_id;
+   hpl_pload->d_bladeID = blade_id;
+
+   m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_ENTITYPATH_LOOKUP, flag, sizeof(HPL_PAYLOAD), hpl_pload);
+
+   /* send the synchronous MDS request message to HAM instance */
+   msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
+                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+
+   /* give control block handle */
+   ncshm_give_hdl(gl_hpl_hdl);
+   m_MMGR_FREE_HPL_DATA(hpl_data);
+
+   if (msg == NULL) return NCSCC_RC_FAILURE;
+   rc = msg->info.cbk_info.hpl_ret.h_gen.ret_val;
+   ret_len = msg->info.cbk_info.hpl_ret.h_gen.data_len;
+
+   if (ret_len > 0) {
+      m_NCS_MEMCPY((uns8 *)entity_path, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
+   }
+
+   /* If this is a string version of the entity-path, null-terminate the  */
+   /* entity-path where we're copied the data to.                         */
+   if (flag != HPL_EPATH_FLAG_ARRAY) {
+      entity_path[ret_len] = 0;
+   }
+
+   free_hisv_ret_msg(msg);
+   return NCSCC_RC_SUCCESS;
+}
+

@@ -1135,14 +1135,11 @@
                                    The Configuration for H/W INTERFACE SERVICE component CompT_HISV
                                    The SAF standard mandates that the component name should start with &quot;safComp=&quot;
                                 -->
-                                <!--
                                 <componentPrototype name="safComp=CompT_HISV" finalPrototype="1">
-                                -->
 
                                         <!--
                                              All the commands to manage the component life cycle
                                         -->  
-                                        <!--
 					<clcCommands>
 						<instantiateCommand>
 							<command>xxBINDIRxx/ncs_hisv_start</command>
@@ -1159,36 +1156,28 @@
 						</cleanupCommand>
 					</clcCommands>
 					<instantiationLevel>7</instantiationLevel>
-                                        -->  
  
                                         <!--
                                              Match the CSI Type specified here with
                                              the one specified in CSI descriptor under SI
                                         -->
-                                        <!--
 					<csiPrototypeName>safCsi=Csi_HISV</csiPrototypeName>
-                                        -->
 
                                         <!--
                                              Make a choice of SA_Aware component/proxied/unproxied
                                         -->
-                                        <!--
 					<saAwareComponent>
-                                        -->
 
                                                 <!--
                                                      Set the capability supported by the component
                                                 -->
-                                                <!--
 						<capability>1_ACTIVE_OR_1_STANDBY</capability>
 						<numMaxActiveCSIs>2</numMaxActiveCSIs>
 						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
-                                                -->
 
                                                 <!--
                                                      Configure the Health check Key here
                                                 -->
-                                                <!--
 						<healthCheck key="F6C7">
 							<period>240000</period>
 							<maxDuration>180000</maxDuration>
@@ -1199,16 +1188,13 @@
 						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
 						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
 					</saAwareComponent>
-                                        -->
 
                                         <!--
                                              Do you want Active Monitoring for this component ?
                                              Here is the place to configure it.
                                         -->
-                                        <!--
                                         <enableAM>0</enableAM>
 				</componentPrototype>
-                                -->
 				
 
                                 <!--
@@ -1764,9 +1750,7 @@
 						<componentPrototype>safComp=CompT_PSS</componentPrototype>
 						<componentPrototype>safComp=CompT_MQD</componentPrototype>
 						<componentPrototype>safComp=CompT_GLD</componentPrototype>
-                                                <!--
                                                 <componentPrototype>safComp=CompT_HISV</componentPrototype>
-                                                -->
                                                 <componentPrototype>safComp=CompT_SSA</componentPrototype>
                                                 <componentPrototype>safComp=CompT_VDS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
@@ -2167,12 +2151,10 @@
 							<prototypeName>safCsi=Csi_GLD</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-                                                <!--
                                                 <CSIInstance name="safCsi=Csi_HISV" rank="7">
 							<prototypeName>safCsi=Csi_HISV</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-						-->
                                                 <CSIInstance name="safCsi=Csi_SSA" rank="8">
                                                         <prototypeName>safCsi=Csi_SSA</prototypeName>
                                                         <CSIAttributes/>
@@ -2598,7 +2580,7 @@
                 <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
                 <NodeName>safNode=PL_2_3</NodeName>
                 <EntityLocation>3</EntityLocation>
-                <HPIEntityType>SAHPI_ENT_PHYSICAL_SLOT</HPIEntityType>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
                 <isActivationSourceNCS>1</isActivationSourceNCS>
             </EntityDeploymentInstance>
 
@@ -2607,7 +2589,7 @@
                 <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
                 <NodeName>safNode=PL_2_4</NodeName>
                 <EntityLocation>4</EntityLocation>
-                <HPIEntityType>SAHPI_ENT_PHYSICAL_SLOT</HPIEntityType>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
                 <isActivationSourceNCS>1</isActivationSourceNCS>
             </EntityDeploymentInstance>
 
@@ -2616,7 +2598,7 @@
                 <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
                 <NodeName>safNode=PL_2_5</NodeName>
                 <EntityLocation>5</EntityLocation>
-                <HPIEntityType>SAHPI_ENT_PHYSICAL_SLOT</HPIEntityType>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
                 <isActivationSourceNCS>1</isActivationSourceNCS>
             </EntityDeploymentInstance>
 
@@ -2625,7 +2607,7 @@
                 <EntityTypeInstanceName>CONTROLLER_1</EntityTypeInstanceName>
                 <NodeName>safNode=SC_2_1</NodeName>
                 <EntityLocation>1</EntityLocation>
-                <HPIEntityType>SAHPI_ENT_PHYSICAL_SLOT</HPIEntityType>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
                 <isActivationSourceNCS>1</isActivationSourceNCS>
 
 			    <diskBoot/>
@@ -2637,7 +2619,7 @@
                 <EntityTypeInstanceName>CONTROLLER_2</EntityTypeInstanceName>
                 <NodeName>safNode=SC_2_2</NodeName>
                 <EntityLocation>2</EntityLocation>
-                <HPIEntityType>SAHPI_ENT_PHYSICAL_SLOT</HPIEntityType>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
                 <isActivationSourceNCS>1</isActivationSourceNCS>
 
 			    <diskBoot/>
