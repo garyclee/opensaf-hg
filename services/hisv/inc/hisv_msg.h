@@ -144,12 +144,22 @@ typedef enum hpl_d_type
    HOTSWAP_MANAGE,
    ALARM_TYPE,
    ALARM_SEVERITY,
-   EVLOG_TIME
+   EVLOG_TIME,
+   LOOKUP
 } HPL_D_TYPE;
 
+#define HPL_EPATH_FLAG_FULLSTR 0
+#define HPL_EPATH_FLAG_NUMSTR  1
+#define HPL_EPATH_FLAG_ARRAY   2
+
+/* struct for transfering lookup locations */
+typedef struct hpl_payload
+{
+   HPL_TLV  d_tlv;
+   uns32    d_chassisID;
+   uns32    d_bladeID;
+} HPL_PAYLOAD;
 
 #endif /* !HISV_MSG_H*/
-
-
 
 

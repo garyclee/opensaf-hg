@@ -42,6 +42,7 @@ static uns32 ham_tmr_sel_clear(HISV_EVT *evt);
 static uns32 ham_health_chk_response (HISV_EVT *evt);
 static uns32 get_resourceid (uns8 *epath_str, uns32 epath_len,
                              SaHpiResourceIdT *resourceid);
+static uns32 ham_entity_path_lookup(HISV_EVT *evt);
 static void set_hisv_msg(HISV_MSG *hisv_msg);
 static uns32 ham_adest_update(HISV_MSG *msg, HAM_CB *ham_cb);
 
@@ -1567,6 +1568,7 @@ static const HAM_EVT_REQ_HDLR ham_func_tbl[HISV_MAX_API_CMD+1] =
    ham_health_chk_response,   /* command to health check the HAM */
    ham_tmr_sel_clear,         /* clear the SEL timely */
    ham_chassis_id_resend,     /* resends chassis-id to all HPL Adests afer re-discovery */
+   ham_entity_path_lookup,    /* look up an entity-path given chassis_id, blade_id      */
 
 #ifdef HPI_A
    ham_bootbank_get,          /* get the boot bank value of payload blade */
@@ -1755,6 +1757,257 @@ ham_chassis_id_resend(HISV_EVT *evt)
    ncshm_give_hdl(gl_ham_hdl);
 
    return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
+ * Name          : ham_entity_path_lookup
+ *
+ * Description   : The HISv process receives a request from the HISv user
+ *                 program that is calling. The HISv ham thread will have to
+ *                 scan through all of the known OpenHPI resources and find
+ *                 a match based on the chassis number, and
+ *                 blade number and then return a string or array-based
+ *                 entity-path to the user program over the MDS interface.
+ *
+ * Arguments     : msg - HISV message from HPL, chassid number
+ *                 and blade number.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uns32
+ham_entity_path_lookup(HISV_EVT *evt)
+{
+ 
+   HISV_MSG         *msg = &evt->msg, hisv_msg;
+   HAM_CB           *ham_cb;
+   uns32            rc = NCSCC_RC_FAILURE;
+   SaHpiEntryIdT    current, next;
+   SaHpiRptEntryT   entry;
+   SaErrorT         err;
+   HPL_PAYLOAD      *hpl_pload;
+   int32            hpi_entity_path_depth;  /* The depth of the found entity path      */
+   int32            hpi_entity_path_loc;    /* An index to an entry of the entity path */
+   SaUint8T         hpi_entity_path_buffer[1024];
+   uns8             blade_entity_type[128];
+   int32            entity_path_len;
+   uns32            flag;
+   SaHpiEntityPathT epath;
+
+   m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
+
+   set_hisv_msg (&hisv_msg);
+   /** retrieve HAM CB
+    **/
+   if (NULL == (ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl))) {
+      m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: error taking ham_cb handle\n");
+      goto ret;
+   }
+   /* check data availability in message. It holds resource entity path */
+   if ((NULL == msg->info.api_info.data) || (msg->info.api_info.data_len == 0)) {
+      m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: No data received in HISV_MSG\n");
+      goto ret;
+   }
+
+   hpi_entity_path_buffer[0] = 0;                      /* NULL terminate the string buffer    */
+   epath.Entry[0].EntityType = SAHPI_ENT_UNSPECIFIED;  /* Set first entity-type in array to 0 */
+   hpl_pload = (HPL_PAYLOAD *)msg->info.api_info.data;
+
+   /* Check to see what type of return data the user wants 
+    *  flag is set to 0 - return full string format entity path.
+    *  flag is set to 1 - return numeric string format entity path.
+    *  flag is set to 2 - return array format entity path.             */
+   flag = (uns32)msg->info.api_info.arg;
+
+   /* Zero out the epath array if that is what we are returning.       */
+   if (flag == HPL_EPATH_FLAG_ARRAY) {
+      m_NCS_MEMSET(&epath,0,sizeof(SaHpiEntityPathT));    }
+
+   next = SAHPI_FIRST_ENTRY;
+   do
+   {
+      /* locate the resource id of resource with given entity-path */
+      current = next;
+      err = saHpiRptEntryGet(ham_cb->args->session_id, current, &next, &entry);
+      if (SA_OK != err) {
+         if (current != SAHPI_FIRST_ENTRY)
+         {
+            m_LOG_HISV_DTS_CONS("entity_path_lookup: Error first entry\n");
+            m_NCS_CONS_PRINTF ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
+         }
+         else
+         {
+            m_LOG_HISV_DTS_CONS("entity_path_lookup: Empty RPT\n");
+            m_NCS_CONS_PRINTF ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
+         }
+         break;
+      }
+
+      hpi_entity_path_depth = 1;  /* We know we have a depth of at least 1 */
+      /* find the root tuple of this entry */
+      while (entry.ResourceEntity.Entry[hpi_entity_path_depth - 1].EntityType != SAHPI_ENT_ROOT) {
+         hpi_entity_path_depth++;
+      }
+
+      /* If our depth is not at least 3, we can continue around the loop,               */
+      /* because this resource cannot possibly have an entity path pointing to a blade. */
+      if (hpi_entity_path_depth < 3)
+         continue;
+
+      hpi_entity_path_loc = hpi_entity_path_depth - 2;  /* now indexing the entry before SAHPI_ENT_ROOT */ 
+
+      if ((entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) &&
+	  (entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityLocation == hpl_pload->d_chassisID)) {
+
+         hpi_entity_path_loc--;          /* Now we are indexing to the entry that is before chassis          */ 
+         if (hpi_entity_path_loc < 0) {  /* Make sure there is an entry before chassis, before dereferencing */
+            continue;  
+         }
+         switch (entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityType) {
+            case SAHPI_ENT_PHYSICAL_SLOT: {
+               switch (flag) {
+                  case HPL_EPATH_FLAG_FULLSTR: {
+                     sprintf(blade_entity_type, "%s", "SAHPI_ENT_PHYSICAL_SLOT");
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_NUMSTR: {
+                     sprintf(blade_entity_type, "%d", SAHPI_ENT_PHYSICAL_SLOT);
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_ARRAY: {
+                     epath.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
+                     epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
+                     break;
+                  }
+               }
+               break;  /* break from PHYSICAL_SLOT Switch */
+            }
+            case SAHPI_ENT_SYSTEM_BLADE: {
+               switch (flag) {
+                  case HPL_EPATH_FLAG_FULLSTR: {
+                     sprintf(blade_entity_type, "%s", "SAHPI_ENT_SYSTEM_BLADE");
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_NUMSTR: {
+                     sprintf(blade_entity_type, "%d", SAHPI_ENT_SYSTEM_BLADE);
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_ARRAY: {
+                     epath.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE;
+                     epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
+                     break;
+                  }
+               }
+               break;  /* break from SYSTEM_BLADE Switch */
+            }
+            case SAHPI_ENT_SWITCH_BLADE: {
+               switch (flag) {
+                  case HPL_EPATH_FLAG_FULLSTR: {
+                     sprintf(blade_entity_type, "%s", "SAHPI_ENT_SWITCH_BLADE");
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_NUMSTR: {
+                     sprintf(blade_entity_type, "%d", SAHPI_ENT_SWITCH_BLADE);
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_ARRAY: {
+                     epath.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
+                     epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
+                     break;
+                  }
+               }
+               break;  /* break from SWITCH_BLADE Switch */
+            }
+            default: {
+              continue; 
+            }
+         }
+
+         if (entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityLocation == hpl_pload->d_bladeID) {
+            switch (flag) {
+               case HPL_EPATH_FLAG_FULLSTR: {
+                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SAHPI_ENT_SYSTEM_CHASSIS,%d},{SAHPI_ENT_ROOT,0}}",
+                     blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  break;
+               }
+               case HPL_EPATH_FLAG_NUMSTR: {
+                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{%d,%d},{%d,0}}",
+                     blade_entity_type, hpl_pload->d_bladeID, SAHPI_ENT_SYSTEM_CHASSIS,
+                     hpl_pload->d_chassisID, SAHPI_ENT_ROOT);
+                  break;
+               }
+               case HPL_EPATH_FLAG_ARRAY: {
+                  epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+                  epath.Entry[1].EntityLocation = hpl_pload->d_chassisID;
+                  epath.Entry[2].EntityType = SAHPI_ENT_ROOT;
+                  epath.Entry[2].EntityLocation = 0;
+                  break;
+               }
+            }
+            break;
+         }
+         else {
+            continue;
+         }
+      }
+   } while (next != SAHPI_LAST_ENTRY);
+
+
+   if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR)) {
+      if (m_NCS_OS_STRCMP(hpi_entity_path_buffer, "") != 0) 
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
+      else 
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
+      entity_path_len = m_NCS_OS_STRLEN(hpi_entity_path_buffer);
+   } else if (flag == HPL_EPATH_FLAG_ARRAY) {
+      if (epath.Entry[0].EntityType != SAHPI_ENT_UNSPECIFIED) { 
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on\n");
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityType     %d\n", epath.Entry[0].EntityType);
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityLocation %d\n", epath.Entry[0].EntityLocation);
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [1].EntityType     %d\n", epath.Entry[1].EntityType);
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [1].EntityLocation %d\n", epath.Entry[1].EntityLocation);
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityType     %d\n", epath.Entry[2].EntityType);
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityLocation %d\n", epath.Entry[2].EntityLocation);
+      } else 
+         m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
+      entity_path_len = sizeof(epath);
+   }
+
+   if (entity_path_len == 0) {
+      hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = 0;
+      hisv_msg.info.cbk_info.hpl_ret.h_gen.data = NULL;
+   }
+   else {
+      hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = entity_path_len;
+      if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR)) {
+         /* Allocate a return buffer, add 1 byte for string NULL termination character */
+         hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(entity_path_len + 1);
+         m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)hpi_entity_path_buffer, entity_path_len);
+         /* Set the string NULL termination byte in the transport buffer */
+         hisv_msg.info.cbk_info.hpl_ret.h_gen.data[entity_path_len] = 0;
+      } else if (flag == HPL_EPATH_FLAG_ARRAY) {
+         hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(entity_path_len);
+         m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, &epath, entity_path_len);
+      }
+   }
+
+   hisv_msg.info.cbk_info.ret_type = HPL_GENERIC_DATA;
+   hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val = NCSCC_RC_SUCCESS;
+
+ret:
+   /* send the message to HPL ADEST */
+   rc = ham_mds_msg_send (ham_cb, &hisv_msg, &evt->fr_dest,
+                           MDS_SEND_PRIORITY_HIGH, MDS_SENDTYPE_RSP, evt);
+
+   m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: resource entity path lookup, Invoked\n");
+   m_MMGR_FREE_HISV_DATA(hisv_msg.info.cbk_info.hpl_ret.h_gen.data);
+
+   /* give handle */
+   ncshm_give_hdl(gl_ham_hdl);
+   return rc;
 }
 
 

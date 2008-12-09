@@ -87,6 +87,7 @@ typedef enum hisv_api_cmd
    HISV_HAM_HEALTH_CHECK,        /* command to health check the HAM */
    HISV_TMR_SEL_CLR,             /* clear the SEL timely */
    HISV_RESEND_CHASSIS_ID,       /* send the chassis-id after re-discovery */
+   HISV_ENTITYPATH_LOOKUP,       /* Entity mapping lookup */
    HISV_BOOTBANK_GET,
    HISV_BOOTBANK_SET,
   /* vivek_hisv */
@@ -103,7 +104,6 @@ typedef struct his_ham_info {
    struct his_ham_info *ham_next; /* for making list of HAM instance info */
 
 }HAM_INFO;
-
 
 /**************************************************************************
  * function declarations
@@ -139,5 +139,6 @@ EXTERN_C uns32 hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, 
 
 EXTERN_C uns32 hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number);
 EXTERN_C uns32 hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number);
+EXTERN_C uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path);
 
 #endif /* HPL_API_H */

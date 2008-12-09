@@ -121,6 +121,8 @@ ncs_cli_maa_LDFLAGS = -Wl,--export-dynamic
 ncs_cli_maa_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/services/cli/libcli.la \
+	$(top_builddir)/services/hisv/hpl/libhpl.la \
+	$(top_builddir)/lib/lib_SaEvt/libSaEvt.la \ 
 	$(top_builddir)/services/mab/mac/libmaa.la
 
 ncs_snmp_subagt_CPPFLAGS = \

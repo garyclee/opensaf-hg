@@ -189,10 +189,17 @@
 			<xs:documentation>Enumerated Entity Type as defined by SAF HPI</xs:documentation>
 		</xs:annotation>
 		<xs:restriction base="xs:string">
-			<xs:enumeration value="SAHPI_ENT_SYSTEM_BOARD"/><xs:enumeration value="SAHPI_ENT_PROCESSOR_MODULE"/>
-			<xs:enumeration value="SAHPI_ENT_PROCESSOR"/><xs:enumeration value="SAHPI_ENT_POWER_SUPPLY"/>
-			<xs:enumeration value="SAHPI_ENT_PROCESSOR_BOARD"/><xs:enumeration value="SAHPI_ENT_ADVANCEDTCA_CHASSIS"/>
-			<xs:enumeration value="SAHPI_ENT_SYSTEM_CHASSIS"/><xs:enumeration value="SAHPI_ENT_IO_BLADE"/>
+			<xs:enumeration value="SAHPI_ENT_SYSTEM_BOARD"/>
+			<xs:enumeration value="SAHPI_ENT_PROCESSOR_MODULE"/>
+			<xs:enumeration value="SAHPI_ENT_PROCESSOR"/>
+			<xs:enumeration value="SAHPI_ENT_POWER_SUPPLY"/>
+			<xs:enumeration value="SAHPI_ENT_PROCESSOR_BOARD"/>
+			<xs:enumeration value="SAHPI_ENT_ADVANCEDTCA_CHASSIS"/>
+			<xs:enumeration value="SAHPI_ENT_SYSTEM_CHASSIS"/>
+			<xs:enumeration value="SAHPI_ENT_RACK"/>
+			<xs:enumeration value="SAHPI_ENT_SYSTEM_BLADE"/>
+			<xs:enumeration value="SAHPI_ENT_SWITCH_BLADE"/>
+			<xs:enumeration value="SAHPI_ENT_IO_BLADE"/>
 			<xs:enumeration value="SAHPI_ENT_IO_SUBBOARD"/>
 			<xs:enumeration value="SAHPI_ENT_SBC_SUBBOARD"/>
 			<xs:enumeration value="SAHPI_ENT_SUBBOARD_CARRIER_BLADE"/>

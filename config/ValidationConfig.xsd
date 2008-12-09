@@ -106,6 +106,9 @@
 			<xs:enumeration value="SAHPI_ENT_PROCESSOR_BOARD"/>
 			<xs:enumeration value="SAHPI_ENT_ADVANCEDTCA_CHASSIS"/>
 			<xs:enumeration value="SAHPI_ENT_SYSTEM_CHASSIS"/>
+			<xs:enumeration value="SAHPI_ENT_RACK"/>
+			<xs:enumeration value="SAHPI_ENT_SYSTEM_BLADE"/>
+			<xs:enumeration value="SAHPI_ENT_SWITCH_BLADE"/>
 			<xs:enumeration value="SAHPI_ENT_IO_BLADE"/>
 			<xs:enumeration value="SAHPI_ENT_IO_SUBBOARD"/>
 			<xs:enumeration value="SAHPI_ENT_SBC_SUBBOARD"/>
