@@ -203,6 +203,7 @@ controller_sysconf = \
 	$(top_srcdir)/config/NCSConfig.xsd \
 	$(top_srcdir)/config/ncsSnmpSubagt.conf \
 	$(top_srcdir)/config/NCSSystemBOM.xml \
+	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
 	$(top_srcdir)/config/pssv_lib_conf \
 	$(top_srcdir)/config/subagt_lib_conf \
 	$(top_srcdir)/config/ValidationConfig.xml \

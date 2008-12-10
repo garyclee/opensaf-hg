@@ -62,16 +62,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_cpnd_start</command>
+							<command>xxBINDIRxx/ncs_cpnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_cpnd_clean</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_cpnd_clean</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -125,16 +125,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_mqnd_start</command>
+							<command>xxBINDIRxx/ncs_mqnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_mqnd_clean</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_mqnd_clean</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -187,16 +187,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_glnd_start</command>
+							<command>xxBINDIRxx/ncs_glnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_glnd_clean</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_glnd_clean</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -249,16 +249,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_cpnd_start</command>
+							<command>xxBINDIRxx/ncs_cpnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_cpnd_clean</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_cpnd_clean</command>
+							<command>xxBINDIRxx/ncs_cpnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -311,16 +311,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_ifnd_start</command>
+							<command>xxBINDIRxx/ncs_ifnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_ifnd_clean</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_ifnd_clean</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -369,16 +369,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_mqnd_start</command>
+							<command>xxBINDIRxx/ncs_mqnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_mqnd_clean</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_mqnd_clean</command>
+							<command>xxBINDIRxx/ncs_mqnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -431,16 +431,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_glnd_start</command>
+							<command>xxBINDIRxx/ncs_glnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_glnd_clean</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_glnd_clean</command>
+							<command>xxBINDIRxx/ncs_glnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -494,16 +494,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_snmpsubagt_start</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_snmpsubagt_clean</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_snmpsubagt_clean</command>
+							<command>xxBINDIRxx/ncs_snmpsubagt_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -559,16 +559,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_eds_start</command>
+							<command>xxBINDIRxx/ncs_eds_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_eds_clean</command>
+							<command>xxBINDIRxx/ncs_eds_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_eds_clean</command>
+							<command>xxBINDIRxx/ncs_eds_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -624,16 +624,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/usr/bin/ncs_cpd_start</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/usr/bin/ncs_cpd_clean</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/ncs_cpd_clean</command>
+                                                        <command>xxBINDIRxx/ncs_cpd_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -689,16 +689,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_gld_start</command>
+							<command>xxBINDIRxx/ncs_gld_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_gld_clean</command>
+							<command>xxBINDIRxx/ncs_gld_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_gld_clean</command>
+							<command>xxBINDIRxx/ncs_gld_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -754,16 +754,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_ifd_start</command>
+							<command>xxBINDIRxx/ncs_ifd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_ifd_clean</command>
+							<command>xxBINDIRxx/ncs_ifd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_ifd_clean</command>
+							<command>xxBINDIRxx/ncs_ifd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -819,16 +819,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_ifnd_start</command>
+							<command>xxBINDIRxx/ncs_ifnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_ifnd_clean</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_ifnd_clean</command>
+							<command>xxBINDIRxx/ncs_ifnd_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -882,16 +882,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/usr/bin/ncs_dts_start</command>
+                                                        <command>xxBINDIRxx/ncs_dts_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/usr/bin/ncs_dts_clean</command>
+                                                        <command>xxBINDIRxx/ncs_dts_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/ncs_dts_clean</command>
+                                                        <command>xxBINDIRxx/ncs_dts_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -947,16 +947,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_mas_start</command>
+							<command>xxBINDIRxx/ncs_mas_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_mas_clean</command>
+							<command>xxBINDIRxx/ncs_mas_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_mas_clean</command>
+							<command>xxBINDIRxx/ncs_mas_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1012,16 +1012,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_pss_start</command>
+							<command>xxBINDIRxx/ncs_pss_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_pss_clean</command>
+							<command>xxBINDIRxx/ncs_pss_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_pss_clean</command>
+							<command>xxBINDIRxx/ncs_pss_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1077,16 +1077,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_mqd_start</command>
+							<command>xxBINDIRxx/ncs_mqd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_mqd_clean</command>
+							<command>xxBINDIRxx/ncs_mqd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_mqd_clean</command>
+							<command>xxBINDIRxx/ncs_mqd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1142,16 +1142,16 @@
                                         -->  
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_hisv_start</command>
+							<command>xxBINDIRxx/ncs_hisv_start</command>
 							<timeout>300000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_hisv_clean</command>
+							<command>xxBINDIRxx/ncs_hisv_clean</command>
 							<timeout>500</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_hisv_clean</command>
+							<command>xxBINDIRxx/ncs_hisv_clean</command>
 							<timeout>500</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1208,16 +1208,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_srmnd_start</command>
+							<command>xxBINDIRxx/ncs_srmnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_srmnd_clean</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_srmnd_clean</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1271,16 +1271,16 @@
                                         -->
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/ncs_srmnd_start</command>
+							<command>xxBINDIRxx/ncs_srmnd_start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/ncs_srmnd_clean</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/ncs_srmnd_clean</command>
+							<command>xxBINDIRxx/ncs_srmnd_clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
@@ -1330,16 +1330,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/usr/bin/ncs_vds_start</command>
+                                                        <command>xxBINDIRxx/ncs_vds_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/usr/bin/ncs_vds_clean</command>
+                                                        <command>xxBINDIRxx/ncs_vds_clean</command>
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/ncs_vds_clean</command>
+                                                        <command>xxBINDIRxx/ncs_vds_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1407,7 +1407,7 @@
                                                         <timeout>5000</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/ncs_drbd_r0_clean</command>
+                                                        <command>xxBINDIRxx/ncs_drbd_r0_clean</command>
                                                         <timeout>5000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1471,16 +1471,16 @@
                                         <!--
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/usr/bin/drbd_start</command>
+                                                        <command>xxBINDIRxx/drbd_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/usr/bin/drbd_clean</command>
+                                                        <command>xxBINDIRxx/drbd_clean</command>
                                                         <timeout>500</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/drbd_clean</command>
+                                                        <command>xxBINDIRxx/drbd_clean</command>
                                                         <timeout>500</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1548,16 +1548,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>/usr/bin/ncs_rde_start</command>
+                                                        <command>xxBINDIRxx/ncs_rde_start</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>/usr/bin/ncs_rde_clean</command>
+                                                        <command>xxBINDIRxx/ncs_rde_clean</command>
                                                         <timeout>500</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>/usr/bin/ncs_rde_clean</command>
+                                                        <command>xxBINDIRxx/ncs_rde_clean</command>
                                                         <timeout>30000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
@@ -1602,16 +1602,16 @@
 				<componentPrototype name="safComp=CompT_SAFLOG" finalPrototype="1">
 					<clcCommands>
 						<instantiateCommand>
-							<command>/usr/bin/opensaf_lgs start</command>
+							<command>xxBINDIRxx/opensaf_lgs start</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/usr/bin/opensaf_lgs clean</command>
+							<command>xxBINDIRxx/opensaf_lgs clean</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/usr/bin/opensaf_lgs clean</command>
+							<command>xxBINDIRxx/opensaf_lgs clean</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>

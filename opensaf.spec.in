@@ -296,6 +296,7 @@ fi
 %{_sysconfdir}/%{name}/NCSConfig.xsd
 %{_sysconfdir}/%{name}/ncsSnmpSubagt.conf
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml
+%{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
 %{_sysconfdir}/%{name}/pssv_lib_conf
 %{_sysconfdir}/%{name}/rde.conf
 %{_sysconfdir}/%{name}/subagt_lib_conf
