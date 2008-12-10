@@ -1,0 +1,44 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+shadowroot=root
+shadowrootcmd=`tr ' ' '\n' < /proc/cmdline | grep shadowroot`
+test -n "$shadowrootcmd" && eval $shadowrootcmd
+r=/hostfs/$shadowroot
+
+# If there is a var directory on the host, link /var to it
+if test -e "$r/var"; then
+    rm -rf /var
+    hostnamecmd=`tr ' ' '\n' < /proc/cmdline | grep hostname`
+    test -n "$hostnamecmd" && eval $hostnamecmd
+    hostname $hostname
+    mkdir -p $r/var/$hostname
+    ln -s $r/var/$hostname /var
+
+    # Create FHS required substructure
+    for n in cache lib local lock log opt run spool tmp; do
+        mkdir -p /var/$n
+    done
+
+    chmod 777 /var/tmp
+
+    # Remove all PID files etc.
+    rm -f /var/run/*
+fi

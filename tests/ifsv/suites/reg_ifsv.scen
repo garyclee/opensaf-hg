@@ -1,0 +1,7 @@
+all
+	"Start executing..."
+         :parallel:
+            /reg_ifsv.sh
+            /reg_ifsv_driver.sh
+         :endparallel:
+        "completed"

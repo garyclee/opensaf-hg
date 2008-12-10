@@ -1,0 +1,595 @@
+SAF-MSG-SVC-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        DateAndTime, RowPointer,RowStatus,
+        TruthValue, TEXTUAL-CONVENTION
+                FROM SNMPv2-TC
+        OBJECT-GROUP, NOTIFICATION-GROUP,
+        MODULE-COMPLIANCE
+                FROM SNMPv2-CONF
+        MODULE-IDENTITY, OBJECT-TYPE,
+        NOTIFICATION-TYPE, Counter64,
+        Integer32, Unsigned32, Counter32
+                FROM SNMPv2-SMI
+        SnmpAdminString
+                FROM SNMP-FRAMEWORK-MIB
+        SafAISErrorReturnCode
+                FROM SAF-AIS-TC-MIB
+        SafTimeStamp,  aisE
+                FROM SAF-TC-MIB;
+
+safMsg MODULE-IDENTITY
+        LAST-UPDATED "200507191200Z" -- 19th July' 2005
+        ORGANIZATION "Service Availability Forum Systems Management WG"
+        CONTACT-INFO
+                "
+         Service Availability Forum 
+         Systems Management Working Group
+
+         5440 SW Westgate Drive, Suite 217
+         Portland, OR 97221
+         Phone: (503) 291-2576
+         Fax: (503) 297-1090
+
+         e-mail: snmp@saforum.org
+
+                "
+        DESCRIPTION
+                "This MIB serves as the starting point to
+                 define the Message Service MIB as
+                 as derived from the Service Availability Forum 
+                 Specification SAI-AIS-MSG-B.01.01.                
+                "
+        REVISION "0402270000Z"
+        DESCRIPTION "Prototype version 0.3."
+          ::= { aisE 6  }
+
+safMsgObject         OBJECT IDENTIFIER  ::= { safMsg 1 }
+safMsgScalarObject   OBJECT IDENTIFIER  ::= { safMsgObject 1 }
+safMsgTableObject    OBJECT IDENTIFIER  ::= { safMsgObject 2 }
+safMsgNotifications  OBJECT IDENTIFIER  ::= { safMsgObject 3 }
+saMIBCompliances     OBJECT IDENTIFIER  ::= { safMsgObject 4 }
+
+-- ************************************************************************
+--  Message Service Specific Objects 
+-- ************************************************************************
+safSpecVersion OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Version of the SAF specification this agent is
+                      compliant to."
+        REFERENCE   " SAF-SMWG-AIS-A-00.03 "
+        ::= { safMsgScalarObject 1 }
+
+safAgentVendor OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Implementing vendor of this agent."
+        REFERENCE   " SAF-SMWG-AIS-A-00.03 "
+        ::= { safMsgScalarObject  2 }
+
+
+safAgentVendorProductRev OBJECT-TYPE
+        SYNTAX Integer32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Implementing vendors version number of this agent.
+                      Set to 0 if undefined."
+        REFERENCE   " SAF-SMWG-AIS-A-00.03 "
+        ::= { safMsgScalarObject 3 }
+
+safServiceStartEnabled  OBJECT-TYPE
+        SYNTAX TruthValue
+        MAX-ACCESS read-only 
+        STATUS current
+        DESCRIPTION "This service is enabled to be started/stopped
+                     via SNMP oprations."
+
+        REFERENCE " SAF-SMWG-AIS-A-00.03  "
+        ::= { safMsgScalarObject  4 }
+
+safServiceState  OBJECT-TYPE
+        SYNTAX INTEGER { running(1),
+                         stopped(2),
+                         startingup(3),
+                         shuttingdown(4),
+                         unavailable(5)
+        } 
+
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION  "safServiceState with an SNMP get() operation 
+                      determines if a service is running, stopped,
+                      transitioning state, or is unavailable.
+        STATES :
+        RUNNING - service is running. SNMP set() to RUNNING
+                  would start a stopped service, provided
+                  safServiceStartEnabled value is TRUE.
+
+        STOPPED - service is stopped. SNMP set ()  to STOPPED would
+                  stop a running service, provided
+                  safServiceStartEnabled value is TRUE.
+
+        STARTING_UP - Service is transitioning to starting state.
+                      Set() operations on the service at this state
+                      are ignored.
+
+        SHUTTING_DOWN - Service is transitioning to stopped state.
+                       Set() operations on the service at this state
+                       are ignored.
+
+        UNAVAILABLE - Service is unavailable at this time. No
+                      set() operations are honored.
+                     "
+        
+        REFERENCE " SAF-SMWG-AIS-A-00.03  "
+
+        ::= { safMsgScalarObject  5 }
+
+
+-- ***************************************************************************
+--  Message Queue Groups Table
+-- ***************************************************************************
+saMsgQueueGroupTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SaMsgQueueGroupEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "This table contains all message queue groups which 
+                 exist in the cluster"
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { safMsgTableObject  1 }
+
+saMsgQueueGroupEntry OBJECT-TYPE
+        SYNTAX SaMsgQueueGroupEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "Message Queue Group Representation table entry."
+        REFERENCE " SAI-AIS-MSG-B.01.01. "
+        INDEX { saMsgQueueGroupName }
+        ::= { saMsgQueueGroupTable 1 }
+
+SaMsgQueueGroupEntry ::= SEQUENCE  {
+                saMsgQueueGroupName   SnmpAdminString,
+                saMsgQueueGroupPolicy INTEGER,
+                saMsgQueueGroupNumQs  Unsigned32
+                }
+
+saMsgQueueGroupName OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION " Cluster wide name of this Message Queue Group. 
+                      A Message Queue Group is global to a cluster 
+                      and is identified by a unique name in the same 
+                      name space used for the names of message queues."
+                      
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueGroupEntry 1 }
+
+saMsgQueueGroupPolicy OBJECT-TYPE
+        SYNTAX INTEGER { roundrobin(1),
+                         localroundrobin(2),
+                         localbestqueue(3),
+                         broadcast(4)
+                       }
+
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The load distribution policy of the message queue group. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueGroupEntry 2 }
+
+saMsgQueueGroupNumQs OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Number of message queues within this group. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueGroupEntry 3 }
+
+-- ***************************************************************************
+--  Message Queue Table
+-- ***************************************************************************
+saMsgQueueTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SaMsgQueueEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "This table represents the current Message Queues
+                 in a SAF Cluster."
+        ::= { safMsgTableObject  2 }
+
+saMsgQueueEntry OBJECT-TYPE
+        SYNTAX SaMsgQueueEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                "Message Representation table entry."
+        REFERENCE "SAI-AIS-MSG-B.01.01."
+        INDEX { saMsgQueueName }
+        ::= { saMsgQueueTable 1 }
+
+SaMsgQueueEntry ::= SEQUENCE  {
+                saMsgQueueName                  SnmpAdminString,
+                saMsgQueueIsPersistent          TruthValue,
+                saMsgQueueRetentionTime         SafTimeStamp,
+                saMsgQueueSize                  Counter64,
+                saMsgQueueUsedSize              Counter64,
+                saMsgQueueCreateTime            SafTimeStamp,
+                saMsgQueueNumMsgs               Unsigned32, 
+                saMsgQueueNumMemberQueueGroup   Unsigned32,
+                saMsgQueueIsBusy                TruthValue
+                }
+
+saMsgQueueName  OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION " Cluster wide name of this Message Queue. 
+                      A Message Queue is global to a cluster 
+                      and is identified by a unique name in the same 
+                      name space used for the names of Message Queues Groups."
+
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 1 }
+
+saMsgQueueIsPersistent  OBJECT-TYPE
+        SYNTAX TruthValue
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Is this a persistent message queue "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 2 }
+
+saMsgQueueRetentionTime  OBJECT-TYPE
+        SYNTAX SafTimeStamp
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION "The time duration in nano-seconds after a process closed the 
+                     message queue and until it is removed by the Message Service.The 
+                     retentionTime applies only to non-persistent message queues."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 3 }
+
+saMsgQueueSize  OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The cumulative total size in bytes of the data area made 
+                      available to hold messages of all priorities. There is a 
+                      per-priority breakdown of this total in the 
+                      saMsgQueuePriorityTable."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 4 }
+
+saMsgQueueUsedSize  OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The current cumulative total number of the bytes used of the
+                      available bytes for the message queue occupied by messages of 
+                      all priorities. There is a per-priority breakdown of this total
+                      in the saMsgQueuePriorityTable."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 5 }
+
+saMsgQueueCreateTime  OBJECT-TYPE
+        SYNTAX SafTimeStamp
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Indicates the absolute time when this message queue
+                      was created in nanoseconds. "
+        REFERENCE   " SAI-AIS-CKPT-B.01.01 "
+        ::= { saMsgQueueEntry 6 }
+
+saMsgQueueNumMsgs  OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The current cumulative total number of messages present in 
+                      this message queue. There is a per-priority breakdown of 
+                      this total in the saMsgQueuePriorityTable."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 7 }
+
+saMsgQueueNumMemberQueueGroup OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " How many queue groups is this queue a member of if any? "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 8 }
+
+saMsgQueueIsBusy OBJECT-TYPE
+        SYNTAX TruthValue
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " Indicates if the queue is already in use
+                       i.e. opened by a process. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueEntry 9 }
+
+
+-- ***************************************************************************
+-- Message Queue - Priority Table - message q details for each priority area
+-- within the queue.
+-- ***************************************************************************
+
+saMsgQueuePriorityTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SaMsgQueuePriorityEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                " This table represents queue details for each
+                 priority area within the queue."
+        ::= { safMsgTableObject  3 }
+
+saMsgQueuePriorityEntry OBJECT-TYPE
+        SYNTAX SaMsgQueuePriorityEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                " Message Priority area detail entry."
+        REFERENCE "To be added."
+        INDEX { saMsgQueuePriorityName , saMsgQueuePriorityVal}
+        ::= { saMsgQueuePriorityTable 1 }
+
+SaMsgQueuePriorityEntry ::= SEQUENCE  {
+                saMsgQueuePriorityName           SnmpAdminString,
+                saMsgQueuePriorityVal            Unsigned32,
+                saMsgQueuePriorityQSize          Counter64,
+                saMsgQueuePriorityQUsed          Counter64,
+                saMsgQueuePriorityQNumMessages   Unsigned32,
+                saMsgQueuePriorityQNumFullErrors Counter32
+                }
+
+saMsgQueuePriorityName  OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION " Cluster wide name of this message queue "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 1 }
+
+saMsgQueuePriorityVal  OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION " The priority value area in this message q whose 
+                      details are described in this entry. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 2 }
+
+saMsgQueuePriorityQSize  OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The size in bytes of the data area to hold messages 
+                      of priority.indicated by saMsgQueuePriorityVal. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 3 }
+
+saMsgQueuePriorityQUsed  OBJECT-TYPE
+        SYNTAX Counter64
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The current number of bytes of the data area of the message
+                      queue occupied by messages of priority indicated by 
+                      saMsgQueuePriorityVal. "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 4 }
+
+saMsgQueuePriorityQNumMessages  OBJECT-TYPE
+        SYNTAX Unsigned32
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The current number of messages in this priority area "
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 5 }
+
+saMsgQueuePriorityQNumFullErrors OBJECT-TYPE
+        SYNTAX Counter32                       
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The number of times this queue at this priority has been
+                      asked to queue a message but could not because it was full."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueuePriorityEntry 6 }
+
+-- ***************************************************************************
+-- Message Queue Group Members - Identifies current members of a particular
+--                               message queue group.
+-- ***************************************************************************
+
+saMsgQueueGroupMembersTable OBJECT-TYPE
+        SYNTAX SEQUENCE OF SaMsgQueueGroupMembersEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                " This table explains which queues are members of a queue group."
+        ::= { safMsgTableObject  4 }
+
+saMsgQueueGroupMembersEntry OBJECT-TYPE
+        SYNTAX SaMsgQueueGroupMembersEntry
+        MAX-ACCESS not-accessible
+        STATUS current
+        DESCRIPTION
+                " Message queue group membership entry."
+        REFERENCE "To be added."
+        INDEX { saMsgQueueGroupMembersGroupName , saMsgQueueGroupMembersQueueName}
+        ::= { saMsgQueueGroupMembersTable 1 }
+
+SaMsgQueueGroupMembersEntry ::= SEQUENCE  {
+                saMsgQueueGroupMembersGroupName          SnmpAdminString,
+                saMsgQueueGroupMembersQueueName          SnmpAdminString
+                }
+
+saMsgQueueGroupMembersGroupName  OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS accessible-for-notify
+        STATUS current
+        DESCRIPTION " The name of a queue group"
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueGroupMembersEntry 1 }
+
+saMsgQueueGroupMembersQueueName  OBJECT-TYPE
+        SYNTAX SnmpAdminString
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION " The name of a queue that is a member of the queue
+                      group identified by index saMsgQueueGroupMembersGroupName."
+        REFERENCE   " SAI-AIS-MSG-B.01.01 "
+        ::= { saMsgQueueGroupMembersEntry 2 }
+
+-- *****************************************************************************
+--   Notifications : This section enumerates the Traps that the MSG service is expected
+--   to support.
+--   TrapObject  : Object values delivered in one or more traps which 
+--                 are not defined in any previous scalar or table in this MIB.
+--   Traps       : Actual Traps specified in this MIB
+-- ******************************************************************************
+saMsgTrapObject  OBJECT IDENTIFIER ::= { safMsgNotifications 1 }
+saMsgTraps       OBJECT IDENTIFIER ::= { safMsgNotifications 2 }
+
+saMsgErrorCode OBJECT-TYPE
+        SYNTAX       SafAISErrorReturnCode
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION
+           "A subset of Error code values that are possible
+            in the context of the Msg service. There is one trap case:
+            ServiceImpaired - The Msg service is impaired for some reason."
+        ::= { saMsgTrapObject 1 }
+
+-- *************************************************************************
+--   Traps 
+-- *************************************************************************
+saMsgAlarmServiceImpaired NOTIFICATION-TYPE
+        OBJECTS {
+                saMsgErrorCode
+        }
+        STATUS             current
+        DESCRIPTION
+           "The MSG service is not able to provide its service for one
+            of several reasons. The 'saMsgErrorCode' explains why MSG is
+            unable to provide service"
+        ::= { saMsgTraps 1 }
+
+saMsgStateChgDestMsgQueueFull NOTIFICATION-TYPE
+        OBJECTS {
+                 saMsgQueueName
+         }
+        STATUS             current
+        DESCRIPTION
+           "The data areas of the message queue for all priorities are at maximum
+            capacity and the message queue is not capable of accepting new messages 
+                        in any of its data areas"
+       ::= { saMsgTraps 2 }
+
+saMsgStateChgDestMsgQueueAvailable NOTIFICATION-TYPE
+        OBJECTS {
+                 saMsgQueueName
+           }
+        STATUS             current
+        DESCRIPTION
+           "At least one data area in the message queue is available to accept
+            new messages after having recovered from a preceding condition that was
+                        announced by the TRAP 'saMsgStateChgDestMsgQueueFull'."
+       ::= { saMsgTraps 3 }
+
+saMsgStateChgDestMsgQueueGrpFull NOTIFICATION-TYPE
+        OBJECTS {
+                 saMsgQueueGroupName
+            }
+        STATUS             current
+        DESCRIPTION
+           "All data areas of all the message queues in a message queue group 
+            is not capable of accepting new messages in any of their priority 
+                        based data areas."
+       ::= { saMsgTraps 4 }
+
+saMsgStateChgDestMsgQueueGrpAvailable NOTIFICATION-TYPE
+        OBJECTS {
+                 saMsgQueueGroupName
+           }
+        STATUS             current
+        DESCRIPTION
+           " At least one data area in one message queue within the queue group
+             is available to accept new messages after having recovered from a previous
+             condition announced by the TRAP saMsgStateChgDestMsgQueueGrpFull."
+       ::= { saMsgTraps 5 }
+
+-- *************************************************************************
+--    OBJECT GROUPS Declarations for SMIv2 
+-- *************************************************************************
+
+
+saMsgQueueGroup OBJECT-GROUP
+        OBJECTS {
+                safSpecVersion, 
+                safAgentVendor,
+                safAgentVendorProductRev,
+                safServiceStartEnabled,
+                safServiceState,
+                saMsgQueueGroupName,
+                saMsgQueueGroupPolicy,
+                saMsgQueueGroupNumQs,
+                saMsgQueueName,
+                saMsgQueueIsPersistent,
+                saMsgQueueRetentionTime,
+                saMsgQueueSize,
+                saMsgQueueUsedSize,
+                saMsgQueueNumMsgs,
+                saMsgQueueCreateTime,
+                saMsgQueueNumMemberQueueGroup ,
+                saMsgQueueIsBusy,
+                saMsgQueuePriorityName,
+                saMsgQueuePriorityVal,
+                saMsgQueuePriorityQSize,
+                saMsgQueuePriorityQUsed,
+                saMsgQueuePriorityQNumMessages,
+                saMsgQueuePriorityQNumFullErrors,
+                saMsgQueueGroupMembersGroupName,
+                saMsgQueueGroupMembersQueueName,
+                saMsgErrorCode
+
+         }
+   STATUS current
+   DESCRIPTION "Message Queue Compliance Group."
+   ::= { saMIBCompliances 1 }
+
+saMsgNotificationsGroup  NOTIFICATION-GROUP
+    NOTIFICATIONS { 
+                  saMsgAlarmServiceImpaired,
+                  saMsgStateChgDestMsgQueueFull,
+                  saMsgStateChgDestMsgQueueAvailable,
+                  saMsgStateChgDestMsgQueueGrpFull,
+                  saMsgStateChgDestMsgQueueGrpAvailable
+          }
+    STATUS  current
+    DESCRIPTION
+            "The set of Notifications that must be supported by a Msg
+             implementation."
+    ::= { saMIBCompliances 2}
+
+--- **************************************************************************
+--- MODULE COMPLIANCE Declarations for SMIv2 
+--- **************************************************************************
+
+saMsgMIBCompliance MODULE-COMPLIANCE
+   STATUS current
+   DESCRIPTION
+   "The compliance statement for SMIv2 compliance of 
+    SAF AIS Msg service MIB."
+   MODULE
+   MANDATORY-GROUPS {
+         saMsgQueueGroup,
+         saMsgNotificationsGroup 
+   }
+::= { saMIBCompliances 3}
+
+END
