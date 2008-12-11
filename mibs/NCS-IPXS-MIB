@@ -1,0 +1,177 @@
+    NCS-IFSV-IFIP-MIB DEFINITIONS ::= BEGIN
+
+     IMPORTS
+         OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE,
+         Integer32, Counter32, IpAddress, Unsigned32
+             FROM SNMPv2-SMI
+
+         TruthValue, RowStatus 
+ 	         FROM SNMPv2-TC
+
+         MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+             FROM SNMPv2-CONF
+
+         IANAifType               
+		 	 FROM IANAifType-MIB
+
+         InetAddressType          
+			 FROM INET-ADDRESS-MIB
+
+         InterfaceIndex, ifNumber, ifEntry 
+			 FROM IF-MIB
+	
+		 eccgNcsModules, ifsv
+			FROM ECC-SMI;
+
+     ncsIfsvIfIpMIB MODULE-IDENTITY
+         LAST-UPDATED "200411281730Z"
+         ORGANIZATION "Netplane Core Services"
+         CONTACT-INFO
+	      " Motorola Inc
+		Embedded Communications Computing
+		http://www.motorola.com/computers/
+
+		Author:	Sudhakar Reddy
+		e-mail:	sudhakarr@motorola.com
+		Address: Motorola India Pvt Ltd, 
+			 Auriga Block, Ascendas IT Park,
+			 Madhapur, Hyderabad, AP
+			 INDIA
+		Tel:	 +91-40-55727000
+		Fax:	 +91-40-55727001"
+         DESCRIPTION
+             "This MIB contains managed object definitions for the
+             'IP related parameters on interfaces for Netplane Core 
+              Services."
+         ::= { eccgNcsModules 3}
+
+     --****************************************************************
+     ncsifsvIfIpobjects	       OBJECT IDENTIFIER ::= { ifsv 2 }
+
+     --****************************************************************
+     -- NCS IFSV Interface Object Extentions
+     --****************************************************************
+
+     ncsIfsvIpTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsIfsvIpEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "This table contains objects for configuring the IP address and related 
+              parameters for a given ifindex."
+         ::= { ncsifsvIfIpobjects 1 }
+
+     ncsIfsvIpEntry OBJECT-TYPE
+         SYNTAX       NcsIfsvIpEntry
+         MAX-ACCESS   not-accessible
+         STATUS       current
+         DESCRIPTION
+             "An entry containing IP address information"
+         INDEX    { ncsIfsvIpEntAddrType,
+                    ncsIfsvIpEntAddr }
+         ::= { ncsIfsvIpTable 1 }
+
+     NcsIfsvIpEntry ::= SEQUENCE {
+         ncsIfsvIpEntAddrType	      InetAddressType,
+         ncsIfsvIpEntAddr             IpAddress,
+         ncsIfsvIpEntAddrMask         INTEGER,
+         ncsIfsvIpEntIfIndex          InterfaceIndex,
+         ncsIfsvIpEntRowStatus	      RowStatus
+     }
+
+    ncsIfsvIpEntAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "The IP address type to which this entry's addressing information
+            pertains."
+    ::= { ncsIfsvIpEntry 1 }
+
+    ncsIfsvIpEntAddr OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "The IP address to which this entry's addressing information
+            pertains."
+    ::= { ncsIfsvIpEntry 2 }
+
+    ncsIfsvIpEntAddrMask OBJECT-TYPE
+    SYNTAX     INTEGER 
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The IP address mask to which this entry's addressing information
+            pertains. The mask is in bit format and of type integer."
+    ::= { ncsIfsvIpEntry 3 }
+
+    ncsIfsvIpEntIfIndex OBJECT-TYPE
+    SYNTAX      InterfaceIndex
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The interface index to which this address is asociated with."
+    ::= { ncsIfsvIpEntry 4 }
+
+    ncsIfsvIpEntRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The Row status of this entry."
+    ::= { ncsIfsvIpEntry 5 }
+
+
+-- ncsIfsvIfIpTable (IP information per interface)
+
+     ncsIfsvIfIpTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsIfsvIfIpEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "This table contains NCS IFSV additional objects for the interface table 
+              present in IF-MIB."
+         ::= { ncsifsvIfIpobjects 2 }
+
+     ncsIfsvIfIpEntry OBJECT-TYPE
+         SYNTAX       NcsIfsvIfIpEntry
+         MAX-ACCESS   not-accessible
+         STATUS       current
+         DESCRIPTION
+             "An entry containing NCS Interface Service additional IP Related
+              management information applicable to a particular interface."
+         AUGMENTS    { ifEntry }
+         ::= { ncsIfsvIfIpTable 1 }
+
+     NcsIfsvIfIpEntry ::= SEQUENCE {
+         ncsIfsvIfIpAddrCnt             Integer32,
+         ncsIfsvIfIpAddr                OCTET STRING,
+         ncsIfsvIfIpIsV4Unnmbrd         TruthValue
+     }
+
+     ncsIfsvIfIpAddrCnt OBJECT-TYPE 
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The number of IP addresses configured on this interface"
+         ::= { ncsIfsvIfIpEntry 1 }
+
+     ncsIfsvIfIpAddr OBJECT-TYPE 
+         SYNTAX      OCTET STRING
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "The IP address of the ifindex given as OCTET STRING."
+         ::= { ncsIfsvIfIpEntry 2 }
+
+     ncsIfsvIfIpIsV4Unnmbrd OBJECT-TYPE 
+         SYNTAX      TruthValue
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "Flag to configured unnumbered interface for IPv4."
+         ::= { ncsIfsvIfIpEntry 3 }
+
+END

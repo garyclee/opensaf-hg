@@ -1,0 +1,37 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+#
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+compName="$SA_AMF_COMPONENT_NAME"
+
+echo "EXECUTING DHCLIENT $PIDPATH$compName$EXTN CLEAN at `date`" >> /dhc
+
+if [ -z $compName ]; then
+    $ECHO "NO ENVIRONMENT VARIABLE OF DHCLNT COMPONENT NAME SET" >> $DBGFILE;
+    exit -1;
+fi
+
+killall -q -2 dhclient;
+sleep 1
+killall -q -9 dhclient;
+
+rm -f "$PIDPATH$compName$EXTN"
+$ECHO "DHCLNT STOP SUCCESS" >> $DBGFILE
+exit 0;

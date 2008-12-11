@@ -1,0 +1,10 @@
+./SMIDIFF-TEST-007-MIB.new:35 type `Foo' has been added
+./SMIDIFF-TEST-007-MIB.new:40 type `FooBar' has been added
+./SMIDIFF-TEST-007-MIB.new:45 type `Foo' replaces implicit type for `scalar1'
+./SMIDIFF-TEST-007-MIB.old:35 previous definition of `scalar1'
+./SMIDIFF-TEST-007-MIB.new:53 type `FooBar' replaces implicit type for `scalar2'
+./SMIDIFF-TEST-007-MIB.old:43 previous definition of `scalar2'
+./SMIDIFF-TEST-007-MIB.new:53 named number `bar' added to type used in `scalar2'
+./SMIDIFF-TEST-007-MIB.new:61 type `Foo' replaces implicit type for `scalar3'
+./SMIDIFF-TEST-007-MIB.old:51 previous definition of `scalar3'
+./SMIDIFF-TEST-007-MIB.new:61 named number `bar' removed from type used in `scalar3'
