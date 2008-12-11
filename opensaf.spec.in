@@ -96,7 +96,7 @@ Small sample applications to demonstrate OpenSAF functionalities
 %package java
 Group: Development/Libraries
 Summary: The Java AIS interface mapping for AMF and CLM
-Requires: %{name}-devel = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
 
 %description java
 The Java AIS interface mapping for AMF and CLM
