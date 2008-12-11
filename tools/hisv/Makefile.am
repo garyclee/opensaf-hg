@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = hisv_events_demo
+bin_PROGRAMS = hisv_events_demo power_set_main
 
 hisv_events_demo_CPPFLAGS= \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -39,7 +39,6 @@ hisv_events_demo_SOURCES = \
 	hisv_events_demo_app.c \
 	hisv_events_demo_main.c
 
-
 hisv_events_demo_LDADD = \
 	@HPI_LIBS@ \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
@@ -48,3 +47,31 @@ hisv_events_demo_LDADD = \
 	$(top_builddir)/services/edsv/common/libedsv_common.la \
 	$(top_builddir)/services/hisv/hcd/libhcd.la \
 	$(top_builddir)/services/hisv/hpl/libhpl.la
+
+
+power_set_main_CPPFLAGS= \
+	@NCS_CORE_CPP_DEFINES@ \
+	-DNCS_SAF=1 \
+	-I $(top_srcdir)/services/hisv/inc \
+	-I $(top_srcdir)/services/leap/inc \
+	-I $(top_srcdir)/services/mds/inc \
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/services/vds/inc \
+	-I $(top_srcdir)/services/common/inc \
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/include
+
+power_set_main_CFLAGS = @HPI_CFLAGS@
+
+power_set_main_SOURCES = \
+	power_set_main.c
+
+power_set_main_LDADD = \
+	@HPI_LIBS@ \
+	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
+	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
+	$(top_builddir)/lib/lib_SaEvt/libSaEvt.la \
+	$(top_builddir)/services/edsv/common/libedsv_common.la \
+	$(top_builddir)/services/hisv/hcd/libhcd.la \
+	$(top_builddir)/services/hisv/hpl/libhpl.la
+
