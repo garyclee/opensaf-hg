@@ -1,0 +1,316 @@
+ESMI-TABLE-MAPI-DIR-PATH   `/inc/`
+ESMI-TABLE-SUBAGT-DIR-PATH `/snmp_integ/`
+ESMI-TABLE-PSSV-DIR-PATH   `/pssv_integ/`
+ESMI-GLB-HDR-FILE  `snmptm_tblid.h`
+
+ESMI-TABLE-DETAILS   ncsTestScalars 
+{
+   ESMI-TABLE-ID        NCSMIB_TBL_SNMPTM_SCALAR
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SET
+}
+
+ESMI-OBJECT-DETAILS     ncsTestScalarsUnsigned32
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_uns32`
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsInteger32
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_int`
+   ESMI-OBJECT-LEN         4
+   ESMI-OBJECT-READ-ONLY-OBJECT-IS-PERSISTENT 1
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsIpAddress
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_ip_addr`
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsObsolete
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_obsolete`
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsForNotify
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_notify`
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsDepricated
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_depricate`
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestScalarsNotAccessible
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_CB_NULL `scalars.scalar_not_access`
+   ESMI-OBJECT-LEN         4
+}
+
+
+
+ESMI-TABLE-DETAILS   ncsTestTableOneEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLONE
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETROW
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableOneDisplayString
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_disp_str
+}
+ESMI-OBJECT-DETAILS    ncsTestTableOnePhysAddress 
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL `tblone_phy_addr.info.v4`
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneMacAddress
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL `tblone_mac_addr.info.v4`
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneTestAndIncr
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_test_incr
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneIpAddress
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL `tblone_key.ip_addr`
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneGauge32Obsolete
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL version
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneCounter32
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_cntr32
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneDiscrete
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_discrete
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneRowStatus
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_row_status
+   ESMI-OBJECT-LEN         4
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneCounter64
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_cntr64
+   ESMI-OBJECT-LEN         8
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneGauge32Discrete
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_g32_discrete
+   ESMI-OBJECT-LEN         4
+}  
+ESMI-OBJECT-DETAILS     ncsTestTableOneOctetStringFixedLen
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_oct_str_fixed_len
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneOctetStringVarLen
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_oct_str_var_len
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneOctetStringDiscrete
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_oct_str_discrete
+}
+ESMI-OBJECT-DETAILS     ncsTestTableOneObjectIdentifier
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLONE_NULL tblone_obj_id
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableTwoEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLTWO
+}
+
+ESMI-TABLE-DETAILS   ncsTestNotifications 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_NOTIF
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableThreeEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLTHREE
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETALLROWS
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableThreeIpAddress
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLTHREE_NULL `tblthree_key.ip_addr`
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableThreeRowStatus
+{
+   ESMI-OBJECT-OFFSET      SNMPTM_TBLTHREE_NULL tblthree_row_status
+   ESMI-OBJECT-LEN         4
+}
+
+
+ESMI-TABLE-DETAILS   ncsTestTableFourEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLFOUR
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETALLROWS
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableFourIndex
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLFOUR_NULL index
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableFourUInteger  
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLFOUR_NULL int_val
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableFourRowStatus
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLFOUR_NULL status
+   ESMI-OBJECT-LEN      4
+}
+
+
+ESMI-TABLE-DETAILS   ncsTestTableFiveEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLFIVE
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableFiveIpAddress
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLFIVE_NULL `tblfive_key.ip_addr`
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableFiveRowStatus
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLFIVE_NULL tblfive_row_status
+   ESMI-OBJECT-LEN      4
+}
+
+
+ESMI-TABLE-DETAILS   ncsTestTableSixEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLSIX
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETALLROWS
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSixCount
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSIX_NULL `tblsix_key.count`
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSixData
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSIX_NULL tblsix_data
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSixName
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSIX_NULL tblsix_name
+   ESMI-OBJECT-READ-ONLY-OBJECT-IS-PERSISTENT 1
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableSevenEntry 
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLSEVEN
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETALLROWS
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSevenStringOne
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSEVEN_NULL string
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSevenStringTwo
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSEVEN_NULL string
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableSevenStringLength
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLSEVEN_NULL length
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableEightEntry
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLEIGHT
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETROW
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableEightUnsigned32
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLEIGHT_NULL `tbleight_key.tbleight_unsigned32`
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableEightRowStatus
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLEIGHT_NULL tbleight_row_status
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableNineEntry
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLNINE
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SETROW
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableNineUnsigned32
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLNINE_NULL tblnine_unsigned32
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-TABLE-DETAILS   ncsTestTableTenEntry
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_SNMPTM_TBLTEN
+   ESMI-TABLE-HDR-FILE  `snmptm.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmptm_miblibgen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-CAPABILITY   NCSMIB_CAPABILITY_SET
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableTenUnsigned32
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLTEN_NULL `tblten_key.tblten_unsigned32`
+   ESMI-OBJECT-LEN      4
+}
+
+ESMI-OBJECT-DETAILS     ncsTestTableTenInt
+{
+   ESMI-OBJECT-OFFSET   SNMPTM_TBLTEN_NULL `tblten_key.tblten_int`
+   ESMI-OBJECT-LEN      4
+   ESMI-OBJECT-READ-ONLY-OBJECT-IS-PERSISTENT 1
+}
+

@@ -1,0 +1,144 @@
+
+WHAT IS OpenSAF
+---------------
+OpenSAF is an open source project designed to develop a complete highly available operating environment based on Service Availability Forum (SA Forum) standards. The objective of the OpenSAF project is to accelerate broad adoption of a SA Forum compliant operating environment. OpenSAF also offers complementary services which are required in a complete high-availability system solution. 
+
+HISTORY
+-------
+Motorola contributed its HA middleware suite to Netplane Core Services (NCS) to the OpenSAF project.
+So will find references to NCS in the OpenSAF source code.
+
+A BRIEF ON ARCHITECTURE
+-----------------------
+OpenSAF software is distributed in nature. There is a controller node, which is the central entity in the cluster which will control all other nodes (Payload nodes) in the HA cluster. In the HA cluster there are two system controllers running in Active/Standby mode. 
+
+The OpenSAF software is divided in to following classes of Modules:
+
+Directors: The Service directors run on the controller node. They interact with Node Directors running on the Payload nodes and provide service specific functionality.
+
+Node Directors: Node directors distribute the service responsibilities with directors. Node directors interact with Agents to provide service functionality to the user applications. Node directors run both on System controller node and Payload nodes.
+
+Servers: Servers run on the system controller and they talk to Agents to provide service functionality to the users. If the service is having servers then it doesn't have directors, node director pieces. If the service doesn't have node local functionality then "Server - agent" architectural approach is used.
+
+Agents: Agents are the service libraries which are linked with user applications and provide service to the user applications by interacting with other service parts.
+
+User applications can run on either system controller node or payload node. But it is advisable to run the user applications on the payload blades, so your applications are not impacted when system controller Failover happens due to any failures in OpenSAF modules.
+
+The OpenSAF infrastructure is made highly available by modeling the individual services as AMF components.All the Node directors use No redundancy model and are restart capable with component capability 1_ACTIVE. All the directors and servers use 2N redundancy model with "1_ACTIVE_OR_1_STANDBY".  
+
+
+PROCESSOR & OS SUPPORT
+---------------------- 
+OpenSAF is tested on both PowerPC and Intel processor variants under 32 bit & 64 bit mode(s).
+
+OpenSAF runs on an OS portability layer (LEAP), but currently the portability layer is implemented for Linux. In future the portability layer can be adapted to other OSes. OpenSAF contributors could mandatory use the OS portability layer, so that OpenSAF can maintain the portability. Currently OpenSAF is validated on following Linux distributions.
+
+ - Redhat Enterprise Linux (RHEL Version 4.0)
+ - Montavista Carrier Grade Edition (MVCGE Version 4.0)
+
+NOTE: If you validate OpenSAF on other Linux distributions, please inform the OpenSAF mailing lists so that this list can grow. 
+
+INSTALLATION
+------------
+OpenSAF installation requires a minimal kernel version of 2.6.9, dependent opensource packages and OpenSAF software. The installation, configuration and startup philosophy is described in INSTALL file.
+
+REFERENCE CONFIGURATIONS
+------------------------
+OpenSAF can be ported to different platforms by following the platform interface guidelines specified in the documentation. By default OpenSAF provides some reference platform services, using which OpenSAF can be run on following configurations.
+
+2 PC setup: Following are the infrastructure requirements
+
+	   - 2 PCs running RHEL Version 4
+	   - Dual Ethernet cards on each blade connected to each other. 
+
+Out of these two network connections one is used for file replication using state information between the controllers using DRBD. Other network interface is used for intra cluster messaging of OpenSAF.
+
+Follow the installation procedures of OpenSAF mentioned in the INSTALL text.  
+
+UML Environment: Cluster UML is a simulation environment for OpenSAF based on User Mode Linux. This environment is bundled as part of OpenSAF tools. The default cluster UML simulates two controller nodes and three payload nodes.
+
+
+DOCUMENTATION
+-------------
+
+OpenSAF bundles sufficient documentation for users to kick start. The documentation is categorized as below.
+
+SAF AIS B.01.01 specifications: OpenSAF implements the SAF AIS B.01.01 specifications. User can download the SAF specifications from below locations
+
+http://www.saforum.org/specification/download/get_spec/
+
+
+Documentation bundled with OpenSAF sources: The OpenSAF sources contains this README, INSTALL files which gives brief overview of OpenSAF and how to install, configure and run the applications.
+
+OpenSAF Documentation Bundle: OpenSAF ships with comprehensive documentation. Following is the listingof documents in the order of reading:
+
+1. OpenSAF Getting Started Guide:
+This document describes OpenSAF installation, configuration
+ 
+2. OpenSAF Overview Users Guide:
+This document describes the OpenSAF overall architecture, description of the source code layout, description of OpenSAF sample applications
+
+3. OpenSAF Platform Control Services Programmer's Reference:
+This document describes the interfaces that need to be provided by platform, for openSAF to function. 
+
+3. OpenSAF Availability Service Programmers Reference:
+This document describes Availability service functional blocks and their responsibilities, conformance to AMF B.01.01 specification (what is implemented and what is not), how to   Manage the AvSv Service (MIB details, Command Line Interface etc).
+
+4. OpenSAF System Description Programmer's Reference:
+This document describes how user can bring his applications under SAF AMF framework and describes the overall modeling framework of OpenSAF.
+ 
+5. OpenSAF Checkpoint Service Programmers Reference:
+This document describes the OpenSAF implementation of SAF checkpoint service compliance against the specification.
+
+6. OpenSAF Event Distribution Service Programmers Reference:
+This document describes the OpenSAF implementation of SAF event service and compliance against the specification.
+
+7. OpenSAF Global Lock Service Programmers Reference:
+This document describes the OpenSAF implementation of SAF lock service and compliance against the specification.
+
+8. OpenSAF Message Queue Service Programmers Reference:
+This document describes the OpenSAF implementation of SAF Message service and compliance against the specification. 
+
+9. OpenSAF Management Access Service Programmer's Reference:
+This document introduces the OpenSAF Management access service interface.
+
+
+10. OpenSAF SNMP SubAgent Programmer's Reference:
+OpenSAF offers a SNMP SubAgent user can register with this subagent to get managed through SNMP.OpenSAF SubAgent manages all the OpenSAF services.  
+
+11. OpenSAF Persistent Store Restore Service Programmer's Reference: Opesaf offers mechanisms to store the application information in a persistent way. The interface and mechanisms are described in this document.
+
+12. OpenSAF Message Distribution Service Programmer's Reference:
+MDS is the intra cluster messaging mechanism used in OpenSAF. This is implemented on top of TIPC and 
+provides a rich set of abstraction for the user application.
+
+13. OpenSAF Distributed Tracing Service Programmer's Reference: Distributed Tracing Service is the logging facility provided by OpenSAF, details of how to use the service is available in this doc.
+
+14. OpenSAF Command Line Interface Programmer's Reference:
+CLI user guide describes how users can register their own commands and how to execute them etc. 
+
+15. OpenSAF HPI Integration Service Programmers Reference:
+HPI Integration service provides node level Hardware management wrappers APIs for openHPI and also provides a event channel to distribute the HPI events to the subscribed services. Mainly it eliminates the need for all applications to HPI sessions and do the resource discovery.
+
+16. OpenSAF LEAP Programmer's Reference:
+Describes the OS portability abstractions and services provided by OpenSAF.
+
+17. OpenSAF System Resource Monitoring Service Programmer's Reference:
+Describes the resource Monitoring interface of OpenSAF for node local resources. 
+
+18. OpenSAF Message Based Checkpointing Service Programmer's Reference:
+Description of Hot-standby mode of checkpointing offered by OpenSAF.
+
+19. OpenSAF SMIDUMP Tool Programmer's Reference:
+This is code generation tool provided by OpenSAF. This tool generates code to integrating with OpenSAF Management Access Service.
+
+20. OpenSAF Interface Service Programmers Reference:
+This is to monitor the network interface status (up/down), monitoring the statistics on the interface and provide interface information to applications subscribing it. 
+    
+
+
+
+
+
+
+

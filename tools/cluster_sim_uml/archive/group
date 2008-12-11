@@ -1,0 +1,5 @@
+ncs_cli_superuser:!:500:root
+ncs_cli_admin:!:501:
+ncs_cli_viewer:!:502:
+root:x:0:
+ais:x:100:
