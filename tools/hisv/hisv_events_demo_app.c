@@ -31,18 +31,18 @@
 */
 
 /* HISv Toolkit header file */
-#include <opensaf/hpl_api.h>
-#include <opensaf/hpl_msg.h>
+#include "hpl_api.h"
+#include "hpl_msg.h"
 
-#include <opensaf/mds_papi.h>
-#include <opensaf/ncssysf_tmr.h>
-#include <opensaf/ncssysf_lck.h>
-#include "../../services/hisv/inc/hcd_mem.h"
-#include "../../services/hisv/inc/hcd_util.h"
-#include "../../services/hisv/inc/hisv_msg.h"
-#include "../../services/hisv/inc/ham_cb.h"
+#include "mds_papi.h"
+#include "ncssysf_tmr.h"
+#include "ncssysf_lck.h"
+#include "hcd_mem.h"
+#include "hcd_util.h"
+#include "hisv_msg.h"
+#include "ham_cb.h"
 
-#include "../../services/hisv/inc/hpl_cb.h"
+#include "hpl_cb.h"
 #include "hisv_events_demo_app.h"
 
 EXTERN_C int raw;

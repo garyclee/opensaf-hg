@@ -20,7 +20,6 @@ include $(top_srcdir)/samples/cpsv/cpsv.mk
 include $(top_srcdir)/samples/dtsv/dtsv.mk
 include $(top_srcdir)/samples/edsv/edsv.mk
 include $(top_srcdir)/samples/glsv/glsv.mk
-include $(top_srcdir)/samples/hisv/hisv.mk
 include $(top_srcdir)/samples/leap/leap.mk
 include $(top_srcdir)/samples/masv/masv.mk
 include $(top_srcdir)/samples/mbcsv/mbcsv.mk
@@ -36,7 +35,6 @@ samples_sources = \
    $(dtsv_sources) \
    $(edsv_sources) \
    $(glsv_sources) \
-   $(hisv_sources) \
    $(leap_sources) \
    $(masv_sources) \
    $(mbcsv_sources) \
