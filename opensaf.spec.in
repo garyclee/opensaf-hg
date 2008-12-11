@@ -28,8 +28,8 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # distro specific spec file, and detect distro at configure time
 #BuildRequires: net-snmp-devel xerces-c-devel openhpi-devel
 #Requires: net-snmp xerces-c
-Requires(post): chkconfig /sbin/service /sbin/ldconfig
-Requires(preun): chkconfig /sbin/service
+Requires(post): /sbin/chkconfig /sbin/service /sbin/ldconfig
+Requires(preun): /sbin/chkconfig /sbin/service
 Requires(postun): /sbin/ldconfig
 
 #%{?_with_java:BuildRequires: java-1.6.0-openjdk-devel ant}
@@ -189,7 +189,6 @@ fi
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
-%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
 # TODO Still needed?
 %{_bindir}/dhclnt_start
 # TODO Still needed?
@@ -333,6 +332,7 @@ fi
 
 %files libs
 %defattr(-,root,root)
+%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
 # TODO split of SAF / non-SAF libs
 %{_libdir}/libSaAmf.so.*
 %{_libdir}/libSaCkpt.so.*
