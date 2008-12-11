@@ -40,10 +40,14 @@ dist_doc_DATA = \
 	$(top_srcdir)/INSTALL \
 	$(top_srcdir)/NEWS \
 	$(top_srcdir)/OpenSAFCopyRights \
-	$(top_srcdir)/README
+	$(top_srcdir)/THANKS \
+	$(top_srcdir)/README \
+	$(top_srcdir)/README.uml \
+	$(top_srcdir)/README.conf \
+	$(top_srcdir)/README.samples
+
 
 dist_pkgdata_DATA = \
-	$(top_srcdir)/README.samples \
 	$(top_srcdir)/config/drbd.1.conf \
 	$(top_srcdir)/config/drbd.2.conf
 
