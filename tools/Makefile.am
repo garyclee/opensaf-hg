@@ -14,27 +14,4 @@
 # Author(s): Wind River Systems
 #
 
-PROG = hisv_events_demo
-
-SRCS = hisv_events_demo_app.c hisv_events_demo_main.c
-OBJS = hisv_events_demo_app.o hisv_events_demo_main.o
-
-CC = gcc
-CFLAGS = -g -O2 -Wall -fPIC
-INCLUDES = -I. -I/usr/include/opensaf -I/usr/include/openhpi
-CPPFLAGS = -DNCS_SAF=1
-LDFLAGS = -lSaAmf -ledsv_common -lSaEvt -lhpl
-
-all: $(PROG)
-
-$(PROG): $(OBJS)
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -o $@ ${OBJS} ${LDFLAGS}
-
-.c.o:
-	${CC} ${CPPFLAGS} ${CFLAGS} ${INCLUDES} -c $<
-
-depend:
-	makedepend ${INCLUDES} ${SRCS}
-
-clean:
-	rm -f *.o core *~ $(PROG)
+SUBDIRS = hisv
