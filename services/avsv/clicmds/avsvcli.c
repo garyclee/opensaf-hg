@@ -38,7 +38,8 @@ $Header:
 #include "mac_papi.h"
 #include "ncs_cli.h"
 #include "hpl_api.h"
-#include "SaHpi.h"
+
+#include <SaHpi.h>
 
 #define AVSV_BUFFER_LEN   200
 
