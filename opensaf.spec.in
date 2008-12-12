@@ -121,6 +121,14 @@ Requires: %{name}-libs = %{version}-%{release}
 The Java AIS interface mapping for AMF and CLM
 %endif
 
+%package tools
+Group: Applications/System
+Summary: Optional tools for OpenSAF
+Requires: %{name}-devel = %{version}-%{release}
+
+%description tools
+Optional miscellaneous tools and utilities for use with OpenSAF
+
 
 %prep
 %setup -q
@@ -424,6 +432,9 @@ fi
 %doc README.samples
 %dir %{_datadir}/%{name}/samples
 %{_datadir}/%{name}/samples/*
+
+%files tools
+%{_bindir}/hisv_events_demo
 
 %if %is_java
 %files java
