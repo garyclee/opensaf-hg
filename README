@@ -361,7 +361,7 @@ process. You can find the generated RPMS under `./rpms/RPMS/<build_arch>/':
 Depending on what configure options you used, you should have the generated
 the following RPMS:
 
-    opensaf-common-<version>.<build_arch>.rpm
+    opensaf-<version>.<build_arch>.rpm
     opensaf-controller-<version>.<build_arch>.rpm
     opensaf-debuginfo-<version>.<build_arch>.rpm
     opensaf-devel-<version>.<build_arch>.rpm
@@ -370,7 +370,7 @@ the following RPMS:
     opensaf-payload-<version>.<build_arch>.rpm
     opensaf-samples-<version>.<build_arch>.rpm
 
-opensaf-common: Contains the common configuration files, docs, and scripts.
+opensaf: Contains the common configuration files, docs, and scripts.
 
 opensaf-controller: Contains the controller specific binaries and libs.
 
@@ -416,13 +416,13 @@ In production systems, RPMS should be preferred to classic `make install`.
 
 To setup a controller, install the following RPMS:
 
-    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-controller-<version>.<build_arch>.rpm
 
 To setup a payload, install the following RPMS:
 
-    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-payload-<version>.<build_arch>.rpm
 
