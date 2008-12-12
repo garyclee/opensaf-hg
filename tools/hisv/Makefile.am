@@ -32,6 +32,9 @@ hisv_events_demo_CPPFLAGS= \
 
 hisv_events_demo_CFLAGS = @HPI_CFLAGS@
 
+noinst_HEADERS = \
+	hisv_events_demo_app.h 
+
 hisv_events_demo_SOURCES = \
 	hisv_events_demo_app.c \
 	hisv_events_demo_main.c
