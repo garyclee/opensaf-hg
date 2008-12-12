@@ -18,8 +18,7 @@
 
 set -e
 
-if ! test -f tools/smidump/smidump_generated
-then
+if [ ! -f ./tools/smidump/bin/smidump ]; then
    echo "**********************************"
    echo "Building SMIDUMP tool"
    echo "**********************************"
@@ -30,5 +29,6 @@ then
 	cd -
    mkdir -p ./tools/smidump/bin
 	cp ./tools/smidump/src/tools/smidump ./tools/smidump/bin/
-   touch ./tools/smidump/smidump_generated
+else
+   echo "Nothing to be done for 'build_smidump'"
 fi

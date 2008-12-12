@@ -1,45 +1,64 @@
-# The default values should mirror the default values from configure.ac
-# Read: If neither macro exists, then add the default definition.
-%{!?_with_smidump: %{!?_without_smidump: %define _with_smidump --with-smidump}}
-%{!?_with_hpi: %{!?_without_hpi: %define _with_hpi --with-hpi}}
-%{!?_with_openhpi: %{!?_without_openhpi: %define _with_openhpi --with-openhpi}}
-%{!?_with_java: %{!?_without_java: %define _without_java --without-java}}
+%define is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
+%define is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
+%define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
+%define is_rhel %(test -e /etc/redhat-release && echo 1 || echo 0)
+%define is_gentoo %(test -e /etc/gentoo-release && echo 1 || echo 0)
+
+%define is_smidump %(test "@SMIDUMP_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_hpi %(test "@HPI_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_openhpi %(test "@OPENHPI_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
+
+%define _pkglibdir %{_libdir}/%{name}
 
 # TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
-# and stack-protector by default which catches buffer overflows in 
+# and stack-protector by default which catches buffer overflows in
 # opensaf see Ticket #282
 # originally sourced from /usr/lib/rpm/redhat/macros
-#%define __global_cflags	-O2 -g -pipe -Wall
+%if %is_rhel || %is_fedora
+%define __global_cflags	-O2 -g -pipe -Wall
+%endif
+
 # SUSE uses optflags, and EDS crashes with -O2, use -O0 for now
 # See Ticket #303
-%define optflags  -O0 -g -pipe -Wall
+%if %is_suse
+%define optflags -O0 -g -pipe -Wall
+%endif
 
-Summary: OpenSAF is an open source implementation of the SA Forum™ specifications
+Summary: OpenSAF is an open source implementation of the SAF AIS specification
 Name: opensaf
 Version: @OPENSAF_RELEASE@
-Release: 1
+Release: 1%{?dist}
 License: LGPL
 Group: System Environment/Base
 URL: http://www.opensaf.org
 Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-# TODO: Causing issue on SUSE, package names are different, need to create
-# distro specific spec file, and detect distro at configure time
-#BuildRequires: net-snmp-devel xerces-c-devel openhpi-devel
-#Requires: net-snmp xerces-c
-Requires(post): chkconfig /sbin/service /sbin/ldconfig
-Requires(preun): chkconfig /sbin/service
-Requires(postun): /sbin/ldconfig
 
-#%{?_with_java:BuildRequires: java-1.6.0-openjdk-devel ant}
-#%{?_with_java:Requires: java-1.6.0-openjdk-devel}
-#%{?:with_openhpi:Requires: openhpi}
+# TODO: Causing issue on SUSE, package names are different, need to create
+# distro specific check
+%if %is_rhel || %is_fedora
+BuildRequires: net-snmp-devel xerces-c-devel
+Requires: net-snmp xerces-c
+#%if %is_java
+#BuildRequires: java-1.6.0-openjdk-devel ant
+#Requires: java-1.6.0-openjdk-devel
+#%endif
+#%if %is_openhpi
+#BuildRequires: openhpi-devel pkgconfig
+#Requires: openhpi
+#%endif
+%endif
+
+Requires(post): /sbin/chkconfig /sbin/service /sbin/ldconfig
+Requires(preun): /sbin/chkconfig /sbin/service
+Requires(postun): /sbin/ldconfig
 
 
 %description
 OpenSAF is an open source project established to develop a base platform
-middleware consistent with Service Availability™ Forum (SA Forum™)
+middleware consistent with Service Availability Forum (SA Forum)
 specifications, under the LGPLv2.1 license. The OpenSAF Foundation was
 established by leading Communications and Enterprise Computing Companies to
 facilitate the OpenSAF Project and to accelerate the adoption of the OpenSAF
@@ -92,11 +111,11 @@ Requires: %{name}-devel = %{version}-%{release}
 %description samples
 Small sample applications to demonstrate OpenSAF functionalities
 
-%if %{?_with_java:1}%{!?_with_java:0}
+%if %is_java
 %package java
 Group: Development/Libraries
 Summary: The Java AIS interface mapping for AMF and CLM
-Requires: %{name}-devel = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
 
 %description java
 The Java AIS interface mapping for AMF and CLM
@@ -116,15 +135,7 @@ Optional miscellaneous tools and utilities for use with OpenSAF
 
 
 %build
-%configure \
-   %{?_with_smidump} \
-   %{?_without_smidump} \
-   %{?_with_java} \
-   %{?_without_java} \
-   %{?_with_hpi} \
-   %{?_without_hpi} \
-   %{?_with_openhpi} \
-   %{?_without_openhpi}
+%configure @ac_configure_args@
 
 %{__make} %{_smp_mflags} DESTDIR=$RPM_BUILD_ROOT
 
@@ -185,7 +196,8 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights README
+%doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
+%doc README README.uml README.conf
 %dir %{_sysconfdir}/%{name}
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
@@ -197,7 +209,6 @@ fi
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
-%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
 # TODO Still needed?
 %{_bindir}/dhclnt_start
 # TODO Still needed?
@@ -277,7 +288,7 @@ fi
 %{_bindir}/ncs_gld
 %{_bindir}/ncs_glnd
 #TODO: To be changed when supporting other HPI
-%if %{?_with_hpi:1}%{!?_with_hpi:0}
+%if %is_hpi
 %{_bindir}/ncs_hisv
 %endif
 %{_bindir}/ncs_ifd
@@ -341,6 +352,7 @@ fi
 
 %files libs
 %defattr(-,root,root)
+%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
 # TODO split of SAF / non-SAF libs
 %{_libdir}/libSaAmf.so.*
 %{_libdir}/libSaCkpt.so.*
@@ -382,7 +394,7 @@ fi
 %{_libdir}/%{name}/libglsv_logstr.so.*
 %{_libdir}/%{name}/libglsv_subagt.so.*
 #TODO: To be changed when supporting other HPI
-%if %{?_with_hpi:1}%{!?_with_hpi:0}
+%if %is_hpi
 %{_libdir}/%{name}/libhisv_logstr.so.*
 %endif
 %{_libdir}/libhpl.so.*
@@ -417,15 +429,15 @@ fi
 
 %files samples
 %defattr(-,root,root)
+%doc README.samples
 %dir %{_datadir}/%{name}/samples
-%{_datadir}/%{name}/README.samples
 %{_datadir}/%{name}/samples/*
 
 %files tools
 %{_bindir}/hisv_events_demo
 %{_bindir}/hisv_power_set_util
 
-%if %{?_with_java:1}%{!?_with_java:0}
+%if %is_java
 %files java
 %defattr(-,root,root)
 #%dir %{_datadir}/doc/%{name}-%{version}/javadoc
