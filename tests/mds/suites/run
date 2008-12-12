@@ -1,0 +1,2 @@
+export TET_TMP_DIR=/tmp
+tcc -e -s reg_mds.scen $TET_BASE_DIR/mds/suites

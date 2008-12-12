@@ -1,0 +1,67 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+##
+## mklndircpio - Creates cpio archive with a link-tree with absolute links.
+##
+## Syntax:
+##	mklndircpio <fromdir> <archive> [prefix]
+##
+##   Creates a cpio archive with directories and soft-links to the
+##   files in "fromdir". All links will use the "prefix" followed by
+##   their relative path in the "fromdir". The cpio archive is intended
+##   to be unpacked on "/" in an UML machine. 
+##   Default prefix "/hostfs/root".
+##
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+help() {
+    grep "^##" $0 | sed -e 's,^##,,'
+    exit 0;
+}
+
+top=`pwd`
+test -n "$1" -a -n "$2" || help
+test -d "$1" || die "Not a directory [$1]"
+archive=$2
+prefix=/hostfs/root
+test -n "$3" && prefix=$3
+tmpd=/tmp/mklndircpio$$
+echo $archive | grep -q "^/" || archive=$top/$archive
+rm -f $archive
+
+cd $1
+items=`find ./ | sed -e 's,./,,'`
+for n in $items; do
+    if test -d $n; then
+	mkdir -p $tmpd/$n || die "Can't create dir [$tmpd/$n]"
+    else
+	ln -s $prefix/$n $tmpd/$n || die "Can't create link [$tmpd/$n]"
+    fi
+done
+
+cd $tmpd
+echo $items | tr ' ' '\n' | cpio -o -H newc > $archive
+cd $top
+rm -rf $tmpd

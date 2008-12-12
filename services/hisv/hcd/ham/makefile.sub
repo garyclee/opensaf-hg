@@ -1,0 +1,27 @@
+include $(HJ_APPLICATION_INC)makepath
+include $(HJ_HOME)/osprims/$(HJ_TARGET_OS)/makerule
+ALL_OBJS =  \
+     $(MY_OBJ_DIR)ham.$(OBJ) \
+     $(MY_OBJ_DIR)ham_evt.$(OBJ) \
+     $(MY_OBJ_DIR)ham_init.$(OBJ) \
+     $(MY_OBJ_DIR)ham_mds.$(OBJ) \
+     $(MY_OBJ_DIR)ham_tmr.$(OBJ) \
+     
+all:$(ALL_OBJS)
+	$(SUPPLY_ACTION_TO_BE_TAKEN)
+     
+$(MY_OBJ_DIR)ham.$(OBJ):ham.c
+	$(COMPILE_C) ham.c
+
+$(MY_OBJ_DIR)ham_evt.$(OBJ):ham_evt.c
+	$(COMPILE_C) ham_evt.c
+
+$(MY_OBJ_DIR)ham_init.$(OBJ):ham_init.c
+	$(COMPILE_C) ham_init.c
+
+$(MY_OBJ_DIR)ham_mds.$(OBJ):ham_mds.c
+	$(COMPILE_C) ham_mds.c
+
+$(MY_OBJ_DIR)ham_tmr.$(OBJ):ham_tmr.c
+	$(COMPILE_C) ham_tmr.c
+

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project basedir="." default="build" name="ais_api">
+
+	<property environment="env" />
+	<property name="ais_api_impl.location" value="../ais_api_impl" />
+	<property name="ais_api_test.location" value="../ais_api_test" />
+	<property name="deploy_dir" value="bin" />
+	<property name="debuglevel" value="source,lines,vars" />
+	<property name="target" value="1.5" />
+	<property name="source" value="1.5" />
+	<property name="jar_name" value="opensaf_ais_api.jar" />
+
+	<path id="ais_api.classpath">
+		<pathelement location="bin" />
+	</path>
+
+	<target name="javadocAPI">
+		<javadoc use="true" Splitindex="true" destdir="javadoc" author="true" version="true"
+				windowtitle="SA Forum - Java AIS API" doctitle="Draft Java AIS API"
+				header="Draft Java AIS API (SA Forum Confidential)" footer="SA Forum Confidential"
+				bottom="Created by Service Availability Forum, 2007" Verbose="false" Overview="./overview.html">
+			<packageset dir="src" defaultexcludes="yes">
+				<include name="org/saforum/ais/**" />
+			</packageset>
+		</javadoc>
+	</target>
+
+	<target name="init">
+		<mkdir dir="bin" />
+		<copy includeemptydirs="false" todir="bin">
+			<fileset dir="src" excludes="**/*.launch, **/*.java" />
+		</copy>
+	</target>
+
+	<target name="clean">
+		<delete failonerror="off" includeemptydirs="true">
+			<fileset dir="build" includes="**/*" />
+			<fileset dir="javadoc" includes="**/*" />
+			<fileset dir="bin" includes="**/*" />
+		</delete>
+	</target>
+
+	<target depends="clean" name="cleanall" />
+	<target depends="build-subprojects,build-project" name="build" />
+	<target name="build-subprojects" />
+
+	<target depends="init" name="build-project">
+		<echo message="${ant.project.name}: ${ant.file}" />
+		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+			<src path="src" />
+			<classpath refid="ais_api.classpath" />
+		</javac>
+	</target>
+
+	<target description="Build all projects which reference this project. Useful to propagate changes."
+			name="build-refprojects">
+		<ant antfile="${ais_api_impl.location}/build.xml" inheritAll="false" target="clean" />
+		<ant antfile="${ais_api_impl.location}/build.xml" inheritAll="false" target="build">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+		<ant antfile="${ais_api_test.location}/build.xml" inheritAll="false" target="clean" />
+		<ant antfile="${ais_api_test.location}/build.xml" inheritAll="false" target="build">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+	</target>
+
+	<target description="Package the project with the current implementation to a single JAR." name="build-jar">
+		<ant antfile="${ais_api_impl.location}/build.xml" inheritAll="false" target="clean" />
+		<ant antfile="${ais_api_impl.location}/build.xml" inheritAll="false" target="build">
+			<propertyset>
+				<propertyref name="build.compiler" />
+			</propertyset>
+		</ant>
+		<delete file="${deploy_dir}/${jar_name}" />
+		<jar destfile="${deploy_dir}/${jar_name}">
+			<fileset dir="bin">
+				<exclude name="**/*.html" />
+			</fileset>
+			<fileset dir="${ais_api_impl.location}/bin">
+				<exclude name="**/*.html" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target description="compile project with Eclipse compiler" name="build-eclipse-compiler">
+		<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+		<antcall target="build" />
+	</target>
+
+</project>
+
