@@ -265,7 +265,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 * @throws AisTimeoutException
 	 *             An implementation-dependent timeout occurred before the call
 	 *             could complete. It is unspecified whether the call succeeded
-	 *             or whether it didn�t.
+	 *             or whether it did not.
 	 * @throws AisTryAgainException
 	 *             The service cannot be provided at this time. The process may
 	 *             retry later.
@@ -371,7 +371,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 * @throws AisTimeoutException
 	 *             An implementation-dependent timeout occurred before the call
 	 *             could complete. It is unspecified whether the call succeeded
-	 *             or whether it didn�t.
+	 *             or whether it did not.
 	 * @throws AisTryAgainException
 	 *             The service cannot be provided at this time. The process may
 	 *             retry later.
@@ -432,7 +432,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 * @throws AisTimeoutException
 	 *             An implementation-dependent timeout occurred before the call
 	 *             could complete. It is unspecified whether the call succeeded
-	 *             or whether it didn�t.
+	 *             or whether it did not.
 	 * @throws AisTryAgainException
 	 *             The service cannot be provided at this time. The process may
 	 *             retry later.
@@ -457,7 +457,7 @@ public final class ClmHandleImpl extends HandleImpl implements ClmHandle {
 	 * @throws AisTimeoutException
 	 *             An implementation-dependent timeout occurred before the call
 	 *             could complete. It is unspecified whether the call succeeded
-	 *             or whether it didn�t.
+	 *             or whether it did not.
 	 * @throws AisTryAgainException
 	 *             The service cannot be provided at this time. The process may
 	 *             retry later.
