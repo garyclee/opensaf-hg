@@ -1,144 +1,590 @@
+This directory contains the 3.0 release of `OpenSAF'.
 
-WHAT IS OpenSAF
----------------
-OpenSAF is an open source project designed to develop a complete highly available operating environment based on Service Availability Forum (SA Forum) standards. The objective of the OpenSAF project is to accelerate broad adoption of a SA Forum compliant operating environment. OpenSAF also offers complementary services which are required in a complete high-availability system solution. 
+`OpenSAF' is an open source project designed to implement a complete highly
+available operating environment based on Service Availability Forum (SA Forum)
+standards. The objective of the `OpenSAF' project is to accelerate broad adoption
+of a SA Forum compliant operating environment. OpenSAF also offers
+complementary services which are required in a complete high-availability
+system solution.
 
-HISTORY
--------
-Motorola contributed its HA middleware suite to Netplane Core Services (NCS) to the OpenSAF project.
-So will find references to NCS in the OpenSAF source code.
+`OpenSAF' has been originally contributed by Motorola ECC, by open sourcing
+its HA middleware suite Netplane Core Services (NCS).
 
-A BRIEF ON ARCHITECTURE
------------------------
-OpenSAF software is distributed in nature. There is a controller node, which is the central entity in the cluster which will control all other nodes (Payload nodes) in the HA cluster. In the HA cluster there are two system controllers running in Active/Standby mode. 
+`OpenSAF' has a web site at http://www.opensaf.org/
 
-The OpenSAF software is divided in to following classes of Modules:
+See file `COPYING.LIB' for copying conditions.
+See file `INSTALL' for compilation and installation instructions.
+See file `NEWS' for a list of major changes in the current release.
+See file `ChangeLog' for a list of detailed changes.
+See file `AUTHORS' for the names of maintainers.
+See file `THANKS' for a list of contributors.
 
-Directors: The Service directors run on the controller node. They interact with Node Directors running on the Payload nodes and provide service specific functionality.
-
-Node Directors: Node directors distribute the service responsibilities with directors. Node directors interact with Agents to provide service functionality to the user applications. Node directors run both on System controller node and Payload nodes.
-
-Servers: Servers run on the system controller and they talk to Agents to provide service functionality to the users. If the service is having servers then it doesn't have directors, node director pieces. If the service doesn't have node local functionality then "Server - agent" architectural approach is used.
-
-Agents: Agents are the service libraries which are linked with user applications and provide service to the user applications by interacting with other service parts.
-
-User applications can run on either system controller node or payload node. But it is advisable to run the user applications on the payload blades, so your applications are not impacted when system controller Failover happens due to any failures in OpenSAF modules.
-
-The OpenSAF infrastructure is made highly available by modeling the individual services as AMF components.All the Node directors use No redundancy model and are restart capable with component capability 1_ACTIVE. All the directors and servers use 2N redundancy model with "1_ACTIVE_OR_1_STANDBY".  
+Please check the `Linux' distribution-specific notes below for any caveats
+related to your operating system.
 
 
-PROCESSOR & OS SUPPORT
----------------------- 
-OpenSAF is tested on both PowerPC and Intel processor variants under 32 bit & 64 bit mode(s).
+`OpenSAF' Architecture Overview
+===============================
 
-OpenSAF runs on an OS portability layer (LEAP), but currently the portability layer is implemented for Linux. In future the portability layer can be adapted to other OSes. OpenSAF contributors could mandatory use the OS portability layer, so that OpenSAF can maintain the portability. Currently OpenSAF is validated on following Linux distributions.
+`OpenSAF' software is distributed in nature. There is a Controller node, which is
+the central entity in the cluster which will control all the other Payload nodes
+in the HA cluster. In the HA cluster there are two System Controllers running in
+Active/Standby mode.
 
- - Redhat Enterprise Linux (RHEL Version 4.0)
- - Montavista Carrier Grade Edition (MVCGE Version 4.0)
+The `OpenSAF' software is divided in to following classes of Modules:
 
-NOTE: If you validate OpenSAF on other Linux distributions, please inform the OpenSAF mailing lists so that this list can grow. 
+    * Directors:
+      The Service directors run on the Controller node. They interact with
+      Node Directors running on the Payload nodes and provide service specific
+      functionality.
 
-INSTALLATION
-------------
-OpenSAF installation requires a minimal kernel version of 2.6.9, dependent opensource packages and OpenSAF software. The installation, configuration and startup philosophy is described in INSTALL file.
+    * Node Directors:
+      Node directors distribute the service responsibilities with directors.
+      Node directors interact with Agents to provide service functionality to
+      the user applications. Node directors run both on System Controller node
+      and Payload nodes.
 
-REFERENCE CONFIGURATIONS
-------------------------
-OpenSAF can be ported to different platforms by following the platform interface guidelines specified in the documentation. By default OpenSAF provides some reference platform services, using which OpenSAF can be run on following configurations.
+    * Servers:
+      Servers run on the System Controller and they talk to Agents to provide
+      service functionality to the users. If the service is having servers then
+      it doesn't have directors, node director pieces. If the service doesn't
+      have node local functionality then "Server - Agent" architectural approach
+      is used.
 
-2 PC setup: Following are the infrastructure requirements
+    * Agents: Agents are the service libraries which are linked with user
+      applications and provide service to the user applications by interacting
+      with other service parts.
 
-	   - 2 PCs running RHEL Version 4
-	   - Dual Ethernet cards on each blade connected to each other. 
+User applications can run on either System Controller node or Payload node. But
+it is advisable to run the user applications on the Payload nodes, so your
+applications are not impacted when System Controller failover happens due to
+any failures in `OpenSAF' Modules.
 
-Out of these two network connections one is used for file replication using state information between the controllers using DRBD. Other network interface is used for intra cluster messaging of OpenSAF.
-
-Follow the installation procedures of OpenSAF mentioned in the INSTALL text.  
-
-UML Environment: Cluster UML is a simulation environment for OpenSAF based on User Mode Linux. This environment is bundled as part of OpenSAF tools. The default cluster UML simulates two controller nodes and three payload nodes.
-
-
-DOCUMENTATION
--------------
-
-OpenSAF bundles sufficient documentation for users to kick start. The documentation is categorized as below.
-
-SAF AIS B.01.01 specifications: OpenSAF implements the SAF AIS B.01.01 specifications. User can download the SAF specifications from below locations
-
-http://www.saforum.org/specification/download/get_spec/
-
-
-Documentation bundled with OpenSAF sources: The OpenSAF sources contains this README, INSTALL files which gives brief overview of OpenSAF and how to install, configure and run the applications.
-
-OpenSAF Documentation Bundle: OpenSAF ships with comprehensive documentation. Following is the listingof documents in the order of reading:
-
-1. OpenSAF Getting Started Guide:
-This document describes OpenSAF installation, configuration
- 
-2. OpenSAF Overview Users Guide:
-This document describes the OpenSAF overall architecture, description of the source code layout, description of OpenSAF sample applications
-
-3. OpenSAF Platform Control Services Programmer's Reference:
-This document describes the interfaces that need to be provided by platform, for openSAF to function. 
-
-3. OpenSAF Availability Service Programmers Reference:
-This document describes Availability service functional blocks and their responsibilities, conformance to AMF B.01.01 specification (what is implemented and what is not), how to   Manage the AvSv Service (MIB details, Command Line Interface etc).
-
-4. OpenSAF System Description Programmer's Reference:
-This document describes how user can bring his applications under SAF AMF framework and describes the overall modeling framework of OpenSAF.
- 
-5. OpenSAF Checkpoint Service Programmers Reference:
-This document describes the OpenSAF implementation of SAF checkpoint service compliance against the specification.
-
-6. OpenSAF Event Distribution Service Programmers Reference:
-This document describes the OpenSAF implementation of SAF event service and compliance against the specification.
-
-7. OpenSAF Global Lock Service Programmers Reference:
-This document describes the OpenSAF implementation of SAF lock service and compliance against the specification.
-
-8. OpenSAF Message Queue Service Programmers Reference:
-This document describes the OpenSAF implementation of SAF Message service and compliance against the specification. 
-
-9. OpenSAF Management Access Service Programmer's Reference:
-This document introduces the OpenSAF Management access service interface.
+The OpenSAF infrastructure is made highly available by modeling the individual
+services as AMF components. All the Node Directors use no redundancy model and
+are restart capable with component capability 1_ACTIVE. All the Directors and
+Servers use 2N redundancy model with "1_ACTIVE_OR_1_STANDBY".
 
 
-10. OpenSAF SNMP SubAgent Programmer's Reference:
-OpenSAF offers a SNMP SubAgent user can register with this subagent to get managed through SNMP.OpenSAF SubAgent manages all the OpenSAF services.  
+Downloading
+===========
 
-11. OpenSAF Persistent Store Restore Service Programmer's Reference: Opesaf offers mechanisms to store the application information in a persistent way. The interface and mechanisms are described in this document.
+`OpenSAF' release archives can be obtained from here:
 
-12. OpenSAF Message Distribution Service Programmer's Reference:
-MDS is the intra cluster messaging mechanism used in OpenSAF. This is implemented on top of TIPC and 
-provides a rich set of abstraction for the user application.
-
-13. OpenSAF Distributed Tracing Service Programmer's Reference: Distributed Tracing Service is the logging facility provided by OpenSAF, details of how to use the service is available in this doc.
-
-14. OpenSAF Command Line Interface Programmer's Reference:
-CLI user guide describes how users can register their own commands and how to execute them etc. 
-
-15. OpenSAF HPI Integration Service Programmers Reference:
-HPI Integration service provides node level Hardware management wrappers APIs for openHPI and also provides a event channel to distribute the HPI events to the subscribed services. Mainly it eliminates the need for all applications to HPI sessions and do the resource discovery.
-
-16. OpenSAF LEAP Programmer's Reference:
-Describes the OS portability abstractions and services provided by OpenSAF.
-
-17. OpenSAF System Resource Monitoring Service Programmer's Reference:
-Describes the resource Monitoring interface of OpenSAF for node local resources. 
-
-18. OpenSAF Message Based Checkpointing Service Programmer's Reference:
-Description of Hot-standby mode of checkpointing offered by OpenSAF.
-
-19. OpenSAF SMIDUMP Tool Programmer's Reference:
-This is code generation tool provided by OpenSAF. This tool generates code to integrating with OpenSAF Management Access Service.
-
-20. OpenSAF Interface Service Programmers Reference:
-This is to monitor the network interface status (up/down), monitoring the statistics on the interface and provide interface information to applications subscribing it. 
-    
+    http://devel.opensaf.org/wiki/downloads/
 
 
+Documentation
+=============
+
+`OpenSAF' implements various `SAF AIS' services. The Service Availability
+Forum Specifications can be downloaded from here:
+
+    http://www.saforum.org/specification/download/
+
+The `OpenSAF' Programmer's Reference Manuals can be obtained from here:
+
+    http://devel.opensaf.org/wiki/downloads/
+
+    * OpenSAF Availability Service
+    * OpenSAF Command Line Interface
+    * OpenSAF Checkpoint Service
+    * OpenSAF Availability Service
+    * OpenSAF Event Distribution Service
+    * OpenSAF Global Lock Service
+    * OpenSAF HPI Integration Service
+    * OpenSAF Interface Service
+    * OpenSAF Installation and Configuration
+    * OpenSAF LEAP
+    * OpenSAF LOG Service
+    * OpenSAF Management Access Service
+    * OpenSAF Message Based Checkpointing Service
+    * OpenSAF Message Distribution Service
+    * OpenSAF Message Queue Service
+    * OpenSAF Overview
+    * OpenSAF Persistent Store Restore Service
+    * OpenSAF System Description
+    * OpenSAF SMIDUMP Tool
+    * OpenSAF SNMP SubAgent
+    * OpenSAF System Resource Monitoring Service
+    * OpenSAF Platform Control Services
 
 
+Development
+===========
+
+`OpenSAF' development is managed using `Trac', the main project portal can
+be found here:
+
+  http://devel.opensaf.org/
+
+You can find most information concerning the development of `OpenSAF' at
+this site.
+
+`OpenSAF' is using `Mercurial' (hg) as its Source Control Management system
+tool, the repositories index can be found here:
+
+    http://devel.opensaf.org/hg/
+
+`Mercurial' is a fast, lightweight Source Control Management system designed
+for efficient handling of very large distributed projects and can be obtained
+from here:
+
+    http://www.selenic.com/mercurial/wiki/
 
 
+Building from `Mercurial'
+=========================
 
+If you don't want to use one of the `OpenSAF' release archive, you can get a
+clone and bootstrap it by doing the following steps:
+
+    % hg clone http://devel.opensaf.org/hg/<repo>/
+    % cd <repo>
+    % ./bootstrap.sh
+
+Where <repo> is one of the tree from the repositories index listed here:
+
+    http://devel.opensaf.org/hg/
+
+After bootsraping follow the standard build instructions.
+
+
+Bug Reporting
+=============
+
+You can send `OpenSAF' bug reports to <devel@list.opensaf.org>. You can
+subscribe to the development mailing list from here:
+
+    http://list.opensaf.org/maillist/listinfo/devel/
+
+If you need help using `OpenSAF', try <users@list.opensaf.org> instead. You can
+subscribe to the user mailing list from here:
+
+    http://list.opensaf.org/maillist/listinfo/users/
+
+You can also use the online bug tracking system in the `Trac' `OpenSAF'
+project to submit new problem reports or search for existing ones:
+
+    * Create New Ticket: http://devel.opensaf.org/newticket/
+    * Available Reports: http://devel.opensaf.org/report/
+
+When reporting bug, make sure you provide various useful informations about
+your Linux environment:
+
+    * Distribution used (e.g. Fedora, Ubuntu, SUSE, PNE-LE etc.)
+    * The revision of your Linux distribution
+    * Package revisions of the prerequisites (e.g. net-snmp, xerces, tipc etc.)
+    * If using the package prerequisites from the Linux distribution?
+    * Build tool revisions (e.g. gcc, automake, autoconf, libtool)
+    * If using cross-compiling + target information
+
+
+Source Tree Structure
+=====================
+
+    +-opensaf/
+      +-config/                     (`OpenSAF' configuration files)
+      +-include/                    (`OpenSAF' and SAF header files)
+      +-initd/                      (`OpenSAF' SysV init script)
+      +-java/                       (Java AIS mapping implementation)
+      | +-ais_api/
+      | +-ais_api_impl/
+      | +-ais_api_impl_native/
+      | +-ais_api_test/
+      +-lib/                        (`SAF AIS' implementation)
+      | +-lib_ncs_core/
+      | +-lib_SaAmf/
+      | +-lib_SaCkpt/
+      | +-lib_SaClm/
+      | +-lib_SaEvt/
+      | +-lib_SaLck/
+      | +-lib_SaLog/
+      | +-lib_SaMsg/
+      +-m4/                         (Extra M4 macros for the build process)
+      +-mibs/                       (`OpenSAF' specific MIBS)
+      +-samples/                    (Sample applications source)
+      | +- ...
+      +-scripts/                    (Various OpenSAF service scripts)
+      +-services/                   (`OpenSAF' services implementation)
+      | +-avsv/
+      | +-bam/
+      | +-cli/
+      | +-common/
+      | +-cpsv/
+      | +-dtsv/
+      | +-edsv/
+      | +-glsv/
+      | +-hisv/
+      | +-ifsv/
+      | +-leap/
+      | +-logsv/
+      | +-mab/
+      | +-mbcsv/
+      | +-mds/
+      | +-mqsv/
+      | +-nid/
+      | +-nms/
+      | +-rde/
+      | +-srmsv/
+      | +-vds/
+      +-tests/                      (`OpenSAF' Test Cases)
+      | +- ...
+      +-tools/                      (Misc `OpenSAF' tools)
+      | +-cluster_sim_uml/
+      | +-pdrbd/
+      | +-smidump/
+
+
+Prerequisites
+=============
+
+The following software is required to build `OpenSAF':
+
+    * The Linux Kernel with TIPC development support
+    * Xerces-C++ XML Parser 2.7.0+
+    * Net-SNMP 5.4+
+    * An HPI implementation (e.g. OpenHPI)
+    * Libxml2
+    * automake
+    * autoconf
+    * libtool
+    * pkg-config
+    * flex and bison
+    * gcc/g++
+    * GNU make
+
+    If enabling optional state replication:
+        - DRBD 8.x.x
+
+    If enabling optional Java support:
+        - A Java 1.5+ capable JDK (e.g. OpenJDK 1.6)
+        - Apache Ant
+
+If a specific prerequisite package revision isn't working for you, please
+let us know about it following the instructions from the Bug Reporting section.
+
+
+Building `OpenSAF'
+==================
+
+If you are using a released archive (dist tarball) follow the simple common
+steps:
+
+    % ./configure && make
+
+    OR
+
+    % ./configure && make rpm
+
+Note: `OpenSAF' can safely be built with parallel jobs using -jX, where X
+      should be the number of CPU you want to dedicate + 1
+
+If you are Building from `Mercurial', make sure you followed the required
+steps before trying to `configure' (i.e. bootsrapping).
+
+By default `OpenSAF' will assume to following `configure' options:
+
+    --enable-smidump
+    --enable-hpi
+    --with-openhpi
+    --with-hpirev=B02
+    --disable-java
+
+If you wish to alter the default `configure' options see the list from:
+
+    % ./configure --help
+
+Use one of the following forms to enable an option:
+
+    --with-<mumble>		OR	--enable-<mumble>
+    --with-<mumble>=yes		OR	--enable-<mumble>=yes
+    --without-<mumble>=no	OR	--disable-<mumble>=no
+
+Use one of the following forms to disable an option:
+
+    --without-<mumble>		OR	--disable-<mumble>
+    --without-<mumble>=yes	OR	--disable-<mumble>=yes
+    --with-<mumble>=no		OR	--enable-<mumble>=no
+
+The `--with-<mumble>' option forms are used for external package support and
+the `--enable-<mumble>' option forms are used for internal component state.
+
+By using `./configure --disable-smidump', you are disabling initial building
+of the customized `smidump' tool contained in the source tree. By default
+the customized `smidump' tool will be built.
+
+By using `./configure --enable-hpi', you are enabling global HPI support and
+one HPI implementation is enabled by default (for now OpenHPI). By default
+this option is enabled. If using `./configure --disable-hpi', every other HPI
+configure options are ignored. It's an explicit way to disabling global HPI
+support.
+
+Note: In this current release, `OpenSAF' still relies on <SaHpi.h>, even if
+the user thinks he's not using a specific HPI implementation. This is a build
+dependency for now and the user still needs to tell the build system to  be
+using the proper CPPFLAGS/CFLAGS/CXXFLAGS where to find <SaHpi.h>
+
+By using `./configure --with-openhpi', you are enabling support for `OpenHPI'
+as the HPI implementation to be used. It sets the proper LIBS and CFLAGS
+using the `pkg-config' utility for `opensaf.pc'. By default this option is
+enabled.
+
+By using `./configure --with-hpirev=ARG', you are telling the build system
+what `SAF HPI' version your HPI implementation is supporting. The possible ARGS
+are: B02, B01, and A01. It has to match your HPI implementation support. By
+default B02 support is enabled.
+
+By using `./configure --enable-java', you are enabling the Java AIS mapping
+support in the build system. Specials M4 macros will be used to autodetect
+what `JDK' and `Ant' program you are using. By default this options is
+disabled.
+
+By using `./configure --with-jdk=DIR', you can force the build system to use
+a specific JDK installed in a non-standard location on your system.
+
+By using `./configure --with-ant=DIR', you can force the build system to use
+a specific Ant version installed in a non-standard location on your system.
+
+
+Building `OpenSAF' RPMS
+=======================
+
+As shown in the Building `OpenSAF' section, generating RPMS can be done using:
+
+    % ./configure && make rpm
+
+The special `make rpm' target will generate a dist archive, create the
+`OpenSAF' SRPM using the opensaf.spec file, and finally launch the rpmbuild
+process. You can find the generated RPMS under `./rpms/RPMS/<build_arch>/':
+
+Depending on what configure options you used, you should have the generated
+the following RPMS:
+
+    opensaf-<version>.<build_arch>.rpm
+    opensaf-controller-<version>.<build_arch>.rpm
+    opensaf-debuginfo-<version>.<build_arch>.rpm
+    opensaf-devel-<version>.<build_arch>.rpm
+    opensaf-java-<version>.<build_arch>.rpm
+    opensaf-libs-<version>.<build_arch>.rpm
+    opensaf-payload-<version>.<build_arch>.rpm
+    opensaf-samples-<version>.<build_arch>.rpm
+
+opensaf: Contains the common configuration files, docs, and scripts.
+
+opensaf-controller: Contains the controller specific binaries and libs.
+
+opensaf-debuginfo: Contains the debug information unstripped.
+
+opensaf-devel: Contains the development headers and shared libs.
+
+opensaf-java: Contains the Java AIS mapping jars and native libs.
+
+opensaf-libs: Contains the common shared libs.
+
+opensaf-payload: Contains the payload specific binaries and libs.
+
+opensaf-samples: Contains the sample applications source code.
+
+
+Installing `OpenSAF'
+====================
+
+`OpenSAF' can be installed in several ways. When doing development, a
+user might prefer using the classic `make install' way to using RPMS.
+It can be achieved like this:
+
+    % make install
+
+    OR
+
+    % make install DESTDIR=<staged_install_directory>
+
+After installing `OpenSAF' you will need to run `ldconfig' because `OpenSAF'
+places internal libs in the `$pkglibdir' (e.g. /usr/lib/opensaf/). This ldconfig
+operation is handled automatically by using rpm installation.
+
+By default `make install' will install pre-configured for a controller node.
+The only files that need to be changed for a payload is the `nodeinit.conf' and
+the `slot_id' (a slot_id of 3 or higher will give you a payload node):
+
+    % cd $pkgsysconfdir (e.g. /etc/opensaf/)
+    % ln -sf nodeinit.conf.payload nodeinit.conf
+    % echo 3 > $pkgsysconfdir/slot_id
+
+In production systems, RPMS should be preferred to classic `make install`.
+
+To setup a controller, install the following RPMS:
+
+    % rpm -ivh opensaf<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-controller-<version>.<build_arch>.rpm
+
+To setup a payload, install the following RPMS:
+
+    % rpm -ivh opensaf<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-payload-<version>.<build_arch>.rpm
+
+To setup a development environment, install following RPMS:
+
+    % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-devel-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-samples-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-debuginfo-<version>.<build_arch>.rpm
+
+If Java AIS mapping was enabled, install the following RPM:
+
+    % rpm -ivh opensaf-java-<version>.<build_arch>.rpm
+
+Here is where individual `OpenSAF' components get installed:
+
+    * Documentation: `$docdir' (e.g /usr/share/doc/opensaf-<version>/)
+    * Samples, Templates: `$pkgdatadir' (e.g. /usr/share/opensaf/)
+    * OpenSAF headers: `$pkgincludedur' (e.g. /usr/include/opensaf/)
+    * SAF headers: `$includedir' (e.g. /usr/include/)
+    * Configuration: `$pkgsysconfdir' (e.g. /etc/opensaf/)
+    * Runtime Misc.: `$pkglocalstate' (e.g. /var/lib/opensaf/)
+    * OpenSAF internals: `$pkglibdir' (e.g. /usr/lib/opensaf/)
+    * User programs: `$bindir' (e.g. /usr/bin/)
+    * SAF libraries: `$libdir' (e.g. /usr/lib/)
+    * ldconfig data: `$sysconfdir/ld.so.conf.d' (e.g. /etc/ld.so.conf.d/)
+    * SysV scripts: `$sysconfdir/init.d/' (e.g. /etc/init.d/)
+    * Logs: `$localstatedir/log/opensaf' (e.g. /var/log/opensaf/)
+    * PID: `$localstatedir/run/opensaf/' (e.g. /var/run/opensaf/)
+
+
+Notes on the Debuginfo package
+==============================
+
+You will notice that the RPM build process generated an `opensaf-debuginfo'
+package. This package contains the debug information that GDB needs to perform
+debugging on a specific binary.
+
+There is a magic section in the regular ELF binary that says "look THERE for my
+debug info", where "THERE" is the location the debuginfo RPM installs its files.
+It's basically a "strip to file" operation, where a file with debuginfo is split
+in 2, one is the normal stripped file (but with a "look THERE" record) and one
+is only the debuginfo.
+
+A debuginfo package contains stripped symbols from ELF binaries (*.debug in
+/usr/lib/debug) as well as the source code related to them (in /usr/src/debug).
+
+	% ll /usr/lib/debug/usr/bin
+	total 9844
+	-rwxr-xr-x 1 root root  185160 2008-12-11 15:21 ncs_cli_maa.debug
+	-rwxr-xr-x 1 root root  310272 2008-12-11 15:21 ncs_cpd.debug
+	-rwxr-xr-x 1 root root  235480 2008-12-11 15:21 ncs_cpnd.debug
+	-rwxr-xr-x 1 root root  429752 2008-12-11 15:21 ncs_dts.debug
+	-rwxr-xr-x 1 root root  290760 2008-12-11 15:21 ncs_eds.debug
+	-rwxr-xr-x 1 root root  225216 2008-12-11 15:21 ncs_gld.debug
+	-rwxr-xr-x 1 root root  246808 2008-12-11 15:21 ncs_glnd.debug
+	-rwxr-xr-x 1 root root  207400 2008-12-11 15:21 ncs_hisv.debug
+	-rwxr-xr-x 1 root root  545744 2008-12-11 15:21 ncs_ifd.debug
+	-rwxr-xr-x 1 root root  297128 2008-12-11 15:21 ncs_ifnd.debug
+	-rwxr-xr-x 1 root root   42968 2008-12-11 15:21 ncs_ifsv_ip_installer.debug
+	-rwxr-xr-x 1 root root  258712 2008-12-11 15:21 ncs_mas.debug
+	-rwxr-xr-x 1 root root  322536 2008-12-11 15:21 ncs_mqd.debug
+	-rwxr-xr-x 1 root root  332192 2008-12-11 15:21 ncs_mqnd.debug
+	-rwxr-xr-x 1 root root   45112 2008-12-11 15:21 ncs_nid.debug
+	-rwxr-xr-x 1 root root  849464 2008-12-11 15:21 ncs_pcap.debug
+	-rwxr-xr-x 1 root root   89832 2008-12-11 15:21 ncs_pdrbd.debug
+	-rwxr-xr-x 1 root root  501616 2008-12-11 15:21 ncs_psr.debug
+	-rwxr-xr-x 1 root root   81832 2008-12-11 15:21 ncs_rde.debug
+	-rwxr-xr-x 1 root root 3840560 2008-12-11 15:21 ncs_scap.debug
+	-rwxr-xr-x 1 root root   34976 2008-12-11 15:21 ncs_snmp_subagt.debug
+	-rwxr-xr-x 1 root root  203056 2008-12-11 15:21 ncs_srmnd.debug
+	-rwxr-xr-x 1 root root  104160 2008-12-11 15:21 ncs_vds.debug
+	-rwxr-xr-x 1 root root  146792 2008-12-11 15:21 opensaf_saflogd.debug
+	-rwxr-xr-x 1 root root   18040 2008-12-11 15:21 saflogger.debug
+
+	% ll /usr/src/debug/opensaf-<version>/
+	total 32
+	drwxr-xr-x  2 root root 4096 2008-12-11 16:01 include
+	drwxr-xr-x  3 root root 4096 2008-12-11 16:01 java
+	drwxr-xr-x 23 root root 4096 2008-12-11 16:01 services
+	drwxr-xr-x  3 root root 4096 2008-12-11 16:01 tools
+
+The directory `/usr/lib/debug' contains a "mirror" of your main FHS, with all
+the debuginfo packages installed. The directory `/usr/src/debug/<package>/'
+contains a "mirror" of the original source tree, but with only the source files
+used at compilation.
+
+Recent GDB versions know how to automatically load the debuginfo from that
+location and perform source code tracing (breakpoints at func() etc.).
+
+
+How to Configure `OpenSAF'
+==========================
+
+See file `README.conf' for the configuration file syntax/format.
+
+More TODO
+
+
+How to Run `OpenSAF'
+====================
+
+The `OpenSAF' SysV init script is installed in `$sysconfdir/rc.d/init.d'
+(e.g. /etc/rc.d/init.d/) and can be executed like that:
+
+    % /etc/init.d/opensafd [start/stop/status]
+
+More TODO
+
+
+Building `OpenSAF' Samples
+==========================
+
+The sources of the `OpenSAF' sample applications will get installed in
+`$pkgdatadir/samples' (e.g. /usr/share/opensaf/samples/).
+
+Each sample application has its own `Makefile', independent from the `OpenSAF'
+build system. To build one, simply make sure you have write access or make a
+copy of the source somewhere else:
+
+    % make
+
+The `Makefile' looks for installed `SAF AIS' headers and `OpenSAF' libs in
+standard system wide locations (e.g. /usr/include/ & /usr/lib/):
+
+    INCLUDES = -I.
+    LDFLAGS = -lSaAmf -lsaf_common -lavsv_common
+
+If you have `OpenSAF' development packages installed somewhere else, override
+the default values e.g.:
+
+    % make INCLUDES="-I. -I/tmp/usr/local/include" \
+        LDFLAGS="-L/tmp/usr/local/lib -lSaAmf -lsaf_common -lavsv_common"
+
+To run the an application you will need a configured `OpenSAF' node running.
+
+See file `README.samples' for more information on each of the application.
+
+
+Using the Simulation Environment
+================================
+
+More TODO
+
+
+Linux Distro-Specific Notes
+===========================
+
+`OpenSAF' is known to run on the following Linux installations:
+
+    * Red Hat Enterprise Linux 4 (RHEL4)
+    * Red Hat Enterprise Linux 5.2 (RHEL5)
+    * Wind River Platform for Network Equipment, Linux Edition (PNE-LE)
+    * MontaVista Carrier Grade Edition 4.0
+    * Fedora Core 9
+    * SUSE Linux Enterprise 10 SP2
+    * ...
+
+More TODO
+
+<RHEL firewall rules, SELinux, SUSE crashes with -02, missing decent tipc.h etc.>
+
+-------------------------------------------------------------------------------
+
+Copyright (C) 2008 The OpenSAF Foundation

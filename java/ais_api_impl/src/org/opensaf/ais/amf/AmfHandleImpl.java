@@ -629,7 +629,7 @@ public final class AmfHandleImpl extends HandleImpl implements AmfHandle {
      *             (such as corruption). The library cannot be used anymore.
      * @throws AisTimeoutException An implementation-dependent timeout occurred
      *             before the call could complete. It is unspecified whether the
-     *             call succeeded or whether it didn�t.
+     *             call succeeded or whether it did not.
      * @throws AisTryAgainException The service cannot be provided at this time.
      *             The process may retry later.
      * @throws AisBadHandleException This library handle is invalid, since it is

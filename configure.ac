@@ -31,37 +31,40 @@ OPENSAF_RELEASE=$PACKAGE_VERSION
 OPENSAF_BUGREPORT=$PACKAGE_BUGREPORT
 AC_SUBST(OPENSAF_RELEASE)
 AC_SUBST(OPENSAF_BUGREPORT)
+AC_SUBST(ac_configure_args)
 
 
 dnl Flag to enable smidump to be built
-AC_ARG_WITH([smidump],
-   [AS_HELP_STRING([--without-smidump],
+AC_ARG_ENABLE([smidump],
+   [AS_HELP_STRING([--disable-smidump],
      [disable building the custom NCS smidump tool [default=no]])],
    [],
-   [with_smidump=yes])
+   [enable_smidump=yes])
 
-AM_CONDITIONAL([WITH_SMIDUMP], [test "x$with_smidump" = xyes])
+AM_CONDITIONAL([ENABLE_SMIDUMP], [test "x$enable_smidump" = xyes])
+AC_SUBST([SMIDUMP_ENABLED], ["$enable_smidump"])
 
 
 dnl Enable HPI hardware management support
-AC_ARG_WITH([hpi],
-   [AS_HELP_STRING([--with-hpi],
+AC_ARG_ENABLE([hpi],
+   [AS_HELP_STRING([--enable-hpi],
       [enable hardware management with HPI [default=yes]])],
    [],
-   [with_hpi=yes])
+   [enable_hpi=yes])
 
-AM_CONDITIONAL([WITH_HPI], [test "x$with_hpi" = xyes])
+AM_CONDITIONAL([ENABLE_HPI], [test "x$enable_hpi" = xyes])
+AC_SUBST([HPI_ENABLED], ["$enable_hpi"])
 
 
 dnl Enable OpenHPI as the HPI implementation used
 AC_ARG_WITH([openhpi],
    [AS_HELP_STRING([--with-openhpi],
       [enable OpenHPI as the HPI implementation [default=yes]])],
-   [ if test "x$with_hpi" = xyes; then
+   [ if test "x$enable_hpi" = xyes; then
        with_openhpi="$withval"
      fi
    ],
-   [ if test "x$with_hpi" = xyes; then
+   [ if test "x$enable_hpi" = xyes; then
        with_openhpi=yes
      else
        with_openhpi=no
@@ -69,6 +72,7 @@ AC_ARG_WITH([openhpi],
    ])
 
 AM_CONDITIONAL([WITH_OPENHPI], [test "x$with_openhpi" = xyes])
+AC_SUBST([OPENHPI_ENABLED], ["$with_openhpi"])
 
 
 dnl Specifies the SAI-HPI specification used by the HPI implementation
@@ -99,13 +103,14 @@ AC_SUBST(HPI_DEF)
 m4_include([m4/java.m4])
 
 dnl Enable Java AIS interface mapping
-AC_ARG_WITH([java],
-   [AS_HELP_STRING([--with-java],
+AC_ARG_ENABLE([java],
+   [AS_HELP_STRING([--enable-java],
       [enable the Java AIS interface mapping [default=no]])],
    [],
-   [with_java=no])
+   [enable_java=no])
 
-AM_CONDITIONAL([WITH_JAVA], [test "x$with_java" = xyes])
+AM_CONDITIONAL([ENABLE_JAVA], [test "x$enable_java" = xyes])
+AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 
 #############################################
 # Get input for enabling platform interface
@@ -188,7 +193,7 @@ DEBUG_VAL="1"
 #############################################
 # Define a common string for core CPP defines
 #############################################
-AC_SUBST( NCS_CORE_CPP_DEFINES, "-DNCS_NID=1 -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 -DNCS_MMGR_DEBUG=$DEBUG_VAL -DENABLE_LEAP_DBG=$DEBUG_VAL -DNCSMDS_DEBUG=$DEBUG_VAL -DNCS_IPV6=0 -DNCS_IFSV_IPXS=1 -DNCS_IFSV_USE_NETLINK=1 -DNCS_TMR_DBG_ENABLE=$DEBUG_VAL -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DFUND_DEBUG_TEST=0 -DNCS_MONC_CPSV_USE=0 -DNCS_SAF=1 -DNCS_RMS=0 -DNCS_MAB=1 -DMOT_ATCA=$MOT_ATCA_VAL -DNET_SNMP_5_2_2_SUPPORT=$NETSNMP_5_2_2  -DNCS_MDS=1 -DNCSMDS_LOG=1 -DDTS_SIM_TEST_ENV=1 -D__JSE_LINUX__ -D__JSE_UNIX__ -DHJ_LINUX=1 -DUSE_READLINE -DDTA_FLOW=1 $DEBUG_FLAG $HPI_DEF")
+AC_SUBST( NCS_CORE_CPP_DEFINES, "-DNCS_NID=1 -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 -DNCS_MMGR_DEBUG=$DEBUG_VAL -DENABLE_LEAP_DBG=$DEBUG_VAL -DNCSMDS_DEBUG=$DEBUG_VAL -DNCS_IPV6=0 -DNCS_IFSV_IPXS=1 -DNCS_IFSV_USE_NETLINK=1 -DNCS_TMR_DBG_ENABLE=$DEBUG_VAL -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DFUND_DEBUG_TEST=0 -DNCS_MONC_CPSV_USE=0 -DNCS_SAF=1 -DNCS_RMS=0 -DNCS_MAB=1 -DMOT_ATCA=$MOT_ATCA_VAL -DNET_SNMP_5_2_2_SUPPORT=$NETSNMP_5_2_2  -DNCS_MDS=1 -DNCSMDS_LOG=1 -DDTS_SIM_TEST_ENV=1 -D__JSE_LINUX__ -D__JSE_UNIX__ -DHJ_LINUX=1 -DUSE_READLINE -DDTA_FLOW=1 $DEBUG_FLAG")
 
 #CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
 #CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
@@ -237,7 +242,7 @@ AC_PROG_MAKE_SET
 AC_PROG_YACC
 AC_CHECK_TOOL(NETSNMP, net-snmp-config, MISSING)
 
-if test "x$with_java" = xyes; then
+if test "x$enable_java" = xyes; then
    AC_JAVA_WITH_JDK
 
    if test "$ac_java_jvm_dir" != ""; then
@@ -274,7 +279,7 @@ AC_SUBST( MDS_WORD_ARCH_FLAGS," -DMDS_ARCH_TYPE=$mdsarchtype" )
 #############################################
 # Checks for libraries.
 #############################################
-if test "x$with_hpi" = xyes; then
+if test "x$enable_hpi" = xyes; then
    if test "x$with_openhpi" = xyes; then
       PKG_CHECK_MODULES(HPI, openhpi)
    fi
@@ -574,6 +579,7 @@ echo "${ECHO_T} Using VPATH: no"
 else
 echo "${ECHO_T} Using VPATH: yes"
 fi
+AM_CONDITIONAL([WITH_VPATH], [test "$srcdir" != "."])
 echo ""
 echo "Dependencies Options:"
 echo "${ECHO_T} HPI Specification: ${with_hpirev}"
@@ -584,10 +590,10 @@ echo "${ECHO_T} NETSNMP_LIBS: ${NETSNMP_LIBS}"
 echo "${ECHO_T} MIBSDIR: ${MIBSDIR}"
 echo ""
 echo "OpenSAF Options:"
-echo "${ECHO_T} Enable Java AIS Mapping: ${with_java}"
-echo "${ECHO_T} Enable HPI support: ${with_hpi}"
+echo "${ECHO_T} Enable Java AIS Mapping: ${enable_java}"
+echo "${ECHO_T} Enable HPI support: ${enable_hpi}"
 echo "${ECHO_T} Enable OpenHPI: ${with_openhpi}"
-echo "${ECHO_T} Enable Building NCS smidump: ${with_smidump}"
+echo "${ECHO_T} Enable Building NCS smidump: ${enable_smidump}"
 echo "======================================================="
 echo ""
 
