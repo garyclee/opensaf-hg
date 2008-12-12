@@ -1817,9 +1817,11 @@ ham_entity_path_lookup(HISV_EVT *evt)
    hpl_pload = (HPL_PAYLOAD *)msg->info.api_info.data;
 
    /* Check to see what type of return data the user wants 
-    *  flag is set to 0 - return full string format entity path.
+    *  flag is set to 0 - return full string (SAHPI_ENT_SYSTEM_CHASSIS) format entity path.
     *  flag is set to 1 - return numeric string format entity path.
-    *  flag is set to 2 - return array format entity path.             */
+    *  flag is set to 2 - return array format entity path.
+    *  flag is set to 3 - return short string (SYSTEM_CHASSIS) format entity path.    */
+
    flag = (uns32)msg->info.api_info.arg;
 
    /* Zero out the epath array if that is what we are returning.       */
@@ -1882,6 +1884,10 @@ ham_entity_path_lookup(HISV_EVT *evt)
                      epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
                      break;
                   }
+                  case HPL_EPATH_FLAG_SHORTSTR: {
+                     sprintf(blade_entity_type, "%s", "PHYSICAL_SLOT");
+                     break;
+                  }
                }
                break;  /* break from PHYSICAL_SLOT Switch */
             }
@@ -1900,6 +1906,10 @@ ham_entity_path_lookup(HISV_EVT *evt)
                      epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
                      break;
                   }
+                  case HPL_EPATH_FLAG_SHORTSTR: {
+                     sprintf(blade_entity_type, "%s", "SYSTEM_BLADE");
+                     break;
+                  }
                }
                break;  /* break from SYSTEM_BLADE Switch */
             }
@@ -1916,6 +1926,10 @@ ham_entity_path_lookup(HISV_EVT *evt)
                   case HPL_EPATH_FLAG_ARRAY: {
                      epath.Entry[0].EntityType = SAHPI_ENT_SWITCH_BLADE;
                      epath.Entry[0].EntityLocation = hpl_pload->d_bladeID;
+                     break;
+                  }
+                  case HPL_EPATH_FLAG_SHORTSTR: {
+                     sprintf(blade_entity_type, "%s", "SWITCH_BLADE");
                      break;
                   }
                }
@@ -1946,6 +1960,11 @@ ham_entity_path_lookup(HISV_EVT *evt)
                   epath.Entry[2].EntityLocation = 0;
                   break;
                }
+               case HPL_EPATH_FLAG_SHORTSTR: {
+                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SYSTEM_CHASSIS,%d},{ROOT,0}}",
+                     blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  break;
+               }
             }
             break;
          }
@@ -1956,7 +1975,8 @@ ham_entity_path_lookup(HISV_EVT *evt)
    } while (next != SAHPI_LAST_ENTRY);
 
 
-   if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR)) {
+   if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR) ||
+       (flag == HPL_EPATH_FLAG_SHORTSTR)) {
       if (m_NCS_OS_STRCMP(hpi_entity_path_buffer, "") != 0) 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
       else 
@@ -1982,7 +2002,8 @@ ham_entity_path_lookup(HISV_EVT *evt)
    }
    else {
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = entity_path_len;
-      if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR)) {
+      if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR) ||
+          (flag == HPL_EPATH_FLAG_SHORTSTR)) {
          /* Allocate a return buffer, add 1 byte for string NULL termination character */
          hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(entity_path_len + 1);
          m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)hpi_entity_path_buffer, entity_path_len);
