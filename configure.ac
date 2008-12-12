@@ -542,7 +542,6 @@ AC_CONFIG_FILES([opensaf.spec
                  services/vds/logstr/Makefile
                  services/vds/vda/Makefile
                  services/vds/vds/Makefile
-		 tools/Makefile
 		 tools/hisv/Makefile
                  tools/pdrbd/Makefile
                  tools/pdrbd/logstr/Makefile
