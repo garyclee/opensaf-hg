@@ -76,7 +76,8 @@
 #include "mds_papi.h"
 
 /* HCD specific inc Files */
-#include "SaHpi.h"
+#include <SaHpi.h>
+
 #include "hcd_util.h"
 #include "hisv_msg.h"
 #include "ham_cb.h"

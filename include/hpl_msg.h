@@ -32,7 +32,8 @@
 #define HPL_MSG_H
 
 #include "ncsgl_defs.h"
-#include "SaHpi.h"
+
+#include <SaHpi.h>
 
 /* macros for base MAC addresses for payload blades */
 #define MAX_MAC_ENTRIES          02

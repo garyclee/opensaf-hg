@@ -79,7 +79,8 @@
 #include "dta_papi.h"
 #endif
 
-#include "SaHpi.h"
+#include <SaHpi.h>
+
 #include "hpl.h"
 #include "hpl_api.h"
 #include "hpl_msg.h"
