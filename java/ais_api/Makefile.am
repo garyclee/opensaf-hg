@@ -20,7 +20,8 @@ include $(top_srcdir)/include.mk
 
 nodist_java_DATA = bin/opensaf_ais_api.jar
 
-BUILT_SOURCES = build-jar build-javadoc
+#BUILT_SOURCES = build-jar build-javadoc
+BUILT_SOURCES = build-jar
 
 EXTRA_DIST = \
 	src \

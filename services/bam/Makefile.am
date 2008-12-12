@@ -32,6 +32,7 @@ noinst_LTLIBRARIES = libbam.la
 
 libbam_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
+	@HPI_DEF@ \
 	-DNCS_BAM=1 -DNCS_MAB=1 -DNCS_DTA=1 -DNCS_BAM_LOG=1 \
 	-I $(top_srcdir)/services/bam/inc \
 	-I $(top_srcdir)/services/leap/inc \
