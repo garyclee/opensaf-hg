@@ -423,7 +423,7 @@ fi
 
 %files tools
 %{_bindir}/hisv_events_demo
-%{_bindir}/power_set_main
+%{_bindir}/hisv_power_set_util
 
 %if %{?_with_java:1}%{!?_with_java:0}
 %files java

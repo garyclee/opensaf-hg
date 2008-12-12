@@ -23,7 +23,7 @@ int main(int argc, char*argv[])
    SaEvtCallbacksT	reg_callback_set;
    SaVersionT		ver;
 
-   printf("power_set_main() called...\n");
+   printf("hisv_power_set_util main() called...\n");
 
    /* Initialize the event subsystem for communication with HISv */
    ver.releaseCode = 'B';
