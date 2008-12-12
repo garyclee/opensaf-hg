@@ -39,10 +39,10 @@ libcpsv_subagt_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
 $(SUBAGT_GENERATED_FILES): subagt
 
 subagt:
-	for file in $(SUBAGT_GENERATED_FILES); do \
+	@for file in $(SUBAGT_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
 			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
-			export PATH=$(top_srcdir)/tools/smidump/bin:$$PATH; \
+			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f synncsnetsnmp_new \
 			-d $(top_builddir)/services \

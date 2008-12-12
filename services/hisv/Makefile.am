@@ -39,7 +39,7 @@ noinst_HEADERS = \
 	inc/hsm_cb.h \
 	inc/sim_cb.h
 
-if WITH_HPI
+if ENABLE_HPI
 bin_PROGRAMS = ncs_hisv
 endif
 
