@@ -18,17 +18,19 @@ MAINTAINERCLEANFILES = Makefile.in
 
 
 include $(top_srcdir)/include.mk
-include $(top_srcdir)/rpm.mk
 include $(top_srcdir)/samples/samples.mk
 include $(top_srcdir)/mibs/mibs.mk
 
 
-if WITH_SMIDUMP
+if ENABLE_SMIDUMP
 
 BUILT_SOURCES = build_smidump
 
 build_smidump:
-	$(top_srcdir)/tools/smidump/generate_smidump.sh
+	@if [ ! $(top_srcdir) -ef $(top_builddir) ]; then \
+		cp -R $(top_srcdir)/tools/smidump $(top_builddir)/tools; \
+	fi
+	@$(top_builddir)/tools/smidump/generate_smidump.sh
 
 endif
 
@@ -190,7 +192,7 @@ CONTROLLER_SUBDIRS = \
 
 SUBDIRS = $(BASE_SUBDIRS) $(CONTROLLER_SUBDIRS)
 
-if WITH_JAVA
+if ENABLE_JAVA
 
 SUBDIRS += java
 
@@ -329,12 +331,12 @@ prep-rpm-dir: dist
 	cp $(top_srcdir)/$(PACKAGE_NAME)-$(VERSION).tar.gz $(RPMSOURCEDIR)
 
 srpm: prep-rpm-dir
-	rpmbuild -bs --rmspec --rmsource $(RPM_WITH_OPTIONS_ARGS) \
+	rpmbuild -bs --rmspec --rmsource \
 		--define "_topdir $(RPMTOPDIR)" --define "_tmppath $(RPMTOPDIR)/tmp" \
 		$(RPMSPECDIR)/$(PACKAGE_NAME).spec
 
 rpm: prep-rpm-dir
-	rpmbuild -bb --clean --rmspec --rmsource $(RPM_WITH_OPTIONS_ARGS) \
+	rpmbuild -bb --clean --rmspec --rmsource \
 		--define "_topdir $(RPMTOPDIR)" --define "_tmppath $(RPMTOPDIR)/tmp" \
 		$(RPMSPECDIR)/$(PACKAGE_NAME).spec
 
@@ -364,6 +366,15 @@ uninstall-local:
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
 
 clean-local:
-	rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
-	rm -rf $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
+	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
+	-rm -rf $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
+
+distclean-local:
+	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
+if ENABLE_SMIDUMP
+	@if [ -f $(top_builddir)/tools/smidump/bin/smidump ]; then \
+		-rm -rf $(top_builddir)/tools/smidump/bin; \
+		make -C $(top_builddir)/tools/smidump/src distclean; \
+	fi
+endif
 

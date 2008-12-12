@@ -285,11 +285,11 @@ steps before trying to `configure' (i.e. bootsrapping).
 
 By default `OpenSAF' will assume to following `configure' options:
 
-    --with-smidump
+    --enable-smidump
     --with-hpi
     --with-openhpi
     --with-hpirev=B02
-    --without-java
+    --disable-java
 
 If you wish to alter the default `configure' options see the list from:
 
@@ -297,23 +297,26 @@ If you wish to alter the default `configure' options see the list from:
 
 Use one of the following forms to enable an option:
 
-    --with-<mumble>
-    --with-<mumble>=yes
-    --without-<mumble>=no
+    --with-<mumble>		OR	--enable-<mumble>
+    --with-<mumble>=yes		OR	--enable-<mumble>=yes
+    --without-<mumble>=no	OR	--disable-<mumble>=no
 
 Use one of the following forms to disable an option:
 
-    --without-<mumble>
-    --without-<mumble>=yes
-    --with-<mumble>=no
+    --without-<mumble>		OR	--disable-<mumble>
+    --without-<mumble>=yes	OR	--disable-<mumble>=yes
+    --with-<mumble>=no		OR	--enable-<mumble>=no
 
-By using `./configure --without-smidump', you are disabling initial building
+The `--with-<mumble>' option forms are used for external package support and
+the `--enable-<mumble>' option forms are used for internal component state.
+
+By using `./configure --disable-smidump', you are disabling initial building
 of the customized `smidump' tool contained in the source tree. By default
 the customized `smidump' tool will be built.
 
-By using `./configure --with-hpi', you are enabling global HPI support and
+By using `./configure --enable-hpi', you are enabling global HPI support and
 one HPI implementation is enabled by default (for now OpenHPI). By default
-this option is enabled. If using `./configure --without-hpi', every other HPI
+this option is enabled. If using `./configure --disable-hpi', every other HPI
 configure options are ignored. It's an explicit way to disabling global HPI
 support.
 
@@ -332,7 +335,7 @@ what `SAF HPI' version your HPI implementation is supporting. The possible ARGS
 are: B02, B01, and A01. It has to match your HPI implementation support. By
 default B02 support is enabled.
 
-By using `./configure --with-java', you are enabling the Java AIS mapping
+By using `./configure --enable-java', you are enabling the Java AIS mapping
 support in the build system. Specials M4 macros will be used to autodetect
 what `JDK' and `Ant' program you are using. By default this options is
 disabled.
