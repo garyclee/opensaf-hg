@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-if WITH_HPI
+if ENABLE_HPI
 
 pkglib_LTLIBRARIES = libhisv_logstr.la
 
