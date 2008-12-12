@@ -188,7 +188,8 @@ CONTROLLER_SUBDIRS = \
 	services/ifsv/entp_ifsv_ir_snmp_integ \
 	services/rde/rda \
 	tools/pdrbd \
-	services
+	services \
+	tools/hisv 
 
 SUBDIRS = $(BASE_SUBDIRS) $(CONTROLLER_SUBDIRS)
 

@@ -31,9 +31,10 @@
 #ifndef HPL_API_H
 #define HPL_API_H
 
+#include <SaHpi.h> 
+
 #include "ncsgl_defs.h"
 #include "ncs_lib.h"
-#include "SaHpi.h" 
 #include "hpl_msg.h"
 
 /* HPL command arguments */

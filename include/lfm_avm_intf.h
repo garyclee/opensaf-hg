@@ -39,7 +39,9 @@
 #include "ncsgl_defs.h"
 
 #include "ncs_svd.h"
-#include "SaHpi.h"
+
+#include <SaHpi.h>
+
 #include "mds_papi.h"
 #include "ncs_ubaid.h"
 
