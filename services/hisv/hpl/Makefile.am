@@ -20,6 +20,7 @@ lib_LTLIBRARIES = libhpl.la
 
 libhpl_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
+	@HPI_DEF@ \
 	-I $(top_srcdir)/services/hisv/inc \
 	-I $(top_srcdir)/services/leap/inc \
 	-I $(top_srcdir)/services/mds/inc \
