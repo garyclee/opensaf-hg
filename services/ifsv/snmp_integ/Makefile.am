@@ -34,19 +34,21 @@ libifsv_subagt_la_CPPFLAGS = \
 
 nodist_libifsv_subagt_la_SOURCES = $(SUBAGT_GENERATED_FILES)
 
-#libifsv_subagt_la_DEPENDENCIES = $(SUBAGT_GENERATED_FILES)
-
 libifsv_subagt_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
 
 $(SUBAGT_GENERATED_FILES): subagt
 
 subagt:
-	@(export SMIPATH=$(top_srcdir)/mibs:@MIBSDIR@; \
-		export PATH=$(top_srcdir)/tools/smidump/bin:$$PATH; \
-		smidump -R $(top_srcdir)/OpenSAFCopyRights \
-		-f synncsnetsnmp_new \
-		-d $(top_builddir)/services \
-		-o ifsv IFMIB;)
+	@for file in $(SUBAGT_GENERATED_FILES); do \
+		if [ ! -f $$file ]; then \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
+			smidump -R $(top_srcdir)/OpenSAFCopyRights \
+			-f synncsnetsnmp_new \
+			-d $(top_builddir)/services \
+			-o ifsv IFMIB; \
+		fi \
+	done
 
 CLEANFILES = \
 	$(SUBAGT_GENERATED_FILES) \

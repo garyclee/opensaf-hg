@@ -48,10 +48,10 @@ libava_la_SOURCES = \
 $(MAPI_GENERATED_FILES): mapi
 
 mapi:
-	for file in $(MAPI_GENERATED_FILES); do \
+	@for file in $(MAPI_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
 			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
-			export PATH=$(top_srcdir)/tools/smidump/bin:$$PATH; \
+			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \

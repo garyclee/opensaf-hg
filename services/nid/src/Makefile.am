@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+MAINTAINERCLEANFILES = Makefile.in
+
 bin_PROGRAMS = ncs_nid
 
 ncs_nid_CPPFLAGS= \
