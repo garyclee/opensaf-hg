@@ -242,8 +242,8 @@ Prerequisites
 The following software is required to build `OpenSAF':
 
     * The Linux Kernel with TIPC development support
-    * Xerces-C++ XML Parser
-    * Net-SNMP
+    * Xerces-C++ XML Parser 2.7.0+
+    * Net-SNMP 5.4+
     * An HPI implementation (e.g. OpenHPI)
     * Libxml2
     * automake
@@ -255,7 +255,7 @@ The following software is required to build `OpenSAF':
     * GNU make
 
     If enabling optional state replication:
-        - DRBD
+        - DRBD 8.x.x
 
     If enabling optional Java support:
         - A Java 1.5+ capable JDK (e.g. OpenJDK 1.6)
@@ -361,7 +361,7 @@ process. You can find the generated RPMS under `./rpms/RPMS/<build_arch>/':
 Depending on what configure options you used, you should have the generated
 the following RPMS:
 
-    opensaf-<version>.<build_arch>.rpm
+    opensaf-common-<version>.<build_arch>.rpm
     opensaf-controller-<version>.<build_arch>.rpm
     opensaf-debuginfo-<version>.<build_arch>.rpm
     opensaf-devel-<version>.<build_arch>.rpm
@@ -370,7 +370,7 @@ the following RPMS:
     opensaf-payload-<version>.<build_arch>.rpm
     opensaf-samples-<version>.<build_arch>.rpm
 
-opensaf: Contains the common configuration files, docs, and scripts.
+opensaf-common: Contains the common configuration files, docs, and scripts.
 
 opensaf-controller: Contains the controller specific binaries and libs.
 
@@ -405,22 +405,24 @@ places internal libs in the `$pkglibdir' (e.g. /usr/lib/opensaf/). This ldconfig
 operation is handled automatically by using rpm installation.
 
 By default `make install' will install pre-configured for a controller node.
-The only file that needs to be changed for a payload is the `nodeinit.conf':
+The only files that need to be changed for a payload is the `nodeinit.conf' and
+the `slot_id' (a slot_id of 3 or higher will give you a payload node):
 
     % cd $pkgsysconfdir (e.g. /etc/opensaf/)
-    % ln -f nodeinit.conf.payload nodeinit.conf
+    % ln -sf nodeinit.conf.payload nodeinit.conf
+    % echo 3 > $pkgsysconfdir/slot_id
 
-In production systems, RPMS should be prefered to classic `make install`.
+In production systems, RPMS should be preferred to classic `make install`.
 
 To setup a controller, install the following RPMS:
 
-    % rpm -ivh opensaf-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-controller-<version>.<build_arch>.rpm
 
 To setup a payload, install the following RPMS:
 
-    % rpm -ivh opensaf-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-payload-<version>.<build_arch>.rpm
 
@@ -537,7 +539,7 @@ Building `OpenSAF' Samples
 The sources of the `OpenSAF' sample applications will get installed in
 `$pkgdatadir/samples' (e.g. /usr/share/opensaf/samples/).
 
-Each sample application has its own `Makefile', independant from the `OpenSAF'
+Each sample application has its own `Makefile', independent from the `OpenSAF'
 build system. To build one, simply make sure you have write access or make a
 copy of the source somewhere else:
 
@@ -569,13 +571,14 @@ More TODO
 Linux Distro-Specific Notes
 ===========================
 
-`OpenSAF' is known to run on the following Linux installatons:
+`OpenSAF' is known to run on the following Linux installations:
 
     * Red Hat Enterprise Linux 4 (RHEL4)
-    * Red Hat Enterprise Linux 5 (RHEL5)
+    * Red Hat Enterprise Linux 5.2 (RHEL5)
+    * Wind River Platform for Network Equipment, Linux Edition (PNE-LE)
     * MontaVista Carrier Grade Edition 4.0
     * Fedora Core 9
-    * Mumble Linux
+    * SUSE Linux Enterprise 10 SP2
     * ...
 
 More TODO
