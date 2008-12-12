@@ -286,7 +286,7 @@ steps before trying to `configure' (i.e. bootsrapping).
 By default `OpenSAF' will assume to following `configure' options:
 
     --enable-smidump
-    --with-hpi
+    --enable-hpi
     --with-openhpi
     --with-hpirev=B02
     --disable-java
