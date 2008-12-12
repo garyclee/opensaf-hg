@@ -140,10 +140,10 @@ endif
 $(MIBLIB_GENERATED_FILES): miblib
 
 miblib:
-	for file in $(MIBLIB_GENERATED_FILES); do \
+	@for file in $(MIBLIB_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
 			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
-			export PATH=$(top_srcdir)/tools/smidump/bin:$$PATH; \
+			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
