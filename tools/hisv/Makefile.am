@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = hisv_events_demo power_set_main
+bin_PROGRAMS = hisv_events_demo hisv_power_set_util
 
 hisv_events_demo_CPPFLAGS= \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -49,7 +49,7 @@ hisv_events_demo_LDADD = \
 	$(top_builddir)/services/hisv/hpl/libhpl.la
 
 
-power_set_main_CPPFLAGS= \
+hisv_power_set_util_CPPFLAGS= \
 	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_SAF=1 \
 	-I $(top_srcdir)/services/hisv/inc \
@@ -61,12 +61,12 @@ power_set_main_CPPFLAGS= \
 	-I $(top_srcdir)/services/mab/inc \
 	-I $(top_srcdir)/include
 
-power_set_main_CFLAGS = @HPI_CFLAGS@
+hisv_power_set_util_CFLAGS = @HPI_CFLAGS@
 
-power_set_main_SOURCES = \
-	power_set_main.c
+hisv_power_set_util_SOURCES = \
+	hisv_power_set_util.c
 
-power_set_main_LDADD = \
+hisv_power_set_util_LDADD = \
 	@HPI_LIBS@ \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \

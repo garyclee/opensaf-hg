@@ -148,9 +148,10 @@ typedef enum hpl_d_type
    LOOKUP
 } HPL_D_TYPE;
 
-#define HPL_EPATH_FLAG_FULLSTR 0
-#define HPL_EPATH_FLAG_NUMSTR  1
-#define HPL_EPATH_FLAG_ARRAY   2
+#define HPL_EPATH_FLAG_FULLSTR		0
+#define HPL_EPATH_FLAG_NUMSTR		1
+#define HPL_EPATH_FLAG_ARRAY		2
+#define HPL_EPATH_FLAG_SHORTSTR		3
 
 /* struct for transfering lookup locations */
 typedef struct hpl_payload
