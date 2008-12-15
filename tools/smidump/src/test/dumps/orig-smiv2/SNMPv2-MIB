@@ -1,0 +1,35 @@
+0a1
+> 
+329,331c330,333
+< INTEGER
+< INTEGER
+< INTEGER,
+---
+> Integer32
+> Integer32
+> Integer32,
+> Integer32,
+387c389
+< NOTIFICATION-GROUP
+---
+> NOTIFICATION-GROUP,
+412c414
+< OBJECT-GROUP,
+---
+> OBJECT-GROUP
+471c473
+< SNMPv2-CONF;
+---
+> SNMPv2-CONF
+474c476
+< SNMPv2-TC
+---
+> SNMPv2-TC;
+634c636
+< mib-2
+---
+> mib-2,
+797c799
+< snmpModules,
+---
+> snmpModules
