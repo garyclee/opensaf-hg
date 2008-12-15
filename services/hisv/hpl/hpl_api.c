@@ -1369,9 +1369,10 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
  *                 Check return value for success or failure of the call.
  *                 Check return string length for zero and non-zero to see
  *                 if lookup found a match.
- *                 flag is set to 0 - return full string format entity path.
+ *                 flag is set to 0 - return full string (SAHPI_ENT_SYSTEM_CHASSIS) format entity path.
  *                 flag is set to 1 - return numeric string format entity path.
  *                 flag is set to 2 - return array-based format entity path.
+ *                 flag is set to 3 - return short string (SYSTEM_CHASSIS) format entity path.
  *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
