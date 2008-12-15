@@ -425,6 +425,13 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/pdrbdctrl
                  scripts/rde_script
                  scripts/tipc_reset.sh
+                 pkgconfig/opensaf-amf.pc
+                 pkgconfig/opensaf-ckpt.pc
+                 pkgconfig/opensaf-clm.pc
+                 pkgconfig/opensaf-evt.pc
+                 pkgconfig/opensaf-lck.pc
+                 pkgconfig/opensaf-log.pc
+                 pkgconfig/opensaf-msg.pc
                  java/Makefile
                  java/ais_api/Makefile
                  java/ais_api_impl/Makefile
@@ -542,7 +549,7 @@ AC_CONFIG_FILES([opensaf.spec
                  services/vds/logstr/Makefile
                  services/vds/vda/Makefile
                  services/vds/vds/Makefile
-		 tools/hisv/Makefile
+                 tools/hisv/Makefile
                  tools/pdrbd/Makefile
                  tools/pdrbd/logstr/Makefile
                  tools/pdrbd/src/Makefile])

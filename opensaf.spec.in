@@ -420,6 +420,7 @@ fi
 
 %files devel
 %defattr(-,root,root)
+%{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.so
 %{_libdir}/%{name}/*.so
 %{_libdir}/*.a

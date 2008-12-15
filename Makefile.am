@@ -325,6 +325,10 @@ update-ldconfig:
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 
+update-pkgconfig:
+	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
+
 prep-rpm-dir: dist
 	mkdir -p $(RPMTOPDIR)
 	mkdir -p $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
@@ -341,7 +345,7 @@ rpm: prep-rpm-dir
 		--define "_topdir $(RPMTOPDIR)" --define "_tmppath $(RPMTOPDIR)/tmp" \
 		$(RPMSPECDIR)/$(PACKAGE_NAME).spec
 
-install-data-local: update-ldconfig
+install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
@@ -365,6 +369,7 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
+	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
@@ -374,7 +379,7 @@ distclean-local:
 	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
 if ENABLE_SMIDUMP
 	@if [ -f $(top_builddir)/tools/smidump/bin/smidump ]; then \
-		-rm -rf $(top_builddir)/tools/smidump/bin; \
+		rm -rf $(top_builddir)/tools/smidump/bin; \
 		make -C $(top_builddir)/tools/smidump/src distclean; \
 	fi
 endif
