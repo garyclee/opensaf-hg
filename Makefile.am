@@ -14,7 +14,9 @@
 # Author(s): Wind River Systems
 #
 
-MAINTAINERCLEANFILES = Makefile.in
+MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.h.in config.sub \
+                       configure depcomp install-sh ltmain.sh missing \
+                       Makefile.in
 
 
 include $(top_srcdir)/include.mk
