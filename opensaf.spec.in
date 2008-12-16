@@ -40,20 +40,13 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # distro specific check
 %if %is_rhel || %is_fedora
 BuildRequires: net-snmp-devel xerces-c-devel
-Requires: net-snmp xerces-c
-#%if %is_java
-#BuildRequires: java-1.6.0-openjdk-devel ant
-#Requires: java-1.6.0-openjdk-devel
-#%endif
-#%if %is_openhpi
-#BuildRequires: openhpi-devel pkgconfig
-#Requires: openhpi
-#%endif
+%if %is_openhpi
+BuildRequires: openhpi-devel pkgconfig
 %endif
-
-Requires(post): /sbin/chkconfig /sbin/service /sbin/ldconfig
-Requires(preun): /sbin/chkconfig /sbin/service
-Requires(postun): /sbin/ldconfig
+%if %is_java
+#BuildRequires: java-1.6.0-openjdk-devel ant
+%endif
+%endif
 
 
 %description
@@ -70,30 +63,49 @@ Foundation was founded on January 22nd 2008 with Emerson Network Power,
 Ericsson, Nokia Siemens Networks, HP and Sun Microsystems as founding members.
 
 
+%package common
+Group: System Environment/Base
+Summary: The common components to run an OpenSAF Controller or Payload node
+Requires: /sbin/chkconfig /sbin/service
+
+%if %is_rhel || %is_fedora
+Requires: net-snmp xerces-c
+%if %is_openhpi
+Requires: openhpi
+%endif
+%endif
+
+%description common
+
+
 %package controller
 Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF System Controller node
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
 Conflicts: %{name}-payload
 
 %description controller
 
+
 %package payload
 Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF Payload node
-Requires: %{name} = %{version}-%{release}
+Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
 Conflicts: %{name}-controller
 
 %description payload
 
+
 %package libs
 Group: System Environment/Libraries
 Summary: The OpenSAF common runtime libraries
+Requires: /sbin/ldconfig
 Obsoletes: %{name}-libs < %{version}-%{release}
 
 %description libs
+
 
 %package devel
 Group: Development/Libraries
@@ -103,6 +115,7 @@ Requires: %{name}-libs = %{version}-%{release}
 %description devel
 The development libraries and header files for the OpenSAF project.
 
+
 %package samples
 Group: Applications/System
 Summary: Small sample applications to demonstrate OpenSAF functionalities
@@ -111,20 +124,32 @@ Requires: %{name}-devel = %{version}-%{release}
 %description samples
 Small sample applications to demonstrate OpenSAF functionalities
 
+
 %if %is_java
 %package java
 Group: Development/Libraries
 Summary: The Java AIS interface mapping for AMF and CLM
 Requires: %{name}-libs = %{version}-%{release}
 
+%if %is_rhel || %is_fedora
+#Requires: java-1.6.0-openjdk-devel
+%endif
+
 %description java
 The Java AIS interface mapping for AMF and CLM
 %endif
+
 
 %package tools
 Group: Applications/System
 Summary: Optional tools for OpenSAF
 Requires: %{name}-devel = %{version}-%{release}
+
+%if %is_rhel || %is_fedora
+%if %is_openhpi
+Requires: openhpi
+%endif
+%endif
 
 %description tools
 Optional miscellaneous tools and utilities for use with OpenSAF
@@ -154,7 +179,18 @@ Optional miscellaneous tools and utilities for use with OpenSAF
 %{__rm} -rf $RPM_BUILD_ROOT
 
 
-%post
+%pre -p <lua>
+print("")
+print("---------------------------------------------------------------------")
+print("* MESSAGE:                                                          *")
+print("* Depending on the node type you are trying to configure:           *")
+print("* Install the 'opensaf-controller' or the 'opensaf-payload' package *")
+print("---------------------------------------------------------------------")
+print("")
+os.exit("-1")
+
+
+%post common
 # If we're being upgraded
 if [ "$1" = "2" ]; then
    /sbin/service opensafd condrestart >/dev/null 2>&1 || :
@@ -175,7 +211,7 @@ fi
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
 
 
-%preun
+%preun common
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
     /sbin/service opensafd stop >/dev/null 2>&1 || :
@@ -195,6 +231,10 @@ fi
 
 
 %files
+%defattr(-,root,root)
+
+
+%files common
 %defattr(-,root,root)
 %doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
 %doc README README.uml README.conf
@@ -334,6 +374,7 @@ fi
 %{_localstatedir}/lib/%{name}/node_ha_state
 %{_localstatedir}/lib/%{name}/pssv_spcn_list
 
+
 %files payload
 %defattr(-,root,root)
 %{_bindir}/ncs_cpnd
@@ -349,6 +390,7 @@ fi
 %{_bindir}/ncs_pcap_start
 %{_bindir}/collect_logs_payload
 %{_sysconfdir}/%{name}/nodeinit.conf.payload
+
 
 %files libs
 %defattr(-,root,root)
@@ -418,6 +460,7 @@ fi
 %{_libdir}/%{name}/libsubagt_logstr.so.*
 %{_libdir}/%{name}/libvds_logstr.so.*
 
+
 %files devel
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/*.pc
@@ -428,15 +471,20 @@ fi
 # TODO split of SAF / non-SAF headers
 %{_includedir}/*
 
+
 %files samples
 %defattr(-,root,root)
 %doc README.samples
 %dir %{_datadir}/%{name}/samples
 %{_datadir}/%{name}/samples/*
 
+
 %files tools
+%if %is_hpi
 %{_bindir}/hisv_events_demo
 %{_bindir}/hisv_power_set_util
+%endif
+
 
 %if %is_java
 %files java
