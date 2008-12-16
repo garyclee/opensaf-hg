@@ -514,6 +514,48 @@ Recent GDB versions know how to automatically load the debuginfo from that
 location and perform source code tracing (breakpoints at func() etc.).
 
 
+Linking with `OpenSAF' AIS Services
+===================================
+
+Due to the historical origins of the internal of `OpenSAF', there is not a
+direct one to one mapping of the `OpenSAF' shared libraries and the SA Forum AIS
+shared libraries.
+
+For instance, `libSaAmf.so' from `OpenSAF', while providing the API to AMF,
+still relies on some "internal" `OpenSAF' libraries to provide full linking
+support to the application developer who wish to use AMF.
+
+To make the developer's life easier, `OpenSAF' provides `pkgconfig' files for
+each AIS services. Those files are installed with the other system `*.pc' files
+in `$(libdir)/pkgconfig':
+
+   * opensaf-amf.pc
+   * opensaf-ckpt.pc
+   * opensaf-clm.pc
+   * opensaf-evt.pc
+   * opensaf-lck.pc
+   * opensaf-log.pc
+   * opensaf-msg.pc
+
+There is two easy ways to use `pkgconfig'. The first one is to call it directly
+from a `Makefile' and assign its content to make variables e.g.:
+
+   AMF_LIBS=`pkg-config opensaf-amf --libs`
+   AMF_CFLAGS=`pkg-config opensaf-amf --cflags`
+
+Or if your application is using the `GNU Build System' with `autotools', you can
+use a special `autoconf' macro provided by `pkgconfig' e.g.:
+
+   -- in configure.ac --
+   PKG_CHECK_MODULES(AMF, opensaf-amf)
+
+It will then provides two special variables available to `automake':
+
+   -- in Makefile.am --
+   mumble_CFLAGS = @AMF_CFLAGS@
+   mumble_LDADD = @AMF_LIBS@
+
+
 How to Configure `OpenSAF'
 ==========================
 
