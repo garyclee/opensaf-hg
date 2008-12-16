@@ -297,7 +297,7 @@ If you wish to alter the default `configure' options see the list from:
 
 Use one of the following forms to enable an option:
 
-    --with-<mumble>		OR	--enable-<mumble>
+    --with-<mumble>        OR --enable-<mumble>
     --with-<mumble>=yes		OR	--enable-<mumble>=yes
     --without-<mumble>=no	OR	--disable-<mumble>=no
 
@@ -362,6 +362,7 @@ Depending on what configure options you used, you should have the generated
 the following RPMS:
 
     opensaf-<version>.<build_arch>.rpm
+    opensaf-common-<version>.<build_arch>.rpm
     opensaf-controller-<version>.<build_arch>.rpm
     opensaf-debuginfo-<version>.<build_arch>.rpm
     opensaf-devel-<version>.<build_arch>.rpm
@@ -369,22 +370,45 @@ the following RPMS:
     opensaf-libs-<version>.<build_arch>.rpm
     opensaf-payload-<version>.<build_arch>.rpm
     opensaf-samples-<version>.<build_arch>.rpm
+    opensaf-tools-<version>.<build_arch>.rpm
 
-opensaf: Contains the common configuration files, docs, and scripts.
+opensaf: (Virtual)
+Virtual package that prints out the basic installation usage.
 
-opensaf-controller: Contains the controller specific binaries and libs.
+    % rpm -ivh opensaf-3.0.0.B2-1.fc9.x86_64.rpm
 
-opensaf-debuginfo: Contains the debug information unstripped.
+      ---------------------------------------------------------------------
+      * MESSAGE:                                                          *
+      * Depending on the node type you are trying to configure:           *
+      * Install the 'opensaf-controller' or the 'opensaf-payload' package *
+      ---------------------------------------------------------------------
 
-opensaf-devel: Contains the development headers and shared libs.
+opensaf-common: (Required)
+Contains the common configuration files, docs, and scripts.
 
-opensaf-java: Contains the Java AIS mapping jars and native libs.
+opensaf-controller: (Mutually exclusive)
+Contains the controller specific binaries and libs.
 
-opensaf-libs: Contains the common shared libs.
+opensaf-debuginfo: (Optional)
+Contains the debug information unstripped.
 
-opensaf-payload: Contains the payload specific binaries and libs.
+opensaf-devel: (Optional)
+Contains the development headers and static & shared libs.
 
-opensaf-samples: Contains the sample applications source code.
+opensaf-java: (Optional)
+Contains the Java AIS mapping jars and native libs.
+
+opensaf-libs: (Required)
+Contains the common shared libs.
+
+opensaf-payload: (Mutually exclusive)
+Contains the payload specific binaries and libs.
+
+opensaf-samples: (Optional)
+Contains the sample applications source code.
+
+opensaf-tools: (Optional)
+Contains samples and tools that relies on OpenSAF internals.
 
 
 Installing `OpenSAF'
@@ -416,13 +440,13 @@ In production systems, RPMS should be preferred to classic `make install`.
 
 To setup a controller, install the following RPMS:
 
-    % rpm -ivh opensaf<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-controller-<version>.<build_arch>.rpm
 
 To setup a payload, install the following RPMS:
 
-    % rpm -ivh opensaf<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-common-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-payload-<version>.<build_arch>.rpm
 
@@ -436,6 +460,15 @@ To setup a development environment, install following RPMS:
 If Java AIS mapping was enabled, install the following RPM:
 
     % rpm -ivh opensaf-java-<version>.<build_arch>.rpm
+
+If you are installing `OpenSAF' from a supported `yum' server, it will resolve
+the proper dependencies for you:
+
+    % yum install opensaf-controller
+
+    OR
+
+    % yum install opensaf-payload
 
 Here is where individual `OpenSAF' components get installed:
 
