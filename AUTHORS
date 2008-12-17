@@ -1,0 +1,84 @@
+Technical Leadership Council (TLC) Members
+==========================================
+
+Technical Co-Chair:
+    Mario Angelic       <mario.angelic@ericsson.com>
+    Jonas Arndt         <jonas.arndt@hp.com>
+
+OpenSAF Technical Evangelist:
+    Sayandeb Saha       <sayandeb.saha@emerson.com>
+
+    Jonathan Fournier   <jonathan.fournier@windriver.com>
+    Richar Zhang        <zx5337@huawei.com>
+    Ulrich Kleber       <ulrich.kleber@nsn.com>
+    Joe Kidder          <joe.kidder@enea.com>
+
+
+Release Manager
+===============
+
+Release 2:
+Release 3:
+    Steve Constant      <steve.constant@hp.com>
+
+
+Module Owners
+=============
+
+Architecture:
+    Murthy Esaknou      <murthy.esakonu@emerson.com>
+
+Build Environment:
+    Jonathan Fournier   <jonathan.fournier@windriver.com>
+    Troy Heber          <troy.heber@hp.com>
+    Vishal Soni         <vishal.soni@emerson.com>
+
+Test Infrastucture:
+    Mahesh Alla         <mahesh.alla@emerson.com>
+
+User Mode Linux Infrastructure:
+    Hans Feldt          <hans.feldt@ericsson.com>
+
+Sample applications:
+    Mahesh Alla         <mahesh.alla@emerson.com>
+
+Documentation:
+    ???
+
+LEAP:
+SRMSv:
+MBCSv:
+DTSv:
+    Ramesh Betham       <ramesh.betham@emerson.com>
+
+SNMP SubAgent:
+PSSv:
+MASv:
+EDSv:
+    Mathivanan NP       <mathivanan.np@emerson.com>
+
+HiSv:
+    Mathivanan NP       <mathivanan.np@emerson.com>
+    Michael Bishop      <michael.bishop@hp.com>
+
+AvSv:
+    Nagendra Kumar      <nagendra.kumar@emerson.com>
+    Hans Feldt          <hans.feldt@ericsson.com>
+
+AvM:
+    Nagendra Kumar      <nagendra.kumar@emerson.com>
+
+MDS:
+VDS:
+    Vishal Soni         <vishal.soni@emerson.com>
+
+CPSv:
+    Mahesh Alla         <mahesh.alla@emerson.com>
+
+LOGSv:
+RDE:
+    Hans Feldt          <hans.feldt@ericsson.com>
+
+Java AIS Mapping:
+    József Biro         <jozsef.biro@nsn.com>
+

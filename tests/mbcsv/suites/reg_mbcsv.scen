@@ -1,0 +1,6 @@
+all
+        "Starting the api execution..."
+        :parallel:
+         /reg_mbcsv.sh
+        :endparallel:
+        "Completed"
