@@ -16,8 +16,6 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-if ENABLE_HPI
-
 pkglib_LTLIBRARIES = libhisv_logstr.la
 
 libhisv_logstr_la_CPPFLAGS = \
@@ -35,5 +33,3 @@ libhisv_logstr_la_SOURCES = \
 	hcd_logstr.c
 
 libhisv_logstr_la_LDFLAGS = -version-number 2
-
-endif

@@ -16,7 +16,15 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+if ENABLE_HPI
+
 CONTROLLER_SUBDIRS = hcd hpl logstr
+
+else
+
+CONTROLLER_SUBDIRS = hpl
+
+endif
 
 SUBDIRS = $(CONTROLLER_SUBDIRS)
 
@@ -40,7 +48,9 @@ noinst_HEADERS = \
 	inc/sim_cb.h
 
 if ENABLE_HPI
+
 bin_PROGRAMS = ncs_hisv
+
 endif
 
 ncs_hisv_CPPFLAGS= \

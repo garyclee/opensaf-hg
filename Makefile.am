@@ -190,8 +190,7 @@ CONTROLLER_SUBDIRS = \
 	services/ifsv/entp_ifsv_ir_snmp_integ \
 	services/rde/rda \
 	tools/pdrbd \
-	services \
-	tools/hisv 
+	services
 
 SUBDIRS = $(BASE_SUBDIRS) $(CONTROLLER_SUBDIRS)
 
@@ -201,6 +200,11 @@ SUBDIRS += java
 
 endif
 
+if ENABLE_HPI
+
+SUBDIRS += tools/hisv
+
+endif
 
 common_sysconf = \
 	$(top_srcdir)/config/chassis_id \
@@ -250,13 +254,16 @@ dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/ncs_drbd_r0_clean \
 	$(top_srcdir)/scripts/ncs_gld_clean \
 	$(top_srcdir)/scripts/ncs_glnd_clean \
-	$(top_srcdir)/scripts/ncs_hisv_clean \
 	$(top_srcdir)/scripts/ncs_mqd_clean \
 	$(top_srcdir)/scripts/ncs_mqnd_clean \
 	$(top_srcdir)/scripts/ncs_srmnd_clean \
 	$(top_srcdir)/scripts/ncs_vds_clean \
 	$(top_srcdir)/scripts/opensaf_mem_dump_tool \
 	$(top_srcdir)/scripts/pdrbdsts
+
+if ENABLE_HPI
+dist_bin_SCRIPTS += $(top_srcdir)/scripts/ncs_hisv_clean
+endif
 
 nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \
@@ -275,7 +282,6 @@ nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_eds_start \
 	$(top_builddir)/scripts/ncs_gld_start \
 	$(top_builddir)/scripts/ncs_glnd_start \
-	$(top_builddir)/scripts/ncs_hisv_start \
 	$(top_builddir)/scripts/ncs_ifd_clean \
 	$(top_builddir)/scripts/ncs_ifd_start \
 	$(top_builddir)/scripts/ncs_ifnd_clean \
@@ -301,14 +307,23 @@ nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/nid_tipc \
 	$(top_builddir)/scripts/nis_snmpd_clean \
 	$(top_builddir)/scripts/nis_snmpd_start \
-	$(top_builddir)/scripts/openhpid_clean \
-	$(top_builddir)/scripts/openhpid_start \
-	$(top_builddir)/scripts/openhpisubagt_clean \
-	$(top_builddir)/scripts/openhpisubagt_start \
 	$(top_builddir)/scripts/opensaf_lgs \
 	$(top_builddir)/scripts/pdrbdctrl \
 	$(top_builddir)/scripts/rde_script \
 	$(top_builddir)/scripts/tipc_reset.sh
+
+if ENABLE_HPI
+nodist_bin_SCRIPTS += $(top_builddir)/scripts/ncs_hisv_start
+endif
+
+if WITH_OPENHPI
+nodist_bin_SCRIPTS += \
+	$(top_builddir)/scripts/openhpid_clean \
+	$(top_builddir)/scripts/openhpid_start \
+	$(top_builddir)/scripts/openhpisubagt_clean \
+	$(top_builddir)/scripts/openhpisubagt_start
+endif
+
 
 EXTRA_DIST = \
 	$(top_srcdir)/initd/opensafd.initd \

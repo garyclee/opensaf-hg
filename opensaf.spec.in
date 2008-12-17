@@ -162,7 +162,7 @@ Optional miscellaneous tools and utilities for use with OpenSAF
 %build
 %configure @ac_configure_args@
 
-%{__make} %{_smp_mflags} DESTDIR=$RPM_BUILD_ROOT
+%{__make} %{_smp_mflags}
 
 
 %install
@@ -274,8 +274,10 @@ fi
 %{_bindir}/ncs_gld_start
 %{_bindir}/ncs_glnd_clean
 %{_bindir}/ncs_glnd_start
+%if %is_hpi
 %{_bindir}/ncs_hisv_clean
 %{_bindir}/ncs_hisv_start
+%endif
 %{_bindir}/ncs_ifd_clean
 %{_bindir}/ncs_ifd_start
 %{_bindir}/ncs_ifnd_clean
@@ -302,6 +304,7 @@ fi
 %{_bindir}/nid_tipc
 %{_bindir}/nis_snmpd_clean
 %{_bindir}/nis_snmpd_start
+%if %is_openhpi
 # TODO Still needed?
 %{_bindir}/openhpid_clean
 # TODO Still needed?
@@ -310,6 +313,7 @@ fi
 %{_bindir}/openhpisubagt_clean
 # TODO Still needed?
 %{_bindir}/openhpisubagt_start
+%endif
 %{_bindir}/opensaf_lgs
 %{_bindir}/opensaf_mem_dump_tool
 %{_bindir}/pdrbdctrl
