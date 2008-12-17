@@ -316,7 +316,7 @@ static int log_file_open(log_stream_t *stream)
             lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
 
     fd = open(pathname,
-              O_CREAT|O_RDWR|O_SYNC|O_APPEND,
+              O_CREAT|O_RDWR|O_APPEND,
               S_IRUSR|S_IWUSR|S_IRGRP);
 
     if (fd == -1)
