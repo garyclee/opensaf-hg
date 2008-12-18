@@ -285,7 +285,7 @@ case "$1" in
         echo "."
         ;;
   status)
-        if [ ! -f "$PIDFILE" ]; then
+        if [ ! -f "$NIDPIDFILE" ]; then
             echo "OpenSAF is stopped."
         else 
            cat "$NODE_HA_STATE"
