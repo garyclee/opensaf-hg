@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -39,7 +39,7 @@
 #define MAX_HA_STATE 4 
 
 /*Component file name path */ 
-#define m_EDS_COMP_NAME_FILE LOCALSTATEDIR "ncs_eds_comp_name"
+#define m_EDS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_eds_comp_name"
 #define EDS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 /*eds.pid file name path */

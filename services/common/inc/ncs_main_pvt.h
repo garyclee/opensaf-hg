@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -46,7 +46,7 @@
 #define MAX_NCS_CONFIG_FILEPATH_LEN \
    (MAX_NCS_CONFIG_ROOTDIR_LEN + MAX_NCS_CONFIG_FILENAME_LEN)
 
-#define NCS_DEF_CONFIG_FILEPATH  SYSCONFDIR
+#define NCS_DEF_CONFIG_FILEPATH  OSAF_SYSCONFDIR
 
 typedef struct ncs_sys_params
 {

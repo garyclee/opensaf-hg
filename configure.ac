@@ -130,14 +130,8 @@ fi
 
 AC_SUBST(MOT_ATCA_STR)
 
-#############################################
-# Get the system path information
-#
-# If the user specifies a path, update the 
-# script configuration file as well as defining
-# the path in config.h a macro for use in source
-# code.
-#############################################
+# unless explicitly set, drop previx from sysconfdir
+# and localstatedir
 
 if test "$sysconfdir" = '${prefix}/etc' ; then
   if test "$prefix" = 'NONE' ; then
@@ -149,12 +143,6 @@ fi
 
 AC_SUBST(sysconfdir)
 
-SYSCONFDIR="$sysconfdir/$PACKAGE_NAME"
-SYSCONFDIR="${SYSCONFDIR/%\//}"
-
-SYSCONFDIR="$SYSCONFDIR/"
-AC_DEFINE_UNQUOTED([SYSCONFDIR], ["$SYSCONFDIR"], [Directory containing system wide OpenSAF configuration files])
-
 if test "$localstatedir" = '${prefix}/var' ; then
   if test "$prefix" = 'NONE' ; then
     localstatedir="/var"
@@ -164,19 +152,6 @@ if test "$localstatedir" = '${prefix}/var' ; then
 fi
 
 AC_SUBST(localstatedir)
-
-LOCALSTATEDIR="$localstatedir/lib/$PACKAGE_NAME"
-LOCALSTATEDIR="${LOCALSTATEDIR/%\//}"
-LOCALSTATEDIR="$LOCALSTATEDIR/"
-AC_DEFINE_UNQUOTED([LOCALSTATEDIR], ["$LOCALSTATEDIR"], [Directory containing the system wide OpenSAF configuration files])
-
-AC_SUBST(pidpath)
-pidpath="$localstatedir/run/$PACKAGE_NAME"
-pidpath="${pidpath/%\//}"
-PIDPATH="$pidpath/"
-AC_DEFINE_UNQUOTED([PIDPATH], ["$PIDPATH"], [Directory containing the OpenSAF pid files])
-
-
 
 #############################################
 # Get input for debug/nondebug build

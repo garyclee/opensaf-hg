@@ -26,7 +26,7 @@ DESCRIPTION:
 This include file contains SE api instrumentation for EDS
           
 *******************************************************************************/
-#include <config.h>
+#include <configmake.h>
 #include "eds.h"
 
 /* global cb handle */

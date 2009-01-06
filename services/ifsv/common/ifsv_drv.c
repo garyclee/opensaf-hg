@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
   FILE NAME: IFSV_DRV.C
@@ -2044,7 +2044,7 @@ uns32 ifsv_drv_edp_idim_hw_rcv_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Name          : ifsv_drv_scope_update
  *
  * Description   : This is the function which is used to pick the Subscription
- *                 Scope from Configuration file in SYSCONFDIR/ncs_ifsv_drv_conf.
+ *                 Scope from Configuration file in OSAF_SYSCONFDIR/ncs_ifsv_drv_conf.
  *
  * Return Value  : Returns  NCS_IFSV_SUBSCR_EXT/NCS_IFSV_SUBSCR_INT
  *
@@ -2057,10 +2057,10 @@ NCS_IFSV_SUBSCR_SCOPE  ifsv_drv_scope_update(uns8 *name)
    uns8 pres_word[10]={'\0'};
    uns32 rc = NCSCC_RC_SUCCESS; 
 
-   fp = fopen(SYSCONFDIR "ncs_ifsv_drv_conf","r");
+   fp = fopen(OSAF_SYSCONFDIR "ncs_ifsv_drv_conf","r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("\n " SYSCONFDIR "ncs_ifsv_drv_conf file failed to open!!DoesntExist ..\n");
+      m_NCS_CONS_PRINTF("\n " OSAF_SYSCONFDIR "ncs_ifsv_drv_conf file failed to open!!DoesntExist ..\n");
       return 0;
    }
 

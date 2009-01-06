@@ -26,7 +26,7 @@
 ******************************************************************************
 */
 
-#include <config.h>
+#include <configmake.h>
 
 #include "gl_defs.h"
 #include "mds_papi.h"
@@ -186,12 +186,12 @@
 
 
 #ifdef __NCSINC_LINUX__
-#define LOG_PATH LOCALSTATEDIR "log"
+#define LOG_PATH OSAF_LOCALSTATEDIR "log"
 #else
 #define LOG_PATH   ""
 #endif
 
-#define NODE_ID_FILE LOCALSTATEDIR "node_id"
+#define NODE_ID_FILE OSAF_LOCALSTATEDIR "node_id"
 
 /**************************************************************************\
 
@@ -1519,7 +1519,7 @@ uns32 mainget_node_id(uns32 *node_id)
    sprintf(ncs_config_root + d_len, "%s", "/node_id");
 
 
-   /* LSB changes. Pick nodeid from LOCALSTATEDIR */
+   /* LSB changes. Pick nodeid from OSAF_LOCALSTATEDIR */
 #if 0 
    fp = fopen(ncs_config_root,"r");
 #endif

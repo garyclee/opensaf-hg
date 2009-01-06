@@ -1034,7 +1034,7 @@ snmpsubagt_appl_mibs_register()
     }
    
     /* register test-mib - to be deleted once SPSV Integration is ready */
-    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* SYSCONFDIR "subagt_lib_conf" */, 1 /* REGISTER */);     
+    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib_conf" */, 1 /* REGISTER */);     
     if (status != NCSCC_RC_SUCCESS)
     {
         /* log the error */
@@ -1115,7 +1115,7 @@ snmpsubagt_appl_mibs_unregister()
     }
     
     /* unregister test-mib - to be deleted once SPSV Integration is ready */
-    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* SYSCONFDIR "subagt_lib_conf" */, 0 /* UNREGISTER */);     
+    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib_conf" */, 0 /* UNREGISTER */);     
     if (status != NCSCC_RC_SUCCESS)
     {
         /* log the error */
@@ -1698,7 +1698,7 @@ subagt_process_sig_usr1_signal(NCSSA_CB *cb)
     uns32 status = NCSCC_RC_SUCCESS;
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_SIGUSR1_SIGNAL);
 
-    fp = fopen(m_SUBAGENT_COMP_NAME_FILE, "r");/* LOCALSTATEDIR/ncs_subagent_comp_name */
+    fp = fopen(m_SUBAGENT_COMP_NAME_FILE, "r");/* OSAF_LOCALSTATEDIR/ncs_subagent_comp_name */
     if (fp == NULL)
     {
         /* log that, there is no component name file */

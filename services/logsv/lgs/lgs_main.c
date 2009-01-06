@@ -20,7 +20,7 @@
  * ========================================================================
  */
 
-#include <config.h>
+#include <configmake.h>
 
 #define _GNU_SOURCE
 #include <string.h>

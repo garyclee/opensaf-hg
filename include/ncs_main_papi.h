@@ -115,13 +115,13 @@ Return Values:
 Description:
              This API fetches the chassis-type string into the user-provided 
              buffer. It reads upto "NCS_MAX_CHASSIS_TYPE_LEN" or "i_max_len"
-             (whichever is lesser) bytes from the SYSCONFDIR/chassis_type 
+             (whichever is lesser) bytes from the OSAF_SYSCONFDIR/chassis_type 
              file into the "o_chassis_type" buffer.  
              A null-terminating character is inserted after that.  
  
              It is assumed that the chassis-type string contains printable 
              characters only and does not contain white-space characters in  
-             it (" ", "\n", etc.). Furthermore, the SYSCONFDIR/chassis_type
+             it (" ", "\n", etc.). Furthermore, the OSAF_SYSCONFDIR/chassis_type
              file will be assumed to be a single lined text file (containing the 
              characters comprising the chassis-type string followed by a  
              newline character.)
