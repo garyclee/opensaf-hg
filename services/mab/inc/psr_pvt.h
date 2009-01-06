@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -60,7 +60,7 @@
 #define m_PSS_SPCN_SOURCE_BAM           "XML"
 #define m_PSS_SPCN_SOURCE_PSSV          "PSS"
 
-#define m_PSS_COMP_NAME_FILE LOCALSTATEDIR "ncs_pss_comp_name"
+#define m_PSS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_pss_comp_name"
 #define m_PSS_PID_FILE PIDPATH "ncs_psr.pid"
 
 typedef enum {

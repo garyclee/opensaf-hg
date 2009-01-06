@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -201,7 +201,7 @@ typedef struct mas_mbx
 
 *************************************************************************/
 
-#define m_MAS_COMP_NAME_FILE LOCALSTATEDIR "ncs_mas_comp_name"
+#define m_MAS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_mas_comp_name"
 #define m_MAS_PID_FILE PIDPATH "ncs_mas.pid"
 
 /************************************************************************

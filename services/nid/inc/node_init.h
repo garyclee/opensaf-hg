@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -63,9 +63,9 @@
 
 
 
-#define NID_PLAT_CONF_PATH          SYSCONFDIR
+#define NID_PLAT_CONF_PATH          OSAF_SYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
-#define NID_NCSLOGPATH              LOCALSTATEDIR "log/nid/"
+#define NID_NCSLOGPATH              OSAF_LOCALSTATEDIR "log/nid/"
 #define NID_PID_FILE                PIDPATH "nodeinit.pid"
 #define NID_RUNNING_DIR             "/"
 #define NID_CNSL                    "/dev/console"
@@ -130,7 +130,7 @@ typedef int32 (*NID_FORK_FUNC)(NID_SPAWN_INFO *, uns8 *, char * args[],uns8 *, u
 
 /*****************************************************************
  *       Structures Used by nodeinitd to store the parsed info   *
- *       from SYSCONFDIR/nodeinit.conf, and used while    *
+ *       from OSAF_SYSCONFDIR/nodeinit.conf, and used while    *
  *       spawning                                                *
  *****************************************************************/
 typedef struct nid_recovery_list {

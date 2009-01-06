@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -1798,7 +1798,7 @@ void pss_cb_data_dump( )
 
    sysf_fprintf(fh, "*************PSS DATA STRUCTS DUMP START(%s)*************\n", asc_tod);
 
-   sysf_fprintf(fh, "PERSISTENT-STORE-LOCATION: " LOCALSTATEDIR "pssv_store \n");
+   sysf_fprintf(fh, "PERSISTENT-STORE-LOCATION: " OSAF_LOCALSTATEDIR "pssv_store \n");
 
    sysf_fprintf(fh, "MIB_DESC_INFO-DB:*** DUMP START***\n");
    fflush(fh);

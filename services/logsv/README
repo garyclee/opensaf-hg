@@ -102,7 +102,7 @@ If the default values in this file does not fit your system, edit this file and
 rebuild the controller rpm in order to setup your system properly.
 
 The online (in an executing system) location of the configuration file is:
-SYSCONFDIR/saflog.conf
+sysconfdir/package_name/saflog.conf
 
 The following environment variables are required:
 

@@ -6,7 +6,7 @@
 TMPDIR="/tmp"
 LOCALSTATEDIR="@localstatedir@/lib/@PACKAGE_NAME@"
 SYSCONFDIR="@sysconfdir@/@PACKAGE_NAME@"
-PIDPATH="@pidpath@"
+PIDPATH="xxPIDPATHxx"
 BINPATH="xxBINDIRxx"
 LIBPATH="xxLIBDIRxx"
 

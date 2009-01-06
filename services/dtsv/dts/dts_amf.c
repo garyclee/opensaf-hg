@@ -32,10 +32,10 @@
 
 ******************************************************************************/
 
-#include <config.h>
+#include <configmake.h>
 #include "dts.h"
 
-#define m_DTS_COMP_NAME_FILE LOCALSTATEDIR "ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_dts_comp_name"
 #define DTS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 static void dts_saf_CSI_set_callback(SaInvocationT invocation,
@@ -197,7 +197,7 @@ uns32 dts_amf_register(DTS_CB *inst)
    /* Read the component name file now, AMF should have populated it by now */
    m_NCS_OS_ASSERT(sprintf(compfilename, "%s", m_DTS_COMP_NAME_FILE) < sizeof(compfilename));
 
-   fp = fopen(compfilename, "r");/*LOCALSTATEDIR/ncs_dts_comp_name */
+   fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_dts_comp_name */
    if(fp == NULL)
    {
       m_DTS_UNLK(&inst->lock);

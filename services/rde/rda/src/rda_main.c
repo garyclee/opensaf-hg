@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -1325,7 +1325,7 @@ static uns32 get_init_role(uns32 *init_role)
    uns32 res = 0;
    uns32 d_len;
    
-   sprintf(afs_config_root, "%s/", SYSCONFDIR);
+   sprintf(afs_config_root, "%s/", OSAF_SYSCONFDIR);
    /*sprintf(afs_config_root, "%s", ".");*/
    d_len = strlen(afs_config_root);
    /* Hack afs_config_root to construct path */

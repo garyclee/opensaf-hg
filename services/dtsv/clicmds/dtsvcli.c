@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -192,7 +192,7 @@ static uns32 dtsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
       {
           dtsv_cef_print_config,
           "print !Prints! \
-           config !current config data for DTS, file stored in " LOCALSTATEDIR "log/DTS_<date>.config!"
+           config !current config data for DTS, file stored in " OSAF_LOCALSTATEDIR "log/DTS_<date>.config!"
       },
       {
          dtsv_cef_close_open_files,

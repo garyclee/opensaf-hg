@@ -29,7 +29,7 @@
 ******************************************************************************
 */
 
-#include <config.h>
+#include <configmake.h>
 
 /* NCS specific include files */
 
@@ -552,7 +552,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, SYSCONFDIR "NCSSystemBOM.xml");
+      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "NCSSystemBOM.xml");
    }
 
    /* Now set the NCS filename inthe CB */
@@ -566,7 +566,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, SYSCONFDIR "AppConfig.xml");
+      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "AppConfig.xml");
    }
 
    /* Now set the filename inthe CB */
@@ -584,7 +584,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, SYSCONFDIR "ValidationConfig.xml");
+      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "ValidationConfig.xml");
    }
 
    /* Now set the filename inthe CB */

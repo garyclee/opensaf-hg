@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -51,7 +51,7 @@
 
 #define NID_MAX_STAT_CODS    100
 
-#define NODE_HA_STATE  LOCALSTATEDIR "node_ha_state"
+#define NODE_HA_STATE  OSAF_LOCALSTATEDIR "node_ha_state"
 
 
 /****************************************************************

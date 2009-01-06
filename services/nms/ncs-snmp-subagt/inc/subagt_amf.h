@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -48,9 +48,9 @@ typedef enum snmpsubagt_ha_state
 
 #define m_SNMPSUBAGT_AMF_HELATH_CHECK_KEY "A9FD64E12C" /* got the key from BAM */
 
-#define SNMPSUBAGT_LIB_CONF SYSCONFDIR "subagt_lib_conf" 
+#define SNMPSUBAGT_LIB_CONF OSAF_SYSCONFDIR "subagt_lib_conf" 
 
-#define m_SUBAGENT_COMP_NAME_FILE LOCALSTATEDIR "ncs_subagent_comp_name"  /* IR00061409 */
+#define m_SUBAGENT_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_subagent_comp_name"  /* IR00061409 */
 
 #define m_SNMPSUBAGT_AMF_TIMEOUT_IN_SEC     1
 

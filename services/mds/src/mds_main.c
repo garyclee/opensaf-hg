@@ -15,7 +15,7 @@
  *
  */
 
-#include <config.h>
+#include <configmake.h>
 
 /*****************************************************************************
 ..............................................................................
@@ -293,7 +293,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Initialize logging */
             {
                char buff[50],pref[50];
-               sprintf(buff,LOCALSTATEDIR "mdslog/ncsmds_n%08x",node_id);
+               sprintf(buff,OSAF_LOCALSTATEDIR "mdslog/ncsmds_n%08x",node_id);
                sprintf(pref," <0x%08x,%u> ",node_id,mds_tipc_ref);
                m_NCS_OS_STRCAT(buff,".log");
                mds_log_init(buff, pref);
