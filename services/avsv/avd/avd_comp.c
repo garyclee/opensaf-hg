@@ -621,6 +621,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    NCS_BOOL      isPre;
    NCSMIBLIB_REQ_INFO temp_mib_req;
    AVSV_PARAM_INFO param;
+   AVD_AVND *su_node_ptr = NULL;
   
    if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
@@ -701,14 +702,34 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                /* log information error */
                return NCSCC_RC_INV_VAL;
             }
-   
-            if ((comp->comp_info.clean_len == 0) ||
-               (comp->comp_info.max_num_inst == 0)) 
+
+            if((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == 
+                                  comp->comp_info.category) ||
+               (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == 
+                                  comp->comp_info.category))
             {
-               /* All the mandatory fields are not filled
-                */
-               /* log information error */
-               return NCSCC_RC_INV_VAL;
+                 if ((comp->comp_info.init_len == 0) ||
+                     (comp->comp_info.term_len == 0) ||
+                     (comp->comp_info.clean_len == 0)) 
+                     {
+                        /* For external component, the following fields should not be 
+                           filled.*/
+                     }
+                     else 
+                     {
+                         return NCSCC_RC_INV_VAL;
+                     }
+            }
+            else
+            {
+               if ((comp->comp_info.clean_len == 0) ||
+                   (comp->comp_info.max_num_inst == 0)) 
+               {
+                 /* All the mandatory fields are not filled
+                    */
+                 /* log information error */
+                 return NCSCC_RC_INV_VAL;
+               }
             }
 
             if((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
@@ -797,6 +818,24 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                }
             }
 
+            if(TRUE == comp->su->su_is_external)
+            {
+               if((TRUE == comp->comp_info.am_enable) || 
+                  (0 != comp->comp_info.amstart_len) ||
+                  (0 != comp->comp_info.amstop_len)) 
+                  return NCSCC_RC_INV_VAL;
+               else
+               {
+                 /* There are default values assigned to amstart_time, 
+                    amstop_time and clean_time. Since these values are not 
+                    used for external components, so we will reset it.*/
+                    comp->comp_info.amstart_time = 0;
+                    comp->comp_info.amstop_time = 0;
+                    comp->comp_info.clean_time = 0;
+                    comp->comp_info.max_num_amstart = 0;
+               }
+            }
+
             if(test_flag == TRUE)
             {
                return NCSCC_RC_SUCCESS;
@@ -832,9 +871,39 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
              * corresponding node is UP send the component information
              * to the Node.
              */
-            if((comp->su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-               (comp->su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-               (comp->su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+           if(FALSE == comp->su->su_is_external)
+           {
+             su_node_ptr = comp->su->su_on_node;
+           }
+           else
+           {
+             /* This is an external SU, so there is no node assigned to it.
+                For some purpose of validations and sending SU/Comps info to
+                hosting node (Controllers), we can take use of the hosting
+                node. */
+                if((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == 
+                      comp->comp_info.category) || 
+                   (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == 
+                      comp->comp_info.category))
+                {
+                   /* This is a valid external component. Ext comp is in ext
+                      SU. */
+                }
+                else
+                {
+                   /* This is not a valid external component. External SU has 
+                      been assigned a cluster component. */
+                    comp->su->curr_num_comp --;
+                    avd_comp_del_su_list(avd_cb,comp);
+                    comp->row_status = NCS_ROW_NOT_READY;
+                    return NCSCC_RC_INV_VAL;
+                }
+                su_node_ptr = avd_cb->ext_comp_info.local_avnd_node;
+           } /* Else of if(FALSE == comp->su->su_is_external). */
+
+            if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+               (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+               (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
             { 
                if (avd_snd_comp_msg(avd_cb,comp) != NCSCC_RC_SUCCESS)
                {
@@ -850,13 +919,21 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 
             /* Verify if the SUs preinstan value need to be changed */
-            if(comp->comp_info.category >= NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE) 
+            if((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
+               (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+               (comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE))
+            {
+               comp->su->su_preinstan = TRUE;
+            }
+            else
             {
                isPre = FALSE;
                i_comp = comp->su->list_of_comp;
                while(i_comp)
                { 
-                  if(i_comp->comp_info.category < NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE) 
+                 if((i_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
+                  (i_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+                  (i_comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE))
                   {
                      isPre = TRUE;
                      break;
@@ -870,11 +947,6 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                comp->max_num_csi_actv = 1;
                comp->max_num_csi_stdby = 1;
             }
-            else
-            {
-               comp->su->su_preinstan = TRUE;
-            }
-
             
             if( (comp->max_num_csi_actv < comp->su->si_max_active) || 
                 (comp->su->si_max_active == 0) )
@@ -966,13 +1038,17 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                }
 
                /* Verify if the SUs preinstan value need to be changed */
-               if(comp->comp_info.category < NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE) 
+               if((NCS_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
+                  (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+                  (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category))
                {
                   isPre = FALSE;
                   i_comp = comp->su->list_of_comp;
                   while(i_comp)
                   { 
-                     if( (comp->comp_info.category < NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE) 
+                   if(((NCS_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
+                   (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category)||
+                   (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
                         && (i_comp != comp) )
                      {
                         isPre = TRUE;
@@ -1003,15 +1079,16 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                /* send a message to the AVND deleting the
                 * component.
                 */
-               if((comp->su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-                  (comp->su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-                  (comp->su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+               m_AVD_GET_SU_NODE_PTR(avd_cb,comp->su,su_node_ptr);
+               if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+                  (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+                  (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
                {
                   m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
                   param.act = AVSV_OBJ_OPR_DEL;
                   param.name_net = comp->comp_info.name_net;
                   param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
-                  avd_snd_op_req_msg(avd_cb,comp->su->su_on_node,&param);
+                  avd_snd_op_req_msg(avd_cb,su_node_ptr,&param);
                }
 
                /* decrement the active component number of this SU */
@@ -1078,9 +1155,12 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    
    if(comp->row_status == NCS_ROW_ACTIVE)
    {
-      if((comp->su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-         (comp->su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-         (comp->su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+
+      m_AVD_GET_SU_NODE_PTR(avd_cb,comp->su,su_node_ptr);
+
+      if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+         (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+         (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
       {
          m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
          param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
@@ -1096,7 +1176,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1111,7 +1191,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1126,7 +1206,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1136,12 +1216,15 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                             comp->comp_info.clean_len);
             break;
          case saAmfCompAmStartCmd_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
            m_NCS_MEMCPY(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1151,12 +1234,15 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                             comp->comp_info.amstart_len);
             break;
          case saAmfCompAmStopCmd_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
            m_NCS_MEMCPY(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1171,7 +1257,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1185,7 +1271,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1198,7 +1284,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1211,7 +1297,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1219,12 +1305,15 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                     m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
             break;
          case saAmfCompAmStartTimeout_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
            param.value_len = sizeof(SaTimeT);
            m_NCS_MEMCPY(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1232,12 +1321,15 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                     m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
             break;
          case saAmfCompAmStopTimeout_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
            param.value_len = sizeof(SaTimeT);
            m_NCS_MEMCPY(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1250,7 +1342,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1263,7 +1355,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1276,7 +1368,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1289,7 +1381,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1302,7 +1394,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1315,7 +1407,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1326,7 +1418,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.value_len = 1;
             param.value[0] = (uns8)arg->req.info.set_req.i_param_val.info.i_int;    
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1340,7 +1432,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.value_len = sizeof(uns32);
             m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1350,7 +1442,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.value_len = sizeof(uns32);
             m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1360,27 +1452,33 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.value_len = sizeof(uns32);
             m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
                comp->max_num_inst_delay = arg->req.info.set_req.i_param_val.info.i_int;
             break;
          case saAmfCompNumMaxAmStartAttempts_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
             param.value_len = sizeof(uns32);
             m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.max_num_amstart = arg->req.info.set_req.i_param_val.info.i_int;
             break;
          case saAmfCompNumMaxAmStopAttempts_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
             param.value_len = sizeof(uns32);
             m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1388,6 +1486,9 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
 
          case saAmfCompAMEnable_ID:
+           if(TRUE == comp->su->su_is_external)
+               return NCSCC_RC_INV_VAL;
+
             if(comp->comp_info.am_enable == (arg->req.info.set_req.i_param_val.info.i_int == NCS_SNMP_TRUE) ? TRUE : FALSE)
                break;
 
@@ -1405,7 +1506,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.value_len = 1;
             param.value[0] = (arg->req.info.set_req.i_param_val.info.i_int == NCS_SNMP_TRUE) ? TRUE : FALSE;    
             
-            rc = avd_snd_op_req_msg(avd_cb, comp->su->su_on_node, &param);
+            rc = avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
             if( rc != NCSCC_RC_SUCCESS)
                return NCSCC_RC_INV_VAL;
             else
@@ -1728,6 +1829,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
    AVD_AVND        *avnd;
    uns32           min_si=0;
    NCS_BOOL        isPre;
+   AVD_AVND *su_node_ptr = NULL;
 
    /* check the ack message for errors. If error find the component that
     * has error.
@@ -1802,13 +1904,16 @@ void avd_comp_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
       }
 
       /* Verify if the SUs preinstan value need to be changed */
-      if(comp->comp_info.category < NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE) 
+      if((NCS_COMP_TYPE_SA_AWARE == comp->comp_info.category) ||
+         (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+         (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category))
       {
          isPre = FALSE;
          i_comp = comp->su->list_of_comp;
          while(i_comp)
          { 
-            if( (comp->comp_info.category < NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE)
+            if(((NCS_COMP_TYPE_SA_AWARE == i_comp->comp_info.category) ||
+                (NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE == i_comp->comp_info.category)||                   (NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == i_comp->comp_info.category))
                && (i_comp != comp) )
             {
                isPre = TRUE;
@@ -1890,8 +1995,10 @@ void avd_comp_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
 
          m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVSV_CKPT_COMP_OPER_STATE);
          m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVSV_CKPT_SU_OPER_STATE);
+
+         m_AVD_GET_SU_NODE_PTR(cb,comp->su,su_node_ptr);
          
-         if(m_AVD_APP_SU_IS_INSVC(comp->su))
+         if(m_AVD_APP_SU_IS_INSVC(comp->su,su_node_ptr))
          {
             m_AVD_SET_SU_REDINESS(cb,(comp->su),NCS_IN_SERVICE);
             switch(comp->su->sg_of_su->su_redundancy_model)

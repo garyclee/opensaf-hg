@@ -1214,9 +1214,9 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
    AVD_SU *curr_su= AVD_SU_NULL;
    AVD_SUS_PER_SI_RANK_INDX i_idx;
    AVD_SUS_PER_SI_RANK      *su_rank_rec = 0;
-   NCS_BOOL      is_act_ass_sent = FALSE, is_all_su_oos = TRUE, 
-                 is_all_si_ok = FALSE, l_flag = TRUE;
-   uns32         rc = NCSCC_RC_SUCCESS;
+   NCS_BOOL  is_act_ass_sent = FALSE, is_all_su_oos = TRUE, 
+             is_all_si_ok = FALSE, l_flag = TRUE;
+   uns32     rc = NCSCC_RC_SUCCESS;
    AVD_SU_SI_REL *tmp_susi;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_si_assign");
@@ -1226,9 +1226,13 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
    /* assign active assignments to unassigned sis */
    for (curr_si = sg->list_of_si; curr_si; curr_si = curr_si->sg_list_of_si_next)
    {
+      /* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
+      avd_screen_sponsor_si_state(cb, curr_si, FALSE);
+
       /* verify if si is ready */
-      if ( (curr_si->admin_state != NCS_ADMIN_STATE_UNLOCK) ||
-           (curr_si->num_csi != curr_si->max_num_csi) )
+      if ((curr_si->admin_state != NCS_ADMIN_STATE_UNLOCK) ||
+          (curr_si->si_dep_state != AVD_SI_NO_DEPENDENCY) || 
+          (curr_si->num_csi != curr_si->max_num_csi) )
          continue;
 
       is_all_si_ok = TRUE;
@@ -1511,6 +1515,7 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
    AVD_SI          *si = sg->admin_si;
    NCS_BOOL        is_su_present, flag;
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVND *su_node_ptr = NULL;
 
    /* check if su is present in the su-oper list */
    m_AVD_CHK_OPLIST(su, is_su_present);
@@ -1522,20 +1527,21 @@ uns32 avd_sg_nway_su_fault_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
       if (TRUE == is_su_present)
       {
          /* => su is present in the su-oper list */
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
 
          if ( (NCS_ADMIN_STATE_SHUTDOWN == su->admin_state) ||
-              (NCS_ADMIN_STATE_SHUTDOWN == su->su_on_node->su_admin_state) )
+              (NCS_ADMIN_STATE_SHUTDOWN == su_node_ptr->su_admin_state) )
          {
             if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {               
                m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
                m_AVD_SET_SU_REDINESS(cb, su, NCS_OUT_OF_SERVICE);
-            }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+            }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {
-               m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+               m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                if (flag == TRUE)
                {
-                  m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+                  m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
                }
             }
 
@@ -1759,23 +1765,27 @@ uns32 avd_sg_nway_su_fault_su_oper(AVD_CL_CB *cb, AVD_SU *su)
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL        is_all_stdby = TRUE, flag;
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVND *su_node_ptr = NULL;
 
    if (su->sg_of_su->su_oper_list.su == su)
    {
+
+      m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
       /* => su-lock/shutdown is followed by su-disable event */
       if ( (NCS_ADMIN_STATE_SHUTDOWN == su->admin_state) ||
-           (NCS_ADMIN_STATE_SHUTDOWN == su->su_on_node->su_admin_state) )
+           (NCS_ADMIN_STATE_SHUTDOWN == su_node_ptr->su_admin_state) )
       {
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
             m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
          }
-         else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
             }
          }
 
@@ -2295,6 +2305,7 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB     *cb,
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL        is_su_present, is_eng, flag;
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVND *su_node_ptr = NULL;
 
    if (susi && (SA_AMF_HA_ACTIVE == state) && (AVSV_SUSI_ACT_DEL != act))
    {
@@ -2380,17 +2391,19 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB     *cb,
                         return rc;
                      }
 
+                     m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
                      /* if su-shutdown semantics in progress, mark it locked */
                      if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                      {
                         m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
                      }
-                     else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+                     else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                      {
-                        m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+                        m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                         if (flag == TRUE)
                         {
-                           m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+                           m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
                         }
                      }
                   }
@@ -2528,17 +2541,19 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB     *cb,
                      return rc;
                   }
 
+                  m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
                   /* if su-shutdown semantics in progress, mark it locked */
                   if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                   {
                      m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
                   }
-                  else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+                  else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                   {
-                     m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+                     m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                      if (flag == TRUE)
                      {
-                        m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+                        m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
                      }
                   }
                   
@@ -2665,16 +2680,18 @@ uns32 avd_sg_nway_susi_succ_sg_realign(AVD_CL_CB     *cb,
    {
       /* => remove all success */
       /* if su-shutdown semantics in progress, mark it locked */
+      m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
       if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
       {
          m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
       }
-      else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+      else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
       {
-         m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+         m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
          if (flag == TRUE)
          {
-            m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+            m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
          }
       }
 
@@ -2723,6 +2740,7 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB     *cb,
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL        is_eng = FALSE, flag;
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVND *su_node_ptr = NULL;
 
    if (susi && (SA_AMF_HA_QUIESCED == state) && (AVSV_SUSI_ACT_DEL != act))
    {
@@ -2771,17 +2789,19 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB     *cb,
                return rc;
             }
 
+            m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
             /* if su-shutdown semantics in progress, mark it locked */
             if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {
                m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
             }
-            else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+            else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {
-               m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+               m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                if (flag == TRUE)
                {
-                  m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+                  m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
                }
             }
 
@@ -2807,17 +2827,19 @@ uns32 avd_sg_nway_susi_succ_su_oper(AVD_CL_CB     *cb,
             return rc;
          }
 
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
          /* if su-shutdown semantics in progress, mark it locked */
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
             m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
          }
-         else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
             }
          }
 
@@ -3261,22 +3283,25 @@ void avd_sg_nway_node_fail_su_oper(AVD_CL_CB *cb, AVD_SU *su)
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL        is_su_present, flag;
    uns32 rc = NCSCC_RC_SUCCESS;
+   AVD_AVND *su_node_ptr = NULL;
 
    /* check if su is present in the su-oper list */
    m_AVD_CHK_OPLIST(su, is_su_present);
 
    if (is_su_present)
    {
+      m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
       if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
       {
          m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
       }
-      else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+      else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
       {
-         m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+         m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
          if (flag == TRUE)
          {
-            m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+            m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
          }
       }
 
@@ -3672,6 +3697,7 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 {
    AVD_SG        *sg = su->sg_of_su;
    NCS_BOOL      is_su_present, flag;
+   AVD_AVND *su_node_ptr = NULL;
 
    if (sg->admin_si)
    {
@@ -3687,16 +3713,17 @@ void avd_sg_nway_node_fail_sg_realign(AVD_CL_CB *cb, AVD_SU *su)
 
       if (TRUE == is_su_present)
       {
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
             m_AVD_SET_SU_ADMIN(cb, su, NCS_ADMIN_STATE_LOCK);
          }
-         else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb, su->su_on_node, NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb, su_node_ptr, NCS_ADMIN_STATE_LOCK);
             }
          }
       }

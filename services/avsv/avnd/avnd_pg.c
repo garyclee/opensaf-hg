@@ -119,7 +119,7 @@ static uns32 avnd_pg_start_rsp_prc (AVND_CB *cb, AVND_PG *pg,
       curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_NEXT(&curr->pg_dll_node) )
       {
          rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_ERR_NOT_EXIST,
-            0, &curr->info.key.mds_dest, &curr->info.mds_ctxt);
+            0, &curr->info.key.mds_dest, &curr->info.mds_ctxt, NULL, FALSE);
          if ( NCSCC_RC_SUCCESS != rc ) return rc;
       } /* while */
       
@@ -256,7 +256,7 @@ uns32 avnd_evt_ava_pg_stop (AVND_CB *cb, AVND_EVT *evt)
    /* respond bk to the application */
    if (!pg || !pg_trk) amf_rc = SA_AIS_ERR_NOT_EXIST;
    rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_STOP, amf_rc,
-                           0, &api_info->dest, &evt->mds_ctxt);
+                           0, &api_info->dest, &evt->mds_ctxt, NULL, FALSE);
 
    /* proceed with rest of the processing */
    if ( (SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc) )
@@ -674,7 +674,8 @@ uns32 avnd_pg_track_start (AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK *pg_trk)
    if ( FALSE == pg_trk->info.is_syn )
    {
       rc = avnd_amf_resp_send(cb, AVSV_AMF_PG_START, SA_AIS_OK,
-                              0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt);
+                              0, &pg_trk->info.key.mds_dest, &pg_trk->info.mds_ctxt, 
+                              NULL, FALSE);
       if ( NCSCC_RC_SUCCESS != rc ) return rc;
    }
    

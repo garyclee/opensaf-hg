@@ -53,15 +53,13 @@ static uns32 rde_rda_process_set_role   (RDE_RDA_CB  * rde_rda_cb, int index, in
 static uns32 rde_rda_process_get_role   (RDE_RDA_CB  * rde_rda_cb, int index);
 static uns32 rde_rda_process_reg_cb     (RDE_RDA_CB  * rde_rda_cb, int index);
 static uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index);
-
+#if 0
 static uns32 rde_rda_process_hb_err     (RDE_RDA_CB  * rde_rda_cb, int index);
 static uns32 rde_rda_process_nd_hb_err  (RDE_RDA_CB  * rde_rda_cb, int index, uns32 phy_slot_id);
-
-static uns32 rde_rda_process_d_hb_restore (RDE_RDA_CB  * rde_rda_cb, int index);
-static uns32 rde_rda_process_nd_hb_restore (RDE_RDA_CB  * rde_rda_cb, int index, uns32 phy_slot_id);
-
 extern uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb);
 extern uns32 rde_rda_send_scb_sw_over(void);
+#endif
+
 
 /*****************************************************************************
 
@@ -458,7 +456,7 @@ uns32 rde_rda_process_reg_cb (RDE_RDA_CB  * rde_rda_cb, int index)
     return NCSCC_RC_SUCCESS;
 }
 
-
+#if 0
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_rda_process_hb_err
@@ -530,6 +528,8 @@ sprintf (msg, "%d", RDE_RDA_AVND_HB_ERR_ACK);
     }
     return NCSCC_RC_SUCCESS;
 }
+
+#endif
 
 /*****************************************************************************
 
@@ -814,7 +814,7 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index)
         case RDE_RDA_REG_CB_REQ:
             rc = rde_rda_process_reg_cb (rde_rda_cb, index);
             break;
-
+#if 0
         case RDE_RDA_AVD_HB_ERR_REQ:
             rc = rde_rda_process_hb_err (rde_rda_cb, index);
             break;
@@ -822,15 +822,7 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index)
         case RDE_RDA_AVND_HB_ERR_REQ:
             rc = rde_rda_process_nd_hb_err (rde_rda_cb, index, value);
             break;
-
-        case RDE_RDA_AVD_HB_RESTORE_REQ:
-            rc = rde_rda_process_d_hb_restore (rde_rda_cb, index);
-            break;
-
-        case RDE_RDA_AVND_HB_RESTORE_REQ:
-            rc = rde_rda_process_nd_hb_restore (rde_rda_cb, index, value);
-            break;
-
+#endif
 
         case RDE_RDA_DISCONNECT_REQ:
             rc = rde_rda_process_disconnect (rde_rda_cb, index);
@@ -901,7 +893,7 @@ uns32 rde_rda_send_role (int role)
     m_NCS_UNLOCK(&rde_cb->lock, NCS_LOCK_WRITE);
     return NCSCC_RC_SUCCESS;
 }
-
+#if 0
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_rda_send_scb_sw_over
@@ -956,7 +948,10 @@ uns32 rde_rda_send_scb_sw_over(void)
 
     return NCSCC_RC_SUCCESS;
 }
+#endif
 
+
+#if 0
 uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb)
 {
     int                index;
@@ -998,68 +993,5 @@ uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb)
     return NCSCC_RC_SUCCESS;
 
 }
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_rda_process_d_hb_restore
-
-  DESCRIPTION:          Process the AVD HB restore message
-
-
-  ARGUMENTS:
-     rde_rda_cb   Pointer to RDE  Socket Config structure
-     index        Index to identify the readable client fd
-
-  RETURNS:
-
-  NCSCC_RC_SUCCESS:   Successfully sent message to RDE
-  NCSCC_RC_FAILURE:   Failure sending message to RDE
-
-  NOTES:
-
-*****************************************************************************/
-static
-uns32 rde_rda_process_d_hb_restore (RDE_RDA_CB  *rde_rda_cb, int index)
-{
-   char               msg [64] = {0};
-   sprintf (msg, "%d", RDE_RDA_AVD_HB_RESTORE_ACK);
-    if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
-}
-
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_rda_process_nd_hb_restore
-
-  DESCRIPTION:          Process the AVND HB restore message
-
-
-  ARGUMENTS:
-     rde_rda_cb   Pointer to RDE  Socket Config structure
-     index        Index to identify the readable client fd
-     phy_slot_id  The slot id on which the AvND HB is getting stored.
-
-  RETURNS:
-
-  NCSCC_RC_SUCCESS:   Successfully sent message to RDE
-  NCSCC_RC_FAILURE:   Failure sending message to RDE
-
-  NOTES:
-
-*****************************************************************************/
-static
-uns32 rde_rda_process_nd_hb_restore (RDE_RDA_CB  *rde_rda_cb, int index, uns32 phy_slot_id)
-{
-   char               msg [64] = {0};
-   sprintf (msg, "%d", RDE_RDA_AVND_HB_RESTORE_ACK);
-    if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
-}
+#endif
 

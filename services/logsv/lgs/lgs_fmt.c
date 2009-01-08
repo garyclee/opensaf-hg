@@ -565,13 +565,13 @@ static SaBoolT validateSysToken(SaStringT fmtExpPtr,
  */
 static int extractCommonField(char *dest, size_t dest_size,
                               SaStringT fmtExpPtr,
-                              SaUint16T *fmtExpPtrOffset,
-                              SaInt32T *truncationLetterPos,
-                              SaInt32T inputPos,
-                              SaUint32T logRecordIdCounter,
-                              const SaBoolT *twelveHourModeFlag,
-                              const struct tm *timeStampData,
-                              const SaLogRecordT *logRecord)
+                                    SaUint16T *fmtExpPtrOffset,
+                                    SaInt32T *truncationLetterPos,
+                                    SaInt32T inputPos,
+                                    SaUint32T logRecordIdCounter,
+                                    const SaBoolT *twelveHourModeFlag,
+                                    const struct tm *timeStampData,
+                                    const SaLogRecordT *logRecord)
 {
     SaInt32T fieldSize;
     size_t stringSize;
@@ -779,7 +779,7 @@ static int extractCommonField(char *dest, size_t dest_size,
             break;
 
         default:
-            characters = 0;
+            characters = 0; 
             break;
 
     }
@@ -806,9 +806,9 @@ static int extractCommonField(char *dest, size_t dest_size,
  */
 static int extractNotificationField(char *dest, size_t dest_size,
                                     SaStringT fmtExpPtr, 
-                                    SaUint16T *fmtExpPtrOffset,
-                                    const SaBoolT *twelveHourModeFlag,
-                                    const SaLogRecordT *logRecord)
+                                          SaUint16T *fmtExpPtrOffset,
+                                          const SaBoolT *twelveHourModeFlag,
+                                          const SaLogRecordT *logRecord)
 {
     struct tm *eventTimeData;
     SaTimeT totalTime;
@@ -1037,8 +1037,8 @@ static int extractNotificationField(char *dest, size_t dest_size,
  */
 static int extractSystemField(char *dest, size_t dest_size,
                               SaStringT fmtExpPtr, 
-                              SaUint16T *fmtExpPtrOffset,
-                              const SaLogRecordT *logRecord)
+                                    SaUint16T *fmtExpPtrOffset,
+                                    const SaLogRecordT *logRecord)
 {
     SaInt32T fieldSize;
     SaInt32T stringSize;
@@ -1275,12 +1275,12 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
                     i += extractCommonField(&dest[i],
                                             dest_size - i,
                                             fmtExpPtrSnabel, 
-                                            &fmtExpTokenOffset,
-                                            &truncationLetterPos,
+                                                     &fmtExpTokenOffset,
+                                                     &truncationLetterPos,
                                             (SaInt32T)strlen(dest),
-                                            logRecordIdCounter,
-                                            twelveHourModeFlag,
-                                            timeStampData,
+                                                     logRecordIdCounter,
+                                                     twelveHourModeFlag,
+                                                     timeStampData,
                                             logRecord);
                     break;
 

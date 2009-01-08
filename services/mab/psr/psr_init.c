@@ -242,7 +242,12 @@ uns32 pss_lib_init()
       ps_cnt = scandir(NCS_PSS_DEF_PSSV_ROOT_PATH, &ps_list, filter, NULL);
       m_NCS_CONS_PRINTF("ps_cnt: %d\n", ps_cnt);
       if (ps_cnt < 0)
-          perror("scandir");
+      {
+         /* Log that error occured during scanning the directory. */
+         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "pss_check_n_reformat(): Error occured while scanning for persistent store format");
+         return NCSCC_RC_FAILURE;
+      }
+
       if(ps_cnt > 2)
       {
          /* Log that there are multiple formats of persistent store */

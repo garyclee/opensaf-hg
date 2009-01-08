@@ -57,7 +57,7 @@ extern void JNU_throwNewByName(
     const char* className,
     const char* msg );
 extern void JNU_ExceptionDescribeDoNotClear(
-	JNIEnv* jniEnv );
+      JNIEnv* jniEnv );
 extern jstring JNU_newStringFromSaNameT(
     JNIEnv* jniEnv,
     const SaNameT* saNamePtr );
@@ -82,11 +82,11 @@ extern void JNU_jByteArray_unlink(
     jbyteArray byteArray,
     void* saBuffer );
 extern jint JNU_GetEnvForCallback(
-	JavaVM* vmPtr,
-	JNIEnv** envPtrPtr );
+      JavaVM* vmPtr,
+      JNIEnv** envPtrPtr );
 jclass JNU_GetGlobalClassRef(
-	JNIEnv* jniEnv,
-	const char* className );
+      JNIEnv* jniEnv,
+      const char* className );
 extern void U_convertTimeout(
     struct timeval* to_timeout,
     const jlong from_timeout );

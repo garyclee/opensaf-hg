@@ -281,6 +281,8 @@ idim_recv_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    m_NCS_MEMSET(&stats, 0, sizeof(IFSV_EVT_STATS_INFO));
    stats.spt_type.shelf = cb->shelf; 
    stats.spt_type.slot = cb->slot;
+   /* embedding subslot changes */
+   stats.spt_type.subslot = cb->subslot;
    stats.spt_type.port = evt->info.hw_info.port_type.port_id;
    stats.spt_type.type = evt->info.hw_info.port_type.type;
 /* Changes for INT/EXT scope for subscr_scope overwrite. EXT_INT */
@@ -349,6 +351,8 @@ idim_recv_hw_port_reg (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    intf_info.if_attr = evt->info.hw_info.info.reg_port.if_am;
    intf_info.intf_data.spt_info.shelf = cb->shelf; 
    intf_info.intf_data.spt_info.slot = cb->slot;
+   /* embedding subslot changes */
+   intf_info.intf_data.spt_info.subslot = cb->subslot;
    intf_info.intf_data.spt_info.port = evt->info.hw_info.port_type.port_id;
    intf_info.intf_data.spt_info.type = evt->info.hw_info.port_type.type;      
 /* Changes for INT/EXT scope for subscr_scope overwrite. EXT_INT */
@@ -402,6 +406,8 @@ idim_recv_hw_port_status (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       m_NCS_MEMSET(&dest_info, 0, sizeof(IFSV_INTF_DESTROY_INFO));
       dest_info.spt_type.shelf = cb->shelf;
       dest_info.spt_type.slot  = cb->slot;
+      /* embedding subslot changes */
+      dest_info.spt_type.subslot  = cb->subslot;
       dest_info.spt_type.port  = evt->info.hw_info.port_type.port_id;
       dest_info.spt_type.type  = evt->info.hw_info.port_type.type;    
  /* Changes for INT/EXT scope for subscr_scope overwrite. EXT_INT */
@@ -413,6 +419,8 @@ idim_recv_hw_port_status (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       create_info.if_attr = NCS_IFSV_IAM_OPRSTATE;
       create_info.intf_data.spt_info.shelf = cb->shelf; 
       create_info.intf_data.spt_info.slot = cb->slot;
+      /* embedding subslot changes */
+      create_info.intf_data.spt_info.subslot = cb->subslot;
       create_info.intf_data.spt_info.port = evt->info.hw_info.port_type.port_id;
       create_info.intf_data.spt_info.type = evt->info.hw_info.port_type.type;
       /* Changes for INT/EXT scope for subscr_scope overwrite. EXT_INT */
@@ -520,6 +528,8 @@ idim_get_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       /* send a failure message to the IfND */
       stats.spt_type.shelf = cb->shelf;
       stats.spt_type.slot  = cb->slot;
+      /* embedding subslot changes */
+      stats.spt_type.subslot  = cb->subslot;
       stats.spt_type.port  = evt->info.get_stats.slot_port.port;
       stats.spt_type.type  = evt->info.get_stats.slot_port.type;
 /* EXT_INT */

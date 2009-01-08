@@ -28,7 +28,7 @@
 *****************************************************************************/ 
 #ifndef SUBAGT_CB_H
 #define SUBAGT_CB_H
-
+#include "net-snmp/net-snmp-config.h"
 #include "net-snmp/library/asn1.h"
 #include "net-snmp/library/snmp.h"
 #include "net-snmp/library/snmp_api.h"
@@ -45,7 +45,6 @@ typedef enum
     SNMPSUBAGT_TMR_MSG_AGT_MONITOR=1,
     SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT,
     SNMPSUBAGT_TMR_MSG_RETRY_AMF_INIT,
-    SNMPSUBAGT_TMR_MSG_RETRY_CHECK_SNMPD,
     SNMPSUBAGT_TMR_MSG_MAX
 }SNMPSUBAGT_TMR_MSG_TYPE;
 
@@ -74,6 +73,13 @@ typedef struct mibs_reg_list
     /* library handle for this MIB */
     NCS_OS_DLIB_HDL     *lib_hdl;
 }SNMPSUBAGT_MIBS_REG_LIST;
+
+/* snmpsubagt_trap_list to buffer the traps when snmpd is unavailable */
+typedef  struct snmpsubagt_trap_list
+{
+  NCS_TRAP *trap_evt;
+  struct snmpsubagt_trap_list *next;
+}SNMPSUBAGT_TRAP_LIST;
 
 /* NCS SubAgent Control Block */
 typedef struct ncsSa_cb
@@ -210,8 +216,8 @@ typedef struct ncsSa_cb
     /* To hold the last registration message string */
     uns8             lastRegMsg[255];
 
-    /* timer to retry the check for snmpd presence  */
-    SNMPSUBAGT_TIMER    snmpd_timer;
+    /* trap_list to buffer the traps when snmpd is unavailable */
+    SNMPSUBAGT_TRAP_LIST  *trap_list;
 
     /* selection object to get the SIGUSR2 */
     NCS_SEL_OBJ      sigusr2hdlr_sel_obj;
@@ -279,6 +285,7 @@ EXTERN_C void snmpsubagt_timer_cb(void *arg);
 
 EXTERN_C uns32 snmpsubagt_timer_start (NCSSA_CB *pSacb, SNMPSUBAGT_TMR_MSG_TYPE msgType);
 
+EXTERN_C void snmpsubagt_send_buffered_traps(NCSSA_CB *cb);
 #endif
 
 

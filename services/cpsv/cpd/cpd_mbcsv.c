@@ -1085,7 +1085,7 @@ uns32  cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
     ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(int32));
     num_of_async_upd = ncs_decode_32bit(&ptr);
     ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(int32));    
-
+ 
     if(cb->cpd_sync_cnt == num_of_async_upd)
     {
        return rc;
@@ -1095,8 +1095,11 @@ uns32  cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
        cb->cold_or_warm_sync_on=TRUE;
     
        m_LOG_CPD_LLCL(CPD_MBCSV_WARM_SYNC_COUNT_MISMATCH,CPD_FC_MBCSV,NCSFL_SEV_ERROR,cb->cpd_sync_cnt,num_of_async_upd,__FILE__,__LINE__);
-       /* cpd_cb_db_destroy(cb); */
+
+       /*IR91515 */
+       /* cpd_cb_db_destroy(cb); */ 
        cpd_ckpt_tree_node_destroy(cb);
+
        ncs_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
        ncs_arg.i_mbcsv_hdl =  cb->mbcsv_handle;
        ncs_arg.info.send_data_req.i_ckpt_hdl = cb->o_ckpt_hdl;
@@ -1164,18 +1167,18 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
             m_NCS_CONS_PRINTF("Cold sync completed\n");
           }
            
-                 ncshm_give_hdl(cb->cpd_hdl);
-                 return NCSCC_RC_SUCCESS;
+           ncshm_give_hdl(cb->cpd_hdl);
+           return NCSCC_RC_SUCCESS;
           }
        break;
        
-       case NCS_MBCSV_MSG_WARM_SYNC_REQ:           
+       case NCS_MBCSV_MSG_WARM_SYNC_REQ:
        break;
 
        case NCS_MBCSV_MSG_WARM_SYNC_RESP:
        case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
        status=cpd_mbcsv_dec_warm_sync_resp(cb,arg);
-     break;
+       break;
 
        case NCS_MBCSV_MSG_DATA_REQ:
        break;

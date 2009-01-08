@@ -260,6 +260,36 @@ void cpd_ckpt_tree_destroy(CPD_CB *cb)
    return;
 }
 
+/****************************************************************************
+  Name          : cpd_ckpt_tree_node_destroy
+  Description   : This cleans the nodes of trees in CB.
+  Arguments     : CPD_CB *cb - CPD Control Block.
+  Return Values : None
+  Notes         : None
+******************************************************************************/
+
+/*IR91515 */
+void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
+
+{
+   if(!cb->is_ckpt_tree_up)
+      return;
+   cpd_ckpt_tree_cleanup(cb);
+
+   if(!cb->is_ckpt_map_up)
+      return;
+   cpd_ckpt_map_tree_cleanup(cb);
+
+   if(!cb->is_cpnd_tree_up)
+      return;
+   cpd_cpnd_info_tree_cleanup(cb);
+
+   if(!cb->is_ckpt_reploc_up)
+     return;
+   cpd_ckpt_reploc_cleanup(cb);
+
+   return;
+}
 
 
 /****************************************************************************
@@ -1256,7 +1286,26 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
 
 
 /********************************************************************************
- Name    :  cpd_get_phy_slot_id
+ Name    :  cpd_get_slot_sub_id_from_mds_dest
+
+ Description :  To get the physical slot id from the mds dest
+
+ Arguments   :
+
+*************************************************************************************/
+
+uns32  cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
+{
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
+
+     return ((sub_slot * 8) + (phy_slot));
+}
+
+/********************************************************************************
+ Name    :  cpd_get_slot_sub_id_from_mds_dest
 
  Description :  To get the physical slot id from the node id
 
@@ -1264,15 +1313,17 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
 
 *************************************************************************************/
 
-NCS_PHY_SLOT_ID  cpd_get_phy_slot_id(MDS_DEST dest)
+
+uns32  cpd_get_slot_sub_slot_id_from_node_id( NCS_NODE_ID i_node_id )
 {
      NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id,NULL,&phy_slot,&sub_slot);
 
-     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,NULL);
-
-    return phy_slot;
+   return ((sub_slot * 8) + (phy_slot));    
+ 
 }
-
 
 
 
@@ -1331,23 +1382,6 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
         }
      }
    }  
-   return;
-}
-
-void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
-{
-   if(!cb->is_ckpt_tree_up)
-      return;
-   cpd_ckpt_tree_cleanup(cb);
-   if(!cb->is_ckpt_map_up)
-      return;
-   cpd_ckpt_map_tree_cleanup(cb);
-   if(!cb->is_cpnd_tree_up)
-      return;
-   cpd_cpnd_info_tree_cleanup(cb);
-   if(!cb->is_ckpt_reploc_up)
-     return;
-   cpd_ckpt_reploc_cleanup(cb);
    return;
 }
 

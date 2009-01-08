@@ -80,6 +80,28 @@ typedef enum avm_rde_flex
 }AVM_RDE_FLEX;
 
 /******************************************************************************
+        Logging Offset indices for FM.
+ ******************************************************************************/
+typedef enum avm_fm_flex
+{
+   AVM_LOG_FMA_INIT_FAILED                  ,
+   AVM_LOG_FM_ISSUED_SWITCHOVER             ,
+   AVM_LOG_FM_NODE_RESET                    ,
+   AVM_LOG_FM_DENIED_SWITCHOVER_FEASIBILITY ,
+}AVM_FM_FLEX;
+
+/******************************************************************************
+        Logging Offset indices for notifications to FM.
+ ******************************************************************************/
+typedef enum avm_notified_fm_flex
+{
+   AVM_LOG_NOTIFIED_FM_AVD_HB              , 
+   AVM_LOG_NOTIFIED_FM_AVND_HB             , 
+   AVM_LOG_NOTIFIED_FM_LOSS                ,
+   AVM_LOG_NOTIFIED_FM_RESTORE             ,
+}AVM_NOTIFY_FM_FLEX;
+
+/******************************************************************************
         Logging Offset indices for MDS. 
  ******************************************************************************/
 typedef enum avm_mds_flex 
@@ -261,12 +283,10 @@ typedef enum avm_role_flex
    AVM_LOG_RDA_SET_ROLE        , 
    AVM_LOG_RDA_AVM_SET_ROLE    , 
    AVM_LOG_RDA_AVM_ROLE        , 
-   AVM_LOG_RDA_HB, 
    AVM_LOG_RDA_CBK         , 
    AVM_LOG_SND_ROLE_CHG    ,
    AVM_LOG_SND_ROLE_RSP    , 
    AVM_LOG_RCV_ROLE_RSP    , 
-   AVM_LOG_SWOVR_FAILURE   ,
    AVM_LOG_ROLE_CHG    ,      
    AVM_LOG_AVD_ROLE_RSP    ,
    AVM_LOG_ROLE_QUIESCED,
@@ -335,7 +355,9 @@ typedef enum avm_flex_sets
    AVM_FC_MEM, 
    AVM_FC_ROLE,
    AVM_FC_EVT,
-   AVM_FC_EVT_Q
+   AVM_FC_EVT_Q,
+   AVM_FC_FM,
+   AVM_FC_NOTIFIED_FM,
 }AVM_FLEX_SETS;
 
 typedef enum avm_log_ids
@@ -363,7 +385,10 @@ typedef enum avm_log_ids
    AVM_LID_GEN_INFO1,
    AVM_LID_GEN_INFO2,
    AVM_LID_GEN_INFO3,
-   AVM_LID_EVT_Q
+   AVM_LID_EVT_Q,
+   AVM_LID_FM_INFO,
+   AVM_LID_FM_NODE_RESET,
+   AVM_LID_NOTIFIED_FM,
 /*  AVM_LID_EVT_HPI_HS_DTL,     
    AVM_LID_EVT_HPI_SENSOR_DTL, */
 }AVM_LOG_IDS;
@@ -491,6 +516,18 @@ typedef enum avm_log_ids
 
 #define m_AVM_LOG_CKPT_EVT_Q(option1, option2, option3, severity)              ncs_logmsg(NCS_SERVICE_ID_AVM, AVM_LID_EVT_Q, AVM_FC_EVT_Q, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TILL, option1, option2, option3)
 
+#define m_AVM_LOG_FM_INFO(option1, severity, logcateg)              ncs_logmsg(NCS_SERVICE_ID_AVM, AVM_LID_FM_INFO, AVM_FC_FM, logcateg, severity, NCSFL_TYPE_TI, option1);
+
+#define m_AVM_LOG_FM_NODE_RESET(option1, ent) \
+{\
+ncs_logmsg(NCS_SERVICE_ID_AVM, AVM_LID_FM_NODE_RESET, AVM_FC_FM, NCSFL_LC_STATE, NCSFL_SEV_NOTICE, NCSFL_TYPE_TIC, option1, ent); \
+}
+
+#define m_AVM_LOG_NOTIFIED_FM(option1, option2, ent) \
+{\
+ncs_logmsg(NCS_SERVICE_ID_AVM, AVM_LID_NOTIFIED_FM, AVM_FC_NOTIFIED_FM, NCSFL_LC_STATE, NCSFL_SEV_ERROR, "TIIC", option1, option2, ent); \
+}
+ 
 #else /* NCS_AVM_LOG == 1 */
 
 #define m_AVM_LOG_FUNC_ENTRY(func_name)
@@ -527,6 +564,9 @@ typedef enum avm_log_ids
 #define m_AVM_LOG_ROLE_OP(option1, option2, severity)
 #define m_AVM_LOG_CKPT_OP(option1, option2, severity) 
 #define m_AVM_LOG_CKPT_EVT(option1, option2, option3, severity)  
+#define m_AVM_LOG_FM_INFO(option1, severity, logcateg)
+#define m_AVM_LOG_FM_NODE_RESET(option1, ent)
+#define m_AVM_LOG_NOTIFIED_FM(option1, option2, ent)
 
 #endif /* NCS_AVM_LOG == 1 */
 

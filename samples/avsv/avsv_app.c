@@ -151,7 +151,7 @@ void avsv_app_process (void)
       if ( SA_AMF_HA_ACTIVE == gl_ha_state )
       {
          gl_count1++;
-	 gl_count2 = gl_count1 +500;
+         gl_count2 = gl_count1 +500;
        //  m_NCS_CONS_PRINTF("\n\n COUNTER VALUE: %d \n\n", gl_count1);
 
          /* Update the standby with this value */

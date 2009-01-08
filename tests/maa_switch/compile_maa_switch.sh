@@ -29,7 +29,7 @@ INCLUDEDIR=$OPENSAF_HOME/include
 
 case "$1" in
    linux)
-      LIBDIR=$OPENSAF_HOME/targets/$HOST_ALIAS/lib;
+      LIBDIR=$TARGET_LIB_PATH/lib;
       MAA_SWITCH=maa-switch_1405.c;
       LIBMAA_SWITCH=libmaa_switch_$1.so;;
 
@@ -40,7 +40,7 @@ case "$1" in
          exit 1;
       fi
       fi
-      LIBDIR=$OPENSAF_HOME/targets/$HOST_ALIAS/lib64;
+      LIBDIR=$TARGET_LIB_PATH/lib64;
       MAA_SWITCH=maa-switch_1405.c;
       LIBMAA_SWITCH=libmaa_switch_$1.so;;
 

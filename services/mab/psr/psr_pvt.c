@@ -2265,11 +2265,12 @@ uns32 pss_find_scalar_node(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
             "pss_find_scalar_node()");
           return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        }
-    }
-    else
-        return NCSCC_RC_SUCCESS;
-
+       /* Initialize the allocated buffer with zeroes - IR00091603 */
     m_NCS_MEMSET(tbl_rec->info.scalar.data, 0, tbl_rec->info.scalar.row_len);
+    }
+    /* return if the table exists (On-Demand Write case) - bug fix for IR00091603 */
+    else
+      return NCSCC_RC_SUCCESS;
 
     retval = pss_read_from_sclr_store(pwe_cb, profile_name, tbl_rec->info.scalar.data,
                                  p_pcn, tbl_id, &entry_found);
@@ -2578,7 +2579,8 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                 break;
             }
 
-            m_NCS_MEMSET(pData + offset, 0, var_info->var_info.len);
+          /*  m_NCS_MEMSET(pData + offset, 0, var_info->var_info.len); */
+            m_NCS_MEMSET(pData + offset, 0, param->i_length);
             m_NCS_MEMCPY(pData + offset, param->info.i_oct, param->i_length);
             tbl_rec->dirty = TRUE;
         }
@@ -4696,6 +4698,12 @@ cleanup:
         }
     }
 
+    /* IR00091991 changes. Deleting temp file in the case of error case */
+    if(retval != NCSCC_RC_SUCCESS) {
+         m_NCS_PSSTS_DELETE_TEMP_FILE(inst->pssts_api, inst->pssts_hdl, retval);
+         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+    }
+
     m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SAVE_TO_STORE_END);
 
     return retval;
@@ -4797,12 +4805,20 @@ cleanup:
     }
 
     /* Update current profile first. */
-    m_NCS_PSSTS_FILE_COPY_TEMP(inst->pssts_api, inst->pssts_hdl, retval,
-        inst->current_profile, pwe_cb->pwe_id, p_pcn, tbl_id);
-    if (retval != NCSCC_RC_SUCCESS)
+    /* IR00091991 Changes.
+     * If all the operations have been successful,
+     * copy the temporary file to the table file.
+     */
+ 
+    if ((retval == NCSCC_RC_SUCCESS) && (tbl_rec->dirty != FALSE))
     {
-        m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_SET_COPY_TEMP_FILE_FAIL);
-        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+        m_NCS_PSSTS_FILE_COPY_TEMP(inst->pssts_api, inst->pssts_hdl, retval,
+                          inst->current_profile, pwe_cb->pwe_id, p_pcn, tbl_id);
+        if (retval != NCSCC_RC_SUCCESS)
+        {
+           m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_SET_COPY_TEMP_FILE_FAIL);
+           retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+        }
     }
 
     /* If a different profile name has been specified,
@@ -4824,6 +4840,12 @@ cleanup:
        data can be retreived whenever required. */
     m_MMGR_FREE_PSS_OCT(tbl_rec->info.scalar.data);
     tbl_rec->info.scalar.data = NULL;
+
+    /* IR00091991 changes. Deleting temp file in the case of error case */
+    if(retval != NCSCC_RC_SUCCESS) {
+         m_NCS_PSSTS_DELETE_TEMP_FILE(inst->pssts_api, inst->pssts_hdl, retval);
+         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+    }
 
     m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SAVE_TO_STORE_END);
 

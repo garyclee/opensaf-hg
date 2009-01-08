@@ -43,8 +43,9 @@ static uns32 rde_task_create        (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_task_main          (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_process_port_io    (RDE_CONTROL_BLOCK * rde_cb);
 uns32     rde_initialize(void);
+#if 0
 extern uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb);
-
+#endif
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_initialize
@@ -463,7 +464,9 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
 
    if (rc == 0) /* Timeout */
    {
+#if 0
        rde_rde_process_hb_loss_stdby(rde_cb);
+#endif
        return NCSCC_RC_FAILURE;
    }
 
@@ -520,14 +523,14 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
        /* if this RDE is not connected to the other RDE then connect */
         if (!rde_rde_cb->clientConnected)
         {
-		   if(rde_rde_cb->conn_needed == TRUE)
-		   {
- 		      /* Connect only if it is needed. */
+           if(rde_rde_cb->conn_needed == TRUE)
+           {
+              /* Connect only if it is needed. */
               if (rde_rde_connect(rde_rde_cb)!=RDE_RDE_RC_SUCCESS)
               {
                   return NCSCC_RC_FAILURE;
               }
-		   }
+           }
         }
         /* we will not send a request for role here because that will be taken care by clCheckConnect */
         rc = NCSCC_RC_SUCCESS;
@@ -542,8 +545,9 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
                rc = NCSCC_RC_SUCCESS;
         }
    }
-
+#if 0
    rde_rde_process_hb_loss_stdby(rde_cb);
+#endif
     /* if the rde has connected to the other rde */
    if(rde_rde_cb->clientConnected)
    {

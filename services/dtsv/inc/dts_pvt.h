@@ -455,22 +455,23 @@ typedef struct dts_svc_reg_tbl
 { \
    DTS_SVC_REG_TBL *svc_reg; \
    SVC_KEY   nt_key; \
+   uns32 rc = NCSCC_RC_SUCCESS; \
    \
    /* IR 60411 - Network order key added */ \
    nt_key.node = m_NCS_OS_HTONL(p->node); \
    nt_key.ss_svc_id = m_NCS_OS_HTONL(p->ss_svc_id); \
    if((svc_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&dts_cb.svc_tbl, \
              (const uns8*)&nt_key)) == NULL) \
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
+      rc =  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
                       No service registration entry present"); \
    else \
    { \
       if(svc_reg->spec_list == NULL) \
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
+         rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: \
                       No Spec list present"); \
       else if(svc_reg->spec_list->spec_struct->ss_spec == NULL) \
       { \
-         m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
+         rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
                     registered with service"); \
          sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       } \
@@ -479,6 +480,7 @@ typedef struct dts_svc_reg_tbl
       else \
          m_NCS_STRCPY(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
    } \
+   rc; \
 }
 
 typedef struct dts_cb

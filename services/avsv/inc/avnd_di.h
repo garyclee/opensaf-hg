@@ -32,6 +32,20 @@
 #ifndef AVND_DI_H
 #define AVND_DI_H
 
+/* macro to find the matching record (based on the msg-id) */
+/* 
+ * Caution!!! It is assumed that the msg-id is the 1st element in the message
+ * structure. Ensure it. Else move the msg id to the common portion of the 
+ * message structure (outside the msg type specific contents).
+ */
+#define m_AVND_DIQ_REC_FIND(cb, mid, o_rec) \
+{ \
+   AVND_DND_LIST *list = &((cb)->dnd_list); \
+   for ((o_rec) = list->head; \
+        (o_rec) && !(*((uns32 *)(&((o_rec)->msg.info.avd->msg_info)))== (mid)); \
+        (o_rec) = (o_rec)->next); \
+}
+
 /* macro to find & pop a given record */
 #define m_AVND_DIQ_REC_FIND_POP(cb, rec) \
 { \

@@ -79,7 +79,8 @@ snmpsubagt_eda_trapevt_to_agentxtrap_populate(EDU_HDL *edu_hdl,
 
 /* Function to start the timer to retry the eda initialisation. */
 EXTERN_C uns32 snmpsubagt_eda_init_timer_start (struct ncsSa_cb *pSacb);
-
+EXTERN_C uns32 subagt_send_v2trap(NCS_PATRICIA_TREE    *oid_db,
+                                  NCS_TRAP             *trap_header);
 #endif
 
 

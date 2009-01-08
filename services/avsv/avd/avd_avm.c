@@ -132,12 +132,18 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
    AVD_SU      *i_su, *i_su_sg;
+   AVD_AVND *i_su_node_ptr = NULL;
+   AVD_AVND *i_su_sg_node_ptr = NULL;
 
    if(avnd->type == AVSV_AVND_CARD_SYS_CON )
    {
       if( (cb->node_id_avd == avnd->node_info.nodeId) &&
           (cb->avail_state_avd == SA_AMF_HA_ACTIVE) )
+      {
+      /* Send shutdown failure trap */
+      avd_node_shutdown_failure_trap(cb, avnd, 1);
       return SA_FALSE;
+      }
    }
 
    i_su = avnd->list_of_su;
@@ -152,10 +158,15 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
          i_su_sg = i_su->sg_of_su->list_of_su;
          while (i_su_sg != AVD_SU_NULL)
          {
+            m_AVD_GET_SU_NODE_PTR(cb,i_su,i_su_node_ptr);
+            m_AVD_GET_SU_NODE_PTR(cb,i_su_sg,i_su_sg_node_ptr);
+
             if ((i_su != i_su_sg) &&
-               (i_su->su_on_node == i_su_sg->su_on_node) &&
+               (i_su_node_ptr == i_su_sg_node_ptr) &&
                (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL))
             {
+               /* Send shutdown failure trap */
+               avd_node_shutdown_failure_trap(cb, avnd, 2);
                return SA_FALSE;
             }
             
@@ -172,6 +183,8 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
             /* Dont go ahead as a SG that is undergoing transition is
              * there related to this node.
              */
+            /* Send shutdown failure trap */
+            avd_node_shutdown_failure_trap(cb, avnd, 3);
             return SA_FALSE;
          }
          
@@ -209,6 +222,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
    AVD_AVND         *avnd = AVD_AVND_NULL;
    NCS_BOOL         failover_pending = FALSE;
    AVD_SU           *i_su = AVD_SU_NULL;
+   uns32             count=0;
 
    if (evt->info.avm_msg == NULL)
    {
@@ -251,6 +265,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
       /* first get the avnd structure from the name in message */
       avnd = avd_avnd_struc_find(cb, tmpNode->node_name);
 
+
       if(avnd == AVD_AVND_NULL)
       {
          /* LOG an error ? */
@@ -260,6 +275,8 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
          tmpNode = tmpNode->next;
          continue;
       }
+
+      count ++; /* Track the Count of Nodes */
 
       if((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
          (avnd->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -303,9 +320,19 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
       if(avd_chk_nd_shutdown_valid(cb, avnd) == SA_FALSE)
       {
+        /* First Node Fails ,No need to traverse further List . 
+           req : AVM request for node shutdown , Parent is the first in List , it fails 
+           no need to shutdown the child entity  */
+
          tmpNode = tmpNode->next;
          avd_avm_send_shutdown_resp(cb, &avnd->node_info.nodeName, NCSCC_RC_FAILURE);
-         continue;
+         if(1 == count)
+           {
+               avm_avd_free_msg(&msg);
+               return;
+           }
+           else
+              continue;
       }
 
       /* Check if this node is already in the context of node failover */
@@ -820,6 +847,7 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
    AVM_LIST_NODE_T  *tmpNode = AVM_LIST_NODE_NULL;
    AVD_AVND         *avnd = AVD_AVND_NULL;
    AVD_SU           *i_su = AVD_SU_NULL;
+   AVD_AVND         *su_node_ptr = NULL;
 
    if (evt->info.avm_msg == NULL)
    {
@@ -913,7 +941,9 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
             i_su = avnd->list_of_su;
             while(i_su != AVD_SU_NULL)
             {
-               if(m_AVD_APP_SU_IS_INSVC(i_su))
+               m_AVD_GET_SU_NODE_PTR(cb,i_su,su_node_ptr);
+
+               if(m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr))
                {
                   i_su->readiness_state = NCS_IN_SERVICE;
                   switch(i_su->sg_of_su->su_redundancy_model)

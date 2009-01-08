@@ -39,6 +39,7 @@ typedef struct avnd_hc_tag {
    AVSV_HLT_KEY         key;         /* healthcheck table index */
    SaTimeT              period;      /* periodicity value */
    SaTimeT              max_dur;     /* max duration value */
+   NCS_BOOL             is_ext;      /* Whether it is for ext comp*/
    NCS_BOOL             rcvd_on_fover; /* Temporary flag to find out whether
                                         * update is received in the f-over message*/
 } AVND_HC;
@@ -54,5 +55,4 @@ EXTERN_C uns32 avnd_hcdb_init(struct avnd_cb_tag *);
 EXTERN_C uns32 avnd_hcdb_destroy(struct avnd_cb_tag *);
 EXTERN_C AVND_HC *avnd_hcdb_rec_add(struct avnd_cb_tag *, AVND_HC_PARAM *, uns32 *);
 EXTERN_C uns32 avnd_hcdb_rec_del(struct avnd_cb_tag *, AVSV_HLT_KEY *);
-
 #endif /* !AVND_HC_H */

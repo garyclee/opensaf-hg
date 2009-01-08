@@ -23,9 +23,10 @@ DESCRIPTION: IFA-MDS Routines
 
 #include "ifa.h"
 
+/* embedding subslot changes for backward compatibility*/
 MDS_CLIENT_MSG_FORMAT_VER
   IFA_WRT_IFND_MSG_FMT_ARRAY[IFA_WRT_IFND_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* msg format version for subpart version 2 */};
 
 /****************************************************************************
  * Name          : ifa_mds_callback
@@ -523,8 +524,9 @@ uns32 ifa_mds_enc(IFA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
     return NCSCC_RC_FAILURE;
    }
 
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
-                       EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror);
+   /* embedding subslot changes for backward compatibility*/
+   rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
+                       EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror,enc_info->o_msg_fmt_ver);
    if(rc != NCSCC_RC_SUCCESS)
    {
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"m_NCS_EDU_EXEC() returned failure"," ");
@@ -588,8 +590,9 @@ uns32 ifa_mds_dec (IFA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
    }
    dec_info->o_msg = (NCSCONTEXT)ifsv_evt;
 
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
-                       EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror);
+   /* embedding subslot changes for backward compatibility*/
+   rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
+                       EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
    if(rc != NCSCC_RC_SUCCESS)
    {
      m_IFA_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"m_NCS_EDU_EXEC() returned failure"," ");
@@ -601,7 +604,7 @@ uns32 ifa_mds_dec (IFA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
          dec_info->i_fr_svc_id,ifsv_evt->type);
       return rc;
    }
-     m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
+   m_IFA_LOG_EVT_LL(IFSV_LOG_IFA_EVT_INFO,\
          "IFSV_LOG_MDS_DEC_SUCCESS. dec_info->i_fr_svc_id,\
          ifsv_evt->type",\
          dec_info->i_fr_svc_id,ifsv_evt->type);

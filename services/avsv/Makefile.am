@@ -110,13 +110,20 @@ noinst_HEADERS = \
    inc/cla_log.h \
    inc/cla_logstr.h \
    inc/cla_mds.h \
-   inc/cla_mem.h
+   inc/cla_mem.h \
+   inc/avd_si_dep.h \
+   inc/avnd_ckpt_edu.h \
+   inc/avnd_ckpt_msg.h \
+   inc/avnd_ckpt_updt.h \
+   inc/avnd_mbcsv.h \
+   inc/avnd_proxy.h \
+   inc/avsv_nd2ndmsg.h 
 
 bin_PROGRAMS = ncs_scap ncs_pcap
 
 ncs_scap_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 -DNCS_SRMA=1 \
+	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 -DNCS_SRMA=1\
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_srcdir)/services/avsv/avm/inc \
 	-I $(top_srcdir)/services/leap/inc \
@@ -145,13 +152,13 @@ ncs_scap_LDADD = \
 	$(top_builddir)/services/mbcsv/src/libmbca.la \
 	$(top_builddir)/services/hisv/hpl/libhpl.la \
 	$(top_builddir)/services/avsv/avd/libavd.la \
-	$(top_builddir)/services/avsv/avnd/libavnd.la \
+	$(top_builddir)/services/avsv/avnd/libavnd_ctrl.la \
 	$(top_builddir)/services/avsv/avm/libavm.la \
 	$(top_builddir)/services/bam/libbam.la
 
 ncs_pcap_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_AVND=1 -DNCS_SRMA=1 \
+             -DNCS_AVND=1 -DNCS_SRMA=1 \
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_srcdir)/services/leap/inc \
 	-I $(top_srcdir)/services/common/inc \
@@ -170,4 +177,4 @@ ncs_pcap_LDADD = \
 	$(top_builddir)/services/common/libsaf_common.la \
 	$(top_builddir)/services/avsv/common/libavsv_common.la \
 	$(top_builddir)/services/srmsv/srma/libsrma.la \
-	$(top_builddir)/services/avsv/avnd/libavnd.la
+	$(top_builddir)/services/avsv/avnd/libavnd_pld.la

@@ -207,8 +207,8 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT    ckptHandle,
                                                                                                                              
    if(rc == SA_AIS_OK)
    {
-   	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -A ---%d from the CheckPoint", read_buff1);
-	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -B ---%d from the CheckPoint", read_buff2);
+    m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -A ---%d from the CheckPoint", read_buff1);
+    m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -B ---%d from the CheckPoint", read_buff2);
    }
 
    gl_count1 = read_buff1;
@@ -257,7 +257,7 @@ void avsv_ckpt_data_read(void)
       m_NCS_CONS_PRINTF("\n CKPT :: ReadVector B --%d during initial read\n", read_buff2);
    }
    else
-   	 m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A & B saCkptCheckpointRead fail -RC-%d during initial read\n", rc);
+     m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A & B saCkptCheckpointRead fail -RC-%d during initial read\n", rc);
 
 }
 

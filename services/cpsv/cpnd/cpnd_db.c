@@ -998,19 +998,38 @@ void cpnd_allrepl_write_evt_node_tree_destroy(CPND_CB *cb)
 
 
 /***********************************************************************************
- * Name            : cpnd_get_phy_slot_id
+ * Name            : cpnd_get_slot_sub_slot_id_from_mds_dest
  *
- * Description     : To get the physical slot id from node id
+ * Description     : To get the physical slot & sub slot  id from MDS_DEST
  *
  *********************************************************************************/
-NCS_PHY_SLOT_ID  cpnd_get_phy_slot_id(MDS_DEST dest)
+uns32  cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest)
 {
-     NCS_PHY_SLOT_ID phy_slot;
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+   
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
 
-     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,NULL);
-
-    return phy_slot;
+  return ((sub_slot * 8) + (phy_slot));
 }
+
+/***********************************************************************************
+ * Name            : cpnd_get_slot_sub_slot_id_from_node_id
+ *
+ * Description     : To get the physical slot & sub slot  id from node id
+ *
+ *********************************************************************************/
+uns32  cpnd_get_slot_sub_slot_id_from_node_id( NCS_NODE_ID i_node_id )
+{
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id,NULL,&phy_slot,&sub_slot);
+
+   return ((sub_slot * 8) + (phy_slot));
+ 
+}
+
 
  
 /******************************************************************************************
@@ -1120,7 +1139,7 @@ void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest
       SaClmNodeIdT node_id;
       uns32 counter=0; 
       if (error != SA_AIS_OK)
-	return;
+    return;
       m_CPND_RETRIEVE_CB(cb);
       if(cb == NULL)
       {
@@ -1133,30 +1152,30 @@ void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest
            if(notificationBuffer->notification[counter].clusterChange == SA_CLM_NODE_LEFT)
            {
                 node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
-		  if (node_id == cb->nodeid )
-		  {
-			  if( cpnd_proc_ckpt_clm_node_left(cb) != NCSCC_RC_SUCCESS)
-			  {
-			  	 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_left  to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
-			  	 m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-			  }
-		  }
-		  m_NCS_CONS_PRINTF("node_left -%d -%s line-%d clusterChange-%d \n",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+          if (node_id == cb->nodeid )
+          {
+              if( cpnd_proc_ckpt_clm_node_left(cb) != NCSCC_RC_SUCCESS)
+              {
+                 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_left  to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+                 m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+              }
+          }
+          m_NCS_CONS_PRINTF("node_left -%d -%s line-%d clusterChange-%d \n",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
            }
-	    else  if(notificationBuffer->notification[counter].clusterChange == (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED ))
-	    {
-		  node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
-		  if (node_id == cb->nodeid )
-		  {
-		 	 if( cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS)
-		  	{
-			 	m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-				 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_joined to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
-                	 }
-		  }
-		  m_NCS_CONS_PRINTF("node_joined -%d -%s line-%d clusterChange-%d\n ",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
-     	 }  
-      	}
-	m_CPND_GIVEUP_CB;
+        else  if(notificationBuffer->notification[counter].clusterChange == (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED ))
+        {
+          node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
+          if (node_id == cb->nodeid )
+          {
+             if( cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS)
+            {
+                m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+                 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_joined to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+                     }
+          }
+          m_NCS_CONS_PRINTF("node_joined -%d -%s line-%d clusterChange-%d\n ",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+         }  
+        }
+    m_CPND_GIVEUP_CB;
       return;
 }

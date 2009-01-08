@@ -220,6 +220,39 @@ void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state,
    return;
 }
 
+/****************************************************************************
+  Name          : avd_log_shutdown_failure
+
+  Description   : This routine logs the failure of shutdown traps.
+
+  Arguments     : node_name_net - Node name
+                  sev           - severity
+                  errcode       - Error code indicating the reason of failure
+                                  of shutdown
+
+  Return Values : None
+
+  Notes         : errcode =
+                  1: Node is active system controller
+                  2: SUs are in same SG on node
+                  3: SG is unstable
+                  Index to the string is formed by subtracting 1 from errcode
+ *****************************************************************************/
+void avd_log_shutdown_failure (SaNameT           *node_name_net,
+                               uns8              sev,
+                               AVD_SHUTDOWN_FAILURE_FLEX errcode)
+{
+   uns8 node_name[SA_MAX_NAME_LENGTH];
+
+   m_NCS_OS_MEMSET(node_name, '\0', SA_MAX_NAME_LENGTH);
+
+   /* convert name into string format */
+   if (node_name_net)
+      m_NCS_STRNCPY(node_name, node_name_net->value, m_NCS_OS_NTOHS(node_name_net->length));
+
+   ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SHUTDOWN_FAILURE, AVD_FC_SHUTDOWN_FAILURE, 
+           NCSFL_LC_HEADLINE, sev, "TCI", node_name, (errcode-1));
+}
 
 /****************************************************************************
  * Name          : avd_flx_log_reg
@@ -275,5 +308,47 @@ avd_flx_log_dereg ()
    ncs_dtsv_su_req(&reg);
    return;
 }
+
+/****************************************************************************
+  Name          : avd_pxy_pxd_log
+
+  Description   : This routine logs the proxy-proxied communication.
+
+  Arguments     : sev       - Severity
+                  index     - Index
+                  info      - Ptr to general info abt logs (Strings)
+                  comp_name - Ptr to the comp name, if any.
+                  Info1     - Value corresponding to Info description
+                  Info2     - Value corresponding to Info description
+                  Info3     - Value corresponding to Info description
+                  Info4     - Value corresponding to Info description
+
+  Return Values : None
+
+  Notes         : None.
+ *****************************************************************************/
+void avd_pxy_pxd_log(uns32   sev,
+                    uns32   index,
+                    uns8    *info,
+                    SaNameT *comp_name,
+                    uns32   info1,
+                    uns32   info2,
+                    uns32   info3,
+                    uns32   info4)
+{
+   uns8 comp[SA_MAX_NAME_LENGTH];
+
+   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+
+   /* convert name into string format */
+   if (comp_name)
+      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+
+      ncs_logmsg(NCS_SERVICE_ID_AVD,(uns8)AVD_PXY_PXD,(uns8)AVD_FC_PXY_PXD,
+                 NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info,
+                 comp, info1, info2, info3, info4);
+   return;
+}
+
 
 #endif /* (NCS_AVD_LOG == 1) */

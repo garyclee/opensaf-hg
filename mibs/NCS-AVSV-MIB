@@ -565,6 +565,7 @@
 
      -- ****************************************************************************
      -- AVSV Status Traps
+     --   Traps       : Actual Traps specified in this MIB
      -- ****************************************************************************
      
      ncsTraps       OBJECT IDENTIFIER ::= { avsvNotifications 1 }
@@ -609,5 +610,13 @@ ncsAlarmStateChgStartSUHaState NOTIFICATION-TYPE
             assigned to the SU." 
         ::= { ncsTraps 3 }
 
-
+ncsNodeShutdownFailure NOTIFICATION-TYPE
+        OBJECTS  {
+                   ncsNDNodeId,
+                   ncsNDNodeName
+        }
+        STATUS             current
+        DESCRIPTION
+           "The trap notifies when shutdown of a node fails."
+        ::= { ncsTraps 4 }
 END

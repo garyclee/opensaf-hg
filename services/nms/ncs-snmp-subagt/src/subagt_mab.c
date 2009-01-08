@@ -970,6 +970,12 @@ snmpsubagt_mab_unregister_mib(netsnmp_handler_registration *reginfo)
 {
     /* Log the function entry */
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_UNREGISTER_MIB);
+    
+    /* Fix for IR00092445 */
+    if(reginfo == NULL){
+       m_NCS_CONS_PRINTF("Subagt snmpsubagt_mab_unregister_mib process() received a NULL string as input for reginfo\n");
+       return NCSCC_RC_FAILURE;
+    }
 
     return unregister_mib_context(reginfo->rootoid, reginfo->rootoid_len,
                                   reginfo->priority, reginfo->range_subid, 

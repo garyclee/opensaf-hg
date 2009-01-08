@@ -199,7 +199,8 @@ typedef char * NCSFL_TYPE;
 #define  NCSFL_TYPE_TCLILLLL      "TCLILLLL"    /* tme, C,u32,idx, u32  added for glsv*/
 #define  NCSFL_TYPE_TIDNUX        "TIDNUX"        /*time idx mem_dump long long long long long long(hex) */ 
 #define  NCSFL_TYPE_TINUXD        "TINUXD"        /*time idx long long long long long long(hex) mem_dump*/ 
-
+#define  NCSFL_TYPE_TIILLLL       "TIILLLL"
+#define  NCSFL_TYPE_TIIII         "TIIII"  
 /************************************************************************
   FORMAT Structures for easy Memory Overlays
 

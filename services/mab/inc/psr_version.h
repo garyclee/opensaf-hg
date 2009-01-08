@@ -33,7 +33,12 @@
 
 /* macro to describe the version of the PSSv and its persistent store format */ 
 #define m_PSS_SERVICE_VERSION 1
-#define PSS_MBCSV_VERSION     2 /* Incremented as Cold-sync does not include pssv_lib_conf contents */
+/* PSS_MBCSV_VERSION : 
+         1: pssv_lib_conf is cold-synced.
+         2: pssv_lib_conf is not cold-synced. This is done to avoid any overwriting during upgrades.
+         3: pssv_lib_conf is cold-synced for !2. To avoid overwriting, the file is merged with the existing file at standby.
+*/
+#define PSS_MBCSV_VERSION     3
 #define PSS_MBCSV_VERSION_MIN 1
 #define PSS_PS_FORMAT_VERSION 2
 

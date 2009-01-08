@@ -95,6 +95,49 @@ uns32 avnd_tbls_reg_with_mab(AVND_CB *cb)
    return rc;
 }
 
+/***************************************************************************
+ * Function :  avnd_tbls_reg_with_mab_for_vdest
+ *
+ * Purpose  :  This function registers all AVND tables with MAB. 
+ *
+ * Input    :  cb      :AVND Control Block. 
+ *
+ * Returns  :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES    :  None.
+ *
+ **************************************************************************/
+uns32 avnd_tbls_reg_with_mab_for_vdest(AVND_CB *cb)
+{
+   NCSOAC_SS_ARG  avnd_oac_arg;
+   NCSMIB_TBL_ID  tbl_id;
+   uns32          rc = NCSCC_RC_SUCCESS;
+
+   m_NCS_MEMSET(&avnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+
+   avnd_oac_arg.i_oac_hdl = cb->avnd_mbcsv_mab_hdl;
+   avnd_oac_arg.i_op      = NCSOAC_SS_OP_TBL_OWNED;
+   avnd_oac_arg.info.tbl_owned.i_mib_key = (uns64)(cb->cb_hdl);
+   avnd_oac_arg.info.tbl_owned.i_mib_req =  avnd_req_mib_func;
+   avnd_oac_arg.info.tbl_owned.i_ss_id = NCS_SERVICE_ID_AVND;
+
+   /* Register for all AVND tables */
+   for (tbl_id  = NCSMIB_TBL_AVSV_AVND_BASE;
+        tbl_id <= NCSMIB_TBL_AVSV_END;
+        tbl_id ++)
+   {
+      avnd_oac_arg.i_tbl_id  = tbl_id;
+
+      if(ncsoac_ss(&avnd_oac_arg) != NCSCC_RC_SUCCESS)
+      {
+         /* Log Error about skipping the table */
+         rc = NCSCC_RC_FAILURE;
+         continue;
+      }
+   } /* end for tbl_id loop. Registration of all tables */
+
+   return rc;
+}
 
 /***************************************************************************
  * Function :  avnd_tbls_unreg_with_mab
@@ -138,6 +181,47 @@ uns32 avnd_tbls_unreg_with_mab(AVND_CB *cb)
    return rc;
 }
 
+/***************************************************************************
+ * Function :  avnd_tbls_unreg_with_mab_for_vdest
+ *
+ * Purpose  :  This function unregisters all AVND tables with MAB. 
+ *
+ * Input    :  AVND Control Block. 
+ *
+ * Returns  :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES    :  None.
+ * 
+ **************************************************************************/
+uns32 avnd_tbls_unreg_with_mab_for_vdest(AVND_CB *cb)
+{
+
+   NCSOAC_SS_ARG  avnd_oac_arg;
+   NCSMIB_TBL_ID  tbl_id;
+   uns32          rc = NCSCC_RC_SUCCESS ;
+
+   m_NCS_MEMSET(&avnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+
+   avnd_oac_arg.i_oac_hdl = cb->avnd_mbcsv_mab_hdl;
+   avnd_oac_arg.i_op      = NCSOAC_SS_OP_TBL_GONE;
+ 
+   /* Unregister for all AVND tables */
+   for (tbl_id  = NCSMIB_TBL_AVSV_AVND_BASE;
+        tbl_id <= NCSMIB_TBL_AVSV_END;
+        tbl_id ++)
+   {
+      avnd_oac_arg.i_tbl_id  = tbl_id;
+
+      if(ncsoac_ss(&avnd_oac_arg) != NCSCC_RC_SUCCESS)
+      {
+         /* Log Error about skipping the tables unregistration */
+         rc = NCSCC_RC_FAILURE;
+         continue;
+      }
+   } /* end for tbl_id loop. Un registration of all tables */
+
+   return rc;
+}
 
 /***************************************************************************
  * Function :  avnd_mab_reg_tbl_rows
@@ -163,7 +247,8 @@ uns32 avnd_mab_reg_tbl_rows(AVND_CB       *cb,
                             SaNameT       *name1_net,
                             SaNameT       *name2_net,
                             SaClmNodeIdT  *node_id,
-                            uns32 *row_hdl)
+                            uns32 *row_hdl,
+                            uns32 mab_hdl)
 {
    NCSOAC_SS_ARG avnd_oac_arg;
    NCSMAB_EXACT  exact;
@@ -206,7 +291,7 @@ uns32 avnd_mab_reg_tbl_rows(AVND_CB       *cb,
    exact.i_exact_idx = idx;
 
    /* Register for AVND table rows */
-   avnd_oac_arg.i_oac_hdl = cb->mab_hdl;
+   avnd_oac_arg.i_oac_hdl = mab_hdl;
    avnd_oac_arg.i_op      = NCSOAC_SS_OP_ROW_OWNED;
    avnd_oac_arg.i_tbl_id  = tbl_id;
 
@@ -236,13 +321,14 @@ uns32 avnd_mab_reg_tbl_rows(AVND_CB       *cb,
  * Input    :  AVND Control Block. 
  *             AVND Tbl ID
  *             The row handle of the row that needs to be deleted.
+ *             Mab Handle
  *
  * Returns  :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
  * NOTES    :  None.
  * 
  **************************************************************************/
-uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl)
+uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl, uns32 mab_hdl)
 {
    NCSOAC_SS_ARG  avnd_oac_arg;
    uns32          rc = NCSCC_RC_SUCCESS ;
@@ -251,7 +337,7 @@ uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl)
    m_NCS_MEMSET(&avnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Unregister for AVND table rows */
-   avnd_oac_arg.i_oac_hdl = cb->mab_hdl;
+   avnd_oac_arg.i_oac_hdl = mab_hdl;
    avnd_oac_arg.i_op      = NCSOAC_SS_OP_ROW_GONE;
    avnd_oac_arg.i_tbl_id  = tbl_id;
    avnd_oac_arg.info.row_gone.i_row_hdl = row_hdl;

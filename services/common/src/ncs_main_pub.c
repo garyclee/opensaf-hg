@@ -37,13 +37,13 @@
 #include "ncs_sprr_papi.h"
 #include "oac_papi.h"
 #include "ncs_main_pvt.h"
-
 #include "ncs_lib.h"
 #include "mds_dl_api.h"
 #include "sprr_dl_api.h"
 #include "mda_dl_api.h"
 #include "ncs_mib_pub.h"
 #include "oac_dl_api.h"
+#include "hpl_msg.h"
 #if ((NCS_MAS == 1) || (NCS_MAC == 1))
 #include "mab.h"
 #endif
@@ -1372,6 +1372,33 @@ try_again:
    return(0);
 }
 
+uns32 file_get_string(FILE **fp, char *o_chword)
+{
+   int temp_char;
+   unsigned int temp_ctr=0;
+try_again:
+   temp_ctr = 0;
+   temp_char = getc(*fp);
+   while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != '\0'))
+   {
+      o_chword[temp_ctr] = (char)temp_char;
+      temp_char = getc(*fp);
+      temp_ctr++;
+   }
+   o_chword[temp_ctr] = '\0';
+   if (temp_char == EOF)
+   {
+      return(NCS_MAIN_EOF);
+   }
+   if (temp_char == '\n')
+   {
+      return(NCS_MAIN_ENTER_CHAR);
+   }
+   if(o_chword[0] == 0x0)
+      goto try_again;
+   return(0);
+}
+
 #if 0
 uns32 mainget_slot_id(uns32 *slot_id)
 {
@@ -1693,7 +1720,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    do
    {
       /* reads the chassis type string from the file and copies into the user provided buffer*/ 
-      file_get_word(&fp,o_chassis_type);
+      file_get_string(&fp,o_chassis_type);
 
       fclose(fp);
 
@@ -2172,4 +2199,88 @@ uns8 ncs_get_phyinfo_from_node_id( NCS_NODE_ID i_node_id , NCS_CHASSIS_ID *o_cha
 
    return NCSCC_RC_SUCCESS;
 }
+/****************************************************************************
+  Name          :  ncs_get_phyinfo_from_entity_path
 
+  Description   :  This function extracts chassis id,physical slot
+                    id and sub slot id from entity path
+
+  Arguments     :  i_entity_path  - entity path
+                   *o_chassis_id  - chassis id
+                   *o_phy_slot_id - physical slot id
+                   *o_sub_slot_id - slot id
+
+  Return Values :  On Failure NCSCC_RC_FAILURE
+                   On Success NCSCC_RC_SUCCESS
+
+  Notes         : This function will execute and return success  only if the hardware flag specified is
+                  either HPI_A or HPI_B_02   
+                  else it doesnot do any functionality.
+******************************************************************************/
+/* IR000092437 */
+
+uns8 ncs_get_phyinfo_from_entity_path( SaHpiEntityPathT i_entity_path,  NCS_CHASSIS_ID *o_chassis_id,
+                                       NCS_PHY_SLOT_ID  *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
+{
+   int i=0;
+   int amc_check_flag=0;
+
+   while(i_entity_path.Entry[i].EntityType !=  SAHPI_ENT_ROOT)
+   {
+      #ifdef HPI_A 
+         if(i_entity_path.Entry[i].EntityType ==  SAHPI_ENT_SYSTEM_CHASSIS )
+         {
+            if(o_chassis_id!=NULL)
+            {
+               *o_chassis_id = (NCS_CHASSIS_ID)(i_entity_path.Entry[i].EntityInstance);
+            }
+         }
+         else if (i_entity_path.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BOARD )
+         {
+            if(o_phy_slot_id!=NULL)
+            {
+               *o_phy_slot_id = (NCS_PHY_SLOT_ID) (i_entity_path.Entry[i].EntityInstance);
+            }
+         }
+      #elif  HPI_B_02
+         if(i_entity_path.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+         {
+            if(o_chassis_id!=NULL)
+            {
+               *o_chassis_id = (NCS_CHASSIS_ID)(i_entity_path.Entry[i].EntityLocation);
+            }
+         }
+         else if(i_entity_path.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
+         {
+            if(o_phy_slot_id!=NULL)
+            {
+               *o_phy_slot_id = (NCS_PHY_SLOT_ID) (i_entity_path.Entry[i].EntityLocation);
+            }
+         }
+         else if(i_entity_path.Entry[i].EntityType == (NCS_SUB_SLOT_ID) AMC_SUB_SLOT_TYPE )
+         {
+            if(o_sub_slot_id!=NULL)
+            {
+               *o_sub_slot_id = (NCS_SUB_SLOT_ID) (AMC_SUB_SLOT_TYPE);
+                amc_check_flag=1;
+            }
+         }  
+      #endif 
+      i++;
+   } /* end of while loop for entity_type */
+
+   if(amc_check_flag==0)
+   {
+      if(o_sub_slot_id!=NULL)
+      {
+        #ifdef HPI_A
+           *o_sub_slot_id = (NCS_SUB_SLOT_ID)0x0F;
+        #elif HPI_B_02
+           *o_sub_slot_id = (NCS_SUB_SLOT_ID)0;
+        #endif
+      }
+   }
+   return NCSCC_RC_SUCCESS;
+}
+ 
+        

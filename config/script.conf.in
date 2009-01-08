@@ -57,6 +57,7 @@ SLOT_ID_FILE="$SYSCONFDIR/slot_id"
 NISPIPE="$TMPDIR/nisfifo"
 COMPNAMEFILE="$LOCALSTATEDIR/ncs_pss_comp_name"
 RDE_HA_COMP_NAMED_PIPE="$TMPDIR/rde_ha_comp_named_pipe"
+FMS_HA_COMP_NAMED_PIPE="$TMPDIR/fms_ha_comp_named_pipe"
 
 #########################################
 # KEYS
@@ -72,6 +73,7 @@ export HCD_HEALTH_KEY_DEFAULT_SET="F6C7"
 export GLSV_ENV_HEALTHCHECK_KEY="A1B2"
 export IFSV_ENV_HEALTHCHECK_KEY="C3D4"
 export RDE_HA_ENV_HEALTHCHECK_KEY="BAD8"
+export FMS_HA_ENV_HEALTHCHECK_KEY="BAD9"
 export NID_MAGIC=AAB49DAA
 
 

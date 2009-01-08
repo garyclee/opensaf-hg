@@ -98,17 +98,16 @@ ifd_intf_create_modify (IFSV_EVT* evt, IFSV_CB *cb)
    char log_info[45];
    
    intf_create = &evt->info.ifd_evt.info.intf_create;
-
    m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFSV_CREATE_MOD_MSG ,
-                                 "From : s/s/p/t/s/ originator",
+                                 "From : s/s/ss/p/t/s/ originator",
                                  intf_create->intf_data.spt_info.shelf,
                                  intf_create->intf_data.spt_info.slot,
+                                 intf_create->intf_data.spt_info.subslot,
                                  intf_create->intf_data.spt_info.port,
                                  intf_create->intf_data.spt_info.type,
                                  intf_create->intf_data.spt_info.subscr_scope,
-                                 intf_create->intf_data.originator,
-                                 0);
-
+                                 intf_create->intf_data.originator);
+                                 
    m_IFD_LOG_EVT_LL(IFSV_LOG_IFD_EVT_INTF_CREATE_RCV,\
       ifsv_log_spt_string(intf_create->intf_data.spt_info,log_info),\
       intf_create->if_attr,intf_create->intf_data.originator);
@@ -151,6 +150,13 @@ ifd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
                                  dest_info->spt_type.subscr_scope,
                                  dest_info->orign,
                                  ifindex);
+   
+    m_NCS_CONS_PRINTF("ifd_intf_destroy: From: s/s/ss/p/t/s --  %d/%d/%d/%d/%d/%d \n", dest_info->spt_type.shelf,
+                                 dest_info->spt_type.slot,
+                                 dest_info->spt_type.subslot,
+                                 dest_info->spt_type.port,
+                                 dest_info->spt_type.type,
+                                 dest_info->spt_type.subscr_scope);
 /*
    m_IFD_LOG_EVT_L(IFSV_LOG_IFD_EVT_INTF_DESTROY_RCV,\
       ifsv_log_spt_string(dest_info->spt_type,log_info),\
@@ -256,14 +262,15 @@ ifd_intf_ifindex_req (IFSV_EVT* evt, IFSV_CB *cb)
          error = NCS_IFSV_INT_ERROR;
       } else {
          m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_EVT_IFINDEX_REQ_RCV ,
-                                 "Ifindex allocated : s/s/p/t/s/ ifindex",
+                                 "Ifindex allocated : s/s/ss/p/t/s/ ifindex",
                                  spt_map->spt_map.spt.shelf,
                                  spt_map->spt_map.spt.slot,
+                                 spt_map->spt_map.spt.subslot,
                                  spt_map->spt_map.spt.port,
                                  spt_map->spt_map.spt.type,
                                  spt_map->spt_map.spt.subscr_scope,
-                                 spt_map->spt_map.if_index,
-                                 0);
+                                 spt_map->spt_map.if_index);
+
       }
        
    } else
@@ -308,14 +315,14 @@ ifd_intf_ifindex_cleanup (IFSV_EVT* evt, IFSV_CB *cb)
       Afterall we want the same data base at all the places.
     */
     m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_EVT_IFINDEX_CLEANUP_RCV ,
-                               "Ifindex : s/s/p/t/s/ ifindex",
+                               "Ifindex : s/s/ss/p/t/s/ifindex",
                                spt_map->spt_map.spt.shelf,
                                spt_map->spt_map.spt.slot,
+                               spt_map->spt_map.spt.subslot,
                                spt_map->spt_map.spt.port,
                                spt_map->spt_map.spt.type,
                                spt_map->spt_map.spt.subscr_scope,
-                               spt_map->spt_map.if_index,
-                               0);
+                               spt_map->spt_map.if_index);
    rec_data = ifsv_intf_rec_find(spt_map->spt_map.if_index, cb); 
    if(rec_data != NULL)
    {
@@ -1340,7 +1347,6 @@ static uns32 ifd_quisced_process(IFSV_EVT* evt, IFSV_CB* cb)
      {
        m_IFD_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ifd_mbcsv_chgrole() returned failure"," ");
        m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       return rc;
      }
      saAmfResponse(cb->amf_hdl, cb->invocation, saErr);
      cb->is_quisced_set = FALSE;

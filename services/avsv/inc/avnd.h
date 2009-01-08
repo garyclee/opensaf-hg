@@ -52,8 +52,11 @@
 #include "avsv_d2nmsg.h"
 #include "avsv_n2avamsg.h"
 #include "avsv_n2clamsg.h"
+#include "avsv_nd2ndmsg.h"
 
 /* AvND Files */
+#include "mbcsv_papi.h"
+#include "avnd_mbcsv.h"
 #include "avnd_tmr.h"
 #include "avnd_mds.h"
 #include "avnd_proc.h"
@@ -72,4 +75,7 @@
 #include "avnd_srm.h"
 #include "ncs_trap.h"
 #include "avnd_trap.h"
+#include "avnd_proxy.h"
+#include "avnd_ckpt_updt.h"
+#include "avnd_ckpt_msg.h"
 #endif

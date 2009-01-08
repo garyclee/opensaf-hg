@@ -328,16 +328,16 @@ uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
          prev_ckpt_hdl=cl_node->ckpt_app_hdl;
          if ((cl_node->version.majorVersion > 1 ) && (cl_node->version.minorVersion > 1 ))
          {
-        	  send_evt.type = CPSV_EVT_TYPE_CPA;
-	          send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
-	          rc=cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest ,&send_evt);
+              send_evt.type = CPSV_EVT_TYPE_CPA;
+              send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
+              rc=cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest ,&send_evt);
          }
         cpnd_client_node_getnext(cb,prev_ckpt_hdl,&cl_node);
     }  
  #else
          send_evt.type = CPSV_EVT_TYPE_CPA;
           send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT;
-	 rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
+     rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
 #endif
     return rc;
 }
@@ -356,16 +356,16 @@ uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
          prev_ckpt_hdl=cl_node->ckpt_app_hdl;
          if ((cl_node->version.majorVersion > 1 ) && (cl_node->version.minorVersion > 1 ))
          {
-         	send_evt.type = CPSV_EVT_TYPE_CPA;
-          	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
+            send_evt.type = CPSV_EVT_TYPE_CPA;
+            send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
               rc=cpnd_mds_msg_send(cb, NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest ,&send_evt);
          }
           cpnd_client_node_getnext(cb,prev_ckpt_hdl,&cl_node);
       }  
 #else
-	send_evt.type = CPSV_EVT_TYPE_CPA;
-	send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
-	rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
+    send_evt.type = CPSV_EVT_TYPE_CPA;
+    send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED;
+    rc=cpnd_mds_bcast_send(cb,&send_evt,NCSMDS_SVC_ID_CPA);
 #endif
     return rc;
 }
@@ -928,7 +928,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
       prev_ckpt_hdl=cl_node->ckpt_app_hdl;
       m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPA;
-      send_evt.info.cpa.type = CPND_EVT_ND2A_CKPT_BCAST_SEND;
+      send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_BCAST_SEND;
       rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest,&send_evt);
 
       if(rc == NCSCC_RC_FAILURE)
@@ -1752,34 +1752,34 @@ cpnd_proc_sec_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
 uns32
 cpnd_open_active_sync_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
 {
-		   uns32 rc=NCSCC_RC_SUCCESS;
-		   CPSV_EVT des_evt, *out_evt=NULL;
-		   CPSV_EVT send_evt;
- 	  	   m_NCS_MEMSET(&des_evt,'\0',sizeof(CPSV_EVT));
-		   m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
-  		   des_evt.type=CPSV_EVT_TYPE_CPD;
- 		   des_evt.info.cpd.type=CPD_EVT_ND2D_CKPT_DESTROY;
-		   des_evt.info.cpd.info.ckpt_destroy.ckpt_id=tmr_info->ckpt_id;
- 		   rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPD,cb->cpd_mdest_id, &des_evt,&out_evt, CPSV_WAIT_TIME);
-		    if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
-               	m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_FAILED,CPND_FC_EVT,NCSFL_SEV_ERROR,\
-               	out_evt->info.cpnd.info.destroy_ack.error,__FILE__,__LINE__);
+           uns32 rc=NCSCC_RC_SUCCESS;
+           CPSV_EVT des_evt, *out_evt=NULL;
+           CPSV_EVT send_evt;
+           m_NCS_MEMSET(&des_evt,'\0',sizeof(CPSV_EVT));
+           m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
+           des_evt.type=CPSV_EVT_TYPE_CPD;
+           des_evt.info.cpd.type=CPD_EVT_ND2D_CKPT_DESTROY;
+           des_evt.info.cpd.info.ckpt_destroy.ckpt_id=tmr_info->ckpt_id;
+           rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPD,cb->cpd_mdest_id, &des_evt,&out_evt, CPSV_WAIT_TIME);
+            if (out_evt && out_evt->info.cpnd.info.destroy_ack.error != SA_AIS_OK) {
+                m_LOG_CPND_LCL(CPND_CPD_NEW_ACTIVE_DESTROY_FAILED,CPND_FC_EVT,NCSFL_SEV_ERROR,\
+                out_evt->info.cpnd.info.destroy_ack.error,__FILE__,__LINE__);
                  }
-		   if(out_evt)
+           if(out_evt)
                  cpnd_evt_destroy(out_evt);
                 send_evt.info.cpa.info.openRsp.error= SA_AIS_ERR_TIMEOUT;
-  		  send_evt.type = CPSV_EVT_TYPE_CPA;
-		  send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_OPEN_RSP;
-		  send_evt.info.cpa.info.openRsp.lcl_ckpt_hdl=tmr_info->lcl_ckpt_hdl;
-		  if ( tmr_info->sinfo.stype == MDS_SENDTYPE_SNDRSP )
-		  {
-		        rc = cpnd_mds_send_rsp(cb, &tmr_info->sinfo, &send_evt);
-		  }
-		  else 
-		  {
-		        send_evt.info.cpa.info.openRsp.invocation= tmr_info->invocation;
-		        rc = cpnd_mds_msg_send(cb,tmr_info->sinfo.to_svc,tmr_info->sinfo.dest,&send_evt);
-		   }
+          send_evt.type = CPSV_EVT_TYPE_CPA;
+          send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_OPEN_RSP;
+          send_evt.info.cpa.info.openRsp.lcl_ckpt_hdl=tmr_info->lcl_ckpt_hdl;
+          if ( tmr_info->sinfo.stype == MDS_SENDTYPE_SNDRSP )
+          {
+                rc = cpnd_mds_send_rsp(cb, &tmr_info->sinfo, &send_evt);
+          }
+          else 
+          {
+                send_evt.info.cpa.info.openRsp.invocation= tmr_info->invocation;
+                rc = cpnd_mds_msg_send(cb,tmr_info->sinfo.to_svc,tmr_info->sinfo.dest,&send_evt);
+           }
    return NCSCC_RC_SUCCESS;
 } 
 uns32
@@ -2420,15 +2420,15 @@ NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT
    CPSV_CPND_DEST_INFO     *dest_list = NULL;
 
    /* Check if the CPND is on Active or Standby SCXB */
-   if(m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_phy_slot_id(cb->cpnd_mdest_id))||  \
-         m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_phy_slot_id(cb->cpnd_mdest_id))) {
+   if(m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_slot_sub_slot_id_from_mds_dest(cb->cpnd_mdest_id))||  \
+         m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_slot_sub_slot_id_from_mds_dest(cb->cpnd_mdest_id))) {
 
       dest_list = cp_node->cpnd_dest_list;
 
       while(dest_list) {
          /* Check if a replica is present on one of the payload blades */
-         if((!m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_phy_slot_id(dest_list->dest))) && \
-           (! m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_phy_slot_id(dest_list->dest)))) {
+         if((!m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest))) && \
+           (! m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest)))) {
                return TRUE;
          }
 

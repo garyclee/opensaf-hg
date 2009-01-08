@@ -2,6 +2,9 @@
 export OPENSAF_HOME=/home/opensaf/
 export OPEN_TWARE_HOME=/home/opensourcetware/
 export RESULTS_DIR=/opt/tware_result
+export TARGET_LIB_PATH=/usr/local
+export SAHPI_PATH=/home/openhpi/
+
 
 # Setup Cross Compile options 
 #CC_EXEC_PREFIX=/opt/tools/ppc_74xx-

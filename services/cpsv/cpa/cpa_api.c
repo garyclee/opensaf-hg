@@ -200,18 +200,18 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
 
       if((version->majorVersion  > 1 ) && (version->minorVersion > 1 ))
       {
-      	if ( rc == SA_AIS_ERR_UNAVAILABLE)
-      	{
-        	  cb->is_cpnd_joined_clm = FALSE;
-       	  if(locked)
+            if ( rc == SA_AIS_ERR_UNAVAILABLE)
+            {
+                cb->is_cpnd_joined_clm = FALSE;
+               if(locked)
           m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       	  locked = FALSE;
-       	  goto clm_left;
-      	}
-      	else
-      	{
-        	cb->is_cpnd_joined_clm = TRUE;
-      	}
+               locked = FALSE;
+               goto clm_left;
+            }
+            else
+            {
+              cb->is_cpnd_joined_clm = TRUE;
+            }
       }
       /* Take the CB lock after MDS Send */
       if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
@@ -261,9 +261,10 @@ lock_fail1:
       finalize_evt.info.cpnd.info.finReq.client_hdl = cl_node->cl_hdl;
 
       if(locked)
+      {
          m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
          locked = FALSE;
-      
+      }
          
       /* send the request to the CPND */
       proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(cb->cpnd_mds_dest), 
@@ -375,7 +376,7 @@ SaAisErrorT saCkptSelectionObjectGet(SaCkptHandleT ckptHandle,
       {
          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
          rc= SA_AIS_ERR_UNAVAILABLE; 
-       	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+              m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
          goto clm_left;
       }
    }
@@ -746,9 +747,9 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
          if (locked)
             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-	 locked = FALSE;
+       locked = FALSE;
          goto clm_left;
-      }	
+      }      
    }
 
    /* Allocate the CPA_LOCAL_CKPT_NODE & Populate lcl_ckpt_hdl with self 
@@ -1305,7 +1306,7 @@ SaAisErrorT  saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
        {
           m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
           rc= SA_AIS_ERR_UNAVAILABLE; 
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto clm_left;
        }
     }
@@ -1503,7 +1504,7 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
       rc = SA_AIS_ERR_BAD_HANDLE;
       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "CkptUnlink::client_node_get", __FILE__ ,__LINE__, rc , ckptHandle);
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
       goto fail1;
    }
      /* Checking Node availability */ 
@@ -1516,7 +1517,7 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
-   }	
+   }      
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
    /* Populate evt.info.cpnd.info.unlinkReq & Call MDS sync Send */
@@ -1651,7 +1652,7 @@ SaAisErrorT  saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkp
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+          m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
 
@@ -1659,22 +1660,22 @@ SaAisErrorT  saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkp
     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
     {
 
-	    if (cb->is_cpnd_joined_clm  != TRUE) 
-	   {
-	      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-	     rc= SA_AIS_ERR_UNAVAILABLE; 
-		 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	       goto clm_left;
-	   }
+          if (cb->is_cpnd_joined_clm  != TRUE) 
+         {
+            m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+           rc= SA_AIS_ERR_UNAVAILABLE; 
+             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+             goto clm_left;
+         }
 
-	   if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_WRITE))
-	   {
-	      rc = SA_AIS_ERR_ACCESS;
-	      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	                             "RetDurSet", __FILE__ ,__LINE__, rc , checkpointHandle);
-	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	      goto fail1;
-	   }
+         if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_WRITE))
+         {
+            rc = SA_AIS_ERR_ACCESS;
+            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                   "RetDurSet", __FILE__ ,__LINE__, rc , checkpointHandle);
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+            goto fail1;
+         }
 
     }
    /* Populate the event & send it to CPND */
@@ -1811,7 +1812,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
    
@@ -1822,7 +1823,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
       {
         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
         rc= SA_AIS_ERR_UNAVAILABLE; 
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
     }
@@ -2010,28 +2011,28 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
 
    /* Checking Node availability */ 
      if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
      {
-	    if (cb->is_cpnd_joined_clm  != TRUE) 
-	   {
-	      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-	      rc= SA_AIS_ERR_UNAVAILABLE; 
-		   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	       goto clm_left;
-	   }
-	   if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_READ))
-	   {
-	      rc = SA_AIS_ERR_ACCESS;
-	      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	                             "StatusGet", __FILE__ ,__LINE__, rc , checkpointHandle);
-	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	      goto fail1;
-	   }
+          if (cb->is_cpnd_joined_clm  != TRUE) 
+         {
+            m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+            rc= SA_AIS_ERR_UNAVAILABLE; 
+               m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+             goto clm_left;
+         }
+         if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_READ))
+         {
+            rc = SA_AIS_ERR_ACCESS;
+            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                   "StatusGet", __FILE__ ,__LINE__, rc , checkpointHandle);
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+            goto fail1;
+         }
      }
    proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                &lc_node->gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -2282,7 +2283,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-		   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+               m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
 
@@ -2294,7 +2295,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
        {
          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
          rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
          goto clm_left;
        }
     }
@@ -2479,15 +2480,15 @@ done:
   Name          :  saCkptSectionIdFree
  
   Description   :  This function frees the memory to which id points. This memory was allocated by the
-			   Checkpoint Service library in a previous call to the saCkptSectionCreate() function.
+                     Checkpoint Service library in a previous call to the saCkptSectionCreate() function.
  
   Arguments     :  checkpointHandle - [in] The handle to the checkpoint. The handle
-			          checkpointHandle must have been obtained by a previous invocation of
-                   	          saCkptCheckpointOpen() or saCkptCheckpointOpenAsync(). 
-                   	    
+                            checkpointHandle must have been obtained by a previous invocation of
+                                   saCkptCheckpointOpen() or saCkptCheckpointOpenAsync(). 
+                             
                         id - [in] A pointer to the section identifier that was allocated by the Checkpoint Service
-				  library in the saCkptSectionCreate() function and is to be freed. 
-				  
+                          library in the saCkptSectionCreate() function and is to be freed. 
+                          
   Return Values :  Refer to SAI-AIS specification for various return values.
  
 
@@ -2511,7 +2512,7 @@ saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle,SaUint8T *id)
    {
       rc = SA_AIS_ERR_BAD_HANDLE;
       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	  	"saCkptSectionIdFree:HDL_TAKE", __FILE__ ,__LINE__,rc,checkpointHandle);
+              "saCkptSectionIdFree:HDL_TAKE", __FILE__ ,__LINE__,rc,checkpointHandle);
       
       return rc;
    }
@@ -2542,7 +2543,7 @@ saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle,SaUint8T *id)
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                      __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
            rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail;
       }
    
@@ -2553,7 +2554,7 @@ saCkptSectionIdFree(SaCkptCheckpointHandleT checkpointHandle,SaUint8T *id)
         {
            m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
            rc= SA_AIS_ERR_UNAVAILABLE; 
-	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
            goto clm_left;
         }
     }
@@ -2659,7 +2660,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
 
@@ -2671,7 +2672,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
        {
          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
          rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
          goto clm_left;
        }
     }
@@ -2858,7 +2859,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
 
@@ -2870,7 +2871,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
          {
              m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
              rc= SA_AIS_ERR_UNAVAILABLE; 
-	     m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+           m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
              goto clm_left;
          }
     }
@@ -3065,21 +3066,21 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
     /* Checking Node availability */ 
     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
     {
-    	   if (cb->is_cpnd_joined_clm  != TRUE) 
-	   {
-	      m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
-	     rc= SA_AIS_ERR_UNAVAILABLE; 
-		  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	       goto clm_left;
-	   }
+             if (cb->is_cpnd_joined_clm  != TRUE) 
+         {
+            m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
+           rc= SA_AIS_ERR_UNAVAILABLE; 
+              m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+             goto clm_left;
+         }
 
-	   if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_READ))
-	   {
-	      rc = SA_AIS_ERR_ACCESS;
-	      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	                             "SectIterInit", __FILE__ ,__LINE__, rc , checkpointHandle);
-	      goto ckpt_node_get_fail;
-	   }
+         if(!(lc_node->open_flags & SA_CKPT_CHECKPOINT_READ))
+         {
+            rc = SA_AIS_ERR_ACCESS;
+            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                   "SectIterInit", __FILE__ ,__LINE__, rc , checkpointHandle);
+            goto ckpt_node_get_fail;
+         }
    }
    proc_rc = cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                            &lc_node->gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -3105,23 +3106,23 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
       if(!gc_node->is_active_exists)
        {
           if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-       	  {     
-	         if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
-	         {
-			rc = SA_AIS_ERR_NOT_EXIST;
-	        	m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	                                "SectIterInit",__FILE__ ,__LINE__, rc, checkpointHandle);
-	        	goto done;
-	         }
+               {     
+               if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
+               {
+                  rc = SA_AIS_ERR_NOT_EXIST;
+                    m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                      "SectIterInit",__FILE__ ,__LINE__, rc, checkpointHandle);
+                    goto done;
+               }
          }
-	 else
-	 {
+       else
+       {
                 rc = SA_AIS_ERR_NOT_EXIST;
-        	m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+              m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                 "SectIterInit",__FILE__ ,__LINE__, rc, checkpointHandle);
-        	goto done;
+              goto done;
          }
-	  
+        
        }
 
       if(gc_node->is_restart)
@@ -3322,7 +3323,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                      __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
            rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail1;
       }
 
@@ -3333,7 +3334,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
       {
          m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
          rc= SA_AIS_ERR_UNAVAILABLE; 
-	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
          goto clm_left;
       }
     }
@@ -3380,14 +3381,14 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                      __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
            rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail1;
         }
 
          if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
-	 {
-	 	 if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
-	         {
+       {
+              if(m_CPA_IS_ALL_REPLICA_ATTR_SET(gc_node->ckpt_creat_attri.creationFlags)== FALSE)
+               {
                      rc = SA_AIS_ERR_NOT_EXIST;
                      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
                      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
@@ -3395,15 +3396,15 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
                      goto sect_iter_get_fail;
                  }
          }
-	 else
-	 {
-	       	 rc = SA_AIS_ERR_NOT_EXIST;
-	       	 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	       	 m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-	                                "SectIterNext",__FILE__ ,__LINE__, rc, sectionIterationHandle);
-	         goto sect_iter_get_fail;
-	  }
-	  
+       else
+       {
+                    rc = SA_AIS_ERR_NOT_EXIST;
+                    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+                    m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                      "SectIterNext",__FILE__ ,__LINE__, rc, sectionIterationHandle);
+               goto sect_iter_get_fail;
+        }
+        
        }
 
       if(gc_node->is_restart)
@@ -3605,7 +3606,7 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                      __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
            rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail1;
       }
     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
@@ -3614,7 +3615,7 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
         {
            m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
            rc= SA_AIS_ERR_UNAVAILABLE; 
-	   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
            goto clm_left;
         }
     }
@@ -3831,7 +3832,7 @@ SaAisErrorT  saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
       {
         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
         rc= SA_AIS_ERR_UNAVAILABLE; 
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
     }
@@ -4083,7 +4084,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
       {
         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
         rc= SA_AIS_ERR_UNAVAILABLE; 
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
     }
@@ -4264,9 +4265,9 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
    /* DataBuffer is not Null but the dataSize is 0 ,ie no data to read , so return INVALID_PARAM */
   while(counter < numberOfElements)
   {
-  	 if ((ioVector[counter].dataBuffer != NULL) && (ioVector[counter].dataSize == 0))
+         if ((ioVector[counter].dataBuffer != NULL) && (ioVector[counter].dataSize == 0))
       return SA_AIS_ERR_INVALID_PARAM;
-	 counter++;
+       counter++;
   }
    m_CPA_RETRIEVE_CB(cb);
    if(!cb)
@@ -4311,7 +4312,7 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
       {
         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
         rc= SA_AIS_ERR_UNAVAILABLE; 
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
 
@@ -4535,7 +4536,7 @@ saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHandle,void *dat
    {
           rc = SA_AIS_ERR_BAD_HANDLE;
       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, 
-	  	"saCkptIOVectorElementDataFree:HDL_TAKE", __FILE__ ,__LINE__,rc,checkpointHandle);
+              "saCkptIOVectorElementDataFree:HDL_TAKE", __FILE__ ,__LINE__,rc,checkpointHandle);
       return rc;
    }
    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
@@ -4560,7 +4561,7 @@ saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHandle,void *dat
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                      __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
            rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE); 
             goto fail;
       }
     if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
@@ -4569,7 +4570,7 @@ saCkptIOVectorElementDataFree(SaCkptCheckpointHandleT checkpointHandle,void *dat
       {
         m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
         rc= SA_AIS_ERR_UNAVAILABLE; 
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         goto clm_left;
       }
     }
@@ -4648,7 +4649,7 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
       if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
@@ -4657,7 +4658,7 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
           {
               m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
               rc= SA_AIS_ERR_UNAVAILABLE; 
-	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
               goto clm_left;
           }
       }
@@ -4854,7 +4855,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
          m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "SelObjGet:client_node_get",
                                                    __FILE__ ,__LINE__, SA_AIS_ERR_BAD_HANDLE, lc_node->cl_hdl);
          rc = SA_AIS_ERR_BAD_HANDLE;
-	  m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
           goto fail1;
       }
       if ((cl_node->version.majorVersion > CPA_BASE_MAJOR_VERSION) && (cl_node->version.minorVersion > CPA_BASE_MINOR_VERSION))
@@ -4863,7 +4864,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
            {
               m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CLM Node left", __FILE__ ,__LINE__, SA_AIS_ERR_UNAVAILABLE);
               rc= SA_AIS_ERR_UNAVAILABLE; 
-	      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
               goto clm_left;
            }
       }

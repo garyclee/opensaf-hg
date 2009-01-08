@@ -59,13 +59,13 @@ extern uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb);
 *****************************************************************************/
 
 uns32 rde_rde_parse_config_file()
-{
+ {
   char *tmp_ptr;
-  RDE_CONTROL_BLOCK * rde_cb; 
- 
+  RDE_CONTROL_BLOCK * rde_cb;
+
   rde_cb = rde_get_control_block();
 
-  /* Fill the no of retires. */ 
+  /* Fill the no of retires. */
   rde_cb->rde_rde_cb.maxNoClientRetries = RDE_MAX_NO_CLIENT_RETRIES;
 
   tmp_ptr = getenv("RDE_SELF_IP_ADDR");
@@ -76,7 +76,7 @@ uns32 rde_rde_parse_config_file()
   }
   else
       return RDE_RDE_RC_FAILURE;
- 
+
   tmp_ptr = getenv("RDE_PEER_IP_ADDR");
   if(tmp_ptr)
   {
@@ -85,7 +85,7 @@ uns32 rde_rde_parse_config_file()
   }
   else
       return RDE_RDE_RC_FAILURE;
- 
+
   tmp_ptr = getenv("RDE_PORT_NUMBER");
   if(tmp_ptr)
   {
@@ -104,15 +104,15 @@ uns32 rde_rde_parse_config_file()
   else
       return RDE_RDE_RC_FAILURE;
 
-  return  RDE_RDE_RC_SUCCESS;   
-    
+  return  RDE_RDE_RC_SUCCESS;
+
 }
 
 /*****************************************************************************
 
   PROCEDURE NAME:         rde_rde_open
 
-  DESCRIPTION:            Open the socket and initialization of 
+  DESCRIPTION:            Open the socket and initialization of
                           the RDE Interface
 
   ARGUMENTS:
@@ -147,12 +147,12 @@ uns32 rde_rde_open (RDE_RDE_CB *rde_rde_cb)
     *         Initialize socket settings                            *
     *                                                               *
    \***************************************************************/
-   
+
    rde_rde_cb->host_addr.sin_family = AF_INET;
    rde_rde_cb->host_addr.sin_addr.s_addr = rde_rde_cb->hostip;
    rde_rde_cb->host_addr.sin_port = rde_rde_cb->hostportnum;
 
-   
+
    if (rde_rde_sock_init(rde_rde_cb) != RDE_RDE_RC_SUCCESS)
    {
       sprintf(log,"rde_rde_sock_init fail");
@@ -187,7 +187,7 @@ uns32 rde_rde_sock_open (RDE_RDE_CB *rde_rde_cb)
 
    if (rde_rde_cb->fd < 0)
    {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CREATE_FAIL, errno);       
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CREATE_FAIL, errno);
       return RDE_RDE_RC_FAILURE;
    }
 
@@ -212,7 +212,7 @@ uns32 rde_rde_sock_open (RDE_RDE_CB *rde_rde_cb)
 
 *****************************************************************************/
 uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
-{  
+{
    int rc,opt_value;
 
    opt_value = 1;
@@ -222,7 +222,7 @@ uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
    {
      m_RDE_LOG_COND_C (RDE_SEV_INFO, RDE_RDE_SET_SOCKOPT_ERROR, "SETSOCKOPT ERROR");
    }
- 
+
    rc = bind (rde_rde_cb->fd,
              (struct sockaddr *) &rde_rde_cb-> host_addr,
               sizeof(rde_rde_cb-> host_addr));
@@ -232,11 +232,11 @@ uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_BIND_FAIL, errno);
       return RDE_RDE_RC_FAILURE;
    }
-   
+
    rc = listen(rde_rde_cb->fd, 2);
    if (rc < 0)
    {
-     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_LISTEN_FAIL, errno); 
+     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_LISTEN_FAIL, errno);
      return RDE_RDE_RC_FAILURE;
    }
 
@@ -254,14 +254,14 @@ uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   Successfully accept the other RDE 
-    RDE_RDE_RC_FAILURE:   Failure to accept the other RDE 
+    RDE_RDE_RC_SUCCESS:   Successfully accept the other RDE
+    RDE_RDE_RC_FAILURE:   Failure to accept the other RDE
 
   NOTES:
 
 *****************************************************************************/
 uns32 rde_rde_process_msg (RDE_RDE_CB *rde_rde_cb)
-{  
+{
    int newsockfd,cli_addr_len,rc;
    cli_addr_len = sizeof(rde_rde_cb->cli_addr);
    rc = 0;
@@ -371,16 +371,16 @@ uns32 rde_rde_close (RDE_RDE_CB *rde_rde_cb)
 
   PROCEDURE NAME:         rde_rde_write_msg
 
-  DESCRIPTION:            Write a message to other RDE 
+  DESCRIPTION:            Write a message to other RDE
 
   ARGUMENTS:
-    fd                    File descriptor to send  
+    fd                    File descriptor to send
     msg                   Message to write
 
   RETURNS:
 
     RDE_RDE_RC_SUCCESS:   Successfully write a message
-    RDE_RDE_RC_FAILURE:   Failure to write a messge 
+    RDE_RDE_RC_FAILURE:   Failure to write a messge
 
   NOTES:
 
@@ -397,7 +397,7 @@ uns32 rde_rde_close (RDE_RDE_CB *rde_rde_cb)
      if (errno != EINTR && errno != EWOULDBLOCK)
          /* Non-benign error */
     /* Do the processing that is done when the client connection is lost here */
-     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno); 
+     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
      return RDE_RDE_MSG_WRT_FAILURE;
    }
    return rc;
@@ -427,14 +427,14 @@ uns32 rde_rde_read_msg (int fd, char *msg, int size)
    msg_size = read (fd, msg, size);
    if (msg_size < 0)
    {
-       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_READ_FAIL, errno);  
+       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_READ_FAIL, errno);
        return RDE_RDE_RC_FAILURE;
    }
 /* If the client connection is lost then need not maintain the fd and wait for fresh connection. */
    if (msg_size == 0)
    {
     return RDE_RDE_RC_FAILURE;
-   }   
+   }
    return RDE_RDE_RC_SUCCESS;
 }
 
@@ -442,7 +442,7 @@ uns32 rde_rde_read_msg (int fd, char *msg, int size)
 
   PROCEDURE NAME:         rde_rde_client_process_msg
 
-  DESCRIPTION:            To process the message and and send the role to 
+  DESCRIPTION:            To process the message and and send the role to
                           other RDE
 
   ARGUMENTS:
@@ -486,11 +486,11 @@ uns32 rde_rde_client_process_msg(RDE_RDE_CB  * rde_rde_cb)
         if (rc != RDE_RDE_RC_SUCCESS)
         {
               m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
-              return RDE_RDE_RC_FAILURE; 
+              return RDE_RDE_RC_FAILURE;
         }
         else
         {
-              return RDE_RDE_RC_SUCCESS; 
+              return RDE_RDE_RC_SUCCESS;
         }
      }
      else if(rc == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ)
@@ -499,20 +499,20 @@ uns32 rde_rde_client_process_msg(RDE_RDE_CB  * rde_rde_cb)
         if (rc != RDE_RDE_RC_SUCCESS)
         {
               m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
-              return RDE_RDE_RC_FAILURE; 
+              return RDE_RDE_RC_FAILURE;
         }
         else
         {
-              return RDE_RDE_RC_SUCCESS; 
+              return RDE_RDE_RC_SUCCESS;
         }
      }
      else
      {
          /* The message received from the other rde client is not valid */
-         return RDE_RDE_RC_FAILURE; 
+         return RDE_RDE_RC_FAILURE;
      }
-    
-  return rc; 
+
+  return rc;
 }
 
 /*****************************************************************************
@@ -522,7 +522,7 @@ uns32 rde_rde_client_process_msg(RDE_RDE_CB  * rde_rde_cb)
   DESCRIPTION:            To evaluate the other RDE's message
 
   ARGUMENTS:
-      msg                 Message   
+      msg                 Message
 
   RETURNS:
 
@@ -565,14 +565,14 @@ uns32 rde_rde_parse_msg(char * msg,RDE_RDE_CB  * rde_rde_cb)
       rde_rde_close(rde_rde_cb);
       sleep(5);
       syslog(LOG_NOTICE, "Rebooting the system...");
-      m_NCS_REBOOT;  
-      exit(0); 
+      m_NCS_REBOOT;
+      exit(0);
     }
    else if(req == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ)
    {
     sprintf(log,"Received RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ from other RDE. Peer Slot Number %d",slot_number);
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
-    rde_rde_cb->peer_slot_number = slot_number; 
+    rde_rde_cb->peer_slot_number = slot_number;
     return req;
    }
    else
@@ -586,13 +586,13 @@ uns32 rde_rde_parse_msg(char * msg,RDE_RDE_CB  * rde_rde_cb)
 
   PROCEDURE NAME:         rde_rde_process_send_role
 
-  DESCRIPTION:            To SEND the ha_role to the requested RDA 
+  DESCRIPTION:            To SEND the ha_role to the requested RDA
 
   ARGUMENTS:
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   Successfully SEND the role to the RDA 
+    RDE_RDE_RC_SUCCESS:   Successfully SEND the role to the RDA
     RDE_RDE_RC_FAILURE:   Failure to SEND the role to RDA
 
   NOTES:
@@ -619,14 +619,14 @@ uns32 rde_rde_process_send_role ()
     sprintf (msg, "%d %d", RDE_RDE_CLIENT_ROLE_RESPONSE,rde_cb->ha_role);
     if (rde_rde_write_msg (rde_rde_cb->recvFd, msg) != RDE_RDE_MSG_WRT_SUCCESS)
     {
-      rc = close(rde_rde_cb->recvFd);   
+      rc = close(rde_rde_cb->recvFd);
       rde_rde_cb->connRecv = FALSE;
       if ( rc < 0)
       {
           m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
-          
+
       }
-    
+
     /* close the fd */
         return RDE_RDE_RC_FAILURE;
     }
@@ -661,16 +661,16 @@ uns32 rde_rde_client_socket_init(RDE_RDE_CB *rde_rde_cb)
     char  log[RDE_LOG_MSG_SIZE] = {0};
 
     if ((fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
-    {
-        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_CLIENT_SOCK_CREATE_FAIL, errno);
-        return RDE_RDE_RC_FAILURE;
-    }
+   {
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_CLIENT_SOCK_CREATE_FAIL, errno);
+      return RDE_RDE_RC_FAILURE;
+   }
 
     memset(&rde_rde_cb->serv_addr, 0, sizeof(rde_rde_cb->serv_addr));
 
-    rde_rde_cb->serv_addr.sin_family = AF_INET;
-    rde_rde_cb->serv_addr.sin_addr.s_addr = rde_rde_cb->servip;
-    rde_rde_cb->serv_addr.sin_port = rde_rde_cb->servportnum;
+   rde_rde_cb->serv_addr.sin_family = AF_INET;
+   rde_rde_cb->serv_addr.sin_addr.s_addr = rde_rde_cb->servip;
+   rde_rde_cb->serv_addr.sin_port = rde_rde_cb->servportnum;
 
     /* Set socket to non blocking, connect can hang */
     if ((arg = fcntl(fd, F_GETFL, NULL)) == -1)
@@ -703,8 +703,8 @@ uns32 rde_rde_client_socket_init(RDE_RDE_CB *rde_rde_cb)
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   
-    RDE_RDE_RC_FAILURE:   
+    RDE_RDE_RC_SUCCESS:
+    RDE_RDE_RC_FAILURE:
 
   NOTES:
 
@@ -721,7 +721,7 @@ NCS_BOOL rde_rde_get_set_established(NCS_BOOL e)
     else
     {
         /* request to set the flag */
-        role_established = TRUE; /* role is established */ 
+        role_established = TRUE; /* role is established */
         return role_established;
     }
 }
@@ -730,7 +730,7 @@ NCS_BOOL rde_rde_get_set_established(NCS_BOOL e)
 
   PROCEDURE NAME:         rde_rde_clCheckConnect
 
-  DESCRIPTION:            Connection establishment with other RDE 
+  DESCRIPTION:            Connection establishment with other RDE
                           and to send the role request
 
   ARGUMENTS:
@@ -752,20 +752,20 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
         char msg [RDE_RDE_MSG_SIZE] = {0};
         char  log[RDE_LOG_MSG_SIZE] = {0};
 
-		/* Don't connect if STDBY RDE is waiting for Reboot.*/
+        /* Don't connect if STDBY RDE is waiting for Reboot.*/
         if(rde_rde_cb->conn_needed == FALSE)
-		  return RDE_RDE_RC_SUCCESS;
+          return RDE_RDE_RC_SUCCESS;
 
         if (((rde_rde_cb->clientReconnCount <  rde_rde_cb->maxNoClientRetries) && (FALSE == rde_rde_cb->clientConnected)) ||
             rde_rde_cb->retry == TRUE)
         {
-           if(rde_rde_connect(rde_rde_cb)!=RDE_RDE_RC_SUCCESS) 
+           if(rde_rde_connect(rde_rde_cb)!=RDE_RDE_RC_SUCCESS)
            {
              sprintf(log,"Connect Failed. Retry Count %d",rde_rde_cb->clientReconnCount);
              m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_RDE_INFO, log);
              return RDE_RDE_RC_FAILURE;
            }
-      
+
         }
                 /* send the request for role here */
                 /* if the send fails then we need to reconnect again  */
@@ -780,7 +780,7 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
                     if (errno != EINTR && errno != EWOULDBLOCK)
                     /* Non-benign error */
                      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
-                 
+
                      status = close(rde_rde_cb->clientfd);
                         if ( status < 0 )
                         {
@@ -795,14 +795,14 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
                         /* If the socket initialization fails then we need to exit */
                         return RDE_RDE_RC_FAILURE;
                     }
-                    else 
+                    else
                     {
                          return RDE_RDE_RC_SUCCESS;
                     }
 
 
               }
-              else 
+              else
               {
                     sprintf(log,"RDE_RDE_CLIENT_ROLE_REQUEST sent. Size %d",msg_size);
                     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
@@ -817,14 +817,14 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
 
   PROCEDURE NAME:         rde_rde_client_read_role
 
-  DESCRIPTION:            get the role of other RDE and update the current role 
+  DESCRIPTION:            get the role of other RDE and update the current role
                           based on the role of other RDE
 
   ARGUMENTS:
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   Successfully initialize the role 
+    RDE_RDE_RC_SUCCESS:   Successfully initialize the role
     RDE_RDE_RC_FAILURE:   Failure to initialize the role
 
   NOTES:
@@ -832,10 +832,10 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
 *****************************************************************************/
 uns32 rde_rde_client_read_role ()
 {
-   int msg_size; 
+   int msg_size;
    PCS_RDA_ROLE role;
    char msg[RDE_RDE_MSG_SIZE] = {0};
-   int status ;  
+   int status ;
    RDE_CONTROL_BLOCK * rde_cb = rde_get_control_block();
    char  log[RDE_LOG_MSG_SIZE] = {0};
    char              *ptr;
@@ -855,7 +855,7 @@ uns32 rde_rde_client_read_role ()
       {
            m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
       }
-      if( rde_rde_client_socket_init(&rde_cb->rde_rde_cb)!= RDE_RDE_RC_SUCCESS) 
+      if( rde_rde_client_socket_init(&rde_cb->rde_rde_cb)!= RDE_RDE_RC_SUCCESS)
       {
          /* If the socket initialization fails then we need to exit */
           return RDE_RDE_RC_FAILURE;
@@ -872,7 +872,7 @@ uns32 rde_rde_client_read_role ()
         {
         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
         }
-        if( rde_rde_client_socket_init(&rde_cb->rde_rde_cb)!= RDE_RDE_RC_SUCCESS)   
+        if( rde_rde_client_socket_init(&rde_cb->rde_rde_cb)!= RDE_RDE_RC_SUCCESS)
         {
              /* If the socket initialization fails then we need to exit */
              return RDE_RDE_RC_FAILURE;
@@ -880,7 +880,7 @@ uns32 rde_rde_client_read_role ()
    rde_cb->rde_rde_cb.retry = TRUE;
    rde_cb->rde_rde_cb.clientConnected = FALSE;
    rde_cb->rde_rde_cb.clientReconnCount = 0;
-   }    
+   }
    else
    {
     ptr = strchr (msg, ' ');
@@ -932,14 +932,14 @@ uns32 rde_rde_client_read_role ()
         m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_ERROR, log);
         return RDE_RDE_RC_FAILURE;
      }
-    }        
+    }
     else if(msg_type == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_RESP)
     {
-        slot_number = value;     
+        slot_number = value;
         m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
         sprintf(log,"Recieved RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_RESP. Peer Slot Number = %d",slot_number);
         m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
-        rde_cb->rde_rde_cb.peer_slot_number = slot_number; 
+        rde_cb->rde_rde_cb.peer_slot_number = slot_number;
     }
     else
     {
@@ -948,7 +948,7 @@ uns32 rde_rde_client_read_role ()
         m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_ERROR, log);
         return RDE_RDE_RC_FAILURE;
     }
-   }    
+   }
     /* Return success in any case for now, ok to lose the connection */
       return RDE_RDE_RC_SUCCESS;
 }
@@ -960,11 +960,11 @@ uns32 rde_rde_client_read_role ()
 
   ARGUMENTS:
      name                 String to be truncated
-  
+
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   
-    RDE_RDE_RC_FAILURE:   
+    RDE_RDE_RC_SUCCESS:
+    RDE_RDE_RC_FAILURE:
 
   NOTES:
 
@@ -986,7 +986,7 @@ void rde_rde_strip(char* name)
 
   PROCEDURE NAME:         rde_rde_update_config_file
 
-  DESCRIPTION:            set the updated role in the config_file 
+  DESCRIPTION:            set the updated role in the config_file
 
   ARGUMENTS:
       role                Role to update configuration file
@@ -994,7 +994,7 @@ void rde_rde_strip(char* name)
   RETURNS:
 
     RDE_RDE_RC_SUCCESS:   Successfully updated the config file
-    RDE_RDE_RC_FAILURE:   Failure to update the config file 
+    RDE_RDE_RC_FAILURE:   Failure to update the config file
 
   NOTES:
 
@@ -1013,7 +1013,7 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
 
   syslog(LOG_NOTICE, "This System Controller is assigned : %s", ((role == 0) ? "HA ACTIVE STATE":"HA STANDBY STATE"));
 
-  /* Check that the NID reponse has been sent or not. */ 
+  /* Check that the NID reponse has been sent or not. */
   if(rde_rde_cb->nid_ack_sent == FALSE)
   {
     /* NID ACK has not been sent yet, so sent it now. */
@@ -1047,15 +1047,15 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
 
   PROCEDURE NAME:         rde_rde_count_testing
 
-  DESCRIPTION:            Attempts for connectin to other RDE  
+  DESCRIPTION:            Attempts for connectin to other RDE
                           and set the role
 
   ARGUMENTS:
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   
-    RDE_RDE_RC_FAILURE:   
+    RDE_RDE_RC_SUCCESS:
+    RDE_RDE_RC_FAILURE:
 
   NOTES:
 
@@ -1067,10 +1067,10 @@ uns32 rde_count_testing ()
  char  log[RDE_LOG_MSG_SIZE] = {0};
 
  RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
-                                                                                
+
  /* If there was a request to connect but the maximum no of retries is
  done then set the role to active*/
-                                                                                
+
  if ( rde_rde_cb->clientReconnCount == rde_rde_cb->maxNoClientRetries)
  {
          rde_cb->ha_role = PCS_RDA_ACTIVE;
@@ -1080,9 +1080,9 @@ uns32 rde_count_testing ()
          rde_rde_update_config_file(rde_cb->ha_role);
          rde_rda_send_role (rde_cb->ha_role);
          return RDE_RDE_RC_SUCCESS;
-                                                                                
+
  }
-                                                                                
+
  return RDE_RDE_RC_SUCCESS;
 }
 
@@ -1098,8 +1098,8 @@ uns32 rde_count_testing ()
 
   RETURNS:
 
-    RDE_RDE_RC_SUCCESS:   
-    RDE_RDE_RC_FAILURE:   
+    RDE_RDE_RC_SUCCESS:
+    RDE_RDE_RC_FAILURE:
 
   NOTES:
 
@@ -1126,14 +1126,15 @@ uns32 rde_rde_set_role (PCS_RDA_ROLE role)
        rde_rda_send_role (rde_cb->ha_role);
    /* send the role to the other rde as well */
 
-      rde_rde_process_send_role(); 
+      rde_rde_process_send_role();
        return NCSCC_RC_SUCCESS;
 }
+#if 0
 /*****************************************************************************
 
   PROCEDURE NAME:         rde_rde_hb_err
 
-  DESCRIPTION:            
+  DESCRIPTION:
 
   ARGUMENTS:
 
@@ -1148,12 +1149,12 @@ uns32 rde_rde_set_role (PCS_RDA_ROLE role)
 
 uns32 rde_rde_hb_err ()
 {
-                                                                                                                              
+
    RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
    RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
-   char msg [RDE_RDE_MSG_SIZE] = {0}; 
+   char msg [RDE_RDE_MSG_SIZE] = {0};
    int msg_size   = 0;
-    
+
    if (rde_cb->ha_role == PCS_RDA_ACTIVE)
    {
        /* Check about the link health.*/
@@ -1164,7 +1165,7 @@ uns32 rde_rde_hb_err ()
             syslog(LOG_NOTICE, "Heart Beat Loss Msg received, sending Reboot Command to other RDE");
             rde_rda_send_node_reset_to_avm(rde_rde_cb);
             sprintf(msg,"%d",RDE_RDE_REBOOT_CMD);
-            msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg)); 
+            msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg));
             if (msg_size < 0)
             {
                m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
@@ -1194,24 +1195,25 @@ uns32 rde_rde_hb_err ()
             If it doesn't get reboot command then send reboot command to ACT. */
          m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received.  Waiting for reboot cmd from other RDE");
            rde_rde_cb->hb_loss = TRUE;
-		   rde_rde_cb->conn_needed = FALSE;
+           rde_rde_cb->conn_needed = FALSE;
        }
        else
        {
          rde_rde_cb->hb_loss = TRUE;
-		 rde_rde_cb->conn_needed = FALSE;
+         rde_rde_cb->conn_needed = FALSE;
          /* Log a message. */
          m_RDE_LOG_COND_C(RDE_SEV_CRITICAL, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received. RDE-RDE not connected");
        }
-     
+
    }
    /*
    ** It is a standby server and got heartbeat error
-   ** so change the role of the server 
+   ** so change the role of the server
    */
    return RDE_RDE_RC_SUCCESS;
-                                                                                                                              
+
 }
+#endif
 
 /*****************************************************************************
 
@@ -1232,12 +1234,12 @@ uns32 rde_rde_hb_err ()
 *****************************************************************************/
 uns32 rde_rde_connect(RDE_RDE_CB * rde_rde_cb)
 {
-    int rc;
-    char  log[RDE_LOG_MSG_SIZE] = {0};
+           int rc;
+           char  log[RDE_LOG_MSG_SIZE] = {0};
 
     rc = connect(rde_rde_cb->clientfd, (struct sockaddr *) &rde_rde_cb->serv_addr,
                  sizeof(rde_rde_cb->serv_addr));
-    rde_rde_cb->clientReconnCount++;
+           rde_rde_cb->clientReconnCount++;
 
     if (rc == 0)
         goto connect_success;
@@ -1307,18 +1309,18 @@ connect_failure:
 connect_success:
     sprintf(log,"rde_rde_connect:Connect SUCCESS. Retry Count %d",
             rde_rde_cb->clientReconnCount);
-    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO,log); 
-    rde_rde_cb->clientConnected = TRUE;
-    rde_rde_cb->clientReconnCount = 0;
-    rde_rde_cb->retry = FALSE;
-    return RDE_RDE_RC_SUCCESS;
+                m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO,log);
+                rde_rde_cb->clientConnected = TRUE;
+                rde_rde_cb->clientReconnCount = 0;
+                rde_rde_cb->retry = FALSE;
+           return RDE_RDE_RC_SUCCESS;
 }
-
+#if 0
 /*****************************************************************************
 
   PROCEDURE NAME:         rde_rde_process_hb_loss_stdby
 
-  DESCRIPTION:            Wait for some time and then sends Reboot to ACT. 
+  DESCRIPTION:            Wait for some time and then sends Reboot to ACT.
 
   ARGUMENTS:
      rde_cb           Pointer to RDE Socket Config structure
@@ -1345,7 +1347,7 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
     rde_rde_cb->count = 0;
     rde_rde_cb->hb_loss = FALSE;
     rde_cb->ha_role = PCS_RDA_ACTIVE;
-	rde_rde_cb->conn_needed = TRUE;
+    rde_rde_cb->conn_needed = TRUE;
     m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Wait Time Over : Switching STDBY to ACTIVE");
     rde_rde_update_config_file(rde_cb->ha_role);
     rde_rda_send_role (rde_cb->ha_role);
@@ -1375,10 +1377,10 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
                      return RDE_RDE_RC_FAILURE;
                  }
                 /* Close the recvFd and mark it not connected. */
-			    rc = close(rde_rde_cb->recvFd);
-				rde_rde_cb->connRecv = FALSE;
-			    if ( rc < 0)
-		        {
+                rc = close(rde_rde_cb->recvFd);
+                rde_rde_cb->connRecv = FALSE;
+                if ( rc < 0)
+                {
                    m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
                 }
 
@@ -1393,16 +1395,16 @@ uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
     }
 
    }/* rde_rde_cb->count == 2 */
-   else 
+   else
    {
      sleep(1);
    }
 
     rde_rde_cb->count++;
-  }/* rde_rde_cb->hb_loss == TRUE  */  
+  }/* rde_rde_cb->hb_loss == TRUE  */
  return RDE_RDE_RC_SUCCESS;
 }
-
+#endif
 /*****************************************************************************
 
   PROCEDURE NAME:         rde_rde_exchange_slot_number
@@ -1453,7 +1455,7 @@ static uns32 rde_rde_exchange_slot_number(RDE_CONTROL_BLOCK * rde_cb)
       else
       {
            return RDE_RDE_RC_SUCCESS;
-      } 
+      }
 
      }
      else

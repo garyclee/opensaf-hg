@@ -54,6 +54,8 @@
 #include "avm_subagt_init.h"
 #include "rda_papi.h"
 
+extern netsnmp_session *main_session;
+
 typedef uns32 
 (*SnmpSaReadinessAndHAStateProcess)(NCSSA_CB  *cb, 
                                     SaInvocationT   invocation);
@@ -95,6 +97,8 @@ snmpsubagt_appl_mibs_unregister(void);
 /* IR00061409 */
 static uns32
 subagt_amf_componentize(NCSSA_CB *cb);
+/*merging into opensaf_108_platform_base_br*/
+void snmpsubagt_check_and_flush_buffered_traps(NCSSA_CB    *cb);
 
 /* Initialize the HA state machine */
 const SnmpSaReadinessAndHAStateProcess
@@ -766,15 +770,57 @@ snmpsubagt_QUIESCING_QUIESCED_process(NCSSA_CB         *cb,
     saAmfResponse(cb->amfHandle, invocation, SA_AIS_OK); 
     return NCSCC_RC_SUCCESS; 
 }
+/******************************************************************************
+ *  Name:          snmpsubagt_check_and_flush_buffered_traps 
+ *
+ *  Description:   Checks if traps are buffered, if so sends buffered traps to master agent
+ *
+ *  Arguments:     NCSSA_CB    *cb 
+ *
+ *  Returns:       Nothing
+ *****************************************************************************/
+void snmpsubagt_check_and_flush_buffered_traps(NCSSA_CB    *cb)
+{
+    SNMPSUBAGT_TRAP_LIST  *trap_list = NULL;
+    SNMPSUBAGT_TRAP_LIST  *trap_list_node = NULL;
+    /*uns32                 status = NCSCC_RC_FAILURE; */
 
+    /* If the  traps are buffered and snmpd is up, send the traps from the  buffered list */
+    if( cb->trap_list && main_session  )
+         snmpsubagt_send_buffered_traps(cb);
+    else
+    if( cb->trap_list )
+    {
+        /* snmpd is not up, so free all the buffered traps */
+        trap_list  = cb->trap_list;
+        while( trap_list )
+        {
+            trap_list_node = trap_list;
+
+            trap_list = trap_list->next;
+
+            /* free the trap_varbind list */
+            ncs_trap_eda_trap_varbinds_free(trap_list_node->trap_evt->i_trap_vb);
+
+            free(trap_list_node->trap_evt);
+
+            m_MMGR_SNMPSUBAGT_TRAP_LIST_NODE_FREE(trap_list_node);
+
+        }
+        cb->trap_list = NULL;
+    }
+}
 /* Go to QUIESCING State */
 static uns32 
 snmpsubagt_QUIESCED_process(NCSSA_CB         *cb, 
                            SaInvocationT    invocation)
 {
-    uns32       status = NCSCC_RC_FAILURE; 
+    uns32       status  = NCSCC_RC_FAILURE; 
 
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_QUIESCED_STATE_PROCESS);
+
+    /* If the  traps are buffered and snmpd is up, send the buffered traps */
+    snmpsubagt_check_and_flush_buffered_traps(cb);
 
     /* unregister the applications MIBs with the Agent */ 
     status = snmpsubagt_appl_mibs_unregister();

@@ -102,6 +102,7 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
    AVD_AVND  *avnd=AVD_AVND_NULL;
    AVD_DND_MSG *n2d_msg;
    NCS_BOOL comp_sent;
+   uns32    rc = NCSCC_RC_SUCCESS;
 
    m_AVD_LOG_FUNC_ENTRY("avd_node_up_func");
    
@@ -241,12 +242,37 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
       m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
    }
 
+   /* Send role change to this controller AvND */
+   if (avnd->node_info.nodeId == cb->node_id_avd)
+   {
+      /* Here obviously the role will be ACT. */
+      rc = avd_avnd_send_role_change(cb, cb->node_id_avd, cb->avail_state_avd);
+      if(NCSCC_RC_SUCCESS != rc)
+      {
+        m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change failed. Node Id is",
+                              NULL,cb->node_id_avd,0,0,0);
+      }
+   }
+   /* Send role change to this controller AvND */
+   if (avnd->node_info.nodeId == cb->node_id_avd_other)
+   {
+      /* Here obviously the role will be STDBY. Here we are not picking the
+         state from "avail_state_avd_other" as it may happen that the cold 
+         sync would be in progress and there has been no heart beat exchange
+         till now, so "avail_state_avd_other" might not have been updated.*/
+      rc = avd_avnd_send_role_change(cb, cb->node_id_avd_other,SA_AMF_HA_STANDBY);
+      if(NCSCC_RC_SUCCESS != rc)
+      {
+        m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change failed. Peer AvND Node Id is",
+                              NULL,cb->node_id_avd,0,0,0);
+      }
+   }
  
    /* upload all the data from director to node director. By sending all the
     * information messages.
     */
    
-   if (avd_snd_hlt_msg(cb,avnd,AVD_HLT_NULL, FALSE) != NCSCC_RC_SUCCESS)
+   if (avd_snd_hlt_msg(cb,avnd,AVD_HLT_NULL, FALSE, FALSE) != NCSCC_RC_SUCCESS)
    {
       m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
       /* we are in a bad shape. Restart the node for recovery */
@@ -973,7 +999,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
    if (FALSE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack)
    {
       /* Log Information */
-      if (avd_snd_hlt_msg(cb,avnd,AVD_HLT_NULL, TRUE) != NCSCC_RC_SUCCESS)
+      if (avd_snd_hlt_msg(cb,avnd,AVD_HLT_NULL, TRUE, FALSE) != NCSCC_RC_SUCCESS)
       {
          m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
          /* we are in a bad shape. Restart the node for recovery */

@@ -63,6 +63,9 @@ typedef enum
    NCS_SERVICE_AVD_SUB_ID_AVD_SG_SU_RANK,
    NCS_SERVICE_AVD_SUB_ID_AVD_CS_TYPE_PARAM,
    NCS_SERVICE_AVD_SUB_ID_EDA_TLV_MSG,
+   NCS_SERVICE_AVD_SUB_ID_SI_SI_DEP,
+   NCS_SERVICE_AVD_SUB_ID_SI_DEP_NAME,
+   NCS_SERVICE_AVD_SUB_ID_SPONS_SI,
    NCS_SERVICE_AVD_SUB_ID_MAX
 } NCS_SERVICE_AVD_SUB_ID;
 
@@ -327,4 +330,30 @@ typedef enum
                                                 NCS_SERVICE_ID_AVD, \
                                                 NCS_SERVICE_AVD_SUB_ID_EDA_TLV_MSG)
 
+#define m_MMGR_ALLOC_AVD_SI_SI_DEP   (AVD_SI_SI_DEP*)m_NCS_MEM_ALLOC(sizeof(AVD_SI_SI_DEP), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SI_SI_DEP)
+#define m_MMGR_FREE_AVD_SI_SI_DEP(p)  m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SI_SI_DEP)
+
+#define m_MMGR_ALLOC_AVD_SI_NAME_LIST (AVD_SI_DEP_NAME_LIST*)m_NCS_MEM_ALLOC(sizeof(AVD_SI_DEP_NAME_LIST), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SI_DEP_NAME)
+#define m_MMGR_FREE_AVD_SI_NAME_LIST(p)  m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SI_DEP_NAME)
+
+#define m_MMGR_ALLOC_AVD_SPONS_SI_LIST (AVD_SPONS_SI_NODE *)m_NCS_MEM_ALLOC(sizeof(AVD_SPONS_SI_NODE), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SPONS_SI)
+#define m_MMGR_FREE_AVD_SPONS_SI_LIST(p)  m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVD, \
+                                                NCS_SERVICE_AVD_SUB_ID_SPONS_SI)
 #endif /* !AVD_MEM_H */

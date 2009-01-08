@@ -26,7 +26,7 @@ libcpsv_logstr_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/mds/inc \
 	-I $(top_srcdir)/services/mab/inc \
 	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+			-I $(top_srcdir)/include
 
 libcpsv_logstr_la_SOURCES = \
 	cpa_logstr.c \

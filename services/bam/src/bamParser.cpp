@@ -144,6 +144,15 @@ TAG_OID_MAP_NODE gl_amfConfig_table[] =
    {"SIInstance",        "SUsPerSIrowStatus",
       NCSMIB_TBL_AVSV_AMF_SUS_PER_SI_RANK,     4, NCSMIB_FMAT_INT},
 
+   /* SI-SI Dependency Table */
+   {"SIInstance",        "SIdepName",  
+      NCSMIB_TBL_AVSV_AMF_SI_SI_DEP, 1, NCSMIB_FMAT_OCT},
+   {"SIInstance",        "SIdepDepName",
+      NCSMIB_TBL_AVSV_AMF_SI_SI_DEP, 2, NCSMIB_FMAT_OCT},
+   {"SIInstance",        "SIdepToltime",
+      NCSMIB_TBL_AVSV_AMF_SI_SI_DEP, 3, NCSMIB_FMAT_OCT},
+   {"SIInstance",        "SIdepRowStatus",
+      NCSMIB_TBL_AVSV_AMF_SI_SI_DEP, 4, NCSMIB_FMAT_INT},
 
    /* component Instance table with tags */
    {"componentInstance",  "name",                

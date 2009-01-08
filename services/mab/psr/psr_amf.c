@@ -1049,14 +1049,21 @@ pss_amf_csi_set_all(SaInvocationT invocation,
        ps_cnt = scandir(NCS_PSS_DEF_PSSV_ROOT_PATH, &ps_list, &persistent_file_filter, NULL);
        if (ps_cnt < 0)
        {
-           perror("scandir");
-           return;
+          /* Log that error occured while scanning the persistent store for format */
+          m_LOG_PSS_STR(NCSFL_SEV_CRITICAL,
+                        "pss_amf_csi_set_all(): Error occured while scanning the persistent store for format");
+          return;
        }
        if(ps_cnt > 2)
        {
           /* Log that there are multiple formats of persistent store */
           m_LOG_PSS_STR(NCSFL_SEV_CRITICAL,
-                        "pss_check_n_reformat(): Too many formats of persistent store found");
+                        "pss_amf_csi_set_all(): Too many formats of persistent store found");
+          for(;ps_cnt > 0; ps_cnt--)
+             free(ps_list[ps_cnt-1]);
+          free(ps_list);
+
+          return;
        }
        else if(ps_cnt != 0)
        {

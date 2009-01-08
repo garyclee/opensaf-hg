@@ -276,16 +276,16 @@ void SaAmfHealthcheckCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-    	_TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
-    	return;
+          return;
     }
     // component name
     _compNameString = JNU_newStringFromSaNameT( _jniEnv,
                                                 saCompNamePtr );
     if( _compNameString == NULL ){
         // TODO error handling
-	    _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
         return; // OutOfMemoryError thrown already...
     }
     // healthcheck key
@@ -359,7 +359,7 @@ void SaAmfCSISetCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -369,7 +369,7 @@ void SaAmfCSISetCallback(
     if( _compNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -379,7 +379,7 @@ void SaAmfCSISetCallback(
     if( _haState == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _haState is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _haState is NULL  \n" );
 
         return; // exception thrown already...
     }
@@ -441,7 +441,7 @@ void SaAmfCSIRemoveCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -451,7 +451,7 @@ void SaAmfCSIRemoveCallback(
     if( _compNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -461,7 +461,7 @@ void SaAmfCSIRemoveCallback(
     if( _csiNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _csiNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _csiNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -471,7 +471,7 @@ void SaAmfCSIRemoveCallback(
     if( _csiFlags == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _csiFlags is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _csiFlags is NULL  \n" );
 
         return; // exception thrown already...
     }
@@ -517,7 +517,7 @@ void SaAmfComponentTerminateCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -527,7 +527,7 @@ void SaAmfComponentTerminateCallback(
     if( _compNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _compNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -571,7 +571,7 @@ void SaAmfProxiedComponentInstantiateCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -581,7 +581,7 @@ void SaAmfProxiedComponentInstantiateCallback(
     if( _proxiedCompNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _proxiedCompNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _proxiedCompNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -625,7 +625,7 @@ void SaAmfProxiedComponentCleanupCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -635,7 +635,7 @@ void SaAmfProxiedComponentCleanupCallback(
     if( _proxiedCompNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _proxiedCompNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _proxiedCompNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -690,7 +690,7 @@ void SaAmfProtectionGroupTrackCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -700,7 +700,7 @@ void SaAmfProtectionGroupTrackCallback(
     if( _csiNameString == NULL ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _csiNameString is NULL  \n" );
+          _TRACE2( "NATIVE CALLBACK ERROR: _csiNameString is NULL  \n" );
 
         return; // OutOfMemoryError thrown already...
     }
@@ -719,10 +719,10 @@ void SaAmfProtectionGroupTrackCallback(
 
     // create PG nofication buffer
     if (saNotificationBufferPtr != NULL) {
-		_sProtectionGroupNotificationBuffer = JNU_ProtectionGroupNotificationArray_create(_jniEnv,
-						saNotificationBufferPtr);
+            _sProtectionGroupNotificationBuffer = JNU_ProtectionGroupNotificationArray_create(_jniEnv,
+                                    saNotificationBufferPtr);
     } else {
-		_sProtectionGroupNotificationBuffer = NULL;
+            _sProtectionGroupNotificationBuffer = NULL;
     }
 
     // invoke Java callback
@@ -766,8 +766,8 @@ jboolean JNU_CsiDescriptor_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/amf/CsiDescriptor" )
                                );*/
-    ClassCsiDescriptor = JNU_GetGlobalClassRef(	jniEnv,
-                                                	"org/saforum/ais/amf/CsiDescriptor" );
+    ClassCsiDescriptor = JNU_GetGlobalClassRef(      jniEnv,
+                                                      "org/saforum/ais/amf/CsiDescriptor" );
     if( ClassCsiDescriptor == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassCsiDescriptor is NULL\n" );

@@ -354,8 +354,8 @@ void JNU_ExceptionDescribeDoNotClear( JNIEnv* jniEnv )
 
     // BODY
     _exc = (*jniEnv)->ExceptionOccurred(jniEnv);
-	if( _exc != NULL ) {
-		(*jniEnv)->ExceptionDescribe(jniEnv);
+      if( _exc != NULL ) {
+            (*jniEnv)->ExceptionDescribe(jniEnv);
         (*jniEnv)->Throw( jniEnv, _exc );
     }
 }
@@ -367,8 +367,8 @@ void JNU_ExceptionDescribeDoNotClear( JNIEnv* jniEnv )
  *                  SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		saNamePtr [in]
- * 			The SaName to be stringified
+ *             saNamePtr [in]
+ *                   The SaName to be stringified
  *   returns:     the newly created String
  * NOTE:
  *************************************************************************/
@@ -376,10 +376,10 @@ jstring JNU_newStringFromSaNameT(
     JNIEnv* jniEnv,
     const SaNameT* saNamePtr )
 {
-	// BODY
-	_TRACE2( "NATIVE: Executing JNU_newStringFromSaNameT(...)\n" );
+      // BODY
+      _TRACE2( "NATIVE: Executing JNU_newStringFromSaNameT(...)\n" );
 
-	SaUint8T _eValue[SA_MAX_NAME_LENGTH+1];
+      SaUint8T _eValue[SA_MAX_NAME_LENGTH+1];
     memcpy( _eValue, saNamePtr->value, SA_MAX_NAME_LENGTH );
     _eValue[saNamePtr->length] = 0x00;
 
@@ -395,16 +395,16 @@ jstring JNU_newStringFromSaNameT(
  *                the specified SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		fromStr [in]
- * 			- the source Java string.
- * 			If null, then *toSaNamePtrPtr will be set to NULL and JNI_TRUE is returned
+ *             fromStr [in]
+ *                   - the source Java string.
+ *                   If null, then *toSaNamePtrPtr will be set to NULL and JNI_TRUE is returned
  *          If longer than SA_MAX_NAME_LENGTH, AisInvalidParamException is thrown.
  *      toSaNamePtrPtr [in/out]
- * 			- a pointer to a pointer to the SaNameT structure into which
- * 			the content of the source Java string is copied.
+ *                   - a pointer to a pointer to the SaNameT structure into which
+ *                   the content of the source Java string is copied.
  *
- *   returns:		JNI_TRUE if the copy operation succeeded.
- * 					If JNI_FALSE, then there is a pending Java exception.
+ *   returns:            JNI_TRUE if the copy operation succeeded.
+ *                               If JNI_FALSE, then there is a pending Java exception.
  * NOTE:
  *************************************************************************/
 jboolean JNU_copyFromStringToSaNameT(
@@ -423,7 +423,7 @@ jboolean JNU_copyFromStringToSaNameT(
 
     // check if string is not null
     if( fromStr == NULL ){
-    	*toSaNamePtrPtr = NULL;
+          *toSaNamePtrPtr = NULL;
         return JNI_TRUE;
     }
     // check if string is not too long
@@ -454,15 +454,15 @@ jboolean JNU_copyFromStringToSaNameT(
  *                the specified SaNameT parameter.
  * INTERFACE:
  *   parameters:
- * 		fromStr [in]
- * 			- the source Java string. It must not be null.
+ *             fromStr [in]
+ *                   - the source Java string. It must not be null.
  *          If longer than SA_MAX_NAME_LENGTH, AisInvalidParamException is thrown.
  *      toSaNamePtr [in/out]
- * 			- a pointer to the SaNameT structure into which
- * 			the content of the source Java string is copied.
+ *                   - a pointer to the SaNameT structure into which
+ *                   the content of the source Java string is copied.
  *
- *   returns:		JNI_TRUE if the copy operation succeeded.
- * 					If JNI_FALSE, then there is a pending Java exception.
+ *   returns:            JNI_TRUE if the copy operation succeeded.
+ *                               If JNI_FALSE, then there is a pending Java exception.
  * NOTE:
  *************************************************************************/
 jboolean JNU_copyFromStringToSaNameT_NotNull(
@@ -642,7 +642,7 @@ jint JNU_GetEnvForCallback( JavaVM *vmPtr, JNIEnv **envPtrPtr )
                                     JNI_VERSION_1_2 );
     if( _status != JNI_OK ){
         // TODO error handling
-	    _TRACE2( "NATIVE ERROR: _status by GetEnv() is %d\n", _status );
+          _TRACE2( "NATIVE ERROR: _status by GetEnv() is %d\n", _status );
     }
     return _status;
 }

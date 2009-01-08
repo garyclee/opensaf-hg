@@ -994,7 +994,6 @@ static uns32  ifd_mbcsv_init(IFSV_CB *cb)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
-   m_NCS_CONS_PRINTF("\n IFSV MBCSV VERSION : %d",IFD_MBCSV_VERSION);
    cb->mbcsv_hdl = arg.info.initialize.o_mbcsv_hdl;
    m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                            "Mbcsv Init Success",0);
@@ -1360,6 +1359,9 @@ uns32  ifd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
                      "Encode Failure, NULL CB",0);
      return (NCSCC_RC_FAILURE);
    }
+  
+   /* embedding subslot changes for backward compatibility*/
+   cb->edu_hdl.to_version = msg_fmt_version;
 
    switch(arg->info.encode.io_msg_type)
    {
@@ -1434,8 +1436,8 @@ static uns32  ifd_mbcsv_enc_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
       case IFD_A2S_EVT_IFINDEX_SPT_MAP:
       {
          msg = (IFD_A2S_MSG *)(long)arg->info.encode.io_reo_hdl;
-         rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror);
+         rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror, cb->edu_hdl.to_version);
          if(rc != NCSCC_RC_SUCCESS)
          {
             m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"encode failure:ifsv_edp_ifd_a2s_msg_evt:IFD_A2S_EVT_IFINDEX_SPT_MAP:ifd_mbcsv_enc_async_update rc:",rc);
@@ -1449,8 +1451,8 @@ static uns32  ifd_mbcsv_enc_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
       case IFD_A2S_EVT_INTF_DATA:
       {
          msg = (IFD_A2S_MSG *)(long)arg->info.encode.io_reo_hdl;
-         rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror);
+         rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror, cb->edu_hdl.to_version);
          if(rc != NCSCC_RC_SUCCESS)
          {
             /*LOG */
@@ -1494,8 +1496,8 @@ static uns32  ifd_mbcsv_enc_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
      case IFD_A2S_EVT_IFINDEX_UPD:
       {
          msg = (IFD_A2S_MSG *)(long)arg->info.encode.io_reo_hdl;
-         rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror);
+         rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror, cb->edu_hdl.to_version);
          if(rc != NCSCC_RC_SUCCESS)
          {
             /*LOG */
@@ -1509,8 +1511,8 @@ static uns32  ifd_mbcsv_enc_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
      case IFD_A2S_EVT_IPXS_INTF_INFO:
       {
          msg = (IFD_A2S_MSG *)(long)arg->info.encode.io_reo_hdl;
-         rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror);
+         rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror, cb->edu_hdl.to_version);
          if(rc != NCSCC_RC_SUCCESS)
          {
             /*LOG */
@@ -1526,8 +1528,8 @@ static uns32  ifd_mbcsv_enc_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
      case IFD_A2S_EVT_VIP_REC_INFO:
       {
          msg = (IFD_A2S_MSG *)(long)arg->info.encode.io_reo_hdl;
-         rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror);
+         rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+              &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, msg, &ederror, cb->edu_hdl.to_version);
          if(rc != NCSCC_RC_SUCCESS)
          {
             /*LOG */
@@ -1782,9 +1784,9 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
 
       ifindex = intf_rec->intf_data.if_index;
 
-      m_NCS_EDU_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_intf_data, 
+      m_NCS_EDU_VER_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_intf_data, 
            &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &intf_rec->intf_data, 
-           &ederror);
+           &ederror, ifsv_cb->edu_hdl.to_version);
 
       num_of_ckpts++; 
 
@@ -1792,8 +1794,8 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
        /* Fill the IP information */
       rc = ipxs_ifsv_ifip_info_attr_cpy(&ifip_node->ifip_info, 
                                         &send_ip_info);
-      m_NCS_EDU_EXEC(&ifsv_cb->edu_hdl, ipxs_edp_ifip_info, 
-           &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &send_ip_info, &ederror);
+      m_NCS_EDU_VER_EXEC(&ifsv_cb->edu_hdl, ipxs_edp_ifip_info, 
+           &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &send_ip_info, &ederror, ifsv_cb->edu_hdl.to_version);
 #endif
       if(num_of_ckpts == MAX_NO_IFD_MSGS_A2S)
       {
@@ -1845,8 +1847,8 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
 
      num_of_ckpts++; 
      m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Num of ckpts being sent, Max ifindex, Num free index, Async count",num_of_ckpts, ifap_info.max_ifindex, num_free_index,ifsv_cb->ifd_async_cnt,0,0,0);
-     m_NCS_EDU_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_ifd_a2s_iaps_evt, 
-           &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &ifap_info, &ederror);
+     m_NCS_EDU_VER_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_ifd_a2s_iaps_evt, 
+           &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &ifap_info, &ederror, ifsv_cb->edu_hdl.to_version);
 
      if(num_free_index)
        m_MMGR_FREE_IFAP_INFO(ifap_info.free_list);
@@ -1994,9 +1996,9 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
       res = ifd_populate_vip_redundancy_rec(p_vipd_rec, &vip_redRec);
       m_NCS_MEMCPY(&vip_handle, &p_vipd_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
 
-      m_NCS_EDU_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
+      m_NCS_EDU_VER_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
            &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &vip_redRec, 
-           &ederror);
+           &ederror, ifsv_cb->edu_hdl.to_version);
 
       num_of_ckpts++; 
 
@@ -2092,6 +2094,9 @@ static uns32  ifd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
                      "Decode Failure, NULL CB",0);
      return (NCSCC_RC_FAILURE);
    }
+   
+   /* embedding subslot changes */
+   cb->edu_hdl.to_version = msg_fmt_version;
 
    switch(arg->info.decode.i_msg_type)
    {
@@ -2211,8 +2216,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
        case IFD_A2S_EVT_IFINDEX_SPT_MAP:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2235,8 +2240,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
        case IFD_A2S_EVT_INTF_DATA:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2259,8 +2264,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
        case IFD_A2S_EVT_SVC_DEST_UPD:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt, 
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2283,8 +2288,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
         case IFD_A2S_EVT_IFND_UP_DOWN:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2309,8 +2314,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
         case IFD_A2S_EVT_IFINDEX_UPD:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2335,8 +2340,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
        case IFD_A2S_EVT_IPXS_INTF_INFO:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2362,8 +2367,8 @@ static uns32  ifd_mbcsv_dec_async_update(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
        case IFD_A2S_EVT_VIP_REC_INFO:
         {
           /* The contents are decoded from i_uba to ifd_msg */
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
-               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror);
+          rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_msg_evt,
+               &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifd_msg, &ederror, cb->edu_hdl.to_version);
 
           if(rc != NCSCC_RC_SUCCESS)
           {
@@ -2616,8 +2621,8 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       m_NCS_MEMSET(ckpt_data_ipxs, 0, sizeof(NCS_IPXS_IPINFO));
 #endif 
 
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_intf_data, 
-           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ckpt_data_intf,&ederror);
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_intf_data, 
+           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ckpt_data_intf,&ederror , cb->edu_hdl.to_version);
 
       if(rc != NCSCC_RC_SUCCESS)
       {
@@ -2631,9 +2636,9 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       }
 
 #if(NCS_IFSV_IPXS == 1)    
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ipxs_edp_ifip_info, 
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ipxs_edp_ifip_info, 
            &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, 
-           &ckpt_data_ipxs, &ederror);
+           &ckpt_data_ipxs, &ederror, cb->edu_hdl.to_version);
 
       if(rc != NCSCC_RC_SUCCESS)
       {
@@ -2660,8 +2665,8 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       (last_msg == TRUE))
    {
       /* Now decode IAPS data. */
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_iaps_evt, 
-           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifap_info, &ederror);
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifd_a2s_iaps_evt, 
+           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ifap_info, &ederror, cb->edu_hdl.to_version);
 
      m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Received : num of ckpts, Max ifindex, Num free index",num_of_ckpts +1, ifap_info->max_ifindex, ifap_info->num_free_ifindex,0,0,0,0);
       /* Process the IAPS data. */
@@ -2762,8 +2767,8 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_NCS_MEMSET(ckpt_data_vip, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
-           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ckpt_data_vip,&ederror);
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
+           &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ckpt_data_vip,&ederror, cb->edu_hdl.to_version);
 
       if(rc != NCSCC_RC_SUCCESS)
       {
@@ -2863,7 +2868,7 @@ static uns32  ifd_mbcsv_db_ifrec_sptmap_mismatch_correction(IFSV_CB *ifsv_cb)
          /* This means that the corresponding intf rec is not there.
           * So, delete the intf index and SPT map and inform STDBY IFD
           * for the same. */
-          m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Intf Rec missing for s/s/p/t/s/index",spt.shelf,spt.slot,spt.port,spt.type,spt.subscr_scope,ifindex,0);
+          m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Intf Rec missing for s/s/ss/p/t/s/index",spt.shelf,spt.slot,spt.subslot,spt.port,spt.type,spt.subscr_scope,ifindex);
 
          /* Delete the slot port maping */
          res = ifsv_ifindex_spt_map_del(spt_info->spt_map.spt, ifsv_cb);

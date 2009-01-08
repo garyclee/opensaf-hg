@@ -36,7 +36,7 @@
 extern MQADLL_API uns32 gl_mqa_hdl;
 
 /*Maximum Nodes in the cluster */
-#define MQA_MAX_NODES 16
+#define MQA_MAX_NODES NCS_MAX_SLOTS 
 typedef unsigned short SVC_SUBPART_VER; 
 
 /********************Service Sub part Versions*********************************/
@@ -181,7 +181,7 @@ typedef struct mqa_cb {
  
    /*To store versions of MQND across cluster */
    SVC_SUBPART_VER     ver_mqnd[MQA_MAX_NODES];
-   uns32		clm_node_joined;
+   uns32        clm_node_joined;
 }MQA_CB;
 
 EXTERN_C NCS_BOOL mqa_track_tree_find_and_del(MQA_CLIENT_INFO *client_info,

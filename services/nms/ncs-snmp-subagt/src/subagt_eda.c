@@ -30,6 +30,10 @@
 #include "net-snmp/library/snmp_impl.h"
 #include "net-snmp/agent/agent_trap.h"
 
+extern netsnmp_session *main_session;
+
+static uns32 snmpsubagt_trap_list_append(NCS_TRAP *trap_header);
+
 /* to compose the varbind (object id and its value) */
 static netsnmp_variable_list*
 snmpsubagt_eda_varbind_compose(NCSSA_OID_DATABASE_NODE  *i_oid_db_node, 
@@ -323,7 +327,83 @@ snmpsubagt_eda_finalize(NCSSA_CB *pSacb)
 
     return NCSCC_RC_SUCCESS; 
 }
+/******************************************************************************
+ *  Name:          snmpsubagt_trap_list_append
+ *
+ *  Description:   Appends trap_trap to the buffered_list when snmpd has gone down
+ *
+ *  Arguments:     trap_header    - ncs_trap to be buffered 
+ *                
+ *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
+ *                 NCSCC_RC_FAILURE   -  failure
+ *  NOTE:
+ *****************************************************************************/
+static uns32 snmpsubagt_trap_list_append(NCS_TRAP *trap_header)
+{
+    NCSSA_CB              *cb = NULL;
+    SNMPSUBAGT_TRAP_LIST  *trap_list = NULL;
+    SNMPSUBAGT_TRAP_LIST  *trap_list_node = NULL;
 
+
+    /* Log the function entry */
+    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_BUFFER_TRAP);
+
+    if (trap_header == NULL)
+       return NCSCC_RC_FAILURE;
+
+    /* get the control block */
+    cb = m_SNMPSUBAGT_CB_GET;
+    if (cb == NULL)
+    {
+        /* log the error */
+        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_NULL);
+
+        /* free the ncs_trap header */
+        free(trap_header);
+
+        return NCSCC_RC_FAILURE;
+    }
+
+    /* Compose the trap_list_element */
+    trap_list_node = m_MMGR_SNMPSUBAGT_TRAP_LIST_NODE_ALLOC;
+    if ( trap_list_node == NULL )
+    {
+        /* log the error */
+        m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_TRAP_LIST_ALLOC_FAILED);
+
+        /* free the trap_varbind list */
+        ncs_trap_eda_trap_varbinds_free(trap_header->i_trap_vb);
+      
+        /* free the ncs_trap header */
+        free(trap_header);
+        return NCSCC_RC_FAILURE;
+    }
+    /* Logging the NCS TRAP data - before buffering */
+    ncs_logmsg(NCS_SERVICE_ID_SNMPSUBAGT, SNMPSUBAGT_FMTID_STATE, SNMPSUBAGT_FS_ERRORS,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                       NCSFL_TYPE_TILL, SNMPSUBAGT_BUFFER_TRAP_LIST,trap_header->i_trap_tbl_id,
+                       trap_header->i_trap_id);
+
+    m_NCS_MEMSET(trap_list_node, 0, sizeof(SNMPSUBAGT_TRAP_LIST));
+
+    trap_list_node->trap_evt = trap_header;
+
+    trap_list_node->next  =  NULL;
+
+    if( cb->trap_list == NULL )
+       cb->trap_list = trap_list_node;
+    else
+    {
+       /* Append to the trap_list */
+       trap_list = cb->trap_list;
+       while(trap_list->next != NULL)
+            trap_list = trap_list->next;
+
+       trap_list->next = trap_list_node;
+    }
+
+    return NCSCC_RC_SUCCESS;
+}
 /******************************************************************************
  *  Name:          snmpsubagt_eda_callback
  *
@@ -349,20 +429,10 @@ snmpsubagt_eda_callback(SaEvtSubscriptionIdT   subscriptionid, /* input */
     SaAisErrorT         status = SA_AIS_OK;
     NCSSA_CB            *cb = NULL; 
     uns32               ret_code = NCSCC_RC_SUCCESS; 
-    
+
     /* memory for the event data */
     uns8                *eventData = NULL; 
     
-#if 0    
-    /* To store the details about the received event */
-    SaEvtEventPatternArrayT     patternArray;
-    SaUint8T                    priority = 0;
-    SaTimeT                     retentionTime;
-    SaNameT                     publisherName;
-    SaTimeT                     publishTime;
-    SaEvtEventIdT               eventId;
-#endif
-
     /* Log the function entry */
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_EDA_CB);
 
@@ -436,23 +506,24 @@ snmpsubagt_eda_callback(SaEvtSubscriptionIdT   subscriptionid, /* input */
         return; 
     }
 
-    /* convert the data into the SNMP - Trap and send it to the 
-     * Agentx Agent 
-     */
-    ret_code = snmpsubagt_eda_trapevt_to_agentxtrap_populate(&cb->edu_hdl,
-                                                &cb->oidDatabase,
-                                                eventData, 
-                                                eventDataSize);
-    if (ret_code == NCSCC_RC_FAILURE)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TE_AGENTXTRAP_FAILED, 
-                               ret_code,0,0);
+    if( cb->haCstate == SNMPSUBAGT_HA_STATE_ACTIVE )
+    { 
+        /* convert the data into the SNMP - Trap and send it to the
+        * Agentx Agent
+        */
+        ret_code = snmpsubagt_eda_trapevt_to_agentxtrap_populate(&cb->edu_hdl,
+                                               &cb->oidDatabase,
+                                               eventData,
+                                               eventDataSize);
+        if (ret_code == NCSCC_RC_FAILURE)
+        {
+           /* log the error */
+           m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TE_AGENTXTRAP_FAILED,ret_code,0,0);
+        }
     }
-    
-    /* even if there is any error in sending the trap to the agent,
-     * it will be notified to the caller from here */
 
+    /* even if there is any error in sending the trap to the agent,
+    * it will be notified to the caller from here */
     free(eventData);
 
     status = saEvtEventFree(eventHandle);
@@ -490,7 +561,7 @@ snmpsubagt_eda_trapevt_to_agentxtrap_populate(
                         uns8    *evtData, /* in */  
                         uns32   evtDataSize) /* in */
 {
-    NCS_TRAP                trap_header;
+    NCS_TRAP                *trap_header = NULL;
     uns32                   status = NCSCC_RC_FAILURE; 
 
     /* Log the function entry */
@@ -511,12 +582,12 @@ snmpsubagt_eda_trapevt_to_agentxtrap_populate(
         m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_EVT_DATA_NULL); 
         return NCSCC_RC_FAILURE; 
     }
-
-    m_NCS_MEMSET(&trap_header, 0, sizeof(NCS_TRAP));
+    trap_header = (NCS_TRAP *)malloc(sizeof(NCS_TRAP));
+    m_NCS_MEMSET(trap_header, 0, sizeof(NCS_TRAP));
 
     /* decode the number of varbinds from the event data */
     status = subagt_edu_ncs_trap_decode(edu_hdl, evtData,
-                                        evtDataSize,  &trap_header);
+                                        evtDataSize,  trap_header);
     if (status != NCSCC_RC_SUCCESS)
     {
         /* log that unable to decode the trap buffer */
@@ -525,16 +596,23 @@ snmpsubagt_eda_trapevt_to_agentxtrap_populate(
     }
 
    /* Logging the NCS TRAP data - before shotting it of to TRAP receiver */ 
-    subagt_log_ncs_trap_data(&trap_header);
+    subagt_log_ncs_trap_data(trap_header);
 
-    status = subagt_send_v2trap(oid_db, &trap_header);
-    if (status != NCSCC_RC_SUCCESS)
+    /* Check for the main_session, if it is NULL buffer the trap */
+    if( !main_session )
+       snmpsubagt_trap_list_append(trap_header);
+    else
     {
-        /* log that unable to send the trap */
-       m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TRAP_SEND_FAIL,status,trap_header.i_trap_tbl_id,trap_header.i_trap_id); 
-       return status; 
+       /* Convert ncs_trap to snmp_trap format and send it to Agent */
+       status = subagt_send_v2trap(oid_db, trap_header);
+       if (status != NCSCC_RC_SUCCESS)
+       {
+          /* log that unable to send the trap */
+          m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TRAP_SEND_FAIL,status,trap_header->i_trap_tbl_id,trap_header->i_trap_id); 
+       }
+       /* Free the ncs_trap header */ 
+       free(trap_header);
     }
-
     return status; 
 }
 

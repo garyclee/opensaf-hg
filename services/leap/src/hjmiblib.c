@@ -1175,8 +1175,12 @@ uns32 miblib_process_setallrows(NCSCONTEXT cb, NCSMIB_ARG* args)
            m_MMGR_FREE_MIB_INST_IDS(idx.i_inst_ids);
            return NCSCC_RC_NO_INSTANCE;
        }
-       
+
+       /* Fix for IR00090791 */   
+#if 0    
        m_NCS_OS_MEMSET(setrow_params, 0, (param_cnt)*sizeof(NCSMIB_SETROW_PARAM_VAL));
+#endif
+       m_NCS_OS_MEMSET(setrow_params, 0,num_objs*sizeof(NCSMIB_SETROW_PARAM_VAL));
        
        for(i = 1; i <= param_cnt; i++)
        {

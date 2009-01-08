@@ -360,6 +360,14 @@ ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_API, MBCSV_FC_API, NCSFL_LC_API, \
            NCSFL_SEV_INFO, "TILLCII", ha_state, svc, ckpt, log_str, type, state); \
 }
 
+/* Added to capture more details for IR0092120 - Need cleanup*/
+#define m_LOG_MBCSV_TMR1(ha_state, svc, ckpt, p_anch, type, state, act_exp)  \
+{ \
+   char log_str[32]; \
+   snprintf(log_str,sizeof(log_str),"0x%llX ACT EXP - %3.2d",(uns64)p_anch, act_exp); \
+   ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_TMR, MBCSV_FC_TMR, NCSFL_LC_TIMER,  \
+           NCSFL_SEV_NOTICE, "TILLCII", ha_state, svc, ckpt, log_str, type, state); \
+}
 
 #define m_LOG_MBCSV_DBGSTR(ha_state, svc, ckpt, str)   \
 ncs_logmsg(NCS_SERVICE_ID_MBCSV, MBCSV_LID_STR, MBCSV_FC_STR, NCSFL_LC_MISC,  \

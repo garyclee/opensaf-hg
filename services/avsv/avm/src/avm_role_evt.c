@@ -330,103 +330,28 @@ active_adm_switch(
    uns32 rc = NCSCC_RC_SUCCESS;
    time_t local_time;
    unsigned char asc_lt[40]; /* Ascii Localtime */
+   NCS_BOOL can_switchover_proceed;
 
    m_AVM_LOG_FUNC_ENTRY("active_adm_switch");
 
    /* Adm Switch is msg received at AvM from SNMP manager */
 
-   /* If AvM is running over the platform check the alternate plane health
-    * before proceeding with the switchover 
-    */
-   if(cb->is_platform == TRUE)
-   {
-      /* 
-      ** Determine if you are residing on PLANE_A or PLANE_B
-      ** Check the Health of other plane and other sam health status
-      ** Allow Admin Switchover only if the other plane and sam are 
-      ** healthy.
-      */ 
-#if 1
-#define F101_SLOT_NW_PLANE_A 1
-
-      FILE *fp = NULL;
-      char line[80] = {0};
-      uns32 slot_id = 0;
-      
-      fp = popen ("hpmcmd -c slotnumber", "r");
-      if(fp == NULL)
-      {
-         m_NCS_DBG_PRINTF("Could not retrieve hpm slot info\n");
-         m_AVM_LOG_ROLE(AVM_LOG_SWOVR_FAILURE, AVM_LOG_RDA_FAILURE, 
-                        NCSFL_SEV_ERROR);
-         pclose(fp);
-         return NCSCC_RC_FAILURE;
-      }
-      else
-      {
-         do
-         {
-            if(fgets(line, sizeof(line), fp) != NULL )
-            {
-               slot_id = atoi(line);
-            }
-         }while(0);
-      }
-      pclose(fp);
-#else
-
-#define F101_SLOT_NW_PLANE_A 7 /* This is for 14 slot chassis  else 1*/
-
-      NCS_NODE_ID node_id = m_NCS_GET_NODE_ID;
-      NCS_CHASSIS_ID chassis;
-      NCS_PHY_SLOT_ID slot_id;
-      NCS_SUB_SLOT_ID sub_slot;
-      m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, &chassis, &slot_id, &sub_slot);
-#endif
-
-      if(slot_id == F101_SLOT_NW_PLANE_A)
-      {
-         if((cb->hlt_status[HEALTH_STATUS_PLANE_B] == STATUS_UNHEALTHY) ||
-            (cb->hlt_status[HEALTH_STATUS_SAM_B] == STATUS_UNHEALTHY) )
-         {
-            m_NCS_DBG_PRINTF("Health Status of PLANE_B : \n SAM: %d,  PLANE: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_B], cb->hlt_status[HEALTH_STATUS_PLANE_B]);
-            m_AVM_LOG_ROLE(AVM_LOG_SWOVR_FAILURE, AVM_LOG_RDA_FAILURE, 
-                        NCSFL_SEV_ERROR);
-            /* Generate a Trap syaing that switchover failed */
-            avm_adm_switch_trap(cb, ncsAvmSwitch_ID, AVM_SWITCH_FAILURE);
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      else if(slot_id != 0)
-      {
-         if((cb->hlt_status[HEALTH_STATUS_PLANE_A] == STATUS_UNHEALTHY) ||
-            (cb->hlt_status[HEALTH_STATUS_SAM_A] == STATUS_UNHEALTHY) )
-         {
-            m_NCS_DBG_PRINTF("Health Status of PLANE_A : \n SAM: %d,  PLANE: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_A], cb->hlt_status[HEALTH_STATUS_PLANE_A]);
-            m_AVM_LOG_ROLE(AVM_LOG_SWOVR_FAILURE, AVM_LOG_RDA_FAILURE, 
-                        NCSFL_SEV_ERROR);
-            
-            /* Generate a Trap saying that switch failed */
-            avm_adm_switch_trap(cb, ncsAvmSwitch_ID, AVM_SWITCH_FAILURE);
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      else
-      {
-         m_NCS_DBG_PRINTF("Could not retrieve proper slot info\n");
-         m_AVM_LOG_ROLE(AVM_LOG_SWOVR_FAILURE, AVM_LOG_RDA_FAILURE, 
-                        NCSFL_SEV_ERROR);
-
-         /* Generate a Trap saying that switch failed */
-         avm_adm_switch_trap(cb, ncsAvmSwitch_ID, AVM_SWITCH_FAILURE);
-         return NCSCC_RC_FAILURE;
-      }
-   } /* End of Platform specific stuff */
-
-   /* Set admin switch flag to true */
+   /* Check if switchover is already in progress TBD */
    if(TRUE == cb->adm_switch)
    {
-      return rc;
+      return NCSCC_RC_SUCCESS;
+   }
+
+   /* Query FM as to whether to proceed with switchover or not */
+   can_switchover_proceed = avm_fm_can_switchover_proceed(cb);
+
+   if(can_switchover_proceed == FALSE)
+   {
+      m_AVM_LOG_FM_INFO(AVM_LOG_FM_DENIED_SWITCHOVER_FEASIBILITY, NCSFL_SEV_ERROR, 
+            NCSFL_LC_HEADLINE);
+      /* Generate a Trap syaing that switchover failed */
+      avm_adm_switch_trap(cb, ncsAvmSwitch_ID, AVM_SWITCH_FAILURE);
+      return NCSCC_RC_FAILURE;
    }
 
    cb->adm_switch =  TRUE;
@@ -463,8 +388,8 @@ active_adm_switch(
    }
 
    return rc;
-   
 }
+
 
 /*************************************************************************
  * Function: active_avd_ack
@@ -477,8 +402,6 @@ active_adm_switch(
  * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
  *
  * NOTES:
- *
- *
 ********************************************************************/
 static uns32
 active_avd_ack(
@@ -536,8 +459,8 @@ active_avd_ack(
 /*************************************************************************
  * Function: active_avd_hb_lost
  *
- * Purpose:  This function is called when AvM recives heart beat lost from 
- *           AvD
+ * Purpose:  This function is called when AvM recieves heart beat lost 
+ *           message from AVD. 
  *
  * Input: cb    - the AvM control block
  *        evt   - Evt received at AvM
@@ -558,14 +481,19 @@ active_avd_hb_lost(
 
    /* HB is a message recived from AvD when it looses heart beat 
     * with other AvD. AvM will not make any decisions when it receives
-      Heart Beat loss. It just inform RDE. */ 
+      Heart Beat loss. It just informs FM about this. */ 
 
    m_AVM_LOG_FUNC_ENTRY("active_avd_hb_lost");
-   m_AVM_LOG_ROLE_OP(AVM_LOG_RDA_HB, cb->ha_state, NCSFL_SEV_NOTICE);
 
-   /* Inform RDE abt hrt bt lost */
-   m_NCS_DBG_PRINTF("\n rde_hrt_bt_lost on Active \n");
-   rc = avm_notify_rde_hrt_bt_lost(cb);
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* Inform FM about heart beat loss of peer AVD */
+   m_NCS_DBG_PRINTF("\n Heart beat lost of standby peer AVD on Active SCXB \n");
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB);
    
    return rc;
 }
@@ -595,14 +523,21 @@ active_avd_hb_restore(
 
    /* HB is a message recived from AvD when it start heart beat 
     * with other AvD. AvM will not make any decisions when it receives
-      Heart Beat restore. It just inform RDE. */ 
+      Heart Beat restore. It just informs about this to FM. */ 
 
    m_AVM_LOG_FUNC_ENTRY("active_avd_hb_restore");
-   m_AVM_LOG_DEBUG("AVD HB Restore", NCSFL_SEV_NOTICE);
 
-   /* Inform RDE abt hrt bt restore */
-   m_NCS_DBG_PRINTF("\n rde_hrt_bt_restore on Active \n");
-   rc = avm_notify_rde_hrt_bt_restore(cb);
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* m_AVM_LOG_DEBUG("AVD HB Restore", NCSFL_SEV_NOTICE); */
+   m_NCS_DBG_PRINTF("\nHB restored with standby AVD. \n");
+
+   /* Inform FM about heart beat restore */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB_RESTORE);
    
    return rc;
 }
@@ -634,17 +569,16 @@ quiesced_avnd_hb_lost(
 /*************************************************************************
  * Function: active_avnd_hb_lost
  *
- * Purpose:  This function is called when AvM recives heart beat lost from 
- *           AvD
+ * Purpose:  This function is called when AvM recives heart beat loss 
+ *           message of a AvND from AvD.
  *
  * Input: cb    - the AvM control block
  *        evt   - Evt received at AvM
  *
  * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
  *
- * NOTES:
- *
- *
+ * NOTES: FM reference implementation will send node reset indication
+ * upon recieving AvND HB loss, which will then be forwarded to AVD.
 ********************************************************************/
 static uns32
 active_avnd_hb_lost(
@@ -653,38 +587,23 @@ active_avnd_hb_lost(
                )
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-   AVD_AVM_MSG_T *msg = NULL;
-   uns32 node_id = 0;
-   uns8  chassis_id=0, sub_slot_id=0, phy_slot_id=0;
 
-   m_NCS_DBG_PRINTF("active_avnd_hb_lost \n\n");
+   m_NCS_DBG_PRINTF("An AvND's HB loss detected. \n\n");
    /* HB is a message recived from AvD when it looses heart beat 
     * with AvND. AvM will not make any decisions when it receives
-      Heart Beat loss. It just inform LFM. */ 
+      Heart Beat loss. It just informs about this to FM. */ 
 
    m_AVM_LOG_FUNC_ENTRY("active_avnd_hb_lost");
   
-   /* Extract the node_id and convert it to phy_slot_id */
-   if((msg = evt->evt.avd_evt) == NULL)
+   if(evt->evt.avd_evt == NULL)
    {
       return NCSCC_RC_FAILURE;
    }
 
-   node_id = msg->avd_avm_msg.avnd_hb_info.node_id;
+   /* Inform FM about AvND's heart beat loss */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avnd_hb_info.node_name, 
+                                 AVM_ROLE_EVT_AVND_HB);
 
-   /* Convert the logical node to Physical node */
-
-   m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, &chassis_id,
-                                  &phy_slot_id, &sub_slot_id);
-
-   /* Inform RDE abt AvND hrt bt lost */
-   rc = avm_notify_rde_nd_hrt_bt_lost(cb, phy_slot_id);
-   
-   if(cb->is_platform == FALSE)
-   {
-      avm_avd_node_reset_resp(cb,  AVM_NODE_RESET_SUCCESS, msg->avd_avm_msg.avnd_hb_info.node_name);
-   }
-   
    return rc;
 }
 
@@ -710,32 +629,23 @@ active_avnd_hb_restore(
                )
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-   AVD_AVM_MSG_T *msg = NULL;
-   uns32 node_id = 0;
-   uns8  chassis_id=0, sub_slot_id=0, phy_slot_id=0;
 
-   /* AvM wan't perform any action , only report it to 
-      RDE */
+   /* AvM won't perform any action , only report it to 
+      FM. */
 
    m_AVM_LOG_FUNC_ENTRY("active_avnd_hb_restore");
   
-   /* Extract the node_id and convert it to phy_slot_id */
-   if((msg = evt->evt.avd_evt) == NULL)
+   if(evt->evt.avd_evt == NULL)
    {
       return NCSCC_RC_FAILURE;
    }
 
-   m_AVM_LOG_DEBUG("AvND HB Restore ", NCSFL_SEV_NOTICE);
+   /* m_AVM_LOG_DEBUG("AvND HB Restore ", NCSFL_SEV_NOTICE); */
+   m_NCS_DBG_PRINTF("\nAn AvND's HB has been restored. \n");
 
-   node_id = msg->avd_avm_msg.avnd_hb_info.node_id;
-
-   /* Convert the logical node to Physical node */
-
-   m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id, &chassis_id,
-                                  &phy_slot_id, &sub_slot_id);
-
-   rc = avm_notify_rde_nd_hrt_bt_restore(cb, phy_slot_id);
-  
+   /* Inform FM about AvND's heart beat restore. */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avnd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVND_HB_RESTORE);
    return rc;
 }
 
@@ -1093,17 +1003,20 @@ standby_avd_hb_lost(
    m_AVM_LOG_FUNC_ENTRY("standby_avd_hb_lost");
    
    /* If Standby AvM recived heart beat loss message from Standby AvD, AvM 
-      just informs about it to RDE.  */
+      just informs about it to FM.  */
 
-
-   m_AVM_LOG_ROLE_OP(AVM_LOG_RDA_HB, cb->ha_state, NCSFL_SEV_NOTICE);
-
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+ 
    if(FALSE == cb->cold_sync)
       m_AVM_LOG_INVALID_VAL_ERROR(0);
 
-   m_NCS_DBG_PRINTF("\n rde_hrt_bt_lost on Standby \n");
-   rc = avm_notify_rde_hrt_bt_lost(cb);
-
+   m_NCS_DBG_PRINTF("\n Active AVD's HB loss detected on Standby \n");
+   /* Inform FM about heart beat loss. */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB);
    return rc;
 }
 
@@ -1135,16 +1048,24 @@ standby_avd_hb_restore(
    m_AVM_LOG_FUNC_ENTRY("standby_avd_hb_restore");
    
    /* If Standby AvM recived heart beat restore message from Standby AvD, AvM 
-      just informs about it to RDE.Retore of Heart beat means active is present
+      just informs about it to FM.Restore of Heart beat means active is present
       and due to network delay the heart beat message was delivered with delay */
 
    m_AVM_LOG_DEBUG("AVD HB Restore", NCSFL_SEV_NOTICE);
 
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
    if(FALSE == cb->cold_sync)
       m_AVM_LOG_INVALID_VAL_ERROR(0);
 
-   rc = avm_notify_rde_hrt_bt_restore(cb);
-
+   m_NCS_DBG_PRINTF("\n Heart beat restore of active peer AVD detected on Standby SCXB \n");
+   /* Inform FM about heart beat restore */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB_RESTORE);
+   
    return rc;
 }
 
@@ -1237,6 +1158,97 @@ quiesced_rde_set(
 } 
 
 /*************************************************************************
+ * Function:  avm_stop_all_tmrs
+ *
+ * Purpose:  This function is called when Quisced AvM 
+ *            is becoming standby   
+ *           This is when Active Avm trasits to become Standby - then stop 
+             all the timers as a clean-up 
+ * Input: cb    - the AvM control block
+ *
+ * Returns: NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+ *
+ * NOTES:
+ *
+ *
+********************************************************************/
+static uns32
+avm_stop_all_tmrs(AVM_CB_T   *avm_cb)
+{
+   
+   SaHpiEntityPathT   entity_path;
+   AVM_ENT_INFO_T      *ent_info;
+   /* Check whether any of the timers r running for any of the payloads
+      If running stop the timer */ 
+     /* for each node, if upgrade is in progress, start the SSU timer */
+   if(!avm_cb)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+    
+   m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+   for(ent_info = avm_find_next_ent_info(avm_cb, &entity_path);
+       ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(avm_cb, &entity_path))
+   {
+       m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+       if(ent_info->upgd_succ_tmr.status ==   AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("upgd_succ_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr); 
+       }
+       if(ent_info->bios_upgrade_tmr.status == AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("bios_upgrade_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr); 
+       } 
+       if(ent_info->ipmc_tmr.status ==  AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("ipmc_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr); 
+       }
+       if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("ipmc_mod_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr); 
+       }
+       if(ent_info->role_chg_wait_tmr.status == AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("role_chg_wait_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->role_chg_wait_tmr);
+       }
+       if(ent_info->bios_failover_tmr.status == AVM_TMR_RUNNING)
+       {
+          m_AVM_LOG_GEN_EP_STR("bios_failover_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);
+          avm_stop_tmr(avm_cb, &ent_info->bios_failover_tmr);
+       }
+    }
+#if 0
+    if(avm_cb->ssu_tmr.status == AVM_TMR_RUNNING)
+    {
+       AVM_EVT_T *hpi_evt = NULL;
+       /* retrieve and process the messages from SSU Mail box */
+       while ((hpi_evt = (AVM_EVT_T*)m_NCS_IPC_NON_BLK_RECEIVE(&(avm_cb->ssu_mbx), hpi_evt))
+                         != AVM_EVT_NULL)
+       {
+            /* free data storage */
+            if(NULL != hpi_evt->evt.hpi_evt)
+            {
+               m_MMGR_FREE_AVM_DEFAULT_VAL(hpi_evt->evt.hpi_evt);
+             }
+             if(AVM_EVT_NULL != hpi_evt)
+             {
+                m_MMGR_FREE_AVM_EVT(hpi_evt);
+             }
+         }
+         avm_stop_tmr(avm_cb, &avm_cb->ssu_tmr);
+         avm_cb->ssu_tmr.status = AVM_TMR_EXPIRED;
+
+     }
+#endif
+     return NCSCC_RC_SUCCESS;
+           
+}
+/*************************************************************************
  * Function: quiesced_avm_rsp
  *
  * Purpose:  This function is called when Quisced AvM recives 
@@ -1301,6 +1313,7 @@ quiesced_avm_rsp(
       }
       rc = avm_mds_set_vdest_role(cb, SA_AMF_HA_STANDBY);
       rc = avm_mbc_role_chg(cb, cb->ha_state);
+      avm_stop_all_tmrs(cb);
    }else
    {
       /* Other AvM has responded with a failure to go Active. Quiesced
@@ -1409,12 +1422,20 @@ quiesced_avd_hb_lost(
                )
 {
    uns32 rc = NCSCC_RC_SUCCESS;
-  
+   
+   /* Push peer AVD's HB loss to FM. */ 
+ 
    m_AVM_LOG_FUNC_ENTRY("quiesced_avd_hb_lost");
-   m_AVM_LOG_ROLE_OP(AVM_LOG_RDA_HB, cb->ha_state, NCSFL_SEV_NOTICE);
 
-   m_NCS_DBG_PRINTF("\n rde_hrt_bt_lost on Quisced \n");
-   rc = avm_notify_rde_hrt_bt_lost(cb);
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_NCS_DBG_PRINTF("\n Peer AVD's HB lost on Quaisced SCXB\n");
+   /* Inform FM about heart beat loss */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB);
 
    return rc;
 }
@@ -1443,7 +1464,15 @@ quiesced_avd_hb_restore(
   
    m_AVM_LOG_FUNC_ENTRY("quiesced_avd_hb_restore");
 
-   rc = avm_notify_rde_hrt_bt_restore(cb);
+   if(evt->evt.avd_evt == NULL)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+ 
+   m_NCS_DBG_PRINTF("\n Heart beat restored of peer AVD on Quaisced SCXB \n");
+   /* Inform FM about heart beat restore */
+   rc = avm_notify_fm_hb_evt(cb, evt->evt.avd_evt->avd_avm_msg.avd_hb_info.node_name,
+                                 AVM_ROLE_EVT_AVD_HB_RESTORE); 
 
    return rc;
 }

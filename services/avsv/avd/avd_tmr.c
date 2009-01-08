@@ -162,7 +162,6 @@ void avd_stop_tmr (AVD_CL_CB *cb, AVD_TMR *tmr)
 *****************************************************************************/
 void avd_tmr_exp (void *uarg)
 {
-
    AVD_CL_CB   *cb=AVD_CL_CB_NULL;
    AVD_TMR *tmr = (AVD_TMR *)uarg;
    AVD_EVT *evt=AVD_EVT_NULL;
@@ -209,7 +208,7 @@ void avd_tmr_exp (void *uarg)
             m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
          }
-          else if(tmr->cb_hdl == cb_hdl)
+         else if(tmr->cb_hdl == cb_hdl)
          {
             if (m_NCS_IPC_SEND(&cb->avd_mbx,evt,NCS_IPC_PRIORITY_HIGH) 
             != NCSCC_RC_SUCCESS)

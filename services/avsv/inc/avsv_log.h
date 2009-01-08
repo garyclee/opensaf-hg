@@ -188,6 +188,6 @@ typedef enum avsv_log_amf_cbk {
 } AVSV_LOG_AMF_CBK;
 
 /* DTSv versioning support */
-#define AVSV_LOG_VERSION 2
+#define AVSV_LOG_VERSION 3
 
 #endif /* !AVSV_LOG_H */

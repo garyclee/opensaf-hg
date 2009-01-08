@@ -88,9 +88,11 @@ static uns32 ifsv_ifspt_from_instid(const uns32* i_inst_ids, uns32 i_inst_len
 
    spt->shelf = i_inst_ids[0];
    spt->slot  = i_inst_ids[1];
-   spt->port  = i_inst_ids[2];
-   spt->type  = i_inst_ids[3];
-   spt->subscr_scope = i_inst_ids[4];
+   /* embedding subslot changes */
+   spt->subslot  = i_inst_ids[2];
+   spt->port  = i_inst_ids[3];
+   spt->type  = i_inst_ids[4];
+   spt->subscr_scope = i_inst_ids[5];
 
    return NCSCC_RC_SUCCESS;
 }
@@ -105,9 +107,11 @@ static uns32 ifsv_instid_from_ifspt(NCS_IFSV_SPT *i_spt,
 
    o_inst_ids[0] = i_spt->shelf;  
    o_inst_ids[1] = i_spt->slot; 
-   o_inst_ids[2] = i_spt->port; 
-   o_inst_ids[3] = i_spt->type;  
-   o_inst_ids[4] = i_spt->subscr_scope;  
+   /* embedding subslot changes */
+   o_inst_ids[2] = i_spt->subslot;
+   o_inst_ids[3] = i_spt->port; 
+   o_inst_ids[4] = i_spt->type;  
+   o_inst_ids[5] = i_spt->subscr_scope;  
 
    return NCSCC_RC_SUCCESS;
 }

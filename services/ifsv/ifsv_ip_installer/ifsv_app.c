@@ -122,7 +122,8 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
             intf = &rsp->info.ifadd_ntfy;
             if_info = &intf->if_info;
             m_NCS_CONS_PRINTF("App%d received Intf Add Info \n", cb->app_no);
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+            /* subslot changes need modification */
+            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
             m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
             print_if_attr(&intf->if_info);
             break;
@@ -134,7 +135,8 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
             intf = &rsp->info.ifupd_ntfy;
             if_info = &intf->if_info;
             m_NCS_CONS_PRINTF("App%d received Intf Update Info \n", cb->app_no);
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+            /* subslot changes not implemented */
+            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot,intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
             m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
             print_if_attr(&intf->if_info);
                         break;
@@ -143,7 +145,8 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
             intf = &rsp->info.ifget_rsp.if_rec;
             if_info = &intf->if_info;
             m_NCS_CONS_PRINTF("App%d received Intf Resp \n", cb->app_no);
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+            /* subslot changes not implemented */
+            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
             m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
                print_if_attr(&intf->if_info);
@@ -155,7 +158,8 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
             intf = &rsp->info.ifget_rsp.if_rec;
             if_info = &intf->if_info;
             m_NCS_CONS_PRINTF("App%d received Intf Resp \n", cb->app_no);
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+            /* subslot changes not implemented */
+            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
             m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
                m_NCS_CONS_PRINTF("INTERFACE INDEX on local shelf/slot is %d\n",if_info->bind_master_ifindex);
@@ -167,7 +171,8 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
             intf = &rsp->info.ifget_rsp.if_rec;
             stat = &intf->if_stats;
             m_NCS_CONS_PRINTF("App%d Received Statistics Get Resp \n", cb->app_no);
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+                        /* subslot changes not implemented */
+            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
             m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
                m_NCS_CONS_PRINTF("App%d last_chg - %d in_octs - %d in_upkts - %d in_dscrds - %d in_errs - %d \n",stat->last_chg,stat->in_octs,stat->in_upkts,stat->in_nupkts,stat->in_dscrds,stat->in_errs);
@@ -257,7 +262,7 @@ ifsv_dt_test_ifa_sub_cb(NCS_IFSV_SVC_RSP *rsp)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot)
+uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot, uns32 subslot)
 {
    uns32 test_app_index = 0;
    IFSV_DT_TEST_APP_CB      *app_cb;   
@@ -276,6 +281,8 @@ uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot)
       gifsv_dt_test_app[test_app_index].inited = TRUE;
       gifsv_dt_test_app[test_app_index].shelf_no = shelf;
       gifsv_dt_test_app[test_app_index].slot_no  = slot;
+      /* embedding subslot changes */
+      gifsv_dt_test_app[test_app_index].subslot_no  = subslot;
       /* Create a Mail Box */
       if ((res = m_NCS_IPC_CREATE(&app_cb->mbx)) != NCSCC_RC_SUCCESS)
       {
@@ -428,7 +435,7 @@ uns32 IfsvDtTestAppIfaUnsub(uns32 app_no)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 port, 
+uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port, 
                              uns32 port_type)
 {
    NCS_IFSV_SVC_REQ      svc_req;
@@ -446,7 +453,10 @@ uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 port,
       svc_req.info.i_ifget.i_key.type  = NCS_IFSV_KEY_SPT;
       svc_req.info.i_ifget.i_key.info.spt.shelf = shelf;
       svc_req.info.i_ifget.i_key.info.spt.slot = slot;
+      /* embedding subslot changes */
+      svc_req.info.i_ifget.i_key.info.spt.subslot = subslot;
       svc_req.info.i_ifget.i_key.info.spt.port = port;
+
       svc_req.info.i_ifget.i_key.info.spt.type = port_type;
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
@@ -481,7 +491,7 @@ uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 port,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 port ,uns32 port_type)
+uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port ,uns32 port_type)
 {
    NCS_IFSV_SVC_REQ      svc_req;
    IFSV_DT_TEST_APP_CB      *app_cb;
@@ -498,6 +508,8 @@ uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 port ,
       svc_req.info.i_ifget.i_key.type  = NCS_IFSV_KEY_SPT;
       svc_req.info.i_ifget.i_key.info.spt.shelf = shelf;
       svc_req.info.i_ifget.i_key.info.spt.slot = slot;
+      /* embedding subslot changes */
+      svc_req.info.i_ifget.i_key.info.spt.subslot = subslot;
       svc_req.info.i_ifget.i_key.info.spt.port = port;
       svc_req.info.i_ifget.i_key.info.spt.type = port_type;
 
@@ -646,6 +658,8 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;
       svc_req.info.i_ifadd.if_info.admin_state =  TRUE;
       svc_req.info.i_ifadd.if_info.if_am       = (NCS_IFSV_IAM_MTU|NCS_IFSV_IAM_IFSPEED|NCS_IFSV_IAM_PHYADDR|NCS_IFSV_IAM_ADMSTATE|NCS_IFSV_IAM_OPRSTATE);
@@ -699,6 +713,8 @@ uns32 IfsvDtTestAppModIntfStatus(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am       = NCS_IFSV_IAM_OPRSTATE;            
       svc_req.info.i_ifadd.if_info.oper_state = oper_state;      
@@ -718,7 +734,7 @@ uns32 IfsvDtTestAppModIntfStatus(uns32 app_num, uns32 port_num,
    
 }
 
-uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 port ,uns32 port_type)
+uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port ,uns32 port_type)
 {
    NCS_IFSV_SVC_REQ      svc_req;
    IFSV_DT_TEST_APP_CB      *app_cb;
@@ -735,6 +751,8 @@ uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns
       svc_req.info.i_ifget.i_key.type  = NCS_IFSV_KEY_SPT;
       svc_req.info.i_ifget.i_key.info.spt.shelf = shelf;
       svc_req.info.i_ifget.i_key.info.spt.slot = slot;
+      /* embedding subslot changes */
+      svc_req.info.i_ifget.i_key.info.spt.subslot = subslot;
       svc_req.info.i_ifget.i_key.info.spt.port = port;
       svc_req.info.i_ifget.i_key.info.spt.type = port_type;
       svc_req.info.i_ifget.i_key.info.spt.subscr_scope = NCS_IFSV_SUBSCR_INT;
@@ -772,6 +790,8 @@ uns32 IfsvDtTestAppSwapBondIntf(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = IFSV_BINDING_SHELF_ID;
       svc_req.info.i_ifadd.spt_info.slot  = IFSV_BINDING_SLOT_ID;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = IFSV_BINDING_SUBSLOT_ID;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.spt_info.subscr_scope  = NCS_IFSV_SUBSCR_INT;      
       svc_req.info.i_ifadd.if_info.if_am       = NCS_IFSV_IAM_CHNG_MASTER;            
@@ -826,6 +846,8 @@ uns32 IfsvDtTestAppModIntfMTU(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_MTU;            
       svc_req.info.i_ifadd.if_info.mtu    = MTU;      
@@ -875,6 +897,8 @@ uns32 IfsvDtTestAppModIntfSpeed(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am       = NCS_IFSV_IAM_IFSPEED;            
       svc_req.info.i_ifadd.if_info.if_speed    = speed;      
@@ -932,6 +956,8 @@ uns32 IfsvdtTestAppModIntfPhy(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_PHYADDR;                  
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
@@ -980,6 +1006,8 @@ uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+       svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_NAME;                  
       m_NCS_STRCPY(svc_req.info.i_ifadd.if_info.if_name,temp_name);
@@ -1027,6 +1055,8 @@ uns32 IfsvDtTestAppDelIntf(uns32 app_num, uns32 port_num, uns32 port_type)
       svc_req.info.i_ifdel.port  = port_num;
       svc_req.info.i_ifdel.shelf = app_cb->shelf_no;
       svc_req.info.i_ifdel.slot  = app_cb->slot_no;
+      /* embedding subslot changes */
+      svc_req.info.i_ifdel.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifdel.type  = port_type;
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)

@@ -64,6 +64,14 @@ void avnd_msg_content_free (AVND_CB *cb, AVND_MSG *msg)
       }
       break;
 
+   case AVND_MSG_AVND:
+      if (msg->info.avnd)
+      {
+         avsv_nd2nd_avnd_msg_free(msg->info.avnd);
+         msg->info.avnd = 0;
+      }
+      break;
+
    case AVND_MSG_AVA:
       if (msg->info.ava)
       {
@@ -124,6 +132,16 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
       }
       m_NCS_OS_MEMSET(dmsg->info.avd, 0, sizeof(AVSV_DND_MSG));
       rc = avsv_dnd_msg_copy(dmsg->info.avd, smsg->info.avd);
+      break;
+
+   case AVND_MSG_AVND:
+      if ( 0 == (dmsg->info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG) )
+      {
+         rc = NCSCC_RC_FAILURE;
+         goto done;
+      }
+      m_NCS_OS_MEMSET(dmsg->info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+      rc = avsv_ndnd_avnd_msg_copy(dmsg->info.avnd, smsg->info.avnd);
       break;
 
    case AVND_MSG_AVA:

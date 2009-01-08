@@ -445,6 +445,46 @@ void avnd_log_comp_db (AVND_LOG_COMP_DB op,
    return;
 }
 
+/****************************************************************************
+  Name          : avnd_pxy_pxd_log
+ 
+  Description   : This routine logs the proxy-proxied communication.
+                  
+  Arguments     : sev       - Severity
+                  index     - Index 
+                  info      - Ptr to general info abt logs (Strings)
+                  comp_name - Ptr to the comp name, if any.
+                  Info1     - Value corresponding to Info description 
+                  Info2     - Value corresponding to Info description 
+                  Info3     - Value corresponding to Info description 
+                  Info4     - Value corresponding to Info description 
+ 
+  Return Values : None
+ 
+  Notes         : None.
+ *****************************************************************************/
+void avnd_pxy_pxd_log (uns32   sev, 
+                    uns32   index,
+                    uns8    *info,
+                    SaNameT *comp_name,
+                    uns32   info1,
+                    uns32   info2,
+                    uns32   info3,
+                    uns32   info4)
+{
+   uns8 comp[SA_MAX_NAME_LENGTH];
+
+   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+
+   /* convert name into string format */
+   if (comp_name) 
+      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+
+      ncs_logmsg(NCS_SERVICE_ID_AVND,(uns8)AVND_AVND_MSG,(uns8)AVND_FC_AVND_MSG, 
+                 NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info, 
+                 comp, info1, info2, info3, info4);
+   return;
+}
 
 /****************************************************************************
   Name          : avnd_log_hc_db

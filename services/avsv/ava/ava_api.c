@@ -1375,12 +1375,12 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
    if ((flags & SA_TRACK_CURRENT) && buf)
    {
      if(buf->notification == NULL)
-	 {
+       {
        /* This means that we have to allocate the memory. In this case we will ignore buf->numberOfItems */
-	   is_syn = TRUE;
-	   create_memory = TRUE;
+         is_syn = TRUE;
+         create_memory = TRUE;
 
-	 }
+       }
    }
 
    /* populate & send the pg start message */
@@ -1402,7 +1402,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
          /* get the notify buffer from the resp msg */
          rsp_buf = &msg_rsp->info.cbk_info->param.pg_track.buf;
          if(create_memory == FALSE)
-		 {
+             {
          /* now copy the msg-resp buffer contents to appl provided buffer */
          if (rsp_buf->numberOfItems <= buf->numberOfItems)
          {
@@ -1428,16 +1428,16 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
                buf->notification[i].member.compName.length = 
                   m_NCS_OS_NTOHS(buf->notification[i].member.compName.length);
          }
-		 }
-		 else /* if(create_memory == FALSE) */
-		 {
+             }
+             else /* if(create_memory == FALSE) */
+             {
            /* create_momory is TRUE, so let us create the memory for the Use, User has to free it. */
            buf->numberOfItems = rsp_buf->numberOfItems;
-		   if(buf->numberOfItems != 0)
-		   {
-		     buf->notification = malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
-			 if(buf->notification != NULL)
-			 {
+               if(buf->numberOfItems != 0)
+               {
+                 buf->notification = malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
+                   if(buf->notification != NULL)
+                   {
                   m_NCS_OS_MEMCPY(buf->notification, rsp_buf->notification, 
                      buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 
@@ -1445,20 +1445,20 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
                   for (i = 0; i < buf->numberOfItems; i++)
                      buf->notification[i].member.compName.length = 
                         m_NCS_OS_NTOHS(buf->notification[i].member.compName.length);
-			 }
-			 else
-			 {
+                   }
+                   else
+                   {
                   rc = SA_AIS_ERR_NO_MEMORY;
                   buf->numberOfItems = 0; 
-			 }
-		   }
-		   else /* if(buf->numberOfItems != 0) */
-		   {
+                   }
+               }
+               else /* if(buf->numberOfItems != 0) */
+               {
               /* buf->numberOfItems is zero. Nothing to be done. */
 
-		   }
+               }
 
-		 } /* else of if(create_memory == FALSE) */
+             } /* else of if(create_memory == FALSE) */
       }
       else
       {

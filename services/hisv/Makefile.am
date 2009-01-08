@@ -29,23 +29,23 @@ endif
 SUBDIRS = $(CONTROLLER_SUBDIRS)
 
 noinst_HEADERS = \
-	inc/ham_cb.h \
-	inc/ham_mds.h \
-	inc/hcd_amf.h \
-	inc/hcd.h \
-	inc/hcd_log.h \
-	inc/hcd_mem.h \
-	inc/hcd_util.h \
-	inc/hisv_demo.h \
-	inc/hisv_dl_api.h \
-	inc/hisv_logstr.h \
-	inc/hisv_msg.h \
-	inc/hpl_cb.h \
-	inc/hpl.h \
-	inc/hpl_mds.h \
-	inc/hpl_mem.h \
-	inc/hsm_cb.h \
-	inc/sim_cb.h
+        inc/ham_cb.h \
+        inc/ham_mds.h \
+        inc/hcd_amf.h \
+        inc/hcd.h \
+        inc/hcd_log.h \
+        inc/hcd_mem.h \
+        inc/hcd_util.h \
+        inc/hisv_demo.h \
+        inc/hisv_dl_api.h \
+        inc/hisv_logstr.h \
+        inc/hisv_msg.h \
+        inc/hpl_cb.h \
+        inc/hpl.h \
+        inc/hpl_mds.h \
+        inc/hpl_mem.h \
+        inc/hsm_cb.h \
+        inc/sim_cb.h
 
 if ENABLE_HPI
 
@@ -54,25 +54,25 @@ bin_PROGRAMS = ncs_hisv
 endif
 
 ncs_hisv_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_HISV=1 -DNCS_HISV_LOG=1 \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+        @NCS_CORE_CPP_DEFINES@ \
+        -DNCS_HISV=1 -DNCS_HISV_LOG=1 \
+        -I $(top_srcdir)/services/hisv/inc \
+        -I $(top_srcdir)/services/leap/inc \
+        -I $(top_srcdir)/services/mds/inc \
+        -I $(top_srcdir)/services/mab/inc \
+        -I $(top_srcdir)/services/vds/inc \
+        -I $(top_srcdir)/services/common/inc \
+        -I $(top_srcdir)/services/mab/inc \
+        -I $(top_srcdir)/include
 
 ncs_hisv_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+        $(top_srcdir)/services/common/src/ncs_main_pvt.c
 
 ncs_hisv_LDADD = \
-	@HPI_LIBS@ \
-	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
-	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/lib/lib_SaEvt/libSaEvt.la \
-	$(top_builddir)/services/edsv/common/libedsv_common.la \
-	$(top_builddir)/services/hisv/hcd/libhcd.la \
-	$(top_builddir)/services/hisv/hpl/libhpl.la
+        @HPI_LIBS@ \
+        $(top_builddir)/lib/lib_ncs_core/libncs_core.la \
+        $(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
+        $(top_builddir)/lib/lib_SaEvt/libSaEvt.la \
+        $(top_builddir)/services/edsv/common/libedsv_common.la \
+        $(top_builddir)/services/hisv/hcd/libhcd.la \
+        $(top_builddir)/services/hisv/hpl/libhpl.la

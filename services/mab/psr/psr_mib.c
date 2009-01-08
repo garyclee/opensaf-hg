@@ -36,7 +36,7 @@
 #if (NCS_MAB == 1)
 #if (NCS_PSR == 1)
 #include "psr.h"
-
+#include "psr_rfmt.h"
 
 /*****************************************************************************
 
@@ -1058,6 +1058,9 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
         if (retval != NCSCC_RC_SUCCESS)
             return m_MAB_DBG_SINK(retval);
         m_PSS_RE_RELOAD_PSSVLIBCONF(gl_pss_amf_attribs.csi_list->pwe_cb);
+        retval = pss_check_n_reformat(gl_pss_amf_attribs.pss_cb, PSS_PS_FORMAT_VERSION);
+        if (retval != NCSCC_RC_SUCCESS)
+            return m_MAB_DBG_SINK(retval);
         return retval;
 
     case ncsPSSvTriggerReloadSpcnList:

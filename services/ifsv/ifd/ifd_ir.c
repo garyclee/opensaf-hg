@@ -72,6 +72,8 @@ ifd_binding_mib_send_evt (IFSV_CB *cb, uns8 portnum, NCS_IFSV_IFINDEX masterIfin
    /* SPT INFO of BINDING Interface - A hack */  
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.shelf  = IFSV_BINDING_SHELF_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.slot   =  IFSV_BINDING_SLOT_ID;
+      /* embedding subslot changes */
+      evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subslot   =  IFSV_BINDING_SUBSLOT_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.port  =  portnum;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.type  =  NCS_IFSV_INTF_BINDING;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subscr_scope = NCS_IFSV_SUBSCR_INT;
@@ -238,7 +240,8 @@ ifd_binding_change_all_master_intfs(IFSV_CB *ifsv_cb)
             /* This is bonding interface */
             /* Check whether the slave interfaces lie on the current shelf and slot */         
       if(intf_rec->intf_data.spt_info.shelf == ifsv_cb->shelf   &&
-          intf_rec->intf_data.spt_info.slot  == ifsv_cb->slot)
+          intf_rec->intf_data.spt_info.slot  == ifsv_cb->slot   &&
+          intf_rec->intf_data.spt_info.subslot  == ifsv_cb->subslot )
       {
                  /* Yes.. the slave interface is on the current slot. We have switch the master 
                       and slave of this bonding interface */

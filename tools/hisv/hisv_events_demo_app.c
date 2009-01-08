@@ -475,8 +475,8 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    SaUint8T                  hpi_entity_path[8][50];
    uns32                     hpi_entity_path_depth = 0;
    uns32                     hpi_entity_path_max = 8;
-   SaInt32T		     i;
-   SaInt32T		     hpi_event_slot;
+   SaInt32T                 i;
+   SaInt32T                 hpi_event_slot;
    uns32                     hisv_power_res = 0;
    SaUint8T                  hpi_entity_path2[300];
    NCS_LIB_REQ_INFO          req_info;

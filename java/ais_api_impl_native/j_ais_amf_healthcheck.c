@@ -121,7 +121,7 @@ jboolean JNU_Healthcheck_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "ais/amf/Healthcheck" )
                                );*/
-    ClassHealthcheck = JNU_GetGlobalClassRef(	jniEnv,
+    ClassHealthcheck = JNU_GetGlobalClassRef(      jniEnv,
                                                 "org/opensaf/ais/amf/HealthcheckImpl" );
     if( ClassHealthcheck == NULL ){
 
@@ -579,14 +579,14 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_HealthcheckImpl_confirmHealthche
  *                the specified SaAmfHealthcheckKeyT parameter.
  * INTERFACE:
  *   parameters:
- * 		healthcheckKey [in]
- * 			- the source Java byte array.
- * 			If null, AisInvalidParamException is thrown.
- * 			Its length can be zero, however: in this case a zero length SaAmfHealthcheckKeyT is returned.
+ *             healthcheckKey [in]
+ *                   - the source Java byte array.
+ *                   If null, AisInvalidParamException is thrown.
+ *                   Its length can be zero, however: in this case a zero length SaAmfHealthcheckKeyT is returned.
  *          If longer than SA_AMF_HEALTHCHECK_KEY_MAX, AisInvalidParamException is thrown.
  *      saHealthcheckKeyPtr [in/out]
- * 			- a pointer to the SaAmfHealthcheckKeyT structure into which
- * 			the content of the source Java byte array is copied. It must not be NULL.
+ *                   - a pointer to the SaAmfHealthcheckKeyT structure into which
+ *                   the content of the source Java byte array is copied. It must not be NULL.
  *   returns:     JNI_FALSE if an error occured, JNI_TRUE otherwise
  * NOTE: If JNI_FALSE is returned, then an exception is already pending!
  *************************************************************************/
@@ -729,8 +729,8 @@ jboolean JNU_HealthcheckInvocation_initIDs_OK( JNIEnv* jniEnv )
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/amf/Healthcheck$HealthcheckInvocation" )
                                );*/
-    EnumHealthcheckInvocation = JNU_GetGlobalClassRef(	jniEnv,
-                                                		"org/saforum/ais/amf/Healthcheck$HealthcheckInvocation" );
+    EnumHealthcheckInvocation = JNU_GetGlobalClassRef(      jniEnv,
+                                                            "org/saforum/ais/amf/Healthcheck$HealthcheckInvocation" );
     if( EnumHealthcheckInvocation == NULL ){
 
         _TRACE2( "NATIVE ERROR: enum HealthcheckInvocation is NULL\n" );

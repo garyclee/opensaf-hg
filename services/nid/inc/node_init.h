@@ -62,7 +62,6 @@
 #define NID_MAX_REST_LEN             1
 
 
-
 #define NID_PLAT_CONF_PATH          SYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
 #define NID_NCSLOGPATH              LOCALSTATEDIR "log/nid/"

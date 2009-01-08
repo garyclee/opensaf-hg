@@ -517,9 +517,66 @@ uns32 avnd_evt_avd_node_update_msg (AVND_CB *cb, AVND_EVT *evt)
    }
    else /* => node deletion */
    {
-      /* For the TIPC node link reset added by surya*/
       mds_node_link_reset(info->clm_info.node_id);
       rec = avnd_clmdb_rec_get(cb, info->clm_info.node_id);
+
+/*************************   Section  1 Starts Here **************************/
+
+/* We have a Node down message, time to check whether we have any internode
+   component related to this Node on this node.*/
+      if(rec)
+      {   
+         AVND_COMP *comp = NULL;
+         SaNameT       name_net;
+         AVND_COMP_PXIED_REC     *pxd_rec = 0, *curr_rec = 0;
+         m_NCS_OS_MEMSET(&name_net, 0, sizeof(SaNameT));
+ 
+         for(comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net);
+             comp; comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net))
+         {
+              name_net = comp->name_net;
+             /* Check the node id */
+             if(comp->node_id == rec->info.node_id)
+             { 
+                 if(m_AVND_COMP_TYPE_IS_PROXIED(comp))
+                 {
+                   /* We need to delete the proxied component and remove
+                      this component from the proxy's pxied_list */
+                      /* Remove the proxied component from pxied_list  */
+                         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
+                         rc = avnd_comp_proxied_del(cb, comp,comp->pxy_comp,FALSE,NULL);
+                         /* Delete the proxied component */
+                         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
+                         rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db),
+                                                      &(comp->name_net));
+                 } /* if(m_AVND_COMP_TYPE_IS_PROXIED(comp)) */
+                 else if(m_AVND_COMP_TYPE_IS_PROXY(comp))
+                 {
+                   /* We need to delete the proxy component and make
+                      all its proxied component as orphan */
+                      /* look in each proxied for this handle */
+                      pxd_rec= (AVND_COMP_PXIED_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pxied_list);
+                      while(pxd_rec)
+                      {
+                         curr_rec = pxd_rec;
+                         pxd_rec = (AVND_COMP_PXIED_REC *)m_NCS_DBLIST_FIND_NEXT(
+                                                      &pxd_rec->comp_dll_node);
+                         rc = avnd_comp_unreg_prc(cb, curr_rec->pxied_comp, comp);
+
+                         if(NCSCC_RC_SUCCESS != rc)
+                         {
+                          m_AVND_AVND_ERR_LOG(
+                          "avnd_evt_avd_node_update_msg:Unreg failed:Comp is",
+                          &curr_rec->pxied_comp->name_net,0,0,0,0);
+                         }
+                      }/* while */
+                  } /* else if(m_AVND_COMP_TYPE_IS_PROXY(comp)) */
+             } /* if(comp->node_id == rec->info.node_id)  */
+         } /* for(comp = m_AVND_COMPDB_REC_GET_NEXT()  */
+
+      } /* if(rec) */
+/*************************   Section  1 Ends  Here **************************/
+
       if (rec) avnd_clm_snd_track_changes(cb, rec, SA_CLM_NODE_LEFT);
       rc = avnd_clmdb_rec_del(cb, info->clm_info.node_id);
    }
@@ -605,7 +662,8 @@ uns32 avnd_evt_avd_node_up_msg (AVND_CB *cb, AVND_EVT *evt)
 
    /* register this row with mab */
    rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_NODE_STAT, 0, 0, 
-                              &cb->clmdb.node_info.nodeId, &cb->mab_node_hdl);
+                              &cb->clmdb.node_info.nodeId, &cb->mab_node_hdl,
+                              cb->mab_hdl);
 
 done:
    return rc;

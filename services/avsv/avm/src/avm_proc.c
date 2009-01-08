@@ -51,7 +51,8 @@ extern uns32 avm_proc(void)
    AVM_EVT_T         *avm_evt;
    NCS_SEL_OBJ_SET    temp_sel_obj_set;
    NCS_SEL_OBJ        temp_eda_sel_obj;
-   NCS_SEL_OBJ        temp_mbc_sel_obj;   
+   NCS_SEL_OBJ        temp_mbc_sel_obj;
+   NCS_SEL_OBJ        temp_fma_sel_obj;   
    uns32              rc =  NCSCC_RC_SUCCESS;
    uns32              msg;
 
@@ -77,6 +78,10 @@ extern uns32 avm_proc(void)
       m_NCS_SEL_OBJ_SET(temp_eda_sel_obj, &avm_cb->sel_obj_set);
       avm_cb->sel_high = m_GET_HIGHER_SEL_OBJ(temp_eda_sel_obj, avm_cb->sel_high);
    }
+
+   m_SET_FD_IN_SEL_OBJ(avm_cb->fma_sel_obj, temp_fma_sel_obj);
+   m_NCS_SEL_OBJ_SET(temp_fma_sel_obj, &avm_cb->sel_obj_set);
+   avm_cb->sel_high = m_GET_HIGHER_SEL_OBJ(temp_fma_sel_obj, avm_cb->sel_high);
 
    temp_sel_obj_set = avm_cb->sel_obj_set;
 
@@ -124,6 +129,12 @@ extern uns32 avm_proc(void)
          avm_mbc_dispatch(avm_cb, SA_DISPATCH_ONE);
       }
        
+      if(m_NCS_SEL_OBJ_ISSET(temp_fma_sel_obj, &temp_sel_obj_set))
+      {
+         m_AVM_LOG_DEBUG("Recieved evt from FM", NCSFL_SEV_INFO);
+         fmDispatch(avm_cb->fm_hdl, SA_DISPATCH_ONE);
+      }
+
       temp_sel_obj_set = avm_cb->sel_obj_set;
    }
 

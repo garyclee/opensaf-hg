@@ -352,6 +352,7 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
             su_ptr->rank = su->rank;
             su_ptr->num_of_comp = su->num_of_comp;
             su_ptr->row_status = su->row_status;
+            su_ptr->su_is_external = su->su_is_external;
             su_ptr->sg_name.length = su->sg_name.length;
             m_NCS_MEMCPY(su_ptr->sg_name.value, 
                    su->sg_name.value, su->sg_name.length);
@@ -367,6 +368,8 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
 
             avd_su_add_sg_list(cb, su_ptr);
 
+          if(FALSE == su_ptr->su_is_external)
+          {
             m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
             /* Add to ND list */
             /* First get the node name */
@@ -391,7 +394,37 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
                su_ptr->avnd_list_su_next = su_ptr->su_on_node->list_of_su;
                su_ptr->su_on_node->list_of_su = su_ptr;
             }
-       
+          }/* if(FALSE == su->su_is_external) */
+          else
+          {
+            if(NULL == cb->ext_comp_info.ext_comp_hlt_check)
+            {
+              /* This is an external SU and we need to create the
+                 supporting info.*/
+               cb->ext_comp_info.ext_comp_hlt_check =
+                                        m_MMGR_ALLOC_AVD_AVND;
+               if(NULL == cb->ext_comp_info.ext_comp_hlt_check)
+               {
+                 avd_su_del_sg_list(cb,su_ptr);
+                 return NCSCC_RC_INV_VAL;
+               }
+               m_NCS_MEMSET(cb->ext_comp_info.ext_comp_hlt_check, 0,
+                            sizeof(AVD_AVND));
+            } /* if(NULL == cb->ext_comp_info.ext_comp_hlt_check) */
+
+               cb->ext_comp_info.local_avnd_node =
+                  avd_avnd_struc_find_nodeid(cb, cb->node_id_avd);
+
+               if(NULL == cb->ext_comp_info.local_avnd_node)
+               {
+                 m_AVD_PXY_PXD_ERR_LOG(
+                "avsv_ckpt_add_rmv_updt_su_data:Local node unavailable:SU Name,node id are",
+                 &su_ptr->name_net,cb->node_id_avd,0,0,0);
+                 avd_su_del_sg_list(cb,su_ptr);
+                 return NCSCC_RC_INV_VAL;
+               }
+          }/* else of if(FALSE == su_ptr->su_is_external) */
+
             if(su->row_status == NCS_ROW_ACTIVE)
             {
                /* add a row to the SG-SU Rank table */
@@ -478,27 +511,149 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
    return status;
 }
 
+
+/****************************************************************************\
+ * Function: avsv_ckpt_add_rmv_updt_si_dep_data
+ *
+ * Purpose:  Add new SI_DEP entry if action is ADD, remove SI_DEP from the tree
+ *           if action is to remove and update data if request is to update.
+ *
+ * Input: cb - CB pointer.
+ *        si_dep - Decoded structur.
+ *        action - ADD/RMV/UPDT
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ * 
+\**************************************************************************/
+uns32 avsv_ckpt_add_rmv_updt_si_dep_data(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep,
+                                         NCS_MBCSV_ACT_TYPE action)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+   AVD_SI_SI_DEP *si_ptr_up;
+   AVD_SI *spons_si = NULL;
+   AVD_SI *dep_si = NULL;
+   
+   m_AVD_LOG_FUNC_ENTRY("avsv_ckpt_add_rmv_updt_si_dep_data");
+
+   si_ptr_up = avd_si_si_dep_find(cb, &si_dep->indx_mib, TRUE);
+
+   switch(action)
+   {
+   case NCS_MBCSV_ACT_ADD:
+      {
+         if (NULL == si_ptr_up)
+         {
+            /* Add new SI entry into pat tree. */
+            if (NULL == (si_ptr_up = 
+               avd_si_si_dep_struc_crt(cb, &si_dep->indx_mib)))
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(action);
+               return NCSCC_RC_FAILURE;
+            }
+         }
+
+         if (si_ptr_up->row_status != NCS_ROW_ACTIVE)
+         {
+            /* Update one time update fields */
+            si_ptr_up->tolerance_time = si_dep->tolerance_time;
+            si_ptr_up->row_status = si_dep->row_status;
+         }
+
+         /* Sponsor SI row Status should be active, if not return error*/
+         if(((spons_si = avd_si_struc_find(cb, si_dep->indx_mib.si_name_prim,FALSE)) == AVD_SI_NULL) ||
+             (spons_si->row_status != NCS_ROW_ACTIVE))
+         {
+            return NCSCC_RC_FAILURE;
+         }
+
+         /* Dependent SI row Status should be active, if not return error*/
+         if(((dep_si = avd_si_struc_find(cb, si_dep->indx_mib.si_name_sec,FALSE)) == AVD_SI_NULL) ||
+             (dep_si->row_status != NCS_ROW_ACTIVE) )
+         {
+            return NCSCC_RC_FAILURE;
+         }
+
+         /* Add the spons si to the spons_si_list of dependent SI */
+         if (avd_si_dep_spons_list_add(cb, dep_si, spons_si) != NCSCC_RC_SUCCESS)
+         {
+            /* Delete the created SI dep records */
+            avd_si_si_dep_del_row(cb, si_ptr_up);
+
+            return NCSCC_RC_FAILURE;
+         }
+      }
+
+   case NCS_MBCSV_ACT_UPDATE:
+      {
+         if (NULL != si_ptr_up)
+         {
+           /* Update all the data. Except SU name which would have got
+            * updated with ADD.
+            */
+            si_ptr_up->tolerance_time = si_dep->tolerance_time;
+            si_ptr_up->row_status = si_dep->row_status;
+         }
+         else
+         {
+            m_AVD_LOG_INVALID_VAL_FATAL(action);
+            return NCSCC_RC_FAILURE;
+         }
+      }
+      break;
+
+   case NCS_MBCSV_ACT_RMV:
+      {
+         if (NULL != si_ptr_up)
+         {
+            /* Delete the sponsor node from sponsor list of dependent SI */
+            avd_si_dep_spons_list_del(cb, si_ptr_up);
+
+            if (avd_si_si_dep_del_row(cb, si_ptr_up) != NCSCC_RC_SUCCESS)
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(action);
+               return NCSCC_RC_FAILURE;
+            }
+         }
+         else
+         {
+            m_AVD_LOG_INVALID_VAL_FATAL(action);
+            return NCSCC_RC_FAILURE;
+         }
+      }
+      break;
+
+   default:
+      /* Log error */
+      m_AVD_LOG_INVALID_VAL_FATAL(action);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return status;
+}
+
+
 /****************************************************************************\
  * Function: avsv_ckpt_add_rmv_updt_si_data
  *
  * Purpose:  Add new SI entry if action is ADD, remove SI from the tree if 
  *           action is to remove and update data if request is to update.
  *
- * Input: cb  - CB pointer.
+ * Input: cb - CB pointer.
  *        si - Decoded structur.
  *        action - ADD/RMV/UPDT
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
  * NOTES:
- *
  * 
 \**************************************************************************/
 uns32  avsv_ckpt_add_rmv_updt_si_data(AVD_CL_CB *cb, AVD_SI *si,
                                       NCS_MBCSV_ACT_TYPE action)
 {
-   uns32 status = NCSCC_RC_SUCCESS;
-   AVD_SI      *si_ptr_up;
+   uns32  status = NCSCC_RC_SUCCESS;
+   AVD_SI *si_ptr_up;
    
    m_AVD_LOG_FUNC_ENTRY("avsv_ckpt_add_rmv_updt_si_data");
 
@@ -589,6 +744,9 @@ uns32  avsv_ckpt_add_rmv_updt_si_data(AVD_CL_CB *cb, AVD_SI *si,
 
             /* Delete the SG-SI Rank entry from SG-SI Rank Table*/
             avd_sg_si_rank_del_row(cb, si_ptr_up);
+
+            /* Delete the SI-SI dep records corresponding to this SI */
+            avd_si_dep_delete(cb, si_ptr_up);
 
             /*
              * Remove this SI from the list.
@@ -1194,6 +1352,8 @@ uns32  avsv_ckpt_add_rmv_updt_hlt_data(AVD_CL_CB *cb, AVD_HLT *hlt,
    AVD_HLT     *hlt_ptr = AVD_HLT_NULL;
    AVD_AVND    *node_on_hlt = AVD_AVND_NULL;
    AVD_HLT     *temp_hlt_chk = AVD_HLT_NULL;
+   AVD_SU      *su = NULL;
+   SaNameT     temp_name;
    
    m_AVD_LOG_FUNC_ENTRY("avsv_ckpt_add_rmv_updt_hlt_data");
 
@@ -1220,8 +1380,32 @@ uns32  avsv_ckpt_add_rmv_updt_hlt_data(AVD_CL_CB *cb, AVD_HLT *hlt,
 
          if(hlt_ptr->row_status != NCS_ROW_ACTIVE)
          {
-            
-           node_on_hlt =  avd_hlt_node_find(hlt->key_name.comp_name_net, cb);
+            /* get the SU name*/
+            m_NCS_MEMSET(&temp_name, 0, sizeof(SaNameT));
+            avsv_cpy_SU_DN_from_DN(&temp_name, &hlt->key_name.comp_name_net);
+
+            if(temp_name.length == 0)
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(temp_name.length);
+               return NCSCC_RC_INV_VAL;
+            }
+
+            if ((su = avd_su_struc_find(cb,temp_name,TRUE))
+                                          == AVD_SU_NULL)
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(su);
+               return NCSCC_RC_INV_VAL;
+            }
+
+            if(TRUE == su->su_is_external)
+            {
+              node_on_hlt = cb->ext_comp_info.ext_comp_hlt_check;
+            }
+            else
+            {
+              node_on_hlt =  avd_hlt_node_find(hlt->key_name.comp_name_net, cb);
+            }
+
            if(node_on_hlt == AVD_AVND_NULL)
            {
               avd_hlt_struc_del(cb, hlt);
@@ -1250,7 +1434,32 @@ uns32  avsv_ckpt_add_rmv_updt_hlt_data(AVD_CL_CB *cb, AVD_HLT *hlt,
       {
          if (NULL != hlt_ptr)
          {
-            node_on_hlt =  avd_hlt_node_find(hlt_ptr->key_name.comp_name_net, cb);
+            /* get the SU name*/
+            m_NCS_MEMSET(&temp_name, 0, sizeof(SaNameT));
+            avsv_cpy_SU_DN_from_DN(&temp_name, &hlt_ptr->key_name.comp_name_net);
+
+            if(temp_name.length == 0)
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(temp_name.length);
+               return NCSCC_RC_INV_VAL;
+            }
+
+            if ((su = avd_su_struc_find(cb,temp_name,TRUE))
+                                          == AVD_SU_NULL)
+            {
+               m_AVD_LOG_INVALID_VAL_FATAL(su);
+               return NCSCC_RC_INV_VAL;
+            }
+
+            if(TRUE == su->su_is_external)
+            {
+              node_on_hlt = cb->ext_comp_info.ext_comp_hlt_check;
+            }
+            else
+            {
+              node_on_hlt =  avd_hlt_node_find(hlt_ptr->key_name.comp_name_net, cb);
+            }
+
             if(node_on_hlt != AVD_AVND_NULL)
             {
                avd_hlt_node_del_hlt_from_list(hlt_ptr, node_on_hlt);

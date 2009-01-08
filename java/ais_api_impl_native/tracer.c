@@ -17,15 +17,15 @@
 #include "tracer.h"
 
 void jTrace(char *file, int line, char *format, ...) {
-	char ___tracer_string[1024];
-	va_list args;
+      char ___tracer_string[1024];
+      va_list args;
 
-	if (file != NULL) {
-		sprintf(___tracer_string, "%s:%d\t %s", basename(file), line, format);
-	}
-	else {
-		sprintf(___tracer_string, "%s", format);
-	}
+      if (file != NULL) {
+            sprintf(___tracer_string, "%s:%d\t %s", basename(file), line, format);
+      }
+      else {
+            sprintf(___tracer_string, "%s", format);
+      }
 
     va_start(args, format);
     vprintf(___tracer_string, args);

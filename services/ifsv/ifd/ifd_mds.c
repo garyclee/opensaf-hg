@@ -34,9 +34,10 @@ static uns32 ifd_mds_vdest_destroy (IFSV_CB *cb);
 static uns32 ifd_mds_ifnd_down_evt(MDS_DEST *mds_dest, IFSV_CB *cb);
 uns32 ifd_mds_quiesced_process(IFSV_CB* cb);
 
+/* embedding subslot changes for backward compatibility */
 MDS_CLIENT_MSG_FORMAT_VER
       IFD_WRT_IFND_MSG_FMT_ARRAY[IFD_WRT_IFND_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* embedding subslot changes */};
 
 
 /****************************************************************************
@@ -614,8 +615,10 @@ static uns32 ifd_mds_enc(IFSV_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
                           enc_info->i_rem_svc_pvt_ver);
      return NCSCC_RC_FAILURE; 
    }
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
-                       EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror);
+
+   /* embedding subslot changes for backward compatibility */
+   rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
+                       EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
    if(rc != NCSCC_RC_SUCCESS)
    {
       /* Free calls to be added here. */
@@ -668,8 +671,9 @@ static uns32 ifd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
    m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
    dec_info->o_msg = (NCSCONTEXT)ifsv_evt;
 
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
-                       EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror);
+   /* embedding subslot changes for backward compatibility */
+   rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
+                       EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
    if(rc != NCSCC_RC_SUCCESS)
    {
       m_MMGR_FREE_IFSV_EVT(ifsv_evt);

@@ -88,34 +88,36 @@ avm_refine_fault_domain(
                          AVM_FAULT_DOMAIN_T **fault_domain
                         );
 extern uns32
-avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info,uns32 **child_impact);
 
 extern uns32
-avm_scope_reset_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_reset_criteria(AVM_ENT_INFO_T *ent_info, uns32 **child_impact);
 
 extern uns32
-avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info,uns32 **child_impact);
 
 extern uns32
-avm_scope_sensor_deassert_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_sensor_deassert_criteria(AVM_ENT_INFO_T *ent_info,uns32 **child_impact);
 
 extern uns32
-avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info,uns32 **child_impact);
 
 extern uns32
 avm_scope_active_criteria(
                            AVM_CB_T       *active,   
-                           AVM_ENT_INFO_T *ent_info
+                           AVM_ENT_INFO_T *ent_info,
+                           uns32          **child_impact
                          );
 
 extern uns32
-avm_scope_fault_domain_req_criteria(AVM_ENT_INFO_T *ent_info);
+avm_scope_fault_domain_req_criteria(AVM_ENT_INFO_T *ent_info,uns32 **child_impact);
 
 extern uns32
 avm_scope_fault_criteria(
-                           AVM_CB_T                *avm_cb,
-                           AVM_ENT_INFO_T          *ent_info, 
-                           AVM_SCOPE_EVENTS_T       fault_type
+                           AVM_CB_T               *avm_cb,
+                           AVM_ENT_INFO_T         *ent_info, 
+                           AVM_SCOPE_EVENTS_T      fault_type,
+                           uns32                  *child_impact
                         );
 
 extern uns32
@@ -300,11 +302,38 @@ avm_adm_switch_trap(
                       uns32                   trap_id, 
                       AVM_SWITCH_STATUS_T     param_val
                    );
+extern uns32 avm_entity_locked_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info);
+extern uns32 avm_entity_inactive_hisv_ret_error_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info);
 
 extern uns32
 avm_open_trap_channel(AVM_CB_T *avm_cb);
 
 extern uns32
 avm_push_admin_mib_set_to_psr(AVM_CB_T *cb, AVM_ENT_INFO_T  *ent_info, AVM_ADM_OP_T adm_state);
+
+extern
+uns32 avm_standby_boot_succ_tmr_handler(AVM_CB_T *avm_cb,AVM_EVT_T *hpi_evt,AVM_ENT_INFO_T *ent_info, AVM_FSM_EVT_TYPE_T   fsm_evt_type);
+
+extern uns32
+avm_standby_map_hpi2fsm(
+                  AVM_CB_T             *cb,
+                  HPI_EVT_T            *evt,
+                  AVM_FSM_EVT_TYPE_T   *fsm_evt_type,
+                  AVM_ENT_INFO_T       *ent_info
+                  );
+
+/* FM specific function prototypes */
+extern uns32
+avm_fma_initialize(AVM_CB_T *cb);
+
+extern uns32 avm_notify_fm_hb_evt(AVM_CB_T *cb,
+       SaNameT node_name, AVM_ROLE_FSM_EVT_TYPE_T evt_type);
+
+extern NCS_BOOL avm_fm_can_switchover_proceed(AVM_CB_T *cb);
+
+extern uns32 avm_notify_fm_node_reset(AVM_CB_T *avm_cb,
+                   SaHpiEntityPathT *ent_path);
+extern NCS_BOOL
+avm_is_this_entity_self(AVM_CB_T *avm_cb, SaHpiEntityPathT ep);
 
 #endif /* __AVM_UTIL_H__ */

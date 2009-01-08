@@ -53,10 +53,11 @@ void m_IFSV_LOG_SPT_INFO(uns32 index, NCS_IFSV_SPT_MAP *spt_map,uns8 *info2)
 
    if(spt_map == NULL)
        return; 
-
-   sprintf(string,"Shelf:%d Slot:%d Port:%d Type:%d Scope:%d = IfIndex: %d",
+   /* embedding subslot changes */
+   sprintf(string,"Shelf:%d Slot:%d SubSlot:%d Port:%d Type:%d Scope:%d = IfIndex: %d",
                    spt_map->spt.shelf,
                    spt_map->spt.slot,
+                   spt_map->spt.subslot,
                    spt_map->spt.port,
                    spt_map->spt.type,
                    spt_map->spt.subscr_scope,
@@ -588,11 +589,11 @@ ifsv_log_svc_id_from_comp_type (uns32 comp_type)
  * Name          : ifsv_log_spt_string
  *
  * Description   : This is the function which converts 
- *                 shelf/slot/port/type/scope in to string.
+ *                 shelf/slot/subslot/port/type/scope in to string.
  *                 
  *
- * Arguments     : spt       - shelf/slot/port/type/scope
- *                 o_spt_str - string converts the shelf/slot/port/type/scope 
+ * Arguments     : spt       - shelf/slot/subslot/port/type/scope
+ *                 o_spt_str - string converts the shelf/slot/subslot/port/type/scope 
  *                 in to a string.
  *
  * Return Values : char *
@@ -608,6 +609,11 @@ ifsv_log_spt_string (NCS_IFSV_SPT spt, char *o_spt_str)
    m_NCS_STRCAT(o_spt_str,"/");
 
    sprintf(tem_char,"%d",spt.slot);
+   m_NCS_STRCAT(o_spt_str,tem_char);
+   m_NCS_STRCAT(o_spt_str,"/");
+   
+   /* embedding subslot changes */
+   sprintf(tem_char,"%d",spt.subslot);
    m_NCS_STRCAT(o_spt_str,tem_char);
    m_NCS_STRCAT(o_spt_str,"/");
 

@@ -91,10 +91,14 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
    
    while ((i_si != AVD_SI_NULL) && (i_su != AVD_SU_NULL))
    {
+      /* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
+      avd_screen_sponsor_si_state(cb, i_si, FALSE);
+
       /* verify that the SI is unassigned and ready */
       if ((i_si->admin_state != NCS_ADMIN_STATE_UNLOCK) ||
-            (i_si->max_num_csi != i_si->num_csi) ||
-            (i_si->list_of_sisu != AVD_SU_SI_REL_NULL))
+         /* (i_si->si_dep_state != AVD_SI_NO_DEPENDENCY) ||*/
+          (i_si->max_num_csi != i_si->num_csi) ||
+          (i_si->list_of_sisu != AVD_SU_SI_REL_NULL))
       {
          i_si = i_si->sg_list_of_si_next;
          continue;
@@ -224,6 +228,7 @@ uns32 avd_sg_nored_su_fault_func(AVD_CL_CB *cb,AVD_SU *su)
    SaAmfHAStateT old_state;
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL flag;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_su_fault_func");
    m_AVD_LOG_RCVD_VAL(((long)su));
@@ -334,16 +339,17 @@ uns32 avd_sg_nored_su_fault_func(AVD_CL_CB *cb,AVD_SU *su)
                   avd_gen_su_ha_state_changed_trap(cb, su->list_of_susi);
                   return NCSCC_RC_FAILURE;
                }
-               
+
+               m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
                if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                {               
                   m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-               }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+               }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
                {
-                  m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+                  m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                   if (flag == TRUE)
                   {
-                     m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+                     m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
                   }
                }
             }
@@ -410,15 +416,16 @@ uns32 avd_sg_nored_su_fault_func(AVD_CL_CB *cb,AVD_SU *su)
                return NCSCC_RC_FAILURE;
             }
             
+            m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
             if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {               
                m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-            }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+            }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
             {
-               m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+               m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
                if (flag == TRUE)
                {
-                  m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+                  m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
                }
             }
          } /* if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) */
@@ -673,6 +680,7 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
    AVD_SI *l_si;
    NCS_BOOL flag;
    AVD_SU_SI_STATE old_fsm_state;
+   AVD_AVND *su_node_ptr = NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_susi_sucss_func");
    m_AVD_LOG_RCVD_VAL(((long)su));
@@ -756,7 +764,9 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
             return NCSCC_RC_FAILURE;
          }
-         
+
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+ 
          if (su->sg_of_su->admin_si == su->list_of_susi->si)
          {
             m_AVD_SET_SI_ADMIN(cb,(su->sg_of_su->admin_si),NCS_ADMIN_STATE_LOCK);
@@ -765,12 +775,12 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
          }else if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
       } /* if (state == SA_AMF_HA_QUIESCED) */
@@ -873,15 +883,17 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
          m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_SG_REALIGN); 
          m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
          
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+ 
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
       } /* if (state == SA_AMF_HA_QUIESCED) */   
@@ -1025,7 +1037,6 @@ uns32 avd_sg_nored_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
             return NCSCC_RC_FAILURE;
          }
-
       } /* if (state == SA_AMF_HA_QUIESCED) */   
 
       break; /* case AVD_SG_FSM_SG_ADMIN: */   
@@ -1076,6 +1087,7 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
 {
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL flag;
+   AVD_AVND *su_node_ptr = NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_susi_fail_func");
    m_AVD_LOG_RCVD_VAL(((long)su));
@@ -1116,6 +1128,8 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
             return NCSCC_RC_FAILURE;
          }
          
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+ 
          if (su->sg_of_su->admin_si == su->list_of_susi->si)
          {
             m_AVD_SET_SI_ADMIN(cb,(su->sg_of_su->admin_si),NCS_ADMIN_STATE_LOCK);
@@ -1124,15 +1138,15 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
          }else if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
             su->list_of_susi->state = SA_AMF_HA_QUIESCED;
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
             avd_gen_su_ha_state_changed_trap(cb, su->list_of_susi);
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
       } /* if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_QUIESCED) ||
@@ -1171,19 +1185,19 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
             return NCSCC_RC_FAILURE;
          }
          
-         
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if (su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
+         }else if (su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {
             su->list_of_susi->state = SA_AMF_HA_QUIESCED;
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
             avd_gen_su_ha_state_changed_trap(cb, su->list_of_susi);
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
       } /* if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_QUIESCED) ||
@@ -1269,7 +1283,6 @@ uns32 avd_sg_nored_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
             return NCSCC_RC_FAILURE;
          }
-
       } /* if ((act == AVSV_SUSI_ACT_MOD) && ((state == SA_AMF_HA_QUIESCED) ||
          (state == SA_AMF_HA_QUIESCING))) */
 
@@ -1375,6 +1388,7 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb,AVD_SU *su)
    NCS_BOOL flag;
    AVD_SI *l_si;
    SaAmfHAStateT old_state;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_node_fail_func");
    m_AVD_LOG_RCVD_VAL(((long)su));
@@ -1432,16 +1446,18 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb,AVD_SU *su)
          
          avd_sg_su_oper_list_del(cb, su, FALSE);
          
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+ 
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if ((su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) &&
+         }else if ((su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) &&
                   (old_state == SA_AMF_HA_QUIESCING))
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
       }
@@ -1479,16 +1495,18 @@ void avd_sg_nored_node_fail_func(AVD_CL_CB *cb,AVD_SU *su)
       {         
          avd_sg_su_oper_list_del(cb, su, FALSE);
          
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+ 
          if (su->admin_state == NCS_ADMIN_STATE_SHUTDOWN)
          {               
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_LOCK);
-         }else if ((su->su_on_node->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) &&
+         }else if ((su_node_ptr->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) &&
                   (old_state == SA_AMF_HA_QUIESCING))
          {
-            m_AVD_IS_NODE_LOCK((su->su_on_node),flag);
+            m_AVD_IS_NODE_LOCK((su_node_ptr),flag);
             if (flag == TRUE)
             {
-               m_AVD_SET_AVND_SU_ADMIN(cb,(su->su_on_node),NCS_ADMIN_STATE_LOCK);
+               m_AVD_SET_AVND_SU_ADMIN(cb,(su_node_ptr),NCS_ADMIN_STATE_LOCK);
             }
          }
          

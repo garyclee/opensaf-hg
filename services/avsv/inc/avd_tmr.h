@@ -52,6 +52,7 @@ typedef enum avd_tmr_type
                                        * SIs to application SU. */
 
    AVD_TMR_CFG,                       /* Timer for receiving the cfg msgs */
+   AVD_TMR_SI_DEP_TOL,                /* SI_SI dependency tolerance timer */
    AVD_TMR_MAX 
 } AVD_TMR_TYPE;
 
@@ -59,11 +60,13 @@ typedef enum avd_tmr_type
 /* AVD Timer definition */
 typedef struct avd_tmr_tag
 {   
-   tmr_t            tmr_id;   
-   AVD_TMR_TYPE     type;
-   uns32            cb_hdl;      /* cb hdl to retrieve the AvD cb ptr */
-   SaClmNodeIdT     node_id;
-   NCS_BOOL         is_active;
+   tmr_t         tmr_id;   
+   AVD_TMR_TYPE  type;
+   uns32         cb_hdl;      /* cb hdl to retrieve the AvD cb ptr */
+   SaClmNodeIdT  node_id;
+   SaNameT       spons_si_name;
+   SaNameT       dep_si_name;
+   NCS_BOOL      is_active;
 } AVD_TMR;
 
 /* macro to start the heart beat timer. The cb and avnd structures
@@ -113,6 +116,15 @@ typedef struct avd_tmr_tag
    avd_start_tmr(cb,&(cb->heartbeat_rcv_avd),cb->rcv_hb_intvl); \
 }
 
+#define m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec) \
+{\
+   si_dep_rec->si_dep_timer.cb_hdl = cb->cb_handle; \
+   si_dep_rec->si_dep_timer.is_active = FALSE; \
+   si_dep_rec->si_dep_timer.type = AVD_TMR_SI_DEP_TOL; \
+   si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_mib.si_name_prim; \
+   si_dep_rec->si_dep_timer.dep_si_name = si_dep_rec->indx_mib.si_name_sec; \
+   avd_start_tmr(cb, &si_dep_rec->si_dep_timer, si_dep_rec->tolerance_time); \
+}
 
 /*** Extern function declarations ***/
 

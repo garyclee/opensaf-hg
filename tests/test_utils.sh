@@ -185,7 +185,7 @@ configure_tetware()
    /etc/init.d/xinetd restart
    rm /tmp/tmp_hosts /tmp/setup
    source lib_path.sh $1
-   cp maa_switch/libmaa_switch.so $LD_LIBRARY_PATH/libmaa_switch.so
+   #cp maa_switch/libmaa_switch.so $LD_LIBRARY_PATH/libmaa_switch.so
 }
 
 tet_setup_run_env()
@@ -208,7 +208,7 @@ tet_setup_run_env()
 tet_pack()
 {
  cd $OPENSAF_HOME 
- tar -zcf tests/tet_suites$TARGET_HOST.tgz  tests/avsv/*.exe tests/avsv/suites/* tests/cpsv/*.exe tests/cpsv/suites/* tests/cpsv/src/tet_cpa.c tests/edsv/*.exe  tests/edsv/suites/*  tests/glsv/*.exe tests/glsv/suites/* tests/ifsv/*.exe tests/ifsv/suites/*  tests/maa_switch/*.so  tests/mds/suites/* tests/mds/*.exe  tests/mqsv/*.exe tests/mqsv/suites/*  tests/mbcsv/*.exe tests/mbcsv/suites/*  tests/srmsv/suites/* tests/srmsv/*.exe tests/lib_path.sh tests/run_tests.sh tests/test_utils.sh tests/alignEtcHosts.pl tests/setup.sh tests/install_tccd.sh
+ tar -zcf tests/tet_suites$TARGET_HOST.tgz  tests/avsv/*.exe tests/avsv/suites/* tests/cpsv/*.exe tests/cpsv/suites/* tests/cpsv/src/tet_cpa.c tests/edsv/*.exe  tests/edsv/suites/*  tests/glsv/*.exe tests/glsv/suites/* tests/ifsv/*.exe tests/ifsv/suites/*   tests/mds/suites/* tests/mds/*.exe  tests/mqsv/*.exe tests/mqsv/suites/*  tests/mbcsv/*.exe tests/mbcsv/suites/*  tests/srmsv/suites/* tests/srmsv/*.exe tests/lib_path.sh tests/run_tests.sh tests/test_utils.sh tests/alignEtcHosts.pl tests/setup.sh tests/install_tccd.sh
 }
 
 case "$1" in
