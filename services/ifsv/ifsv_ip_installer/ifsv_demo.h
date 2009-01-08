@@ -90,6 +90,7 @@ typedef struct shelf_slot
 {
    uns32 shelf;
    uns32 slot;
+   uns32 subslot;
 } SHELF_SLOT;
 uns32 
 ifsv_drv_get_specific_intf_info (INTF_INFO *intf_info, uns32 port_num);

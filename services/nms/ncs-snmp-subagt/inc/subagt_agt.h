@@ -71,7 +71,7 @@ void init_agentx_config(void);
 
 /* IR00061409 */
 EXTERN_C void subagt_process_sig_usr1_signal(struct ncsSa_cb *cb);
-
+EXTERN_C void snmpsubagt_check_and_flush_buffered_traps(struct ncsSa_cb *cb);
 #endif
 
 

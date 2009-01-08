@@ -1649,6 +1649,61 @@
                                 </componentPrototype>
 
 
+                                <componentPrototype name="safComp=CompT_SC_FMS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxBINDIRxx/ncs_fms_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxBINDIRxx/ncs_fms_clean</command>
+                                                        <timeout>500</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxBINDIRxx/ncs_fms_clean</command>
+                                                        <timeout>30000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_FMS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE</capability>
+<!--                                                <numMaxActiveCSIs>1</numMaxActiveCSIs> -->
+<!--                                                <numMaxStandbyCSIs>1</numMaxStandbyCSIs> -->
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="BAD9">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                </componentPrototype>
+
                                 <!--
                                      Leave this junk prototype if you dont have
                                      any other csi prototypes defined to satisfy the schema
@@ -1783,6 +1838,7 @@
                                                 <componentPrototype>safComp=CompT_PDRBD</componentPrototype>
                                 -->
 						<componentPrototype>safComp=CompT_SC_RDE</componentPrototype>
+                        <componentPrototype>safComp=CompT_SC_FMS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_SC_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_GLND</componentPrototype>
@@ -1801,7 +1857,6 @@
 					</componentPrototypeList>
 				</SUPrototype>
                               
-
                                 <!--
                                     The SI descriptor Si_PLD1 for PAYLOAD with the list of CSIs.
                                     Make sure that the number of CSIs actually match with the number
@@ -1825,6 +1880,10 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
+                        <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                            <prototypeName>safCsi=Csi_FMS</prototypeName>
+                            <CSIAttributes/>
+                        </CSIInstance>
                                 <!--
                                                 <CSIInstance name="safCsi=Csi_PDRBD" rank="5">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
@@ -1857,6 +1916,10 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
+                        <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                            <prototypeName>safCsi=Csi_FMS</prototypeName>
+                            <CSIAttributes/>
+                        </CSIInstance>
                                 <!--
                                                 <CSIInstance name="safCsi=Csi_PDRBD" rank="5">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
@@ -2054,6 +2117,14 @@
                                                         <CSIAttributes/>
                                                 </CSIInstance>
                                         </CSIList>
+                                <!--
+                                   Sample SI-SI Dependency configuration, can be removed once the testing
+                                   is completed.
+                                        <SIDepList>
+                                               <SIDep  name="safSi=Si_CPND1"  tolTime="500000" />
+                                        </SIDepList>
+                                -->
+
                                 </SIInstance>
                                 <!--
                                     The SI descriptor Si_IFND for Interface Node Director with the list
@@ -2469,7 +2540,6 @@
                                         </vendorExtensions>
                                 </SGInstance>
 
-                                
                                   <!--   Capture the service unit instantiations on the Payload node 
                                   -->
 			        <nodePrototype name="safNode=NodeT_Payload">
@@ -2564,6 +2634,7 @@
                                                 </SUInstance>
 				        </SUList>
 				</nodeInstance>
+
                                 <vendorExtensions>
 
                                         <!--
@@ -2576,6 +2647,11 @@
                                                 <clusterInitTime>40000</clusterInitTime>
                                         </NCSScalars>
                                 </vendorExtensions>
+
+
+
+
+
                         </AMFConfig>
 			
 		       	 	</AISConfig>
@@ -2590,7 +2666,7 @@
          <EntityTypeInstanceName>CHASSIS</EntityTypeInstanceName> 
          <NodeName>safNode=Chassis_Pc_Cluster</NodeName>
          <EntityLocation>2</EntityLocation>
-         <HPIEntityType>SAHPI_ENT_SYSTEM_CHASSIS</HPIEntityType>
+         <HPIEntityType>SAHPI_ENT_ADVANCEDTCA_CHASSIS</HPIEntityType>
          <isActivationSourceNCS>1</isActivationSourceNCS>
          <contains>
             <EntityDeploymentInstance>

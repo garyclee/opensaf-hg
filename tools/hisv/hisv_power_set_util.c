@@ -17,11 +17,11 @@ SaEvtHandleT          gl_evt_hdl = 0;
 
 int main(int argc, char*argv[])
 {
-   char 		hpi_entity_path[300];
-   NCS_LIB_CREATE 	hisv_create_info;
-   int 			rc = 0, hisv_power_res = 0;
-   SaEvtCallbacksT	reg_callback_set;
-   SaVersionT		ver;
+   char             hpi_entity_path[300];
+   NCS_LIB_CREATE       hisv_create_info;
+   int                   rc = 0, hisv_power_res = 0;
+   SaEvtCallbacksT      reg_callback_set;
+   SaVersionT            ver;
 
    printf("hisv_power_set_util main() called...\n");
 

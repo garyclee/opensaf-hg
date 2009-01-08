@@ -36,8 +36,23 @@
 #ifndef AVSV_D2NMSG_H
 #define AVSV_D2NMSG_H
 
+/* In Service upgrade support */
+#define AVND_MDS_SUB_PART_VERSION   2
+
 /* Message format versions */
 #define AVSV_AVD_AVND_MSG_FMT_VER_1    1
+#define AVSV_AVD_AVND_MSG_FMT_VER_2    2
+
+/* Internode/External Components Validation result */
+typedef enum
+{
+  AVSV_VALID_SUCC_COMP_NODE_UP = 1,/* Component is configured and so, valid. And
+                                      the component node is UP and running. */
+  AVSV_VALID_SUCC_COMP_NODE_DOWN, /* Component is configured and so, valid. And
+                                        the component node is not UP. */
+  AVSV_VALID_FAILURE, /* Component not configured, validation failed. */
+  AVSV_VALID_MAX
+}AVSV_COMP_VALIDATION_RESULT_TYPE;
 
 typedef enum
 {
@@ -54,6 +69,7 @@ typedef enum
    AVSV_N2D_DATA_REQUEST_MSG,
    AVSV_N2D_SHUTDOWN_APP_SU_MSG,
    AVSV_N2D_VERIFY_ACK_NACK_MSG,
+   AVSV_N2D_COMP_VALIDATION_MSG,
    AVSV_D2N_CLM_NODE_UPDATE_MSG,
    AVSV_D2N_CLM_NODE_UP_MSG,
    AVSV_D2N_REG_HLT_MSG,   /* This message needs ack if addressed to only one node */
@@ -70,6 +86,9 @@ typedef enum
    AVSV_D2N_DATA_ACK_MSG,
    AVSV_D2N_SHUTDOWN_APP_SU_MSG,
    AVSV_D2N_SET_LEDS_MSG,
+   AVSV_D2N_COMP_VALIDATION_RESP_MSG,
+   AVSV_D2N_ROLE_CHANGE_MSG,
+   AVSV_N2N_MSG, /* ND to ND messages. TOBE DELETED LOG HERE*/
    AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -107,6 +126,7 @@ typedef struct avsv_hlt_info_msg
    struct avsv_hlt_key_tag    name; 
    SaTimeT                   period; 
    SaTimeT                   max_duration;
+   NCS_BOOL                  is_ext; /* Whether this HC is for external comp*/
    struct avsv_hlt_info_msg *next;
 } AVSV_HLT_INFO_MSG;
 
@@ -121,6 +141,7 @@ typedef struct avsv_su_info_msg
    SaTimeT                 su_restart_prob;
    uns32                   su_restart_max;
    SaBoolT                 is_ncs;
+   NCS_BOOL                su_is_external; /*indicates if this SU is external*/
    struct avsv_su_info_msg *next;
 } AVSV_SU_INFO_MSG;
 
@@ -357,6 +378,24 @@ typedef struct avsv_n2d_reg_hlt_msg_info_tag {
    uns32                       error;
 } AVSV_N2D_REG_HLT_MSG_INFO;
 
+typedef struct avsv_n2d_comp_validation_msg_info_tag {
+   uns32          msg_id;
+   SaClmNodeIdT   node_id;
+   SaNameT        comp_name_net;       /* comp name */
+   
+   /****************************************************************
+          The following attributes : hdl, proxy_comp_name_net, mds_dest and mds_ctxt 
+          wouldn't be sent to AvD, these are just to maintain the information in the 
+          AvD message list when the validation response comes back.
+          ***************************************************************/
+   SaAmfHandleT hdl;
+   SaNameT      proxy_comp_name_net;
+   MDS_DEST     mds_dest; /* we need to have mds_dest and mds_ctxt to send 
+                             response back to ava, when AvD responds.*/
+   MDS_SYNC_SND_CTXT mds_ctxt;
+   /******************************************************************/
+
+} AVSV_N2D_COMP_VALIDATION_INFO;
 
 typedef struct avsv_n2d_reg_su_msg_info_tag {
    uns32          msg_id;
@@ -571,6 +610,19 @@ typedef struct avsv_d2n_set_leds_msg_info_tag {
                                     is enough */
 } AVSV_D2N_SET_LEDS_MSG_INFO;
 
+typedef struct avsv_d2n_comp_validation_resp_info_tag {
+   uns32          msg_id;
+   SaClmNodeIdT   node_id;
+   SaNameT        comp_name_net;       /* comp name */
+   AVSV_COMP_VALIDATION_RESULT_TYPE    result;
+} AVSV_D2N_COMP_VALIDATION_RESP_INFO;
+
+typedef struct avsv_d2n_role_change_info_tag {
+   uns32          msg_id;
+   SaClmNodeIdT   node_id;
+   uns32          role;
+} AVSV_D2N_ROLE_CHANGE_INFO;
+
 typedef struct avsv_dnd_msg
 {
    AVSV_DND_MSG_TYPE msg_type;
@@ -587,6 +639,7 @@ typedef struct avsv_dnd_msg
       AVSV_N2D_DATA_REQUEST_MSG_INFO       n2d_data_req;
       AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO    n2d_ack_nack_info;
       AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO    n2d_shutdown_app_su;      
+      AVSV_N2D_COMP_VALIDATION_INFO        n2d_comp_valid_info;      
       AVSV_D2N_CLM_NODE_UPDATE_MSG_INFO    d2n_clm_node_update;
       AVSV_D2N_CLM_NODE_UP_MSG_INFO        d2n_clm_node_up;
       AVSV_D2N_REG_HLT_MSG_INFO            d2n_reg_hlt;
@@ -603,6 +656,8 @@ typedef struct avsv_dnd_msg
       AVSV_D2N_ACK_MSG                     d2n_ack_info;
       AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO    d2n_shutdown_app_su;     
       AVSV_D2N_SET_LEDS_MSG_INFO           d2n_set_leds;      
+      AVSV_D2N_COMP_VALIDATION_RESP_INFO   d2n_comp_valid_resp_info;      
+      AVSV_D2N_ROLE_CHANGE_INFO            d2n_role_change_info;      
    } msg_info;
 } AVSV_DND_MSG;
 

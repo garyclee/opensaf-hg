@@ -208,7 +208,7 @@ typedef struct ifsv_nw_layer_handler
 
 
 /*****************************************************************************
- * Data structure used to store the shelf/slot/port/type/scope->Ifindex mapping 
+ * Data structure used to store the shelf/slot/subslot/port/type/scope->Ifindex mapping 
  * tree.
  *****************************************************************************/
 typedef struct ifsv_spt_info
@@ -310,7 +310,7 @@ uns32 ifsv_intf_rec_marked_del (IFSV_INTF_DATA *actual_data, IFSV_INTF_ATTR *att
 /* This function is used to find if_index for the given slot/port/type/scope */
 uns32 ifsv_get_ifindex_from_spt (uns32 *o_ifindex, NCS_IFSV_SPT  spt, IFSV_CB *cb);
 
-/* This function is used to add shelf/slot/port/type/scope Vs ifindex mapping */
+/* This function is used to add shelf/slot/subslot/port/type/scope Vs ifindex mapping */
 uns32 ifsv_ifindex_spt_map_add (NCS_IFSV_SPT_MAP *spt, IFSV_CB *cb);
 
 uns32 ifsv_get_spt_from_ifindex (uns32 ifindex, NCS_IFSV_SPT  *o_spt, IFSV_CB *cb);
@@ -320,7 +320,7 @@ uns32 ifsv_get_spt_from_ifindex (uns32 ifindex, NCS_IFSV_SPT  *o_spt, IFSV_CB *c
  */
 IFSV_INTF_REC *ifsv_intf_rec_del (uns32 ifindex, IFSV_CB *cb);
 
-/* This is the function used to delete the shelf/slot/port/type/scope Vs ifindex mapping */
+/* This is the function used to delete the shelf/slot/subslot/port/type/scope Vs ifindex mapping */
 uns32 ifsv_ifindex_spt_map_del (NCS_IFSV_SPT spt, IFSV_CB *cb);
 
 /* This is the function used to resolve the if_index for the given slot/port/type/scope 
@@ -332,7 +332,7 @@ uns32 ifsv_ifd_ifindex_alloc (NCS_IFSV_SPT_MAP *spt_map,IFSV_CB *ifsv_cb);
 /* finds the timer pointer which needs to be stoped or started */
 IFSV_TMR * ifsv_cleanup_tmr_find (NCS_IFSV_SPT  *spt, NCS_PATRICIA_TREE *p_tree);
 
-/* delete all the shelf/slot/port/type/scope Vs ifindex maping */
+/* delete all the shelf/slot/subslot/port/type/scope Vs ifindex maping */
 uns32 ifsv_ifindex_spt_map_del_all (IFSV_CB *cb);
 
 /* send RMS message */

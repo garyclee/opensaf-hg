@@ -78,6 +78,7 @@ static const AVD_EVT_HDLR  g_avd_actv_list[AVD_EVT_MAX] =
    avd_data_update_req_func,        /* AVD_EVT_DATA_REQUEST_MSG */
    avd_shutdown_app_su_resp_func,   /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
    avd_ack_nack_event,              /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+   avd_comp_validation_func,       /* AVD_EVT_COMP_VALIDATION_MSG */
 
    /* active AvD timer events processing */
    avd_tmr_snd_hb_func,       /* AVD_EVT_TMR_SND_HB */
@@ -86,7 +87,7 @@ static const AVD_EVT_HDLR  g_avd_actv_list[AVD_EVT_MAX] =
    avd_tmr_rcv_hb_init_func,  /* AVD_EVT_TMR_RCV_HB_INIT */
    avd_tmr_cl_init_func,      /* AVD_EVT_TMR_CL_INIT */
    avd_tmr_cfg_exp_func,      /* AVD_EVT_TMR_CFG */
-
+   avd_tmr_si_dep_tol_func,   /* AVD_EVT_TMR_SI_DEP_TOL */
    /* active AvD MIB events processing */
    avd_req_mib_func,    /* AVD_EVT_MIB_REQ */
 
@@ -111,8 +112,8 @@ static const AVD_EVT_HDLR  g_avd_actv_list[AVD_EVT_MAX] =
    avd_role_change,          /* AVD_EVT_ROLE_CHANGE */
 
    avd_role_switch_ncs_su,   /* AVD_EVT_SWITCH_NCS_SU */
-   avd_rcv_hb_d_msg           /*  AVD_EVT_D_HB */
-
+   avd_rcv_hb_d_msg,         /*  AVD_EVT_D_HB */
+   avd_process_si_dep_state_evt
 };
 
 /* list of all the function pointers related to handling the events
@@ -137,6 +138,7 @@ static const AVD_EVT_HDLR  g_avd_stndby_list[AVD_EVT_MAX] =
    avd_standby_invalid_func,   /* AVD_EVT_DATA_REQUEST_MSG */
    avd_standby_invalid_func,   /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
    avd_standby_invalid_func,   /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+   avd_standby_invalid_func,   /* AVD_EVT_COMP_VALIDATION_MSG */
 
    /* standby AvD timer events processing */
    avd_tmr_snd_hb_func,           /* AVD_EVT_TMR_SND_HB */
@@ -145,7 +147,7 @@ static const AVD_EVT_HDLR  g_avd_stndby_list[AVD_EVT_MAX] =
    avd_tmr_rcv_hb_init_func,      /* AVD_EVT_TMR_RCV_HB_INIT */
    avd_standby_invalid_func,      /* AVD_EVT_TMR_CL_INIT */
    avd_standby_invalid_func,      /* AVD_EVT_TMR_CFG */
-
+   avd_standby_invalid_func,   /* AVD_EVT_TMR_SI_DEP_TOL */
    /* standby AvD MIB events processing */
    avd_standby_invalid_func,   /* AVD_EVT_MIB_REQ */
 
@@ -169,7 +171,8 @@ static const AVD_EVT_HDLR  g_avd_stndby_list[AVD_EVT_MAX] =
    avd_role_change,             /* AVD_EVT_ROLE_CHANGE */
       
    avd_standby_invalid_func,    /* AVD_EVT_SWITCH_NCS_SU */
-   avd_rcv_hb_d_msg               /*  AVD_EVT_D_HB */
+   avd_rcv_hb_d_msg,            /*  AVD_EVT_D_HB */
+   avd_standby_invalid_func     /* AVD_EVT_SI_DEP_STATE */
 };
 
 
@@ -194,6 +197,7 @@ static const AVD_EVT_HDLR  g_avd_init_list[AVD_EVT_MAX] =
    avd_standby_invalid_func,   /* AVD_EVT_DATA_REQUEST_MSG */
    avd_standby_invalid_func,   /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
    avd_standby_invalid_func,   /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+   avd_standby_invalid_func,   /* AVD_EVT_COMP_VALIDATION_MSG */
 
    /* standby AvD timer events processing */
    avd_standby_invalid_func,   /* AVD_EVT_TMR_SND_HB */
@@ -202,6 +206,7 @@ static const AVD_EVT_HDLR  g_avd_init_list[AVD_EVT_MAX] =
    avd_standby_invalid_func,   /* AVD_EVT_TMR_RCV_HB_INIT */
    avd_standby_invalid_func,   /* AVD_EVT_TMR_CL_INIT */
    avd_standby_invalid_func,   /* AVD_EVT_TMR_CFG */
+   avd_standby_invalid_func,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
    /* standby AvD MIB events processing */
    avd_standby_invalid_func,   /* AVD_EVT_MIB_REQ */
@@ -225,7 +230,8 @@ static const AVD_EVT_HDLR  g_avd_init_list[AVD_EVT_MAX] =
    avd_role_change,             /* AVD_EVT_ROLE_CHANGE */
 
    avd_standby_invalid_func,    /* AVD_EVT_SWITCH_NCS_SU */
-   avd_standby_invalid_func     /*  AVD_EVT_D_HB */
+   avd_standby_invalid_func,    /* AVD_EVT_D_HB */
+   avd_standby_invalid_func     /* AVD_EVT_SI_DEP_STATE */
 };
 
 /* list of all the function pointers related to handling the events
@@ -250,6 +256,7 @@ static const AVD_EVT_HDLR  g_avd_quiesc_list[AVD_EVT_MAX] =
    avd_data_update_req_func,        /* AVD_EVT_DATA_REQUEST_MSG */
    avd_shutdown_app_su_resp_func,   /* AVD_EVT_SHUTDOWN_APP_SU_MSG */
    avd_qsd_invalid_func,            /* AVD_EVT_VERIFY_ACK_NACK_MSG */
+   avd_comp_validation_func,       /* AVD_EVT_COMP_VALIDATION_MSG */
 
    /* active AvD timer events processing */
    avd_tmr_snd_hb_func,  /* AVD_EVT_TMR_SND_HB */
@@ -258,6 +265,7 @@ static const AVD_EVT_HDLR  g_avd_quiesc_list[AVD_EVT_MAX] =
    avd_qsd_ignore_func,  /* AVD_EVT_TMR_RCV_HB_INIT */
    avd_qsd_ignore_func,  /* AVD_EVT_TMR_CL_INIT */
    avd_qsd_ignore_func,  /* AVD_EVT_TMR_CFG */
+   avd_qsd_ignore_func,   /* AVD_EVT_TMR_SI_DEP_TOL */
 
    /* active AvD MIB events processing */
    avd_qsd_req_mib_func, /* AVD_EVT_MIB_REQ */
@@ -281,10 +289,9 @@ static const AVD_EVT_HDLR  g_avd_quiesc_list[AVD_EVT_MAX] =
 
       /* Role change Event processing */
    avd_role_change,          /* AVD_EVT_ROLE_CHANGE */
-
    avd_qsd_invalid_func,     /* AVD_EVT_SWITCH_NCS_SU */
-   avd_rcv_hb_d_msg            /*  AVD_EVT_D_HB */
-
+   avd_rcv_hb_d_msg,         /*  AVD_EVT_D_HB */
+   avd_qsd_invalid_func      /* AVD_EVT_TMR_SI_DEP_TOL */
 };
 
 

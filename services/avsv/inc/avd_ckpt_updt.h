@@ -67,4 +67,6 @@ EXTERN_C uns32  avsv_ckpt_add_rmv_updt_cs_type_param_data(AVD_CL_CB *cb,
                                        NCS_MBCSV_ACT_TYPE action);
 EXTERN_C uns32 avd_data_clean_up(AVD_CL_CB *cb);
 
+EXTERN_C uns32  avsv_ckpt_add_rmv_updt_si_dep_data(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep,
+                                      NCS_MBCSV_ACT_TYPE action);
 #endif

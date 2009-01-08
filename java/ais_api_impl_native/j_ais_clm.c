@@ -203,7 +203,7 @@ void SaClmClusterNodeGetCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -259,7 +259,7 @@ void SaClmClusterTrackCallback(
     if( _status != JNI_OK ){
         // TODO error handling
 
-	    _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
+          _TRACE2( "NATIVE CALLBACK ERROR: _status by JNU_GetEnvForCallback() is %d\n", _status );
 
         return;
     }
@@ -313,7 +313,7 @@ jboolean JNU_ClusterNode_initIDs_OK(
                                                        "org/saforum/ais/clm/ClusterNode" )
                                );*/
     ClassClusterNode = JNU_GetGlobalClassRef(  jniEnv,
-                                   				"org/saforum/ais/clm/ClusterNode" );
+                                                           "org/saforum/ais/clm/ClusterNode" );
     if( ClassClusterNode == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassClusterNode is NULL\n" );
@@ -607,7 +607,7 @@ jboolean JNU_NodeAddress_initIDs_OK(
                                                        "org/saforum/ais/clm/NodeAddress" )
                                );*/
     ClassNodeAddress = JNU_GetGlobalClassRef(  jniEnv,
-                                   				"org/saforum/ais/clm/NodeAddress" );
+                                                           "org/saforum/ais/clm/NodeAddress" );
     if( ClassNodeAddress == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassNodeAddress is NULL\n" );
@@ -683,7 +683,7 @@ jboolean JNU_NodeAddressIPv4_initIDs_OK(
                                                        "org/saforum/ais/clm/NodeAddressIPv4" )
                                );*/
     ClassNodeAddressIPv4 = JNU_GetGlobalClassRef(  jniEnv,
-                                   					"org/saforum/ais/clm/NodeAddressIPv4" );
+                                                                 "org/saforum/ais/clm/NodeAddressIPv4" );
     if( ClassNodeAddressIPv4 == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassNodeAddressIPv4 is NULL\n" );
@@ -759,7 +759,7 @@ jboolean JNU_NodeAddressIPv6_initIDs_OK(
                                                        "org/saforum/ais/clm/NodeAddressIPv6" )
                                );*/
     ClassNodeAddressIPv6 = JNU_GetGlobalClassRef(  jniEnv,
-                                   					"org/saforum/ais/clm/NodeAddressIPv6" );
+                                                                 "org/saforum/ais/clm/NodeAddressIPv6" );
     if( ClassNodeAddressIPv6 == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassNodeAddressIPv6 is NULL\n" );
@@ -835,8 +835,8 @@ jboolean JNU_ClusterNotificationBuffer_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/clm/ClusterNotificationBuffer" )
                                );*/
-    ClassClusterNotificationBuffer = JNU_GetGlobalClassRef( 	jniEnv,
-                                   								"org/saforum/ais/clm/ClusterNotificationBuffer" );
+    ClassClusterNotificationBuffer = JNU_GetGlobalClassRef(       jniEnv,
+                                                                                   "org/saforum/ais/clm/ClusterNotificationBuffer" );
     if( ClassClusterNotificationBuffer == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassClusterNotificationBuffer is NULL\n" );
@@ -1058,7 +1058,7 @@ jboolean JNU_ClusterNotification_initIDs_OK(
                                                        "org/saforum/ais/clm/ClusterNotification" )
                                );*/
     ClassClusterNotification = JNU_GetGlobalClassRef(  jniEnv,
-                                                   		"org/saforum/ais/clm/ClusterNotification" );
+                                                               "org/saforum/ais/clm/ClusterNotification" );
     if( ClassClusterNotification == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassClusterNotification is NULL\n" );

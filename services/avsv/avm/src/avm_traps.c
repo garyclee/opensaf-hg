@@ -39,7 +39,17 @@ static SaEvtEventPatternT avm_switch_trap_pattern_array[AVM_SWITCH_TRAP_PATTERN_
        {20, 20, (SaUint8T *) "AVM_SWITCH_SNMP_TRAP"}
 };
 
+/* Trap pattern for entity locked trap */
+#define AVM_ENTITY_LOCKED_TRAP_PATTERN_ARRAY_LEN             1
+static SaEvtEventPatternT avm_entity_locked_trap_pattern_array[AVM_ENTITY_LOCKED_TRAP_PATTERN_ARRAY_LEN] = {
+       {22, 22, (SaUint8T *)"AVM_ENTITY_LOCKED_TRAP"}
+};
 
+/* Trap pattern for shutdown failure trap */
+#define AVM_ENTITY_INACTIVE_HISV_RET_ERROR_TRAP_PATTERN_ARRAY_LEN             1
+static SaEvtEventPatternT avm_entity_inactive_hisv_ret_error_trap_pattern_array[AVM_ENTITY_INACTIVE_HISV_RET_ERROR_TRAP_PATTERN_ARRAY_LEN] = {
+       {39, 39, (SaUint8T *)"AVM_ENTITY_INACTIVE_HISV_RET_ERROR_TRAP"}
+};
 static uns32
 avm_publish_trap(
                  AVM_CB_T             *avm_cb,
@@ -176,6 +186,161 @@ avm_adm_switch_trap(
    m_MMGR_FREE_AVM_DEFAULT_VAL(time_op);
    return status;
 }
+
+
+/*****************************************************************************
+  Name          :  avm_entity_locked_trap
+
+  Description   :  This function is used to send a trap when an entity is
+                   locked.
+
+  Arguments     :  avm_cb       - Pointer to AVM control block
+                   ent_info     - Pointer to  struct representing Entities
+                                  in System
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :  None
+
+*****************************************************************************/
+extern uns32 avm_entity_locked_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
+{
+   NCS_TRAP         trap;
+   NCS_TRAP_VARBIND *entity_trap_varbind = NULL;
+   uns32            inst_id_len = 0;
+   uns32            inst_id[AVM_MAX_INDEX_LEN]; 
+   uns32            i = 0;
+   uns32            status = NCSCC_RC_SUCCESS;
+
+   /* Table ID of trap */
+   trap.i_trap_tbl_id = NCSMIB_TBL_AVM_TRAPS;
+   /* Trap ID */
+   trap.i_trap_id = ncsAvmEntityLocked_ID;
+
+   /* Inform manager */
+   trap.i_inform_mgr = TRUE;
+
+   /* Parameter in trap */
+
+   /* Entity path */
+   /* Allocate memory and initialize */
+   entity_trap_varbind = m_MMGR_ALLOC_AVM_TRAP_VB;
+   if(entity_trap_varbind == NULL)
+   {
+      m_AVM_LOG_INVALID_VAL_ERROR(0);
+      return NCSCC_RC_FAILURE;
+   }
+   m_NCS_OS_MEMSET(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+
+   /* Prepare index for ncsAvmEntDeployTable */
+   inst_id_len = m_NCS_OS_NTOHS(ent_info->ep_str.length);
+   m_NCS_OS_MEMSET(inst_id, 0, AVM_MAX_INDEX_LEN);
+
+   inst_id[0]= inst_id_len;
+
+   for(i = 0; i < inst_id_len; i++)
+   {
+      inst_id[i+1] = (uns32)(ent_info->ep_str.name[i]);
+   }
+
+   /* Fill */
+   entity_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
+   entity_trap_varbind->i_param_val.i_param_id = ncsAvmEntPath_ID;
+   entity_trap_varbind->i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
+   entity_trap_varbind->i_param_val.i_length = ent_info->ep_str.length;
+   entity_trap_varbind->i_param_val.info.i_oct = ent_info->ep_str.name;
+   entity_trap_varbind->i_idx.i_inst_len = inst_id_len + 1;
+   entity_trap_varbind->i_idx.i_inst_ids = inst_id;
+
+   /* Attach to trap */
+   trap.i_trap_vb = entity_trap_varbind;
+
+   /* create and send trap */
+   status = avm_publish_trap(avm_cb, &trap, &avm_entity_locked_trap_pattern_array[0], AVM_ENTITY_LOCKED_TRAP_PATTERN_ARRAY_LEN);
+
+   /* Deallocate memory */
+   m_MMGR_FREE_AVM_TRAP_VB(entity_trap_varbind);
+
+   return status;
+}
+
+
+/*****************************************************************************
+  Name          :  avm_entity_inactive_hisv_ret_error_trap
+
+  Description   :  This function is used to send a trap when state of entity
+                   is set to inactive in AVM but request to HISV for setting 
+                   the state to Inactive returned error. 
+
+  Arguments     :  avm_cb       - Pointer to AVM control block
+                   ent_info     - Pointer to  struct representing Entities
+                                  in System
+
+  Return Values :  NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE
+
+  Notes         :  None
+
+*****************************************************************************/
+extern uns32 avm_entity_inactive_hisv_ret_error_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
+{
+   NCS_TRAP         trap;
+   NCS_TRAP_VARBIND *entity_trap_varbind = NULL;
+   uns32            inst_id_len = 0;
+   uns32            inst_id[AVM_MAX_INDEX_LEN];
+   uns32            i = 0;
+   uns32            status = NCSCC_RC_SUCCESS;
+
+   /* Table ID of trap */
+   trap.i_trap_tbl_id = NCSMIB_TBL_AVM_TRAPS;
+   /* Trap ID */
+   trap.i_trap_id = ncsAvmEntityStateIsNowInactiveButHISVreturnedError_ID;
+
+   /* Inform manager */
+   trap.i_inform_mgr = TRUE;
+
+   /* Parameter in trap */
+
+   /* Entity path */
+   /* Allocate memory and initialize */
+   entity_trap_varbind = m_MMGR_ALLOC_AVM_TRAP_VB;
+   if(entity_trap_varbind == NULL)
+   {
+      m_AVM_LOG_INVALID_VAL_ERROR(0);
+      return NCSCC_RC_FAILURE;
+   }
+   m_NCS_OS_MEMSET(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+
+   /* Prepare index for ncsAvmEntDeployTable */
+   inst_id_len = m_NCS_OS_NTOHS(ent_info->ep_str.length);
+   m_NCS_OS_MEMSET(inst_id, 0, AVM_MAX_INDEX_LEN);
+   inst_id[0]= inst_id_len;
+   for(i = 0; i < inst_id_len; i++)
+   {
+      inst_id[i+1] = (uns32)(ent_info->ep_str.name[i]);
+   }
+
+   /* Fill */
+   entity_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
+   entity_trap_varbind->i_param_val.i_param_id = ncsAvmEntPath_ID;
+   entity_trap_varbind->i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
+   entity_trap_varbind->i_param_val.i_length = ent_info->ep_str.length;
+   entity_trap_varbind->i_param_val.info.i_oct = ent_info->ep_str.name;
+   entity_trap_varbind->i_idx.i_inst_len = inst_id_len + 1;
+   entity_trap_varbind->i_idx.i_inst_ids = inst_id;
+
+   /* Attach to trap */
+   trap.i_trap_vb = entity_trap_varbind;
+
+   /* create and send trap */
+   status = avm_publish_trap(avm_cb, &trap, &avm_entity_inactive_hisv_ret_error_trap_pattern_array[0], 
+      AVM_ENTITY_INACTIVE_HISV_RET_ERROR_TRAP_PATTERN_ARRAY_LEN);
+
+   /* Deallocate memory */
+   m_MMGR_FREE_AVM_TRAP_VB(entity_trap_varbind);
+
+   return status;
+}
+
 
 static uns32
 avm_publish_trap(

@@ -44,7 +44,7 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
 
    if (tmr != NULL)
    {
-      if (tmr->is_active == TRUE )
+      if (tmr->is_active == TRUE)
       {
          tmr->is_active = FALSE;
          /* Destroy the timer if it exists.. */
@@ -56,7 +56,7 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
       }
       else
       {
-     return;
+         return;
       }
 
       cpnd_hdl = tmr->uarg;

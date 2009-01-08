@@ -40,6 +40,9 @@
 #define m_PSS_SPCN_LIST_FILE_NAME LOCALSTATEDIR "pssv_spcn_list"
 #define NCS_PSS_DEF_PSSV_ROOT_PATH    LOCALSTATEDIR "pssv_store/"
 
+/*  IR00091623 - _ISU changes  */
+/* NCS_PSS_RFMT_PROFILE_NAME - Temporary file name (should be less than 255 chars) */
+#define NCS_PSS_RFMT_PROFILE_NAME  "_ISU"
 typedef struct mab_pss_tbl_list_tag
 {
     uns32       tbl_id;

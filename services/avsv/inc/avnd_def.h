@@ -32,5 +32,6 @@
 #ifndef AVND_DEF_H
 #define AVND_DEF_H
 
+#define SYSF_AVND_AVND_API_RESP_TIME  1000
 
 #endif /* !AVND_DEF_H */

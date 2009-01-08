@@ -1719,7 +1719,7 @@ uns32 eda_mds_init (EDA_CB *cb)
 void eda_sync_with_eds(EDA_CB *cb)
 {  
    NCS_SEL_OBJ_SET set;
-   uns32 timeout = 3000;
+   uns32 timeout = 1500;  /* Fix for IR 91234 */
 
    m_NCS_LOCK(&cb->eds_sync_lock,NCS_LOCK_WRITE);
    

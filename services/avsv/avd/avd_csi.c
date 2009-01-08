@@ -1022,9 +1022,9 @@ uns32 saamfcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             /* update the SI information about the CSI */
             csi->si->num_csi ++;
 
-
             if((csi->si->max_num_csi == csi->si->num_csi) && 
                (csi->si->admin_state == NCS_ADMIN_STATE_UNLOCK) &&
+               (csi->si->si_dep_state == AVD_SI_NO_DEPENDENCY) &&
                (avd_cb->init_state  == AVD_APP_STATE))
             {
                switch(csi->si->sg_of_si->su_redundancy_model)
@@ -1051,7 +1051,6 @@ uns32 saamfcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   break;
                }               
             }
-
             return NCSCC_RC_SUCCESS;
             break;
 

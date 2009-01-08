@@ -832,3 +832,96 @@ void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
    return;
 
 }
+
+/*****************************************************************************
+ * Function: avd_comp_validation_func
+ *
+ * Purpose:  This function responds to componenet validation query from AvND. 
+ *
+ * Input: cb - the AVD control block
+ *        evt - The event information.
+ *
+ * Returns: None.
+ *
+ * NOTES: None.
+ *
+ * 
+ **************************************************************************/
+
+void avd_comp_validation_func(AVD_CL_CB *cb,AVD_EVT *evt)
+{
+   AVD_COMP    *comp_ptr = NULL;
+   AVD_DND_MSG *n2d_msg  = NULL;
+   uns32       res       = NCSCC_RC_SUCCESS;
+   AVD_AVND    *avnd     = NULL;
+   AVSV_N2D_COMP_VALIDATION_INFO *valid_info = NULL;
+  
+   m_AVD_LOG_FUNC_ENTRY("avd_comp_validation_func");
+
+   if (evt->info.avnd_msg == NULL)
+   {
+      /* log error that a message contents is missing */
+      m_AVD_LOG_INVALID_VAL_ERROR(0);
+      return;
+   }
+
+   n2d_msg = evt->info.avnd_msg;
+   
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,n2d_msg,sizeof(AVD_DND_MSG),n2d_msg);
+
+   valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
+
+   if ((avnd = 
+   avd_msg_sanity_chk(cb,evt,valid_info->node_id,AVSV_N2D_COMP_VALIDATION_MSG))
+   == AVD_AVND_NULL)
+   {
+      /* sanity failed return */
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
+      (avnd->node_state == AVD_AVND_STATE_GO_DOWN) ||
+      ((avnd->rcv_msg_id + 1) != valid_info->msg_id))
+   {
+      /* log information error that the node is in invalid state */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
+      avsv_dnd_msg_free(n2d_msg);
+      evt->info.avnd_msg = NULL;
+      return;
+   }
+
+   /* Update the receive id for the node*/
+   m_AVD_SET_AVND_RCV_ID(cb,avnd,(valid_info->msg_id));
+
+   comp_ptr = avd_comp_struc_find(cb, valid_info->comp_name_net, FALSE);
+
+   if((NULL != comp_ptr) && (NCS_ROW_ACTIVE == comp_ptr->row_status))
+   {
+     /* We found the component, reply to AvND. */
+     res = avd_snd_comp_validation_resp(cb, avnd, comp_ptr, n2d_msg);
+
+   }
+   else
+   {
+     /* We couldn't find the component, this is not a configured component. 
+        Reply to AvND. Or Row Status is not ready. */
+     res = avd_snd_comp_validation_resp(cb, 
+                                 avnd, NULL, n2d_msg);
+   }
+
+   if(NCSCC_RC_FAILURE == res)
+   {
+      m_AVD_PXY_PXD_ERR_LOG(
+      "avd_comp_validation_func:failure:Comp,MsgId,NodeId,hdl and mds_dest are",
+       &valid_info->comp_name_net,valid_info->msg_id,valid_info->node_id,
+       valid_info->hdl,valid_info->mds_dest);
+   }
+
+   avsv_dnd_msg_free(n2d_msg);
+   evt->info.avnd_msg = NULL;
+   return;
+
+}

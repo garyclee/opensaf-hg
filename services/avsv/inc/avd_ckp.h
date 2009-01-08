@@ -35,7 +35,7 @@
 #ifndef AVD_CKP_H
 #define AVD_CKP_H
 
-#define AVD_MBCSV_SUB_PART_VERSION      1
+#define AVD_MBCSV_SUB_PART_VERSION      2
 #define AVD_MBCSV_SUB_PART_VERSION_MIN  1
 
 struct avd_evt_tag;
@@ -89,6 +89,7 @@ typedef struct avsv_async_updt_cnt
    uns32     sus_per_si_rank_updt;
    uns32     comp_cs_type_sup_updt;
    uns32     cs_type_param_updt;
+   uns32     si_dep_updt;
 }AVSV_ASYNC_UPDT_CNT;
 
 
@@ -146,6 +147,6 @@ EXTERN_C uns32  avsv_decode_cold_sync_rsp(struct  cl_cb_tag *cb, NCS_MBCSV_CB_DE
 EXTERN_C uns32  avsv_decode_warm_sync_rsp(struct  cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 EXTERN_C uns32  avsv_decode_data_sync_rsp(struct  cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
 EXTERN_C uns32  avsv_decode_data_req(struct  cl_cb_tag *cb, NCS_MBCSV_CB_DEC *dec);
-
+EXTERN_C uns32 avd_avnd_send_role_change(struct  cl_cb_tag *cb, NODE_ID, uns32 role);
 
 #endif

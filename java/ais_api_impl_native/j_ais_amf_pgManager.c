@@ -212,8 +212,8 @@ jboolean JNU_ProtectionGroupManager_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/opensaf/ais/amf/ProtectionGroupManagerImpl" )
                                );*/
-    ClassProtectionGroupManager = JNU_GetGlobalClassRef(	jniEnv,
-                                                			"org/opensaf/ais/amf/ProtectionGroupManagerImpl" );
+    ClassProtectionGroupManager = JNU_GetGlobalClassRef(      jniEnv,
+                                                                  "org/opensaf/ais/amf/ProtectionGroupManagerImpl" );
     if( ClassProtectionGroupManager == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassProtectionGroupManager is NULL\n" );
@@ -1098,8 +1098,8 @@ jboolean JNU_ProtectionGroupNotification_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/amf/ProtectionGroupNotification" )
                                );*/
-    ClassProtectionGroupNotification = JNU_GetGlobalClassRef(	jniEnv,
-                                                				"org/saforum/ais/amf/ProtectionGroupNotification" );
+    ClassProtectionGroupNotification = JNU_GetGlobalClassRef(      jniEnv,
+                                                                        "org/saforum/ais/amf/ProtectionGroupNotification" );
     if( ClassProtectionGroupNotification == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassProtectionGroupNotification is NULL\n" );
@@ -1409,8 +1409,8 @@ jboolean JNU_ProtectionGroupMember_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/amf/ProtectionGroupMember" )
                                );*/
-    ClassProtectionGroupMember = JNU_GetGlobalClassRef(	jniEnv,
-                                                			"org/saforum/ais/amf/ProtectionGroupMember" );
+    ClassProtectionGroupMember = JNU_GetGlobalClassRef(      jniEnv,
+                                                                  "org/saforum/ais/amf/ProtectionGroupMember" );
     if( ClassProtectionGroupMember == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassProtectionGroupMember is NULL\n" );
@@ -1633,8 +1633,8 @@ jboolean JNU_ProtectionGroupChanges_initIDs_OK( JNIEnv* jniEnv )
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/saforum/ais/amf/ProtectionGroupNotification$ProtectionGroupChanges" )
                                );*/
-    EnumProtectionGroupChanges = JNU_GetGlobalClassRef(	jniEnv,
-                                                		"org/saforum/ais/amf/ProtectionGroupNotification$ProtectionGroupChanges" );
+    EnumProtectionGroupChanges = JNU_GetGlobalClassRef(      jniEnv,
+                                                            "org/saforum/ais/amf/ProtectionGroupNotification$ProtectionGroupChanges" );
     if( EnumProtectionGroupChanges == NULL ){
 
         _TRACE2( "NATIVE ERROR: EnumProtectionGroupChanges is NULL\n" );

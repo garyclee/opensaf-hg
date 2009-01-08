@@ -341,7 +341,7 @@ uns32 pss_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
       
    case NCS_MBCSV_MSG_COLD_SYNC_REQ:
       /* Encode cold sync request */
-      m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_COLD_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_REQ_ENC_DONE, pwe_cb->pwe_id);
       if(pwe_cb->is_cold_sync_done)
       {
          ncshm_give_hdl(cbk_arg->i_client_hdl);
@@ -484,7 +484,7 @@ uns32 pss_ckpt_enc_coldsync_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 pe
     * This shall avoid "delta data" problems that are associated during
     * multiple sends.
     */
-   if(peer_mbcsv_version == 1)
+   if(peer_mbcsv_version != 2)
       enc_lib_conf = TRUE;
 
    if(pss_enc_pwe_data_for_sync_with_standby(pwe_cb, io_uba, enc_lib_conf, peer_mbcsv_version) != NCSCC_RC_SUCCESS)
@@ -1228,7 +1228,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
       if(pwe_cb->ckpt_state != PSS_COLD_SYNC_COMPLETE)
       {
-         m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_COLD_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
+         m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_COLD_SYNC_RESP_DEC_STARTED, pwe_cb->pwe_id);
          rc = pss_ckpt_dec_coldsync_resp(pwe_cb, &cbk_arg->info.decode.i_uba, cbk_arg->info.decode.i_peer_version);
          if (rc != NCSCC_RC_SUCCESS)
          {
@@ -1442,8 +1442,8 @@ uns32 pss_ckpt_dec_coldsync_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 pe
     * This shall avoid "delta data" problems that are associated during
     * multiple sends.
     */
-    if(peer_mbcsv_version == 1)
-       dec_lib_conf = TRUE;
+   if(peer_mbcsv_version != 2)
+      dec_lib_conf = TRUE;
 
    if(pss_dec_pwe_data_for_sync_with_standby(pwe_cb, io_uba, dec_lib_conf, peer_mbcsv_version) != NCSCC_RC_SUCCESS)
    {
@@ -3988,6 +3988,17 @@ static uns32 pss_red_err_ind_handle(NCS_MBCSV_CB_ARG *cbk_arg)
    SaAisErrorT    saf_status = SA_AIS_OK; 
    PSS_PWE_CB     *pwe_cb = NULL;
 
+   /* Error message */
+   char error_message[8][50]  =  { "NCS_MBCSV_COLD_SYNC_TMR_EXP", /* Cold Sync timer expired without getting response */
+                                   "NCS_MBCSV_WARM_SYNC_TMR_EXP", /* Warm Sync timer expired without getting response */
+                                   "NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP", /* Data Response complete timer expired */
+                                   "NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP", /* Cold Sync complete timer expired */
+                                   "NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP", /* Warm Sync complete timer expired */
+                                   "NCS_MBCSV_DATA_RESP_TERMINATED",    /* Data responce is terminated. Release context */
+                                   "NCS_MBCSV_COLD_SYNC_RESP_TERMINATED", /* Cold Sync terminated. Release context */
+                                   "NCS_MBCSV_WARM_SYNC_RESP_TERMINATED" /* Warm Sync terminated. Release context */
+                                 };
+
    /* Get PSS_PWE_CB control block Handle. cbk_arg->arg->i_client_hdl! */
    if (NULL == (pwe_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_PSS,cbk_arg->i_client_hdl)))
    {
@@ -4003,6 +4014,8 @@ static uns32 pss_red_err_ind_handle(NCS_MBCSV_CB_ARG *cbk_arg)
       ncshm_give_hdl(cbk_arg->i_client_hdl);
       return NCSCC_RC_SUCCESS; 
    }
+
+
    /* process the error code in the standby MAS */ 
    if(pwe_cb->p_pss_cb->ha_state == SA_AMF_HA_STANDBY)
    {
@@ -4015,7 +4028,9 @@ static uns32 pss_red_err_ind_handle(NCS_MBCSV_CB_ARG *cbk_arg)
 
          /* Cold Sync complete timer expired */
       case NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP: 
-         /* expected fall through, since the same error handling to be done */ 
+         /* IR00092120 - Ignoring the error indication for cold sync timer expiry and cold sync complete timer expiry */
+         m_NCS_CONS_PRINTF("MBCSV ERROR INDICATION - %s \n", error_message[cbk_arg->info.error.i_code]);
+         break;
 
          /* Data Response complete timer expired */
       case NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP: 

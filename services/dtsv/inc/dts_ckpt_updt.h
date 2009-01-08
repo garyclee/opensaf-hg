@@ -48,6 +48,14 @@ EXTERN_C uns32  dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb,
                 DTS_LOG_CKPT_DATA *data,
                 NCS_MBCSV_ACT_TYPE action);
 EXTERN_C uns32  dts_data_clean_up(DTS_CB *cb);
+/*  
+ Commented as part of R&A impact changes.Now we donot update these inorder
+ to create new file on the new active from the below macro
+
+ svc->device.new_file = param->device.new_file; \
+ svc->device.cur_file_size = param->device.cur_file_size; \
+ svc->device.file_open = param->device.file_open; \
+*/
 
 /* Macro to set dts_svc_reg_tbl attributes */
 #define m_DTS_SET_SVC_REG_TBL(svc, param) \
@@ -63,9 +71,6 @@ EXTERN_C uns32  dts_data_clean_up(DTS_CB *cb);
    svc->svc_policy.file_log_fmt = param->svc_policy.file_log_fmt; \
    svc->svc_policy.cir_buff_size = param->svc_policy.cir_buff_size; \
    svc->svc_policy.buff_log_fmt = param->svc_policy.buff_log_fmt; \
-   svc->device.new_file = param->device.new_file; \
-   svc->device.cur_file_size = param->device.cur_file_size; \
-   svc->device.file_open = param->device.file_open; \
    svc->device.last_rec_id = param->device.last_rec_id; \
    svc->device.file_log_fmt_change = param->device.file_log_fmt_change; \
    svc->device.buff_log_fmt_change = param->device.buff_log_fmt_change; \

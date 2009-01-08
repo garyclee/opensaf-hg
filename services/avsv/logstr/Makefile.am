@@ -35,4 +35,4 @@ libavsv_logstr_la_SOURCES = \
 	avsv_logstr.c \
 	cla_logstr.c
 
-libavsv_logstr_la_LDFLAGS = -version-number 2
+libavsv_logstr_la_LDFLAGS = -version-number 3

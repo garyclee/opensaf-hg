@@ -33,6 +33,7 @@ BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 libavm_pssv_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 \
+              -I $(top_srcdir)/services/fm/fma/inc/ \
 	-I $(top_srcdir)/services/avsv/avm/inc \
 	-I $(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
 	-I $(top_srcdir)/services/leap/inc \

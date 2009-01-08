@@ -105,7 +105,7 @@ jboolean JNU_CsiManager_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "org/opensaf/ais/amf/CsiManagerImpl" )
                                );*/
-    ClassCsiManager = JNU_GetGlobalClassRef(	jniEnv,
+    ClassCsiManager = JNU_GetGlobalClassRef(      jniEnv,
                                                 "org/opensaf/ais/amf/CsiManagerImpl" );
     if( ClassCsiManager == NULL ){
 
@@ -342,14 +342,14 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_CsiManagerImpl_completedCsiQuies
     // convert AisStatus -> int
     // MODIFICATION: screwed up
     jclass aisStatusClass = JNU_GetGlobalClassRef(  jniEnv,
-                                       				"org/saforum/ais/AisStatus" );
+                                                               "org/saforum/ais/AisStatus" );
     jmethodID _MID_AisStatus_getValue = (*jniEnv)->GetMethodID( jniEnv,
                                                             aisStatusClass,
                                                             "getValue",
                                                             "()I" );
     _error = (*jniEnv)->CallIntMethod( jniEnv,
-    								error,
-    								_MID_AisStatus_getValue);
+                                                    error,
+                                                    _MID_AisStatus_getValue);
 
     // call saAmfCSIQuiescingComplete
     _saStatus = saAmfCSIQuiescingComplete(  _saAmfHandle,

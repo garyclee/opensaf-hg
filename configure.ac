@@ -407,6 +407,8 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/ncs_pss_start
                  scripts/ncs_rde_clean
                  scripts/ncs_rde_start
+                 scripts/ncs_fms_clean
+                 scripts/ncs_fms_start
                  scripts/ncs_scap_clean
                  scripts/ncs_scap_start
                  scripts/ncs_snmpsubagt_clean
@@ -424,6 +426,7 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/opensaf_lgs
                  scripts/pdrbdctrl
                  scripts/rde_script
+                 scripts/fms_script
                  scripts/tipc_reset.sh
                  pkgconfig/opensaf-amf.pc
                  pkgconfig/opensaf-ckpt.pc
@@ -484,6 +487,10 @@ AC_CONFIG_FILES([opensaf.spec
                  services/edsv/eds/Makefile
                  services/edsv/logstr/Makefile
                  services/edsv/snmp_integ/Makefile
+                 services/fm/fma/logstr/Makefile
+                 services/fm/fma/Makefile
+                 services/fm/fms/Makefile
+                 services/fm/Makefile
                  services/glsv/Makefile
                  services/glsv/common/Makefile
                  services/glsv/gla/Makefile

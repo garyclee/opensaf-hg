@@ -108,8 +108,8 @@ jboolean JNU_ComponentRegistry_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "ais/amf/ComponentRegistry" )
                                );*/
-    ClassComponentRegistry = JNU_GetGlobalClassRef(	jniEnv,
-                                                	"org/opensaf/ais/amf/ComponentRegistryImpl" );
+    ClassComponentRegistry = JNU_GetGlobalClassRef(      jniEnv,
+                                                      "org/opensaf/ais/amf/ComponentRegistryImpl" );
     if( ClassComponentRegistry == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassComponentRegistry is NULL\n" );
@@ -336,8 +336,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_ComponentRegistryImpl_registerCo
                                                     FID_componentName );
     // copy Java component name object
     if( JNU_copyFromStringToSaNameT_NotNull( jniEnv,
-		                                     _thisComponentName,
-        		                             &_saComponentName ) != JNI_TRUE ){
+                                                 _thisComponentName,
+                                                 &_saComponentName ) != JNI_TRUE ){
         return; // EXIT POINT! Exception pending...
     }
 
@@ -463,14 +463,14 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_ComponentRegistryImpl_registerPr
                                                     FID_componentName );
     // copy Java component name object
     if( JNU_copyFromStringToSaNameT_NotNull( jniEnv,
-		                                     _thisComponentName,
-        		                             &_saProxyComponentName ) != JNI_TRUE ){
+                                                 _thisComponentName,
+                                                 &_saProxyComponentName ) != JNI_TRUE ){
         return; // EXIT POINT! Exception pending...
     }
     // copy Java proxied component name object
     if( JNU_copyFromStringToSaNameT( jniEnv,
                                      proxiedComponentName,
-		                             &_saProxiedComponentNamePtr ) != JNI_TRUE ){
+                                         &_saProxiedComponentNamePtr ) != JNI_TRUE ){
         return; // EXIT POINT! Exception pending...
     }
 
@@ -510,7 +510,7 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_ComponentRegistryImpl_registerPr
                                     AIS_ERR_INIT_MSG );
                 break;
             case SA_AIS_ERR_INVALID_PARAM:
-            	// can happen if _saProxyComponentNamePtr is NULL
+                  // can happen if _saProxyComponentNamePtr is NULL
                 JNU_throwNewByName( jniEnv,
                                     "org/saforum/ais/AisInvalidParamException",
                                     AIS_ERR_INVALID_PARAM_MSG );
@@ -601,8 +601,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_ComponentRegistryImpl_unregister
                                                     FID_componentName );
     // copy Java component name object
     if( JNU_copyFromStringToSaNameT_NotNull( jniEnv,
-                                    		 _thisComponentName,
-		                                     &_saComponentName ) != JNI_TRUE ){
+                                                 _thisComponentName,
+                                                 &_saComponentName ) != JNI_TRUE ){
         return; // EXIT POINT! Exception pending...
     }
 
@@ -727,8 +727,8 @@ JNIEXPORT void JNICALL Java_org_opensaf_ais_amf_ComponentRegistryImpl_unregister
                                                     FID_componentName );
     // copy Java component name object
     if( JNU_copyFromStringToSaNameT_NotNull( jniEnv,
-		                                     _thisComponentName,
-        		                             &_saProxyComponentName ) != JNI_TRUE ){
+                                                 _thisComponentName,
+                                                 &_saProxyComponentName ) != JNI_TRUE ){
         return; // EXIT POINT! Exception pending...
     }
     // copy Java proxied component name object

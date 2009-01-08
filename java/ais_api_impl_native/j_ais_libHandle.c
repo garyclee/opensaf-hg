@@ -101,9 +101,9 @@ jboolean JNU_Handle_initIDs_OK(
 
     // BODY
 
-	_TRACE2( "NATIVE: Executing JNU_Handle_initIDs_OK(...)\n" );
+      _TRACE2( "NATIVE: Executing JNU_Handle_initIDs_OK(...)\n" );
 
-	// get Handle class & create a global reference right away
+      // get Handle class & create a global reference right away
     /*
     ClassHandle =
         (*jniEnv)->NewGlobalRef( jniEnv,
@@ -114,9 +114,9 @@ jboolean JNU_Handle_initIDs_OK(
                                                    "org/opensaf/ais/HandleImpl" );
     if( ClassHandle == NULL ){
 
-    	_TRACE2( "NATIVE ERROR: ClassHandle is NULL\n" );
+          _TRACE2( "NATIVE ERROR: ClassHandle is NULL\n" );
 
-    	return JNI_FALSE; // EXIT POINT! Exception pending...
+          return JNI_FALSE; // EXIT POINT! Exception pending...
     }
 
     // get IDs
@@ -140,7 +140,7 @@ static jboolean JNU_Handle_initIDs_FromClass_OK(
 
     // BODY
 
-	_TRACE2( "NATIVE: Executing JNU_Handle_initIDs_FromClass_OK(...)\n" );
+      _TRACE2( "NATIVE: Executing JNU_Handle_initIDs_FromClass_OK(...)\n" );
 
     // get field IDs
     FID_selectionObject = (*jniEnv)->GetFieldID( jniEnv,
@@ -149,9 +149,9 @@ static jboolean JNU_Handle_initIDs_FromClass_OK(
                                             "J" );
     if( FID_selectionObject == NULL ){
 
-    	_TRACE2( "NATIVE ERROR: FID_selectionObject is NULL\n" );
+          _TRACE2( "NATIVE ERROR: FID_selectionObject is NULL\n" );
 
-    	return JNI_FALSE; // EXIT POINT! Exception pending...
+          return JNI_FALSE; // EXIT POINT! Exception pending...
     }
 
     _TRACE2( "NATIVE: JNU_Handle_initIDs_FromClass_OK(...) returning normally\n" );
@@ -167,8 +167,8 @@ static jboolean JNU_Handle_initIDs_FromClass_OK(
  *  Signature: (J)Z
  *************************************************************************/
 JNIEXPORT jboolean JNICALL Java_org_opensaf_ais_HandleImpl_checkSelectionObject(
-	JNIEnv* jniEnv,
-	jobject thisLibraryHandle,
+      JNIEnv* jniEnv,
+      jobject thisLibraryHandle,
     jlong timeout )
 {
 
@@ -373,10 +373,10 @@ static jint JNU_invokeSelect(
     // check the number of selection objects
     if( _len > J_AIS_LIBHANDLE_SELECT_MAX ){
 
-    	_TRACE2( "NATIVE ERROR: Too many selection objects. Recompile native library " \
-    			" with -DJ_AIS_LIBHANDLE_SELECT_MAX bigger than %d\n", J_AIS_LIBHANDLE_SELECT_MAX);
+          _TRACE2( "NATIVE ERROR: Too many selection objects. Recompile native library " \
+                      " with -DJ_AIS_LIBHANDLE_SELECT_MAX bigger than %d\n", J_AIS_LIBHANDLE_SELECT_MAX);
 
-    	JNU_throwNewByName( jniEnv,
+          JNU_throwNewByName( jniEnv,
                             "org/saforum/ais/AisLibraryException",
                             "Too many selection objects. Recompile native library " \
                                " with higher -DJ_AIS_LIBHANDLE_SELECT_MAX.");
@@ -391,9 +391,9 @@ static jint JNU_invokeSelect(
     for( _idx = 0; _idx < _len; _idx++ ){
         // get selection object
 
-    	_TRACE2( "NATIVE: %d. selection object is: %lu\n",  _idx, (unsigned long) _saSelectionObjectArray[_idx] );
+          _TRACE2( "NATIVE: %d. selection object is: %lu\n",  _idx, (unsigned long) _saSelectionObjectArray[_idx] );
 
-    	FD_SET( _saSelectionObjectArray[_idx], &_readFDs );
+          FD_SET( _saSelectionObjectArray[_idx], &_readFDs );
         if( _saSelectionObjectArray[_idx] > _saSelectionObjectMax ){
             _saSelectionObjectMax = _saSelectionObjectArray[_idx];
         }

@@ -50,10 +50,10 @@
 #include <psr_bam.h>
 #include "ncs_bam_avm.h"
 #include "ncs_util.h"
+#include <hpl_msg.h>
 
 #define ANIL_DEBUGLOG printf
 #define ncs_bam_free(x) m_MMGR_FREE_BAM_DEFAULT_VAL((void *)x)
-
 
 #define NCS_BAM_VCARD_ID   (MDS_VDEST_ID)3 /* TBD */
 #define m_BAM_MSG_SND(mbx,msg,prio)  m_NCS_IPC_SEND(mbx,(NCSCONTEXT)msg, prio)
@@ -71,6 +71,28 @@
 #define BAM_PSS_SUBPART_VER_MIN    1
 #define BAM_PSS_SUBPART_VER_MAX    1
 
+/*
+ * This structure aids in maintaining database of the conversion tables.
+ *
+ * This structure stores the XML identifying fields and their OID counterparts
+ * that fill the MIBARG structure.
+ */
+typedef struct tag_oid_map_node
+{
+   char*          pKey;       /* the string uniquely identifying 
+                                 the XML element (instance) */
+   char*          sKey;       /* the string uniquely identifying 
+                                 tag within the element */
+   NCSMIB_TBL_ID   table_id;   /* table id */
+   /*ANIL_NCSMIB_PARAM_ID param_id;*/   /* param id */  /* compilation problems */
+   uns32           param_id;  
+   NCSMIB_FMAT_ID  format;    /* is it a INT or OCT or BOOL */
+}TAG_OID_MAP_NODE;
+
+
+EXTERN_C TAG_OID_MAP_NODE gl_amfConfig_table[];
+EXTERN_C const uns32 gl_amfConfig_table_size;
+
 /* Service Sub IDs for BAM */
 typedef enum
 {
@@ -78,6 +100,7 @@ typedef enum
    NCS_SERVICE_BAM_SUB_ID_CB,
    NCS_SERVICE_BAM_SUB_ID_BAM_MESSAGE,
    NCS_SERVICE_BAM_SUB_ID_CSI_COMP,
+   NCS_SERVICE_BAM_SUB_ID_SI_DEP,
    NCS_SERVICE_BAM_SUB_ID_MAX
 } NCS_SERVICE_BAM_SUB_ID;
 
@@ -178,7 +201,19 @@ typedef enum
                                                 NCS_SERVICE_ID_BAM, \
                                                 NCS_SERVICE_BAM_SUB_ID_CSI_COMP)
 
+#define m_MMGR_ALLOC_BAM_SI_DEP(mem_size)  m_NCS_MEM_ALLOC( \
+                                                mem_size, \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_BAM, \
+                                                NCS_SERVICE_BAM_SUB_ID_SI_DEP)
+
+#define m_MMGR_FREE_NCS_BAM_SI_DEP(p)      m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_BAM, \
+                                                NCS_SERVICE_BAM_SUB_ID_SI_DEP)
+
 #define m_BAM_CB_LOCK_INIT(bam_cb)  m_NCS_LOCK_INIT(&bam_cb->lock)
+
 
 typedef enum {
    BAM_INIT,
@@ -186,7 +221,13 @@ typedef enum {
    BAM_CFG_DONE
 } BAM_INIT_STATE;
 
-
+typedef struct bam_si_dep_node
+{
+   char  si_name[128];
+   char  si_dep_name[128];
+   char  tol_time[128];
+   struct bam_si_dep_node *next;
+} BAM_SI_DEP_NODE;
 
 typedef  struct  ncs_bam_cb{
 
@@ -224,6 +265,7 @@ typedef  struct  ncs_bam_cb{
    NCS_PATRICIA_TREE    deploy_ent_anchor;  /* Tree of deploy instances */
    void                 *deploy_list;   /* List of deploy instances */
    SaAmfHAStateT         ha_state; 
+   BAM_SI_DEP_NODE      *si_dep_list;
 } NCS_BAM_CB;
 
 
@@ -241,23 +283,6 @@ typedef struct ncs_bam_msg
   /* Add any structure if needed. for now, msg_type will trigger BAM parsing */
 } BAM_MSG;
 
-/*
- * This structure aids in maintaining database of the conversion tables.
- *
- * This structure stores the XML identifying fields and their OID counterparts
- * that fill the MIBARG structure.
- */
-typedef struct tag_oid_map_node
-{
-   char*          pKey;       /* the string uniquely identifying 
-                                 the XML element (instance) */
-   char*          sKey;       /* the string uniquely identifying 
-                                 tag within the element */
-   NCSMIB_TBL_ID   table_id;   /* table id */
-   /*ANIL_NCSMIB_PARAM_ID param_id;*/   /* param id */  /* compilation problems */
-   uns32           param_id;  
-   NCSMIB_FMAT_ID  format;    /* is it a INT or OCT or BOOL */
-}TAG_OID_MAP_NODE;
 
 
 typedef struct bam_name_list_node{
@@ -300,6 +325,27 @@ EXTERN_C void ncs_bam_avm_send_cfg_done_msg(void);
 EXTERN_C void bam_delete_hw_ent_list(void);
 EXTERN_C uns32 bam_avm_snd_message(BAM_AVM_MSG_T *);
 EXTERN_C uns32 bam_avm_send_validation_config(void);
+
+EXTERN_C uns32 avd_bam_build_si_dep_list(char *si_name, char *si_dep_name, char *tol_time);
+
+EXTERN_C uns32
+ncs_bam_build_and_generate_mibsets(NCSMIB_TBL_ID, uns32, 
+                                NCSMIB_IDX *, char *, NCSMIB_FMAT_ID);
+
+EXTERN_C uns32
+ncs_bam_generate_counter64_mibset(NCSMIB_TBL_ID, uns32, 
+                                  NCSMIB_IDX *, char * );
+
+EXTERN_C SaAisErrorT 
+ncs_bam_search_table_for_oid(TAG_OID_MAP_NODE *, uns32, char *, 
+                             char *, NCSMIB_TBL_ID *, 
+                             uns32 *, NCSMIB_FMAT_ID  *);
+
+EXTERN_C uns32
+ncs_bam_build_mib_idx(NCSMIB_IDX *, char *, NCSMIB_FMAT_ID); 
+
+EXTERN_C uns32
+ncs_bam_add_sec_mib_idx(NCSMIB_IDX *mib_idx, char *idx_val, NCSMIB_FMAT_ID format);
 
 #endif
 

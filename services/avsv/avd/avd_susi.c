@@ -419,8 +419,10 @@ AVD_SU_SI_REL * avd_susi_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,
 uns32 avd_susi_struc_del(AVD_CL_CB *cb,AVD_SU_SI_REL *susi,NCS_BOOL ckpt)
 {
    AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
-   AVD_AVND      *avnd = susi->su->su_on_node;
+   AVD_AVND      *avnd = NULL;
    SaBoolT       is_ncs = susi->su->sg_of_su->sg_ncs_spec;
+   
+   m_AVD_GET_SU_NODE_PTR(cb,susi->su,avnd);
 
    /* delete the comp-csi rels */
    avd_compcsi_list_del(cb, susi, ckpt);

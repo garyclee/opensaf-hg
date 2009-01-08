@@ -106,8 +106,8 @@ jboolean JNU_ErrorReporting_initIDs_OK(
                                  (*jniEnv)->FindClass( jniEnv,
                                                        "ais/amf/ErrorReporting" )
                                );*/
-    ClassErrorReporting = JNU_GetGlobalClassRef(	jniEnv,
-                                                	"org/opensaf/ais/amf/ErrorReportingImpl" );
+    ClassErrorReporting = JNU_GetGlobalClassRef(      jniEnv,
+                                                      "org/opensaf/ais/amf/ErrorReportingImpl" );
     if( ClassErrorReporting == NULL ){
         _TRACE2( "NATIVE ERROR: ClassErrorReporting is NULL\n" );
 

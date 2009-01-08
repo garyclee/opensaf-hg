@@ -78,7 +78,9 @@ extern const DTSV_DECODE_CKPT_DATA_FUNC_PTR
 uns32  dts_role_change(DTS_CB  *cb, SaAmfHAStateT haState)
 {
    SaAmfHAStateT prev_haState = cb->ha_state;
-
+   SVC_KEY               nt_key;
+   DTS_SVC_REG_TBL       *service = NULL;
+   OP_DEVICE            *device = NULL;
    /*
     * Validate the role. In case of illegal role setting raise an error.
     */
@@ -226,6 +228,25 @@ valid_role_change:
 
    /* Change ha_state of dts_cb now */
    cb->ha_state = haState;
+   /*As part of R&A changes impact,now the files are opened on demand on active. 
+     The file list is freed on the standby & log list in svc reg tbl set to null 
+     so that a fresh cycle of opening files starts on when the role changes
+   */
+   service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, NULL);
+   while (service != NULL)
+   {
+      nt_key.node      = service->ntwk_key.node;
+      nt_key.ss_svc_id = service->ntwk_key.ss_svc_id;
+  
+      device = &service->device;
+      device->new_file = TRUE;
+      device->cur_file_size = 0;
+      device->file_open = FALSE;  
+      m_DTS_FREE_FILE_LIST(device);
+      m_NCS_MEMSET(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
+      service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8*)&nt_key);
+   }
+   fflush(stdout);
    ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_AMF_EVT, DTS_FC_API, NCSFL_LC_STATE, NCSFL_SEV_NOTICE, "TILL", DTS_AMF_ROLE_CHG, prev_haState, haState);
    return NCSCC_RC_SUCCESS;
 }

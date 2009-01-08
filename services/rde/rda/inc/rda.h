@@ -1,23 +1,19 @@
-/*      -*- OpenSAF  -*-
- *
- * (C) Copyright 2008 The OpenSAF Foundation
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
- * under the GNU Lesser General Public License Version 2.1, February 1999.
- * The complete license can be accessed from the following location:
- * http://opensource.org/licenses/lgpl-license.php
- * See the Copying file included with the OpenSAF distribution for full
- * licensing terms.
- *
- * Author(s): Emerson Network Power
- *
- */
-
 /*****************************************************************************
-..............................................................................
+ *                                                                           *
+ * NOTICE TO PROGRAMMERS:  RESTRICTED USE.                                   *
+ *                                                                           *
+ * THIS SOFTWARE IS PROVIDED TO YOU AND YOUR COMPANY UNDER A LICENSE         *
+ * AGREEMENT FROM EMERSON, INC.                                              *
+ *                                                                           *
+ * THE TERMS OF THE LICENSE AGREEMENT RESTRICT THE USE OF THIS SOFTWARE TO   *
+ * SPECIFIC PROJECTS ("LICENSEE APPLICATIONS") IDENTIFIED IN THE AGREEMENT.  *
+ *                                                                           *
+ * IF YOU ARE UNSURE WHETHER YOU ARE AUTHORIZED TO USE THIS SOFTWARE ON YOUR *
+ * PROJECT,  PLEASE CHECK WITH YOUR MANAGEMENT.                              *
+ *                                                                           *
+ ******************************************************************************/
 
+/*
   $Header:  $
 
   MODULE NAME: rda.h
@@ -92,7 +88,6 @@ typedef struct
 { 
     struct sockaddr_un  sock_address;
     
-    
 }RDA_CONTROL_BLOCK;
 
 
@@ -104,10 +99,6 @@ int pcs_rda_reg_callback   (uns32, PCS_RDA_CB_PTR, long *);
 int pcs_rda_unreg_callback (long);
 int pcs_rda_set_role       (PCS_RDA_ROLE);
 int pcs_rda_get_role       (PCS_RDA_ROLE*);
-int pcs_rda_avd_hb_err     (void);
-int pcs_rda_avnd_hb_err    (uns32);
-int pcs_rda_avd_hb_restore (void);
-int pcs_rda_avnd_hb_restore (uns32 phy_slot_id);
 
 #define RDE_RDA_SHELF_ID    2 /* As per BOM file. To send it to AVM*/
 

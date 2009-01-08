@@ -112,7 +112,16 @@ ncs_mbcsv_start_timer( PEER_INST *peer, uns8 timer_type)
 
    /*  If timer is not active, start it. */
    tmr->has_expired = FALSE; /* if in transit, not valid now */
-   
+
+  /* Added to capture more details for IR00092120 - Need cleanup */ 
+   if(((timer_type+MBCSV_TMR_SND_COLD_SYNC)==MBCSV_TMR_SND_COLD_SYNC) || ((timer_type+MBCSV_TMR_SND_COLD_SYNC)==MBCSV_TMR_COLD_SYN_CMP )) {
+      m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)tmr->tmr_id, peer->peer_anchor,
+         (timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_START, 
+         ((((tmr->is_active << 4) | tmr->has_expired)) & 0x3));
+   }
+
    if (tmr->is_active == FALSE)
    {
       tmr->type = timer_type;
@@ -125,7 +134,7 @@ ncs_mbcsv_start_timer( PEER_INST *peer, uns8 timer_type)
          tmr->period, 
          ncs_mbcsv_tmr_db[timer_type].cb_func, 
          (void*)tmr);
-      
+
       tmr->is_active   = TRUE;
       
    }
@@ -161,6 +170,15 @@ ncs_mbcsv_stop_timer( PEER_INST *peer, uns32 timer_type)
    
    tmr->has_expired = FALSE; /* if in transit, not valid now */
    
+   /* Added to capture more details for IR00092120 - Need cleanup */ 
+   if(((timer_type+MBCSV_TMR_SND_COLD_SYNC)==MBCSV_TMR_SND_COLD_SYNC) || ((timer_type+MBCSV_TMR_SND_COLD_SYNC)==MBCSV_TMR_COLD_SYN_CMP )) {
+      m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)tmr->tmr_id, peer->peer_anchor,
+         (timer_type + MBCSV_TMR_SND_COLD_SYNC), MBCSV_TMR_STOP, 
+         ((((tmr->is_active << 4) | tmr->has_expired)) & 0x3));
+   }
+ 
    if (tmr->is_active == TRUE)
    {
       m_LOG_MBCSV_TMR(peer->my_ckpt_inst->my_role,
@@ -324,7 +342,18 @@ ncs_mbcsv_send_cold_sync_tmr( PEER_INST *peer, MBCSV_EVT *evt)
       /* This timer must be started whenever the cold sync is sent */
       ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
    }
-   
+
+/* Added to capture more details for IR00092120 - Need cleanup */ 
+   m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+            "ncs_mbcsv_cold_sync_tmr: Timer expired",
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+ 
+   m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)peer->tmr[NCS_MBCSV_TMR_SEND_COLD_SYNC].tmr_id, peer->peer_anchor,
+         MBCSV_TMR_SND_COLD_SYNC, MBCSV_TMR_EXP, 
+         ((((peer->tmr[NCS_MBCSV_TMR_SEND_COLD_SYNC].is_active << 4) | (peer->tmr[NCS_MBCSV_TMR_SEND_COLD_SYNC].has_expired))) & 0x3));
+ 
    /* Tell the MBCSv clinet about the timer expiration */
    /* It can do smart things - if it cares */
    m_MBCSV_INDICATE_ERROR(peer,
@@ -373,6 +402,18 @@ ncs_mbcsv_send_warm_sync_tmr( PEER_INST *peer, MBCSV_EVT *evt)
       /* It can do smart things - if it cares */
       if (peer->warm_sync_sent == TRUE)
       {
+
+         /* Added to capture more details for IR00092120 - Need cleanup */
+          m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+            (uns32)peer->tmr[NCS_MBCSV_TMR_SEND_WARM_SYNC].tmr_id, peer->peer_anchor,
+            MBCSV_TMR_SND_WARM_SYNC, MBCSV_TMR_EXP, 
+            ((((peer->tmr[NCS_MBCSV_TMR_SEND_WARM_SYNC].is_active << 4) | (peer->tmr[NCS_MBCSV_TMR_SEND_WARM_SYNC].has_expired))) & 0x3));
+
+         m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+            "ncs_mbcsv_send_warm_sync_tmr: Timer expired",
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id);        
+  
          m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
             NCS_MBCSV_WARM_SYNC_TMR_EXP, FALSE, peer->version, NULL, rc);
 
@@ -419,6 +460,18 @@ ncs_mbcsv_send_data_req_tmr( PEER_INST *peer, MBCSV_EVT *evt)
    uns32 rc;
    /* Tell the redundant entity about the timer expiration */
    /* It can do smart things - if it cares */
+   
+   /* Added to capture more details for IR00092120 - Need cleanup */
+   m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)peer->tmr[NCS_MBCSV_TMR_DATA_RESP_CMPLT].tmr_id, peer->peer_anchor,
+         MBCSV_TMR_DATA_RSP_CMP, MBCSV_TMR_EXP, 
+         ((((peer->tmr[NCS_MBCSV_TMR_DATA_RESP_CMPLT].is_active << 4) | (peer->tmr[NCS_MBCSV_TMR_DATA_RESP_CMPLT].has_expired))) & 0x3));
+
+   m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+            "ncs_mbcsv_send_data_req_tmr: Timer expired",
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+
    m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
                           NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP,
                           TRUE, peer->version, NULL, rc);
@@ -451,6 +504,18 @@ void
 ncs_mbcsv_cold_sync_cmplt_tmr( PEER_INST *peer, MBCSV_EVT *evt)
 {
    uns32 rc;
+ 
+   /* Added to capture more details for IR00092120 - Need cleanup */ 
+   m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)peer->tmr[NCS_MBCSV_TMR_COLD_SYNC_CMPLT].tmr_id, peer->peer_anchor,
+         MBCSV_TMR_COLD_SYN_CMP, MBCSV_TMR_EXP,
+         ((((peer->tmr[NCS_MBCSV_TMR_COLD_SYNC_CMPLT].is_active << 4) | (peer->tmr[NCS_MBCSV_TMR_COLD_SYNC_CMPLT].has_expired))) & 0x3));
+ 
+   m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+            "ncs_mbcsv_cold_sync_cmplt_tmr: Timer expired",
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+
    m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
                           NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP,
                           TRUE, peer->version, NULL, rc);
@@ -481,6 +546,18 @@ void
 ncs_mbcsv_warm_sync_cmplt_tmr( PEER_INST *peer, MBCSV_EVT *evt)
 {
    uns32 rc;
+
+   /* Added to capture more details for IR00092120 - Need cleanup */
+   m_LOG_MBCSV_TMR1(peer->my_ckpt_inst->my_role,
+         peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+         (uns32)peer->tmr[NCS_MBCSV_TMR_WARM_SYNC_CMPLT].tmr_id, peer->peer_anchor,
+         MBCSV_TMR_WARM_SYN_CMP, MBCSV_TMR_EXP,
+         ((((peer->tmr[NCS_MBCSV_TMR_WARM_SYNC_CMPLT].is_active << 4) | (peer->tmr[NCS_MBCSV_TMR_WARM_SYNC_CMPLT].has_expired))) & 0x3));
+
+   m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+            "ncs_mbcsv_warm_sync_cmplt_tmr: Timer expired",
+            peer->my_ckpt_inst->my_mbcsv_inst->svc_id);
+
    m_MBCSV_INDICATE_ERROR(peer, peer->my_ckpt_inst->client_hdl,
                           NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP,
                           TRUE, peer->version, NULL, rc);

@@ -32,6 +32,79 @@
 
 static uns32 avm_ssu_clear_mac (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info_in);
 
+
+/****************************************************************************
+ * Name          : avm_check_config
+ *
+ * Description   :This function is used to parse ssuHelper.conf file which  
+ *                 contains entires in the form of node id
+ *
+ * Arguments     : 
+ *                 
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ ****************************************************************************/
+
+uns32 avm_check_config(uns8 *ent_info, uns32 *flag)
+
+{
+        NCS_OS_FILE conf_file;
+        uns8 buff[256];
+        struct slot_info slotInfo;
+        uns32 rc = NCSCC_RC_FAILURE;
+        conf_file.info.file_exists.i_file_name=CONF_FILE_PATH;
+        if(ncs_os_file(&conf_file, NCS_OS_FILE_EXISTS) == NCSCC_RC_SUCCESS)
+        {
+          if(conf_file.info.file_exists.o_file_exists == TRUE)
+          {
+             conf_file.info.open.i_file_name =CONF_FILE_PATH;
+             conf_file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
+
+             if(m_NCS_OS_FILE(&conf_file, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS)
+             {
+              return NCSCC_RC_FAILURE;
+             }
+             else
+             {
+               while(m_NCS_OS_FGETS(buff,sizeof(buff),(FILE *)conf_file.info.open.o_file_handle))
+               {
+                 buff[(m_NCS_OS_STRLEN(buff)-1)]='\0';
+
+                  if ((rc = extract_slot_shelf_subslot(buff,&slotInfo)) == NCSCC_RC_FAILURE)
+                  {
+                    return NCSCC_RC_FAILURE;
+                  }
+
+                  avm_prepare_entity_path(buff,slotInfo);
+
+                   if(m_NCS_OS_STRCMP(ent_info,buff)==0)
+                   {
+                     *flag=1;
+                     break;
+                   }
+
+               }/*End of while*/
+
+                return NCSCC_RC_SUCCESS;
+             }
+
+          }
+          else
+          {
+           return NCSCC_RC_SUCCESS;
+          }
+
+        }
+        else
+        {
+          return NCSCC_RC_FAILURE;
+        }
+}
+
+
+
 /****************************************************************************
  * Name          : avm_dhcp_file_validation
  *
@@ -889,14 +962,17 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
    uns8 str[AVM_LOG_STR_MAX_LEN];
    AVM_EVT_T          fsm_evt;
+   NCSMIB_ARG         ssu_dummy_mib_obj;
+   AVM_FSM_STATES_T   ssu_temp_curr_state;
 
-   str[0] = '\0';
+   uns32 rc = NCSCC_RC_FAILURE;
+   str[0]   = '\0';
 
 
    if(dhcp_conf->upgrade_type == INTEG)
    {
       avm_cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
-      avm_cb->upgrade_module = ALL_MODULE;
+      avm_cb->upgrade_module = NCS_BIOS_IPMC;
       sprintf(str,"AVM-SSU: Payload blade %s: INTEG: Rollback triggered ",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmUpgradeProgress_ID);
@@ -941,7 +1017,13 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
          sprintf(str,"AVM-SSU: Payload blade %s: INTEG: SW And BIOS Rollback triggered ",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
          fsm_evt.fsm_evt_type = AVM_EVT_ADM_HARD_RESET_REQ;
-         avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
+         fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;
+         ssu_temp_curr_state  = ent_info->current_state;
+         rc = avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
+         if((rc != NCSCC_RC_SUCCESS) && (ssu_temp_curr_state != AVM_ENT_FAULTY))
+         {
+            m_MMGR_FREE_MIB_OCT(fsm_evt.evt.mib_req->rsp.add_info);
+         }
          m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(avm_cb, ent_info, AVM_CKPT_ENT_ADM_OP);
       }
    }
@@ -1067,30 +1149,46 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
 
    m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
 
-   entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
 #ifdef HPI_A
-   entity_path.Entry[1].EntityInstance = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
-#else
-   entity_path.Entry[1].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
-#endif
-   no_entries++;
-
-   entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD; /* enum defined in SaHpi.h */
-#ifdef HPI_A
-   entity_path.Entry[0].EntityInstance = sInfo.slot;                          /*SCXB slot id */
-#else
-   entity_path.Entry[0].EntityLocation = sInfo.slot;                          /*SCXB slot id */
-#endif
-   no_entries++;
-
    entity_path.Entry[2].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
-#ifdef HPI_A
-   entity_path.Entry[2].EntityInstance = sInfo.subSlot;
-#else
-   entity_path.Entry[2].EntityLocation = sInfo.subSlot;
-#endif
+   entity_path.Entry[2].EntityInstance = 0;
    no_entries++;
-
+   entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+   entity_path.Entry[1].EntityInstance = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+   no_entries++;
+   entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD; /* enum defined in SaHpi.h */
+   entity_path.Entry[0].EntityInstance = sInfo.slot;                          /*SCXB slot id */
+   no_entries++;
+#else
+  if (sInfo.subSlot)
+   {
+   entity_path.Entry[3].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
+   entity_path.Entry[3].EntityLocation = 0;
+   no_entries++;
+   entity_path.Entry[2].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+   entity_path.Entry[2].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+   no_entries++;
+   entity_path.Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
+   entity_path.Entry[1].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+   no_entries++;
+   entity_path.Entry[0].EntityType = AMC_SUB_SLOT_TYPE; /* enum defined in SaHpi.h */
+   entity_path.Entry[0].EntityLocation = sInfo.subSlot;                          /*SCXB slot id */
+   no_entries++;
+   }
+  else /* invalid */
+  {
+   entity_path.Entry[2].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
+   entity_path.Entry[2].EntityLocation = 0;
+   no_entries++;
+   entity_path.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+   entity_path.Entry[1].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+   no_entries++;
+   entity_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
+   entity_path.Entry[0].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+   no_entries++;
+   }   
+#endif
+   
    str [0] = '\0';
 
    sprintf (str, "%s", "{");
@@ -1101,6 +1199,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    {
        switch (entity_path.Entry[i].EntityType)
        {
+#ifdef HPI_A
        case SAHPI_ENT_SYSTEM_CHASSIS:
 
            sprintf (& (str[len]), "%s%d%s", "{23,", sInfo.shelf, "},");
@@ -1108,13 +1207,30 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
            break;
 
        case SAHPI_ENT_SYSTEM_BOARD:
-
+ 
            sprintf (&str [len] , "%s%d%s", "{7,", sInfo.slot,"},");
+           len = m_NCS_STRLEN (str);
+           break;
+#else
+       case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
+
+           sprintf (& (str[len]), "%s%d%s", "{65539,", sInfo.shelf, "},");
            len = m_NCS_STRLEN (str); 
            break;
+       case AMC_SUB_SLOT_TYPE:
+
+           sprintf (& (str[len]), "%s%d%s", "{151,",sInfo.subSlot, "},");
+           len = m_NCS_STRLEN (str); 
+           break;
+       
+       case SAHPI_ENT_PHYSICAL_SLOT :
+           sprintf (&str [len] , "%s%d%s", "{65557,", sInfo.slot,"},");
+           len = m_NCS_STRLEN (str); 
+           break;
+#endif
 
        case SAHPI_ENT_ROOT:
-           sprintf (&str [len],"%s%d%s","{65535,",sInfo.subSlot,"}");
+           sprintf (&str [len],"%s%d%s","{65535,",0,"}");
            len = m_NCS_STRLEN (str); 
            break;
 
@@ -1130,6 +1246,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
        }
    }
    return NCSCC_RC_SUCCESS;
+
 }
 
 
@@ -1235,6 +1352,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
 extern uns32
 avm_upgrade_ipmc_trigger(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
 {
+   NCSMIB_ARG         ssu_dummy_mib_obj;
    AVM_EVT_T          fsm_evt;
    uns32              rc = NCSCC_RC_FAILURE;
    uns8 str[AVM_LOG_STR_MAX_LEN];
@@ -1284,9 +1402,14 @@ avm_upgrade_ipmc_trigger(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_BLD_LOCKED;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
+      fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;
       /* Lock the target payload blade, before upgrading the IPMC */
       fsm_evt.fsm_evt_type = AVM_ADM_LOCK + AVM_EVT_ADM_OP_BASE -1;
       rc = avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
+      if(rc != NCSCC_RC_SUCCESS)
+      {
+         m_MMGR_FREE_MIB_OCT(fsm_evt.evt.mib_req->rsp.add_info); 
+      }      
       m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(avm_cb, ent_info, AVM_CKPT_ENT_ADM_OP);
    }
    return rc;
@@ -1504,6 +1627,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
    uns8  *entity_path_str   = NULL; 
    uns32 rc = NCSCC_RC_SUCCESS; 
    uns32 chassis_id;
+   NCSMIB_ARG         ssu_dummy_mib_obj;
 #if 0
    uns8  bootbank_number;
 #endif
@@ -1602,9 +1726,13 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                   /* Lock the blade again - just safe side. Wait till the target blade goes to INACTIVE state. */
                   sysf_sprintf(logbuf, "StandbyToActive: Payload blade %s : Blade Lock Invoked", ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
-
+                  fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;  
                   fsm_evt.fsm_evt_type = AVM_ADM_LOCK + AVM_EVT_ADM_OP_BASE -1;
                   rc = avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
+                  if(rc != NCSCC_RC_SUCCESS)
+                  {
+                     m_MMGR_FREE_MIB_OCT(fsm_evt.evt.mib_req->rsp.add_info);
+                  }
                   m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(avm_cb, ent_info, AVM_CKPT_ENT_ADM_OP);
                }
             }
@@ -1671,7 +1799,12 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                /* unlock the target payload blade, after upgrading the IPMC */
                /* is it already unlocked? should we check for it? TBD-JPL */
                fsm_evt.fsm_evt_type = AVM_ADM_UNLOCK + AVM_EVT_ADM_OP_BASE -1;
+               fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;
                rc = avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
+               if(rc != NCSCC_RC_SUCCESS)
+               {
+                  m_MMGR_FREE_MIB_OCT(fsm_evt.evt.mib_req->rsp.add_info);
+               }
                m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(avm_cb, ent_info, AVM_CKPT_ENT_ADM_OP);
             }
             break;

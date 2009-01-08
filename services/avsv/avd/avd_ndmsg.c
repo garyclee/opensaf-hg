@@ -433,7 +433,7 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg)
+uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 {
    AVD_EVT *evt=AVD_EVT_NULL;
    AVD_CL_CB   *cb=AVD_CL_CB_NULL;
@@ -471,7 +471,13 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg)
       avsv_dnd_msg_free(rcv_msg);
       return NCSCC_RC_FAILURE;
    }
-   
+
+   if(node_id == cb->node_id_avd_other)   
+   {
+     /* We need to maintain version information of peer AvND. We shouldn't
+        send role change message to older version Controller AvND.*/
+     cb->peer_msg_fmt_ver = msg_fmt_ver;
+   }
    evt->cb_hdl = cb_hdl;
    evt->rcv_evt = (rcv_msg->msg_type - AVSV_N2D_CLM_NODE_UP_MSG) 
                   + AVD_EVT_NODE_UP_MSG;

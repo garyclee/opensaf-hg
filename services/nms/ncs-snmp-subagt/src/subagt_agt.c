@@ -36,6 +36,8 @@
 
 #define MAX_ALLOWED_PING_TIME_DISCREPANCY 29
 
+extern netsnmp_session *main_session;
+
 static void
 snmpsubagt_agt_usage(char *subagt);
 
@@ -249,6 +251,72 @@ snmpsubagt_netsnmp_lib_deinit(NCSSA_CB *cb)
     return NCSCC_RC_SUCCESS;
 }
 #endif
+/******************************************************************************
+ *  Name:          snmpsubagt_send_buffered_traps
+ *
+ *  Description:   Sends buffered traps to master agent
+ *
+ *  Arguments:     cb - NCSSA_CB 
+ *
+ *  Returns:       Nothing
+ *****************************************************************************/
+void snmpsubagt_send_buffered_traps(NCSSA_CB    *cb)
+{
+   SNMPSUBAGT_TRAP_LIST  *trap_list = NULL;
+   SNMPSUBAGT_TRAP_LIST  *trap_list_node = NULL;
+   uns32                 status = NCSCC_RC_FAILURE;
+   
+   /* log the function entry */
+   m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_FLUSH_BUFFERED_TRAPS);
+
+   if (cb == NULL || cb->trap_list == NULL )
+   {
+       /* log the error */
+       m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_NULL);
+       return ;
+   }
+
+   trap_list = cb->trap_list;
+
+   while(trap_list)
+   {
+      trap_list_node = trap_list;
+
+      trap_list = trap_list->next;
+
+      /* validate the input */
+      if( trap_list_node->trap_evt == NULL )
+      {
+         /* log that there is no data in the received event.
+         * there is nothing to send to the Agent */
+         m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_EVT_DATA_NULL);
+      }
+      else
+      {
+        /* Logging the NCS TRAP data - before Flushing out*/
+        ncs_logmsg(NCS_SERVICE_ID_SNMPSUBAGT, SNMPSUBAGT_FMTID_STATE, SNMPSUBAGT_FS_ERRORS,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                       NCSFL_TYPE_TILL, SNMPSUBAGT_FLUSH_TRAP_LIST,
+                       trap_list_node->trap_evt->i_trap_tbl_id,
+                       trap_list_node->trap_evt->i_trap_id);
+
+        status = subagt_send_v2trap(&cb->oidDatabase, trap_list_node->trap_evt);
+        if (status != NCSCC_RC_SUCCESS)
+        {
+          /* log that unable to send the trap */
+          m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TRAP_SEND_FAIL,status,
+                                 trap_list_node->trap_evt->i_trap_tbl_id,
+                                 trap_list_node->trap_evt->i_trap_id);
+        }
+        free(trap_list_node->trap_evt);
+      }
+      m_MMGR_SNMPSUBAGT_TRAP_LIST_NODE_FREE(trap_list_node); 
+   }
+
+   cb->trap_list = NULL;
+   
+   return;
+}
 
 /******************************************************************************
  *  Name:          snmpsubagt_request_process
@@ -540,10 +608,11 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
     /*
      * Run requested alarms.
      */
-#if 0
-    m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_RUN_ALARMS);
-#endif
     run_alarms();
+
+    /* If the  traps are buffered and snmpd is up, send the traps from the  buffered list */
+    if( cb->trap_list && main_session  )
+      snmpsubagt_send_buffered_traps(cb);
 
     return NCSCC_RC_SUCCESS;
 } /* end */

@@ -231,15 +231,6 @@ snmpsubagt_cb_finalize(NCSSA_CB *cb)
        cb->amf_timer.timer_id = TMR_T_NULL;
     }
 
-    if(cb->snmpd_timer.timer_id != TMR_T_NULL)
-    {
-       m_NCS_TMR_STOP(cb->snmpd_timer.timer_id);
-
-       /* destroy the timer. */
-       m_NCS_TMR_DESTROY(cb->snmpd_timer.timer_id);
-       cb->snmpd_timer.timer_id = TMR_T_NULL;
-    }
-
     /* de-initialize the OID database */
     snmpsubagt_table_oid_destroy(&cb->oidDatabase); 
     ncs_patricia_tree_destroy(&cb->oidDatabase);
@@ -340,8 +331,6 @@ void snmpsubagt_timer_cb(void *arg)
            post_me->msg_type = SNMPSUBAGT_MBX_MSG_RETRY_EDA_INIT;
         else if(timer_data->msg_type == SNMPSUBAGT_TMR_MSG_RETRY_AMF_INIT)
            post_me->msg_type = SNMPSUBAGT_MBX_MSG_RETRY_AMF_INIT;
-        else if(timer_data->msg_type == SNMPSUBAGT_TMR_MSG_RETRY_CHECK_SNMPD)
-           post_me->msg_type = SNMPSUBAGT_MBX_MSG_RETRY_CHECK_SNMPD;
         else
            return;
 
@@ -407,13 +396,6 @@ uns32 snmpsubagt_timer_start (NCSSA_CB *pSacb, SNMPSUBAGT_TMR_MSG_TYPE msgType)
       pSacb->amf_timer.period = m_SNMPSUBAGT_AMF_TIMEOUT_IN_SEC * SYSF_TMR_TICKS;
       pSacb->amf_timer.cb = (void *) pSacb;
       timer_data = &(pSacb->amf_timer); 
-   }
-   else if(msgType == SNMPSUBAGT_TMR_MSG_RETRY_CHECK_SNMPD)
-   {
-      pSacb->snmpd_timer.msg_type = SNMPSUBAGT_TMR_MSG_RETRY_CHECK_SNMPD;
-      pSacb->snmpd_timer.period = m_SNMPSUBAGT_SNMPD_TIMEOUT_IN_SEC * SYSF_TMR_TICKS;
-      pSacb->snmpd_timer.cb = (void *) pSacb;
-      timer_data = &(pSacb->snmpd_timer); 
    }
    else 
       return NCSCC_RC_FAILURE;

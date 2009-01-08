@@ -64,15 +64,10 @@ typedef enum
     PCSRDA_RC_MEM_ALLOC_FAILED,
     PCSRDA_RC_CALLBACK_REG_FAILED,
     PCSRDA_RC_CALLBACK_ALREADY_REGD,
-    PCSRDA_RC_ROLE_GET_FAILED,
-    PCSRDA_RC_ROLE_SET_FAILED,
-    PCSRDA_RC_AVD_HB_ERR_FAILED,
-    PCSRDA_RC_AVND_HB_ERR_FAILED,
     PCSRDA_RC_LEAP_INIT_FAILED,
     PCSRDA_RC_FATAL_IPC_CONNECTION_LOST,
-    PCSRDA_RC_AVD_HB_RESTORE_FAILED,
-    PCSRDA_RC_AVND_HB_RESTORE_FAILED
-
+    PCSRDA_RC_ROLE_GET_FAILED,
+    PCSRDA_RC_ROLE_SET_FAILED
 
 }PCSRDA_RETURN_CODE;
 
@@ -88,10 +83,6 @@ typedef enum
     PCS_RDA_UNREGISTER_CALLBACK,
     PCS_RDA_SET_ROLE,
     PCS_RDA_GET_ROLE,
-    PCS_RDA_AVD_HB_ERR,
-    PCS_RDA_AVND_HB_ERR,
-    PCS_RDA_AVD_HB_RESTORE,
-    PCS_RDA_AVND_HB_RESTORE
 
 } PCS_RDA_REQ_TYPE;
 
@@ -107,27 +98,25 @@ typedef enum
 } PCS_RDA_ROLE;
 
 typedef enum
-{ 
-    PCS_RDA_NODE_RESET_CMD = 1,
-    PCS_RDA_CMD_TYPE_MAX
-}PCS_RDA_CMD_TYPE;
+{
+    PCS_RDA_ROLE_CHG_IND,
+    PCS_RDA_CB_TYPE_MAX
+} PCS_RDA_CB_TYPE;
 
-typedef struct  
-{ 
-    uns32 shelf_id;
-    uns32 slot_id;
-}PCS_RDA_NODE_RESET_INFO;
-
-typedef struct  
-{ 
-    PCS_RDA_CMD_TYPE req_type;
+typedef struct
+{
+    PCS_RDA_CB_TYPE cb_type;
     union
     {
-       PCS_RDA_NODE_RESET_INFO node_reset_info;
-    }info;
-}PCS_RDA_CMD;
+        PCS_RDA_ROLE    io_role; 
+    } info;
+    
+} PCS_RDA_CB_INFO;
 
-typedef void (* PCS_RDA_CB_PTR)(uns32 callback_handle, PCS_RDA_ROLE role, PCSRDA_RETURN_CODE error_code, PCS_RDA_CMD cmd);
+/*
+** Callback Declaration
+*/
+typedef void (* PCS_RDA_CB_PTR)(uns32 callback_handle, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code);
 
 typedef struct  
 { 
@@ -137,18 +126,16 @@ typedef struct
     {
         PCS_RDA_CB_PTR  call_back;  
         PCS_RDA_ROLE    io_role; 
-        uns32           phy_slot_id;
 
     } info;
 
-}PCS_RDA_REQ;
+} PCS_RDA_REQ;
 
 
 /*
-** API declarations
+** API Declaration
 */
 int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
-
 
 #endif /* PCS_RDA_PAPI_H */
 

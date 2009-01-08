@@ -57,6 +57,7 @@ typedef enum avsv_ckpt_msg_reo_type
    AVSV_CKPT_AVD_SU_SI_REL,
    AVSV_CKPT_AVD_HLT_CONFIG,
    AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG,
+   AVSV_CKPT_AVD_SI_DEP_CONFIG,
    AVSV_COLD_SYNC_RSP_ASYNC_UPDT_CNT,
    /* Cold sync update reo types are till here */
    AVSV_COLD_SYNC_UPDT_MAX = AVSV_COLD_SYNC_RSP_ASYNC_UPDT_CNT,
@@ -110,7 +111,6 @@ typedef enum avsv_ckpt_msg_reo_type
    AVSV_CKPT_COMP_OPER_STATE,
    AVSV_CKPT_COMP_PRES_STATE,
    AVSV_CKPT_COMP_RESTART_COUNT,
-
    AVSV_CKPT_MSG_MAX,
 
    /* Sync commit message should be last one */

@@ -679,16 +679,6 @@ snmpsubagt_destroy(NCSSA_CB     *cb, NCS_BOOL comp_unreg)
         m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_AGENT_FINALIZE_SUCCESS);
     }
     
-    /* stop the snmpd timer if running. */
-    if(cb->snmpd_timer.timer_id != TMR_T_NULL)
-    {
-       m_NCS_TMR_STOP(cb->snmpd_timer.timer_id);
-
-       /* destroy the timer. */
-       m_NCS_TMR_DESTROY(cb->snmpd_timer.timer_id);
-       cb->snmpd_timer.timer_id = TMR_T_NULL;
-    }
-
     /* de-nitialize the interface with EDSv */
     status = snmpsubagt_eda_finalize(cb);
     if (status != NCSCC_RC_SUCCESS)

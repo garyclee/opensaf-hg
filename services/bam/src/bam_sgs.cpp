@@ -942,6 +942,139 @@ ncs_bam_count_CSIs(DOMNode *csiList, char *siName)
 }
 
 /*****************************************************************************
+  PROCEDURE NAME: saAmfParseSIDepList
+  DESCRIPTION   : This routine is to parse the list of dependent SI Instances
+                  (for SI-SI dependency def's/conf's)and generate the mibsets.
+  ARGUMENTS     :
+                  
+  RETURNS       : SUCCESS or FAILURE
+  NOTES         : 
+*****************************************************************************/
+static SaAisErrorT
+saAmfParseSIDepList (DOMNode *node, char *siName)
+{
+   SaAisErrorT    rc = SA_AIS_OK;
+   DOMNode        *tmpNode = NULL;
+   DOMNodeList    *children = NULL;
+   char           siDepName[BAM_MAX_INDEX_LEN];
+   char           tolTime[BAM_MAX_INDEX_LEN];
+#if 0
+   NCSMIB_TBL_ID  table_id;
+   uns32          param_id;
+   NCSMIB_FMAT_ID format;
+   NCSMIB_IDX     mib_idx;
+   char           rowStatus[4];
+#endif
+   char           *tag, *val;
+   
+   if(!node)
+   {
+      m_LOG_BAM_MSG_TIC(BAM_INVALID_DOMNODE, NCSFL_SEV_ERROR, "SIDepList");
+      return SA_AIS_ERR_INVALID_PARAM;
+   }
+   children = node->getChildNodes();
+   
+   if(children->getLength() == 0)
+   {
+      m_LOG_BAM_MSG_TIC(BAM_PARSE_ERROR, NCSFL_SEV_ERROR,
+           "No SI Dependencies Instances found");
+      return rc;
+   }
+
+   for(unsigned int x=0; x < children->getLength(); x++)
+   {
+      tmpNode = children->item(x);
+      if(!tmpNode)
+      {
+        return rc;
+      }
+     
+      char *tmpString = XMLString::transcode(tmpNode->getNodeName());
+
+      if(m_NCS_STRCMP(tmpString, "SIDep") == 0)
+      {
+         DOMNamedNodeMap *attributes = tmpNode->getAttributes();
+
+         if(attributes->getLength() == 0)
+         {
+            XMLString::release(&tmpString);
+            continue;
+         }
+
+         /* Get the sponsor SI name and tolerance timer value */
+         for(unsigned int x=0; x < attributes->getLength(); x++)
+         {
+             tag = XMLString::transcode(attributes->item(x)->getNodeName());
+             val = XMLString::transcode(attributes->item(x)->getNodeValue());
+             if(m_NCS_STRCMP(tag, "name") == 0)
+             {
+                m_NCS_MEMSET(siDepName, 0, BAM_MAX_INDEX_LEN);
+                m_NCS_STRCPY(siDepName, val);
+             }
+             else if(m_NCS_STRCMP(tag, "tolTime") == 0)
+             {
+                m_NCS_MEMSET(tolTime, 0, BAM_MAX_INDEX_LEN);
+                m_NCS_STRCPY(tolTime, val);
+             }
+
+             XMLString::release(&tag);
+             XMLString::release(&val);
+         }
+
+         /* Sent MIB sets to AvD only if sponsor SI is specified */  
+         if(siDepName[0] == 0)
+         {
+            m_LOG_BAM_MSG_TIC(BAM_PARSE_ERROR, NCSFL_SEV_ERROR,
+                              "No sponsor SI available");
+            XMLString::release(&tmpString);
+            continue;
+         }
+         else {
+            if (avd_bam_build_si_dep_list(siName, siDepName, tolTime) != NCSCC_RC_SUCCESS)
+            {
+               return SA_AIS_ERR_INVALID_PARAM;
+            }
+#if 0
+            /* Update the SI dependency data */ 
+            ncs_bam_build_mib_idx(&mib_idx, siName, NCSMIB_FMAT_OCT);
+            ncs_bam_add_sec_mib_idx(&mib_idx, siDepName, NCSMIB_FMAT_OCT );
+   
+            rc = ncs_bam_search_table_for_oid(gl_amfConfig_table,
+                                           gl_amfConfig_table_size,
+                                           "SIInstance",
+                                           "SIdepToltime", &table_id, &param_id, &format);
+   
+            if (rc == SA_AIS_OK)
+               ncs_bam_generate_counter64_mibset(table_id, param_id, 
+                                                 &mib_idx, tolTime); 
+     
+            rc = ncs_bam_search_table_for_oid(gl_amfConfig_table,
+                                           gl_amfConfig_table_size,
+                                           "SIInstance",
+                                           "SIdepRowStatus", &table_id, &param_id, &format);
+   
+            if(rc == SA_AIS_OK)
+            {
+               sprintf(rowStatus, "%d", NCSMIB_ROWSTATUS_ACTIVE);
+               ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
+                                               rowStatus, format);
+            }
+
+            ncs_bam_free(mib_idx.i_inst_ids);
+#endif
+         }
+      }
+
+      XMLString::release(&tmpString);
+      if(rc != SA_AIS_OK)
+        return rc;
+   }
+
+   return SA_AIS_OK;
+}
+
+
+/*****************************************************************************
   PROCEDURE NAME: saAmfParseSIInstance
 
   DESCRIPTION   : 
@@ -1082,6 +1215,8 @@ saAmfParseSIInstance(char *siName, char *parentSg, char *rank)
          
          if(m_NCS_STRCMP(tmpString, "CSIList") == 0)
             rc = saAmfParseCSIList(tmpNode, siName);
+         else if(m_NCS_STRCMP(tmpString, "SIDepList") == 0)
+            rc = saAmfParseSIDepList(tmpNode, siName);
 
          XMLString::release(&tmpString);
       }
@@ -1163,6 +1298,7 @@ saAmfParseSIList(DOMNode *node, char *parentSg)
    return SA_AIS_OK;
 }        
 
+        
 /*****************************************************************************
   PROCEDURE NAME: saAmfParseSGInstance
 

@@ -77,6 +77,10 @@ uns32 avd_compile_ckpt_edp(AVD_CL_CB *cb)
    if(rc != NCSCC_RC_SUCCESS)
       goto error;
 
+   rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_si_dep, &err);
+   if(rc != NCSCC_RC_SUCCESS)
+      goto error;
+
    rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avsv_edp_ckpt_msg_comp, &err);
    if(rc != NCSCC_RC_SUCCESS)
       goto error;
@@ -116,7 +120,6 @@ error:
    /* EDU cleanup */
    m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
    return rc;
-
 }
 
 
@@ -463,6 +466,9 @@ uns32 avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 {
     uns32               rc = NCSCC_RC_SUCCESS;
     AVD_SU *struct_ptr = NULL, **d_ptr = NULL;
+    uns16 ver_compare = 0;
+
+    ver_compare = AVD_MBCSV_SUB_PART_VERSION;
 
     EDU_INST_SET avsv_ckpt_msg_su_rules[ ] = {
         {EDU_START, avsv_edp_ckpt_msg_su, 0, 0, 0, 
@@ -504,6 +510,11 @@ uns32 avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
             (long)&((AVD_SU*)0)->su_preinstan, 0, NULL},
 
+        {EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))},
+
+        {EDU_EXEC, ncs_edp_ncs_bool, 0, 0, 0, 
+            (long)&((AVD_SU*)0)->su_is_external, 0, NULL},
+
          /* Fill here AVD SU data structure encoding rules */
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
@@ -533,6 +544,68 @@ uns32 avsv_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
     return rc;
 }
+
+
+/*****************************************************************************
+
+  PROCEDURE NAME:   avsv_edp_ckpt_msg_si_dep
+
+  DESCRIPTION:      EDU program handler for "AVD_SI_SI_DEP" data. This 
+                    function is invoked by EDU for performing encode/decode 
+                    operation on "AVD_SI_SI_DEP" data.
+
+  RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+*****************************************************************************/
+uns32 avsv_edp_ckpt_msg_si_dep(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
+                               NCSCONTEXT ptr, uns32 *ptr_data_len, 
+                               EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
+                               EDU_ERR *o_err)
+{
+    uns32         rc = NCSCC_RC_SUCCESS;
+    AVD_SI_SI_DEP *struct_ptr = NULL, **d_ptr = NULL;
+
+    EDU_INST_SET avsv_ckpt_msg_si_dep_rules[ ] = {
+        {EDU_START, avsv_edp_ckpt_msg_si_dep, 0, 0, 0, 
+                    sizeof(AVD_SI_SI_DEP), 0, NULL},
+        {EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0, 
+            (long)&((AVD_SI_SI_DEP*)0)->indx_mib.si_name_prim, 0, NULL},
+        {EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0, 
+            (long)&((AVD_SI_SI_DEP*)0)->indx_mib.si_name_sec, 0, NULL},
+        {EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0, 
+            (long)&((AVD_SI_SI_DEP*)0)->tolerance_time, 0, NULL},
+        {EDU_EXEC, ncs_edp_int, 0, 0, 0, 
+            (long)&((AVD_SI_SI_DEP*)0)->row_status, 0, NULL},
+         /* Fill here AVD SI data structure encoding rules */
+        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+    };
+
+    if(op == EDP_OP_TYPE_ENC)
+    {
+       struct_ptr = (AVD_SI_SI_DEP *)ptr;
+    }
+    else if(op == EDP_OP_TYPE_DEC)
+    {
+       d_ptr = (AVD_SI_SI_DEP **)ptr;
+       if(*d_ptr == NULL)
+       {
+          *o_err = EDU_ERR_MEM_FAIL;
+          return NCSCC_RC_FAILURE;
+       }
+       m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVD_SI_SI_DEP));
+       struct_ptr = *d_ptr;
+    }
+    else
+    {
+       struct_ptr = ptr;
+    }
+
+    rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ckpt_msg_si_dep_rules, struct_ptr, 
+            ptr_data_len, buf_env, op, o_err);
+
+    return rc;
+}
+
 
 /*****************************************************************************
 
@@ -578,7 +651,6 @@ uns32 avsv_edp_ckpt_msg_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             (long)&((AVD_SI*)0)->row_status, 0, NULL},
         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, 
             (long)&((AVD_SI*)0)->sg_name, 0, NULL},
-
          /* Fill here AVD SI data structure encoding rules */
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };

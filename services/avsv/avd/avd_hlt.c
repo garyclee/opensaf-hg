@@ -382,6 +382,9 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    SaTimeT     *time;
    SaTimeT      old_time;
    uns32 l_len;
+   AVD_SU        *comp_su = NULL;
+   SaNameT       temp_name;
+   NCS_BOOL      hc_is_external = FALSE;
 
    if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
@@ -467,7 +470,33 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             /* set the value, checkpoint the entire record and send a message to
              * AVND to update it about this new record.
              */
-            node_on_hlt =  avd_hlt_node_find(hlt_chk->key_name.comp_name_net, avd_cb);
+            /* get the SU name*/
+            avsv_cpy_SU_DN_from_DN(&temp_name, &hlt_chk->key_name.comp_name_net);
+
+            if(temp_name.length == 0)
+            {
+               m_AVD_PXY_PXD_ERR_LOG("hlt check table set:SU name not found",
+                                      &hlt_chk->key_name.comp_name_net,0,0,0,0);
+               return NCSCC_RC_INV_VAL;
+            }
+
+            if ((comp_su = avd_su_struc_find(avd_cb,temp_name,TRUE))
+                                          == AVD_SU_NULL)
+            {
+               m_AVD_PXY_PXD_ERR_LOG("hlt check table set:SU not found in DB",
+                                      &hlt_chk->key_name.comp_name_net,0,0,0,0);
+               return NCSCC_RC_INV_VAL; 
+            }
+              if(TRUE == comp_su->su_is_external)
+              {
+                node_on_hlt = avd_cb->ext_comp_info.ext_comp_hlt_check;
+                hc_is_external = TRUE; 
+              }
+              else
+              {
+                 node_on_hlt =  avd_hlt_node_find(hlt_chk->key_name.comp_name_net, avd_cb);
+              }
+
             if(node_on_hlt == AVD_AVND_NULL)
             {
                return NCSCC_RC_INV_VAL;
@@ -484,7 +513,8 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   (node_on_hlt->node_state == AVD_AVND_STATE_NO_CONFIG) ||
                   (node_on_hlt->node_state == AVD_AVND_STATE_NCS_INIT) ))
             {
-               if(avd_snd_hlt_msg(avd_cb,node_on_hlt,hlt_chk, FALSE) != NCSCC_RC_SUCCESS)
+               if(avd_snd_hlt_msg(avd_cb,node_on_hlt,hlt_chk, FALSE, hc_is_external)
+                  != NCSCC_RC_SUCCESS)
                {
                   /* log a fatal error that a row couldn't be set becaue of
                    * message not being sent

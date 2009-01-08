@@ -261,7 +261,7 @@ static uns32 avd_mab_reg_tbls(AVD_CL_CB *cb)
      avd_oac_arg.info.tbl_owned.is_persistent = TRUE;
 
      if( ((tbl_id >=NCSMIB_TBL_AVSV_AMF_SG_SI_RANK) && 
-          (tbl_id <= NCSMIB_TBL_AVSV_AMF_SI_SI_DEP)) ||
+          (tbl_id <= NCSMIB_TBL_AVSV_AMF_SG_SU_RANK)) ||
           (tbl_id == NCSMIB_TBL_AVSV_AMF_SU_SI) )
        {
           avd_oac_arg.info.tbl_owned.is_persistent = FALSE;

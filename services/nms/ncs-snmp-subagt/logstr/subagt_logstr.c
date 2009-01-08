@@ -196,6 +196,8 @@ const NCSFL_STR subagt_log_func_entry_str[] =
     { SNMPSUBAGT_FUNC_ENTRY_ACTIVE_ACTIVE_PROCESS,       "snmpsubagt_ACTIVE_ACTIVE_process"}, /* IR00061409 */
     { SNMPSUBAGT_FUNC_ENTRY_SIGUSR1_SIGNAL,        "subagt_process_sig_usr1_signal"}, /* IR00061409 */
     { SNMPSUBAGT_FUNC_ENTRY_RDA_INIT_ROLE_GET,     "subagt_rda_init_role_get"}, /* IR00061409 */
+    { SNMPSUBAGT_FUNC_ENTRY_BUFFER_TRAP,           "snmpsubagt_trap_list_append"}, /* IR00085701 */
+    { SNMPSUBAGT_FUNC_ENTRY_FLUSH_BUFFERED_TRAPS,  "snmpsubagt_send_buffered_traps"}, /* IR00085701 */
     {0,0}
 };
 const NCSFL_STR subagt_mem_fail_str[] =
@@ -209,6 +211,7 @@ const NCSFL_STR subagt_mem_fail_str[] =
     { SNMPSUBAGT_OID_ALLOC_FAIL,                    "Subagt Mem Alloc for OID Failed "}, 
     { SNMPSUBAGT_VAR_BIND_NAME_ALLOC_FAIL,          "Subagt Mem Alloc for vb  Name Failed "}, 
     { SNMPSUBAGT_PEND_REG_NODE_ALLOC_FAILED,        "Subagt Mem Alloc Pending Registrations failed"},
+    { SNMPSUBAGT_TRAP_LIST_ALLOC_FAILED,            "Subagt Mem Alloc Trap list failed"},
     {0,0}
 };
 
@@ -297,6 +300,8 @@ const NCSFL_STR subagt_log_errors_str[] =
     { SNMPSUBAGT_RDA_INIT_ROLE_GET_FAILED, "subagent rda Init role get failed"}, /* IR00061409 */
     { PCS_RDA_REQUEST_FAIL, "pcs rda request failed"}, /* IR00061409 */
     { SNMPSUBAGT_TIME_TO_WAIT_DISCREPANCY, "NCS SSA: snmp_select_info() returned more time to block than ping interval."}, /* IR00079744 */
+    { SNMPSUBAGT_BUFFER_TRAP_LIST, "NCS SSA: Buffering trap as Agent is unavailable."}, /* IR00085701 */
+    { SNMPSUBAGT_FLUSH_TRAP_LIST, "NCS SSA: Flushing out buffered traps."}, /* IR00085701 */
     {0,0}
 };
 

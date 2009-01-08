@@ -101,6 +101,8 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
    case AVND_EVT_AVD_NODE_ON_FOVER:
    case AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG:
    case AVND_EVT_AVD_SET_LEDS_MSG:
+   case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
+   case AVND_EVT_AVD_ROLE_CHANGE_MSG:
       evt->info.avd = (AVSV_DND_MSG *)info;
       break;
       
@@ -151,15 +153,30 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
    /* mds event types */
    case AVND_EVT_MDS_AVD_UP:
    case AVND_EVT_MDS_AVD_DN:
-   case AVND_EVT_MDS_AVA_DN:
    case AVND_EVT_MDS_CLA_DN:
+   case AVND_EVT_MDS_AVND_DN:
+   case AVND_EVT_MDS_AVND_UP:
       evt->priority = NCS_IPC_PRIORITY_HIGH; /* bump up the priority */
       evt->info.mds.mds_dest = *mds_dest;
       break;
       
+   /* HA state event types */
+   case AVND_EVT_HA_STATE_CHANGE:
+      break;
+      
+   case AVND_EVT_MDS_AVA_DN:
+      evt->priority = NCS_IPC_PRIORITY_NORMAL; /* keep priority as normal so that it doesn't */
+      evt->info.mds.mds_dest = *mds_dest;      /* supercede 'response' */
+      break;
+   
    /* clc event types */
    case AVND_EVT_CLC_RESP:
       m_NCS_OS_MEMCPY(&evt->info.clc, clc, sizeof(AVND_CLC_EVT));
+      break;
+      
+   /* AvND-AvND event types */
+   case AVND_EVT_AVND_AVND_MSG:
+      evt->info.avnd = (AVSV_ND2ND_AVND_MSG *)info;
       break;
       
    /* internal event types */
@@ -222,10 +239,16 @@ void avnd_evt_destroy (AVND_EVT *evt)
    case AVND_EVT_AVD_NODE_ON_FOVER:
    case AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG:
    case AVND_EVT_AVD_SET_LEDS_MSG:
+   case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
+   case AVND_EVT_AVD_ROLE_CHANGE_MSG:
       if (evt->info.avd)
          avsv_dnd_msg_free(evt->info.avd);
       break;
       
+   case AVND_EVT_AVND_AVND_MSG:
+      if(evt->info.avnd)
+       avsv_nd2nd_avnd_msg_free(evt->info.avnd);
+      break;
    /* AvA event types */
    case AVND_EVT_AVA_FINALIZE:
    case AVND_EVT_AVA_COMP_REG:
@@ -273,6 +296,12 @@ void avnd_evt_destroy (AVND_EVT *evt)
    case AVND_EVT_MDS_AVD_DN:
    case AVND_EVT_MDS_AVA_DN:
    case AVND_EVT_MDS_CLA_DN:
+   case AVND_EVT_MDS_AVND_DN:
+   case AVND_EVT_MDS_AVND_UP:
+      break;
+      
+   /* HA state event types */
+   case AVND_EVT_HA_STATE_CHANGE:
       break;
       
    /* clc event types */

@@ -46,7 +46,6 @@
 #define m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec) \
             (rec->inv == SA_AMF_HEALTHCHECK_AMF_INVOKED)
 
-
 /*** static function declarations */
 static void avnd_comp_hc_param_val(AVND_CB *, AVSV_AMF_API_TYPE, uns8 *, 
                                    AVND_COMP **, AVND_COMP_HC_REC **, 
@@ -54,7 +53,6 @@ static void avnd_comp_hc_param_val(AVND_CB *, AVSV_AMF_API_TYPE, uns8 *,
 
 static AVND_COMP_HC_REC *avnd_comp_hc_rec_add (AVND_CB *, AVND_COMP *, 
                                        AVSV_AMF_HC_START_PARAM *, MDS_DEST *);
-
 static void avnd_comp_hc_rec_del (AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *);
 
 static uns32 avnd_comp_hc_rec_process (AVND_CB *, AVND_COMP *, AVND_COMP_HC_REC *,
@@ -90,24 +88,50 @@ uns32 avnd_evt_ava_hc_start (AVND_CB *cb, AVND_EVT *evt)
    AVND_COMP_HC_REC        *rec = 0;
    uns32                   rc = NCSCC_RC_SUCCESS;
    SaAisErrorT             amf_rc = SA_AIS_OK;
+   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
+   if(AVND_EVT_AVND_AVND_MSG == evt->type)
+   {
+     /* This means that the message has come from proxy AvND to this AvND. */
+         msg_from_avnd = TRUE;
+   }
+
+  if(FALSE == msg_from_avnd)
+  {
+     /* Check for internode or external coomponent first
+        If it is, then forward it to the respective AvND.*/
+      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+      if(TRUE == int_ext_comp)
+      {
+        goto done;
+      }
+  } 
    /* validate the healthcheck start message */
    avnd_comp_hc_param_val(cb, AVSV_AMF_HC_START, (uns8 *)hc_start, 
                           &comp, 0, &amf_rc);
 
    /* send the response back to AvA */
    rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_START, amf_rc, 0, 
-                           &api_info->dest, &evt->mds_ctxt);
+                           &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
    /* now proceeed with the rest of the processing */
    if ( (SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc) )
    {
       if ( (0 != (rec = avnd_comp_hc_rec_add(cb, comp, hc_start, &api_info->dest))) )
+      {
+         m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, rec, AVND_CKPT_COMP_HLT_REC);
          rc = avnd_comp_hc_rec_process(cb, comp, rec, AVND_COMP_HC_START, 0);
+      }
       else 
          rc = NCSCC_RC_FAILURE;
    }
 
+done:
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+   m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_start():Comp,Hdl,InvType and Err Rcvr are",
+           &hc_start->comp_name_net,hc_start->hdl,hc_start->inv_type,hc_start->rec_rcvr,0);
+  }
    return rc;
 }
 
@@ -133,6 +157,24 @@ uns32 avnd_evt_ava_hc_stop (AVND_CB *cb, AVND_EVT *evt)
    AVND_COMP_HC_REC       *rec = 0;
    uns32                  rc = NCSCC_RC_SUCCESS;
    SaAisErrorT            amf_rc = SA_AIS_OK;
+   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+   if(AVND_EVT_AVND_AVND_MSG == evt->type)
+   {
+     /* This means that the message has come from proxy AvND to this AvND. */
+         msg_from_avnd = TRUE;
+   }
+
+  if(FALSE == msg_from_avnd)
+  {
+     /* Check for internode or external coomponent first
+        If it is, then forward it to the respective AvND.*/
+      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+      if(TRUE == int_ext_comp)
+      {
+        goto done;
+      }
+  }
 
    /* validate the healthcheck stop message */
    avnd_comp_hc_param_val(cb, AVSV_AMF_HC_STOP, (uns8 *)hc_stop, 
@@ -140,12 +182,18 @@ uns32 avnd_evt_ava_hc_stop (AVND_CB *cb, AVND_EVT *evt)
 
    /* send the response back to AvA */
    rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_STOP, amf_rc, 0, 
-                           &api_info->dest, &evt->mds_ctxt);
+                           &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
    /* stop the healthcheck */
    if ( (SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc) )
       rc = avnd_comp_hc_rec_process(cb, comp, rec, AVND_COMP_HC_STOP, 0);
 
+done:
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+   m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_stop():Comp and Hdl are",
+                       &hc_stop->comp_name_net,hc_stop->hdl,0,0,0);
+  }
    return rc;
 }
 
@@ -171,6 +219,24 @@ uns32 avnd_evt_ava_hc_confirm (AVND_CB *cb, AVND_EVT *evt)
    AVND_COMP_HC_REC          *rec = 0;
    uns32                     rc = NCSCC_RC_SUCCESS;
    SaAisErrorT               amf_rc = SA_AIS_OK;
+   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+   if(AVND_EVT_AVND_AVND_MSG == evt->type)
+   {
+     /* This means that the message has come from proxy AvND to this AvND. */
+         msg_from_avnd = TRUE;
+   }
+
+  if(FALSE == msg_from_avnd)
+  {
+     /* Check for internode or external coomponent first
+        If it is, then forward it to the respective AvND.*/
+      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+      if(TRUE == int_ext_comp)
+      {
+        goto done;
+      }
+  }
 
    /* validate the healthcheck confirm message */
    avnd_comp_hc_param_val(cb, AVSV_AMF_HC_CONFIRM, (uns8 *)hc_confirm, 
@@ -178,13 +244,19 @@ uns32 avnd_evt_ava_hc_confirm (AVND_CB *cb, AVND_EVT *evt)
 
    /* send the response back to AvA */
    rc = avnd_amf_resp_send(cb, AVSV_AMF_HC_CONFIRM, amf_rc, 0, 
-                           &api_info->dest, &evt->mds_ctxt);
+                           &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
    /* healthcheck confirm processing */
    if ( (SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc) )
       rc = avnd_comp_hc_rec_process(cb, comp, rec, AVND_COMP_HC_CONFIRM, 
                                     hc_confirm->hc_res);
 
+done:
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+     m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_confirm():Comp, Hdl and hc_res are",
+              &hc_confirm->comp_name_net,hc_confirm->hdl,hc_confirm->hc_res,0,0);
+  }
    return rc;
 }
 
@@ -216,6 +288,12 @@ uns32 avnd_evt_tmr_hc (AVND_CB *cb, AVND_EVT *evt)
     * hence returning the record to the hdl mngr.
     */
    ncshm_give_hdl(tmr->opq_hdl);
+
+   if(NCSCC_RC_SUCCESS == 
+      m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb,rec->comp->su->su_is_external))
+         goto done;
+
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR); 
 
    /* process the timer expiry */
    rc = avnd_comp_hc_rec_process(cb, rec->comp, rec, AVND_COMP_HC_TMR_EXP, 0);
@@ -486,6 +564,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add (AVND_CB                 *cb,
 
    /* store the comp bk ptr */
    rec->comp = comp;
+   rec->comp_name_net = comp->name_net;
    
    rec->status = AVND_COMP_HC_STATUS_STABLE;
 
@@ -523,7 +602,9 @@ void avnd_comp_hc_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 
    /* stop the healthcheck timer */
    if ( m_AVND_TMR_IS_ACTIVE(rec->tmr) )
+   {
       m_AVND_TMR_COMP_HC_STOP(cb, *rec);
+   }
 
    /* unlink from the comp-hc list */
    m_AVND_COMPDB_REC_HC_REM(*comp, *rec);
@@ -554,8 +635,10 @@ void avnd_comp_hc_rec_del_all (AVND_CB *cb, AVND_COMP *comp)
    /* scan & delete each healthcheck record */
    while ( 0 != (rec = 
                 (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list)) )
+   {
+      m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_HLT_REC);
       avnd_comp_hc_rec_del(cb, comp, rec);
-
+   }
    return;
 }
 
@@ -643,11 +726,15 @@ uns32 avnd_comp_hc_rec_start (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *re
       
       if (NCSCC_RC_SUCCESS == rc)
          rec->status = AVND_COMP_HC_STATUS_WAIT_FOR_RESP;
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_STATUS); 
    }
    
    /* now start the periodic timer (relevant both for comp-initiated & amf-initiated) */
    if (NCSCC_RC_SUCCESS == rc)
+   {
       m_AVND_TMR_COMP_HC_START(cb, *rec, rc);
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR);
+   }
 
    return rc;
 }
@@ -683,10 +770,11 @@ uns32 avnd_comp_hc_rec_stop (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec
       m_AVND_COMPDB_CBQ_HC_CBK_GET(comp, rec->key, cbk_rec);
       if (cbk_rec)
          /* pop & delete this record */
-         avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec);
+         avnd_comp_cbq_rec_pop_and_del(cb, comp, cbk_rec,TRUE);
    }
 
    /* delete the record */
+   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_HLT_REC);
    avnd_comp_hc_rec_del(cb, comp, rec);
 
    return rc;
@@ -724,6 +812,7 @@ uns32 avnd_comp_hc_rec_confirm (AVND_CB     *cb,
       /* restart the periodic timer */
       m_AVND_TMR_COMP_HC_STOP(cb, *rec);
       m_AVND_TMR_COMP_HC_START(cb, *rec, rc);
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_TMR);
    }
    else
    {
@@ -758,13 +847,17 @@ uns32 avnd_comp_hc_rec_tmr_exp (AVND_CB     *cb,
    AVND_ERR_INFO err_info;
    uns32 rc = NCSCC_RC_SUCCESS;
 
+
    if ( m_AVND_COMP_HC_REC_IS_AMF_INITIATED(rec) )
    {
       if( rec->status == AVND_COMP_HC_STATUS_STABLE )
       /* same as healthcheck start processing */
       rc = avnd_comp_hc_rec_start(cb, comp, rec);
       else if ( rec->status == AVND_COMP_HC_STATUS_WAIT_FOR_RESP )
+      {
          rec->status = AVND_COMP_HC_STATUS_SND_TMR_EXPD;
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, rec, AVND_CKPT_COMP_HC_REC_STATUS); 
+      }
    }
    else
    {
@@ -811,7 +904,8 @@ void avnd_comp_hc_finalize (AVND_CB      *cb,
 
       if ( (curr->req_hdl == hdl) && 
            !m_NCS_OS_MEMCMP(&curr->dest, dest, sizeof(MDS_DEST)) )
-      {
+      { 
+         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, curr, AVND_CKPT_COMP_HLT_REC);
          avnd_comp_hc_rec_del(cb, comp, curr);
          curr = (prv) ? (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&prv->comp_dll_node) : 
                         (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
@@ -856,3 +950,63 @@ uns32 avnd_dblist_hc_rec_cmp(uns8 *key1, uns8 *key2)
    return ( (i > 0) ? 1 : 2);
 }
 
+/****************************************************************************
+  Name          : avnd_mbcsv_comp_hc_rec_tmr_exp
+ 
+  Description   : This routine is just a wrapper of avnd_comp_hc_rec_tmr_exp.
+ 
+  Arguments     : cb   - ptr to the AvND control block
+                  comp - ptr the the component
+                  rec  - ptr to the healthcheck record
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ 
+  Notes         : None.
+******************************************************************************/
+uns32 avnd_mbcsv_comp_hc_rec_tmr_exp (AVND_CB     *cb, 
+                                AVND_COMP   *comp, 
+                                AVND_COMP_HC_REC *rec)
+{
+  return (avnd_comp_hc_rec_tmr_exp(cb, comp, rec));
+}
+
+/****************************************************************************
+  Name          : avnd_mbcsv_comp_hc_rec_add
+ 
+  Description   : This routine is a wrapper of avnd_comp_hc_rec_add.
+ 
+  Arguments     : cb        - ptr to the AvND control block
+                  comp      - ptr the the component
+                  hc_start  - ptr to the healthcheck start parameters
+                  dest      - ptr to the mds-dest of the process that started 
+                              the healthcheck
+ 
+  Return Values : ptr to the healthcheck record.
+ 
+  Notes         : None.
+******************************************************************************/
+AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add (AVND_CB                 *cb,
+                                        AVND_COMP               *comp,
+                                        AVSV_AMF_HC_START_PARAM *hc_start,
+                                        MDS_DEST                *dest)
+{
+   return (avnd_comp_hc_rec_add(cb, comp, hc_start, dest));
+}
+
+/****************************************************************************
+  Name          : avnd_mbcsv_comp_hc_rec_del
+ 
+  Description   : This routine is a wrapper of avnd_comp_hc_rec_del.
+ 
+  Arguments     : cb   - ptr to the AvND control block
+                  comp - ptr the the component
+                  rec  - ptr to healthcheck record
+ 
+  Return Values : None.
+ 
+  Notes         : None.
+******************************************************************************/
+void avnd_mbcsv_comp_hc_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
+{
+  return (avnd_comp_hc_rec_del(cb, comp, rec));
+}

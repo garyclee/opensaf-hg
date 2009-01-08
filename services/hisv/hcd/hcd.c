@@ -300,7 +300,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    /* Create HCD-HSM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)hcd_hsm,
                                           0, "HSM", HSM_TASK_PRIORITY,
-                                          NCS_STACKSIZE_HUGE,
+                                          (NCS_STACKSIZE_HUGE*2),
                                           &hsm_cb->task_hdl
                                           )))
    {

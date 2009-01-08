@@ -146,7 +146,7 @@ jboolean JNU_ClusterMembershipManager_initIDs_OK(
                                                        "org/opensaf/ais/clm/ClusterMembershipManagerImpl" )
                                );*/
     ClassClusterMembershipManager = JNU_GetGlobalClassRef(  jniEnv,
-                                                   			"org/opensaf/ais/clm/ClusterMembershipManagerImpl" );
+                                                                     "org/opensaf/ais/clm/ClusterMembershipManagerImpl" );
     if( ClassClusterMembershipManager == NULL ){
 
         _TRACE2( "NATIVE ERROR: ClassClusterMembershipManager is NULL\n" );
@@ -374,7 +374,7 @@ JNIEXPORT jobject JNICALL Java_org_opensaf_ais_clm_ClusterMembershipManagerImpl_
     }
     */
     return JNU_invokeSaClmClusterTrack_Sync(jniEnv, thisClusterMembershipManager,
-			_saTrackFlags);
+                  _saTrackFlags);
 }
 
 

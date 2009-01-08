@@ -33,6 +33,8 @@
 #define NCS_MAIN_PAPI_H
 
 #include "ncsgl_defs.h"
+#include "SaHpi.h"
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -129,7 +131,7 @@ Description:
 EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type);
 
 /* Excluding null character byte for string termination */
-#define NCS_MAX_CHASSIS_TYPE_LEN  (20)   
+#define NCS_MAX_CHASSIS_TYPE_LEN  (40)   
  
 
 
@@ -189,6 +191,25 @@ EXTERN_C uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id, NCS_PHY
 ******************************************************************************/
 EXTERN_C uns8 ncs_get_phyinfo_from_node_id( NCS_NODE_ID i_node_id , NCS_CHASSIS_ID *o_chassis_id, NCS_PHY_SLOT_ID  *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 
+#define m_NCS_GET_PHYINFO_FROM_ENTITY_PATH( i_entity_path, o_chassis_id, o_phy_slot_id , o_sub_slot_id) ncs_get_phyinfo_from_entity_path( i_entity_path, o_chassis_id , o_phy_slot_id, o_sub_slot_id)
+/****************************************************************************
+  Name          :  ncs_get_phyinfo_from_entity_path
+
+  Description   :  This function extracts chassi id , physical slot id and sub slot id 
+                   from entity_path
+
+
+  Arguments     :  o_chassis_id  - chassis id
+                   o_phy_slot_id - physical slot id
+                   o_sub_slot_id - slot id
+                   i_entity_path - entity path
+
+  Return Values :  On Failure NCSCC_RC_FAILURE   
+                   On Success NCSCC_RC_SUCCESS
+
+  Notes         :  None.
+******************************************************************************/ 
+EXTERN_C uns8 ncs_get_phyinfo_from_entity_path( SaHpiEntityPathT i_entity_path, NCS_CHASSIS_ID *o_chassis_id, NCS_PHY_SLOT_ID  *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 
 #ifdef  __cplusplus
 }

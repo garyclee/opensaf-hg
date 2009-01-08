@@ -92,9 +92,14 @@ uns32 avnd_sudb_destroy(AVND_CB *cb)
             (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0)) )
    {
       /* unreg the row from mab */
-      avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl);
+      avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+                     (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
 
-      /* delete the record */
+      /* delete the record 
+      m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
+      AvND is going down, but don't send any async update even for 
+      external components, otherwise external components will be deleted
+      from ACT.*/
       rc = avnd_sudb_rec_del(cb, &su->name_net);
       if ( NCSCC_RC_SUCCESS != rc ) goto err;
    }
@@ -165,6 +170,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 
    /* update the NCS flag */
    su->is_ncs = info->is_ncs;
+   su->su_is_external = info->su_is_external;
 
    /*
     * Update the rest of the parameters with default values.

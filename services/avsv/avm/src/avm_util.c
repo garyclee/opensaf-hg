@@ -31,6 +31,7 @@
   avm_scope_fault_children -
   avm_fault_criteria       -
   avm_handle_fault         -
+  avm_is_this_entity_self  -
  
 ******************************************************************************
 */
@@ -211,6 +212,7 @@ avm_map_hpi2fsm(
       case SAHPI_ET_SENSOR:
       {
          m_AVM_LOG_HPI_HS_EVT(AVM_LOG_EVT_SENSOR, hpi_event.EventDataUnion.SensorEvent.Assertion, hpi_event.Severity, ent_info->ep_str.name);
+         m_AVM_LOG_HPI_HS_EVT(AVM_LOG_EVT_SENSOR, hpi_event.EventType, hpi_event.EventDataUnion.SensorEvent.SensorType, ent_info->ep_str.name);
 
          /* 
           * Check for the Firmware progress event and then send the event to the 
@@ -511,9 +513,9 @@ avm_convert_entity_path_to_string(
             break;
          }
 #else
-         } while (gl_hpi_ent_type_list[index -1].etype_val != SAHPI_ENT_PHYSICAL_SLOT);
+         } while (gl_hpi_ent_type_list[index -1].etype_val != AMC_SUB_SLOT_TYPE);
 
-         if (gl_hpi_ent_type_list[index -1].etype_val == SAHPI_ENT_PHYSICAL_SLOT) {
+         if (gl_hpi_ent_type_list[index -1].etype_val == AMC_SUB_SLOT_TYPE) {
             /* reached end of list and did not find entity type */
             m_AVM_LOG_INVALID_VAL_FATAL(entity_path.Entry[i].EntityType);
             rc = NCSCC_RC_FAILURE;
@@ -567,10 +569,11 @@ avm_refine_fault_domain(
 }
 
 extern uns32 
-avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info ,uns32 **child_impact)
 {
    
    uns32 node_insert = NCSCC_RC_FAILURE;   
+   **child_impact = NCSCC_RC_FAILURE;   
    m_AVM_LOG_FUNC_ENTRY("avm_scope_extract_criteria");
    if((TRUE == ent_info->is_node) && (TRUE == ent_info->is_fru))
    {  
@@ -578,7 +581,10 @@ avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info)
       {
          case AVM_ENT_RESET_REQ:
          {
+            /* Lets once again send the shutdown request to AVD */ 
             ent_info->current_state = AVM_ENT_EXTRACT_REQ;
+            node_insert = NCSCC_RC_SUCCESS;
+            **child_impact = NCSCC_RC_SUCCESS;   
          }
          case AVM_ENT_NOT_PRESENT:
          case AVM_ENT_INACTIVE:
@@ -591,6 +597,7 @@ avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info)
          {
             ent_info->current_state = AVM_ENT_EXTRACT_REQ;
             node_insert = NCSCC_RC_SUCCESS;
+            **child_impact = NCSCC_RC_SUCCESS;   
             break;
          }
          case AVM_ENT_INVALID:
@@ -605,10 +612,11 @@ avm_scope_extract_criteria(AVM_ENT_INFO_T *ent_info)
 }
 
 extern uns32 
-avm_scope_reset_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_reset_criteria(AVM_ENT_INFO_T *ent_info ,uns32 **child_impact)
 {
    
    uns32 node_insert = NCSCC_RC_FAILURE;   
+   **child_impact = NCSCC_RC_FAILURE; /* Software Fault  */
    m_AVM_LOG_FUNC_ENTRY("avm_scope_reset_criteria");
    if(TRUE == ent_info->is_node)
    {  
@@ -640,10 +648,12 @@ avm_scope_reset_criteria(AVM_ENT_INFO_T *ent_info)
 }
 
 extern uns32 
-avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info, uns32 **child_impact)
 {
    
-   uns32 node_insert = NCSCC_RC_FAILURE;   
+   uns32 node_insert = NCSCC_RC_FAILURE; 
+   **child_impact = NCSCC_RC_FAILURE; /* Software Fault  */
+  
    m_AVM_LOG_FUNC_ENTRY("avm_scope_sensor_assert_criteria");
    if(TRUE == ent_info->is_node)
    {  
@@ -661,7 +671,7 @@ avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info)
             break;
          }
          case AVM_ENT_ACTIVE:
-         {
+         { 
             if(ent_info->sensor_assert != NCSCC_RC_SUCCESS)
             {
                ent_info->current_state = AVM_ENT_FAULTY;
@@ -681,10 +691,11 @@ avm_scope_sensor_assert_criteria(AVM_ENT_INFO_T *ent_info)
 }
 
 extern uns32 
-avm_scope_sensor_deassert_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_sensor_deassert_criteria(AVM_ENT_INFO_T *ent_info ,uns32 **child_impact)
 {
    
    uns32 node_insert = NCSCC_RC_FAILURE;   
+   **child_impact = NCSCC_RC_FAILURE;/* Software Fault Domain , No impact no Child */
    m_AVM_LOG_FUNC_ENTRY("avm_scope_sensor_deassert_criteria");
    if(TRUE == ent_info->is_node)
    {  
@@ -717,10 +728,12 @@ avm_scope_sensor_deassert_criteria(AVM_ENT_INFO_T *ent_info)
 }
 
 extern uns32 
-avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info , uns32 **child_impact)
 {
    
-   uns32 node_insert = NCSCC_RC_FAILURE;   
+   uns32 node_insert = NCSCC_RC_FAILURE;
+   **child_impact = NCSCC_RC_FAILURE;
+   
    m_AVM_LOG_FUNC_ENTRY("avm_scope_surp_extract_criteria");
    if((TRUE == ent_info->is_node) && (TRUE == ent_info->is_fru))
    {
@@ -737,9 +750,11 @@ avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info)
          case AVM_ENT_INACTIVE:
          case AVM_ENT_ACTIVE:
          {
+           /* Child Should Be impacted */
             avm_reset_ent_info(ent_info);
             ent_info->current_state = AVM_ENT_NOT_PRESENT;
             node_insert = NCSCC_RC_SUCCESS; 
+            **child_impact = NCSCC_RC_SUCCESS;
             break;
          }
          case AVM_ENT_INVALID:
@@ -755,11 +770,14 @@ avm_scope_surp_extract_criteria(AVM_ENT_INFO_T *ent_info)
 extern uns32 
 avm_scope_active_criteria(
                            AVM_CB_T       *avm_cb,  
-                           AVM_ENT_INFO_T *ent_info
+                           AVM_ENT_INFO_T *ent_info,
+                           uns32          **child_impact
                          )
 {
    uns32 node_insert =  NCSCC_RC_FAILURE;   
    uns32 rc = NCSCC_RC_SUCCESS;
+   **child_impact = NCSCC_RC_FAILURE; /* Recovery from hardware Fault , Bring back child too */ 
+
    AVM_NODE_RESET_RESP_T resp;
 
    m_AVM_LOG_FUNC_ENTRY("avm_scope_active_criteria");
@@ -778,13 +796,15 @@ avm_scope_active_criteria(
 
          case AVM_ENT_EXTRACT_REQ:
          {
-            node_insert = NCSCC_RC_FAILURE;
+            node_insert = NCSCC_RC_SUCCESS;
+            **child_impact = NCSCC_RC_SUCCESS;  
 
             rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
             resp = ((NCSCC_RC_SUCCESS == rc) ? AVM_NODE_RESET_SUCCESS : AVM_NODE_RESET_FAILURE);
             avm_avd_node_reset_resp(avm_cb, resp, ent_info->node_name);
             ent_info->current_state = AVM_ENT_ACTIVE;
             ent_info->previous_state = AVM_ENT_EXTRACT_REQ;
+ 
             break;
          }
 
@@ -800,10 +820,11 @@ avm_scope_active_criteria(
 }
 
 extern uns32 
-avm_scope_fault_domain_req_criteria(AVM_ENT_INFO_T *ent_info)
+avm_scope_fault_domain_req_criteria(AVM_ENT_INFO_T *ent_info , uns32 **child_impact)
 {
    
    uns32 node_insert =  NCSCC_RC_FAILURE;   
+   **child_impact = NCSCC_RC_FAILURE;
    m_AVM_LOG_FUNC_ENTRY("avm_scope_fault_domain_req_criteria");
 
    if(TRUE == ent_info->is_node)
@@ -822,6 +843,7 @@ avm_scope_fault_domain_req_criteria(AVM_ENT_INFO_T *ent_info)
          case AVM_ENT_EXTRACT_REQ:
          {
             node_insert = NCSCC_RC_SUCCESS;
+            **child_impact = NCSCC_RC_SUCCESS;
          }
          break;
 
@@ -838,7 +860,8 @@ extern uns32
 avm_scope_fault_criteria(
                            AVM_CB_T            *avm_cb,
                            AVM_ENT_INFO_T      *ent_info, 
-                           AVM_SCOPE_EVENTS_T  fault_type
+                           AVM_SCOPE_EVENTS_T  fault_type,
+                           uns32               *impact
                         )
 {
    uns32 rc;
@@ -848,43 +871,43 @@ avm_scope_fault_criteria(
    {
       case AVM_SCOPE_EXTRACTION:
       {
-         rc = avm_scope_extract_criteria(ent_info);
+         rc = avm_scope_extract_criteria(ent_info,&impact);
       }  
       break;
 
       case AVM_SCOPE_RESET:
       {
-         rc = avm_scope_reset_criteria(ent_info); 
+         rc = avm_scope_reset_criteria(ent_info,&impact); 
       }   
       break;
 
       case AVM_SCOPE_SENSOR_ASSERT:
       {
-         rc = avm_scope_sensor_assert_criteria(ent_info);
+         rc = avm_scope_sensor_assert_criteria(ent_info,&impact);
       }
       break;
 
       case AVM_SCOPE_SENSOR_DEASSERT:
       {
-         rc = avm_scope_sensor_deassert_criteria(ent_info);
+         rc = avm_scope_sensor_deassert_criteria(ent_info,&impact);
       }
       break;
 
       case AVM_SCOPE_SURP_EXTRACTION:
       {
-         rc = avm_scope_surp_extract_criteria(ent_info);
+         rc = avm_scope_surp_extract_criteria(ent_info,&impact);
       }
       break;
 
       case AVM_SCOPE_ACTIVE:
       {
-         rc = avm_scope_active_criteria(avm_cb, ent_info);
+         rc = avm_scope_active_criteria(avm_cb, ent_info,&impact);
       }
       break;
 
       case AVM_SCOPE_FAULT_DOMAIN_REQ:
       {
-         rc = avm_scope_fault_domain_req_criteria(ent_info);
+         rc = avm_scope_fault_domain_req_criteria(ent_info,&impact);
       }
       break;
 
@@ -909,12 +932,13 @@ avm_scope_fault_children(
                         )
 {
    uns32 rc;
+   uns32 child_impact;
 
    AVM_ENT_INFO_LIST_T  *child;
    AVM_LIST_NODE_T      *temp_node; 
    
    m_AVM_LOG_FUNC_ENTRY("avm_scope_fault_children");
-   rc = avm_scope_fault_criteria(avm_cb, ent_info, fault_type);   
+   rc = avm_scope_fault_criteria(avm_cb, ent_info, fault_type, &child_impact);   
    if(NCSCC_RC_SUCCESS == rc)
    {
       temp_node =  m_MMGR_ALLOC_AVM_AVD_LIST_NODE;
@@ -938,15 +962,18 @@ avm_scope_fault_children(
          head->count++;
       }
 
-      for(child =  ent_info->child; child != NULL; child = child->next)
-      {
+   if(NCSCC_RC_SUCCESS == child_impact)
+     {
+       for(child =  ent_info->child; child != NULL; child = child->next)
+       {
          rc = avm_scope_fault_children(avm_cb, child->ent_info, head, fault_node, fault_type);
          if(NCSCC_RC_FAILURE == rc)
          {
             m_NCS_DBG_PRINTF("\n AvM Scope Extract Children failed");
             break;
          }   
-      }
+       }
+     }
    }
    return rc;   
 }
@@ -1169,14 +1196,14 @@ avm_hisv_api_cmd(
       {
            /* If AvM succeeds in doing this, let the management know about this
            ** by sending a TRAP. This is now achieved by sending a reset indication
-           ** to local fault management and LFM will do the honors.
+           ** to fault management and it will do the honors.
            */
 
 
         /* dt:20-07-06
         ** When the reset is issued for self sometimes this bcast message
-        ** will not reach the intended party esp. LFM and if this message 
-        ** is not received by the lfm instead of ignoring the HB loss due to
+        ** will not reach the intended party esp. FM and if this message 
+        ** is not received by the fm instead of ignoring the HB loss due to
         ** node going down it will process and power down the card which is
         ** undesired.
         **
@@ -1198,9 +1225,7 @@ avm_hisv_api_cmd(
            }
            else 
            {
-#if (MOT_ATCA == 1)
-              avm_send_lfm_nd_reset_ind(avm_cb, &ent_info->entity_path);
-#endif
+              avm_notify_fm_node_reset(avm_cb, &ent_info->entity_path);
               ncshm_give_hdl(g_avm_hdl);
            }
            rc = hpl_resource_reset(chassis_id, entity_path, arg);
@@ -2109,4 +2134,236 @@ avm_push_admin_mib_set_to_psr(AVM_CB_T *cb, AVM_ENT_INFO_T  *ent_info, AVM_ADM_O
    m_MMGR_FREE_AVM_DEFAULT_VAL(mib_idx.i_inst_ids);
 
    return status;
-} 
+}
+
+/***********************************************************************
+ ******
+ * Name          :  avm_standby_boot_succ_tmr_handler
+ *
+ * Description   :  This is to Fix IR 91104 - boot_succ_tmr for the corresponding entity
+                    Needs to be started/stopped at Active & Switchover to fix the 
+                    case for Switchover/Failover - Only the Active will act on the 
+                    Expiry of this timer. 
+
+ *
+ * Arguments     : AVM_CB_T *avm_cb              -  Pointer to AvM CB
+                   AVM_EVT_T *evt
+ *
+ * Return Values : NCSCC_RC_SUCCESS.
+ *
+ * Notes         : None.
+ ***********************************************************************
+ ******/
+extern 
+uns32 avm_standby_boot_succ_tmr_handler(AVM_CB_T *avm_cb,AVM_EVT_T *hpi_evt,AVM_ENT_INFO_T *ent_info,AVM_FSM_EVT_TYPE_T   fsm_evt_type)
+{
+
+   /* start the boot_succ_tmr if it is a AVM_EVT_INSERTION_PENDING event  */
+   if(((ent_info->current_state == AVM_ENT_NOT_PRESENT) || (ent_info->current_state == AVM_ENT_INACTIVE))
+      && (fsm_evt_type == AVM_EVT_INSERTION_PENDING))
+   {
+      m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
+   }
+   /* stop the boot_succ_tmr if it is a HPI_FWPROG_BOOT_SUCCESS event */
+   if(ent_info->current_state == AVM_ENT_ACTIVE && fsm_evt_type == AVM_EVT_SENSOR_FW_PROGRESS)
+   {
+        uns32 evt_state = 0, evt_type = 0;
+        SaHpiEventT *hpi_event;
+
+        hpi_event = &((AVM_EVT_T*)hpi_evt)->evt.hpi_evt->hpi_event;
+
+        evt_state = (uns8)hpi_event->EventDataUnion.SensorEvent.EventState;
+        evt_state = (evt_state >> 1);
+
+        /* Get the Firmware progress event type */
+        if (hpi_event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_SENSOR_SPECIFIC)
+        {
+            evt_type = hpi_event->EventDataUnion.SensorEvent.SensorSpecific;
+        }
+        else
+        if (hpi_event->EventDataUnion.SensorEvent.OptionalDataPresent & SAHPI_SOD_OEM)
+        {
+            evt_type = (hpi_event->EventDataUnion.SensorEvent.Oem) >> 8;
+        }
+        else
+        {
+           /* Log it ?? */
+           return NCSCC_RC_FAILURE;
+        }
+
+        if(evt_type == HPI_FWPROG_BOOT_SUCCESS)
+        {
+           if(ent_info->boot_succ_tmr.status == AVM_TMR_RUNNING)
+           {
+              avm_stop_tmr(avm_cb, &ent_info->boot_succ_tmr);
+           }
+        }
+
+     }
+     return NCSCC_RC_SUCCESS;
+
+}
+
+/***********************************************************************
+ ******
+ * Name          : avm_standby_map_hpi2fsm
+ *
+ * Description   : This function maps hpi events to AvM fsm events
+ *
+ * Arguments     : AVM_AVD_MSG_T* -  pointer to destination.
+ *                 AVM_AVD_MSG_T* -  pointer to source.
+ *
+ * Return Values : NCSCC_RC_SUCCESS / NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ ***********************************************************************
+ ******/
+extern uns32
+avm_standby_map_hpi2fsm(
+                  AVM_CB_T             *cb,
+                  HPI_EVT_T            *evt,
+                  AVM_FSM_EVT_TYPE_T   *fsm_evt_type,
+                  AVM_ENT_INFO_T       *ent_info
+               )
+{
+   SaHpiEventT  hpi_event;
+
+   hpi_event = evt->hpi_event;
+
+   switch(hpi_event.EventType)
+   {
+      case SAHPI_ET_RESOURCE:
+      {
+         if(SAHPI_RESE_RESOURCE_FAILURE == hpi_event.EventDataUnion.ResourceEvent.ResourceEventType)
+         {
+            *fsm_evt_type = AVM_EVT_RESOURCE_FAIL;
+         }else if(SAHPI_RESE_RESOURCE_RESTORED == hpi_event.EventDataUnion.ResourceEvent.ResourceEventType)
+         {
+            *fsm_evt_type = AVM_EVT_RESOURCE_REST;
+         }else
+         {
+            *fsm_evt_type = AVM_EVT_IGNORE;
+         }
+      }
+      break;
+
+      case SAHPI_ET_HOTSWAP:
+      {
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_INSERTION_PENDING)
+         {
+            *fsm_evt_type = AVM_EVT_INSERTION_PENDING;
+             break;
+         }
+
+#ifdef HPI_A
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY)
+#else
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE)
+#endif
+         {
+            *fsm_evt_type = AVM_EVT_ENT_ACTIVE;
+             break;
+         }
+
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_EXTRACTION_PENDING)
+         {
+             *fsm_evt_type = AVM_EVT_EXTRACTION_PENDING;
+              break;
+         }
+
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_INACTIVE)
+         {
+            *fsm_evt_type = AVM_EVT_ENT_INACTIVE;
+             break;
+         }
+
+         if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_NOT_PRESENT)
+         {
+            if((hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState == SAHPI_HS_STATE_INACTIVE) || (ent_info->current_state == AVM_ENT_INACTIVE))
+            {
+               *fsm_evt_type = AVM_EVT_ENT_EXTRACTED;
+                break;
+            }
+            if(hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState != SAHPI_HS_STATE_INACTIVE)
+            {
+               *fsm_evt_type = AVM_EVT_SURP_EXTRACTION;
+                break;
+            }
+         }
+      }
+      break;
+
+      case SAHPI_ET_SENSOR:
+      {
+         /* 
+          * Check for the Firmware progress event and then send the event to the 
+          * FSM to handle it.
+          */
+         if (hpi_event.EventDataUnion.SensorEvent.SensorType == SAHPI_SYSTEM_FW_PROGRESS)
+         {
+            *fsm_evt_type = AVM_EVT_SENSOR_FW_PROGRESS;
+         }else
+         {
+            *fsm_evt_type = AVM_EVT_IGNORE;
+         }
+
+         /* Break here since other sensor events are not yet supported. Can be 
+          * removed later if required.
+          */
+         break;
+       }
+      default:
+      {
+         *fsm_evt_type = AVM_EVT_INVALID;
+      }
+   }
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/***********************************************************************
+ ******
+ * Name          : avm_is_this_entity_self
+ *
+ * Description   : This function checks whether the entity path passed
+ *                 to it is same as entity path of self i.e. active
+ *                 system controller.
+ *
+ * Arguments     : AVM_CB_T*, -  Pointer to AVM's CB.
+ *                 SaHpiEntityPathT -  Entity path which needs to be 
+ *                                     checked.
+ *
+ * Return Values : TRUE / FALSE.
+ *
+ * Notes         : None.
+ ***********************************************************************
+ ******/
+extern NCS_BOOL
+avm_is_this_entity_self(AVM_CB_T *avm_cb, SaHpiEntityPathT ep)
+{
+   MDS_DEST tmp_mds_to_node_id;
+   NCS_NODE_ID ep_node_id;
+   NCS_CHASSIS_ID chassis_id;
+   NCS_PHY_SLOT_ID phy_slot_id;
+   NCS_SUB_SLOT_ID subslot_id;
+
+   m_AVM_LOG_FUNC_ENTRY("avm_is_this_entity_self");
+
+   /* Get node ID of self */
+   tmp_mds_to_node_id = avm_cb->adest;
+   tmp_mds_to_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(tmp_mds_to_node_id);
+
+   /* Extract physical info from entity path */
+   m_NCS_GET_PHYINFO_FROM_ENTITY_PATH(ep, &chassis_id, &phy_slot_id, &subslot_id);
+
+   /* Convert extracted physical info to node ID */
+   m_NCS_GET_NODE_ID_FROM_PHYINFO(chassis_id, phy_slot_id, subslot_id, &ep_node_id);
+
+   /* Compare node ID of self and node ID of given entity */
+   if(tmp_mds_to_node_id == (MDS_DEST)ep_node_id)
+      return TRUE;
+
+   return FALSE;
+}
+ 
+ 

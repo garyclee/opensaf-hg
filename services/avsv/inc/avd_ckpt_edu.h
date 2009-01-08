@@ -102,5 +102,8 @@ EXTERN_C uns32 avsv_edp_ckpt_msg_cs_type_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                            NCSCONTEXT ptr, uns32 *ptr_data_len,
                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
                            EDU_ERR *o_err);
-
+EXTERN_C uns32 avsv_edp_ckpt_msg_si_dep(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
+                               NCSCONTEXT ptr, uns32 *ptr_data_len, 
+                               EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
+                               EDU_ERR *o_err);
 #endif

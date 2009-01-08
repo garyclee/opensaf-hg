@@ -38,6 +38,8 @@
 
 struct avnd_cb_tag;
 struct avnd_evt_tag;
+struct avnd_comp_tag;
+struct avnd_pxied_rec;
 
 typedef uns32 (*AVND_EVT_HDLR) (struct avnd_cb_tag *,struct avnd_evt_tag *);
 
@@ -48,6 +50,8 @@ EXTERN_C uns32 avnd_evt_avd_node_up_msg(struct avnd_cb_tag *,struct avnd_evt_tag
 EXTERN_C uns32 avnd_evt_avd_reg_hlt_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_reg_su_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_reg_comp_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_comp_proxied_add(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, NCS_BOOL);;
+EXTERN_C uns32 avnd_comp_proxied_del(struct avnd_cb_tag *, struct avnd_comp_tag *, struct avnd_comp_tag *, NCS_BOOL, struct avnd_pxied_rec *);
 EXTERN_C uns32 avnd_evt_avd_info_su_si_assign_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_pg_track_act_rsp_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_pg_upd_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
@@ -55,6 +59,8 @@ EXTERN_C uns32 avnd_evt_avd_operation_request_msg(struct avnd_cb_tag *,struct av
 EXTERN_C uns32 avnd_evt_avd_hb_info_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_su_pres_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_oper_state_resp_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_avd_comp_validation_resp_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_avd_role_change_msg(struct avnd_cb_tag *,struct avnd_evt_tag *);
 
 EXTERN_C uns32 avnd_evt_ava_finalize(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_ava_comp_reg(struct avnd_cb_tag *,struct avnd_evt_tag *);
@@ -92,6 +98,8 @@ EXTERN_C uns32 avnd_evt_mds_avd_up(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_mds_avd_dn(struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_mds_ava_dn (struct avnd_cb_tag *,struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_mds_cla_dn (struct avnd_cb_tag *,struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_mds_avnd_up(struct avnd_cb_tag *,struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_mds_avnd_dn(struct avnd_cb_tag *,struct avnd_evt_tag *);
 
 EXTERN_C uns32 avnd_evt_clc_resp (struct avnd_cb_tag *,struct avnd_evt_tag *);
 
@@ -105,5 +113,7 @@ EXTERN_C uns32 avnd_evt_last_step_term(struct avnd_cb_tag *, struct avnd_evt_tag
 
 EXTERN_C uns32 avnd_evt_avd_set_leds_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_destroy (void);
+EXTERN_C uns32 avnd_evt_avnd_avnd_msg (struct avnd_cb_tag *, struct avnd_evt_tag *);
+EXTERN_C uns32 avnd_evt_ha_state_change (struct avnd_cb_tag *, struct avnd_evt_tag *);
 
 #endif

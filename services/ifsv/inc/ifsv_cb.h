@@ -51,6 +51,8 @@ typedef struct ifsv_cb
    /* Common parameters (IFD/IFND) */
    uns32                shelf;
    uns32                slot;       
+   /* embedding subslot changes */
+   uns32                subslot;
    uns32                my_node_id;
    IFSV_COMP_TYPE       comp_type; /* component type (IFD/IFND)              */
    uns8                 comp_name[IFSV_MAX_COMP_NAME];      

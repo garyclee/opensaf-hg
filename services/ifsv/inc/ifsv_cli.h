@@ -100,7 +100,7 @@ ifsv_fill_sspt_display_data(NCSMIB_ARG *p_ncs_mib_arg,
                             NCS_IFSV_SSPT_IF_INDEX_INFO *p_sspt_info_display);
 
 static uns32
-ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slot);
+ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slot, uns32 subslot);
 
 static uns32
 ifsv_ncs_cli_done(uns32 cli_hdl, uns32 rc);

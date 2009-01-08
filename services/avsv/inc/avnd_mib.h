@@ -35,13 +35,16 @@
 /* MAB & MIB related routines */
 EXTERN_C uns32 avnd_mab_reg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id,
                                      SaNameT  *, SaNameT *, SaClmNodeIdT *,
-                                     uns32 *row_hdl);
+                                     uns32 *row_hdl, uns32);
 EXTERN_C uns32 avnd_mab_unreg_rows(AVND_CB *cb);
-EXTERN_C uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl);
+EXTERN_C uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl,
+                                       uns32);
 EXTERN_C uns32 avnd_miblib_init (AVND_CB *cb);
 EXTERN_C uns32 avnd_req_mib_func(struct ncsmib_arg *args);
 EXTERN_C uns32 avnd_tbls_reg_with_mab(AVND_CB *cb);
 EXTERN_C uns32 avnd_tbls_unreg_with_mab(AVND_CB *cb);
+EXTERN_C uns32 avnd_tbls_reg_with_mab_for_vdest(AVND_CB *cb);
+EXTERN_C uns32 avnd_tbls_unreg_with_mab_for_vdest(AVND_CB *cb);
 
 /* AVND Table registration routines with MIBLIB */
 EXTERN_C uns32 ncsswtableentry_tbl_reg(void);

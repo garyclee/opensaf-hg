@@ -361,7 +361,7 @@
 
      ncsAvmEntDHCPConfLabel1SwVersion OBJECT-TYPE
          SYNTAX      OCTET STRING(SIZE(0..255))
-         MAX-ACCESS  read-create
+         MAX-ACCESS  read-only
          STATUS      current
          DESCRIPTION
              "Label 1 Software version DHCP configuration."
@@ -401,7 +401,7 @@
 
      ncsAvmEntDHCPConfLabel2SwVersion OBJECT-TYPE
          SYNTAX      OCTET STRING(SIZE(0..255))
-         MAX-ACCESS  read-create
+         MAX-ACCESS  read-only
          STATUS      current
          DESCRIPTION
              "Label 2 Software version DHCP configuration."
@@ -760,6 +760,25 @@ ncsAvmUpgradeProgress   NOTIFICATION-TYPE
             which is under upgrade progress."
       ::= { ncsAvmTraps 8 }     
 
+ncsAvmEntityLocked NOTIFICATION-TYPE
+      OBJECTS {
+                  ncsAvmEntPath
+              }
+      STATUS     current
+      DESCRIPTION
+         "This trap notifies the system administrator that the specified entity has been locked."
+      ::= { ncsAvmTraps 9 }
+
+ncsAvmEntityStateIsNowInactiveButHISVreturnedError NOTIFICATION-TYPE
+      OBJECTS {
+                  ncsAvmEntPath
+              }
+      STATUS     current
+      DESCRIPTION
+          "This trap notifies the system administrator that entity state has been set 
+           to inactive in AVM but HISV returned error for the same."
+      ::= { ncsAvmTraps 10 }
+
 ncsAvmTrapSupport       OBJECT IDENTIFIER ::= { ncsAvmTrapControl 1 } 
 
 ncsAvmUpgradeErrorType  OBJECT-TYPE
@@ -788,18 +807,22 @@ ncsAvmUpgradeErrorType  OBJECT-TYPE
 
 ncsAvmUpgradeModule   OBJECT-TYPE
        SYNTAX      INTEGER {
-                               noModule(1),
-                               ipmc-payload(2),
-                               ipmc-payload-bld(3),
-                               ipmc-payload-rtm(4), 
-                               sw-bios(5),
-                               allModule(6)
+                               ipmc-payload(1),
+                               ipmc-payload-bld(2),
+                               ipmc-payload-rtm(3), 
+                               sw-bios(4),
+                               sw-bios-ipmc(5)
                             }
        MAX-ACCESS  accessible-for-notify 
        STATUS      current
        DESCRIPTION
-            "This object shows, which module is under upgrade. It 
-             is sent with the ncsAvmUpgradeFailure trap and 
+            "This object shows, which module is under upgrade.
+             ipmc-payload(1)- Payload IPMC and RTM 
+             ipmc-payload-bld(2)- Payload IPMC 
+             ipmc-payload-rtm(3)- Payload RTM 
+             sw-bios(4)- Payload software and bios 
+             sw-bios-ipmc(5)- Payload software, bios and ipmc 
+             It is sent with the ncsAvmUpgradeFailure trap and 
              ncsAvmUpgradeProgress  trap"
        ::= { ncsAvmTrapSupport 2 }
 

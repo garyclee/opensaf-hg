@@ -47,9 +47,9 @@
 /* these will go away */
 #define m_AVD_LOG_MSG_MDS_RCV_INFO(a, b, c) 
 
-const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] = {AVSV_AVD_AVND_MSG_FMT_VER_1};
+const MDS_CLIENT_MSG_FORMAT_VER avd_avnd_msg_fmt_map_table[AVD_AVND_SUBPART_VER_MAX] = {AVSV_AVD_AVND_MSG_FMT_VER_1,AVSV_AVD_AVND_MSG_FMT_VER_2};
 const MDS_CLIENT_MSG_FORMAT_VER avd_bam_msg_fmt_map_table[AVD_BAM_SUBPART_VER_MAX]   = {AVSV_AVD_BAM_MSG_FMT_VER_1};
-const MDS_CLIENT_MSG_FORMAT_VER avd_avm_msg_fmt_map_table[AVD_AVM_SUBPART_VER_MIN]   = {AVSV_AVD_AVM_MSG_FMT_VER_1};
+const MDS_CLIENT_MSG_FORMAT_VER avd_avm_msg_fmt_map_table[AVD_AVM_SUBPART_VER_MAX]   = {AVSV_AVD_AVM_MSG_FMT_VER_1};
 const MDS_CLIENT_MSG_FORMAT_VER avd_avd_msg_fmt_map_table[AVD_AVD_SUBPART_VER_MAX]   = {AVD_AVD_MSG_FMT_VER_1};
 
 /* fwd decl */
@@ -398,11 +398,16 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
       if ((info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_AVND) &&
             (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD))
       {
+         NODE_ID node_id = 0;
+         uns16   msg_fmt_ver = 0;
           m_AVD_LOG_MSG_DND_RCV_INFO(AVD_LOG_RCVD_MSG,
                     ((AVD_DND_MSG *)info->info.receive.i_msg),
                       info->info.receive.i_node_id);
-
-          rc = avd_n2d_msg_rcv(cb_hdl,(AVD_DND_MSG *)info->info.receive.i_msg);
+          node_id = 
+            m_NCS_NODE_ID_FROM_MDS_DEST(info->info.receive.i_fr_dest);
+          msg_fmt_ver = info->info.receive.i_msg_fmt_ver;
+          rc = avd_n2d_msg_rcv(cb_hdl,(AVD_DND_MSG *)info->info.receive.i_msg,
+                               node_id, msg_fmt_ver);
           info->info.receive.i_msg = (NCSCONTEXT)0;
           if (rc != NCSCC_RC_SUCCESS)
           {
@@ -799,3 +804,45 @@ static uns32 avd_mds_qsd_ack_evt(uns32 cb_hdl, MDS_CALLBACK_QUIESCED_ACK_INFO *e
    return NCSCC_RC_SUCCESS;
   
  }
+
+/****************************************************************************
+  Name          : avd_avnd_mds_send
+
+  Description   : This routine sends MDS message from AvD to AvND. 
+
+  Arguments     : cb - ptr to the AVD control block
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None.
+******************************************************************************/
+uns32 avd_avnd_mds_send (AVD_CL_CB *cb, AVD_AVND *nd_node,AVD_DND_MSG *snd_msg)
+{
+   NCSMDS_INFO snd_mds;
+   uns32 rc;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
+   m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,snd_msg,sizeof(AVD_DND_MSG),snd_msg);
+
+   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+
+   snd_mds.i_mds_hdl = cb->adest_hdl;
+   snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
+   snd_mds.i_op = MDS_SEND;
+   snd_mds.info.svc_send.i_msg = (NCSCONTEXT)snd_msg;
+   snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_AVND;
+   snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+   snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+   snd_mds.info.svc_send.info.snd.i_to_dest = nd_node->adest;
+
+  /*
+   * Now do MDS send.
+   */
+   if((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS)
+   {
+      m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND);
+      return rc;
+   }
+
+   return rc;
+}

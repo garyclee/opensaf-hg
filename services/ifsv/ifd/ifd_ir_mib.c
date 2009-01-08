@@ -48,6 +48,8 @@ uns32  ncsifsvbindifentry_get(NCSCONTEXT cb,
     spt_info.port   =  bind_portnum;
     spt_info.shelf  =  IFSV_BINDING_SHELF_ID;
     spt_info.slot    =  IFSV_BINDING_SLOT_ID;
+    /* embedding subslot changes */
+    spt_info.subslot =  IFSV_BINDING_SUBSLOT_ID;
     spt_info.type   =  NCS_IFSV_INTF_BINDING;   
     spt_info.subscr_scope   =  NCS_IFSV_SUBSCR_INT;   
 
@@ -210,6 +212,8 @@ IFSV_INTF_DATA* ncsifsvbindgetnextindex(IFSV_CB *bind_ifsv_cb,uns32 bind_portnum
            spt_info.port           =  bind_portnum;
            spt_info.shelf          =  IFSV_BINDING_SHELF_ID;
            spt_info.slot           =  IFSV_BINDING_SLOT_ID;
+           /* embedding subslot changes */
+           spt_info.slot           =  IFSV_BINDING_SUBSLOT_ID;
            spt_info.type           =  NCS_IFSV_INTF_BINDING;   
            spt_info.subscr_scope   =  NCS_IFSV_SUBSCR_INT;   
 
@@ -316,6 +320,8 @@ uns32 ncsifsvbindifentry_setrow(NCSCONTEXT hdl, NCSMIB_ARG *arg,NCSMIB_SETROW_PA
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.port  = bind_portnum;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.shelf = IFSV_BINDING_SHELF_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.slot  = IFSV_BINDING_SLOT_ID;
+      /* embedding subslot changes */
+      evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subslot  = IFSV_BINDING_SUBSLOT_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.type  = NCS_IFSV_INTF_BINDING;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subscr_scope = NCS_IFSV_SUBSCR_INT;
 
@@ -666,6 +672,8 @@ uns32 ifsv_ifd_bind_rec_create(IFSV_CB *cb, IFSV_BIND_NODE *ifsv_bind_node)
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.port  = bind_portnum;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.shelf = IFSV_BINDING_SHELF_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.slot  = IFSV_BINDING_SLOT_ID;
+       /* embedding subslot changes */
+      evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subslot  = IFSV_BINDING_SUBSLOT_ID;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.type  = NCS_IFSV_INTF_BINDING;
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subscr_scope = NCS_IFSV_SUBSCR_INT;
 
@@ -757,6 +765,8 @@ uns32 ifsv_ifd_bind_rec_delete(IFSV_CB *cb, uns32 bind_portnum )
    evt->info.ifd_evt.info.intf_destroy.spt_type.port  = bind_portnum;
    evt->info.ifd_evt.info.intf_destroy.spt_type.shelf = IFSV_BINDING_SHELF_ID;
    evt->info.ifd_evt.info.intf_destroy.spt_type.slot  = IFSV_BINDING_SLOT_ID;
+   /* embedding subslot changes */
+   evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subslot  = IFSV_BINDING_SUBSLOT_ID;
    evt->info.ifd_evt.info.intf_destroy.spt_type.type  = NCS_IFSV_INTF_BINDING;
    evt->info.ifd_evt.info.intf_destroy.spt_type.subscr_scope = NCS_IFSV_SUBSCR_INT;
    

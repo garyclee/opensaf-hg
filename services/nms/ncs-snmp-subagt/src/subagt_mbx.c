@@ -587,81 +587,55 @@ static void snmpsubagt_check_snmpd_and_subscribe_edsv(NCSSA_CB *cb)
 {
     SaAisErrorT saf_status = SA_AIS_OK;
 
-    if (main_session)
+    /* SNMPD is running now. Subscribe with EDSv */
+    saf_status = saEvtEventSubscribe(cb->evtChannelHandle, /* input */
+                                     &cb->evtFilters,/* input */
+                                     cb->evtSubscriptionId);/* input */
+    if(saf_status != SA_AIS_OK)
     {
-        /* SNMPD is running now. Subscribe with EDSv */
-        saf_status = saEvtEventSubscribe(cb->evtChannelHandle, /* input */
-                                         &cb->evtFilters,/* input */
-                                         cb->evtSubscriptionId);/* input */
-        if(saf_status != SA_AIS_OK)
-        {
-           /* log the error */
-           m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_EVT_SUBSCRIBE_FAIL,
-                                       saf_status, cb->evtSubscriptionId, 0);
-           if(saf_status == SA_AIS_ERR_TRY_AGAIN)
-           {
-              /* start the timer as error returned is TRY_AGAIN. */
-              if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT)==NCSCC_RC_FAILURE)
-              {
-                 /* timer couldn't be started. log the failure. */
-                 m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-          
-                 /* Notify AMF abt the timer start failure, if subagt has registered with it. */
-                 if(cb->amfHandle)
-                     saAmfComponentErrorReport(cb->amfHandle,
-                                               &cb->compName,
-                                               0, /* errorDetectionTime; AvNd will provide this value */
-                                               SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
-              }
-           }
-           else if(saf_status != SA_AIS_ERR_EXIST)
-           {
-              /* error returned is something other than TRY_AGAIN. Notify AMF abt error if ACTIVE state is assigned to subagt. */
-              if(cb->amfHandle)
-              {
-                      /* escalate the error, with FAILOVER as recovery */
-                      saAmfComponentErrorReport(cb->amfHandle,
-                                                &cb->compName,
-                                                0, /* errorDetectionTime; AvNd will provide this value */
-                                                SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
-              }
-           }
-           return;
-        }
-        /* log the subscription status */
-        m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS);
-
-        /* Delete the timers and set the timer-ids to NULL as subscribe is successful. */
-        if (cb->eda_timer.timer_id != TMR_T_NULL)
-        {
-           m_NCS_TMR_DESTROY(cb->eda_timer.timer_id);
-           cb->eda_timer.timer_id = TMR_T_NULL;
-        }
-
-        if (cb->snmpd_timer.timer_id != TMR_T_NULL)
-        {
-           m_NCS_TMR_DESTROY(cb->snmpd_timer.timer_id);
-           cb->snmpd_timer.timer_id = TMR_T_NULL;
-        }
+          /* log the error */
+          m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_EVT_SUBSCRIBE_FAIL,
+                                      saf_status, cb->evtSubscriptionId, 0);
+          if(saf_status == SA_AIS_ERR_TRY_AGAIN)
+          {
+             /* start the timer as error returned is TRY_AGAIN. */
+             if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT)==NCSCC_RC_FAILURE)
+             {
+                /* timer couldn't be started. log the failure. */
+                m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
+         
+                /* Notify AMF abt the timer start failure, if subagt has registered with it. */
+                if(cb->amfHandle)
+                    saAmfComponentErrorReport(cb->amfHandle,
+                                              &cb->compName,
+                                              0, /* errorDetectionTime; AvNd will provide this value */
+                                              SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
+             }
+         }
+         else if(saf_status != SA_AIS_ERR_EXIST)
+         {
+             /* error returned is something other than TRY_AGAIN. Notify AMF abt error if ACTIVE state is assigned to subagt. */
+             if(cb->amfHandle)
+             {
+                    /* escalate the error, with FAILOVER as recovery */
+                    saAmfComponentErrorReport(cb->amfHandle,
+                                              &cb->compName,
+                                              0, /* errorDetectionTime; AvNd will provide this value */
+                                              SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
+             }
+         }
+         return;
     }
-    else /* snmpd is not running */
+    /* log the subscription status */
+    m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS);
+
+    /* Delete the timers and set the timer-ids to NULL as subscribe is successful. */
+    if (cb->eda_timer.timer_id != TMR_T_NULL)
     {
-       /* start the timer and defer the subscription till then */
-       if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_CHECK_SNMPD)==NCSCC_RC_FAILURE)
-       {
-          /* timer couldn't be started. log the failure. */
-          m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-          
-          /* Notify AMF abt the timer start failure, if subagt has registered with it. */
-          if(cb->amfHandle)
-               saAmfComponentErrorReport(cb->amfHandle,
-                                         &cb->compName,
-                                         0, /* errorDetectionTime; AvNd will provide this value */
-                                         SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
-
-       }
-             
+         m_NCS_TMR_DESTROY(cb->eda_timer.timer_id);
+         cb->eda_timer.timer_id = TMR_T_NULL;
     }
+
     return;
 }
 
@@ -679,7 +653,8 @@ static void snmpsubagt_unsubscribe_edsv(NCSSA_CB *cb)
 {
    SaAisErrorT status = SA_AIS_OK;
 
-   /* Need to unsubscribe only if subscribed.. This can be known if both eda_timer and snmpd_timer are not running. */
+
+   /* Need to unsubscribe only if subscribed.. This can be known if eda_timer is running. */
    if (cb->edaInitStatus != m_SNMPSUBAGT_EDA_INIT_COMPLETED)
    {
       /* Subscribe didn't happen. No need to unsubscribe. */
@@ -691,12 +666,11 @@ static void snmpsubagt_unsubscribe_edsv(NCSSA_CB *cb)
    {
       m_NCS_TMR_STOP(cb->eda_timer.timer_id);
    }
-   else if (cb->snmpd_timer.timer_id != NULL)
-   {
-      m_NCS_TMR_STOP(cb->snmpd_timer.timer_id);
-   }
    else /* Subscription happened earlier. So do unsubscribe now. */
    {
+       /* If the  traps are buffered and snmpd is up, send the buffered traps */
+       snmpsubagt_check_and_flush_buffered_traps(cb);
+
        status = saEvtEventUnsubscribe(cb->evtChannelHandle, /* input */
                                       cb->evtSubscriptionId);/* input */
        if (status != SA_AIS_OK)

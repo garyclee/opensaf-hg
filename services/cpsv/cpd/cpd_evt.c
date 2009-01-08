@@ -125,8 +125,8 @@ void cpd_process_evt(CPSV_EVT *evt)
       #if 0
       rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo,evt->info.cpd.info.ver_info.i_msg_fmt_ver);
       #else
-	rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo);
-	#endif
+      rc = cpd_evt_proc_ckpt_create(cb, &evt->info.cpd, &evt->sinfo);
+    #endif
       break;
    case CPD_EVT_ND2D_CKPT_USR_INFO:
       rc = cpd_evt_proc_ckpt_usr_info(cb,&evt->info.cpd, &evt->sinfo);
@@ -215,13 +215,13 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
    /*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length);  */
       if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
         (!m_COMPARE_CREATE_ATTR(&ckpt_create->attributes, &map_info->attributes)))   
-          {
+      {
              m_LOG_CPD_CFCL(CPD_CKPT_CREATE_FAILURE,CPD_FC_HDLN,NCSFL_SEV_NOTICE,ckpt_create->ckpt_name.value, \
-                                                    sinfo->dest,__FILE__,__LINE__);
-             rc = SA_AIS_ERR_EXIST;
-             goto send_rsp;
-          }
+                                                sinfo->dest,__FILE__,__LINE__);
+         rc = SA_AIS_ERR_EXIST;
+         goto send_rsp;
       }
+   }
       else if (fmt_ver == 1)
       {
               if((ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
@@ -298,8 +298,8 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
    {
       /* Policy is to create the replic on both active & standby SCXB's CPND 
       Right now replica is created only on the active (local) SCXB */
-     /* if(cb->is_loc_cpnd_up && (cpd_get_phy_slot_id(sinfo->dest) != ckpt_node->ckpt_on_scxb1))*/
-      if(cb->is_loc_cpnd_up && (!m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(sinfo->dest))))
+     /* if(cb->is_loc_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb1))*/
+      if(cb->is_loc_cpnd_up && (!m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest))))
       {
          proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->loc_cpnd_dest,
                                        ckpt_node, map_info);
@@ -311,8 +311,8 @@ static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb,
                                  ckpt_create->ckpt_name.value,cb->loc_cpnd_dest,__FILE__,__LINE__);
             
       }
-    /*  if(cb->is_rem_cpnd_up && (cpd_get_phy_slot_id(sinfo->dest) != ckpt_node->ckpt_on_scxb2))*/
-      if(cb->is_rem_cpnd_up && (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(sinfo->dest))))
+    /*  if(cb->is_rem_cpnd_up && (cpd_get_slot_sub_id_from_mds_dest(sinfo->dest) != ckpt_node->ckpt_on_scxb2))*/
+      if(cb->is_rem_cpnd_up && (!m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest))))
       {
          proc_rc = cpd_noncolloc_ckpt_rep_create(cb, &cb->rem_cpnd_dest,
                                        ckpt_node, map_info);
@@ -448,26 +448,26 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb,
     {
        if(!(m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes))) 
        {
-          if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(sinfo->dest)))
+          if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))
           {
             
               if(evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_OPEN_FIRST)
               { 
                  if(!ckpt_node->ckpt_on_scxb1)
-                     ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_phy_slot_id(sinfo->dest); 
+                     ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest); 
                  else 
-                     ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_phy_slot_id(sinfo->dest);
+                     ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
 
               }
           }
-          if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(sinfo->dest)))
+          if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))
           {
              if(evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_OPEN_FIRST)
              { 
                  if(!ckpt_node->ckpt_on_scxb1)
-                    ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_phy_slot_id(sinfo->dest);
+                    ckpt_node->ckpt_on_scxb1 = (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
                  else
-                    ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_phy_slot_id(sinfo->dest);
+                    ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_slot_sub_id_from_mds_dest(sinfo->dest);
               }
           }
        }       
@@ -485,14 +485,14 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb,
 
        if(!(m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)))
        {
-          if(m_CPND_IS_ON_SCXB(ckpt_node->ckpt_on_scxb1,cpd_get_phy_slot_id(sinfo->dest)))
+          if(m_CPND_IS_ON_SCXB(ckpt_node->ckpt_on_scxb1,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))
           {
              if(evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_CLOSE_LAST){
                 ckpt_node->ckpt_on_scxb1 = 0;
               }
 
           }
-          if(m_CPND_IS_ON_SCXB(ckpt_node->ckpt_on_scxb2,cpd_get_phy_slot_id(sinfo->dest)))
+          if(m_CPND_IS_ON_SCXB(ckpt_node->ckpt_on_scxb2,cpd_get_slot_sub_id_from_mds_dest(sinfo->dest)))
           {
              if(evt->info.ckpt_usr_info.info_type == CPSV_USR_INFO_CKPT_CLOSE_LAST){
                 ckpt_node->ckpt_on_scxb2 = 0;
@@ -1200,12 +1200,12 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
    SaCkptCheckpointHandleT prev_ckpt_hdl;
    NCS_BOOL  flag = FALSE;
    SaNameT   ckpt_name;
-   NCS_PHY_SLOT_ID phy_slot;
+   uns32 phy_slot_sub_slot;
 
    m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
    mds_info = &evt->info.mds_info;
   
-  m_NCS_OS_MEMSET(&phy_slot,0,sizeof(NCS_PHY_SLOT_ID));    
+  m_NCS_OS_MEMSET(&phy_slot_sub_slot,0,sizeof(uns32));    
 
    switch(mds_info->change)
    {
@@ -1215,15 +1215,18 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        /* from the phy slot get the mds_dest of remote CPND */
        if(cb->node_id != mds_info->node_id)
        {
-          m_NCS_GET_PHYINFO_FROM_NODE_ID(mds_info->node_id,NULL,&phy_slot,NULL);
-          cb->cpd_remote_id = phy_slot;
+          phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(mds_info->node_id);
+          cb->cpd_remote_id = phy_slot_sub_slot;
+          cb->is_rem_cpnd_up = TRUE;
+          cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot_sub_slot-1];
        }
-       else 
+       else
        {          
           /* Don't handle RED_UP from our own node */
           break;
        }
-
+       
+     break;
 
     case NCSMDS_UP:
        
@@ -1236,17 +1239,16 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        if(mds_info->svc_id == NCSMDS_SVC_ID_CPND)
        {
             /* Save MDS address for this CPND */
-          phy_slot = cpd_get_phy_slot_id(mds_info->dest);
-          cb->cpnd_dests[phy_slot-1] = mds_info->dest;
-       if(cb->cpd_remote_id == phy_slot)
-	       cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot-1];
+         phy_slot_sub_slot  = cpd_get_slot_sub_id_from_mds_dest(mds_info->dest);
+         cb->cpnd_dests[phy_slot_sub_slot-1] = mds_info->dest;
+         if(cb->cpd_remote_id == phy_slot_sub_slot)
+         cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot_sub_slot-1];
 
-       }  
       
-       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(cb->cpnd_dests[phy_slot_sub_slot-1])))
        {
           cb->is_loc_cpnd_up = TRUE;   
-          cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot-1];
+          cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot_sub_slot-1];
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
           { 
@@ -1259,7 +1261,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
                    nref_info = ckpt_node->node_list;
                    while(nref_info) 
                    {
-                      if(m_CPD_IS_LOCAL_NODE(cb->cpd_self_id,cpd_get_phy_slot_id(nref_info->dest))) 
+                      if(m_CPD_IS_LOCAL_NODE(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(nref_info->dest))) 
                       {
                          flag = TRUE; 
                       }
@@ -1280,10 +1282,10 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
           }
        }
        /* When CPND ON STANDBY COMES UP */
-       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(cb->cpnd_dests[phy_slot-1])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(cb->cpnd_dests[phy_slot_sub_slot-1])))
        {
           cb->is_rem_cpnd_up = TRUE;
-          cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot-1];
+          cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot_sub_slot-1];
     
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
@@ -1297,7 +1299,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
                    nref_info = ckpt_node->node_list;
                    while(nref_info) 
                    {
-                      if(m_CPD_IS_LOCAL_NODE(cb->cpd_remote_id,cpd_get_phy_slot_id(nref_info->dest)))
+                      if(m_CPD_IS_LOCAL_NODE(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(nref_info->dest)))
                       {
                          flag = TRUE;
                       }
@@ -1354,20 +1356,35 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
                 cpd_cpnd_dest_replace(cb,cref_info,mds_info);
           }
        }
-  
+      }
       break; 
     case NCSMDS_DOWN:
-        if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_phy_slot_id(mds_info->dest)))
+
+       if(mds_info->svc_id == NCSMDS_SVC_ID_CPD)
+       {
+          if(mds_info->change == NCSMDS_DOWN)
+            return NCSCC_RC_SUCCESS;
+       }
+        
+      
+    
+       if(mds_info->svc_id == NCSMDS_SVC_ID_CPND)
+       {
+        if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(mds_info->dest)))
         {
            cb->is_loc_cpnd_up = FALSE;
         }
-        if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_phy_slot_id(mds_info->dest)))
+           
+        if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(mds_info->dest)))
         {
           cb->is_rem_cpnd_up = FALSE;
         }
+           
         /* MDS address for this CPND is no longer valid */
-        phy_slot = cpd_get_phy_slot_id(mds_info->dest);
-        cb->cpnd_dests[phy_slot-1] = 0;
+            phy_slot_sub_slot = cpd_get_slot_sub_id_from_mds_dest(mds_info->dest);
+            cb->cpnd_dests[phy_slot_sub_slot-1] = 0;
+    
+    
         if(cb->ha_state == SA_AMF_HA_ACTIVE)
         { 
            cpd_cpnd_info_node_get(&cb->cpnd_tree,&mds_info->dest,&node_info);
@@ -1392,7 +1409,7 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
            node_info->cpnd_ret_timer.info.cpnd_dest = mds_info->dest;
            cpd_tmr_start(&node_info->cpnd_ret_timer, CPD_CPND_DOWN_RETENTION_TIME);
         }
-
+      }
       break;
     default:
          

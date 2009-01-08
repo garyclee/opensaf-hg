@@ -762,6 +762,7 @@ uns32 pss_send_wbreq_to_bam(PSS_PWE_CB *pwe_cb, char *pcn)
 {
     PSS_BAM_MSG pmsg;
     uns32 code = NCSCC_RC_SUCCESS;
+    uns32 retval = NCSCC_RC_SUCCESS;
 
     if(!pwe_cb->p_pss_cb->is_bam_alive)
     {
@@ -785,6 +786,8 @@ uns32 pss_send_wbreq_to_bam(PSS_PWE_CB *pwe_cb, char *pcn)
         /* Saving the MIB sets in-memory till the conf_done is received */
         pwe_cb->p_pss_cb->bam_req_cnt++;
         pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_ON_DEMAND;
+        m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
+           retval, pwe_cb->p_pss_cb->current_profile, pwe_cb->pwe_id, pcn);
     }
     else
     {
@@ -1592,7 +1595,6 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
     PSS_PWE_CB         *pwe_cb = NULL;
     PSS_SPCN_LIST      *spcn_entry = NULL;
     NCS_BOOL           move_to_save_immediate = FALSE;
-    uns32              retval = NCSCC_RC_SUCCESS;
 
     if(msg->data.data.bam_conf_done.pcn_list.pcn == NULL)
     {
@@ -1627,8 +1629,6 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
     m_LOG_PSS_CONF_DONE(NCSFL_SEV_INFO, PSS_CONF_DONE_FINISHED, msg->data.data.bam_conf_done.pcn_list.pcn);
 
     pwe_cb->p_pss_cb->bam_req_cnt--;
-    m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
-       retval, pwe_cb->p_pss_cb->current_profile, pwe_cb->pwe_id, msg->data.data.bam_conf_done.pcn_list.pcn);
     if(pwe_cb->p_pss_cb->bam_req_cnt == 0)
         move_to_save_immediate = TRUE;
 

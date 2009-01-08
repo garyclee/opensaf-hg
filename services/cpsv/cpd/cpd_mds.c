@@ -118,7 +118,7 @@ uns32 cpd_mds_register (CPD_CB *cb)
    NCSMDS_INFO       svc_info;
    MDS_SVC_ID        svc_id[1] = {NCSMDS_SVC_ID_CPND};
    MDS_SVC_ID        cpd_id[1] = {NCSMDS_SVC_ID_CPD};
-   NCS_PHY_SLOT_ID   phy_slot;
+   uns32   phy_slot_sub_slot;
 
   /* Create the virtual Destination for  CPD */
    rc = cpd_mds_vdest_create(cb);
@@ -206,8 +206,8 @@ uns32 cpd_mds_register (CPD_CB *cb)
 
    /* Get the node id of local CPD */
    cb->node_id = m_NCS_GET_NODE_ID;
-   m_NCS_GET_PHYINFO_FROM_NODE_ID(cb->node_id,NULL,&phy_slot,NULL);
-   cb->cpd_self_id = phy_slot;
+   phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(cb->node_id);
+   cb->cpd_self_id = phy_slot_sub_slot;
 
    return NCSCC_RC_SUCCESS; 
 }
@@ -621,8 +621,9 @@ static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
    {
       if(cb->node_id != svc_evt->i_node_id)
       {
-          m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-          cb->cpd_remote_id = phy_slot;
+          
+          phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+          cb->cpd_remote_id = phy_slot_sub_slot;
       }
    }
 #endif

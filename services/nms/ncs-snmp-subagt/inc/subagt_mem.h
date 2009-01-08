@@ -33,6 +33,7 @@ typedef enum
     NCS_SERVICE_SNMPSUBAGT_OID_DB_ELEM, 
     NCS_SERVICE_SNMPSUBAGT_OID_DB_NODE, 
     NCS_SERVICE_SNMPSUBAGT_MBX,
+    NCS_SERVICE_SNMPSUBAGT_TRAP_LIST_NODE,
     NCS_SERVICE_SNMPSUBAGT_MAX 
 }NCS_SERVICE_SNMPSUBAGT_ID;
 
@@ -95,6 +96,19 @@ typedef enum
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_SNMPSUBAGT, \
                                          NCS_SERVICE_SNMPSUBAGT_MBX)
+
+
+/* for trap_list node*/
+#define m_MMGR_SNMPSUBAGT_TRAP_LIST_NODE_ALLOC \
+   (SNMPSUBAGT_TRAP_LIST *)m_NCS_MEM_ALLOC(sizeof(SNMPSUBAGT_TRAP_LIST), \
+                                            NCS_MEM_REGION_PERSISTENT, \
+                                            NCS_SERVICE_ID_SNMPSUBAGT, \
+                                            NCS_SERVICE_SNMPSUBAGT_TRAP_LIST_NODE)
+#define m_MMGR_SNMPSUBAGT_TRAP_LIST_NODE_FREE(p) m_NCS_MEM_FREE(p, \
+                                            NCS_MEM_REGION_PERSISTENT, \
+                                            NCS_SERVICE_ID_SNMPSUBAGT,\
+                                            NCS_SERVICE_SNMPSUBAGT_TRAP_LIST_NODE)
+
 
 #endif
 

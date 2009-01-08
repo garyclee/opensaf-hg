@@ -40,6 +40,7 @@ $Header:
 #include "hpl_api.h"
 
 #include <SaHpi.h>
+#include "hpl_msg.h"
 
 #define AVSV_BUFFER_LEN   200
 
@@ -98,11 +99,11 @@ avm_cef_set_adm_switch(
   NOTES         : CLI needs to lookup entity paths using an HISv API.
 *****************************************************************************/
 static uns32 avsv_cli_hisv_init() {
-   uns32		rc = NCSCC_RC_SUCCESS;
-   SaEvtHandleT 	gl_evt_hdl = 0;
-   SaEvtCallbacksT 	reg_callback_set;
-   NCS_LIB_CREATE 	hisv_create_info;
-   SaVersionT 		ver;
+   uns32              rc = NCSCC_RC_SUCCESS;
+   SaEvtHandleT        gl_evt_hdl = 0;
+   SaEvtCallbacksT        reg_callback_set;
+   NCS_LIB_CREATE        hisv_create_info;
+   SaVersionT               ver;
 
    /* Initialize the event subsystem for communication with HISv */
    ver.releaseCode = 'B';
@@ -151,7 +152,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
       },
       {
          avm_cef_set_adm_switch,
-         "admswitch!Swicthover System Controller Hosts! ",
+         "admswitch!Switchover System Controller Hosts! ",
          NCSCLI_ADMIN_ACCESS
       } 
    };
@@ -296,7 +297,8 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
          table_id = NCSMIB_TBL_AVSV_AMF_SG;
          param_id = 10;
       }
-      else if(m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0)
+      else if((m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0) ||
+              (m_NCS_STRNCMP(index->cmd.strval,"safEsu=", 7) == 0))
       {
          table_id = NCSMIB_TBL_AVSV_AMF_SU;
          param_id = 6;
@@ -333,7 +335,8 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
          return NCSCC_RC_FAILURE;
       }
 
-      if(m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0)
+      if((m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0) ||
+        (m_NCS_STRNCMP(index->cmd.strval,"safEsu=", 7) == 0))
       {
          table_id = NCSMIB_TBL_AVSV_NCS_SU;
          param_id = 3;
@@ -479,24 +482,23 @@ avm_constr_ep(
        }
     }else
     {
+       if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
+       {
 #ifdef HPI_A
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
-       /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
-       rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep);
-       if (rc == NCSCC_RC_SUCCESS) {
-          if (m_NCS_STRLEN(ep) == 0) {
-             m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
-             /* A zero length entity path means that HISv is working - but could not find the entity path */
-             rc = NCSCC_RC_FAILURE;
-          }
-       }
-       else {
-          /* HISv is not running - so create the entity path using the original hardcoded values */
-          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
-          rc = NCSCC_RC_SUCCESS;
-       }
+       len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #endif
+        }
+        else /*  Subslot deault case */
+        {
+#ifdef HPI_A
+       /*This way subslot is not supported in version HPI-A */
+         rc=NCSCC_RC_FAILURE;
+#else
+       len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d},{%d,%d}}", AMC_SUB_SLOT_TYPE, ent_inst[2], SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+#endif
+        }
     }
     return rc;
 } 
@@ -555,10 +557,18 @@ avm_cef_set_ent_adm_req(
     }
    
     if(!(((AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt) && ((!ent_type_cnt) || (ent_inst_cnt == ent_type_cnt))) || 
-       ((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && (ent_inst_cnt == ent_type_cnt))))
+       ((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && ((!ent_type_cnt)||(ent_inst_cnt == ent_type_cnt)))))
     {
        m_RETURN_AVSV_CLI_DONE("\n FAILURE: Invalid Index", NCSCC_RC_FAILURE, cef_data->i_bindery->i_cli_hdl);
        return NCSCC_RC_FAILURE;
+    }
+
+    /* If subslot has been specified as 0 then it's same as when it's not specified */
+    if((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && (entity_instance[2] == 0))
+    {
+       if(ent_type_cnt == ent_inst_cnt)
+          ent_type_cnt = AVM_DEFAULT_HIERARCHY_LVL;
+       ent_inst_cnt = AVM_DEFAULT_HIERARCHY_LVL;
     }
 
     if(NCSCC_RC_SUCCESS != (avm_constr_ep(entity_type, ent_type_cnt, entity_instance, ent_inst_cnt, ep)))
@@ -593,7 +603,7 @@ avm_cef_set_ent_adm_req(
            sprintf(set_val, "%d", 1);
         }else if(!m_NCS_STRCMP(value->cmd.strval, "lock"))
         {
-           avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is abrupt operation. It may harm the node due to that node may not come after doing unlock. Shutdown operation is suggested to be used instead of lock, Shutdown will do the same thing in smooth manner.\n");
+           avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
 
            avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
            ans = m_NCS_CONS_GETCHAR(); 
