@@ -4,6 +4,7 @@ Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B3
 	* AMF External Component support.
 	* PAI changes.
 	* Subslot support.
+        * AMF External Sample Application 
 
 2009-01-07 Ramesh Babu <ramesh.betham@emerson.com>
 	* AMF SI-SI Dependency support.
