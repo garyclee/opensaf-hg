@@ -2009,7 +2009,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
                   break;
                }
                case HPL_EPATH_FLAG_SHORTSTR: {
-                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SYSTEM_CHASSIS,%d},{ROOT,0}}",
+                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SYSTEM_CHASSIS,%d}}",
                      blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
                   break;
                }
