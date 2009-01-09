@@ -79,6 +79,16 @@
                                         </CSIAttributes>
                                 </CSIInstance>
                         </CSIList>
+                        <!--
+                         Following definition represents for SI-SI dependency.
+                         Ex: "safSi=Si_AvSvDemo" is depended on "safSi=Si_Sponsor".
+                             for zero tolerance timer, it should be  tolTime="0".
+                        -->
+                        <!--
+                        <SIDepList>
+                                <SIDep  name="safSi=Si_Sponsor"  tolTime="500000" />
+                        </SIDepList>
+                        -->
                 </SIInstance>
                 <SGInstance name="safSg=SG_AvSvDemo">
                         <redundancyModel>
