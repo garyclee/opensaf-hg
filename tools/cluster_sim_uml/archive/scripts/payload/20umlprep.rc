@@ -1,0 +1,42 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+errquit() {
+    echo "ERROR: $*"
+    exit 1
+}
+
+# This script is executed first in the UML start sequence
+# and contains preparations of the UML environment
+
+# Prepare for core dumps
+COREDUMP_PATH=/var/crash
+if [ ! -d $COREDUMP_PATH ]; then
+    mkdir -p $COREDUMP_PATH && chmod -R 777 $COREDUMP_PATH
+fi
+echo "$COREDUMP_PATH/core_%t_%e_%p" > /proc/sys/kernel/core_pattern
+ulimit -c unlimited
+
+mkdir /dev/shm
+mkdir -p /usr/bin /usr/lib /usr/sbin /etc/default
+mkdir -p /usr/share/snmp/mibs/
+rm -f /etc/hosts
+ln -s /hostfs/root.controller/etc/hosts /etc/hosts
+rm /bin/killall

@@ -1,0 +1,115 @@
+#!/bin/bash
+
+#########################################
+# OpenSAF PATH's
+#########################################
+TMPDIR="/tmp"
+LOCALSTATEDIR="@localstatedir@/lib/@PACKAGE_NAME@"
+SYSCONFDIR="@sysconfdir@/@PACKAGE_NAME@"
+PIDPATH="@pidpath@"
+BINPATH="xxBINDIRxx"
+LIBPATH="xxLIBDIRxx"
+
+#########################################
+# TIPC configuration
+#########################################
+TIPC_MODULE="/lib/modules/$(uname -r)/kernel/net/tipc.ko"
+TIPC_MANAGE="YES"
+
+export SNMPCONFPATH="/usr/share/snmp"
+export MIBDIRS="/usr/share/snmp/mibs"
+
+# Check for environment variable for slot number.
+if [ "$SLOT_NUMBER" = "" ] ; then
+  export SLOT_NUMBER=$(< "$SYSCONFDIR/slot_id")
+fi
+
+if [ "$SLOT_NUMBER" -eq 1 -o $SLOT_NUMBER -eq 2 ] ; then
+  NODE_TYPE="controller"
+elif [ "$SLOT_NUMBER" -ge 3 ] ; then
+  NODE_TYPE="payload"
+else
+  echo "INVALID SLOT_NUMBER: $SLOT_NUMBER"
+fi
+
+
+# The following environment variables are useful
+# when running in simulation mode, where multiple
+# nodes are simulated on the same Linux desktop
+if [ ":$NCS_STDOUTS_PATH" == ":" ]
+then
+      export NCS_STDOUTS_PATH="$LOCALSTATEDIR/stdouts"
+fi
+
+export OLD_STDOUTSPATH="$LOCALSTATEDIR/old_stdouts"
+
+
+#########################################
+# FILES
+#########################################
+NODE_HA_STATE="$LOCALSTATEDIR/node_ha_state"
+DBGFILE="$NCS_STDOUTS_PATH/monc_debug_log"
+SAFLOG="$LOCALSTATEDIR/saflog"
+NIDFIFO="$TMPDIR/nodeinit.fifo"
+SPCAPFIFO="$NIDFIFO"
+CHASSIS_ID_FILE="$SYSCONFDIR/chassis_id"
+SLOT_ID_FILE="$SYSCONFDIR/slot_id"
+NISPIPE="$TMPDIR/nisfifo"
+COMPNAMEFILE="$LOCALSTATEDIR/ncs_pss_comp_name"
+RDE_HA_COMP_NAMED_PIPE="$TMPDIR/rde_ha_comp_named_pipe"
+FMS_HA_COMP_NAMED_PIPE="$TMPDIR/fms_ha_comp_named_pipe"
+
+#########################################
+# KEYS
+#########################################
+export PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY="A5A5"
+export CPSV_ENV_HEALTH_CHECK_KEY="A1B2"
+export DTS_AMF_HELATH_CHECK_KEY="A9FD64E12C12"
+export EDSV_ENV_HEALTHCHECK_KEY="E5F6"
+export VDS_ENV_HEALTHCHECK_KEY="B9B9"
+export SRMSV_ENV_HEALTHCHECK_KEY="A9A9"
+export MQSV_ENV_HEALTHCHECK_KEY="E5F6"
+export HCD_HEALTH_KEY_DEFAULT_SET="F6C7"
+export GLSV_ENV_HEALTHCHECK_KEY="A1B2"
+export IFSV_ENV_HEALTHCHECK_KEY="C3D4"
+export RDE_HA_ENV_HEALTHCHECK_KEY="BAD8"
+export FMS_HA_ENV_HEALTHCHECK_KEY="BAD9"
+export NID_MAGIC=AAB49DAA
+
+
+#########################################
+# DRBD Configuration
+#########################################
+DRBD="/etc/init.d/drbd"
+DRBDADM="/sbin/drbdadm"
+PSEUDO_DRBD_PIPE="$TMPDIR/pseudo_drbd.fifo"
+DRBD_ADM="/sbin/drbdadm"
+DRBD_SETUP="/sbin/drbdsetup"
+MOTO_DRBD_CONF_PATH="$BINPATH"
+DRBD_SYNC_FILE="/etc/opensaf/.drbd_sync_state_"
+MOT_DRBD_DEV="/dev/drbd0"
+MOT_MNT_PNT="/repl_opensaf"
+MOT_REPL_PRTN="/dev/sda5"
+MOT_META_PRTN="/dev/sda6"
+DRBD_CONF_PATH="/etc"
+MY_DRBD_CONF_PATH="$BINPATH/"
+DRBD_SYNC_FILE="$SYSCONFDIR/.drbd_sync_state_0"
+
+
+#########################################
+# MISC
+#########################################
+ECHO="echo -e"
+CAT="cat"
+EXTN=".pid"
+
+DAEMON_STARTED=1
+DAEMON_NOT_FND=2
+DAEMON_START_FAILED=3
+
+NID_IFSVDD_SUCCESS=1
+NID_IFSVDD_CREATE_FAILED=2
+
+CORE_FILE_SIZE="unlimited"
+CORE_PATTERN="/var/crash/core_%t_%e_%p"
+CORE_PATTERN_CURRENT=$(cat /proc/sys/kernel/core_pattern)

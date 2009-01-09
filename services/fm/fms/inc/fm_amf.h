@@ -1,0 +1,86 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+/*****************************************************************************
+..............................................................................
+
+  $$
+
+
+  MODULE NAME: FM
+  AUTHOR: vishal soni (vishal.soni@emerson.com)
+
+..............................................................................
+
+  DESCRIPTION:
+
+
+
+******************************************************************************/
+
+#ifndef FM_AMF_H
+#define FM_AMF_H
+
+#include "fm.h"
+
+/*
+ * Macro used to get the AMF version used
+ */
+#define m_FM_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x00;
+
+#define FM_HA_COMP_NAMED_PIPE "/tmp/fms_ha_comp_named_pipe"
+
+/*
+ * FM AMF control information
+ */
+typedef struct fm_amf_cb
+{
+   uns8                 comp_name [256];
+   SaAmfHandleT         amf_hdl;       /* AMF handle */
+   SaSelectionObjectT   amf_fd;        /* AMF selection fd */
+   NCS_BOOL             is_amf_up;     /* For amf_fd and pipe_fd */
+   NCS_OS_SEM           semaphore;     /* Semaphore for health check */
+   uns32                pipe_fd;       /* To recieve msg from INSTANTIATE script */
+}FM_AMF_CB;
+
+
+FM_AMF_CB* fm_amf_get_cb (void);
+
+void  fm_saf_CSI_set_callback  (SaInvocationT invocation,
+                                const SaNameT *compName,
+                                SaAmfHAStateT haState,
+                                SaAmfCSIDescriptorT csiDescriptor);
+
+void  fm_saf_health_chk_callback (SaInvocationT invocation,
+                                const SaNameT *compName,
+                                SaAmfHealthcheckKeyT *checkType);
+
+void  fm_saf_CSI_rem_callback (SaInvocationT invocation,
+                               const SaNameT *compName,
+                               const SaNameT *csiName,
+                               const SaAmfCSIFlagsT csiFlags);
+
+void  fm_saf_comp_terminate_callback (SaInvocationT invocation,
+                                      const SaNameT *compName);
+
+uns32 fm_amf_open             (FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_close            (FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_process_msg      (FM_AMF_CB *fm_amf_cb);
+
+#endif
+
