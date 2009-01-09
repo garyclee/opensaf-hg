@@ -1,0 +1,14 @@
+export PATH=$PATH:/opt/opensaf/payload/bin
+if test `uname -m` = "x86_64"; then
+   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib64
+else
+   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
+fi
+alias ls='ls -F'
+alias ll='ls -Fl'
+alias lrt='ls -lrt'
+alias ..='cd ..'
+alias ...='cd ..;cd ..'
+ulimit -c unlimited
+
+alias 'nis_pld=/opt/opensaf/payload/scripts/nis_pld'

@@ -1,0 +1,6 @@
+libedsv_subagt.so.3 edsv
+libpssv_subagt.so.3 psr
+libmqsv_subagt.so.3 mqsv
+libglsv_subagt.so.3 glsv
+libcpsv_subagt.so.3 cpsv
+libifsv_bind_subagt.so.3 ifsv_ir
