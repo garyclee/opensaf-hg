@@ -513,7 +513,7 @@ uns32 hcd_hsm()
           (RptEntry.ResourceEntity.Entry[0].EntityType != 160))
          epath.Entry[0].EntityType = RptEntry.ResourceEntity.Entry[0].EntityType;
 #else
-         if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_AMC)))
+         if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))
         {
            /* Special Case of AMC-Sub Slot board */  
            epath.Entry[0]= RptEntry.ResourceEntity.Entry[1];    
