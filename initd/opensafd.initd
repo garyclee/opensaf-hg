@@ -183,14 +183,22 @@ start()
         #  OpenSAF Settings END
         #####################################################
 
-	rm -f "$NISPIPE"	
-	mkfifo -m 660 "$NISPIPE" || {
-	     log "Cannot create named pipe"
-             exit 1
-        } 
+    rm -f "$NISPIPE"
+    touch $NISPIPE
 
-	"$BINPATH/$DAEMON" > "$NISPIPE" &
-	read -t $INITTIMEOUT NISSTATUS < $NISPIPE
+    "$BINPATH/$DAEMON" > "$NISPIPE" &
+
+    # Wait a while for response
+    timeout=$INITTIMEOUT
+    while test $timeout -gt 0; do
+        sleep 1
+        if test -s $NISPIPE; then
+            NISSTATUS=`cat $NISPIPE`
+            timeout=0
+        else
+            timeout=$((timeout-1))
+        fi
+    done
 
 	rm -f "$NISPIPE"
 	if [ "${NISSTATUS}" != "SUCCESS" ]; then
