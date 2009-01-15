@@ -69,6 +69,15 @@ uns32 hpl_resource_reset(uns32 chassis_id, uns8 *entity_path, uns32 reset_type)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+
+   /* validate reset_type */
+   if (reset_type > HISV_RES_GRACEFUL_REBOOT) {
+      /* invalid reset type */
+      m_LOG_HISV_DEBUG("bad reset type requested\n");
+      rc = NCSCC_RC_FAILURE;
+      return rc;
+   }
+
    /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
    epath_len++;
 
@@ -154,17 +163,18 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
-   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
-   epath_len++;
 
    /* validate the requested power state */
    if ((power_state < HISV_RES_POWER_OFF) || (power_state > HISV_RES_POWER_CYCLE))
    {
-      /* invalide power state */
+      /* invalid power state */
       m_LOG_HISV_DEBUG("bad power state requested\n");
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
+
+   /* Add 1 extra byte to the epath_len so the NULL-termination char is copied over. */
+   epath_len++;
 
    /** retrieve HPL CB
     **/
