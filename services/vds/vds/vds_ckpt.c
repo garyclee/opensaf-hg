@@ -32,7 +32,8 @@
 #include "vds.h"
 extern uns32 gl_vds_hdl;
 
-
+/* SA_AIS_ERR_TRY_AGAIN handling: let AMF worry about eternal loops */
+#define TRY_AGAIN_SLEEP 100
 
 static NCS_BOOL  initial_vdest = TRUE;
 /*  
@@ -74,17 +75,17 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
    m_VDS_CKPT_VER_GET(ver);
 
    /* Initialize CKPT */
-   rc = saCkptInitialize(&cb->ckpt.ckpt_hdl, reg_callback_set, &ver);
+   while ((rc = saCkptInitialize(&cb->ckpt.ckpt_hdl, reg_callback_set, &ver))
+          == SA_AIS_ERR_TRY_AGAIN)
+   {
+      usleep(TRY_AGAIN_SLEEP);
+   }
+
    if (rc != SA_AIS_OK)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_INIT,
                           VDS_LOG_CKPT_FAILURE,
                                 NCSFL_SEV_ERROR, rc);
-      /* Added by vishal : for VDS error handling enhancement */
-      if (rc == SA_AIS_ERR_TRY_AGAIN)
-      {
-          m_NCS_TASK_SLEEP(1000);
-      }
       saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                     0, SA_AMF_COMPONENT_RESTART, 0);
       return NCSCC_RC_FAILURE;
@@ -106,21 +107,21 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
    m_VDS_CKPT_SET_OPEN_FLAGS(ckptOpenFlags);
 
    /* Open the Checkpoint */
-   rc = saCkptCheckpointOpen(cb->ckpt.ckpt_hdl,
+   while ((rc = saCkptCheckpointOpen(cb->ckpt.ckpt_hdl,
                              &ckptName, 
                              &ckptCreateAttr,
                              ckptOpenFlags, 
                              VDS_CKPT_TIMEOUT, 
-                             &cb->ckpt.checkpointHandle); 
+                             &cb->ckpt.checkpointHandle)) == SA_AIS_ERR_TRY_AGAIN)
+   {
+      usleep(TRY_AGAIN_SLEEP);
+   }
+
    if (rc != SA_AIS_OK)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_OPEN,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
-      if (rc == SA_AIS_ERR_TRY_AGAIN)
-      {
-          m_NCS_TASK_SLEEP(1000);
-      }
 
       rc = saCkptFinalize(cb->ckpt.ckpt_hdl);
       if (rc != SA_AIS_OK)
@@ -295,10 +296,13 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
 
       m_VDS_LOG_GENERIC("CB OVERWRITE with",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(cb->latest_allocated_vdest),"latest allocated Vdest");
 
-      rc = saCkptSectionOverwrite(cb->ckpt.checkpointHandle, 
+      while ((rc = saCkptSectionOverwrite(cb->ckpt.checkpointHandle, 
                                   &section_id,
                                   (void *)&allocated_vdest,
-                                  sizeof(MDS_DEST));
+                                  sizeof(MDS_DEST))) == SA_AIS_ERR_TRY_AGAIN)
+      {
+          usleep(TRY_AGAIN_SLEEP);
+      }
 
        if (rc == SA_AIS_OK)
        {
@@ -312,7 +316,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
            m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_CB_OVERWRITE,
                                      VDS_LOG_CKPT_FAILURE,
                                            NCSFL_SEV_ERROR, rc);
-           if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
+           if (rc == SA_AIS_ERR_TIMEOUT)
            {
                 return NCSCC_RC_FAILURE;
            }
@@ -331,10 +335,14 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
    
    /* creating section with special section-id i.e VDS_CKPT_LATEST_VDEST_SECTIONID 
       which identifies this section uniquely */  
-   rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
+   while ((rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
                             &sec_create_attr,
                             (uns8 *)&allocated_vdest,
-                            sizeof(MDS_DEST));
+                            sizeof(MDS_DEST))) == SA_AIS_ERR_TRY_AGAIN)
+   {
+       usleep(TRY_AGAIN_SLEEP);
+   }
+
    if (rc == SA_AIS_OK)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_CB_CWRITE,
@@ -356,7 +364,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
 
-        if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
+        if (rc == SA_AIS_ERR_TIMEOUT)
         {
             return NCSCC_RC_FAILURE;
         }
@@ -507,10 +515,13 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
 
    /* creating section for every new vdest_db_info node identified by vdest_id.
      Hoping that this API will take care of checkpointing the data */
-   rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
+   while ((rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
                             &sec_create_attr,
                             (SaUint8T *)temp_vds_ckpt_dbinfo_ptr,
-                            VDS_CKPT_BUFFER_SIZE);
+                            VDS_CKPT_BUFFER_SIZE)) == SA_AIS_ERR_TRY_AGAIN)
+   {
+       usleep(TRY_AGAIN_SLEEP);
+   }
    /* Free temporary allocated buffer first */
    m_MMGR_FREE_CKPT_BUFFER(temp_vds_ckpt_dbinfo_ptr);
 
@@ -526,7 +537,7 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
        m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_CWRITE,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
-       if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
+       if (rc == SA_AIS_ERR_TIMEOUT)
        {
             return NCSCC_RC_FAILURE;
        }
@@ -583,19 +594,23 @@ uns32 vds_ckpt_dbinfo_overwrite(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
    section_id.idLen = sizeof(MDS_DEST);
   
    /* overwrites existing section */
-   rc = saCkptSectionOverwrite(cb->ckpt.checkpointHandle,
+   while ((rc = saCkptSectionOverwrite(cb->ckpt.checkpointHandle,
                                &section_id,
                                (void *)temp_vds_ckpt_dbinfo_ptr,
-                               VDS_CKPT_BUFFER_SIZE);
-    /* Free temporary checkpoint info first */
-    m_MMGR_FREE_CKPT_BUFFER(temp_vds_ckpt_dbinfo_ptr);
+                               VDS_CKPT_BUFFER_SIZE)) == SA_AIS_ERR_TRY_AGAIN)
+   {
+       usleep(TRY_AGAIN_SLEEP);
+   }
+
+   /* Free temporary checkpoint info first */
+   m_MMGR_FREE_CKPT_BUFFER(temp_vds_ckpt_dbinfo_ptr);
    
    if (rc != SA_AIS_OK)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_OVERWRITE,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
-       if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
+       if (rc == SA_AIS_ERR_TIMEOUT)
        {
             return NCSCC_RC_FAILURE;
        }
@@ -701,13 +716,17 @@ uns32 vds_ckpt_dbinfo_delete(VDS_CB *cb, MDS_DEST *vdest_id)
 
    m_VDS_LOG_GENERIC("SECTION DELETE with ID :",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(*vdest_id),"in CKPT");
      
-   rc = saCkptSectionDelete(cb->ckpt.checkpointHandle, &section_id);
+   while ((rc = saCkptSectionDelete(cb->ckpt.checkpointHandle, &section_id)) ==
+          SA_AIS_ERR_TRY_AGAIN)
+   {
+       usleep(TRY_AGAIN_SLEEP);
+   }
       if (rc != SA_AIS_OK)
    {
        m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DELETE,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
-       if (rc == SA_AIS_ERR_TIMEOUT || rc == SA_AIS_ERR_TRY_AGAIN)
+       if (rc == SA_AIS_ERR_TIMEOUT)
        {
             return NCSCC_RC_FAILURE;
        }
@@ -851,10 +870,13 @@ uns32 vds_ckpt_read(VDS_CB *cb)
    io_vector[0].dataSize = sizeof(vds_version_obtained);
 
     /* Read VDS version section if it exists */
-    rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
+   while ((rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
                             io_vector,
                             VDS_CKPT_NO_OF_SECTIONS_TOREAD,
-                            erroneous_vector_index);
+                            erroneous_vector_index)) == SA_AIS_ERR_TRY_AGAIN)
+   {
+       usleep(TRY_AGAIN_SLEEP);
+   }
     /* If VDS version section doesn't exist, create one */
     if (rc == SA_AIS_ERR_NOT_EXIST)
     {
@@ -863,19 +885,18 @@ uns32 vds_ckpt_read(VDS_CB *cb)
         sec_create_attr.sectionId = &section_id;
         sec_create_attr.expirationTime   = VDS_CKPT_DBINFO_RET_TIME;
 
-        rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
+        while ((rc = saCkptSectionCreate(cb->ckpt.checkpointHandle,
                                 &sec_create_attr,
                                 (uns8 *)&vds_version_current,
-                                sizeof(vds_version_current));
+                                sizeof(vds_version_current))) == SA_AIS_ERR_TRY_AGAIN)
+        {
+            usleep(TRY_AGAIN_SLEEP);
+        }
         if (rc != SA_AIS_OK)
         {
             m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_VDS_VERSION_CREATE,
                                      VDS_LOG_CKPT_FAILURE,
                                            NCSFL_SEV_ERROR ,rc);
-            if (rc == SA_AIS_ERR_TRY_AGAIN)
-             {
-                 m_NCS_TASK_SLEEP(1000);
-             }
             saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                             0, SA_AMF_COMPONENT_RESTART, 0);
             return NCSCC_RC_FAILURE;
@@ -886,10 +907,6 @@ uns32 vds_ckpt_read(VDS_CB *cb)
         m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_VDS_VERSION_READ,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR ,rc);
-        if (rc == SA_AIS_ERR_TRY_AGAIN)
-         {
-                 m_NCS_TASK_SLEEP(1000);
-         }
         saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                             0, SA_AMF_COMPONENT_RESTART, 0);
         return NCSCC_RC_FAILURE;
@@ -897,21 +914,19 @@ uns32 vds_ckpt_read(VDS_CB *cb)
 
 
    /* Initializes the section iterator */
-   rc = saCkptSectionIterationInitialize(cb->ckpt.checkpointHandle,
+    while ((rc = saCkptSectionIterationInitialize(cb->ckpt.checkpointHandle,
                                          SA_CKPT_SECTIONS_ANY,
                                          0,
-                                         &sec_iter_hdl);             
+                                         &sec_iter_hdl)) == SA_AIS_ERR_TRY_AGAIN)
+    {
+        usleep(TRY_AGAIN_SLEEP);
+    }
    if (rc != SA_AIS_OK)
    {
       m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_ITER_INIT,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR ,rc);
       
-      /* Added by vishal : for VDS error handling enhancement */
-      if (rc == SA_AIS_ERR_TRY_AGAIN)
-      {
-          m_NCS_TASK_SLEEP(1000);
-      }
       saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                     0, SA_AMF_COMPONENT_RESTART, 0);
 
@@ -950,10 +965,14 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           
           /* reads the section with VDS_CKPT_LATEST_VDEST_SECTIONID 
              as sectionId */   
-          rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
+          while((rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
                                     io_vector,
                                     VDS_CKPT_NO_OF_SECTIONS_TOREAD,
-                                    erroneous_vector_index);
+                                    erroneous_vector_index)) == SA_AIS_ERR_TRY_AGAIN)
+          {
+              usleep(TRY_AGAIN_SLEEP);
+          }
+
           if (rc == SA_AIS_OK)
           { 
              /* copies the section content into latest_allocated_vdest */
@@ -966,11 +985,6 @@ uns32 vds_ckpt_read(VDS_CB *cb)
                                     VDS_LOG_CKPT_FAILURE,
                                             NCSFL_SEV_ERROR, rc);
 
-             /* Added by vishal : for VDS error handling enhancement */
-             if (rc == SA_AIS_ERR_TRY_AGAIN)
-             {
-                 m_NCS_TASK_SLEEP(1000);
-             }
              saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                             0, SA_AMF_COMPONENT_RESTART, 0);
           }
@@ -995,21 +1009,20 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           io_vector[0].dataBuffer = vds_data_buffer;
 
           /* reads the section with vdest_id as section id */ 
-          rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
+          while ((rc = saCkptCheckpointRead(cb->ckpt.checkpointHandle,
                                     io_vector,
                                     VDS_CKPT_NO_OF_SECTIONS_TOREAD,
-                                    erroneous_vector_index);
+                                    erroneous_vector_index)) == SA_AIS_ERR_TRY_AGAIN)
+          {
+              usleep(TRY_AGAIN_SLEEP);
+          }
+
           if (rc != SA_AIS_OK)
           {
              m_VDS_LOG_CKPT(VDS_LOG_CKPT_SEC_DB_READ,
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
              
-             /* Added by vishal : for VDS error handling enhancement */
-             if (rc == SA_AIS_ERR_TRY_AGAIN)
-             {
-                 m_NCS_TASK_SLEEP(1000);
-             }
              saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                             0, SA_AMF_COMPONENT_RESTART, 0);
           }
@@ -1061,11 +1074,6 @@ uns32 vds_ckpt_read(VDS_CB *cb)
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR ,rc_while);
       
-      /* Added by vishal : for VDS error handling enhancement */
-      if (rc_while == SA_AIS_ERR_TRY_AGAIN)
-      {
-          m_NCS_TASK_SLEEP(1000);
-      }
       saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                     0, SA_AMF_COMPONENT_RESTART, 0);
 
