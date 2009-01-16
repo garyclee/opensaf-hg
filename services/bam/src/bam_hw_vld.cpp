@@ -67,7 +67,7 @@ static void
 bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *val)
 {
    char str[8][MAX_POSSIBLE_LOC_RANGES] = {};
-   char *tmp, *reentrant, junk, *token;
+   char *tmp, *reentrant, *junk, *token;
    int idx=0, x;
 
    token = m_NCS_OS_STRTOK_R(val, ",", &reentrant);
