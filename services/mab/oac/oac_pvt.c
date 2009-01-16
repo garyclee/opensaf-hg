@@ -1499,6 +1499,10 @@ uns32 oac_handle_svc_mds_evt(MAB_MSG * msg)
    {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_DEBUG, MAB_HDLN_IGNORING_NON_PRIMARY_MDS_SVC_EVT);
       m_MMGR_FREE_MAB_MSG(msg); /* IR00061338 */
+
+      m_OAC_UNLK(&inst->lock);
+      m_LOG_MAB_LOCK(MAB_LK_OAC_UNLOCKED,&inst->lock);
+
       ncshm_give_hdl(inst->hm_hdl); /* IR00061338 */
       return NCSCC_RC_SUCCESS;
    }
