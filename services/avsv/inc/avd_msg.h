@@ -75,7 +75,7 @@ struct avd_csi_tag;
 EXTERN_C uns32 avd_d2n_msg_enqueue(struct  cl_cb_tag *cb, NCSMDS_INFO *snd_mds);
 EXTERN_C uns32 avd_d2n_msg_dequeue(struct  cl_cb_tag *cb);
 EXTERN_C uns32 avd_d2n_msg_snd(struct  cl_cb_tag *cb, struct avd_avnd_tag *nd_node,AVD_DND_MSG *snd_msg);
-EXTERN_C uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg);
+EXTERN_C uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg,NODE_ID node_id, uns16 msg_fmt_ver);
 EXTERN_C uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info);
 EXTERN_C uns32 avd_mds_enc(uns32 cb_hdl,MDS_CALLBACK_ENC_INFO *enc_info);
 EXTERN_C uns32 avd_mds_enc_flat(uns32 cb_hdl,MDS_CALLBACK_ENC_FLAT_INFO *enc_info);
@@ -94,7 +94,8 @@ EXTERN_C uns32 avd_snd_op_req_msg(struct  cl_cb_tag *cb,struct avd_avnd_tag *avn
 EXTERN_C uns32 avd_snd_hlt_msg(struct  cl_cb_tag *cb,
                                struct avd_avnd_tag *avnd,
                                struct avd_hlt_tag *hlt_chk,
-                               NCS_BOOL fail_over);
+                               NCS_BOOL fail_over,
+                               NCS_BOOL is_ext);
 EXTERN_C uns32 avd_snd_hbt_info_msg(struct  cl_cb_tag *cb);
 EXTERN_C uns32 avd_snd_su_comp_msg(struct  cl_cb_tag *cb,
                                    struct avd_avnd_tag *avnd,
@@ -114,6 +115,7 @@ EXTERN_C uns32 avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *,
                                   SaAmfProtectionGroupChangesT, SaNameT *);
 EXTERN_C uns32 avd_avm_mds_cpy(MDS_CALLBACK_COPY_INFO *);
 EXTERN_C uns32 avd_snd_hb_msg(struct  cl_cb_tag *);
+EXTERN_C uns32 avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd, struct avd_cmp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
 EXTERN_C void avsv_d2d_msg_free(AVD_D2D_MSG * );
 EXTERN_C void avd_mds_d_enc(uns32 ,MDS_CALLBACK_ENC_INFO *);
 EXTERN_C void avd_mds_d_dec(uns32 ,MDS_CALLBACK_DEC_INFO *);

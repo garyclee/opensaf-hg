@@ -391,9 +391,21 @@ const NCSFL_STR avnd_pres_set[] =
 };
 
 /******************************************************************************
- Logging stuff for Headlines 
+ Logging stuff for AvND-AvND messages 
  ******************************************************************************/
-const NCSFL_STR avnd_hdln_set[] = 
+const NCSFL_STR avnd_avnd_set[] = 
+{
+   { AVND_AVND_SUCC_INFO,               "AvND-AvND SUCC"         },
+   { AVND_AVND_ERR_INFO,                "AvND-AvND ERROR"        },
+   { AVND_AVND_ENTRY_INFO,              "AvND-AvND Entry Info"   },
+   { AVND_AVND_DEBUG_INFO,              "AvND-AvND Info"   },
+   { 0,0 }
+};
+
+/******************************************************************************
+ Logging stuff for Headlines
+ ******************************************************************************/
+const NCSFL_STR avnd_hdln_set[] =
 {
    { AVND_INVALID_VAL,                     "AN INVALID DATA VALUE"         },
    { AVND_UNKNOWN_MSG_RCVD,                "UNKNOWN EVENT RCVD"            },
@@ -402,7 +414,6 @@ const NCSFL_STR avnd_hdln_set[] =
    { AVND_RCVD_VAL,                        "RECEIVED THE VALUE"            },
    { 0,0 }
 };
-
 
 
 /******************************************************************************
@@ -434,6 +445,7 @@ NCSFL_SET avnd_str_set[] =
    { AVND_FC_OPER    , 0, (NCSFL_STR *) avnd_oper_set     },
    { AVND_FC_PRES    , 0, (NCSFL_STR *) avnd_pres_set     },
    { AVND_FC_HDLN    , 0, (NCSFL_STR *) avnd_hdln_set     },
+   { AVND_FC_AVND_MSG , 0, (NCSFL_STR *) avnd_avnd_set     },
 
    { 0, 0, 0 }
 };
@@ -534,7 +546,7 @@ NCSFL_FMAT avnd_fmat_set[] =
    { AVND_LID_HDLN_VAL,        "TICLL",  "[%s] TRACE INFO : %s at %s:%ld val %ld\n"},
    { AVND_LID_HDLN_VAL_NAME,   "TICLP",  "[%s] TRACE INFO : %s at %s:%ld val %s\n"},   
    { AVND_LID_HDLN_STRING,     "TICLC",  "[%s] TRACE INFO : %s at %s:%ld val %s\n"},
-
+   { AVND_AVND_MSG,           "TICCLLLL","[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},
    { 0, 0, 0 }
 };
 

@@ -212,14 +212,20 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_REDINESS_STATE);\
 
 
 
-#define m_AVD_APP_SU_IS_INSVC(su) \
-((su->su_on_node->su_admin_state == NCS_ADMIN_STATE_UNLOCK) && \
-(su->su_on_node->oper_state == NCS_OPER_STATE_ENABLE) && \
-(su->su_on_node->avm_oper_state == NCS_OPER_STATE_ENABLE) && \
-(su->sg_of_su->admin_state == NCS_ADMIN_STATE_UNLOCK) &&\
-(su->admin_state == NCS_ADMIN_STATE_UNLOCK) &&\
-(su->oper_state == NCS_OPER_STATE_ENABLE)\
+#define m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr) \
+((su_node_ptr->su_admin_state == NCS_ADMIN_STATE_UNLOCK) && \
+(su_node_ptr->oper_state == NCS_OPER_STATE_ENABLE) && \
+(su_node_ptr->avm_oper_state == NCS_OPER_STATE_ENABLE) && \
+(i_su->sg_of_su->admin_state == NCS_ADMIN_STATE_UNLOCK) &&\
+(i_su->admin_state == NCS_ADMIN_STATE_UNLOCK) &&\
+(i_su->oper_state == NCS_OPER_STATE_ENABLE)\
 )
+
+#define m_AVD_GET_SU_NODE_PTR(avd_cb,i_su,su_node_ptr)  \
+ if(TRUE == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
+ else su_node_ptr = i_su->su_on_node;
+
+
 EXTERN_C AVD_SU * avd_su_struc_crt(AVD_CL_CB *cb,SaNameT su_name,NCS_BOOL ckpt);
 EXTERN_C AVD_SU * avd_su_struc_find(AVD_CL_CB *cb,SaNameT su_name,NCS_BOOL host_order);
 EXTERN_C AVD_SU * avd_su_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,NCS_BOOL host_order);

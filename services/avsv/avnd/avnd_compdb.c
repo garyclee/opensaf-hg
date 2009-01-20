@@ -120,9 +120,14 @@ uns32 avnd_compdb_destroy(AVND_CB *cb)
             (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0)) )
    {
       /* unreg the row from mab */
-      avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl);
+      avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
+           (comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
 
-      /* delete the record */
+      /* delete the record 
+      m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
+      AvND is going down, but don't send any async update even for 
+      external components, otherwise external components will be deleted
+      from ACT.*/
       rc = avnd_compdb_rec_del(cb, &comp->name_net);
       if ( NCSCC_RC_SUCCESS != rc ) goto err;
    }
@@ -231,6 +236,15 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
       break;
 
+   case NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE:
+      m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PREINSTANTIABLE);
+      m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
+      break;
+
+   case NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE:
+      m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_PROXIED);
+      break;
+
    case NCS_COMP_TYPE_NON_SAF:
       m_AVND_COMP_TYPE_SET(comp, AVND_COMP_TYPE_LOCAL);
       break;
@@ -240,7 +254,9 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
    } /* switch */
 
    m_AVND_COMP_RESTART_EN_SET(comp, (info->comp_restart == TRUE) ? FALSE : TRUE);
+
    comp->cap = info->cap;
+   comp->node_id = cb->clmdb.node_info.nodeId;
    
    /* update CLC params */
    comp->clc_info.inst_retry_max = info->max_num_inst;
@@ -261,7 +277,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->term_len;
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout = 
       info->term_time;
-   
+
    /* cleanup cmd params */
    m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 
       info->clean_info, info->clean_len);
@@ -285,7 +301,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->amstop_len;
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].timeout = 
       info->amstop_time;
-   
+
    /* update the callback response time out values */
    if (info->terminate_callback_timeout)
       comp->term_cbk_timeout = info->terminate_callback_timeout;
@@ -396,6 +412,14 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
     */
    comp->su = su;
 
+   if(TRUE == su->su_is_external)
+   {
+     m_AVND_COMP_TYPE_SET_EXT_CLUSTER(comp);
+   }
+   else
+     m_AVND_COMP_TYPE_SET_LOCAL_NODE(comp);
+
+
    m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_REC_ADD, AVND_LOG_COMP_DB_SUCCESS, 
                       &info->name_net, 0, NCSFL_SEV_INFO);
    return comp;
@@ -489,7 +513,7 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name_net)
     * Delete the various lists (hc, pm, pg, cbk etc) maintained by this comp.
     */
    avnd_comp_hc_rec_del_all(cb, comp);
-   avnd_comp_cbq_del(cb, comp);
+   avnd_comp_cbq_del(cb, comp, FALSE);
    avnd_comp_pm_rec_del_all(cb, comp);
 
    /* remove the association with hdl mngr */

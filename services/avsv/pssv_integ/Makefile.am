@@ -37,6 +37,7 @@ PSSV_GENERATED_FILES = \
 	$(top_builddir)/services/avsv/pssv_integ/saamfscalars_pssv_mib.c \
 	$(top_builddir)/services/avsv/pssv_integ/saamfsgtableentry_pssv_mib.c \
 	$(top_builddir)/services/avsv/pssv_integ/saamfsitableentry_pssv_mib.c \
+	$(top_builddir)/services/avsv/pssv_integ/saamfsisideptableentry_pssv_mib.c  \
 	$(top_builddir)/services/avsv/pssv_integ/saamfsuspersirankentry_pssv_mib.c \
 	$(top_builddir)/services/avsv/pssv_integ/saamfsutableentry_pssv_mib.c \
 	$(top_builddir)/services/avsv/pssv_integ/saclmnodetableentry_pssv_mib.c \

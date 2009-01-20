@@ -36,8 +36,19 @@
 #ifndef AVD_SI_H
 #define AVD_SI_H
 
-
 struct avd_su_si_rel_tag;
+struct avd_spons_si_tag;
+
+/* Enum values defines different SI-SI dependency FSM states. */
+typedef enum {
+   AVD_SI_NO_DEPENDENCY = 1,   
+   AVD_SI_SPONSOR_UNASSIGNED,
+   AVD_SI_ASSIGNED,
+   AVD_SI_TOL_TIMER_RUNNING,
+   AVD_SI_READY_TO_UNASSIGN,
+   AVD_SI_UNASSIGNING_DUE_TO_DEP,
+   AVD_SI_DEP_MAX_STATE
+} AVD_SI_DEP_STATE;
 
 
 /* Availability directors Service Instance structure(AVD_SI):
@@ -105,7 +116,10 @@ typedef struct avd_si_tag {
    struct avd_si_tag        *sg_list_of_si_next;/* the next SI in the list of Service instances
                                                  * in this group */
    struct avd_su_si_rel_tag *list_of_sisu;      /* the list of su si relationship elements */
-         
+
+   uns32                    si_dep_state;      /* SI-SI dep state of this SI */
+   struct avd_spons_si_tag  *spons_si_list;
+   uns32                    tol_timer_count;
 } AVD_SI;
 
 
@@ -134,7 +148,6 @@ typedef struct avd_sg_si_rank_tag {
 #define AVD_SG_SI_RANK_NULL ((AVD_SG_SI_RANK *)0)
 
 #define AVD_SI_NULL ((AVD_SI *)0)
-
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->su_config_per_si
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->su_curr_active
 #define m_AVD_SI_INC_ACTV_CURR_SU(l_si) \
@@ -224,21 +237,6 @@ EXTERN_C uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
                              
 EXTERN_C uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX* idx);
 
-EXTERN_C uns32 saamfsisideptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data);
-EXTERN_C uns32 saamfsisideptableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer);
-EXTERN_C uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfsisideptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfsisideptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag);
-
 EXTERN_C AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si);
 
 EXTERN_C AVD_SG_SI_RANK * avd_sg_si_rank_struc_find(AVD_CL_CB *cb,
@@ -269,8 +267,6 @@ EXTERN_C uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
                              NCS_BOOL testrow_flag);
 
 EXTERN_C uns32 saamfsgsirankentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-                             
-                             
-                                                          
-                             
+
+
 #endif

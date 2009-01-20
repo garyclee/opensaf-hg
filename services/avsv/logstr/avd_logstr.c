@@ -185,6 +185,16 @@ const NCSFL_STR avd_oper_set[] =
    { 0,0 }
 };
 
+/******************************************************************************
+ Logging stuff for Proxy-Proxied messages
+ ******************************************************************************/
+const NCSFL_STR avd_pxy_pxd_set[] =
+{
+   { AVD_PXY_PXD_SUCC_INFO,               "PXY-PXD SUCC"         },
+   { AVD_PXY_PXD_ERR_INFO,                "PXY-PXD ERROR"        },
+   { AVD_PXY_PXD_ENTRY_INFO,              "PXY-PXD Entry Info"   },
+   { 0,0 }
+};
 
 /******************************************************************************
  Logging stuff for admin state
@@ -233,6 +243,7 @@ NCSFL_SET avd_str_set[] =
    { AVD_FC_OPER,           0, (NCSFL_STR*) avd_oper_set      },
    { AVD_FC_ADMIN,          0, (NCSFL_STR*) avd_admin_set     },
    { AVD_FC_SUSI_HA,        0, (NCSFL_STR*) avd_ha_state_set  },
+   { AVD_FC_PXY_PXD,        0, (NCSFL_STR*) avd_pxy_pxd_set  },
    
    { 0,0,0 }
 };
@@ -258,6 +269,7 @@ NCSFL_FMAT avd_fmat_set[] =
    { AVD_LID_TRAP_NCS_SUCC,  "TIL",             "%s AVD: %s 0x%08lx\n"},
    { AVD_LID_SUSI_HA_CHG_START, "TCCI",         "%s AVD: %s %s HA State Changing to %s\n"},
    { AVD_LID_HDLN_SVAL,      "TICLC",           "%s AVD: %s at %s:%ld val %s\n"},   
+   { AVD_PXY_PXD,            "TICCLLLL",        "[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},   
    { 0, 0, 0 }
 };
 

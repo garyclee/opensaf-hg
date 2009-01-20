@@ -276,4 +276,46 @@ avd_flx_log_dereg ()
    return;
 }
 
+/****************************************************************************
+  Name          : avd_pxy_pxd_log
+
+  Description   : This routine logs the proxy-proxied communication.
+
+  Arguments     : sev       - Severity
+                  index     - Index
+                  info      - Ptr to general info abt logs (Strings)
+                  comp_name - Ptr to the comp name, if any.
+                  Info1     - Value corresponding to Info description
+                  Info2     - Value corresponding to Info description
+                  Info3     - Value corresponding to Info description
+                  Info4     - Value corresponding to Info description
+
+  Return Values : None
+
+  Notes         : None.
+ *****************************************************************************/
+void avd_pxy_pxd_log(uns32   sev,
+                    uns32   index,
+                    uns8    *info,
+                    SaNameT *comp_name,
+                    uns32   info1,
+                    uns32   info2,
+                    uns32   info3,
+                    uns32   info4)
+{
+   uns8 comp[SA_MAX_NAME_LENGTH];
+
+   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+
+   /* convert name into string format */
+   if (comp_name)
+      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+
+      ncs_logmsg(NCS_SERVICE_ID_AVD,(uns8)AVD_PXY_PXD,(uns8)AVD_FC_PXY_PXD,
+                 NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info,
+                 comp, info1, info2, info3, info4);
+   return;
+}
+
+
 #endif /* (NCS_AVD_LOG == 1) */

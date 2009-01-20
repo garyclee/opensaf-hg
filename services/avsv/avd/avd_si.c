@@ -123,7 +123,7 @@ AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
    si->list_of_sisu = AVD_SU_SI_REL_NULL;
    si->sg_list_of_si_next = AVD_SI_NULL;
    si->sg_of_si = AVD_SG_NULL;
-
+   si->si_dep_state = AVD_SI_NO_DEPENDENCY;
 
    si->tree_node.key_info = (uns8*)&(si->name_net);
    si->tree_node.bit   = 0;
@@ -667,7 +667,10 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                avd_si_del_sg_list(avd_cb,si);
 
                avd_sg_si_rank_del_row(avd_cb, si);
-               
+
+               /* Delete the SI-SI dep records corresponding to this SI */
+               avd_si_dep_delete(avd_cb, si);
+
                m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
                /* we need to delete this avnd structure on the
                 * standby AVD.
@@ -754,14 +757,15 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             if (si->sg_of_si->sg_ncs_spec == SA_TRUE)
                return NCSCC_RC_INV_VAL;
             
-            if(arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_UNLOCK)
+            if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_UNLOCK)
             {
+               m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_UNLOCK);
+
                if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)
                {
                   return NCSCC_RC_INV_VAL;
                }
                
-               m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_UNLOCK);
                if(si->max_num_csi == si->num_csi)
                {
                   switch(si->sg_of_si->su_redundancy_model)
@@ -769,7 +773,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   case AVSV_SG_RED_MODL_2N:
                      if(avd_sg_2n_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
                      { 
-                        m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK);
+                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK);
                         return NCSCC_RC_INV_VAL;
                      }
                      break;
@@ -777,7 +781,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   case AVSV_SG_RED_MODL_NWAYACTV:
                      if(avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
                      { 
-                        m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK); 
+                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
                         return NCSCC_RC_INV_VAL;
                      }
                      break;
@@ -785,7 +789,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   case AVSV_SG_RED_MODL_NWAY:
                      if(avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
                      { 
-                        m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK); 
+                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
                         return NCSCC_RC_INV_VAL;
                      }
                      break;
@@ -793,7 +797,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   case AVSV_SG_RED_MODL_NPM:
                      if(avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
                      { 
-                        m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK); 
+                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
                         return NCSCC_RC_INV_VAL;
                      }
                      break;
@@ -807,9 +811,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                      }
                      break;
                   }            
-                  
                }
-               
                return NCSCC_RC_SUCCESS;
             }
             else
@@ -840,6 +842,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                
                back_val = si->admin_state;
                m_AVD_SET_SI_ADMIN(cb,si,(arg->req.info.set_req.i_param_val.info.i_int));
+
                switch(si->sg_of_si->su_redundancy_model)
                {
                case AVSV_SG_RED_MODL_2N:
@@ -883,7 +886,6 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   }
                   break;
                } 
-               
                return NCSCC_RC_SUCCESS;
             }            
             break;
@@ -1468,7 +1470,7 @@ uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
 }
 
 
-
+#if 0
 /*****************************************************************************
  * Function: saamfsisideptableentry_get
  *
@@ -1647,6 +1649,7 @@ uns32 saamfsisideptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
    return NCSCC_RC_FAILURE;
 }
 
+#endif
 
 /*****************************************************************************
  * Function: avd_sg_si_rank_add_row

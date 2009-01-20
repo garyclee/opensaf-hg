@@ -34,7 +34,9 @@
 
 /* The sub ids are shared between dnd messages and nda
  * messages. The dnd can grow to a max of 30 after which
- * nda sub ids will start. Also see avsv_d2nmem.h
+ * nda sub ids will start. This will have AvND and AvND
+ * sub ids. 
+ * Also see avsv_d2nmem.h
  */
 
 typedef enum
@@ -42,6 +44,7 @@ typedef enum
    NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_AVA_MSG = 30,
    NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_AMF_CBK_INFO,
    NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_INFO,
+   NCS_SERVICE_AVSV_ND2ND_SUB_ID_AVSV_ND_INFO,
    NCS_SERVICE_AVSV_N2AVA_SUB_ID_MAX
 } NCS_SERVICE_AVSV_N2AVA_SUB_ID;
 
@@ -60,6 +63,15 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVSV, \
                                                 NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_AVA_MSG)
+
+#define m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG      (AVSV_ND2ND_AVND_MSG*)m_NCS_MEM_ALLOC(sizeof(AVSV_ND2ND_AVND_MSG), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVSV, \
+                                                NCS_SERVICE_AVSV_ND2ND_SUB_ID_AVSV_ND_INFO)
+#define m_MMGR_FREE_AVSV_ND2ND_AVND_MSG(p)     m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVSV, \
+                                                NCS_SERVICE_AVSV_ND2ND_SUB_ID_AVSV_ND_INFO)
 
 #define m_MMGR_ALLOC_AVSV_AMF_CBK_INFO      (AVSV_AMF_CBK_INFO*)m_NCS_MEM_ALLOC(sizeof(AVSV_AMF_CBK_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \

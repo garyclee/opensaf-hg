@@ -35,6 +35,15 @@
 #ifndef AVND_CB_H
 #define AVND_CB_H
 
+/*
+ * Sync state of the Standby.
+ */
+typedef enum {
+   AVND_STBY_OUT_OF_SYNC,
+   AVND_STBY_IN_SYNC,
+   AVND_STBY_SYNC_STATE_MAX
+} AVND_STBY_SYNC_STATE;
+
 
 typedef struct avnd_cb_tag {
    SYSF_MBX mbx; /* mailbox on which AvND waits */
@@ -52,6 +61,7 @@ typedef struct avnd_cb_tag {
    /* external interface related params */
    uns8               pool_id;      /* pool-id used by hdl mngr */
    EDU_HDL            edu_hdl;      /* edu handle */
+   EDU_HDL            edu_hdl_avnd;  /* edu handle for avnd-avnd interface*/
    EDU_HDL            edu_hdl_ava;  /* edu handle for ava interface */
    EDU_HDL            edu_hdl_cla;  /* edu handle for cla interface */
    uns32              mab_hdl;      /* mab hdl */
@@ -88,6 +98,9 @@ typedef struct avnd_cb_tag {
    NCS_PATRICIA_TREE  compdb; /* comp db */
    NCS_PATRICIA_TREE  hcdb;   /* healthcheck db */
    NCS_PATRICIA_TREE  pgdb;   /* pg db */
+   NCS_PATRICIA_TREE  nodeid_mdsdest_db;   /* pg db */
+   NCS_PATRICIA_TREE  internode_avail_comp_db;   /* Internode components, whose node is UP*/
+   MDS_DEST           cntlr_avnd_vdest; /* Controller AvND Vdest addr */
 
    /* srmsv resource request mapping list (res mon hdl is the key) */
    NCS_DB_LINK_LIST   srm_req_list;
@@ -113,6 +126,26 @@ typedef struct avnd_cb_tag {
    SaNameT             evtChannelName;   /* EDA Channel Name */
 
    SaEvtChannelHandleT evtChannelHandle; /* EDA Channel Handle */
+   
+   uns32               avnd_mbcsv_mab_hdl; /* MAB handle returned during 
+                                              initilisation. */
+   MDS_HDL             avnd_mbcsv_vaddr_pwe_hdl;/* The pwe handle returned when
+                                                 * vdest address is created.
+                                                 */
+   MDS_HDL             avnd_mbcsv_vaddr_hdl; /* The handle returned by mds
+                                              * for vaddr creation
+                                              */
+   MDS_DEST            avnd_mbcsv_vaddr;   /* vcard address of the this AvD                                                 */
+   AVND_ASYNC_UPDT_CNT avnd_async_updt_cnt;
+   AVND_STBY_SYNC_STATE stby_sync_state;
+   uns32                synced_reo_type; /* Count till which sync is done */
+   NCS_MBCSV_HDL        avnd_mbcsv_hdl;
+   uns32                avnd_mbcsv_ckpt_hdl;
+   SaSelectionObjectT   avnd_mbcsv_sel_obj;
+   SaAmfHAStateT        avail_state_avnd;
+   /* Queue for keeping async update messages  on Standby*/
+   AVND_ASYNC_UPDT_MSG_QUEUE_LIST async_updt_msgs;
+   NCS_BOOL               is_quisced_set;
 
 } AVND_CB;
 

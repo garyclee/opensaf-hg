@@ -40,6 +40,7 @@
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
 #include "avsv_n2claedu.h"
+#include "avsv_nd2ndmsg.h"
 
 
 /* global cb handle */
@@ -271,6 +272,7 @@ AVND_CB *avnd_cb_create ()
    cb->term_state = AVND_TERM_STATE_UP;
    cb->led_state = AVND_LED_STATE_RED;
    cb->destroy = FALSE;
+   cb->stby_sync_state = AVND_STBY_IN_SYNC;
 
    /* assign the default timeout values (in nsec) */
    cb->msg_resp_intv = AVND_AVD_MSG_RESP_TIME * 1000000;
@@ -315,6 +317,14 @@ AVND_CB *avnd_cb_create ()
 
   /* initialize srm_req list */
    if(NCSCC_RC_SUCCESS != avnd_srm_req_list_init(cb))
+     goto err;
+
+  /* initialize nodeid to mdsdest mapping db */
+   if(NCSCC_RC_SUCCESS != avnd_nodeid_to_mdsdest_map_db_init(cb))
+     goto err;
+
+  /* initialize available internode components db */
+   if(NCSCC_RC_SUCCESS != avnd_internode_avail_comp_db_init(cb))
      goto err;
 
    /* everything went off well.. store the cb hdl in the global variable */
@@ -402,6 +412,18 @@ uns32 avnd_ext_intf_create (AVND_CB *cb)
       goto err;
    }
 
+   m_NCS_EDU_HDL_INIT(&cb->edu_hdl_avnd);
+   m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
+
+   rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl_avnd, avsv_edp_ndnd_msg, &err);
+
+   if(rc != NCSCC_RC_SUCCESS)
+   {
+      /* Log ERROR */
+
+      goto err;
+   }
+
    m_NCS_EDU_HDL_INIT(&cb->edu_hdl_ava);
    m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
@@ -434,6 +456,17 @@ uns32 avnd_ext_intf_create (AVND_CB *cb)
    }
    m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
+#ifdef NCS_AVND_MBCSV_CKPT
+   /* MDS registration for VDEST*/
+   rc = avnd_mds_mbcsv_reg(cb);
+   if ( NCSCC_RC_SUCCESS != rc )
+   {
+      m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+      goto err;
+   }
+#endif
+   m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+
    /* MIB-LIB initialisation */
    rc = avnd_miblib_init(cb);
    if ( NCSCC_RC_SUCCESS != rc )
@@ -450,7 +483,15 @@ uns32 avnd_ext_intf_create (AVND_CB *cb)
       goto err;
    }
 
-
+#ifdef NCS_AVND_MBCSV_CKPT
+   /* MAB registration */
+   rc = avnd_tbls_reg_with_mab_for_vdest(cb);
+   if ( NCSCC_RC_SUCCESS != rc )
+   {
+      /* log */
+      goto err;
+   }
+#endif
   /* SRMS registration */
    rc = avnd_srm_reg(cb);
    if ( NCSCC_RC_SUCCESS != rc )
@@ -535,6 +576,11 @@ uns32 avnd_cb_destroy (AVND_CB *cb)
 
    /*** destroy all databases ***/
 
+   /* We should delete external SU-SI first */
+#ifdef NCS_AVND_MBCSV_CKPT
+   if(NCSCC_RC_SUCCESS != (rc = avnd_ext_comp_data_clean_up(cb, TRUE)))
+      goto done;
+#endif
    /* destroy comp db */
    if ( NCSCC_RC_SUCCESS != (rc = avnd_compdb_destroy(cb)) )
       goto done;
@@ -557,6 +603,14 @@ uns32 avnd_cb_destroy (AVND_CB *cb)
 
    /* destroy srm list */
    if( NCSCC_RC_SUCCESS != (rc = avnd_srm_req_list_destroy(cb)) )
+      goto done;
+
+   /* destroy nodeid to mds dest db */
+   if( NCSCC_RC_SUCCESS != (rc = avnd_nodeid_to_mdsdest_map_db_destroy(cb)) )
+      goto done;
+
+   /* destroy available internode comp db */
+   if( NCSCC_RC_SUCCESS != (rc = avnd_internode_avail_comp_db_destroy(cb)) )
       goto done;
 
    /* destroy DND list */
@@ -585,6 +639,8 @@ uns32 avnd_cb_destroy (AVND_CB *cb)
    gl_avnd_hdl = 0;
 
 done:
+   if(NCSCC_RC_SUCCESS != rc)
+     m_AVND_LOG_INVALID_VAL_FATAL(rc);
    return rc;
 }
 
@@ -651,6 +707,9 @@ uns32 avnd_ext_intf_destroy (AVND_CB *cb)
    m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
    m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
+   m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_avnd);
+   m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
+
    m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_ava);
    m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
@@ -666,6 +725,11 @@ uns32 avnd_ext_intf_destroy (AVND_CB *cb)
    rc = avnd_tbls_unreg_with_mab(cb);
    if ( NCSCC_RC_SUCCESS != rc ) goto done;
 
+#ifdef NCS_AVND_MBCSV_CKPT
+   /* MAB unregistration */
+   rc = avnd_tbls_unreg_with_mab_for_vdest(cb);
+   if ( NCSCC_RC_SUCCESS != rc ) goto done;
+#endif
    /* SRM unregistration */
    rc = avnd_srm_unreg(cb);
    if ( NCSCC_RC_SUCCESS != rc )

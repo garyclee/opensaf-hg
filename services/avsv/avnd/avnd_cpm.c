@@ -388,6 +388,10 @@ void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 void avnd_comp_pm_rec_del_all (AVND_CB *cb, AVND_COMP *comp)
 {
    AVND_COMP_PM_REC *rec = 0;
+   
+   /* No passive monitoring for external component. */
+   if(TRUE == comp->su->su_is_external)
+     return;
 
    /* scan & delete each pm_rec record */
    while ( 0 != (rec = 
@@ -662,6 +666,24 @@ uns32 avnd_evt_ava_pm_start (AVND_CB *cb, AVND_EVT *evt)
    AVND_COMP               *comp = 0;
    uns32                   rc = NCSCC_RC_SUCCESS;
    SaAisErrorT             amf_rc = SA_AIS_OK;
+   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+   if(AVND_EVT_AVND_AVND_MSG == evt->type)
+   {
+     /* This means that the message has come from proxy AvND to this AvND. */
+         msg_from_avnd = TRUE;
+   }
+
+  if(FALSE == msg_from_avnd)
+  {
+     /* Check for internode or external coomponent first
+        If it is, then forward it to the respective AvND.*/
+      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+      if(TRUE == int_ext_comp)
+      {
+        goto done;
+      }
+  }
 
    /* validate the pm start message */
    avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START,
@@ -675,9 +697,15 @@ uns32 avnd_evt_ava_pm_start (AVND_CB *cb, AVND_EVT *evt)
 
    /* send the response back to AvA */
    rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_START, amf_rc, 0, 
-                            &api_info->dest, &evt->mds_ctxt);
+                            &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
-
+done:
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+   m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_start():Comp,Hdl,pid,desc_tree_depth and pm_err are",
+                       &pm_start->comp_name_net,pm_start->hdl,pm_start->pid,
+                       pm_start->desc_tree_depth,pm_start->pm_err);
+  }
 
    return rc;
 }
@@ -704,6 +732,24 @@ uns32 avnd_evt_ava_pm_stop (AVND_CB *cb, AVND_EVT *evt)
    AVND_COMP_PM_REC       *rec = 0;
    uns32                  rc = NCSCC_RC_SUCCESS;
    SaAisErrorT            amf_rc = SA_AIS_OK;
+   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+
+   if(AVND_EVT_AVND_AVND_MSG == evt->type)
+   {
+     /* This means that the message has come from proxy AvND to this AvND. */
+         msg_from_avnd = TRUE;
+   }
+
+  if(FALSE == msg_from_avnd)
+  {
+     /* Check for internode or external coomponent first
+        If it is, then forward it to the respective AvND.*/
+      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+      if(TRUE == int_ext_comp)
+      {
+        goto done;
+      }
+  }
 
    /* validate the pm stop message */
    avnd_comp_pm_param_val(cb, AVSV_AMF_PM_STOP, (uns8 *)pm_stop,
@@ -716,9 +762,17 @@ uns32 avnd_evt_ava_pm_stop (AVND_CB *cb, AVND_EVT *evt)
 
    /* send the response back to AvA */
    rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_STOP, amf_rc, 0, 
-                            &api_info->dest, &evt->mds_ctxt);
+                            &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
-   
+done:
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+   m_AVND_AVND_ERR_LOG(
+           "avnd_evt_ava_pm_stop():Comp,Hdl,pid,stop_qual and pm_err are",
+           &pm_stop->comp_name_net,pm_stop->hdl,pm_stop->pid,
+           pm_stop->stop_qual,pm_stop->pm_err);
+  }
+
    return rc;
 }
 
@@ -765,6 +819,15 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
             return;
          }
 
+         if(TRUE == (*o_comp)->su->su_is_external)
+         {
+            /* This is the case when pm start request has come to controller
+               for external component. We don't support pm start for external
+               component. */
+            *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
+            return;
+         }
+
          /* get srm_req_list */
          srm_req_list = &cb->srm_req_list;
 
@@ -807,6 +870,15 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
             return;
          }
          
+         if(TRUE == (*o_comp)->su->su_is_external)
+         {
+            /* This is the case when pm stop request has come to controller
+               for external component. We don't support pm stop for external
+               component. */
+            *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
+            return;
+         }
+
          /* get the record from component passive monitoring list */
          *o_pm_rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(
                              &(*o_comp)->pm_list,(uns8 *)&pm_stop->pid);
@@ -854,6 +926,10 @@ void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 {
    AVND_COMP_PM_REC *rec = 0;
    SaAisErrorT      sa_err;
+
+   /* No passive monitoring for external component. */
+   if(TRUE == comp->su->su_is_external)
+     return;
 
    while ( 0 != (rec = 
                 (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list)) )

@@ -147,6 +147,7 @@ EXTERN_C void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb,struct avd_evt_tag *evt);
 EXTERN_C void avd_oper_req_func(AVD_CL_CB *cb,struct avd_evt_tag *evt);
 EXTERN_C void avd_mds_avnd_up_func(AVD_CL_CB *cb,struct avd_evt_tag *evt);
 EXTERN_C void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt);
+EXTERN_C void avd_comp_validation_func(AVD_CL_CB *cb, AVD_EVT *evt);
 EXTERN_C void avd_fail_over_event(AVD_CL_CB *cb);
 EXTERN_C void avd_mds_avnd_down_func(AVD_CL_CB *cb,struct avd_evt_tag *evt);
 EXTERN_C void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt);

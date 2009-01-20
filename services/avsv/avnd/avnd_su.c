@@ -64,6 +64,9 @@ uns32 avnd_evt_avd_reg_su_msg (AVND_CB *cb, AVND_EVT *evt)
 
 
    info = &evt->info.avd->msg_info.d2n_reg_su;
+    m_AVND_AVND_ENTRY_LOG(
+           "avnd_evt_avd_reg_su_msg():Comp,MsgId and Recv Msg Id are",
+            NULL,cb->rcv_msg_id,info->msg_id,0,0);
 
    if (info->msg_id != (cb->rcv_msg_id+1))
    {
@@ -92,10 +95,13 @@ uns32 avnd_evt_avd_reg_su_msg (AVND_CB *cb, AVND_EVT *evt)
    {
       su = avnd_sudb_rec_add(cb, su_info, &rc);
       if (!su) break;
+      
+      m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
 
       /* register this su row with mab */
       rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, &su->name_net, 
-                                 0, 0, &su->mab_hdl);
+                                 0, 0, &su->mab_hdl,
+               (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
       if ( NCSCC_RC_SUCCESS != rc ) break;
    }
 
@@ -112,9 +118,11 @@ uns32 avnd_evt_avd_reg_su_msg (AVND_CB *cb, AVND_EVT *evt)
          if (!su) break;
 
          /* unreg the row from mab */
-         avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl);
+         avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+         (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
 
          /* delete the record */
+         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
          avnd_sudb_rec_del(cb, &su_info->name_net);
       }
    }
@@ -167,9 +175,12 @@ static uns32 avnd_avd_su_update_on_fover (AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO 
             return rc;
          }
          
+         m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
+
          /* register this su row with mab */
          rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, 
-            &su->name_net, 0, 0, &su->mab_hdl);
+            &su->name_net, 0, 0, &su->mab_hdl,
+               (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
          if ( NCSCC_RC_SUCCESS != rc )
          {
             avnd_di_reg_su_rsp_snd(cb, &su_info->name_net, rc);
@@ -190,6 +201,7 @@ static uns32 avnd_avd_su_update_on_fover (AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO 
          su->su_restart_prob = su_info->su_restart_prob;
          su->su_restart_max = su_info->su_restart_max;
          su->is_ncs = su_info->is_ncs;
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_CONFIG); 
       }
 
       su->avd_updt_flag = TRUE;
@@ -213,9 +225,11 @@ static uns32 avnd_avd_su_update_on_fover (AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO 
          while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list))))
          {
             /* unreg the row from mab */
-            avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl);
+            avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
+            (comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
             
             /* delete the record */
+            m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);         
             rc = avnd_compdb_rec_del(cb, &comp->name_net);
             if ( NCSCC_RC_SUCCESS != rc ) 
             {
@@ -228,9 +242,11 @@ static uns32 avnd_avd_su_update_on_fover (AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO 
 
          /* Delete SU from the list */
          /* unreg the row from mab */
-         avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl);
+         avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+                     (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
 
          /* delete the record */
+         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
          rc = avnd_sudb_rec_del(cb, &su->name_net);
          if ( NCSCC_RC_SUCCESS != rc ) 
          {
@@ -289,7 +305,15 @@ uns32 avnd_evt_avd_info_su_si_assign_msg (AVND_CB *cb, AVND_EVT *evt)
 
    /* buffer the msg (if no assignment / removal is on) */
    siq = avnd_su_siq_rec_buf(cb, su, info);
-   if (siq) return rc;
+   if (siq)
+   {
+      /* Send async update for SIQ Record for external SU only. */
+      if(TRUE == su->su_is_external)
+      {
+         m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, &(siq->info), AVND_CKPT_SIQ_REC);
+      }
+      return rc;
+   }
 
    /* the msg isn't buffered, process it */
    rc = avnd_su_si_msg_prc(cb, su, info);
@@ -325,16 +349,25 @@ uns32 avnd_evt_tmr_su_err_esc (AVND_CB *cb, AVND_EVT *evt)
       goto done;
    }
 
+
+   if(NCSCC_RC_SUCCESS ==
+      m_AVND_CHECK_FOR_STDBY_FOR_EXT_COMP(cb,su->su_is_external))
+         goto done;
+
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_TMR); 
+
    switch(su->su_err_esc_level)
    {
       case AVND_ERR_ESC_LEVEL_0:
          su->comp_restart_cnt = 0;
          su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_CNT);
          break;
       case AVND_ERR_ESC_LEVEL_1:
          su->su_restart_cnt = 0;
          su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
          cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_CNT);
          break;
       case AVND_ERR_ESC_LEVEL_2:
          cb->su_failover_cnt = 0;
@@ -344,9 +377,9 @@ uns32 avnd_evt_tmr_su_err_esc (AVND_CB *cb, AVND_EVT *evt)
       default:
          m_NCS_ASSERT(0);
    }
-
-   ncshm_give_hdl((uns32)evt->info.tmr.opq_hdl);
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
 done:
+   if(su) ncshm_give_hdl((uns32)evt->info.tmr.opq_hdl);
    return rc;
 }
 
@@ -409,11 +442,15 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
       su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
       su->comp_restart_cnt = 0;
       su->su_restart_cnt = 0;
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_CONFIG);
       /* stop su_err_esc_tmr TBD Later */
 
       /* disable the oper state (if pi su) */
       if ( m_AVND_SU_IS_PREINSTANTIABLE(su) )
+      {
          m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
+      }
    }
 
    /* scan & delete the current info store in each component */

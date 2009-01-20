@@ -56,6 +56,9 @@ typedef enum
    NCS_SERVICE_AVND_SUB_ID_AVND_DND_MSG_LIST,
    NCS_SERVICE_AVND_SUB_ID_AVSV_CLM_TRK_INFO,
    NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG,
+   NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST,
+   NCS_SERVICE_AVND_SUB_ID_REG_REQ_PENDING,
+   NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT,
    NCS_SERVICE_AVND_SUB_ID_MAX
 } NCS_SERVICE_AVND_SUB_ID;
 
@@ -257,4 +260,22 @@ typedef enum
                                                 NCS_SERVICE_ID_AVND, \
                                                 NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG)
 
+#define m_MMGR_ALLOC_AVND_NODEID_MDSDEST  (AVND_NODEID_TO_MDSDEST_MAP *)m_NCS_MEM_ALLOC(sizeof(AVND_NODEID_TO_MDSDEST_MAP), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVND, \
+                                                NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST)
+
+#define m_MMGR_FREE_AVND_NODEID_MDSDEST(p)  m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVND, \
+                                                NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST)
+
+#define m_MMGR_ALLOC_AVND_ASYNC_UPDT  (AVND_ASYNC_UPDT_MSG_QUEUE*)m_NCS_MEM_ALLOC(sizeof(AVND_ASYNC_UPDT_MSG_QUEUE), \
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVND, \
+                                                NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT)
+#define m_MMGR_FREE_AVND_ASYNC_UPDT(p)     m_NCS_MEM_FREE(p,\
+                                                NCS_MEM_REGION_PERSISTENT, \
+                                                NCS_SERVICE_ID_AVND, \
+                                                NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT)
 #endif /* !AVND_MEM_H */

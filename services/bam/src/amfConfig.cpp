@@ -74,6 +74,8 @@ saAmfParseNodeAttributes(DOMNode *, char *);
 static SaAisErrorT
 saAmfParseAmfComponentT(DOMNode *, char *, uns32);
 
+static SaAisErrorT saAmfParseExtSUInstance(DOMNode *node);
+
 static SaAisErrorT
 saAmfParseSaAwareComp(DOMNode *tmp, char *index)
 {
@@ -160,7 +162,7 @@ static uns32 get_admstate_val(char *val)
 }
 
 static SaAisErrorT
-saAmfParseProxiedComp(DOMNode *tmp, char *index)
+saAmfParseProxiedComp(DOMNode *tmp, char *index, NCS_BOOL ext_comp_flag)
 {
    SaAisErrorT          rc=SA_AIS_OK;
    NCSMIB_TBL_ID        table_id;
@@ -180,11 +182,15 @@ saAmfParseProxiedComp(DOMNode *tmp, char *index)
          {
             if(atoi(val))
             {
-               saAmfParseAmfComponentT(tmp, index, NCS_BAM_COMP_PROXIED_LOCAL_PRE_INST);
+               saAmfParseAmfComponentT(tmp, index,(ext_comp_flag == 0)?
+                                       NCS_BAM_COMP_PROXIED_LOCAL_PRE_INST :
+                                       NCS_BAM_COMP_EXTERNAL_PRE_INST);
             }
             else
             { 
-               saAmfParseAmfComponentT(tmp, index, NCS_BAM_COMP_PROXIED_LOCAL_NONPRE_INST);
+               saAmfParseAmfComponentT(tmp, index,(ext_comp_flag == 0)?
+                                       NCS_BAM_COMP_PROXIED_LOCAL_NONPRE_INST:
+                                       NCS_BAM_COMP_EXTERNAL_NONPRE_INST);
             }
          }
          XMLString::release(&tag);
@@ -686,7 +692,8 @@ ncs_bam_count_set_components(DOMNode *suNode, bool fromPrototype, char *suName)
  */
 
 static SaAisErrorT
-saAmfParseComponentAttributes(DOMNode *compNode, char *protoName, char *index)
+saAmfParseComponentAttributes(DOMNode *compNode, char *protoName, 
+                              char *index, NCS_BOOL ext_su_flag)
 {
    SaAisErrorT    rc=SA_AIS_OK;
    DOMNodeList *children = compNode->getChildNodes();
@@ -720,7 +727,7 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName, char *index)
          }
          else if(m_NCS_STRCMP(tag, "proxiedComponent") == 0)
          {
-            saAmfParseProxiedComp(tmpNode, index);
+            saAmfParseProxiedComp(tmpNode, index, ext_su_flag);
          }
          else if(m_NCS_STRCMP(tag, "unproxiedComponent") == 0)
          {
@@ -781,6 +788,7 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName, char *index)
             XMLString::release(&val);
          }
 
+
          XMLString::release(&tag);
       }
    }
@@ -790,7 +798,7 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName, char *index)
 
  
 static SaAisErrorT
-saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype)
+saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BOOL ext_su_flag)
 {
    char        genName[BAM_MAX_INDEX_LEN];
    DOMNode     *compPrototype;
@@ -844,7 +852,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype)
       }
    }
    
-   saAmfParseComponentAttributes(compPrototype, protoName, genName);
+   saAmfParseComponentAttributes(compPrototype, protoName, genName, ext_su_flag);
 
    /*
    ** The SUName and row status is set only if from prototype 
@@ -890,7 +898,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype)
   NOTES         : 
 *****************************************************************************/
 static SaAisErrorT
-saAmfParseCompProtoList(DOMNode *node, char *index)
+saAmfParseCompProtoList(DOMNode *node, char *index, NCS_BOOL ext_su_flag)
 {
    if(!node)
       return SA_AIS_ERR_INVALID_PARAM;
@@ -912,7 +920,7 @@ saAmfParseCompProtoList(DOMNode *node, char *index)
          char *val = XMLString::transcode(tmpNode->getTextContent());
          if(m_NCS_STRCMP(tmpString, "componentPrototype") == 0)
          {
-            saAmfParseCompPrototype(val, index, TRUE);           
+            saAmfParseCompPrototype(val, index, TRUE, ext_su_flag);           
          }
          XMLString::release(&tmpString);
          XMLString::release(&val);
@@ -933,7 +941,8 @@ saAmfParseCompProtoList(DOMNode *node, char *index)
   NOTES         : 
 *****************************************************************************/
 static SaAisErrorT
-saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype)
+saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype, 
+                      NCS_BOOL ext_su_flag)
 {
    char                 genName[BAM_MAX_INDEX_LEN];
    DOMNode              *suPrototype;
@@ -1059,7 +1068,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype)
                                 &mib_idx, def_val, format); 
    
             /* Now go ahead and parse comp */
-            saAmfParseCompProtoList(tmpNode, genName);
+            saAmfParseCompProtoList(tmpNode, genName, ext_su_flag);
          }
 
          XMLString::release(&tmpString);
@@ -1106,7 +1115,7 @@ saAmfParseSUFinalProtoList(DOMNode *node, char *index)
          char *val = XMLString::transcode(tmpNode->getTextContent());
          if(m_NCS_STRCMP(tmpString, "SUFinalPrototype") == 0)
          {
-            saAmfParseSUPrototype(val, index, TRUE);
+            saAmfParseSUPrototype(val, index, TRUE,FALSE);
          }
          XMLString::release(&tmpString);
          XMLString::release(&val);
@@ -1551,7 +1560,7 @@ saAmfParseSUAttributes(DOMNode *node, char *suName)
 *****************************************************************************/
 
 static SaAisErrorT
-saAmfParseComponentInstance(DOMNode *node, char *suName)
+saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
 {
    SaAisErrorT             rc = SA_AIS_OK;
    DOMNode              *tmpNode = NULL;
@@ -1610,7 +1619,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName)
          if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
-            rc = saAmfParseCompPrototype(val, genName, FALSE);
+            rc = saAmfParseCompPrototype(val, genName, FALSE, ext_su_flag);
             if(rc != SA_AIS_OK)
             {
                XMLString::release(&tmpString);
@@ -1620,7 +1629,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName)
             XMLString::release(&val);
          }
          else if(m_NCS_STRCMP(tmpString, "componentAttributes") == 0)
-            rc = saAmfParseComponentAttributes(tmpNode, NULL, genName);
+            rc = saAmfParseComponentAttributes(tmpNode, NULL, genName, ext_su_flag);
 
          XMLString::release(&tmpString);
       }
@@ -1659,7 +1668,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName)
 *****************************************************************************/
 
 static SaAisErrorT
-saAmfParseComponentList(DOMNode *node, char *suName)
+saAmfParseComponentList(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
 {
    SaAisErrorT             rc = SA_AIS_OK;
    DOMNode              *tmpNode = NULL;
@@ -1693,7 +1702,7 @@ saAmfParseComponentList(DOMNode *node, char *suName)
             return SA_AIS_ERR_NOT_SUPPORTED;
          }
          XMLString::release(&tmpString);
-         rc = saAmfParseComponentInstance(tmpNode, suName);
+         rc = saAmfParseComponentInstance(tmpNode, suName, ext_su_flag);
          if(rc != SA_AIS_OK)
             return rc;
       }
@@ -1705,14 +1714,17 @@ saAmfParseComponentList(DOMNode *node, char *suName)
   PROCEDURE NAME: saAmfParseSUInstance
   DESCRIPTION   : This routine is to parse the list of SU Instances
                   and generate the mibsets.
-  ARGUMENTS     :
+  ARGUMENTS     : node           : node pointer,
+                  parentNodeName : Pointer to its parent node name,
+                  ext_su_flag    : TRUE if it has to parse external SU Instance,
+                                   else FALSE.
                   
   RETURNS       : SUCCESS or FAILURE
   NOTES         : 
 *****************************************************************************/
 
 static SaAisErrorT
-saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
+saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
 {
    SaAisErrorT          rc = SA_AIS_OK;
    DOMNode              *tmpNode = NULL;
@@ -1724,6 +1736,12 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
    NCSMIB_IDX           mib_idx;
    char                 genName[BAM_MAX_INDEX_LEN];
    char                 def_val[4];
+   /* The following variables are used for external SU validation. In any case,
+      only one prototype and one SU Attr or one comp list and one SU Attr should
+      be there.*/
+   uns32                prototype_counter=0;
+   uns32                complist_counter=0;
+   uns32                su_attr_counter=0;
    
    if(!node)
    {
@@ -1743,8 +1761,12 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
             suName = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
             m_NCS_MEMSET(genName, 0, BAM_MAX_INDEX_LEN);
             m_NCS_STRCPY(genName, suName);
-            m_NCS_STRCAT(genName, ",");
-            m_NCS_STRCAT(genName, parentNodeName);
+            if(ext_su_flag == FALSE)
+            {
+              /* For external component, there is no node name. */
+              m_NCS_STRCAT(genName, ",");
+              m_NCS_STRCAT(genName, parentNodeName);
+            }
             XMLString::release(&suName);
          }
          else
@@ -1781,20 +1803,39 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
 
          if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
          {
-            char *val = XMLString::transcode(tmpNode->getTextContent());
-            rc = saAmfParseSUPrototype(val, genName, FALSE);
-            if(rc != SA_AIS_OK)
+            if((0 == prototype_counter) || (FALSE == ext_su_flag))
             {
-               XMLString::release(&tmpString);
-               XMLString::release(&val);
-               return rc;
+              char *val = XMLString::transcode(tmpNode->getTextContent());
+              rc = saAmfParseSUPrototype(val, genName, FALSE, ext_su_flag);
+              if(rc != SA_AIS_OK)
+              {
+                 XMLString::release(&tmpString);
+                 XMLString::release(&val);
+                 return rc;
+              }
+              XMLString::release(&val);
             }
-            XMLString::release(&val);
+            else
+            {
+              m_LOG_BAM_MSG_TICL(BAM_PARSE_ERROR, NCSFL_SEV_ERROR, 
+                                 "More than one prototype configured: ", 
+                                 tmpString);
+            }
+            prototype_counter ++;
          }
          else if(m_NCS_STRCMP(tmpString, "SUAttributes") == 0)
          {
-            rc = saAmfParseSUAttributes(tmpNode, genName);
-
+            if((su_attr_counter == 0) || (FALSE == ext_su_flag))
+            {
+               rc = saAmfParseSUAttributes(tmpNode, genName);
+            }
+            else
+            {
+              m_LOG_BAM_MSG_TICL(BAM_PARSE_ERROR, NCSFL_SEV_ERROR, 
+                                 "More than one SUAttributes configured: ", 
+                                 tmpString);
+            }
+            su_attr_counter ++;
             /*
             ** set the row status right here so that walking the
             ** component list and setting the parent SU Name the check 
@@ -1812,6 +1853,8 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
          else if(m_NCS_STRCMP(tmpString, "componentList") == 0)
          {
 
+          if((complist_counter == 0) || (FALSE == ext_su_flag))
+          {
             /* Set the num of components value and si_max_active variables
             ** in the SU for the row status to be active
             */
@@ -1838,7 +1881,15 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName)
                                 &mib_idx, def_val, format); 
    
             /* Now that rowStatus is set, go ahead and parse comps */
-            rc = saAmfParseComponentList(tmpNode, genName);
+            rc = saAmfParseComponentList(tmpNode, genName, ext_su_flag);
+          }
+          else
+          {
+              m_LOG_BAM_MSG_TICL(BAM_PARSE_ERROR, NCSFL_SEV_ERROR, 
+                                 "More than one componentList configured: ", 
+                                 tmpString);
+          }
+          complist_counter++;
          }
 
          XMLString::release(&tmpString);
@@ -1894,7 +1945,7 @@ saAmfParseSUList(DOMNode *node, char *parentNodeName)
             return SA_AIS_ERR_NOT_SUPPORTED;
          }
          XMLString::release(&tmpString);
-         rc = saAmfParseSUInstance(tmpNode, parentNodeName);
+         rc = saAmfParseSUInstance(tmpNode, parentNodeName,FALSE);
          if(rc != SA_AIS_OK)
             return rc;
       }
@@ -2101,6 +2152,8 @@ saAmfConfigParseAllObjs(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
 
          else if(m_NCS_STRCMP(tmpString, "vendorExtensions") == 0)
             rc = saAmfParseVendorExt(tmpNode);
+         else if(m_NCS_STRCMP(tmpString, "extSUInstance") == 0)
+            rc = saAmfParseExtSUInstance(tmpNode);
 
          if(rc != SA_AIS_OK)
             m_LOG_BAM_MSG_TICL(BAM_PARSE_ERROR, NCSFL_SEV_ERROR, 
@@ -2110,4 +2163,33 @@ saAmfConfigParseAllObjs(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
       }
    }
    return rc;
+}
+
+/*****************************************************************************
+  PROCEDURE NAME: saAmfParseExtSUInstance
+
+  DESCRIPTION   : This routine is to parse the SU instance and generate
+                  the mibsets for this instance. Note that this instance may
+                  use prototypes also which need to be instantiated.
+  ARGUMENTS     : Pointer to the DOM Node.
+
+  RETURNS       : SUCCESS or FAILURE
+  NOTES         :
+*****************************************************************************/
+static SaAisErrorT saAmfParseExtSUInstance(DOMNode *node)
+{
+   SaAisErrorT          rc = SA_AIS_OK;
+   char                 nodeName[BAM_MAX_INDEX_LEN];
+
+   m_NCS_OS_MEMSET(&nodeName, '\0', BAM_MAX_INDEX_LEN);
+   
+   rc = saAmfParseSUInstance(node, (char *)&nodeName, TRUE);
+
+   if(rc != SA_AIS_OK)
+   {
+     m_LOG_BAM_MSG_TICL(BAM_PARSE_ERROR, NCSFL_SEV_ERROR, 
+       "Error encountered parsing: ", "saAmfParseSUInstance returned failure");
+     return rc;
+   }
+     return rc;
 }

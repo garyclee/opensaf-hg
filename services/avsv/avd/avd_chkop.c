@@ -791,6 +791,7 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB  *cb,
                          uns32    role)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
+   uns32             rc = NCSCC_RC_SUCCESS;
 
    m_AVD_LOG_FUNC_ENTRY("avsv_set_ckpt_role");
 
@@ -807,7 +808,92 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB  *cb,
       return NCSCC_RC_FAILURE;
    }
 
-   return NCSCC_RC_SUCCESS;
+   return rc;
+}
+
+/****************************************************************************\
+ * Function: avd_avnd_send_role_change
+ *
+ * Purpose:  Set checkpoint role.
+ *
+ * Input: cb       - AVD control block pointer.
+ *        node_id  - Node id of the AvND.
+ *        role     - Role to be set.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+uns32 avd_avnd_send_role_change(AVD_CL_CB  *cb, NODE_ID node_id,
+                                uns32    role)
+{
+      AVD_DND_MSG *d2n_msg = NULL;
+      AVD_AVND    *avnd = NULL;    
+
+      m_AVD_PXY_PXD_ENTRY_LOG(
+        "avd_avnd_send_role_change: Comp, node_id and role are",
+         NULL,node_id,role,0,0);
+
+      /* Check wether we are sending to peer controller AvND, which is of older
+         version. Don't send role change to older version Controler AvND.*/
+      if((node_id == cb->node_id_avd_other) && 
+         (cb->peer_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_2))
+      {
+          goto done;
+      }
+
+      /* It may happen that this function has been called before AvND has come
+         up, so just return SUCCESS. Send the role change when AvND comes up.*/
+      if ((avnd = avd_avnd_struc_find_nodeid(cb,node_id)
+          ) == AVD_AVND_NULL)
+      {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_avnd_send_role_change: avnd is NULL. Comp,node_id and role are",
+         NULL,node_id,role,0,0);
+        goto done;
+      }
+
+      d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+      if (d2n_msg == AVD_DND_MSG_NULL)
+      {
+         /* log error that the director is in degraded situation */
+         m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
+         m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+         return NCSCC_RC_FAILURE;
+      }
+
+      m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+
+      d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
+      d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(avnd->snd_msg_id);
+      d2n_msg->msg_info.d2n_role_change_info.node_id = avnd->node_info.nodeId;
+      d2n_msg->msg_info.d2n_role_change_info.role = role;
+      
+      /* send the message */
+      if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS)
+      {
+         /* log error that the director is not able to send the message */
+         --(avnd->snd_msg_id);
+         m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+         m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR,d2n_msg,sizeof(AVD_DND_MSG),d2n_msg);
+         /* free the message */
+
+         avsv_dnd_msg_free(d2n_msg);
+         return NCSCC_RC_FAILURE;
+       }
+
+       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
+
+        m_AVD_PXY_PXD_SUCC_LOG(
+        "avd_avnd_send_role_change: Role sent SUCC. Comp, node_id and role are",
+         NULL,node_id,role,0,0);
+
+     /*avsv_dnd_msg_free(d2n_msg);*/
+
+done:
+return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

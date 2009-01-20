@@ -84,10 +84,15 @@
 AVD_SU * avd_su_struc_crt(AVD_CL_CB *cb,SaNameT su_name, NCS_BOOL ckpt)
 {
    AVD_SU *su;
+   NCS_BOOL su_is_external = FALSE;
 
    if( (su_name.length <= 6) || (m_NCS_OS_STRNCMP(su_name.value,"safSu=",6) != 0) )
    {
-      return AVD_SU_NULL;
+      /* Check wether it is an external component. */
+      if(m_NCS_OS_STRNCMP(su_name.value,"safEsu=",7) != 0)
+        return AVD_SU_NULL;
+      else
+        su_is_external = TRUE;
    }
 
    /* Allocate a new block structure now
@@ -121,7 +126,7 @@ AVD_SU * avd_su_struc_crt(AVD_CL_CB *cb,SaNameT su_name, NCS_BOOL ckpt)
       su->pres_state = NCS_PRES_UNINSTANTIATED;
       su->readiness_state = NCS_OUT_OF_SERVICE;
       su->su_act_state = AVD_SU_NO_STATE;
-      su->su_is_external = FALSE;
+      su->su_is_external = su_is_external;
       su->row_status = NCS_ROW_NOT_READY;
    }
 
@@ -280,6 +285,7 @@ void avd_su_del_avnd_list(AVD_CL_CB *cb,AVD_SU *su)
    else
       isNcs = FALSE;
 
+   /* For external component, there is no AvND attached, so let it return. */
    if (su->su_on_node != AVD_AVND_NULL)
    {
       /* remove SU from node */
@@ -595,6 +601,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    NCS_READINESS_STATE back_red_state;
    NCS_ADMIN_STATE back_admin_state;
    AVSV_PARAM_INFO param;
+   AVD_AVND *su_node_ptr = NULL;
    
    if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
@@ -701,7 +708,8 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       
             /* check that the NODE is present and is active.
              */
-
+           if(FALSE == su->su_is_external)
+           {
             /* First get the node name */
             avsv_cpy_node_DN_from_DN(&temp_name, &su_name); 
 
@@ -729,7 +737,6 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          
                return NCSCC_RC_INV_VAL;
             }
-
             /* add to the list of AVND */ 
             if(su->sg_of_su->sg_ncs_spec == TRUE)
             {
@@ -741,6 +748,47 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                su->avnd_list_su_next = su->su_on_node->list_of_su;
                su->su_on_node->list_of_su = su;
             }
+            su_node_ptr = su->su_on_node;
+           } /* if(FALSE == su->su_is_external)  */
+           else
+           {
+                if(NULL == avd_cb->ext_comp_info.ext_comp_hlt_check)
+                {
+                  /* This is an external SU and we need to create the 
+                     supporting info.*/
+                  avd_cb->ext_comp_info.ext_comp_hlt_check = 
+                                           m_MMGR_ALLOC_AVD_AVND;
+                  if(NULL == avd_cb->ext_comp_info.ext_comp_hlt_check)
+                  {
+                    avd_su_del_sg_list(avd_cb,su);
+                    return NCSCC_RC_INV_VAL;
+                  }
+                  m_NCS_MEMSET(avd_cb->ext_comp_info.ext_comp_hlt_check, 0,
+                               sizeof(AVD_AVND));
+                  avd_cb->ext_comp_info.local_avnd_node = 
+                     avd_avnd_struc_find_nodeid(avd_cb, avd_cb->node_id_avd);
+
+                  if(NULL == avd_cb->ext_comp_info.local_avnd_node)
+                  {
+                    m_AVD_PXY_PXD_ERR_LOG(
+                  "sutableentry_set:Local node unavailable:SU Name,node id are",
+                    &su->name_net,avd_cb->node_id_avd,0,0,0);
+                    avd_su_del_sg_list(avd_cb,su);
+                    return NCSCC_RC_INV_VAL;
+                  }
+
+                } /* if(NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) */
+
+                su_node_ptr = avd_cb->ext_comp_info.local_avnd_node;
+
+                if (su_node_ptr->row_status != NCS_ROW_ACTIVE)
+                {
+                  su->su_on_node = AVD_AVND_NULL;  
+                  avd_su_del_sg_list(avd_cb,su);
+         
+                  return NCSCC_RC_INV_VAL;
+                }
+           } /* else of if(FALSE == su->su_is_external)  */
 
 
             if(test_flag == TRUE)
@@ -765,9 +813,9 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
              */
             su->row_status = NCS_ROW_ACTIVE;
 
-            if((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-               (su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-               (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+            if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+               (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+               (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
             {
                if (avd_snd_su_msg(avd_cb, su) != NCSCC_RC_SUCCESS)
                {
@@ -822,15 +870,18 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                {
                   return NCSCC_RC_SUCCESS;
                }
-               if((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-                  (su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-                  (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+
+               m_AVD_GET_SU_NODE_PTR(avd_cb,su,su_node_ptr);
+
+               if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+                  (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+                  (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
                {
                   m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
                   param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
                   param.act = AVSV_OBJ_OPR_DEL;
                   param.name_net = su->name_net;  
-                  avd_snd_op_req_msg(avd_cb, su->su_on_node, &param);
+                  avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
                }
 
                /* remove the SU from both the SG list and the
@@ -896,7 +947,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
 
       } /* if(arg->req.info.set_req.i_param_val.i_param_id == ncsSURowStatus_ID) */
 
-   } /* if (su == AVD_SU_NULL) */
+   } /* else of if (su == AVD_SU_NULL) */
 
    /* We now have the su block */
    
@@ -911,6 +962,8 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       {
          return NCSCC_RC_INV_VAL;
       }
+
+      m_AVD_GET_SU_NODE_PTR(avd_cb,su,su_node_ptr);
 
       switch(arg->req.info.set_req.i_param_val.i_param_id)
       {
@@ -931,7 +984,9 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             m_AVD_SET_SU_ADMIN(cb,su,NCS_ADMIN_STATE_UNLOCK);
             if(su->num_of_comp == su->curr_num_comp)
             {               
-               if (m_AVD_APP_SU_IS_INSVC(su))
+               m_AVD_GET_SU_NODE_PTR(avd_cb,su,su_node_ptr);
+         
+               if (m_AVD_APP_SU_IS_INSVC(su,su_node_ptr))
                {
                   m_AVD_SET_SU_REDINESS(cb,su,NCS_IN_SERVICE);
                   switch(su->sg_of_su->su_redundancy_model)
@@ -1022,7 +1077,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             switch(su->sg_of_su->su_redundancy_model)
             {
             case AVSV_SG_RED_MODL_2N:
-               if(avd_sg_2n_su_admin_fail(avd_cb, su, su->su_on_node) != NCSCC_RC_SUCCESS)
+               if(avd_sg_2n_su_admin_fail(avd_cb, su, su_node_ptr) != NCSCC_RC_SUCCESS)
                {
                   m_AVD_SET_SU_REDINESS(cb,su,back_red_state);
                   m_AVD_SET_SU_ADMIN(cb,su,back_admin_state);
@@ -1031,7 +1086,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                break;
 
             case AVSV_SG_RED_MODL_NWAY:
-               if(avd_sg_nway_su_admin_fail(avd_cb, su, su->su_on_node) != NCSCC_RC_SUCCESS)
+               if(avd_sg_nway_su_admin_fail(avd_cb, su, su_node_ptr) != NCSCC_RC_SUCCESS)
                {
                   m_AVD_SET_SU_REDINESS(cb,su,back_red_state);
                   m_AVD_SET_SU_ADMIN(cb,su,back_admin_state);
@@ -1040,7 +1095,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                break;
                
             case AVSV_SG_RED_MODL_NPM:
-               if(avd_sg_npm_su_admin_fail(avd_cb, su, su->su_on_node) != NCSCC_RC_SUCCESS)
+               if(avd_sg_npm_su_admin_fail(avd_cb, su, su_node_ptr) != NCSCC_RC_SUCCESS)
                {
                   m_AVD_SET_SU_REDINESS(cb,su,back_red_state);
                   m_AVD_SET_SU_ADMIN(cb,su,back_admin_state);
@@ -1049,7 +1104,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                break;
 
             case AVSV_SG_RED_MODL_NWAYACTV:
-               if(avd_sg_nacvred_su_admin_fail(avd_cb, su, su->su_on_node) != NCSCC_RC_SUCCESS)
+               if(avd_sg_nacvred_su_admin_fail(avd_cb, su, su_node_ptr) != NCSCC_RC_SUCCESS)
                {
                   m_AVD_SET_SU_REDINESS(cb,su,back_red_state);
                   m_AVD_SET_SU_ADMIN(cb,su,back_admin_state);
@@ -1058,7 +1113,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                break;
             case AVSV_SG_RED_MODL_NORED:
             default:
-               if(avd_sg_nored_su_admin_fail(avd_cb, su, su->su_on_node) != NCSCC_RC_SUCCESS)
+               if(avd_sg_nored_su_admin_fail(avd_cb, su, su_node_ptr) != NCSCC_RC_SUCCESS)
                {
                   m_AVD_SET_SU_REDINESS(cb,su,back_red_state);
                   m_AVD_SET_SU_ADMIN(cb,su,back_admin_state);
@@ -1072,9 +1127,9 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          }
          break;
       case saAmfSUFailOver_ID:
-         if((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+         if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
          {
             m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
@@ -1085,7 +1140,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          
             su->is_su_failover = TRUE;
 
-            if(avd_snd_op_req_msg(avd_cb,su->su_on_node,&param)!= NCSCC_RC_SUCCESS)
+            if(avd_snd_op_req_msg(avd_cb,su_node_ptr,&param)!= NCSCC_RC_SUCCESS)
             {
                su->is_su_failover = temp_bool;
                return NCSCC_RC_INV_VAL;
@@ -1354,8 +1409,8 @@ void avd_su_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
        */
 
       m_AVD_LOG_INVALID_VAL_FATAL(ack_msg->msg_info.n2d_reg_su.error);
-      
-      avnd = su->su_on_node;
+
+      m_AVD_GET_SU_NODE_PTR(cb,su,avnd);
 
       /* remove the SU from both the SG list and the
        * AVND list if present.
@@ -1589,6 +1644,7 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    uns32         i;
    NCS_BOOL      val_same_flag = FALSE;
    NCSMIBLIB_REQ_INFO temp_mib_req;
+   AVD_AVND *su_node_ptr = NULL;
  
    if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
@@ -1629,7 +1685,6 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_SUCCESS;
    }
 
-
    if(arg->req.info.set_req.i_param_val.i_param_id == ncsSUTermState_ID)
    {
       if(arg->req.info.set_req.i_param_val.info.i_int == su->term_state)
@@ -1645,9 +1700,11 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             return NCSCC_RC_INV_VAL;  
          }
 
-         if((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+         m_AVD_GET_SU_NODE_PTR(avd_cb,su,su_node_ptr);
+
+         if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
          {
             if(avd_snd_presence_msg(avd_cb, su, TRUE) == NCSCC_RC_SUCCESS)
             {
@@ -1665,9 +1722,11 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       }
       else if(arg->req.info.set_req.i_param_val.info.i_int == NCS_SNMP_FALSE) 
       {
-         if((su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-            (su->su_on_node->node_state == AVD_AVND_STATE_NCS_INIT))
+         m_AVD_GET_SU_NODE_PTR(avd_cb,su,su_node_ptr);
+
+         if((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+            (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
          {
             if(avd_snd_presence_msg(avd_cb, su, FALSE) == NCSCC_RC_SUCCESS)
             {

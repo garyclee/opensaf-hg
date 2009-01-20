@@ -92,6 +92,9 @@ uns32 avnd_hcdb_destroy(AVND_CB *cb)
    while ( 0 != (hc = 
             (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)0)) )
    {
+      /*AvND is going down, but don't send any async update even for 
+      external components, otherwise external components will be deleted
+      from ACT.*/
       rc = avnd_hcdb_rec_del(cb, &hc->key);
       if ( NCSCC_RC_SUCCESS != rc ) goto err;
    }
@@ -154,6 +157,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
    m_NCS_OS_MEMCPY(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));
    hc->period = info->period;
    hc->max_dur = info->max_duration;
+   hc->is_ext = info->is_ext;
 
    /* Add to the patricia tree */
    hc->tree_node.bit = 0;

@@ -37,6 +37,8 @@
 #include "avnd.h"
 #include "nid_api.h"
 
+extern const AVND_EVT_HDLR  g_avnd_func_list[AVND_EVT_MAX];
+
 /****************************************************************************
   Name          : avnd_evt_last_step_clean
  
@@ -69,7 +71,10 @@ static void avnd_last_step_clean(AVND_CB *cb)
 
    while(comp != 0)
    {
+     if(FALSE == comp->su->su_is_external)
+     {
       avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+     }
 
       comp = (AVND_COMP *)
              ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
@@ -82,8 +87,10 @@ static void avnd_last_step_clean(AVND_CB *cb)
     */
    while(su != 0)
    {
+     if(FALSE == su->su_is_external)
+     {
       avnd_su_si_del(cb, &su->name_net);
-
+     }
       su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
    } /* end while SU */
 
@@ -149,8 +156,9 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
       /* scan & drive the SU term by PRES_STATE FSM on each su */
       while(su != 0)
       {
-         if( su->is_ncs == SA_FALSE )
+         if((su->is_ncs == SA_FALSE) || (TRUE == su->su_is_external)) 
          {
+            /* Don't process external components */
             su = (AVND_SU *)
                  ncs_patricia_tree_getnext(&cb->sudb, (uns8*)&su->name_net);
             continue;

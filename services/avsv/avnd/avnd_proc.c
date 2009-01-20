@@ -52,7 +52,7 @@ static uns32 avnd_evt_invalid_func(AVND_CB *cb,AVND_EVT *evt);
 
 /* list of all the function pointers related to handling the events
 */
-static const AVND_EVT_HDLR  g_avnd_func_list[AVND_EVT_MAX] =
+const AVND_EVT_HDLR  g_avnd_func_list[AVND_EVT_MAX] =
 {
    /* invalid event */
    avnd_evt_invalid_func, /* AVND_EVT_INVALID */
@@ -74,6 +74,8 @@ static const AVND_EVT_HDLR  g_avnd_func_list[AVND_EVT_MAX] =
    avnd_evt_avd_ack_message,            /* AVND_EVT_AVD_ACK_MSG */
    avnd_evt_avd_shutdown_app_su_msg,    /* AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG */
    avnd_evt_avd_set_leds_msg,           /* AVND_EVT_AVD_SET_LEDS_MSG */
+   avnd_evt_avd_comp_validation_resp_msg,/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
+   avnd_evt_avd_role_change_msg,         /* AVND_EVT_AVD_ROLE_CHANGE_MSG */
 
    /* AvA event types */ 
    avnd_evt_ava_finalize,            /* AVND_EVT_AVA_AMF_FINALIZE */
@@ -115,9 +117,17 @@ static const AVND_EVT_HDLR  g_avnd_func_list[AVND_EVT_MAX] =
    avnd_evt_mds_avd_dn,  /* AVND_EVT_MDS_AVD_DN */
    avnd_evt_mds_ava_dn,  /* AVND_EVT_MDS_AVA_DN */
    avnd_evt_mds_cla_dn,  /* AVND_EVT_MDS_CLA_DN */
+   avnd_evt_mds_avnd_dn,  /* AVND_EVT_MDS_AVND_DN */
+   avnd_evt_mds_avnd_up,  /* AVND_EVT_MDS_AVND_UP */
+
+   /* HA State Change event types */ 
+   avnd_evt_ha_state_change,    /* AVND_EVT_HA_STATE_CHANGE */
 
    /* clc event types */ 
    avnd_evt_clc_resp,    /* AVND_EVT_CLC_RESP */
+
+   /* AvND to AvND Events. */
+   avnd_evt_avnd_avnd_msg,    /* AVND_EVT_AVND_AVND_MSG */
 
    /* internal event types */ 
    avnd_evt_comp_pres_fsm_ev,  /* AVND_EVT_COMP_PRES_FSM_EV */
@@ -145,6 +155,9 @@ void avnd_main_process (void *arg)
    NCS_SEL_OBJ        mbx_sel_obj;
    NCS_SEL_OBJ        highest_sel_obj;
    NCS_SEL_OBJ        ncs_srm_sel_obj;
+#ifdef NCS_AVND_MBCSV_CKPT
+   NCS_SEL_OBJ        avnd_mbcsv_sel_obj;
+#endif
    SaSelectionObjectT srm_sel_obj;
    NCS_BOOL           avnd_exit = FALSE;
 
@@ -189,9 +202,16 @@ void avnd_main_process (void *arg)
    /*m_NCS_SEL_OBJ_SET(edsv_sel_obj, &wait_sel_objs);*/
    m_NCS_SEL_OBJ_SET(ncs_srm_sel_obj, &wait_sel_objs);
 
+#ifdef NCS_AVND_MBCSV_CKPT
+   m_SET_FD_IN_SEL_OBJ((uns32)cb->avnd_mbcsv_sel_obj, avnd_mbcsv_sel_obj);
+   m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
+#endif
+
    /* get the highest select object in the set */
    highest_sel_obj = m_GET_HIGHER_SEL_OBJ(mbx_sel_obj, ncs_srm_sel_obj);
-
+#ifdef NCS_AVND_MBCSV_CKPT
+   highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, avnd_mbcsv_sel_obj);
+#endif
    /* before waiting, return avnd cb */
    ncshm_give_hdl(cb_hdl);
 
@@ -206,8 +226,18 @@ void avnd_main_process (void *arg)
              break;
       }
 
-      /* edsv event processing - TBD in future */
-
+#ifdef NCS_AVND_MBCSV_CKPT
+      if (m_NCS_SEL_OBJ_ISSET (avnd_mbcsv_sel_obj, &wait_sel_objs))
+      {
+         if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(cb, SA_DISPATCH_ALL))
+         {
+            /*
+             * Log error; but continue with our loop.
+             */
+            m_NCS_SYSLOG(NCS_LOG_ERR,"avnd_mbcsv_dispatch Failed"); 
+         }
+      }/* if (m_NCS_SEL_OBJ_ISSET (mbcsv_sel_obj, &wait_sel_objs))*/
+#endif
 
       /* srmsv event processing */
       if( m_NCS_SEL_OBJ_ISSET(ncs_srm_sel_obj, &wait_sel_objs) )
@@ -217,6 +247,9 @@ void avnd_main_process (void *arg)
       /* again set all the wait select objs */
       m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
       m_NCS_SEL_OBJ_SET(ncs_srm_sel_obj, &wait_sel_objs);
+#ifdef NCS_AVND_MBCSV_CKPT
+      m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
+#endif
    }
 
   if(FALSE == avnd_exit)
@@ -326,6 +359,12 @@ void avnd_evt_process (AVND_EVT *evt)
 
    /* invoke the event handler */
    rc = g_avnd_func_list[evt->type](cb, evt);
+
+   if((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) ||
+      (SA_AMF_HA_QUIESCED == cb->avail_state_avnd)) 
+   {
+      m_AVND_SEND_CKPT_UPDT_SYNC(cb, NCS_MBCSV_ACT_UPDATE, 0);   
+   }
 
    /* release cb write lock */
    m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
