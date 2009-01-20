@@ -64,20 +64,6 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt);
    } else (o_rec) = 0; \
 }
 
-/* macro to find the matching record (based on the msg-id) */
-/* 
- * Caution!!! It is assumed that the msg-id is the 1st element in the message
- * structure. Ensure it. Else move the msg id to the common portion of the 
- * message structure (outside the msg type specific contents).
- */
-#define m_AVND_DIQ_REC_FIND(cb, mid, o_rec) \
-{ \
-   AVND_DND_LIST *list = &((cb)->dnd_list); \
-   for ((o_rec) = list->head; \
-        (o_rec) && !(*((uns32 *)(&((o_rec)->msg.info.avd->msg_info)))== (mid)); \
-        (o_rec) = (o_rec)->next); \
-}
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_hlt_updt_on_fover
@@ -113,6 +99,11 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt)
       {
          hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
 
+         if(NULL != hc)
+         {         
+            m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
+         }
+
          m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, 
           AVND_LOG_FOVR_HLT_UPDT_FAIL , rc);
 
@@ -143,8 +134,12 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt)
          continue;
       }
 
-      /* We have not received this entry on f-over, so delete it */
-      avnd_hcdb_rec_del(cb, &hc_key);
+      if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key)))
+      {
+         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+         /* We have not received this entry on f-over, so delete it */
+         avnd_hcdb_rec_del(cb, &hc_key);
+      }
    }
 
    return rc;
@@ -177,6 +172,7 @@ uns32 avnd_evt_avd_reg_hlt_msg (AVND_CB *cb, AVND_EVT *evt)
    /* dont process unless AvD is up */
    if ( !m_AVND_CB_IS_AVD_UP(cb) ) goto done;
 
+
    info = &evt->info.avd->msg_info.d2n_reg_hlt;
 
    /* Message ID 0 check should be removed in future */
@@ -208,6 +204,7 @@ uns32 avnd_evt_avd_reg_hlt_msg (AVND_CB *cb, AVND_EVT *evt)
    {
       hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
       if (!hc) break;
+      m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
    }
 
    /* 
@@ -217,7 +214,13 @@ uns32 avnd_evt_avd_reg_hlt_msg (AVND_CB *cb, AVND_EVT *evt)
    if (hc_info) /* => add operation stopped in the middle */
    {
       for (hc_info = info->hlt_list; hc_info; hc_info = hc_info->next)
-         avnd_hcdb_rec_del(cb, &hc_info->name);
+      {
+         if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_info->name)))
+         {
+           m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+           avnd_hcdb_rec_del(cb, &hc_info->name);
+         }
+      }
    }
 
    /*** send the response to AvD (if it's sent to me) ***/
@@ -342,21 +345,25 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfSGCompRestartProb_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   su->comp_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_PROB);
                   break;
                   
                case saAmfSGCompRestartMax_ID:
                   m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
                   su->comp_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
                   break;
                   
                case saAmfSGSuRestartProb_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   su->su_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
                   break;
                   
                case saAmfSGSuRestartMax_ID:
                   m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
                   su->su_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
                   break;
                   
                default:
@@ -396,9 +403,11 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                if (su)
                {
                   /* unreg the row from mab */
-                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl);
+                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+                  (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
                   
                   /* delete the record */
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
                   rc = avnd_sudb_rec_del(cb, &param->name_net);
                }
             }
@@ -429,6 +438,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = param->value_len;
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD);
                   break;
                case saAmfCompTerminateCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 0, 
@@ -436,6 +446,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = param->value_len;
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CMD);
                   break;
                case saAmfCompCleanupCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 0, 
@@ -462,6 +473,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout = 
                      m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_TIMEOUT);
                   break;
                   
                case saAmfCompDelayBetweenInstantiateAttempts_ID:
@@ -471,6 +483,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout = 
                      m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_TIMEOUT);
                   break;
                   
                case saAmfCompCleanupTimeout_ID:
@@ -494,31 +507,37 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfCompTerminateCallbackTimeOut_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->term_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CBK_TIMEOUT);
                   break;
 
                case saAmfCompCSISetCallbackTimeout_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->csi_set_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT);
                   break;
 
                case saAmfCompQuiescingCompleteTimeout_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->quies_complete_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT);
                   break;
 
                case saAmfCompCSIRmvCallbackTimeout_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->csi_rmv_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT);
                   break;
 
                case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->pxied_inst_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT);
                   break;
 
                case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   comp->pxied_clean_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT);
                   break;
                   
                case saAmfCompNodeRebootCleanupFail_ID:
@@ -527,11 +546,13 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfCompRecoveryOnError_ID:
                   m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
                   comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_DEFAULT_RECVR);
                   break;
 
                case saAmfCompNumMaxInstantiate_ID:
                   m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
                   comp->clc_info.inst_retry_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_MAX);
                   break;
 
                case saAmfCompAMEnable_ID:
@@ -559,9 +580,11 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                if (comp)
                {
                   /* unreg the row from mab */
-                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl);
+                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
+                  (comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
                   
                   /* delete the record */
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);         
                   rc = avnd_compdb_rec_del(cb, &param->name_net);
                }
             }
@@ -603,11 +626,13 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfHealthCheckPeriod_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   hc->period = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
                   break;
                   
                case saAmfHealthCheckMaxDuration_ID:
                   m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
                   hc->max_dur = m_NCS_OS_NTOHLL_P(param->value);
+                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
                   break;
                   
                default:
@@ -617,9 +642,16 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
             break;
 
          case AVSV_OBJ_OPR_DEL:
-            rc = avnd_hcdb_rec_del(cb, &hc_key);
-            break;
+          {
+            AVND_HC *hc = 0;
 
+            if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key)))
+            {
+              m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+              rc = avnd_hcdb_rec_del(cb, &hc_key);
+            }
+            break;
+          }
          default:
             m_AVSV_ASSERT(0);
          }
@@ -1015,6 +1047,7 @@ uns32 avnd_di_susi_resp_send (AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 
       /* we have completed the SU SI msg processing */
       m_AVND_SU_ASSIGN_PEND_RESET(su);
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
    }
    else rc = NCSCC_RC_FAILURE;
 
@@ -1469,7 +1502,7 @@ uns32 avnd_diq_rec_send (AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 
    /* copy the contents from the record */
    rc = avnd_msg_copy(cb, &msg, &rec->msg);
-
+   
    /* send the message to AvD */
    if (NCSCC_RC_SUCCESS == rc)
       rc = avnd_mds_send(cb, &msg, &cb->avd_dest, 0);
@@ -1547,7 +1580,7 @@ uns32 avnd_evt_avd_shutdown_app_su_msg(AVND_CB *cb, AVND_EVT *evt)
    /* scan & drive the SU term by PRES_STATE FSM on each su */
    while(su != 0)
    {
-      if( su->is_ncs == SA_TRUE )
+      if((su->is_ncs == SA_TRUE) || (TRUE == su->su_is_external))
       {
          su = (AVND_SU *)
               ncs_patricia_tree_getnext(&cb->sudb, (uns8*)&su->name_net);

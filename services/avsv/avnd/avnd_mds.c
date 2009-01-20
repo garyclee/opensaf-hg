@@ -39,7 +39,8 @@
 #include "avsv_n2avaedu.h"
 #include "avsv_n2claedu.h"
 
-const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] = {AVSV_AVD_AVND_MSG_FMT_VER_1};
+const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] = {AVSV_AVD_AVND_MSG_FMT_VER_1,AVSV_AVD_AVND_MSG_FMT_VER_2};
+const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[AVND_AVND_SUBPART_VER_MAX] = {AVSV_AVND_AVND_MSG_FMT_VER_1};
 const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[AVND_AVA_SUBPART_VER_MAX] = {AVSV_AVND_AVA_MSG_FMT_VER_1};
 const MDS_CLIENT_MSG_FORMAT_VER avnd_cla_msg_fmt_map_table[AVND_CLA_SUBPART_VER_MAX] = {AVSV_AVND_CLA_MSG_FMT_VER_1};
 
@@ -62,7 +63,7 @@ static uns32 avnd_mds_dec (AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_flat_dec (AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_flat_ava_dec (AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_flat_cla_dec (AVND_CB *, MDS_CALLBACK_DEC_INFO *);
-
+static uns32 avnd_mds_quiesced_process(AVND_CB *cb);
 
 /****************************************************************************
   Name          : avnd_mds_reg
@@ -145,6 +146,38 @@ uns32 avnd_mds_reg (AVND_CB *cb)
    }
    m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
+   /* Subscribe for AvND itself. Will be used for External/Inernode proxy support */
+   mds_info.i_op = MDS_SUBSCRIBE;
+   mds_info.info.svc_subscribe.i_svc_ids = svc_ids;
+
+   /* subscribe to events from avd */
+   mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
+   mds_info.info.svc_subscribe.i_num_svcs = 1;
+   svc_ids[0] = NCSMDS_SVC_ID_AVND;
+   rc = ncsmds_api(&mds_info);
+   if ( NCSCC_RC_SUCCESS != rc ) 
+   {
+      m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+      goto done;
+   }
+   m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+   
+   /* Subscribe for Controller AvND Vdest. 
+      It will be used for External Comp support */
+   mds_info.i_op = MDS_SUBSCRIBE;
+   mds_info.info.svc_subscribe.i_svc_ids = svc_ids;
+
+   /* subscribe to events from avd */
+   mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_NONE;
+   mds_info.info.svc_subscribe.i_num_svcs = 1;
+   svc_ids[0] = NCSMDS_SVC_ID_AVND_CNTLR;
+   rc = ncsmds_api(&mds_info);
+   if ( NCSCC_RC_SUCCESS != rc ) 
+   {
+      m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+      goto done;
+   }
+   m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
    
    /* get the MAB handle from MDS */
 
@@ -173,6 +206,73 @@ done:
    return rc;
 }
 
+/****************************************************************************
+  Name          : avnd_mds_vdest_reg
+ 
+  Description   : This routine registers the AVND Service with MDS for VDEST. 
+                  It does the following:
+                  a) Gets the MDS handle & AvND MDS address
+                  b) installs AvND service with MDS
+                  c) Subscribes to MDS events
+ 
+  Arguments     : cb - ptr to the AVND control block
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ 
+  Notes         : MDS messages are not used, we are only interested in MBCSV 
+                  messages.
+******************************************************************************/
+uns32 avnd_mds_vdest_reg (AVND_CB *cb)
+{
+   NCSVDA_INFO vda_info;
+   NCSMDS_INFO svc_to_mds_info;
+  
+   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+  
+   cb->avnd_mbcsv_vaddr = AVND_VDEST_ID;
+
+   vda_info.req = NCSVDA_VDEST_CREATE;
+   vda_info.info.vdest_create.i_persistent = FALSE;
+   vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
+   vda_info.info.vdest_create.i_create_oac = TRUE;
+   vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
+   vda_info.info.vdest_create.info.specified.i_vdest = cb->avnd_mbcsv_vaddr;
+
+   /* create Vdest address */
+   if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
+   {
+      m_AVND_AVND_ERR_LOG("Vdest Creation failed",NULL,0,0,0,0);
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* store the info returned by MDS */
+   cb->avnd_mbcsv_mab_hdl = vda_info.info.vdest_create.o_pwe1_oac_hdl;
+   cb->avnd_mbcsv_vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
+   cb->avnd_mbcsv_vaddr_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
+
+   m_NCS_MEMSET(&svc_to_mds_info,'\0',sizeof(NCSMDS_INFO));
+   /* Install on mds VDEST */
+   svc_to_mds_info.i_mds_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
+   svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_AVND_CNTLR;
+   svc_to_mds_info.i_op = MDS_INSTALL;
+   svc_to_mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)cb->cb_hdl;
+   svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
+   svc_to_mds_info.info.svc_install.i_svc_cb = avnd_mds_cbk;
+   svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
+   svc_to_mds_info.info.svc_install.i_mds_svc_pvt_ver = AVND_MDS_SUB_PART_VERSION;
+
+   if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS)
+   {
+      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      vda_info.req = NCSVDA_VDEST_DESTROY;
+      vda_info.info.vdest_destroy.i_vdest = cb->avnd_mbcsv_vaddr;
+      ncsvda_api(&vda_info);
+      m_AVND_AVND_ERR_LOG("Mds Installation failed",NULL,0,0,0,0);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
   Name          : avnd_mds_unreg
@@ -307,6 +407,16 @@ uns32 avnd_mds_cbk (NCSMDS_CALLBACK_INFO *info)
       }
       break;
 
+   case MDS_CALLBACK_QUIESCED_ACK:
+      {
+         rc = avnd_mds_quiesced_process(cb);;
+         if ( NCSCC_RC_SUCCESS != rc )
+         {
+            m_AVND_AVND_ERR_LOG("avnd_mds_flat_dec failed, rc is ",NULL,rc,0,0,0);
+         }
+      }
+      break;
+
    default:
       m_AVSV_ASSERT(0);
       break;
@@ -372,6 +482,9 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
       if (rcv_info->i_fr_dest != cb->active_avd_adest)
       {
          /* Log error */
+         m_AVND_AVND_DEBUG_LOG(
+           "avnd_mds_rcv():rcv_info->i_fr_dest and cb->active_avd_adest mismatch",
+            NULL,rcv_info->i_fr_dest,cb->active_avd_adest,0,0);
          avsv_dnd_msg_free(((AVSV_DND_MSG*)rcv_info->i_msg));
          rcv_info->i_msg = 0;
          return NCSCC_RC_SUCCESS;
@@ -394,6 +507,12 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
       msg.info.cla = (AVSV_NDA_CLA_MSG *)rcv_info->i_msg;
       break;
 
+   case NCSMDS_SVC_ID_AVND:
+
+      msg.type = AVND_MSG_AVND;
+      msg.info.avnd = (AVSV_ND2ND_AVND_MSG *)rcv_info->i_msg;
+      break;
+
    default:
       m_AVSV_ASSERT(0);
       break;
@@ -408,6 +527,7 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    case AVND_MSG_AVD:
       type = (msg.info.avd->msg_type - AVSV_D2N_CLM_NODE_UPDATE_MSG) + 
              AVND_EVT_AVD_NODE_UPDATE_MSG;
+
       break;
 
    case AVND_MSG_AVA:
@@ -422,6 +542,10 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
              AVND_EVT_CLA_FINALIZE;
       break;
 
+   case AVND_MSG_AVND:
+      type =  AVND_EVT_AVND_AVND_MSG;
+      break;
+
    default:
       m_AVSV_ASSERT(0);
       break;
@@ -430,8 +554,8 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    /* create the event */
    evt = avnd_evt_create(cb, type, &rcv_info->i_msg_ctxt, &rcv_info->i_fr_dest, 
                          (msg.info.avd) ? (void *)msg.info.avd : 
-                                          ((msg.info.ava) ? (void *)msg.info.ava : 
-                                                           (void *)msg.info.cla),
+                         ((msg.info.ava) ? (void *)msg.info.ava : ((msg.info.avnd) ? (void *)msg.info.avnd : 
+                         (void *)msg.info.cla)),
                          0, 0);
    if (!evt)
    {
@@ -483,6 +607,13 @@ uns32 avnd_mds_cpy (AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 
       cpy_info->o_cpy = (NCSCONTEXT)msg->info.avd;
       msg->info.avd = 0;
+      break;
+
+   case NCSMDS_SVC_ID_AVND:
+   case NCSMDS_SVC_ID_AVND_CNTLR:
+      cpy_info->o_msg_fmt_ver = avnd_avnd_msg_fmt_map_table[cpy_info->i_rem_svc_pvt_ver - 1];
+      cpy_info->o_cpy = (NCSCONTEXT)msg->info.avnd;
+      msg->info.avnd = 0;
       break;
 
    case NCSMDS_SVC_ID_AVA:
@@ -551,6 +682,35 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
          /*  New CLA has come up. Dont do anything now */
          break;
 
+      case NCSMDS_SVC_ID_AVND:
+         /*  New AVND has come up. Update NODE_ID to MDS_DEST */
+            /* Validate whether this is a ADEST or VDEST */
+            if (!m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
+            {
+               return rc;
+            }
+
+         /* Create the mds event. 
+          if(evt_info->i_dest != cb->avnd_dest)
+          Store its own dest id also. This is useful in Proxy at Ctrl
+          registering external component.
+          */
+             evt = avnd_evt_create(cb, AVND_EVT_MDS_AVND_UP, 0, 
+                                &evt_info->i_dest, 0, 0, 0);
+         break;
+
+      case NCSMDS_SVC_ID_AVND_CNTLR:
+            /* This is a VDEST. Store it for use in sending ext comp req
+               to this Vdest. This Vdest is of Contr AvND hosting ext comp.*/
+            /* Validate whether this is a ADEST or VDEST */
+            if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
+            {
+               return rc;
+            }
+            cb->cntlr_avnd_vdest = evt_info->i_dest;
+            return rc;
+         break;
+
       default:
          m_AVSV_ASSERT(0);
       }
@@ -592,6 +752,24 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
             evt = avnd_evt_create(cb, AVND_EVT_MDS_CLA_DN, 0, 
                                   &evt_info->i_dest, 0, 0, 0);
          }
+         break;
+
+      case NCSMDS_SVC_ID_AVND:
+         /*  New AVND has come up. Update NODE_ID to MDS_DEST */
+             /* Validate whether this is a ADEST or VDEST */
+            if (!m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
+               return rc;
+
+         /* Create the mds event. 
+          if(evt_info->i_dest != cb->avnd_dest)
+          Store its own dest id also. This is useful in Proxy at Ctrl
+          registering external component.
+          */
+            evt = avnd_evt_create(cb, AVND_EVT_MDS_AVND_DN, 0, 
+                                &evt_info->i_dest, 0, 0, 0);
+         break;
+
+      case NCSMDS_SVC_ID_AVND_CNTLR:
          break;
 
       default:
@@ -650,6 +828,21 @@ uns32 avnd_mds_enc (AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, enc_info->io_uba, 
                           EDP_OP_TYPE_ENC, msg->info.avd, &ederror, enc_info->o_msg_fmt_ver);
+      break;
+
+   case AVND_MSG_AVND:
+      enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
+                                                   AVND_AVND_SUBPART_VER_MIN,
+                                                   AVND_AVND_SUBPART_VER_MAX,
+                                                   avnd_avnd_msg_fmt_map_table);
+
+      if(enc_info->o_msg_fmt_ver < AVSV_AVD_AVND_MSG_FMT_VER_1)
+      {
+         return NCSCC_RC_FAILURE;
+      }
+
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ndnd_msg, enc_info->io_uba, 
+                          EDP_OP_TYPE_ENC, msg->info.avnd, &ederror, enc_info->o_msg_fmt_ver);
       break;
 
    case AVND_MSG_CLA:
@@ -767,6 +960,22 @@ uns32 avnd_mds_flat_enc (AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, enc_info->io_uba, 
                           EDP_OP_TYPE_ENC, msg->info.avd, &ederror, enc_info->o_msg_fmt_ver);
       break;
+
+   case AVND_MSG_AVND:
+      enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
+                                                   AVND_AVND_SUBPART_VER_MIN,
+                                                   AVND_AVND_SUBPART_VER_MAX,
+                                                   avnd_avnd_msg_fmt_map_table);
+
+      if(enc_info->o_msg_fmt_ver < AVSV_AVND_AVND_MSG_FMT_VER_1)
+      {
+         return NCSCC_RC_FAILURE;
+      }
+
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ndnd_msg, enc_info->io_uba, 
+                          EDP_OP_TYPE_ENC, msg->info.avnd, &ederror, enc_info->o_msg_fmt_ver);
+      break;
+
    default:
       m_AVSV_ASSERT(0);
       break;
@@ -983,6 +1192,29 @@ uns32 avnd_mds_dec (AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
        }
        break;
 
+   case NCSMDS_SVC_ID_AVND:
+       if(!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
+                           AVND_AVND_SUBPART_VER_MIN,
+                           AVND_AVND_SUBPART_VER_MAX,
+                           avnd_avnd_msg_fmt_map_table))
+       {
+          return NCSCC_RC_FAILURE;
+       }
+
+       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ndnd_msg, dec_info->io_uba,
+                    EDP_OP_TYPE_DEC, (AVSV_ND2ND_AVND_MSG**)&dec_info->o_msg, 
+                    &ederror, dec_info->i_msg_fmt_ver);
+       if(rc != NCSCC_RC_SUCCESS)
+       {
+           if(dec_info->o_msg != NULL)
+           {
+               avsv_nd2nd_avnd_msg_free(dec_info->o_msg);
+               dec_info->o_msg = NULL;
+           }
+           return rc;
+       }
+       break;
+
    case NCSMDS_SVC_ID_CLA:
        if(!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
                            AVND_CLA_SUBPART_VER_MIN,
@@ -1100,6 +1332,30 @@ uns32 avnd_mds_flat_dec (AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
            return rc;
        }
        break;
+
+   case NCSMDS_SVC_ID_AVND:
+       if(!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
+                           AVND_AVND_SUBPART_VER_MIN,
+                           AVND_AVND_SUBPART_VER_MAX,
+                           avnd_avnd_msg_fmt_map_table))
+       {
+          return NCSCC_RC_FAILURE;
+       }
+
+       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ndnd_msg, dec_info->io_uba,
+                    EDP_OP_TYPE_DEC, (AVSV_ND2ND_AVND_MSG**)&dec_info->o_msg, 
+                    &ederror, dec_info->i_msg_fmt_ver);
+       if(rc != NCSCC_RC_SUCCESS)
+       {
+           if(dec_info->o_msg != NULL)
+           {
+               avsv_nd2nd_avnd_msg_free(dec_info->o_msg);
+               dec_info->o_msg = NULL;
+           }
+           return rc;
+       }
+       break;
+
    default:
       m_AVSV_ASSERT(0);
       break;
@@ -1202,7 +1458,7 @@ err:
 /****************************************************************************
   Name          : avnd_mds_send
  
-  Description   : This routine sends the mds message to AvA or AvD.
+  Description   : This routine sends the mds message to AvA or AvD or AvND.
  
   Arguments     : cb       - ptr to the AvND control block
                   msg      - ptr to the message
@@ -1377,4 +1633,125 @@ uns32 avnd_mds_param_get (AVND_CB *cb)
 
 done:
    return rc;
+}
+
+/****************************************************************************
+ * Name          : avnd_avnd_mds_send
+ *
+ * Description   : This routine send messages to AvND in ASYNC.
+ *
+ * Arguments     : cb - ptr to the AvND control block
+ *                       i_msg -ptr to the AvA message
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 avnd_avnd_mds_send (AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
+{
+   NCSMDS_INFO mds_info;
+   uns32       rc = NCSCC_RC_SUCCESS;
+   MDS_SEND_INFO            *send_info = NULL;
+   MDS_SENDTYPE_SNDRSP_INFO *send = NULL;
+
+   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+
+   mds_info.i_mds_hdl = cb->mds_hdl;
+
+   mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
+
+   mds_info.i_op = MDS_SEND;
+
+   send_info = &mds_info.info.svc_send;
+   send = &send_info->info.sndrsp;
+
+      /* populate the send info */
+   send_info->i_msg = (NCSCONTEXT)i_msg;
+
+   if (m_MDS_DEST_IS_AN_ADEST(mds_dest))
+      send_info->i_to_svc = NCSMDS_SVC_ID_AVND;
+   else
+      send_info->i_to_svc = NCSMDS_SVC_ID_AVND_CNTLR;
+
+   send_info->i_priority = MDS_SEND_PRIORITY_MEDIUM; /* Discuss the priority assignments TBD */
+   send_info->i_sendtype = MDS_SENDTYPE_SND;
+   send->i_to_dest = mds_dest;
+
+   /* send the message & block until AvND responds or operation times out */
+   rc = ncsmds_api(&mds_info);
+
+   return rc;
+}
+
+/****************************************************************************
+  Name          : avnd_mds_set_vdest_role
+
+  Description   : This routine is used for setting the VDEST role.
+
+  Arguments     : cb - ptr to the AVND control block
+                  role - Set the role.
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None.
+******************************************************************************/
+uns32 avnd_mds_set_vdest_role (AVND_CB *cb, SaAmfHAStateT role)
+{
+   NCSVDA_INFO vda_info;
+
+   if(V_DEST_RL_QUIESCED == role)
+   {
+      cb->is_quisced_set = TRUE;
+   }
+   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+
+   /* set the role of the vdest */
+   vda_info.req = NCSVDA_VDEST_CHG_ROLE;
+   vda_info.info.vdest_chg_role.i_new_role = role;
+   vda_info.info.vdest_chg_role.i_vdest = cb->avnd_mbcsv_vaddr;
+
+   if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ PROCEDURE NAME : avnd_mds_quiesced_process
+
+ DESCRIPTION    : Sending the event to it's mail box
+
+ ARGUMENTS      : ifsv_cb : IFD control Block
+
+ RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+\*****************************************************************************/
+uns32 avnd_mds_quiesced_process(AVND_CB *cb)
+{
+   AVND_EVT      *evt = 0;
+   uns32         rc = NCSCC_RC_FAILURE;
+
+   evt = avnd_evt_create(cb, AVND_EVT_HA_STATE_CHANGE, 0,
+                         NULL, 0, 0, 0);
+   if(NULL == evt)
+   {
+     m_AVND_AVND_ERR_LOG("ifd_mds_quiesced_process:evt is NULL",NULL,0,0,0,0);
+   }
+   else
+   {
+      /* Don't use avail_state_avnd as this is not yet updated. It will be 
+         updated during processing of this event.*/
+      evt->info.ha_state_change.ha_state = SA_AMF_HA_QUIESCED;
+   }
+
+   /* send the event */
+   if (evt) rc = avnd_evt_send(cb, evt);
+
+   /* if failure, free the event */
+   if (NCSCC_RC_SUCCESS != rc && evt)
+      avnd_evt_destroy(evt);
+
+return rc;
+
 }

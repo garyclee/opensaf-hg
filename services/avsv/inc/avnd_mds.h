@@ -33,11 +33,11 @@
 #define AVND_MDS_H
 
 
-/* In Service upgrade support */
-#define AVND_MDS_SUB_PART_VERSION   1
-
 #define AVND_AVD_SUBPART_VER_MIN   1
-#define AVND_AVD_SUBPART_VER_MAX   1
+#define AVND_AVD_SUBPART_VER_MAX   2
+
+#define AVND_AVND_SUBPART_VER_MIN   1
+#define AVND_AVND_SUBPART_VER_MAX   1
 
 #define AVND_AVA_SUBPART_VER_MIN   1
 #define AVND_AVA_SUBPART_VER_MAX   1
@@ -51,6 +51,7 @@ typedef enum avnd_msg_type
    AVND_MSG_AVD = 1,
    AVND_MSG_AVA,
    AVND_MSG_CLA,
+   AVND_MSG_AVND,
    AVND_MSG_MAX
 } AVND_MSG_TYPE;
 
@@ -58,9 +59,10 @@ typedef struct avnd_msg
 {
    AVND_MSG_TYPE  type;
    union {
-      AVSV_DND_MSG     *avd;  /* AvD message */
-      AVSV_NDA_AVA_MSG *ava;  /* AvA message */
-      AVSV_NDA_CLA_MSG *cla;  /* CLA message */
+      AVSV_DND_MSG          *avd;  /* AvD message */
+      AVSV_ND2ND_AVND_MSG   *avnd; /* AvND message */
+      AVSV_NDA_AVA_MSG      *ava;  /* AvA message */
+      AVSV_NDA_CLA_MSG      *cla;  /* CLA message */
    } info;
 } AVND_MSG;
 
@@ -101,6 +103,33 @@ typedef struct avnd_dnd_list_tag {
    (m).info.ava->info.api_resp_info.param.ha_get.ha = (has); \
 }
 
+/* Macro to populate the 'component register' message */
+#define m_AVND_COMP_REG_MSG_FILL(m, dst, hd, cn, pcn) \
+{ \
+   (m).type = AVSV_AMF_COMP_REG; \
+   (m).dest = (dst); \
+   (m).param.reg.hdl = (hd); \
+   m_NCS_OS_MEMCPY((m).param.reg.comp_name_net.value, \
+                   (cn)->value, m_NCS_OS_NTOHS((cn)->length)); \
+   (m).param.reg.comp_name_net.length = ((cn)->length); \
+   m_NCS_OS_MEMCPY((m).param.reg.proxy_comp_name_net.value, \
+                   (pcn)->value, m_NCS_OS_NTOHS((pcn)->length)); \
+   (m).param.reg.proxy_comp_name_net.length = ((pcn)->length); \
+}
+
+/* Macro to populate the 'component unregister' message */
+#define m_AVND_COMP_UNREG_MSG_FILL(m, dst, hd, cn, pcn) \
+{ \
+   (m).type = AVSV_AMF_COMP_UNREG; \
+   (m).dest = (dst); \
+   (m).param.unreg.hdl = (hd); \
+   m_NCS_OS_MEMCPY((m).param.unreg.comp_name_net.value, \
+                   (cn).value, (cn).length); \
+   (m).param.unreg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
+   m_NCS_OS_MEMCPY((m).param.unreg.proxy_comp_name_net.value, \
+                   (pcn).value, (pcn).length); \
+   (m).param.unreg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
+}
 
 
 /*** Extern function declarations ***/
@@ -119,4 +148,7 @@ EXTERN_C uns32 avnd_mds_send (struct avnd_cb_tag *, AVND_MSG *,
                      
 EXTERN_C uns32 avnd_mds_red_send (struct avnd_cb_tag *, AVND_MSG *, 
                               MDS_DEST *, MDS_DEST *);
+EXTERN_C uns32 avnd_avnd_mds_send (struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
+EXTERN_C uns32 avnd_mds_vdest_reg (struct avnd_cb_tag *cb);
+EXTERN_C uns32 avnd_mds_set_vdest_role (struct avnd_cb_tag *cb, SaAmfHAStateT role);
 #endif /* !AVND_MDS_H */

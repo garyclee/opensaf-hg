@@ -98,6 +98,7 @@ typedef struct avnd_su_si_rec {
 
    /* links to other entities */
    struct avnd_su_tag    *su;   /* bk ptr to su */
+   SaNameT                su_name_net;   /* For checkpointing su name*/
 } AVND_SU_SI_REC;
 
 /* SU-SI buffer record definition */
@@ -158,6 +159,7 @@ typedef struct avnd_su_tag {
 
    /* To have the knowledge in AvND if this su belongs to NCS_SG */
    SaBoolT           is_ncs;
+   NCS_BOOL          su_is_external; /*indicates if this SU is external*/
 
 } AVND_SU;
 
@@ -303,6 +305,13 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ASSIGN_PEND_RESET(x) (((x)->flag) &= ~AVND_SU_ASSIGN_PEND)
 #define m_AVND_SU_ALL_TERM_RESET(x)    (((x)->flag) &= ~AVND_SU_ALL_TERM)
 
+#if 0
+#define AVND_SU_REG_COMP_MSG_SENT 0x00008000
+#define m_AVND_SU_REG_COMP_MSG_IS_SENT(x) (((x)->flag) & AVND_SU_REG_COMP_MSG_SENT)
+#define m_AVND_SU_REG_COMP_MSG_SENT_SET(x)  (((x)->flag) |= AVND_SU_REG_COMP_MSG_SENT)
+#define m_AVND_SU_REG_COMP_MSG_SENT_RESET(x)  (((x)->flag) &= ~AVND_SU_REG_COMP_MSG_SENT)
+#endif
+
 /* macros for checking the su params */
 #define m_AVND_SU_IS_SU_RESTART_DIS(x)    (((x)->flag) & AVND_SU_FLAG_RESTART_DIS)
 #define m_AVND_SU_IS_PREINSTANTIABLE(x)   (((x)->flag) & AVND_SU_FLAG_PREINSTANTIABLE)
@@ -376,15 +385,16 @@ EXTERN_C uns32 avnd_sudb_destroy(struct avnd_cb_tag *);
 EXTERN_C AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uns32 *);
 EXTERN_C uns32 avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
 
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_add (struct avnd_cb_tag *, 
-                                             AVND_SU *, 
-                                             AVND_SU_SI_PARAM *, uns32 *);
 EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, 
                                                AVND_SU *, 
                                                AVND_SU_SI_PARAM *, uns32 *);
 EXTERN_C uns32 avnd_su_si_all_modify(struct avnd_cb_tag *, 
                                      AVND_SU *, 
                                      AVND_SU_SI_PARAM *);
+EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_add (struct avnd_cb_tag *cb,
+                                    AVND_SU  *su,
+                                    AVND_SU_SI_PARAM *param,
+                                    uns32            *rc);
 EXTERN_C uns32 avnd_su_si_rec_del (struct avnd_cb_tag *, 
                                    SaNameT *, 
                                    SaNameT *);
@@ -434,5 +444,14 @@ EXTERN_C uns32 ncsssutableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
 EXTERN_C uns32 ncsssutableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
 
 EXTERN_C void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL );
+EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add (struct avnd_cb_tag *cb,
+                                           AVND_SU             *su,
+                                           AVND_SU_SI_REC      *si_rec,
+                                           AVND_COMP_CSI_PARAM *param,
+                                           uns32               *rc);
+EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del (struct avnd_cb_tag  *cb,
+                              AVND_SU           *su,
+                              AVND_SU_SI_REC    *si_rec,
+                              AVND_COMP_CSI_REC *csi_rec);
 
 #endif

@@ -50,6 +50,7 @@
 		</xs:annotation>
 		<xs:restriction base="xs:string">
 			<xs:pattern value="safSu=.+"/>
+			<xs:pattern value="safEsu=.+"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="CSINameT">
@@ -510,6 +511,7 @@ should use a default value instead.</xs:documentation>
 						</xs:complexContent>
 					</xs:complexType>
 				</xs:element>
+
 				<xs:element name="unproxiedComponent">
 					<xs:annotation>
 						<xs:documentation>There are no specific attributes defined for unproxied components.</xs:documentation>
@@ -614,46 +616,71 @@ should use a default value instead.</xs:documentation>
 			<xs:attribute name="finalPrototype" type="xs:boolean" use="required"/>
 		</xs:complexType>
 	</xs:element>
-	<xs:element name="extSUInstance">
-		<xs:annotation>
-			<xs:documentation>Descriptor for an external service unit Instance</xs:documentation>
-		</xs:annotation>
-		<xs:complexType>
-			<xs:sequence>
-				<xs:element name="SUAttributes" type="SUAttributesT">
-					<xs:annotation>
-						<xs:documentation>Attributes of the external service unit</xs:documentation>
-					</xs:annotation>
-				</xs:element>
-				<xs:element name="componentList">
-					<xs:annotation>
-						<xs:documentation>List of component descriptors of the external service unit</xs:documentation>
-					</xs:annotation>
-					<xs:complexType>
-						<xs:sequence>
-							<xs:element name="componentInstance" maxOccurs="unbounded">
-								<xs:annotation>
-									<xs:documentation>Component Descriptors</xs:documentation>
-								</xs:annotation>
-								<xs:complexType>
-									<xs:sequence>
-										<xs:element name="componentAttributes" type="componentAttributesT">
-											<xs:annotation>
-												<xs:documentation>Component Attributes</xs:documentation>
-											</xs:annotation>
-										</xs:element>
-									</xs:sequence>
-									<xs:attribute name="name" type="componentNameT" use="required"/>
-									<xs:attribute name="level" type="xs:nonNegativeInteger" use="optional"/>
-								</xs:complexType>
-							</xs:element>
-						</xs:sequence>
-					</xs:complexType>
-				</xs:element>
-			</xs:sequence>
-			<xs:attribute name="name" type="SUNameT" use="required"/>
-		</xs:complexType>
-	</xs:element>
+
+<!-- External Service Unit Instance Design Starts Here -->
+
+<xs:element name="extSUInstance">
+<xs:annotation>
+<xs:documentation>Descriptor for an external service unit instance</xs:documentation>
+</xs:annotation>
+<xs:complexType>
+
+<xs:sequence>
+
+<xs:element name="prototypeName" type="SUNameT" minOccurs="0">
+<xs:annotation>
+<xs:documentation>Service unit prototype name</xs:documentation>
+</xs:annotation>
+</xs:element>
+
+<xs:element name="SUAttributes" type="SUAttributesT" minOccurs="0">
+<xs:annotation>
+<xs:documentation>Service Unit Attributes - If a service unit prototypeName is specified, these attributes override the ones from the prototype.</xs:documentation>
+</xs:annotation>
+</xs:element>
+
+<xs:element name="componentList" minOccurs="0">
+<xs:annotation>
+<xs:documentation>List of component Instance for the service unit. saAmfSUNumComponents mib object is configured based on number of component Instance  inside this list.</xs:documentation>
+</xs:annotation>
+<xs:complexType>
+<xs:sequence>
+<xs:element name="componentInstance" maxOccurs="unbounded">
+<xs:annotation>
+<xs:documentation>Component Instance</xs:documentation>
+</xs:annotation>
+<xs:complexType>
+<xs:sequence>
+<xs:element name="prototypeName" type="componentNameT" minOccurs="0">
+<xs:annotation>
+<xs:documentation>Component prototype name</xs:documentation>
+</xs:annotation>
+</xs:element>
+<xs:element name="componentAttributes" type="componentAttributesT" minOccurs="0">
+<xs:annotation>
+<xs:documentation>Component Attributes - If a component prototypeName is specified, these attributes override the ones from the prototype.</xs:documentation>
+</xs:annotation>
+</xs:element>
+</xs:sequence>
+<xs:attribute name="name" type="componentNameT" use="required">
+<xs:annotation>
+<xs:documentation>Use to configure the saAmfCompName mib object.</xs:documentation>
+</xs:annotation>
+</xs:attribute>
+</xs:complexType>
+</xs:element>
+</xs:sequence>
+</xs:complexType>
+</xs:element>
+
+</xs:sequence>
+
+<xs:attribute name="name" type="SUNameT" use="required"/>
+</xs:complexType>
+</xs:element>
+
+<!-- External Service Unit Instance Design Ends Here -->
+
 	<!-- SERVICE INSTANCES -->
 	<xs:element name="SIInstance">
 		<xs:annotation>
@@ -691,6 +718,25 @@ should use a default value instead.</xs:documentation>
 						</xs:sequence>
 					</xs:complexType>
 				</xs:element>
+                                <!-- SI-SI Dependency cfgs AMF_SI_SI -->
+                                <xs:element name="SIDepList" minOccurs="0">
+                                        <xs:annotation>
+                                                <xs:documentation>List of sponsor-SIs on which SI is depended on for SI-assignment.</xs:documentation>
+                                        </xs:annotation>
+                                        <xs:complexType>
+                                                <xs:sequence>
+                                                        <xs:element name="SIDep" maxOccurs="unbounded">
+                                                                <xs:annotation>
+                                                                        <xs:documentation>Sponsor-SI name and the associated tolerance timer value</xs:documentation>
+                                                                </xs:annotation>
+                                                                <xs:complexType>
+                                                                        <xs:attribute name="name" type="SINameT"/>
+                                                                        <xs:attribute name="tolTime" type="xs:nonNegativeInteger"/>
+                                                                </xs:complexType>
+                                                        </xs:element>
+                                                </xs:sequence>
+                                        </xs:complexType>
+                                </xs:element>
 				<xs:element name="SURankList" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>Ranking list of SUs for SI assignments. This attribute has lower precedence than the SG redundancy parameters.</xs:documentation>
@@ -1192,6 +1238,7 @@ should use a default value instead.</xs:documentation>
 				<xs:element ref="SGInstance" maxOccurs="unbounded"/>
 				<xs:element ref="nodePrototype" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element ref="nodeInstance" maxOccurs="unbounded"/>
+                                <xs:element ref="extSUInstance" minOccurs="0" maxOccurs="unbounded"/>
 				<xs:element name="vendorExtensions" minOccurs="0">
 					<xs:complexType>
 						<xs:complexContent>

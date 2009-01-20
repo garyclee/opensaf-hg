@@ -35,6 +35,8 @@
 #ifndef AVD_CB_H
 #define AVD_CB_H
 
+struct avd_avnd_tag;
+
 typedef enum {
    AVD_INIT_BGN,
    AVD_CFG_READY,
@@ -72,6 +74,17 @@ typedef struct avsv_nd_msg_list
    AVSV_ND_MSG_QUEUE    *tail;
 }AVSV_ND_MSG_LIST;
 
+/* For external components, we need to have a list of health check information
+   as the health check is assotiated with node. But we wouldn't have health
+   check assoiated with any cluster node, so we have to have this information
+   somewhere else and so it would be in CB. We also want some information like
+   node_state, rcv_msg_id, snd_msg_id of hosting node, so we also have a
+   pointer to local AVD_AVND data structure. */
+typedef struct avd_ext_comp_info
+{
+  struct avd_avnd_tag *local_avnd_node;
+  struct avd_avnd_tag *ext_comp_hlt_check;
+}AVD_EXT_COMP_INFO;
 
 /*
  * Message Queue for holding the AVD events
@@ -89,6 +102,14 @@ typedef struct avd_evt_queue_list
    AVD_EVT_QUEUE    *tail;
 }AVD_EVT_QUEUE_LIST;
 
+/* SI-SI dependency database */
+typedef struct avd_si_dep
+{
+   NCS_PATRICIA_TREE   spons_anchor;  /* Tree of SI-SI dep, sponsor SI acts
+                                         as a primary key */
+   NCS_PATRICIA_TREE   dep_anchor;    /* Tree of SI-SI dep, dependent SI 
+                                         acts as a primary key */
+} AVD_SI_DEP;
 
 /* Cluster Control Block (Cl_CB): This data structure lives
  * in the AvD and is the anchor structure for all internal data structures.
@@ -257,6 +278,7 @@ typedef  struct  cl_cb_tag {
    NCS_PATRICIA_TREE    sg_su_rank_anchor;      /* Tree of SG-SU rank */
    NCS_PATRICIA_TREE    comp_cs_type_anchor;    /* Tree of comp csi type */
    NCS_PATRICIA_TREE    cs_type_param_anchor;   /* Tree of csi type param */
+   AVD_SI_DEP           si_dep;                 /* SI-SI dependency data */
    AVD_TMR              heartbeat_send_avd;     /* The timer for sending the heartbeat */
    AVD_TMR              heartbeat_rcv_avd;      /* The timer for receiving the heartbeat */
    AVD_TMR              amf_init_tmr;           /* The timer for amf initialisation.*/
@@ -288,6 +310,9 @@ typedef  struct  cl_cb_tag {
    NCS_BOOL          avd_hrt_beat_rcvd; /* True value of this boolean Indicate 
                                            that first heart beat 
                                            have been received  */
+   AVD_EXT_COMP_INFO ext_comp_info; 
+   uns16             peer_msg_fmt_ver;
+
 
 } AVD_CL_CB;
 

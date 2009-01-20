@@ -421,7 +421,16 @@ typedef enum avnd_log_hdln_flex
    AVND_RCVD_VAL
 } AVND_LOG_HDLN_FLEX;
 
-
+/******************************************************************************
+ Logging offset indexes for AvND-AvND logging
+ ******************************************************************************/
+typedef enum avnd_log_avnd_avnd_flex
+{
+   AVND_AVND_SUCC_INFO,
+   AVND_AVND_ERR_INFO,
+   AVND_AVND_ENTRY_INFO,
+   AVND_AVND_DEBUG_INFO
+} AVND_LOG_AVND_AVND_FLEX;
 
 /******************************************************************************
  Logging offset indices for canned constant strings for the ASCII SPEC
@@ -450,7 +459,8 @@ typedef enum avnd_flex_sets {
    AVND_FC_TRAP,
    AVND_FC_OPER,
    AVND_FC_PRES,
-   AVND_FC_HDLN
+   AVND_FC_HDLN,
+   AVND_FC_AVND_MSG
 } AVND_FLEX_SETS;
 
 typedef enum avnd_log_ids {
@@ -489,6 +499,7 @@ typedef enum avnd_log_ids {
    AVND_LID_HDLN_VAL,
    AVND_LID_HDLN_VAL_NAME,
    AVND_LID_HDLN_STRING,
+   AVND_AVND_MSG,
 } AVND_LOG_IDS;
 
 
@@ -518,6 +529,18 @@ typedef enum avnd_log_ids {
 
 #define m_AVND_LOG_COMP_DB(op, st, cn, csin, sev) \
                                        avnd_log_comp_db(op, st, cn, csin, sev)
+
+#define m_AVND_AVND_SUCC_LOG(info,comp,info1,info2,info3,info4) \
+      avnd_pxy_pxd_log(NCSFL_SEV_NOTICE,AVND_AVND_SUCC_INFO,info,comp,info1,info2,info3,info4)
+
+#define m_AVND_AVND_ERR_LOG(info,comp,info1,info2,info3,info4) \
+      avnd_pxy_pxd_log(NCSFL_SEV_ERROR,AVND_AVND_ERR_INFO,info,comp,info1,info2,info3,info4)
+
+#define m_AVND_AVND_ENTRY_LOG(info,comp,info1,info2,info3,info4) \
+      avnd_pxy_pxd_log(NCSFL_SEV_INFO,AVND_AVND_ENTRY_INFO,info,comp,info1,info2,info3,info4)
+
+#define m_AVND_AVND_DEBUG_LOG(info,comp,info1,info2,info3,info4) \
+      avnd_pxy_pxd_log(NCSFL_SEV_DEBUG,AVND_AVND_DEBUG_INFO,info,comp,info1,info2,info3,info4)
 
 #define m_AVND_LOG_SU_FSM(op, st, ev, name, sev) \
                                        avnd_log_su_fsm(op, st, ev, name, sev)
@@ -652,6 +675,10 @@ typedef enum avnd_log_ids {
 #define m_AVND_LOG_HC_DB(op, st, key, sev)
 #define m_AVND_LOG_MISC(op, name, sev)
 #define m_AVND_LOG_COMP_DB(op, st, cn, csin, sev)
+#define m_AVND_AVND_SUCC_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVND_AVND_ERR_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVND_AVND_ENTRY_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVND_AVND_DEBUG_LOG(info,comp,info1,info2,info3,info4) 
 #define m_AVND_LOG_SU_FSM(op, st, ev, name, sev)
 #define m_AVND_LOG_COMP_FSM(op, st, ev, name, sev)
 #define m_AVND_LOG_FOVER_EVTS(sev, ev, val)
@@ -706,6 +733,9 @@ EXTERN_C void avnd_log_su_db (AVND_LOG_SU_DB, AVND_LOG_SU_DB,
                               SaNameT *, SaNameT *, uns8);
 EXTERN_C void avnd_log_comp_db (AVND_LOG_COMP_DB, AVND_LOG_COMP_DB, 
                                 SaNameT *, SaNameT *, uns8);
+EXTERN_C void avnd_pxy_pxd_log (uns32, uns32, uns8 *, SaNameT *, uns32, uns32, 
+                             uns32, uns32 );
+
 EXTERN_C void avnd_log_hc_db (AVND_LOG_HC_DB, AVND_LOG_HC_DB, 
                               SaAmfHealthcheckKeyT *, uns8);
 EXTERN_C void avnd_log_su_fsm (AVND_LOG_SU_FSM , NCS_PRES_STATE ,

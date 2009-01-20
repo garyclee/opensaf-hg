@@ -276,6 +276,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb,AVD_EVT *evt)
    AVD_AVND *avnd;
    AVD_SU *su,*i_su;
    NCS_READINESS_STATE old_state;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_su_oper_state_func");
 
@@ -348,7 +349,9 @@ void avd_su_oper_state_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
-   if (su->su_on_node != avnd)
+   m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
+   if (su_node_ptr != avnd)
    {
       /* log fatal error that the SU is in invalid state */      
       m_AVD_LOG_INVALID_NAME_NET_VAL_FATAL(su->name_net.value,su->name_net.length);
@@ -743,7 +746,9 @@ void avd_su_oper_state_func(AVD_CL_CB *cb,AVD_EVT *evt)
       }else /* if(su->sg_of_su->sg_ncs_spec == SA_TRUE) */
       {
          old_state = su->readiness_state;      
-         if(m_AVD_APP_SU_IS_INSVC(su))
+         m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+         
+         if(m_AVD_APP_SU_IS_INSVC(su,su_node_ptr))
          {
             m_AVD_SET_SU_REDINESS(cb,su,NCS_IN_SERVICE);
             if((cb->init_state == AVD_APP_STATE) &&
@@ -871,6 +876,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb,AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIGN
    AVD_SU *i_su = AVD_SU_NULL;
    AVD_AVND *avnd_other = AVD_AVND_NULL;
    SaBoolT ncs_done = SA_TRUE;
+   uns32  rc = NCSCC_RC_SUCCESS;
   
     m_AVD_LOG_FUNC_ENTRY("avd_ncs_su_mod_rsp");
 
@@ -897,8 +903,23 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb,AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIGN
          /* If other AvD is present and we are able to set mds role */
          if((cb->node_id_avd_other != 0) && 
             (NCSCC_RC_SUCCESS == avd_mds_set_vdest_role(cb, SA_AMF_HA_QUIESCED)))
+           {
+              /* We need to send the role to AvND. */
+              rc = avd_avnd_send_role_change(cb, cb->node_id_avd,SA_AMF_HA_QUIESCED);
+              if(NCSCC_RC_SUCCESS != rc)
+              {
+                m_AVD_PXY_PXD_ERR_LOG(
+                "avd_role_switch_actv_qsd: role sent failed. Node Id and role are",
+                NULL,cb->node_id_avd, cb->avail_state_avd,0,0);
+              }
+              else
+              {
+                 /* we should send the above data verify msg right now */
+                 avd_d2n_msg_dequeue(cb);
+              }
+
                return;
-   
+           }
 
          /*  We failed to switch, Send Active to all NCS Su's having 2N redun model &
              present in this node */
@@ -1044,7 +1065,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
 {
 
    AVD_DND_MSG *n2d_msg;
-   AVD_AVND *avnd;
+   AVD_AVND *avnd, *su_node_ptr = NULL;
    AVD_SU *su;
    AVD_SU_SI_REL *susi;
    NCS_BOOL q_flag = FALSE,qsc_flag = FALSE;
@@ -1196,16 +1217,18 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
          break;
       } /* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
 
+      m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
       /* Are we in the middle of role switch */
       if((cb->role_switch == SA_TRUE) &&
          (su->sg_of_su->sg_ncs_spec == SA_TRUE) && 
          (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
          (su->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_2N) &&
-         ((su->su_on_node->type == AVSV_AVND_CARD_SYS_CON) ||
-          (cb->node_id_avd == su->su_on_node->node_info.nodeId)))
+         ((su_node_ptr->type == AVSV_AVND_CARD_SYS_CON) ||
+          (cb->node_id_avd == su_node_ptr->node_info.nodeId)))
       {
-         if(AVSV_AVND_CARD_SYS_CON  != su->su_on_node->type)
-            m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su->su_on_node->type));
+         if(AVSV_AVND_CARD_SYS_CON  != su_node_ptr->type)
+            m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su_node_ptr->type));
        
          avd_ncs_su_mod_rsp(cb,avnd,&n2d_msg->msg_info.n2d_su_si_assign);
 
@@ -1214,7 +1237,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
          (su->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_2N) &&
          (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
          (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_QUIESCED) &&
-         (su->su_on_node->type == AVSV_AVND_CARD_SYS_CON))
+         (su_node_ptr->type == AVSV_AVND_CARD_SYS_CON))
       {
          /*ignore this case expecting the other guy to shoot us down. */
       }else
@@ -1392,7 +1415,6 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
 
       case AVSV_SUSI_ACT_MOD:
          /* Verify that the SUSI is in the modify state for the same HA state. */
-         
          if((susi->fsm != AVD_SU_SI_STATE_MODIFY) ||
             ((susi->state != n2d_msg->msg_info.n2d_su_si_assign.ha_state)
             && (susi->state != SA_AMF_HA_QUIESCING)
@@ -1449,7 +1471,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
                   }
                }
                
-               /* set the  assigned in the SUSIs. */
+               /* set the assigned in the SUSIs. */
                susi->fsm = AVD_SU_SI_STATE_ASGND;
                m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SU_SI_REL);
             }
@@ -1492,6 +1514,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
                   (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE))
                {
                   /* Since a NCS SU has been assigned trigger the node FSM.*/
+                  /* For (ncs_spec == SA_TRUE), su will not be external, so su
+                     will have node attached.*/
                   avd_nd_ncs_su_assigned(cb,susi->su->su_on_node);
                }           
       
@@ -1517,6 +1541,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
                   (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE))
                {
                   /* Since a NCS SU has been assigned trigger the node FSM.*/
+                  /* For (ncs_spec == SA_TRUE), su will not be external, so su
+                     will have node attached.*/
                   avd_nd_ncs_su_assigned(cb,susi->su->su_on_node);
                }           
             }
@@ -1578,6 +1604,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
                   (susi->su->sg_of_su->sg_ncs_spec == SA_TRUE))
                {
                   /* Since a NCS SU has been assigned trigger the node FSM.*/
+                  /* For (ncs_spec == SA_TRUE), su will not be external, so su
+                     will have node attached.*/
                   avd_nd_ncs_su_assigned(cb,susi->su->su_on_node);
                }           
       
@@ -1628,6 +1656,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
 uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
    AVD_SU *i_su;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_app_node_su_inst_func");
    
@@ -1649,7 +1678,10 @@ uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
             {
                /* mark the non preinstatiable as enable. */
                m_AVD_SET_SU_OPER(cb,i_su,NCS_OPER_STATE_ENABLE);
-               if(m_AVD_APP_SU_IS_INSVC(i_su))
+
+               m_AVD_GET_SU_NODE_PTR(cb,i_su,su_node_ptr);
+         
+               if(m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr))
                {
                   m_AVD_SET_SU_REDINESS(cb,i_su,NCS_IN_SERVICE);
                }
@@ -1715,12 +1747,14 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
    uns32 num_su=0;
    uns32 num_try_insvc_su=0;
    AVD_SU *i_su;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_app_su_inst_func");
    
    i_su = sg->list_of_su;
    while (i_su != AVD_SU_NULL)
    {
+      m_AVD_GET_SU_NODE_PTR(cb,i_su,su_node_ptr);
       num_su ++;
       /* Check if the SU is inservice */
       if(i_su->readiness_state == NCS_IN_SERVICE)
@@ -1755,11 +1789,13 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
          if((i_su->su_preinstan == FALSE) && 
             (i_su->oper_state == NCS_OPER_STATE_DISABLE) &&
             (i_su->pres_state == NCS_PRES_UNINSTANTIATED) &&
-            (i_su->su_on_node->oper_state == NCS_OPER_STATE_ENABLE) &&
+            (su_node_ptr->oper_state == NCS_OPER_STATE_ENABLE) &&
             (i_su->term_state == FALSE))
          {
             m_AVD_SET_SU_OPER(cb,i_su,NCS_OPER_STATE_ENABLE);
-            if(m_AVD_APP_SU_IS_INSVC(i_su))
+            m_AVD_GET_SU_NODE_PTR(cb,i_su,su_node_ptr);
+         
+            if(m_AVD_APP_SU_IS_INSVC(i_su,su_node_ptr))
             {
                m_AVD_SET_SU_REDINESS(cb,i_su,NCS_IN_SERVICE);
                switch(i_su->sg_of_su->su_redundancy_model)
@@ -1795,7 +1831,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
          }else if((i_su->su_preinstan == TRUE) &&
                   (sg->pref_num_insvc_su > (num_insvc_su + num_try_insvc_su)) &&
                   (i_su->pres_state == NCS_PRES_UNINSTANTIATED) &&
-                  (i_su->su_on_node->oper_state == NCS_OPER_STATE_ENABLE) &&
+                  (su_node_ptr->oper_state == NCS_OPER_STATE_ENABLE) &&
                   (i_su->term_state == FALSE))
          {
             /* Try to Instantiate this SU*/
@@ -1850,6 +1886,8 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
    AVD_SU *i_su, *i_su_sg;
    NCS_BOOL su_admin=FALSE;
    AVD_SU_SI_REL *curr_susi;
+   AVD_AVND *i_su_node_ptr = NULL;
+   AVD_AVND *i_su_sg_node_ptr = NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_app_node_admin_func");
    
@@ -1910,7 +1948,9 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
       i_su = avnd->list_of_su;
       while(i_su != AVD_SU_NULL)
       {
-         if(m_AVD_APP_SU_IS_INSVC(i_su))
+         m_AVD_GET_SU_NODE_PTR(cb,i_su,i_su_node_ptr);
+         
+         if(m_AVD_APP_SU_IS_INSVC(i_su,i_su_node_ptr))
          {
             m_AVD_SET_SU_REDINESS(cb,i_su,NCS_IN_SERVICE);
             switch(i_su->sg_of_su->su_redundancy_model)
@@ -1960,8 +2000,11 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
             i_su_sg = i_su->sg_of_su->list_of_su;
             while (i_su_sg != AVD_SU_NULL)
             {
+              m_AVD_GET_SU_NODE_PTR(cb,i_su,i_su_node_ptr);
+              m_AVD_GET_SU_NODE_PTR(cb,i_su_sg,i_su_sg_node_ptr);
+
               if ((i_su != i_su_sg) &&
-                 (i_su->su_on_node == i_su_sg->su_on_node) &&
+                 (i_su_node_ptr == i_su_sg_node_ptr) &&
                  (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL))
               {
                 return NCSCC_RC_FAILURE;
@@ -2083,6 +2126,7 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
 uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
    AVD_SU *i_su;
+   AVD_AVND *i_su_node_ptr = NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_app_sg_admin_func");
    
@@ -2104,7 +2148,9 @@ uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg)
       i_su = sg->list_of_su;
       while(i_su != AVD_SU_NULL)
       {
-         if(m_AVD_APP_SU_IS_INSVC(i_su))
+         m_AVD_GET_SU_NODE_PTR(cb,i_su,i_su_node_ptr);
+         
+         if(m_AVD_APP_SU_IS_INSVC(i_su,i_su_node_ptr))
          {
             m_AVD_SET_SU_REDINESS(cb,i_su,NCS_IN_SERVICE);           
          }

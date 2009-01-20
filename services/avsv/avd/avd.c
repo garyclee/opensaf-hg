@@ -324,6 +324,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    if( ncs_patricia_tree_init(&cb->su_per_si_rank_anchor, &patricia_params)
                             != NCSCC_RC_SUCCESS)
    {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
       ncs_patricia_tree_destroy(&cb->csi_anchor);
       ncs_patricia_tree_destroy(&cb->comp_anchor);
       ncs_patricia_tree_destroy(&cb->si_anchor);
@@ -341,6 +343,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    if( ncs_patricia_tree_init(&cb->sg_si_rank_anchor, &patricia_params)
                             != NCSCC_RC_SUCCESS)
    {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
       ncs_patricia_tree_destroy(&cb->csi_anchor);
       ncs_patricia_tree_destroy(&cb->comp_anchor);
       ncs_patricia_tree_destroy(&cb->si_anchor);
@@ -359,6 +363,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    if( ncs_patricia_tree_init(&cb->comp_cs_type_anchor, &patricia_params)
                             != NCSCC_RC_SUCCESS)
    {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
       ncs_patricia_tree_destroy(&cb->csi_anchor);
       ncs_patricia_tree_destroy(&cb->comp_anchor);
       ncs_patricia_tree_destroy(&cb->si_anchor);
@@ -378,6 +384,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    if( ncs_patricia_tree_init(&cb->sg_su_rank_anchor, &patricia_params)
                             != NCSCC_RC_SUCCESS)
    {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
       ncs_patricia_tree_destroy(&cb->csi_anchor);
       ncs_patricia_tree_destroy(&cb->comp_anchor);
       ncs_patricia_tree_destroy(&cb->si_anchor);
@@ -398,6 +406,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    if( ncs_patricia_tree_init(&cb->cs_type_param_anchor, &patricia_params)
                             != NCSCC_RC_SUCCESS)
    {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
       ncs_patricia_tree_destroy(&cb->csi_anchor);
       ncs_patricia_tree_destroy(&cb->comp_anchor);
       ncs_patricia_tree_destroy(&cb->si_anchor);
@@ -414,6 +424,52 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
       return;
    }
 
+   patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
+   if(ncs_patricia_tree_init(&cb->si_dep.spons_anchor, &patricia_params)
+                            != NCSCC_RC_SUCCESS)
+   {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
+      ncs_patricia_tree_destroy(&cb->csi_anchor);
+      ncs_patricia_tree_destroy(&cb->comp_anchor);
+      ncs_patricia_tree_destroy(&cb->si_anchor);
+      ncs_patricia_tree_destroy(&cb->su_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_anchor);
+      ncs_patricia_tree_destroy(&cb->avnd_anchor_name);
+      ncs_patricia_tree_destroy(&cb->avnd_anchor);
+      ncs_patricia_tree_destroy(&cb->su_per_si_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_si_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+      ncshm_give_hdl(*avd_hdl_ptr);
+      m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return;
+   }
+
+   patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
+   if( ncs_patricia_tree_init(&cb->si_dep.dep_anchor, &patricia_params)
+                            != NCSCC_RC_SUCCESS)
+   {
+      ncs_patricia_tree_destroy(&cb->node_list);
+      ncs_patricia_tree_destroy(&cb->hlt_anchor);
+      ncs_patricia_tree_destroy(&cb->csi_anchor);
+      ncs_patricia_tree_destroy(&cb->comp_anchor);
+      ncs_patricia_tree_destroy(&cb->si_anchor);
+      ncs_patricia_tree_destroy(&cb->su_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_anchor);
+      ncs_patricia_tree_destroy(&cb->avnd_anchor_name);
+      ncs_patricia_tree_destroy(&cb->avnd_anchor);
+      ncs_patricia_tree_destroy(&cb->su_per_si_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_si_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
+      ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
+      ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.spons_anchor);
+      ncshm_give_hdl(*avd_hdl_ptr);
+      m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return;
+   }
 
    /* Initialize MIBLIB routines */
    if (avd_miblib_init(cb) != NCSCC_RC_SUCCESS)
@@ -432,6 +488,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
       ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
       ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
       ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.spons_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.dep_anchor);
       ncshm_give_hdl(*avd_hdl_ptr);
       m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
       return;
@@ -454,6 +512,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
       ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
       ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
       ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.spons_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.dep_anchor);
       ncshm_give_hdl(*avd_hdl_ptr);
       m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
       return;
@@ -476,6 +536,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
       ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
       ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
       ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.spons_anchor);
+      ncs_patricia_tree_destroy(&cb->si_dep.dep_anchor);
       ncshm_give_hdl(*avd_hdl_ptr);
       m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
       return;
@@ -724,7 +786,7 @@ void avd_tmr_cl_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
       
       if ((i_sg->row_status != NCS_ROW_ACTIVE) ||
          (i_sg->list_of_su == AVD_SU_NULL) ||
-         (i_sg->sg_ncs_spec == SA_TRUE))
+         (i_sg->sg_ncs_spec == SA_TRUE)) 
       {
          continue;
       }

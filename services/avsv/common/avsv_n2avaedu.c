@@ -51,11 +51,6 @@
 #include "avsv_eduutil.h"
 
 
-static uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                           NCSCONTEXT ptr, uns32 *ptr_data_len,
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                           EDU_ERR *o_err);
-
 static uns32 avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                                 NCSCONTEXT ptr, uns32 *ptr_data_len,
                                 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,

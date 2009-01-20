@@ -100,6 +100,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
 {
    AVND_SU_SI_REC      *si_rec = 0;
    AVND_COMP_CSI_PARAM *csi_param = 0;
+   AVND_COMP_CSI_REC   *csi_rec = NULL;
 
    *rc = NCSCC_RC_SUCCESS;
 
@@ -139,17 +140,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
    si_rec->csi_list.order = NCS_DBLIST_ASSCEND_ORDER;
    si_rec->csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
    si_rec->csi_list.free_cookie = 0;
-
-   /* now add the csi records */
-   csi_param = param->list;
-   while ( 0 != csi_param )
-   {
-      avnd_su_si_csi_rec_add(cb, su, si_rec, csi_param, rc);
-      if ( NCSCC_RC_SUCCESS != *rc ) goto err;
-
-      csi_param = csi_param->next;
-   }
-
+   
    /*
     * Add to the si-list (maintained by su)
     */
@@ -164,6 +155,16 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
     * Update links to other entities.
     */
    si_rec->su = su;
+   si_rec->su_name_net = su->name_net;
+
+   /* now add the csi records */
+   csi_param = param->list;
+   while ( 0 != csi_param )
+   {
+      csi_rec = avnd_su_si_csi_rec_add(cb, su, si_rec, csi_param, rc);
+      if ( NCSCC_RC_SUCCESS != *rc ) goto err;
+      csi_param = csi_param->next;
+   }
 
    m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_SI_ADD, AVND_LOG_SU_DB_SUCCESS, 
                     &param->su_name_net, &param->si_name_net,
@@ -287,11 +288,15 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add (AVND_CB             *cb,
     */
    csi_rec->si = si_rec;
    csi_rec->comp = comp;
+   csi_rec->comp_name_net = comp->name_net;
+   csi_rec->si_name_net = si_rec->name_net;
+   csi_rec->su_name_net = su->name_net;
 
    /* register the comp-csi row with mab */
    *rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_AMF_COMP_CSI, 
                                &csi_rec->comp->name_net, &csi_rec->name_net, 
-                               0, &csi_rec->mab_hdl);
+                               0, &csi_rec->mab_hdl,
+    (csi_rec->comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
    if ( NCSCC_RC_SUCCESS != *rc ) goto err;
 
    m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_ADD, AVND_LOG_COMP_DB_SUCCESS, 
@@ -356,6 +361,8 @@ AVND_SU_SI_REC *avnd_su_si_rec_modify(AVND_CB          *cb,
    si_rec->prv_assign_state = si_rec->curr_assign_state;
    m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(si_rec, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
 
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si_rec, AVND_CKPT_SU_SI_REC);   
+
    /* now modify the csi records */
    *rc = avnd_su_si_csi_rec_modify(cb, su, si_rec,
                                   ( (SA_AMF_HA_QUIESCED == param->ha_state) || 
@@ -402,8 +409,10 @@ uns32 avnd_su_si_csi_rec_modify(AVND_CB             *cb,
       {
          /* store the prv assign-state & update the new assign-state */
          curr_csi->prv_assign_state = curr_csi->curr_assign_state;
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE);
          m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, 
             AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
       } /* for */
    }
 
@@ -428,6 +437,7 @@ uns32 avnd_su_si_csi_rec_modify(AVND_CB             *cb,
       curr_csi->prv_assign_state = curr_csi->curr_assign_state;
       m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, 
                AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
    } /* for */
 
 done:
@@ -466,6 +476,7 @@ uns32 avnd_su_si_all_modify(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_PARAM *param)
        /* store the prv assign-state & update the new assign-state */
        curr_si->prv_assign_state = curr_si->curr_assign_state;
        m_AVND_SU_SI_CURR_ASSIGN_STATE_SET(curr_si, AVND_SU_SI_ASSIGN_STATE_UNASSIGNED);
+       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_si, AVND_CKPT_SU_SI_REC);   
    } /* for */
 
    /* now modify the comp-csi records */
@@ -515,8 +526,10 @@ uns32 avnd_su_si_csi_all_modify(AVND_CB             *cb,
          {
             /* store the prv assign-state & update the new assign-state */
             curr_csi->prv_assign_state = curr_csi->curr_assign_state;
+            m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE);
             m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, 
                                      AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
+            m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE);
          } /* for */
       } /* for */
    }
@@ -546,6 +559,7 @@ uns32 avnd_su_si_csi_all_modify(AVND_CB             *cb,
          curr_csi->prv_assign_state = curr_csi->curr_assign_state;
          m_AVND_COMP_CSI_CURR_ASSIGN_STATE_SET(curr_csi, 
             AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED);
+         m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, curr_csi, AVND_CKPT_CSI_REC);
       } /* for */
    } /* for */
 
@@ -654,6 +668,7 @@ uns32 avnd_su_si_del (AVND_CB *cb, SaNameT *su_name_net)
    while ( 0 != (si_rec = 
                 (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list)) )
    {
+      m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, si_rec, AVND_CKPT_SU_SI_REC);
       rc = avnd_su_si_rec_del(cb, su_name_net, &si_rec->name_net);
       if ( NCSCC_RC_SUCCESS != rc ) goto err;
    }
@@ -709,6 +724,7 @@ uns32 avnd_su_si_csi_del (AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si_rec)
    {
       rc = avnd_su_si_csi_rec_del(cb, si_rec->su, si_rec, csi_rec);
       if ( NCSCC_RC_SUCCESS != rc ) goto err;
+
    }
 
    return rc;
@@ -750,7 +766,10 @@ uns32 avnd_su_si_csi_rec_del (AVND_CB          *cb,
             !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(csi_rec->comp) &&
             m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(csi_rec->comp) &&
             csi_rec->comp->csi_list.n_nodes == 0)
+    {
       m_AVND_COMP_FAILED_RESET(csi_rec->comp);
+      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, csi_rec->comp, AVND_CKPT_COMP_FLAG_CHANGE);
+    }
 
    /* remove from the si-csi list */
    rc = m_AVND_SU_SI_CSI_REC_REM(*si_rec, *csi_rec);
@@ -766,7 +785,8 @@ uns32 avnd_su_si_csi_rec_del (AVND_CB          *cb,
    /* free the pg list TBD */
    
    /* unregister the comp-csi row with mab */
-   avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_AMF_COMP_CSI, csi_rec->mab_hdl);
+   avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_AMF_COMP_CSI, csi_rec->mab_hdl,
+    (csi_rec->comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
 
    m_AVND_LOG_COMP_DB(AVND_LOG_COMP_DB_CSI_DEL, AVND_LOG_COMP_DB_SUCCESS, 
                       &csi_rec->comp->name_net, &csi_rec->name_net,
@@ -910,4 +930,48 @@ void avnd_su_siq_rec_del (AVND_CB *cb, AVND_SU *su, AVND_SU_SIQ_REC *siq)
    return;
 }
 
+/****************************************************************************
+  Name          : avnd_mbcsv_su_si_csi_rec_del
+ 
+  Description   : This routine is a wrapper of avnd_su_si_csi_rec_del.
+ 
+  Arguments     : cb      - ptr to AvND control block
+                  su      - ptr to the AvND SU
+                  si_rec  - ptr to the SI record
+                  csi_rec - ptr to the CSI record
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ 
+  Notes         : None
+******************************************************************************/
+uns32 avnd_mbcsv_su_si_csi_rec_del (AVND_CB          *cb, 
+                              AVND_SU           *su, 
+                              AVND_SU_SI_REC    *si_rec, 
+                              AVND_COMP_CSI_REC *csi_rec)
+{
+  return (avnd_su_si_csi_rec_del(cb, su, si_rec, csi_rec));
+}
 
+/****************************************************************************
+  Name          : avnd_mbcsv_su_si_csi_rec_add
+ 
+  Description   : This routine is a wrapper of avnd_su_si_csi_rec_add. 
+ 
+  Arguments     : cb     - ptr to AvND control block
+                  su     - ptr to the AvND SU
+                  si_rec - ptr to the SI record
+                  param  - ptr to the CSI parameters
+                  rc     - ptr to the operation result
+ 
+  Return Values : ptr to the comp-csi relationship record
+ 
+  Notes         : None
+******************************************************************************/
+AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add (AVND_CB             *cb, 
+                                           AVND_SU             *su, 
+                                           AVND_SU_SI_REC      *si_rec,
+                                           AVND_COMP_CSI_PARAM *param,
+                                           uns32               *rc)
+{
+  return (avnd_su_si_csi_rec_add(cb, su, si_rec, param, rc));
+}

@@ -131,6 +131,10 @@ typedef struct avnd_comp_clc_info {
 /* callbk list node definition */
 typedef struct avnd_cbk_tag {
    uns32             opq_hdl;   /* hdl returned by hdl-mngr */
+   uns32             orig_opq_hdl;   /* Original hdl to be stored for proxing it at AvND */
+   /* Redundant AvND hdl, generated at STDBY AvND. If red_opq_hdl is non-zero, then
+      don't destroy opq_hdl, rather destroy red_opq_hdl during avnd_comp_cbq_rec_del()*/
+   uns32             red_opq_hdl;
    MDS_DEST          dest;      /* mds dest of the prc where the callback is destined */
    SaTimeT           timeout;   /* resp timeout value */
    AVND_TMR          resp_tmr;  /* timer for callback response */
@@ -139,6 +143,7 @@ typedef struct avnd_cbk_tag {
    /* link to other elements */
    struct avnd_comp_tag *comp; /* bk ptr to the comp */
    struct avnd_cbk_tag   *next;
+   SaNameT  comp_name_net; /* For checkpointing */
 } AVND_COMP_CBK;
 
 
@@ -182,6 +187,9 @@ typedef struct avnd_comp_csi_rec {
    /* links to other entities */
    struct avnd_comp_tag     *comp;     /* bk ptr to the comp */
    struct avnd_su_si_rec    *si;       /* bk ptr to the si record */
+   SaNameT                comp_name_net;    /* For Checkpointing */
+   SaNameT                si_name_net;      /* For Checkpointing */
+   SaNameT                su_name_net;      /* For Checkpointing */
 
 } AVND_COMP_CSI_REC;
 
@@ -233,6 +241,7 @@ typedef struct avnd_hc_rec_tag {
 
    struct avnd_comp_tag    *comp; /* back ptr to the comp */
    struct avnd_hc_rec_tag  *next;
+   SaNameT  comp_name_net; /* For checkpoiting */
 } AVND_COMP_HC_REC;
 
 
@@ -264,6 +273,9 @@ typedef struct avnd_pxied_rec {
    struct avnd_comp_tag *pxied_comp; /* ptr to the proxied comp */
 } AVND_COMP_PXIED_REC;
 
+#define AVND_COMP_TYPE_LOCAL_NODE           0x00000001
+#define AVND_COMP_TYPE_INTER_NODE           0x00000002
+#define AVND_COMP_TYPE_EXT_CLUSTER          0x00000004
 
 /*##########################################################################
                        COMPONENT DEFINITION (TOP LEVEL)                    
@@ -335,6 +347,12 @@ typedef struct avnd_comp_tag {
    AVND_TMR orph_tmr; /* proxied component registration timer alias orphaned timer*/
    
    NCS_DB_LINK_LIST  pxied_list;  /* list of proxied comp in this proxy */
+   NODE_ID           node_id; /* It will used for internode proxy-proxied components. */
+   uns32             comp_type; /* Whether the component is LOCAL, INTERNODE or EXT */
+   MDS_SYNC_SND_CTXT mds_ctxt;
+   NCS_BOOL          reg_resp_pending; /* If the reg resp is pending from 
+                                          proxied comp AvND, it TRUE. */
+   SaNameT           proxy_comp_name_net; /* Used for Checkpointing. */
 
 } AVND_COMP;
 
@@ -386,6 +404,19 @@ typedef struct avnd_comp_tag {
 #define AVND_COMP_FLAG_TERM_FAIL      0x00001000 /* This flag will be set for a small duration
                                                     from a term cbk or cmd fail to the time we
                                                     invoke cleanup cbk or cmd */
+/* The following flag is set for a proxy who is proxying an external comp.*/
+#define AVND_PROXY_FOR_EXT_COMP       0x00002000
+
+
+
+#define m_AVND_COMP_TYPE_IS_LOCAL_NODE(x)   (((x)->comp_type) & AVND_COMP_TYPE_LOCAL_NODE)
+#define m_AVND_COMP_TYPE_IS_INTER_NODE(x)   (((x)->comp_type) & AVND_COMP_TYPE_INTER_NODE)
+#define m_AVND_COMP_TYPE_IS_EXT_CLUSTER(x)  (((x)->comp_type) & AVND_COMP_TYPE_EXT_CLUSTER)
+
+#define m_AVND_COMPT_TYPE_SET(x, flag)      (((x)->comp_type) |= (flag))
+#define m_AVND_COMP_TYPE_SET_LOCAL_NODE(x)  m_AVND_COMPT_TYPE_SET(x, AVND_COMP_TYPE_LOCAL_NODE) 
+#define m_AVND_COMP_TYPE_SET_INTER_NODE(x)  m_AVND_COMPT_TYPE_SET(x, AVND_COMP_TYPE_INTER_NODE) 
+#define m_AVND_COMP_TYPE_SET_EXT_CLUSTER(x) m_AVND_COMPT_TYPE_SET(x, AVND_COMP_TYPE_EXT_CLUSTER)
 
 /* macros for checking the comp types */
 #define m_AVND_COMP_TYPE_IS_LOCAL(x)              (((x)->flag) & AVND_COMP_TYPE_LOCAL)
@@ -416,6 +447,7 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_IS_INST_CMD_SUCC(x)  (((x)->flag) & AVND_COMP_FLAG_INST_CMD_SUCC)
 #define m_AVND_COMP_IS_ALL_CSI(x)        (((x)->flag) & AVND_COMP_FLAG_ALL_CSI)
 #define m_AVND_COMP_IS_TERM_FAIL(x)      (((x)->flag) & AVND_COMP_FLAG_TERM_FAIL)
+#define m_AVND_PROXY_IS_FOR_EXT_COMP(x)  (((x)->flag) & AVND_PROXY_FOR_EXT_COMP)
 
 /* macros for setting the comp states */
 #define m_AVND_COMP_REG_SET(x)            (((x)->flag) |= AVND_COMP_FLAG_REG)
@@ -423,6 +455,7 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_INST_CMD_SUCC_SET(x)  (((x)->flag) |= AVND_COMP_FLAG_INST_CMD_SUCC)
 #define m_AVND_COMP_ALL_CSI_SET(x)        (((x)->flag) |= AVND_COMP_FLAG_ALL_CSI)
 #define m_AVND_COMP_TERM_FAIL_SET(x)      (((x)->flag) |= AVND_COMP_FLAG_TERM_FAIL)
+#define m_AVND_PROXY_FOR_EXT_COMP_SET(x)  (((x)->flag) |= AVND_PROXY_FOR_EXT_COMP)
 
 /* macros for resetting the comp states */
 #define m_AVND_COMP_REG_RESET(x)            (((x)->flag) &= ~AVND_COMP_FLAG_REG)
@@ -715,12 +748,20 @@ typedef struct avnd_comp_tag {
 
 /* macro to get the callback record with the same inv value */
 /* note that inv value is derived from the hdl mngr */
-#define m_AVND_COMP_CBQ_INV_GET(comp, inv, o_rec) \
+#define m_AVND_COMP_CBQ_INV_GET(comp, invc, o_rec) \
 { \
    for ((o_rec) = (comp)->cbk_list; \
-        (o_rec) && !((o_rec)->opq_hdl == (inv)); \
+        (o_rec) && !(((o_rec)->cbk_info->inv) == (invc)); \
         (o_rec) = (o_rec)->next); \
 }
+
+#define m_AVND_COMP_CBQ_ORIG_INV_GET(comp, inv, o_rec) \
+{ \
+   for ((o_rec) = (comp)->cbk_list; \
+        (o_rec) && !((o_rec)->orig_opq_hdl == (inv)); \
+        (o_rec) = (o_rec)->next); \
+}
+
 /***********************************************************************
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
@@ -742,15 +783,17 @@ EXTERN_C AVND_COMP_HC_REC *avnd_comp_hc_get (AVND_COMP *, uns32, uns32);
 EXTERN_C uns32 avnd_dblist_hc_rec_cmp(uns8 *key1, uns8 *key2);
 EXTERN_C void avnd_comp_hc_rec_del_all (struct avnd_cb_tag *, AVND_COMP *);
 
-EXTERN_C void avnd_comp_cbq_del (struct avnd_cb_tag *, AVND_COMP *);
+EXTERN_C void avnd_comp_cbq_del (struct avnd_cb_tag *, AVND_COMP *,NCS_BOOL);
 EXTERN_C void avnd_comp_cbq_rec_pop_and_del (struct avnd_cb_tag *, AVND_COMP *, 
-                                             AVND_COMP_CBK *);
+                                             AVND_COMP_CBK *, NCS_BOOL);
+EXTERN_C AVND_COMP_CBK *avnd_comp_cbq_rec_add (struct avnd_cb_tag *, AVND_COMP *,
+                                        AVSV_AMF_CBK_INFO *, MDS_DEST *, SaTimeT);
 EXTERN_C uns32 avnd_comp_cbq_send (struct avnd_cb_tag *, AVND_COMP *, MDS_DEST *, 
                                    SaAmfHandleT, AVSV_AMF_CBK_INFO *, SaTimeT);
 
 EXTERN_C void avnd_comp_cbq_rec_del (struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *);
 
-EXTERN_C uns32 avnd_comp_cbq_rec_send (struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *);
+EXTERN_C uns32 avnd_comp_cbq_rec_send (struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CBK *, NCS_BOOL );
 
 EXTERN_C uns32 avnd_compdb_init(struct avnd_cb_tag *);
 EXTERN_C uns32 avnd_compdb_destroy(struct avnd_cb_tag *);
@@ -761,7 +804,7 @@ EXTERN_C AVND_COMP_CSI_REC *avnd_compdb_csi_rec_get_next(struct avnd_cb_tag *, S
 
 EXTERN_C uns32 avnd_amf_resp_send(struct avnd_cb_tag  *, AVSV_AMF_API_TYPE, 
                                   SaAisErrorT, uns8 *, MDS_DEST *, 
-                                  MDS_SYNC_SND_CTXT *);
+                                  MDS_SYNC_SND_CTXT *, AVND_COMP *, NCS_BOOL);
 
 EXTERN_C void avnd_comp_hc_finalize (struct avnd_cb_tag *, AVND_COMP *, 
                                      SaAmfHandleT, MDS_DEST *);
@@ -862,5 +905,15 @@ EXTERN_C void avnd_comp_unreg_cbk_process(struct avnd_cb_tag *, AVND_COMP *);
 EXTERN_C void avnd_comp_cmplete_all_assignment(struct avnd_cb_tag *, AVND_COMP *);
 EXTERN_C void avnd_comp_cmplete_all_csi_rec(struct avnd_cb_tag *, AVND_COMP *);
 EXTERN_C uns32 avnd_comp_hc_rec_start (struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_HC_REC *);
+EXTERN_C uns32 avnd_comp_unreg_prc(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP *);
+EXTERN_C uns32 avnd_mbcsv_comp_hc_rec_tmr_exp (struct avnd_cb_tag *cb,
+                                               AVND_COMP   *comp,
+                                               AVND_COMP_HC_REC *rec);
+EXTERN_C AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add (struct avnd_cb_tag  *cb,
+                                        AVND_COMP               *comp,
+                                        AVSV_AMF_HC_START_PARAM *hc_start,
+                                        MDS_DEST                *dest);
+EXTERN_C void avnd_mbcsv_comp_hc_rec_del (struct avnd_cb_tag *cb, AVND_COMP *comp,
+                                          AVND_COMP_HC_REC *rec);
 
 #endif /* !AVND_COMP_H */

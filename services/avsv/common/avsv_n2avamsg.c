@@ -39,6 +39,7 @@
 #include "avsv_amfparam.h"
 #include "avsv_n2avamsg.h"
 #include "avsv_n2avamem.h"
+#include "avsv_nd2ndmsg.h"
 
 
 /****************************************************************************
@@ -65,6 +66,31 @@ void avsv_nda_ava_msg_free (AVSV_NDA_AVA_MSG *msg)
    return;
 }
 
+/****************************************************************************
+  Name          : avsv_nd2nd_avnd_msg_free
+ 
+  Description   : This routine frees the AvND message.
+ 
+  Arguments     : msg - ptr to the AvA msg
+ 
+  Return Values : None
+ 
+  Notes         : None.
+******************************************************************************/
+void avsv_nd2nd_avnd_msg_free (AVSV_ND2ND_AVND_MSG *msg)
+{
+   if (!msg) return;
+   
+   if(AVND_AVND_AVA_MSG == msg->type)
+   {
+     /* free the message content after all these are AvA content. */
+     avsv_nda_ava_msg_free(msg->info.msg);
+   }
+   /* free the message */
+   m_MMGR_FREE_AVSV_ND2ND_AVND_MSG(msg);
+
+   return;
+}
 
 /****************************************************************************
   Name          : avsv_nda_ava_msg_content_free
@@ -103,6 +129,37 @@ void avsv_nda_ava_msg_content_free (AVSV_NDA_AVA_MSG *msg)
    return;
 }
 
+
+/****************************************************************************
+  Name          : avsv_ndnd_avnd_msg_copy
+ 
+  Description   : This routine copies the AvND  message
+ 
+  Arguments     : dmsg - ptr to the dest msg
+                  smsg - ptr to the source msg
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ 
+  Notes         : None
+******************************************************************************/
+uns32 avsv_ndnd_avnd_msg_copy (AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg)
+{
+   uns32 rc = NCSCC_RC_SUCCESS;
+
+   if (!dmsg || !smsg)
+   {
+      rc = NCSCC_RC_FAILURE;
+      goto done;
+   }
+
+   /* copy the common fields */
+   m_NCS_OS_MEMCPY(dmsg, smsg, sizeof(AVSV_ND2ND_AVND_MSG));
+   if(AVND_AVND_AVA_MSG == smsg->type)
+     rc = avsv_nda_ava_msg_copy(dmsg->info.msg, smsg->info.msg);
+
+done:
+   return rc;
+}
 
 /****************************************************************************
   Name          : avsv_nda_ava_msg_copy
@@ -146,7 +203,6 @@ uns32 avsv_nda_ava_msg_copy (AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 done:
    return rc;
 }
-
 
 /****************************************************************************
   Name          : avsv_amf_cbk_copy

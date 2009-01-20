@@ -63,6 +63,7 @@
 #include "avd_avnd.h"
 #include "avd_sg.h"
 #include "avd_su.h"
+#include "avd_si_dep.h"
 #include "avd_si.h"
 #include "avd_comp.h"
 #include "avd_csi.h"

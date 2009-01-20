@@ -408,9 +408,35 @@ void avd_standby_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
 void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
 {
    AVD_D2D_MSG *d2d_msg = evt->info.avd_msg;
+   uns32 rc = NCSCC_RC_SUCCESS;
  
    m_AVD_LOG_FUNC_ENTRY("avd_rcv_hb_msg");
    
+   if((SA_AMF_HA_ACTIVE == cb->avail_state_avd) &&
+      (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state))
+   {
+     /* There has been change in the role of peer AvD, so, we need to send
+        the role to the peer controller AvND. */
+      m_AVD_PXY_PXD_SUCC_LOG(
+        "avd_rcv_hb_d_msg: role changed. Prev nodeid,Chgd nodeid,Pre role,chgd role",
+        NULL, cb->node_id_avd_other, d2d_msg->msg_info.d2d_hrt_bt.node_id,
+        cb->avail_state_avd_other,
+        d2d_msg->msg_info.d2d_hrt_bt.avail_state);
+      rc = avd_avnd_send_role_change(cb, d2d_msg->msg_info.d2d_hrt_bt.node_id,
+                                     d2d_msg->msg_info.d2d_hrt_bt.avail_state);
+      if(NCSCC_RC_SUCCESS != rc)
+      {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_rcv_hb_d_msg: role sent failed. Node Id and role are",
+        NULL,d2d_msg->msg_info.d2d_hrt_bt.node_id,
+        d2d_msg->msg_info.d2d_hrt_bt.avail_state,0,0);
+      }
+      else
+      {
+         avd_d2n_msg_dequeue(cb);
+      }
+
+   }
 
    /* update our data */
    cb->node_id_avd_other = d2d_msg->msg_info.d2d_hrt_bt.node_id;

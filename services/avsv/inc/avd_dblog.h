@@ -100,6 +100,16 @@ typedef enum avd_msg_flex
 } AVD_MSG_FLEX;
 
 /******************************************************************************
+ Logging offset indexes for Proxy-Proxied logging
+ ******************************************************************************/
+typedef enum avd_log_pxy_pxd_flex
+{
+   AVD_PXY_PXD_SUCC_INFO,
+   AVD_PXY_PXD_ERR_INFO,
+   AVD_PXY_PXD_ENTRY_INFO
+} AVD_LOG_PXY_PXD_FLEX;
+
+/******************************************************************************
  Logging offset indexes for event logging 
  ******************************************************************************/
 typedef enum avd_evt_flex
@@ -221,6 +231,7 @@ typedef enum avd_flex_sets
    AVD_FC_OPER,
    AVD_FC_ADMIN,
    AVD_FC_SUSI_HA,
+   AVD_FC_PXY_PXD,
 }AVD_FLEX_SETS;
 
 typedef enum avd_log_ids
@@ -244,7 +255,7 @@ typedef enum avd_log_ids
    AVD_LID_TRAP_NCS_SUCC,
    AVD_LID_SUSI_HA_CHG_START,
    AVD_LID_HDLN_SVAL,
-
+   AVD_PXY_PXD,
 } AVD_LOG_IDS;
 
 
@@ -308,6 +319,15 @@ typedef enum avd_log_ids
 #define m_AVD_LOG_MDS_SUCC(func) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_FUNC_RETVAL, AVSV_FC_MDS, NCSFL_LC_HEADLINE, NCSFL_SEV_DEBUG, NCSFL_TYPE_TII,func,AVSV_LOG_MDS_SUCCESS)
 
 #define m_AVD_LOG_LOCK_ERROR(func) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_FUNC_RETVAL, AVSV_FC_LOCK, NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR, NCSFL_TYPE_TII,func,AVSV_LOG_LOCK_FAILURE)
+
+#define m_AVD_PXY_PXD_SUCC_LOG(info,comp,info1,info2,info3,info4) \
+      avd_pxy_pxd_log(NCSFL_SEV_NOTICE,AVD_PXY_PXD_SUCC_INFO,info,comp,info1,info2,info3,info4)
+
+#define m_AVD_PXY_PXD_ERR_LOG(info,comp,info1,info2,info3,info4) \
+      avd_pxy_pxd_log(NCSFL_SEV_ERROR,AVD_PXY_PXD_ERR_INFO,info,comp,info1,info2,info3,info4)
+
+#define m_AVD_PXY_PXD_ENTRY_LOG(info,comp,info1,info2,info3,info4) \
+      avd_pxy_pxd_log(NCSFL_SEV_DEBUG,AVD_PXY_PXD_ENTRY_INFO,info,comp,info1,info2,info3,info4)
 
 #define m_AVD_LOG_LOCK_SUCC(func) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_FUNC_RETVAL, AVSV_FC_LOCK, NCSFL_LC_HEADLINE, NCSFL_SEV_DEBUG, NCSFL_TYPE_TII,func,AVSV_LOG_LOCK_SUCCESS)
 
@@ -395,6 +415,9 @@ typedef enum avd_log_ids
 #define m_AVD_LOG_MDS_CRITICAL(func)
 #define m_AVD_LOG_MDS_SUCC(func)
 #define m_AVD_LOG_LOCK_ERROR(func)
+#define m_AVD_PXY_PXD_SUCC_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVND_PXY_PXD_ERR_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVND_PXY_PXD_ENTRY_LOG(info,comp,info1,info2,info3,info4) 
 #define m_AVD_LOG_LOCK_SUCC(func)
 #define m_AVD_LOG_MBX_ERROR(func)
 #define m_AVD_LOG_MBX_SUCC(func)
@@ -439,6 +462,7 @@ EXTERN_C void  avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op,
 
 EXTERN_C void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
                                SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
-
+void avd_pxy_pxd_log(uns32 sev, uns32 index, uns8 *info, SaNameT *comp_name,
+                     uns32   info1, uns32   info2, uns32   info3, uns32   info4);
 
 #endif /* AVD_DBLOG_H */

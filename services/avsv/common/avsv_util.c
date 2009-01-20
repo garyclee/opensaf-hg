@@ -64,6 +64,10 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
    /* First get the SU name */
    tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safSu");
 
+   /* It might be external SU. */
+   if(NULL == tmp)
+       tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safEsu");
+
    if(!tmp)
       return NCSCC_RC_FAILURE;
    

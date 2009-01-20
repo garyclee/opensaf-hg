@@ -87,25 +87,6 @@ EXTERN_C SaAisErrorT
 saAmfParseCSIPrototype(char *, char*);
 
 EXTERN_C uns32
-ncs_bam_build_and_generate_mibsets(NCSMIB_TBL_ID, uns32, 
-                                NCSMIB_IDX *, char *, NCSMIB_FMAT_ID);
-
-EXTERN_C uns32
-ncs_bam_generate_counter64_mibset(NCSMIB_TBL_ID, uns32, 
-                                  NCSMIB_IDX *, char * );
-
-EXTERN_C SaAisErrorT 
-ncs_bam_search_table_for_oid(TAG_OID_MAP_NODE *, uns32, char *, 
-                             char *, NCSMIB_TBL_ID *, 
-                             uns32 *, NCSMIB_FMAT_ID  *);
-
-EXTERN_C uns32
-ncs_bam_build_mib_idx(NCSMIB_IDX *, char *, NCSMIB_FMAT_ID);
-
-EXTERN_C uns32
-ncs_bam_add_sec_mib_idx(NCSMIB_IDX *mib_idx, char *idx_val, NCSMIB_FMAT_ID format);
-
-EXTERN_C uns32
 parse_process_config(DOMNode *);
 
 EXTERN_C SaAisErrorT

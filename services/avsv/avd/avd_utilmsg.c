@@ -711,7 +711,10 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb,AVD_AVND *avnd,uns32 msg_id_ack)
 uns32 avd_snd_presence_msg(AVD_CL_CB *cb,AVD_SU *su,NCS_BOOL term_state)
 {
    AVD_DND_MSG *d2n_msg;
-  
+   AVD_AVND *su_node_ptr = NULL;
+
+   m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
    m_AVD_LOG_FUNC_ENTRY("avd_snd_presence_msg");
    
    /* Verify if the SU structure pointer is valid. */
@@ -732,7 +735,7 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb,AVD_SU *su,NCS_BOOL term_state)
    {
       /* log error that the director is in degraded situation */
       m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-       m_AVD_LOG_INVALID_VAL_FATAL(su->su_on_node->node_info.nodeId);
+       m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
       return NCSCC_RC_FAILURE;
    }
 
@@ -741,28 +744,28 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb,AVD_SU *su,NCS_BOOL term_state)
 
    /* prepare the SU presence state change notification message */
    d2n_msg->msg_type = AVSV_D2N_PRESENCE_SU_MSG;
-   d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(su->su_on_node->snd_msg_id);
-   d2n_msg->msg_info.d2n_prsc_su.node_id = su->su_on_node->node_info.nodeId;
+   d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(su_node_ptr->snd_msg_id);
+   d2n_msg->msg_info.d2n_prsc_su.node_id = su_node_ptr->node_info.nodeId;
    d2n_msg->msg_info.d2n_prsc_su.su_name_net = su->name_net;
    d2n_msg->msg_info.d2n_prsc_su.term_state = term_state;
 
-   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PRESENCE_SU_MSG,su->su_on_node->node_info.nodeId);
+   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PRESENCE_SU_MSG,su_node_ptr->node_info.nodeId);
 
    /* send the message */
-   if (avd_d2n_msg_snd(cb, su->su_on_node, d2n_msg) != NCSCC_RC_SUCCESS)
+   if (avd_d2n_msg_snd(cb, su_node_ptr, d2n_msg) != NCSCC_RC_SUCCESS)
    {
       /* log error that the director is not able to send the message */
-      m_AVD_LOG_INVALID_VAL_ERROR(su->su_on_node->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr->node_info.nodeId);
       m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR,d2n_msg,sizeof(AVD_DND_MSG),d2n_msg);
       /* free the SU presence message */
 
       avsv_dnd_msg_free(d2n_msg);
       /* decrement the node send id */
-      --(su->su_on_node->snd_msg_id);
+      --(su_node_ptr->snd_msg_id);
       return NCSCC_RC_FAILURE;
    }
 
-   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->su_on_node), AVSV_CKPT_AVND_SND_MSG_ID);
+   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
    return NCSCC_RC_SUCCESS;
 
 }
@@ -922,6 +925,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb,AVD_AVND *avnd,AVSV_PARAM_INFO *param_inf
  *        hlt_chk - Pointer to the health check related to which the message
  *                  needs to be sent.
  *        hlth_msg - Pointer to the health check message being prepared.
+ *        is_ext   - Whether the hc is for external component.
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -930,7 +934,8 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb,AVD_AVND *avnd,AVSV_PARAM_INFO *param_inf
  * 
  **************************************************************************/
 
-static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth_msg)
+static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth_msg,
+                                NCS_BOOL is_ext)
 {
    AVSV_HLT_INFO_MSG *hlt_info;
 
@@ -951,6 +956,7 @@ static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth
    hlt_info->max_duration = hlt_chk->max_duration;
    hlt_info->name = hlt_chk->key_name;
    hlt_info->period = hlt_chk->period;
+   hlt_info->is_ext = is_ext;
 
    hlt_info->next = hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
    hlth_msg->msg_info.d2n_reg_hlt.hlt_list = hlt_info;
@@ -977,7 +983,8 @@ static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth
  *     hlt_chk - Pointer to the Health check related to which the message
  *               need to be sent. valid if avnd is NULL. If NULL it means
  *               that all the health check info need to be sent to a node
- *             
+ *     is_ext    Tell whether hc is for external component if hlt_chk is
+ *               not NULL.        
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
@@ -987,11 +994,12 @@ static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth
  **************************************************************************/
 
 uns32 avd_snd_hlt_msg(AVD_CL_CB *cb,AVD_AVND *avnd,
-                      AVD_HLT *hlt_chk, NCS_BOOL fail_over)
+                      AVD_HLT *hlt_chk, NCS_BOOL fail_over, NCS_BOOL is_ext)
 {
    
    AVD_HLT *i_hlt_chk = AVD_HLT_NULL;
    AVD_DND_MSG *hlth_msg;
+   NCS_BOOL   ext_comp_hlth_is_added = FALSE; 
 
    m_AVD_LOG_FUNC_ENTRY("avd_snd_hlt_msg");
    
@@ -1016,21 +1024,36 @@ uns32 avd_snd_hlt_msg(AVD_CL_CB *cb,AVD_AVND *avnd,
    if(hlt_chk == AVD_HLT_NULL)
    {
       i_hlt_chk = avnd->list_of_hlt;
+ext_comp:
       while(i_hlt_chk != NULL)
       { 
         /* Add information about this health check to the message */
-        if (avd_prep_hlth_info(cb,i_hlt_chk,hlth_msg) == NCSCC_RC_FAILURE)
+        if (avd_prep_hlth_info(cb,i_hlt_chk,hlth_msg,ext_comp_hlth_is_added) == NCSCC_RC_FAILURE)
         {
            avsv_dnd_msg_free(hlth_msg);
            return NCSCC_RC_FAILURE;
         }      
         i_hlt_chk = i_hlt_chk->next_hlt_on_node;  
       }
+
+      /* Done with the cluster component, now add health check for external
+         component for Controller AvND.*/
+      if((avnd->node_info.nodeId == cb->node_id_avd) && 
+         (FALSE == ext_comp_hlth_is_added))
+      {
+       if(NULL != cb->ext_comp_info.ext_comp_hlt_check)
+       {
+        /* There is at least one external conponent configured. */
+        i_hlt_chk = cb->ext_comp_info.ext_comp_hlt_check->list_of_hlt;
+        ext_comp_hlth_is_added = TRUE;
+        goto ext_comp;
+       }
+      }
    }
    else
    {
       /* Add information about this health check to the message */
-      if (avd_prep_hlth_info(cb,hlt_chk,hlth_msg) == NCSCC_RC_FAILURE)
+      if (avd_prep_hlth_info(cb,hlt_chk,hlth_msg,is_ext) == NCSCC_RC_FAILURE)
       {
          avsv_dnd_msg_free(hlth_msg);
          return NCSCC_RC_FAILURE;
@@ -1110,6 +1133,7 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb,AVD_SU *su,AVD_DND_MSG *su_msg)
    su_info->su_restart_max = su->sg_of_su->su_restart_max;
    su_info->su_restart_prob = su->sg_of_su->su_restart_prob;
    su_info->is_ncs = su->sg_of_su->sg_ncs_spec;
+   su_info->su_is_external = su->su_is_external;
 
    su_info->next = su_msg->msg_info.d2n_reg_su.su_list;
    su_msg->msg_info.d2n_reg_su.su_list = su_info;
@@ -1196,7 +1220,8 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
    AVD_SU *i_su = AVD_SU_NULL;
    AVD_COMP *i_comp = AVD_COMP_NULL;
    AVD_DND_MSG *su_msg, *comp_msg;
-   uns32 i;
+   uns32 i, count = 0;
+   SaNameT       temp_su_name;
 
    m_AVD_LOG_FUNC_ENTRY("avd_snd_su_comp_msg");
    
@@ -1244,13 +1269,35 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
    /* build the component and SU messages for both the NCS and application
     * SUs.
     */
-   for (i = 0; i <= 1; ++i)
+   /* Check whether the AvND belongs to ACT controller. If yes, then send all
+      the external SUs/Components to it, otherwise send only cluster 
+      components.*/
+   if(avnd->node_info.nodeId == cb->node_id_avd)
+   {
+      count = 2;  
+   }
+   else
+      count = 1;  
+
+   for (i = 0; i <= count; ++i)
    {
       if (i == 0)
          i_su = avnd->list_of_ncs_su;
-      else
+      else if(i == 1)
          i_su = avnd->list_of_su;
-      
+      else
+      {
+         /* For external component, we don't have any node attached to it. 
+            So, get the first external SU. */
+         temp_su_name.length = 0;
+         while(NULL != (i_su = avd_su_struc_find_next(cb,temp_su_name,FALSE)))
+         {
+             if(TRUE == i_su->su_is_external) break;
+
+             temp_su_name = i_su->name_net;
+         }
+      }
+
       while (i_su != AVD_SU_NULL)
       {
          if(i_su->row_status != NCS_ROW_ACTIVE)
@@ -1258,7 +1305,19 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
             /* the SU is not a valid component skip the SU */
       
             /* get the next SU in the node */
-            i_su = i_su->avnd_list_su_next;
+            if((0 == i) || (1 == i))
+               i_su = i_su->avnd_list_su_next;
+            else
+            {
+               /* Get the next external SU. */
+               temp_su_name = i_su->name_net;
+               while(NULL != (i_su = avd_su_struc_find_next(cb,temp_su_name,FALSE)))
+               {
+                   if(TRUE == i_su->su_is_external) break;
+
+                   temp_su_name = i_su->name_net;
+               }
+            }
             continue;
          }
          
@@ -1302,11 +1361,23 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
          } /* while(i_comp != AVD_COMP_NULL) */
    
          /* get the next SU in the node */
-         i_su = i_su->avnd_list_su_next;
+            if((0 == i) || (1 == i))
+               i_su = i_su->avnd_list_su_next;
+            else
+            {
+               /* Get the next external SU. */
+               temp_su_name = i_su->name_net;
+               while(NULL != (i_su = avd_su_struc_find_next(cb,temp_su_name,FALSE)))
+               {
+                   if(TRUE == i_su->su_is_external) break;
+
+                   temp_su_name = i_su->name_net;
+               }
+            }
          
       } /* while (i_su != AVD_SU_NULL) */
-   
-   } /* for (i = 0; i <= 1; ++i) */
+
+   } /* for (i = 0; i <= 2; ++i) */
    
    /* check if atleast one SU data is being sent. If not 
     * dont send the messages.
@@ -1399,6 +1470,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
 uns32 avd_snd_su_msg(AVD_CL_CB *cb,AVD_SU *su)
 {
    AVD_DND_MSG *su_msg;
+   AVD_AVND *su_node_ptr = NULL;
 
    m_AVD_LOG_FUNC_ENTRY("avd_snd_su_msg");
    
@@ -1412,13 +1484,15 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb,AVD_SU *su)
       m_AVD_LOG_INVALID_VAL_FATAL(0);
       return NCSCC_RC_FAILURE;
    }
-   
+
+   m_AVD_GET_SU_NODE_PTR(cb,su,su_node_ptr);
+
    su_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
    if (su_msg == AVD_DND_MSG_NULL)
    {
       /* log error that the director is in degraded situation */
       m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-      m_AVD_LOG_INVALID_VAL_FATAL(su->su_on_node->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
       return NCSCC_RC_FAILURE;
    }
 
@@ -1429,37 +1503,37 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb,AVD_SU *su)
 
    su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
 
-   su_msg->msg_info.d2n_reg_su.nodeid = su->su_on_node->node_info.nodeId;
+   su_msg->msg_info.d2n_reg_su.nodeid = su_node_ptr->node_info.nodeId;
    
 
    /* Add information about this SU to the message */
    if (avd_prep_su_info(cb,su,su_msg) == NCSCC_RC_FAILURE)
    {
       /* Free the messages and return error */
-      m_AVD_LOG_INVALID_VAL_FATAL(su->su_on_node->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
       m_MMGR_FREE_AVSV_DND_MSG(su_msg);
       return NCSCC_RC_FAILURE;
    }
    
-   su_msg->msg_info.d2n_reg_su.msg_id = ++(su->su_on_node->snd_msg_id);
+   su_msg->msg_info.d2n_reg_su.msg_id = ++(su_node_ptr->snd_msg_id);
 
    /* send the SU message to the node if return value is failure
     * free messages and return error.
     */
       
-   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_SU_MSG,su->su_on_node->node_info.nodeId);
+   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_SU_MSG,su_node_ptr->node_info.nodeId);
 
-   if (avd_d2n_msg_snd(cb,su->su_on_node,su_msg) == NCSCC_RC_FAILURE)
+   if (avd_d2n_msg_snd(cb,su_node_ptr,su_msg) == NCSCC_RC_FAILURE)
    {
       /* Free all the messages and return error */
-      --(su->su_on_node->snd_msg_id);
-      m_AVD_LOG_INVALID_VAL_ERROR(su->su_on_node);
+      --(su_node_ptr->snd_msg_id);
+      m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr);
       m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR,su_msg,sizeof(AVD_DND_MSG),su_msg);
       avsv_dnd_msg_free(su_msg);
       return NCSCC_RC_FAILURE;
    }
    
-   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->su_on_node), AVSV_CKPT_AVND_SND_MSG_ID);
+   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
    return NCSCC_RC_SUCCESS;
 
 }
@@ -1485,6 +1559,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb,AVD_SU *su)
 uns32 avd_snd_comp_msg(AVD_CL_CB *cb,AVD_COMP *comp)
 {
    AVD_DND_MSG *comp_msg;
+   AVD_AVND *su_node_ptr = NULL;
    
    m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_msg");
 
@@ -1499,13 +1574,15 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb,AVD_COMP *comp)
       return NCSCC_RC_FAILURE;
    }
 
+   m_AVD_GET_SU_NODE_PTR(cb,comp->su,su_node_ptr);
+
    comp_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
 
    if (comp_msg == AVD_DND_MSG_NULL)
    {
       /* log error that the director is in degraded situation */ 
       m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-      m_AVD_LOG_INVALID_VAL_FATAL(comp->su->su_on_node->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
       return NCSCC_RC_FAILURE;
 
    }
@@ -1515,7 +1592,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb,AVD_COMP *comp)
    /* prepare the Component messages. */
 
    comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
-   comp_msg->msg_info.d2n_reg_comp.node_id = comp->su->su_on_node->node_info.nodeId;
+   comp_msg->msg_info.d2n_reg_comp.node_id = su_node_ptr->node_info.nodeId;
    
             
    /* Add information about this comp to the message */
@@ -1523,28 +1600,28 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb,AVD_COMP *comp)
    {
       /* Free all the messages and return error */
       m_MMGR_FREE_AVSV_DND_MSG(comp_msg);
-      m_AVD_LOG_INVALID_VAL_FATAL(comp->su->su_on_node->node_info.nodeId);
+      m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
       return NCSCC_RC_FAILURE;
    }
    
-   comp_msg->msg_info.d2n_reg_comp.msg_id = ++(comp->su->su_on_node->snd_msg_id);
+   comp_msg->msg_info.d2n_reg_comp.msg_id = ++(su_node_ptr->snd_msg_id);
 
    /* send the component message to the node if return value is failure
     * free message and return error.
     */
-   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_COMP_MSG,comp->su->su_on_node->node_info.nodeId);
+   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_COMP_MSG,su_node_ptr->node_info.nodeId);
 
-   if (avd_d2n_msg_snd(cb,comp->su->su_on_node,comp_msg) == NCSCC_RC_FAILURE)
+   if (avd_d2n_msg_snd(cb,su_node_ptr,comp_msg) == NCSCC_RC_FAILURE)
    {
       /* Free  the message and return error */
-      --(comp->su->su_on_node->snd_msg_id);
-      m_AVD_LOG_INVALID_VAL_ERROR(comp->su->su_on_node->node_info.nodeId);
+      --(su_node_ptr->snd_msg_id);
+      m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr->node_info.nodeId);
       m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR,comp_msg,sizeof(AVD_DND_MSG),comp_msg);
       avsv_dnd_msg_free(comp_msg);
       return NCSCC_RC_FAILURE;
    }
 
-   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (comp->su->su_on_node), AVSV_CKPT_AVND_SND_MSG_ID);
+   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
    return NCSCC_RC_SUCCESS;
 
 }
@@ -1669,8 +1746,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb,AVD_SU *su,
 
 
    /* Get the node information from the SU */
-
-   avnd = su->su_on_node;
+   m_AVD_GET_SU_NODE_PTR(cb,su,avnd);
 
    /* Need not proceed further if node is not in proper state */
    if((avnd->node_state == AVD_AVND_STATE_ABSENT)||
@@ -2390,4 +2466,104 @@ uns32 avd_snd_hb_msg(AVD_CL_CB *cb)
    return NCSCC_RC_SUCCESS;
 }
 
+/*****************************************************************************
+ * Function: avd_snd_comp_validation_resp
+ *
+ * Purpose:  This function sends a component validation resp to AvND.
+ *
+ * Input: cb        - Pointer to the AVD control block.
+ *        avnd      - Pointer to AVND structure of the node.
+ *        comp_ptr  - Pointer to the component. 
+ *        n2d_msg   - Pointer to the message from AvND to AvD.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * NOTES: If the component doesn't exist then node_id will be zero and 
+ *        the result will be NCSCC_RC_FAILURE.
+ *
+ * 
+ **************************************************************************/
 
+uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, 
+                                   AVD_COMP *comp_ptr, AVD_DND_MSG *n2d_msg)
+{
+   AVD_DND_MSG *d2n_msg = NULL;
+   AVD_AVND    *su_node_ptr = NULL;
+
+   m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_validation_resp");
+
+   /* prepare the component validation message. */
+   d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+   if (d2n_msg == AVD_DND_MSG_NULL)
+   {
+      /* log error that the director is in degraded situation */
+      m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
+      m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   
+
+   /* prepare the componenet validation response message */
+   d2n_msg->msg_type = AVSV_D2N_COMP_VALIDATION_RESP_MSG;
+
+   d2n_msg->msg_info.d2n_comp_valid_resp_info.comp_name_net = 
+               n2d_msg->msg_info.n2d_comp_valid_info.comp_name_net;
+   d2n_msg->msg_info.d2n_comp_valid_resp_info.msg_id = 
+               n2d_msg->msg_info.n2d_comp_valid_info.msg_id;
+   if(NULL == comp_ptr)
+   {
+    /* We don't have the component, so node id is unavailable. */
+    d2n_msg->msg_info.d2n_comp_valid_resp_info.node_id = 0;
+    d2n_msg->msg_info.d2n_comp_valid_resp_info.result = AVSV_VALID_FAILURE;
+   }
+   else
+   {
+        /* Check whether this is an external or cluster component */
+        if(TRUE == comp_ptr->su->su_is_external)
+        {
+           /* There would not be any node associated with it. */
+           d2n_msg->msg_info.d2n_comp_valid_resp_info.node_id = 0;
+           su_node_ptr = cb->ext_comp_info.local_avnd_node;
+        }
+        else
+        {
+           d2n_msg->msg_info.d2n_comp_valid_resp_info.node_id = 
+                  comp_ptr->su->su_on_node->node_info.nodeId;
+           su_node_ptr = comp_ptr->su->su_on_node;
+        }
+
+      if((AVD_AVND_STATE_PRESENT    == su_node_ptr->node_state) ||
+         (AVD_AVND_STATE_NO_CONFIG  == su_node_ptr->node_state) ||
+         (AVD_AVND_STATE_NCS_INIT   == su_node_ptr->node_state))
+      {
+             d2n_msg->msg_info.d2n_comp_valid_resp_info.result = 
+                            AVSV_VALID_SUCC_COMP_NODE_UP;
+      }
+      else
+      {
+        /*  Component is not configured. */
+             d2n_msg->msg_info.d2n_comp_valid_resp_info.result = 
+                            AVSV_VALID_SUCC_COMP_NODE_DOWN;
+      }
+   }      
+   
+
+   m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_COMP_VALIDATION_RESP_MSG,avnd->node_info.nodeId);
+
+   /* send the message */
+   if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS)
+   {
+      /* log error that the director is not able to send the message */
+      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
+      m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR,d2n_msg,sizeof(AVD_DND_MSG),d2n_msg);
+      /* free the message */
+
+      avsv_dnd_msg_free(d2n_msg);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+ 
+}

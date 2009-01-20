@@ -249,7 +249,8 @@ static uns32 avd_init_role_set(AVD_CL_CB  *cb, SaAmfHAStateT role)
    PRINT_ROLE(role);
 
    /*
-    * Set mds VDEST initial role.
+    * Set mds VDEST initial role. We need not send the role to AvND
+    * as when AvND will come up, we will send.
     */
    if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, role)))
    {
@@ -365,6 +366,19 @@ static uns32 avd_role_switch_actv_qsd (AVD_CL_CB  *cb, SaAmfHAStateT role)
          m_AVD_LOG_INVALID_VAL_FATAL(rc);
          return NCSCC_RC_FAILURE;
       }
+      /* We need to send the role to AvND. */
+      rc = avd_avnd_send_role_change(cb, cb->node_id_avd,cb->avail_state_avd);
+      if(NCSCC_RC_SUCCESS != rc)
+      {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_role_switch_actv_qsd: role sent failed. Node Id and role are",
+        NULL,cb->node_id_avd, cb->avail_state_avd,0,0);
+      }
+      else
+      {
+         avd_d2n_msg_dequeue(cb);
+      }
+
    }
 
    /*  Send Quiesced to all Active NCS Su's having 2N redun model, present in this node */
@@ -486,6 +500,19 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
 
    /* Time to send fail-over messages to all the AVND's */   
    avd_fail_over_event(cb);
+
+   /* We need to send the role to AvND. */
+    status = avd_avnd_send_role_change(cb, cb->node_id_avd,cb->avail_state_avd);
+    if(NCSCC_RC_SUCCESS != status)
+    {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_role_failover: role sent failed. Node Id and role are",
+        NULL,cb->node_id_avd, cb->avail_state_avd,0,0);
+    }
+    else
+    {
+     avd_d2n_msg_dequeue(cb);
+    }
 
    /* We are successfully changed role to Active. Now reset 
     * the old Active. */
@@ -633,6 +660,19 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
    
    /* Time to send fail-over messages to all the AVND's */   
    avd_fail_over_event(cb);
+
+   /* We need to send the role to AvND. */
+    status = avd_avnd_send_role_change(cb, cb->node_id_avd,cb->avail_state_avd);
+    if(NCSCC_RC_SUCCESS != status)
+    {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_role_failover_qsd_actv: role sent failed. Node Id and role are",
+        NULL,cb->node_id_avd, cb->avail_state_avd,0,0);
+    }
+    else
+    {
+       avd_d2n_msg_dequeue(cb);
+    }
 
    /* Post an evt on mailbox to set active role to all NCS SU */
    /* create the message event */
@@ -827,6 +867,19 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
    /* Time to send fail-over messages to all the AVND's */   
    avd_fail_over_event(cb);
 
+   /* We need to send the role to AvND. */
+    status = avd_avnd_send_role_change(cb, cb->node_id_avd,cb->avail_state_avd);
+    if(NCSCC_RC_SUCCESS != status)
+    {
+        m_AVD_PXY_PXD_ERR_LOG(
+        "avd_role_switch_stdby_actv: role sent failed. Node Id and role are",
+        NULL,cb->node_id_avd, cb->avail_state_avd,0,0);
+    }
+    else
+    {
+       avd_d2n_msg_dequeue(cb);
+    }
+
    /* Post an evt on mailbox to set active role to all NCS SU */
    /* create the message event */
    evt = m_MMGR_ALLOC_AVD_EVT;
@@ -913,8 +966,6 @@ static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB  *cb, SaAmfHAStateT role)
    m_AVD_LOG_FUNC_ENTRY("avd_role_switch_qsd_stdby");
    m_NCS_DBG_PRINTF("\nROLE SWITCH Quiesced --> StandBy");
    syslog(LOG_NOTICE, "ROLE SWITCH Quiesced --> StandBy");
-
-    /* Change MDS role to Standby*/
   if (NCSCC_RC_SUCCESS != (status = avd_mds_set_vdest_role(cb, SA_AMF_HA_STANDBY)))
    {
       /* log error that the node id is invalid */

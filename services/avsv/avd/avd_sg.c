@@ -868,6 +868,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    NCSMIBLIB_REQ_INFO temp_mib_req;
    NCS_BOOL      val_same_flag = FALSE;
    uns32         param_id, i, rc = NCSCC_RC_SUCCESS;
+   AVD_AVND      *su_node_ptr = NULL;
    
    if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
@@ -1118,12 +1119,14 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             ncs_su = sg->list_of_su;
             while(ncs_su)
             {
-               if( (ncs_su->su_on_node) && 
-                  (ncs_su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) )
+               m_AVD_GET_SU_NODE_PTR(avd_cb,ncs_su,su_node_ptr);
+
+               if( (su_node_ptr) && 
+                  (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) )
                {
                   param.name_net = ncs_su->name_net;
 
-                  if(avd_snd_op_req_msg(avd_cb, ncs_su->su_on_node, &param) 
+                  if(avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) 
                                                           != NCSCC_RC_SUCCESS)
                   {
                      /* Revert the value and return ?? */
@@ -1147,12 +1150,14 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             ncs_su = sg->list_of_su;
             while(ncs_su)
             {
-               if( (ncs_su->su_on_node) && 
-                  (ncs_su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) )
+               m_AVD_GET_SU_NODE_PTR(avd_cb,ncs_su,su_node_ptr);
+
+               if( (su_node_ptr) && 
+                  (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) )
                {
                   param.name_net = ncs_su->name_net;
 
-                  if(avd_snd_op_req_msg(avd_cb, ncs_su->su_on_node, &param) 
+                  if(avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) 
                                                           != NCSCC_RC_SUCCESS)
                   {
                      /* Revert the value and return ?? */
@@ -1180,12 +1185,14 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             ncs_su = sg->list_of_su;
             while(ncs_su)
             {
-               if( (ncs_su->su_on_node) && 
-                  (ncs_su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) )
+               m_AVD_GET_SU_NODE_PTR(avd_cb,ncs_su,su_node_ptr);
+
+               if( (su_node_ptr) && 
+                  (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) )
                {
                   param.name_net = ncs_su->name_net;
 
-                  if(avd_snd_op_req_msg(avd_cb, ncs_su->su_on_node, &param) 
+                  if(avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) 
                                                           != NCSCC_RC_SUCCESS)
                   {
                      /* Revert the value and return ?? */
@@ -1209,12 +1216,14 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             ncs_su = sg->list_of_su;
             while(ncs_su)
             {
-               if( (ncs_su->su_on_node) && 
-                  (ncs_su->su_on_node->node_state == AVD_AVND_STATE_PRESENT) )
+               m_AVD_GET_SU_NODE_PTR(avd_cb,ncs_su,su_node_ptr);
+
+               if( (su_node_ptr) && 
+                  (su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) )
                {
                   param.name_net = ncs_su->name_net;
 
-                  if(avd_snd_op_req_msg(avd_cb, ncs_su->su_on_node, &param) 
+                  if(avd_snd_op_req_msg(avd_cb, su_node_ptr, &param) 
                                                           != NCSCC_RC_SUCCESS)
                   {
                      /* Revert the value and return ?? */
