@@ -31,7 +31,7 @@ libavsv_common_la_CPPFLAGS = \
 
 libavsv_common_la_SOURCES = \
 	avsv_d2nedu.c \
-             avsv_nd2ndedu.c\
+	avsv_nd2ndedu.c \
 	avsv_d2nmsg.c \
 	avsv_n2avamsg.c \
 	avsv_n2clamsg.c \

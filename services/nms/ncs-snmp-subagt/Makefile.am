@@ -51,7 +51,7 @@ libncs_snmp_subagt_la_CPPFLAGS = \
 	-I $(top_builddir)/services/dtsv/snmp_integ \
 	-I $(top_builddir)/services/avsv/avm/snmp_integ
 
-libncs_snmp_subagt_la_CFLAGS = @NETSNMP_CFLAGS@
+libncs_snmp_subagt_la_CFLAGS = $(AM_CFLAGS) @NETSNMP_CFLAGS@
 
 libncs_snmp_subagt_la_SOURCES = \
 	src/subagt_oid_db.c \

@@ -29,7 +29,7 @@ libhcd_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/mab/inc \
 	-I $(top_srcdir)/include
 
-libhcd_la_CFLAGS = @HPI_CFLAGS@
+libhcd_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libhcd_la_LDFLAGS = -static
 

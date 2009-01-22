@@ -54,7 +54,7 @@ libavd_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include
 
-libavd_la_LDFLAGS =	-static
+libavd_la_LDFLAGS = -static
 
 libavd_la_SOURCES = \
 	avd_avm.c \
@@ -94,7 +94,7 @@ libavd_la_SOURCES = \
 	avd_sgNWayfsm.c \
 	avd_sgproc.c \
 	avd_si.c \
-             avd_siDep.c \
+	avd_siDep.c \
 	avd_su.c \
 	avd_susi.c \
 	avd_tmr.c \

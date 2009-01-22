@@ -64,7 +64,7 @@ libavm_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include
 
-libavm_la_CFLAGS = @HPI_CFLAGS@
+libavm_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libavm_la_LDFLAGS = -static
 

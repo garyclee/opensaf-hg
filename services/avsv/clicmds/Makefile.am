@@ -30,7 +30,7 @@ libavsv_clicef_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include
 
-libavsv_clicef_la_CFLAGS = @HPI_CFLAGS@
+libavsv_clicef_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libavsv_clicef_la_SOURCES = \
 	avsvcli.c
