@@ -43,7 +43,7 @@ libavm_pssv_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/platform \
 	-I $(top_srcdir)/include
 
-libavm_pssv_la_CFLAGS = @HPI_CFLAGS@
+libavm_pssv_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 nodist_libavm_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
 

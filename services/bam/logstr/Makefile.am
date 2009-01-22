@@ -30,7 +30,7 @@ libbam_logstr_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/bam/inc \
 	-I $(top_srcdir)/include
 
-libbam_logstr_la_CFLAGS = @HPI_CFLAGS@
+libbam_logstr_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libbam_logstr_la_SOURCES =	\
 	bam_logstr.c

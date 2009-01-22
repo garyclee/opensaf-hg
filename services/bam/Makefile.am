@@ -41,9 +41,9 @@ libbam_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include
 
-libbam_la_CFLAGS = @HPI_CFLAGS@
+libbam_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
-libbam_la_CXXFLAGS = @HPI_CFLAGS@
+libbam_la_CXXFLAGS = $(AM_CXXFLAGS) @HPI_CFLAGS@
 
 libbam_la_LDFLAGS = -static
 

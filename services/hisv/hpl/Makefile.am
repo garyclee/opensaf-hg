@@ -28,7 +28,7 @@ libhpl_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include
 
-libhpl_la_CFLAGS = @HPI_CFLAGS@
+libhpl_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libhpl_la_SOURCES = \
 	hpl_init.c \

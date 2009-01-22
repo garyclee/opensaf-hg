@@ -123,7 +123,7 @@ bin_PROGRAMS = ncs_scap ncs_pcap
 
 ncs_scap_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 -DNCS_SRMA=1\
+	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 -DNCS_SRMA=1 \
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_srcdir)/services/avsv/avm/inc \
 	-I $(top_srcdir)/services/leap/inc \
@@ -158,7 +158,7 @@ ncs_scap_LDADD = \
 
 ncs_pcap_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-             -DNCS_AVND=1 -DNCS_SRMA=1 \
+	-DNCS_AVND=1 -DNCS_SRMA=1 \
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_srcdir)/services/leap/inc \
 	-I $(top_srcdir)/services/common/inc \
