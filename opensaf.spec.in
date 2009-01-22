@@ -28,7 +28,7 @@
 Summary: OpenSAF is an open source implementation of the SAF AIS specification
 Name: opensaf
 Version: @OPENSAF_RELEASE@
-Release: 1%{?dist}
+Release: @OPENSAF_RPM_RELEASE@%{?dist}
 License: LGPL
 Group: System Environment/Base
 URL: http://www.opensaf.org

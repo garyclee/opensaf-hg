@@ -34,6 +34,27 @@ AC_SUBST(OPENSAF_BUGREPORT)
 AC_SUBST(ac_configure_args)
 
 
+AC_ARG_WITH([rpm-release],
+   [AS_HELP_STRING([--with-rpm-release=@<:@ARG@:>@],
+      [Set the RPM release value to be current timestamp (ARG=timestamp);
+      Set the RPM release value to be the global revision (ARG=global-rev);
+      Set the RPM release value to be the local revision (ARG=local-rev);
+      Set the RPM release value to be <val> (ARG=<val>, [default=1])])],
+   [ if test "$withval" = timestamp; then
+       with_rpm_release=`date +%Y%m%d%k%M`
+     elif test "$withval" = global-rev; then
+       with_rpm_release=`hg id -i`
+     elif test "$withval" = local-rev; then
+       with_rpm_release=`hg id -n`
+     else
+       with_rpm_release=$withval
+     fi
+   ],
+   [with_rpm_release=1])
+
+AC_SUBST([OPENSAF_RPM_RELEASE], ["$with_rpm_release"])
+
+
 dnl Flag to enable smidump to be built
 AC_ARG_ENABLE([smidump],
    [AS_HELP_STRING([--disable-smidump],
@@ -536,6 +557,7 @@ echo "======================================================="
 echo "OpenSAF Build Configuration Summary"
 echo "======================================================="
 echo "Version: $VERSION"
+echo "Release: $OPENSAF_RPM_RELEASE"
 echo ""
 echo "Installation Directories:"
 echo "${ECHO_T} prefix: ${prefix}"
