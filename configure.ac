@@ -45,7 +45,7 @@ AC_ARG_WITH([rpm-release],
      elif test "$withval" = global-rev; then
        with_rpm_release=`hg id -i`
      elif test "$withval" = local-rev; then
-       with_rpm_release=`hg id -n`
+       with_rpm_release=c`hg id -n`
      else
        with_rpm_release=$withval
      fi
