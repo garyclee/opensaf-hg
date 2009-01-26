@@ -1398,6 +1398,15 @@ uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 
    HPL_PAYLOAD *hpl_pload;
    uns16       ret_len=0;
 
+   /* validate the flag parameter */
+   if (flag > HPL_EPATH_FLAG_SHORTSTR)
+   {
+      /* invalid entity-path format flag */
+      m_LOG_HISV_DEBUG("bad entity-path format flag passed to hpl_entity_path_lookup()\n");
+      rc = NCSCC_RC_FAILURE;
+      return rc;
+   }
+
    /** retrieve HPL CB
     **/
    if (NULL == (hpl_cb = (HPL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HPL, gl_hpl_hdl)))
