@@ -105,13 +105,13 @@ then
    echo "ncs_rde daemon is already running"
    echo -n -e "$SA_AMF_COMPONENT_NAME|$RDE_HA_ENV_HEALTHCHECK_KEY" > "$RDE_HA_COMP_NAMED_PIPE" &
 else 
-   echo "Starting $DESC: $BINPATH/$DAEMON";
+   echo "Starting $DESC: $LIBPATH/$DAEMON";
 
 #
 # Set env
 #
    rde_set_env_var
-   "$BINPATH/ncs_rde" >> "$NCS_STDOUTS_PATH/ncs_rde.log" 2>&1 &
+   "$LIBPATH/ncs_rde" >> "$NCS_STDOUTS_PATH/ncs_rde.log" 2>&1 &
    sleep 1s
    if test -f "$PIDPATH/$PIDFILE"
    then

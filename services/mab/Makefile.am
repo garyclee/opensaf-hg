@@ -54,7 +54,8 @@ noinst_HEADERS = \
 	inc/psr_version.h \
 	inc/pss_mbcsv.h
 
-bin_PROGRAMS = ncs_cli_maa ncs_mas ncs_psr ncs_snmp_subagt
+bin_PROGRAMS = ncs_cli_maa 
+pkglib_PROGRAMS = ncs_mas ncs_psr ncs_snmp_subagt
 
 ncs_mas_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

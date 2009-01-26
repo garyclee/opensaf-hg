@@ -23,7 +23,7 @@ XTERM=""
 
 echo "Executing HISv-init-script...";
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
-$XTERM "$BINPATH/ncs_hisv" >> "$NCS_STDOUTS_PATH/ncs_hisv.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_hisv" >> "$NCS_STDOUTS_PATH/ncs_hisv.log" 2>&1 &
 exit 0
 
 

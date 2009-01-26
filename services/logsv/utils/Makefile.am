@@ -17,7 +17,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = saflogger
+pkglib_PROGRAMS = saflogger
 
 noinst_HEADERS = \
 	inc/saf_error.h

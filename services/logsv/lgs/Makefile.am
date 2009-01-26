@@ -26,7 +26,7 @@ noinst_HEADERS = \
 	inc/lgs.h \
 	inc/lgs_stream.h
 
-bin_PROGRAMS = opensaf_saflogd
+pkglib_PROGRAMS = opensaf_saflogd
 
 opensaf_saflogd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

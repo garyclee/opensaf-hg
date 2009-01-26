@@ -20,7 +20,7 @@ SUBDIRS = $(CONTROLLER_SUBDIRS)
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = ncs_snmp_subagt
+pkglib_PROGRAMS = ncs_snmp_subagt
 
 ncs_snmp_subagt_CPPFLAGS =  \
 	@NCS_CORE_CPP_DEFINES@ \

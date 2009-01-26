@@ -79,8 +79,8 @@ function rde_set_env_var
 }
 
 
-if [ ! -x "$BINPATH/$DAEMON" ]; then
-   echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+if [ ! -x "$LIBPATH/$DAEMON" ]; then
+   echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
    echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_NOT_FND" > "$NIDFIFO"
    exit 0
 fi
@@ -94,7 +94,7 @@ case "$1" in
   start)
 		rm -f "$PIDFILE";
 		if [ -f "$PIDFILE" ]; then
-			echo  "$BINPATH/$DAEMON already running..";
+			echo  "$LIBPATH/$DAEMON already running..";
 			exit 0
 		fi
 
@@ -107,24 +107,24 @@ case "$1" in
 
 # Start rde
   #start-stop-daemon --start --quiet --pidfile $PIDFILE \
-  #        --exec $BINPATH/$DAEMON -- -p $PIDFILE -f $SHELF_NUMBER -s $SLOT_NUMBER -t $SITE_NUMBER
+  #        --exec $LIBPATH/$DAEMON -- -p $PIDFILE -f $SHELF_NUMBER -s $SLOT_NUMBER -t $SITE_NUMBER
  
   # To get the console prints for debugging
-   "$BINPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
-		echo "Starting $DESC: $BINPATH/$DAEMON";
+   "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
+		echo "Starting $DESC: $LIBPATH/$DAEMON";
 		if [ $? -ne 0 ] ; then
 			echo -n -e "Failed to start $DAEMON.    \n"
 			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > $NIDFIFO
 			exit 0
                 else
-		  echo "Started $DESC: $BINPATH/$DAEMON";
+		  echo "Started $DESC: $LIBPATH/$DAEMON";
 		fi
 		echo "."
 		;;
 
   stop)
-		if [ ! -f "$PIDFILE" ]; then echo "$BINPATH/$DAEMON is not running..";
-		else echo "Stopping $DESC: $BINPATH/$DAEMON";
+		if [ ! -f "$PIDFILE" ]; then echo "$LIBPATH/$DAEMON is not running..";
+		else echo "Stopping $DESC: $LIBPATH/$DAEMON";
                  `kill -9 $l_pid`
 		rm -f "$PIDFILE";
 
@@ -138,15 +138,15 @@ case "$1" in
         #       option to the "reload" entry above. If not, "force-reload" is
         #       just the same as "restart".
         #
-        if [ ! -f "$PIDFILE" ]; then echo "$BINPATH/$DAEMON is not running.. Use start.";
-  	    else echo "Stopping $DESC: $BINPATH/$DAEMON";
-             echo "Restarting $DESC: $BINPATH/$DAEMON";
+        if [ ! -f "$PIDFILE" ]; then echo "$LIBPATH/$DAEMON is not running.. Use start.";
+  	    else echo "Stopping $DESC: $LIBPATH/$DAEMON";
+             echo "Restarting $DESC: $LIBPATH/$DAEMON";
                  `kill -9 $l_pid`
         rm -f "$PIDFILE"
 
 
 		# Start rde
-    "$BINPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
+    "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
 		if [ $? -ne 0 ] ; then
 			echo -n -e "Failed to start $DAEMON.    \n"
 			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > "$NIDFIFO"
@@ -157,7 +157,7 @@ case "$1" in
         ;;
   *)
         # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-        echo "Usage: $BINPATH/rde_script {start|stop|restart|force-reload}" >&2
+        echo "Usage: $LIBPATH/rde_script {start|stop|restart|force-reload}" >&2
         exit 1
         ;;
 esac

@@ -24,5 +24,5 @@ XTERM=""
 echo "Executing CPD-init-script...";
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
-$XTERM "$BINPATH/ncs_cpd" >> "$NCS_STDOUTS_PATH/ncs_cpd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_cpd" >> "$NCS_STDOUTS_PATH/ncs_cpd.log" 2>&1 &
 exit 0

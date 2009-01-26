@@ -36,7 +36,7 @@ fi
 #stop rde daemon
 if [ "$l_pid" ]
    then
-      echo "Stopping $DESC: $BINPATH/$DAEMON";
+      echo "Stopping $DESC: $LIBPATH/$DAEMON";
        `kill -9 $l_pid`
       echo "rde_lfm daemon is stopped sucessfully! $l_pid"
    else

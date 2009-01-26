@@ -49,7 +49,7 @@ noinst_HEADERS = \
 
 if ENABLE_HPI
 
-bin_PROGRAMS = ncs_hisv
+pkglib_PROGRAMS = ncs_hisv
 
 endif
 

@@ -27,7 +27,7 @@ if [ "$NODE_TYPE" == "controller" ]; then
 XTERM=""
 
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
-$XTERM "$BINPATH/ncs_ifnd" >> "$NCS_STDOUTS_PATH/ncs_ifnd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_ifnd" >> "$NCS_STDOUTS_PATH/ncs_ifnd.log" 2>&1 &
 exit 0
 
 elif [ "$NODE_TYPE" == "payload" ]; then
@@ -39,7 +39,7 @@ XTERM=""
 
 echo "Executing IFND-init-script...";
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
-$XTERM "$BINPATH/ncs_ifnd" >> "$NCS_STDOUTS_PATH/ncs_ifnd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_ifnd" >> "$NCS_STDOUTS_PATH/ncs_ifnd.log" 2>&1 &
 exit 0
 
 else

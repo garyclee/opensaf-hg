@@ -74,7 +74,7 @@ noinst_HEADERS = \
 	inc/vip_mib.h \
 	inc/vip_tbl.h
 
-bin_PROGRAMS = ncs_ifd ncs_ifnd
+pkglib_PROGRAMS = ncs_ifd ncs_ifnd
 
 ncs_ifd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
