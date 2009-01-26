@@ -1,0 +1,129 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+/*****************************************************************************
+..............................................................................
+ 
+..............................................................................
+
+  DESCRIPTION:
+
+  This file contains important header file includes to be used by rest of EDS.
+..............................................................................
+
+  FUNCTIONS INCLUDED in this module:
+  
+
+*******************************************************************************/
+#ifndef _EDS_H
+#define _EDS_H
+
+/*  Get compile time options */
+#include "ncs_opt.h"
+
+/* Get general definitions */
+#include "ncsgl_defs.h"
+
+/* Get target's suite of header files...*/
+#include "t_suite.h"
+
+/* From /base/common/pubinc */
+#include "ncs_svd.h"
+#include "usrbuf.h"
+#include "ncsft.h"
+#include "ncsft_rms.h"
+#include "ncs_ubaid.h"
+#include "ncsencdec.h"
+#include "ncs_stack.h"
+#include "ncs_mib.h"
+#include "ncs_mtbl.h"
+#include "ncs_log.h"
+#include "ncs_lib.h"
+#include "ncs_dummy.h"
+
+/* From targsvcs/common/inc */
+#include "mds_papi.h"
+#if 0
+#include "sysf_mds.h" 
+
+#if (NCS_MDS == 1)
+#include "mds_inc.h"
+#endif
+#endif
+
+/* From /base/products/rms/inc */
+#if (NCS_RMS == 1)
+#include "rms_env.h"
+#endif
+
+#include "ncs_mda_pvt.h"
+#include "mds_papi.h"
+
+/* PCS RDA header file */
+#include "rda_papi.h"
+
+/* DTS header file */
+#if (NCS_DTS == 1)
+#include "dts_papi.h"
+#endif
+
+/* DTA header file */
+#if (NCS_DTA == 1)
+#include "dta_papi.h"
+#endif
+
+/* MBCSV header */
+#include "mbcsv_papi.h"
+
+/* EDU header */
+#include "ncs_edu_pub.h"
+#include "ncs_saf_edu.h"
+
+/** EDS specific files **/
+#include "edsv_msg.h"
+
+#include "eds_cb.h"
+#include "eds_dl_api.h"
+#include "eds_evt.h"
+#include "eds_mds.h"
+#include "eds_mem.h"
+#include "edsv_mem.h"
+#include "eds_amf.h"
+#include "eds_log.h"
+#include "edsv_logstr.h"
+
+/** EDSV specific files **/
+#include "edsv_defs.h"
+#include "edsv_util.h"
+
+/** EDSV miblib gen files */
+#include "edsv_mapi.h"
+#include "ncsmiblib.h"
+#include "oac_papi.h"
+#include "edsv_mib.h"
+
+/* Edsv checkpoint header */ 
+#include "eds_ckpt.h"
+
+/* CLM header */
+#include "saClm.h"
+
+/* EDS CB global handle declaration */
+EXTERN_C uns32 gl_eds_hdl;
+
+
+#endif   /* _EDS_H */

@@ -1,0 +1,504 @@
+%define is_mandrake %(test -e /etc/mandrake-release && echo 1 || echo 0)
+%define is_suse %(test -e /etc/SuSE-release && echo 1 || echo 0)
+%define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
+%define is_rhel %(test -e /etc/redhat-release && echo 1 || echo 0)
+%define is_gentoo %(test -e /etc/gentoo-release && echo 1 || echo 0)
+
+%define is_smidump %(test "@SMIDUMP_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_hpi %(test "@HPI_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_openhpi %(test "@OPENHPI_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
+
+%define _pkglibdir %{_libdir}/%{name}
+
+# TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
+# and stack-protector by default which catches buffer overflows in
+# opensaf see Ticket #282
+# originally sourced from /usr/lib/rpm/redhat/macros
+%if %is_rhel || %is_fedora
+%define __global_cflags	-O2 -g -pipe -Wall
+%endif
+
+# SUSE uses optflags, and EDS crashes with -O2, use -O0 for now
+# See Ticket #303
+%if %is_suse
+%define optflags -O0 -g -pipe -Wall
+%endif
+
+Summary: OpenSAF is an open source implementation of the SAF AIS specification
+Name: opensaf
+Version: @OPENSAF_RELEASE@
+Release: @OPENSAF_RPM_RELEASE@%{?dist}
+License: LGPL
+Group: System Environment/Base
+URL: http://www.opensaf.org
+Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
+Packager: @OPENSAF_BUGREPORT@
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+# TODO: Causing issue on SUSE, package names are different, need to create
+# distro specific check
+%if %is_rhel || %is_fedora
+BuildRequires: net-snmp-devel xerces-c-devel
+%if %is_openhpi
+BuildRequires: openhpi-devel pkgconfig
+%endif
+%if %is_java
+#BuildRequires: java-1.6.0-openjdk-devel ant
+%endif
+%endif
+
+
+%description
+OpenSAF is an open source project established to develop a base platform
+middleware consistent with Service Availability Forum (SA Forum)
+specifications, under the LGPLv2.1 license. The OpenSAF Foundation was
+established by leading Communications and Enterprise Computing Companies to
+facilitate the OpenSAF Project and to accelerate the adoption of the OpenSAF
+code base in commercial products.
+
+The OpenSAF project was launched in mid 2007 and has been under development by
+an informal group of supporters of the OpenSAF initiative. The OpenSAF
+Foundation was founded on January 22nd 2008 with Emerson Network Power,
+Ericsson, Nokia Siemens Networks, HP and Sun Microsystems as founding members.
+
+
+%package common
+Group: System Environment/Base
+Summary: The common components to run an OpenSAF Controller or Payload node
+Requires: /sbin/chkconfig /sbin/service
+
+%if %is_rhel || %is_fedora
+Requires: net-snmp xerces-c
+%if %is_openhpi
+Requires: openhpi
+%endif
+%endif
+
+%description common
+
+
+%package controller
+Group: System Environment/Daemons
+Summary: The required components to run an OpenSAF System Controller node
+Requires: %{name}-common = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
+Conflicts: %{name}-payload
+
+%description controller
+
+
+%package payload
+Group: System Environment/Daemons
+Summary: The required components to run an OpenSAF Payload node
+Requires: %{name}-common = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
+Conflicts: %{name}-controller
+
+%description payload
+
+
+%package libs
+Group: System Environment/Libraries
+Summary: The OpenSAF common runtime libraries
+Requires: /sbin/ldconfig
+Obsoletes: %{name}-libs < %{version}-%{release}
+
+%description libs
+
+
+%package devel
+Group: Development/Libraries
+Summary: The development environment for the OpenSAF project
+Requires: %{name}-libs = %{version}-%{release}
+
+%description devel
+The development libraries and header files for the OpenSAF project.
+
+
+%package samples
+Group: Applications/System
+Summary: Small sample applications to demonstrate OpenSAF functionalities
+Requires: %{name}-devel = %{version}-%{release}
+
+%description samples
+Small sample applications to demonstrate OpenSAF functionalities
+
+
+%if %is_java
+%package java
+Group: Development/Libraries
+Summary: The Java AIS interface mapping for AMF and CLM
+Requires: %{name}-libs = %{version}-%{release}
+
+%if %is_rhel || %is_fedora
+#Requires: java-1.6.0-openjdk-devel
+%endif
+
+%description java
+The Java AIS interface mapping for AMF and CLM
+%endif
+
+
+%package tools
+Group: Applications/System
+Summary: Optional tools for OpenSAF
+Requires: %{name}-devel = %{version}-%{release}
+
+%if %is_rhel || %is_fedora
+%if %is_openhpi
+Requires: openhpi
+%endif
+%endif
+
+%description tools
+Optional miscellaneous tools and utilities for use with OpenSAF
+
+
+%prep
+%setup -q
+
+
+%build
+%configure @ac_configure_args@
+
+%{__make} %{_smp_mflags}
+
+
+%install
+%{__rm} -rf $RPM_BUILD_ROOT
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/*.la
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.la
+
+%{__rm} -rf $RPM_BUILD_ROOT/usr/share/doc/%{name}-%{version}
+
+
+%clean
+%{__rm} -rf $RPM_BUILD_ROOT
+
+
+%pre -p <lua>
+print("")
+print("---------------------------------------------------------------------")
+print("* MESSAGE:                                                          *")
+print("* Depending on the node type you are trying to configure:           *")
+print("* Install the 'opensaf-controller' or the 'opensaf-payload' package *")
+print("---------------------------------------------------------------------")
+print("")
+os.exit("-1")
+
+
+%post common
+# If we're being upgraded
+if [ "$1" = "2" ]; then
+   /sbin/service opensafd condrestart >/dev/null 2>&1 || :
+else # If we're being installed
+   /sbin/chkconfig --add opensafd
+   /sbin/chkconfig opensafd off
+fi
+
+
+%post libs -p /sbin/ldconfig
+
+
+%post controller
+%{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.controller %{_sysconfdir}/%{name}/nodeinit.conf
+
+
+%post payload
+%{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
+
+
+%preun common
+# Execute this only if we are NOT doing an upgrade
+if [ "$1" = "0" ]; then
+    /sbin/service opensafd stop >/dev/null 2>&1 || :
+    /sbin/chkconfig --del opensafd
+fi
+
+
+%postun libs -p /sbin/ldconfig
+
+
+%preun controller
+%{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
+
+
+%preun payload
+%{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
+
+
+%files
+%defattr(-,root,root)
+
+
+%files common
+%defattr(-,root,root)
+%doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
+%doc README README.uml README.conf
+%dir %{_sysconfdir}/%{name}
+%dir %{_localstatedir}/lib/%{name}
+%dir %{_localstatedir}/log/%{name}
+%dir %{_localstatedir}/run/%{name}
+%dir %{_datadir}/%{name}/mibs
+%{_datadir}/%{name}/mibs/*
+%{_sysconfdir}/%{name}/chassis_id
+%{_sysconfdir}/%{name}/slot_id
+%{_sysconfdir}/%{name}/script.conf
+%{_sysconfdir}/%{name}/nodeinit.conf
+%{_sysconfdir}/init.d/opensafd
+# TODO Still needed?
+%{_pkglibdir}/dhclnt_start
+# TODO Still needed?
+%{_pkglibdir}/dhclnt_clean
+%{_pkglibdir}/drbd_clean
+%{_pkglibdir}/drbdctrl
+%{_pkglibdir}/drbd_start
+# TODO Still needed?
+%{_pkglibdir}/find_pid
+%{_bindir}/get_ha_state
+# TODO Still needed?
+%{_pkglibdir}/ip_inst_script
+%{_pkglibdir}/ncs_cpd_clean
+%{_pkglibdir}/ncs_cpd_start
+%{_pkglibdir}/ncs_cpnd_clean
+%{_pkglibdir}/ncs_cpnd_start
+%{_pkglibdir}/ncs_drbd_r0_clean
+%{_pkglibdir}/ncs_dts_clean
+%{_pkglibdir}/ncs_dts_start
+%{_pkglibdir}/ncs_eds_clean
+%{_pkglibdir}/ncs_eds_start
+%{_pkglibdir}/ncs_gld_clean
+%{_pkglibdir}/ncs_gld_start
+%{_pkglibdir}/ncs_glnd_clean
+%{_pkglibdir}/ncs_glnd_start
+%if %is_hpi
+%{_pkglibdir}/ncs_hisv_clean
+%{_pkglibdir}/ncs_hisv_start
+%endif
+%{_pkglibdir}/ncs_ifd_clean
+%{_pkglibdir}/ncs_ifd_start
+%{_pkglibdir}/ncs_ifnd_clean
+%{_pkglibdir}/ncs_ifnd_start
+# TODO Still needed?
+%{_pkglibdir}/ncs_ifsv_ip_ins_script
+%{_pkglibdir}/ncs_mas_clean
+%{_pkglibdir}/ncs_mas_start
+%{_pkglibdir}/ncs_mqd_clean
+%{_pkglibdir}/ncs_mqd_start
+%{_pkglibdir}/ncs_mqnd_clean
+%{_pkglibdir}/ncs_mqnd_start
+%{_pkglibdir}/ncs_pss_clean
+%{_pkglibdir}/ncs_pss_start
+%{_pkglibdir}/ncs_rde_clean
+%{_pkglibdir}/ncs_rde_start
+%{_pkglibdir}/ncs_snmpsubagt_clean
+%{_pkglibdir}/ncs_snmpsubagt_reload
+%{_pkglibdir}/ncs_snmpsubagt_start
+%{_pkglibdir}/ncs_srmnd_clean
+%{_pkglibdir}/ncs_srmnd_start
+%{_pkglibdir}/ncs_vds_clean
+%{_pkglibdir}/ncs_vds_start
+%{_pkglibdir}/nid_tipc
+%{_pkglibdir}/nis_snmpd_clean
+%{_pkglibdir}/nis_snmpd_start
+%if %is_openhpi
+# TODO Still needed?
+%{_pkglibdir}/openhpid_clean
+# TODO Still needed?
+%{_pkglibdir}/openhpid_start
+# TODO Still needed?
+%{_pkglibdir}/openhpisubagt_clean
+# TODO Still needed?
+%{_pkglibdir}/openhpisubagt_start
+%endif
+%{_pkglibdir}/opensaf_lgs
+%{_bindir}/opensaf_mem_dump_tool
+%{_pkglibdir}/pdrbdctrl
+%{_pkglibdir}/pdrbdsts
+%{_pkglibdir}/rde_script
+%{_pkglibdir}/tipc_reset.sh
+
+
+%files controller
+%defattr(-,root,root)
+%{_bindir}/ncs_cli_maa
+%{_pkglibdir}/ncs_cpd
+%{_pkglibdir}/ncs_cpnd
+%{_pkglibdir}/ncs_dts
+%{_pkglibdir}/ncs_eds
+%{_pkglibdir}/ncs_gld
+%{_pkglibdir}/ncs_glnd
+#TODO: To be changed when supporting other HPI
+%if %is_hpi
+%{_pkglibdir}/ncs_hisv
+%endif
+%{_pkglibdir}/ncs_ifd
+%{_pkglibdir}/ncs_ifnd
+%{_pkglibdir}/ncs_ifsv_ip_installer
+%{_pkglibdir}/ncs_mas
+%{_pkglibdir}/ncs_mqd
+%{_pkglibdir}/ncs_mqnd
+%{_pkglibdir}/ncs_nid
+%{_pkglibdir}/ncs_psr
+%{_pkglibdir}/ncs_rde
+%{_pkglibdir}/ncs_scap
+%{_pkglibdir}/ncs_snmp_subagt
+%{_pkglibdir}/ncs_srmnd
+%{_pkglibdir}/ncs_vds
+%{_pkglibdir}/ncs_pdrbd
+%{_pkglibdir}/opensaf_saflogd
+%{_pkglibdir}/saflogger
+%{_pkglibdir}/ncs_scap_clean
+%{_pkglibdir}/ncs_scap_start
+%{_bindir}/collect_logs_controller
+%{_sysconfdir}/%{name}/AppConfig.xsd
+%{_sysconfdir}/%{name}/cli_cefslib_conf
+%{_sysconfdir}/%{name}/NCSConfig.xsd
+%{_sysconfdir}/%{name}/ncsSnmpSubagt.conf
+%{_sysconfdir}/%{name}/NCSSystemBOM.xml
+%{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
+%{_sysconfdir}/%{name}/pssv_lib_conf
+%{_sysconfdir}/%{name}/rde.conf
+%{_sysconfdir}/%{name}/subagt_lib_conf
+%{_sysconfdir}/%{name}/ValidationConfig.xml
+%{_sysconfdir}/%{name}/ValidationConfig.xsd
+%{_sysconfdir}/%{name}/vipsample.conf
+%{_sysconfdir}/%{name}/.drbd_sync_state_0
+%{_sysconfdir}/%{name}/.drbd_sync_state_1
+%{_sysconfdir}/%{name}/.drbd_sync_state_2
+%{_sysconfdir}/%{name}/.drbd_sync_state_3
+%{_sysconfdir}/%{name}/.drbd_sync_state_4
+%{_sysconfdir}/%{name}/saflog.conf
+%{_sysconfdir}/%{name}/nodeinit.conf.controller
+%{_datadir}/%{name}/drbd.1.conf
+%{_datadir}/%{name}/drbd.2.conf
+%{_localstatedir}/lib/%{name}/node_ha_state
+%{_localstatedir}/lib/%{name}/pssv_spcn_list
+
+
+%files payload
+%defattr(-,root,root)
+%{_pkglibdir}/ncs_cpnd
+%{_pkglibdir}/ncs_glnd
+%{_pkglibdir}/ncs_ifnd
+%{_pkglibdir}/ncs_ifsv_ip_installer
+%{_pkglibdir}/ncs_mqnd
+%{_pkglibdir}/ncs_nid
+%{_pkglibdir}/ncs_pcap
+%{_pkglibdir}/ncs_srmnd
+%{_pkglibdir}/saflogger
+%{_pkglibdir}/ncs_pcap_clean
+%{_pkglibdir}/ncs_pcap_start
+%{_bindir}/collect_logs_payload
+%{_sysconfdir}/%{name}/nodeinit.conf.payload
+
+
+%files libs
+%defattr(-,root,root)
+%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
+# TODO split of SAF / non-SAF libs
+%{_libdir}/libSaAmf.so.*
+%{_libdir}/libSaCkpt.so.*
+%{_libdir}/libSaClm.so.*
+%{_libdir}/libSaEvt.so.*
+%{_libdir}/libSaLck.so.*
+%{_libdir}/libSaLog.so.*
+%{_libdir}/libSaMsg.so.*
+%{_libdir}/libavsv_common.so.*
+%{_libdir}/libcpsv_common.so.*
+%{_libdir}/libedsv_common.so.*
+%{_libdir}/libglsv_common.so.*
+%{_libdir}/libifa.so.*
+%{_libdir}/libifsv_common.so.*
+%{_libdir}/libmaa.so.*
+%{_libdir}/libmbca.so.*
+%{_libdir}/libmqsv_common.so.*
+%{_libdir}/libncs_core.so.*
+%{_libdir}/librda.so.*
+%{_libdir}/libsaf_common.so.*
+%{_libdir}/libsrma.so.*
+%{_libdir}/%{name}/libavm_logstr.so.*
+%{_libdir}/%{name}/libavm_pssv.so.*
+%{_libdir}/%{name}/libavm_subagt.so.*
+%{_libdir}/%{name}/libavsv_clicef.so.*
+%{_libdir}/%{name}/libavsv_logstr.so.*
+%{_libdir}/%{name}/libavsv_pssv.so.*
+%{_libdir}/%{name}/libavsv_subagt.so.*
+%{_libdir}/%{name}/libbam_logstr.so.*
+%{_libdir}/%{name}/libcli_logstr.so.*
+%{_libdir}/%{name}/libcpsv_logstr.so.*
+%{_libdir}/%{name}/libcpsv_subagt.so.*
+%{_libdir}/%{name}/libdts_clicef.so.*
+%{_libdir}/%{name}/libdts_logstr.so.*
+%{_libdir}/%{name}/libdts_pssv.so.*
+%{_libdir}/%{name}/libdtsv_subagt.so.*
+%{_libdir}/%{name}/libedsv_logstr.so.*
+%{_libdir}/%{name}/libedsv_subagt.so.*
+%{_libdir}/%{name}/libglsv_logstr.so.*
+%{_libdir}/%{name}/libglsv_subagt.so.*
+#TODO: To be changed when supporting other HPI
+%if %is_hpi
+%{_libdir}/%{name}/libhisv_logstr.so.*
+%endif
+%{_libdir}/libhpl.so.*
+%{_libdir}/%{name}/libifsv_bind_subagt.so.*
+%{_libdir}/%{name}/libifsv_clicef.so.*
+%{_libdir}/%{name}/libifsv_entp_subagt.so.*
+%{_libdir}/%{name}/libifsv_logstr.so.*
+%{_libdir}/%{name}/libifsv_subagt.so.*
+%{_libdir}/%{name}/libipxs_subagt.so.*
+%{_libdir}/%{name}/libmab_logstr.so.*
+%{_libdir}/%{name}/libmbcsv_logstr.so.*
+%{_libdir}/%{name}/libmqsv_logstr.so.*
+%{_libdir}/%{name}/libmqsv_subagt.so.*
+%{_libdir}/%{name}/libncs_snmp_subagt.so.*
+%{_libdir}/%{name}/libpdrbd_logstr.so.*
+%{_libdir}/%{name}/libpsr_clicef.so.*
+%{_libdir}/%{name}/libpssv_logstr.so.*
+%{_libdir}/%{name}/libpssv_subagt.so.*
+%{_libdir}/%{name}/librde_logstr.so.*
+%{_libdir}/%{name}/libsrmsv_logstr.so.*
+%{_libdir}/%{name}/libsubagt_logstr.so.*
+%{_libdir}/%{name}/libvds_logstr.so.*
+
+
+%files devel
+%defattr(-,root,root)
+%{_libdir}/pkgconfig/*.pc
+%{_libdir}/*.so
+%{_libdir}/%{name}/*.so
+%{_libdir}/*.a
+%{_libdir}/%{name}/*.a
+# TODO split of SAF / non-SAF headers
+%{_includedir}/*
+
+
+%files samples
+%defattr(-,root,root)
+%doc README.samples
+%dir %{_datadir}/%{name}/samples
+%{_datadir}/%{name}/samples/*
+
+
+%files tools
+%if %is_hpi
+%{_bindir}/hisv_events_demo
+%{_bindir}/hisv_power_set_util
+%endif
+
+
+%if %is_java
+%files java
+%defattr(-,root,root)
+#%dir %{_datadir}/doc/%{name}-%{version}/javadoc
+%{_libdir}/libjava_ais_api_native.so.*
+%{_datadir}/java/opensaf_ais_api.jar
+#%{_datadir}/doc/%{name}-%{version}/javadoc/*
+%endif
+
+%changelog
+* Tue Aug 12 2008 Jonathan Fournier <jonathan.fournier@windriver.com>
+- Created the initial common spec file for OpenSAF 3.0

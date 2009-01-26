@@ -1,0 +1,4 @@
+libpsr_clicef.so.3 ncspss_cef_load_lib_req 
+libdts_clicef.so.3 ncsdtsv_cef_load_lib_req 
+libifsv_clicef.so.3 ncsifsv_cef_load_lib_req
+libavsv_clicef.so.3 ncsavsv_cef_load_lib_req
