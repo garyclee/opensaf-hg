@@ -148,7 +148,7 @@ main (int    argc, char * argv[])
 
    if ((rc = rde_initialize ()) != NCSCC_RC_SUCCESS)
    {
-
+      syslog(LOG_ERR, "RDE: rde_initialize failed, check rde.conf");
       rde_agents_shutdown ();    
       remove(rde_cb-> options. pid_file);
       m_NCS_CONS_PRINTF ("RDE INITIALIZATION FAILED: %l\n", rc);
