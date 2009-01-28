@@ -169,8 +169,8 @@ fi
 echo "SNMP WALK FOR CKPT SERVICE";
 export MIBDIRS=/usr/share/snmp/mibs/
 export SNMPCONFPATH=/usr/share/snmp/
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-SVC-v7_5 $1 saCkptCheckpointTable
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-SVC-v7_5 $1 saCkptNodeReplicaLocTable
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptCheckpointTable
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptNodeReplicaLocTable
 }
                                                                                                                          
 

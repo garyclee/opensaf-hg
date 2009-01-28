@@ -57,7 +57,7 @@ mapi:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
-			-o cpsv SAF-CKPT-SVC-v7_5; \
+			-o cpsv SAF-CKPT-MIB; \
 		fi \
 	done
 

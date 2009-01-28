@@ -44,7 +44,7 @@ subagt_sources = \
    samples/subagt/inc/snmptm_mapi.h \
    samples/subagt/inc/snmptm_tbl.h \
    samples/subagt/inc/snmptm_tblid.h \
-   samples/subagt/mibs/esmi_NCS-APPLTEST-MIB \
+   samples/subagt/mibs/ESMI-NCS-APPLTEST-MIB \
    samples/subagt/mibs/NCS-APPLTEST-MIB \
    samples/subagt/pssv_integ/Makefile \
    samples/subagt/snmp_integ/Makefile

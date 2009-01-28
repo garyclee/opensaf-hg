@@ -67,7 +67,7 @@ miblib:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-			SAF-MSG-SVC-v7_5; \
+			SAF-MSG-MIB; \
 		fi \
 	done
 

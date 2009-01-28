@@ -21,8 +21,8 @@ pkglib_LTLIBRARIES = libedsv_subagt.la
 SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/edsv/snmp_integ/edsv_subagt_init.c \
 	$(top_builddir)/services/edsv/snmp_integ/edsv_subagt_init.h \
-	$(top_builddir)/services/edsv/snmp_integ/saf_event_svc_mib_agt_stub.c \
-	$(top_builddir)/services/edsv/snmp_integ/saf_event_svc_mib_agt_stub.h
+	$(top_builddir)/services/edsv/snmp_integ/saf_evt_mib_agt_stub.c \
+	$(top_builddir)/services/edsv/snmp_integ/saf_evt_mib_agt_stub.h
 
 libedsv_subagt_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -46,7 +46,7 @@ subagt:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f synncsnetsnmp_new \
 			-d $(top_builddir)/services \
-			-o edsv SAF-EVT-SVC-v7_5; \
+			-o edsv SAF-EVT-MIB; \
 		fi \
 	done
 

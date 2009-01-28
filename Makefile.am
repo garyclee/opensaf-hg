@@ -110,7 +110,7 @@ dist_pkgdata_DATA = \
 	$(top_srcdir)/config/drbd.1.conf \
 	$(top_srcdir)/config/drbd.2.conf
 
-nobase_dist_pkgdata_DATA = $(samples_sources) $(mibs_files)
+nobase_dist_pkgdata_DATA = $(samples_sources)
 
 pkginclude_HEADERS = \
 	include/cpsv_papi.h \
@@ -383,7 +383,8 @@ endif
 EXTRA_DIST = \
 	$(top_srcdir)/initd/opensafd.initd \
 	$(top_srcdir)/tools/smidump \
-	$(top_srcdir)/tests
+	$(top_srcdir)/tests \
+	$(top_srcdir)/mibs
 
 
 RPMTOPDIR = `pwd`/rpms
@@ -421,7 +422,12 @@ install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/snmp/mibs
 	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
+	@for file in $(mibs_files); do \
+		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
+	done
+
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
@@ -443,6 +449,9 @@ uninstall-local:
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
+	@for file in $(mibs_files); do \
+		rm -f $(DESTDIR)$(datadir)/snmp/$$file.txt; \
+	done
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz

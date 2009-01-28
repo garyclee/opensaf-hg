@@ -50,7 +50,7 @@ mapi:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
-			-o glsv SAF-LCK-SVC-v7_5; \
+			-o glsv SAF-LCK-MIB; \
 		fi \
 	done
 

@@ -21,8 +21,8 @@ pkglib_LTLIBRARIES = libcpsv_subagt.la
 SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/cpsv/snmp_integ/cpsv_subagt_init.c \
 	$(top_builddir)/services/cpsv/snmp_integ/cpsv_subagt_init.h \
-	$(top_builddir)/services/cpsv/snmp_integ/saf_chk_svc_mib_agt_stub.c \
-	$(top_builddir)/services/cpsv/snmp_integ/saf_chk_svc_mib_agt_stub.h
+	$(top_builddir)/services/cpsv/snmp_integ/saf_ckpt_mib_agt_stub.c \
+	$(top_builddir)/services/cpsv/snmp_integ/saf_ckpt_mib_agt_stub.h
 
 libcpsv_subagt_la_CPPFLAGS = 	\
 	@NCS_CORE_CPP_DEFINES@ \
@@ -46,7 +46,7 @@ subagt:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f synncsnetsnmp_new \
 			-d $(top_builddir)/services \
-			-o cpsv SAF-CKPT-SVC-v7_5; \
+			-o cpsv SAF-CKPT-MIB; \
 		fi \
 	done
 
