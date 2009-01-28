@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLI_MEM.H
 
-$Header: /ncs/software/leap/os_svcs/products/cli/cli_mem.h 5     2/20/01 12:03p Cmohana $
 ..............................................................................
 
   DESCRIPTION:

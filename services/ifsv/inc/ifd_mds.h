@@ -20,7 +20,6 @@
 
   MODULE NAME: IFD_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for IFD-MDS functions

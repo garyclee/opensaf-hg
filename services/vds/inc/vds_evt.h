@@ -20,7 +20,6 @@
 
   MODULE NAME: VDS_EVT.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file has the data structure definitions defined for VDS 

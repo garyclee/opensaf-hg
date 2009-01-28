@@ -20,7 +20,6 @@
 
   MODULE NAME: IFSV_LOGSTR.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Defines Log register/deregister functions prototype.

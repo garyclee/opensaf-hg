@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_FUNC.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file comtains the MACRO definitions and enum definitions

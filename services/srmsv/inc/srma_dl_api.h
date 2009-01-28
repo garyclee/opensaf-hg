@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA_DL_API.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION:  SRMSv agent specific DL API function prototype

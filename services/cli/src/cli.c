@@ -20,7 +20,6 @@
 
   MODULE NAME:  CLI.C
   
-$Header: /ncs/software/leap/base/products/cli/src/cli.c 7     3/28/01 12:01p Claytom $
 ..............................................................................
     
 DESCRIPTION:

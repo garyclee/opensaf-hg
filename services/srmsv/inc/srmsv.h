@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMSV.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Master include file for all SRMSv *.C files.

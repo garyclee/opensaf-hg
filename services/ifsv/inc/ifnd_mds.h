@@ -20,7 +20,6 @@
 
   MODULE NAME: IFND_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for IFND-MDS functions

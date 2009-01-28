@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_DL_API.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION:  SRMSv node director specific DL API function prototype

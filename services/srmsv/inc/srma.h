@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Master include file for all SRMA *.C files.

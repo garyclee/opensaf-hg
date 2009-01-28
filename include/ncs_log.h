@@ -27,7 +27,6 @@
 
   Header file for LEAP implementation of FlexLog Logging service
 
-$Header: /ncs/software/leap/base/common/inc/ncs_log.h 23    6/02/01 3:37p Agranos $
 ******************************************************************************
 */
 
