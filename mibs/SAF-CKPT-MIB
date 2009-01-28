@@ -1,4 +1,4 @@
-SAF-CHK-SVC-MIB DEFINITIONS ::= BEGIN
+SAF-CKPT-MIB DEFINITIONS ::= BEGIN
 
 IMPORTS
         DateAndTime, RowPointer,RowStatus,

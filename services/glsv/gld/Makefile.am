@@ -63,7 +63,7 @@ miblib:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-			SAF-LCK-SVC-v7_5; \
+			SAF-LCK-MIB; \
 		fi \
 	done
 

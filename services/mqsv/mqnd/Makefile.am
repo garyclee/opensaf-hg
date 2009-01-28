@@ -72,7 +72,7 @@ miblib:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-	   	SAF-MSG-SVC-v7_5; \
+	   	SAF-MSG-MIB; \
 		fi \
 	done
 
@@ -84,7 +84,7 @@ mapi:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 	   	-f ncsmapi\
 	   	-d $(top_builddir)/services \
-	   	-o mqsv SAF-MSG-SVC-v7_5; \
+	   	-o mqsv SAF-MSG-MIB; \
 		fi \
 	done
 

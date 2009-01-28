@@ -65,7 +65,7 @@ miblib:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-			SAF-CKPT-SVC-v7_5; \
+			SAF-CKPT-MIB; \
 		fi \
 	done
 

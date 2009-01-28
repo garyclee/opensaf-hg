@@ -71,7 +71,7 @@ miblib:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-			SAF-EVT-SVC-v7_5; \
+			SAF-EVT-MIB; \
 		fi \
 	done
 
@@ -83,7 +83,7 @@ mapi:
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
-			-o edsv SAF-EVT-SVC-v7_5; \
+			-o edsv SAF-EVT-MIB; \
 		fi \
 	done
 

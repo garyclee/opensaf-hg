@@ -242,8 +242,8 @@ fi
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/run/%{name}
-%dir %{_datadir}/%{name}/mibs
-%{_datadir}/%{name}/mibs/*
+%dir %{_datadir}/snmp/mibs
+%{_datadir}/snmp/mibs/*
 %{_sysconfdir}/%{name}/chassis_id
 %{_sysconfdir}/%{name}/slot_id
 %{_sysconfdir}/%{name}/script.conf
