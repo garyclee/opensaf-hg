@@ -20,7 +20,6 @@
 
   MODULE NAME: DTSVCLI.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Contains definitions for DTSV CLI interface.

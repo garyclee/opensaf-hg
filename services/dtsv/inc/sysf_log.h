@@ -27,7 +27,6 @@
 
   Header file for LEAP implementation of MDS
 
-$Header: /ncs/software/release/leap/leap.21/targsvcs/common/inc/sysf_log.h 3     2/08/01 3:27p Stevem $ 
 ******************************************************************************
 */
 

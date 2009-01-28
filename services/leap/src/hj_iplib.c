@@ -20,7 +20,6 @@
 
   MODULE NAME: NCS_IPV6.C
 
-$Header: /ncs/software/leap/base/common/src/ipv6utl.c
 
 ..............................................................................
 

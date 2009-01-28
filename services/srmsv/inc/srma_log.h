@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA_LOG.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Defines structures and defn of SRMSV log file

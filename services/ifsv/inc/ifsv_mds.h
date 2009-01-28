@@ -20,7 +20,6 @@
 
   MODULE NAME: IFSV_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for IFSV-MDS functions

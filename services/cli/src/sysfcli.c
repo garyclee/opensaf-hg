@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLI_DEF.C
 
-$Header: /ncs/software/leap/targsvcs/products/cli/sysfcli.c 7     6/19/01 3:40p Agranos $
 ..............................................................................
 
   DESCRIPTION:

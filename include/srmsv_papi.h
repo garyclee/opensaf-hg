@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMSV_PAPI.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file contains the enum definitions, data structs used 

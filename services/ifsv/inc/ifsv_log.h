@@ -20,7 +20,6 @@
 
   MODULE NAME: IFSV_LOG.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Defines structures and defn of IFSV log file

@@ -21,7 +21,6 @@
 
   REVISION HISTORY:
 
-  $Header: /ncs/software/release/UltraLinq/DTS/DTS1.0/targsvcs/products/dts/dts_opt.h 4     8/23/01 11:53a Questk $
 
 ..............................................................................
 

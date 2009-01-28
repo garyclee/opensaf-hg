@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Master include file for all SRMND *.C files.

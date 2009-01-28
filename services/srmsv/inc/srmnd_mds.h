@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for SRMND-MDS functions

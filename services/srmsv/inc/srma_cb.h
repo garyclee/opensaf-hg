@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA_CB.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Defined SRMA Control Block and the related function prototypes.

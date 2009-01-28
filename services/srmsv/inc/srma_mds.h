@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for SRMA-MDS functions

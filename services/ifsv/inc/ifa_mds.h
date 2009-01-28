@@ -20,7 +20,6 @@
 
   MODULE NAME: IFA_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for IFA-MDS functions

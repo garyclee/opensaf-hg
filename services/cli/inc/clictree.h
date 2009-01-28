@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLICTREE.H
 
-$Header: /ncs/software/leap/base/products/cli/inc/clictree.h 6     6/19/01 3:20p Agranos $
 ..............................................................................
 
   DESCRIPTION:

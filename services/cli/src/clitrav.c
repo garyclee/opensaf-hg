@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLITRAV.C
 
-$Header: /ncs/software/leap/base/products/cli/src/clitrav.c 13    6/19/01 3:20p Agranos $
   ..............................................................................
   DESCRIPTION:
 

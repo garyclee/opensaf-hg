@@ -20,7 +20,6 @@
 
   MODULE: CLILOG.C
 
-  $Header: /ncs/software/leap/base/products/cli/src/clilog.c 8     3/28/01 12:01p Claytom $
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

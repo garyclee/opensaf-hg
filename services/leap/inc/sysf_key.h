@@ -21,7 +21,6 @@
 
   MODULE NAME: SYSF_KEY.H
 
-$Header: /ncs/software/leap/targsvcs/common/inc/sysf_key.h 3     12/28/00 5:00p Saula $
 
 ..............................................................................
 
