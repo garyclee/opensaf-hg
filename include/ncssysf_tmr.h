@@ -62,39 +62,9 @@ typedef void (*TMR_CALLBACK)(void *);
 EXTERN_C LEAPDLL_API uns32 gl_tmr_milliseconds;
 
 
-#define OLDEST_TMR    0 /* haven't tried this; don't know if it works */
-#define CURRENT_TMR   0
-#define NEWEST_TMR    1
-
 /** Target system timer support functions...
  **/
 
-#if (CURRENT_TMR == 1)
-
-#define m_NCS_TMR_CREATE(tid,prd,cb,arg)    (tid=sysfTmrAlloc())
-#define m_NCS_TMR_START(tid,prd,cb,arg)     (tid=sysfTmrStart(tid,prd,cb,arg))
-#define m_NCS_TMR_STOP(tid)                      sysfTmrStop(tid)
-#define m_NCS_TMR_DESTROY(tid)                   sysfTmrFree(tid)  
-#define m_NCS_TMR_MSEC_REMAINING(tid, p_tleft)   sysfTmrRemaining(tid, p_tleft)
-
-#define m_NCS_TMR_MILLISECONDS  gl_tmr_milliseconds
-
-
-/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
- @
- @              FUNCTION PROTOTYPES
- @
- @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-EXTERN_C LEAPDLL_API tmr_t       sysfTmrAlloc    (void);
-EXTERN_C LEAPDLL_API tmr_t       sysfTmrStart    (tmr_t,uns32,TMR_CALLBACK,void*);
-EXTERN_C LEAPDLL_API void        sysfTmrStop     (tmr_t);
-EXTERN_C LEAPDLL_API void        sysfTmrFree     (tmr_t);
-EXTERN_C LEAPDLL_API uns32       sysfTmrRemaining(tmr_t, uns32 *);
-EXTERN_C LEAPDLL_API NCS_BOOL     sysfTmrCreate   (void);
-EXTERN_C LEAPDLL_API NCS_BOOL     sysfTmrDestroy  (void);
-
-#else /* The new timer */
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
@@ -136,8 +106,6 @@ EXTERN_C LEAPDLL_API NCS_BOOL     sysfTmrDestroy  (void);
 
 EXTERN_C LEAPDLL_API uns32       ncs_tmr_whatsout (void); 
 EXTERN_C LEAPDLL_API uns32       ncs_tmr_getstats (void);
-
-#endif
 
 #ifdef  __cplusplus
 }
