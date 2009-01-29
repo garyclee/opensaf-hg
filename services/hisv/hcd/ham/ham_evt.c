@@ -1983,7 +1983,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
       entity_path_len = m_NCS_OS_STRLEN(hpi_entity_path_buffer);
    } else if (flag == HPL_EPATH_FLAG_ARRAY) {
-      if (epath.Entry[0].EntityType != SAHPI_ENT_UNSPECIFIED) { 
+      if (epath.Entry[1].EntityType != SAHPI_ENT_UNSPECIFIED) { 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on\n");
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityType     %d\n", epath.Entry[0].EntityType);
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityLocation %d\n", epath.Entry[0].EntityLocation);
@@ -1991,8 +1991,11 @@ ham_entity_path_lookup(HISV_EVT *evt)
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: [1].EntityLocation %d\n", epath.Entry[1].EntityLocation);
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityType     %d\n", epath.Entry[2].EntityType);
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityLocation %d\n", epath.Entry[2].EntityLocation);
-      } else 
+      } else { 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
+         /* Set first entry of array so that caller knows no match was found. */
+         epath.Entry[0].EntityType = SAHPI_ENT_UNSPECIFIED;
+      }
       entity_path_len = sizeof(epath);
    }
 
