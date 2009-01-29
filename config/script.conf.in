@@ -95,6 +95,16 @@ DRBD_SYNC_FILE="$SYSCONFDIR/.drbd_sync_state_0"
 
 
 #########################################
+# TARGET SYSTEM ARCHITECTURE
+# Choices are:
+#   ATCA (default)
+#   HP_CCLASS
+#   HP_PROLIANT
+#########################################
+export OPENSAF_TARGET_SYSTEM_ARCH="ATCA"
+
+
+#########################################
 # MISC
 #########################################
 ECHO="echo -e"
