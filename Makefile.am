@@ -387,20 +387,13 @@ EXTRA_DIST = \
 	$(top_srcdir)/mibs
 
 
+if ENABLE_RPM_TARGET
+
 RPMTOPDIR = `pwd`/rpms
 RPMSOURCEDIR = $(RPMTOPDIR)/SOURCES
 RPMSPECDIR = $(RPMTOPDIR)/SPECS
 SRPMDIR = $(RPMTOPDIR)/SRPMS
 RPMDIR = $(RPMTOPDIR)/RPMS
-
-update-ldconfig:
-	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
-	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-
-update-pkgconfig:
-	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
-	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
 
 prep-rpm-dir: dist
 	mkdir -p $(RPMTOPDIR)
@@ -418,6 +411,17 @@ rpm: prep-rpm-dir
 		--define "_topdir $(RPMTOPDIR)" --define "_tmppath $(RPMTOPDIR)/tmp" \
 		$(RPMSPECDIR)/$(PACKAGE_NAME).spec
 
+endif
+
+update-ldconfig:
+	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
+	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+
+update-pkgconfig:
+	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
+
 install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
@@ -427,7 +431,6 @@ install-data-local: update-ldconfig update-pkgconfig
 	@for file in $(mibs_files); do \
 		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
 	done
-
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
@@ -455,7 +458,9 @@ uninstall-local:
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
+if ENABLE_RPM_TARGET
 	-rm -rf $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
+endif
 
 distclean-local:
 	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
