@@ -625,6 +625,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    SaHpiSessionIdT session_id;
    SaHpiRptEntryT  entry;
    uns32  rc = NCSCC_RC_SUCCESS, i;
+   char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("dispatch_hotswap: dispatching outstanding hotwap events\n");
    m_NCS_MEMSET(hsm_cb->node_state, 0, sizeof(hsm_cb->node_state));
@@ -835,11 +836,20 @@ dispatch_hotswap(HSM_CB *hsm_cb)
       if (hsm_cb->node_state[i] != NODE_HS_STATE_NOT_PRESENT)
          break;
    }
-   if (i > MAX_NUM_SLOTS)
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   /* Check for blades only if the target system architecture is ATCA,  */
+   /* or HP_CCLASS.                                                     */
+   if ((m_NCS_OS_STRCMP(arch_type, "ATCA") == 0) ||
+       (m_NCS_OS_STRCMP(arch_type, "HP_CCLASS") == 0))
    {
-      m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
-      return NCSCC_RC_FAILURE;
+      if (i > MAX_NUM_SLOTS)
+      {
+         m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
+         return NCSCC_RC_FAILURE;
+      }
    }
+
    /* publish the dummy suprise extraction events of boards which are not present */
    publish_extracted(hsm_cb, hsm_cb->node_state);
 

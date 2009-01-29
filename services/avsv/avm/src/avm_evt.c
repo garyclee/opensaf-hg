@@ -507,6 +507,7 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    AVM_ENT_INFO_T *dep_ent_info;   
 
    uns8 str[AVM_LOG_STR_MAX_LEN];
+   char *arch_type = NULL;
 
    hpi_evt = ((AVM_EVT_T*)fsm_evt)->evt.hpi_evt; 
 
@@ -534,7 +535,11 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
 
-   m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   /* Start up the boot timer only if the target system architecture is ATCA */
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0) {
+      m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
+   }
 
    ent_info->power_cycle = FALSE;
    if(AVM_ADM_LOCK == ent_info->adm_lock)
