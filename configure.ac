@@ -54,6 +54,13 @@ AC_ARG_WITH([rpm-release],
 
 AC_SUBST([OPENSAF_RPM_RELEASE], ["$with_rpm_release"])
 
+AC_ARG_ENABLE([rpm-target],
+   [AS_HELP_STRING([--disable-rpm-target],
+      [disable support for the "make rpm" target [default=no]])],
+   [],
+   [enable_rpm_target=yes])
+
+AM_CONDITIONAL([ENABLE_RPM_TARGET], [test "x$enable_rpm_target" = xyes])
 
 dnl Flag to enable smidump to be built
 AC_ARG_ENABLE([smidump],
