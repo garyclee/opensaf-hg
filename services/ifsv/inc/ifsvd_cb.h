@@ -50,6 +50,8 @@ typedef struct ifsv_idim_cb
 { 
    uns32            shelf;
    uns32            slot;   
+   /* embedding subslot changes */
+   uns32                subslot;
    MDS_HDL          mds_hdl;
    uns32            ifnd_hdl;
    MDS_DEST         ifnd_addr;

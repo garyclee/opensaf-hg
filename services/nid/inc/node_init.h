@@ -61,7 +61,6 @@
 #define NID_MAX_REST_LEN             1
 
 
-
 #define NID_PLAT_CONF_PATH          OSAF_SYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
 #define NID_NCSLOGPATH              OSAF_LOCALSTATEDIR "log/nid/"

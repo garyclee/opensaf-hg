@@ -133,6 +133,8 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          
          idim_cb->shelf   = ifsv_cb->shelf;
          idim_cb->slot    = ifsv_cb->slot;
+         /* embedding subslot changes */
+         idim_cb->subslot    = ifsv_cb->subslot;
          idim_cb->ifnd_addr    = ifsv_cb->my_dest;
          idim_cb->ifnd_mbx     = ifsv_cb->mbx;
          idim_cb->ifnd_hdl     = ifsv_cb->cb_hdl;

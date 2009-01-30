@@ -26,7 +26,7 @@ DESCRIPTION: Function prototypes used for IfD/IfND used For MIB access.
 
 /* Instence ID lenght for interface key */
 #define IFSV_IFINDEX_INST_LEN    1
-#define IFSV_IFMAPTBL_INST_LEN   5
+#define IFSV_IFMAPTBL_INST_LEN   6
 
 EXTERN_C uns32  ifentry_tbl_reg(void);
 

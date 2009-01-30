@@ -90,6 +90,30 @@ const NCSFL_STR avm_rde_set[] =
 };
 
 /******************************************************************************
+                     Canned string for FM related stuff
+ ******************************************************************************/
+const NCSFL_STR avm_fm_set[] =
+{
+   { AVM_LOG_FMA_INIT_FAILED ,                 "Agent Init Failed"            },
+   { AVM_LOG_FM_ISSUED_SWITCHOVER  ,           "Issued Switchover"            },
+   { AVM_LOG_FM_NODE_RESET,                    "has reset Entity "            },
+   { AVM_LOG_FM_DENIED_SWITCHOVER_FEASIBILITY, "denied switchover feasibility"},
+   { 0,0 }
+};
+
+/******************************************************************************
+                 Canned string for notifications sent to FM
+ ******************************************************************************/
+const NCSFL_STR avm_notified_fm_set[] =
+{
+   { AVM_LOG_NOTIFIED_FM_AVD_HB,  "AVD HB"   },
+   { AVM_LOG_NOTIFIED_FM_AVND_HB, "AvND HB"  },
+   { AVM_LOG_NOTIFIED_FM_LOSS,    "loss"     },
+   { AVM_LOG_NOTIFIED_FM_RESTORE, "restore"  },
+   { 0,0 }
+};
+
+/******************************************************************************
                           Canned string for MDS
  ******************************************************************************/
 const NCSFL_STR avm_mds_set[] = 
@@ -280,12 +304,10 @@ const NCSFL_STR avm_role_set[] =
    { AVM_LOG_RDA_SET_ROLE        , "RDA Seting AvM  Role" },
    { AVM_LOG_RDA_AVM_SET_ROLE    , "AVM Setting RDA Role" },
    { AVM_LOG_RDA_AVM_ROLE        , "Current HA State    " },
-   { AVM_LOG_RDA_HB              , "HB Lost    " },
    { AVM_LOG_RDA_CBK         , "RDA Rcv Cbk"      },
    { AVM_LOG_SND_ROLE_CHG    , "Send Role Change to Other SCXB" },
    { AVM_LOG_SND_ROLE_RSP    , "Send Role RSP to Other SCXB" },
    { AVM_LOG_RCV_ROLE_RSP    , "Rcv Role RSP from Other SCXB" },
-   { AVM_LOG_SWOVR_FAILURE   , "Switchover Operation" },
    { AVM_LOG_ROLE_CHG    ,      "Role Change RSP" },
    { AVM_LOG_AVD_ROLE_RSP    ,      "AvD Role RSP" },
    { AVM_LOG_ROLE_QUIESCED   ,      "SCXB Quiesced" },
@@ -356,6 +378,8 @@ NCSFL_SET avm_str_set[] =
    { AVM_FC_ROLE,           0, (NCSFL_STR*) avm_role_set    },
    { AVM_FC_EVT,            0, (NCSFL_STR*) avm_evt_set     },
    { AVM_FC_EVT_Q,          0, (NCSFL_STR*) avm_evt_q_set   },
+   { AVM_FC_FM,             0, (NCSFL_STR*) avm_fm_set      },
+   { AVM_FC_NOTIFIED_FM,    0, (NCSFL_STR*) avm_notified_fm_set },
    { 0,0,0 }
 };
 
@@ -386,6 +410,9 @@ NCSFL_FMAT avm_fmat_set[] =
    { AVM_LID_GEN_INFO2,        "TCP",              "%s AVM: %s %s \n"},
    { AVM_LID_GEN_INFO3,        "TCC",              "%s AVM: %s %s \n"},
    { AVM_LID_EVT_Q,             NCSFL_TYPE_TILL,   "%s AVM: %s Event Id : %ld Boolean : %ld\n"},
+   { AVM_LID_FM_INFO,           NCSFL_TYPE_TI,     "%s AVM: FM %s\n"},
+   { AVM_LID_FM_NODE_RESET,     NCSFL_TYPE_TIC,    "%s AVM: FM %s %s\n"},
+   { AVM_LID_NOTIFIED_FM,       "TIIC",            "%s AVM: FM has been notified of %s %s of Entity: %s\n"},
    { 0, 0, 0 }
 };
 

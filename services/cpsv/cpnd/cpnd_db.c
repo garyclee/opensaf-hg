@@ -39,7 +39,8 @@
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT_NODE** ckpt_node)
+void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl,
+                        CPND_CKPT_NODE** ckpt_node)
 {
       *ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_get(&cb->ckpt_info_db,
                                                    (uns8*)&ckpt_hdl);
@@ -59,7 +60,8 @@ void cpnd_ckpt_node_get(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_ckpt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl, CPND_CKPT_NODE** ckpt_node)
+void cpnd_ckpt_node_getnext(CPND_CB *cb, SaCkptCheckpointHandleT ckpt_hdl,
+                            CPND_CKPT_NODE** ckpt_node)
 {
       if(ckpt_hdl)
          *ckpt_node = (CPND_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_info_db,
@@ -187,7 +189,8 @@ void cpnd_ckpt_node_destroy(CPND_CB *cb, CPND_CKPT_NODE *cp_node)
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE** ckpt_client_node)
+void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl,
+                          CPND_CKPT_CLIENT_NODE** ckpt_client_node)
 {
    *ckpt_client_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_get(&cb->client_info_db,
                                                    (uns8*)&ckpt_client_hdl);
@@ -207,7 +210,8 @@ void cpnd_client_node_get(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl, CPND_CKPT_CLIENT_NODE** ckpt_client_node)
+void cpnd_client_node_getnext(CPND_CB *cb, SaCkptHandleT ckpt_client_hdl,
+                              CPND_CKPT_CLIENT_NODE** ckpt_client_node)
 {
    if(ckpt_client_hdl)
       *ckpt_client_node = (CPND_CKPT_CLIENT_NODE *)ncs_patricia_tree_getnext(&cb->client_info_db,
@@ -527,13 +531,15 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node,SaCkptSectionI
          rc = cpnd_sec_hdr_update(pSecPtr,cp_node);
          if(rc == NCSCC_RC_FAILURE)
          {
-            m_LOG_CPND_CL(CPND_SECT_HDR_UPDATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+            m_LOG_CPND_CL(CPND_SECT_HDR_UPDATE_FAILED,CPND_FC_HDLN,
+                          NCSFL_SEV_ERROR,__FILE__,__LINE__);
          }
          /* UPDATE THE CHECKPOINT HEADER */
          rc = cpnd_ckpt_hdr_update(cp_node);
          if(rc == NCSCC_RC_FAILURE)
          {
-            m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+            m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED,CPND_FC_HDLN,
+                          NCSFL_SEV_ERROR,__FILE__,__LINE__);
          }
          return pSecPtr;
        }
@@ -553,7 +559,8 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node,SaCkptSectionI
  *
  * Notes         : None.
  *****************************************************************************/
-CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectionIdT *id,SaTimeT exp_time,uns32 gen_flag )
+CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectionIdT *id,
+                                           SaTimeT exp_time,uns32 gen_flag )
 {
    CPND_CKPT_SECTION_INFO *pSecPtr=NULL;
    int32 lcl_sec_id=0;
@@ -998,19 +1005,38 @@ void cpnd_allrepl_write_evt_node_tree_destroy(CPND_CB *cb)
 
 
 /***********************************************************************************
- * Name            : cpnd_get_phy_slot_id
+ * Name            : cpnd_get_slot_sub_slot_id_from_mds_dest
  *
- * Description     : To get the physical slot id from node id
+ * Description     : To get the physical slot & sub slot  id from MDS_DEST
  *
  *********************************************************************************/
-NCS_PHY_SLOT_ID  cpnd_get_phy_slot_id(MDS_DEST dest)
+uns32  cpnd_get_slot_sub_slot_id_from_mds_dest(MDS_DEST dest)
 {
-     NCS_PHY_SLOT_ID phy_slot;
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+   
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
 
-     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,NULL);
-
-    return phy_slot;
+  return ((sub_slot * 8) + (phy_slot));
 }
+
+/***********************************************************************************
+ * Name            : cpnd_get_slot_sub_slot_id_from_node_id
+ *
+ * Description     : To get the physical slot & sub slot  id from node id
+ *
+ *********************************************************************************/
+uns32  cpnd_get_slot_sub_slot_id_from_node_id( NCS_NODE_ID i_node_id )
+{
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id,NULL,&phy_slot,&sub_slot);
+
+   return ((sub_slot * 8) + (phy_slot));
+ 
+}
+
 
  
 /******************************************************************************************

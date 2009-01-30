@@ -29,10 +29,10 @@
 
 #ifndef IFA_MDS_H
 #define IFA_MDS_H
-
-#define IFA_SVC_PVT_SUBPART_VERSION  1
+/* embedding Subslot changes backward compatibility*/
+#define IFA_SVC_PVT_SUBPART_VERSION  2
 #define IFA_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT 1
-#define IFA_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 1
+#define IFA_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 2 /* embedding subslot changes for backward compatibility */
 #define IFA_WRT_IFND_SUBPART_VER_RANGE             \
         (IFA_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT - \
          IFA_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT +1)

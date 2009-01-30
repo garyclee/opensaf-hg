@@ -1,3 +1,24 @@
+Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B3
+--------------------------------------------
+2009-01-07 Nagendra Kumar <nagendra.kumar@emerson.com>
+        * "Introduction of Platform Adaptation Interface (PAI)".
+
+2009-01-07 Ramesh Babu <ramesh.betham@emerson.com>
+	* Subslot support.
+
+2009-01-07 Mahesh <mahesh.alla@emerson.com>
+	* CPSV Subslot support.
+
+
+Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B2
+--------------------------------------------
+2008-08-12 Jonathan Fournier <jonathan.fournier@windriver.com>
+	* Build & Packaging Changes
+
+2008-08-12 Troy Heber <troy.heber@hp.com>
+	* OpenSAF Scripts Unification
+
+
 Changes from OpenSAF 2.0.0 to OpenSAF 3.0.0
 -------------------------------------------
 

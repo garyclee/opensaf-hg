@@ -195,6 +195,14 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
          
          l_flag = TRUE;
 
+         if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si))
+         {
+            /* The preferred number of active assignments for SI has reached, so continue
+               to next SI */
+            i_su = AVD_SU_NULL;
+            continue;
+         }
+
          if (avd_su_susi_struc_find(cb,i_su,i_si->name_net,FALSE)
             != AVD_SU_SI_REL_NULL)
          {

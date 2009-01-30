@@ -35,6 +35,7 @@
 */
 #include "rda.h"
 
+RDA_CONTROL_BLOCK *rda_get_control_block (void);
 
 /*
 ** Static functions
@@ -45,7 +46,7 @@ static uns32 rda_parse_msg    (const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int
 static uns32 rda_connect      (int *sockfd);
 static uns32 rda_disconnect   (int sockfd);
 static uns32 rda_callback_req (int sockfd);
-extern RDA_CONTROL_BLOCK *rda_get_control_block (void);
+
 
 #if (RDA_SPOOF != 0)
 
@@ -53,6 +54,7 @@ extern RDA_CONTROL_BLOCK *rda_get_control_block (void);
 ** Global data, RDA callback control block
 */
 RDA_CALLBACK_CB rda_spoof_callback_cb;
+PCS_RDA_CB_INFO spoof_cb_info;
 PCS_RDA_ROLE    rda_current_role = PCS_RDA_UNDEFINED;
 
 static uns32 get_init_role(uns32 *init_role);
@@ -85,9 +87,7 @@ uns32 rda_callback_task (RDA_CALLBACK_CB *rda_callback_cb)
    int               retry_count    = 0;
    NCS_BOOL          conn_lost      = FALSE;
    RDE_RDA_CMD_TYPE  cmd_type       = 0;
-   PCS_RDA_CMD cmd ;
-
-   m_NCS_OS_MEMSET(&cmd, 0, sizeof(PCS_RDA_CMD));
+   PCS_RDA_CB_INFO   cb_info ;
 
    while (!rda_callback_cb->task_terminate)
    {
@@ -97,9 +97,9 @@ uns32 rda_callback_task (RDA_CALLBACK_CB *rda_callback_cb)
         */
         if (retry_count >= 100)
         {
-
             (*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, 
-                                              PCS_RDA_UNDEFINED, PCSRDA_RC_FATAL_IPC_CONNECTION_LOST,cmd);
+                                              &cb_info, PCSRDA_RC_FATAL_IPC_CONNECTION_LOST);
+            
             break;
         }
 
@@ -156,32 +156,24 @@ uns32 rda_callback_task (RDA_CALLBACK_CB *rda_callback_cb)
             /* 
             ** Escalate the problem to the application
             */
-            (*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, PCS_RDA_UNDEFINED, rc,cmd);
+            (*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, &cb_info, rc);
             continue;
         }
 
         rda_parse_msg (msg, &cmd_type, &value);
-        if((cmd_type == RDE_RDA_HA_ROLE) || (cmd_type == RDE_RDA_NODE_RESET_CMD) || (value >= 0))
+        if ((cmd_type != RDE_RDA_HA_ROLE) || (value < 0))
         {
-           /* Process the message. */
-        }
-        else
-        {
+            /*TODO: What to do here - shankar*/
            continue;
         }
 
         /*
         ** Invoke callback
         */
-        if(cmd_type == RDE_RDA_NODE_RESET_CMD)
-        {
-          cmd.req_type = PCS_RDA_NODE_RESET_CMD; 
-          cmd.info.node_reset_info.slot_id = value;
-          cmd.info.node_reset_info.shelf_id = RDE_RDA_SHELF_ID;
- 
-        } 
-
-        (*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, value, PCSRDA_RC_SUCCESS,cmd);
+        cb_info.cb_type = PCS_RDA_ROLE_CHG_IND;
+        cb_info.info.io_role = value;
+        
+        (*rda_callback_cb->callback_ptr) (rda_callback_cb->callback_handle, &cb_info, PCSRDA_RC_SUCCESS);
    }
 
    return rc;
@@ -392,8 +384,6 @@ int pcs_rda_unreg_callback (long task_cb)
 int pcs_rda_set_role     (PCS_RDA_ROLE role)
 {
     uns32   rc = PCSRDA_RC_SUCCESS;
-PCS_RDA_CMD cmd ;
-   m_NCS_OS_MEMSET(&cmd, 0, sizeof(PCS_RDA_CMD));
 
 #if (RDA_SPOOF != 0)
 
@@ -414,8 +404,10 @@ PCS_RDA_CMD cmd ;
     /*
     ** Intimate registered client about role change
     */
+    spoof_cb_info.cb_type = PCS_RDA_ROLE_CHG_IND;
+    spoof_cb_info.info.io_role = value;
     if (rda_spoof_callback_cb.callback_ptr != NULL)
-        (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, role, PCSRDA_RC_SUCCESS,cmd);
+        (rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb->callback_handle, &spoof_cb_info, PCSRDA_RC_SUCCESS);
 
 #else
 
@@ -589,359 +581,6 @@ int pcs_rda_get_role (PCS_RDA_ROLE * role)
     */
     return rc;
 
-}
-
-/****************************************************************************
- * Name          : pcs_rda_avd_hb_err
- *
- * Description   : 
- *                 
- *
- * Arguments     : 
- *
- * Return Values : 
- *
- * Notes         : None
- *****************************************************************************/
-int pcs_rda_avd_hb_err (void)
-{
-
-    uns32   rc = PCSRDA_RC_SUCCESS;
-PCS_RDA_CMD cmd ;
-
-   m_NCS_OS_MEMSET(&cmd, 0, sizeof(PCS_RDA_CMD));
-#if (RDA_SPOOF != 0)
-
-    /*
-    ** If standby change role to active
-    */
-    if( (rda_current_role == PCS_RDA_STANDBY) ||
-        (rda_current_role == PCS_RDA_QUIESCED) )
-    {
-        rda_current_role = PCS_RDA_ACTIVE;
-
-        /*
-        ** Intimate registered client about role change
-        */
-        if (rda_spoof_callback_cb.callback_ptr != NULL)
-            (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS,cmd);
-
-    }
-
-#else
-
-    int     sockfd;
-    char    msg [64]          = {0};
-    int     value             = -1;
-    RDE_RDA_CMD_TYPE cmd_type = 0;
-
-    /*
-    ** Connect
-    */
-    rc = rda_connect (&sockfd);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        return rc;
-    }
-
-    do
-    {
-        /*
-        ** Send heart beat error messgae
-        */
-        sprintf (msg, "%d", RDE_RDA_AVD_HB_ERR_REQ);
-        rc = rda_write_msg (sockfd, msg);
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        /*
-        ** Recv heart beat error response
-        */
-        rc = rda_read_msg (sockfd, msg, sizeof (msg));
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        rda_parse_msg (msg, &cmd_type, &value);
-        if (cmd_type != RDE_RDA_AVD_HB_ERR_ACK)
-        {
-            rc = PCSRDA_RC_AVD_HB_ERR_FAILED;
-            break;
-        }
-
-    }while (0);
-
-    /*
-    ** Disconnect
-    */
-    rda_disconnect (sockfd);
-
-#endif
-
-    /*
-    ** Done
-    */
-    return rc;
-
-}
-
-/****************************************************************************
- * Name          : pcs_rda_avnd_hb_err
- *
- * Description   : 
- *                 
- *
- * Arguments     : 
- *
- * Return Values : 
- *
- * Notes         : None
- *****************************************************************************/
-int pcs_rda_avnd_hb_err (uns32 phy_slot_id)
-{
-
-    uns32   rc = PCSRDA_RC_SUCCESS;
-PCS_RDA_CMD cmd;
-   m_NCS_OS_MEMSET(&cmd, 0, sizeof(PCS_RDA_CMD));
-
-#if (RDA_SPOOF != 0)
-
-   /*
-   ** Intimate registered client about this event
-   */
-   if (rda_spoof_callback_cb.callback_ptr != NULL)
-      (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS,cmd);
-
-#else
-
-    int     sockfd;
-    char    msg [64]          = {0};
-    int     value             = -1;
-    RDE_RDA_CMD_TYPE cmd_type = 0;
-
-    /*
-    ** Connect
-    */
-    rc = rda_connect (&sockfd);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        return rc;
-    }
-
-    do
-    {
-        /*
-        ** Send heart beat error messgae
-        */
-        sprintf (msg, "%d %d", RDE_RDA_AVND_HB_ERR_REQ, phy_slot_id);
-        rc = rda_write_msg (sockfd, msg);
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        /*
-        ** Recv heart beat error response
-        */
-        rc = rda_read_msg (sockfd, msg, sizeof (msg));
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        rda_parse_msg (msg, &cmd_type, &value);
-        if (cmd_type != RDE_RDA_AVND_HB_ERR_ACK)
-        {
-            rc = PCSRDA_RC_AVND_HB_ERR_FAILED;
-            break;
-        }
-
-    }while (0);
-
-    /*
-    ** Disconnect
-    */
-    rda_disconnect (sockfd);
-
-#endif
-
-    /*
-    ** Done
-    */
-    return rc;
-
-}
-
-/****************************************************************************
- * Name          : pcs_rda_avd_hb_restore
- *
- * Description   : 
- *                 
- *
- * Arguments     : 
- *
- * Return Values : 
- *
- * Notes         : None
- *****************************************************************************/
-int pcs_rda_avd_hb_restore (void)
-{
-
-    uns32   rc = PCSRDA_RC_SUCCESS;
-
-#if (RDA_SPOOF != 0)
-
-    /*
-    ** For spoof implementation this is a no-op.
-    */
-    if (rda_spoof_callback_cb.callback_ptr != NULL)
-         (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS);
-
-#else
-
-    int     sockfd;
-    char    msg [64]          = {0};
-    int     value             = -1;
-    RDE_RDA_CMD_TYPE cmd_type = 0;
-
-    /*
-    ** Connect
-    */
-    rc = rda_connect (&sockfd);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        return rc;
-    }
-
-    do
-    {
-        /*
-        ** Send heart beat error messgae
-        */
-        sprintf (msg, "%d", RDE_RDA_AVD_HB_RESTORE_REQ);
-        rc = rda_write_msg (sockfd, msg);
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        /*
-        ** Recv heart beat error response
-        */
-        rc = rda_read_msg (sockfd, msg, sizeof (msg));
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        rda_parse_msg (msg, &cmd_type, &value);
-        if (cmd_type != RDE_RDA_AVD_HB_RESTORE_ACK)
-        {
-            rc = PCSRDA_RC_AVD_HB_RESTORE_FAILED;
-            break;
-        }
-
-    }while (0);
-
-    /*
-    ** Disconnect
-    */
-    rda_disconnect (sockfd);
-
-#endif
-
-    /*
-    ** Done
-    */
-    return rc;
-
-}
-
-/****************************************************************************
- * Name          : pcs_rda_avnd_hb_restore
- *
- * Description   : 
- *                 
- *
- * Arguments     : 
- *
- * Return Values : 
- *
- * Notes         : None
- *****************************************************************************/
-int pcs_rda_avnd_hb_restore (uns32 phy_slot_id)
-{
-
-    uns32   rc = PCSRDA_RC_SUCCESS;
-
-#if (RDA_SPOOF != 0)
-
-   /*
-   ** Intimate registered client about this event
-   */
-   if (rda_spoof_callback_cb.callback_ptr != NULL)
-      (*rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb.callback_handle, rda_current_role, PCSRDA_RC_SUCCESS);
-
-#else
-
-    int     sockfd;
-    char    msg [64]          = {0};
-    int     value             = -1;
-    RDE_RDA_CMD_TYPE cmd_type = 0;
-
-    /*
-    ** Connect
-    */
-    rc = rda_connect (&sockfd);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        return rc;
-    }
-
-    do
-    {
-        /*
-        ** Send heart beat error messgae
-        */
-        sprintf (msg, "%d %d", RDE_RDA_AVND_HB_RESTORE_REQ, phy_slot_id);
-        rc = rda_write_msg (sockfd, msg);
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        /*
-        ** Recv heart beat error response
-        */
-        rc = rda_read_msg (sockfd, msg, sizeof (msg));
-        if (rc != PCSRDA_RC_SUCCESS)
-        {
-            break;
-        }
-
-        rda_parse_msg (msg, &cmd_type, &value);
-        if (cmd_type != RDE_RDA_AVND_HB_RESTORE_ACK)
-        {
-            rc = PCSRDA_RC_AVND_HB_RESTORE_FAILED;
-            break;
-        }
-
-    }while (0);
-
-    /*
-    ** Disconnect
-    */
-    rda_disconnect (sockfd);
-
-#endif
-
-    /*
-    ** Done
-    */
-    return rc;
 }
 
 /*****************************************************************************
@@ -1354,3 +993,5 @@ static uns32 get_init_role(uns32 *init_role)
 }
 
 #endif
+
+

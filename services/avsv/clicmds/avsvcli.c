@@ -39,6 +39,7 @@
 #include "hpl_api.h"
 
 #include <SaHpi.h>
+#include "hpl_msg.h"
 
 #define AVSV_BUFFER_LEN   200
 
@@ -150,7 +151,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
       },
       {
          avm_cef_set_adm_switch,
-         "admswitch!Swicthover System Controller Hosts! ",
+         "admswitch!Switchover System Controller Hosts! ",
          NCSCLI_ADMIN_ACCESS
       } 
    };
@@ -480,6 +481,8 @@ avm_constr_ep(
        }
     }else
     {
+       if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
+       {
 #ifdef HPI_A
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
@@ -498,6 +501,7 @@ avm_constr_ep(
           rc = NCSCC_RC_SUCCESS;
        }
 #endif
+        }
     }
     return rc;
 } 
@@ -556,10 +560,18 @@ avm_cef_set_ent_adm_req(
     }
    
     if(!(((AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt) && ((!ent_type_cnt) || (ent_inst_cnt == ent_type_cnt))) || 
-       ((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && (ent_inst_cnt == ent_type_cnt))))
+       ((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && ((!ent_type_cnt)||(ent_inst_cnt == ent_type_cnt)))))
     {
        m_RETURN_AVSV_CLI_DONE("\n FAILURE: Invalid Index", NCSCC_RC_FAILURE, cef_data->i_bindery->i_cli_hdl);
        return NCSCC_RC_FAILURE;
+    }
+
+    /* If subslot has been specified as 0 then it's same as when it's not specified */
+    if((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && (entity_instance[2] == 0))
+    {
+       if(ent_type_cnt == ent_inst_cnt)
+          ent_type_cnt = AVM_DEFAULT_HIERARCHY_LVL;
+       ent_inst_cnt = AVM_DEFAULT_HIERARCHY_LVL;
     }
 
     if(NCSCC_RC_SUCCESS != (avm_constr_ep(entity_type, ent_type_cnt, entity_instance, ent_inst_cnt, ep)))
@@ -594,7 +606,7 @@ avm_cef_set_ent_adm_req(
            sprintf(set_val, "%d", 1);
         }else if(!m_NCS_STRCMP(value->cmd.strval, "lock"))
         {
-           avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is abrupt operation. It may harm the node due to that node may not come after doing unlock. Shutdown operation is suggested to be used instead of lock, Shutdown will do the same thing in smooth manner.\n");
+           avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
 
            avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
            ans = m_NCS_CONS_GETCHAR(); 

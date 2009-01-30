@@ -65,7 +65,7 @@
 #define MDS_SCOPE_LEN        2
 
 /* Added for the subscription changes */
-#define MDS_NCS_CHASSIS_ID       0x00020000
+#define MDS_NCS_CHASSIS_ID       (tipc_cb.node_id&0x00ff0000)
 #define MDS_TIPC_COMMON_ID       0x01001000
 
 #define MDS_TIPC_NODE_ID_MIN     0x01001010
@@ -74,8 +74,8 @@
 #define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS)) 
 #define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node)   (NODE_ID)( MDS_NCS_CHASSIS_ID | ((node)&0xf) | (((node)&0xff0)<<4))  
 
-#define MDS_NCS_NODE_ID_MIN      0x00020100
-#define MDS_NCS_NODE_ID_MAX      0x0002100f
+#define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x00000100)
+#define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000100f)
 
 #define m_MDS_CHECK_NCS_NODE_ID_RANGE(node) (((((node)<MDS_NCS_NODE_ID_MIN)||((node)>MDS_NCS_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS)) 
 #define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node)  (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>4) | ((node)&0xf) )
@@ -162,6 +162,7 @@ typedef struct mdtm_tipc_cb{
 
    SYSF_MBX tmr_mbx;
    int      tmr_fd;
+   uns32    node_id;
 
 }MDTM_TIPC_CB;
 
@@ -319,6 +320,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    
    tipc_cb.adest=((uns64)(nodeid))<<32;
    tipc_cb.adest|=addr.addr.id.ref;
+   tipc_cb.node_id=nodeid;
    
 #if MDS_TIPC_1_5
    tipc_node_id=mdtm_tipc_own_node(tipc_cb.BSRsock); /* This gets the tipc ownaddress*/

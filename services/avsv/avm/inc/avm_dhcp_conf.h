@@ -50,10 +50,10 @@
 #define AVM_IP_ADDR_STR_LEN     18
 #define AVM_DHCP_CONF_CHANGE    3
 #define AVM_DHCPD_SW_PXE_FILE             "/pxelinux.0"
-#define AVM_DHCPD_SW_IPMC_PLD_BLD_FILE    "atca-7221-ipmc.fri"
-#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1   "artm-7221-fc.fri"
-#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2   "artm-7221-scsi.fri"
-
+#define AVM_DHCPD_SW_IPMC_PLD_BLD_FILE    "/atca-7221-ipmc.fri"
+#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1   "/artm-7221-fc.fri"
+#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2   "/artm-7221-scsi.fri"
+#define CONF_FILE_PATH "/repl/ssuHelper.conf"
 
 #define AVM_DHCONF_MEMCMP_LEN(str1, str2, len1, len2)   (!(((len1) == (len2)) && \
                                                         (!m_NCS_MEMCMP((str1), (str2), (len2))))) 
@@ -359,6 +359,8 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_VA
 
 extern uns32
 avm_send_dynamic_data(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_ID param_id, NCSMIB_FMAT_ID fmt_id, AVM_PSSV_PUSH *avm_pss);
+
+extern uns32 avm_check_config(uns8 *ent_info, uns32 *flag);
 
 extern void
 avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb);

@@ -857,6 +857,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
    /* unlock the payload blade, if the flag is set */
    if(unlock)
    {
+      NCSMIB_ARG ssu_dummy_mib_res;
       AVM_EVT_T          fsm_evt;
       uns32              rc;
       /* unlock the target payload blade, after upgrading the IPMC */
@@ -865,10 +866,15 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_DONE;
+      fsm_evt.evt.mib_req = &ssu_dummy_mib_res;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
 
       fsm_evt.fsm_evt_type = AVM_ADM_UNLOCK + AVM_EVT_ADM_OP_BASE -1;
       rc = avm_fsm_handler(cb, ent_info, &fsm_evt);
+      if(rc != NCSCC_RC_SUCCESS)
+      {
+       m_MMGR_FREE_MIB_OCT(fsm_evt.evt.mib_req->rsp.add_info); 
+      }      
       m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(cb, ent_info, AVM_CKPT_ENT_ADM_OP);
    }
    if (failure) 

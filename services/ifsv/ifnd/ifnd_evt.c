@@ -109,12 +109,11 @@ ifnd_intf_create_modify (IFSV_EVT* evt, IFSV_CB *cb)
                                  "From : s/s/p/t/s/ originator",
                                  intf_create->intf_data.spt_info.shelf,
                                  intf_create->intf_data.spt_info.slot,
+                                 intf_create->intf_data.spt_info.subslot,
                                  intf_create->intf_data.spt_info.port,
                                  intf_create->intf_data.spt_info.type,
                                  intf_create->intf_data.spt_info.subscr_scope,
-                                 intf_create->intf_data.originator,
-                                 0);
-
+                                 intf_create->intf_data.originator);
 
    if(cb->ifnd_state == NCS_IFSV_IFND_DATA_RETRIVAL_STATE)
    {
@@ -178,6 +177,13 @@ ifnd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
                     dest_info->spt_type.subscr_scope,
                     dest_info->orign,
                     dest_info->own_dest);
+   m_NCS_CONS_PRINTF("ifnd_intf_destroy: From s/s/ss/p/t/s - %d/%d/%d/%d/%d/%d\n", dest_info->spt_type.shelf,
+                    dest_info->spt_type.slot,
+                    dest_info->spt_type.subslot,
+                    dest_info->spt_type.port,
+                    dest_info->spt_type.type,
+                    dest_info->spt_type.subscr_scope);
+
 /*
    m_IFND_LOG_EVT_L(IFSV_LOG_IFND_EVT_INTF_DESTROY_RCV,\
       ifsv_log_spt_string(dest_info->spt_type,log_info),\

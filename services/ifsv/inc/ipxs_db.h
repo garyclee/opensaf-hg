@@ -172,6 +172,8 @@ typedef struct ipxs_ipif_info
    uns8                 intfName[m_NCS_IFSV_VIP_INTF_NAME];
    uns32                shelfId;
    uns32                slotId;
+   /* embedding subslot changes */
+   uns32                subslotId;
    uns32                nodeId;
    /* Here we need to add list of VipApplNames, as it would be
     * used for phase-11 */

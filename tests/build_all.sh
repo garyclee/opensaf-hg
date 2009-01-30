@@ -46,9 +46,9 @@ fi
 
 case "$1" in
    linux)
-      LIBDIR=$OPENSAF_HOME/targets/$HOST_ALIAS/lib;;
+      LIBDIR=$TARGET_LIB_PATH/lib;;
    linux-64)
-      LIBDIR=$OPENSAF_HOME/targets/$HOST_ALIAS/lib64;;
+      LIBDIR=$TARGET_LIB_PATH/lib64;;
 
    *)
       echo "Invalid target please specify <linux/linux-64>";
@@ -60,26 +60,26 @@ export LIBDIR
 cd $TET_COMP_DIR
 echo "Cleaning the objs";
 csh make_env.csh $TARGET_TYPE clean clean
-rm -rf $LIBDIR/libmaa_switch.so
+#rm -rf $LIBDIR/libmaa_switch.so
 
-cd $TET_COMP_DIR/maa_switch
-if [ "$1" == "linux" ] || [ "$1" == "linux-64" ]; then
-   ./compile_maa_switch.sh $1
-   if [ $? == 0 ] && [ ! -f $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so ]; then
-      echo "Error in compilation of maa-switch library";
-      exit 1;
-   fi
-    cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so $LIBDIR/libmaa_switch.so
-    cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so  $TET_COMP_DIR/maa_switch/libmaa_switch.so
-else
-   ./compile_maa_switch.sh $1 $2
-   if [ $? == 0 ] && [ ! -f $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so ]; then
-      echo "Error in compilation of maa-switch library";
-      exit 1;
-   fi
-   cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so $LIBDIR/libmaa_switch.so
-   cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so $TET_COMP_DIR/maa_switch/libmaa_switch.so
-fi
+#cd $TET_COMP_DIR/maa_switch
+#if [ "$1" == "linux" ] || [ "$1" == "linux-64" ]; then
+#   ./compile_maa_switch.sh $1
+#   if [ $? == 0 ] && [ ! -f $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so ]; then
+#      echo "Error in compilation of maa-switch library";
+#      exit 1;
+#   fi
+#    cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so $LIBDIR/libmaa_switch.so
+#    cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1.so  $TET_COMP_DIR/maa_switch/libmaa_switch.so
+#else
+#   ./compile_maa_switch.sh $1 $2
+#   if [ $? == 0 ] && [ ! -f $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so ]; then
+#      echo "Error in compilation of maa-switch library";
+#      exit 1;
+#   fi
+#   cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so $LIBDIR/libmaa_switch.so
+#   cp $TET_COMP_DIR/maa_switch/libmaa_switch_$1_$2.so $TET_COMP_DIR/maa_switch/libmaa_switch.so
+#fi
 
 
 cd $TET_COMP_DIR

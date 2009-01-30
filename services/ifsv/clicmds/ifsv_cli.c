@@ -247,7 +247,9 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
    data.i_command_list[cmd_count].i_cmdstr = "bind@root/exec/config/interfaces/bind@!binding interface mode![bind-num <1..30> !binding interface index !NCSCLI_NUMBER]";
    data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_VIEWER_ACCESS;
    data.i_command_list[cmd_count++].i_cmd_exec_func = ifsv_cef_conf_bind_intf;
-   data.i_command_list[cmd_count].i_cmdstr = "ethernet@root/exec/config/interfaces/ethernet@!port specific config mode!HJCLI_STRING !shelf/slot/port!";
+
+   /* embedding subslot changes */
+   data.i_command_list[cmd_count].i_cmdstr = "ethernet@root/exec/config/interfaces/ethernet@!port specific config mode!HJCLI_STRING !shelf/slot/subslot/port!";
    data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_VIEWER_ACCESS;
    data.i_command_list[cmd_count++].i_cmd_exec_func = ifsv_cef_chng_interface_cmd;
 
@@ -255,7 +257,7 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
    data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_VIEWER_ACCESS;
    data.i_command_list[cmd_count++].i_cmd_exec_func = ifsv_cef_change_mode;
 
-   data.i_command_list[cmd_count].i_cmdstr = "show!show ifsv interfaces info! [shelf !Shelf num 1 to 16! NCSCLI_NUMBER<0..16> slot !Slot num 1 to 16! NCSCLI_NUMBER<0..16>]";
+   data.i_command_list[cmd_count].i_cmdstr = "show!show ifsv interfaces info! [shelf !Shelf num 1 to 16! NCSCLI_NUMBER<0..16> slot !Slot num 1 to 16! NCSCLI_NUMBER<0..16> subslot !Subslot num 1 to 16! NCSCLI_NUMBER<0..16>]";
 
    data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_VIEWER_ACCESS;
    data.i_command_list[cmd_count++].i_cmd_exec_func = ifsv_cef_show_intf_info;
@@ -501,7 +503,16 @@ ifsv_cli_extract_shelf_slot_port (NCSCLI_ARG_VAL *arg, NCS_IFSV_SPT *spt)
       }
 
       spt->slot = atoi(token1);
-      
+     
+      /* embedding subslot changes */
+      token1    = intf_phase_token( NULL, "/" );
+      if (token1 == NULL)
+      {
+         return (NCSCC_RC_FAILURE);
+      }
+
+      spt->subslot = atoi(token1);
+ 
       token1    = intf_phase_token( NULL, "/" );
       if (token1 == NULL)
       {
@@ -576,22 +587,24 @@ ifsv_cef_change_mode(NCSCLI_ARG_SET *arg_list,NCSCLI_CEF_DATA *cef_data)
 uns32 
 ifsv_cef_show_intf_info(NCSCLI_ARG_SET *arg_list,NCSCLI_CEF_DATA *cef_data)
 {
-  uns32 shelf;
-  uns32 slot;
+  uns32 shelf = 0;
+  uns32 slot = 0;
+  uns32 subslot = 0;
   uns32 ret_code;
+  /* embedding Subslot changes */
    if((arg_list->i_arg_record[1].cmd.strval!= NULL) &&
-      (arg_list->i_arg_record[1].cmd.strval!= NULL) )
+      (arg_list->i_arg_record[3].cmd.strval!= NULL) &&
+      (arg_list->i_arg_record[5].cmd.strval!= NULL))
    {
        if((strcmp(arg_list->i_arg_record[1].cmd.strval,"shelf") == 0) &&
-         (strcmp(arg_list->i_arg_record[3].cmd.strval,"slot") == 0))
+         (strcmp(arg_list->i_arg_record[3].cmd.strval,"slot") == 0) &&
+         (strcmp(arg_list->i_arg_record[5].cmd.strval,"subslot") == 0))
        {
           shelf = (long)arg_list->i_arg_record[2].cmd.strval;
           slot = (long)arg_list->i_arg_record[4].cmd.strval;
+          subslot = (long)arg_list->i_arg_record[6].cmd.strval;
 
-/*
-          printf("IFSV CLI:: Given Shelf::%d Slot::%d", shelf,slot);
-*/
-          ret_code = ifsv_process_get_row_request(cef_data, shelf, slot);
+          ret_code = ifsv_process_get_row_request(cef_data, shelf, slot, subslot);
           switch(ret_code)
           {
              case NCSCC_RC_NO_INSTANCE:
@@ -607,7 +620,7 @@ ifsv_cef_show_intf_info(NCSCLI_ARG_SET *arg_list,NCSCLI_CEF_DATA *cef_data)
    }
    else
    {
-      ret_code = ifsv_process_get_row_request(cef_data, -1, -1);
+      ret_code = ifsv_process_get_row_request(cef_data, -1, -1, -1);
       switch(ret_code)
       {
          case NCSCC_RC_NO_INSTANCE:
@@ -671,16 +684,19 @@ ifsv_cef_chng_interface_cmd(NCSCLI_ARG_SET *arg_list,
                                                            &mode_data->spt);
    if(rc != NCSCC_RC_SUCCESS)
    {
-      ifsv_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"Incorrect shelf/slot/port format \n");
+      /* embedding subslot changes */
+      ifsv_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"Incorrect shelf/slot/subslot/port format \n");
       m_MMGR_FREE_CLI_DEFAULT_VAL(mode_data);
       return rc;
    }
 
    inst_ids[0] = mode_data->spt.shelf;
    inst_ids[1] = mode_data->spt.slot;
-   inst_ids[2] = mode_data->spt.port;
-   inst_ids[3] = mode_data->spt.type;
-   inst_ids[4] = NCS_IFSV_SUBSCR_EXT;
+   /* embedding subslot changes */
+   inst_ids[2] = mode_data->spt.subslot;
+   inst_ids[3] = mode_data->spt.port;
+   inst_ids[4] = mode_data->spt.type;
+   inst_ids[5] = NCS_IFSV_SUBSCR_EXT;
 
    /* Initialize the MIB arg structure */
    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
@@ -846,8 +862,10 @@ uns32 ncs_ifsv_cli_get_ifindex_from_spt(uns32            i_mib_key,
 
    inst_ids[0] = i_spt->shelf;
    inst_ids[1] = i_spt->slot;
-   inst_ids[2] = i_spt->port;
-   inst_ids[3] = i_spt->type;
+   /* embedding subslot changes */
+   inst_ids[2] = i_spt->subslot;
+   inst_ids[3] = i_spt->port;
+   inst_ids[4] = i_spt->type;
 
    /* Initialize the MIB arg structure */
    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
@@ -894,8 +912,10 @@ uns32 ncs_ifsv_cli_get_ippfx_from_spt(uns32            i_mib_key,
 
    inst_ids[0] = i_spt->shelf;
    inst_ids[1] = i_spt->slot;
-   inst_ids[2] = i_spt->port;
-   inst_ids[3] = i_spt->type;
+   /* embedding subslot changes */
+   inst_ids[2] = i_spt->subslot;
+   inst_ids[3] = i_spt->port;
+   inst_ids[4] = i_spt->type;
 
    /* Initialize the MIB arg structure */
    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
@@ -1017,6 +1037,8 @@ ifsv_cef_conf_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    mode_data->spt.port  = bind_num;
    mode_data->spt.shelf = IFSV_BINDING_SHELF_ID;
    mode_data->spt.slot  = IFSV_BINDING_SLOT_ID;
+   /* embedding subslot changes */
+   mode_data->spt.subslot  = IFSV_BINDING_SUBSLOT_ID;
    mode_data->spt.type  = NCS_IFSV_INTF_BINDING;
    mode_data->spt.subscr_scope = NCS_IFSV_SUBSCR_INT;
    
@@ -2473,7 +2495,7 @@ vip_ncs_cli_done(uns32 cli_hdl, uns32 rc)
 
 
 static uns32
-ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slot)
+ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slot, uns32 subslot)
 {
     NCS_IFSV_CLI_MODE_DATA *p_ifsv_mode_data;
     uns32 xch_id = 1;
@@ -2487,9 +2509,8 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
     NCS_IFSV_SSPT_IF_INDEX_INFO sspt_info;
     uns8 title_str[200];
 
-
-    sprintf(title_str, "%-10.8s%-10.7s%-10.7s%-10.9s%-15.11s%7.7s%10.7s", "SHELF-ID", "SLOT-ID", "PORT-ID", "TYPE-INFO", "SUBSCR-INFO", "IFINDEX", "IF-NAME");
-
+    /* embedding subslot changes */
+    sprintf(title_str, "%-10.8s%-10.7s%-15.10s%-10.7s%-10.9s%-15.11s%7.7s%10.7s", "SHELF-ID", "SLOT-ID", "SUBSLOT_ID", "PORT-ID", "TYPE-INFO", "SUBSCR-INFO", "IFINDEX", "IF-NAME");
 
     m_NCS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncs_mib_arg);
@@ -2535,21 +2556,25 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
 
        sspt_info.sspt_info.shelf = sec_idxs[0];
        sspt_info.sspt_info.slot = sec_idxs[1];
-       sspt_info.sspt_info.port = sec_idxs[2];
-       sspt_info.sspt_info.type = sec_idxs[3];
-       sspt_info.sspt_info.subscr_scope = sec_idxs[4];
+       /* embedding subslot changes */
+       sspt_info.sspt_info.subslot = sec_idxs[2];
+       sspt_info.sspt_info.port = sec_idxs[3];
+       sspt_info.sspt_info.type = sec_idxs[4];
+       sspt_info.sspt_info.subscr_scope = sec_idxs[5];
 
        if(NCSCC_RC_SUCCESS != ifsv_fill_sspt_display_data(&ncs_mib_arg, &sspt_info))
           return NCSCC_RC_FAILURE;
 
-       if((shelf == -1) && (slot == -1))
+       if((shelf == -1) && (slot == -1) && (subslot == -1))
        {
          ifsv_intf_display_dump(p_cef_data, sspt_info);
        }
        else
        {
+         /* embedding subslot changes */
          if((sspt_info.sspt_info.shelf == shelf) &&
-            (sspt_info.sspt_info.slot == slot) )
+            (sspt_info.sspt_info.slot == slot) &&
+            (sspt_info.sspt_info.subslot == subslot))
          ifsv_intf_display_dump(p_cef_data, sspt_info);
        }
 
@@ -2572,20 +2597,20 @@ void ifsv_intf_display_dump(NCSCLI_CEF_DATA *p_cef_data,
 {
    int8                    display_str[90];
    uns32                   prn_cursor=0;
+   
    prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.shelf);/*1*/
    prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.slot);/*2*/
-   prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.port);/*3*/
-   prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.type);/*4*/
+   /* embedding subslot changes */
+   prn_cursor += sprintf(display_str + prn_cursor, "%-15.2d",display_info.sspt_info.subslot);/*3*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.port);/*4*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%-10.2d",display_info.sspt_info.type);/*5*/
    if(display_info.sspt_info.subscr_scope == NCS_IFSV_SUBSCR_EXT)
-      prn_cursor += sprintf(display_str + prn_cursor, "%-15.11s","EXTERNAL");/*5*/
+      prn_cursor += sprintf(display_str + prn_cursor, "%-15.11s","EXTERNAL");/*6*/
    else
       if(display_info.sspt_info.subscr_scope == NCS_IFSV_SUBSCR_INT)
-         prn_cursor += sprintf(display_str + prn_cursor, "%-15.11s","INTERNAL");/*5*/
-   prn_cursor += sprintf(display_str + prn_cursor, "%-10d",display_info.ifindex);/*6*/
-   prn_cursor += sprintf(display_str + prn_cursor, "%-10s",display_info.if_name);/*7*/
-
-
-
+         prn_cursor += sprintf(display_str + prn_cursor, "%-15.11s","INTERNAL");/*6*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%-10d",display_info.ifindex);/*7*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%-10s",display_info.if_name);/*8*/
 
    ifsv_ncs_cli_display(p_cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
    ifsv_ncs_cli_display(p_cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);

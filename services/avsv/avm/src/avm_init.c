@@ -252,7 +252,6 @@ avm_init_proc(uns32 *avm_init_hdl)
    cb->eda_init_tmr.tmr_id = TMR_T_NULL;
    cb->ssu_tmr.tmr_id = TMR_T_NULL;
    cb->ssu_tmr.status = AVM_TMR_NOT_STARTED;
-   cb->is_platform    = FALSE;
 
    /* Get the mailbox selection object */
    mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->mailbox);
@@ -306,6 +305,20 @@ avm_init_proc(uns32 *avm_init_hdl)
           */  
           m_AVM_LOG_DEBUG("AVM-SSU: Failed to execute AVM_SSU_DHCONF_SCRIPT to initialise DHCP conf file", NCSFL_SEV_ERROR); 
       }
+   }
+   if(cb->ha_state == SA_AMF_HA_STANDBY)
+   {
+      /*ssu_tmr is not needed if initially coming up as standby */
+      cb->ssu_tmr.status = AVM_TMR_EXPIRED;
+   }
+
+   /* Initialize with FMA */
+   if(NCSCC_RC_SUCCESS != avm_fma_initialize(cb))
+   {
+      m_AVM_LOG_FM_INFO(AVM_LOG_FMA_INIT_FAILED, NCSFL_SEV_CRITICAL, NCSFL_LC_FUNC_RET_FAIL);
+      ncshm_give_hdl(g_avm_hdl);
+      g_avm_hdl = 0;
+      return ;
    }
 
    /* Initialise MDS */

@@ -33,7 +33,7 @@
 /* all the mbcsv version from IFD_MBCSV_VER_MIN to IFD_MBCSV_VERSION
    should be supported*/
 #define IFD_MBCSV_VERSION_MIN 1
-#define IFD_MBCSV_VERSION 1
+#define IFD_MBCSV_VERSION 2
 
 /*****************************************************************************
  * This is the event type that Active will send and Standby IfD will receive. 

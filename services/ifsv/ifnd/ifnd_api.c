@@ -144,11 +144,14 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       ifsv_cb->comp_type = comp_type;
       ifsv_cb->my_svc_id = svc_id;
       ifsv_cb->shelf     = pwe_param->shelf_no;
-      ifsv_cb->slot      = pwe_param->slot_no;         
+      ifsv_cb->slot      = pwe_param->slot_no;
+      /* embedding subslot changes */
+      ifsv_cb->subslot   = pwe_param->subslot_no;         
       m_NCS_STRCPY(ifsv_cb->comp_name, comp_name);         
       ifsv_cb->vrid      = pwe_param->vrid;
       ifsv_cb->oac_hdl   = pwe_param->oac_hdl;
 
+      m_NCS_CONS_PRINTF ("ifnd_api info - shelf: %d slot: %d subslot: %d svc_id - %d \n",  pwe_param->shelf_no,  pwe_param->slot_no, pwe_param->subslot_no, svc_id);
 #if 1
       ifsv_cb->ha_state    = SA_AMF_HA_ACTIVE;
 #endif      
@@ -583,7 +586,7 @@ static uns32
 ifnd_extract_input_info(int argc, char *argv[], IFSV_CREATE_PWE *ifsv_info)
 {
    char                 *p_field;
-
+   uns32                node_id=0;
    m_NCS_MEMSET(ifsv_info,0,sizeof(IFSV_CREATE_PWE));
 
    p_field = ifnd_search_argv_list(argc, argv, "SHELF_ID=");
@@ -609,6 +612,22 @@ ifnd_extract_input_info(int argc, char *argv[], IFSV_CREATE_PWE *ifsv_info)
       m_NCS_CONS_PRINTF("\nERROR:Problem in slot_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
+
+   /* embedding subslot changes */
+   p_field = ifnd_search_argv_list(argc, argv, "NODE_ID=");
+   if (p_field == NULL)
+   {
+      m_NCS_CONS_PRINTF("\nERROR:Problem in node_id argument\n");
+      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+   }
+
+   if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1)
+   {
+      m_NCS_CONS_PRINTF("\nERROR:Problem in node_id argument\n");
+      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+   }
+
+   ifsv_info->subslot_no = (node_id & 0x0f);
 
    /* Since the Pool Id we need to have it as constant */
    ifsv_info->pool_id   = NCS_HM_POOL_ID_COMMON;

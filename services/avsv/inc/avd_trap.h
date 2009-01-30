@@ -88,9 +88,14 @@ EXTERN_C uns32 avd_populate_clm_node_traps(AVD_CL_CB *avd_cb,
 EXTERN_C uns32 avd_gen_ncs_init_success_trap(AVD_CL_CB *avd_cb,
                                    AVD_AVND *node); 
 
+EXTERN_C uns32 avd_node_shutdown_failure_trap(AVD_CL_CB *avd_cb, 
+                                   AVD_AVND *node, 
+                                   uns32 errcode);
+
 EXTERN_C uns32 avd_create_and_send_trap(AVD_CL_CB *avd_cb,
                                    NCS_TRAP *trap,
-                                   SaEvtEventPatternT *pattern); 
+                                   SaEvtEventPatternT *pattern,
+                                   uns32 pattern_array_len); 
 
 EXTERN_C uns32 avd_eda_initialize(AVD_CL_CB  *avd_cb);
 

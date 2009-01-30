@@ -2009,8 +2009,13 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
         (reqmsg.nid_stat_code < nid_serv_stat_info[temp_serv_code].nid_max_err_code))
      {
 
-       sysf_sprintf(strbuff,"Failed \n DESC:%s",\
-           nid_serv_stat_info[temp_serv_code].stat_info[reqmsg.nid_stat_code - 2].nid_stat_msg);
+       if((reqmsg.nid_serv_code == NID_BIOSUP) ||(reqmsg.nid_serv_code == NID_IPMCUP))
+          sysf_sprintf(strbuff,"Failed \n DESC:%s",\
+             nid_serv_stat_info[temp_serv_code].stat_info[reqmsg.nid_stat_code - 4].nid_stat_msg);
+         else
+          sysf_sprintf(strbuff,"Failed \n DESC:%s",\
+             nid_serv_stat_info[temp_serv_code].stat_info[reqmsg.nid_stat_code - 2].nid_stat_msg);
+
        return NCSCC_RC_FAILURE;
       }
       else
@@ -2672,7 +2677,8 @@ spawn_services(uns8 * strbuf)
         *    Determine the role from LHCPD If we are ACTIVE/STDBY.*
         *    Needed while initializing DRBD and SCAP/PCAP.        *
         ***********************************************************/
-         if( ((service->servcode == NID_HLFM) || (service->servcode == NID_RDF)) && (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_F101_AVR]) || (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_PC_SCXB]))) )
+         if( (service->servcode == NID_RDF) && (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_F101_AVR]) || (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_PC_SCXB]))) )
+
        {
          if(getrole() != NCSCC_RC_SUCCESS)
          {

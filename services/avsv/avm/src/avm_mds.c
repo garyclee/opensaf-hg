@@ -45,7 +45,6 @@
 #include "avm_cb.h"
 #include "avm_evt.h"
 #include "avm_mem.h"
-#include "lfm_avm_intf.h"
 
 /* MDS callback function declaration */
 static uns32 avm_mds_callback (struct ncsmds_callback_info *info);
@@ -60,11 +59,6 @@ static uns32 avm_mds_sys_evt  (struct ncsmds_callback_info *info);
 static uns32 avm_avd_msg_rcv(MDS_CLIENT_HDL cb_hdl, AVD_AVM_MSG_T *avd_avm);
 static uns32 avm_bam_msg_rcv(MDS_CLIENT_HDL cb_hdl, BAM_AVM_MSG_T *bam_avm);
 
-#if (MOT_ATCA == 1)
-static uns32 avm_lfm_msg_rcv(MDS_CLIENT_HDL cb_hdl,MDS_DEST fr_dest, LFM_AVM_MSG_T *lfm_avm, 
-                             MDS_SYNC_SND_CTXT *mds_ctxt);
-#endif
-
 static uns32 avm_mds_register_adest(AVM_CB_T  *cb);
 /* routines to create and destroy MDS VDEST */
 static uns32 avm_mds_vdest_create(AVM_CB_T  *cb);
@@ -77,7 +71,6 @@ static uns32
 avm_mds_avd_up(struct ncsmds_callback_info *mds_cb_info);
 
 const MDS_CLIENT_MSG_FORMAT_VER avm_avd_msg_fmt_map_table[AVM_AVD_SUBPART_VER_MAX] = {AVSV_AVD_AVM_MSG_FMT_VER_1};
-const MDS_CLIENT_MSG_FORMAT_VER avm_lfm_msg_fmt_map_table[AVM_LFM_SUBPART_VER_MAX] = {NCS_AVM_LFM_MSG_FMT_VER_1};
 const MDS_CLIENT_MSG_FORMAT_VER avm_bam_msg_fmt_map_table[AVM_BAM_SUBPART_VER_MAX] = {AVSV_AVM_BAM_MSG_FMT_VER_1};
 
 /***********************************************************************
@@ -133,25 +126,6 @@ static uns32 avm_mds_cpy(struct ncsmds_callback_info *info)
 {
    AVM_AVD_MSG_T  *dst_msg;
    
-#if (MOT_ATCA == 1) 
-      
-   if(info->info.cpy.i_to_svc_id == NCSMDS_SVC_ID_LFM)
-   {
-      info->info.cpy.o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->info.cpy.i_rem_svc_pvt_ver,
-                                            AVM_LFM_SUBPART_VER_MIN,
-                                            AVM_LFM_SUBPART_VER_MAX,
-                                            avm_lfm_msg_fmt_map_table);
-
-      if(info->info.cpy.o_msg_fmt_ver < NCS_AVM_LFM_MSG_FMT_VER_1)
-      {
-         m_AVM_LOG_INVALID_VAL_CRITICAL(info->info.cpy.o_msg_fmt_ver);   
-         return NCSCC_RC_FAILURE;
-      }
-
-      return lfm_avm_mds_cpy(&info->info.cpy);
-   }
-#endif
-   
    info->info.cpy.o_msg_fmt_ver = avm_avd_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver];
 
    dst_msg              = (AVM_AVD_MSG_T*)info->info.cpy.i_msg;
@@ -162,104 +136,26 @@ static uns32 avm_mds_cpy(struct ncsmds_callback_info *info)
 
 static uns32 avm_mds_enc(struct ncsmds_callback_info *info)
 {
- 
-#if (MOT_ATCA == 1)
-   if(info->info.enc.i_to_svc_id == NCSMDS_SVC_ID_LFM)
-   {
-      info->info.enc.o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->info.enc.i_rem_svc_pvt_ver,
-                                            AVM_LFM_SUBPART_VER_MIN,
-                                            AVM_LFM_SUBPART_VER_MAX,
-                                            avm_lfm_msg_fmt_map_table);
-
-      if(info->info.enc.o_msg_fmt_ver < NCS_AVM_LFM_MSG_FMT_VER_1)
-      {
-         m_AVM_LOG_INVALID_VAL_CRITICAL(info->info.enc.o_msg_fmt_ver);
-         return NCSCC_RC_FAILURE;
-      }
-      
-      return lfm_avm_mds_enc(&info->info.enc);
-   }
-   else
-#endif
-   {
-      m_AVM_LOG_DEBUG("MDS not supposed to Invoke enc func", NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+   m_AVM_LOG_DEBUG("MDS not supposed to Invoke enc func", NCSFL_SEV_CRITICAL);
+   return NCSCC_RC_FAILURE;
 }      
 
 static uns32 avm_mds_dec(struct ncsmds_callback_info *info)
 {      
-#if (MOT_ATCA == 1)
-   if(info->info.dec.i_fr_svc_id == NCSMDS_SVC_ID_LFM)
-   {
-      if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
-                                AVM_LFM_SUBPART_VER_MIN,
-                                AVM_LFM_SUBPART_VER_MAX,
-                                avm_lfm_msg_fmt_map_table))
-      {
-         /* log the problem */
-         m_AVM_LOG_INVALID_VAL_CRITICAL(info->info.dec.i_msg_fmt_ver);
-         return NCSCC_RC_FAILURE;
-      }
-
-      return lfm_avm_mds_dec(&info->info.dec);
-   }
-   else
-#endif
-   {
-      m_AVM_LOG_DEBUG("MDS not suppoded to invoke dec func", NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+   m_AVM_LOG_DEBUG("MDS not suppoded to invoke dec func", NCSFL_SEV_CRITICAL);
+   return NCSCC_RC_FAILURE;
 }
 
 static uns32 avm_mds_enc_flat(struct ncsmds_callback_info *info)
 {     
-#if (MOT_ATCA == 1) 
-   if(info->info.enc_flat.i_to_svc_id == NCSMDS_SVC_ID_LFM)
-   {
-      info->info.enc_flat.o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(info->info.enc_flat.i_rem_svc_pvt_ver,
-                                            AVM_LFM_SUBPART_VER_MIN,
-                                            AVM_LFM_SUBPART_VER_MAX,
-                                            avm_lfm_msg_fmt_map_table);
-
-      if(info->info.enc_flat.o_msg_fmt_ver < NCS_AVM_LFM_MSG_FMT_VER_1)
-      {
-         m_AVM_LOG_INVALID_VAL_CRITICAL(info->info.enc_flat.o_msg_fmt_ver);
-         return NCSCC_RC_FAILURE;
-      }
-
-      return lfm_avm_mds_enc(&info->info.enc_flat);
-   }
-   else
-#endif
-   {
-      m_AVM_LOG_DEBUG("MDS not supposed to invoke enc flat func", NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+   m_AVM_LOG_DEBUG("MDS not supposed to invoke enc flat func", NCSFL_SEV_CRITICAL);
+   return NCSCC_RC_FAILURE;
 }
 
 static uns32 avm_mds_dec_flat(struct ncsmds_callback_info *info)
 {     
-#if (MOT_ATCA == 1) 
-   if(info->info.dec_flat.i_fr_svc_id == NCSMDS_SVC_ID_LFM)
-   {
-      if(!m_NCS_MSG_FORMAT_IS_VALID(info->info.dec_flat.i_msg_fmt_ver,
-                                AVM_LFM_SUBPART_VER_MIN,
-                                AVM_LFM_SUBPART_VER_MAX,
-                                avm_lfm_msg_fmt_map_table))
-      {
-         /* log the problem */
-         m_AVM_LOG_INVALID_VAL_CRITICAL(info->info.dec_flat.i_msg_fmt_ver);
-         return NCSCC_RC_FAILURE;
-      }
-      return lfm_avm_mds_dec(&info->info.dec_flat);
-   }
-   else
-#endif
-   {
-      m_AVM_LOG_DEBUG("MDS not supposed to invoke dec flat func", NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+   m_AVM_LOG_DEBUG("MDS not supposed to invoke dec flat func", NCSFL_SEV_CRITICAL);
+   return NCSCC_RC_FAILURE;
 }
 
 static uns32 avm_mds_sys_evt(struct ncsmds_callback_info *info)
@@ -330,59 +226,6 @@ static uns32 avm_avd_msg_rcv(
    return rc;
 }
 
-#if (MOT_ATCA == 1)
-static uns32 avm_lfm_msg_rcv(MDS_CLIENT_HDL    cb_hdl,
-                             MDS_DEST          fr_dest,
-                             LFM_AVM_MSG_T    *lfm_avm,
-                             MDS_SYNC_SND_CTXT *mds_ctxt)
-{
-   AVM_EVT_T     *avm_evt;
-   AVM_CB_T      *avm_cb = NULL;
-   uns32          rc = NCSCC_RC_SUCCESS;
-
-
-   /* retrieve AVM CB */
-   if (NULL == (avm_cb = (AVM_CB_T *)ncshm_take_hdl(NCS_SERVICE_ID_AVM,
-                (uns32)cb_hdl)))
-   {
-      m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL); 
-      lfm_avm_msg_free(lfm_avm);
-      return NCSCC_RC_FAILURE;
-   }
-
-   avm_evt = m_MMGR_ALLOC_AVM_EVT;
-   if (AVM_EVT_NULL == avm_evt)
-   {
-      m_AVM_LOG_MEM(AVM_LOG_EVT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
-      lfm_avm_msg_free(lfm_avm);
-      ncshm_give_hdl((uns32)cb_hdl);
-      return NCSCC_RC_FAILURE;
-   }
-
-   avm_evt->src = AVM_EVT_LFM;   
-
-   /* formulate the event for the received message */
-   avm_evt->evt.lfm_evt.msg      = lfm_avm; 
-   avm_evt->evt.lfm_evt.fr_dest  = fr_dest; 
-   avm_evt->evt.lfm_evt.mds_ctxt = *mds_ctxt;
-   
-   /* put the event in AVM mail box */
-   if(m_NCS_IPC_SEND(&avm_cb->mailbox, avm_evt, NCS_IPC_PRIORITY_HIGH)
-                    == NCSCC_RC_FAILURE)
-   {
-      m_AVM_LOG_MBX(AVM_LOG_MBX_SEND, AVM_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
-      m_MMGR_FREE_AVM_EVT(avm_evt); 
-      ncshm_give_hdl((uns32)cb_hdl);
-      rc = NCSCC_RC_FAILURE;
-   }
-
-   /* return AVM CB */
-   ncshm_give_hdl((uns32)cb_hdl);
-   
-   return rc;
-}
-
-#endif
 static uns32 avm_bam_msg_rcv(MDS_CLIENT_HDL    cb_hdl,
                              BAM_AVM_MSG_T    *bam_avm)
 {
@@ -473,23 +316,6 @@ static uns32 avm_mds_rcv (struct ncsmds_callback_info *mds_cb_info)
          return rc;
       }
    }else
-#if (MOT_ATCA == 1)
-       if ((mds_cb_info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_LFM) &&
-           (mds_cb_info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVM))
-   {
-
-      rc = avm_lfm_msg_rcv(mds_cb_info->i_yr_svc_hdl, 
-                        mds_cb_info->info.receive.i_fr_dest,
-                        (LFM_AVM_MSG *)mds_cb_info->info.receive.i_msg,
-                        (MDS_SYNC_SND_CTXT *) &mds_cb_info->info.receive.i_msg_ctxt);
-
-      mds_cb_info->info.receive.i_msg = (NCSCONTEXT)0x0;
-      if(NCSCC_RC_SUCCESS != rc)
-      {
-         return rc;
-      }
-   }else
-#endif
    {
       /* Loge Here */
          mds_cb_info->info.receive.i_msg = NULL;
@@ -545,30 +371,16 @@ static uns32 avm_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
        break;
 
        case NCSMDS_UP:
-       switch(mds_cb_info->info.svc_evt.i_svc_id)
+       if(mds_cb_info->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_AVD)
        {
-           case NCSMDS_SVC_ID_AVD:
-           {
-              m_AVM_LOG_DEBUG("MDS up and Rcvd AVD ack", NCSFL_SEV_INFO);
-              
-              if(m_NCS_MDS_DEST_EQUAL(&cb->adest, &mds_cb_info->info.svc_evt.i_dest))
-              {
-                 avm_mds_avd_up(mds_cb_info);
-              }   
+          m_AVM_LOG_DEBUG("MDS up and Rcvd AVD ack", NCSFL_SEV_INFO);
 
-              /* cb->avd_dest = mds_cb_info->info.svc_evt.i_dest; */
-           }
-           break;
+          if(m_NCS_MDS_DEST_EQUAL(&cb->adest, &mds_cb_info->info.svc_evt.i_dest))
+          {
+             avm_mds_avd_up(mds_cb_info);
+          }
 
-#if (MOT_ATCA == 1)
-           case NCSMDS_SVC_ID_LFM:
-           {
-              cb->is_platform = TRUE;
-           }
-           break;
-#endif
-           default:
-           break;
+          /* cb->avd_dest = mds_cb_info->info.svc_evt.i_dest; */
        }
        break;
 
@@ -923,29 +735,6 @@ uns32 avm_mds_initialize(AVM_CB_T *cb)
         m_AVM_LOG_MDS(AVM_LOG_MDS_SUBSCRIBE, AVM_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL); 
         return rc;
     }
-
-#if (MOT_ATCA == 1)
-    /* Now subscribe for AVM events in MDS */
-    m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
-
-    mds_info.i_mds_hdl        = cb->vaddr_pwe_hdl;
-    mds_info.i_svc_id         = NCSMDS_SVC_ID_AVM;
-    mds_info.i_op             = MDS_SUBSCRIBE;
-
-    mds_info.info.svc_subscribe.i_scope         = NCSMDS_SCOPE_NONE;
-    mds_info.info.svc_subscribe.i_num_svcs      = 1;
-    mds_info.info.svc_subscribe.i_svc_ids       = svc;
-
-    svc[0] = NCSMDS_SVC_ID_LFM;
-
-    /* register to MDS */
-    rc = ncsmds_api(&mds_info);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        m_AVM_LOG_MDS(AVM_LOG_MDS_SUBSCRIBE, AVM_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL); 
-        return rc;
-    }
-#endif
 
     m_AVM_LOG_MDS(AVM_LOG_MDS_SUBSCRIBE, AVM_LOG_MDS_SUCCESS, NCSFL_SEV_INFO); 
     return rc;

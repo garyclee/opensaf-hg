@@ -201,6 +201,7 @@
 			<xs:enumeration value="SAHPI_ENT_SYSTEM_BLADE"/>
 			<xs:enumeration value="SAHPI_ENT_SWITCH_BLADE"/>
 			<xs:enumeration value="SAHPI_ENT_IO_BLADE"/>
+                               <xs:enumeration value="AMC_SUB_SLOT_TYPE"/>
 			<xs:enumeration value="SAHPI_ENT_IO_SUBBOARD"/>
 			<xs:enumeration value="SAHPI_ENT_SBC_SUBBOARD"/>
 			<xs:enumeration value="SAHPI_ENT_SUBBOARD_CARRIER_BLADE"/>

@@ -123,7 +123,6 @@ pkginclude_HEADERS = \
 	include/ifsv_papi.h \
 	include/ip_defs.h \
 	include/ipxs_papi.h \
-	include/lfm_avm_intf.h \
 	include/mab_penv.h \
 	include/mac_papi.h \
 	include/mbcsv_papi.h \
@@ -178,6 +177,7 @@ pkginclude_HEADERS = \
 	include/psr_mib_load.h \
 	include/psr_papi.h \
 	include/rda_papi.h \
+	include/fm_papi.h \
 	include/sckt_defs.h \
 	include/srma_papi.h \
 	include/srmsv_papi.h \
@@ -244,6 +244,7 @@ CONTROLLER_SUBDIRS = \
 	services/ifsv/entp_snmp_integ \
 	services/ifsv/entp_ifsv_ir_snmp_integ \
 	services/rde/rda \
+	services/fm/fma \
 	tools/pdrbd \
 	services
 
@@ -263,7 +264,8 @@ endif
 
 common_sysconf = \
 	$(top_srcdir)/config/chassis_id \
-	$(top_srcdir)/config/slot_id
+	$(top_srcdir)/config/slot_id \
+	$(top_srcdir)/config/subslot_id
 
 controller_sysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
@@ -284,7 +286,8 @@ controller_sysconf = \
 	$(top_srcdir)/config/.drbd_sync_state_3 \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/saflog.conf \
-	$(top_srcdir)/config/rde.conf
+	$(top_srcdir)/config/rde.conf \
+	$(top_srcdir)/config/fms.conf
 
 payload_sysconf = \
 	$(top_srcdir)/config/nodeinit.conf.payload
@@ -335,6 +338,7 @@ nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_dts_start \
 	$(top_builddir)/scripts/ncs_eds_clean \
 	$(top_builddir)/scripts/ncs_eds_start \
+	$(top_builddir)/scripts/opensaf_fms \
 	$(top_builddir)/scripts/ncs_gld_start \
 	$(top_builddir)/scripts/ncs_glnd_start \
 	$(top_builddir)/scripts/ncs_ifd_clean \
