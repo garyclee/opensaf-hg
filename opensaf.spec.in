@@ -246,6 +246,7 @@ fi
 %{_datadir}/snmp/mibs/*
 %{_sysconfdir}/%{name}/chassis_id
 %{_sysconfdir}/%{name}/slot_id
+%{_sysconfdir}/%{name}/subslot_id
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
@@ -295,6 +296,7 @@ fi
 %{_bindir}/ncs_rde_clean
 %{_bindir}/ncs_rde_start
 %{_bindir}/ncs_snmpsubagt_clean
+%{_bindir}/opensaf_fms
 %{_bindir}/ncs_snmpsubagt_reload
 %{_bindir}/ncs_snmpsubagt_start
 %{_bindir}/ncs_srmnd_clean
@@ -344,6 +346,7 @@ fi
 %{_bindir}/ncs_nid
 %{_bindir}/ncs_psr
 %{_bindir}/ncs_rde
+%{_bindir}/opensaf_fmsd
 %{_bindir}/ncs_scap
 %{_bindir}/ncs_snmp_subagt
 %{_bindir}/ncs_srmnd
@@ -362,6 +365,7 @@ fi
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
 %{_sysconfdir}/%{name}/pssv_lib_conf
 %{_sysconfdir}/%{name}/rde.conf
+%{_sysconfdir}/%{name}/fms.conf
 %{_sysconfdir}/%{name}/subagt_lib_conf
 %{_sysconfdir}/%{name}/ValidationConfig.xml
 %{_sysconfdir}/%{name}/ValidationConfig.xsd
@@ -418,6 +422,7 @@ fi
 %{_libdir}/libmqsv_common.so.*
 %{_libdir}/libncs_core.so.*
 %{_libdir}/librda.so.*
+%{_libdir}/libfma.so.*
 %{_libdir}/libsaf_common.so.*
 %{_libdir}/libsrma.so.*
 %{_libdir}/%{name}/libavm_logstr.so.*
@@ -460,6 +465,7 @@ fi
 %{_libdir}/%{name}/libpssv_logstr.so.*
 %{_libdir}/%{name}/libpssv_subagt.so.*
 %{_libdir}/%{name}/librde_logstr.so.*
+%{_libdir}/%{name}/libfma_logstr.so.*
 %{_libdir}/%{name}/libsrmsv_logstr.so.*
 %{_libdir}/%{name}/libsubagt_logstr.so.*
 %{_libdir}/%{name}/libvds_logstr.so.*

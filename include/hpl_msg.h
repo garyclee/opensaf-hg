@@ -34,6 +34,11 @@
 
 #include <SaHpi.h>
 
+#ifndef HPI_A
+#define AMC_SUB_SLOT_TYPE  (SaHpiEntityTypeT)SAHPI_ENT_CHASSIS_SPECIFIC + 7
+#endif
+
+
 /* macros for base MAC addresses for payload blades */
 #define MAX_MAC_ENTRIES          02
 #define MAC_DATA_LEN             06
@@ -61,9 +66,11 @@
 
 #define HISV_MAC_ADDR_MOT_OEM_MID       (0x0000A1)
 #define HISV_MAC_ADDR_FORCE_OEM_MID     (0x000E48)
+#define HISV_MAC_ADDR_EMERSON_OEM_MID   (0x0065cd)
 #define HISV_MAC_ADDR_MOT_OEM_REC_ID    (0x01)
 #define HISV_MAC_ADDR_FORCE_OEM_REC_ID  (0x11)
 #define HISV_MAX_INV_STR_LEN            (30)
+#define CTRL_NUM_BOOT_BANK              16
 
 /* offset for firware progress error */
 #define HPI_SE_FWPROG_CODE_OFFSET    0x80
@@ -71,6 +78,7 @@
 /* version for backward compatibility */
 #define HISV_SW_VERSION              (0x00010000)
 #define HISV_EDS_INF_VERSION         (0x00000001)
+
 
 /* MAC OEM Record Type */
 typedef enum 

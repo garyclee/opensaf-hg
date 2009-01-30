@@ -34,7 +34,7 @@
 #include "mds_core.h"
 #include "mds_log.h"
 #include "mds_pvt.h"
-
+#include "ncs_main_papi.h"
 
 /****************************************************************************
  *
@@ -297,10 +297,10 @@ uns32 mds_node_link_reset(NCS_NODE_ID node_id)
 {
     char buffer[50];
     int status;
-
-    if((node_id < 0x0002010f) || (node_id > 0x0002100f))
+    /* Fix for the multi shelf support, Here we will check whether the destination node is in our shelf or not */
+    if((node_id & 0x00ff0000) != (m_NCS_GET_NODE_ID & 0x00ff0000))
     {
-        m_MDS_LOG_ERR("MDS_PAPI: Node_id Passed to the TIPC reset script is out of range ,Node=0x%08x",node_id);
+        m_MDS_LOG_ERR("MDS_PAPI: Node_id Passed to the TIPC reset script is out of range of shelf ,Node=0x%08x",node_id);
         return NCSCC_RC_FAILURE;
     }
 

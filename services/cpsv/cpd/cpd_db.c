@@ -260,6 +260,36 @@ void cpd_ckpt_tree_destroy(CPD_CB *cb)
    return;
 }
 
+/****************************************************************************
+  Name          : cpd_ckpt_tree_node_destroy
+  Description   : This cleans the nodes of trees in CB.
+  Arguments     : CPD_CB *cb - CPD Control Block.
+  Return Values : None
+  Notes         : None
+******************************************************************************/
+
+
+void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
+
+{
+   if(!cb->is_ckpt_tree_up)
+      return;
+   cpd_ckpt_tree_cleanup(cb);
+
+   if(!cb->is_ckpt_map_up)
+      return;
+   cpd_ckpt_map_tree_cleanup(cb);
+
+   if(!cb->is_cpnd_tree_up)
+      return;
+   cpd_cpnd_info_tree_cleanup(cb);
+
+   if(!cb->is_ckpt_reploc_up)
+     return;
+   cpd_ckpt_reploc_cleanup(cb);
+
+   return;
+}
 
 
 /****************************************************************************
@@ -1111,38 +1141,6 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node,
    return;
 }
 
-#if 0
-/*********************************************************************************************
-* Name        :  cpd_ckpt_reflist_del
-*
-* Description : delete the checkpoint present in each node , delete the entire node and checkpoint
-*
-*********************************************************************************************/
-void cpd_ckpt_reflist_del(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,CPSV_CPND_DEST_INFO  *dest_list)
-{
-   CPD_CPND_INFO_NODE *cpnd_node = NULL;
-   uns32 count;
-   CPD_CKPT_REF_INFO *cref,*cref_prev;
-   
-   for(count=0;count< ckpt_node->dest_cnt;count++)
-   {
-      cpd_cpnd_info_node_get(&cb->cpnd_tree,&dest_list[count].dest,&cpnd_node);
-      cref_prev = cpnd_node->ckpt_ref_list;
-      /* To checkpoint ref to be found out would be first one */
-      if(cref_prev->ckpt_node == ckpt_node)
-      {
-          cref = cref_prev->next;
-          cpnd_node->ckpt_ref_list = cref;
-          m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_prev);
-          if((cpnd_node->ckpt_cnt-1) == 0)
-          {
-             cpd_cpnd_info_node_delete(cb,cpnd_node);
-          }
-      }
-    }
-}
-     
-#endif
 
 /******************************************************************************************************
 * Name  : cpd_process_cpnd_del
@@ -1222,32 +1220,6 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
    cpnd_info->ckpt_ref_list = NULL;
 
    /* get each  ckpt_nodes and */
-#if 0
-   cpd_ckpt_node_getnext(&cb->c);   
-   while(ckpt_node)
-   {
-      for(nref_info = ckpt_node->node_list ; nref_info != NULL;nref_info = nref_info->next)
-      {
-         if(m_NCS_MDS_DEST_EQUAL(&nref_info->dest,&msg->info.dest_del.mds_dest))
-         {
-            if(m_NCS_MDS_DEST_EQUAL(&msg->info.dest_del.mds_dest,&ckpt_node->active_dest))
-            {
-                ckpt_node->is_active_exists = FALSE;
-            }
-            cpd_node_ref_info_del(ckpt_node,nref_info);
-            break;
-         }
-      }
-      if(ckpt_node->dest_cnt == 0)
-      {
-         cpd_ckpt_node_delete(cb,ckpt_node);
-         if(map_info)
-         {
-            cpd_ckpt_map_node_delete(cb, map_info);
-         }
-      }
-   }
-#endif
   
    cpd_cpnd_info_node_delete(cb,cpnd_info); 
 
@@ -1256,7 +1228,26 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
 
 
 /********************************************************************************
- Name    :  cpd_get_phy_slot_id
+ Name    :  cpd_get_slot_sub_id_from_mds_dest
+
+ Description :  To get the physical slot id from the mds dest
+
+ Arguments   :
+
+*************************************************************************************/
+
+uns32  cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
+{
+     NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
+
+     return ((sub_slot * 8) + (phy_slot));
+}
+
+/********************************************************************************
+ Name    :  cpd_get_slot_sub_id_from_mds_dest
 
  Description :  To get the physical slot id from the node id
 
@@ -1264,15 +1255,17 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
 
 *************************************************************************************/
 
-NCS_PHY_SLOT_ID  cpd_get_phy_slot_id(MDS_DEST dest)
+
+uns32  cpd_get_slot_sub_slot_id_from_node_id( NCS_NODE_ID i_node_id )
 {
      NCS_PHY_SLOT_ID phy_slot; 
+     NCS_SUB_SLOT_ID sub_slot; 
+ 
+     m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id,NULL,&phy_slot,&sub_slot);
 
-     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,NULL);
-
-    return phy_slot;
+   return ((sub_slot * 8) + (phy_slot));    
+ 
 }
-
 
 
 
@@ -1331,23 +1324,6 @@ void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *notificatio
         }
      }
    }  
-   return;
-}
-
-void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
-{
-   if(!cb->is_ckpt_tree_up)
-      return;
-   cpd_ckpt_tree_cleanup(cb);
-   if(!cb->is_ckpt_map_up)
-      return;
-   cpd_ckpt_map_tree_cleanup(cb);
-   if(!cb->is_cpnd_tree_up)
-      return;
-   cpd_cpnd_info_tree_cleanup(cb);
-   if(!cb->is_ckpt_reploc_up)
-     return;
-   cpd_ckpt_reploc_cleanup(cb);
    return;
 }
 

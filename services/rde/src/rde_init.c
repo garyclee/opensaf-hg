@@ -43,8 +43,6 @@ static uns32 rde_task_create        (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_task_main          (RDE_CONTROL_BLOCK * rde_cb);
 static uns32 rde_process_port_io    (RDE_CONTROL_BLOCK * rde_cb);
 uns32     rde_initialize(void);
-extern uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb);
-
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_initialize
@@ -463,7 +461,6 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
 
    if (rc == 0) /* Timeout */
    {
-       rde_rde_process_hb_loss_stdby(rde_cb);
        return NCSCC_RC_FAILURE;
    }
 
@@ -542,8 +539,6 @@ static uns32 rde_process_port_io (RDE_CONTROL_BLOCK * rde_cb)
                rc = NCSCC_RC_SUCCESS;
         }
    }
-
-   rde_rde_process_hb_loss_stdby(rde_cb);
     /* if the rde has connected to the other rde */
    if(rde_rde_cb->clientConnected)
    {

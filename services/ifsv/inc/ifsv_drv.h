@@ -104,9 +104,10 @@ typedef enum ifsv_drv_service_sub_id
 #define m_IFSV_DRV_STORE_HDL(hdl) glifsv_drv_hdl=hdl
 #define m_IFSV_DRV_GET_HDL        glifsv_drv_hdl
 
-#define IFSV_DRV_PVT_SUBPART_VERSION 1
+/* embedding subslot changes for backward compatibility */
+#define IFSV_DRV_PVT_SUBPART_VERSION 2
 #define DRV_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT 1
-#define DRV_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 1
+#define DRV_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 2
 #define DRV_WRT_IFND_SUBPART_VER_RANGE             \
         (DRV_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT - \
          DRV_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT +1)

@@ -67,7 +67,7 @@ typedef uns32  NCS_SUBCR_BM;     /* Subscription attribute bitmap */
 typedef enum ncs_ipxs_key_type
 {
    NCS_IPXS_KEY_IFINDEX = 1,       /* Key is IF-INDEX */
-   NCS_IPXS_KEY_SPT,               /* Key is shelf-slot-port-type */
+   NCS_IPXS_KEY_SPT,               /* Key is shelf-slot-subslot-port-type */
    NCS_IPXS_KEY_IP_ADDR,           /* Key is IP address */
    NCS_IPXS_KEY_MAX = NCS_IPXS_KEY_IP_ADDR
 } NCS_IPXS_KEY_TYPE;
@@ -108,6 +108,8 @@ typedef struct ncs_ipxs_ipinfo
    uns8                     intfName[m_NCS_IFSV_VIP_INTF_NAME];
    uns32                    shelfId;
    uns32                    slotId;
+   /* embedding subslot changes */
+   uns32                subslotId;
    uns32                    nodeId;
    /* Here we need to add list of VipApplNames, as it would be 
     * used for phase-11 */

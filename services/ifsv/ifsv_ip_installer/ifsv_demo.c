@@ -65,6 +65,8 @@ int main (int argc, char *argv[])
          ncs_agents_startup(3, pargv);
          shlef_slot.shelf = 0;
          shlef_slot.slot  = 1;
+         /* embedding subslot changes */
+         shlef_slot.subslot  = 1;
          if (ifsv_app_demo_start((NCSCONTEXT)&shlef_slot) != NCSCC_RC_SUCCESS)
          {
             m_NCS_CONS_PRINTF ("ifsv_app_demo_start create failed \n");
@@ -94,6 +96,8 @@ int main (int argc, char *argv[])
          ncs_agents_startup(3, pargv);
          shlef_slot.shelf = 0;
          shlef_slot.slot  = 1;
+          /* embedding subslot changes */
+         shlef_slot.subslot  = 1;
          ncs_ifsv_red_demo_flag = 1;
          if (ifsv_app_demo_start((NCSCONTEXT)&shlef_slot) != NCSCC_RC_SUCCESS)
          {
@@ -158,6 +162,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    SHELF_SLOT *sh_slot = (SHELF_SLOT *)info;
    uns32 shelf = 0;
    uns32 slot = 0;
+   uns32 subslot = 0;
    uns32 port_num   = 110;
    uns32 port_type  = 4;
    uns32 MTU        = 1200;
@@ -166,9 +171,10 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    uns8  i_phy[48] = "1:22:22:22:22:22";
 
    shelf = sh_slot->shelf; 
-   slot  = sh_slot->slot; 
+   slot  = sh_slot->slot;
+   subslot = sh_slot->subslot;  
    /** create an MOCK application for demo **/
-   if (IfsvDtTestAppCreate(shelf,slot) != NCSCC_RC_SUCCESS)
+   if (IfsvDtTestAppCreate(shelf, slot, subslot) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("Sorry couldn't able to create demo's\n");
       return(NCSCC_RC_FAILURE);
@@ -258,7 +264,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
                              IfsvDtTestAppDelIntf(app_num,67,4);
                              break;
                     case '6' :
-                             IfsvDtTestAppGetBondLocalIfinfo(app_num, IFSV_BINDING_SHELF_ID, IFSV_BINDING_SLOT_ID, 1 ,NCS_IFSV_INTF_BINDING);
+                             IfsvDtTestAppGetBondLocalIfinfo(app_num, IFSV_BINDING_SHELF_ID, IFSV_BINDING_SLOT_ID, IFSV_BINDING_SUBSLOT_ID ,1 ,NCS_IFSV_INTF_BINDING);
                              break;
 
                     case '7':
@@ -280,13 +286,13 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    /*** get statistics for the available interface ***/
    port_num   = 2;
    port_type  = 26;
-   if (IfsvDtTestAppGetStats(app_num, shelf, slot, port_num, port_type) != NCSCC_RC_SUCCESS)
+   if (IfsvDtTestAppGetStats(app_num, shelf, slot, subslot, port_num, port_type) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("Sorry couldn't get interface statistics from application\n");
       return(NCSCC_RC_FAILURE);
    }
    /** get interface infomation for the give shlef/slot/port/type **/
-   if (IfsvDtTestAppGetIfinfo(app_num, shelf, slot, port_num, port_type) != NCSCC_RC_SUCCESS)
+   if (IfsvDtTestAppGetIfinfo(app_num, shelf, slot, subslot, port_num, port_type) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("Sorry couldn't get interface info from application\n");
       return(NCSCC_RC_FAILURE);

@@ -894,7 +894,12 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
          }
          
          m_NCS_CONS_PRINTF("Sending IP ADDR UPDATE \n");
-         m_NCS_CONS_PRINTF("Sending IP addr update to ifnd for ip : %x \n",temp_list->ipaddr.ipaddr.info.v4);
+/*       m_NCS_CONS_PRINTF("Sending IP addr update to ifnd for ip : %x \n",temp_list->ipaddr.ipaddr.info.v4); */
+         /* Displaying the decimal format of the IP address */
+         m_NCS_CONS_PRINTF("Sending IP addr update to ifnd for ip : %d.%d.%d.%d \n",((temp_list->ipaddr.ipaddr.info.v4)&(0xff000000))>>24,
+                                                                                    ((temp_list->ipaddr.ipaddr.info.v4)&(0x00ff0000))>>16,
+                                                                                    ((temp_list->ipaddr.ipaddr.info.v4)&(0x0000ff00))>>8,
+                                                                                    (temp_list->ipaddr.ipaddr.info.v4)&(0x000000ff));
          if((rc = ifnd_ipxs_proc_ifip_upd(ipxs_cb, ipxs_evt, NULL))
             == NCSCC_RC_FAILURE)
          {
@@ -1137,9 +1142,10 @@ ifnd_ipxs_data_proc_ifip_info (IPXS_CB *cb, IPXS_EVT *ipxs_evt,
         m_NCS_STRCPY(&ifip_node->ifip_info.intfName,&temp_ptr->intfName);
         ifip_node->ifip_info.shelfId = temp_ptr->shelfId;
         ifip_node->ifip_info.slotId = temp_ptr->slotId;
+        /* embedding subslot changes */
+        ifip_node->ifip_info.subslotId = temp_ptr->subslotId;
         ifip_node->ifip_info.nodeId = temp_ptr->nodeId;
      }
-
 #endif
 
 
@@ -1519,7 +1525,11 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
      if((m_NCS_IPXS_IS_IPAM_ADDR_SET(intf_rec->ip_info.ip_attr)) && (intf_rec->ip_info.delip_cnt != 0) &&
          (intf_rec->ip_info.delip_list != NULL))
      {
-       m_NCS_CONS_PRINTF("ifnd_ipxs_proc_ifip_upd : delip_list %x \n", intf_rec->ip_info.delip_list[0].ipaddr.info.v4);
+/*       m_NCS_CONS_PRINTF("ifnd_ipxs_proc_ifip_upd : delip_list %x \n", intf_rec->ip_info.delip_list[0].ipaddr.info.v4); */
+         m_NCS_CONS_PRINTF("ifnd_ipxs_proc_ifip_upd - delip_list : %d.%d.%d.%d \n", ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0xff000000))>>24,
+                                                                                    ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x00ff0000))>>16,
+                                                                                    ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x0000ff00))>>8,
+                                                                                    (intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x000000ff));        
        /* Store the IP Addresses in an array */
        cb->nl_addr_info.list[cb->nl_addr_info.num_ip_addr].if_index = intf_rec->if_index;
        m_NCS_OS_MEMCPY(&(cb->nl_addr_info.list[cb->nl_addr_info.num_ip_addr].ippfx),

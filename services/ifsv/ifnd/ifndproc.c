@@ -1357,7 +1357,7 @@ ifnd_init_cb (IFSV_CB *ifsv_cb)
       }
       m_IFD_LOG_HEAD_LINE(IFSV_LOG_IF_TBL_CREATED,(long)(&ifsv_cb->if_tbl),0);
       
-      /* initialze shelf/slot/port/type/scope tree */
+      /* initialze shelf/slot/subslot/port/type/scope tree */
       
       params.key_size = sizeof(NCS_IFSV_SPT);
       params.info_size = 0;
@@ -1631,7 +1631,8 @@ ifnd_intf_ifinfo_send (IFSV_CB *cb,  IFSV_EVT_INTF_INFO_GET  *if_get,
             else
             {
                if((cb->shelf == temp_intf_data->spt_info.shelf) &&
-                  (cb->slot  == temp_intf_data->spt_info.slot))
+                  (cb->slot  == temp_intf_data->spt_info.slot)  &&
+                  (cb->subslot  == temp_intf_data->spt_info.subslot))
                {
                    /* this means that the master interface is the local node */;
                }
@@ -1639,7 +1640,8 @@ ifnd_intf_ifinfo_send (IFSV_CB *cb,  IFSV_EVT_INTF_INFO_GET  *if_get,
                {              
                   temp_intf_data = ifsv_intf_rec_find(intf_data->if_info.bind_slave_ifindex, cb);
                   if(temp_intf_data && (cb->shelf == temp_intf_data->spt_info.shelf) &&
-                                    (cb->slot  == temp_intf_data->spt_info.slot))
+                                    (cb->slot  == temp_intf_data->spt_info.slot) && 
+                                    (cb->subslot  == temp_intf_data->spt_info.subslot))
                   {
                     /* the slave is the local node */
                     ifget_rsp->if_rec.if_info.bind_master_ifindex =  

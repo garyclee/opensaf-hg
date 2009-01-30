@@ -50,6 +50,7 @@
 #include <psr_bam.h>
 #include "ncs_bam_avm.h"
 #include "ncs_util.h"
+#include <hpl_msg.h>
 
 #define ANIL_DEBUGLOG printf
 #define ncs_bam_free(x) m_MMGR_FREE_BAM_DEFAULT_VAL((void *)x)

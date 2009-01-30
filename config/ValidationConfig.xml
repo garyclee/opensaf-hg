@@ -27,7 +27,7 @@
 	        <FaultDomain>FAULTDOMAIN_TYPE_SELF</FaultDomain>
         </EntityTypeInstance> 	
 
-	<EntityTypeInstance IsNode="1" Name="CONTROLLER_1" HPIEntityType="SAHPI_ENT_SYSTEM_BOARD">
+	<EntityTypeInstance IsNode="1" Name="CONTROLLER_1" HPIEntityType="SAHPI_ENT_PHYSICAL_SLOT">
 		<LocationRange ParentEntityTypeInstanceName="CHASSIS" LocationRegularExpression="1..2"/>
 		<FRUActivationPolicy Applicable="1">
 			<FruInformation ProductVersion="Rev. 01" ProductName="SYS-CONTLR" />
@@ -35,7 +35,7 @@
 		<FaultDomain>FAULTDOMAIN_TYPE_SELF</FaultDomain>
 	</EntityTypeInstance>
 
-	<EntityTypeInstance IsNode="1" Name="CONTROLLER_2" HPIEntityType="SAHPI_ENT_SYSTEM_BOARD">
+	<EntityTypeInstance IsNode="1" Name="CONTROLLER_2" HPIEntityType="SAHPI_ENT_PHYSICAL_SLOT">
 		<LocationRange ParentEntityTypeInstanceName="CHASSIS" LocationRegularExpression="1..2"/>
 		<FRUActivationPolicy Applicable="1">
 			<FruInformation ProductVersion="Rev. 01" ProductName="SYS-CONTLR" />
@@ -43,13 +43,21 @@
 		<FaultDomain>FAULTDOMAIN_TYPE_SELF</FaultDomain>
 	</EntityTypeInstance>
 	
-	<EntityTypeInstance IsNode="1" Name="PAYLOAD_PC" HPIEntityType="SAHPI_ENT_SYSTEM_BOARD">
+	<EntityTypeInstance IsNode="1" Name="PAYLOAD_PC" HPIEntityType="SAHPI_ENT_PHYSICAL_SLOT">
 			<LocationRange ParentEntityTypeInstanceName="CHASSIS" LocationRegularExpression="3..16"/>
 			<FRUActivationPolicy Applicable="1">
 				<FruInformation ProductVersion="Rev. 01" ProductName="PAYLOAD-PC" />
 			</FRUActivationPolicy>
 			<FaultDomain>FAULTDOMAIN_TYPE_SELF</FaultDomain>
 	</EntityTypeInstance>
+
+	 <EntityTypeInstance IsNode="1" Name="SUBSLOT_PAYLOAD_PC" HPIEntityType="AMC_SUB_SLOT_TYPE">
+                <LocationRange ParentEntityTypeInstanceName="PAYLOAD_PC" LocationRegularExpression="1..8"/>
+                <FRUActivationPolicy Applicable="1">
+                        <FruInformation ProductVersion="Rev. 01" ProductName="SUBSLOT-PAYLOAD-PC" />
+                </FRUActivationPolicy>
+                <FaultDomain>FAULTDOMAIN_TYPE_SELF</FaultDomain>
+        </EntityTypeInstance>
 
   
 </ValidationConfig>

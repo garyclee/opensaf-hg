@@ -49,25 +49,25 @@ $(MAPI_GENERATED_FILES): mapi
 mapi:
 	@for file in $(MAPI_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
 			-o ifsv_entp NCS-IFSV-MIB; \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
 			-o ipxs NCS-IPXS-MIB; \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \
 			-d $(top_builddir)/services \
 			-o ifsv_ir NCS-IFSV-BIND-MIB; \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmapi \

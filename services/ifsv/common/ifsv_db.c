@@ -28,12 +28,15 @@
   ifsv_intf_rec_marked_del ........ Modify or delete the interface record.
   ifsv_intf_rec_del ............... Delete interface record.
   ifsv_cleanup_tmr_find ........... Find the Cleanup timer for the given slot/port.
-  ifsv_get_ifindex_from_spt ....... Find shelf/slot/port/scope Vs Ifindex map.
-  ifsv_ifindex_spt_map_add ........ Add shelf/slot/port/scope Vs Ifindex map.
-  ifsv_ifindex_spt_map_del ........ Del shelf/slot/port/scope Vs Ifindex map.
-  ifsv_ifindex_spt_map_del_all .... Del all shelf/slot/port/scope Vs Ifindex map.  
-  ifsv_rms_if_rec_send ............ Send an RMS message.  
-  ifsv_evt_destroy ................ Destroy events send/rcv by Ifd/IfND.  
+
+  adding subslot changes for the below functions.
+     ifsv_get_ifindex_from_spt ....... Find shelf/slot/subslot/port/scope Vs Ifindex map.
+     ifsv_ifindex_spt_map_add ........ Add shelf/slot/subslot/port/scope Vs Ifindex map.
+     ifsv_ifindex_spt_map_del ........ Del shelf/slot/subslot/port/scope Vs Ifindex map.
+     ifsv_ifindex_spt_map_del_all .... Del all shelf/slot/subslot/port/scope Vs Ifindex map.  
+  Subslot changes end 
+     ifsv_rms_if_rec_send ............ Send an RMS message.  
+     ifsv_evt_destroy ................ Destroy events send/rcv by Ifd/IfND.  
 
 ******************************************************************************/
 #include "ifsv.h"
@@ -167,7 +170,7 @@ ifsv_intf_rec_add (IFSV_INTF_DATA *i_rec_data,
          m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
          spt_map.spt      = rec->intf_data.spt_info;
          spt_map.if_index = rec->intf_data.if_index;
-         /* Add the mapping b/w s/s/p/t and Ifindex to interface map table
+         /* Add the mapping b/w s/s/ss/p/t and Ifindex to interface map table
           * This adding is done only in IfND b/c In IfD this maping would
           * have been added during resolving the ifindex.
           */
@@ -1035,7 +1038,7 @@ ifsv_get_ifindex_from_spt (uns32 *o_ifindex,
 /****************************************************************************
  * Name          : ifsv_ifindex_spt_map_add
  *
- * Description   : This function used to add the shelf/slot/port/type/scope Vs 
+ * Description   : This function used to add the shelf/slot/subslot/port/type/scope Vs 
  *                 ifindex mapping.
  *                 
  *
@@ -1068,6 +1071,8 @@ ifsv_ifindex_spt_map_add (NCS_IFSV_SPT_MAP *spt,
    spt_if_map->spt_map.if_index  = spt->if_index;   
    spt_if_map->spt_map.spt.shelf = spt->spt.shelf;
    spt_if_map->spt_map.spt.slot  = spt->spt.slot;   
+   /* embedding subslot changes */
+   spt_if_map->spt_map.spt.subslot  = spt->spt.subslot;
    spt_if_map->spt_map.spt.port  = spt->spt.port;   
    spt_if_map->spt_map.spt.type  = spt->spt.type;
    spt_if_map->spt_map.spt.subscr_scope  = spt->spt.subscr_scope;
@@ -1773,7 +1778,10 @@ uns32 ifsv_check_valid_bind_interface(IFSV_INTF_DATA intf_data,IFSV_CB* ifsv_cb)
     if((intf_data.spt_info.port <=0) || (intf_data.spt_info.port > ifsv_cb->bondif_max_portnum))
     return NCSCC_RC_FAILURE;
 
-    if((intf_data.spt_info.shelf != IFSV_BINDING_SHELF_ID) || (intf_data.spt_info.slot != IFSV_BINDING_SLOT_ID) || (intf_data.spt_info.subscr_scope == NCS_IFSV_SUBSCR_EXT))
+    if((intf_data.spt_info.shelf != IFSV_BINDING_SHELF_ID) || 
+       (intf_data.spt_info.slot != IFSV_BINDING_SLOT_ID) || 
+       (intf_data.spt_info.subslot != IFSV_BINDING_SUBSLOT_ID) || 
+       (intf_data.spt_info.subscr_scope == NCS_IFSV_SUBSCR_EXT))
     return NCSCC_RC_FAILURE;
 
     master_intf_data = ifsv_intf_rec_find(intf_data.if_info.bind_master_ifindex,ifsv_cb);

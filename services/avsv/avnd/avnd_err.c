@@ -106,6 +106,18 @@ static const unsigned char *g_comp_err[AVND_ERR_SRC_MAX]=
      "csiRemovecallbackFailed(13)"
 };
 
+static const unsigned char *g_comp_rcvr[AVSV_ERR_RCVR_MAX - 1]=
+{
+     "noRecommendation(1)",
+     "componentRestart(2)",
+     "componentFailover(3)",
+     "nodeSwitchover(4)",
+     "nodeFailover(5)",
+     "nodeFailfast(6)",
+     "clusterReset(7)",
+     "suRestart(8)",
+     "suFailover(9)"
+};
 
 
 /****************************************************************************
@@ -347,6 +359,15 @@ uns32 avnd_err_process (AVND_CB       *cb,
    /* log the failure details (placeholder for sending EDSv events) */
    m_AVND_LOG_ERR(err_info->src, esc_rcvr, &comp->name_net, NCSFL_SEV_NOTICE);
 
+   /* Console Print to help debugging */
+  if(((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) ||
+      esc_rcvr == SA_AMF_NODE_FAILFAST )
+  {
+    m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -%s faulted due to %d -rcvr=%d\n",
+          comp->name_net.value, comp->err_info.src, esc_rcvr);
+    m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
+                    comp->name_net.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr-1]);
+  }
    fp=fopen(NODE_HA_STATE,"a");
    if(fp)
    {
@@ -746,6 +767,13 @@ uns32 avnd_err_rcvr_su_failover (AVND_CB   *cb,
       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
    }
 
+   /* update su oper state */
+   m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
+
+   /* inform AvD */
+   rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
+
    /*
     *  su-sis may be in assigning/removing state. signal csi
     * assign/remove done so that su-si assignment/removal algo can proceed.
@@ -770,13 +798,6 @@ uns32 avnd_err_rcvr_su_failover (AVND_CB   *cb,
       if ( NCSCC_RC_SUCCESS != rc ) goto done;
    }
 
-   /* update su oper state */
-   m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
-   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
-      
-   /* inform AvD */
-   rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
-   
 done:
    return rc;
 }
@@ -819,6 +840,14 @@ uns32 avnd_err_rcvr_node_failover (AVND_CB   *cb,
       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_FLAG_CHANGE);
    }
 
+   /* transition the su & node oper state to disabled */
+   cb->oper_state = NCS_OPER_STATE_DISABLE;
+   m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, failed_su, NCS_OPER_STATE_DISABLE);
+   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
+   
+   /* inform avd */
+   rc = avnd_di_oper_send(cb, failed_su, SA_AMF_NODE_FAILOVER);
+
   /*
     *  su-sis may be in assigning/removing state. signal csi
     * assign/remove done so that su-si assignment/removal algo can proceed.
@@ -842,13 +871,6 @@ uns32 avnd_err_rcvr_node_failover (AVND_CB   *cb,
       rc = avnd_comp_clc_fsm_run(cb, failed_comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
       if ( NCSCC_RC_SUCCESS != rc ) goto done;
    }
-   /* transition the su & node oper state to disabled */
-   cb->oper_state = NCS_OPER_STATE_DISABLE;
-   m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, failed_su, NCS_OPER_STATE_DISABLE);
-   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
-   
-   /* inform avd */
-   rc = avnd_di_oper_send(cb, failed_su, SA_AMF_NODE_FAILOVER);
 
 done:
    return rc;

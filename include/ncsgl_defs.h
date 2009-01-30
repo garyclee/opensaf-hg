@@ -446,8 +446,11 @@ typedef unsigned int NCS_TUNNEL_ID;
  * Maximum Slots (Including sub slots) supported
  * 16 slots x 8 subslots
  *************************************************/
+#define NCS_SLOT_MAX 16
 
-#define NCS_MAX_SLOTS 128
+#define NCS_SUB_SLOT_MAX 16
+
+#define NCS_MAX_SLOTS ((NCS_SLOT_MAX *  NCS_SUB_SLOT_MAX) + NCS_SLOT_MAX)
 
 /***************************************************************************
  * The IP address definations are removed from this file, and moved into the 

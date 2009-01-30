@@ -34,7 +34,6 @@
    avm_edp_ckpt_msg_dhcp_state
    avm_edp_entity_path
    avm_edp_ckpt_msg_async_updt_cnt
-   avm_edp_ckpt_msg_hlt_status
    avm_edp_ckpt_msg_upgd_state
 ******************************************************************************
 */
@@ -237,15 +236,6 @@ avm_load_ckpt_edp(AVM_CB_T *cb)
    }
 
    rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avm_edp_ckpt_msg_async_updt_cnt, &err);
-
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      m_AVM_LOG_INVALID_VAL_ERROR(err);
-      m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-      return rc;
-   }
-
-   rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl, avm_edp_ckpt_msg_hlt_status, &err);
 
    if(NCSCC_RC_SUCCESS != rc)
    {
@@ -864,9 +854,6 @@ avm_edp_ckpt_msg_async_updt_cnt(
 
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ASYNC_CNT_T*)0)->ent_dhstate_updt, 0, NULL  },
-
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-         (long)&((AVM_ASYNC_CNT_T*)0)->hlt_status_updt, 0, NULL  },
 
       {EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver_30a)))},
 
@@ -1744,86 +1731,6 @@ avm_edp_ent_per_label_status(
 
 }
     
-/*************************************************************************
- * Function:  avm_edp_ckpt_msg_hlt_status
- *
- * Purpose:   EDU program handler for LFM_HEALTH_STATUS. This is invoked 
- *            when EDU has to perform ENCODE and DECODE on LFM_HEALTH_STATUS.
- *
- * Input    :
- *           EDU_HDL    
- *           EDU_TKN   
- *           NCSCONTEXT 
- *           uns32     
- *           EDU_BUF_ENV  
- *           EDP_OP_TYPE 
- *           EDU_ERR    
- * Output   :
- * Return Value : NCSCC_RC_SUCCESS/ NCSCC_RC_FAILURE
- * NOTES    :
- *
- ************************************************************************/ 
-extern uns32
-avm_edp_ckpt_msg_hlt_status(
-                                 EDU_HDL       *hdl,
-                                 EDU_TKN       *edu_tkn,
-                                 NCSCONTEXT     ptr,
-                                 uns32         *ptr_data_len,
-                                 EDU_BUF_ENV   *buf_env,
-                                 EDP_OP_TYPE    op,
-                                 EDU_ERR       *o_err
-                               )
-{
-
-   uns32               rc  = NCSCC_RC_SUCCESS;
-   AVM_CB_T    *struct_ptr = NULL, **d_ptr = NULL;
-
-   EDU_INST_SET avm_ckpt_hlt_status_rules[] = {
-      {EDU_START, avm_edp_ckpt_msg_hlt_status, 0, 0, 0,
-           sizeof(AVM_CB_T), 0, NULL},
-      
-      {EDU_EXEC, ncs_edp_uns32,   EDQ_ARRAY, 0, 0,
-         (long)((AVM_CB_T *)0)->hlt_status,     4, NULL },
-
-#if 0
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
-         (uns8)&((HEALTH_STATUS*)0)->hlt_status[0], 0 , NULL }, 
-
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
-         (uns8)&((HEALTH_STATUS*)0)->hlt_status[1], 0 , NULL }, 
-
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
-         (uns8)&((HEALTH_STATUS*)0)->hlt_status[2], 0 , NULL }, 
-
-      {EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
-         (uns8)&((HEALTH_STATUS*)0)->hlt_status[3], 0 , NULL }, 
-#endif
-
-      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
-
-   if(op == EDP_OP_TYPE_ENC)
-   {
-      struct_ptr = (AVM_CB_T*)ptr;
-   }else
-      if(op == EDP_OP_TYPE_DEC)
-      {
-         d_ptr = (AVM_CB_T**)ptr;
-         if(*d_ptr == (AVM_CB_T*)0x0)
-         {
-            *o_err = EDU_ERR_MEM_FAIL;
-            return NCSCC_RC_FAILURE;
-         }
-         struct_ptr = *d_ptr;
-      }else
-      {
-         struct_ptr = ptr;
-      }
-   rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avm_ckpt_hlt_status_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
-
-   return rc;
-} 
-
 /*************************************************************************
  * Function:  avm_edp_ckpt_msg_upgd_state 
  *

@@ -277,7 +277,7 @@ void ifsv_cb(NCS_IFSV_SVC_RSP *rsp)
         }
 
       /*get bond interfaces to a file*/
-      char inputfile[]="/opt/motorola/tetware/ncs/ifsv/suites/bond.text";
+      char inputfile[]="/opt/opensaf/tetware/ifsv/suites/bond.text";
       FILE *fp;
       if(!strncmp(rsp->info.ifadd_ntfy.if_info.if_name,"bond",4)) 
         {

@@ -51,7 +51,11 @@ Update the following entries in the <OpenSAF home>/tests/setup.sh file according
  
    OPENSAF_HOME    - Specifies the OpenSAF base/home directory. The build fails, if this is not mentioned.
    OPEN_TWARE_HOME - Specifies the home directory of open source Tetware. The build fails, if this is not mentioned.
-   RESULTS_DIR     - Specifies the directory to store the test results. By default, the results will be collected in "/opt/tware_result/" directory.
+
+   RESULTS_DIR     - Specifies the directory to store the test results. By default, the results will be collected in
+                      "/opt/tware_result/" directory.
+   TARGET_LIB_PATH - Specifies the lib/lib64 dir location which contains the  OpenSAF libs. The build fails, if this is not mentioned.
+   SAHPI_PATH      - Specifies the Open HPI include directory which contains the 'SaHpi.h' file. The build fails, if this is not mentioned.
 
 
 4. BUILDING THE TEST INFRASTRUCTURE

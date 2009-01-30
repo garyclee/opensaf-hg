@@ -271,6 +271,8 @@ uns32 ipxs_edp_ifip_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
     uns32               rc = NCSCC_RC_SUCCESS;
     NCS_IPXS_IPINFO     *struct_ptr = NULL, **d_ptr = NULL;
+    uns32               base_ver_401=IFD_MBCSV_VERSION;
+
     EDU_INST_SET    ipxs_edp_atond_ifip_rules[ ] = {
         {EDU_START, ipxs_edp_ifip_info, 0, 0, 0, sizeof(NCS_IPXS_IPINFO), 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->ip_attr ,0, NULL},
@@ -294,6 +296,9 @@ uns32 ipxs_edp_ifip_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->intfName, m_NCS_IFSV_VIP_INTF_NAME, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->shelfId, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->slotId, 0, NULL},
+         /* embedding subslot changes */
+        {EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver_401)))}, 
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->subslotId, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IPXS_IPINFO*)0)->nodeId, 0, NULL},
 #endif
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},

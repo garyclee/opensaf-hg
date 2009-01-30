@@ -43,14 +43,13 @@ static uns32 ham_health_chk_response (HISV_EVT *evt);
 static uns32 get_resourceid (uns8 *epath_str, uns32 epath_len,
                              SaHpiResourceIdT *resourceid);
 static uns32 ham_entity_path_lookup(HISV_EVT *evt);
+
 static void set_hisv_msg(HISV_MSG *hisv_msg);
 static uns32 ham_adest_update(HISV_MSG *msg, HAM_CB *ham_cb);
 
 /* boot bank GET/SET functions */
-#ifdef HPI_A
 static uns32 ham_bootbank_get (HISV_EVT *evt);
 static uns32 ham_bootbank_set (HISV_EVT *evt);
-#endif
 
 
 /****************************************************************************
@@ -393,6 +392,7 @@ ham_sel_clear(HISV_EVT *evt)
       {
          rc = NCSCC_RC_FAILURE;
          m_LOG_HISV_DTS_CONS("ham_sel_clear: error in saHpiEventLogClear\n");
+         m_NCS_CONS_PRINTF ("ham_sel_clear: error in saHpiEventLogClear , HPI error code = %d\n", err);
       }
    } while (next != SAHPI_LAST_ENTRY);
    /** populate the mds message with return value, to send across to the HPL
@@ -563,6 +563,7 @@ ham_config_hotswap(HISV_EVT *evt)
          m_LOG_HISV_DTS_CONS("ham_config_hotswap: saHpiAutoInsertTimeoutSet Error\n");
          rc = NCSCC_RC_FAILURE;
       }
+      m_NCS_CONS_PRINTF (" ham_config_hotswap: saHpiAutoInsertTimeout Error , HPI error code = %d\n", err);
    }
    m_NCS_CONS_PRINTF("ham_config_hotswap: Timeout = %d\n",(uns32)Timeout);
    /** populate the mds message with return value, to send across to the HPL
@@ -656,9 +657,10 @@ ham_hs_indicator_state(HISV_EVT *evt)
    if (SA_OK == err)
       rc = NCSCC_RC_SUCCESS;
    else
-     rc = NCSCC_RC_FAILURE;
-
-   m_NCS_CONS_PRINTF("ham_hs_indicator_state: rc = %d, stateT = %d\n",rc, stateT);
+     {
+       m_NCS_CONS_PRINTF (" hot swap Indicator: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
+       rc = NCSCC_RC_FAILURE;
+     }
    /** populate the mds message with return value, to send across to the HPL
     **/
    hisv_msg.info.cbk_info.ret_type = HPL_GENERIC_DATA;
@@ -776,7 +778,10 @@ ham_manage_hotswap(HISV_EVT *evt)
    if (SA_OK == err)
       rc = NCSCC_RC_SUCCESS;
    else
+     {
+      m_NCS_CONS_PRINTF (" ham_Manage_hotswap: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
       rc = NCSCC_RC_FAILURE;
+     }
 
    /** populate the mds message with return value, to send across to the HPL
     **/
@@ -848,12 +853,14 @@ ham_hs_cur_state_get(HISV_EVT *evt)
    /** Invoke HPI call to get the current hotswap state of the resource.
     **/
    err = saHpiHotSwapStateGet(ham_cb->args->session_id, resourceid, &stateT);
-   m_NCS_CONS_PRINTF("ham_hs_cur_state_get: stateT = %d, err = %d\n", stateT, err);
 
    if (SA_OK == err)
       rc = NCSCC_RC_SUCCESS;
    else
+    {
+   m_NCS_CONS_PRINTF("ham_hs_cur_state_get: stateT = %d, err = %d\n", stateT, err);
       rc = NCSCC_RC_FAILURE;
+    }
    /** populate the mds message with return value, to send across to the HPL
     **/
    hisv_msg.info.cbk_info.ret_type = HPL_GENERIC_DATA;
@@ -946,6 +953,7 @@ ham_config_hs_autoextract(HISV_EVT *evt)
    else
    {
       rc = NCSCC_RC_FAILURE;
+      m_NCS_CONS_PRINTF("ham_config_hs_autoextract: err = %d\n", err);
       m_LOG_HISV_DTS_CONS("ham_config_hs_autoextract: Error in saHpiAutoExtractTimeout\n");
    }
    /** populate the mds message with return value, to send across to the HPL
@@ -1389,7 +1397,6 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
    uns32 i;
 #endif
 
-   m_NCS_CONS_PRINTF("get_resourceid: Entity-Path = %s\n",epath_str);
    /* m_LOG_HISV_GEN_STR("get_resourceid: given entity-path", epath_str, NCSFL_SEV_INFO); */
 
    /** retrieve HAM CB
@@ -1444,7 +1451,6 @@ GET_RES_ID:
          else
          {
             m_LOG_HISV_DTS_CONS("get_resourceid: Empty RPT\n");
-            m_NCS_CONS_PRINTF ("get_resourceid: saHpiRptEntryGet, HPI error code = %d\n", err);
             break;
          }
       }
@@ -1459,6 +1465,44 @@ GET_RES_ID:
           (entry.ResourceEntity.Entry[0].EntityType != 160))
          continue;
 #else
+
+      if(AMC_SUB_SLOT_TYPE == epath.Entry[0].EntityType)
+       {
+
+                /* Checking for Non-AMC specfic Entity path  */
+           if(!((entry.ResourceEntity.Entry[3].EntityLocation > 0) &&
+                (entry.ResourceEntity.Entry[3].EntityLocation <= MAX_NUM_SLOTS) &&
+                (entry.ResourceEntity.Entry[3].EntityType == SAHPI_ENT_PHYSICAL_SLOT) &&
+                (entry.ResourceEntity.Entry[3].EntityLocation == epath.Entry[1].EntityLocation)&& 
+                (entry.ResourceEntity.Entry[1].EntityLocation == epath.Entry[0].EntityLocation)&&
+                (entry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))))
+                {
+                  /* Entity path Not From AMC  */
+                  continue;
+                }
+                 /* clean entity path */
+                for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
+                {
+                 if ( entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT )
+                  {
+                  if (i == (SAHPI_MAX_ENTITY_PATH - 1))
+                     break;
+
+                     /* found root entry, zero out rest of Entry array */
+                  m_NCS_MEMSET(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
+                  break;
+                  }
+                }
+            
+               if (m_NCS_MEMCMP((int8 *)&epath.Entry[1], (int8 *)&entry.ResourceEntity.Entry[3], (len-(2*sizeof(SaHpiEntityT)))) != 0)
+                  {
+                    continue;
+                  }
+             
+       }
+       else
+        {
+
       /* Allow for the case where blades are ATCA or non-ATCA.                        */
       if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
             (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
@@ -1469,17 +1513,21 @@ GET_RES_ID:
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
-             (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
-      {
-         /* Not a controller or a payload blade */
-         continue;
-      }
+             (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)))) 
+            
+                 {
+                      /* Entity location didn't Matches*/
+                      continue;
+                 } 
+                 /* A controller or a payload blade */
+                 /* clean entity path */
 
-      /* clean entity path */
-      for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) {
-         if ( entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT ) {
-            if (i == (SAHPI_MAX_ENTITY_PATH - 1))
-               break;
+                 for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) 
+                 {
+                    if ( entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT )
+                    {
+                        if (i == (SAHPI_MAX_ENTITY_PATH - 1))
+                        break;
 
             /* found root entry, zero out rest of Entry array */
             m_NCS_MEMSET(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
@@ -1487,22 +1535,23 @@ GET_RES_ID:
          }
       }
 
-      /* Allow for the case where blades are ATCA or non-ATCA.  */
-      if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-          (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-         if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
-            continue;
-      }
-      else {
-         if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
-            continue;
-      }
+              /* Allow for the case where blades are ATCA or non-ATCA.  */
+              if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+                  (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+                 if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
+                    continue;
+              }
+              else if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
+                 continue;
+        }
+            
 #endif
 
       /** got the resource-id of resource with given entity-path
        **/
       *resourceid = entry.ResourceId;
-      m_NCS_CONS_PRINTF("get_resourceid: resource id of the entity is %d\n", entry.ResourceId);
+      m_NCS_CONS_PRINTF("get_resourceid success:resource id of the entity %s is %d\n",epath_str, entry.ResourceId);
+
       rc = NCSCC_RC_SUCCESS;
       break;
    } while (next != SAHPI_LAST_ENTRY);
@@ -1570,10 +1619,8 @@ static const HAM_EVT_REQ_HDLR ham_func_tbl[HISV_MAX_API_CMD+1] =
    ham_chassis_id_resend,     /* resends chassis-id to all HPL Adests afer re-discovery */
    ham_entity_path_lookup,    /* look up an entity-path given chassis_id, blade_id      */
 
-#ifdef HPI_A
    ham_bootbank_get,          /* get the boot bank value of payload blade */
    ham_bootbank_set,          /* set the boot bank value of payload blade */
-#endif
    NULL                       /* last in HISV API commands */
 };
 
@@ -1797,6 +1844,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
    uns32            flag;
    SaHpiEntityPathT epath;
 
+#ifdef HPI_B_02
    m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
 
    set_hisv_msg (&hisv_msg);
@@ -2031,11 +2079,11 @@ ret:
 
    /* give handle */
    ncshm_give_hdl(gl_ham_hdl);
+#endif
    return rc;
 }
 
 
-#ifdef HPI_A
 /****************************************************************************
  * Name          : ham_bootbank_get
  *
@@ -2060,8 +2108,21 @@ ham_bootbank_get (HISV_EVT *evt)
    SaErrorT           err;
    SaHpiCtrlStateT    state;
    uns32              rc = NCSCC_RC_FAILURE;
+#ifdef HPI_A
    uns16              arg_len = sizeof(SaHpiCtrlStateDiscreteT);
    SaHpiCtrlStateDiscreteT discrete_val = 0;
+#else
+   uns8              options_processor_id=0 ;          
+   SaHpiCtrlModeT  mode = SAHPI_CTRL_MODE_MANUAL;
+   state.Type           = SAHPI_CTRL_TYPE_OEM;
+   SaHpiCtrlStateOemT *oem = &state.StateUnion.Oem;
+   oem->MId        = HISV_MAC_ADDR_MOT_OEM_MID;
+   oem->BodyLength = 1;
+   oem->Body[0] = options_processor_id;
+   
+   uns16              arg_len = 1; /* Boot bank details will be received in 
+                                    oem->body[1],so giving length value as one */
+#endif
 
    m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
    set_hisv_msg(&hisv_msg);
@@ -2090,17 +2151,25 @@ ham_bootbank_get (HISV_EVT *evt)
 
    /** Invoke HPI call to get the current boot bank of the payload blade.
     **/
+#ifdef HPI_A
    err = saHpiControlStateGet (ham_cb->args->session_id, resourceid,
                                CTRL_NUM_BOOTBANK, &state);
-   m_NCS_CONS_PRINTF("ham_bootbank_get: state = %d, err = %d\n", state.StateUnion.Discrete, err);
 
+   m_NCS_CONS_PRINTF("ham_bootbank_get: state = %d, err = %d\n", state.StateUnion.Discrete, err);
    if (SA_OK == err)
       rc = NCSCC_RC_SUCCESS;
    else
       rc = NCSCC_RC_FAILURE;
+#else
+   err = saHpiControlGet (ham_cb->args->session_id, resourceid,
+                               CTRL_NUM_BOOT_BANK,&mode,&state);
+
+   m_NCS_CONS_PRINTF("ham_bootbank_get: Boot_bank = %d, err = %d\n",oem->Body[1], err);
+#endif
 
    /** populate the mds message with return value, to send across to the HPL
     **/
+#ifdef HPI_A
    hisv_msg.info.cbk_info.ret_type               = HPL_GENERIC_DATA;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val  = rc;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
@@ -2114,6 +2183,17 @@ ham_bootbank_get (HISV_EVT *evt)
                                      
    m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                 (uns8 *)&discrete_val, arg_len);
+            
+#else 
+   hisv_msg.info.cbk_info.ret_type               = HPL_GENERIC_DATA;
+   hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val  = rc;
+   hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len ;
+   hisv_msg.info.cbk_info.hpl_ret.h_gen.data     = m_MMGR_ALLOC_HISV_DATA(arg_len);
+  
+   m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+                (uns8 *)&oem->Body[1], arg_len);
+#endif                        
+
 ret:
    /* send the message to HPL ADEST */
    rc = ham_mds_msg_send (ham_cb, &hisv_msg, &evt->fr_dest,
@@ -2153,8 +2233,13 @@ ham_bootbank_set (HISV_EVT *evt)
    uns8                i_boot_bank_number;
    uns32               rc = NCSCC_RC_FAILURE;
      
-   SaHpiCtrlNumT       ctrlNum;
    SaHpiCtrlStateT     state;
+#ifndef HPI_A
+   uns8              options_processor_id=0;           
+   SaHpiCtrlModeT  mode = SAHPI_CTRL_MODE_MANUAL;
+   state.Type           = SAHPI_CTRL_TYPE_OEM;
+   SaHpiCtrlStateOemT *oem = &state.StateUnion.Oem;
+#endif
 
    m_LOG_HISV_DTS_CONS("ham_bootbank_set : Invoked\n");
    m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
@@ -2184,16 +2269,32 @@ ham_bootbank_set (HISV_EVT *evt)
    /* get the boot bank number to be set */
    i_boot_bank_number = (SaHpiCtrlNumT)msg->info.api_info.arg;
    m_NCS_CONS_PRINTF("ham_bootbank_set : boot bank number = %d\n", i_boot_bank_number);
+#ifdef HPI_A
 
    /** got the resource-id of resource with given entity-path
     ** Invoke HPI call to set the boot bank of payload blade.
     **/
 
-    ctrlNum                   = CTRL_NUM_BOOTBANK;
+    SaHpiCtrlNumT       ctrlNum = CTRL_NUM_BOOTBANK;
     state.Type                = SAHPI_CTRL_TYPE_DISCRETE;
     state.StateUnion.Discrete = i_boot_bank_number;
 
     err = saHpiControlStateSet (ham_cb->args->session_id, resourceid, ctrlNum, &state);
+#else
+
+        oem->MId        = HISV_MAC_ADDR_MOT_OEM_MID;
+        oem->BodyLength = 2;
+        oem->Body[0] = options_processor_id;
+        oem->Body[1] = i_boot_bank_number;
+ 
+    err = saHpiControlSet(ham_cb->args->session_id,
+                          resourceid,
+                          CTRL_NUM_BOOT_BANK,
+                          mode,
+                          &state);
+
+
+#endif
 
     if (SA_OK == err)
        rc = NCSCC_RC_SUCCESS;
@@ -2218,7 +2319,6 @@ ret:
    return rc;
 }
 
-#endif
 
 
 
