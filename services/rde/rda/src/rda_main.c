@@ -972,7 +972,8 @@ RDA_CONTROL_BLOCK *rda_get_control_block (void)
        m_NCS_OS_MEMSET( &rda_cb, 0, sizeof(rda_cb));
 
        /* Init necessary members */
-       m_NCS_OS_STRNCPY(&rda_cb.sock_address.sun_path, RDE_RDA_SOCK_NAME, sizeof(rda_cb.sock_address));
+       m_NCS_OS_STRNCPY(&rda_cb.sock_address.sun_path, RDE_RDA_SOCK_NAME,
+           sizeof(rda_cb.sock_address.sun_path));
        rda_cb.sock_address.sun_family = AF_UNIX ;
    }
 
