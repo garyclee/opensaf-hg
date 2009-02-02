@@ -25,11 +25,10 @@ die() {
     exit 1
 }
 
-test -f "$PWD/opensaf.sh" || die 'Must execute opensaf.sh from directory where it is located'
+test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
 export CLUSTER_SIM_UML_DIR=$PWD
 export PATH=${PWD}/uml/bin:${PATH}
-test -d ./root.controller || die "No shadow root at [./root]"
-test -d ./root.payload || die "No shadow root at [./root]"
+test -d ./rootfs || die "No shadow root at [./root]"
 
 UML_DIR=$CLUSTER_SIM_UML_DIR/uml
 REPL_DIR=repl-opensaf
@@ -46,6 +45,8 @@ cluster_start() {
     y=5
     dy=340
 
+    echo "Starting opensaf services"
+
     # Clean-up
     rm -rf $PIDFILEDIR
     mkdir $PIDFILEDIR
@@ -53,10 +54,13 @@ cluster_start() {
     if ! test -d $CLUSTER_SIM_UML_DIR/$REPL_DIR; then
         mkdir -p $CLUSTER_SIM_UML_DIR/$REPL_DIR/pssv_store
         mkdir -p $CLUSTER_SIM_UML_DIR/$REPL_DIR/log
+        mkdir -p $CLUSTER_SIM_UML_DIR/$REPL_DIR/immsv_store
+        cp  rootfs/etc/opensaf/imm.xml \
+            $CLUSTER_SIM_UML_DIR/$REPL_DIR/immsv_store/imm_basic.xml
     fi
 
     # Create /etc/hosts file
-    echo "127.0.0.1       localhost" > root.controller/etc/hosts
+    echo "127.0.0.1       localhost" > rootfs/etc/hosts
 
     # Start network if necessary
     if ! pgrep -U $uid uml_switch > /dev/null; then
@@ -67,14 +71,13 @@ cluster_start() {
 
     # Start the processors
     node_name_prefix=SC_2_
-    rootdir=root.controller
+    rootdir=rootfs
     for ((p=1; p <= $numnodes; p++)); do
         # First two nodes are system controllers, the rest are payloads
         if ((p == 3)); then
             x=660
             y=5
             node_name_prefix=PL_2_
-            rootdir=root.payload
         fi
         hostname=$node_name_prefix$p
         xterm -hold -geometry 90x20+$x+$y -T $hostname -e \
@@ -83,10 +86,8 @@ cluster_start() {
         y=$((y+dy))
 
         # Append host to /etc/hosts file
-        echo "$IPADDRBASE.$p       $hostname.opensaf.org  $hostname" >> root.controller/etc/hosts
+        echo "$IPADDRBASE.$p       $hostname.opensaf.org  $hostname" >> rootfs/etc/hosts
     done
-
-    cp root.controller/etc/hosts root.payload/etc/hosts
 }
 
 cluster_stop() {
@@ -107,18 +108,13 @@ cluster_stop() {
 
 delete_persistent_store() {
     echo "Deleting persistent store contents"
-    rm -rf $CLUSTER_SIM_UML_DIR/root.controller/var/*
-    rm -rf $CLUSTER_SIM_UML_DIR/root.payload/var/*
-    rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/log/*
-    rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/pssv_store/*
-    rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR/saflog/*
+    rm -rf $CLUSTER_SIM_UML_DIR/rootfs/var/*
+    rm -rf $CLUSTER_SIM_UML_DIR/$REPL_DIR
 }
 
 case "$1" in
     start)
-        echo "Cold starting opensaf services"
         cluster_stop
-        delete_persistent_store
         cluster_start $NUMNODES
         ;;
     stop)
@@ -127,14 +123,8 @@ case "$1" in
     clean)
         delete_persistent_store
         ;;
-    restart)
-        echo "Warm starting opensaf services"
-        echo "Reusing persistent store contents"
-        cluster_stop
-        cluster_start $NUMNODES
-        ;;
     *)
-        echo "Usage: $0 {start|stop|restart}"
+        echo "Usage: $0 {start|stop|clean}"
         exit 1
 	
 esac

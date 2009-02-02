@@ -65,7 +65,6 @@ create_rootfs()
     echo "Installing OpenSAF"
     make -C $opensaf_home DESTDIR=$root -j3 install
     rm -rf $root/usr/local/share/opensaf/samples
-    rm -rf $root/usr/local/include
 
     cd $root
     mkdir -p sbin bin $lib_dir
@@ -141,6 +140,8 @@ create_rootfs()
 
     # Create a dummy /etc/hosts file, will be populated at start
     touch $root/etc/hosts
+
+    rm -rf $root/usr/local/include
 
     echo "Creating [$root/root.cpio] ..."
     $bin/mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null
