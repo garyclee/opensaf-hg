@@ -1,4 +1,4 @@
-#! /bin/ash
+#! /bin/sh
 
 #      -*- OpenSAF  -*-
 #
@@ -18,15 +18,17 @@
 #   
 #
 
-errquit() {
-    echo "NET: ERROR: $*"
-    exit 1
-}
+# This script is executed first in the UML start sequence
+# and contains preparations of the UML environment
 
-p=`ifconfig eth0 | grep HWaddr | sed -e 's,.*HWaddr,,' |cut -d: -f6 |tr -d ' '`
-test -n "$p" || errquit "No eth0 address found"
-ifconfig eth0 192.168.0.$p
-route add default gw 192.168.0.254
+# Prepare for core dumps
+# The kernel cannot write to hostfs unfortunately
+COREDUMP_PATH=/tmp/crash
+if [ ! -d $COREDUMP_PATH ]; then
+    mkdir -p $COREDUMP_PATH && chmod -R 777 $COREDUMP_PATH
+fi
+echo "$COREDUMP_PATH/core_%t_%e_%p" > /proc/sys/kernel/core_pattern
+ulimit -c unlimited
 
-inetd || errquit "Failed to start inetd"
-
+mkdir /dev/shm
+rm /bin/killall

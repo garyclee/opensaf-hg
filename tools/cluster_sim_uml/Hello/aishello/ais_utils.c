@@ -62,8 +62,8 @@ char const* strSaAisErrorT(SaAisErrorT rc)
     case SA_AIS_ERR_BAD_FLAGS: return "SA_AIS_ERR_BAD_FLAGS";
     case SA_AIS_ERR_TOO_BIG: return "SA_AIS_ERR_TOO_BIG";
     case SA_AIS_ERR_NO_SECTIONS: return "SA_AIS_ERR_NO_SECTIONS";
+    default: return "UNKNOWN";
     }
-    return "(unknown err)";
 }
 
 char const* strSaAmfHAStateT(SaAmfHAStateT s)
@@ -73,8 +73,8 @@ char const* strSaAmfHAStateT(SaAmfHAStateT s)
     case SA_AMF_HA_STANDBY: return "SA_AMF_HA_STANDBY";
     case SA_AMF_HA_QUIESCED: return "SA_AMF_HA_QUIESCED";
     case SA_AMF_HA_QUIESCING: return "SA_AMF_HA_QUIESCING";
+    default: return "UNKNOWN";
     }
-    return "(unknown)";
 }
 
 char const* strSaNameT(SaNameT const* name)

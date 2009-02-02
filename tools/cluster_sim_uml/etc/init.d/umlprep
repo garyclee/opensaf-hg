@@ -18,7 +18,7 @@
 #   
 #
 
-shadowroot=root
+shadowroot=rootfs
 shadowrootcmd=`tr ' ' '\n' < /proc/cmdline | grep shadowroot`
 test -n "$shadowrootcmd" && eval $shadowrootcmd
 r=/hostfs/$shadowroot
@@ -40,5 +40,5 @@ if test -e "$r/var"; then
     chmod 777 /var/tmp
 
     # Remove all PID files etc.
-    rm -f /var/run/*
+    rm -rf /var/run/*
 fi
