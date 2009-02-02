@@ -35,12 +35,12 @@ cd /
 case "$1" in
   start)
     echo -n "Starting network management services:"
-	$SNMPD $SNMPDOPTS; echo -n " snmpd"
+	$SNMPD $SNMPDOPTS; echo " snmpd"
 #	$SNMPTRAPD $TRAPDOPTS; echo -n " snmptrapd"
     ;;
   stop)
     echo -n "Stopping network management services:"
-	killall -q $SNMPD; echo -n " snmpd"
+	killall -q $SNMPD; echo " snmpd"
 #	killall -q $SNMPTRAPD; echo -n " snmptrapd"
     ;;
   restart)

@@ -27,11 +27,9 @@ test -n "$1" || die "No root dir argument specified"
 root=$1
 hellohome=$(dirname $0)
 
-echo "building aishello"
-
 make -C $hellohome/aishello
 
-echo "installing aishello"
+echo "Installing aishello"
 
 mkdir -p $root/opt/aishello/etc/
 mkdir -p $root/opt/aishello/bin/

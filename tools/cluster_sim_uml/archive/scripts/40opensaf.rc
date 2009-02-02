@@ -1,0 +1,71 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+# This script is executed last in the UML start sequence
+# and contains preparations of the UML environment for OpenSAF
+# and finally the start of OpenSAF
+
+REPL_DIR=repl-opensaf
+HOSTNAME=`hostname`
+eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
+
+if test `uname -m` = "x86_64"; then
+   export LD_LIBRARY_PATH="/usr/local/lib64:/usr/local/lib64/opensaf"
+else
+   export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib/opensaf"
+fi
+
+mkdir -p /var/lib/opensaf
+mkdir -p /var/run/opensaf
+
+if [ $hostnumber -lt 3 ]; then
+    export SNMPCONFPATH=/etc/snmp
+    export MIBDIRS=/usr/share/snmp/mibs
+    /etc/init.d/snmpd start
+
+    # Simulate a replicated partition (DRBD)
+    rm -f /var/lib/opensaf/pssv_store
+    ln -s /hostfs/$REPL_DIR/pssv_store /var/lib/opensaf/
+
+    rm -f /var/lib/opensaf/log
+    ln -s /hostfs/$REPL_DIR/log /var/lib/opensaf/log
+
+    ln -s /hostfs/repl-opensaf /repl_opensaf
+
+    touch /var/lib/opensaf/pssv_spcn_list
+    chmod 755 /var/lib/opensaf/pssv_spcn_list
+    echo "AVD XML" > /var/lib/opensaf/pssv_spcn_list
+    echo "AVM XML" >> /var/lib/opensaf/pssv_spcn_list
+
+    ln -sf /etc/opensaf/nodeinit.conf.controller /etc/opensaf/nodeinit.conf
+else
+    ln -sf /etc/opensaf/nodeinit.conf.payload /etc/opensaf/nodeinit.conf
+fi
+
+rm -f /etc/opensaf/slot_id
+rm -f /etc/opensaf/node_id
+echo $hostnumber > /etc/opensaf/slot_id 
+
+# Enable core dumps for opensaf and AMF started programs
+# Somehow the UML kernel cannot write to hostfs
+echo "/tmp/core_%t_%e_%p" > /proc/sys/kernel/core_pattern
+ulimit -c unlimited
+
+/etc/init.d/opensafd start
