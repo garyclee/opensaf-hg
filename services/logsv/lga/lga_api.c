@@ -485,9 +485,9 @@ static SaAisErrorT validate_open_params(
 
     /* Check log stream input parameters */
     /* The well known log streams */
-    if (strcmp(logStreamName->value, SA_LOG_STREAM_ALARM) == 0 ||
-        strcmp(logStreamName->value, SA_LOG_STREAM_NOTIFICATION) == 0 ||
-        strcmp(logStreamName->value, SA_LOG_STREAM_SYSTEM) == 0)
+    if (strcmp((char *) logStreamName->value, SA_LOG_STREAM_ALARM) == 0 ||
+        strcmp((char *) logStreamName->value, SA_LOG_STREAM_NOTIFICATION) == 0 ||
+        strcmp((char *) logStreamName->value, SA_LOG_STREAM_SYSTEM) == 0)
     {
         /* SA_AIS_ERR_INVALID_PARAM, bullet 3 in SAI-AIS-LOG-A.02.01 
            Section 3.6.1, Return Values */
@@ -867,7 +867,7 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
               rc = SA_AIS_ERR_INVALID_PARAM;
               goto done;              
            }
-           strcpy(logSvcUsrName.value, logSvcUsrChars);
+           strcpy((char *) logSvcUsrName.value, logSvcUsrChars);
            write_param->logSvcUsrName = &logSvcUsrName;
         }
         else

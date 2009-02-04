@@ -154,7 +154,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
     if (len > 0)
     {
-        ncs_decode_n_octets_from_uba(uba, param->logFileName, len);
+        ncs_decode_n_octets_from_uba(uba, (uns8 *) param->logFileName, len);
         total_bytes += len;
     }
 
@@ -166,7 +166,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
     if (len > 0)
     {
-        ncs_decode_n_octets_from_uba(uba, param->logFilePathName, len);
+        ncs_decode_n_octets_from_uba(uba, (uns8 *) param->logFilePathName, len);
         total_bytes += len;
     }
 
@@ -190,7 +190,7 @@ static uns32 dec_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             total_bytes = 0;
             goto done;
         }
-        ncs_decode_n_octets_from_uba(uba, param->logFileFmt, len);
+        ncs_decode_n_octets_from_uba(uba, (uns8 *) param->logFileFmt, len);
         total_bytes += len;
     }
 
@@ -302,7 +302,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             }
 
             ntfLogH->notificationObject->length = ncs_decode_16bit(&p8);
-            if (SA_MAX_NAME_LENGTH < ntfLogH->notificationObject->length)
+            if (SA_MAX_NAME_LENGTH <= ntfLogH->notificationObject->length)
             {
                 TRACE("notificationObject to big");
                 return(0);
@@ -327,7 +327,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             ncs_dec_skip_space(uba, 2);
             total_bytes += 2;
 
-            if (SA_MAX_NAME_LENGTH < ntfLogH->notifyingObject->length)
+            if (SA_MAX_NAME_LENGTH <= ntfLogH->notifyingObject->length)
             {
                 TRACE("notifyingObject to big");
                 return(0);
@@ -380,7 +380,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
             */
             logSvcUsrName->length = ncs_decode_16bit(&p8); 
 
-            if (SA_MAX_NAME_LENGTH < logSvcUsrName->length)
+            if (SA_MAX_NAME_LENGTH <= logSvcUsrName->length)
             {
                 TRACE("logSvcUsrName to big");
                 return(0);
