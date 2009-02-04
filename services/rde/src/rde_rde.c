@@ -261,8 +261,9 @@ uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
 
 *****************************************************************************/
 uns32 rde_rde_process_msg (RDE_RDE_CB *rde_rde_cb)
-{  
-   int newsockfd,cli_addr_len,rc;
+{
+   socklen_t cli_addr_len;
+   int newsockfd, rc;
    cli_addr_len = sizeof(rde_rde_cb->cli_addr);
    rc = 0;
    if(rde_rde_cb->connRecv == TRUE)
@@ -273,7 +274,9 @@ uns32 rde_rde_process_msg (RDE_RDE_CB *rde_rde_cb)
    {
    /*    m_RDE_LOG_COND_C (RDE_SEV_INFO, RDE_RDE_SOCK_CLOSE_FAIL, "recvFd Faild"); */
    }
-   newsockfd = accept (rde_rde_cb->fd, (struct sockaddr *) &rde_rde_cb->cli_addr,&cli_addr_len);
+
+   newsockfd = accept(rde_rde_cb->fd, (struct sockaddr *) &rde_rde_cb->cli_addr,
+       &cli_addr_len);
 
    if (newsockfd < 0)
    {

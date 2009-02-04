@@ -38,23 +38,6 @@
 #include "rde.h"
 #include "rde_cb.h"
 
-
-/***************************************************************\
- *                                                               *
- *         Prototypes for static functions                       *
- *                                                               *
-\***************************************************************/
-static uns32 rde_rda_sock_open          (RDE_RDA_CB * rde_rda_cb);
-static uns32 rde_rda_sock_init          (RDE_RDA_CB * rde_rda_cb);
-static uns32 rde_rda_sock_close         (RDE_RDA_CB * rde_rda_cb);
-static uns32 rde_rda_write_msg          (int fd, char *msg);
-static uns32 rde_rda_read_msg           (int fd, char *msg, int size);
-static uns32 rde_rda_process_set_role   (RDE_RDA_CB  * rde_rda_cb, int index, int role);
-static uns32 rde_rda_process_get_role   (RDE_RDA_CB  * rde_rda_cb, int index);
-static uns32 rde_rda_process_reg_cb     (RDE_RDA_CB  * rde_rda_cb, int index);
-static uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index);
-
-
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_rda_sock_open
@@ -73,9 +56,7 @@ static uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index);
   NOTES:
 
 *****************************************************************************/
-
-static
-uns32 rde_rda_sock_open (RDE_RDA_CB    *rde_rda_cb)
+static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
 {
    uns32 rc= NCSCC_RC_SUCCESS;
    m_RDE_ENTRY("rde_rda_sock_open");
@@ -116,9 +97,7 @@ uns32 rde_rda_sock_open (RDE_RDA_CB    *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-
-static
-uns32 rde_rda_sock_init (RDE_RDA_CB * rde_rda_cb)
+static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
 {
    struct stat sockStat;
    int         rc;
@@ -190,9 +169,7 @@ uns32 rde_rda_sock_init (RDE_RDA_CB * rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-
-static
-uns32 rde_rda_sock_close (RDE_RDA_CB * rde_rda_cb)
+static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
 {
    int rc;
 
@@ -245,9 +222,7 @@ uns32 rde_rda_sock_close (RDE_RDA_CB * rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-
-static
-uns32 rde_rda_write_msg (int fd, char *msg)
+static uns32 rde_rda_write_msg(int fd, char *msg)
 {
    int         rc         = NCSCC_RC_SUCCESS;
    int         msg_size   = 0;
@@ -290,9 +265,7 @@ uns32 rde_rda_write_msg (int fd, char *msg)
   NOTES:
 
 *****************************************************************************/
-
-static
-uns32 rde_rda_read_msg (int fd, char *msg, int size)
+static uns32 rde_rda_read_msg(int fd, char *msg, int size)
 {
    int         msg_size  = 0;
 
@@ -348,8 +321,7 @@ uns32 rde_rda_read_msg (int fd, char *msg, int size)
   NOTES:
 
 *****************************************************************************/
-static
-uns32 rde_rda_process_get_role (RDE_RDA_CB  * rde_rda_cb, int index)
+static uns32 rde_rda_process_get_role(RDE_RDA_CB  *rde_rda_cb, int index)
 {
     char               msg [64] = {0};
     RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
@@ -384,8 +356,7 @@ uns32 rde_rda_process_get_role (RDE_RDA_CB  * rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-static
-uns32 rde_rda_process_set_role (RDE_RDA_CB  * rde_rda_cb, int index, int role)
+static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int role)
 {
 
     char               msg [64] = {0};
@@ -426,8 +397,7 @@ uns32 rde_rda_process_set_role (RDE_RDA_CB  * rde_rda_cb, int index, int role)
   NOTES:
 
 *****************************************************************************/
-static
-uns32 rde_rda_process_reg_cb (RDE_RDA_CB  * rde_rda_cb, int index)
+static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 {
     char               msg [64] = {0};
 
@@ -471,8 +441,7 @@ uns32 rde_rda_process_reg_cb (RDE_RDA_CB  * rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-static
-uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index)
+static uns32 rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index)
 {
     int     rc     = 0;
     int     iter   = 0;
@@ -505,8 +474,6 @@ uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index)
     return NCSCC_RC_SUCCESS;
 }
 
-
-
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_rda_sock_name
@@ -524,8 +491,7 @@ uns32 rde_rda_process_disconnect (RDE_RDA_CB  * rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-
-const char *rde_rda_sock_name (RDE_RDA_CB * rde_rda_cb)
+const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb)
 {
    return RDE_RDA_SOCK_NAME;
 }
@@ -546,8 +512,7 @@ const char *rde_rda_sock_name (RDE_RDA_CB * rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-
-uns32 rde_rda_open (const char *sock_name, RDE_RDA_CB *rde_rda_cb)
+uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
 {
 
    m_RDE_ENTRY("rde_rda_open");
@@ -564,7 +529,8 @@ uns32 rde_rda_open (const char *sock_name, RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   m_NCS_OS_STRNCPY(&rde_rda_cb->sock_address.sun_path,  sock_name, sizeof(rde_rda_cb->sock_address));
+   m_NCS_OS_STRNCPY(&rde_rda_cb->sock_address.sun_path, sock_name,
+       sizeof(rde_rda_cb->sock_address.sun_path));
    rde_rda_cb-> sock_address. sun_family = AF_UNIX ;
    rde_rda_cb-> fd                       = -1      ;
 
@@ -613,8 +579,7 @@ uns32 rde_rda_open (const char *sock_name, RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-
-uns32 rde_rda_close (RDE_RDA_CB *rde_rda_cb)
+uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
 {
 
    m_RDE_ENTRY("rde_rda_close");
@@ -651,7 +616,7 @@ uns32 rde_rda_close (RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_process_msg (RDE_RDA_CB *rde_rda_cb)
+uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb)
 {
    int newsockfd;
 
@@ -692,7 +657,7 @@ uns32 rde_rda_process_msg (RDE_RDA_CB *rde_rda_cb)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index)
+uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index)
 {
     RDE_RDA_CMD_TYPE   cmd_type;
     char               msg [256] = {0};
@@ -764,7 +729,7 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index)
   NOTES:
 
 *****************************************************************************/
-uns32 rde_rda_send_role (int role)
+uns32 rde_rda_send_role(int role)
 {
     int                index;
     char               msg [64]   = {0};
