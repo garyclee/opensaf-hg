@@ -1720,7 +1720,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       **
       ** Also reset the flag after the processing is done.
       */
-      rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
+      rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_COLD_RESET);
       resp = (NCSCC_RC_SUCCESS == rc) ? AVM_NODE_RESET_SUCCESS : AVM_NODE_RESET_FAILURE;
 
       if(NCSCC_RC_SUCCESS != rc)
@@ -2561,7 +2561,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
       return NCSCC_RC_FAILURE;
    } 
 
-   rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
+   rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_COLD_RESET);
    if(NCSCC_RC_SUCCESS != rc)
    {
       if(avm_is_this_entity_self(avm_cb, ent_info->entity_path) == TRUE)
@@ -3160,7 +3160,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
   
    m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_hard_reset_req"); 
 
-   rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_GRACEFUL_REBOOT);
+   rc = avm_hisv_api_cmd(ent_info, HISV_RESOURCE_RESET, HISV_RES_COLD_RESET);
    if(NCSCC_RC_SUCCESS != rc)
    {
       if(avm_is_this_entity_self(avm_cb, ent_info->entity_path) == TRUE)
