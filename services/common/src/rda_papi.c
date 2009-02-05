@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-  $Header:  $
 
   MODULE NAME: rda_papi.c
 
@@ -56,12 +55,10 @@ char *pcsrda_err_str[] =
     "PCSRDA_RC_MEM_ALLOC_FAILED",
     "PCSRDA_RC_CALLBACK_REG_FAILED",
     "PCSRDA_RC_CALLBACK_ALREADY_REGD",
+    "PCSRDA_RC_LEAP_INIT_FAILED",
+    "PCSRDA_RC_FATAL_IPC_CONNECTION_LOST",
     "PCSRDA_RC_ROLE_GET_FAILED",
     "PCSRDA_RC_ROLE_SET_FAILED",
-    "PCSRDA_RC_AVD_HB_ERR_FAILED",
-    "PCSRDA_RC_AVND_HB_ERR_FAILED",
-    "PCSRDA_RC_LEAP_INIT_FAILED",
-    "PCSRDA_RC_FATAL_IPC_CONNECTION_LOST"
 };
 
 char *pcsrda_role_str[] =
@@ -87,25 +84,17 @@ char *pcsrda_role_str[] =
 #define PCS_RDA_SYM_UNREG_CALLBACK     "pcs_rda_unreg_callback"
 #define PCS_RDA_SYM_SET_ROLE           "pcs_rda_set_role"
 #define PCS_RDA_SYM_GET_ROLE           "pcs_rda_get_role"
-#define PCS_RDA_SYM_AVD_HB_ERR         "pcs_rda_avd_hb_err"
-#define PCS_RDA_SYM_AVND_HB_ERR        "pcs_rda_avnd_hb_err"
-#define PCS_RDA_SYM_AVD_HB_RESTORE         "pcs_rda_avd_hb_restore"
-#define PCS_RDA_SYM_AVND_HB_RESTORE        "pcs_rda_avnd_hb_restore"
 
-typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, long*);
+typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, uns32*);
 typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (uns32);
 typedef int (*PCS_RDA_PTR_SET_ROLE)       (PCS_RDA_ROLE);
 typedef int (*PCS_RDA_PTR_GET_ROLE)       (PCS_RDA_ROLE*);
-typedef int (*PCS_RDA_PTR_AVD_HB_ERR)     (void);
-typedef int (*PCS_RDA_PTR_AVND_HB_ERR)     (uns32);
-typedef int (*PCS_RDA_PTR_AVD_HB_RESTORE)     (void);
-typedef int (*PCS_RDA_PTR_AVND_HB_RESTORE)     (uns32);
 
 /*
 ** Global data
 */
 static void * pcs_rda_lib_handle    = NULL;
-static long  pcs_rda_callback_cb   = 0;
+static uns32  pcs_rda_callback_cb   = 0;
 
 
 /*
@@ -117,10 +106,6 @@ static int pcs_rda_lib_reg_callback  (uns32, PCS_RDA_CB_PTR cb_ptr);
 static int pcs_rda_lib_unreg_callback(void);
 static int pcs_rda_lib_set_role      (PCS_RDA_ROLE    role);
 static int pcs_rda_lib_get_role      (PCS_RDA_ROLE   *role);
-static int pcs_rda_lib_avd_hb_err    (void);
-static int pcs_rda_lib_avnd_hb_err   (uns32 phy_slot_id);
-static int pcs_rda_lib_avd_hb_restore(void);
-static int pcs_rda_lib_avnd_hb_restore(uns32 phy_slot_id);
 
 /****************************************************************************
  * Name          : pcs_rda_request
@@ -173,20 +158,7 @@ int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req)
                 pcs_rda_req->info.io_role = PCS_RDA_UNDEFINED;
                 ret = pcs_rda_lib_get_role (&pcs_rda_req->info.io_role);
                 break;
-    case PCS_RDA_AVD_HB_ERR:
-                ret = pcs_rda_lib_avd_hb_err ();
-                break;
-    case PCS_RDA_AVND_HB_ERR:
-                ret = pcs_rda_lib_avnd_hb_err (pcs_rda_req->info.phy_slot_id);
-                break;
-    case PCS_RDA_AVD_HB_RESTORE:
-                ret = pcs_rda_lib_avd_hb_restore();
-                break;
-    case PCS_RDA_AVND_HB_RESTORE:
-                ret = pcs_rda_lib_avnd_hb_restore(pcs_rda_req->info.phy_slot_id);
-                break;
     
-
     default:
                 ret = PCSRDA_RC_INVALID_PARAMETER;
 
@@ -395,115 +367,4 @@ static int pcs_rda_lib_get_role (PCS_RDA_ROLE   *role)
         */
         return (*pcs_rda_get_role) (role);
 
-}
-
-static int pcs_rda_lib_avd_hb_err (void)
-{
-    PCS_RDA_PTR_AVD_HB_ERR pcs_rda_avd_hb_err;
-
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-        {
-                /* No */
-                return PCSRDA_RC_LIB_NOT_INITIALIZED;
-
-        }
-
-        pcs_rda_avd_hb_err = (PCS_RDA_PTR_AVD_HB_ERR) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_AVD_HB_ERR);
-        if (pcs_rda_avd_hb_err == NULL)
-        {
-                printf ("%s\n", dlerror());
-                return PCSRDA_RC_LIB_SYM_FAILED;
-        
-        }
-
-        /*
-        ** Avd Heart beat error
-        */
-        return (*pcs_rda_avd_hb_err) ();
-
-}
-
-static int pcs_rda_lib_avnd_hb_err(uns32 phy_slot_id)
-{
-   PCS_RDA_PTR_AVND_HB_ERR pcs_rda_avnd_hb_err;
-
-   /*
-   ** Is the libray already loaded?
-   */
-   if (pcs_rda_lib_handle == NULL)
-   {
-      /* No */
-      return PCSRDA_RC_LIB_NOT_INITIALIZED;
-   }
-
-   pcs_rda_avnd_hb_err = (PCS_RDA_PTR_AVND_HB_ERR) dlsym (pcs_rda_lib_handle, 
-                                                      PCS_RDA_SYM_AVND_HB_ERR);
-   if (pcs_rda_avnd_hb_err == NULL)
-   {
-      printf ("%s\n", dlerror());
-      return PCSRDA_RC_LIB_SYM_FAILED;
-   }
-
-   /*
-   ** handle avnd heartbeat loss
-   */
-   return (*pcs_rda_avnd_hb_err) (phy_slot_id);
-}
-
-static int pcs_rda_lib_avd_hb_restore (void)
-{
-    PCS_RDA_PTR_AVD_HB_RESTORE pcs_rda_avd_hb_restore;
-
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-        {
-                /* No */
-                return PCSRDA_RC_LIB_NOT_INITIALIZED;
-
-        }
-
-        pcs_rda_avd_hb_restore = (PCS_RDA_PTR_AVD_HB_RESTORE) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_AVD_HB_RESTORE);
-        if (pcs_rda_avd_hb_restore == NULL)
-        {
-                printf ("%s\n", dlerror());
-                return PCSRDA_RC_LIB_SYM_FAILED;
-        
-        }
-
-        /*
-        ** Avd Heart beat restore 
-        */
-        return (*pcs_rda_avd_hb_restore) ();
-
-}
-static int pcs_rda_lib_avnd_hb_restore(uns32 phy_slot_id)
-{
-   PCS_RDA_PTR_AVND_HB_RESTORE pcs_rda_avnd_hb_restore;
-
-   /*
-   ** Is the libray already loaded?
-   */
-   if (pcs_rda_lib_handle == NULL)
-   {
-      /* No */
-      return PCSRDA_RC_LIB_NOT_INITIALIZED;
-   }
-
-   pcs_rda_avnd_hb_restore = (PCS_RDA_PTR_AVND_HB_RESTORE) dlsym (pcs_rda_lib_handle, 
-                                                      PCS_RDA_SYM_AVND_HB_RESTORE);
-   if (pcs_rda_avnd_hb_restore == NULL)
-   {
-      printf ("%s\n", dlerror());
-      return PCSRDA_RC_LIB_SYM_FAILED;
-   }
-
-   /*
-   ** handle avnd heartbeat restore
-   */
-   return (*pcs_rda_avnd_hb_restore) (phy_slot_id);
 }

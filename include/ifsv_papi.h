@@ -44,7 +44,8 @@ typedef enum ncs_ifsv_info_type
 
 #define IFSV_BINDING_SHELF_ID 1
 #define IFSV_BINDING_SLOT_ID 0xAB
-
+/* embedding subslot changes */
+#define IFSV_BINDING_SUBSLOT_ID 0XAB
 /* Definations for Interface attribute Maps */
 #define NCS_IFSV_IAM_MTU            (0x00000001)
 #define NCS_IFSV_IAM_IFSPEED        (0x00000002)
@@ -128,6 +129,8 @@ typedef struct ncs_ifsv_spt
 {
    uns32                shelf;
    uns32                slot;
+   /* embedding subslot changes */
+   uns32                subslot;
    uns32                port;
    NCS_IFSV_INTF_TYPE   type;
    NCS_IFSV_SUBSCR_SCOPE    subscr_scope;
@@ -143,7 +146,7 @@ typedef struct ncs_ifsv_port_type
 } NCS_IFSV_PORT_TYPE;
 
 /*****************************************************************************
- * Data Structure Used to hold the shelf/slot/port/type/subscr_scope Vs Ifindex 
+ * Data Structure Used to hold the shelf/slot/subslot/port/type/subscr_scope Vs Ifindex 
  * maping
  *****************************************************************************/
 

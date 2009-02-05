@@ -35,6 +35,7 @@
 
 
 #include "avm.h"
+#include "avm_util.h"
 
 uns32 g_fault_events_sub_id = 0;
 uns32 g_non_fault_events_sub_id = 0;
@@ -117,8 +118,6 @@ static SaEvtEventFilterT avm_non_fault_filter_array[AVM_NON_FAULT_FILTER_ARRAY_L
         }
       }
 };
-
-
 /***********************************************************************
  ******
  * Name          : avm_eda_initialize
@@ -516,8 +515,28 @@ avm_evt_callback(
    {
       if((avm_cb->ha_state == SA_AMF_HA_STANDBY) || (avm_cb->ha_state == SA_AMF_HA_QUIESCING) || (avm_cb->ha_state == SA_AMF_HA_QUIESCED) || (TRUE == avm_cb->adm_switch))
       {
-         rc = avm_updt_evt_q(avm_cb, avm_evt, event_id, FALSE);
 
+          /*  boot_succ_tmr for the corresponding entity
+            Needs to be started/stopped at Active & Switchover to fix the 
+            case for Switchover/Failover - Only the Active will act on the 
+            Expiry of this timer. */
+         {
+              AVM_ENT_INFO_T       *ent_info;
+              AVM_FSM_EVT_TYPE_T   fsm_evt_type;
+              
+              ent_info = avm_find_ent_info(avm_cb, &avm_evt->evt.hpi_evt->entity_path);
+
+              if(ent_info)
+              {
+                 avm_standby_map_hpi2fsm(avm_cb, avm_evt->evt.hpi_evt, &fsm_evt_type, ent_info);
+                 if((fsm_evt_type == AVM_EVT_INSERTION_PENDING) || (fsm_evt_type == AVM_EVT_SENSOR_FW_PROGRESS))
+                 {
+                     avm_standby_boot_succ_tmr_handler(avm_cb, avm_evt,ent_info,fsm_evt_type);
+                 }
+              }
+         } /* End of 91104 fix */
+
+         rc = avm_updt_evt_q(avm_cb, avm_evt, event_id, FALSE);
          /* Free the event */
          rc =  saEvtEventFree(event_hdl);
          if (SA_AIS_OK != rc)

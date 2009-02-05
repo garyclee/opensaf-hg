@@ -102,6 +102,7 @@
 			<xs:enumeration value="SAHPI_ENT_SYSTEM_BOARD"/>
 			<xs:enumeration value="SAHPI_ENT_PROCESSOR_MODULE"/>
 			<xs:enumeration value="SAHPI_ENT_PROCESSOR"/>
+	              	<xs:enumeration value="AMC_SUB_SLOT_TYPE"/>
 			<xs:enumeration value="SAHPI_ENT_POWER_SUPPLY"/>
 			<xs:enumeration value="SAHPI_ENT_PROCESSOR_BOARD"/>
 			<xs:enumeration value="SAHPI_ENT_ADVANCEDTCA_CHASSIS"/>

@@ -33,7 +33,8 @@ OBJS:=$(patsubst %.c,%.o,$(SRCS))
 OPENSAF_TOT_LIBS+=$(SHARED_LIBRARIES)
 
 %.o: %.c
-	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(HJCPP_DEFINES) $(INCLUDE) -o $@ $<
+	$(CC) -c $(CFLAGS) $(CPPFLAGS) $(HJCPP_DEFINES) $(INCLUDE) -I$(SAHPI_PATH) -o $@ $<
+
 
 
 
@@ -43,7 +44,7 @@ TET_LIB=$(TARGET)
 all:$(TET_LIB) 
 
 $(TET_LIB): $(OBJS)
-		$(CC) $(CFLAGS) $(LD_FLAGS) $@ -L$(TARGET_LIB_PATH) $(OBJS) $(OPENSAF_TOT_LIBS);
+		$(CC) $(CFLAGS) $(LD_FLAGS) $@ -L$(TARGET_LIB_PATH) -I$(SAHPI_PATH) $(OBJS) $(OPENSAF_TOT_LIBS);
 	@rm -rf $(OBJS)
            
 

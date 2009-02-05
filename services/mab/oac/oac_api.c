@@ -17,7 +17,6 @@
 
 /*****************************************************************************
 
-  $Header: /ncs/software/release/UltraLinq/MAB/MAB1.1/base/products/mab/oac/oac_api.c 49    9/12/01 6:22p Questk $ 
 
 
   DESCRIPTION:

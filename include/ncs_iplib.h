@@ -20,7 +20,6 @@
 
   MODULE NAME:  NCS_IPLIB.H
 
-$Header: /ncs/software/leap/base/common/inc/ncs_iplib.h
 ..............................................................................
 
   DESCRIPTION: Contains common IPV6 definitions, and utilities

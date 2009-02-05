@@ -106,11 +106,6 @@ uns32 pss_lib_init()
 {
    uns32          rc;   
    NCSPSS_CREATE  pwe;
-   int            ps_cnt = 0;
-   uns32          ps_format_version, tmp_ps0, tmp_ps1;
-   struct dirent  **ps_list;
-   /* Function pointer for filter routine that need to be passed in scandir */
-   int (*filter) (const struct dirent *);
 
    m_NCS_OS_MEMSET(&pwe, 0, sizeof(NCSPSS_CREATE)); 
 
@@ -232,73 +227,6 @@ uns32 pss_lib_init()
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
- /* 3.0.a addition: Get the existing persistent-store's format version.
-                    Persistent store with format PSS_PS_FORMAT_VERSION
-                    is created in pss_ts_create */
-   if(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE)
-   {
-      /* Using snprintf directly, because the leap routine does not accept variable arguments, which leads to multiple function calls */
-      filter = &persistent_file_filter;
-      ps_cnt = scandir(NCS_PSS_DEF_PSSV_ROOT_PATH, &ps_list, filter, NULL);
-      m_NCS_CONS_PRINTF("ps_cnt: %d\n", ps_cnt);
-      if (ps_cnt < 0)
-          perror("scandir");
-      if(ps_cnt > 2)
-      {
-         /* Log that there are multiple formats of persistent store */
-         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "Too many formats of persistent store found");
-         for(;ps_cnt > 0; ps_cnt--)
-            free(ps_list[ps_cnt-1]);
-         free(ps_list);
-     
-         return NCSCC_RC_FAILURE;
-      }
-      
-      if(ps_cnt >= 1 )
-      {
-         tmp_ps0 = atoi(ps_list[0]->d_name);
-         m_NCS_CONS_PRINTF("tmp_ps0: %d\n", tmp_ps0);
-      }
-      if(ps_cnt == 2)
-      {
-         tmp_ps1 = atoi(ps_list[1]->d_name);
-         m_NCS_CONS_PRINTF("tmp_ps0: %d\n", tmp_ps0);
-      }
-      if(tmp_ps0 == PSS_PS_FORMAT_VERSION)
-      {
-         if(ps_cnt == 1)
-            ps_format_version = tmp_ps0;
-         else
-            ps_format_version = tmp_ps1;
-         for(;ps_cnt > 0; ps_cnt--)
-            free(ps_list[ps_cnt-1]);
-         free(ps_list);
-      }
-      else if(tmp_ps1 == PSS_PS_FORMAT_VERSION)
-      {
-         ps_format_version = tmp_ps0;
-         for(;ps_cnt > 0; ps_cnt--)
-            free(ps_list[ps_cnt-1]);
-         free(ps_list);
-      }
-      else
-      {
-         /* if none of the formats returned by scandir is PSS_PS_FORMAT_VERSION, return FAILURE */
-         m_LOG_PSS_STR(NCSFL_SEV_CRITICAL, "Invalid formats of persistent store found");
-         for(;ps_cnt > 0; ps_cnt--)
-            free(ps_list[ps_cnt-1]);
-         free(ps_list);
-     
-         return NCSCC_RC_FAILURE;
-      }
-      m_NCS_CONS_PRINTF("ps_format_version: %d\n", ps_format_version);
-   }
- /* End of 3.0.a addition */
-
-   if(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE && ps_format_version != 0)
-   {
-      pss_check_n_reformat(gl_pss_amf_attribs.pss_cb, ps_format_version);
-   }
 
    /* create the task */ 
    if(m_NCS_TASK_CREATE((NCS_OS_CB)pss_mbx_amf_process,

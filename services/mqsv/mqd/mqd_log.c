@@ -20,7 +20,6 @@
 
   MODULE: MQDLOG.C
 
-  $Header: /ncs/software/leap/base/products/mqd/src/mqdlog.c 8     3/28/01 12:01p Claytom $
 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

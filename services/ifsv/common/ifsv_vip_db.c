@@ -114,8 +114,10 @@ NCS_IFSV_IFINDEX    ifsv_vip_get_global_ifindex(IFSV_CB *cb,uns8 *str)
    while (intfRec != NULL)
    {
      m_NCS_MEMCPY(&ifIndex,&intfData->if_index,sizeof(NCS_IFSV_IFINDEX));
+     /* embedding subslot changes */
      if((intfData->spt_info.shelf == cb->shelf) &&
                 (intfData->spt_info.slot == cb->slot) &&
+                (intfData->spt_info.subslot == cb->subslot) && 
                 (intfData->spt_info.type == NCS_IFSV_INTF_ETHERNET))
      {
         if ((m_NCS_STRCMP(&intfData->if_info.if_name,str))== 0)
@@ -750,7 +752,11 @@ ncs_vip_check_ip_exists(IFSV_CB *cb, uns32 hdl,uns32 ipaddr,uns8 *intf)
    {
       ifindex = ifip_node->ifip_info.ifindexNet;
       /* Check with Jags: If we need to check for appln name and pool handle */
-      if(ifip_node->ifip_info.slotId == cb->slot && ifip_node->ifip_info.shelfId == cb->shelf && ifip_node->ifip_info.nodeId == cb->my_node_id) 
+      /* embedding subslot changes */
+      if((ifip_node->ifip_info.subslotId == cb->subslot) &&
+         (ifip_node->ifip_info.slotId == cb->slot) && 
+         (ifip_node->ifip_info.shelfId == cb->shelf) && 
+         (ifip_node->ifip_info.nodeId == cb->my_node_id)) 
       {
          if (ifip_node->ifip_info.vipIp)
          {
@@ -821,7 +827,11 @@ ncs_ifsv_vip_del_ip(IFSV_CB *cb,uns32 hdl,NCS_IPPFX *ipAddr)
    while(ifip_node)
    {
      ifindex = ifip_node->ifip_info.ifindexNet;
-     if(ifip_node->ifip_info.slotId == cb->slot && ifip_node->ifip_info.shelfId == cb->shelf && ifip_node->ifip_info.nodeId == cb->my_node_id)
+     /* embedding subslot changes */
+     if((ifip_node->ifip_info.subslotId == cb->subslot) &&
+        (ifip_node->ifip_info.slotId == cb->slot) && 
+        (ifip_node->ifip_info.shelfId == cb->shelf) && 
+        (ifip_node->ifip_info.nodeId == cb->my_node_id))
      {
          if (ifip_node->ifip_info.vipIp)
          {

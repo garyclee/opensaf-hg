@@ -156,6 +156,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE},
 
     {"PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
+    {"AMC_SUB_SLOT",               AMC_SUB_SLOT_TYPE},
 
 #ifdef HPI_B_02
     {"PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
@@ -558,10 +559,11 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
 #else
    /* Allow for the case where blades are ATCA or non-ATCA.                        */
    if ((type != SAHPI_ENT_PHYSICAL_SLOT) && (type != SAHPI_ENT_SYSTEM_BLADE) &&
-       (type != SAHPI_ENT_SWITCH_BLADE))
+       (type != SAHPI_ENT_SWITCH_BLADE) && (AMC_SUB_SLOT_TYPE != type))
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Current Hotswap state of non-board resource is: ");
+      m_NCS_CONS_PRINTF("Current Hotswap state of non-board resource of type %d is: ",type);
    }
    else
    {
@@ -605,7 +607,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
 #else
    /* Allow for the case where blades are ATCA or non-ATCA.                        */
    if ((type != SAHPI_ENT_PHYSICAL_SLOT) && (type != SAHPI_ENT_SYSTEM_BLADE) &&
-       (type != SAHPI_ENT_SWITCH_BLADE))
+       (type != SAHPI_ENT_SWITCH_BLADE) && (AMC_SUB_SLOT_TYPE != type))
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Previous Hotswap state of non-board resource is: ");

@@ -2,6 +2,9 @@
 export OPENSAF_HOME=/home/opensaf/
 export OPEN_TWARE_HOME=/home/opensourcetware/
 export RESULTS_DIR=/opt/tware_result
+export TARGET_LIB_PATH=/usr/local/ #/* Need to update with open lib/lib64 dir location which contains the  opensaf libs  */
+export SAHPI_PATH=/home/openhpi/  #/* need to update with open hpi 'SaHpi.h' path */
+
 
 # Setup Cross Compile options 
 #CC_EXEC_PREFIX=/opt/tools/ppc_74xx-

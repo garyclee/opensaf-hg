@@ -287,8 +287,8 @@ static uns32 init_stream(log_stream_t **stream, SaUint32T stream_id,
     TRACE("%s", streamName);
 
     memset(&name, 0, sizeof(name));
-    strcpy(name.value, streamName);
-    name.length = strlen(name.value);
+    strcpy((char *) name.value, streamName);
+    name.length = strlen((char *) name.value);
 
     /* FileName _must_ be co nfigured according to spec. */
     sprintf(env, "LOG_%s_FILE_NAME", env_prefix);

@@ -21,10 +21,7 @@
 #define CPSV_CPD_MBCSV_VERSION    1
 
 #define CPD_EVT_TIME_OUT 100
-
-#define ACT_SCXB_NODE_ID 1
-
-#define STB_SCXB_NODE_ID 2            
+          
 #define m_CPND_IS_ON_SCXB(m,n) ((m==n)?1:0)
 
 #define m_CPD_IS_LOCAL_NODE(m,n)   (m == n) ? 1 : 0
@@ -255,6 +252,7 @@ EXTERN_C uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree,
 EXTERN_C uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 EXTERN_C void cpd_ckpt_tree_cleanup(CPD_CB *cb);
 EXTERN_C void cpd_ckpt_tree_destroy(CPD_CB *cb);
+EXTERN_C void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
 
 EXTERN_C uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb);
 EXTERN_C uns32  cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,

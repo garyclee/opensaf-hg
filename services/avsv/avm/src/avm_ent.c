@@ -1763,7 +1763,7 @@ ncsavmentupgradetableentry_set(
 
    AVM_ENT_PATH_STR_T ep;
    uns32     i;
-
+   uns32     flag=0;
    uns32 rc = NCSCC_RC_SUCCESS;
    
    avm_cb   = (AVM_CB_T*)cb;
@@ -1823,6 +1823,17 @@ ncsavmentupgradetableentry_set(
    {
       case ncsAvmEntHelperPayload_ID:
       {
+
+        if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
+        {
+           goto failure;
+        }
+        else
+        {
+          if(flag==1)
+          goto failure;
+        }
+
          AVM_ENT_PATH_STR_T helper_ep;
          /* If same Value, return Success */
          if (!AVM_DHCONF_MEMCMP_LEN(ent_info->dhcp_serv_conf.ipmc_helper_node.name,
@@ -1891,6 +1902,19 @@ ncsavmentupgradetableentry_set(
          } 
          else
          {
+           if(arg->req.info.set_req.i_param_val.info.i_int != SW_BIOS)
+           { 
+             flag=0;
+             if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
+             {
+               goto failure;
+             }
+             else
+             {
+               if(flag==1)
+               goto failure;
+             }
+           } 
             ent_info->dhcp_serv_conf.upgrade_type = arg->req.info.set_req.i_param_val.info.i_int;
             ckpt_upgd_state = TRUE;
          }
@@ -1983,7 +2007,21 @@ ncsavmentupgradetableentry_set(
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                goto failure;
             }
-
+             
+            /*this if condition checks upgrade case of SW_BIOS for 7150 when 7150 is placed in place of 7221*/ 
+            if((IPMC == ent_info->dhcp_serv_conf.upgrade_type) || (INTEG == ent_info->dhcp_serv_conf.upgrade_type))
+            {
+               flag=0;
+               if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
+               {
+                 goto failure;
+               }
+               else
+               {
+                 if(flag==1)
+                 goto failure;
+               }
+            }
             /* Check for the uType. The uType should be either INTEG or IPMC */
             if( (IPMC == ent_info->dhcp_serv_conf.upgrade_type) )
             {

@@ -20,7 +20,6 @@
 
  MODULE NAME:  SHIMMAB.H
 
-$Header: /ncs/software/leap/base/products/cli/inc/shimmab.h 8     6/19/01 3:20p Agranos $
 ..............................................................................
 
   DESCRIPTION:

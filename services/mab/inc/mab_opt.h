@@ -21,7 +21,6 @@
 
   REVISION HISTORY:
 
-  $Header: /ncs/software/release/UltraLinq/MAB/MAB1.0/targsvcs/products/mab/mab_opt.h 4     8/23/01 11:53a Questk $
 
 ..............................................................................
 

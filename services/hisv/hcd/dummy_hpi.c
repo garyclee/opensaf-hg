@@ -217,6 +217,7 @@ SaErrorT saHpiResourcesDiscover (SaHpiSessionIdT SessionId)
 **   None.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiRptInfoGet (SaHpiSessionIdT SessionId,
                           SaHpiRptInfoT *RptInfo)
 {
@@ -224,8 +225,7 @@ SaErrorT saHpiRptInfoGet (SaHpiSessionIdT SessionId,
    return SA_OK;
 }
 
-
-
+#endif
 /*******************************************************************************
 **
 ** Name: saHpiRptEntryGet
@@ -523,6 +523,7 @@ SaErrorT saHpiEntitySchemaGet (SaHpiSessionIdT     SessionId,
 **   None.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
                                SaHpiResourceIdT ResourceId,
                                SaHpiSelInfoT    *Info)
@@ -530,7 +531,16 @@ SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogInfoGet\n");
    return SA_OK;
 }
+#else
+SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
+                               SaHpiResourceIdT ResourceId,
+                               SaHpiEventLogInfoT    *Info)
+{
+   m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogInfoGet\n");
+   return SA_OK;
+}
 
+#endif
 
 /*******************************************************************************
 **
@@ -605,6 +615,7 @@ SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
 **   be set to SAHPI_NO_RECORD.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
                                 SaHpiResourceIdT    ResourceId,
                                 SaHpiSelEntryIdT    EntryId,
@@ -617,7 +628,21 @@ SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryGet\n");
    return SA_OK;
 }
+#else
+SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
+                                SaHpiResourceIdT    ResourceId,
+                                SaHpiEventLogEntryIdT    EntryId,
+                                SaHpiEventLogEntryIdT    *PrevEntryId,
+                                SaHpiEventLogEntryIdT    *NextEntryId,
+                                SaHpiEventLogEntryT      *EventLogEntry,
+                                SaHpiRdrT           *Rdr,
+                                SaHpiRptEntryT      *RptEntry)
+{
+   m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryGet\n");
+   return SA_OK;
+}
 
+#endif
 
 /*******************************************************************************
 **
@@ -648,6 +673,7 @@ SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
 **   data is provided than can be written, an error will be returned.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEventLogEntryAdd (SaHpiSessionIdT      SessionId,
                                 SaHpiResourceIdT     ResourceId,
                                 SaHpiSelEntryT       *EvtEntry)
@@ -655,6 +681,15 @@ SaErrorT saHpiEventLogEntryAdd (SaHpiSessionIdT      SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryAdd\n");
    return SA_OK;
 }
+#else
+SaErrorT saHpiEventLogEntryAdd (SaHpiSessionIdT      SessionId,
+                                SaHpiResourceIdT     ResourceId,
+                                SaHpiEventT          *EvtEntry)
+{
+   m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryAdd\n");
+   return SA_OK;
+}
+#endif
 
 
 /*******************************************************************************
@@ -684,6 +719,7 @@ SaErrorT saHpiEventLogEntryAdd (SaHpiSessionIdT      SessionId,
 **   None.
 **
 *******************************************************************************/
+#ifdef HAP_A
 SaErrorT saHpiEventLogEntryDelete (SaHpiSessionIdT      SessionId,
                                    SaHpiResourceIdT     ResourceId,
                                    SaHpiSelEntryIdT     EntryId)
@@ -691,6 +727,15 @@ SaErrorT saHpiEventLogEntryDelete (SaHpiSessionIdT      SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryDelete\n");
    return SA_OK;
 }
+#else
+SaErrorT saHpiEventLogEntryDelete (SaHpiSessionIdT      SessionId,
+                                   SaHpiResourceIdT     ResourceId,
+                                   SaHpiEventLogEntryIdT     EntryId)
+{
+   m_LOG_HISV_DEBUG("Dummy HPI function saHpiEventLogEntryDelete\n");
+   return SA_OK;
+}
+#endif
 
 
 /*******************************************************************************
@@ -914,12 +959,20 @@ SaErrorT saHpiEventLogStateSet (SaHpiSessionIdT   SessionId,
 **   None.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiSubscribe (SaHpiSessionIdT  SessionId,
                          SaHpiBoolT       ProvideActiveAlarms)
 {
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiSubscribe\n");
    return SA_OK;
 }
+#else
+SaErrorT saHpiSubscribe (SaHpiSessionIdT  SessionId)
+{
+   m_LOG_HISV_DEBUG("Dummy HPI function saHpiSubscribe\n");
+   return SA_OK;
+}
+#endif
 
 
 /*******************************************************************************
@@ -1018,6 +1071,7 @@ SaErrorT saHpiUnsubscribe (SaHpiSessionIdT SessionId)
 **   SAHPI_TIME_MAX_RELATIVE, then it is absolute.   6  Resource Functions
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEventGet (SaHpiSessionIdT      SessionId,
                         SaHpiTimeoutT        Timeout,
                         SaHpiEventT          *Event,
@@ -1028,6 +1082,7 @@ SaErrorT saHpiEventGet (SaHpiSessionIdT      SessionId,
    return SA_OK;
 }
 
+#endif
 
 /*******************************************************************************
 **
@@ -1098,6 +1153,7 @@ SaErrorT saHpiRdrGet (SaHpiSessionIdT       SessionId,
 **   None.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiSensorReadingGet (SaHpiSessionIdT      SessionId,
                                 SaHpiResourceIdT     ResourceId,
                                 SaHpiSensorNumT      SensorNum,
@@ -1106,6 +1162,7 @@ SaErrorT saHpiSensorReadingGet (SaHpiSessionIdT      SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiSensorReadingGet\n");
    return SA_OK;
 }
+#endif
 
 
 /*******************************************************************************
@@ -1311,6 +1368,7 @@ SaErrorT saHpiSensorTypeGet (SaHpiSessionIdT     SessionId,
 **   "DeassertsEvents" element will always have same value.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiSensorEventEnablesGet (SaHpiSessionIdT         SessionId,
                                      SaHpiResourceIdT        ResourceId,
                                      SaHpiSensorNumT         SensorNum,
@@ -1319,7 +1377,7 @@ SaErrorT saHpiSensorEventEnablesGet (SaHpiSessionIdT         SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiSensorEventEnablesGet\n");
    return SA_OK;
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -1383,6 +1441,7 @@ SaErrorT saHpiSensorEventEnablesGet (SaHpiSessionIdT         SessionId,
 **   () call.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiSensorEventEnablesSet (SaHpiSessionIdT        SessionId,
                                      SaHpiResourceIdT       ResourceId,
                                      SaHpiSensorNumT        SensorNum,
@@ -1391,7 +1450,7 @@ SaErrorT saHpiSensorEventEnablesSet (SaHpiSessionIdT        SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiSensorEventEnablesSet\n");
    return SA_OK;
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -1583,6 +1642,7 @@ SaErrorT saHpiControlStateSet (SaHpiSessionIdT  SessionId,
 **   details on the format of the returned data.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEntityInventoryDataRead (SaHpiSessionIdT         SessionId,
                                        SaHpiResourceIdT        ResourceId,
                                        SaHpiEirIdT             EirId,
@@ -1593,7 +1653,7 @@ SaErrorT saHpiEntityInventoryDataRead (SaHpiSessionIdT         SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEntityInventoryDataRead\n");
    return SA_OK;
 }
-
+#endif 
 
 /*******************************************************************************
 **
@@ -1633,6 +1693,7 @@ SaErrorT saHpiEntityInventoryDataRead (SaHpiSessionIdT         SessionId,
 **   should identify these restrictions.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiEntityInventoryDataWrite (SaHpiSessionIdT          SessionId,
                                         SaHpiResourceIdT         ResourceId,
                                         SaHpiEirIdT              EirId,
@@ -1641,7 +1702,7 @@ SaErrorT saHpiEntityInventoryDataWrite (SaHpiSessionIdT          SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiEntityInventoryDataWrite\n");
    return SA_OK;
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -2179,6 +2240,7 @@ SaErrorT saHpiHotSwapActionRequest (SaHpiSessionIdT  SessionId,
 **   control on the FRU.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiResourcePowerStateGet (SaHpiSessionIdT     SessionId,
                                      SaHpiResourceIdT    ResourceId,
                                      SaHpiHsPowerStateT  *State)
@@ -2186,7 +2248,7 @@ SaErrorT saHpiResourcePowerStateGet (SaHpiSessionIdT     SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiResourcePowerStateGet\n");
    return SA_OK;
 }
-
+#endif
 
 /*******************************************************************************
 **
@@ -2224,6 +2286,7 @@ SaErrorT saHpiResourcePowerStateGet (SaHpiSessionIdT     SessionId,
 **   control on the FRU.
 **
 *******************************************************************************/
+#ifdef HPI_A
 SaErrorT saHpiResourcePowerStateSet (SaHpiSessionIdT     SessionId,
                                      SaHpiResourceIdT    ResourceId,
                                      SaHpiHsPowerStateT  State)
@@ -2231,7 +2294,7 @@ SaErrorT saHpiResourcePowerStateSet (SaHpiSessionIdT     SessionId,
    m_LOG_HISV_DEBUG("Dummy HPI function saHpiResourcePowerStateSet\n");
    return SA_OK;
 }
-
+#endif
 
 /*******************************************************************************
 **

@@ -153,7 +153,6 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
    /* mds event types */
    case AVND_EVT_MDS_AVD_UP:
    case AVND_EVT_MDS_AVD_DN:
-   case AVND_EVT_MDS_AVA_DN:
    case AVND_EVT_MDS_CLA_DN:
    case AVND_EVT_MDS_AVND_DN:
    case AVND_EVT_MDS_AVND_UP:
@@ -164,7 +163,12 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
    /* HA state event types */
    case AVND_EVT_HA_STATE_CHANGE:
       break;
-      
+
+   case AVND_EVT_MDS_AVA_DN:
+      evt->priority = NCS_IPC_PRIORITY_NORMAL; /* keep priority as normal so that it doesn't */
+      evt->info.mds.mds_dest = *mds_dest;      /* supercede 'response' */
+      break;   
+   
    /* clc event types */
    case AVND_EVT_CLC_RESP:
       m_NCS_OS_MEMCPY(&evt->info.clc, clc, sizeof(AVND_CLC_EVT));

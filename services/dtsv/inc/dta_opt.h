@@ -21,7 +21,6 @@
 
   REVISION HISTORY:
 
-  $Header: /ncs/software/release/UltraLinq/DTA/DTA1.0/targsvcs/products/fla/dta_opt.h 4     8/23/01 11:53a Questk $
 
 ..............................................................................
 

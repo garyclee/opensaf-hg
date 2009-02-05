@@ -384,12 +384,12 @@ static SaAisErrorT amf_healthcheck_start(lgs_cb_t *lgs_cb)
 
     /** start the AMF health check **/
     memset(&healthy, 0, sizeof(healthy));
-    health_key = (int8*)getenv("LGSV_ENV_HEALTHCHECK_KEY");
+    health_key = getenv("LGSV_ENV_HEALTHCHECK_KEY");
 
     if (health_key == NULL)
-        strcpy(healthy.key, "F1B2");
+        strcpy((char *) healthy.key, "F1B2");
     else
-        strcpy(healthy.key, health_key);
+        strcpy((char *) healthy.key, health_key);
 
     healthy.keyLen = strlen((const char *)healthy.key);
 

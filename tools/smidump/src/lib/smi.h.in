@@ -310,7 +310,7 @@ extern char *esmiGlbHdrFile;
 extern char *pssvDirPath;
 extern char *esmiCopyRightFile;
 
-#define ESMI_MIB_FILE_NAME  "esmi_"
+#define ESMI_MIB_FILE_NAME  "ESMI-"
 #define ESMI_NULL_STR       "ESMI_NULL"
 
 /* Macros defined for the extensions of stub file names */

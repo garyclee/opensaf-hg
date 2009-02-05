@@ -590,11 +590,10 @@ avm_send_dynamic_data(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_ID pa
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->mab_hdl;
    mab_arg.i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
-
-   for (i=1;i<=ent_info->ep_str.length;i++)
+   for (i=1;i<=m_NCS_OS_NTOHS(ent_info->ep_str.length);i++)
      inst_ids[i] = (uns32) ent_info->ep_str.name[i-1];
 
-   inst_ids[0] = ent_info->ep_str.length;
+   inst_ids[0] = m_NCS_OS_NTOHS(ent_info->ep_str.length);
    local_mibarg.i_op = NCSMIB_OP_RSP_SET;
    local_mibarg.i_tbl_id  = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
    local_mibarg.i_usr_key = cb->cb_hdl;

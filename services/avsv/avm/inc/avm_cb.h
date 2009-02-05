@@ -43,28 +43,19 @@ typedef struct async_updt_cnt_type
    uns32 evt_id_updt;
    uns32 ent_dhconf_updt;
    uns32 ent_dhstate_updt;
-   uns32 hlt_status_updt;
    uns32 ent_upgd_state_updt;
 }AVM_ASYNC_CNT_T;
 
-typedef enum 
+typedef enum
 {
-   NO_MODULE = 1,
-   IPMC_PLD,
+   IPMC_PLD = 1,
    IPMC_PLD_BLD,
    IPMC_PLD_RTM,
    NCS_BIOS,
-   ALL_MODULE
+   NCS_BIOS_IPMC
 }AVM_UPGD_MODULE;
 
-#if 0 /* remove later - JPL */
-typedef enum
-{
-  IPMC_SAME_VERSION,
-  UPGRADE_SUCCESS,
-  ROLLBACK_TRIGGERED
-}AVM_UPGD_PRG; 
-#endif
+
 
 struct avm_cb
 {
@@ -84,11 +75,17 @@ struct avm_cb
    /*The selection object returned by EdSv*/
    SaSelectionObjectT      eda_sel_obj;
 
+   /* The selection object returned by FM service */
+   SaSelectionObjectT      fma_sel_obj;
+
    /* The highest selction object */ 
    NCS_SEL_OBJ             sel_high;   
    
    /*MDS handle returned during initialization*/
    MDS_HDL                 mds_hdl;
+
+   /* FM handle returned during initialization */
+   fmHandleT               fm_hdl;
 
    /*The pwe handle returned when adest is created*/
    MDS_HDL                 adest_pwe_hdl;
@@ -151,8 +148,6 @@ struct avm_cb
    AVM_VALID_INFO_STATE_T   valid_info_state;  
    uns32                    config_cnt;
    uns32                    dummy_parent_cnt;
-   HEALTH_STATUS            hlt_status[HEALTH_STATUS_MAX];
-   NCS_BOOL                 is_platform;
    AVM_TMR_T                dhcp_fail_tmr;  /* Timer for handling dhcp script failure */
    AVM_UPGD_ERR             upgrade_error_type;
    AVM_UPGD_MODULE          upgrade_module;

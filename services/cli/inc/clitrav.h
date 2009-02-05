@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLITRAV.H
 
-$Header: /ncs/software/release/UltraLinq/cli/1.0/base/products/cli/inc/clitrav.h 5     3/26/01 3:01p Achatter $
 ..............................................................................
 
   DESCRIPTION:

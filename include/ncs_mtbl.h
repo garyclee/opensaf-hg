@@ -150,8 +150,8 @@ typedef enum   ncsmib_tbl_id
 
     /* EDSv Tables */
     NCSMIB_TBL_EDSV_BASE,
-    NCSMIB_TBL_EDSV_SCALAR=NCSMIB_TBL_EDSV_BASE,/*  SAF-EVT-SVC-MIB : safEvtScalarObject */
-    NCSMIB_TBL_EDSV_CHAN_TBL,                   /*  SAF-EVT-SVC-MIB : SaEvtChannelEntry  */
+    NCSMIB_TBL_EDSV_SCALAR=NCSMIB_TBL_EDSV_BASE,/*  SAF-EVT-MIB : safEvtScalarObject */
+    NCSMIB_TBL_EDSV_CHAN_TBL,                   /*  SAF-EVT-MIB : SaEvtChannelEntry  */
     NCSMIB_TBL_EDSV_TRAPOBJ_TBL,
     NCSMIB_TBL_EDSV_TRAP_TBL,
     NCSMIB_TBL_EDSV_END=NCSMIB_TBL_EDSV_TRAP_TBL,
@@ -263,20 +263,20 @@ typedef enum   ncsmib_tbl_id
 
     /* MIB Table deffinitions for MQSv table */
     NCSMIB_TBL_MQSV_MIB_BASE,
-    NCSMIB_TBL_MQSV_SCLROBJECTSTBL = NCSMIB_TBL_MQSV_MIB_BASE, /*SAF-MSG-SVC-MIB:safMsgScalarObject */
-    NCSMIB_TBL_MQSV_MQGRPTBL,         /* SAF-MSG-SVC-MIB:saMsgQueueGroupTable        */
-    NCSMIB_TBL_MQSV_MSGQTBL,          /* SAF-MSG-SVC-MIB:saMsgQueueTable             */
-    NCSMIB_TBL_MQSV_MSGQPRTBL,        /* SAF-MSG-SVC-MIB:saMsgQueuePriorityTable     */
-    NCSMIB_TBL_MQSV_MSGQGRPMBRSTBL,   /* SAF-MSG-SVC-MIB:saMsgQueueGroupMembersTable */
+    NCSMIB_TBL_MQSV_SCLROBJECTSTBL = NCSMIB_TBL_MQSV_MIB_BASE, /*SAF-MSG-MIB:safMsgScalarObject */
+    NCSMIB_TBL_MQSV_MQGRPTBL,         /* SAF-MSG-MIB:saMsgQueueGroupTable        */
+    NCSMIB_TBL_MQSV_MSGQTBL,          /* SAF-MSG-MIB:saMsgQueueTable             */
+    NCSMIB_TBL_MQSV_MSGQPRTBL,        /* SAF-MSG-MIB:saMsgQueuePriorityTable     */
+    NCSMIB_TBL_MQSV_MSGQGRPMBRSTBL,   /* SAF-MSG-MIB:saMsgQueueGroupMembersTable */
     NCSMIB_TBL_MQSV_TRAP_OBJECT,      
     NCSMIB_TBL_MQSV_TRAPS,
     NCSMIB_TBL_MQSV_MIB_END = NCSMIB_TBL_MQSV_TRAPS, 
 
    /* MIB Table definitions for CPSv MIBs */
     NCSMIB_TBL_CPSV_MIB_BASE,
-    NCSMIB_TBL_CPSV_SCLRS = NCSMIB_TBL_CPSV_MIB_BASE,/* SAF-CHK-SVC-MIB:safCkptScalarObject */
-    NCSMIB_TBL_CPSV_CKPTTBL,  /* SAF-CHK-SVC-MIB:saCkptCheckpointTable     */
-    NCSMIB_TBL_CPSV_REPLOCTBL,/* SAF-CHK-SVC-MIB:saCkptNodeReplicaLocTable */
+    NCSMIB_TBL_CPSV_SCLRS = NCSMIB_TBL_CPSV_MIB_BASE,/* SAF-CKPT-MIB:safCkptScalarObject */
+    NCSMIB_TBL_CPSV_CKPTTBL,  /* SAF-CKPT-MIB:saCkptCheckpointTable     */
+    NCSMIB_TBL_CPSV_REPLOCTBL,/* SAF-CKPT-MIB:saCkptNodeReplicaLocTable */
     NCSMIB_TBL_CPSV_CKPT_TRAP_OBJECT,
     NCSMIB_TBL_CPSV_NOTIF,    
     NCSMIB_TBL_CPSV_MIB_END = NCSMIB_TBL_CPSV_NOTIF,

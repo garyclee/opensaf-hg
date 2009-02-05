@@ -33,14 +33,18 @@ source "$SYSCONFDIR/rde.conf"
 # and execvp() from /sbin/ that causes stdout to get 
 # redirected to /dev/null. 
 echo $(/sbin/ifconfig) > $TMPDIR/opensaf_ifs
-if grep $CONTROLLER1 $TMPDIR/opensaf_ifs; then
- export RDE_SELF_IP_ADDR=$CONTROLLER1
- export RDE_PEER_IP_ADDR=$CONTROLLER2
- export RDE_HA_ROLE=0 # PCS_RDA_ACTIVE
+if grep "inet addr:$CONTROLLER1 " $TMPDIR/opensaf_ifs; then
+    export RDE_SELF_IP_ADDR=$CONTROLLER1
+    export RDE_PEER_IP_ADDR=$CONTROLLER2
+    export RDE_HA_ROLE=0 # PCS_RDA_ACTIVE
+elif grep "inet addr:$CONTROLLER2 " $TMPDIR/opensaf_ifs; then
+    export RDE_SELF_IP_ADDR=$CONTROLLER2
+    export RDE_PEER_IP_ADDR=$CONTROLLER1
+    export RDE_HA_ROLE=1 # PCS_RDA_STANDBY
 else
- export RDE_SELF_IP_ADDR=$CONTROLLER2
- export RDE_PEER_IP_ADDR=$CONTROLLER1
- export RDE_HA_ROLE=1 # PCS_RDA_STANDBY
+    logger -t opensaf -s \
+        "RDE: Invalid configuration, check $SYSCONFDIR/rde.conf"
+    exit 1
 fi
 
 rm -f $TMPDIR/opensaf_ifs
@@ -54,35 +58,30 @@ NID_RDE_DAEMON_START_FAILED=5
 #
 function rde_set_env_var
 {
-	# Check for environment variable for shelf number.
-	#if [ "$SHELF_NUMBER" = "" ] ; then
-        #        SHELF_NUMBER=`cat @sysconfdir@/@PACKAGE_NAME@/shelf_id`
-	#	export SHELF_NUMBER
-	#fi
+    # Check for environment variable for slot number.
+    if [ "$SLOT_NUMBER" = "" ]; then
+        SLOT_NUMBER=`cat "$SLOT_ID_FILE"`
+        export SLOT_NUMBER
+    fi
 
-	# Check for environment variable for slot number.
-	if [ "$SLOT_NUMBER" = "" ] ; then
-                SLOT_NUMBER=`cat "$SLOT_ID_FILE"`
-		export SLOT_NUMBER
-	fi
+    # Check for environment variable for site number.
+    if [ "$SITE_NUMBER" = "" ]; then
+        export SITE_NUMBER=0x0F
+    fi
 
-	# Check for environment variable for site number.
-	if [ "$SITE_NUMBER" = "" ] ; then
-		export SITE_NUMBER=0x0F
-	fi
-
-	# Check for environment variable for site number.
-	if [ "$PAYLOAD_BLADES" = "" ] ; then
-		export PAYLOAD_BLADES="3.$SITE_NUMBER 4.$SITE_NUMBER 5.$SITE_NUMBER 6.$SITE_NUMBER 7.$SITE_NUMBER 8.$SITE_NUMBER 9.$SITE_NUMBER 10.$SITE_NUMBER 11.$SITE_NUMBER 12.$SITE_NUMBER 13.$SITE_NUMBER 14.$SITE_NUMBER 15.$SITE_NUMBER 16.$SITE_NUMBER"
-	fi
-	
+    # Check for environment variable for site number.
+    if [ "$PAYLOAD_BLADES" = "" ]; then
+        export PAYLOAD_BLADES="3.$SITE_NUMBER 4.$SITE_NUMBER 5.$SITE_NUMBER \
+            6.$SITE_NUMBER 7.$SITE_NUMBER 8.$SITE_NUMBER 9.$SITE_NUMBER \
+            10.$SITE_NUMBER 11.$SITE_NUMBER 12.$SITE_NUMBER 13.$SITE_NUMBER \
+            14.$SITE_NUMBER 15.$SITE_NUMBER 16.$SITE_NUMBER"
+    fi
 }
 
-
 if [ ! -x "$LIBPATH/$DAEMON" ]; then
-   echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
+   logger -t opensaf -s "Unable to find daemon: ${LIBPATH}/${DAEMON}"
    echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_NOT_FND" > "$NIDFIFO"
-   exit 0
+   exit 1
 fi
 
 # Set env
@@ -91,71 +90,71 @@ rde_set_env_var
 set -e
 
 case "$1" in
-  start)
-		rm -f "$PIDFILE";
-		if [ -f "$PIDFILE" ]; then
-			echo  "$LIBPATH/$DAEMON already running..";
-			exit 0
-		fi
+    start)
+        rm -f "$PIDFILE"
+        if [ -f "$PIDFILE" ]; then
+            echo  "$LIBPATH/$DAEMON already running.."
+            exit 1
+        fi
 
-
-		echo "."
+        echo "."
 
         # Wait to allow the other controller to complete a potentially
         # ongoing fail over.
         sleep 12
 
-# Start rde
-  #start-stop-daemon --start --quiet --pidfile $PIDFILE \
-  #        --exec $LIBPATH/$DAEMON -- -p $PIDFILE -f $SHELF_NUMBER -s $SLOT_NUMBER -t $SITE_NUMBER
- 
-  # To get the console prints for debugging
-   "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
-		echo "Starting $DESC: $LIBPATH/$DAEMON";
-		if [ $? -ne 0 ] ; then
-			echo -n -e "Failed to start $DAEMON.    \n"
-			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > $NIDFIFO
-			exit 0
-                else
-		  echo "Started $DESC: $LIBPATH/$DAEMON";
-		fi
-		echo "."
-		;;
-
-  stop)
-		if [ ! -f "$PIDFILE" ]; then echo "$LIBPATH/$DAEMON is not running..";
-		else echo "Stopping $DESC: $LIBPATH/$DAEMON";
-                 `kill -9 $l_pid`
-		rm -f "$PIDFILE";
-
-		fi;
-		echo "."
+        # Start rde
+        echo "Starting $DESC: $LIBPATH/$DAEMON"
+        $LIBPATH/ncs_rde > ${NCS_STDOUTS_PATH}/ncs_rde 2>&1 &
+        if [ $? -ne 0 ]; then
+            echo -n -e "Failed to start $DAEMON.    \n"
+            echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > \
+                $NIDFIFO
+            exit 1
+        else
+            echo "Started $DESC: $LIBPATH/$DAEMON"
+        fi
+        echo "."
         ;;
 
-  restart|force-reload)
+    stop)
+        if [ ! -f "$PIDFILE" ]; then
+            echo "$LIBPATH/$DAEMON is not running.."
+        else
+            echo "Stopping $DESC: $LIBPATH/$DAEMON"
+            kill -9 $l_pid
+            rm -f "$PIDFILE"
+        fi
+        echo "."
+        ;;
+
+    restart|force-reload)
         #
         #       If the "reload" option is implemented, move the "force-reload"
         #       option to the "reload" entry above. If not, "force-reload" is
         #       just the same as "restart".
         #
-        if [ ! -f "$PIDFILE" ]; then echo "$LIBPATH/$DAEMON is not running.. Use start.";
-  	    else echo "Stopping $DESC: $LIBPATH/$DAEMON";
-             echo "Restarting $DESC: $LIBPATH/$DAEMON";
-                 `kill -9 $l_pid`
-        rm -f "$PIDFILE"
+        if [ ! -f "$PIDFILE" ]; then
+            echo "$LIBPATH/$DAEMON is not running.. Use start."
+        else
+            echo "Stopping $DESC: $LIBPATH/$DAEMON"
+            echo "Restarting $DESC: $LIBPATH/$DAEMON"
+           `kill -9 $l_pid`
+            rm -f "$PIDFILE"
 
-
-		# Start rde
-    "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
-		if [ $? -ne 0 ] ; then
-			echo -n -e "Failed to start $DAEMON.    \n"
-			echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > "$NIDFIFO"
-			exit 0
-		fi
-		echo "."
+            # Start rde
+            "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
+            if [ $? -ne 0 ] ; then
+                echo -n -e "Failed to start $DAEMON.    \n"
+                echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > \
+                    "$NIDFIFO"
+                exit 1
+            fi
+            echo "."
         fi
         ;;
-  *)
+
+    *)
         # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
         echo "Usage: $LIBPATH/rde_script {start|stop|restart|force-reload}" >&2
         exit 1

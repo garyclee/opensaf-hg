@@ -20,7 +20,6 @@
 
   MODULE NAME: NCS_TMR.C
 
-$Header: /ncs/software/leap/base/common/src/ncs_tmr.c      3/10/03 9:14p Jaganbabu $
 
 ..............................................................................
 

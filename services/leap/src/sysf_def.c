@@ -32,6 +32,7 @@
  ******************************************************************************
  */
 
+#include <configmake.h>
 
 #include "ncs_opt.h"
 #include "gl_defs.h"
@@ -698,5 +699,5 @@ void ncs_reboot(const char *reason)
    fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
    syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
 
-   system("/sbin/shutdown -r now");
+   system(BINDIR"/opensaf_reboot");
 }

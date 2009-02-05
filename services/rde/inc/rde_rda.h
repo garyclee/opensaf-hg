@@ -21,7 +21,6 @@
 
   MODULE NAME: rde_rda.h
 
-$Header: $
 
 ..............................................................................
 
@@ -115,7 +114,6 @@ uns32 rde_rda_close             (RDE_RDA_CB  * rde_rda_cb);
 uns32 rde_rda_process_msg       (RDE_RDA_CB  * rde_rda_cb);
 uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index);
 uns32 rde_rda_send_role         (int role);
-/*uns32 rde_rda_send_node_reset_to_avm(RDE_RDE_CB  * rde_rde_cb); */
 
 #endif      /* RDE_RDA_H */
 

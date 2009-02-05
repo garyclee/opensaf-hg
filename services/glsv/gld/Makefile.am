@@ -58,12 +58,12 @@ $(MIBLIB_GENERATED_FILES): miblib
 miblib:
 	@for file in $(MIBLIB_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \
 			-d $(top_builddir)/services \
-			SAF-LCK-SVC-v7_5; \
+			SAF-LCK-MIB; \
 		fi \
 	done
 

@@ -261,8 +261,9 @@ uns32 rde_rde_sock_init (RDE_RDE_CB *rde_rde_cb)
 
 *****************************************************************************/
 uns32 rde_rde_process_msg (RDE_RDE_CB *rde_rde_cb)
-{  
-   int newsockfd,cli_addr_len,rc;
+{
+   socklen_t cli_addr_len;
+   int newsockfd, rc;
    cli_addr_len = sizeof(rde_rde_cb->cli_addr);
    rc = 0;
    if(rde_rde_cb->connRecv == TRUE)
@@ -273,7 +274,9 @@ uns32 rde_rde_process_msg (RDE_RDE_CB *rde_rde_cb)
    {
    /*    m_RDE_LOG_COND_C (RDE_SEV_INFO, RDE_RDE_SOCK_CLOSE_FAIL, "recvFd Faild"); */
    }
-   newsockfd = accept (rde_rde_cb->fd, (struct sockaddr *) &rde_rde_cb->cli_addr,&cli_addr_len);
+
+   newsockfd = accept(rde_rde_cb->fd, (struct sockaddr *) &rde_rde_cb->cli_addr,
+       &cli_addr_len);
 
    if (newsockfd < 0)
    {
@@ -1129,89 +1132,6 @@ uns32 rde_rde_set_role (PCS_RDA_ROLE role)
       rde_rde_process_send_role(); 
        return NCSCC_RC_SUCCESS;
 }
-/*****************************************************************************
-
-  PROCEDURE NAME:         rde_rde_hb_err
-
-  DESCRIPTION:            
-
-  ARGUMENTS:
-
-  RETURNS:
-
-    RDE_RDE_RC_SUCCESS:
-    RDE_RDE_RC_FAILURE:
-
-  NOTES:
-
-*****************************************************************************/
-
-uns32 rde_rde_hb_err ()
-{
-                                                                                                                              
-   RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
-   RDE_RDE_CB * rde_rde_cb = &rde_cb->rde_rde_cb;
-   char msg [RDE_RDE_MSG_SIZE] = {0}; 
-   int msg_size   = 0;
-    
-   if (rde_cb->ha_role == PCS_RDA_ACTIVE)
-   {
-       /* Check about the link health.*/
-       if(TRUE == rde_rde_cb->clientConnected)
-       {
-         /* Send reboot command to STDBY. */
-            m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Role ACTIVE. Heart Beat Loss Msg received. Sending Reboot Command to other RDE");
-            syslog(LOG_NOTICE, "Heart Beat Loss Msg received, sending Reboot Command to other RDE");
-            rde_rda_send_node_reset_to_avm(rde_rde_cb);
-            sprintf(msg,"%d",RDE_RDE_REBOOT_CMD);
-            msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg)); 
-            if (msg_size < 0)
-            {
-               m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
-               return RDE_RDE_RC_FAILURE;
-            }
-            else
-            {
-               return RDE_RDE_RC_SUCCESS;
-            }
-       }
-       else
-       {
-         rde_rda_send_node_reset_to_avm(rde_rde_cb);
-         m_RDE_LOG_COND_C(RDE_SEV_CRITICAL, RDE_RDE_INFO, "Role ACTIVE. Heart Beat Loss Msg received. RDE-RDE not connected");
-       }
-       /*
-       ** We have nothing to do
-       */
-       return NCSCC_RC_SUCCESS;
-   }
-   if (rde_cb->ha_role == PCS_RDA_STANDBY)
-   {
-       /* Check about the link health.*/
-       if(TRUE == rde_rde_cb->clientConnected)
-       {
-         /* Wait for reboot command to come.
-            If it doesn't get reboot command then send reboot command to ACT. */
-         m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received.  Waiting for reboot cmd from other RDE");
-           rde_rde_cb->hb_loss = TRUE;
-		   rde_rde_cb->conn_needed = FALSE;
-       }
-       else
-       {
-         rde_rde_cb->hb_loss = TRUE;
-		 rde_rde_cb->conn_needed = FALSE;
-         /* Log a message. */
-         m_RDE_LOG_COND_C(RDE_SEV_CRITICAL, RDE_RDE_INFO, "Role STDBY. Heart Beat Loss Msg received. RDE-RDE not connected");
-       }
-     
-   }
-   /*
-   ** It is a standby server and got heartbeat error
-   ** so change the role of the server 
-   */
-   return RDE_RDE_RC_SUCCESS;
-                                                                                                                              
-}
 
 /*****************************************************************************
 
@@ -1312,95 +1232,6 @@ connect_success:
     rde_rde_cb->clientReconnCount = 0;
     rde_rde_cb->retry = FALSE;
     return RDE_RDE_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:         rde_rde_process_hb_loss_stdby
-
-  DESCRIPTION:            Wait for some time and then sends Reboot to ACT. 
-
-  ARGUMENTS:
-     rde_cb           Pointer to RDE Socket Config structure
-
-  RETURNS:
-
-    RDE_RDE_RC_SUCCESS:   Successfully to connected to other RDE
-    RDE_RDE_RC_FAILURE:   Failure to connected to other RDE
-
-  NOTES:
-
-*****************************************************************************/
-uns32 rde_rde_process_hb_loss_stdby(RDE_CONTROL_BLOCK * rde_cb)
-{
-  char msg [RDE_RDE_MSG_SIZE] = {0};
-  int msg_size   = 0;
-  int rc = 0;
-  RDE_RDE_CB  *rde_rde_cb  = &rde_cb->rde_rde_cb;
-
-  if(rde_rde_cb->hb_loss == TRUE)
-  {
-   if(rde_rde_cb->count == RDE_RDE_WAIT_CNT)
-   {
-    rde_rde_cb->count = 0;
-    rde_rde_cb->hb_loss = FALSE;
-    rde_cb->ha_role = PCS_RDA_ACTIVE;
-	rde_rde_cb->conn_needed = TRUE;
-    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Wait Time Over : Switching STDBY to ACTIVE");
-    rde_rde_update_config_file(rde_cb->ha_role);
-    rde_rda_send_role (rde_cb->ha_role);
-    /* Check about the link health.*/
-    if(TRUE == rde_rde_cb->clientConnected)
-    {
-         rde_rda_send_node_reset_to_avm(rde_rde_cb);
-         /* Send reboot command to STDBY. */
-    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Reboot Cmd Not received from ACT. So sending Reboot Cmd to ACT");
-            sprintf(msg,"%d",RDE_RDE_REBOOT_CMD);
-            syslog(LOG_NOTICE, "Reboot Cmd Not received from ACT, sending Reboot Command to other RDE");
-            msg_size = write  (rde_rde_cb->clientfd, msg, strlen(msg));
-            if (msg_size < 0)
-            {
-               m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
-               return RDE_RDE_RC_FAILURE;
-            }
-            else
-            {
-               /* Since the peer has been rebooted so reinitiate socket fds. */
-                rde_cb->rde_rde_cb.retry = TRUE;
-                rde_cb->rde_rde_cb.clientConnected = FALSE;
-                rde_cb->rde_rde_cb.clientReconnCount = 0;
-                if( rde_rde_client_socket_init(rde_rde_cb)!= RDE_RDE_RC_SUCCESS)
-                 {
-                    /* If the socket initialization fails then we need to exit */
-                     return RDE_RDE_RC_FAILURE;
-                 }
-                /* Close the recvFd and mark it not connected. */
-			    rc = close(rde_rde_cb->recvFd);
-				rde_rde_cb->connRecv = FALSE;
-			    if ( rc < 0)
-		        {
-                   m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_CLOSE_FAIL, errno);
-                }
-
-               return RDE_RDE_RC_SUCCESS;
-            }
-    }
-    else
-    {
-       rde_rda_send_node_reset_to_avm(rde_rde_cb);
-       /* Log a message. */
-       m_RDE_LOG_COND_C(RDE_SEV_CRITICAL, RDE_RDE_INFO, "Reboot Cmd Not received from ACT. Reboot Cmd couldn't be sent to ACT as RDE-RDE Connection not Available");
-    }
-
-   }/* rde_rde_cb->count == 2 */
-   else 
-   {
-     sleep(1);
-   }
-
-    rde_rde_cb->count++;
-  }/* rde_rde_cb->hb_loss == TRUE  */  
- return RDE_RDE_RC_SUCCESS;
 }
 
 /*****************************************************************************

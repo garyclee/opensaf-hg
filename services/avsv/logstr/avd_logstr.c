@@ -224,6 +224,19 @@ const NCSFL_STR avd_ha_state_set[] =
    { 0,0 }
 };
 
+
+/******************************************************************************
+ Logging stuff for failure of shutdown
+ ******************************************************************************/
+const NCSFL_STR avd_shutdown_failure[] =
+{
+   { AVD_TRAP_NODE_ACTIVE_SYS_CTRL ,"Node is the Active system controller" },
+   { AVD_TRAP_SUS_SAME_SG ,"SUs are in same SG on the node"                },
+   { AVD_TRAP_SG_UNSTABLE ,"the SG is unstable"                            },
+
+   { 0,0 }
+};
+
 /******************************************************************************
  Build up the canned constant strings for the ASCII SPEC
  ******************************************************************************/
@@ -244,6 +257,7 @@ NCSFL_SET avd_str_set[] =
    { AVD_FC_ADMIN,          0, (NCSFL_STR*) avd_admin_set     },
    { AVD_FC_SUSI_HA,        0, (NCSFL_STR*) avd_ha_state_set  },
    { AVD_FC_PXY_PXD,        0, (NCSFL_STR*) avd_pxy_pxd_set  },
+   { AVD_FC_SHUTDOWN_FAILURE,0,(NCSFL_STR*) avd_shutdown_failure  },
    
    { 0,0,0 }
 };
@@ -270,6 +284,7 @@ NCSFL_FMAT avd_fmat_set[] =
    { AVD_LID_SUSI_HA_CHG_START, "TCCI",         "%s AVD: %s %s HA State Changing to %s\n"},
    { AVD_LID_HDLN_SVAL,      "TICLC",           "%s AVD: %s at %s:%ld val %s\n"},   
    { AVD_PXY_PXD,            "TICCLLLL",        "[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},   
+   { AVD_LID_SHUTDOWN_FAILURE,  "TCI",          "%s AVD: Shutdown failed of node %s as %s\n"},
    { 0, 0, 0 }
 };
 
