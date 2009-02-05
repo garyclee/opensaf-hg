@@ -361,7 +361,6 @@ fi
 %{_sysconfdir}/%{name}/AppConfig.xsd
 %{_sysconfdir}/%{name}/cli_cefslib_conf
 %{_sysconfdir}/%{name}/NCSConfig.xsd
-%{_sysconfdir}/%{name}/ncsSnmpSubagt.conf
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
 %{_sysconfdir}/%{name}/pssv_lib_conf
@@ -378,6 +377,7 @@ fi
 %{_sysconfdir}/%{name}/.drbd_sync_state_4
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
+%{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_datadir}/%{name}/drbd.1.conf
 %{_datadir}/%{name}/drbd.2.conf
 %{_localstatedir}/lib/%{name}/node_ha_state

@@ -271,7 +271,6 @@ controller_sysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
 	$(top_srcdir)/config/cli_cefslib_conf \
 	$(top_srcdir)/config/NCSConfig.xsd \
-	$(top_srcdir)/config/ncsSnmpSubagt.conf \
 	$(top_srcdir)/config/NCSSystemBOM.xml \
 	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
 	$(top_srcdir)/config/pssv_lib_conf \
@@ -386,6 +385,7 @@ endif
 
 
 EXTRA_DIST = \
+	$(top_srcdir)/config/ncsSnmpSubagt.conf \
 	$(top_srcdir)/initd/opensafd.initd \
 	$(top_srcdir)/tools/smidump \
 	$(top_srcdir)/tests \
@@ -433,6 +433,7 @@ install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
 	$(mkinstalldirs) $(DESTDIR)$(datadir)/snmp/mibs
 	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
+	$(INSTALL_DATA) $(top_srcdir)/config/ncsSnmpSubagt.conf $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
 	@for file in $(mibs_files); do \
 		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
 	done
@@ -457,6 +458,7 @@ uninstall-local:
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
+	-rm -f $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
 	@for file in $(mibs_files); do \
 		rm -f $(DESTDIR)$(datadir)/snmp/$$file.txt; \
 	done
