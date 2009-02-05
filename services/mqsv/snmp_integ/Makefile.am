@@ -21,8 +21,8 @@ pkglib_LTLIBRARIES = libmqsv_subagt.la
 SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/mqsv/snmp_integ/mqsv_subagt_init.c \
 	$(top_builddir)/services/mqsv/snmp_integ/mqsv_subagt_init.h \
-	$(top_builddir)/services/mqsv/snmp_integ/saf_msg_svc_mib_agt_stub.c \
-	$(top_builddir)/services/mqsv/snmp_integ/saf_msg_svc_mib_agt_stub.h
+	$(top_builddir)/services/mqsv/snmp_integ/saf_msg_mib_agt_stub.c \
+	$(top_builddir)/services/mqsv/snmp_integ/saf_msg_mib_agt_stub.h
 
 libmqsv_subagt_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -43,12 +43,12 @@ $(SUBAGT_GENERATED_FILES): subagt
 subagt:
 	@for file in $(SUBAGT_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f synncsnetsnmp_new \
 			-d $(top_builddir)/services \
-			-o mqsv SAF-MSG-SVC-v7_5; \
+			-o mqsv SAF-MSG-MIB; \
 		fi \
 	done
 

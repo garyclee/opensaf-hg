@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-  $Header:
 
   ..............................................................................
 
@@ -78,6 +77,14 @@ enum nid_ipmcupgradestat_cods{
    NID_BIOS_FCU_MARK_FAILURE,
    NID_BIOS_FCU_MARK_DEVICE_NOT_FOUND,
    NID_BIOS_FCU_MARK_OUTPUT_NOT_RECOGNIZED,
+   NID_BIOS_FCU_WRITE_NOT_SUPPORTED,
+   NID_BIOS_FCU_WRITE_FAILURE,
+   NID_BIOS_FCU_WRITE_INVALID_VALUE,
+   NID_BIOS_FCU_WRITE_DEVICE_NOT_FOUND,
+   NID_BIOS_FCU_WRITE_SUCCESS,
+   NID_BIOS_FCU_WRITE_OUTPUT_NOT_RECOGNIZED,
+   NID_BIOS_UPGRADE_FAILURE,
+   NID_BIOS_VERSION_INCONSISTENT_GOING_FOR_RECOVERY,
    NID_MAXIPMCBIOSERR
 };
 /* 7221 Phoenix Bios Upgrade Error Coded */
@@ -114,6 +121,9 @@ enum nid_hlfmstat_cods{
    NID_RDE_RDA_OPEN_FAILED,
    NID_LFM_LHC_GET_ROLE_FAILURE,
    NID_LFM_LINK_STAT_RET_FAILURE,
+   NID_LFM_GET_CHASSIS_TYPE_FAILURE,
+   NID_LFM_GET_WRONG_CHASSIS_TYPE,
+   NID_GFM_INIT_FAILURE, 
    NID_MAXHLFMERR
 };
 

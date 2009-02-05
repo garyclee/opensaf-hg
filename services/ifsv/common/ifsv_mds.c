@@ -55,12 +55,16 @@ uns32 ifsv_edp_spt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 {
     uns32       rc = NCSCC_RC_SUCCESS;
     NCS_IFSV_SPT   *struct_ptr = NULL, **d_ptr = NULL;
+    uns32          base_ver_401=IFD_MBCSV_VERSION;
 
     EDU_INST_SET    ifsv_spt_rules[ ] = {
         {EDU_START, ifsv_edp_spt, 0, 0, 0, sizeof(NCS_IFSV_SPT), 0, NULL},
 
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->shelf, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->slot, 0, NULL},
+        /* embedding subslot changes */
+        {EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver_401)))},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->subslot, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->port, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->type, 0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((NCS_IFSV_SPT*)0)->subscr_scope, 0, NULL},

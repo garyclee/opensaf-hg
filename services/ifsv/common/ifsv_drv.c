@@ -52,9 +52,11 @@
 #include "ncs_main_pvt.h"
 
 uns32  glifsv_drv_hdl;
+
+/* embedding subslot changes for backward compatibility */ 
 MDS_CLIENT_MSG_FORMAT_VER
       DRV_WRT_IFND_MSG_FMT_ARRAY[DRV_WRT_IFND_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* embedding subslot changes for backward compatibility */};
 
 static uns32 
 ifsv_drv_mds_install(IFSV_DRV_CB *drv_cb);
@@ -1156,9 +1158,9 @@ ifsv_drv_mds_enc (MDS_CALLBACK_ENC_INFO *enc_info, uns32 drv_hdl)
    if ((drv_cb = (IFSV_DRV_CB*) ncshm_take_hdl(NCS_SERVICE_ID_IFDRV, 
       (uns32)drv_hdl)) != NULL)
    {
-      
-      rc = m_NCS_EDU_EXEC(&drv_cb->edu_hdl, ifsv_drv_edp_idim_hw_rcv_info, enc_info->io_uba, 
-         EDP_OP_TYPE_ENC, (NCS_IFSV_HW_INFO*)enc_info->i_msg, &ederror);
+      /* embedding subslot changes for backward compatibility*/
+      rc = m_NCS_EDU_VER_EXEC(&drv_cb->edu_hdl, ifsv_drv_edp_idim_hw_rcv_info, enc_info->io_uba, 
+         EDP_OP_TYPE_ENC, (NCS_IFSV_HW_INFO*)enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
       ncshm_give_hdl(drv_hdl);
       if(rc != NCSCC_RC_SUCCESS)
       {
@@ -1215,8 +1217,10 @@ ifsv_drv_mds_dec (MDS_CALLBACK_DEC_INFO *dec_info, uns32 drv_hdl)
          ncshm_give_hdl(drv_hdl);
          return(NCSCC_RC_FAILURE);
       }
-      rc = m_NCS_EDU_EXEC(&drv_cb->edu_hdl, ifsv_drv_edp_idim_hw_req_info, dec_info->io_uba, 
-         EDP_OP_TYPE_DEC, (NCS_IFSV_HW_DRV_REQ**)&dec_info->o_msg, &ederror);
+
+      /* embedding subslot changes for backward compatibility*/
+      rc = m_NCS_EDU_VER_EXEC(&drv_cb->edu_hdl, ifsv_drv_edp_idim_hw_req_info, dec_info->io_uba, 
+         EDP_OP_TYPE_DEC, (NCS_IFSV_HW_DRV_REQ**)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
       ncshm_give_hdl(drv_hdl);
       if(rc != NCSCC_RC_SUCCESS)
       {         

@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMSV_EVT.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file contains SRMSv specific event data. It also contains

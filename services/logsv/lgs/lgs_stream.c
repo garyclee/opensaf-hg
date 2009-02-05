@@ -31,7 +31,7 @@ static unsigned int stream_array_size = 3;
 static unsigned int numb_of_streams;
 
 static int lgs_stream_array_insert(log_stream_t *stream, int id);
-static int lgs_stream_array_insert_new(log_stream_t *stream, int *id);
+static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
 static int get_number_of_log_files(log_stream_t* logStream, char* oldest_file);
 
@@ -126,7 +126,7 @@ static uns32 log_stream_remove(const char *key)
     uns32 rc;
     log_stream_t *stream;
 
-    stream = (log_stream_t *) ncs_patricia_tree_get(&stream_dn_tree, key);
+    stream = (log_stream_t *) ncs_patricia_tree_get(&stream_dn_tree, (uns8 *) key);
     if (stream == NULL)
     {
         TRACE_2("ncs_patricia_tree_get FAILED");
@@ -152,7 +152,7 @@ log_stream_t *log_stream_get_by_name(const char *name)
     strcpy(nname, name);
     memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
 
-    return (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, nname);
+    return (log_stream_t *)ncs_patricia_tree_get(&stream_dn_tree, (uns8 *) nname);
 }
 
 
@@ -165,7 +165,7 @@ log_stream_t *log_stream_getnext_by_name(const char *name)
         /* Create SA_MAX_NAME_LENGTH stream name */
         strcpy(nname, name);
         memset(&nname[strlen(name)], 0, SA_MAX_NAME_LENGTH + 1 - strlen(name));
-        return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, nname);
+        return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, (uns8 *) nname);
     }
     else
         return (log_stream_t *)ncs_patricia_tree_getnext(&stream_dn_tree, NULL);
@@ -726,7 +726,7 @@ exit:
  * 
  * @return int
  */
-static int lgs_stream_array_insert_new(log_stream_t *stream, int *id)
+static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id)
 {
     int rc = -1;
     int i;

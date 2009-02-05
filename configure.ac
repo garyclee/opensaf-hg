@@ -54,6 +54,13 @@ AC_ARG_WITH([rpm-release],
 
 AC_SUBST([OPENSAF_RPM_RELEASE], ["$with_rpm_release"])
 
+AC_ARG_ENABLE([rpm-target],
+   [AS_HELP_STRING([--disable-rpm-target],
+      [disable support for the "make rpm" target [default=no]])],
+   [],
+   [enable_rpm_target=yes])
+
+AM_CONDITIONAL([ENABLE_RPM_TARGET], [test "x$enable_rpm_target" = xyes])
 
 dnl Flag to enable smidump to be built
 AC_ARG_ENABLE([smidump],
@@ -65,6 +72,18 @@ AC_ARG_ENABLE([smidump],
 AM_CONDITIONAL([ENABLE_SMIDUMP], [test "x$enable_smidump" = xyes])
 AC_SUBST([SMIDUMP_ENABLED], ["$enable_smidump"])
 
+AC_ARG_WITH([default-mibdirs],
+   [AS_HELP_STRING([--with-default-mibdirs=@<:@DIR@:>@],
+      [use DIR as the default location to check for system MIBS])],
+   [ if test -d $withval; then
+       with_mibdirs=$withval
+     else
+       echo
+       echo "ERROR: $withval is an invalid path"
+       exit -1
+     fi
+   ],
+   [with_mibdirs=check])
 
 dnl Enable HPI hardware management support
 AC_ARG_ENABLE([hpi],
@@ -133,24 +152,6 @@ AC_ARG_ENABLE([java],
 AM_CONDITIONAL([ENABLE_JAVA], [test "x$enable_java" = xyes])
 AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 
-#############################################
-# Get input for enabling platform interface
-#############################################
-AC_ARG_VAR(mot_atca, [Use mot_atca=1 if platform interface is needed])
-AM_CONDITIONAL([MOT_ATCA], [test "$mot_atca" = "1"])
-
-if test "$mot_atca" = "1"; then
-    MOT_ATCA_VAL=1
-    MOT_ATCA_STR="mot_atca"
-    NETSNMP_5_2_2=1
-else
-    MOT_ATCA_VAL=0
-    MOT_ATCA_STR=""
-    NETSNMP_5_2_2=0
-fi
-
-AC_SUBST(MOT_ATCA_STR)
-
 # unless explicitly set, drop previx from sysconfdir
 # and localstatedir
 
@@ -189,7 +190,7 @@ DEBUG_VAL="1"
 #############################################
 # Define a common string for core CPP defines
 #############################################
-AC_SUBST( NCS_CORE_CPP_DEFINES, "-DNCS_NID=1 -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 -DNCS_MMGR_DEBUG=$DEBUG_VAL -DENABLE_LEAP_DBG=$DEBUG_VAL -DNCSMDS_DEBUG=$DEBUG_VAL -DNCS_IPV6=0 -DNCS_IFSV_IPXS=1 -DNCS_IFSV_USE_NETLINK=1 -DNCS_TMR_DBG_ENABLE=$DEBUG_VAL -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DFUND_DEBUG_TEST=0 -DNCS_MONC_CPSV_USE=0 -DNCS_SAF=1 -DNCS_RMS=0 -DNCS_MAB=1 -DMOT_ATCA=$MOT_ATCA_VAL -DNET_SNMP_5_2_2_SUPPORT=$NETSNMP_5_2_2  -DNCS_MDS=1 -DNCSMDS_LOG=1 -DDTS_SIM_TEST_ENV=1 -D__JSE_LINUX__ -D__JSE_UNIX__ -DHJ_LINUX=1 -DUSE_READLINE -DDTA_FLOW=1 $DEBUG_FLAG")
+AC_SUBST( NCS_CORE_CPP_DEFINES, "-DNCS_NID=1 -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 -DNCS_MMGR_DEBUG=$DEBUG_VAL -DENABLE_LEAP_DBG=$DEBUG_VAL -DNCSMDS_DEBUG=$DEBUG_VAL -DNCS_IPV6=0 -DNCS_IFSV_IPXS=1 -DNCS_IFSV_USE_NETLINK=1 -DNCS_TMR_DBG_ENABLE=$DEBUG_VAL -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DFUND_DEBUG_TEST=0 -DNCS_MONC_CPSV_USE=0 -DNCS_SAF=1 -DNCS_RMS=0 -DNCS_MAB=1 -DNCS_MDS=1 -DNCSMDS_LOG=1 -DDTS_SIM_TEST_ENV=1 -D__JSE_LINUX__ -D__JSE_UNIX__ -DHJ_LINUX=1 -DUSE_READLINE -DDTA_FLOW=1 $DEBUG_FLAG")
 
 #CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
 #CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
@@ -316,10 +317,16 @@ if test $NETSNMP = MISSING; then
 else
    NETSNMP_LIBS=`net-snmp-config --agent-libs`
    NETSNMP_CFLAGS=`net-snmp-config --cflags`
-   MIBSDIR=`net-snmp-config --default-mibdirs`
+   
+   if test "$with_mibdirs" = check; then
+      MIBDIRS=`net-snmp-config --default-mibdirs`
+   else
+      MIBDIRS=$with_mibdirs
+   fi
+
    AC_SUBST(NETSNMP_LIBS)
    AC_SUBST(NETSNMP_CFLAGS)
-   AC_SUBST(MIBSDIR)
+   AC_SUBST(MIBDIRS)
 fi
 
 #############################################
@@ -403,6 +410,7 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/ncs_pss_start
                  scripts/ncs_rde_clean
                  scripts/ncs_rde_start
+                 scripts/opensaf_fms
                  scripts/ncs_scap_clean
                  scripts/ncs_scap_start
                  scripts/ncs_snmpsubagt_clean
@@ -480,6 +488,10 @@ AC_CONFIG_FILES([opensaf.spec
                  services/edsv/eds/Makefile
                  services/edsv/logstr/Makefile
                  services/edsv/snmp_integ/Makefile
+                 services/fm/fma/logstr/Makefile
+                 services/fm/fma/Makefile
+                 services/fm/fms/Makefile
+                 services/fm/Makefile
                  services/glsv/Makefile
                  services/glsv/common/Makefile
                  services/glsv/gla/Makefile
@@ -591,7 +603,7 @@ echo "${ECHO_T} HPI_CFLAGS: ${HPI_CFLAGS}"
 echo "${ECHO_T} HPI_LIBS: ${HPI_LIBS}"
 echo "${ECHO_T} NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
 echo "${ECHO_T} NETSNMP_LIBS: ${NETSNMP_LIBS}"
-echo "${ECHO_T} MIBSDIR: ${MIBSDIR}"
+echo "${ECHO_T} MIBDIRS: ${MIBDIRS}"
 echo ""
 echo "OpenSAF Options:"
 echo "${ECHO_T} Enable Java AIS Mapping: ${enable_java}"

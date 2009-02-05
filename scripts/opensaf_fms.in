@@ -1,0 +1,129 @@
+#!/bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+#
+
+#
+# Fault management startup/shutdown Script
+#
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+DAEMON=opensaf_fmsd
+PIDFILE="$PIDPATH/fms.pid"
+export FMS_CONF_PATH="$SYSCONFDIR/fms.conf"
+SERVICE_CODE=HLFM
+
+XTERM=""
+#XTERM="xterm -T OpenSAF-FMS -e "
+#XTERM="xterm -T OpenSAF-FMS -e /usr/bin/gdb "
+# Set this if debugging required
+
+echo "Executing FMSv init-script..."
+echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
+
+#Function to start/spawn a service.
+start()
+{
+     #Check if daemon is installed.
+    if [ ! -x "$BINPATH/$DAEMON" ]; then
+       echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+       echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_NOT_FND" > $NIDFIFO
+       exit 1
+    fi
+    killall -9 opensaf_fmsd
+    rm -f $PIDFILE
+    $XTERM "$BINPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
+    echo "Starting $DESC: $BINPATH/$DAEMON";
+
+    if [ $? -ne 0 ] ; then
+        echo -n -e "Failed to start $DAEMON.    \n"
+        echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_START_FAILED" > "$NIDFIFO"
+        exit 1
+     else
+         echo "Started $DESC: $BINPATH/$DAEMON"
+     fi
+
+} # End Start()
+
+
+case "$1" in
+
+     start)
+        # NID has called me.
+     shift
+     start $*
+        ;;
+
+     instantiate|"")
+       # AMF would call with argument instantiate
+
+       # Create the named pipe if not exist FMS_HA_COMP_NAMED_PIPE
+       if test -p $FMS_HA_COMP_NAMED_PIPE
+          then
+          echo "$FMS_HA_COMP_NAMED_PIPE is already existing"
+       else
+          mkfifo -m 0666 $FMS_HA_COMP_NAMED_PIPE # mode 0666
+       fi
+
+       # check for the PID availability
+       if test -f "$PIDFILE"
+          then
+           l_pid=`cat "$PIDFILE"`
+       fi
+
+       if [ "$l_pid" ]
+       then
+          echo "opensaf_fmsd daemon is running. Write to the pipe"
+          echo -n -e "$SA_AMF_COMPONENT_NAME|$FMS_HA_ENV_HEALTHCHECK_KEY" > $FMS_HA_COMP_NAMED_PIPE &
+       else
+          echo "AMF is starting $DESC: $BINPATH/$DAEMON";
+          $XTERM "$BINPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
+          sleep 1s
+          if test -f "$PIDFILE"
+          then
+              l_pid=`cat "$PIDFILE"`
+          fi
+
+          if [ "$l_pid" ]
+          then
+             echo "opensaf_fmsd daemon restarted successfully with PID $l_pid"
+             #write to the fmsd's pipe.
+             echo -n -e "$SA_AMF_COMPONENT_NAME|$FMS_HA_ENV_HEALTHCHECK_KEY" > $FMS_HA_COMP_NAMED_PIPE &
+          else
+             echo "opensaf_fmsd daemon start script failed"
+          fi
+       fi
+        ;;
+
+     stop|clean)
+        # AMF would call me for terminating.
+        killall -9 $DAEMON
+	rm -f $PIDFILE;
+        #Delete FMS_HA_COMP_NAMED_PIPE
+        if test -p $FMS_HA_COMP_NAMED_PIPE
+        then
+           rm -f $FMS_HA_COMP_NAMED_PIPE
+        fi
+
+        ;;
+
+  *)
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -323,30 +323,6 @@ static uns32 cpnd_mds_enc(CPND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
            rc = cpsv_data_access_rsp_encode(&pevt->info.cpa.info.sec_data_rsp , io_uba);
            return rc;
          }
-	  #if 0 
-	  else if(pevt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_LEFT)
-	  {
-           pstream = ncs_enc_reserve_space(io_uba, 8);
-           if(!pstream)
-            return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpnd_mds_enc \n");
-           ncs_encode_32bit(&pstream , pevt->type);         /* Type */
-           ncs_encode_32bit(&pstream , pevt->info.cpa.type);
-           ncs_enc_claim_space(io_uba, 8);
-           rc = NCSCC_RC_SUCCESS;
-           return rc;
-         }
-	  else if(pevt->info.cpa.type == CPA_EVT_ND2A_CKPT_CLM_NODE_JOINED)
-	  {
-           pstream = ncs_enc_reserve_space(io_uba, 8);
-           if(!pstream)
-            return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpnd_mds_enc \n");
-           ncs_encode_32bit(&pstream , pevt->type);         /* Type */
-           ncs_encode_32bit(&pstream , pevt->info.cpa.type);
-           ncs_enc_claim_space(io_uba, 8);
-           rc = NCSCC_RC_SUCCESS;
-           return rc;
-         }
-	  #endif
  
       }
       else if(pevt->type == CPSV_EVT_TYPE_CPND)
@@ -933,7 +909,7 @@ static uns32 cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
    CPSV_EVT *evt=NULL;
    uns32 rc=NCSCC_RC_SUCCESS, priority = NCS_IPC_PRIORITY_HIGH;
-   NCS_PHY_SLOT_ID phy_slot;
+   uns32 phy_slot_sub_slot;
 
    
    if(svc_evt->i_svc_id == NCSMDS_SVC_ID_CPD)   
@@ -972,34 +948,38 @@ static uns32 cpnd_mds_svc_evt(CPND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
       case NCSMDS_RED_UP:
          if(svc_evt->i_role == SA_AMF_HA_ACTIVE)
          {
-           m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-           cb->cpnd_active_id = phy_slot;
+           
+           phy_slot_sub_slot =  cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+           cb->cpnd_active_id = phy_slot_sub_slot;
            cb->is_cpd_up = TRUE;
          }
          else if(svc_evt->i_role == SA_AMF_HA_STANDBY)
          {
-           m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-           cb->cpnd_standby_id = phy_slot;
+          
+            phy_slot_sub_slot =  cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+           cb->cpnd_standby_id = phy_slot_sub_slot;
            m_NCS_UNLOCK(&cb->cpnd_cpd_up_lock, NCS_LOCK_WRITE);
            return NCSCC_RC_SUCCESS;
          }
          break;
       case NCSMDS_RED_DOWN:
-            m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-            if(cb->cpnd_active_id == phy_slot)
+            phy_slot_sub_slot =  cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+            if(cb->cpnd_active_id == phy_slot_sub_slot)
                cb->is_cpd_up = FALSE;
          break;
       case NCSMDS_CHG_ROLE:
          if(svc_evt->i_role == SA_AMF_HA_ACTIVE)
          {
-           m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-           cb->cpnd_active_id = phy_slot;
+           
+           phy_slot_sub_slot =  cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+           cb->cpnd_active_id = phy_slot_sub_slot;
            cb->is_cpd_up = TRUE;
          }
          else if(svc_evt->i_role == SA_AMF_HA_STANDBY)
          {
-            m_NCS_GET_PHYINFO_FROM_NODE_ID(svc_evt->i_node_id,NULL,&phy_slot,NULL);
-            cb->cpnd_standby_id = phy_slot;
+           
+             phy_slot_sub_slot =  cpnd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
+             cb->cpnd_standby_id = phy_slot_sub_slot;
          }
          break;
 

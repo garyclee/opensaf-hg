@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLI_OPT.H
 
-$Header: /ncs/software/leap/targsvcs/products/cli/cli_opt.h 6     4/17/01 9:19p Cmohana $
 ..............................................................................
 
   DESCRIPTION:

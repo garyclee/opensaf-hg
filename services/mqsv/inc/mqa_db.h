@@ -36,7 +36,7 @@
 extern MQADLL_API uns32 gl_mqa_hdl;
 
 /*Maximum Nodes in the cluster */
-#define MQA_MAX_NODES 16
+#define MQA_MAX_NODES NCS_MAX_SLOTS 
 typedef unsigned short SVC_SUBPART_VER; 
 
 /********************Service Sub part Versions*********************************/

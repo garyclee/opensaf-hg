@@ -20,7 +20,6 @@
 
   MODULE NAME: IFD_MDS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Prototypes definations for IFD-MDS functions
@@ -31,9 +30,10 @@ $Header:
 #ifndef IFD_MDS_H
 #define IFD_MDS_H
 
-#define IFD_SVC_PVT_SUBPART_VERSION 1
+/* embedding subslot changes for backward compatibility */
+#define IFD_SVC_PVT_SUBPART_VERSION 2
 #define IFD_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT 1
-#define IFD_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 1
+#define IFD_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT 2
 #define IFD_WRT_IFND_SUBPART_VER_RANGE             \
         (IFD_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT - \
          IFD_WRT_IFND_SUBPART_VER_AT_MIN_MSG_FMT +1)

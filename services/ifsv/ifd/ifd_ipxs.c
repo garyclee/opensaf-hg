@@ -819,6 +819,8 @@ ifd_ipxs_proc_data_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
         m_NCS_STRCPY(ifip_info->intfName,ipinfo->intfName);
         ifip_info->shelfId    = ipinfo->shelfId;
         ifip_info->slotId     = ipinfo->slotId;
+        /* embedding subslot changes */
+        ifip_info->subslotId     = ipinfo->subslotId; 
         ifip_info->nodeId     = ipinfo->nodeId;
      }
 #endif

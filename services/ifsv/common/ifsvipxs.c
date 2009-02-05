@@ -411,10 +411,9 @@ uns32 ifsv_add_to_os(IFSV_INTF_DATA *intf_data,IPXS_IFIP_IP_INFO *ippfx,uns32 cn
          return rc;
       }
    }
-   
-  if((intf_data->spt_info.shelf ==ifsv_cb->shelf) && (intf_data->spt_info.slot == ifsv_cb->slot))
+  /* embedding subslot changes */ 
+  if((intf_data->spt_info.shelf ==ifsv_cb->shelf) && (intf_data->spt_info.slot == ifsv_cb->slot) && (intf_data->spt_info.subslot == ifsv_cb->subslot))
   {
-
    
    for(j=0;j<cnt;j++)
    {
@@ -560,8 +559,8 @@ uns32 ifsv_del_from_os(IFSV_INTF_DATA *intf_data,NCS_IPPFX *ippfx,uns32 cnt,IFSV
          return rc;
       }
   }
-
-  if((intf_data->spt_info.shelf == ifsv_cb->shelf) && (intf_data->spt_info.slot == ifsv_cb->slot))
+ /* embedding subslot changes */
+  if((intf_data->spt_info.shelf == ifsv_cb->shelf) && (intf_data->spt_info.slot == ifsv_cb->slot) && (intf_data->spt_info.subslot == ifsv_cb->subslot))
   {
 
 
@@ -1537,6 +1536,8 @@ static uns32 ipxs_ipinfo_cpy_for_del(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
       m_NCS_STRCPY(&dest->intfName,&src->intfName);
       dest->shelfId    = src->shelfId;
       dest->slotId     = src->slotId;
+      /* embedding subslot changes */
+      dest->subslotId     = src->subslotId;
       dest->nodeId     = src->nodeId;
    }
 

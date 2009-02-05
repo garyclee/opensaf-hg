@@ -67,11 +67,7 @@ typedef enum
 #define VDS_CKPT_MAX_ADESTS            10
 #define VDS_CKPT_DBINFO_RET_TIME       SA_TIME_END
 #define VDS_CKPT_MAX_DBINFO_SECS       1000  /* NCS_MDS_MAX_VDEST, reduced to 1000*/
-#if (MOT_ATCA ==1)
-   #define VDS_CKPT_SEC_DBINFO_SIZE    360
-#else
-   #define VDS_CKPT_SEC_DBINFO_SIZE    356  /* take care of this */
-#endif
+#define VDS_CKPT_SEC_DBINFO_SIZE       356  /* take care of this */
 #define VDS_CKPT_DBINFO_SIZE           ((VDS_CKPT_MAX_DBINFO_SECS -1) * VDS_CKPT_SEC_DBINFO_SIZE)
 #define VDS_CKPT_TIMEOUT               6000000000LL
 

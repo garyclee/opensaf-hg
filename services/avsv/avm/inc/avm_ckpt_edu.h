@@ -103,11 +103,6 @@ avm_edp_ckpt_msg_validation_info(
                                  EDU_ERR       *o_err
                                );
 
-extern uns32 avm_edp_ckpt_msg_hlt_status(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
-
 extern uns32 avm_edp_ckpt_msg_upgd_state(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                            NCSCONTEXT ptr, uns32 *data_len,
                            EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,

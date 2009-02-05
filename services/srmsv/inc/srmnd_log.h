@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_LOG.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: Defines structures and defn of SRMSV log file

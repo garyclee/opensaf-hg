@@ -58,6 +58,7 @@ libavm_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/avsv/avm/inc \
 	-I $(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
 	-I $(top_srcdir)/services/leap/inc \
+	-I $(top_srcdir)/services/fm/fma/inc \
 	-I $(top_srcdir)/services/hisv/inc \
 	-I $(top_srcdir)/services/mds/inc \
 	-I $(top_srcdir)/services/mab/inc \
@@ -67,6 +68,10 @@ libavm_la_CPPFLAGS = \
 libavm_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libavm_la_LDFLAGS = -static
+
+libavm_la_LIBADD = \
+	$(top_srcdir)/services/rde/rda/librda.la \
+	$(top_srcdir)/services/fm/fma/libfma.la
 
 libavm_la_SOURCES = \
 	src/avm_avd.c \
@@ -85,11 +90,11 @@ libavm_la_SOURCES = \
 	src/avm_fund.c \
 	src/avm_hpi_util.c \
 	src/avm_init.c \
-	src/avm_lfm.c \
 	src/avm_mab.c \
 	src/avm_mds.c \
 	src/avm_proc.c \
 	src/avm_rda.c \
+	src/avm_fma.c \
 	src/avm_role_evt.c \
 	src/avm_scalar.c \
 	src/avm_tmr.c \
@@ -99,50 +104,13 @@ libavm_la_SOURCES = \
 
 nodist_libavm_la_SOURCES = $(MIBLIB_GENERATED_FILES)
 
-if MOT_ATCA
-
-libavm_la_LIBADD = \
-	$(top_builddir)/services/rde/rda/librda.la \
-	$(top_builddir)/services/avsv/avm/liblfm_avm_intf.la
-
-else
-
-libavm_la_LIBADD = \
-	$(top_builddir)/services/rde/rda/librda.la
-
-endif
-
-if MOT_ATCA
-
-lib_LTLIBRARIES = liblfm_avm_intf.la
-
-liblfm_avm_intf_la_CPPFLAGS =
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_AVM=1 -DNCS_AVM_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/avsv/avm/inc \
-	-I $(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
-
-liblfm_avm_intf_la_SOURCES = \
-	src/lfm_avm_intf.c
-
-liblfm_avm_intf_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
-
-endif
 
 $(MIBLIB_GENERATED_FILES): miblib
 
 miblib:
 	@for file in $(MIBLIB_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f ncsmiblib \

@@ -26,7 +26,6 @@ PIDFILE=rde.pid
 DAEMON=ncs_rde
 DESC="Role Distribution Entity Daemon"
 
-source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 /sbin/ifconfig > ifs
 if grep $CONTROLLER1 ifs; then
  export RDE_SELF_IP_ADDR=$CONTROLLER1

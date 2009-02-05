@@ -19,11 +19,11 @@ setenv TET_OPENSAF_HOME             $PWD
 
 switch ($TARGET_OS)
    case linux:
-      setenv TARGET_LIB_PATH "$OPENSAF_HOME/targets/$HOST_ALIAS/lib"
+      setenv TARGET_LIB_PATH  "$TARGET_LIB_PATH/lib"
       breaksw
 
    case linux-64:
-      setenv TARGET_LIB_PATH "$OPENSAF_HOME/targets/$HOST_ALIAS/lib64"
+      setenv TARGET_LIB_PATH "$TARGET_LIB_PATH/lib64"
       breaksw
 
    default:
@@ -56,14 +56,14 @@ foreach type ($FUNCTIONALITY)
 
             case DRIVER:
                setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES -DNCS_IFND=1 -DNCS_IFSV_LOG=1 -DNCS_IFSV_IPXS=1"
-               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lifa -lSaEvt -lmaa -lmaa_switch"
+               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lifa -lSaEvt -lmaa "
                setenv TET_SVC_DEFINES "-DTET_DRIVER=1 -DTET_IFSV=1 -DTET_RED=0"
                setenv TARGET "$TET_OPENSAF_HOME/ifsv/ifsv_driver_$TARGET_ARCH.exe"
                breaksw
 
             case A:
                setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES -DNCS_IFA=1 -DNCS_IFSV_IPXS=1"
-               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lifa -lSaEvt -lmaa -lmaa_switch"
+               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lifa -lSaEvt -lmaa "
                setenv TET_SVC_DEFINES "-DTET_A=1 -DTET_IFSV=1 -DTET_APP1=1 -DTET_RED=0"
                setenv TARGET "$TET_OPENSAF_HOME/ifsv/ifsv_a_$TARGET_ARCH.exe"
                breaksw 
@@ -92,7 +92,7 @@ foreach type ($FUNCTIONALITY)
        
          case A:
             setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES -DNCS_GLA=1"
-            setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaLck -lmaa -lmaa_switch"
+            setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaLck -lmaa "
             setenv TET_SVC_DEFINES "-DTET_GLSV=1 -DTET_A=1 -DTET_RED_GLA=0"
             setenv TARGET "$TET_OPENSAF_HOME/glsv/glsv_a_$TARGET_ARCH.exe"
             breaksw
@@ -111,7 +111,7 @@ foreach type ($FUNCTIONALITY)
        switch ($type) 
             case A:
                setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES"
-               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaMsg -lmaa -lmaa_switch -lmqsv_common -lsaf_common"
+               setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaMsg -lmaa  -lmqsv_common -lsaf_common"
                setenv TET_SVC_DEFINES "-DTET_MQSV=1 -DTET_A=1 -DTET_RED_MQA=0"
                setenv TARGET "$TET_OPENSAF_HOME/mqsv/mqsv_a_$TARGET_ARCH.exe"
                breaksw
@@ -191,7 +191,7 @@ foreach type ($FUNCTIONALITY)
 
          case A:
             setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES"
-            setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaCkpt -lmaa -lmaa_switch -lcpsv_common -lsaf_common"
+            setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaCkpt -lmaa -lcpsv_common -lsaf_common"
             setenv TET_SVC_DEFINES "$TET_SVC_DEFINES -DTET_A=1 -DTET_APP=1 -DTET_RED_FLAG=0"
             setenv TARGET "$TET_OPENSAF_HOME/cpsv/cpsv_app_$TARGET_ARCH.exe"
             breaksw
@@ -210,7 +210,7 @@ foreach type ($FUNCTIONALITY)
       switch ($type)
 
          case A:
-              setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaEvt -lmaa -lmaa_switch -ledsv_common -lsaf_common"
+              setenv OPENSAF_TGT_LIBS "$OPENSAF_TGT_LIBS -lSaEvt -lmaa  -ledsv_common -lsaf_common"
               setenv OPENSAF_SVC_DEFINES "$OPENSAF_SVC_DEFINES"
               setenv TET_SVC_DEFINES "-DTET_EDSV=1 -DTET_RED=0"
               setenv TARGET "$TET_OPENSAF_HOME/edsv/eda_ut_$TARGET_ARCH.exe"

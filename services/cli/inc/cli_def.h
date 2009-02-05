@@ -20,7 +20,6 @@
 
   MODULE NAME:  CLI_DEF.H
   
-$Header: /ncs/software/Work/cli12bf/targsvcs/products/cli/cli_def.h 2     9/17/01 1:31p Agranos $
   ..............................................................................
     
   DESCRIPTION:

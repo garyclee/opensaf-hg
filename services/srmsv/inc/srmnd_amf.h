@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_AMF.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file contains AMF related data structures and function

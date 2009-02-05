@@ -36,8 +36,6 @@ avm_decode_ckpt_ent_dhcp_conf_chg
 avm_decode_ckpt_ent_dhcp_state_chg
 avm_decode_ckpt_ent_state_sensor
 avm_decode_ckpt_evt_id
-avm_decode_ckpt_hlt_status
-avm_decode_cold_hlt_status
 avm_decode_cold_sync_rsp 
 avm_decode_ckpt_ent_upgd_state_chg
 ******************************************************************************
@@ -87,14 +85,6 @@ avm_decode_ckpt_evt_id(AVM_CB_T           *cb,
                        NCS_MBCSV_CB_DEC   *dec);
 
 static uns32 
-avm_decode_ckpt_hlt_status(AVM_CB_T           *cb,
-                           NCS_MBCSV_CB_DEC   *dec);
-
-static uns32 
-avm_decode_cold_hlt_status(AVM_CB_T           *cb,
-                           NCS_MBCSV_CB_DEC   *dec);
-
-static uns32 
 avm_decode_ckpt_ent_upgd_state_chg(AVM_CB_T           *cb,
                         NCS_MBCSV_CB_DEC   *dec);
 
@@ -124,9 +114,6 @@ const AVM_DECODE_CKPT_DATA_FUNC_PTR
    /* EDSv event id processed */
    avm_decode_ckpt_evt_id,
 
-   /* LFM Health Status processing */
-   avm_decode_ckpt_hlt_status,
-
    /* To update entity upgd state */
    avm_decode_ckpt_ent_upgd_state_chg 
 };
@@ -143,7 +130,6 @@ const AVM_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR
    avm_decode_cold_sync_rsp_validation_info,
    avm_decode_cold_sync_rsp_ent_cfg,
    avm_decode_cold_sync_rsp_async_updt_cnt,
-   avm_decode_cold_hlt_status
 };
 /****************************************************************************\
  * Function: avm_decode_ckpt_ent_cfg
@@ -930,7 +916,7 @@ avm_decode_warm_sync_rsp(
    }
   
    m_NCS_MEMSET(sprbuf, '\0', sizeof(sprbuf));   
-   sprintf(sprbuf, " Standby ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d \n Active  ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d hlt_updt = %d dhconf_updt = %d dhstate_updt = %d upgd_state_updt = %d\n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt, cb->async_updt_cnt.hlt_status_updt, cb->async_updt_cnt.ent_dhconf_updt, cb->async_updt_cnt.ent_dhstate_updt, updt_cnt->ent_updt, updt_cnt->ent_cfg_updt, updt_cnt->ent_adm_op_updt, updt_cnt->evt_id_updt, updt_cnt->hlt_status_updt, updt_cnt->ent_dhconf_updt, updt_cnt->ent_dhstate_updt, updt_cnt->ent_upgd_state_updt);
+   sprintf(sprbuf, " Standby ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d dhconf_updt = %d dhstate_updt = %d \n Active  ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d dhconf_updt = %d dhstate_updt = %d upgd_state_updt = %d\n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt, cb->async_updt_cnt.ent_dhconf_updt, cb->async_updt_cnt.ent_dhstate_updt, updt_cnt->ent_updt, updt_cnt->ent_cfg_updt, updt_cnt->ent_adm_op_updt, updt_cnt->evt_id_updt, updt_cnt->ent_dhconf_updt, updt_cnt->ent_dhstate_updt, updt_cnt->ent_upgd_state_updt);
    
    m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_INFO);
    
@@ -953,90 +939,6 @@ avm_decode_warm_sync_rsp(
          
       status = NCSCC_RC_FAILURE;
    }
-
-   return status;
-}
-
-/****************************************************************************\
- * Function: avm_decode_ckpt_hlt_status
- *
- * Purpose: Decode LFM Health Status
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 
-avm_decode_ckpt_hlt_status(AVM_CB_T           *cb,
-                           NCS_MBCSV_CB_DEC   *dec)
-{
-   uns32               status   = NCSCC_RC_SUCCESS;
-   EDU_ERR             ederror    = 0;
-
-   m_AVM_LOG_FUNC_ENTRY("avm_decode_ckpt_hlt_status");
-
-   status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_hlt_status, &dec->i_uba, EDP_OP_TYPE_DEC, 
-                               &cb, &ederror, dec->i_peer_version);
-
-
-   if(NCSCC_RC_SUCCESS != status)
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(ederror);
-      m_NCS_DBG_PRINTF("Decode BONKED\n");
-   }
-   m_NCS_DBG_PRINTF("AFTER DECODE \n: ");
-   m_NCS_DBG_PRINTF("Plane A: %d", cb->hlt_status[HEALTH_STATUS_PLANE_A]);
-   m_NCS_DBG_PRINTF("SAM A: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_A]);
-   m_NCS_DBG_PRINTF("PlaneB: %d", cb->hlt_status[HEALTH_STATUS_PLANE_B]);
-   m_NCS_DBG_PRINTF("SAM B: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_B]);
-
-   cb->async_updt_cnt.hlt_status_updt++;
-   return status;
-}
-
-
-/****************************************************************************\
- * Function: avm_decode_cold_hlt_status
- *
- * Purpose: Decode LFM Health Status
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 
-avm_decode_cold_hlt_status(AVM_CB_T           *cb,
-                           NCS_MBCSV_CB_DEC   *dec)
-{
-   uns32               status   = NCSCC_RC_SUCCESS;
-   EDU_ERR             ederror    = 0;
-
-   m_AVM_LOG_FUNC_ENTRY("avm_decode_cold_hlt_status");
-
-   status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_hlt_status, &dec->i_uba, EDP_OP_TYPE_DEC,
-                               &cb, &ederror, dec->i_peer_version);
-
-
-   if(NCSCC_RC_SUCCESS != status)
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(ederror);
-      m_NCS_DBG_PRINTF("Decode BONKED\n");
-   }
-   m_NCS_DBG_PRINTF("AFTER DECODE \n: ");
-   m_NCS_DBG_PRINTF("Plane A: %d", cb->hlt_status[HEALTH_STATUS_PLANE_A]);
-   m_NCS_DBG_PRINTF("SAM A: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_A]);
-   m_NCS_DBG_PRINTF("PlaneB: %d", cb->hlt_status[HEALTH_STATUS_PLANE_B]);
-   m_NCS_DBG_PRINTF("SAM B: %d\n", cb->hlt_status[HEALTH_STATUS_SAM_B]);
 
    return status;
 }

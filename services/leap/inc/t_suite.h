@@ -19,7 +19,6 @@
 ..............................................................................
 
 
-$Header: /ncs/software/release/leap/leap.25/os_svcs/common/inc/t_suite.h 78    10/12/01 10:32a Questk $
 
 
 

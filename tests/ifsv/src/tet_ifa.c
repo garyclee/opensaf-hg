@@ -5368,7 +5368,7 @@ void tet_ifsv_startup()
 {
   /*First Truncate the file bond.text*/
   FILE *fp;
-  char inputfile[]="/opt/motorola/tetware/ncs/ifsv/suites/bond.text";
+  char inputfile[]="/opt/opensaf/tetware/ifsv/suites/bond.text";
   if( (fp= fopen(inputfile,"w")) == NULL)
     perror("File not opened");
   else

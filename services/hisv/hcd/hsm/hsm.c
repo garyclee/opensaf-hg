@@ -70,6 +70,7 @@ uns32 hcd_hsm()
    SaHpiDomainIdT *domain_id;
    SaHpiSessionIdT *session_id;
    SaErrorT val, hotswap_err, autoextract_err;
+   SaErrorT policy_err=0;
    SaHpiUint32T   actual_size, invdata_size=sizeof(HISV_INV_DATA);
    HSM_CB *hsm_cb = 0;
    SIM_CB *sim_cb = 0;
@@ -196,40 +197,43 @@ uns32 hcd_hsm()
       if (hcd_cb->ha_state != SA_AMF_HA_ACTIVE)
          continue;
 
-#if 0
-      /* check timestamp and trash duplicate events */
-      if (hsm_cb->evt_time > event.Timestamp + HPI_DUPLICATE_EVENT_INTERVAL)
-      {
-         m_NCS_CONS_PRINTF("Trashing duplicate played back event, %d > %d\n", hsm_cb->evt_time, event.Timestamp + HPI_DUPLICATE_EVENT_INTERVAL);
-         if (hcd_cb->args->rediscover)
-         {
-            m_NCS_CONS_PRINTF("Role changes may need re-discover of resources...\n");
-            hsm_rediscover(hcd_cb, hsm_cb, session_id);
-         }
-         continue;
-      }
-      else
-         hsm_cb->evt_time = event.Timestamp;
-#endif /* 0 */
-
 #ifndef HPI_A
-      /* The only events we care about are from the controller and the payload blades */
-      /* Allow for the case where blades are ATCA or non-ATCA.                        */
-      if (!((RptEntry.ResourceEntity.Entry[1].EntityLocation > 0) &&
-          (RptEntry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-          ((RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
-           (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT)) &&
-          (
+      if(!((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)||
+         (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
+         (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))))
+         {
+           /* don't care about this event */
+          continue;
+         }
+
+       m_NCS_CONS_PRINTF(" HPI event from resource_id=%d\n", RptEntry.ResourceId);
+
+      if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))
+         {
+             /* Amc case,Check Slot range check */
+            if(!((RptEntry.ResourceEntity.Entry[3].EntityLocation > 0) &&
+                (RptEntry.ResourceEntity.Entry[3].EntityLocation <= MAX_NUM_SLOTS)))
+                 continue; 
+
+          }
+      else
+          {  
+              if(!((RptEntry.ResourceEntity.Entry[1].EntityLocation > 0) &&
+              (RptEntry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS)  &&
+              ((RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
+              (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT)) &&
+              (
 #ifdef HPI_B_02
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
-           (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
-      {
-         /* don't care about this event */
-         m_LOG_HISV_DTS_CONS("Discarding Event, not from Controller or Payload\n");
-         continue;
-      }
+              (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
+              {
+                /* don't care about this event */
+                m_LOG_HISV_DTS_CONS("Discarding Event, not from Controller or Payload\n");
+                continue;
+              }
+          }
 
 #endif
       /* check if it is system firmware progress event, publish it to ShIM. */
@@ -403,21 +407,19 @@ uns32 hcd_hsm()
 #ifdef HPI_A
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
 #else
-         hotswap_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
+         policy_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
 
-         if (hotswap_err != SA_OK)
+         if (policy_err != SA_OK)
 #endif
          {
-            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+            if (policy_err == SA_ERR_HPI_INVALID_REQUEST)
             {
                /* Allow for the case where the hotswap policy cannot be canceled because it */
                /* has already begun to execute.                                             */
                m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
             }
-            else
-            {
-               m_LOG_HISV_DTS_CONS("hcd_hsm: Error taking control of resource\n");
-            }
+            m_NCS_CONS_PRINTF("Extraction: Error taking control of resource Error  %d , Resouce ID %d \n",policy_err,RptEntry.ResourceId );
+            policy_err=SA_OK;
          }
       }
       /* if it is hotswap event transitioning to Insertion Pending state */
@@ -511,7 +513,23 @@ uns32 hcd_hsm()
           (RptEntry.ResourceEntity.Entry[0].EntityType != 160))
          epath.Entry[0].EntityType = RptEntry.ResourceEntity.Entry[0].EntityType;
 #else
-      if ((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+         if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_AMC)))
+        {
+           /* Special Case of AMC-Sub Slot board */  
+           epath.Entry[0]= RptEntry.ResourceEntity.Entry[1];    
+           slot_ind = 2;
+            for ( i=1; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ )
+            {
+             epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
+             if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+              {
+            /* don't need to copy anymore */
+               break;
+              }
+            }
+        }
+        
+      else if ((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
           (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
          /* NON-ATCA: Do not strip off leaf entry. */
          slot_ind = 0;
@@ -526,9 +544,10 @@ uns32 hcd_hsm()
             slot_ind = 1;
             i--;
          }
-         else {
+         else
             epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
-         }
+
+         /* ATCA */ 
          if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
             /* don't need to copy anymore */
             break;
@@ -614,7 +633,7 @@ static uns32
 dispatch_hotswap(HSM_CB *hsm_cb)
 {
    SaHpiHsStateT  state;
-   SaErrorT       err, hpi_rc, hotswap_err, autoextract_err;
+   SaErrorT       err, hpi_rc, policy_err, hotswap_err, autoextract_err;
 #ifdef HPI_A
    SaHpiRptInfoT   rpt_info_before;
 #endif
@@ -625,6 +644,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    SaHpiSessionIdT session_id;
    SaHpiRptEntryT  entry;
    uns32  rc = NCSCC_RC_SUCCESS, i;
+   char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("dispatch_hotswap: dispatching outstanding hotwap events\n");
    m_NCS_MEMSET(hsm_cb->node_state, 0, sizeof(hsm_cb->node_state));
@@ -668,6 +688,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
             break;
          }
       }
+
       /* clear the SEL if it supports; in order to avoid duplicate playback of events */
 #ifdef HPI_A
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
@@ -678,45 +699,10 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          saHpiEventLogClear(session_id, entry.ResourceId);
       }
       /* if it is a FRU and hotswap managable then publish outstanding inspending events */
-      /* Test to make sure resource is a FRU and has managed-hotswap capability.         */
-      if ((entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
-          (entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+       if ((entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) && 
+          (entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU))
       {
-         SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
-         autoextract_err = saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime);
 
-         if (autoextract_err != SA_OK)
-         {
-            if (autoextract_err == SA_ERR_HPI_READ_ONLY)
-            {
-               /* Allow for the case where the extraction timeout is read-only. */
-               m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiAutoExtractTimeoutSet is read-only\n");
-            }
-            else
-            {
-               m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error in setting Auto Extraction timeout\n");
-            }
-         }
-
-#ifdef HPI_A
-         if (saHpiHotSwapControlRequest(session_id, entry.ResourceId) != SA_OK)
-#else
-         hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry.ResourceId);
-
-         if (hotswap_err != SA_OK)
-#endif
-         {
-            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
-            {
-               /* Allow for the case where the hotswap policy cannot be canceled because it */
-               /* has already begun to execute.                                             */
-               m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
-            }
-            else
-            {
-               m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error taking control of resource\n");
-            }
-         }
          hpi_rc = saHpiHotSwapStateGet(session_id, entry.ResourceId, &state);
          if (hpi_rc != SA_OK)
          {
@@ -734,8 +720,46 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          }
          else
          {
-            /* fill hotswap states */
+
+          SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
+
 #ifdef HPI_A
+          autoextract_err = saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime);
+          
+          if (autoextract_err != SA_OK)
+          {
+             if (autoextract_err == SA_ERR_HPI_READ_ONLY)
+             {
+                /* Allow for the case where the extraction timeout is read-only. */
+                m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiAutoExtractTimeoutSet is read-only\n");
+             }
+             else
+             {
+                m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error in setting Auto Extraction timeout\n");
+             }
+          }
+
+#ifdef HPI_A
+        hotswap_err = saHpiHotSwapControlRequest(session_id, entry.ResourceId);
+#else
+        hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry.ResourceId);
+#endif
+
+         if (hotswap_err != SA_OK)
+         {
+            if (hotswap_err == SA_ERR_HPI_INVALID_REQUEST)
+            {
+               /* Allow for the case where the hotswap policy cannot be canceled because it */
+               /* has already begun to execute.                                             */
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
+            }
+            else
+            {
+               m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error taking control of resource\n");
+            }
+         }   
+            /* fill hotswap states */
+
             if ((entry.ResourceEntity.Entry[2].EntityInstance > 0) && 
                 (entry.ResourceEntity.Entry[2].EntityInstance <= MAX_NUM_SLOTS) &&
                 (entry.ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) &&
@@ -786,21 +810,44 @@ dispatch_hotswap(HSM_CB *hsm_cb)
             }
 #else
             /* Allow for the case where blades are ATCA or non-ATCA.                        */
-            if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
-                  (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-                  ((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-                   (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)) &&
-                  (
+        if(!((entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1))  ||
+           (entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) ||
+            ( 
 #ifdef HPI_B_02
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
 
-            {
-               /* Not a controller or a payload blade */
-               continue;
-            }
+          {
+          /* don't care about this event */
+           continue;
+          }
+
+         if(entry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))
+          {
+             /* Amc case,Check Slot range check */
+            if(!((entry.ResourceEntity.Entry[3].EntityLocation > 0) &&
+                (entry.ResourceEntity.Entry[3].EntityLocation <= MAX_NUM_SLOTS)))
+                 continue;
+           }
+          else
+           { 
+
+            if(!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
+                (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS)))
+                 continue;
+           }
+
+          if ((policy_err=saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime)) != SA_OK)
+          {
+             policy_err=SA_OK;
+          }
+
+          if ((policy_err=saHpiHotSwapPolicyCancel(session_id, entry.ResourceId)) != SA_OK)
+          {
+             policy_err=SA_OK;
+          }
 
             if (state == SAHPI_HS_STATE_INACTIVE)
             {
@@ -835,11 +882,20 @@ dispatch_hotswap(HSM_CB *hsm_cb)
       if (hsm_cb->node_state[i] != NODE_HS_STATE_NOT_PRESENT)
          break;
    }
-   if (i > MAX_NUM_SLOTS)
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   /* Check for blades only if the target system architecture is ATCA,  */
+   /* or HP_CCLASS.                                                     */
+   if ((m_NCS_OS_STRCMP(arch_type, "ATCA") == 0) ||
+       (m_NCS_OS_STRCMP(arch_type, "HP_CCLASS") == 0))
    {
-      m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
-      return NCSCC_RC_FAILURE;
+      if (i > MAX_NUM_SLOTS)
+      {
+         m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
+         return NCSCC_RC_FAILURE;
+      }
    }
+
    /* publish the dummy suprise extraction events of boards which are not present */
    publish_extracted(hsm_cb, hsm_cb->node_state);
 
@@ -875,10 +931,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 #ifndef HPI_A
    uns32 slot_ind = 0;
 #endif
-   /*
-   m_NCS_CONS_PRINTF("publish_inspending: Publishing outstanding inspending events for board %d",
-                      RptEntry->ResourceEntity.Entry[2].EntityInstance);
-   */
+
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
@@ -938,12 +991,31 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    }
 
    m_NCS_OS_MEMSET(&epath, 0, epath_len);
-   if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-       (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-      /* NON-ATCA: Do not strip off leaf entry. */
-      slot_ind = 0;
-   }
-   for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
+
+   if( RptEntry->ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) ) 
+     {
+      epath.Entry[0] = RptEntry->ResourceEntity.Entry[1];
+      slot_ind=2; 
+
+     for ( i=1; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
+       {
+        epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+          {
+         /* don't need to copy anymore */
+          break;
+          }
+        }
+     }
+   else
+    {  
+       if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+           (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+          /* NON-ATCA: Do not strip off leaf entry. */
+          slot_ind = 0;
+       }
+     for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
+       {
       /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
       if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
          slot_ind = 1;
@@ -952,9 +1024,11 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       else {
          epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
       }
-      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
+        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+          {
          /* don't need to copy anymore */
-         break;
+          break;
+          }
       }
    }
    m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
@@ -1011,10 +1085,6 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 #ifndef HPI_A
    uns32 slot_ind = 0;
 #endif
-   /*
-   m_NCS_CONS_PRINTF("publish_active_healty: Publishing outstanding active healthy events for board %d",
-                      RptEntry->ResourceEntity.Entry[2].EntityInstance);
-   */
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
@@ -1068,25 +1138,47 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    }
 
    m_NCS_OS_MEMSET(&epath, 0, epath_len);
-   if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-       (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-      /* NON-ATCA: Do not strip off leaf entry. */
-      slot_ind = 0;
-   }
-   for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
-      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
-         slot_ind = 1;
-         i--;
-      }
-      else {
-         epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
-      }
-      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
+
+   if( RptEntry->ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) )
+     {
+      epath.Entry[0] = RptEntry->ResourceEntity.Entry[1];
+      slot_ind=2; 
+
+     for ( i=1; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
+       {
+        epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+          {
          /* don't need to copy anymore */
-         break;
-      }
-   }
+          break;
+          }
+        }
+     }
+   else
+    {  
+       if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+           (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+          /* NON-ATCA: Do not strip off leaf entry. */
+          slot_ind = 0;
+       }
+     for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
+       {
+          /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
+          if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
+             slot_ind = 1;
+             i--;
+          }
+          else {
+             epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+          }
+        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+          {
+         /* don't need to copy anymore */
+          break;
+          }
+       }
+    }
+
    m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
 
    print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
@@ -1165,14 +1257,13 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    /* remove the grouping elements of entity path */
    m_NCS_OS_MEMSET(&epath, 0, epath_len);
 
-   /* this will need lots of changes when we move to HPI-B spec entity paths */
 #ifdef HPI_A
    epath.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
    epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
    epath.Entry[1].EntityInstance = hsm_cb->args->chassis_id;
 #else
    epath.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-   epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+   epath.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
    epath.Entry[1].EntityLocation = hsm_cb->args->chassis_id;
 #endif
    epath.Entry[2].EntityType = SAHPI_ENT_ROOT;
@@ -1429,34 +1520,34 @@ hsm_clear_sel(HSM_CB *hsm_cb)
 static uns32
 hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 {
-   SaErrorT           val, err;
+   SaErrorT           val, err,session_err;
 #ifdef HPI_A
    SaHpiVersionT      version;
-   uns32 retry ;
 #endif
+   uns32 retry ;
    uns32 rc = NCSCC_RC_SUCCESS;
 
    if (!hsm_cb->args->session_valid)
    {
       /* restart the session */
-      saHpiSessionClose(*session_id);
-#ifdef HPI_A
+      if((session_err=saHpiSessionClose(*session_id))!= SA_OK);
+          m_NCS_CONS_PRINTF("hsm_rediscover:Close session return error :- %d:\n",session_err);
+#ifdef HPI_A 
       saHpiFinalize();
-
+#endif
       retry = 0;
       /* first step in openhpi */
       m_LOG_HISV_DTS_CONS("hsm_rediscover: HPI Re-Initialization...\n");
 
       while (1)
       {
+#ifdef HPI_A     
          err = saHpiInitialize(&version);
          if (SA_OK != err)
+#else
+         if(hcd_cb->ha_state != SA_AMF_HA_ACTIVE)
+#endif
          {
-            m_LOG_HISV_DTS_CONS("hsm_rediscover:\n");
-#if 0
-            m_NCS_CONS_PRINTF("hsm_rediscover: saHpiReInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
-            m_LOG_HISV_DTS_CONS("hsm_rediscover: This is expected if standby SCXB does not have connectivity to shelf manager\n");
-#endif /* 0 */
             rc = NCSCC_RC_FAILURE;
             m_NCS_TASK_SLEEP(2500);
             continue;
@@ -1466,18 +1557,12 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
       }
       if (retry >= HPI_INIT_MAX_RETRY)
       {
-#if 0
-         m_LOG_HISV_DTS_CONS("hsm_rediscover: saHpiReInitialize Failed - May need to do E-Keying\n");
-         m_NCS_CONS_PRINTF("hsm_rediscover: saHpiReInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
-         m_LOG_HISV_DTS_CONS("hsm_rediscover: This is expected if standby SCXB does not have connectivity to shelf manager\n");
-#endif /* 0 */
+
          rc = NCSCC_RC_FAILURE;
          /* m_MMGR_FREE_HPI_SESSION_ARGS(dom_args); */
-         /* return NCSCC_RC_FAILURE; */
       }
       else
       {
-#endif
          /* Every domain requires a new session */
          rc = NCSCC_RC_SUCCESS;
          m_LOG_HISV_DTS_CONS("hsm_rediscover: Re-Opening HPI Session...\n");
@@ -1488,6 +1573,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 #endif
          if (SA_OK != err)
          {
+          m_NCS_CONS_PRINTF("hsm_rediscover:open session return error code :- %d:\n",err);
             m_LOG_HISV_DTS_CONS("hsm_rediscover: saHpiSessionReOpen\n");
             rc = NCSCC_RC_FAILURE;
          }
@@ -1498,9 +1584,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 #else
          hsm_cb->args->domain_id = SAHPI_UNSPECIFIED_DOMAIN_ID;
 #endif
-#ifdef HPI_A
       }
-#endif
    }
    if (rc != NCSCC_RC_FAILURE)
    {
@@ -1522,6 +1606,8 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 #endif
          {
             m_LOG_HISV_DTS_CONS("hsm_rediscover: saHpiReSubscribe has failed \n");
+            m_NCS_CONS_PRINTF("hsm_rediscover:saHpiSubscribe  session return error code :- %d:\n",val);
+
             hsm_cb->args->session_valid = 0;
             hcd_cb->args->rediscover = 1;
             rc = NCSCC_RC_FAILURE;
@@ -1806,7 +1892,8 @@ CHECK:
             if (inv_data->DataRecords[k]->RecordType == SAHPI_INVENT_RECTYPE_OEM)
             {
                /* check if it is a OpenSAF specific MAC OEM Record */
-               if ((inv_data->DataRecords[k]->RecordData.OemData.MId == HISV_MAC_ADDR_MOT_OEM_MID) &&
+               if (((inv_data->DataRecords[k]->RecordData.OemData.MId == HISV_MAC_ADDR_MOT_OEM_MID)|| 
+                   (inv_data->DataRecords[k]->RecordData.OemData.MId == HISV_MAC_ADDR_EMERSON_OEM_MID)) &&
                    (inv_data->DataRecords[k]->RecordData.OemData.Data[0] == HISV_MAC_ADDR_MOT_OEM_REC_ID))
                {
                   mac_rec_type = MAC_OEM_MOT_TYPE;
@@ -1904,14 +1991,19 @@ CHECK:
    return NCSCC_RC_SUCCESS;
 #else
    SaHpiEntryIdT current_rdr, next_rdr;
-   SaHpiEntryIdT  next_area;
-   SaHpiEntryIdT  next_field;
+   SaHpiEntryIdT  next_area,areaId;
+   SaHpiEntryIdT  next_field , fieldId;
    SaHpiIdrInfoT idrInfo;
    SaHpiIdrIdT idrId;
-   SaHpiIdrAreaHeaderT areaInfo;
-   SaHpiIdrFieldT product_name, product_version;
-   SaErrorT err;
+   SaHpiIdrAreaHeaderT areaInfo ;
+   SaHpiManufacturerIdT  MId;
+   SaHpiIdrFieldTypeT   fieldType;
+   SaHpiIdrFieldT product_name, product_version, addr_field;
+   SaErrorT err,rv_field;
    HISV_INV_DATA *inv_var;
+   SaHpiUint32T numFields = 0;
+   MAC_OEM_REC_TYPE mac_rec_type;
+   uns32 j, i;
    int rediscover_flag;
 
    /* find the RDR which has got inventory data associated with it */
@@ -2032,7 +2124,129 @@ CHECK:
       m_NCS_MEMCPY(inv_var->product_version.Data, product_version.Field.Data, inv_var->product_version.DataLength);
    }
 
-   /* Need to add code to get MAC Address Info Here */
+   areaId = SAHPI_FIRST_ENTRY;
+   m_NCS_MEMSET(&areaInfo, 0, sizeof(SaHpiIdrAreaHeaderT));
+   err=SA_OK;
+
+   while ((err == SA_OK) && (areaId != SAHPI_LAST_ENTRY))
+   {
+      err = saHpiIdrAreaHeaderGet(session_id,
+                                  RptEntry->ResourceId,
+                                  idrId,
+                                  SAHPI_IDR_AREATYPE_OEM,
+                                  areaId,
+                                  &next_area,
+                                  &areaInfo);
+
+    if(SA_OK == err)
+    {
+      numFields=areaInfo.NumFields;
+
+      fieldType = SAHPI_IDR_FIELDTYPE_UNSPECIFIED;
+      fieldId=SAHPI_FIRST_ENTRY;
+      rv_field=SA_OK;
+     
+         
+              while ((rv_field == SA_OK) && (fieldId != SAHPI_LAST_ENTRY))
+                {
+                        rv_field = saHpiIdrFieldGet( session_id,
+                                                    RptEntry->ResourceId,
+                                                    idrId,
+                                                    areaInfo.AreaId,
+                                                    fieldType,
+                                                    fieldId,
+                                                    &next_field,
+                                                    &addr_field);
+                      if(rv_field == SA_OK )
+                       {
+        
+                          if(1 == addr_field.FieldId) /* Manufactur ID field */
+                                 MId = addr_field.Field.Data[2] | (addr_field.Field.Data[1] << 8) | (addr_field.Field.Data[0] << 16);
+
+                         if(2 == addr_field.FieldId ) /*  Record ID field*/
+                           {
+                             if(( HISV_MAC_ADDR_MOT_OEM_REC_ID == addr_field.Field.Data[0]) && 
+                                 ( (MId ==HISV_MAC_ADDR_EMERSON_OEM_MID  ) || ( MId == HISV_MAC_ADDR_MOT_OEM_MID)))
+                              {
+                                       mac_rec_type=MAC_OEM_MOT_TYPE;
+                                  inv_var->oem_inv_data.type=SAHPI_IDR_AREATYPE_OEM;                           
+                                  inv_var->oem_inv_data.mId = MId;
+                                  inv_var->oem_inv_data.mot_oem_rec_id = addr_field.Field.Data[0];
+                                  inv_var->oem_inv_data.rec_format_ver = addr_field.Field.Data[1];
+                                  inv_var->oem_inv_data.num_mac_entries = addr_field.Field.Data[2];
+                               
+                              }
+                              else
+                               if((HISV_MAC_ADDR_FORCE_OEM_REC_ID == addr_field.Field.Data[0]) &&( MId == HISV_MAC_ADDR_FORCE_OEM_MID))
+                               {
+                                      mac_rec_type=MAC_OEM_FORCE_TYPE;
+                                  inv_var->oem_inv_data.type=SAHPI_IDR_AREATYPE_OEM;
+                                  inv_var->oem_inv_data.mId = MId;
+                                  inv_var->oem_inv_data.mot_oem_rec_id = addr_field.Field.Data[0];
+                                  inv_var->oem_inv_data.rec_format_ver = addr_field.Field.Data[1];
+                               }
+                            }
+                         
+                            if( MAC_OEM_FORCE_TYPE == mac_rec_type)
+                             {
+                               if(numFields > 5  )
+                               {
+                                 /* 6 Mac Address specified , First two are Base address  */
+                                   if(4 == addr_field.FieldId)
+                                     {
+                                      memcpy(inv_var->oem_inv_data.interface_mac_addr[0],&addr_field.Field.Data,MAC_DATA_LEN);
+                                      inv_var->oem_inv_data.num_mac_entries = 1;
+                                     }
+                                   if(5 == addr_field.FieldId)
+                                    {
+                                      memcpy(inv_var->oem_inv_data.interface_mac_addr[1],&addr_field.Field.Data,MAC_DATA_LEN);
+                                      inv_var->oem_inv_data.num_mac_entries ++;
+                                    }
+                                   
+                                }
+                                else
+                                {
+                                  /* Only one base MAC address */
+                                   if(5 == addr_field.FieldId)
+                                   {
+                                     inv_var->oem_inv_data.num_mac_entries = 1;
+                                       memcpy(inv_var->oem_inv_data.interface_mac_addr[0],&addr_field.Field.Data,MAC_DATA_LEN);
+                                   }
+
+                                }
+                             }
+                             else if ( MAC_OEM_MOT_TYPE == mac_rec_type)
+                             {
+                               j=0;
+                                for(i=0 ; i<inv_var->oem_inv_data.num_mac_entries;i++ )
+                               {
+                                 if( addr_field.Field.Data[2+ (i*MAC_DATA_LEN) + (i+1) ] == 0x01 ) /* Pick only base address */
+                                   memcpy(inv_var->oem_inv_data.interface_mac_addr[j++],&addr_field.Field.Data[2 + (i*MAC_DATA_LEN) + (i+2)],MAC_DATA_LEN );
+
+                                 if(j >= MAX_MAC_ENTRIES) break;
+                                }
+                                 inv_var->oem_inv_data.num_mac_entries=j;
+ 
+                             }
+                       }
+                       else
+                       {
+                          m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiIdrFieldGet failed to get OEM Data\n");
+                       }
+
+                   fieldId=next_field;
+               }/*End Fields */
+
+    }
+    else
+    {
+      m_LOG_HISV_DTS_CONS("hcd_hsm: call to saHpiIdrAreaHeaderGet failed\n");
+      return(NCSCC_RC_FAILURE);
+        /* Log an err Area header Get issue */
+    }
+   areaId = next_area; 
+   } /* while areas */
+   
 
    print_invdata(inv_var);
    return NCSCC_RC_SUCCESS;
@@ -2113,15 +2327,18 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
-   m_NCS_CONS_PRINTF("publish_curr_hs_state_evt\n");
+
+   m_NCS_CONS_PRINTF("publish_curr_hs_state_evt ()\n");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
 
    /* if it is a FRU and hotswap managable then publish outstanding inspending events */
-   if (entry->ResourceCapabilities & SAHPI_CAPABILITY_FRU)
+   if ((entry->ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) && 
+       (entry->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
    {
+/*  Nitin : Why it is required here */
 #ifdef HPI_A
       if (saHpiHotSwapControlRequest(session_id, entry->ResourceId) != SA_OK)
 #else
@@ -2266,11 +2483,10 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             }
             m_MMGR_FREE_HPI_INV_DATA(event_data);
             return NCSCC_RC_SUCCESS;
-         }
 #ifdef HPI_A
-      }
+        } /* End ifdef A_01 */
 #endif
+      } /* End else */
    }
    return NCSCC_RC_SUCCESS;
 }
-

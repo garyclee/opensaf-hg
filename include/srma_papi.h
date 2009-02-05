@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMA_PAPI.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file has the data structure definitions defined for SRMA 

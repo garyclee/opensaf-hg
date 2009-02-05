@@ -408,6 +408,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
 
    sendEvt.info.nd.atond_upd.ip_info.shelfId = cb->shelf;
    sendEvt.info.nd.atond_upd.ip_info.slotId =  cb->slot;
+   sendEvt.info.nd.atond_upd.ip_info.subslotId =  cb->subslot;
    sendEvt.info.nd.atond_upd.ip_info.nodeId =  cb->my_node_id;
    /* Here I'm putting a hack: need to remove it */
                                                                                                                              
@@ -536,7 +537,8 @@ ncs_vip_check_ip_exists(IFSV_CB *cb, uns32 hdl,uns32 ipaddr,uns8 *intf)
                if (pIpInfo->poolHdl  == hdl)
                {
                   /* Check if IP Exists on the requested interface */
-                  if(ifip_node->ifip_info.slotId == cb->slot &&
+                  if(ifip_node->ifip_info.subslotId == cb->subslot &&
+                     ifip_node->ifip_info.slotId == cb->slot &&
                      ifip_node->ifip_info.shelfId == cb->shelf && 
                      ifip_node->ifip_info.nodeId == cb->my_node_id) 
                   {
@@ -631,9 +633,10 @@ ncs_ifsv_vip_del_ip(IFSV_CB *cb,uns32 hdl,NCS_IPPFX *ipAddr)
    while(ifip_node)
    {
      ifindex = ifip_node->ifip_info.ifindexNet;
-     if(ifip_node->ifip_info.slotId == cb->slot && 
-                       ifip_node->ifip_info.shelfId == cb->shelf && 
-                       ifip_node->ifip_info.nodeId == cb->my_node_id)
+     if(ifip_node->ifip_info.subslotId == cb->subslot &&
+        ifip_node->ifip_info.slotId == cb->slot && 
+        ifip_node->ifip_info.shelfId == cb->shelf && 
+        ifip_node->ifip_info.nodeId == cb->my_node_id)
      {
         for (ii = 0; ii < ifip_node->ifip_info.ipaddr_cnt; ii++)
         {

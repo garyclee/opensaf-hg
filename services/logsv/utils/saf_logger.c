@@ -128,7 +128,7 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
     unsigned int writes = 0;
 
     if (logRecord->logBuffer != NULL)
-        write_index = strlen(logRecord->logBuffer->logBuf);
+        write_index = strlen((char *) logRecord->logBuffer->logBuf);
 
     do
     {
@@ -138,8 +138,8 @@ static SaAisErrorT write_log_record(SaLogHandleT logHandle,
         if (logRecord->logBuffer != NULL && write_count > 1)
         {
             /* add unique ID to each log */
-            sprintf(&logRecord->logBuffer->logBuf[write_index], " - %u", i);
-            logRecord->logBuffer->logBufSize = strlen(logRecord->logBuffer->logBuf);
+            sprintf((char *) (&logRecord->logBuffer->logBuf[write_index]), " - %u", i);
+            logRecord->logBuffer->logBufSize = strlen((char *) logRecord->logBuffer->logBuf);
         }
 
         invocation = random();
@@ -274,11 +274,11 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    sprintf(logSvcUsrName.value, "%s.%u@%s", "saflogger", getpid(), hostname);
-    logSvcUsrName.length = strlen(logSvcUsrName.value);
+    sprintf((char *) logSvcUsrName.value, "%s.%u@%s", "saflogger", getpid(), hostname);
+    logSvcUsrName.length = strlen((char *) logSvcUsrName.value);
 
     /* Setup default values */
-    strcpy(logStreamName.value, SA_LOG_STREAM_SYSTEM); /* system stream is default */
+    strcpy((char *) logStreamName.value, SA_LOG_STREAM_SYSTEM); /* system stream is default */
     logRecord.logTimeStamp = SA_TIME_UNKNOWN; /* LOG service should supply timestamp */
     logRecord.logHdrType = SA_LOG_GENERIC_HEADER;
     logRecord.logHeader.genericHdr.notificationClassId = NULL;
@@ -306,18 +306,18 @@ int main(int argc, char *argv[])
                 write_count = atoi(optarg);
                 break;
             case 'l':
-                strcpy(logStreamName.value, SA_LOG_STREAM_ALARM);
+                strcpy((char *) logStreamName.value, SA_LOG_STREAM_ALARM);
                 logRecord.logHdrType = SA_LOG_NTF_HEADER;
                 break;
             case 'n':
-                strcpy(logStreamName.value, SA_LOG_STREAM_NOTIFICATION);
+                strcpy((char *) logStreamName.value, SA_LOG_STREAM_NOTIFICATION);
                 logRecord.logHdrType = SA_LOG_NTF_HEADER;
                 break;
             case 'y':
-                strcpy(logStreamName.value, SA_LOG_STREAM_SYSTEM);
+                strcpy((char *) logStreamName.value, SA_LOG_STREAM_SYSTEM);
                 break;
             case 'a':
-                sprintf(logStreamName.value, "safLgStr=%s", optarg);
+                sprintf((char *) logStreamName.value, "safLgStr=%s", optarg);
                 logFileCreateAttributes = &appLogFileCreateAttributes;
                 appLogFileCreateAttributes.logFileName = strdup(optarg);
                 logStreamOpenFlags = SA_LOG_STREAM_CREATE;
@@ -348,7 +348,7 @@ int main(int argc, char *argv[])
         logRecord.logHeader.ntfHdr.eventTime = get_current_SaTime();
     }
 
-    logStreamName.length = strlen(logStreamName.value);
+    logStreamName.length = strlen((char *) logStreamName.value);
 
     /* Create body of log record (if any) */
     if (optind < argc)
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
         logBuf = malloc(sz + 64); /* add space for index/id in periodic writes */
         strcpy(logBuf, argv[optind]);
         logBuffer.logBufSize = sz;
-        logBuffer.logBuf = logBuf;
+        logBuffer.logBuf = (SaUint8T *) logBuf;
         logRecord.logBuffer = &logBuffer;
     }
 

@@ -75,7 +75,15 @@ const NID_SVC_STATUS nid_serv_stat_info[]={     \
                      {"NID_BIOS_FCU_MARK_INVALID_VALUE","FCU BIOS Mark Invalid Value As Input"},\
                      {"NID_BIOS_FCU_MARK_FAILURE","FCU BIOS Mark Failure"},\
                      {"NID_BIOS_FCU_MARK_DEVICE_NOT_FOUND","FCU BIOS Mark Cannot Locate Device"},\
-                     {"NID_BIOS_FCU_MARK_OUTPUT_NOT_RECOGNIZED","FCU BIOS Mark Output Is Not Recognized"}}},\
+                     {"NID_BIOS_FCU_MARK_OUTPUT_NOT_RECOGNIZED","FCU BIOS Mark Output Is Not Recognized"},\
+                     {"NID_BIOS_FCU_WRITE_NOT_SUPPORTED","FCU BIOS Write Is Not Supported"},\
+                     {"NID_BIOS_FCU_WRITE_FAILURE","FCU BIOS Write Failure"},\
+                     {"NID_BIOS_FCU_WRITE_INVALID_VALUE","FCU BIOS Mark Invalid Value As Input"},\
+                     {"NID_BIOS_FCU_WRITE_DEVICE_NOT_FOUND","FCU BIOS Write Cannot Locate Device"},\
+                     {"NID_BIOS_FCU_WRITE_SUCCESS","FCU BIOS Write Success "},\
+                     {"NID_BIOS_FCU_WRITE_OUTPUT_NOT_RECOGNIZED","FCU BIOS Output Not Recognized"},\
+                     {"NID_BIOS_UPGRADE_FAILURE","FCU BIOS UPGRADE Failure "},\
+                     {"NID_BIOS_INCONSISTENT_GOING_FOR_RECOVERY","BIOS Version Inconsistency ,Going for Recovery!!"}}},\
    {NID_MAXPHOENIXBIOSERR,"BIOSUP",{{"NID_PHOENIXBIOS_QUERY_NOT_SUPPORTED","FCU PHOENIX BIOS Query Is Not Supported"},\
                      {"NID_PHOENIXBIOS_QUERY_INVALID_VALUE","FCU PHOENIX BIOS Query Invalid Value As Input"},\
                      {"NID_PHOENIXBIOS_QUERY_DEVICE_NOT_FOUND","FCU PHOENIX BIOS Query Cannot Locate Device"},\
@@ -99,7 +107,8 @@ const NID_SVC_STATUS nid_serv_stat_info[]={     \
                      {"NID_RDE_AMF_OPEN_FAILED","AMF interface open failed"},\
                      {"NID_RDE_RDA_OPEN_FAILED","RDA interface open failed"},\
                      {"NID_LFM_LHC_GET_ROLE_FAILURE","LFM Get LHC role failed"},\
-                     {"NID_LFM_LINK_STAT_RET_FAILURE", "LFM Failed to get Link Status"}}},\
+                     {"NID_LFM_LINK_STAT_RET_FAILURE", "LFM Failed to get Link Status"},\
+                     {"NID_GFM_INIT_FAILURE", "GFM initialization failed"}}},\
    {NID_RDF_MAX_ERR,"RDF",{{"NID_RDF_AMF_OPEN_FAILED","AMF interface open failed"},\
                      {"NID_RDF_RDA_OPEN_FAILED","RDA interface open failed"}}},\
    {NID_OPENHPI_MAX_ERR,"OpenHPI",{{"NID_OPENHPI_START_FAILED","OpenHPI start failed, check syslog for details"},\

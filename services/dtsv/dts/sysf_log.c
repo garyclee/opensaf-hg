@@ -20,7 +20,6 @@
 
   MODULE NAME: SYSF_LOG.C
 
-$Header: /ncs/software/leap/targsvcs/common/src/sysf_log.c 18    6/02/01 3:43p Agranos $
 
 ..............................................................................
 

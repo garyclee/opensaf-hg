@@ -7,7 +7,7 @@ export TET_MDS_IF_INDEX=1
 export BUILD_TYPE=$1
 
 #Populate Node_id Slot_id
-DEC_ID=`cat /etc/opt/opensaf/slot_id`
+DEC_ID=`cat /etc/opensaf/slot_id`
 PC=`uname -r|grep mvlcge`;
 
 export TARGET_ARCH=$TARGET_HOST
@@ -16,15 +16,15 @@ export TARGET_ARCH=$TARGET_HOST
 if [ -d /opt/opensaf/controller ]
 then
    if [ "$BUILD_TYPE" == "linux" ] ; then
-   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib
+   export LD_LIBRARY_PATH=$TARGET_LIB_PATH/lib
    else
-   export LD_LIBRARY_PATH=/opt/opensaf/controller/lib64
+   export LD_LIBRARY_PATH=$TARGET_LIB_PATH/lib64
    fi
 else
    if [ "$BUILD_TYPE" == "linux" ] ; then
-   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib
+   export LD_LIBRARY_PATH=$TARGET_LIB_PATH/lib
    else
-   export LD_LIBRARY_PATH=/opt/opensaf/payload/lib64
+   export LD_LIBRARY_PATH=$TARGET_LIB_PATH/lib64
    fi
 fi 
 echo $LD_LIBRARY_PATH  >>/etc/ld.so.conf

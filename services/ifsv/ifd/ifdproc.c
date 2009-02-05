@@ -214,7 +214,7 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
                 send_evt.info.ifnd_evt.info.spt_map.spt_map.if_index =
                      create_intf->intf_data.if_index;
                 m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Error : No Spt Map for Intf Rec with Ifindex, Shelf, Slot, Port, Type, Scope, mds destination",create_intf->intf_data.if_index, create_intf->intf_data.spt_info.shelf, create_intf->intf_data.spt_info.slot, create_intf->intf_data.spt_info.port, create_intf->intf_data.spt_info.type, create_intf->intf_data.spt_info.subscr_scope, create_intf->intf_data.originator_mds_destination);
-
+                m_NCS_CONS_PRINTF(" error: ifindex - %d ***** No spt map for Intf s/s/ss/p/t/s- %d/%d/%d/%d/%d/%d \n",  create_intf->intf_data.if_index, create_intf->intf_data.spt_info.shelf, create_intf->intf_data.spt_info.slot, create_intf->intf_data.spt_info.subslot, create_intf->intf_data.spt_info.port, create_intf->intf_data.spt_info.type, create_intf->intf_data.spt_info.subscr_scope);
  
                /* Sync resp to IfND.*/
                ifsv_mds_send_rsp(ifsv_cb->my_mds_hdl,
@@ -1139,6 +1139,8 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
                     spt_info.port           =  bind_portnum;
                     spt_info.shelf          =  IFSV_BINDING_SHELF_ID;
                     spt_info.slot           =  IFSV_BINDING_SLOT_ID;
+                    /* embedding subslot changes */
+                    spt_info.subslot           =  IFSV_BINDING_SUBSLOT_ID;
                     spt_info.type           =  NCS_IFSV_INTF_BINDING;
                     spt_info.subscr_scope   =  NCS_IFSV_SUBSCR_INT;
                     if(ifsv_get_ifindex_from_spt (&bind_ifindex, spt_info, ifsv_cb) == NCSCC_RC_SUCCESS)

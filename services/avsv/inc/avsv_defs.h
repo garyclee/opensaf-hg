@@ -113,8 +113,9 @@
 /* Trap channel open timeout */
 #define AVSV_TRAP_CHANNEL_OPEN_TIMEOUT 200000000
 
-/* Trap pattern array len */
+/* Trap pattern array lengths */
 #define AVSV_TRAP_PATTERN_ARRAY_LEN  2
+#define AVD_SHUT_FAIL_TRAP_PATTERN_ARRAY_LEN 1
 
 /* Maximum number for component instantiation */
 #define AVSV_MAX_INST 1

@@ -21,8 +21,8 @@ pkglib_LTLIBRARIES = libglsv_subagt.la
 SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/glsv/snmp_integ/glsv_subagt_init.c \
 	$(top_builddir)/services/glsv/snmp_integ/glsv_subagt_init.h \
-	$(top_builddir)/services/glsv/snmp_integ/saf_lck_svc_mib_agt_stub.c \
-	$(top_builddir)/services/glsv/snmp_integ/saf_lck_svc_mib_agt_stub.h
+	$(top_builddir)/services/glsv/snmp_integ/saf_lck_mib_agt_stub.c \
+	$(top_builddir)/services/glsv/snmp_integ/saf_lck_mib_agt_stub.h
 
 libglsv_subagt_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -41,12 +41,12 @@ $(SUBAGT_GENERATED_FILES): subagt
 subagt:
 	@for file in $(SUBAGT_GENERATED_FILES); do \
 		if [ ! -f $$file ]; then \
-			export SMIPATH=$(top_srcdir)/mibs:$(MIBSDIR); \
+			export SMIPATH=$(top_srcdir)/mibs:$(MIBDIRS); \
 			export PATH=$(top_builddir)/tools/smidump/bin:$$PATH; \
 			smidump -R $(top_srcdir)/OpenSAFCopyRights \
 			-f synncsnetsnmp_new \
 			-d $(top_builddir)/services \
-			-o glsv SAF-LCK-SVC-v7_5; \
+			-o glsv SAF-LCK-MIB; \
 		fi \
 	done
 

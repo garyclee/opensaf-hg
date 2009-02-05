@@ -35,6 +35,8 @@ typedef struct ifsv_dt_test_app_cb
    uns32      app_no;
    uns32      shelf_no;
    uns32      slot_no;
+   /* embedding subslot changes */
+   uns32      subslot_no;
    uns32      IfA_hdl;
    NCS_BOOL   inited;   
 } IFSV_DT_TEST_APP_CB;
@@ -67,12 +69,12 @@ typedef struct ifsv_dt_test_app_evt
 } IFSV_DT_TEST_APP_EVT;
 EXTERN_C uns32 
 ifsv_dt_test_ifa_sub_cb(NCS_IFSV_SVC_RSP *rsp);
-EXTERN_C uns32 IfsvDtTestAppCreate(uns32 shelf,uns32 slot);
+EXTERN_C uns32 IfsvDtTestAppCreate(uns32 shelf,uns32 slot, uns32 subslot);
 uns32 IfsvDtTestAppIfaSub(uns32 app_no, uns32 evt_attr, uns32 rec_attr);
 uns32 IfsvDtTestAppIfaUnsub(uns32 app_no);
-uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 port, 
+uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port, 
                              uns32 port_type);
-uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 port ,uns32 port_type);
+uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port ,uns32 port_type);
 uns32 IfsvDtTestAppGetAll(uns32 app_no, uns32 ifindex);
 uns32 IfsvDtTestAppDestroy(uns32 app_no);
 uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num, 
@@ -89,7 +91,7 @@ uns32 IfsvdtTestAppModIntfPhy(uns32 app_num, uns32 port_num, uns32 port_type,
 uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
                                  char *temp_name);
 uns32 IfsvDtTestAppDelIntf(uns32 app_num, uns32 port_num, uns32 port_type);
-uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 port ,uns32 port_type);
+uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot, uns32 port ,uns32 port_type);
 uns32 IfsvDtTestAppSwapBondIntf(uns32 app_num, uns32 port_num,
                                    uns32 port_type, uns32 master_ifindex, uns32 slave_ifindex);
 #endif /* _IFSV_DEMO_H  */

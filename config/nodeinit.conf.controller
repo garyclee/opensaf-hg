@@ -55,6 +55,7 @@
 IPMC_BOARD:LINUX_PC_SCXB
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
 xxLIBDIRxx/rde_script:RDF:S:xxLIBDIRxx/rde_script:12000:-6:2:1:start:stop
+xxLIBDIRxx/opensaf_fms:HLFM:S:xxBINDIRxx/opensaf_fms:12000:-6:2:1:start:stop
 #xxLIBDIRxx/drbdctrl:DRBD:S:xxLIBDIRxx/drbdctrl:800::2::start all:stop all
 #xxLIBDIRxx/nis_snmpd_start:SNMPD:S:xxLIBDIRxx/nis_snmpd_clean:10000:4:5:1::
 xxLIBDIRxx/ncs_dts_start:DTSV:S:xxLIBDIRxx/ncs_dts_clean:4000:4:2:1:start:

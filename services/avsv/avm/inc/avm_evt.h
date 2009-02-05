@@ -54,7 +54,6 @@ typedef enum avm_rcv_svs
    AVM_EVT_IPMC_MOD_UPGD,
    AVM_EVT_ROLE_CHG_WAIT,
    AVM_EVT_BIOS_FAILOVER,
-   AVM_EVT_LFM,
 }AVM_RECEIVE_SVCS;
 
 typedef enum avm_role_msgs_type
@@ -107,13 +106,6 @@ typedef struct avm_evt_id_type
 
 #define AVM_EVT_ID_NULL ((AVM_EVT_ID_T *)0x0)
 
-typedef struct avm_lfm_evt
-{
-   MDS_SYNC_SND_CTXT mds_ctxt;
-   MDS_DEST    fr_dest;
-   LFM_AVM_MSG *msg;
-}AVM_LFM_EVT_T;
-
 struct avm_evt
 {
     NCS_IPC_MSG         next;
@@ -133,7 +125,6 @@ struct avm_evt
       AVM_ROLE_MSG_T   avm_role_msg;
       RDE_MSG_T        rde_evt;
       AVM_TMR_T       tmr;
-      AVM_LFM_EVT_T   lfm_evt;
    }evt;
    AVM_EVT_ID_T        ssu_evt_id;
 };

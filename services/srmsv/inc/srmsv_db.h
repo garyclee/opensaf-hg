@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMSV_DB.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file has the data structure definitions defined for SRMSV

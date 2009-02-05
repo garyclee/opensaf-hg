@@ -110,7 +110,7 @@ dist_pkgdata_DATA = \
 	$(top_srcdir)/config/drbd.1.conf \
 	$(top_srcdir)/config/drbd.2.conf
 
-nobase_dist_pkgdata_DATA = $(samples_sources) $(mibs_files)
+nobase_dist_pkgdata_DATA = $(samples_sources)
 
 pkginclude_HEADERS = \
 	include/cpsv_papi.h \
@@ -123,7 +123,6 @@ pkginclude_HEADERS = \
 	include/ifsv_papi.h \
 	include/ip_defs.h \
 	include/ipxs_papi.h \
-	include/lfm_avm_intf.h \
 	include/mab_penv.h \
 	include/mac_papi.h \
 	include/mbcsv_papi.h \
@@ -178,6 +177,7 @@ pkginclude_HEADERS = \
 	include/psr_mib_load.h \
 	include/psr_papi.h \
 	include/rda_papi.h \
+	include/fm_papi.h \
 	include/sckt_defs.h \
 	include/srma_papi.h \
 	include/srmsv_papi.h \
@@ -244,6 +244,7 @@ CONTROLLER_SUBDIRS = \
 	services/ifsv/entp_snmp_integ \
 	services/ifsv/entp_ifsv_ir_snmp_integ \
 	services/rde/rda \
+	services/fm/fma \
 	tools/pdrbd \
 	services
 
@@ -263,13 +264,13 @@ endif
 
 common_sysconf = \
 	$(top_srcdir)/config/chassis_id \
-	$(top_srcdir)/config/slot_id
+	$(top_srcdir)/config/slot_id \
+	$(top_srcdir)/config/subslot_id
 
 controller_sysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
 	$(top_srcdir)/config/cli_cefslib_conf \
 	$(top_srcdir)/config/NCSConfig.xsd \
-	$(top_srcdir)/config/ncsSnmpSubagt.conf \
 	$(top_srcdir)/config/NCSSystemBOM.xml \
 	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
 	$(top_srcdir)/config/pssv_lib_conf \
@@ -284,7 +285,8 @@ controller_sysconf = \
 	$(top_srcdir)/config/.drbd_sync_state_3 \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/saflog.conf \
-	$(top_srcdir)/config/rde.conf
+	$(top_srcdir)/config/rde.conf \
+	$(top_srcdir)/config/fms.conf
 
 payload_sysconf = \
 	$(top_srcdir)/config/nodeinit.conf.payload
@@ -321,6 +323,7 @@ dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/ncs_mqnd_clean \
 	$(top_srcdir)/scripts/ncs_srmnd_clean \
 	$(top_srcdir)/scripts/ncs_vds_clean \
+	$(top_srcdir)/scripts/opensaf_reboot \
 	$(top_srcdir)/scripts/pdrbdsts
 
 if ENABLE_HPI
@@ -339,6 +342,7 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_dts_start \
 	$(top_builddir)/scripts/ncs_eds_clean \
 	$(top_builddir)/scripts/ncs_eds_start \
+	$(top_builddir)/scripts/opensaf_fms \
 	$(top_builddir)/scripts/ncs_gld_start \
 	$(top_builddir)/scripts/ncs_glnd_start \
 	$(top_builddir)/scripts/ncs_ifd_clean \
@@ -385,25 +389,20 @@ endif
 
 
 EXTRA_DIST = \
+	$(top_srcdir)/config/ncsSnmpSubagt.conf \
 	$(top_srcdir)/initd/opensafd.initd \
 	$(top_srcdir)/tools/smidump \
-	$(top_srcdir)/tests
+	$(top_srcdir)/tests \
+	$(top_srcdir)/mibs
 
+
+if ENABLE_RPM_TARGET
 
 RPMTOPDIR = `pwd`/rpms
 RPMSOURCEDIR = $(RPMTOPDIR)/SOURCES
 RPMSPECDIR = $(RPMTOPDIR)/SPECS
 SRPMDIR = $(RPMTOPDIR)/SRPMS
 RPMDIR = $(RPMTOPDIR)/RPMS
-
-update-ldconfig:
-	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
-	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-
-update-pkgconfig:
-	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
-	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
 
 prep-rpm-dir: dist
 	mkdir -p $(RPMTOPDIR)
@@ -421,11 +420,27 @@ rpm: prep-rpm-dir
 		--define "_topdir $(RPMTOPDIR)" --define "_tmppath $(RPMTOPDIR)/tmp" \
 		$(RPMSPECDIR)/$(PACKAGE_NAME).spec
 
+endif
+
+update-ldconfig:
+	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
+	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+
+update-pkgconfig:
+	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
+	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
+
 install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
+	$(mkinstalldirs) $(DESTDIR)$(datadir)/snmp/mibs
 	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
+	$(INSTALL_DATA) $(top_srcdir)/config/ncsSnmpSubagt.conf $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
+	@for file in $(mibs_files); do \
+		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
+	done
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
@@ -447,10 +462,16 @@ uninstall-local:
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
+	-rm -f $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
+	@for file in $(mibs_files); do \
+		rm -f $(DESTDIR)$(datadir)/snmp/$$file.txt; \
+	done
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
+if ENABLE_RPM_TARGET
 	-rm -rf $(RPMTOPDIR)/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
+endif
 
 distclean-local:
 	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf

@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMSV_DEFS.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file comtains the MACRO definitions and enum definitions

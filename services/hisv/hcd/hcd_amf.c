@@ -338,6 +338,21 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
          /* Update control block */
          hcd_cb->ha_state = haState;
       }
+
+      
+      if (haState == SA_AMF_HA_STANDBY)
+      {
+          HSM_CB *local_hsm_cb;
+          local_hsm_cb = (HSM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_hsm_hdl);
+          saHpiUnsubscribe(local_hsm_cb->args->session_id);
+          saHpiSessionClose(local_hsm_cb->args->session_id);
+#ifdef HPI_A
+          saHpiFinalize();
+#endif
+          local_hsm_cb->args->session_valid = 0;
+          ncshm_give_hdl(gl_hsm_hdl);
+      }
+
       /*Give handles */
       m_HISV_HCD_GIVEUP_HCD_CB;
    }
@@ -435,7 +450,7 @@ hcd_amf_comp_terminate_callback(SaInvocationT invocation,
 
       m_LOG_HISV_SVC_PRVDR(HCD_AMF_RCVD_HEALTHCHK,NCSFL_SEV_INFO);
    }
-   m_NCS_TASK_SLEEP(1000);
+   m_NCS_TASK_SLEEP(100000000);
    exit(0);
 
    return;

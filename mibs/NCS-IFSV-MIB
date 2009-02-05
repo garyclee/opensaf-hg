@@ -70,6 +70,7 @@
      NcsIfsvIfXEntry ::= SEQUENCE {
          ncsIfsvIfShelfId                   Integer32,
          ncsIfsvIfSlotId                    Integer32,
+         ncsIfsvIfSubslotId                 Integer32,
          ncsIfsvIfPortId                    Integer32
      }
 
@@ -89,13 +90,21 @@
              "Slot number in a particular chassis."
          ::= { ncsIfsvIfXEntry 2 }
 
+     ncsIfsvIfSubslotId OBJECT-TYPE
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Sub Slot number in a particular on a particular blade."
+         ::= { ncsIfsvIfXEntry 3 }
+
      ncsIfsvIfPortId OBJECT-TYPE 
          SYNTAX      Integer32 (0..65535)
          MAX-ACCESS  read-only
          STATUS      current
          DESCRIPTION
              "The interface Port number in a particular Slot."
-         ::= { ncsIfsvIfXEntry 3 }
+         ::= { ncsIfsvIfXEntry 4 }
 
 
 
@@ -122,6 +131,7 @@
               and IfIndex applicable to a particular interface."
          INDEX     { ncsIfsvIfMapEntryShelfId,
                      ncsIfsvIfMapEntrySlotId,
+                     ncsIfsvIfMapEntrySubslotId, 
                      ncsIfsvIfMapEntryPortId,
                      ncsIfsvIfMapEntryIfType,
                      ncsIfsvIfMapEntryIfSubscrScope }
@@ -130,6 +140,7 @@
      NcsIfsvIfMapEntry ::= SEQUENCE {
          ncsIfsvIfMapEntryShelfId                   Integer32,
          ncsIfsvIfMapEntrySlotId                    Integer32,
+         ncsIfsvIfMapEntrySubslotId                 Integer32,
          ncsIfsvIfMapEntryPortId                    Integer32,
          ncsIfsvIfMapEntryIfType                    Integer32,
          ncsIfsvIfMapEntryIfSubscrScope             Integer32,
@@ -153,13 +164,21 @@
              "Slot number in a particular chassis."
          ::= { ncsIfsvIfMapEntry 2 }
 
+     ncsIfsvIfMapEntrySubslotId OBJECT-TYPE
+         SYNTAX      Integer32 (0..65535)
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "Subslot number in a particular blade."
+         ::= { ncsIfsvIfMapEntry 3 }
+
      ncsIfsvIfMapEntryPortId OBJECT-TYPE 
          SYNTAX      Integer32 (0..65535)
          MAX-ACCESS  not-accessible
          STATUS      current
          DESCRIPTION
              "The interface Port number in a particular Slot."
-         ::= { ncsIfsvIfMapEntry 3 }
+         ::= { ncsIfsvIfMapEntry 4 }
 
      ncsIfsvIfMapEntryIfType OBJECT-TYPE 
          SYNTAX      Integer32
@@ -167,7 +186,7 @@
          STATUS      current
          DESCRIPTION
              "The type of interface. these values have been very specific to IFSV Service "
-         ::= { ncsIfsvIfMapEntry 4 }
+         ::= { ncsIfsvIfMapEntry 5 }
 
      ncsIfsvIfMapEntryIfSubscrScope OBJECT-TYPE
          SYNTAX      Integer32(0..2)
@@ -175,7 +194,7 @@
          STATUS      current
          DESCRIPTION
              "The Subscripscope of an Interface ."
-         ::= { ncsIfsvIfMapEntry 5 }
+         ::= { ncsIfsvIfMapEntry 6 }
 
 
      ncsIfsvIfMapEntryIfIndex OBJECT-TYPE 
@@ -189,7 +208,7 @@
             must remain constant at least from one re-initialization of
             the entity's network management system to the next re-
             initialization."
-         ::= { ncsIfsvIfMapEntry 6 }
+         ::= { ncsIfsvIfMapEntry 7 }
 
      ncsIfsvIfMapEntryIfInfo OBJECT-TYPE
          SYNTAX      OCTET STRING
@@ -197,7 +216,7 @@
          STATUS      current
          DESCRIPTION
              " "
-         ::= { ncsIfsvIfMapEntry 7 }
+         ::= { ncsIfsvIfMapEntry 8 }
 
 
 END

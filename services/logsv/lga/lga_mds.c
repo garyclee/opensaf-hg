@@ -155,7 +155,7 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
     if (param->logFileName != NULL)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFileName, len);
+        ncs_encode_n_octets_in_uba(uba, (uns8 *) param->logFileName, len);
         total_bytes += len;
     }
 
@@ -176,7 +176,7 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
     if (param->logFilePathName != NULL)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFilePathName, len);
+        ncs_encode_n_octets_in_uba(uba, (uns8 *) param->logFilePathName, len);
         total_bytes += len;
     }
 
@@ -202,7 +202,7 @@ static uns32 lga_enc_lstr_open_sync_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 
     if (len > 0)
     {
-        ncs_encode_n_octets_in_uba(uba, param->logFileFmt, len);
+        ncs_encode_n_octets_in_uba(uba, (uns8 *) param->logFileFmt, len);
         total_bytes += len;   
     }
 

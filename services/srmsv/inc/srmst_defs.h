@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMST_PROC.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: This file comtains the MACRO definitions and enum definitions

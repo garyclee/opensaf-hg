@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-  $Header:  $
 
   MODULE NAME: rde_rda_common.h 
 
@@ -58,27 +57,11 @@ typedef enum
     RDE_RDA_SET_ROLE_REQ,
     RDE_RDA_SET_ROLE_ACK,
     RDE_RDA_SET_ROLE_NACK,
-    RDE_RDA_AVD_HB_ERR_REQ,
-    RDE_RDA_AVD_HB_ERR_NACK,
-    RDE_RDA_AVD_HB_ERR_ACK,
-    RDE_RDA_AVND_HB_ERR_REQ,
-    RDE_RDA_AVND_HB_ERR_NACK,
-    RDE_RDA_AVND_HB_ERR_ACK,
     RDE_RDA_REG_CB_REQ,
     RDE_RDA_REG_CB_ACK,
     RDE_RDA_REG_CB_NACK,
     RDE_RDA_DISCONNECT_REQ,
     RDE_RDA_HA_ROLE,
-    RDE_RDA_SCB_SWOVER,
-    RDE_RDA_NODE_RESET_CMD,
-    RDE_RDA_AVD_HB_RESTORE_REQ,
-    RDE_RDA_AVD_HB_RESTORE_NACK,
-    RDE_RDA_AVD_HB_RESTORE_ACK,
-    RDE_RDA_AVND_HB_RESTORE_REQ,
-    RDE_RDA_AVND_HB_RESTORE_NACK,
-    RDE_RDA_AVND_HB_RESTORE_ACK
-     
-    
 }RDE_RDA_CMD_TYPE;
 
 

@@ -17,7 +17,7 @@
 #
 
 CFLAGS := -Wall -I$(OPENSAF_INCLUDE) -I.
-LDFLAGS := -L$(OPENSAF_LIB) -lSaAmf
+LDFLAGS := -L$(OPENSAF_LIB) -L$(OPENSAF_LIB)/opensaf -lncs_core -lavsv_common -lsaf_common  -lSaAmf 
 
 aishello: aishello.c ais_utils.c
 	gcc -o $@ $(CFLAGS) $^ $(LDFLAGS)

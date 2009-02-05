@@ -63,6 +63,8 @@ typedef struct ifsv_create_pwe
    uns32      vrid;   
    uns32      shelf_no;
    uns32      slot_no;   
+   /* embedding subslot changes */
+   uns32      subslot_no;
    uns8       pool_id;   
    uns32      comp_type;   
    uns32      oac_hdl;

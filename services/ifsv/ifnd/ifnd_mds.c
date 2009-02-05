@@ -32,15 +32,16 @@ static uns32 ifnd_mds_callback (NCSMDS_CALLBACK_INFO *info);
 static uns32 ifnd_mds_adest_get (IFSV_CB *cb);
 extern uns32 ifnd_mds_ifd_up_event (IFSV_CB *ifsv_cb);
 
+/* embedding subslot changes */
 MDS_CLIENT_MSG_FORMAT_VER
       IFND_WRT_IFD_MSG_FMT_ARRAY[IFND_WRT_IFD_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* embedding subslot changes */};
 MDS_CLIENT_MSG_FORMAT_VER
       IFND_WRT_IFA_MSG_FMT_ARRAY[IFND_WRT_IFA_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* embedding subslot changes */};
 MDS_CLIENT_MSG_FORMAT_VER
       IFND_WRT_DRV_MSG_FMT_ARRAY[IFND_WRT_DRV_SUBPART_VER_RANGE]={
-           1 /*msg format version for  subpart version 1*/};
+           1 /*msg format version for  subpart version 1*/, 2 /* embedding subslot changes */};
 
 /****************************************************************************
  * Name          : ifnd_mds_callback
@@ -574,8 +575,9 @@ static uns32 ifnd_mds_enc(IFSV_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
          return NCSCC_RC_FAILURE; 
        }
 
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
-               EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror);
+      /* embedding subslot changes */
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, enc_info->io_uba, 
+               EDP_OP_TYPE_ENC, (IFSV_EVT*)enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
       if(rc != NCSCC_RC_SUCCESS)
       {
          /* Free calls to be added here. */
@@ -597,10 +599,11 @@ static uns32 ifnd_mds_enc(IFSV_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
        return NCSCC_RC_FAILURE;
       }
 
+      /* embedding subslot changes for backward compatibility*/
       /* encode the message sended to the if driver */
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_idim_hw_req_info, 
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_idim_hw_req_info, 
                enc_info->io_uba, EDP_OP_TYPE_ENC, 
-               (NCS_IFSV_HW_DRV_REQ*)enc_info->i_msg, &ederror);
+               (NCS_IFSV_HW_DRV_REQ*)enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
       if(rc != NCSCC_RC_SUCCESS)
       {
          /* Free calls to be added here. */
@@ -674,8 +677,10 @@ static uns32 ifnd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       }
       m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
       dec_info->o_msg  = (NCSCONTEXT)ifsv_evt;
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
-               EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror);      
+
+      /* embedding subslot changes for backward compatibility */
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_ifsv_evt, dec_info->io_uba, 
+               EDP_OP_TYPE_DEC, (IFSV_EVT**)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);      
       if(rc != NCSCC_RC_SUCCESS)
       {
          m_MMGR_FREE_IFSV_EVT(dec_info->o_msg);
@@ -705,10 +710,12 @@ static uns32 ifnd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       }
       m_NCS_MEMSET(idim_evt,0,sizeof(IFSV_IDIM_EVT));
       dec_info->o_msg = (NCSCONTEXT)&idim_evt->info.hw_info;
+
+      /* embedding subslot changes for backward compatibility */
       /* decode the message received from the driver */
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ifsv_edp_idim_hw_rcv_info, 
+      rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_idim_hw_rcv_info, 
                dec_info->io_uba, EDP_OP_TYPE_DEC, 
-               (NCS_IFSV_HW_INFO**)&dec_info->o_msg, &ederror);
+               (NCS_IFSV_HW_INFO**)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
       
       if(rc != NCSCC_RC_SUCCESS)
       {

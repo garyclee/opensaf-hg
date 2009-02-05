@@ -242,10 +242,11 @@ fi
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/run/%{name}
-%dir %{_datadir}/%{name}/mibs
-%{_datadir}/%{name}/mibs/*
+%dir %{_datadir}/snmp/mibs
+%{_datadir}/snmp/mibs/*
 %{_sysconfdir}/%{name}/chassis_id
 %{_sysconfdir}/%{name}/slot_id
+%{_sysconfdir}/%{name}/subslot_id
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
@@ -260,6 +261,7 @@ fi
 %{_pkglibdir}/find_pid
 %{_bindir}/get_ha_state
 %{_bindir}/saflogger
+%{_bindir}/opensaf_reboot
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
 %{_pkglibdir}/ncs_cpd_clean
@@ -296,8 +298,7 @@ fi
 %{_pkglibdir}/ncs_rde_clean
 %{_pkglibdir}/ncs_rde_start
 %{_pkglibdir}/ncs_snmpsubagt_clean
-%{_pkglibdir}/ncs_snmpsubagt_reload
-%{_pkglibdir}/ncs_snmpsubagt_start
+%{_pkglibdir}/opensaf_fms
 %{_pkglibdir}/ncs_srmnd_clean
 %{_pkglibdir}/ncs_srmnd_start
 %{_pkglibdir}/ncs_vds_clean
@@ -345,6 +346,7 @@ fi
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/ncs_psr
 %{_pkglibdir}/ncs_rde
+%{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/ncs_scap
 %{_pkglibdir}/ncs_snmp_subagt
 %{_pkglibdir}/ncs_srmnd
@@ -357,11 +359,11 @@ fi
 %{_sysconfdir}/%{name}/AppConfig.xsd
 %{_sysconfdir}/%{name}/cli_cefslib_conf
 %{_sysconfdir}/%{name}/NCSConfig.xsd
-%{_sysconfdir}/%{name}/ncsSnmpSubagt.conf
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
 %{_sysconfdir}/%{name}/pssv_lib_conf
 %{_sysconfdir}/%{name}/rde.conf
+%{_sysconfdir}/%{name}/fms.conf
 %{_sysconfdir}/%{name}/subagt_lib_conf
 %{_sysconfdir}/%{name}/ValidationConfig.xml
 %{_sysconfdir}/%{name}/ValidationConfig.xsd
@@ -373,6 +375,7 @@ fi
 %{_sysconfdir}/%{name}/.drbd_sync_state_4
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
+%{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_datadir}/%{name}/drbd.1.conf
 %{_datadir}/%{name}/drbd.2.conf
 %{_localstatedir}/lib/%{name}/node_ha_state
@@ -417,6 +420,7 @@ fi
 %{_libdir}/libmqsv_common.so.*
 %{_libdir}/libncs_core.so.*
 %{_libdir}/librda.so.*
+%{_libdir}/libfma.so.*
 %{_libdir}/libsaf_common.so.*
 %{_libdir}/libsrma.so.*
 %{_libdir}/%{name}/libavm_logstr.so.*
@@ -459,6 +463,7 @@ fi
 %{_libdir}/%{name}/libpssv_logstr.so.*
 %{_libdir}/%{name}/libpssv_subagt.so.*
 %{_libdir}/%{name}/librde_logstr.so.*
+%{_libdir}/%{name}/libfma_logstr.so.*
 %{_libdir}/%{name}/libsrmsv_logstr.so.*
 %{_libdir}/%{name}/libsubagt_logstr.so.*
 %{_libdir}/%{name}/libvds_logstr.so.*

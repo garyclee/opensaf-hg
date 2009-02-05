@@ -87,8 +87,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 /*** Macro used to get the AMF version used ****/
 #define m_CPSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 
-#define ACT_SCXB_NODE_ID 1
-#define STB_SCXB_NODE_ID 2
+
 #define m_CPND_IS_ON_SCXB(m,n) ((m==n)?1:0)
 
 /*30B Versioning Changes */

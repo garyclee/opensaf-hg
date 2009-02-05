@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-  $Header:  $
 
   MODULE NAME: rda.h
 
@@ -92,7 +91,6 @@ typedef struct
 { 
     struct sockaddr_un  sock_address;
     
-    
 }RDA_CONTROL_BLOCK;
 
 
@@ -104,10 +102,6 @@ int pcs_rda_reg_callback   (uns32, PCS_RDA_CB_PTR, long *);
 int pcs_rda_unreg_callback (long);
 int pcs_rda_set_role       (PCS_RDA_ROLE);
 int pcs_rda_get_role       (PCS_RDA_ROLE*);
-int pcs_rda_avd_hb_err     (void);
-int pcs_rda_avnd_hb_err    (uns32);
-int pcs_rda_avd_hb_restore (void);
-int pcs_rda_avnd_hb_restore (uns32 phy_slot_id);
 
 #define RDE_RDA_SHELF_ID    2 /* As per BOM file. To send it to AVM*/
 

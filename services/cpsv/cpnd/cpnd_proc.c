@@ -928,7 +928,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
       prev_ckpt_hdl=cl_node->ckpt_app_hdl;
       m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPA;
-      send_evt.info.cpa.type = CPND_EVT_ND2A_CKPT_BCAST_SEND;
+      send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_BCAST_SEND;
       rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest,&send_evt);
 
       if(rc == NCSCC_RC_FAILURE)
@@ -2420,15 +2420,15 @@ NCS_BOOL cpnd_is_noncollocated_replica_present_on_payload(CPND_CB *cb, CPND_CKPT
    CPSV_CPND_DEST_INFO     *dest_list = NULL;
 
    /* Check if the CPND is on Active or Standby SCXB */
-   if(m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_phy_slot_id(cb->cpnd_mdest_id))||  \
-         m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_phy_slot_id(cb->cpnd_mdest_id))) {
+   if(m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_slot_sub_slot_id_from_mds_dest(cb->cpnd_mdest_id))||  \
+         m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_slot_sub_slot_id_from_mds_dest(cb->cpnd_mdest_id))) {
 
       dest_list = cp_node->cpnd_dest_list;
 
       while(dest_list) {
          /* Check if a replica is present on one of the payload blades */
-         if((!m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_phy_slot_id(dest_list->dest))) && \
-           (! m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_phy_slot_id(dest_list->dest)))) {
+         if((!m_CPND_IS_ON_SCXB(cb->cpnd_active_id,cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest))) && \
+           (! m_CPND_IS_ON_SCXB(cb->cpnd_standby_id,cpnd_get_slot_sub_slot_id_from_mds_dest(dest_list->dest)))) {
                return TRUE;
          }
 

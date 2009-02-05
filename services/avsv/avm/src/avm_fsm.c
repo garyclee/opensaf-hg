@@ -273,19 +273,6 @@ avm_msg_handler(
       }    
       break;
 
-#if (MOT_ATCA == 1)
-      case AVM_EVT_LFM:
-      {
-         m_AVM_LOG_EVT_SRC("LFM", NCSFL_SEV_INFO);
-         rc = avm_lfm_msg_handler(avm_cb, evt);
-         if(NULL != evt->evt.lfm_evt.msg)
-         {
-            lfm_avm_msg_free(evt->evt.lfm_evt.msg);
-         }
-      }
-      break;
-#endif 
-
       case AVM_EVT_FUND:
       {
          m_AVM_LOG_EVT_SRC("FUND", NCSFL_SEV_INFO);
@@ -1105,6 +1092,7 @@ avm_proc_boot_succ_tmr_exp(
    uns32 chassis;
    uns8  *entity_path     = NULL;
    uns32 res = NCSCC_RC_SUCCESS;
+   uns32 rc_fm;
 
 
    m_AVM_LOG_FUNC_ENTRY("avm_proc_boot_succ_tmr_exp");
@@ -1122,8 +1110,16 @@ avm_proc_boot_succ_tmr_exp(
    {
       return NCSCC_RC_FAILURE;
    }
+   
+   /* If standby Just stop the timer and return - Fix for 91104 */
+
 
    avm_stop_tmr(avm_cb, &ent_info->boot_succ_tmr);
+   if((avm_cb->ha_state == SA_AMF_HA_STANDBY))
+   {
+     ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
+     return NCSCC_RC_SUCCESS;
+   }
    /* Fix for IR00084096 */
    avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmBootFailure_ID);
    sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : BootFailed for %s",
@@ -1149,16 +1145,16 @@ avm_proc_boot_succ_tmr_exp(
       }
       return NCSCC_RC_FAILURE;
    }
-
-   /* Do cold reset here, the return value is ignored as it was not handled in other places as well in AVM */
+   /* Do cold reset here, and if the returned value indicates a successful reset then inform AvD about the reset. */
    res = hpl_resource_reset(chassis, entity_path, HISV_RES_COLD_RESET);
 
-#if (MOT_ATCA == 1)
-   /* Send node reset indication to LFM, so that LFM starts timer to check boot progress */
-   avm_send_lfm_nd_reset_ind(avm_cb, &ent_info->entity_path);
-#endif
+   if(res == NCSCC_RC_SUCCESS)
+      avm_avd_node_reset_resp(avm_cb, AVM_NODE_RESET_SUCCESS, ent_info->node_name);
 
-   m_NCS_SYSLOG (NCS_LOG_NOTICE, "avm_proc_boot_succ_tmr_exp(): AVM issued cold reset for payload - %s, return value of API: %d, sent reset indication to LFM\n", ent_info->ep_str.name, res);
+   /* Send node reset indication to FM, so that FM starts timer to check boot progress */
+   rc_fm = avm_notify_fm_node_reset(avm_cb, &ent_info->entity_path);
+
+   m_NCS_SYSLOG (NCS_LOG_NOTICE, "avm_proc_boot_succ_tmr_exp(): AVM issued cold reset for payload - %s, return value of API: %d, sent reset indication to FMwith return value of API: %d\n", ent_info->ep_str.name, res, rc_fm);
 
    ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
 
@@ -1209,7 +1205,7 @@ avm_proc_dhcp_fail_tmr_exp(
 
    avm_stop_tmr(avm_cb, &avm_cb->dhcp_fail_tmr);
    
-   if ((rc = m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG)))
+   if ((rc = (m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG))))
    {
       m_AVM_LOG_DEBUG("AVM-SSU: DHCP STOP failed again. Restarting DHCP FAIL timer.",NCSFL_SEV_ERROR);
       m_AVM_SSU_DHCP_FAIL_TMR_START(avm_cb);

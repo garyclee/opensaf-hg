@@ -20,7 +20,6 @@
 
   MODULE NAME: SRMND_CB.H
 
-$Header: 
 ..............................................................................
 
   DESCRIPTION: SRMND Control Block and the related function prototypes are 
