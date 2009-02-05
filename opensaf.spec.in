@@ -297,6 +297,7 @@ fi
 %{_bindir}/ncs_rde_start
 %{_bindir}/ncs_snmpsubagt_clean
 %{_bindir}/opensaf_fms
+%{_bindir}/opensaf_reboot
 %{_bindir}/ncs_snmpsubagt_reload
 %{_bindir}/ncs_snmpsubagt_start
 %{_bindir}/ncs_srmnd_clean

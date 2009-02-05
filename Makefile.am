@@ -317,6 +317,7 @@ dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/ncs_srmnd_clean \
 	$(top_srcdir)/scripts/ncs_vds_clean \
 	$(top_srcdir)/scripts/opensaf_mem_dump_tool \
+	$(top_srcdir)/scripts/opensaf_reboot \
 	$(top_srcdir)/scripts/pdrbdsts
 
 if ENABLE_HPI
