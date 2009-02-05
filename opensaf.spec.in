@@ -259,6 +259,7 @@ fi
 # TODO Still needed?
 %{_pkglibdir}/find_pid
 %{_bindir}/get_ha_state
+%{_bindir}/saflogger
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
 %{_pkglibdir}/ncs_cpd_clean
@@ -350,7 +351,6 @@ fi
 %{_pkglibdir}/ncs_vds
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
-%{_pkglibdir}/saflogger
 %{_pkglibdir}/ncs_scap_clean
 %{_pkglibdir}/ncs_scap_start
 %{_bindir}/collect_logs_controller
@@ -389,7 +389,6 @@ fi
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/ncs_pcap
 %{_pkglibdir}/ncs_srmnd
-%{_pkglibdir}/saflogger
 %{_pkglibdir}/ncs_pcap_clean
 %{_pkglibdir}/ncs_pcap_start
 %{_bindir}/collect_logs_payload
