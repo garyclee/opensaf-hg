@@ -59,6 +59,7 @@ typedef struct fma_cb
 
    /* FMA handle database */
    FMA_HDL_DB hdl_db;
+   NCS_BOOL is_platform;
 } FMA_CB;
 
 

@@ -28,7 +28,7 @@ XTERM=""
 DAEMON=ncs_eds
 PIDFILE=eds.pid
 COMPNAMEFILE="$LOCALSTATEDIR/ncs_eds_comp_name"
-SERVICE_CODE=EDSV
+NID_SVC_NAME=EDSV
 
 echo "Executing EDSv init-script..."
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
@@ -41,7 +41,7 @@ start()
     #Check if daemon is installed.
     if [ ! -x "$LIBPATH/$DAEMON" ]; then
        echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
-       echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_NOT_FND" > $NIDFIFO
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
        exit 1
     fi
     killall ncs_eds
@@ -51,7 +51,7 @@ start()
 
     if [ $? -ne 0 ] ; then
 	echo -n -e "Failed to start $DAEMON.    \n"
-	echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_START_FAILED" > "$NIDFIFO"
+	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
 	exit 0
      else
          echo "Started $DESC: $LIBPATH/$DAEMON"

@@ -171,7 +171,6 @@ pkginclude_HEADERS = \
 	include/ncsusrbuf.h \
 	include/ncs_xmtre.h \
 	include/nid_api.h \
-	include/nid_err.h \
 	include/oac_papi.h \
 	include/os_defs.h \
 	include/psr_mib_load.h \
@@ -373,7 +372,7 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/opensaf_lgs \
 	$(top_builddir)/scripts/pdrbdctrl \
 	$(top_builddir)/scripts/rde_script \
-	$(top_builddir)/scripts/tipc_reset.sh
+	$(top_builddir)/scripts/tipc_reset.sh 
 
 if ENABLE_HPI
 nodist_pkglib_SCRIPTS += $(top_builddir)/scripts/ncs_hisv_start

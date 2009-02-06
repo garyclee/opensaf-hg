@@ -80,6 +80,7 @@ typedef struct fm_cb {
    /* Time in terms of one hundredth of seconds (500 for 5 secs.)*/
    uns32           active_promote_tmr_val;
    uns32           reset_retry_tmr_val;
+   NCS_BOOL        is_platform;
 } FM_CB;
 
 

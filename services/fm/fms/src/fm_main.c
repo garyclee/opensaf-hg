@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
    if(fm_create_pidfile() != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm pid file create failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE);
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE);
       goto fm_agents_startup_failed;
    }
 
@@ -76,7 +76,7 @@ int main (int argc, char *argv[])
    {
        /* notify the NID */
        m_NCS_CONS_PRINTF("\nfm_agents_startup() failed.");
-       fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
        goto fm_agents_startup_failed;
    }
 
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
    {
        /* notify the NID */
       m_NCS_CONS_PRINTF("\nCB Allocation failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_agents_startup_failed;
    }
 
@@ -102,15 +102,20 @@ int main (int argc, char *argv[])
    {
       /* notify the NID */
       m_NCS_CONS_PRINTF("\nfm_get_args() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
-    
+   
+   /* Set the is_platform = FALSE. 
+    * Will be set to true when HISv MDS up is recieved 
+    */
+   fm_cb->is_platform = FALSE;
+ 
    /* Create MBX. */
    if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nm_NCS_IPC_CREATE() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
 
@@ -118,7 +123,7 @@ int main (int argc, char *argv[])
    if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nm_NCS_IPC_ATTACH() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mbx_attach_failure;
    }
 
@@ -126,7 +131,7 @@ int main (int argc, char *argv[])
    if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_mds_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mds_init_failed;
    }
 
@@ -134,7 +139,7 @@ int main (int argc, char *argv[])
    if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_rda_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_rda_init_failed;
    }
 
@@ -142,7 +147,7 @@ int main (int argc, char *argv[])
    if (fm_hpl_init() != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_hpl_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
 
@@ -150,7 +155,7 @@ int main (int argc, char *argv[])
    if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm pipe open failed (avm) failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
 
@@ -524,9 +529,10 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           /* Shelf id of Peer and Host are same */
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, 
                                             fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
-#if (HW_MGMT == 1)
+       if (fm_cb->is_platform == TRUE)
           hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
+       else
+       {
           if (fm_mbx_evt->slot == fm_cb->peer_slot &&
               fm_mbx_evt->sub_slot == fm_cb->peer_sub_slot)
           {
@@ -538,7 +544,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
              /* We got hb loss for payload. 
              Payload reset might be supported in future */
           }
-#endif
+       }
           m_NCS_SYSLOG(NCS_LOG_INFO,"Reset of node with slot_id=%s tried",entity_path);
           fms_fma_node_reset_intimate(fm_cb, fm_mbx_evt->slot,fm_mbx_evt->sub_slot);
        }
@@ -571,11 +577,6 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           }
        }
        /* I don'thave to do anything if I'm active */
-       /*
-          else if (fm_cb->role == PCS_RDA_ACTIVE)
-          {
-          }
-       */
        break;
 
    case FM_EVT_TMR_EXP:
@@ -589,11 +590,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
           m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired. Reseting peer controller slot_id=%s\n",entity_path);
 
-#if (HW_MGMT == 1)
-          status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
-          status = fms_reset_peer(fm_cb);
-#endif
+          if (fm_cb->is_platform == TRUE)
+             status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+          else
+             status = fms_reset_peer(fm_cb);
+
           if (status != NCSCC_RC_SUCCESS)
           {
              m_NCS_SYSLOG(NCS_LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
@@ -608,12 +609,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
           m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired. Reseting peer controller slot_id=%s failed.\n",entity_path);
 
-#if (HW_MGMT == 1)
-          /* Don't care what is return status */
-          hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
-          fms_reset_peer(fm_cb);
-#endif
+          if (fm_cb->is_platform == TRUE)
+             /* Don't care what is return status */
+             hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+          else
+             fms_reset_peer(fm_cb);
 
           /* Intimate FMA about reset */
           fms_fma_node_reset_intimate(fm_cb, fm_cb->peer_slot, fm_cb->peer_sub_slot);
@@ -955,11 +955,13 @@ char* fms_skip_white(char *ptr)
 static uns32 fm_nid_notify(uns32 nid_err)
 {
    uns32 error;
-   NID_STATUS_CODE nid_stat_code;
+   uns32 nid_stat_code;
    
-   nid_stat_code.hlfm_status = nid_err; 
-
-   return nid_notify(NID_HLFM, nid_stat_code, &error);
+   if (nid_err > NCSCC_RC_SUCCESS)
+       nid_err= NCSCC_RC_FAILURE;
+   
+   nid_stat_code = nid_err; 
+   return nid_notify("HLFM", nid_stat_code, &error);
 }
 
 

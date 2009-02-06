@@ -28,7 +28,6 @@ ncs_nid_CPPFLAGS= \
 	-I $(top_srcdir)/services/rde/common/inc
 
 ncs_nid_SOURCES = \
-	nid_ipmc_cmd.c \
 	nodeinit.c
 
 ncs_nid_LDADD = \

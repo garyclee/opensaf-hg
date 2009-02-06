@@ -26,9 +26,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 MASK_LAST_3NIBBLES=4096
 MASK_LAST_1NIBBLE=16
 SHIFT4=4
-NID_SVC_ID=TIPC
-NID_TIPC_INSTALL_SUCCESS=1
-NID_TIPC_LOAD_MODULE_ERR=2
+NID_SVC_NAME=TIPC
 
 # IMPORTANT : This script receives command in the form :
 #xxBINDIRxx/ncs_tipc start intf_name[eth0] core_id[1234] TIPC
@@ -119,7 +117,7 @@ function tipc_configure ()
     ret_val=$?
     if [ $ret_val -ne 0 ] ; then
         logger -p user.err " TIPC Module could not be loaded "
-        echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_LOAD_MODULE_ERR" > $NIDFIFO
+        echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
         exit 1
     fi
     
@@ -199,7 +197,7 @@ else
     fi
 fi
 
-echo "$NID_MAGIC:$NID_SVC_ID:$NID_TIPC_INSTALL_SUCCESS" > $NIDFIFO
+echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
 
 echo "Running Permanent loop to clean MDS Logs..."
 while true

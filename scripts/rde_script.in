@@ -26,7 +26,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 DAEMON=ncs_rde
 DESC="Role Distribution Entity Daemon"
 PIDFILE="$PIDPATH/rde.pid"
-SERVICE_CODE=RDF
+NID_SVC_NAME=RDF
 
 source "$SYSCONFDIR/rde.conf"
 # SELINUX enforces special properties for init scripts
@@ -49,9 +49,7 @@ fi
 
 rm -f $TMPDIR/opensaf_ifs
 
-NID_RDE_DAEMON_STARTED=1
-NID_RDE_DAEMON_NOT_FND=3
-NID_RDE_DAEMON_START_FAILED=5
+
 
 
 # Set environment variables
@@ -80,7 +78,7 @@ function rde_set_env_var
 
 if [ ! -x "$LIBPATH/$DAEMON" ]; then
    logger -t opensaf -s "Unable to find daemon: ${LIBPATH}/${DAEMON}"
-   echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_NOT_FND" > "$NIDFIFO"
+   echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
    exit 1
 fi
 
@@ -108,7 +106,7 @@ case "$1" in
         $LIBPATH/ncs_rde > ${NCS_STDOUTS_PATH}/ncs_rde 2>&1 &
         if [ $? -ne 0 ]; then
             echo -n -e "Failed to start $DAEMON.    \n"
-            echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > \
+            echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
                 $NIDFIFO
             exit 1
         else
@@ -146,7 +144,7 @@ case "$1" in
             "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
             if [ $? -ne 0 ] ; then
                 echo -n -e "Failed to start $DAEMON.    \n"
-                echo "$NID_MAGIC:$SERVICE_CODE:$NID_RDE_DAEMON_START_FAILED" > \
+                echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
                     "$NIDFIFO"
                 exit 1
             fi

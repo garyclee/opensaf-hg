@@ -252,8 +252,8 @@ EXTERN_C NCS_BOOL dts_sync_up_flag;
 static void main_avnd_usr1_signal_hdlr(int signal);
 #endif
 /* NID specific NCS service global variable */
-uns16 gl_nid_svc_id = 0;
-static void ncs_get_nid_svc_id(int argc, char *argv[], uns16 *o_nid_svc_id);
+char  gl_nid_svc_name[NID_MAXSNAME] ;
+static void ncs_get_nid_svc_name(int argc, char *argv[], char  *o_nid_svc_name);
 uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type,
               char *i_param_val, uns32 val_len, char *index); /* FIXME:Phani_11_july_06  Unused. Cleanup? */
 
@@ -266,60 +266,21 @@ uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type,
 uns32 ncs_nid_notify(uns16 status)
 {
    int error;
-   NID_STATUS_CODE nid_stat_code;
+   uns32 nid_stat_code;
 
    /* NID is OFF */
-   if (gl_nid_svc_id == 0)
-      return NCSCC_RC_SUCCESS;
+  if ( m_NCS_STRCMP(gl_nid_svc_name , "" ) == 0)
+       return NCSCC_RC_SUCCESS;
 
-   switch (gl_nid_svc_id)
-   {
-   case NID_DTSV:
-       nid_stat_code.dtsv_status = status;
-       break;
+    if(status != NCSCC_RC_SUCCESS)\
+      status=NCSCC_RC_FAILURE;
 
-   case NID_MASV:
-       nid_stat_code.masv_status = status;
-       break;
-
-   case NID_PSSV:
-       nid_stat_code.pssv_status = status;
-       break;      
-
-   case NID_PCAP:
-       nid_stat_code.pcap_status = status;
-       break;      
-
-   case NID_SCAP:
-       nid_stat_code.scap_status = status;
-       break;
-
-   case NID_GLND:
-       nid_stat_code.glnd_status = status;
-       break;
-/*
-   case NID_IFND:
-       nid_stat_code.ifnd_status = status;
-       break;
-*/    
-   case NID_EDSV:
-       nid_stat_code.edsv_status = status;
-       break;
-
-   /* 61409 */
-   case NID_SUBAGT:
-       nid_stat_code.subagt_status = status;
-       break;
-
-   default:
-       m_NCS_CONS_PRINTF("\n Unknown NID specific NCS service-id \n");
-       return NCSCC_RC_FAILURE;
-   }
-
+    nid_stat_code=status;
+    
    /* CALL the NID specific API to notify */
-   if (nid_notify(gl_nid_svc_id, nid_stat_code, &error) != NCSCC_RC_SUCCESS)
+   if (nid_notify(gl_nid_svc_name, nid_stat_code, &error) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\n NID failed, ERR: %d\n", error);
+      m_NCS_CONS_PRINTF("\n NID failed, ERR: %d for gl_nid_svc_name :%s \n", error,gl_nid_svc_name);
       return NCSCC_RC_FAILURE;
    }
 
@@ -398,7 +359,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
    /*** Init MBCA ***/
    if (ncs_mbca_startup(argc, argv) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_NID_NOTIFY(NID_NCS_MBCA_STARTUP_FAILED);
+      m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+      m_NCS_CONS_PRINTF("MBCA start-up has been failed\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
    
@@ -413,7 +375,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
             /*** Init MAA ***/
       if (ncs_maa_startup(argc, argv) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_MAA_STARTUP_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("MAA start-up has been failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
       }
 #endif
@@ -426,7 +389,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       setenv("AVD", "ON", 1);
       if (avd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_AVD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("AVD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -436,7 +400,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nAVSV:AVND:ON");
       if (avnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_AVND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("AVND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -446,7 +411,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nAVSV:AVM:ON");
       if (avm_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_AVM_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("AVM lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
       m_NCS_DBG_PRINTF("\n AvM thread created");
@@ -460,7 +426,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nSRMSV:SRMND:ON");
       if (srmnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_SRMND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("SRMND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
@@ -472,7 +439,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 #if (NCS_BAM == 1)
       if( ncs_bam_dl_func(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_BAM_DL_FUNC_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("BAM DL function failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -496,7 +464,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nDTSV:DTS:ON");
       if (dts_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_DTS_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("DTS lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 /*      
@@ -563,7 +532,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nMAS:ON");       
       if (maslib_request(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_MAS_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("MAS lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
    }
@@ -576,7 +546,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nCLI:ON");
       if (cli_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_CLI_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("CLI lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
    }
@@ -597,7 +568,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
        m_NCS_DBG_PRINTF("\nPSS:ON");
        if (ncspss_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
        {
-          m_NCS_NID_NOTIFY(NID_NCS_PSS_LIB_REQ_FAILED);
+          m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+          m_NCS_CONS_PRINTF("PSS lib request failed\n");
           return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
        }
 
@@ -626,8 +598,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nEDSV:EDS:ON");
       if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_EDS_LIB_REQ_FAILED);
-         m_NCS_CONS_PRINTF("\nEDSV:EDS lib create failed");
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("EDS lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
       else
@@ -651,9 +623,9 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
                                               m_NCS_OS_DLIB_ATTR); 
       if (lib_subagt_hdl == NULL)
       {
-          m_NCS_NID_NOTIFY(NID_NCS_SUBAGT_LD_LIB_FAILED);
+          m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
           m_NCS_CONS_PRINTF("dlopen() failed with error %s\n", dlerror());
-          m_NCS_CONS_PRINTF("SubAgtCreate(): Unable to load the library...\n"); 
+          m_NCS_CONS_PRINTF("SUBAGT load lib failed...\n"); 
           return NCSCC_RC_FAILURE;
       }
      
@@ -668,7 +640,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
                                         "ncs_snmpsubagt_lib_req");
       if (se_api_ptr == NULL)
       {
-          m_NCS_NID_NOTIFY(NID_NCS_SUBAGT_DL_SYM_FAILED);
+          m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
           m_NCS_CONS_PRINTF("dlsym() failed with error %s\n", dlerror());
           m_NCS_CONS_PRINTF("SubAgtCreate(): Did not find ncs_snmpsubagt_lib_req()...\n");
           return NCSCC_RC_FAILURE;
@@ -678,7 +650,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       status = (*se_api_ptr)(&subagt_req);
       if (status != NCSCC_RC_SUCCESS)
       {
-          m_NCS_NID_NOTIFY(NID_NCS_SUBAGT_LIB_CRT_FAILED);
+          m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
           m_NCS_CONS_PRINTF("SubAgtCreate(): Unable to Create the library...\n");
           return NCSCC_RC_FAILURE;
       }
@@ -692,7 +664,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
       if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_CPD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("CPD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -701,7 +674,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
       if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_CPND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("CPND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -717,7 +691,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nMQSV:MQD:ON");
       if(mqd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_MQD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("MQD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
@@ -727,7 +702,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");      
       if(mqnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_MQND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("MQND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
@@ -740,7 +716,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nGLSV:GLD:ON");
       if (gld_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_GLD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("GLD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif     
@@ -749,7 +726,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nGLSV:GLND:ON");
       if (glnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_GLND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("GLND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -762,7 +740,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
       if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_CPD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("CPD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif     
@@ -771,7 +750,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
       if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_CPND_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("CPND lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
       }
 #endif
@@ -783,7 +763,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nVDS:ON");       
       if (vds_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_VDS_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("VDS lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
    }
@@ -796,7 +777,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nIFSV:IFD:ON");
       if (ifd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_IFD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("IFD lib request failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
 #endif
@@ -809,7 +791,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          drv_svc_req.req_type = NCS_IFSV_DRV_INIT_REQ;
          if (ncs_ifsv_drv_svc_req(&drv_svc_req) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_NID_NOTIFY(NID_NCS_IFSV_DRV_SVC_REQ_FAILED);
+            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+            m_NCS_CONS_PRINTF("IFSV DRV svc request failed\n");
             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          }
       }
@@ -819,7 +802,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          m_NCS_DBG_PRINTF("\nIFSV:IFND:ON");
          if (ifnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_NID_NOTIFY(NID_NCS_IFND_LIB_REQ_FAILED);
+            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+            m_NCS_CONS_PRINTF("IFND lib request failed\n");
             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          }
       }
@@ -827,7 +811,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       /*** Init IFA ***/
       if (ncs_ifa_startup(argc, argv) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_IFA_STARTUP_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+         m_NCS_CONS_PRINTF("IFA start-up has been failed\n");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
       }
    }
@@ -841,7 +826,8 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          drv_svc_req.req_type        = NCS_IFSV_DRV_INIT_REQ;
          if (ncs_ifsv_drv_svc_req(&drv_svc_req) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_NID_NOTIFY(NID_NCS_IFSV_DRV_SVC_REQ_FAILED);
+            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+            m_NCS_CONS_PRINTF("IFSV DRV svc request failed\n");
             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          }
       }
@@ -855,7 +841,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       m_NCS_DBG_PRINTF("\nHISV:ON");
       if (ncs_hisv_hcd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_NID_NOTIFY(NID_NCS_HISV_HCD_LIB_REQ_FAILED);
+         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
          m_NCS_CONS_PRINTF("\nHISV:HCD lib create failed");
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
@@ -1341,29 +1327,24 @@ mainsnmpset_help_print(void)
  
   RETURNS     :  Nothing
 ***************************************************************************/
-static void ncs_get_nid_svc_id(int argc, char *argv[], uns16 *o_nid_svc_id)
+static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name)
 {
    char  *p_field = NULL;
-   uns32 nid_svc_id = 0;
+   char nid_svc_name [NID_MAXSNAME];
 
-   p_field = ncs_util_search_argv_list(argc, argv, "NID_SVC_ID=");
+   p_field = ncs_util_search_argv_list(argc, argv, "NID_SVC_NAME=");
    if (p_field == NULL)
    {
-/* IR00084647 Any service started by NID should add its compilation 
-                                              flag in below condition */
-#if(NCS_PSR ==1 | NCS_AVD==1 | NCS_DTS ==1 | NCS_EDS == 1 | NCS_MAS == 1)
-      m_NCS_CONS_PRINTF("\nERROR:Problem in NID_SVC_ID argument\n");
-#endif  
       return;
    }
 
-   if (sscanf(p_field + strlen("NID_SVC_ID="), "%d", &nid_svc_id) != 1)
+   if (sscanf(p_field + strlen("NID_SVC_NAME="), "%s", nid_svc_name) != 1)
    {
-      m_NCS_CONS_PRINTF("\nERROR:Problem in NID_SVC_ID argument\n");
+      m_NCS_CONS_PRINTF("\nERROR:Problem in NID_SVC_NAME argument\n");
       return;
    }
 
-   *o_nid_svc_id = (uns16)nid_svc_id;
+   m_NCS_STRCPY(o_nid_svc_name, nid_svc_name);
   
    return;
 }
@@ -1378,7 +1359,7 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
 
    /* If the service is spawned by NID, then get the respective
       NID specific service ID */
-   ncs_get_nid_svc_id(argc, argv, &gl_nid_svc_id);
+   ncs_get_nid_svc_name(argc, argv, gl_nid_svc_name);
 
    if (argc == 2)
    {   
@@ -1389,7 +1370,8 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
          fp = fopen(p_field + strlen("CONFFILE="),"r");
          if (fp == NULL)
          {
-            m_NCS_NID_NOTIFY(NID_NCS_WRONG_SVC_FILE_NAME);
+            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+            m_NCS_CONS_PRINTF("Wrong service file name svc_nmae:%s \n",gl_nid_svc_name);
          }
       }
    } 
@@ -1415,8 +1397,8 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
    ** For SCAP/PCAP process the notification will be done
    ** after all the NCS processes are up 
    */
-   if( (gl_nid_svc_id != NID_SCAP ) && 
-       (gl_nid_svc_id != NID_PCAP ) ) 
+   if(( m_NCS_STRCMP(gl_nid_svc_name , "SCAP" ) != 0)&& 
+       ( m_NCS_STRCMP(gl_nid_svc_name , "PCAP" ) != 0) ) 
    {
       m_NCS_NID_NOTIFY(NCSCC_RC_SUCCESS);
    }

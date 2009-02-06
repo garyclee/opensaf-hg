@@ -118,7 +118,7 @@ uns32 rde_initialize (void)
         m_NCS_OS_SEM (&rde_cb-> semaphore, NCS_OS_SEM_RELEASE);
         sprintf(log,"rde_rda_open  fail");
         m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_ERROR, log);
-        return NID_RDE_RDA_OPEN_FAILED;
+        return NCSCC_RC_FAILURE;
     }
 
 /* Initialise the rde server */
@@ -182,7 +182,7 @@ uns32 rde_initialize (void)
       sprintf(log,"rde_amf_open fail");
       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_ERROR, log);
 
-       return NID_RDE_AMF_OPEN_FAILED;
+      return NCSCC_RC_FAILURE;
 
    }
 
