@@ -699,5 +699,5 @@ void ncs_reboot(const char *reason)
    fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
    syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
 
-   system(BINDIR"/opensaf_reboot");
+   system(PKGLIBDIR "/opensaf_reboot");
 }

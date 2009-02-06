@@ -2794,7 +2794,12 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
       
       /* child part */
       if(execvp(exec_mod,argv) == -1)
-          exit(128);
+      {
+         char buf[256];
+         sprintf(buf, "EXECVP fails for %s ", exec_mod);
+         perror(buf);
+         exit(128);
+      }
    }
    else if (status == -1)
    {
@@ -2887,9 +2892,9 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
       /* child part */
       if(execvp(req->i_script, req->i_argv) == -1)
       {
-         /* Call error call-back */
-         /* printf("\n EXECVP FAILS...........\n");*/
-         perror("EXECVP fails. May be a script ISSUE");
+         char buf[256];
+         sprintf(buf, "EXECVP fails for %s ", req->i_script);
+         perror(buf);
          exit(128);
       }
    }
