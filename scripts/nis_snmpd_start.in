@@ -23,13 +23,8 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 # if role is active then call snmpd start script
 # how to get the comp name ..?
 
-SERVICE_CODE=SNMPD
+NID_SVC_NAME=SNMPD
 
-NID_SNMPD_SUCCESS=1
-NID_SNMPD_CREATE_FAILED=2
-NID_SNMPD_VIP_CFG_FILE_NOT_FOUND=3
-NID_SNMPD_VIP_ADDR_NOT_FOUND=4
-NID_SNMPD_VIP_INTF_NOT_FOUND=5
 
 ROLE_NAME="$1"
 echo  "Inside nis snmpd script"
@@ -83,7 +78,7 @@ case "$ROLE_NAME" in
                echo "GOT THE CONFIG FILE "
         else
                echo "DIDN'T GET THE CONFIG FILE"
-               echo "$NID_MAGIC:$SERVICE_CODE:$NID_SNMPD_VIP_CFG_FILE_NOT_FOUND" > "$NIDFIFO"
+               echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
                exit -1
         fi
 
@@ -100,11 +95,13 @@ case "$ROLE_NAME" in
         echo "SNMP_IP is : $SNMP_IP"
         echo "SNMP_INTERFACE is: $SNMP_INTF"
         if [ "$SNMP_IP" = "" ]; then
-           echo "$NID_MAGIC:$SERVICE_CODE:$NID_SNMPD_VIP_ADDR_NOT_FOUND" > $NIDFIFO
+	   echo "DIDN'T FOUND THE SNMPD VIP ADDR"
+           echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
            exit -1
         fi
         if [ "$SNMP_INTF" = "" ]; then
-           echo "$NID_MAGIC:$SERVICE_CODE:$NID_SNMPD_VIP_INTF_NOT_FOUND" > $NIDFIFO
+	   echo "DIDN'T FOUND THE SNMPD VIP INTF"
+           echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
            exit -1
         fi
 

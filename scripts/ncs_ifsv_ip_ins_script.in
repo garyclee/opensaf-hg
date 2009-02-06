@@ -25,7 +25,7 @@ DAEMON=ncs_ifsv_ip_installer
 DESC="Interface Learner"
 PIDLIST=`ps ax | grep $DAEMON | grep -v 'grep' | cut -d" " -f2`
 
-SERVICE_CODE=IFSVDD
+NID_SVC_NAME=IFSVDD
 
 stop()
 {
@@ -57,9 +57,9 @@ case "$1" in
 	     else
             start
 	    if [ $? != 0 ]; then
-               echo "$NID_MAGIC:$SERVICE_CODE:$NID_IFSVDD_CREATE_FAILED" > $NIDFIFO
+               echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
             else
-               echo "$NID_MAGIC:$SERVICE_CODE:$NID_IFSVDD_SUCCESS" > $NIDFIFO
+               echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
 	    fi
         fi;
         ;;

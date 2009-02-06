@@ -19,5 +19,4 @@ MAINTAINERCLEANFILES = Makefile.in
 SUBDIRS = src
 
 noinst_HEADERS = \
-	inc/nid_ipmc_cmd.h \
 	inc/node_init.h

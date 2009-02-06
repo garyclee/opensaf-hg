@@ -38,14 +38,8 @@ fi
 
 echo "Parms : $0 $1 $2 $ROLE_NAME $4 $5 $6 $7"
 echo "Finished"
-SERV_CODE="DRBD"
+NID_SVC_NAME=DRBD
 
-DRBD_OK=1
-DRBD_LOD_ERR=2
-DRBDADM_NOT_FND=3
-DRBD_MNT_ERR=4
-DRBD_FSCK_ERR=$DRBD_LOD_ERR    ## this error code not defined in NID code, so using existing code
-DRBD_ROLE_ERR=$DRBD_LOD_ERR    ## this error code not defined in NID code, so using existing code
 
 USAGE="Usage: drbdctrl {start|stop} {<res name>|all} {ACTIVE|STDBY}"
 
@@ -127,8 +121,8 @@ case "$1" in
 				#### Check whether this was an half-baked Standby previously
 				ST=$( cat $DRBD_SYNC_FILE )
 				if [ "$ST" = "Inconsistent" ]; then
-					retVal=$DRBD_ROLE_ERR
-					echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+					retVal=$DAEMON_START_FAILED
+					echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 					echo "`date` DRBD $RES: inconsistent partition found! can not become ACTIVE!!"
 					exit 1
 				fi
@@ -138,20 +132,20 @@ case "$1" in
 
 				case "$retVal" in
 					20)
-						retVal=$DRBD_LOD_ERR
-						echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 						echo "`date` DRBD $RES: load error"
 						exit 1
 						;;
 					3)
-						retVal=$DRBD_LOD_ERR
-						echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 						echo "`date` DRBD $RES: load error"
 						exit 1
 						;;
 					5)
-						retVal=$DRBDADM_NOT_FND
-						echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+						retVal=$DAEMON_NOT_FND
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 						echo "`date` DRBD $RES: drbdadm not found"
 						exit 1
 						;;
@@ -163,8 +157,8 @@ case "$1" in
 
 				case "$retVal" in
 					20)
-						retVal=$DRBD_LOD_ERR
-						echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 						echo "`date` DRBD $RES: error becoming ACTIVE"
 						$DRBD stop
 						exit 1
@@ -187,8 +181,8 @@ case "$1" in
                                                 e2fsck -y $MOT_REPL_PRTN
                                                 ;;
                                         *)
-                                                retVal=$DRBD_FSCK_ERR
-                                                # echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+                                                retVal=$DAEMON_START_FAILED
+                                                # echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
                                                 echo "`date` DRBD $RES: partition is corrupt, correcting it with -y, best of luck"
                                                 e2fsck -y $MOT_REPL_PRTN
                                                 # $DRBD stop
@@ -200,21 +194,21 @@ case "$1" in
 				retVal=$?
 
 				if [ $retVal -ne 0 ]; then
-					retVal=$DRBD_MNT_ERR
-					echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+					retVal=$DAEMON_START_FAILED
+					echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 					echo "`date` DRBD $RES: mount error"
 					$DRBD stop
 					exit 1
 				fi
 
-				retVal=$DRBD_OK
-				echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+				retVal=$DAEMON_STARTED
+				echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 				echo "`date` DRBD $RES: started as ACTIVE. Ok!"
 				;;
 
 			STDBY)
-				retVal=$DRBD_OK
-				echo "$NID_MAGIC:$SERV_CODE:$retVal" > "$NIDFIFO"
+				retVal=$DAEMON_STARTED
+				echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
 				echo "`date` DRBD $RES: STDBY"
 				;;
 

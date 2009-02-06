@@ -1835,12 +1835,14 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
    if(mainget_slot_id(&sys_params->slot_id) != NCSCC_RC_SUCCESS)
    {
       /* m_NCS_NID_NOTIFY(NID_NCS_GET_SLOT_ID_FAILED); */
+       m_NCS_CONS_PRINTF("Not able to get the SLOT ID\n");
       return(NCSCC_RC_FAILURE);
    }
 
    if(mainget_shelf_id(&sys_params->shelf_id) != NCSCC_RC_SUCCESS)
    {
       /* m_NCS_NID_NOTIFY(NID_NCS_GET_SHELF_ID_FAILED); */
+       m_NCS_CONS_PRINTF("Not able to get the SHELF ID\n");
       return(NCSCC_RC_FAILURE);
    }
 #endif
@@ -1848,6 +1850,7 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
    if(mainget_node_id(&sys_params->node_id)!= NCSCC_RC_SUCCESS)
    {
       /* m_NCS_NID_NOTIFY(NID_NCS_GET_NODE_ID_FAILED); */
+       m_NCS_CONS_PRINTF("Not able to get the NODE ID\n");
       return(NCSCC_RC_FAILURE);
    }
 

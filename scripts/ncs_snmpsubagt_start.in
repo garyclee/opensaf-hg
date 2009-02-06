@@ -27,7 +27,7 @@ XTERM=""
 DAEMON=ncs_snmp_subagt
 PIDFILE=ncs_snmp_subagt.pid
 COMPNAMEFILE="$LOCALSTATEDIR/ncs_subagent_comp_name"
-SERVICE_CODE=SUBAGT
+NID_SVC_NAME=SUBAGT
 
 echo "Executing SUBAGTv init-script..."
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
@@ -40,7 +40,7 @@ start()
     #Check if daemon is installed.
     if [ ! -x "$BINPATH/$DAEMON" ]; then
        echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
-       echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_NOT_FND" > "$NIDFIFO"
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
        exit 1
     fi
     killall ncs_snmp_subagt
@@ -50,7 +50,7 @@ start()
  
     if [ $? -ne 0 ] ; then
 	echo -n -e "Failed to start $DAEMON.    \n"
-	echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_START_FAILED" > "$NIDFIFO"
+	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
 	exit 0
      else
          echo "Started $DESC: $BINPATH/$DAEMON";

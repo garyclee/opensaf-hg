@@ -23,7 +23,7 @@
 *       Module Name:    nodeinit (Node Initialization Daemon)           *
 *                                                                       *
 *       Purpose:        Nodeinitd reads following info from             *
-*                       OSAF_SYSCONFDIR/nodeinit.conf file:           *
+*                       OSAF_SYSCONFDIR/nodeinit.conf file:             *
 *                       * Application file name,with absolute path name.*
 *                       * Application Name.                             *
 *                       * Application Type.                             *
@@ -53,7 +53,6 @@
 
 #include "node_init.h"
 #include "rda_papi.h"  /* for RDF interfacing */
-#include "nid_ipmc_cmd.h"
 
 
 #define  SETSIG(sa,sig,fun,flags)\
@@ -63,12 +62,6 @@
             m_NCS_POSIX_SIGEMPTYSET(&sa.sa_mask);\
             m_NCS_POSIX_SIGACTION(sig,&sa,NULL);\
         }while(0)
-
-
-extern NID_BOARD_IPMC_TYPE  nid_board_type;
-extern NID_BOARD_IPMC_INTF_CONFIG nid_ipmc_board[NID_MAX_BOARDS];
-extern uns8 *nid_board_types[NID_MAX_BOARDS]; 
-
 
 /***********************************
 *     NID FIFO file descriptor      *
@@ -107,42 +100,38 @@ uns32 dead_child = 0;
 ********************************************/
 uns32 role = 0;
 uns8  rolebuff[20];
-uns8  svc_id[20];
+uns8  svc_name[NID_MAXSNAME];
 
 
 
 static uns32           spawn_wait(NID_SPAWN_INFO *servicie, uns8 *strbuff);
-int32                  fork_process(NID_SPAWN_INFO * service, uns8 * app, char * args[],uns8 *, uns8 * strbuff);
-static int32           fork_script(NID_SPAWN_INFO * service, uns8 * app, char * args[],uns8 *, uns8 * strbuff);
-static int32           fork_daemon(NID_SPAWN_INFO * service, uns8 * app, char * args[],uns8 *, uns8 * strbuff);
+int32                  fork_process(NID_SPAWN_INFO * service, uns8 * app, 
+                                    char * args[],uns8 *, uns8 * strbuff);
+static int32           fork_script(NID_SPAWN_INFO * service, uns8 * app, 
+                                   char * args[],uns8 *, uns8 * strbuff);
+static int32           fork_daemon(NID_SPAWN_INFO * service, uns8 * app, 
+                                   char * args[],uns8 *, uns8 * strbuff);
 static void            collect_param(uns8 *, uns8 *, char* args[]);
 void                   logme(uns32, uns8 *, ...);
 static uns8 *          gettoken(uns8 **, uns32 );
 static void            add2spawnlist(NID_SPAWN_INFO * );
-static NID_SVC_CODE    get_servcode(uns8 * );
 static NID_APP_TYPE    get_apptype(uns8 * );
 static uns32           get_spawn_info(uns8 *,NID_SPAWN_INFO * ,uns8 *);
 static uns32           parse_nodeinitconf(uns8 *strbuf);
 static uns32           check_process(NID_SPAWN_INFO * service);
 static void            cleanup(NID_SPAWN_INFO * service);
 static uns32           recovery_action(NID_SPAWN_INFO *,uns8 *);
-static void            insert_role_svcid(NID_SPAWN_INFO *);
+static void            insert_role_svc_name(NID_SPAWN_INFO *);
 static uns32           spawn_services(uns8 * );
 static void            sigchld_handlr(int );
 static void            daemonize_me(void);
 static void            cons_init(void);
 static uns32           cons_open(uns32);
-#if 0
-static void            print_nodeinitconf(void);
-#endif
 static void            notify_bis(uns8 *message);
 static uns8 *          strtolower(uns8 * );
 static uns32           getrole(void);
 static uns32           get_role_from_rdf(void);
 static void            nid_sleep(uns32);
-       uns32           nid_get_board_type(uns8 *srcstr,uns8 *strbuf);
-static void            sys_fw_prog(int32, NID_SVC_CODE,enum fw_prog_notify);
-static uns32           setled_Inservice(void);
 
 
 /******************************************************************
@@ -158,103 +147,6 @@ uns8 * nid_recerr[NID_MAXREC][4]={ {"Trying To RESPAWN","Could Not RESPAWN",\
                                    {"Trying To RESET","Faild to RESET",\
                                     "suceeded To RESET","FAILED AFTER RESTART"}
                                  };
-/* vivek_nid */
-FW_PROG_SNSR  nid_serv_snsr_map[NID_MAXSERV][NID_MAX_NOTIFY]={ \
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: HPM Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_HPM_INIT_FAIL,\
-                  "HAPS: HPM Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: IPMC Upgrade Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_IPMC_UPGRADE_FAIL,\
-                  "HAPS: IPMC Upgrade Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_SUCCESS,\
-                  "HAPS: BIOS Upgrade Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_FAIL,\
-                  "HAPS: BIOS Upgrade Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: HLFM Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_HLFM_INIT_FAIL,\
-                  "HAPS: HLFM Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: RDF Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_RDF_INIT_FAIL,\
-                  "NCS: RDF Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: OpenHPI Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_OPENHPI_INIT_FAIL,\
-                  "HAPS: OpenHPI Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: XND Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_XND_INIT_FAIL,\
-                  "HAPS: XND Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: LHCPD Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_LHCD_INIT_FAIL,\
-                  "HAPS: LHCD Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: LHCR Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_LHCR_INIT_FAIL,\
-                  "HAPS: LHCR Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS: Networking Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_NWNG_INIT_FAIL,\
-                  "HAPS: Networking Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_HAPS_INIT_SUCCESS,\
-                  "HAPS Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_DRBD_INIT_FAIL,\
-                  "HAPS: DRBD Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: TIPC Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_TIPC_INIT_FAIL,\
-                  "NCS: TIPC Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: IFSVDeviceDiscovery Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_IFSVDD_INIT_FAIL,\
-                  "NCS: IFSVDeviceDiscovery Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: SNMPD Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_SNMPD_INIT_FAIL,\
-                  "NCS: SNMPD Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS initialization Successful"},\
-                 {NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_FAIL,\
-                  "NCS Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: DLSV Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_DLSV_INIT_FAIL,\
-                  "NCS: DLSV Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: MASV Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_MASV_INIT_FAIL,\
-                  "NCS: MASV Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: PSSV Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_PSSV_INIT_FAIL,\
-                  "NCS: PSSV Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: GLND Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_GLND_INIT_FAIL,\
-                  "NCS: GLND Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: EDSV Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_EDSV_INIT_FAIL,\
-                  "NCS: EDSV Initialization Failed"}},\
-                {{NID_NOTIFY_DISABLE,MOTO_FIRMWARE_NCS_INIT_SUCCESS,\
-                  "NCS: SUBAGT Initialization Success"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_SUBAGT_INIT_FAIL,\
-                  "NCS: SUBAGT Initialization Failed"}},\
-                {{NID_NOTIFY_ENABLE,MOTO_FIRMWARE_SYSINIT_SUCCESS,\
-                  "Node Initialization Successful"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_NCS_INIT_FAIL,\
-                  "SCAP Initialization Failed"}},\
-                {{NID_NOTIFY_ENABLE,MOTO_FIRMWARE_SYSINIT_SUCCESS,\
-                  "Node initialization Successful"},\
-                 {NID_NOTIFY_ENABLE,MOTO_FIRMWARE_NCS_INIT_FAIL,\
-                  "PCAP Initialization Failed"}}\
-   };
-
-
 
 /****************************************************************************
  * Name          : nid_sleep                                                *
@@ -278,105 +170,6 @@ void nid_sleep(uns32 time_in_msec)
         if(errno == EINTR) continue;
 }
 
-
-/****************************************************************************
- * Name          : setled_Inservice                                         *
- *                                                                          *
- * Description   : Uses ipmi to set GREEN LED on                            *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uns32
-setled_Inservice(void)
-{
-   NID_BOARD_IPMC_INTF_CONFIG ipmc_inf_conf    = nid_ipmc_board[nid_board_type];
-   NID_OPEN_IPMC_DEV          open_ipmc_dev    = ipmc_inf_conf.nid_open_ipmc_dev;
-   NID_SEND_IPMC_CMD          send_ipmc_cmd    = ipmc_inf_conf.nid_send_ipmc_cmd;
-   NID_PROC_IPMC_RSP          process_ipmc_rsp = ipmc_inf_conf.nid_process_ipmc_resp;
-#if 0
-   NIDGETLED                  lc_get_red_led,lc_get_green_led;
-#endif
-   NIDSETLED                  lc_set_led; 
-   uns8                       strbuff[200];
-
-
-   if ( open_ipmc_dev(strbuff) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;      
-   /****************************************************
-   * Get LED status before setting inservice LED on    *
-   ****************************************************/
-#if 0
-   lc_get_red_led.fruid = 0x00;
-   lc_get_red_led.led   = LED1;
-   if ( send_ipmc_cmd(NID_IPMC_CMD_LED_GET, (NID_IPMC_EVT_INFO *)&lc_get_red_led) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-   if ( process_ipmc_rsp((NID_IPMC_EVT_INFO*)&lc_get_red_led) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-
-   lc_get_green_led.fruid = 0x00;
-   lc_get_green_led.led   = LED2;
-   if ( send_ipmc_cmd(NID_IPMC_CMD_LED_GET, (NID_IPMC_EVT_INFO *)&lc_get_green_led) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-   if ( process_ipmc_rsp((NID_IPMC_EVT_INFO*)&lc_get_green_led) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-
-   /****************************************************
-   * Switch-off RED led if its on                      *
-   ****************************************************/
-   if ( lc_get_red_led.overrideFunction == LED_ON )
-   {
-#endif
-     memset( &lc_set_led,0,sizeof(lc_set_led));
-     lc_set_led.fruid = 0x00;
-     lc_set_led.ledId   = LED1;
-     lc_set_led.ledFunction = LED_OFF;
-     lc_set_led.onDuration = 0x00;
-     lc_set_led.ledColor = RED;
-
-     if ( send_ipmc_cmd(NID_IPMC_CMD_LED_SET,(NID_IPMC_EVT_INFO *)&lc_set_led) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-     if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS )
-         open_ipmc_dev(strbuff);      
-#if 0
-   }
-
-   /****************************************************
-   * Switch-on GREEN led if its on                     *
-   ****************************************************/
-   if ( lc_get_green_led.overrideFunction == LED_OFF )
-   {
-#endif
-     memset( &lc_set_led,0,sizeof(lc_set_led));
-     lc_set_led.fruid = 0x00;
-     lc_set_led.ledId   = LED2;
-     lc_set_led.ledFunction = LED_ON;
-     lc_set_led.onDuration  = 0x00;
-
-
-     /*********************************************
-     * FIXME: Need to enable once AVM is enhanced *
-     * to set LED's on standby and active         *
-     * accordingly                                *
-     *********************************************/
-#if 0
-     if (role == SA_AMF_HA_ACTIVE) 
-     {
-        lc_set_led.ledFunction = LED_ON;
-        lc_set_led.onDuration  = 0x00; 
-     }
-     else
-     {
-       lc_set_led.ledFunction = 0x10;
-       lc_set_led.onDuration  = 0x64;
-     }
-#endif
-     lc_set_led.ledColor = GREEN;
-     if ( send_ipmc_cmd(NID_IPMC_CMD_LED_SET,(NID_IPMC_EVT_INFO *)&lc_set_led) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-     if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-#if 0
-   }
-#endif
-   return NCSCC_RC_SUCCESS;
-}
 
 /****************************************************************************
  * Name          : notify_bis                                               *
@@ -516,45 +309,6 @@ add2spawnlist(NID_SPAWN_INFO * childinfo)
 }
 
 /****************************************************************************
- * Name          : get_servcode                                             *
- *                                                                          *
- * Description   : Given a service name it returns corresponding service    *
- *                 code                                                     *
- *                                                                          *
- * Arguments     : p  - input parameter service name.                       *
- *                             spawn_list                                   *
- *                                                                          *
- * Return Values : service code/SERVERR                                     *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-NID_SVC_CODE
-get_servcode(uns8 * p)
-{
-   NID_SVC_CODE opt=NID_HPM;
-   uns8 * s2, *s1 = p;
-   if(p == NULL) return NID_SERVERR;
-
-   while(opt != NID_MAXSERV)
-   {
-      s1 = p;
-      s2 = nid_serv_stat_info[opt].nid_serv_name;
-
-      while(*s1++ == *s2++)
-
-      if(*s1 == '\0')
-      {
-        if(*s2 == '\0') return opt;
-        else return NID_SERVERR;
-      } else if(*s2 == '\0') return NID_SERVERR;
-
-      opt++;
-   }
-   return NID_SERVERR;
-}
-
-
-/****************************************************************************
  * Name          : get_apptype                                              *
  *                                                                          *
  * Description   : Given application type returns application internal code *
@@ -621,7 +375,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       q = gettoken(&p,':');
       if(m_NCS_STRLEN(q) > NID_MAXSFILE)
       {
-        sysf_sprintf(sbuf,": App file name length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXSFILE);
+        sysf_sprintf(sbuf,": App file name length exceeded max:%d in file"
+                     NID_PLAT_CONF,NID_MAXSFILE);
         break;
       }
       m_NCS_STRCPY(spawninfo->s_name,q);
@@ -645,17 +400,20 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
         break;
       }
       q = gettoken(&p,':');
+	  
+      if((q == NULL) || (*q == '\0') )
+      {
+	sysf_sprintf(sbuf,": Null/Empty string  not a valid service Name");
+        break;
+      }
       if(m_NCS_STRLEN(q) > NID_MAXSNAME)
       {
-        sysf_sprintf(sbuf,": App name length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXSNAME);
+        sysf_sprintf(sbuf,": App name length exceeded max:%d in file" 
+                     NID_PLAT_CONF,NID_MAXSNAME);
         break;
       }
-      spawninfo->servcode = get_servcode(q);
-      if(spawninfo->servcode < 0)
-      {
-        sysf_sprintf(sbuf,": Not an identified service,\"%s\"",q);
-        break;
-      }
+      
+      m_NCS_STRCPY(spawninfo->serv_name,q);
       if((p == NULL) || (*p == '\0'))
       {
         sysf_sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
@@ -673,7 +431,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       q = gettoken(&p,':');
       if(m_NCS_STRLEN(q) > NID_MAXAPPTYPE_LEN)
       {
-        sysf_sprintf(sbuf,": File type length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXAPPTYPE_LEN);
+        sysf_sprintf(sbuf,": File type length exceeded max:%d in file"
+                     NID_PLAT_CONF,NID_MAXAPPTYPE_LEN);
         break;
       }
       spawninfo->app_type = get_apptype(q);
@@ -687,9 +446,9 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
         if((spawninfo->app_type == NID_SCRIPT))
           sysf_sprintf(sbuf,": Missing cleanup script in file:" NID_PLAT_CONF);
         else
-           if((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN))
+          if((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN))
              sysf_sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
-             break;
+          break;
       }
 
       parse_state = NID_PLATCONF_CLNUP;
@@ -719,7 +478,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       q = gettoken(&p,':');
       if(m_NCS_STRLEN(q) > NID_MAXSFILE)
       {
-        sysf_sprintf(sbuf,": Cleanup app file name length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXSFILE);
+        sysf_sprintf(sbuf,": Cleanup app file name length exceeded max:%d in file" 
+                     NID_PLAT_CONF,NID_MAXSFILE);
         break;
       }
 
@@ -746,7 +506,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       q = gettoken(&p,':');
       if(m_NCS_STRLEN(q) > NID_MAX_TIMEOUT_LEN)
       {
-        sysf_sprintf(sbuf,": Timeout field length exceeded max:%d in file" NID_PLAT_CONF,NID_MAX_TIMEOUT_LEN);
+        sysf_sprintf(sbuf,": Timeout field length exceeded max:%d in file"
+                     NID_PLAT_CONF,NID_MAX_TIMEOUT_LEN);
         break;
       }
       spawninfo->time_out = atoi(q);
@@ -766,7 +527,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       {
          if(m_NCS_STRLEN(q) > NID_MAX_PRIO_LEN)
          {
-           sysf_sprintf(sbuf,": Priority field length exceeded max:%d in file"NID_PLAT_CONF,NID_MAX_PRIO_LEN);
+           sysf_sprintf(sbuf,": Priority field length exceeded max:%d in file"
+                        NID_PLAT_CONF,NID_MAX_PRIO_LEN);
            break;
          }
          spawninfo->priority = atoi(q);
@@ -787,7 +549,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       {
          if(m_NCS_STRLEN(q) > NID_MAX_RESP_LEN)
          {
-           sysf_sprintf(sbuf,": Respawn field length exceeded max:%d in file"NID_PLAT_CONF,NID_MAX_RESP_LEN);
+           sysf_sprintf(sbuf,": Respawn field length exceeded max:%d in file"
+                        NID_PLAT_CONF,NID_MAX_RESP_LEN);
            break;
          }
          if((*q < '0') || (*q > '9'))
@@ -806,9 +569,6 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       if(q == NULL)
       {
         spawninfo->recovery_matrix[NID_RESET].retry_count = 0;
-#if 0
-        spawninfo->recovery_matrix[NID_RESET].action = recovery_funcs[NID_RESET];
-#endif
         parse_state = NID_PLATCONF_SPARM;
         continue;
       }
@@ -816,7 +576,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       {
          if(m_NCS_STRLEN(q) > NID_MAX_REST_LEN)
          {
-           sysf_sprintf(sbuf,": Restart field length exceeded max:%d in file" NID_PLAT_CONF,NID_MAX_REST_LEN);
+           sysf_sprintf(sbuf,": Restart field length exceeded max:%d in file"
+                        NID_PLAT_CONF,NID_MAX_REST_LEN);
            break;
          }
          if((*q < '0') || (*q > '1'))
@@ -825,9 +586,6 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
           break;
          }
          spawninfo->recovery_matrix[NID_RESET].retry_count = atoi(q);
-#if 0
-         spawninfo->recovery_matrix[NID_RESET].action = recovery_funcs[NID_RESET];
-#endif
          parse_state = NID_PLATCONF_SPARM;
          continue;
       }
@@ -845,7 +603,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       {
          if(m_NCS_STRLEN(q) > NID_MAXPARMS)
          {
-           sysf_sprintf(sbuf,": App param length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXPARMS);
+           sysf_sprintf(sbuf,": App param length exceeded max:%d in file"
+                        NID_PLAT_CONF,NID_MAXPARMS);
            break;
          }
 
@@ -869,7 +628,8 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       {
          if(m_NCS_STRLEN(q) > NID_MAXPARMS)
          {
-         sysf_sprintf(sbuf,": App param length exceeded max:%d in file" NID_PLAT_CONF,NID_MAXPARMS);
+         sysf_sprintf(sbuf,": App param length exceeded max:%d in file" 
+                      NID_PLAT_CONF,NID_MAXPARMS);
          break;
          }
          m_NCS_STRNCPY(spawninfo->cleanup_parms,q,NID_MAXPARMS);
@@ -879,61 +639,10 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
       }
 
     case NID_PLATCONF_END:
-                          break;
+         break;
    }
 
    if(parse_state != NID_PLATCONF_END) return NCSCC_RC_FAILURE;
-   }
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/****************************************************************************
- * Name          : nid_get_board_type                                       *
- *                                                                          *
- * Description   : Parse to check if its an IPMC BOARD type entry           *
- *                 and extract the board type.                              *
- *                                                                          *
- * Arguments     : srcstr- string to parse                                  *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE                        *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uns32
-nid_get_board_type(uns8 *srcstr,uns8 *strbuf)
-{
-   uns8    *p;
-   uns32   length=strlen(NID_IPMC_BOARD_ENTRY),i; 
-   p  = srcstr;
-
-   if (!m_NCS_STRNCMP(p,NID_IPMC_BOARD_ENTRY,length))
-   { 
-      p += length;
-      if ( *p == ':' )
-      { 
-         p++;
-         for ( i=0; i<NID_MAX_BOARDS; i++)
-         {
-           /* Exclude the next-line char from comparision */
-           if (!m_NCS_STRNCMP(p,nid_board_types[i],(m_NCS_STRLEN(p)-1)))
-           {
-              nid_board_type = i; 
-              return NCSCC_RC_SUCCESS;
-           }
-         }
-         if ( i >= NID_MAX_BOARDS )
-         {
-           sysf_sprintf(strbuf,"No such board type found");
-           return NCSCC_RC_FAILURE;
-         }
-      }
-      else
-      {
-        sysf_sprintf(strbuf,"IPMC Board type, incorrect format");
-        return NCSCC_RC_FAILURE; 
-      }
    }
 
    return NCSCC_RC_SUCCESS;
@@ -960,7 +669,7 @@ parse_nodeinitconf(uns8 *strbuf)
    NID_SPAWN_INFO *childinfo;
    uns8 buff[256],sbuf[200],nid_plat_conf_file[255], *nid_plat_conf_path, *ch, *ch1;
    uns32 lineno=0,retry=0;
-   struct nid_resetinfo info={-1,-1};
+   struct nid_resetinfo info={{""},-1};
    NCS_OS_FILE plat_conf,plat_conf_close;
 
    /*******************************************
@@ -980,27 +689,6 @@ parse_nodeinitconf(uns8 *strbuf)
      return NCSCC_RC_FAILURE;
    }
 
-#if 0
-   /****************************************************
-   *       Need to replace the reset count from        *
-   *       /tmp/nidresetinfo incase if we were reset   *
-   *       while recovering.                           *
-   ****************************************************/
-   rst_file.info.open.i_file_name = NID_RST_FILE;
-   rst_file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
-   if( m_NCS_OS_FILE(&rst_file, NCS_OS_FILE_OPEN) == NCSCC_RC_SUCCESS)
-   {
-     NCS_OS_FILE rstfile,close_fd;
-     rstfile.info.read.i_file_handle = rst_file.info.open.o_file_handle;
-     rstfile.info.read.i_buf_size = sizeof(struct nid_resetinfo);
-     rstfile.info.read.i_buffer = (uns8 *)&info;
-     if(m_NCS_OS_FILE(&rstfile,NCS_OS_FILE_READ) == NCSCC_RC_SUCCESS)
-       close_fd.info.close.i_file_handle = rst_file.info.open.o_file_handle;
-     m_NCS_OS_FILE(&close_fd,NCS_OS_FILE_CLOSE);
-   }
-
-   if ( !info.count ) m_NCS_POSIX_UNLINK(NID_RST_FILE);
-#endif
 
    while(m_NCS_OS_FGETS(buff,sizeof(buff),(FILE *)plat_conf.info.open.o_file_handle))
    {
@@ -1038,17 +726,6 @@ parse_nodeinitconf(uns8 *strbuf)
            }
            nid_sleep(1000);
        }
-
-       /* Check if this is a board type entry? */
-       if ( nid_board_type == NID_MAX_BOARDS )
-       {
-          if ( nid_get_board_type(ch,sbuf) != NCSCC_RC_SUCCESS)
-          {
-             sysf_sprintf(strbuf,"%s, At: %d\n",sbuf,lineno);
-             return NCSCC_RC_FAILURE;
-          }
-          if ( nid_board_type != NID_MAX_BOARDS ) continue;
-       }
        /****************************************************
         *       Clear the new child info struct             *
         ****************************************************/
@@ -1065,7 +742,7 @@ parse_nodeinitconf(uns8 *strbuf)
        }
 
 
-       if( childinfo->servcode == info.faild_serv_code)
+       if( m_NCS_STRCMP (childinfo->serv_name , info.faild_serv_name)    == 0)
          childinfo->recovery_matrix[NID_RESET].retry_count = info.count;
 
        /****************************************************
@@ -1085,15 +762,10 @@ parse_nodeinitconf(uns8 *strbuf)
    }
 
    /* Lets get the log files path */
-   if ( (nid_log_path = getenv("NID_NCS_LOG_PATH")) == NULL )
+   if ((nid_log_path = getenv("NID_NCS_LOG_PATH")) == NULL)
    {                                                                                   
       logme(NID_LOG2FILE,"No NID_NCS_LOG_PATH env set. Default:%s",NID_NCSLOGPATH);
       nid_log_path = NID_NCSLOGPATH;
-   }
-   if ( nid_board_type == NID_MAX_BOARDS )
-   {
-     logme(NID_LOG2FILE_CONS,"IPMC_BOARD Type missing in "NID_PLAT_CONF"\n");
-     return NCSCC_RC_FAILURE;
    }
 
    return NCSCC_RC_SUCCESS;
@@ -1187,43 +859,6 @@ cons_open(uns32 mode)
 }
 
 
-
-
-
-/****************************************************************************
- * Name          : print_nodeinitconf                                       *
- *                                                                          *
- * Description   : Prints the contents of global spawn list.                *
- *                                                                          *
- * Arguments     : None.                                                    *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-#if 0
-void
-print_nodeinitconf(void)
-{
-   NID_SPAWN_INFO *ch;
-   NID_CHILD_LIST sp_list = spawn_list;
-   while(sp_list.head != NULL)
-   {
-       ch = sp_list.head;
-       printf("\t Aplication Name: %s\n    \
-               \t Timeout:         %d\n    \
-               \t Respawn Count:   %d\n    \
-               \t Restart Count:   %d\n    \
-               \t App Parameters:  %s\n"    \
-              ,ch->s_name,ch->time_out,ch->recovery_matrix[NID_RESPAWN].retry_count\
-              ,ch->recovery_matrix[NID_RESET].retry_count,ch->s_parameters);
-       sp_list.head = sp_list.head->next;
-   }
-}
-#endif
-
-
-
 /****************************************************************************
  * Name          : fork_daemon                                              *
  *                                                                          *
@@ -1238,14 +873,14 @@ print_nodeinitconf(void)
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_filename,uns8 * strbuff) /* DEL */
+fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],
+            uns8 *nid_log_filename,uns8 * strbuff) 
 {
 
    int32 pid = -1;
    uns32 f;
    int tmp_pid = -1;
    int32 prio_stat = -1;
-   NID_CLOSE_IPMC_DEV close_ipmc_intf = nid_ipmc_board[nid_board_type].nid_close_ipmc_dev;
    sigset_t nmask,omask;
    struct sigaction sa;
    int filedes[2];
@@ -1260,19 +895,6 @@ fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
    m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
 
-   /******************************************************
-   *  Need to run with the highest priority among spawned *
-   *  else we may not get chance to try recovery before   *
-   *  BMC watchdog expires.                               *
-   *******************************************************/
-   if (service)
-   {
-     if ( nid_current_prio > service->priority )
-     {
-       nid_current_prio = service->priority -1;
-       setpriority(PRIO_PROCESS,0,nid_current_prio);
-     }
-   }
 
    m_NCS_POSIX_PIPE(filedes);
 
@@ -1304,11 +926,10 @@ fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
      setsid();
 
      m_NCS_POSIX_CLOSE(0);m_NCS_POSIX_CLOSE(1);m_NCS_POSIX_CLOSE(2);
-     close_ipmc_intf();
 
      prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
      if(prio_stat < 0)
-         logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
+         logme(NID_LOG2FILE,"Failed setting priority for %s",service->serv_name);
 
      if ( nid_log_filename )
      {
@@ -1380,13 +1001,13 @@ fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_filename,uns8 * strbuff)
+fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],
+            uns8 *nid_log_filename,uns8 * strbuff)
 {
 
    int32 pid= -1;
    int32 f;
    int32 prio_stat = -1;
-   NID_CLOSE_IPMC_DEV close_ipmc_intf = nid_ipmc_board[nid_board_type].nid_close_ipmc_dev;
    sigset_t nmask,omask;
    struct sigaction sa;
 
@@ -1396,20 +1017,6 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
    m_NCS_POSIX_SIGEMPTYSET(&nmask);
    m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
-
-   /******************************************************
-   *  Need to run with the highest priority among spawned *
-   *  else we may not get chance to try recovery before   *
-   *  BMC watchdog expires.                               *
-   *******************************************************/
-   if (service)
-   {
-     if ( nid_current_prio > service->priority )
-     {
-       nid_current_prio = service->priority -1;
-       setpriority(PRIO_PROCESS,0,nid_current_prio);
-     }
-   }
 
    if ((pid = m_NCS_POSIX_FORK()) == 0)
    {
@@ -1422,11 +1029,10 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
       m_NCS_POSIX_CLOSE(0);
       m_NCS_POSIX_CLOSE(1);
       m_NCS_POSIX_CLOSE(2);
-      close_ipmc_intf();
  
       prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
       if(prio_stat < 0)
-          logme(NID_LOG2FILE,"Failed setting priority for %s",nid_serv_stat_info[service->servcode].nid_serv_name);
+          logme(NID_LOG2FILE,"Failed setting priority for %s",service->serv_name);
 
      if ( nid_log_filename )
      {
@@ -1470,12 +1076,12 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fil
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_filename,uns8 * strbuff)/* DEL */
+fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],
+             uns8 *nid_log_filename,uns8 * strbuff)/* DEL */
 {
    int32 pid = -1;
    int32 f;
    int32 prio_stat = -1;
-   NID_CLOSE_IPMC_DEV close_ipmc_intf = nid_ipmc_board[nid_board_type].nid_close_ipmc_dev;
    sigset_t nmask,omask;
    struct sigaction sa;
 
@@ -1485,21 +1091,6 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fi
    m_NCS_POSIX_SIGEMPTYSET(&nmask);
    m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
-
-   /******************************************************
-   *  Need to run with the highest priority among spawned *
-   *  else we may not get chance to try recovery before   *
-   *  BMC watchdog expires.                               *
-   *******************************************************/   
-   if (service)
-   {
-     if ( nid_current_prio > service->priority )
-     {
-       nid_current_prio = service->priority -1;
-       setpriority(PRIO_PROCESS,0,nid_current_prio);
-     }
-   }
-    
    if ((pid = m_NCS_POSIX_FORK()) == 0)
    {
 
@@ -1509,7 +1100,6 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fi
       m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
 
       m_NCS_POSIX_CLOSE(0);m_NCS_POSIX_CLOSE(1);m_NCS_POSIX_CLOSE(2);
-      close_ipmc_intf();
       
      if ( nid_log_filename )
      {
@@ -1525,17 +1115,7 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],uns8 *nid_log_fi
      {
           prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
           if(prio_stat < 0)
-              logme(NID_LOG2FILE,"Failed setting priority for %s,nid_serv_stat_info[service->servcode].nid_serv_name");
-     }
-     else
-     {
-          /******************************************
-          * We need ipmicmd to be procssed quickly  *
-          * so we increase its priority by some     *
-          * fixed number                            *
-          ******************************************/
-          setpriority(PRIO_PROCESS,0,-6);
-          logme(NID_LOG2FILE,"Args: %s, %s, %s, %s, %s\n",args[0],args[1],args[2],args[3],args[4]);
+              logme(NID_LOG2FILE,"Failed setting priority for %s",service->serv_name);
      }
      /* Reset all the signals */
       for(f = 1; f < NSIG; f++) SETSIG(sa, f, SIG_DFL, SA_RESTART);
@@ -1631,136 +1211,6 @@ uns8 * strtolower(uns8 * p)
    return p;
 }
 
-/****************************************************************************
- * Name          : nid_reset_bmc_watchdog                                   *
- *                                                                          *
- * Description   : Stop a BMC watchdog                                    *
- *                                                                          *
- * Arguments     :                                                          *
- *                 strbuff - Buffer to return error message if any.         *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-static uns32
-nid_reset_bmc_watchdog(NID_SPAWN_INFO *service,uns8 *strbuf)
-{
-  NID_BOARD_IPMC_INTF_CONFIG ipmc_inf_conf    = nid_ipmc_board[nid_board_type];
-  NID_OPEN_IPMC_DEV          open_ipmc_dev    = ipmc_inf_conf.nid_open_ipmc_dev;
-  NID_SEND_IPMC_CMD          send_ipmc_cmd    = ipmc_inf_conf.nid_send_ipmc_cmd;
-  NID_PROC_IPMC_RSP          process_ipmc_rsp = ipmc_inf_conf.nid_process_ipmc_resp;
-
-  /**********************************************************
-  *  Dont start watchdog if not enabled in nodeinit.conf    *
-  **********************************************************/
-  if ( !service->recovery_matrix[NID_RESET].retry_count ) return NCSCC_RC_SUCCESS;
-
-  if ( open_ipmc_dev(strbuf) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  /* Set the BMC watchdog parameters */
-  if ( send_ipmc_cmd(NID_IPMC_CMD_WATCHDOG_RESET, NULL) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-
-  return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : nid_stop_bmc_watchdog                                   *
- *                                                                          *
- * Description   : Stop a BMC watchdog                                    *
- *                                                                          *
- * Arguments     :                                                          *
- *                 strbuff - Buffer to return error message if any.         *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-static uns32
-nid_stop_bmc_watchdog(NID_SPAWN_INFO *service,uns8 *strbuf)
-{
-  NID_BOARD_IPMC_INTF_CONFIG ipmc_inf_conf    = nid_ipmc_board[nid_board_type];
-  NID_OPEN_IPMC_DEV          open_ipmc_dev    = ipmc_inf_conf.nid_open_ipmc_dev;
-  NID_SEND_IPMC_CMD          send_ipmc_cmd    = ipmc_inf_conf.nid_send_ipmc_cmd;
-  NID_PROC_IPMC_RSP          process_ipmc_rsp = ipmc_inf_conf.nid_process_ipmc_resp;
-  NID_IPMC_EVT_INFO          lc_evt_info;
-
-  /**********************************************************
-  *  Dont start watchdog if not enabled in nodeinit.conf    *
-  **********************************************************/
-  if ( !service->recovery_matrix[NID_RESET].retry_count ) return NCSCC_RC_SUCCESS;
-
-  if ( open_ipmc_dev(strbuf) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  lc_evt_info.wdt_info.timer_use = NID_IPMC_WDT_STOP;
-  lc_evt_info.wdt_info.timer_actions = NID_IPMC_WDT_NO_ACTION;
-  lc_evt_info.wdt_info.pre_timeout_interval = 0x00;
-  lc_evt_info.wdt_info.timer_expiration_flags_clear = NID_IPMC_WDT_DONT_CLEAR_FLAGS;
-  lc_evt_info.wdt_info.initial_countdown_value_lsbyte = 0x00;
-  lc_evt_info.wdt_info.initial_countdown_value_msbyte = 0x00;
-
-  /* Set the BMC watchdog parameters */
-  if ( send_ipmc_cmd(NID_IPMC_CMD_WATCHDOG_SET, &lc_evt_info) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-
-  return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : nid_start_bmc_watchdog                                   *
- *                                                                          *
- * Description   : Starts a BMC watchdog                                    *
- *                                                                          *
- * Arguments     : service - service details for spawning.                  *
- *                 strbuff - Buffer to return error message if any.         *
- *                                                                          *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.                       *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-static uns32
-nid_start_bmc_watchdog(NID_SPAWN_INFO *service,uns8 *strbuff)
-{
-  uns16                      timeout          = 0;
-  NID_BOARD_IPMC_INTF_CONFIG ipmc_inf_conf    = nid_ipmc_board[nid_board_type];
-  NID_OPEN_IPMC_DEV          open_ipmc_dev    = ipmc_inf_conf.nid_open_ipmc_dev;
-  NID_SEND_IPMC_CMD          send_ipmc_dev    = ipmc_inf_conf.nid_send_ipmc_cmd;
-  NID_PROC_IPMC_RSP          process_ipmc_rsp = ipmc_inf_conf.nid_process_ipmc_resp;
-  NID_IPMC_EVT_INFO          lc_evt_info;
-
-  /**********************************************************
-  *  Dont start watchdog if not enabled in nodeinit.conf    *
-  **********************************************************/
-  if ( !service->recovery_matrix[NID_RESET].retry_count ) return NCSCC_RC_SUCCESS;
-
-  if ( open_ipmc_dev(strbuff) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  timeout = (service->time_out/10) + 300; /* is in units 10ms/unit convert to 100ms/unit*/  
-  if ( service->time_out % 10 ) timeout++; /* roundoff */
-
-  lc_evt_info.wdt_info.timer_use = NID_IPMC_WDT_DONT_STOP;
-  lc_evt_info.wdt_info.timer_actions = NID_IPMC_WDT_HARD_RESET;
-  lc_evt_info.wdt_info.pre_timeout_interval = 0x00;
-  lc_evt_info.wdt_info.timer_expiration_flags_clear = NID_IPMC_WDT_DONT_CLEAR_FLAGS;
-  lc_evt_info.wdt_info.initial_countdown_value_lsbyte = timeout & 0xFF;
-  lc_evt_info.wdt_info.initial_countdown_value_msbyte =( timeout >> 8 )& 0xFF;
-
-  /* Set the BMC watchdog parameters */
-  if ( send_ipmc_dev(NID_IPMC_CMD_WATCHDOG_SET, &lc_evt_info) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
-
-  if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-
-  /* Reset the whatchdog, to start it */
-  if ( send_ipmc_dev(NID_IPMC_CMD_WATCHDOG_RESET,NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-  
-  if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return NCSCC_RC_FAILURE;
-  
-  return NCSCC_RC_SUCCESS;    
-
-}
 
 
 /****************************************************************************
@@ -1787,7 +1237,6 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    NCS_OS_FILE fd1;
    struct timeval tv;
    NID_FIFO_MSG reqmsg;
-   NID_SVC_CODE temp_serv_code;
    uns8 *magicno,*serv,*stat,*p;
    uns8 buff1[100],magic_str[15];
    uns8 nid_log_filename[100];
@@ -1818,9 +1267,11 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
      {
        if ( errno != ETXTBSY )
        {
-          logme(NID_LOG2FILE_CONS,"Opening: %s Error: %s\n",service->s_name,strerror(errno));
+          logme(NID_LOG2FILE_CONS,"Opening: %s Error: %s\n",
+                service->s_name,strerror(errno));
           logme(NID_LOG2FILE_CONS,"Not spawning any services\n");
-          logme(NID_LOG2FILE_CONS,"Please rectify"NID_PLAT_CONF" and restart the system\n");
+          logme(NID_LOG2FILE_CONS,"Please rectify"NID_PLAT_CONF
+                " and restart the system\n");
           notify_bis("FAILED\n");
           _exit(1);
        }
@@ -1840,8 +1291,10 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    ******************************************************/
    if(nid_is_ipcopen() != NCSCC_RC_SUCCESS)
    {
-     if(nid_create_ipc(strbuff) != NCSCC_RC_SUCCESS)   return NCSCC_RC_FAILURE;
-     if(nid_open_ipc(&select_fd,strbuff) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
+     if(nid_create_ipc(strbuff) != NCSCC_RC_SUCCESS)
+       return NCSCC_RC_FAILURE;
+     if(nid_open_ipc(&select_fd,strbuff) != NCSCC_RC_SUCCESS) 
+       return NCSCC_RC_FAILURE;
    }
 
    /************************************************************
@@ -1850,8 +1303,8 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    ************************************************************/
    while(retry)
    {
-        logme(NID_LOG2CONS,"Starting %s service... ",nid_serv_stat_info[service->servcode].nid_serv_name);
-        sysf_sprintf(nid_log_filename,"%s/NID_%s.log",nid_log_path,nid_serv_stat_info[service->servcode].nid_serv_name);
+        logme(NID_LOG2CONS,"Starting %s service... ",service->serv_name);
+        sysf_sprintf(nid_log_filename,"%s/NID_%s.log",nid_log_path,service->serv_name);
         pid = (fork_funcs[service->app_type])(service,service->s_name,service->serv_args,nid_log_filename,strbuff);
 
         if(pid <= 0)
@@ -1867,7 +1320,8 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
 
    if(retry == 0)
    {
-      logme(NID_LOG2FILE_CONS,"Unable to bring up: %s Error:%s\n",service->s_name,strerror(errno));
+      logme(NID_LOG2FILE_CONS,"Unable to bring up: %s Error:%s\n",
+            service->s_name,strerror(errno));
       logme(NID_LOG2FILE_CONS,"Exiting! Dropping to shell for trouble-shooting\n");
       notify_bis("FAILED\n");
       _exit(1);
@@ -1901,7 +1355,8 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
         }
         if(n == 0)
         {
-          logme(NID_LOG2FILE_CONS,"Failed \n Timed-out for response from:%s\n",nid_serv_stat_info[service->servcode].nid_serv_name);
+          logme(NID_LOG2FILE_CONS,"Failed \n Timed-out for response from:%s\n",
+                service->serv_name);
           return NCSCC_RC_FAILURE;
         }
 
@@ -1932,7 +1387,7 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
      }
      if((serv = gettoken(&p,':')) == NULL)
      {
-       logme(NID_LOG2FILE,"Failed \nMissing service code!!!\n");
+       logme(NID_LOG2FILE,"Failed \nMissing service name!!!\n");
        return NCSCC_RC_FAILURE;
      }
      if((stat = p) == NULL)
@@ -1946,162 +1401,58 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
      if(m_NCS_STRCMP(magic_str,magicno) == 0) reqmsg.nid_magic_no = NID_MAGIC;
      else reqmsg.nid_magic_no = -1;
 
-     if(m_NCS_STRCMP(serv,nid_serv_stat_info[service->servcode].nid_serv_name) == 0)
-       reqmsg.nid_serv_code = service->servcode;
-     else reqmsg.nid_serv_code = get_servcode(serv);
-
+     if(m_NCS_STRCMP(serv,service->serv_name) != 0)
+     {
+         sysf_sprintf(strbuff,"Failed \nReceived invalid service name received :"
+                      " %s sent service->serv_name : %s",
+                      serv,service->serv_name);
+         return NCSCC_RC_FAILURE;
+     }
+     else
+     {
+         m_NCS_STRCPY(reqmsg.nid_serv_name,serv);
+     }
+ 
      reqmsg.nid_stat_code = atoi(stat);
 
-   if(reqmsg.nid_magic_no != NID_MAGIC)
-   {
-     sysf_sprintf(strbuff,"Failed \nReceived invalid message: %x",reqmsg.nid_magic_no);
-     return NCSCC_RC_FAILURE;
-   }
+    if(reqmsg.nid_magic_no != NID_MAGIC)
+    {
+      sysf_sprintf(strbuff,"Failed \nReceived invalid message: %x",
+	               reqmsg.nid_magic_no);
+      return NCSCC_RC_FAILURE;
+    }
 
 
    /***********************************************************
    *    LOOKS LIKE CORRECT RESPONSE LETS PROCESS              *
    ***********************************************************/
-   if((reqmsg.nid_serv_code >= NID_HPM) && (reqmsg.nid_serv_code < NID_MAXSERV))
-   {
 
-     if(reqmsg.nid_serv_code != service->servcode)
+     if(m_NCS_STRCMP(reqmsg.nid_serv_name , service->serv_name) !=0)
      {
-       sysf_sprintf(strbuff,"Failed \nService code mismatch! Srvc spawned: %s, Srvc code received:%s",
-                    nid_serv_stat_info[service->servcode].nid_serv_name,nid_serv_stat_info[reqmsg.nid_serv_code].nid_serv_name);
+       sysf_sprintf(strbuff,"Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
+                    service->serv_name,reqmsg.nid_serv_name);
        return NCSCC_RC_FAILURE;
      }
      else if(reqmsg.nid_stat_code ==  NCSCC_RC_SUCCESS)
      {
-        if (reqmsg.nid_serv_code == NID_BIOSUP)
-        {
-           sysf_sprintf(strbuff,"PHOENIX BIOS UPGRADED...");
-           return NID_PHOENIXBIOS_UPGRADED;
-        }
-        {
            sysf_sprintf(strbuff,"Done.");
            return NCSCC_RC_SUCCESS;
-        }
      }
 
-     /* vivek_nid */
-     /* If spawned script was for IPMC upgrade...and no upgrade is required...take that */
-     /* as success case, but generate relevant log                                      */
-     if ((reqmsg.nid_serv_code == NID_IPMCUP) && (reqmsg.nid_stat_code == NID_IPMC_VER_SAME))
-     {
-        sysf_sprintf(strbuff,"IPMC Version Same: Upgrade Not Required");
-        return NCSCC_RC_SUCCESS;
-     }
-     /* If spawned script was for Phoenix BIOS upgrade...and no upgrade is required...take that */
-     /* as success case, but generate relevant log                                              */
-     if ((reqmsg.nid_serv_code == NID_BIOSUP) && (reqmsg.nid_stat_code == NID_PHOENIXBIOS_VER_SAME))
-     {
-        sysf_sprintf(strbuff,"BIOS Version Same: Upgrade Not Required");
-        return NCSCC_RC_SUCCESS;
-     }
 
-     if((reqmsg.nid_serv_code > NID_NCS) && (reqmsg.nid_serv_code <= NID_PCAP))
-        temp_serv_code = NID_NCS;
-     else
-        temp_serv_code = reqmsg.nid_serv_code;
 
-     if((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS) &&
-        (reqmsg.nid_stat_code < nid_serv_stat_info[temp_serv_code].nid_max_err_code))
+     if((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS) )
      {
-
-       if((reqmsg.nid_serv_code == NID_BIOSUP) ||(reqmsg.nid_serv_code == NID_IPMCUP))
-          sysf_sprintf(strbuff,"Failed \n DESC:%s",\
-             nid_serv_stat_info[temp_serv_code].stat_info[reqmsg.nid_stat_code - 4].nid_stat_msg);
-         else
-          sysf_sprintf(strbuff,"Failed \n DESC:%s",\
-             nid_serv_stat_info[temp_serv_code].stat_info[reqmsg.nid_stat_code - 2].nid_stat_msg);
+       sysf_sprintf(strbuff,"Failed \n DESC:%s",\
+       service->serv_name);
 
        return NCSCC_RC_FAILURE;
       }
-      else
-      {
-        sysf_sprintf(strbuff,"Failed \n Received invalid status code from: %s",\
-            nid_serv_stat_info[reqmsg.nid_serv_code].nid_serv_name);
-        return NCSCC_RC_FAILURE;
-      }
 
-   }
-   else
-   {
-      sysf_sprintf(strbuff,"Failed \n Received invalid service code: %d",reqmsg.nid_serv_code);
-      return NCSCC_RC_FAILURE;
-   }
+     return NCSCC_RC_SUCCESS;
 
 }
 
-#if 0
-/****************************************************************************
- * Name          : bladereset                                               *
- *                                                                          *
- * Description   : Invokes reboot command. Writes the reset count to a file *
- *            before going for reset. so that we wont reset beyond          *
- *            count times as a recovery.                                    *
- *                                                                          *
- * Arguments     : service - service details for refering reset count.      *
- *           strbuff - Not for any use right now.                           *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uns32
-bladereset(NID_SPAWN_INFO *service,uns8 *strbuff)
-{
-   char *args[3];
-   uns32 i =0;
-   NCS_OS_FILE rst_fd;
-
-   /********************************************************
-   *    Need To log the current reset count to             *
-   *    RST_FILE, before we reset this blade, so that      *
-   *    we know the count next time we come up             *
-   ********************************************************/
-   rst_fd.info.create.i_file_name = NID_RST_FILE;
-   if(m_NCS_OS_FILE(&rst_fd, NCS_OS_FILE_CREATE) == NCSCC_RC_SUCCESS)
-   {
-     struct nid_resetinfo info;
-     NCS_OS_FILE  write_rstfd,close_fd;
-     info.faild_serv_code = service->servcode;
-     info.count = service->recovery_matrix[NID_RESET].retry_count -1;
-     write_rstfd.info.write.i_file_handle =  rst_fd.info.create.o_file_handle;
-     write_rstfd.info.write.i_buf_size = sizeof(struct nid_resetinfo);
-     write_rstfd.info.write.i_buffer = (uns8 *)&info;
-     if(m_NCS_OS_FILE(&write_rstfd,NCS_OS_FILE_WRITE) != NCSCC_RC_SUCCESS)
-       logme(NID_LOG2FILE,"WARNING: Couldn't write reset count to"NID_RST_FILE"\n");
-
-     close_fd.info.close.i_file_handle = rst_fd.info.create.o_file_handle;
-     m_NCS_OS_FILE(&close_fd,NCS_OS_FILE_CLOSE);
-   }
-   else
-   {
-      logme(NID_LOG2FILE,"WARNING: Couldn't open "NID_RST_FILE"\n");
-   }
-
-   /********************************************************
-   *    Send system Firmware Progress Event                *
-   ********************************************************/
-   /* NID_SYSFW_PROG(service->servcode,NID_NOTIFY_FAILURE); */
-
-   /********************************************************
-   *    Bye Bye Going to suicide                           *
-   ********************************************************/
-   args[i++] = "reboot";
-   args[i++] = NULL;
-   m_NCS_POSIX_EXECVP("/sbin/reboot",args);
-   m_NCS_POSIX_EXECVP("/bin/reboot",args);
-
-   logme(NID_LOG2FILE_CONS,"Failed to reboot! Dropping Tt shell\n");
-   logme(NID_LOG2FILE_CONS,"NID EXITING!!!!\n");
-   notify_bis("FAILED\n");
-   _exit(1);
-
-}
-#endif
 
 /****************************************************************************
  * Name          : check_process                                            *
@@ -2159,7 +1510,7 @@ cleanup(NID_SPAWN_INFO* service)
    if(check_process(service))
    {
      logme(NID_LOG2FILE,"Sending SIGKILL to %s, PID: %d\n",\
-           nid_serv_stat_info[service->servcode].nid_serv_name,service->pid);
+           service->serv_name,service->pid);
      kill(service->pid,SIGKILL);
    }
 
@@ -2171,10 +1522,10 @@ cleanup(NID_SPAWN_INFO* service)
    }
 
    /*******************************************************
-   *    YEPPP!!!! we need to slowdown before spawning,       *
-   *    cleanup task may take time before its done with      *
+   *    YEPPP!!!! we need to slowdown before spawning,    *
+   *    cleanup task may take time before its done with   *
    *    cleaning. Spawning before cleanup may really lead *
-   *    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!              *
+   *    to CCHHHHAAAAOOOOOSSSSS!!!!!!!!                   *
    *******************************************************/
    nid_sleep(100);
 }
@@ -2185,10 +1536,10 @@ cleanup(NID_SPAWN_INFO* service)
  * Name          : recovery_action                                          *
  *                                                                          *
  * Description   : Invokes all the recovery actions in sequence according   *
- *            to the recovery options specified in OSAF_SYSCONFDIR/-             *
+ *            to the recovery options specified in OSAF_SYSCONFDIR/-        *
  *           nodeinit.conf file                                             *
  *           It invokes recovery action for the count specified in          *
- *           OSAF_SYSCONFDIR/nodeinit.conf if the recovery failes.               *
+ *           OSAF_SYSCONFDIR/nodeinit.conf if the recovery failes.          *
  *                                                                          *
  * Arguments     : service - service details for spawning.                  *
  *           strbuff - Buffer to return error message if any.               *
@@ -2212,9 +1563,6 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
           logme(NID_LOG2FILE,"%s %s for: %d time...\n",nid_recerr[opt][0],\
           service->s_name,(count-service->recovery_matrix[opt].retry_count)+1);
 
-          if ( nid_reset_bmc_watchdog(service, strbuff) != NCSCC_RC_SUCCESS )
-             logme(NID_LOG2FILE,"Failed to reset BMC watchdog: %s\n",strbuff);
-
 
           /**************************************************************
            *    Just clean the stuff we created during prev retry        *
@@ -2227,7 +1575,7 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
           if((service->recovery_matrix[opt].action)(service,strbuff) != NCSCC_RC_SUCCESS)
           {
             service->recovery_matrix[opt].retry_count--;
-            logme(NID_LOG2FILE,"%s %s\n",nid_recerr[opt][1],service->s_name);
+            logme(NID_LOG2FILE,"%s %s\n",nid_recerr[opt][1],service->serv_name);
             logme(NID_LOG2FILE_CONS,"%s\n",strbuff);
             continue;
           }
@@ -2254,7 +1602,7 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
     }
 
     fp = fopen(NODE_HA_STATE,"w");
-    logme(NID_LOG2FILE_CONS,"%s Initialization failed\n",nid_serv_stat_info[service->servcode].nid_serv_name);
+    logme(NID_LOG2FILE_CONS,"%s Initialization failed\n",service->serv_name);
     logme(NID_LOG2FILE_CONS,"Tried all recoveries, couldn't recover! NID exiting!!!!!\n");
     if(fp)
        fprintf(fp,"%s","OpenSAF Initialization Failed");
@@ -2272,70 +1620,6 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
 
 }
 
-
-/****************************************************************************
- * Name          : sys_fw_prog                                              *
- *                                                                          *
- * Description   : Routine to log Display and send system firmware          *
- *            progress events.                                              *
- *                                                                          *
- * Arguments     :                                                          *
- *                                                                          *
- *                                                                          *
- * Return Values : None.                                                    *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-void
-sys_fw_prog(int32 fw_prog_evt,NID_SVC_CODE servcode,enum fw_prog_notify status)
-{
-   NID_BOARD_IPMC_INTF_CONFIG ipmc_inf_conf    = nid_ipmc_board[nid_board_type];
-   NID_OPEN_IPMC_DEV          open_ipmc_dev    = ipmc_inf_conf.nid_open_ipmc_dev;
-   NID_SEND_IPMC_CMD          send_ipmc_dev    = ipmc_inf_conf.nid_send_ipmc_cmd;
-   NID_PROC_IPMC_RSP          process_ipmc_rsp = ipmc_inf_conf.nid_process_ipmc_resp;
-   NID_SYS_FW_PROG_INFO       lc_fw_prog;
-   uns8  strbuff[255];
-   strbuff[0] = '\0';
-
-   if ( fw_prog_evt < 0 )  return;
-
-   if(status == NID_NOTIFY_SUCCESS)
-   {
-     lc_fw_prog.event_type = 0x02;
-
-     switch ( fw_prog_evt )
-     {
-       case MOTO_FIRMWARE_BOOT_SUCCESS:
-                      lc_fw_prog.data2 = fw_prog_evt;
-                      lc_fw_prog.data3 = 0xFF;
-                      break;
-       case MOTO_FIRMWARE_SYSINIT_SUCCESS:
-                      lc_fw_prog.data2 = MOTO_FIRMWARE_OEM_CODE;
-                      lc_fw_prog.data3 = fw_prog_evt;         
-                      break;
-/* vivek_nid */
-       case MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_SUCCESS:
-                      lc_fw_prog.data2 = MOTO_FIRMWARE_OEM_CODE;
-                      lc_fw_prog.data3 = fw_prog_evt;
-                      break; 
-    
-     }
-   }
-   else if(status == NID_NOTIFY_FAILURE)
-   {
-       lc_fw_prog.event_type = 0x00;
-       lc_fw_prog.data2 = MOTO_FIRMWARE_OEM_CODE;
-       lc_fw_prog.data3 = fw_prog_evt;
-   }
-
-   if ( open_ipmc_dev(strbuff) != NCSCC_RC_SUCCESS) return;
-
-   /* Send firmware progress event */
-   if ( send_ipmc_dev(NID_IPMC_CMD_SEND_FW_PROG, (NID_IPMC_EVT_INFO *)&lc_fw_prog) != NCSCC_RC_SUCCESS) return;
-
-   if ( process_ipmc_rsp(NULL) != NCSCC_RC_SUCCESS ) return;
-
-}
 
 /****************************************************************************
  * Name          : getrole                                                  *
@@ -2411,7 +1695,8 @@ uns32 get_role_from_rdf(void)
 
    if((rc = pcs_rda_request(&pcs_rda_req)) != PCSRDA_RC_SUCCESS)
    {
-      /* if there's any error getting the role, then don't return right away; destroy the library first */
+      /* if there's any error getting the role,
+         then don't return right away; destroy the library first */
       logme(NID_LOG2FILE_CONS,"Failed to get role from RDF\n");
       ret_val = NCSCC_RC_FAILURE;
    }
@@ -2423,13 +1708,15 @@ uns32 get_role_from_rdf(void)
       case PCS_RDA_ACTIVE:
          role = SA_AMF_HA_ACTIVE;
          ret_val = NCSCC_RC_SUCCESS;
-         logme(NID_LOG2FILE_CONS,"RDF-ROLE for this System Controller is: %d, %s\n",pcs_rda_req.info.io_role,"ACTIVE");
+         logme(NID_LOG2FILE_CONS,"RDF-ROLE for this System Controller is: %d, %s\n",
+               pcs_rda_req.info.io_role,"ACTIVE");
          break;
 
       case PCS_RDA_STANDBY:
          role = SA_AMF_HA_STANDBY;
          ret_val = NCSCC_RC_SUCCESS;
-         logme(NID_LOG2FILE_CONS,"RDF-ROLE for this System Controller is: %d, %s\n",pcs_rda_req.info.io_role,"STANDBY");
+         logme(NID_LOG2FILE_CONS,"RDF-ROLE for this System Controller is: %d, %s\n",
+               pcs_rda_req.info.io_role,"STANDBY");
          break;
 
       default:
@@ -2464,7 +1751,7 @@ go_back:
  * Notes         : None.                                                    *
  ***************************************************************************/
 void
-insert_role_svcid(NID_SPAWN_INFO *service)
+insert_role_svc_name(NID_SPAWN_INFO *service)
 {
    uns32 f;
 
@@ -2474,7 +1761,7 @@ insert_role_svcid(NID_SPAWN_INFO *service)
    if( f >= (NID_MAXARGS-4) )
    {
      logme(NID_LOG2FILE_CONS,"Exceeding parameters for %s\n",\
-           nid_serv_stat_info[service->servcode].nid_serv_name);
+           service->serv_name);
      logme(NID_LOG2FILE_CONS,"NID Exiting\n");
      _exit(1);
    }
@@ -2487,8 +1774,8 @@ insert_role_svcid(NID_SPAWN_INFO *service)
        service->serv_args[f++] = rolebuff;
    }
      /* Set the service-id to be passed */
-   sysf_sprintf(svc_id,"NID_SVC_ID=%d",service->servcode);
-   service->serv_args[f++] = svc_id;
+     sysf_sprintf(svc_name,"NID_SVC_NAME=%s",service->serv_name);
+     service->serv_args[f++] = svc_name;
 
    service->serv_args[f] = NULL;
 
@@ -2499,7 +1786,7 @@ insert_role_svcid(NID_SPAWN_INFO *service)
 
      if( f >= (NID_MAXARGS-4) ){
        logme(NID_LOG2FILE_CONS,"Exceeding parameters for %s\n",\
-           nid_serv_stat_info[service->servcode].nid_serv_name);
+           service->serv_name);
        logme(NID_LOG2FILE_CONS,"NID Exiting\n");
        _exit(1);
      }
@@ -2515,9 +1802,12 @@ insert_role_svcid(NID_SPAWN_INFO *service)
      }
 
      if(service->app_type == NID_SCRIPT)
-       service->clnup_args[f++] = nid_serv_stat_info[service->servcode].nid_serv_name;
-     else {
-       service->clnup_args[f++] = svc_id;
+	 {
+       service->clnup_args[f++] = service->serv_name;
+	 }
+     else 
+	 {
+       service->clnup_args[f++] = svc_name;
      }
      service->clnup_args[f] = NULL;
    }
@@ -2556,12 +1846,14 @@ spawn_services(uns8 * strbuf)
    /******************************************************
    *     Create bid fifo                                 *
    ******************************************************/
-   if(nid_create_ipc(strbuf) != NCSCC_RC_SUCCESS) return NCSCC_RC_FAILURE;
+   if(nid_create_ipc(strbuf) != NCSCC_RC_SUCCESS) 
+     return NCSCC_RC_FAILURE;
 
    /******************************************************
    *    Try to open FIFO                                 *
    ******************************************************/
-   if(nid_open_ipc(&select_fd,strbuf) != NCSCC_RC_SUCCESS)  return NCSCC_RC_FAILURE;
+   if(nid_open_ipc(&select_fd,strbuf) != NCSCC_RC_SUCCESS)
+     return NCSCC_RC_FAILURE;
 
    while(sp_list.head != NULL)
    {
@@ -2571,35 +1863,17 @@ spawn_services(uns8 * strbuf)
         *    Passing role as an argument for DRBD and    *
         *    SCAP.                                       *
         *************************************************/
-       insert_role_svcid(service);
-  
-       /************************************************************
-       * Start Watchdog timer before we even start process         *
-       * There could be a possibility that a task being spawned is *
-       * realtime, and if it malfunctions to hang the system       *
-       ************************************************************/
-       if ( nid_start_bmc_watchdog(service,strbuf) != NCSCC_RC_SUCCESS)
-            logme(NID_LOG2FILE,"BMC watchdog start failed: %s\n",strbuf);    
-
-       /* vivek_nid */   
+       insert_role_svc_name(service);
        rc = spawn_wait(service,sbuff);
 
-       if((service->servcode == NID_BIOSUP) && (rc == NID_PHOENIXBIOS_UPGRADED))
-       {
-          /* Send Firmware Progress Code */
-          sys_fw_prog(((nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].notify == NID_NOTIFY_ENABLE) ? nid_serv_snsr_map[service->servcode][NID_NOTIFY_SUCCESS].data3:-1) ,service->servcode, NID_NOTIFY_SUCCESS);
-          logme(NID_LOG2FILE_CONS,"NID Sent PHOENIX BIOS UPGRADE SUCCESS System Firmware Code\n");
-          _exit(1);
-       }
 
        if (rc != NCSCC_RC_SUCCESS)
        {
          logme(NID_LOG2FILE_CONS,"%s\n",sbuff);
          logme(NID_LOG2FILE_CONS,"Going for recovery\n",sbuff);
-         if ((service->servcode == NID_BIOSUP) || (service->servcode == NID_IPMCUP))
+         if ((m_NCS_STRCMP(service->serv_name, "BIOSUP") == 0) ||
+             (m_NCS_STRCMP(service->serv_name, "IPMCUP") == 0))
          {
-       sys_fw_prog(((nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].notify == NID_NOTIFY_ENABLE) ? nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].data3:-1)
-                       ,service->servcode,NID_NOTIFY_FAILURE);
            notify_bis("FAILED\n");
            _exit(1);
          }
@@ -2607,69 +1881,34 @@ spawn_services(uns8 * strbuf)
          {
            if(recovery_action(service,sbuff) != NCSCC_RC_SUCCESS)
            {
-             sys_fw_prog(((nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].notify == NID_NOTIFY_ENABLE) ? nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].data3:-1) ,service->servcode,NID_NOTIFY_FAILURE);
              notify_bis("FAILED\n");
              _exit(1);
            }
          }
        }
 
-#if 0
-       if(spawn_wait(service,sbuff) != NCSCC_RC_SUCCESS)
-       {
-         logme(NID_LOG2FILE_CONS,"%s\n",sbuff);
-         logme(NID_LOG2FILE_CONS,"Going for recovery\n",sbuff);
-
-         if(recovery_action(service,sbuff) != NCSCC_RC_SUCCESS)
-         {
-           sys_fw_prog(((nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].notify == NID_NOTIFY_ENABLE) ? nid_serv_snsr_map[service->servcode][NID_NOTIFY_FAILURE].data3:-1)
-                       ,service->servcode,NID_NOTIFY_FAILURE);
-           notify_bis("FAILED\n");
-           _exit(1);
-         }
-
-         /******************************************************
-          * We might never return here, in case we have to take *
-          * ultimate decision..... YES... RESET                 *
-          *******************************************************/
-       }
-#endif
-       /*********************************************************
-       * Service successfully spawned, lets stop BMC watchdog   *
-       *********************************************************/
-       if ( nid_stop_bmc_watchdog(service,strbuf) != NCSCC_RC_SUCCESS)
-            logme(NID_LOG2FILE,"BMC watchdog stop failed: %s\n",strbuf);
 
        logme(NID_LOG2CONS,"%s\n",sbuff);
-
-       /****************************************
-        *  send system firmware progress        *
-        ****************************************/
-       {
-         sys_fw_prog(((nid_serv_snsr_map[service->servcode][NID_NOTIFY_SUCCESS].notify 
-                     == NID_NOTIFY_ENABLE) ? nid_serv_snsr_map[service->servcode][NID_NOTIFY_SUCCESS].data3:-1),
-                     service->servcode,NID_NOTIFY_SUCCESS);
-       }
-
        /*********************************************************
         *    We need to save the SCAP or PCAP PID in files,     *
         *    which will be used during shutdown.                *
         ********************************************************/
-       if((service->servcode == NID_SCAP) || (service->servcode == NID_PCAP))
+       if((m_NCS_STRCMP(service->serv_name ,"SCAP") ==0 ) || 
+          (m_NCS_STRCMP(service->serv_name ,"PCAP") ==0 ))
        {
          /* If type is script, nis_scxb && nis_pld start scripts 
             will write the pid accordingly
           */
          if(service->app_type == NID_DAEMN)
          {
-         int32 lfd;
-         uns8 filename[30],str[15];
-         sysf_sprintf(filename, PIDPATH "%s.pid","ncsspcap");
-         m_NCS_POSIX_UNLINK(filename);
-         lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
-         sysf_sprintf(str,"%d\n",service->pid);
-         m_NCS_POSIX_WRITE(lfd,str,m_NCS_STRLEN(str));
-         m_NCS_POSIX_CLOSE(lfd);
+           int32 lfd;
+           uns8 filename[30],str[15];
+           sysf_sprintf(filename, PIDPATH "%s.pid","ncsspcap");
+           m_NCS_POSIX_UNLINK(filename);
+           lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
+           sysf_sprintf(str,"%d\n",service->pid);
+           m_NCS_POSIX_WRITE(lfd,str,m_NCS_STRLEN(str));
+           m_NCS_POSIX_CLOSE(lfd);
          }
        }
 
@@ -2677,8 +1916,8 @@ spawn_services(uns8 * strbuf)
         *    Determine the role from LHCPD If we are ACTIVE/STDBY.*
         *    Needed while initializing DRBD and SCAP/PCAP.        *
         ***********************************************************/
-         if( (service->servcode == NID_RDF) && (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_F101_AVR]) || (!m_NCS_STRCMP(nid_board_types[nid_board_type],nid_board_types[NID_PC_SCXB]))) )
 
+       if(m_NCS_STRCMP(service->serv_name ,"RDF") ==0 )
        {
          if(getrole() != NCSCC_RC_SUCCESS)
          {
@@ -2843,12 +2082,6 @@ main(int argc, char **argv)
       _exit(1);
    }
 
-   /********************************************
-    *  Send completed os boot firmware progress*
-    *  event                                   *
-    *******************************************/
-   sys_fw_prog(MOTO_FIRMWARE_BOOT_SUCCESS,NID_MAXSERV,NID_NOTIFY_SUCCESS);
-
 
    if(spawn_services(sbuf) != NCSCC_RC_SUCCESS)
    {
@@ -2857,11 +2090,6 @@ main(int argc, char **argv)
       _exit(1);
    }
 
-   /*******************************
-   *    Lets set blade to IS      *
-   *******************************/
-   if ( setled_Inservice() != NCSCC_RC_SUCCESS)
-    logme(NID_LOG2FILE,"Failed to switch on Inservice LED\n");
 
    logme(NID_LOG2FILE_CONS,"Node Initialization Successful. \n");
    logme(NID_LOG2CONS,"SUCCESSFULLY SPAWNED ALL SERVICES!!!\n");
