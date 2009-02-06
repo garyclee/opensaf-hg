@@ -39,22 +39,22 @@ start()
 
     echo "Starting PSSv..."
     #Check if daemon is installed.
-    if [ ! -x "$BINPATH/$DAEMON" ]; then
-       echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+    if [ ! -x "$LIBPATH/$DAEMON" ]; then
+       echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
        echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
        exit 1
     fi
     killall ncs_psr
     rm -f $PIDPATH/$PIDFILE
-    $XTERM "$BINPATH/ncs_psr" "$*" >"$NCS_STDOUTS_PATH/ncs_psr.log" 2>&1 &
-    echo "Starting $DESC: $BINPATH/$DAEMON";
+    $XTERM "$LIBPATH/ncs_psr" "$*" >"$NCS_STDOUTS_PATH/ncs_psr.log" 2>&1 &
+    echo "Starting $DESC: $LIBPATH/$DAEMON";
    
     if [ $? -ne 0 ] ; then
 	echo -n -e "Failed to start $DAEMON.    \n"
 	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
 	exit 0
      else
-         echo "Started $DESC: $BINPATH/$DAEMON";
+         echo "Started $DESC: $LIBPATH/$DAEMON";
      fi
 
 } # End start()

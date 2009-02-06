@@ -24,6 +24,6 @@ XTERM=""
 echo "Executing Pseudo DRBD instantiate script..";
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
-$XTERM "$BINPATH/ncs_pdrbd" >> "$NCS_STDOUTS_PATH/ncs_pdrbd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_pdrbd" >> "$NCS_STDOUTS_PATH/ncs_pdrbd.log" 2>&1 &
 
 exit 0

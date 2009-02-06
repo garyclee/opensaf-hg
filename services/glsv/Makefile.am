@@ -60,7 +60,7 @@ noinst_HEADERS = \
 	inc/glsv_logstr.h \
 	inc/glsv_mem.h
 
-bin_PROGRAMS = ncs_gld ncs_glnd
+pkglib_PROGRAMS = ncs_gld ncs_glnd
 
 ncs_gld_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

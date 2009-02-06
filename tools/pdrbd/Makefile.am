@@ -30,7 +30,7 @@ noinst_HEADERS = \
 	inc/pdrbd_mem.h \
 	inc/pdrbd_util.h
 
-bin_PROGRAMS = ncs_pdrbd
+pkglib_PROGRAMS = ncs_pdrbd
 
 ncs_pdrbd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = ncs_rde
+pkglib_PROGRAMS = ncs_rde
 
 ncs_rde_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

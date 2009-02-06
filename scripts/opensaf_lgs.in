@@ -20,7 +20,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 mkdir -p "$SAFLOG"
 command=opensaf_saflogd
-lgsd="$BINPATH/$command"
+lgsd="$LIBPATH/$command"
 PIDFILE="$PIDPATH/$command.pid"
 source "$SYSCONFDIR/saflog.conf"
 mkdir -p $LOG_SYSTEM_PATH_NAME

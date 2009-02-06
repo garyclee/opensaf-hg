@@ -119,7 +119,7 @@ noinst_HEADERS = \
    inc/avnd_proxy.h \
    inc/avsv_nd2ndmsg.h 
 
-bin_PROGRAMS = ncs_scap ncs_pcap
+pkglib_PROGRAMS = ncs_scap ncs_pcap
 
 ncs_scap_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

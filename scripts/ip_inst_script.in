@@ -43,19 +43,19 @@ stop()
 
 start()
 {
-   echo -n -e "Starting $DESC: $BINPATH/$DAEMON.. \n";
-   "$BINPATH/$DAEMON" 2 &
+   echo -n -e "Starting $DESC: $LIBPATH/$DAEMON.. \n";
+   "$LIBPATH/$DAEMON" 2 &
    echo ".[  OK  ]";
 }
 
-test -f "$BINPATH/$DAEMON" || exit 0
+test -f "$LIBPATH/$DAEMON" || exit 0
 
 #set -e
 
 case "$1" in
   start)
         if [ "${PIDLIST}" != "" ]; then 
-            echo  "$BINPATH/$DAEMON already running..";
+            echo  "$LIBPATH/$DAEMON already running..";
 	     else
             start
 	    if [ $? != 0 ]; then
@@ -79,7 +79,7 @@ restart|force-reload)
         ;;
 
 *)
-        echo "Usage: $BINPATH/ifsvdemo {start|stop|restart|force-reload}" >&2
+        echo "Usage: $LIBPATH/ifsvdemo {start|stop|restart|force-reload}" >&2
         exit 1
         ;;
 esac

@@ -65,7 +65,7 @@ noinst_HEADERS = \
 	inc/mqsv_mem.h \
 	inc/posix.h
 
-bin_PROGRAMS = ncs_mqd ncs_mqnd
+pkglib_PROGRAMS = ncs_mqd ncs_mqnd
 
 ncs_mqd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

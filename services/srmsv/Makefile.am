@@ -51,7 +51,7 @@ noinst_HEADERS = \
 	inc/srmsv_mem.h \
 	inc/srmsv_msg.h
 
-bin_PROGRAMS = ncs_srmnd
+pkglib_PROGRAMS = ncs_srmnd
 
 ncs_srmnd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

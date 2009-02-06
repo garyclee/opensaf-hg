@@ -49,7 +49,7 @@ noinst_HEADERS = \
 	inc/dtsv_msg.h \
 	inc/sysf_log.h
 
-bin_PROGRAMS = ncs_dts
+pkglib_PROGRAMS = ncs_dts
 
 ncs_dts_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

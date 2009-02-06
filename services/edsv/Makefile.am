@@ -44,7 +44,7 @@ noinst_HEADERS = \
 	inc/edsv_msg.h \
 	inc/edsv_util.h
 
-bin_PROGRAMS = ncs_eds
+pkglib_PROGRAMS = ncs_eds
 
 ncs_eds_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

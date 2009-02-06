@@ -53,14 +53,14 @@
 #                       processes.                                          #
 #############################################################################
 
-xxBINDIRxx/nid_tipc:TIPC:S:xxBINDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
-xxBINDIRxx/rde_script:RDF:S:xxBINDIRxx/rde_script:12000:-6:2:1:start:stop
-xxBINDIRxx/opensaf_fms:HLFM:S:xxBINDIRxx/opensaf_fms:12000:-6:2:1:start:stop
-#xxBINDIRxx/drbdctrl:DRBD:S:xxBINDIRxx/drbdctrl:800::2::start all:stop all
-#xxBINDIRxx/nis_snmpd_start:SNMPD:S:xxBINDIRxx/nis_snmpd_clean:10000:4:5:1::
-xxBINDIRxx/ncs_dts_start:DTSV:S:xxBINDIRxx/ncs_dts_clean:4000:4:2:1:start:
-xxBINDIRxx/ncs_mas_start:MASV:S:xxBINDIRxx/ncs_mas_clean:4000:4:2:1:start:
-xxBINDIRxx/ncs_pss_start:PSSV:S:xxBINDIRxx/ncs_pss_clean:4000:4:2:1:start:
-xxBINDIRxx/ncs_eds_start:EDSV:S:xxBINDIRxx/ncs_eds_clean:5000:4:2:1:start:
-xxBINDIRxx/ncs_snmpsubagt_start:SUBAGT:S:xxBINDIRxx/ncs_snmpsubagt_clean:5000:4:2:1:start:
-xxBINDIRxx/ncs_scap_start:SCAP:S:xxBINDIRxx/ncs_scap_clean:192000:-6:0:1:start:
+xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxLIBDIRxx/rde_script:RDF:S:xxLIBDIRxx/rde_script:12000:-6:2:1:start:stop
+xxLIBDIRxx/opensaf_fms:HLFM:S:xxLIBDIRxx/opensaf_fms:12000:-6:2:1:start:stop
+#xxLIBDIRxx/drbdctrl:DRBD:S:xxLIBDIRxx/drbdctrl:800::2::start all:stop all
+#xxLIBDIRxx/nis_snmpd_start:SNMPD:S:xxLIBDIRxx/nis_snmpd_clean:10000:4:5:1::
+xxLIBDIRxx/ncs_dts_start:DTSV:S:xxLIBDIRxx/ncs_dts_clean:4000:4:2:1:start:
+xxLIBDIRxx/ncs_mas_start:MASV:S:xxLIBDIRxx/ncs_mas_clean:4000:4:2:1:start:
+xxLIBDIRxx/ncs_pss_start:PSSV:S:xxLIBDIRxx/ncs_pss_clean:4000:4:2:1:start:
+xxLIBDIRxx/ncs_eds_start:EDSV:S:xxLIBDIRxx/ncs_eds_clean:5000:4:2:1:start:
+xxLIBDIRxx/ncs_snmpsubagt_start:SUBAGT:S:xxLIBDIRxx/ncs_snmpsubagt_clean:5000:4:2:1:start:
+xxLIBDIRxx/ncs_scap_start:SCAP:S:xxLIBDIRxx/ncs_scap_clean:192000:-6:0:1:start:

@@ -59,7 +59,7 @@ STATUS=0
 ####################################################
 export NID_ROLE_CONFIG="ACTIVE"
 
-if [ ! -x "$BINPATH/$DAEMON" ]; then
+if [ ! -x "$LIBPATH/$DAEMON" ]; then
    log "NID Daemon Not Found. Did OpenSAF installation succeed?"
    exit 1
 fi
@@ -100,11 +100,11 @@ start()
 	mkdir -p /dev/shm/opensaf
 
 	if [ -f "$NIDPIDFILE" ]; then
-	  log  "$BINPATH/$DAEMON already running.."
+	  log  "$LIBPATH/$DAEMON already running.."
 	  exit 1
 	fi
 
-	  log "Starting $DESC: $BINPATH/$DAEMON" 
+	  log "Starting $DESC: $LIBPATH/$DAEMON" 
 
         ####################################################
         # NID_CONFIG_PATH is to configure the path for
@@ -186,7 +186,7 @@ start()
     rm -f "$NISPIPE"
     touch $NISPIPE
 
-    "$BINPATH/$DAEMON" > "$NISPIPE" &
+    "$LIBPATH/$DAEMON" > "$NISPIPE" &
 
     # Wait a while for response
     timeout=$INITTIMEOUT
@@ -203,7 +203,7 @@ start()
 	rm -f "$NISPIPE"
 	if [ "${NISSTATUS}" != "SUCCESS" ]; then
 	  log "SERVICE Initialization Failed: $NISSTATUS"
-	  pkill -KILL -f "$BINPATH/$DAEMON"
+	  pkill -KILL -f "$LIBPATH/$DAEMON"
 	  rm -rf "$NISPIPE" "$NIDPIDFILE"
 	  exit 1
 	fi;
@@ -234,7 +234,7 @@ stop()
     STATUS="TIMEOUT"
 
     # First Check if AMF is alive.
-    AMFPID=`pgrep -f "$BINPATH"/"$AMF"`
+    AMFPID=`pgrep -f "$LIBPATH"/"$AMF"`
 
     if [ -n "$AMFPID" ]; then
         # AMF is alive

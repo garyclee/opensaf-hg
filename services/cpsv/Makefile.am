@@ -55,7 +55,7 @@ noinst_HEADERS = \
 	inc/cpsv_mem.h \
 	inc/cpsv_shm.h
 
-bin_PROGRAMS = ncs_cpd ncs_cpnd
+pkglib_PROGRAMS = ncs_cpd ncs_cpnd
 
 ncs_cpd_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

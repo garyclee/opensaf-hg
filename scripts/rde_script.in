@@ -76,8 +76,8 @@ function rde_set_env_var
     fi
 }
 
-if [ ! -x "$BINPATH/$DAEMON" ]; then
-   logger -t opensaf -s "Unable to find daemon: ${BINPATH}/${DAEMON}"
+if [ ! -x "$LIBPATH/$DAEMON" ]; then
+   logger -t opensaf -s "Unable to find daemon: ${LIBPATH}/${DAEMON}"
    echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
    exit 1
 fi
@@ -91,7 +91,7 @@ case "$1" in
     start)
         rm -f "$PIDFILE"
         if [ -f "$PIDFILE" ]; then
-            echo  "$BINPATH/$DAEMON already running.."
+            echo  "$LIBPATH/$DAEMON already running.."
             exit 1
         fi
 
@@ -102,24 +102,24 @@ case "$1" in
         sleep 12
 
         # Start rde
-        echo "Starting $DESC: $BINPATH/$DAEMON"
-        $BINPATH/ncs_rde > ${NCS_STDOUTS_PATH}/ncs_rde 2>&1 &
+        echo "Starting $DESC: $LIBPATH/$DAEMON"
+        $LIBPATH/ncs_rde > ${NCS_STDOUTS_PATH}/ncs_rde 2>&1 &
         if [ $? -ne 0 ]; then
             echo -n -e "Failed to start $DAEMON.    \n"
             echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
                 $NIDFIFO
             exit 1
         else
-            echo "Started $DESC: $BINPATH/$DAEMON"
+            echo "Started $DESC: $LIBPATH/$DAEMON"
         fi
         echo "."
         ;;
 
     stop)
         if [ ! -f "$PIDFILE" ]; then
-            echo "$BINPATH/$DAEMON is not running.."
+            echo "$LIBPATH/$DAEMON is not running.."
         else
-            echo "Stopping $DESC: $BINPATH/$DAEMON"
+            echo "Stopping $DESC: $LIBPATH/$DAEMON"
             kill -9 $l_pid
             rm -f "$PIDFILE"
         fi
@@ -133,15 +133,15 @@ case "$1" in
         #       just the same as "restart".
         #
         if [ ! -f "$PIDFILE" ]; then
-            echo "$BINPATH/$DAEMON is not running.. Use start."
+            echo "$LIBPATH/$DAEMON is not running.. Use start."
         else
-            echo "Stopping $DESC: $BINPATH/$DAEMON"
-            echo "Restarting $DESC: $BINPATH/$DAEMON"
+            echo "Stopping $DESC: $LIBPATH/$DAEMON"
+            echo "Restarting $DESC: $LIBPATH/$DAEMON"
            `kill -9 $l_pid`
             rm -f "$PIDFILE"
 
             # Start rde
-            "$BINPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
+            "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
             if [ $? -ne 0 ] ; then
                 echo -n -e "Failed to start $DAEMON.    \n"
                 echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
@@ -154,7 +154,7 @@ case "$1" in
 
     *)
         # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-        echo "Usage: $BINPATH/rde_script {start|stop|restart|force-reload}" >&2
+        echo "Usage: $LIBPATH/rde_script {start|stop|restart|force-reload}" >&2
         exit 1
         ;;
 esac

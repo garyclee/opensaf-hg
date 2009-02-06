@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = ncs_ifsv_ip_installer
+pkglib_PROGRAMS = ncs_ifsv_ip_installer
 
 ncs_ifsv_ip_installer_CPPFLAGS = \
 	-DNCS_SAF=1 -DNCS_IFSV_BOND_INTF=1 \

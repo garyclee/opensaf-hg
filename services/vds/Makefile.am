@@ -20,7 +20,7 @@ CONTROLLER_SUBDIRS = vds logstr
 
 SUBDIRS = $(CONTROLLER_SUBDIRS)
 
-bin_PROGRAMS = ncs_vds
+pkglib_PROGRAMS = ncs_vds
 
 noinst_HEADERS = \
 	inc/mda_dl_api.h \

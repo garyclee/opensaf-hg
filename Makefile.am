@@ -303,6 +303,14 @@ dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/pssv_spcn_list
 
 dist_bin_SCRIPTS = \
+	$(top_srcdir)/scripts/opensaf_mem_dump_tool
+	
+nodist_bin_SCRIPTS = \
+	$(top_builddir)/scripts/collect_logs_controller \
+	$(top_builddir)/scripts/collect_logs_payload \
+	$(top_builddir)/scripts/get_ha_state 
+
+dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/drbd_clean \
 	$(top_srcdir)/scripts/find_pid \
 	$(top_srcdir)/scripts/ncs_cpd_clean \
@@ -314,22 +322,18 @@ dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/ncs_mqnd_clean \
 	$(top_srcdir)/scripts/ncs_srmnd_clean \
 	$(top_srcdir)/scripts/ncs_vds_clean \
-	$(top_srcdir)/scripts/opensaf_mem_dump_tool \
 	$(top_srcdir)/scripts/opensaf_reboot \
 	$(top_srcdir)/scripts/pdrbdsts
 
 if ENABLE_HPI
-dist_bin_SCRIPTS += $(top_srcdir)/scripts/ncs_hisv_clean
+dist_pkglib_SCRIPTS += $(top_srcdir)/scripts/ncs_hisv_clean
 endif
 
-nodist_bin_SCRIPTS = \
-	$(top_builddir)/scripts/collect_logs_controller \
-	$(top_builddir)/scripts/collect_logs_payload \
+nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/dhclnt_clean \
 	$(top_builddir)/scripts/dhclnt_start \
 	$(top_builddir)/scripts/drbdctrl \
 	$(top_builddir)/scripts/drbd_start \
-	$(top_builddir)/scripts/get_ha_state \
 	$(top_builddir)/scripts/ip_inst_script \
 	$(top_builddir)/scripts/ncs_cpd_start \
 	$(top_builddir)/scripts/ncs_cpnd_start \
@@ -371,11 +375,11 @@ nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/tipc_reset.sh 
 
 if ENABLE_HPI
-nodist_bin_SCRIPTS += $(top_builddir)/scripts/ncs_hisv_start
+nodist_pkglib_SCRIPTS += $(top_builddir)/scripts/ncs_hisv_start
 endif
 
 if WITH_OPENHPI
-nodist_bin_SCRIPTS += \
+nodist_pkglib_SCRIPTS += \
 	$(top_builddir)/scripts/openhpid_clean \
 	$(top_builddir)/scripts/openhpid_start \
 	$(top_builddir)/scripts/openhpisubagt_clean \
@@ -441,7 +445,7 @@ install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxPIDPATHxx|$(localstatedir)/run/$(PACKAGE_NAME)|g' "$$i"; \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
-		sed -i 's|xxLIBDIRxx|$(libdir)|g' "$$i"; \
+		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 	done
 	cd $(DESTDIR)$(pkgsysconfdir) && $(LN_S) -f nodeinit.conf.controller nodeinit.conf
 

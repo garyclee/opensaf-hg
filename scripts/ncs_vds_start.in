@@ -23,5 +23,5 @@ XTERM=" "
 
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 echo "Executing VDS init-script...";
-$XTERM "$BINPATH/ncs_vds" >> "$NCS_STDOUTS_PATH/ncs_vds.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_vds" >> "$NCS_STDOUTS_PATH/ncs_vds.log" 2>&1 &
 exit 0

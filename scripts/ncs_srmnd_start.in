@@ -29,7 +29,7 @@ XTERM=" "
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 echo "Executing srmnd-init-script...";
-$XTERM "$BINPATH/ncs_srmnd" >> "$NCS_STDOUTS_PATH/ncs_srmnd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_srmnd" >> "$NCS_STDOUTS_PATH/ncs_srmnd.log" 2>&1 &
 exit 0
 
 elif [ "$NODE_TYPE" == "payload" ]; then
@@ -40,7 +40,7 @@ XTERM=" "
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 echo "Executing srmnd-init-script...";
-$XTERM "$BINPATH/ncs_srmnd" >> "$NCS_STDOUTS_PATH/ncs_srmnd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_srmnd" >> "$NCS_STDOUTS_PATH/ncs_srmnd.log" 2>&1 &
 exit 0
 
 else

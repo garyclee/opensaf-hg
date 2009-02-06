@@ -23,6 +23,6 @@ XTERM=""
 
 echo "Executing IFD-init-script...";
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
-$XTERM "$BINPATH/ncs_ifd" >> "$NCS_STDOUTS_PATH/ncs_ifd.log" 2>&1 &
+$XTERM "$LIBPATH/ncs_ifd" >> "$NCS_STDOUTS_PATH/ncs_ifd.log" 2>&1 &
 exit 0
 
