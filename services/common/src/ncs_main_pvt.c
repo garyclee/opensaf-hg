@@ -1335,10 +1335,6 @@ static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name)
    p_field = ncs_util_search_argv_list(argc, argv, "NID_SVC_NAME=");
    if (p_field == NULL)
    {
-    /* Any service started by NID should add its compilation 
-                                              flag in below condition */
-      m_NCS_CONS_PRINTF("\nERROR:Problem in NID_SVC_NAME argument\n");
-
       return;
    }
 
