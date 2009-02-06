@@ -36,7 +36,8 @@ libfma_la_CPPFLAGS = \
 	-I $(top_srcdir)/services/leap/inc \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/services/fm/common/inc \
-	-I $(top_srcdir)/services/mab/inc
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/services/hisv/inc
 
 libfma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

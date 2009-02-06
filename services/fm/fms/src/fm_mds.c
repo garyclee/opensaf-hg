@@ -71,7 +71,7 @@ fm_mds_async_send(FM_CB *fm_cb,NCSCONTEXT msg,
 uns32 fm_mds_init(FM_CB *cb)
 {
    NCSMDS_INFO   arg;
-   MDS_SVC_ID    svc_id[3] = {0, 0, 0};
+   MDS_SVC_ID    svc_id[2] = { NCSMDS_SVC_ID_GFM, NCSMDS_SVC_ID_HCD };
     
    /* Get the MDS handles to be used. */
    if ( fm_mds_get_adest_hdls(cb) != NCSCC_RC_SUCCESS)
@@ -103,8 +103,7 @@ uns32 fm_mds_init(FM_CB *cb)
    /* Subcribe to AVM, AVND and FMSV MDS UP/DOWN events. */
    arg.i_op                            = MDS_SUBSCRIBE;
    arg.info.svc_subscribe.i_scope      = NCSMDS_SCOPE_NONE;
-   arg.info.svc_subscribe.i_num_svcs   = 1;
-   svc_id[0]                           = NCSMDS_SVC_ID_GFM;
+   arg.info.svc_subscribe.i_num_svcs   = 2;
 
    arg.info.svc_subscribe.i_svc_ids    = svc_id;
 
@@ -309,12 +308,15 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
               cb->peer_adest = svc_evt->i_dest;                        
            }
            break;
+
+       case NCSMDS_SVC_ID_HCD:
+           cb->is_platform = TRUE;
+           break;
        default:
-           m_NCS_SYSLOG(NCS_LOG_INFO,"Wrong MDS UP event type\n");
            break;
        }
        break;
-              
+
    default:
        m_NCS_SYSLOG(NCS_LOG_INFO,"Wrong MDS event\n");
        break;

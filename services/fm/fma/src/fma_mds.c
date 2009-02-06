@@ -287,9 +287,14 @@ static uns32 fma_mds_svc_evt(FMA_CB *fma_cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_ev
            }
            break;
 
+       case NCSMDS_SVC_ID_HCD:
+           fma_cb->is_platform = TRUE;
+           break;
+
        default:
            break;
        }
+       break;
 
    default:
        break;
@@ -366,7 +371,7 @@ static uns32 fma_mds_register_adest(FMA_CB *cb)
 uns32 fma_mds_reg (FMA_CB *cb)
 {
    NCSMDS_INFO  mds_info;
-   MDS_SVC_ID   svc[1] = {0};
+   MDS_SVC_ID   svc[2] = {NCSMDS_SVC_ID_GFM,NCSMDS_SVC_ID_HCD};
         
    m_FMA_LOG_FUNC_ENTRY("fma_mds_reg");
    if ( fma_mds_register_adest(cb) != NCSCC_RC_SUCCESS )
@@ -382,10 +387,8 @@ uns32 fma_mds_reg (FMA_CB *cb)
    mds_info.i_op      = MDS_SUBSCRIBE;
 
    mds_info.info.svc_subscribe.i_scope    = NCSMDS_SCOPE_NONE;
-   mds_info.info.svc_subscribe.i_num_svcs = 1;
+   mds_info.info.svc_subscribe.i_num_svcs = 2;
    mds_info.info.svc_subscribe.i_svc_ids  = svc;
-
-   svc[0] = NCSMDS_SVC_ID_GFM;
 
    /* register to MDS */
    if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS)
