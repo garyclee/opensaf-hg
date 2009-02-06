@@ -261,7 +261,7 @@ fi
 %{_pkglibdir}/find_pid
 %{_bindir}/get_ha_state
 %{_bindir}/saflogger
-%{_bindir}/opensaf_reboot
+%{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
 %{_pkglibdir}/ncs_cpd_clean
@@ -298,6 +298,8 @@ fi
 %{_pkglibdir}/ncs_rde_clean
 %{_pkglibdir}/ncs_rde_start
 %{_pkglibdir}/ncs_snmpsubagt_clean
+%{_pkglibdir}/ncs_snmpsubagt_reload
+%{_pkglibdir}/ncs_snmpsubagt_start
 %{_pkglibdir}/opensaf_fms
 %{_pkglibdir}/ncs_srmnd_clean
 %{_pkglibdir}/ncs_srmnd_start
