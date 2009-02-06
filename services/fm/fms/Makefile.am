@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-bin_PROGRAMS = opensaf_fmsd
+pkglib_PROGRAMS = opensaf_fmsd
 
 noinst_HEADERS = \
 	$(top_srcdir)/services/fm/fms/inc/fm_amf.h \

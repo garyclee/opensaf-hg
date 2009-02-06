@@ -39,22 +39,22 @@ echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 start()
 {
      #Check if daemon is installed.
-    if [ ! -x "$BINPATH/$DAEMON" ]; then
-       echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
+    if [ ! -x "$LIBPATH/$DAEMON" ]; then
+       echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
        echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
        exit 1
     fi
     killall -9 opensaf_fmsd
     rm -f $PIDFILE
-    $XTERM "$BINPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
-    echo "Starting $DESC: $BINPATH/$DAEMON";
+    $XTERM "$LIBPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
+    echo "Starting $DESC: $LIBPATH/$DAEMON";
 
     if [ $? -ne 0 ] ; then
         echo -n -e "Failed to start $DAEMON.    \n"
         echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
         exit 1
      else
-         echo "Started $DESC: $BINPATH/$DAEMON"
+         echo "Started $DESC: $LIBPATH/$DAEMON"
      fi
 
 } # End Start()
@@ -90,8 +90,8 @@ case "$1" in
           echo "opensaf_fmsd daemon is running. Write to the pipe"
           echo -n -e "$SA_AMF_COMPONENT_NAME|$FMS_HA_ENV_HEALTHCHECK_KEY" > $FMS_HA_COMP_NAMED_PIPE &
        else
-          echo "AMF is starting $DESC: $BINPATH/$DAEMON";
-          $XTERM "$BINPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
+          echo "AMF is starting $DESC: $LIBPATH/$DAEMON";
+          $XTERM "$LIBPATH/opensaf_fmsd" "$*" >"$NCS_STDOUTS_PATH/opensaf_fmsd.log" 2>&1 &
           sleep 1s
           if test -f "$PIDFILE"
           then
