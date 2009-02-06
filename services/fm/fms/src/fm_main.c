@@ -105,7 +105,12 @@ int main (int argc, char *argv[])
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
-    
+   
+   /* Set the is_platform = FALSE. 
+    * Will be set to true when HISv MDS up is recieved 
+    */
+   fm_cb->is_platform = FALSE;
+ 
    /* Create MBX. */
    if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
@@ -524,9 +529,10 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           /* Shelf id of Peer and Host are same */
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, 
                                             fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
-#if (HW_MGMT == 1)
+       if (fm_cb->is_platform == TRUE)
           hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
+       else
+       {
           if (fm_mbx_evt->slot == fm_cb->peer_slot &&
               fm_mbx_evt->sub_slot == fm_cb->peer_sub_slot)
           {
@@ -538,7 +544,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
              /* We got hb loss for payload. 
              Payload reset might be supported in future */
           }
-#endif
+       }
           m_NCS_SYSLOG(NCS_LOG_INFO,"Reset of node with slot_id=%s tried",entity_path);
           fms_fma_node_reset_intimate(fm_cb, fm_mbx_evt->slot,fm_mbx_evt->sub_slot);
        }
@@ -571,11 +577,6 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           }
        }
        /* I don'thave to do anything if I'm active */
-       /*
-          else if (fm_cb->role == PCS_RDA_ACTIVE)
-          {
-          }
-       */
        break;
 
    case FM_EVT_TMR_EXP:
@@ -589,11 +590,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
           m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired. Reseting peer controller slot_id=%s\n",entity_path);
 
-#if (HW_MGMT == 1)
-          status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
-          status = fms_reset_peer(fm_cb);
-#endif
+          if (fm_cb->is_platform == TRUE)
+             status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+          else
+             status = fms_reset_peer(fm_cb);
+
           if (status != NCSCC_RC_SUCCESS)
           {
              m_NCS_SYSLOG(NCS_LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
@@ -608,12 +609,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
           m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired. Reseting peer controller slot_id=%s failed.\n",entity_path);
 
-#if (HW_MGMT == 1)
-          /* Don't care what is return status */
-          hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
-#else
-          fms_reset_peer(fm_cb);
-#endif
+          if (fm_cb->is_platform == TRUE)
+             /* Don't care what is return status */
+             hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+          else
+             fms_reset_peer(fm_cb);
 
           /* Intimate FMA about reset */
           fms_fma_node_reset_intimate(fm_cb, fm_cb->peer_slot, fm_cb->peer_sub_slot);

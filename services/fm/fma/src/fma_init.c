@@ -23,6 +23,8 @@ void *g_fma_task_hdl = NULL;
  
 static uns32 fma_create(NCS_LIB_CREATE *create_info);
 static uns32 fma_destroy(NCS_LIB_DESTROY *destroy_info);
+static uns32 fma_hpl_init(void);
+static uns32 fma_hpl_finalize(void);
 
 static uns32 lib_use_count = 0;
 
@@ -430,7 +432,7 @@ static uns32 fma_create (NCS_LIB_CREATE *create_info)
    uns32 rc = NCSCC_RC_SUCCESS;
    int argc = 0;
    char **argv;
-   
+   NCS_LIB_CREATE hisv_create_info;
  
    m_FMA_LOG_FUNC_ENTRY("fma_create");
 
@@ -483,7 +485,14 @@ static uns32 fma_create (NCS_LIB_CREATE *create_info)
 
    /** store my node id **/
    cb->my_node_id = m_NCS_GET_NODE_ID;
-    
+   
+   /* Set the is_platform flag to FALSE, default environment is PC */
+   cb->is_platform = FALSE;
+
+   /** Initialize the hpl library */
+   if (fma_hpl_init() != NCSCC_RC_SUCCESS)
+      goto cb_mbx_create_fail;
+
    /** Create mailbox for processing msg from FM **/
    if (m_NCS_IPC_CREATE (&cb->mbx) != NCSCC_RC_SUCCESS)
    {
@@ -604,7 +613,11 @@ static uns32 fma_destroy (NCS_LIB_DESTROY *destroy_info)
       m_FMA_LOG_CB(FMA_LOG_CB_RETRIEVE, FMA_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
       return NCSCC_RC_FAILURE;  
    }
-    
+   
+   /* Finalize the hpl library */
+   if (fma_hpl_finalize() != NCSCC_RC_SUCCESS)
+      m_NCS_CONS_PRINTF("Hpl library finalize failed\n");
+
    /** Free all rec and destroy hdl-db patricia tree **/
    fma_hdl_db_del(cb);
    m_FMA_LOG_HDL_DB(FMA_LOG_HDL_DB_DESTROY,FMA_LOG_HDL_DB_SUCCESS,0,NCSFL_SEV_INFO);   
@@ -661,30 +674,57 @@ static uns32 fma_destroy (NCS_LIB_DESTROY *destroy_info)
 void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
                                      uns8 slot, uns8 site)
 {
-   /* shelf id has been hard coded */
    uns8 shelf  = 0;
    uns32 count = 0;
+   uns32 rc = NCSCC_RC_FAILURE;
+   SaHpiEntityPathT temp_epath;
 
-   /* Here we are retriving the shelf Id */
+   /* Retrieve the shelf id/chassis id from node_id */
    m_NCS_GET_PHYINFO_FROM_NODE_ID(cb->my_node_id, &shelf, NULL, NULL);
 
    m_NCS_MEMSET(o_ent_path, 0, sizeof(SaHpiEntityPathT));
+   m_NCS_MEMSET(&temp_epath, 0, sizeof(SaHpiEntityPathT));
 
    if ((0 != site) && (15 != site))
    {
+      /* Fill the entity type for site (i.e. subslot/amc card).
+       * This is the same as the value configured in /etc/opensaf/subslot_id
+       */
       o_ent_path->Entry[count].EntityType = SAHPI_ENT_CHASSIS_SPECIFIC + 7;
       o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)site;
    }
 
-   o_ent_path->Entry[count].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-   o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)slot;
+   if (cb->is_platform == TRUE)
+   {
+      /* Attempt to lookup the array-based entity-path first using the HISv lookup fn */
+      rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *) &temp_epath);
+   }
 
-   o_ent_path->Entry[count].EntityType  = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-   o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)shelf;
+   if ((rc == NCSCC_RC_SUCCESS) && (temp_epath.Entry[0].EntityType != 0)) {
 
-   o_ent_path->Entry[count].EntityType  = SAHPI_ENT_ROOT;
-   o_ent_path->Entry[count++].EntityLocation = 0;
+       m_NCS_CONS_PRINTF("HPL lookup of entity path successful\n");
+       /* Copy the epath dynamically obtained from HPL<->HISV<->HPI */
+      o_ent_path->Entry[count].EntityType = temp_epath.Entry[0].EntityType;
+      o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)temp_epath.Entry[0].EntityLocation;
 
+      o_ent_path->Entry[count].EntityType = temp_epath.Entry[1].EntityType;
+      o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)temp_epath.Entry[1].EntityLocation;
+
+      o_ent_path->Entry[count].EntityType = temp_epath.Entry[2].EntityType;
+      o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)temp_epath.Entry[2].EntityLocation;
+   }
+   else
+   {
+      /* Fill the default epath */
+      o_ent_path->Entry[count].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
+      o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)slot;
+
+      o_ent_path->Entry[count].EntityType  = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+      o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)shelf;
+
+      o_ent_path->Entry[count].EntityType  = SAHPI_ENT_ROOT;
+      o_ent_path->Entry[count++].EntityLocation = 0;
+   }
    return;
 }
 
@@ -716,10 +756,12 @@ uns32 fma_get_slot_site_from_ent_path(SaHpiEntityPathT ent_path, uns8 *o_slot,
       if (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_ROOT)
          break;
     
-      if (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
-         *o_slot = ent_path.Entry[tmp_var].EntityLocation;
+      if ((ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
+          (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+          (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SWITCH_BLADE))
+           *o_slot = ent_path.Entry[tmp_var].EntityLocation;
         
-      /* enum name for site id is TBD. for now use the offset 7 */
+      /* enum name for site id (subslot/AMC card) is TBD. for now use the offset 7 */
       if (ent_path.Entry[tmp_var].EntityType == (SAHPI_ENT_CHASSIS_SPECIFIC + 7))
          *o_site = ent_path.Entry[tmp_var].EntityLocation;
    }
@@ -728,5 +770,58 @@ uns32 fma_get_slot_site_from_ent_path(SaHpiEntityPathT ent_path, uns8 *o_slot,
       return NCSCC_RC_FAILURE;
    
    return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+  Name          : fma_hpl_init 
+  
+  Description   : Initializes the HPL client library.
+     
+  Arguments     : None.
+  
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+  
+  Notes         : None. 
+ *****************************************************************************/
+static uns32 fma_hpl_init(void)
+{
+   NCS_LIB_REQ_INFO    req_info;
+   uns32   rc = NCSCC_RC_SUCCESS;
+
+   /* Initialize with HPL.*/
+   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   req_info.i_op = NCS_LIB_REQ_CREATE;
+   rc = ncs_hpl_lib_req(&req_info);
+   if (rc != NCSCC_RC_SUCCESS)
+   {
+      m_NCS_CONS_PRINTF("hpl lib init failed\n ");
+      return rc;
+   }
+
+   return rc;
+}
+
+/****************************************************************************
+  Name          : fma_hpl_finalize
+ 
+  Description   : Finalizes the HPL client library.
+ 
+  Arguments     : None.
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+  
+  Notes         : None. 
+ ****************************************************************************/
+static uns32 fma_hpl_finalize(void)
+{
+   NCS_LIB_REQ_INFO    req_info;
+   uns32   rc = NCSCC_RC_SUCCESS;
+
+   /* Initialize with HPL.*/
+   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   req_info.i_op = NCS_LIB_REQ_DESTROY;
+   rc = ncs_hpl_lib_req(&req_info);
+
+   return rc;
 }
 
