@@ -1655,16 +1655,16 @@
                                         -->
                                         <clcCommands>
                                                 <instantiateCommand>
-                                                        <command>xxBINDIRxx/opensaf_fms instantiate</command>
+                                                        <command>xxLIBDIRxx/opensaf_fms instantiate</command>
                                                         <timeout>50000</timeout>
                                                         <numMaxInstantiate>5</numMaxInstantiate>
                                                 </instantiateCommand>
                                                 <terminateCommand>
-                                                        <command>xxBINDIRxx/opensaf_fms clean</command>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
                                                         <timeout>500</timeout>
                                                 </terminateCommand>
                                                 <cleanupCommand>
-                                                        <command>xxBINDIRxx/opensaf_fms clean</command>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
                                                         <timeout>30000</timeout>
                                                 </cleanupCommand>
                                         </clcCommands>
