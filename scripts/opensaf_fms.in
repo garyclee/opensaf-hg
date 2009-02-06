@@ -25,7 +25,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 DAEMON=opensaf_fmsd
 PIDFILE="$PIDPATH/fms.pid"
 export FMS_CONF_PATH="$SYSCONFDIR/fms.conf"
-SERVICE_CODE=HLFM
+NID_SVC_NAME=HLFM
 
 XTERM=""
 #XTERM="xterm -T OpenSAF-FMS -e "
@@ -41,7 +41,7 @@ start()
      #Check if daemon is installed.
     if [ ! -x "$BINPATH/$DAEMON" ]; then
        echo -n -e "Unable to find daemon: $BINPATH/$DAEMON     \n"
-       echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_NOT_FND" > $NIDFIFO
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
        exit 1
     fi
     killall -9 opensaf_fmsd
@@ -51,7 +51,7 @@ start()
 
     if [ $? -ne 0 ] ; then
         echo -n -e "Failed to start $DAEMON.    \n"
-        echo "$NID_MAGIC:$SERVICE_CODE:$DAEMON_START_FAILED" > "$NIDFIFO"
+        echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
         exit 1
      else
          echo "Started $DESC: $BINPATH/$DAEMON"

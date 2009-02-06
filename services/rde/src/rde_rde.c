@@ -1020,10 +1020,10 @@ uns32 rde_rde_update_config_file(PCS_RDA_ROLE role)
   if(rde_rde_cb->nid_ack_sent == FALSE)
   {
     /* NID ACK has not been sent yet, so sent it now. */
-      NID_STATUS_CODE nid_stat_code;
+      uns32 nid_stat_code;
       uns32 error;
-      nid_stat_code.hlfm_status =  NCSCC_RC_SUCCESS;
-      nid_notify(NID_RDF, nid_stat_code, &error);
+      nid_stat_code  =  NCSCC_RC_SUCCESS;
+      nid_notify("RDF", nid_stat_code, &error);
       rde_rde_cb->nid_ack_sent = TRUE;
   }
 

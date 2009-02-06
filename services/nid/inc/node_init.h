@@ -93,7 +93,7 @@ typedef enum nid_platconf_pars {
 ******************************************************************/
 
 struct nid_resetinfo{
-   NID_SVC_CODE faild_serv_code;
+   uns8 faild_serv_name[NID_MAXSNAME];  
    uns32 count;
 };
 
@@ -139,7 +139,7 @@ typedef struct nid_recovery_list {
 
 struct nid_spawn_info {
    uns32 pid;
-   NID_SVC_CODE servcode;
+   uns8 serv_name[NID_MAXSNAME];                        /* Service name to be spawned*/
    NID_APP_TYPE app_type;
    uns8 s_name[NID_MAXSFILE];                        /* Service name to be spawned*/
    uns8 cleanup_file[NID_MAXSFILE];                  /* Cleanup for the service spawned*/
@@ -171,82 +171,5 @@ typedef struct nid_child_list {
 #define NID_NOTIFY_ENABLE   1
 #define NID_NOTIFY_DISABLE  0
 
-#define NID_PHOENIXBIOS_UPGRADED 100
-
-/* vivek_nid */
-#define MOTO_FIRMWARE_BOOT_SUCCESS      0x80
-#define MOTO_FIRMWARE_SYSINIT_SUCCESS   0x81
-#define MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_SUCCESS 0x82
-
-/*********************************************************
-*       OpenSAF Specific System Firmware Progress Codes *
-*       May need to go into hisv headder.                *
-*********************************************************/
-#define  MOTO_FIRMWARE_OEM_CODE                 0xFD /* motorola OEM code */
-
-#define  MOTO_FIRMWARE_HAPS_INIT_SUCCESS        0x01
-#define  MOTO_FIRMWARE_NCS_INIT_SUCCESS         0x02
-
-#if 0
-#define  MOTO_FIRMWARE_HPM_INIT_FAIL                   0x80
-/* vivek_nid */
-#define  MOTO_FIRMWARE_IPMC_UPGRADE_FAIL               0x81
-#define  MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_FAIL        0x82
-#define  MOTO_FIRMWARE_HLFM_INIT_FAIL                  0x83
-#define  MOTO_FIRMWARE_OPENHPI_INIT_FAIL               0x84
-#define  MOTO_FIRMWARE_XND_INIT_FAIL                   0x85
-#define  MOTO_FIRMWARE_LHCD_INIT_FAIL                  0x86
-#define  MOTO_FIRMWARE_LHCR_INIT_FAIL                  0x87
-#define  MOTO_FIRMWARE_NWNG_INIT_FAIL                  0x88
-#define  MOTO_FIRMWARE_DRBD_INIT_FAIL                  0x89
-#define  MOTO_FIRMWARE_TIPC_INIT_FAIL                  0x8A
-#define  MOTO_FIRMWARE_IFSVDD_INIT_FAIL                0x8B
-#define  MOTO_FIRMWARE_DLSV_INIT_FAIL                  0x8C
-#define  MOTO_FIRMWARE_MASV_INIT_FAIL                  0x8D
-#define  MOTO_FIRMWARE_PSSV_INIT_FAIL                  0x8E
-#define  MOTO_FIRMWARE_GLND_INIT_FAIL                  0x8F
-#define  MOTO_FIRMWARE_EDSV_INIT_FAIL                  0x90
-#define  MOTO_FIRMWARE_SUBAGT_INIT_FAIL                0x91 /*61409*/
-#define  MOTO_FIRMWARE_SNMPD_INIT_FAIL                 0x92
-#define  MOTO_FIRMWARE_NCS_INIT_FAIL                   0x93
-#endif
-
-/* Moving the IPMC/BIOS codes to the end */
-#define  MOTO_FIRMWARE_HPM_INIT_FAIL                   0x80
-#define  MOTO_FIRMWARE_HLFM_INIT_FAIL                  0x81
-#define  MOTO_FIRMWARE_OPENHPI_INIT_FAIL               0x82
-#define  MOTO_FIRMWARE_XND_INIT_FAIL                   0x83
-#define  MOTO_FIRMWARE_LHCD_INIT_FAIL                  0x84
-#define  MOTO_FIRMWARE_LHCR_INIT_FAIL                  0x85
-#define  MOTO_FIRMWARE_NWNG_INIT_FAIL                  0x86
-#define  MOTO_FIRMWARE_DRBD_INIT_FAIL                  0x87
-#define  MOTO_FIRMWARE_TIPC_INIT_FAIL                  0x88
-#define  MOTO_FIRMWARE_IFSVDD_INIT_FAIL                0x89
-#define  MOTO_FIRMWARE_DLSV_INIT_FAIL                  0x8A
-#define  MOTO_FIRMWARE_MASV_INIT_FAIL                  0x8B
-#define  MOTO_FIRMWARE_PSSV_INIT_FAIL                  0x8C
-#define  MOTO_FIRMWARE_GLND_INIT_FAIL                  0x8D
-#define  MOTO_FIRMWARE_EDSV_INIT_FAIL                  0x8E
-#define  MOTO_FIRMWARE_SUBAGT_INIT_FAIL                0x8F /*61409*/
-#define  MOTO_FIRMWARE_SNMPD_INIT_FAIL                 0x90
-#define  MOTO_FIRMWARE_NCS_INIT_FAIL                   0x91
-#define  MOTO_FIRMWARE_IPMC_UPGRADE_FAIL               0x92
-#define  MOTO_FIRMWARE_PHOENIXBIOS_UPGRADE_FAIL        0x93
-
-#define  MOTO_FIRMWARE_RDF_INIT_FAIL                   0x94
-
-
-enum fw_prog_notify{
-   NID_NOTIFY_SUCCESS=0,
-   NID_NOTIFY_FAILURE,
-   NID_MAX_NOTIFY
-};
-
-
-typedef struct {
-   NCS_BOOL notify;
-   uns8 data3;
-   uns8 *diplay_msg;
-} FW_PROG_SNSR;
 
 #endif /* NODEINIT_H */

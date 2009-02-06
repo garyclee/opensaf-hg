@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
    if(fm_create_pidfile() != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm pid file create failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE);
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE);
       goto fm_agents_startup_failed;
    }
 
@@ -76,7 +76,7 @@ int main (int argc, char *argv[])
    {
        /* notify the NID */
        m_NCS_CONS_PRINTF("\nfm_agents_startup() failed.");
-       fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
        goto fm_agents_startup_failed;
    }
 
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
    {
        /* notify the NID */
       m_NCS_CONS_PRINTF("\nCB Allocation failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_agents_startup_failed;
    }
 
@@ -102,7 +102,7 @@ int main (int argc, char *argv[])
    {
       /* notify the NID */
       m_NCS_CONS_PRINTF("\nfm_get_args() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
     
@@ -110,7 +110,7 @@ int main (int argc, char *argv[])
    if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nm_NCS_IPC_CREATE() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
 
@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
    if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nm_NCS_IPC_ATTACH() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mbx_attach_failure;
    }
 
@@ -126,7 +126,7 @@ int main (int argc, char *argv[])
    if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_mds_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mds_init_failed;
    }
 
@@ -134,7 +134,7 @@ int main (int argc, char *argv[])
    if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_rda_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_rda_init_failed;
    }
 
@@ -142,7 +142,7 @@ int main (int argc, char *argv[])
    if (fm_hpl_init() != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm_hpl_init() failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
 
@@ -150,7 +150,7 @@ int main (int argc, char *argv[])
    if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
    {
       m_NCS_CONS_PRINTF("\nfm pipe open failed (avm) failed.");
-      fm_nid_notify((uns32)NID_GFM_INIT_FAILURE); 
+        fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
 
@@ -955,11 +955,13 @@ char* fms_skip_white(char *ptr)
 static uns32 fm_nid_notify(uns32 nid_err)
 {
    uns32 error;
-   NID_STATUS_CODE nid_stat_code;
+   uns32 nid_stat_code;
    
-   nid_stat_code.hlfm_status = nid_err; 
-
-   return nid_notify(NID_HLFM, nid_stat_code, &error);
+   if (nid_err > NCSCC_RC_SUCCESS)
+       nid_err= NCSCC_RC_FAILURE;
+   
+   nid_stat_code = nid_err; 
+   return nid_notify("HLFM", nid_stat_code, &error);
 }
 
 

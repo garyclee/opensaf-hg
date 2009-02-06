@@ -522,7 +522,8 @@ avm_proc_bam(
        } 
        if(avm_cb->config_cnt != bam_avm->evt.bam_evt->msg_info.msg.check_sum)
        {
-           m_NCS_NID_NOTIFY(NID_SCAP_ERR1);
+           m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+           m_NCS_CONS_PRINTF("check_sum Wrong\n");
        }
         avm_cb->config_state = AVM_CONFIG_DONE;
 

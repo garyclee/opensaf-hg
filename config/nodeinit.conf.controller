@@ -47,12 +47,12 @@
 #       NOTE:           NID passes ROLE and Service-code as extra arguments #
 #                       to all the services it spawns after RDF. These      # 
 #                       are appended at the end of user configred arguments.#
-#                       Ex: For executables: "ROLE=1" "NID_SVC_ID=1"        #
-#                           For scripts: "ROLE=ACTIVE" "NID_SVC_ID=DRBD"    #
+#                       Ex: For executables: "ROLE=1" "NID_SVC_NAME=DRBD"   #
+#                           For scripts: "ROLE=ACTIVE" "NID_SVC_NAME=DRBD"  #
 #                       However it passes Service-code for all pre-RDF      #
 #                       processes.                                          #
 #############################################################################
-IPMC_BOARD:LINUX_PC_SCXB
+
 xxBINDIRxx/nid_tipc:TIPC:S:xxBINDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
 xxBINDIRxx/rde_script:RDF:S:xxBINDIRxx/rde_script:12000:-6:2:1:start:stop
 xxBINDIRxx/opensaf_fms:HLFM:S:xxBINDIRxx/opensaf_fms:12000:-6:2:1:start:stop
