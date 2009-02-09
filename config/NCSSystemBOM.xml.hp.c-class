@@ -1634,6 +1634,61 @@
                                         <enableAM>0</enableAM>
                                 </componentPrototype>
 
+                                <componentPrototype name="safComp=CompT_SC_FMS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms instantiate</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
+                                                        <timeout>500</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
+                                                        <timeout>30000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_FMS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE</capability>
+<!--                                                <numMaxActiveCSIs>1</numMaxActiveCSIs> -->
+<!--                                                <numMaxStandbyCSIs>1</numMaxStandbyCSIs> -->
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="BAD9">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                </componentPrototype>
+
 
                                 <!--
                                      Leave this junk prototype if you dont have
@@ -1767,6 +1822,7 @@
                                                 <componentPrototype>safComp=CompT_PDRBD</componentPrototype>
                                 -->
 						<componentPrototype>safComp=CompT_SC_RDE</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SC_FMS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_SC_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_GLND</componentPrototype>
@@ -1809,8 +1865,12 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                                                        <prototypeName>safCsi=Csi_FMS</prototypeName>
+                                                        <CSIAttributes/>
+                                                 </CSIInstance>
                                 <!--
-                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="5">
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
@@ -1841,8 +1901,12 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                                                        <prototypeName>safCsi=Csi_FMS</prototypeName>
+                                                        <CSIAttributes/>
+                                                 </CSIInstance>
                                 <!--
-                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="5">
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
