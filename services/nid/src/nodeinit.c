@@ -406,10 +406,10 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
 	sysf_sprintf(sbuf,": Null/Empty string  not a valid service Name");
         break;
       }
-      if(m_NCS_STRLEN(q) > NID_MAXSNAME)
+      if(m_NCS_STRLEN(q) > NID_MAX_SVC_NAME_LEN)
       {
-        sysf_sprintf(sbuf,": App name length exceeded max:%d in file" 
-                     NID_PLAT_CONF,NID_MAXSNAME);
+        sysf_sprintf(sbuf,": App name length exceeded max:%d in file",
+                     NID_MAX_SVC_NAME_LEN);
         break;
       }
       
