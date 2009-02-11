@@ -171,6 +171,8 @@ Optional miscellaneous tools and utilities for use with OpenSAF
 
 %{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/*.la
 %{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.la
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.a
+%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.so
 
 %{__rm} -rf $RPM_BUILD_ROOT/usr/share/doc/%{name}-%{version}
 
@@ -382,6 +384,49 @@ fi
 %{_datadir}/%{name}/drbd.2.conf
 %{_localstatedir}/lib/%{name}/node_ha_state
 %{_localstatedir}/lib/%{name}/pssv_spcn_list
+%{_libdir}/%{name}/libavm_logstr.so.*
+%{_libdir}/%{name}/libavm_pssv.so.*
+%{_libdir}/%{name}/libavm_subagt.so.*
+%{_libdir}/%{name}/libavsv_clicef.so.*
+%{_libdir}/%{name}/libavsv_logstr.so.*
+%{_libdir}/%{name}/libavsv_pssv.so.*
+%{_libdir}/%{name}/libavsv_subagt.so.*
+%{_libdir}/%{name}/libbam_logstr.so.*
+%{_libdir}/%{name}/libcli_logstr.so.*
+%{_libdir}/%{name}/libcpsv_logstr.so.*
+%{_libdir}/%{name}/libcpsv_subagt.so.*
+%{_libdir}/%{name}/libdts_clicef.so.*
+%{_libdir}/%{name}/libdts_logstr.so.*
+%{_libdir}/%{name}/libdts_pssv.so.*
+%{_libdir}/%{name}/libdtsv_subagt.so.*
+%{_libdir}/%{name}/libedsv_logstr.so.*
+%{_libdir}/%{name}/libedsv_subagt.so.*
+%{_libdir}/%{name}/libglsv_logstr.so.*
+%{_libdir}/%{name}/libglsv_subagt.so.*
+%{_libdir}/%{name}/libifsv_bind_subagt.so.*
+%{_libdir}/%{name}/libifsv_clicef.so.*
+%{_libdir}/%{name}/libifsv_entp_subagt.so.*
+%{_libdir}/%{name}/libifsv_logstr.so.*
+%{_libdir}/%{name}/libifsv_subagt.so.*
+%{_libdir}/%{name}/libipxs_subagt.so.*
+%{_libdir}/%{name}/libmab_logstr.so.*
+%{_libdir}/%{name}/libmbcsv_logstr.so.*
+%{_libdir}/%{name}/libmqsv_logstr.so.*
+%{_libdir}/%{name}/libmqsv_subagt.so.*
+%{_libdir}/%{name}/libncs_snmp_subagt.so.*
+%{_libdir}/%{name}/libpdrbd_logstr.so.*
+%{_libdir}/%{name}/libpsr_clicef.so.*
+%{_libdir}/%{name}/libpssv_logstr.so.*
+%{_libdir}/%{name}/libpssv_subagt.so.*
+%{_libdir}/%{name}/librde_logstr.so.*
+%{_libdir}/%{name}/libfma_logstr.so.*
+%{_libdir}/%{name}/libsrmsv_logstr.so.*
+%{_libdir}/%{name}/libsubagt_logstr.so.*
+%{_libdir}/%{name}/libvds_logstr.so.*
+#TODO: To be changed when supporting other HPI
+%if %is_hpi
+%{_libdir}/%{name}/libhisv_logstr.so.*
+%endif
 
 
 %files payload
@@ -425,59 +470,14 @@ fi
 %{_libdir}/libfma.so.*
 %{_libdir}/libsaf_common.so.*
 %{_libdir}/libsrma.so.*
-%{_libdir}/%{name}/libavm_logstr.so.*
-%{_libdir}/%{name}/libavm_pssv.so.*
-%{_libdir}/%{name}/libavm_subagt.so.*
-%{_libdir}/%{name}/libavsv_clicef.so.*
-%{_libdir}/%{name}/libavsv_logstr.so.*
-%{_libdir}/%{name}/libavsv_pssv.so.*
-%{_libdir}/%{name}/libavsv_subagt.so.*
-%{_libdir}/%{name}/libbam_logstr.so.*
-%{_libdir}/%{name}/libcli_logstr.so.*
-%{_libdir}/%{name}/libcpsv_logstr.so.*
-%{_libdir}/%{name}/libcpsv_subagt.so.*
-%{_libdir}/%{name}/libdts_clicef.so.*
-%{_libdir}/%{name}/libdts_logstr.so.*
-%{_libdir}/%{name}/libdts_pssv.so.*
-%{_libdir}/%{name}/libdtsv_subagt.so.*
-%{_libdir}/%{name}/libedsv_logstr.so.*
-%{_libdir}/%{name}/libedsv_subagt.so.*
-%{_libdir}/%{name}/libglsv_logstr.so.*
-%{_libdir}/%{name}/libglsv_subagt.so.*
-#TODO: To be changed when supporting other HPI
-%if %is_hpi
-%{_libdir}/%{name}/libhisv_logstr.so.*
-%endif
 %{_libdir}/libhpl.so.*
-%{_libdir}/%{name}/libifsv_bind_subagt.so.*
-%{_libdir}/%{name}/libifsv_clicef.so.*
-%{_libdir}/%{name}/libifsv_entp_subagt.so.*
-%{_libdir}/%{name}/libifsv_logstr.so.*
-%{_libdir}/%{name}/libifsv_subagt.so.*
-%{_libdir}/%{name}/libipxs_subagt.so.*
-%{_libdir}/%{name}/libmab_logstr.so.*
-%{_libdir}/%{name}/libmbcsv_logstr.so.*
-%{_libdir}/%{name}/libmqsv_logstr.so.*
-%{_libdir}/%{name}/libmqsv_subagt.so.*
-%{_libdir}/%{name}/libncs_snmp_subagt.so.*
-%{_libdir}/%{name}/libpdrbd_logstr.so.*
-%{_libdir}/%{name}/libpsr_clicef.so.*
-%{_libdir}/%{name}/libpssv_logstr.so.*
-%{_libdir}/%{name}/libpssv_subagt.so.*
-%{_libdir}/%{name}/librde_logstr.so.*
-%{_libdir}/%{name}/libfma_logstr.so.*
-%{_libdir}/%{name}/libsrmsv_logstr.so.*
-%{_libdir}/%{name}/libsubagt_logstr.so.*
-%{_libdir}/%{name}/libvds_logstr.so.*
 
 
 %files devel
 %defattr(-,root,root)
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.so
-%{_libdir}/%{name}/*.so
 %{_libdir}/*.a
-%{_libdir}/%{name}/*.a
 # TODO split of SAF / non-SAF headers
 %{_includedir}/*
 
