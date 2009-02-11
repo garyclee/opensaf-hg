@@ -48,7 +48,7 @@
 
 #define NID_MAGIC       0xAAB49DAA
 
-#define NID_MAXSNAME                 15
+#define NID_MAXSNAME                30 
 
 #define NODE_HA_STATE  OSAF_LOCALSTATEDIR "node_ha_state"
 
