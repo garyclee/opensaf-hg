@@ -94,19 +94,6 @@ static uns32 ifsv_gbl_object_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
                    NCSCONTEXT *data, uns32* next_inst_id,
                                       uns32 *next_inst_id_len)
 {
-#if 0
-   IFSV_CB           *cb;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   /* Get the CB pointer from the CB handle */
-   (cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, arg->i_mib_key)) == 0 ? (cb = 
-      ncshm_take_hdl(NCS_SERVICE_ID_IFND, arg->i_mib_key)):(cb = cb);
-
-
-   *data = cb;
-
-   return rc;
-#endif
    /* Issues with get next on scalars, return failure for time being, */
    return NCSCC_RC_FAILURE;
 }

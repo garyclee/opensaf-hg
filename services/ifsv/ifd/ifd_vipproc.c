@@ -320,7 +320,7 @@ uns32  ifd_ifnd_proc_vipd_free(IFSV_CB *cb,IFSV_EVT *pEvt )
        /* Send the trigger point to Standby IfD. */
        rc = ifd_a2s_async_update(cb, IFD_A2S_VIPD_REC_DEL_MSG,
                                        (uns8 *)(pVipd));
-       /* nagu Insert the checkpoint failure handling code. */
+       /*  Insert the checkpoint failure handling code. */
        /* If reference count is 1, delete the entry */
        rc = ifsv_vipd_vipdc_rec_del(&cb->vipDBase,(NCS_PATRICIA_NODE *)pVipd,IFSV_VIP_REC_TYPE_VIPD);
        if (rc == NCSCC_RC_FAILURE) /* IF VIPD is not cleared */
@@ -692,7 +692,7 @@ uns32 ifd_ifnd_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
 
        rc = ifd_a2s_async_update(cb, IFD_A2S_VIPD_REC_CREATE_MSG,
                                         (uns8 *)(pVipdRec));
-       /*  nagu Insert the code of failure of checkpoint*/ 
+       /*   Insert the code of failure of checkpoint*/ 
        rc = ifsv_vipd_vipdc_rec_add(&cb->vipDBase, pVipdNode);
        if (rc == NCSCC_RC_FAILURE )
        {
@@ -766,13 +766,6 @@ uns32 ifd_vip_evt_process(IFSV_CB *cb, IFSV_EVT *evt)
           if( rc != NCSCC_RC_SUCCESS) 
           m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ifd_proc_ifnd_get_ip_from_stale_entry() returned failure,rc:",rc);
           break;
-#if 0 /* COMMENTED FOR VIP COMPILATION : NEED TO BE CHECKED IF REQUIRED */
-       case IFND_VIP_IPXS_ADD:
-          rc = ifd_ifnd_proc_ipxs_add(cb,evt);
-          if( rc != NCSCC_RC_SUCCESS) 
-          m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ifd_ifnd_proc_ipxs_add() returned failure,rc:",rc);
-          break;
-#endif
        default:
           rc = NCSCC_RC_FAILURE;
           break;

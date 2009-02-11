@@ -420,12 +420,6 @@ ifd_a2s_async_svc_upd_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
   a2s_msg->info.ifd_a2s_svc_dest_upd_evt.type = IFD_A2S_SVC_DEST_UPD_EVT_BASE;
   m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_svc_dest_upd_evt.info, msg, 
                sizeof(NCS_IFSV_SVC_DEST_UPD));
-#if 0  
-  /* Copy the SVC DEST. */
-  res = ifsv_intf_info_cpy(&info->if_info, 
-                &a2s_msg->info.ifd_a2s_svc_dest_upd_evt.info.if_info, 
-                IFSV_MALLOC_FOR_INTERNAL_USE);
-#endif
   return res;
 
 } /* function ifd_a2s_async_svc_upd_info_send() ends here. */
@@ -460,11 +454,6 @@ ifd_a2s_ipxs_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
                                             IFD_A2S_IPXS_INTF_INFO_EVT_BASE;
   m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ipxs_intf_info_evt.info, msg, 
                sizeof(IPXS_EVT_IF_INFO));
-#if 0
-  res = ipxs_ipinfo_cpy(&info->ip_info, 
-                       &a2s_msg->info.ifd_a2s_ipxs_intf_info_evt.info.ip_info, 
-                       IFSV_MALLOC_FOR_MDS_SEND);
-#endif  
   return res;
 
 } /* function ifd_a2s_ipxs_info_send() ends here. */
@@ -2489,10 +2478,6 @@ static uns32  ifd_mbcsv_dec_warm_sync_resp(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
 
 #if (NCS_IFSV_IPXS == 1)
-#if 0
-       /* Call the function to delete IPXS record. */
-       ifd_ipxs_record_del();
-#endif
 #endif
        /* Mark the flag on as MBCSV will start data download. */
        cb->cold_or_warm_sync_on = TRUE;
@@ -2981,38 +2966,5 @@ static uns32  ifd_find_index_from_sptmap(uns32 ifindex,IFSV_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-#if 0
-
-  /*
-  * This function is not necessary Not Necessary
-  */
-static void
-ifd_a2s_sync_vip_rec_resp(IFSV_CB *cb, VIP_REDUNDANCY_RECORD *p_ckpt_data_vip)
-{
-    VIP_REDUNDANCY_RECORD *p_temp_vip_chkpt_rec;
-    VIP_REDUNDANCY_RECORD *p_vip_chk_pt_rec;
-    uns32 vip_rec_cnt;
-
-/* Note:: IMP
-         IMP TO be Discussed with Nagender about MAX_NO_IFD_MSGS_A2S in the malloc
-*/
-    p_vip_chk_pt_rec = (VIP_REDUNDANCY_RECORD*)m_NCS_MEM_ALLOC((MAX_NO_IFD_MSGS_A2S)*sizeof(VIP_REDUNDANCY_RECORD), \
-                                                               NCS_MEM_REGION_PERSISTENT, \
-                                                               NCS_SERVICE_ID_IFSV, \
-                                                               NCS_IFSV_SVC_SUB_ID_VIP_REDUNDANCY_REC);
-
-    p_temp_vip_chkpt_rec = p_vip_chk_pt_rec;
-
-/*  TBD:: ASK NAGENDRA Regarding the "vip_rec_cnt < MAX_NO_IFD_MSGS_A2S" chack in teh below for loop */
-    for(vip_rec_cnt = 0; vip_rec_cnt < MAX_NO_IFD_MSGS_A2S; vip_rec_cnt++)
-    {
-      /*
-         In this for loop we are trying to build the VIP database received @ perVIP record basis
-       */
-       ifd_a2s_vip_rec_create_handler (p_temp_vip_chkpt_rec, cb);
-        p_temp_vip_chkpt_rec++;
-    }
-}
-#endif
 #endif
 /*********************  file ends here ************************************/

@@ -844,10 +844,6 @@ uns32 avnd_evt_avd_su_pres_msg (AVND_CB *cb, AVND_EVT *evt)
    case FALSE: /* => instantiate the su */
       /* Reset admn term operation flag*/
       m_AVND_SU_ADMN_TERM_RESET(su);
-#if 0
-      if(m_AVND_SU_REG_COMP_MSG_IS_SENT(su))
-          m_AVND_SU_REG_COMP_MSG_SENT_RESET(su);
-#endif
       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
          /* trigger su instantiation for pi su */
       if ( m_AVND_SU_IS_PREINSTANTIABLE(su) )
@@ -1035,11 +1031,6 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB        *cb,
       if ( (NCS_PRES_INSTANTIATING == prv_st) &&
            (NCS_PRES_INSTANTIATIONFAILED == final_st) )
       {
-#if 0
-         /* instantiation failed.. delete su current info */
-         rc = avnd_su_curr_info_del(cb, su);
-         if ( NCSCC_RC_SUCCESS != rc ) goto done;
-#endif
          /* send the su-oper state msg (to indicate that instantiation failed) */
          rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
          if ( NCSCC_RC_SUCCESS != rc ) goto done;
@@ -1049,10 +1040,6 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB        *cb,
       if ( ((NCS_PRES_INSTANTIATED == prv_st) || (NCS_PRES_RESTARTING == prv_st))&&
            (NCS_PRES_INSTANTIATIONFAILED == final_st) )
       {
-#if 0
-         /* instantiation failed.. delete su current info */
-         avnd_su_curr_info_del(cb, su);
-#endif
          /* send the su-oper state msg (to indicate that instantiation failed) */
          if(m_AVND_SU_OPER_STATE_IS_ENABLED(su))
          {

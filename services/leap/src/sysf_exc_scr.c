@@ -83,7 +83,6 @@ ncs_exc_mdl_stop_timer(SYSF_PID_LIST *exec_pid)
    m_NCS_TMR_STOP(exec_pid->tmr_id);
 
    m_NCS_TMR_DESTROY(exec_pid->tmr_id);
-   /* IR00060372 */
    exec_pid->tmr_id  = NULL;
    
 }
@@ -110,7 +109,6 @@ void ncs_exec_module_signal_hdlr(int signal)
 {
    EXEC_MOD_INFO   info;
 
-   /*IR00061181*/
    if (signal == SIGCHLD)
    {
        info.pid = 0;
@@ -156,35 +154,6 @@ void ncs_exec_module_timer_hdlr(void *uarg)
    return;
 }
 
-#if 0
-   SYSF_PID_LIST *exec_pid;
-   int            pid;
-   NCS_OS_PROC_EXECUTE_TIMED_CB_INFO cb_info;
-
-   pid = (int)uarg;
-
-   m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-
-   if (NULL != (exec_pid = (SYSF_PID_LIST*)ncs_patricia_tree_get(&module_cb.pid_list,
-      (const uns8 *)&pid)))
-   {
-      cb_info.exec_stat.value = NCS_OS_PROC_EXIT_WAIT_TIMEOUT;
-      cb_info.i_usr_hdl = exec_pid->usr_hdl;
-      cb_info.i_exec_hdl = exec_pid->exec_hdl;
-      
-      exec_pid->exec_cb(&cb_info);
-      m_NCS_OS_PROCESS_TERMINATE(exec_pid->pid);
-      
-      /* Remove entry fro pat tree */
-      ncs_patricia_tree_del(&module_cb.pid_list, 
-         (NCS_PATRICIA_NODE *)exec_pid);
-
-      m_MMGR_FREE_PRO_EXC(exec_pid);
-
-   }
-   m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-}
-#endif
 
 /**************************************************************************\
  *
@@ -219,7 +188,6 @@ void ncs_exec_mod_hdlr(void)
        {
           if (ret_val <= 0)
           {
-             /* IR00060372 */
              if (errno == EBADF)
                  return;
 
@@ -229,7 +197,7 @@ void ncs_exec_mod_hdlr(void)
           count += ret_val;
        } /* while */
        
-       if(info.type ==   SYSF_EXEC_INFO_TIME_OUT)  /*IR00061181*/
+       if(info.type ==   SYSF_EXEC_INFO_TIME_OUT)  
        {
            /* m_NCS_CONS_PRINTF("Time out signal \n");*/
            pid = info.pid;
@@ -251,7 +219,7 @@ repeat_srch_from_beginning:
               if((pid == m_NCS_SIGNAL_WAITPID(pid, &status, WNOHANG)))
               {
                  /* TIMED OUT CHILDS which are terminated by sending  SIG CHILD */ 
-                 if(exec_pid->exec_info_type == SYSF_EXEC_INFO_TIME_OUT) /*IR00061181*/
+                 if(exec_pid->exec_info_type == SYSF_EXEC_INFO_TIME_OUT) 
                  {
                     ncs_patricia_tree_del(&module_cb.pid_list,(NCS_PATRICIA_NODE *)exec_pid);
                         
@@ -310,7 +278,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
          cb_info.exec_stat.value = NCS_OS_PROC_EXIT_WAIT_TIMEOUT;
          /*printf("\n%d Process terminated, callback given\n",exec_pid->pid);*/
          m_NCS_OS_PROCESS_TERMINATE(exec_pid->pid);
-         exec_pid->exec_info_type = SYSF_EXEC_INFO_TIME_OUT;  /* IR00061181 */
+         exec_pid->exec_info_type = SYSF_EXEC_INFO_TIME_OUT;  
          cb_info.exec_stat.info.exit_with_code.exit_code = WEXITSTATUS(status);
       }
       else
@@ -320,7 +288,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
          cb_info.exec_stat.info.exit_with_code.exit_code = WEXITSTATUS(status);
 
          /* First stop timer */
-         exec_pid->exec_info_type =  SYSF_EXEC_INFO_SIG_CHLD;  /* IR00061181 */
+         exec_pid->exec_info_type =  SYSF_EXEC_INFO_SIG_CHLD;  
          ncs_exc_mdl_stop_timer(exec_pid);
 
          /* Earlier "status = status >>8" now replaced with WEXITSTATUS macro */
@@ -347,7 +315,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
       cb_info.i_exec_hdl = exec_pid->exec_hdl;
 
       exec_pid->exec_cb(&cb_info);
-      if(type != SYSF_EXEC_INFO_TIME_OUT)  /*IR00061181*/
+      if(type != SYSF_EXEC_INFO_TIME_OUT)  
       {
 
          /* Remove entry from pat tree */
@@ -381,7 +349,6 @@ uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
 {
    SYSF_PID_LIST    *list_entry;
    
-   /* IR00060372 */
    if (module_cb.init == FALSE)
       return m_LEAP_DBG_SINK(NCSCC_RC_SUCCESS); 
 
@@ -394,7 +361,7 @@ uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
    list_entry->exec_hdl = req->o_exec_hdl =NCS_PTR_TO_UNS64_CAST(list_entry);
    list_entry->pid = pid;
    list_entry->pat_node.key_info = (uns8 *)&list_entry->pid;
-   list_entry->exec_info_type =  SYSF_EXEC_INFO_SIG_CHLD;  /* IR00061181 */
+   list_entry->exec_info_type =  SYSF_EXEC_INFO_SIG_CHLD;  
    
    m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
    
@@ -491,7 +458,6 @@ uns32 start_exec_mod_cb(void)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);;
    }
    
-   /* IR00060372 */ 
    module_cb.init = TRUE;
 
    m_NCS_SIGNAL(SIGCHLD, ncs_exec_module_signal_hdlr);
@@ -515,7 +481,6 @@ uns32 start_exec_mod_cb(void)
  * Notes:
  *
 \**************************************************************************/
-/* IR00060372 */
 uns32 exec_mod_cb_destroy(void)
 {
    SYSF_PID_LIST *exec_pid = NULL;

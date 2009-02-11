@@ -348,48 +348,6 @@ uns32 gla_hdl_callbk_dispatch_block(GLA_CB  *gla_cb,GLA_CLIENT_INFO *client_info
    GLSV_GLA_CALLBACK_INFO   *callback = NULL;
    SaLckHandleT             hdl = client_info->lock_handle_id;  
    uns32 rc = SA_AIS_OK;
-#if 0
-   NCS_SEL_OBJ_SET          all_sel_obj;
-   NCS_SEL_OBJ              sel_obj = m_NCS_IPC_GET_SEL_OBJ(&client_info->callbk_mbx);
-   m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-   m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
-
-   while(m_NCS_SEL_OBJ_SELECT(sel_obj,&all_sel_obj,0,0,0) != -1)
-   {
-      if (m_NCS_SEL_OBJ_ISSET(sel_obj,&all_sel_obj))
-      {
-         if(gla_client_tree_find_and_add(gla_cb,hdl,FALSE))
-         {
-            callback = glsv_gla_callback_queue_read(client_info);
-            if(callback)
-               gla_process_callback(gla_cb,client_info,callback);
-         }
-      }
-      else
-      {
-         /* check to see the validity of the handle */
-         if(gla_client_tree_find_and_add(gla_cb,hdl,FALSE))
-         {
-            /* Big amiss happened, so delete the client*/
-            m_LOG_GLA_API(GLA_DISPATCH_BLOCK_CLIENT_DESTROYED,NCSFL_SEV_ERROR);
-            if(client_info)
-            {
-               m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
-               gla_client_tree_delete_node(gla_cb, client_info);
-               m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_WRITE);
-            }
-            return SA_AIS_ERR_LIBRARY;
-         }
-         else
-         {
-            /* another thread executed the saLckFinalize - so everything is fine */
-            return SA_AIS_OK;
-         }
-
-      }
-      m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj);
-   }
-#endif
   for(;;)
    {
       if (NULL != (callback = (GLSV_GLA_CALLBACK_INFO *)

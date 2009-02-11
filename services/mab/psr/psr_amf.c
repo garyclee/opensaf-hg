@@ -126,7 +126,6 @@ pss_amf_component_name_set(void);
 static void
 pss_amf_sigusr2_handler(int i_sig_num);
 
-/* Fix for IR00085164 */
 EXTERN_C uns32
 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STDBY_OAA_DOWN_BUFFER_OP buffer_op);
 
@@ -282,7 +281,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
               (gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj.rmv_obj > 0) &&
               (gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj.rmv_obj <= 1024))
         {
-           /* IR00084946 : Consider this selection object only if it is valid. */
+           /*  Consider this selection object only if it is valid. */
            m_NCS_SEL_OBJ_SET(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj, &readfds);
            numfds = m_GET_HIGHER_SEL_OBJ(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj, numfds);
         }
@@ -330,7 +329,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
                  */
                 if(saf_status != SA_AIS_ERR_TRY_AGAIN)
                 {
-                   /* IR00084946 : Destroy the selection object if AMF componentization was 
+                   /*  Destroy the selection object if AMF componentization was 
                       successful. In case of RETRY from AMF, go back and listen on the object. */
                    m_NCS_SEL_OBJ_CLR(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj, &readfds);
                    m_NCS_SEL_OBJ_RMV_IND(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj, TRUE, TRUE);
@@ -411,7 +410,6 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
                    mmsg = m_PSS_RCV_MSG(pss_mbx, mmsg);
                    if(mmsg != NULL)
                    {
-                       /* Fix for IR00085164 */
                       if((NCS_APP_AMF_HA_STATE_STANDBY == gl_pss_amf_attribs.ha_state) &&
                          (NCSMDS_SVC_ID_OAC == mmsg->fr_svc)&&
                          (MAB_PSS_SVC_MDS_EVT == mmsg->op)&&
@@ -724,7 +722,7 @@ pss_amf_comp_terminate(SaInvocationT invocation, const SaNameT *compName)
 
     inst = gl_pss_amf_attribs.pss_cb;
 
-    /* Fix for IR00082889. Destroy the "hdl" before proceeding
+    /* Destroy the "hdl" before proceeding
        with the SVC instance destroy procedure. */
     ncshm_destroy_hdl(NCS_SERVICE_ID_PSS, inst->hm_hdl);
 
@@ -753,11 +751,6 @@ pss_amf_comp_terminate(SaInvocationT invocation, const SaNameT *compName)
     m_PSS_LK_DLT(&inst->lock);
     m_MMGR_FREE_PSS_CB(inst);
 
-#if 0
-    /* Stop the task */
-    m_NCS_TASK_STOP(gl_pss_amf_attribs.mbx_details.pss_task_hdl);
-    m_NCS_TASK_RELEASE(gl_pss_amf_attribs.mbx_details.pss_task_hdl);
-#endif
 
     /* Cleanup the mailbox */  
     (void)m_NCS_IPC_DETACH(&gl_pss_amf_attribs.mbx_details.pss_mbx, NULL, NULL);
@@ -806,14 +799,6 @@ pss_amf_csi_set(SaInvocationT invocation,
                           PSS_HDLN_AMF_CSI_DETAILS, 
                           csiDescriptor.csiFlags, 
                           tCompName, tCsiName, haState); 
-#if 0
-    /* need to be done when PSSv enhancement for multiple PWEs support */ 
-    m_LOG_PSS_CSI_DESC_DETAILS(NCSFL_SEV_INFO, 
-                               MAB_HDLN_PSS_AMF_CSI_DESC_DETAILS, 
-                               csiDescriptor.csiAttr.number, 
-                               csiDescriptor.csiAttr.attr->attrName,
-                               csiDescriptor.csiAttr.attr->attrValue); 
-#endif
 
     switch (csiDescriptor.csiFlags)
     {
@@ -1372,28 +1357,9 @@ pss_amf_ACTIVE_process(void                *data,
    if (csi_node->csi_info.ha_state == NCS_APP_AMF_HA_STATE_STANDBY)
    {
       /* cold sync is not yet complete */
-#if 0
-#if(NCS_PSS_RED == 1)
-      if (csi_node->pwe_cb->is_cold_sync_done == FALSE)
-      {
-         /* log the error condition */
-         m_LOG_PSS_ERROR_I(NCSFL_SEV_ERROR, PSS_HDLN_ERR_AMF_SBY_TO_ACT_FAILED_COLD_SYNC,
-            csi_node->csi_info.env_id);
-         return NCSCC_RC_FAILURE;
-      }
-      /* warm-sync is in progress */
-      if (csi_node->pwe_cb->warm_sync_in_progress == TRUE)
-      {
-         /* log the error condition */
-         m_LOG_PSS_ERROR_I(NCSFL_SEV_ERROR, PSS_HDLN_ERR_AMF_SBY_TO_ACT_FAILED_WARM_SYNC,
-            csi_node->csi_info.env_id);
-         return NCSCC_RC_FAILURE;
-      }
-#endif
-#endif
    }
    
-   /* Fix for the IR00085164(clean up stale pointers before becoming from standby to active)   */
+   /* (clean up stale pointers before becoming from standby to active)   */
    if(csi_node->pwe_cb->pss_stdby_oaa_down_buffer != NULL)
    {
        PSS_STDBY_OAA_DOWN_BUFFER_NODE *buffer_node = csi_node->pwe_cb->pss_stdby_oaa_down_buffer;
@@ -1454,7 +1420,7 @@ pss_amf_ACTIVE_process(void                *data,
    }
 
    m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   /*  Now we will be passing PWE handle rather than its pointer */
    mm->yr_hdl = NCS_INT32_TO_PTR_CAST(csi_node->pwe_cb->hm_hdl);
    mm->op = MAB_PSS_RE_RESUME_ACTIVE_ROLE_FUNCTIONALITY;
 
@@ -1730,7 +1696,6 @@ pss_amf_csi_remove_all(void)
 
     gl_pss_amf_attribs.ha_state = NCS_APP_AMF_HA_STATE_NULL;
 
-    /* Fixed as a part of IR00085797 */
     /* It is required to set the PSS Control block HA state to NULL */
     gl_pss_amf_attribs.pss_cb->ha_state = NCS_APP_AMF_HA_STATE_NULL;
 
@@ -2435,7 +2400,7 @@ uns32 pss_amf_vdest_role_chg_api_callback(MDS_CLIENT_HDL handle)
    }
 
    m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   /*  Now we will be passing PWE handle rather than its pointer */
    mm->yr_hdl = NCS_INT64_TO_PTR_CAST(handle);
    mm->op = MAB_PSS_VDEST_ROLE_QUIESCED;
 

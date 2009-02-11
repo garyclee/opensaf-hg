@@ -125,7 +125,7 @@ dta_lib_init (NCS_LIB_REQ_INFO *req_info)
    }
 
 #if (DTA_FLOW == 1)
-   /* IR 84765 - Keeping count of messages on DTA mailbox */
+   /* Keeping count of messages on DTA mailbox */
    if (NCSCC_RC_SUCCESS != m_NCS_IPC_CONFIG_USR_COUNTERS(&gl_dta_mbx, NCS_IPC_PRIORITY_LOW, &inst->msg_count))
    {
       m_NCS_TASK_RELEASE(task_handle);
@@ -272,7 +272,7 @@ uns32 dta_cleanup_seq(void)
        warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_cleanup_seq: DTA svc destroy failed");
     }
 
-    /* IR 60603 - DTA shutdown support re-arrangement */
+    /* DTA shutdown support re-arrangement */
     m_NCS_IPC_DETACH(&gl_dta_mbx, dta_clear_mbx, &dta_cb);
     m_NCS_IPC_RELEASE(&gl_dta_mbx, NULL);
     gl_dta_mbx = 0;

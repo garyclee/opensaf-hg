@@ -626,9 +626,6 @@ static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb,CPA_EVT *evt)
                     m_NCS_MEMCPY(callback->ioVector[i].sectionId.id,ckpt_data->sec_id.id, \
                     ckpt_data->sec_id.idLen);
                     callback->ioVector[i].sectionId.idLen=ckpt_data->sec_id.idLen;
-          #if 0 
-             callback->ioVector[i].sectionId = ckpt_data->sec_id;
-          #endif
                  }
                  else
                     callback->ioVector[i].sectionId = ckpt_data->sec_id;
@@ -1164,13 +1161,6 @@ uns32 cpa_hdl_callbk_dispatch_block(CPA_CB  *cb, SaCkptHandleT ckptHandle)
 static void cpa_process_callback_info (CPA_CB *cb, CPA_CLIENT_NODE *cl_node,
                            CPA_CALLBACK_INFO   *callback)
 {
- #if 0
-   if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_HEADLINE(CPA_CB_LOCK_TAKE_FAILED, NCSFL_SEV_ERROR);
-      return;
-   }
- #endif
 
 
    /* invoke the corresponding callback */
@@ -1210,10 +1200,6 @@ static void cpa_process_callback_info (CPA_CB *cb, CPA_CLIENT_NODE *cl_node,
       break;
    }
  
-#if 0  
-   /* Unlock CB */
-   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#endif
    
    /* free the callback info. This will be allocated by MDS EDU functions */
   m_MMGR_FREE_CPA_CALLBACK_INFO(callback); 
@@ -1337,10 +1323,6 @@ void cpa_proc_free_cpsv_ckpt_data(CPSV_CKPT_DATA *ckpt_data)
       
       tmp_ckpt_data=ckpt_data;
       ckpt_data=ckpt_data->next;
-  #if 0
-      if(tmp_ckpt_data->sec_id.id != NULL && tmp_ckpt_data->sec_id.idLen != 0)
-         m_MMGR_FREE_CPSV_SYS_MEMORY(tmp_ckpt_data->sec_id.id); 
-  #endif
       m_MMGR_FREE_CPSV_CKPT_DATA(tmp_ckpt_data); 
   }
 }

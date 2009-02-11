@@ -181,7 +181,6 @@ void  mbcstm_ckpt_standby_sendsync()
   mbcstm_test_print(case_num, case_name,case_disc, exp_res, final_res);
 }
 
-/*vishnu*/
 void  mbcstm_ckpt_idle_sendsync()
 {
   uns32 svc_index = 1, ssn_index = 1;

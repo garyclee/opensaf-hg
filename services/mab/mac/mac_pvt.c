@@ -115,43 +115,22 @@ mac_do_evt( MAB_MSG* msg)
 
 uns32 mac_mib_response(MAB_MSG* msg)
 {
-#if 0
-  MAC_INST*    inst;
-#endif
   NCSMIB_ARG*   rsp;
-
-#if 0
-  m_MAC_LK_INIT;
-#endif
 
   m_MAB_DBG_TRACE("\nmac_mib_response():entered.");
 
-#if 0
-  inst = (MAC_INST*)msg->yr_hdl;
-
-  m_MAC_LK(&inst->lock);
-  m_LOG_MAB_LOCK(MAB_LK_MAC_LOCKED,&inst->lock);
-#endif
 
   rsp = msg->data.data.snmp;
 
   if (rsp == NULL)
     {
     m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR,MAB_HDLN_MAC_NULL_MIB_RSP_RCVD);
-#if 0
-    m_MAC_UNLK(&inst->lock);
-    m_LOG_MAB_LOCK(MAB_LK_MAC_UNLOCKED,&inst->lock);
-#endif
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
 
   if(! m_NCSMIB_ISIT_A_RSP(rsp->i_op))
     {
     m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR,MAB_HDLN_MAC_INVALID_MIB_RSP_RCVD);
-#if 0
-    m_MAC_UNLK(&inst->lock);
-    m_LOG_MAB_LOCK(MAB_LK_MAC_UNLOCKED,&inst->lock);
-#endif
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
 
@@ -168,9 +147,6 @@ uns32 mac_mib_response(MAB_MSG* msg)
     if((se = ncsstack_pop(&rsp->stack)) == NULL)
     {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAC_POP_ORIG_FAILED);
-#if 0
-      m_MAC_UNLK(&inst->lock);
-#endif
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }   
 
@@ -179,9 +155,6 @@ uns32 mac_mib_response(MAB_MSG* msg)
     if(se->type != NCS_SE_TYPE_MIB_ORIG)
     {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAC_POP_NOT_MIB_ORIG);
-#if 0
-      m_MAC_UNLK(&inst->lock);
-#endif
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); 
     }
 
@@ -193,10 +166,6 @@ uns32 mac_mib_response(MAB_MSG* msg)
     }
 
 
-#if 0
-  m_MAC_UNLK(&inst->lock);
-  m_LOG_MAB_LOCK(MAB_LK_MAC_UNLOCKED,&inst->lock);
-#endif
 
   m_MMGR_FREE_MAB_MSG(msg);
 

@@ -900,34 +900,6 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
 
    return NCSCC_RC_SUCCESS;
 }
-#if 0
-/*****************************************************************************
-
-  PROCEDURE NAME:   ncs_key_memcopy
-
-  DESCRIPTION:
-    Make a pure-heap copy of the passed NCS_KEY.
-
-  RETURNS:
-     NULL        - Memory not available
-    value       - points to copy of passed NCSMIB_ARG
-
-
-*****************************************************************************/
-
-static NCS_KEY* ncs_key_memcopy(NCS_KEY* ref)
-{
-   NCS_KEY*   cpy;
-
-   if (ref == NULL)
-      return (NCS_KEY*)m_LEAP_DBG_SINK(0);
-
-   if ((cpy = m_MMGR_ALLOC_NCS_KEY) == NULL)
-      return (NCS_KEY*)m_LEAP_DBG_SINK(0);
-   m_NCS_MEMCPY(cpy,ref,sizeof(NCS_KEY));
-   return cpy;
-}
-#endif
 /*****************************************************************************/
 
 uns32* ncsmib_inst_memcopy(uns32 len, const uns32* ref)
@@ -1004,18 +976,6 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
       }
    case NCSMIB_OP_RSP_GET_INFO:
       {
-       #if 0
-         NCSMIB_GET_INFO_RSP* rspcpy = &cpy->rsp.info.get_info_rsp;
-         NCSMIB_GET_INFO_RSP* rsparg = &arg->rsp.info.get_info_rsp;
-
-
-         rspcpy->max_size  = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->max_size);
-         rspcpy->max_value = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->max_size);
-         rspcpy->min_value = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->min_value);
-         rspcpy->settable  = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->settable);
-         rspcpy->type      = (uns32)ncsmib_inst_memcopy(sizeof(uns32), (const uns32*) rsparg->type);
-         rspcpy->name      = (char *)ncsmib_oct_memcopy(sizeof(uns32), (uns8 *)rsparg->name );
-        #endif
 
          break;
       }
@@ -1209,17 +1169,11 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
          NCSMIB_NEXT_RSP* rsp  = &arg->rsp.info.next_rsp;
          if (rsp->i_next.i_inst_ids != NULL)
              m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids);
-#if 0
-            m_MMGR_FREE_MIB_OCT(rsp->i_next.i_inst_ids);
-#endif
 
          if (rsp->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
            {
            if ((rsp->i_param_val.i_length != 0) && (rsp->i_param_val.info.i_oct != NULL))
              m_MMGR_FREE_MIB_OCT(rsp->i_param_val.info.i_oct);
-#if 0
-             m_MMGR_FREE_MIB_INST_IDS(arg->i_idx.i_inst_ids);
-#endif
            }
          break;
       }
@@ -1242,12 +1196,8 @@ void ncsmib_memfree( NCSMIB_ARG*    arg)
          if(rsp->i_usrbuf != NULL)
            m_MMGR_FREE_BUFR_LIST(rsp->i_usrbuf);
 
-        #if 0
          if (rsp->i_next.i_inst_ids != NULL)
-           m_MMGR_FREE_MIB_INST_IDS(arg->i_idx.i_inst_ids);
-        #endif   
-         if (rsp->i_next.i_inst_ids != NULL)
-           m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids); /* Fix for the bug IR00083690 */
+           m_MMGR_FREE_MIB_INST_IDS(rsp->i_next.i_inst_ids); 
          break;
       }
 
@@ -1405,11 +1355,6 @@ uns32   ncsmib_rsp_encode( NCSMIB_OP     op,
    ncs_encode_32bit(&stream,rsp->i_status);
    ncs_enc_claim_space(uba,sizeof(uns32));
 
-#if 0 /* SMM So far, the test below has not been performed; investigate if it should be */
-
-   if (rsp->i_status != NCSCC_RC_SUCCESS)
-       return NCSCC_RC_SUCESS; /* As in 'we have successfully encoded the NCSMIB_ARG facts */
-#endif
 
    switch (op)
    {
@@ -1532,77 +1477,6 @@ uns32   ncsmib_rsp_encode( NCSMIB_OP     op,
          }
          break;
 
-#if 0            
-      case NCSMIB_OP_RSP_GET_INFO :
-         {
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);         
-            ncs_encode_32bit(&stream,rsp->info.get_info_rsp.type);
-            ncs_enc_claim_space(uba,sizeof(uns32));
-            
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);         
-            ncs_encode_32bit(&stream,rsp->info.get_info_rsp.max_size);
-            ncs_enc_claim_space(uba,sizeof(uns32));
-
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);         
-            ncs_encode_32bit(&stream,rsp->info.get_info_rsp.max_value);
-            ncs_enc_claim_space(uba,sizeof(uns32));
-
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);         
-            ncs_encode_32bit(&stream,rsp->info.get_info_rsp.min_value);
-            ncs_enc_claim_space(uba,sizeof(uns32));
-
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);         
-            ncs_encode_32bit(&stream,rsp->info.get_info_rsp.settable);
-            ncs_enc_claim_space(uba,sizeof(uns32));             
-                    
-            if( rsp->info.get_info_rsp.name != NULL )
-            {                                   
-               uns32 i;
-               uns32 max;
-               uns8* octets; 
-
-               max = m_NCS_STRLEN(rsp->info.get_info_rsp.name);
-               max++;
-               
-               stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-               if (stream == NULL)
-                  return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);          
-               ncs_encode_32bit(&stream, max);
-               ncs_enc_claim_space(uba,sizeof(uns32));   
-
-
-               for (i = 0, octets = (uns8*)rsp->info.get_info_rsp.name; i < max; i++)
-               {
-                  stream = ncs_enc_reserve_space(uba,sizeof(uns8));
-                  if (stream == NULL)
-                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
-                  ncs_encode_8bit(&stream,*(octets + i));
-                  ncs_enc_claim_space(uba,sizeof(uns8));
-               }
-                                   
-            }
-            else
-            {
-               stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-               if (stream == NULL)
-                  return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);  
-               ncs_encode_32bit(&stream, NO_NAME_OBJECT );
-               ncs_enc_claim_space(uba,sizeof(uns32));   
-            }           
-            break;
-         }       
-#endif
       default:
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
@@ -1771,11 +1645,6 @@ uns32 ncsmib_rsp_decode(NCSMIB_OP     op,
    rsp->i_status = ncs_decode_32bit(&stream);
    ncs_dec_skip_space(uba,sizeof(uns32));
 
-#if 0 /* SMM So far, the test below has not been performed; investigate if it should be */
-
-   if (rsp->i_status != NCSCC_RC_SUCCESS)
-      return NCSCC_RC_SUCCESS; /* we have successfully decoded the NCSMIB_ARG info */
-#endif
 
    switch (op)
    {
@@ -1959,72 +1828,6 @@ uns32 ncsmib_rsp_decode(NCSMIB_OP     op,
             break;
          }
          
-#if 0
-      case NCSMIB_OP_RSP_GET_INFO:
-         {
-            NCSMIB_GET_INFO_RSP* getinf_rsp = &rsp->info.get_info_rsp;
-            uns32 max; /* length for the name */
-             
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            getinf_rsp->type      = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));                   
-
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            getinf_rsp->max_size  = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
-
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            getinf_rsp->max_value = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
-
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            getinf_rsp->min_value = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
-
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            getinf_rsp->settable  = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));                                       
-
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            if( stream == NULL )
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            max = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
-                        
-            if( max != NO_NAME_OBJECT )
-            {                  
-               uns8*     octets;
-
-               /* the user wants us to allocate memory from the HEAP */
-               if ((octets = m_MMGR_ALLOC_MIB_OCT(max)) == NULL)
-                  return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-               getinf_rsp->name = (char *)octets;                      
-                   
-               /* Flatten it. If stream == octets, flatten used octets to fillin answer */                   
-               stream = ncs_dec_flatten_space(uba, octets, max );
-
-               if (stream != octets)          /* Data may be in right place already ! */
-                  m_NCS_MEMCPY(octets, stream, max );
-               ncs_dec_skip_space(uba, max);
-                                      
-            }
-            else
-            {
-               getinf_rsp->name = NULL;
-            }               
-            break;
-         }
-#endif
 
       default:
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -3287,7 +3090,7 @@ uns32 ncsmib_arg_free_resources(NCSMIB_ARG* arg, NCS_BOOL is_req)
       {
          NCSMIB_CLI_REQ* req = &arg->req.info.cli_req;
          if(req->i_usrbuf != NULL)
-            m_MMGR_FREE_BUFR_LIST(req->i_usrbuf);/*Fix for the bug IR00082630 */
+            m_MMGR_FREE_BUFR_LIST(req->i_usrbuf);
          req->i_usrbuf = NULL;
 
          break;
@@ -3621,35 +3424,6 @@ char*  mibpp_status(uns32 status)
    return ptr;
 }
 
-#if 0
-/*****************************************************************************
-
-  PROCEDURE NAME:   ncs_key_pp
-
-  DESCRIPTION:
-     Pretty Print NCS_KEY value.
-
-  RETURNS:
-     nothing
-
-*****************************************************************************/
-
-static void ncs_key_pp(char* name, NCS_KEY* key)
-{
-   m_NCS_CONS_PRINTF("%s: svc %d, type %d ", name, key->svc,key->type);
-   switch (key->fmat)
-   {
-   case NCS_FMT_EMPTY : m_NCS_CONS_PRINTF("val EMPTY\n");                  break;
-   case NCS_FMT_NUM   : m_NCS_CONS_PRINTF("val num = %d\n",key->val.num);  break;
-   case NCS_FMT_HDL   : m_NCS_CONS_PRINTF("val hdl = %lx\n",(unsigned long)key->val.hdl); break;
-   case NCS_FMT_STR   : m_NCS_CONS_PRINTF("val str = %s\n",key->val.str);  break;
-   case NCS_FMT_OCT   : m_NCS_CONS_PRINTF("val oct = <to implement>\n");   break;
-   default:
-      m_NCS_CONS_PRINTF("NULL PTR\n");
-   }
-   return;
-}
-#endif
 
 /*****************************************************************************
 
@@ -3806,9 +3580,8 @@ void ncsmib_pp( NCSMIB_ARG* arg)
             }
          }
       }
-      else /* Added to fix the bug 60198 */
+      else 
       {
-          /* Fix for the bug 60198 */
           arg->i_op = m_NCSMIB_RSP_TO_REQ(arg->i_op); /* Converting response to corresponding reques op */
           ncsmib_req_pp(arg); 
           arg->i_op = m_NCSMIB_REQ_TO_RSP(arg->i_op); /* Converting request op to corresponding response op */
@@ -3828,7 +3601,6 @@ void ncsmib_pp( NCSMIB_ARG* arg)
    }
 }
 
-/* Fix for bug 60198 */
 void       ncsmib_req_pp(NCSMIB_ARG* arg)
 {
       mibpp_inst(arg->i_idx.i_inst_ids,arg->i_idx.i_inst_len);

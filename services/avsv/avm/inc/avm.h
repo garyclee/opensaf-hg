@@ -49,9 +49,6 @@
 #include "ncs_dummy.h"
 
 #include "ncs_mda_pvt.h"
-#if 0
-#include "sysf_mds.h"
-#endif
 #include "mds_papi.h"
 /*#include "mds_papi.h"*/
 

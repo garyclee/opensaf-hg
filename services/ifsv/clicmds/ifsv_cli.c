@@ -792,9 +792,6 @@ uns32 ifsv_cef_conf_intf_shut (NCSCLI_ARG_SET *arg_list,
       (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS))
    {
       ifsv_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n Command Failed \n");
-#if 0
-      m_MMGR_FREE_CLI_DEFAULT_VAL(mode_data);
-#endif
      if(rc != NCSCC_RC_SUCCESS)
         return rc;
      else
@@ -1553,11 +1550,7 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
        ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_INT;
        ncsmib_arg.req.info.set_req.i_param_val.i_length = 4;
        ncsmib_arg.req.info.set_req.i_param_val.info.i_int = NCS_ROW_DESTROY;
-#if 0
-       retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
-#else
        retval = ncsmib_sync_request(&ncsmib_arg, ncsmac_mib_request, 1000, &ma);
-#endif
        if (retval != NCSCC_RC_SUCCESS)
        {
           ret_val = m_MAB_DBG_SINK(retval);

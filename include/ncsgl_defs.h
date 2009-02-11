@@ -339,8 +339,8 @@ typedef unsigned int NCS_TUNNEL_ID;
 #define NCSCC_RC_NOT_SUPPORTED        33 /* Request not supported            */
 
 #define NCSCC_RC_INTF_NOT_UP          34 
-#define NCSCC_RC_DUPLICATE_FLTR       35 /* fix for the bug IR00060853 */
-#define NCSCC_RC_INVALID_PING_TIMEOUT 36 /* fix for the bug IR00079744 */
+#define NCSCC_RC_DUPLICATE_FLTR       35 
+#define NCSCC_RC_INVALID_PING_TIMEOUT 36 
 
 #define NCSCC_RC_ENQUEUED            125
 #define NCSCC_RC_INOPPORTUNE_REQUEST 126
@@ -474,7 +474,7 @@ typedef unsigned int NCS_TUNNEL_ID;
 
 #endif
 
-#ifndef NCS_SAF /*IR00059646 */
+#ifndef NCS_SAF 
 #define NCS_SAF  0
 #endif
 
@@ -488,7 +488,6 @@ typedef unsigned int NCS_TUNNEL_ID;
                                      
 typedef uns64 MDS_DEST;
 
-/* IR00009586 */
 typedef uns32  NCS_NODE_ID;     
 typedef uns8   NCS_CHASSIS_ID;
 typedef uns8   NCS_PHY_SLOT_ID;

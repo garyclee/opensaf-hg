@@ -78,20 +78,6 @@ typedef struct cpa_sect_iter_node
 }CPA_SECT_ITER_NODE;
 
 
-#if 0
-/* These structures may not be required TBD */
-typedef struct cpa_ckpt_section_info
-{
-   uns32                section_offset;          /* index number of the place of the section in the
-                                                   shared memory location */ 
-   SaCkptSectionIdT     section_id;              /* section Id */
-   SaTimeT              exp_time;                /* absolute time */
-   SaCkptSectionStateT  section_state;           /* state of the checkpoint section - will be used for marking deletion */
-   SaSizeT              section_size;              
-   struct cpa_ckpt_section_info    *prev,*next; 
-}CPA_CKPT_SECTION_INFO;
-
-#endif
 
 /*****************************************************************************
  * Data Structure Used to hold CPA control block

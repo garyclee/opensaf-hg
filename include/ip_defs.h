@@ -71,7 +71,6 @@ EXTERN_C LEAPDLL_API unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 #define NCS_SUPPORT_GET_PKT_INFO (0)
 #endif
 
-/*IR00082925*/
 #define NCS_TS_SOCK_USE_MULTICAST_LOOP        1   /* yes */
 
 /* Does OS support unnumbered IPv4 interfaces*/

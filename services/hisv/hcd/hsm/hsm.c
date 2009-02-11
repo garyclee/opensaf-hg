@@ -34,10 +34,6 @@ static uns32 publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_extracted(HSM_CB *hsm_cb, uns8 *node_state);
-#if 0
-static uns32 publish_fwprog_events(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
-static uns32 hsm_clear_sel(HSM_CB *hsm_cb);
-#endif 
 static uns32 hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id);
 static uns32 dispatch_hotswap(HSM_CB *hsm_cb);
 static uns32 hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
@@ -270,10 +266,6 @@ uns32 hcd_hsm()
             break;
       }
       if (event.EventType != SAHPI_ET_HOTSWAP) 
-#if 0
-         || 
-          (RptEntry.ResourceEntity.Entry[2].EntityType > MAX_HPI_ENTITY_TYPE))
-#endif
       {
 #ifdef HPI_A
          m_NCS_CONS_PRINTF("Non hotswap HPI event from entity_type=%d,%d slot=%d event_type=%d, resource_id=%d\n",
@@ -299,7 +291,7 @@ uns32 hcd_hsm()
               publish_curr_hs_state_evt(hsm_cb, &RptEntry);
            }
         }
-        /* IR00085909: If the event_type is SAHPI_ET_SENSOR and sensor_type is SAHPI_ENTITY_PRESENCE then 
+        /*  If the event_type is SAHPI_ET_SENSOR and sensor_type is SAHPI_ENTITY_PRESENCE then 
             we need to query the HotSwap state of the resource and publish it (During the IPMC upgrade it is not possible 
             to query the HotSwap state of the Resource, instead it generates the above sensor event after IPMC upgrade
             completes) */
@@ -427,11 +419,6 @@ uns32 hcd_hsm()
       if ((event.EventType == SAHPI_ET_HOTSWAP) &&
           (event.EventDataUnion.HotSwapEvent.HotSwapState ==
            SAHPI_HS_STATE_INSERTION_PENDING)
-#if 0
-          &&
-          (RptEntry.ResourceCapabilities & SAHPI_CAPABILITY_INVENTORY_DATA)
-           && (RptEntry.ResourceCapabilities & SAHPI_CAPABILITY_RDR)
-#endif /* 0 */
          )
 
       {
@@ -508,7 +495,7 @@ uns32 hcd_hsm()
       for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
          epath.Entry[i-2] = RptEntry.ResourceEntity.Entry[i];
 
-      /* IR00060725: temporary fix till we migrate to HPI-B spec entity path mechanism */
+      /*  temporary fix till we migrate to HPI-B spec entity path mechanism */
       if ((RptEntry.ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) && 
           (RptEntry.ResourceEntity.Entry[0].EntityType != 160))
          epath.Entry[0].EntityType = RptEntry.ResourceEntity.Entry[0].EntityType;
@@ -773,11 +760,6 @@ dispatch_hotswap(HSM_CB *hsm_cb)
             }
 
             if (state == SAHPI_HS_STATE_INSERTION_PENDING)
-#if 0   
-                 && ((entry.ResourceEntity.Entry[2].EntityInstance > 0)
-                 && (entry.ResourceEntity.Entry[2].EntityInstance < 15)
-                 && (entry.ResourceEntity.Entry[2].EntityType <= MAX_HPI_ENTITY_TYPE)))
-#endif
             {
                m_LOG_HISV_DTS_CONS("Publishing the outstanding Insertion Pending hotswap event\n");
                publish_inspending(hsm_cb, &entry);
@@ -791,11 +773,6 @@ dispatch_hotswap(HSM_CB *hsm_cb)
             }
             /* publish outstanding active healthy events and fwprog events */
             if (state == SAHPI_HS_STATE_ACTIVE_HEALTHY)
-#if 0
-               &&
-               ((entry.ResourceEntity.Entry[2].EntityInstance == 1) ||
-               (entry.ResourceEntity.Entry[2].EntityInstance == 2)))
-#endif
             {
                m_LOG_HISV_DTS_CONS("Publishing the outstanding Active Healthy hotswap event\n");
                publish_active_healty(hsm_cb, &entry);
@@ -875,8 +852,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
 
    } while (next != SAHPI_LAST_ENTRY);
 
-   /* check if all are not present to sense something wrong with discovery 
-    (IR00085091,IR00084254) */
+   /* check if all are not present to sense something wrong with discovery */
    for (i=1; i<=MAX_NUM_SLOTS; i++)
    {
       if (hsm_cb->node_state[i] != NODE_HS_STATE_NOT_PRESENT)
@@ -969,7 +945,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
       epath.Entry[i-2] = RptEntry->ResourceEntity.Entry[i];
 
-   /* IR00060725: temporary fix till we migrate to HPI-B spec entity path mechanism */
+   /*  temporary fix till we migrate to HPI-B spec entity path mechanism */
    if ((RptEntry->ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) && 
        (RptEntry->ResourceEntity.Entry[0].EntityType != 160))
         epath.Entry[0].EntityType = RptEntry->ResourceEntity.Entry[0].EntityType;
@@ -1115,7 +1091,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
       epath.Entry[i-2] = RptEntry->ResourceEntity.Entry[i];
 
-   /* IR00060725: temporary fix till we migrate to HPI-B spec entity path mechanism */
+   /*  temporary fix till we migrate to HPI-B spec entity path mechanism */
    if ((RptEntry->ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) && 
        (RptEntry->ResourceEntity.Entry[0].EntityType != 160))
         epath.Entry[0].EntityType = RptEntry->ResourceEntity.Entry[0].EntityType;
@@ -1271,7 +1247,6 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    /* publish the outstanding extracted events */
    for (i=1; i<=MAX_NUM_SLOTS; i++)
    {
-       /* Bug fix :  IR00085657 */
 
        /* if ((node_state[i] != NODE_HS_STATE_INACTIVE) && (node_state[i] != NODE_HS_STATE_NOT_PRESENT)
            && (node_state[i] != NODE_HS_STATE_EXTRACTION_PENDING)) */
@@ -1323,184 +1298,6 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 }
 
 
-#if 0
-/****************************************************************************
- * Name          : publish_fwprog_events
- *
- * Description   : This function retrieves and publishes the outstanding
- *                 system firmware progress events (for SCXBs).
- *
- * Arguments     : Pointer to HSM control block structure.
- *                 Pointer to RptEntry structure;
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * Notes         : None.
- *****************************************************************************/
-
-static uns32
-publish_fwprog_events(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
-{
-   SaHpiEventT     event;
-   SaHpiRdrT   Rdr;
-   SaHpiDomainIdT domain_id;
-   SaHpiSessionIdT session_id;
-   SaHpiEntryIdT  current_rdr, next_rdr;
-   SaErrorT err;
-   SIM_CB *sim_cb = 0;
-   SIM_EVT  *sim_evt;
-   SaHpiSensorEvtEnablesT Enables;
-   uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
-   /*
-   m_NCS_CONS_PRINTF("publish_fwprog_events: Publishing outstanding fwprog events for board %d",
-                      RptEntry->ResourceEntity.Entry[2].EntityInstance);
-   */
-   /* retrieve HSM CB */
-   sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
-   if (!sim_cb)
-   {
-      /* Can't do anything without control block.. */
-      m_LOG_HISV_DTS_CONS("publish_fwprog_events: failed to take SIM handle\n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* collect the domain-id and session-id of HPI session */
-   domain_id = hsm_cb->args->domain_id;
-   session_id = hsm_cb->args->session_id;
-
-   /* find the RDR which has got sensor data associated with it */
-   next_rdr = SAHPI_FIRST_ENTRY;
-   current_rdr = next_rdr;
-   do
-   {
-      err = saHpiRdrGet(session_id, RptEntry->ResourceId, current_rdr,
-                        &next_rdr, &Rdr);
-      if (SA_OK != err)
-      {
-         if (current_rdr == SAHPI_FIRST_ENTRY)
-            m_LOG_HISV_DTS_CONS("publish_fwprog_events: Empty RDR table\n")
-         else
-            m_LOG_HISV_DTS_CONS("publish_fwprog_events: saHpiRdrGet error");
-         break;
-      }
-      if ((Rdr.RdrType == SAHPI_SENSOR_RDR) &&
-          (Rdr.RdrTypeUnion.SensorRec.Type == SAHPI_SYSTEM_FW_PROGRESS))
-      {
-         if ((Rdr.RdrTypeUnion.SensorRec.Category != SAHPI_EC_GENERIC) &&
-             (Rdr.RdrTypeUnion.SensorRec.Category != SAHPI_EC_USER))
-         {
-            m_LOG_HISV_DTS_CONS("Non OEM firmware progress event\n");
-            current_rdr = next_rdr;
-            continue;
-         }
-         if (saHpiSensorEventEnablesGet(session_id, RptEntry->ResourceId,
-                        Rdr.RdrTypeUnion.SensorRec.Num, &Enables) != SA_OK)
-         {
-            m_LOG_HISV_DTS_CONS("saHpiSensorEventEnablesGet error\n");
-            current_rdr = next_rdr;
-            continue;
-         }
-         /* detect the outstanding firmware progress events; publish it to ShIM. */
-         event.EventType = SAHPI_ET_SENSOR;
-         event.EventDataUnion.SensorEvent.SensorType = SAHPI_SYSTEM_FW_PROGRESS;
-         event.EventDataUnion.SensorEvent.EventState = (Enables.SensorStatus & 0x0f) << 1;
-         /* event.EventDataUnion.SensorEvent.OptionalDataPresent = SAHPI_SOD_OEM; */
-         event.EventDataUnion.SensorEvent.Oem = Rdr.RdrTypeUnion.SensorRec.Oem;
-
-         sim_evt = (SIM_EVT *)m_MMGR_ALLOC_SIM_EVT;
-         sim_evt->evt_type = HCD_SIM_FIRMWARE_PROGRESS;
-         m_NCS_MEMCPY(&sim_evt->msg.fp_evt, (uns8 *)&event, evt_len);
-         m_NCS_MEMCPY(&sim_evt->msg.epath, (uns8 *)&RptEntry->ResourceEntity, epath_len);
-
-         if(m_NCS_IPC_SEND(&sim_cb->mbx, sim_evt, NCS_IPC_PRIORITY_NORMAL)
-            == NCSCC_RC_FAILURE)
-         {
-            m_MMGR_FREE_SIM_EVT(sim_evt);
-            m_LOG_HISV_DTS_CONS("publish_fwprog_events: failed to deliver msg on ShIM mail-box\n");
-         }
-      }
-      current_rdr = next_rdr;
-   }
-   while (next_rdr != SAHPI_LAST_ENTRY);
-
-   /* release the control blocks */
-   ncshm_give_hdl(gl_sim_hdl);
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : hsm_clear_sel
- *
- * Description   : This functions clears SEL during switchover.
- *                 Currently this is Not required.
- *
- * Arguments     : Pointers required for inventory data functionality
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * Notes         : None.
- *****************************************************************************/
-
-static uns32
-hsm_clear_sel(HSM_CB *hsm_cb)
-{
-   SaErrorT        err;
-   SaHpiRptInfoT   rpt_info_before;
-   SaHpiEntryIdT   current;
-   SaHpiEntryIdT   next;
-
-   SaHpiDomainIdT  domain_id;
-   SaHpiSessionIdT session_id;
-   SaHpiRptEntryT  entry;
-   uns32  rc = NCSCC_RC_SUCCESS;
-
-   m_LOG_HISV_DTS_CONS("hsm_clear_sel: clearing SEL\n");
-
-   /* collect the domain-id and session-id of HPI session */
-   domain_id = hsm_cb->args->domain_id;
-   session_id = hsm_cb->args->session_id;
-
-   /* grab copy of the update counter before traversing RPT */
-   err = saHpiRptInfoGet(session_id, &rpt_info_before);
-   if (SA_OK != err)
-   {
-      m_LOG_HISV_DTS_CONS("hsm_clear_sel: saHpiRptInfoGet\n");
-      return NCSCC_RC_FAILURE;
-   }
-   /** process the list of resource pointer tables on this session.
-    ** verifies the existence of RPT entries.
-    **/
-   next = SAHPI_FIRST_ENTRY;
-   do
-   {
-      current = next;
-      /* get the HPI RPT entry */
-      err = saHpiRptEntryGet(session_id, current, &next, &entry);
-      if (SA_OK != err)
-      {
-         /* error getting RPT entry */
-         if (current != SAHPI_FIRST_ENTRY)
-         {
-            m_LOG_HISV_DTS_CONS("hsm_clear_sel: Error saHpiRptEntryGet\n");
-            return NCSCC_RC_FAILURE;
-         }
-         else
-         {
-            m_LOG_HISV_DTS_CONS("hsm_clear_sel: Empty RPT\n");
-            rc = NCSCC_RC_FAILURE;
-            break;
-         }
-      }
-#if 1
-      /* clear the SEL if it supports; in order to avoid duplicate playback of events */
-      if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
-      {
-         saHpiEventLogClear(session_id, entry.ResourceId);
-      }
-#endif /* 1 */
-   } while (next != SAHPI_LAST_ENTRY);
-   return NCSCC_RC_SUCCESS;
-}
-#endif 
 
 
 /****************************************************************************
@@ -1633,7 +1430,6 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
       }
       if (dispatch_hotswap(hsm_cb) != NCSCC_RC_SUCCESS)
       { 
-         /* IR00085091 IR00084254 */
          hcd_cb->args->rediscover = 1;
          hsm_cb->args->session_valid = 0;
          m_LOG_HISV_DTS_CONS("hsm_rediscover: dispatch_hotswap failed\n");
@@ -1740,14 +1536,6 @@ CHECK:
    {
       m_LOG_HISV_DTS_CONS("hcd_hsm: Retrieving inventory data...\n");
       /* read the associated inventory data of resource */
-#if 0
-      /* getting actual size is not supported in HPI 0.1 */
-      rc = saHpiEntityInventoryDataRead(session_id, RptEntry->ResourceId,
-                                        Rdr->RdrTypeUnion.InventoryRec.EirId,
-                                        0,
-                                        (SaHpiInventoryDataT *)NULL,
-                                        actual_size);
-#endif
       *actual_size = HISV_MAX_INV_DATA_SIZE;
       inv_var = &((HPI_HISV_EVT_T *)*event_data)->inv_data;
       inv_data = (SaHpiInventoryDataT *)(m_MMGR_ALLOC_HPI_INV_DATA(*actual_size));
@@ -1783,12 +1571,6 @@ CHECK:
             m_NCS_OS_MEMSET(Rdr, 0, sizeof(SaHpiRdrT));
             goto CHECK;
          }
-#if 0
-         m_MMGR_FREE_HPI_INV_DATA(*event_data);
-         *event_data = NULL;
-         *actual_size = 0;
-         *invdata_size = 0;
-#endif /* 0 */
       }
       else
       {
@@ -1866,23 +1648,6 @@ CHECK:
                inv_var->product_version.Data[inv_var->product_version.DataLength] = '\0';
             }
          }
-#if 0
-         /* fill part number */
-         inv_var->part_number.DataLength = 0;
-         if (inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber != NULL)
-         {
-            /* if DataLength look unsually long, try re-compute it */
-            if (inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber->DataLegth > HISV_MAX_INV_STR_LEN)
-               inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber->DataLength = 
-                  m_NCS_STRLEN(inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber->Data);
-            inv_var->part_number.DataLength = inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber->DataLength;
-
-            m_NCS_MEMCPY(inv_var->part_number.Data,
-                         inv_data->DataRecords[k]->RecordData.ProductInfo.PartNumber->Data,
-                         inv_var->part_number.DataLength);
-            inv_var->part_number.Data[inv_var->part_number.DataLength] = '\0';
-         }
-#endif /* 0 */
 
          /* look for OEM Mac Data */
          k = 0;
@@ -1924,11 +1689,6 @@ CHECK:
          }
          else
          {
-#if 0
-            if (inv_data->DataRecords[k]->DataLength !=
-               ((inv_data->DataRecords[k]->RecordData.OemData.Data[2] * 7) + 7))
-               m_LOG_HISV_DTS_CONS("Mismatch in Mac data-len and data in OEM record\n");
-#endif /* 0 */
             inv_var->oem_inv_data.type = SAHPI_INVENT_RECTYPE_OEM;
             inv_var->oem_inv_data.mId = inv_data->DataRecords[k]->RecordData.OemData.MId;
             inv_var->oem_inv_data.mot_oem_rec_id = inv_data->DataRecords[k]->RecordData.OemData.Data[0];
@@ -2441,7 +2201,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
                epath.Entry[i-2] = entry->ResourceEntity.Entry[i];
 
-            /* IR00060725: temporary fix till we migrate to HPI-B spec entity path mechanism */
+            /*  temporary fix till we migrate to HPI-B spec entity path mechanism */
             if ((entry->ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) && 
                (entry->ResourceEntity.Entry[0].EntityType != 160))
                epath.Entry[0].EntityType = entry->ResourceEntity.Entry[0].EntityType;

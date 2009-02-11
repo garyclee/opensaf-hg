@@ -180,15 +180,6 @@ uns32 srmnd_amf_initialize(SRMND_CB *srmnd)
    if (status != SA_AIS_OK)
       return NCSCC_RC_FAILURE;
 
-#if 0
-   /* start the health check if it is not started already */
-   if (srmnd->health_check_started == FALSE)
-   {
-      /* post a message to subagt mailbox to start the health check */
-      if (srmnd_amf_healthcheck_start_msg_post(srmnd) != NCSCC_RC_SUCCESS)
-         return NCSCC_RC_FAILURE;     
-   }
-#endif
 
    return NCSCC_RC_SUCCESS; 
 }
@@ -575,57 +566,6 @@ static void srmnd_amf_csi_remove_callback(SaInvocationT  invocation,
    return; 
 }
 
-
-#if 0
-/******************************************************************************
-  Name          :  srmnd_amf_healthcheck_start_msg_post
-
-  Description   :  posts a message to the SRMND thread to start the health
-                   check 
- 
-  Arguments     :  SRMND_CB *srmnd - SRMND control block 
-
-  Return Values :  NCSCC_RC_SUCCESS - everything is OK
-                   NCSCC_RC_FAILURE -  failure
-
-  NOTE          : 
-******************************************************************************/
-uns32 srmnd_amf_healthcheck_start_msg_post(SRMND_CB *srmnd) 
-{
-   uns32     status = NCSCC_RC_SUCCESS; 
-   SRMND_EVT *post_me = NULL;
-    
-   /* update the message info */
-   post_me = m_MMGR_ALLOC_SRMND_EVT;
-   if (post_me == NULL)
-   {
-      m_SRMND_LOG_MEM(SRMND_MEM_EVENT,
-                      SRMND_MEM_ALLOC_FAILED,
-                      NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_OUT_OF_MEM;
-   }
-    
-   m_NCS_OS_MEMSET(post_me, 0, sizeof(SRMND_EVT));
-
-   /* Update event data */
-   post_me->evt_type  = SRMND_HC_START_EVT_TYPE;
-   post_me->cb_handle = srmnd->cb_hdl;
-
-   /* post a message to the SRMND's thread */
-   status = m_NCS_IPC_SEND(&srmnd->mbx,
-                           (NCS_IPC_MSG*)post_me,
-                           NCS_IPC_PRIORITY_HIGH);
-   if (status != NCSCC_RC_SUCCESS)
-   {
-      m_SRMND_LOG_TIM(SRMSV_LOG_IPC_SEND,
-                      SRMSV_LOG_TIM_FAILURE,
-                      NCSFL_SEV_CRITICAL);    
-      return status;
-   }
-   
-   return status;
-}
-#endif
 
 /******************************************************************************
   Name          :  srmnd_healthcheck_start                            

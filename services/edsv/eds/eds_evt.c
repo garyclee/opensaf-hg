@@ -674,38 +674,6 @@ eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
                     
                }
 
-#if 0             
-            rc = eds_mds_ack_send(cb,&msg,co->chan_opener_dest,EDA_MDS_DEF_TIMEOUT,prio);
-            
-            if ( rc != NCSCC_RC_SUCCESS)
-            {
-                /* The event was lost due to underlying transport mechanism *
-                 * Send a "LOST EVENT" event. 'B' spec compliance 
-                 */
-
-               m_LOG_EDSV_SF(EDS_PUBLISH_LOST_EVENT,NCSFL_LC_EDSV_DATA,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,m_NCS_NODE_ID_FROM_MDS_DEST(co->chan_opener_dest),evt->fr_dest);
-               
-               /* Construct "lost event" header */
-
-               m_NCS_MEMSET(&lost_evt_msg, 0, sizeof(EDSV_MSG));
-               lost_evt_msg.type = EDSV_EDS_CBK_MSG;
-               lost_evt_msg.info.cbk_info.type = EDSV_EDS_DELIVER_EVENT;
-
-               m_EDSV_LOST_EVENT_FILL(&(lost_evt_msg.info.cbk_info.param.evt_deliver_cbk));
-               if (NCSCC_RC_SUCCESS != (rc = eds_mds_msg_send(cb,&lost_evt_msg,&co->chan_opener_dest,
-                                    &evt->mds_ctxt,prio)))
-               {
-                    m_LOG_EDSV_SF(EDS_PUBLISH_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,msg.type,__FILE__,__LINE__,m_NCS_NODE_ID_FROM_MDS_DEST(co->chan_opener_dest),evt->fr_dest);
-                    
-               }
-               if (cb->ha_state == SA_AMF_HA_STANDBY)
-                   wp->chan_row.num_lost_evts +=1;
-
-              /* Free the lost event pattern array */
-              m_MMGR_FREE_EVENT_PATTERN_ARRAY(lost_evt_msg.info.cbk_info.param.evt_deliver_cbk.pattern_array);
-
-            }/* End LOST events handling */
-#endif  /* Not the right way of fixing the Lost Event Machanism */
             break;
          }
          subrec = subrec->next;
@@ -856,21 +824,6 @@ eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
                          m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,msg.type,evt->fr_dest);
                    }
 
-#if 0               
-                   rc = eds_mds_ack_send(cb,&msg,evt->fr_dest,EDA_MDS_DEF_TIMEOUT,prio);
-                   if(rc != NCSCC_RC_SUCCESS)
-                   {  /* The event was lost */
-                       m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest),evt->fr_dest);
-                       m_EDSV_LOST_EVENT_FILL(&(msg.info.cbk_info.param.evt_deliver_cbk));
-                       if (NCSCC_RC_SUCCESS != (rc = eds_mds_msg_send(cb,&msg,&evt->fr_dest,
-                                                      &evt->mds_ctxt,prio)))
-                       {
-                           m_LOG_EDSV_SF(EDS_SUBSCRIBE_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,msg.type,evt->fr_dest);
-                       }
-                   }/* End lost event */
-                if(rc != NCSCC_RC_SUCCESS)
-                  channel_entry->chan_row.num_lost_evts +=1;
-#endif
                 }/*end pattern match */
                 retd_evt_rec = retd_evt_rec->next;
           }
@@ -995,20 +948,6 @@ eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
                                  FALSE);
    if(rc != NCSCC_RC_SUCCESS)
       m_LOG_EDSV_SF(EDS_RETENTION_TMR_CLR_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,evt->fr_dest);
-#if 0   
-   if (NULL != (wp = 
-            eds_get_worklist_entry(cb->eds_work_list, param->chan_id)))
-   {
-      
-     /** If no one else interested in this channel, 
-      ** remove it completely 
-      **/
-      if (wp->use_cnt == 0 
-          && 
-          wp->ret_evt_list_head == NULL)
-         eds_remove_worklist_entry(cb, wp->chan_id);
-   }
-#endif
 
    /* Unlock the EDS_CB */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1193,24 +1132,6 @@ eds_proc_ret_tmr_exp_evt (EDSV_EDS_EVT  *evt)
                      ret_evt->retd_evt_chan_open_id, 
                      ret_evt->event_id,
                      TRUE);
-#if 0
-   if (rc == NCSCC_RC_SUCCESS)
-   {
-      if (NULL != (wp = 
-         eds_get_worklist_entry(eds_cb->eds_work_list, 
-         store_chan_id)))
-      {
-         
-        /** If no one else is interested in this channel, 
-         ** remove it completely 
-         **/
-         if (wp->use_cnt == 0 
-            && 
-            wp->ret_evt_list_head == NULL)
-            eds_remove_worklist_entry(eds_cb, wp->chan_id);
-      }
-   }
-#endif
 
    m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -1279,9 +1200,6 @@ eds_proc_eda_updn_mds_msg (EDSV_EDS_EVT  *evt)
       }
       else if(cb->ha_state == SA_AMF_HA_STANDBY)
       {
-#if 0
-          m_NCS_CONS_PRINTF("MDS DOWN MDS DEST:%x in Event Processing ....\n",evt->fr_dest);
-#endif
           EDA_DOWN_LIST *eda_down_rec =NULL;
           if( eds_eda_entry_valid(cb , evt->fr_dest) )
           {
@@ -1294,9 +1212,6 @@ eds_proc_eda_updn_mds_msg (EDSV_EDS_EVT  *evt)
               }
               m_NCS_MEMSET(eda_down_rec, 0, sizeof(EDA_DOWN_LIST));
               eda_down_rec->mds_dest = evt->fr_dest;
-#if 0
-              m_NCS_CONS_PRINTF("Added MDS DOWN MDS DEST:%x in Event Processing ....\n",evt->fr_dest);
-#endif
               if( cb->eda_down_list_head == NULL )
               {
                   cb->eda_down_list_head = eda_down_rec;
@@ -1362,9 +1277,6 @@ eds_proc_eda_api_msg (EDSV_EDS_EVT  *evt)
        
          if (eds_eda_api_msg_dispatcher[evt->info.msg.info.api_info.type](cb, evt) != NCSCC_RC_SUCCESS)
          {
-#if 0
-            m_LOG_EDSV_SF(EDS_API_MSG_DISPATCH_FAILED,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0,evt->fr_dest);
-#endif
             ncshm_give_hdl(evt->cb_hdl);
             return NCSCC_RC_FAILURE;
          }
@@ -1409,9 +1321,6 @@ eds_process_api_evt (EDSV_EDS_EVT  *evt)
       {
          if (eds_edsv_evt_dispatch_tbl[evt->info.msg.type](evt) != NCSCC_RC_SUCCESS)
          {
-#if 0
-            m_LOG_EDSV_SF(EDS_EVENT_PROCESSING_FAILED,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,evt->info.msg.type,__FILE__,__LINE__,0,evt->fr_dest);
-#endif
          }
       }
    }

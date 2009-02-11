@@ -116,12 +116,6 @@ typedef enum eda_log_ids
 #define m_LOG_EDSV_A(id,category,sev,rc,fname,fno,data) eda_log(id,category,sev,rc,fname,fno,data)
 #define m_LOG_EDSV_AF(id,category,sev,rc,fname,fno,data,handle) eda_log_f(id,category,sev,rc,fname,fno,data,handle)
 
-#if 0  /* ((NCS_DTA == 1) && (NCS_EDSV_LOG == 1)) */
-
-#define m_LOG_EDSV_A(id,category,sev,rc,fname,fno,data) 
-#define m_LOG_EDSV_A(id,category,sev,rc,fname,fno,data,handle) 
-
-#endif /* ((NCS_DTA == 1) && (NCS_EDSV_LOG == 1)) */
 
 
 /*****************************************************************************

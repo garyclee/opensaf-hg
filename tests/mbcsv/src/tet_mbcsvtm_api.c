@@ -3185,7 +3185,7 @@ void tet_mbcsv_test()
       fflush(stdout);
       break; 
     case 2:
-      /*seg fault IR 82375 */
+      /*seg fault  */
       if(mbcstm_cb.sys == MBCSTM_SVC_INS1)
         {
           mbcstm_cb.svces[1].ssns[1].csi_role = SA_AMF_HA_ACTIVE;

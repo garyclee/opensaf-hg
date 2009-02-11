@@ -43,9 +43,6 @@
 
 uns32 mds_vdest_tbl_add (MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
                                 MDS_VDEST_HDL *vdest_hdl)
-#if 0
-uns32 mds_vdest_tbl_add (MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy)
-#endif
 {
     MDS_VDEST_INFO *vdest_info;
 
@@ -922,7 +919,6 @@ uns32 mds_svc_tbl_cleanup (void)
     MDS_SUBSCRIPTION_INFO *temp_current_subtn_info = NULL;
     MDS_AWAIT_DISC_QUEUE *temp_disc_queue = NULL;
 
-    /* IR 60597 Fix*/
     MDS_MCM_SYNC_SEND_QUEUE *q_hdr=NULL,*prev_mem=NULL;
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_svc_tbl_get_first_subscription");
@@ -965,7 +961,7 @@ uns32 mds_svc_tbl_cleanup (void)
                         temp_current_subtn_info->await_disc_queue->next_msg;
 
                     /* Destroy selection object */
-                    /* m_NCS_SEL_OBJ_DESTROY(temp_disc_queue->sel_obj); IR 60597 Fix */
+                    /* m_NCS_SEL_OBJ_DESTROY(temp_disc_queue->sel_obj);  */
                     /* We raise the selection object, instead of the destroy */
                     m_NCS_SEL_OBJ_IND(temp_disc_queue->sel_obj);
                     
@@ -985,13 +981,12 @@ uns32 mds_svc_tbl_cleanup (void)
         /* Delete service table entry */
         if (svc_info->q_ownership == 1)
         {
-            /* vishal : todo put cleanup function instead of NULL in (NCS_IPC_CB) */
+            /*  todo put cleanup function instead of NULL in (NCS_IPC_CB) */
             m_NCS_IPC_DETACH(&svc_info->q_mbx, (NCS_IPC_CB) NULL, NULL);
-            /* vishal : todo to provide cleanup callback */
+            /*  todo to provide cleanup callback */
             m_NCS_IPC_RELEASE(&svc_info->q_mbx, NULL);
         }
         
-        /* IR60597 Fix*/
         /* Raise the selection object for the sync send Q and free the memory*/
         q_hdr=svc_info->sync_send_queue;
         while(q_hdr!=NULL)
@@ -1168,7 +1163,7 @@ uns32 mds_subtn_tbl_del (MDS_SVC_HDL svc_hdl, uns32 subscr_svc_id)
                         temp_current_subtn_info->await_disc_queue->next_msg;
 
                     /* Destroy selection object */
-                    /* m_NCS_SEL_OBJ_DESTROY(temp_disc_queue->sel_obj); IR 60597 Fix */
+                    /* m_NCS_SEL_OBJ_DESTROY(temp_disc_queue->sel_obj);  */
                     /* We raise the selection object, instead of the destroy */
                     m_NCS_SEL_OBJ_IND(temp_disc_queue->sel_obj);
                     
@@ -1242,7 +1237,6 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
                     {/* Await Active Timer is running */
                         
                         /* so just give Await Active to user no matter vdest policy*/
-                        /* Fix for IR00083349 */
                         mds_mcm_user_event_callback(svc_hdl, 
                                                     m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                     subscr_svc_id,
@@ -1256,7 +1250,6 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
                     {/* Active entry exist */
     
                         /* Call user callback UP for first active*/
-                        /* Fix for IR00083349 */
                         mds_mcm_user_event_callback(svc_hdl, 
                                                     m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                     subscr_svc_id,
@@ -1271,7 +1264,6 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
                 {/* This is ADEST entry */
 
                     /* so just give UP to user */
-                    /* Fix for IR00083349 */
                     mds_mcm_user_event_callback(svc_hdl, 
                                                 m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                 subscr_svc_id,
@@ -1285,7 +1277,6 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
                     if (temp_subtn_info->view == MDS_VIEW_RED)
                     {
                         /* Call user callback RED_UP for all instances*/
-                        /* Fix for IR00083349 */
                         mds_mcm_user_event_callback(svc_hdl, 
                                                 m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                 subscr_svc_id,
@@ -2403,7 +2394,7 @@ uns32 mds_subtn_res_tbl_del_all (MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
                     m_MMGR_FREE_TMR_INFO
                         (subtn_res_info->info.active_vdest.active_route_info->tmr_req_info);
 
-                    /* IR 60597 Fix, Free the memory of await_active_queue : modified */ 
+                    /* Fixed, Free the memory of await_active_queue : modified */ 
                     mds_await_active_tbl_del(subtn_res_info->info.active_vdest.active_route_info->await_active_queue);
 
                 }
@@ -2472,7 +2463,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
                 m_MMGR_FREE_TMR_INFO
                     (subtn_res_info->info.active_vdest.active_route_info->tmr_req_info);
 
-                /* IR 60597 Fix, Free the memory of await_active_queue : modified */ 
+                /*  Fixed, Free the memory of await_active_queue : modified */ 
                 mds_await_active_tbl_del(subtn_res_info->info.active_vdest.active_route_info->await_active_queue);
 
             }

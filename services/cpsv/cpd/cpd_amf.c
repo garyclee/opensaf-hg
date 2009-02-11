@@ -213,28 +213,9 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
          m_NCS_CONS_PRINTF("CPD_MBCSV_CHGROLE_FAILED\n");
          m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED,CPD_FC_MBCSV,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
       }
- #if 0
-      if((rc = cpd_reg_with_mab(cb))!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_CPD_HEADLINE(CPD_MASV_REGISTER_FAIL,NCSFL_SEV_ERROR); 
-     /*    goto cpd_mab_fail; */
-      }
- #endif
 
       /** Set the CB's anchor value */
 /*      cb->cpd_anc= anchor;  */
-#if 0
-     cpd_cpnd_info_node_getnext(&cb->cpnd_tree,NULL,&node_info);
-     while(node_info)
-     {
-        if(node_info->timer_state == 2)
-        {
-           cpd_process_cpnd_down(cb,&node_info->cpnd_dest);   
-        }
-         
-        cpd_cpnd_info_node_getnext(&cb->cpnd_tree,&node_info->cpnd_dest,&node_info);
-     }
-#endif
       saAmfResponse(cb->amf_hdl, invocation, saErr);
       ncshm_give_hdl(cb->cpd_hdl);
  

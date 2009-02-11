@@ -32,9 +32,6 @@
 /*  EDA control block is the master anchor structure for all
  *  EDA instantiations within a process
  */
-#if 0 /* CLEAN UNNECESSARY DATA STRUCTURE */
-struct eda_event_instance_rec_tag;
-#endif 
 
 struct event_handle_rec_tag;
 struct eda_subsc_rec_tag;
@@ -44,17 +41,6 @@ struct eda_client_hdl_rec_tag;
 #define EDA_EVT_PUBLISHED 0x1
 #define EDA_EVT_RECEIVED  0x2
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-typedef struct eda_evt_inst_rec_tag
-{
-   uns32                evt_inst_id; /* allocated by the hdl manager */
-   uns32                ret_evt_ch_oid; 
-   uns32                pub_evt_id; /*The event ID sent to EDS ias part of Publish */
-   uns32                del_evt_id; /* The event ID got from EDS as part of Delivery to this EDA*/
-   uns32                parent_chan_hdl;
-   struct eda_evt_inst_rec_tag *next;
-} EDA_EVT_INST_REC;
-#endif
 
 typedef struct event_handle_rec_tag
 {
@@ -71,9 +57,6 @@ typedef struct event_handle_rec_tag
    struct event_handle_rec_tag     *next;
    uns32                pub_evt_id; /*The event ID sent to EDS ias part of Publish */
    uns32                del_evt_id; /* The event ID got from EDS as part of Delivery to this EDA*/
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-   struct eda_evt_inst_rec_tag     *evt_inst_list;
-#endif
 
 } EDA_EVENT_HDL_REC;
 
@@ -136,14 +119,6 @@ typedef struct eda_cb_tag
    NCS_BOOL      eds_sync_awaited ;
    NCS_LOCK      eds_sync_lock;
    NCS_SEL_OBJ   eds_sync_sel; 
-#if 0 
-   /* Event Service Limits - Obtained from EDS */
-   SaUint64T     max_chan;
-   SaUint64T     max_evt_size;
-   SaUint64T     max_ptrn_size;
-   SaUint64T     max_num_ptrns;
-   SaTimeT       max_ret_time;
-#endif
    SaClmClusterChangesT node_status;
 } EDA_CB;
 

@@ -85,7 +85,7 @@ ncs_task_release(void *task_handle)
 }
 
 uns32
-ncs_task_detach(void *task_handle) /* IR00059647 */
+ncs_task_detach(void *task_handle) 
 {
     NCS_OS_TASK task;
 

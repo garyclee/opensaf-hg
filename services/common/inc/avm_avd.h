@@ -47,11 +47,6 @@
 #include "ncs_lib.h"
 #include "ncs_dummy.h"
 
-#if 0
-#include "ncs_mds.h"
-#include "sysf_mds.h"
-#include "ncs_mdsev.h"
-#endif
 #include "mds_papi.h"
 /* #include "ncs_edu_pub.h" */
 #include "ncs_mib_pub.h"
@@ -308,20 +303,5 @@ struct avd_avm_msg_t
 extern uns32
 avm_avd_free_msg(AVM_AVD_MSG_T **);
 
-/*AVM APIS*/ 
-
-#if 0
-uns32 avm_avd_node_failover_req(AVM_CB_T*, AVM_LIST_HEAD_T*, AVM_NODE_OPERSTATE_T);
-uns32 avm_avd_node_shutdown_req(AVM_CB_T*, AVM_LIST_HEAD_T*);
-uns32 avm_avd_node_operstate(AVM_CB_T*, AVM_LIST_HEAD_T*, AVM_NODE_OPERSTATE_T);
-uns32 avm_avd_fault_domain_resp(AVM_CB_T*, AVM_LIST_HEAD_T*, SaNameT);
-uns32 avm_avd_node_reset_resp(AVM_CB_T*, uns32, SaNameT);
-
-/*AVD APIS */
-uns32 avd_avm_node_failover_resp(AVM_LIST_HEAD_T, AVD_NODE_SWITCHOVER_STATUS_T);
-uns32 avd_avm_node_shutdown_resp(AVM_LIST_HEAD_T, AVD_NODE_SWITCHOVER_STATUS_T);
-uns32 avd_avm_node_reset_req(AVM_LIST_HEAD_T);
-uns32 avd_avm_node_fault_domain_req(SaClmNodeIdT);
-#endif
 
 #endif /* __AVM_AVD_H__ */

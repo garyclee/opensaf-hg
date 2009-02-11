@@ -212,7 +212,7 @@ struct test_tmr2 {
 
 struct stop_exp_test_cb_info {
    uns64  *expire_time;
-   tmr_t  *timer_to_delete; /* IR00058794 */
+   tmr_t  *timer_to_delete; 
 };
 
 static void
@@ -221,7 +221,7 @@ timer_stop_on_expire_cb_func(void * arg)
    struct stop_exp_test_cb_info *info = arg;
 
    *(info->expire_time) = m_NCS_GET_TIME_MS;
-   m_NCS_TMR_STOP (*(info->timer_to_delete)); /*IR00058794 */
+   m_NCS_TMR_STOP (*(info->timer_to_delete)); 
 }
 
 static uns32
@@ -334,7 +334,7 @@ timer_stoptimer_test(void)
       struct stop_exp_test_cb_info info;
       
       info.expire_time     = &tmr_info[0].expire_time;  /* first timer has special call back */
-      info.timer_to_delete = &tmr_info[test_cntr].timer; /* IR00058794 */  /* pass it the timer to stop */
+      info.timer_to_delete = &tmr_info[test_cntr].timer;   /* pass it the timer to stop */
 
       tmr_info[0].start_time  = m_NCS_GET_TIME_MS;
       m_NCS_TMR_START (tmr_info[0].timer, tmr_info[0].period / 10, timer_stop_on_expire_cb_func, (void *) &info);
@@ -380,7 +380,7 @@ timer_stoptimer_test(void)
    struct stop_exp_test_cb_info info;
       
    info.expire_time     = &tmr_info[0].expire_time;  /* first timer has special call back */
-   info.timer_to_delete = &tmr_info[1].timer;  /* IR00058794 */      /* pass it the timer to stop */ 
+   info.timer_to_delete = &tmr_info[1].timer;        /* pass it the timer to stop */ 
 
    tmr_info[0].start_time  = m_NCS_GET_TIME_MS;
    m_NCS_TMR_START (tmr_info[0].timer, tmr_info[0].period / 10, timer_stop_on_expire_cb_func, (void *) &info);

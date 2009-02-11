@@ -55,11 +55,6 @@ XERCES_CPP_NAMESPACE_USE
 
 /* Default MAX value for heartbeat */
 #define NCS_DEFAULT_HB_MAX "9999999999999999"
-#if 0
-#define NCS_DEFAULT_SI_ACTIVE_MAX 100
-#define NCS_DEFAULT_SI_STANDBY_MAX 100
-#define NCS_SU_DEFAULT_SU_TYPE 1
-#endif
 
 /* Some forward declarations for compiler */
 static SaAisErrorT
@@ -1236,11 +1231,6 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
 
          /*saAmfParseClcParams(tmpNode, index, tmpString); */
 
-#if 0
-         if( (m_NCS_STRCMP(tmpString, "instantiateCommand") == 0) ||
-             (m_NCS_STRCMP(tmpString, "amStartCommand") == 0) ||
-             (m_NCS_STRCMP(tmpString, "cleanupCommand") == 0) )
-#endif
          cmdNodes = tmpNode->getChildNodes();
          if(cmdNodes->getLength())
          {

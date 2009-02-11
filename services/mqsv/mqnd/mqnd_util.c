@@ -216,69 +216,6 @@ free_mem:
    return rc;
 }
 
-/****************************************************************************
- * Name          : mqnd_queue_create_attr_get
- *
- * Description   : Function to get queue status (from any MQND)
- *
- * Arguments     : MQND_CB *cb - MQND CB pointer
- *                 uns32 qhdl - Queue Handle
- *                 MDS_DEST *qdest - MDS Destination of queue. 
- *
- * Return Values : NCSCC_RC_SUCCESS/Error.
- *                 SaMsgQueueStatusT *o_status - Queu Status
- *
- * Notes         : None.
- *****************************************************************************/
-#if 0
-static uns32 mqnd_queue_create_attr_get(MQND_CB *cb, uns32 qhdl, MDS_DEST *qdest, 
-                            SaMsgQueueCreationAttributesT *o_qattr)
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-   MQND_QUEUE_NODE   *qnode = NULL;
-   MQSV_EVT req,*rsp = NULL;
-   if(m_NCS_MDS_DEST_EQUAL(&cb->my_dest, qdest) == 1)
-   {
-      mqnd_queue_node_get(cb, qhdl, &qnode);
-
-      if(qnode)
-      {
-         o_qattr->creationFlags = qnode->qinfo.queueStatus.creationFlags;
-         o_qattr->retentionTime = qnode->qinfo.queueStatus.retentionTime;
-         m_NCS_OS_MEMCPY(o_qattr->size, qnode->qinfo.size, 
-                           (sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1)));
-      }
-      else
-         rc = NCSCC_RC_FAILURE;
-   }
-   else
-   {
-      m_NCS_OS_MEMSET(&req, 0, sizeof(MQSV_EVT));
-      
-      req.type = MQSV_EVT_MQND_CTRL;
-      req.msg.mqnd_ctrl.type = MQND_CTRL_EVT_QATTR_GET;
-      req.msg.mqnd_ctrl.info.qattr_get.qhdl = qhdl;
-      
-      /* Send the MDS sync request to remote MQND */
-      rc = mqnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_MQND, *qdest, 
-         &req, &rsp, MQSV_WAIT_TIME_MQND);
-      
-      if((rsp) && (rsp->type == MQSV_EVT_MQND_CTRL) &&
-         (rsp->msg.mqnd_ctrl.type == MQND_CTRL_EVT_QATTR_INFO) &&
-         (rsp->msg.mqnd_ctrl.info.qattr_info.error == SA_AIS_OK))
-      {
-         *o_qattr = rsp->msg.mqnd_ctrl.info.qattr_info.qattr;
-      }
-      else
-         rc = NCSCC_RC_FAILURE;
-
-      if(rsp) 
-         m_MMGR_FREE_MQSV_EVT(rsp,NCS_SERVICE_ID_MQND);  
-  }
-  m_LOG_MQSV_ND(MQND_Q_CREATE_ATTR_GET,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-  return rc;
-}
-#endif 
 
 /****************************************************************************
  * Name          : mqnd_compare_create_attr
@@ -302,10 +239,6 @@ NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
       return FALSE;
 /* With the introduction of API to set the retention time dynamically
    check for retention time nolonger exists */
-#if 0
-   if(open_ca->retentionTime != curr_ca->retentionTime)
-      return FALSE;
-#endif
    for(i=0; i<SA_MSG_MESSAGE_LOWEST_PRIORITY; i++)
    {
       if(open_ca->size[i] != curr_ca->size[i])
@@ -316,45 +249,6 @@ NCS_BOOL mqnd_compare_create_attr(SaMsgQueueCreationAttributesT *open_ca,
 }
 
 
-/****************************************************************************
- * Name          : mqnd_set_queue_owner
- *
- * Description   : Function to match the rece.ived create attributes from the
- *                 existing create attributes.
- *
- * Arguments     : MQND_CB *cb - MQND Control Block
- *                 uns32 qhdl - Queue Handle
- *
- * Return Values : NCSCC_RC_SUCCESS/Fail
- *
- * Notes         : None.
- *****************************************************************************/
-#if 0
-static uns32 mqnd_set_queue_owner(MQND_CB *cb, MQND_QUEUE_NODE   *qnode, MDS_DEST* rcvr_mqa)
-{
-   uns32 rc;
-
-   if(qnode)
-   {
-      mqnd_tmr_stop (&qnode->qinfo.tmr);
-
-      if(qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN)
-      {
-         qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
-         qnode->qinfo.rcvr_mqa = *rcvr_mqa;
-      }
-      else
-         return NCSCC_RC_FAILURE;
-   }
-   else
-      return NCSCC_RC_FAILURE;
-
-   rc = mqnd_queue_reg_with_mqd(cb, qnode, NULL, NULL);
-   if(rc == NCSCC_RC_SUCCESS)
-      m_LOG_MQSV_ND(MQND_Q_REG_WITH_MQD_SUCCESS,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-   return rc;
-}
-#endif
 /****************************************************************************
  * Name          : mqnd_queue_reg_with_mqd
  *
@@ -475,62 +369,6 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
 }
 
 
-#if 0
-
-/****************************************************************************
- * Name          : mqnd_queue_dereg_with_mqd
- *
- * Description   : Deregister the  Queue  with MQD
- *
- * Arguments     : SaMsgQueueCreationAttributesT *open_ca - Attributes in Open.
- *                 SaMsgQueueCreationAttributesT *open_ca - Existing Attributes.
- *
- * Return Values : TRUE/FALSE
- *
- * Notes         : None.
- *****************************************************************************/
-static uns32 mqnd_queue_dereg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
-{
-   uns32             rc = NCSCC_RC_SUCCESS,counter=0;
-   ASAPi_OPR_INFO    opr;
-
-   if(qnode)
-   {
-      mqnd_unreg_mib_row(cb,NCSMIB_TBL_MQSV_MSGQTBL,qnode->qinfo.mab_rec_row_hdl);
-      for(counter=SA_MSG_MESSAGE_HIGHEST_PRIORITY;counter<SA_MSG_MESSAGE_LOWEST_PRIORITY+1;counter++)
-         mqnd_unreg_mib_row(cb,NCSMIB_TBL_MQSV_MSGQPRTBL,qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-   }
-   else
-      return NCSCC_RC_FAILURE;
-
-   /* Request the ASAPi (at MQD) for queue DEREG */
-   m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
-
-   opr.type = ASAPi_OPR_MSG;
-   opr.info.msg.opr = ASAPi_MSG_SEND;
-
-   /* Fill MDS info */
-   opr.info.msg.sinfo.to_svc = NCSMDS_SVC_ID_MQD;
-   opr.info.msg.sinfo.dest = cb->mqd_dest;
-   opr.info.msg.sinfo.stype = MDS_SENDTYPE_SNDRSP;
-
-   opr.info.msg.req.msgtype = ASAPi_MSG_DEREG;
-   opr.info.msg.req.info.dereg.objtype = ASAPi_OBJ_QUEUE;
-   opr.info.msg.req.info.dereg.queue = qnode->qinfo.queueName;
-
-   /* Request the ASAPi */
-   if ((asapi_opr_hdlr(&opr) != SA_AIS_OK) || 
-       (!opr.info.msg.resp) || (opr.info.msg.resp->info.dresp.err.flag)) {
-      rc = NCSCC_RC_FAILURE; 
-      m_LOG_MQSV_ND(MQND_ASAPI_DEREG_HDLR_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-   }
-
-   /* Free the response Event */
-   asapi_msg_free(&opr.info.msg.resp);
-
-   return rc;
-}
-#endif
 /***************************************************************************
  * Function :  mqsv_reg_mqndmib_queue_tbl_row
  *

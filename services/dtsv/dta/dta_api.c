@@ -179,10 +179,10 @@ uns32 dta_svc_create(NCSDTA_CREATE* create)
     m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
     }
 
-    m_DTA_LK(&inst->lock); /* Further fix related to IR00058114 changes */
+    m_DTA_LK(&inst->lock); 
     inst->dts_sync_done = TRUE;
     m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
-    m_DTA_UNLK(&inst->lock); /* Further fix related to IR00058114 changes */
+    m_DTA_UNLK(&inst->lock);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -317,24 +317,6 @@ uns32
 dta_log_msg  (NCSFL_NORMAL*  lmsg)
 {
 
-#if 0
-    lmsg->hdr.time.millisecs = (rand() % 1000);
-    tod = (time_t)lmsg->hdr.time.seconds;
-    dta_time = localtime(&tod);
-
-    m_NCS_TIME_TO_STR(tod, asc_tod);
-
-   sysf_sprintf((asc_tod + m_NCS_STRLEN(asc_tod)) ,".%d",lmsg->hdr.time.millisecs);
-   sysf_sprintf((asc_tod + m_NCS_STRLEN(asc_tod)) , "  %d  %d \n", dta_time->tm_min, dta_time->tm_sec);
-   
-   if((fh= sysf_fopen("time.txt", "a+")) != NULL)
-   {
-       sysf_fprintf(fh,asc_tod);
-       sysf_fclose(fh);
-   }
-#endif
-
-
     return NCSCC_RC_SUCCESS;
 }
 
@@ -420,7 +402,7 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
         return NCSCC_RC_SUCCESS;    
     }
 
-    /* IR 00058378 - DTA shouldn't send svc reg msg to DTA mailbox.
+    /* DTA shouldn't send svc reg msg to DTA mailbox.
      *               Instead it should do a MDS sync send and wait for the 
      *               svc policy handle returned from DTS */
     /*msg = m_MMGR_ALLOC_DTSV_MSG;*/
@@ -1075,7 +1057,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                 
                 break;
             }
-        /* IR 59161/60156 : Added code for handling float values */
+        /* Added code for handling float values */
         case 'F':
             {
                 char str[DTS_MAX_DBL_DIGITS]="";
@@ -1317,7 +1299,7 @@ void dta_do_evts( SYSF_MBX*  mbx)
            warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evts: Error returned");
        }
    }/* end of while */
-   /* IR 85261 - Deferred indication on destroy sel obj */
+   /* Deferred indication on destroy sel obj */
    /* Now raise indication on the destroy selection object and return */
    if((dta_cb.dta_dest_sel.raise_obj != 0) || (dta_cb.dta_dest_sel.rmv_obj != 0))
        m_NCS_SEL_OBJ_IND(dta_cb.dta_dest_sel);

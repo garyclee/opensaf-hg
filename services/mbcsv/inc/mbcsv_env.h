@@ -190,12 +190,6 @@ typedef struct mbcsv_s_desc
 
 
 /* This macro checks to see if a subscription might need servicing */
-#if 0
-#define  m_MBCSV_CHK_SUBSCRIPTION(f,e,d) \
-    if ((e <= NCSMBCSV_MAX_SUBSCRIBE_EVT) && (f->my_ckpt_inst->msg_slots[e] != NULL)) \
-mbcsv_ss_service(f->my_ckpt_inst->msg_slots[e],d)
-
-#endif
 
 #define  m_MBCSV_CHK_SUBSCRIPTION(f,e,d)
 

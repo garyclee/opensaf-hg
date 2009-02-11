@@ -300,38 +300,6 @@ saAmfParseMoreRedElems(DOMNode *node, char *sgName, uns32 red_model)
 
    ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, redVal, format);
 
-#if 0  /* Attribute "N" is replaced by "numberofAssignedSUs" element in case of NWayActive model also*/
-
-   if(red_model ==  NCS_BAM_SG_REDMODEL_NWAYACTIVE)
-   {
-      /* Get the Attributes for that node */
-      DOMNamedNodeMap *attributesNodes = node->getAttributes();
-      if(attributesNodes->getLength() )
-      {
-         for(unsigned int x=0; x < attributesNodes->getLength(); x++)
-         {
-            char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
-            char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-            if(m_NCS_STRCMP(tag, "N") == 0)
-            {
-               /* Set the N value in the SG table */
-               rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
-               gl_amfConfig_table_size, "SGInstance", 
-               "valueN", &table_id, &param_id, &format);
-
-               if(rc == SA_AIS_OK)
-               {
-                  ncs_bam_build_and_generate_mibsets(table_id, param_id, 
-                                       &mib_idx, val, format);
-               }
-            }
-            XMLString::release(&val);
-            XMLString::release(&tag);
-         } /* End for loop */
-      } /* end of attributes */
-   } /* End of NWAY ACTIVE */
-
-#endif
 
    /* Parse the SU Ranked list and other elements for the related
    ** Redundancy Models only 
@@ -458,69 +426,6 @@ saAmfParseRedModel(DOMNode *node, char *sgName)
    return SA_AIS_OK;
 }
 
-#if 0
-/*****************************************************************************
-  PROCEDURE NAME: saAmfParseSUNamesList
-  DESCRIPTION   : This routine is to parse the CSI Attributes
-                  and generate the mibsets.
-  ARGUMENTS     :
-                  
-  RETURNS       : SUCCESS or FAILURE
-  NOTES         : 
-*****************************************************************************/
-static SaAisErrorT
-saAmfParseSUNamesList(DOMNode *node, char *sgName)
-{
-   SaAisErrorT             rc = SA_AIS_OK;
-   DOMNodeList          *children = NULL;
-   DOMNode              *tmpNode = NULL;
-   NCSMIB_TBL_ID        table_id;
-   uns32                param_id;
-   NCSMIB_IDX           mib_idx;
-   NCSMIB_FMAT_ID       format;
-   
-   if(!node)
-   {
-       m_LOG_BAM_MSG_TIC(BAM_INVALID_DOMNODE, NCSFL_SEV_ERROR,sgName);
-      return SA_AIS_ERR_INVALID_PARAM;
-   }
-   children = node->getChildNodes();
-   
-   if(children->getLength() == 0)
-   {
-      m_LOG_BAM_MSG_TICL(BAM_PARSE_SUCCESS, NCSFL_SEV_INFO,
-             "No SU names found. Parsing DONE", sgName);
-      return rc;
-   }
-
-   for(unsigned int x=0; x < children->getLength(); x++)
-   {
-      tmpNode = children->item(x);
-      if(tmpNode && tmpNode->getNodeType() == DOMNode::ELEMENT_NODE)
-      {
-         char *tmpString = XMLString::transcode(tmpNode->getNodeName());
-         char *val = XMLString::transcode(tmpNode->getTextContent());
-
-         if(m_NCS_STRCMP(tmpString, "SU") == 0)
-         {
-            /* set the parent Sg name and thats it!! */
-            ncs_bam_build_mib_idx(&mib_idx, val, NCSMIB_FMAT_OCT);
-
-            rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, gl_amfConfig_table_size,
-                                    "SUInstance", 
-                                    "parentSGName", &table_id, &param_id, &format);
-            
-            ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, sgName, format); 
-            ncs_bam_free(mib_idx.i_inst_ids);
-         }
-
-         XMLString::release(&tmpString);
-         XMLString::release(&val);
-      }
-   }
-   return SA_AIS_OK;
-}
-#endif
 
 /*****************************************************************************
   PROCEDURE NAME: saAmfParseCSIAttributes
@@ -672,7 +577,6 @@ saAmfParseCSIPrototype(char *csiName, char*siName)
    csiPrototype = get_dom_node_by_name(csiName, "CSIPrototype");
    if(!csiPrototype)
    {
-        /*Commented as fix for IR00084376*/
 /*      m_LOG_BAM_MSG_TIC(BAM_NO_PROTO_MATCH, NCSFL_SEV_WARNING, csiName); */
       return SA_AIS_ERR_NOT_EXIST;
    }
@@ -958,13 +862,6 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
    DOMNodeList    *children = NULL;
    char           siDepName[BAM_MAX_INDEX_LEN];
    char           tolTime[BAM_MAX_INDEX_LEN];
-#if 0
-   NCSMIB_TBL_ID  table_id;
-   uns32          param_id;
-   NCSMIB_FMAT_ID format;
-   NCSMIB_IDX     mib_idx;
-   char           rowStatus[4];
-#endif
    char           *tag, *val;
    
    if(!node)
@@ -1034,34 +931,6 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
             {
                return SA_AIS_ERR_INVALID_PARAM;
             }
-#if 0
-            /* Update the SI dependency data */ 
-            ncs_bam_build_mib_idx(&mib_idx, siName, NCSMIB_FMAT_OCT);
-            ncs_bam_add_sec_mib_idx(&mib_idx, siDepName, NCSMIB_FMAT_OCT );
-   
-            rc = ncs_bam_search_table_for_oid(gl_amfConfig_table,
-                                           gl_amfConfig_table_size,
-                                           "SIInstance",
-                                           "SIdepToltime", &table_id, &param_id, &format);
-   
-            if (rc == SA_AIS_OK)
-               ncs_bam_generate_counter64_mibset(table_id, param_id, 
-                                                 &mib_idx, tolTime); 
-     
-            rc = ncs_bam_search_table_for_oid(gl_amfConfig_table,
-                                           gl_amfConfig_table_size,
-                                           "SIInstance",
-                                           "SIdepRowStatus", &table_id, &param_id, &format);
-   
-            if(rc == SA_AIS_OK)
-            {
-               sprintf(rowStatus, "%d", NCSMIB_ROWSTATUS_ACTIVE);
-               ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
-                                               rowStatus, format);
-            }
-
-            ncs_bam_free(mib_idx.i_inst_ids);
-#endif
          }
       }
 
@@ -1180,17 +1049,6 @@ saAmfParseSIInstance(char *siName, char *parentSg, char *rank)
 
    ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, 
       rank, format); 
-#if 0
-   /* set the SI_SU type to default */
-   rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
-            gl_amfConfig_table_size,
-            "SIInstance", 
-            "siSuType", &table_id, &param_id, &format);
-   /* reuse variable rowStatus */
-   sprintf(rowStatus, "%d", NCS_SI_DEFAULT_SU_TYPE);
-   ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, 
-      rowStatus, format); 
-#endif
 
    /* now set the row status to active */
    rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
@@ -1415,19 +1273,6 @@ saAmfParseSGInstance(DOMNode *node)
       }
    }
 
-#if 0
-   /* set the su_type to default for PHASE- I OVERLOAD rowStatus var*/
-   ncs_bam_build_mib_idx(&mib_idx, index, NCSMIB_FMAT_OCT);
-
-   rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
-            gl_amfConfig_table_size,
-            "SGInstance", 
-            "suType", &table_id, &param_id, &format);
-
-   sprintf(rowStatus, "%d", NCS_SG_DEFAULT_SU_TYPE);
-   ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, 
-      rowStatus, format); 
-#endif
 
    ncs_bam_build_mib_idx(&mib_idx, index, NCSMIB_FMAT_OCT);
 

@@ -117,20 +117,6 @@ bam_parse_child_entities(DOMNode *node, char *ent_path, char *parent_ent)
    return rc;
 }
 
-#if 0
-parse attributes fill a temp structure and parse the children also
-while parsing the children hold on to contains clause
-   and continue to parse dependOnClause and once done that call a routine
-   XYZ() and then continue with the contains clause parsing with ent_path
-   as argument so that ent_path can be built on. 
-
-   XYZ will access the pat_tree and then validation is done and if valid
-   will call the mibsets.
-
-   Write a utility function to pile on the ent_path.
-   the utility will just take the ent_path without the final { or } so that 
-   piling is easy. The mib set generator will add the { and } and do mib-set.
-#endif
 SaAisErrorT
 parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
 {

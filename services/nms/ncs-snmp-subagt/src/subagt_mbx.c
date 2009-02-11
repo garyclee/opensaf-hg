@@ -273,55 +273,12 @@ snmpsubagt_mbx_init_deinit_process(NCSSA_CB *cb, uns8*  reg_dereg_routine)
         return status; 
     }
 
-#if 0
-    /* if 0 because, init_snmp() is called at the time of initilizing the session with Agent. 
-     * Session with Agent is done as part of the init unlike after getting the CSI State
-     * assignment. 
-     */
-    /* If the session with the master agent is established, perform the registration */
-    if ((cb->haCstate == SNMPSUBAGT_HA_STATE_ACTIVE) ||  /* register/init the MIBs */
-        (cb->haCstate == SNMPSUBAGT_HA_STATE_QUISCED))   /* Unregister/deinit the MIBs */
-    {
-#endif
         /* do the INIT/DEINIT now... */
         status = (*init_deinit_routine)();
         if (status != NCSCC_RC_SUCCESS)
             m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_REG_DEREG_FAILED, reg_dereg_routine, 0, 0);
         else
             m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_REG_DEREG_SUCCESS, reg_dereg_routine, 0, 0);
-#if 0
-    }
-    else /* If the session with the master agent is not yet established, add to the pending list */
-    {
-        /* allocate the memory for the pending registraion node */
-        pending_reg = m_MMGR_SNMPSUBAGT_PENDING_REGS_ALLOC;
-        if (pending_reg == NULL)
-        {
-            /* MEMFAILURE log: the memory failure error */
-            m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_PEND_REG_NODE_ALLOC_FAILED);
-            return NCSCC_RC_FAILURE;
-        }
-        /* initialize */
-        m_NCS_MEMSET(pending_reg, 0, sizeof(SNMPSUBAGT_PENDING_REGS));
-        pending_reg->init_deinit_routine = init_deinit_routine;
-        pending_reg->node.key = (uns8*)pending_reg->init_deinit_routine;
-        
-        /* add to the list */
-        status = ncs_db_link_list_add(&cb->pending_registrations,
-                                      (NCS_DB_LINK_LIST_NODE*)pending_reg);
-        if (status != NCSCC_RC_SUCCESS)
-        {
-            /* ERROR log: adding to the list failed */
-            m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_PEND_REG_DLIST_ADD_FAILED,
-                                            status, 0, 0);
-            m_MMGR_SNMPSUBAGT_PENDING_REGS_FREE(pending_reg);
-            return status;
-        }
-        
-        /*  INFORM LOG: an event that a registration is pending */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_PENDING_REG, reg_dereg_routine, 0, 0); 
-     }
-#endif
 
      if (strcmp(cb->lastRegMsg, reg_dereg_routine) == 0)
      {

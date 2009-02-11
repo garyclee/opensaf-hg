@@ -70,45 +70,7 @@ TEST_FUNC_DECLARATION(CPD_MBCSV_MSG);
    \
    return rc;
 
-#if 0
-#define DS SaCkptCheckpointCreationAttributesT
-FUNC_DECLARATION(DS)
-{
-    NCS_ENC_DEC_DECLARATION(DS);
-    NCS_ENC_DEC_ARRAY(DS) {
 
-      {EDU_START,FUNC_NAME(SaCkptCheckpointCreationAttributesT), 0, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->creationFlags, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->checkpointSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->retentionDuration, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (uns32)&((DS*)0)->maxSections, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->maxSectionSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->maxSectionIdSize, 0, NULL},
-      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-  };
-    NCS_ENC_DEC_REM_FLOW(DS)
-}
-#undef DS
-
-#endif
-
-#if 0
-#define DS CPD_NODE_REF_INFO
-FUNC_DECLARATION(DS)
-{
-   NCS_ENC_DEC_DECLARATION(DS);
-   NCS_ENC_DEC_ARRAY(DS) {
-
-      { EDU_START,FUNC_NAME(CPD_NODE_REF_INFO), EDQ_LNKLIST, 0, 0, sizeof(DS), 0, NULL},
-      { EDU_EXEC, afs_edp_mds_dest, 0, 0, 0, (uns32)&((DS*)0)->dest, 0, NULL},
-      { EDU_EXEC, afs_edp_afs_bool, 0, 0, 0, (uns32)&((DS*)0)->exp_opened, 0, NULL},
-      { EDU_TEST_LL_PTR, FUNC_NAME(CPD_NODE_REF_INFO), 0, 0, 0, (uns32)&((DS*)0)->next, 0, NULL},
-      { EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-  };
-  NCS_ENC_DEC_CPD_NODE_REF_INFO(DS)
-}
-#undef DS  
-#endif
 
 #define DS CPD_A2S_CKPT_CREATE
 FUNC_DECLARATION(DS)

@@ -255,18 +255,6 @@ typedef enum cpnd_flex_sets
 
 typedef enum cpnd_log_ids
 {
-#if 0
-   CPND_LID_HDLN,
-   CPND_LID_MEMFAIL,
-   CPND_LID_EVT,
-   CPND_LID_NCS_LOCK,
-   CPND_LID_SYS_CALL,
-   CPND_LID_RESTART,
-   CPND_LID_API,
-   CPND_LID_GENERIC,
-   CPND_LID_MDSFAIL,
-   CPND_LID_CKPTINFO,
-#endif
    CPND_LID_TILCL,
    CPND_LID_TICL,
    CPND_LID_TIFCL,
@@ -281,20 +269,6 @@ typedef enum cpnd_log_ids
 
 EXTERN_C void cpnd_flx_log_reg ();
 EXTERN_C void cpnd_flx_log_dereg();
-#if 0
-EXTERN_C void cpnd_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void cpnd_log_tmr(uns8 hdln_id, uns8 sev);
-EXTERN_C void cpnd_log_memfail(uns8 mf_id);
-EXTERN_C void cpnd_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void cpnd_log_lockfail(uns8 lck_id, uns8 sev);
-EXTERN_C void cpnd_log_evt(uns32 evt_id, uns8 node);
-EXTERN_C void cpnd_log_sys_call(uns8 id, uns32 node);
-EXTERN_C void cpnd_log_data_send(uns8 id, uns32 node, uns32 evt);
-EXTERN_C void cpnd_log_restart(uns8 id, uns8 sev);
-EXTERN_C void cpnd_log_generic(uns8 id, uns8 sev, uns32 rc, char *filename, uns32 lineno);
-EXTERN_C void cpnd_log_mds_send_fail(uns8 id,uns8 sev,uns64 from_dest,uns64 to_dest,uns64 ckptid,char *filename,uns32 lineno);
-EXTERN_C void cpnd_log_ckptinfo(uns8 id, uns8 sev,uns64 ckptid,char *filename, uns32 lineno);
-#endif
 EXTERN_C uns32 cpnd_log_ascii_reg(void);
 EXTERN_C void cpnd_log_ascii_dereg(void);
 
@@ -313,20 +287,6 @@ EXTERN_C void cpnd_log_ascii_dereg(void);
 
 
 
-#if 0
-#define m_LOG_CPND_API(id,sev)              cpnd_log_api(id,sev)
-#define m_LOG_CPND_HEADLINE(id, sev)        cpnd_log_headline(id,sev)
-#define m_LOG_CPND_TMR(id, sev)             cpnd_log_tmr(id,sev)
-#define m_LOG_CPND_EVT(id, sev)             cpnd_log_evt(id, sev)
-#define m_LOG_CPND_MEMFAIL(id)              cpnd_log_memfail(id)
-#define m_LOG_CPND_LOCKFAIL(id,sev)         cpnd_log_lockfail(id,sev)
-#define m_LOG_CPND_SYS_CALL(id,node)        cpnd_log_sys_call(id,node)
-#define m_LOG_CPND_DATA_SEND(id,node,evt)   cpnd_log_data_send(id,node,evt)
-#define m_LOG_CPND_RESTART(id,sev)          cpnd_log_restart(id,sev)
-#define m_LOG_CPND_GENERIC(id,sev,rc,filename,lineno)   cpnd_log_generic(id,sev,rc,filename,lineno)
-#define m_LOG_CPND_MDS_SENDFAIL(id,sev,from_dest,to_dest,ckptid,filename,lineno) cpnd_log_mds_send_fail(id,sev,from_dest,to_dest,ckptid,filename,lineno)
-#define m_LOG_CPND_CKPTINFO(id,sev,ckptid,filename,lineno) cpnd_log_ckptinfo(id,sev,ckptid,filename,lineno)
-#endif
 
 
 #define m_LOG_CPND_LCL(id,strid,sev,rc,filename,lineno) ncs_logmsg(NCS_SERVICE_ID_CPND,CPND_LID_TILCL,strid, \

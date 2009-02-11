@@ -49,7 +49,6 @@
 
 typedef struct ncs_sys_params
 {
-   /*IR00009586*/ 
    NCS_PHY_SLOT_ID slot_id;
    NCS_CHASSIS_ID shelf_id;
    NCS_NODE_ID node_id;
@@ -111,9 +110,6 @@ uns32 file_get_word(FILE **fp, char *o_chword);
 uns32 file_get_string(FILE **fp, char *o_chword);
 EXTERN_C char *gl_pargv[NCS_MAIN_MAX_INPUT];
 EXTERN_C uns32 gl_pargc;
-#if 0
-void ncs_set_node_id(int argc, char *argv[]);
-#endif
 
 
 /***********************************************************************\

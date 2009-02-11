@@ -246,7 +246,7 @@ static uns32 cli_lib_shut(void)
    return rc;
 }
 
-/* cli_lib_shut_except_task_release method is developed inorder to fix the bug IR00058948 */
+/* cli_lib_shut_except_task_release method is developed inorder to fix the bug  */
 /****************************************************************************
   Name          : cli_lib_shut_except_task_release
   Description   : This is the function which destroy the CLI library.
@@ -286,7 +286,6 @@ uns32 cli_lib_shut_except_task_release(void)
  Return Values : Access level of the user. -1 if user does not belongs to valid cli groups.
 
 ****************************************************************************/
-/*Fix for 59359 */
 uns8  ncscli_user_access_level_find(CLI_CB *pCli)
 {
     struct group *gp;
@@ -378,7 +377,6 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
  Return Values : Returns 1 if the user is allowed to execute a command.Else  returns 0.
 
 ****************************************************************************/
-/*Fix for 59359 */
 int32 ncscli_user_access_level_authenticate(CLI_CB *pCli)
 {
     if(pCli->user_access_level & pCli->ctree_cb.cmdElement->cmd_access_level)
@@ -715,7 +713,6 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
       pCli->ctree_cb.bindery = pBindery;
       cmd_access_level = info->i_cmdlist->i_command_list[count].i_cmd_access_level;
       pCli->ctree_cb.execFunc = info->i_cmdlist->i_command_list[count].i_cmd_exec_func;
-      /* Fix for 59359 */
       if(cmd_access_level == NCSCLI_VIEWER_ACCESS || cmd_access_level == NCSCLI_ADMIN_ACCESS || cmd_access_level == NCSCLI_SUPERUSER_ACCESS)
           pCli->ctree_cb.cmd_access_level = (1<<cmd_access_level);
       else {
@@ -746,7 +743,7 @@ uns32 cli_deregister_cmds(CLI_CB *pCli, NCSCLI_OP_DEREGISTER *info)
     * under that mode or just the commands only not the mode 
    */
    cli_cb_main_lock(pCli);
-   if(info->i_cmdlist == NULL)  /* fix for the bug IR00082418 */
+   if(info->i_cmdlist == NULL)  
    {
        cli_cb_main_unlock(pCli);
        return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
@@ -919,7 +916,6 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
             continue;
         }
         /* The below 'if' Added to read configurable parameter CLI_IDLE_TIME */
-        /* Fix for the bug 58609 */
         if( m_NCS_STRCMP(arg1,"CLI_IDLE_TIME")  == 0 )
         {
             cli_idle_time=arg2;

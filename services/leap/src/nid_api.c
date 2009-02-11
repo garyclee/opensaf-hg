@@ -147,57 +147,6 @@ uns32 nis_notify(uns8 *status,uns32 *error)
    return NCSCC_RC_SUCCESS;
 }
 
-#if 0
-/****************************************************************************
- * Name          : nid_get_process_id                                       *
- *                                                                          *
- * Description   : Given the process/service name, this function returns    *
- *                 the respective NID service code.                         *
- *                                                                          *
- * Arguments     : i_proc_name - input service/process name                 *
- *                 nid_proc_id - output respective NID svc-id               *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE..                      *
- *                                                                          *
- * Notes         : None.                                                    *
- ***************************************************************************/
-uns32 nid_get_process_id(char *i_proc_name, int *nid_proc_id)
-{
-   char  *out_data;
-   char  buffer[256];
-   char  proc_name[256];
-   char  *split_patt = NID_PROCESS_NAME_SPLIT_PATTERN;
-
-   m_NCS_OS_MEMSET(&buffer, 0, 256);   
-   m_NCS_OS_STRCPY(buffer, i_proc_name);
-
-   if ((out_data = strtok(buffer, split_patt)) == NULL)
-      return NCSCC_RC_FAILURE;
-
-   m_NCS_OS_MEMSET(proc_name, 0, 256);
-   m_NCS_OS_STRCPY(proc_name, out_data);
-
-   while (out_data)
-   {
-      m_NCS_OS_MEMSET(proc_name, 0, 256);
-      m_NCS_OS_STRCPY(proc_name, out_data);
-      out_data = strtok(NULL, split_patt);
-   }
-
-   if (!m_NCS_OS_STRCMP(proc_name, NID_MDS_PROC_NAME)) 
-      *nid_proc_id = NID_MDS;
-   else        
-   if (!m_NCS_OS_STRCMP(proc_name, NID_MASV_PROC_NAME)) 
-      *nid_proc_id = NID_MASV;
-   else        
-   if (!m_NCS_OS_STRCMP(proc_name, NID_PSSV_PROC_NAME)) 
-      *nid_proc_id = NID_PSSV;
-   else        
-   if (!m_NCS_OS_STRCMP(proc_name, NID_SCAP_PROC_NAME)) 
-      *nid_proc_id = NID_SCAP;
-
-   return NCSCC_RC_SUCCESS;
-}
-#endif
 
 
 

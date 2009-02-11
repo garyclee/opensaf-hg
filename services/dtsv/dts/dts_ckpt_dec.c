@@ -537,7 +537,7 @@ static uns32  dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb,
       {
          /* Decode failed!!! */
          m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
-         /* IR 83394 - Removing probable mem leak */
+         /* Removing probable mem leak */
          dev = &dec_svc_reg.device;
          m_DTS_FREE_FILE_LIST(dev);
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config: Decode DTS_FILE_LIST failed");
@@ -546,7 +546,7 @@ static uns32  dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb,
       status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, file_list,
          NCS_MBCSV_ACT_ADD);
 
-      /* IR 83394 - Removing probable mem leak */
+      /* Removing probable mem leak */
       dev = &dec_svc_reg.device;
       m_DTS_FREE_FILE_LIST(dev);
 
@@ -666,7 +666,7 @@ static uns32  dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb,
       dta_dest_ptr->dta_num_svcs = svc_count;
    }/*end of for count*/
 
-   /* IR 83636 - Now since the DTA list sync is complete check if there are any
+   /* Now since the DTA list sync is complete check if there are any
     * services with dta_count = 0 delete those entries.
     */
    svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8*)NULL); 
@@ -778,7 +778,7 @@ static uns32  dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
       {
          /* Decode failed!!! */
          m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
-         /* IR 83394 - Removing probable mem leak */
+         /* Removing probable mem leak */
          dev = &dec_gp.device;
          m_DTS_FREE_FILE_LIST(dev);
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp_global_policy_config: Decode failed");
@@ -787,7 +787,7 @@ static uns32  dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
       status = dtsv_ckpt_add_rmv_updt_global_policy(cb, gp_ptr, file_list, 
          dec->i_action);
 
-      /* IR 83394 - Removing probable mem leak */
+      /* Removing probable mem leak */
       dev = &dec_gp.device;
       m_DTS_FREE_FILE_LIST(dev);
 
@@ -897,7 +897,7 @@ uns32  dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,"dtsv_decode_warm_sync_rsp: Send Data request failed"); 
       }
 
-      /* IR 61454 - Data response should be identical to cold-sync */   
+      /* Data response should be identical to cold-sync */   
       cb->in_sync = FALSE;
       cb->cold_sync_in_progress = TRUE;
       cb->cold_sync_done = 0;

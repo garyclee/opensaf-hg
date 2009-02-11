@@ -210,17 +210,6 @@ void glnd_tmr_exp (void *uarg)
            m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
               m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id),evt->type);
         }
-        #if 0
-        /* Push the event and we are done */
-        if(m_NCS_IPC_SEND(&cb->glnd_mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE)
-        {
-              #if 0
-               m_LOG_GLD_HEADLINE(GLD_IPC_SEND_FAIL, NCSFL_SEV_ERROR);
-               gld_evt_destroy(evt);
-              #endif
-               return (NCSCC_RC_FAILURE);
-         }
-        #endif
 
      }
    }

@@ -196,14 +196,6 @@ typedef enum eds_log_ids
 #define m_LOG_EDSV_S(id,category,sev,rc,fname,fno,data) eds_log(id,category,sev,rc,fname,fno,data)
 #define m_LOG_EDSV_SF(id,category,sev,rc,fname,fno,data,dest) eds_log_f(id,category,sev,rc,fname,fno,data,dest)
 
-#if 0 
-  /* ((NCS_DTA == 1) && (NCS_EDSV_LOG == 1)) */
-
-#define m_LOG_EDS_EVENT(id, pub_name, evt_id, pubtime, pri, rettime)
-#define m_LOG_EDSV_S(id,category,sev,rc,fname,fno,data)
-#define m_LOG_EDSV_SF(id,category,sev,rc,fname,fno,data,dest)
-
-#endif /* ((NCS_DTA == 1) && (NCS_EDSV_LOG == 1)) */
 
 
 /*****************************************************************************

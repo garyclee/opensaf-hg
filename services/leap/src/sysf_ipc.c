@@ -233,7 +233,6 @@ ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
        return NCSCC_RC_FAILURE;
 
 
-    /* IR00060272 */
     m_NCS_LOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
     if (0 != ncs_ipc->ref_count)
@@ -251,18 +250,15 @@ ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
     if (NULL != remove_from_queue_cb)
       rc = ipc_flush(ncs_ipc, remove_from_queue_cb, NULL);
    
-    /* IR00060272 */
     m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
     /* destroy the handle - here */
     ncshm_give_hdl((uns32)*mbx);  
     
-    /* IR00060272 */
     m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(&ncs_ipc->sel_obj);
 
     ncshm_destroy_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
 
-    /* IR00060272 */ 
     m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&ncs_ipc->sel_obj);
 
 #if (NCS_IPC_USE_SEMAPHORE == 1)
@@ -271,7 +267,6 @@ ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB remove_from_queue_cb)
     m_NCS_OS_SEM(&sem, NCS_OS_SEM_RELEASE);
     ncs_ipc->sem_handle = NULL;
 #else
-     /* IR00060272 */
     /*m_NCS_SEL_OBJ_DESTROY(ncs_ipc->sel_obj); */
     
 #endif
@@ -437,7 +432,7 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
     while (1)
     {
 
-       /* Take the handle before proceeding */ /* IR00060272 */
+       /* Take the handle before proceeding */ 
         ncs_ipc = (NCS_IPC *)ncshm_take_hdl(NCS_SERVICE_ID_OS_SVCS, (uns32)*mbx);
        if (ncs_ipc == NULL)
           return NULL;  
@@ -459,7 +454,6 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
 
        m_NCS_LOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
        
-       /* IR00060272 */
        if (ncs_ipc->ref_count == 0)
        {
           m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
@@ -492,7 +486,6 @@ static NCS_IPC_MSG *ncs_ipc_recv_common(SYSF_MBX *mbx, NCS_BOOL block)
               /* Should never reach here */
               m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 
-              /* IR00060272 */
               ncshm_give_hdl((uns32)*mbx);
               m_LEAP_DBG_SINK(0);
               return NULL;
@@ -591,10 +584,8 @@ static uns32 ipc_enqueue_ind_processing(NCS_IPC *ncs_ipc, unsigned int queue_num
    }
    ncs_ipc->msg_count++; /* Don't think we need to check for 0xffffffff */
 
-   /* IR00084436 */
    ncs_ipc->no_of_msgs[queue_number]++;
 
-   /* IR00084768 */
    if(ncs_ipc->usr_counters[queue_number] != NULL)
       *(ncs_ipc->usr_counters[queue_number]) = ncs_ipc->no_of_msgs[queue_number];
 
@@ -614,10 +605,8 @@ static uns32 ipc_dequeue_ind_processing(NCS_IPC *ncs_ipc, unsigned int active_qu
 {
    int inds_rmvd;
 
-   /* IR00084436 */
    ncs_ipc->no_of_msgs[active_queue]--;     
    
-   /* IR00084768 */
    if(ncs_ipc->usr_counters[active_queue] != NULL)
       *(ncs_ipc->usr_counters[active_queue]) = ncs_ipc->no_of_msgs[active_queue];
 
@@ -718,7 +707,6 @@ ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio)
     return NCSCC_RC_SUCCESS;
 }
 
-/* IR00084436 */
 uns32
 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_msgs)
 {
@@ -748,7 +736,6 @@ ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_msgs)
   return NCSCC_RC_SUCCESS;    
 }
 
-/* IR00084768 */
 uns32
 ncs_ipc_config_usr_counters(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 *usr_counter)
 {

@@ -43,11 +43,6 @@ snmpsubagt_netsnmp_lib_initialize(struct ncsSa_cb  *cb);
 uns32
 snmpsubagt_netsnmp_lib_finalize(struct ncsSa_cb  *cb);
 
-#if 0
-/* to deinitilize the session with the Agent */
-EXTERN_C uns32
-snmpsubagt_netsnmp_lib_deinit(struct ncsSa_cb  *cb);
-#endif
 
 /* Handling Multiple Interfaces */
 /* 1. Interface with AMF
@@ -69,7 +64,6 @@ snmpsubagt_agt_startup_params_process(int32    argc,
 void init_agentx_config(void); 
 #endif
 
-/* IR00061409 */
 EXTERN_C void subagt_process_sig_usr1_signal(struct ncsSa_cb *cb);
 
 #endif

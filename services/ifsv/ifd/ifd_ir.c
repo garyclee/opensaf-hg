@@ -272,42 +272,6 @@ ifd_binding_change_all_master_intfs(IFSV_CB *ifsv_cb)
 }
 
 
-#if 0
-
-uns8
-ifnd_bonding_install_ipaddr(IFSV_CB  *cb,IFSV_INTF_REC *rec)
-{
-   uns32 ipxs_hdl;
-   IPXS_CB *ipxs_cb;
-   IPXS_IFIP_NODE *ipif_node;
-
-   ipxs_hdl = m_IPXS_CB_HDL_GET();
-
-   ipxs_cb = ncshm_take_hdl(cb->svc_id, ipxs_hdl);
-
-   if (ipxs_cb == NULL)
-   {
-      m_IFA_LOG_API_LL(IFSV_LOG_IFA_IPXS_EVT_INFO, "ncshm_take_hdl returned NULL",0);
-      return NCSCC_RC_FAILURE;
-   }
-
-   /* Get the master interface IP address and install it on slave interface */
-   ipif_node = (IPXS_IFIP_NODE *) ncs_patricia_tree_get(&ipxs_cb->ifip_tbl, 
-                                                           (uns8 *)&rec->intf_data.if_info.bind_master_ifindex );
-   
-   /* Install the IP address on the interface */
-   
-
-
-
-   
-  /* Get the Handle Manager Handle */
-
-              sprintf(ip_cmd, "/sbin/ip addr add %s dev %s",
-
-}
-
-#endif
 
 #endif
 

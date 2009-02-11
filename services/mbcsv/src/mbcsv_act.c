@@ -405,7 +405,7 @@ uns32 ncs_mbscv_rcv_decode(PEER_INST* peer, MBCSV_EVT* evt)
    }
 
    status = mbc_inst->mbcsv_cb_func(&parg);
-   if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type) /* IR00059922 */
+   if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type) 
    {
        evt->info.peer_msg.info.client_msg.uba = parg.info.notify.i_uba; 
    }

@@ -293,13 +293,6 @@ static void asapi_dereg_enc(ASAPi_DEREG_INFO *msg, NCS_UBAID *pBuff)
    if(ASAPi_OBJ_GROUP == msg->objtype) {
       /* Encode Group Name & Length */
       asapi_name_enc(&msg->group, pBuff);
-#if 0
-
-      /* Encode Queue Name & Length */
-      pStream = ncs_enc_reserve_space(pBuff, sizeof(uns16));
-      ncs_encode_16bit(&pStream, 0);
-      ncs_enc_claim_space(pBuff, sizeof(uns16));
-#endif
       asapi_name_enc(&msg->queue, pBuff);
    }
    else if(ASAPi_OBJ_QUEUE == msg->objtype) {

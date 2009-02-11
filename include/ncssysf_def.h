@@ -210,7 +210,6 @@ extern LEAPDLL_API int get_char_from_gui();
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
 
 
-/* IR00061535 */
 #define m_NCS_REBOOT                   m_NCS_OS_REBOOT
 
 extern void ncs_reboot(const char *reason);
@@ -233,7 +232,6 @@ extern void ncs_reboot(const char *reason);
 #define m_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_ASCII_TIME_STAMP(timestamp, asc_timestamp)
 
-/* IR00061477 */
 #define m_NCS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)
     
@@ -253,16 +251,16 @@ extern void ncs_reboot(const char *reason);
     m_NCS_OS_GET_TIME_MS
 
 #define m_NCS_GET_TIME_NS  \
-    m_NCS_OS_GET_TIME_NS  /* IR00058792 */ 
+    m_NCS_OS_GET_TIME_NS  
 
 #define m_NCS_GET_UPTIME \
-    m_NCS_OS_GET_UPTIME  /* IR00084262 */
+    m_NCS_OS_GET_UPTIME  
 
 #define m_NCS_GETGRGID(gid) \
-    m_NCS_OS_GETGRGID(gid)/* IR00059532 */ 
+    m_NCS_OS_GETGRGID(gid)
 
 #define m_NCS_GETGROUPS(num_of_groups,list) \
-    m_NCS_OS_GETGROUPS(num_of_groups,list) /* IR00059532 */
+    m_NCS_OS_GETGROUPS(num_of_groups,list) 
 
 #define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)

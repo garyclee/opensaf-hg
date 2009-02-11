@@ -69,9 +69,6 @@
 #include "ncs_saf.h"
 
 /* From targsvcs/common/inc */
-#if 0
-#include "sysf_mds.h"  
-#endif
 
 #include "sysf_file.h"
 

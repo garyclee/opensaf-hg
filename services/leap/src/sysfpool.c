@@ -412,9 +412,6 @@ void* gl_ptr = NULL;
  *
  * DEFAULT = 0 ==> DO NOT IGNORE SUBSYSTEM
  */
-#if 0 /* IR00059629 */
-int ignore_subsystem[NCS_SERVICE_ID_MAX] = {0};
-#endif
 
 #endif
 
@@ -529,7 +526,7 @@ ncs_mem_create ()
   uns32          mdex, len, size;
   NCS_MPOOL       *mp;
   
-#if ((NCS_MMGR_DEBUG == 1) || (NCSSYSM_MEM_WATCH_ENABLE == 1) || (NCSSYSM_MEM_STATS_ENABLE == 1)) /* IR00059236 */
+#if ((NCS_MMGR_DEBUG == 1) || (NCSSYSM_MEM_WATCH_ENABLE == 1) || (NCSSYSM_MEM_STATS_ENABLE == 1)) 
   mmgr.stats.max= 0xffffffff;    
   mmgr.stats.alloced = 0; 
   mmgr.stats.freed = 0; 
@@ -650,7 +647,6 @@ ncs_mem_alloc(unsigned int  nbytes,
   USE(tod);
   USE(mem_region);
 
-  /* IR00060192 */
   if (nbytes <= 0)
     return NULL;
   
@@ -1725,10 +1721,6 @@ void
       pBuf = console_buf;
       console = TRUE;
       }
-#if 0   /* IR00059629 */
-    if (ignore_subsystem[me->service_id] != 0)
-      return;
-#endif
 
     if (me->ignore == TRUE)
       return;
@@ -1902,11 +1894,6 @@ static void leap_mem_print(void *ucontext, char *payload)
         m_NCS_LOCK (&mp->lock, NCS_LOCK_WRITE);    
         for (me = mp->inuse; me != NULL; me = me->next)
           {
-        #if 0 /* IR00059629 */     
-          /* don't include ignored subystems */          
-          if (ignore_subsystem[me->service_id] != 0) 
-            continue;
-        #endif
 
           if (me->ignore == TRUE)
             continue;
@@ -2182,9 +2169,6 @@ static void leap_mem_print(void *ucontext, char *payload)
       {
       if (zero_or_one > 0)
         zero_or_one = 1;
-     #if 0 /* IR00059629 */
-      ignore_subsystem[service_id] = zero_or_one;
-     #endif 
       };
     
 #endif

@@ -208,9 +208,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
 {
    uns32 tipc_node_id=0;
    int flags;
-#if 0 
-   int imp=0; /* This is for the TIPC_DEST_DROPPABLE option set*/
-#endif
    
    NCS_PATRICIA_PARAMS pat_tree_params;
    
@@ -251,19 +248,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
        return NCSCC_RC_FAILURE;
    }
 
-#if 0
-#if MDS_TIPC_1_5
-   imp=0;
-   
-   if(setsockopt(tipc_cb.BSRsock, SOL_TIPC, TIPC_DEST_DROPPABLE, 
-             &imp, sizeof(imp)) != 0) {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Can't set socket option TIPC_DEST_DROPPABLE");
-      assert(0);
-   }
-#endif
-#endif
 
-   /* Bug Fix IR 59516 ,IPC Failures in DTS(Infinite Loop) */
    flags=fcntl(tipc_cb.Dsock, F_GETFD, 0);
    if( (flags<0) || (flags>1) )
    {
@@ -372,9 +357,6 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
       obj=m_NCS_IPC_GET_SEL_OBJ(&tipc_cb.tmr_mbx);
 
       /* retreive the corresponding fd for mailbox and fill it in cb*/
-#if 0
-        tipc_cb.tmr_fd=m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&tipc_cb.tmr_mbx));/* extract and fill value needs to be extracted*/
-#endif
        tipc_cb.tmr_fd=m_GET_FD_FROM_SEL_OBJ(obj);/* extract and fill value needs to be extracted*/
    }
 
@@ -600,7 +582,7 @@ static uns32 mdtm_process_recv_events(void)
             if discovery events are received , process the discovery events
     */
 
-    while(1) /* Note: Due to IR00059308 this contains a "continue" statement */
+    while(1) 
     {
         uint pollres;
         struct pollfd pfd[3];
@@ -631,7 +613,7 @@ static uns32 mdtm_process_recv_events(void)
 
         pollres = poll(pfd,3,MDTM_TIPC_POLL_TIMEOUT);
 
-        if (pollres > 0) /* IR000059335: Check for EINTR and discard */
+        if (pollres > 0) /* Check for EINTR and discard */
         {
             m_NCS_MEMSET(&event, 0, sizeof(event));
             m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
@@ -685,7 +667,7 @@ static uns32 mdtm_process_recv_events(void)
                   }
                }
             }
-            else if (pfd[0].revents & POLLHUP) /* This value is returned when the number of subscriptions made cross the tipc max_subscr limit, so no more connection to the tipc topserver is present(viz no more up/down events), so assert and exit the process */ /* Fix IR60211 */
+            else if (pfd[0].revents & POLLHUP) /* This value is returned when the number of subscriptions made cross the tipc max_subscr limit, so no more connection to the tipc topserver is present(viz no more up/down events), so assert and exit the process */ 
             {
                m_MDS_LOG_CRITICAL("MDTM: POLLHUP returned on Discovery Socket, No. of subscriptions=%d",num_subscriptions);
                assert(0);
@@ -696,17 +678,13 @@ static uns32 mdtm_process_recv_events(void)
             {
                 /* Events Received */
                 m_MDS_LOG_INFO("MDTM: Topology Event: ");
-#if 0
-                assert(!ioctl(tipc_cb.Dsock,TIPC_GET_EVENT,&event));
-#else
                 if(ioctl(tipc_cb.Dsock,TIPC_GET_EVENT,&event))
                 {
                    m_MDS_LOG_ERR("Unable to capture the recd event\n");
                    assert(0);
-                   m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE); /* IR00059308:Further fix */
+                   m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE); 
                    continue;
                 }
-#endif
                 if (event.event == TIPC_PUBLISHED)
                 {
                     m_MDS_LOG_INFO("MDTM: Published: ");
@@ -729,30 +707,6 @@ static uns32 mdtm_process_recv_events(void)
                 }
 /* As the timeout passed in infinite, No need to check for the Timeout*/
 
-#if 0
-                if (event.event == TIPC_SUBSCR_TIMEOUT)
-                {
-                    m_MDS_LOG_INFO("MDTM: Published: ");
-                    m_MDS_LOG_INFO ("MDTM: <%u,%u,%u> port id <0x%08x:%u>\n",
-                        event.s.seq.type,event.found_lower,
-                        event.found_upper,event.port.node,
-                        event.port.ref);
-                    /* event.s.ref */
-                    /* Some process will be done here */
-
-                    mdtm_process_discovery_events(TIPC_SUBSCR_TIMEOUT, event);
-                }
-
-                m_MDS_LOG_INFO ("MDTM:  <%u,%u,%u>,"
-                        "\n subscribed for:<%u,%u,%u>,user ref: %x%x\n",
-                        event.s.seq.type,event.found_lower,event.found_upper,
-                        event.s.seq.type,event.s.seq.lower,event.s.seq.upper,
-                        ((uint*)event.s.usr_handle)[0],
-                        ((uint*)event.s.usr_handle)[1]);
-
-                if (event.s.seq.type == 0)
-                        m_MDS_LOG_INFO("MDTM:  ...For node %x \n",event.found_lower);
-#endif
             }
 #endif            
 
@@ -996,7 +950,6 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 
             if(NCSCC_RC_SUCCESS!=mdtm_get_from_ref_tbl(subtn_ref_val, &svc_hdl))
             {
-                /* IR 60343 Fix, changed from ERR to INFO */
                 m_MDS_LOG_INFO("MDTM: No entry in ref tbl so dropping the recd event");
                 return NCSCC_RC_FAILURE;
             }
@@ -1256,9 +1209,6 @@ static uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns3
 
         seq_num=ncs_decode_32bit(&data);
 
-#if 0
-        frag_size=*((uns16 *)(&buffer[5]));
-#endif
 
         id.node=(uns32)(tipc_id>>32);
         id.ref=(uns32)(tipc_id);
@@ -1366,19 +1316,6 @@ static uns32 mdtm_process_recv_data(uns8 *buffer, uns16 len, uns64 tipc_id, uns3
 
                     ncs_enc_append_usrbuf(&reassem_queue->recv.msg.data.fullenc_uba, ub.start);
                 }
-#if 0
-                /* No reassembly for Flat buffer as it is not fragmented(fragmentation not supported for this type) */
-                else if (reassem_queue->msg.encoding==MDS_ENC_TYPE_BUFF)
-                {
-                    memcpy(&reassem_queue->msg.data.just_buff[reassem_queue->len_tobe_append_at],
-                                                        &buffer[MDTM_FRAG_HDR_LEN], len-MDTM_FRAG_HDR_LEN);
-                    reassem_queue->len_tobe_append_at=reassem_queue->len_tobe_append_at + (len-MDTM_FRAG_HDR_LEN);
-                }
-                else if (reassem_queue->msg.encoding==MDS_ENC_TYPE_CPY)
-                {
-                    /* CAUTION, Presently nothing to do */
-                }
-#endif
                 else
                 {
                     return NCSCC_RC_FAILURE;
@@ -1534,16 +1471,6 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
         data=buffer;
 
         prot_ver=ncs_decode_8bit(&data);
-#if 0
-/* Commented by vishal as this version check is not correct */
-/* Protocol check is also ignored, as in future this field might be used for some other purpose */
-        if((MDS_PROT | MDS_VERSION)!=(prot_ver&MDS_PROT_VER_MASK))
-        {
-           *buff_dump = 0; /* For future hack */
-           m_MDS_LOG_ERR("MDTM: Message recd is not MDS message hence dropping it TIPC_ID=<0x%llx>\n", tipc_id);
-           return NCSCC_RC_FAILURE;
-        }
-#endif
         data=NULL;
         data=&buffer[MDS_HEADER_HDR_LEN_POSITION];
         len_mds_hdr=ncs_decode_16bit(&data);
@@ -1583,14 +1510,6 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
         msg_snd_type=(ncs_decode_8bit(&data))&0x3f;
 
         /* Search whether the Destination exists or not , SVC,PWE,VDEST*/
-#if 0
-        if(NCSCC_RC_SUCCESS!=mds_pwe_tbl_get ((MDS_VDEST_HDL)dest_vdest_id,pwe_id, &pwe_hdl))
-        {
-           printf("Service Doesnt exists for the message recd\n");
-           return NCSCC_RC_FAILURE;
-        }
-
-#endif
         pwe_hdl=m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID((MDS_VDEST_HDL)dest_vdest_id,pwe_id);
 
         if(NCSCC_RC_SUCCESS!=mds_svc_tbl_get_svc_hdl(pwe_hdl, dest_svc_id,&dest_svc_hdl))
@@ -1779,16 +1698,6 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
 
         prot_ver=ncs_decode_8bit(&data);
 
-#if 0
-/* Commented by vishal as this version check is not correct */
-/* Protocol check is also ignored, as in future this field might be used for some other purpose */
-        if((MDS_PROT | MDS_VERSION)!=(prot_ver&MDS_PROT_VER_MASK))
-        {
-           *buff_dump = 0; /* For future hack */
-           m_MDS_LOG_ERR("MDTM: Message recd is not MDS message hence dropping it TIPC-ID=<0x%016llx>\n", tipc_id);
-           return NCSCC_RC_FAILURE;
-        }
-#endif
     
         data=NULL;
         data=&buffer[MDTM_FRAG_HDR_LEN+MDS_HEADER_HDR_LEN_POSITION];
@@ -1829,13 +1738,6 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
 
         /* Search whether the Destination exists or not , SVC,PWE,VDEST*/
         pwe_hdl=m_MDS_GET_PWE_HDL_FROM_VDEST_HDL_AND_PWE_ID((MDS_VDEST_HDL)dest_vdest_id,pwe_id);
-#if 0
-        if(NCSCC_RC_SUCCESS!=mds_pwe_tbl_get(dest_vdest_id,pwe_id,pwe_hdl))
-        {
-           printf("Service Doesnt exists for the message recd\n");
-           return NCSCC_RC_FAILURE;
-        }
-#endif
         if(NCSCC_RC_SUCCESS!=mds_svc_tbl_get_svc_hdl(pwe_hdl, dest_svc_id,&dest_svc_hdl))
         {
            *buff_dump = 0; /* For future hack */
@@ -1933,14 +1835,6 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
         data=&buffer[MDS_HEADER_APP_VERSION_ID_POSITION+MDTM_FRAG_HDR_LEN];
         reassem_queue->recv.msg_fmt_ver=ncs_decode_16bit(&data); /* For the version field */
 
-#if 0   
-        if(reassem_queue->recv.msg_fmt_ver!=1) /* Drop message and return */
-        {
-           m_MDS_LOG_ERR("MDTM: Unable to process the recd message due to wrong version=%d",reassem_queue->recv.msg_fmt_ver);
-           mdtm_del_reassemble_queue(seq_num,id);
-           return NCSCC_RC_FAILURE;
-        }
-#endif
         reassem_queue->recv.exchange_id=xch_id;
         reassem_queue->next_frag_num=2;
         reassem_queue->recv.dest_svc_hdl=dest_svc_hdl;
@@ -2478,36 +2372,6 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
     server_type=server_type|MDS_TIPC_PREFIX|MDS_SVC_INST_TYPE|pwe_id|svc_id;
 
-#if 0 /* commented by vishal */
-    inst_lower=(inst_lower|pwe_id)<<(LEN_4_BYTES-MDS_VER_BITS_LEN); /* Upper 12 Bits */
-    inst_lower|=(uns32)(0<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN));/* Next 1 bit */
-    inst_lower|=(uns32)(0<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN-ACT_STBY_LEN));/* Next 1 bit */
-
-    if(install_scope==NCSMDS_SCOPE_NONE)
-    {
-       install_scope=0;
-    }
-    else if(install_scope==NCSMDS_SCOPE_INTRANODE)
-    {
-       install_scope=1;
-    }
-    else if(install_scope==NCSMDS_SCOPE_INTRACHASSIS)
-    {
-       install_scope=3;
-    }
-    inst_lower|=(uns32)((install_scope&0x3)<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN-ACT_STBY_LEN-MDS_SCOPE_LEN));/* Next 2 bit */
-    inst_lower|=0x0000;
-
-
-    inst_upper=(inst_upper|pwe_id)<<(LEN_4_BYTES-MDS_VER_BITS_LEN); /* Upper 12 Bits */
-    inst_upper|=(uns32)(1<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN));/* Next 1 bit */
-    inst_upper|=(uns32)(1<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN-ACT_STBY_LEN));/* Next 1 bit */
-
-    inst_upper|=(uns32)((install_scope&0x3)<<(LEN_4_BYTES-MDS_VER_BITS_LEN-VDEST_POLICY_LEN-ACT_STBY_LEN-MDS_SCOPE_LEN));/* Next 2 bit */
-
-    inst_upper|=0xffff;
-#endif
-    
     
 
 
@@ -2994,14 +2858,6 @@ uns32 mds_mdtm_tx_hdl_register_tipc(MDS_DEST adest)
              else
                 return failure
     */
-#if 0
-    MDS_ADEST_LIST  *ptr_adest=NULL;
-    if(NCSCC_RC_SUCCESS!=mdtm_query_adest(adest, &ptr_adest))
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    ptr_adest->user_count++;
-#endif
     return NCSCC_RC_SUCCESS;
 }
 
@@ -3032,23 +2888,6 @@ uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest)
                 return failure
     */
 
-#if 0
-    MDS_ADEST_LIST  *ptr_adest=NULL;
-
-    if(NCSCC_RC_SUCCESS!=mdtm_query_adest(adest, &ptr_adest))
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    ptr_adest->user_count--;
-    if(ptr_adest->user_count==0)
-    {
-        if(NCSCC_RC_SUCCESS!=mdtm_del_adest_list(ptr_adest))
-        {
-            m_MDS_LOG_ERR("MDTM: ADEST info ptr Delete : Failure\n");
-            return  NCSCC_RC_FAILURE;
-        }
-    }
-#endif
     return  NCSCC_RC_SUCCESS;
 }
 
@@ -3212,7 +3051,6 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
                  
                  p8=(uns8 *)m_MMGR_DATA_AT_START(usrbuf,len,(char *)&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN]);
                  
-                 /* Fix IR 85129 */
                  if(p8!=&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN])
                     m_NCS_OS_MEMCPY(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], p8, len);
 
@@ -3274,7 +3112,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
               if(NCSCC_RC_SUCCESS!=mdtm_sendto(body, (req->msg.data.buff_info.len+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN), tipc_id))
               {
                  m_MDS_LOG_ERR("MDTM: Unable to send the msg thru TIPC\n");
-                 mds_free_direct_buff(req->msg.data.buff_info.buff); /* IR 83871 Fix as part of Review comment */ 
+                 mds_free_direct_buff(req->msg.data.buff_info.buff); 
                  return NCSCC_RC_FAILURE;
               }
 
@@ -3382,18 +3220,6 @@ static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_p
       {
          len_buf=len+MDTM_FRAG_HDR_PLUS_LEN_2;
          frag_val= NO_FRAG_BIT | i;
-#if 0
-         if((len+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN)>MDTM_MAX_SEND_PKT_SIZE)
-         {
-           len_buf=len;
-           frag_val= MORE_FRAG_BIT | i;
-         }
-         else
-         {
-           len_buf=len+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN;
-           frag_val= NO_FRAG_BIT | i;
-         }
-#endif
       }
       {
          uns8 body[len_buf];

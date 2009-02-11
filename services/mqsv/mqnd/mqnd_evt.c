@@ -64,11 +64,6 @@ void mqnd_process_evt(MQSV_EVT *evt)
       m_LOG_MQSV_ND(MQND_CB_HDL_TAKE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
       return;
    }
-#if 0
-   /* B Spec AMF Changes */
-   if (cb->ready_state != SA_AMF_OUT_OF_SERVICE)
-   {
-#endif
    
        switch(evt->type)
        {
@@ -89,9 +84,6 @@ void mqnd_process_evt(MQSV_EVT *evt)
          /* m_LOG_MQND_EVT(evt->type, NCSFL_SEV_ERROR); */
           break;
        }
-#if 0
-   }
-#endif
     
    /* Return the Handle */
    ncshm_give_hdl(cb_hdl);

@@ -48,7 +48,7 @@ typedef struct reg_tbl_entry
    /* Key for the Reg table entry */
    SS_SVC_ID   svc_id;  /* Service ID registerd with the DTA & DTS */
    NCS_BOOL    log_msg;  /* Set to TRUE ifreceived reg-confirmation */
-   /* IR 61143 - No need of policy handles */
+   /* No need of policy handles */
    /*uns32       policy_hdl;*/
    /*Flag to indicate svc_reg entry on Active DTS upon DTS fail-over */
    NCS_BOOL    svc_flag; /* Set to TRUE if new policy handles received, else setto FALSE */

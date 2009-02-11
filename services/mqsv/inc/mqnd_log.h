@@ -231,13 +231,6 @@ typedef enum mqnd_flex_sets
    MQND_FC_HDLN,
    MQND_FC_MEMFAIL,
    MQND_FC_EVT,
-#if 0
-   MQND_FC_API,
-   MQND_FC_TMR,
-   MQND_FC_NCS_LOCK,
-   MQND_FC_SYS_CALL,
-   MQND_FC_DATA_SEND
-#endif
 }MQND_FLEX_SETS;
 
 typedef enum mqnd_log_ids
@@ -245,13 +238,6 @@ typedef enum mqnd_log_ids
    MQND_LID_HDLN,
    MQND_LID_MEMFAIL,
    MQND_LID_EVT,
-#if 0
-   MQND_LID_API,
-   MQND_LLD_TMR,
-   MQND_LID_NCS_LOCK,
-   MQND_LID_SYS_CALL,
-   MQND_LID_DATA_SEND
-#endif
 } MQND_LOG_IDS;
 
 EXTERN_C uns32 mqnd_log_ascii_reg(void);
@@ -267,32 +253,8 @@ EXTERN_C void mqnd_log(uns8,uns32,uns8,uns32,char *,uns32);
 #endif /* (NCS_FLA == 1) && (NCS_MQSV_LOG == 1) */ 
 
 
-#if 0
-#if((NCS_FLA == 1) && (NCS_MQSV_LOG == 1))
-#define m_LOG_MQND_HEADLINE(id, sev)        mqnd_log_headline(id,sev)
-#define m_LOG_MQND_EVT(id, sev)             mqnd_log_evt(id, sev)
-#define m_LOG_MQND_MEMFAIL(id)              mqnd_log_memfail(id)
-#else
-
-#define m_LOG_MQND_HEADLINE(id, sev)       
-#define m_LOG_MQND_EVT(id, sev)          
-#define m_LOG_MQND_MEMFAIL(id)         
-
-#endif
-#endif
 EXTERN_C void mqnd_flx_log_reg (void);
 EXTERN_C void mqnd_flx_log_dereg(void);
-
-#if 0
-EXTERN_C void mqnd_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void mqnd_log_tmr(uns8 hdln_id, uns8 sev);
-EXTERN_C void mqnd_log_memfail(uns8 mf_id);
-EXTERN_C void mqnd_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void mqnd_log_lockfail(uns8 lck_id, uns8 sev);
-EXTERN_C void mqnd_log_evt(uns32 evt_id, uns8 node);
-EXTERN_C void mqnd_log_sys_call(uns8 id, uns32 node);
-EXTERN_C void mqnd_log_data_send(uns8 id, uns32 node, uns32 evt);
-#endif
 
 
 

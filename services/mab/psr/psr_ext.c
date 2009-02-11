@@ -62,10 +62,6 @@ uns32 pss_process_tbl_bind(MAB_MSG * msg)
     }
 
     m_PSS_RE_TBL_BIND_SYNC(pwe_cb, msg); /* Send async-update to Standby */
-#if 0
-    /* IR00084476. OAA doesn't add Table-bind/unbind events to bufferzone, so no ACK expected. */
-    pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
-#endif
 
     {
        char addr_str[255] = {0};
@@ -175,10 +171,6 @@ uns32 pss_process_tbl_unbind(MAB_MSG * msg)
     m_LOG_PSS_TBL_UNBIND_EVT(NCSFL_SEV_NOTICE, PSS_TBL_UNBIND_RCVD, msg->data.data.oac_pss_tbl_unbind.tbl_id);
 
     m_PSS_RE_TBL_UNBIND_SYNC(pwe_cb, msg); /* Send async-update to Standby */
-#if 0
-    /* IR00084476. OAA doesn't add Table-bind/unbind events to bufferzone, so no ACK expected. */
-    pss_send_ack_for_msg_to_oaa(pwe_cb, msg);
-#endif
 
     if((msg->data.data.oac_pss_tbl_unbind.tbl_id >= MIB_UD_TBL_ID_END) ||
        (pwe_cb->p_pss_cb->mib_tbl_desc[msg->data.data.oac_pss_tbl_unbind.tbl_id] == NULL))
@@ -264,7 +256,7 @@ uns32 pss_process_tbl_unbind(MAB_MSG * msg)
             }
             else
             {
-                if(trec->info.other.tree_inited == TRUE) /* Fix for IR00082857 */
+                if(trec->info.other.tree_inited == TRUE) 
                 {
                    retval = pss_save_to_store(pwe_cb, &trec->info.other.data, NULL, 
                       (char*)&trec->pss_client_key->pcn, trec->tbl_id);
@@ -457,7 +449,6 @@ uns32 pss_sort_wbreq_instore_tables_with_rank(PSS_PWE_CB *pwe_cb,
         {
            if(pwe_cb->p_pss_cb->mib_tbl_desc[rec->tbl_id] == NULL)
            {
-              /* Fix for IR00083040 */
               rec = rec->next;
               continue;
            }
@@ -843,7 +834,7 @@ uns32 pss_sort_odreq_instore_tables_with_rank(PSS_PWE_CB *pwe_cb,
                 /* Add table record pointer into sort-db */
                 /* if(pss_data_available_for_table(pwe_cb,
                     (char*)&oaa_clt_entry->tbl_rec->pss_client_key->pcn, rec) == TRUE) */
-                if(pwe_cb->p_pss_cb->mib_tbl_desc[rec->tbl_id] != NULL) /* Fix for IR00083040 */
+                if(pwe_cb->p_pss_cb->mib_tbl_desc[rec->tbl_id] != NULL) 
                 {
                     PSS_ODSORT_KEY lcl_key;
 
@@ -957,7 +948,7 @@ uns32 pss_ondemand_playback_for_sorted_list(PSS_PWE_CB *pwe_cb,
 
             /* if(pss_data_available_for_table(pwe_cb,
                 (char*)&rec->pss_client_key->pcn, rec) == TRUE) */
-            if(pwe_cb->p_pss_cb->mib_tbl_desc[rec->tbl_id] != NULL) /* Fix for IR00083040 */
+            if(pwe_cb->p_pss_cb->mib_tbl_desc[rec->tbl_id] != NULL) 
             {
                 /* Perform playback for this MIB table. */
                 if(sortdb->num_entries == 1)
@@ -1248,7 +1239,7 @@ uns32 pss_wb_playback_for_sorted_list(PSS_PWE_CB *pwe_cb, PSS_WBPLAYBACK_SORT_TA
         m_LOG_PSS_WBREQ_II(NCSFL_SEV_INFO, PSS_WBREQ_II_PROCESS_TBL_OF_SORT_DB, entry->tbl_rec->tbl_id);
 
         retval = NCSCC_RC_SUCCESS;
-        if(pwe_cb->p_pss_cb->mib_tbl_desc[entry->tbl_rec->tbl_id] != NULL)   /* Fix for IR00083040 */
+        if(pwe_cb->p_pss_cb->mib_tbl_desc[entry->tbl_rec->tbl_id] != NULL) 
         {
            if(pwe_cb->p_pss_cb->mib_tbl_desc[entry->tbl_rec->tbl_id]->ptbl_info->table_of_scalars)
               retval = pss_oac_warmboot_process_sclr_tbl(pwe_cb, p_pcn, entry->tbl_rec, 
@@ -1498,7 +1489,7 @@ uns32 pss_handle_oaa_down_event(PSS_PWE_CB *pwe_cb, MDS_DEST *fr_card)
             }
             else
             {
-                if(rec->info.other.tree_inited == TRUE) /* Fix for IR00082857 */
+                if(rec->info.other.tree_inited == TRUE) 
                 {
                    retval = pss_save_to_store(pwe_cb, &rec->info.other.data, NULL,
                             (char*)&rec->pss_client_key->pcn, rec->tbl_id);
@@ -1513,9 +1504,6 @@ uns32 pss_handle_oaa_down_event(PSS_PWE_CB *pwe_cb, MDS_DEST *fr_card)
             }
 
             client_node = pss_find_client_entry(pwe_cb, (char*)&rec->pss_client_key->pcn, FALSE);
-#if 0
-            client_node->hash[rec->tbl_id % MAB_MIB_ID_HASH_TBL_SIZE] = rec->next;
-#else
             for(prv_trec = NULL, trec = client_node->hash[rec->tbl_id % MAB_MIB_ID_HASH_TBL_SIZE];
                 trec != NULL; prv_trec = trec, trec = trec->next)
             {
@@ -1529,7 +1517,6 @@ uns32 pss_handle_oaa_down_event(PSS_PWE_CB *pwe_cb, MDS_DEST *fr_card)
                   break;
                }
             }
-#endif
             --client_node->tbl_cnt;
             if(client_node->tbl_cnt == 0)
             {
@@ -4505,7 +4492,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          tbl_id = ncs_decode_32bit(&buff_ptr);
          ncs_dec_skip_space(&lcl_uba1, sizeof(uns32));
          tbl_info = inst->mib_tbl_desc[tbl_id];
-         if(tbl_info == NULL) /* Fix for IR00083040 */
+         if(tbl_info == NULL)
          {
             continue;
          }

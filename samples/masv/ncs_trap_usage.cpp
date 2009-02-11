@@ -209,7 +209,6 @@ void trap_filter_callback(SaEvtSubscriptionIdT sub_id,
     m_NCS_EDU_TLV_EXEC(&edu_hdl, ncs_edp_ncs_trap, event_data,
         data_len, EDP_OP_TYPE_DEC, &decoded_data_ptr, &error_code);
     
-    /* changes done by vishnu */
     /* print the contets of decoded_data_ptr */
     decoded_data_print(decoded_data_ptr);
 

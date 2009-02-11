@@ -59,14 +59,6 @@
       avm_fsm_handler(avm_cb, ent_info, &fsm_evt);\
    }\
 }
-#if 0
-static void
-avm_store_sensor_event(
-                        AVM_ENT_INFO_T     *ent_info, 
-                        SaHpiSensorEventT  SensorEvent, 
-                        uns32              sensor_count
-                      );
-#endif
 static uns32
 avm_validate_loc_range(
                         AVM_ENT_INFO_T    *ent_info,
@@ -105,18 +97,6 @@ avm_sensor_event_initialize(
    ent_info->sensors[n].sensor_assert = NCSCC_RC_FAILURE;   
 }   
 
-#if 0
-static void
-avm_store_sensor_event(
-                        AVM_ENT_INFO_T     *ent_info, 
-                        SaHpiSensorEventT  SensorEvent, 
-                        uns32              sensor_count
-                     )
-{
-   ent_info->sensors[sensor_count].SensorType = SensorEvent.SensorType;
-   ent_info->sensors[sensor_count].SensorNum  = SensorEvent.SensorNum;
-}
-#endif
 
 /***********************************************************************
  ******
@@ -233,92 +213,6 @@ avm_map_hpi2fsm(
           */
          break;
        } 
-#if 0
-         /* Criteria are yet to be defined to consider an event to be critical */
-         if((hpi_event.EventDataUnion.SensorEvent.Assertion == SAHPI_TRUE) && ((hpi_event.Severity == SAHPI_CRITICAL) || (hpi_event.Severity == SAHPI_MAJOR))) 
-         {  
-            found = NCSCC_RC_FAILURE;
-            for(i = 0; i < ent_info->sensor_count; i++)
-            {
-               if((ent_info->sensors[i].SensorType == hpi_event.EventDataUnion.SensorEvent.SensorType) &&
-                  (ent_info->sensors[i].SensorNum  == hpi_event.EventDataUnion.SensorEvent.SensorNum))
-                  {
-                     found = NCSCC_RC_SUCCESS;  
-                  } 
-            } 
-            if(NCSCC_RC_SUCCESS == found)
-            {
-               m_AVM_LOG_GEN_EP_STR("Same Sensor Asserted for the entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
-               *fsm_evt_type = AVM_EVT_IGNORE;
-               break;
-            } 
-            else
-            {
-               if(ent_info->sensor_assert == NCSCC_RC_SUCCESS)
-               {
-                   m_AVM_LOG_GEN_EP_STR("Entity Asserted Already", ent_info->ep_str.name, NCSFL_SEV_INFO);
-                  *fsm_evt_type = AVM_EVT_IGNORE;
-               }else
-               {
-                  *fsm_evt_type = AVM_EVT_SENSOR_ASSERT;
-               }
-               ent_info->sensors[ent_info->sensor_count].sensor_assert = NCSCC_RC_SUCCESS;               
-               avm_store_sensor_event(ent_info, hpi_event.EventDataUnion.SensorEvent, ent_info->sensor_count);
-               ent_info->sensor_count++;
-                m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_STATE_SENSOR);
-               m_AVM_LOG_GEN_EP_STR("Sensor Assert for Entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
-            }
-         }
-         else
-         {   
-            if((hpi_event.EventDataUnion.SensorEvent.Assertion == SAHPI_FALSE) && (hpi_event.Severity >= SAHPI_MAJOR))
-            {
-               if(ent_info->sensor_count == 0)
-               {
-                  m_AVM_LOG_GEN_EP_STR("Sensor Deassert for less severe Assert", ent_info->ep_str.name, NCSFL_SEV_INFO);
-                  *fsm_evt_type = AVM_EVT_INVALID;
-                  break;   
-               }
-            
-               found           = NCSCC_RC_FAILURE; 
-               sensor_deassert = NCSCC_RC_SUCCESS;
-               for(i = 0; i < ent_info->sensor_count; i++)
-               {
-                  if((ent_info->sensors[i].SensorType == hpi_event.EventDataUnion.SensorEvent.SensorType) &&
-                     (ent_info->sensors[i].SensorNum == hpi_event.EventDataUnion.SensorEvent.SensorNum))
-                  {
-                     found = NCSCC_RC_SUCCESS;
-                     ent_info->sensors[i].sensor_assert = NCSCC_RC_FAILURE;
-                     avm_sensor_event_initialize(ent_info, i);
-                       m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_STATE_SENSOR);
-                     m_AVM_LOG_GEN_EP_STR("One sensor deasserted for Entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
-                  }
-                  if(ent_info->sensors[i].sensor_assert == NCSCC_RC_SUCCESS)
-                  {
-                     sensor_deassert = NCSCC_RC_FAILURE;
-                  }
-               }
-
-               if((NCSCC_RC_SUCCESS == found) && (sensor_deassert == NCSCC_RC_SUCCESS))
-               {
-                  *fsm_evt_type = AVM_EVT_SENSOR_DEASSERT;
-                  ent_info->sensor_count = 0;
-                  avm_reset_ent_info(ent_info);
-                  m_AVM_LOG_GEN_EP_STR("All sensors deasserted for Entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
-               }
-               else
-               {
-                  m_AVM_LOG_GEN_EP_STR("Not All sensors are deasserted for Entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
-                  *fsm_evt_type = AVM_EVT_IGNORE;
-                  break;
-               }
-            }
-         }
-      }
-
-      break;
-#endif
-
       default:
       {
           m_AVM_LOG_GEN_EP_STR("AvM doesnt support the event from HPI for entity", ent_info->ep_str.name, NCSFL_SEV_INFO);
@@ -1186,13 +1080,6 @@ avm_hisv_api_cmd(
       }
       break;
 
-#if 0 /* calling a seperate function */
-      case HS_CURRENT_HS_STATE_GET:
-      {
-        rc = hpl_config_hs_state_get(chassis_id, entity_path, arg);
-      }
-      break;
-#endif
 
       case HISV_RESOURCE_RESET:
       {
@@ -1989,12 +1876,6 @@ avm_map_hs_to_hpi_hs(AVM_FSM_STATES_T  hs_state)
      }
      break;
 
-#if 0
-     case  AVM_ENT_FAULTY:
-     {
-     }
-#endif
-     break;
 
      case  AVM_ENT_RESET_REQ:
      {

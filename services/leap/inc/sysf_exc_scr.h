@@ -44,7 +44,6 @@
 #include "signal.h"
 #include "ncssysf_sem.h"
 #include "ncssysf_tsk.h"
-/* Fix for IR10317 */
 /* Earlier it was included from file ncs_ipprm.h which is
  * included conditionally on flag NCS_IP_SERVICES, which inturn was
  * defined based on NCS_MDS=1 flag. But for independent builds of 
@@ -72,7 +71,7 @@ typedef struct sysf_pid_list
    /* Timer Params */
    tmr_t                         tmr_id;
    uns32                         timeout_in_ms;
-   int                           exec_info_type;/* IR00061181 */
+   int                           exec_info_type;
 
 }SYSF_PID_LIST;
 
@@ -91,7 +90,6 @@ typedef struct sysf_execute_module_cb
    NCS_PATRICIA_TREE   pid_list;
    int                 read_fd;
    int                 write_fd;
-   /* IR00060372 */
    NCS_BOOL            init;               
 }SYSF_EXECUTE_MODULE_CB;
 
@@ -115,8 +113,7 @@ extern void ncs_exec_module_timer_hdlr(void *uarg);
 extern void ncs_exec_mod_hdlr(void);
 extern uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid);
 extern uns32 init_exec_mod_cb(void);
-extern uns32 start_exec_mod_cb(void); /* IR00061181 */
- /* IR00060372 */
+extern uns32 start_exec_mod_cb(void); 
 extern uns32 exec_mod_cb_destroy(void);
 extern void give_exec_mod_cb(int pid, uns32 stat, int type);
 #endif /* SYSF_EXC_SCR_H */

@@ -554,10 +554,6 @@ static int mqsv_mqp_req_test_type_fnc(NCSCONTEXT arg)
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_REPLY_MSG_ASYNC;
     case MQP_EVT_SEND_MSG:
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_SEND_MSG;
-#if 0
-    case MQP_EVT_SEND_MSG_ASYNC:
-        return LCL_TEST_JUMP_OFFSET_MQP_EVT_SEND_MSG_ASYNC;
-#endif
     case MQP_EVT_TRANSFER_QUEUE_REQ:
         return LCL_TEST_JUMP_OFFSET_MQP_EVT_TRANSFER_QUEUE_REQ;
     case MQP_EVT_TRANSFER_QUEUE_COMPLETE:
@@ -792,38 +788,6 @@ static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
         {EDU_EXEC, M_NCS_EDP_SAMSGACKFLAGST, 0, 0, EDU_EXIT, 
             (long)&((MQP_REQ_MSG*)0)->info.snd_msg.ackFlags, 0, NULL},
 
-#if 0
-        /* MQP_EVT_SEND_MSG_ASYNC */
-        {EDU_EXEC, m_NCS_EDP_SAMSGHANDLET, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.msgHandle, 0, NULL},
-        {EDU_EXEC, m_NCS_EDP_SAMSGQUEUEHANDLET, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.queueHandle, 0, NULL},
-         {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.destination, 0, NULL},
-
-        {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.type, 0, NULL},
-        {EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.version, 0, NULL},
-        {EDU_EXEC, m_NCS_EDP_SASIZET, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.size, 0, NULL},
-        {EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.priority, 0, NULL},
-
-        {EDU_EXEC, ncs_edp_sanamet, EDQ_POINTER, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.senderName, 0, NULL},
-
-        {EDU_EXEC, m_NCS_EDP_SAUINT8T, EDQ_VAR_LEN_DATA, m_NCS_EDP_SASIZET, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.data, (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.message.size, NULL},
-        {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
-
-        {EDU_EXEC, mqsv_edp_message_info, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.messageInfo, 0, NULL},
-        {EDU_EXEC, M_NCS_EDP_SAMSGACKFLAGST, 0, 0, 0, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.SendMsg.ackFlags, 0, NULL},
-        {EDU_EXEC, m_NCS_EDP_SAINVOCATIONT, 0, 0, EDU_EXIT, 
-            (uns32)&((MQP_REQ_MSG*)0)->info.sndMsgAsync.invocation, 0, NULL},
-#endif
         /* MQP_EVT_TRANSFER_QUEUE_REQ */
         {EDU_EXEC, m_NCS_EDP_SAMSGQUEUEHANDLET, 0, 0, 0, 
             (long)&((MQP_REQ_MSG*)0)->info.transferReq.old_queueHandle, 0, NULL},

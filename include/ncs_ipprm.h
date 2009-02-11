@@ -709,9 +709,7 @@ typedef struct ncs_socket_context_tag
    SYSF_MBX *ip_mbx;
 #endif
 
-/* Added for IR58071 fix...Surya*/ 
    NCS_SEL_OBJ       fast_open_sel_obj;
-/* End addition IR58071 bUG*/
 
 } NCS_SOCKET_CONTEXT;
 

@@ -63,14 +63,6 @@ typedef struct glsv_gld_rsc_info_tag{
    uns32               saf_rsc_stripped_cnt;
 }GLSV_GLD_RSC_INFO;
 
-#if 0
-/* MIB variables */
-   SaNameT             saf_rsc_name; /* redundant, need to remove */
-   SaTimeT             saf_rsc_creation_time;
-   uns32               saf_rsc_no_of_users;
-   NCS_BOOL            saf_rsc_is_orphaned;/*redundant */
-   uns32               saf_rsc_stripped_cnt;
-#endif
 
 typedef struct glsv_glnd_rsc_ref_tag{
    NCS_PATRICIA_NODE    pat_node;

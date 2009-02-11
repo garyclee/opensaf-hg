@@ -70,9 +70,6 @@
 #include "subagt_log.h"
 #include "subagt_mem.h"
 #include "subagt_eda.h"
-#if 0
-#include "subagt_agt_monitor.h"
-#endif
 #include "subagt_cb.h"
 #include "subagt_mac.h"
 #include "subagt_mbx.h"

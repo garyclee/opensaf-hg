@@ -268,7 +268,7 @@ uns32 vds_amf_finalize(VDS_CB *vds)
                                       NCSFL_SEV_NOTICE, 0); 
 
    /* Unregister with AMF */   
-   /* Added by vishal for IR00085041 : replacing unregister with error report */
+   /* replacing unregister with error report */
    status  = saAmfComponentErrorReport(vds->amf.amf_handle, &vds->amf.comp_name,
                                    0, SA_AMF_COMPONENT_RESTART, 0);
    
@@ -534,7 +534,7 @@ uns32 vds_active_process(VDS_CB *vds, SaInvocationT invocation)
    }
 
    /* Read the checkpoint data */
-   /* Condition deleted by vishal : IR00084570 */
+  
    vds_ckpt_read(vds);
 
    

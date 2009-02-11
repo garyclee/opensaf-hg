@@ -760,17 +760,6 @@ static uns32 mqnd_mqa_list_init(NCS_DB_LINK_LIST *mqalist)
  *****************************************************************************/
 static NCS_BOOL mqnd_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
 {   
-#if 0
-   MQSV_EVT  *pEvt = (IFSV_EVT *)msg;
-   MQSV_EVT  *pnext;
-   pnext = pEvt;
-   while (pnext)
-   {
-      pnext = pEvt->next;
-      mqsv_evt_destroy(pEvt);  
-      pEvt = pnext;
-   }
-#endif
    return TRUE;
 }
 

@@ -370,12 +370,6 @@ ncs_decode_key(uns8 **stream, NCS_KEY* key)
       key->val.num = ncs_decode_32bit(stream);
       return 7;
       break;
-#if 0 
-    case NCS_FMT_HDL : 
-      key->val.hdl = (NCSCONTEXT)ncs_decode_32bit(stream);
-      return 7;
-      break;
-#endif
     case NCS_FMT_STR :
       len = *(*stream)++;
       m_KEY_CHK_LEN(key->val.oct.len);

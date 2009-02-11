@@ -38,9 +38,6 @@
                         Netplane Common Include Files.
   
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-#if 0
-#include "grp.h" /* Added for getgroups & getgrgid (59359) */
-#endif
 #include "ncsgl_defs.h"
 #include "ncs_mib_pub.h"
 #include "ncsmiblib.h"
@@ -64,9 +61,6 @@
 #include "ncs_ip.h"
 #include "ncs_iplib.h"
 #include "ncs_ipv4.h"
-#if 0
-#include "ncs_ipxs.h"
-#endif
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_mda_papi.h"

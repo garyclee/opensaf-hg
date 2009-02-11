@@ -844,7 +844,7 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
         
     case NCSCC_RC_SUCCESS:
         {
-            USRBUF   *buff =m_MMGR_DITTO_BUFR(resp->rsp.info.cli_rsp.o_answer); /* Fix for the bug IR00082630 */ 
+            USRBUF   *buff =m_MMGR_DITTO_BUFR(resp->rsp.info.cli_rsp.o_answer); 
             uns32    buff_len = 0;
             uns8     *buff_ptr = NULL;
             int8     pcn[NCSMIB_PCN_LENGTH_MAX];

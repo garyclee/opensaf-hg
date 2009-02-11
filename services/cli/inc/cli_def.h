@@ -60,7 +60,7 @@ extern CLIKEY_TO_CLICB_MAP   cli_mapper[];
    User can type m_NCSCLI_VERIFY_FILE 'script file' to verify commands
    from a file */
 
-#define m_NCSCLI_VERIFY_FILE           '$'  /* Fix for the bug 59119 */
+#define m_NCSCLI_VERIFY_FILE           '$'  
 
 /* The following value is treated as comment in CLI Script files */
 #define m_NCSCLI_COMMENT             '!'

@@ -147,17 +147,6 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    }
 
    dest_file_handle = (long) inst_file.info.open.o_file_handle;
-#if 0
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
-   /* Moving till the offset location in the source file */
-   inst_file.info.seek.i_file_handle = (void *) dest_file_handle;
-   inst_file.info.seek.i_offset = PSS_TABLE_DETAILS_HEADER_LEN;
-   if(NCSCC_RC_SUCCESS != m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_SEEK))
-   {
-       pss_retval = PSSRC_SRCFILESEEK_FAILURE;
-       goto closeallfiles;
-   }
-#endif
    m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* Moving till the offset location in the source file */
    inst_file.info.seek.i_file_handle = (void *) src_file_handle;

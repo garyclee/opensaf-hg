@@ -33,17 +33,6 @@
 
 /* Routines in this file will be identified while coding */
 
-#if 0
-
-#define FUNC_NAME(DS) \
-       cpsv_edp_##DS##_info
-
-#define ARRAY_NAME(DS) \
-       cpsv_edp_##DS##_rules
-
-#define TEST_FUNC(DS) \
-       cpsv_edp_##DS##_fnc
-#endif
 
 
 FUNC_DECLARATION(CPSV_SAERR_INFO);
@@ -96,11 +85,6 @@ FUNC_DECLARATION(CPSV_CKPT_NUM_SECTIONS);
 FUNC_DECLARATION(CPSV_CKPT_SECT_INFO);
 FUNC_DECLARATION(MDS_SYNC_SND_CTXT);
 
-#if 0
-FUNC_DECLARATION(CPSV_USR_INFO_CKPT_OPEN);
-FUNC_DECLARATION(CPSV_USR_INFO_CKPT_CLOSE);
-FUNC_DECLARATION(CPSV_USR_INFO_CKPT_TYPE);
-#endif
 FUNC_DECLARATION(CPND_EVT);
 FUNC_DECLARATION(CPD_EVT);
 FUNC_DECLARATION(CPA_EVT);
@@ -108,65 +92,17 @@ FUNC_DECLARATION(CPSV_EVT);
 
 
 
-#if 0
-#define TEST_FUNC_DECLARATION(DS) uns32 \
-                         TEST_FUNC(DS)(NCSCONTEXT arg)
-               
-#define NCS_ENC_DEC_DECLARATION(DS) \
-                 uns32 rc = NCSCC_RC_SUCCESS; \
-                 DS   *struct_ptr = NULL, **d_ptr = NULL
-
-#define NCS_ENC_DEC_ARRAY(DS) \
-         EDU_INST_SET      ARRAY_NAME(DS)[] =
-#endif
 /* Test function declaration */
 TEST_FUNC_DECLARATION(CPSV_EVT);
 TEST_FUNC_DECLARATION(CPA_EVT);
 TEST_FUNC_DECLARATION(CPD_EVT);
 TEST_FUNC_DECLARATION(CPND_EVT);
 TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
-#if 0
-#define NCS_ENC_DEC_REM_FLOW(DS)  \
- \
-   switch (op) \
-   { \
-      case EDP_OP_TYPE_ENC: \
-         struct_ptr = (DS *)ptr; \
-         break; \
-                 \
-      case EDP_OP_TYPE_DEC: \
-          d_ptr = (DS **)ptr;  \
-          if(*d_ptr == NULL)                          \
-          { \
-             *o_err = EDU_ERR_MEM_FAIL;               \
-             return NCSCC_RC_FAILURE;                 \
-          }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS)); \
-          struct_ptr = *d_ptr;                                \
-         break; \
-                   \
-      default:  \
-         struct_ptr = ptr;                                   \
-         break; \
-   }  \
-   \
-   rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn,ARRAY_NAME(DS), \
-       struct_ptr, ptr_data_len, buf_env, op, o_err); \
-   \
-   return rc;
-#endif
 #define m_MMGR_ALLOC_SECTIONIDT  (SaCkptSectionIdT *)m_NCS_MEM_ALLOC(sizeof(SaCkptSectionIdT), \
                                        NCS_MEM_REGION_PERSISTENT, \
                                        NCS_SERVICE_ID_CPND, \
                                        CPSV_SVC_SUB_ID_CPSV_EVT \
                                        )
-#if 0
-#define m_MMGR_ALLOC_CPSV_CKPT_DATA  (CPSV_CKPT_DATA *)m_NCS_MEM_ALLOC(sizeof(CPSV_CKPT_DATA), \
-                                       NCS_MEM_REGION_PERSISTENT, \
-                                       NCS_SERVICE_ID_CPND, \
-                                       CPSV_SVC_SUB_ID_CPSV_EVT \
-                                       )
-#endif
 
 #define m_MMGR_ALLOC_CPSV_DEFAULT(size) m_NCS_MEM_ALLOC(size, \
                                        NCS_MEM_REGION_PERSISTENT, \
@@ -483,9 +419,6 @@ FUNC_DECLARATION(DS)
       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->active_dest, 0, NULL},
       {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((DS*)0)->invocation, 0, NULL},
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->error, 0, NULL},
-#if 0
-      {EDU_EXEC,ncs_edp_uns32 , EDQ_POINTER , 0, 0, (uns32)&((DS*)0)->addr, 0, NULL},
-#endif
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
@@ -1061,27 +994,6 @@ FUNC_DECLARATION(DS)
 
 #undef DS
 
-#if 0 
-define DS CPSV_CKPT_DATA_1
-FUNC_DECLARATION(DS)
-{
-    NCS_ENC_DEC_DECLARATION(DS);
-    NCS_ENC_DEC_ARRAY(DS) {
-
-      {EDU_START,FUNC_NAME(CPSV_CKPT_DATA),EDQ_LNKLIST, 0, 0, sizeof(DS), 0, NULL},
-      {EDU_EXEC,FUNC_NAME(SaCkptSectionIdT) , 0, 0, 0, (uns32)&((DS*)0)->sec_id, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->dataSize, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->readSize, 0, NULL},
-      {EDU_EXEC_EXT, NULL, NCS_SERVICE_ID_OS_SVCS /* Svc-ID */, NULL, 0, 0 /* Sub-ID */, 0, NULL},
-      {EDU_EXEC,ncs_edp_uns64, 0, 0, 0, (uns32)&((DS*)0)->dataOffset, 0, NULL},
-      {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_CKPT_DATA),0,0,0,(uns32)&((DS*)0)->next,0,NULL},
-      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-
-    };
-    NCS_ENC_DEC_CPSV_CKPT_DATA(DS)
-}
-#undef DS
-#endif
 
 
 #define DS   CPSV_CKPT_ACCESS
@@ -1165,9 +1077,6 @@ FUNC_DECLARATION(DS)
 
       {EDU_START,FUNC_NAME(CPSV_CPND_DEST_INFO), 0, 0, 0, sizeof(DS), 0, NULL},
       {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((DS*)0)->dest, 0, NULL},
-  #if 0 
-     {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_CPND_DEST_INFO),0,0,0,(uns32)&((DS*)0)->next,0,NULL}, 
-  #endif 
 
      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
@@ -1524,9 +1433,6 @@ FUNC_DECLARATION(DS)
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ulink_ack, 0, NULL},
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.rdset_ack, 0, NULL},
 
-#if 0
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0, 0, (uns32)&((DS*)0)->info.crset_ack, 0, NULL},
-#endif
 
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.arep_ack, 0, NULL},
      {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.destroy_ack, 0, NULL},
@@ -1546,9 +1452,6 @@ FUNC_DECLARATION(DS)
      {EDU_EXEC,FUNC_NAME(CPSV_A2ND_CKPT_SYNC) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.sync_req, 0, NULL},
      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_sync, 0, NULL},
 
-#if 0
-     {EDU_EXEC,FUNC_NAME(CPSV_SAERR_INFO) , 0, 0, 0, (uns32)&((DS*)0)->info.active_sync_rsp, 0, NULL},
-#endif
 
      {EDU_EXEC,FUNC_NAME(CPSV_CKPT_ACCESS) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_data, 0, NULL},
      {EDU_EXEC,FUNC_NAME(CPSV_ND2A_DATA_ACCESS_RSP) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.ckpt_nd2nd_data_rsp, 0, NULL},
@@ -1827,9 +1730,6 @@ FUNC_DECLARATION(DS)
       {EDU_EXEC,FUNC_NAME(CPA_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpa, 0, NULL},
       {EDU_EXEC,FUNC_NAME(CPND_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpnd, 0, NULL},
       {EDU_EXEC,FUNC_NAME(CPD_EVT) , 0, 0,EDU_EXIT, (long)&((DS*)0)->info.cpd, 0, NULL},
-#if 0
-      {EDU_TEST_LL_PTR,FUNC_NAME(CPSV_EVT),0,0,0,(uns32)&((DS*)0)->next,0,NULL}, 
-#endif
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };

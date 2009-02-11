@@ -236,7 +236,6 @@ decode_16bitOS_inc( uns8 **stream)
 
 uns32 leap_dbg_sink(uns32 l, char* f, long code)
 {
-  /*IR00061064*/ 
 #if (ENABLE_LEAP_DBG == 1)
   switch(code)
    {
@@ -347,7 +346,6 @@ static  uns32 leap_env_init_count = 0;
 uns32 leap_env_init()
 {
 
-  /* IR00061488 */
   if(leap_env_init_count++ != 0)
   {   
     return NCSCC_RC_SUCCESS;
@@ -401,7 +399,6 @@ uns32 leap_env_init()
   }
 #endif /* #if (NCSL_ENV_INIT_LM == 1) */
 
-  /*IR00061064*/
   ncs_os_atomic_init();
 
 #if (NCSL_ENV_INIT_TMR == 1)
@@ -605,7 +602,6 @@ uns32 leap_env_init()
 uns32 leap_env_destroy()
 {  
   
-  /*IR00061488 */ 
   if(--leap_env_init_count != 0)
   {   
      return NCSCC_RC_SUCCESS;
@@ -616,7 +612,6 @@ uns32 leap_env_destroy()
 
   m_NCSSOCK_DESTROY;
 
-  /* IR00060372 */
   /* Destroying  execution control block */
   exec_mod_cb_destroy();
   
@@ -659,7 +654,6 @@ uns32 leap_env_destroy()
      (void)sysfTmrDestroy();
 #endif
 
-  /*IR00061064*/
   ncs_os_atomic_destroy();
 
 #if (NCSL_ENV_INIT_LM == 1)

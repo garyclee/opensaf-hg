@@ -142,7 +142,6 @@ typedef struct tag_ncs_ipc
                                 /* element 1 for queueing NORMAL priority IPC messages */
                                 /* element 2 for queueing LOW priority IPC messages */
 
-   /* IR00084436 */
    uns32  no_of_msgs [NCS_IPC_PRIO_LEVELS]; /* (priority level message count, used to compare 
                                               with the corresponding threshold value) */
 

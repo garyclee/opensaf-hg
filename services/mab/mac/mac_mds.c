@@ -161,7 +161,6 @@ mac_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
             if ((cbinfo->info.svc_evt.i_svc_id == NCSMDS_SVC_ID_MAS)  && 
                 (cbinfo->info.svc_evt.i_role == NCSFT_ROLE_PRIMARY)) 
             {
-                /* fix for the bug IR00061160 */
                 if((FALSE == inst->mas_here) && (inst->mas_sync_sel.raise_obj != 0 || inst->mas_sync_sel.rmv_obj != 0))
                 {
                      /* below statement is purposefully added.indicating on FD may cause mac thread got switched.*/

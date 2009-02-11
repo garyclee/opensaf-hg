@@ -147,9 +147,6 @@ const NCSFL_STR pss_hdln_set[] =
     { PSS_HDLN_TBL_REC_ADD_FAIL, "PSS Table record add FAIL"             },
     { PSS_HDLN_STR, "PSS Data string:"}, 
     { PSS_HDLN_AMF_INITIALIZE_SUCCESS, "PSS AMF Initialization successful"},
-#if 0
-    { PSS_HDLN_AMF_HLTH_CHK_START_SUCCESS,"PSS AMF Health Check start success"},
-#endif
     { PSS_HDLN_AMF_HLTH_DOING_AWESOME, "PSS AMF Health status: Awesome"}, 
     { PSS_HDLN_AMF_HLTH_DOING_AWFUL, "PSS AMF Health status: Awful"}, 
     { PSS_HDLN_AMF_CSI_DETAILS, "PSS CSI Details reeived from AMF"},
@@ -640,9 +637,6 @@ const NCSFL_STR pss_err_set[] =
    { PSS_ERR_SELECT_FAILED, "PSS pss_mbx_amf_process(): select() returned <= 0"},
    { PSS_ERR_AMF_ATTRIBS_INIT_FAILED, "PSS pss_amf_componentize(): ncs_app_amf_attribs_init() FAIL(error): "},        
    { PSS_ERR_AMF_INITIALIZE_FAILED, "PSS pss_amf_componentize(): ncs_app_amf_initialize() FAIL(error): "}, 
-#if 0
-   { PSS_ERR_AMF_HLTH_CHK_START_FAILED, "PSS pss_amf_componentize(): saAmfHealthcheckStart() FAIL(saf error): "}, 
-#endif
    { PSS_ERR_AMF_CSI_REMOVE_ALL_FAILED,"PSS pss_amf_prepare_will(): pss_amf_csi_remove_all() FAIL(saf error): "}, 
    { PSS_ERR_VDEST_DESTROY_FAILED,"PSS pss_amf_prepare_will(): NCSVDA_VDEST_DESTROYoperation for ncsvda_api() FAIL(error): "}, 
    { PSS_ERR_APP_AMF_FINALIZE_FAILED,"PSS pss_amf_prepare_will(): ncs_app_amf_finalize() FAIL(saf_error): "}, 

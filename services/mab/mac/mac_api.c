@@ -216,10 +216,6 @@ MABMAC_API uns32 ncsmac_mib_request(NCSMIB_ARG* req)
 
     stream = m_NCSSTACK_SPACE(se);
 
-  #if 0
-    ncs_encode_32bit( &stream,(uns32)(void*)req->i_usr_key);  
-    ncs_encode_32bit( &stream,(uns32)req->i_rsp_fnc);
-  #endif
 
     ncs_encode_64bit( &stream,req->i_usr_key);  
 
@@ -393,7 +389,6 @@ uns32 mac_svc_create(NCSMAC_CREATE* create)
     /* LM Callback stuff */
     inst->lm_cbfnc  = create->i_lm_cbfnc;
 
-    /* Fix for the bug IR00061160 */
     m_NCS_SEL_OBJ_CREATE(&inst->mas_sync_sel);
 
     /* MAC joins the MDS crowd... advertises its presence */
@@ -560,14 +555,8 @@ uns32 mac_svc_get(NCSMAC_GET* get)
   switch(get->i_obj_id)
   {
   case NCSMAC_OBJID_LOG_VAL    : 
-#if 0
-  *pval = inst->log_bits; 
-#endif
   break;
   case NCSMAC_OBJID_LOG_ON_OFF : 
-#if 0
-  *pval = inst->log_enbl; 
-#endif
   break;
   case NCSMAC_OBJID_SUBSYS_ON  : *pval = inst->mac_enbl; break;
   default: 
@@ -613,14 +602,8 @@ uns32 mac_svc_set(NCSMAC_SET* set)
   switch(set->i_obj_id)
   {
   case NCSMAC_OBJID_LOG_VAL    : 
-#if 0
-  inst->log_bits = set->i_obj_val; 
-#endif
   break;
   case NCSMAC_OBJID_LOG_ON_OFF : 
-#if 0
-  inst->log_enbl = set->i_obj_val; 
-#endif
   break;
   case NCSMAC_OBJID_SUBSYS_ON  : inst->mac_enbl = set->i_obj_val; break;
   default:

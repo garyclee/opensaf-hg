@@ -261,42 +261,6 @@ EXTERN_C MABCOM_API void* sysf_mas_validate(uns32 k);
 EXTERN_C MABCOM_API void* sysf_oac_validate(uns32 k);
 EXTERN_C MABCOM_API void* sysf_pss_validate(uns32 k);
 
-#if 0
-/*****************************************************************************
-
-  The MAB_HLDS struct is a demo convenience to bundle all MAB handles and 
-  other environment-wide handle values (for this little demo) that map to 
-  the same Virtual router ID.
-
-  In the real world, these void* fields would probably live off of some
-  UserStructure with only those fields that map to MAB subcomponents that
-  actually live in the particular environment.
-
-*****************************************************************************/
-typedef struct mab_hdls {
-
-  /* Values pertinent to MAB, but not MAB generated */
-
-  MDS_HDL   mds_hdl; 
-
-  /* In this scheme, these MAC sub-fields are part of MASTER struct */
-
-  uns32     mac_hdl;
-
-  /* In this scheme, these MAS sub-fields are part of MASTER struct */
-
-  uns32     mas_hdl;
-
-  /* In this scheme, these OAC sub-fields are part of MASTER struct */
-
-  uns32     oac_hdl;
-  uns32     dts_hdl;
-  uns32     dta_hdl;
-
-  /* In this scheme, these PSS sub-fields are part of MASTER struct */
-  uns32     pss_hdl;
-} MAB_HDLS;
-#endif
 
 /* The MAC validate macro */
 

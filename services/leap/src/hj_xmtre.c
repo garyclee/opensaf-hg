@@ -63,20 +63,8 @@ static const uns8 xmtreeBitMasks[8]     = {0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0
 #define m_XMTREE_IS_KEY_ZERO(k,kl) m_xmtree_is_key_zero(k,kl)
 
 /* removed the USE_LITTLE_ENDIAN check */
-#if 0
-#if (USE_LITTLE_ENDIAN != 0)
-  /* for Little Endian*/
   #define m_XMTREE_BYTE_POSITION(kp, mkl) (kp)
   #define m_XMTREE_BYTE_INC_POSITION(kp, mkl) ((mkl-kp)-1)
-#else
-/* for Big Endian*/
-  #define m_XMTREE_BYTE_POSITION(kp, mkl) ((mkl-kp)-1)
-  #define m_XMTREE_BYTE_INC_POSITION(kp, mkl) (kp)
-#endif
-#else /* removed the USE_LITTLE_ENDIAN check */
-  #define m_XMTREE_BYTE_POSITION(kp, mkl) (kp)
-  #define m_XMTREE_BYTE_INC_POSITION(kp, mkl) ((mkl-kp)-1)
-#endif
 
 /*******************************************************************
  * Function:  m_xmtree_set_bit()
@@ -128,24 +116,10 @@ m_xmtree_mask_key (char *pDestKey, char *pSrcKey, int maskLen, uns32 maxKeyLen)
     pDestKey[m_XMTREE_BYTE_POSITION((maskLen/8),maxKeyLen)] = 
              (char)(pDestKey[(maskLen/8)] & xmtreeBitMasks[(8-(maskLen%8))]);
    /* removed the USE_LITTLE_ENDIAN check */
-#if 0
-#if (USE_LITTLE_ENDIAN != 0)
-    for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i< (maxKeyLen); i++)
-    {
-         pDestKey[i] = 0x0;
-    }
-#else
-for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i>= 0; i--)
-    {
-         pDestKey[i] = 0x0;
-    }
-#endif
-#else /* removed the USE_LITTLE_ENDIAN check */
 for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i< (maxKeyLen); i++)
     {
          pDestKey[i] = 0x0;
     }
-#endif /* removed the USE_LITTLE_ENDIAN check */
 
 }
 
@@ -164,24 +138,10 @@ m_xmtree_invert_mask_and_or_key (char *pDestKey, char *pSrcKey, int maskLen, uns
     pDestKey[m_XMTREE_BYTE_POSITION((maskLen/8),maxKeyLen)] = 
              (char)(pDestKey[(maskLen/8)] | (~(char)(xmtreeBitMasks[(8-(maskLen%8))])));
    /* removed the USE_LITTLE_ENDIAN check */
-#if 0
-#if (USE_LITTLE_ENDIAN != 0)
     for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i< (maxKeyLen); i++)
     { 
          pDestKey[i] = (char)j;
     }
-#else
-for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i>= 0; i--)
-    {
-         pDestKey[i] = (char)j;
-    }
-#endif
-#else /* removed the USE_LITTLE_ENDIAN check */
-    for (i= m_XMTREE_BYTE_POSITION(((maskLen/8)+1),maxKeyLen); i< (maxKeyLen); i++)
-    { 
-         pDestKey[i] = (char)j;
-    }
-#endif
 
 }
 

@@ -46,10 +46,6 @@
  * and compile it again as FLS logs of severity NCSFL_SEV_NOTICE. The same stands
  * for VIP also.
  * */ 
-#if 0
-#define  NCS_IFSV_SEV_INFO  NCSFL_SEV_NOTICE
-#define  NCS_IFSV_SEV_DEBUG NCSFL_SEV_NOTICE
-#endif
 #define m_IFSV_LOG_EVT_L(svc,indx,info1,info2)   ifsv_flx_log_TICL_fmt(svc,NCSFL_LC_EVENT,IFSV_LC_EVENT_L,NCS_IFSV_SEV_INFO,IFSV_LFS_EVENT_L,indx,info1,(uns32)info2)
 #define m_IFSV_LOG_EVT_LL(svc,indx,info1,info2,info3)   ifsv_flx_log_TICLL_fmt(svc,NCSFL_LC_EVENT,IFSV_LC_EVENT_LL,NCS_IFSV_SEV_INFO,IFSV_LFS_EVENT_LL,indx,info1,(uns32)info2,(uns32)info3)
 #define m_IFSV_LOG_EVT_LLL(svc,indx,info1,info2,info3,info4)   ifsv_flx_log_TICLLL_fmt(svc,NCSFL_LC_EVENT,IFSV_LC_EVENT_LLL,NCS_IFSV_SEV_INFO,IFSV_LFS_EVENT_LLL,indx,info1,(uns32)info2,(uns32)info3,(uns32)info4)

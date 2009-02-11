@@ -38,13 +38,6 @@
 
 
 #include "cpnd.h"
-#if 0
-/* B Spec AMF Changes */
-void
-cpnd_saf_readiness_state_callback (SaInvocationT invocation,
-                                                                     const SaNameT *compName,
-                                                                     SaAmfReadinessStateT readinessState);
-#endif
 
 /****************************************************************************
  * Name          : cpnd_saf_health_chk_callback
@@ -339,44 +332,11 @@ void cpnd_saf_csi_set_cb(SaInvocationT invocation,
 {
    CPND_CB      *cb = NULL;
    SaAisErrorT    saErr = SA_AIS_OK;
-#if 0
-   CPSV_EVT    *pEvt  =NULL;
-   uns32       rc = NCSCC_RC_SUCCESS;
-   V_DEST_RL   mds_role;
-   V_CARD_QA   anchor;
-   NCSVDA_INFO vda_info;
-#endif
    
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);   
    if(cb) {
       cb->ha_state = haState; /* Set the HA State */
 
-#if 0
-      tmp=m_NCS_OS_STRSTR(compName->value,"CompT_SC_CPND");
-      if(tmp)
-       {
-         m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_GET_NODE_ID,NULL,&phy_slot,NULL);
-         m_NCS_CONS_PRINTF("CPND SLOT ID IN MDS REGISTER %d\n",phy_slot);
-   
-         if((phy_slot == ACTIVE_SLOT_PC) || (phy_slot == STANDBY_SLOT_PC))
-         {
-            cb->cpnd_active_id = ACTIVE_SLOT_PC;
-            cb->cpnd_standby_id = STANDBY_SLOT_PC;
-            m_NCS_CONS_PRINTF("ACTIVE %d & STANDBY %d\n",cb->cpnd_active_id,cb->cpnd_standby_id);
-         }
-         else
-         {
-             if((phy_slot == ACTIVE_SLOT_CH) || (phy_slot == STANDBY_SLOT_CH))
-             {
-                cb->cpnd_active_id = ACTIVE_SLOT_CH;
-                cb->cpnd_standby_id = STANDBY_SLOT_CH;
-                m_NCS_CONS_PRINTF("ACTIVE %d & STANDBY %d\n",cb->cpnd_active_id,cb->cpnd_standby_id);
-             }
-
-         }
-
-      }
-#endif
       saAmfResponse(cb->amf_hdl, invocation, saErr);
       ncshm_give_hdl(gl_cpnd_cb_hdl);
       m_LOG_CPND_CL(CPND_CSI_CB_INVOKED,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,__FILE__,__LINE__);

@@ -238,30 +238,10 @@ void  glnd_resource_lock_req_set_orphan(GLND_CB *glnd_cb,
    if(SA_LCK_PR_LOCK_MODE == type)
    {
       res_info->lck_master_info.pr_orphan_req_count++;
-      #if 0
-      if(res_info->lck_master_info.pr_orphan_req_count == 1)
-      {
-         /* send notification to the GLD about the shared locks */
-         GLSV_GLD_EVT   gld_evt;
-         m_GLND_RESOURCE_LCK_FILL(gld_evt,GLSV_GLD_EVT_SET_ORPHAN, 
-            res_info->resource_id,TRUE,type);
-         glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
-      }
-      #endif
    }
    else
    {
       res_info->lck_master_info.ex_orphan_req_count++;
-      #if 0
-      if(res_info->lck_master_info.ex_orphan_req_count == 1)
-      {
-         /* send notification to the GLD about the shared locks */
-         GLSV_GLD_EVT   gld_evt;
-         m_GLND_RESOURCE_LCK_FILL(gld_evt,GLSV_GLD_EVT_SET_ORPHAN, 
-            res_info->resource_id,TRUE,type);
-         glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
-      }
-      #endif
    }
 }
 
@@ -1852,10 +1832,6 @@ NCS_BOOL  glnd_deadlock_detect(GLND_CB                      *glnd_cb,
    dd_info_list = dd_probe->dd_info_list;
    while(dd_info_list != NULL)
    {
-#if 0
-      if ((client_info->app_handle_id == dd_info_list->blck_hdl_id) &&
-          m_NCS_OS_MEMCMP(&glnd_cb->glnd_mdest_id,&dd_info_list->blck_dest_id, sizeof(MDS_DEST)))
-#endif
       if ((client_info->app_handle_id == dd_info_list->blck_hdl_id) &&
      m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id) == m_NCS_NODE_ID_FROM_MDS_DEST(dd_info_list->blck_dest_id))
       {

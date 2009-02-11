@@ -135,7 +135,7 @@ typedef struct ncs_os_task_tag
       void        *i_handle;
     } release;
 
-    struct /* IR00059647 */
+    struct 
     {
       void        *i_handle;
     } detach;     
@@ -179,7 +179,7 @@ typedef enum
 {
   NCS_OS_TASK_CREATE = 1,
   NCS_OS_TASK_RELEASE,
-  NCS_OS_TASK_DETACH,  /* IR00059647 */
+  NCS_OS_TASK_DETACH,  
   NCS_OS_TASK_START,
   NCS_OS_TASK_STOP,
   NCS_OS_TASK_SLEEP,
@@ -1584,7 +1584,7 @@ uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ  i_sel_obj);
                         if the return value is success)
 
 \****************************************************************************/
-/* IR00060272 */
+
 uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ  *i_sel_obj);
 #define     m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_rmv_operation_shut(i_sel_obj)
 
@@ -1715,7 +1715,7 @@ int ncs_sel_obj_rmv_ind   (NCS_SEL_OBJ i_sel_obj,
                         etc.) too.
 
 \***************************************************************************/
-/* IR 83120 Bug fix, Select is returnig uns32 it should be int */
+/* Select is returnig uns32 it should be int */
 
 LEAPDLL_API int ncs_sel_obj_select(NCS_SEL_OBJ     highest_sel_obj,
                          NCS_SEL_OBJ_SET *io_readfds,        
@@ -2030,7 +2030,6 @@ EXTERN_C void my_free(void *mem_p);
 }
 #endif
 
-/* IR00061477 */
 #ifndef m_NCS_OS_DATE_TIME_TO_STR
 #define m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
 { \
@@ -2066,22 +2065,18 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_GET_TIME_MS     0
 #endif
 
-/* IR00058792 */
 #ifndef m_NCS_OS_GET_TIME_NS 
 #define m_NCS_OS_GET_TIME_NS     0
 #endif
 
-/*IR00084262*/
 #ifndef m_NCS_OS_GET_UPTIME 
 #error Warning! macro for uptime usage to be defined
 #endif
 
-/* IR00059532 */
 #ifndef m_NCS_OS_GETGRGID 
 #error Warning! macro for getgrgid usage to be defined
 #endif 
 
-/* IR00059532 */
 #ifndef m_NCS_OS_GETGROUPS
 #error Warning! macro for getgroups usage to be defined
 #endif 

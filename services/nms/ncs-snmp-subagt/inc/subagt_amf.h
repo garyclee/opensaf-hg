@@ -50,7 +50,7 @@ typedef enum snmpsubagt_ha_state
 
 #define SNMPSUBAGT_LIB_CONF OSAF_SYSCONFDIR "subagt_lib_conf" 
 
-#define m_SUBAGENT_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_subagent_comp_name"  /* IR00061409 */
+#define m_SUBAGENT_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_subagent_comp_name"  
 
 #define m_SNMPSUBAGT_AMF_TIMEOUT_IN_SEC     1
 
@@ -110,18 +110,17 @@ snmpsubagt_mibs_reload(struct ncsSa_cb *cb);
 EXTERN_C uns32
 snmpsubagt_mibs_unload(void); 
  
-/* IR00061409 */
+
 /* Go to ACTIVE State */
 EXTERN_C uns32
 snmpsubagt_ACTIVE_process (struct ncsSa_cb    *cb,
                            SaInvocationT       invocation);
 
-/* IR00061409 */
+
 /* Go to STANDBY State */
 EXTERN_C uns32
 snmpsubagt_STANDBY_process(struct ncsSa_cb    *cb,
                            SaInvocationT       invocation);
- /* IR00061409 */
 EXTERN_C uns32
 subagt_rda_init_role_get(struct ncsSa_cb *cb);
 

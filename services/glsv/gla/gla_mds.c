@@ -604,9 +604,6 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
            if ( param->error == SA_AIS_OK )
            {
              /* add the resource id to the local tree */
-#if 0
-             res_id_node = gla_res_tree_find_and_add(cb, gla_callbk_info->resourceId,FALSE);
-#endif
              if((res_id_node = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
                                NCS_SERVICE_ID_GLA, gla_callbk_info->resourceId)))
 
@@ -657,10 +654,6 @@ static uns32 gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
             m_NCS_OS_MEMSET(&cb->glnd_mds_dest, 0, sizeof(MDS_DEST));
             /* clean up the client tree */
             m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-            #if 0
-            /* TBD need to see upto what time to wait to cleanup */
-            gla_client_tree_cleanup(cb);
-            #endif
             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
             m_LOG_GLA_HEADLINE(GLA_GLND_SERVICE_DOWN ,NCSFL_SEV_ERROR);
          }

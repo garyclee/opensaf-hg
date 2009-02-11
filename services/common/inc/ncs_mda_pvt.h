@@ -61,7 +61,7 @@ typedef enum
     HISV_VDEST_ID,             
     SWITCH_VDEST_ID,      
     AVM_VDEST_ID,
-    CPD_VDEST_ID,   /* IR00059855 */ 
+    CPD_VDEST_ID,   
     MQD_VDEST_ID,
     IFD_VDEST_ID,
     LGS_VDEST_ID,

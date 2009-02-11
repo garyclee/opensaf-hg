@@ -103,7 +103,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
        (epath->Entry[2].EntityInstance <= MAX_NUM_SLOTS))
    {
       data2 = (data2 - HPI_SE_FWPROG_CODE_OFFSET);
-      /* this is to avoid logging of duplicate events due to set event receiver logic IR00084862 */
+      /* this is to avoid logging of duplicate events due to set event receiver logic  */
       if (data2 == HCD_SE_FWPROG_BOOT_SUCCESS)
          sim_cb->fwprog_done[epath->Entry[2].EntityInstance] = 1;
       if (sim_cb->fwprog_done[epath->Entry[2].EntityInstance])
@@ -128,7 +128,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
        (epath->Entry[1].EntityLocation <= MAX_NUM_SLOTS))
    {
       data2 = (data2 - HPI_SE_FWPROG_CODE_OFFSET);
-      /* this is to avoid logging of duplicate events due to set event receiver logic IR00084862 */
+      /* this is to avoid logging of duplicate events due to set event receiver logic  */
       if (data2 == HCD_SE_FWPROG_BOOT_SUCCESS)
          sim_cb->fwprog_done[epath->Entry[1].EntityLocation] = 1;
       if (sim_cb->fwprog_done[epath->Entry[1].EntityLocation])

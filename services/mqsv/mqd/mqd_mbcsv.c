@@ -521,25 +521,15 @@ static uns32 mqd_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
        case NCS_MBCSV_CBOP_PEER:
        /* Peer info request from mbcsv */
-      #if 0
-       rc = mqd_mbcsv_ckpt_peer_info_cbk_handler(arg);
-      #endif 
        rc = NCSCC_RC_SUCCESS;
        break;
 
        case NCS_MBCSV_CBOP_NOTIFY:
        /* notify request from mbcsv */
-       #if 0
-       rc = mqd_mbcsv_ckpt_notify_cbk_handler(arg); 
-       #endif
        rc= NCSCC_RC_SUCCESS;
        break;
        
        case NCS_MBCSV_CBOP_ERR_IND:
-       #if 0 
-       /* error indication from mbcsv */
-       rc = mqd_mbcsv_ckpt_notify_cbk_handler(arg); 
-       #endif
        rc = NCSCC_RC_SUCCESS;
        break;
        default:
@@ -1077,13 +1067,6 @@ static uns32  mqd_ckpt_encode_cold_sync_data(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg
    q_node = ncs_patricia_tree_getnext(&pMqd->qdb,
       (char*)&queue_index_name);
 
-#if 0
-   if(q_node == NULL)
-   {
-       m_LOG_MQD_HEADLINE(MQD_OBJ_NODE_GET_FAILED);
-       return NCSCC_RC_FAILURE;
-   }
-#endif
    queue_record = (MQD_OBJ_NODE*)q_node;
 
    while(queue_record != NULL)

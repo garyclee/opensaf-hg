@@ -85,7 +85,7 @@
 /* Default settings for Global filtering parameters */
 #define       GLOBAL_ENABLE           NCS_SNMP_TRUE
 #define       GLOBAL_CATEGORY_FILTER  0xFFFFFFFF
-/* IR 59024 - Global severity filter would be defaulted to 0xFC*/
+/* Global severity filter would be defaulted to 0xFC*/
 #ifndef       GLOBAL_SEVERITY_FILTER_DEFAULT
 #define       GLOBAL_SEVERITY_FILTER_DEFAULT  0xFC
 #endif
@@ -148,7 +148,7 @@ extern uns32 gl_severity_filter; /* To allow manipulat at init-time */
 /* DTS ASCII SPEC table loading file define */
 #define DTS_ASCII_SPEC_CONFIG_FILE OSAF_SYSCONFDIR "dts_ascii_spec_config"
 
-/* IR 59525 - define for checking log device SET values */
+/* define for checking log device SET values */
 #define       DTS_LOG_DEV_VAL_MAX   32 
 
 /* Versioning support - define for current DTS log version */
@@ -378,7 +378,7 @@ typedef struct global_policy
    */
    NCS_BOOL    dflt_logging;    /* TRUE - Logging enabled by default, 
                                  FALSE - Logging Disabled by default */
-   /* IR 60870 - Align datatype with NCS-DTSV-MIB object */
+   /* Align datatype with NCS-DTSV-MIB object */
    uns32        g_num_log_files;  /*Number of old log files to be saved per service or per node*/
    /*Smik - Added for console printing */
    uns8        g_num_cons_dev; /*Max no. of console devices to be configured per service or per node*/
@@ -423,7 +423,7 @@ typedef struct dts_svc_reg_tbl
    
    SVC_KEY             my_key; /* Key used for searching the element, Node ID + Service ID */
   
-   /* IR 60411 - Node/Svc-id in network order */
+   /* Node/Svc-id in network order */
    SVC_KEY             ntwk_key;
  
    uns32               num_svcs; /* Counter of number of services node has */
@@ -455,7 +455,7 @@ typedef struct dts_svc_reg_tbl
    DTS_SVC_REG_TBL *svc_reg; \
    SVC_KEY   nt_key; \
    \
-   /* IR 60411 - Network order key added */ \
+   /* Network order key added */ \
    nt_key.node = m_NCS_OS_HTONL(p->node); \
    nt_key.ss_svc_id = m_NCS_OS_HTONL(p->ss_svc_id); \
    if((svc_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&dts_cb.svc_tbl, \

@@ -238,14 +238,6 @@ avm_mbc_register(AVM_CB_T *cb)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    m_NCS_MEMSET(&cb->async_updt_cnt, 0, sizeof(AVM_ASYNC_CNT_T));
-#if 0
-   /* Registering with EDU */
-   if(NCSCC_RC_SUCCESS != avm_load_ckpt_edp(cb))
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-      return NCSCC_RC_FAILURE;
-   }    
-#endif
 
    /* Intializing MBCSv interface */
    if(NCSCC_RC_SUCCESS != avm_mbc_init(cb))
@@ -280,13 +272,6 @@ avm_mbc_register(AVM_CB_T *cb)
       return NCSCC_RC_FAILURE;
    }
 
-#if 0
-   /* Disabling warm sync */
-   if(NCSCC_RC_SUCCESS != avm_mbc_warm_sync_off(cb))
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-   }
-#endif
 
    return rc;
 }
@@ -496,47 +481,6 @@ avm_send_data_req(AVM_CB_T *cb)
    return NCSCC_RC_SUCCESS;
 }
  
-#if 0     
-/****************************************************************************\
- * Function: avm_mbc_obj_set
- *
- * Purpose:  Set MBCSv objects
- *
- * Input:    cb - AvM control block pointer.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
-\**************************************************************************/
-extern uns32 
-avm_mbc_obj_set(
-                AVM_CB_T *cb,
-                uns32     obj,
-                uns32     val
-              )
-{
-   NCS_MBCSV_ARG mbcsv_arg;
-   
-   m_AVM_LOG_FUNC_ENTRY("avm_mbcsv_obj_set");
-
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
-   
-   mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
-   mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
-   mbcsv_arg.info.obj_set.i_ckpt_hdl = cb->ckpt_hdl;
-   mbcsv_arg.info.obj_set.i_obj      = obj;
-   mbcsv_arg.info.obj_set.i_val      = val;
-
-   if(NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-      return NCSCC_RC_FAILURE;
-   }
-
-   return NCSCC_RC_SUCCESS;
-}
-#endif
 
 /*****************************************************************************
 *  Function : avm_mbcsv_process_dec_cb

@@ -119,13 +119,6 @@ uns32 ncsmib_encode(NCSMIB_ARG*    arg, NCS_UBAID*     uba, uns16  msg_fmt_ver)
    ncs_encode_32bit(&stream,arg->i_xch_id);
    ncs_enc_claim_space(uba,sizeof(uns32));
 
-#if 0
-   stream = ncs_enc_reserve_space(uba,sizeof(uns64));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_64bit(&stream,(uns64)arg->i_rsp_fnc);
-   ncs_enc_claim_space(uba,sizeof(uns64));
-#endif
 
    if(msg_fmt_ver == 1)
    {
@@ -161,13 +154,6 @@ uns32 ncsmib_encode(NCSMIB_ARG*    arg, NCS_UBAID*     uba, uns16  msg_fmt_ver)
        ncs_enc_claim_space(uba, sizeof(uns64));
    }
 
-#if 0
-   stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream,arg->i_usr_key);
-   ncs_enc_claim_space(uba, sizeof(uns32));
-#endif
 
    if(msg_fmt_ver == 1)
    {
@@ -195,23 +181,14 @@ uns32 ncsmib_encode(NCSMIB_ARG*    arg, NCS_UBAID*     uba, uns16  msg_fmt_ver)
    if (ncsmib_inst_encode(arg->i_idx.i_inst_ids,arg->i_idx.i_inst_len,uba) != NCSCC_RC_SUCCESS)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    /* added from here -- Mahesh */
    stream = ncs_enc_reserve_space(uba, sizeof(uns32));
    if (stream == NULL)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    ncs_encode_32bit(&stream, arg->i_policy);
    ncs_enc_claim_space(uba,sizeof(uns32));
-   /* End -- Mahesh */
       
    if (ncsstack_encode(&(arg->stack),uba) != NCSCC_RC_SUCCESS)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-#if 0
-   stream = ncs_enc_reserve_space(uba, sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream, arg->i_policy);
-   ncs_enc_claim_space(uba,sizeof(uns32));
-#endif
 
    if (m_NCSMIB_ISIT_A_REQ(arg->i_op)) /* if request op. */
    {
@@ -557,11 +534,6 @@ NCSMIB_ARG* ncsmib_decode( NCS_UBAID*    uba, uns16 msg_fmt_ver)
    new_arg->i_xch_id = ncs_decode_32bit(&stream);
    ncs_dec_skip_space(uba,sizeof(uns32));
 
- #if 0
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns64));
-   new_arg->i_rsp_fnc = (NCSMIB_RSP_FNC)ncs_decode_64bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns64));
- #endif
 
    if(msg_fmt_ver == 1)
    {
@@ -576,11 +548,6 @@ NCSMIB_ARG* ncsmib_decode( NCS_UBAID*    uba, uns16 msg_fmt_ver)
        ncs_dec_skip_space(uba,sizeof(uns64));
    }
 
- #if 0
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_mib_key = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
- #endif
 
    if(msg_fmt_ver == 1)
    {
@@ -595,11 +562,6 @@ NCSMIB_ARG* ncsmib_decode( NCS_UBAID*    uba, uns16 msg_fmt_ver)
        ncs_dec_skip_space(uba,sizeof(uns64));
    }
 
- #if 0
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_usr_key = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
- #endif
 
    if(msg_fmt_ver == 1)
    {

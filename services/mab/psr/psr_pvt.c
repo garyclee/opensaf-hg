@@ -39,7 +39,6 @@
 #include "psr.h"
 #include "psr_rfmt.h"
 
-/* For fir IR00085164 */
 uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STDBY_OAA_DOWN_BUFFER_OP buffer_op);
 void pss_stdby_oaa_down_list_dump(PSS_STDBY_OAA_DOWN_BUFFER_NODE *pss_stdby_oaa_down_buffer,FILE *fh);
 
@@ -90,7 +89,7 @@ pss_do_evt( MAB_MSG* msg, NCS_BOOL free_msg)
   uns32 status = NCSCC_RC_SUCCESS; 
 
 #if (NCS_PSS_RED == 1)
-  /* Fixed as a part of IR00085797: A NULL STATE check has been added */ 
+  /*  A NULL STATE check has been added */ 
   if(((gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_STANDBY) || 
       (gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_NULL)) &&
       (free_msg == TRUE)) 
@@ -102,7 +101,6 @@ pss_do_evt( MAB_MSG* msg, NCS_BOOL free_msg)
   }
 #endif
 
-  /* Fixed as a part of IR00085797 */
   /* Do not validate if the message type is AMF initialization retry, 
      as the MAB message wont contain any Handle */
   if(msg->op != MAB_PSS_AMF_INIT_RETRY)
@@ -168,7 +166,7 @@ case  MAB_PSS_AMF_INIT_RETRY:
        status = pss_amf_initialize(&gl_pss_amf_attribs.amf_attribs, &saf_status);
        if(saf_status != SA_AIS_ERR_TRY_AGAIN)
        {
-          /* IR00084946 : Destroy the selection object if AMF componentization was
+          /*  Destroy the selection object if AMF componentization was
              successful. In case of RETRY from AMF, go back and listen on the object. */
           m_NCS_SEL_OBJ_RMV_IND(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj, TRUE, TRUE);
           m_NCS_SEL_OBJ_DESTROY(gl_pss_amf_attribs.amf_attribs.sighdlr_sel_obj);
@@ -233,9 +231,8 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
        {
            if(pwe_cb->p_pss_cb->ha_state == SA_AMF_HA_STANDBY)
            {
-              /* Fix for IR00085164 */
               char addr_str[255] = {0};
-              /*  Fixed as a part of IR00085797, need to pass PWE Control block handle  */
+              /* need to pass PWE Control block handle  */
               status = pss_stdby_oaa_down_list_update(msg->fr_card,(NCSCONTEXT)((long)pwe_cb->hm_hdl),PSS_STDBY_OAA_DOWN_BUFFER_DELETE);
               if(NCSCC_RC_SUCCESS != status)
               {
@@ -2062,10 +2059,6 @@ PSS_TBL_REC * pss_find_table_tree(PSS_PWE_CB *pwe_cb, PSS_CLIENT_ENTRY *client_n
     /* Add pointer to the OAA-node */
     tbl_rec->p_oaa_entry = oaa_node;
 
-#if 0
-    tbl_rec->next = client_node->hash[bucket];
-    client_node->hash[bucket] = tbl_rec;
-#endif
 
     if (client_node->hash[bucket] == NULL)
        client_node->hash[bucket] = tbl_rec;
@@ -2311,10 +2304,6 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
     NCS_BOOL       data_bool, bitmap_already_set = FALSE;
 
     /* Just a sanity check here */
-#if 0
-    if (param->i_param_id != var_info->var_info.param_id)
-        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-#endif
 
     switch (param->i_fmat_id)
     {
@@ -3562,16 +3551,6 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
                 }
 
-#if 0
-                /* Relook into this design. TBD. */
-                if(tbl_info->ptbl_info->status_field == tbl_info->pfields[j].var_info.param_id)
-                {
-                    if (pv.info.i_int == NCSMIB_ROWSTATUS_ACTIVE)
-                        pv.info.i_int = NCSMIB_ROWSTATUS_CREATE_GO;
-                    else if (pv.info.i_int == NCSMIB_ROWSTATUS_NOTINSERVICE)
-                        pv.info.i_int = NCSMIB_ROWSTATUS_CREATE_WAIT;
-                }
-#endif
 
                 if(inst->mib_tbl_desc[tbl_rec->tbl_id]->capability == NCSMIB_CAPABILITY_SETALLROWS)
                     ncsrow_enc_param(&ra, &pv);
@@ -4201,22 +4180,9 @@ uns32 pss_signal_start_of_playback(PSS_PWE_CB *pwe_cb, USRBUF *ub)
     }
     m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_MAC_PBKS_SUCCESS);
 
-#if 0
-    /* This is not required now. */
-    msg.op             = MAB_OAC_PLAYBACK_START;
-    info.info.svc_send.i_to_svc   = NCSMDS_SVC_ID_OAC;
-    if (ncsmds_api(&info) != NCSCC_RC_SUCCESS)
-    {
-        m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_OAC_PBKS_FAILURE);
-        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-    }
-    m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_OAC_PBKS_SUCCESS);
-#endif
 
-#if 1
     /* To fix the leak introduced to fix the crash in MDS broadcast processing to multiple receivers. */
     m_MMGR_FREE_BUFR_LIST(ub);
-#endif
 
     return NCSCC_RC_SUCCESS;
 }
@@ -4261,17 +4227,6 @@ uns32 pss_signal_end_of_playback(PSS_PWE_CB *pwe_cb)
     }
     m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_MAC_PBKE_SUCCESS);
 
-#if 0
-    /* This is not required now. */
-    msg.op             = MAB_OAC_PLAYBACK_END;
-    info.info.svc_send.i_to_svc   = NCSMDS_SVC_ID_OAC;
-    if (ncsmds_api(&info) != NCSCC_RC_SUCCESS)
-    {
-        m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_MAC_PBKE_FAILURE);
-        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-    }
-    m_LOG_PSS_HEADLINE(NCSFL_SEV_NOTICE, PSS_HDLN_OAC_PBKE_SUCCESS);
-#endif
 
     return NCSCC_RC_SUCCESS;
 }
@@ -5190,7 +5145,7 @@ uns32 pss_save_current_configuration(PSS_CB * inst)
            }
            else
            {
-              if(rec->info.other.tree_inited == TRUE) /* Fix for IR00082857 */
+              if(rec->info.other.tree_inited == TRUE) 
               {
                  retval = pss_save_to_store(pwe_cb, &rec->info.other.data, NULL,
                           (char*)&rec->pss_client_key->pcn, rec->tbl_id);
@@ -5846,10 +5801,6 @@ uns32 pss_validate_set_mib_obj(PSS_MIB_TBL_INFO* tbl_obj,
     if ((var_info->access == NCSMIB_ACCESS_NOT_ACCESSIBLE) ||
         (var_info->access == NCSMIB_ACCESS_ACCESSIBLE_FOR_NOTIFY))
         return NCSCC_RC_NO_ACCESS;
-#if 0
-    if (var_info->access == NCSMIB_ACCESS_READ_ONLY)
-        return NCSCC_RC_NOT_WRITABLE;
-#endif
 
     /* Now validate the param value */
     if(pss_validate_param_val(var_info, param) != NCSCC_RC_SUCCESS)
@@ -5942,15 +5893,6 @@ uns32 pss_validate_param_val(NCSMIB_VAR_INFO* var_info,
 
     case NCSMIB_OTHER_INT_OBJ_TYPE:
     case NCSMIB_OTHER_OCT_OBJ_TYPE:
-#if 0
-        /* MIB LIB has no clue how to validate such parameters. Call the
-         * subsystem provided function to do the honours
-         */
-        if(var_info->obj_spec.validate_obj != NULL)
-        {
-            ret_code = (var_info->obj_spec.validate_obj)(var_info, param);
-        }
-#endif
         break;
 
     default:
@@ -6094,7 +6036,6 @@ uns32 pss_validate_index(PSS_MIB_TBL_INFO* tbl_obj,
     }
 }
 
-/* Fix for IR00085164 */
 /*****************************************************************************
  * Function:    pss_stdby_oaa_down_list_update
  * Description: PSS internal function for updating standby oaa down buffer
@@ -6110,7 +6051,6 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
     PSS_PWE_CB         *pwe_cb = NULL;
     PSS_STDBY_OAA_DOWN_BUFFER_NODE *new_node, *curr_node, *prev_node;
    
-    /* Fixed as a part of IR00085797 */
     /* Validate the Handle */
     pwe_cb = (PSS_PWE_CB *)m_PSS_VALIDATE_HDL((long)yr_hdl);
 
@@ -6174,12 +6114,11 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
         m_MMGR_FREE_STDBY_PSS_BUFFER_NODE(curr_node);
     }
 
-    /* Release the Handle, Added as a part of IR00085797  */
+    /* Release the Handle  */
     ncshm_give_hdl((long)yr_hdl);
 
     return NCSCC_RC_SUCCESS;
 }
-/* Fix for IR00085164 */
 /*****************************************************************************
  * Function:    pss_stdby_oaa_down_list_dump
  * Description: PSS internal function for dumping standby oaa down buffer

@@ -59,14 +59,6 @@ ifnd_process_ifa_crash(IFSV_CB *cb,
                        MDS_DEST *mdsDest
                        );
 
-#if 0               /* Not being used presently */ 
-static 
-uns32 ifnd_create_ifnd_evt(IFSV_CB *cb, 
-                           uns8 * applName,
-                           uns32 hdl,
-                           uns32 type
-                           );
-#endif
                                                                                                                              
 /*
 *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
@@ -129,44 +121,6 @@ uns32 ifnd_create_mark_vip_entry_stale_evt(IFSV_CB *cb, uns8 * applName,uns32 hd
 *************************************************************/
                                                                                                                               
 /* Form an IFND event and store it in mail box.. to be processed later.*/
-#if 0         /* Not Being used presently */
-static 
-uns32 ifnd_create_ifnd_evt(IFSV_CB *cb, uns8 * applName,uns32 hdl, uns32 type)
-{
-   IFSV_EVT         *ifsv_evt;
-   SYSF_MBX         *mbx;
-                                                                                                                              
-   ifsv_evt =  m_MMGR_ALLOC_IFSV_EVT;
-   if (ifsv_evt == IFSV_NULL)
-   {
-      m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
-                          IFSV_VIP_MEM_ALLOC_FAILED);
-      return NCSCC_RC_FAILURE;
-   }
-   m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
-   ifsv_evt->type = IFND_IFND_VIP_DEL_VIPD;
-   m_NCS_STRCPY(ifsv_evt->info.vip_evt.info.ifndVipDel.handle.vipApplName,applName);
-   ifsv_evt->info.vip_evt.info.ifndVipDel.handle.poolHdl = hdl;
-   ifsv_evt->info.vip_evt.info.ifndVipDel.handle.ipPoolType =  type;
-   
-   /* Put it in IFND's Event Queue */
-   mbx = &cb->mbx;
-   ifsv_evt->cb_hdl  = cb->cb_hdl;
-                                                                                                                              
-   if(m_IFND_EVT_SEND(mbx, ifsv_evt, NCS_IPC_PRIORITY_NORMAL)
-      == NCSCC_RC_FAILURE)
-   {
-      m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_SEND_FAIL,mbx);
-      m_MMGR_FREE_IFSV_EVT(ifsv_evt);
-      return (NCSCC_RC_FAILURE);
-   }
- 
-   m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
-                       IFSV_VIP_CREATED_IFND_IFND_VIP_DEL_VIPD_EVT);
-                                                                                                                              
-  return NCSCC_RC_SUCCESS;
-}
-#endif
 
 /*******************************************************
 * This function is used to process, IFND_VIP_MARK_VIPD_STALE
@@ -1428,14 +1382,6 @@ uns32 ifnd_vip_evt_process(IFSV_CB *cb, IFSV_EVT *evt)
        case IFA_VIPD_INFO_ADD_REQ:
           rc = ifnd_ifa_proc_vipd_info_add(cb,evt);
           break;
-#if 0
-       case IFND_VIPD_INFO_ADD_REQ:
-          rc = ifnd_ifa_proc_ipxs_info_add(cb,evt);
-          break;
-       case IFD_VIPD_INFO_ADD_REQ_RESP:
-          rc = ifnd_ifd_proc_vip_info_add_resp();
-          break;
-#endif
        case IFA_VIP_FREE_REQ:
           rc = ifnd_ifa_proc_vip_free(cb,evt);
           break;

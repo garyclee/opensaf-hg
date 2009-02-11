@@ -332,11 +332,6 @@ ncs_encode_key(uns8 **stream, NCS_KEY* key)
   switch (key->fmat)
     {
     case NCS_FMT_NUM : 
-#if 0
-    case NCS_FMT_HDL : 
-      ncs_encode_32bit(stream,key->val.num);
-      return 7;
-#endif
       break;
       
     case NCS_FMT_STR :

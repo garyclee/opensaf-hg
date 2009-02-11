@@ -51,9 +51,6 @@ uns32 glsv_gld_map_from_instid(const uns32* i_inst_ids, uns32 i_inst_len, GLSV_G
       i_inst_ids++;
    }
    rsc_name.value[counter]='\0';
-   #if 0
-   rsc_name.length = rsc_name.length + 1;
-   #endif
    rsc_name.length = rsc_name.length;
 
    rsc_name.length = m_NCS_OS_HTONS(rsc_name.length);
@@ -276,18 +273,12 @@ uns32 salckresourceentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data,u
    *data = (NCSCONTEXT)rsc_info;
 
    rsc_map_info.rsc_name.length = rsc_info->lck_name.length;
-   #if 0
-   next_inst_id[0] = rsc_info->lck_name.length - 1;
-   #endif
    next_inst_id[0] = rsc_info->lck_name.length;
    for(counter=0;counter< rsc_info->lck_name.length;counter++)
    {
       *(next_inst_id+counter+1) = (uns32)rsc_map_info.rsc_name.value[counter];
    }
    *next_inst_id_len = rsc_info->lck_name.length + 1;
-   #if 0
-   *next_inst_id_len = rsc_info->lck_name.length;
-   #endif
 
    ncshm_give_hdl(gld_cb->my_hdl);
    return NCSCC_RC_SUCCESS;

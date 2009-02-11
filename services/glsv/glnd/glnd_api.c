@@ -245,9 +245,6 @@ static void glnd_main_process(SYSF_MBX *mbx)
    m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
 
    highest_sel_obj  = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj,mbx_fd);
-#if 0
-   highest_sel_obj  = mbx_fd;
-#endif
 
    while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj,&all_sel_obj,0,0,0) != -1)
    {

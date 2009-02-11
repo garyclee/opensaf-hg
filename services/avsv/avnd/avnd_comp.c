@@ -478,29 +478,6 @@ uns32 avnd_evt_ava_comp_reg (AVND_CB *cb, AVND_EVT *evt)
    /* now register the component */
    if ( (SA_AIS_OK == amf_rc) && (NCSCC_RC_SUCCESS == rc) )
       rc = avnd_comp_reg_prc(cb, comp, pxy_comp, reg, &api_info->dest);
-#if 0   
-   /* If the proxied component is an external component, then we need to start
-      instantiation. For that we need to send AVSV_N2D_REG_COMP_MSG to AvD for
-      this SU.*/
-    if((NCSCC_RC_SUCCESS == rc) && (TRUE == comp->su->su_is_external) && 
-       ((TRUE == int_ext_comp_flag) && (TRUE == msg_from_avnd)))
-    {
-      /* Before sending the AVSV_N2D_REG_COMP_MSG message, justs check that
-         this message has been already sent for this SU. */
-      if(NCS_PRES_UNINSTANTIATED == comp->su->pres)
-      {
-       if((!m_AVND_SU_REG_COMP_MSG_IS_SENT(comp->su)))
-       {
-         /* This is first component of an ext SU, which is getting registered.
-           So, we need to set AVND_SU_REG_COMP_MSG_SENT flag and send a 
-           AVSV_N2D_REG_COMP_MSG message to AvD.*/
-           m_AVND_SU_REG_COMP_MSG_SENT_SET(comp->su);
-           m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
-           rc = avnd_di_reg_comp_rsp_snd(cb, &comp->name_net, rc);
-       } /* if((!m_AVND_SU_REG_COMP_MSG_IS_SENT(comp->su)))  */
-      } /* if(NCS_PRES_UNINSTANTIATED == comp->su->oper)  */
-    } /* if((NCSCC_RC_SUCCESS == rc) && (TRUE.... */
-#endif
    return rc;
 }
 

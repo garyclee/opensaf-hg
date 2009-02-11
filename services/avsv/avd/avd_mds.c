@@ -88,45 +88,6 @@ uns32 avd_mds_reg_def (AVD_CL_CB *cb)
    return NCSCC_RC_SUCCESS;
 }
 
-#if 0
-/****************************************************************************
-  Name          : avd_mds_adest_callback
-
-  Description   : This is a callback routine invoked by MDS for delivering
-  messages and events on the ADEST address for AvSv. It also calls back 
-  for encoding or decoding messages on the Adest address.
- 
-  Arguments     : info:  MDS call back information
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-
-uns32 avd_mds_adest_callback(struct ncsmds_callback_info *info)
-{
-}
-/****************************************************************************
-  Name          : avd_mds_unreg_def
- 
-  Description   : This routine unregisters the AVD role Service from MDS on the
-                  default Aaddress.
- 
-  Arguments     : cb - ptr to the AVD control block
- 
-  Return Values : NONE
- 
-  Notes         : None.
-******************************************************************************/
-static void avd_mds_unreg_def(AVD_CL_CB *cb)
-{
-   /* EDU cleanup */
-   m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
-
-   return;
-}
-
-#endif
 /****************************************************************************
   Name          : avd_mds_set_vdest_role
  
@@ -326,41 +287,6 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
    return NCSCC_RC_SUCCESS;
 }
 
-#if 0
-/****************************************************************************
-  Name          : avd_mds_unreg
- 
-  Description   : This routine unregisters the AVD Service from MDS on the
-                  AVDs Vaddress 
- 
-  Arguments     : cb - ptr to the AVD control block
- 
-  Return Values : NONE
- 
-  Notes         : None.
-******************************************************************************/
-void avd_mds_unreg(AVD_CL_CB *cb)
-{
-   NCSVDA_INFO vda_info;
-   NCSMDS_INFO svc_to_mds_info;
-
-   /* uninstall MDS */
-   svc_to_mds_info.i_mds_hdl = cb->vaddr_hdl;
-   svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_AVD;
-   svc_to_mds_info.i_op = MDS_UNINSTALL;
-   ncsmds_api(&svc_to_mds_info);
-
-   /* destroy vaddress */
-   vda_info.req = NCSVDA_VDEST_DESTROY;
-   vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
-   ncsvda_api(&vda_info);
-
-   m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_UNREG);
-
-   return;
-}
-
-#endif
 
 /****************************************************************************
   Name          : avd_mds_cbk
@@ -715,7 +641,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
          {
             m_NCS_OS_MEMSET(&cb->other_avd_adest, '\0', sizeof(MDS_DEST));
          } 
-         /* cb->node_id_avd_other should not be made 0, because heart beat loss message to AvM relies on this field - IR00083060 */
+         /* cb->node_id_avd_other should not be made 0, because heart beat loss message to AvM relies on this field -  */
          break;
 
       case NCSMDS_SVC_ID_AVND:

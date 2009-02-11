@@ -1553,21 +1553,6 @@ avm_role_chg(
 
       rc = avm_proc_evt_q(cb);
 
-#if 0
-      AVM_ENT_INFO_T      *ent_info;
-      SaHpiEntityPathT   entity_path;
-
-      /* for each node, if upgrade is in progress, start the SSU timer */
-      m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));  
-      for(ent_info = avm_find_next_ent_info(cb, &entity_path); 
-          ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(cb, &entity_path))
-      {
-         m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
-         if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
-            m_AVM_SSU_UPGR_TMR_START(cb, ent_info);
-         avm_role_change_check_pld_upgd_prg(cb, ent_info);
-      }
-#endif
    }
 
    return rc;

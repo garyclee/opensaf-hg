@@ -73,9 +73,6 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb, \
 static uns32 cpnd_evt_proc_nd2nd_ckpt_status(CPND_CB *cb, \
                                     CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
-#if 0
-static uns32 cpnd_evt_proc_nd2nd_ckpt_data_access_req(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
-#endif
 static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(CPND_CB *cb, \
                                      CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -369,11 +366,6 @@ void cpnd_process_evt(CPSV_EVT *evt)
   case CPSV_EVT_ND2ND_CKPT_SECT_EXPTMR_REQ:
      rc=cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(cb,&evt->info.cpnd,&evt->sinfo);
      break;
-#if 0
-  case CPSV_EVT_ND2ND_CKPT_SECT_DATA_ACCESS_REQ:  /* Not Being Used */
-     rc=cpnd_evt_proc_nd2nd_ckpt_data_access_req(cb,&evt->info.cpnd,&evt->sinfo);
-     break;
-#endif
  
   case CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_REQ:
      rc=cpnd_evt_proc_nd2nd_ckpt_active_data_access_req(cb,&evt->info.cpnd,&evt->sinfo);
@@ -1145,31 +1137,6 @@ static uns32 cpnd_evt_proc_ckpt_unlink(CPND_CB *cb,
    }
    cp_node->cpa_sinfo = *(sinfo);
    cp_node->cpa_sinfo_flag = TRUE;
-#if 0
-   if(cp_node != NULL) {
-
-      cpnd_restart_ckpt_name_length_reset(cb,cp_node);
-
-      cp_node->is_unlink = TRUE;
-      cp_node->ckpt_name.length = 0;
-
-      /* For non-collocated case, the ND which has no replica i.e(cpnd_rep_create = 0) shud not update the ckpt header  */
-      if(cp_node->cpnd_rep_create)
-      {
-         rc = cpnd_ckpt_hdr_update(cp_node);
-         if(rc == NCSCC_RC_FAILURE)
-         {
-           m_LOG_CPND_CL(CPND_CKPT_HDR_UPDATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-         }
-      }
-      m_LOG_CPND_FCL(CPND_PROC_CKPT_UNLINK_SET,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
-                          cp_node->ckpt_id,__FILE__,__LINE__);
-   }
-   send_evt.info.cpa.info.ulinkRsp.error=SA_AIS_OK;
-
-   m_LOG_CPND_CCL(CPND_PROC_CKPT_UNLINK_SUCCESS,CPND_FC_API,NCSFL_SEV_INFO,evt->info.ulinkReq.ckpt_name.value,\
-    __FILE__,__LINE__);
-#endif
 
   if(out_evt)
       cpnd_evt_destroy(out_evt);
@@ -1673,40 +1640,6 @@ static uns32 cpnd_evt_proc_ckpt_status_get(CPND_CB *cb,
       send_evt.info.cpa.info.status.ckpt_id = cp_node->ckpt_id;
       goto agent_rsp;
    }
-#if 0
-   else
-   {
-      send_evt.type=CPSV_EVT_TYPE_CPND;
-      send_evt.info.cpnd.type=CPND_EVT_ND2ND_ACTIVE_STATUS;
-      send_evt.info.cpnd.info.stat_get.ckpt_id=cp_node->ckpt_id;
-      
-      rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND,cp_node->active_mds_dest,
-                            &send_evt, &out_evt, CPSV_WAIT_TIME);
-      if (rc != NCSCC_RC_SUCCESS) 
-      {
-         m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-             cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-         if (rc == NCSCC_RC_REQ_TIMOUT)
-         {
-            send_evt.info.cpa.info.status.error= SA_AIS_ERR_TIMEOUT; 
-         } 
-         else
-            send_evt.info.cpa.info.status.error= SA_AIS_ERR_TRY_AGAIN;
-         goto agent_rsp;
-      }
-
-      if (out_evt && out_evt->info.cpnd.info.status.error != SA_AIS_OK)
-      {
-          send_evt.info.cpa.info.status.error=\
-                    out_evt->info.cpnd.info.status.error;
-          goto agent_rsp;
-      }
-
-      send_evt.info.cpa.info.status.error=SA_AIS_OK;
-      send_evt.info.cpa.info.status.ckpt_id=cp_node->ckpt_id;
-      send_evt.info.cpa.info.status.status=out_evt->info.cpnd.info.status.status;
-   }
-#endif
 
 agent_rsp:
 
@@ -1906,9 +1839,6 @@ static uns32 cpnd_evt_proc_ckpt_rep_del(CPND_CB *cb, \
 {
    CPND_CKPT_NODE *cp_node=NULL;
    uns32 rc=NCSCC_RC_SUCCESS;
-#if 0
-   SaAisErrorT error;
-#endif
 
    /* get cp_node from ckpt_info_db */
    cpnd_ckpt_node_get(cb,evt->info.ckpt_del.ckpt_id,&cp_node);
@@ -2085,7 +2015,6 @@ static uns32 cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb,
         sec_info->ckpt_sec_exptmr.uarg=cb->cpnd_cb_hdl_id;
         sec_info->ckpt_sec_exptmr.lcl_sec_id=sec_info->lcl_sec_id;
     
-        /* Fix for IR00082703 need to be added */
         cpnd_sec_hdr_update(sec_info,cp_node);
 
         cpnd_tmr_start(&sec_info->ckpt_sec_exptmr, \
@@ -2119,7 +2048,6 @@ static uns32 cpnd_evt_proc_ckpt_sect_exp_set(CPND_CB *cb,
        if(cp_node->cpnd_rep_create)
        {
           sec_info->exp_tmr=evt->info.sec_expset.exp_time;
-          /* Fix for IR00082703 */
           cpnd_sec_hdr_update(sec_info,cp_node); 
        }
    }
@@ -2257,11 +2185,6 @@ static uns32 cpnd_evt_proc_ckpt_sect_create(CPND_CB *cb,
       }
    }
   
-#if 0 
-   if ( (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, \
-                                   &cb->cpnd_mdest_id) == 0) )
-   {
-#endif
       if(cp_node->cpnd_rep_create)
       {
          if(gen_sec_id)
@@ -2379,7 +2302,7 @@ evt->info.sec_creatReq.sec_attri.expirationTime,0);
                       send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_CREATE_RSP;
                       /* TBD: Don't know what to do, revisit this. Ideally send the request to 
                               other CPNDs to delete */
-                   /* Bug fix for IR00060458 - Section Create fails with SA_AIS_NOT_VALID */ 
+                   /*  Section Create fails with SA_AIS_NOT_VALID */ 
                       send_evt.info.cpa.info.sec_creat_rsp.error= \
                                  out_evt->info.cpnd.info.active_sec_creat_rsp.error;
                       m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
@@ -2433,137 +2356,7 @@ evt->info.sec_creatReq.sec_attri.expirationTime,0);
             cpnd_tmr_start(&sec_info->ckpt_sec_exptmr,duration); 
          }
 
-#if 0
-         m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-
-         send_evt.type=CPSV_EVT_TYPE_CPD;
-         send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_SEC_INFO_UPD;
-         send_evt.info.cpd.info.ckpt_sec_info.ckpt_id = evt->info.sec_creatReq.ckpt_id;
-         send_evt.info.cpd.info.ckpt_sec_info.info_type = CPSV_CKPT_SEC_INFO_CREATE;
-         rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id,&send_evt);
-         if(rc == NCSCC_RC_FAILURE)
-         {
-              m_LOG_CPND_FCL(CPND_CKPT_SECT_CREATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,\
-                             evt->info.sec_creatReq.ckpt_id,__FILE__,__LINE__);
-            /* send_evt.info.cpa.info.sec_creat_rsp.error = SA_AIS_ERR_LIBRARY;
-            goto agent_rsp; */
-            /* Don't handle the error, this is not fatel */
-         }
-#endif
       } 
-#if 0
-    }
-    else
-    {
-         send_evt.type=CPSV_EVT_TYPE_CPND;
-         send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ;
-         send_evt.info.cpnd.info.active_sec_creat.ckpt_id= \
-                         evt->info.sec_creatReq.ckpt_id;
-         send_evt.info.cpnd.info.active_sec_creat.lcl_ckpt_id= \
-                         evt->info.sec_creatReq.lcl_ckpt_id;
-         send_evt.info.cpnd.info.active_sec_creat.agent_mdest= \
-                         evt->info.sec_creatReq.agent_mdest;
-         send_evt.info.cpnd.info.active_sec_creat.sec_attri=\
-                         evt->info.sec_creatReq.sec_attri;
-         send_evt.info.cpnd.info.active_sec_creat.init_data= \
-                        evt->info.sec_creatReq.init_data;
-         send_evt.info.cpnd.info.active_sec_creat.init_size= \
-                        evt->info.sec_creatReq.init_size;
-
-         rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND,cp_node->active_mds_dest,\
-                            &send_evt, &out_evt, CPND_WAIT_TIME(evt->info.sec_creatReq.init_size));
-         if (rc != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-            send_evt.type=CPSV_EVT_TYPE_CPA;
-            send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_CREATE_RSP;
-            if (rc == NCSCC_RC_REQ_TIMOUT)
-            {
-               m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                                 cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__); 
-
-               send_evt.info.cpa.info.sec_creat_rsp.error=SA_AIS_ERR_TIMEOUT;
-            }
-            else
-            {
-               send_evt.info.cpa.info.sec_creat_rsp.error=SA_AIS_ERR_TRY_AGAIN;
-               m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                                 cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__); 
-            }
-            goto agent_rsp;
-         } 
-         else
-         {
-             if (out_evt && out_evt->info.cpnd.info.active_sec_creat_rsp.error != SA_AIS_OK )
-             {
-                m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                send_evt.type=CPSV_EVT_TYPE_CPA;
-                send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_CREATE_RSP;
-                send_evt.info.cpa.info.sec_creat_rsp.error=out_evt->info.cpnd.info.active_sec_creat_rsp.error;
-                m_LOG_CPND_FLCL(CPND_CKPT_SECT_CREATE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
-                                 send_evt.info.cpa.info.sec_creat_rsp.error,__FILE__, __LINE__);
-                goto agent_rsp;
-             }
-             if(cp_node->cpnd_rep_create)
-             {
-             /*this flag is before sec_add bcos in open , rep_create is allocating mem for section mapping , for non-collocated this will not be allocated */
-                sec_info=cpnd_ckpt_sec_add(cp_node,&out_evt->info.cpnd.info. \
-                            active_sec_creat_rsp.sec_id,\
-                            evt->info.sec_creatReq.sec_attri.expirationTime,0);
-                if (sec_info == NULL) 
-                {
-                   m_LOG_CPND_CFCL(CPND_CKPT_SECT_ADD_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
-                   out_evt->info.cpnd.info.active_sec_creat_rsp.sec_id.id, cp_node->ckpt_id,\
-                                     __FILE__,__LINE__);
-
-                   m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                   send_evt.type=CPSV_EVT_TYPE_CPA;
-                   send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_CREATE_RSP;
-                   send_evt.info.cpa.info.sec_creat_rsp.error=SA_AIS_ERR_NO_SPACE;
-                   goto agent_rsp;
-                }
-                if ( evt->info.sec_creatReq.init_data != NULL )
-                {
-                   rc=cpnd_ckpt_sec_write(cp_node,sec_info,evt->info.sec_creatReq.init_data, \
-                   evt->info.sec_creatReq.init_size,0,1);
-                   if (rc == NCSCC_RC_FAILURE)
-                   {
-                      m_LOG_CPND_CFCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_INFO, \
-                      sec_info->sec_id.id,cp_node->ckpt_id,__FILE__,__LINE__);
-                   }
-
-                      /* Section Create Register Arrival Callback */
-                   else
-                   {
-                      ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
-                      if(ckpt_data == NULL)
-                      {
-                         m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-                      }
-             
-                      m_NCS_OS_MEMSET(ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
-
-                      ckpt_data->sec_id   = sec_info->sec_id;
-                      ckpt_data->data     = evt->info.active_sec_creat.init_data;
-                      ckpt_data->dataSize = sec_info->sec_size;
-                      ckpt_data->dataOffset = 0;
-
-                      m_NCS_OS_MEMSET(&ckpt_access,'\0',sizeof(CPSV_CKPT_ACCESS));
-                      ckpt_access.ckpt_id       = cp_node->ckpt_id;
-                      ckpt_access.lcl_ckpt_id   = evt->info.sec_creatReq.lcl_ckpt_id;
-                      ckpt_access.agent_mdest   = evt->info.sec_creatReq.agent_mdest;
-                      ckpt_access.num_of_elmts  = 1;
-                      ckpt_access.data = ckpt_data;
-                     
-                      cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&ckpt_access,sinfo);
-                      m_MMGR_FREE_CPSV_CKPT_DATA(ckpt_data);
-                   }
-           
-                }
-             }
-         }  
-     }
-#endif 
   
     m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));    
 
@@ -2644,11 +2437,6 @@ static uns32 cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb,
       send_evt.info.cpa.info.sec_delete_rsp.error=SA_AIS_ERR_INVALID_PARAM;
       goto agent_rsp;
    }
-#if 0
-   if ( (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest, \
-                                   &cb->cpnd_mdest_id) == 0) )
-   {
-#endif
       
        rc=cpnd_ckpt_sec_find(cp_node,&evt->info.sec_delReq.sec_id);
        if (rc == NCSCC_RC_SUCCESS)
@@ -2748,95 +2536,6 @@ static uns32 cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb,
           goto agent_rsp;
           
        }
-#if 0
-       send_evt.type = CPSV_EVT_TYPE_CPD;
-       send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_SEC_INFO_UPD;
-       send_evt.info.cpd.info.ckpt_sec_info.ckpt_id = evt->info.sec_delReq.ckpt_id;
-       send_evt.info.cpd.info.ckpt_sec_info.info_type = CPSV_CKPT_SEC_INFO_DELETE;
-
-       rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id,&send_evt);
-       if (rc != NCSCC_RC_SUCCESS) {
-          m_LOG_CPND_CL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR,\
-                        __FILE__,__LINE__);
-       }
-#endif
-#if 0
-    }
-    else
-    {
-        send_evt.type=CPSV_EVT_TYPE_CPND;
-        send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ;
-        send_evt.info.cpnd.info.sec_delete_req.ckpt_id= \
-                        evt->info.sec_delReq.ckpt_id;
-        send_evt.info.cpnd.info.sec_delete_req.sec_id=\
-                        evt->info.sec_delReq.sec_id;
-        send_evt.info.cpnd.info.sec_delete_req.lcl_ckpt_id=\
-                        evt->info.sec_delReq.lcl_ckpt_id;
-        send_evt.info.cpnd.info.sec_delete_req.agent_mdest=\
-                        evt->info.sec_delReq.agent_mdest; 
-        rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND,cp_node->active_mds_dest,\
-                            &send_evt, &out_evt, CPSV_WAIT_TIME);
-        if (rc != NCSCC_RC_SUCCESS)
-        {
-           send_evt.type=CPSV_EVT_TYPE_CPA;
-           send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_DELETE_RSP;
-           if (rc == NCSCC_RC_REQ_TIMOUT)
-           {
-              send_evt.info.cpa.info.sec_delete_rsp.error= SA_AIS_ERR_TIMEOUT;
-              m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-              cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-           }
-           else
-              send_evt.info.cpa.info.sec_delete_rsp.error= SA_AIS_ERR_TRY_AGAIN;
-           goto agent_rsp;
-        }
-        if (out_evt && out_evt->info.cpnd.info.sec_delete_rsp.error != SA_AIS_OK)
-        {
-            send_evt.type=CPSV_EVT_TYPE_CPA;
-            send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_DELETE_RSP;
-            send_evt.info.cpa.info.sec_delete_rsp.error= \
-                    out_evt->info.cpnd.info.sec_delete_rsp.error;
-            goto agent_rsp;
-        }
-        else 
-        {
-           if(cp_node->cpnd_rep_create)
-           {
-              sec_info=cpnd_ckpt_sec_del(cp_node,&evt->info.sec_delReq.sec_id);
-              if ( sec_info == NULL ) 
-              {
-                m_LOG_CPND_CFCL(CPND_CKPT_SECT_DEL_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
-                evt->info.sec_delReq.sec_id.id,cp_node->ckpt_id,__FILE__,__LINE__);
-                send_evt.type=CPSV_EVT_TYPE_CPA;
-                send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_DELETE_RSP;
-                send_evt.info.cpa.info.sec_delete_rsp.error=SA_AIS_ERR_NOT_EXIST;
-                goto agent_rsp;
-              }
-              /* resetting lcl_sec_id mapping */
-              cp_node->replica_info.shm_sec_mapping[sec_info->lcl_sec_id]=1;
-
-               /* Send the arrival callback */
-              m_NCS_OS_MEMSET(&ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
-              if(sec_info)
-              {
-                 ckpt_data.sec_id   = sec_info->sec_id;
-                 ckpt_data.data     = NULL;
-                 ckpt_data.dataSize = sec_info->sec_size;
-                 ckpt_data.dataOffset = 0;
-
-                 m_NCS_OS_MEMSET(&ckpt_access,'\0',sizeof(CPSV_CKPT_ACCESS));
-                 ckpt_access.ckpt_id       = cp_node->ckpt_id;
-                 ckpt_access.lcl_ckpt_id   = evt->info.sec_delReq.lcl_ckpt_id;
-                 ckpt_access.agent_mdest   = evt->info.sec_delReq.agent_mdest;
-                 ckpt_access.num_of_elmts  = 1;
-                 ckpt_access.data = &ckpt_data;
-                 cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&ckpt_access,sinfo);
-              }
-              m_CPND_FREE_CKPT_SECTION(sec_info);
-           }
-        }
-    }
-#endif
 
     send_evt.type=CPSV_EVT_TYPE_CPA;
     send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_DELETE_RSP;
@@ -2869,14 +2568,8 @@ cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
 {
 
    uns32 rc=NCSCC_RC_SUCCESS;
-#if 0
-   uns32 gen_sec_id=0;
-#endif
    CPND_CKPT_NODE *cp_node=NULL;
    CPSV_EVT send_evt;
-#if 0
-   CPSV_EVT send1_evt, *out_evt=NULL;
-#endif
    CPND_CKPT_SECTION_INFO *sec_info=NULL;
    CPSV_CKPT_ACCESS ckpt_access;
    CPSV_CKPT_DATA   *ckpt_data=NULL;
@@ -2906,207 +2599,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
       goto nd_rsp;
    }
 
-#if 0
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0)
-   {
-      if ( evt->info.active_sec_creat.sec_attri.sectionId->id == NULL  &&
-               evt->info.active_sec_creat.sec_attri.sectionId->idLen== 0)
-      {
-         if (cp_node->create_attrib.maxSections > 1) {
-            gen_sec_id = 1;
-            sec_info=cpnd_ckpt_sec_add(cp_node,evt->info.active_sec_creat.sec_attri. \
-                    sectionId,evt->info.active_sec_creat.sec_attri.expirationTime,1);
-         }
-         else
-            sec_info=cpnd_ckpt_sec_add(cp_node,evt->info.active_sec_creat.sec_attri. \
-                    sectionId,evt->info.active_sec_creat.sec_attri.expirationTime,0);
-         if (sec_info == NULL) 
-         {
-            m_LOG_CPND_CFCL(CPND_CKPT_SECT_ADD_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
-            evt->info.active_sec_creat.sec_attri.sectionId->id, cp_node->ckpt_id,\
-            __FILE__,__LINE__);
-            send_evt.type=CPSV_EVT_TYPE_CPND;
-            send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-            send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_ERR_NO_SPACE;
-            goto nd_rsp;
-         }
-      } else
-      {
-        if(cp_node->cpnd_rep_create)
-        { 
-           sec_info=cpnd_ckpt_sec_add(cp_node,evt->info.active_sec_creat.sec_attri. \
-                    sectionId,evt->info.active_sec_creat.sec_attri.expirationTime,0);
-           if (sec_info == NULL) 
-           {
-              m_LOG_CPND_CFCL(CPND_CKPT_SECT_ADD_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
-              evt->info.active_sec_creat.sec_attri.sectionId->id,cp_node->ckpt_id,\
-              __FILE__,__LINE__);
-              send_evt.type=CPSV_EVT_TYPE_CPND;
-              send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-              send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_ERR_NO_SPACE;
-              goto nd_rsp;
-           }
-        }
-      }
-
-      if ( (evt->info.active_sec_creat.init_data != NULL) && (evt->info.active_sec_creat.init_size != 0) )
-      {
-          rc=cpnd_ckpt_sec_write(cp_node,sec_info,evt->info.active_sec_creat.init_data, \
-                        evt->info.active_sec_creat.init_size,0,1);
-          if (rc == NCSCC_RC_FAILURE)
-          {
-              m_LOG_CPND_CL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-              send_evt.type=CPSV_EVT_TYPE_CPND;
-              send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-              send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_ERR_NO_RESOURCES;
-              goto nd_rsp;
-          }
-                     
-          /* Section Create Register Arrival Callback */
-          else
-          {
-             ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
-             if(ckpt_data == NULL)
-             {
-                 m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-             }
-              
-             m_NCS_OS_MEMSET(ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
-
-             ckpt_data->sec_id   = sec_info->sec_id;
-             ckpt_data->data     = evt->info.active_sec_creat.init_data; 
-             ckpt_data->dataSize = sec_info->sec_size;
-             ckpt_data->dataOffset = 0;
-
-             m_NCS_OS_MEMSET(&ckpt_access,'\0',sizeof(CPSV_CKPT_ACCESS));
-             ckpt_access.ckpt_id       = cp_node->ckpt_id;
-             ckpt_access.lcl_ckpt_id   = evt->info.active_sec_creat.lcl_ckpt_id;
-             ckpt_access.agent_mdest   = evt->info.active_sec_creat.agent_mdest;
-             ckpt_access.num_of_elmts  = 1;
-             ckpt_access.data = ckpt_data;
-
-             cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&ckpt_access,sinfo);
-             /* To fix one mem leak */
-             m_MMGR_FREE_CPSV_CKPT_DATA(ckpt_data);
-          }  
-
-       }
-       if(cp_node->cpnd_dest_list != NULL)
-       {
-          {
-              CPSV_CPND_DEST_INFO *tmp=NULL;
-              tmp=cp_node->cpnd_dest_list;
-              while(tmp != NULL)
-              {
-
-                  if( m_CPND_IS_LOCAL_NODE(tmp,&sinfo->dest) == 0)
-                  {
-                      tmp=tmp->next;
-                      continue;
-                  }
-                  send_evt.type=CPSV_EVT_TYPE_CPND;
-                  send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ;
-                  send_evt.info.cpnd.info.active_sec_creat.ckpt_id= \
-                        evt->info.active_sec_creat.ckpt_id;
-                  send_evt.info.cpnd.info.active_sec_creat.lcl_ckpt_id= \
-                        evt->info.active_sec_creat.ckpt_id;
-                  send_evt.info.cpnd.info.active_sec_creat.agent_mdest= \
-                        evt->info.active_sec_creat.agent_mdest; 
-                  send_evt.info.cpnd.info.active_sec_creat.sec_attri=\
-                        evt->info.active_sec_creat.sec_attri;
-                  send_evt.info.cpnd.info.active_sec_creat.sec_attri.sectionId = \
-                               &sec_info->sec_id;
-                  send_evt.info.cpnd.info.active_sec_creat.init_data= \
-                              evt->info.active_sec_creat.init_data;
-                  send_evt.info.cpnd.info.active_sec_creat.init_size= \
-                              evt->info.active_sec_creat.init_size;
-
-                  rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND, tmp->dest,\
-                            &send_evt, &out_evt, CPSV_WAIT_TIME);
-                  if (rc != NCSCC_RC_SUCCESS)
-                  {
-                     if(rc == NCSCC_RC_REQ_TIMOUT){
-                        m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                        cb->cpnd_mdest_id,tmp->dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-                     }
-                     /* 
-                     m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                     send_evt.type=CPSV_EVT_TYPE_CPND;
-                     send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-                     send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_ERR_LIBRARY;
-                     m_LOG_CPND_API(CPND_CKPT_NODE_GET_FAILED,NCSFL_SEV_ERROR);    
-                     goto nd_rsp;
-                     */
-                  }
-                  if(out_evt && out_evt->info.cpnd.info.active_sec_creat_rsp.error != SA_AIS_OK )
-                  {
-                     CPND_CKPT_SECTION_INFO *tmp_sec_info=NULL;
-                     /* delete the section */
-                     if(gen_sec_id)
-                        tmp_sec_info=cpnd_ckpt_sec_del(cp_node,&sec_info->sec_id);
-                     else
-                        tmp_sec_info=cpnd_ckpt_sec_del(cp_node,evt->info.sec_creatReq.sec_attri.sectionId);
-
-                     if ( tmp_sec_info == sec_info)
-                     {
-                        cp_node->replica_info.shm_sec_mapping[sec_info->lcl_sec_id]=1;
-                        m_CPND_FREE_CKPT_SECTION(sec_info);
-                     }
-                     else 
-                     { 
-                         m_LOG_CPND_CL(CPND_CKPT_SECT_DEL_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-                     }
-
-                     m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                     send_evt.type=CPSV_EVT_TYPE_CPND;
-                     send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-                     send_evt.info.cpnd.info.active_sec_creat_rsp.error=          \
-                                          out_evt->info.cpnd.info.active_sec_creat_rsp.error;
-                     /* Need to send the deletions to the prev. created nodes TBD */
-                     if(out_evt)
-                     {
-                        cpnd_evt_destroy(out_evt);
-                        out_evt = NULL;
-                     }
-
-                     goto nd_rsp;
-                  }
-                  tmp=tmp->next;
-                  if(out_evt)
-                  {
-                     cpnd_evt_destroy(out_evt);
-                     out_evt = NULL;
-                   }
-               }
-            }
-         }
-
-      sec_info->ckpt_sec_exptmr.type=CPND_TMR_TYPE_SEC_EXPI;
-      sec_info->ckpt_sec_exptmr.uarg=cb->cpnd_cb_hdl_id;
-      sec_info->ckpt_sec_exptmr.lcl_sec_id=sec_info->lcl_sec_id;
-      sec_info->ckpt_sec_exptmr.ckpt_id=cp_node->ckpt_id;
-
-      cpnd_tmr_start(&sec_info->ckpt_sec_exptmr,sec_info->exp_tmr);
-
-#if 0
-      /* Update CPD database */
-      m_NCS_OS_MEMSET(&send1_evt,'\0', sizeof(CPSV_EVT));
-
-      send1_evt.type=CPSV_EVT_TYPE_CPD;
-      send1_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_SEC_INFO_UPD;
-      send1_evt.info.cpd.info.ckpt_sec_info.ckpt_id = evt->info.active_sec_creat.ckpt_id;
-      send1_evt.info.cpd.info.ckpt_sec_info.info_type = CPSV_CKPT_SEC_INFO_CREATE;
-      rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id,&send1_evt);
-      if(rc == NCSCC_RC_FAILURE)
-      {
-         m_LOG_CPND_CL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-         __FILE__,__LINE__);
-      }
-#endif
-   }
-   else
-   {
-#endif
      if(cp_node->cpnd_rep_create)     
      {         
         sec_info=cpnd_ckpt_sec_add(cp_node,evt->info. \
@@ -3171,9 +2663,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
         send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
         send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_OK;
         goto nd_rsp;
-#if 0     
-   }
-#endif
     send_evt.type = CPSV_EVT_TYPE_CPND;
     send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
     send_evt.info.cpnd.info.active_sec_creat_rsp.sec_id=sec_info->sec_id;
@@ -3206,9 +2695,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
    uns32 rc=NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE *cp_node=NULL;
    CPSV_EVT send_evt;
-#if 0
-   CPSV_EVT send1_evt, *out_evt=NULL;
-#endif
    CPND_CKPT_SECTION_INFO *sec_info=NULL;
    CPSV_CKPT_DATA ckpt_data;
    CPSV_CKPT_ACCESS ckpt_access;
@@ -3225,129 +2711,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
       send_evt.info.cpnd.info.sec_delete_rsp.error=SA_AIS_ERR_TRY_AGAIN;
       goto nd_rsp;
    }
-#if 0
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0)
-   {
-       rc=cpnd_ckpt_sec_find(cp_node,&evt->info.sec_delete_req.sec_id);
-       if (rc == NCSCC_RC_SUCCESS)
-       {
-         
-          sec_info=cpnd_ckpt_sec_del(cp_node,&evt->info.sec_delete_req.sec_id);
-
-          /* resetting lcl_sec_id mapping */
-          cp_node->replica_info.shm_sec_mapping[sec_info->lcl_sec_id]=1;
-
-            /* Send the arrival callback */
-          m_NCS_OS_MEMSET(&ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
-          if(sec_info)
-          {
-             ckpt_data.sec_id   = sec_info->sec_id;
-             ckpt_data.data     = NULL;
-             ckpt_data.dataSize = sec_info->sec_size;
-             ckpt_data.dataOffset = 0;
-
-             m_NCS_OS_MEMSET(&ckpt_access,'\0',sizeof(CPSV_CKPT_ACCESS));
-             ckpt_access.ckpt_id       = cp_node->ckpt_id;
-             ckpt_access.lcl_ckpt_id   = evt->info.sec_delete_req.lcl_ckpt_id;
-             ckpt_access.agent_mdest   = evt->info.sec_delete_req.agent_mdest;
-             ckpt_access.num_of_elmts  = 1;
-             ckpt_access.data = &ckpt_data;
-             cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&ckpt_access,sinfo);
-          }
-
-
-
-          if(cp_node->cpnd_dest_list != NULL )
-          {
-            /* yes ,go trough cp_node->cpnd_dest_list(sync send) */
-            /* send with sec_info->section_offset to other cpnd's */
-              CPSV_CPND_DEST_INFO *tmp=NULL;
-              tmp=cp_node->cpnd_dest_list;
-              while(tmp != NULL)
-              {
-                  if( m_CPND_IS_LOCAL_NODE(tmp,&sinfo->dest) == 0) 
-                  {
-                      tmp=tmp->next;
-                      continue;
-                  }
-                  send_evt.type=CPSV_EVT_TYPE_CPND;
-                  send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_REQ;
-                  send_evt.info.cpnd.info.sec_delete_req.ckpt_id= \
-                       evt->info.sec_delete_req.ckpt_id;
-                  send_evt.info.cpnd.info.sec_delete_req.sec_id=\
-                        evt->info.sec_delete_req.sec_id;
-                  send_evt.info.cpnd.info.sec_delete_req.lcl_ckpt_id=\
-                        evt->info.sec_delete_req.lcl_ckpt_id;
-                  send_evt.info.cpnd.info.sec_delete_req.agent_mdest=\
-                        evt->info.sec_delete_req.agent_mdest; 
-
-                  rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND, tmp->dest,\
-                            &send_evt, &out_evt, CPSV_WAIT_TIME);
-                  if (rc != NCSCC_RC_SUCCESS)
-                  {
-                     if(rc == NCSCC_RC_REQ_TIMOUT){
-                        m_LOG_CPND_FFFLCL(CPND_ACTIVE_TO_REMOTE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                        cb->cpnd_mdest_id,tmp->dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-                     }
-                     /*
-                     m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                     send_evt.type=CPSV_EVT_TYPE_CPND;
-                     send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
-                     send_evt.info.cpnd.info.sec_delete_rsp.error=SA_AIS_ERR_LIBRARY;
-                     goto nd_rsp;   */
-                  }
-                  if (out_evt && out_evt->info.cpnd.info.sec_delete_rsp.error != SA_AIS_OK )
-                  {
-                     m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-                     send_evt.type=CPSV_EVT_TYPE_CPND;
-                     send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
-                     send_evt.info.cpnd.info.sec_delete_rsp.error= \
-                              out_evt->info.cpnd.info.sec_delete_rsp.error;
-                     cpnd_evt_destroy(out_evt); 
-                     out_evt = NULL;
-                     goto nd_rsp;
-                  } 
-                 tmp=tmp->next;
-
-                 if(out_evt)
-                 {
-                    cpnd_evt_destroy(out_evt);
-                    out_evt = NULL;
-                 }
-             }
-          }
- 
-          /* stop the timer and delete */
-          cpnd_tmr_stop(&sec_info->ckpt_sec_exptmr);
-          m_CPND_FREE_CKPT_SECTION(sec_info);
-
-          /* update CPD database */
-          m_NCS_OS_MEMSET(&send1_evt,'\0', sizeof(CPSV_EVT));
-          send1_evt.type = CPSV_EVT_TYPE_CPD;
-          send1_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_SEC_INFO_UPD;
-          send1_evt.info.cpd.info.ckpt_sec_info.ckpt_id = evt->info.sec_delete_req.ckpt_id;
-          send1_evt.info.cpd.info.ckpt_sec_info.info_type = CPSV_CKPT_SEC_INFO_DELETE;
-
-          rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPD, cb->cpd_mdest_id,&send1_evt);
-          if (rc != NCSCC_RC_SUCCESS) {
-             m_LOG_CPND_CL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-              __FILE__,__LINE__);
-          }
-       }
-       else
-       {
-          m_LOG_CPND_CFCL(CPND_CKPT_SECT_FIND_FAILED,CPND_FC_API,NCSFL_SEV_ERROR, \
-          evt->info.sec_delete_req.sec_id.id,evt->info.sec_delete_req.ckpt_id, \
-          __FILE__,__LINE__); 
-          send_evt.type=CPSV_EVT_TYPE_CPND;
-          send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
-          send_evt.info.cpnd.info.sec_delete_rsp.error=SA_AIS_ERR_NOT_EXIST;
-          goto nd_rsp;
-       }
-   }
-   else
-   {
-#endif
        sec_info=cpnd_ckpt_sec_del(cp_node,&evt->info.sec_delete_req.sec_id);
        if ( sec_info == NULL )
        {
@@ -3383,9 +2746,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_delete(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
 
 
        m_CPND_FREE_CKPT_SECTION(sec_info);
-#if 0
-   }
-#endif
    send_evt.type=CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DELETE_RSP;
    send_evt.info.cpnd.info.sec_delete_rsp.error=SA_AIS_OK;
@@ -3453,7 +2813,6 @@ cpnd_evt_proc_nd2nd_ckpt_sect_exptmr_req(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_IN
          sec_info->ckpt_sec_exptmr.lcl_sec_id=sec_info->lcl_sec_id;
          sec_info->ckpt_sec_exptmr.ckpt_id=cp_node->ckpt_id;
 
-         /* Fix for IR00082703 need to be added */
          if(cp_node->cpnd_rep_create)
          {
             cpnd_sec_hdr_update(sec_info,cp_node);
@@ -3540,9 +2899,6 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
    CPND_CKPT_NODE *cp_node=NULL;
    CPSV_EVT send_evt,*out_evt=NULL;
    uns32 err_flag=0;
-#if 0
-   SaSizeT datasize=0;
-#endif
 
    m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
 
@@ -3610,10 +2966,6 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
        goto agent_rsp;
    } 
 
-#if 0
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0)
-   {
-#endif
          rc=cpnd_ckpt_update_replica(cb,cp_node,&evt->info.ckpt_write,\
                  evt->info.ckpt_write.type,&err_flag);
          if (rc == NCSCC_RC_FAILURE)
@@ -3658,10 +3010,6 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
       rc = cpnd_proc_update_remote(cb,cp_node,evt,&send_evt,sinfo);  
       if (rc == NCSCC_RC_FAILURE)
       {
-#if 0
-          m_LOG_CPND_FCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-                            cp_node->ckpt_id,__FILE__,__LINE__);
-#endif
          goto agent_rsp;
       }
      if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE 
@@ -3669,111 +3017,6 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
        return rc;
      else 
        goto agent_rsp;
-#if 0
-   }
-   else
-   {
-      send_evt.type=CPSV_EVT_TYPE_CPND;
-      send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_DATA_ACCESS_REQ;
-      send_evt.info.cpnd.info.ckpt_nd2nd_data=evt->info.ckpt_write;
-      datasize = evt->info.ckpt_write.num_of_elmts * cp_node->create_attrib.maxSectionSize;
-      rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND,cp_node->active_mds_dest,\
-                            &send_evt, &out_evt,CPND_WAIT_TIME(datasize));
-      if (rc != NCSCC_RC_SUCCESS)
-      {
-         if (rc == NCSCC_RC_REQ_TIMOUT){
-         m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-         cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-         }
-         send_evt.type=CPSV_EVT_TYPE_CPA;
-
-         switch(evt->info.ckpt_write.type)
-         {
-            case CPSV_CKPT_ACCESS_WRITE:
-               send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
-               send_evt.info.cpa.info.sec_data_rsp.type=CPSV_DATA_ACCESS_WRITE_RSP;
-               send_evt.info.cpa.info.sec_data_rsp.num_of_elmts=-1;
-               if (rc == NCSCC_RC_REQ_TIMOUT)
-                  send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_TIMEOUT;
-               else
-                  send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_TRY_AGAIN;
-               send_evt.info.cpa.info.sec_data_rsp.info.write_err_index=NULL;
-               break;
-
-            case CPSV_CKPT_ACCESS_OVWRITE:
-               send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
-               send_evt.info.cpa.info.sec_data_rsp.type=CPSV_DATA_ACCESS_OVWRITE_RSP;
-               if (rc == NCSCC_RC_REQ_TIMOUT)
-                  send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error=SA_AIS_ERR_TIMEOUT;
-               else
-                  send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error=SA_AIS_ERR_TRY_AGAIN;
-               break;
-
-            default:
-               /*m_LOG_CPND_EVT(out_evt->info.cpnd.type, NCSFL_SEV_ERROR);*/
-               break; 
-               /* Log */
-         }
-         goto agent_rsp;
-      }
-      if (out_evt && out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp.type)
-      {
-         switch(out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp.type)
-         {
-            case CPSV_DATA_ACCESS_WRITE_RSP:
-               if ( out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts == 0 \
-                     && out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.write_err_index != NULL )
-               goto err_rsp;
-               break;
-
-            case CPSV_DATA_ACCESS_OVWRITE_RSP:
-               if ( out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp.info.ovwrite_error.error != SA_AIS_OK)
-               goto err_rsp;
-               break;
-            
-            default:
-               m_LOG_CPND_LCL(CPND_EVT_UNKNOWN, CPND_FC_EVT,NCSFL_SEV_ERROR,out_evt->info.cpnd.type,__FILE__,__LINE__);
-         }
-      }
-         if (cp_node->cpnd_rep_create)
-         {
-            rc=cpnd_ckpt_update_replica(cb,cp_node,&evt->info.ckpt_write \
-                        ,evt->info.ckpt_write.type,&err_flag);
-            if (rc == NCSCC_RC_FAILURE)
-            {
-               m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-                 cp_node->ckpt_id,err_flag,__FILE__,__LINE__);
-               send_evt.type=CPSV_EVT_TYPE_CPA;
-               send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
-               send_evt.info.cpa.info.sec_data_rsp.num_of_elmts=-1;
-               if ( evt->info.ckpt_write.type == CPSV_CKPT_ACCESS_WRITE )
-               {
-                  send_evt.info.cpa.info.sec_data_rsp.type= \
-                                       CPSV_DATA_ACCESS_WRITE_RSP;
-                  if ( err_flag ==  CKPT_UPDATE_REPLICA_RES_ERR )
-                     send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NO_RESOURCES;
-                  else 
-                     send_evt.info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NOT_EXIST;
-               }
-               else
-               {
-                  send_evt.info.cpa.info.sec_data_rsp.type= \
-                                       CPSV_DATA_ACCESS_OVWRITE_RSP;
-                  send_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error= \
-                          SA_AIS_ERR_NOT_EXIST;
-               }
-               goto agent_rsp;
-            }
-         }
-         cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&evt->info.ckpt_write,sinfo);   
-
-err_rsp:   
-   send_evt.type=CPSV_EVT_TYPE_CPA;
-   send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
-   send_evt.info.cpa.info.sec_data_rsp=out_evt->info.cpnd.info.ckpt_nd2nd_data_rsp;
-
-   }
-#endif 
    
 agent_rsp:
    rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -3784,176 +3027,6 @@ agent_rsp:
 
    return rc;
 }
-#if 0
-/****************************************************************************
- * Name          : cpnd_evt_proc_nd2nd_ckpt_data_access_req
- *
- * Description   : Function to process write/read/overwrite request   
- *                 from other Node Directors.
- *
- * Arguments     : CPND_CB *cb - CPND CB pointer
- *                 CPSV_EVT *evt - Received Event structure
- *                 CPSV_SEND_INFO *sinfo - Sender MDS information.
- *
- * Return Values : NCSCC_RC_SUCCESS/Error.
- *
- * Notes         : None.
- *****************************************************************************/
-static uns32
-cpnd_evt_proc_nd2nd_ckpt_data_access_req(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
-{
-
-   uns32 rc=NCSCC_RC_SUCCESS;
-   CPND_CKPT_NODE *cp_node=NULL;
-   uns32 free_flag=0;
-   CPSV_EVT send_evt;
-   uns32 err_flag=0,i=0;
-
-   m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-
-   cpnd_ckpt_node_get(cb,evt->info.ckpt_nd2nd_data.ckpt_id,&cp_node);
-   if(cp_node == NULL)
-   {
-      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR, \
-          evt->info.ckpt_nd2nd_data.ckpt_id,__FILE__,__LINE__); 
-      send_evt.type=CPSV_EVT_TYPE_CPND;
-      send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP;
-
-      switch(evt->info.ckpt_nd2nd_data.type)
-      {
-         case CPSV_CKPT_ACCESS_WRITE:
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.type= \
-                  CPSV_DATA_ACCESS_WRITE_RSP;
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts= -1;
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.error=SA_AIS_ERR_TRY_AGAIN;
-            break;
-
-         case CPSV_CKPT_ACCESS_OVWRITE:
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.type= \
-                    CPSV_DATA_ACCESS_OVWRITE_RSP;
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info. \
-                     ovwrite_error.error=SA_AIS_ERR_TRY_AGAIN;
-            break;
-
-         case CPSV_CKPT_ACCESS_READ:
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.type = CPSV_DATA_ACCESS_RMT_READ_RSP;
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts= -1;
-            send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.error=SA_AIS_ERR_TRY_AGAIN;
-            break;
-
-
-          default :
-            break;
-
-      }
-     goto nd_rsp;
-
-   }
-
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0)
-   {
-
-   /* check for read or (write/ovwrite)  data access  if it is read,read it from 
-      shm and send out the rsp in data_access_rsp */
-      if ( evt->info.ckpt_nd2nd_data.type == CPSV_CKPT_ACCESS_READ )
-      {
-         cpnd_ckpt_read_replica(cb,cp_node,&evt->info.ckpt_nd2nd_data,&send_evt);
-         free_flag=1;
-         goto nd_rsp;
-      }
-      else
-      {
-       #if 0
-         if ( cp_node->read_lck_cnt > 0)
-         {
-            cpnd_evt_backup_queue_add(cp_node,evt);
-         }
-         else
-         {
-       #endif
-            rc=cpnd_ckpt_update_replica(cb,cp_node,&evt->info.\
-                           ckpt_nd2nd_data,evt->info.ckpt_nd2nd_data.type,&err_flag);
-            if (rc == NCSCC_RC_FAILURE)
-            {
-               m_LOG_CPND_FLCL(CPND_CKPT_SECT_WRITE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-                 cp_node->ckpt_id,err_flag,__FILE__,__LINE__);
-               send_evt.type=CPSV_EVT_TYPE_CPND;
-               send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_DATA_ACCESS_RSP;
-               switch(evt->info.ckpt_nd2nd_data.type)
-               {
-                  case CPSV_CKPT_ACCESS_WRITE:
-                    send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.type= \
-                            CPSV_DATA_ACCESS_WRITE_RSP;
-                    send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts= -1;
-                    if ( err_flag ==  CKPT_UPDATE_REPLICA_RES_ERR )
-                         send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.error=SA_AIS_ERR_NO_RESOURCES;
-                    else
-                         send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.error=SA_AIS_ERR_NOT_EXIST;
-
-                    break;
-
-                  case CPSV_CKPT_ACCESS_OVWRITE:
-                     send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.type= \
-                             CPSV_DATA_ACCESS_OVWRITE_RSP;
-                     if ( err_flag ==  CKPT_UPDATE_REPLICA_RES_ERR )
-                          send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info. \
-                                       ovwrite_error.error=SA_AIS_ERR_NO_RESOURCES;
-                     else
-                          send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info. \
-                                       ovwrite_error.error=SA_AIS_ERR_NOT_EXIST;
-
-                  break;
-
-                 default :
-                  break;
-
-               }
-               goto nd_rsp;
- 
-            }
-            else
-            {
-                  cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&evt->info.ckpt_nd2nd_data,sinfo);
-            }
-       /*  }*/
-
-         /* need to check for active async and weak active and
-            return back  */
-
-         rc = cpnd_proc_update_remote(cb,cp_node,evt,&send_evt,sinfo);
-         if (rc == NCSCC_RC_FAILURE)
-         {
-            m_LOG_CPND_LCL(CPND_MDS_SEND_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR, \
-                           rc,__FILE__,__LINE__);
-            goto nd_rsp;
-         }
-      }
-   }
-
-nd_rsp:
-   /* need to chk for type of update */
-   rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-   if (free_flag)
-   {
-      for(;i<send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts;i++)
-      {
-         if(send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.num_of_elmts == -1)
-            break;
-         else
-         {
-            if(send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data[i].data != NULL)
-            {
-               m_MMGR_FREE_CPND_DEFAULT(send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data[i].data);
-               send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data[i].data=NULL;
-            }
-         }
-      }   
-      m_MMGR_FREE_CPND_DEFAULT(send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data);
-      send_evt.info.cpnd.info.ckpt_nd2nd_data_rsp.info.read_data = NULL;
-   }
-   return rc;
-}
-#endif
 /****************************************************************************
  * Name          : cpnd_evt_proc_nd2nd_ckpt_active_data_access_req
  *
@@ -4162,9 +3235,6 @@ static uns32 cpnd_evt_proc_ckpt_sync(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
    uns32 rc=NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE *cp_node=NULL;
    CPSV_EVT send_evt;
-#if 0
- CPSV_EVT *out_evt = NULL;
-#endif
    m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
 
    cpnd_ckpt_node_get(cb,evt->info.ckpt_sync.ckpt_id,&cp_node);
@@ -4205,50 +3275,8 @@ static uns32 cpnd_evt_proc_ckpt_sync(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
  
    m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT)); 
 
-#if 0
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0) 
-   {
-#endif
    cpnd_transfer_replica(cb, cp_node, evt->info.ckpt_sync.ckpt_id, cp_node->cpnd_dest_list, evt->info.ckpt_sync);
 
-#if 0
-   }
-   else 
-   {
-      send_evt.type=CPSV_EVT_TYPE_CPND;
-      send_evt.info.cpnd.type=CPND_EVT_ND2ND_CKPT_SYNC_REQ;
-      send_evt.info.cpnd.info.sync_req=evt->info.ckpt_sync;
-      send_evt.info.cpnd.info.sync_req.cpa_sinfo = *sinfo;
-      send_evt.info.cpnd.info.sync_req.is_ckpt_open = FALSE;
-     
-      rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt, &out_evt, CPSV_WAIT_TIME);
-      if (rc != NCSCC_RC_SUCCESS)
-      {
-          if (rc == NCSCC_RC_REQ_TIMOUT)
-          {
-             send_evt.info.cpa.info.sync_rsp.error=SA_AIS_ERR_TIMEOUT;
-             m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR, \
-             cb->cpnd_mdest_id,cp_node->active_mds_dest,\
-             cp_node->ckpt_id,rc,__FILE__,__LINE__);
-          }   
-          else
-             send_evt.info.cpa.info.sync_rsp.error=SA_AIS_ERR_TRY_AGAIN;
-
-          goto agent_rsp;
-      }
-      else 
-      {
-         if((out_evt) && (out_evt->info.cpnd.error != SA_AIS_OK))
-         {
-            send_evt.info.cpa.info.sync_rsp.error = out_evt->info.cpnd.error;
-            goto agent_rsp;
-         }
-        
-      }
-
-      return rc;
-   }
-#endif
 
    send_evt.info.cpa.info.sync_rsp.error=SA_AIS_OK;
 
@@ -4399,14 +3427,6 @@ cpnd_evt_proc_nd2nd_ckpt_active_sync(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
           evt->info.ckpt_nd2nd_sync.ckpt_id,__FILE__,__LINE__);
       return NCSCC_RC_FAILURE;
    }
- #if 0
-   if ( cp_node->read_lck_cnt > 0)
-   {
-      cpnd_evt_backup_queue_add(cp_node,evt);
-   }
-   else
-   {
-#endif 
      if(cp_node->cpnd_rep_create)
      {
         if (cpnd_ckpt_update_replica(cb,cp_node,&evt->info.ckpt_nd2nd_sync,evt->info.ckpt_nd2nd_sync.type,&err_flag) != NCSCC_RC_SUCCESS)
@@ -4563,101 +3583,6 @@ agent_rsp:
 return rc;
 
 }
-/****************************************************************************
- * Name          :  cpnd_evt_proc_ckpt_read_ack
- *
- * Description   : Function to process read acknowledgment  
- *                 from Applications. 
- *
- * Arguments     : CPND_CB *cb - CPND CB pointer
- *                 CPSV_EVT *evt - Received Event structure
- *                 CPSV_SEND_INFO *sinfo - Sender MDS information.
- *
- * Return Values : NCSCC_RC_SUCCESS/Error.
- *
- * Notes         : None.
- *****************************************************************************/
-#if 0
-static uns32 cpnd_evt_proc_ckpt_read_ack(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
-{
-   uns32 rc=NCSCC_RC_SUCCESS;
-   CPND_CKPT_NODE *cp_node=NULL;
-   CPSV_EVT send_evt;
-   uns32 err_flag=0;
-
-   m_NCS_OS_MEMSET(&send_evt,'\0', sizeof(CPSV_EVT));
-
-   cpnd_ckpt_node_get(cb,evt->info.ckpt_read_ack.ckpt_id,&cp_node);
-   if ( cp_node == NULL)
-   {
-      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR, \
-          evt->info.ckpt_read_ack.ckpt_id,__FILE__,__LINE__);
-      send_evt.type = CPSV_EVT_TYPE_CPA;
-      send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_READ_ACK_RSP;
-      send_evt.info.cpa.info.readackRsp.error = SA_AIS_OK;
-      goto agent_rsp;
-   }
-
-   if(TRUE == cp_node->is_restart)
-   {
-       send_evt.type = CPSV_EVT_TYPE_CPA;
-       send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_READ_ACK_RSP;
-       send_evt.info.cpa.info.readackRsp.error = SA_AIS_OK;
-       goto agent_rsp;
-   }
-
-
-   /* Delete the mds destination from read ack wait list */
-   cpnd_agent_dest_del(cp_node,evt->info.ckpt_read_ack.mds_dest);
-
-   if(cp_node->read_lck_cnt)
-   {
-      /* More ack awited, don't do any thing for now */
-      goto send_success;
-   }
-
-   if ((m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) == 0) ||
-         (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags)== TRUE))
-   {
-      /* disable global flag  and write the data  from queue  and free 
-         the evt */
-      CPSV_EVT *bck_evt;
-
-      while(cp_node->evt_bckup_q  != NULL)
-      { 
-          bck_evt=cp_node->evt_bckup_q;
-          bck_evt->info.cpnd.dont_free_me=FALSE;
-        
-          cpnd_ckpt_update_replica(cb,cp_node, &bck_evt->info.cpnd.info.ckpt_nd2nd_data,   \
-                                       bck_evt->info.cpnd.info.ckpt_nd2nd_data.type,&err_flag);
-
-          cpnd_proc_ckpt_arrival_info_ntfy(cb,cp_node,&bck_evt->info.cpnd.info.ckpt_nd2nd_data,sinfo);
-
-          /* free evt tmp */
-          cp_node->evt_bckup_q=cp_node->evt_bckup_q->next;
-          cpnd_evt_destroy(bck_evt);
-      }
-
-   }
-   else
-   {
-      send_evt.type = CPSV_EVT_TYPE_CPA;
-      send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_READ_ACK_RSP;
-      send_evt.info.cpa.info.readackRsp.error = SA_AIS_OK;
-      goto agent_rsp;
-   }
-
-send_success:
-   send_evt.type = CPSV_EVT_TYPE_CPA;
-   send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_READ_ACK_RSP;
-   send_evt.info.cpa.info.readackRsp.error = SA_AIS_OK;
-
-agent_rsp:
-   rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-   return rc;
-
-}
-#endif
 
 /****************************************************************************
  * Name          : cpnd_evt_proc_timer_expiry
@@ -4935,31 +3860,6 @@ cpnd_evt_proc_ckpt_destroy(CPND_CB *cb, \
                      cp_node->ckpt_id ,__FILE__ , __LINE__);
    cpnd_restart_shm_ckpt_free(cb,cp_node); 
    cpnd_ckpt_node_destroy(cb, cp_node);
-#if 0
-   cpnd_client_node_getnext(cb,0,&cl_node);
-   while(cl_node != NULL)
-   {
-      SaCkptHandleT prev_cl_hdl;
-      cpnd_client_ckpt_info_del(cl_node,cp_node);
-      prev_cl_hdl = cl_node->ckpt_app_hdl;
-      cpnd_client_node_getnext(cb,prev_cl_hdl,&cl_node);
-   }
- 
-
-   cpnd_ckpt_node_del(cb,cp_node);
-   {
-      CPSV_CPND_DEST_INFO *tmp,*free_tmp=NULL;
-      tmp=cp_node->cpnd_dest_list;
-      while(tmp != NULL)
-      {
-         free_tmp=tmp;
-         tmp=tmp->next;
-         m_MMGR_FREE_CPND_DEST_INFO(free_tmp);
-      }
-      cp_node->cpnd_dest_list = tmp;
-      m_MMGR_FREE_CPND_CKPT_NODE(cp_node);  
-   }
-#endif
  }
    return rc;
 }
@@ -5197,48 +4097,6 @@ cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, \
        goto agent_rsp;
    }
 
-#if 0
-   /* It is not active and Non collocated */
-   if (m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id) != 0)
-   /*&&
-     m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)!=TRUE) */
-   {
-      send_evt.type=CPSV_EVT_TYPE_CPND;
-      send_evt.info.cpnd.type=CPND_EVT_ND2ND_CKPT_ITER_NEXT_REQ;
-      send_evt.info.cpnd.info.getnext_req=evt->info.iter_getnext;
-      rc = cpnd_mds_msg_sync_send(cb,NCSMDS_SVC_ID_CPND,cp_node->active_mds_dest,\
-                            &send_evt, &out_evt, CPSV_WAIT_TIME);
-      
-      m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
-      if (rc != NCSCC_RC_SUCCESS)
-      {
-         if (rc == NCSCC_RC_REQ_TIMOUT){
-            m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR, \
-                 cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
-         }
-         rc = SA_AIS_ERR_TRY_AGAIN;
-         goto agent_rsp;
-      }
-      else
-      {
-         if(out_evt->info.cpnd.info.ckpt_nd2nd_getnext_rsp.error == SA_AIS_OK)
-         {
-            m_NCS_MEMCPY(&send_evt.info.cpa.info.iter_next_rsp.sect_desc,&out_evt->info.cpnd.info.ckpt_nd2nd_getnext_rsp.sect_desc,sizeof(SaCkptSectionDescriptorT));  
-            num_secs_trav = out_evt->info.cpnd.info.ckpt_nd2nd_getnext_rsp.n_secs_trav;
-            rc = SA_AIS_OK;
-            goto agent_rsp;
-         }   
-         else
-         {
-            rc = out_evt->info.cpnd.info.ckpt_nd2nd_getnext_rsp.error;
-            goto agent_rsp; 
-         }
-      }  
-
-   /* iterate throught the sections,and get the next section id 
-      which passes filtering scheme */
-   }
-#endif
    if((m_CPND_IS_LOCAL_NODE(&cp_node->active_mds_dest,&cb->cpnd_mdest_id)==0) ||
       ((m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)==TRUE)
       && (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags)== TRUE)))
@@ -5361,11 +4219,6 @@ static uns32 cpnd_evt_proc_cb_dump(CPND_CB *cb)
  *****************************************************************************/
 #define m_MMGR_FREE_CPSV_SYS_MEMORY(p)  m_NCS_MEM_FREE(p, \
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
-#if 0
-#define m_MMGR_FREE_CPSV_CKPT_DATA_EDU(p)  m_NCS_MEM_FREE(p, \
-           NCS_MEM_REGION_PERSISTENT,NCS_SERVICE_ID_CPND, \
-           CPSV_SVC_SUB_ID_CPSV_EVT)
-#endif
 
 #define m_MMGR_FREE_CPSV_DEFAULT(p) m_NCS_MEM_FREE(p, \
            NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, \
@@ -5581,36 +4434,6 @@ uns32 cpnd_evt_destroy(CPSV_EVT *evt)
             break;
           }
    }
-#if 0
-   else if ( evt->info.cpa.type == CPA_EVT_ND2A_CKPT_DATA_RSP )
-   {
-      switch(evt->info.cpa.info.sec_data_rsp.type)
-      {
-         case CPSV_DATA_ACCESS_LCL_READ_RSP:
-              if (evt->info.cpa.info.sec_data_rsp.info.read_mapping != NULL)
-              m_MMGR_FREE_CPND_DEFAULT(evt->info.cpa.info.sec_data_rsp.info.read_mapping);
-            break;
-         case CPSV_DATA_ACCESS_WRITE_RSP:
-              if (evt->info.cpa.info.sec_data_rsp.info.write_err_index != NULL)
-              m_MMGR_FREE_CPSV_SYS_MEMORY(evt->info.cpa.info.sec_data_rsp.info.write_err_index);
-            break;
-         case CPSV_DATA_ACCESS_RMT_READ_RSP:
-            {
-               int i=0;
-               for(;i<evt->info.cpa.info.sec_data_rsp.num_of_elmts;i++)
-               {
-                if (evt->info.cpa.info.sec_data_rsp.info.read_data[i].data != NULL)
-                 m_MMGR_FREE_CPSV_SYS_MEMORY(evt->info.cpa.info.sec_data_rsp.info.read_data[i].data);
-               }
-               if (evt->info.cpa.info.sec_data_rsp.info.read_data != NULL)                
-               m_MMGR_FREE_CPND_DEFAULT(evt->info.cpa.info.sec_data_rsp.info.read_data);
-             }
-            break;
-
-      }
-   }
-
-#endif
 
    m_MMGR_FREE_CPSV_EVT(evt,NCS_SERVICE_ID_CPND);
    return rc;

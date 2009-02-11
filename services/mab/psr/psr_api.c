@@ -35,7 +35,6 @@
 
 
 static void pss_free_individual_var_info_pointers(PSS_MIB_TBL_INFO * tbl_info);
-/* Fix for IR00085164 */
 extern void pss_stdby_oaa_down_list_dump(PSS_STDBY_OAA_DOWN_BUFFER_NODE *pss_stdby_oaa_down_buffer,FILE *fh);
 
 
@@ -1045,18 +1044,16 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
 uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
 {
     PSS_SPCN_LIST *list_head = NULL, *list = NULL;
-#if 1  /* Hack for bugID 58295 */
+
     FILE *fh = NULL;
     char pcn[NCSMIB_PCN_LENGTH_MAX], source[64];
     uns32 read = 0, boolean = 0;
-#else
-    uns32 str_len = 0;
-#endif
+
 
     pss_destroy_spcn_list(inst->spcn_list);
     inst->spcn_list = NULL;
 
-#if 1 /* Hack for bugID 58295 */
+ 
     /* Open the "pssv_spcn_list" file. PSS is the only owner to this file. */
     fh = sysf_fopen((char*)&inst->spcn_list_file, "r");
     if(fh == NULL)
@@ -1124,37 +1121,16 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
         m_NCS_MEMSET(&pcn, '\0', sizeof(pcn));
     }   /* while loop */
     sysf_fclose(fh);
-#else
-    str_len = m_NCS_STRLEN("AVD");
-    if((list_head = list = m_MMGR_ALLOC_MAB_PSS_SPCN_LIST) == NULL)
-    {
-       m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_PSS_SPCN_LIST,
-                    "pss_read_create_spcn_config_file()");
-       return NCSCC_RC_FAILURE;
-    }
-    m_NCS_MEMSET(list, '\0', sizeof(PSS_SPCN_LIST));
-    if((list->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(str_len + 1)) == NULL)
-    {
-       m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_PCN_STRING_ALLOC_FAIL,
-                "pss_read_create_spcn_config_file()");
-       m_MMGR_FREE_MAB_PSS_SPCN_LIST(list);
-       return NCSCC_RC_FAILURE;
-    }
-    m_NCS_MEMSET(list->pcn, '\0', str_len + 1);
-    m_NCS_STRCPY(list->pcn, "AVD");
-    list->plbck_frm_bam = TRUE;
 
-    m_LOG_PSS_INFO(NCSFL_SEV_INFO, PSS_INFO_SPCN, "AVD", TRUE);
-#endif
 
     inst->spcn_list = list_head;
     return NCSCC_RC_SUCCESS;
 
-#if 1
+
 go_fail:
     sysf_fclose(fh);
     return NCSCC_RC_FAILURE;
-#endif
+
 }
 
 /*****************************************************************************
@@ -1898,7 +1874,7 @@ void pss_cb_data_dump( )
 
              for(j = 0, trec = clt_node->hash[i]; trec != NULL; trec = trec->next, ++j)
              {
-                if(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id] != NULL) /* Fix for IR00083040 */
+                if(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id] != NULL) 
                 {
                    sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
                       j, (long)trec, trec->tbl_id,
@@ -1918,7 +1894,7 @@ void pss_cb_data_dump( )
                    );
                    fflush(fh);
                 }
-                else  /* Fix for IR00083040 */
+                else  
                 {
                    sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_description = NULL!!!\n", j, (long)trec, trec->tbl_id);
                    fflush(fh);
@@ -1932,7 +1908,7 @@ void pss_cb_data_dump( )
       fflush(fh);
    }
  
-   /* dump the standby psr oaa down list contents(Fix for IR00085164) */
+   /* dump the standby psr oaa down list contents */
    sysf_fprintf(fh, "*************STANDBY PSS OAA DOWN LIST DUMP START*************\n");
    for(csi = gl_pss_amf_attribs.csi_list; csi != NULL; csi = csi->next)
    {

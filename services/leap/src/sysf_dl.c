@@ -103,7 +103,6 @@ sysf_dl_request (struct ncs_dl_request_info_tag *dlr)
  
       rc = ncs_dl_mcast_leave (dlr);
       break;
-   /* Fix for IR10315 */
    case NCS_DL_CTRL_REQUEST_GET_ETH_ADDR:
       return (ncs_dl_getl2_eth_addr ((uns32 *)dlr->info.ctrl.get_eth_addr.io_if_index,\
                 dlr->info.ctrl.get_eth_addr.io_if_name,\

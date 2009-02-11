@@ -463,7 +463,7 @@ SaAisErrorT saCkptDispatch(SaCkptHandleT ckptHandle,
          goto clm_left;
       }
    }
-   /* IR000060492 cpa deadlock in arrival callback ,do unlock and then do the dispatch processing  */
+   /*  cpa deadlock in arrival callback ,do unlock and then do the dispatch processing  */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
    switch (dispatchFlags)
@@ -2093,17 +2093,6 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
    
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-#if 0   
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "StatusGet", __FILE__ ,__LINE__, rc, checkpointHandle);
-       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto fail1;
-   }
-#endif
    if(FALSE == is_local_get)
    {
       proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), 
@@ -2235,17 +2224,6 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
                              "SectCreate:LOCK", __FILE__ ,__LINE__, rc , checkpointHandle);
       goto lock_fail;
    }
-#if 0
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
-       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-       goto fail1;
-   }
-#endif
    
    if (initialData == NULL && initialDataSize > 0)
    {
@@ -2319,7 +2297,6 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
       m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
       goto fail1;
    }
-   /* IR85950 */
    if(sectionCreationAttributes->sectionId->id != NULL)
    {    if((sectionCreationAttributes->sectionId->idLen > gc_node->ckpt_creat_attri.maxSectionIdSize)||
            (sectionCreationAttributes->sectionId->idLen==0))
@@ -2381,16 +2358,6 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
    evt.info.cpnd.info.sec_creatReq.init_size = initialDataSize;
    
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0   
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-      rc = SA_AIS_ERR_TRY_AGAIN;
-      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
-      goto fail1;
-   }
-#endif
    proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), 
                                   &evt,&out_evt,CPA_WAIT_TIME(initialDataSize));
 
@@ -2727,16 +2694,6 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
    evt.info.cpnd.info.sec_delReq.sec_id = *sectionId;
    
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0 
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectDelete", __FILE__ ,__LINE__, rc , checkpointHandle);
-       goto fail1;
-   }
-#endif
    proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), 
                                   &evt,&out_evt,CPSV_WAIT_TIME);
 
@@ -2999,9 +2956,6 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
    NCS_BOOL is_local_get_next = FALSE;
    CPA_CLIENT_NODE   *cl_node=NULL;
 
-#if 0
-   CPSV_EVT       evt,*out_evt=NULL;
-#endif
    
    /* Validate the input parameters */
    if((!sectionIterationHandle) || 
@@ -3031,16 +2985,6 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
                              "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle);
       goto lock_fail;
    }
-#if 0
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle);
-       goto done;
-   }
-#endif
 
    proc_rc = cpa_lcl_ckpt_node_get(&cb->lcl_ckpt_tree, &checkpointHandle,
                    &lc_node);
@@ -3178,54 +3122,6 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
      goto done; 
    }
 
-#if 0    
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
-   evt.type  = CPSV_EVT_TYPE_CPND;
-   evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SECT_ITER_REQ;
-   evt.info.cpnd.info.sec_iter_req.ckpt_id = lc_node->gbl_ckpt_hdl;
-   proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl,&(cb->cpnd_mds_dest),&evt,&out_evt,CPSV_WAIT_TIME);
-
-   switch (proc_rc)
-   {
-       case NCSCC_RC_SUCCESS:
-           break;
-       case NCSCC_RC_REQ_TIMOUT:
-           rc = SA_AIS_ERR_TIMEOUT;
-           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                                 "SectIterInit:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
-           goto mds_resp_fail;
-       default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
-           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                                 "SectIterInit:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
-           goto mds_resp_fail;
-   }
-
-   if(out_evt)
-   {
-      rc = out_evt->info.cpa.info.sec_iter_rsp.error;
-      if (rc == SA_AIS_OK)
-      {
-         *sectionIterationHandle = sect_iter_node->iter_id;
-      }
-      if ( out_evt != NULL)
-         m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
-      
-      m_LOG_CPA_CCLLFF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle, *sectionIterationHandle);
-      goto done;
-   }
-   else
-   {
-      rc = SA_AIS_ERR_NO_RESOURCES;
-      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                             "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle);
-   }
-mds_resp_fail:
-    /* Delete the node from Pat tree */
-   cpa_sect_iter_node_delete(cb, sect_iter_node);
-   goto done;
-#endif
 iter_add_fail:
    m_MMGR_FREE_CPA_SECT_ITER_NODE(sect_iter_node);
    
@@ -3439,16 +3335,6 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
    evt.info.cpnd.info.iter_getnext.exp_tmr = sect_iter_node->exp_time;
    
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0   
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-      rc = SA_AIS_ERR_TRY_AGAIN;
-      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectIterNext", __FILE__ ,__LINE__, rc , sectionIterationHandle);      
-      goto fail1;
-   }
-#endif
    if(is_local_get_next == FALSE)
    {
       proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), 
@@ -3548,9 +3434,6 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
    CPA_CLIENT_NODE   *cl_node=NULL;
    CPA_LOCAL_CKPT_NODE  *lc_node=NULL;
 
-#if 0
-   CPSV_EVT       evt,*out_evt=NULL;
-#endif
 
    /* retrieve CPA CB */
    m_CPA_RETRIEVE_CB(cb);
@@ -3570,16 +3453,6 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
                              "SectIterFinalize:LOCK", __FILE__ ,__LINE__, rc , sectionIterationHandle);
       goto lock_fail;
    }
-#if 0
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "SectIterFinalize:CPND_DOWN", __FILE__ ,__LINE__, rc , sectionIterationHandle);
-       goto sect_iter_get_fail;
-   }
-#endif
    proc_rc = cpa_sect_iter_node_get(&cb->sect_iter_tree, &sectionIterationHandle,
                    &sect_iter_node);
    if(!sect_iter_node)
@@ -3675,61 +3548,6 @@ SaAisErrorT saCkptSectionIterationFinalize(SaCkptSectionIterationHandleT section
                          "SectIterFinalize", __FILE__ ,__LINE__, rc , sectionIterationHandle);
         goto sect_iter_get_fail;
    }
-#if 0  
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
-   evt.type  = CPSV_EVT_TYPE_CPND;
-   evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SECT_ITER_REQ;
-   evt.info.cpnd.info.sec_iter_req.ckpt_id = sect_iter_node->gbl_ckpt_hdl;
-   proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl,&(cb->cpnd_mds_dest),&evt,&out_evt,CPSV_WAIT_TIME);
-
-   switch (proc_rc)
-   {
-       case NCSCC_RC_SUCCESS:
-           break;
-       case NCSCC_RC_REQ_TIMOUT:
-           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                      "SectIterFinalize:MDS", __FILE__ ,__LINE__, proc_rc , sectionIterationHandle, cb->cpnd_mds_dest); 
-           rc = SA_AIS_ERR_TIMEOUT;
-           goto mds_resp_fail;
-       default:
-           m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                      "SectIterFinalize:MDS", __FILE__ ,__LINE__, proc_rc , sectionIterationHandle, cb->cpnd_mds_dest); 
-           rc = SA_AIS_ERR_NO_RESOURCES;
-           goto mds_resp_fail;
-   }
-
-   if(out_evt)
-   {
-      rc = out_evt->info.cpa.info.sec_iter_rsp.error;
-      if (rc == SA_AIS_OK)
-      {
-         /* Delete the section iteration Node */
-         if(NCSCC_RC_SUCCESS != cpa_sect_iter_node_delete(cb, sect_iter_node))
-         {
-            rc = SA_AIS_ERR_LIBRARY;
-            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                             "SectIterFinalize", __FILE__ ,__LINE__, rc , sectionIterationHandle);
-         }
-      }
-      if ( out_evt != NULL)
-         m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
-
-      m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-      m_CPA_GIVEUP_CB;
-      m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                          "SectIterFinalize", __FILE__ ,__LINE__, rc , sectionIterationHandle);
-      goto done;
-   }
-   else
-   {
-      rc = SA_AIS_ERR_NO_RESOURCES;
-      m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
-                          "SectIterFinalize", __FILE__ ,__LINE__, rc , sectionIterationHandle);
-   }
-
-mds_resp_fail:
-   cpa_sect_iter_node_delete(cb, sect_iter_node);
-#endif
 
 sect_iter_get_fail:
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -3914,17 +3732,6 @@ SaAisErrorT  saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
 
    /* Unlock cpa_lock before calling mds api */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0
-   
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "CkptWrite", __FILE__ ,__LINE__, rc, checkpointHandle);
-       goto fail1;
-   }
-#endif
 #if 1
   for(iter=0;iter < numberOfElements; iter++)
     all_ioVector_size += ioVector[iter].dataSize;
@@ -4400,16 +4207,7 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
    evt.info.cpnd.info.ckpt_read.agent_mdest = cb->cpa_mds_dest;
    evt.info.cpnd.info.ckpt_read.num_of_elmts=numberOfElements;
    evt.info.cpnd.info.ckpt_read.data=ckpt_data;
-#if 0
-   /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "CkptRead",__FILE__ ,__LINE__, rc, checkpointHandle);
-       goto done;
-   }
-#endif
+   
    /* Unlock cpa_lock before calling mds api */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
    if(FALSE == is_local_read)
@@ -4492,21 +4290,6 @@ end:
          m_MMGR_FREE_CPSV_EVT(out_evt,NCS_SERVICE_ID_CPA);
          out_evt = NULL;
        }
-#if 0
- if(m_NCS_GET_NODE_ID == m_NCS_NODE_ID_FROM_MDS_DEST(gc_node->active_mds_dest))
-  {
-   m_NCS_OS_MEMSET(&evt,'\0',sizeof(CPSV_EVT)); 
-   evt.type = CPSV_EVT_TYPE_CPND;
-   evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_READ_ACK;
-   evt.info.cpnd.info.ckpt_read_ack.ckpt_id= lc_node->gbl_ckpt_hdl;
-   evt.info.cpnd.info.ckpt_read_ack.mds_dest=cb->cpa_mds_dest;
-   /* need to replace with send_ack */
-   cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(cb->cpnd_mds_dest), 
-                                  &evt,&out_evt,CPSV_WAIT_TIME);
-   if (out_evt != NULL)
-      m_MMGR_FREE_CPSV_EVT(out_evt,NCS_SERVICE_ID_CPA);
-  } 
-#endif
 
 fail1: 
 lock_fail:
@@ -4730,16 +4513,6 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
  
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-#if 0   
-    /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                             "CkptSynchronize", __FILE__ ,__LINE__, rc, checkpointHandle);
-       goto fail1;
-   }
-#endif
    proc_rc = cpa_mds_msg_sync_send(cb->cpa_mds_hdl, &(gc_node->active_mds_dest), 
                                   &evt,&out_evt,timeout);
 
@@ -4969,16 +4742,6 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
    
    /* Unlock before MDS Send */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0   
-    /* IF CPND IS DOWN  */
-   if( FALSE == cb->is_cpnd_up)
-   {
-       rc = SA_AIS_ERR_TRY_AGAIN;
-       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
-                       "CkptSynchronizeAsync", __FILE__ ,__LINE__, rc, checkpointHandle);
-       goto fail1;
-   }
-#endif
    proc_rc = cpa_mds_msg_send(cb->cpa_mds_hdl, &gc_node->active_mds_dest, &evt,
                            NCSMDS_SVC_ID_CPND);
 

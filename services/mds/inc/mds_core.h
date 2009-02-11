@@ -99,7 +99,7 @@ typedef struct mds_mcm_sync_send_queue
 
     union{
     MDS_DEST adest;   
-    }dest_sndrack_adest; /* IR59846 Filled, when the sndrack and redrack is being sent to originator and checked when ack
+    }dest_sndrack_adest; /*  Filled, when the sndrack and redrack is being sent to originator and checked when ack
                             is recd for the sent sndrack or redrack*/
 
     struct mds_mcm_sync_send_queue *next_send;
@@ -387,7 +387,7 @@ extern uns32 mds_svc_tbl_add (NCSMDS_INFO *info);
 extern uns32 mds_svc_tbl_del (MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, MDS_Q_MSG_FREE_CB msg_free_cb);
 extern uns32 mds_svc_tbl_query (MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id);
 extern uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb);
-extern uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl); /* vishal: to add : returns 0 or 1 */
+extern uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl); /*  returns 0 or 1 */
 extern uns32 mds_svc_tbl_get_install_scope(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id,
                                             NCSMDS_SCOPE_TYPE *install_scope);
 extern uns32 mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id,
@@ -642,12 +642,6 @@ typedef struct mds_mcm_msg_elem{
                                                        NCS_MEM_REGION_PERSISTENT,\
                                                        NCS_SERVICE_ID_MDS,\
                                                        MDS_MEM_SYNC_SEND_QUEUE)
-#if 0
-#define m_MMGR_FREE_DIRECT_BUFF(p)  m_NCS_MEM_FREE(p,\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_MEM_DIRECT_BUFF)
-#endif
 #define m_MMGR_ALLOC_MSGELEM m_NCS_MEM_ALLOC(sizeof(MDS_MCM_MSG_ELEM),\
                                                   NCS_MEM_REGION_PERSISTENT,\
                                                   NCS_SERVICE_ID_MDS,\

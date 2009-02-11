@@ -211,32 +211,14 @@ EXTERN_C void mqa_log_ascii_dereg(void);
 EXTERN_C uns32 mqa_reg_strings ();
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-#if 0
-EXTERN_C void mqa_log_headline(uns8 hdln_id, uns8 sev);
-EXTERN_C void mqa_log_memfail(uns8 mf_id);
-EXTERN_C void mqa_log_api(uns8 api_id, uns8 sev);
-EXTERN_C void mqa_log_data_send(uns8 id, uns32 node, uns32 evt_id);
-#endif
 EXTERN_C void mqa_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char* fname,uns32 fno);
 EXTERN_C void mqa_flx_log_reg (void);
 EXTERN_C void mqa_flx_log_dereg (void);
 
 
 #define m_LOG_MQSV_A(id,category,sev,rc,fname,fno)  mqa_log(id,category,sev,rc,fname,fno)
-#if 0
-#define m_LOG_MQA_HEADLINE(id, sev)        mqa_log_headline(id,sev)
-#define m_LOG_MQA_MEMFAIL(id)              mqa_log_memfail(id)
-#define m_LOG_MQA_API(id,sev)              mqa_log_api(id,sev)
-#define m_LOG_MQA_DATA_SEND(id,node, evt)  mqa_log_data_send(id,node, evt)
-#endif
 #else 
 #define m_LOG_MQSV_A(id,category,sev,rc,fname,fno) 
-#if 0
-#define m_LOG_MQA_HEADLINE(id, sev)        
-#define m_LOG_MQA_MEMFAIL(id)             
-#define m_LOG_MQA_API(id,sev)            
-#define m_LOG_MQA_DATA_SEND(id,node, evt)  
-#endif
 #endif 
 
 #endif

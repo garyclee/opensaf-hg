@@ -283,7 +283,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
                                     (NCS_IPC_MSG *)post_me, NCS_IPC_PRIORITY_HIGH);
             if (status != NCSCC_RC_SUCCESS)
             {
-                m_MMGR_FREE_MAB_MSG(post_me); /* fix for the bug 60582 */
+                m_MMGR_FREE_MAB_MSG(post_me); 
                 return m_MAB_DBG_SINK(status);
             }
             

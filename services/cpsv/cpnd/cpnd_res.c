@@ -201,10 +201,6 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
    m_CPND_CKPT_HDR_UPDATE(ckpt_hdr,(char *)open_req->info.open.o_addr,0);  
    (*cp_node)->create_attrib       = ckpt_hdr.create_attrib;
    (*cp_node)->open_flags          = ckpt_hdr.open_flags;
- #if 0
-   (*cp_node)->is_unlink           = ckpt_hdr.is_unlink;
-   (*cp_node)->is_close            = ckpt_hdr.is_close;     
- #endif
    (*cp_node)->is_active_exist     = ckpt_hdr.is_active_exist;
    (*cp_node)->active_mds_dest     = ckpt_hdr.active_mds_dest;
    (*cp_node)->ckpt_lcl_ref_cnt    = ref_cnt;
@@ -465,9 +461,6 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                  max_client_hdl = cl_info.ckpt_app_hdl;
                  cb->cli_id_gen = cl_info.ckpt_app_hdl + 1;
               }
-              #if 0  
-              m_NCS_CONS_PRINTF("\nRESTART: CLIENT HDL %d\n",cl_info.ckpt_app_hdl);
-              #endif
               m_LOG_CPND_CL(CPND_CLIENT_INFO_READ_SUCCESS,CPND_FC_RESTART,NCSFL_SEV_INFO,__FILE__,__LINE__);        
           }
       }
@@ -501,18 +494,11 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                 cp_node->is_unlink  = cp_info.is_unlink;
                 cp_node->close_time = cp_info.close_time;
                 cp_node->cpnd_rep_create = cp_info.cpnd_rep_create;
-#if 0
-                m_NCS_CONS_PRINTF("RESTART: ckpt_name %s - ckpt_id %d ",cp_node->ckpt_name.value,cp_node->ckpt_id);
-                m_NCS_CONS_PRINTF("   ckpt offset %d \n",cp_node->offset);
-#endif
                 /* Non-collocated Differentiator flag */
                 if(cp_info.cpnd_rep_create)
                 {
                    /* OPEN THE SHARED MEMORY ALREADY CREATED FOR CHECKPOINT REPLICA */
                    /* size=cp_node->ckpt_name.length;*/
-#if 0
-                   size=m_NCS_STRLEN(cp_node->ckpt_name.value);
-#endif
                    size=cp_node->ckpt_name.length;
                    total_length=size+sizeof(cp_node->ckpt_id)+sizeof(NODE_ID)+5;
                    buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
@@ -557,10 +543,6 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                              continue;
                              /* goto end; */
                           }
-#if 0
-                          else  
-                            m_NCS_CONS_PRINTF("RESTART :CLIENT HDL EXISTS %d\n",client_hdl);
-#endif
                           cpnd_ckpt_client_add(cp_node,cl_node); 
                           cpnd_client_ckpt_info_add(cl_node,cp_node);  
                        }
@@ -978,10 +960,6 @@ uns32  cpnd_update_ckpt_with_clienthdl(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkp
         i_offset = offset * sizeof(CKPT_INFO);
         m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),new_ckpt_info,i_offset); 
 
-#if 0 
-        m_NCS_CONS_PRINTF("UPD_CKPT: ckpt_name %s - ckpt_id %d - offset %d - client_hdl %lld bitmap_offset - %d bitmap_value - %d \n",
-                           new_ckpt_info.ckpt_name.value,new_ckpt_info.ckpt_id,offset , client_hdl, new_ckpt_info.bm_offset , bitmap_value );
-#endif
    }
    else
    {
@@ -989,10 +967,6 @@ uns32  cpnd_update_ckpt_with_clienthdl(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkp
         m_CPND_CKPTINFO_READ(prev_ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),i_offset);
         prev_ckpt_info.client_bitmap = prev_ckpt_info.client_bitmap | bitmap_value;
         m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),prev_ckpt_info,i_offset);
-#if 0
-        m_NCS_CONS_PRINTF("UPD_CKPT: ckpt_name %s - ckpt_id %d - offset %d - client_hdl %lld bitmap_offset - %d bitmap_value - %d \n",
-                           prev_ckpt_info.ckpt_name.value,prev_ckpt_info.ckpt_id,offset , client_hdl, prev_ckpt_info.bm_offset ,prev_ckpt_info.client_bitmap );
-#endif
    }
    return rc;
 }
@@ -1038,11 +1012,6 @@ uns32 cpnd_write_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node,int32 offset,SaCk
    m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),ckpt_info,i_offset);
    m_LOG_CPND_FCL(CPND_CKPT_INF0_WRITE_SUCCESS,CPND_FC_RESTART,NCSFL_SEV_INFO,cp_node->ckpt_id,\
                    __FILE__,__LINE__); 
-#if 0
-   m_NCS_CONS_PRINTF("OPEN : client_hdl %d\n",client_hdl);
-   m_NCS_CONS_PRINTF("OPEN : ckpt_name %s-ckpt_id- %d \n",cp_node->ckpt_name.value,cp_node->ckpt_id);
-   m_NCS_CONS_PRINTF("OPEN : ckpt offset %d\n",offset);
-#endif
 
    return rc;
 
@@ -1095,9 +1064,6 @@ int32  cpnd_restart_shm_client_update(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node
       m_LOG_CPND_CL(CPND_CLIENT_INF0_UPDATE_FAILED,CPND_FC_RESTART,NCSFL_SEV_ERROR,__FILE__,__LINE__);   
       return -1;
    }
-#if 0
-   m_NCS_CONS_PRINTF("\nINITIALIZE : OFFSET %d - CLI_HDL %d\n",free_shm_id,cl_node->ckpt_app_hdl);
-#endif
    cl_node->offset = free_shm_id;
    return free_shm_id;
 }
@@ -1148,9 +1114,6 @@ uns32  cpnd_restart_client_node_del(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node)
    else
       m_LOG_CPND_CL(CPND_CKPT_INF0_WRITE_SUCCESS,CPND_FC_RESTART,NCSFL_SEV_INFO,__FILE__,__LINE__);
 
-#if 0
-   m_NCS_CONS_PRINTF("\nFINALIZE : OFFSET %d - CLI_HDL %d\n",cl_node->offset ,cl_node->ckpt_app_hdl);
-#endif
    return rc;
 }
 
@@ -1174,15 +1137,6 @@ uns32 client_bitmap_reset(uns32 *bitmap_value,uns32 client_hdl)
 
    (*bitmap_value) = (*bitmap_value)&(~(0x1 << client_hdl));
 
-#if 0
-   uns32 mask,counter;
-   for(counter = 0;counter<=client_hdl;counter++)
-   {
-      mask = 0x1;
-      mask = mask << counter;
-   }
-   *bitmap_value = (*bitmap_value) ^  mask;
-#endif
    return rc;
 }   
 
@@ -1241,10 +1195,6 @@ uns32 cpnd_restart_shm_ckpt_free(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    cpnd_ckpt_write_header(cb,no_ckpts);
 
    i_offset = (cp_node->offset) * sizeof(CKPT_INFO);
-#if 0
-   m_NCS_CONS_PRINTF("FREE : ckpt_name %s-ckpt_id- %d \n",cp_node->ckpt_name.value,cp_node->ckpt_id);
-   m_NCS_CONS_PRINTF("FREE : ckpt offset %d - \n",cp_node->offset);
-#endif
    cp_node->offset = SHM_INIT; 
 
    /*Update the prev & curr shared memory segments with the new data */
@@ -1253,49 +1203,6 @@ uns32 cpnd_restart_shm_ckpt_free(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    return rc;              
 }
      
-#if 0
-/************************************************************************************************
- * Name    :  cpnd_find_ckpt_exists
- *
- * Description  : find if the checkpoint exists in the shared memory , memcmp with the ckpt name
- *
- * Arguments : CPND_CKPT_NODE - ckpt node
- *
- * Return Values : The offset where this checkpoint is present 
- *
-**************************************************************************************************/
-
-int32 cpnd_find_ckpt_exists(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
-{
-   CKPT_INFO ckpt_info;
-   NCS_OS_POSIX_SHM_REQ_INFO read_req;
-   int32 counter = 0,n_ckpts;
-   CKPT_HDR ckpt_hdr;
-   m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR)); 
-   m_NCS_MEMSET(&ckpt_info,0,sizeof(ckpt_info)); 
-   
-   m_CPND_CKPTHDR_READ(ckpt_hdr,cb->shm_addr.ckpt_addr,0);
-   n_ckpts = ckpt_hdr.num_ckpts; 
-
- /*  printf(" CPND FIND CKPT EXISTS %d\n",n_ckpts);   */
-
-   while(counter < MAX_CKPTS){
-        m_CPND_CKPTINFO_READ(ckpt_info,cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),counter*sizeof(CKPT_INFO)); 
-        if((m_NCS_OS_MEMCMP(&(ckpt_info.ckpt_name),&cp_node->ckpt_name,sizeof(SaNameT)) == 0) && (ckpt_info.is_first))
-        {
-           break;
-        }
-        else
-        {
-           counter++;
-        }
-     }
-     if(counter == MAX_CKPTS)
-       return -1;
-     else 
-       return counter;
-}
-#endif   
 
 /*********************************************************************************************************
  * Name : cpnd_restart_ckpt_name_length_reset
@@ -1317,9 +1224,6 @@ void cpnd_restart_ckpt_name_length_reset(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
        m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
            cp_node->offset*sizeof(CKPT_INFO));      
        ckpt_info.is_unlink = TRUE;
-#if 0
-       ckpt_info.ckpt_name.length = 0;
-#endif
        m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),ckpt_info,
            cp_node->offset*sizeof(CKPT_INFO));   
    }  
@@ -1501,13 +1405,6 @@ void cpnd_restart_client_reset(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_CKPT_CLI
               num_bitset = client_bitmap_isset(ckpt_info.client_bitmap);  
               if(!num_bitset)
                   cpnd_clear_ckpt_info(cb, cp_node, offset, prev_offset );
-#if 0
-              m_NCS_CONS_PRINTF("CLOSE :  client_hdl %d\n",client_hdl);
-              m_NCS_CONS_PRINTF("CLOSE :  ckpt_name %s-ckpt_id- %d  \n",cp_node->ckpt_name.value,cp_node->ckpt_id);
-              m_NCS_CONS_PRINTF("CLOSE :  ckpt offset %d\n",cp_node->offset);
-#endif
-
-
 
           }
    }

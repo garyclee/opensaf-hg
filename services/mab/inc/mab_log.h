@@ -92,13 +92,6 @@ EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8,uns32,uns32,struct mas_fltr
 #define m_LOG_MAB_OVERLAPPING_FLTRS(sev, env_id, tbl_id, exst_fltr, new_fltr) \
         log_overlapping_fltrs(sev, env_id, tbl_id, exst_fltr, new_fltr)
 
-#if 0
-/* not used any where */ 
-#define m_LOG_MAB_OAA_DETAILS(c, s, id, addr, anc)\
-        ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_OAA, MAB_FC_HDLN,\
-                   c, s, NCSFL_TYPE_TICLL, id, addr, anc)
-#endif
-        
 #define m_LOG_MAB_NO_CB(func_name)\
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_NO_CB, MAB_FC_HDLN,\
                    NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, NCSFL_TYPE_TIC,\

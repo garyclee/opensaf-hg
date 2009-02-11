@@ -56,9 +56,6 @@
 #include "ncs_saf.h"
 #include "ncs_mib.h"
 #include "ncs_lib.h"
-#if 0
-#include "ncs_mds.h"
-#endif
 #include "mds_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_edu_pub.h"

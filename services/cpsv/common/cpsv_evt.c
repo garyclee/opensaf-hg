@@ -431,26 +431,12 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
    {
       if(i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_WRITE)
       {
-#if 0
-         CPSV_CKPT_DATA *data = i_evt->info.cpnd.info.ckpt_write.data;
-         EDU_ERR   ederror = 0;
-         
-         m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
-                   o_ub, EDP_OP_TYPE_ENC, data, &ederror);
-#endif
              /* CKPT_DATA LINKED LIST OF EDU */
          cpsv_ckpt_data_encode(o_ub, i_evt->info.cpnd.info.ckpt_write.data);
 
       }
       else if(i_evt->info.cpnd.type == CPND_EVT_A2ND_CKPT_READ)
       {
-#if 0
-         CPSV_CKPT_DATA *data= i_evt->info.cpnd.info.ckpt_read.data;
-         EDU_ERR   ederror = 0;
-         
-         m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
-                   o_ub, EDP_OP_TYPE_ENC, data, &ederror);         
-#endif
          cpsv_ckpt_data_encode(o_ub, i_evt->info.cpnd.info.ckpt_read.data);   
       }
       /* Added for 3.0.B , these events encoding is missing in 3.0.2 */

@@ -50,11 +50,9 @@
 extern "C" {
 #endif
 
-/* Fix for IR10318 */
 #ifndef NCS_IF_NAMESIZE
 #define NCS_IF_NAMESIZE 16
 #endif
-/* Fix Ends */
 
 /* all the below three macros are inter dependent, so enable all the macro/ disable all */
 #ifndef m_SYSF_NCSSOCK_SUPPORT_RECVMSG

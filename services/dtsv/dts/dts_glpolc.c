@@ -99,8 +99,8 @@ ncsdtsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    {
       case ncsDtsvGlobalLogDevice_ID:
          old_log_device = inst->g_policy.g_policy.log_dev;
-         /* IR 59525 - Check for valid value of log device */
-         /* IR 60732-First check for null i_oct for the above-mentined check*/
+         /* Check for valid value of log device */
+         /* First check for null i_oct for the above-mentined check*/
          if(set_req->i_param_val.info.i_oct == NULL)
             return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_global_policy_set_obj: Incorrect value of length for SET reuest received - 0");
          else if(*(uns8*)set_req->i_param_val.info.i_oct < DTS_LOG_DEV_VAL_MAX)
@@ -361,7 +361,7 @@ dtsv_global_filtering_policy_change(DTS_CB *inst, NCSMIB_PARAM_ID param_id)
     while (service != NULL)
     {
         /* Setup key for new search */
-        /* IR 60411 - Network order key added */
+        /*  Network order key added */
         nt_key = service->ntwk_key;
 
         /* Set the Node Policy as per the Global Policy */

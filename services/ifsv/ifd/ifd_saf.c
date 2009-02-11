@@ -33,67 +33,6 @@
 
 #include "ifd.h"
 uns32 ifd_process_quisced_state(IFSV_CB *ifsv_cb,SaInvocationT invocation,SaAmfHAStateT haState);
-#if 0
-/* This function is removed after B Spec compliance */
-/****************************************************************************
- * Name          : ifd_saf_readiness_state_callback
- *
- * Description   : This function SAF callback function which will be called 
- *                 when there is any changein the readiness state. This 
- *                 attribute will help the serive part to know about its 
- *                 readiness state so that it could service its clients.
- *                 Since IFD is not going to service any clients there is
- *                 no need of storing this state in its control block.
- *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
- *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
- *                                  Management Framework is setting.
- *                 readinessState - The Readiness state of the component, 
- *                                  identified by compName, that is being 
- *                                  set by the Availability Management 
- *                                  Framework. 
- *
- * Return Values : None
- *
- * Notes         : None.
- *****************************************************************************/
-
-void
-ifd_saf_readiness_state_callback (SaInvocationT invocation,
-                                   const SaNameT *compName,
-                                   SaAmfReadinessStateT readinessState)
-{
-   IFSV_CB *ifsv_cb;
-   SaAisErrorT error = SA_AIS_OK;
-   IFSV_EVT_INIT_DONE_INFO init_done;
-
-   m_IFSV_GET_CB(ifsv_cb,(uns8*)compName->value);   
-   
-   if (ifsv_cb != IFSV_NULL)   
-   {
-      ifsv_cb->ready_state = readinessState;
-      if ((ifsv_cb->init_done == FALSE) && 
-         (ifsv_cb->ready_state != 0)  && 
-         (ifsv_cb->ha_state != 0))
-      {
-         init_done.init_done = TRUE;
-         /* sends a message to itself */
-         ifd_evt_send((NCSCONTEXT)&init_done, IFD_EVT_INIT_DONE, ifsv_cb);
-      }      
-      saAmfResponse(ifsv_cb->amf_hdl,invocation,error);
-      m_IFSV_GIVE_CB(ifsv_cb);
-      m_IFD_LOG_API_L(IFSV_LOG_AMF_READY_STATE_CHNG,readinessState);
-   }   
-   return;
-}
-
-#endif 
 
 /****************************************************************************
  * Name          : ifd_saf_CSI_set_callback
@@ -136,17 +75,6 @@ ifd_saf_readiness_state_callback (SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-#if 0 
-/* Removed for B Spec compiance */
-void
-ifd_saf_CSI_set_callback (SaInvocationT invocation,
-                          const SaNameT  *compName,
-                          const SaNameT  *csiName,
-                          SaAmfCSIFlagsT csiFlags,
-                          SaAmfHAStateT  *haState,
-                          SaNameT        *activeCompName,
-                          SaAmfCSITransitionDescriptorT transitionDesc)
-#endif
 void ifd_saf_CSI_set_callback(SaInvocationT invocation,
                          const SaNameT *compName,
                          SaAmfHAStateT haState,
@@ -226,25 +154,16 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
          mds_role = V_DEST_RL_ACTIVE;
          m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFSV_HA_ACTIVE_MSG,haState,0);
          printf("****** IFD IN ACTIVE STATE********* \n");
-#if 0
-         anchor   = ifsv_cb->my_anc;
-#endif
       } else
       {
          mds_role = V_DEST_RL_STANDBY;
          m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFSV_HA_STDBY_MSG,haState,0);
          printf("****** IFD IN STANDBY STATE********* \n");
-#if 0
-         anchor   = ifsv_cb->my_anc;
-#endif
       }
       m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
       
       vda_info.req = NCSVDA_VDEST_CHG_ROLE;
       vda_info.info.vdest_chg_role.i_vdest = ifsv_cb->my_dest;
-#if 0
-      vda_info.info.vdest_chg_role.i_anc   = anchor;
-#endif
       vda_info.info.vdest_chg_role.i_new_role = mds_role;
       if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
       {
@@ -260,9 +179,6 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
       }
 
       /** set the CB's anchor value */
-#if 0
-      ifsv_cb->my_anc = anchor;
-#endif
       saAmfResponse(ifsv_cb->amf_hdl,invocation, error);
       m_IFSV_GIVE_CB(ifsv_cb);
       m_IFD_LOG_API_L(IFSV_LOG_AMF_HA_STATE_CHNG,haState);
@@ -300,60 +216,6 @@ uns32 ifd_process_quisced_state(IFSV_CB *ifsv_cb,SaInvocationT invocation,SaAmfH
     return NCSCC_RC_SUCCESS;
 }
 
-#if 0
-/* Removed after B.01.01 Spec compliance */
- /****************************************************************************
- * Name          : ifd_saf_pend_oper_confirm_callback
- *
- * Description   : This function SAF callback function which will be called 
- *                 when the AMF framework needs to take a confirmation with 
- *                 the component before doing switchover or shutdown. Here
- *                 we would be setting a "switch_over" flag which would take
- *                 care of processing the events which is critical for this 
- *                 component.
- *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
- *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
- *                                  Management Framework is setting.
- *                 pendOperFlags  - The Readiness state of the component, 
- *                                  identified by compName, that is being 
- *                                  set by the Availability Management 
- *                                  Framework. 
- *
- * Return Values : None
- *
- * Notes         : None.
- *****************************************************************************/
-void
-ifd_saf_pend_oper_confirm_callback (SaInvocationT invocation,
-                                    const SaNameT *compName,
-                                    SaAmfPendingOperationFlagsT pendOperFlags)
-{
-   IFSV_CB *ifsv_cb;
-   SaAisErrorT error = SA_AIS_OK;
-
-   m_IFSV_GET_CB(ifsv_cb,compName->value);
-   
-   if (ifsv_cb != IFSV_NULL)   
-   {
-      if ((pendOperFlags == SA_AMF_SWITCHOVER_OPERATION) &&
-         (ifsv_cb->ready_state != SA_AMF_OUT_OF_SERVICE))
-      {
-         ifsv_cb->switchover_flag = TRUE;
-      }      
-      saAmfResponse(ifsv_cb->amf_hdl,invocation, error);
-      m_IFSV_GIVE_CB(ifsv_cb);
-      m_IFD_LOG_API_L(IFSV_LOG_AMF_CONF_OPER,pendOperFlags);
-   }   
-   return;
-}
-#endif
 
 /****************************************************************************
  * Name          : ifd_saf_health_chk_callback

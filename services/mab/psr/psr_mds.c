@@ -60,7 +60,6 @@ uns32 pss_mds_grcv(MDS_HDL pwe_hdl,    MDS_CLIENT_HDL yr_svc_hdl,
 
   /* plant MAB subcomponent's control block in MAB_MSG */
 
-  /*  Fixed as a part of IR00085797 */
   ((MAB_MSG*)msg)->yr_hdl  = NCS_INT64_TO_PTR_CAST(yr_svc_hdl);
   ((MAB_MSG*)msg)->pwe_hdl = pwe_hdl;
   /* ##### MDS changes here */
@@ -92,16 +91,6 @@ uns32 pss_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
-#if 0
-#if (NCS_PSS_RED == 1)
-   if(pwe_cb->p_pss_cb->ha_state != SA_AMF_HA_ACTIVE)
-   {
-      /* Don't process MDS events in non-ACTIVE role. */
-      ncshm_give_hdl((uns32)cbinfo->i_yr_svc_hdl);
-      return NCSCC_RC_SUCCESS;
-   }
-#endif
-#endif
 
    switch (cbinfo->info.svc_evt.i_change) /* Review change type */ 
    {
@@ -161,7 +150,6 @@ uns32 pss_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
       }
       m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-      /*  Fixed as a part of IR00085797 */
       mm->yr_hdl = NCS_INT64_TO_PTR_CAST(yr_svc_hdl); 
       mm->fr_card = cbinfo->info.svc_evt.i_dest;
       mm->fr_svc = cbinfo->info.svc_evt.i_svc_id;

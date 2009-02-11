@@ -89,7 +89,7 @@ typedef struct mac_inst
   NCS_VRID         vrid;
   uns8             hm_poolid;
   uns32            hm_hdl;
-  NCS_SEL_OBJ      mas_sync_sel; /* Fix for the bug IR00061160 */
+  NCS_SEL_OBJ      mas_sync_sel; 
   SYSF_MBX*        mbx;           
   MAB_LM_CB        lm_cbfnc;
 

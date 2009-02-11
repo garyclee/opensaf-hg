@@ -646,7 +646,7 @@ dts_buff_size_set(POLICY        *policy,
                   OP_DEVICE     *device,
                   uns32          old_value)
 {   
-    /* IR 59518 - Check whether log device is already set to buffer or not.
+    /* Check whether log device is already set to buffer or not.
      *            If not then return success, no need to call the buff_size 
      *            increase/decrease functions.
      */ 

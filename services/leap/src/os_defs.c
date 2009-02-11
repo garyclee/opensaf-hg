@@ -67,7 +67,6 @@
 /*FIXME: osprims does not have private header file, hence the declaration here */ 
 
 extern int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int kind);
- /* IR00058994  fix */
 NCS_OS_LOCK gl_ncs_atomic_mtx;
 #ifndef NDEBUG
 NCS_BOOL gl_ncs_atomic_mtx_initialise = FALSE;
@@ -236,7 +235,7 @@ getversion(void)
  ****************************************************************************/
 #if (CHECK_FOR_ROOT_PRIVLEGES == 1)
 #define ROOT_UID 0
- /* IR00059585 fix , stores user id*/
+ /*  stores user id*/
 static uid_t gl_ncs_user_id = -1;
 NCS_BOOL
 ncs_is_root(void)
@@ -288,150 +287,6 @@ static unsigned long   tmr_period_ns;
 static NCS_OS_CB       tmr_os_cb;
 static void *          tmr_cb_arg;
 static void *          status = NULL;*/
-#if 0
-static void *
-timer_engine(void * arg)
-{
-   int rc = 0;
-   long difftime_tmr = 0;
-   const int tmr_period_in_usec = tmr_period_ns/1000;
-
-   while( 1 )
-   {      
-      if( gettimeofday(&tmr_old, 0) != 0 )
-         printf("gettimeofday failed\n");
-
-      struct timeval tv;
-      tv.tv_sec = 0;
-      tv.tv_usec = tmr_period_in_usec; 
-select_sleep:            
-      rc =  select(0, NULL, NULL, NULL, &tv);
-
-      if(rc < 0) 
-      {   
-#if 0
-          /* No point checking the errno. Because, in every case
-             we should reset tv correctly */
-          save_errno = errno;
-          if (save_errno == EINTR)
-#endif
-          {
-             if (gettimeofday(&tmr_now, 0) != 0 )
-             {
-                 /* Can do much here. Just fall through and
-                    call the timer expiry callback */
-                 printf("gettimeofday failed\n");
-             }
-             else
-             {
-                difftime_tmr = ((tmr_now.tv_sec - tmr_old.tv_sec)*(1000000LL) +
-                       (tmr_now.tv_usec - tmr_old.tv_usec));
-   
-                if ((tmr_period_in_usec > difftime_tmr) && (difftime_tmr > 0))
-                {   
-                     tv.tv_sec = 0;
-                     tv.tv_usec = tmr_period_in_usec - difftime_tmr;   
-                     goto select_sleep;
-                }
-             }
-          }
-      }   
-                                                                                                                           
-      pthread_testcancel();
-      tmr_os_cb(tmr_cb_arg);   /* call OS Services tmr q handler */
-      pthread_testcancel();   
-   }
-}
-#endif
-
-#if 0
-unsigned int
-ncs_os_timer(NCS_OS_TIMER *timer, NCS_OS_TIMER_REQUEST request)
-{
-   static pthread_t tid; /* timer task ID - only one supported */
-   static NCS_BOOL timer_activated = FALSE;
-   unsigned int rc = NCSCC_RC_FAILURE;
-   char  *p_field;
- 
-   switch( request )
-   {
-      case NCS_OS_TIMER_CREATE:
-         if( timer_activated == TRUE )        /* only one timer engine is supported */
-            break;
-
-         timer->info.create.o_handle = (void *) 1;
-         tmr_period_ns = timer->info.create.i_period_in_ms * 1000000;
-
-         tmr_os_cb  = timer->info.create.i_callback;
-         tmr_cb_arg = timer->info.create.i_cb_arg;
-
-         /* create timer task */
-         p_field = m_NCS_OS_PROCESS_GET_ENV_VAR("LEAP_TMR_THREAD_RT"); 
-         if ((p_field != NULL) && (atoi(p_field) == 1))
-         {
-            pthread_attr_t attr;
-            struct sched_param sp;
-
-            memset(&sp, 0, sizeof(sp));
-            memset(&attr, 0, sizeof(attr));
-            pthread_attr_init(&attr);
-
-            rc = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED); /*IR00061370*/
-            assert(0 == rc);   
-
-            rc = pthread_attr_setschedpolicy(&attr, SCHED_RR);
-            assert(0 == rc);
-
-            sp.sched_priority = 90;
-            rc = pthread_attr_setschedparam(&attr, &sp);
-            assert(0 == rc);
-
-            if( pthread_create(&tid, &attr, timer_engine, 0) != 0 )
-            {
-               timer->info.create.o_handle = (void *) 0;
-               timer_activated = FALSE;
-               break;
-            }
-         }
-         else
-         {
-            if( pthread_create(&tid, NULL, timer_engine, 0) != 0 )
-            {
-               timer->info.create.o_handle = (void *) 0;
-               timer_activated = FALSE;
-               break;
-            }
-         }
-         timer_activated = TRUE;
-
-         rc = NCSCC_RC_SUCCESS;
-         break;
-
-
-      case NCS_OS_TIMER_RELEASE:
-
-
-         if( pthread_cancel(tid) != 0 )
-            break;
-
-
-         pthread_join(tid,&status);
-         if (status == PTHREAD_CANCELED)
-            rc = NCSCC_RC_SUCCESS;
-         /* IR00060372 */ 
-         timer_activated =FALSE;
-         
-         break;
-
-
-      default:
-         break;
-   }
-
-   return rc;
-}
-#endif
-/* IR00084911 */
 int
 ncs_logscreen(const char *fmt,... )
 {
@@ -446,7 +301,6 @@ ncs_logscreen(const char *fmt,... )
 }
 
 
-/* IR00084911 */
 int
 ncs_dbg_logscreen(const char *fmt,... )
 {
@@ -482,7 +336,6 @@ ncs_dbg_logscreen(const char *fmt,... )
    return logmessage_length;
 }
 
-/* IR00084911 */
 void
 ncs_syslog(int priority, const char *fmt,... )
 {
@@ -512,7 +365,7 @@ ncs_syslog(int priority, const char *fmt,... )
  *
  ****************************************************************************/
 uns64
-ncs_os_time_ns(void)  /* IR00058792 */
+ncs_os_time_ns(void)  
 {
     uns64 retval =0;
     struct timespec ts;
@@ -554,7 +407,7 @@ ncs_os_time_ms(void)
 
     if(0 == gettimeofday(&tv, 0))
     {
-        retval = tv.tv_sec;  /* IR00059616 */
+        retval = tv.tv_sec;  
         retval = (retval * 1000) + (tv.tv_usec / 1000);
     }
     else
@@ -595,10 +448,8 @@ ncs_linux_sleep(unsigned int ms_delay)
    struct timeval tv;
    tv.tv_sec = ms_delay / 1000;
 
-  /*fix for  IR00058731 */
    tv.tv_usec = ((ms_delay % 1000)*1000);
 
-   /*fix for  IR00058731 */
    while(select(0, 0, 0, 0, &tv) != 0)
     if(errno == EINTR) continue;
     else return(NCSCC_RC_FAILURE);
@@ -642,7 +493,6 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             char  *p_field;
               
 
-            /* IR 60723 Fix*/
             if ( (0 == strncmp("MDTM", task->info.create.i_name, strlen ("MDTM")+1))||
                  (0 == strncmp("LHCSC", task->info.create.i_name, strlen ("LHCSC")+1))||
                  (0 == strncmp("NCSDL", task->info.create.i_name, strlen ("NCSDL")+1))||
@@ -667,7 +517,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             /* if we opted for lowest priority then change that process
                SCHED policy to SCHED_OTHER */ 
   
-            if(ncs_is_root()== FALSE || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16) /* IR00059585 */ /*IR00059586 IR00059755 */
+            if(ncs_is_root()== FALSE || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16) 
                policy = SCHED_OTHER; /* This policy is for normal user*/
 
 
@@ -694,7 +544,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 
             max_prio = sched_get_priority_max(policy);
             min_prio = sched_get_priority_min(policy);
-            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16 ) /* IR00059585 */ /* IR00059586 IR00059755 */
+            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16 ) 
                assert(min_prio != 0 && max_prio != 0);
 
             if(task->info.create.i_priority < min_prio)
@@ -704,7 +554,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
                task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
 
             sp.sched_priority = max_prio - (task->info.create.i_priority * ((max_prio - min_prio)/17));
-            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16) /* IR00059585*/
+            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16) 
                assert(min_prio <= task->info.create.i_priority && max_prio >= task->info.create.i_priority);
 
             
@@ -762,16 +612,8 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             assert(NULL != task->info.create.o_handle);
           
           
-            /* IR 60723 Fix*/
             /* 13-Apr-2006: Commenting the PRINTF as it interferes with BBS command functions 
                viz. lhccmd, switchcmd, etc.*/
-#if 0
-            m_NCS_CONS_PRINTF("LEAP: Task Create::Task name=%s, Task Priority=%d,"
-                              " Linux Priority=%d, Policy=%s, Stack Size=%d\n",
-                              task->info.create.i_name, task->info.create.i_priority,
-                              sp.sched_priority, (policy==SCHED_OTHER?"SCHED_OTHER":"SCHED_FIFO"),
-                              task->info.create.i_stack_nbytes);
-#endif
             
             rc = pthread_create(task->info.create.o_handle,
                                 &attr,
@@ -818,7 +660,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             void* status = NULL;  
             if( pthread_cancel( * (pthread_t *) task->info.release.i_handle) != 0 )
             {
-               /* IR00060372: Shutdown testing: Even if pthread_cancel() fails
+               /* Shutdown testing: Even if pthread_cancel() fails
                   we need to do a thread join. Otherwise, information related
                   to the destroyed thread (basically the exit-code) is
                   not completely flushed. Hence, we would soon run out of
@@ -840,7 +682,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
          }  
          break;
          
-      case NCS_OS_TASK_DETACH: /* IR00059647 */
+      case NCS_OS_TASK_DETACH: 
          if( pthread_detach( * (pthread_t *) task->info.release.i_handle) != 0)
          {
            free(task->info.release.i_handle);
@@ -950,7 +792,6 @@ wait_again:
 
 }
 
-/* IR00061064 */
 void ncs_os_atomic_init(void)
 {
 #ifndef NDEBUG
@@ -1444,7 +1285,7 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
             return NCSCC_RC_FAILURE;
          }
 
-         /*IR00083121 checks i_size is greater than LONG_MAX*/
+         /* checks i_size is greater than LONG_MAX*/
          if (req->info.open.i_size > LONG_MAX)
          {
              /*ftruncate accepts long int as size ,So we are allowed to pass max value of long int as size */
@@ -1476,7 +1317,7 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 
       case NCS_OS_POSIX_SHM_REQ_CLOSE:   /* close is munmap */
 
-          /* IR00083121 checks i_size is greater than LONG_MAX */
+          /* checks i_size is greater than LONG_MAX */
           if (req->info.close.i_size > LONG_MAX)
           {
              printf("size value exceed max limit\n");
@@ -2399,54 +2240,6 @@ ncs_os_install_sigpipe_handler(void)
        This filter could be useful when opening a socket that will need
     to receive multicast addressed datagrams.
        **/
-#if 0
-      {
-
-#include "linux/types.h"
-#include "linux/filter.h"
-
-         struct sock_filter   mcf[5];
-         struct sock_fprog   fcode;
-
-         m_NCS_OS_MEMSET (mcf, '\0', sizeof mcf);
-         fcode.filter = mcf;
-         fcode.len    = 5;
-
-         /** Load A(ccumulator) with skb->dev->if_index **/
-         mcf[0].code = BPF_LD|BPF_B|BPF_ABS;
-         mcf[0].k    = SKF_AD_OFF+SKF_AD_IFINDEX;
-
-         /** Compare A to our sockets ifindex, accept if equal, drop if not **/
-         mcf[1].code = BPF_JMP|BPF_JEQ|BPF_K;
-         mcf[1].jt   = 0;
-         mcf[1].jf   = 2;
-         mcf[1].k    = se->if_index;
-
-         /** If #1 TRUE, Load A with the skb->len. **/
-         mcf[2].code = BPF_LD|BPF_W|BPF_LEN;
-
-         /** Return A - ie, skb->len. **/
-         mcf[3].code = BPF_RET|BPF_A;
-
-         /** If #1 FALSE, return 0 - drop packet. **/
-         mcf[4].code = BPF_RET|BPF_K;
-
-         if (m_NCSSOCK_SETSOCKOPT (se->client_socket,
-                                  SOL_SOCKET,
-                                  SO_ATTACH_FILTER,
-                                  &fcode,
-                                  sizeof (fcode)))
-         {
-            ip_error = m_NCSSOCK_ERROR;
-            m_SYSF_IP_LOG_ERROR("socket_event_udp_open:SO_ATTACH_FILTER failed",
-                                ip_error);
-            m_NCSSOCK_CLOSE(se->client_socket);
-            /* socket_entry_destroy (se); */
-            se->state = NCS_SOCKET_STATE_CLOSING;
-            return NCSCC_RC_FAILURE;
-         }
-      }
-#endif
 
 
 /*****************************************************************************
@@ -2502,205 +2295,6 @@ linux_char_normalizer(void)
 
     chr = ncs_unbuf_getch();
     USE(done);
-#if 0
-    do
-    {
-        if(kbNone == key)
-        {
-            switch(chr)
-            {
-            case 0x01:
-            case 0x02:
-            case 0x03:
-            case 0x04:
-            case 0x05:
-            case 0x06:
-            case 0x07:
-            /*case 0x08:*/
-            /*case 0x09:*/
-            /*case 0x0A:*/
-            case 0x0B:
-            case 0x0C:
-            case 0x0D:
-            case 0x0E:
-            case 0x0F:
-            case 0x10:
-            case 0x11:
-            case 0x12:
-            case 0x13:
-            case 0x14:
-            case 0x15:
-            case 0x16:
-            case 0x17:
-            case 0x18:
-            case 0x19:
-            case 0x1A:
-                key = kbCtrl|('a'+chr-1);/*lint !e655 */
-                done = TRUE;
-                break;
-
-            case 0x7F:
-                key = kbBackSp;
-                done = TRUE;
-                break;
-
-            case 0x09:
-                key = kbTab;
-                done = TRUE;
-                break;
-
-            case 0x0A:
-                key = kbEnter;
-                done = TRUE;
-                break;
-
-            case 0x1B:
-                key = kbEsc;
-                done = FALSE;/* not done because more keys coming */
-                break;
-
-            default:
-                key = (uns32)chr;
-                done = TRUE;
-            }
-        }
-
-        if(kbEsc == key)
-        {
-            chr = ncs_unbuf_getch();
-            if(0x4F == chr) /* a Function key is coming */
-            {
-                chr = ncs_unbuf_getch();
-                switch(chr)
-                {
-                case 0x3B:
-                    key = kbF1;
-                    break;
-                case 0x3C:
-                    key = kbF2;
-                    break;
-                case 0x3D:
-                    key = kbF3;
-                    break;
-                case 0x3E:
-                    key = kbF4;
-                    break;
-                case 0x3F:
-                    key = kbF5;
-                    break;
-                case 0x40:
-                    key = kbF6;
-                    break;
-                case 0x41:
-                    key = kbF7;
-                    break;
-                case 0x42:
-                    key = kbF8;
-                    break;
-                case 0x43:
-                    key = kbF9;
-                    break;
-                case 0x44:
-                    key = kbF10;
-                    break;
-                case 0x85:
-                    key = kbF11;
-                    break;
-                case 0x86:
-                    key = kbF12;
-                    break;
-                }
-            } /* end of if(0x4F == chr) */
-
-
-            chr = ncs_unbuf_getch();
-            if(0x5B == chr) /* a 'grey' key is coming */
-            {
-                switch(chr)
-                {
-                case 0x48:
-                    key = kbHome;
-                    break;
-
-                case 0x46:
-                    key = kbEnd;
-                    break;
-
-                /* for some of these keys, must eat a trailing 0x7E */
-                case 0x32:
-                    key = kbIns;
-                    chr = ncs_unbuf_getch();
-                    break;
-
-                case 0x35:
-                    chr = ncs_unbuf_getch();
-                    switch(chr) /* control-arrow keys */
-                    {
-                    case 0x41:
-                        key = kbCtrl|kbUp;/*lint !e655 */
-                        break;
-                    case 0x42:
-                        key = kbCtrl|kbDown;/*lint !e655 */
-                        break;
-                    case 0x43:
-                        key = kbCtrl|kbRight;/*lint !e655 */
-                        break;
-                    case 0x44:
-                        key = kbCtrl|kbLeft;/*lint !e655 */
-                        break;
-
-                    case 0x48:
-                        key = kbCtrl|kbHome;/*lint !e655 */
-                        break;
-                    case 0x46:
-                        key = kbCtrl|kbEnd;/*lint !e655 */
-                        break;
-
-                    case 0x7E:
-                        key = kbPgUp;
-                        break;
-
-                    default:
-                        key = kbSentinal;
-                    }
-                    break;
-
-                case 0x33:
-                    key = kbDel;
-                    chr = ncs_unbuf_getch();
-                    break;
-                case 0x36:
-                    key = kbPgDn;
-                    chr = ncs_unbuf_getch();
-                    break;
-
-                case 0x41:
-                    key = kbUp;
-                    break;
-                case 0x42:
-                    key = kbDown;
-                    break;
-                case 0x43:
-                    key = kbRight;
-                    break;
-                case 0x44:
-                    key = kbLeft;
-                    break;
-
-                default:
-                    key = kbSentinal;
-                }
-            } /* end of if(0x5B == chr) */
-
-            done = TRUE;
-        }/* end of if(kbEsc == key) */
-        else
-        {
-        }
-
-    } while(!done);
-
-#endif /* normalizer function */
     return key;
 }
 
@@ -2772,7 +2366,6 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
       node = set_env_args->env_arg;
    }
 
-   /* IR00061485 */
    m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
    status = fork();
    if(status == 0)
@@ -2853,7 +2446,6 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
    m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
     
-   /* IR00061181 */
    if( module_cb.init != TRUE)
    {
       /* this will initializes the execute module control block */
@@ -2877,7 +2469,7 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
        if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
           syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
 
-      if (-1 == nice(10)) /* IR00061137 */
+      if (-1 == nice(10)) 
       {
          perror("nice failed");
       }
@@ -3177,7 +2769,6 @@ uns32 ncs_sel_obj_create( NCS_SEL_OBJ *o_sel_obj)
     int enable_nbio = 1;
     int flags = 0;
     
-    /* IR00060272 */  
     m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
     if (0!=socketpair(AF_UNIX, SOCK_STREAM, 0, s_pair))
     {
@@ -3219,7 +2810,6 @@ uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ i_ind_obj)
     return NCSCC_RC_SUCCESS;
 }
 
-/* IR00060272 */
 uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
     if (i_ind_obj == NULL)
@@ -3236,7 +2826,6 @@ uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
     return NCSCC_RC_SUCCESS;
 }
 
-/* IR00060272 */
 /* This function will make select unblock */
 uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
@@ -3390,7 +2979,7 @@ int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 
     do
     {
-        if (rfds) *rfds = save_rfds; /* IR00060294 */
+        if (rfds) *rfds = save_rfds; 
         if (wfds) *wfds = save_wfds;
         if (efds) *efds = save_efds;
 
@@ -3500,7 +3089,6 @@ int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *timeout_in_10ms)
                 return -1;
             }
 
-            /* IR00085800 */
             assert ((pollres == 0) || 
                     ((pollres == 1) && (pfd.revents == POLLIN)) ||
                     ((pollres == -1) && (save_errno != EINTR)));

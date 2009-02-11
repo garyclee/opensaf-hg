@@ -343,9 +343,6 @@ mas_red_msg_dec(MAS_TBL* inst, NCS_MBCSV_CB_DEC* dec)
             break; 
 
         case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-#if 0
-            printf("Cold Sync Request received from MBCSv\n");
-#endif
             break;
 
             /* Standby MAS decodes the Cold Sync Complete response message */ 
@@ -353,22 +350,6 @@ mas_red_msg_dec(MAS_TBL* inst, NCS_MBCSV_CB_DEC* dec)
             rc = mas_red_cold_sync_dec(inst, dec);
             if (rc == NCSCC_RC_SUCCESS)
             {
-#if 0
-                if ((gl_mas_amf_attribs.amf_attribs.amfHandle != 0) && 
-                    (inst->amf_invocation_id != 0))
-                {
-                    /* send the AMF response succcess to AMF */ 
-                    saAmfResponse(gl_mas_amf_attribs.amf_attribs.amfHandle, 
-                                  inst->amf_invocation_id, SA_AIS_OK); 
-
-                    /* log that pending respone to AMF is sent now */ 
-                    m_LOG_MAB_HDLN_II(NCSFL_SEV_NOTICE, MAB_HDLN_AMF_SBY_RESPONSE_SENT,
-                                      (uns32)inst->amf_invocation_id, inst->vrid);
-
-                    /* reset the invocation id */ 
-                    inst->amf_invocation_id = 0;
-                }
-#endif
 
                 /* Standby MAS is in sync with Active MAS */ 
                 inst->red.cold_sync_done = TRUE; 
@@ -439,9 +420,6 @@ mas_red_cold_sync_enc(MAS_TBL* inst, NCS_MBCSV_CB_ENC *enc)
     uns32  status; 
 
     /* encode this bucket */ 
-#if 0
-    printf("ColdSync: Encoding the bucket-id: %d\n",bucket_id); 
-#endif
     status = mas_red_bucket_enc(bucket_id, inst->hash[bucket_id], 
                                inst->red.async_count[bucket_id], enc);
     if (status != NCSCC_RC_SUCCESS)
@@ -467,10 +445,6 @@ mas_red_cold_sync_enc(MAS_TBL* inst, NCS_MBCSV_CB_ENC *enc)
         /* set the stage for next callback, next bucket-id */ 
         enc->io_reo_hdl += 1; 
         m_LOG_MAB_HDLN_II(NCSFL_SEV_NOTICE,MAB_HDLN_MAS_COLD_SYNC_ENC_BKT, bucket_id, inst->vrid);
-#if 0
-        if ((bucket_id == 1))
-            sleep(5);
-#endif
     }
 
     return NCSCC_RC_SUCCESS; 
@@ -509,9 +483,6 @@ mas_red_cold_sync_dec(MAS_TBL* inst, NCS_MBCSV_CB_DEC *dec)
                       dec_bucket_id);  
         return status; 
     }
-#if 0
-    printf("ColdSync: Decoding the bucket-id: %d\n",dec_bucket_id); 
-#endif
     /* add to the hash table */ 
     if (inst->hash[dec_bucket_id] == NULL)
     {
@@ -530,10 +501,6 @@ mas_red_cold_sync_dec(MAS_TBL* inst, NCS_MBCSV_CB_DEC *dec)
     }
     else
     {
-#if 0
-        printf("mas_red_cold_sync_dec()=======================================\n"); 
-        mas_dictionary_dump(); 
-#endif
 
         /* log the failure */ 
         m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, 
@@ -1345,10 +1312,6 @@ mas_red_warm_sync_resp_dec(MAS_TBL *inst, NCS_MBCSV_CB_DEC  *dec)
     /* make a list of mismatching asyncs */ 
     for (bucket=0; bucket<MAB_MIB_ID_HASH_TBL_SIZE; bucket++) 
     {
-#if 0
-        printf("Asyn-cnt for bkt: [%d]: From Active: %d: In SBY: %d\n", bucket, peer_async_count[bucket], inst->red.async_count[bucket]);
-        fflush(stdout); 
-#endif
         if (peer_async_count[bucket] != inst->red.async_count[bucket])
         {
             /* increment the number buckets to be synced */
@@ -1700,14 +1663,6 @@ mas_red_updt_enc(NCS_MBCSV_CB_ENC* enc)
     /* encode the message */ 
     status = mab_mds_enc(0, msg, 0, &enc->io_uba, mas_mbcsv_msg_fmt_ver); 
 
-#if 0
-    /* cleanup the indices in the Filter registration request */
-    if(msg->op == MAB_MAS_REG_HDLR) 
-        mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
-
-    /* free the message */ 
-    m_MMGR_FREE_MAB_MSG(msg);
-#endif
 
     m_MAB_DBG_TRACE("\nmas_red_updt_enc():left.");
     return status;
@@ -1886,7 +1841,7 @@ mas_mbcsv_interface_initialize(MAS_MBCSV_ATTRIBS *mbcsv_attribs)
                            MAB_MAS_ERR_MBCSV_SEL_OBJ_GET_FAILED, 
                            mbcsv_attribs->mbcsv_hdl, status); 
 
-        /* Mahesh TBD == Check for the TRY_AGAIN error code */ 
+        /*  == Check for the TRY_AGAIN error code */ 
 
         /* finalize the interface with MBCSv */ 
         m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 

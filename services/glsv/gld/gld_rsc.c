@@ -359,14 +359,6 @@ void  gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, un
       m_LOG_GLD_SVC_PRVDR(GLD_MDS_SEND_ERROR,NCSFL_SEV_ERROR);
       return;
    }
-   #if 0
-   if( status == 3)
-   {
-     /* start a timer that will set the resource as master */
-     gld_start_tmr(gld_cb,&rsc_info->reelection_timer,
-         GLD_TMR_RES_REELECTION_WAIT,GLSV_GLND_MASTER_REELECTION_WAIT_TIME,rsc_info->rsc_id);
-   }
-   #endif 
    return;
 }
 
@@ -437,10 +429,7 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
    else 
    if( chg_master && (gld_cb->ha_state == SA_AMF_HA_ACTIVE ))
    {
-         /*Start the timer for resource reeelection  */
-         #if 0
-         m_NCS_MEMCPY(&rsc_info->reelection_timer.mdest_id,&node_details->dest_id,sizeof(MDS_DEST));
-         #endif
+	/*Start the timer for resource reeelection  */
          rsc_info->reelection_timer.resource_id = rsc_info->rsc_id;       
          /* Start GLSV_GLD_GLND_RESTART_TIMEOUT timer */
          gld_start_tmr(gld_cb,&rsc_info->reelection_timer,

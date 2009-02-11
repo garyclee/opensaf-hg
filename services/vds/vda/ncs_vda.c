@@ -43,11 +43,7 @@ static MDS_CLIENT_MSG_FORMAT_VER
     gl_vda_wrt_vds_msg_fmt_array[VDA_WRT_VDS_SUBPART_VER_RANGE]={
            1 /*msg format version for VDA subpart version 1*/};
 
-#if 0 /* FIXME: Put me in LEAP logging */
-#define m_NCSVDA_TRACE_ARG1(X)   m_NCS_CONS_PRINTF(X)
-#else
 #define m_NCSVDA_TRACE_ARG1(X)   
-#endif
 
 /***************************************************************************\
                          PRIVATE DATA STRUCTURES
@@ -62,7 +58,7 @@ typedef struct vda_pvt_info
    to communicate with a VDS. */
    NCS_BOOL   vds_primary_up;
    MDS_DEST   vds_vdest;
-   NCS_LOCK   vds_sync_lock; /* IR00059145 */  
+   NCS_LOCK   vds_sync_lock;   
    NCS_BOOL   vds_sync_awaited;
    NCS_SEL_OBJ vds_sync_sel;
 
@@ -141,7 +137,6 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         if (vda_info->info.vdest_create.i_create_type == 
             NCSVDA_VDEST_CREATE_SPECIFIC)
         {
-            /* Part of IR60246 Fix, Due to non check of following IR60246 occured(one of the cause)*/
             if((vda_info->info.vdest_create.info.specified.i_vdest==0)||(vda_info->info.vdest_create.info.specified.i_vdest > NCSMDS_MAX_VDEST))
             {
                return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -161,7 +156,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         }
         else
         {
-            /* IR00060214 */ /* IR00060253 */
+            
             if (vda_info->info.vdest_create.i_create_type == NCSVDA_VDEST_CREATE_NAMED)
             {/* VDEST to be created is named */
 
@@ -204,10 +199,6 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         }
 
 
-#if 0        
-       vda_info->info.vdest_create.o_mds_vdest_hdl = 
-         svc_info.info.query_pwe.o_mds_dest_hdl;
-#endif
         /* STEP : Return the VDEST-HDL */
         if (vda_info->info.vdest_create.i_create_type == NCSVDA_VDEST_CREATE_NAMED)
         {/* VDEST to be created is named */
@@ -248,7 +239,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         /* Primary VDS is not yet up. So quit. We should never reach
         * here unless genesis code missequences startup events.
         */
-           vda_sync_with_vds(); /* IR00059145 */
+           vda_sync_with_vds(); 
 
            /* Check again if VDS is up */
            if (gl_vda_info.vds_primary_up == FALSE)
@@ -325,7 +316,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         
     case NCSVDA_PWE_CREATE:
 
-        /* Fix of IR60247 : Creating a PWE2 on VDEST with OAC service on it is Failing */
+        /*  Creating a PWE2 on VDEST with OAC service on it is Failing */
     
         /* First create pwe on give VDEST with LOOKUP_CREATE query */
         m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
@@ -400,7 +391,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 }
 
 
-void vda_sync_with_vds() /*IR00059145 */
+void vda_sync_with_vds() 
 {
 
    uns32         timeout           = 3000;
@@ -639,7 +630,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
        /* STEP : Send a message to NCSMDS_SVC_ID_VDS  to allocate VDEST */
        if (gl_vda_info.vds_primary_up == FALSE)
        {
-           vda_sync_with_vds(); /* IR00059145 */
+           vda_sync_with_vds(); 
 
            /* Check again if VDS is up */
            if (gl_vda_info.vds_primary_up == FALSE)
@@ -723,7 +714,7 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
 
        if (gl_vda_info.vds_primary_up == FALSE)
        {
-           vda_sync_with_vds(); /* IR00059145 */
+           vda_sync_with_vds(); 
 
            /* Check again if VDS is up */
            if (gl_vda_info.vds_primary_up == FALSE)

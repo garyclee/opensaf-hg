@@ -1176,12 +1176,6 @@ typedef struct ncssysm_lm_arg
 
     /* System  Monitoring  Housekeeping */
 
-#if 0 /* SMM not defined yet.. Not sure there is much to do here?? */
-
-    NCSSYSM_INIT         init;
-    NCSSYSM_DSTRY        destroy;
-
-#endif
 
    /* System Monitoring Configurations */
 
@@ -1211,18 +1205,6 @@ typedef struct ncssysm_lm_arg
     NCSSYSM_BUF_RPT_WO     buf_rpt_wo;
     NCSSYSM_BUF_RPT_WOS    buf_rpt_wos;
 
-#if 0 /* SMM Not defined at this time */
-
-    NCSSYSM_TMR_ALL_RPT    tmr_all;
-    NCSSYSM_TMR_SUM_RPT    tmr_sum;
-    NCSSYSM_TASK_ALL_RPT   task_all;
-    NCSSYSM_IPC_SUM_RPT    ipc_sum;
-
-    /* Asynchronous watches */
-
-    NCSSYSM_QLT_REG        qlt; /* queue latency timer */      
-
-#endif
 
    /* Memory Leak watch functionality  */
 

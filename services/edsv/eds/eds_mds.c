@@ -1449,9 +1449,6 @@ eds_mds_svc_event(struct ncsmds_callback_info *info)
    {
       if(info->info.svc_evt.i_change == NCSMDS_DOWN)
       {
-#if 0
-         m_NCS_CONS_PRINTF("MDS DOWN MDS DEST:%x Node ID:%u in MDS svc event svc_id: %d\n",info->info.svc_evt.i_dest,info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-#endif     
          /* As of now we are only interested in EDA events */
          if (NULL == (evt = m_MMGR_ALLOC_EDSV_EDS_EVT))
          {
@@ -1648,15 +1645,8 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
 
 #if 1  
    eds_cb->vaddr = EDS_VDEST_ID;
-#if 0
-   eds_cb->my_anc = (atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("EDS_NODE_ID")) % 256);
-   printf("my anchor is ********* %d\n",eds_cb->my_anc);
-#endif
 #endif
    vda_info.req = NCSVDA_VDEST_CREATE;
-#if 0
-   vda_info.info.vdest_create.info.named.i_name  = name;
-#endif
    vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
    vda_info.info.vdest_create.i_create_oac = TRUE;/* To simplify. Check this. TBD */
    vda_info.info.vdest_create.i_persistent = FALSE; /* Up-to-the application */
@@ -1667,9 +1657,6 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
 #if 1 /* Commented for named vdest */
    /* We are using fixed values here for now */
    vda_info.info.vdest_create.info.specified.i_vdest = eds_cb->vaddr;
-#if 0
-   vda_info.info.vdest_create.info.specified.i_anc   = eds_cb->my_anc;
-#endif
 #endif  
    /* Create the VDEST address */
    if (NCSCC_RC_SUCCESS != (rc =ncsvda_api(&vda_info)))
@@ -1682,39 +1669,7 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
    /* Store the info returned by MDS */
    eds_cb->mds_hdl          = vda_info.info.vdest_create.o_mds_pwe1_hdl;
    eds_cb->mds_vdest_hdl    = vda_info.info.vdest_create.o_mds_vdest_hdl;
-#if 0 
-   eds_cb->vaddr            = vda_info.info.vdest_create.info.named.o_vdest;
-   eds_cb->my_anc           = vda_info.info.vdest_create.info.named.o_anc;
-#endif
    eds_cb->mab_hdl          = vda_info.info.vdest_create.o_pwe1_oac_hdl;
-
-#if 0
-  /* Assign Role Now */
-   m_NCS_MEMSET(&vda_info, '\0', sizeof(vda_info));
-
-   vda_info.req = NCSVDA_VDEST_CHG_ROLE;
-   vda_info.info.vdest_chg_role.i_vdest = eds_cb->vaddr;
-#if 0
-   vda_info.info.vdest_chg_role.i_anc = eds_cb->my_anc;
-#endif
-   vda_info.info.vdest_chg_role.i_new_role = V_DEST_RL_ACTIVE; /* for now */
-   if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
-   {
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   return NCSCC_RC_SUCCESS;
-#endif
-   
-#if 0 
-   /* Assign Role Now */
-   if (eds_cb->mds_role == V_DEST_RL_ACTIVE)
-       m_EDSV_DEBUG_CONS_PRINTF("ATTEMPTING TO CHANGE mds vdest role TO ACTIVE \n");
-   else
-       m_EDSV_DEBUG_CONS_PRINTF("ATTEMPTING TO CHANGE mds vdest role TO STANDBY \n");
-
-   /* Check if role change should be given here or in the CSI callback */
-   eds_mds_change_role(eds_cb);
-#endif
 
    return rc;
 }
@@ -1825,9 +1780,6 @@ uns32 eds_mds_change_role(EDS_CB *cb)
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->vaddr;
-#if 0
-   arg.info.vdest_chg_role.i_anc   = cb->my_anc;
-#endif
    arg.info.vdest_chg_role.i_new_role = cb->mds_role;
 
    if (ncsvda_api(&arg) != NCSCC_RC_SUCCESS)
@@ -1858,9 +1810,6 @@ uns32 eds_mds_vdest_destroy (EDS_CB *eds_cb)
 
    vda_info.req                             = NCSVDA_VDEST_DESTROY;   
    vda_info.info.vdest_destroy.i_vdest      = eds_cb->vaddr;
-#if 0
-   vda_info.info.vdest_destroy.i_anc        = eds_cb->my_anc;
-#endif
 
    if(NCSCC_RC_SUCCESS != ( rc = ncsvda_api(&vda_info)))
    {

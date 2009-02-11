@@ -101,7 +101,7 @@ typedef enum
     MAB_MEM_PSS_SPCN_WBREQ_PEND_LIST,
     MAB_MEM_FLTR_WARM_SYNC_CNTXT,  /* used only in NCS_MAS_RED flag */ 
     MAB_MEM_FLTR_WARM_SYNC_BKT_LIST, /* used only in NCS_MAS_RED flag */ 
-    MAB_MEM_STDBY_PSS_BUFFER_NODE, /* Fix for IR00085164 */
+    MAB_MEM_STDBY_PSS_BUFFER_NODE, 
     MAB_MEM_PSS_TBL_DETAILS_HDR,
     MAB_MEM_SUB_ID_MAX
 }MAB_MEM_SUB_ID;
@@ -283,7 +283,6 @@ typedef enum
                                    NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_PSS, MAB_MEM_PSS_SPCN_WBREQ_PEND_LIST)
 
-/* Fix for IR00085164 */
 #define m_MMGR_ALLOC_STDBY_PSS_BUFFER_NODE \
                (PSS_STDBY_OAA_DOWN_BUFFER_NODE *)m_NCS_MEM_ALLOC(sizeof(PSS_STDBY_OAA_DOWN_BUFFER_NODE), \
                NCS_MEM_REGION_TRANSIENT, \
@@ -452,7 +451,6 @@ typedef enum
 #define m_MMGR_FREE_PSS_SPCN_WBREQ_PEND_LIST(p)     m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_PSS, MAB_MEM_PSS_SPCN_WBREQ_PEND_LIST)
 
-/* Fix for IR00085164 */
 #define m_MMGR_FREE_STDBY_PSS_BUFFER_NODE(p)  m_NCS_MEM_FREE(p,NCS_MEM_REGION_TRANSIENT,  \
                                                    NCS_SERVICE_ID_PSS, MAB_MEM_STDBY_PSS_BUFFER_NODE)
 

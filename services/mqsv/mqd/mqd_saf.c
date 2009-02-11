@@ -77,77 +77,8 @@ void mqd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName,
    }
    return;
 } /* End of mqd_saf_hlth_chk_cb() */
-#if 0
-/****************************************************************************\
- PROCEDURE NAME : mqd_saf_readiness_state_cb
- 
- DESCRIPTION    : This function SAF callback function which will be called 
-                  when there is any changein the readiness state. This 
-                  attribute will help the serive part to know about its 
-                  readiness state so that it could service its clients.
-                  Since MQD is not going to service any clients there is
-                  no need of storing this state in its control block.
- 
- ARGUMENTS      : invocation     - This parameter designated a particular 
-                                   invocation of this callback function. The 
-                                   invoke process return invocation when it 
-                                   responds to the Avilability Management 
-                                   FrameWork using the saAmfResponse() 
-                                   function.
-                  compName       - A pointer to the name of the component 
-                                   whose readiness stae the Availability 
-                                   Management Framework is setting.
-                  readinessState - The Readiness state of the component, 
-                                   identified by compName, that is being 
-                                   set by the Availability Management 
-                                   Framework. 
- 
- RETURNS       : None.
-\*****************************************************************************/
-void mqd_saf_readiness_state_cb(SaInvocationT invocation, const SaNameT *compName,
-                                SaAmfReadinessStateT readinessState)
-{
-   MQD_CB   *pMqd = 0;
-   SaAisErrorT saErr = SA_AIS_OK;
-   MQSV_EVT *pEvt = 0;
-   uns32    rc = NCSCC_RC_SUCCESS;
 
-   pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);   
-   if(pMqd) {    
-      pMqd->ready_state = readinessState;
-      if((FALSE == pMqd->init) && 
-         (0 != pMqd->ready_state) &&
-         (0 != pMqd->ha_state)) {
-         
-         /* Put it in MQD's Event Queue */
-         pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
-         if(pEvt) {
-            m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
-            pEvt->type = MQSV_EVT_MQD_CTRL;
-            pEvt->msg.mqd_ctrl.type = MQD_MSG_COMP;
-            pEvt->msg.mqd_ctrl.info.init = TRUE;
 
-            /* Put it in MQD's Event Queue */
-            rc = m_MQD_EVT_SEND(&pMqd->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);
-            if(NCSCC_RC_SUCCESS != rc) {
-               m_MMGR_FREE_MQSV_EVT(pEvt, pMqd->my_svc_id);      
-            }  
-         }
-         else 
-         {
-            m_LOG_MQD_HEADLINE(MQD_MEMORY_ALLOC_FAIL);
-         }
-      }
-
-      saAmfResponse(pMqd->amf_hdl, invocation, saErr);
-      ncshm_give_hdl(pMqd->hdl);
-   } 
-   else {
-      m_LOG_MQD_HEADLINE(MQD_DONOT_EXIST);
-   }
-   return;
-} /* End of mqd_saf_readiness_state_cb() */
-#endif
 /****************************************************************************\
  PROCEDURE NAME : mqd_saf_csi_set_cb
  
@@ -186,13 +117,6 @@ void mqd_saf_readiness_state_cb(SaInvocationT invocation, const SaNameT *compNam
                                   ativeCompName went through quiescing.
  RETURNS       : None.
 \*****************************************************************************/
-#if 0
-/* Removed for B Spec compliance */
-void mqd_saf_csi_set_cb(SaInvocationT invocation, const SaNameT  *compName,
-                        const SaNameT *csiName, SaAmfCSIFlagsT csiFlags,
-                        SaAmfHAStateT *haState, SaNameT *activeCompName,
-                        SaAmfCSITransitionDescriptorT transitionDesc)
-#endif
 void mqd_saf_csi_set_cb(SaInvocationT invocation,
                          const SaNameT *compName,
                          SaAmfHAStateT haState,
@@ -361,53 +285,6 @@ static uns32 mqd_process_quisced_state(MQD_CB *pMqd,SaInvocationT invocation,SaA
 
 
 
-#if 0
-/****************************************************************************\
- PROCEDURE NAME : mqd_saf_pend_oper_confirm_cb
- 
- DESCRIPTION    : This function SAF callback function which will be called 
-                  when the AMF framework needs to take a confirmation with 
-                  the component before doing switchover or shutdown. Here
-                  we would be setting a "switch_over" flag which would take
-                  care of processing the events which is critical for this 
-                  component.
- ARGUMENTS      : invocation     - This parameter designated a particular 
-                                  invocation of this callback function. The
-                                  invoke process return invocation when it 
-                                  responds to the Avilability Management 
-                                  FrameWork using the saAmfResponse() 
-                                  function.
-                 compName       - A pointer to the name of the component 
-                                  whose readiness stae the Availability 
-                                  Management Framework is setting.
-                 pendOperFlags  - The Readiness state of the component, 
-                                  identified by compName, that is being 
-                                  set by the Availability Management 
-                                  Framework. 
- RETURNS       : None
-\*****************************************************************************/
-void mqd_saf_pend_oper_confirm_cb(SaInvocationT invocation, const SaNameT *compName,
-                                  SaAmfPendingOperationFlagsT pendOperFlags)
-{
-   MQD_CB *pMqd = 0;
-   SaAisErrorT saErr = SA_AIS_OK;
-
-   /* Get the MQD Controll Block */
-   pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);   
-   if(pMqd) {
-      if((SA_AMF_SWITCHOVER_OPERATION == pendOperFlags) &&
-         (SA_AMF_OUT_OF_SERVICE != pMqd->ready_state)) {
-         ;    
-      }      
-      saAmfResponse(pMqd->amf_hdl,invocation, saErr);
-      ncshm_give_hdl(pMqd->hdl);
-   }   
-   else {
-      m_LOG_MQD_HEADLINE(MQD_DONOT_EXIST);
-   }
-   return;
-} /* End of mqd_saf_pend_oper_confirm_cb() */
-#endif
 
 void mqd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {

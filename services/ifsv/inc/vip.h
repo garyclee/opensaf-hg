@@ -38,29 +38,6 @@
 * Following are the IP Address Virtualization event types.
 NOTE : All the events specified in this enum are not supported in this phase (Phase-I). These events are to be added to the IFSV_EVT_TYPES
 ******************************************************************************/
-#if 0
-typedef enum vip_events
-{
-    IFA_VIP_REQ = 1,
-    IFND_VIP_REQ,
-    IFD_VIP_RESP,
-    IFND_VIP_RESP,
-    IFND_VIP_IPXS_UPDATE,
-    IFND_VIP_IPXS_ADD,
-    IFND_VIP_DEL,
-    IFND_DB_SYNCUP_REQ,
-    IFD_DB_SYNCUP_RESP,
-    IFND_IFADB_SYNCUP_REQ,
-    IFA_IFADB_SYNCUP_RESP,
-    IFD_VIP_IPXS_UPDATE_BCAST,
-    LFM_NW_ROLE_CHNG,
-    IFA_INSTALL_VIP,
-    IFA_VIPD_INFO_ADD,
-    IFA_IPXS_INFO_ADD,
-    IFND_VIP_INFO_ADD,
-    IFD_VIPD_INFO_ADD_RESP
-};
-#endif
 
 /*****************************************************************************
 *  Following structure is used as unique key to access VIPD/VIPDC databases
@@ -289,16 +266,6 @@ uns32 ifsv_vip_add_intf_node (NCS_DB_LINK_LIST *list,uns8 *str);
 
 
 
-#if 0
-/* The following functionality is not implemented for this Phase */
-
-/* Prototypes for IFA interface -get*/
-  ncs_vip_ip_fetch(NCS_VIP_HANDLE handle);
-
-
-/* Prototypes for IFA interface -intall -*/
-  ncs_vip_ip_install(NCS_VIP_HANDLE handle, NCS_IPPFX ip_addr, uns8 *intf_name,SaAmfHAStateT ha_state);
-#endif
 
 #endif /* End of VIP_H */ 
 #endif

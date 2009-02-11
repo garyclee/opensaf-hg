@@ -111,7 +111,7 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
          if(!pCli->ctree_cb.cmdMrkr) {
             pCli->ctree_cb.ctxtMrkr->pCmdl = i_node;                     
             pCli->ctree_cb.cmdMrkr = i_node;
-            i_node->cmd_access_level = i_node->cmd_access_level | pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+            i_node->cmd_access_level = i_node->cmd_access_level | pCli->ctree_cb.cmd_access_level; 
             
             /* Assign the old node as parent of the new node */
             i_node->node_ptr.pParent = pCli->ctree_cb.ctxtMrkr->pCmdl;
@@ -129,11 +129,11 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
                   i_node->node_ptr.pParent = pCli->ctree_cb.ctxtMrkr->pCmdl;
                }
                pCli->ctree_cb.cmdMrkr = i_node;                        
-            i_node->cmd_access_level = i_node->cmd_access_level | pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+            i_node->cmd_access_level = i_node->cmd_access_level | pCli->ctree_cb.cmd_access_level; 
             } 
             else {
                pCli->ctree_cb.lvlMrkr = pCli->ctree_cb.cmdMrkr;
-               pCli->ctree_cb.cmdMrkr->cmd_access_level = pCli->ctree_cb.cmdMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*fix for 59359 */
+               pCli->ctree_cb.cmdMrkr->cmd_access_level = pCli->ctree_cb.cmdMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
                cli_free_cmd_element(&i_node);
                i_node = pCli->ctree_cb.cmdMrkr;               
             }
@@ -161,12 +161,12 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
             m_LOG_NCSCLI_COMMENTS(i_node->tokName, NCSCLI_REL_CHILDOF, 
                pCli->ctree_cb.lvlMrkr->tokName);            
             i_node->node_ptr.pParent = pCli->ctree_cb.lvlMrkr;                
-            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level;  /*Fix for 59359 */
+            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level;  
          }
          else {
             m_LOG_NCSCLI_COMMENTS(i_node->tokName, NCSCLI_REL_CHILDOF, 
                pCli->ctree_cb.lvlMrkr->node_ptr.pParent->tokName);
-               pCli->ctree_cb.lvlMrkr->cmd_access_level = pCli->ctree_cb.lvlMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*fix for 59359 */
+               pCli->ctree_cb.lvlMrkr->cmd_access_level = pCli->ctree_cb.lvlMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
             cli_free_cmd_element(&i_node);
             i_node = pCli->ctree_cb.lvlMrkr;            
          }
@@ -198,14 +198,14 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
             pCli->ctree_cb.orMrkr->tokName);
          
          i_node->node_ptr.pParent = pCli->ctree_cb.orMrkr;
-         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; /* Fix for 59359 */
+         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          pCli->ctree_cb.orMrkr = i_node;
          
          /* reset all pointers */
          pCli->ctree_cb.optMrkr = pCli->ctree_cb.orMrkr;            
       }
       else {
-          pCli->ctree_cb.orMrkr->cmd_access_level = pCli->ctree_cb.orMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+          pCli->ctree_cb.orMrkr->cmd_access_level = pCli->ctree_cb.orMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          cli_free_cmd_element(&i_node);
          i_node = pCli->ctree_cb.orMrkr;         
       }
@@ -227,7 +227,7 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
          }
          
          pCli->ctree_cb.optMrkr->node_ptr.pDataPtr = i_node;  
-         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; /* Fix for 59359 */
+         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          if(i_node->isMand == FALSE) {
             m_LOG_NCSCLI_COMMENTS(i_node->tokName, NCSCLI_REL_OPTCHILDOF, 
                pCli->ctree_cb.optMrkr->tokName);
@@ -244,7 +244,7 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
                i_node->isMand = TRUE;
             
             pCli->ctree_cb.optMrkr->node_ptr.pChild = i_node;                    
-            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; /* Fix for 59359 */
+            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          }
          else {
             pCli->ctree_cb.optMrkr = pCli->ctree_cb.optMrkr->node_ptr.pDataPtr;                
@@ -267,11 +267,11 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
       
       if(FALSE == pCli->ctree_cb.nodeFound) {
          i_node->node_ptr.pParent = pCli->ctree_cb.optMrkr;
-         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+         i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          pCli->ctree_cb.optMrkr = i_node;
       }
       else {
-         pCli->ctree_cb.optMrkr->cmd_access_level = pCli->ctree_cb.optMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+         pCli->ctree_cb.optMrkr->cmd_access_level = pCli->ctree_cb.optMrkr->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
          cli_free_cmd_element(&i_node);
          i_node = pCli->ctree_cb.optMrkr;         
       }
@@ -312,12 +312,12 @@ void cli_add_cmd_node(CLI_CB  *pCli, CLI_CMD_ELEMENT *i_node,
          
          if(FALSE == pCli->ctree_cb.nodeFound) {
             i_node->node_ptr.pParent = tempMarker;
-            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+            i_node->cmd_access_level = i_node->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
             pCli->ctree_cb.optMrkr = i_node;
             pCli->ctree_cb.contMrkr = i_node;
          }
          else {
-             tempMarker->cmd_access_level = tempMarker->cmd_access_level|pCli->ctree_cb.cmd_access_level; /*Fix for 59359 */
+             tempMarker->cmd_access_level = tempMarker->cmd_access_level|pCli->ctree_cb.cmd_access_level; 
             cli_free_cmd_element(&i_node);
             i_node = tempMarker;            
          }                  
@@ -781,7 +781,6 @@ void cli_clean_cmd_element(CLI_CMD_ELEMENT *node)
          /* Push the bindery structre in list for freeing */
          if(curr->bindery) cli_push_bindery(&bdryl, curr->bindery);
         
-        /* Fix for the bug IR00061049 */
          /*cli_free_cmd_element(&curr); */       
          if(curr != ptr) cli_free_cmd_element(&curr);        
 

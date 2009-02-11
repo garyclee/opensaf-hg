@@ -82,7 +82,6 @@ typedef enum pss_ckpt_state_type
    PSS_WARM_SYNC_FAIL
 }PSS_CKPT_STATE;
 
-/* Fix for IR00085164 */
 typedef enum pss_stdby_oaa_down_buffer_op
 {
     PSS_STDBY_OAA_DOWN_BUFFER_ADD,
@@ -274,7 +273,6 @@ typedef struct pss_pwe_cb_tag
    NCS_BOOL                    processing_pending_active_events; /* like
                                   playback sessions, etc. */
 
-   /* Fix for IR00085164 */
    struct pss_stdby_oaa_down_buffer_node       *pss_stdby_oaa_down_buffer;
 
 #endif
@@ -429,7 +427,6 @@ typedef struct pss_odplayback_sort_table_tag
     uns16               num_entries;
 }PSS_ODPLAYBACK_SORT_TABLE;
 
-/* Fix for IR00085164 */
 typedef struct pss_stdby_oaa_down_buffer_node
 {
     MDS_DEST           oaa_addr; /* oaa  address */
@@ -745,9 +742,6 @@ EXTERN_C uns32 pss_process_set_request        (MAB_MSG* msg);
 EXTERN_C uns32 pss_process_setrow_request     (MAB_MSG* msg, NCS_BOOL is_move_row);
 EXTERN_C uns32 pss_process_setallrows_request (MAB_MSG* msg);
 EXTERN_C uns32 pss_process_removerows_request (MAB_MSG* msg);
-#if 0
-EXTERN_C uns32 pss_process_ncsmib_response     (NCSMIB_ARG * rsp);
-#endif
 EXTERN_C uns32 pss_validate_set_mib_obj(PSS_MIB_TBL_INFO* tbl_obj,
                                         NCSMIB_PARAM_VAL* param);
 EXTERN_C uns32 pss_validate_param_val(NCSMIB_VAR_INFO* var_info,
@@ -946,7 +940,7 @@ EXTERN_C uns32 pss_mds_cb (NCSMDS_CALLBACK_INFO *cbinfo);
 EXTERN_C void pss_cb_data_dump(void);
 
 
-/**************** Fix for IR00085164 ************************************
+/**************** ************************************
 uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STDBY_OAA_DOWN_BUFFER_OP buffer_op);
 ************************************************************************/
 
@@ -960,27 +954,6 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
 *************************************************************************/
 
 
-#if 0
-#if (NCSMAB_USE_LOCK_TYPE == MAB_NO_LOCKS)                  /* NO Locks */
-
-#define m_PSS_LK_CREATE(lk)
-#define m_PSS_LK_INIT
-#define m_PSS_LK(lk) 
-#define m_PSS_UNLK(lk) 
-#define m_PSS_LK_DLT(lk) 
-
-#elif (NCSMAB_USE_LOCK_TYPE == MAB_TASK_LOCKS)            /* Task Locks */
-
-#define m_PSS_LK_CREATE(lk)
-#define m_PSS_LK_INIT            m_INIT_CRITICAL
-#define m_PSS_LK(lk)             m_START_CRITICAL
-#define m_PSS_UNLK(lk)           m_END_CRITICAL
-#define m_PSS_LK_DLT(lk) 
-
-#elif (NCSMAB_USE_LOCK_TYPE == MAB_OBJ_LOCKS)           /* Object Locks */
-
-#endif
-#endif
 
 /* Always use Object Locks */
 #define m_PSS_LK_CREATE(lk)      m_NCS_LOCK_INIT_V2(lk,NCS_SERVICE_ID_MAB, \

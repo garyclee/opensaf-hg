@@ -667,10 +667,6 @@ static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_AR
        
       }
 end:
-    #if 0
-    /*TBD */
-    m_MMGR_FREE_GLSV_GLD_A2S_EVT(a2s_evt);
-    #endif
     return rc;
 
 }
@@ -735,127 +731,6 @@ uns32 gld_cb_db_destroy (GLSV_GLD_CB *cb)
    gld_rsc_info_tree_destroy(cb);
    return NCSCC_RC_SUCCESS;
 }*/
-#if 0
-/****************************************************************************
-  Name          : 
-  Description   : This routine destroys the .
-  Arguments     : GLSV_GLD_CB *cb .
-  Return Values : None
-  Notes         : None
-******************************************************************************/
-uns32 gld_node_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_GLND_DETAILS *node_details)
-{
-  uns32 rc = NCSCC_RC_SUCCESS;
-
-  /*TBD need to free rsc_info_tree of GLSV_GLD_GLND_DETAILS */ 
-  if(ncs_patricia_tree_del(&cb->glnd_details, &node_details->pat_node)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
-
-   /* Free the Client Node */
-   if(node_details)
-      m_MMGR_FREE_GLSV_GLD_GLND_DETAILS(node_details);
-
-   return rc;
-
-}
-#endif
-#if 0
-/****************************************************************************
-  Name          : gld_glnd_details_tree_destroy
-  Description   : This routine destroys the .
-  Arguments     : GLSV_GLD_CB *cb .
-  Return Values : None
-  Notes         : None
-******************************************************************************/
-void gld_glnd_details_tree_destroy(GLSV_GLD_CB *cb)
-{
-   GLSV_GLD_GLND_DETAILS *node_details;
-   uns32                 node_id;
-
-   if(!cb->glnd_details_tree_up)
-      return;
-
-   /* cleanup the  glnd details tree */
-   node_details = (GLSV_GLD_GLND_DETAILS*)ncs_patricia_tree_getnext(&cb->glnd_details,(uns8*)0);
-   while(node_details)
-   {
-      node_id =node_details->node_id;
-      gld_node_details_delete(cb, node_details);
- 
-      node_details = (GLSV_GLD_GLND_DETAILS*)ncs_patricia_tree_getnext(&cb->glnd_details,(uns8*)&node_id);
-  
-   }
-  
-   return;
-}
-#endif
-#if 0
-/****************************************************************************
-  Name          :
-  Description   : This routine destroys the tree.
-  Arguments     : GLSV_GLD_CB *cb - Control Block.
-  Return Values : None
-  Notes         : None
-******************************************************************************/
-uns32 gld_rsc_info_details_delete(GLSV_GLD_CB *cb, GLSV_GLD_RSC_INFO *rsc_info)
-{
-  uns32 rc = NCSCC_RC_SUCCESS;
-  GLSV_NODE_LIST       *node_list, *next_list;
-
-  /* In case if the internal pointers present, delete them */
-   node_list = rsc_info->node_list;
-   while(node_list)
-   {
-      next_list = node_list->next;
-      m_MMGR_FREE_GLSV_NODE_LIST(node_list);
-      node_list = next_list;
-   }
-
-  if(ncs_patricia_tree_del(&cb->rsc_info_id, &rsc_info->pat_node)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
-  
-   /* Free the rsc_info node */
-   if(rsc_info)
-      m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
-   
-   return rc;
-
-}
-#endif
-#if 0
-/****************************************************************************
-  Name          :gld_rsc_info_tree_destroy 
-  Description   : This routine destroys the tree.
-  Arguments     : GLSV_GLD_CB *cb - Control Block.
-  Return Values : None
-  Notes         : None
-******************************************************************************/
-void gld_rsc_info_tree_destroy(GLSV_GLD_CB *cb)
-{
-    GLSV_GLD_RSC_INFO *rsc_info; 
-    SaLckResourceIdT     rsc_id = 0;
-
-    if(!cb->rsc_info_id_tree_up)
-      return;
-
-    /* cleanup the  glnd details tree */
-     rsc_info = (GLSV_GLD_RSC_INFO*)ncs_patricia_tree_getnext(&cb->rsc_info_id,(uns8*)&rsc_id);
-     while(rsc_info)
-     {
-       rsc_id   = rsc_info->rsc_id;
-       gld_rsc_info_details_delete(cb, rsc_info);
- 
-       rsc_info = (GLSV_GLD_RSC_INFO*)ncs_patricia_tree_getnext(&cb->rsc_info_id,(uns8*)&rsc_id);
- 
-     }
-
-    return;
-}
-#endif
 
 /************************************************************************************
  * Name           :glsv_gld_mbcsv_dec_sync_resp 
@@ -905,13 +780,6 @@ static uns32  glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG 
          return rc;
       }
       rc = gld_sb_proc_data_rsp(gld_cb,rsc_info);
-      #if 0
-      if(rc != NCSCC_RC_SUCCESS)
-      {
-         m_MMGR_FREE_GLSV_GLD_A2S_RSC_DETAILS(rsc_info);
-         return rc;
-      }
-      #endif
       count++;
       m_NCS_MEMSET(rsc_info,0,sizeof(GLSV_GLD_A2S_RSC_DETAILS));
    }

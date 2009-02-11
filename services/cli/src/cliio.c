@@ -60,7 +60,7 @@ static int8 *cli_con_err_str[] =
    "File Open Error",
    "File Read Error",
    "Login command encountered",
-   "This is mode change command.But it's respective mode is not registered." /* IR00082729 */
+   "This is mode change command.But it's respective mode is not registered." 
 };
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -370,7 +370,6 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
 #if (NCS_PC_CLI == 1)
    NCS_BOOL              pcode_active = TRUE;
 #endif
-   /* fix for IR00085258 */ 
    FILE    *input; 
    struct termios initial_settings;
    struct termios new_settings;
@@ -396,7 +395,6 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
    
    m_GET_TIME_STAMP(pCli->cli_last_active_time); /*Aded to fix the bug 58609 */
    cli_timer_start(pCli);               /* Added to fix the bug 58609 */
-   /*Fix for 59359 */
    if(pCli->user_access_level == NCSCLI_USER_FIND_ERROR) {
        cli_lib_shut_except_task_release();
        exit(0);
@@ -421,7 +419,6 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
 #else
    m_CLI_SET_PROMPT(CLI_ROUTER_NAME, FALSE);
 #endif
-   /* Fix for IR00085258 */
    {
        if (!isatty(fileno(stdout))) {
            fprintf(stderr,"You are not a terminal, OK.\n");
@@ -451,12 +448,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
       } 
 #endif
        
-      param.i_execcmd = TRUE;  /* execute the command (fix for thr bug 59119)*/
-      /* fix for IR00085258 */
-   #if 0
-      ch = pCli->readFunc(vr_id);    
-   #endif
-      /* fix for IR00085258 */
+      param.i_execcmd = TRUE;  /* execute the command */
       {
           m_NCS_MEMSET(&initial_settings, '\0', sizeof(initial_settings));
           m_NCS_MEMSET(&new_settings, '\0', sizeof(new_settings));
@@ -498,7 +490,6 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
       switch (ch) {
       case 0:
          is_arrow = TRUE;         
-         /* fix for IR00085258 */
          {
              fclose(input);
 
@@ -611,7 +602,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
       /* Should exit from CLI */
       case CONTROL(CLI_CONS_END): 
-          cli_lib_shut_except_task_release(); /* Fix for the bug 58948 */
+          cli_lib_shut_except_task_release(); 
           exit(0);
           /*return;   CONTROL(CLI_CONS_END) */
       
@@ -658,7 +649,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             pCli->ctree_cb.cmdElement = context_node->pCmdl;
             param.i_cmdbuf = buffer;
             if ( m_NCSCLI_VERIFY_FILE == buffer[0])
-                param.i_execcmd = FALSE;  /* Fix for the bug 59119 */
+                param.i_execcmd = FALSE;  
             /* Execute command from file */
             cli_exec_cmd_from_file(pCli, &param, &session_info);
             
@@ -702,10 +693,10 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          /* Exiting from CLI */
          if(0 == cli_stricmp(buffer, CLI_SHUT)) 
          {
-            cli_lib_shut_except_task_release(); /* Fix for the bug 58948 */
+            cli_lib_shut_except_task_release(); 
             exit(0);
          }
-/* quit command is valid only for pcode. For other cases it is invalidated . This is also the fix for bug 58948 */
+/* quit command is valid only for pcode. For other cases it is invalidated .  */
 #if (NCS_PC_CLI == 1)
          if(0 == cli_stricmp(buffer, CLI_QUIT)) 
          {            
@@ -765,7 +756,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             /*Set the current prompt */
             switch(param.o_status)
             {
-            case CLI_NO_MODE:  /* IR00082729 */
+            case CLI_NO_MODE:  
                m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_NO_MODE]);
 
                /*Push the command into the the command history list */
@@ -897,7 +888,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
          cli_execute_command(pCli, &param, &session_info);
          switch(param.o_status) {
-         case CLI_NO_MODE:  /* IR00082729 */
+         case CLI_NO_MODE:  
             m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_NO_MODE]);
 
             /*Push the command into the the command history list */
@@ -1030,7 +1021,7 @@ default_val:
          break;
       } 
    } while(ch != CONTROL(CLI_CONS_END));    
-   fclose(input); /* Fix for IR00085258 */
+   fclose(input); 
 }
 
 
@@ -1451,7 +1442,7 @@ cli_exec_cmd_from_file(CLI_CB *pCli, CLI_EXECUTE_PARAM *io_param,
       /* Exiting from CLI */
       if(0 == cli_stricmp(cmdStr, CLI_SHUT))
       {
-          cli_lib_shut_except_task_release(); /* Fix for the bug IR00060950*/
+          cli_lib_shut_except_task_release(); 
           exit(0);
       }
       if((0 == cli_stricmp(cmdStr, CLI_EXIT)) && 

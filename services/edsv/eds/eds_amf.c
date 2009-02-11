@@ -31,112 +31,6 @@ stuff.
 
 /* HA AMF statemachine & State handler definitions */
 
-#if 0
-static eds_HAStateHandler eds_stateHandler[]={
-     eds_invalid_state_handler,
-     eds_active_state_handler,
-     eds_standby_state_handler,
-     eds_quiesced_state_handler,
-     eds_quiescing_state_handler
-}; /*Indexed by next states */
-                                                                                                                       
-static struct next_HAState validStates[]={
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_STANDBY}, /* From Current State Initial */
-{SA_AMF_HA_QUIESCED,SA_AMF_HA_QUIESCING}, /*Current State active */
-{SA_AMF_HA_ACTIVE,EDS_HA_INVALID}, /*Current State standby */
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_STANDBY}, /* Current State quiesced */
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_QUIESCED} /*Current State quiescing */
-}; /*Indexed by current states */
-
-/* HA state handler functions definitions */                                                                           
-
-/****************************************************************************
- * Name          : eds_active_state_handler
- *
- * Description   : This function is called upon receving an active state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the EDS control block. 
- *
- * Return Values : None
- *
- * Notes         : None 
- *****************************************************************************/
-
-uns32 eds_active_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation)
-{
-   V_DEST_RL         mds_role;
-#if 0
-   V_CARD_QA         anchor;
-#endif
-
-   mds_role = V_DEST_RL_ACTIVE;
-#if 0
-   anchor   = V_DEST_QA_1;
-#endif
-
-   /** set the CB's anchor value & mds role */
-#if 0
-   cb->my_anc = anchor;
-#endif
-   cb->mds_role = mds_role;
-
-   m_NCS_CONS_PRINTF("I AM HA AMF ACTIVE\n");
-   
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : eds_standby_state_handler
- *
- * Description   : This function is called upon receving an standby state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the EDS control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 eds_standby_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation)
-{
-   V_DEST_RL         mds_role;
-#if 0
-   V_CARD_QA         anchor;
-#endif
-
-/*TBD: CHECK THE USAGE OF MDS_ROLE!!!!!!!!!!!!!!!!!!!!! */
-   mds_role = V_DEST_RL_STANDBY;
-#if 0
-   anchor   = V_DEST_QA_2;
-#endif
-
-   /** set the CB's anchor value */
-#if 0
-   cb->my_anc = anchor;
-#endif
-   cb->mds_role = mds_role;
-
-   m_NCS_CONS_PRINTF("I AM HA AMF STANDBY\n");
-
-   return NCSCC_RC_SUCCESS;
-}
-#endif 
 /****************************************************************************
  * Name          : eds_quiescing_state_handler
  *
@@ -328,9 +222,6 @@ eds_amf_CSI_set_callback (SaInvocationT invocation,
       prev_haState = eds_cb->ha_state;
      
       /* Invoke the appropriate state handler routine */
-#if 0
-      error = eds_stateHandler[VALIDATE_STATE(eds_cb->ha_state,new_haState)](eds_cb,invocation);
-#endif 
       switch(new_haState)
       { 
         case SA_AMF_HA_ACTIVE :

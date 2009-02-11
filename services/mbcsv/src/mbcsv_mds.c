@@ -247,7 +247,7 @@ uns32 mbcsv_mds_send_msg(uns32            send_type,
 
    if (ncsmds_api(&mds_info) == NCSCC_RC_SUCCESS)
    {
-      /* If message is send resp  then free the message received in response (IR IR00060755) */
+      /* If message is send resp  then free the message received in response  */
       if ((MDS_SENDTYPE_REDRSP == send_type) &&
           (NULL != mds_info.info.svc_send.info.redrsp.o_rsp))
       {
@@ -333,7 +333,7 @@ uns32 mbcsv_mds_callback(NCSMDS_CALLBACK_INFO * cbinfo)
                     cbinfo->i_yr_svc_hdl);
         break;
 
-    /* Fix for IR00059650 : MBCSv doesn't handle MDS Quiesced Ack callback */
+    /* Fix for  MBCSv doesn't handle MDS Quiesced Ack callback */
     case MDS_CALLBACK_DIRECT_RECEIVE:
     case MDS_CALLBACK_QUIESCED_ACK:
         status = NCSCC_RC_SUCCESS;
@@ -369,10 +369,6 @@ uns32 mbcsv_mds_rcv(NCSMDS_CALLBACK_INFO * cbinfo)
    SYSF_MBX  mbx;
    uns32     send_pri;
 
-#if 0 /* This check is redundant */
-   if(cbinfo->info.receive.i_msg_fmt_ver > MBCA_MDS_CURR_MSG_FMAT_VER)
-      return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_mds_rcv: Message format version is higher than the current version can handle.");
-#endif
 
    if (NULL == msg)
        return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,

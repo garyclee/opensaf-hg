@@ -141,9 +141,7 @@ snmpsubagt_netsnmp_lib_initialize(struct ncsSa_cb *cb)
 #endif
 
     /* Following are the bug details in NET-SNMP bug data base.
-       http://sourceforge.net/tracker/index.php?func=detail&aid=1047767&group_id=12694&atid=112694
-       This is temporary fix till we get the fix in NET-SNMP. This fixes the bugs IR00009056, IR00009136,
-       IR00057949 and IR00058137. */
+       http://sourceforge.net/tracker/index.php?func=detail&aid=1047767&group_id=12694&atid=112694*/
 
     signal (SIGPIPE, SIG_IGN);
 
@@ -207,48 +205,6 @@ snmpsubagt_netsnmp_lib_finalize(NCSSA_CB *cb)
     m_SNMPSUBAGT_HEADLINE_LOG(SNMP_SHUTDOWN_DONE);
     return NCSCC_RC_SUCCESS;
 }
-#if 0
-
-/******************************************************************************
- *  Name:          snmpsubagt_netsnmp_lib_deinit
- *
- *  Description:   To de-initialize the session with the Agentx Agent
- *                  To do the above job NetSnmp Supplied APIs are used
- *                  De initialization inovolves the termination of the
- *                  session with the Agent.  This does not delete the
- *                  OID tree build at the SubAgent.
- *
- *  Arguments:     NCSSA_CB *cb - SNMP SubAgent's control block
- *
- *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
- *                 NCSCC_RC_FAILURE   -  failure
- *  NOTE:  This routine closes the session with the Agent, but it maintains
- *         the list of MIBs to be registered with the Agent.  This routine
- *         is not used any more for two reasons
- *              - STANDBY subagent also opens the session with the Agent
- *              - SubAgent registers the OIDs with the Agent, only when
- *                it is moved to INS State.
- ****************************************************************************/
-uns32
-snmpsubagt_netsnmp_lib_deinit(NCSSA_CB *cb)
-{
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_NETSNMP_LIB_DEINIT);
-
-    if (cb == NULL)
-    {
-        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_NULL);
-        return NCSCC_RC_FAILURE;
-    }
-    /* unregister the alarms */
-    snmp_alarm_unregister_all();
-    m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_ALARM_UNREG_DONE);
-
-    /* close the session */
-    snmp_close_sessions();
-    m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CLOSE_SESSIONS_DONE);
-    return NCSCC_RC_SUCCESS;
-}
-#endif
 
 /******************************************************************************
  *  Name:          snmpsubagt_request_process
@@ -277,10 +233,6 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
     uns32           status = NCSCC_RC_FAILURE;
     int             ping_interval = 0;
 
-#if 0
-    /* log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_RQST_PROCESS);
-#endif
 
     if (cb == NULL)
     {
@@ -315,7 +267,6 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
          tvp->tv_sec = 0;
          tvp->tv_usec = 0;
      }
-     /* Fix provided for the bug IR00079744 */
      ping_interval = netsnmp_ds_get_int(NETSNMP_DS_APPLICATION_ID, NETSNMP_DS_AGENT_AGENTX_PING_INTERVAL);
      if((ping_interval > 0) && (tvp != NULL) && (tvp->tv_sec  > ping_interval))
      {
@@ -346,17 +297,12 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
     if (cb->amfHandle != 0)
     {
         FD_SET((int)cb->amfSelectionObject, &readfds);
-#if 0
-        /* log the fd */
-        m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_AMF_SEL_OBJ,
-                              (int)cb->amfSelectionObject);
-#endif
         if ((cb->amfSelectionObject + 1) > numfds)
         {
             numfds = cb->amfSelectionObject+1;
         }
     }
-    else /* if(cb->amfHandle == 0) */ /* IR00061409 */
+    else /* if(cb->amfHandle == 0) */ 
     {
         /* add the sigusr1 signal handler fd */
         FD_SET(m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj), &readfds);
@@ -382,20 +328,11 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
 
     /* Add the subagent mail box fd to the select list */
     FD_SET((m_GET_FD_FROM_SEL_OBJ(mbx_fd)),&readfds);
-#if 0
-    /* log the ipc fd */
-    m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_IPC_MBX_SEL_OBJ,
-                          m_GET_FD_FROM_SEL_OBJ(mbx_fd));
-#endif
 
     if ( (m_GET_FD_FROM_SEL_OBJ(mbx_fd))+1 > numfds)
     {
         numfds = (m_GET_FD_FROM_SEL_OBJ(mbx_fd))+1;
     }
-#if 0
-    /* Log the num of FDs */
-    m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_NUM_FDS, numfds);
-#endif
 
     /* add the SIGHUP signal handler fd */
     FD_SET(m_GET_FD_FROM_SEL_OBJ(cb->sighdlr_sel_obj), &readfds);
@@ -427,7 +364,6 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
     {
 #if (BBS_SNMPSUBAGT == 0)
 
-           /* IR00061409 */
            if (cb->amfHandle == 0)
            {
                if (FD_ISSET((m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj)), &readfds))
@@ -437,7 +373,7 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
                    m_NCS_SEL_OBJ_RMV_IND(cb->sigusr1hdlr_sel_obj, TRUE, TRUE);
                    m_NCS_SEL_OBJ_DESTROY(cb->sigusr1hdlr_sel_obj);
                }
-           } /* IR00061409 */
+           } 
            else /* if (cb->amfHandle != 0) */
            {
 
@@ -474,7 +410,7 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
                /*clear the bit off for this fd*/
                FD_CLR((int)cb->evtSelectionObject, &readfds);
            }
-           /* Do snmp_read() before processing mbx fd. Fix for IR 84087 */
+           /* Do snmp_read() before processing mbx fd.  */
            {
                /* Check if data is on snmp fds */
                snmp_read(&readfds);/* by default for all fds */
@@ -540,9 +476,6 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
     /*
      * Run requested alarms.
      */
-#if 0
-    m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_RUN_ALARMS);
-#endif
     run_alarms();
 
     return NCSCC_RC_SUCCESS;
@@ -602,9 +535,6 @@ snmpsubagt_agt_startup_params_process(int32    argc,
                 exit(1);
             }
             /* I did not get what this long options is all about?? */
-#if 0
-            handle_long_opt(optarg);
-#endif
             break;
 
             /* '-c' -- config file */
@@ -717,7 +647,7 @@ snmpsubagt_agt_log_setup(char *logfile)
      * parameters as input.  I do not understand them completely.
      * For the SubAgent it is enough, if we do the following.
      */
-    /* snmp_enable_stderrlog(); */ /* Fix for IR 82446 */
+    /* snmp_enable_stderrlog(); */ 
 
     if (logfile != NULL)
     {

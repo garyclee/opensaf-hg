@@ -95,19 +95,6 @@ snmpsubagt_table_oid_add(uns32              table_id,
     /* 'oid_base' is a static array in the generated code */
     db_node->base_oid = oid_base;
 
-#if 0 
-    db_node->base_oid = m_MMGR_NCSSA_OID_DB_ELEM_ALLOC(oid_len*sizeof(oid));
-    
-    if (db_node->base_oid == NULL)
-    {
-        /* log the error*/
-        /* free the data base node */
-        m_MMGR_NCSSA_OID_DB_NODE_FREE(db_node);
-        
-        return NCSCC_RC_OUT_OF_MEM; 
-    }
-    m_NCS_MEMSET(db_node->base_oid, 0, (sizeof(oid)*oid_len));
-#endif
  
     /* compose the key for the patricia tree (table_id) */ 
     db_node->key.i_table_id = table_id; 
@@ -115,10 +102,6 @@ snmpsubagt_table_oid_add(uns32              table_id,
     /* get the base oid into our world */
     db_node->base_oid_len = oid_len;
 
-#if 0 
-    /* no need to copy */
-    m_NCS_OS_MEMCPY(db_node->base_oid,  oid_base, oid_len*sizeof(oid));
-#endif
 
     /* upload the object details */
     db_node->objects_details = object_details;
@@ -134,10 +117,6 @@ snmpsubagt_table_oid_add(uns32              table_id,
         /* log the error */
         m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_MEM_ALLOC_PAT_NODE_FAIL); 
 
-#if 0 
-        /* free the db element */
-        m_MMGR_NCSSA_OID_DB_ELEM_FREE(db_node->base_oid);
-#endif
         
         /* free the db node */
         m_MMGR_NCSSA_OID_DB_NODE_FREE(db_node);
@@ -211,10 +190,6 @@ snmpsubagt_table_oid_del(uns32   table_id)
 
         return status; 
     }
-#if 0 
-    /* free the base_oid */ 
-    m_MMGR_NCSSA_OID_DB_ELEM_FREE(db_node->base_oid); 
-#endif
     
     /* free the databse node */
     m_MMGR_NCSSA_OID_DB_NODE_FREE(db_node);
@@ -253,10 +228,6 @@ snmpsubagt_table_oid_destroy(NCS_PATRICIA_TREE   *oid_db)
         /* delete the node from the tree */
         ncs_patricia_tree_del(oid_db, &db_node->PatNode); 
 
-#if 0
-        /* free the base_oid */
-        m_MMGR_NCSSA_OID_DB_ELEM_FREE(db_node->base_oid); 
-#endif
 
         /* free the node */
         m_MMGR_NCSSA_OID_DB_NODE_FREE(db_node); 

@@ -714,13 +714,6 @@ uns32  cpd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
       case NCS_MBCSV_MSG_COLD_SYNC_RESP:
             rc =  cpd_mbcsv_enc_msg_resp(cb,arg);
             return rc;
-         #if 0
-         else
-         {
-            arg->info.decode.i_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
-            return NCSCC_RC_SUCCESS;
-         }
-         #endif
          break;
 
       case NCS_MBCSV_MSG_WARM_SYNC_REQ:

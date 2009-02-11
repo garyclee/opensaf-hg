@@ -368,10 +368,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
    /*** Init MAC ***/
 #if (NCS_MAC == 1)
       m_NCS_DBG_PRINTF("\nMAA:ON");       
-#if 0
-      if (maclib_request(&lib_create) != NCSCC_RC_SUCCESS)
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-#endif
             /*** Init MAA ***/
       if (ncs_maa_startup(argc, argv) != NCSCC_RC_SUCCESS)
       {
@@ -557,13 +553,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 #if (NCS_PSR == 1)
    if ('n' != ncs_util_get_char_option(argc, argv, "PSS="))
    {
-#if 0
-#ifndef __NCSINC_WIN32__
-       NCS_OS_DLIB_HDL     *lib_hdl = NULL;
-       typedef uns32 (*PSSREG_LIB_REQ)(uns32);
-       PSSREG_LIB_REQ pss_lib_req;
-#endif
-#endif
 
        m_NCS_DBG_PRINTF("\nPSS:ON");
        if (ncspss_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
@@ -573,21 +562,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
           return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
        }
 
-#if 0
-#ifndef __NCSINC_WIN32__
-       lib_hdl = m_NCS_OS_DLIB_LOAD(NULL, m_NCS_OS_DLIB_ATTR);
-       /* Register DTS-MIBINFO with PSSv */
-       pss_lib_req = (PSSREG_LIB_REQ)m_NCS_OS_DLIB_SYMBOL(lib_hdl, "dts_pssv_register");
-       if(pss_lib_req != NULL)
-       {
-           if ((*pss_lib_req)(gl_psslibinfo.pss_hdl) != NCSCC_RC_SUCCESS)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       }
-#else
-       if (dts_pssv_register(gl_psslibinfo.pss_hdl) != NCSCC_RC_SUCCESS)
-           return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-#endif
-#endif
    }
 #endif
 
@@ -732,30 +706,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       }
 #endif
    }
-#if 0   
-   if ('n' != ncs_util_get_char_option(argc, argv, "CPSV="))
-   {
-#if (NCS_CPD == 1)
-      /*** Init CPD ***/   
-      m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
-      if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-         m_NCS_CONS_PRINTF("CPD lib request failed\n");
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-#endif     
-#if (NCS_CPND == 1)
-      /*** Init CPND ***/   
-      m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
-      if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-         m_NCS_CONS_PRINTF("CPND lib request failed\n");
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
-      }
-#endif
-#endif
    /*** Init VDS ***/
 #if (NCS_VDS == 1)
    if ('n' != ncs_util_get_char_option(argc, argv, "VDSV="))
@@ -849,10 +799,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
         m_NCS_DBG_PRINTF("\nHISV:HCD libcreate success");
 #endif
       /*** Init HISV-HPL ***/
-#if 0
-      if (ncs_hisv_hpl_startup(argc, argv) != NCSCC_RC_SUCCESS)
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-#endif /* 0 */
 
    }
 
@@ -921,16 +867,6 @@ static uns32 ncs_d_nd_svr_shutdown(int argc, char *argv[])
        dummy_status = m_LEAP_DBG_SINK(0);
 #endif
 
-#if 0
-#if (PCS_HALS_MONC == 1)
-    if (pcs_svc_lib_req(&lib_destroy, PCS_SERVICE_ID_MONC) != NCSCC_RC_SUCCESS)
-       dummy_status = m_LEAP_DBG_SINK(0);
-#endif
-#if (PCS_HALS_PROXY == 1)
-    if (pcs_svc_lib_req(&lib_destroy, PCS_SERVICE_ID_PROXY) != NCSCC_RC_SUCCESS)
-       dummy_status = m_LEAP_DBG_SINK(0);
-#endif
-#endif
 
 #if (NCS_SUND == 1)
     /* Shutdown SUND */
@@ -994,14 +930,6 @@ mainmib_mab_mac_msg_send(uns32       i_mib_key,
                            uns32        i_time_val, 
                            uns32        send_to_masv);
 
-#if 0
-static uns32
-comp_snmp_set(char **val);
-
-
-static uns32
-maincall_avsv_snmp_set(FILE *fp);
-#endif
 
 #endif
 
@@ -1035,7 +963,7 @@ uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type,
    {
       set_value = atoi(i_param_val);
 
-      /** NOTE we are not supporting negative values at present - TBD **/
+      /** NOTE we are not supporting negative values at present **/
       if (set_value == -1)
       {
          mainsnmpset_help_print();
@@ -1218,7 +1146,7 @@ mainmib_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
     /* update the value */
     switch(io_param_val->i_fmat_id)
     {
-        /* add all the other formats like OID, COUNTER64 -- TBD Mahesh */
+        /* add all the other formats like OID, COUNTER64   */
         case NCSMIB_FMAT_INT:
             io_param_val->info.i_int = *((uns32*)(i_set_val));
             /* Log the data */
@@ -1532,142 +1460,13 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
        }
    }
 
-   /* IR00060642: fclose() removed. It has to be taken care of by calling function */
+   /*  fclose() removed. It has to be taken care of by calling function */
 
    return(NCSCC_RC_SUCCESS);
 }
 
 
 #if (NCS_MAC == 1)
-#if 0 /* Right now compiled out - Jagan */
-static uns32
-maincall_avsv_snmp_set(FILE *fp)
-{
-   char get_word[512];
-   uns32 res;
-   char *val_recv[7];
-   uns32 read_cnt = 0;
-   uns32 skip = 1;
-      
-   if (fp == NULL)
-      return(NCSCC_RC_FAILURE);
-   m_NCS_MEMSET(val_recv,0,sizeof(val_recv));
-   val_recv[0] = (char*)malloc(256);
-   val_recv[1] = (char*)malloc(256);
-   val_recv[2] = (char*)malloc(256);
-   val_recv[3] = (char*)malloc(256);
-   val_recv[4] = (char*)malloc(256);
-   val_recv[5] = (char*)malloc(256);
-   val_recv[6] = (char*)malloc(256);
-
-   while(1)
-   {
-      if ((res = file_get_word(&fp,get_word)) == NCS_MAIN_EOF)
-      {
-         /*** call the snmp API ***/
-         if (skip == 0)
-         {
-            strcpy(val_recv[read_cnt],get_word);
-            if (read_cnt != 5)
-               return (NCSCC_RC_FAILURE);
-            /*** call the snmp API ***/
-            if (comp_snmp_set(val_recv) != NCSCC_RC_SUCCESS)
-            {
-               free(val_recv[0]);
-               free(val_recv[1]);
-               free(val_recv[2]);
-               free(val_recv[3]);
-               free(val_recv[4]);
-               free(val_recv[5]);
-               free(val_recv[6]);
-               return (NCSCC_RC_FAILURE);
-            }
-         }         
-         break;
-      }
-      if (strcmp(get_word,"snmpset") == 0)
-      {
-         skip = 0;
-         continue;
-      }
-            
-      if (res == NCS_MAIN_ENTER_CHAR)
-      {
-         if (skip == 0)
-         {
-            strcpy(val_recv[read_cnt],get_word);
-            if (read_cnt != 5)
-               return (NCSCC_RC_FAILURE);
-            /*** call the snmp API ***/
-            if (comp_snmp_set(val_recv) != NCSCC_RC_SUCCESS)
-            {
-               free(val_recv[0]);
-               free(val_recv[1]);
-               free(val_recv[2]);
-               free(val_recv[3]);
-               free(val_recv[4]);
-               free(val_recv[5]);
-               free(val_recv[6]);
-               return (NCSCC_RC_FAILURE);
-            }
-         }
-         skip = 1;         
-         read_cnt=0;
-      } else
-      {
-         strcpy(val_recv[read_cnt],get_word);
-         read_cnt++;
-      }      
-   }
-   free(val_recv[0]);
-   free(val_recv[1]);
-   free(val_recv[2]);
-   free(val_recv[3]);
-   free(val_recv[4]);
-   free(val_recv[5]);
-   free(val_recv[6]);
-   return(NCSCC_RC_SUCCESS);
-}
-static uns32
-comp_snmp_set(char **val)
-{
-   int tbl_id;
-   int param_id;
-   int param_type;
-   int int_val;
-   int val_len;
-   void *i_set_val = NULL;
-   char *index = NULL;
-
-   if ((tbl_id = atoi(val[0])) == -1)
-      return(NCSCC_RC_FAILURE);
-
-   if ((param_id = atoi(val[1])) == -1)
-      return(NCSCC_RC_FAILURE);   
-
-   if ((param_type = atoi(val[2])) == -1)
-      return(NCSCC_RC_FAILURE);   
-
-   if (param_type == NCSMIB_FMAT_INT)
-   {
-      if ((int_val = atoi(val[3])) == -1)
-         return(NCSCC_RC_FAILURE);
-      i_set_val = (void*)&int_val;
-   } else
-   {
-      i_set_val = (void*)&val[3];
-   }
-
-   if ((val_len = atoi(val[4])) == -1)
-      return(NCSCC_RC_FAILURE);   
-
-   if (strcmp(val[5],"NULL") != 0)
-   {
-      index = val[5];
-   }   
-   return(mainsnmpset(tbl_id,param_id,param_type,i_set_val,val_len,index));
-}
-#endif
 #endif
 
 #if (NCS_AVND == 1)

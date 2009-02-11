@@ -36,18 +36,6 @@
 struct glnd_cb_tag;
 
 /* timer type enums */
-#if 0
-typedef enum glnd_tmr_type
-{
-   GLND_TMR_RES_LOCK_REQ_TIMEOUT = 1, 
-   GLND_TMR_RES_NM_LOCK_REQ_TIMEOUT,
-   GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT,
-   GLND_TMR_RES_REQ_TIMEOUT,
-   GLND_TMR_RES_REELECTION_WAIT,
-   GLND_TMR_MAX 
-} GLND_TMR_TYPE;
-#endif
-
 typedef enum glnd_tmr_type
 {
    GLND_TMR_RES_LOCK_REQ_TIMEOUT = 1,

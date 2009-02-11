@@ -42,82 +42,6 @@
 #if(NCS_VIP == 1)
 static uns32 ifnd_init_vip_db(IFSV_CB *cb);
 #endif
-#if 0
-/****************************************************************************
- * Name          : ifnd_send_link_update_request
- *
- * Description   : This function will be called when ever any new interface 
- *                 is created.
- *
- * Arguments     : ifsv_cb     - pointer to the interface Control Block.
- *               : create_intf - This is the structure used to carry 
- *                 information about the newly created interface or the 
- *                 modified parameters. 
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : Whenever the configuration management or the interface 
- *                 driver  is sending the interface creation, We need to inform
- *                 Netlink to update information regarding that interface.
- *****************************************************************************/
-
-void ifnd_send_link_update_request ()
-{
-
-   IPXS_CB          *ipxs_cb;
-   uns32             ipxs_hdl;
-   IFSV_EVT         *ifsv_evt;
-   SYSF_MBX         *mbx;
-
-   ipxs_hdl = m_IPXS_CB_HDL_GET( );
-   ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-
-   if (ipxs_cb->netlink_updated != TRUE)
-   {
-      ncshm_give_hdl(ipxs_hdl);
-      return;
-   }
-
-
-   ifsv_evt =  m_MMGR_ALLOC_IFSV_EVT;
-   if (ifsv_evt == IFSV_NULL)
-   {
-      m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
-                          IFSV_VIP_MEM_ALLOC_FAILED);
-      ncshm_give_hdl(ipxs_hdl);
-       m_IFND_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
-             "ifnd_send_link_update_request : Memory alloc failed, ifsv_evt = ",ifsv_evt);
-
-      return;
-   }
-   m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
-   ifsv_evt->type = IFSV_EVT_NETLINK_LINK_UPDATE;
-   
-   /* Put it in IFND's Event Queue */
-   mbx = &ipxs_cb->mbx;
-   m_NCS_CONS_PRINTF("mbx is 0x%x\n", mbx);
-
-   if(m_IFND_EVT_SEND(mbx, ifsv_evt, NCS_IPC_PRIORITY_HIGH)
-      == NCSCC_RC_FAILURE)
-   {
-      m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MSG_QUE_SEND_FAIL,mbx);
-      m_MMGR_FREE_IFSV_EVT(ifsv_evt);
-      m_NCS_CONS_PRINTF("Posted Event failed\n");
-      ncshm_give_hdl(ipxs_hdl);
-      m_IFND_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
-             "ifnd_send_link_update_request : m_IFND_EVT_SEND failed", 0);
-      return ;
-   }
-
-   m_NCS_CONS_PRINTF("Posted Event Success\n");
-   m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
-                       IFSV_VIP_CREATED_IFND_IFND_VIP_DEL_VIPD_EVT);
-   ncshm_give_hdl(ipxs_hdl);
-
-  return;
-
-}
-#endif
 /****************************************************************************
  * Name          : ifnd_intf_create
  *
@@ -542,13 +466,6 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
                {
                   m_MMGR_FREE_IFSV_EVT(msg_rcvd);
                }
-#if 0
-               if(create_intf->evt_orig == NCS_IFSV_EVT_ORIGN_HW_DRV)
-               {
-                 /* Send an Event to Netlink for updating the ip addresses for newly created intf */
-                 ifnd_send_link_update_request ();
-               }
-#endif
 
                goto end; 
              }   
@@ -1784,12 +1701,7 @@ ifsv_ifnd_ifindex_alloc (NCS_IFSV_SPT_MAP *spt_map, IFSV_CB *ifsv_cb, NCSCONTEXT
    if ((res = m_IFND_IFAP_IFINDEX_ALLOC(spt_map, ifsv_cb, evt)) 
             != NCSCC_RC_SUCCESS)
    {
-#if 0
-      m_IFND_LOG_HEAD_LINE(IFSV_LOG_IFINDEX_ALLOC_FAILURE,spt_map->spt.slot,\
-         spt_map->spt.port);
-#else
        m_IFSV_LOG_SPT_INFO(IFSV_LOG_IFINDEX_ALLOC_FAILURE,spt_map,"ifsv_ifnd_ifindex_alloc");
-#endif
       return (res);
    }      
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_IFINDEX_ALLOC_SUCCESS, spt_map->spt.slot,\

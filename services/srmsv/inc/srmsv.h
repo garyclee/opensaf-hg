@@ -66,12 +66,6 @@
 
 #include "ncs_edu_pub.h"
 
-#if 0
-#include "sysf_mds.h"  
-#if (NCS_MDS == 1)
-#include "mds_inc.h"
-#endif
-#endif
 
 /* AMF header files */
 #include "saAis.h"

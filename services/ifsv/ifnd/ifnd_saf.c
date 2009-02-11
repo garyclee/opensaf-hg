@@ -31,120 +31,6 @@
 
 #include "ifnd.h"
 
-#if 0
-/* Removed after B Spec Compliance */
-/****************************************************************************
- * Name          : ifnd_saf_readiness_state_callback
- *
- * Description   : This function SAF callback function which will be called 
- *                 when there is any changein the readiness state. This 
- *                 attribute will help the serive part to know about its 
- *                 readiness state so that it could service its clients.
- *                 Since IFD is not going to service any clients there is
- *                 no need of storing this state in its control block.
- *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
- *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
- *                                  Management Framework is setting.
- *                 readinessState - The Readiness state of the component, 
- *                                  identified by compName, that is being 
- *                                  set by the Availability Management 
- *                                  Framework. 
- *
- * Return Values : None
- *
- * Notes         : None.
- *****************************************************************************/
-
-void
-ifnd_saf_readiness_state_callback (SaInvocationT invocation,
-                                   const SaNameT *compName,
-                                   SaAmfReadinessStateT readinessState)
-{
-   IFSV_CB *ifsv_cb;
-   SaAisErrorT error = SA_AIS_OK;
-   IFSV_EVT_INIT_DONE_INFO init_done;
-
-   m_IFSV_GET_CB(ifsv_cb,compName->value);
-   
-   if (ifsv_cb != IFSV_NULL)   
-   {
-      ifsv_cb->ready_state = readinessState;
-      if ((ifsv_cb->init_done == FALSE) && (ifsv_cb->ifd_card_up == TRUE) &&
-         ((ifsv_cb->ready_state == SA_AMF_OUT_OF_SERVICE) || 
-         (ifsv_cb->ready_state == SA_AMF_STOPPING)))
-      {
-         init_done.init_done = TRUE;
-         ifnd_evt_send((NCSCONTEXT)&init_done, IFND_EVT_INIT_DONE, ifsv_cb);
-      }      
-      saAmfResponse(ifsv_cb->amf_hdl,invocation, error);
-      m_IFSV_GIVE_CB(ifsv_cb);
-      m_IFND_LOG_API_L(IFSV_LOG_AMF_READY_STATE_CHNG,readinessState);
-   }
-   
-   return;
-}
-
-/****************************************************************************
- * Name          : ifnd_saf_pend_oper_confirm_callback
- *
- * Description   : This function SAF callback function which will be called 
- *                 when the AMF framework needs to take a confirmation with 
- *                 the component before doing switchover or shutdown. Here
- *                 we would be setting a "switch_over" flag which would take
- *                 care of processing the events which is critical for this 
- *                 component.
- *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
- *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
- *                                  Management Framework is setting.
- *                 pendOperFlags  - The Readiness state of the component, 
- *                                  identified by compName, that is being 
- *                                  set by the Availability Management 
- *                                  Framework. 
- *
- * Return Values : None
- *
- * Notes         : None.
- *****************************************************************************/
-void
-ifnd_saf_pend_oper_confirm_callback (SaInvocationT invocation,
-                                    const SaNameT *compName,
-                                    SaAmfPendingOperationFlagsT pendOperFlags)
-{
-   IFSV_CB *ifsv_cb;
-   SaAisErrorT error = SA_AIS_OK;
-
-   m_IFSV_GET_CB(ifsv_cb,compName->value);
-   if (ifsv_cb != IFSV_NULL)   
-   {
-      
-      if (pendOperFlags == SA_AMF_SHUTDOWN_OPERATION)
-      {
-      /* need to clean all the record for the shutdown and send a message 
-      to the IFD
-         */
-         ifnd_all_intf_rec_del(ifsv_cb);      
-      }
-      saAmfResponse(ifsv_cb->amf_hdl,invocation, error);
-      m_IFSV_GIVE_CB(ifsv_cb);
-      m_IFND_LOG_API_L(IFSV_LOG_AMF_CONF_OPER,pendOperFlags);
-   }
-   return;
-}
-#endif
 
 /****************************************************************************\
  PROCEDURE NAME : ifnd_saf_csi_set_cb
@@ -193,13 +79,6 @@ void ifnd_saf_csi_set_cb(SaInvocationT invocation,
 {
    IFSV_CB      *cb = 0;
    SaAisErrorT    saErr = SA_AIS_OK;
-#if 0
-   CPSV_EVT    *pEvt = 0;
-   uns32       rc = NCSCC_RC_SUCCESS;
-   V_DEST_RL   mds_role;
-   V_CARD_QA   anchor;
-   NCSVDA_INFO vda_info;
-#endif
 
    m_IFSV_GET_CB(cb,compName->value);
 
@@ -248,19 +127,6 @@ ifnd_saf_health_chk_callback (SaInvocationT invocation,
    m_IFSV_GET_CB(ifsv_cb,compName->value);
    if (ifsv_cb != IFSV_NULL)   
    {      
-#if 0
-      /* send a event to the driver interface module to check for the health
-       * of the driver interface 
-       */
-      if (ifnd_idim_evt_send((NCSCONTEXT)ifsv_cb->health_sem, 
-         IFSV_IDIM_EVT_HEALTH_CHK , ifsv_cb) != NCSCC_RC_SUCCESS)
-      {
-         error = SA_AIS_ERR_FAILED_OPERATION;
-      } else
-      {
-         m_NCS_SEM_TAKE(ifsv_cb->health_sem);
-      }      
-#endif
       saAmfResponse(ifsv_cb->amf_hdl,invocation, error);
       m_IFSV_GIVE_CB(ifsv_cb);
       m_IFND_LOG_API_L(IFSV_LOG_AMF_HEALTH_CHK,(long)checkType->key); 

@@ -1526,45 +1526,6 @@ static uns32  avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 \**************************************************************************/
 uns32 avsv_send_hb_ntfy_msg(AVD_CL_CB *cb)
 {
-#if 0
-   NCS_MBCSV_ARG     mbcsv_arg;
-   NCS_UBAID         *uba = NULL;
-   uns8*             data;
-
-   m_AVD_LOG_FUNC_ENTRY("avsv_send_hb_ntfy_msg");
-
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
-
-   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_NOTIFY;
-   mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-
-   uba = &mbcsv_arg.info.send_notify.i_uba;
-
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
-
-   if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
-   {
-      /* Log Error */
-      m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-      return NCSCC_RC_FAILURE;
-   }
-
-   data = ncs_enc_reserve_space(uba, 2 * sizeof(uns32));
-   ncs_encode_32bit(&data, cb->node_id_avd);
-   ncs_encode_32bit(&data, cb->avail_state_avd);
-   ncs_enc_claim_space(uba, 2 * sizeof(uns32));
-
-   mbcsv_arg.info.send_notify.i_ckpt_hdl = cb->ckpt_hdl;
-   mbcsv_arg.info.send_notify.i_msg_dest = NCS_MBCSV_ALL_PEERS;
-
-   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
-   {
-      /* Log Error */
-      m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-      return NCSCC_RC_FAILURE;
-   }
-
-#endif
    return NCSCC_RC_SUCCESS;
 }
 
