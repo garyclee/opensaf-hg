@@ -3387,7 +3387,6 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
    /* Boot Progress trap */
    avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmBootProgress_ID);
 
-   /* Fix for IR00084096 */
    if(evt_type == HPI_FWPROG_BOOT_SUCCESS)
    {
       avm_stop_tmr(avm_cb, &ent_info->boot_succ_tmr);

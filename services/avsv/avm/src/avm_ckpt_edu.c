@@ -378,9 +378,6 @@ avm_edp_ckpt_msg_ent(
 
    uns32           rc = NCSCC_RC_SUCCESS;
    AVM_ENT_INFO_T *struct_ptr = NULL, **d_ptr = NULL;
-#if 0
-   uns16 base_ver = AVM_CKP_INTRF_VERSION; 
-#endif
    uns16 base_ver_30a = 0;
    /* Base Version is the version of component which introduced */
    /* the new data struct.                                      */
@@ -817,9 +814,6 @@ avm_edp_ckpt_msg_async_updt_cnt(
 
    uns32               rc  = NCSCC_RC_SUCCESS;
    AVM_ASYNC_CNT_T    *struct_ptr = NULL, **d_ptr = NULL;
-#if 0
-   uns16 base_ver = AVM_CKP_INTRF_VERSION; 
-#endif
    uns16 base_ver_30a = 0;
    /* Base Version is the version of component which introduced */
    /* the new data struct.                                      */
@@ -1454,13 +1448,8 @@ avm_edp_ckpt_msg_dhcp_state(
       {EDU_START, avm_edp_ckpt_msg_dhcp_state, 0, 0, 0,
            sizeof(AVM_ENT_DHCP_CONF), 0, NULL},
       
-#if 0
-      {EDU_EXEC, avm_edp_ent_dhconf_name_type, 0, 0, 0,
-         (uns32)&((AVM_ENT_DHCP_CONF_NULL)->default_label.name),   0, NULL  },
-#else
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ENT_DHCP_CONF_NULL)->def_label_num),     0, NULL  },
-#endif /* 0 */
 
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ENT_DHCP_CONF_NULL)->default_chg),   0, NULL  },
@@ -1468,13 +1457,8 @@ avm_edp_ckpt_msg_dhcp_state(
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ENT_DHCP_CONF_NULL)->upgd_prgs),   0, NULL  },
 
-#if 0
-      {EDU_EXEC, avm_edp_ent_dhconf_name_type, 0, 0, 0,
-         (uns32)&((AVM_ENT_DHCP_CONF_NULL)->curr_act_label.name),   0, NULL  },
-#else
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ENT_DHCP_CONF_NULL)->cur_act_label_num),     0, NULL  },
-#endif /* 0 */
 
       {EDU_EXEC, avm_edp_ent_per_label_status, 0, 0, 0,
          (long)&((AVM_ENT_DHCP_CONF_NULL)->label1),   0, NULL  },

@@ -29,9 +29,6 @@ static uns32 ifsv_vip_free_allocated_ip_list_node(NCS_DB_LINK_LIST_NODE *allocIp
 static uns32 ifsv_vip_comp_mds_dest(uns8 * valInDb, uns8 * key);
 static uns32 ifsv_vip_comp_ip_and_intf(uns8 * valInDb, uns8 *key);
 static uns32 ifsv_vip_comp_intf(uns8 * valInDb, uns8 *key); 
-#if 0
-static uns32 ifsv_vip_init_record(NCSCONTEXT *ptr, uns32 recType);
-#endif
 
 /*
 NCS_DB_LINK_LIST_NODE * ifsv_vip_search_infra_owner(NCS_DB_LINK_LIST * ownerList);
@@ -75,26 +72,7 @@ uns32  m_ncs_install_vip_and_send_garp(NCS_IPPFX *ipAddr,uns8 * intf)
 
 }
 
-/*TBD : This macro needs to be moved to leap area*/
-/********************************************************************
-* Code for unInstalling an IP Address
-*********************************************************************/
 
-#if 0
-uns32  m_ncs_uninstall_vip(NCS_IPPFX *ipAddr,uns8 * intf)  
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-   uns8 uninstall[100];
-
-   sprintf(uninstall, "/sbin/ip addr del %d.%d.%d.%d dev %s",(((ipAddr->ipaddr.info.v4) & 0xff000000) >> 24),
-                                                          (((ipAddr->ipaddr.info.v4) & 0xff0000) >> 16),
-                                                          (((ipAddr->ipaddr.info.v4) & 0xff00) >> 8),
-                                                          ((ipAddr->ipaddr.info.v4) & 0xff),
-                                                          (intf));   
-   system(uninstall);
-   return rc;
-}
-#endif
 
 /**************************************************************************
 * Routing for fetching ifindex with given interface name
@@ -540,34 +518,6 @@ uns32 ifsv_vip_init_allocated_ip_list(NCS_DB_LINK_LIST *allocIpList)
    return rc;
 }
 
-/***********************************************************************************
-* This function is used intialize the linklists in VIPD/VIPDC
-***********************************************************************************/
-#if 0
-uns32 ifsv_vip_init_record(NCSCONTEXT *ptr, uns32 recType)
-{
-   IFSV_IFND_VIPDC             *pVipdc;
-   IFSV_IFD_VIPD_RECORD        *pVipd;
- 
-   if (recType == IFSV_VIP_REC_TYPE_VIPD)
-   {
-      ifsv_vip_init_ip_list(&pVipd->ip_list);
-      ifsv_vip_init_intf_list(&pVipd->intf_list);
-      ifsv_vip_init_owner_list(&pVipd->owner_list);
-      ifsv_vip_init_allocated_ip_list(&pVipd->alloc_ip_list);
-      return NCSCC_RC_SUCCESS;
-   } 
-   else if (recType == IFSV_VIP_REC_TYPE_VIPDC)
-   {
-      ifsv_vip_init_ip_list(&pVipdc->ip_list);
-      ifsv_vip_init_intf_list(&pVipdc->intf_list);
-      ifsv_vip_init_owner_list(&pVipdc->owner_list);
-      return NCSCC_RC_SUCCESS;
-   }
-
-   return NCSCC_RC_FAILURE;
-}
-#endif
 
 /****************************************************************************
 * Routine for freeing the ip list
@@ -669,209 +619,6 @@ uns32 ifsv_vip_free_alloc_ip_list(NCS_DB_LINK_LIST *allocIpList)
 }
 
 
-#if 0
-/************************************************************************************
-* This function will form the IPXS event for adding/deleting the IP info 
-* This function is called from IfND routines
-************************************************************************************/
-
-uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index, NCS_IPPFX *ipInfo)
-{
-   IFSV_EVT             ifsvEvt;
-   uns32                rc = NCSCC_RC_SUCCESS;
-   uns32                ipxs_hdl;
-   IPXS_EVT             sendEvt;
-   IPXS_CB             *ipxs_cb;
-
-   ipxs_hdl = m_IPXS_CB_HDL_GET( );
-   ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
- 
-   sendEvt.info.nd.atond_upd.if_index = index;
- 
-   switch(type) /* Add the IP */
-   {
-      case IFSV_VIP_IPXS_ADD:
-         sendEvt.info.nd.atond_upd.ip_info.ip_attr =  NCS_IPXS_IPAM_ADDR;
-         sendEvt.info.nd.atond_upd.ip_info.addip_cnt =  1;
-         sendEvt.info.nd.atond_upd.ip_info.addip_list = ipInfo;
-         break;
-
-      case IFSV_VIP_IPXS_DEL: /* DEL the IP */
-         sendEvt.info.nd.atond_upd.ip_info.ip_attr =  NCS_IPXS_IPAM_ADDR;
-         sendEvt.info.nd.atond_upd.ip_info.delip_cnt =  1;
-         sendEvt.info.nd.atond_upd.ip_info.delip_list = ipInfo;
-         break;
-   
-      case IFSV_VIP_IPXS_DEC_REFCNT:
-         sendEvt.info.nd.atond_upd.ip_info.ip_attr = NCS_IPXS_IPAM_REFCNT;
-         sendEvt.info.nd.atond_upd.ip_info.refCnt = 0;
-         break;
-     
-      case IFSV_VIP_IPXS_INC_REFCNT:
-         sendEvt.info.nd.atond_upd.ip_info.ip_attr = NCS_IPXS_IPAM_REFCNT;
-         sendEvt.info.nd.atond_upd.ip_info.refCnt = 1;
-         break;
-     
-   }
- 
-   rc = ifnd_ipxs_proc_ifip_upd(ipxs_cb, &sendEvt, NULL);
-   ncshm_give_hdl(ipxs_hdl);
-   return rc;
-}
-
-/**********************************************************************************************
-* This Function Checks if the given IP address already exists or not
-*
-***********************************************************************************************/
-
-uns32
-ncs_vip_check_ip_exists(IFSV_CB *cb, uns32 hdl,uns32 ipaddr,uns8 *intf)
-{
-   IPXS_CB           *ipxs_cb;
-   uns32              ipxs_hdl;
-   IPXS_IFIP_NODE    *ifip_node=0;
-   uns32              ifindex=0;
-   uns32              rc = NCSCC_RC_SUCCESS;
-   int ii;
-
-   /* Get the IPXS CB */
-   ipxs_hdl = m_IPXS_CB_HDL_GET( );
-   ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-
-   /* Get the starting node from the tree */
-   ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)&ifindex);
-
-   if(ifip_node == 0)
-   {
-      /* No record */
-      return rc;
-   }
-
-   while(ifip_node)
-   {
-      ifindex = ifip_node->ifip_info.ifindexNet;
-      /* Check with Jags: If we need to check for appln name and pool handle */
-      /* embedding subslot changes */
-      if((ifip_node->ifip_info.subslotId == cb->subslot) &&
-         (ifip_node->ifip_info.slotId == cb->slot) && 
-         (ifip_node->ifip_info.shelfId == cb->shelf) && 
-         (ifip_node->ifip_info.nodeId == cb->my_node_id)) 
-      {
-         if (ifip_node->ifip_info.vipIp)
-         {
-            for (ii = 0; ii < ifip_node->ifip_info.ipaddr_cnt; ii++)
-            {
-               if(m_NCS_MEMCMP(&ipaddr,ifip_node->ifip_info.ipaddr_list + (ii * sizeof(NCS_IPPFX)),sizeof(NCS_IPPFX)) == 0)
-               {
-                  if (ifip_node->ifip_info.poolHdl  == hdl)
-                  {
-                     if(m_NCS_STRCMP(intf,ifip_node->ifip_info.intfName) == 0)
-                     {
-                        return NCSCC_RC_SUCCESS;
-                     } else {
-                       /* TBD : return NCSCC_VIP_EXISTS_ON_OTHER_INTERFACE;*/
-                       return NCSCC_RC_IP_ALREADY_EXISTS;
-                     }
-                  } else {
-                      /* TBD : */
-                      /*  return NCSCC_VIP_EXISTS_FOR_OTHER_HANDLE; */
-                       return NCSCC_RC_IP_ALREADY_EXISTS;
-                
-                  } 
-               }
-            }
-         } else { /* else part for if (vipIp) */
-           /* TBD: Check for proper error code */
-            return NCSCC_RC_VIP_INTERNAL_ERROR;
-
-         }
-      }
-      ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)&ifindex);
-   }
-   ncshm_give_hdl(ipxs_hdl);
-   return NCSCC_RC_FAILURE;
-}
-/**********************************************************************************************
-*  end of function to Check if the given IP address already exists or not
-*
-***********************************************************************************************/
-/*****************************************************************
-* code for traversing the IPXS tree and deleting the IPXS tabls.
-*
-*****************************************************************/
-uns32
-ncs_ifsv_vip_del_ip(IFSV_CB *cb,uns32 hdl,NCS_IPPFX *ipAddr)
-{
-   uns32              ipxs_hdl;
-   uns32              ifindex=0;
-   uns32              ii;
-   uns32              rc = NCSCC_RC_SUCCESS;
-   IPXS_IFIP_NODE    *ifip_node=0;
-   IPXS_CB           *ipxs_cb;
-
-   /* Get the IPXS CB */
-   ipxs_hdl = m_IPXS_CB_HDL_GET( );
-   ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-
-   ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)0);
-
-   if(ifip_node == 0)
-   {
-      /* No record */
-      return NCSCC_RC_FAILURE;
-   }
-
-   while(ifip_node)
-   {
-     ifindex = ifip_node->ifip_info.ifindexNet;
-     /* embedding subslot changes */
-     if((ifip_node->ifip_info.subslotId == cb->subslot) &&
-        (ifip_node->ifip_info.slotId == cb->slot) && 
-        (ifip_node->ifip_info.shelfId == cb->shelf) && 
-        (ifip_node->ifip_info.nodeId == cb->my_node_id))
-     {
-         if (ifip_node->ifip_info.vipIp)
-         {
-            for (ii = 0; ii < ifip_node->ifip_info.ipaddr_cnt; ii++)
-            {
-               if(m_NCS_MEMCMP(&ipAddr,ifip_node->ifip_info.ipaddr_list + (ii * sizeof(NCS_IPPFX)),sizeof(NCS_IPPFX)) == 0)
-               {
-                  if (ifip_node->ifip_info.poolHdl  == hdl)
-                  {
-                     if (ifip_node->ifip_info.refCnt > 1)
-                     {
-                        /* Send IPXS event for decrementing reference count */
-                        rc = ifsv_vip_send_ipxs_evt(cb,IFSV_VIP_IPXS_DEC_REFCNT,ifip_node->ifip_info.ifindexNet,NULL);
-                        return NCSCC_RC_SUCCESS;
-                     }
-                     else  /* end of ifip_node->refCnt > 1*/
-                     {
-                        /* send IPXS event to delete the ip address */
-                        rc = ifsv_vip_send_ipxs_evt(cb,IFSV_VIP_IPXS_DEL,ifip_node->ifip_info.ifindexNet,ipAddr);
-
-                        if (rc == NCSCC_RC_SUCCESS)
-                        {
-                           /* uninstall the ipaddress from the given interface */
-                           m_NCS_UNINSTALL_VIP(ipAddr,ifip_node->ifip_info.intfName);
-                        }
-                     }         /* end of else ifip_node->refCnt > 1 */
-                  }            /* end of  ifip_node->poolHdl == hdl */
-               }               /* end of memcmp */
-            }                  /* end of for loop */
-         } else { /* else part for if (vipIp) */
-           /* TBD: Check for proper error code */
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
-                                  (&ipxs_cb->ifip_tbl, (uns8*)&ifindex);
-   } /* end of while loop */
-   return NCSCC_RC_FAILURE;
-}
-#endif
 
 
 

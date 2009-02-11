@@ -211,20 +211,6 @@ uns32 srmnd_mds_enc(SRMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
       SRMA_BULK_CREATE_MON_MSG msg  was no longer exists
       in SRMA so that 
       this flow is not supposed to execute in SRMND */   
-#if 0
-   case SRMND_BULK_CREATED_MON_MSG:
-
-     
-      m_SRMSV_ASSERT(0);
-
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl,
-                           srmsv_edp_nd_enc_bulk_created,
-                           enc_info->io_uba, 
-                           EDP_OP_TYPE_ENC,
-                           msg,
-                           &ederror);
-       break;
-#endif
    default:
       m_SRMSV_ASSERT(0);
       break;
@@ -426,10 +412,6 @@ uns32 srmnd_mds_cbk (NCSMDS_CALLBACK_INFO *info)
 
    case MDS_CALLBACK_COPY:
        srmnd_mds_copy(srmnd, &info->info.cpy);
-#if 0      
-       /* SRMA never resides with SRMND */
-       m_SRMSV_ASSERT(0); 
-#endif     
        break;
 
    case MDS_CALLBACK_SVC_EVENT:
@@ -691,10 +673,6 @@ uns32 srmnd_mds_svc_evt(SRMND_CB *srmnd, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
              /* if failure, free the event */
              if ((rc != NCSCC_RC_SUCCESS) && (srmnd_evt))
                 srmnd_evt_destroy(srmnd_evt);
-#if 0
-             /* SRMA is down, ok clean up the corresponding database from SRMND */
-             srmnd_del_srma(srmnd, &evt_info->i_dest);
-#endif
           }
           break;
          

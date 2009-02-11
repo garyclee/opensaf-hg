@@ -414,7 +414,6 @@ NCSCONTEXT  ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
         ((NCS_SERVICE_ID)cell->svc_id == id) &&
         (cell->busy   == TRUE)                 )
       {
-        /* IR00083605 */
         if (++cell->use_ct == 0)
         {
             m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* Too many takes()s!! */
@@ -592,34 +591,12 @@ uns32 hm_make_free_cells(HM_PMGR* pmgr)
 
   /* another million hdls used up ?? */
 
-/* vishal : Commenting as condition is always false and it was giving warnings */
-#if 0
-  if(unit->curr > HM_BANK_CNT)/* vishal:typecasting uns16 as otherwise condition is always false */ 
-    {
-    if (pmgr->curr >= pmgr->max)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* all hdls in pool in use !!! */
-
-    if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-
-    m_NCS_MEMSET(unit,0,sizeof(HM_UNIT));
-    gl_hm.unit[++pmgr->curr] = unit;
-    }
-#endif
   /* Check to see if BACKUP has caused random cell banks to be created */
 
   while (unit->cells[unit->curr] != NULL)     /* BACKUP has been here!! */
     {
-    /* vishal:Commenting as condition is always false and it was giving warnings */
+    /* Commenting as condition is always false and it was giving warnings */
     ++unit->curr;
-    #if 0
-    if (/* vishal:moving above if 0 */ ++unit->curr >= HM_BANK_CNT)/* lets check next bank */
-      {
-      pmgr->curr++;
-      if (hm_make_free_cells(pmgr) != NCSCC_RC_SUCCESS)
-        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-    #endif
     }
 
   /* Now go make HM_CELL_CNT (4096) new cells */
@@ -854,161 +831,4 @@ NCS_BOOL ncslpg_destroy(NCSLPG_OBJ* pg)
   }
 
 
-#if 0
-
-/***************************************************************************
- *
- *
- *
- * P u b l i c    R e a d e r    W r i t e r   G u a r d  
- *
- *                         A P I s (prefix 'ncsrwg_')
- *
- *
- *
- ***************************************************************************/
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_take
-
-   DESCRIPTION:      If resourse is OPEN and no WRITERS, go in. If there is
-                     a WRITER, wait till he gives the signal.
-
-*****************************************************************************/
-
-NCS_BOOL ncsrwg_take(NCSRWG_OBJ* pg)
-  {
-  m_NCS_OS_ATOMIC_INC(&(pg->reader));   /* set first, ask later.. to beat 'closing' */
-  if (pg->open == FALSE)
-    {
-    m_NCS_OS_ATOMIC_DEC(&(pg->reader)); /* its closed */
-    return FALSE;    
-    }
-  if (pg->mutex == TRUE)                /* Are READERS allowed right now? */
-    {
-    m_NCS_OS_ATOMIC_INC(&(pg->waiting)); /* let WRITER know your here    */
-    m_NCS_SEM_TAKE(pg->semaph);          /* wait here till WRITER leaves */
-    return TRUE;                        /* OK, WRITER set thread free!! */
-    }
-  return TRUE;                          /* No WRITER blocking. Go on in */
-  }
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_take_mtx
-
-   DESCRIPTION:      A WRITER wants in. If OPEN, secure MUTEX lock and set 
-                     mutex == TRUE, which keeps those pesky READERS out.
-                     Wait for everyone else to leave, then proceed.
-
-*****************************************************************************/
-
-NCS_BOOL ncsrwg_take_mtx(NCSRWG_OBJ* pg, uns32 cnt)
-  {
-  m_NCS_OS_ATOMIC_INC(&(pg->writer)); /* set first, ask later.. to beat 'closing' */
-  if (pg->open == FALSE)
-    {
-    m_NCS_OS_ATOMIC_DEC(&(pg->writer));/* its closed */
-    return FALSE;    
-    }
-    
-  m_NCS_LOCK(&pg->lock, NCS_LOCK_WRITE); /*  blocked if other WRITER already here */
-  pg->mutex   = TRUE;                  /* set flag to tell READERS not to enter */
-
-  while(pg->reader != cnt)       /* Wait for all READERS to leave                 */
-    m_NCS_TASK_SLEEP(1);          /* if (cnt = 1) WRITER already here as READER    */
-  
-  return TRUE;                   /* We can proceed */
-  }
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_give
-
-   DESCRIPTION:      This READER is leaving.
-
-*****************************************************************************/
-
-uns32 ncsrwg_give(NCSRWG_OBJ* pg, uns32 ret)
-  { 
-  m_NCS_OS_ATOMIC_DEC(&(pg->reader)); 
-  return ret; 
-  }
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_give_mtx
-
-   DESCRIPTION:      This WRITER is leaving. Tell all the READERS that are
-                     waiting.
-
-*****************************************************************************/
-
-uns32 ncsrwg_give_mtx(NCSRWG_OBJ* pg, uns32 ret)
-  {
-  pg->mutex = FALSE;
-  while (pg->waiting != 0)
-    {
-    m_NCS_SEM_GIVE(pg->semaph);
-    m_NCS_OS_ATOMIC_DEC(&(pg->waiting));
-    }
-  m_NCS_UNLOCK(&pg->lock,NCS_LOCK_WRITE);
-  m_NCS_OS_ATOMIC_DEC(&(pg->writer));
-  return ret; 
-  }
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_create
-
-   DESCRIPTION:      Put the passed NCSRWG_OBJ in start state. If its already
-                     in start state, return FAILURE.
-
-*****************************************************************************/
-
-uns32 ncsrwg_create(NCSRWG_OBJ* pg) 
-  {
-    uns32  dummy;
-  if (pg->open == TRUE)
-    dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* SMM.. Why not return FAILURE?? */
-  pg->open    = TRUE;                        
-  pg->reader  = 0;
-  pg->writer  = 0;
-  pg->waiting = 0;
-  pg->mutex   = FALSE;
-  m_NCS_SEM_CREATE(&pg->semaph);
-  m_NCS_LOCK_INIT(&pg->lock);
-
-  return NCSCC_RC_SUCCESS;
-  }
-
-/*****************************************************************************
-
-   PROCEDURE NAME:   ncsrwg_destroy
-
-   DESCRIPTION:      Close this LPG. Wait for all other threads to leave before
-                     returning to the invoker, allowing her to proceed. Note
-                     that if this object is already closed, this function
-                     returns FALSE (invoker should not proceed, as the object is
-                     already destroyed or being destoyed.
-
-*****************************************************************************/
-
-NCS_BOOL ncsrwg_destroy(NCSRWG_OBJ* pg)
-  {
-  if (pg->open == FALSE)
-    return FALSE;                  /* already closed            */
-  pg->open = FALSE;                /* stop others from entering */
-  while ((pg->reader != 0) && (pg->writer != 0))    /* Wait for all to leave */
-    m_NCS_TASK_SLEEP(1);     
-  
-  m_NCS_SEM_RELEASE(pg->semaph);   /* OK; final resource cleanup */
-  m_NCS_LOCK_DESTROY(&pg->lock);
-
-  return TRUE;  /* Invoker can proceed to get rid of protected thing */
-  }
-
-
-#endif
 

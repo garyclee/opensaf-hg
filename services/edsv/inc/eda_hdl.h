@@ -34,12 +34,6 @@
 
 EXTERN_C uns32 eda_hdl_cbk_dispatch (EDA_CB *, EDA_CLIENT_HDL_REC *, SaDispatchFlagsT);
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-EXTERN_C EDA_EVT_INST_REC *eda_evt_inst_rec_add(EDA_EVENT_HDL_REC **eda_evt_hdl_rec);
-
-EXTERN_C uns32
-eda_event_inst_rec_del (EDA_EVT_INST_REC **list_head, EDA_EVT_INST_REC *rm_node);
-#endif
 
 EXTERN_C EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb, 
                                      const SaEvtCallbacksT *reg_cbks,

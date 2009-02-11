@@ -81,11 +81,6 @@ ncs_bam_cfg_mib_arg(NCSMIB_ARG    *mib,
     *
     * Add when necessary
     */
-#if 0
-   mib->i_usr_key         = usr_hdl;
-   mib->i_mib_key         = ss_hdl;  
-   mib->i_rsp_fnc         = rspfnc;
-#endif
    
    return NCSCC_RC_SUCCESS;
 }
@@ -313,37 +308,8 @@ ncs_bam_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
       if(strlen(val) == 0)
          return status;
       break;
-#if 0
-   case NCSMIB_FMAT_2LONG:
-      actlen = (uns8)strlen(val);
-      set->i_param_val.i_param_id = param_id;
-      set->i_param_val.i_length = 8;
-
-      if(strlen(val) > 8)
-      {
-         /* not a INT64 better send it as oct stream */
-         set->i_param_val.info.i_oct = (uns8*)val;
-         set->i_param_val.i_length   = actlen;
-      }
-      for(x=0; x < 8; x++)
-      {
-         buff_64bit[x] = 0;
-      }
-      for(x=0; x < actlen; x++)
-      {
-         char tmp = val[x];
-         /*buff_64bit[8-actlen+x] = atoi(&tmp);*/
-         buff_64bit[x] = atoi(&tmp);
-      }
-      my_long_long = (SaInt64T *)malloc(8 * sizeof(uns8));
-      my_long_long = (SaInt64T *)&buff_64bit[0];
-
-      m_NCS_OS_HTONLL_P(set->i_param_val.info.i_oct, *my_long_long);
-      set->i_param_val.info.i_oct = (const unsigned char *)&buff_64bit;
-      break;
-
-#endif
-   case NCSMIB_FMAT_BOOL:
+   
+case NCSMIB_FMAT_BOOL:
       set->i_param_val.i_fmat_id  = NCSMIB_FMAT_INT;
       set->i_param_val.i_param_id = param_id;
       set->i_param_val.i_length = 4;

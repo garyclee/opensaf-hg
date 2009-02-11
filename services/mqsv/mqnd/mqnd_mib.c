@@ -115,14 +115,6 @@ uns32 mqnd_reg_with_mab(MQND_CB *cb)
    else
       m_LOG_MQSV_ND(MQND_MIB_MSGQ_TBL_REG_WITH_MAB_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
       
-#if 0
-   mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
-   mab_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_ANY;
-   mab_arg.info.row_owned.i_fltr.fltr.any.meaningless = 0x123;
-
-   if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
-      return NCSCC_RC_FAILURE;
-#endif 
 
    mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
    mab_arg.i_tbl_id = NCSMIB_TBL_MQSV_MSGQPRTBL;
@@ -138,64 +130,10 @@ uns32 mqnd_reg_with_mab(MQND_CB *cb)
    }
    else
       m_LOG_MQSV_ND(MQND_MIB_MSGQPR_TBL_REG_WITH_MAB_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-#if 0
-   mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
-   mab_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_ANY;
-   mab_arg.info.row_owned.i_fltr.fltr.any.meaningless = 0x123;
-
-   if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
-      return NCSCC_RC_FAILURE;
-#endif
    return NCSCC_RC_SUCCESS;
 }
 
 
-/****************************************************************************
-  PROCEDURE NAME:   mqnd_unreg_with_mab
-
-  DESCRIPTION:      The function de registers all the SNMP MIB tables supported
-                    by MQND with MAB
-  ARGUMENTS:
-
-  RETURNS:
-        NCSCC_RC_SUCCESS
-        NCSCC_RC_FAILURE
-
-  NOTES:
-*****************************************************************************/
-#if 0
-static uns32 mqnd_unreg_with_mab(MQND_CB *cb)
-{
-    NCSOAC_SS_ARG      mab_arg;
-    uns32              rc = NCSCC_RC_SUCCESS;
-    m_NCS_OS_MEMSET(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
-    mab_arg.i_oac_hdl = cb->cb_hdl;
-    mab_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
-
-    mab_arg.i_tbl_id = NCSMIB_TBL_MQSV_MSGQTBL;
-    rc = ncsoac_ss(&mab_arg);
-    if(rc != NCSCC_RC_SUCCESS)
-    {
-      m_LOG_MQSV_ND(MQND_MIB_MSGQ_TBL_DEREG_WITH_MAB_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-    }
-    else
-      m_LOG_MQSV_ND(MQND_MIB_MSGQ_TBL_DEREG_WITH_MAB_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-    
-    mab_arg.i_tbl_id = NCSMIB_TBL_MQSV_MSGQPRTBL;
-    rc = ncsoac_ss(&mab_arg);
-    if(rc != NCSCC_RC_SUCCESS)
-    {
-      m_LOG_MQSV_ND(MQND_MIB_MSGQPR_TBL_DEREG_WITH_MAB_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-    }
-    else
-      m_LOG_MQSV_ND(MQND_MIB_MSGQPR_TBL_DEREG_WITH_MAB_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-
-    return NCSCC_RC_SUCCESS;
-}
-
-#endif
 
 
 /****************************************************************************

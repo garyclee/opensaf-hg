@@ -53,11 +53,6 @@
 #include "mds_papi.h"  
 #include "ncs_edu_pub.h"
 
-#if 0
-#if (NCS_MDS == 1)
-#include "mds_inc.h"
-#endif
-#endif 
 
 /* From /base/products/rms/inc */
 

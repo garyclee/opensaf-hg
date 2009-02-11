@@ -407,9 +407,6 @@ uns32 oac_ss_row_move(NCSOAC_ROW_MOVE*  row_move, uns32 oac_hdl)
       return NCSCC_RC_FAILURE;
       }
 
-#if 0
-    code = m_NCS_MDS_SEND(inst->mds_hdl,NCSMDS_SVC_ID_OAC,&msg,inst->mas_vcard,NCSMDS_SVC_ID_MAS,NULL);
-#endif
     
     code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC,
                        NCSMDS_SVC_ID_MAS, inst->mas_vcard);
@@ -552,15 +549,6 @@ uns32 oac_ss_warmboot_req_to_pssv(NCSOAC_SS_ARG*  arg)
   m_OAC_LK_INIT;
   m_OAC_LK(&inst->lock);
 
-#if 0
-  if(inst->is_active == FALSE)
-  {
-     /* Warmboot request not valid from a Standy OAA. */
-     ncshm_give_hdl(oac_hdl);
-     m_OAC_UNLK(&inst->lock);
-     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-  }
-#endif
 
   /* Lookup the PCN in the inst->pcn_list */
   if(oac_validate_pcn(inst, arg->info.warmboot_req.i_pcn) == FALSE)
@@ -837,9 +825,6 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
       m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_OAA_PCN_NULL_IN_OAC_FINDADD_PCN_IN_LIST_FUNC);
       return NULL;
    }
-#if 0
-   m_LOG_OAA_PCN_INFO_III(NCSFL_SEV_ERROR, MAB_OAA_PCN_INFO_PCN_NULL_IN_OAC_FINDADD_PCN_IN_LIST_FUNC, pcn);
-#endif
 
    while(tmp != NULL)
    {
@@ -1309,10 +1294,6 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
      /* Add this message to the buffer zone. */ 
      oac_psr_add_to_buffer_zone(inst, &msg);
 
-#if 0
-     /* The ownership of the list(except the first one) is transferred to the buffer zone. */
-     oac_free_wbreq(req_head);
-#endif
      m_MMGR_FREE_MAB_PSS_WARMBOOT_REQ(req_head);
      oac_destroy_wb_pend_list(inst);
   }
@@ -1635,10 +1616,6 @@ uns32 oac_psr_send_bind_req(OAC_TBL *inst, MAB_PSS_TBL_BIND_EVT *bind_req, NCS_B
    msg.fr_anc  = inst->my_anc;
 
    msg.data.seq_num = inst->seq_num;
-#if 0
-   /* IR00084476. Don't add Table-bind/unbind events to bufferzone. */
-   ++ inst->seq_num;
-#endif
    code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC, NCSMDS_SVC_ID_PSS,
                       inst->psr_vcard);
    if (code != NCSCC_RC_SUCCESS)
@@ -1669,18 +1646,6 @@ uns32 oac_psr_send_bind_req(OAC_TBL *inst, MAB_PSS_TBL_BIND_EVT *bind_req, NCS_B
    }
 /* #endif */
 
-#if 0
-   /* IR00084476. Don't add Table-bind/unbind events to bufferzone. */
-   /* Add this message to the buffer zone. */
-   oac_psr_add_to_buffer_zone(inst, &msg);
-
-   if(free_head == TRUE)
-   {
-      /* The head of the list is not "owned" by the buffer-zone, so
-         free it ourselves. */
-      m_MMGR_FREE_MAB_PSS_TBL_BIND_EVT(bind_req);
-   }
-#else
    if(free_head == TRUE)
    {
       oac_free_bind_req_list(bind_req);
@@ -1692,7 +1657,6 @@ uns32 oac_psr_send_bind_req(OAC_TBL *inst, MAB_PSS_TBL_BIND_EVT *bind_req, NCS_B
       m_MMGR_FREE_MAB_PCN_STRING(bind_req->pcn_list.pcn);
       oac_free_pss_tbl_list(bind_req->pcn_list.tbl_list);
    }
-#endif
    return NCSCC_RC_SUCCESS;
 }
 
@@ -1868,10 +1832,6 @@ uns32 oac_psr_send_unbind_req(OAC_TBL *inst, uns32 tbl_id)
    msg.fr_anc  = inst->my_anc;
 
    msg.data.seq_num = inst->seq_num;
-#if 0
-   /* IR00084476. Don't add Table-bind/unbind events to bufferzone. */
-   ++ inst->seq_num;
-#endif
    code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC, NCSMDS_SVC_ID_PSS,
                       inst->psr_vcard);
    if (code != NCSCC_RC_SUCCESS)
@@ -1882,11 +1842,6 @@ uns32 oac_psr_send_unbind_req(OAC_TBL *inst, uns32 tbl_id)
        m_LOG_MAB_HDLN_I(NCSFL_SEV_ERROR,MAB_HDLN_OAC_UNBIND_REQ_TO_PSS_SND_FAIL, msg.data.seq_num);
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); 
    }
-#if 0
-   /* IR00084476. Don't add Table-bind/unbind events to bufferzone. */
-   /* Add this message to the buffer zone. */
-   oac_psr_add_to_buffer_zone(inst, &msg);
-#endif
 
    /* m_LOG_OAA_UNBIND_EVT(tbl_id); */
    m_LOG_OAA_PCN_INFO_I(NCSFL_SEV_NOTICE, MAB_OAA_PCN_INFO_UNBIND_REQ_TO_PSS_MDS_SND_SUCCESS, tbl_id);
@@ -2264,9 +2219,6 @@ uns32 oac_ss_row_unreg(NCSOAC_ROW_GONE* row_gone,uns32 tbl_id,uns32 oac_hdl)
     m_LOG_MAB_LOCK(MAB_LK_OAC_UNLOCKED,&inst->lock);
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);         
     } 
-#if 0  
-  m_LOG_MAB_HEADLINE(NCSFL_SEV_DEBUG, MAB_HDLN_OAC_FRWD_FLTR_UNREG);
-#endif
   m_LOG_MAB_HEADLINE(NCSFL_SEV_DEBUG, MAB_HDLN_OAC_UNREGD_MAB_FLTR);
 
   ncshm_give_hdl(oac_hdl);
@@ -2585,7 +2537,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
                
                 /* clean the filter details (indices) */  
                 mas_mab_fltr_indices_cleanup(&del_fltr->fltr); 
-                /*m_MMGR_FREE_MAS_FLTR(del_fltr);*/ /* fix for the bug IR00060851 */
+                /*m_MMGR_FREE_MAS_FLTR(del_fltr);*/ 
                 m_MMGR_FREE_OAC_FLTR(del_fltr);
                 
                 if(fltr == NULL)
@@ -2596,7 +2548,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
                     m_LOG_MAB_TBL_DETAILS(NCSFL_LC_DATA, NCSFL_SEV_DEBUG,
                                           MAB_OAC_RMV_ROW_REC_SUCCESS, inst->vrid, 
                                           del_tbl_rec->tbl_id);
-                    /*m_MMGR_FREE_MAS_ROW_REC(del_tbl_rec);*/ /* fix for the bug IR00060851 */
+                    /*m_MMGR_FREE_MAS_ROW_REC(del_tbl_rec);*/ 
                     m_MMGR_FREE_OAC_TBL_REC(del_tbl_rec);
                 }
             } /* for(fltr = tbl_rec->fltr_list;fltr != NULL;) */
@@ -2606,7 +2558,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
                 tbl_rec = tbl_rec->next;
             }
         } /* for(tbl_rec = inst->hash[i];tbl_rec != NULL;is_next_tbl_set = FALSE) */
-        inst->hash[i] = tbl_rec; /* fix for the bug IR00060851 */
+        inst->hash[i] = tbl_rec; 
     } /* for(i = 0;i < MAB_MIB_ID_HASH_TBL_SIZE;i++) */
 
     oac_destroy_pcn_list(inst);

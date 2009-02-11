@@ -76,13 +76,6 @@
 /*Smik - included ncs_edu_pub.h */
 #include "ncs_edu_pub.h"
 /* From targsvcs/common/inc */
-#if 0
-#include "sysf_mds.h"  
-
-#if (NCS_MDS == 1)
-#include "mds_inc.h"
-#endif
-#endif
 
 #include "mds_papi.h"
 

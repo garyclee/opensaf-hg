@@ -454,7 +454,7 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
             will be deleted within 10 secs as explained above.*/
            if(actual_data->if_info.oper_state == NCS_STATUS_DOWN)
            {
-              if((actual_data->marked_del == TRUE) && (actual_data->active = FALSE))
+              if((actual_data->marked_del == TRUE) && (actual_data->active == FALSE))
                {
                  /* This means the intf is being deleted, so we shouldn't make any change in adm state.*/
                   break;

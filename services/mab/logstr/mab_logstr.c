@@ -105,10 +105,6 @@ const NCSFL_STR mab_hdln_set[] =
     { MAB_HDLN_MAS_OAA_DOWN,            "MAS This particular OAA is down"                  },
     { MAB_HDLN_MAS_RCVD_INVALID_OP,     "MAS received an invalid message on its mailbox"   },
     { MAB_HDLN_MAS_AMF_INITIALIZE_SUCCESS, "MAS AMF Componentization is done"},
-#if 0
-    { MAB_HDLN_MAS_AMF_HLTH_CHK_START_FAILED, "MAS saAmfHealthcheckStart() failed"},
-    { MAB_HDLN_MAS_AMF_HLTH_CHK_START_SUCCESS, "MAS AMF Health check start succeded"},
-#endif
     { MAB_HDLN_MAS_AMF_HLTH_DOING_AWESOME, "MAS AMF Health status - doing fine "},
     { MAB_HDLN_MAS_AMF_CSI_DETAILS,      "MAS CSI details received from AMF"},
     { MAB_HDLN_MAS_AMF_CSI_DESC_DETAILS, "MAS CSI Descriptor(Env) details received from AMF"},  
@@ -150,7 +146,7 @@ const NCSFL_STR mab_hdln_set[] =
     { MAB_HDLN_MAS_DEF_CSI_SUCCESS, "MAS mas_amf_csi_new() State Change successful for Default PWE (asked haState)"}, 
     { MAB_HDLN_AMF_RESPONSE_POSTPONED, "MAS mas_amf_csi_new() AMF RESP for SBY is postponed because COLD SYNC not completed (invocation-id, env-id)"}, 
     { MAB_HDLN_AMF_SBY_RESPONSE_SENT, "MAS-MBCSv-SBY COLD SYNC completed, sending the pending response to AMF (invocation-id, env-id)"}, 
-    { MAB_HDLN_MAS_DUP_DEF_FLTR, "MAS Duplicate Default filter registration request"},/* Fix for the bug IR00060853 */
+    { MAB_HDLN_MAS_DUP_DEF_FLTR, "MAS Duplicate Default filter registration request"},
     { MAB_HDLN_MAS_MDS_DEST, "MAS mds dest"},
     { MAB_HDLN_MAS_VERSION, "MAS version"},
     { MAB_HDLN_MAS_LOG_MDS_ENC_FAILURE, "MAS MDS Encoded MSG Failure"},

@@ -279,9 +279,6 @@ hsm_event_callback(SaEvtSubscriptionIdT sub_id, SaEvtEventHandleT event_hdl,
 
 uns32 hsm_eda_chan_initialize(HSM_CB *hsm_cb)
 {
-#if 0
-   NCS_LIB_REQ_INFO   req_info;
-#endif /* 0 */
    uns32    rc, count = 0;
    SaSelectionObjectT       evt_sel_obj;
    SaTimeT                  timeout = 0xffffffff;
@@ -293,17 +290,6 @@ uns32 hsm_eda_chan_initialize(HSM_CB *hsm_cb)
 
    /* intialize EDA library */
    /* m_LOG_HISV_DEBUG("Initializing eda library\n"); */
-#if 0
-   req_info.i_op = NCS_LIB_REQ_CREATE;
-   rc = ncs_eda_lib_req(&req_info);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_HISV_DEBUG("ncs_eda_lib_req() failed.\n");
-      return(NCSCC_RC_FAILURE);
-   }
-   /* waits till MDS registration is competed by EDA */
-   m_NCS_TASK_SLEEP(1000);
-#endif /* 0 */
 
    /* initialize SAF EVT library */
    do
@@ -366,9 +352,6 @@ uns32 hsm_eda_chan_initialize(HSM_CB *hsm_cb)
 
 uns32 hsm_eda_chan_finalize(HSM_CB *hsm_cb)
 {
-#if 0
-   NCS_LIB_REQ_INFO   req_info;
-#endif
    uns32    rc;
 
    hsm_cb->eds_init_success = 0;
@@ -390,11 +373,6 @@ uns32 hsm_eda_chan_finalize(HSM_CB *hsm_cb)
       return(NCSCC_RC_FAILURE);
    }
 
-#if 0
-   /** Now destroy the libary **/
-   req_info.i_op = NCS_LIB_REQ_DESTROY;
-   ncs_eda_lib_req (&req_info);
-#endif
    return(NCSCC_RC_SUCCESS);
 }
 

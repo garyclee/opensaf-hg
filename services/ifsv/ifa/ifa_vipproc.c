@@ -150,11 +150,6 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
      IFSV_EVT               *o_evt = NULL;
      uns8                    tmpIp[20];
 
-#if 0 /* This part of the code needs to be enabled for ifnd crash */
-     NCS_PATRICIA_NODE      *pIfaDbNode;
-     NCS_IFSV_VIP_INT_HDL    key;
-     NCS_IFSV_VIP_IFADB     *pIfaDbRec;
-#endif
 
      if (ifa_cb == IFSV_NULL || instArg == IFSV_NULL)
      {
@@ -297,18 +292,6 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
      } /* End of Else if IP = NULL) */
 
 
-#if 0 /* This part of the code needs to be enabled for ifnd crash */
-     m_NCS_MEMSET(&key,0,sizeof(NCS_IFSV_VIP_INT_HDL));
-     /* Forming the key with given handle */
-     m_NCS_STRCPY(&key.vipApplName,&instArg->handle.vipApplName);
-     key.poolHdl = instArg->handle.poolHdl;
-     key.ipPoolType =  NCS_IFSV_VIP_IP_INTERNAL;
-
-     /* Checking if the handle already exists in IfADb */
-     pIfaDbNode = (NCS_PATRICIA_NODE *)ncs_patricia_tree_get(&ifa_cb->ifaDB, (uns8 *)&key);
-     if (pIfaDbNode == IFSV_NULL)
-     { 
-#endif
 
         evt = m_MMGR_ALLOC_IFSV_EVT;
 
@@ -373,24 +356,6 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
                   m_MMGR_FREE_IFSV_EVT(o_evt);
                   return NCSCC_RC_VIP_INTERNAL_ERROR;
                }
-#if 0 /* This part of the code is to be enabled for ifnd crash */
-            pIfaDbRec = m_MMGR_ALLOC_IFSV_IFADB;
-            if (pIfaDbRec == IFSV_NULL)
-            {
-               instArg->o_err = NCSCC_RC_VIP_INTERNAL_ERROR;
-               m_MMGR_FREE_IFSV_EVT(evt);
-
-               if(o_evt != IFSV_NULL)
-                  m_MMGR_FREE_IFSV_EVT(o_evt);
-
-               return NCSCC_RC_FAILURE;
-            }
-            m_NCS_STRCPY(&pIfaDbRec->handle.vipApplName,&instArg->handle.vipApplName);
-            pIfaDbRec->handle.poolHdl = instArg->handle.poolHdl;
-            pIfaDbRec->handle.ipPoolType =  NCS_IFSV_VIP_IP_INTERNAL;
-
-            ncs_patricia_tree_add(&ifa_cb->ifaDB,(NCS_PATRICIA_NODE *)pIfaDbRec);
-#endif 
             /* Installing VIP onto the given interface */
             /* LOG : INSTALLING VIP AND SENDING GARP */
                m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFA,IFSV_VIP_INSTALLING_VIP_AND_SENDING_GARP);
@@ -414,15 +379,6 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
          m_MMGR_FREE_IFSV_EVT(evt);
          return NCSCC_RC_VIP_INTERNAL_ERROR;
       }
-#if 0          /* This part of the code needs to be enabled for ifnd crash*/
-     } /* end of if pIfaDbNode == IFSV_NULL */
-     else {
-        /* TBD : Form an IPXS event and send to ifnd */
-        /* TBD : Install VIP AND return */
-        m_IFSV_VIP_LOG_MESG(IFSV_VIP_INSTALLING_VIP_AND_SENDING_GARP);
-        m_NCS_INSTALL_VIP_AND_SEND_GARP(&instArg->ip_addr,(uns8 *)&instArg->intf_name);
-     }
-#endif  
   
       return NCSCC_RC_SUCCESS;
 

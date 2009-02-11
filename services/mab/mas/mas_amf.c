@@ -42,7 +42,6 @@ mas_amf_health_check(SaInvocationT,const SaNameT *, SaAmfHealthcheckKeyT*);
 static void 
 mas_amf_comp_terminate(SaInvocationT,  const SaNameT *); 
 
-/* Fix for IR00085033 */
 static void
 mas_amf_comp_terminate_complete(void);
 
@@ -187,7 +186,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
         m_MAB_DBG_TRACE("\nmas_mbx_amf_process():left.");
         return;
     }
-    m_NCS_MEMSET(&ncs_amf_sel_obj, 0, sizeof(NCS_SEL_OBJ)); /* added as a part of fixing the bug IR00061100 */
+    m_NCS_MEMSET(&ncs_amf_sel_obj, 0, sizeof(NCS_SEL_OBJ)); 
 
     /* install the signal handler for SIGUSR2, to dump the data structure contents */ 
     if ((ncs_app_signal_install(SIGUSR2,mas_amf_sigusr2_handler)) == -1) 
@@ -223,7 +222,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
 
             numfds = m_GET_HIGHER_SEL_OBJ(ncs_amf_sel_obj, numfds);
         }
-        else /* added as a part of fixing the bug IR00061100 */
+        else 
         {
            m_NCS_SEL_OBJ_SET(gl_mas_amf_attribs.amf_attribs.sighdlr_sel_obj, &readfds);
            numfds = m_GET_HIGHER_SEL_OBJ(gl_mas_amf_attribs.amf_attribs.sighdlr_sel_obj, numfds);
@@ -245,7 +244,6 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
         m_NCS_SEL_OBJ_SET(mbx_fd, &readfds);
         numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
   
-        /*   Commented as a part of fixing the bug IR00061100  */
         /*
         if (gl_mas_amf_attribs.amf_attribs.amfHandle == 0)
         {
@@ -258,9 +256,8 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
         count = m_NCS_SEL_OBJ_SELECT(numfds, &readfds, NULL, NULL, NULL);
         if (count > 0)
         {
-            if (gl_mas_amf_attribs.amf_attribs.amfHandle == 0) /* Fix for the bug IR00061100 */
+            if (gl_mas_amf_attribs.amf_attribs.amfHandle == 0) 
             {
-                /* Fix for the bug IR00060852 */
                 if (m_NCS_SEL_OBJ_ISSET(gl_mas_amf_attribs.amf_attribs.sighdlr_sel_obj, &readfds))
                 {
                     mas_process_sig_usr1_signal();
@@ -272,7 +269,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
                     gl_mas_amf_attribs.amf_attribs.sighdlr_sel_obj.rmv_obj = 0;
                 }
             }
-            else /* Fix for the bug IR00061100 */
+            else 
             {
                 /* AMF FD is selected */ 
                 if(m_NCS_SEL_OBJ_ISSET(ncs_amf_sel_obj, &readfds))
@@ -290,7 +287,6 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
                         return; 
                     }
 
-                    /* Fix for IR00085033 */
                     if((SaAmfHandleT)(long)NULL == gl_mas_amf_attribs.amf_attribs.amfHandle)
                          mas_amf_comp_terminate_complete();
                 
@@ -316,7 +312,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
             }
 #endif
             /* Process the messages on the Mail box */ 
-            if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &readfds)) /* Fix for the bug IR00060852 */
+            if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &readfds)) 
             {
                 /* process native requests of MASv */ 
                 status = mas_do_evts(mas_mbx); 
@@ -519,9 +515,6 @@ mas_amf_prepare_will(void)
     vda_info.req = NCSVDA_VDEST_DESTROY; 
     vda_info.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; 
     vda_info.info.vdest_destroy.i_vdest = MAS_VDEST_ID; 
-#if 0    
-vda_info.info.vdest_destroy.i_anc = V_DEST_QA_1; 
-#endif
     vda_info.info.vdest_destroy.i_make_vdest_non_persistent = FALSE; 
     status = ncsvda_api(&vda_info); 
     if (status != NCSCC_RC_SUCCESS)
@@ -533,18 +526,6 @@ vda_info.info.vdest_destroy.i_anc = V_DEST_QA_1;
         return status; 
     }
 
-#if 0
-    /* finalize the interface with AMF */ 
-    saf_status = ncs_app_amf_finalize(&gl_mas_amf_attribs.amf_attribs); 
-    if (saf_status != SA_AIS_OK)
-    {
-        /* log that AMF interface finalize failed */ 
-        m_LOG_MAB_ERROR_DATA(NCSFL_SEV_CRITICAL, NCSFL_LC_SVC_PRVDR,
-                                MAB_MAS_ERR_APP_AMF_FINALIZE_FAILED, saf_status); 
-        m_MAB_DBG_TRACE("\nmas_amf_prepare_will():left.");
-        return NCSCC_RC_FAILURE;
-    }
-#endif
 
     m_MAB_DBG_TRACE("\nmas_amf_prepare_will():left.");
     return status; 
@@ -580,12 +561,10 @@ mas_amf_comp_terminate(SaInvocationT invocation, const SaNameT *compName)
                                 MAB_MAS_ERR_AMF_FINALIZE_FAILED, saf_status); 
     }
 
-    /* Fix for IR00085033 */
     gl_mas_amf_attribs.amf_attribs.amfHandle = (SaAmfHandleT)(long)NULL;
 
 }
 
-/* Fix for IR00085033 */
 /*****************************************************************************\
  *  Name:          mas_amf_comp_terminate_complete                                     * 
  *                                                                            *
@@ -610,11 +589,6 @@ mas_amf_comp_terminate_complete()
     /* release the IPC */
     m_NCS_IPC_RELEASE(&gl_mas_amf_attribs.mbx_details.mas_mbx, mab_leave_on_queue_cb);
 
-#if 0
-    /* stop the thread and cleanup the mailbox */  
-    m_NCS_TASK_STOP(gl_mas_amf_attribs.mbx_details.mas_mbx_hdl);
-    m_NCS_TASK_RELEASE(gl_mas_amf_attribs.mbx_details.mas_mbx_hdl);
-#endif
 
     m_MAB_DBG_TRACE("\nmas_amf_comp_terminate():left.");
 
@@ -663,14 +637,6 @@ mas_amf_csi_set(SaInvocationT invocation,
                           MAB_HDLN_MAS_AMF_CSI_DETAILS, 
                           csiDescriptor.csiFlags, 
                           tCompName, tCsiName, haState); 
-#if 0
-    /* need to be done when MASv enhancement for multiple PWEs support */ 
-    m_LOG_MAB_CSI_DESC_DETAILS(NCSFL_SEV_INFO, 
-                               MAB_HDLN_MAS_AMF_CSI_DESC_DETAILS, 
-                               csiDescriptor.csiAttr.number, 
-                               csiDescriptor.csiAttr.attr->attrName,
-                               csiDescriptor.csiAttr.attr->attrValue); 
-#endif
 
     switch (csiDescriptor.csiFlags)
     {
@@ -821,34 +787,6 @@ mas_amf_csi_new(SaInvocationT invocation,
     }
 
 enough: 
-#if 0
-#if (NCS_MAS_RED == 1)
-    /* need to defer saAmfResponse for the STANDBY, till the COLD-SYNC completes */
-    if ((saf_status == SA_AIS_OK)&& (haState == SA_AMF_HA_STANDBY))
-    {
-        /* get the CSI-NODE for this PWE */ 
-        csi = mas_amf_csi_list_find_envid(env_id); 
-        if (csi == NULL)
-        {
-            /* something is really screwed... */ 
-            saf_status = SA_AIS_ERR_FAILED_OPERATION; 
-
-            /* log the failure */ 
-        }
-        /* if the cold sync is complete, send the Response to AMF */ 
-        else if (csi->inst->red.cold_sync_done != TRUE)
-        {
-            /* log that response to AMF is deffered */
-            /* log the invocation-id, PWE-ID */
-            csi->inst->amf_invocation_id = invocation; 
-            m_LOG_MAB_HDLN_II(NCSFL_SEV_NOTICE, MAB_HDLN_AMF_RESPONSE_POSTPONED,
-                              (uns32)csi->inst->amf_invocation_id, env_id);
-            m_MAB_DBG_TRACE("mas_amf_csi_set_new(): Postponing the saAmfResponse() since Cold Sync is not yet done\n"); 
-            return; 
-        }
-    }
-#endif
-#endif
     /* send the response to AMF */ 
     saAmfResponse(gl_mas_amf_attribs.amf_attribs.amfHandle, invocation, saf_status); 
 
@@ -1393,7 +1331,7 @@ mas_amf_csi_state_change_process(MAS_CSI_NODE *csi_node,
                            haState, status); 
     }
     /* update the state in MBCS Redundancy related data structure */
-    csi_node->inst->red.ha_state = haState;  /* Fix for IR 82858 */
+    csi_node->inst->red.ha_state = haState; 
 #endif /* #if (NCS_MAS_RED == 1) */ 
 
     return status; 

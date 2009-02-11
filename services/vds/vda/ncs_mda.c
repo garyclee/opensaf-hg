@@ -60,11 +60,7 @@ const SaNameT glmds_vdest_inst_name_pref = { 20, "NCS_FIXED_VDEST_INST"};
 #define VDEST_ID_STR_LEN 10     /* = length of the string "4294967295" */
 #define VDEST_FMT_STR  "%010d"  /* Format string for creating VDEST-name */
 
-#if 0  /* FIXME: Include me in LEAP logging */
-#define m_NCSMDA_TRACE_ARG1(X)   m_NCS_CONS_PRINTF(X)
-#else
 #define m_NCSMDA_TRACE_ARG1(X) 
-#endif
 /***************************************************************************\
                          PUBLIC ADA/VDA FUNCTIONS
 \***************************************************************************/
@@ -182,9 +178,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
             spir_req.info.lookup_create_inst.i_inst_attrs = req->info.inst.i_inst_attrs;
             if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS)
             {
-               /* Fix IR60246 */
                 return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-               /* End Fix IR60246 */
             }
             break;
 
@@ -306,10 +300,6 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         }
         ada_info->info.adest_get_hdls.o_adest = 
             svc_info.info.query_pwe.info.abs_info.o_adest;
-#if 0
-        ada_info->info.adest_get_hdls.o_mds_adest_hdl = 
-        svc_info.info.query_pwe.o_mds_dest_hdl;
-#endif
         /* STEP : Finally an SPRR lookup if OAC handle is also required,
                   create is required. 
         */
@@ -389,7 +379,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         return NCSCC_RC_SUCCESS;
         
     case NCSADA_PWE_DESTROY:
-        /* IR00058293 Fix : We need to fetch PWE-ID first */
+        /*  We need to fetch PWE-ID first */
         /* Get pweid from pwe_hdl */
         /* NOTE: The PWE-ID from PWE-handle is done a little
                  bit differently from that in NCSVDA_PWE_DESTROY
@@ -401,7 +391,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         {
             return NCSCC_RC_FAILURE;
         }
-        /* IR00058293 Fix : End : Now the PWE-ID is available */
+        /*  Now the PWE-ID is available */
         /* STEP : If there is an OAA for this PWE, then destroy it */
         spir_req.i_environment_id = mds_info.info.query_pwe.o_pwe_id;
         spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;

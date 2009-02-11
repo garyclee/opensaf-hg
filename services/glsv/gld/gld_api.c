@@ -309,9 +309,6 @@ gld_cb_init (GLSV_GLD_CB *gld_cb)
    m_NCS_OS_MEMSET(&params,0,sizeof(NCS_PATRICIA_PARAMS));
      
    /* Intialize all the patrica trees */
-   #if 0
-   params.key_size = sizeof(MDS_DEST);
-   #endif
    params.key_size = sizeof(uns32);
    params.info_size = 0;
    if ((ncs_patricia_tree_init(&gld_cb->glnd_details, &params))
@@ -393,9 +390,6 @@ gld_cb_destroy (GLSV_GLD_CB *gld_cb)
 
       gld_free_rsc_info(gld_cb, rsc_info);
    }
-#if 0
-   m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
-#endif
    return NCSCC_RC_SUCCESS;
 }
 
@@ -565,11 +559,6 @@ gld_main_process(SYSF_MBX *mbx)
       m_NCS_SEL_OBJ_SET(mbcsv_ncs_sel_obj,&all_sel_obj);
 
 
-     #if 0
-      /* do the fd set for the select obj */
-      m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-      m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
-     #endif
    }    
    return;
 }

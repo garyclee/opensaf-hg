@@ -44,24 +44,8 @@
 uns32
 snmpsubagt_mac_initialize()
 {
-#if 0
-    uns32               status = NCSCC_RC_FAILURE; 
-    NCS_LIB_REQ_INFO    mac_create_req; 
-#endif
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_MAC_INITIALIZE);
 
-#if 0
-    m_NCS_MEMSET(&mac_create_req, 0, sizeof(NCS_LIB_REQ_INFO));
-
-    mac_create_req.i_op = NCS_LIB_REQ_CREATE;
-    status  = maclib_request(&mac_create_req);
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log that MAC Initialization failed */
-        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_MAC_INIT_FAILED, status, 0, 0); 
-        return status;
-    }
-#endif
     if(gl_mac_handle == (MABMAC_API uns32)(long) NULL)
     {
         m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_MAC_INIT_FAILED, NCSCC_RC_FAILURE, 0, 0); 

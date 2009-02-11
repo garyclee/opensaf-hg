@@ -399,10 +399,6 @@ parse_ncs_config(DOMNode *ncsNode, BAM_PARSE_SUB_TREE sub_tree)
          if(m_NCS_STRCMP(tmpString, "AISConfig") == 0)
             rc = parse_ais_config(tmpNode, sub_tree);
 
-#if 0
-         else if(m_NCS_STRCMP(tmpString, "HardwareConfig") == 0)
-            rc = parse_hardware_config(tmpNode);
-#endif
           XMLString::release(&tmpString);
       }
    }

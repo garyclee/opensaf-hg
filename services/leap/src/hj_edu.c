@@ -3376,14 +3376,6 @@ static void edu_ppdb_node_del(EDU_PPDB *ppdb, EDU_PPDB_NODE_INFO *node)
    /* Free the node contents now. */
    if(node->data_ptr != NULL)
    {
-#if 0
-       /* To be changed in hj_edp.c in all the EDPs so that they return the
-          data_size of every malloc'ed data in PP "test" condition. TBD later.
-          Till then, this check would not be required, as it is not a major
-          road block.(And unless until, some code segment blows up!!!)
-        */
-       if(node->data_size != 0)
-#endif
        {
            m_NCS_MEM_FREE(node->data_ptr, NCS_MEM_REGION_PERSISTENT, 
                NCS_SERVICE_ID_OS_SVCS, 0);

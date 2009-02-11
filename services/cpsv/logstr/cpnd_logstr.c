@@ -187,15 +187,6 @@ const NCSFL_STR cpnd_restart_set[] = {
 /*****************************************************************************\
                         Logging stuff for Evt Fails
 \*****************************************************************************/
-#if 0
-const NCSFL_STR cpnd_datasendfail_set[] = {
-   {CPND_MDS_SEND_FAILURE, "CPND - MDS Send Failed"}, 
-   {CPND_MDS_SEND_TIMEOUT, "CPND - MDS Send Timed Out"}, 
-   /* TBD */
-   {0,0}
-};
-
-#endif
 
 const NCSFL_STR cpnd_api_set[] = {
    
@@ -297,18 +288,6 @@ NCSFL_SET cpnd_str_set[] = {
 };
 
 NCSFL_FMAT cpnd_fmat_set[] = {
-#if 0
-    {CPND_LID_HDLN, NCSFL_TYPE_TI, "CPSv %s : %s\n"},
-    {CPND_LID_MEMFAIL, NCSFL_TYPE_TICL, "CPSv %s : %s in %s at %d\n"},
-    {CPND_LID_EVT, NCSFL_TYPE_TI, "CPSv %s : %s\n"},
-    {CPND_LID_NCS_LOCK, NCSFL_TYPE_TI, "CPSv %s : %s\n"},
-    {CPND_LID_SYS_CALL, NCSFL_TYPE_TI, "CPSv %s : %s\n"},
-    {CPND_LID_RESTART,NCSFL_TYPE_TI,"CPSv %s : %s\n"},
-    {CPND_LID_API,NCSFL_TYPE_TI, "CPSv %s : %s\n"},
-    {CPND_LID_GENERIC,NCSFL_TYPE_TILCL, "CPSv %s : %s : rc = %u at %15s:%5u\n"},
-    {CPND_LID_MDSFAIL,NCSFL_TYPE_TIFFFCL,"CPSv %s : %s :: From mds_dest %s To mds_dest %s for ckpt_id %s at %10s:%5u\n"},
-    {CPND_LID_CKPTINFO,NCSFL_TYPE_TIFCL,"CPSv %s : %s for ckpt_id %s at %15s:%5u\n"},
-#endif
     {CPND_LID_TILCL,NCSFL_TYPE_TILCL,"CPSv %s : %s : %lu : %s:%lu\n"}, 
     {CPND_LID_TICL,NCSFL_TYPE_TICL,"CPSv %s : %s : %s : %lu\n"},
     {CPND_LID_TIFCL,NCSFL_TYPE_TIFCL,"CPSv %s : %s : %s : %s:%lu\n"},

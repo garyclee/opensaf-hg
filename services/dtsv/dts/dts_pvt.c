@@ -250,12 +250,12 @@ dts_do_evt( DTSV_MSG* msg)
          /* Change ha_state of dts_cb to quiesced now */
          inst->ha_state = SA_AMF_HA_QUIESCED;
 
-         /* IR 83604 - Clear sequencing buffer just before going to quiesced */
-         /* IR 82773 - Clear the sequencing buffer before going to quiesced */
+         /* Clear sequencing buffer just before going to quiesced */
+         /* Clear the sequencing buffer before going to quiesced */
          if(NCS_SNMP_TRUE == inst->g_policy.g_enable_seq)
             dts_disable_sequencing(inst);
           
-         /* IR 61123 - Close all open files now */
+         /* Close all open files now */
          dts_close_files_quiesced();
 
          /* Send a SaAmfResponse now, using amf hdl & invocation in dts_cb */
@@ -431,7 +431,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
    
    key.node      = msg->node;
    key.ss_svc_id = 0;
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(msg->node);
    nt_key.ss_svc_id = 0;
 
@@ -446,7 +446,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
     * If Yes then do nothing.
     * If NO then create new entry in the table. Initialize it with the default 
     */
-   /* IR 60411 - Network order key added */
+    /*  Network order key added */
    if ((node_reg = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8*)&nt_key)) == NULL)
    {
        node_reg = m_MMGR_ALLOC_SVC_REG_TBL;
@@ -459,7 +459,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
        m_NCS_MEMSET(node_reg, '\0', sizeof(DTS_SVC_REG_TBL));
        node_reg->my_key.node      = key.node;
        node_reg->my_key.ss_svc_id = 0;
-       /* IR 60411 - Network order key added */
+       /*  Network order key added */
        node_reg->ntwk_key.node = nt_key.node;
        node_reg->ntwk_key.ss_svc_id = 0;
        node_reg->node.key_info = (uns8 *)&node_reg->ntwk_key;
@@ -488,7 +488,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
 
 
    key.ss_svc_id = msg->data.data.reg.svc_id;
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.ss_svc_id = m_NCS_OS_HTONL(msg->data.data.reg.svc_id);
 
    dta_key       = msg->dest_addr;
@@ -505,7 +505,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
     * If NO then create new entry in the table. Initialize it with the default.
     * Enqueue the v-card in the v-card table.
     */
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    if ((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8*)&nt_key)) != NULL)
    { 
        /*Search for dta entry already present in svc->v_cd_list*/
@@ -576,7 +576,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
       svc->my_key.ss_svc_id = key.ss_svc_id;
       svc->my_key.node      = key.node;
       svc->my_node          = node_reg;
-      /* IR 60411 - Network order key added */
+      /*  Network order key added */
       svc->ntwk_key.ss_svc_id = nt_key.ss_svc_id;
       svc->ntwk_key.node = nt_key.node;
       svc->node.key_info = (uns8 *)&svc->ntwk_key;
@@ -735,7 +735,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
     msg->data.data.reg_conf.msg_fltr.enable_log = svc->svc_policy.enable;
     msg->data.data.reg_conf.msg_fltr.category_bit_map = svc->svc_policy.category_bit_map;
     msg->data.data.reg_conf.msg_fltr.severity_bit_map = svc->svc_policy.severity_bit_map;
-    /* IR 61143 - No need for policy handles */
+    /* No need for policy handles */
     /*msg->data.data.reg_conf.msg_fltr.policy_hdl = svc->svc_hdl;*/
       
     m_DTS_UNLK(&inst->lock);
@@ -777,7 +777,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
 
    key.ss_svc_id = msg->data.data.unreg.svc_id;
    key.node    = msg->node;
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.ss_svc_id = m_NCS_OS_HTONL(msg->data.data.unreg.svc_id);
    nt_key.node = m_NCS_OS_HTONL(msg->node);
 
@@ -892,7 +892,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
  
    node->num_svcs--;
 
-   /* IR 59850 - Close the open file and let the service log to a new file if 
+   /* Close the open file and let the service log to a new file if 
     * the rowstatus is active
     */
    node->device.new_file = TRUE;
@@ -948,60 +948,6 @@ uns32 dts_handle_fail_over(void)
 
     /* Smik - need to initialize stby(now active) DTS with proper policies */
     status = dts_stby_initialize(inst);
-#if 0
-     dta_reg = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, NULL);
-
-    /* Smik - Using the DTA_LIST patricia tree to traverse all DTAs */
-    while(dta_reg != NULL)
-    {
-       /* Adjust the pointer to to_reg with the offset */
-       dta_reg = (DTA_DEST_LIST *)((long)dta_reg - DTA_DEST_LIST_OFFSET); 
-       dta_key = dta_reg->dta_addr;
-       if(dta_reg->svc_list != NULL)
-       {
-          msg = m_MMGR_ALLOC_DTSV_MSG; 
-          if(msg == NULL)
-          {
-             m_DTS_UNLK(&inst->lock);
-             m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);  
-             return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_fail_over :  Failed to allocate DTSV message");
-          }
-          m_NCS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
-
-          msg->vrid = inst->vrid;
-          msg->msg_type = DTS_FAIL_OVER;
-          /* Smik - Fill the data, select destination and send to MDS */
-          msg->data.data.dta_ptr = (long)dta_reg;
-
-          /*Encode the uba in msg with data*/
-          if(dts_fail_over_enc_msg(msg) == NCSCC_RC_FAILURE)
-          {
-             m_DTS_UNLK(&inst->lock);
-             m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-             if(NULL != msg)
-                m_MMGR_FREE_DTSV_MSG(msg);
-             return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_fail_over: Failed to encode msg for fail-over");
-          }
-
-          /* Send msg to DTA */
-          if (dts_mds_send_msg(msg, dta_key, inst->mds_hdl) != NCSCC_RC_SUCCESS)
-          {  
-             if(NULL != msg)
-                m_MMGR_FREE_DTSV_MSG(msg);
-             msg = NULL;
-             m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_fail_over : DTS: MDS send failed"); 
- 
-             dts_set_dta_up_down(m_NCS_NODE_ID_FROM_MDS_DEST(dta_key), dta_key, FALSE);
-          }
-       } /* end of dta_reg->svc_list != NULL */
-       /* Point to next dta */
-       dta_reg = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, (const uns8*)&dta_key);
-  
-       /*Free the msg*/
-       if(msg != NULL)
-          m_MMGR_FREE_DTSV_MSG(msg);
-    }/*end of while*/
-#endif
     m_DTS_UNLK(&inst->lock);
     m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
 
@@ -1053,7 +999,7 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
        ncs_encode_32bit(&data, svc_entry->svc->svc_policy.enable);
        ncs_encode_32bit(&data, svc_entry->svc->svc_policy.category_bit_map);
        ncs_encode_8bit(&data, svc_entry->svc->svc_policy.severity_bit_map);
-       /* IR 61143 - No need of policy handles */
+       /* No need of policy handles */
        /*ncs_encode_32bit(&data, svc_entry->svc->svc_hdl);*/
 
        svc_entry = svc_entry->next_in_dta_entry;
@@ -1133,7 +1079,7 @@ uns32 dts_log_data (DTSV_MSG *msg)
        return NCSCC_RC_CONTINUE;
    }
    
-   /* IR 61143 - No need of policy handles */
+   /* No need of policy handles */
    nt_key.node = m_NCS_OS_HTONL(msg->node);
    nt_key.ss_svc_id = m_NCS_OS_HTONL(msg->data.data.msg.log_msg.hdr.ss_id);
    
@@ -1278,7 +1224,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
          m_NCS_STRCPY(data.file_name, m_DTS_LOG_FILE_NAME(device));
          /* Fill data key with the key corresponding to node/svc whose policy
             is being used */
-         /* IR 82472 - Fill key according to the logging levels */
+         /* Fill key according to the logging levels */
          if(file_type == GLOBAL_FILE)
          {
             data.key.node = 0;
@@ -1512,7 +1458,7 @@ void dts_default_node_policy_set(POLICY *npolicy,
 
    /* Enable flag should inherit from global policy */
    npolicy->enable           = dts_cb.g_policy.g_policy.enable;
-   /* IR 59024 - Node filter policy would always take frm the global filter */
+   /* Node filter policy would always take frm the global filter */
    npolicy->category_bit_map = global_cat_filter;
    npolicy->severity_bit_map = global_sev_filter;
 
@@ -1567,7 +1513,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
    uns8   global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
    uns32  global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map; 
 
-   /* IR 59024 - Service filter policy would take from node filter if node 
+   /* Service filter policy would take from node filter if node 
     *            rowstatus is Active. otherwise it'll take frm global filter 
     */
    if((service->my_node != NULL) && 
@@ -1642,7 +1588,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       if (file_type == PER_SVC_FILE)
       {
          m_DTS_GET_SVC_NAME(svc, name);
-         /* IR 60353 - Node-id display change */
+         /* Node-id display change */
          sysf_sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
       }
       else if (file_type == GLOBAL_FILE)
@@ -1651,7 +1597,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       }
       else
       {
-          /* IR 60353 - Node-id display change */ 
+          /* Node-id display change */ 
           sysf_sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
       }
 
@@ -1681,7 +1627,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
           else if (file_type == PER_SVC_FILE)
           {
               count += (CARRIAGE_RETURN + 
-                  /* IR 60353 - Node-id display change */
+                  /* Node-id display change */
                   sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
 
               count += (CARRIAGE_RETURN + 
@@ -1690,7 +1636,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
           else
           {
               count += (CARRIAGE_RETURN + 
-                  /* IR 60353 - Node-id display change */
+                  /* Node-id display change */
                   sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
               count += (CARRIAGE_RETURN + 
                   sysf_fprintf(fh, "**   Service Name  = %s\n", "ALL"));
@@ -1755,7 +1701,7 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst,
     msg.data.data.msg_fltr.enable_log = svc->svc_policy.enable;
     msg.data.data.msg_fltr.category_bit_map = svc->svc_policy.category_bit_map;
     msg.data.data.msg_fltr.severity_bit_map = svc->svc_policy.severity_bit_map;
-    /* IR 61143 - No need of policy handles */
+    /* No need of policy handles */
     /*msg.data.data.msg_fltr.policy_hdl = svc->svc_hdl;*/
     
     if (dts_mds_send_msg(&msg, dta->dta_addr, inst->mds_hdl) != NCSCC_RC_SUCCESS)
@@ -1815,88 +1761,11 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
  Returns:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
  Notes:   Changes for enabling dynamic reloading of ASCII_SPEC tables. 
-          With IR 60411, spec_entry->svc_id is already in network order.
+          spec_entry->svc_id is already in network order.
           
           With versioning support, reloading of ASCII_SPECs will be 
           discontinued. So this function would not be called.  
 \**************************************************************************/
-#if 0
-uns32 dts_ascii_spec_reload(DTS_CB *cb)
-{
-   SYSF_ASCII_SPECS *spec_entry; 
-   DTS_SVC_REG_TBL *svc;
-   SVC_KEY nt_key;
-   ASCII_SPEC_INDEX  next_spec_key;
-
-   m_DTS_LK(&cb->lock);
-   m_LOG_DTS_LOCK(DTS_LK_LOCKED,&cb->lock);
-   /* First set bool 'loaded' for all spec entries in patricia tree to FALSE 
-    * to indicate unloading of all specs loaded frm dts_ascii_spec_config file
-    */
-   spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, NULL);
-   while(spec_entry != NULL)
-   {
-      spec_entry->loaded = FALSE;
-      spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, (const uns8*)&spec_entry->key);
-   }
-
-   /* Now unload all the libraries loaded and remove entries frm the patricia
-    * tree for libraries loaded
-    */
-   dtsv_clear_libname_tree(cb);
-
-   /* Now set spec_reload to TRUE, so that ASCII_SPEC tables are reloaded */
-   cb->spec_reload = TRUE;
-
-   /* Set this to indicate that CLI reload command has been issued */
-   cb->cli_reload_cmd = TRUE;
- 
-   /* Now force a fresh read on OSAF_SYSCONFDIR/dts_ascii_spec_config to reload
-    * all ASCII_SPEC tables.
-    */  
-   dts_apps_ascii_spec_load(DTS_ASCII_SPEC_CONFIG_FILE, 1); 
-  
-   /* reset spec_reload to FALSE to prevent any further reloading */
-   cb->spec_reload = FALSE;
-
-   /* reset the cli_reload_cmd */
-   cb->cli_reload_cmd = FALSE;
-
-   /* Now check which spec previously loaded as shared lib was not reloaded.
-    * Corresponding service entry should have its spec ptr nullified */
-   spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, NULL);
-   while(spec_entry != NULL)
-   {
-      next_spec_key = spec_entry->key;
-      if((spec_entry->shared_lib_load == TRUE)&&(spec_entry->loaded == FALSE))
-      {
-         /* For all entries for this service nullify its spec ptr */
-         svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, NULL);
-         while(svc != NULL)
-         {
-            nt_key.node = svc->ntwk_key.node;
-            nt_key.ss_svc_id = spec_entry->key.svc_id;
-
-            /*if((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8*)&nt_key)) != NULL)
-               svc->my_spec = NULL;*/
-
-            svc = (DTS_SVC_REG_TBL *)dts_get_next_node_entry(&cb->svc_tbl, (SVC_KEY*)&nt_key);
-         }/*end of while svc*/
-
-         /* rmv spec_entry frm tree and free memory */
-         ncs_patricia_tree_del(&cb->svcid_asciispec_tree, (NCS_PATRICIA_NODE *)spec_entry);
-         m_MMGR_FREE_DTS_SPEC_ENTRY(spec_entry);
-         spec_entry = NULL;
-      }/*end of if*/
-
-      spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, (const uns8*)&next_spec_key);
-   }/*end of while spec_entry*/
-
-   m_DTS_UNLK(&cb->lock);
-   m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&cb->lock);
-   return NCSCC_RC_SUCCESS; 
-}
-#endif
 /**************************************************************************\
  Function: dts_close_opened_files
 
@@ -2029,7 +1898,7 @@ dts_create_new_pat_entry(DTS_CB       *inst,
     m_NCS_MEMSET(*node, '\0', sizeof(DTS_SVC_REG_TBL));    
     (*node)->my_key.node       = node_id;
     (*node)->my_key.ss_svc_id  = svc_id;
-    /* IR 60411 - Network order key added */
+     /*  Network order key added */
     (*node)->ntwk_key.node      = m_NCS_OS_HTONL(node_id);
     (*node)->ntwk_key.ss_svc_id = m_NCS_OS_HTONL(svc_id);
     (*node)->node.key_info = (uns8 *)&(*node)->ntwk_key;
@@ -2046,7 +1915,7 @@ dts_create_new_pat_entry(DTS_CB       *inst,
     }
     else
     {
-        /* IR 60411 - Network order key added */
+        /*  Network order key added */
         nt_key.node = (*node)->ntwk_key.node;
         nt_key.ss_svc_id = 0;
         if((parent_node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl,(const uns8*)&nt_key)) == NULL)
@@ -2072,7 +1941,7 @@ dts_create_new_pat_entry(DTS_CB       *inst,
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_create_new_pat_entry: Failed to add entry into patricia tree");
     }
    
-    /* IR 61143 - No need of policy handles */ 
+    /*  No need of policy handles */ 
     /*(*node)->svc_hdl = ncshm_create_hdl(inst->hmpool_id, NCS_SERVICE_ID_DTSV,
         (NCSCONTEXT)(*node));*/
 
@@ -2123,7 +1992,7 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
        while(node != NULL)
        {
           key = node->my_key;
-          /* IR 60411 - Network order key added */
+          /*  Network order key added */
           nt_key = node->ntwk_key;
 
           device = &node->device; 
@@ -2157,7 +2026,7 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
              }/*end of else per_node_logging = TRUE*/
           }
           /* Go to the next node(not service) in the tree */
-          /* IR 60411 - Network order key added */
+          /*  Network order key added */
           node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8*)&nt_key);
        }/*end of while*/        
     }/*end of else*/
@@ -2642,7 +2511,7 @@ NCSCONTEXT dts_find_dta(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key)
 
  Returns:  Pointer to the next Node entry in pat tree
 
- Notes: With IR 60411, key is to be supplied in network order 
+ Notes: key is to be supplied in network order 
 \**************************************************************************/
 NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE * node, SVC_KEY* key)
 {
@@ -2668,7 +2537,7 @@ NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE * node, SVC_KEY* key)
       while (((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(node, (const uns8*)&skey)) != NULL) &&
              (svc->my_key.ss_svc_id != 0))
       {
-         /* IR 60411 - Network order key added */
+         /*  Network order key added */
          skey.node = svc->ntwk_key.node;
          skey.ss_svc_id = 0xffffffff;
       }
@@ -2703,7 +2572,7 @@ NCSCONTEXT dts_get_next_node_entry(NCS_PATRICIA_TREE * node, SVC_KEY* key)
 
  Returns:  Pointer to the next Service entry in pat tree
 
- Notes: With IR 60411, key is to be supplied in network order  
+ Notes: key is to be supplied in network order  
 \**************************************************************************/
 NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE * node, SVC_KEY* key)
 {
@@ -2760,193 +2629,6 @@ NCSCONTEXT dts_get_next_svc_entry(NCS_PATRICIA_TREE * node, SVC_KEY* key)
 
 uns32 dts_free_msg_content (NCSFL_NORMAL*  msg)
 {
-#if 0
-   switch (msg->hdr.fmat_type)
-   {
-
-   case NCSFL_TYPE_TIIIC: /* time, idx, idx , idx     */
-      {
-         NCSFL_TIIIC*   data = (NCSFL_TIIIC*)&msg->data;
-
-         if (data->str5 != NULL)
-             m_MMGR_FREE_OCT(data->str5);
-
-         break;
-      }
-
-   case NCSFL_TYPE_TCIC: /* time, str1, idx , str2     */
-       {
-           NCSFL_TCIC*   data = (NCSFL_TCIC*)&msg->data;
-
-           if (NULL != data->str1)
-               m_MMGR_FREE_OCT(data->str1);
-           
-           if (NULL != data->str2)
-               m_MMGR_FREE_OCT(data->str2);
-           break;
-       }
-   case NCSFL_TYPE_TC: /* time, str1*/ 
-      {
-      NCSFL_TC*   data = (NCSFL_TC*)&msg->data;
-
-      if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-
-      break;
-      }
-   case NCSFL_TYPE_TID: /* time, idx, mem       */
-      {
-         NCSFL_TID* data = (NCSFL_TID*)&msg->data;
-
-         if (data->mem_3.dump != NULL)
-             m_MMGR_FREE_OCT(data->mem_3.dump);
-       
-         break;
-      }
-
-   case NCSFL_TYPE_TIP: /* time, idx, mem       */
-      {
-         NCSFL_TIP* data = (NCSFL_TIP*)&msg->data;
-
-         if (data->pdu_3.dump != NULL)
-             m_MMGR_FREE_OCT(data->pdu_3.dump);
-
-         break;
-      }
-
-
-   case NCSFL_TYPE_ILTCLIL: /* idx, u32, tme, C,   u32, idx, u32 */
-      {
-         NCSFL_ILTCLIL*      data = (NCSFL_ILTCLIL*)&msg->data;
-
-         if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-
-         break;
-      }
-
-   case NCSFL_TYPE_ILTISC: /* idx, u8,  tme, idx, u8,  C             */
-      {
-         NCSFL_ILTISC*      data = (NCSFL_ILTISC*)&msg->data;
-
-         if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-         break;
-      }
-
-
-   case NCSFL_TYPE_ILTISCLC: /* idx, u8,  tme, idx, u8,  C,   u32, C   */
-      {
-         NCSFL_ILTISCLC*      data = (NCSFL_ILTISCLC*)&msg->data;
-
-         if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-         
-         if (data->str2 != NULL)
-             m_MMGR_FREE_OCT(data->str2);
-         break;
-      }
-
-   case NCSFL_TYPE_ILTIC: /* idx, u32, tme, idx, C,                 */
-      {
-         NCSFL_ILTIC*      data = (NCSFL_ILTIC*)&msg->data;
-
-         if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-         break;
-      }
-
-   case NCSFL_TYPE_ILTICL: /* idx, u32, tme, idx, C,   u32           */
-      {
-         NCSFL_ILTICL*      data = (NCSFL_ILTICL*)&msg->data;
-
-         if (data->str1 != NULL)
-             m_MMGR_FREE_OCT(data->str1);
-         break;
-      }
-
-   
-   case NCSFL_TYPE_TIC: /* time, idx , str                */
-      {
-         NCSFL_TIC*   data = (NCSFL_TIC*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-         break;
-      }
-
-   case NCSFL_TYPE_TICL: /* time, idx , str                */
-      {
-         NCSFL_TICL*   data = (NCSFL_TICL*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-
-         break;
-      }
-
-   case NCSFL_TYPE_TICLL: /* time, idx , str                */
-      {
-         NCSFL_TICLL*   data = (NCSFL_TICLL*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-         break;
-      }
-
-   case NCSFL_TYPE_TICLLL: /* time, idx , str                */
-      {
-         NCSFL_TICLLL*   data = (NCSFL_TICLLL*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-         break;
-      }
-
-   case NCSFL_TYPE_TICLLLL: /* time, idx , str                */
-      {
-         NCSFL_TICLLLL*   data = (NCSFL_TICLLLL*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-         break;
-      }
-
-   case NCSFL_TYPE_TICLLLLL: /* time, idx , str                */
-      {
-         NCSFL_TICLLLLL*   data = (NCSFL_TICLLLLL*)&msg->data;
-
-         if (data->str_3 != NULL)
-             m_MMGR_FREE_OCT(data->str_3);
-         break;
-      }
-
-   case NCSFL_TYPE_TIIC: /* time, idx , idx, tr                */
-      {
-         NCSFL_TIIC*   data = (NCSFL_TIIC*)&msg->data;
-
-         if (data->str_4 != NULL)
-             m_MMGR_FREE_OCT(data->str_4);
-
-         break;
-      }
-
-   case NCSFL_TYPE_TIICC: /* time, idx , idx, tr                */
-      {
-         NCSFL_TIICC*   data = (NCSFL_TIICC*)&msg->data;
-
-         if (data->str_4 != NULL)
-             m_MMGR_FREE_OCT(data->str_4);
-         
-         if (data->str_5 != NULL)
-             m_MMGR_FREE_OCT(data->str_5);
-         break;
-      }
-
-   default:
-      return NCSCC_RC_SUCCESS;
-   }
-#endif
    return NCSCC_RC_SUCCESS;
 }
 

@@ -65,7 +65,7 @@
 #define CLI_CONS_FILE_OPEN_ERROR    6
 #define CLI_CONS_FILE_READ_ERROR    7
 #define CLI_CONS_LOGIN_CMD          8
-#define CLI_CONS_NO_MODE            9  /* IR00082729 */
+#define CLI_CONS_NO_MODE            9  
 
 
 #define CLI_HIS_FWD_MVMT            0
@@ -100,7 +100,7 @@
 #define CLI_EXIT                    "exit"
 #define CLI_HELP_DESC               "help"
 #define CLI_QUIT                    "quit"
-#define CLI_SHUT                    "clishut"   /* Fix for the bug 58948 */
+#define CLI_SHUT                    "clishut"   
 #define CLI_DEFAULT_HELP_STR        "No command registed under this mode"
 
 #define NCSCLI_OPTIONAL        NCSCLI_TOK_MAX    
@@ -128,7 +128,7 @@ typedef enum {
     CLI_PASSWORD_MATCHED,
     CLI_ERR_FILEOPEN,
     CLI_ERR_FILEREAD,
-    CLI_NO_MODE /* IR00082729 */
+    CLI_NO_MODE 
 } CLI_CMD_MATCH;
 
 /* Enums that define the command execution type */

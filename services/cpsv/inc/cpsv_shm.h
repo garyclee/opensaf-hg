@@ -121,9 +121,4 @@ typedef enum cpnd_type_info
   CPND_CKPT_INFO
 }CPND_TYPE_INFO;
 
-#if 0
- uns32  cpnd_client_extract_bits(CPND_CKPT_NODE *cp_node, uns32 bitmap_value);
- uns32 cpnd_res_ckpt_sec_del(CPND_CKPT_NODE *cp_node);
- uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* buf,CPND_CKPT_NODE **cp_node,uns32 ref_cnt,CKPT_INFO *cp_info);
-#endif 
 #endif

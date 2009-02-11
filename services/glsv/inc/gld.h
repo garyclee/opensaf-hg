@@ -55,9 +55,6 @@ typedef enum {
 #include "ncsencdec.h"
 #include "mbcsv_papi.h"
 #include "ncsmiblib.h"
-#if 0
-#include "ncsccstat.h" 
-#endif
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"
 #include "ncs_util.h"

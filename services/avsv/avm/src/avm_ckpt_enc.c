@@ -487,18 +487,11 @@ avm_encode_ckpt_ent_upgd_state_chg(AVM_CB_T           *cb,
    {
       /* vivsp4 */
       /* Should return failure otherwise mbcsv send empty message to peer */
-#if 0
-      return NCSCC_RC_SUCCESS;
-#endif
       return NCSCC_RC_FAILURE;
    }
 
    status = ncs_edu_exec(&cb->edu_hdl, avm_edp_ckpt_msg_ent, &enc->io_uba, 
                           EDP_OP_TYPE_ENC, (AVM_ENT_INFO_T*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)), &ederror, 2, 2, 26);
-#if 0 /* remove this code later */
-   status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_ent, &enc->io_uba, 
-                    EDP_OP_TYPE_ENC, (AVM_ENT_INFO_T*)enc->io_reo_hdl, &ederror,enc->i_peer_version, 2, 2, 25);
-#endif
 
    if(NCSCC_RC_SUCCESS != status)
    {

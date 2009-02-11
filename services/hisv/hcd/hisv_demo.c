@@ -245,22 +245,6 @@ static uns32 hpl_control()
     ** on to it. And users of HPL can also subscribe
     ** to EDS to receive those events
     **/
-#if 0
-   if (init_hpl_flag == 0)
-   {
-      m_NCS_CONS_PRINTF("Starting EDS...\n");
-
-      m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
-      req_info.i_op = NCS_LIB_REQ_CREATE;
-      rc = ncs_edsv_eds_lib_req(&req_info);
-      if (rc != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_CONS_PRINTF("ncs_edsv_eds_lib_req() failed. rc=%d\n", rc);
-         return(NCSCC_RC_FAILURE);
-      }
-      m_NCS_CONS_PRINTF("\nEDS Running...\n");
-   }
-#endif /* 0 */
    for (;;)
    {
       uns32 command;
@@ -657,18 +641,6 @@ static uns32 hpl_control()
    }
 
 ret:
-#if 0
-   /* Done with HPL usage, Now destroy EDS server */
-   m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
-   req_info.i_op = NCS_LIB_REQ_DESTROY;
-   rc = ncs_edsv_eds_lib_req(&req_info);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_CONS_PRINTF("ncs_edsv_eds_lib_req() failed. rc=%d\n", rc);
-      return(NCSCC_RC_FAILURE);
-   }
-   m_NCS_CONS_PRINTF("\nEDS Stopped...\n");
-#endif /* 0 */
    return NCSCC_RC_SUCCESS;
 }
 

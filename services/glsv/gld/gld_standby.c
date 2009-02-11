@@ -512,18 +512,6 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_RSC_DETAILS *rsc_det
      node_list = node_list->next;
  
   } 
- #if 0
-  node_list = rsc_details->node_list;
-  while(node_list != NULL)
-  {
-     tmp1_node_list = node_list;
-     node_list = node_list->next;
-     m_MMGR_FREE_GLSV_NODE_LIST(tmp1_node_list);
-  }
-  #if 0
-  m_MMGR_FREE_GLSV_GLD_A2S_RSC_DETAILS(rsc_details);
-  #endif
-  #endif
   return NCSCC_RC_SUCCESS;
 
 }

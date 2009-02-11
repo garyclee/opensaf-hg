@@ -47,10 +47,6 @@ static uns32 hpl_mds_cb_rcv_direct (struct ncsmds_callback_info *mds_cb_info);
 /* function to process the received message  */
 static uns32 hpl_msg_proc        (HPL_CB *hpl_cb, HISV_MSG *hisv_msg,
                                   MDS_SEND_PRIORITY_TYPE prio);
-#if 0
-/* send out our ADEST to HAM vdest */
-static uns32 hpl_mds_send_adest(HPL_CB *hpl_cb, MDS_DEST *vdest);
-#endif /* 0 */
 
 const MDS_CLIENT_MSG_FORMAT_VER hpl_hcd_msg_fmt_map_table[HPL_HCD_SUB_PART_VER_MAX] = {HPL_MSG_FMT_VER};
 
@@ -620,9 +616,6 @@ static uns32 hpl_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
                 ** Now the VDEST of HCD is received in separate message.
                 ** nothing done here...
                 **/
-#if 0
-               hpl_mds_send_adest(hpl_cb, &mds_cb_info->info.svc_evt.i_dest);
-#endif /* 0 */
                break;
             default:
                break;
@@ -899,38 +892,6 @@ HISV_MSG* hpl_mds_msg_sync_send (HPL_CB *cb, HISV_MSG *i_msg,
    return (mds_info.info.svc_send.info.sndrsp.o_rsp);
 }
 
-#if 0
-/****************************************************************************
- * Name          : hpl_mds_send_adest
- *
- * Description   : This routine creates and sends the HPL ADEST message
- *                 to HAM instance.
- *
- * Arguments     : cb  - ptr to the HPL CB
- *                 vdest - ptr to the HAM MDS VDEST
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : None.
- *****************************************************************************/
-
-static uns32
-hpl_mds_send_adest(HPL_CB *hpl_cb, MDS_DEST *vdest)
-{
-   HISV_MSG hisv_msg;
-   uns32 rc;
-   uns32 data_len = sizeof(MDS_DEST);
-
-   /** populate the mds message to send across to the HAM
-    **/
-   m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_CHASSIS_ID_GET, 0,
-                              data_len, &hpl_cb->hpl_dest);
-
-   /* send the message to HAM */
-   rc = hpl_mds_msg_async_send (hpl_cb, &hisv_msg, vdest, MDS_SEND_PRIORITY_HIGH);
-   return rc;
-}
-#endif /* 0 */
 
 /****************************************************************************
  * Name          : get_ham_dest

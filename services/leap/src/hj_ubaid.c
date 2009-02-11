@@ -250,14 +250,6 @@ ncs_enc_reserve_space(NCS_UBAID* uba, int32 res)
 {
   if (res > PAYLOAD_BUF_SIZE) /* can never reserve > min payload of USRBUF */
     {
-#if 0
-     /*
-     ** It would be nice to have this DBG_SINK here, but it ALWAYS
-     ** gets hit when Signalling tries to build a DTL IE, and we're
-     ** using our default PAYLOAD_BUF_SIZE.  So, leave it out.
-     */
-    m_LEAP_DBG_SINK(res);
-#endif
     res = PAYLOAD_BUF_SIZE;
     }
 

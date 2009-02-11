@@ -221,7 +221,6 @@ uns32 pss_mib_request (struct ncsmib_arg *mib_args)
     }
 
     m_NCS_MEMSET(mab_msg, 0, sizeof(MAB_MSG));
-    /* Fixed as a part of IR00085797 */
     mab_msg->yr_hdl  = NCS_INT32_TO_PTR_CAST(inst->hm_hdl);
     mab_msg->op      = MAB_PSS_MIB_REQUEST;
 

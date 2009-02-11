@@ -196,7 +196,7 @@ typedef struct log_msg_fltr    /* Data associated with the Service specific log 
     uns32            category_bit_map;    /* Category filter Bit map  */
     uns8             severity_bit_map;    /* Severity filter Bit Map */
 
-    /* IR 61143 - No need of policy handles */
+    /* No need of policy handles */
     /*uns32            policy_hdl;*/
 
   } LOG_MSG_FLTR;

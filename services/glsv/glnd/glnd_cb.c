@@ -256,15 +256,6 @@ uns32 glnd_cb_destroy (GLND_CB *glnd_cb)
    if(m_NCS_IPC_RELEASE(&glnd_cb->glnd_mbx, NULL)!= NCSCC_RC_SUCCESS)
       return NCSCC_RC_FAILURE;
 
-#if 0 /* TBD: Enable when AMF is ready */
-   /* deregister with the AMF */
-   if(glnd_amf_deregister(glnd_cb) != NCSCC_RC_SUCCESS)
-      return NCSCC_RC_FAILURE;
-
-   /* uninitialise with AMF */
-   glnd_amf_de_init(glnd_cb);
-
-#endif
    /* delete all the internal structures */
    /* delete the trees */
    for(agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree,(uns8*)0);

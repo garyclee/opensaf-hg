@@ -375,7 +375,6 @@ uns32 srmnd_send_msg(SRMND_CB *srmnd,
          /* Now copy the content of temp store of SRMND msg */
          srmnd_msg = tmp_srmnd_msg;
          
-         /* Fix for IR00058963 */
          srmnd_msg.srma_rsrc_hdl = subscr_node->srma_rsrc_hdl;
 
          /* Sending SRMA event to the respective SRMND */

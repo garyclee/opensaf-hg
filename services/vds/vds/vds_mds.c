@@ -734,18 +734,6 @@ uns32 vds_mds_cb_svc_event(VDS_CB *vds, struct ncsmds_callback_info *info)
              vds_evt_destroy(vds_evt);
              break;
 
-#if 0  /* NORMAL SUBSCRIPTION WON'T GET CHG_ROLE event */
-      case NCSMDS_CHG_ROLE:
-          VDS_TRACE1_ARG2("vds_mds_cb_svc_event:chng=%s\n", "CHG_ROLE");
-          if (vds->amf.ha_cstate == VDS_HA_STATE_ACTIVE) 
-             vds_db_scavanger(vds); 
-
-          vds->amf.ha_cstate = VDS_HA_STATE_QUIESCED;  
-
-          /* Now response to AMF */
-          saAmfResponse(vds->amf.amf_handle, vds->amf.invocation, SA_AIS_OK);
-          break;
-#endif
 
       default:
           break;

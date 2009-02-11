@@ -30,7 +30,7 @@
 
 MABOAC_API uns32       gl_oac_handle;
 
-static  NCS_SEL_OBJ oac_sync_sel; /* Fix for the bug IR00061371 */
+static  NCS_SEL_OBJ oac_sync_sel; 
 
 
 typedef struct oacmbx_struct
@@ -62,11 +62,6 @@ static uns32
 oaclib_oac_uninstantiate(PW_ENV_ID      i_env_id, 
                          SaNameT        i_inst_name, 
                          uns32          i_oac_hdl); 
-#if 0
-/* to destroy OAA */ 
-static uns32
-oaclib_oac_destroy(NCS_LIB_REQ_INFO * req_info); 
-#endif
 
 /* to add to the global list of instances */
 static uns32 
@@ -95,8 +90,8 @@ static uns32 sysf_ake_lm_cbfn(MAB_LM_EVT* evt)
 uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
 {
     uns32       status = NCSCC_RC_FAILURE; 
-    NCS_SEL_OBJ_SET     set; /* Fix for the bug IR00061371 */
-    uns32 timeout = 1000;    /* Fix for the bug IR00061371 (1000 ms = 10sec)*/
+    NCS_SEL_OBJ_SET     set; 
+    uns32 timeout = 1000;   
 
     /* make sure there is somedata */ 
     if (req_info == NULL)
@@ -155,7 +150,6 @@ uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
                 m_NCS_OS_MEMSET(post_me, 0, sizeof(MAB_MSG));
                 post_me->op = MAB_OAC_DESTROY;
 
-                /* Fix for the bug IR00061371 -- start*/
                 m_NCS_SEL_OBJ_CREATE(&oac_sync_sel);
                 m_NCS_SEL_OBJ_ZERO(&set);
                 m_NCS_SEL_OBJ_SET(oac_sync_sel, &set);
@@ -164,19 +158,13 @@ uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
                 status = m_NCS_IPC_SEND(&gl_oacmbx.oac_mbx, (NCS_IPC_MSG *)post_me, NCS_IPC_PRIORITY_HIGH);
                 if (status != NCSCC_RC_SUCCESS)
                 {
-                    m_MMGR_FREE_MAB_MSG(post_me); /* fix for the bug 60582 */
+                    m_MMGR_FREE_MAB_MSG(post_me); 
                     return m_MAB_DBG_SINK(status);
                 }
-                /* Fix for the bug IR00061371 -- start*/
                 m_NCS_SEL_OBJ_SELECT(oac_sync_sel, &set, 0, 0, &timeout);
                 m_NCS_SEL_OBJ_DESTROY(oac_sync_sel);
                 m_NCS_OS_MEMSET(&oac_sync_sel, 0, sizeof(oac_sync_sel));
             }
-#if 0
-            status = oaclib_oac_destroy(req_info); 
-            if (status != NCSCC_RC_SUCCESS)
-                return m_MAB_DBG_SINK(status);
-#endif
         break;
        
         /* OAA can not help with this type of request */  
@@ -261,7 +249,7 @@ oaclib_oac_create_ipc_task()
     uns32   status; 
 
     /* create mail-box for OAA */ 
-    if(gl_oacmbx.oac_mbx == (SYSF_MBX) ((long)NULL)) /*IR00061338 (To avoid the sysf_ipc.c mem leak) */
+    if(gl_oacmbx.oac_mbx == (SYSF_MBX) ((long)NULL)) /* (To avoid the sysf_ipc.c mem leak) */
     {
         status = m_NCS_IPC_CREATE(&gl_oacmbx.oac_mbx);
         if (status != NCSCC_RC_SUCCESS)
@@ -546,10 +534,10 @@ oaclib_oac_destroy(NCS_LIB_REQ_INFO *req_info)
     /* release the IPC */ 
     {
        SYSF_MBX tmp_mbx = gl_oacmbx.oac_mbx;
-       /*gl_oacmbx.oac_mbx = 0; */  /* fix for sysf_ipc.c:99 leak */ 
+       /*gl_oacmbx.oac_mbx = 0; */  
        (void)m_NCS_IPC_DETACH(&tmp_mbx, NULL, NULL);
        m_NCS_IPC_RELEASE(&tmp_mbx, mab_leave_on_queue_cb);
-       gl_oacmbx.oac_mbx = 0;  /* fix for sysf_ipc.c:99 leak */ 
+       gl_oacmbx.oac_mbx = 0; 
     }
 
     /* release the task related stuff */ 
@@ -557,14 +545,9 @@ oaclib_oac_destroy(NCS_LIB_REQ_INFO *req_info)
     /*m_NCS_TASK_RELEASE(gl_oacmbx.oac_mbx_hdl); */
     gl_oacmbx.oac_mbx_hdl = NULL;
 
-#if 0
-    /* release the IPC */ 
-    (void)m_NCS_IPC_DETACH(&gl_oacmbx.oac_mbx, NULL, NULL);
-    m_NCS_IPC_RELEASE(&gl_oacmbx.oac_mbx, mab_leave_on_queue_cb);
-#endif
 
     if((oac_sync_sel.raise_obj != 0) || (oac_sync_sel.rmv_obj != 0))
-           m_NCS_SEL_OBJ_IND(oac_sync_sel); /* Fix for the bug IR00061371 */
+           m_NCS_SEL_OBJ_IND(oac_sync_sel); 
 
     return status;
 }       

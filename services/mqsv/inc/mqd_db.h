@@ -138,9 +138,6 @@ typedef struct mqd_cb {
    NCS_BOOL             node_db_up; 
    SaAmfHandleT         amf_hdl;    /* AMF handle, which we would have got during AMF init */   
    SaClmHandleT         clm_hdl;
-#if 0
-   SaAmfReadinessStateT ready_state;/* AMF readiness state of the component  */
-#endif
    SaAmfHAStateT        ha_state;   /* Present AMF HA state of the component*/ 
    SaNameT              comp_name;
 

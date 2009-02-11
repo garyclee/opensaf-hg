@@ -114,7 +114,7 @@ ncsdtsvnodelogpolicyentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  
    key.node = arg->i_idx.i_inst_ids[0];
    key.ss_svc_id = 0; 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(arg->i_idx.i_inst_ids[0]);
    nt_key.ss_svc_id = 0;
    
@@ -179,8 +179,8 @@ ncsdtsvnodelogpolicyentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    {
       case ncsDtsvNodeLogDevice_ID:
           log_device = node->svc_policy.log_dev;
-          /* IR 59525 - Check for valid value of log device */
-          /* IR 60732-First check for null i_oct for the above-mentined check*/
+          /* Check for valid value of log device */
+          /* First check for null i_oct for the above-mentined check*/
           if(set_req->i_param_val.info.i_oct == NULL)
              return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncsdtsvnodelogpolicyentry_set: NULL pointer for i_oct in SET request received");
           else if(*(uns8*)set_req->i_param_val.info.i_oct < DTS_LOG_DEV_VAL_MAX)
@@ -259,7 +259,7 @@ ncsdtsvnodelogpolicyentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
    if(NODE_INST_ID_LEN != arg->i_idx.i_inst_len)
       return NCSCC_RC_NO_INSTANCE;
 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(arg->i_idx.i_inst_ids[0]);
    nt_key.ss_svc_id = 0;
 
@@ -297,7 +297,7 @@ ncsdtsvnodelogpolicyentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data,
    }
    else if (arg->i_idx.i_inst_len == NODE_INST_ID_LEN)
    {
-       /* IR 60411 - Network order key added */
+     /*  Network order key added */
        nt_key.node = m_NCS_OS_HTONL(arg->i_idx.i_inst_ids[0]);
    }
    else
@@ -316,7 +316,7 @@ ncsdtsvnodelogpolicyentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data,
    if (node == NULL)
        return NCSCC_RC_NO_INSTANCE;
 
-   /* IR 60411 - Don't use ntwk_key, because htonl will be done on GET for the
+   /* Don't use ntwk_key, because htonl will be done on GET for the
     *            oids returned 
     */
    next_inst_id[0]  = node->my_key.node;
@@ -362,7 +362,7 @@ ncsdtsvnodelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
    key.node = arg->i_idx.i_inst_ids[0];
    key.ss_svc_id = 0;
    
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(arg->i_idx.i_inst_ids[0]);
    nt_key.ss_svc_id = 0;
 
@@ -436,8 +436,8 @@ ncsdtsvnodelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
              */
             case ncsDtsvNodeLogDevice_ID:
                log_device = node->svc_policy.log_dev;
-               /* IR 59525 - Check for valid value of log device */
-               /* IR 60732-First check for null i_oct for the above-mentined check*/
+               /* Check for valid value of log device */
+               /* First check for null i_oct for the above-mentined check*/
                if(params[paramid-1].param.info.i_oct == NULL)
                   return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncsdtsvnodelogpolicyentry_setrow: NULL pointer for i_oct in SETROW request received");
                else if(*(uns8*)params[paramid-1].param.info.i_oct < DTS_LOG_DEV_VAL_MAX)
@@ -523,7 +523,7 @@ dtsv_node_policy_change(DTS_CB *inst,
     /* Search through Service per node registration table, Set all the policies,
      * configure all the DTA's using this policy 
      */
-    /* IR 60411 - Network order key added */
+    /*  Network order key added */
     nt_key.node  = m_NCS_OS_HTONL(node_id);
     nt_key.ss_svc_id = 0;
 
@@ -612,7 +612,7 @@ dts_node_row_status_set(DTS_CB           *inst,
          * First handle the changes in the logging policy due to row destroy.
          */
         dts_log_policy_change(node, &node->svc_policy, &inst->dflt_plcy.node_dflt.policy);
-        /* IR 60427 - Changing the filtering policy as well. don't return
+        /* Changing the filtering policy as well. don't return
          *            Print a DBG SINK. Rowstatus deletion must occur
          */
         dts_filter_policy_change(node, &node->svc_policy, &inst->dflt_plcy.node_dflt.policy);
@@ -632,7 +632,7 @@ dts_node_row_status_set(DTS_CB           *inst,
 
         if (node->row_status == NCSMIB_ROWSTATUS_DESTROY)
         {
-            /* IR 59908 - With Rowstatus Destroy, memory for node should be
+            /* With Rowstatus Destroy, memory for node should be
              * freed up.
              */
             node->row_exist = FALSE;
@@ -816,7 +816,7 @@ uns32 dtsv_node_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
    }
 
    /* Find the node frm patricia tree */
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(node_id);
    nt_key.ss_svc_id = 0;
    if((node_ptr = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8*)&nt_key)) == NULL)
@@ -876,7 +876,7 @@ uns32 dtsv_node_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
    if(dec_ptr == NULL)
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_node_conf_console: ncs_dec_flatten_space returns NULL");  
 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(ncs_decode_32bit(&dec_ptr));
    ncs_dec_skip_space(&uba, sizeof(uns32));
 

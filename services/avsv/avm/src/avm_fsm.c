@@ -1112,7 +1112,7 @@ avm_proc_boot_succ_tmr_exp(
       return NCSCC_RC_FAILURE;
    }
    
-   /* If standby Just stop the timer and return - Fix for 91104 */
+   /* If standby Just stop the timer and return  */
 
 
    avm_stop_tmr(avm_cb, &ent_info->boot_succ_tmr);
@@ -1121,13 +1121,12 @@ avm_proc_boot_succ_tmr_exp(
      ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
      return NCSCC_RC_SUCCESS;
    }
-   /* Fix for IR00084096 */
    avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmBootFailure_ID);
    sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : BootFailed for %s",
                        ent_info->ep_str.name,ent_info->node_name.value);
    m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
-   /* Fix for IR 85686. Call hpl_resource_reset to do cold reset of the node */
+   /* Call hpl_resource_reset to do cold reset of the node */
 
    res = avm_convert_entity_path_to_string(ent_info->entity_path, &entity_path);
    if(NCSCC_RC_SUCCESS != res)

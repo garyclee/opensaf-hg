@@ -98,13 +98,8 @@ typedef struct mds_encoded_msg{
     {
         NCSCONTEXT      cpy_msg;
 
-        /* IR 59572 FIx*/ 
         NCS_UBAID       flat_uba;
         NCS_UBAID       fullenc_uba;
-#if 0
-        USRBUF          *flat;
-        USRBUF          *full;
-#endif        
         MDS_DIRECT_BUFF_INFO buff_info;
     }data;
 }MDS_ENCODED_MSG;
@@ -172,19 +167,6 @@ typedef struct mdtm_send_req{
 typedef struct mds_await_active_queue{
 
     MDTM_SEND_REQ    req;
-#if 0
-    MDS_SENDTYPES    send_type;
-    MDS_ENCODED_MSG  msg;
-    MDS_SYNC_TXN_ID  txn_id; /* If await-active timer expires before sync-send tmr */
-    MDS_SVC_ID       src_svc_id;
-    PW_ENV_ID        pwe_id;
-    MDS_VDEST_ID     src_vdest_id;
-    MDS_DEST         src_adest;
-    uns32            src_svc_seq_num;
-
-    MDS_SVC_ID       dest_svc_id;
-    MDS_VDEST_ID     dest_vdest_id;
-#endif
 
     struct mds_await_active_queue *next_msg;
 }MDS_AWAIT_ACTIVE_QUEUE;
@@ -251,7 +233,6 @@ typedef enum
     MDS_MEM_TMR_INFO,
     MDS_MEM_MBX_EVT_INFO,
     
-    /* Fix IR 59572*/
     MDS_MEM_DISC_QUEUE,
     MDS_MEM_SYNC_SEND_QUEUE,
     MDS_MEM_DIRECT_BUFF,
@@ -357,15 +338,6 @@ typedef struct mds_mbx_evt_info
 /*        Default Timer Values Macros           */
 /* ******************************************** */
 /* ******************************************** */
-#if 0
-/* converted to global extern variable for configuration */
-#define MDS_QUIESCED_TMR_VAL 500
-#define MDS_AWAIT_ACTIVE_TMR_VAL 500
-#define MDS_SUBSCRIPTION_TMR_VAL 500
-#define MDTM_REASSEMBLE_TMR_VAL  10
-#define MDTM_CACHED_EVENTS_TMR_VAL  500
-
-#endif
 
 /* Initialize Logging */
 extern uns32 mds_log_init(char *log_file_name, char *line_prefix);
@@ -401,7 +373,7 @@ extern uns32 mds_mdtm_svc_uninstall(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_
 extern uns32 mds_mdtm_svc_subscribe(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE subscribe_scope,
                                     MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
 
-/* vishal : added svc_hdl */
+/*  added svc_hdl */
 /* SVC Unsubscribe */
 extern uns32 mds_mdtm_svc_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val);
 
@@ -482,7 +454,7 @@ extern uns32 mdtm_check_pcon(MDS_DEST adest);
 
 /* SVC TABLE Operations */
 extern uns32 mds_svc_tbl_get(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id, NCSCONTEXT *svc_cb);
-extern uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl); /* vishal: to add : returns 0 or 1 */
+extern uns32 mds_svc_tbl_get_role(MDS_SVC_HDL svc_hdl); /*  returns 0 or 1 */
 extern uns32 mds_svc_tbl_get_svc_hdl(MDS_PWE_HDL pwe_hdl, MDS_SVC_ID svc_id,
                                         MDS_SVC_HDL *svc_hdl);
 /* AWAIT ACTIVE TABLE Operations */
@@ -511,7 +483,7 @@ extern MDS_VDEST_ID ncs_get_internal_vdest_id_from_mds_dest(MDS_DEST mdsdest);
 /* Macros to get SVC_ID from SVC_HDL */
 #define m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl) (MDS_SVC_ID)(((uns64)svc_hdl & 0x00000000ffffffff))
 
-/* Added by surya for defining the MDS internal return values */
+/* for defining the MDS internal return values */
 typedef enum
 {
     MDS_INT_RC_MIN=400,

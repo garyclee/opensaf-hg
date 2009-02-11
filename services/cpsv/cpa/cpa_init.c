@@ -285,7 +285,7 @@ static uns32 cpa_destroy (NCS_LIB_DESTROY *destroy_info)
 
    m_LOG_CPA_CCL(CPA_PROC_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_NOTICE,"Lib Destroy", __FILE__ ,__LINE__);
   
-   /* Bug IR00060355 - Memory leaks found in cpa_init.c */
+   /*  Memory leaks found in cpa_init.c */
    m_MMGR_FREE_CPA_CB(cb);
  
    /* de register with the flex log */

@@ -51,11 +51,6 @@ uns32 edsv_mab_request(NCSMIB_ARG *args);
 EXTERN_C                  
 uns32 edsv_table_register(void);
 
-#if 0 
-EXTERN_C                  
-uns32 eds_retrieve_reten_table_index(NCSMIB_ARG *arg, SaSizeT *event_id,
-                                                        SaNameT *channel_name);
-#endif
 
 EXTERN_C                  
 uns32 safevtscalarobject_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data);
@@ -113,40 +108,6 @@ uns32  saevtchannelentry_tbl_reg(void);
 EXTERN_C 
 uns32  safevtscalarobject_tbl_reg(void);
 
-#if 0 
-EXTERN_C
-EDS_WORKLIST * eds_clear_retained_event_by_eventid(EDS_CB *cb,  
-                                               SaNameT chan_name, 
-                                               SaSizeT event_id);
-
-
-EXTERN_C
-uns32 saevtretainedevententry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag);
-
-
-EXTERN_C
-EDS_RETAINED_EVT_REC * get_retained_evt(EDS_WORKLIST *wp, SaSizeT event_id);
-
-
-EXTERN_C
-uns32 saevtretainedevententry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                                  NCSCONTEXT* data);
-
-EXTERN_C
-uns32 saevtretainedevententry_extract(NCSMIB_PARAM_VAL* param,
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer);
-
-EXTERN_C
-uns32 saevtretainedevententry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len);
-
-EXTERN_C
-uns32 saevtretainedevententry_setrow(NCSMIB_PARAM_VAL* param, NCSMIB_VAR_INFO* var_info,
-                   NCSCONTEXT data, NCSCONTEXT buffer);
-#endif
 
 #endif /* EDSV_MIB_H */
 

@@ -139,7 +139,6 @@ ncs_bam_extract_hw_filename(int argc, char *argv[], char *filename)
    {      
       m_NCS_DBG_PRINTF("\nBAM: using HW_VLD_FILE from standard path");
 
-       /* Fixed IR00085773 on 20/04/2007 */
       return NCSCC_RC_FAILURE;  
 
    }
@@ -147,7 +146,6 @@ ncs_bam_extract_hw_filename(int argc, char *argv[], char *filename)
    {      
       m_NCS_DBG_PRINTF("\nBAM: Error in HW_VLD_FILE file argument\n");
 
-       /* Fixed IR00085773 on 20/04/2007 */
       return NCSCC_RC_FAILURE; 
 
    }
@@ -548,7 +546,6 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
    if(ncs_bam_extract_ncs_filename(req_info->info.create.argc, 
             req_info->info.create.argv, filename) == NCSCC_RC_FAILURE)
    {
-        /*Commented as fix for IR00084376*/
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
@@ -562,7 +559,6 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
    if(ncs_bam_extract_app_filename(req_info->info.create.argc, 
             req_info->info.create.argv, filename) == NCSCC_RC_FAILURE)
    {
-        /*Commented as fix for IR00084376*/
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
@@ -580,7 +576,6 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
    if(ncs_bam_extract_hw_filename(req_info->info.create.argc, 
             req_info->info.create.argv, filename) == NCSCC_RC_FAILURE)
    {
-        /*Commented as fix for IR00084376*/
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
@@ -681,29 +676,5 @@ uns32 ncs_bam_dl_func(NCS_LIB_REQ_INFO *req_info)
  **************************************************************************/
 uns32 ncs_bam_restart()
 {
-#if 0
-   NCS_BAM_CB   *bam_cb = NULL;
-
-   if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, 
-                                             gl_ncs_bam_hdl)) == NULL)
-   {
-      m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
-      return NCSCC_RC_FAILURE;
-   }
-
-   bam_mds_unreg(bam_cb);
-
-   /* 
-   ** Clean any parse related stuff in the CB and then reg again 
-   ** however, the parse related stuff is cleaned is post parse 
-   ** function. Hence nothing need to be done. Just set the STATE
-   */ 
-   bam_cb->init_state = BAM_INIT_STATE_DOWN;
-
-   bam_mds_reg(bam_cb);
-
-
-   ncshm_give_hdl(gl_ncs_bam_hdl);   
-#endif
    return NCSCC_RC_SUCCESS;
 }

@@ -550,7 +550,7 @@ static uns32  dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb,
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_encode_cold_sync_rsp_dts_svc_reg_tbl_config: Encode DTS_FILE_LIST Failed");
       }
 
-      /* IR 60411 - Network order key added */
+      /*  Network order key added */
       nt_key = dts_svc_reg_ptr->ntwk_key;
       dts_svc_reg_ptr =(DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8*)&nt_key); 
       (*num_of_obj)++;

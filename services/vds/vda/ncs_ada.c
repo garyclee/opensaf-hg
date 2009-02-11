@@ -38,11 +38,7 @@
 **                       PRIVATE DATA STRUCTURES/DEFINITIONS                 **
 \*****************************************************************************/
 
-#if 0 /* FIXME: Put me in LEAP logging */
-#define m_NCSADA_TRACE_ARG1(X)   m_NCS_CONS_PRINTF(X)
-#else
 #define m_NCSADA_TRACE_ARG1(X) 
-#endif
 
 /*****************************************************************************\
 **                       PRIVATE FUNCTIONS                                   **

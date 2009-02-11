@@ -34,12 +34,6 @@
 */
 
 #include "gla.h"
-#if 0
-extern uns32 gl_gla_hdl;
-
-#define m_GLSV_GLA_RETRIEVE_GLA_CB  ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl)
-#define m_GLSV_GLA_GIVEUP_GLA_CB    ncshm_give_hdl(gl_gla_hdl)
-#endif
 #define NCS_SAF_MIN_ACCEPT_TIME  10
 
 
@@ -905,15 +899,6 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
       m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED ,NCSFL_SEV_INFO);
       goto done;
    }
-#if 0 
-   /* get the handle and global resource id */
-   res_id_info = gla_res_tree_find_and_add(gla_cb,lockResourceHandle,FALSE);
-   if(res_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_BAD_HANDLE; 
-      goto done;
-   }
-#endif
     /* retrieve Resorce hdl record */
    if (NULL == (res_id_info = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockResourceHandle)))
@@ -1095,15 +1080,6 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
       goto done;
    }
 
-#if 0
-   /* get the handle and global resource id */
-   res_id_info = gla_res_tree_find_and_add(gla_cb,lockResourceHandle,FALSE);
-   if(res_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_BAD_HANDLE; 
-      goto done;
-   }
-#endif
     /* retrieve Resorce hdl record */
    if (NULL == (res_id_info = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockResourceHandle)))
@@ -1192,11 +1168,6 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
 
    if(rc == SA_AIS_OK && *lockStatus == SA_LCK_LOCK_GRANTED) 
    {
-#if 0
-      GLA_LOCK_ID_INFO *lock_id_node,*rev_lock_id_node = NULL;
-      /* allocate the local lock node and add the values */
-      lock_id_node = gla_lock_tree_find_and_add(gla_cb,0,TRUE);
-#endif
       lock_id_node->gbl_res_id = res_id_info->gbl_res_id;
       lock_id_node->lcl_res_id = res_id_info->lcl_res_id;
       lock_id_node->lock_handle_id = res_id_info->lock_handle_id;
@@ -1204,26 +1175,6 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
       lock_id_node->mode = lockMode;
       *lockId = lock_id_node->lcl_lock_id;
 
-#if 0 /* cleanup of unnecessary data structures */
-
-      /* put it in the rev lock tree */
-      rev_lock_id_node = gla_rev_lock_tree_find_and_add(gla_cb,res_id_info->lock_handle_id,res_id_info->lcl_res_id,lock_id_node->lcl_lock_id,TRUE);
-      
-      if( rev_lock_id_node != NULL)
-      {                             
-         rev_lock_id_node->lcl_lock_id = lock_id_node->lcl_lock_id;
-         rev_lock_id_node->gbl_res_id = res_id_info->gbl_res_id;
-         rev_lock_id_node->lcl_res_id = res_id_info->lcl_res_id;
-         rev_lock_id_node->gbl_lock_id    = lock_id_node->gbl_lock_id; 
-         rev_lock_id_node->lock_handle_id = res_id_info->lock_handle_id;
-         rev_lock_id_node->mode = lockMode;
-      }
-      else
-      {
-        /*TBD log */
-
-      }     
-#endif
  
    }
    else
@@ -1326,15 +1277,6 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
       m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED ,NCSFL_SEV_INFO);
       goto done;
    }
-#if 0
-   /* get the handle and global resource id */
-   res_id_info = gla_res_tree_find_and_add(gla_cb,lockResourceHandle,FALSE);
-   if(res_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_BAD_HANDLE; 
-      goto done;
-   }
-#endif
     /* retrieve Resorce hdl record */
    if (NULL == (res_id_info = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockResourceHandle)))
@@ -1413,21 +1355,6 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
    res_lock_evt.info.rsc_lock_info.call_type = GLSV_ASYNC_CALL;
    res_lock_evt.info.rsc_lock_info.waiter_signal = waiterSignal;
 
-#if 0   /* cleanup of unnecessary data structures */
-   rev_lock_id_node = gla_rev_lock_tree_find_and_add(gla_cb,res_id_info->lock_handle_id,res_id_info->lcl_res_id,lock_id_node->lcl_lock_id,TRUE);
-   if(rev_lock_id_node)
-   {
-      rev_lock_id_node->lcl_lock_id = lock_id_node->lcl_lock_id;
-      rev_lock_id_node->gbl_res_id = res_id_info->gbl_res_id;
-      rev_lock_id_node->lcl_res_id = res_id_info->lcl_res_id;
-   }
-   else
-   {
-     gla_lock_tree_delete_node(gla_cb,lock_id_node);
-     m_GLSV_GLA_GIVEUP_GLA_CB;
-     return SA_AIS_ERR_NO_MEMORY;
-   }
-#endif
 
    gla_start_tmr( &lock_id_node->lock_async_tmr );
 
@@ -1511,15 +1438,6 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId,
       m_LOG_GLA_HEADLINE(GLA_CB_RETRIEVAL_FAILED ,NCSFL_SEV_INFO);
       goto done;
    }
-#if 0
-   /* get the handle and global resource id */
-   lock_id_info = gla_lock_tree_find_and_add(gla_cb,lockId,FALSE);
-   if(lock_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_NOT_EXIST; 
-      goto done;
-   }
-#endif
      /* retrieve Lock hdl record */
    if (NULL == (lock_id_info  = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockId)))
@@ -1531,14 +1449,6 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId,
  
     /*Added to fix LCL_RESOURCE_ID prob*/
    /* get the handle and global resource id */
-#if 0
-   res_id_info = gla_res_tree_find_and_add(gla_cb,lock_id_info->lcl_res_id,FALSE);
-   if(res_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_BAD_HANDLE;
-      goto done;
-   }
-#endif
    res_hdl = lock_id_info->lcl_res_id;
     /* retrieve Resorce hdl record */
    if (NULL == (res_id_info = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
@@ -1606,16 +1516,6 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId,
 
    if(rc == SA_AIS_OK)
    {
-#if 0 /* cleanup of unnecessary data structures */
-      GLA_LOCK_ID_INFO  *rev_lock_id_info;
-      /* delete the rev lock node */
-      rev_lock_id_info = gla_rev_lock_tree_find_and_add(gla_cb,lock_id_info->lock_handle_id,
-                              lock_id_info->gbl_res_id,lock_id_info->lcl_lock_id,FALSE);
-
-      if(rev_lock_id_info)
-         gla_rev_lock_tree_delete_node(gla_cb,rev_lock_id_info);
-      /* delete the lock node */
-#endif
       gla_lock_tree_delete_node(gla_cb,lock_id_info);
       lock_id_info = NULL;
       
@@ -1684,15 +1584,6 @@ SaAisErrorT  saLckResourceUnlockAsync(SaInvocationT invocation,
       goto done;
    }
    
-#if 0
-   /* get the handle and global resource id */
-   lock_id_info = gla_lock_tree_find_and_add(gla_cb,lockId,FALSE);
-   if(lock_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_NOT_EXIST; 
-      goto done;
-   }
-#endif
      /* retrieve Lock hdl record */
    if (NULL == (lock_id_info  = (GLA_LOCK_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockId)))
@@ -1823,15 +1714,6 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
       rc = SA_AIS_ERR_BAD_HANDLE;
       goto done;
    }
-#if 0
-   /* get the handle and global resource id */
-   res_id_info = gla_res_tree_find_and_add(gla_cb,lockResourceHandle,FALSE);
-   if(res_id_info == NULL)
-   {
-      rc = SA_AIS_ERR_BAD_HANDLE; 
-      goto done;
-   }
-#endif
     /* retrieve Resorce hdl record */
    if (NULL == (res_id_info = (GLA_RESOURCE_ID_INFO *)ncshm_take_hdl(
                               NCS_SERVICE_ID_GLA, lockResourceHandle)))

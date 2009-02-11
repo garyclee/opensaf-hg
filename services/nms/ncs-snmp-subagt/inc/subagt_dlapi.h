@@ -47,18 +47,6 @@ snmpsubagt_destroy(struct ncsSa_cb *cb, NCS_BOOL comp_unreg);
 uns32 
 ncs_snmpsubagt_init_deinit_msg_post(uns8* init_deinit_routine);
 
-#if 0
-
-/* ABOUT DL-SE API prototype */
-EXTERN_C uns32 
-ncs_ssnmpsubagt_about(NCS_LIB_ABOUT *about); 
-
-
-/* DIAGNOSE  DL-SE API prototype */
-EXTERN_C uns32 
-ncs_snmpsubagt_diagnose(); 
-
-#endif
 #endif
 
 

@@ -801,13 +801,6 @@ print_invdata(HISV_INV_DATA *inv_data)
       m_NCS_CONS_PRINTF("Product Version Length = %d\n",inv_data->product_version.DataLength);
    }
 
-#if 0
-   if (inv_data->part_number.Data != NULL)
-   {
-      m_NCS_CONS_PRINTF("Part Number = %s\n",inv_data->part_number.Data);
-      m_NCS_CONS_PRINTF("Part Number Length = %d\n",inv_data->part_number.DataLength);
-   }
-#endif /* 0 */
 
    /* check for mac address entries and print if exists */
    if (inv_data->oem_inv_data.num_mac_entries == 2)

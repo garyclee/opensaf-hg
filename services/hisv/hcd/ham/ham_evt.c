@@ -1460,7 +1460,7 @@ GET_RES_ID:
       if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[2], len))
          continue;
 
-      /* IR00060725: fix till we move to HPI B spec entity path mechanism */
+      /*  fix till we move to HPI B spec entity path mechanism */
       if ((entry.ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) && 
           (entry.ResourceEntity.Entry[0].EntityType != 160))
          continue;

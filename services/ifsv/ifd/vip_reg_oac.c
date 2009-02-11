@@ -82,22 +82,6 @@ uns32 vip_miblib_reg()
     uns32               status = NCSCC_RC_SUCCESS;
     VIP_MIBREG_FNC   reg_func = NULL;
                                                                                                       
-#if 0
-    /* Initalize miblib */
-    m_NCS_OS_MEMSET(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
-                                                                                                      
-    /* register with MIBLIB */
-    miblib_init.req = NCSMIBLIB_REQ_INIT_OP;
-    status = ncsmiblib_process_req(&miblib_init);
-    if (status != NCSCC_RC_SUCCESS)
-    {
-       m_IFD_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"ncsmiblib_process_req():vip_miblib_reg() returned failure"," ");
-       m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_MIBLIB_REGISTRATION_FAILURE);
-       return status;
-    }
-    m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_MIBLIB_REGISTRATION_SUCCESS);
-                                                                                                     
-#endif
     /* Register the objects and table data with MIB lib */
     reg_func = ncsvipentry_tbl_reg;/*Generated in mib lib code*/
 

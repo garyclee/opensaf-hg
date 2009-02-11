@@ -447,13 +447,8 @@ uns32 srma_mds_cbk(NCSMDS_CALLBACK_INFO *info)
          } 
       }
       break;
-
    case MDS_CALLBACK_COPY:
        srma_mds_copy(srma, &info->info.cpy);
-#if 0      
-       /* SRMA never resides with SRMND */
-       m_SRMSV_ASSERT(0); 
-#endif       
        break;
 
    case MDS_CALLBACK_SVC_EVENT:

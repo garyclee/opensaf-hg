@@ -200,7 +200,6 @@ typedef enum
    NCS_DL_CTRL_REQUEST_OPEN,
    NCS_DL_CTRL_REQUEST_MULTICAST_JOIN,
    NCS_DL_CTRL_REQUEST_MULTICAST_LEAVE,
-   /* Fix for IR10315 */
    NCS_DL_CTRL_REQUEST_GET_ETH_ADDR,
    NCS_DL_CTRL_REQUEST_CLOSE,
    NCS_DL_CTRL_REQUEST_MAX       = NCS_DL_CTRL_REQUEST_CLOSE,
@@ -648,7 +647,6 @@ typedef struct ncs_dl_request_info_tag
                "i_if_name" is used as the interface */
              uns32                 i_if_index;
 
-            /* Fix for IR10318 */
             /* Interface name to use for connection. Used if 
                "i_if_index is zero */
             uns8                  i_if_name[NCS_IF_NAMESIZE];
@@ -697,7 +695,6 @@ typedef struct ncs_dl_request_info_tag
             NCS_L2_ADDR         i_multicast_addr;
 
         } multicastleave;
-        /* Fix for IR10315 */ 
         struct
         {
              /* Input/Output ifindex - Used only if it is

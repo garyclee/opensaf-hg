@@ -3001,7 +3001,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
          {
             /* SU is in the SU oper list. */
             if ((su->list_of_susi->state == SA_AMF_HA_QUIESCED) && 
-               (su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY))
+               (su->list_of_susi->fsm == AVD_SU_SI_STATE_MODIFY))
             {
                /* the SI relationships to the SU state is quiesced assigning. */
                ot_susi = avd_sg_npm_su_othr(cb,su);

@@ -757,9 +757,6 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb,
          return NULL;
       }
       m_NCS_OS_MEMSET(res_id_info, 0, sizeof(GLA_RESOURCE_ID_INFO));
-#if 0
-      res_id_info->lcl_res_id = m_ASSIGN_LCK_HANDLE_ID((uns64)res_id_info);
-#endif
         /* create the association with hdl-mngr */
       if ( 0 == (res_id_info->lcl_res_id = ncshm_create_hdl(NCS_HM_POOL_ID_EXTERNAL2,NCS_SERVICE_ID_GLA,(NCSCONTEXT)res_id_info)))
       {
@@ -776,13 +773,6 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb,
          return NULL;
       }
    }
-#if 0 /* Handles Being Used No need for this now */
-   else
-   {
-      res_id_info = (GLA_RESOURCE_ID_INFO *)ncs_patricia_tree_get(&gla_cb->gla_resource_id_tree, 
-         (uns8 *)&res_id);
-   }
-#endif
    return res_id_info;
 }
 /****************************************************************************
@@ -1023,9 +1013,6 @@ GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb,
          return NULL;
       }
       m_NCS_OS_MEMSET(lock_id_info, 0, sizeof(GLA_LOCK_ID_INFO));
-#if 0
-      lock_id_info->lcl_lock_id = m_ASSIGN_LCK_HANDLE_ID((uns64)lock_id_info);
-#endif
         /* create the association with hdl-mngr */
       if ( 0 == (lock_id_info->lcl_lock_id = ncshm_create_hdl(NCS_HM_POOL_ID_EXTERNAL3,NCS_SERVICE_ID_GLA,(NCSCONTEXT)lock_id_info)))
       {
@@ -1042,13 +1029,6 @@ GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb,
          return NULL;
       }
    }
-#if 0 /* Now the Handles Being used */
-   else
-   {
-      lock_id_info = (GLA_LOCK_ID_INFO *)ncs_patricia_tree_get(&gla_cb->gla_lock_id_tree, 
-         (uns8 *)&lock_id);
-   }
-#endif
    return lock_id_info;
 }
 
@@ -1279,83 +1259,3 @@ unsigned int ncs_gla_shutdown(void)
    return rc;
 }
 
-#if 0 /* cleanup of unnecessary data structures */ 
-/****************************************************************************
-  Name          : gla_rev_lock_tree_delete_node
- 
-  Description   : This routine deletes the res from the lock tree
- 
-  Arguments     : lock_id - handle to the lock id.
-                  
- 
-  Return Values : NCSCC_RC_FAILURE/NCSCC_RC_SUCCESS
- 
-  Notes         : None
-******************************************************************************/
-uns32 gla_rev_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info)
-{
-   /* delete from the tree */
-   if(ncs_patricia_tree_del(&gla_cb->gla_rev_lock_id_tree,&lock_info->patnode)!=NCSCC_RC_SUCCESS)
-   {
-      /* TBD log message */
-   }
-
-   /* free the mem */
-   m_MMGR_FREE_GLA_LOCK_ID_INFO(lock_info);
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
-  Name          : gla_rev_lock_tree_find_and_add
- 
-  Description   : This routine adds the new node to the lock tree
- 
-  Arguments     : 
-                  gla_cb : pointer to the gla control block.
-                  lock_id : the lock handle .
-                  flag   : TRUE/FALSE if TRUE create the new node
- 
-  Return Values : returns the lock id node.
- 
-  Notes         : None
-******************************************************************************/
-GLA_LOCK_ID_INFO *gla_rev_lock_tree_find_and_add(GLA_CB *gla_cb, 
-                                                 SaLckHandleT     handle,
-                                                 SaLckResourceIdT res_id,
-                                                 SaLckLockIdT lock_id, 
-                                                 NCS_BOOL flag)
-{
-   GLA_LOCK_ID_INFO  *lock_id_info=NULL;
-   GLA_LOCK_ID_INDEX  lock_index;    
-
-   if(flag == TRUE)
-   {
-      /* create and allocate the memory */
-      lock_id_info = (GLA_LOCK_ID_INFO *)m_MMGR_ALLOC_GLA_LOCK_ID_INFO;
-      if(!lock_id_info)
-      {
-         /* TBD log message */
-         return NULL;
-      }
-      m_NCS_OS_MEMSET(lock_id_info, 0, sizeof(GLA_LOCK_ID_INFO));
-      lock_id_info->lcl_lock_id = lock_id;
-      lock_id_info->gbl_res_id = res_id;
-      lock_id_info->lock_handle_id = handle;
-      lock_id_info->patnode.key_info = (uns8*)&lock_id_info->lcl_lock_id;
-      
-      if(ncs_patricia_tree_add (&gla_cb->gla_rev_lock_id_tree, &lock_id_info->patnode) != NCSCC_RC_SUCCESS)
-      {
-         m_MMGR_FREE_GLA_LOCK_ID_INFO(lock_id_info);
-         return NULL;
-      }
-   }
-   else
-   {
-      lock_index.lock_handle_id = handle;
-      lock_index.gbl_res_id = res_id;
-      lock_index.gbl_lock_id = lock_id;
-      lock_id_info = (GLA_LOCK_ID_INFO *)ncs_patricia_tree_get(&gla_cb->gla_rev_lock_id_tree,(uns8 *)&lock_id);
-   }
-   return lock_id_info;
-}
-#endif

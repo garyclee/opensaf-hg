@@ -128,13 +128,6 @@ uns32 cpd_mds_register (CPD_CB *cb)
       return rc;
    }
 
-#if 0
-  /* STEP1: Get the MDS Handle*/
-   rc = cpd_mds_get_handle(cb);
-
-   if(rc != NCSCC_RC_SUCCESS)
-      return rc;
-#endif
 
    /* memset the svc_info */
    m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
@@ -556,9 +549,6 @@ static uns32 cpd_mds_rcv(CPD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
    uns32    rc = NCSCC_RC_SUCCESS;
    CPSV_EVT *pEvt = (CPSV_EVT *)rcv_info->i_msg;
-   #if 0
-   pEvt->info.cpd.info.ver_info.i_msg_fmt_ver = rcv_info->i_msg_fmt_ver;
-   #endif
      
    pEvt->sinfo.ctxt = rcv_info->i_msg_ctxt;
    pEvt->sinfo.dest = rcv_info->i_fr_dest;
@@ -616,17 +606,6 @@ static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
    evt->info.cpd.info.mds_info.dest = svc_evt->i_dest;
    evt->info.cpd.info.mds_info.svc_id = svc_evt->i_svc_id;
    evt->info.cpd.info.mds_info.node_id = svc_evt->i_node_id; 
-#if 0 
-   if(svc_evt->i_change == NCSMDS_RED_UP)
-   {
-      if(cb->node_id != svc_evt->i_node_id)
-      {
-          
-          phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(svc_evt->i_node_id);
-          cb->cpd_remote_id = phy_slot_sub_slot;
-      }
-   }
-#endif
    
    /* Put it in CPD's Event Queue */
    rc = m_NCS_IPC_SEND(&cb->cpd_mbx, (NCSCONTEXT)evt, NCS_IPC_PRIORITY_HIGH);

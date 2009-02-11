@@ -712,7 +712,7 @@ uns32 cli_set_arg(int8 * i_arg, NCSCLI_ARG_SET *o_cmd_tokens, CLI_CB *pCli) /* F
    if(NCSCLI_NUMBER == o_cmd_tokens->i_arg_record[count].i_arg_type) {
       sscanf(i_arg, "%u", &num);
       o_cmd_tokens->i_arg_record[count].cmd.intval = num;     
-      /* Fix for the bug 59854 (Boundary flag is set on crossing ulimit) */
+      /*  (Boundary flag is set on crossing ulimit) */
       sscanf(i_arg, "%llu", &longnum);
       hvalue = NCSCLI_UNS32_HLIMIT;
       /*hvalue = 0xffffffff;*/
@@ -787,7 +787,7 @@ uns32 cli_getcommand_tokens(int8 *i_cmdstring, NCSCLI_ARG_SET *ctok, CLI_CB *pCl
       *(token + slen) = '\0';
       
       /* Fill the cmd_token structure with args */
-      /*if(NCSCC_RC_SUCCESS != cli_set_arg(token, ctok)) return NCSCC_RC_FAILURE;*/ /* Fix for the bug 59854 ( pCli extra argument passed to fix)*/
+      /*if(NCSCC_RC_SUCCESS != cli_set_arg(token, ctok)) return NCSCC_RC_FAILURE;*/ /*  ( pCli extra argument passed to fix)*/
      if(NCSCC_RC_SUCCESS != cli_set_arg(token, ctok, pCli)) return NCSCC_RC_FAILURE; 
       while (((uns32)*curptr == CLI_CONS_BLANK_SPACE) && '\0' != *curptr)
          curptr++;
@@ -854,9 +854,9 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
       }
    }    
    else if(NCSCLI_STRING == pCli->ctree_cb.cmdElement->tokType) {
-        /* Fix for the bug 61277 . arg type check for number is added extra*/
+        /*  arg type check for number is added extra*/
       if(NCSCLI_STRING == i_argval->i_arg_type || NCSCLI_NUMBER == i_argval->i_arg_type) {
-         if(NCSCLI_NUMBER == i_argval->i_arg_type) /* fix for the bug IR00082643 */
+         if(NCSCLI_NUMBER == i_argval->i_arg_type) 
          {
            uns32 temp = 0 ,len =0 ;
            temp = i_argval->cmd.intval;
@@ -1148,7 +1148,7 @@ cli_check_range(CLI_CB              *pCli,
          ret = CLI_NO_MATCH;
          m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_RANGE_NOT_INT);   
       } */     
-      /* fix for the bug 59854 ( boundary flag is also virified to determine whether range crossed) */
+      /*  ( boundary flag is also virified to determine whether range crossed) */
       if ((i_arg_record->cmd.intval < lvalue) || (i_arg_record->cmd.intval > hvalue) || pCli->outOfBoundaryToken) {
           if( pCli->outOfBoundaryToken)
           {
@@ -1226,9 +1226,9 @@ void cli_add_default_values(CLI_CMD_ELEMENT * i_cmdElement,
    /* Copy the default values into Arg struct */    
    if(NCSCLI_NUMBER == o_cmd_tokens->i_arg_record[i_index].i_arg_type) {
       /*o_cmd_tokens->i_arg_record[i_index].cmd.intval = *((uns8 *)i_cmdElement->defVal);*/
-      o_cmd_tokens->i_arg_record[i_index].cmd.intval = *((uns32 *)i_cmdElement->defVal); /* Fix for the bug IR00082872 */
+      o_cmd_tokens->i_arg_record[i_index].cmd.intval = *((uns32 *)i_cmdElement->defVal); 
    }
-   else if(NCSCLI_IPv4 == o_cmd_tokens->i_arg_record[i_index].i_arg_type) { /* Fix for the bug IR00083155 */
+   else if(NCSCLI_IPv4 == o_cmd_tokens->i_arg_record[i_index].i_arg_type) { 
          uns_ipaddr = cli_ipv4_to_int((int8 *)i_cmdElement->defVal);
          o_cmd_tokens->i_arg_record[i_index].cmd.intval = uns_ipaddr;         
    }
@@ -1565,7 +1565,6 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
             ret = CLI_PARTIAL_MATCH/*CLI_SUCCESSFULL_MATCH*/;
             io_param->o_tokprocs = i;
             io_param->cmd_exec_func = pCli->ctree_cb.cmdElement->cmd_exec_func;
-                 /*Fix for 59359 */
             io_param-> cmd_access_level = pCli->ctree_cb.cmdElement->cmd_access_level;
             io_param->bindery = pCli->ctree_cb.cmdElement->bindery;
             break;
@@ -1602,7 +1601,7 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
          if(pCli->ctree_cb.cmdElement->modChg) {
             pCli->ctree_cb.currNode = cli_node_change(pCli);
             if(0 == pCli->ctree_cb.currNode) {
-               ret = CLI_NO_MODE; /* IR00082729 */
+               ret = CLI_NO_MODE; 
                break;
             }              
          }
@@ -1698,7 +1697,6 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
                   if(exit_str) m_NCS_OS_STRNCPY(io_param->i_cmdbuf, CLI_EXIT, strlen(CLI_EXIT));
                   
                   io_param->cmd_exec_func = pCli->ctree_cb.cmdElement->cmd_exec_func;
-                     /*Fix for 59359 */
                   io_param-> cmd_access_level = pCli->ctree_cb.cmdElement->cmd_access_level;
                   io_param->bindery = pCli->ctree_cb.cmdElement->bindery;
                }               
@@ -1774,7 +1772,6 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
                /* no more child nodes, reached end of tree */
                if(CLI_SUCCESSFULL_MATCH == ret && CLI_EXECUTE == io_param->i_cmdtype) {
                   io_param->cmd_exec_func = pCli->ctree_cb.cmdElement->cmd_exec_func;
-                       /*Fix for 59359 */
                   io_param-> cmd_access_level = pCli->ctree_cb.cmdElement->cmd_access_level;
                   io_param->bindery = pCli->ctree_cb.cmdElement->bindery;             
                }
@@ -1827,7 +1824,6 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
                else {
                   /* No more child nodes, reached last node */
                   io_param->cmd_exec_func = pCli->ctree_cb.cmdElement->cmd_exec_func;
-                     /*Fix for 59359 */
                   io_param-> cmd_access_level = pCli->ctree_cb.cmdElement->cmd_access_level;
                   io_param->bindery = pCli->ctree_cb.cmdElement->bindery;                   
                   break;
@@ -2003,7 +1999,7 @@ uns32 cli_execute_command(CLI_CB            *pCli,
         goto clean_arg;
     }
     */
-    /* Fix for the bug 59854 , arg pCli extra passed */
+    /*  arg pCli extra passed */
     if(NCSCC_RC_SUCCESS != cli_getcommand_tokens(io_param->i_cmdbuf, &ctok, pCli))  {
         io_param->o_status = CLI_NO_MATCH;
         rc = NCSCC_RC_FAILURE;
@@ -2052,10 +2048,10 @@ uns32 cli_execute_command(CLI_CB            *pCli,
 
              cdata.i_bindery = io_param->bindery;    
              /*if(!pCli->ctree_cb.currNode) 
-                pCli->subsys_cb.i_cef_mode = pCli->ctree_cb.trvMrkr->pData; */  /* Fix for the bug IR00083091 */
+                pCli->subsys_cb.i_cef_mode = pCli->ctree_cb.trvMrkr->pData; */  
              cdata.i_subsys = &pCli->subsys_cb;
              
-             if(io_param->i_execcmd == TRUE)  /* Fix for the bug 59119 */
+             if(io_param->i_execcmd == TRUE)  
              {
              /* Start Timer */
              m_NCS_TMR_START(pCli->cefTmr.tid, CLI_CEF_TIMEOUT, 
@@ -2098,7 +2094,7 @@ uns32 cli_execute_command(CLI_CB            *pCli,
                 m_MMGR_FREE_CLI_DEFAULT_VAL(pCli->subsys_cb.i_cef_data);                    
                 pCli->subsys_cb.i_cef_data = 0;                
              }
-             if(io_param->i_execcmd == FALSE)   /* Fix for the bug 59119 */
+             if(io_param->i_execcmd == FALSE)   
                 pCli->cefStatus = NCSCC_RC_SUCCESS;
              
              /* If CEF returned success and currNode is not NULL, then change mode */
@@ -2197,7 +2193,6 @@ cli_get_help_desc(CLI_CB              *pCli,
             (NCSCLI_OPTIONAL != pCli->ctree_cb.cmdElement->tokType) && 
             (NCSCLI_GROUP != pCli->ctree_cb.cmdElement->tokType) &&
             (NCSCLI_CONTINOUS_EXP != pCli->ctree_cb.cmdElement->tokType)) {         
-                /* Fix for 59359 */
             if(ncscli_user_access_level_authenticate(pCli)) {
             cli_help_str_fill(pCli, &io_param->o_hotkey.hlpstr.helpargs[helpcount]);            
             helpcount++;
@@ -2214,7 +2209,6 @@ cli_get_help_desc(CLI_CB              *pCli,
          /* If partial or sucessfull match  then add to help struct */
          if(CLI_PARTIAL_MATCH == ret || CLI_SUCCESSFULL_MATCH == ret) {
             if(CLI_HELP_PARTIAL_MATCH == io_param->i_cmdtype) {
-                /* Fix for 59359 */
             if(ncscli_user_access_level_authenticate(pCli)) {
                cli_help_str_fill(pCli, &io_param->o_hotkey.hlpstr.helpargs[helpcount]);
                helpcount++;
@@ -2484,7 +2478,6 @@ void cli_complete_cmd(CLI_CB            *pCli,
    if((CLI_SUCCESSFULL_MATCH == io_param->o_status ||
       CLI_PARTIAL_MATCH == io_param->o_status)) {
       if(io_cmd_tokens->i_arg_record[i-1].i_arg_type == NCSCLI_KEYWORD) {
-          /*Fix for 59359 */
       if(ncscli_user_access_level_authenticate(pCli)) {
          index = m_NCS_OS_STRLEN(pCli->ctree_cb.cmdElement->tokName);
          m_NCS_OS_STRNCPY(io_param->o_hotkey.tabstring,
@@ -2698,7 +2691,7 @@ void clean_arg(NCSCLI_ARG_SET *arg)
             m_MMGR_FREE_CLI_DEFAULT_VAL(arg->i_arg_record[i].cmd.strval);     
          break;
 
-      case NCSCLI_IPv4:    /* Fix for the bug IR00083155 */
+      case NCSCLI_IPv4:    
          break;
          
       default:         

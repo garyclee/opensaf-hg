@@ -29,35 +29,6 @@
 #ifndef HCD_AMF_H
 #define HCD_AMF_H
 
-#if 0
-
-#define HCD_HA_INVALID 0 /*Invalid HA state */
-#define MAX_HA_STATE 4
-
-typedef uns32 (*hcd_HAStateHandler)(HCD_CB *cb,
-                                      SaInvocationT invocation);
-
-/* AMF HA state handler routines */
-uns32 hcd_invalid_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation);
-uns32 hcd_active_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation);
-uns32 hcd_standby_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation);
-uns32 hcd_quiescing_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation);
-uns32 hcd_quiesced_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation);
-struct next_HAState{
-      uns8 nextState1;
-      uns8 nextState2;
-}nextStateInfo; /* AMF HA state can transit to a maximum of the two defined states */
-
-#define VALIDATE_STATE(curr,next) \
-((curr > MAX_HA_STATE)||(next > MAX_HA_STATE)) ? HCD_HA_INVALID : \
-(((validStates[curr].nextState1 == next)||(validStates[curr].nextState2 == next))?next: HCD_HA_INVALID)
-
-#endif /* 0 */
 
 EXTERN_C void hcd_amf_CSI_set_callback (SaInvocationT invocation,
                           const SaNameT  *compName, SaAmfHAStateT  haState,

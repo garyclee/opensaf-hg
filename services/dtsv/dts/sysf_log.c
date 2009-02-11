@@ -68,7 +68,7 @@ uns32 dts_ascii_spec_register (NCSFL_ASCII_SPEC* spec)
    if((set == NULL) || (fmat == NULL))
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,"dts_ascii_spec_register: Either of spec->str_set or spec->fmat_set is passed as NULL");
 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_svc_id = m_NCS_OS_HTONL(spec->ss_id);
  
    /* memset the spec_key struct */
@@ -148,7 +148,7 @@ uns32 dts_ascii_spec_register (NCSFL_ASCII_SPEC* spec)
    m_NCS_MEMSET(spec_entry, '\0', sizeof(SYSF_ASCII_SPECS));
 
    spec_entry->ss_spec = spec;
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    spec_entry->key.svc_id = nt_svc_id;
    spec_entry->key.ss_ver = spec->ss_ver;
    spec_entry->svcid_node.key_info = (uns8 *)&spec_entry->key;
@@ -429,7 +429,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
 
    tod = (time_t)msg->hdr.time.seconds;
 
-   /* IR 59603 - DTSv log messages should have both date and time */
+   /* DTSv log messages should have both date and time */
    /*m_NCS_TIME_TO_STR(tod, asc_tod);*/
    m_NCS_DATE_TIME_TO_STR(tod, asc_tod);
 
@@ -490,7 +490,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
     * Now first copy Message Severity and 
     * Node ID from where we got this log message.
     */
-   /* IR 60353 - Node-id display change */
+   /* Node-id display change */
    *len += (log_msg_len = sysf_sprintf(str, "%s 0x%08x %u %d %d ", sev, node, proc_id, 
                          msg->hdr.ss_id, msg->hdr.inst_id));
 
@@ -653,15 +653,6 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
                mem_d.len);
            
 
-#if 0
-            /* Print 32-bit or 64-bit address based on the version */ 
-            if(msg_fmat_ver != 2)
-            {
-               m_NCSFL_MAKE_STR_FROM_MEM(t_str, (mem_d.addr),
-               (mem_d.len), (uns8*)(mem_d.dump));
-            }
-            else
-#endif
             {
                m_NCSFL_MAKE_STR_FROM_MEM_64(t_str, (mem_addr),
                (mem_d.len), (uns8*)(mem_d.dump));
@@ -736,7 +727,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             *log_msg_len += length;
             break;
          }
-      /* IR 59161/60156: Added code for handling float values */
+      /* Added code for handling float values */
       case 'F':
          {
             uns32 length;

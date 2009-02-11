@@ -139,7 +139,7 @@ snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
     /* update the value */
     switch(io_param_val->i_fmat_id)
     {
-        /* add all the other formats like OID, COUNTER64 -- TBD Mahesh */
+        /* add all the other formats like OID, COUNTER64  */
         case NCSMIB_FMAT_INT:
             io_param_val->info.i_int = *((uns32*)(i_set_val));
             break;
@@ -148,9 +148,6 @@ snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
             if (i_param_type == ASN_COUNTER64)
             {
                 /* convert the given long long into octet string */
-#if 0
-                printU64(counter64_in_octs, (U64*)(i_set_val)); /* net-snmp api, int64.h */
-#endif
                 pCounter64 = (U64*)(i_set_val);
                 llong = pCounter64->high;
                 llong = ((llong << 32)|(pCounter64->low));
@@ -238,10 +235,6 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
 {
     uns32       status = NCSCC_RC_SUCCESS;
     uns8        counter64_in_octs[I64CHARSZ+1] = {0};  /* I64CHARSZ, defined in net-snmp package */
-#if 0
-    NCSSA_CB    *cb = m_SNMPSUBAGT_CB_GET;
-    SaAisErrorT saf_status = SA_AIS_OK;
-#endif
     uns8        *temp_oid_ptr = NULL;
 
     /* Log the Function Entry */
@@ -298,28 +291,6 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
     io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET; 
     io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET; 
 
-   #if 0 
-    if ((is_sparse_table == TRUE) && (i_req_type == NCSMIB_OP_REQ_NEXT))
-    {
-        /* Disable the health monitoring */
-        saf_status = saAmfHealthcheckStop(cb->amfHandle,
-                                    &cb->compName,
-                                    &cb->healthCheckKey);
-        if (saf_status != SA_AIS_OK)
-        {
-            /* log the error */
-            m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AMF_HLTH_CHK_STOP_FAILED,
-                                    saf_status, 0, 0);
-        }
-        else
-        {
-           cb->healthCheckStarted = FALSE;
-
-           /* log that health check started */
-           m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AMF_HLTH_CHECK_STOPPED);
-        }
-    }
-   #endif
 
     /* LOG MIBARG Data */ 
     snmpsa_log_ncsmib_arg(io_mib_arg); 
@@ -344,30 +315,6 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
                                                 i_table_id, i_param_id, obj_details,obj_count,is_sparse_table);
     }
    
-   #if 0 
-    if ((is_sparse_table == TRUE) && (i_req_type == NCSMIB_OP_REQ_NEXT))
-    {
-        /* start the healthcheck */
-        saf_status = saAmfHealthcheckStart(cb->amfHandle,
-                                      &cb->compName,
-                                      &cb->healthCheckKey,
-                                      cb->invocationType,
-                                      cb->recommendedRecovery);
-        if (saf_status != SA_AIS_OK)
-        {
-            /* log the error */
-            m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AMF_HLTH_CHK_STRT_FAILED,
-                                   cb->amfHandle,saf_status, 0);
-        }
-        else
-        {
-           cb->healthCheckStarted = TRUE;
-
-           /* log that health check started */
-           m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AMF_HLTH_CHECK_STARTED);
-        }
-    }
-   #endif
     return status;
 }
 
@@ -624,7 +571,7 @@ snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL    *i_rsp_param_val,
     /* fill in the response, based on the type of Object */
     switch(i_rsp_param_val->i_fmat_id)
     {
-        /* Extend the other format ids -- TBD Mahesh */
+        /* Extend the other format ids  */
         /* return the address of a global variable, danger */
         case NCSMIB_FMAT_INT:
         case NCSMIB_FMAT_BOOL:
@@ -653,15 +600,6 @@ snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL    *i_rsp_param_val,
                 llong = m_NCS_OS_NTOHLL_P(i_rsp_param_val->info.i_oct);
                 g_counter64.low = (u_long)(llong)&(0xFFFFFFFF);
                 g_counter64.high = (u_long)(llong>>32)&(0xFFFFFFFF);
-#if 0
-                m_NCS_MEMCPY(octs, i_rsp_param_val->info.i_oct, 8);
-                if (read64(&g_counter64, octs) != 1)
-                {
-                    /* log the error */
-                    m_NCS_MEMSET(&g_counter64, 0, sizeof(g_counter64));
-                    return NULL;
-                }
-#endif
                 return(unsigned char *)(&g_counter64);
             }
             else if (i_param_type == ASN_OBJECT_ID)
@@ -1100,12 +1038,6 @@ snmpsubagt_mab_getnext_column(uns32             cur_column,
         {
             /* check for the access permissions */
             if ((obj_details[i].acl == RONLY) || (obj_details[i].acl == RWRITE))
-#if 0
-                /* Can not get these values from the SMIDUMP tool */
-                /* MIBLIB shall do this check */
-               ((obj_details[i].status == NCSMIB_OBJ_CURRENT) ||
-                (obj_details[i].status == NCSMIB_OBJ_DEPRECATE)))
-#endif
             {
                 next_column = obj_details[i].magic;
                 break;

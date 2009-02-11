@@ -37,7 +37,6 @@ typedef enum
 
 static TEST_TYPES test_type = UNKNOWN;
 
-/* IR00061531 */ 
 #define ITERATIONS_TO_DO   0x000FFFF /* each iteration represents 10 increments/decrements */
 #define MAX_TASKS          5
 
@@ -254,7 +253,7 @@ atomic_dec_test(void)
     return 0;
 }
 
-static int start_atomic_tests(void) /* IR00058710 */
+static int start_atomic_tests(void) 
 {
    atomic_inc_test();
    atomic_dec_test();

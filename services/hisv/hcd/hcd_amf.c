@@ -28,216 +28,6 @@
 #include "hcd.h"
 #include "hcd_amf.h"
 
-#if 0
-/* HA AMF statemachine & State handler definitions */
-static hcd_HAStateHandler hcd_stateHandler[]={
-     hcd_invalid_state_handler,
-     hcd_active_state_handler,
-     hcd_standby_state_handler,
-     hcd_quiesced_state_handler,
-     hcd_quiescing_state_handler
-}; /*Indexed by next states */
-
-
-static struct next_HAState validStates[]={
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_STANDBY}, /* From Current State Initial */
-{SA_AMF_HA_QUIESCED,SA_AMF_HA_QUIESCING}, /*Current State active */
-{SA_AMF_HA_ACTIVE,HCD_HA_INVALID}, /*Current State standby */
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_STANDBY}, /* Current State quiesced */
-{SA_AMF_HA_ACTIVE,SA_AMF_HA_QUIESCED} /*Current State quiescing */
-}; /*Indexed by current states */
-
-
-/* HA state handler functions definitions */
-
-/****************************************************************************
- * Name          : hcd_active_state_handler
- *
- * Description   : This function is called upon receving an active state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the HCD control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 hcd_active_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation)
-{
-   HAM_CB *ham_cb = 0;
-   V_DEST_RL         mds_role;
-#if 0
-   V_CARD_QA         anchor;
-#endif
-
-   mds_role = V_DEST_RL_ACTIVE;
-#if 0
-   anchor   = V_DEST_QA_1;
-#endif
-
-   /** set the CB's anchor value & mds role */
-#if 0
-   cb->my_anc = anchor;
-#endif
-   cb->mds_role = mds_role;
-
-   if (NULL != (ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl)))
-   {
-#if 0
-      ham_cb->my_anc = anchor;
-#endif
-      ham_cb->mds_role = mds_role;
-      ncshm_give_hdl(gl_ham_hdl);
-   }
-   saAmfResponse(cb->amf_hdl, invocation, SA_AIS_OK);
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : hcd_standby_state_handler
- *
- * Description   : This function is called upon receving an standby state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the HCD control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 hcd_standby_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation)
-{
-   HAM_CB *ham_cb;
-   V_DEST_RL         mds_role;
-#if 0
-   V_CARD_QA         anchor;
-#endif
-
-   mds_role = V_DEST_RL_STANDBY;
-#if 0
-   anchor   = V_DEST_QA_2;
-#endif
-
-   /** set the CB's anchor value */
-#if 0
-   cb->my_anc = anchor;
-#endif
-   cb->mds_role = mds_role;
-
-   if (NULL != (ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl)))
-   {
-#if 0
-      ham_cb->my_anc = anchor;
-#endif
-      ham_cb->mds_role = mds_role;
-      ncshm_give_hdl(gl_ham_hdl);
-   }
-   saAmfResponse(cb->amf_hdl, invocation, SA_AIS_OK);
-
-  /* Perform CheckPointing operations  here */
-
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : hcd_quiescing_state_handler
- *
- * Description   : This function is called upon receving an Quiescing state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the HCD control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 hcd_quiescing_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation)
-{
-   SaAisErrorT error=SA_AIS_OK;
-   error =  saAmfCSIQuiescingComplete( cb->amf_hdl,
-                                        invocation,
-                                        error);
-
-   saAmfResponse(cb->amf_hdl, invocation, SA_AIS_OK);
-   return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : hcd_quiesced_state_handler
- *
- * Description   : This function is called upon receving an Quiesced state
- *                 assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the HCD control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 hcd_quiesced_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation)
-{
-    saAmfResponse(cb->amf_hdl, invocation, SA_AIS_OK);
-    return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- * Name          : hcd_invalid_state_handler
- *
- * Description   : This function is called upon receving an invalid state(as
- *                 in the FSM) assignment from AMF.
- *
- * Arguments     : invocation     - This parameter designated a particular
- *                                  invocation of this callback function. The
- *                                  invoke process return invocation when it
- *                                  responds to the Avilability Management
- *                                  FrameWork using the saAmfResponse()
- *                                  function.
- *                 cb              -A pointer to the HCD control block.
- *
- * Return Values : None
- *
- * Notes         : None
- *****************************************************************************/
-
-uns32 hcd_invalid_state_handler(HCD_CB *cb,
-                              SaInvocationT invocation)
-{
-    saAmfResponse(cb->amf_hdl, invocation, SA_AIS_ERR_BAD_OPERATION);
-    return NCSCC_RC_FAILURE;
-}
-#endif /* 0 */
 
 
 /****************************************************************************
@@ -291,9 +81,6 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
    HCD_CB            *hcd_cb;
    HAM_CB            *ham_cb;
    V_DEST_RL         mds_role;
-#if 0
-   V_CARD_QA         anchor;
-#endif
 
    hcd_cb = m_HISV_HCD_RETRIEVE_HCD_CB;
    if (hcd_cb != NULL)
@@ -303,9 +90,6 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
       if (haState == SA_AMF_HA_ACTIVE)
       {
          mds_role = V_DEST_RL_ACTIVE;
-#if 0
-         anchor   = V_DEST_QA_1;
-#endif
       } else
       if (haState == SA_AMF_HA_QUIESCED)
       {
@@ -313,20 +97,11 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
       } else
       {
          mds_role = V_DEST_RL_STANDBY;
-#if 0
-         anchor   = V_DEST_QA_2;
-#endif
       }
       /** set the CB's anchor value */
-#if 0
-      hcd_cb->my_anc = anchor;
-#endif
       hcd_cb->mds_role = mds_role;
       if (NULL != (ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl)))
       {
-#if 0
-         ham_cb->my_anc = anchor;
-#endif
          ham_cb->mds_role = mds_role;
          ham_mds_change_role(ham_cb);
          ncshm_give_hdl(gl_ham_hdl);
@@ -396,9 +171,6 @@ hcd_amf_health_chk_callback (SaInvocationT invocation,
    {
       saAmfResponse(hcd_cb->amf_hdl,invocation, error);
       m_HISV_HCD_GIVEUP_HCD_CB;
-#if 0
-      m_LOG_HISV_SVC_PRVDR(HCD_AMF_RCVD_HEALTHCHK,NCSFL_SEV_INFO);
-#endif /* 0 */
    }
    return;
 }
@@ -435,18 +207,8 @@ hcd_amf_comp_terminate_callback(SaInvocationT invocation,
 
    if (hcd_cb != NULL)
    {
-#if 0
-      ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, gl_hcd_hdl);
-      m_NCS_IPC_DETACH(&hcd_cb->mbx ,hcd_clear_mbx,hcd_cb);
-
-      ncshm_give_hdl(gl_hcd_hdl);
-      hcd_cb_destroy(hcd_cb);
-#endif /* 0 */
       saAmfResponse(hcd_cb->amf_hdl,invocation, error);
 
-#if 0
-      m_MMGR_FREE_HISV_HCD_CB(hcd_cb);
-#endif /* 0 */
 
       m_LOG_HISV_SVC_PRVDR(HCD_AMF_RCVD_HEALTHCHK,NCSFL_SEV_INFO);
    }
@@ -630,7 +392,7 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
    {
       if(rc == -1)
       {
-         /*IR00082831:: m_NCS_SEL_OBJ_SELECT unblocks and returns -1, if thread receives a signal */
+         /* m_NCS_SEL_OBJ_SELECT unblocks and returns -1, if thread receives a signal */
          m_LOG_HISV_DTS_CONS("hisv_hcd_health_check: error m_NCS_SEL_OBJ_SELECT: CONT...\n");
          m_NCS_TASK_SLEEP(1000);
          continue;

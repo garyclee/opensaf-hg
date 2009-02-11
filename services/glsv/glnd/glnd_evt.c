@@ -89,9 +89,6 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
 static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 static uns32 glnd_process_gla_resource_purge(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 static uns32 glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-#if 0
-static uns32 glnd_process_gla_res_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
-#endif
 static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
 static uns32 glnd_process_glnd_lck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt);
@@ -877,22 +874,6 @@ static uns32 glnd_process_gla_client_info(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
      else
        return NCSCC_RC_FAILURE;
    }
-#if 0
-
-   /*Add res_list to the client_info */
-   res_list = restart_client_info.res_list;
-      
-   while(res_list != NULL )
-   {
-       /* Add res_node to the glnd_res_tree of glnd_cb */
-       res_node = glnd_restart_client_resource_node_add(glnd_cb,*res_list);
-
-       /* Add res_node to the client info */
-       glnd_client_node_resource_add(glnd_client_node_find(glnd_cb,restart_client_info.client_handle_id),res_node);
-
-        res_list = res_list->next;
-   }
-#endif
     return NCSCC_RC_SUCCESS;
 
 }
@@ -1186,10 +1167,6 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
          goto err;
       }
       /* add this resource lock to the client  */
-      #if 0
-
-      glnd_client_node_resource_lock_req_add(client_info,res_node,lck_list_info);
-      #endif
       if(lck_list_info->lock_info.lockStatus != SA_LCK_LOCK_NOT_QUEUED && lck_list_info->lock_info.lockStatus != SA_LCK_LOCK_ORPHANED)
           glnd_restart_res_lock_list_ckpt_write(glnd_cb,lck_list_info,lck_list_info->res_info->resource_id,0,2);
         
@@ -1263,18 +1240,6 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
         glnd_client_node_resource_lock_req_add(client_info,res_node,lck_list_info);
  
 
-        #if 0
-        /* send the response back in case of async call */
-        if(lck_info.call_type == GLSV_ASYNC_CALL)
-        {
-          m_GLND_RESOURCE_SYNC_LCK_GRANT_FILL(gla_evt,SA_AIS_OK,
-             lck_list_info->lock_info.lockid,
-             lck_list_info->lock_info.lockStatus,
-             lck_list_info->lock_info.handleId);
-           /* send the evt to GLA */
-          glnd_mds_msg_send_rsp_gla(glnd_cb,&gla_evt,rsc_lock_info->agent_mds_dest,&evt->mds_context);
-        }
-        #endif
 
     }
     return NCSCC_RC_SUCCESS;
@@ -1683,9 +1648,6 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
    if(!res_node)
    {
       m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED,NCSFL_SEV_ERROR);
-      #if 0
-      goto err;
-      #endif
       return NCSCC_RC_SUCCESS;
    }
    rc = glnd_process_check_master_and_non_master_status(glnd_cb, res_node);
@@ -1822,9 +1784,6 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
    if(!res_node)
    {
       m_LOG_GLND_API(GLND_RSC_NODE_FIND_FAILED,NCSFL_SEV_ERROR);
-      #if 0
-      goto err;
-      #endif
       return NCSCC_RC_SUCCESS;
       
    }
@@ -2117,10 +2076,6 @@ static uns32 glnd_process_glnd_unlck_rsp(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
    /* cancel the timer */
    glnd_stop_tmr(&lck_list_info->timeout_tmr);
-#if 0
-   /* Checkpoint */
-   glnd_restart_res_lock_list_ckpt_close(glnd_cb,lck_list_info);
-#endif
    
    /* send back the message to GLA */
    if(lck_list_info->unlock_call_type == GLSV_SYNC_CALL)
@@ -2248,13 +2203,6 @@ static uns32 glnd_process_glnd_lck_req_orphan(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
             res_node->lck_master_info.ex_orphaned = TRUE;
          if(lck_list_info->lock_info.lock_type == SA_LCK_PR_LOCK_MODE)
             res_node->lck_master_info.pr_orphaned = TRUE;
-         #if 0
-         /* free the lck_list info */
-         glnd_resource_lock_req_delete(res_node,lck_list_info);
-
-         /* do the re sync of the grant list */
-         glnd_resource_master_lock_resync_grant_list(glnd_cb,res_node);
-         #endif
      }
       /* free the lck_list info */
          glnd_resource_lock_req_delete(res_node,lck_list_info);

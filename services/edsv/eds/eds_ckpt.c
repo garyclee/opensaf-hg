@@ -126,17 +126,6 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
   /* Update the CB with mbcsv selectionobject */
   eds_cb->mbcsv_sel_obj = sel_obj_arg.info.sel_obj_get.o_select_obj;
   eds_cb->ckpt_state = COLD_SYNC_IDLE;
-#if 0
-  /* Inform MBCSV of HA state change */
-  if (NCSCC_RC_SUCCESS != (error=eds_mbcsv_change_HA_state(eds_cb)))
-  {
-     m_NCS_CONS_PRINTF(" eds_mbcsv_init: MBCSV state change %d FAILED \n",eds_cb->ha_state);
-     m_LOG_EDS_CHECKPOINT(EDS_MBCSV_INIT_STATE_CHANGE_FAIL,NCSFL_SEV_ERROR);
-     return rc;
-  } 
-  m_NCS_CONS_PRINTF(" eds_mbcsv_init: MBCSV state change %d SUCCESS \n",eds_cb->ha_state);
-  m_LOG_EDS_CHECKPOINT(EDS_MBCSV_INIT_STATE_CHANGE_SUCCESS,NCSFL_SEV_INFO);
-#endif
    
   return rc;
 } /* End eds_mbcsv_init */
@@ -369,10 +358,6 @@ uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
                /* Encode async update */
                if((rc=eds_ckpt_encode_async_update(cb,cb->edu_hdl,cbk_arg)) != NCSCC_RC_SUCCESS)
                    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-#if 0
-               else
-                   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,1);
-#endif
                break;
 
      case NCS_MBCSV_MSG_COLD_SYNC_REQ:
@@ -1129,10 +1114,6 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
             m_EDSV_DEBUG_CONS_PRINTF(" ASYNC UPDATE DECODE called\n");
             if((rc=eds_ckpt_decode_async_update(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
                 m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-#if 0
-            else
-                m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-#endif
             break;
 
     case NCS_MBCSV_MSG_WARM_SYNC_REQ:
@@ -1147,10 +1128,6 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
             /* Decode and compare checksums */
             if((rc=eds_ckpt_warm_sync_csum_dec_hdlr(cb,&cbk_arg->info.decode.i_uba)) != NCSCC_RC_SUCCESS)
                 m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-#if 0
-            else
-                m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-#endif
             break;
 
     case NCS_MBCSV_MSG_DATA_REQ:
@@ -1452,19 +1429,6 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
    }
    m_NCS_MEMSET(data, 0, sizeof(EDS_CKPT_DATA));
   /* Decode the current message header*/
-#if 0
-   /* Needed, If edu is used to decode header */
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_ckpt_hdr,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&header,&ederror);
-
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_EDSV_CKPT_DATA(data);
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-   }
-#endif
 
    if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
    {
@@ -1510,17 +1474,6 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
    
    /* Done with reg_records,Now decode channel records. */
    /*Decode channel records header */
-#if 0 
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_ckpt_hdr,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&header,&ederror);
-
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_EDSV_CKPT_DATA(data);
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-   }
-#endif
 
    if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
    {
@@ -1565,18 +1518,6 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
 
    /* Done with chan_records,Now decode channel open records. */
    /* Decode channel-open records header */
-#if 0 
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_ckpt_hdr,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&header,&ederror);
-
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-      m_MMGR_FREE_EDSV_CKPT_DATA(data);
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-   }
-#endif
 
    if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
    {
@@ -1657,18 +1598,6 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
        --num_rec;
    }/*End while, Subscription records */
 
-   /* Done with subscription_records,Now decode retention records. */
-#if 0 
-     rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_ckpt_hdr,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&header,&ederror);
-
-     if(rc != NCSCC_RC_SUCCESS)
-     {
-        m_MMGR_FREE_EDSV_CKPT_DATA(data);
-        m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-        return NCSCC_RC_FAILURE;
-     }
-#endif
      /*Decode retention records header */
      if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
      {
@@ -2212,19 +2141,6 @@ uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
                                  param->chan_open_id,
                                  param->event_id,
                                  FALSE);
-#if 0
-   if (NULL != (wp =
-            eds_get_worklist_entry(cb->eds_work_list, param->chan_id)))
-   {
-     /** If no one else interested in this channel,
-      ** remove it completely
-      **/
-      if (wp->use_cnt == 0
-          &&
-          wp->ret_evt_list == NULL)
-         eds_remove_worklist_entry(cb, wp->chan_id);
-   }
-#endif
 
    /* Unlock the EDS_CB */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -2259,9 +2175,6 @@ uns32 eds_ckpt_proc_agent_down_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
 
    /* Remove this EDA entry from our processing lists */
    eds_remove_regid_by_mds_dest(cb, data->ckpt_rec.agent_dest);
-#if 0
-   m_LOG_EDS_CHECKPOINT(EDS_AGENT_DOWN_REC_PROC_SUCCESS,NCSFL_SEV_ERROR);
-#endif
 
    return NCSCC_RC_SUCCESS;
 }
@@ -2289,73 +2202,6 @@ uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB* cb, NCS_UBAID *uba)
 {
 
 /*warm sync encode routine used before */
-#if 0
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_DATA_CHECKSUM csum,dec_csum,*pcsum=NULL;
-  EDU_ERR ederror=0; 
-  NCS_MBCSV_ARG mbcsv_arg;
-  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
- 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT WARM SYNC CSUM DECODE....\n");
-  /* Decode checksum from ACTIVE */
-   m_NCS_MEMSET(&csum,0,sizeof(EDS_CKPT_DATA_CHECKSUM));
-   pcsum=&dec_csum;
-   rc=m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_csum_rec,uba,EDP_OP_TYPE_DEC,&pcsum,&ederror);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-       m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-       return rc;
-   }
- 
-  /* Compute checksum on our database & compare */
-
-   if ((rc=compute_reg_csum(cb,&csum.reg_csum)) != NCSCC_RC_SUCCESS)
-        return rc;
-
-   if (csum.reg_csum != pcsum->reg_csum)
-   {
-       m_NCS_CONS_PRINTF(" ME(reg_csum) AND ACTIVE ARE NOT Equal: sending data request ...\n");
-       goto send_data_request;
-   }
-
-   if ((rc=compute_copen_csum(cb,&csum.copen_csum)) != NCSCC_RC_SUCCESS)
-        return rc;
-
-   if (csum.copen_csum != pcsum->copen_csum)
-   {
-      m_NCS_CONS_PRINTF(" ME(copen_csum) AND ACTIVE ARE NOT Equal: sending data request ...\n");
-      goto send_data_request;
-   }
-  
-   if ((rc=compute_subsc_csum(cb,&csum.subsc_csum)) != NCSCC_RC_SUCCESS)
-      return rc;
-
-   if (csum.subsc_csum != pcsum->subsc_csum)
-   {
-       m_NCS_CONS_PRINTF(" ME(subsc_csum) AND ACTIVE ARE NOT Equal: sending data request ...\n");
-       goto send_data_request;
-   }
-   m_EDSV_DEBUG_CONS_PRINTF(" HURRAY, ME AND ACTIVE ARE IN WARM SYNC ...\n");
-      return rc;
-
-send_data_request:
-       /* Clean up all data */
-       m_NCS_CONS_PRINTF(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request ...\n");
-       eds_remove_reglist_entry(cb, 0, TRUE);
-
-       /* Compose and send a data request to ACTIVE */ 
-       mbcsv_arg.i_op=NCS_MBCSV_OP_SEND_DATA_REQ;
-       mbcsv_arg.i_mbcsv_hdl=cb->mbcsv_hdl;
-       mbcsv_arg.info.send_data_req.i_ckpt_hdl=(NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-       rc = ncs_mbcsv_svc(&mbcsv_arg);
-       if(rc != NCSCC_RC_SUCCESS)
-       {
-          /* Log */
-          return rc;
-       }
-    }
-    return rc;
-#endif
     uns32 num_of_async_upd,rc = NCSCC_RC_SUCCESS;
     uns8 data[16],*ptr ;
     NCS_MBCSV_ARG mbcsv_arg;
@@ -2411,43 +2257,6 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
 
 /*warm sync encode routine used before */
-#if 0
-   EDS_CKPT_DATA_CHECKSUM csum;
-   uns32 rc=NCSCC_RC_SUCCESS;
-   EDU_ERR ederror=0;
-
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT WARM SYNC CSUM ENCODE....\n");
-/* Compute checksum on cold-warm sync records.
- * Upon receiving this, the STANDBY computes checksum on the individual databases and
- * in the case of a mismatch shall notify an cscum mismatch error,
- * following which the ACTIVE sends that specific database again
- * with a checksum.
-*/
-   if ((!cb) || (!cbk_arg))
-      return (rc=NCSCC_RC_FAILURE); /*Log Mem failure */
-
-   m_NCS_MEMSET(&csum,0,sizeof(EDS_CKPT_DATA_CHECKSUM));
-   if ((rc=compute_reg_csum(cb,&csum.reg_csum)) != NCSCC_RC_SUCCESS)
-      return rc;
-
-   if ((rc=compute_copen_csum(cb,&csum.copen_csum)) != NCSCC_RC_SUCCESS)
-      return rc;
-   
-   if ((rc=compute_subsc_csum(cb,&csum.subsc_csum)) != NCSCC_RC_SUCCESS)
-      return rc;
-
-  /* Encode checksum data */
-  rc=m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_csum_rec,&cbk_arg->info.encode.io_uba,EDP_OP_TYPE_ENC,&csum,&ederror);
-  if(rc != NCSCC_RC_SUCCESS)
-  {
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-  }
-  /* Done. Return status */
-  cbk_arg->info.encode.io_msg_type= NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
-  m_EDSV_DEBUG_CONS_PRINTF(" WARMSYNC ENCODE SUCCESS\n");
-  return rc;
-#endif
 
    uns32   rc = NCSCC_RC_SUCCESS;
    uns8    *wsync_ptr = NULL;
@@ -2472,146 +2281,6 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 }
 
-#if 0
-/****************************************************************************
- * Name          : compute_reg_csum 
- *
- * Description   : This function computes checksum on the
- *                 REG_lists, by encoding the records first into a USRBUF. 
- *
- * Arguments     : cb - pointer to the eds control block.
- *                 cksum - a 16 bit checksum computed on the encoded reglist
- *                 (OUT PARAM)
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : None.
- *****************************************************************************/
-
-uns32 compute_reg_csum(EDS_CB *cb,uns16 *cksum)
-{
-   NCS_UBAID uba; /* Temporary uba to encode records & to compute checksum */
-   uns32 rc=NCSCC_RC_SUCCESS;
-   uns16 csum=0;
-   uns32 len=0;                                                         
-
-   /* Prepare USRBUF for encoding */
-   m_NCS_MEMSET(&uba, '\0', sizeof(NCS_UBAID));
-   if((rc=ncs_enc_init_space(&uba)) != NCSCC_RC_SUCCESS)
-       return rc;
-
-   /* Encode the records into UBAID */
-    if((rc=eds_edu_enc_reg_list(cb,&uba)) != NCSCC_RC_SUCCESS)
-        return rc;
-
-  /* Get the Total length */
-   len = m_MMGR_LINK_DATA_LEN(uba.start);
-
-   /* Compute checksum on the payload chain
-    * NOTE: This macro takes care of USRBUF chains as well! */
-   m_MMGR_BUFR_CALC_CKSUM(uba.start,len,&csum);
-  
-   if(csum)
-      *cksum=csum; 
-
-   m_MMGR_FREE_BUFR_LIST(uba.start);
-   return rc;
-
-}/* End compute_reg_csum */
-
-/****************************************************************************
- * Name          : compute_copen_csum 
- *
- * Description   : This function computes checksum on the
- *                 chann open lists, by encoding the records 
- *                 first into a USRBUF. 
- *
- * Arguments     : cb - pointer to the eds control block.
- *                 cksum - a 16 bit checksum computed on the encoded channel
- *                 open list. (OUT PARAM)
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : None.
- *****************************************************************************/
-
-uns32 compute_copen_csum(EDS_CB *cb,uns16 *cksum)
-{
-   NCS_UBAID uba; /*Temporary uba to encode copen records & to compute checksum */
-   uns32 rc=NCSCC_RC_SUCCESS;
-   uns32 len=0;
-   uns16 csum=0; 
-
-  /* Prepare USRBUF for encoding */
-   m_NCS_MEMSET(&uba, '\0', sizeof(NCS_UBAID));
-   if((rc=ncs_enc_init_space(&uba)) != NCSCC_RC_SUCCESS)
-       return rc;
- 
-  /* Encode the records into UBAID */
-   rc=eds_edu_enc_chan_open_list(cb,&uba);
-
-  /* Get the Total length */
-   len = m_MMGR_LINK_DATA_LEN(uba.start);
-
-   /* Compute checksum on the payload chain*/
-   m_MMGR_BUFR_CALC_CKSUM(uba.start,len,&csum);
-  
-   if(csum)
-      *cksum=csum; 
-
-    m_MMGR_FREE_BUFR_LIST(uba.start);
-
-    return rc;
-
-}/*End compute_copen_csum() */
-
-/****************************************************************************
- * Name          : compute_subsc_csum 
- *
- * Description   : This function computes checksum on the
- *                 subscriptions for all channels, by encoding the records 
- *                 first into a USRBUF. 
- *
- * Arguments     : cb - pointer to the eds control block.
- *                 cksum - a 16 bit checksum computed on the encoded
- *                 subscription list. (OUT PARAM)
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : None.
- *****************************************************************************/
-
-uns32 compute_subsc_csum(EDS_CB *cb,uns16 *cksum)
-{
-   NCS_UBAID uba; /*Temporary uba to encode copen records & to compute checksum */
-   uns32 rc=NCSCC_RC_SUCCESS;
-   uns32 len=0;
-   uns16 csum=0;
- 
-  /* Prepare USRBUF for encoding */
-   m_NCS_MEMSET(&uba, '\0', sizeof(NCS_UBAID));
-   if((rc=ncs_enc_init_space(&uba)) != NCSCC_RC_SUCCESS)
-       return rc;
-                                                                                                                    
-  /* Encode the records into UBAID */
-   rc=eds_edu_enc_subsc_list(cb,&uba);
-
-  /* Get the Total length */
-   len = m_MMGR_LINK_DATA_LEN(uba.start);
-
-   /* Compute checksum on the payload chain*/
-   m_MMGR_BUFR_CALC_CKSUM(uba.start,len,&csum);
-  
-   if(csum)
-      *cksum=csum; 
-
-    m_MMGR_FREE_BUFR_LIST(uba.start);
-
-    return rc;
-}/*End compute_subsc_csum() */
-
-/* Note: No need to calculate checksum on retention events list */
-#endif 
 /****************************************************************************
  * Name          : eds_ckpt_send_async_update
  *
@@ -2638,9 +2307,6 @@ uns32 send_async_update(EDS_CB *cb,EDS_CKPT_DATA *ckpt_rec,uns32 action)
   uns32 rc=NCSCC_RC_SUCCESS;
   NCS_MBCSV_ARG mbcsv_arg;
 
-#if 0
-  m_EDSV_DEBUG_CONS_PRINTF(" SEND ASYNC UPDATE....\n");
-#endif
 
    /* Fill mbcsv specific data */
    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));

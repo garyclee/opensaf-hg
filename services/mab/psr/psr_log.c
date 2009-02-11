@@ -251,7 +251,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                    if(pv.i_fmat_id == NCSMIB_FMAT_OCT)
                    {
-                      if(pv.info.i_oct != NULL) /* Fix for IR00083236 */
+                      if(pv.info.i_oct != NULL) 
                       {
                          m_MMGR_FREE_MIB_OCT(pv.info.i_oct);
                          pv.info.i_oct = NULL;
@@ -284,7 +284,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                    if(pv.i_fmat_id == NCSMIB_FMAT_OCT)
                    {
-                      if(pv.info.i_oct != NULL) /* Fix for IR00083236 */
+                      if(pv.info.i_oct != NULL) 
                       {
                          m_MMGR_FREE_MIB_OCT(pv.info.i_oct);
                          pv.info.i_oct = NULL;
@@ -341,7 +341,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                       if(pv.i_fmat_id == NCSMIB_FMAT_OCT)
                       {
-                         if(pv.info.i_oct != NULL) /* Fix for IR00083236 */
+                         if(pv.info.i_oct != NULL) 
                          {
                             m_MMGR_FREE_MIB_OCT(pv.info.i_oct);
                             pv.info.i_oct = NULL;
@@ -404,7 +404,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                       if(pv.i_fmat_id == NCSMIB_FMAT_OCT)
                       {
-                         if(pv.info.i_oct != NULL) /* Fix for IR00083236 */
+                         if(pv.info.i_oct != NULL) 
                          {
                             m_MMGR_FREE_MIB_OCT(pv.info.i_oct);
                             pv.info.i_oct = NULL;

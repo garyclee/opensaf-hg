@@ -37,9 +37,6 @@
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 
-#if 0
-#include "ncs_xlim.h"
-#endif
 #include "ncs_mpls.h"
 
 /**************************************************************************

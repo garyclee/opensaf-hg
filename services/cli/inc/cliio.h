@@ -130,11 +130,7 @@
     }\
     m_NCS_CONS_PUTCHAR(CLI_CONS_ERR_MARK);\
 }
-/* Fix for 59359 */
-#if 0 
-#define m_NCS_GETGRGID(gid) getgrgid((gid_t)gid)
-#define m_NCS_GETGROUPS(numofgroups,list) getgroups((int)numofgroups,(gid_t*)list)
-#endif
+
 typedef enum { /* Request types to be made to the CLI LM Routine */
    CLI_INST_REQ_CREATE,    
    CLI_INST_REQ_DESTROY,   
@@ -205,10 +201,10 @@ EXTERN_C uns32 cli_deregister_cmds(CLI_CB *, NCSCLI_OP_DEREGISTER *);
 EXTERN_C void cli_clean_history(CLI_CMD_HISTORY *);
 EXTERN_C uns32 cli_clean_mode(CLI_CB *, int8 *);
 EXTERN_C uns32 cli_clean_cmds(CLI_CB *, NCSCLI_DEREG_CMD_LIST *);
-EXTERN_C uns32 cli_lib_shut_except_task_release(void);/* Added to fix the bug 58948 */ 
-EXTERN_C uns32 cli_timer_start(CLI_CB *); /* added to fix the bug 58609 */
-EXTERN_C uns8   ncscli_user_access_level_find(CLI_CB*); /* Fix for 59359 */
-EXTERN_C int32  ncscli_user_access_level_authenticate(CLI_CB *pCli); /* Fic for 59359 */
+EXTERN_C uns32 cli_lib_shut_except_task_release(void);
+EXTERN_C uns32 cli_timer_start(CLI_CB *); 
+EXTERN_C uns8   ncscli_user_access_level_find(CLI_CB*); 
+EXTERN_C int32  ncscli_user_access_level_authenticate(CLI_CB *pCli); 
 
 #if (NCSCLI_FILE == 1)
 EXTERN_C void 

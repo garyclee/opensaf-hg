@@ -61,11 +61,6 @@ static uns32
 snmpsubagt_eda_varbindlist_append(netsnmp_variable_list **add_to_me, 
                                   netsnmp_variable_list *to_be_added);
 
-#if 0
-/* to free the list of varbinds */
-uns32
-snmpsubagt_eda_trap_varbinds_free(NCS_TRAP_VARBIND *trap_varbinds);
-#endif
 
 static uns32 
 snmpsubagt_eda_varbinds_free(netsnmp_variable_list *to_be_freed);
@@ -132,10 +127,6 @@ snmpsubagt_eda_initialize(NCSSA_CB     *pSacb)
         return SA_AIS_ERR_INVALID_PARAM; 
     }
 
-#if 0
-    if(pSacb->edaInitStatus != m_SNMPSUBAGT_EDA_INIT_COMPLETED)
-    {
-#endif
        /* Interface with EDSv is not initialised. */
 
        m_NCS_MEMSET(&timeout_in_ns, 0, sizeof(SaTimeT));
@@ -205,29 +196,6 @@ snmpsubagt_eda_initialize(NCSSA_CB     *pSacb)
 
        /* 4. log the EDA Selection object */
        m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_EDA_SEL_OBJ, (int)pSacb->evtSelectionObject);
-#if 0
-    }
-#endif
-
-#if 0
-    /* Call the API to subscribe for the events if active state assignment is done for subagt. */
-    if (pSacb->haCstate == SNMPSUBAGT_HA_STATE_ACTIVE)
-    {
-      status = saEvtEventSubscribe(pSacb->evtChannelHandle, /* input */
-                                   &pSacb->evtFilters,/* input */
-                                   pSacb->evtSubscriptionId);/* input */
-      if(status != SA_AIS_OK)
-      {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_EVT_SUBSCRIBE_FAIL,
-                               status, pSacb->evtSubscriptionId, 0);
-
-        return status; 
-      }
-      /* log the subscription status */
-      m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS);
-   }
-#endif
 
    /* log the end of the function */
     return SA_AIS_OK; 
@@ -353,15 +321,6 @@ snmpsubagt_eda_callback(SaEvtSubscriptionIdT   subscriptionid, /* input */
     /* memory for the event data */
     uns8                *eventData = NULL; 
     
-#if 0    
-    /* To store the details about the received event */
-    SaEvtEventPatternArrayT     patternArray;
-    SaUint8T                    priority = 0;
-    SaTimeT                     retentionTime;
-    SaNameT                     publisherName;
-    SaTimeT                     publishTime;
-    SaEvtEventIdT               eventId;
-#endif
 
     /* Log the function entry */
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_EDA_CB);
@@ -384,26 +343,6 @@ snmpsubagt_eda_callback(SaEvtSubscriptionIdT   subscriptionid, /* input */
                             cb->evtSubscriptionId, 0);
         return ;
     }
-#if 0
-    /* Get event header info */
-    status = saEvtEventAttributesGet(eventHandle, &patternArray, 
-                        &priority, &retentionTime, 
-                        &publisherName, &publishTime, 
-                        &eventId);
-    if (status != SA_OK)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EVT_ATTR_GET_FAIL, 
-                                status,
-                                eventHandle,
-                                eventId);
-        /* Mahesh -- TBD, I think we can continue */
-    }
-    else
-    {
-        /* log the above details of the event */
-    }
-#endif
 
     /* Prepare an appropriate-sized data buffer.
      */
@@ -601,7 +540,6 @@ subagt_send_v2trap(NCS_PATRICIA_TREE    *oid_db,
          * may be we can increment the count saying there are no trap varbinds
          *  --TBD for Phase - 2
          * Can there be a chance of having a trap with no varbinds at all ??? 
-         * TBD Mahesh  
          * if the above case is true, we should not return from here 
          */ 
        
@@ -1092,7 +1030,7 @@ snmpsubagt_eda_snmpTrapId_vb_populate(NCS_PATRICIA_TREE    *i_oid_db,
         free(var_bind); 
         return NULL; 
     }
-    /* Discuss this with Kamesh -- TBD Mahesh */ 
+    /* Discuss this with Kamesh  */ 
     /* Following assignment must be there for all the objects of type OID. 
      * Length of the value (not the actual object) should be interms no.of bytes. 
      * I can not put this inside the above routine, as it will be used to 
@@ -1187,78 +1125,6 @@ snmpsubagt_eda_varbinds_free(netsnmp_variable_list *to_be_freed)
     return NCSCC_RC_SUCCESS; 
 }
 
-#if 0
-/******************************************************************************
- *  Name:          snmpsubagt_eda_trap_varbinds_free
- *
- *  Description:   To free the trap varbinds recieved from the event 
- *                  buffer. 
- *                      - Free the memory allocated by the decode routines
- *                      - Handle care with memory for 
- *                        the ASN_OBJECT_ID type
- *                          - Mahesh TBD, MAB Enhancement 
- * 
- *  Arguments:     NCS_TRAP_VARBIND* -List of varbinds to be freed 
- *
- *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
- *                 NCSCC_RC_FAILURE   - failure
- *  NOTE: 
- *****************************************************************************/
-uns32
-snmpsubagt_eda_trap_varbinds_free(NCS_TRAP_VARBIND *trap_varbinds)
-{
-    NCS_TRAP_VARBIND     *prev, *current; 
-
-   m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_EDA_TRAP_VB_FREE);
-    /* validate the inputs */
-    if (trap_varbinds == NULL)
-    {
-        /* log the error, but nothing to free */
-        return NCSCC_RC_SUCCESS; 
-    }
-
-    current = trap_varbinds; 
-
-    while (current)
-    {
-        prev = current; 
-       
-        /* free the Octets */
-        switch(prev->i_param_val.i_fmat_id)
-        {
-            case NCSMIB_FMAT_INT:
-            /* Nothing to do */
-            break; 
-            case NCSMIB_FMAT_OCT:
-            if (prev->i_param_val.info.i_oct != NULL)
-            {
-                m_NCS_MEM_FREE(prev->i_param_val.info.i_oct,
-                               NCS_MEM_REGION_PERSISTENT,
-                               NCS_SERVICE_ID_COMMON,2);
-            }
-            break; 
-            default:
-            /* log the error */
-            break; 
-        }
-
-        if (prev->i_idx.i_inst_ids != NULL)
-        {
-            /* free the index */
-            m_NCS_MEM_FREE(prev->i_idx.i_inst_ids,
-                           NCS_MEM_REGION_PERSISTENT,
-                           NCS_SERVICE_ID_COMMON,4);
-        }
-
-        /* go to the next node */
-        current = current->next_trap_varbind; 
-        
-        /* free the varbind now */
-        m_MMGR_NCS_TRAP_VARBIND_FREE(prev);
-    } /* while */
-    return NCSCC_RC_SUCCESS; 
-}
-#endif
 
 /******************************************************************************
  *  Name:          subagt_eda_object_get

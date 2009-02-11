@@ -20,42 +20,6 @@
 
 #include "avm.h"
 #include "mac_papi.h"
-#if 0 /* This function is not required. Remove later - JPL */
-extern int
-avm_fund_get_scxb_ipaddr(AVM_FUND_USR_BUF *usr_buf)
-{
-   int sock,n;
-   struct ifreq *ifr;
-   struct ifconf ifc;
-   char buf[1024],addres[16];
-   unsigned char* adr;
-
-   sock=socket(AF_INET,SOCK_STREAM,0);
-
-   ifc.ifc_buf=buf;
-   ifc.ifc_len=1024;
-
-   ioctl(sock, SIOCGIFCONF, &ifc);
-
-   n = ifc.ifc_len/sizeof(struct ifreq);
-   for (ifr = ifc.ifc_req; n > 0; n--, ifr++)
-   {
-       if (ifr->ifr_addr.sa_family == AF_INET)
-       {
-           adr=ifr->ifr_ifru.ifru_addr.sa_data+2;
-           snprintf(addres,16,"%i.%i.%i.%i",adr[0],adr[1],adr[2],adr[3]);
-           if(strcmp(ifr->ifr_name, "bond0") == 0)
-           {
-              sprintf(usr_buf->scxb_ipaddr,"%s",addres);
-              break;
-           }
-        }
-   }
-   close(sock);
-
-   return NCSCC_RC_SUCCESS;
-}
-#endif 
 uns32
 avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns8 *filename)
 {
@@ -90,11 +54,6 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
     out_usr_buf.cmd_parm.cmd_id = htons(cmd_id);
     /* send the ipmb address in char format */
     sprintf(out_usr_buf.cmd_parm.payload_ipaddr, "%x", ent_info->dhcp_serv_conf.ipmb_addr);
-#if 0
-    out_usr_buf.cmd_parm.payload_ipaddr[0] = '0' +  (ent_info->dhcp_serv_conf.ipmb_addr/10);
-    out_usr_buf.cmd_parm.payload_ipaddr[1] = '0' +  (ent_info->dhcp_serv_conf.ipmb_addr%10);
-    out_usr_buf.cmd_parm.payload_ipaddr[2] = '\0';
-#endif
     strcpy(out_usr_buf.cmd_parm.filename,filename);
     
     buff = m_MMGR_ALLOC_BUFR(sizeof(USRBUF));
@@ -143,11 +102,6 @@ avm_fund_send_mib_req(AVM_ENT_INFO_T *ent_info, NCSMIB_ARG *mib_arg)
 
    mib_arg->i_usr_key = ent_info->ent_hdl;
    mib_arg->i_mib_key = gl_mac_handle; /* TBD JPL */
-/* vivek_avm */
-#if 0
-   rc = ncsmib_timed_request(&mib_arg, ncsmac_mib_request, 100);
-#endif
-   /* vivek_avm */
 
    rc = ncsmib_timed_request(mib_arg, ncsmac_mib_request, 72000);
    if (rc != NCSCC_RC_SUCCESS)
@@ -329,9 +283,6 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         if (pld_bld_status == PAYLOAD_IPMC_UPGD_SUCCESS)   
                         {
                            ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status; 
-#if 0
-                           m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-#endif
                            cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
                         }
                         else
@@ -379,9 +330,6 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         if (pld_rtm_status == PAYLOAD_IPMC_UPGD_SUCCESS) 
                         {
                            ent_info->dhcp_serv_conf.pld_rtm_ipmc_status = pld_rtm_status; 
-#if 0
-                           m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-#endif
                            if(rollback)   
                            {
                               /* If AVM already decided to rollback the payload blade, rollback the payload rtm also*/  
@@ -1046,9 +994,6 @@ avm_proc_ipmc_mod_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
    ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
    return NCSCC_RC_SUCCESS;
 }
-#if 0
-extern uns32
-#endif
 uns32
 avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 {

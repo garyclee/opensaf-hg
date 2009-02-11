@@ -48,12 +48,6 @@ DESCRIPTION: Macros, Structures and Function prototypes used by IfSv Driver.
 /* From targsvcs/common/inc */
 #include "mds_papi.h"
 #include "ncs_util.h"
-#if 0
-#include "sysf_mds.h"  
-#if (NCS_MDS == 1)
-#include "mds_inc.h"
-#endif
-#endif
 #include "ifsv_papi.h"
 
 #define NCS_IFSV_DEF_VRID           (1)

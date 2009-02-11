@@ -372,10 +372,6 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    cref_info->ckpt_node = ckpt_node;
    cpd_ckpt_ref_info_add(node_info, cref_info);
 
-#if 0
-   m_LOG_CPD_CFCL(CPD_DB_ADD_SUCCESS,CPD_FC_DB,NCSFL_SEV_INFO,map_info->ckpt_name.value,\
-     map_info->ckpt_id,__FILE__,__LINE__);
-#endif
    return NCSCC_RC_SUCCESS;
 
 
@@ -782,28 +778,6 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                 ckpt_node->ckpt_on_scxb2 = 0;
              }
 
-#if 0
-            if(ckpt_node->dest_cnt == 1) /* only standby scxb exists */
-            {
-              if((ckpt_node->ckpt_on_scxb1 == 0)&&(ckpt_node->ckpt_on_scxb2 == 0))
-              {
-                 cpd_noncolloc_ckpt_rep_delete(cb, ckpt_node, map_info);
-              }
-            }
-            else if(ckpt_node->dest_cnt > 1)
-            {
-               if(!m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest)) && \
-                  !m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest)))
-               { /* Payload */
-                  if((ckpt_node->ckpt_on_scxb1 == 0) && (ckpt_node->ckpt_on_scxb2 == 0))
-                  {
-                     if(ckpt_node->dest_cnt <= 2)
-                       cpd_noncolloc_ckpt_rep_delete(cb, ckpt_node, map_info);
-                  }
-
-               }
-            }
-#endif      
              if((ckpt_node->ckpt_on_scxb1 == 0)&&(ckpt_node->ckpt_on_scxb2 == 0))
              {
                if(!cpd_is_noncollocated_replica_present_on_payload(cb , ckpt_node))
@@ -905,9 +879,6 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                 send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
                 send_evt.info.cpa.info.ackpt_info.mds_dest = ckpt_node->active_dest;
                 proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
-#if 0
-                m_NCS_CONS_PRINTF("BLADE DOWN EVT ckptid = %llu mds_dest = %llu\n",ckpt_node->ckpt_id, ckpt_node->active_dest);
-#endif
             }   /* if(ckpt_node->is_active_exists == FALSE) */
          }  /* else of if(ckpt_node->dest_cnt == 0) */
       }   /* if(match_found == TRUE) */

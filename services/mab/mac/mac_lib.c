@@ -52,12 +52,6 @@ static MAB_INST_NODE    *gl_mac_inst_list;
 static uns32
 maclib_mac_create(NCS_LIB_REQ_INFO * req_info); 
 
-#if 0
-/* to destroy MAA */
-/* Removing the static specifier to make it extern function */
-uns32
-maclib_mac_destroy(NCS_LIB_REQ_INFO * req_info);
-#endif
 
 /* creates and starts MAA thread */ 
 static uns32
@@ -183,15 +177,10 @@ uns32 maclib_request(NCS_LIB_REQ_INFO * req_info)
             status = m_NCS_IPC_SEND(&gl_mac_mbx.mac_mbx, (NCS_IPC_MSG *)post_me, NCS_IPC_PRIORITY_HIGH);
             if (status != NCSCC_RC_SUCCESS)
             {
-                m_MMGR_FREE_MAB_MSG(post_me); /* fix for the bug 60582 */
+                m_MMGR_FREE_MAB_MSG(post_me); 
                 return m_MAB_DBG_SINK(status);
             }
 
-#if 0
-            status = maclib_mac_destroy(req_info); 
-            if (status != NCSCC_RC_SUCCESS)
-                return m_MAB_DBG_SINK(status);
-#endif
         break;
        
         /* MAA can not help with this type of request */  
@@ -370,8 +359,8 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
 {
     uns32               status; 
     NCSMAC_LM_ARG       arg;
-    NCS_SEL_OBJ_SET     set; /* Fix for the bug 61160 */
-    uns32 timeout = 300;    /* Fix for the bug 61160 (300 ms = 3sec)*/
+    NCS_SEL_OBJ_SET     set; 
+    uns32 timeout = 300;    
 
     if (gl_mac_inited == FALSE)
     {
@@ -421,7 +410,6 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     MAC_INST* inst = (MAC_INST*)ncshm_take_hdl(NCS_SERVICE_ID_MAB, (uns32)req_info->info.inst.o_inst_hdl);
     
     /* waiting for the mas sync */
-    /* Fix for the bug IR00061160 */
     if(inst->mas_here == FALSE)
     {
         m_NCS_SEL_OBJ_ZERO(&set);

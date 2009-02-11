@@ -189,24 +189,6 @@ typedef enum gld_timer_log_flex
 } GLD_TIMER_LOG_FLEX;
 
 
-/******************************************************************************
- Logging offset indexes for A2S Event logging
- ******************************************************************************/
-#if 0
-typedef enum gld_a2s_evt_flex
-{
-   GLD_A2S_EVT_RSC_OPEN_SUCCESS,
-   GLD_A2S_EVT_RSC_OPEN_FAILED,
-   GLD_A2S_EVT_RSC_CLOSE_SUCCESS,
-   GLD_A2S_EVT_RSC_CLOSE_FAILED,
-   GLD_A2S_EVT_SET_ORPHAN_FAILED,
-   GLD_A2S_EVT_SET_ORPHAN_SUCCESS,
-   GLD_A2S_EVT_MDS_GLND_UP,
-   GLD_A2S_EVT_MDS_GLND_DOWN,
-   GLD_A2S_EVT_ADD_NODE_FAILED,
-   GLD_A2S_EVT_ADD_RSC_FAILED
-} GLD_A2S_EVT_FLEX;
-#endif
 
 /******************************************************************************
  Logging offset indexes for canned constant strings for the ASCII SPEC

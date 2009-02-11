@@ -678,9 +678,6 @@ static uns32 gld_process_tmr_resource_reelection_wait_timeout(GLSV_GLD_EVT *evt)
    GLSV_GLD_RSC_INFO   *res_node;
    
    res_node = gld_find_rsc_by_id(gld_cb,res_id);
-   #if 0
-   res_node = gld_find_rsc_by_id(gld_cb,evt->info.tmr.resource_id);
-   #endif
    if(res_node)
        gld_snd_master_status(gld_cb, res_node,GLND_RESOURCE_ELECTION_COMPLETED);
    return NCSCC_RC_SUCCESS;

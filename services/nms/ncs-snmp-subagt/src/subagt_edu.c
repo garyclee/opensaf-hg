@@ -84,7 +84,7 @@ subagt_edu_ncs_trap_decode(EDU_HDL *edu_hdl,
     if (ret_code != NCSCC_RC_SUCCESS)
     {
         /* log the error */
-        /* TBD -- Mahesh do I need to print this onto console?? */
+        /* do I need to print this onto console?? */
         m_NCS_EDU_PRINT_ERROR_STRING(ed_error); 
 
         /* free the allocated memory, in case of evt_data is being

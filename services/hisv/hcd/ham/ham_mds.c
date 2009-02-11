@@ -786,9 +786,6 @@ ham_mds_vdest_create(HAM_CB *ham_cb)
    vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
    /* We are using fixed values here for now */
    vda_info.info.vdest_create.info.specified.i_vdest = ham_cb->ham_vdest;
-#if 0
-   vda_info.info.vdest_create.info.specified.i_anc   = ham_cb->my_anc;
-#endif
 
    /* Create the VDEST address */
    if (NCSCC_RC_SUCCESS != (rc =ncsvda_api(&vda_info)))
@@ -801,22 +798,6 @@ ham_mds_vdest_create(HAM_CB *ham_cb)
    ham_cb->mds_hdl          = vda_info.info.vdest_create.o_mds_pwe1_hdl;
    ham_cb->mds_vdest_hdl    = vda_info.info.vdest_create.o_mds_vdest_hdl;
 
-#if 0
-   /* Assign Role Now */
-   m_NCS_MEMSET(&vda_info, '\0', sizeof(vda_info));
-
-   vda_info.req = NCSVDA_VDEST_CHG_ROLE;
-   vda_info.info.vdest_chg_role.i_vdest = ham_cb->ham_vdest;
-#if 0
-   vda_info.info.vdest_chg_role.i_anc = ham_cb->my_anc;
-#endif
-   vda_info.info.vdest_chg_role.i_new_role = V_DEST_RL_ACTIVE; /* for now */
-   if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_HISV_DTS_CONS("ham_mds_vdest_create: error vdest create\n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-#endif /* 0 */
    return NCSCC_RC_SUCCESS;
 
    return rc;
@@ -841,9 +822,6 @@ uns32 ham_mds_change_role(HAM_CB *cb)
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->ham_vdest;
-#if 0
-   arg.info.vdest_chg_role.i_anc   = cb->my_anc;
-#endif
    arg.info.vdest_chg_role.i_new_role = cb->mds_role;
 
    if (ncsvda_api(&arg) != NCSCC_RC_SUCCESS)
@@ -943,9 +921,6 @@ ham_mds_vdest_destroy (HAM_CB *ham_cb)
 
    vda_info.req                             = NCSVDA_VDEST_DESTROY;
    vda_info.info.vdest_destroy.i_vdest      = ham_cb->ham_vdest;
-#if 0
-   vda_info.info.vdest_destroy.i_anc        = ham_cb->my_anc;
-#endif
 
    /* destroy the HAM VDEST */
    if(NCSCC_RC_SUCCESS != ( rc = ncsvda_api(&vda_info)))

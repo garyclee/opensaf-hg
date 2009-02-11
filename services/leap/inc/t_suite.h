@@ -469,12 +469,6 @@
 
 /* Additional include files for CLI system... */
 
-#if 0/*(NCS_CLI == 1) */
-#include "cli_opt.h"
-#include "cli_def.h"
-#include "cli_mem.h"
-
-#endif /* (NCS_CLI == 1) */
 
 /*
  * Additional include files for MAB subsystem...

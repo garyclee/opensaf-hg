@@ -301,62 +301,6 @@ uns32
 ipxs_ifip_ippfx_add_to_os(IPXS_CB *cb, NCS_IFSV_IFINDEX ifindex,IPXS_IFIP_IP_INFO *ippfx, uns32 cnt)
 {
 
-#if 0
-
-   struct {
-      struct nlmsghdr nlh;
-      struct ifaddrmsg ifa;
-      char attr[RTA_LENGTH(sizeof(uint32_t))];
-   } req;
-   struct sockaddr_nl nladdr, src;
-   struct sockaddr_in sin;
-   struct rtattr *rta;
-   int rta_type = 0, j = 0, count = 0;
-
-   if(!cb->netlink_fd)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   m_NCS_MEMSET(&nladdr, '\0', sizeof(nladdr));
-   m_NCS_MEMSET(&src, '\0', sizeof(src));
-   m_NCS_MEMSET(&sin, '\0', sizeof(sin));
-   nladdr.nl_family = AF_NETLINK;
-   rta_type = IFA_LOCAL;
-   req.nlh.nlmsg_type = RTM_NEWADDR;
-   req.nlh.nlmsg_len = sizeof(req);
-   req.nlh.nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
-   req.nlh.nlmsg_pid = 0;
-   req.nlh.nlmsg_seq = 0;
-   req.ifa.ifa_family = AF_INET;
-   req.ifa.ifa_flags = IFA_F_PERMANENT;
-   req.ifa.ifa_scope = RT_SCOPE_HOST;
-   req.ifa.ifa_index = ifip_info->ifindexNet; /* This has to be the actual interface index on the OS */
-
-   for(j=0; j<cnt; j++)
-   {
-      if((ippfx[j].ipaddr.type == NCS_IP_ADDR_TYPE_IPV4) &&
-         ippfx[j].ipaddr.info.v4)
-      {
-         req.ifa.ifa_prefixlen = ippfx[j].mask_len;
-
-         sin.sin_family = AF_INET;
-         sin.sin_addr.s_addr = (u_int32_t)sysf_htonl(ippfx[j].ipaddr.info.v4);
-         
-         rta = (struct rtattr*)req.attr;
-         rta->rta_type = rta_type;
-         rta->rta_len = RTA_LENGTH(sizeof(uint32_t));
-         m_NCS_MEMCPY(RTA_DATA(rta), &sin.sin_addr, sizeof(uint32_t));
-         
-         count = m_NCSSOCK_SENDTO(cb->netlink_fd, (void*)&req, sizeof(req), 0,
-            (struct sockaddr*)&nladdr, sizeof(nladdr));
-         if(count != sizeof(req))
-         {
-            return NCSCC_RC_FAILURE;
-         }
-      }
-   }
-
-#else
 
   IFSV_CB *ifsv_cb;
   uns32   ifsv_hdl;
@@ -386,7 +330,6 @@ ipxs_ifip_ippfx_add_to_os(IPXS_CB *cb, NCS_IFSV_IFINDEX ifindex,IPXS_IFIP_IP_INF
 
    return rc;
 
-#endif
 }
 
 uns32 ifsv_add_to_os(IFSV_INTF_DATA *intf_data,IPXS_IFIP_IP_INFO *ippfx,uns32 cnt,IFSV_CB *ifsv_cb )
@@ -456,60 +399,6 @@ uns32
 ipxs_ifip_ippfx_del_from_os(IPXS_CB *cb,NCS_IFSV_IFINDEX ifindex ,
                             NCS_IPPFX *ippfx, uns32 cnt)
 {
-#if 0
-   struct {
-      struct nlmsghdr nlh;
-      struct ifaddrmsg ifa;
-      char attr[RTA_LENGTH(sizeof(uint32_t))];
-   } req;
-   struct sockaddr_nl nladdr, src;
-   struct sockaddr_in sin;
-   struct rtattr *rta;
-   int rta_type = 0, j = 0, count = 0;
-
-   if(!cb->netlink_fd)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   m_NCS_MEMSET(&nladdr, '\0', sizeof(nladdr));
-   m_NCS_MEMSET(&src, '\0', sizeof(src));
-   m_NCS_MEMSET(&sin, '\0', sizeof(sin));
-   nladdr.nl_family = AF_NETLINK;
-   rta_type = IFA_LOCAL;
-   req.nlh.nlmsg_type = RTM_DELADDR;
-   req.nlh.nlmsg_len = sizeof(req);
-   req.nlh.nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
-   req.nlh.nlmsg_pid = 0;
-   req.nlh.nlmsg_seq = 0;
-   req.ifa.ifa_family = AF_INET;
-   req.ifa.ifa_flags = IFA_F_PERMANENT;
-   req.ifa.ifa_scope = RT_SCOPE_HOST;
-   req.ifa.ifa_index = ifip_info->ifindexNet; /* This has to be the actual interface index on the OS */
-
-   for(j=0; j<cnt; j++)
-   {
-      if((ippfx[j].ipaddr.type == NCS_IP_ADDR_TYPE_IPV4) &&
-         ippfx[j].ipaddr.info.v4)
-      {
-         req.ifa.ifa_prefixlen = ippfx[j].mask_len;
-
-         sin.sin_family = AF_INET;
-         sin.sin_addr.s_addr = (u_int32_t)sysf_htonl(ippfx[j].ipaddr.info.v4);
-         
-         rta = (struct rtattr*)req.attr;
-         rta->rta_type = rta_type;
-         rta->rta_len = RTA_LENGTH(sizeof(uint32_t));
-         m_NCS_MEMCPY(RTA_DATA(rta), &sin.sin_addr, sizeof(uint32_t));
-         
-         count = m_NCSSOCK_SENDTO(cb->netlink_fd, (void*)&req, sizeof(req), 0,
-            (struct sockaddr*)&nladdr, sizeof(nladdr));
-         if(count != sizeof(req))
-         {
-            return NCSCC_RC_FAILURE;
-         }
-      }
-   }
-#endif 
 
   IFSV_CB *ifsv_cb;
   uns32   ifsv_hdl;
@@ -671,26 +560,6 @@ uns32 ipxs_ipdb_init(IPXS_IPDB *iptbl)
    return rc;
 }
 
-#if 0
-/* Redundant Function */
-/*****************************************************************************
-  PROCEDURE NAME    :   ipxs_ip_rec_del
-  DESCRIPTION       :   Delete IP Record 
-  ARGUMENTS         :   IPXS_IPDB *ip_tbl,
-                        IPXS_IP_INFO *ipinfo
-  RETURNS           :   Nothing
-  NOTES             :   
-*****************************************************************************/
-void ipxs_ip_rec_del(IPXS_IPDB *ip_tbl, IPXS_IP_NODE *ipnode)
-{   
-   if(ip_tbl->up)
-   {
-      ncs_patricia_tree_del(&ip_tbl->ptree, (NCS_PATRICIA_NODE *)ipnode);
-   }
-
-   return;
-}
-#endif
 
 /*****************************************************************************
   PROCEDURE NAME    :   ipxs_ipdb_destroy

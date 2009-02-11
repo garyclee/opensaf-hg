@@ -22,15 +22,6 @@
 /* global variables */
 EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 
-#if 0
-
-/* macros for the global varibales */
-#define m_CPND_RETRIEVE_CPND_CB_HDL      gl_cpnd_hdl
-#define m_CPND_RETRIEVE_CPND_TASK_HDL    gl_cpnd_task_hdl
-#endif
-#if 0
-#define CPSV_DEBUG 0 /* by default it should be 0 */
-#endif
 /* macros for the CB handle */
 #define m_CPND_TAKE_CPND_CB      ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)
 #define m_CPND_GIVEUP_CPND_CB    ncshm_give_hdl(gl_cpnd_cb_hdl)
@@ -320,9 +311,6 @@ typedef struct cpnd_cb_tag
    uns32                cpnd_self_id;
    uns32                cpnd_remote_id;
 
-#if 0
-   SaAmfReadinessStateT ready_state;      /* AMF readiness state of the component      */   
-#endif
    SaAmfHAStateT        ha_state;         /* present AMF HA state of the component     */   
    EDU_HDL              cpnd_edu_hdl;     /* edu handle used for encode/decode         */  
    NCSCONTEXT           task_hdl;

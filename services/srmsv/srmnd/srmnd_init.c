@@ -160,15 +160,6 @@ uns32 srmnd_create (NCS_LIB_CREATE *create_info)
       return rc;    
    }
 
-#if 0
-   /* Don't call if SRMND is going to activate through AvSv */
-   rc = srmnd_active(cb);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      srmnd_destroy(FALSE);
-      return rc;    
-   }
-#endif
    return rc;
 }
 
@@ -565,13 +556,6 @@ uns32 srmnd_mbx_destroy (SRMND_CB *cb)
 *****************************************************************************/
 NCS_BOOL srmnd_mbx_clean (NCSCONTEXT arg, NCSCONTEXT msg)
 {
-#if 0
-   SRMND_EVT *curr;
-
-   /* clean the entire mailbox */
-   for (curr = (SRMND_EVT *)msg; curr; curr = curr->next)
-      srmnd_evt_destroy(curr);
-#endif
 
    return TRUE;
 }

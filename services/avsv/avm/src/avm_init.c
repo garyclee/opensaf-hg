@@ -265,7 +265,7 @@ avm_init_proc(uns32 *avm_init_hdl)
    cb->sel_high    = mbx_sel_obj;
    cb->mbx_sel_obj = mbx_sel_obj;
 
-   rc = avm_init_db(cb, g_avm_hdl);   
+   rc = avm_init_db();   
    if(NCSCC_RC_SUCCESS != rc)
    {
       avm_destroy(AVM_DESTROY_CB);
@@ -298,7 +298,6 @@ avm_init_proc(uns32 *avm_init_hdl)
       /* Invoke script to initialise the DHCP Configuration file */
       if (m_NCS_SYSTEM(script_buf))
       {
-          /* Fix for IR00084625 */
           /* ncshm_give_hdl(g_avm_hdl);
              g_avm_hdl = 0;
              return;

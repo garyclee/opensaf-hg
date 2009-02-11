@@ -373,11 +373,6 @@ ncsavmentdeploytableentry_set(
 
                fsm_evt.fsm_evt_type =  (arg->req.info.set_req.i_param_val.info.i_int + AVM_EVT_ADM_RESET_REQ_BASE - 1);
 
-#if 0
-               /* update the dhcp configuration here, before restarting the blade */
-               dhcp_conf = &ent_info->dhcp_serv_conf;
-               avm_ssu_dhconf(avm_cb, ent_info, NULL, 1);
-#endif
 
                rc = avm_fsm_handler(avm_cb, ent_info, &fsm_evt);
                m_AVM_SEND_CKPT_UPDT_ASYNC_ADD(avm_cb, ent_info, AVM_CKPT_ENT_ADM_OP);
@@ -528,61 +523,6 @@ ncsavmentdeploytableentry_set(
 
       case ncsAvmEntAdminOperCommit_ID:
       {
-#if 0 /* This object is obselete now */
-         /* Set admin operation object and take corresponding actions */
-         if (AVM_DHCP_COMMIT == arg->req.info.set_req.i_param_val.info.i_int)
-         {
-            /* TBD - JPL */
-            if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label1.status)
-            {
-               ent_info->dhcp_serv_conf.label1.status = SSU_COMMITTED;
-               /* Push it into PSSV */
-               m_AVM_SSU_PSSV_PUSH_INT(cb, ent_info->dhcp_serv_conf.label1.status, ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
-
-               ent_info->dhcp_serv_conf.default_chg = FALSE;
-               ckpt_dhstate = TRUE;
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
-            }
-            else if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label2.status)
-            {
-               ent_info->dhcp_serv_conf.label2.status = SSU_COMMITTED;
-               /* Push it into PSSV */
-               m_AVM_SSU_PSSV_PUSH_INT(cb, ent_info->dhcp_serv_conf.label2.status, ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
-
-               ent_info->dhcp_serv_conf.default_chg = FALSE;
-               ckpt_dhstate = TRUE;
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
-            }
-            else
-            {
-               m_AVM_LOG_DEBUG("AVM-SSU: Can't COMMIT the LABEL, it is not in COMMIT_PENDING State", NCSFL_SEV_ERROR);
-               goto failure;
-            }
-            /* Set default label and preferred label */
-            ent_info->dhcp_serv_conf.default_label = ent_info->dhcp_serv_conf.curr_act_label;
-
-            /* Set the preferred label also to other label */
-            m_NCS_MEMSET(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
-            ent_info->dhcp_serv_conf.pref_label.length = ent_info->dhcp_serv_conf.default_label->name.length;
-            m_NCS_MEMCPY(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.default_label->name.name,
-                ent_info->dhcp_serv_conf.pref_label.length);
-
-            /* Push the preferred label into pssv */
-            m_AVM_SSU_PSSV_PUSH_STR(cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length);
-
-            ckpt_dhconf = TRUE;
-
-            ent_info->dhcp_serv_conf.adm_oper = 
-               arg->req.info.set_req.i_param_val.info.i_int;
-         }
-         else
-         {
-            m_AVM_LOG_DEBUG("AVM-SSU: Invalid Operation", NCSFL_SEV_ERROR);
-            goto failure;
-         }
-#endif
       }
       break;
 
@@ -738,20 +678,9 @@ ncsavmentdeploytableentry_set(
                m_AVM_LOG_DEBUG("AVM-SSU: Label with the same name already exists", NCSFL_SEV_ERROR);
                goto failure;
          }
-#if 0
-         /* The change is for current Active label then return Failure. */
-         if ((&ent_info->dhcp_serv_conf.label1 == 
-            ent_info->dhcp_serv_conf.curr_act_label) ||
-             (ent_info->dhcp_serv_conf.label2.status == SSU_COMMIT_PENDING))
-         {
-            m_AVM_LOG_DEBUG("AVM-SSU: Active label name can't be changed", NCSFL_SEV_ERROR);
-            goto failure;
-         }
-#endif
          if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label1, &ent_info->dhcp_serv_conf.label2))
             goto failure; 
 
-         /* Fix for IR00084622 */
          if((0 != ent_info->dhcp_serv_conf.pref_label.length) &&
             (!AVM_DHCONF_MEMCMP_LEN(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.label1.name.name,
                               ent_info->dhcp_serv_conf.label1.name.length, ent_info->dhcp_serv_conf.pref_label.length)))
@@ -806,16 +735,6 @@ ncsavmentdeploytableentry_set(
             ent_info->dhcp_serv_conf.label1.file_name.length,
             arg->req.info.set_req.i_param_val.i_length))
             return NCSCC_RC_SUCCESS;
-#if 0
-         /* The change is for current Active label then return Failure. */
-         if ((&ent_info->dhcp_serv_conf.label1 == 
-            ent_info->dhcp_serv_conf.curr_act_label) ||
-             (ent_info->dhcp_serv_conf.label2.status == SSU_COMMIT_PENDING))
-         {
-            m_AVM_LOG_DEBUG("AVM-SSU: Active label Conf File Name can't be changed", NCSFL_SEV_ERROR);
-            goto failure;
-         }
-#endif
          if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label1, &ent_info->dhcp_serv_conf.label2))
             goto failure;
  
@@ -882,28 +801,10 @@ ncsavmentdeploytableentry_set(
             m_AVM_LOG_DEBUG("AVM-SSU: Label with the same name already exists", NCSFL_SEV_ERROR);
             goto failure;
          }
-
-#if 0
-         /* The change is for current Active label then return Failure. */
-         if ((&ent_info->dhcp_serv_conf.label2 == 
-            ent_info->dhcp_serv_conf.curr_act_label) ||
-             (ent_info->dhcp_serv_conf.label1.status == SSU_COMMIT_PENDING))
-         { 
-            m_AVM_LOG_DEBUG("AVM-SSU: Active label name can't be changed", NCSFL_SEV_ERROR);
-            goto failure;
-         }
-#endif
-
-/* vivek_ut */
 /* Should be reversed */
          if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label2, &ent_info->dhcp_serv_conf.label1))
             goto failure;
-#if 0
-         if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label1, &ent_info->dhcp_serv_conf.label2))
-            goto failure;
-#endif
 
-         /* Fix for IR00084622 */
          if((0 != ent_info->dhcp_serv_conf.pref_label.length) &&
             (!AVM_DHCONF_MEMCMP_LEN(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.label2.name.name,
                               ent_info->dhcp_serv_conf.label2.name.length, ent_info->dhcp_serv_conf.pref_label.length)))
@@ -958,25 +859,12 @@ ncsavmentdeploytableentry_set(
             arg->req.info.set_req.i_param_val.i_length))
             return NCSCC_RC_SUCCESS;
 
-#if 0
-         /* The change is for current Active label then return Failure. */
-         if ((&ent_info->dhcp_serv_conf.label2 == 
-            ent_info->dhcp_serv_conf.curr_act_label) ||
-             (ent_info->dhcp_serv_conf.label1.status == SSU_COMMIT_PENDING))
-         {
-            m_AVM_LOG_DEBUG("AVM-SSU: Active label Conf File Name can't be changed", NCSFL_SEV_ERROR);
-            goto failure;
-         }
-#endif
 
-/* vivek_ut */
+
+
 /* Should be reversed */
          if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label2, &ent_info->dhcp_serv_conf.label1))
             goto failure;
-#if 0
-         if ( FALSE == avm_validate_state_for_dhcp_conf_change(ent_info, &ent_info->dhcp_serv_conf.label1, &ent_info->dhcp_serv_conf.label2))
-            goto failure;
-#endif
 
          /* Validate the installtion contents and set version of file */
          
@@ -1851,7 +1739,6 @@ ncsavmentupgradetableentry_set(
             goto failure;
          }
 
-         /*saumya-fix for IR00086315*/
          if ((ent_info->ep_str.length == helper_ep.length)
              &&
              (!m_NCS_MEMCMP(ent_info->ep_str.name,
@@ -1937,7 +1824,6 @@ ncsavmentupgradetableentry_set(
             if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label1.status)
             {
                ent_info->dhcp_serv_conf.label1.status = SSU_COMMITTED;
-               /* vivek_push */
                /* PUSH it into PSSV */
                m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label1.status, ncsAvmEntDHCPConfLabel1Status_ID, ent_info);
 
@@ -1953,7 +1839,6 @@ ncsavmentupgradetableentry_set(
             else if (SSU_COMMIT_PENDING == ent_info->dhcp_serv_conf.label2.status)
             {
                ent_info->dhcp_serv_conf.label2.status = SSU_COMMITTED;
-               /* vivek_push */
                /* PUSH it into PSSV */
                m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label2.status, ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
 
@@ -2000,7 +1885,6 @@ ncsavmentupgradetableentry_set(
                 m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                 goto failure;
             }
-            /*saumya-fix for IR00086294*/
             if (ent_info->dhcp_serv_conf.curr_act_label == NULL)
             {
                sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: No current active label. Upgrade not allowed",ent_info->ep_str.name);
@@ -2029,7 +1913,6 @@ ncsavmentupgradetableentry_set(
                m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
                ent_info->dhcp_serv_conf.adm_oper = arg->req.info.set_req.i_param_val.info.i_int;
                /* Trigger the IPMC Upgrade */
-               /*saumya- fix for IR00086299*/ 
                rc =  avm_upgrade_ipmc_trigger(avm_cb,ent_info);
                if (rc == NCSCC_RC_FAILURE)
                {
@@ -2046,7 +1929,6 @@ ncsavmentupgradetableentry_set(
                /* Check for the preffered label. If it is the current active label, no need to upgrade. *
                 * If the preffered label is passive label, trigger the upgrade.                         */  
 
-               /*saumya-fix for IR00086310*/
 
                if ((ent_info->dhcp_serv_conf.pref_label.length ==
                     ent_info->dhcp_serv_conf.curr_act_label->name.length)
@@ -2076,7 +1958,6 @@ ncsavmentupgradetableentry_set(
                      sysf_sprintf(logbuf, "AVM-SSU: Payload %s: INTEG upgrade trigger failed", ent_info->ep_str.name);
                      m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
 
-                     /*saumya- fix for IR00086299*/ 
                      ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
 
                      /* This is taken as upgrade failure */

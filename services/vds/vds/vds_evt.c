@@ -291,12 +291,6 @@ void vds_evt_destroy (VDS_EVT *evt)
 
    /* Free the event now */
    m_MMGR_FREE_VDS_EVT(evt);
- 
-#if 0  
-   m_VDS_LOG_MEM(VDS_LOG_MEM_VDS_EVT_FREE,
-                            VDS_LOG_MEM_NOTHING,
-                                    NCSFL_SEV_INFO);
-#endif
    return;
 }
 

@@ -134,7 +134,6 @@ EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type);
  
 
 
-/* IR 9586 Fix*/
 /***********************************************************************\
    m_NCS_GET_NODE_ID: This function returns a node-id (in the SAF sense).
                       Only the macro should be used, the function 

@@ -58,11 +58,6 @@ snmpsubagt_eda_initialize(struct ncsSa_cb  *pSacb);
 EXTERN_C uns32
 snmpsubagt_eda_finalize(struct ncsSa_cb  *pSacb);
 
-#if 0
-/* to free the trap varbinds */
-EXTERN_C uns32
-snmpsubagt_eda_trap_varbinds_free(NCS_TRAP_VARBIND *trap_varbinds);
-#endif
 
 /* Forward declaration for the event handling callback routine */
 EXTERN_C void

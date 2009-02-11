@@ -124,9 +124,6 @@ typedef struct gla_cb_tag
 
    /* Local to global mapping for Lock Id's */
    NCS_PATRICIA_TREE    gla_lock_id_tree;    /* GLA_LOCK_ID_INFO */
-#if 0
-   NCS_PATRICIA_TREE    gla_rev_lock_id_tree;/* GLA_LOCK_ID_INFO */
-#endif
    /* Sync up with GLND ( MDS )*/
    NCS_LOCK             glnd_sync_lock;
    NCS_BOOL             glnd_sync_awaited;
@@ -187,14 +184,6 @@ GLA_LOCK_ID_INFO *gla_lock_tree_reverse_find(GLA_CB *gla_cb,
                                              SaLckLockIdT   gbl_lock);
 void gla_lock_tree_cleanup_client_down(GLA_CB *gla_cb,SaLckHandleT handle);
 void gla_res_lock_tree_cleanup_client_down(GLA_CB *gla_cb,GLA_RESOURCE_ID_INFO *res_info,SaLckHandleT handle);
-#if 0
-uns32 gla_rev_lock_tree_delete_node(GLA_CB *gla_cb, GLA_LOCK_ID_INFO *lock_info);
-GLA_LOCK_ID_INFO *gla_rev_lock_tree_find_and_add(GLA_CB *gla_cb, 
-                                                 SaLckHandleT     handle,
-                                                 SaLckResourceIdT res_id,
-                                                 SaLckLockIdT lock_id, 
-                                                 NCS_BOOL flag);
-#endif
 
 EXTERN_C uns32 gla_client_info_send(GLA_CB *gla_cb);
 

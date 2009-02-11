@@ -46,7 +46,7 @@
 #include <malloc.h>
 #include <unistd.h>
 #include <time.h>
-#include <grp.h> /* IR00059532 */
+#include <grp.h> 
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -178,19 +178,18 @@ extern "C" {
 extern void ncs_os_atomic_init(void);
 extern void ncs_os_atomic_destroy(void);
 
-/* IR00084911 */
 #ifndef m_NCS_OS_CONS_PRINTF
 EXTERN_C LEAPDLL_API int ncs_logscreen(const char *str , ...);
 #define m_NCS_OS_CONS_PRINTF         ncs_logscreen
 #endif
 
 #ifndef m_NCS_OS_DBG_PRINTF
-EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); /* IR00084911 */
+EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); 
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
 #endif
 
 #ifndef m_NCS_OS_SYSLOG
-EXTERN_C LEAPDLL_API void ncs_syslog(int priority, const char *str , ...); /* IR00084911 */
+EXTERN_C LEAPDLL_API void ncs_syslog(int priority, const char *str , ...); 
 #define m_NCS_OS_SYSLOG         ncs_syslog
 #endif
 
@@ -207,7 +206,6 @@ extern void ncs_os_atomic_dec(void *p_uns32);
 
 extern void get_msec_time(uns32 * seconds, uns32 * millisec);
 
-/* IR00084262 */
 #ifndef m_NCS_OS_GET_UPTIME 
 extern uns32 ncs_get_uptime(uns64 *o_uptime);
 #define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
@@ -291,10 +289,10 @@ unsigned int linux_char_normalizer(void);
 
 
 
-int64 ncs_os_time_ms(void);  /* IR00059616 */
+int64 ncs_os_time_ms(void);  
 #define m_NCS_OS_GET_TIME_MS   ncs_os_time_ms()
 
-uns64 ncs_os_time_ns(void); /* IR00058792 */
+uns64 ncs_os_time_ns(void); 
 #define m_NCS_OS_GET_TIME_NS   ncs_os_time_ns()
 
 /* Over riding macros for linux */
@@ -311,7 +309,6 @@ uns64 ncs_os_time_ns(void); /* IR00058792 */
     strftime((char *)(asc_timestamp), 32, "%X", localtime_r(&timestamp, &IR58027_temp_tm)); \
 }
 
-/* IR00061477 */
 #define m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
 { \
     struct tm IR58027_temp_tm/* special auto var-name to avoid conflict with macro arguments */; \
@@ -369,7 +366,6 @@ typedef struct posixlock {
 
 #define NCS_OS_LOCK POSIXLOCK
 
-/* IR00061485 */
 extern NCS_OS_LOCK * get_cloexec_lock(void);
 
 /* Extern defenition for sysf_fopen */

@@ -54,14 +54,6 @@
 *****************************************************************************/
 uns32 mbcsv_dbg_sink(uns32 l, char* f, long code, char *str)
 {
-#if 0
-   m_NCS_CONS_PRINTF ("IN MBCSV_DBG_SINK: line %d, file %s\n",l,f);
-   
-   if (NULL != str)
-   {
-      m_NCS_CONS_PRINTF ("Reason : %s \n", str);
-   }
-#endif
 
    m_LOG_MBCSV_DBG_SNK(str, f, l);
 
@@ -70,14 +62,6 @@ uns32 mbcsv_dbg_sink(uns32 l, char* f, long code, char *str)
 
 uns32 mbcsv_dbg_sink_svc(uns32 l, char* f, uns32 code, char *str, uns32 svc_id)
 {
-#if 0
-   m_NCS_CONS_PRINTF ("IN MBCSV_DBG_SINK: line %d, file %s\n",l,f);
-   
-   if (NULL != str)
-   {
-      m_NCS_CONS_PRINTF ("Reason : %s, svc = %d \n", str, svc_id);
-   }
-#endif
 
    m_LOG_MBCSV_DBG_SNK_SVC(str, svc_id, f, l);
 

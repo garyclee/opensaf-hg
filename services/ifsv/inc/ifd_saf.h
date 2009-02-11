@@ -23,25 +23,6 @@ DESCRIPTION: Function prototypes used for IfD used in AMF.
 #ifndef IFD_SAF_H
 #define IFD_SAF_H
 
-#if 0
-/* Removed for B Spec Compliance */
-void
-ifd_saf_readiness_state_callback (SaInvocationT invocation,
-                                   const SaNameT *compName,
-                                   SaAmfReadinessStateT readinessState);
-void
-ifd_saf_pend_oper_confirm_callback (SaInvocationT invocation,
-                                    const SaNameT *compName,
-                                    SaAmfPendingOperationFlagsT pendOperFlags);
-void
-ifd_saf_CSI_set_callback (SaInvocationT invocation,
-                          const SaNameT  *compName,
-                          const SaNameT  *csiName,
-                          SaAmfCSIFlagsT csiFlags,
-                          SaAmfHAStateT  *haState,
-                          SaNameT        *activeCompName,
-                          SaAmfCSITransitionDescriptorT transitionDesc);
-#endif
 void ifd_saf_CSI_set_callback(SaInvocationT invocation,
                          const SaNameT *compName,
                          SaAmfHAStateT haState,

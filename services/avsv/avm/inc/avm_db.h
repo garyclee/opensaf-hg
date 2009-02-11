@@ -39,13 +39,6 @@ typedef struct fault_domain_type
 }AVM_FAULT_DOMAIN_T;
 
 #define AVM_FAULT_DOMAIN_NULL ((AVM_FAULT_DOMAIN_T *)0x0)
-#if 0
-typedef struct avm_ent_path_str_type
-{
-   uns32  length; 
-   uns8   name[AVM_MAX_INDEX_LEN];
-}AVM_ENT_PATH_STR_T;
-#endif
 
 /* Linked list of Entity Info nodes*/
 typedef struct   avm_ent_info_list_node   
@@ -326,7 +319,6 @@ avm_add_ent_str_info(
                       AVM_ENT_INFO_T       *ent_info, 
                       AVM_ENT_PATH_STR_T   *ep
                     );
-/* IR00082362 */
 extern AVM_ENT_INFO_T* 
 avm_find_ent_str_info(
                        AVM_CB_T            *avm_cb, 

@@ -585,7 +585,6 @@ static uns32 mds_demo_cb_rcv      (struct ncsmds_callback_info *info)
             ((MDS_DEMO_MSG*)info->info.receive.i_msg)->recvd_len,
             ((MDS_DEMO_MSG*)info->info.receive.i_msg)->recvd_data);
 
-   /* IR 82292 Fix */
    free(info->info.receive.i_msg);
 
    return NCSCC_RC_SUCCESS;

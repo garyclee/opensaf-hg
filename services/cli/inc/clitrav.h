@@ -100,9 +100,9 @@ EXTERN_C void cli_complete_cmd(CLI_CB *i_cb, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM
 EXTERN_C uns32 cli_ipv4_to_int(int8 *);
 EXTERN_C uns32 cli_get_tokentype(int8 *);
 /*EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *);*/
-EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *, CLI_CB *); /* Fix for the bug 59854 ( CLI_CB* argument is added extra) */
+EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *, CLI_CB *); /*  ( CLI_CB* argument is added extra) */
 /*EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *);*/
-EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *,CLI_CB *); /* Fix for the bug 59854(CLI_CB* argument is added extra) */
+EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *,CLI_CB *); /* (CLI_CB* argument is added extra) */
 EXTERN_C uns32 cli_check_token(CLI_CB *, NCSCLI_ARG_VAL *, CLI_CMD_ERROR *);
 EXTERN_C CLI_CMD_NODE *cli_node_change(CLI_CB *);
 EXTERN_C uns32 cli_check_range(CLI_CB *, NCSCLI_ARG_VAL *, CLI_CMD_ERROR *);

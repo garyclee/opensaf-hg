@@ -90,17 +90,6 @@ typedef struct ncsSa_cb
     /* task handle to process the SubAgent's events */
     NCSCONTEXT          subagt_task; 
 
-#if 0
-    /* Agent monitoring code is being removed, so these members are not required. 
-    If agent monitoring is done by subagent, then they have to be defined */
-
-    /* timer to monitor the Agent */
-    SNMPSUBAGT_AGT_TIMER    agt_monitor_timer;
-
-    /* SNMP Agent Monitor attributes */
-    SNMPSUBAGT_AGT_MONITOR_ATTRIBS  agt_mntr_attrib;
-#endif
-    
     /* MDS Handle (for MAC purposes) */
     uns32               mds_hdl; 
 
@@ -204,7 +193,7 @@ typedef struct ncsSa_cb
     /* selection object to get the SIGHUP */
     NCS_SEL_OBJ      sighdlr_sel_obj;
 
-    /* selection object to get the SIGUSR1 */ /* IR00061409 */
+    /* selection object to get the SIGUSR1 */ 
     NCS_SEL_OBJ      sigusr1hdlr_sel_obj;
 
     /* To hold the last registration message string */

@@ -26,20 +26,6 @@ DESCRIPTION: Function prototypes used for IfND used in AMF.
 uns32
 ifnd_amf_init (IFSV_CB *ifsv_cb);
 
-#if 0
-/* Removed for B Spec Compliance */
-
-void
-ifnd_saf_readiness_state_callback (SaInvocationT invocation,
-                                   const SaNameT *compName,
-                                   SaAmfReadinessStateT readinessState);
-
-void
-ifnd_saf_pend_oper_confirm_callback (SaInvocationT invocation,
-                                    const SaNameT *compName,
-                                    SaAmfPendingOperationFlagsT pendOperFlags);
-
-#endif
 void ifnd_saf_CSI_rem_callback (SaInvocationT invocation,
                                const SaNameT *compName,
                                const SaNameT *csiName,

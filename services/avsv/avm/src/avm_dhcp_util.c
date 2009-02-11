@@ -480,10 +480,6 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
 
    filename = pxe_file_name;
 
-#if 0
-   filename = dhcp_label->file_name.name;
-#endif
-
    sprintf(tftpserver, "%d.%d.%d.%d", dhcp_conf->tftp_serve_ip[0] & 0xff,
                                       dhcp_conf->tftp_serve_ip[1] & 0xff,
                                       dhcp_conf->tftp_serve_ip[2] & 0xff,
@@ -594,7 +590,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
     }
 
    /* Check if Net Booting is enabled And Default label is set.If yes then only proceed further *
-    * Otherwise remove the mac entry from the  /etc/dhcpd.conf file :  fix for IR00084065       */
+    * Otherwise remove the mac entry from the  /etc/dhcpd.conf file        */
    if ((dhcp_conf->net_boot == NCS_SNMP_FALSE) || (dhcp_conf->default_label == NULL))
    {
       if(dhcp_conf->net_boot == NCS_SNMP_FALSE)  
@@ -741,7 +737,6 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                /* Push the Label2 state into PSSV */
                m_AVM_SSU_PSSV_PUSH_INT(avm_cb, ent_info->dhcp_serv_conf.label2.status, ncsAvmEntDHCPConfLabel2Status_ID, ent_info);
                avm_ssu_dhcp_integ_rollback (avm_cb, ent_info);
-               /*added for IR86299*/
                dhcp_conf->upgd_prgs = FALSE;
             }
             else if (dhcp_conf->default_label->other_label->status == SSU_COMMITTED)
@@ -809,11 +804,11 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
    /* set the DHCP configuraiton information */
    rc = avm_ssu_dhconf_set(avm_cb, dhcp_conf, dhcp_label, dhcp_restart);
    
-   /* IR00082568: if there is a configuration change, remove the old data, if any */
+   /*  if there is a configuration change, remove the old data, if any */
    if (rc == AVM_DHCP_CONF_CHANGE)
    {
       avm_ssu_clear_mac(avm_cb, ent_info);
-      /* IR00085992: Update the change flag to FALSE only when dhcp.conf file has been updated successfully */
+      /*  Update the change flag to FALSE only when dhcp.conf file has been updated successfully */
       m_AVM_LOG_DEBUG("AVM-SSU: DHCP CONF file updation SUCCESS, Set conf_chg flag to FALSE \n",NCSFL_SEV_NOTICE);
       dhcp_conf->default_label->conf_chg = FALSE;
    }
@@ -938,9 +933,6 @@ avm_ssu_dhcp_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       /* rollback the DHCP configuration also */
       avm_ssu_dhconf_set(avm_cb, &ent_info->dhcp_serv_conf, NULL, 1);
 
-#if 0
-      avm_ssu_dhcp_integ_rollback (avm_cb, ent_info);
-#endif
    }
    avm_ssu_dhcp_integ_rollback (avm_cb, ent_info);
    return;
@@ -987,30 +979,6 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       else
       {
          /* Should I reset the blade ?? - TBD - JPL */
-         #if 0
-         Case1: System Firmware Error Code
-                     - Above code comes when NID gets an error and resets the node
-                     - If ipmc was upgraded...both lock/unlock would occur
-                     - Otherwise blade is anyway reseted by NID
-                     - Hence not required
-         Case2: Upgrade Timer Expiry
-                     - Above code comes when the upgrade timer expires
-                     - If ipmc was upgraded...both lock/unlock would occur
-                     - Otherwise blade is in unknown state ?
-                     - Need to think, who would do lock/unlock ?
-         Case3: Sw Bios Timer Expiry
-                     - Above code comes when the upgrade timer expires
-                     - If ipmc was upgraded...both lock/unlock would occur
-                     - Otherwise blade is in unknown state ?
-                     - Need to think, who would do lock/unlock ?
-         Case4: System Firmware Error Code While Sw Bios Timer Is Running
-                     - If ipmc was upgraded...both lock/unlock would occur
-                     - Otherwise blade is in unknown state ?
-                     - Need to think, who would do lock/unlock ?
-         Case5: Rollback by AvSv Reset
-         Case6: Rollback by Lock-Unlock
-                        - Lock/Unlock Or AvSv Reset would take care
-         #endif
 
          /* Would go for hard-reset strategy             */
          /* If that fails, admin would need to interfere */
@@ -1422,11 +1390,6 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    uns8               str[AVM_LOG_STR_MAX_LEN];
 
    str[0] = '\0';
-#if 0
-   /* change the ipmc upgrade state from locked to progress */
-   ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_IN_PRG;
-   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-#endif
 
 
    /*************************************************************************************************
@@ -1628,9 +1591,6 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
    uns32 rc = NCSCC_RC_SUCCESS; 
    uns32 chassis_id;
    NCSMIB_ARG         ssu_dummy_mib_obj;
-#if 0
-   uns8  bootbank_number;
-#endif
 
    logbuf[0] = '\0';
 
@@ -1856,165 +1816,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
             }
             break;
          }
-/* Below cases wont occur as design is changed to accomodate openhpi */
-/* constraint                                                       */
 
-#if 0        
-            case BIOS_TMR_STOPPED:
-            {
-               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Going to switch Bios Bank", ent_info->ep_str.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
-
-               rc = avm_hisv_api_cmd(ent_info, HISV_PAYLOAD_BIOS_SWITCH, 0);
-
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-               }
-            }
-            break;
-        
-            case BIOS_STOP_BANK_0:
-            {
-               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
-
-               if (rc != NCSCC_RC_SUCCESS)
-                  break;
-
-               if (bootbank_number == 0)
-               {
-                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 1);
-               }
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* reset the state */
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG); 
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-               }
-            }
-            break;
-        
-            case BIOS_STOP_BANK_1:
-            {
-               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
-
-               if (rc != NCSCC_RC_SUCCESS)
-                  break;
-
-               if (bootbank_number == 1)
-               {
-                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 0);
-               }
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* reset the state */
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-               }
-            }
-            break;
-#endif
-/* Below processing would be done at the expiry of timer "bios_failover_tmr" */
-#if 0
-            case BIOS_TMR_EXPIRED:
-            {
-               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Going to switch Bios Bank", ent_info->ep_str.name);
-               m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
-               rc = avm_hisv_api_cmd(ent_info, HISV_PAYLOAD_BIOS_SWITCH, 0);
-               
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
-                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-                  return;
-               }
-               /* Rollback the NCS and Rollback the IPMC if required */
-               avm_ssu_dhcp_rollback(avm_cb, ent_info);
-               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* Role back done */
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
-            }
-            break;
-        
-            case BIOS_EXP_BANK_0:
-            {
-               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
-               if (rc != NCSCC_RC_SUCCESS)
-                  break;
-               if (bootbank_number == 0)
-               {
-                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 1);
-               }
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-
-                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
-                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-                  return;
-               }
-               /* Rollback the NCS and Rollback the IPMC if required */
-               avm_ssu_dhcp_rollback(avm_cb, ent_info);
-               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* switching done, reset the state */
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
-               
-            }
-            break;
-        
-            case BIOS_EXP_BANK_1:
-            {
-               rc = hpl_bootbank_get (chassis_id, entity_path_str, &bootbank_number);
-               if (rc != NCSCC_RC_SUCCESS)
-                  break;
-               if (bootbank_number == 1)
-               {
-                  rc = hpl_bootbank_set (chassis_id, entity_path_str, 0);
-               }
-
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                  logbuf[0] = '\0';
-
-                  ent_info->dhcp_serv_conf.bios_upgd_state = 0;   /* clear the state */
-                  m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Failed to switch Bios Bank", ent_info->ep_str.name);
-                  m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
-                  return;
-               }
-
-               /* Rollback the NCS and Rollback the IPMC if required */
-               avm_ssu_dhcp_rollback(avm_cb, ent_info);
-               ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-               ent_info->dhcp_serv_conf.bios_upgd_state = 0;  /* switching done, reset the state */
-               m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
-               m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
-            }
-            break;
-#endif
        
       } 
    }

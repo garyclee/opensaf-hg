@@ -65,33 +65,6 @@ eda_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
   return TRUE;
 }
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-/****************************************************************************
-  Name          : eda_event_inst_rec_list_del
- 
-  Description   : This routine deletes a list of event instances.
- 
-  Arguments     : pointer to the list of event instances.
- 
-  Return Values : None
- 
-  Notes         : 
-******************************************************************************/
-static void
-eda_event_inst_rec_list_del(EDA_EVT_INST_REC **pevt_inst_rec)
-{
-   EDA_EVT_INST_REC *evt_inst_rec;
-   while (NULL != (evt_inst_rec = *pevt_inst_rec))
-   {
-       *pevt_inst_rec = evt_inst_rec->next;
-      /** Free the record.
-       **/
-       ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, evt_inst_rec->evt_inst_id);
-       m_MMGR_FREE_EDA_EVT_INST_REC(evt_inst_rec);
-       evt_inst_rec = NULL;
-   }
-}
-#endif
 
 /****************************************************************************
   Name          : eda_event_hdl_rec_list_del
@@ -121,14 +94,6 @@ eda_event_hdl_rec_list_del(EDA_EVENT_HDL_REC **pevent_hdl)
           m_MMGR_FREE_EDSV_EVENT_DATA(event_hdl->evt_data);
           event_hdl->evt_data = NULL;
        }
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-       /** free the event instance rec if any **/
-       if (event_hdl->evt_inst_list)
-       {
-          eda_event_inst_rec_list_del(&event_hdl->evt_inst_list);
-          event_hdl->evt_inst_list = NULL;
-       }
-#endif
       /** remove the association with hdl-mngr 
        **/
        m_MMGR_FREE_EDA_EVENT_HDL_REC(event_hdl);
@@ -223,64 +188,6 @@ eda_hdl_list_del (EDA_CLIENT_HDL_REC **p_client_hdl)
    }
 }
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-/****************************************************************************
-  Name          : eda_event_inst_rec_del
- 
-  Description   : This routine deletes the a event inst record from
-                  a list of event inst records. 
- 
-  Arguments     : EDA_EVT_INST_REC **list_head
-                  EDA_EVT_INST_REC *rm_node
- 
-  Return Values : None
- 
-  Notes         : 
-******************************************************************************/
-uns32
-eda_event_inst_rec_del (EDA_EVT_INST_REC **list_head, EDA_EVT_INST_REC *rm_node)
-{
-   /* Find the event hdl record in the list of records */
-   EDA_EVT_INST_REC *list_iter = *list_head;
-   
-   /* If the to be removed record is the first record */
-   if (list_iter == rm_node)
-   {
-      *list_head = rm_node->next; 
-            
-      /** remove the association with hdl-mngr 
-       **/
-      ncshm_give_hdl(rm_node->evt_inst_id);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->evt_inst_id);
-      /** Free the event inst record 
-       **/
-      m_MMGR_FREE_EDA_EVT_INST_REC(rm_node);
-      return NCSCC_RC_SUCCESS;
-   }
-   else /* find the rec */
-   {
-      while (NULL != list_iter)
-      {
-         if (list_iter->next == rm_node)
-         {
-            list_iter->next = rm_node->next;
-            
-            ncshm_give_hdl(rm_node->evt_inst_id);
-            ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->evt_inst_id);
-            /** Free the event hdl record 
-             **/
-            m_MMGR_FREE_EDA_EVT_INST_REC(rm_node);
-            return NCSCC_RC_SUCCESS;
-         }
-         /* move onto the next one */
-         list_iter = list_iter->next;
-      }
-   }
-   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   /** The node couldn't be deleted **/
-   return NCSCC_RC_FAILURE;
-}
-#endif
 /****************************************************************************
   Name          : eda_event_hdl_rec_del
  
@@ -317,14 +224,6 @@ eda_event_hdl_rec_del (EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node
           m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
           rm_node->evt_data = NULL;
        }
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-       /** free the event instance rec if any **/
-       if (rm_node->evt_inst_list)
-       {
-          eda_event_inst_rec_list_del(&rm_node->evt_inst_list);
-          rm_node->evt_inst_list = NULL;
-       }
-#endif
       /** Free the event hdl record 
        **/
       m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
@@ -349,14 +248,6 @@ eda_event_hdl_rec_del (EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node
                m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
                rm_node->evt_data = NULL;
              }
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-             /** free the event instance rec if any **/
-             if (rm_node->evt_inst_list)
-             {
-                eda_event_inst_rec_list_del(&rm_node->evt_inst_list);
-                rm_node->evt_inst_list = NULL;
-             }
-#endif
             /** Free the event hdl record 
              **/
             m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
@@ -575,52 +466,6 @@ eda_hdl_rec_del (EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
    return NCSCC_RC_FAILURE;
 }
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-/****************************************************************************
-  Name          : eda_evt_inst_rec_add
- 
-  Description   : This routine adds an event instance rec to the list of evt instances
-                  hanging off a event record
- 
-  Arguments     : EDA_EVENT_HDL_REC **eda_evt_hdl_rec
-                   
-  Return Values : ptr to the EDA_EVT_INST_REC
- 
-  Notes         : None
-******************************************************************************/
-EDA_EVT_INST_REC *
-eda_evt_inst_rec_add(EDA_EVENT_HDL_REC **eda_evt_hdl_rec)
-{
-   EDA_EVT_INST_REC *rec = 0;
-
-   /* allocate the event hdl rec */
-   if ( NULL == (rec = m_MMGR_ALLOC_EDA_EVT_INST_REC))
-   {
-      m_LOG_EDSV_A(EDA_MEMALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NULL;
-   }
-
-   m_NCS_MEMSET(rec, '\0', sizeof(EDA_EVT_INST_REC));
-
-   /* create the association with hdl-mngr */
-   if ( 0 == (rec->evt_inst_id = ncshm_create_hdl(1,NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
-   {
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDA_EVT_INST_REC(rec);
-      return NULL;
-   }
-   
-  /** Insert this record into the list of evt inst records
-   **/
-   rec->next = (*eda_evt_hdl_rec)->evt_inst_list;
-   (*eda_evt_hdl_rec)->evt_inst_list = rec;
-
-  /** Everything appears fine, so return the 
-   ** event hdl.
-   **/
-   return rec;
-};
-#endif
 
 /****************************************************************************
   Name          : eda_event_hdl_rec_add
@@ -986,9 +831,6 @@ eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
                       ncshm_give_hdl(eventHandle);
                     }
                     m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-#if 0
-                    m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__,0);
-#endif
                     ncshm_give_hdl(chan_hdl_rec->channel_hdl);
                     return NCSCC_RC_FAILURE;
                    
@@ -1000,9 +842,6 @@ eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
   }
   
   ncshm_give_hdl(eventHandle);
-#if 0
-  m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__,0);
-#endif
   return NCSCC_RC_FAILURE;
 
 }
@@ -1038,10 +877,6 @@ eda_hdl_cbk_dispatch_one (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
              eda_msg_destroy(cbk_msg);
              break;
           }
-#if 0
-          else
-             m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__,0);
-#endif
           eda_msg_destroy(cbk_msg);
         }
         else
@@ -1085,10 +920,6 @@ eda_hdl_cbk_dispatch_all (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
             /* process the callback list record */
             eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
          }
-#if 0
-         else
-            m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__,0);
-#endif
       }
       else 
       {
@@ -1135,10 +966,6 @@ eda_hdl_cbk_dispatch_block (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
               /* process the callback list record */
               eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
            }
-#if 0
-           else
-              m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__,0);
-#endif
         }
         else
         {

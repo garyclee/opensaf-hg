@@ -289,7 +289,7 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
             "dta_svc_reg_config: Failed to configure service. Service does not exist in registration table");
     }
     
-    /* IR 61143 - No need of policy handles */
+    /* No need of policy handles */
     /*svc->policy_hdl = ((DTSV_MSG*)msg)->data.data.reg_conf.msg_fltr.policy_hdl;*/        
     svc->category_bit_map = ((DTSV_MSG*)msg)->data.data.reg_conf.msg_fltr.category_bit_map;
     svc->severity_bit_map = ((DTSV_MSG*)msg)->data.data.reg_conf.msg_fltr.severity_bit_map;
@@ -513,7 +513,7 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
             enable_log = ncs_decode_32bit(&data);
             category_bit_map = ncs_decode_32bit(&data);
             severity_bit_map = ncs_decode_8bit(&data);
-            /* IR 61143 - No need of policy handles */
+            /* No need of policy handles */
             /*policy_hdl = ncs_decode_32bit(&data);*/
             /*Update the DTA's svc_reg table */
             status = dta_svc_reg_updt(inst, svc_id, enable_log, category_bit_map, severity_bit_map);
@@ -910,7 +910,7 @@ uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
         mm->data.data.reg_conf.msg_fltr.enable_log = ncs_decode_32bit(&data);
         mm->data.data.reg_conf.msg_fltr.category_bit_map = ncs_decode_32bit(&data);
         mm->data.data.reg_conf.msg_fltr.severity_bit_map = ncs_decode_8bit(&data);
-        /* IR 61143 - No need of policy handles */
+        /* No need of policy handles */
         /*mm->data.data.reg_conf.msg_fltr.policy_hdl = ncs_decode_32bit(&data);*/
         ncs_dec_skip_space(uba, DTSV_REG_CONF_MSG_SIZE);
 
@@ -942,7 +942,7 @@ uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
            return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_dec: Encode init space failed");
         }
         ncs_enc_append_usrbuf(payload_uba, uba->ub);
-        /* IR 61695 - Point the uba->ub pointer to NULL after its copied */
+        /* Point the uba->ub pointer to NULL after its copied */
         uba->ub = NULL; 
         break;  
      } 

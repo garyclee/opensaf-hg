@@ -834,7 +834,7 @@ uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
    AVND_MSG msg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-/* IR00085123 :Avd is already UP, reboot the node */
+/* Avd is already UP, reboot the node */
    if ( m_AVND_CB_IS_AVD_UP(cb) )
        ncs_reboot("AVD is already up");
   

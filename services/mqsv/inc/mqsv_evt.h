@@ -328,12 +328,6 @@ typedef struct mqp_queue_reply_rsp {
 
 
 /* Structure used by MQSV to ack the delivery of the sent message to MQA in Sync send */
-#if 0
-typedef struct mqp_send_msg_rsp
-{
-   SaMsgHandleT      msgHandle;     /* Application Hdl */
-}MQP_SEND_MSG_RSP;
-#endif
 
 /* Structure used by MQA to send messages to Queue sitting on MQND */
 typedef struct mqp_send_msg

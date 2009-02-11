@@ -62,7 +62,6 @@ static uns32
 snmpsubagt_invalid_state_process(NCSSA_CB    *cb, 
                                 SaInvocationT       invocation);
 
-/* IR00061409 */
 /* Go to ACTIVE State from ACTIVE state*/ 
 static uns32 
 snmpsubagt_ACTIVE_ACTIVE_process (NCSSA_CB    *cb, 
@@ -92,7 +91,6 @@ snmpsubagt_STANDBY_STANDBY_process(NCSSA_CB         *cb,
 static uns32
 snmpsubagt_appl_mibs_unregister(void);
 
-/* IR00061409 */
 static uns32
 subagt_amf_componentize(NCSSA_CB *cb);
 
@@ -104,7 +102,7 @@ const SnmpSaReadinessAndHAStateProcess
     /* current HA State NULL -- Initial state of the SubAgent */
     {
         snmpsubagt_invalid_state_process, /* should never be the case*/
-        snmpsubagt_ACTIVE_ACTIVE_process, /* Go to ACTIVE State */ /* IR00061409 */
+        snmpsubagt_ACTIVE_ACTIVE_process, /* Go to ACTIVE State */ 
         snmpsubagt_STANDBY_process, /* Go to STANDBY State */
         snmpsubagt_invalid_state_process, /* should never be the case*/
         snmpsubagt_invalid_state_process, /* should never be the case*/
@@ -112,7 +110,7 @@ const SnmpSaReadinessAndHAStateProcess
     /* Current HA State ACTIVE */
     {
         snmpsubagt_invalid_state_process,/* should never be the case*/
-        snmpsubagt_ACTIVE_ACTIVE_process, /* Go to ACTIVE State */ /* IR00061409 */
+        snmpsubagt_ACTIVE_ACTIVE_process, /* Go to ACTIVE State */ 
         snmpsubagt_invalid_state_process,/* should never be the case*/
         snmpsubagt_QUIESCED_process,/* Go to QUIESCED State */
         snmpsubagt_QUIESCING_process,/* Go to QUIESCING State */
@@ -122,7 +120,7 @@ const SnmpSaReadinessAndHAStateProcess
     {
         snmpsubagt_invalid_state_process,/* should never be the case*/
         snmpsubagt_ACTIVE_process, /* Go to ACTIVE State */ 
-        snmpsubagt_STANDBY_STANDBY_process, /* Go to STANDBY State */ /* IR00061409 */
+        snmpsubagt_STANDBY_STANDBY_process, /* Go to STANDBY State */ 
         snmpsubagt_invalid_state_process,/* should never be the case*/
         snmpsubagt_invalid_state_process,/* should never be the case*/
     },
@@ -515,71 +513,9 @@ snmpsubagt_ACTIVE_process(NCSSA_CB          *cb,
                           SaInvocationT     invocation)
 {
     uns32       status = NCSCC_RC_FAILURE; 
-#if 0
-    SaAisErrorT saf_status = SA_AIS_OK; 
-#endif
 
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_ACTIVE_STATE_PROCESS);
 
-#if 0 /* IR00061409 */
-    if(cb->edaInitStatus == m_SNMPSUBAGT_EDA_INIT_COMPLETED)
-    {
-       /* EDSv Interface Initialisation is completed. Now subscribe for the events. */
-
-       /* 
-        * Subscribe for the events of our interest
-        *
-        * SubscriptionId -- An identifier that uniquely identifies a 
-        * subscription on an event channel  and that is used as a 
-        * parameter of saEvtEventDeliverCallback()
-        *
-        * Filtering criteria was set during the initialization of the CB 
-        * (for "NCS_TRAP" pattern)
-        */
-       saf_status = saEvtEventSubscribe(cb->evtChannelHandle, /* input */
-                                    &cb->evtFilters,/* input */
-                                    cb->evtSubscriptionId);/* input */
-       if (saf_status != SA_AIS_OK)
-       {
-           /* log the error */
-           m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_EVT_SUBSCRIBE_FAIL,
-                                  saf_status, cb->evtSubscriptionId, 0);
-
-           if(saf_status == SA_AIS_ERR_TRY_AGAIN)
-           {
-              /* Subscribe api returned TRY_AGAIN, start the timer. */
-              if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT) == NCSCC_RC_FAILURE)
-              {
-                 /* timer couldn't be started. log the failure. */
-                 m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-
-                 /* send error response to AMF. */
-                     saAmfResponse(cb->amfHandle, invocation, SA_AIS_ERR_FAILED_OPERATION);
-                 return NCSCC_RC_FAILURE;
-              }
-           }
-           else
-           {
-              /* Error returned is something other than TRY_AGAIN, send failure response to AMF. */
-                  saAmfResponse(cb->amfHandle, invocation, SA_AIS_ERR_FAILED_OPERATION);
-              return NCSCC_RC_FAILURE;
-           }
-       }
-       /* log the status SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS*/
-       m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS);
-    }
-
-#if 0
-    /* for unit testing */
-    if (cb->haCstate != 0)
-    {
-        printf("\n======= I am assigned Active, I am going to sleep====\n");
-        m_NCS_TASK_SLEEP(2000); 
-        printf("\n======= I WOKE UP -----------------------------------\n");
-    }
-#endif
-
-#endif  /* IR00061409 */
     
     /* 
     We are here as a result of one of the following cases.
@@ -597,109 +533,21 @@ snmpsubagt_ACTIVE_process(NCSSA_CB          *cb,
         /* log the failure */
         m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_MIB_REGISTER_FAIL, status, 0, 0);
 
-      #if 0  /* IR00061409 */
-
-        /*
-        Check edaInitStatus. If it is completed, then subscribe might have been success or it is in retry mode.
-        If subscribe is success, then unsubscribe now. If subscribe is in retry mode, then stop the timer. 
-        In both the cases, send error response to AMF as mibs register is failed. 
-        */
-
-        if (cb->edaInitStatus == m_SNMPSUBAGT_EDA_INIT_COMPLETED) 
-        {
-           if(saf_status == SA_AIS_ERR_TRY_AGAIN)
-           {
-              /* stop the timer. */
-              m_NCS_TMR_STOP(cb->eda_timer.timer_id);
-           }
-           else
-           {
-              /* UnSubscribe to the NCS_TRAPs, not to service traps */
-              saEvtEventUnsubscribe(cb->evtChannelHandle, /* input */
-                                      cb->evtSubscriptionId);/* input */
-              m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_UNSUBSCRIBE_SUCCESS);
-           }
-        }
-
-      #endif /* IR00061409 */
 
         /* send error response to AMF and return status. */
-        if(invocation != 0) /* IR00061409 */
+        if(invocation != 0) 
             saAmfResponse(cb->amfHandle, invocation, SA_AIS_ERR_FAILED_OPERATION); 
         return status;
     }
 
-#if 0
-    /* IR00061409-start */ 
-    if(cb->edaInitStatus == m_SNMPSUBAGT_EDA_INIT_COMPLETED)
-    {
-       /* EDSv Interface Initialisation is completed. Now subscribe for the events. */
-
-       /* 
-        * Subscribe for the events of our interest
-        *
-        * SubscriptionId -- An identifier that uniquely identifies a 
-        * subscription on an event channel  and that is used as a 
-        * parameter of saEvtEventDeliverCallback()
-        *
-        * Filtering criteria was set during the initialization of the CB 
-        * (for "NCS_TRAP" pattern)
-        */
-       saf_status = saEvtEventSubscribe(cb->evtChannelHandle, /* input */
-                                    &cb->evtFilters,/* input */
-                                    cb->evtSubscriptionId);/* input */
-       if (saf_status != SA_AIS_OK)
-       {
-           /* log the error */
-           m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_EVT_SUBSCRIBE_FAIL,
-                                  saf_status, cb->evtSubscriptionId, 0);
-
-           if(saf_status == SA_AIS_ERR_TRY_AGAIN)
-           {
-              /* Subscribe api returned TRY_AGAIN, start the timer. */
-              if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT) == NCSCC_RC_FAILURE)
-              {
-                 /* timer couldn't be started. log the failure. */
-                 m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-
-                 /* send error response to AMF. */
-                 if (invocation != 0) /* IR00061409 */
-                     saAmfResponse(cb->amfHandle, invocation, SA_AIS_ERR_FAILED_OPERATION);
-                 return NCSCC_RC_FAILURE;
-              }
-           }
-           else
-           {
-              /* Error returned is something other than TRY_AGAIN, send failure response to AMF. */
-              if(invocation != 0) /* IR00061409 */
-                  saAmfResponse(cb->amfHandle, invocation, SA_AIS_ERR_FAILED_OPERATION);
-              return NCSCC_RC_FAILURE;
-           }
-       }
-       /* log the status SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS*/
-       m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_EDA_SUBSCRIBE_SUCCESS);
-    }
-#endif
-
-#if 0
-    /* for unit testing */
-    if (cb->haCstate != 0)
-    {
-        printf("\n======= I am assigned Active, I am going to sleep====\n");
-        m_NCS_TASK_SLEEP(2000); 
-        printf("\n======= I WOKE UP -----------------------------------\n");
-    }
-#endif
-  /* IR00061409-end */
 
     /* send success response to AMF. */
-    if(invocation != 0) /* IR00061409 */
+    if(invocation != 0) 
         saAmfResponse(cb->amfHandle, invocation, SA_AIS_OK); 
 
     return NCSCC_RC_SUCCESS; 
 }
 
-/* IR00061409 */
 /* Go to ACTIVE State from ACTIVE state*/ 
 static uns32 
 snmpsubagt_ACTIVE_ACTIVE_process(NCSSA_CB          *cb, 
@@ -722,7 +570,7 @@ snmpsubagt_STANDBY_STANDBY_process(NCSSA_CB         *cb,
 {
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_STANDBY_STATE_PROCESS);
     
-    if (invocation != 0) /* IR00061409 */
+    if (invocation != 0) 
         saAmfResponse(cb->amfHandle, invocation, SA_AIS_OK); 
     return NCSCC_RC_SUCCESS; 
 }
@@ -735,7 +583,7 @@ snmpsubagt_STANDBY_process(NCSSA_CB         *cb,
     SaAisErrorT saf_status = SA_AIS_OK; 
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_STANDBY_STATE_PROCESS);
     
-    if (invocation != 0) /* IR00061409 */
+    if (invocation != 0) 
     {
         /* UnSubscribe to the NCS_TRAPs, not to service traps */
         saf_status = saEvtEventUnsubscribe(cb->evtChannelHandle, /* input */
@@ -839,28 +687,18 @@ snmpsubagt_amf_component_terminate_callback(SaInvocationT   invocation,
                                         const SaNameT  *compName)
 { 
     NCSSA_CB *cb = m_SNMPSUBAGT_CB_GET;
-#if 0
-    NCSCONTEXT task_id = NULL;
-#endif
 
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_AMF_TERMNAT_CB);
     
     /* send response to AMF. */
     saAmfResponse(cb->amfHandle, invocation, SA_AIS_OK);
  
-#if 0
-    task_id = cb->subagt_task;
-#endif
 
     m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_THREAD_EXIT_BEING_INVOKED); 
 
     /* close all the sessions */ 
     snmpsubagt_destroy(cb, FALSE);
 
-#if 0
-    m_NCS_TASK_STOP(task_id);
-    m_NCS_TASK_RELEASE(task_id);
-#endif
   
     /* Suicide!!! */ 
     exit(0); 
@@ -901,12 +739,6 @@ snmpsubagt_amf_CSIRemove_callback(SaInvocationT   invocation,
         return; 
     }
 
-#if 0
-    status = snmpsubagt_QUIESCED_process(cb, invocation);
-    
-    /* Rest the HA State */ 
-    if (status == NCSCC_RC_SUCCESS)
-#endif
 
     cb->haCstate = SNMPSUBAGT_HA_STATE_NULL; 
     
@@ -1301,7 +1133,7 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                         continue; 
                     }
 
-                    /* log message TBD MAHESH */ 
+                    /* log message */ 
 
                 } /* if (what_to_do == 1) */ 
             } 
@@ -1516,7 +1348,8 @@ snmpsubagt_pending_registrations_free(NCS_DB_LINK_LIST *registrations)
     }
     return; 
 }
-/********************* IR00061409 ***********************************/
+
+
 /*****************************************************************************
 * Name:          subagt_rda_init_role_get                                    *
 *                                                                            * 
@@ -1588,7 +1421,6 @@ finalize:
        return status;
 }
 
-/* IR00061409 */
 /*****************************************************************************
 *  Name:          subagt_amf_componentize                                    *
 *                                                                            *
@@ -1689,7 +1521,6 @@ subagt_amf_componentize(NCSSA_CB *cb)
     return status;
 }
 
-/* IR00061409 */
 EXTERN_C void 
 subagt_process_sig_usr1_signal(NCSSA_CB *cb)
 {

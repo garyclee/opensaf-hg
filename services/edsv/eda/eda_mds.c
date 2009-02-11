@@ -873,12 +873,6 @@ eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio
              EDA_CLIENT_HDL_REC  *eda_hdl_rec;   
              EDA_CHANNEL_HDL_REC *chan_hdl_rec;
              EDA_EVENT_HDL_REC   *evt_hdl_rec;
-#if 0
-             EDA_SUBSC_REC         *sub_rec;
-#endif
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-             EDA_EVT_INST_REC    *evt_inst_rec;
-#endif
              EDSV_EDA_EVT_DELIVER_CBK_PARAM *evt_dlv_param = 
                 &edsv_msg->info.cbk_info.param.evt_deliver_cbk;
             
@@ -919,15 +913,6 @@ eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio
                 eda_msg_destroy(edsv_msg);
                 return NCSCC_RC_FAILURE;
              }
-#if 0
-             /* Not needed for Now - Priority has been chaned for the Publish API */
-             if (NULL == (sub_rec = eda_find_subsc_by_subsc_id(chan_hdl_rec, 
-                                                    evt_dlv_param->sub_id)))
-             {
-                eda_msg_destroy(edsv_msg);
-                return NCSCC_RC_FAILURE;
-             }
-#endif 
 
             /** Create/Add the new event record.
              **/
@@ -945,14 +930,6 @@ eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio
                 eda_msg_destroy(edsv_msg);
                 m_LOG_EDSV_A(EDA_HDL_REC_ADD_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
                 return NCSCC_RC_FAILURE;
-#if 0
- /* Commented by madhi. without a handle, lost event cannot be sent */
-                event_lost = TRUE;
-                    /* Log this. Fwd an 'event lost' notification */
-
-                    /* Set the attributes of a lost event */
-                m_EDSV_LOST_EVENT_FILL(evt_dlv_param);
-#endif
              }
 
             /** Initialize the fields in the evt_hdl_rec with data
@@ -970,37 +947,6 @@ eda_eds_msg_proc(EDA_CB *eda_cb, EDSV_MSG *edsv_msg, MDS_SEND_PRIORITY_TYPE prio
              
             /** Create/Add the new event inst record.
              **/
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-             if (NULL == (evt_inst_rec = eda_evt_inst_rec_add(&evt_hdl_rec)))
-             {
-                /* destroy the message or fwd an 'event lost' notification */
-                m_LOG_EDSV_A(EDA_EVT_INST_REC_ADD_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-                edsv_free_evt_pattern_array(evt_dlv_param->pattern_array);
-                evt_dlv_param->pattern_array = NULL;
-                /** free the event data if any **/
-                if (evt_dlv_param->data)
-                {
-                   m_MMGR_FREE_EDSV_EVENT_DATA(evt_dlv_param->data);
-                   evt_dlv_param->data = NULL;
-                }
-                eda_msg_destroy(edsv_msg);
-                return NCSCC_RC_FAILURE;
-#if 0 
- /* Without a handle, a lost event cannot be sent */
-               /* Check if event attributes were set already above */
-               if (event_lost == FALSE)
-               {
-                m_EDSV_LOST_EVENT_FILL(evt_dlv_param);
-                m_CPY_EVTDATA_TO_EVT_HDLREC(evt_hdl_rec,evt_dlv_param);
-               }
-#endif
-             }
-
-             /* set the ret_evt_ch_oid to the one rcvd. from EDS*/
-             evt_inst_rec->parent_chan_hdl = chan_hdl_rec->channel_hdl;
-             evt_inst_rec->ret_evt_ch_oid  = evt_dlv_param->ret_evt_ch_oid;
-             evt_inst_rec->del_evt_id      = evt_dlv_param->eda_event_id;
-#endif
 
             /** The evt hdl rec will take ownership of the memory
              ** for the patterns & data to avoid too many copies
@@ -1175,9 +1121,6 @@ static uns32 eda_mds_rcv (struct ncsmds_callback_info *mds_cb_info)
       edsv_msg, mds_cb_info->info.receive.i_priority);
    if(rc != NCSCC_RC_SUCCESS)
    {
-#if 0
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__, mds_cb_info->info.receive.i_priority);
-#endif
    }
    /** Unlock the EDA_CB
     **/

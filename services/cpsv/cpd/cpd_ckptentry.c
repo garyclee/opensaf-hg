@@ -212,27 +212,9 @@ uns32 sackptcheckpointentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *dat
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
-#if 0
-   if ( arg->i_idx.i_inst_len == 0)
-   {
-      length = m_NCS_OS_NTOHS(map_info.ckpt_name.length); 
-      printf("LENGTH WHEN CKPT NAME IS NULL %d\n",length);
-   }
-   else
-   {
-      length = map_info.ckpt_name.length;  
-      length = m_NCS_OS_NTOHS(length);
-      printf("LENGTH WHEN CKPT NAME IS NOT  NULL %d\n",length);
-   }
-#endif
   
    length = m_NCS_OS_NTOHS(map_info.ckpt_name.length);  
 
- #if 0 
-   map_info.ckpt_name.length = m_NCS_OS_NTOHS(map_info.ckpt_name.length);
-   printf("MAP_INFO CKPT_NAME LENGTH %d\n",map_info.ckpt_name.length); 
-   next_inst_id[0] = map_info.ckpt_name.length;
- #endif
    next_inst_id[0] = length;
    for(counter=0;counter< length;counter++)
    {

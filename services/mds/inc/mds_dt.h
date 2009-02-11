@@ -35,7 +35,7 @@
 #include <linux/tipc.h>
 
 
-/* This file is private to the MDTM layer. - Surya */
+/* This file is private to the MDTM layer. */
 
 /* Global ReAssembly TMR Value */
 extern uns32 MDTM_REASSEMBLE_TMR_VAL;
@@ -178,10 +178,6 @@ typedef struct mdtm_cached_event_list
 
 }MDTM_CACHED_EVENT_LIST;
 
-#if 0
-/* Header to ADEST_LIST Table */
-MDS_ADEST_LIST *head = NULL;
-#endif
 
 /* This structure element can be passed from MDTM to MCM when receiving message */
 typedef struct mds_subscription_ll_hdl{
@@ -206,10 +202,6 @@ extern uns32 mds_adest_info_tbl_query ();
 */
 
 /* DEFINE THESE THINGS*/
-#if 0
-#define MDS_PROT       0x80
-#define MDS_VERSION    0x03
-#endif
 
 #define NCS_MDTM_TASKNAME       "MDTM"
 #define NCS_MDTM_PRIORITY       NCS_TASK_PRIORITY_4
@@ -218,21 +210,6 @@ extern uns32 mds_adest_info_tbl_query ();
 
 #define MDTM_TIPC_POLL_TIMEOUT 20000
 
-#if 0
-#define MDS_DIRECT_BUFF_SIZE   30000
-#endif
-
-#if 0
-#define m_MMGR_ALLOC_DIRECT_BUFF  m_NCS_MEM_ALLOC(sizeof(MDS_DIRECT_BUFF_SIZE),\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_MEM_DIRECT_BUFF)
-
-#define m_MMGR_FREE_DIRECT_BUFF(p)  m_NCS_MEM_FREE(p,\
-                                                  NCS_MEM_REGION_PERSISTENT,\
-                                                  NCS_SERVICE_ID_MDS,\
-                                                  MDS_MEM_DIRECT_BUFF)
-#endif
 
 #define m_MMGR_ALLOC_REASSEM_QUEUE m_NCS_MEM_ALLOC(sizeof(MDTM_REASSEMBLY_QUEUE),\
                                                   NCS_MEM_REGION_PERSISTENT,\

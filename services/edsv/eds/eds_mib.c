@@ -119,15 +119,6 @@ uns32 edsv_mab_register(EDS_CB *cb)
        case NCSMIB_TBL_EDSV_TRAP_TBL:
        /* Change this later accordingly, while supporting trap.TBD */
                  break ;  
-#if 0 
- /* This table has been removed in the latest version of saf-evt mib */ 
-       case NCSMIB_TBL_EDSV_RET_EVT_TBL :
-
-                 cb->row_handle.ret_evt_tbl_row_hdl = 
-                    (uns32)edsv_oac_arg.info.row_owned.o_row_hdl;
-
-                 break ;
-#endif
        default :
               /* Log it. */
                  m_LOG_EDSV_S(EDS_MIB_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,tbl_id);
@@ -234,30 +225,6 @@ uns32 edsv_mab_unregister(EDS_CB *cb)
                    m_LOG_EDSV_S(EDS_MIB_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,cb->row_handle.chan_tbl_row_hdl);
            }
            break ;
-#if 0 
- /* This table has been removed in the latest version of saf-evt mib */ 
-       case NCSMIB_TBL_EDSV_RET_EVT_TBL :
-           if (cb->row_handle.ret_evt_tbl_row_hdl)
-           {
-              edsv_oac_arg.info.row_gone.i_row_hdl = 
-                (NCSCONTEXT)cb->row_handle.ret_evt_tbl_row_hdl;
-
-             if(ncsoac_ss(&edsv_oac_arg) != NCSCC_RC_SUCCESS)
-             {
-               /* Log Error */
-                   return NCSCC_RC_FAILURE;
-             }
-
-                 cb->row_handle.ret_evt_tbl_row_hdl = 0;
-
-                 edsv_oac_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
-                 edsv_oac_arg.info.tbl_gone.i_meaningless = (void *)0x1234;
-
-                 if(ncsoac_ss(&edsv_oac_arg) != NCSCC_RC_SUCCESS)
-                   return NCSCC_RC_FAILURE;
-           }
-           break ;
-#endif
        default :
             m_LOG_EDSV_S(EDS_MIB_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,tbl_id);
             break ;
@@ -385,17 +352,6 @@ uns32 edsv_table_register(void)
       m_LOG_EDSV_S(EDS_MIB_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
     }
 
-#if 0 
-    if((rc = saevtretainedevententry_tbl_reg()) != NCSCC_RC_SUCCESS)
-    {
-        /* log failure */
-        return rc ;
-    }
-    else
-    {
-        /* Log success */
-    }
-#endif
     return rc;
 }/* edsv_table_register */
 
@@ -412,41 +368,11 @@ uns32 edsv_table_register(void)
  *
  * Notes         : None.
  *****************************************************************************/
-#if 0
-uns32 eds_retrieve_reten_table_index(NCSMIB_ARG *arg, SaSizeT *event_id,
-                                                        SaNameT *channel_name)
-{
-
-    uns32 i = 0 ;
-    uns32  *inst_ptr=NULL;
-
-    channel_name->length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-    if(channel_name->length > SA_MAX_NAME_LENGTH)
-    {
-       return NCSCC_RC_NO_INSTANCE;
-    }
-    inst_ptr = (uns32 *)(arg->i_idx.i_inst_ids + 1);
-    if(inst_ptr == NULL)
-       return NCSCC_RC_NO_INSTANCE;
-
-    for(i = 0; i < channel_name->length; i++)
-    {
-       channel_name->value[i] = (uns8)(inst_ptr[i]);
-    }
-
-    *event_id = *(arg->i_idx.i_inst_ids + channel_name->length +1);
-    return NCSCC_RC_SUCCESS;
-
-}/* End eds_retrieve_reten_table_index */
-#endif 
 
 uns32 safevtscalarobject_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data)
 {
    EDS_CB *eds_cb=NULL;
 
-#if 0
-   NCSMIB_GET_REQ *get_req = &arg->req.info.get_req;
-#endif  
    eds_cb=(EDS_CB *)cb;
 
    if (eds_cb == NULL)
@@ -756,261 +682,3 @@ uns32 saevtchannelentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
 
 }/*End saevtchannelentry_setrow */
 
-#if 0 
-EDS_WORKLIST * eds_clear_retained_event_by_eventid(EDS_CB *cb, SaNameT chan_name, SaSizeT event_id)
-{
-   EDS_RETAINED_EVT_REC *retd_evt=NULL;
-   EDS_WORKLIST *wp=NULL;
-
-   /* Get Channel from worklist in which this event is retained */
-   wp = get_channel_from_worklist(cb,chan_name);
-
-   if (wp == NULL)
-       return NULL;
-
-   /* Found the channel. Delete event corresponding to this event id */
-   for (retd_evt = wp->ret_evt_list;
-        retd_evt != NULL;
-        retd_evt = retd_evt->next)
-   {
-        if(retd_evt->event_id == event_id)
-        {  /* Remember to change the prototype for this function in eds_ll.c */
-           eds_retd_evt_del(&wp->ret_evt_list, retd_evt, FALSE);
-           return wp;
-        }
-   }/* End For */
-
-  /* If we reached here, no matching entry found */
-   return NULL;
-}/* eds_clear_retained_event_by_eventid */
-
-
-uns32 saevtretainedevententry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CB *eds_cb =NULL;
-   EDS_WORKLIST *wp=NULL;
-   NCSMIB_SET_REQ *set_req=&arg->req.info.set_req;
-   uns32 i = 0;
-   SaNameT chan_name;
-   SaSizeT event_id=0;
-
-   eds_cb = (EDS_CB *)cb;
-  
-   if (eds_cb == NULL)
-       return NCSCC_RC_FAILURE;
-
-   /* Check if we r in a state to perfrom this Set Operation */
-   if(test_flag == TRUE)
-   {
-     if(eds_cb->scalar_objects.svc_state != RUNNING)
-     {
-        return NCSCC_RC_INV_VAL; /*Invalid Operation */
-     }
-   }
-
-   if(set_req == NULL)
-      return NCSCC_RC_FAILURE;
-
-   m_NCS_MEMSET(&chan_name, '\0', sizeof(SaNameT));
-
-   /* Extract indices */
-   if((rc=eds_retrieve_reten_table_index(arg, &event_id,&chan_name)) != NCSCC_RC_SUCCESS)
-       return rc;
- 
-   switch(set_req->i_param_val.i_param_id)
-   {
-      case saEvtRetainedEventClear_ID : /* Only this object is read-write */
-            
-            if(arg->req.info.set_req.i_param_val.info.i_int == FALSE)
-            {
-              /* Same Value */
-               return NCSCC_RC_SUCCESS;
-            }
-            else
-            { /* Clear the retained event. In effect the row is deleted */
-               wp = eds_clear_retained_event_by_eventid(eds_cb,chan_name,event_id);
-               if (wp == NULL)
-                   return NCSCC_RC_NO_INSTANCE;
-            }
-      default     :
-            rc=NCSCC_RC_FAILURE;  /*Invalid Operation */
-            break;
-   }/*End switch */
-
-  return rc;
-}/*End saevtretainedevententry_set */
-
-EDS_RETAINED_EVT_REC * get_retained_evt(EDS_WORKLIST *wp, SaSizeT event_id )
-{
-   EDS_RETAINED_EVT_REC *retd_evt=NULL;
-
-   /* Walk through retained event list */
-   for (retd_evt = wp->ret_evt_list;
-        retd_evt != NULL;
-        retd_evt = retd_evt->next)
-   {
-        if(retd_evt->event_id == event_id)
-        {
-            return retd_evt;
-        }
-   }/* End for */
-
-  return NULL;
-}/* End get_retained_evt */
-
-uns32 saevtretainedevententry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                                  NCSCONTEXT* data)
-{
-   EDS_CB * eds_cb = NULL; 
-   SaNameT chan_name;
-   SaSizeT event_id = 0;
-   EDS_RETAINED_EVT_REC *retd_evt=NULL;
-   EDS_WORKLIST *wp=NULL;
-   uns32 rc = NCSCC_RC_SUCCESS;
-
-   eds_cb = (EDS_CB *)cb;
-   if(eds_cb == NULL)
-      return NCSCC_RC_FAILURE;
-
-   m_NCS_MEMSET(&chan_name, '\0', sizeof(SaNameT));
-
-   /*  Extract indices */
-   if((rc=eds_retrieve_reten_table_index(arg, &event_id,&chan_name)) != NCSCC_RC_SUCCESS)
-       return rc;
-
-   /* Look for a matching channel in channel list */
-    wp=get_channel_from_worklist(cb,chan_name);
-    if(wp == NULL)
-       return NCSCC_RC_NO_INSTANCE;
-
-   /* Look for a matching retained event id in this channel */
-    if ((retd_evt = get_retained_evt(wp,event_id)) == NULL)
-         return NCSCC_RC_NO_INSTANCE;
-    else
-         *data = (NCSCONTEXT)retd_evt;
-         return NCSCC_RC_SUCCESS;
-
-} /*End saevtretainedevententry_get */
-
-uns32 saevtretainedevententry_extract(NCSMIB_PARAM_VAL* param,
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
-{
-   SaTimeT reten_time_left;
-   EDS_RETAINED_EVT_REC *retn_evt=(EDS_RETAINED_EVT_REC *)data;
-
-   if (retn_evt == NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-   
-   switch(param->i_param_id)
-   {
-      case saEvtRetainedEventPublishTime_ID:
-           /* Convert SaSizeT to SNMP VarBind compatible form */
-           m_EDSV_UNS64_TO_VB(param,buffer,retn_evt->publishTime);
-           break;
-
-     case saEvtRetainedEventRetentionTime_ID:
-           m_EDSV_UNS64_TO_VB(param,buffer,retn_evt->retentionTime);
-          break;
-
-     case saEvtRetainedEventRetentionTimeLeft_ID:
-           /* Get the current value of the timer. (Actual - Elapsed time ticks.) */
-           m_NCS_TMR_MSEC_REMAINING(retn_evt->ret_tmr.tmr_id, &reten_time_left);
-           m_EDSV_UNS64_TO_VB(param,buffer,reten_time_left);
-          break;
-
-     case saEvtRetainedEventDataSize_ID:
-           m_EDSV_UNS64_TO_VB(param,buffer,retn_evt->data_len);
-          break;
-
-     case saEvtRetainedEventSize_ID:
-           m_EDSV_UNS64_TO_VB(param,buffer,retn_evt->event_size);
-          break;
-
-      default :
-           if ((var_info != NULL) && (var_info->offset != 0))
-                return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-           else
-                return NCSCC_RC_NO_OBJECT;
-
-   }/*End Switch */
-
- return NCSCC_RC_SUCCESS;
-
-}/*End saevtretainedevententry_extract */
-
-uns32 saevtretainedevententry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
-{
-   EDS_CB *eds_cb = NULL;
-   SaNameT chan_name;
-   uns32 i=0;
-   EDS_RETAINED_EVT_REC *retd_evt=NULL, *retd_evt_next=NULL;
-   EDS_WORKLIST *wp=NULL,*wp_next=NULL;
-   uns32 rc = NCSCC_RC_SUCCESS;
-   SaSizeT event_id=0;
- 
-   eds_cb = (EDS_CB *)cb;
-   if (eds_cb == NULL)
-       return NCSCC_RC_FAILURE;
-
-   m_NCS_MEMSET(&chan_name, '\0', sizeof(SaNameT));
-
-   if (arg->i_idx.i_inst_len != 0)
-   {
-       /*  Extract indices */
-       if((rc=eds_retrieve_reten_table_index(arg, &event_id,&chan_name)) != NCSCC_RC_SUCCESS)
-           return rc;
-
-       /* Look for a matching channelname in channel list */
-       wp=get_channel_from_worklist(cb,chan_name);
-       if(wp == NULL)
-          return NCSCC_RC_NO_INSTANCE;
-
-       /* Look for a matching retained event id */
-       if ((retd_evt = get_retained_evt(wp,event_id)) == NULL)
-            return NCSCC_RC_NO_INSTANCE;
-       else 
-           retd_evt_next=retd_evt->next;
-   }
-   else
-   {
-     /* Get the first record from Table */
-      wp = eds_cb->eds_work_list;
-      retd_evt_next=eds_cb->eds_work_list->ret_evt_list; /* Return the First record.  */
-   } /*Is it ret_evt_list->next or list itself?. TBD */
-   
-   if((wp == NULL) || (retd_evt_next == NULL))
-       return NCSCC_RC_NO_INSTANCE;
-
-   /* Now fill the next instance id from the next channel name */
-   *next_inst_id_len = ((wp->cname_len) + 2);
-   next_inst_id[0] = *next_inst_id_len -2;
-
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(wp_next->cname[i]);
-   }
-  
-   next_inst_id[*next_inst_id_len +1] = event_id;
-
-   *data = (NCSCONTEXT)retd_evt;
-
-   return NCSCC_RC_SUCCESS;
-
-}/* End saevtretainedevententry_next */
-
-uns32 saevtretainedevententry_setrow(NCSMIB_PARAM_VAL* param, NCSMIB_VAR_INFO* var_info,
-                   NCSCONTEXT data, NCSCONTEXT buffer)
-{
-  return NCSCC_RC_FAILURE;
-}/*End saevtretainedevententry_setrow */ 
-
-
-#endif 

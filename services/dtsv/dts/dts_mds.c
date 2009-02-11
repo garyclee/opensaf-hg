@@ -73,12 +73,6 @@ uns32 dts_mds_reg (DTS_CB *cb)
    vda_info.info.vdest_create.i_create_oac = TRUE;
    vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
    vda_info.info.vdest_create.info.specified.i_vdest = cb->vaddr;
-#if 0
-   /* In future Anchor value will be taken from AVSV. Now we are using fix value */
-   /*vda_info.info.vdest_create.info.specified.i_anc = V_DEST_QA_1;*/
-   /* Smik - The future is here */
-   vda_info.info.vdest_create.info.specified.i_anc = cb->vcard_anchor;
-#endif
 
    /* create Vdest address */
    if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
@@ -163,9 +157,6 @@ uns32 dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role)
    vda_info.req = NCSVDA_VDEST_CHG_ROLE;
    vda_info.info.vdest_chg_role.i_vdest = cb->vaddr;
    /*vda_info.info.vdest_chg_role.i_anc = V_DEST_QA_1;*/
-   #if 0
-   vda_info.info.vdest_chg_role.i_anc = cb->vcard_anchor;
-   #endif
         
    vda_info.info.vdest_chg_role.i_new_role = role;
    if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
@@ -205,10 +196,6 @@ void dts_mds_unreg(DTS_CB *cb, NCS_BOOL un_install)
    /* destroy vaddress */
    vda_info.req = NCSVDA_VDEST_DESTROY;
    vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
-#if 0
-   /*vda_info.info.vdest_destroy.i_anc = V_DEST_QA_1;*/
-   vda_info.info.vdest_destroy.i_anc = cb->vcard_anchor;
-#endif
 ncsvda_api(&vda_info);
 
    return;
@@ -569,7 +556,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
     /*MDS_DEST              dta_key;*/
     OP_DEVICE            *dev;
  
-    /* IR 60411 - Network order key added */
+    /*  Network order key added */
     nt_key.node = m_NCS_OS_HTONL(node_id);
     nt_key.ss_svc_id = 0; 
 
@@ -744,7 +731,7 @@ uns32 dts_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
         ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.enable_log);
         ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.category_bit_map);
         ncs_encode_8bit(&data,mm->data.data.reg_conf.msg_fltr.severity_bit_map);
-        /* IR 61143 - No need of policy handles */
+        /* No need of policy handles */
         /*ncs_encode_32bit(&data, mm->data.data.reg_conf.msg_fltr.policy_hdl);*/
         
         ncs_enc_claim_space(uba, DTSV_REG_CONF_MSG_SIZE);

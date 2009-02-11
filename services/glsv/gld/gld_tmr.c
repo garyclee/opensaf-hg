@@ -118,10 +118,6 @@ void gld_stop_tmr (GLD_TMR *tmr)
    /* If timer type is invalid just return */
    if (tmr!=NULL && GLD_TMR_MAX <= tmr->type)
    {  
-#if 0
-TBD
-      m_LOG_GD_TIMER(GLD_TIMER_STOP_FAIL,tmr->type);
-#endif
       return;
    }
 

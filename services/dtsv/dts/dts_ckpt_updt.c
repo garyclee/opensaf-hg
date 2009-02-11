@@ -61,7 +61,7 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb);
  *        RMV will remove dta frm patricia tree and modify svc_reg patricia tree *        only on DTA going down.         
  *        Service de-regs are handled by svc_reg async updates.
  *        
- *        IR 60411 - As per this IR param key is not passed in network order    
+ *        As per this IR param key is not passed in network order    
 \**************************************************************************/
 uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MBCSV_ACT_TYPE action, SVC_KEY key) 
 {
@@ -88,7 +88,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
          SPEC_ENTRY       *per_dta_svc_spec = NULL;
          ASCII_SPEC_LIB   *lib_hdl = NULL;
 
-         /* IR 60411 - Network order key added */
+         /*  Network order key added */
          nt_key.node = m_NCS_OS_HTONL(key.node);
          nt_key.ss_svc_id = m_NCS_OS_HTONL(key.ss_svc_id);
 
@@ -261,7 +261,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
                if(svc != NULL)
                {
                   svc_key = svc->my_key;
-                  /* IR 60411 - Network order key added */
+                 /*  Network order key added */
                   nt_key = svc->ntwk_key;
                }
                if((svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&cb->svc_tbl, (const uns8*)&nt_key)) == NULL)
@@ -383,7 +383,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
              */
              key.node = svcreg->my_key.node;
              key.ss_svc_id = 0;
-             /* IR 60411 - Network order key added */
+             /*  Network order key added */
              nt_key.node = m_NCS_OS_HTONL(svcreg->my_key.node);
              nt_key.ss_svc_id = 0;
 
@@ -408,7 +408,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                  node_reg_ptr->my_key.node = key.node;
                  node_reg_ptr->my_key.ss_svc_id = 0;
 
-                 /* IR 60411 - Network order key added */
+                /*  Network order key added */
                  node_reg_ptr->ntwk_key = nt_key;
                  node_reg_ptr->node.key_info = (uns8 *)&node_reg_ptr->ntwk_key;
                  node_reg_ptr->v_cd_list = NULL;
@@ -472,7 +472,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
              }/*end of creating new entry for node */
 
              key.ss_svc_id = svcreg->my_key.ss_svc_id;
-             /* IR 60411 - Network order key added */
+             /*  Network order key added */
              nt_key.ss_svc_id = m_NCS_OS_HTONL(svcreg->my_key.ss_svc_id);
 
              /* Check whether the Service exist in the service registration
@@ -499,7 +499,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                 svc_ptr->my_key.ss_svc_id = key.ss_svc_id;
                 svc_ptr->my_key.node = key.node;
 
-                /* IR 60411 - Network order key added */
+                /*  Network order key added */
                 svc_ptr->ntwk_key = nt_key;
                 svc_ptr->node.key_info = (uns8 *)&svc_ptr->ntwk_key;
                
@@ -549,7 +549,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
          if (NULL != svcreg)
          {
             key = svcreg->my_key;  
-            /* IR 60411 - Network order key added */
+            /*  Network order key added */
             nt_key.node = m_NCS_OS_HTONL(key.node);
             nt_key.ss_svc_id = m_NCS_OS_HTONL(key.ss_svc_id);
 
@@ -658,7 +658,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
             key.node = svcreg->my_key.node;
             key.ss_svc_id = svcreg->my_key.ss_svc_id;
 
-            /* IR 60411 - Network order key added */
+            /*  Network order key added */
             nt_key.node = m_NCS_OS_HTONL(key.node);
             nt_key.ss_svc_id = m_NCS_OS_HTONL(key.ss_svc_id);
  
@@ -720,7 +720,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                {
                   to_reg = dta_entry->dta;
 
-                  /* IR 61454 : Point to next dta entry before deletion */
+                  /* Point to next dta entry before deletion */
                   dta_entry = dta_entry->next_in_svc_entry;
  
                   /*Check if the MDS_DEST for the dta to be removed matches*/
@@ -777,7 +777,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
             }/*end of else (cb->svc_rmv_mds_dest == 0)*/
 
 
-            /* IR 83636 - Do NOT attempt deletion of service entries while 
+            /* Do NOT attempt deletion of service entries while 
              * it's still syncing with Active DTS esp. if its still yet to 
              * get the data for DTA LIST. Because until then SVC<->DTA
              * mapping won't be established.
@@ -798,7 +798,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
              */
             else if ((svc_ptr->dta_count == 0) && (svc_ptr->row_exist == FALSE))
             {
-               /* IR 61143 - No need of policy handles */
+               /* No need of policy handles */
                /* Now delete the svc entry from the patricia tree */
                /*ncshm_destroy_hdl(NCS_SERVICE_ID_DTSV, svc_ptr->svc_hdl); 
                m_LOG_DTS_EVT(DTS_EV_SVC_POLCY_HDL_DES, key.ss_svc_id, key.node, 0);*/
@@ -855,7 +855,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_M
    if(data == NULL)
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_dts_log: NULL pointer passed");
 
-   /* IR 60411 - Network order key added */
+      /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(data->key.node);
    nt_key.ss_svc_id = m_NCS_OS_HTONL(data->key.ss_svc_id);
   
@@ -1057,7 +1057,7 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
    while(service != NULL)
    {
      /* Setup key for new search */
-     /* IR 60411 - Network order key added */
+      /*  Network order key added */
      nt_key.node      = m_NCS_OS_HTONL(service->my_key.node);
      nt_key.ss_svc_id = m_NCS_OS_HTONL(service->my_key.ss_svc_id);
 

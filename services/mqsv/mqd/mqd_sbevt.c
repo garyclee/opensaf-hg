@@ -297,26 +297,6 @@ static uns32  mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
   {
      if(!msg.info.nd_stat_evt.is_restarting)
      {  
-        #if 0 
-        pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get( &pMqd->node_db, (uns8 *)&msg.info.nd_stat_evt.nodeid);
-        /* We need to scan the entire database and remove the track inforamtion
-         * pertaining to the user
-         */
-        if(pNdNode==NULL)
-        {
-            rc = mqd_red_db_node_create(pMqd, &pNdNode);       
-        
-        }
-        pNdNode->info.is_restarted = msg.info.nd_stat_evt.is_restarting;
-        pNdNode->info.nodeid = msg.info.nd_stat_evt.nodeid;
-        pNdNode->info.timer.type= MQD_ND_TMR_TYPE_EXPIRY;
-        pNdNode->info.timer.tmr_id=0;
-        pNdNode->info.timer.nodeid=pNdNode->info.nodeid;
-        pNdNode->info.timer.uarg= pMqd->hdl;
-        pNdNode->info.timer.is_active = FALSE;
-        mqd_red_db_node_add(pMqd, pNdNode); 
-        mqd_tmir_start(&pNdNode->info.timer,timeout);
-        #endif
         #ifdef NCS_MQD
         m_NCS_CONS_PRINTF("A2S DOWN EVT PROCESSED\n");
         #endif

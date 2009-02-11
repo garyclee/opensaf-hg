@@ -539,18 +539,6 @@ uns32 gld_mds_vdest_create (GLSV_GLD_CB *cb)
    arg.info.vdest_create.i_create_oac        = TRUE;
    arg.info.vdest_create.info.specified.i_vdest = cb->my_dest_id;
   
-   #if 0
-   arg.info.vdest_create.info.specified.i_anc = cb->my_anc = seed & 0xff;
-
-   if (cb->ha_state == SA_AMF_HA_ACTIVE)
-   {
-      arg.info.vdest_create.info.specified.i_anc = cb->my_anc = V_DEST_QA_1;
-   }
-   if (cb->ha_state == SA_AMF_HA_STANDBY)
-   {
-      arg.info.vdest_create.info.specified.i_anc = cb->my_anc = V_DEST_QA_2;
-   }
-   #endif
 
    seed = rand(); 
    cb->my_anc = seed & 0xff;
@@ -597,9 +585,6 @@ uns32 gld_mds_vdest_destroy (GLSV_GLD_CB *cb)
 
    arg.req                             = NCSVDA_VDEST_DESTROY;   
    arg.info.vdest_destroy.i_vdest      = cb->my_dest_id;
-   #if 0
-   arg.info.vdest_destroy.i_anc        = cb->my_anc;
-   #endif
    arg.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
    arg.info.vdest_destroy.i_name = name;
 
@@ -615,6 +600,7 @@ uns32 gld_mds_vdest_destroy (GLSV_GLD_CB *cb)
    return rc;
 }
 
+
 /****************************************************************************
  * Name          : gld_mds_init
  *
@@ -626,69 +612,7 @@ uns32 gld_mds_vdest_destroy (GLSV_GLD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-#if 0
-uns32 gld_mds_init(GLSV_GLD_CB *cb)
-{
-   NCSMDS_INFO          arg;
-   uns32                rc;
-   MDS_SVC_ID           subscr_svc = NCSMDS_SVC_ID_GLND;
 
-
-
-   m_NCS_OS_MEMSET(&cb->my_dest_id, 0, sizeof(MDS_DEST));
-   cb->my_dest_id.info.v1.vcard = GLD_VDEST_ID;
-   /* In future Anchor value will be taken from AVSV. Now we are using fix value */
-#if 0
-   cb->my_anc = V_DEST_QA_1;
-#endif
-   cb->my_dest_id = GLD_VDEST_ID;
-
-   /* Create the vertual Destination for GLD */
-   rc = gld_mds_vdest_create(cb);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
-   /* Set the role to active  - Needs to be removed after integration with AvSv*/
-   gld_mds_change_role(cb,V_DEST_RL_ACTIVE);
-
-   /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
-
-   arg.i_mds_hdl        = cb->mds_handle;
-   arg.i_svc_id         = NCSMDS_SVC_ID_GLD;
-   arg.i_op             = MDS_INSTALL;
-
-   arg.info.svc_install.i_yr_svc_hdl      = cb->my_hdl;
-   arg.info.svc_install.i_install_scope   = NCSMDS_SCOPE_NONE;
-   arg.info.svc_install.i_svc_cb          = gld_mds_callback;
-   arg.info.svc_install.i_mds_q_ownership = FALSE;
-
-   rc = ncsmds_api(&arg);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_FAIL,NCSFL_SEV_ERROR);
-      return rc;
-   }
-  /* Now subscribe for GLND events in MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
-
-   arg.i_mds_hdl        = cb->mds_handle;
-   arg.i_svc_id         = NCSMDS_SVC_ID_GLD;
-   arg.i_op             = MDS_SUBSCRIBE;
-
-   arg.info.svc_subscribe.i_scope         = NCSMDS_SCOPE_NONE;
-   arg.info.svc_subscribe.i_num_svcs      = 1;
-   arg.info.svc_subscribe.i_svc_ids       = &subscr_svc;
-
-   rc = ncsmds_api(&arg);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_GLD_SVC_PRVDR(GLD_MDS_SUBSCRIBE_FAIL,NCSFL_SEV_ERROR);
-      return rc;
-   }
-   return rc;
-}
-#endif
 
 uns32 gld_mds_init(GLSV_GLD_CB *cb)
 {
@@ -706,9 +630,6 @@ uns32 gld_mds_init(GLSV_GLD_CB *cb)
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
    /* Set the role to active  - Needs to be removed after integration with AvSv*/
-#if 0
-   gld_mds_change_role(cb,V_DEST_RL_ACTIVE);
-#endif
 
    /* Install your service into MDS */
    m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
@@ -805,9 +726,6 @@ uns32 gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->my_dest_id;
-#if 0
-   arg.info.vdest_chg_role.i_anc   = cb->my_anc;
-#endif
    arg.info.vdest_chg_role.i_new_role = role;
    if (ncsvda_api(&arg) != NCSCC_RC_SUCCESS)
    {

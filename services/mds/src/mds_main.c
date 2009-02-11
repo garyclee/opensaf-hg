@@ -119,21 +119,6 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
                 }
             }
 
-#if 0            
-            /* Get Pcon_id */
-            p_field = NULL;
-            p_field = (char *)ncs_util_search_argv_list(req->info.create.argc, req->info.create.argv,"PCON_ID=");
-            if (p_field != NULL)
-            {
-                if (sscanf(p_field + strlen("PCON_ID="), "%d", &pcon_id) != 1)
-                {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in PCON_ID argument\n");
-                    mds_mcm_destroy();
-                    m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-                    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-                }
-            }
-#endif
 
             /* Get Cluster_id */
             p_field = NULL;
@@ -150,12 +135,12 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
                 }
             }
 
-            /* vishal : to use cluster id in mds prefix? */
+            /*  to use cluster id in mds prefix? */
 
 
             /* Get gl_mds_log_level */
 
-            /* vishal : setting MDS_LOG_LEVEL from environment variable if given */
+            /*  setting MDS_LOG_LEVEL from environment variable if given */
             if ( m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_LOG_LEVEL") )
             {
                 gl_mds_log_level = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_LOG_LEVEL"));
@@ -186,7 +171,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 
             /* Get gl_mds_checksum */
 
-            /* vishal : setting MDS_CHECKSUM from environment variable if given */
+            /*  setting MDS_CHECKSUM from environment variable if given */
             if ( m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_CHECKSUM") )
             {
                 gl_mds_checksum = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_CHECKSUM"));
@@ -284,7 +269,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             status = mds_mdtm_init(node_id, &mds_tipc_ref); 
             if (status != NCSCC_RC_SUCCESS)
             {
-                /* vishal : todo cleanup */
+                /*  todo cleanup */
                 return NCSCC_RC_FAILURE;
             }
             gl_mds_mcm_cb->adest = m_MDS_GET_ADEST_FROM_NODE_ID_AND_PROCESS_ID(node_id, mds_tipc_ref);
@@ -354,12 +339,12 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             status = mds_mdtm_destroy();
             if (status != NCSCC_RC_SUCCESS)
             {
-                /* vishal : todo anything? */
+                /*  todo anything? */
             }
             status = mds_mcm_destroy();
             if (status != NCSCC_RC_SUCCESS)
             {
-                /* vishal : todo anything? */
+                /*  todo anything? */
             }
 
 

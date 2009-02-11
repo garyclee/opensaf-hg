@@ -136,9 +136,6 @@ AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
       m_NCS_MEMCPY(avnd->node_info.nodeName.value, 
          node_name.value, m_NCS_OS_NTOHS(node_name.length));
       avnd->node_info.nodeName.length = node_name.length;
-#if 0
-      avnd->admin_state = NCS_ADMIN_STATE_UNLOCK;
-#endif
    }
    else
    {

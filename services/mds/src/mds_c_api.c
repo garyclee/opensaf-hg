@@ -89,7 +89,6 @@ uns32 mds_mcm_vdest_create (NCSMDS_ADMOP_INFO *info)
 
     vdest_id = (MDS_VDEST_ID)info->info.vdest_create.i_vdest;
 
-    /* Fix IR59500 */
     if((vdest_id > NCSMDS_MAX_VDEST) || (vdest_id==0))
     {
        m_MDS_LOG_ERR("MCM_API : Vdest_create : FAILED : VDEST id = %d not in prescribed range ",vdest_id);
@@ -382,7 +381,6 @@ if (new Role = Active / Standby)
                                         V_DEST_RL_ACTIVE, 
                                         local_vdest_id, 
                                         local_vdest_policy, svc_info->svc_sub_part_ver);
-                /* Fix for IR00061685 */
                 mds_mdtm_svc_uninstall (m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         svc_info->install_scope,
@@ -425,7 +423,6 @@ if (new Role = Active / Standby)
                                         V_DEST_RL_STANDBY, 
                                         local_vdest_id, 
                                         local_vdest_policy, svc_info->svc_sub_part_ver);
-                /* Fix for IR00061685 */
                 mds_mdtm_svc_install (m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         svc_info->install_scope,
@@ -487,7 +484,6 @@ if (new Role = Active / Standby)
                                         current_role, 
                                         local_vdest_id, 
                                         local_vdest_policy, svc_info->svc_sub_part_ver);
-                /* Fix for IR00061685 */
                 mds_mdtm_svc_install (m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         svc_info->install_scope,
@@ -534,7 +530,6 @@ if (new Role = Active / Standby)
                                         current_role, 
                                         local_vdest_id, 
                                         local_vdest_policy, svc_info->svc_sub_part_ver);
-                /* Fix for IR00061685 */
                 mds_mdtm_svc_uninstall (m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_info->svc_hdl),
                                         svc_info->install_scope,
@@ -586,7 +581,6 @@ uns32 mds_mcm_pwe_create (NCSMDS_ADMOP_INFO * info)
 
     m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_pwe_create");
 
-    /* Fix IR59500 */
     if((info->info.pwe_create.i_pwe_id > NCSMDS_MAX_PWES ) || (info->info.pwe_create.i_pwe_id ==0))
     {
        m_MDS_LOG_ERR("MCM_API : pwe_create : FAILED : PWE id = %d not in prescribed range ",info->info.pwe_create.i_pwe_id);
@@ -846,12 +840,10 @@ uns32 mds_mcm_svc_install (NCSMDS_INFO *info)
     V_DEST_RL local_vdest_role;
     NCS_VDEST_TYPE local_vdest_policy;
     MDS_VDEST_ID  local_vdest_id = 0;
-    /* Fix for IR00061685 */
     local_vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl);
 
     m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_svc_install");
     
-    /* Fix IR59500 */
     if((info->i_svc_id > NCSMDS_MAX_SVCS) || (info->i_svc_id ==0))
     {
        m_MDS_LOG_ERR("MCM_API : svc_install : FAILED : svc id = %d  not in prescribed range",info->i_svc_id);
@@ -860,13 +852,6 @@ uns32 mds_mcm_svc_install (NCSMDS_INFO *info)
     }
     
 
-#if 0    
-    if((info->info.svc_install.i_mds_svc_pvt_ver == 0 ))
-    {
-       info->info.svc_install.i_mds_svc_pvt_ver=1;
-       m_MDS_LOG_ERR("MCM_API : svc_install : Sub part ver,i_mds_svc_pvt_ver = 0, svc_id = %d",info->i_svc_id);
-    }
-#endif 
 
     if( (info->info.svc_install.i_install_scope < NCSMDS_SCOPE_INTRANODE) || (info->info.svc_install.i_install_scope > NCSMDS_SCOPE_NONE))
     {
@@ -875,7 +860,6 @@ uns32 mds_mcm_svc_install (NCSMDS_INFO *info)
        return NCSCC_RC_FAILURE;
     }
 
-    /* Fix IR 60932 */
     if(info->info.svc_install.i_mds_q_ownership==FALSE)
     {
        if(info->i_svc_id>=NCSMDS_SVC_ID_EXTERNAL_MIN)
@@ -908,14 +892,12 @@ uns32 mds_mcm_svc_install (NCSMDS_INFO *info)
         -   Svc_Hdl
 */
     /* Add new service entry to SVC Table */
-    /* Fix IR60251*/
     if(mds_svc_tbl_add(info)!=NCSCC_RC_SUCCESS)
     {
        m_MDS_LOG_ERR("MCM_API : svc_install : FAILED : svc id = %d",info->i_svc_id);
        m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_svc_install");
        return NCSCC_RC_FAILURE;
     }
-    /*End Fix IR60251*/
 
 /*    STEP 2: if (Q-ownership=MDS)
                 Create SYSF_MBX */
@@ -954,7 +936,6 @@ uns32 mds_mcm_svc_install (NCSMDS_INFO *info)
         return NCSCC_RC_FAILURE;
     }
 
-    /* Fix for IR00061685 */
     /* Perform Another bind as current VDEST role is Active */
     if (local_vdest_role == V_DEST_RL_ACTIVE && local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
     {
@@ -1009,9 +990,7 @@ uns32 mds_mcm_svc_uninstall (NCSMDS_INFO *info)
     NCS_VDEST_TYPE          vdest_policy;
     MDS_SVC_ID              svc_id_max1[1]; /* Max 1 element */
 
-    /* IR 60597 Fix*/
     MDS_MCM_SYNC_SEND_QUEUE *q_hdr=NULL,*prev_mem=NULL;
-    /* Fix for IR00061685 */
     MDS_VDEST_ID  local_vdest_id = 0;
 
     local_vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl);
@@ -1074,7 +1053,6 @@ if (PEER_SVC_ID_LIST != NULL)
         m_MDS_LOG_ERR("MCM_API : svc_install : SVC id = %d on VDEST id = %d FAILED : MDTM returned Failure",
                         info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
     }
-    /* Fix for IR00061685 */
     /* Perform Another Unbind as current VDEST role is Active */
     if (vdest_role == V_DEST_RL_ACTIVE && local_vdest_id != m_VDEST_ID_FOR_ADEST_ENTRY)
     {
@@ -1097,7 +1075,6 @@ if (PEER_SVC_ID_LIST != NULL)
 
     /* Destroying MBX taken care by DB */
     
-    /* IR60597 Fix*/
     /* Raise the selection object for the sync send Q and free the memory*/
     q_hdr=svc_cb->sync_send_queue;
     while(q_hdr!=NULL)
@@ -1205,7 +1182,6 @@ uns32 mds_mcm_svc_subscribe (NCSMDS_INFO *info)
             change the Flag to Explicit.
     }
 */
-    /* Fix for IR09179 */
     /* Validate whether subscription array gives is not null when count is non zero */
     if (info->info.svc_subscribe.i_num_svcs != 0 && info->info.svc_subscribe.i_svc_ids == NULL)
     {
@@ -1218,7 +1194,6 @@ uns32 mds_mcm_svc_subscribe (NCSMDS_INFO *info)
     for (i=0; i<info->info.svc_subscribe.i_num_svcs; i++)
     {
         
-        /* Fix IR59500*/
         if((info->info.svc_subscribe.i_svc_ids[i] > NCSMDS_MAX_SVCS) || (info->info.svc_subscribe.i_svc_ids[i] == 0))
         {
             m_MDS_LOG_ERR("MCM_API : svc_subscribe : SVC id = %d on VDEST id = %d Subscription to SVC id = %d FAILED | not in prescribed range",
@@ -2199,29 +2174,6 @@ else (entry exists)
                                             m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
                                             svc_id, vdest_id, m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest),svc_sub_part_ver,archword_type);
                                 }
-#if 0
-                                else
-                                {
-                                    status = NCSCC_RC_SUCCESS;
-                                    status = mds_mcm_user_event_callback(local_svc_hdl, pwe_id, svc_id, 
-                                                                         role, vdest_id, adest, NCSMDS_NEW_ACTIVE,
-                                                                         svc_sub_part_ver,
-                                                                         archword_type);
-                                    if (status != NCSCC_RC_SUCCESS)
-                                    {
-                                        /* Callback failure */
-                                        m_MDS_LOG_ERR("MCM_API : svc_up : NCSMDS_NEW_ACTIVE Callback Failure for SVC id = %d",
-                                                        m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl));
-                                        m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_svc_up");
-                                        return NCSCC_RC_FAILURE;
-
-                                    }
-                                    m_MDS_LOG_NOTIFY("MCM_API : svc_up : SVC id = %d on DEST id = %d got NEW_ACTIVE for SVC id = %d on VDEST id = %d ADEST = <0x%08x, %u>",
-                                            m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
-                                            m_MDS_GET_VDEST_ID_FROM_SVC_HDL(local_svc_hdl),
-                                            svc_id, vdest_id, m_MDS_GET_NODE_ID_FROM_ADEST(adest), m_MDS_GET_PROCESS_ID_FROM_ADEST(adest));
-                                }
-#endif
                             }
 
                             /* Make this as active */
@@ -3112,7 +3064,6 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
 {
     uns32 status = NCSCC_RC_SUCCESS;
     MDS_SVC_INFO *local_svc_info = NULL;
-    /* Fix for IR00083349 */
     MDS_SUBSCRIPTION_INFO *local_subtn_info = NULL;
     MDS_MCM_MSG_ELEM *event_msg = NULL;
     NCSMDS_CALLBACK_INFO    *cbinfo = NULL;
@@ -3127,7 +3078,6 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
     /* Get Subtn info */
     mds_subtn_tbl_get(local_svc_hdl,svc_id, &local_subtn_info);
     /* FIXME : If this function returns failure, then its invalid state. Handling required */
-    /* Got a crash earlier at this point : refer IR83349 */
 
     /* If it is up check for subscription timer running or not */
     /* If running raise selection objects of blocking send */
@@ -3142,7 +3092,7 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
             if (curr_queue_element->send_type != MDS_SENDTYPE_BCAST &&
                 curr_queue_element->send_type != MDS_SENDTYPE_RBCAST)
             {
-                /* Fix for IR00059783: Condition to raise selection object for pending SEND is not checked properly in mds_c_api.c */
+                /* Condition to raise selection object for pending SEND is not checked properly in mds_c_api.c */
                 if (vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY)
                 {/* We got UP from ADEST so check if any send to svc on this ADEST is remaining */
                     
@@ -3184,7 +3134,7 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
         return NCSCC_RC_SUCCESS;
     }
 
-    /* IR00059726: Fix for mem-leak found during testing: Allocate and set 
+    /*  Fix for mem-leak found during testing: Allocate and set 
     ** struct to send message-element to client (only for non-implicit 
     ** callbacks)
     */ 
@@ -3396,9 +3346,6 @@ uns32 mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id
     if(tmp_await_active_queue->next_msg == NULL)
     {
         m_NCS_SEL_OBJ_IND(tmp_await_active_queue->sel_obj);
-#if 0
-        subtn_info->await_disc_queue=NULL;
-#endif
         m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_subscription_tmr_expiry");
         return NCSCC_RC_SUCCESS;
     }
@@ -3410,7 +3357,7 @@ uns32 mds_mcm_subscription_tmr_expiry(MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id
 
         /* Raise selection object */
         m_NCS_SEL_OBJ_IND(bk_ptr->sel_obj);      
-        /* Memory for this will be get freed by awaiting request : surya*/
+        /* Memory for this will be get freed by awaiting request*/
 
     }
     m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_subscription_tmr_expiry");

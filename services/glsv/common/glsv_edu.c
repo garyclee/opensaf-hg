@@ -1382,11 +1382,6 @@ static uns32 glsv_edp_gld_node_list(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
       if(*d_ptr == NULL)
       {
          /* malloc the memory */
-#if 0
-TBD
-         *d_ptr = (GLSV_NODE_LIST*)
-            m_MMGR_ALLOC_GLSV_NODE_LIST(sizeof(GLSV_NODE_LIST),NCS_SERVICE_ID_GLD);
-#endif
          if(*d_ptr == NULL)
          {
             *o_err = EDU_ERR_MEM_FAIL;
@@ -1561,49 +1556,6 @@ uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
    return rc;
 }
 
-#if 0
-uns32 glsv_edp_gld_evt_a2s_rsc_details(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                          NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                          EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                          EDU_ERR *o_err)
-{
-   uns32                   rc = NCSCC_RC_SUCCESS;
-   GLSV_GLD_A2S_RSC_DETAILS *struct_ptr = NULL, **d_ptr = NULL;
-
-   EDU_INST_SET    glsv_gld_create_rules[ ] = {
-      {EDU_START,glsv_edp_gld_evt_a2s_rsc_details, 0, 0, 0, sizeof(GLSV_GLD_A2S_RSC_DETAILS), 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->rsc_id, 0, NULL},
-      {EDU_EXEC, glsv_edp_gld_node_list, EDQ_POINTER, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->node_list, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->can_orphan, 0, NULL},
-      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((GLSV_GLD_A2S_RSC_DETAILS*)0)->orphan_lck_mode, 0, NULL},
-      {EDU_END, 0, 0, 0, 0, 0, 0, NULL}
-   };
-
-   if(op == EDP_OP_TYPE_ENC)
-   {
-      struct_ptr = (GLSV_GLD_A2S_RSC_DETAILS*)ptr;
-   }
-   else if(op == EDP_OP_TYPE_DEC)
-   {
-      d_ptr = (GLSV_RSC_DETAILS **)ptr;
-      if(*d_ptr == NULL)
-      {
-         *o_err = EDU_ERR_MEM_FAIL;
-         return NCSCC_RC_FAILURE;
-      }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(GLSV_GLD_A2S_RSC_DETAILS));
-      struct_ptr = *d_ptr;
-   }
-   else
-   {
-      struct_ptr = ptr;
-   }
-
-   rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, glsv_gld_create_rules, struct_ptr,
-      ptr_data_len, buf_env, op, o_err);
-   return rc;
-}
-#endif
 /****************************************************************************
  * Name          : glsv_edp_gld_evt_glnd_mds_info
  *

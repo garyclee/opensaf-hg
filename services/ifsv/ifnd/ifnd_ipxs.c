@@ -678,24 +678,9 @@ static IPXS_NETLINK_RETVAL ipxs_netlink_dispatch(IFSV_CB *ifsv_cb, IPXS_CB *ipxs
          m_NCS_CONS_PRINTF("Received End of Netlink Message \n");
          return retval;
       }
-#if 0
-      /* Mark the netlink_updated flag as TRUE */
-      if((prev_h->nlmsg_type == RTM_NEWLINK) ||
-      (prev_h->nlmsg_type == RTM_DELLINK) && (h == NULL))
-      {
-         ipxs_cb->netlink_updated = TRUE;
-      }
-#endif
    }
    ipxs_cb->netlink_updated = TRUE; 
    return IPXS_NETLINK_OK;
-#if 0
-   if(msg.msg_flags & MSG_TRUNC)
-   {
-      fprintf(stderr, "!!!Remnant of size %d\n", status);
-      exit(1);
-   }
-#endif
 
 }
 
@@ -1503,14 +1488,6 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
       m_IFND_LOG_API_L(IFSV_LOG_SE_DESTROY_FAILURE,IFSV_COMP_IFND);
       return (NCSCC_RC_FAILURE);
    }
-#if 0
-   ifsv_hdl = m_IFSV_GET_HDL(0, 0);
-   if ((ifsv_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_IFND, ifsv_hdl))
-      == 0)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-#endif
    intf_rec = &ipxs_evt->info.nd.atond_upd;
    
    m_IFND_LOG_EVT_L(IFSV_LOG_IFND_IPXS_EVT_INFO,\
@@ -1929,35 +1906,6 @@ static uns32 ipxs_ifnd_gen_getv4addr_req(IPXS_CB *ipxs_cb)
 
         return sendto(ipxs_cb->netlink_fd, (void*)&req, sizeof(req), 0, (struct sockaddr*)&nladdr, sizeof(nladdr));
 
-#if 0
-   struct rtgenmsg g;
-   int err;
-   struct nlmsghdr nlh;
-   struct sockaddr_nl nladdr;
-   struct iovec iov[2] = { { &nlh, sizeof(nlh) }, { &g, sizeof(g)} };
-   struct msghdr msg = {
-      (void*)&nladdr, sizeof(nladdr),
-      iov,      2,
-      NULL,     0,
-      0
-   };
-
-   memset(&g, '\0', sizeof(g));
-
-   memset(&nladdr, 0, sizeof(nladdr));
-   nladdr.nl_family = AF_NETLINK;
-   nlh.nlmsg_len = NLMSG_LENGTH(sizeof(g));
-   nlh.nlmsg_type = RTM_GETADDR;
-   nlh.nlmsg_flags = NLM_F_ROOT|NLM_F_REQUEST|NLM_F_MATCH;
-   nlh.nlmsg_pid = 0;
-   nlh.nlmsg_seq = 0;
-   g.rtgen_family = AF_INET;
-   err = sendmsg(ipxs_cb->netlink_fd, &msg, 0);
-   if (err == nlh.nlmsg_len)
-      return NCSCC_RC_SUCCESS;
-
-   return NCSCC_RC_FAILURE;
-#endif
 }
 
 /****************************************************************************

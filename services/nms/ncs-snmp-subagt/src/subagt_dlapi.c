@@ -53,7 +53,6 @@ static NCS_BOOL snmpsubagt_leave_on_queue_cb (void *arg1, void *arg2);
 static void
 snmpsubagt_sighup_handler(int i_sig_num); 
 
-/* IR00061409 */
 /* SIGUSR1 Handler */ 
 static void
 snmpsubagt_amf_sigusr1_handler(int i_sig_num); 
@@ -88,28 +87,6 @@ ncs_snmpsubagt_lib_req(NCS_LIB_REQ_INFO *io_lib_req)
     switch(io_lib_req->i_op)
     {
         
-#if 0
-        /* SPA does not support this as of now */
-        case NCS_LIB_REQ_INIT:
-            /* Not supported */
-            break; 
-            
-        case NCS_LIB_REQ_ABOUT:
-            status = ncs_snmpsubagt_about(&io_lib_req.about);
-            break;
-            
-        case NCS_LIB_REQ_MANAGE:
-            /* not supported */
-            break;
-
-        case NCS_LIB_REQ_DIAGNOSE:
-            status = ncs_snmpsubagt_diagnose();
-            if (status != NCSCC_RC_SUCCESS)
-            {   
-                /* log the error */
-            }
-            break;
-#endif 
             
         case NCS_LIB_REQ_CREATE:
             /* extract the startup parameters from the REQ struct */
@@ -229,13 +206,11 @@ ncs_snmpsubagt_create(int32 argc, uns8 **argv)
     /* create the selection object associated with SIGHUP signal handler */
     m_NCS_SEL_OBJ_CREATE(&cb->sighdlr_sel_obj);
 
-    /* IR00061409-start */
     /* install the signal handler */ 
     m_NCS_SIGNAL(SIGUSR1, snmpsubagt_amf_sigusr1_handler);
 
     /* create the selection object associated with SIGUSR1 signal handler */
     m_NCS_SEL_OBJ_CREATE(&cb->sigusr1hdlr_sel_obj);
-    /* IR00061409-end */
 
     /* install the signal handler */ 
     m_NCS_SIGNAL(SIGUSR2, snmpsubagt_sigusr2_handler);
@@ -332,35 +307,6 @@ snmpsubagt_svcs_init(NCSSA_CB *cb)
     /* LOG -- CB Create and Init success */
     m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_CREATE_SUCCESS);
  
-/* IR00061409 */
-#if 0
-#if (BBS_SNMPSUBAGT == 0)
-    /* Initialize the interface with Availability Management Framework */
-    status = snmpsubagt_amf_initialize(cb); 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AMF_INIT_FAILED, status,0,0);
-        if(status == SA_AIS_ERR_TRY_AGAIN)
-        {
-           /* saAmf api returned error to try again. set the status and start the timer. */
-           cb->amfInitStatus = m_SNMPSUBAGT_AMF_INIT_RETRY;
-           m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_AMF_INIT_RETRY);
-           if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_AMF_INIT) == NCSCC_RC_FAILURE)
-           {
-              /* timer couldn't be started. return failure. */
-              m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-              return NCSCC_RC_FAILURE;
-           }
-        }
-        else
-              return NCSCC_RC_FAILURE;
-    }
-    else
-       /* log that AMF Interface is init is success */
-       m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_AMF_INIT_SUCCESS);
-#endif
-#endif
      
     /* Initialize the interface with EDSv */
     status = snmpsubagt_eda_initialize(cb);
@@ -447,9 +393,6 @@ static void
 snmpsubagt_start(SYSF_MBX   *subagt_mbx)
 {
     uns32       status = NCSCC_RC_SUCCESS; 
-#if 0
-    SaAisErrorT saf_status = SA_AIS_OK; 
-#endif
     NCSSA_CB    *cb = NULL; 
 
     /* Log the function entry */ 
@@ -474,7 +417,6 @@ snmpsubagt_start(SYSF_MBX   *subagt_mbx)
        return; 
     }
 
-    /* IR00061409 */
     status = subagt_rda_init_role_get(cb);
     if(status != NCSCC_RC_SUCCESS)
     {
@@ -504,59 +446,6 @@ snmpsubagt_start(SYSF_MBX   *subagt_mbx)
         status = snmpsubagt_STANDBY_process(cb,0);
     }
 
-/* IR00061409 */
-#if 0
-    if((cb->amfInitStatus == m_SNMPSUBAGT_AMF_INIT_COMPLETED) || (cb->amfInitStatus == m_SNMPSUBAGT_AMF_COMP_REG_RETRY))
-    {
-       /* start the health check if it is not started already */
-       if (cb->healthCheckStarted == FALSE)
-       {
-           /* post a message to subagt mailbox to start the health check */
-           status = snmpsubagt_amf_healthcheck_start_msg_post(cb);
-           if (status != NCSCC_RC_SUCCESS)
-           {
-               m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_HLTHCHECK_POST_FAILED, status,0,0);
-               return;
-           }
-       }
-
-       #if (BBS_SNMPSUBAGT == 0)    
-       /* Register the component with the Availability Agent */
-       saf_status = saAmfComponentRegister(cb->amfHandle, &cb->compName, NULL);
-       if (saf_status != SA_AIS_OK)
-       {
-           /* log the error */
-           m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AMF_COMP_REG_FAILED,
-               cb->amfHandle, saf_status,0/*  cb->compName TBD */);
-           if(saf_status == SA_AIS_ERR_TRY_AGAIN)
-           {
-              /* saAmf api returned error to try again. set the status and start the timer. */
-              cb->amfInitStatus = m_SNMPSUBAGT_AMF_COMP_REG_RETRY;
-              if(snmpsubagt_timer_start(cb, SNMPSUBAGT_TMR_MSG_RETRY_AMF_INIT) == NCSCC_RC_FAILURE)
-              {
-                 /* timer couldn't be started. return failure. */
-                 m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_TMR_FAIL, NCSCC_RC_FAILURE, 0, 0);
-                 saAmfComponentErrorReport(cb->amfHandle,
-                                         &cb->compName,
-                                         0, /* errorDetectionTime; AvNd will provide this value */
-                                         SA_AMF_COMPONENT_FAILOVER/* recovery */, 0/*NTF Id*/);
-
-                 return ;
-              }
-           }
-           else
-              return ;
-       }
-       else
-       {
-          /* Component registration with AMF is completed. set the status. */
-          cb->amfInitStatus = m_SNMPSUBAGT_AMF_COMP_REG_COMPLETED;
-          /* log the status */
-          m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_AMF_COMP_REG_COMPLETED); 
-       }
-       #endif
-    }
-#endif
 
     /* log that Subagent init is success */
     m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_INIT_SUCCESS);
@@ -786,81 +675,6 @@ snmpsubagt_destroy(NCSSA_CB     *cb, NCS_BOOL comp_unreg)
     return status; 
 }
 
-#if 0  
-/******************************************************************************
-*  Name:          ncs_snmpsubagt_about
-*  Description:   About the NCS SNMP SubAgent
-*
-*  Arguments:     arg - NCS SNMP SubAgent's Startup parameters from BOM
-*
-*  Returns;             NCSCC_RC_FAILURE  - Something went wrong
-*                       NCSCC_RC_SUCCESS  - Everything went well 
-*  Note:
-*****************************************************************************/
-/* ABOUT DL-SE API prototype */
-uns32
-ncs_snmpsubagt_about(NCS_LIB_ABOUT *about)
-{
-    uns32   status = NCSCC_RC_SUCCESS; 
-
-    /* Log the Function Entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_ABOUT);
-
-    /* validate the input */
-    if (about == NULL)
-        return NCSCC_RC_FAILURE; 
-
-    /* Service Name - An ASCII text version of the subsystem 
-     * that this component is a part. 
-     */
-    m_NCS_OS_STRCPY(about->name, "NCS SNMP SUBAGENT\n");
-
-    /* Component Name  An ASCII text version of the components name. */
-    m_NCS_OS_STRCPYS(about->comp_name, "MAHESH -- TBD I do not Know/NMS\n"); 
-
-    /* Version - a revision identifier noting what release this software is. */
-    m_NCS_OS_STRCPYstrcpy(about->version, "NCS SSNMP SUBAGENT Ver 1.0\n");
-
-    /* Description  a high level ASCII string description of this service.  */
-    m_NCS_OS_STRCPY(about->descry, 
-        "NCS SNMP SubAgent, Converts the SNMP requests to MAB request and vice versa...\n"); 
-
-    /* Options  an inventory of the (significant) compile flags that this 
-     * module was built with. 
-     */
-    m_NCS_OS_STRCPY(about->options, "Significant Compile time flags\n");
-
-    return status; 
-}
-
-/******************************************************************************
-*  Name:          ncs_snmpsubagt_diagnose
-*  Description:   Diagnose API of the SubAgent
-*
-*  Arguments:     
-*
-*  Returns:       
-*  Note:
-*****************************************************************************/
-/* DIAGNOSE  DL-SE API prototype */
-uns32
-ncs_snmpsubagt_diagnose()
-{
-    /* TBD */
-    /* Following things can be done as identified in the LLD */ 
-    /* Implementation left for the Phase - 2 */
-    
-    /* Following Things can be dumped 
-       1. CB Contents
-       2. Statistcs(Traps, Agentx requests etc...,
-       3. Number of Role Changes
-       4. SRM details (like CPU and Mem usages)
-       5. Health of the SubAgent
-     */
-    return NCSCC_RC_SUCCESS; 
-}
-  
-#endif
 
 /******************************************************************************
 *  Name:          snmpsubagt_cleanup
@@ -918,9 +732,6 @@ snmpsubagt_cleanup(NCSSA_CB *cb)
         
     /* precautionary */
     m_SNMPSUBAGT_CB_SET(NULL);
- #if 0 
-    m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_SET_NULL); 
-#endif
   
     return; 
 }
@@ -1038,7 +849,6 @@ snmpsubagt_sighup_handler(int i_sig_num)
 
     return;
 }
-/* IR00061409 */
 static void
 snmpsubagt_amf_sigusr1_handler(int i_sig_num)
 {

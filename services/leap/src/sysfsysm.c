@@ -52,9 +52,6 @@
 #include "sysf_ipc.h"
 
 #if (NCS_USE_SYSMON == 1)
-#if 0 /* IR00059629 */
-extern int ignore_subsystem[NCS_SERVICE_ID_MAX];
-#endif
 
 extern UB_POOL_MGR gl_ub_pool_mgr;
 /* extern NCS_LOCK     mmgr_mpool_lock; */
@@ -143,76 +140,6 @@ void sm_pulse_tmr_fnc(void* arg)
 
 void sysmon_task( SYSF_MBX*  mbx)
 {
-#if 0
-  SM_MSG* msg;  
-
-  while ((msg = (SM_MSG*)m_NCS_IPC_RECEIVE(mbx,msg)) != NULL)
-  {
-   switch(msg->type)
-   {
-   case SMMT_PULSE:
-     {
-       SM_PULSE* pulse = (SM_PULSE*)msg->data;
-       m_MMGR_FREE_SM_MSG(msg);
-
-       switch(pulse->type)
-       {
-       case SMPT_MEM:
-         {
-           NCS_MPOOL        *mp;
-           NCS_MPOOL_ENTRY  *me;
-           
-           for (mp = gl_sysmon.mmgr->mpools; ; mp++)
-           {
-             m_NCS_LOCK (&mp->lock, NCS_LOCK_WRITE);
-             me = mp->inuse;
-             while (me != NULL)
-             {
-               me->age++;
-               me = me->next;
-             }
-             if(mp->size == 0) 
-               {
-               m_NCS_UNLOCK (&mp->lock, NCS_LOCK_WRITE);
-               break;
-               }
-             m_NCS_UNLOCK (&mp->lock, NCS_LOCK_WRITE);
-           }
-
-
-         }
-         break;
-       case SMPT_BUF:
-         if(pulse->data > UB_MAX_POOLS)
-         {
-           m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-           m_PMGR_LK(&gl_ub_pool_mgr.lock);
-           
-           if(gl_sysmon.ub_pool_mgr->pools[pulse->data].mem_age != NULL)
-             gl_sysmon.ub_pool_mgr->pools[pulse->data].mem_age();
-
-           m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
-         }
-         break;
-       default:
-         break;
-       }
-
-       m_NCS_TMR_START (pulse->tmr_id,
-                       pulse->period,
-                       pulse->cb_fnc,
-                      (void*)pulse);
-     }
-     break;
-   default:
-     break;
-   }
-   m_NCS_TASK_SLEEP(1000);
-  }
-#endif
 }
 
 
@@ -1175,13 +1102,6 @@ uns32 sm_iget(NCSSYSM_IGET* info)
     break;
   case NCSSYSM_OID_MEM_SS_IGNORE:
 #if (NCSSYSM_MEM_STATS_ENABLE == 1)
-#if 0 /* IR00059629 */
- if (info->i_inst_id < (uns32)NCS_SERVICE_ID_MAX)
- {
-   info->o_obj_val = ignore_subsystem[info->i_inst_id];
- }
- else
-#endif
    info->o_obj_val = 0;
 
 #else
@@ -1333,14 +1253,6 @@ uns32 sm_iset(NCSSYSM_ISET* info)
   case NCSSYSM_OID_MEM_SS_IGNORE:
 #if (NCSSYSM_MEM_STATS_ENABLE == 1)
     gl_sysmon.mem_ss_ignore = info->i_obj_val;
-#if 0 /* IR00059629 */
-    if (info->i_inst_id < (uns32)NCS_SERVICE_ID_MAX)
-    {
-      ignore_subsystem[info->i_inst_id] = info->i_obj_val;
-    }
-    else
-      return NCSCC_RC_FAILURE;
-#endif
 #endif
     break;
   case NCSSYSM_OID_BUF_PULSE:
@@ -1368,13 +1280,6 @@ uns32 sm_set(NCSSYSM_SET* info)
 #if (NCSSYSM_MEM_WATCH_ENABLE == 1)
     {
     gl_sysmon.mem_bkt_size= info->i_obj_val / SM_BKT_CNT;
-#if 0
-    {
-    float old_bkt_size = (float)(gl_sysmon.mem_bkt_size);
-    if (gl_sysmon.mem_bkt_size)
-        gl_sysmon.mem_bkt_last = gl_sysmon.mem_bkt_last * ((float)old_bkt_size / (float)gl_sysmon.mem_bkt_size);
-    }
-#endif
     }
 #endif
 #if ((NCSSYSM_MEM_WATCH_ENABLE == 1) || (NCSSYSM_MEM_STATS_ENABLE == 1))
@@ -2649,9 +2554,6 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
       ss_id = info->i_ss_id;
       count_ignored = (NCS_BOOL)info->i_ignored;
       
-      #if 0 /* IR00059629 */
-      ss_ignored = ignore_subsystem[ss_id] != 0 ? TRUE : FALSE;
-      #endif
       
       for (i= 0,mp = mmgr.mpools;i < bkt_cnt; mp++,i++)
          {
@@ -2660,9 +2562,6 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
          me = mp->inuse;
          while (me != NULL)
             {
-            #if 0 /* IR00059629 */  
-            if((me->ignore == TRUE) || (((uns32)me->service_id == ss_id) && (ss_ignored == TRUE)))
-            #endif 
              
             if(me->ignore == TRUE)
                {

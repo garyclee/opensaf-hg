@@ -133,16 +133,6 @@ typedef struct glsv_evt_restart_client_info
    SaLckResourceIdT        resource_id;
 } GLSV_EVT_RESTART_CLIENT_INFO;
     
-#if 0
-typedef struct glsv_evt_restart_client_info
-{
-   SaLckHandleT            client_handle_id;
-   uns32                   app_proc_id;
-   MDS_DEST                agent_mds_dest;
-   SaVersionT              version;
-   uns16                   cbk_reg_info;   /* bit-wise data */
-} GLSV_EVT_RESTART_CLIENT_INFO;
-#endif
 
 
 

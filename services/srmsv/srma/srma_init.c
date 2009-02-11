@@ -341,11 +341,6 @@ static void srma_cb_delete(SRMA_CB *srma)
       /* LOG appropriate message */
    }
 
-#if 0
-   /* detach & destroy SRMA mailbox */
-   if (srma->mbx)
-      srma_mbx_destroy(cb);   
-#endif
 
    /* Destroy the initiates PAT resource-mon tree */
    ncs_patricia_tree_destroy(&srma->rsrc_mon_tree);
@@ -453,114 +448,6 @@ unsigned int ncs_srma_shutdown(void)
    m_SRMA_AGENT_UNLOCK;
    return rc;
 }
-
-
-#if 0
-/****************************************************************************
-  Name          :  srma_mbx_create
- 
-  Description   :  This routine creates & attaches SRMA mailbox.
- 
-  Arguments     :  cb - ptr to SRMA control block
- 
-  Return Values :  NCSCC_RC_SUCCESS (or) NCSCC_RC_FAILURE
- 
-  Notes         :  None
-******************************************************************************/
-uns32 srma_mbx_create (SRMA_CB *cb)
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-
-   /* create the mail box */
-   rc = m_NCS_IPC_CREATE(&cb->mbx);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      /* LOG appropriate message */
-      return rc;
-   }
-   else
-      /* LOG appropriate message */
-
-   /* attach the mail box */
-   rc = m_NCS_IPC_ATTACH(&cb->mbx);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      /* LOG appropriate message */
-      /* destroy the mailbox */
-      if (cb->mbx) 
-         m_NCS_IPC_RELEASE(&cb->mbx, 0);       
-   }
-   else
-   {
-      /* LOG appropriate message */
-   }
-
-   return rc;
-}
-
-
-/****************************************************************************
-  Name          : srma_mbx_destroy
- 
-  Description   : This routine destroys & detaches SRMA mailbox.
- 
-  Arguments     : cb - ptr to SRMA control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uns32 srma_mbx_destroy (SRMA_CB *cb)
-{
-   uns32  rc = NCSCC_RC_SUCCESS;
-
-   /* detach the mail box */
-   rc = m_NCS_IPC_DETACH(&cb->mbx, srma_mbx_clean, cb);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      /* LOG appropriate message */
-      return rc;
-   }
-   /* LOG appropriate message */
-
-   /* delete the mail box */
-   rc = m_NCS_IPC_RELEASE(&cb->mbx, 0);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      /* LOG appropriate message */
-      return rc;
-   }
-   /* LOG appropriate message */
-
-   return rc;
-}
-
-
-/****************************************************************************
-   Name          : srma_mbx_clean
-  
-   Description   : This routine dequeues & deletes all the events from the 
-                   mailbox. It is invoked when mailbox is detached.
-  
-   Arguments     : arg - argument to be passed
-                   msg - ptr to the 1st event in the mailbox
-  
-   Return Values : TRUE/FALSE
-  
-   Notes         : None.
- *****************************************************************************/
-NCS_BOOL srma_mbx_clean (NCSCONTEXT arg, NCSCONTEXT msg)
-{
-   SRMA_EVT *curr;
-
-   /* clean the entire mailbox */
-   for (curr = (SRMA_EVT *)msg; curr; curr = curr->next)
-      srma_evt_destroy(curr);
-
-   return TRUE;
-}
-#endif 
-
 
 
 

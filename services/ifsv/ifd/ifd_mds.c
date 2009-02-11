@@ -170,9 +170,6 @@ static uns32 ifd_mds_vdest_create (IFSV_CB *cb)
    }
 
 /*   cb->my_dest          = arg.info.vdest_create.info.named.o_vdest; */
-#if 0   
-cb->my_anc           = arg.info.vdest_create.info.named.o_anc;
-#endif
    cb->my_mds_hdl       = arg.info.vdest_create.o_mds_pwe1_hdl;
    cb->oac_hdl          = arg.info.vdest_create.o_pwe1_oac_hdl;
 
@@ -201,9 +198,6 @@ static uns32 ifd_mds_vdest_destroy (IFSV_CB *cb)
    arg.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 
    arg.info.vdest_destroy.i_vdest      = cb->my_dest;
-#if 0   
-arg.info.vdest_destroy.i_anc         = cb->my_anc;
-#endif
 
    rc = ncsvda_api(&arg);
 
@@ -447,50 +441,6 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
           break;
        }
 /* Till this point the code is modified */          
-#if 0       /* start of #if 0 xyz */
-       else 
-       { 
-         /* IFD is in standby state */
-
-         cb->ifnd_node = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
-         if(cb->ifd_down == TRUE && cb->ifnd_node == cb->ifd_node)
-         {
-           m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN,svc_evt->i_dest,cb->ifd_node);
-           ifd_same_dst_all_intf_rec_mark_del(&svc_evt->i_dest,cb);
-           cb->ifd_down = FALSE;
-           cb->ifnd_down = FALSE;
-           /* Just to keep node id's of ifd and ifnd different */
-           cb->ifnd_node = 100;
-           cb->ifd_node = 200;
-         }
-         else 
-         {
-           cb->ifnd_down = TRUE;
-           m_NCS_MEMCPY(&cb->down_ifnd_addr,&svc_evt->i_dest, sizeof(MDS_DEST));
-         }
-
-         /*  End of IFD is in standby state */
-         break;
-       }   
-      case NCSMDS_SVC_ID_IFD:
-       cb->ifd_node = m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_anc);
-       if(cb->ifnd_down == TRUE && cb->ifnd_node == cb->ifd_node)
-       {
-         m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN,svc_evt->i_dest,cb->ifd_node);
-         ifd_same_dst_all_intf_rec_mark_del(&cb->down_ifnd_addr,cb);
-         cb->ifd_down = FALSE;
-         cb->ifnd_down = FALSE;
-         /* Just to keep node id's of ifd and ifnd different */
-         cb->ifnd_node = 100;
-         cb->ifd_node = 200;
-         break;
-       }
-       else 
-       {
-         cb->ifd_down = TRUE;
-       }   
-       break;
-#endif            /* end of #if 0 XYZ */
       default:
          break;
       }
@@ -501,55 +451,6 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
             svc_evt->i_node_id);
          break;
       }
-#if 0       /* start of #if 0 abc */
-   case NCSMDS_NO_ACTIVE:
-      {
-         if(svc_evt->i_svc_id == NCSMDS_SVC_ID_IFD)
-         {
-           cb->ifd_node = m_NCS_NODE_ID_FROM_MDS_DEST(svc_evt->i_anc);
-           if(cb->ifnd_down == TRUE && cb->ifnd_node == cb->ifd_node)
-           {
-             m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN,cb->down_ifnd_addr,cb->ifd_node);
-             ifd_same_dst_all_intf_rec_mark_del(&cb->down_ifnd_addr,cb);
-             cb->ifd_down = FALSE;
-             cb->ifnd_down = FALSE;
-             /* Just to keep node id's of ifd and ifnd different */
-             cb->ifnd_node = 100;
-             cb->ifd_node = 200;
-           }
-           else
-           {
-             m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN_EVENT,svc_evt->i_svc_id,svc_evt->i_node_id);
-             cb->ifd_down = TRUE;
-           }
-         }
-         break;  
-      }
-   case NCSMDS_RED_DOWN:
-      {
-         if(svc_evt->i_svc_id == NCSMDS_SVC_ID_IFD)
-         {
-           cb->ifd_node = svc_evt->i_node_id;
-           if(cb->ifnd_down == TRUE && cb->ifnd_node == cb->ifd_node)
-           {
-             m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN,cb->down_ifnd_addr,cb->ifd_node);
-             ifd_same_dst_all_intf_rec_mark_del(&cb->down_ifnd_addr,cb);
-             cb->ifd_down = FALSE;
-             cb->ifnd_down = FALSE;
-             /* Just to keep node id's of ifd and ifnd different */
-             cb->ifnd_node = 100;
-             cb->ifd_node = 200;
-           }
-           else
-           {
-             m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFD_RED_DOWN_EVENT,svc_evt->i_svc_id,svc_evt->i_node_id);
-             cb->ifd_down = TRUE;
-           }
-         }
-
-         break;
-      }
-#endif          /* end of #if 0 abc */
    default:
       break;
    }
@@ -759,95 +660,4 @@ static uns32 ifd_mds_ifnd_down_evt(MDS_DEST *mds_dest, IFSV_CB *ifsv_cb)
 return rc;
 }
 
-#if 0
-/****************************************************************************
- * Name          : ifd_edp_ifsv_evt
- *
- * Description   : This is the function which is used to encode decode 
- *                 IfD event structures.
- * 
- *
- * Notes         : None.
- *****************************************************************************/
-uns32 ifd_edp_ifsv_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, 
-                   NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                   EDU_ERR *o_err)
-{
-    uns32       rc = NCSCC_RC_SUCCESS;
-    IFSV_EVT    *struct_ptr = NULL, **d_ptr = NULL;
-
-    EDU_INST_SET    test_ifsv_evt_rules[ ] = {
-        {EDU_START, ifd_edp_ifsv_evt, 0, 0, 0, sizeof(IFSV_EVT), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT*)0)->type, 0, NULL},
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((IFSV_EVT*)0)->type, 0, ifsv_ifd_evt_test_type_fnc},
-
-        /* For IFD_EVT_INTF_CREATE */
-        {EDU_EXEC, ifsv_edp_create_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_create, 0, NULL},        
-         
-        /* For IFD_EVT_INTF_DESTROY */
-        {EDU_EXEC, ifsv_edp_destroy_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.intf_destroy, 0, NULL},
-
-         /* For IFD_EVT_INIT_DONE */
-        {EDU_EXEC, ifsv_edp_init_done_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.init_done, 0, NULL},
-
-            /* For IFD_EVT_IFINDEX_REQ */
-        {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT, 
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
-
-           /* For IFD_EVT_IFINDEX_CLEANUP */
-        {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT, 
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.spt_map, 0, NULL},
-
-           /* For IFD_EVT_INTF_AGING_TMR_EXP */
-        {EDU_EXEC, ifsv_edp_age_tmr_info, 0, 0, EDU_EXIT, 
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.tmr_exp, 0, NULL},
-
-           /* For IFD_EVT_INTF_REC_SYNC */
-        {EDU_EXEC, ifsv_edp_rec_sync_info, 0, 0, EDU_EXIT, 
-           (uns32)&((IFSV_EVT*)0)->info.ifd_evt.info.rec_sync, 0, NULL},
-
-           /* For IFND_EVT_INTF_CREATE */
-        {EDU_EXEC, ifsv_edp_create_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_create, 0, NULL},        
-         
-        /* For IFND_EVT_INTF_DESTROY */
-        {EDU_EXEC, ifsv_edp_destroy_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.intf_destroy, 0, NULL},
-
-            /* For IFND_EVT_IFINDEX_RESP */
-        {EDU_EXEC, ifsv_edp_spt_map_info, 0, 0, EDU_EXIT, 
-            (uns32)&((IFSV_EVT*)0)->info.ifnd_evt.info.spt_map, 0, NULL},
-
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-    };
-
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        struct_ptr = (IFSV_EVT *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        d_ptr = (IFSV_EVT **)ptr;
-        if(*d_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IFSV_EVT));
-        struct_ptr = *d_ptr;
-    }
-    else
-    {
-        struct_ptr = ptr;
-    }
-
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, test_ifsv_evt_rules, struct_ptr, ptr_data_len, 
-        buf_env, op, o_err);
-    return rc;
-}
-#endif /* #if 0 */
 

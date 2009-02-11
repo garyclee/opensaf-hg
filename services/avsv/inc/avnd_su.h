@@ -305,12 +305,6 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ASSIGN_PEND_RESET(x) (((x)->flag) &= ~AVND_SU_ASSIGN_PEND)
 #define m_AVND_SU_ALL_TERM_RESET(x)    (((x)->flag) &= ~AVND_SU_ALL_TERM)
 
-#if 0
-#define AVND_SU_REG_COMP_MSG_SENT 0x00008000
-#define m_AVND_SU_REG_COMP_MSG_IS_SENT(x) (((x)->flag) & AVND_SU_REG_COMP_MSG_SENT)
-#define m_AVND_SU_REG_COMP_MSG_SENT_SET(x)  (((x)->flag) |= AVND_SU_REG_COMP_MSG_SENT)
-#define m_AVND_SU_REG_COMP_MSG_SENT_RESET(x)  (((x)->flag) &= ~AVND_SU_REG_COMP_MSG_SENT)
-#endif
 
 /* macros for checking the su params */
 #define m_AVND_SU_IS_SU_RESTART_DIS(x)    (((x)->flag) & AVND_SU_FLAG_RESTART_DIS)

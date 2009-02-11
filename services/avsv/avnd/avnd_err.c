@@ -544,7 +544,6 @@ uns32 avnd_err_recover (AVND_CB   *cb,
    switch (rcvr)
    {
    case SA_AMF_NO_RECOMMENDATION:
-      /* Temp Fix for IR00058366 */
       /*m_AVSV_ASSERT(0);
       break;*/
       
@@ -1100,7 +1099,6 @@ uns32 avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su,
 
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Hack to FIX BUG IR00059663 */
    /* If the SU is still instantiating, do jump to next level */
    if(su->pres == NCS_PRES_INSTANTIATING || su->pres == NCS_PRES_RESTARTING || 
          m_AVND_SU_IS_ASSIGN_PEND(su))

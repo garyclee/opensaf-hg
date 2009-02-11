@@ -132,7 +132,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
                                        NCSFL_SEV_ERROR, rc);
       }
       cb->ckpt.ckpt_hdl = 0;
-      /* Added by vishal : for VDS error handling enhancement */
+      /*  for VDS error handling enhancement */
       saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                     0, SA_AMF_COMPONENT_RESTART, 0);
       
@@ -180,7 +180,7 @@ uns32 vds_ckpt_finalize(VDS_CB *cb)
                                  VDS_LOG_CKPT_FAILURE,
                                        NCSFL_SEV_ERROR, rc);
       
-      /* Added by vishal : for VDS error handling enhancement */
+      /*  for VDS error handling enhancement */
       /* saAmfComponentErrorReport(cb->amf.amf_handle, &cb->amf.comp_name,
                                     0, SA_AMF_COMPONENT_RESTART, 0); */
 
@@ -263,10 +263,6 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
 
    VDS_TRACE1_ARG1("vds_ckpt_cbinfo_write\n");
    
-#if 0
-   SaCkptIOVectorElementT  io_vector[1];
-   SaUint32T  *erroneous_vector_index = NULL;
-#endif 
 
 
    m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT));
@@ -479,10 +475,6 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
 {
    VDS_CKPT_DBINFO   vds_ckpt_dbinfo_node;
    VDS_CKPT_DBINFO   *temp_vds_ckpt_dbinfo_ptr = NULL;
-#if 0
-   SaUint32T               *erroneous_vector_index = NULL;
-   SaCkptIOVectorElementT  io_vector[1];
-#endif
    SaAisErrorT       rc = SA_AIS_OK;
    SaCkptSectionIdT  section_id;
    SaCkptSectionCreationAttributesT sec_create_attr;

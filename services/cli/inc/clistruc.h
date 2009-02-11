@@ -219,7 +219,7 @@ typedef struct cli_cmd_element {
    CLI_TOKEN_NODE node_ptr;        /* points to token node struct*/    
    NCSCLI_BINDERY *bindery;        /* Bindary of the subsystem */    
    NCSCLI_EXEC    cmd_exec_func;   /* Command execution function associated         with each command and is stored with the last level token in the command tree.*/    
-   uns8           cmd_access_level; /* Command access level associated         with each command (Fix for 59359 )*/
+   uns8           cmd_access_level; /* Command access level associated         with each command */
    CLI_RANGE      *range;          /* pointer to range structure if range value
                                       specified otherwise NULL */    
    int8           *tokName;        /* Contains token or Literal name*/    
@@ -247,9 +247,9 @@ typedef struct cli_execute_param {
    uns32             o_errpos;     /* indicates error position */  
    uns32             o_tokprocs;   /* Number of token processed */
    int8              *i_cmdbuf;    /* command string user has entered */      
-   NCS_BOOL          i_execcmd;   /* execute(TRUE)/verify(FALSE) the command (fix for the bug 59119 )*/
+   NCS_BOOL          i_execcmd;   /* execute(TRUE)/verify(FALSE) the command */
    NCSCLI_EXEC       cmd_exec_func;/* Call back function */    
-   uns8              cmd_access_level; /*cli cmd access level (Fix for 59359) */
+   uns8              cmd_access_level; /*cli cmd access level */
    NCSCLI_BINDERY    *bindery;     /* Bindary of the subsystem */
    
    union {        

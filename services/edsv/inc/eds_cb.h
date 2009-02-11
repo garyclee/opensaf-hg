@@ -288,10 +288,6 @@ typedef struct eds_cb_tag
    SaSelectionObjectT       amfSelectionObject; /*Selection Object to wait for amf events */
    NCS_SEL_OBJ            sighdlr_sel_obj;
    NCS_BOOL               healthCheckStarted; /* Flag to check Health Check started or not */
-#if 0 
-/* For B Spec Compliance . TBD deleted */
-   SaAmfReadinessStateT ready_state;/* AMF readiness state of the component      */   
-#endif
    SaAmfHAStateT        ha_state;   /* present AMF HA state of the component     */
    NCS_LOCK      cb_lock;           /* Lock for this control Block               */
    uns32         last_reg_id;       /* Value of last reg_id assigned             */
@@ -311,9 +307,6 @@ typedef struct eds_cb_tag
 } EDS_CB;
 
 #define EDS_MIB_SCALAR_NULL ((EDS_MIB_SCALAR *)0)
-#if 0 
-#define EDS_MIB_CHAN_TBL_NULL ((EDS_CHAN_TBL *)0) 
-#endif
 #define EDS_MIB_CHAN_TBL_NULL ((EDS_WORKLIST *)0)
 #define EDS_INIT_MIB_CHAN_TBL(wp,chan_create_time) \
       wp->chan_row.create_time=chan_create_time;  \

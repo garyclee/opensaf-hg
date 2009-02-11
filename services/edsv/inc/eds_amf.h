@@ -94,12 +94,6 @@ eds_amf_csi_rmv_callback(SaInvocationT invocation,
                          const SaNameT *compName,
                          const SaNameT *csiName,
                          const SaAmfCSIFlagsT csiFlags);
-#if 0
-static void
-eds_amf_readiness_state_callback (SaInvocationT invocation,
-                                  const SaNameT *compName,
-                                  SaAmfReadinessStateT readinessState);
-#endif
 uns32 eds_amf_register(EDS_CB *);
 
 void eds_amf_sigusr1_handler(int i_sig_num);

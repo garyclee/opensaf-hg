@@ -526,10 +526,6 @@ ifnd_main_process(NCSCONTEXT info)
             m_IFND_LOG_API_L(IFSV_LOG_AMF_DISP_FAILURE,comp_type);
          }
       }
-#if 0
-   while (m_NCS_SEL_OBJ_SELECT(mbx_fd,&all_sel_obj,0,0,0) != -1)
-   {
-#endif
       /* process the IfSv Mail box */
       if (m_NCS_SEL_OBJ_ISSET(mbx_fd,&all_sel_obj))
       {        

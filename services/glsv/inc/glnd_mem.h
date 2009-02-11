@@ -163,14 +163,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RESOURCE_INFO)
 
-#if 0
-
-#define m_MMGR_ALLOC_GLND_CLIENT_RES_LIST       (*)m_NCS_MEM_ALLOC(sizeof(GLND_CLIENT_LIST_RESOURCE), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_GLND, \
-                                                NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LIST)
-
-#endif
 #define m_MMGR_ALLOC_GLND_CLIENT_RES_LIST       (GLND_CLIENT_LIST_RESOURCE*)m_NCS_MEM_ALLOC(sizeof(GLND_CLIENT_LIST_RESOURCE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \

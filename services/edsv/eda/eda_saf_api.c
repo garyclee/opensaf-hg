@@ -378,10 +378,6 @@ err2:
    /* return EDA_CB & hdl rec */
    ncshm_give_hdl(gl_eda_hdl);
 err1:
-#if 0
-   if(rc == SA_AIS_OK)
-      m_LOG_EDSV_AF(EDA_DISPATCH_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,1,__FILE__,__LINE__,dispatchFlags,evtHandle);
-#endif
    return rc;
 }
 
@@ -1242,9 +1238,6 @@ saEvtEventAllocate( SaEvtChannelHandleT   channelHandle,
     ** invoking process
     **/
    *o_eventHandle = evt_hdl_rec->event_hdl;
-#if 0
-   m_LOG_EDSV_AF(EDA_EVT_ALLOCATE_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0,*o_eventHandle);
-#endif
   /** Give all the handles that were
    ** taken.
    **/
@@ -1536,9 +1529,6 @@ saEvtEventAttributesSet( SaEvtEventHandleT              eventHandle,
    /* Give back the event handle */
     ncshm_give_hdl(eventHandle);
     ncshm_give_hdl(chan_hdl_rec->channel_hdl);
-#if 0
-    m_LOG_EDSV_AF(EDA_ATTRIBUTE_SET_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0,eventHandle);
-#endif
    return(SA_AIS_OK);
 }
 
@@ -1687,15 +1677,6 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
             return rc;
          }
 
-#if 0
-        /* Allocate memory and fill patterns into o_patternArray */
-        o_patternArray = edsv_copy_evt_pattern_array(evt_hdl_rec->pattern_array,&rc);
-        if(rc != SA_AIS_OK)
-        {
-           ncshm_give_hdl(eventHandle);
-           return rc;
-        }
-#endif
       } /*end else - evt_hdl_rec->parray->patterns number == 0 */
     }/* End if o_patternArray->patterns == NULL */
     else
@@ -1744,10 +1725,6 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
        if (evt_hdl_rec->evt_type & EDA_EVT_RECEIVED)
        {
            /** for now we'll use the eventHdl from hdl-mgr as the evtId **/
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-           if (NULL != evt_hdl_rec->evt_inst_list)
-              *o_eventId = evt_hdl_rec->evt_inst_list->del_evt_id;
-#endif   
            *o_eventId = evt_hdl_rec->del_evt_id;
        }
        else
@@ -1757,10 +1734,6 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
      }
        /* Release the event handle */
       ncshm_give_hdl(eventHandle);
-#if 0
-   if(rc == SA_AIS_OK)
-      m_LOG_EDSV_AF(EDA_ATTRIBUTE_GET_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,evt_hdl_rec->priority,__FILE__,__LINE__,0,eventHandle);
-#endif
 
    return(rc);
 }
@@ -1933,23 +1906,6 @@ saEvtEventDataGet( SaEvtEventHandleT   eventHandle,
       return SA_AIS_ERR_BAD_HANDLE;
    }
 
-#if 0 
-
-  /* NOTE: In the current form of 'B' spec, the event service should 
-     provide the buffer if eventData is NULL. But this is not possible,
-     because the eventData is defined to be of type void *, while it should
-     be void ** or accordingly. An errata has been introduced for
-     the same to return error. 
-     Currently SA_AIS_INVALID_PARAM is returned.
-   */
-
-   /* check if user has provided memory for the data */
-   if (eventData == NULL)
-   {
-      eventData = m_MMGR_ALLOC_EDSV_EVENT_DATA(evt_hdl_rec->event_data_size);
-      *eventDataSize = evt_hdl_rec->event_data_size;
-   }
-#endif
 
    /* Has Enough room been provided to return the data 
     */
@@ -1991,10 +1947,6 @@ saEvtEventDataGet( SaEvtEventHandleT   eventHandle,
    /** Give back the event handle 
     **/
    ncshm_give_hdl(eventHandle);
-#if 0
-   if(rc == SA_AIS_OK)
-      m_LOG_EDSV_AF(EDA_DATA_GET_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__, 0,eventHandle);
-#endif
      
    return rc;
 }
@@ -2065,12 +2017,6 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
    EDA_CLIENT_HDL_REC    *hdl_rec;
    EDSV_MSG              msg; 
    EDA_CB                *eda_cb = NULL;
-#if 0
-   MDS_SEND_PRIORITY_TYPE prio;
-#endif 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-   EDA_EVT_INST_REC      *evt_inst_rec; 
-#endif 
 
 
    /* Event data size should not be greater than SA_EVENT_DATA_MAX_SIZE */
@@ -2232,25 +2178,6 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
       }
    }
 
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-   /** Allocate an event instance now **/
-   if (NULL == (evt_inst_rec = eda_evt_inst_rec_add(&evt_hdl_rec)))
-   {
-      rc = SA_AIS_ERR_NO_RESOURCES;
-      m_LOG_EDSV_AF(EDA_EVT_PUBLISH_FAILURE,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,eventHandle);
-      m_NCS_UNLOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
-      ncshm_give_hdl(eventHandle);
-      ncshm_give_hdl(chan_hdl_rec->channel_hdl);
-      ncshm_give_hdl(hdl_rec->local_hdl);
-      ncshm_give_hdl(gl_eda_hdl);
-      return rc;
-   }
-
-   /* store the channel open id, where this event will be stored */
-   evt_inst_rec->parent_chan_hdl = chan_hdl_rec->channel_hdl;
-   evt_inst_rec->ret_evt_ch_oid  = chan_hdl_rec->eds_chan_open_id;
-   evt_inst_rec->pub_evt_id      = ++chan_hdl_rec->last_pub_evt_id;
-#endif 
    evt_hdl_rec->pub_evt_id      = ++chan_hdl_rec->last_pub_evt_id;
 
    /** UnLock EDA_CB
@@ -2272,18 +2199,6 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
       (uns32)evt_hdl_rec->event_data_size,
       evt_hdl_rec->evt_data);
 
-#if 0
-    
-    /** for now not Using event priority while doing MDS Send 
-    **  Have to take care of the event Priority if needed  
-    ** Figure out the MDS send priority as this will
-    ** be used by the EDS to assign IPC priorities. The EDS
-    ** shall trust the EDAs when it comes to priorities.
-    **/
-
-   prio = edsv_map_ais_prio_to_mds_snd_prio(evt_hdl_rec->priority);
-
-#endif 
 
   /** Send the message out to the EDS
    **/
@@ -2303,9 +2218,6 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
     evt_hdl_rec->evt_type |= EDA_EVT_PUBLISHED;
    
    /* Return the vent_id for this event */
-#if 0  /* CLEAN UNNECESSARY DATA STRUCTURE */
-    *o_eventId = evt_inst_rec->pub_evt_id;
-#endif
     *o_eventId = evt_hdl_rec->pub_evt_id;
 
    /** Give all the channels that have been 
@@ -2710,9 +2622,6 @@ saEvtEventRetentionTimeClear( SaEvtChannelHandleT  channelHandle,
    EDA_CLIENT_HDL_REC    *eda_hdl_rec = NULL;
    EDSV_MSG              msg;
    EDSV_MSG              *o_msg=NULL;
-#if 0
-   EDA_EVT_INST_REC      *evt_inst_rec;
-#endif
 
    /** Make sure that the eventId 
     ** passed in is valid.
@@ -2761,34 +2670,6 @@ saEvtEventRetentionTimeClear( SaEvtChannelHandleT  channelHandle,
       return rc;
    }
 
-#if 0 /* This is no longer Valid As the EvenID != Handle Manager Handle */
-   /** retrieve eda client hdl rec
-    **/
-   if (NULL == (evt_inst_rec = (EDA_EVT_INST_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, 
-         (uns32)eventId)))
-   {
-      rc = SA_AIS_ERR_NOT_EXIST;
-      m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,channelHandle);
-      ncshm_give_hdl(channelHandle);
-      ncshm_give_hdl(eda_hdl_rec->local_hdl);
-      ncshm_give_hdl(gl_eda_hdl);
-      return rc;
-   }
-
-   /** Make sue this event belongs to the channel 
-    ** that has been supplied.
-    **/
-   if (evt_inst_rec->parent_chan_hdl != channel_hdl_rec->channel_hdl)
-   {
-      rc = SA_AIS_ERR_NOT_EXIST; 
-      m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,channelHandle);
-      ncshm_give_hdl((uns32)eventId);
-      ncshm_give_hdl(channelHandle);
-      ncshm_give_hdl(eda_hdl_rec->local_hdl);
-      ncshm_give_hdl(gl_eda_hdl);
-      return rc;
-   }
-#endif
 
    /** Make sue this event belongs to the channel 
     ** that has been supplied.
@@ -2845,18 +2726,6 @@ saEvtEventRetentionTimeClear( SaEvtChannelHandleT  channelHandle,
       return rc;
    }
 
-#if 0
-   if (NCSCC_RC_SUCCESS != (rc = eda_mds_msg_async_send(
-                     eda_cb, &msg, MDS_SEND_PRIORITY_MEDIUM)))
-   {
-      m_LOG_EDSV_AF(EDA_EVT_RETENTION_TIME_CLEAR_FAILURE,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0,channelHandle);
-      rc = SA_AIS_ERR_TRY_AGAIN; 
-      ncshm_give_hdl(channelHandle);
-      ncshm_give_hdl(eda_hdl_rec->local_hdl);
-      ncshm_give_hdl(gl_eda_hdl);
-      return rc;
-   }
-#endif
     /** Make sure the EDS return status was SA_AIS_OK 
     **/
    if(o_msg)
@@ -2986,16 +2855,6 @@ saEvtLimitGet( SaEvtHandleT   evtHandle,
    limit_get_rsp = &(o_msg->info.api_resp_info.param.limit_get_rsp);
    if (limit_get_rsp)
    {
-#if 0 
-      /** Store the limits returned by EDS 
-       **/
-      /* Set the Event Service Limits */
-      eda_cb->max_chan = limit_get_rsp->max_chan;
-      eda_cb->max_evt_size = limit_get_rsp->max_evt_size;
-      eda_cb->max_ptrn_size = limit_get_rsp->max_ptrn_size;
-      eda_cb->max_num_ptrns = limit_get_rsp->max_num_ptrns;
-      eda_cb->max_ret_time = limit_get_rsp->max_ret_time;
-#endif
 
    if (limitId == SA_EVT_MAX_NUM_CHANNELS_ID)
       limitValue->uint64Value = limit_get_rsp->max_chan;

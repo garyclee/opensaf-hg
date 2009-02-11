@@ -101,16 +101,5 @@ typedef enum
                                             NCS_SERVICE_ID_EDA, \
                                             NCS_SERVICE_SUB_ID_EDA_SUBSC_REC)
 
-#if 0 /* CLEANUP OF UNNECESSARY DATA STRUCTURE */
-#define m_MMGR_ALLOC_EDA_EVT_INST_REC   (EDA_EVT_INST_REC *)m_NCS_MEM_ALLOC(sizeof(EDA_EVT_INST_REC), \
-                                            NCS_MEM_REGION_PERSISTENT, \
-                                            NCS_SERVICE_ID_EDA, \
-                                            NCS_SERVICE_SUB_ID_EDA_EVT_INST_REC)
-
-#define m_MMGR_FREE_EDA_EVT_INST_REC(p)  m_NCS_MEM_FREE(p, \
-                                            NCS_MEM_REGION_PERSISTENT, \
-                                            NCS_SERVICE_ID_EDA, \
-                                            NCS_SERVICE_SUB_ID_EDA_EVT_INST_REC)
-#endif 
 
 #endif /* !EDA_MEM_H */

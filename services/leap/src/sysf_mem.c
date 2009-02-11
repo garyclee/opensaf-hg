@@ -142,7 +142,6 @@ extern UB_POOL_MGR gl_ub_pool_mgr;
 #endif
 #endif
 
-/*IR000610064*/
 #if ((NCS_MMGR_DEBUG == 1) || (NCSSYSM_MEM_DBG_ENABLE == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
 struct ub_pool_mgr;
 EXTERN_C LEAPDLL_API struct ub_pool_mgr gl_ub_pool_mgr;
@@ -2122,7 +2121,6 @@ char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size)
     *ppb = ub;  /* inform caller of new head */
 
     /* -----------
-       IR00057988 : PM : 16/Feb/2005
        In buffers allocated from MDS-POOL, ub->start may not be zero. Hence, 
        the following line would be incorrect
               ub->start += PAYLOAD_BUF_SIZE. 

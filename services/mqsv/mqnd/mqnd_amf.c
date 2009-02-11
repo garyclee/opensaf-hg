@@ -38,13 +38,6 @@
 
 
 #include "mqnd.h"
-#if 0
-/* B Spec AMF Changes */
-void
-mqnd_saf_readiness_state_callback (SaInvocationT invocation,
-                                                                     const SaNameT *compName,
-                                                                     SaAmfReadinessStateT readinessState);
-#endif
 
 static void mqnd_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName,
                                                  SaAmfHealthcheckKeyT *checkType);
@@ -61,65 +54,6 @@ static void mqnd_amf_CSI_set_callback (SaInvocationT invocation,
                                        SaAmfHAStateT haState,
                                         SaAmfCSIDescriptorT csiDescriptor);
 
-#if 0
-/* B Spec AMF Changes */
-/****************************************************************************
- * Name          : mqnd_saf_readiness_state_callback
- *
- * Description   : This function SAF callback function which will be called 
- *                 when there is any changein the readiness state. This 
- *                 attribute will help the serive part to know about its 
- *                 readiness state so that it could service its clients.
- *                
- *
- * Arguments     : invocation     - This parameter designated a particular 
- *                                  invocation of this callback function. The 
- *                                  invoke process return invocation when it 
- *                                  responds to the Avilability Management 
- *                                  FrameWork using the saAmfResponse() 
- *                                  function.
- *                 compName       - A pointer to the name of the component 
- *                                  whose readiness stae the Availability 
- *                                  Management Framework is setting.
- *                 readinessState - The Readiness state of the component, 
- *                                  identified by compName, that is being 
- *                                  set by the Availability Management 
- *                                  Framework. 
- *
- * Return Values : None
- *
- * Notes         : None.
- *****************************************************************************/
-
-void
-mqnd_saf_readiness_state_callback (SaInvocationT invocation,
-                                   const SaNameT *compName,
-                                   SaAmfReadinessStateT readinessState)
-{
-     MQND_CB  *mqnd_cb;
-     SaAisErrorT error = SA_AIS_OK;
-   uns32    cb_hdl = m_MQND_GET_HDL( );
-
-   /* Get the CB from the handle */
-   mqnd_cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, cb_hdl);
-     
-     if(!mqnd_cb)
-     {
-        m_LOG_MQND_HEADLINE(MQND_CB_HDL_TAKE_FAILED, NCSFL_SEV_ERROR);
-        return;
-     }
-     
-     /* set the state */
-     mqnd_cb->ready_state = readinessState;
-     if(saAmfResponse(mqnd_cb->amf_hdl,invocation, error)!=SA_AIS_OK)
-        m_LOG_MQND_HEADLINE(MQND_AMF_RESPONSE_FAILED,NCSFL_SEV_ERROR); 
-     
-     /* giveup the handle */
-     ncshm_give_hdl(cb_hdl);
-     
-     return;
-}
-#endif
 
 
 

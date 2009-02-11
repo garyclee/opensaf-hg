@@ -170,29 +170,6 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to perform lib destroy on RDA");
     }
 
-#if 0
-   fp = fopen(m_DTS_SLOT_ID_FILE, "r");
-   if(fp == NULL)
-   {
-       dts_amf_finalize(inst);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to open "OSAF_SYSCONFDIR "slotid for read");
-   }
-
-   if(fscanf(fp, "%d", &init_role) != 1)
-   {
-       fclose(fp);
-       dts_amf_finalize(inst);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to retrieve role from " OSAF_SYSCONFDIR "slotid");
-   }
-   fclose(fp);
-
-   if(init_role == 1)      
-      inst->ha_state = SA_AMF_HA_ACTIVE;
-   else
-   {
-      inst->ha_state = SA_AMF_HA_STANDBY;
-   }
-#endif
    inst->in_sync = TRUE; 
  
    /* Generate the pidfilename. Also assert for string buffer overflow */

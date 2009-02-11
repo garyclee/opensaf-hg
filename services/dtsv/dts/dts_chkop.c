@@ -722,14 +722,14 @@ static uns32  dtsv_mbcsv_process_err_ind(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
    case NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP:
       m_LOG_DTS_CHKOP(DTS_WARM_SYNC_CMPLT_EXP);
-      /* IR 84239 - Don't send saAmfErrorReport, let the next warm sync take
+      /* Don't send saAmfErrorReport, let the next warm sync take
        * care of any inconsistencies
        */
       break;
 
    case NCS_MBCSV_WARM_SYNC_TMR_EXP:
       m_LOG_DTS_CHKOP(DTS_WARM_SYNC_TIMER_EXP);
-      /* IR 84239 - Don't send saAmfErrorReport, let the next warm sync take
+      /* Don't send saAmfErrorReport, let the next warm sync take
        * care of any inconsistencies
        */
       break;

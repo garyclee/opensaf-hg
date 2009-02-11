@@ -178,7 +178,7 @@ mas_do_evt( MAB_MSG* msg)
         /* process the OAA down event */
         case MAB_OAA_DOWN_EVT:
             status = mas_oaa_down_process(msg);
-            m_MMGR_FREE_MAB_MSG(msg); /* fix for the bug IR00082326*/
+            m_MMGR_FREE_MAB_MSG(msg); 
             return status;
         break; 
 
@@ -1520,7 +1520,7 @@ uns32 mas_info_request(MAB_MSG* msg)
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
-            /* MAHESH - RESPONSE to MAA is missing */ 
+            /* RESPONSE to MAA is missing */ 
 
             ncsmib_arg_free_resources(mib_req,TRUE);
             m_MMGR_FREE_MAB_MSG(msg);
@@ -2321,7 +2321,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
 
             m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_NEW_MAS_FLTR_FAILED);
             m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAS_RCV_X_FLTR_REG_REQ);
@@ -2343,7 +2343,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr); 
             m_MMGR_FREE_MAB_MSG(msg);
 
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
 
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -2383,7 +2383,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             m_MMGR_FREE_MAB_MSG(msg);
             m_LOG_MAB_HEADLINE(NCSFL_SEV_CRITICAL, MAB_NEW_MAS_FLTR_FAILED);
             
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
 
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -2392,7 +2392,7 @@ uns32 mas_info_register(MAB_MSG* msg)
     /* Default filter addition */ 
     if(reg_req->fltr.type == NCSMAB_FLTR_DEFAULT)
     {
-        /* below if is added to find duplicate fltr registration when vdest is different(IR00060853) */
+        /* below if is added to find duplicate fltr registration when vdest is different */
         if ((tbl_rec->dfltr_regd == TRUE)&&
                         (m_NCS_MEMCMP(&tbl_rec->dfltr.vcard,&msg->fr_card, sizeof(msg->fr_card) != 0)))
         {
@@ -2453,7 +2453,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
 
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
 
@@ -2482,7 +2482,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
 
             m_MMGR_FREE_MAB_MSG(msg);
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /*  Inform STANDBY MAS about SYNC DONE */ 
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
 
@@ -2495,7 +2495,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
 
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
             
             return NCSCC_RC_SUCCESS;
         }
@@ -2508,16 +2508,16 @@ uns32 mas_info_register(MAB_MSG* msg)
         if (status != NCSCC_RC_SUCCESS)
         {
             /* log the error */ 
-            if (status == NCSCC_RC_DUPLICATE_FLTR)  /* IR00060853 */
+            if (status == NCSCC_RC_DUPLICATE_FLTR)  
             {
-                m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
+                m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
             }
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
             m_MMGR_FREE_MAB_MSG(msg);
             
-            /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+            /* Inform STANDBY MAS about SYNC DONE */ 
 
             return status; 
         }
@@ -3053,10 +3053,10 @@ uns32 mas_info_register(MAB_MSG* msg)
             if (status != NCSCC_RC_SUCCESS)
             {
                 /* log the error */
-                if (status == NCSCC_RC_DUPLICATE_FLTR)  /* IR00060853 */
+                if (status == NCSCC_RC_DUPLICATE_FLTR)  
                 {
-                    m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
-                    m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  /* IR00060853 */
+                    m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
+                    m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  
                 }
                 m_MAS_FLTR_FREE(new_fltr);
 
@@ -3119,10 +3119,10 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 if (status != NCSCC_RC_SUCCESS)
                                 {
                                     /* log the failure */ 
-                                    if (status == NCSCC_RC_DUPLICATE_FLTR)  /* IR00060853 */
+                                    if (status == NCSCC_RC_DUPLICATE_FLTR)  
                                     {
-                                        m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
-                                        m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  /* IR00060853 */
+                                        m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
+                                        m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  
                                     }
                                     m_MAS_FLTR_FREE(new_fltr);
 
@@ -3132,7 +3132,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                     mas_mab_fltr_indices_cleanup(&msg->data.data.reg.fltr);
                                     m_MMGR_FREE_MAB_MSG(msg);
 
-                                    /* MAHESH Inform STANDBY MAS about SYNC DONE */ 
+                                    /* Inform STANDBY MAS about SYNC DONE */ 
 
                                     return NCSCC_RC_FAILURE; 
                                 }
@@ -3159,8 +3159,8 @@ uns32 mas_info_register(MAB_MSG* msg)
             {
                 /* ignore this filter, because there could be only one here... */
                 /* log the failure */
-                m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
-                m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  /* IR00060853 */
+                m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
+                m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  
                 m_MAS_FLTR_FREE(new_fltr);
 
                 ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
@@ -3218,8 +3218,8 @@ uns32 mas_info_register(MAB_MSG* msg)
                             tbl_rec->fltr_list->ref_cnt++;
 
                             /* log the failure */
-                            m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
-                             m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  /* IR00060853 */
+                            m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
+                             m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid, tbl_rec->tbl_id, tbl_rec->fltr_list, new_fltr);  
 
                             /* free the newly created filter */
                             m_MAS_FLTR_FREE(new_fltr);
@@ -3966,7 +3966,7 @@ mas_exact_fltr_process(MAB_MSG      *msg,
        return NCSCC_RC_FAILURE;
     }
 
-/* Following is a cut and paste, I am not sure why this is required... Mahesh */     
+/* Following is a cut and paste, I am not sure why this is required...  */     
 #if (NCS_MAS_RED == 1)
     if ((fltr != NULL) &&
         (inst->red.ha_state == NCS_APP_AMF_HA_STATE_STANDBY))
@@ -4025,9 +4025,9 @@ mas_exact_fltr_process(MAB_MSG      *msg,
         {
             mas_exact_fltr_almighty_inform(inst, tbl_rec, new_fltr, MAS_FLTR_REG_OVERLAP);
             /* log the error */
-            m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); /* IR00060853 */
+            m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST); 
             m_LOG_MAB_OVERLAPPING_FLTRS(NCSFL_SEV_NOTICE, inst->vrid,
-                                        tbl_rec->tbl_id, mas_fltr, new_fltr);  /* IR00060853 */
+                                        tbl_rec->tbl_id, mas_fltr, new_fltr);  
             return NCSCC_RC_FAILURE; 
         }
 
@@ -4128,8 +4128,8 @@ mab_fltrid_list_add(MAS_FLTR_IDS    *fltr_ids,
     {
         /* there can be only one active fltr-id for this filter */ 
         if (fltr_ids->active_fltr != NULL) 
-            return NCSCC_RC_DUPLICATE_FLTR; /* IR00060853 */
-            /*return NCSCC_RC_FAILURE; */ /* IR00060853 */
+            return NCSCC_RC_DUPLICATE_FLTR; 
+            /*return NCSCC_RC_FAILURE; */ 
 
         /* allocate the memory for the new node */ 
         fltr_ids->active_fltr = m_MMGR_ALLOC_FLTR_ANCHOR_NODE;
@@ -4261,14 +4261,6 @@ mas_fltr_ids_adjust(MAS_FLTR_IDS    *fltr_list,
         case SA_AMF_HA_ACTIVE:
         {
             /* printf("\nmas_fltr_ids_adjust(): SA_AMF_HA_ACTIVE"); */
-#if 0
-            /* get the node from SBY list, and add to the active list */ 
-            if (fltr_list->active_fltr != NULL)
-            {
-                printf("\n Change role to active is received, even before servcing the RED_DOWN of Active VDESTi: %llu", i_anchor); 
-                /* return NCSCC_RC_FAILURE;  */
-            }
-#endif
             prev = NULL; 
             tmp_node = fltr_list->fltr_id_list; 
             while (tmp_node)
@@ -4322,9 +4314,6 @@ mas_fltr_ids_adjust(MAS_FLTR_IDS    *fltr_list,
         default: 
             return NCSCC_RC_FAILURE; 
     } /* end of switch() */
-#if 0            
-    printf("\nmas_fltr_ids_adjust(): active_fltr is not null %s, anchor_value: %llu, role: %d, fltr_list->active_fltr->anchor: %llu",i_anchor, i_role, fltr_list->active_fltr->anchor); 
-#endif
 
     return NCSCC_RC_FAILURE; 
 }

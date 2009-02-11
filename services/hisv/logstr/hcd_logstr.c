@@ -77,23 +77,6 @@ const NCSFL_STR hcd_fwprog_set[] =
    /* Firmware progress event logging messages */
    { HCD_SE_FWPROG_BOOT_SUCCESS,       "Completed System Boot Process",           },
    { HCD_SE_FWPROG_NODE_INIT_SUCCESS,  "Node Initialization successful"           },
-#if 0
-   { HCD_SE_FWPROG_SYSINIT_SUCCESS,    "Firmware SysInit Success",                },
-   { HCD_SE_FWPROG_OPSYS_BOOT_PROG,    "Starting operating system boot process"   },
-   { HCD_SE_FWPROG_SYS_BOOT_PROG,      "Completed System Boot Process"            },
-   { HCD_SE_FWPROG_HPM_INIT_SUCCESS,   "HAPS[HPM] Initialization successful"      },
-   { HCD_SE_FWPROG_HLFM_INIT_SUCCESS,  "HAPS[HLFM] Initialization successful"     },
-   { HCD_SE_FWPROG_SW_INIT_SUCCESS,    "HAPS[SW Node Director] Initialization successful"     },
-   { HCD_SE_FWPROG_LHC_DMN_INIT_SUCCESS,   "HAPS[LHCp Daemon] Initialization successful"      },
-   { HCD_SE_FWPROG_LHCD_RSP_INIT_SUCCESS,  "HAPS[LHC Responder] Initialization successful"    },
-   { HCD_SE_FWPROG_NW_SCRIPT_INIT_SUCCESS, "HAPS[N/W script] Initialization successful"       },
-   { HCD_SE_FWPROG_DRBD_DEV_INIT_SUCCESS,  "HAPS[DRBD Device] Initialization successful"      },
-   { HCD_SE_FWPROG_DRBD_MNT_INIT_SUCCESS,  "HAPS[DRBD Mounting] Initialization successful"    },
-   { HCD_SE_FWPROG_TIPC_INIT_SUCCESS,      "NCS[TIPC] Initialization successful"   },
-   { HCD_SE_FWPROG_DTSV_INIT_SUCCESS,      "NCS[DTSV] Initialization successful"  },
-   { HCD_SE_FWPROG_MASV_INIT_SUCCESS,      "NCS[MASV] Initialization successful"  },
-   { HCD_SE_FWPROG_PSSV_INIT_SUCCESS,      "NCS[PSSV] Initialization successful"  },
-#endif /* 0 */
    { 0,0 }
 };
 

@@ -95,10 +95,6 @@ avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *avm_cb);
 
 extern uns32
 avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns8 *filename);
-#if 0
-extern uns32 
-avm_fund_send_mib_req(AVM_CB_T *avm_cb, NCSMIB_ARG *mib_arg);
-#endif
 
 extern uns32
 avm_fund_send_mib_req(AVM_ENT_INFO_T *ent_info, NCSMIB_ARG *mib_arg);
@@ -117,10 +113,6 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb);
 
 uns32 avm_fund_resp_func (NCSMIB_ARG *resp);
 
-#if 0 /* remove later - JPL */
-extern int
-avm_fund_get_scxb_ipaddr(FUND_USR_BUF *usr_buf);
-#endif
 #endif /*__NCS_AVM_FUND_H__*/
 
 

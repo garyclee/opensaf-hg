@@ -119,32 +119,6 @@ get_entity_type_from_text(char *str)
    return type;
 }
 
-#if 0 /* This is not required now as entity type is added in deployment BOM also  */
-/*****************************************************************************
-  PROCEDURE NAME: bam_get_enttype_fr_entname
-  DESCRIPTION   : 
-  ARGUMENTS     :
-                  
-  RETURNS       : SUCCESS or FAILURE
-  NOTES         : To get the enum safHpiEntityType from the entity name
-*****************************************************************************/
-static uns32
-bam_get_enttype_fr_entname(NCS_BAM_CB *bam_cb, char *ent_name)
-{
-   NCS_HW_ENT_TYPE_DESC *tmp;
-
-   tmp = bam_cb->hw_entity_list;
-   while(tmp != NULL)
-   {
-      if(m_NCS_STRNCMP(tmp->entity_name, ent_name, NCS_MAX_INDEX_LEN) == 0)
-         return tmp->entity_type;
-
-      tmp = tmp->next;
-   }
-   return 0;
-}
-
-#endif
 
 /*****************************************************************************
   PROCEDURE NAME: ent_path_from_type_location
@@ -215,81 +189,6 @@ ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
    return ;
 }
 
-#if 0 /* This is now moved and owned by AVM */
-
-/*****************************************************************************
-  PROCEDURE NAME: bam_is_entity_valid
-  DESCRIPTION   : 
-  ARGUMENTS     :
-                  
-  RETURNS       : SUCCESS or FAILURE
-  NOTES         : To validate the deployment entity with the configuration
-                  from the ValidationConfig file.
-*****************************************************************************/
-
-NCS_BOOL bam_is_entity_valid(BAM_ENT_DEPLOY_DESC *deploy_ent, char *parent_ent)
-{
-   NCS_HW_ENT_TYPE_DESC    *ent_type = NULL;
-   uns8                 i,j;
-   NCS_BAM_CB           *bam_cb = NULL;
-
-   if( (!parent_ent))
-   {
-      return TRUE;
-   }
-   else if( strlen(parent_ent) == 0 )
-   {
-      return TRUE;
-   }
-
-   if(!deploy_ent)
-      return FALSE; /* assert */
-      
-   /* get the entity_type from the tree */
-
-   if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
-   {
-      m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
-      return FALSE;
-   }
-
-   ent_type = (NCS_HW_ENT_TYPE_DESC *)
-              ncs_patricia_tree_get(&bam_cb->entity_desc_anchor,
-                                     (uns8 *)deploy_ent->ent_name);
-   if(ent_type == NULL)
-   {
-      return FALSE;
-   }
-
-   if(ent_type->num_possible_parents == 0)
-      return TRUE;
-
-   for(i = 0; i < ent_type->num_possible_parents; i++)
-   {
-      if(m_NCS_STRCMP( parent_ent, (ent_type->location_range[i].parent_ent))
-         == 0 )
-      {
-         for (j=0; j < MAX_POSSIBLE_LOC_RANGES; j++)
-         {
-            if( ((ent_type->location_range[i].valid_location.min[j]) == 0) &&
-                ((ent_type->location_range[i].valid_location.max[j]) == 0) )
-            {
-               break;
-            }
-            if( (deploy_ent->location >=
-                 ent_type->location_range[i].valid_location.min[j]) &&
-               (deploy_ent->location <=
-               ent_type->location_range[i].valid_location.max[j] ) )
-            {
-               return TRUE;
-            }
-         } /* end loop possible location within that parent */
-      }
-   } /* END loop for max number of possible parents */
-   return FALSE;
-}
-
-#endif
 
 /*****************************************************************************
   PROCEDURE NAME: bam_clear_and_destroy_deploy_tree

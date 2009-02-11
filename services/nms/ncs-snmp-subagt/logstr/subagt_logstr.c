@@ -62,23 +62,8 @@ const NCSFL_STR subagt_log_hdln_str[] =
    { SNMPSUBAGT_MIB_PARAM_VAL_NULL,       "Subagt MIB Param Val is NULL"},
    { SNMPSUBAGT_OBJ_DETAILS_NULL,         "Subagt Object details are  NULL"},
    { SNMPSUBAGT_MBX_REG_DEREG_NULL,       "Subagt Mailbox init/deinit process() received a NULL string"},
-#if 0
-   { SNMPSUBAGT_AMF_INIT_SUCCESS,         "Subagt AMF interface initialization success"},
-   { SNMPSUBAGT_EDA_INIT_SUCCESS,         "Subagt EDA interface initialization success"},
-   { SNMPSUBAGT_DTA_INIT_SUCCESS,         "Subagt DTSv interface initialization success"},
-   { SNMPSUBAGT_AGENT_INIT_SUCCESS,       "Subagt Agentx Master Agent interface initialized successfully"},
-   { SNMPSUBAGT_MAC_INIT_SUCCESS,         "Subagt MAC interface initialization success ..."},
-   { SNMPSUBAGT_INIT_SUCCESS,             "Subagt intialized successfully, waiting for the requests..."},
-#endif
    { SNMPSUBAGT_LOCK_TAKEN,               "Subagt CB is LOCKed"},
    { SNMPSUBAGT_LOCK_RELEASED,            "Subagt CB is UNLOCKed"},
-#if 0
-   { SNMPSUBAGT_AMF_FINALIZE_SUCCESS,     "Subagt AMF interface finalization success"},
-   { SNMPSUBAGT_EDA_FINALIZE_SUCCESS,     "Subagt EDA interface finalization success"},
-   { SNMPSUBAGT_DTA_FINALIZE_SUCCESS,     "Subagt DTSv interface finalization success"},
-   { SNMPSUBAGT_AGENT_FINALIZE_SUCCESS,   "Subagt Agentx Master Agent interface finalization successfully"},
-   { SNMPSUBAGT_MAC_FINALIZE_SUCCESS,     "Subagt MAC interface finalization success ..."},
-#endif
    { SNMPSUBAGT_AMF_HLTH_CHECK_STARTED,   "Subagt Health Check Started"},  
    { SNMPSUBAGT_AMF_HLTH_CHECK_STOPPED,   "Subagt Health Check Stopped"},  
    { SNMPSUBAGT_AMF_HLTH_CHECK_STARTED_ALREADY, "Subagt Health Check already started"},
@@ -88,12 +73,6 @@ const NCSFL_STR subagt_log_hdln_str[] =
    { SNMPSUBAGT_AGT_MONITOR_FAILED,        "SNMP Agent Monitoring did NOT kicked off..."},
    { SNMPSUBAGT_AGT_NOT_MONITORED,        "SNMP Agent is NOT Monitored by the SubAgent..."},
    { SNMPSUBAGT_AGT_MONITORED,            "SNMP Agent is being Monitored by the SubAgent..."},
-#if 0
-   { SNMPSUBAGT_AMF_INIT_RETRY,            "AMF Initialisation is in retry mode"},
-   { SNMPSUBAGT_AMF_COMP_REG_RETRY,        "Subagt component registration with AMF is in retry mode"},
-   { SNMPSUBAGT_AMF_COMP_REG_COMPLETED,    "Subagt component registration with AMF is completed"},
-   { SNMPSUBAGT_EDA_INIT_RETRY,            "EDA Initialisation is in retry mode"},
-#endif
    { SNMPSUBAGT_JUMP_TO_NEXT_COLUMN,       "Jumping to next column"},
    {0,0}
 };
@@ -192,10 +171,10 @@ const NCSFL_STR subagt_log_func_entry_str[] =
     { SNMPSUBAGT_FUNC_ENTRY_AGT_MONITOR,           "snmpsubagt_agt_monitor()"},
     { SNMPSUBAGT_FUNC_ENTRY_AGT_PING,              "snmpsubagt_agt_ping()"}, 
     { SNMPSUBAGT_FUNC_ENTRY_AGT_MONITOR_STOP,      "snmpsubagt_agt_monitor_stop()"},/* 68*/
-    { SNMPSUBAGT_FUNC_ENTRY_AMF_COMPONENTIZE,      "subagt_amf_componentize()"}, /* IR00061409 */
-    { SNMPSUBAGT_FUNC_ENTRY_ACTIVE_ACTIVE_PROCESS,       "snmpsubagt_ACTIVE_ACTIVE_process"}, /* IR00061409 */
-    { SNMPSUBAGT_FUNC_ENTRY_SIGUSR1_SIGNAL,        "subagt_process_sig_usr1_signal"}, /* IR00061409 */
-    { SNMPSUBAGT_FUNC_ENTRY_RDA_INIT_ROLE_GET,     "subagt_rda_init_role_get"}, /* IR00061409 */
+    { SNMPSUBAGT_FUNC_ENTRY_AMF_COMPONENTIZE,      "subagt_amf_componentize()"}, 
+    { SNMPSUBAGT_FUNC_ENTRY_ACTIVE_ACTIVE_PROCESS,       "snmpsubagt_ACTIVE_ACTIVE_process"}, 
+    { SNMPSUBAGT_FUNC_ENTRY_SIGUSR1_SIGNAL,        "subagt_process_sig_usr1_signal"}, 
+    { SNMPSUBAGT_FUNC_ENTRY_RDA_INIT_ROLE_GET,     "subagt_rda_init_role_get"}, 
     {0,0}
 };
 const NCSFL_STR subagt_mem_fail_str[] =
@@ -294,9 +273,9 @@ const NCSFL_STR subagt_log_errors_str[] =
     { SNMPSUBAGT_TMR_FAIL,"Timer create failed."},
     { SNMPSUBAGT_MIB_REGISTER_FAIL,"Application MIBs register failed."},
     { SNMPSUBAGT_PENDING_REGISTER_FAIL,"pending registrations failed."},
-    { SNMPSUBAGT_RDA_INIT_ROLE_GET_FAILED, "subagent rda Init role get failed"}, /* IR00061409 */
-    { PCS_RDA_REQUEST_FAIL, "pcs rda request failed"}, /* IR00061409 */
-    { SNMPSUBAGT_TIME_TO_WAIT_DISCREPANCY, "NCS SSA: snmp_select_info() returned more time to block than ping interval."}, /* IR00079744 */
+    { SNMPSUBAGT_RDA_INIT_ROLE_GET_FAILED, "subagent rda Init role get failed"}, 
+    { PCS_RDA_REQUEST_FAIL, "pcs rda request failed"}, 
+    { SNMPSUBAGT_TIME_TO_WAIT_DISCREPANCY, "NCS SSA: snmp_select_info() returned more time to block than ping interval."}, 
     {0,0}
 };
 

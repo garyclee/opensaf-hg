@@ -528,7 +528,7 @@ avm_updt_evt_q(AVM_CB_T   *cb,
       if(node->evt_id == event_id)
       {
          /* node->is_proc != bool would be sufficient but to
-            avoid any further crashes IR00060863 */
+            avoid any further crashes  */
 
          /* If active has already sent ack, dequeue the event */
          if( ((TRUE == node->is_proc) && (FALSE == bool)) || 

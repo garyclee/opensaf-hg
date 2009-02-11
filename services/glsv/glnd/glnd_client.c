@@ -528,10 +528,6 @@ uns32  glnd_client_node_resource_lock_req_del(GLND_CLIENT_INFO *client_info,
      lock_req_list->prev->next = lock_req_list->next;
   if(lock_req_list->next)
      lock_req_list->next->prev = lock_req_list->prev;
-#if 0
-  lock_req_list->next = NULL;
-  m_MMGR_FREE_GLND_CLIENT_RES_LOCK_LIST_REQ(lock_req_list);
-#endif
   m_MMGR_FREE_GLND_CLIENT_RES_LOCK_LIST_REQ(lock_req_list);
   return NCSCC_RC_SUCCESS;
 }

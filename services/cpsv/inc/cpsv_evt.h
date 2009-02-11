@@ -73,13 +73,6 @@ typedef enum cpa_evt_type
 
    CPA_EVT_ND2A_CKPT_DATA_RSP,
 
-#if 0
-
-   CPA_EVT_ND2A_CKPT_WRITE_RSP,
-   CPA_EVT_ND2A_CKPT_OVWRITE_RSP,
-   CPA_EVT_ND2A_CKPT_READ_RSP,
-
-#endif
 
    CPA_EVT_ND2A_CKPT_SYNC_RSP,
    CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND,   
@@ -141,10 +134,6 @@ typedef enum cpnd_evt_type
 
    CPND_EVT_ND2ND_CKPT_SYNC_REQ,      /* rqst from ND to ND(A) to sync ckpt*/
    CPND_EVT_ND2ND_CKPT_ACTIVE_SYNC,        /* CPND(A) sync updts to All the Ckpts */
-#if 0
-   CPND_EVT_ND2ND_ACTIVE_SYNC_RSP,    /* Rsp's to CPND(A) sync updts */
-   CPND_EVT_ND2ND_CKPT_SYNC_RSP,      /* Rsp's to ND sync req from ND(A) */
-#endif
 /* Section Create Stuff.... */
 
    CPSV_EVT_ND2ND_CKPT_SECT_CREATE_REQ,
@@ -259,14 +248,6 @@ typedef struct cpsv_mds_info
    V_DEST_RL       role;
 }CPSV_MDS_INFO;
 
-#if 0
-/* Structure for passing VER info to components */
-typedef struct cpsv_ver_info
-{
-    MDS_CLIENT_MSG_FORMAT_VER   i_msg_fmt_ver;   
-    
-}CPSV_VER_INFO;
-#endif
 
 
 /* Struct used for convaying MDS dest info of a ckpt */
@@ -717,11 +698,6 @@ typedef struct cpa_evt
 
       CPSV_ND2A_DATA_ACCESS_RSP sec_data_rsp;
 
-#if 0
-      CPSV_ND2A_DATA_ACCESS_RSP  sec_write_rsp;
-      CPSV_ND2A_DATA_ACCESS_RSP  sec_read_rsp;
-      CPSV_ND2A_DATA_ACCESS_RSP  sec_ovwrit_rsp;
-#endif
 
       CPSV_ND2A_SYNC_RSP         sync_rsp;
       CPSV_SAERR_INFO            readackRsp;
@@ -828,14 +804,6 @@ typedef struct cpnd_evt
       CPSV_ND2A_DATA_ACCESS_RSP    ckpt_nd2nd_data_rsp;
       CPSV_A2ND_SECT_ITER_GETNEXT  getnext_req;
       CPSV_ND2A_SECT_ITER_GETNEXT_RSP ckpt_nd2nd_getnext_rsp;
-#if 0
-
-      CPSV_CKPT_ACCESS             ckpt_nd2nd_write;
-      CPSV_ND2A_DATA_ACCESS_RSP    ckpt_nd2nd_write_rsp;
-
-      CPSV_SAERR_INFO              ckpt_nd2nd_ovwrite_rsp;
-
-#endif 
       
 
       /* mapping for local and sync */
@@ -882,9 +850,6 @@ typedef struct cpd_evt
       CPSV_CKPT_DEST_INFO     arep_set;
       CPD_TMR_INFO            tmr_info;
       CPSV_MDS_INFO           mds_info;
-      #if 0
-      CPSV_VER_INFO            ver_info;
-      #endif
     
    }info;
 }CPD_EVT;

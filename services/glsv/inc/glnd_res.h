@@ -18,20 +18,6 @@
 #ifndef GLND_RES_H
 #define GLND_RES_H
 
-#if 0
-
-/* typedef enums */
-typedef enum
-{
-   GLND_RESOURCE_NOT_INITIALISED = 0,
-   GLND_RESOURCE_ACTIVE_MASTER,
-   GLND_RESOURCE_ACTIVE_NON_MASTER,
-   GLND_RESOURCE_ELECTION_IN_PROGESS
-   GLND_RESOURCE_MASTER_RESTARTED,
-   GLND_RESOURCE_MASTER_OPERATIONAL,
-   GLND_RESOURCE_ELECTION_COMPLETED
-}GLND_RESOURCE_STATUS;
-#endif
 
 
 /* main resource data structure */
@@ -55,9 +41,6 @@ typedef struct glnd_resource_info_tag
 /* prototypes */
 
 EXTERN_C GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT res_name);
-#if 0
-EXTERN_C GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb,SaLckResourceIdT res_id); 
-#endif
 EXTERN_C GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb, 
                                                     SaLckResourceIdT res_id,
                                                     SaNameT resource_name,

@@ -372,7 +372,7 @@ uns32 dts_svc_destroy(DTS_DESTROY *destroy)
 #endif
    
     /* Now walk through the sequencing buffer and free all the messages */
-    /* IR 82773 - Clear sequencing buffer only if DTS is Act */
+    /* Clear sequencing buffer only if DTS is Act */
     if ((NCS_SNMP_TRUE == inst->g_policy.g_enable_seq) &&
         (inst->ha_state == SA_AMF_HA_ACTIVE))
     {
@@ -456,7 +456,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
     while (service != NULL)
     {
         /* Setup key for new search */
-        /* IR 60411 - Network order key added */
+        /* Network order key added */
         nt_key.node      = service->ntwk_key.node;
         nt_key.ss_svc_id = service->ntwk_key.ss_svc_id;
 
@@ -529,7 +529,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
         /*Now remove entry from patricia tree and free the memory */
         if((service->v_cd_list == NULL) || (service->dta_count == 0))
         {
-           /* IR 61143 - No need of policy handles */
+           /* No need of policy handles */
            /*ncshm_destroy_hdl(NCS_SERVICE_ID_DTSV, service->svc_hdl);*/
            ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)service);
            if(service != NULL)

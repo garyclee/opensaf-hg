@@ -211,17 +211,6 @@ static uns32 mqd_lib_init(void)
    }
 
    /* CLM Initialize */
-#if 0  
-   rc = mqd_clm_init(pMqd);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      mqd_mbcsv_finalize(pMqd);
-      mqd_mds_shut(pMqd);
-      saAmfFinalize(pMqd->amf_hdl);
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
-#endif
 
    /* Initialize the MIBs scalar objects */
    m_NCS_OS_STRCPY(pMqd->safSpecVer.value,"B.03.01");
@@ -444,10 +433,6 @@ static void mqd_main_process(NCSCONTEXT hdl)
    NCS_SEL_OBJ_SET      selObjSet;
    NCS_SEL_OBJ          mbxFd, highSelObj, ncsAmfSelObj, ncsMBCSvSelObj;   
    MQSV_EVT             *pEvt = NULL;
-#if 0
-   MQD_A2S_MSG          *msg=0;
-   SaSelectionObjectT   mbcsv_sel_obj;
-#endif
 #if 1 /* Required for NCS 2.0 */
    SaAisErrorT          err = SA_AIS_OK;      
    NCS_MBCSV_ARG        mbcsv_arg;
@@ -476,16 +461,6 @@ static void mqd_main_process(NCSCONTEXT hdl)
 
    m_SET_FD_IN_SEL_OBJ((uns32)amfSelObj, ncsAmfSelObj);
    m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);  
-#if 0 
-   err = saClmSelectionObjectGet(pMqd->clm_hdl, &clmSelObj);
-   if(SA_AIS_OK != err) {
-      ncshm_give_hdl(pMqd->hdl);
-      return;
-   }
-
-   m_SET_FD_IN_SEL_OBJ((uns32)clmSelObj, ncsClmSelObj);
-   m_NCS_SEL_OBJ_SET(ncsClmSelObj, &selObjSet); 
-#endif
    m_SET_FD_IN_SEL_OBJ((uns32)pMqd->mbcsv_sel_obj,ncsMBCSvSelObj);
    m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj,&selObjSet);
 
@@ -527,15 +502,6 @@ static void mqd_main_process(NCSCONTEXT hdl)
           {
             /* Log Error TBD*/
           }
-          #if 0
-          if(pMqd->ha_state == SA_AMF_HA_STANDBY)
-          {
-            if(NULL != (msg= (MQD_A2S_MSG *)m_NCS_IPC_NON_BLOCK_RECEIVE(&mbx,msg)))
-              {
-               mqd_process_a2s_event(pMqd,msg);/* TBD */
-              }
-          }
-         #endif /* Not needed as callback processing takes care of this */
       }
 
 
@@ -811,59 +777,3 @@ static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 \*****************************************************************************/
-#if 0
-static uns32 mqd_clm_init(MQD_CB *pMqd)
-{
-   SaClmHandleT clmHandle;
-   SaClmCallbacksT clmCallbacks;
-   SaVersionT version;
-   SaAisErrorT err = SA_AIS_OK;
-  
-   m_MQSV_GET_AMF_VER(version);
-
-   m_NCS_MEMSET(&clmCallbacks, 0, sizeof(SaClmCallbacksT));
-   clmCallbacks.saClmClusterNodeGetCallback = NULL; 
-   clmCallbacks.saClmClusterTrackCallback = mqd_clm_cluster_track_callback;
-
-   err = saClmInitialize(&clmHandle, &clmCallbacks, &version);
-   if (err != SA_AIS_OK) {
-      /* Log this error */
-      return NCSCC_RC_FAILURE;
-   }
-
-   /* Store the CLM handle in the CB */
-   pMqd->clm_hdl = clmHandle;
-
-   err = saClmClusterTrack(clmHandle, SA_TRACK_CHANGES_ONLY, NULL);
-   if (err != SA_AIS_OK) {
-      /* Log this error */
-      saClmFinalize(clmHandle);
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/****************************************************************************\
- PROCEDURE NAME : mqd_clm_shut
-
- DESCRIPTION    : This routines does CLM finalization
-
- ARGUMENTS      : pMqd  - MQD Control block
-
- RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-
-\*****************************************************************************/
-static uns32  mqd_clm_shut(MQD_CB *pMqd)
-{
-   SaAisErrorT err = SA_AIS_OK;
-   
-   err = saClmFinalize(pMqd->clm_hdl);
-   if (err != SA_AIS_OK) {
-      /* Log this error */
-      return NCSCC_RC_FAILURE;
-   }
-
-   return NCSCC_RC_SUCCESS;
-}
-#endif

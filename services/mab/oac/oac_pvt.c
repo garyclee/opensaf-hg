@@ -552,13 +552,6 @@ uns32 oac_fltr_unreg_xmit(OAC_TBL* inst,uns32 fltr_id,uns32 tbl_id)
     msg.data.data.unreg.tbl_id = tbl_id;
 
     /* Send the message */
-#if 0
-    code = m_NCS_MDS_SEND(inst->mds_hdl,
-      NCSMDS_SVC_ID_OAC,
-      &msg,
-      inst->mas_vcard,
-      NCSMDS_SVC_ID_MAS, NULL);
-#endif
     code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC, NCSMDS_SVC_ID_MAS,
                        inst->mas_vcard);
   } 
@@ -624,9 +617,6 @@ void oac_sync_fltrs_with_mas(OAC_TBL* inst )
                 */
                 m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
                 msg.fr_svc                = 0;
-#if 0
-                msg.fr_anc                = inst->my_anc;
-#endif
                 msg.op                    = MAB_MAS_REG_HDLR;
                 msg.data.data.reg.fltr_id = fltr->fltr_id;
                 msg.data.data.reg.tbl_id  = tbl_rec->tbl_id;
@@ -779,13 +769,6 @@ static uns32 oac_mib_response(NCSMIB_ARG* rsp)
     ncshm_give_hdl(hm_hdl);
     m_OAC_UNLK(&inst->lock);
     m_LOG_MAB_LOCK(MAB_LK_OAC_UNLOCKED,&inst->lock);
-#if 0
-    code = m_NCS_MDS_SEND(inst->mds_hdl,
-                         NCSMDS_SVC_ID_OAC,
-                         &msg,
-                         dst_vcard,
-                        (SS_SVC_ID)dst_svc_id, NULL);
-#endif
     code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC, dst_svc_id, dst_vcard);
     if (code != NCSCC_RC_SUCCESS)
       {
@@ -987,14 +970,6 @@ uns32 oac_mib_request(MAB_MSG* msg)
     mib_req->i_op = m_NCSMIB_REQ_TO_RSP(mib_req->i_op);
     mib_req->rsp.i_status = NCSCC_RC_NO_SUCH_TBL;
 
-    /* Send the message */
-#if 0
-      code = m_NCS_MDS_SEND(inst->mds_hdl,
-        NCSMDS_SVC_ID_OAC,
-        msg,
-        dst_vcard,
-        (SS_SVC_ID)dst_svc_id, NULL);
-#endif
       code = mab_mds_snd(inst->mds_hdl, msg, NCSMDS_SVC_ID_OAC, dst_svc_id, dst_vcard);
       if (code != NCSCC_RC_SUCCESS)
       {
@@ -1056,11 +1031,11 @@ uns32 oac_mib_request(MAB_MSG* msg)
     mib_req->i_mib_key = 0;
     mib_req->i_usr_key = 0;
 
-    if(ncsmib_arg_free_resources(mib_req,TRUE) != NCSCC_RC_SUCCESS) /* Fix for the bug IR00082719 */
+    if(ncsmib_arg_free_resources(mib_req,TRUE) != NCSCC_RC_SUCCESS) 
     {
        m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, 
                          MAB_HDLN_OAC_MIBARG_FREE_FAILED); 
-       m_MMGR_FREE_NCSMIB_ARG(mib_req); /* Fix for the bug IR00082719 */
+       m_MMGR_FREE_NCSMIB_ARG(mib_req); 
        m_MAB_DBG_TRACE("\noac_mib_request():left.");
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
@@ -1228,10 +1203,6 @@ uns32 oac_mab_response(MAB_MSG* msg)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); 
       }
 
-  #if 0
-    rsp->i_usr_key = ncs_decode_32bit(&stream);
-    rsp->i_rsp_fnc = (NCSMIB_FNC)ncs_decode_32bit(&stream);
-  #endif
 
     rsp->i_usr_key = ncs_decode_64bit(&stream);
     if(4 == sizeof(void *))
@@ -1474,13 +1445,12 @@ uns32 oac_handle_svc_mds_evt(MAB_MSG * msg)
    
    m_MAB_DBG_TRACE("\noac_handle_svc_mds_evt():entered.");
    
-   /* Fix for the bug IR00061338 */
    /*inst = (OAC_TBL*)msg->yr_hdl;*/
-   inst = (OAC_TBL*)m_OAC_VALIDATE_HDL((uns32)(long)msg->yr_hdl); /* IR00061338 */
+   inst = (OAC_TBL*)m_OAC_VALIDATE_HDL((uns32)(long)msg->yr_hdl); 
    if (inst == NULL)
    {
       m_LOG_MAB_NO_CB("oac_handle_svc_mds_evt()"); 
-      m_MMGR_FREE_MAB_MSG(msg); /* IR00061338 & IR00061413 */
+      m_MMGR_FREE_MAB_MSG(msg); 
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
    }
    
@@ -1497,12 +1467,12 @@ uns32 oac_handle_svc_mds_evt(MAB_MSG * msg)
       (msg->fr_svc != NCSMDS_SVC_ID_OAC))
    {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_DEBUG, MAB_HDLN_IGNORING_NON_PRIMARY_MDS_SVC_EVT);
-      m_MMGR_FREE_MAB_MSG(msg); /* IR00061338 */
+      m_MMGR_FREE_MAB_MSG(msg); 
 
       m_OAC_UNLK(&inst->lock);
       m_LOG_MAB_LOCK(MAB_LK_OAC_UNLOCKED,&inst->lock);
 
-      ncshm_give_hdl(inst->hm_hdl); /* IR00061338 */
+      ncshm_give_hdl(inst->hm_hdl); 
       return NCSCC_RC_SUCCESS;
    }
 
@@ -1704,7 +1674,7 @@ uns32 oac_handle_svc_mds_evt(MAB_MSG * msg)
 
    m_MAB_DBG_TRACE("\noac_sa_mib_request():left.");
 
-   ncshm_give_hdl(inst->hm_hdl); /* IR00061338 */
+   ncshm_give_hdl(inst->hm_hdl); 
 
    return NCSCC_RC_SUCCESS;
 }

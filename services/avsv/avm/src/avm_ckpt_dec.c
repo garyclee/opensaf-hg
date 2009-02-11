@@ -985,11 +985,6 @@ avm_decode_ckpt_ent_upgd_state_chg(AVM_CB_T           *cb,
    /* decode dhcp state */
    status = ncs_edu_exec(&cb->edu_hdl, avm_edp_ckpt_msg_ent, &dec->i_uba, 
                           EDP_OP_TYPE_DEC, &temp_ent_info, &ederror, 2, 2, 26);
-#if 0
-   /* decode dhcp state */
-   status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_ent, &dec->i_uba, 
-                          EDP_OP_TYPE_DEC, &temp_ent_info, &ederror, dec->i_peer_version, 2, 2, 25);
-#endif
 
    if(NCSCC_RC_SUCCESS != status)
    {

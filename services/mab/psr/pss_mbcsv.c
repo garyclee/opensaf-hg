@@ -677,7 +677,6 @@ uns32 pss_enc_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
             m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ENC_PCN_FAIL, wbreq->pcn);
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
          }
-         /* Fix for IR00090889  */
          pend_wbreq_cnt++;
       }
    }
@@ -1143,7 +1142,7 @@ uns32 pss_ckpt_decode_async_update(NCS_MBCSV_CB_ARG *cbk_arg)
       return rc;
    }
 
-   /* Fixed as a part of IR00085797: Release the Handle, as we need to take this handle again
+   /*  Release the Handle, as we need to take this handle again
       in pss_do_evt() call */
    ncshm_give_hdl(cbk_arg->i_client_hdl);
 
@@ -1650,7 +1649,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
 
    m_NCS_MEMSET(&mab_msg, '\0', sizeof(mab_msg));
 
-   /* Fixed as a part of IR00085797: Now we will be passing PWE handle rather than its pointer */
+   /*  Now we will be passing PWE handle rather than its pointer */
    mab_msg.yr_hdl = NCS_INT64_TO_PTR_CAST(cbk_arg->i_client_hdl);
 
    type = (PSS_CKPT_DATA_TYPE)cbk_arg->info.decode.i_reo_type;
@@ -1662,7 +1661,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
       mab_msg.fr_card = data->ckpt_data.tbl_bind.fr_card;
       /* Memory ownership is transferred here. */
       mab_msg.data.data.oac_pss_tbl_bind.pcn_list = data->ckpt_data.tbl_bind.pcn_list;
-      /* rc = pss_do_evt(&mab_msg, FALSE);*/ /* Fix for IR 83832, to ignore zero MDS_DEST error case */
+      /* rc = pss_do_evt(&mab_msg, FALSE);*/ /* to ignore zero MDS_DEST error case */
       pss_do_evt(&mab_msg, FALSE);
       break;
 
@@ -1670,7 +1669,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
       mab_msg.op = MAB_PSS_TBL_UNBIND;
       mab_msg.fr_card = data->ckpt_data.tbl_unbind.fr_card;
       mab_msg.data.data.oac_pss_tbl_unbind.tbl_id = data->ckpt_data.tbl_unbind.tbl_id;
-      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /* Fix for IR 83832, to ignore zero MDS_DEST error case */
+      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /*  to ignore zero MDS_DEST error case */
       pss_do_evt(&mab_msg, FALSE);
       break;
 
@@ -1679,7 +1678,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
       mab_msg.fr_svc = NCSMDS_SVC_ID_OAC;
       mab_msg.fr_card = data->ckpt_data.oaa_down.fr_card;
       mab_msg.data.data.pss_mds_svc_evt.change = NCSMDS_DOWN;
-      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /* Fix for IR 83832, to ignore zero MDS_DEST error case */
+      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /* to ignore zero MDS_DEST error case */
       pss_do_evt(&mab_msg, FALSE);
       break;
 
@@ -1692,7 +1691,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
       mab_msg.op = MAB_PSS_BAM_CONF_DONE;
       /* Memory ownership is transferred here. */
       mab_msg.data.data.bam_conf_done.pcn_list.pcn = data->ckpt_data.bam_conf_done.pcn_list.pcn;
-      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /* Fix for IR 83832, to ignore zero MDS_DEST error case */
+      /*rc = pss_do_evt(&mab_msg, FALSE);*/ /*  to ignore zero MDS_DEST error case */
       pss_do_evt(&mab_msg, FALSE);
       break;
 
@@ -2415,7 +2414,6 @@ void pss_free_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *ssn_info)
 
    if(ssn_info->is_warmboot_ssn == TRUE)
    {
-      /* Fix for bugID IR00082515 */
       pss_free_re_wbreq_info(&ssn_info->info.info2.wb_req);
    }
    if(ssn_info->pcn != NULL)

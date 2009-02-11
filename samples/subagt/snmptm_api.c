@@ -253,7 +253,6 @@ uns32 snmptm_destroy(uns32 cb_hdl)
       snmptm_eda_finalize(snmptm);
    }
    
-   /*  fix for the bug IR00060851 - start */
    {
       NCSVDA_INFO     vda_info;
       uns32 status;
@@ -275,7 +274,7 @@ uns32 snmptm_destroy(uns32 cb_hdl)
           /* log that VDEST destroy failed */
           return status;
       }
-   }/*  fix for the bug IR00060851 - end */
+   }
 
    m_SNMPTM_UNLOCK(&snmptm->snmptm_cb_lock, NCS_LOCK_WRITE);
   

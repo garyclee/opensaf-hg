@@ -2031,7 +2031,7 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
             {   
                su_admin = TRUE;
             }else if ((avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) &&
-                   (su_admin = FALSE) && 
+                   (su_admin == FALSE) && 
                    (i_su->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_NWAY))
             {
                for (curr_susi = i_su->list_of_susi;

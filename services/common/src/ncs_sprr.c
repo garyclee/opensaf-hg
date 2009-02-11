@@ -49,19 +49,11 @@
 #define m_NCS_SPRR_DBG_SINK(x,y)  m_NCS_CONS_PRINTF("SPRR:%s\n", y),m_LEAP_DBG_SINK(x)
 #endif
 
-#if 0 /* FIXME: Include me in LEAP logging */
-#define m_NCSSPRR_TRACE_ARG2(x,y)  m_NCS_CONS_PRINTF(x,y)
-#define m_NCSSPRR_TRACE_ARG3(x,y,z)  m_NCS_CONS_PRINTF(x,y,z)
-#define m_NCSSPRR_TRACE_ARG4(x,y,z,w)  m_NCS_CONS_PRINTF(x,y,z,w)
-#define m_NCSSPRR_TRACE_ARG5(x,y,z,a,b)  m_NCS_CONS_PRINTF(x,y,z,a,b)
-#define m_NCSSPRR_TRACE_ARG6(x,y,z,a,b,c)  m_NCS_CONS_PRINTF(x,y,z,a,b,c)
-#else
 #define m_NCSSPRR_TRACE_ARG2(x,y)  
 #define m_NCSSPRR_TRACE_ARG3(x,y,z)  
 #define m_NCSSPRR_TRACE_ARG4(x,y,z,w)  
 #define m_NCSSPRR_TRACE_ARG5(x,y,z,a,b)  
 #define m_NCSSPRR_TRACE_ARG6(x,y,z,a,b,c)  
-#endif
 /****** MMGR  alloc and free macros *****/
 #define m_MMGR_SPRR_SUBSVC_ID(x)   (6000+(x))
 typedef enum{
@@ -304,9 +296,6 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
       if (splr_entry == NULL) 
       {
          /* There is no such entry. Reject this request */
-         /* IR00082905 
-         rc = m_NCS_SPRR_DBG_SINK(NCSCC_RC_NO_OBJECT,"SPLR entry not found");
-         */
          rc = NCSCC_RC_NO_OBJECT;
          goto quit;
       }
@@ -382,12 +371,10 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
 
    
    /*---STEP : Validate the "environment-id" given and copy it */
-   /* Fix IR60248 */
    if (info->i_environment_id > NCSMDS_MAX_PWES) 
    {
       return m_NCS_SPRR_DBG_SINK(NCSCC_RC_FAILURE, "Invalid environment id");
    }
-   /*End  Fix IR60248 */
    spir_key.environment_id = info->i_environment_id;
 
    
@@ -404,9 +391,6 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
    if (splr_entry == NULL)
    {
       /* Service provider library has not registered */
-      /* IR00082905 
-      rc = m_NCS_SPRR_DBG_SINK(NCSCC_RC_FAILURE, "Unknown service-provider");
-      */
       rc = NCSCC_RC_FAILURE;
       goto quit;
    }

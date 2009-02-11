@@ -55,13 +55,6 @@
 
 /* From targsvcs/common/inc */
 #include "mds_papi.h"
-#if 0
-#include "sysf_mds.h" 
-
-#if (NCS_MDS == 1)
-#include "mds_inc.h"
-#endif
-#endif
 
 /* From /base/products/rms/inc */
 #if (NCS_RMS == 1)

@@ -236,13 +236,6 @@ static uns32 ncs_main_set_log_dir(void);
 static uns32 ncs_main_create_log_dir(char *path);
 static uns32 mainget_node_id(uns32 *node_id);
 static uns32 ncs_set_config_root(void);
-/* IR00009586 */
-#if 0
-static uns32 mainget_node_id(uns32 shelf, uns32 slot, uns32 *node_id);
-static uns32 mainget_shelf_id(uns32 *shelf_id);
-static uns32 mainget_slot_id(uns32 *slot_id);
-static uns32 mainget_cluster_id(uns32 *cluster_id);
-#endif
 static uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
 static uns32 ncs_non_core_agents_startup(int argc, char *argv[]);
 static void ncs_get_sys_params_arg(int i_argc,
@@ -278,7 +271,7 @@ static NCS_MAIN_PUB_CB gl_ncs_main_pub_cb;
 char  *gl_pargv[NCS_MAIN_MAX_INPUT];
 uns32 gl_pargc = 0;
 
-EXTERN_C NCS_BOOL dts_sync_up_flag; /* For IR00058388 */
+EXTERN_C NCS_BOOL dts_sync_up_flag; 
 
 /* Agent specific LOCKs */
 #define m_NCS_AGENT_LOCK                                 \
@@ -292,9 +285,6 @@ EXTERN_C NCS_BOOL dts_sync_up_flag; /* For IR00058388 */
 #define m_NCS_AGENT_UNLOCK m_NCS_UNLOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE)
 
 
-#if 0
-static uns32 ir14448_delay = 100;
-#endif
 #define NCS_LOG_DIR_NAME_MAXLEN 256
 char gl_ncs_log_dir[NCS_LOG_DIR_NAME_MAXLEN]; /* To store the path for logging directory */
 
@@ -1061,12 +1051,6 @@ void ncs_leap_shutdown()
       return;
    }
 
-#if 0
-   /* FIXME:Need to remove the following two lines, once the dbgsinks issues in SPRR 
-      get resolved. */
-   m_NCS_AGENT_UNLOCK;
-   return;
-#endif
 
    m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
@@ -1113,12 +1097,6 @@ void ncs_mds_shutdown()
       return;
    }
    
-#if 0
-   /* FIXME:Need to remove the following two lines, once the dbgsinks issues in SPRR 
-      get resolved. */
-   m_NCS_AGENT_UNLOCK;
-   return;
-#endif
 
    m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
@@ -1159,12 +1137,6 @@ void ncs_dta_shutdown()
       return;
    }
 
-#if 0
-   /* FIXME:Need to remove the following two lines, once the dbgsinks issues in SPRR 
-      get resolved. */
-   m_NCS_AGENT_UNLOCK;
-   return;
-#endif
 
    m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
@@ -1201,12 +1173,6 @@ void ncs_oac_shutdown()
       m_NCS_AGENT_UNLOCK;
       return;
    }
-
-#if 0
-   /* FIXME:Need to remove the following two lines, once the dbgsinks issues in SPRR get resolved. */
-   m_NCS_AGENT_UNLOCK;
-   return;
-#endif
 
    /* STEP: Check if any "OAC" has been created on ADEST-PWE1. This is
             required because the NCSADA_GET_HDLS does not have a 
@@ -1277,7 +1243,7 @@ unsigned int ncs_core_agents_shutdown()
 
    /*** Shutdown basic services ***/
    ncs_oac_shutdown();
-   /*usleep(1000); */ /* Workaround for IR00061371 */
+   /*usleep(1000); */ 
    ncs_dta_shutdown();
    ncs_mds_shutdown();
    ncs_leap_shutdown();
@@ -1286,44 +1252,6 @@ unsigned int ncs_core_agents_shutdown()
    return (NCSCC_RC_SUCCESS);
 }
 
-#if 0
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_set_node_id
-
-\***************************************************************************/
-void ncs_set_node_id(int argc, char *argv[])
-{
-   uns32   node_id;
-   char    *p_field;
-   uns32   rc_dummy;
-   /* SUB STEP : get node-id */
-   /* VINAY: If node-id is set in the env variable, use it. Else get it from NODE_ID */
-   if ( m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_ENV_NODE_ID") )
-       node_id = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_ENV_NODE_ID"));
-   else
-   {
-      if ((argc == 0) || (argv == NULL))
-         return;
-         
-      p_field = ncs_util_search_argv_list(argc, argv, "NODE_ID=");
-      if (p_field == NULL)
-      {
-         NCSMAINPUB_TRACE1_ARG1("ERROR:Problem in node_id argument\n");
-         rc_dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-      if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1)
-      {
-         NCSMAINPUB_TRACE1_ARG1("ERROR:Problem in node_id argument\n");
-         rc_dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-   }
-
-   NCSMAINPUB_DBG_TRACE1_ARG(NCS_LOG_INFO,"NCS:NODE_ID=%d\n", node_id);
-
-   gl_ncs_main_pub_cb.my_nodeid = node_id;
-}
-#endif
 
 /***************************************************************************\
 
@@ -1397,120 +1325,6 @@ try_again:
    return(0);
 }
 
-#if 0
-uns32 mainget_slot_id(uns32 *slot_id)
-{
-   FILE *fp;
-   char get_word[256];
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   char *tmp;
-   
-#ifdef __NCSINC_LINUX__
-#if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-   tmp = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_SIM_SLOT_ID");
-   if (tmp != NULL)
-   {
-       m_NCS_DBG_PRINTF("\nNCS: Reading slot_id(%s) from environment var.\n",tmp);
-       *slot_id = atoi(tmp);
-       return NCSCC_RC_SUCCESS;
-   }
-#else
-   USE(tmp);
-#endif
-   d_len = strlen(ncs_config_root);
-   f_len = strlen("/slot_id");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-       m_NCS_CONS_PRINTF("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* Hack ncs_config_root to construct path */
-   sprintf(ncs_config_root + d_len, "%s", "/slot_id");
-   fp = fopen(ncs_config_root,"r");
-   /* Reverse hack ncs_config_root to original value*/
-   ncs_config_root[d_len] = 0;
-#else
-   /** Windows **/
-   fp = fopen("c:\\ncs\\slot_id","r");   
-#endif
-   if (fp == NULL)
-   {
-      m_NCS_CONS_PRINTF("\nNCS: Couldn't open %s/slot_id \n", ncs_config_root);
-      return NCSCC_RC_FAILURE;
-   }
-   do
-   {   
-      file_get_word(&fp,get_word);      
-      if ((*slot_id = atoi(get_word)) == -1)
-      {
-         res = NCSCC_RC_FAILURE;
-         break;
-      }
-      fclose(fp);
-
-   } while(0);
-
-   return(res);
-}
-
-
-uns32 mainget_shelf_id(uns32 *shelf_id)
-{
-   FILE *fp;
-   char get_word[256];
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   char *tmp;
-
-#ifdef __NCSINC_LINUX__
-#if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-   tmp = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_SIM_SHELF_ID");
-   if (tmp != NULL)
-   {
-       m_NCS_DBG_PRINTF("\nNCS: Reading shelf_id(%s) from environment var.\n",tmp);
-       *shelf_id = atoi(tmp);
-       return NCSCC_RC_SUCCESS;
-   }
-#else
-   USE(tmp);
-#endif
-   d_len = strlen(ncs_config_root);
-   f_len = strlen("/shelf_id");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-       m_NCS_CONS_PRINTF("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* Hack ncs_config_root to construct path */
-   sprintf(ncs_config_root + d_len, "%s", "/shelf_id");
-   fp = fopen(ncs_config_root,"r");
-   /* Reverse hack ncs_config_root to original value*/
-   ncs_config_root[d_len] = 0;
-#else
-   fp = fopen("c:\\ncs\\shelf_id","r");
-#endif
-   if (fp == NULL)
-   {
-      m_NCS_CONS_PRINTF("\nNCS: Couldn't open %s/shelf_id \n", ncs_config_root);
-      return NCSCC_RC_FAILURE;
-   }
-   do
-   {   
-      file_get_word(&fp,get_word);
-      
-      if ((*shelf_id = atoi(get_word)) == -1)
-      {
-         res = NCSCC_RC_FAILURE;
-         break;
-      }
-      fclose(fp);
-
-   } while(0);
-
-   return(res);
-}
-#endif
 
 
 uns32 mainget_node_id(uns32 *node_id)
@@ -1545,9 +1359,6 @@ uns32 mainget_node_id(uns32 *node_id)
 
 
    /* LSB changes. Pick nodeid from OSAF_LOCALSTATEDIR */
-#if 0 
-   fp = fopen(ncs_config_root,"r");
-#endif
 
    fp = fopen(NODE_ID_FILE,"r");
 
@@ -1559,19 +1370,12 @@ uns32 mainget_node_id(uns32 *node_id)
    if (fp == NULL)
    {
       res = NCSCC_RC_FAILURE;
-   /* IR00009586 */  
-#if 0
-      m_NCS_CONS_PRINTF("\nNCS: Couldn't open %s/node_id. Will use shelf & slot to get node_id \n", ncs_config_root);
-  
-      *node_id = ((shelf <<16) | slot);
-#endif
    } else
    {
       do
       {   
          file_get_word(&fp,get_word);
           
-         /* IR00009586 */
          if (sscanf((const char *)&get_word,"%x",node_id)!= 1)
          { 
              res = NCSCC_RC_FAILURE;
@@ -1585,64 +1389,6 @@ uns32 mainget_node_id(uns32 *node_id)
    return (res);
 }
 
-/* IR00009586 */
-#if 0
-uns32 mainget_cluster_id(uns32 *cluster_id)
-{
-   FILE *fp;
-   char get_word[256];
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   char *tmp;
-
-#ifdef __NCSINC_LINUX__
-#if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-   tmp = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_SIM_CLUSTER_ID");
-   if (tmp != NULL)
-   {       
-      *cluster_id = atoi(tmp);
-      return NCSCC_RC_SUCCESS;
-   }
-#else
-   USE(tmp);
-#endif
-   d_len = strlen(ncs_config_root);
-   f_len = strlen("/cluster_id");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-       m_NCS_CONS_PRINTF("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* Hack ncs_config_root to construct path */
-   sprintf(ncs_config_root + d_len, "%s", "/cluster_id");
-   fp = fopen(ncs_config_root,"r");
-   /* Reverse hack ncs_config_root to original value*/
-   ncs_config_root[d_len] = 0;
-#else
-   fp = fopen("c:\\ncs\\cluster_id","r");
-#endif
-   if (fp == NULL)
-   {
-      /* Set to default value '1' */
-      *cluster_id = 1;
-      return NCSCC_RC_SUCCESS;
-   }
-   do
-   {   
-      file_get_word(&fp,get_word);
-      
-      if ((*cluster_id = atoi(get_word)) == -1)
-      {
-         res = NCSCC_RC_FAILURE;
-         break;
-      }
-      fclose(fp);
-
-   } while(0);
-
-   return(res);
-}
-#endif
 
 /* Fetchs the chassis type string */
 uns32
@@ -1727,65 +1473,6 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    return(res);
 }
 
-#if 0
-uns32 mainget_ifindex(uns32 *ifindex)
-{
-   FILE *fp;
-   char get_word[256];
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   char *tmp;
-
-#ifdef __NCSINC_LINUX__
-#if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-   tmp = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_SIM_MDS_IFINDEX");
-   if (tmp != NULL)
-   {
-       m_NCS_DBG_PRINTF("\nNCS: Reading mds_ifindex(%s) from environment var.\n", tmp);
-       *ifindex = atoi(tmp);
-       return NCSCC_RC_SUCCESS;
-   }
-#else
-   USE(tmp);
-#endif
-   d_len = strlen(ncs_config_root);
-   f_len = strlen("/mds_ifindex");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-       m_NCS_CONS_PRINTF("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* Hack ncs_config_root to construct path */
-   sprintf(ncs_config_root + d_len, "%s", "/mds_ifindex");
-   fp = fopen(ncs_config_root,"r");
-   /* Reverse hack ncs_config_root to original value*/
-   ncs_config_root[d_len] = 0;
-#else
-   fp = fopen("c:\\ncs\\mds_ifindex","r");
-#endif
-   if (fp == NULL)
-   {
-      m_NCS_CONS_PRINTF("\nNCS: Couldn't open %s/mds_ifindex. Will default to 1\n", ncs_config_root);
-      return NCSCC_RC_FAILURE;
-   }
-   do
-   {   
-      file_get_word(&fp,get_word);
-      
-      if ((*ifindex = atoi(get_word)) == -1)
-      {
-         res = NCSCC_RC_FAILURE;
-         break;
-      }
-      fclose(fp);
-
-   } while(0);
-
-   return(res);
-}
-
-#endif
-
 static uns32 ncs_set_config_root(void)
 {
    char *tmp;  
@@ -1830,22 +1517,6 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
       return NCSCC_RC_FAILURE;
    }
 
-   /* IR00009586 */  
-#if 0
-   if(mainget_slot_id(&sys_params->slot_id) != NCSCC_RC_SUCCESS)
-   {
-      /* m_NCS_NID_NOTIFY(NID_NCS_GET_SLOT_ID_FAILED); */
-       m_NCS_CONS_PRINTF("Not able to get the SLOT ID\n");
-      return(NCSCC_RC_FAILURE);
-   }
-
-   if(mainget_shelf_id(&sys_params->shelf_id) != NCSCC_RC_SUCCESS)
-   {
-      /* m_NCS_NID_NOTIFY(NID_NCS_GET_SHELF_ID_FAILED); */
-       m_NCS_CONS_PRINTF("Not able to get the SHELF ID\n");
-      return(NCSCC_RC_FAILURE);
-   }
-#endif
 
    if(mainget_node_id(&sys_params->node_id)!= NCSCC_RC_SUCCESS)
    {
@@ -1854,13 +1525,6 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
       return(NCSCC_RC_FAILURE);
    }
 
-   /* IR00009586 */
-#if 0 
-   if(mainget_cluster_id(&sys_params->cluster_id) != NCSCC_RC_SUCCESS)
-   {
-      sys_params->cluster_id = NCS_MAIN_DEF_CLUSTER_ID;
-   }
-#endif
       
    if ((tmp_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_PCON_ID")) != NULL)
    {
@@ -1897,36 +1561,6 @@ void ncs_get_sys_params_arg(int i_argc,
    /* Check   argv[argc-1] through argv[1] */
    for ( ; i_argc > 1; i_argc -- )
    {
- /*  IR00009586 */ 
-#if 0
-      p_field = strstr(i_argv[i_argc-1], "CLUSTER_ID=");
-      if (p_field != NULL)
-      {
-         if (sscanf(p_field + strlen("CLUSTER_ID="), "%d", &params.cluster_id) == 1)
-            sys_params->cluster_id = params.cluster_id;
-
-         continue;
-      }
-      else
-      p_field = strstr(i_argv[i_argc-1], "SHELF_ID=");
-      if (p_field != NULL)
-      {
-         if (sscanf(p_field + strlen("SHELF_ID="), "%d", &params.shelf_id) == 1)
-            sys_params->shelf_id = params.shelf_id;
-
-         continue;
-      }
-      else
-      p_field = strstr(i_argv[i_argc-1], "SLOT_ID=");
-      if (p_field != NULL)
-      {
-         if (sscanf(p_field + strlen("SLOT_ID="), "%d", &params.slot_id) == 1)
-            sys_params->slot_id = params.slot_id;
-
-         continue;
-      }
-      else
-#endif   
       p_field = strstr(i_argv[i_argc-1], "NODE_ID=");
       if (p_field != NULL)
       {
@@ -1961,7 +1595,6 @@ void ncs_get_sys_params_arg(int i_argc,
 
    gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
 
-   /* IR00009586 */
    if(m_NCS_GET_PHYINFO_FROM_NODE_ID(sys_params->node_id,&sys_params->shelf_id,
                               &sys_params->slot_id,&sub_slot_id)!= NCSCC_RC_SUCCESS)
    {
@@ -2155,7 +1788,6 @@ static uns32 ncs_main_create_log_dir(char *path)
 
   Notes         :  None.
 ******************************************************************************/
-/* IR00009586 */
 uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id, 
                                                  NCS_SUB_SLOT_ID i_sub_slot_id , NCS_NODE_ID *o_node_id)
 {
@@ -2185,7 +1817,6 @@ uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID 
 
   Notes         :  None.
 ******************************************************************************/
-/* IR00009586 */
 uns8 ncs_get_phyinfo_from_node_id( NCS_NODE_ID i_node_id , NCS_CHASSIS_ID *o_chassis_id, 
                                                NCS_PHY_SLOT_ID  *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
 {

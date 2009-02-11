@@ -2298,11 +2298,6 @@ uns32 ifsv_edp_ifsv_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 #endif
 
 #if (NCS_VIP == 1)
-#if 0
-            /* For IFA_VIPD_INFO_ADD_REQ */
-        {EDU_EXEC, ifsv_edp_ifsv_vip_hdl, 0, 0, EDU_EXIT,
-            (uns32)&((IFSV_EVT*)0)->info.vip_evt.info.ifaVipAdd.handle, 0, NULL},
-#endif
 
             /* For IFA_VIPD_INFO_ADD_REQ */
         {EDU_EXEC, ifsv_edp_ifa_vip_add, 0, 0, EDU_EXIT,

@@ -82,10 +82,6 @@ static uns32 dump_svc_per_node_buffer_log(DTS_CB  *inst, SVC_KEY *key, uns8 devi
 
 static void dtsv_populate_cirbuff_op_tbl_info(NCSMIB_TBL_INFO *pInfo);
 static void dtsv_populate_cirbuff_op_var_info(NCSMIB_VAR_INFO *pInfo);
-#if 0
-static void debug_dump(CIR_BUFFER *cir_buff, uns8 num);
-#endif
-
 /**************************************************************************
  Function: dtsv_cirbuff_op_table_register
  Purpose:  Circular Buffer Operation table register routine
@@ -396,7 +392,7 @@ static uns32 dump_per_node_buffer_log(DTS_CB  *inst, uns32 node_id, uns8 device)
    key.node = node_id;
    key.ss_svc_id = 0;
 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node   = m_NCS_OS_HTONL(node_id);
    nt_key.ss_svc_id = 0;
 
@@ -449,7 +445,7 @@ static uns32 dump_svc_per_node_buffer_log(DTS_CB  *inst, SVC_KEY *key, uns8 devi
    char                 file[250];
    SVC_KEY              nt_key;
 
-   /* IR 60411 - Network order key added */
+   /*  Network order key added */
    nt_key.node = m_NCS_OS_HTONL(key->node);
    nt_key.ss_svc_id = m_NCS_OS_HTONL(key->ss_svc_id);
  
@@ -785,16 +781,10 @@ uns32 dts_dump_to_cir_buffer (CIR_BUFFER *cir_buff, char *str)
     if ((cir_buff->cur_buff_offset + str_len) > cir_buff->part_size)
     {
         cir_buff->buff_part[cir_buff->cur_buff_num].status = FULL;
-#if 0
-        debug_dump(cir_buff, cir_buff->cur_buff_num);
-#endif
 
         if(++cir_buff->cur_buff_num >= NUM_BUFFS)
         {
             cir_buff->cur_buff_num = 0;
-#if 0
-            printf ("\n WRAPPED \n");
-#endif
         }
 
         /* We want to dump on new partition so do the basic initialization */
@@ -844,7 +834,7 @@ uns32 dts_buff_size_increased(CIR_BUFFER *cir_buff, uns32 new_size)
     if (cir_buff == NULL)
         return NCSCC_RC_FAILURE;
 
-    /* IR 59518 - Changes to allow SET on buffer size before having to 
+    /* Changes to allow SET on buffer size before having to 
      *            set log device to buffer first.
      */
     if (dts_cir_buff_set_default(cir_buff) != NCSCC_RC_SUCCESS)
@@ -894,7 +884,7 @@ uns32 dts_buff_size_decreased(CIR_BUFFER *cir_buff, uns32 new_size)
     if (cir_buff == NULL)
         return NCSCC_RC_FAILURE;
 
-    /* IR 59518 - Changes to allow SET on buffer size before having to 
+    /* Changes to allow SET on buffer size before having to 
      *            set log device to buffer first.
      */
     if (dts_cir_buff_set_default(cir_buff) != NCSCC_RC_SUCCESS)
@@ -1033,33 +1023,4 @@ uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff,
    return NCSCC_RC_SUCCESS;
 }
 
-#if 0
-/***************************************************************************
-* Debugging function.
-***************************************************************************/
-static void debug_dump(CIR_BUFFER *cir_buff, uns8 num)
-{
-    uns32    i;
-    FILE*    fh;
-    uns8     str[SYSF_FL_LOG_BUFF_SIZE];
-    uns8     *ptr;
-
-    ptr = cir_buff->buff_part[num].cir_buff_ptr;
-
-    if((fh= sysf_fopen("circular_buff_log.txt", "a+")) != NULL)
-    {   
-        sysf_fprintf(fh, "\n NEW PART \n");
-        
-        for (i = 0;i < cir_buff->buff_part[num].num_of_elements; i++)
-        {
-            m_NCS_STRCPY(str, ptr);
-            sysf_fprintf(fh,str);
-            ptr += (m_NCS_STRLEN(str) + 1);
-        }
-        
-        sysf_fclose(fh);
-    }
-
-}
-#endif
 

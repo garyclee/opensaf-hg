@@ -1463,7 +1463,7 @@ uns32 miblib_process_mib_op_req(NCSCONTEXT cb, NCSMIB_ARG* args)
         ret_code = miblib_process_getrow_nextrow(cb, args, 
            next_inst_id, &next_inst_id_len);
         /* Set the next inst_id pointer to the array on the stack */
-        if(ret_code == NCSCC_RC_SUCCESS) /* Fix for the bug IR00083690 */
+        if(ret_code == NCSCC_RC_SUCCESS) 
         {
            args->rsp.info.nextrow_rsp.i_next.i_inst_ids = next_inst_id;
            args->rsp.info.nextrow_rsp.i_next.i_inst_len = next_inst_id_len;
@@ -1532,7 +1532,7 @@ CALL_RESP:
         io_get_rsp->i_param_val.i_length = 0;
         io_get_rsp->i_param_val.info.i_oct = NULL;
         break;
-    case NCSMIB_OP_REQ_NEXTROW: /* Fix for the bug IR00083690 */
+    case NCSMIB_OP_REQ_NEXTROW:
         args->rsp.info.nextrow_rsp.i_next.i_inst_ids = NULL; 
         args->rsp.info.nextrow_rsp.i_next.i_inst_len = 0;
         break;

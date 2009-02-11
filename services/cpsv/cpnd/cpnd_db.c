@@ -470,10 +470,6 @@ uns32 cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id)
 
    if ( cp_node->replica_info.n_secs == 0)
    {
-#if 0
-      m_LOG_CPND_FCL(CPND_REPLICA_HAS_NO_SECTIONS,CPND_FC_GENERIC,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
-      __FILE__,__LINE__); 
-#endif
       return NCSCC_RC_FAILURE;
    }
    

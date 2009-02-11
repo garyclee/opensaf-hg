@@ -318,8 +318,4 @@ EXTERN_C void cpd_clm_cluster_track_cb(const SaClmClusterNotificationBufferT *no
          SaUint32T numberOfMembers, SaAisErrorT error); 
 
 EXTERN_C void cpd_ckpt_tree_node_destroy(CPD_CB *cb);
-#if 0
-EXTERN_C void cpd_ckpt_reflist_del(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,CPSV_CPND_DEST_INFO  *dest_list);
-EXTERN_C uns32 cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest);
-#endif
 #endif

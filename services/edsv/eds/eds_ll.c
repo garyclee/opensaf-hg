@@ -136,9 +136,6 @@ static uns32
 eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec)
 {
 
-#if 0
-   SUBSC_REC  *save_p = NULL;
-#endif
 
    /* Sanity check */
    if ((copen_rec == NULL) ||
@@ -159,13 +156,6 @@ eds_add_subrec_entry(CHAN_OPEN_REC *copen_rec, SUBSC_REC *subrec)
      copen_rec->subsc_rec_tail = subrec ; 
       
     
-#if 0   /* Stack Implementation of the subscriber records */
-   save_p = copen_rec->subsc_rec;           /* Save current root subrec */
-   copen_rec->subsc_rec = subrec;           /* Attach new subrec to root if it is the first node */
-   copen_rec->subsc_rec->next = save_p;     /* Attach to new root */
-   if (save_p)                              /* If there was a root record.. */
-      save_p->prev = copen_rec->subsc_rec;  /* ..back-link it to new root */
-#endif 
 
 
    return(NCSCC_RC_SUCCESS);
@@ -305,9 +295,6 @@ eds_add_subscription_to_reglist(EDS_CB *cb, uns32 reg_id,
                                 SUBSC_REC *subrec)
 {
    EDA_REG_REC     *reglist = NULL;
-#if 0
-   SUBSC_LIST      *saved_ptr = NULL;
-#endif 
    SUBSC_LIST      *sublist = NULL;
    CHAN_OPEN_LIST  *cl;
 
@@ -351,21 +338,6 @@ eds_add_subscription_to_reglist(EDS_CB *cb, uns32 reg_id,
 
             cl->subsc_list_tail = sublist ;
 
-#if 0  /* Stack Implementation */
-            /* Save current root list pointer */
-            saved_ptr = cl->subsc_list;
-
-            cl->subsc_list = m_MMGR_ALLOC_EDS_SUBLIST(sizeof(SUBSC_LIST));
-            if (!cl->subsc_list)
-            {
-               cl->subsc_list = saved_ptr;  /* Put original pointer back */
-               m_LOG_EDS_MEMFAIL(EDS_SUB_LIST_ALLOC_FAILED);
-               return(NCSCC_RC_OUT_OF_MEM);
-            }
-            m_NCS_MEMSET(cl->subsc_list, 0, sizeof(SUBSC_LIST));
-            cl->subsc_list->subsc_rec = subrec;
-            cl->subsc_list->next = saved_ptr;  /* Attach saved_ptr to this */
-#endif 
             break;
          }
       cl = cl->next;
@@ -1806,14 +1778,6 @@ eds_store_retained_event(EDS_CB         *cb,
    retained_evt->publisherName.length = 
       publish_param->publisher_name.length;
 
-#if 0     
-/* Commented for fix related to mem leak */
-   retained_evt->patternArray =
-      edsv_copy_evt_pattern_array(publish_param->pattern_array,&error);
-
-   if (error != SA_AIS_OK)
-      return NCSCC_RC_FAILURE;
-#endif
 
    /* Don't take ownership of PatternArray & data's memory
     * from original event here. Do it later after
@@ -1827,11 +1791,6 @@ eds_store_retained_event(EDS_CB         *cb,
    retained_evt->data_len = publish_param->data_len;
    retained_evt->data = publish_param->data;
 
-#if 0 
-   retained_evt->data = m_MMGR_ALLOC_EDSV_EVENT_DATA(publish_param->data_len);
-   m_NCS_MEMSET(retained_evt->data,'\0',publish_param->data_len);
-   m_NCS_MEMCPY(retained_evt->data,publish_param->data,publish_param->data_len);
-#endif
 
    /* Attach to rear of list */
    if( wp->ret_evt_list_head[retained_evt->priority] == NULL )

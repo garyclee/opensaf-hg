@@ -174,11 +174,6 @@ static uns32 mcm_pvt_red_svc_bcast(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
                                        NCSCONTEXT msg,
                                        MDS_SVC_ID  to_svc_id, MDS_SEND_INFO*  req,
                                        NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri);
-#if 0
-static uns32 mds_mcm_add_mds_hdr(MDS_SVC_INFO *svccb, MDS_SVC_ID to_svc_id,
-                                       MDS_VDEST_ID vdest, MDTM_SEND_REQ *req,
-                                       uns32 snd_type,uns32 xch_id);
-#endif
 
 /* Direct Send*/
 static uns32 mcm_pvt_normal_svc_snd_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
@@ -240,11 +235,6 @@ static uns32 mcm_pvt_red_svc_bcast_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_i
                                        NCSMDS_SCOPE_TYPE scope, MDS_SEND_PRIORITY_TYPE pri, MDS_CLIENT_MSG_FORMAT_VER msg_fmt_ver);
 
 
-#if 0
-static uns32 mds_mcm_add_mds_hdr(MDS_SVC_INFO *svccb, MDS_SVC_ID to_svc_id,
-                                       MDS_VDEST_ID vdest, MDTM_SEND_REQ *req,
-                                       uns32 snd_type,uns32 xch_id);
-#endif
 
 uns32 mds_mcm_ll_data_rcv (MDS_DATA_RECV *recv);
 static uns32 mds_mcm_process_recv_snd_msg_common(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv);
@@ -378,12 +368,10 @@ static uns32 mds_await_active_tbl_del_entry(MDS_PWE_HDL env_hdl, MDS_SVC_ID fr_s
 static uns32 mds_subtn_tbl_del_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, NCS_SEL_OBJ obj);
 
 
-/* IR 60597 */
  static uns32 mds_check_for_mds_existence(NCS_SEL_OBJ sel_obj, MDS_HDL env_hdl,
                                              MDS_SVC_ID fr_svc_id, MDS_SVC_ID  to_svc_id);
 
 
-/* IR 82530*/
 static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id);
 
 /* Move to header file*/
@@ -451,7 +439,7 @@ static uns32 mds_mcm_direct_send(NCSMDS_INFO *info)
     {
         if(info->info.svc_direct_send.i_direct_buff!=NULL)
         {
-           m_MDS_FREE_DIRECT_BUFF(info->info.svc_direct_send.i_direct_buff); /* Memleak found during IR 82877 Fix*/ 
+           m_MDS_FREE_DIRECT_BUFF(info->info.svc_direct_send.i_direct_buff); 
            info->info.svc_direct_send.i_direct_buff=NULL;
         }
         m_MDS_LOG_ERR("MDS_SND_RCV: Priority defined is not in range\n");
@@ -477,13 +465,6 @@ static uns32 mds_mcm_direct_send(NCSMDS_INFO *info)
        return NCSCC_RC_FAILURE;
     }
 
-#if 0    
-    if(info->info.svc_direct_send.i_msg_fmt_ver == 0)
-    {
-       info->info.svc_direct_send.i_msg_fmt_ver=1;
-       m_MDS_LOG_ERR("MDS_SND_RCV: Msg fmt ver is 0 for direct send, svc=%d", info->i_svc_id);
-    } 
-#endif
 
     req.i_to_svc=info->info.svc_direct_send.i_to_svc;
 
@@ -1305,9 +1286,6 @@ static uns32 mcm_msg_cpy_send(uns8 to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
           cbinfo.i_yr_svc_hdl = svc_cb->yr_svc_hdl;
 
        /* CAUTION what to fill here */
-#if 0
-       cbinfo.info.cpy.i_last = last;
-#endif
 
           if(NCSCC_RC_SUCCESS!=svc_cb->cback_ptr(&cbinfo))
           {
@@ -1370,14 +1348,6 @@ static uns32 mcm_msg_cpy_send(uns8 to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
            
            if(bcast_ptr==NULL)
            {
-#if 0 
-              if(0==cbinfo.info.enc.o_msg_fmt_ver)
-              {
-                 cbinfo.info.enc.o_msg_fmt_ver=1;
-                  m_MDS_LOG_ERR("MDS_C_SNDRCV; msg format ver passed =0 ,after Enc call back svc_id=%d\n",svc_cb->svc_id);
-              }
-#endif
-           
               req.msg_fmt_ver=cbinfo.info.enc.o_msg_fmt_ver;
               req.msg_arch_word=to_msg->rem_svc_arch_word;
               req.src_svc_sub_part_ver=svc_cb->svc_sub_part_ver; 
@@ -1388,13 +1358,6 @@ static uns32 mcm_msg_cpy_send(uns8 to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
           /* NCS CONTEXT Message*/
            req.msg.encoding=MDS_ENC_TYPE_CPY;
            req.msg.data.cpy_msg=cpy;
-#if 0 
-           if(0==cbinfo.info.cpy.o_msg_fmt_ver)
-           { 
-              cbinfo.info.cpy.o_msg_fmt_ver=1;
-              m_MDS_LOG_ERR("MDS_C_SNDRCV; msg format ver passed =0 ,after copy call back svc_id=%d\n",svc_cb->svc_id);
-           }
-#endif
  
            req.msg_fmt_ver=cbinfo.info.cpy.o_msg_fmt_ver; 
            req.src_svc_sub_part_ver=svc_cb->svc_sub_part_ver; 
@@ -1481,7 +1444,7 @@ static uns32 mcm_msg_encode_full_or_flat_and_send(uns8 to, SEND_MSG *to_msg,
    
    
    /* The following is for the bcast case, where once enc or enc_flat callback is called, those callbacks
-              shallnot be called again. IR59577 fix */
+              shallnot be called again.  */
    if((snd_type== MDS_SENDTYPE_BCAST) || (snd_type== MDS_SENDTYPE_RBCAST))  
    {
       if(to==DESTINATION_ON_NODE)
@@ -1633,13 +1596,6 @@ static uns32 mcm_msg_encode_full_or_flat_and_send(uns8 to, SEND_MSG *to_msg,
    {
       if(NULL==bcast_ptr)
       {
-#if 0 
-         if(0==cbinfo.info.enc.o_msg_fmt_ver)
-         {
-            cbinfo.info.enc.o_msg_fmt_ver=1;
-            m_MDS_LOG_ERR("MDS_C_SNDRCV; msg format ver passed =0 ,after Enc call back svc_id=%d\n",svc_cb->svc_id);
-         }
-#endif
          msg_send.msg_fmt_ver=cbinfo.info.enc.o_msg_fmt_ver; /* archword will be filled in next label */
          msg_send.msg_arch_word=to_msg->rem_svc_arch_word;
       }
@@ -1648,13 +1604,6 @@ static uns32 mcm_msg_encode_full_or_flat_and_send(uns8 to, SEND_MSG *to_msg,
    {
       if(NULL==bcast_ptr)
       {
-#if 0 
-         if(0==cbinfo.info.enc_flat.o_msg_fmt_ver)
-         {
-            cbinfo.info.enc_flat.o_msg_fmt_ver=1;
-            m_MDS_LOG_ERR("MDS_C_SNDRCV; msg format ver passed =0 ,after Enc_flat call back svc_id=%d\n",svc_cb->svc_id);
-         }
-#endif
          msg_send.msg_fmt_ver=cbinfo.info.enc_flat.o_msg_fmt_ver; 
       }
    }
@@ -1778,14 +1727,12 @@ static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID 
     MDS_DEST dest;
     V_DEST_QA anchor;
     uns32     disc_rc;
-    /* IR 60597 */
     MDS_HDL env_hdl;
 
     MDS_SUBSCRIPTION_RESULTS_INFO *t_send_hdl=NULL; /* Subscription Result */
  
     m_MDS_LOG_DBG("MDS_SND_RCV :Entering mds_mcm_process_disc_queue_checks\n");
 
-    /* IR 60597 */
     env_hdl=(MDS_HDL)(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_cb->svc_hdl));
 
     dest_vdest_id=m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(i_dest);
@@ -1835,7 +1782,7 @@ static uns32 mds_mcm_process_disc_queue_checks(MDS_SVC_INFO *svc_cb, MDS_SVC_ID 
       /* Again we will come here when timeout or result has come */
       /* Check whether the Dest exists*/
       /* After Subscription timeout also no route found */
-      /* vishal: m_MDS_LOG_ERR("MDS_SND_RCV: No Route FOUND from SVC id = %d to SVC id = %d on "); */
+      /* m_MDS_LOG_ERR("MDS_SND_RCV: No Route FOUND from SVC id = %d to SVC id = %d on "); */
       if (NCSCC_RC_REQ_TIMOUT == disc_rc)
       {
           /* We timed out waiting for a route */
@@ -2051,7 +1998,6 @@ static uns32 mds_subtn_tbl_add_disc_queue(MDS_SUBSCRIPTION_INFO *sub_info, MDS_S
 
    m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
    
-   /* IR 60597*/
    if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, req->i_to_svc))
    {
        m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -2287,13 +2233,6 @@ static uns32  mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RE
              }
          }
          req.msg.encoding=MDS_ENC_TYPE_FULL;
-#if 0 
-         if(0==cbinfo.info.enc.o_msg_fmt_ver)
-         {
-            cbinfo.info.enc.o_msg_fmt_ver=1;
-            m_MDS_LOG_ERR("MDS_SND_RCV: msg fmt ver=0 after Enc callback(NO_ACTIVE state) svc-id=%d",svc_cb->svc_id);
-         }
-#endif
          req.msg_fmt_ver=cbinfo.info.enc.o_msg_fmt_ver; 
          req.msg_arch_word=MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED;
       }
@@ -2522,13 +2461,9 @@ static uns32 mds_mcm_process_disc_queue_checks_redundant(MDS_SVC_INFO *svc_cb, M
    MDS_SUBSCRIPTION_INFO *sub_info=NULL;
    uns32                 disc_rc;
 
-   /* IR60597 */
    MDS_HDL    env_hdl;
 
    env_hdl=(MDS_HDL)(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_cb->svc_hdl));
-#if 0
-    dest_vdest_id=m_MDS_GET_INTERNAL_VDEST_ID_FROM_MDS_DEST(i_dest);
-#endif
    mds_subtn_tbl_get(svc_cb->svc_hdl, dest_svc_id, &sub_info);
 
    if (sub_info==NULL)
@@ -2654,7 +2589,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_SYNC_TXN_ID xch_id=0;
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue=NULL;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns32 status=0;
@@ -2674,7 +2608,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
         return NCSCC_RC_FAILURE;
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -2716,7 +2649,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
 
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_INFO("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -2924,7 +2856,7 @@ static uns32 mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
    NCSCONTEXT hdl;
    MDS_MCM_SYNC_SEND_QUEUE  *mov_ptr=NULL;
 
-   /* Validate PWE-Handle first: IR00060439 */
+   /* Validate PWE-Handle first:  */
    if(NCSCC_RC_SUCCESS!=mds_svc_tbl_get((MDS_PWE_HDL)env_hdl,fr_svc_id,&hdl))
    {
       m_MDS_LOG_ERR("MDS_SND_RCV: SVC doesnt exists\n",fr_svc_id);
@@ -2963,18 +2895,6 @@ static uns32 mcm_pvt_create_sync_send_entry(MDS_HDL env_hdl, MDS_SVC_ID fr_svc_i
 
    mov_ptr=svc_cb->sync_send_queue;
 
-#if 0
-   if(mov_ptr==NULL)
-   {
-      (*sync_queue)->next_send=NULL;
-   }
-   else
-   {
-      /* Adding at start */
-      m_MDS_LOG_INFO("MDS_SND_RCV: Sucessfully added in sync send entry svc=%d, xch_id=%d\n",fr_svc_id, xch_id);
-      (*sync_queue)->next_send=mov_ptr;
-   }
-#endif
 
    svc_cb->sync_count++;
    (*sync_queue)->next_send=mov_ptr;
@@ -3053,7 +2973,6 @@ static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue;
     uns8 len_sync_ctxt=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns32 status=0;
@@ -3085,7 +3004,6 @@ static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
 
     sync_queue->dest_sndrack_adest.adest=msg_dest_adest;
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -3126,7 +3044,6 @@ static uns32 mcm_pvt_normal_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
           
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -3223,47 +3140,6 @@ static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
      else
         dest=anchor;
 
-#if 0
-    if(dest_vdest_id==m_VDEST_ID_FOR_ADEST_ENTRY)
-    {
-        /* Query one type to get the tx_send_hdl(results) */
-       if(NCSCC_RC_SUCCESS!=mds_subtn_res_tbl_query_by_adest(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,to_dest))
-       {
-
-          /* Check in subscriptions whether this exists caution surya*/
-          if(NCSCC_RC_SUCCESS!=mds_mcm_process_disc_queue_checks(svc_cb, to_svc_id,to_dest,req, &ret_adest, &timer_running, &tx_send_hdl))
-          {
-             m_MDS_LOG_ERR("MDS_SND_RCV: No Route Found\n");
-             return NCSCC_RC_FAILURE;
-          }
-       }
-       else
-       {
-          /* Route available, send the data now*/
-          dest=to_dest;
-          goto  SEND_NOW1;
-       }
-    }
-    else
-    {
-    /* Check dest_svc_id, dest_pwe_id, Destination <ADEST, VDEST>,
-              exists in subscription result table */
-        dest=0;
-        NCS_BOOL flag=0;
-        if(svc_cb->parent_vdest_info->policy==NCS_VDEST_TYPE_MxN)
-           flag=1;
-        if(NCSCC_RC_SUCCESS!=mds_subtn_res_tbl_get(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,
-                                             &ret_adest, &timer_running, &tx_send_hdl, flag))
-        {
-           if(NCSCC_RC_SUCCESS!=mds_mcm_process_disc_queue_checks_redundant(svc_cb, to_svc_id, dest_vdest_id, dest,req))
-           {
-              m_MDS_LOG_ERR("MDS_SND_RCV: No Route Found\n");
-              return NCSCC_RC_FAILURE;
-           }
-        }
-    }
-
-#else
     if(NCSCC_RC_SUCCESS!=mds_subtn_res_tbl_query_by_adest(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,dest))
     {
        /* Check in subscriptions whether this exists*/
@@ -3279,12 +3155,6 @@ static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
         }
        /* Destination Route Not Found, still some validations required */
     }
-#endif
-
-#if 0
-    /* Route available*/
-    dest=ret_adest;
-#endif
   
     if(NCSCC_RC_SUCCESS!=mds_subtn_res_tbl_get_by_adest(svc_cb->svc_hdl, to_svc_id, dest_vdest_id,
                                             dest, &role_ret, &subs_result_hdl))
@@ -3377,7 +3247,6 @@ static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_SYNC_TXN_ID xch_id=0;
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue=NULL;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
     
     uns32 status=0;
@@ -3396,7 +3265,6 @@ static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        return NCSCC_RC_FAILURE;
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -3434,7 +3302,6 @@ static uns32 mcm_pvt_normal_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -3606,7 +3473,6 @@ static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_SYNC_TXN_ID xch_id;
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue=NULL;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns32 status=0;
@@ -3625,7 +3491,6 @@ static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
         return NCSCC_RC_FAILURE;
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -3667,7 +3532,6 @@ static uns32 mcm_pvt_red_svc_sndrsp(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -3754,7 +3618,6 @@ static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue;
     uns8 len_sync_ctxt=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns32 status=0;
@@ -3784,7 +3647,6 @@ static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
         return NCSCC_RC_FAILURE;
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -3824,7 +3686,6 @@ static uns32 mcm_pvt_red_svc_sndrack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -3906,7 +3767,6 @@ static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
     MDS_SYNC_TXN_ID xch_id;
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue=NULL;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns32 status=0;
@@ -3925,7 +3785,6 @@ static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
         return NCSCC_RC_FAILURE;
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -3965,7 +3824,6 @@ static uns32 mcm_pvt_red_svc_sndack(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_id,
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -4325,15 +4183,6 @@ static uns32 mcm_pvt_process_svc_bcast_common(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
                  continue;
                }
                break;
-#if 0
-
-           case NCSMDS_SCOPE_INTRAPCON:
-               if(NCSCC_RC_SUCCESS!=mds_mcm_check_intrapcon(info_result->key.adest))
-               {
-                  continue;
-               }
-               break;
-#endif
            default:
             /* Nothing to get*/
                break;
@@ -5381,7 +5230,7 @@ static uns32 mds_mcm_mailbox_post(MDS_SVC_INFO *dest_svc_cb, MDS_DATA_RECV *recv
     msgelem = m_MMGR_ALLOC_MSGELEM;
     if (msgelem == NULL)
     {
-        /* Free the UB recd or any another message type, here memory free is removed because at the return of function it is being freed Found During IR 82877 Fix*/
+        /* Free the UB recd or any another message type, here memory free is removed because at the return of function it is being freed Found */
         m_MDS_LOG_ERR("MDS_SND_RCV: Unable to post the message due to memory failure allocation\n");
         return NCSCC_RC_FAILURE;
     }
@@ -5483,7 +5332,7 @@ static uns32 mds_mcm_send_ack(MDS_SVC_INFO *svccb, MDS_DATA_RECV *recv, uns8 fla
     MDTM_SEND_REQ req;
     
     uns8 to=0;
-    m_NCS_MEMSET(&req, 0, sizeof(req)); /* IR 82877 Fix , crash in memory free in mds_dt_tipc.c*/ 
+    m_NCS_MEMSET(&req, 0, sizeof(req)); /*  Fixed , crash in memory free in mds_dt_tipc.c*/ 
     mcm_query_for_node_dest(recv->src_adest,&to);
 
     req.pri=pri;
@@ -5600,7 +5449,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue=NULL;
     uns32 ret_status=0;
     
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     xch_id=++mds_mcm_global_exchange_id;
@@ -5620,7 +5468,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
         return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
    
@@ -5662,7 +5509,6 @@ static uns32 mcm_pvt_normal_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -5698,7 +5544,6 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
 
     uns32 ret_status=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     xch_id=++mds_mcm_global_exchange_id;
@@ -5718,7 +5563,6 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
         return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -5757,7 +5601,6 @@ static uns32 mcm_pvt_normal_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_s
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -5791,7 +5634,6 @@ static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue;
     uns8 len_sync_ctxt=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     SEND_MSG send_msg;
@@ -5823,7 +5665,6 @@ static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_
        return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -5862,7 +5703,6 @@ static uns32 mcm_pvt_normal_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -5939,7 +5779,6 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
 
     uns32 ret_status=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     xch_id=++mds_mcm_global_exchange_id;
@@ -5959,7 +5798,6 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
        return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -6001,7 +5839,6 @@ static uns32 mcm_pvt_red_svc_sndrsp_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -6038,7 +5875,6 @@ static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
     uns64 msg_dest_adest=0;
     MDS_MCM_SYNC_SEND_QUEUE  *sync_queue;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     uns8 len_sync_ctxt=0;
@@ -6070,7 +5906,6 @@ static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
        return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -6110,7 +5945,6 @@ static uns32 mcm_pvt_red_svc_sndrack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -6145,7 +5979,6 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
 
     uns32 ret_status=0;
 
-    /* IR60597 */
     NCS_SEL_OBJ sel_obj;
 
     SEND_MSG send_msg;
@@ -6165,7 +5998,6 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
        return MDS_INT_RC_DIRECT_SEND_FAIL; /* This is as the direct buff is freed at a common location */
     }
 
-    /* IR60597 */
     m_NCS_MEMSET(&sel_obj, 0, sizeof(sel_obj));
     sel_obj=sync_queue->sel_obj;
 
@@ -6204,7 +6036,6 @@ static uns32 mcm_pvt_red_svc_sndack_direct(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc_
        else
        {
           m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
-          /* IR 60597*/
           if(NCSCC_RC_SUCCESS!=mds_check_for_mds_existence(sel_obj, env_hdl, fr_svc_id, to_svc_id))
           {
              m_MDS_LOG_ERR("MDS_SND_RCV: MDS entry doesnt exist\n");
@@ -6354,7 +6185,7 @@ uns32 mds_retrieve( NCSMDS_INFO * info)
     if (info->info.retrieve_msg.i_dispatchFlags == SA_DISPATCH_BLOCKING)
     {
 
-        /* Fix for IR61067 : SA_DISPATCH_BLOCKING resulting in to deadlock */
+        /*  SA_DISPATCH_BLOCKING resulting in to deadlock */
         while (TRUE)
         {
             /* Unlock the mds_lock first */
@@ -6397,7 +6228,6 @@ uns32 mds_retrieve( NCSMDS_INFO * info)
                     m_MMGR_FREE_MSGELEM(msgelem);
                     return NCSCC_RC_SUCCESS;
                 }
-                /* IR 82530 Fix*/
                 if(mds_mailbox_proc(msgelem, svc_cb)==NCSCC_RC_NO_OBJECT)
                 {
                    return NCSCC_RC_FAILURE;
@@ -6485,7 +6315,7 @@ static uns32 mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb)
                 cbinfo.info.dec.i_node_id   = MDS_GET_NODE_ID(msgelem->info.data.adest);
                 cbinfo.info.dec.i_msg_fmt_ver = msgelem->info.data.msg_fmt_ver;  
  
-                /* IR 82530 Fix, mds q ownership callbacks should not take lock*/
+                /*  Fixed, mds q ownership callbacks should not take lock*/
                 local_cb_ptr = svc_cb->cback_ptr;
                 m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                 status = local_cb_ptr(&cbinfo);
@@ -6524,7 +6354,7 @@ static uns32 mds_mailbox_proc(MDS_MCM_MSG_ELEM *msgelem, MDS_SVC_INFO *svc_cb)
                 cbinfo.info.dec_flat.i_node_id   = MDS_GET_NODE_ID(msgelem->info.data.adest);
                 cbinfo.info.dec_flat.i_msg_fmt_ver = msgelem->info.data.msg_fmt_ver;  
  
-                /* IR 82530 Fix, mds q ownership callbacks should not take lock*/
+                /*  Fixed, mds q ownership callbacks should not take lock*/
 
                 local_cb_ptr = svc_cb->cback_ptr;
                 m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
@@ -6649,7 +6479,7 @@ out2:
            return status;
         }
         
-        /* IR 82530 Fix, mds q ownership callbacks should not take lock*/
+        /*  Fixed, mds q ownership callbacks should not take lock*/
 
         local_cb_ptr = svc_cb->cback_ptr;
         m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);     
@@ -6678,7 +6508,7 @@ out2:
     {
         /* Events type*/
         
-        /* IR 82530 Fix, mds q ownership callbacks should not take lock*/
+        /*  Fixed, mds q ownership callbacks should not take lock*/
 
         local_cb_ptr = svc_cb->cback_ptr;
         m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
@@ -6709,7 +6539,6 @@ out2:
  *                NCSCC_RC_FAILURE
  *
  ****************************************************************************/
-/* IR 82530 */
 static uns32 mds_validate_svc_cb(MDS_SVC_INFO *svc_cb, MDS_SVC_HDL svc_hdl, MDS_SVC_ID svc_id)
 { 
    MDS_SVC_INFO *local_svc_cb=NULL;
@@ -6852,7 +6681,6 @@ uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
 
    if(mov_ptr==NULL)
    {
-      /* FIX for IR00061259 */
       /* Deleting m_MDS_UNLOCK from here as it is resulting in segmantation fault 
          if some other thread is parallely executing Uninstall/Unusbscribe */
       return NCSCC_RC_SUCCESS;
@@ -6863,7 +6691,6 @@ uns32 mds_await_active_tbl_del(MDS_AWAIT_ACTIVE_QUEUE *queue)
       del_ptr=mov_ptr;
       mov_ptr=mov_ptr->next_msg;
       
-      /* FIX for IR60597 which was missed earlier */
       mds_mcm_free_msg_uba_start(del_ptr->req.msg);
 
       m_MMGR_FREE_AWAIT_ACTIVE(del_ptr);

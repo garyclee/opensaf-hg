@@ -69,25 +69,6 @@ extern "C" {
  ****************************************************************************
  ***************************************************************************/
 
-#if 0
-
-#ifndef NCS_TS_L2SOCK_INVALID
-#define NCS_TS_L2SOCK_INVALID -1
-#endif
-
-#ifndef NCS_TS_L2SOCK_ERROR
-#define NCS_TS_L2SOCK_ERROR -1
-#endif
-
-#ifndef m_NCS_TS_L2SOCK_DESTROY
-#define m_NCS_TS_L2SOCK_DESTROY
-#endif
-
-#ifndef m_NCS_TS_L2SOCK_ERROR
-#define m_NCS_TS_L2SOCK_ERROR ncs_bsd_sock_error()
-#endif
-
-#endif
 
 typedef struct sysf_dl_dispatch_info_tag
 {
@@ -167,8 +148,7 @@ typedef struct ncs_l2socket_entry_tag
    NCSCONTEXT                    user_connection_handle; /* ISIS_INTF */
    NCS_L2_ADDR                   local_addr;
    NCS_L2_ADDR                   remote_addr;
-   NCS_BOOL                      shared; /* IR 58824:
-                                            Shared=allow multiple opens 
+   NCS_BOOL                      shared; /* shared = allow multiple opens 
                                             for the same ethertype with 
                                             distinct L2 addresses.
                                             Shared = False, implies
@@ -179,7 +159,6 @@ typedef struct ncs_l2socket_entry_tag
                                             */
 
    uns32                         if_index;
-   /* Fix for IR10318 */
    uns8                          if_name[NCS_IF_NAMESIZE];
 
    NCS_DL_INDICATION             dl_data_indication;
@@ -216,7 +195,6 @@ typedef struct ncs_l2socket_context_tag
    NCS_PATRICIA_PARAMS tree_params;
    /* Added for IROOO59000 BUG */
    NCS_SEL_OBJ      fast_open_sel_obj;
-   /*End addition IR00059000 BUG */
 } NCS_L2SOCKET_CONTEXT;
 
 
@@ -224,7 +202,7 @@ typedef struct key_tag
 {
     uns16 protocol;
     uns8  addr[6];
-    uns32 if_index;  /*IR00058904 */
+    uns32 if_index;  
 } NCS_L2FILTER_KEY;
 
 typedef struct ncs_l2filter_entry_tag

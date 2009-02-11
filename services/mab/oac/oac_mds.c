@@ -202,8 +202,7 @@ static uns32 oac_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
             return m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM);
         }
         m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
-        /* Fix for the bug IR00061338 */
-        mm->yr_hdl = (NCSCONTEXT)(long)cbinfo->i_yr_svc_hdl; /* IR00061338 */
+        mm->yr_hdl = (NCSCONTEXT)(long)cbinfo->i_yr_svc_hdl; 
         mm->fr_card = cbinfo->info.svc_evt.i_dest;
         mm->fr_svc = cbinfo->info.svc_evt.i_svc_id;
         mm->fr_anc = cbinfo->info.svc_evt.i_anc;

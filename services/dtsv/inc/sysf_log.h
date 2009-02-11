@@ -133,7 +133,7 @@ EXTERN_C  void dts_to_lowercase(char *str);
 typedef struct sysf_ascii_specs
 {
    NCS_PATRICIA_NODE  svcid_node;
-   /*SS_SVC_ID          svc_id; IR 60411-svc_id will now be in network order*/
+   /*SS_SVC_ID          svc_id; svc_id will now be in network order*/
    ASCII_SPEC_INDEX   key; /* New key to index into the patricia tree */
    NCSFL_ASCII_SPEC*  ss_spec;
    uns32              use_count; /* use count to monitor no. of DTAs registering with the particular this particular ASCII_SPEC table */
