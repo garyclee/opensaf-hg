@@ -253,63 +253,26 @@ fi
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
 # TODO Still needed?
-%{_pkglibdir}/dhclnt_start
-# TODO Still needed?
-%{_pkglibdir}/dhclnt_clean
-%{_pkglibdir}/drbd_clean
-%{_pkglibdir}/drbdctrl
-%{_pkglibdir}/drbd_start
-# TODO Still needed?
 %{_pkglibdir}/find_pid
-%{_bindir}/get_ha_state
 %{_bindir}/saflogger
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
-%{_pkglibdir}/ncs_cpd_clean
-%{_pkglibdir}/ncs_cpd_start
 %{_pkglibdir}/ncs_cpnd_clean
 %{_pkglibdir}/ncs_cpnd_start
-%{_pkglibdir}/ncs_drbd_r0_clean
-%{_pkglibdir}/ncs_dts_clean
-%{_pkglibdir}/ncs_dts_start
-%{_pkglibdir}/ncs_eds_clean
-%{_pkglibdir}/ncs_eds_start
-%{_pkglibdir}/ncs_gld_clean
-%{_pkglibdir}/ncs_gld_start
 %{_pkglibdir}/ncs_glnd_clean
 %{_pkglibdir}/ncs_glnd_start
-%if %is_hpi
-%{_pkglibdir}/ncs_hisv_clean
-%{_pkglibdir}/ncs_hisv_start
-%endif
-%{_pkglibdir}/ncs_ifd_clean
-%{_pkglibdir}/ncs_ifd_start
 %{_pkglibdir}/ncs_ifnd_clean
 %{_pkglibdir}/ncs_ifnd_start
 # TODO Still needed?
 %{_pkglibdir}/ncs_ifsv_ip_ins_script
-%{_pkglibdir}/ncs_mas_clean
-%{_pkglibdir}/ncs_mas_start
-%{_pkglibdir}/ncs_mqd_clean
-%{_pkglibdir}/ncs_mqd_start
 %{_pkglibdir}/ncs_mqnd_clean
 %{_pkglibdir}/ncs_mqnd_start
-%{_pkglibdir}/ncs_pss_clean
-%{_pkglibdir}/ncs_pss_start
-%{_pkglibdir}/ncs_rde_clean
-%{_pkglibdir}/ncs_rde_start
-%{_pkglibdir}/ncs_snmpsubagt_clean
-%{_pkglibdir}/ncs_snmpsubagt_reload
-%{_pkglibdir}/ncs_snmpsubagt_start
-%{_pkglibdir}/opensaf_fms
 %{_pkglibdir}/ncs_srmnd_clean
 %{_pkglibdir}/ncs_srmnd_start
 %{_pkglibdir}/ncs_vds_clean
 %{_pkglibdir}/ncs_vds_start
 %{_pkglibdir}/nid_tipc
-%{_pkglibdir}/nis_snmpd_clean
-%{_pkglibdir}/nis_snmpd_start
 %if %is_openhpi
 # TODO Still needed?
 %{_pkglibdir}/openhpid_clean
@@ -320,46 +283,81 @@ fi
 # TODO Still needed?
 %{_pkglibdir}/openhpisubagt_start
 %endif
-%{_pkglibdir}/opensaf_lgs
 %{_bindir}/opensaf_mem_dump_tool
-%{_pkglibdir}/pdrbdctrl
-%{_pkglibdir}/pdrbdsts
-%{_pkglibdir}/rde_script
 %{_pkglibdir}/tipc_reset.sh
 
 
 %files controller
 %defattr(-,root,root)
+%{_bindir}/get_ha_state
 %{_bindir}/ncs_cli_maa
 %{_pkglibdir}/ncs_cpd
+%{_pkglibdir}/ncs_cpd_clean
+%{_pkglibdir}/ncs_cpd_start
 %{_pkglibdir}/ncs_cpnd
 %{_pkglibdir}/ncs_dts
+%{_pkglibdir}/ncs_dts_clean
+%{_pkglibdir}/ncs_dts_start
 %{_pkglibdir}/ncs_eds
+%{_pkglibdir}/ncs_eds_clean
+%{_pkglibdir}/ncs_eds_start
 %{_pkglibdir}/ncs_gld
+%{_pkglibdir}/ncs_gld_clean
+%{_pkglibdir}/ncs_gld_start
 %{_pkglibdir}/ncs_glnd
 #TODO: To be changed when supporting other HPI
 %if %is_hpi
 %{_pkglibdir}/ncs_hisv
+%{_pkglibdir}/ncs_hisv_clean
+%{_pkglibdir}/ncs_hisv_start
 %endif
 %{_pkglibdir}/ncs_ifd
+%{_pkglibdir}/ncs_ifd_clean
+%{_pkglibdir}/ncs_ifd_start
 %{_pkglibdir}/ncs_ifnd
 %{_pkglibdir}/ncs_ifsv_ip_installer
 %{_pkglibdir}/ncs_mas
+%{_pkglibdir}/ncs_mas_clean
+%{_pkglibdir}/ncs_mas_start
 %{_pkglibdir}/ncs_mqd
+%{_pkglibdir}/ncs_mqd_clean
+%{_pkglibdir}/ncs_mqd_start
 %{_pkglibdir}/ncs_mqnd
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/ncs_psr
+%{_pkglibdir}/ncs_pss_clean
+%{_pkglibdir}/ncs_pss_start
 %{_pkglibdir}/ncs_rde
+%{_pkglibdir}/ncs_rde_clean
+%{_pkglibdir}/ncs_rde_start
+%{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
+%{_pkglibdir}/opensaf_fms
 %{_pkglibdir}/ncs_scap
+%{_pkglibdir}/ncs_scap_clean
+%{_pkglibdir}/ncs_scap_start
 %{_pkglibdir}/ncs_snmp_subagt
+%{_pkglibdir}/ncs_snmpsubagt_clean
+%{_pkglibdir}/ncs_snmpsubagt_reload
+%{_pkglibdir}/ncs_snmpsubagt_start
 %{_pkglibdir}/ncs_srmnd
 %{_pkglibdir}/ncs_vds
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
-%{_pkglibdir}/ncs_scap_clean
-%{_pkglibdir}/ncs_scap_start
+%{_pkglibdir}/opensaf_lgs
+%{_pkglibdir}/nis_snmpd_clean
+%{_pkglibdir}/nis_snmpd_start
 %{_bindir}/collect_logs_controller
+%{_pkglibdir}/pdrbdctrl
+%{_pkglibdir}/pdrbdsts
+# TODO Still needed?
+%{_pkglibdir}/dhclnt_start
+# TODO Still needed?
+%{_pkglibdir}/dhclnt_clean
+%{_pkglibdir}/drbd_clean
+%{_pkglibdir}/drbdctrl
+%{_pkglibdir}/drbd_start
+%{_pkglibdir}/ncs_drbd_r0_clean
 %{_sysconfdir}/%{name}/AppConfig.xsd
 %{_sysconfdir}/%{name}/cli_cefslib_conf
 %{_sysconfdir}/%{name}/NCSConfig.xsd
