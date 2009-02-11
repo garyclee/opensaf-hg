@@ -4263,6 +4263,9 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
     uns32              bytes_read;
     PSS_TABLE_PATH_RECORD ps_file_record;
 
+    if (gl_pss_amf_attribs.ha_state != NCS_APP_AMF_HA_STATE_ACTIVE)
+       return NCSCC_RC_SUCCESS;
+
     if((ncs_patricia_tree_size(pTree) == 0) && (profile_name == NULL))
     {
         return NCSCC_RC_SUCCESS;
@@ -4680,6 +4683,8 @@ uns32 pss_save_to_sclr_store(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
     NCS_BOOL           file_exists;
     PSS_TABLE_PATH_RECORD      ps_file_record;
 
+    if (gl_pss_amf_attribs.ha_state != NCS_APP_AMF_HA_STATE_ACTIVE)
+       return NCSCC_RC_SUCCESS;
 
     pData = tbl_rec->info.scalar.data;
     if(pData == NULL) /* If no data present, return */

@@ -1578,7 +1578,6 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
 {
     PSS_PWE_CB         *pwe_cb = NULL;
     PSS_SPCN_LIST      *spcn_entry = NULL;
-    NCS_BOOL           move_to_save_immediate = FALSE;
     uns32              retval = NCSCC_RC_SUCCESS;
 
     if(msg->data.data.bam_conf_done.pcn_list.pcn == NULL)
@@ -1614,20 +1613,27 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
     m_LOG_PSS_CONF_DONE(NCSFL_SEV_INFO, PSS_CONF_DONE_FINISHED, msg->data.data.bam_conf_done.pcn_list.pcn);
 
     pwe_cb->p_pss_cb->bam_req_cnt--;
-    m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
-       retval, pwe_cb->p_pss_cb->current_profile, pwe_cb->pwe_id, msg->data.data.bam_conf_done.pcn_list.pcn);
-    if(pwe_cb->p_pss_cb->bam_req_cnt == 0)
-        move_to_save_immediate = TRUE;
 
-    if(TRUE == move_to_save_immediate)
+    /* Only modify persistent store file system if we are active. */
+    if (gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE)
     {
-       pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_IMMEDIATE;
-       if (NCSCC_RC_SUCCESS != pss_save_current_configuration(pwe_cb->p_pss_cb))
-       {
-          pss_free_tbl_list(msg->data.data.bam_conf_done.pcn_list.tbl_list);
-          m_MMGR_FREE_MAB_PCN_STRING(msg->data.data.bam_conf_done.pcn_list.pcn);
-          return NCSCC_RC_FAILURE;
-       }
+        m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api,
+            pwe_cb->p_pss_cb->pssts_hdl, retval, pwe_cb->p_pss_cb->current_profile, 
+            pwe_cb->pwe_id, msg->data.data.bam_conf_done.pcn_list.pcn);
+
+        if (retval == NCSCC_RC_FAILURE)
+            syslog(LOG_ERR, "m_NCS_PSSTS_PCN_DELETE failed");
+
+        if (pwe_cb->p_pss_cb->bam_req_cnt == 0)
+        {
+            pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_IMMEDIATE;
+            if (NCSCC_RC_SUCCESS != pss_save_current_configuration(pwe_cb->p_pss_cb))
+            {
+                pss_free_tbl_list(msg->data.data.bam_conf_done.pcn_list.tbl_list);
+                m_MMGR_FREE_MAB_PCN_STRING(msg->data.data.bam_conf_done.pcn_list.pcn);
+                return NCSCC_RC_FAILURE;
+            }
+        }
     }
 
     pss_free_tbl_list(msg->data.data.bam_conf_done.pcn_list.tbl_list);
