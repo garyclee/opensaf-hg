@@ -68,13 +68,6 @@ Group: System Environment/Base
 Summary: The common components to run an OpenSAF Controller or Payload node
 Requires: /sbin/chkconfig /sbin/service
 
-%if %is_rhel || %is_fedora
-Requires: net-snmp xerces-c
-%if %is_openhpi
-Requires: openhpi
-%endif
-%endif
-
 %description common
 
 
@@ -83,6 +76,14 @@ Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF System Controller node
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
+
+%if %is_rhel || %is_fedora
+Requires: net-snmp xerces-c
+%if %is_openhpi
+Requires: openhpi
+%endif
+%endif
+
 Conflicts: %{name}-payload
 
 %description controller
