@@ -55,7 +55,7 @@ noinst_HEADERS = \
 	inc/pss_mbcsv.h
 
 bin_PROGRAMS = ncs_cli_maa 
-pkglib_PROGRAMS = ncs_mas ncs_psr ncs_snmp_subagt
+pkglib_PROGRAMS = ncs_mas ncs_psr
 
 ncs_mas_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -123,25 +123,5 @@ ncs_cli_maa_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/services/cli/libcli.la \
 	$(top_builddir)/services/hisv/hpl/libhpl.la \
-	$(top_builddir)/lib/lib_SaEvt/libSaEvt.la \
-	$(top_builddir)/services/mab/mac/libmaa.la
-
-ncs_snmp_subagt_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAC=1 -DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
-
-ncs_snmp_subagt_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
-
-ncs_snmp_subagt_LDADD = \
-	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
-	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaEvt/libSaEvt.la \
 	$(top_builddir)/services/mab/mac/libmaa.la
