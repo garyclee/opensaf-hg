@@ -1,0 +1,258 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+
+
+#
+# Description:
+# This script loads/unloads, starts/stops the drbd in primary/secondary state
+#
+# usage: drbdctrl {start|stop} {<res name>|all} {ACTIVE|STDBY}
+#
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+RES="$2"
+ROLE_NAME="$3"
+if [ "$3" = "ROLE=1" ] ; then
+   ROLE_NAME="ACTIVE"
+elif [ "$3" = "ROLE=2" ] ; then
+   ROLE_NAME="STDBY"
+else
+   ROLE_NAME=""
+fi
+
+echo "Parms : $0 $1 $2 $ROLE_NAME $4 $5 $6 $7"
+echo "Finished"
+NID_SVC_NAME=DRBD
+
+
+USAGE="Usage: drbdctrl {start|stop} {<res name>|all} {ACTIVE|STDBY}"
+
+#### Find the SCXB's logical slot number
+function find_scxb_slot_no
+{
+	if [ "$SCXB_SLOT_NO" = "" ] ; then		# check if slot no env. variable already present
+                if [ -f "$SYSCONFDIR/slot_id" ] ; then
+                        SCXB_SLOT_NO=$(cat "$SYSCONFDIR/slot_id")
+                        if [ "$SCXB_SLOT_NO" != "1" ] && [ "$SCXB_SLOT_NO" != "2" ]
+                        then
+                                echo " Slot id for system controler should be 1 or 2"
+                                exit
+                        fi
+
+                 else
+                   echo " slot_id file not available in $SYSCONFDIR"
+                   exit
+                fi
+
+        export SCXB_SLOT_NO
+        fi
+
+
+	cp -f $MY_DRBD_CONF_PATH/drbd.$SCXB_SLOT_NO.conf $DRBD_CONF_PATH/drbd.conf
+	replace_host_name_local
+}
+
+#### Replace "local" host name in each DRBD resource in the .conf file with the actual system host name
+function replace_host_name_local
+{
+	HNAME=$( uname -n 2> /dev/null )
+	cp -f $DRBD_CONF_PATH/drbd.conf "$TMPDIR/drbd.conf"
+	cat "$TMPDIR/drbd.conf" | sed 's/HOST_NAME_LOCAL/'$HNAME'/g' > $DRBD_CONF_PATH/drbd.conf
+	rm -f "$TMPDIR/drbd.conf"
+}
+
+#### Find whether the NID pipe is existing or not
+if [ ! -p "$NIDFIFO" ]; then
+	NIDFIFO="/dev/null"
+fi
+
+#### Here, at this point of initialisation start only the NCS resource, but not others
+if [ "$RES" = "all" ]; then
+	RES=r0
+fi
+
+case "$1" in
+	start)
+		case "$ROLE_NAME" in
+			ACTIVE)
+				;;
+			STDBY)
+				;;
+			*)
+				echo $USAGE
+				exit 1
+				;;
+		esac
+
+		ST=$( $DRBDADM state $RES 2> /dev/null )
+		ST=${ST%/*}
+
+		case "$ST" in
+			Primary)
+				echo "`date` DRBD $RES: already running as ACTIVE"
+		    		exit 0
+		        	;;
+			Secondary)
+				echo "`date` DRBD $RES: already running as STDBY"
+				exit 0
+				;;
+		esac
+
+		find_scxb_slot_no
+
+		case "$ROLE_NAME" in
+			ACTIVE)
+				#### Check whether this was an half-baked Standby previously
+				ST=$( cat $DRBD_SYNC_FILE )
+				if [ "$ST" = "Inconsistent" ]; then
+					retVal=$DAEMON_START_FAILED
+					echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+					echo "`date` DRBD $RES: inconsistent partition found! can not become ACTIVE!!"
+					exit 1
+				fi
+			
+				$DRBD start		# load and start the drbd module
+				retVal=$?
+
+				case "$retVal" in
+					20)
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+						echo "`date` DRBD $RES: load error"
+						exit 1
+						;;
+					3)
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+						echo "`date` DRBD $RES: load error"
+						exit 1
+						;;
+					5)
+						retVal=$DAEMON_NOT_FND
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+						echo "`date` DRBD $RES: drbdadm not found"
+						exit 1
+						;;
+				esac
+
+				# put the resource in primary state
+				$DRBDADM -- --overwrite-data-of-peer primary $RES
+				retVal=$?
+
+				case "$retVal" in
+					20)
+						retVal=$DAEMON_START_FAILED
+						echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+						echo "`date` DRBD $RES: error becoming ACTIVE"
+						$DRBD stop
+						exit 1
+						;;
+				esac
+
+                                #### Check/clean the device before mounting
+                                echo "`date` DRBD $RES: running e2fsck on the partition.."
+                                e2fsck -p $MOT_REPL_PRTN
+                                retVal=$?
+
+                                case "$retVal" in
+                                        0)
+                                                # No error
+                                                echo "`date` DRBD $RES: partition is clean"
+                                                ;;
+                                        1)
+                                                # File system errors but corrected; run e2fsck again as MVL says
+                                                echo "`date` DRBD $RES: partition errors corrected, checking again.."
+                                                e2fsck -y $MOT_REPL_PRTN
+                                                ;;
+                                        *)
+                                                retVal=$DAEMON_START_FAILED
+                                                # echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+                                                echo "`date` DRBD $RES: partition is corrupt, correcting it with -y, best of luck"
+                                                e2fsck -y $MOT_REPL_PRTN
+                                                # $DRBD stop
+                                                # exit 1
+                                                ;;
+                                esac
+
+				mount $MOT_DRBD_DEV $MOT_MNT_PNT	# mount the device
+				retVal=$?
+
+				if [ $retVal -ne 0 ]; then
+					retVal=$DAEMON_START_FAILED
+					echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+					echo "`date` DRBD $RES: mount error"
+					$DRBD stop
+					exit 1
+				fi
+
+				retVal=$DAEMON_STARTED
+				echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+				echo "`date` DRBD $RES: started as ACTIVE. Ok!"
+				;;
+
+			STDBY)
+				retVal=$DAEMON_STARTED
+				echo "$NID_MAGIC:$NID_SVC_NAME:$retVal" > "$NIDFIFO"
+				echo "`date` DRBD $RES: STDBY"
+				;;
+
+			*)
+				echo $USAGE
+				exit 1
+				;;
+		esac
+		;;
+
+	stop)
+		ST=$( $DRBDADM state $RES 2> /dev/null )
+		ST=${ST%/*}
+
+		case "$ST" in
+			Primary)
+				;;
+			Secondary)
+				;;
+			*)
+				echo "`date` DRBD $RES: not started/running"
+				exit 0
+				;;
+		esac
+
+		if [ "$ST" = "Primary" ]; then
+		#	fuser -mk $MOT_DRBD_DEV
+			umount -f $MOT_MNT_PNT
+			retVal=$?
+
+			if [ $retVal -ne 0 ]; then
+				echo "`date` DRBD $RES: unmount error"
+			fi
+		fi
+
+		$DRBD stop
+		echo "`date` DRBD $RES stopped. Ok!"
+		;;
+
+	*)
+		echo $USAGE
+		exit 1
+		;;
+esac
+
+exit 0
+

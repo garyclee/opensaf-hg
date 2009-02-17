@@ -1,0 +1,92 @@
+TODO: Might needs path cleanup / Not following 3.0 build changes yet.
+
+Introduction
+============
+
+In OpenSAF, two system controllers are used as Active/Standby pair to eliminate
+single point of failure in the system. The state information to be replicated
+between two system controllers is placed in a directory called "/repl_opensaf".
+Target systems can use any standard replication mechanisms. DRBD is one such
+tested replication mechanism in OpenSAF.
+
+The version of the DRBD package used is drbd-8.0.0 available from
+http://oss.linbit.com/drbd/
+
+The following typical steps can be followed while building DRBD as a kernel
+module:
+
+   1. cd <drbd-install-dir>
+   2. make KINCLUDE=/usr/src/kernels/<kernel-src-dir>/include/
+   3. make install
+
+The drbd configuration used in opensaf is to have seperate user data partition
+(minimum size 2GB) and seperate metadata partition (minimum size 128MB).
+
+
+DRBD Configuration
+==================
+
+If DRBD is chosen for data replication, please do the following steps, else skip
+them:
+
+   * Mount the data replicated partition on /repl_opensaf
+   * Install the opensaf RPM
+   * Edit the file /etc/opt/opensaf/NCSSystemBOM.xml:
+      - Uncoment PDRBD related lines
+      - Uncomment REPL related lines
+   * Unmount the data replicated partition /repl_opensaf
+   * Uncomment DRBD entry line in /etc/opt/opensaf/nodeinit.conf
+   * The following Scripts needs to be changed
+      a. DRBD is controlled through the drbd.conf configuration file. In
+      opensaf, controller nodes are given logical slotid 1 and 2 and thus the
+      configuration files are named as drbd1.conf and drbd2.conf
+
+      Edit /opt/opensaf/controller/scripts/drbd.1.conf:
+      HOST_NAME_LOCAL {
+         device     /dev/drbd0;
+         disk       /dev/sda5;
+         address    10.232.91.203:7788;
+         meta-disk  /dev/sda6[0];
+      }
+
+      1. Edit user data partition disk name (/dev/sda5)
+      2. Edit Host IP address (10.232.91.203). Don't change the port number
+         (7788).
+      3. Edit meta-data partition name(/dev/sda6, let [0] be here)
+
+      Configure the parameters for the remote machine for sync up, like as
+      below:
+      HOST_NAME_REMOTE {
+         device     /dev/drbd0;
+         disk       /dev/sda5;
+         address    10.232.91.201:7788;
+         meta-disk  /dev/sda6[0];
+      }
+
+      1. Set user data partition name (for eg:- /dev/sda5)
+      2. Set Remote IP address (10.232.91.201). Don't change the port number
+         (7788)
+      3. Set remote meta-data partition name(for eg:- /dev/sda6, let [0] be
+         unchanged)
+
+      Edit /opt/opensaf/controller/scripts/drbd.2.conf:
+      Like in the case of drbd.1.conf, here HOST_NAME_REMOTE
+      parameters will be set to HOST_NAME_LOCAL and vice-versa.
+
+      b. Edit /opt/opensaf/controller/scripts/pdrbd_proxied.conf:
+         1. Set user data partition name (for eg:- /dev/sda5)
+         2. Set meta-data partition name(for eg:- /dev/sda6)
+
+      c. Edit /opt/opensaf/controller/scripts/drbdctrl
+         1. Set replicated partition name (for eg:- MOT_REPL_PRTN="/dev/sda5")
+         2. Set meta-data partition name (for eg:- MOT_META_PRTN="/dev/sda6")
+
+   * Copy /opt/opensaf/controller/scripts/drbd.1.conf or drbd.2.conf (slot 1 or
+     2 respective m/c) to /etc/drbd.conf and run the following command (These
+     commands are needed to run on metadata partition for drbd-8.0.0):
+
+         drbdmeta /dev/drbd0 v08 /dev/sda6 0 create-md
+         drbdadm create-md r0
+
+     Here /dev/drbd0, /dev/sda6, r0 can be replaced with the attributes as
+     specified in drbd.1.conf or drbd.2.conf.

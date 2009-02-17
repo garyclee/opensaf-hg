@@ -1,0 +1,165 @@
+#! /bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008-2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+#
+
+arch=$(arch)
+if [ $arch = x86_64 ]; then
+    lib_dir=lib64
+else
+    lib_dir=lib
+fi
+
+# XERCES_PREFIX and NETSNMP_PREFIX can be set in the environment to point to an
+# alternative installation directory. Set the variables to the directory above 
+# where the lib and bin directories are located. See the default setting below.
+xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
+xerces_lib=$xerces_prefix/$lib_dir
+netsnmp_prefix=${NETSNMP_PREFIX:-"/usr"}
+netsnmp_lib=$netsnmp_prefix/$lib_dir
+
+opensaf_home=$PWD/../..
+top=`pwd`
+bin=$top/bin
+archive=$top/archive
+scripts=$archive/scripts
+kver=${KVER:-2.6.24.3}
+
+die() {
+    echo "ERROR: $*"
+    rm -rf $root
+    exit 1
+}
+
+# Check that we can find everything needed
+test -e $netsnmp_lib/libnetsnmp.so || \
+    die "cannot find net-snmp libraries in: $netsnmp_lib"
+test -e $xerces_lib/libxerces-c.so || \
+    die "Cannot find xerces libraries in: $xerces_lib"
+
+create_rootfs()
+{
+    local root=$top/rootfs
+    local opensafconfig=$root/etc/opensaf
+    local bom_xml=$root/etc/opensaf/NCSSystemBOM.xml
+
+    echo "Removing old root file system: $root"
+    rm -rf $root
+    echo "Creating new root file system ..."
+    mkdir $root
+    
+    echo "Installing OpenSAF"
+    make -C $opensaf_home DESTDIR=$root -j3 install
+    rm -rf $root/usr/local/share/opensaf/samples
+
+    cd $root
+    mkdir -p sbin bin $lib_dir
+    mkdir -p usr/$lib_dir usr/sbin usr/bin /usr/lib usr/share/snmp/mibs
+    mkdir -p etc/snmp etc/default etc/init.d
+
+    echo "Installing net-snmp files from: $netsnmp_prefix"
+    install $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
+    install $netsnmp_prefix/sbin/snmp* usr/sbin
+    install $netsnmp_prefix/bin/snmp* usr/bin
+    install $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
+
+    # Move the OpenSAF mibs to the standard location for simplicity
+    mv usr/local/share/snmp/mibs/* usr/share/snmp/mibs
+
+    echo "   Resolve snmpd dependencies"
+    cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
+        grep -v usr | grep -v netsnmp | sed -e 's,/tls,,'` usr/$lib_dir
+
+    # The var directory structure is setup from within each UML
+    rm -rf var/*
+
+    echo "Patch BOM xml, reduce cluster init time"
+    cat $bom_xml | sed 's/<clusterInitTime>40000/<clusterInitTime>4000/g' > \
+        $bom_xml.tmp
+    mv $bom_xml.tmp $bom_xml
+
+    # Required by e.g. the snmpd script
+    cp $archive/snmp*d.conf etc/snmp
+    
+    install -m 755 $archive/scripts/snmpd etc/init.d
+    install -m 755 $archive/scripts/*.rc etc/init.d
+    cp $scripts/profile etc
+    
+    echo "Copy some needed extra programs (bash, ...)"
+    install /bin/bash bin
+    install /usr/bin/pgrep usr/bin
+    install /usr/bin/pkill usr/bin
+    install /usr/bin/killall usr/bin
+    
+    echo "Resolve bash dependencies"
+    cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | \
+        sed -e 's,/tls,,'` $lib_dir
+
+    echo "Resolve OpenSAF dependencies"
+    cp /$lib_dir/librt.so.* $lib_dir
+    cp /$lib_dir/libgcc_s.so.* $lib_dir
+    cp -a /usr/$lib_dir/libstdc++.* $lib_dir
+    install $xerces_lib/libxerces-c.so* $lib_dir
+
+    echo "Resolve IMM dependencies"
+    if test -f usr/local/bin/immload; then
+        cp -L `ldd usr/local/bin/immload | tr -s ' \t' '\n' | \
+            grep /usr/$lib_dir ` usr/$lib_dir
+    fi
+
+    install $archive/rde.conf etc/opensaf
+
+    echo "Resolve xerces dependencies"
+    cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | \
+        grep /usr/$lib_dir | sed -e 's,/tls,,'` usr/$lib_dir
+
+    echo "Building aishello"
+    export OPENSAF_INCLUDE=$root/usr/local/include
+    export OPENSAF_LIB=$root/usr/local/$lib_dir
+    $top/Hello/install.sh $root
+    install -m 644 $top/Hello/AppConfig.xml etc/opensaf
+
+    # Copy local timezone settings
+    test -f /etc/localtime && install /etc/localtime etc
+
+    cd - >& /dev/null
+
+    # Create a dummy /etc/hosts file, will be populated at start
+    touch $root/etc/hosts
+
+    rm -rf $root/usr/local/include
+
+    echo "Creating [$root/root.cpio] ..."
+    $bin/mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null
+}
+
+find rootfs -name ncs_nid >& /dev/null
+if test $? = 0; then
+    echo "OpenSAF seems to be installed already, cowardly refusing..."
+    echo "   Remove directory 'rootfs' if a fresh install is needed"
+    exit 0
+fi
+
+# Build the Linux UML binary
+if uml/build_uml; then
+    create_rootfs
+else
+    echo "build of UML Linux kernel failed"
+    exit 1
+fi
+
+exit 0
