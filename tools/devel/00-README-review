@@ -1,0 +1,117 @@
+Commit Message Format
+=====================
+
+The patch review process heavily relies on properly formatted commit message.
+This section will describe how commit message should be formatted and the
+relation it has with the patch review process by email.
+
+A commit message should comply to the following template:
+
+* First line  : 72-chars long one line short description
+* Second line : Blank
+* Third line  : Ticket #xyz if applicable (optional)
+* Fourth line : Blank (optional)
+* Fifth line  : 72-chars long lines for a more complete description
+
+-----<-----<-----<-----<-----<-----
+example: this is a one line short description
+
+Ticket #500
+
+This is a more elaborate description that explains your changes and the
+original problem and how it got solved.
+-----<-----<-----<-----<-----<-----
+
+The first line will be grabbed by the 'hg email' command and added as the
+subject of the patch, hence the why it should be short and precise. Note that it
+also contains the "area/module/feature" of the changes (i.e. example:). If you
+have trouble identifying the unique nature of the patch, your patch is probably
+way to long and should be divided in a series.
+
+The Ticket # in a future integration will be used on the Trac web interface to
+correlate tickets and commits. It will also be used by Mercurial hooks to
+close/fix tickets automatically if needed.
+
+The long description gives more details about the patch/changeset.
+
+
+Mercurial Settings Needed for Email Review
+==========================================
+
+This section lists the settings that should be enabled from the '.hgrc' file to
+be able to use the helper script properly.
+
+If you need help using the Mercurial patch queue extension, take a look at the
+other document '00-README-hgtips' present in the current directory.
+
+The following options should be set in ~/.hgrc:
+
+-----<-----<-----<-----<-----<-----
+[ui]
+username = John Doe <john.doe@example.com>
+
+[extensions]
+hgext.mq =
+hgext.patchbomb =
+
+[email]
+method = smtp
+from = John Doe <john.doe@example.com>
+
+[smtp]
+host = smtp.example.com
+
+[diff]
+git=1
+nodates=1
+showfunc=1
+-----<-----<-----<-----<-----<-----
+
+git-like diff should preferred to hg-like diff. There's known issues
+interpreting hg-like diff formatted patch with new file mode and deleted file
+mode.
+
+nodates and showfunc gives cleaner patch context.
+
+
+Using the submit-review.sh Helper Script
+========================================
+
+Present in './tools/devel/submit-review.sh', this script will help developer to
+easily submit work for review in well formatted patch series as seen on major
+open source project mailing lists.
+
+For now, the script supports two workflows:
+
+   * Submit review based on locally committed changesets
+   * Submit review based on a patch queue (MQ)
+
+If you need help using the Mercurial patch queue extension, take a look at the
+other document '00-README-hgtips' present in the current directory.
+
+The script will help you create the following work package:
+
+   1. Put the revlevant files for the review in a temp directory
+   2. Generate a review template for the [PATCH 0/x]
+   3. Open the generated template in the user $EDITOR of choice
+      and allow him to add the necessary comments
+   4. Prompt the user to enter emails of the peer reviewers, the devel
+      list is added on CC automatically
+
+The script currently accepts the following options:
+
+Usage: submit-review.sh [-q] [-r rev] [-b url] [-d dest] [-s subject]
+
+-q    Enable patch queue usage for the review process
+-r    Use the csX:csY committed revision range for the review process
+-b    Specify where the development branch can be found
+-d    Specify where the review package gets dumped (default 'mktemp -d')
+-s    Change the default "Review Request" subject for [PATCH 0/x]
+
+Using submit-review.sh with patch queue:
+
+   % submit-review.sh -q
+
+Using submit-review.sh with local changesets:
+
+   % submit-review.sh -r csX:csY
