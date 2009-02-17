@@ -1114,7 +1114,9 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    uns32 i = 0;
    uns32 len = 0;
    SaHpiEntityPathT  entity_path;
+   char *arch_type = NULL;
 
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
    m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
 
 #ifdef HPI_A
@@ -1133,12 +1135,24 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    entity_path.Entry[3].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
    entity_path.Entry[3].EntityLocation = 0;
    no_entries++;
-   entity_path.Entry[2].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-   entity_path.Entry[2].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
-   no_entries++;
-   entity_path.Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
-   entity_path.Entry[1].EntityLocation = sInfo.slot;                          /*SCXB slot id */
-   no_entries++;
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   {
+      entity_path.Entry[2].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+      entity_path.Entry[2].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+      no_entries++;
+      entity_path.Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
+      entity_path.Entry[1].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+      no_entries++;
+   }
+   else
+   {
+      entity_path.Entry[2].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+      entity_path.Entry[2].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+      no_entries++;
+      entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_BLADE; /* enum defined in SaHpi.h */
+      entity_path.Entry[1].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+      no_entries++;
+   }
    entity_path.Entry[0].EntityType = AMC_SUB_SLOT_TYPE; /* enum defined in SaHpi.h */
    entity_path.Entry[0].EntityLocation = sInfo.subSlot;                          /*SCXB slot id */
    no_entries++;
@@ -1148,13 +1162,25 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    entity_path.Entry[2].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
    entity_path.Entry[2].EntityLocation = 0;
    no_entries++;
-   entity_path.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-   entity_path.Entry[1].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
-   no_entries++;
-   entity_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
-   entity_path.Entry[0].EntityLocation = sInfo.slot;                          /*SCXB slot id */
-   no_entries++;
-   }   
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   {
+      entity_path.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+      entity_path.Entry[1].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+      no_entries++;
+      entity_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT; /* enum defined in SaHpi.h */
+      entity_path.Entry[0].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+      no_entries++;
+   }
+   else
+   {
+      entity_path.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+      entity_path.Entry[1].EntityLocation = sInfo.shelf; /* This is our chassi id. We get it in openhpi.conf file or so.*/
+      no_entries++;
+      entity_path.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE; /* enum defined in SaHpi.h */
+      entity_path.Entry[0].EntityLocation = sInfo.slot;                          /*SCXB slot id */
+      no_entries++;
+   }
+  }   
 #endif
    
    str [0] = '\0';
@@ -1185,6 +1211,13 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
            sprintf (& (str[len]), "%s%d%s", "{65539,", sInfo.shelf, "},");
            len = m_NCS_STRLEN (str); 
            break;
+
+       case SAHPI_ENT_SYSTEM_CHASSIS:
+
+           sprintf (& (str[len]), "%s%d%s", "{23,", sInfo.shelf, "},");
+           len = m_NCS_STRLEN (str); 
+           break;
+
        case AMC_SUB_SLOT_TYPE:
 
            sprintf (& (str[len]), "%s%d%s", "{151,",sInfo.subSlot, "},");

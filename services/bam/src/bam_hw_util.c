@@ -75,7 +75,10 @@ get_entity_type_from_text(char *str)
       else if(m_NCS_STRCMP(str, "SAHPI_ENT_ADVANCEDTCA_CHASSIS") == 0)
          type = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
 		 
-	  else if(m_NCS_STRCMP(str, "SAHPI_ENT_RACK") == 0)
+      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SYSTEM_CHASSIS") == 0)
+         type = SAHPI_ENT_SYSTEM_CHASSIS;
+		 
+      else if(m_NCS_STRCMP(str, "SAHPI_ENT_RACK") == 0)
          type = SAHPI_ENT_RACK;
 
       else if(m_NCS_STRCMP(str, "SAHPI_ENT_SYSTEM_BLADE") == 0)
