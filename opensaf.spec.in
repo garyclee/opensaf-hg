@@ -240,7 +240,7 @@ fi
 %files common
 %defattr(-,root,root)
 %doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
-%doc README README.uml README.conf
+%doc README 00-README.uml 00-README.conf 00-README.debug 00-README.drbd
 %dir %{_sysconfdir}/%{name}
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
@@ -483,7 +483,7 @@ fi
 
 %files samples
 %defattr(-,root,root)
-%doc README.samples
+%doc 00-README.samples
 %dir %{_datadir}/%{name}/samples
 %{_datadir}/%{name}/samples/*
 

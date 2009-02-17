@@ -101,9 +101,11 @@ dist_doc_DATA = \
 	$(top_srcdir)/OpenSAFCopyRights \
 	$(top_srcdir)/THANKS \
 	$(top_srcdir)/README \
-	$(top_srcdir)/README.uml \
-	$(top_srcdir)/README.conf \
-	$(top_srcdir)/README.samples
+	$(top_srcdir)/00-README.uml \
+	$(top_srcdir)/00-README.conf \
+	$(top_srcdir)/00-README.samples \
+	$(top_srcdir)/00-README.debug \
+	$(top_srcdir)/00-README.drbd
 
 
 dist_pkgdata_DATA = \

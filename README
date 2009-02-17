@@ -474,7 +474,7 @@ Here is where individual `OpenSAF' components get installed:
 
     * Documentation: `$docdir' (e.g /usr/share/doc/opensaf-<version>/)
     * Samples, Templates: `$pkgdatadir' (e.g. /usr/share/opensaf/)
-    * OpenSAF headers: `$pkgincludedur' (e.g. /usr/include/opensaf/)
+    * OpenSAF headers: `$pkgincludedir' (e.g. /usr/include/opensaf/)
     * SAF headers: `$includedir' (e.g. /usr/include/)
     * Configuration: `$pkgsysconfdir' (e.g. /etc/opensaf/)
     * Runtime Misc.: `$pkglocalstate' (e.g. /var/lib/opensaf/)
@@ -592,7 +592,7 @@ It will then provides two special variables available to `automake':
 How to Configure `OpenSAF'
 ==========================
 
-See file `README.conf' for the configuration file syntax/format.
+See file `00-README.conf' for the configuration file syntax/format.
 
 More TODO
 
@@ -603,7 +603,7 @@ How to Run `OpenSAF'
 The `OpenSAF' SysV init script is installed in `$sysconfdir/rc.d/init.d'
 (e.g. /etc/rc.d/init.d/) and can be executed like that:
 
-    % /etc/init.d/opensafd [start/stop/status]
+    % /etc/init.d/opensafd [start|stop|status]
 
 More TODO
 
@@ -634,11 +634,13 @@ the default values e.g.:
 
 To run the an application you will need a configured `OpenSAF' node running.
 
-See file `README.samples' for more information on each of the application.
+See file `00-README.samples' for more information on each of the application.
 
 
 Using the Simulation Environment
 ================================
+
+See file `00-README.uml' for more information about User Mode Linux and `OpenSAF'
 
 More TODO
 
