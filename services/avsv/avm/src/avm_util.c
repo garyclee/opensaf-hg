@@ -2269,6 +2269,10 @@ extern void
 avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slot_id, 
                                     NCS_SUB_SLOT_ID subslot_id, SaHpiEntityPathT *ep)
 {
+   char *arch_type = NULL;
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+
    /* Initialize entity path */
    m_NCS_MEMSET(ep->Entry, 0, sizeof(SaHpiEntityPathT));
 
@@ -2291,10 +2295,20 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
    {
       ep->Entry[3].EntityType  = SAHPI_ENT_ROOT; 
       ep->Entry[3].EntityLocation = 0;
-      ep->Entry[2].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-      ep->Entry[2].EntityLocation = chassis_id; 
-      ep->Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT; 
-      ep->Entry[1].EntityLocation = phy_slot_id;                          
+      if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+      {
+         ep->Entry[2].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+         ep->Entry[2].EntityLocation = chassis_id; 
+         ep->Entry[1].EntityType = SAHPI_ENT_PHYSICAL_SLOT; 
+         ep->Entry[1].EntityLocation = phy_slot_id;                          
+      }
+      else
+      {
+         ep->Entry[2].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+         ep->Entry[2].EntityLocation = chassis_id; 
+         ep->Entry[1].EntityType = SAHPI_ENT_SYSTEM_BLADE; 
+         ep->Entry[1].EntityLocation = phy_slot_id;                          
+      }
       ep->Entry[0].EntityType = AMC_SUB_SLOT_TYPE; 
       ep->Entry[0].EntityLocation = subslot_id;                          
    }
@@ -2302,10 +2316,20 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
    {
       ep->Entry[2].EntityType  = SAHPI_ENT_ROOT; 
       ep->Entry[2].EntityLocation = 0;
-      ep->Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
-      ep->Entry[1].EntityLocation = chassis_id; 
-      ep->Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT; 
-      ep->Entry[0].EntityLocation = phy_slot_id; 
+      if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+      {
+         ep->Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+         ep->Entry[1].EntityLocation = chassis_id; 
+         ep->Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT; 
+         ep->Entry[0].EntityLocation = phy_slot_id;                          
+      }
+      else
+      {
+         ep->Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+         ep->Entry[1].EntityLocation = chassis_id; 
+         ep->Entry[0].EntityType = SAHPI_ENT_SYSTEM_BLADE; 
+         ep->Entry[0].EntityLocation = phy_slot_id;                          
+      }
    }
 
 #endif
@@ -2334,7 +2358,10 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
    NCS_PHY_SLOT_ID phy_slot1, phy_slot2;
    NCS_SUB_SLOT_ID subslot1, subslot2;
    uns8 i=0;
+   char *arch_type = NULL;
  
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+
    /* Extract values from two entity paths. */ 
    while(ent_path1.Entry[i].EntityType  != SAHPI_ENT_ROOT)
    {
@@ -2348,10 +2375,20 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
 #elif  HPI_B_02
    if(ent_path1.Entry[i].EntityType == AMC_SUB_SLOT_TYPE)
       subslot1 = ent_path1.Entry[i].EntityLocation;
-   if(ent_path1.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
-      phy_slot1 = ent_path1.Entry[i].EntityLocation;
-   if(ent_path1.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
-      chassis_id1 = ent_path1.Entry[i].EntityLocation;
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   {
+      if(ent_path1.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
+         phy_slot1 = ent_path1.Entry[i].EntityLocation;
+      if(ent_path1.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+         chassis_id1 = ent_path1.Entry[i].EntityLocation;
+   }
+   else
+   {
+      if(ent_path1.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)
+         phy_slot1 = ent_path1.Entry[i].EntityLocation;
+      if(ent_path1.Entry[i].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)
+         chassis_id1 = ent_path1.Entry[i].EntityLocation;
+   }
 #endif
 
    i++;
@@ -2370,10 +2407,20 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
 #elif  HPI_B_02
    if(ent_path2.Entry[i].EntityType == AMC_SUB_SLOT_TYPE)
       subslot2 = ent_path2.Entry[i].EntityLocation;
-   if(ent_path2.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
-      phy_slot2 = ent_path2.Entry[i].EntityLocation;
-   if(ent_path2.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
-      chassis_id2 = ent_path2.Entry[i].EntityLocation;
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   {
+      if(ent_path2.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
+         phy_slot2 = ent_path2.Entry[i].EntityLocation;
+      if(ent_path2.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+         chassis_id2 = ent_path2.Entry[i].EntityLocation;
+   }
+   else
+   {
+      if(ent_path2.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)
+         phy_slot2 = ent_path2.Entry[i].EntityLocation;
+      if(ent_path2.Entry[i].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)
+         chassis_id2 = ent_path2.Entry[i].EntityLocation;
+   }
 #endif
 
    i++;
