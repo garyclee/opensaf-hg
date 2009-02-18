@@ -115,3 +115,42 @@ Using submit-review.sh with patch queue:
 Using submit-review.sh with local changesets:
 
    % submit-review.sh -r csX:csY
+
+
+Sending Patch for Review Manually
+=================================
+
+Nothing forces the developer to send patches for review using the helper script.
+However some minor rules should be followed to try keeping the review process
+uniform.
+
+1. The diff format should be the same for everyone (.hgrc) :
+
+   -----<-----<-----<-----<-----<-----
+   [diff]
+   git=1
+   nodates=1
+   showfunc=1
+   -----<-----<-----<-----<-----<-----
+
+2. The patch series should be sent inlined, one per email with an introduction
+   email (e.g. [PATCH 0/x] Review Request for ...)
+
+   No attachment!!!
+
+   The reason to keep patch inlined is simple, comments for the review can be
+   added in the reply, and attachment is a pain for review using text email
+   client. Also properly inlined patches can be dropped as mbox files to use with
+   Mercurial.
+
+      a. Using the 'hg email' command, patch will be exported with the proper
+         format, given that the proper settings for [diff] are set.
+      b. If not using the 'hg email' command, or to export a single patch, use
+         the 'hg export' command. Preferably export one changeset per patch if
+         the changes are meant for different modules/areas.
+
+3. Add the desired reviewers (if any) on the TO: line and the developer mailing
+   list on the CC: line. It's probably better to have the developer on the TO:
+   line and catch his email filter, most developer are subscribed to dozens of
+   development mailing lists...
+
