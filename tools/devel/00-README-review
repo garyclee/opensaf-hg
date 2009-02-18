@@ -100,13 +100,15 @@ The script will help you create the following work package:
 
 The script currently accepts the following options:
 
-Usage: submit-review.sh [-q] [-r rev] [-b url] [-d dest] [-s subject]
+Usage: submit-review.sh [-q|-c] [-r rev] [-b url] [-d dest] [-s subject]
 
--q    Enable patch queue usage for the review process
--r    Use the csX:csY committed revision range for the review process
--b    Specify where the development branch can be found
--d    Specify where the review package gets dumped (default 'mktemp -d')
--s    Change the default "Review Request" subject for [PATCH 0/x]
+-q    Enables patch queue usage for the review process
+-c    Enables local changesets usage for the review process (default)
+-r    Uses the csX:csY committed revision range for the review process
+      (default 'tip')
+-b    Specifies where the development branch can be found
+-d    Specifies where the review package gets dumped (default 'mktemp -d')
+-s    Changes the default "Review Request" subject for [PATCH 0/x]
 
 Using submit-review.sh with patch queue:
 
