@@ -21,11 +21,12 @@ if [ -z $EDITOR ]; then
    EDITOR="vi"
 fi
 
-usage="Usage: submit-review.sh [-q] [-r rev] [-b url] [-d dest] [-s subject]"
+usage="Usage: submit-review.sh [-q|-c] [-r rev] [-b url] [-d dest] [-s subject]"
 
-while getopts ":qr:b:d:s:" opt; do
+while getopts ":qcr:b:d:s:" opt; do
    case $opt in
       q ) mq=1 ;;
+      c ) cs=1 ;;
       r ) rev=$OPTARG ;;
       b ) branch=$OPTARG ;;
       d ) dest=$OPTARG ;;
@@ -36,6 +37,14 @@ while getopts ":qr:b:d:s:" opt; do
 done
 
 shift $(($OPTIND -1))
+
+if [ $mq ] && [ $cs ]; then
+   echo "$0: [-q|-c] are mutually exclusive options"
+   echo $usage
+   exit 1
+elif [ ! $mq ] && [ ! $cs ]; then
+   cs=1
+fi
 
 if [ -z $dest ]; then
    rr=`mktemp -d`
@@ -58,8 +67,13 @@ if [ -z $subject ]; then
    subject="Review Request"
 fi
 
-if [ -z $rev ]; then
-   rev="tip"
+if [ $cs ]; then
+   if [ -z $rev ]; then
+      rev="tip"
+   fi
+   echo "Exporting changeset(s) '$rev' for review"
+elif [ $mq ]; then
+   echo "Exporting the patch queue for review"
 fi
 
 echo "The review package will be placed under $rr"
@@ -77,7 +91,7 @@ if [ $mq ]; then
       cp .hg/patches/*.patch $rr
       cp .hg/patches/series $rr
    fi
-elif [ -n $rev ]; then
+elif [ $cs ]; then
    $HG export -g -o $rr/%R.patch $rev
    cd $rr
    ls -1 *.patch >> series
@@ -91,7 +105,7 @@ Peer Reviewer(s): <<FILL_ME>>
 Maintainer: <<FILL_ME>>
 ETX
 
-if [ -n $branch ]; then
+if [ ! -z $branch ]; then
    echo "Development branch: $branch" >> $rr/rr
 fi
 
@@ -152,7 +166,7 @@ Remaining Changes (diffstat):
 ETX
 if [ $mq ]; then
    $HG qdiff | diffstat >> $rr/rr
-elif [ -n $rev ]; then
+elif [ $cs ]; then
    $HG export -g $rev | diffstat >> $rr/rr
 fi
 cat <<ETX >> $rr/rr
@@ -191,8 +205,9 @@ SPARC64   n         n
 ETX
 
 $EDITOR $rr/rr
+
 if [ $mq ]; then
    $HG email -s "$subject" --intro --desc $rr/rr --cc devel@list.opensaf.org qbase:qtip
-elif [ -n $rev ]; then
+elif [ $cs ]; then
    $HG email -s "$subject" --intro --desc $rr/rr --cc devel@list.opensaf.org $rev
 fi
