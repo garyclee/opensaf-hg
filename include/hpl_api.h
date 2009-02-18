@@ -36,6 +36,8 @@
 #include "ncs_lib.h"
 #include "hpl_msg.h"
 
+#define EPATH_STRING_SIZE	2056
+
 /* HPL command arguments */
 typedef enum hisv_power_args
 {
@@ -139,6 +141,6 @@ EXTERN_C uns32 hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, 
 
 EXTERN_C uns32 hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number);
 EXTERN_C uns32 hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number);
-EXTERN_C uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path);
+EXTERN_C uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path, size_t entity_path_size);
 
 #endif /* HPL_API_H */

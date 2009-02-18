@@ -487,7 +487,7 @@ avm_constr_ep(
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
        /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
-       rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep);
+       rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
        if (rc == NCSCC_RC_SUCCESS) {
           if (m_NCS_STRLEN(ep) == 0) {
              m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
@@ -532,7 +532,7 @@ avm_cef_set_ent_adm_req(
     uns32              entity_type[SAHPI_MAX_ENTITY_PATH];
     uns32              ent_inst_cnt = 0;
     uns32              ent_type_cnt = 0;
-    int8               ep[sizeof(SaHpiEntityPathT)];
+    int8               ep[EPATH_STRING_SIZE];
     NCSMIB_IDX         mib_idx;
     NCSMIB_TBL_ID      table_id;
     
