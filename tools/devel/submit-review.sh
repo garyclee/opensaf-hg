@@ -78,18 +78,15 @@ fi
 
 echo "The review package will be placed under $rr"
 
-if [ ! -d .hg/ ]; then
-   echo "$0: Are you in hg repository top directory?"
-   exit 1
-fi
+hgroot=`$HG root`
 
 if [ $mq ]; then
-   if [ ! -d .hg/patches/ ]; then
+   if [ ! -d $hgroot/.hg/patches/ ]; then
       echo "$0: Did you init the patch queue properly?"
       exit 1
    else
-      cp .hg/patches/*.patch $rr
-      cp .hg/patches/series $rr
+      cp $hgroot/.hg/patches/*.patch $rr
+      cp $hgroot/.hg/patches/series $rr
    fi
 elif [ $cs ]; then
    $HG export -g -o $rr/%R.patch $rev

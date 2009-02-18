@@ -12,6 +12,7 @@ A commit message should comply to the following template:
 * Third line  : Ticket #xyz if applicable (optional)
 * Fourth line : Blank (optional)
 * Fifth line  : 72-chars long lines for a more complete description
+* Last line   : Signed-off-by: Tag
 
 -----<-----<-----<-----<-----<-----
 example: this is a one line short description
@@ -20,6 +21,8 @@ Ticket #500
 
 This is a more elaborate description that explains your changes and the
 original problem and how it got solved.
+
+Signed-off-by: John Doe <john.doe@example.com>
 -----<-----<-----<-----<-----<-----
 
 The first line will be grabbed by the 'hg email' command and added as the
@@ -34,11 +37,49 @@ close/fix tickets automatically if needed.
 
 The long description gives more details about the patch/changeset.
 
+The SOB tag is the original patch author.
+
+
+Default Commit Message Template
+===============================
+
+Apparently Mercurial lacks the support of customizing the default commit message
+based on a template file somewhere in the repository.
+
+The Qct extension can be installed and used in your ~/.hgrc profile to point to
+a template file, so that you're nagged every time how to fill the commit
+message properly ;)
+
+For instance under Red Hat/Fedora the package is called 'qct-mercurial'
+
+   % yum install qct-mercurial
+   % yum install qct
+
+http://www.selenic.com/mercurial/wiki/index.cgi/QctExtension
+
+Under './tools/devel/commit.template', you'll find a default template that you
+can use with the Qct extension. The extension automatically looks for a template
+file under `hg root`/.commit.template, a copy is already placed in the OpenSAF
+repository for developer that would like to use the Qct extension.
+
+-----<-----<-----<-----<-----<-----
+[extensions]
+hgext.qct =
+
+[qct]
+signoff = Signed-off-by: John Doe <john.doe@example.com>
+-----<-----<-----<-----<-----<-----
+
+To use the Qct Extension, you'll have to commit your changes using the 'hg
+commit-tool | hg qct' command. The tool has neat features, like dynamically
+deciding which files will be part of the current commit etc. But it might bug
+some developers since it pops up a GUI.
+
 
 Mercurial Settings Needed for Email Review
 ==========================================
 
-This section lists the settings that should be enabled from the '.hgrc' file to
+This section lists the settings that should be enabled from the '~/.hgrc' file to
 be able to use the helper script properly.
 
 If you need help using the Mercurial patch queue extension, take a look at the
@@ -126,7 +167,7 @@ Nothing forces the developer to send patches for review using the helper script.
 However some minor rules should be followed to try keeping the review process
 uniform.
 
-1. The diff format should be the same for everyone (.hgrc) :
+1. The diff format should be the same for everyone (~/.hgrc) :
 
    -----<-----<-----<-----<-----<-----
    [diff]
