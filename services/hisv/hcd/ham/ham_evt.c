@@ -1517,7 +1517,8 @@ GET_RES_ID:
       if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
             (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
             ((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)) &&
+             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
+             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)) &&
             (
 #ifdef HPI_B_02
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
@@ -1848,14 +1849,27 @@ ham_entity_path_lookup(HISV_EVT *evt)
    HPL_PAYLOAD      *hpl_pload;
    int32            hpi_entity_path_depth;  /* The depth of the found entity path      */
    int32            hpi_entity_path_loc;    /* An index to an entry of the entity path */
-   SaUint8T         hpi_entity_path_buffer[1024];
+   SaUint8T         hpi_entity_path_buffer[EPATH_STRING_SIZE];
    uns8             blade_entity_type[128];
    int32            entity_path_len;
    uns32            flag;
    SaHpiEntityPathT epath;
+   char 	    *arch_type = NULL;
+   uns32	    chassis_type;
 
 #ifdef HPI_B_02
    m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   /* Set chassis type */
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   {
+      chassis_type = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+   }
+   else
+   {
+      chassis_type = SAHPI_ENT_SYSTEM_CHASSIS;
+   }
 
    set_hisv_msg (&hisv_msg);
    /** retrieve HAM CB
@@ -1919,7 +1933,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
 
       hpi_entity_path_loc = hpi_entity_path_depth - 2;  /* now indexing the entry before SAHPI_ENT_ROOT */ 
 
-      if ((entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) &&
+      if ((entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityType == chassis_type) &&
 	  (entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityLocation == hpl_pload->d_chassisID)) {
 
          hpi_entity_path_loc--;          /* Now we are indexing to the entry that is before chassis          */ 
@@ -2001,26 +2015,42 @@ ham_entity_path_lookup(HISV_EVT *evt)
          if (entry.ResourceEntity.Entry[hpi_entity_path_loc].EntityLocation == hpl_pload->d_bladeID) {
             switch (flag) {
                case HPL_EPATH_FLAG_FULLSTR: {
-                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SAHPI_ENT_SYSTEM_CHASSIS,%d},{SAHPI_ENT_ROOT,0}}",
-                     blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  if (chassis_type == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+                  {
+                     sprintf(hpi_entity_path_buffer, "{{%s,%d},{SAHPI_ENT_ADVANCEDTCA_CHASSIS,%d},{SAHPI_ENT_ROOT,0}}",
+                        blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  }
+                  else
+                  {
+                     sprintf(hpi_entity_path_buffer, "{{%s,%d},{SAHPI_ENT_SYSTEM_CHASSIS,%d},{SAHPI_ENT_ROOT,0}}",
+                        blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  }
                   break;
                }
                case HPL_EPATH_FLAG_NUMSTR: {
                   sprintf(hpi_entity_path_buffer, "{{%s,%d},{%d,%d},{%d,0}}",
-                     blade_entity_type, hpl_pload->d_bladeID, SAHPI_ENT_SYSTEM_CHASSIS,
+                     blade_entity_type, hpl_pload->d_bladeID, chassis_type,
                      hpl_pload->d_chassisID, SAHPI_ENT_ROOT);
                   break;
                }
                case HPL_EPATH_FLAG_ARRAY: {
-                  epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+                  epath.Entry[1].EntityType = chassis_type;
                   epath.Entry[1].EntityLocation = hpl_pload->d_chassisID;
                   epath.Entry[2].EntityType = SAHPI_ENT_ROOT;
                   epath.Entry[2].EntityLocation = 0;
                   break;
                }
                case HPL_EPATH_FLAG_SHORTSTR: {
-                  sprintf(hpi_entity_path_buffer, "{{%s,%d},{SYSTEM_CHASSIS,%d}}",
-                     blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  if (chassis_type == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+                  {
+                     sprintf(hpi_entity_path_buffer, "{{%s,%d},{ADVANCEDTCA_CHASSIS,%d}}",
+                        blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  }
+                  else
+                  {
+                     sprintf(hpi_entity_path_buffer, "{{%s,%d},{SYSTEM_CHASSIS,%d}}",
+                        blade_entity_type, hpl_pload->d_bladeID, hpl_pload->d_chassisID);
+                  }
                   break;
                }
             }

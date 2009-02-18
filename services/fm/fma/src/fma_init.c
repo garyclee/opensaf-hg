@@ -697,7 +697,7 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
    if (cb->is_platform == TRUE)
    {
       /* Attempt to lookup the array-based entity-path first using the HISv lookup fn */
-      rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *) &temp_epath);
+      rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *) &temp_epath, sizeof(temp_epath));
    }
 
    if ((rc == NCSCC_RC_SUCCESS) && (temp_epath.Entry[0].EntityType != 0)) {
