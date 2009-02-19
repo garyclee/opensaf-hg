@@ -85,7 +85,12 @@ avm_hpl_init()
    req_info.i_op = NCS_LIB_REQ_CREATE;
  
    /* request to initialize HPL library */
-   return ncs_hpl_lib_req(&req_info);
+   /* return ncs_hpl_lib_req(&req_info); */
+
+   /* HISv is now being initialized by fma_hpl_init().               */
+   /* If we initialize HISv again here, it causes errors in SCAP and */
+   /* causes any further use of HISv to fail.                        */
+   return(NCSCC_RC_SUCCESS);
 }
 /**************************************************************************
 * Function: avm_hpl_destroy

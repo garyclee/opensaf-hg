@@ -312,7 +312,9 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
    }     
    
    *(ent_path_str - 1)= '}'; 
-/*   *ent_path_str = '\0';   */
+
+   /* Must null-terminate this string if it is to be used by HISv. */
+   *ent_path_str = '\0';
    return rc;
 }
 

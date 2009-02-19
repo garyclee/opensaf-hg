@@ -194,15 +194,17 @@ uns32 hcd_hsm()
          continue;
 
 #ifndef HPI_A
-      if(!((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)||
-         (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
-         (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))))
+      if (!((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)||
+            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)||
+            (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
+            (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))))
          {
-           /* don't care about this event */
-          continue;
+            /* don't care about this event */
+            m_LOG_HISV_DTS_CONS("hcd_hsm: Discarding Event, not from Controller or Payload\n");
+            continue;
          }
 
-       m_NCS_CONS_PRINTF(" HPI event from resource_id=%d\n", RptEntry.ResourceId);
+      m_NCS_CONS_PRINTF(" HPI event from resource_id=%d\n", RptEntry.ResourceId);
 
       if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))
          {
@@ -410,7 +412,8 @@ uns32 hcd_hsm()
                /* has already begun to execute.                                             */
                m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
             }
-            m_NCS_CONS_PRINTF("Extraction: Error taking control of resource Error  %d , Resouce ID %d \n",policy_err,RptEntry.ResourceId );
+            else
+               m_NCS_CONS_PRINTF("Extraction: Error taking control of resource Error  %d , Resouce ID %d \n",policy_err,RptEntry.ResourceId );
             policy_err=SA_OK;
          }
       }
@@ -460,7 +463,7 @@ uns32 hcd_hsm()
          if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
              &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
          {
-            m_LOG_HISV_DTS_CONS("hcd_hsm: Inventory data not found\n");
+            m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
          }
       }
       else {
@@ -471,7 +474,7 @@ uns32 hcd_hsm()
            if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
                &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
            {
-              m_LOG_HISV_DTS_CONS("hcd_hsm: Inventory data not found\n");
+              m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
            }
         }
       }
@@ -1206,8 +1209,10 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
+   char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("publish_extracted: Invoked\n");
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
@@ -1239,7 +1244,11 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    epath.Entry[1].EntityInstance = hsm_cb->args->chassis_id;
 #else
    epath.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-   epath.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+   /* Check for architecture type */
+   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+      epath.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+   else
+      epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
    epath.Entry[1].EntityLocation = hsm_cb->args->chassis_id;
 #endif
    epath.Entry[2].EntityType = SAHPI_ENT_ROOT;
@@ -1834,7 +1843,8 @@ CHECK:
 
    if ( err != SA_OK )
    {
-      m_LOG_HISV_DTS_CONS("hcd_hsm: call to saHpiIdrAreaHeaderGet failed\n");
+      /* Note: This data is not available on all hardware platforms. */
+      m_NCS_CONS_PRINTF("hcd_hsm: PRODUCT_INFO for resource %d is not available.\n", RptEntry->ResourceId);
       return(NCSCC_RC_FAILURE);
    }
 
@@ -2000,9 +2010,9 @@ CHECK:
     }
     else
     {
-      m_LOG_HISV_DTS_CONS("hcd_hsm: call to saHpiIdrAreaHeaderGet failed\n");
+      /* Note: This data is not available on all hardware platforms. */
+      m_NCS_CONS_PRINTF("hcd_hsm: OEM info for resource %d is not available.\n", RptEntry->ResourceId);
       return(NCSCC_RC_FAILURE);
-        /* Log an err Area header Get issue */
     }
    areaId = next_area; 
    } /* while areas */
