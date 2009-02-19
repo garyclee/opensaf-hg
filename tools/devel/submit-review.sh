@@ -21,14 +21,14 @@ if [ -z $EDITOR ]; then
    EDITOR="vi"
 fi
 
-usage="Usage: submit-review.sh [-q|-c] [-r rev] [-b url] [-d dest] [-s subject]"
+usage="Usage: submit-review.sh [-t] [-q|-c] [-r rev] [-d dest] [-s subject]"
 
-while getopts ":qcr:b:d:s:" opt; do
+while getopts ":tqcr:b:d:s:" opt; do
    case $opt in
+      t ) dryrun=1 ;;
       q ) mq=1 ;;
       c ) cs=1 ;;
       r ) rev=$OPTARG ;;
-      b ) branch=$OPTARG ;;
       d ) dest=$OPTARG ;;
       s ) subject=$OPTARG ;;
       \?) echo $usage
@@ -46,7 +46,7 @@ elif [ ! $mq ] && [ ! $cs ]; then
    cs=1
 fi
 
-if [ -z $dest ]; then
+if [ -z "$dest" ]; then
    rr=`mktemp -d`
    if [ $? != 0 ]; then
       echo "$0: mktemp failed"
@@ -54,7 +54,7 @@ if [ -z $dest ]; then
    fi
 else
    rr=$dest
-   if [ ! -d $rr ]; then
+   if [ ! -d "$rr" ]; then
       mkdir $rr
       if [ $? != 0 ]; then
          echo "$0: mkdir $rr failed"
@@ -63,12 +63,16 @@ else
    fi
 fi
 
-if [ -z $subject ]; then
+if [ -z "$subject" ]; then
    subject="Review Request"
 fi
 
+if [ $dryrun ]; then
+   echo "*** Running in dry-run mode, nothing will be emailed ***"
+fi
+
 if [ $cs ]; then
-   if [ -z $rev ]; then
+   if [ -z "$rev" ]; then
       rev="tip"
    fi
    echo "Exporting changeset(s) '$rev' for review"
@@ -81,7 +85,7 @@ echo "The review package will be placed under $rr"
 hgroot=`$HG root`
 
 if [ $mq ]; then
-   if [ ! -d $hgroot/.hg/patches/ ]; then
+   if [ ! -d "$hgroot/.hg/patches" ]; then
       echo "$0: Did you init the patch queue properly?"
       exit 1
    else
@@ -92,7 +96,7 @@ elif [ $cs ]; then
    $HG export -g -o $rr/%R.patch $rev
    cd $rr
    ls -1 *.patch >> series
-   cd -
+   cd - > /dev/null 2>&1
 fi
 
 cat <<ETX >> $rr/rr
@@ -100,13 +104,7 @@ Summary: <<FILL_ME>>
 Review request for Trac Ticket(s): <<IF_ANY_LIST_THE_#>>
 Peer Reviewer(s): <<FILL_ME>>
 Maintainer: <<FILL_ME>>
-ETX
-
-if [ ! -z $branch ]; then
-   echo "Development branch: $branch" >> $rr/rr
-fi
-
-cat <<ETX >> $rr/rr
+Development branch: <<IF_ANY_GIVE_THE_URL>>
 Affected branch(es): <<LIST_AFFECTED_BRANCH(ES)>>
 
 --------------------------------
@@ -169,11 +167,6 @@ fi
 cat <<ETX >> $rr/rr
 
 
-Testing Applicable to:
-----------------------
- <<FILL_ME>>
-
-
 Testing Commands:
 -----------------
  <<FILL_ME>>
@@ -203,8 +196,25 @@ ETX
 
 $EDITOR $rr/rr
 
+while [ -z "$toline" ]; do
+   read -p "To: " -e toline
+done
+
+COMMAND="$HG email -s '$subject' --intro --desc $rr/rr --to '$toline' --cc devel@list.opensaf.org"
+
+if [ $dryrun ]; then
+   COMMAND+=" -n"
+fi
+
 if [ $mq ]; then
-   $HG email -s "$subject" --intro --desc $rr/rr --cc devel@list.opensaf.org qbase:qtip
+   COMMAND+=" qbase:qtip"
 elif [ $cs ]; then
-   $HG email -s "$subject" --intro --desc $rr/rr --cc devel@list.opensaf.org $rev
+   COMMAND+=" $rev"
+fi
+
+if [ $dryrun ]; then
+   echo "Email will be dumped as $rr/review.mail"
+   eval $COMMAND > $rr/review.mail
+else
+   eval $COMMAND
 fi
