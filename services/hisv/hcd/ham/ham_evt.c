@@ -716,11 +716,9 @@ ham_manage_hotswap(HISV_EVT *evt)
    SaErrorT       err;
    SaHpiHsActionT      ActionT;
    uns32 rc = NCSCC_RC_FAILURE;
-   char *arch_type = NULL;
 
    set_hisv_msg(&hisv_msg);
    m_LOG_HISV_DTS_CONS("ham_manage_hotswap: Invoked\n");
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /** retrieve HAM CB
     **/
@@ -765,12 +763,13 @@ ham_manage_hotswap(HISV_EVT *evt)
    case HS_RESOURCE_INACTIVE_SET:
       err = saHpiResourceInactiveSet(ham_cb->args->session_id, resourceid);
       m_LOG_HISV_DTS_CONS("HAM: ham_manage_hotswap : HS_RESOURCE_INACTIVE_SET, Invoked\n");
-      if (((m_NCS_OS_STRCMP(arch_type, "HP_CCLASS") == 0) ||
-           ((m_NCS_OS_STRCMP(arch_type, "HP_PROLIANT") == 0))) &&
-          (err == SA_ERR_HPI_INVALID_REQUEST))
+      if (err == SA_ERR_HPI_INVALID_REQUEST)
       {
-         /* c-Class/proliant is already inactive because extraction/inactive hotswap */
-         /* - so report everything is okay                                           */
+         /* If the err is SA_ERR_HPI_INVALID_REQUEST, it is likely the case that the      */
+         /* device has already gone inactive automatically - as is the case with HP       */ 
+         /* c-Class/HP Proliant.  So put a message in the log file - but do not report an */
+         /* error for this particular case.                                               */
+         m_LOG_HISV_DTS_CONS("HAM: ham_manage_hotswap : HS_RESOURCE_INACTIVE_SET, Cannot set node to inactive.\n");
          err = SA_OK;
       }
       break;

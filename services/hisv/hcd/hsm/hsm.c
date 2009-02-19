@@ -463,7 +463,7 @@ uns32 hcd_hsm()
          if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
              &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
          {
-            m_NCS_CONS_PRINTF("hcd_hsm: Some inventory data not found during event type: %d\n", event.EventType);
+            m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
          }
       }
       else {
@@ -474,7 +474,7 @@ uns32 hcd_hsm()
            if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
                &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
            {
-              m_NCS_CONS_PRINTF("hcd_hsm: Some inventory data not found during event type: %d\n", event.EventType);
+              m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
            }
         }
       }
