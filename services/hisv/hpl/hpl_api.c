@@ -1388,7 +1388,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path)
+uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 *entity_path, size_t entity_path_size)
 {
    HPL_CB      *hpl_cb;
    MDS_DEST    ham_dest;
@@ -1447,7 +1447,18 @@ uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 
    ret_len = msg->info.cbk_info.hpl_ret.h_gen.data_len;
 
    if (ret_len > 0) {
-      m_NCS_MEMCPY((uns8 *)entity_path, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
+      /* Check return length.  For array, it must be equal to or less than user buffer size. */
+      /* For string, it must be less than user buffer size.                                  */
+      if (((flag == HPL_EPATH_FLAG_ARRAY) && (ret_len <= entity_path_size)) ||
+          (ret_len < entity_path_size))
+      { 
+         m_NCS_MEMCPY((uns8 *)entity_path, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
+      } 
+      else
+      { 
+         free_hisv_ret_msg(msg); 
+         return NCSCC_RC_FAILURE; 
+      } 
    }
 
    /* If this is a string version of the entity-path, null-terminate the  */
