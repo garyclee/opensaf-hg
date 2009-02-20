@@ -47,20 +47,6 @@ static uns32 rda_connect      (int *sockfd);
 static uns32 rda_disconnect   (int sockfd);
 static uns32 rda_callback_req (int sockfd);
 
-
-#if (RDA_SPOOF != 0)
-
-/*
-** Global data, RDA callback control block
-*/
-RDA_CALLBACK_CB rda_spoof_callback_cb;
-PCS_RDA_CB_INFO spoof_cb_info;
-PCS_RDA_ROLE    rda_current_role = PCS_RDA_UNDEFINED;
-
-static uns32 get_init_role(uns32 *init_role);
-
-#endif
-
 /*****************************************************************************
 
   PROCEDURE NAME:       rda_callback_task
@@ -195,21 +181,7 @@ uns32 rda_callback_task (RDA_CALLBACK_CB *rda_callback_cb)
  *****************************************************************************/
 int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, long *task_cb)
 {
-
     uns32  rc = PCSRDA_RC_SUCCESS;
-
-#if (RDA_SPOOF != 0)
-
-    m_NCS_OS_MEMSET(&rda_spoof_callback_cb, 0, sizeof(RDA_CALLBACK_CB));
-    rda_spoof_callback_cb.sockfd          = -1;
-    rda_spoof_callback_cb.callback_ptr    = rda_cb_ptr;
-    rda_spoof_callback_cb.callback_handle = cb_handle;
-    rda_spoof_callback_cb.task_terminate  = FALSE;
-
-    *task_cb = (long) &rda_spoof_callback_cb;
-
-#else
-
     int              sockfd          = -1;
     NCS_BOOL         is_task_spawned = FALSE;
     RDA_CALLBACK_CB *rda_callback_cb = NULL;
@@ -302,8 +274,6 @@ int pcs_rda_reg_callback (uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, long *task
 
     }
 
-#endif
-
     /*
     ** Done
     */
@@ -328,12 +298,6 @@ int pcs_rda_unreg_callback (long task_cb)
     RDA_CALLBACK_CB *rda_callback_cb = NULL;
     rda_callback_cb                  = (RDA_CALLBACK_CB *) task_cb;
     rda_callback_cb ->task_terminate = TRUE;
-
-#if (RDA_SPOOF != 0)
-
-    m_NCS_OS_MEMSET(&rda_spoof_callback_cb, 0, sizeof(RDA_CALLBACK_CB));
-
-#else
 
     /*
     ** Stop task
@@ -360,8 +324,6 @@ int pcs_rda_unreg_callback (long task_cb)
     */
     ncs_leap_shutdown();
 
-#endif
-
     /*
     ** Done
     */
@@ -384,33 +346,6 @@ int pcs_rda_unreg_callback (long task_cb)
 int pcs_rda_set_role     (PCS_RDA_ROLE role)
 {
     uns32   rc = PCSRDA_RC_SUCCESS;
-
-#if (RDA_SPOOF != 0)
-
-    if (rda_current_role == role)
-        return rc;
-
-    /*
-    ** Set role
-    */
-    rda_current_role = role;
-
-    /* 
-    ** If the set role is Quiesced, nothing to be done, just return
-    */
-    if (role == PCS_RDA_QUIESCED)
-        return rc;
-
-    /*
-    ** Intimate registered client about role change
-    */
-    spoof_cb_info.cb_type = PCS_RDA_ROLE_CHG_IND;
-    spoof_cb_info.info.io_role = value;
-    if (rda_spoof_callback_cb.callback_ptr != NULL)
-        (rda_spoof_callback_cb.callback_ptr) (rda_spoof_callback_cb->callback_handle, &spoof_cb_info, PCSRDA_RC_SUCCESS);
-
-#else
-
     int     sockfd;
     char    msg [64]          = {0};
     int     value             = -1;
@@ -461,8 +396,6 @@ int pcs_rda_set_role     (PCS_RDA_ROLE role)
     */
     rda_disconnect (sockfd);
 
-#endif
-
     /*
     ** Done
     */
@@ -485,38 +418,6 @@ int pcs_rda_set_role     (PCS_RDA_ROLE role)
 int pcs_rda_get_role (PCS_RDA_ROLE * role)
 {
     uns32   rc = PCSRDA_RC_SUCCESS;
-
-#if (RDA_SPOOF != 0)
-
-    /*
-    ** Determine the role from slot id
-    */
-    if (rda_current_role == PCS_RDA_UNDEFINED)
-    {
-        uns32 init_role = -1;
-
-        if (get_init_role (&init_role) != 0)
-        {
-            return PCSRDA_RC_CALLBACK_REG_FAILED;
-
-        }
-
-        if (init_role == 1)
-        {
-            rda_current_role = PCS_RDA_ACTIVE;
-
-        }
-        else
-        {
-            rda_current_role = PCS_RDA_STANDBY;
-
-        }
-    }
-
-    *role = rda_current_role;
-
-#else
-
     int     sockfd;
     char    msg [64]          = {0};
     int     value             = -1;
@@ -573,8 +474,6 @@ int pcs_rda_get_role (PCS_RDA_ROLE * role)
     ** Disconnect
     */
     rda_disconnect (sockfd);
-
-#endif
 
     /*
     ** Done
@@ -923,75 +822,4 @@ uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type, int *value)
     return PCSRDA_RC_SUCCESS;
 
 }
-
-/**************************************************/
-
-#if (RDA_SPOOF != 0)
-
-static char afs_config_root[256];
-
-static uns32 file_get_word(FILE **fp, char *o_chword)
-{
-   int temp_char;
-   unsigned int temp_ctr=0;
-try_again:
-   temp_ctr = 0;
-   temp_char = getc(*fp);
-   while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != ' ') && (temp_char != '\0'))
-   {
-      o_chword[temp_ctr] = (char)temp_char;
-      temp_char = getc(*fp);
-      temp_ctr++;
-   }
-   o_chword[temp_ctr] = '\0';
-   if (temp_char == EOF)
-   {
-      return(EOF);
-   }
-   if (temp_char == '\n')
-   {
-      return(1);
-   }
-   if(o_chword[0] == 0x0)
-      goto try_again;
-   return(0);
-}
-
-static uns32 get_init_role(uns32 *init_role)
-{
-   FILE *fp;
-   char get_word[256];
-   uns32 res = 0;
-   uns32 d_len;
-   
-   sprintf(afs_config_root, "%s/", OSAF_SYSCONFDIR);
-   /*sprintf(afs_config_root, "%s", ".");*/
-   d_len = strlen(afs_config_root);
-   /* Hack afs_config_root to construct path */
-   sprintf(afs_config_root + d_len, "%s", "/init_role");
-   fp = fopen(afs_config_root,"r");
-   /* Reverse hack afs_config_root to original value*/
-   afs_config_root[d_len] = 0;
-
-   if (fp == NULL)
-   {
-      printf("\nRDA: Couldn't open %s/init_role \n", afs_config_root);
-      return 1;
-   }
-   do
-   {   
-      file_get_word(&fp,get_word);      
-      if ((*init_role = atoi(get_word)) == -1)
-      {
-         res = 1;
-         break;
-      }
-      fclose(fp);
-   } while(0);
-
-   return(res);
-}
-
-#endif
-
 
