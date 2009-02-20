@@ -263,8 +263,8 @@ log_stream_t *log_stream_new(SaNameT *name,
     }
     memcpy(stream->name, name->value, name->length);
     stream->name[SA_MAX_NAME_LENGTH] = '\0';
-    strncpy(stream->fileName, filename, sizeof(stream->pathName));
-    strcpy(stream->pathName, pathname);
+    strncpy(stream->fileName, filename, sizeof(stream->fileName));
+    strncpy(stream->pathName, pathname, sizeof(stream->pathName));
     stream->maxLogFileSize = maxLogFileSize;
     stream->fixedLogRecordSize = fixedLogRecordSize;
     stream->haProperty = SA_TRUE;
