@@ -669,11 +669,11 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb,
                                                  NCS_SERVICE_ID_LGA,(NCSCONTEXT)rec)))
     {
         TRACE("ncshm_create_hdl failed");
-        goto error;
+        goto err_free;
     }
 
     /* store the registered callbacks */
-    if (reg_cbks)
+    if (reg_cbks != NULL)
         memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaLogCallbacksT));
 
     /** Associate with the client_id obtained from LGS
@@ -682,8 +682,17 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb,
 
     /** Initialize and attach the IPC/Priority queue
      **/
-    m_NCS_IPC_CREATE(&rec->mbx);
-    m_NCS_IPC_ATTACH(&rec->mbx);
+    if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+        TRACE("m_NCS_IPC_CREATE failed");
+        goto err_destroy_hdl;
+    }
+
+    if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+        TRACE("m_NCS_IPC_ATTACH failed");
+        goto err_ipc_release;
+    }
 
     /** Add this to the Link List of 
      ** CLIENT_HDL_RECORDS for this LGA_CB 
@@ -697,21 +706,15 @@ lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb,
 
     goto out;
 
-error:
-    if (rec)
-    {
-        /* remove the association with hdl-mngr */
-        if (rec->local_hdl)
-            ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rec->local_hdl);
+err_ipc_release:
+    (void) m_NCS_IPC_RELEASE(&rec->mbx, NULL);
 
-        /** detach and release the IPC 
-         **/
-        m_NCS_IPC_DETACH(&rec->mbx, lga_clear_mbx, NULL);
-        m_NCS_IPC_RELEASE(&rec->mbx, NULL);
+err_destroy_hdl:
+    (void) ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rec->local_hdl);
 
-        free(rec);
-        rec = NULL;
-    }
+err_free:
+    free(rec);
+    rec = NULL;
 
 out:
     return rec;
