@@ -1684,11 +1684,10 @@ module:			moduleName
 			    esmiSetAsnTypes(thisModulePtr);
                 
 			    capabilitiesModulePtr = NULL;
-
-                            $$ = 0;
 			}
                         /* NCS -- add the grammar for ESMI tags */
                         EsmiGrammar
+                        { $$ = 0; }
 	;
 
 moduleOid:		'{' objectIdentifier '}'
