@@ -1,6 +1,5 @@
-# Version and symbol export for libSaLog.so
-
-OPENSAF_LOG_A.02.01 {
+# Symbol scoping for libSaLog.so
+{
 	global:
 		saLog*;
 

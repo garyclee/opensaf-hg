@@ -16,6 +16,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION = 1:0:1
+
 lib_LTLIBRARIES = libSaMsg.la
 
 libSaMsg_la_SOURCES =
@@ -23,7 +25,7 @@ libSaMsg_la_SOURCES =
 libSaMsg_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
-libSaMsg_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+libSaMsg_la_LDFLAGS = -version-info $(LIB_VERSION)
 
 libSaMsg_la_LIBADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

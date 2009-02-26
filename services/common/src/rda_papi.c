@@ -75,7 +75,7 @@ char *pcsrda_role_str[] =
 /*
 ** Shared library name
 */
-#define PCS_RDA_SHARED_LIB_NAME       "librda.so.3"
+#define PCS_RDA_SHARED_LIB_NAME       "librda.so.0"
 
 /*
 ** Symbols and function pointers

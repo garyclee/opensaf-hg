@@ -17,6 +17,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION=1:0:0
+
 EXTRA_DIST = \
 	libSaLog.version
 
@@ -28,7 +30,7 @@ libSaLog_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
 libSaLog_la_LDFLAGS = -Wl,-version-script=$(top_srcdir)/lib/lib_SaLog/libSaLog.version \
-                      -version-info @OPENSAF_LIB_VERSION@
+                      -version-info $(LIB_VERSION)
 
 libSaLog_la_LIBADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

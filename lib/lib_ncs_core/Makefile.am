@@ -16,6 +16,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION = 0:1:0
+
 lib_LTLIBRARIES = libncs_core.la 
 
 libncs_core_la_SOURCES =
@@ -24,7 +26,7 @@ libncs_core_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
 libncs_core_la_LDFLAGS = -lpthread -lc -ldl -lm -lrt \
-                         -version-info @OPENSAF_LIB_VERSION@
+                         -version-info $(LIB_VERSION)
 
 libncs_core_la_LIBADD = \
 	$(top_builddir)/services/leap/libleap.la \

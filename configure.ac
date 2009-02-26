@@ -24,7 +24,7 @@ AM_INIT_AUTOMAKE(opensaf, 3.0.B3)
 # (major version) = (first number) - (third number)
 # (minor version) = (third number)
 # (patch version) = (second number)
-OPENSAF_LIB_VERSION=3:0:0
+OPENSAF_LIB_VERSION=0:0:0
 AC_SUBST(OPENSAF_LIB_VERSION)
 
 OPENSAF_RELEASE=$PACKAGE_VERSION
