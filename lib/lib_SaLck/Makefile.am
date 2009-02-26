@@ -16,6 +16,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION = 0:0:0
+
 lib_LTLIBRARIES = libSaLck.la
 
 libSaLck_la_SOURCES =
@@ -23,7 +25,7 @@ libSaLck_la_SOURCES =
 libSaLck_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
-libSaLck_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+libSaLck_la_LDFLAGS = -version-info $(LIB_VERSION)
 
 libSaLck_la_LIBADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

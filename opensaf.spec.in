@@ -76,6 +76,7 @@ Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF System Controller node
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
+Requires: /sbin/ldconfig
 
 %if %is_rhel || %is_fedora
 Requires: net-snmp xerces-c
@@ -94,6 +95,7 @@ Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF Payload node
 Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
+Requires: /sbin/ldconfig
 Conflicts: %{name}-controller
 
 %description payload
@@ -208,11 +210,11 @@ fi
 
 %post controller
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.controller %{_sysconfdir}/%{name}/nodeinit.conf
-
+/sbin/ldconfig
 
 %post payload
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
-
+/sbin/ldconfig
 
 %preun common
 # Execute this only if we are NOT doing an upgrade
@@ -224,6 +226,11 @@ fi
 
 %postun libs -p /sbin/ldconfig
 
+%postun controller
+/sbin/ldconfig
+
+%postun payload
+/sbin/ldconfig
 
 %preun controller
 %{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf

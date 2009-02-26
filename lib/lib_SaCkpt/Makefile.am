@@ -16,6 +16,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION = 1:0:1	
+
 lib_LTLIBRARIES = libSaCkpt.la
 
 libSaCkpt_la_SOURCES =
@@ -24,7 +26,7 @@ libSaCkpt_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_CPA=1 -DNCS_CPSV_LOG=1
 
-libSaCkpt_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+libSaCkpt_la_LDFLAGS = -version-info $(LIB_VERSION)
 
 libSaCkpt_la_LIBADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

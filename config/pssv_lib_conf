@@ -1,3 +1,3 @@
-libavsv_pssv.so.3    avsv
-libavm_pssv.so.3     avm
-libdts_pssv.so.3     dts
+libavsv_pssv.so.0    avsv
+libavm_pssv.so.0     avm
+libdts_pssv.so.0     dts

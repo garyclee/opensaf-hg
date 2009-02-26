@@ -16,6 +16,8 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+LIB_VERSION = 0:0:0
+
 lib_LTLIBRARIES = libSaAmf.la
 
 libSaAmf_la_SOURCES =
@@ -25,7 +27,7 @@ libSaAmf_la_CPPFLAGS = \
 	-DNCS_AVA=1 -DNCS_AVSV_LOG=1
 
 libSaAmf_la_LDFLAGS = -lpthread -ldl -lrt \
-                      -version-info @OPENSAF_LIB_VERSION@
+                      -version-info $(LIB_VERSION)
 
 libSaAmf_la_LIBADD  = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
