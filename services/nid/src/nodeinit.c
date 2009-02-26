@@ -1157,7 +1157,7 @@ collect_param(uns8 *params,uns8 *s_name,char *args[])
    uns8 *ptr;
 
    ptr = params;
-   for(f = 1; f <= NID_MAXARGS; f++)
+   for(f = 1; f < NID_MAXARGS; f++)
    {
       /* Skip white space */
       while(*ptr == ' ' || *ptr == '\t') ptr++;
@@ -1755,7 +1755,7 @@ insert_role_svc_name(NID_SPAWN_INFO *service)
 {
    uns32 f;
 
-   for(f = 1; f <= NID_MAXARGS; f++)
+   for(f = 1; f < NID_MAXARGS; f++)
    if(service->serv_args[f] == NULL) break;
 
    if( f >= (NID_MAXARGS-4) )
@@ -1779,9 +1779,10 @@ insert_role_svc_name(NID_SPAWN_INFO *service)
 
    service->serv_args[f] = NULL;
 
+
    if(service->cleanup_file[0] != '\0')
    {
-     for(f = 1; f <= NID_MAXARGS; f++)
+     for(f = 1; f < NID_MAXARGS; f++)
      if(service->clnup_args[f] == NULL) break;
 
      if( f >= (NID_MAXARGS-4) ){
