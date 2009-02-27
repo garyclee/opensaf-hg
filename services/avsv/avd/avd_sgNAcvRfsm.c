@@ -102,6 +102,17 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
          continue;
       }
       
+      /* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
+      avd_screen_sponsor_si_state(cb, i_si, FALSE);
+        
+      /* Cannot be assigned, as sponsors SIs are not in enabled state for this SI */ 
+      if ((i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) || 
+          (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP))
+      {
+         i_si = i_si->sg_list_of_si_next;
+         continue;
+      }
+         
       /* identify a in-service SU which is not assigned to this SI and can
        * take more assignments so that the SI can be assigned. 
        */
@@ -122,15 +133,6 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
             continue;
          }
 
-         /* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-         avd_screen_sponsor_si_state(cb, i_si, FALSE);
-        
-         /* Cannot be assigned, as sponsors SIs are not in enabled state for this SI */ 
-         if (i_si->si_dep_state != AVD_SI_NO_DEPENDENCY)
-         {
-            continue;
-         }
-         
          if (avd_su_susi_struc_find(cb,i_su,i_si->name_net,FALSE)
             != AVD_SU_SI_REL_NULL)
          {
@@ -184,15 +186,6 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
             continue;
          }
 
-         /* Screen SI sponsors state and adjust the SI-SI dep state accordingly */
-         avd_screen_sponsor_si_state(cb, i_si, FALSE);
-        
-         /* Cannot be assigned, as sponsors SIs are not in enabled state for this SI */ 
-         if (i_si->si_dep_state != AVD_SI_NO_DEPENDENCY)
-         {
-            continue;
-         }
-         
          l_flag = TRUE;
 
          if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si))
