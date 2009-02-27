@@ -3,7 +3,7 @@ if test `uname -m` = "x86_64"; then
 else
    export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib/opensaf"
 fi
-export MIBDIRS=/usr/local/share/snmp/mibs
+export MIBDIRS="/usr/share/snmp/mibs:/usr/local/share/snmp/mibs"
 export MIBS=ALL
 alias ls='ls -F'
 alias ll='ls -Fl'
