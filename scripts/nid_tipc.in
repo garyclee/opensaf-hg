@@ -202,17 +202,12 @@ echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
 echo "Running Permanent loop to clean MDS Logs..."
 while true
 do
-    for MDS_LOG_FILE in `ls "$LOCALSTATEDIR"/mdslog/ncsmds_n*.log 2>/dev/null`
-    do
-       #echo Checking $MDS_LOG_FILE 
-       FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null |cut -d"	" -f1`
-       #echo  $FILESIZE
-       if [ 5000 -lt 0$FILESIZE ]
-       then 
-           #echo  Moving
-           rm -f "$MDS_LOG_FILE.old"
-           mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
-       fi
-    done
+    MDS_LOG_FILE="${NCS_STDOUTS_PATH}/ncs_mds.log"
+    FILESIZE=`du -sk "$MDS_LOG_FILE" 2>/dev/null | cut -f1`
+    if [ 5000 -lt 0$FILESIZE ]; then
+        rm -f "$MDS_LOG_FILE.old"
+        mv -f "$MDS_LOG_FILE" "$MDS_LOG_FILE.old"
+    fi
     sleep 15
 done
+

@@ -27,13 +27,9 @@
 
 
 static char log_line_prefix[40];
-char *lf=NULL;
+static char *lf=NULL;
 
-uns32 mds_log_init(char *log_file_name, char *line_prefix);
 static void log_mds(const char *str);
-
-
-
 
 /*******************************************************************************
 * Funtion Name   :    mds_log_init
@@ -49,41 +45,37 @@ static char mds_log_fname[MAX_MDS_FNAME_LEN];
 uns32 mds_log_init (char *log_file_name, char *line_prefix)
 {
     FILE    *fh;
-    time_t   tod;
-    char     asc_tod[40];
-    uns32    dummy_rc,process_id=0;
+    uns32    process_id=0;
 
     process_id=(uns32)getpid();
 
     /* Copy the log-line-prefix */
-    if (m_NCS_OS_STRLEN(line_prefix)+1 > sizeof(log_line_prefix))
+    if (strlen(line_prefix)+1 > sizeof(log_line_prefix))
     {
-        m_NCS_SYSLOG(NCS_LOG_INFO,"MDS_LOG:Passed line prefix len is greater than the line prefix\n");
+        syslog(LOG_INFO,"MDS_LOG:Passed line prefix len is greater than the line prefix\n");
     }
     
-    m_NCS_OS_STRNCPY(log_line_prefix, line_prefix, sizeof(log_line_prefix) - 1);
+    strncpy(log_line_prefix, line_prefix, sizeof(log_line_prefix) - 1);
     log_line_prefix[sizeof(log_line_prefix) - 1] = 0;/* Terminate string */
 
     if (lf != NULL)
         return NCSCC_RC_FAILURE;
 
-    if (m_NCS_OS_STRLEN(log_file_name) >= MAX_MDS_FNAME_LEN)
+    if (strlen(log_file_name) >= MAX_MDS_FNAME_LEN)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_STRCPY(mds_log_fname,log_file_name);
+    strcpy(mds_log_fname,log_file_name);
     
     lf = mds_log_fname;
 
-    if ((fh = sysf_fopen(lf, "a+")) != NULL)
+    if ((fh = fopen(lf, "a+")) != NULL)
     {
-    asc_tod[0] = '\0';
-    m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
-    sysf_fprintf(fh,"NCSMDS|%s|%s|BEGIN MDS LOGGING| PROCESS_ID=%d|ARCH=%d|64bit=%ld\n", log_line_prefix, asc_tod, process_id, MDS_ARCH_TYPE,(long)MDS_WORD_SIZE_TYPE);
-    sysf_fclose(fh);
+        fclose(fh);
+        log_mds_notify("BEGIN MDS LOGGING| PID=%d|ARCH=%d|64bit=%ld\n",
+            process_id, MDS_ARCH_TYPE,(long)MDS_WORD_SIZE_TYPE);
     }
     else
-        m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LOG:0");
-        dummy_rc = NCSCC_RC_FAILURE;
+        syslog(LOG_ERR,"MDS_LOG:0");
 
     return NCSCC_RC_SUCCESS;
 }
@@ -99,17 +91,16 @@ uns32 mds_log_init (char *log_file_name, char *line_prefix)
 void log_mds_critical(char *fmt, ...)
 {
     char str[200];
-    char *write_ptr = str;
+    int i;
     va_list ap;
 
-    write_ptr += sysf_sprintf(write_ptr, "CRITICAL    |");
+    i = snprintf(str, sizeof(str), "CRITICAL    |");
     va_start(ap, fmt);
-    vsprintf(write_ptr, fmt, ap);
+    vsnprintf(str + i, sizeof(str) - i, fmt, ap);
     va_end(ap);
     log_mds(str);
     /* Print Critical Logs on console */
-    m_NCS_CONS_PRINTF("MDS:%s\n", str);
-
+    fprintf(stderr, "MDS:%s\n", str);
 }
 
 /*******************************************************************************
@@ -123,16 +114,16 @@ void log_mds_critical(char *fmt, ...)
 void log_mds_err(char *fmt, ...)
 {
     char str[200];
-    char *write_ptr = str;
+    int i;
     va_list ap;
 
-    write_ptr += sysf_sprintf(write_ptr, "ERR    |");
+    i = snprintf(str, sizeof(str), "ERR    |");
     va_start(ap, fmt);
-    vsprintf(write_ptr, fmt, ap);
+    vsnprintf(str + i, sizeof(str) - i, fmt, ap);
     va_end(ap);
     log_mds(str);
     /* Print Error Logs on console */
-    m_NCS_CONS_PRINTF("MDS:%s\n", str);
+    fprintf(stderr, "MDS:%s\n", str);
 }
 /*******************************************************************************
 * Funtion Name   :    log_mds_notify
@@ -145,12 +136,12 @@ void log_mds_err(char *fmt, ...)
 void log_mds_notify(char *fmt, ...)
 {
     char str[200];
-    char *write_ptr = str;
+    int i;
     va_list ap;
 
-    write_ptr += sysf_sprintf(write_ptr, "NOTIFY |");
+    i = snprintf(str, sizeof(str), "NOTIFY |");
     va_start(ap, fmt);
-    vsprintf(write_ptr, fmt, ap);
+    vsnprintf(str + i, sizeof(str) - i, fmt, ap);
     va_end(ap);
     log_mds(str);
 }
@@ -166,12 +157,12 @@ void log_mds_notify(char *fmt, ...)
 void log_mds_info(char *fmt, ...)
 {
     char str[200];
-    char *write_ptr = str;
+    int i;
     va_list ap;
 
-    write_ptr += sysf_sprintf(write_ptr, "INFO   |");
+    i = snprintf(str, sizeof(str), "INFO   |");
     va_start(ap, fmt);
-    vsprintf(write_ptr, fmt, ap);
+    vsnprintf(str + i, sizeof(str) - i, fmt, ap);
     va_end(ap);
     log_mds(str);
 }
@@ -188,12 +179,12 @@ void log_mds_info(char *fmt, ...)
 void log_mds_dbg(char *fmt, ...)
 { 
     char str[200];
-    char *write_ptr = str;
+    int i;
     va_list ap;
 
-    write_ptr += sysf_sprintf(write_ptr, "DBG    |");
+    i = snprintf(str, sizeof(str), "DBG    |");
     va_start(ap, fmt);
-    vsprintf(write_ptr, fmt, ap);
+    vsnprintf(str + i, sizeof(str) - i, fmt, ap);
     va_end(ap);
     log_mds(str);
 }
@@ -207,19 +198,29 @@ void log_mds_dbg(char *fmt, ...)
 *******************************************************************************/
 static void log_mds(const char *str)
 {
-  FILE *fp;
-  time_t tod;
-  char asc_tod[40];
+    FILE *fp;
 
-  if (lf != NULL && ((fp = sysf_fopen(lf, "a+")) != NULL))
-  {
-    asc_tod[0] = '\0';
-    m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
-    sysf_fprintf(fp,"NCSMDS|%s|%s|%s\n", log_line_prefix, asc_tod, str);
-    sysf_fclose(fp);
-  }
-  else
-  {
-     printf(" Unable to log into log file\n");
-  }
+    if (lf != NULL && ((fp = fopen(lf, "a+")) != NULL))
+    {
+        struct timeval tv;
+        char asc_tod[128];
+        char log_string[512];
+        int i;
+
+        gettimeofday(&tv, NULL);
+        strftime(asc_tod, sizeof(asc_tod), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
+        i = snprintf(log_string, sizeof(log_string), "%s.%06ld %s %s",
+            asc_tod, tv.tv_usec, log_line_prefix, str);
+
+        if (i >= sizeof(log_string))
+            log_string[i - 2] = '\n';
+
+        fwrite(log_string, 1, i + 1, fp);
+        fclose(fp);
+    }
+    else
+    {
+        fprintf(stderr, "Unable to log to file %s - %s\n", lf, strerror(errno));
+    }
 }
+
