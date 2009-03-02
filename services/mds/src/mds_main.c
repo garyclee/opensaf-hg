@@ -277,9 +277,8 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Initialize logging */
             {
                char buff[50],pref[50];
-               sprintf(buff,OSAF_LOCALSTATEDIR "mdslog/ncsmds_n%08x",node_id);
-               sprintf(pref," <0x%08x,%u> ",node_id,mds_tipc_ref);
-               m_NCS_OS_STRCAT(buff,".log");
+               snprintf(buff, sizeof(buff), OSAF_LOCALSTATEDIR "stdouts/ncs_mds.log");
+               snprintf(pref, sizeof(pref), "<%u>", mds_tipc_ref);
                mds_log_init(buff, pref);
             }
 
