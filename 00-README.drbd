@@ -28,20 +28,15 @@ DRBD Configuration
 
 If DRBD is chosen for data replication, please do the following steps, else skip
 them:
-
+   * Make a directory /repl_opensaf
    * Mount the data replicated partition on /repl_opensaf
-   * Install the opensaf RPM
+   * Install the opensaf RPM or do "make install".
+   * Put files to be replicated in /repl_opensaf
    * Edit the file /etc/opt/opensaf/NCSSystemBOM.xml:
       - Uncoment PDRBD related lines
       - Uncomment REPL related lines
-   * Unmount the data replicated partition /repl_opensaf
    * Uncomment DRBD entry line in /etc/opt/opensaf/nodeinit.conf
-   * The following Scripts needs to be changed
-      a. DRBD is controlled through the drbd.conf configuration file. In
-      opensaf, controller nodes are given logical slotid 1 and 2 and thus the
-      configuration files are named as drbd1.conf and drbd2.conf
-
-      Edit /opt/opensaf/controller/scripts/drbd.1.conf:
+   * Edit /etc/opensaf/drbd.conf:
       HOST_NAME_LOCAL {
          device     /dev/drbd0;
          disk       /dev/sda5;
@@ -69,24 +64,16 @@ them:
       3. Set remote meta-data partition name(for eg:- /dev/sda6, let [0] be
          unchanged)
 
-      Edit /opt/opensaf/controller/scripts/drbd.2.conf:
-      Like in the case of drbd.1.conf, here HOST_NAME_REMOTE
-      parameters will be set to HOST_NAME_LOCAL and vice-versa.
-
-      b. Edit /opt/opensaf/controller/scripts/pdrbd_proxied.conf:
+      b. Edit /etc/opensaf/pdrbd_proxied.conf:
          1. Set user data partition name (for eg:- /dev/sda5)
          2. Set meta-data partition name(for eg:- /dev/sda6)
 
-      c. Edit /opt/opensaf/controller/scripts/drbdctrl
-         1. Set replicated partition name (for eg:- MOT_REPL_PRTN="/dev/sda5")
-         2. Set meta-data partition name (for eg:- MOT_META_PRTN="/dev/sda6")
-
-   * Copy /opt/opensaf/controller/scripts/drbd.1.conf or drbd.2.conf (slot 1 or
-     2 respective m/c) to /etc/drbd.conf and run the following command (These
-     commands are needed to run on metadata partition for drbd-8.0.0):
+   * Copy /etc/opensaf/drbd.conf to /etc/drbd.conf and run the 
+     following command (These commands are needed to run on 
+     metadata partition for drbd-8.0.0):
 
          drbdmeta /dev/drbd0 v08 /dev/sda6 0 create-md
          drbdadm create-md r0
 
      Here /dev/drbd0, /dev/sda6, r0 can be replaced with the attributes as
-     specified in drbd.1.conf or drbd.2.conf.
+     specified in drbd.conf.

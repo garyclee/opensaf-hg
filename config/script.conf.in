@@ -85,15 +85,13 @@ DRBDADM="/sbin/drbdadm"
 PSEUDO_DRBD_PIPE="$TMPDIR/pseudo_drbd.fifo"
 DRBD_ADM="/sbin/drbdadm"
 DRBD_SETUP="/sbin/drbdsetup"
-MOTO_DRBD_CONF_PATH="$BINPATH"
 DRBD_SYNC_FILE="/etc/opensaf/.drbd_sync_state_"
 MOT_DRBD_DEV="/dev/drbd0"
 MOT_MNT_PNT="/repl_opensaf"
 MOT_REPL_PRTN="/dev/sda5"
 MOT_META_PRTN="/dev/sda6"
 DRBD_CONF_PATH="/etc"
-MY_DRBD_CONF_PATH="$BINPATH/"
-DRBD_SYNC_FILE="$SYSCONFDIR/.drbd_sync_state_0"
+MY_DRBD_CONF_PATH="$SYSCONFDIR/"
 
 
 #########################################

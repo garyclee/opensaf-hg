@@ -197,7 +197,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
                                     SaAmfCSIDescriptorT csiDescriptor)
 {
    uns32 ret,compNo;
-   char script[250];
+   char script[250] = {0};
    SaAisErrorT error=SA_AIS_OK;
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
@@ -337,7 +337,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
 void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *compName)
 {
    uns32 ret,compNo;
-   char script[250];
+   char script[250] = {0};
    SaAisErrorT error=SA_AIS_OK;
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
@@ -396,7 +396,7 @@ void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *c
 void pdrbdProxiedAmfTerminateCallback(SaInvocationT invocation, const SaNameT *compName)
 {
    uns32 ret,compNo;
-   char script[250];
+   char script[250] = {0};
    SaAisErrorT error=SA_AIS_OK;
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)

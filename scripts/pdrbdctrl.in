@@ -115,19 +115,6 @@ function check_disk_consistency
 
 function deal_with_hostname
 {
-        if [ -f "$SLOT_ID_FILE" ] ; then
-              F101_SLOT_NO=`cat "$SLOT_ID_FILE"`
-               if [ "$F101_SLOT_NO" != "1" ] && [ "$F101_SLOT_NO" != "2" ]
-                  then
-                  echo " Slot id for system controler should be 1 or 2"
-                     exit
-                fi
-        else
-            echo " slot_id file not available in $SLOT_ID_FILE "
-            exit
-        fi
-
-	cp -f $MOTO_DRBD_CONF_PATH/drbd.$F101_SLOT_NO.conf $DRBD_CONF_PATH/drbd.conf
 	HNAME=$( uname -n 2> /dev/null )
 	cp -f $DRBD_CONF_PATH/drbd.conf "$TMPDIR/drbd.conf"
 	cat "$TMPDIR/drbd.conf" | sed 's/HOST_NAME_LOCAL/'$HNAME'/g' > $DRBD_CONF_PATH/drbd.conf
@@ -371,8 +358,23 @@ case "$CMD" in
 				#### umount error
 				if [ $ret -ne 0 ]; then
                                         echo "`date` In script: set_sec $RES umount error"
-					echo "$COMP_NO$SETS_UMNT_ERR" > $PSEUDO_DRBD_PIPE
-					exit 1
+
+                                        for ((i=0; i<=2; i++ ))
+                                        do
+                                            sleep 1
+                                            umount -f $MOT_MNT_PNT 
+                                            retVal=$?
+                                            if [ $retVal -eq 0 ]; then
+                                              echo "`date` DRBD $RES: unmount success."
+                                              break
+                                            fi
+                                        echo "Counter $i"
+                                        done
+
+                                       if [ $i == 3 ]; then 
+					  echo "$COMP_NO$SETS_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					  exit 1
+                                        fi
 				fi
 
 				#### Put it in Secondary
@@ -506,8 +508,23 @@ case "$CMD" in
 				#### umount error
 				if [ $ret -ne 0 ]; then
                                         echo "`date` In script: set_qui $RES umount error"
-					echo "$COMP_NO$SETQ_UMNT_ERR" > $PSEUDO_DRBD_PIPE
-					exit 1
+
+                                        for ((i=0; i<=2; i++ ))
+                                        do
+                                            sleep 1
+                                            umount -f $MOT_MNT_PNT
+                                            retVal=$?
+                                            if [ $retVal -eq 0 ]; then
+                                              echo "`date` DRBD $RES: unmount success."
+                                              break
+                                            fi
+                                        echo "Counter $i"
+                                        done
+
+                                       if [ $i == 3 ]; then 
+					   echo "$COMP_NO$SETQ_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					   exit 1
+                                        fi
 				fi
 
 				#### Put it in Secondary
@@ -606,8 +623,23 @@ case "$CMD" in
 				#### umount error
 				if [ $ret -ne 0 ]; then
                                         echo "`date` In script: remove $RES umount error"
-					echo "$COMP_NO$REMV_UMNT_ERR" > $PSEUDO_DRBD_PIPE
-					exit 1
+
+                                        for ((i=0; i<=2; i++ ))
+                                        do
+                                            sleep 1
+                                            umount -f $MOT_MNT_PNT
+                                            retVal=$?
+                                            if [ $retVal -eq 0 ]; then
+                                              echo "`date` DRBD $RES: unmount success."
+                                              break
+                                            fi
+                                        echo "Counter $i"
+                                        done
+
+                                       if [ $i == 3 ]; then 
+					   echo "$COMP_NO$REMV_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					   exit 1
+                                        fi
 				fi
 				
 				#### Put it in Secondary
@@ -681,8 +713,23 @@ case "$CMD" in
 				#### umount error
 				if [ $ret -ne 0 ]; then
                                         echo "`date` In script: term $RES umount error"
-					echo "$COMP_NO$TERM_UMNT_ERR" > $PSEUDO_DRBD_PIPE
-					exit 1
+
+                                        for ((i=0; i<=2; i++ ))
+                                        do
+                                            sleep 1
+                                            umount -f $MOT_MNT_PNT
+                                            retVal=$?
+                                            if [ $retVal -eq 0 ]; then
+                                              echo "`date` DRBD $RES: unmount success."
+                                              break
+                                            fi
+                                        echo "Counter $i"
+                                        done
+
+                                       if [ $i == 3 ]; then 
+					    echo "$COMP_NO$TERM_UMNT_ERR" > $PSEUDO_DRBD_PIPE
+					    exit 1
+                                        fi
 				fi
 
 				#### Put it in Secondary

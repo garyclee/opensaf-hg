@@ -254,14 +254,13 @@ static uns32 pseudoDestroy(NCS_LIB_REQ_INFO *reqInfo)
  *****************************************************************************/
 static uns32 parseProxiedConfFile()
 {
-   uns8 *ch,*ch1,buff[256],proxiedFilePath[256],proxiedFilePathName[256];
+   uns8 *ch,*ch1,buff[256],proxiedFilePath[256]={0};
    NCS_OS_FILE proxiedConfFile;
    uns32 compNo=0,ret=NCSCC_RC_SUCCESS;
 
    /* Get/set the conf file path before opening */
    m_NCS_STRCPY(proxiedFilePath, PDRBD_PROXIED_CONF_FILE_PATH);
-   sysf_sprintf(proxiedFilePathName, "%s/"PDRBD_PROXIED_CONF_FILE_NAME, proxiedFilePath);
-   proxiedConfFile.info.open.i_file_name = proxiedFilePathName;
+   proxiedConfFile.info.open.i_file_name = proxiedFilePath;
    proxiedConfFile.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 
    /* Open the file */

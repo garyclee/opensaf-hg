@@ -38,8 +38,7 @@
 #define PDRBD_PROXIED_MAX_SU_ID_LEN             100
 #define PDRBD_PROXIED_MAX_NODE_ID_LEN           100
 
-#define PDRBD_PROXIED_CONF_FILE_NAME         "pdrbd_proxied.conf"
-#define PDRBD_PROXIED_CONF_FILE_PATH         "/opt/opensaf/controller/scripts/"
+#define PDRBD_PROXIED_CONF_FILE_PATH       OSAF_SYSCONFDIR "pdrbd_proxied.conf" 
 
 /* No of bytes to read from the pipe written into by script pdrbdctrl */
 #define SCRIPT_MSG_SIZE    11

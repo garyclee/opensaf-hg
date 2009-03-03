@@ -43,31 +43,6 @@ NID_SVC_NAME=DRBD
 
 USAGE="Usage: drbdctrl {start|stop} {<res name>|all} {ACTIVE|STDBY}"
 
-#### Find the SCXB's logical slot number
-function find_scxb_slot_no
-{
-	if [ "$SCXB_SLOT_NO" = "" ] ; then		# check if slot no env. variable already present
-                if [ -f "$SYSCONFDIR/slot_id" ] ; then
-                        SCXB_SLOT_NO=$(cat "$SYSCONFDIR/slot_id")
-                        if [ "$SCXB_SLOT_NO" != "1" ] && [ "$SCXB_SLOT_NO" != "2" ]
-                        then
-                                echo " Slot id for system controler should be 1 or 2"
-                                exit
-                        fi
-
-                 else
-                   echo " slot_id file not available in $SYSCONFDIR"
-                   exit
-                fi
-
-        export SCXB_SLOT_NO
-        fi
-
-
-	cp -f $MY_DRBD_CONF_PATH/drbd.$SCXB_SLOT_NO.conf $DRBD_CONF_PATH/drbd.conf
-	replace_host_name_local
-}
-
 #### Replace "local" host name in each DRBD resource in the .conf file with the actual system host name
 function replace_host_name_local
 {
@@ -114,7 +89,7 @@ case "$1" in
 				;;
 		esac
 
-		find_scxb_slot_no
+		replace_host_name_local
 
 		case "$ROLE_NAME" in
 			ACTIVE)
