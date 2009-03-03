@@ -307,7 +307,7 @@ void pseudoAmfHealthcheckCallback(SaInvocationT invocation, const SaNameT *compN
                                     SaAmfHealthcheckKeyT *checkType)
 {
    uns32 ret, i;
-   char script[250],*ptr;
+   char script[250]={0},*ptr;
    SaAisErrorT error=SA_AIS_OK;
 
    m_LOG_PDRBD_AMF(PDRBD_SP_AMF_HLTH_CHK_CB_INVOKE, NCSFL_SEV_INFO, 0);

@@ -262,7 +262,7 @@ uns32 pdrbd_handle_script_resp(PSEUDO_CB *cb, PDRBD_EVT *evt)
 uns32 pdrbd_process_peer_msg(PSEUDO_CB *cb, PDRBD_EVT *evt)
 {
    uns32 ret;
-   char script[250],buff[250];
+   char script[250]={0},buff[250];
 
    if(PDRBD_PEER_CLEAN_MSG_EVT == evt->evt_type)
    {

@@ -374,6 +374,8 @@ fi
 %{_sysconfdir}/%{name}/pssv_lib_conf
 %{_sysconfdir}/%{name}/rde.conf
 %{_sysconfdir}/%{name}/fms.conf
+%{_sysconfdir}/%{name}/pdrbd_proxied.conf
+%{_sysconfdir}/%{name}/drbd.conf
 %{_sysconfdir}/%{name}/subagt_lib_conf
 %{_sysconfdir}/%{name}/ValidationConfig.xml
 %{_sysconfdir}/%{name}/ValidationConfig.xsd
@@ -386,8 +388,6 @@ fi
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_datadir}/snmp/ncsSnmpSubagt.conf
-%{_datadir}/%{name}/drbd.1.conf
-%{_datadir}/%{name}/drbd.2.conf
 %{_localstatedir}/lib/%{name}/node_ha_state
 %{_localstatedir}/lib/%{name}/pssv_spcn_list
 %{_libdir}/%{name}/libavm_logstr.so.*

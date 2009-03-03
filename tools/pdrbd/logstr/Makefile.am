@@ -31,4 +31,4 @@ libpdrbd_logstr_la_CPPFLAGS = \
 libpdrbd_logstr_la_SOURCES = \
 	pdrbd_logstr.c
 
-libpdrbd_logstr_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+libpdrbd_logstr_la_LDFLAGS = -version-number 2

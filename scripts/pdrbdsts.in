@@ -29,6 +29,7 @@
 # This should be removed with the leap fix to set nice value of the
 # spawned process.
 ######################################################################
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 renice 3 -p $$ 2> /dev/null
 
 #### Be careful while changing the following values;

@@ -108,9 +108,7 @@ dist_doc_DATA = \
 	$(top_srcdir)/00-README.drbd
 
 
-dist_pkgdata_DATA = \
-	$(top_srcdir)/config/drbd.1.conf \
-	$(top_srcdir)/config/drbd.2.conf
+dist_pkgdata_DATA = 
 
 nobase_dist_pkgdata_DATA = $(samples_sources)
 
@@ -287,7 +285,9 @@ controller_sysconf = \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/saflog.conf \
 	$(top_srcdir)/config/rde.conf \
-	$(top_srcdir)/config/fms.conf
+	$(top_srcdir)/config/fms.conf \
+        $(top_srcdir)/config/pdrbd_proxied.conf \
+        $(top_srcdir)/config/drbd.conf
 
 payload_sysconf = \
 	$(top_srcdir)/config/nodeinit.conf.payload
@@ -317,15 +317,13 @@ dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/find_pid \
 	$(top_srcdir)/scripts/ncs_cpd_clean \
 	$(top_srcdir)/scripts/ncs_cpnd_clean \
-	$(top_srcdir)/scripts/ncs_drbd_r0_clean \
 	$(top_srcdir)/scripts/ncs_gld_clean \
 	$(top_srcdir)/scripts/ncs_glnd_clean \
 	$(top_srcdir)/scripts/ncs_mqd_clean \
 	$(top_srcdir)/scripts/ncs_mqnd_clean \
 	$(top_srcdir)/scripts/ncs_srmnd_clean \
 	$(top_srcdir)/scripts/ncs_vds_clean \
-	$(top_srcdir)/scripts/opensaf_reboot \
-	$(top_srcdir)/scripts/pdrbdsts
+	$(top_srcdir)/scripts/opensaf_reboot 
 
 if ENABLE_HPI
 dist_pkglib_SCRIPTS += $(top_srcdir)/scripts/ncs_hisv_clean
@@ -336,6 +334,8 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/dhclnt_start \
 	$(top_builddir)/scripts/drbdctrl \
 	$(top_builddir)/scripts/drbd_start \
+        $(top_builddir)/scripts/ncs_drbd_r0_clean \
+        $(top_builddir)/scripts/pdrbdsts \
 	$(top_builddir)/scripts/ip_inst_script \
 	$(top_builddir)/scripts/ncs_cpd_start \
 	$(top_builddir)/scripts/ncs_cpnd_start \

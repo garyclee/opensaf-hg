@@ -42,8 +42,8 @@
 
 #define   PSEUDO_DRBD_DEFAULT_ROLE    0
 
-#define PSEUDO_CTRL_SCRIPT_NAME    "/opt/opensaf/controller/scripts/pdrbdctrl"
-#define PSEUDO_STS_SCRIPT_NAME    "/opt/opensaf/controller/scripts/pdrbdsts"
+#define PSEUDO_CTRL_SCRIPT_NAME   PKGLIBDIR "/pdrbdctrl"
+#define PSEUDO_STS_SCRIPT_NAME    PKGLIBDIR "/pdrbdsts"
 
 extern uns32 pseudoAmfInitialise(void);
 extern uns32 pseudoAmfRegister(void);

@@ -384,6 +384,8 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/dhclnt_start
                  scripts/drbd_start
                  scripts/drbdctrl
+                 scripts/pdrbdsts
+                 scripts/ncs_drbd_r0_clean
                  scripts/get_ha_state
                  scripts/ip_inst_script
                  scripts/ncs_cpd_start
