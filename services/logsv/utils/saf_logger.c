@@ -248,7 +248,7 @@ int main(int argc, char *argv[])
     SaNtfClassIdT notificationClassId = {1, 2, 3};
     struct option long_options[] =
     {
-        {"application", no_argument, 0, 'a'},
+        {"application", required_argument, 0, 'a'},
         {"alarm", no_argument, 0, 'l'},
         {"notification", no_argument, 0, 'n'},
         {"system", no_argument, 0, 'y'},
