@@ -24,7 +24,8 @@
 ******************************************************************************/
 
 #include "fm.h"
-
+char * role_string[] = {"ACTIVE", "STANDBY", "QUIESCED",
+                        "ASSERTING", "YIELDING", "UNDEFINED"};
 /*****************************************************************
  *                                                               *
  *         Prototypes for static functions                       *
@@ -510,8 +511,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
    {
    case FM_EVT_HB_LOSS:
        m_NCS_SYSLOG(NCS_LOG_INFO,
-            "Role: %d, FM_EVT_HB_LOSS: for slot_id: %d, subslot_id: %d", 
-            fm_cb->role, fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
+       "Role: %s, FM_EVT_HB_LOSS: for slot_id: %d, subslot_id: %d", 
+       role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        if (fm_cb->role == PCS_RDA_STANDBY)
        {
           if ((fm_mbx_evt->slot == fm_cb->peer_slot) && 
@@ -519,9 +520,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           {
              /* Start Promote active timer */
              fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
-             m_NCS_SYSLOG(NCS_LOG_INFO,
-                          "Promote active timer started, peer controller slot_id=%d \n",
-                          fm_cb->peer_slot);
+             m_NCS_SYSLOG(NCS_LOG_INFO, "Promote active timer started\n");
           }
        }
        else if (fm_cb->role == PCS_RDA_ACTIVE)
@@ -545,15 +544,14 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
              Payload reset might be supported in future */
           }
        }
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Reset of node with slot_id=%s tried",entity_path);
           fms_fma_node_reset_intimate(fm_cb, fm_mbx_evt->slot,fm_mbx_evt->sub_slot);
        }
        break;
 
    case FM_EVT_HB_RESTORE:
        m_NCS_SYSLOG(NCS_LOG_INFO,
-            "Role: %d, FM_EVT_HB_RESTORE: for slot_id: %d, subslot_id: %d", 
-            fm_cb->role, fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
+       "Role: %s, FM_EVT_HB_RESTORE: for slot_id: %d, subslot_id: %d", 
+       role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        break;
 
    case FM_EVT_CAN_SMH_SW:
@@ -563,8 +561,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
    case FM_EVT_AVM_NODE_RESET_IND:
        m_NCS_SYSLOG(NCS_LOG_INFO,
-            "Role: %d, FM_EVT_AVM_NODE_RESET_IND: for slot_id: %d, subslot_id: %d", 
-            fm_cb->role, fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
+       "Role: %s, NODE_RESET_IND: for slot_id: %d, subslot_id: %d", 
+       role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
                 
        if (fm_cb->role == PCS_RDA_STANDBY)
        {
@@ -588,7 +586,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
           /* Timer started only in case of reset of peer FMS, so getting slot and shelf id from cb */
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired. Reseting peer controller slot_id=%s\n",entity_path);
+          m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired." 
+                " Reseting peer controller slot_id=%u\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
              status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
@@ -607,7 +606,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_RESET_RETRY)
        {
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired. Reseting peer controller slot_id=%s failed.\n",entity_path);
+          m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired."
+                       " Reseting peer controller slot_id=%u failed.\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
              /* Don't care what is return status */
@@ -649,8 +649,6 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 uns32 fm_tmr_start (FM_TMR *tmr,SaTimeT period)
 {
    uns32 tmr_period;
-
-   m_NCS_SYSLOG(NCS_LOG_INFO,"Entered fm tmr start: timer type - %d, period - %d\n\n",tmr->type,tmr_period);
 
    tmr_period = (uns32)period;
 
@@ -867,10 +865,6 @@ static uns32 fms_fma_node_reset_intimate(FM_CB *fm_cb, uns32 slot_id, uns32 sub_
    {
       m_NCS_SYSLOG(NCS_LOG_ERR,"Intimation node reset to FMA failed\n");
    }
-
-   m_NCS_SYSLOG(NCS_LOG_INFO,
-        "Role: %d, fms_fma_node_reset_intimate() Success: for slot_id: %d, subslot_id: %d", 
-        fm_cb->role, slot_id, sub_slot_id); 
 
    return NCSCC_RC_SUCCESS;
 }

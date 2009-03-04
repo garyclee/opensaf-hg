@@ -53,6 +53,8 @@ static uns32 fm_amf_lib_init   (FM_AMF_CB *fm_amf_cb);
 static uns32 fm_amf_lib_destroy(FM_AMF_CB *fm_amf_cb);
 static FM_AMF_CB* fm_amf_take_hdl (void);
 static void fm_amf_give_hdl (void);
+static char * role_string[] = {"ACTIVE", "STANDBY", "QUIESCED",
+                        "QUIESCING"};
 
 /****************************************************************************
  * Name          : fm_amf_take_hdl
@@ -127,13 +129,12 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_set_callback invoked %s\n",  compName->value);
+   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_set_callback: Comp %s, state %s\n",
+                compName->value, role_string[haState - 1]);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
    {
       error = saAmfResponse(fm_amf_cb->amf_hdl,invocation, error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "fm_saf_CSI_set_callback response sent: amf_rc %d\n",  error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "Component Name: %s\n",  fm_amf_cb->comp_name);
    } 
    fm_amf_give_hdl();
    
@@ -169,13 +170,10 @@ void fm_saf_health_chk_callback (SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_health_chk_callback invoked %s\n",  compName->value);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)
    {
       error = saAmfResponse(fm_amf_cb->amf_hdl,invocation, error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "fm_saf_health_chk_callback response sent: amf_rc %d\n",  error);
-      m_NCS_SYSLOG(NCS_LOG_ERR,"Component Name: %s\n",  fm_amf_cb->comp_name);
    }
    fm_amf_give_hdl();
 
@@ -221,14 +219,13 @@ void fm_saf_CSI_rem_callback (SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_rem_callback invoked %s\n",  compName->value);
+   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_rem_callback: Comp %s\n", 
+                compName->value);
 
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
    {
       error = saAmfResponse(fm_amf_cb->amf_hdl,invocation, error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "fm_saf_CSI_rem_callback response sent: amf_rc %d\n",  error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "Component Name: %s\n",  fm_amf_cb->comp_name);
    }  
    fm_amf_give_hdl();
 
@@ -262,13 +259,12 @@ void fm_saf_comp_terminate_callback (SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_comp_terminate_callback invoked %s\n",  compName->value);
+   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_comp_terminate_callback: Comp %s\n",
+                compName->value);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
    {
       error = saAmfResponse(fm_amf_cb->amf_hdl,invocation, error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "fm_saf_comp_terminate_callback response sent: amf_rc %d\n",  error);
-      m_NCS_SYSLOG(NCS_LOG_ERR, "Component Name: %s\n",  fm_amf_cb->comp_name);
    }  
    fm_amf_give_hdl();
 
@@ -309,7 +305,6 @@ static uns32 fm_amf_init (FM_AMF_CB *fm_amf_cb)
          m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d\n",  amf_error);
          return NCSCC_RC_FAILURE;
    }
-   m_NCS_SYSLOG(NCS_LOG_INFO,"FM_COND_AMF_INIT_DONE\n");
 
    return NCSCC_RC_SUCCESS;
 }
@@ -344,7 +339,6 @@ static uns32 fm_amf_register (FM_AMF_CB *fm_amf_cb)
       m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d\n",  amf_error);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_SYSLOG(NCS_LOG_INFO,"FM_COND_AMF_REG_DONE\n");
    return (res);
 }
 
@@ -378,7 +372,6 @@ static uns32 fm_amf_unregister (FM_AMF_CB *fm_amf_cb)
       m_NCS_SYSLOG(NCS_LOG_ERR,"FM_COND_AMF_UNREG_FAILED: amf_rc %d\n",  amf_error);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_SYSLOG(NCS_LOG_INFO,"FM_COND_AMF_UNREG_DONE\n");
 
    return (res);
 }
@@ -426,19 +419,15 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    m_NCS_STRCPY(Healthy.key, hlth_str);
    Healthy.keyLen = m_NCS_OS_STRLEN(Healthy.key);
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"Healthcheck key: %s\n", Healthy.key);
   
    amf_error = saAmfHealthcheckStart(fm_amf_cb->amf_hdl,&SaCompName,&Healthy,
       SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);
    if (amf_error != SA_AIS_OK)
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL: amf_rc %d\n",  amf_error);
+      m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL:" 
+                  " Healthcheck key: %s amf_rc %d\n", Healthy.key, amf_error);
        
    } 
-   else
-   {
-     m_NCS_SYSLOG(NCS_LOG_INFO,"FM_COND_AMF_HEALTH_CHK_START_DONE\n");
-   }
 
    return (NCSCC_RC_SUCCESS);
 }

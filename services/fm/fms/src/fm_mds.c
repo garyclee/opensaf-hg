@@ -398,7 +398,7 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
               gfm_rcv_msg->info.node_reset_ind_info.sub_slot == cb->sub_slot);
           {
              /* I have to reset myself as I got node reset indication from peer*/
-             m_NCS_REBOOT;
+             ncs_reboot("FMS: Reset by Peer.");
           }
           break;
                                 
@@ -490,7 +490,6 @@ uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
     
    return_val = ncsmds_api(&info);
     
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_sync_send:\n"); 
 
    return return_val;
 }
