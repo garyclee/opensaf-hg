@@ -80,7 +80,7 @@ cluster_start() {
             node_name_prefix=PL_2_
         fi
         hostname=$node_name_prefix$p
-        xterm -hold -geometry 90x20+$x+$y -T $hostname -e \
+        xterm -hold -geometry 140x20+$x+$y -T $hostname -e \
             $UML_DIR/bin/uml_start $p umid=$hostname mem=128M hostname=$hostname shadowroot=$rootdir $$ &
         echo $! >> $PIDFILEDIR/uml_pids
         y=$((y+dy))
