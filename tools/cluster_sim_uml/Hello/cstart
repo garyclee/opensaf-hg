@@ -18,6 +18,7 @@
 #   
 #
 
+pidfile="/var/run/${SA_AMF_COMPONENT_NAME}"
 approot=/opt/aishello/
 log=/var/log/cstart.log
 
@@ -34,17 +35,17 @@ app=$2
 
 case "$cmd" in
     instantiate)
-	application=$approot/bin/$app
-	test -x $application || errquit "Application not executable [$application]"
-	$application >> $log 2>&1 &
-	;;
-    terminate)
-	killall $app >> $log 2>&1 &
-	;;
+        logger -t hello "Instantiate $SA_AMF_COMPONENT_NAME"
+        application=$approot/bin/$app
+        test -x $application || errquit "Application not executable [$application]"
+        $application >> $log 2>&1 &
+        ;;
     cleanup)
-	killall $app >> $log 2>&1 &
-	;;
+        logger -t hello "Cleanup $SA_AMF_COMPONENT_NAME"
+        kill -9 'cat $pidfile' >> $log 2>&1 &
+        ;;
     *)
-	errquit "Invalid command [$cmd]"
+        logger -t hello "Invalid command [$cmd]"
 esac
+
 exit 0

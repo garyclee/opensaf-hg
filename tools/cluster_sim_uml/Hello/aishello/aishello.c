@@ -80,6 +80,7 @@ main(int argc, char* argv[])
     SaSelectionObjectT fd = 0;
     struct pollfd fds[1];
     int retval;
+    char *comp_name = getenv("SA_AMF_COMPONENT_NAME");
 
     /* Detach and run as a daemon. This should be the normal behavior
      * of an AMF component. */
@@ -89,10 +90,26 @@ main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 #endif
-    /* Since we run as a daemon, use the "syslog" for logging. SAF
-     * will hopefully provide a logging API in the future. */
-    /* openlog("aishello", LOG_PID, LOG_USER); */
-    syslog(LOG_DEBUG, "Started ...");
+
+    /* Since we run as a daemon, use the "syslog" for logging. */
+    openlog("aishello", LOG_PID, LOG_USER);
+    syslog(LOG_DEBUG, "%s Started ...", comp_name);
+
+    /* Create PID file */
+    {
+        char path[256];
+        FILE *fp;
+
+        snprintf(path, sizeof(path), "/var/run/%s.pid", comp_name);
+        fp = fopen(path, "w");
+        if (fp == NULL)
+        {
+            syslog(LOG_ERR, "fopen failed: %s", strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        fprintf(fp, "%d\n", getpid());
+        fclose(fp);
+    }
 
     /* Init the AMF connection */
     aisCallq(saAmfInitialize, &amfHandle, &callbacks, &version);
@@ -147,7 +164,9 @@ static void componentTerminateCallback(
     SaInvocationT invocation,
     const SaNameT *compName)
 {
-    syslog(LOG_DEBUG, "componentTerminateCallback: exiting...");
+    syslog(LOG_DEBUG, "componentTerminateCallback '%s': exiting...", compName->value);
+    aisCallq(saAmfResponse, amfHandle, invocation, SA_AIS_OK);
+    sleep(1);
     exit(EXIT_SUCCESS);
 }
 static void cSISetCallback(
