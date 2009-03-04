@@ -83,6 +83,7 @@ typedef struct fm_cb {
    NCS_BOOL        is_platform;
 } FM_CB;
 
+extern char * role_string[];
 
 /*****************************************************************
  *         Prototypes for extern functions                       *

@@ -157,8 +157,8 @@ void fm_rda_callback(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE 
    if(cb_info->cb_type == PCS_RDA_ROLE_CHG_IND)
    {
       m_NCS_SYSLOG(NCS_LOG_INFO,
-            "fm_rda_callback(): CurrentState: %d, NewState: %d\n", 
-            fm_cb->role, cb_info->info.io_role);
+            "fm_rda_callback(): CurrentState: %s, NewState: %s\n", 
+            role_string[fm_cb->role], role_string[cb_info->info.io_role]);
       if ((cb_info->info.io_role == PCS_RDA_ACTIVE) || 
           (cb_info->info.io_role == PCS_RDA_STANDBY))
       {
@@ -201,13 +201,13 @@ uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
    {
       m_NCS_SYSLOG(NCS_LOG_INFO,
             "fm_rda_set_role() Failed: CurrentState: %d, AskedState: %d\n", 
-            fm_cb->role, role);
+            role_string[fm_cb->role], role_string[role]);
       return NCSCC_RC_FAILURE;
    }
 
    m_NCS_SYSLOG(NCS_LOG_INFO,
             "fm_rda_set_role() Success: CurrentState: %d, AskedState: %d\n", 
-            fm_cb->role, role);
+            role_string[fm_cb->role], role_string[role]);
 
    return NCSCC_RC_SUCCESS;
 }
