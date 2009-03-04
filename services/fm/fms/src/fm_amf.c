@@ -53,7 +53,7 @@ static uns32 fm_amf_lib_init   (FM_AMF_CB *fm_amf_cb);
 static uns32 fm_amf_lib_destroy(FM_AMF_CB *fm_amf_cb);
 static FM_AMF_CB* fm_amf_take_hdl (void);
 static void fm_amf_give_hdl (void);
-static char * role_string[] = {"ACTIVE", "STANDBY", "QUIESCED",
+static char * ha_role_string[] = {"ACTIVE", "STANDBY", "QUIESCED",
                         "QUIESCING"};
 
 /****************************************************************************
@@ -130,7 +130,7 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
    SaAisErrorT error = SA_AIS_OK;
 
    m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_set_callback: Comp %s, state %s\n",
-                compName->value, role_string[haState - 1]);
+                compName->value, ha_role_string[haState - 1]);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
    {
