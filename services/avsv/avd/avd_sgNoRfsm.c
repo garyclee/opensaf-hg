@@ -96,7 +96,8 @@ static AVD_SU *avd_sg_nored_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
 
       /* verify that the SI is unassigned and ready */
       if ((i_si->admin_state != NCS_ADMIN_STATE_UNLOCK) ||
-         /* (i_si->si_dep_state != AVD_SI_NO_DEPENDENCY) ||*/
+          (i_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED) || 
+          (i_si->si_dep_state == AVD_SI_UNASSIGNING_DUE_TO_DEP) ||
           (i_si->max_num_csi != i_si->num_csi) ||
           (i_si->list_of_sisu != AVD_SU_SI_REL_NULL))
       {

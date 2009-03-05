@@ -117,7 +117,7 @@ typedef struct avd_si_tag {
                                                  * in this group */
    struct avd_su_si_rel_tag *list_of_sisu;      /* the list of su si relationship elements */
 
-   uns32                    si_dep_state;      /* SI-SI dep state of this SI */
+   AVD_SI_DEP_STATE         si_dep_state;      /* SI-SI dep state of this SI */
    struct avd_spons_si_tag  *spons_si_list;
    uns32                    tol_timer_count;
 } AVD_SI;
