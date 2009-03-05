@@ -779,6 +779,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB        *cb,
       if ( (NCS_PRES_INSTANTIATING == prv_st) &&
            (NCS_PRES_INSTANTIATED == final_st) )
       {
+         m_AVND_COMP_FAILED_RESET(comp);
          m_AVND_COMP_OPER_STATE_SET(comp, NCS_OPER_STATE_ENABLE);
          m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
          if ( NCSCC_RC_SUCCESS != rc ) goto done;
