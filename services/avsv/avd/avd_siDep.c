@@ -340,7 +340,6 @@ uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 
    if((si->max_num_csi == si->num_csi) &&
       (si->admin_state == NCS_ADMIN_STATE_UNLOCK) &&
-      (si->si_dep_state == AVD_SI_NO_DEPENDENCY) &&
       (cb->init_state  == AVD_APP_STATE))
    {
       switch(si->sg_of_si->su_redundancy_model)
@@ -640,12 +639,16 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 /*****************************************************************************
  * Function: avd_check_si_dep_sponsors
  *
- * Purpose:  This function process checks whether SIs sponsor SIs are in 
- *           ASSIGNED state, if yes it returns AVD_SI_ASSIGNED 
+ * Purpose:  This function checks whether sponsor SIs of an SI are in enabled /
+ *           disabled state.  
  *
- * Input: si - Pointer to AVD_SI struct 
+ * Input:    cb - Pointer to AVD control block
+ *           si - Pointer to AVD_SI struct 
+ *           take_action - If TRUE, process the impacts (SI-SI dependencies)
+ *                      on dependent-SIs (of sponsor-SI being enabled/disabled)
  *
- * Returns:  spons_si_state
+ * Returns: NCSCC_RC_SUCCESS - if sponsor-SI is in enabled state 
+ *          NCSCC_RC_FAILURE - if sponsor-SI is in disabled state 
  *
  * NOTES:  
  * 
