@@ -286,8 +286,8 @@ controller_sysconf = \
 	$(top_srcdir)/config/saflog.conf \
 	$(top_srcdir)/config/rde.conf \
 	$(top_srcdir)/config/fms.conf \
-        $(top_srcdir)/config/pdrbd_proxied.conf \
-        $(top_srcdir)/config/drbd.conf
+	$(top_srcdir)/config/pdrbd_proxied.conf \
+	$(top_srcdir)/config/drbd.conf
 
 payload_sysconf = \
 	$(top_srcdir)/config/nodeinit.conf.payload
@@ -334,8 +334,8 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/dhclnt_start \
 	$(top_builddir)/scripts/drbdctrl \
 	$(top_builddir)/scripts/drbd_start \
-        $(top_builddir)/scripts/ncs_drbd_r0_clean \
-        $(top_builddir)/scripts/pdrbdsts \
+	$(top_builddir)/scripts/ncs_drbd_r0_clean \
+	$(top_builddir)/scripts/pdrbdsts \
 	$(top_builddir)/scripts/ip_inst_script \
 	$(top_builddir)/scripts/ncs_cpd_start \
 	$(top_builddir)/scripts/ncs_cpnd_start \
