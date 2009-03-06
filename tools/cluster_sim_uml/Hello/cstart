@@ -18,7 +18,7 @@
 #   
 #
 
-pidfile="/var/run/${SA_AMF_COMPONENT_NAME}"
+pidfile="/var/run/${SA_AMF_COMPONENT_NAME}".pid
 approot=/opt/aishello/
 log=/var/log/cstart.log
 
@@ -42,7 +42,7 @@ case "$cmd" in
         ;;
     cleanup)
         logger -t hello "Cleanup $SA_AMF_COMPONENT_NAME"
-        kill -9 'cat $pidfile' >> $log 2>&1 &
+        kill -9 `cat $pidfile` >> $log 2>&1 &
         ;;
     *)
         logger -t hello "Invalid command [$cmd]"
