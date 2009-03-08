@@ -93,7 +93,7 @@ typedef enum nid_platconf_pars {
 ******************************************************************/
 
 struct nid_resetinfo{
-   uns8 faild_serv_name[NID_MAXSNAME];  
+   char faild_serv_name[NID_MAXSNAME];  
    uns32 count;
 };
 
@@ -121,8 +121,9 @@ typedef enum nid_recovery_opt {
 
 typedef struct nid_spawn_info NID_SPAWN_INFO;
 
-typedef uns32 (*NID_FUNC)(NID_SPAWN_INFO *,uns8 *);
-typedef int32 (*NID_FORK_FUNC)(NID_SPAWN_INFO *, uns8 *, char * args[],uns8 *, uns8 *); /*DEL*/
+typedef uns32 (*NID_FUNC)(NID_SPAWN_INFO *, char *);
+typedef int32 (*NID_FORK_FUNC)(NID_SPAWN_INFO *, char *,
+    char * args[], char *, char *);
 
 
 
@@ -139,16 +140,16 @@ typedef struct nid_recovery_list {
 
 struct nid_spawn_info {
    uns32 pid;
-   uns8 serv_name[NID_MAXSNAME];                        /* Service name to be spawned*/
+   char serv_name[NID_MAXSNAME];                        /* Service name to be spawned*/
    NID_APP_TYPE app_type;
-   uns8 s_name[NID_MAXSFILE];                        /* Service name to be spawned*/
-   uns8 cleanup_file[NID_MAXSFILE];                  /* Cleanup for the service spawned*/
+   char s_name[NID_MAXSFILE];                        /* Service name to be spawned*/
+   char cleanup_file[NID_MAXSFILE];                  /* Cleanup for the service spawned*/
    uns32 time_out;                                   /* Timeout for spawned service*/
    int32 priority;                                   /* Process priority&*/
    NID_RECOVERY_LIST recovery_matrix[NID_MAXREC];    /* recovery action list */
-   uns8 s_parameters[NID_MAXPARMS];                  /* Parameters for spawned service*/
+   char s_parameters[NID_MAXPARMS];                  /* Parameters for spawned service*/
    char * serv_args[NID_MAXARGS];                    /* pointers to '\0' seperated arguments in s_parameters */
-   uns8 cleanup_parms[NID_MAXPARMS];                 /* Parameters for cleaning appl*/
+   char cleanup_parms[NID_MAXPARMS];                 /* Parameters for cleaning appl*/
    char * clnup_args[NID_MAXARGS];                   /* pointers to \0 sperated arguments in cleanup_parms */
    struct nid_spawn_info *next;
 };

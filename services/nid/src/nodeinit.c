@@ -88,7 +88,7 @@ NID_CHILD_LIST spawn_list = {NULL,NULL,0};
 /************************************************************
 *     Console needed for shell scripts to be spawned        *
 ************************************************************/
-uns8 *cons_dev;
+char *cons_dev;
 int32 cons_fd=-1;
 /***************************************
 *     just to track dead childs pid    *
@@ -99,36 +99,36 @@ uns32 dead_child = 0;
 *    Used to depict if we are ACTIVE/STDBY. *
 ********************************************/
 uns32 role = 0;
-uns8  rolebuff[20];
-uns8  svc_name[NID_MAXSNAME];
+char  rolebuff[20];
+char  svc_name[NID_MAXSNAME];
 
 
 
-static uns32           spawn_wait(NID_SPAWN_INFO *servicie, uns8 *strbuff);
-int32                  fork_process(NID_SPAWN_INFO * service, uns8 * app, 
-                                    char * args[],uns8 *, uns8 * strbuff);
-static int32           fork_script(NID_SPAWN_INFO * service, uns8 * app, 
-                                   char * args[],uns8 *, uns8 * strbuff);
-static int32           fork_daemon(NID_SPAWN_INFO * service, uns8 * app, 
-                                   char * args[],uns8 *, uns8 * strbuff);
-static void            collect_param(uns8 *, uns8 *, char* args[]);
-void                   logme(uns32, uns8 *, ...);
-static uns8 *          gettoken(uns8 **, uns32 );
+static uns32           spawn_wait(NID_SPAWN_INFO *servicie, char *strbuff);
+int32                  fork_process(NID_SPAWN_INFO * service, char * app, 
+                                    char * args[],char *, char * strbuff);
+static int32           fork_script(NID_SPAWN_INFO * service, char * app, 
+                                   char * args[],char *, char * strbuff);
+static int32           fork_daemon(NID_SPAWN_INFO * service, char * app, 
+                                   char * args[],char *, char * strbuff);
+static void            collect_param(char *, char *, char* args[]);
+void                   logme(uns32, char *, ...);
+static char *          gettoken(char **, uns32 );
 static void            add2spawnlist(NID_SPAWN_INFO * );
-static NID_APP_TYPE    get_apptype(uns8 * );
-static uns32           get_spawn_info(uns8 *,NID_SPAWN_INFO * ,uns8 *);
-static uns32           parse_nodeinitconf(uns8 *strbuf);
+static NID_APP_TYPE    get_apptype(char * );
+static uns32           get_spawn_info(char *,NID_SPAWN_INFO * ,char *);
+static uns32           parse_nodeinitconf(char *strbuf);
 static uns32           check_process(NID_SPAWN_INFO * service);
 static void            cleanup(NID_SPAWN_INFO * service);
-static uns32           recovery_action(NID_SPAWN_INFO *,uns8 *);
+static uns32           recovery_action(NID_SPAWN_INFO *,char *);
 static void            insert_role_svc_name(NID_SPAWN_INFO *);
-static uns32           spawn_services(uns8 * );
+static uns32           spawn_services(char * );
 static void            sigchld_handlr(int );
 static void            daemonize_me(void);
 static void            cons_init(void);
 static uns32           cons_open(uns32);
-static void            notify_bis(uns8 *message);
-static uns8 *          strtolower(uns8 * );
+static void            notify_bis(char *message);
+static char *          strtolower(char * );
 static uns32           getrole(void);
 static uns32           get_role_from_rdf(void);
 static void            nid_sleep(uns32);
@@ -139,10 +139,10 @@ static void            nid_sleep(uns32);
 ******************************************************************/
 NID_FUNC      recovery_funcs[]={spawn_wait/*,bladereset*/};
 NID_FORK_FUNC fork_funcs[]={fork_process,fork_script,fork_daemon};
-uns8          *nid_log_path;
+char          *nid_log_path;
 
 
-uns8 * nid_recerr[NID_MAXREC][4]={ {"Trying To RESPAWN","Could Not RESPAWN",\
+char * nid_recerr[NID_MAXREC][4]={ {"Trying To RESPAWN","Could Not RESPAWN",\
                                     "Succeeded To RESPAWN","FAILED TO RESPAWN"},\
                                    {"Trying To RESET","Faild to RESET",\
                                     "suceeded To RESET","FAILED AFTER RESTART"}
@@ -182,7 +182,7 @@ void nid_sleep(uns32 time_in_msec)
  *                                                                          *
  * Notes         : None.                                                    *
  ****************************************************************************/
-void notify_bis(uns8 *message)
+void notify_bis(char *message)
 {
   uns32 size;
    size = m_NCS_STRLEN(message);
@@ -208,11 +208,10 @@ void notify_bis(uns8 *message)
  * Notes         : None.                                                    *
  ****************************************************************************/
 void
-logme(uns32 level,uns8 *s, ...)
+logme(uns32 level,char *s, ...)
 {
-
    va_list arg_list;
-   uns8 buf[256];
+   char buf[256];
 
    va_start(arg_list,s);
    vsnprintf(buf,sizeof(buf), s, arg_list);
@@ -248,10 +247,10 @@ logme(uns32 level,uns8 *s, ...)
  *                                                                          *
  * Notes         : None.                                                    *
  ****************************************************************************/
-uns8 *
-gettoken(uns8 **str, uns32 tok)
+char *
+gettoken(char **str, uns32 tok)
 {
-   uns8 *p, *q;
+   char *p, *q;
 
    if((str == NULL) || (*str == 0) ||\
       (**str == '\n') || (**str == '\0'))
@@ -322,7 +321,7 @@ add2spawnlist(NID_SPAWN_INFO * childinfo)
  * Notes         : None.                                                    *
  ***************************************************************************/
 NID_APP_TYPE
-get_apptype(uns8 * p)
+get_apptype(char * p)
 {
    NID_APP_TYPE type=NID_APPERR;
 
@@ -354,9 +353,9 @@ get_apptype(uns8 * p)
  * Notes         : None.                                                    *
  ***************************************************************************/
 uns32
-get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
+get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
 {
-   uns8 *p,*q;
+   char *p,*q;
    NID_PLATCONF_PARS parse_state=NID_PLATCONF_SFILE;
 
    p = srcstr;
@@ -663,11 +662,11 @@ get_spawn_info(uns8 *srcstr,NID_SPAWN_INFO * spawninfo,uns8 *sbuf)
  * Notes         : None.                                                    *
  ***************************************************************************/
 uns32
-parse_nodeinitconf(uns8 *strbuf)
+parse_nodeinitconf(char *strbuf)
 {
 
    NID_SPAWN_INFO *childinfo;
-   uns8 buff[256],sbuf[200],nid_plat_conf_file[255], *nid_plat_conf_path, *ch, *ch1;
+   char buff[256],sbuf[200],nid_plat_conf_file[255], *nid_plat_conf_path, *ch, *ch1;
    uns32 lineno=0,retry=0;
    struct nid_resetinfo info={{""},-1};
    NCS_OS_FILE plat_conf,plat_conf_close;
@@ -681,7 +680,7 @@ parse_nodeinitconf(uns8 *strbuf)
       nid_plat_conf_path = NID_PLAT_CONF_PATH;
    }
    sysf_sprintf(nid_plat_conf_file,"%s/"NID_PLAT_CONF,nid_plat_conf_path);
-   plat_conf.info.open.i_file_name = nid_plat_conf_file;
+   plat_conf.info.open.i_file_name = (uns8 *) nid_plat_conf_file;
    plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
    if(m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS)
    {
@@ -791,9 +790,9 @@ cons_init(void)
    int32 fd;
    uns32 tried_devcons = 0;
    uns32 tried_vtmaster = 0;
-   uns8 *s;
+   char *s;
 
-   if ((s = (uns8 *)getenv("CONSOLE")) != NULL)
+   if ((s = getenv("CONSOLE")) != NULL)
       cons_dev = s;
    else
    {
@@ -873,8 +872,8 @@ cons_open(uns32 mode)
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],
-            uns8 *nid_log_filename,uns8 * strbuff) 
+fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
+            char *nid_log_filename,char * strbuff) 
 {
 
    int32 pid = -1;
@@ -1001,8 +1000,8 @@ fork_daemon(NID_SPAWN_INFO * service, uns8 * app,char * args[],
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],
-            uns8 *nid_log_filename,uns8 * strbuff)
+fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
+            char *nid_log_filename,char * strbuff)
 {
 
    int32 pid= -1;
@@ -1077,8 +1076,8 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],
  * Notes         : None.                                                    *
  ***************************************************************************/
 int32
-fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],
-             uns8 *nid_log_filename,uns8 * strbuff)/* DEL */
+fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
+             char *nid_log_filename,char * strbuff)/* DEL */
 {
    int32 pid = -1;
    int32 f;
@@ -1152,11 +1151,11 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],
  * Notes         : None.                                                    *
  ***************************************************************************/
 void
-collect_param(uns8 *params,uns8 *s_name,char *args[])
+collect_param(char *params,char *s_name,char *args[])
 {
 
    uns32 f;
-   uns8 *ptr;
+   char *ptr;
 
    ptr = params;
    for(f = 1; f < NID_MAXARGS; f++)
@@ -1198,9 +1197,9 @@ collect_param(uns8 *params,uns8 *s_name,char *args[])
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns8 * strtolower(uns8 * p)
+char * strtolower(char * p)
 {
-   uns8 * str = p;
+   char * str = p;
 
    if(str == NULL) return NULL;
 
@@ -1231,7 +1230,7 @@ uns8 * strtolower(uns8 * p)
  * Notes         : None.                                                    *
  ***************************************************************************/
 uns32
-spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
+spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 {
    int32 pid = -1,retry = 5;
    int32 n = 0;
@@ -1239,9 +1238,9 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    NCS_OS_FILE fd1;
    struct timeval tv;
    NID_FIFO_MSG reqmsg;
-   uns8 *magicno,*serv,*stat,*p;
-   uns8 buff1[100],magic_str[15];
-   uns8 nid_log_filename[100];
+   char *magicno,*serv,*stat,*p;
+   char buff1[100],magic_str[15];
+   char nid_log_filename[100];
 
    /*******************************************************
    *    Clean previous messages in strbuff           *
@@ -1263,7 +1262,7 @@ spawn_wait(NID_SPAWN_INFO *service, uns8 *strbuff)
    ******************************************************/
    if(service->pid == 0)
    {
-     fd1.info.open.i_file_name = service->s_name;
+     fd1.info.open.i_file_name = (uns8 *) service->s_name;
      fd1.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
      if(m_NCS_OS_FILE(&fd1,NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS)
      {
@@ -1472,7 +1471,7 @@ uns32
 check_process(NID_SPAWN_INFO * service)
 {
    struct stat sb;
-   uns8 buf[32];
+   char buf[32];
 
    sysf_sprintf(buf, "/proc/%d",service->pid);
    if(stat(buf, &sb) != 0) return 0;
@@ -1500,7 +1499,7 @@ check_process(NID_SPAWN_INFO * service)
 void
 cleanup(NID_SPAWN_INFO* service)
 {
-   uns8 strbuff[256];
+   char strbuff[256];
 
    /*****************************************************
    *    Dont Allow anyone to write to this pipe till we *
@@ -1551,7 +1550,7 @@ cleanup(NID_SPAWN_INFO* service)
  * Notes         : None.                                                    *
  ***************************************************************************/
 uns32
-recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
+recovery_action(NID_SPAWN_INFO *service,char *strbuff)
 {
    uns32 count = 0;
    NID_RECOVERY_OPT opt = NID_RESPAWN;
@@ -1636,7 +1635,7 @@ recovery_action(NID_SPAWN_INFO *service,uns8 *strbuff)
 uns32
 getrole(void)
 {
-   uns8 *nid_role;
+   char *nid_role;
 
    /* obtain role from RDF */
    if(get_role_from_rdf() == NCSCC_RC_FAILURE)
@@ -1702,7 +1701,6 @@ uns32 get_role_from_rdf(void)
       logme(NID_LOG2FILE_CONS,"Failed to get role from RDF\n");
       ret_val = NCSCC_RC_FAILURE;
    }
-
    else
    {
       switch(pcs_rda_req.info.io_role)
@@ -1832,12 +1830,11 @@ insert_role_svc_name(NID_SPAWN_INFO *service)
  * Notes         : None.                                                    *
  ***************************************************************************/
 uns32
-spawn_services(uns8 * strbuf)
+spawn_services(char * strbuf)
 {
-
    NID_SPAWN_INFO *service;
    NID_CHILD_LIST sp_list = spawn_list;
-   uns8 sbuff[100];
+   char sbuff[100];
    uns32 rc = NCSCC_RC_FAILURE;
 
    if(sp_list.head == NULL)
@@ -1905,7 +1902,7 @@ spawn_services(uns8 * strbuf)
          if(service->app_type == NID_DAEMN)
          {
            int32 lfd;
-           uns8 filename[30],str[15];
+           char filename[30],str[15];
            sysf_sprintf(filename, PIDPATH "%s.pid","ncsspcap");
            m_NCS_POSIX_UNLINK(filename);
            lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
@@ -1979,7 +1976,7 @@ daemonize_me(void)
 {
    int32 pid,lfd;
    struct sigaction sa;
-   uns8 str[10];
+   char str[10];
 
    /*****************************************************************
    *    Check if we are already daemon?                             *
@@ -2061,7 +2058,7 @@ daemonize_me(void)
 int
 main(int argc, char **argv)
 {
-   uns8 sbuf[256];
+   char sbuf[256];
 
 
    /****************************************************************
