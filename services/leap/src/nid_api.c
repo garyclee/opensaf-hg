@@ -44,10 +44,10 @@
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nid_notify(char *service,uns32 status,uns32 *error)
+uns32 nid_notify(char *service, uns32 status, uns32 *error)
 {
    uns32 scode;
-   uns8 msg[250];
+   char msg[250];
    int32 fd = -1;
    uns32 retry=3;
    char strbuff[256];
@@ -106,9 +106,8 @@ uns32 nid_notify(char *service,uns32 status,uns32 *error)
  *                                                                          *
  * Notes         : None.                                                    *
  ***************************************************************************/
-uns32 nis_notify(uns8 *status,uns32 *error)
+uns32 nis_notify(char *status, uns32 *error)
 {
-
    int32 fd = -1;
    uns32 retry=3;
    char strbuff[256];
@@ -146,10 +145,4 @@ uns32 nis_notify(uns8 *status,uns32 *error)
    nid_close_ipc();
    return NCSCC_RC_SUCCESS;
 }
-
-
-
-
-
-
 
