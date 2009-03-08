@@ -762,9 +762,9 @@ parse_nodeinitconf(uns8 *strbuf)
    }
 
    /* Lets get the log files path */
-   if ((nid_log_path = getenv("NID_NCS_LOG_PATH")) == NULL)
+   if ((nid_log_path = getenv("NCS_STDOUTS_PATH")) == NULL)
    {                                                                                   
-      logme(NID_LOG2FILE,"No NID_NCS_LOG_PATH env set. Default:%s",NID_NCSLOGPATH);
+      logme(NID_LOG2FILE,"No NCS_STDOUTS_PATH env set. Default:%s",NID_NCSLOGPATH);
       nid_log_path = NID_NCSLOGPATH;
    }
 
@@ -1036,7 +1036,8 @@ fork_script(NID_SPAWN_INFO * service, uns8 * app,char * args[],
 
      if ( nid_log_filename )
      {
-        if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,S_IRWXU)) >= 0)
+         if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
+             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
         {
            m_NCS_POSIX_DUP(f);
            m_NCS_POSIX_DUP(f);
@@ -1103,7 +1104,8 @@ fork_process(NID_SPAWN_INFO * service, uns8 * app,char * args[],
       
      if ( nid_log_filename )
      {
-         if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,S_IRWXU)) >= 0)
+         if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
+             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
          {
             m_NCS_POSIX_DUP(f);
             m_NCS_POSIX_DUP(f);
