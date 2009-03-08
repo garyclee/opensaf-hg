@@ -50,6 +50,38 @@
                              SAF elements like SG, SI, SU, NODE, COMPONENT, CSI
                         -->
 			<AMFConfig cluster="myAmfConfig">
+                                <componentPrototype name="safComp=CompT_IMMND" finalPrototype="1">
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/immnd_script instantiate</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/immnd_script terminate</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/immnd_script cleanup</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>1</instantiationLevel>
+                                        <csiPrototypeName>safCsi=Csi_IMMND</csiPrototypeName>
+                                        <saAwareComponent>
+                                                <capability>1_ACTIVE</capability>
+                                                <healthCheck key="A1B2">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
 
                                 <!--
                                    The Configuration for Controller CHECK POINT  NODE DIRECTOR component CompT_SC_CPND
@@ -612,6 +644,41 @@
                                         -->
                                         <enableAM>0</enableAM>
                                 </componentPrototype>
+
+                                <componentPrototype name="safComp=CompT_IMMD" finalPrototype="1">
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/immd_script instantiate</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/immd_script terminate</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/immd_script cleanup</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>1</instantiationLevel>
+                                        <csiPrototypeName>safCsi=Csi_IMMD</csiPrototypeName>
+                                        <saAwareComponent>
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
 
                                 <!--
                                    The Configuration for CHECK POINT DIRECTOR component CompT_CPD
@@ -1822,6 +1889,7 @@
                                                 <!--
                                                 <componentPrototype>safComp=CompT_HISV</componentPrototype>
                                                 -->
+						<componentPrototype>safComp=CompT_IMMD</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SSA</componentPrototype>
                                                 <componentPrototype>safComp=CompT_VDS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
@@ -1842,6 +1910,7 @@
                                                 <componentPrototype>safComp=CompT_SC_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_SC_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_GLND</componentPrototype>
+                                                <componentPrototype>safComp=CompT_IMMND</componentPrototype>
 					</componentPrototypeList>
 				</SUPrototype>
 
@@ -1854,6 +1923,7 @@
 						<componentPrototype>safComp=CompT_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_GLND</componentPrototype>
+                                                <componentPrototype>safComp=CompT_IMMND</componentPrototype>
 					</componentPrototypeList>
 				</SUPrototype>
                               
@@ -1885,8 +1955,12 @@
                                                         <prototypeName>safCsi=Csi_FMS</prototypeName>
                                                         <CSIAttributes/>
                                                  </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_IMMND" rank="6">
+							<prototypeName>safCsi=Csi_IMMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
                                 <!--
-                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="7">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
@@ -1921,8 +1995,12 @@
                                                         <prototypeName>safCsi=Csi_FMS</prototypeName>
                                                         <CSIAttributes/>
                                                  </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_IMMND" rank="6">
+							<prototypeName>safCsi=Csi_IMMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
                                 <!--
-                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="7">
 							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
@@ -1950,7 +2028,10 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-
+                                                <CSIInstance name="safCsi=Csi_IMMND" rank="4">
+							<prototypeName>safCsi=Csi_IMMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
 					</CSIList>
 				</SIInstance>
                                 
@@ -1974,7 +2055,10 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-
+                                                <CSIInstance name="safCsi=Csi_IMMND" rank="4">
+							<prototypeName>safCsi=Csi_IMMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
 					</CSIList>
 				</SIInstance>
                                 
@@ -1998,7 +2082,10 @@
 							<prototypeName>safCsi=Csi_GLND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-
+                                                <CSIInstance name="safCsi=Csi_IMMND" rank="4">
+							<prototypeName>safCsi=Csi_IMMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
 					</CSIList>
 				</SIInstance>
                                 
@@ -2245,7 +2332,11 @@
                                                         <prototypeName>safCsi=Csi_VDS</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>
-                                                <CSIInstance name="safCsi=Csi_SAFLOG" rank="10">
+                                                <CSIInstance name="safCsi=Csi_IMMD" rank="10">
+                                                        <prototypeName>safCsi=Csi_IMMD</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_SAFLOG" rank="11">
                                                         <prototypeName>safCsi=Csi_SAFLOG</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>

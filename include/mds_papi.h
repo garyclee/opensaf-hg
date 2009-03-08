@@ -191,6 +191,10 @@ typedef enum ncsmds_svc_id
     NCSMDS_SVC_ID_AVND_CNTLR,
     NCSMDS_SVC_ID_FMA,
     NCSMDS_SVC_ID_GFM,
+    NCSMDS_SVC_ID_IMMD,
+    NCSMDS_SVC_ID_IMMND,
+    NCSMDS_SVC_ID_IMMA_OM,
+    NCSMDS_SVC_ID_IMMA_OI,
     NCSMDS_SVC_ID_NCSMAX,  /* This mnemonic always last */
     /* END: These are NCS internal use service-id definitions */
 

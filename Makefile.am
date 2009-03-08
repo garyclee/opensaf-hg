@@ -191,6 +191,9 @@ include_HEADERS = \
 	include/saCkpt.h \
 	include/saClm.h \
 	include/saEvt.h \
+	include/saImm.h \
+	include/saImmOi.h \
+	include/saImmOm.h \
 	include/saLck.h \
 	include/saLog.h \
 	include/saMsg.h \
@@ -218,6 +221,11 @@ BASE_SUBDIRS = \
 	lib/lib_SaEvt \
 	services/glsv/gla \
 	lib/lib_SaLck \
+	services/immsv/common \
+	services/immsv/imma \
+	lib/lib_SaImm \
+	tests/immsv/management \
+	tests/immsv/implementer \
 	services/logsv/lga \
 	lib/lib_SaLog \
 	services/mqsv/common \
@@ -264,7 +272,8 @@ endif
 common_sysconf = \
 	$(top_srcdir)/config/chassis_id \
 	$(top_srcdir)/config/slot_id \
-	$(top_srcdir)/config/subslot_id
+	$(top_srcdir)/config/subslot_id \
+	$(top_srcdir)/config/imm.conf
 
 controller_sysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
@@ -286,6 +295,7 @@ controller_sysconf = \
 	$(top_srcdir)/config/saflog.conf \
 	$(top_srcdir)/config/rde.conf \
 	$(top_srcdir)/config/fms.conf \
+	$(top_srcdir)/config/imm.xml \
 	$(top_srcdir)/config/pdrbd_proxied.conf \
 	$(top_srcdir)/config/drbd.conf
 
@@ -306,7 +316,7 @@ dist_pkglocalstate_DATA = \
 
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/opensaf_mem_dump_tool
-	
+
 nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \
 	$(top_builddir)/scripts/collect_logs_payload \
@@ -371,6 +381,8 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/nid_tipc \
 	$(top_builddir)/scripts/nis_snmpd_clean \
 	$(top_builddir)/scripts/nis_snmpd_start \
+	$(top_builddir)/scripts/immd_script \
+	$(top_builddir)/scripts/immnd_script \
 	$(top_builddir)/scripts/opensaf_lgs \
 	$(top_builddir)/scripts/pdrbdctrl \
 	$(top_builddir)/scripts/rde_script \
