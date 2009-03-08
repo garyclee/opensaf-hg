@@ -16,4 +16,5 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = hisv avsv cpsv cli dtsv edsv glsv ifsv mab mbcsv mqsv nms nid rde srmsv vds logsv fm
+SUBDIRS = hisv avsv cpsv cli dtsv edsv glsv ifsv mab mbcsv mqsv nms nid rde \
+	srmsv vds logsv fm immsv

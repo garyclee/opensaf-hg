@@ -116,8 +116,9 @@ create_rootfs()
     install $xerces_lib/libxerces-c.so* $lib_dir
 
     echo "Resolve IMM dependencies"
-    if test -f usr/local/bin/immload; then
-        cp -L `ldd usr/local/bin/immload | tr -s ' \t' '\n' | \
+    immload=`find . -name immload`
+    if [ $? -eq 0 ]; then
+        cp -L `ldd $immload | tr -s ' \t' '\n' | \
             grep /usr/$lib_dir ` usr/$lib_dir
     fi
 

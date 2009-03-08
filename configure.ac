@@ -15,11 +15,11 @@
 #
 
 AC_PREREQ(2.59)
-AC_INIT(opensaf, 3.0.M3, users@list.opensaf.org)
+AC_INIT(opensaf, 3.0.B4, users@list.opensaf.org)
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([OpenSAFCopyRights])
 AC_CONFIG_HEADER([config.h])
-AM_INIT_AUTOMAKE(opensaf, 3.0.M3)
+AM_INIT_AUTOMAKE(opensaf, 3.0.B4)
 
 # (major version) = (first number) - (third number)
 # (minor version) = (third number)
@@ -238,6 +238,7 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_YACC
 AC_CHECK_TOOL(NETSNMP, net-snmp-config, MISSING)
+AC_CHECK_TOOL(XML2, xml2-config, MISSING)
 
 if test "x$enable_java" = xyes; then
    AC_JAVA_WITH_JDK
@@ -329,6 +330,19 @@ else
    AC_SUBST(MIBDIRS)
 fi
 
+if test $XML2 = MISSING; then
+	echo ""
+	echo "**********************************************"
+	echo "* Can't find the libxml2 development package *"
+	echo "**********************************************"
+	exit -1
+else
+   XML2_LIBS=`xml2-config --libs`
+   XML2_CFLAGS=`xml2-config --cflags`
+   AC_SUBST(XML2_LIBS)
+   AC_SUBST(XML2_CFLAGS)
+fi
+
 #############################################
 # Checks for header files.
 #############################################
@@ -377,6 +391,7 @@ AC_CHECK_FUNCS([bzero clock_gettime dup2 ftruncate gethostname gettimeofday \
 #############################################
 AC_CONFIG_FILES([opensaf.spec
                  Makefile
+                 config/imm.conf
                  config/script.conf
                  scripts/collect_logs_controller
                  scripts/collect_logs_payload
@@ -427,6 +442,8 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/openhpid_start
                  scripts/openhpisubagt_clean
                  scripts/openhpisubagt_start
+                 scripts/immd_script
+                 scripts/immnd_script
                  scripts/opensaf_lgs
                  scripts/pdrbdctrl
                  scripts/rde_script
@@ -435,6 +452,7 @@ AC_CONFIG_FILES([opensaf.spec
                  pkgconfig/opensaf-ckpt.pc
                  pkgconfig/opensaf-clm.pc
                  pkgconfig/opensaf-evt.pc
+                 pkgconfig/opensaf-imm.pc
                  pkgconfig/opensaf-lck.pc
                  pkgconfig/opensaf-log.pc
                  pkgconfig/opensaf-msg.pc
@@ -447,6 +465,7 @@ AC_CONFIG_FILES([opensaf.spec
                  lib/lib_SaMsg/Makefile
                  lib/lib_SaEvt/Makefile
                  lib/lib_SaClm/Makefile
+                 lib/lib_SaImm/Makefile
                  lib/lib_SaLck/Makefile
                  lib/lib_SaLog/Makefile
                  lib/lib_ncs_core/Makefile
@@ -517,6 +536,12 @@ AC_CONFIG_FILES([opensaf.spec
                  services/ifsv/ipxs_snmp_integ/Makefile
                  services/ifsv/logstr/Makefile
                  services/ifsv/snmp_integ/Makefile
+                 services/immsv/Makefile
+                 services/immsv/common/Makefile
+                 services/immsv/imma/Makefile
+                 services/immsv/immd/Makefile
+                 services/immsv/immnd/Makefile
+                 services/immsv/utils/Makefile
                  services/leap/Makefile
                  services/logsv/Makefile
                  services/logsv/lga/Makefile
@@ -559,6 +584,8 @@ AC_CONFIG_FILES([opensaf.spec
                  services/vds/logstr/Makefile
                  services/vds/vda/Makefile
                  services/vds/vds/Makefile
+                 tests/immsv/implementer/Makefile
+                 tests/immsv/management/Makefile
                  tools/hisv/Makefile
                  tools/pdrbd/Makefile
                  tools/pdrbd/logstr/Makefile
@@ -606,6 +633,8 @@ echo "${ECHO_T} HPI_LIBS: ${HPI_LIBS}"
 echo "${ECHO_T} NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
 echo "${ECHO_T} NETSNMP_LIBS: ${NETSNMP_LIBS}"
 echo "${ECHO_T} MIBDIRS: ${MIBDIRS}"
+echo "${ECHO_T} XML2_CFLAGS: ${XML2_CFLAGS}"
+echo "${ECHO_T} XML2_LIBS: ${XML2_LIBS}"
 echo ""
 echo "OpenSAF Options:"
 echo "${ECHO_T} Enable Java AIS Mapping: ${enable_java}"

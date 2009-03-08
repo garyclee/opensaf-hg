@@ -291,6 +291,7 @@ fi
 # TODO Still needed?
 %{_pkglibdir}/openhpisubagt_start
 %endif
+%{_pkglibdir}/immnd_script
 %{_bindir}/opensaf_mem_dump_tool
 %{_pkglibdir}/tipc_reset.sh
 
@@ -356,6 +357,15 @@ fi
 %{_pkglibdir}/nis_snmpd_clean
 %{_pkglibdir}/nis_snmpd_start
 %{_bindir}/collect_logs_controller
+%{_pkglibdir}/immd_script
+%{_pkglibdir}/opensaf_immd
+%{_pkglibdir}/opensaf_immnd
+%{_bindir}/immadm
+%{_bindir}/immcfg
+%{_bindir}/immdump
+%{_bindir}/immfind
+%{_bindir}/immlist
+%{_pkglibdir}/immload
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
 # TODO Still needed?
@@ -368,6 +378,7 @@ fi
 %{_pkglibdir}/ncs_drbd_r0_clean
 %{_sysconfdir}/%{name}/AppConfig.xsd
 %{_sysconfdir}/%{name}/cli_cefslib_conf
+%{_sysconfdir}/%{name}/imm.xml
 %{_sysconfdir}/%{name}/NCSConfig.xsd
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
@@ -385,6 +396,7 @@ fi
 %{_sysconfdir}/%{name}/.drbd_sync_state_2
 %{_sysconfdir}/%{name}/.drbd_sync_state_3
 %{_sysconfdir}/%{name}/.drbd_sync_state_4
+%{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_datadir}/snmp/ncsSnmpSubagt.conf
@@ -447,7 +459,9 @@ fi
 %{_pkglibdir}/ncs_srmnd
 %{_pkglibdir}/ncs_pcap_clean
 %{_pkglibdir}/ncs_pcap_start
+%{_pkglibdir}/opensaf_immnd
 %{_bindir}/collect_logs_payload
+%{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.payload
 
 
@@ -459,6 +473,8 @@ fi
 %{_libdir}/libSaCkpt.so.*
 %{_libdir}/libSaClm.so.*
 %{_libdir}/libSaEvt.so.*
+%{_libdir}/libSaImmOi.so.*
+%{_libdir}/libSaImmOm.so.*
 %{_libdir}/libSaLck.so.*
 %{_libdir}/libSaLog.so.*
 %{_libdir}/libSaMsg.so.*
@@ -468,6 +484,7 @@ fi
 %{_libdir}/libglsv_common.so.*
 %{_libdir}/libifa.so.*
 %{_libdir}/libifsv_common.so.*
+%{_libdir}/libimmsv_common.so.*
 %{_libdir}/libmaa.so.*
 %{_libdir}/libmbca.so.*
 %{_libdir}/libmqsv_common.so.*
@@ -500,6 +517,8 @@ fi
 %{_bindir}/hisv_events_demo
 %{_bindir}/hisv_power_set_util
 %endif
+%{_bindir}/immomtest
+%{_bindir}/immoitest
 
 
 %if %is_java
@@ -512,5 +531,7 @@ fi
 %endif
 
 %changelog
+* Sun Mar 8 2009 Hans Feldt <hans.feldt@ericsson.com>
+- Added immsv in OpenSAF 3.0 B4
 * Tue Aug 12 2008 Jonathan Fournier <jonathan.fournier@windriver.com>
 - Created the initial common spec file for OpenSAF 3.0
