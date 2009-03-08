@@ -66,13 +66,11 @@ static void output(const char* file, unsigned int line, int priority, int catego
     }
 
     if (trace_fd != -1)
-    {
         write(trace_fd, log_string, i);
 
-        /* Do not trace to syslog */
-        if (priority < LOG_DEBUG)
-            syslog(priority, &log_string[preamble_len]);
-    }
+    /* Do not trace to syslog, allow logging although tracing is not enabled */
+    if (priority < LOG_DEBUG)
+        syslog(priority, &log_string[preamble_len]);
 }
 
 void _log(const char* file, unsigned int line, int priority,
