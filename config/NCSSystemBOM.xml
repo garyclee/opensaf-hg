@@ -1683,16 +1683,16 @@
 				<componentPrototype name="safComp=CompT_SAFLOG" finalPrototype="1">
 					<clcCommands>
 						<instantiateCommand>
-							<command>xxLIBDIRxx/opensaf_lgs start</command>
+							<command>xxLIBDIRxx/opensaf_lgs instantiate</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>xxLIBDIRxx/opensaf_lgs clean</command>
+							<command>xxLIBDIRxx/opensaf_lgs terminate</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>xxLIBDIRxx/opensaf_lgs clean</command>
+							<command>xxLIBDIRxx/opensaf_lgs cleanup</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>

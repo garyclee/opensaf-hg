@@ -1,5 +1,8 @@
 Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B4
 --------------------------------------------
+2009-03-09 Hans Feldt <hans.feldt@ericsson.com>
+	* LOG IMM Object Implementer
+
 2009-03-08 Anders Bjornerstedt <anders.bjornerstedt@ericsson.com>
         * IMM-A.02.01 service added
 

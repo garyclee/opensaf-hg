@@ -20,6 +20,7 @@
  */
 
 #include "lgs.h"
+#include "immutil.h"
 
 static void close_all_files(void)
 {
@@ -28,7 +29,7 @@ static void close_all_files(void)
     stream = log_stream_getnext_by_name(NULL);
     while (stream != NULL)
     {
-        if (log_stream_file_close(stream) != SA_AIS_OK)
+        if (log_stream_file_close(stream) != 0)
             LOG_WA("Could not close file for stream %s", stream->name);
 
         stream = log_stream_getnext_by_name(stream->name);
@@ -63,15 +64,24 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb,
     stream = log_stream_get_by_name(name);
     if (stream == NULL)
     {
-        if (lgs_create_known_streams(cb) != NCSCC_RC_SUCCESS)
+        /* Create streams and configure them from IMM */
+        if (lgs_imm_activate(cb) != SA_AIS_OK)
         {
+            LOG_ER("lgs_imm_activate FAILED");
             error = SA_AIS_ERR_FAILED_OPERATION;
             goto done;
         }
     }
+    else
+    {
+        /* fail over or switch over */
+        lgs_imm_failover(cb);
+    }
 
     /* Open all streams */
     stream = log_stream_getnext_by_name(NULL);
+    if (!stream)
+        LOG_ER("No streams exist!");
     while (stream != NULL)
     {
         if ((error = log_stream_open(stream)) != SA_AIS_OK)
@@ -126,6 +136,10 @@ static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb,
 {
     TRACE_ENTER2("HA QUIESCING request");
     close_all_files();
+
+    /* Give up our IMM OI implementer role */
+    (void) immutil_saImmOiImplementerClear(cb->immOiHandle);
+
     return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
@@ -148,6 +162,9 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb,
     TRACE_ENTER2("HA AMF QUIESCED STATE request");
     close_all_files();
 
+    /* Give up our IMM OI implementer role */
+    (void) immutil_saImmOiImplementerClear(cb->immOiHandle);
+
     /*
     ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
     ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
@@ -157,7 +174,7 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb,
     cb->mds_role = V_DEST_RL_QUIESCED;
     lgs_mds_change_role(cb);
     cb->amf_invocation_id = invocation;
-    cb->is_quisced_set = TRUE; 
+    cb->is_quiesced_set = TRUE; 
     return SA_AIS_OK;
 }
 
@@ -237,22 +254,27 @@ static void amf_csi_set_callback(SaInvocationT invocation,
             error = amf_standby_state_handler(lgs_cb, invocation);
             break;
         case SA_AMF_HA_QUIESCED:
+            /* switch-over */
             error = amf_quiesced_state_handler(lgs_cb, invocation);
             break;
         case SA_AMF_HA_QUIESCING: 
+            /* shutdown admin op */
             error = amf_quiescing_state_handler(lgs_cb, invocation);
             break;
         default:
             LOG_WA("invalid state: %d ", new_haState);
-            error = SA_AIS_ERR_BAD_OPERATION;
+            error = SA_AIS_ERR_FAILED_OPERATION;
             break;
     } 
 
     if (error != SA_AIS_OK)
-        goto done;
+        goto response;
 
     if (new_haState == SA_AMF_HA_QUIESCED)
+    {
+        /* AMF response will be done later when MDS quiesced ack has been received */
         goto done;
+    }
 
     /* Update control block */
     lgs_cb->ha_state = new_haState;
@@ -283,7 +305,7 @@ static void amf_csi_set_callback(SaInvocationT invocation,
     {
         if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS)
         {
-            TRACE("lgs_mds_change_role FAILED");
+            LOG_ER("lgs_mds_change_role FAILED");
             error = SA_AIS_ERR_FAILED_OPERATION;
         }
     }
@@ -292,8 +314,9 @@ static void amf_csi_set_callback(SaInvocationT invocation,
     if (NCSCC_RC_SUCCESS != (error = lgs_mbcsv_change_HA_state(lgs_cb)))
         error = SA_AIS_ERR_FAILED_OPERATION;
 
-done:
+ response:
     saAmfResponse(lgs_cb->amf_hdl, invocation, error);
+ done:
     TRACE_LEAVE();
 }
 
@@ -391,7 +414,7 @@ static SaAisErrorT amf_healthcheck_start(lgs_cb_t *lgs_cb)
     else
         strcpy((char *) healthy.key, health_key);
 
-    healthy.keyLen = strlen((const char *)healthy.key);
+    healthy.keyLen = strlen((char*) healthy.key);
 
     error = saAmfHealthcheckStart(lgs_cb->amf_hdl, &lgs_cb->comp_name, &healthy,
                                   SA_AMF_HEALTHCHECK_AMF_INVOKED,

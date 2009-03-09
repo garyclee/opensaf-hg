@@ -19,6 +19,7 @@
 #define LGS_CB_H
 
 #include <saLog.h>
+#include <saImmOi.h>
 #include "lgs_stream.h"
 
 /* Default HA state assigned locally during lgs initialization */
@@ -65,9 +66,11 @@ typedef struct lgs_cb
    NCS_PATRICIA_TREE client_tree;     /* LGA/Library/Client instantiation pat. tree */
    SaNameT comp_name;                 /* Components's name LGS                     */
    SaAmfHandleT amf_hdl;              /* AMF handle, obtained thru AMF init        */ 
+   SaSelectionObjectT amfSelectionObject; /* Selection Object to wait for AMF events */
    SaInvocationT amf_invocation_id;   /* AMF InvocationID - needed to handle Quiesed state */
-   NCS_BOOL is_quisced_set; 
-   SaSelectionObjectT amfSelectionObject; /* Selection Object to wait for amf events */
+   NCS_BOOL is_quiesced_set; 
+   SaImmOiHandleT immOiHandle;             /* IMM OI handle                           */ 
+   SaSelectionObjectT immSelectionObject; /* Selection Object to wait for IMM events */
    SaAmfHAStateT ha_state;                /* present AMF HA state of the component     */
    uns32 last_client_id;                  /* Value of last client_id assigned          */
    uns32 async_upd_cnt;                   /* Async Update Count for Warmsync */
