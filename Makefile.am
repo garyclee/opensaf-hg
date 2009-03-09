@@ -228,6 +228,7 @@ BASE_SUBDIRS = \
 	tests/immsv/implementer \
 	services/logsv/lga \
 	lib/lib_SaLog \
+	tests/logsv \
 	services/mqsv/common \
 	services/mqsv/mqa \
 	lib/lib_SaMsg \

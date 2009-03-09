@@ -1,6 +1,24 @@
-#include "tet_log.h"
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
+ */
+
 #include <poll.h>
 #include <unistd.h>
+
+#include "logtest.h"
 
 static SaInvocationT cb_invocation[8];
 static SaAisErrorT cb_error[8];
@@ -19,31 +37,29 @@ void saLogWriteLogCallbackT_01(void)
     struct pollfd fds[1];
     int ret;
 
-    tet_printf("saLogWriteLogCallbackT() SA_DISPATCH_ONE");
-
     invocation = random();
     logCallbacks.saLogWriteLogCallback = logWriteLogCallbackT;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogSelectionObjectGet(logHandle, &selectionObject) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogSelectionObjectGet(logHandle, &selectionObject), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     cb_index = 0;
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogWriteLogAsync(logStreamHandle, invocation,
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord) == SA_AIS_OK);
+    safassert(saLogWriteLogAsync(logStreamHandle, invocation,
+                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
 
     fds[0].fd = (int) selectionObject;
     fds[0].events = POLLIN;
     ret = poll(fds, 1, 1000);
     assert(ret == 1);
-    assert(saLogDispatch(logHandle, SA_DISPATCH_ONE) == SA_AIS_OK);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogDispatch(logHandle, SA_DISPATCH_ONE), SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    if ((cb_invocation[0] == invocation) && (cb_error[0] == SA_AIS_OK))
-        tet_result(TET_PASS);
+    if (cb_invocation[0] == invocation)
+        test_validate(cb_error[0], SA_AIS_OK);
     else
-        tet_result(TET_FAIL);
+        test_validate(SA_AIS_ERR_LIBRARY, SA_AIS_OK);
 }
 
 void saLogWriteLogCallbackT_02(void)
@@ -52,38 +68,36 @@ void saLogWriteLogCallbackT_02(void)
     struct pollfd fds[1];
     int ret, i;
 
-    tet_printf("saLogWriteLogCallbackT() SA_DISPATCH_ALL");
-
     invocation[0] = random();
     invocation[1] = random();
     invocation[2] = random();
     logCallbacks.saLogWriteLogCallback = logWriteLogCallbackT;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogSelectionObjectGet(logHandle, &selectionObject) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogSelectionObjectGet(logHandle, &selectionObject), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     cb_index = 0;
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogWriteLogAsync(logStreamHandle, invocation[0],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord) == SA_AIS_OK);
-    assert(saLogWriteLogAsync(logStreamHandle, invocation[1],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord) == SA_AIS_OK);
-    assert(saLogWriteLogAsync(logStreamHandle, invocation[2],
-                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord) == SA_AIS_OK);
+    safassert(saLogWriteLogAsync(logStreamHandle, invocation[0],
+                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
+    safassert(saLogWriteLogAsync(logStreamHandle, invocation[1],
+                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
+    safassert(saLogWriteLogAsync(logStreamHandle, invocation[2],
+                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord), SA_AIS_OK);
 
     sleep(1); /* Let the writes make it to disk and back */
     fds[0].fd = (int) selectionObject;
     fds[0].events = POLLIN;
     ret = poll(fds, 1, 1000);
     assert(ret == 1);
-    assert(saLogDispatch(logHandle, SA_DISPATCH_ALL) == SA_AIS_OK);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogDispatch(logHandle, SA_DISPATCH_ALL), SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
     if (cb_index != 3)
     {
         printf("cb_index = %u\n", cb_index);
-        tet_result(TET_FAIL);
+        test_validate(SA_AIS_ERR_LIBRARY, SA_AIS_OK);
         return;
     }
 
@@ -92,11 +106,54 @@ void saLogWriteLogCallbackT_02(void)
         if ((cb_invocation[i] != invocation[i]) || (cb_error[i] != SA_AIS_OK))
         {
             printf("%llu expected %llu, %u\n", cb_invocation[i], invocation[i], cb_error[i]);
-            result(cb_error[i], SA_AIS_OK);
+            test_validate(cb_error[i], SA_AIS_OK);
             return;
         }
     }
 
-    tet_result(TET_PASS);
+    test_validate(SA_AIS_OK, SA_AIS_OK);
+}
+
+void saLogWriteLogCallbackT_03(void)
+{
+    SaInvocationT invocation[3];
+    struct pollfd fds[1];
+    int ret;
+
+    invocation[0] = random();
+    logCallbacks.saLogWriteLogCallback = logWriteLogCallbackT;
+    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    assert(saLogSelectionObjectGet(logHandle, &selectionObject) == SA_AIS_OK);
+    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    cb_index = 0;
+    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+    genLogRecord.logHeader.genericHdr.logSeverity = 7;
+    assert(saLogWriteLogAsync(logStreamHandle, invocation[0],
+                              SA_LOG_RECORD_WRITE_ACK, &genLogRecord) == SA_AIS_OK);
+    sleep(1); /* Let the writes make it to disk and back */
+    fds[0].fd = (int) selectionObject;
+    fds[0].events = POLLIN;
+    ret = poll(fds, 1, 1000);
+    assert(ret == 1);
+    assert(saLogDispatch(logHandle, SA_DISPATCH_ALL) == SA_AIS_OK);
+    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+
+    if (cb_index != 1)
+    { 
+        printf("cb_index = %u\n", cb_index);
+        test_validate(SA_AIS_ERR_LIBRARY, SA_AIS_OK);
+        return;
+    }
+
+    if ((cb_invocation[0] != invocation[0]) || (cb_error[0] != SA_AIS_ERR_INVALID_PARAM))
+    {
+        printf("\n invocation: %llu expected %llu, %u\n", cb_invocation[0], invocation[0], cb_error[0]);
+        test_validate(cb_error[0], SA_AIS_ERR_INVALID_PARAM);
+        return;
+    }
+
+    test_validate(SA_AIS_OK, SA_AIS_OK);
 }
 

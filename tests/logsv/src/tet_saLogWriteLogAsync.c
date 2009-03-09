@@ -1,21 +1,38 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
+ */
+
 #include <sys/time.h>
 #include <unistd.h>
-#include "tet_log.h"
+
+#include "logtest.h"
 
 void saLogWriteLogAsync_01(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() '%s' OK", SA_LOG_STREAM_SYSTEM);
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogWriteLogAsync_02(void)
@@ -25,7 +42,6 @@ void saLogWriteLogAsync_02(void)
     SaNtfIdentifierT notificationId = random();
     SaNtfClassIdT notificationClassId;
 
-    tet_printf("saLogWriteAsyncLog() '%s' OK", SA_LOG_STREAM_ALARM);
     ntfLogRecord.logBuffer = &alarmStreamBuffer;
     strcpy((char*)ntfLogRecord.logBuffer->logBuf, __FUNCTION__);
     ntfLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -42,13 +58,13 @@ void saLogWriteLogAsync_02(void)
     ntfLogRecord.logHeader.ntfHdr.notificationClassId = &notificationClassId;
     ntfLogRecord.logHeader.ntfHdr.eventTime = getSaTimeT();
 
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &alarmStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &alarmStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &ntfLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogWriteLogAsync_03(void)
@@ -58,7 +74,6 @@ void saLogWriteLogAsync_03(void)
     SaNtfIdentifierT notificationId = random();
     SaNtfClassIdT notificationClassId;
 
-    tet_printf("saLogWriteAsyncLog() '%s' OK", SA_LOG_STREAM_NOTIFICATION);
     ntfLogRecord.logBuffer = &notificationStreamBuffer;
     strcpy((char*)ntfLogRecord.logBuffer->logBuf, __FUNCTION__);
     ntfLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
@@ -75,116 +90,112 @@ void saLogWriteLogAsync_03(void)
     ntfLogRecord.logHeader.ntfHdr.notificationClassId = &notificationClassId;
     ntfLogRecord.logHeader.ntfHdr.eventTime = getSaTimeT();
 
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &notificationStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &notificationStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &ntfLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogWriteLogAsync_04(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() with NULL logStreamHandle");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(0, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saLogWriteLogAsync_05(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() with invalid logStreamHandle");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(-1, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
 }
 
 void saLogWriteLogAsync_06(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() with invalid ackFlags");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, -1, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogWriteLogAsync_07(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() with NULL logRecord ptr");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, NULL);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogWriteLogAsync_09(void)
 {
     SaInvocationT invocation;
-    tet_printf("saLogWriteAsyncLog() logSvcUsrName == NULL ");
+
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
     genLogRecord.logHeader.genericHdr.logSvcUsrName = NULL;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogWriteLogAsync_10(void)
 {
     SaInvocationT invocation;
+
     assert(setenv("SA_AMF_COMPONENT_NAME", "safComp=CompT_test_svc", 1) == 0);
-    tet_printf("saLogWriteAsyncLog() logSvcUsrName == NULL and envset");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
     genLogRecord.logHeader.genericHdr.logSvcUsrName = NULL;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 void saLogWriteLogAsync_11(void)
 {
     struct timeval currentTime;
     SaInvocationT invocation;
-    tet_printf("saLogWriteAsyncLog() with logTimeStamp set");
+
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
     /* Fetch current system time for time stamp value */
@@ -193,29 +204,28 @@ void saLogWriteLogAsync_11(void)
        ((unsigned)currentTime.tv_sec * 1000000000ULL) + \
        ((unsigned)currentTime.tv_usec * 1000ULL);
 
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogWriteLogAsync_12(void)
 {
     SaInvocationT invocation;
 
-    tet_printf("saLogWriteAsyncLog() without logTimeStamp set");
     strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
     genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
-                             SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogWriteLogAsync_13(void)
@@ -236,16 +246,15 @@ void saLogWriteLogAsync_13(void)
         .length = sizeof(appStreamName.value)
     };
 
-    tet_printf("saLogWriteAsyncLog() 1800 bytes logrecord (ticket #203)");
     memset(genLogRecord.logBuffer->logBuf, 'X', 1800);
     genLogRecord.logBuffer->logBufSize = 1800;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &appStreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &appStreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
     sleep(1);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
 
-    result(rc, SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
