@@ -1,0 +1,10 @@
+# Version and symbol export for libSaImmOi.so
+
+OPENSAF_IMM_A.02.01 {
+	global:
+		saImmOi*;
+
+	local:
+		imma*;
+		saImmOm*;
+};

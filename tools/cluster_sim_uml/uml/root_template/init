@@ -1,0 +1,48 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+/bin/busybox mount /proc
+/bin/busybox --install -s
+
+if grep -q "ubd0=" /proc/cmdline; then
+    mkdir -p /newroot
+    mknod /dev/ubd0 b 98 0
+    mount -t ext2 /dev/ubd0 /newroot
+    exec /sbin/switch_root -c /dev/console /newroot /sbin/init
+fi
+
+/bin/busybox grep -q runscript /proc/cmdline || exec /sbin/init
+
+/bin/busybox --install -s
+mount /sys
+mount /tmp
+mount /dev/pts
+hostdircmd=`tr ' ' '\n' < /proc/cmdline | grep hostdir`
+if test -n "$hostdircmd"; then
+    dir=`echo $hostdircmd | cut -d '=' -f2`
+    mount none /opt -t hostfs -o $dir
+fi
+runscriptcmd=`tr ' ' '\n' < /proc/cmdline | grep runscript`
+if test -n "$runscriptcmd"; then
+    script=`echo $runscriptcmd | cut -d '=' -f2`
+    test -x $script && exec $script
+fi
+exec /bin/sh
+
