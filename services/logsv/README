@@ -21,12 +21,12 @@ This directory (logsv) contains an implementation of the SAF LOG service
 version A.02.01.
 
 The LOG service is implemented as a server process executing on the controllers
-using a 2N redundancy model. Message based check pointing is used to synchronize
-the two server instances.
+using a 2N redundancy model. Message based check pointing is
+used to synchronize the two server instances.
 
 The Log file property "High Availability flag" is not supported by LOG itself
-but by using a replicated file system. The LOG implementation is unaware of such
-a file system and must be configured to use it, see below.
+but by using a replicated file system. The LOG implementation is unaware of 
+such a file system and must be configured to use it, see below.
 
 
 DEPENDENCIES
@@ -49,7 +49,6 @@ tests/logsv/src		Test suite
 
 
 FILE STRUCTURE
-
 
 Not yet ...
 
@@ -89,51 +88,31 @@ and handles.
 
 CONFIGURATION
 
-The LOG specification describes the configuration object class SaLogStreamConfig
-which requires the three classes alarm, notification and system log stream to
-exist. Without IMM this configuration is instead done using environment
-variables. The LOG server start script sources a configuration file with bash
-syntax before it launches the LOG server.
+The LOG specification describes the configuration object class 
+SaLogStreamConfig which requires the three streams alarm, notification and 
+system to exist. In OpenSAF 3.0 LOG was integrated with IMM meaning 
+this configuration is done using IMM. Please see IMM documentation. The two
+LOG classes and the three default streams are included in the OpenSAF IMM
+configuration. Please use that configuration if creating your own.
 
-The offline (in the OpenSAF distribution) location of the configuration file is:
+Some implementation defined configuration is done in a configuration file.
+The LOG server start script sources the configuration file before it starts the
+LOG server.
+
+The offline (in the OpenSAF distribution) location of the configuration file:
 opensaf/config/saflog.conf
 
 If the default values in this file does not fit your system, edit this file and
 rebuild the controller rpm in order to setup your system properly.
 
-The online (in an executing system) location of the configuration file is:
-sysconfdir/package_name/saflog.conf
-
-The following environment variables are required:
+The following environment variable is required:
 
 LOGSV_ROOT_DIRECTORY
-LOG_ALARM_FILE_NAME
-LOG_ALARM_PATH_NAME
-LOG_NOTIFICATION_FILE_NAME
-LOG_NOTIFICATION_PATH_NAME
-LOG_SYSTEM_FILE_NAME
-LOG_SYSTEM_PATH_NAME
 
 The 'LOGSV_ROOT_DIRECTORY' variable is needed to configure the
 "implementation defined root directory" as mentioned in the spec. All log files
-will be stored directly in this directory or in a subdirectory. Make sure to 
-to configure this directory to a replicated (shared & persistent) partition.
-
-The following environment variables are optional and a default value will be
-used by LOG if not configured:
-
-LOG_ALARM_LOG_FILE_FORMAT
-LOG_ALARM_MAX_LOG_FILE_SIZE
-LOG_ALARM_FIXED_LOG_RECORD_SIZE
-LOG_ALARM_MAX_FILES_ROTATED
-LOG_NOTIFICATION_LOG_FILE_FORMAT
-LOG_NOTIFICATION_MAX_LOG_FILE_SIZE
-LOG_NOTIFICATION_FIXED_LOG_RECORD_SIZE
-LOG_NOTIFICATION_MAX_FILES_ROTATED
-LOG_SYSTEM_LOG_FILE_FORMAT
-LOG_SYSTEM_MAX_LOG_FILE_SIZE
-LOG_SYSTEM_FIXED_LOG_RECORD_SIZE
-LOG_SYSTEM_MAX_FILES_ROTATED
+will be stored directly in this directory or in a subdirectory. Make sure to to 
+configure this directory to a replicated (shared & persistent) partition.
 
 
 COMMAND LINE INTERFACE
@@ -144,8 +123,11 @@ see the on line help for more information.
 
 DEBUG
 
-To enable/disable log server traces in a running system, send signal USR1 to the
-saflogd process. Every time the trace state is toggled.
+Log server traces are by default disabled. To enable/disable log server traces 
+in a running system, send signal USR1 to the saflogd process. Every time the 
+trace state is toggled. Example:
+
+$ pkill -USR1 saflogd
 
 Traces are written to the file:
 
@@ -155,10 +137,16 @@ To enable traces from the very start of the log server, uncomment the line:
 
         #export LOGSV_TRACE_CATEGORIES=ALL
 
-in saflog.conf (see CONFIGURATION above) and restart the controllers.
+in saflog.conf (see CONFIGURATION above) and restart the cluster.
 
 For fatal errors syslog is used.
 
+To dump the internal log server data base, send signal USR2 to the saflogd
+process, example:
+
+$ pkill -USR2 saflogd
+
+The dump is done to the trace file no matter if trace is enabled or not.
 
 To enable traces in the LOG library, export the variable LOGSV_TRACE_PATHNAME
 with a valid pathname before starting the application using the LOG library.
@@ -172,9 +160,9 @@ $ cat /tmp/log.trace
 
 TEST
 
-Currently a "tetware like" test suite can be found in 'tests/logsv/src'. Enter
-that directory, give command 'make' and run the binary produced on controllers
-and payloads.
+Currently a simple unit test can be found in 'tests/logsv/src'. The test suite
+is built by the main make system and is either install by 'make install' or by
+installing the tools rpm.
 
 
 TODO
@@ -186,7 +174,6 @@ TODO
 	- saLogFilterSetCallback
 	- saLogStreamOpenCallback
 - NID start of the log server process.
-- Create IMM interface
 - Implement CLM interaction as described in 3.2
 - Implement Log filtering (IMM needed for configuration)
 - Implement log file full actions other than rotate
@@ -194,11 +181,9 @@ TODO
 - Cleanup/act on "FIX" and "TODO" comments
 - Revisit trace statements, cleanup
 - Cleanup remains of edsv (search for 'channel')
-- Implement "5 log Service Administration API" (IMM needed)
 - Implement "6 Alarms and Notifications" (NTF needed)
 - On standby, query local MDS-layer for status of an agent before updating data
   structures during sync.
-- Port test suite to tetware
 - Distributed testing
 - Document manual test cases
 

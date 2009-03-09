@@ -26,40 +26,36 @@
 /* Message type enums */
 typedef enum
 {
-    LGSV_BASE_MSG,
-    LGSV_LGA_API_MSG = LGSV_BASE_MSG,
-    LGSV_LGS_CBK_MSG,
-    LGSV_LGA_API_RESP_MSG,
+    LGSV_LGA_API_MSG = 0,
+    LGSV_LGS_CBK_MSG = 1,
+    LGSV_LGA_API_RESP_MSG = 2,
     LGSV_MSG_MAX
 } lgsv_msg_type_t;
 
 /* LGSV API enums */
 typedef enum
 {
-    LGSV_API_BASE_MSG,
-    LGSV_INITIALIZE_REQ = LGSV_API_BASE_MSG,
-    LGSV_FINALIZE_REQ,
-    LGSV_STREAM_OPEN_REQ,
-    LGSV_STREAM_CLOSE_REQ,
-    LGSV_WRITE_LOG_ASYNC_REQ,
+    LGSV_INITIALIZE_REQ = 0,
+    LGSV_FINALIZE_REQ = 1,
+    LGSV_STREAM_OPEN_REQ = 2,
+    LGSV_STREAM_CLOSE_REQ = 3,
+    LGSV_WRITE_LOG_ASYNC_REQ = 4,
     LGSV_API_MAX
 } lgsv_api_msg_type_t;
 
 /* LGSV Callback enums */
 typedef enum
 {
-    LGSV_CBK_BASE_MSG,
-    LGSV_WRITE_LOG_CALLBACK_IND = LGSV_CBK_BASE_MSG,
+    LGSV_WRITE_LOG_CALLBACK_IND = 0,
     LGSV_LGS_CBK_MAX
 } lgsv_cbk_msg_type_t;
 
 typedef enum
 {
-    LGSV_RSP_BASE_MSG,
-    LGSV_INITIALIZE_RSP = LGSV_RSP_BASE_MSG,
-    LGSV_FINALIZE_RSP,
-    LGSV_STREAM_OPEN_RSP,
-    LGSV_STREAM_CLOSE_RSP,
+    LGSV_INITIALIZE_RSP = 0,
+    LGSV_FINALIZE_RSP = 1,
+    LGSV_STREAM_OPEN_RSP = 2,
+    LGSV_STREAM_CLOSE_RSP = 3,
     LGSV_LGA_API_RSP_MAX
 } lgsv_api_resp_msg_type;
 

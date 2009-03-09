@@ -17,6 +17,7 @@
 
 #include <stdlib.h>
 
+#include "immutil.h"
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
@@ -256,132 +257,6 @@ int lgs_file_exist(const char *i_filename)
       return 0;
     }
   }
-}
-
-/**
- * Initialize one stream. Get configuration for the stream. Currently from
- * environment variables, later from IMM.
- * @param stream
- * @param stream_id
- * @param streamName
- * @param fmtExpr
- * @param env_prefix
- * 
- * @return uns32
- */
-static uns32 init_stream(log_stream_t **stream, SaUint32T stream_id,
-                         char* streamName, char* fmtExpr,
-                         const char *env_prefix,
-                         logStreamTypeT streamType)
-{
-    uns32 rc = NCSCC_RC_SUCCESS;
-    char *filename, *path, *format, *value;
-    char env[100];
-    SaNameT name;
-    SaUint64T maxLogFileSize;
-    SaUint32T fixedLogRecordSize;
-    SaUint32T maxFilesRotated;
-    SaBoolT twelveHourModeFlag;
-
-    TRACE_ENTER();
-    TRACE("%s", streamName);
-
-    memset(&name, 0, sizeof(name));
-    strcpy((char *) name.value, streamName);
-    name.length = strlen((char *) name.value);
-
-    /* FileName _must_ be co nfigured according to spec. */
-    sprintf(env, "LOG_%s_FILE_NAME", env_prefix);
-    if ((filename = getenv(env)) == NULL)
-    {
-        LOG_ER("%s missing in environment", env);
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
-
-    /* PathName _must_ be configured according to spec. */
-    sprintf(env, "LOG_%s_PATH_NAME", env_prefix);
-    if ((path = getenv(env)) == NULL)
-    {
-        LOG_ER("%s missing in environment", env);
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
-
-    sprintf(env, "LOG_%s_LOG_FILE_FORMAT", env_prefix);
-    if ((format = getenv(env)) != NULL)
-    {
-        if (lgs_is_valid_format_expression((SaStringT) format, streamType,
-                                     &twelveHourModeFlag) == SA_FALSE)
-        {
-            LOG_WA("Bad format expression for '%s', using default", format);
-            format = fmtExpr;
-        }
-    }
-    else
-        format = fmtExpr;
-
-    maxLogFileSize = DEFAULT_MAX_LOG_FILE_SIZE;
-    sprintf(env, "LOG_%s_MAX_LOG_FILE_SIZE", env_prefix);
-    if ((value = getenv(env)) != NULL)
-        maxLogFileSize = atoi(value);
-
-    fixedLogRecordSize = DEFAULT_FIXED_LOG_RECORD_SIZE;
-    sprintf(env, "LOG_%s_FIXED_LOG_RECORD_SIZE", env_prefix);
-    if ((value = getenv(env)) != NULL)
-        fixedLogRecordSize = atoi(value);
-
-    maxFilesRotated = DEFAULT_MAX_FILES_ROTATED;
-    sprintf(env, "LOG_%s_MAX_FILES_ROTATED", env_prefix);
-    if ((value = getenv(env)) != NULL)
-        maxFilesRotated = atoi(value);
-
-    *stream = log_stream_new(&name, filename, path, maxLogFileSize,
-                             fixedLogRecordSize, maxFilesRotated,
-                             SA_LOG_FILE_FULL_ACTION_ROTATE, format,
-                             streamType, STREAM_NEW, twelveHourModeFlag, 0);
-
-    if (stream == NULL)
-        rc = NCSCC_RC_FAILURE;
-
-done:
-    TRACE_LEAVE();
-    return rc;
-}
-
-/**
- * Create all well known streams.
- * @param lgs_cb
- * 
- * @return uns32
- */
-uns32 lgs_create_known_streams(lgs_cb_t *lgs_cb)
-{
-    int rc = 0;
-
-    TRACE_ENTER();
-
-    rc = init_stream(&lgs_cb->alarmStream, 0, SA_LOG_STREAM_ALARM,
-                     DEFAULT_ALM_NOT_FORMAT_EXP, ALARM_STREAM_ENV_PREFIX,
-                     STREAM_TYPE_ALARM);
-    if (rc != NCSCC_RC_SUCCESS)
-        goto done;
-
-    rc = init_stream(&lgs_cb->notificationStream, 1, SA_LOG_STREAM_NOTIFICATION,
-                     DEFAULT_ALM_NOT_FORMAT_EXP, NOTIFICATION_STREAM_ENV_PREFIX,
-                     STREAM_TYPE_NOTIFICATION);
-    if (rc != NCSCC_RC_SUCCESS)
-        goto done;
-
-    rc = init_stream(&lgs_cb->systemStream, 2, SA_LOG_STREAM_SYSTEM,
-                     DEFAULT_APP_SYS_FORMAT_EXP, SYSTEM_STREAM_ENV_PREFIX,
-                     STREAM_TYPE_SYSTEM);
-    if (rc != NCSCC_RC_SUCCESS)
-        goto done;
-
-done:
-    TRACE_LEAVE();
-    return rc;
 }
 
 void lgs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr)

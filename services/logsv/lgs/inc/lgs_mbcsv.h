@@ -25,20 +25,20 @@
 
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
 
-/* Checkpoint update messages are processed similair to lgsv internal
- * messages handling,  so the types are defined such that the values 
+/* Checkpoint update messages are processed similar to lgsv internal
+ * messages handling, so the types are defined such that the values 
  * can be mapped straight with lgsv message types
  */
 
 typedef enum
 {
-    LGS_CKPT_MSG_BASE, 
-    LGS_CKPT_CLIENT_INITIALIZE=LGS_CKPT_MSG_BASE,
-    LGS_CKPT_CLIENT_FINALIZE,
-    LGS_CKPT_CLIENT_DOWN,
-    LGS_CKPT_LOG_WRITE,
-    LGS_CKPT_OPEN_STREAM,
-    LGS_CKPT_CLOSE_STREAM,
+    LGS_CKPT_CLIENT_INITIALIZE = 0,
+    LGS_CKPT_CLIENT_FINALIZE = 1,
+    LGS_CKPT_CLIENT_DOWN = 2,
+    LGS_CKPT_LOG_WRITE = 3,
+    LGS_CKPT_OPEN_STREAM = 4,
+    LGS_CKPT_CLOSE_STREAM = 5,
+    LGS_CKPT_CFG_STREAM = 6,
     LGS_CKPT_MSG_MAX
 } lgsv_ckpt_msg_type_t;
 
@@ -105,6 +105,21 @@ typedef struct
 
 typedef struct
 {
+    char *name;
+    char *fileName;
+    char *pathName;
+    SaUint64T maxLogFileSize;
+    SaUint32T fixedLogRecordSize;
+    SaBoolT haProperty;                 /* app log stream only */
+    SaLogFileFullActionT logFullAction;
+    SaUint32T logFullHaltThreshold;     /* !app log stream */
+    SaUint32T maxFilesRotated;
+    char *logFileFormat;
+    SaUint32T severityFilter;
+} lgs_ckpt_stream_cfg_t;
+
+typedef struct
+{
     lgsv_ckpt_header_t header;
     union
     {
@@ -114,6 +129,7 @@ typedef struct
         MDS_DEST                  agent_dest;
         lgs_ckpt_stream_open_t    stream_open;
         lgs_ckpt_stream_close_t   stream_close;
+        lgs_ckpt_stream_cfg_t     stream_cfg;
     } ckpt_rec;
 } lgsv_ckpt_msg_t;
 
@@ -121,6 +137,6 @@ typedef uns32 (*LGS_CKPT_HDLR)(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 uns32 lgs_mbcsv_init(lgs_cb_t *lgs_cb);
 uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb);
 uns32 lgs_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
-uns32 lgs_send_async_update(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action);
+uns32 lgs_ckpt_send_async(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action);
 
 #endif /* !LGSV_CKPT_H*/

@@ -933,7 +933,7 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
         goto err;
     }
 
-    if (lgs_cb->is_quisced_set == TRUE)
+    if (lgs_cb->is_quiesced_set == TRUE)
     {
         /** Initialize the Event here **/
         lgsv_evt->evt_type      = LGSV_EVT_QUIESCED_ACK;

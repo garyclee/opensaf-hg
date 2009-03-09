@@ -49,7 +49,6 @@ export OLD_STDOUTSPATH="$LOCALSTATEDIR/old_stdouts"
 #########################################
 NODE_HA_STATE="$LOCALSTATEDIR/node_ha_state"
 DBGFILE="$NCS_STDOUTS_PATH/monc_debug_log"
-SAFLOG="$LOCALSTATEDIR/saflog"
 NIDFIFO="$TMPDIR/nodeinit.fifo"
 SPCAPFIFO="$NIDFIFO"
 CHASSIS_ID_FILE="$SYSCONFDIR/chassis_id"

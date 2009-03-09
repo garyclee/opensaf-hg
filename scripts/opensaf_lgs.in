@@ -18,34 +18,37 @@
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-mkdir -p "$SAFLOG"
-command=opensaf_saflogd
-lgsd="$LIBPATH/$command"
-PIDFILE="$PIDPATH/$command.pid"
-source "$SYSCONFDIR/saflog.conf"
-mkdir -p $LOG_SYSTEM_PATH_NAME
-mkdir -p $LOG_NOTIFICATION_PATH_NAME
-mkdir -p $LOG_ALARM_PATH_NAME
+BIN=${LIBPATH}/opensaf_saflogd
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_saflogd.log
+CONFFILE=${SYSCONFDIR}/saflog.conf
+PIDFILE=${PIDPATH}/opensaf_saflogd.pid
 
-test -x $lgsd || exit 1
+test -x $BIN || exit 1
+test -f $CONFFILE && source $CONFFILE
+test -f $PIDFILE && PID=`cat $PIDFILE`
+
+mkdir -p $LOGSV_ROOT_DIRECTORY
+
+echo "`date`: $0 $*"
 
 case $1 in
-    start)
-        export LOGSV_TRACE_PATHNAME="$NCS_STDOUTS_PATH/$command"
-        # uncomment next line if you want to enable tracing from start of log server
-        #export LOGSV_TRACE_CATEGORIES=ALL
-        $lgsd > "$NCS_STDOUTS_PATH/$command" 2>&1 &
+    instantiate)
+        $LOGTOOL $BIN >> $LOGFILE 2>&1 &
         ;;
-    clean)
-        killall -9 $command
+    cleanup)
+        if [ "$LOGTOOL" == "" ]; then
+            kill -KILL $PID
+        else
+            kill -TERM $PID
+        fi
         rm -f "$PIDFILE"
         ;;
     dump)
         # Dump internal data structures to console
-        kill -USR2 `cat "$PIDFILE"`
+        kill -USR2 $PID
         ;;
     *)
-        echo "Usage: $0 {start|clean|dump}"
+        echo "Usage: $0 {instantiate|cleanup|dump}"
         exit 1
 esac
 
