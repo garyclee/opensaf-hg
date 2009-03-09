@@ -48,7 +48,6 @@ typedef struct lga_log_stream_hdl_rec
    unsigned int open_flags;            /* log stream open flags as defined in AIS.02.01 */
    unsigned int log_header_type;       /* log header type */
    unsigned int lgs_log_stream_id;     /* server reference for this log stream */
-   unsigned int lgs_log_stream_open_id;/* server reference for this instance of log stream open */ 
    struct lga_log_stream_hdl_rec *next;    /* next pointer for the list in lga_client_hdl_rec_t */
    struct lga_client_hdl_rec  *parent_hdl; /* Back Pointer to the client instantiation */
 } lga_log_stream_hdl_rec_t;
@@ -106,8 +105,7 @@ extern lga_client_hdl_rec_t *lga_hdl_rec_add (lga_cb_t *lga_cb,
                                      const SaLogCallbacksT *reg_cbks,
                                      uns32 client_id);
 extern lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hdl_rec, 
-                        uns32               log_stream_id, 
-                        uns32               log_stream_open_id,
+                        uns32               log_stream_id,
                         uns32               log_stream_open_flags, 
                         const SaNameT       *logStreamName,
                         uns32               log_header_type);
