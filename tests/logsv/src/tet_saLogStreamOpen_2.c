@@ -1,4 +1,21 @@
-#include "tet_log.h"
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Ericsson AB
+ *
+ */
+
+#include "logtest.h"
 
 static SaLogFileCreateAttributesT_2 appStream1LogFileCreateAttributes =
 {
@@ -26,184 +43,165 @@ static void init_file_create_attributes(void)
 
 void saLogStreamOpen_2_01(void)
 {
-    tet_printf("%s() '%s' OK", __FUNCTION__, SA_LOG_STREAM_SYSTEM);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
                            SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_02(void)
 {
-    tet_printf("%s() '%s' OK", __FUNCTION__, SA_LOG_STREAM_NOTIFICATION);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &notificationStreamName, NULL, 0,
                            SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_03(void)
 {
-    tet_printf("%s() '%s' OK", __FUNCTION__, SA_LOG_STREAM_ALARM);
-
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &alarmStreamName, NULL, 0,
                            SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_04(void)
 {
-    tet_printf("%s() '%s' OK", __FUNCTION__, SA_LOG_STREAM_APPLICATION1);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_05(void)
 {
     SaLogStreamHandleT logStreamHandle1, logStreamHandle2;
 
-    tet_printf("%s() '%s' twice - OK", __FUNCTION__, SA_LOG_STREAM_APPLICATION1);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
 
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle1);
 
-    if (rc != SA_AIS_OK)
-    {
-        tet_result(TET_FAIL);
-        return;
-    }
+    safassert(rc, SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle2);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_06(void)
 {
-    tet_printf("%s() with NULL ptr to handle", __FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
                            SA_TIME_ONE_SECOND, NULL);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_08(void)
 {
-    tet_printf("%s() with NULL logStreamName", __FUNCTION__);
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, NULL, NULL, 0,
                            SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_09(void)
 {
-    tet_printf("%s() open app stream second time with altered logFileName", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.logFileName = "changed_filename";
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_10(void)
 {
-    tet_printf("%s() open app stream second time with altered logFilePathName", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.logFilePathName = "/new_file/path";
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_11(void)
 {
-    tet_printf("%s() open app stream second time with altered logFileFmt", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.logFileFmt = "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sl @Sv\"@Cb\"";
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_12(void)
 {
-    tet_printf("%s() open app stream second time with altered maxLogFileSize", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.maxLogFileSize++;
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_13(void)
 {
-    tet_printf("%s() open app stream second time with altered maxLogRecordSize", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.maxLogRecordSize++;
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_14(void)
 {
-    tet_printf("%s() open app stream second time with altered maxFilesRotated", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.maxFilesRotated++;
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_15(void)
 {
-    tet_printf("%s() open app stream second time with altered haProperty", __FUNCTION__);
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-    assert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     appStream1LogFileCreateAttributes.haProperty = SA_FALSE;
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_ERR_INVALID_PARAM);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saLogStreamOpen_2_16(void)
@@ -212,16 +210,15 @@ void saLogStreamOpen_2_16(void)
     streamName.length = sizeof("safLgStr=")+sizeof(__FUNCTION__)-1;
     sprintf((char*)streamName.value, "safLgStr=%s", __FUNCTION__);
 
-   tet_printf("%s() open app with logFileFmt == NULL", __FUNCTION__);
-   init_file_create_attributes();
-   assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
-   appStream1LogFileCreateAttributes.logFileFmt = NULL;
-   appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
-   rc = saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
-                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    init_file_create_attributes();
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    appStream1LogFileCreateAttributes.logFileFmt = NULL;
+    appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
+    rc = saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
+        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 
-   assert(saLogFinalize(logHandle) == SA_AIS_OK);
-   result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_17(void)
@@ -230,44 +227,105 @@ void saLogStreamOpen_2_17(void)
     streamName.length = sizeof("safLgStr=")+sizeof(__FUNCTION__)-1;
     sprintf((char*)streamName.value, "safLgStr=%s", __FUNCTION__);
 
-    tet_printf("%s() open app stream second time with logFileFmt == NULL", __FUNCTION__);
-
     init_file_create_attributes();
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     appStream1LogFileCreateAttributes.logFileFmt = NULL;
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
-    assert(saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
-                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle) == SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
+                             SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &streamName, &appStream1LogFileCreateAttributes,
                              SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
 
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_18(void)
 {
-    tet_printf("%s() open app stream with NULL logFilePathName", __FUNCTION__);
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFilePathName = NULL;
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
 }
 
 void saLogStreamOpen_2_19(void)
 {
-    tet_printf("%s() open app stream with '.' logFilePathName", __FUNCTION__);
     init_file_create_attributes();
     appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
     appStream1LogFileCreateAttributes.logFilePathName = ".";
-    assert(saLogInitialize(&logHandle, &logCallbacks, &logVersion) == SA_AIS_OK);
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
                            SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
-    assert(saLogFinalize(logHandle) == SA_AIS_OK);
-    result(rc, SA_AIS_OK);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_OK);
+}
+
+extern void saLogStreamOpenAsync_2_01(void);
+extern void saLogStreamOpenCallbackT_01(void);
+extern void saLogWriteLog_01(void);
+extern void saLogWriteLogAsync_01(void);
+extern void saLogWriteLogAsync_02(void);
+extern void saLogWriteLogAsync_03(void);
+extern void saLogWriteLogAsync_04(void);
+extern void saLogWriteLogAsync_05(void);
+extern void saLogWriteLogAsync_06(void);
+extern void saLogWriteLogAsync_07(void);
+extern void saLogWriteLogAsync_08(void);
+extern void saLogWriteLogAsync_09(void);
+extern void saLogWriteLogAsync_10(void);
+extern void saLogWriteLogAsync_11(void);
+extern void saLogWriteLogAsync_12(void);
+extern void saLogWriteLogAsync_13(void);
+extern void saLogWriteLogCallbackT_01(void);
+extern void saLogWriteLogCallbackT_02(void);
+extern void saLogWriteLogCallbackT_03(void);
+extern void saLogFilterSetCallbackT_01(void);
+extern void saLogStreamClose_01(void);
+
+__attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
+{
+    test_suite_add(2, "Log Service Operations");
+    test_case_add(2, saLogStreamOpen_2_01, "saLogStreamOpen_2() system stream OK");
+    test_case_add(2, saLogStreamOpen_2_02, "saLogStreamOpen_2() notification stream OK");
+    test_case_add(2, saLogStreamOpen_2_03, "saLogStreamOpen_2() alarm stream OK");
+    test_case_add(2, saLogStreamOpen_2_04, "Create app stream OK");
+    test_case_add(2, saLogStreamOpen_2_05, "Create and open app stream");
+    test_case_add(2, saLogStreamOpen_2_06, "saLogStreamOpen_2() - NULL ptr to handle");
+    test_case_add(2, saLogStreamOpen_2_08, "saLogStreamOpen_2() - NULL logStreamName");
+    test_case_add(2, saLogStreamOpen_2_09, "Open app stream second time with altered logFileName");
+    test_case_add(2, saLogStreamOpen_2_10, "Open app stream second time with altered logFilePathName");
+    test_case_add(2, saLogStreamOpen_2_11, "Open app stream second time with altered logFileFmt");
+    test_case_add(2, saLogStreamOpen_2_12, "Open app stream second time with altered maxLogFileSize");
+    test_case_add(2, saLogStreamOpen_2_13, "Open app stream second time with altered maxLogRecordSize");
+    test_case_add(2, saLogStreamOpen_2_14, "Open app stream second time with altered maxFilesRotated");
+    test_case_add(2, saLogStreamOpen_2_15, "Open app stream second time with altered haProperty");
+    test_case_add(2, saLogStreamOpen_2_16, "Open app with logFileFmt == NULL");
+    test_case_add(2, saLogStreamOpen_2_17, "Open app stream second time with logFileFmt == NULL");
+    test_case_add(2, saLogStreamOpen_2_18, "Open app stream with NULL logFilePathName");
+    test_case_add(2, saLogStreamOpen_2_19, "Open app stream with '.' logFilePathName");
+    test_case_add(2, saLogStreamOpenAsync_2_01, "saLogStreamOpenAsync_2() OK");
+    test_case_add(2, saLogStreamOpenCallbackT_01, "saLogStreamOpenCallbackT() OK");
+    test_case_add(2, saLogWriteLog_01, "saLogWriteLog() system OK");
+    test_case_add(2, saLogWriteLogAsync_01, "saLogWriteAsyncLog() system OK");
+    test_case_add(2, saLogWriteLogAsync_02, "saLogWriteAsyncLog() alarm OK");
+    test_case_add(2, saLogWriteLogAsync_03, "saLogWriteAsyncLog() notification OK");
+    test_case_add(2, saLogWriteLogAsync_04, "saLogWriteAsyncLog() with NULL logStreamHandle");
+    test_case_add(2, saLogWriteLogAsync_05, "saLogWriteAsyncLog() with invalid logStreamHandle");
+    test_case_add(2, saLogWriteLogAsync_06, "saLogWriteAsyncLog() with invalid ackFlags");
+    test_case_add(2, saLogWriteLogAsync_07, "saLogWriteAsyncLog() with NULL logRecord ptr");
+    test_case_add(2, saLogWriteLogAsync_09, "saLogWriteAsyncLog() logSvcUsrName == NULL");
+    test_case_add(2, saLogWriteLogAsync_10, "saLogWriteAsyncLog() logSvcUsrName == NULL and envset");
+    test_case_add(2, saLogWriteLogAsync_11, "saLogWriteAsyncLog() with logTimeStamp set");
+    test_case_add(2, saLogWriteLogAsync_12, "saLogWriteAsyncLog() without logTimeStamp set");
+    test_case_add(2, saLogWriteLogAsync_13, "saLogWriteAsyncLog() 1800 bytes logrecord (ticket #203)");
+    test_case_add(2, saLogWriteLogCallbackT_01, "saLogWriteLogCallbackT() SA_DISPATCH_ONE");
+    test_case_add(2, saLogWriteLogCallbackT_02, "saLogWriteLogCallbackT() SA_DISPATCH_ALL");
+    test_case_add(2, saLogWriteLogCallbackT_03, "saLogWriteLogCallbackT() Invalid severity");
+    test_case_add(2, saLogFilterSetCallbackT_01, "saLogFilterSetCallbackT OK");
+    test_case_add(2, saLogStreamClose_01, "saLogStreamClose OK");
 }
 

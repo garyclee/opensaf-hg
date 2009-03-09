@@ -519,6 +519,7 @@ fi
 %endif
 %{_bindir}/immomtest
 %{_bindir}/immoitest
+%{_bindir}/logtest
 
 
 %if %is_java
