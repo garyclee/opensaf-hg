@@ -718,7 +718,8 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
   
          m_NCS_CONS_PRINTF("      Sensor Type : %s\n", hpi_sensor_type_string);
       }
-      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+      if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
+          (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_THRESHOLD)) {
          switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
             case 1:
                strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_MINOR");
@@ -737,6 +738,43 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                break;
             case 32:
                strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_CRIT");
+               break;
+            default:
+               strcpy (hpi_sensor_es_string, "UNKNOWN");
+               break;
+         } 
+  
+         m_NCS_CONS_PRINTF(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+      }
+      if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
+          (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_SEVERITY)) {
+         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
+            case 1:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_OK");
+               break;
+            case 2:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_OK");
+               break;
+            case 4:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_MAJOR_FROM_LESS");
+               break;
+            case 8:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_CRITICAL_FROM_LESS");
+               break;
+            case 16:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_MORE");
+               break;
+            case 32:
+               strcpy (hpi_sensor_es_string, "SAHPI_MAJOR_FROM_CRITICAL");
+               break;
+            case 64:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_CRITICAL");
+               break;
+            case 128:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_MONITOR");
+               break;
+            case 256:
+               strcpy (hpi_sensor_es_string, "SAHPI_ES_INFORMATIONAL");
                break;
             default:
                strcpy (hpi_sensor_es_string, "UNKNOWN");
