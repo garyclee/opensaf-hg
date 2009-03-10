@@ -26,7 +26,7 @@ echo "Cleanup EDS..."
 
 if test -f "$PIDPATH/$PIDFILE"
 then
-    l_pid=`cat "$PIDPATH/$PIDFILE"
+    l_pid=`cat "$PIDPATH/$PIDFILE"`
     echo $l_pid
 fi
 
