@@ -1,0 +1,1839 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+/*****************************************************************************
+..............................................................................
+
+
+
+..............................................................................
+
+  DESCRIPTION: This module does the initialisation of MBCSV and provides
+  callback functions at Availability Node Directors. It contains both the
+  callbacks to encode the structures at active and decode along with
+  building the structures at standby availability directors. All this
+  functionality happens in the context of the MBCSV.
+
+
+..............................................................................
+
+  FUNCTIONS INCLUDED in this module:
+
+
+  
+******************************************************************************
+*/
+
+/*
+ * Module Inclusion Control...
+ */
+
+#include "avnd.h"
+static uns32  avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_mbcsv_process_enc_cb(AVND_CB *cb,NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_mbcsv_process_dec_cb(AVND_CB *cb,NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_mbcsv_process_peer_info_cb(AVND_CB *cb,NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_mbcsv_process_notify(AVND_CB *cb,NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_mbcsv_process_err_ind(AVND_CB *cb,NCS_MBCSV_CB_ARG *arg);
+static uns32  avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32  avnd_mbcsv_initialize(AVND_CB  *cb);
+static uns32  avnd_mbcsv_open_ckpt(AVND_CB  *cb);
+static uns32  avnd_get_mbcsv_sel_obj(AVND_CB  *cb);
+static uns32  avnd_mbcsv_close_ckpt(AVND_CB  *cb);
+static uns32  avnd_mbcsv_finalize(AVND_CB  *cb);
+static uns32  avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type);
+static uns32  avnd_ha_state_act_hdlr(AVND_CB  *cb); 
+
+extern const AVND_ENCODE_CKPT_DATA_FUNC_PTR
+          avnd_enc_ckpt_data_func_list[AVND_CKPT_MSG_MAX];
+
+extern const AVND_DECODE_CKPT_DATA_FUNC_PTR
+          avnd_dec_ckpt_data_func_list[AVND_CKPT_MSG_MAX];
+/* LOG HERE Replace all the logs */
+
+/****************************************************************************\
+ * Function: avnd_mds_mbcsv_reg
+ *
+ * Purpose:  AVND function to register AVND with MDS and MBCSv.
+ *
+ * Input: cb - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32  avnd_mds_mbcsv_reg(AVND_CB  *cb)
+{
+  uns32 rc = NCSCC_RC_SUCCESS;
+
+  /* MDS Registration. */
+  rc = avnd_mds_vdest_reg(cb);
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+    m_AVND_AVND_ERR_LOG("mds_vdest_reg failed",NULL,0,0,0,0);
+    return rc;
+  }
+  
+  /* MBCSV Registration */
+  rc = avnd_mbcsv_register(cb);
+  if(NCSCC_RC_SUCCESS != rc)
+  {
+    m_AVND_AVND_ERR_LOG("avnd_mbcsv_register failed",NULL,0,0,0,0);
+    return rc;
+  }
+  return rc;
+}
+/****************************************************************************\
+ * Function: avnd_mbcsv_register
+ *
+ * Purpose:  AVND function to register AVND with MBCSv.
+ *
+ * Input: cb - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32  avnd_mbcsv_register(AVND_CB  *cb)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+
+   /*  LOG HERE */
+   /*
+    * Send Async Update count to zero.
+    */
+   m_NCS_MEMSET(&cb->avnd_async_updt_cnt, 0, sizeof(AVND_ASYNC_UPDT_CNT));
+
+   /*
+    * First initialize and then call open.
+    */
+   if (NCSCC_RC_SUCCESS != (status = avnd_mbcsv_initialize(cb)))
+   {
+      /* Log here */;
+      m_AVND_AVND_ERR_LOG("avnd_mbcsv_initialize failed",NULL,0,0,0,0);
+      goto done;
+   }
+
+   if (NCSCC_RC_SUCCESS != (status = avnd_mbcsv_open_ckpt(cb)))
+   {
+      m_AVND_AVND_ERR_LOG("avnd_mbcsv_open_ckpt failed",NULL,0,0,0,0);
+      goto done_final;
+   }
+
+   /*
+    * Get MBCSv selection object.
+    */
+   if (NCSCC_RC_SUCCESS != (status = avnd_get_mbcsv_sel_obj(cb)))
+   {
+      m_AVND_AVND_ERR_LOG("avnd_get_mbcsv_sel_obj failed",NULL,0,0,0,0);
+      goto done_close;
+   }
+
+   return status;
+
+done_close:
+   avnd_mbcsv_close_ckpt(cb);
+done_final:
+   avnd_mbcsv_finalize(cb);
+done:
+   return status;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_callback
+ *
+ * Purpose:  AVND MBCSV call back function.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+   AVND_CB      *cb;
+
+   m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_cb",NULL,0,0,0,0);
+
+   if (NULL == arg)
+   {
+      m_AVND_AVND_ERR_LOG("avnd_mbcsv_cb: arg is NULL",NULL,0,0,0,0);
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* Get the CB from the handle manager */
+   if ((cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND,
+      arg->i_client_hdl)) == NULL)
+   {
+      /* Log here  and free the received UBA */
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_NCS_LOCK(&cb->lock, NCS_LOCK_WRITE);
+
+   switch (arg->i_op)
+   {
+   case NCS_MBCSV_CBOP_ENC:
+      status = avnd_mbcsv_process_enc_cb(cb, arg);
+      break;
+
+   case NCS_MBCSV_CBOP_DEC:
+      status = avnd_mbcsv_process_dec_cb(cb, arg);
+      break;
+
+   case NCS_MBCSV_CBOP_PEER:
+      status = avnd_mbcsv_process_peer_info_cb(cb, arg);
+      break;
+
+   case NCS_MBCSV_CBOP_NOTIFY:
+      status = avnd_mbcsv_process_notify(cb, arg);
+      break;
+
+   case NCS_MBCSV_CBOP_ERR_IND:
+      status = avnd_mbcsv_process_err_ind(cb, arg);
+      break;
+
+   default:
+      m_AVND_LOG_INVALID_VAL_FATAL(arg->i_op);
+      status = NCSCC_RC_FAILURE;
+      break;
+   }
+
+   m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
+
+   ncshm_give_hdl(arg->i_client_hdl);
+
+   return status;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_process_enc_cb
+ *
+ * Purpose:  AVND MBCSV encode call back function.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_process_enc_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+
+   m_AVND_AVND_ENTRY_LOG(
+   "Entered avnd_mbcsv_process_enc_cb,Comp,io_msg_type and io_reo_type are",
+   NULL,arg->info.encode.io_msg_type,arg->info.encode.io_reo_type,0,0);
+
+   switch (arg->info.encode.io_msg_type)
+   {
+   case NCS_MBCSV_MSG_ASYNC_UPDATE:
+      {
+         /*
+          * If we are sending sync commit message then there is nothing to 
+          * encode wo return.
+          */
+         if (AVND_SYNC_COMMIT == arg->info.encode.io_reo_type)
+            return status;
+
+         /* Encode Async update message */
+         if (arg->info.encode.io_reo_type >= AVND_CKPT_MSG_MAX)
+         {
+            m_AVND_LOG_INVALID_VAL_FATAL(arg->info.encode.io_reo_type);
+            return NCSCC_RC_FAILURE;
+         }
+
+         status = 
+    avnd_enc_ckpt_data_func_list[arg->info.encode.io_reo_type](cb, &arg->info.encode);
+
+      }
+      break;
+
+   case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+      {
+         /* Encode Cold Sync Request message 
+          * Nothing is there to send at this point of time.
+          * But we can set cold_sync_in_progress which indicates that 
+          * cold sync in on.
+          */
+         cb->stby_sync_state = AVND_STBY_OUT_OF_SYNC;
+         m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_enc_cb: Cold Sync Started",
+                              NULL,0,0,0,0);
+      }
+      break;
+
+   case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+      {
+         /* Encode Cold Sync Response message */
+         status = avnd_encode_cold_sync_rsp(cb, &arg->info.encode);
+      }
+      break;
+
+   case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+      {
+         /* Encode Warm Sync Request message 
+          * Nothing is there to send at this point of time.
+          */
+      }
+      break;
+
+   case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+      {
+         /* Encode Warm Sync Response message */
+         status = avnd_encode_warm_sync_rsp(cb, &arg->info.encode);
+         arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
+      }
+      break;
+
+   case NCS_MBCSV_MSG_DATA_RESP:
+      {
+         /* Encode Data Response message */
+         status = avnd_encode_data_sync_rsp(cb, &arg->info.encode);
+      }
+      break;
+
+   case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
+   case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
+   case NCS_MBCSV_MSG_DATA_REQ:
+   case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+   default:
+      /* Log error */
+      m_AVND_LOG_INVALID_VAL_FATAL(arg->info.encode.io_msg_type);
+      status = NCSCC_RC_FAILURE;
+   }
+
+   return status;
+}
+
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_process_dec_cb
+ *
+ * Purpose:  AVND MBCSV decode call back function.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+
+   m_AVND_AVND_ENTRY_LOG(
+   "Entered avnd_mbcsv_process_dec_cb,Comp,i_msg_type and i_reo_type are",
+   NULL,arg->info.decode.i_msg_type,arg->info.decode.i_reo_type,0,0);
+
+   switch (arg->info.decode.i_msg_type)
+   {
+   case NCS_MBCSV_MSG_ASYNC_UPDATE:
+      {
+         /* Decode Async update message */
+         if (AVND_STBY_IN_SYNC == cb->stby_sync_state)
+         {
+            if (AVND_SYNC_COMMIT != arg->info.decode.i_reo_type)
+            {
+              /* 
+               * Enqueue async update message till sync commit message is 
+               * received from the Active.
+               */
+               avnd_enqueue_async_update_msgs(cb, &arg->info.decode);
+            }
+            else
+            {
+              /*
+               * we have received sync commit message. So process all async
+               * ckpt updates received till now.
+               */
+               avnd_dequeue_async_update_msgs(cb, TRUE);
+            }
+         }
+         else
+         {
+            /* Nothing is there to decode in this case */
+            if (AVND_SYNC_COMMIT == arg->info.decode.i_reo_type)
+               return status;
+
+            /* 
+             * Cold sync is in progress, then drop the async update for which
+             * cold sync response are yet to come.
+             */
+            if (NCSCC_RC_SUCCESS != avnd_validate_reo_type_in_csync(cb,
+               arg->info.decode.i_reo_type))
+            {
+               m_AVND_AVND_ENTRY_LOG(
+               "Cold Sync on:validate_reo_type failed for i_reo_type",NULL,
+                          arg->info.decode.i_reo_type,0,0,0);
+               /* Free userbuff and return without decoding */
+               ncs_reset_uba(&arg->info.decode.i_uba);
+               break;
+            }
+
+            /*
+             * During cold sync operation or in case of warm sync failure
+             * and standby require to be sync-up, process the async updates as and
+             * when they received. Dont enqueue them.
+             */
+            if (arg->info.decode.i_reo_type < AVND_CKPT_MSG_MAX)
+                  status = 
+      avnd_dec_ckpt_data_func_list[arg->info.decode.i_reo_type](cb, &arg->info.decode);
+            else
+            {
+               m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+               status = NCSCC_RC_FAILURE;
+            }
+         }
+      }
+      break;
+
+   case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+      {
+         /* 
+          * Decode Cold Sync request message 
+          * Nothing is there to decode.
+          */
+      }
+      break;
+
+   case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+   case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
+      {
+
+         /* Decode Cold Sync Response message */
+         status = avnd_decode_cold_sync_rsp(cb, &arg->info.decode);
+
+         if (NCSCC_RC_SUCCESS != status)
+         {
+            if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE))
+            {
+               /* Log Error ; FATAL; It should never happen unless there is a bug. */
+               m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+            }
+
+            m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+            status = NCSCC_RC_FAILURE;
+            break;
+         }
+
+         /* 
+          * If we have received cold sync complete message then mark standby
+          * as in sync. 
+          */
+         if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
+             (NCSCC_RC_SUCCESS == status))
+             
+         {
+
+            cb->stby_sync_state = AVND_STBY_IN_SYNC;
+            m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_dec_cb: Cold Sync Completed",
+                              NULL,0,0,0,0);
+            
+         }
+         
+         cb->synced_reo_type = arg->info.decode.i_reo_type;
+
+      }
+      break;
+
+   case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+      {
+         /* 
+          * Decode Warm Sync Request message 
+          * Nothing is there to decode.
+          */
+      }
+      break;
+
+   case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+   case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
+      {
+         /* Decode Warm Sync Response message */
+         status = avnd_decode_warm_sync_rsp(cb, &arg->info.decode);
+
+         /* If we find mismatch in data or warm sync fails set in_sync to FALSE*/
+         if (NCSCC_RC_FAILURE == status)
+         {
+            m_AVND_AVND_ERR_LOG("avnd_mbcsv_process_dec_cb: warm sync decode failed",
+                                 NULL, 0,0,0,0);
+            cb->stby_sync_state = AVND_STBY_OUT_OF_SYNC;
+         }
+
+      }
+      break;
+
+   case NCS_MBCSV_MSG_DATA_REQ:
+      {
+         /* Decode Data request message */
+         status = avnd_decode_data_req(cb, &arg->info.decode);
+      }
+      break;
+
+   case NCS_MBCSV_MSG_DATA_RESP:
+   case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+      {
+
+         /* Decode Data response and data response complete message */
+         status = avnd_decode_data_sync_rsp(cb, &arg->info.decode);
+
+         if (NCSCC_RC_SUCCESS != status)
+         {
+
+            if (NCSCC_RC_SUCCESS != avnd_ext_comp_data_clean_up(cb, FALSE))
+            {
+               /* Log Error ; FATAL; It should never happen unless there is a bug. */
+               m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
+               break;
+            }
+
+            /*
+             * Now send data request, which will sync Standby with Active.
+             */
+            if (NCSCC_RC_SUCCESS != avnd_send_data_req(cb))
+            {
+               /* Log error */
+               m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+               break;
+            }
+
+            break;
+         }
+
+         if (NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type)
+         {
+            cb->stby_sync_state = AVND_STBY_IN_SYNC;
+            m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_dec_cb: Data Sync Completed",
+                                 NULL,0,0,0,0);
+         }
+      }
+      break;
+
+   default:
+      m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_msg_type);
+      status = NCSCC_RC_FAILURE;
+      break;
+
+   }
+   return status;
+
+}
+
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_process_peer_info_cb
+ *
+ * Purpose:  AVND MBCSV peer Info call back function.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_process_peer_info_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
+{
+   /* Compare versions of the peer with self */
+   m_AVND_AVND_ENTRY_LOG("avnd_mbcsv_process_peer_info_cb. Peer Version is",NULL,
+                          arg->info.peer.i_peer_version,0,0,0);
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_process_notify_msg
+ *
+ * Purpose:  AVND MBCSV process Notify message.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_process_notify(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
+{ 
+   m_AVND_LOG_INVALID_VAL_FATAL(0);
+   m_AVND_AVND_ERR_LOG("Entered avnd_mbcsv_process_notify",NULL,
+                          0,0,0,0);
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_process_err_ind
+ *
+ * Purpose:  AVND MBCSV process error indication.
+ *
+ * Input: arg - MBCSV callback argument pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_mbcsv_process_err_ind(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
+{
+
+   m_AVND_AVND_ERR_LOG("Entered avnd_mbcsv_process_err_ind. i_code is",NULL,
+                        arg->info.error.i_code,0,0,0);
+
+   switch(arg->info.error.i_code)
+   {
+   case NCS_MBCSV_COLD_SYNC_TMR_EXP:
+      break;
+
+   case NCS_MBCSV_WARM_SYNC_TMR_EXP:
+      break;
+
+   case NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP:
+      break;
+
+   case NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP:
+      break;
+
+   case NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP:
+      break;
+
+   case NCS_MBCSV_DATA_RESP_TERMINATED:
+      break;
+
+   default:
+      m_AVND_LOG_INVALID_VAL_FATAL(arg->info.error.i_code);
+      break;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_initialize
+ *
+ * Purpose:  Initialize AVND with MBCSV
+ *
+ * Input: cb       - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avnd_mbcsv_initialize(AVND_CB  *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_initialize",NULL,
+                          0,0,0,0);
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
+   mbcsv_arg.info.initialize.i_service  = NCSMDS_SVC_ID_AVND_CNTLR;
+   mbcsv_arg.info.initialize.i_mbcsv_cb = avnd_mbcsv_cb;
+   mbcsv_arg.info.initialize.i_version  = AVND_MBCSV_SUB_PART_VERSION;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   cb->avnd_mbcsv_hdl = mbcsv_arg.info.initialize.o_mbcsv_hdl;
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_open_ckpt
+ *
+ * Purpose:  Open checkpoint.
+ *
+ * Input: cb   - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avnd_mbcsv_open_ckpt(AVND_CB  *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.open.i_pwe_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
+   mbcsv_arg.info.open.i_client_hdl = cb->cb_hdl;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   cb->avnd_mbcsv_ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_set_mbcsv_ckpt_role
+ *
+ * Purpose:  Set MBCSV checkpoint role.
+ *
+ * Input: cb       - AVND control block pointer.
+ *        role     - Role to be set.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_set_mbcsv_ckpt_role(AVND_CB  *cb,
+                         uns32    role)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+   uns32             rc = NCSCC_RC_SUCCESS;
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
+   mbcsv_arg.info.chg_role.i_ha_state = role;
+
+   if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg)))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(rc);
+      m_AVND_AVND_ERR_LOG("set_ckpt_role failed",NULL,
+                          0,0,0,0);
+      return rc;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_get_mbcsv_sel_obj
+ *
+ * Purpose:  Get MBCSv Selection object.
+ *
+ * Input: cb        - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avnd_get_mbcsv_sel_obj(AVND_CB  *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   /* LOG HERE */
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   cb->avnd_mbcsv_sel_obj = mbcsv_arg.info.sel_obj_get.o_select_obj;
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_dispatch
+ *
+ * Purpose:  Perform dispatch operation on MBCSV selection object.
+ *
+ * Input: cb        - AVND control block pointer.
+ *        sel_obj   - Selection object returned.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_mbcsv_dispatch(AVND_CB  *cb,
+                          uns32      flag)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.dispatch.i_disp_flags = flag;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************\
+ * Function: avnd_send_ckpt_data
+ *
+ * Purpose:  Send checkpoint data to standby using the supplied send type.
+ *
+ * Input: cb        - AVND control block pointer.
+ *        action    - Action to be perform (add, remove or update)
+ *        reo_hdl   - Redudant object handle.
+ *        reo_type  - Redudant object type.
+ *        send_type - Send type to be used.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_send_ckpt_data(AVND_CB  *cb,
+                          uns32      action,
+                          MBCSV_REO_HDL reo_hdl,
+                          uns32      reo_type,
+                          uns32      send_type)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   /* 
+    * Validate HA state. If my HA state is Standby then don't send 
+    * async updates. In all other states, MBCSv will take care of sending
+    * async updates.
+    */
+   if (SA_AMF_HA_STANDBY == cb->avail_state_avnd)
+      return NCSCC_RC_SUCCESS;
+
+   /*
+    * Get mbcsv_handle and checkpoint handle from CB.
+    */
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.send_ckpt.i_action = action;
+   mbcsv_arg.info.send_ckpt.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
+   mbcsv_arg.info.send_ckpt.i_reo_hdl  = reo_hdl;
+   mbcsv_arg.info.send_ckpt.i_reo_type = reo_type;
+   mbcsv_arg.info.send_ckpt.i_send_type = send_type;
+
+   /*
+    * Before sendig this message, update async update count.
+    */
+   switch(reo_type)
+   {
+   case AVND_CKPT_HLT_CONFIG:
+   case AVND_CKPT_HC_PERIOD:
+   case AVND_CKPT_HC_MAX_DUR:
+      cb->avnd_async_updt_cnt.hlth_config_updt++;
+      break;
+
+   case AVND_CKPT_SU_CONFIG:
+   case AVND_CKPT_SU_FLAG_CHANGE:
+   case AVND_CKPT_SU_ERR_ESC_LEVEL:
+   case AVND_CKPT_SU_COMP_RESTART_PROB:
+   case AVND_CKPT_SU_COMP_RESTART_MAX:
+   case AVND_CKPT_SU_RESTART_PROB:
+   case AVND_CKPT_SU_RESTART_MAX:
+   case AVND_CKPT_SU_COMP_RESTART_CNT:
+   case AVND_CKPT_SU_RESTART_CNT:
+   case AVND_CKPT_SU_ERR_ESC_TMR:
+   case AVND_CKPT_SU_OPER_STATE:
+   case AVND_CKPT_SU_PRES_STATE:
+      cb->avnd_async_updt_cnt.su_updt++;
+      break;
+
+   case AVND_CKPT_COMP_CONFIG:
+   case AVND_CKPT_COMP_FLAG_CHANGE:
+   case AVND_CKPT_COMP_REG_HDL:
+   case AVND_CKPT_COMP_REG_DEST:
+   case AVND_CKPT_COMP_OPER_STATE:
+   case AVND_CKPT_COMP_PRES_STATE:
+   case AVND_CKPT_COMP_TERM_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_ERR_INFO:
+   case AVND_CKPT_COMP_DEFAULT_RECVR:
+   case AVND_CKPT_COMP_PEND_EVT:
+   case AVND_CKPT_COMP_ORPH_TMR:
+   case AVND_CKPT_COMP_NODE_ID:
+   case AVND_CKPT_COMP_TYPE:
+   case AVND_CKPT_COMP_MDS_CTXT:
+   case AVND_CKPT_COMP_REG_RESP_PENDING:
+   case AVND_CKPT_COMP_INST_CMD:
+   case AVND_CKPT_COMP_TERM_CMD:
+   case AVND_CKPT_COMP_INST_TIMEOUT:
+   case AVND_CKPT_COMP_TERM_TIMEOUT:
+   case AVND_CKPT_COMP_INST_RETRY_MAX:
+   case AVND_CKPT_COMP_INST_RETRY_CNT:
+   case AVND_CKPT_COMP_EXEC_CMD:
+   case AVND_CKPT_COMP_CMD_EXEC_CTXT:
+   case AVND_CKPT_COMP_INST_CMD_TS:
+   case AVND_CKPT_COMP_CLC_REG_TMR:
+   case AVND_CKPT_COMP_INST_CODE_RCVD:
+   case AVND_CKPT_COMP_PROXY_PROXIED_ADD:
+   case AVND_CKPT_COMP_PROXY_PROXIED_DEL:
+      cb->avnd_async_updt_cnt.comp_updt++;
+      break;
+
+   case AVND_SYNC_COMMIT:
+      break;
+
+   case AVND_CKPT_SU_SI_REC:
+   case AVND_CKPT_SU_SI_REC_CURR_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_STATE:
+   case AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_ASSIGN_STATE:
+      cb->avnd_async_updt_cnt.su_si_updt++;
+      break;
+
+   case AVND_CKPT_SIQ_REC:
+      cb->avnd_async_updt_cnt.siq_updt++;
+      break;
+
+   case AVND_CKPT_CSI_REC:
+   case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+   case AVND_CKPT_COMP_CSI_TRANS_DESC:
+   case AVND_CKPT_COMP_CSI_STANDBY_RANK:
+   case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
+   case AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE:
+      cb->avnd_async_updt_cnt.csi_updt++;
+      break;
+
+   case AVND_CKPT_COMP_HLT_REC:
+   case AVND_CKPT_COMP_HC_REC_STATUS:
+   case AVND_CKPT_COMP_HC_REC_TMR:
+      cb->avnd_async_updt_cnt.comp_hlth_rec_updt++;
+      break;
+
+   case AVND_CKPT_COMP_CBK_REC:
+   case AVND_CKPT_COMP_CBK_REC_AMF_HDL:
+   case AVND_CKPT_COMP_CBK_REC_MDS_DEST:
+   case AVND_CKPT_COMP_CBK_REC_TMR:
+   case AVND_CKPT_COMP_CBK_REC_TIMEOUT:
+      cb->avnd_async_updt_cnt.comp_cbk_rec_updt++;
+      break;
+
+   default:
+      return NCSCC_RC_SUCCESS;
+   }
+
+   /*
+    * Now send this update.
+    */
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_close_ckpt
+ *
+ * Purpose:  Close checkpoint.
+ *
+ * Input: cb        - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avnd_mbcsv_close_ckpt(AVND_CB  *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   /* LOG HERE */
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.close.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_finalize
+ *
+ * Purpose:  Finalize AVND with MBCSV
+ *
+ * Input: cb        - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avnd_mbcsv_finalize(AVND_CB  *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   /* LOG HERE */
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************\
+ * Function: avnd_mbcsv_obj_set
+ *
+ * Purpose:  Set MBCSv objects
+ *
+ * Input: cb        - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_mbcsv_obj_set(AVND_CB  *cb,
+                         uns32  obj, uns32 val)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+
+   /* LOG HERE */
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+   mbcsv_arg.info.obj_set.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
+   mbcsv_arg.info.obj_set.i_obj = obj;
+   mbcsv_arg.info.obj_set.i_val = val;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+/****************************************************************************\
+ * Function: avnd_enqueue_async_update_msgs
+ *
+ * Purpose:  Enqueue async update messages.
+ *
+ * Input: cb  - AVND CB pointer.
+ *        dec - Decode message content pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+   AVND_ASYNC_UPDT_MSG_QUEUE   *updt_msg;
+
+   m_AVND_AVND_ENTRY_LOG("avnd_enqueue_async_update_msgs",NULL,
+                          0,0,0,0);
+   /*
+    * This is a FIFO queue. Add message at the tail of the queue.
+    */
+   if (NULL == (updt_msg = m_MMGR_ALLOC_AVND_ASYNC_UPDT))
+   {
+      /* Log error */
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   m_NCS_MEMSET(updt_msg, '\0', sizeof(AVND_ASYNC_UPDT_MSG_QUEUE));
+
+   updt_msg->dec = *dec;
+
+   /* Add this message in our FIFO queue */
+   if (!(cb->async_updt_msgs.async_updt_queue))
+       cb->async_updt_msgs.async_updt_queue = (updt_msg);
+   else
+      cb->async_updt_msgs.tail->next = (updt_msg);
+
+   cb->async_updt_msgs.tail = (updt_msg);
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_dequeue_async_update_msgs
+ *
+ * Purpose:  De-queue async update messages.
+ *
+ * Input: cb - AVND CB pointer.
+ *        pr_or_fr - TRUE - If we have to process the message.
+ *                   FALSE - If we have to FREE the message.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32  avnd_dequeue_async_update_msgs(AVND_CB *cb, NCS_BOOL pr_or_fr)
+{
+   uns32 status = NCSCC_RC_SUCCESS;
+   AVND_ASYNC_UPDT_MSG_QUEUE   *updt_msg;
+
+   m_AVND_AVND_ENTRY_LOG("avnd_dequeue_async_update_msgs,pr_or_fr",NULL,
+                          pr_or_fr,0,0,0);
+
+   /*
+    * This is a FIFO queue. Remove first message first entered in the 
+    * queue and then process it.
+    */
+   while(NULL != (updt_msg = cb->async_updt_msgs.async_updt_queue))
+   {
+      cb->async_updt_msgs.async_updt_queue = updt_msg->next;
+
+      /*
+       * Process de-queued message.
+       */
+      if (pr_or_fr)
+         status = 
+         avnd_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type](cb, &updt_msg->dec);
+
+      m_MMGR_FREE_AVND_ASYNC_UPDT(updt_msg);
+   }
+
+   /* All messages are dequeued. Set tail to NULL */
+   cb->async_updt_msgs.tail = NULL;
+
+   return status;
+}
+
+/****************************************************************************\
+ * Function: avnd_send_data_req
+ *
+ * Purpose:  Encode data request to be sent.
+ *
+ * Input: cb - AVND CB pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_send_data_req(AVND_CB *cb)
+{
+   NCS_MBCSV_ARG     mbcsv_arg;
+   NCS_UBAID         *uba = NULL;
+
+   m_AVND_AVND_ENTRY_LOG("avnd_send_data_req",NULL,
+                          0,0,0,0);
+
+   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+
+   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
+   mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
+
+   uba = &mbcsv_arg.info.send_data_req.i_uba;
+
+   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+
+   mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
+
+   if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+      return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avnd_validate_reo_type_in_csync
+ *
+ * Purpose:  Vaidate reo_type received during cold sync updates. Return success,
+ *           if cold sync is over for this reo_type. Return failure if standby
+ *           is still to get cold sync for this reo_type.
+ *
+ * Input: cb - AVND CB pointer.
+ *        reo_type - reo type need to be validated during cold sync.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32  avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type)
+{
+   uns32 status = NCSCC_RC_FAILURE;
+
+   m_AVND_AVND_ENTRY_LOG("avnd_validate_reo_type_in_csync",NULL,
+                          0,0,0,0);
+
+   switch(reo_type)
+   {
+   case AVND_CKPT_HLT_CONFIG:
+   case AVND_CKPT_HC_PERIOD:
+   case AVND_CKPT_HC_MAX_DUR:
+      if(cb->synced_reo_type >= AVND_CKPT_HLT_CONFIG)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_SU_CONFIG:
+   case AVND_CKPT_SU_FLAG_CHANGE:
+   case AVND_CKPT_SU_ERR_ESC_LEVEL:
+   case AVND_CKPT_SU_COMP_RESTART_PROB:
+   case AVND_CKPT_SU_COMP_RESTART_MAX:
+   case AVND_CKPT_SU_RESTART_PROB:
+   case AVND_CKPT_SU_RESTART_MAX:
+   case AVND_CKPT_SU_COMP_RESTART_CNT:
+   case AVND_CKPT_SU_RESTART_CNT:
+   case AVND_CKPT_SU_ERR_ESC_TMR:
+   case AVND_CKPT_SU_OPER_STATE:
+   case AVND_CKPT_SU_PRES_STATE:
+      if(cb->synced_reo_type >= AVND_CKPT_SU_CONFIG)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_COMP_CONFIG:
+   case AVND_CKPT_COMP_FLAG_CHANGE:
+   case AVND_CKPT_COMP_REG_HDL:
+   case AVND_CKPT_COMP_REG_DEST:
+   case AVND_CKPT_COMP_OPER_STATE:
+   case AVND_CKPT_COMP_PRES_STATE:
+   case AVND_CKPT_COMP_TERM_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_ERR_INFO:
+   case AVND_CKPT_COMP_DEFAULT_RECVR:
+   case AVND_CKPT_COMP_PEND_EVT:
+   case AVND_CKPT_COMP_ORPH_TMR:
+   case AVND_CKPT_COMP_NODE_ID:
+   case AVND_CKPT_COMP_TYPE:
+   case AVND_CKPT_COMP_MDS_CTXT:
+   case AVND_CKPT_COMP_REG_RESP_PENDING:
+   case AVND_CKPT_COMP_INST_CMD:
+   case AVND_CKPT_COMP_TERM_CMD:
+   case AVND_CKPT_COMP_INST_TIMEOUT:
+   case AVND_CKPT_COMP_TERM_TIMEOUT:
+   case AVND_CKPT_COMP_INST_RETRY_MAX:
+   case AVND_CKPT_COMP_INST_RETRY_CNT:
+   case AVND_CKPT_COMP_EXEC_CMD:
+   case AVND_CKPT_COMP_CMD_EXEC_CTXT:
+   case AVND_CKPT_COMP_INST_CMD_TS:
+   case AVND_CKPT_COMP_CLC_REG_TMR:
+   case AVND_CKPT_COMP_INST_CODE_RCVD:
+   case AVND_CKPT_COMP_PROXY_PROXIED_ADD:
+   case AVND_CKPT_COMP_PROXY_PROXIED_DEL:
+      if(cb->synced_reo_type >= AVND_CKPT_COMP_CONFIG)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_SU_SI_REC:
+   case AVND_CKPT_SU_SI_REC_CURR_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_STATE:
+   case AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_ASSIGN_STATE:
+      if(cb->synced_reo_type >= AVND_CKPT_SU_SI_REC)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_SIQ_REC:
+      if(cb->synced_reo_type >= AVND_CKPT_SIQ_REC)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_CSI_REC:
+   case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+   case AVND_CKPT_COMP_CSI_TRANS_DESC:
+   case AVND_CKPT_COMP_CSI_STANDBY_RANK:
+   case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
+   case AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE:
+      if(cb->synced_reo_type >= AVND_CKPT_CSI_REC)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_COMP_HLT_REC:
+   case AVND_CKPT_COMP_HC_REC_STATUS:
+   case AVND_CKPT_COMP_HC_REC_TMR:
+      if(cb->synced_reo_type >= AVND_CKPT_COMP_HLT_REC)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   case AVND_CKPT_COMP_CBK_REC:
+   case AVND_CKPT_COMP_CBK_REC_AMF_HDL:
+   case AVND_CKPT_COMP_CBK_REC_MDS_DEST:
+   case AVND_CKPT_COMP_CBK_REC_TMR:
+   case AVND_CKPT_COMP_CBK_REC_TIMEOUT:
+      if(cb->synced_reo_type >= AVND_CKPT_COMP_CBK_REC)
+         status = NCSCC_RC_SUCCESS;
+      break;
+
+   default:
+      return NCSCC_RC_SUCCESS;
+   }
+
+   return status;
+}
+
+/******************************************************************************
+  Name          : avnd_evt_avd_role_change_msg
+
+  Description   : This routine takes cares of role change of AvND. 
+
+  Arguments     : cb  - ptr to the AvND control block.
+                  evt - ptr to the AvND event.
+
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+
+  Notes         : None
+******************************************************************************/
+uns32 avnd_evt_avd_role_change_msg(AVND_CB *cb, AVND_EVT *evt)
+{
+    uns32 rc = NCSCC_RC_SUCCESS;
+    AVSV_D2N_ROLE_CHANGE_INFO *info = NULL;
+    V_DEST_RL   mds_role;
+    SaAmfHAStateT prev_ha_state; 
+
+    /* dont process unless AvD is up */
+    if ( !m_AVND_CB_IS_AVD_UP(cb) ) return NCSCC_RC_FAILURE;
+
+    info = &evt->info.avd->msg_info.d2n_role_change_info;
+
+    m_AVND_AVND_ENTRY_LOG(
+    "avnd_evt_avd_role_change_msg():Comp,MsgId,NodeId, role rcvd and role present are",
+            NULL,info->msg_id,info->node_id,info->role,cb->avail_state_avnd);
+
+    if ((info->msg_id != 0) &&
+       (info->msg_id != (cb->rcv_msg_id+1)))
+    {
+       /* Log Error */
+       rc = NCSCC_RC_FAILURE;
+       m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY,
+                 AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+       return rc;
+    }
+
+    cb->rcv_msg_id = info->msg_id;
+    prev_ha_state = cb->avail_state_avnd;
+
+    /* Ignore the duplicate roles. */
+    if(prev_ha_state == info->role)
+    {
+        return NCSCC_RC_SUCCESS;
+    }
+ 
+    if((SA_AMF_HA_ACTIVE == cb->avail_state_avnd) &&
+       (SA_AMF_HA_QUIESCED == info->role))
+    {
+       m_AVND_AVND_SUCC_LOG("SA_AMF_HA_QUIESCED role received",NULL, 0,0,0,0);
+       if (NCSCC_RC_SUCCESS != 
+           (rc = avnd_mds_set_vdest_role(cb, V_DEST_RL_QUIESCED)))
+       {
+          m_AVND_LOG_INVALID_VAL_FATAL(rc);
+          m_AVND_AVND_ERR_LOG(
+          "avnd_mds_set_vdest_role returned failure, Comp and role are",NULL,
+                              info->role,0,0,0);
+          return rc;
+       }
+      return rc;
+    }
+
+    cb->avail_state_avnd = info->role;
+
+    if (cb->avail_state_avnd == SA_AMF_HA_ACTIVE)
+    {
+       mds_role = V_DEST_RL_ACTIVE;
+       m_AVND_AVND_SUCC_LOG("SA_AMF_HA_ACTIVE role received",NULL, 0,0,0,0);
+    } 
+    else
+    {
+       mds_role = V_DEST_RL_STANDBY;
+       m_AVND_AVND_SUCC_LOG("SA_AMF_HA_STANDBY role received",NULL, 0,0,0,0);
+    }
+
+    if (NCSCC_RC_SUCCESS != (rc = avnd_mds_set_vdest_role(cb, mds_role)))
+    {
+       m_AVND_LOG_INVALID_VAL_FATAL(rc);
+       m_AVND_AVND_ERR_LOG("avnd_mds_set_vdest_role returned failure",NULL,
+                           0,0,0,0);
+       return rc;
+    }
+
+    if (NCSCC_RC_SUCCESS != (rc = avnd_set_mbcsv_ckpt_role(cb, info->role)))
+    {
+       m_AVND_LOG_INVALID_VAL_FATAL(rc);
+       return rc;
+    } 
+
+
+    if(cb->avail_state_avnd == SA_AMF_HA_ACTIVE)
+    {
+       /* We might be having some async update messages in the
+          Queue to be processed, now drop all of them. */
+           
+          avnd_dequeue_async_update_msgs(cb, FALSE);
+
+       /* Go through timer list and start it. So send an event in mail box*/ 
+       /* We need to start all the timers, which were running on ACT. */
+       rc = avnd_ha_state_act_hdlr(cb);
+       if (NCSCC_RC_SUCCESS != rc)
+       {
+          m_AVND_LOG_INVALID_VAL_FATAL(rc);
+       } 
+    }
+
+    return rc;
+}
+
+/****************************************************************************\
+ * Function: avnd_ckpt_for_ext
+ *
+ * Purpose:  Send checkpoint data to standby using the supplied send type.
+ *
+ * Input: cb        - AVND control block pointer.
+ *        reo_hdl   - object handle.
+ *        reo_type  - object type.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_ckpt_for_ext(AVND_CB  *cb,
+                          MBCSV_REO_HDL reo_hdl,
+                          uns32      reo_type)
+{
+  uns8 * reo_hdl_ptr = NULL;
+  uns32 rc = NCSCC_RC_FAILURE;
+  
+  reo_hdl_ptr = NCS_INT64_TO_PTR_CAST(reo_hdl);
+
+  if(NULL == reo_hdl_ptr) return rc;
+
+  switch(reo_type)
+  {
+   case AVND_CKPT_HLT_CONFIG:
+   case AVND_CKPT_HC_PERIOD:
+   case AVND_CKPT_HC_MAX_DUR:
+        {
+          if(TRUE == ((AVND_HC*)reo_hdl_ptr)->is_ext)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_SU_CONFIG:
+   case AVND_CKPT_SU_FLAG_CHANGE:
+   case AVND_CKPT_SU_ERR_ESC_LEVEL:
+   case AVND_CKPT_SU_COMP_RESTART_PROB:
+   case AVND_CKPT_SU_COMP_RESTART_MAX:
+   case AVND_CKPT_SU_RESTART_PROB:
+   case AVND_CKPT_SU_RESTART_MAX:
+   case AVND_CKPT_SU_COMP_RESTART_CNT:
+   case AVND_CKPT_SU_RESTART_CNT:
+   case AVND_CKPT_SU_ERR_ESC_TMR:
+   case AVND_CKPT_SU_OPER_STATE:
+   case AVND_CKPT_SU_PRES_STATE:
+        {
+          if(TRUE == ((AVND_SU*)reo_hdl_ptr)->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_COMP_PROXY_PROXIED_ADD:
+   case AVND_CKPT_COMP_PROXY_PROXIED_DEL:
+   case AVND_CKPT_COMP_CONFIG:
+        {
+          if(m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP*)reo_hdl_ptr)))
+          {
+             if(m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP*)reo_hdl_ptr)))
+                rc = NCSCC_RC_SUCCESS;
+          }
+          else if(TRUE == ((AVND_COMP*)reo_hdl_ptr)->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+   case AVND_CKPT_COMP_FLAG_CHANGE:
+   case AVND_CKPT_COMP_REG_HDL:
+   case AVND_CKPT_COMP_REG_DEST:
+   case AVND_CKPT_COMP_OPER_STATE:
+   case AVND_CKPT_COMP_PRES_STATE:
+   case AVND_CKPT_COMP_TERM_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT:
+   case AVND_CKPT_COMP_ERR_INFO:
+   case AVND_CKPT_COMP_DEFAULT_RECVR:
+   case AVND_CKPT_COMP_PEND_EVT:
+   case AVND_CKPT_COMP_ORPH_TMR:
+   case AVND_CKPT_COMP_NODE_ID:
+   case AVND_CKPT_COMP_TYPE:
+   case AVND_CKPT_COMP_MDS_CTXT:
+   case AVND_CKPT_COMP_REG_RESP_PENDING:
+   case AVND_CKPT_COMP_INST_CMD:
+   case AVND_CKPT_COMP_TERM_CMD:
+   case AVND_CKPT_COMP_INST_TIMEOUT:
+   case AVND_CKPT_COMP_TERM_TIMEOUT:
+   case AVND_CKPT_COMP_INST_RETRY_MAX:
+   case AVND_CKPT_COMP_INST_RETRY_CNT:
+   case AVND_CKPT_COMP_EXEC_CMD:
+   case AVND_CKPT_COMP_CMD_EXEC_CTXT:
+   case AVND_CKPT_COMP_INST_CMD_TS:
+   case AVND_CKPT_COMP_CLC_REG_TMR:
+   case AVND_CKPT_COMP_INST_CODE_RCVD:
+        {
+          if(m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP*)reo_hdl_ptr)))
+          {
+             if(m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP*)reo_hdl_ptr)))
+                rc = NCSCC_RC_SUCCESS;
+          }
+          else if(TRUE == ((AVND_COMP*)reo_hdl_ptr)->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_SU_SI_REC:
+   case AVND_CKPT_SU_SI_REC_CURR_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_STATE:
+   case AVND_CKPT_SU_SI_REC_CURR_ASSIGN_STATE:
+   case AVND_CKPT_SU_SI_REC_PRV_ASSIGN_STATE:
+        {
+          if(TRUE == ((AVND_SU_SI_REC*)reo_hdl_ptr)->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_CSI_REC:
+   case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+   case AVND_CKPT_COMP_CSI_TRANS_DESC:
+   case AVND_CKPT_COMP_CSI_STANDBY_RANK:
+   case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
+   case AVND_CKPT_COMP_CSI_PRV_ASSIGN_STATE:
+        {
+          if(TRUE == ((AVND_COMP_CSI_REC*)reo_hdl_ptr)->comp->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_COMP_HLT_REC:
+   case AVND_CKPT_COMP_HC_REC_STATUS:
+   case AVND_CKPT_COMP_HC_REC_TMR:
+        {
+          if(TRUE == ((AVND_COMP_HC_REC*)reo_hdl_ptr)->comp->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_COMP_CBK_REC:
+        {
+          if(m_AVND_COMP_TYPE_IS_INTER_NODE(((AVND_COMP_CBK*)reo_hdl_ptr)->comp))
+          {
+             if(m_AVND_PROXY_IS_FOR_EXT_COMP(((AVND_COMP_CBK*)reo_hdl_ptr)->comp))
+                rc = NCSCC_RC_SUCCESS;
+          }
+          else if(TRUE == ((AVND_COMP_CBK*)reo_hdl_ptr)->comp->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_COMP_CBK_REC_AMF_HDL:
+   case AVND_CKPT_COMP_CBK_REC_MDS_DEST:
+   case AVND_CKPT_COMP_CBK_REC_TMR:
+   case AVND_CKPT_COMP_CBK_REC_TIMEOUT:
+        {
+          if(TRUE == ((AVND_COMP_CBK*)reo_hdl_ptr)->comp->su->su_is_external)
+           rc = NCSCC_RC_SUCCESS;
+        }
+      break;
+
+   case AVND_CKPT_SIQ_REC:
+   /* For AVND_SU_SIQ_REC data structure, we don't have anything to check
+      whether it is a part of an external or internal component. So,
+      while sending ADD/RMV async update for AVND_CKPT_SIQ_REC, validate 
+      before sending.*/
+      rc = NCSCC_RC_SUCCESS;
+      break;
+
+   default:
+      break;
+
+  }
+  
+  return rc;
+}
+
+/****************************************************************************\
+ * Function: avnd_evt_ha_state_change
+ *
+ * Purpose:  Takes cares state change of HA State.
+ *
+ * Input: cb        - AVND control block pointer.
+ *        evt - ptr to the AvND event
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+uns32 avnd_evt_ha_state_change(AVND_CB  *cb, AVND_EVT *evt)
+{
+  AVND_HA_STATE_CHANGE_EVT *ha_state_event = NULL;
+  uns32 rc = NCSCC_RC_FAILURE;
+
+  m_AVND_AVND_ENTRY_LOG("avnd_evt_ha_state_change",NULL, 0, 0, 0, 0);
+
+  if(NULL == evt) return rc;
+
+  ha_state_event = &evt->info.ha_state_change;
+
+  if(NULL == ha_state_event)  return rc;
+
+  if(AVND_EVT_HA_STATE_CHANGE != evt->type) goto error;
+
+
+  if((SA_AMF_HA_QUIESCED == ha_state_event->ha_state) && 
+     (TRUE == cb->is_quisced_set))
+  {
+     cb->avail_state_avnd = SA_AMF_HA_QUIESCED;
+
+     if (NCSCC_RC_SUCCESS != (rc = avnd_set_mbcsv_ckpt_role(cb, cb->avail_state_avnd)))
+     {
+        m_AVND_LOG_INVALID_VAL_FATAL(rc);
+        goto error;
+     }
+     cb->is_quisced_set = FALSE;
+     m_AVND_AVND_SUCC_LOG("mbcsv role set to SA_AMF_HA_QUIESCED",NULL, 0,0,0,0);
+     return rc;
+  }
+
+error:
+      m_AVND_AVND_ERR_LOG(
+      "avnd_evt_ha_state_change:evt_type,ha_state,cb->is_quisced_set,rc are",NULL,
+       evt->type, ha_state_event->ha_state, cb->is_quisced_set, rc);
+
+  return rc;
+}
+
+/****************************************************************************\
+ * Function: avnd_ha_state_act_hdlr
+ *
+ * Purpose:  Takes cares state change of HA State ACT.
+ *           It starts all the timers.
+ *
+ * Input: cb  - AVND control block pointer.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+uns32 avnd_ha_state_act_hdlr(AVND_CB  *cb)
+{
+  uns32 rc = NCSCC_RC_SUCCESS;
+  AVND_SU       *su = NULL;
+  AVND_COMP     *comp = NULL;
+  AVND_COMP_HC_REC *comp_hc = NULL;
+  AVND_COMP_CBK *comp_cbk = NULL;
+  
+  m_AVND_AVND_ENTRY_LOG("avnd_ha_state_act_hdlr",NULL, 0, 0, 0, 0);
+
+/******************  Starting SU Timers  *******************************/
+ {
+
+   su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+   while(su != 0)
+   {
+    if(TRUE == su->su_is_external)
+    {
+      if((AVND_ERR_ESC_LEVEL_0 == su->su_err_esc_level) && 
+         (TRUE == su->su_err_esc_tmr.is_active))
+      {
+        /* This means component err esc timer is running. */
+        m_AVND_TMR_COMP_ERR_ESC_START(cb, su, rc);
+      }
+      else if((AVND_ERR_ESC_LEVEL_1 == su->su_err_esc_level) &&
+             (TRUE == su->su_err_esc_tmr.is_active))
+      {
+        /* This means su err esc timer is running. */
+        m_AVND_TMR_SU_ERR_ESC_START(cb, su, rc);
+      }
+
+      if(rc != NCSCC_RC_SUCCESS)
+      {
+         /* Encode failed!!! */
+         m_AVND_LOG_INVALID_VAL_FATAL(rc);
+         return rc;
+      }
+
+    } /* if(TRUE == su->su_is_external) */
+      su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+   } /* while(su != 0) */
+ }
+/******************  Starting SU Timers ends here *******************************/
+
+/******************  Starting Component Timers  *******************************/
+ {
+  comp = (AVND_COMP *) ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
+
+  while(comp != 0)
+  {
+    if(TRUE == comp->su->su_is_external)
+    {
+      if(TRUE == comp->orph_tmr.is_active)
+      {
+        m_AVND_TMR_PXIED_COMP_REG_START(cb, *comp, rc);
+      }
+
+      if(rc != NCSCC_RC_SUCCESS)
+      {
+         m_AVND_LOG_INVALID_VAL_FATAL(rc);
+         return rc;
+      }
+
+      if((TRUE == comp->clc_info.clc_reg_tmr.is_active) && 
+         (AVND_TMR_CLC_COMP_REG == comp->clc_info.clc_reg_tmr.type))
+      {
+        m_AVND_TMR_COMP_REG_START(cb, *comp, rc);
+      }
+
+      if((TRUE == comp->clc_info.clc_reg_tmr.is_active) && 
+         (AVND_TMR_CLC_PXIED_COMP_INST == comp->clc_info.clc_reg_tmr.type))
+      {
+        m_AVND_TMR_PXIED_COMP_INST_START(cb, *comp, rc);
+      }
+
+      if(rc != NCSCC_RC_SUCCESS)
+      {
+         m_AVND_LOG_INVALID_VAL_FATAL(rc);
+         return rc;
+      }
+
+/* We can start health check and callback timers here only. */
+
+/******************  Starting Health Check Timers ********************/
+      for (comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
+           comp_hc;
+           comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&comp_hc->comp_dll_node))
+      {
+          if(TRUE == comp_hc->tmr.is_active)
+          {
+            m_AVND_TMR_COMP_HC_START(cb, *comp_hc, rc);
+          }
+
+          if (rc != NCSCC_RC_SUCCESS)
+          {
+            m_AVND_LOG_INVALID_VAL_FATAL(rc);
+            return rc;
+          }
+      }
+/******************  Starting Health Check Timers ends here ****************/
+
+/***********************  Starting Callback Timers ***********************/
+      for (comp_cbk = comp->cbk_list; comp_cbk; comp_cbk = comp_cbk->next)
+      {
+          /* We need to overwrite opq_hdl with red_opq_hdl now and reset 
+             red_opq_hdl for every record. */
+
+          comp_cbk->opq_hdl = comp_cbk->red_opq_hdl;
+          comp_cbk->red_opq_hdl = 0;
+
+          if(TRUE == comp_cbk->resp_tmr.is_active)
+          {
+            m_AVND_TMR_COMP_CBK_RESP_START(cb, *comp_cbk, comp_cbk->timeout, rc);
+          }
+
+          if(rc != NCSCC_RC_SUCCESS)
+          {
+            m_AVND_LOG_INVALID_VAL_FATAL(rc);
+            return rc;
+          }
+      }
+/***********************  Starting Callback Timers ends here ****************/
+
+    }/* if(TRUE == comp->su->su_is_external) */
+     comp = (AVND_COMP *)
+               ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+   }/* while(comp != 0) */
+ }
+/******************  Starting Component Timers ends here ********************/
+return rc;
+}
+

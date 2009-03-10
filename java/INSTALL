@@ -1,0 +1,135 @@
+                      --- Java AIS API for Opensaf ---
+
+Introduction
+  The Java AIS API for OpenSAF provides the programming interfaces for Java
+  developers to access the AIS services. Currently provided interfaces are:
+   - AMF - Availability Management Framework B.01.01. version
+   - CLM - Cluster Membership B.01.01 version
+
+Prerequisites
+  Java2SE JDK 1.5 or higher for compilation JRE for execution
+  Ant
+  JUnit 3.2.8 - junit.jar provided with the package
+
+Directory structure
+  ais_api        - the SA Forum Java AIS interfaces
+  ais_api_impl   - implementation of the interfaces
+  ais_api_native - the native binding library between OpenSAF and the Java
+                   applications
+  ais_api_test   - tests
+
+Installation
+  Step 1. Compile and install OpenSAF
+    Follow the instructions in the OpenSAF INSTALL file to compile and install
+    it.
+  Step 2. Compile the Java AIS interfaces
+    Run `make deploy` in the root directory of the package. If there are no error
+    messages, the compiled interfaces will be available in the deploy directory.
+
+    In case the compile fails, try setting the JAVA_HOME environment variable,
+    e.g. export JAVA_HOME=/usr/java/jdk1.5.0_16/
+    Here the path should be substituted with the path to your Java SDK.
+
+    The compiled files are the following:
+      opensaf_ais_api.jar       - jar archive that contains the Java API files and
+                                  the implementation
+      opensaf_ais_api_test.jar  - jar archive that contains the test classes
+      libJava_AIS_API_native.so - native shared library
+      libJava_AIS_API_native_debug.so - debug version of the native shared library
+  TBD Step 3. Copy the libraries to the destination machines and directories. TBD
+      This step is specific to your application or system. Guide lines will be
+      provided later. Guidelines for setting up the tests are provided in the following.
+
+  Step 4. Clean the environment
+    If required, the results of the compilation can be removed by issuing
+    make clean in the root directory of the package.
+
+Running the tests
+  Running the CLM tests
+    The CLM tests can be run manually.
+
+    Before running the CLM tests, make sure that OpenSAF is running on the node
+    where you plan to execute them. This can be either payload or controller.
+
+    The main class for the CLM tests is the org.opensaf.ais.clm.test.AllTests class.
+    This class and all the other test classes are packaged in the
+    opensaf_ais_api_test.jar archive. To ease the execution, there is a utility script
+    in the ais_api_test/configandscripts directory called runClmTests.sh. This script
+    has to be modified to suit your installation. You have to do the following:
+	 - replace the [PATH_TO_JUNIT] text to the path to the junit.jar file. An instance of
+	   this file is delivered with the package in the ais_api_test/util directory.
+	 - replace the [PATH_TO_JAVA_AIS_API] text with the corresponding path.
+	   ***The script supposes to have all the compiled files in this directory.***
+     - if debug mode is needed, uncomment the corresponding JAVA_OPTIONS definition
+
+    Notice: when the tests are run in debug mode, the amount of displayed information can
+    overload the node which can lead to unpredictable behavior.
+
+  Running the AMF tests
+    The AMF tests can not be run manually but AMF has to be configured properly
+    for the tests.
+
+    Provided AMF configuration (ais_api_test/configandscripts/AppConfig.xml.template)
+      amfTestSG
+        |
+        |--SUs
+        |    |--amfTestSU1 --> node PL_2_3
+        |    |    `--amfTestComp
+        |    `--amfTestSU2 --> node PL_2_3
+        |         `--amfTestComp
+        `--SIs
+             |--amfTestSI_1
+             |--amfTestSI_2
+             `--amfTestSI_3
+      amfAdditionalTestSG
+        |--SUs
+        |    |--amfAdditionalTestSU1 --> node PL_2_3
+        |    |    `--amfAdditionalTestComp
+        |    `--amfAdditionalTestSU2 --> node PL_2_4
+        |         `--amfAdditionalTestComp
+        `--SIs
+             `--amfAdditionalTestSI
+
+      amfTestComp = org.opensaf.ais.amf.test.AmfTestComponent
+        This type of component only registers and reacts to callbacks.
+
+      amfAdditionalTestComp = org.opensaf.ais.amf.test.AmfTestRunner
+        This type of component registers with the AMF, and every time the CSI set
+        callback is invoked, it executes the test suite.
+
+      This configuration has to be adjusted to your current system. A possible way for
+      configuration:
+
+        Step 1. Copy the contents of the deploy directory to the installation directory.
+          The exact place can be anywhere but short paths should be preferred.
+          E.g. copy everything to /opt/opensaf/sample on both the PL_2_3 and PL_2_4 nodes.
+
+          Notice: even if amfAdditionalTestSU2 is configured to run on PL_2_4, it is
+          not required to be available for successful tests.
+
+        Step 2. Update AppConfig.xml
+          Overwrite or merge the template AppConfig.xml with your system's AppConfig.xml.
+          In the simplest case, overwrite it and change the [PATH TO TEST CONFIG] texts
+          to the path where you copied the contents of the deploy directory.
+
+        Step 3. Update the instantiation scripts.
+          Do the same three steps which are described at the CLM tests.
+
+        Step 4. Copy the scripts to the installation directory
+          Copy the following files:
+            - java_comp_term.sh
+            - java_test_comp_inst.sh
+            - java_test_runner_inst.sh
+        Step 5. Start the cluster.
+          Keep in mind that the AMF configuration has to be updated on the controller and
+          the PSS strings in the /var/opt/opensaf/pssv_spcn_list file have to be changed to
+          XML.
+
+          The components will write their logs in /var/tmp and the pid file is stored here
+          too.
+
+Developing Java applications with Eclipse
+  TBD
+
+Creating your own component
+  TBD

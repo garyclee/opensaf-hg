@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenSAF EVT
+Description: Implementation of SA Forum AIS Event Service
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lSaEvt
+Cflags: -I${includedir}

@@ -1,0 +1,83 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+#
+# Interface Driver startup/shutdown Script
+#
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+DAEMON=ncs_ifsv_ip_installer
+DESC="Interface Learner"
+PIDLIST=`ps ax | grep $DAEMON | grep -v 'grep' | cut -d" " -f2`
+
+NID_SVC_NAME=IFSVDD
+
+stop()
+{
+  if [ "${PIDLIST}" != "" ]; then
+    for i in "${PIDLIST}"; do
+       kill -SIGKILL $i  &> /dev/null
+       echo "Stopping $DESC: ...[  OK  ]"
+    done
+  else
+    echo -e "There is no $DAEMON running..."
+  fi
+}
+
+start()
+{
+   echo -n -e "Starting $DESC: $LIBPATH/$DAEMON.. \n";
+   start-stop-daemon --start --quiet --exec "$LIBPATH/$DAEMON" 2 &
+   echo ".[  OK  ]";
+}
+
+test -f "$LIBPATH/$DAEMON" || exit 0
+
+#set -e
+
+case "$1" in
+  start)
+        if [ "${PIDLIST}" != "" ]; then 
+            echo  "$LIBPATH/$DAEMON already running..";
+	     else
+            start
+	    if [ $? != 0 ]; then
+               echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
+            else
+               echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_STARTED" > $NIDFIFO
+	    fi
+        fi;
+        ;;
+  stop)
+        stop
+        ;;
+
+restart|force-reload)
+
+        stop
+        sleep 1
+        start
+        ;;
+
+*)
+        echo "Usage: $LIBPATH/ifsvdemo {start|stop|restart|force-reload}" >&2
+        exit 1
+        ;;
+esac
+
+exit 0
