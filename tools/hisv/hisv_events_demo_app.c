@@ -107,7 +107,7 @@ static SaEvtEventFilterT gl_trap_filter_array[TRAP_FILTER_ARRAY_LEN] = {
 /* Pattern Array set for subscribing events */
 static SaEvtEventFilterT hpi_filter_array[TRAP_FILTER_ARRAY_LEN]
  = {
-      {SA_EVT_EXACT_FILTER,
+      {SA_EVT_PASS_ALL_FILTER,
          {
             SAHPI_CRITICAL_PATTERN_LEN,
             SAHPI_CRITICAL_PATTERN_LEN,
@@ -115,7 +115,7 @@ static SaEvtEventFilterT hpi_filter_array[TRAP_FILTER_ARRAY_LEN]
          }
       },
 
-      {SA_EVT_EXACT_FILTER,
+      {SA_EVT_PASS_ALL_FILTER,
          {
             SAHPI_MAJOR_PATTERN_LEN,
             SAHPI_MAJOR_PATTERN_LEN,
