@@ -903,7 +903,7 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         &(evt->info.msg.info.api_info.param).write_log_async;
     log_stream_t* stream;
     SaAisErrorT error = SA_AIS_OK;
-    SaStringT logOutputString;
+    SaStringT logOutputString = NULL;
 
     TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
 
@@ -930,7 +930,14 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
             goto done;
     }
 
-    logOutputString = alloca(stream->fixedLogRecordSize + 1);
+    logOutputString = calloc(1, stream->fixedLogRecordSize + 1);
+    if (logOutputString == NULL)
+    {
+        LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
+        error = SA_AIS_ERR_NO_MEMORY;
+        goto done;
+    }
+
     if (lgs_format_log_record(param->logRecord,
                     stream->logFileFormat,
                     stream->fixedLogRecordSize + 1,
@@ -968,6 +975,9 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
     }
 
 done:
+    if (logOutputString != NULL)
+        free(logOutputString);
+
     if (param->ack_flags == SA_LOG_RECORD_WRITE_ACK)
         send_write_log_ack(cb, evt, error);
 
