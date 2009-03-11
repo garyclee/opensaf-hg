@@ -72,7 +72,7 @@ Macros used within this Regx implementation only
 
 #define PLACE(c)         ep[c >> 3] |= bittab[c & 07]
 #define ISTHERE(c)      (ep[c >> 3] & bittab[c & 07])
-#define ecmp(s1, s2, n) (!m_NCS_STRNCMP(s1, s2, n))
+#define ecmp(s1, s2, n) (!strncmp(s1, s2, n))
 
 
 #define GETC()          (*sp++)

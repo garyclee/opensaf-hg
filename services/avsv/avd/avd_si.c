@@ -86,7 +86,7 @@ AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
 {
    AVD_SI *si;
  
-   if( (si_name.length <= 6) || (m_NCS_OS_STRNCMP(si_name.value,"safSi=",6) != 0) )
+   if( (si_name.length <= 6) || (strncmp(si_name.value,"safSi=",6) != 0) )
    {
       return AVD_SI_NULL;
    }

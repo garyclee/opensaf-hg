@@ -86,10 +86,10 @@ AVD_SU * avd_su_struc_crt(AVD_CL_CB *cb,SaNameT su_name, NCS_BOOL ckpt)
    AVD_SU *su;
    NCS_BOOL su_is_external = FALSE;
 
-   if( (su_name.length <= 6) || (m_NCS_OS_STRNCMP(su_name.value,"safSu=",6) != 0) )
+   if( (su_name.length <= 6) || (strncmp(su_name.value,"safSu=",6) != 0) )
    {
       /* Check wether it is an external component. */
-      if(m_NCS_OS_STRNCMP(su_name.value,"safEsu=",7) != 0)
+      if(strncmp(su_name.value,"safEsu=",7) != 0)
         return AVD_SU_NULL;
       else
         su_is_external = TRUE;

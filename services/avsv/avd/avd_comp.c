@@ -84,7 +84,7 @@ AVD_COMP * avd_comp_struc_crt(AVD_CL_CB *cb,SaNameT comp_name, NCS_BOOL ckpt)
 {
    AVD_COMP *comp;
 
-   if( (comp_name.length <= 8) || (m_NCS_OS_STRNCMP(comp_name.value,"safComp=",8) != 0) )
+   if( (comp_name.length <= 8) || (strncmp(comp_name.value,"safComp=",8) != 0) )
    {
       return AVD_COMP_NULL;
    }

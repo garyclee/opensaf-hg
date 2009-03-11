@@ -367,7 +367,7 @@ avm_evt_callback(
       return;
    }
 
-   if(!m_NCS_STRNCMP(pattern_array->patterns->pattern, "SA_EVT_LOST", 11))
+   if(!strncmp(pattern_array->patterns->pattern, "SA_EVT_LOST", 11))
    {
       m_AVM_LOG_DEBUG("Received LOST Event from EDS", NCSFL_SEV_NOTICE);
 

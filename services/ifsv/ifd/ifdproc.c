@@ -1150,7 +1150,7 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
                       {
                         if(bond_intf_data->if_info.bind_master_info.node_id == m_NCS_NODE_ID_FROM_MDS_DEST(create_intf->originator_mds_destination))
                          {
-                          if(m_NCS_OS_STRNCMP(bond_intf_data->if_info.bind_master_info.if_name,create_intf->if_info.if_name,20) == 0)
+                          if(strncmp(bond_intf_data->if_info.bind_master_info.if_name,create_intf->if_info.if_name,20) == 0)
                             {
                               bond_intf_data->if_info.bind_master_ifindex = create_intf->if_index;
                               bond_intf_data->if_info.oper_state = create_intf->if_info.oper_state;
@@ -1165,7 +1165,7 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
                          }
                        if(bond_intf_data->if_info.bind_slave_info.node_id == m_NCS_NODE_ID_FROM_MDS_DEST(create_intf->originator_mds_destination))
                         {
-                         if(m_NCS_OS_STRNCMP(bond_intf_data->if_info.bind_slave_info.if_name,create_intf->if_info.if_name,20) == 0)
+                         if(strncmp(bond_intf_data->if_info.bind_slave_info.if_name,create_intf->if_info.if_name,20) == 0)
                            {
                               bond_intf_data->if_info.bind_slave_ifindex = create_intf->if_index;
                               create_intf->if_info.bind_slave_ifindex = bind_ifindex;

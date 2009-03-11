@@ -251,7 +251,7 @@ ncs_bam_process_message(BAM_EVT *evt)
             continue;
          }
          
-         if(m_NCS_STRNCMP(warmboot_req->pcn, "AVD", 3) == 0)
+         if(strncmp(warmboot_req->pcn, "AVD", 3) == 0)
          {
             /* catch the error and return ? or continue ? */
             gl_bam_avd_cfg_msg_num = 0;
@@ -303,7 +303,7 @@ ncs_bam_process_message(BAM_EVT *evt)
                m_LOG_BAM_MSG_TIC(BAM_PARSE_SUCCESS, NCSFL_SEV_NOTICE, "Config Done sent for s/w(amf) configuration");
             }
          }
-         else if(m_NCS_STRNCMP(warmboot_req->pcn, "AVM", 3) == 0)
+         else if(strncmp(warmboot_req->pcn, "AVM", 3) == 0)
          {
             /* catch the error and return ? or continue ? */
             gl_bam_avm_cfg_msg_num = 0;

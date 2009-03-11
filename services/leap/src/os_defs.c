@@ -190,11 +190,11 @@ getversion(void)
         fclose(fp);
         if(5 <= m_NCS_OS_STRLEN(verstr));
         {
-           if(0 == m_NCS_OS_STRNCMP("2.4.7", verstr, 5))
+           if(0 == strncmp("2.4.7", verstr, 5))
            {
                return NCS_OS_LINUX247;
            }
-           if(0 == m_NCS_OS_STRNCMP("2.4.2", verstr, 5))
+           if(0 == strncmp("2.4.2", verstr, 5))
            {
                return NCS_OS_LINUX242;
            }
@@ -2173,7 +2173,7 @@ unsigned int os_cur_cpu_usage(void)
     memset(buf,0,80);
     while(fgets(buf,80,stats_file) != NULL)
     {
-      if(m_NCS_OS_STRNCMP(buf,"cpu ",4) == 0)
+      if(strncmp(buf,"cpu ",4) == 0)
       {
         sscanf(buf + 5,"%u %u %u %lu",
           &usr_time[i],&nice_time[i],&sys_time[i],&idle_time[i]);

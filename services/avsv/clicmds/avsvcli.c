@@ -291,23 +291,23 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
          return NCSCC_RC_FAILURE;
       }
  
-      if(m_NCS_STRNCMP(index->cmd.strval,"safSg=", 6) == 0)
+      if(strncmp(index->cmd.strval,"safSg=", 6) == 0)
       {
          table_id = NCSMIB_TBL_AVSV_AMF_SG;
          param_id = 10;
       }
-      else if((m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0) ||
-              (m_NCS_STRNCMP(index->cmd.strval,"safEsu=", 7) == 0))
+      else if((strncmp(index->cmd.strval,"safSu=", 6) == 0) ||
+              (strncmp(index->cmd.strval,"safEsu=", 7) == 0))
       {
          table_id = NCSMIB_TBL_AVSV_AMF_SU;
          param_id = 6;
       }
-      else if(m_NCS_STRNCMP(index->cmd.strval,"safSi=", 6) == 0)
+      else if(strncmp(index->cmd.strval,"safSi=", 6) == 0)
       {
          table_id = NCSMIB_TBL_AVSV_AMF_SI;
          param_id = 5;
       }
-      else if(m_NCS_STRNCMP(index->cmd.strval,"safNode=", 8) == 0)
+      else if(strncmp(index->cmd.strval,"safNode=", 8) == 0)
       {  
          table_id = NCSMIB_TBL_AVSV_AMF_NODE;
          param_id = 4;
@@ -334,8 +334,8 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
          return NCSCC_RC_FAILURE;
       }
 
-      if((m_NCS_STRNCMP(index->cmd.strval,"safSu=", 6) == 0) ||
-        (m_NCS_STRNCMP(index->cmd.strval,"safEsu=", 7) == 0))
+      if((strncmp(index->cmd.strval,"safSu=", 6) == 0) ||
+        (strncmp(index->cmd.strval,"safEsu=", 7) == 0))
       {
          table_id = NCSMIB_TBL_AVSV_NCS_SU;
          param_id = 3;

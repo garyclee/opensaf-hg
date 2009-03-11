@@ -86,7 +86,7 @@ AVD_CSI * avd_csi_struc_crt(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL ckpt)
 {
    AVD_CSI *csi;
 
-   if( (csi_name.length <= 7) || (m_NCS_OS_STRNCMP(csi_name.value,"safCsi=",7) != 0) )
+   if( (csi_name.length <= 7) || (strncmp(csi_name.value,"safCsi=",7) != 0) )
    {
       return AVD_CSI_NULL;
    } 

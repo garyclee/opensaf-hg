@@ -93,7 +93,7 @@ AVD_SG * avd_sg_struc_crt(AVD_CL_CB *cb,SaNameT sg_name, NCS_BOOL ckpt)
 {
    AVD_SG *sg;
 
-   if( (sg_name.length <= 6) || (m_NCS_OS_STRNCMP(sg_name.value,"safSg=",6) != 0) )
+   if( (sg_name.length <= 6) || (strncmp(sg_name.value,"safSg=",6) != 0) )
    {
       return AVD_SG_NULL;
    }
