@@ -2452,7 +2452,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
 
    memset(&env_val_name, '\0', sizeof(SaNameT));
    memset(env_val_nodeid, '\0', sizeof(env_val_nodeid));
-   m_NCS_STRNCPY(env_val_name.value, comp->name_net.value, 
+   strncpy(env_val_name.value, comp->name_net.value, 
                  m_NCS_OS_NTOHS(comp->name_net.length));
 
 

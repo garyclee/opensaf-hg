@@ -742,11 +742,11 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
             IFSV_INTF_DATA* slave_intf_data;
             actual_data->if_info.bind_master_ifindex = mod_data->if_info.bind_master_ifindex;
             actual_data->if_info.bind_master_info.node_id = mod_data->if_info.bind_master_info.node_id;
-            m_NCS_OS_STRNCPY(actual_data->if_info.bind_master_info.if_name,mod_data->if_info.bind_master_info.if_name,20);
+            strncpy(actual_data->if_info.bind_master_info.if_name,mod_data->if_info.bind_master_info.if_name,20);
 
             actual_data->if_info.bind_slave_ifindex = mod_data->if_info.bind_slave_ifindex;
             actual_data->if_info.bind_slave_info.node_id = mod_data->if_info.bind_slave_info.node_id;
-            m_NCS_OS_STRNCPY(actual_data->if_info.bind_slave_info.if_name,mod_data->if_info.bind_slave_info.if_name,20);
+            strncpy(actual_data->if_info.bind_slave_info.if_name,mod_data->if_info.bind_slave_info.if_name,20);
 
             master_intf_data = ifsv_intf_rec_find(mod_data->if_info.bind_master_ifindex,cb);
             if(master_intf_data != NULL)
@@ -780,7 +780,7 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
              slave_intf_data->if_info.bind_slave_ifindex = actual_data->if_index;
             }
             actual_data->if_info.oper_state = master_intf_data->if_info.oper_state;
-            m_NCS_OS_STRNCPY(actual_data->if_info.if_name,master_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
+            strncpy(actual_data->if_info.if_name,master_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
 
    }
    }
@@ -1586,10 +1586,10 @@ ifsv_bonding_assign_bonding_ifindex_to_master(IFSV_CB *ifsv_cb,NCS_IFSV_IFINDEX 
     master_intf_data->if_info.bind_master_ifindex = bondingifindex;
     master_intf_data->if_info.bind_slave_ifindex = 0;
     bond_intf_data->if_info.bind_master_info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(master_intf_data->originator_mds_destination);
-    m_NCS_OS_STRNCPY(bond_intf_data->if_info.bind_master_info.if_name,master_intf_data->if_info.if_name,20);
+    strncpy(bond_intf_data->if_info.bind_master_info.if_name,master_intf_data->if_info.if_name,20);
 
     bond_intf_data->if_info.oper_state = master_intf_data->if_info.oper_state;
-    m_NCS_OS_STRNCPY(bond_intf_data->if_info.if_name,master_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
+    strncpy(bond_intf_data->if_info.if_name,master_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
 
 
     slave_intf_data = ifsv_intf_rec_find (bond_intf_data->if_info.bind_slave_ifindex, ifsv_cb);
@@ -1607,7 +1607,7 @@ ifsv_bonding_assign_bonding_ifindex_to_master(IFSV_CB *ifsv_cb,NCS_IFSV_IFINDEX 
     slave_intf_data->if_info.bind_master_ifindex = 0;
     slave_intf_data->if_info.bind_slave_ifindex = bondingifindex;
     bond_intf_data->if_info.bind_slave_info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(slave_intf_data->originator_mds_destination);
-    m_NCS_OS_STRNCPY(bond_intf_data->if_info.bind_slave_info.if_name,slave_intf_data->if_info.if_name,20);
+    strncpy(bond_intf_data->if_info.bind_slave_info.if_name,slave_intf_data->if_info.if_name,20);
     return NCSCC_RC_SUCCESS;
 }
 /* This function updates bonding interface data and slave interface data before deleting
@@ -1644,18 +1644,18 @@ ifsv_binding_delete_master_ifindex(IFSV_CB *ifsv_cb,NCS_IFSV_IFINDEX bonding_ifi
      }
      tmp_ifindex = bond_intf_data->if_info.bind_slave_ifindex;
      tmp_info.node_id= bond_intf_data->if_info.bind_slave_info.node_id;
-     m_NCS_OS_STRNCPY(tmp_info.if_name,bond_intf_data->if_info.bind_slave_info.if_name,20);
+     strncpy(tmp_info.if_name,bond_intf_data->if_info.bind_slave_info.if_name,20);
 
      bond_intf_data->if_info.bind_slave_ifindex = 0; /* because master is getting deleted */ 
      bond_intf_data->if_info.bind_slave_info.node_id = bond_intf_data->if_info.bind_master_info.node_id;
-     m_NCS_OS_STRNCPY( bond_intf_data->if_info.bind_slave_info.if_name,bond_intf_data->if_info.bind_master_info.if_name,20);
+     strncpy( bond_intf_data->if_info.bind_slave_info.if_name,bond_intf_data->if_info.bind_master_info.if_name,20);
 
      bond_intf_data->if_info.bind_master_ifindex = tmp_ifindex;
      bond_intf_data->if_info.bind_master_info.node_id = tmp_info.node_id;
-     m_NCS_OS_STRNCPY(bond_intf_data->if_info.bind_master_info.if_name,tmp_info.if_name,20);
+     strncpy(bond_intf_data->if_info.bind_master_info.if_name,tmp_info.if_name,20);
 
      bond_intf_data->if_info.oper_state = slave_intf_data->if_info.oper_state;
-     m_NCS_OS_STRNCPY(bond_intf_data->if_info.if_name,slave_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
+     strncpy(bond_intf_data->if_info.if_name,slave_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
 
 
      slave_intf_data->if_info.bind_master_ifindex = bonding_ifindex;

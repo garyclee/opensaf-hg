@@ -333,7 +333,7 @@ void avnd_log_pg_db (AVND_LOG_PG_DB op,
 
    /* convert name into string format */
    if (csi_name) 
-      m_NCS_STRNCPY(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
+      strncpy(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_PG_DB, AVND_FC_PG_DB, 
               NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIC, op, status, csi);
@@ -371,10 +371,10 @@ void avnd_log_su_db (AVND_LOG_SU_DB op,
 
    /* convert name into string format */
    if (su_name) 
-      m_NCS_STRNCPY(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+      strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
 
    if (si_name) 
-      m_NCS_STRNCPY(si, si_name->value, m_NCS_OS_NTOHS(si_name->length));
+      strncpy(si, si_name->value, m_NCS_OS_NTOHS(si_name->length));
 
    if ( (AVND_LOG_SU_DB_SI_ADD == op) ||
         (AVND_LOG_SU_DB_SI_DEL == op) || 
@@ -423,10 +423,10 @@ void avnd_log_comp_db (AVND_LOG_COMP_DB op,
 
    /* convert name into string format */
    if (comp_name) 
-      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
    if (csi_name) 
-      m_NCS_STRNCPY(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
+      strncpy(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
 
    if ( (AVND_LOG_COMP_DB_CSI_ADD == op) ||
         (AVND_LOG_COMP_DB_CSI_DEL == op) || 
@@ -478,7 +478,7 @@ void avnd_pxy_pxd_log (uns32   sev,
 
    /* convert name into string format */
    if (comp_name) 
-      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
       ncs_logmsg(NCS_SERVICE_ID_AVND,(uns8)AVND_AVND_MSG,(uns8)AVND_FC_AVND_MSG, 
                  NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info, 
@@ -510,7 +510,7 @@ void avnd_log_hc_db (AVND_LOG_HC_DB       op,
    memset(key, '\0', SA_AMF_HEALTHCHECK_KEY_MAX);
 
    /* convert key into string format */
-   if (hc_key) m_NCS_STRNCPY(key, hc_key->key, hc_key->keyLen);
+   if (hc_key) strncpy(key, hc_key->key, hc_key->keyLen);
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HC_DB, AVND_FC_HC_DB, 
               NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIC, op, status, key);
@@ -546,7 +546,7 @@ void avnd_log_su_fsm (AVND_LOG_SU_FSM     op,
 
    /* convert name into string format */
    if (su_name_net) 
-      m_NCS_STRNCPY(name, su_name_net->value, 
+      strncpy(name, su_name_net->value, 
                     m_NCS_OS_NTOHS(su_name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_SU_FSM, AVND_FC_SU_FSM, 
@@ -585,7 +585,7 @@ void avnd_log_comp_fsm (AVND_LOG_COMP_FSM         op,
 
    /* convert name into string format */
    if (comp_name_net) 
-      m_NCS_STRNCPY(name, comp_name_net->value, 
+      strncpy(name, comp_name_net->value, 
                     m_NCS_OS_NTOHS(comp_name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_COMP_FSM, AVND_FC_COMP_FSM, 
@@ -620,7 +620,7 @@ void avnd_log_err (AVND_LOG_ERR src, AVND_LOG_ERR rec,
 
    /* convert name into string format */
    if (comp_name_net) 
-      m_NCS_STRNCPY(name, comp_name_net->value, 
+      strncpy(name, comp_name_net->value, 
                     m_NCS_OS_NTOHS(comp_name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_ERR, AVND_FC_ERR, 
@@ -648,7 +648,7 @@ void avnd_log_misc (AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
    memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
-   if (sa_name) m_NCS_STRNCPY(name, sa_name->value, m_NCS_OS_NTOHS(sa_name->length));
+   if (sa_name) strncpy(name, sa_name->value, m_NCS_OS_NTOHS(sa_name->length));
 
    if (!sa_name)
    {
@@ -692,7 +692,7 @@ void avnd_log_clc_traps (AVND_LOG_TRAP op,
 
    /* convert name into string format */
    if (comp_name)
-      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_CLC, AVND_FC_TRAP,
               NCSFL_LC_HEADLINE, sev, "TCII", comp, op, status);
@@ -725,7 +725,7 @@ void avnd_log_su_oper_state_trap (AVND_LOG_OPER_STATE state,
 
    /* convert name into string format */
    if (su_name)
-      m_NCS_STRNCPY(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+      strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_OPER_STAT, AVND_FC_OPER,
               NCSFL_LC_HEADLINE, sev, "TCI", su, state);
@@ -757,7 +757,7 @@ void avnd_log_su_pres_state_trap (AVND_LOG_PRES_STATE state,
 
    /* convert name into string format */
    if (su_name)
-      m_NCS_STRNCPY(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+      strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_PRES_STAT, AVND_FC_PRES,
               NCSFL_LC_HEADLINE, sev, "TCI", su, state);
@@ -796,10 +796,10 @@ void avnd_log_proxied_orphaned_trap (AVND_LOG_TRAP status,
 
    /* convert name into string format */
    if (comp_name)
-      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
    if (pxy_comp_name)
-      m_NCS_STRNCPY(pxy_comp, pxy_comp_name->value, m_NCS_OS_NTOHS(pxy_comp_name->length));
+      strncpy(pxy_comp, pxy_comp_name->value, m_NCS_OS_NTOHS(pxy_comp_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_PROXIED, AVND_FC_TRAP,
               NCSFL_LC_HEADLINE, sev, "TCICI", comp, status, pxy_comp, pxy_status);
@@ -833,7 +833,7 @@ void  avnd_log_comp_failed_trap(uns32 node_id,
 
    /* convert name into string format */
    if (name_net)
-      m_NCS_STRNCPY(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+      strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_COMP_FAIL, AVND_FC_ERR,
               NCSFL_LC_HEADLINE, sev, "TCLI", name, node_id, errSrc);

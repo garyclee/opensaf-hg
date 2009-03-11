@@ -436,7 +436,7 @@ cli_check_ipv4addr (int8 *i_str)
       }
       
       /* Check if digit exceeds 255 chars */
-      m_NCS_OS_STRNCPY (ipbuf, ptr, i_str - ptr);
+      strncpy (ipbuf, ptr, i_str - ptr);
       if(atoi(ipbuf) > 255) return CLI_NO_MATCH;
       
       /* check if end of ipaddr */
@@ -733,7 +733,7 @@ uns32 cli_set_arg(int8 * i_arg, NCSCLI_ARG_SET *o_cmd_tokens, CLI_CB *pCli) /* F
       o_cmd_tokens->i_arg_record[count].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
       if(!o_cmd_tokens->i_arg_record[count].cmd.strval) return NCSCC_RC_FAILURE;
       memset(o_cmd_tokens->i_arg_record[count].cmd.strval, '\0', len);
-      m_NCS_OS_STRNCPY((int8 *)o_cmd_tokens->i_arg_record[count].cmd.strval, 
+      strncpy((int8 *)o_cmd_tokens->i_arg_record[count].cmd.strval, 
          i_arg, len-1);
    }
    return NCSCC_RC_SUCCESS;
@@ -783,7 +783,7 @@ uns32 cli_getcommand_tokens(int8 *i_cmdstring, NCSCLI_ARG_SET *ctok, CLI_CB *pCl
          curptr++;
       
       slen = curptr - start;
-      m_NCS_OS_STRNCPY (token, start, slen);
+      strncpy (token, start, slen);
       *(token + slen) = '\0';
       
       /* Fill the cmd_token structure with args */
@@ -1241,7 +1241,7 @@ void cli_add_default_values(CLI_CMD_ELEMENT * i_cmdElement,
       if(!o_cmd_tokens->i_arg_record[i_index].cmd.strval) return;
       
       memset(o_cmd_tokens->i_arg_record[i_index].cmd.strval, '\0', len);
-      m_NCS_OS_STRNCPY((int8 *)o_cmd_tokens->i_arg_record[i_index].cmd.strval, 
+      strncpy((int8 *)o_cmd_tokens->i_arg_record[i_index].cmd.strval, 
          (int8 *)i_cmdElement->defVal, len-1);
    }
    
@@ -1537,7 +1537,7 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
             io_cmd_tokens->i_arg_record[i].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
             if(!io_cmd_tokens->i_arg_record[i].cmd.strval) return ret;
             memset(io_cmd_tokens->i_arg_record[i].cmd.strval, '\0', len);               
-            m_NCS_OS_STRNCPY(io_cmd_tokens->i_arg_record[i].cmd.strval, 
+            strncpy(io_cmd_tokens->i_arg_record[i].cmd.strval, 
                pCli->ctree_cb.cmdElement->tokName, len-1);
             partialmatch = FALSE;
             ret = CLI_SUCCESSFULL_MATCH;            
@@ -1690,11 +1690,11 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
                      io_cmd_tokens->i_arg_record[0].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
                      if(!io_cmd_tokens->i_arg_record[0].cmd.strval) return ret;
                      memset(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);               
-                     m_NCS_OS_STRNCPY(io_cmd_tokens->i_arg_record[0].cmd.strval,"?", len-1);
+                     strncpy(io_cmd_tokens->i_arg_record[0].cmd.strval,"?", len-1);
                      return (io_param->o_status = CLI_SUCCESSFULL_MATCH);
                   }
                   
-                  if(exit_str) m_NCS_OS_STRNCPY(io_param->i_cmdbuf, CLI_EXIT, strlen(CLI_EXIT));
+                  if(exit_str) strncpy(io_param->i_cmdbuf, CLI_EXIT, strlen(CLI_EXIT));
                   
                   io_param->cmd_exec_func = pCli->ctree_cb.cmdElement->cmd_exec_func;
                   io_param-> cmd_access_level = pCli->ctree_cb.cmdElement->cmd_access_level;
@@ -2480,7 +2480,7 @@ void cli_complete_cmd(CLI_CB            *pCli,
       if(io_cmd_tokens->i_arg_record[i-1].i_arg_type == NCSCLI_KEYWORD) {
       if(ncscli_user_access_level_authenticate(pCli)) {
          index = m_NCS_OS_STRLEN(pCli->ctree_cb.cmdElement->tokName);
-         m_NCS_OS_STRNCPY(io_param->o_hotkey.tabstring,
+         strncpy(io_param->o_hotkey.tabstring,
             &io_cmd_tokens->i_arg_record[i-1].cmd.strval[cmdlen],
             index - cmdlen +1);
       }

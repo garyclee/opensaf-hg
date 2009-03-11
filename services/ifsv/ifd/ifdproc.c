@@ -1154,7 +1154,7 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
                             {
                               bond_intf_data->if_info.bind_master_ifindex = create_intf->if_index;
                               bond_intf_data->if_info.oper_state = create_intf->if_info.oper_state;
-                              m_NCS_OS_STRNCPY(bond_intf_data->if_info.if_name,create_intf->if_info.if_name,IFSV_IF_NAME_SIZE);
+                              strncpy(bond_intf_data->if_info.if_name,create_intf->if_info.if_name,IFSV_IF_NAME_SIZE);
                               create_intf->if_info.bind_master_ifindex = bind_ifindex;
                               bond_intf_data->if_info.if_am = NCS_IFSV_BINDING_CHNG_IFINDEX;
                               res = ifd_a2s_async_update(ifsv_cb, IFD_A2S_DATA_MODIFY_MSG,

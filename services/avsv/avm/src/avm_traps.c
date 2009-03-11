@@ -165,7 +165,7 @@ avm_adm_switch_trap(
          return NCSCC_RC_FAILURE;
       }
  
-      /* m_NCS_STRNCPY(temp_trap_varbind->i_param_val.info.i_oct, time_op, AVM_DISPLAY_TIME_LENGTH); */
+      /* strncpy(temp_trap_varbind->i_param_val.info.i_oct, time_op, AVM_DISPLAY_TIME_LENGTH); */
       temp_trap_varbind->i_param_val.info.i_oct = time_op;
       temp_trap_varbind->i_param_val.i_length   = AVM_DISPLAY_TIME_LENGTH;
 
