@@ -419,7 +419,7 @@ avm_convert_entity_path_to_string(
          }
 #endif
 #endif
-         len += m_NCS_STRLEN(gl_hpi_ent_type_list[index].etype_str);
+         len += strlen(gl_hpi_ent_type_list[index].etype_str);
          len += 7;
       }
    }
@@ -1250,7 +1250,7 @@ avm_bld_validation_info(
    {
       memset(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
       
-      desc_name.length = m_NCS_STRLEN(ptr->entity_name);
+      desc_name.length = strlen(ptr->entity_name);
       memcpy(desc_name.name, ptr->entity_name, desc_name.length);
 
       valid_info = avm_add_valid_info(cb, &desc_name);
@@ -1264,17 +1264,17 @@ avm_bld_validation_info(
       valid_info->is_node     = ptr->isNode;
       valid_info->is_fru      = ptr->is_fru;
 
-      valid_info->inv_data.product_name.DataLength =  m_NCS_STRLEN(ptr->fru_product_name);
+      valid_info->inv_data.product_name.DataLength =  strlen(ptr->fru_product_name);
       memcpy(valid_info->inv_data.product_name.Data, ptr->fru_product_name, valid_info->inv_data.product_name.DataLength);
       
-      valid_info->inv_data.product_version.DataLength =  m_NCS_STRLEN(ptr->fru_product_version);
+      valid_info->inv_data.product_version.DataLength =  strlen(ptr->fru_product_version);
       memcpy(valid_info->inv_data.product_version.Data, ptr->fru_product_version, valid_info->inv_data.product_version.DataLength);
     
       valid_info->parent_cnt = ptr->num_possible_parents;
    
       for(i = 0; i < ptr->num_possible_parents; i++)
       {
-         valid_info->location[i].parent.length = m_NCS_STRLEN(ptr->location_range[i].parent_ent); 
+         valid_info->location[i].parent.length = strlen(ptr->location_range[i].parent_ent); 
          if(valid_info->location[i].parent.length > NCS_MAX_INDEX_LEN)
          { 
             valid_info->location[i].parent.length = NCS_MAX_INDEX_LEN; 
@@ -1666,7 +1666,7 @@ avm_add_root(AVM_CB_T *cb)
    m_AVM_LOG_FUNC_ENTRY("avm_add_root");
    memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN); 
    sprintf(ep_str.name, "{{%d,0}}", SAHPI_ENT_ROOT);
-   ep_str.length = m_NCS_STRLEN(ep_str.name);
+   ep_str.length = strlen(ep_str.name);
    
    memset(ep.Entry, '\0', sizeof(SaHpiEntityPathT));
    ep.Entry[0].EntityType     = SAHPI_ENT_ROOT;

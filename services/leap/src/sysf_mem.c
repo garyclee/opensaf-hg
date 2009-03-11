@@ -356,7 +356,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -519,7 +519,7 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 

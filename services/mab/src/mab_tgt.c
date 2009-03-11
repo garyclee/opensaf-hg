@@ -289,7 +289,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     }
 
     /* Get the full path for n_pcn directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, m_NCS_OS_STRLEN(n_pcn) + 1, "%s", n_pcn);
+    m_NCS_OS_SNPRINTF((char *)buf2, strlen(n_pcn) + 1, "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -919,7 +919,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
           return NCSCC_RC_FAILURE;
        }
        memset(node, '\0', sizeof(NCS_PSSTS_SORT_NODE));
-       node->key.len = m_NCS_STRLEN(file.info.get_list.o_namelist[i]);
+       node->key.len = strlen(file.info.get_list.o_namelist[i]);
        strcpy((char*)&node->key.name, file.info.get_list.o_namelist[i]);
        m_NCS_OS_MEMFREE(file.info.get_list.o_namelist[i], NULL);
 
@@ -942,8 +942,8 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     memset(&key, '\0', sizeof(key));
     if(get_next->i_profile_name != NULL)
     {
-       key.len = m_NCS_STRLEN(get_next->i_profile_name);
-       len = m_NCS_STRLEN(get_next->i_profile_name);
+       key.len = strlen(get_next->i_profile_name);
+       len = strlen(get_next->i_profile_name);
        if(len != 0)
        {
           strcpy(&key.name, get_next->i_profile_name);
@@ -1075,7 +1075,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, m_NCS_OS_STRLEN(buf3), "%s", pcn_exists->i_pcn);
+    m_NCS_OS_SNPRINTF((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf);
@@ -1279,7 +1279,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
           strcpy((char *)&cur_pcn, (char *)&next_pcn);
           ++pcn_cnt;
           /* encode "cur_pcn" into o_uba */
-          len = m_NCS_STRLEN((char*)&cur_pcn) + 1;
+          len = strlen((char*)&cur_pcn) + 1;
           p8 = ncs_enc_reserve_space(&uba, 2);
           if(p8 == NULL)
           {

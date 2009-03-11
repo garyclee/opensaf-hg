@@ -214,9 +214,9 @@ static uns32 mqd_lib_init(void)
 
    /* Initialize the MIBs scalar objects */
    strcpy(pMqd->safSpecVer.value,"B.03.01");
-   pMqd->safSpecVer.length = m_NCS_STRLEN("B.03.01");
+   pMqd->safSpecVer.length = strlen("B.03.01");
    strcpy(pMqd->safAgtVen.value,"OpenSAF");
-   pMqd->safAgtVen.length = m_NCS_STRLEN("OpenSAF");
+   pMqd->safAgtVen.length = strlen("OpenSAF");
    pMqd->safAgtVenPro = 2;
    pMqd->serv_enabled = FALSE;
    pMqd->serv_state = 1;
@@ -246,7 +246,7 @@ static uns32 mqd_lib_init(void)
      
 #if NCS_2_0 /* Not needed for NCS ver(1.0) */
    /* Register MQSv - MQD component with AvSv */
-   sname.length = m_NCS_STRLEN(MQD_COMP_NAME);
+   sname.length = strlen(MQD_COMP_NAME);
    strcpy(sname.value, MQD_COMP_NAME);
 
    saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
@@ -361,7 +361,7 @@ static void mqd_lib_destroy(void)
    pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
    if(pMqd) {
 #if NCS_2_0 /* Required for NCS 2.0 */
-      sname.length = m_NCS_STRLEN(MQD_COMP_NAME);
+      sname.length = strlen(MQD_COMP_NAME);
       strcpy(sname.value, MQD_COMP_NAME);
 
       /* Deregister MQSv - MQD component from AVSv */

@@ -41,8 +41,8 @@ data_at_end_test(void)
     const char *ub1_msg = "Buffer One\n\0";
     const char *ub2_msg = "Buffer Two\n\0";
 #define BOTH_MSGS 50
-    int  sz_msg1  = m_NCS_STRLEN (ub1_msg);
-    int  sz_msg2  = m_NCS_STRLEN (ub2_msg) + 1; /* add 1 to get terminating '\0' */
+    int  sz_msg1  = strlen (ub1_msg);
+    int  sz_msg2  = strlen (ub2_msg) + 1; /* add 1 to get terminating '\0' */
     char *cp = 0;
     uns16  cksum         = 0,
           *p_cksum_field = NULL;

@@ -589,7 +589,7 @@ uns32 srmnd_healthcheck_start(SRMND_CB *cb)
        return NCSCC_RC_SUCCESS; 
    
     strcpy(cb->health_check_key.key, SRMND_AMF_HEALTH_CHECK_KEY);
-    cb->health_check_key.keyLen = m_NCS_OS_STRLEN(cb->health_check_key.key);
+    cb->health_check_key.keyLen = strlen(cb->health_check_key.key);
     
     /* start the healthcheck */ 
     saf_status = saAmfHealthcheckStart(cb->amf_handle,

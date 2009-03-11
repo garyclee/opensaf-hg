@@ -1143,7 +1143,7 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
    if(NCSCC_RC_SUCCESS != rc)
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1442,7 +1442,7 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       rc = avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
       if(NCSCC_RC_SUCCESS != rc)
       {
-         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+         evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
  
@@ -1498,7 +1498,7 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    rc =  avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
    if(NCSCC_RC_SUCCESS != rc)
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1545,7 +1545,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
    if(AVM_ADM_LOCK == ent_info->adm_lock)
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg1);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1556,7 +1556,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       m_AVM_LOG_GEN_EP_STR("Lock not yet completed", ent_info->ep_str.name, NCSFL_SEV_INFO); 
    }else
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg2);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1667,7 +1667,7 @@ avm_active_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       avm_assign_state(ent_info, AVM_ENT_RESET_REQ);
    }else
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1727,7 +1727,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       {
         if(avm_is_this_entity_self(avm_cb, ent_info->entity_path) == TRUE)
         {
-           evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg3);
+           evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg3);
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1740,7 +1740,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
          }
          else
          {
-            evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+            evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg1);
 
             evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -1757,7 +1757,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
       avm_avd_node_reset_resp(avm_cb, resp, ent_info->node_name);  
    }else
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg2);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2549,7 +2549,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
    
    if((AVM_ADM_LOCK == ent_info->adm_lock) || (ent_info->adm_shutdown))
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg2);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg2);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2566,7 +2566,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
    {
       if(avm_is_this_entity_self(avm_cb, ent_info->entity_path) == TRUE)
       {
-         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg3);
+         evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg3);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2579,7 +2579,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
       }
       else
       {
-         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+         evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg1);
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2627,7 +2627,7 @@ avm_reset_req_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
 
    uns8 *cli_msg = "Shutdown is not allowed while entity reset is in progress";
 
-   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+   evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2670,7 +2670,7 @@ avm_reset_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
    rc = avm_hisv_api_cmd(ent_info, HS_ACTION_REQUEST, SAHPI_HS_ACTION_EXTRACTION);
    if(NCSCC_RC_SUCCESS != rc)
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -2717,7 +2717,7 @@ avm_reset_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_e
   
    m_AVM_LOG_FUNC_ENTRY("avm_reset_req_adm_unlock");
 
-   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+   evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3137,7 +3137,7 @@ avm_ext_req_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
   
    m_AVM_LOG_FUNC_ENTRY("avm_ext_req_adm_soft_reset_req");
 
-   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+   evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3165,7 +3165,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
    {
       if(avm_is_this_entity_self(avm_cb, ent_info->entity_path) == TRUE)
       {
-         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg1);
+         evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg1);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3178,7 +3178,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
       }
       else
       {
-         evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+         evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3223,7 +3223,7 @@ avm_ext_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    rc = avm_hisv_api_cmd(ent_info, HS_RESOURCE_INACTIVE_SET, 0);
    if(NCSCC_RC_SUCCESS != rc)
    {  
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3254,7 +3254,7 @@ avm_ext_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
 
    uns8 *cli_msg = "Unlock can not be done on the entity in extraction pending state.";
  
-   evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+   evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
@@ -3600,7 +3600,7 @@ avm_handle_invalid_event(
 
    if( (evt->fsm_evt_type == AVM_EVT_ADM_SOFT_RESET_REQ)|| (evt->fsm_evt_type == AVM_EVT_ADM_HARD_RESET_REQ) )
    {
-      evt->evt.mib_req->rsp.add_info_len = m_NCS_OS_STRLEN(cli_msg);
+      evt->evt.mib_req->rsp.add_info_len = strlen(cli_msg);
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 

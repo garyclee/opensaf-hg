@@ -348,7 +348,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    memset(&cpnd_shm_version,'\0',sizeof(cpnd_shm_version));
    cpnd_shm_version.shm_version = CPSV_CPND_SHM_VERSION;
 
-   size = m_NCS_STRLEN("CPND_CHECKPOINT_INFO");
+   size = strlen("CPND_CHECKPOINT_INFO");
    total_length = size+sizeof(nodeid)+5;
    buffer = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
    if(buffer == NULL)

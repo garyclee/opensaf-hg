@@ -379,7 +379,7 @@ uns32 ncspssvprofiletableentry_extract(NCSMIB_PARAM_VAL* param,
    param->info.i_oct = NULL;
    if(desc_exists == TRUE)
    {
-      param->i_length = (uns16) m_NCS_STRLEN((const char *) profile_desc);
+      param->i_length = (uns16) strlen((const char *) profile_desc);
       memcpy((uns8*)buffer, (uns8*)profile_desc, param->i_length); /* Using buffer passed from MIBLIB to return OCT value. */
       param->i_fmat_id = NCSMIB_FMAT_OCT;
       param->info.i_oct = (uns8 *)buffer; /* This is not required to be freed. */
@@ -622,7 +622,7 @@ uns32 ncspssvprofiletableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
     *data = (NCSCONTEXT)inst;
     strcpy((char*)&inst->profile_extract, (char*)&profile_next);
 
-    len = m_NCS_STRLEN((const char *)profile_next);
+    len = strlen((const char *)profile_next);
     next_inst_id[0] = len;
     *next_inst_id_len = len + 1; /* Including the length - first oid */
     for (i = 0; i < len; i++)
@@ -794,21 +794,21 @@ uns32 ncspssvscalars_extract(NCSMIB_PARAM_VAL *param,
     {
     case ncsPSSvExistingProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
-       param->i_length = m_NCS_STRLEN(inst->existing_profile);
+       param->i_length = strlen(inst->existing_profile);
        memcpy((uns8 *)buffer, inst->existing_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;
 
     case ncsPSSvNewProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
-       param->i_length = m_NCS_STRLEN(inst->new_profile);
+       param->i_length = strlen(inst->new_profile);
        memcpy((uns8 *)buffer, inst->new_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;
 
     case ncsPSSvCurrentProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
-       param->i_length = m_NCS_STRLEN(inst->current_profile);
+       param->i_length = strlen(inst->current_profile);
        memcpy((uns8 *)buffer, inst->current_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;

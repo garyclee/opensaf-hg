@@ -396,14 +396,14 @@ uns32 avsv_amf_csi_attr_list_copy (SaAmfCSIAttributeListT *dattr,
    for ( cnt = 0; cnt < sattr->number; cnt++ )
    {
       /* alloc memory for attr name & value */
-      dattr->attr[cnt].attrName = m_MMGR_ALLOC_AVSV_NDA_INFO(m_NCS_STRLEN(sattr->attr[cnt].attrName));
+      dattr->attr[cnt].attrName = m_MMGR_ALLOC_AVSV_NDA_INFO(strlen(sattr->attr[cnt].attrName));
       if (!dattr->attr[cnt].attrName)
       {
          m_MMGR_FREE_AVSV_NDA_INFO(dattr->attr[cnt].attrName);
          goto done;
       }
 
-      dattr->attr[cnt].attrValue = m_MMGR_ALLOC_AVSV_NDA_INFO(m_NCS_STRLEN(sattr->attr[cnt].attrValue));
+      dattr->attr[cnt].attrValue = m_MMGR_ALLOC_AVSV_NDA_INFO(strlen(sattr->attr[cnt].attrValue));
       if (!dattr->attr[cnt].attrValue)
       {
          m_MMGR_FREE_AVSV_NDA_INFO(dattr->attr[cnt].attrName);

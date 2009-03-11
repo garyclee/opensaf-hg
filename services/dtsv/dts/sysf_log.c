@@ -93,7 +93,7 @@ uns32 dts_ascii_spec_register (NCSFL_ASCII_SPEC* spec)
 
    /* Check for the string length for svc_name, 
       should not be more than 15 chars*/ 
-   if((m_NCS_STRLEN(spec->svc_name)+1)>DTSV_SVC_NAME_MAX)
+   if((strlen(spec->svc_name)+1)>DTSV_SVC_NAME_MAX)
    {
       ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_SPEC_ERR_EVT, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLC", DTS_SPEC_SVC_NAME_ERR, 0, spec->ss_id, NULL);
       ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_SPEC_REG, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILCL", DTS_SPEC_REG_FAIL , spec->ss_id, NULL, spec->ss_ver);
@@ -433,7 +433,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
    /*m_NCS_TIME_TO_STR(tod, asc_tod);*/
    m_NCS_DATE_TIME_TO_STR(tod, asc_tod);
 
-   sysf_sprintf((asc_tod + m_NCS_STRLEN(asc_tod)) ,".%.3d",msg->hdr.time.millisecs);
+   sysf_sprintf((asc_tod + strlen(asc_tod)) ,".%.3d",msg->hdr.time.millisecs);
 
    fmat = &spec->fmat_set[msg->hdr.fmat_id];
    set  =  spec->str_set;
@@ -561,7 +561,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             }
             
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(m_NCSFL_MAKE_STR(set, idx));
-            *log_msg_len += m_NCS_STRLEN((char*)arg_list[cnt]);
+            *log_msg_len += strlen((char*)arg_list[cnt]);
             
             break;
          }
@@ -663,7 +663,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             m_MMGR_FREE_OCT(mem_d.dump);
             
             arg_list[cnt] = (long)t_str;
-            *log_msg_len += (m_NCS_STRLEN(t_str)+1);
+            *log_msg_len += (strlen(t_str)+1);
             t_str+= (*log_msg_len);
             break;
          }
@@ -693,7 +693,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
             
-            *log_msg_len += (m_NCS_STRLEN(t_str)+1);
+            *log_msg_len += (strlen(t_str)+1);
             t_str+= (*log_msg_len);
             break;
          }
@@ -703,7 +703,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             decode_ip_address(uba, &ipa);
             m_NCSFL_MAKE_STR_FRM_IPADDR(ipa, t_str);
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            *log_msg_len += (m_NCS_STRLEN(t_str)+1);
+            *log_msg_len += (strlen(t_str)+1);
             t_str+= (*log_msg_len);
             break;
          }
@@ -723,7 +723,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            t_str+=(m_NCS_STRLEN(t_str)+1);
+            t_str+=(strlen(t_str)+1);
             *log_msg_len += length;
             break;
          }
@@ -743,7 +743,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            t_str+=(m_NCS_STRLEN(t_str)+1);
+            t_str+=(strlen(t_str)+1);
             *log_msg_len += length;
             break;
          }
@@ -762,7 +762,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            t_str+=(m_NCS_STRLEN(t_str)+1);
+            t_str+=(strlen(t_str)+1);
             *log_msg_len += length;
             break;
          }
@@ -781,7 +781,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            t_str+=(m_NCS_STRLEN(t_str)+1);
+            t_str+=(strlen(t_str)+1);
             *log_msg_len += length;
             break;
          }
@@ -800,7 +800,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
 
             ncs_decode_n_octets_from_uba(uba, (uns8 *)t_str, length);
             arg_list[cnt] = NCS_PTR_TO_UNS64_CAST(t_str);
-            t_str+=(m_NCS_STRLEN(t_str)+1);
+            t_str+=(strlen(t_str)+1);
             *log_msg_len += length;
             break;
          }

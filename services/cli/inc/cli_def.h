@@ -118,7 +118,7 @@ frpm script files.
 *****************************************************************************/
 #define m_CLI_FLUSH_STR(prompt_str, console_id)\
 {\
-    uns32 index,len = m_NCS_OS_STRLEN(prompt_str);\
+    uns32 index,len = strlen(prompt_str);\
     for(index=0; index<len; index++)\
     m_NCS_CONS_PUTCHAR(prompt_str[index]);\
 }

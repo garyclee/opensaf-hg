@@ -82,7 +82,7 @@ uns32 cli_stricmp(int8 *i_str1, int8 *i_str2)
    int8  *inbuf = 0;
    uns32 i=0, len = 0, rc = 0;
    
-   for(i=0; i<m_NCS_OS_STRLEN(i_str1); i++) {
+   for(i=0; i<strlen(i_str1); i++) {
       if(i_str1[i] == CLI_CONS_BLANK_SPACE) break;    
    }
    
@@ -140,7 +140,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       memset(pCli->ctree_cb.cmdHtry, 0, sizeof(CLI_CMD_HISTORY));
       memset(&pCli->ctree_cb.htryMrkr, 0, sizeof(CLI_CMD_HISTORY_MARKER));
 
-      pCli->ctree_cb.cmdHtry->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
+      pCli->ctree_cb.cmdHtry->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(i_cmdstr)+1);
       if(!pCli->ctree_cb.cmdHtry->pCmdStr) return;
       strcpy(pCli->ctree_cb.cmdHtry->pCmdStr, i_cmdstr);      
       
@@ -177,7 +177,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       if(!pCurr) return;
       
       memset(pCurr, 0, sizeof(CLI_CMD_HISTORY));      
-      pCurr->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
+      pCurr->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(i_cmdstr)+1);
       if(!pCurr->pCmdStr) return;
       strcpy(pCurr->pCmdStr, i_cmdstr);
       
@@ -242,7 +242,7 @@ uns32 cli_move_char_backward(uns32 i_count)
 *****************************************************************************/
 uns32 cli_move_char_forward(int8 *i_buffer, uns32 i_count)
 {    
-   uns32 data_len = m_NCS_OS_STRLEN(i_buffer);
+   uns32 data_len = strlen(i_buffer);
    
    if(i_count < data_len) {
       m_NCS_CONS_PUTCHAR(i_buffer[i_count]);
@@ -336,7 +336,7 @@ uns32 cli_move_beginning_of_line(uns32 i_count)
 *****************************************************************************/
 uns32 cli_move_end_of_line(int8 *i_buffer, uns32 i_count)
 {
-   uns32 data_len = m_NCS_OS_STRLEN(i_buffer);
+   uns32 data_len = strlen(i_buffer);
    
    while(i_count < data_len) i_count = cli_move_char_forward(i_buffer, i_count);           
    return i_count;
@@ -514,7 +514,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
          m_CLI_REDISPLAY_CMD(pCli, buffer);                
          cli_display(pCli, buffer);
-         chCnt = m_NCS_OS_STRLEN(buffer);
+         chCnt = strlen(buffer);
          break; /* CONTROL(CLI_CONS_REDISPLAY_CMD) */
          
       /* delete all chars from cursor to end of cmd line */
@@ -568,7 +568,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
          cli_get_cmd_from_history(pCli, buffer, CLI_HIS_FWD_MVMT);                 
          cli_display(pCli, buffer);
-         chCnt = m_NCS_OS_STRLEN(buffer);           
+         chCnt = strlen(buffer);           
          if(is_arrow) is_arrow = FALSE;
          break; /* CONTROL(CLI_CONS_HISTORY_FWD) */
          
@@ -583,7 +583,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
          cli_get_cmd_from_history(pCli, buffer, CLI_HIS_BWD_MVMT);                 
          cli_display(pCli, buffer);
-         chCnt = m_NCS_OS_STRLEN(buffer);           
+         chCnt = strlen(buffer);           
          if(is_arrow) is_arrow = FALSE;
          break; /* CONTROL(CLI_CONS_HISTORY_BWD) */
          
@@ -617,7 +617,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             break;
          }
          
-         cmd_len = m_NCS_OS_STRLEN(buffer);
+         cmd_len = strlen(buffer);
          if (cmd_len > 0)
          {
             for(index=cmd_len-1; index>=1; index--) {
@@ -629,7 +629,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             }
          }
          
-         cmd_len = m_NCS_OS_STRLEN(buffer);
+         cmd_len = strlen(buffer);
          if(0 == cmd_len) {                    
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);
             break;
@@ -656,19 +656,19 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             /* check status */
             switch(param.o_status) {
             case CLI_ERR_FILEOPEN:
-               error_pos = (int8)(m_NCS_OS_STRLEN(session_info.prompt_string) + param.o_errpos + 1);
+               error_pos = (int8)(strlen(session_info.prompt_string) + param.o_errpos + 1);
                m_CLI_DISPLAY_ERROR_MARKER(error_pos);  
                m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_FILE_OPEN_ERROR]);                        
                break;
                
             case CLI_ERR_FILEREAD:
-               error_pos = (int8)(m_NCS_OS_STRLEN(session_info.prompt_string) + param.o_errpos + 1);
+               error_pos = (int8)(strlen(session_info.prompt_string) + param.o_errpos + 1);
                m_CLI_DISPLAY_ERROR_MARKER(error_pos);  
                m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_FILE_READ_ERROR]);                        
                break;
                
             case CLI_PASSWD_REQD:
-               error_pos = (int8)(m_NCS_OS_STRLEN(session_info.prompt_string) + param.o_errpos + 1);
+               error_pos = (int8)(strlen(session_info.prompt_string) + param.o_errpos + 1);
                m_CLI_DISPLAY_ERROR_MARKER(error_pos);  
                m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_LOGIN_CMD]);                       
                break;
@@ -735,7 +735,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             if(!pCli->ctree_cb.cmdElement) {
                m_CLI_CONS_PUTLINE(CLI_DEFAULT_HELP_STR);
                m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);                  
-               buffer[m_NCS_OS_STRLEN(buffer) - 1] = '\0';
+               buffer[strlen(buffer) - 1] = '\0';
                chCnt = 0;
                break;
             }
@@ -764,7 +764,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
                break;
 
             case CLI_NO_MATCH:
-               error_pos = (int8)(m_NCS_OS_STRLEN(session_info.prompt_string) + param.o_errpos + 1);
+               error_pos = (int8)(strlen(session_info.prompt_string) + param.o_errpos + 1);
                m_CLI_DISPLAY_ERROR_MARKER(error_pos);  
                m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_INVALID_CMD]);
                
@@ -811,7 +811,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
                if(CLI_HELP_NEXT_LEVEL == param.i_cmdtype) {
                   switch(param.o_status) {
                   case CLI_NO_MATCH:
-                     error_pos = (int8)(m_NCS_OS_STRLEN(
+                     error_pos = (int8)(strlen(
                         session_info.prompt_string) +
                         param.o_errpos + 1);
                      m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_UNRECOGNISED_CMD]);
@@ -881,7 +881,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(0 == pCli->ctree_cb.cmdElement) {
             m_CLI_CONS_PUTLINE(CLI_DEFAULT_HELP_STR);
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);                  
-            buffer[m_NCS_OS_STRLEN(buffer) - 1] = '\0';
+            buffer[strlen(buffer) - 1] = '\0';
             chCnt = 0;
             break;
          }
@@ -896,7 +896,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             break;
 
          case CLI_NO_MATCH:
-            error_pos = (int8)(m_NCS_OS_STRLEN(
+            error_pos = (int8)(strlen(
                session_info.prompt_string) +
                param.o_errpos + 1);
             m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_UNRECOGNISED_CMD]);
@@ -928,7 +928,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          }
          
          /*Push the command into the the command history list */
-         buffer[m_NCS_OS_STRLEN(buffer)-1] = ' ';
+         buffer[strlen(buffer)-1] = ' ';
          cli_set_cmd_into_history(pCli, buffer);
          
          m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);
@@ -937,7 +937,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(CLI_PARTIAL_MATCH == param.o_status || 
             CLI_SUCCESSFULL_MATCH == param.o_status) {
             
-            buffer[m_NCS_OS_STRLEN(buffer) - 1] = '\0';
+            buffer[strlen(buffer) - 1] = '\0';
             cli_display(pCli, buffer);
             chCnt--;
          }
@@ -970,7 +970,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(0 == pCli->ctree_cb.cmdElement) {
             m_CLI_CONS_PUTLINE(CLI_DEFAULT_HELP_STR);
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);                  
-            buffer[m_NCS_OS_STRLEN(buffer) - 1] = '\0';
+            buffer[strlen(buffer) - 1] = '\0';
             chCnt = 0;
             break;
          }
@@ -982,7 +982,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             param.o_status == CLI_PARTIAL_MATCH) {
             strcat(param.o_hotkey.tabstring, " ");
             cli_display(pCli, param.o_hotkey.tabstring);                    
-            chCnt += m_NCS_OS_STRLEN(param.o_hotkey.tabstring);
+            chCnt += strlen(param.o_hotkey.tabstring);
             strcat(buffer, param.o_hotkey.tabstring);                    
          }
          else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);               
@@ -1053,8 +1053,8 @@ void cli_current_mode_exit(CLI_CB *pCli, CLI_SESSION_INFO *io_session_info,
    if((context_node) && (0 != strcmp(context_node->name, CLI_ROOT_NODE))) {
       prev_mode = strrchr(io_session_info->prompt_string, '-');
       if(0 != prev_mode)
-         io_session_info->prompt_string[m_NCS_OS_STRLEN(io_session_info->prompt_string)
-         - m_NCS_OS_STRLEN(prev_mode)] = '\0';
+         io_session_info->prompt_string[strlen(io_session_info->prompt_string)
+         - strlen(prev_mode)] = '\0';
       m_CLI_SET_PROMPT(io_session_info->prompt_string, io_display_flag);
    }
    else {                
@@ -1234,7 +1234,7 @@ uns32 cli_clean_cmds(CLI_CB *pCli, NCSCLI_DEREG_CMD_LIST *list)
    
    /* Reset all marker */   
    cli_reset_all_marker(pCli);
-   if(0 != m_NCS_OS_STRLEN(list->i_node)) {
+   if(0 != strlen(list->i_node)) {
       /* Locate the Node subtree thats needs to be cleaned-up */
       if(NCSCC_RC_SUCCESS != cli_parse_node(pCli, &cmdlist, FALSE))
       {
@@ -1327,7 +1327,7 @@ uns32 cli_clean_mode(CLI_CB *pCli, int8 *node)
    
    /* Reset all marker */   
    cli_reset_all_marker(pCli);
-   if(0 != m_NCS_OS_STRLEN(node)) {
+   if(0 != strlen(node)) {
       /* Locate the Node subtree thats needs to be cleaned-up */
       if(NCSCC_RC_SUCCESS != cli_parse_node(pCli, &cmdlist, FALSE)) {
          /* Invalid path of the node specified */
@@ -1414,7 +1414,7 @@ cli_exec_cmd_from_file(CLI_CB *pCli, CLI_EXECUTE_PARAM *io_param,
       m_GET_TIME_STAMP(pCli->cli_last_active_time);/*Added to fix bug 58609 */
       
       if(cmdStr == NULL) break;      
-      if(m_NCS_OS_STRLEN(cmdStr) == 0) break;
+      if(strlen(cmdStr) == 0) break;
       
       m_CLI_GET_CURRENT_CONTEXT(pCli, context_node);
       if(!context_node) {                    
@@ -1453,7 +1453,7 @@ cli_exec_cmd_from_file(CLI_CB *pCli, CLI_EXECUTE_PARAM *io_param,
       /* Check return status */
       switch(io_param->o_status) {
       case CLI_NO_MATCH:
-         error_pos = (int8)(m_NCS_OS_STRLEN(o_session->prompt_string)
+         error_pos = (int8)(strlen(o_session->prompt_string)
             + io_param->o_errpos + 1);
          m_CLI_DISPLAY_ERROR_MARKER(error_pos);  
          m_CLI_CONS_PUTLINE(cli_con_err_str[CLI_CONS_INVALID_CMD]);   

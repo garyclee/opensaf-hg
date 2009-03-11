@@ -2006,7 +2006,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
       break;
 
    case PSS_CKPT_DATA_BAM_CONF_DONE:
-      len = m_NCS_STRLEN(mab_msg->data.data.bam_conf_done.pcn_list.pcn);
+      len = strlen(mab_msg->data.data.bam_conf_done.pcn_list.pcn);
       if((msg.ckpt_data.bam_conf_done.pcn_list.pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len+1)) == NULL)
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_PCN_STRING_ALLOC_FAIL,
@@ -2090,7 +2090,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
          uns16 len = 0;
          char *src_pcn = (char *)i_msg; /* Input is the PCN string itself */
 
-         len = m_NCS_STRLEN(src_pcn);
+         len = strlen(src_pcn);
          if((msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len+1))
             == NULL)
          {
@@ -2165,7 +2165,7 @@ uns32 pss_duplicate_pcn_list(MAB_PSS_CLIENT_LIST *src, MAB_PSS_CLIENT_LIST *dest
       return NCSCC_RC_SUCCESS;
    }
 
-   len = m_NCS_STRLEN(src->pcn);
+   len = strlen(src->pcn);
    if((dest->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len+1)) == NULL)
    {
       m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_PCN_STRING_ALLOC_FAIL,
@@ -2259,7 +2259,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
    
    if(src->pcn != NULL)
    {
-      len = m_NCS_STRLEN(src->pcn);
+      len = strlen(src->pcn);
       if((dst->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len + 1)) == NULL)
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_PCN_STRING_ALLOC_FAIL,
@@ -2359,7 +2359,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
       o_req->next = NULL;   /* safety measure */
       if(in_req->pcn_list.pcn != NULL)
       {
-         len = m_NCS_STRLEN(in_req->pcn_list.pcn);
+         len = strlen(in_req->pcn_list.pcn);
          o_req->pcn_list.pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len + 1);
          if(o_req->pcn_list.pcn == NULL)
          {
@@ -2873,7 +2873,7 @@ uns32 pss_ckpt_enc_plbck_ssn_info(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba, PSS_CKPT_P
       /* This should be sent only once. */
       if(plbck_ssn->pcn == NULL)
       {
-         uns16 str_len = m_NCS_STRLEN((char*)plbck_ssn->info.alt_profile);
+         uns16 str_len = strlen((char*)plbck_ssn->info.alt_profile);
 
          p8 = ncs_enc_reserve_space(uba, 2);
          if(p8 == NULL)
@@ -3775,7 +3775,7 @@ uns32 pss_re_update_pend_wbreq_info(PSS_PWE_CB *pwe_cb,
 uns32 pss_encode_str(NCS_UBAID *uba, char *str_ptr)
 {
     uns8*    data;
-    uns16    len = m_NCS_STRLEN(str_ptr);
+    uns16    len = strlen(str_ptr);
 
     if(str_ptr == NULL)
     {
@@ -3855,7 +3855,7 @@ uns32 pss_decode_str(NCS_UBAID *uba, char *p_str)
 uns32 pss_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
     uns8*    data;
-    uns16    len = m_NCS_STRLEN(pcn);
+    uns16    len = strlen(pcn);
 
     if(pcn == NULL)
     {

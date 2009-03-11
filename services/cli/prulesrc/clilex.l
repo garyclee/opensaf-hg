@@ -91,7 +91,7 @@ NCSCLI_WILDCARD  {
                     /* token - Parameter (wildcard) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_WILDCARD);
                 }
@@ -100,7 +100,7 @@ NCSCLI_MACADDR   {
                     /* token - Parameter (MacAddress) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_MACADDR);
                 }
@@ -109,7 +109,7 @@ NCSCLI_COMMUNITY {
                     /* token - Parameter (Ipv4Address/Ipv4Mask) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_COMMUNITY);
                 }
@@ -119,7 +119,7 @@ NCSCLI_CIDRV4    {
                     /* token - Parameter (Ipv4Address/Ipv4Mask) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_CIDRv4);
                 }
@@ -128,7 +128,7 @@ NCSCLI_IPV6      {
                     /* token - Parameter(IP-Addressv6) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                            
+                    lexCli->par_cb.chCnt += strlen(yytext);                            
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_IPADDRv6);
                 }   
@@ -138,7 +138,7 @@ NCSCLI_IPV4 |
                     /* token - Parameter(IP-Addressv4) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_IPADDRv4);
                 }
@@ -148,7 +148,7 @@ NCSCLI_MASKV4   {
                     /* token - Parameter(IP-Address Maskv4) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                 
+                    lexCli->par_cb.chCnt += strlen(yytext);                 
                     return (CLI_TOK_MASKv4);
                 }
                  
@@ -157,7 +157,7 @@ NCSCLI_CIDRV6   {
                     /* token - Parameter(IP-Address Maskv6) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_CIDRv6);
                 }                      
  
@@ -166,7 +166,7 @@ NCSCLI_NUMBER |
                     /* token - Parameter(Number) */                    
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_NUMBER);                        
                 }
@@ -177,7 +177,7 @@ NCSCLI_NUMBER |
                        lower case */
                     m_CHECK_CONTINOUS_EXP_ERR();
                        
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);   
+                    lexCli->par_cb.chCnt += strlen(yytext);   
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_KEYWORD);                   
                 }
@@ -185,7 +185,7 @@ NCSCLI_NUMBER |
 NCSCLI_PASSWORD  {
                     /* token - Password */
                     /* A alfha numeric characters */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_PASSWORD);              
                 }               
@@ -196,32 +196,32 @@ NCSCLI_PASSWORD  {
                        in upper case */
                     m_CHECK_CONTINOUS_EXP_ERR();
                        
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);   
+                    lexCli->par_cb.chCnt += strlen(yytext);   
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_PARAM);                 
                 }               
                 
 {range}         {
                     /* token - Range */ 
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RANGE);
                 }
                     
 {default_val}   {
                     /* Default value associated with the token */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return(CLI_TOK_DEFAULT_VAL);
                 }
                 
 {help_str}      {               
                     /* Help string associated with the token */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                    
+                    lexCli->par_cb.chCnt += strlen(yytext);                    
                     return (CLI_TOK_HELP_STR);
                 }
                 
 {mode_change}   {
                     /* Node change string associated with the token */              
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_MODE_CHANGE);
                 }
 
@@ -235,14 +235,14 @@ NCSCLI_PASSWORD  {
                         par_log_error(CLI_TOK_CONTINOUS_EXP);       
                         lexCli->par_cb.errFlag = TRUE;
                     }
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     lexCli->par_cb.cont_expFlag = TRUE;
                     return (CLI_TOK_CONTINOUS_EXP);             
                 }
                      
 [\t ]+          {
                     /* token - white space */                       
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     ; /* ignore white space */
                 }
 
@@ -316,13 +316,13 @@ NCSCLI_PASSWORD  {
                     /* token - Group start brace */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LCURLYBRACE);
                 }                           
                     
 {rcurlybrace}   {
                     /* token - Group end brace */                    
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RCURLYBRACE);
                 }   
 
@@ -330,13 +330,13 @@ NCSCLI_PASSWORD  {
                     /* token - Optional start brace */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LBRACE);
                 }                           
                     
 {rbrace}        {
                     /* token - Optional end brace */                                                                
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RBRACE);                    
                 }                                           
                 
@@ -344,7 +344,7 @@ NCSCLI_PASSWORD  {
                     /* token - or */ 
                     if(lexCli->par_cb.grpCntr == 0 && lexCli->par_cb.cont_expFlag) 
                         lexCli->par_cb.cont_expFlag = FALSE; 
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_OR);
                 }
                 
@@ -352,13 +352,13 @@ NCSCLI_PASSWORD  {
                     /* token - Less than */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LESS_THAN);
                 }
                 
 {grtr_than}     {
                     /* token - Greater than */                    
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_GRTR_THAN);
                 }
                 

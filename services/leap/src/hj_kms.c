@@ -458,7 +458,7 @@ uns32 kms_kre_insert(KMS_REC_ENTRY** anchor,
     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
   memset(new_kre,0,sizeof(KMS_REC_ENTRY));
   new_kre->rec.pwe_id = pwe_id;
-  new_kre->rec.name = m_NCS_MEM_ALLOC((m_NCS_STRLEN(name) + 1) * sizeof(char),
+  new_kre->rec.name = m_NCS_MEM_ALLOC((strlen(name) + 1) * sizeof(char),
                                       NCS_MEM_REGION_PERSISTENT,
                                       NCS_SERVICE_ID_COMMON,30); 
     

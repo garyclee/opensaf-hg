@@ -933,7 +933,7 @@ extract_phy_addr(char *i_str, uns8 *o_phy)
       return NCSCC_RC_FAILURE;
    }
    
-   temp_var = m_NCS_STRLEN(i_str);
+   temp_var = strlen(i_str);
    for (temp_cnt =0; ((temp_cnt < temp_var) && (phy_offset < 6)); temp_cnt++)
    {
       if (i_str[temp_cnt] != ':')
@@ -973,7 +973,7 @@ conv_str_to_byte_hex(char *i_str)
    uns32 str_size;
    uns32 value = 0;
 
-   str_size = m_NCS_STRLEN(i_str);
+   str_size = strlen(i_str);
    for (temp_cnt = 0; temp_cnt < str_size; temp_cnt++)
    {
       temp_var = find_hex_value(i_str[temp_cnt]);

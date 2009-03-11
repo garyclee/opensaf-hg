@@ -178,7 +178,7 @@ uns32 pss_bam_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 uns32 pss_bam_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
    uns8*    data;
-   uns16    len = m_NCS_OS_STRLEN(pcn);
+   uns16    len = strlen(pcn);
 
    if(pcn == NULL)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);

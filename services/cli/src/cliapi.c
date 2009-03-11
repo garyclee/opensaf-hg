@@ -692,7 +692,7 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
    cli_cb_main_lock(pCli);
 
    cli_reset_all_marker(pCli);
-   if(0 != m_NCS_OS_STRLEN(info->i_cmdlist->i_node))
+   if(0 != strlen(info->i_cmdlist->i_node))
       cli_parse_node(pCli, info->i_cmdlist, TRUE);
    else {
       cli_cb_main_unlock(pCli);
@@ -896,21 +896,21 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
         /* Load ncs cli user group names(59359) */
         if( strcmp(arg1,"NCS_CLI_SUPERUSER_GROUP")  == 0 )
         {
-            if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
+            if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_superuser,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the SUPERUSER GROUP given in configuration file is greater than %d . So default superuser group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( strcmp(arg1,"NCS_CLI_ADMIN_GROUP")  == 0 )
         {
-            if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
+            if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_admin,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the ADMIN GROUP given in configuration file is greater than %d . So default admin group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( strcmp(arg1,"NCS_CLI_VIEWER_GROUP")  == 0 )
         {
-            if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
+            if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_viewer,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the VIEWER GROUP given in configuration file is greater than %d . So default viewer group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;

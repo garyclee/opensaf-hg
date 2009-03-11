@@ -216,7 +216,7 @@ eds_dump_reglist()
             num_subscriptions++;
             /* Loop, appending subscription IDs to string */
             sprintf(bp," %9u ", s->subsc_rec->subscript_id);
-            bp = buff + (m_NCS_STRLEN(buff));
+            bp = buff + (strlen(buff));
 
             /* Close to end of buffer? */
             if ((bp-buff >= sizeof(buff)-12) &&
@@ -228,7 +228,7 @@ eds_dump_reglist()
 
                /* Space over the continuation line */
                sprintf(bp, "%24s", " ");
-               bp = buff + (m_NCS_STRLEN(buff));
+               bp = buff + (strlen(buff));
             }                    
             s = s->next;
          }
@@ -323,14 +323,14 @@ eds_dump_worklist()
       while(co)  /* While there are channelOpen entries... */
       {
          sprintf(bp, "%10d:%-6d", co->chan_open_id, co->reg_id);
-         bp = buff + (m_NCS_STRLEN(buff));
+         bp = buff + (strlen(buff));
          s = co->subsc_rec_head;
          while(s)   /* While there are subscription entries... */
          {
             num_subscriptions++;
             /* Loop, appending subscription IDs to string */
             sprintf(bp," %12u", s->subscript_id);
-            bp = buff + (m_NCS_STRLEN(buff));
+            bp = buff + (strlen(buff));
 
             /* Close to end of buffer? */
             if ((bp-buff >= sizeof(buff)-(INT_WIDTH_8*2)) &&
@@ -342,7 +342,7 @@ eds_dump_worklist()
 
                /* Space over the continuation line */
                sprintf(bp, "%25s", " ");
-               bp = buff + (m_NCS_STRLEN(buff));
+               bp = buff + (strlen(buff));
             }                    
             s = s->next;
          }

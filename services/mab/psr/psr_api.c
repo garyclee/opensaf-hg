@@ -230,7 +230,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
     }
 
     tbl_info->ptbl_info->status_field = tbl_owned->tbl_info.status_field;
-    if(m_NCS_STRLEN(tbl_owned->tbl_info.mib_tbl_name) >= (PSS_MIB_TBL_NAME_LEN_MAX-1))
+    if(strlen(tbl_owned->tbl_info.mib_tbl_name) >= (PSS_MIB_TBL_NAME_LEN_MAX-1))
     {
        /* Truncate and store */
        strncpy((char*)&tbl_info->ptbl_info->mib_tbl_name, (char*)tbl_owned->tbl_info.mib_tbl_name, (PSS_MIB_TBL_NAME_LEN_MAX-1));
@@ -1077,8 +1077,8 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
     {
         uns32 str_len = 0, src_str_len = 0;
 
-        str_len = m_NCS_STRLEN(&pcn);
-        src_str_len = m_NCS_STRLEN(&source);
+        str_len = strlen(&pcn);
+        src_str_len = strlen(&source);
         if(src_str_len == 0) /* Ignore this line */
            continue;
         if(strcmp(&source, m_PSS_SPCN_SOURCE_BAM) == 0)

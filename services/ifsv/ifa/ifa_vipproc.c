@@ -170,14 +170,14 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
         instArg->o_err = NCSCC_RC_INVALID_VIP_HANDLE;
         return NCSCC_RC_FAILURE;
      }
-     if(m_NCS_STRLEN(instArg->i_handle.vipApplName) == 0)
+     if(strlen(instArg->i_handle.vipApplName) == 0)
      {
         /* LOG: NULL APPLICATION NAME */
         m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFA,IFSV_VIP_NULL_APPL_NAME);
         instArg->o_err = NCSCC_RC_NULL_APPLNAME;
         return NCSCC_RC_FAILURE;
      }
-     if(m_NCS_STRLEN(instArg->i_handle.vipApplName) > m_NCS_IFSV_VIP_APPL_NAME)
+     if(strlen(instArg->i_handle.vipApplName) > m_NCS_IFSV_VIP_APPL_NAME)
      {
         /* LOG: NULL APPLICATION NAME */
         m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFA,IFSV_VIP_NULL_APPL_NAME);
@@ -406,7 +406,7 @@ ncs_ifsv_vip_free(IFA_CB *pifa_cb , NCS_IFSV_VIP_FREE *pFreeArg)
       pFreeArg->o_err = NCSCC_RC_INVALID_VIP_HANDLE;
       return NCSCC_RC_FAILURE;
    }
-   if(m_NCS_STRLEN(pFreeArg->i_handle.vipApplName) == 0)
+   if(strlen(pFreeArg->i_handle.vipApplName) == 0)
    {
       /* LOG : NULL APPLICATION NAME */
       m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFA,IFSV_VIP_NULL_APPL_NAME);

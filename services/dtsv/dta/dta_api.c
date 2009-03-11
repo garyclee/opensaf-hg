@@ -345,7 +345,7 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
             "dta_reg_svc: DTA does not exist. First create DTA before registering your service.", svc_id);
     }
    
-    if((m_NCS_STRLEN(bind_svc->svc_name)+1) > DTSV_SVC_NAME_MAX)
+    if((strlen(bind_svc->svc_name)+1) > DTSV_SVC_NAME_MAX)
        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: Service name supplied in registration is either too long or not properly initialized", svc_id);
  
     m_DTA_LK(&inst->lock);
@@ -845,7 +845,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
     }
         
     if (NCSCC_RC_SUCCESS != dta_copy_octets(&hdr->fmat_type,
-        fmat_type, (uns16)(1+m_NCS_STRLEN(fmat_type))))
+        fmat_type, (uns16)(1+strlen(fmat_type))))
     {
        m_DTA_UNLK(&inst->lock);
        m_MMGR_FREE_DTSV_MSG(msg);
@@ -921,7 +921,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                     "ncs_logmsg: NULL string passed for format type 'C'", svc_id);
                 }
                 
-                length = m_NCS_STRLEN(str) + 1;
+                length = strlen(str) + 1;
 
                 if (length > (DTS_MAX_SIZE_DATA * 3))
                 {  
@@ -1067,7 +1067,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                     warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Float to string conversion gives NULL");
                    goto reserve_error;
                 }
-                length = m_NCS_STRLEN(str) + 1;
+                length = strlen(str) + 1;
                 data = ncs_enc_reserve_space(uba, sizeof(uns32));
                 if(data == NULL)
                   goto reserve_error;
@@ -1103,7 +1103,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                    goto reserve_error;
                 }
 
-                length = m_NCS_STRLEN(str) + 1;
+                length = strlen(str) + 1;
                 data = ncs_enc_reserve_space(uba, sizeof(uns32));
                 if(data == NULL)
                   goto reserve_error;
@@ -1138,7 +1138,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                    goto reserve_error;
                 }
 
-                length = m_NCS_STRLEN(str) + 1;
+                length = strlen(str) + 1;
                 data = ncs_enc_reserve_space(uba, sizeof(uns32));
                 if(data == NULL)
                   goto reserve_error;
@@ -1174,7 +1174,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                    goto reserve_error;
                 }
 
-                length = m_NCS_STRLEN(str) + 1;
+                length = strlen(str) + 1;
                 data = ncs_enc_reserve_space(uba, sizeof(uns32));
                 if(data == NULL)
                   goto reserve_error;

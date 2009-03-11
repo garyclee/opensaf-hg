@@ -262,7 +262,7 @@ vip_show_single_entry_CEF(NCSCLI_ARG_SET *p_arg_list,
      p_vip_mode_data = (NCS_CLI_MODE_DATA *)p_cef_data->i_subsys->i_cef_mode;
  
  
-     idxs[tot_len_cnt++] = m_NCS_STRLEN(p_vip_mode_data->vipApplName);
+     idxs[tot_len_cnt++] = strlen(p_vip_mode_data->vipApplName);
      for(slen_ctr=0; slen_ctr < idxs[0];tot_len_cnt++, slen_ctr++)
      {
          idxs[tot_len_cnt] = p_vip_mode_data->vipApplName[slen_ctr];/* Index: 1*/
@@ -357,7 +357,7 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
 
    p_cef_data->i_subsys->i_cef_mode = (void *)p_vip_mode_data;
 
-   if(m_NCS_STRLEN(p_vip_mode_data->vipApplName) == 0)  
+   if(strlen(p_vip_mode_data->vipApplName) == 0)  
    {
       m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_CLI, IFSV_VIP_CLI_INVALID_APPL_NAME_INPUT_TO_CLI);
       return NCSCC_RC_FAILURE;
@@ -368,7 +368,7 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
       return NCSCC_RC_FAILURE;
    }
 
-    idxs[tot_len_cnt++] = m_NCS_STRLEN(p_vip_mode_data->vipApplName);
+    idxs[tot_len_cnt++] = strlen(p_vip_mode_data->vipApplName);
     for(slen_ctr=0; slen_ctr < idxs[0];tot_len_cnt++, slen_ctr++)
     {
         idxs[tot_len_cnt] = p_vip_mode_data->vipApplName[slen_ctr];/* Index: 1*/

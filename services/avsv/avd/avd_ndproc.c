@@ -759,7 +759,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
          break;
       case saAmfCompCurrProxyName_ID:
          if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == 
-               m_NCS_STRLEN(n2d_msg->msg_info.n2d_data_req.param_info.value))
+               strlen(n2d_msg->msg_info.n2d_data_req.param_info.value))
          {
             l_val = n2d_msg->msg_info.n2d_data_req.param_info.value_len;
             comp->proxy_comp_name_net.length = m_NCS_OS_HTONS(l_val);

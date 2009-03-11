@@ -233,7 +233,7 @@ static uns32 rde_rda_write_msg(int fd, char *msg)
     *                                                               *
    \***************************************************************/
 
-   msg_size = send   (fd, msg, m_NCS_OS_STRLEN (msg) + 1, 0);
+   msg_size = send   (fd, msg, strlen (msg) + 1, 0);
    if (msg_size < 0)
    {
       if (errno != EINTR && errno != EWOULDBLOCK)

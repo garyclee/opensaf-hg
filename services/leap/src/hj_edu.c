@@ -1000,7 +1000,7 @@ uns32 ncs_edu_prfm_enc_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         newptr = (NCSCONTEXT)((long)ptr + (long)rule->fld5);
         if(rule->fld1 == ncs_edp_char)
         {
-            uns16 str_len = m_NCS_STRLEN((char*)newptr);
+            uns16 str_len = strlen((char*)newptr);
 
             /* Encode in the form of character string, rather than an array of
                characters. */

@@ -64,7 +64,7 @@ uns32 hpl_resource_reset(uns32 chassis_id, uns8 *entity_path, uns32 reset_type)
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -158,7 +158,7 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -395,7 +395,7 @@ uns32 hpl_config_hs_indicator(uns32 chassis_id, uns8 *entity_path,
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -487,7 +487,7 @@ uns32 hpl_config_hs_state_get(uns32 chassis_id, uns8 *entity_path, uns32 *arg)
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -575,7 +575,7 @@ uns32 hpl_config_hs_autoextract(uns32 chassis_id, uns8 *entity_path,
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -681,7 +681,7 @@ uns32 hpl_manage_hotswap(uns32 chassis_id, uns8 *entity_path,
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -993,7 +993,7 @@ uns32 hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
    HPL_TLV  *hpl_tlv;
 
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       rc = NCSCC_RC_FAILURE;
       return rc;
@@ -1133,7 +1133,7 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
    uns32     status_len = sizeof(uns32);
    memset(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       m_NCS_CONS_PRINTF("hpl_bootbank_get : Error - Entity path supplied is wrong\n");
       return NCSCC_RC_FAILURE;
@@ -1230,7 +1230,7 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
 
    memset(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
-   if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
+   if ((entity_path == NULL) || ((epath_len = (uns16)strlen(entity_path)) == 0) )
    {
       m_NCS_CONS_PRINTF("hpl_bootbank_set : Error - Entity path supplied is wrong\n");
       return NCSCC_RC_FAILURE;

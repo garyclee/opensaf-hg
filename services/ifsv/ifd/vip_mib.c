@@ -368,13 +368,13 @@ uns32 get_next_tbl_entry(IFSV_CB *cb,
                                  arg->i_idx.i_inst_ids);
 
        /* Can't be NULL */
-       if((m_NCS_STRLEN(vip_handle.vipApplName) == 0) || (vip_handle.poolHdl) == 0)
+       if((strlen(vip_handle.vipApplName) == 0) || (vip_handle.poolHdl) == 0)
        {
           m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_GET_NEXT_INVALID_INDEX_RECEIVED);
           return NCSCC_RC_NO_INSTANCE;
        }
    
-       if( (ip_intf_data.ipaddress == 0) && (m_NCS_STRLEN(ip_intf_data.interface_name) == 0) )
+       if( (ip_intf_data.ipaddress == 0) && (strlen(ip_intf_data.interface_name) == 0) )
        {
                /*Case of Single Entry Show in CLI */
           if((*p_vip_rec = 
@@ -410,7 +410,7 @@ uns32 get_next_tbl_entry(IFSV_CB *cb,
                       return NCSCC_RC_FAILURE;
                }
       
-               if(m_NCS_STRLEN(ip_intf_data.interface_name) == 0)
+               if(strlen(ip_intf_data.interface_name) == 0)
                {
                   if( (intf_node = m_NCS_DBLIST_FIND_FIRST(&(*p_vip_rec)->intf_list)) != NULL)
                   {

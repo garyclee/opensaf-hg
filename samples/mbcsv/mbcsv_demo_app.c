@@ -429,7 +429,7 @@ void mbcsv_print_fake_ss_data()
             strftime((char *)(asc_tod), 40,
                "%d%b%Y_%H.%M.%S", localtime(&tod));
             /*m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);*/
-            sysf_sprintf((asc_tod + m_NCS_STRLEN(asc_tod)) ,
+            sysf_sprintf((asc_tod + strlen(asc_tod)) ,
                ".%.3d",ss_cb[i].my_ckpt[j].my_data[loop].time.millisecs);
             } else
               {

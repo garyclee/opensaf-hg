@@ -168,8 +168,6 @@ extern LEAPDLL_API int get_char_from_gui();
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
 #define m_NCS_ASSERT(exp)       m_NCS_OS_ASSERT(exp)
 
-#define m_NCS_STRLEN(s)         m_NCS_OS_STRLEN(s)
-
 #define m_NCS_STRCSPN(s,d)      m_NCS_OS_STRCSPN(s,d)
 
 /* Caution:  This macro is not THREAD SAFE. 

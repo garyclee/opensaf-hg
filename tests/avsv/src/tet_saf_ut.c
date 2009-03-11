@@ -1889,7 +1889,7 @@ void tet_saf_pm_start(int sub_test_arg)
            {
               SaNameT  SaCompName;
               strcpy(SaCompName.value,"Invalid_Comp");
-              SaCompName.length = m_NCS_STRLEN("Invalid_Comp");
+              SaCompName.length = strlen("Invalid_Comp");
            if(saAmfPmStart(gl_TetSafHandle, &SaCompName, getpid(), 0, 1,SA_AMF_COMPONENT_RESTART) == SA_AIS_ERR_NOT_EXIST)
               tet_result(TET_PASS);
            else
@@ -2147,7 +2147,7 @@ void tet_saf_pm_stop(int sub_test_arg)
            {
               SaNameT  SaCompName;
               strcpy(SaCompName.value,"Invalid_Comp");
-              SaCompName.length = m_NCS_STRLEN("Invalid_Comp");
+              SaCompName.length = strlen("Invalid_Comp");
            if(saAmfPmStop(gl_TetSafHandle, &SaCompName, SA_AMF_PM_ALL_PROCESSES, getpid(), 1) == SA_AIS_ERR_NOT_EXIST)
               tet_result(TET_PASS);
            else

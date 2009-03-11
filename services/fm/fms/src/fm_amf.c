@@ -327,7 +327,7 @@ static uns32 fm_amf_register (FM_AMF_CB *fm_amf_cb)
    uns32          res = NCSCC_RC_SUCCESS;
    SaNameT        sname;
    
-   sname.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
+   sname.length = strlen(fm_amf_cb->comp_name);
    strcpy(sname.value,fm_amf_cb->comp_name);
 
    /* 
@@ -360,7 +360,7 @@ static uns32 fm_amf_unregister (FM_AMF_CB *fm_amf_cb)
    uns32          res = NCSCC_RC_SUCCESS;
    SaNameT        sname;
    
-   sname.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
+   sname.length = strlen(fm_amf_cb->comp_name);
    strcpy(sname.value, fm_amf_cb->comp_name);
 
    /* 
@@ -401,7 +401,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    */   
    memset(&SaCompName,0,sizeof(SaCompName));
    strcpy(SaCompName.value, fm_amf_cb->comp_name);
-   SaCompName.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
+   SaCompName.length = strlen(fm_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
    phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("FM_HA_ENV_HEALTHCHECK_KEY");
@@ -417,7 +417,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
       strcpy(hlth_str, phlth_ptr);
    }
    strcpy(Healthy.key, hlth_str);
-   Healthy.keyLen = m_NCS_OS_STRLEN(Healthy.key);
+   Healthy.keyLen = strlen(Healthy.key);
 
   
    amf_error = saAmfHealthcheckStart(fm_amf_cb->amf_hdl,&SaCompName,&Healthy,
@@ -714,7 +714,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Check if component name is empty
    */
-   if (m_NCS_OS_STRLEN (comp_name) == 0)
+   if (strlen (comp_name) == 0)
    {
       return NCSCC_RC_FAILURE;
    }
@@ -725,7 +725,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Check if health check key is empty
    */
-   if (m_NCS_OS_STRLEN (pc) == 0)
+   if (strlen (pc) == 0)
    {
       return NCSCC_RC_FAILURE;
    }

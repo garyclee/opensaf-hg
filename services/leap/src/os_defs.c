@@ -188,7 +188,7 @@ getversion(void)
         fgets(verstr, 127, fp);
         verstr[127] = '\0';
         fclose(fp);
-        if(5 <= m_NCS_OS_STRLEN(verstr));
+        if(5 <= strlen(verstr));
         {
            if(0 == strncmp("2.4.7", verstr, 5))
            {
@@ -2271,7 +2271,7 @@ ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 * outle
         strcat(outstr, ++str);
         strcat(outstr, "\n");
     }
-    *outlen = m_NCS_OS_STRLEN(outstr);
+    *outlen = strlen(outstr);
 
     free(symbolnames);
 

@@ -113,7 +113,7 @@ eds_cb_destroy(EDS_CB *eds_cb)
 void eds_init_mib_objects(EDS_CB *cb)
 {
    strcpy(cb->scalar_objects.version.value,"B.03.01");
-   cb->scalar_objects.version.length=m_NCS_STRLEN("B.03.01");
+   cb->scalar_objects.version.length=strlen("B.03.01");
    m_GET_MY_VENDOR(cb->scalar_objects.vendor);
    cb->scalar_objects.prod_rev=2;
    cb->scalar_objects.svc_status=FALSE;

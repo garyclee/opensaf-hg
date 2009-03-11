@@ -1654,7 +1654,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             mib.req.info.cli_req.i_cmnd_id = dtsvAddGlobalConsole;
             /* retrieve the console device string */
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {
@@ -1694,7 +1694,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* remove global console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvGlobalConsole;
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {
@@ -1743,7 +1743,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             mib.req.info.cli_req.i_cmnd_id = dtsvAddNodeConsole;
             /* retrieve the console device string */
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {
@@ -1785,7 +1785,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* remove Node console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvNodeConsole;
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {
@@ -1830,7 +1830,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             mib.req.info.cli_req.i_cmnd_id = dtsvAddSvcConsole;
             /* retrieve the console device string */
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {
@@ -1872,7 +1872,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* remove Service console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvSvcConsole;
             cons_str = arg_list->i_arg_record[5].cmd.strval;
-            str_len = m_NCS_STRLEN(cons_str);
+            str_len = strlen(cons_str);
             /* Console device string shouldn't be more than 20 chars */
             if(str_len > DTS_CONS_DEV_MAX)
             {

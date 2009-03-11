@@ -370,7 +370,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     m_BUFR_STUFF_OWNER(lcl_uba.start);
 
     str_ptr = arg_list->i_arg_record[2].cmd.strval;
-    str_len = m_NCS_STRLEN(str_ptr);
+    str_len = strlen(str_ptr);
     if(str_len > 255)
     {
       m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): PCN length more than 255 characters....");
@@ -447,9 +447,9 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     str_ptr = arg_list->i_arg_record[2].cmd.strval;
     file_name = arg_list->i_arg_record[3].cmd.strval;
     pcn_name = arg_list->i_arg_record[4].cmd.strval;
-    str_len = m_NCS_STRLEN(str_ptr);
-    file_str_len = m_NCS_STRLEN(file_name);
-    pcn_str_len = m_NCS_STRLEN(pcn_name);
+    str_len = strlen(str_ptr);
+    file_str_len = strlen(file_name);
+    pcn_str_len = strlen(pcn_name);
 
     fh = sysf_fopen(file_name, "a+");
     if(fh == NULL)
@@ -583,7 +583,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
     m_BUFR_STUFF_OWNER(lcl_uba.start);
 
     str_ptr = arg_list->i_arg_record[2].cmd.strval;
-    str_len = m_NCS_STRLEN(str_ptr) + 1;
+    str_len = strlen(str_ptr) + 1;
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
@@ -1255,7 +1255,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       ncsmib_arg.i_xch_id  = xch_id++;
       ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
       ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-      ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[2].cmd.strval) + 1);
+      ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[2].cmd.strval) + 1);
       ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvExistingProfile_ID;
       ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[2].cmd.strval;
       retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
@@ -1296,7 +1296,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       ncsmib_arg.i_xch_id  = xch_id++;
       ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
       ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-      ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[3].cmd.strval) + 1);
+      ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[3].cmd.strval) + 1);
       ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvNewProfile_ID;
       ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[3].cmd.strval;
       retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
@@ -1431,7 +1431,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         ncsmib_arg.i_xch_id  = xch_id++;
         ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
         ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[2].cmd.strval) + 1);
+        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[2].cmd.strval) + 1);
         ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvExistingProfile_ID;
         ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[2].cmd.strval;
         retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
@@ -1472,7 +1472,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         ncsmib_arg.i_xch_id  = xch_id++;
         ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
         ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[3].cmd.strval) + 1);
+        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[3].cmd.strval) + 1);
         ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvNewProfile_ID;
         ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[3].cmd.strval;
         retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
@@ -1611,7 +1611,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
         ncsmib_arg.i_op      = NCSMIB_OP_REQ_SET;
         ncsmib_arg.i_rsp_fnc = NULL;
-        num_inst_ids        = m_NCS_STRLEN(arg_list->i_arg_record[2].cmd.strval) + 1;
+        num_inst_ids        = strlen(arg_list->i_arg_record[2].cmd.strval) + 1;
         for (i = 1; i < num_inst_ids; i++)
             inst_ids[i] = arg_list->i_arg_record[2].cmd.strval[i - 1];
         inst_ids[0] = num_inst_ids - 1;
@@ -1720,7 +1720,7 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         ncsmib_arg.i_xch_id  = xch_id++;
         if (profile_name != NULL)
         {
-            num_inst_ids = m_NCS_STRLEN(profile_name) + 1;
+            num_inst_ids = strlen(profile_name) + 1;
             for (i = 1; i < num_inst_ids; i++)
                 inst_ids[i] = arg_list->i_arg_record[2].cmd.strval[i - 1];
             inst_ids[0] = num_inst_ids - 1;
@@ -1826,7 +1826,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
         ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
         ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
         ncsmib_arg.i_rsp_fnc = NULL;
-        num_inst_ids = m_NCS_STRLEN(profile_name) + 1;
+        num_inst_ids = strlen(profile_name) + 1;
         for (i = 1; i < num_inst_ids; i++)
             inst_ids[i] = profile_name[i - 1];
         inst_ids[0] = num_inst_ids - 1;
@@ -1839,7 +1839,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             ncsmib_arg.i_op      = NCSMIB_OP_REQ_SET;
             ncsmib_arg.i_tbl_id  = NCSMIB_TBL_PSR_PROFILES;
             ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-            ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(profile_desc) + 1);
+            ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(profile_desc) + 1);
             ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvProfileDesc_ID;
             ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)profile_desc;
         }
@@ -1975,7 +1975,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     ncsmib_arg.i_xch_id  = xch_id++;
     ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
     ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-    ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[1].cmd.strval) + 1);
+    ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[1].cmd.strval) + 1);
     ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvExistingProfile_ID;
     ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[1].cmd.strval;
     retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);
@@ -2109,7 +2109,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         ncsmib_arg.i_xch_id  = xch_id++;
         ncsmib_arg.i_tbl_id  = NCSMIB_SCLR_PSR_TRIGGER;
         ncsmib_arg.req.info.set_req.i_param_val.i_fmat_id = NCSMIB_FMAT_OCT;
-        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(m_NCS_STRLEN(arg_list->i_arg_record[2].cmd.strval) + 1);
+        ncsmib_arg.req.info.set_req.i_param_val.i_length = (uns16)(strlen(arg_list->i_arg_record[2].cmd.strval) + 1);
         ncsmib_arg.req.info.set_req.i_param_val.i_param_id = ncsPSSvExistingProfile_ID;
         ncsmib_arg.req.info.set_req.i_param_val.info.i_oct = (uns8 *)arg_list->i_arg_record[2].cmd.strval;
         retval = ncsmib_sync_request(&ncsmib_arg, cef_data->i_bindery->i_req_fnc, 1000, &ma);

@@ -1332,7 +1332,7 @@ ncs_mem_stats_dump(char * filename)
   uns32 control_size = sizeof(NCS_MPOOL_ENTRY) + sizeof(uns32);
   
   if(filename != NULL) {
-    if(m_NCS_STRLEN(filename) != 0) {
+    if(strlen(filename) != 0) {
       fh = sysf_fopen( filename, "at");
       if(fh == NULL) {
         m_NCS_CONS_PRINTF("Unable to open %s\n", filename);
@@ -2359,8 +2359,8 @@ static void leap_mem_print(void *ucontext, char *payload)
             {
             record->transfer = (unsigned short)transfer;
             record->line = (unsigned short)line;
-            if(m_NCS_STRLEN(file) >= OWNER_NAME)
-               strncpy(record->file, file + m_NCS_STRLEN(file) - OWNER_NAME + 1, OWNER_NAME-1);
+            if(strlen(file) >= OWNER_NAME)
+               strncpy(record->file, file + strlen(file) - OWNER_NAME + 1, OWNER_NAME-1);
             else
                strncpy(record->file, file , OWNER_NAME-1);
             record->file[OWNER_NAME-1] = 0;

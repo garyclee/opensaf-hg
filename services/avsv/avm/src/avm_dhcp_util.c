@@ -71,7 +71,7 @@ avm_check_config(uns8 *ent_info,
           {
              while(m_NCS_OS_FGETS(buff,sizeof(buff),(FILE *)conf_file.info.open.o_file_handle))
              {
-                buff[(m_NCS_OS_STRLEN(buff)-1)]='\0';
+                buff[(strlen(buff)-1)]='\0';
 
              if ((rc = extract_slot_shelf_subslot(buff,&slotInfo)) == NCSCC_RC_FAILURE)
              {
@@ -1160,7 +1160,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    str [0] = '\0';
 
    sprintf (str, "%s", "{");
-   len = m_NCS_STRLEN (str);
+   len = strlen (str);
 
 
    for (i = 0; i < no_entries; i++)
@@ -1171,35 +1171,35 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
        case SAHPI_ENT_SYSTEM_CHASSIS:
 
            sprintf (& (str[len]), "%s%d%s", "{23,", sInfo.shelf, "},");
-           len = m_NCS_STRLEN (str); 
+           len = strlen (str); 
            break;
 
        case SAHPI_ENT_SYSTEM_BOARD:
  
            sprintf (&str [len] , "%s%d%s", "{7,", sInfo.slot,"},");
-           len = m_NCS_STRLEN (str);
+           len = strlen (str);
            break;
 #else
        case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
 
            sprintf (& (str[len]), "%s%d%s", "{65539,", sInfo.shelf, "},");
-           len = m_NCS_STRLEN (str); 
+           len = strlen (str); 
            break;
        case AMC_SUB_SLOT_TYPE:
 
            sprintf (& (str[len]), "%s%d%s", "{151,",sInfo.subSlot, "},");
-           len = m_NCS_STRLEN (str); 
+           len = strlen (str); 
            break;
        
        case SAHPI_ENT_PHYSICAL_SLOT :
            sprintf (&str [len] , "%s%d%s", "{65557,", sInfo.slot,"},");
-           len = m_NCS_STRLEN (str); 
+           len = strlen (str); 
            break;
 #endif
 
        case SAHPI_ENT_ROOT:
            sprintf (&str [len],"%s%d%s","{65535,",0,"}");
-           len = m_NCS_STRLEN (str); 
+           len = strlen (str); 
            break;
 
        default:
@@ -1234,7 +1234,7 @@ avm_convert_nodeid_to_entpath(NCSMIB_PARAM_VAL param_val, AVM_ENT_PATH_STR_T* ep
    
    avm_prepare_entity_path (ep->name, sInfo);
         
-   ep->length = m_NCS_STRLEN (ep->name); 
+   ep->length = strlen (ep->name); 
    return NCSCC_RC_SUCCESS;
 }
 
@@ -1277,7 +1277,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
    memset(chassis_type, '\0', NCS_MAX_CHASSIS_TYPE_LEN+1);
    m_NCS_GET_CHASSIS_TYPE(NCS_MAX_CHASSIS_TYPE_LEN,chassis_type);
 
-   len =  m_NCS_STRLEN(chassis_type);   
+   len =  strlen(chassis_type);   
 
    if (!memcmp(chassis_type, AVM_CHASSIS_TYPE_1405, len))
    {

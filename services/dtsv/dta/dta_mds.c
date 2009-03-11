@@ -730,7 +730,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
           /* Now encode the service name for the service */
           if(*mm->data.data.reg.svc_name != '\0')
           {
-             lenn = m_NCS_STRLEN(mm->data.data.reg.svc_name) + 1;
+             lenn = strlen(mm->data.data.reg.svc_name) + 1;
              data = ncs_enc_reserve_space(uba, sizeof(uns32));
              if(data == NULL)
              {
@@ -767,7 +767,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
           /* Now encode the service name for the service */
           if(*mm->data.data.unreg.svc_name != '\0')
           {
-             lenn = m_NCS_STRLEN(mm->data.data.unreg.svc_name) + 1;
+             lenn = strlen(mm->data.data.unreg.svc_name) + 1;
              data = ncs_enc_reserve_space(uba, sizeof(uns32));
              if(data == NULL)
              {
@@ -1037,7 +1037,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  
       if (NCSCC_RC_SUCCESS != dta_copy_octets(&mm->data.data.msg.log_msg.hdr.fmat_type, 
                  ((DTSV_MSG*)msg)->data.data.msg.log_msg.hdr.fmat_type, 
-                 (uns16)(1+m_NCS_STRLEN(((DTSV_MSG*)msg)->data.data.msg.log_msg.hdr.fmat_type))))
+                 (uns16)(1+strlen(((DTSV_MSG*)msg)->data.data.msg.log_msg.hdr.fmat_type))))
       {
          if(mm != NULL)
             m_MMGR_FREE_DTSV_MSG(mm); 
@@ -1128,7 +1128,7 @@ uns32 dta_log_msg_encode(NCSFL_NORMAL* logmsg, NCS_UBAID* uba)
   
   ncs_enc_claim_space(uba, DTS_LOG_MSG_HDR_SIZE);
 
-  length = m_NCS_STRLEN(logmsg->hdr.fmat_type) + 1;
+  length = strlen(logmsg->hdr.fmat_type) + 1;
 
   data = ncs_enc_reserve_space(uba, sizeof(uns32));
   ncs_encode_32bit(&data,length);

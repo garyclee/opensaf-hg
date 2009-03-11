@@ -75,7 +75,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
    /* This will take care of single location specified as opposed to 
    ** range
    */
-   if( (!token) || (m_NCS_STRLEN(token) < LOCATION_RANGE_MIN_LENGTH))
+   if( (!token) || (strlen(token) < LOCATION_RANGE_MIN_LENGTH))
    {
       valid_location->max[0] = atoi(val);
       valid_location->min[0] = atoi(val);
@@ -88,7 +88,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
    {
       idx++;
       token = m_NCS_OS_STRTOK_R(NULL, ",", &reentrant);
-      if((token) && (m_NCS_STRLEN(token)))
+      if((token) && (strlen(token)))
          strcpy(str[idx], token);
       else
       {
