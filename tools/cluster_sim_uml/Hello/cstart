@@ -36,6 +36,10 @@ app=$2
 case "$cmd" in
     instantiate)
         logger -t hello "Instantiate $SA_AMF_COMPONENT_NAME"
+        if test -f /tmp/die; then
+            logger -t hello "Sorry, will die..."
+            exit 1
+        fi
         application=$approot/bin/$app
         test -x $application || errquit "Application not executable [$application]"
         $application >> $log 2>&1 &

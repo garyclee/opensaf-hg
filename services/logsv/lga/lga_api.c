@@ -570,8 +570,7 @@ static SaAisErrorT validate_open_params(
                 return SA_AIS_ERR_INVALID_PARAM;
             }
 
-            if (logFileCreateAttributes->haProperty < SA_FALSE || 
-                logFileCreateAttributes->haProperty > SA_TRUE)
+            if (logFileCreateAttributes->haProperty > SA_TRUE)
             {
                 TRACE("haProperty");
                 return SA_AIS_ERR_INVALID_PARAM;
@@ -632,7 +631,6 @@ SaAisErrorT saLogStreamOpen_2(
     SaAisErrorT         rc;
     uns32               timeout;
     uns32               log_stream_id;
-    uns32               log_stream_open_id;
     uns32               log_header_type;
 
     TRACE_ENTER();
@@ -717,7 +715,6 @@ SaAisErrorT saLogStreamOpen_2(
      **/
     lstr_hdl_rec = lga_log_stream_hdl_rec_add(&hdl_rec,
                                               log_stream_id, 
-                                              log_stream_open_id,
                                               logStreamOpenFlags, 
                                               logStreamName,
                                               log_header_type);

@@ -15,7 +15,7 @@
  *
  */
 
-#include <limits.h>
+#include <immutil.h>
 #include "lgs.h"
 
 #define DEFAULT_NUM_APP_LOG_STREAMS 64
@@ -30,7 +30,7 @@ static unsigned int stream_array_size = 3;
 /* Current number of streams */
 static unsigned int numb_of_streams;
 
-static int lgs_stream_array_insert(log_stream_t *stream, int id);
+static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id);
 static int lgs_stream_array_insert_new(log_stream_t *stream, uint32_t *id);
 static int lgs_stream_array_remove(int id);
 static int get_number_of_log_files(log_stream_t* logStream, char* oldest_file);
@@ -185,7 +185,7 @@ void log_stream_print(log_stream_t *stream)
     TRACE_2("  logFullHaltThreshold: %u", stream->logFullHaltThreshold);
     TRACE_2("  maxFilesRotated:      %u", stream->maxFilesRotated);
     TRACE_2("  logFileFormat:        %s", stream->logFileFormat);
-    TRACE_2("  severityFilter:       %u", stream->severityFilter);
+    TRACE_2("  severityFilter:       %x", stream->severityFilter);
     TRACE_2("  creationTimeStamp:    %llu", stream->creationTimeStamp);
     TRACE_2("  numOpeners:           %u", stream->numOpeners);
     TRACE_2("  streamId:             %u", stream->streamId);
@@ -194,6 +194,7 @@ void log_stream_print(log_stream_t *stream)
     TRACE_2("  curFileSize:          %u", stream->curFileSize);
     TRACE_2("  logRecordId:          %u", stream->logRecordId);
     TRACE_2("  streamType:           %u", stream->streamType);
+    TRACE_2("  filtered:             %llu", stream->filtered);
 }
 
 void log_stream_delete(log_stream_t **s)
@@ -221,7 +222,9 @@ void log_stream_delete(log_stream_t **s)
 }
 
 /**
- * Create a new stream object.
+ * Create a new stream object. If HA state active, create the
+ * correspronding IMM runtime object.
+ * 
  * @param name
  * @param filename
  * @param pathname
@@ -232,11 +235,12 @@ void log_stream_delete(log_stream_t **s)
  * @param logFileFormat
  * @param streamType
  * @param stream_id
- * @param is_relative_path set to true if a relative path, false if absolute
+ * @param twelveHourModeFlag
+ * @param logRecordId
  * 
  * @return log_stream_t*
  */
-log_stream_t *log_stream_new(SaNameT *name,
+log_stream_t *log_stream_new(SaNameT *dn,
                              const char *filename,
                              const char *pathname,
                              SaUint64T maxLogFileSize,
@@ -252,8 +256,8 @@ log_stream_t *log_stream_new(SaNameT *name,
     int rc;
     log_stream_t *stream = NULL;
 
-    assert(name != NULL);
-    TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
+    assert(dn != NULL);
+    TRACE_ENTER2("%s, l: %u", dn->value, dn->length);
 
     stream = calloc(1, sizeof(log_stream_t));
     if (stream == NULL)
@@ -261,7 +265,7 @@ log_stream_t *log_stream_new(SaNameT *name,
         LOG_WA("calloc FAILED");
         goto done;
     }
-    memcpy(stream->name, name->value, name->length);
+    memcpy(stream->name, dn->value, dn->length);
     stream->name[SA_MAX_NAME_LENGTH] = '\0';
     strncpy(stream->fileName, filename, sizeof(stream->fileName));
     strncpy(stream->pathName, pathname, sizeof(stream->pathName));
@@ -279,9 +283,197 @@ log_stream_t *log_stream_new(SaNameT *name,
     stream->maxFilesRotated = maxFilesRotated;
     stream->creationTimeStamp = lgs_get_SaTime();
     stream->fd = -1;
+    stream->severityFilter = 0x7f; /* by default all levels are allowed */
     stream->streamType = streamType;
     stream->twelveHourModeFlag = twelveHourModeFlag;
     stream->logRecordId = logRecordId;
+
+    /* Add stream to tree */
+    if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS)
+    {
+        log_stream_delete(&stream);
+        goto done;
+    }
+
+    /* Add stream to array */
+    if (stream->streamId == -1)
+        rc = lgs_stream_array_insert_new(stream, &stream->streamId);
+    else
+        rc = lgs_stream_array_insert(stream, stream->streamId);
+
+    if (rc < 0)
+    {
+        log_stream_delete(&stream);
+        goto done;
+    }
+
+    if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
+    {
+        char *dndup = strdup(stream->name);
+        char *parent_name = strchr(stream->name, ',');
+        char *rdnstr;
+        SaNameT parent, *parentName = NULL;
+
+        if (parent_name != NULL)
+        {
+            rdnstr = strtok(dndup, ",");
+            parent_name++; /* FIX, vulnerable for malformed DNs */
+            parentName = &parent;
+            strcpy((char *) parent.value, parent_name);
+            parent.length = strlen((char *) parent.value);
+        }
+        else
+            rdnstr = stream->name;
+
+        void *arr1[] = {&rdnstr};
+        const SaImmAttrValuesT_2 attr_safLgStr = {
+            .attrName = "safLgStr",
+            .attrValueType = SA_IMM_ATTR_SASTRINGT,
+            .attrValuesNumber = 1,
+            .attrValues = arr1
+        };
+        char *str2 = stream->fileName;
+        void *arr2[] = {&str2};
+        const SaImmAttrValuesT_2 attr_safLogStreamFileName = {
+            .attrName = "saLogStreamFileName",
+            .attrValueType = SA_IMM_ATTR_SASTRINGT,
+            .attrValuesNumber = 1,
+            .attrValues = arr2
+        };
+        char *str3 = stream->pathName;
+        void *arr3[] = {&str3};
+        const SaImmAttrValuesT_2 attr_safLogStreamPathName = {
+            .attrName = "saLogStreamPathName",
+            .attrValueType = SA_IMM_ATTR_SASTRINGT,
+            .attrValuesNumber = 1,
+            .attrValues = arr3
+        };
+        void *arr4[] = {&stream->maxLogFileSize};
+        const SaImmAttrValuesT_2 attr_saLogStreamMaxLogFileSize = {
+            .attrName = "saLogStreamMaxLogFileSize",
+            .attrValueType = SA_IMM_ATTR_SAUINT64T,
+            .attrValuesNumber = 1,
+            .attrValues = arr4
+        };
+        void *arr5[] = {&stream->fixedLogRecordSize};
+        const SaImmAttrValuesT_2 attr_saLogStreamFixedLogRecordSize = {
+            .attrName = "saLogStreamFixedLogRecordSize",
+            .attrValueType = SA_IMM_ATTR_SAUINT32T,
+            .attrValuesNumber = 1,
+            .attrValues = arr5
+        };
+        void *arr6[] = {&stream->haProperty};
+        const SaImmAttrValuesT_2 attr_saLogStreamHaProperty = {
+            .attrName = "saLogStreamHaProperty",
+            .attrValueType = SA_IMM_ATTR_SAUINT32T,
+            .attrValuesNumber = 1,
+            .attrValues = arr6
+        };
+        void *arr7[] = {&stream->logFullAction};
+        const SaImmAttrValuesT_2 attr_saLogStreamLogFullAction = {
+            .attrName = "saLogStreamLogFullAction",
+            .attrValueType = SA_IMM_ATTR_SAUINT32T,
+            .attrValuesNumber = 1,
+            .attrValues = arr7
+        };
+        void *arr8[] = {&stream->maxFilesRotated};
+        const SaImmAttrValuesT_2 attr_saLogStreamMaxFilesRotated = {
+            .attrName = "saLogStreamMaxFilesRotated",
+            .attrValueType = SA_IMM_ATTR_SAUINT32T,
+            .attrValuesNumber = 1,
+            .attrValues = arr8
+        };
+        char *str9 = stream->logFileFormat;
+        void *arr9[] = {&str9};
+        const SaImmAttrValuesT_2 attr_saLogStreamLogFileFormat = {
+            .attrName = "saLogStreamLogFileFormat",
+            .attrValueType = SA_IMM_ATTR_SASTRINGT,
+            .attrValuesNumber = 1,
+            .attrValues = arr9
+        };
+        void *arr10[] = {&stream->severityFilter};
+        const SaImmAttrValuesT_2 attr_saLogStreamSeverityFilter = {
+            .attrName = "saLogStreamSeverityFilter",
+            .attrValueType = SA_IMM_ATTR_SAUINT32T,
+            .attrValuesNumber = 1,
+            .attrValues = arr10
+        };
+        void *arr11[] = {&stream->creationTimeStamp};
+        const SaImmAttrValuesT_2 attr_saLogStreamCreationTimestamp = {
+            .attrName = "saLogStreamCreationTimestamp",
+            .attrValueType = SA_IMM_ATTR_SATIMET,
+            .attrValuesNumber = 1,
+            .attrValues = arr11
+        };
+        const SaImmAttrValuesT_2 *attrValues[] = {
+            &attr_safLgStr,
+            &attr_safLogStreamFileName,
+            &attr_safLogStreamPathName,
+            &attr_saLogStreamMaxLogFileSize,
+            &attr_saLogStreamFixedLogRecordSize,
+            &attr_saLogStreamHaProperty,
+            &attr_saLogStreamLogFullAction,
+            &attr_saLogStreamMaxFilesRotated,
+            &attr_saLogStreamLogFileFormat,
+            &attr_saLogStreamSeverityFilter,
+            &attr_saLogStreamCreationTimestamp,
+            NULL
+        };
+
+        /* parentName needs to be configurable? */
+        {
+            SaAisErrorT rv;
+            int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+
+            immutilWrapperProfile.errorsAreFatal = 0;
+            rv = immutil_saImmOiRtObjectCreate_2(lgs_cb->immOiHandle,
+                "SaLogStream", parentName, attrValues);
+            immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+
+            free(dndup);
+
+            if (rv != SA_AIS_OK)
+            {
+                TRACE("saImmOiRtObjectCreate_2 returned %u for %s, parent %s",
+                    rv, stream->name, parent_name);
+                log_stream_delete(&stream);
+                goto done;
+            }
+        }
+    }
+
+ done:
+    TRACE_LEAVE();
+    return stream;
+}
+
+/**
+ * Create a new stream object. Do not create an IMM object.
+ * @param name
+ * @param stream_id
+ * 
+ * @return log_stream_t*
+ */
+log_stream_t *log_stream_new_2(SaNameT *name, int stream_id)
+{
+    int rc;
+    log_stream_t *stream = NULL;
+
+    assert(name != NULL);
+    TRACE_ENTER2("%s, l: %u", name->value, (unsigned int)name->length);
+
+    stream = calloc(1, sizeof(log_stream_t));
+    if (stream == NULL)
+    {
+        LOG_WA("calloc FAILED");
+        goto done;
+    }
+    memcpy(stream->name, name->value, name->length);
+    stream->name[SA_MAX_NAME_LENGTH] = '\0';
+    stream->streamId = stream_id;
+    stream->creationTimeStamp = lgs_get_SaTime();
+    stream->fd = -1;
+    stream->severityFilter = 0x7f; /* by default all levels are allowed */
 
     /* Add stream to tree */
     if (log_stream_add(&stream->pat_node, stream->name) != NCSCC_RC_SUCCESS)
@@ -316,7 +508,7 @@ static int log_file_open(log_stream_t *stream)
             lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
 
     fd = open(pathname,
-              O_CREAT|O_RDWR|O_APPEND,
+              O_CREAT|O_RDWR|O_SYNC|O_APPEND,
               S_IRUSR|S_IWUSR|S_IRGRP);
 
     if (fd == -1)
@@ -386,9 +578,10 @@ done:
  * 
  * @return int
  */
-int log_stream_close(log_stream_t *stream)
+int log_stream_close(log_stream_t **s)
 {
     int rc = 0;
+    log_stream_t *stream = *s;
 
     assert(stream != NULL);
     TRACE_ENTER2("%s", stream->name);
@@ -418,7 +611,16 @@ int log_stream_close(log_stream_t *stream)
                 goto done;
         }
 
-        log_stream_delete(&stream);
+        if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
+        {
+            TRACE("Stream is closed, I am HA active so remove IMM object");
+            SaNameT objectName;
+            strcpy((char *) objectName.value, stream->name);
+            objectName.length = strlen((char *) objectName.value);
+            (void) immutil_saImmOiRtObjectDelete(lgs_cb->immOiHandle, &objectName);
+        }
+
+        log_stream_delete(s);
     }
 
 done:
@@ -690,7 +892,7 @@ log_stream_t *log_stream_get_by_id(uns32 id)
  * 
  * @return int 0 if OK, <0 if failed
  */
-static int lgs_stream_array_insert(log_stream_t *stream, int id)
+static int lgs_stream_array_insert(log_stream_t *stream, uint32_t id)
 {
     int rc = 0;
 

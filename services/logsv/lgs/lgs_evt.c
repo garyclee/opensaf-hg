@@ -18,6 +18,9 @@
 #include <alloca.h>
 #include <time.h>
 #include <limits.h>
+
+#include "immutil.h"
+
 #include "lgs.h"
 #include "lgs_util.h"
 #include "lgs_fmt.h"
@@ -37,7 +40,7 @@ static uns32 proc_stream_close_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
 static uns32 proc_write_log_async_msg(lgs_cb_t *, lgsv_lgs_evt_t *evt);
 
 static const LGSV_LGS_EVT_HANDLER 
-lgs_lgsv_top_level_evt_dispatch_tbl[LGSV_LGS_EVT_MAX - LGSV_LGS_EVT_BASE] =
+lgs_lgsv_top_level_evt_dispatch_tbl[] =
 {
     process_api_evt,
     proc_lga_updn_mds_msg,
@@ -47,7 +50,7 @@ lgs_lgsv_top_level_evt_dispatch_tbl[LGSV_LGS_EVT_MAX - LGSV_LGS_EVT_BASE] =
 
 /* Dispatch table for LGA_API realted messages */
 static const
-LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[LGSV_API_MAX - LGSV_API_BASE_MSG] =
+LGSV_LGS_LGA_API_MSG_HANDLER lgs_lga_api_msg_dispatcher[] =
 {
     proc_initialize_msg,
     proc_finalize_msg,
@@ -155,7 +158,7 @@ int lgs_client_delete(uns32 client_id)
         lgs_stream_list_t *tmp_rec;
         log_stream_t *stream = log_stream_get_by_id(cur_rec->stream_id);
         TRACE_4("client_id: %u, REMOVE stream id: %u", client->client_id, cur_rec->stream_id);
-        log_stream_close(stream);
+        log_stream_close(&stream);
         tmp_rec = cur_rec->next;
         free(cur_rec);
         cur_rec = tmp_rec;
@@ -344,17 +347,23 @@ static uns32 proc_lga_updn_mds_msg(lgsv_lgs_evt_t *evt)
 static uns32 proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 {
     TRACE_ENTER();
-    if (lgs_cb->is_quisced_set == TRUE)
+
+    if (lgs_cb->is_quiesced_set == TRUE)
     {
+        /* Update control block */
+        lgs_cb->is_quiesced_set = FALSE;
         lgs_cb->ha_state = SA_AMF_HA_QUIESCED;
+
         /* Inform MBCSV of HA state change */
         if (lgs_mbcsv_change_HA_state(lgs_cb) != NCSCC_RC_SUCCESS)
             TRACE("lgs_mbcsv_change_HA_state FAILED");
 
-        /* Update control block */
+        /* Finally respond to AMF */
         saAmfResponse(lgs_cb->amf_hdl, lgs_cb->amf_invocation_id, SA_AIS_OK);  
-        lgs_cb->is_quisced_set = FALSE;
     }
+    else
+        LOG_ER("Received LGSV_EVT_QUIESCED_ACK message but is_quiesced_set==false");
+
     TRACE_LEAVE();
     return NCSCC_RC_SUCCESS;
 }
@@ -478,7 +487,7 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         ckpt.header.data_len = 1;
         ckpt.ckpt_rec.initialize_client.client_id = cb->last_client_id;
         ckpt.ckpt_rec.initialize_client.mds_dest = evt->fr_dest;
-        async_rc = lgs_send_async_update(cb, &ckpt, NCS_MBCSV_ACT_ADD); 
+        async_rc = lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_ADD); 
     }
 
 snd_rsp:
@@ -522,7 +531,7 @@ static uns32 proc_finalize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
     ckpt.header.num_ckpt_records = 1;
     ckpt.header.data_len = 1;
     ckpt.ckpt_rec.finalize_client.client_id = client_id;
-    (void) lgs_send_async_update(lgs_cb, &ckpt, NCS_MBCSV_ACT_RMV);
+    (void) lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_RMV);
 
 snd_rsp:
     msg.type = LGSV_LGA_API_RESP_MSG;
@@ -536,7 +545,7 @@ snd_rsp:
     return rc;
 }
 
-static uns32 lgs_send_stream_open_async_update(
+static uns32 lgs_ckpt_stream_open(
     lgs_cb_t *cb,
     log_stream_t *logStream,
     lgsv_stream_open_req_t  *open_sync_param)
@@ -570,7 +579,7 @@ static uns32 lgs_send_stream_open_async_update(
         ckpt.ckpt_rec.stream_open.streamType = logStream->streamType;
         ckpt.ckpt_rec.stream_open.logRecordId = logStream->logRecordId;
 
-        async_rc = lgs_send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
+        async_rc = lgs_ckpt_send_async(cb,&ckpt,NCS_MBCSV_ACT_ADD);
         if (async_rc == NCSCC_RC_SUCCESS)
         {
             TRACE_4("REG_REC ASYNC UPDATE SEND SUCCESS...");
@@ -619,6 +628,14 @@ static SaAisErrorT create_new_app_stream(
             goto done;
         }
         stream = log_stream_getnext_by_name(stream->name);
+    }
+
+    /* Verify that the name seems to be a DN */
+    if (strncmp("safLgStr=", (char *) open_sync_param->lstr_name.value, sizeof("safLgStr=") != 0))
+    {
+        TRACE("'%s' is not a valid stream name => invalid param", open_sync_param->lstr_name.value);
+        ais_rv = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
     }
 
     stream = log_stream_new(&open_sync_param->lstr_name,
@@ -750,10 +767,18 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t  *evt)
             if (ais_rv != SA_AIS_OK)
                 goto snd_rsp;
         }
+        else
+        {
+            /* One of the well-known log streams */
+            if (open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE)
+            {
+                ais_rv = SA_AIS_ERR_INVALID_PARAM;
+                goto snd_rsp;
+            }
+        }
     }
     else
     {
-        TRACE("New app stream");
         ais_rv = create_new_app_stream(open_sync_param, &logStream);
         if (ais_rv != SA_AIS_OK)
             goto snd_rsp;
@@ -774,7 +799,7 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t  *evt)
     rc = lgs_client_stream_add(open_sync_param->client_id, logStream->streamId);
     if (rc != 0)
     {
-        log_stream_close(logStream);
+        log_stream_close(&logStream);
         ais_rv = SA_AIS_ERR_NO_RESOURCES;
         goto snd_rsp;
     }
@@ -794,7 +819,7 @@ snd_rsp:
 
     if (ais_rv == SA_AIS_OK)
     {
-       async_rc = lgs_send_stream_open_async_update(cb,
+       async_rc = lgs_ckpt_stream_open(cb,
                                                     logStream,
                                                     open_sync_param);
     }
@@ -819,6 +844,7 @@ static uns32 proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
     log_stream_t *stream;
     lgsv_msg_t msg;
     SaAisErrorT ais_rc = SA_AIS_OK;
+    uns32 streamId;
 
     TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id, close_param->lstr_id);
 
@@ -836,15 +862,16 @@ static uns32 proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         goto snd_rsp;
     }
 
-    (void) log_stream_close(stream);
+    streamId = stream->streamId;
+    (void) log_stream_close(&stream);
     
     ckpt.header.ckpt_rec_type = LGS_CKPT_CLOSE_STREAM;
     ckpt.header.num_ckpt_records = 1;
     ckpt.header.data_len = 1;
     ckpt.ckpt_rec.stream_close.clientId = close_param->client_id;
-    ckpt.ckpt_rec.stream_close.streamId = stream->streamId;
+    ckpt.ckpt_rec.stream_close.streamId = streamId;
     
-    (void) lgs_send_async_update(cb, &ckpt, NCS_MBCSV_ACT_RMV);
+    (void) lgs_ckpt_send_async(cb, &ckpt, NCS_MBCSV_ACT_RMV);
 
 snd_rsp:
     msg.type = LGSV_LGA_API_RESP_MSG;
@@ -876,7 +903,7 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         &(evt->info.msg.info.api_info.param).write_log_async;
     log_stream_t* stream;
     SaAisErrorT error = SA_AIS_OK;
-    SaStringT logOutputString;
+    SaStringT logOutputString = NULL;
 
     TRACE_ENTER2("client_id %u, stream ID %u", param->client_id, param->lstr_id);
 
@@ -894,7 +921,23 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         goto done;
     }
 
-    logOutputString = alloca(stream->fixedLogRecordSize + 1);
+    /* Apply filtering only to system and application streams */
+    if ((param->logRecord->logHdrType == SA_LOG_GENERIC_HEADER) &&
+        ((stream->severityFilter &
+          (1 << param->logRecord->logHeader.genericHdr.logSeverity)) == 0))
+    {
+            stream->filtered++;
+            goto done;
+    }
+
+    logOutputString = calloc(1, stream->fixedLogRecordSize + 1);
+    if (logOutputString == NULL)
+    {
+        LOG_ER("Could not allocate %d bytes", stream->fixedLogRecordSize + 1);
+        error = SA_AIS_ERR_NO_MEMORY;
+        goto done;
+    }
+
     if (lgs_format_log_record(param->logRecord,
                     stream->logFileFormat,
                     stream->fixedLogRecordSize + 1,
@@ -928,10 +971,13 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
         ckpt.ckpt_rec.write_log.curFileSize = stream->curFileSize;
         ckpt.ckpt_rec.write_log.logFileCurrent = stream->logFileCurrent;
 
-        (void) lgs_send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
+        (void) lgs_ckpt_send_async(cb,&ckpt,NCS_MBCSV_ACT_ADD);
     }
 
 done:
+    if (logOutputString != NULL)
+        free(logOutputString);
+
     if (param->ack_flags == SA_LOG_RECORD_WRITE_ACK)
         send_write_log_ack(cb, evt, error);
 
@@ -978,18 +1024,21 @@ static uns32 process_api_evt(lgsv_lgs_evt_t *evt)
     if (evt->evt_type == LGSV_LGS_LGSV_MSG)
     {
         /* ignore one level... */
-        if ((evt->info.msg.type  >= LGSV_BASE_MSG) && 
-            (evt->info.msg.type  <  LGSV_MSG_MAX))
+        if (evt->info.msg.type < LGSV_MSG_MAX)
         {
-            if ((evt->info.msg.info.api_info.type >= LGSV_API_BASE_MSG) && 
-                (evt->info.msg.info.api_info.type <  LGSV_API_MAX))
+            if (evt->info.msg.info.api_info.type < LGSV_API_MAX)
             {
                 if (lgs_lga_api_msg_dispatcher[evt->info.msg.info.api_info.type](lgs_cb, evt) != NCSCC_RC_SUCCESS)
                 {
-                    TRACE_2("lgs_lga_api_msg_dispatcher FAILED type: %d", (int)evt->info.msg.type);
+                    LOG_ER("lgs_lga_api_msg_dispatcher FAILED type: %d",
+                        evt->info.msg.type);
                 }
             }
+            else
+                LOG_ER("Invalid msg type %d", evt->info.msg.info.api_info.type);
         }
+        else
+            LOG_ER("Invalid event type %d", evt->info.msg.type);
     }
     return NCSCC_RC_SUCCESS;
 }
@@ -1016,8 +1065,7 @@ void lgs_process_mbx(SYSF_MBX *mbx)
     {
         if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
         {
-            if ((msg->evt_type >= LGSV_LGS_EVT_BASE) && 
-                (msg->evt_type <=  LGSV_LGS_EVT_LGA_DOWN))
+            if (msg->evt_type <= LGSV_LGS_EVT_LGA_DOWN)
             {
                 lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type](msg);
             }
@@ -1026,7 +1074,7 @@ void lgs_process_mbx(SYSF_MBX *mbx)
                 proc_mds_quiesced_ack_msg(msg);
             }
             else
-                TRACE("message type invalid");
+                LOG_ER("message type invalid");
         }
         else
         {

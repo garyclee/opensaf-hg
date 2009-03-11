@@ -416,7 +416,7 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
     total_bytes += 4;
 
     /* Make sure at least one byte is allocated for later */
-    param->logRecord->logBuffer->logBuf = malloc(param->logRecord->logBuffer->logBufSize + 1);
+    param->logRecord->logBuffer->logBuf = calloc(1, param->logRecord->logBuffer->logBufSize + 1);
     if (param->logRecord->logBuffer->logBuf == NULL)
     {
         LOG_WA("malloc FAILED");
@@ -933,7 +933,7 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
         goto err;
     }
 
-    if (lgs_cb->is_quisced_set == TRUE)
+    if (lgs_cb->is_quiesced_set == TRUE)
     {
         /** Initialize the Event here **/
         lgsv_evt->evt_type      = LGSV_EVT_QUIESCED_ACK;
