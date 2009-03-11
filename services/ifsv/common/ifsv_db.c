@@ -399,7 +399,7 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
    {
       m_IFSV_LOG_HEAD_LINE_NORMAL(ifsv_log_svc_id_from_comp_type(cb->comp_type),\
          IFSV_LOG_IF_TBL_UPDATE,NCS_IFSV_IAM_PHYADDR,mod_data->if_info.phy_addr[0]);
-      if (0 != m_NCS_MEMCMP ((char *)&actual_data->if_info.phy_addr, 
+      if (0 != memcmp ((char *)&actual_data->if_info.phy_addr, 
               (char *)&mod_data->if_info.phy_addr, 6))
       {
               memcpy(actual_data->if_info.phy_addr, 

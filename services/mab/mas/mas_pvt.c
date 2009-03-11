@@ -614,7 +614,7 @@ MAS_FLTR* mas_fltr_find(MAS_TBL* inst,MAS_FLTR** head, uns32 fltr_id,MAB_ANCHOR 
         /* make sure that this is the filter that the caller is looking for */ 
         if ((status == NCSCC_RC_SUCCESS) &&
             (exist_fltr_id == fltr_id)   && /* compare the filter id */ 
-            (m_NCS_MEMCMP(&fltr->vcard, &vcard, sizeof(vcard)) == 0)) /* comapre OAA address */ 
+            (memcmp(&fltr->vcard, &vcard, sizeof(vcard)) == 0)) /* comapre OAA address */ 
         {
             /* found the required filter */ 
             ret = fltr;
@@ -935,7 +935,7 @@ mas_def_flter_del(MAS_TBL *inst, MAS_ROW_REC *tbl_rec, MDS_DEST *vcard,
     MAS_ROW_REC* del_tbl_rec;
     
     /* compare the VDEST */ 
-    if(m_NCS_MEMCMP(&tbl_rec->dfltr.vcard, vcard, sizeof(MDS_DEST)) == 0)
+    if(memcmp(&tbl_rec->dfltr.vcard, vcard, sizeof(MDS_DEST)) == 0)
     {
         status = mab_fltrid_list_del(&tbl_rec->dfltr.fltr_ids, anc); 
         if ((tbl_rec->dfltr.fltr_ids.fltr_id_list == NULL)&&
@@ -1051,7 +1051,7 @@ uns32 mas_flush_fltrs(MAS_TBL* inst,MDS_DEST vcard,MAB_ANCHOR anc,uns32 ss_id)
                 prev_fltr = NULL;
                 for(fltr = tbl_rec->fltr_list;fltr != NULL;)
                 {
-                    if(m_NCS_MEMCMP(&fltr->vcard, &vcard, sizeof(vcard)) == 0)
+                    if(memcmp(&fltr->vcard, &vcard, sizeof(vcard)) == 0)
                     {
                         /* delete the anchor, fltr-id mapping from this fltr */
                         status = mab_fltrid_list_del(&fltr->fltr_ids, anc); 
@@ -2113,7 +2113,7 @@ uns32 mas_info_response(MAB_MSG* msg)
                 m_MAS_UNLK(&inst->lock);
                 m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
                 if((fltr_id == rsp_fltr->fltr_ids.active_fltr->fltr_id) &&
-                    (m_NCS_MEMCMP(&msg->fr_card, &rsp_fltr->vcard, sizeof(msg->fr_card)) == 0))
+                    (memcmp(&msg->fr_card, &rsp_fltr->vcard, sizeof(msg->fr_card)) == 0))
                 {
                     /* good news... it's a real success... tell the MAC... */
                     if(mas_relay_msg_to_mac(msg,inst,FALSE) != NCSCC_RC_SUCCESS)
@@ -2394,7 +2394,7 @@ uns32 mas_info_register(MAB_MSG* msg)
     {
         /* below if is added to find duplicate fltr registration when vdest is different */
         if ((tbl_rec->dfltr_regd == TRUE)&&
-                        (m_NCS_MEMCMP(&tbl_rec->dfltr.vcard,&msg->fr_card, sizeof(msg->fr_card) != 0)))
+                        (memcmp(&tbl_rec->dfltr.vcard,&msg->fr_card, sizeof(msg->fr_card) != 0)))
         {
             int8         addr_str[200]={0};
             int8         *str_ptr = addr_str;
@@ -2706,7 +2706,7 @@ uns32 mas_info_register(MAB_MSG* msg)
                                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
                             }
 
-                            if(m_NCS_MEMCMP(&mas_fltr->vcard, &new_fltr->vcard, sizeof(mas_fltr->vcard)) != 0)
+                            if(memcmp(&mas_fltr->vcard, &new_fltr->vcard, sizeof(mas_fltr->vcard)) != 0)
                             {
                                 MAB_LM_EVT        mle;
                                 MAB_LM_FLTR_OVRLP fo;
@@ -3095,7 +3095,7 @@ uns32 mas_info_register(MAB_MSG* msg)
 
                         if(fltr_matched == TRUE)
                         {
-                            if(m_NCS_MEMCMP(&cur_fltr->vcard, &new_fltr->vcard, sizeof(new_fltr->vcard)) == 0)
+                            if(memcmp(&cur_fltr->vcard, &new_fltr->vcard, sizeof(new_fltr->vcard)) == 0)
                             {
 #if(NCS_MAS_RED == 1)
                                 o_fltr_id = 0; 
@@ -4021,7 +4021,7 @@ mas_exact_fltr_process(MAB_MSG      *msg,
     if ((res == 0) && (duplicate == TRUE))
     {
         if ((new_fltr->fltr.is_move_row_fltr != mas_fltr->fltr.is_move_row_fltr)||
-            (m_NCS_MEMCMP(&mas_fltr->vcard, &new_fltr->vcard, sizeof(mas_fltr->vcard)) != 0))
+            (memcmp(&mas_fltr->vcard, &new_fltr->vcard, sizeof(mas_fltr->vcard)) != 0))
         {
             mas_exact_fltr_almighty_inform(inst, tbl_rec, new_fltr, MAS_FLTR_REG_OVERLAP);
             /* log the error */
@@ -4087,7 +4087,7 @@ mab_fltrid_list_get(MAS_FLTR_IDS    *fltr_list,
 
     if (fltr_list->active_fltr != NULL)
     {
-        if (m_NCS_MEMCMP(&fltr_list->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
+        if (memcmp(&fltr_list->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
         {
             *o_fltr_id = fltr_list->active_fltr->fltr_id;
             return NCSCC_RC_SUCCESS;
@@ -4097,7 +4097,7 @@ mab_fltrid_list_get(MAS_FLTR_IDS    *fltr_list,
     i_list = fltr_list->fltr_id_list;
     while (i_list)
     {
-        if (m_NCS_MEMCMP(&i_list->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
+        if (memcmp(&i_list->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
         {
             *o_fltr_id = i_list->fltr_id;
             status = NCSCC_RC_SUCCESS;
@@ -4198,7 +4198,7 @@ mab_fltrid_list_del(MAS_FLTR_IDS    *fltr_list,
         return NCSCC_RC_FAILURE; 
      
     if ((fltr_list->active_fltr != NULL) && 
-        (m_NCS_MEMCMP(&fltr_list->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0))
+        (memcmp(&fltr_list->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0))
     {
         m_MMGR_FREE_FLTR_ANCHOR_NODE(fltr_list->active_fltr); 
         fltr_list->active_fltr = NULL; 
@@ -4208,7 +4208,7 @@ mab_fltrid_list_del(MAS_FLTR_IDS    *fltr_list,
     del_me = fltr_list->fltr_id_list;  
     while (del_me)
     {
-        if (m_NCS_MEMCMP(&del_me->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
+        if (memcmp(&del_me->anchor, &i_anchor, sizeof(MAB_ANCHOR)) == 0)
             break; 
         prev = del_me; 
         del_me = del_me->next; 
@@ -4471,7 +4471,7 @@ mas_oaa_role_chg_process(MAB_MSG *msg)
                 if (tbl_rec->dfltr_regd == TRUE)
                 {
                     /* see if this OAA has registered a Default filter */ 
-                    if(m_NCS_MEMCMP(&tbl_rec->dfltr.vcard, &msg->fr_card, sizeof(msg->fr_card)) == 0)
+                    if(memcmp(&tbl_rec->dfltr.vcard, &msg->fr_card, sizeof(msg->fr_card)) == 0)
                     {
                         /* adjust filter-id's list */ 
                         status = mas_fltr_ids_adjust(&tbl_rec->dfltr.fltr_ids, msg->fr_anc, msg->fr_role); 
@@ -4486,7 +4486,7 @@ mas_oaa_role_chg_process(MAB_MSG *msg)
                 prev_fltr = NULL;
                 for(fltr = tbl_rec->fltr_list;fltr != NULL;)
                 {
-                    if(m_NCS_MEMCMP(&fltr->vcard, &msg->fr_card, sizeof(fltr->vcard)) == 0)
+                    if(memcmp(&fltr->vcard, &msg->fr_card, sizeof(fltr->vcard)) == 0)
                     {
                         status= mas_fltr_ids_adjust(&fltr->fltr_ids, msg->fr_anc, msg->fr_role); 
                         if (status != NCSCC_RC_FAILURE)

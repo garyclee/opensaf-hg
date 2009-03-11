@@ -706,14 +706,14 @@ snmpsubagt_cleanup(NCSSA_CB *cb)
 
 #if (BBS_SNMPSUBAGT == 0)
     /* Free the AMF related data */
-    if (m_NCS_MEMCMP(&cb->amfHandle, &nullAmfHandle, sizeof(SaAmfHandleT))!= 0)
+    if (memcmp(&cb->amfHandle, &nullAmfHandle, sizeof(SaAmfHandleT))!= 0)
     {
         status = snmpsubagt_amf_finalize(cb);
     }
 #endif
 
     /* Free the EVT related data */
-    if (m_NCS_MEMCMP(&cb->evtHandle, &nullEvtHandle, sizeof(SaEvtHandleT))!= 0)
+    if (memcmp(&cb->evtHandle, &nullEvtHandle, sizeof(SaEvtHandleT))!= 0)
     {
         status = snmpsubagt_eda_finalize(cb);
     }

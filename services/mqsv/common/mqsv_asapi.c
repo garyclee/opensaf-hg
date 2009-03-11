@@ -1082,14 +1082,14 @@ static NCS_BOOL asapi_obj_cmp(void* key, void* qelem)
    if(ASAPi_OBJ_QUEUE == pNode->objtype) {
       if (((SaNameT *)key)->length != pNode->info.qinfo.param.name.length)
           return FALSE;
-      cmp = m_NCS_OS_MEMCMP(((SaNameT *)key)->value, 
+      cmp = memcmp(((SaNameT *)key)->value, 
                            pNode->info.qinfo.param.name.value, 
                            ((SaNameT *)key)->length);
    }
    else if(ASAPi_OBJ_GROUP == pNode->objtype) {
       if (((SaNameT *)key)->length != pNode->info.ginfo.group.length)
           return FALSE;
-      cmp = m_NCS_OS_MEMCMP(((SaNameT *)key)->value, 
+      cmp = memcmp(((SaNameT *)key)->value, 
                             pNode->info.ginfo.group.value,
                            ((SaNameT *)key)->length);
    }
@@ -1113,7 +1113,7 @@ static NCS_BOOL asapi_queue_cmp(void* key, void* elem)
 {
    ASAPi_QUEUE_INFO *pQelm = (ASAPi_QUEUE_INFO *)elem;
 
-   if(!m_NCS_OS_MEMCMP(&pQelm->param.name, (SaNameT *)key, sizeof(SaNameT))) {
+   if(!memcmp(&pQelm->param.name, (SaNameT *)key, sizeof(SaNameT))) {
       return TRUE;
    }
    return FALSE;

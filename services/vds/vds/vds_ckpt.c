@@ -946,7 +946,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
 
        /* checks for section with VDS_CKPT_LATEST_VDEST_SECTIONID */    
        if (((sec_desc.sectionId.idLen == VDS_CKPT_LATEST_VDEST_SECTIONID_LEN) &&
-            (!(m_NCS_OS_MEMCMP((void *)sec_desc.sectionId.id, 
+            (!(memcmp((void *)sec_desc.sectionId.id, 
                                (void *)VDS_CKPT_LATEST_VDEST_SECTIONID,
                                VDS_CKPT_LATEST_VDEST_SECTIONID_LEN)))))
        {
@@ -983,7 +983,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
        }
        /* Check for section with VDS_CKPT_VERSION_SECTIONID */ 
        else if ((sec_desc.sectionId.idLen == VDS_CKPT_VERSION_SECTIONID_LEN) &&
-                   ( !(m_NCS_OS_MEMCMP((void *)sec_desc.sectionId.id, 
+                   ( !(memcmp((void *)sec_desc.sectionId.id, 
                                        (void *)VDS_CKPT_VERSION_SECTIONID,
                                        VDS_CKPT_VERSION_SECTIONID_LEN))))
        {

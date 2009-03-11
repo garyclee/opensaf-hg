@@ -266,7 +266,7 @@ static NCS_BOOL mqd_obj_compare(void* key, void* elem)
    MQD_OBJECT_ELEM   *pOelm = (MQD_OBJECT_ELEM *)elem;
    SaNameT           *local_key = (SaNameT *)key;
 
-   if(!m_NCS_OS_MEMCMP(pOelm->pObject->name.value, local_key->value, local_key->length)) 
+   if(!memcmp(pOelm->pObject->name.value, local_key->value, local_key->length)) 
    {
       return TRUE;
    }
@@ -293,7 +293,7 @@ void mqd_get_node_from_group_for_getnext(MQD_CB *cb,MQD_OBJ_NODE **grpNode,MQD_O
    while(front != NCS_QELEM_NULL)
    {
        frontptr = (MQD_OBJECT_ELEM *)front;
-       if((m_NCS_MEMCMP(&frontptr->pObject->name,&memberQueueName,sizeof(SaNameT)))>0)
+       if((memcmp(&frontptr->pObject->name,&memberQueueName,sizeof(SaNameT)))>0)
        {
            if(!localQueuePtr)
            {
@@ -301,7 +301,7 @@ void mqd_get_node_from_group_for_getnext(MQD_CB *cb,MQD_OBJ_NODE **grpNode,MQD_O
              localQueuePtr = (MQD_OBJECT_ELEM *)front;
              found= TRUE;
            }
-           else if((m_NCS_MEMCMP(&frontptr->pObject->name,&localQueuePtr->pObject->name,sizeof(SaNameT)))<0)
+           else if((memcmp(&frontptr->pObject->name,&localQueuePtr->pObject->name,sizeof(SaNameT)))<0)
            {
              localQueuePtr2 = localQueuePtr;
              localQueuePtr= frontptr;

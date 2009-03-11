@@ -733,7 +733,7 @@ ifa_ifsubr_que_list_comp (uns8 *key1, uns8 *key2)
    {
       return (0xffff);
    }   
-   return (m_NCS_MEMCMP(key1, key2, sizeof(uns32)));
+   return (memcmp(key1, key2, sizeof(uns32)));
 }
 
 

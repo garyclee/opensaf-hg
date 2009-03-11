@@ -245,7 +245,7 @@ static NCS_BOOL mqd_track_obj_cmp(void* key, void* elem)
 {
    MQD_TRACK_OBJ *pObj = (MQD_TRACK_OBJ *)elem;
 
-   if(!m_NCS_OS_MEMCMP(&pObj->dest, (MDS_DEST *)key, sizeof(MDS_DEST))) {
+   if(!memcmp(&pObj->dest, (MDS_DEST *)key, sizeof(MDS_DEST))) {
       return TRUE;
    }
    return FALSE;

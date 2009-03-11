@@ -404,7 +404,7 @@ static AVD_CSI_PARAM * avd_csi_find_param(AVD_CSI *csi, SaNameT param_name)
    {
       if(param_name.length == param->param.name.length)
       {
-         if( m_NCS_MEMCMP(param_name.value, param->param.name.value, 
+         if( memcmp(param_name.value, param->param.name.value, 
                           param_name.length) == 0)
          {
             return param;

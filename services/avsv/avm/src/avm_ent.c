@@ -539,7 +539,7 @@ ncsavmentdeploytableentry_set(
          }
 
          /* If same Value, return Success */
-         if (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.tftp_serve_ip,
+         if (!memcmp(ent_info->dhcp_serv_conf.tftp_serve_ip,
             arg->req.info.set_req.i_param_val.info.i_oct,4))
             return NCSCC_RC_SUCCESS;
 
@@ -1741,7 +1741,7 @@ ncsavmentupgradetableentry_set(
 
          if ((ent_info->ep_str.length == helper_ep.length)
              &&
-             (!m_NCS_MEMCMP(ent_info->ep_str.name,
+             (!memcmp(ent_info->ep_str.name,
                             helper_ep.name,
                             helper_ep.length)))         
          {
@@ -1933,7 +1933,7 @@ ncsavmentupgradetableentry_set(
                if ((ent_info->dhcp_serv_conf.pref_label.length ==
                     ent_info->dhcp_serv_conf.curr_act_label->name.length)
                    &&
-                   (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,
+                   (!memcmp(ent_info->dhcp_serv_conf.pref_label.name,
                                   ent_info->dhcp_serv_conf.curr_act_label->name.name,
                                   ent_info->dhcp_serv_conf.pref_label.length)))
                {
@@ -1942,7 +1942,7 @@ ncsavmentupgradetableentry_set(
                }
                else if ((ent_info->dhcp_serv_conf.pref_label.length == ent_info->dhcp_serv_conf.curr_act_label->other_label->name.length)
                         &&
-                        (!m_NCS_MEMCMP(ent_info->dhcp_serv_conf.pref_label.name,
+                        (!memcmp(ent_info->dhcp_serv_conf.pref_label.name,
                                        ent_info->dhcp_serv_conf.curr_act_label->other_label->name.name,
                                        ent_info->dhcp_serv_conf.pref_label.length)))
                {

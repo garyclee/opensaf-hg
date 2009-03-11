@@ -81,7 +81,7 @@ GLND_CLIENT_INFO *glnd_client_node_find_next(GLND_CB     *glnd_cb,
    
    while(client_info)
    {
-      if(m_NCS_MEMCMP(&client_info->agent_mds_dest,&agent_mds_dest,sizeof(MDS_DEST)) == 0)
+      if(memcmp(&client_info->agent_mds_dest,&agent_mds_dest,sizeof(MDS_DEST)) == 0)
          return client_info;
       else
          client_info = (GLND_CLIENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_client_tree,

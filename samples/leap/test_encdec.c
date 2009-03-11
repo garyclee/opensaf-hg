@@ -133,7 +133,7 @@ static uns32 lt_test_uba_encdec_ops(void)
     dst_64bit_data = ncs_decode_64bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns64));
     m_NCS_CONS_PRINTF("Decoded 64-bit value...");
-    if(m_NCS_MEMCMP((uns8*)&src_64bit_data, (uns8*)&dst_64bit_data, sizeof(uns64))
+    if(memcmp((uns8*)&src_64bit_data, (uns8*)&dst_64bit_data, sizeof(uns64))
         == 0)
     {
         m_NCS_CONS_PRINTF("Decoded 64-bit value matches the encoded value...\n");
@@ -150,7 +150,7 @@ static uns32 lt_test_uba_encdec_ops(void)
     dst_32bit_data = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns32));
     m_NCS_CONS_PRINTF("Decoded 32-bit value...");
-    if(m_NCS_MEMCMP((uns8*)&src_32bit_data, (uns8*)&dst_32bit_data, sizeof(uns32))
+    if(memcmp((uns8*)&src_32bit_data, (uns8*)&dst_32bit_data, sizeof(uns32))
         == 0)
     {
         m_NCS_CONS_PRINTF("Decoded 32-bit value matches the encoded value...\n");
@@ -167,7 +167,7 @@ static uns32 lt_test_uba_encdec_ops(void)
     dst_16bit_data = ncs_decode_16bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns16));
     m_NCS_CONS_PRINTF("Decoded 16-bit value...");
-    if(m_NCS_MEMCMP((uns8*)&src_16bit_data, (uns8*)&dst_16bit_data, sizeof(uns16))
+    if(memcmp((uns8*)&src_16bit_data, (uns8*)&dst_16bit_data, sizeof(uns16))
         == 0)
     {
         m_NCS_CONS_PRINTF("Decoded 16-bit value matches the encoded value...\n");

@@ -495,7 +495,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_RSC_DETAILS *rsc_det
    tmp2_node_list = &rsc_info->node_list;
    while(tmp1_node_list!= NULL)
    {
-      if (!m_NCS_MEMCMP(&tmp1_node_list->dest_id,&node_list->dest_id, sizeof(MDS_DEST)))
+      if (!memcmp(&tmp1_node_list->dest_id,&node_list->dest_id, sizeof(MDS_DEST)))
          break;
       tmp2_node_list = &tmp1_node_list->next;
       tmp1_node_list =  tmp1_node_list->next;

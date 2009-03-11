@@ -252,7 +252,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
                 break;
             }
 
-            if(m_NCS_OS_MEMCMP(((uns8*)data + var_info->offset),
+            if(memcmp(((uns8*)data + var_info->offset),
                 param_val->info.i_oct, param_val->i_length) == 0)
             {
                  uns32 i;

@@ -56,7 +56,7 @@
 #define CONF_FILE_PATH "/repl/ssuHelper.conf"
 
 #define AVM_DHCONF_MEMCMP_LEN(str1, str2, len1, len2)   (!(((len1) == (len2)) && \
-                                                        (!m_NCS_MEMCMP((str1), (str2), (len2))))) 
+                                                        (!memcmp((str1), (str2), (len2))))) 
 
 /* enum for current default label and active label */
 typedef enum {

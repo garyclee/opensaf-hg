@@ -1018,7 +1018,7 @@ avm_add_dependent(
   {
      for(temp = dependee->dependents; temp != AVM_ENT_INFO_LIST_NULL; temp = temp->next)
      {
-        if(!m_NCS_MEMCMP(temp->ent_info->ep_str.name, dependent->ep_str.name, AVM_MAX_INDEX_LEN))
+        if(!memcmp(temp->ent_info->ep_str.name, dependent->ep_str.name, AVM_MAX_INDEX_LEN))
         {
            m_AVM_LOG_GEN_EP_STR("Entity in the list", dependee->dependents->ent_info->ep_str.name, NCSFL_SEV_INFO);
            return NCSCC_RC_SUCCESS;   

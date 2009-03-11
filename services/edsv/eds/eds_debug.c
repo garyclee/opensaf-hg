@@ -116,7 +116,7 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
       {
       case SA_EVT_PREFIX_FILTER:
          m_NCS_CONS_PRINTF("  SA_EVT_PREFIX_FILTER");
-         if (m_NCS_MEMCMP(filter->filter.pattern, pattern->pattern,
+         if (memcmp(filter->filter.pattern, pattern->pattern,
                           (size_t)filter->filter.patternSize) == 0)
             match = 1;
          break;
@@ -129,14 +129,14 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
          /* Set p to offset into pattern */
          p = pattern->pattern +
             ((int)pattern->patternSize - (int)filter->filter.patternSize);
-         if (m_NCS_MEMCMP(filter->filter.pattern, p,
+         if (memcmp(filter->filter.pattern, p,
                           (size_t)filter->filter.patternSize) == 0)
             match = 1;
          break;
       case SA_EVT_EXACT_FILTER:
          m_NCS_CONS_PRINTF("   SA_EVT_EXACT_FILTER");
          if (filter->filter.patternSize == pattern->patternSize)
-            if (m_NCS_MEMCMP(filter->filter.pattern, pattern->pattern,
+            if (memcmp(filter->filter.pattern, pattern->pattern,
                              (size_t)filter->filter.patternSize) == 0)
                match = 1;
          break;

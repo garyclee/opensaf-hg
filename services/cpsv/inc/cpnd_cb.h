@@ -34,7 +34,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 #define CPSV_AVG_DATA_SIZE  1000000
 #define CPND_WAIT_TIME(datasize) ((datasize<CPSV_MIN_DATA_SIZE)?300:500+((datasize/CPSV_AVG_DATA_SIZE)*200))
 
-#define m_CPND_IS_LOCAL_NODE(m,n)   m_NCS_OS_MEMCMP(m,n,sizeof(MDS_DEST))
+#define m_CPND_IS_LOCAL_NODE(m,n)   memcmp(m,n,sizeof(MDS_DEST))
 
 #define m_CPND_IS_ALL_REPLICA_ATTR_SET(attr)   \
             (((attr & SA_CKPT_WR_ALL_REPLICAS) != 0)?TRUE:FALSE)

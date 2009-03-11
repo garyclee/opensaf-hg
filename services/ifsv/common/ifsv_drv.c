@@ -627,7 +627,7 @@ ifsv_drv_check_update_reg_info (IFSV_DRV_PORT_REG_TBL *found_reg_tbl,
       pres_port_tbl->port_info.speed = reg_msg->port_info.speed;
    }
    
-   if (m_NCS_MEMCMP(&pres_port_tbl->port_info.phy_addr, 
+   if (memcmp(&pres_port_tbl->port_info.phy_addr, 
       &reg_msg->port_info.phy_addr, (6*sizeof(uns8))) != 0)
    {
       chng_flag = TRUE;

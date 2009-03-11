@@ -923,7 +923,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       {
          if (temp_name.length == si->sg_of_si->name_net.length)
          {
-            if(m_NCS_MEMCMP(si->sg_of_si->name_net.value,
+            if(memcmp(si->sg_of_si->name_net.value,
                             temp_name.value,temp_name.length) == 0)
             {
                return NCSCC_RC_SUCCESS;

@@ -219,7 +219,7 @@ GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB              *gld_cb,
 
    while (rsc_info != NULL)
    {
-      if (!m_NCS_MEMCMP(&rsc_name, &rsc_info->lck_name, sizeof(SaNameT)))
+      if (!memcmp(&rsc_name, &rsc_info->lck_name, sizeof(SaNameT)))
          break;
       rsc_info = rsc_info->next;
    }
@@ -384,14 +384,14 @@ void gld_rsc_rmv_node_ref(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info,
    GLSV_NODE_LIST          **node_list, *free_node_list=NULL;
    NCS_BOOL                chg_master=FALSE;
 
-   if (!m_NCS_OS_MEMCMP(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
+   if (!memcmp(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
       chg_master = TRUE;
 
    /* rmv the references to this resource by the mentioned node*/
    node_list = &rsc_info->node_list;
    while(*node_list != NULL)
    {
-      if (!m_NCS_MEMCMP(&(*node_list)->dest_id,&node_details->dest_id,sizeof(MDS_DEST)))
+      if (!memcmp(&(*node_list)->dest_id,&node_details->dest_id,sizeof(MDS_DEST)))
       {
          free_node_list = *node_list;
          break;

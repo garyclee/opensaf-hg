@@ -2394,7 +2394,7 @@ static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
    wait_list = rsc_info->lck_master_info.wait_exclusive_list;
    while(wait_list != NULL)
    {
-      if ((m_NCS_OS_MEMCMP(&wait_list->req_mdest_id, &dd_probe->dest_id,
+      if ((memcmp(&wait_list->req_mdest_id, &dd_probe->dest_id,
                             sizeof(MDS_DEST)) == 0) && 
            (dd_probe->hdl_id == wait_list->lock_info.handleId) &&
            (dd_probe->lck_id == wait_list->lock_info.lockid))
@@ -2408,7 +2408,7 @@ static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
       wait_list = rsc_info->lck_master_info.wait_read_list;
       while(wait_list != NULL)
       {
-         if ((m_NCS_OS_MEMCMP(&wait_list->req_mdest_id, &dd_probe->dest_id,
+         if ((memcmp(&wait_list->req_mdest_id, &dd_probe->dest_id,
                                sizeof(MDS_DEST)) == 0) && 
             (dd_probe->hdl_id == wait_list->lock_info.handleId) &&
             (dd_probe->lck_id == wait_list->lock_info.lockid))
@@ -2486,7 +2486,7 @@ static uns32 glnd_process_glnd_fwd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
             break;
       }
       /* The probe hops along its way... */
-      if (!m_NCS_OS_MEMCMP(&glnd_cb->glnd_mdest_id, &grant_list->req_mdest_id,
+      if (!memcmp(&glnd_cb->glnd_mdest_id, &grant_list->req_mdest_id,
                             sizeof(MDS_DEST)))
       {
          GLSV_GLND_EVT *tmp_glnd_evt;
@@ -2568,7 +2568,7 @@ static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
          lck_req_info = client_res_list->lck_list;
          while(lck_req_info != NULL)
          {
-            if ((m_NCS_OS_MEMCMP(&lck_req_info->lck_req->req_mdest_id, &dd_probe->dest_id,
+            if ((memcmp(&lck_req_info->lck_req->req_mdest_id, &dd_probe->dest_id,
                                   sizeof(MDS_DEST)) == 0) && 
                 (dd_probe->hdl_id == lck_req_info->lck_req->lock_info.handleId) &&
                 (dd_probe->lck_id == lck_req_info->lck_req->lock_info.lockid)) 
@@ -2682,7 +2682,7 @@ static uns32 glnd_process_glnd_dd_probe(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
 
 
             /* The probe hops along its way... */
-            if (!m_NCS_OS_MEMCMP(&glnd_cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,
+            if (!memcmp(&glnd_cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,
                                        sizeof(MDS_DEST)))
             {
                GLSV_GLND_EVT *tmp_glnd_evt;
@@ -2949,7 +2949,7 @@ static uns32 glnd_process_gld_resource_master_details(GLND_CB *glnd_cb, GLSV_GLN
        }
        else
        {
-         if(m_NCS_OS_MEMCMP(&glnd_cb->glnd_mdest_id, &rsc_master_list[index].master_dest_id, sizeof(MDS_DEST)))
+         if(memcmp(&glnd_cb->glnd_mdest_id, &rsc_master_list[index].master_dest_id, sizeof(MDS_DEST)))
          { 
             res_node->master_mds_dest = rsc_master_list[index].master_dest_id;
             res_node->master_status   =  rsc_master_list[index].master_status;

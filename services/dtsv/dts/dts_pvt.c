@@ -1336,7 +1336,7 @@ NCS_BOOL dts_find_reg(void* key, void* qelem)
   MDS_DEST * vkey = (MDS_DEST*) key;
   DTA_DEST_LIST * svc    = (DTA_DEST_LIST*) qelem;
 
-  if (m_NCS_MEMCMP(vkey, &svc->dta_addr, sizeof(MDS_DEST)) == 0)
+  if (memcmp(vkey, &svc->dta_addr, sizeof(MDS_DEST)) == 0)
     return TRUE;
 
   return FALSE;
@@ -2418,7 +2418,7 @@ NCSCONTEXT dts_find_spec(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key)
    spec_entry = svc->spec_list;
    while(spec_entry != NULL)
    {
-      if(m_NCS_MEMCMP(&spec_entry->dta_addr, dta_key,
+      if(memcmp(&spec_entry->dta_addr, dta_key,
                                           sizeof(MDS_DEST)) == 0)
       {
          /*Element found*/
@@ -2454,7 +2454,7 @@ NCSCONTEXT dts_find_spec_entry(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key)
    spec_entry = svc->spec_list;
    while(spec_entry != NULL)
    {
-      if(m_NCS_MEMCMP(&spec_entry->dta_addr, dta_key,
+      if(memcmp(&spec_entry->dta_addr, dta_key,
                                           sizeof(MDS_DEST)) == 0)
       {
          /*Element found*/
@@ -2489,7 +2489,7 @@ NCSCONTEXT dts_find_dta(DTS_SVC_REG_TBL *svc, MDS_DEST *dta_key)
    dta_entry = svc->v_cd_list;
    while(dta_entry != NULL)
    {
-      if(m_NCS_MEMCMP(&dta_entry->dta->dta_addr, dta_key, 
+      if(memcmp(&dta_entry->dta->dta_addr, dta_key, 
                                           sizeof(MDS_DEST)) == 0)
       {
          /*Element found*/

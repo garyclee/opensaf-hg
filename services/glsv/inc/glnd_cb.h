@@ -35,7 +35,7 @@ EXTERN_C GLNDDLL_API NCSCONTEXT gl_glnd_task_hdl;
 #define m_GLND_TAKE_GLND_CB      ncshm_take_hdl(NCS_SERVICE_ID_GLND, gl_glnd_hdl)
 #define m_GLND_GIVEUP_GLND_CB    ncshm_give_hdl(gl_glnd_hdl)
 
-#define m_GLND_IS_LOCAL_NODE(m,n)   m_NCS_OS_MEMCMP(m,n,sizeof(MDS_DEST))
+#define m_GLND_IS_LOCAL_NODE(m,n)   memcmp(m,n,sizeof(MDS_DEST))
 
 #define GLSV_GLND_SHM_VERSION    1
 

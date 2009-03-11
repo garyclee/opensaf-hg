@@ -616,8 +616,8 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
       
       memset(mac_addr, 0, AVM_MAC_DATA_LEN); /* Initialise the mac address with 0.0.0.0.0.0 to compare */ 
       /* check for the mac addresses, if these are 0.0.0.0.0.0, the insertion pending event is from F101, so just return */   
-      if ((!m_NCS_MEMCMP(mac_addr, dhcp_conf->mac_address[0], AVM_MAC_DATA_LEN)) && 
-          (!m_NCS_MEMCMP(mac_addr, dhcp_conf->mac_address[1], AVM_MAC_DATA_LEN)))
+      if ((!memcmp(mac_addr, dhcp_conf->mac_address[0], AVM_MAC_DATA_LEN)) && 
+          (!memcmp(mac_addr, dhcp_conf->mac_address[1], AVM_MAC_DATA_LEN)))
       {
          return NCSCC_RC_SUCCESS;
       }
@@ -741,7 +741,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
             }
             else if (dhcp_conf->default_label->other_label->status == SSU_COMMITTED)
             {
-               if(m_NCS_MEMCMP(dhcp_conf->curr_act_label->name.name,dhcp_conf->default_label->name.name, dhcp_conf->default_label->name.length))
+               if(memcmp(dhcp_conf->curr_act_label->name.name,dhcp_conf->default_label->name.name, dhcp_conf->default_label->name.length))
                {
                   dhcp_conf->curr_act_label = dhcp_conf->default_label;
                   dhcp_conf->cur_act_label_num = dhcp_conf->def_label_num;
@@ -781,8 +781,8 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
       }
       /* compare the MAC address and configuration checks */
       if ((conf_chg == FALSE) && 
-          (!m_NCS_MEMCMP(dhcp_conf->mac_address[0],hpi_evt->inv_data.oem_inv_data.interface_mac_addr[0], AVM_MAC_DATA_LEN)) && 
-          (!m_NCS_MEMCMP(dhcp_conf->mac_address[1],hpi_evt->inv_data.oem_inv_data.interface_mac_addr[1], AVM_MAC_DATA_LEN)))
+          (!memcmp(dhcp_conf->mac_address[0],hpi_evt->inv_data.oem_inv_data.interface_mac_addr[0], AVM_MAC_DATA_LEN)) && 
+          (!memcmp(dhcp_conf->mac_address[1],hpi_evt->inv_data.oem_inv_data.interface_mac_addr[1], AVM_MAC_DATA_LEN)))
       {
          m_AVM_LOG_DEBUG("AVM-SSU: There was no configuration and Mac address change\n",NCSFL_SEV_NOTICE);
          return NCSCC_RC_SUCCESS;
@@ -1050,15 +1050,15 @@ avm_ssu_clear_mac (AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info_in)
       dhcp_conf1 = &ent_info->dhcp_serv_conf;
 
       /* check for MAC address and erase if it is same */
-      if ((!m_NCS_MEMCMP(dhcp_conf->mac_address[0], dhcp_conf1->mac_address[0], AVM_MAC_DATA_LEN)) ||
-          (!m_NCS_MEMCMP(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[0], AVM_MAC_DATA_LEN)))
+      if ((!memcmp(dhcp_conf->mac_address[0], dhcp_conf1->mac_address[0], AVM_MAC_DATA_LEN)) ||
+          (!memcmp(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[0], AVM_MAC_DATA_LEN)))
       {
          mac_change = 1;
          memset(dhcp_conf1->mac_address[0], 0, AVM_MAC_DATA_LEN);
       }
 
-      if ((!m_NCS_MEMCMP(dhcp_conf->mac_address[0], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)) ||
-          (!m_NCS_MEMCMP(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)))
+      if ((!memcmp(dhcp_conf->mac_address[0], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)) ||
+          (!memcmp(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)))
       {
          mac_change = 1;
          memset(dhcp_conf1->mac_address[1], 0, AVM_MAC_DATA_LEN);
@@ -1279,7 +1279,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
 
    len =  m_NCS_STRLEN(chassis_type);   
 
-   if (!m_NCS_MEMCMP(chassis_type, AVM_CHASSIS_TYPE_1405, len))
+   if (!memcmp(chassis_type, AVM_CHASSIS_TYPE_1405, len))
    {
        if (physical_slot_id < 7)
           ent_info->dhcp_serv_conf.ipmb_addr = 130 + 4 * (7 - physical_slot_id);
@@ -1292,7 +1292,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
           return NCSCC_RC_FAILURE;
        }
    }
-   else if(!m_NCS_MEMCMP(chassis_type, AVM_CHASSIS_TYPE_1406, len))
+   else if(!memcmp(chassis_type, AVM_CHASSIS_TYPE_1406, len))
    {
        if (physical_slot_id > 1 && physical_slot_id <= 7)
           ent_info->dhcp_serv_conf.ipmb_addr = 130 + 4 * (physical_slot_id - 1);

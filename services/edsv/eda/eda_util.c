@@ -56,7 +56,7 @@ eda_find_mark_channel_to_ulink(EDA_CLIENT_HDL_REC *eda_hdl_rec,
            &&
           (chan_hdl_rec->channel_name.length == channelName->length)
            &&
-          (m_NCS_MEMCMP(chan_hdl_rec->channel_name.value, 
+          (memcmp(chan_hdl_rec->channel_name.value, 
                         channelName->value, 
                         channelName->length) == 0))
       {

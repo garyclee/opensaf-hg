@@ -442,7 +442,7 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
       return NCSCC_RC_FAILURE;
 
    /* If VDEST not equal, then discard message.(message from other VDESTs) */
-   if (0 != m_NCS_MEMCMP(&vdest, &svc_info.i_dest, sizeof(MDS_DEST)))
+   if (0 != memcmp(&vdest, &svc_info.i_dest, sizeof(MDS_DEST)))
        return NCSCC_RC_SUCCESS;
 
    /* VDEST is my VDEST. So next, check for self events */

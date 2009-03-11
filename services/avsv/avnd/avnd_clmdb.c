@@ -325,7 +325,7 @@ AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_del(AVND_CB *cb, SaClmHandleT hdl,
    while(i_ptr != NULL)
    {
       if((i_ptr->req_hdl == hdl) &&
-         (m_NCS_OS_MEMCMP(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
+         (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
       {
          *p_ptr = i_ptr->next;
          return i_ptr;
@@ -367,13 +367,13 @@ AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_find(AVND_CB *cb, SaClmHandleT hdl,
    i_ptr = db->clm_trk_info;
    while( (i_ptr != NULL) && 
           (i_ptr->req_hdl != hdl) && 
-          (m_NCS_OS_MEMCMP(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) != 0) )
+          (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) != 0) )
    {
       i_ptr = i_ptr->next;
    }
 
    if((i_ptr != NULL) && (i_ptr->req_hdl == hdl) &&
-          (m_NCS_OS_MEMCMP(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
+          (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
    {
       return i_ptr;
    }

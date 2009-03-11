@@ -710,7 +710,7 @@ uns32 avnd_evt_mds_cla_dn (AVND_CB *cb, AVND_EVT *evt)
    prev_ptr = i_ptr;
    while(i_ptr != NULL) 
    {
-      if(m_NCS_OS_MEMCMP(&i_ptr->mds_dest, &dest, sizeof(MDS_DEST)) == 0) 
+      if(memcmp(&i_ptr->mds_dest, &dest, sizeof(MDS_DEST)) == 0) 
       {
          /* found the trk_info. Now clean it. 
           * 

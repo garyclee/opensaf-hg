@@ -87,7 +87,7 @@ static void mqa_track_remove_member(SaMsgQueueGroupNotificationBufferT *buffer,
         if (buffer->notification[i].member.queueName.length != name->length)
            continue;
 
-        if (m_NCS_MEMCMP(&buffer->notification[i].member.queueName.value, 
+        if (memcmp(&buffer->notification[i].member.queueName.value, 
                          name->value,name->length ) == 0)
         {
             buffer->notification[i].change = SA_MSG_QUEUE_GROUP_REMOVED;
@@ -130,7 +130,7 @@ void mqa_track_update_state(SaMsgQueueGroupNotificationBufferT *buffer,
         if (buffer->notification[i].member.queueName.length != name->length)
            continue;
 
-        if (m_NCS_MEMCMP(&buffer->notification[i].member.queueName.value, 
+        if (memcmp(&buffer->notification[i].member.queueName.value, 
                          name->value,name->length ) == 0)
         {
             /* Status is removed in B.1.1 
@@ -548,7 +548,7 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
          if (len > asapi_msg->info.tntfy.oinfo.group.length)
              len = asapi_msg->info.tntfy.oinfo.group.length;
 
-         if (m_NCS_MEMCMP(temp_name.value, asapi_msg->info.tntfy.oinfo.group.value, len) != 0)
+         if (memcmp(temp_name.value, asapi_msg->info.tntfy.oinfo.group.value, len) != 0)
              continue;
 
          if (track_info->trackFlags & SA_TRACK_CHANGES) {
@@ -714,7 +714,7 @@ uns32  mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_in
                SaMsgQueueGroupNotificationBufferT *buff = &track_current_callback->params.qGrpTrack.notificationBuffer;
                SaNameT *name = &asapi_msg->info.tntfy.oinfo.qparam->name;                                                                                                            
                if ((buff->notification[i].member.queueName.length == name->length) && 
-                    m_NCS_MEMCMP(buff->notification[i].member.queueName.value,name->value,name->length)==0)
+                    memcmp(buff->notification[i].member.queueName.value,name->value,name->length)==0)
                   continue;
                memcpy(&track_info->notificationBuffer.notification[j],
                               &buff->notification[i],

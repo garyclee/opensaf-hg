@@ -198,7 +198,7 @@ uns32 avnd_evt_avd_comp_validation_resp_msg (AVND_CB *cb, AVND_EVT *evt)
 
     m_AVND_DIQ_REC_FIND(cb, info->msg_id, rec);
 
-    if((NULL == rec) || (m_NCS_OS_MEMCMP(&info->comp_name_net, 
+    if((NULL == rec) || (memcmp(&info->comp_name_net, 
        &rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name_net, sizeof(SaNameT)) != 0))
     {
        /* Seems the rec was deleted, some problem. */

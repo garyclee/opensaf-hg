@@ -2249,7 +2249,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
       return NCSCC_RC_FAILURE;
 
    memset(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
-   if(m_NCS_MEMCMP(dst, src, sizeof(PSS_CURR_PLBCK_SSN_INFO)) == 0)
+   if(memcmp(dst, src, sizeof(PSS_CURR_PLBCK_SSN_INFO)) == 0)
       return NCSCC_RC_SUCCESS;
 
    /**dst = *src;*/
@@ -2338,7 +2338,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
       return NCSCC_RC_FAILURE;
 
    memset(wbreq, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
-   if(m_NCS_MEMCMP(wbreq, &src->info.info2.wb_req, sizeof(MAB_PSS_WARMBOOT_REQ)) == 0)
+   if(memcmp(wbreq, &src->info.info2.wb_req, sizeof(MAB_PSS_WARMBOOT_REQ)) == 0)
       return NCSCC_RC_SUCCESS;
 
    for(o_pp_req = &wbreq, in_req = &src->info.info2.wb_req; in_req != NULL; 
@@ -2703,7 +2703,7 @@ uns32 pss_ckpt_enc_plbck_ssn_info(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba, PSS_CKPT_P
    PSS_CKPT_PLBCK_SSN_INFO_MSG lcl_ssn;
 
    memset(&lcl_ssn, '\0', sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG));
-   if(m_NCS_MEMCMP(plbck_ssn, &lcl_ssn, sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG)) == 0)
+   if(memcmp(plbck_ssn, &lcl_ssn, sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG)) == 0)
    {
       m_PSS_RE_PLBCK_SET_SSN_IS_DONE(bmask);
    }
