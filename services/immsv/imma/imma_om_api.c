@@ -640,7 +640,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 
 
     if ((adminOwnerHandle == NULL) || (adminOwnerName == NULL) || 
-        (nameLen = m_NCS_OS_STRLEN(adminOwnerName)) == 0)
+        (nameLen = strlen(adminOwnerName)) == 0)
     {
         return SA_AIS_ERR_INVALID_PARAM;
     }
