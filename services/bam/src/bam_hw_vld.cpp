@@ -99,7 +99,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
 
    for(x=0; x<= idx; x++)
    {
-      tmp = m_NCS_OS_STRSTR(str[x], "..");
+      tmp = strstr(str[x], "..");
       valid_location->max[x] = atoi(tmp+2);
       
       tmp = strtok_r(str[x], "..", &junk);

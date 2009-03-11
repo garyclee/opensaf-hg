@@ -62,11 +62,11 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
    /* SU DN name is  SU name + NODE name */
 
    /* First get the SU name */
-   tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safSu");
+   tmp = strstr(s_dn_name->value, "safSu");
 
    /* It might be external SU. */
    if(NULL == tmp)
-       tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safEsu");
+       tmp = strstr(s_dn_name->value, "safEsu");
 
    if(!tmp)
       return NCSCC_RC_FAILURE;
@@ -104,7 +104,7 @@ uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn,
    memset(d_node_dn, 0, sizeof(SaNameT));
 
    /* get the node name */
-   tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safNode");
+   tmp = strstr(s_dn_name->value, "safNode");
 
    if(!tmp)
       return NCSCC_RC_FAILURE;
@@ -165,7 +165,7 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn,
    memset(d_si_dn, 0, sizeof(SaNameT));
 
    /* get the si name */
-   tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safSi");
+   tmp = strstr(s_dn_name->value, "safSi");
 
    if(!tmp)
       return NCSCC_RC_FAILURE;

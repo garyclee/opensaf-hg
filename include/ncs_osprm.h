@@ -655,10 +655,6 @@ typedef int32 int64;
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-#ifndef m_NCS_OS_STRSTR
-#define m_NCS_OS_STRSTR(s1,s2)         strstr((char *)s1, (char *)s2)
-#endif
-
 /******* Macros for DLL's ********/
 #ifndef NCS_USE_DLIB
 #define NCS_USE_DLIB (0)
