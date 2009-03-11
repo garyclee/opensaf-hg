@@ -219,7 +219,7 @@ void ncs_str_to_ipv6addr(NCS_IPV6_ADDR *o_v6addr, int8* i_str)
    memset(buffer, 0, sizeof(buffer));
    strcpy(buffer, i_str);
 
-   token = sysf_strtok(buffer, delimiter);
+   token = strtok(buffer, delimiter);
 
    /* Read the value from token */
    if(token)
@@ -238,7 +238,7 @@ void ncs_str_to_ipv6addr(NCS_IPV6_ADDR *o_v6addr, int8* i_str)
    o_v6addr->ipv6.ipv6_addr16[idx++] = (uns16)val;
    while(0 != token)
    {
-      token = sysf_strtok(0, delimiter);
+      token = strtok(0, delimiter);
       if(token)
       {
          sscanf(token, "%x", &val);
@@ -273,8 +273,8 @@ void ncs_str_to_ipv6pfx(NCS_IPV6_ADDR *o_v6addr,
    uns32   val = 0;
    uns8    pfx_len = 0, idx=0, bit_mask = 0xff;
 
-   token = sysf_strtok(str, delimiter);
-   token = sysf_strtok(0, delimiter);
+   token = strtok(str, delimiter);
+   token = strtok(0, delimiter);
 
    /* Read the pfx_len value from token */
    if(token)

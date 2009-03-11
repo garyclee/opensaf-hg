@@ -367,7 +367,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
    strcpy(cmd_path, pList->i_node);    
    
    /* extract the root node from the path */   
-   token = sysf_strtok(cmd_path, CLI_TOK_SEPARATOR);
+   token = strtok(cmd_path, CLI_TOK_SEPARATOR);
    
    if(!pCli->ctree_cb.rootMrkr && cookie) {
       pCli->ctree_cb.rootMrkr = m_MMGR_ALLOC_CLI_CMD_NODE;
@@ -381,12 +381,12 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
    pCli->ctree_cb.ctxtMrkr = pCli->ctree_cb.rootMrkr;
    
    /* extract the root node from the path */   
-   token = sysf_strtok(0, CLI_TOK_SEPARATOR);
+   token = strtok(0, CLI_TOK_SEPARATOR);
    
    /* Traverse the tree to the specified node */
    while(0 != token) {
       cli_find_add_node(pCli, token, cookie);       
-      token = sysf_strtok(0, CLI_TOK_SEPARATOR);
+      token = strtok(0, CLI_TOK_SEPARATOR);
       
       if(!cookie && !pCli->ctree_cb.nodeFound)
          return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);

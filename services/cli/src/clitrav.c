@@ -271,11 +271,11 @@ cli_check_macaddr(int8 *i_str)
    memset(buffer, 0, sizeof(buffer));
 
    strcpy(buffer, i_str);
-   token = sysf_strtok(buffer, delimiter);      
+   token = strtok(buffer, delimiter);      
    
    while(token) {
       addr_cnt++;
-      token = sysf_strtok(0, delimiter);      
+      token = strtok(0, delimiter);      
    }
 
    if(NCSCLI_MAC_ADDR_CNT == addr_cnt) ret_val = CLI_SUCCESSFULL_MATCH;
@@ -309,7 +309,7 @@ cli_check_community(int8 *i_str)
       
    memset(buffer, 0, sizeof(buffer));
    strcpy(buffer, i_str);
-   token = sysf_strtok(buffer, delimiter);
+   token = strtok(buffer, delimiter);
    if(token) {
       /* Get firt part of community */ 
       ret = cli_check_ipv4addr(token);
@@ -321,7 +321,7 @@ cli_check_community(int8 *i_str)
       
       /* Get next part of community */
       while(0 != token) {
-        token = sysf_strtok(0, delimiter);
+        token = strtok(0, delimiter);
         if(token) {
            if(CLI_SUCCESSFULL_MATCH != cli_check_number(token)) return ret_val;           
            else ret_val = CLI_SUCCESSFULL_MATCH;
@@ -519,12 +519,12 @@ uns32 cli_ipv4_to_int(int8 *i_string)
    
    strcpy(str_addr, i_string);
    
-   token = sysf_strtok( str_addr, seps );
+   token = strtok( str_addr, seps );
    ipaddress |= atoi(token);
    
    while(token) {       
       /* Get next token: */
-      token = sysf_strtok(0, seps);
+      token = strtok(0, seps);
       if(token != 0) {
          /* Left shift 8 bits and OR with token */
          ipaddress <<= 8;         
@@ -944,9 +944,9 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
          if(NCSCLI_CIDRv4 == i_argval->i_arg_type) {
             strcpy(ipmask, (int8 *)i_argval->cmd.strval);                 
             
-            iptoken = sysf_strtok(ipmask, seps);
+            iptoken = strtok(ipmask, seps);
             if(iptoken != 0) {
-               iptoken = sysf_strtok(0, seps);
+               iptoken = strtok(0, seps);
                ret = CLI_SUCCESSFULL_MATCH;
             }                
             
@@ -1054,7 +1054,7 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
    
    /* Copy new nodepath info */
    strcpy(nodePath, pCli->ctree_cb.cmdElement->nodePath);
-   token = sysf_strtok(nodePath, CLI_TOK_SEPARATOR);
+   token = strtok(nodePath, CLI_TOK_SEPARATOR);
    
    /* Set tmpnode to root node */
    tmpnode = pCli->ctree_cb.rootMrkr;
@@ -1065,7 +1065,7 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
    /* Check if path user has given exists */
    while(0 != token) {                                       
       /* extract next node from nodepath */
-      token = sysf_strtok( 0, CLI_TOK_SEPARATOR );
+      token = strtok( 0, CLI_TOK_SEPARATOR );
       if(0 != token) {
          /* Get child node and check if it exists */
          tmpnode = tmpnode->pChild; 
@@ -2528,13 +2528,13 @@ static void convert_to_macaddr(NCSCLI_ARG_VAL *arg_val, int8* str)
    
    memset(buffer, 0, sizeof(buffer));
    strcpy(buffer, str);
-   token = sysf_strtok(buffer, delimiter);      
+   token = strtok(buffer, delimiter);      
    
    m_MMGR_FREE_CLI_DEFAULT_VAL(str);
    sscanf(token, "%x", &val);
    arg_val->cmd.macaddr[idx] = (uns8)val;
    while(0 != token) {
-      token = sysf_strtok(0, delimiter);
+      token = strtok(0, delimiter);
       if(token) {
          idx++;
          sscanf(token, "%x", &val);
@@ -2555,7 +2555,7 @@ static void convert_to_community(NCSCLI_ARG_VAL *arg_val, int8* str)
    memset(ipbuff, 0, sizeof(ipbuff));
    
    strcpy(buffer, str);
-   token = sysf_strtok(buffer, delimiter);
+   token = strtok(buffer, delimiter);
    if(token) {
       /* Get firt part of community */      
       strcpy(ipbuff, token);
@@ -2571,7 +2571,7 @@ static void convert_to_community(NCSCLI_ARG_VAL *arg_val, int8* str)
    }
    
    while(0 != token) {
-      token = sysf_strtok(0, delimiter);
+      token = strtok(0, delimiter);
       if(token) arg_val->cmd.community.num = (uns32)atoi(token);
    }
    
@@ -2598,8 +2598,8 @@ static void cli_str_to_ipv6pfx(NCSCLI_ARG_VAL *arg_val, int8* str)
    uns32   val = 0;
    uns8    pfx_len = 0;
 
-   token = sysf_strtok(str, delimiter);
-   token = sysf_strtok(0, delimiter);
+   token = strtok(str, delimiter);
+   token = strtok(0, delimiter);
 
    /* Read the pfx_len value from token */
    if(token) sscanf(token, "%d", &val);
@@ -2630,12 +2630,12 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
    strcpy(buffer, io_param->i_cmdbuf); 
    
    /* Tok the process part of the input */
-   token = sysf_strtok(buffer, delimiter);
+   token = strtok(buffer, delimiter);
    cnt--;
    pos += strlen(token)+1;
    
    while((0 != token) && cnt) {
-      token = sysf_strtok(0, delimiter);
+      token = strtok(0, delimiter);
       cnt--;
       pos += strlen(token)+1;
    }   

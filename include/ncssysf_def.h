@@ -168,11 +168,6 @@ extern LEAPDLL_API int get_char_from_gui();
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
 #define m_NCS_ASSERT(exp)       m_NCS_OS_ASSERT(exp)
 
-/* Caution:  This macro is not THREAD SAFE. 
- * Use sysf_strtok_r for re-entrant functionality
- */
-#define m_NCS_STRTOK(s,d)       m_NCS_OS_STRTOK(s,d)
-
 #define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
@@ -464,8 +459,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
  **                                                                         **
  ****************************************************************************/
 
-EXTERN_C LEAPDLL_API int8 *sysf_strtok(int8 *s, const int8 *delim);
-EXTERN_C LEAPDLL_API int8 *sysf_strtok_r(int8 *s, const int8 *delim, int8 **stores);
 EXTERN_C LEAPDLL_API int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
 EXTERN_C LEAPDLL_API int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
 

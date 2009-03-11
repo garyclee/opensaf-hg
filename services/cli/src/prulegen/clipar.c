@@ -1869,7 +1869,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
 
    switch(i_token_attrib) {
    case CLI_HELP_STR:
-      token = sysf_strtok(i_value, CLI_HELP_IDENTIFIER);
+      token = strtok(i_value, CLI_HELP_IDENTIFIER);
 
         i_node->helpStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token)+1);
         if(!i_node->helpStr) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
@@ -1877,7 +1877,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
       break;    
 
    case CLI_DEFALUT_VALUE:
-      token = sysf_strtok(i_value, CLI_DEFAULT_IDENTIFIER);
+      token = strtok(i_value, CLI_DEFAULT_IDENTIFIER);
 
       if(NCSCLI_NUMBER == i_node->tokType) {
          i_node->defVal = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
@@ -1907,7 +1907,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
         break;
 
    case CLI_MODE_CHANGE:
-      token = sysf_strtok(i_value, CLI_MODE_IDENTIFIER);
+      token = strtok(i_value, CLI_MODE_IDENTIFIER);
    
       i_node->modChg = TRUE;
       i_node->nodePath = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token)+1);
@@ -1938,7 +1938,7 @@ get_range_values(CLI_CMD_ELEMENT    *i_node,
    if(!i_node->range) return;
 
    memset(i_node->range, 0, sizeof(CLI_RANGE));
-   token = sysf_strtok(i_value, delimiter);
+   token = strtok(i_value, delimiter);
 
    if(NCSCLI_NUMBER == i_node->tokType ||
    NCSCLI_CONTINOUS_EXP == i_node->tokType) {
@@ -1957,7 +1957,7 @@ get_range_values(CLI_CMD_ELEMENT    *i_node,
    }
 
    while(0 != token) {
-      token = sysf_strtok(0, delimiter);
+      token = strtok(0, delimiter);
    
       if(token) {               
          if(NCSCLI_NUMBER == i_node->tokType ||

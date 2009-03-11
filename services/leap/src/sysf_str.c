@@ -42,50 +42,6 @@
 
 #include "ncssysf_def.h"
 
-
-/* Parse S into tokens separated by characters in DELIM.
-   If S is NULL, the last string strtok() was called with is
-   used.
-*/
-int8 * sysf_strtok( int8 *s, const int8 *delim)
-{
-    static int8 *olds = 0;
-    int8 *token;
-
-    if (s == 0)
-    {
-        if (olds == 0)
-        {
-            return 0;
-        } else
-            s = olds;
-    }
-
-    /* Scan leading delimiters.  */
-    s += strspn((char *)s, (const char *)delim);
-    if (*s == '\0')
-    {
-        olds = 0;
-        return 0;
-    }
-
-    /* Find the end of the token.  */
-    token = s;
-    s = strpbrk((char *)token, (const char *)delim);
-    if (s == 0)
-    {
-        /* This token finishes the string.  */
-        olds = 0;
-    }
-    else
-    {
-        /* Terminate the token and make OLDS point past it.  */
-        *s = '\0';
-        olds = s + 1;
-    }
-    return token;
-}
-
 /****************************************************************************
   PROCEDURE NAME:   sysf_strrcspn
 
