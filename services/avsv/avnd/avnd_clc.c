@@ -2741,11 +2741,11 @@ uns8*  avnd_prep_attr_env_var (AVND_COMP    *comp,
        {
            /* If only one attribute No "," */
             if(0 != count)
-             m_NCS_STRNCAT(env_val,",",1);
+             strncat(env_val,",",1);
 
-             m_NCS_STRNCAT(env_val,attr_list->name.value,attr_list->name.length);
-             m_NCS_STRNCAT(env_val,"=",1);
-             m_NCS_STRNCAT(env_val,attr_list->value.value,attr_list->value.length);
+             strncat(env_val,attr_list->name.value,attr_list->name.length);
+             strncat(env_val,"=",1);
+             strncat(env_val,attr_list->value.value,attr_list->value.length);
        }
      }
  return env_val ;    

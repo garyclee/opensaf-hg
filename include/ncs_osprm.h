@@ -655,10 +655,6 @@ typedef int32 int64;
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-#ifndef m_NCS_OS_STRNCAT
-#define m_NCS_OS_STRNCAT(d,s,n)            strncat((char *)d,(char *)s,n)
-#endif
-
 #ifndef m_NCS_OS_STRLEN
 #define m_NCS_OS_STRLEN(s)                 strlen((char*)s)
 #endif
