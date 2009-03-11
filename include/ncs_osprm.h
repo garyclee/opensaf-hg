@@ -655,13 +655,6 @@ typedef int32 int64;
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-/* Caution:  This macro is not THREAD SAFE. 
- * Use sysf_strtok_r for re-entrant functionality
- */
-#ifndef m_NCS_OS_STRTOK
-#define m_NCS_OS_STRTOK(s,d)              strtok((char *)s,(char *)d)
-#endif
-
 #ifndef m_NCS_OS_STRSTR
 #define m_NCS_OS_STRSTR(s1,s2)         strstr((char *)s1, (char *)s2)
 #endif

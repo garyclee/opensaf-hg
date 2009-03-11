@@ -259,12 +259,12 @@ typedef struct pdrbd_evt
    /* copy the str as strtok modifies the original str */ \
    strcpy(str, st); \
    ac = 0; \
-   if ( NULL != (tok = m_NCS_STRTOK(str, " ")) ) { \
+   if ( NULL != (tok = strtok(str, " ")) ) { \
       strcpy(sc, tok); \
       av[ac] = sc; \
    } \
    ac++; \
-   while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
+   while ( (NULL != (tok = strtok(NULL, " "))) && \
            (ac < (PDRBD_NUM_ARGS+1)) ) { \
       if ( strlen(tok) > PDRBD_MAX_ARG_SIZE ) break; \
       strcpy(tav[ac], tok); \

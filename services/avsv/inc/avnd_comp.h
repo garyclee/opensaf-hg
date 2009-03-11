@@ -624,12 +624,12 @@ typedef struct avnd_comp_tag {
    /* copy the str as strtok modifies the original str */ \
    strcpy(str, st); \
    ac = 0; \
-   if ( NULL != (tok = m_NCS_STRTOK(str, " ")) ) { \
+   if ( NULL != (tok = strtok(str, " ")) ) { \
       strcpy(sc, tok); \
       av[ac] = sc; \
    } \
    ac++; \
-   while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
+   while ( (NULL != (tok = strtok(NULL, " "))) && \
            (ac < (AVND_COMP_CLC_PARAM_MAX+1)) ) { \
       if ( strlen(tok) > AVND_COMP_CLC_PARAM_SIZE_MAX ) break; \
       strcpy(tav[ac], tok); \

@@ -1000,11 +1000,11 @@ static int lt_get_usercmdline(char * cmd, char **pv)
 
     m_NCS_CONS_PRINTF("lt> ");
     sysf_fgets(cmd, CMD_CH_MAX, stdin);
-    t = sysf_strtok(cmd, " \n");
+    t = strtok(cmd, " \n");
     while (t != NULL)
     {
         pv[pc++] = t;
-        t = sysf_strtok(NULL, " \n");
+        t = strtok(NULL, " \n");
     }
 
     return pc;
