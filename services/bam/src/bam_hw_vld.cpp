@@ -59,7 +59,7 @@ EXTERN_C uns32 gl_ncs_bam_hdl;
 
   RETURNS       : NONE
 
-  NOTES         :  use the re-entrant supported m_NCS_OS_STRTOK_R macro
+  NOTES         :  use the re-entrant supported strtok_r macro
 
 *****************************************************************************/
 
@@ -70,7 +70,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
    char *tmp, *reentrant, *junk, *token;
    int idx=0, x;
 
-   token = m_NCS_OS_STRTOK_R(val, ",", &reentrant);
+   token = strtok_r(val, ",", &reentrant);
    
    /* This will take care of single location specified as opposed to 
    ** range
@@ -87,7 +87,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
    while( (idx < 8)) /* && (token) &&(strlen(token) != 0) ) */
    {
       idx++;
-      token = m_NCS_OS_STRTOK_R(NULL, ",", &reentrant);
+      token = strtok_r(NULL, ",", &reentrant);
       if((token) && (strlen(token)))
          strcpy(str[idx], token);
       else
@@ -102,7 +102,7 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
       tmp = m_NCS_OS_STRSTR(str[x], "..");
       valid_location->max[x] = atoi(tmp+2);
       
-      tmp = m_NCS_OS_STRTOK_R(str[x], "..", &junk);
+      tmp = strtok_r(str[x], "..", &junk);
       valid_location->min[x] = atoi(tmp);
    }
    return;
