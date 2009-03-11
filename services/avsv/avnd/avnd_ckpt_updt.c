@@ -528,7 +528,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
                in our data base is enough.*/
 
              memset(&temp_comp_name, 0, sizeof(SaNameT));
-             if(m_NCS_MEMCMP(&temp_comp_name, &comp->proxy_comp_name_net,
+             if(memcmp(&temp_comp_name, &comp->proxy_comp_name_net,
                 sizeof(SaNameT)) != 0)
              {
                /* This has proxy name associated with it. So, add it in the
@@ -548,7 +548,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
                    return NCSCC_RC_FAILURE;
                }
 
-             }/* m_NCS_MEMCMP() */
+             }/* memcmp() */
            } /* if (NULL == comp_ptr) */
            else
            {

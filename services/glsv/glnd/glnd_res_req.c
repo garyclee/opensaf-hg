@@ -131,7 +131,7 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB       *glnd_cb,
    /* find it from the list */
    for(res_req_info = glnd_cb->res_req_list; res_req_info != NULL;res_req_info = res_req_info->next)
    {
-      if(m_NCS_MEMCMP(&resource_name,&res_req_info->resource_name, sizeof(SaNameT)) == 0)
+      if(memcmp(&resource_name,&res_req_info->resource_name, sizeof(SaNameT)) == 0)
       {
          break;
       }

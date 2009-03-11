@@ -1414,7 +1414,7 @@ NCS_BOOL mqd_obj_cmp(void* key, void* elem)
 
    if (pOelm->pObject->name.length == local_key->length) 
      {
-      if(!m_NCS_OS_MEMCMP(pOelm->pObject->name.value, local_key->value, local_key->length)) 
+      if(!memcmp(pOelm->pObject->name.value, local_key->value, local_key->length)) 
       {
        return TRUE;
       }

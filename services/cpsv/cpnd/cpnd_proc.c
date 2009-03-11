@@ -790,7 +790,7 @@ void cpnd_proc_cpa_down(CPND_CB *cb,MDS_DEST dest)
    {
       prev_ckpt_hdl=cl_node->ckpt_app_hdl;
 
-      if (m_NCS_MEMCMP(&dest,&cl_node->agent_mds_dest,sizeof(MDS_DEST)) == 0)
+      if (memcmp(&dest,&cl_node->agent_mds_dest,sizeof(MDS_DEST)) == 0)
       {
          while(cl_node->ckpt_list != NULL)
          {
@@ -858,7 +858,7 @@ void cpnd_proc_cpa_up(CPND_CB *cb,MDS_DEST dest)
    while(cl_node)
    {
       prev_ckpt_hdl=cl_node->ckpt_app_hdl;
-      if (m_NCS_MEMCMP(&dest,&cl_node->agent_mds_dest,sizeof(MDS_DEST)) == 0)
+      if (memcmp(&dest,&cl_node->agent_mds_dest,sizeof(MDS_DEST)) == 0)
       {
          cl_node->app_status = TRUE;
       }
@@ -1728,7 +1728,7 @@ cpnd_proc_getnext_section(CPND_CKPT_NODE *cp_node,\
       while(pSecPtr != NULL && *n_secs_trav != 0)
       {
          if ( (pSecPtr->sec_id.idLen == get_next->section_id.idLen) && \
-              (m_NCS_MEMCMP(pSecPtr->sec_id.id,get_next->section_id.id, \
+              (memcmp(pSecPtr->sec_id.id,get_next->section_id.id, \
                get_next->section_id.idLen)== 0) )
          {
              break;

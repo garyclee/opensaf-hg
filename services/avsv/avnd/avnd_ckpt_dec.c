@@ -821,7 +821,7 @@ uns32  avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
     * if they matches return success. If it fails then
     * send a data request.
     */
-   if (0 != m_NCS_MEMCMP(updt_cnt, &cb->avnd_async_updt_cnt,
+   if (0 != memcmp(updt_cnt, &cb->avnd_async_updt_cnt,
       sizeof(AVND_ASYNC_UPDT_CNT)))
    {
       /* Log this as a Notify kind of message....this means we

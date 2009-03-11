@@ -363,7 +363,7 @@ static uns32
 avm_comp_text_buffers(SaHpiTextBufferT *src, SaHpiTextBufferT *dst)
 {
    
-   if((dst->DataLength == src->DataLength) && (!m_NCS_MEMCMP(dst->Data, src->Data, src->DataLength)))
+   if((dst->DataLength == src->DataLength) && (!memcmp(dst->Data, src->Data, src->DataLength)))
    {
       return NCSCC_RC_SUCCESS;
    }

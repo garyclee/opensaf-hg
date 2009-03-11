@@ -882,7 +882,7 @@ uns32  dtsv_decode_warm_sync_rsp(DTS_CB *cb, NCS_MBCSV_CB_DEC *dec)
     * if they matches return success. If it fails then 
     * send a data request.
     */
-   if (0 != m_NCS_MEMCMP(updt_cnt, &cb->async_updt_cnt,
+   if (0 != memcmp(updt_cnt, &cb->async_updt_cnt,
       sizeof(DTSV_ASYNC_UPDT_CNT)))
    {
       ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_WSYNC_ERR, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_ERROR, "TILLLLLLLL", DTS_WSYNC_DATA_MISMATCH, updt_cnt->dts_svc_reg_tbl_updt, updt_cnt->dta_dest_list_updt,  updt_cnt->global_policy_updt,  updt_cnt->dts_log_updt, cb->async_updt_cnt.dts_svc_reg_tbl_updt, cb->async_updt_cnt.dta_dest_list_updt, cb->async_updt_cnt.global_policy_updt, cb->async_updt_cnt.dts_log_updt);

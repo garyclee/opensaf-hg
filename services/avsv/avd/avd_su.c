@@ -1182,7 +1182,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       {
          if (temp_name.length == su->sg_of_su->name_net.length)
          {
-            if(m_NCS_MEMCMP(su->sg_of_su->name_net.value,temp_name.value,temp_name.length)
+            if(memcmp(su->sg_of_su->name_net.value,temp_name.value,temp_name.length)
                == 0)
             {
                return NCSCC_RC_SUCCESS;

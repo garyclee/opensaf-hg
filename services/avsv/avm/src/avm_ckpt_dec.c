@@ -920,7 +920,7 @@ avm_decode_warm_sync_rsp(
    
    m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_INFO);
    
-   if(m_NCS_MEMCMP(updt_cnt, &cb->async_updt_cnt, sizeof(AVM_ASYNC_CNT_T)))
+   if(memcmp(updt_cnt, &cb->async_updt_cnt, sizeof(AVM_ASYNC_CNT_T)))
    {
       m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_ERROR);
 

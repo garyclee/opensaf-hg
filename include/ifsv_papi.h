@@ -66,7 +66,7 @@ typedef unsigned int NCS_IFSV_IFINDEX;
 typedef unsigned int NCS_IFSV_BM;
 
 /* Macro to check whether the MDS dest is same */
-#define m_NCS_IFSV_IS_MDS_DEST_SAME(dest1,dest2) ((m_NCS_MEMCMP(dest1,dest2, sizeof(MDS_DEST)) == 0)?TRUE:FALSE)
+#define m_NCS_IFSV_IS_MDS_DEST_SAME(dest1,dest2) ((memcmp(dest1,dest2, sizeof(MDS_DEST)) == 0)?TRUE:FALSE)
 
 /*****************************************************************************
  * This is the message type which hardware drv would receive or send to IFND.

@@ -633,7 +633,7 @@ void avnd_pg_trk_rmv (AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
       curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list);
       while (curr)
       {
-         if ( 0 == m_NCS_OS_MEMCMP(&curr->info.key.mds_dest, &key->mds_dest, sizeof(MDS_DEST)) )
+         if ( 0 == memcmp(&curr->info.key.mds_dest, &key->mds_dest, sizeof(MDS_DEST)) )
          {
             avnd_pgdb_trk_rec_del(cb, pg, &curr->info.key);
             curr = (prv) ? (AVND_PG_TRK *)m_NCS_DBLIST_FIND_NEXT(&prv->pg_dll_node) :

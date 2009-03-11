@@ -456,7 +456,7 @@ oac_fltrs_exact_fltr_locate(OAC_FLTR *fltr_list, NCSMAB_EXACT *exact)
     {
         if ((exact->i_bgn_idx == fltr->fltr.fltr.exact.i_bgn_idx) &&
             (exact->i_idx_len == fltr->fltr.fltr.exact.i_idx_len) &&
-            (m_NCS_OS_MEMCMP(exact->i_exact_idx,
+            (memcmp(exact->i_exact_idx,
                     fltr->fltr.fltr.exact.i_exact_idx,
                     (fltr->fltr.fltr.exact.i_idx_len) * sizeof(uns32)) == 0))
         {

@@ -903,7 +903,7 @@ void avnd_comp_hc_finalize (AVND_CB      *cb,
       prv = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_PREV(&curr->comp_dll_node);
 
       if ( (curr->req_hdl == hdl) && 
-           !m_NCS_OS_MEMCMP(&curr->dest, dest, sizeof(MDS_DEST)) )
+           !memcmp(&curr->dest, dest, sizeof(MDS_DEST)) )
       { 
          m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, curr, AVND_CKPT_COMP_HLT_REC);
          avnd_comp_hc_rec_del(cb, comp, curr);

@@ -287,7 +287,7 @@ cpnd_ckpt_node_find_by_name(CPND_CB *cpnd_cb, SaNameT ckpt_name)
    while(ckpt_node)
    {
       prev_ckpt_id = ckpt_node->ckpt_id;
-      if (m_NCS_MEMCMP(&ckpt_name, &ckpt_node->ckpt_name,sizeof(SaNameT)) == 0)
+      if (memcmp(&ckpt_name, &ckpt_node->ckpt_name,sizeof(SaNameT)) == 0)
       {
          return ckpt_node;
       }
@@ -407,7 +407,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get(CPND_CKPT_NODE *cp_node,SaCkptSectionI
    while(pSecPtr != NULL)
    {
        if ( (pSecPtr->sec_id.idLen == id->idLen) && \
-             (m_NCS_MEMCMP(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
+             (memcmp(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
        {
           return pSecPtr;
        }
@@ -441,7 +441,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_get_create(CPND_CKPT_NODE *cp_node,SaCkptS
    while(pSecPtr != NULL)
    {
        if ( (pSecPtr->sec_id.idLen == id->idLen) && \
-             (m_NCS_MEMCMP(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
+             (memcmp(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
        {
           return pSecPtr;
        }
@@ -477,7 +477,7 @@ uns32 cpnd_ckpt_sec_find(CPND_CKPT_NODE *cp_node,SaCkptSectionIdT *id)
    while(pSecPtr != NULL)
    {
        if ( (pSecPtr->sec_id.idLen == id->idLen) && \
-             (m_NCS_MEMCMP(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
+             (memcmp(pSecPtr->sec_id.id,id->id,id->idLen)== 0))
        {
           return rc;
        }
@@ -508,7 +508,7 @@ CPND_CKPT_SECTION_INFO *cpnd_ckpt_sec_del(CPND_CKPT_NODE *cp_node,SaCkptSectionI
    while(pSecPtr != NULL)
    {
        if ( (pSecPtr->sec_id.idLen == id->idLen) && \
-             (m_NCS_MEMCMP(pSecPtr->sec_id.id,id->id,\
+             (memcmp(pSecPtr->sec_id.id,id->id,\
                               id->idLen)== 0))
        {
           /* delete it from the list and return the pointer */

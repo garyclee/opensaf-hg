@@ -598,7 +598,7 @@ SRMND_MON_SRMA_USR_NODE  *srmnd_get_appl_node(SRMND_CB *srmnd,
    while (user_node)
    {
       if ((user_node->usr_key.srma_usr_hdl == usr_key->srma_usr_hdl) && 
-          (!m_NCS_OS_MEMCMP(&user_node->usr_key.srma_dest,
+          (!memcmp(&user_node->usr_key.srma_dest,
                    &usr_key->srma_dest, sizeof(MDS_DEST))))
       {
          return user_node;
@@ -637,7 +637,7 @@ void srmnd_del_srma(SRMND_CB *srmnd, MDS_DEST *srma_dest)
       next_user_node = user_node->next_srma_node;
 
       if (srma_dest != NULL)
-         if (m_NCS_OS_MEMCMP(&user_node->usr_key.srma_dest, srma_dest, sizeof(MDS_DEST)))
+         if (memcmp(&user_node->usr_key.srma_dest, srma_dest, sizeof(MDS_DEST)))
          {
             user_node = next_user_node;   
             continue;

@@ -756,7 +756,7 @@ ifd_ipxs_proc_data_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
       for ( ii = 0; ii < ifip_info->ipaddr_cnt ; ii ++)
       {
          pIfipIpInfo = &ifip_info->ipaddr_list[ii];
-         if (( m_NCS_MEMCMP(&pIfipIpInfo->ipaddr,&ipinfo->addip_list->ipaddr,
+         if (( memcmp(&pIfipIpInfo->ipaddr,&ipinfo->addip_list->ipaddr,
                                      sizeof(NCS_IPPFX)))== 0)
          {
             if(ipinfo->addip_list->refCnt == 0)

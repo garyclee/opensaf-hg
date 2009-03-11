@@ -775,14 +775,14 @@ SRMA_RSRC_MON *srma_check_duplicate_mon_info(SRMA_USR_APPL_NODE *appl,
        rsrc = usr_srmnd->start_rsrc_mon;
        while (rsrc) 
        {           
-           if (!m_NCS_OS_MEMCMP(&info->rsrc_info,
+           if (!memcmp(&info->rsrc_info,
                                 &rsrc->rsrc_info, sizeof(NCS_SRMSV_RSRC_INFO))) 
            {
                /* If it is TRUE then return the respective resource */
                if (only_rsrc_info != FALSE)
                   return rsrc;
                
-               if (!m_NCS_OS_MEMCMP(&info->monitor_data, &rsrc->monitor_data, 
+               if (!memcmp(&info->monitor_data, &rsrc->monitor_data, 
                            sizeof(NCS_SRMSV_MON_DATA)))               
                   return rsrc;
            }
@@ -1005,7 +1005,7 @@ SRMA_SRMND_USR_NODE *srma_check_srmnd_usr_exists(SRMA_SRMND_INFO *srmnd,
        {
           if (srmnd_usr->srmnd_info)
           {             
-             if (!m_NCS_OS_MEMCMP(&srmnd_usr->srmnd_info->srmnd_dest, &srmnd->srmnd_dest,
+             if (!memcmp(&srmnd_usr->srmnd_info->srmnd_dest, &srmnd->srmnd_dest,
                          sizeof(MDS_DEST)))           
              {
                 got_it = TRUE;

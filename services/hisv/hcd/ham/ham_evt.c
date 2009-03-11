@@ -1466,7 +1466,7 @@ GET_RES_ID:
 
 #ifdef HPI_A
       /* got the entry, check for matching entity path, ignore Group tuples */
-      if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[2], len))
+      if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[2], len))
          continue;
 
       /*  fix till we move to HPI B spec entity path mechanism */
@@ -1503,7 +1503,7 @@ GET_RES_ID:
                   }
                 }
             
-               if (m_NCS_MEMCMP((int8 *)&epath.Entry[1], (int8 *)&entry.ResourceEntity.Entry[3], (len-(2*sizeof(SaHpiEntityT)))) != 0)
+               if (memcmp((int8 *)&epath.Entry[1], (int8 *)&entry.ResourceEntity.Entry[3], (len-(2*sizeof(SaHpiEntityT)))) != 0)
                   {
                     continue;
                   }
@@ -1548,10 +1548,10 @@ GET_RES_ID:
               /* Allow for the case where blades are ATCA or non-ATCA.  */
               if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
                   (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-                 if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
+                 if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
                     continue;
               }
-              else if (m_NCS_MEMCMP(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
+              else if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
                  continue;
         }
             
@@ -1741,7 +1741,7 @@ ham_adest_update(HISV_MSG *msg, HAM_CB *ham_cb)
    dest = ham_cb->dest;
    while (dest != NULL)
    {
-      if (!m_NCS_MEMCMP(&dest->addr, msg->info.api_info.data, sizeof(MDS_DEST)))
+      if (!memcmp(&dest->addr, msg->info.api_info.data, sizeof(MDS_DEST)))
       {
          return NCSCC_RC_SUCCESS;
       }

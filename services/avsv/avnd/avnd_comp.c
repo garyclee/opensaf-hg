@@ -643,7 +643,7 @@ uns32 avnd_evt_mds_ava_dn (AVND_CB *cb, AVND_EVT *evt)
          comp; name_net = comp->name_net,
          comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, name_net) )
    {
-      if ( 0 == m_NCS_OS_MEMCMP(&comp->reg_dest, &mds_evt->mds_dest, 
+      if ( 0 == memcmp(&comp->reg_dest, &mds_evt->mds_dest, 
                                 sizeof(MDS_DEST)) )
       {
          /* proxied component can't have mds down event */
@@ -2274,7 +2274,7 @@ uns32 avnd_amf_resp_send(AVND_CB           *cb,
 
    /* Check if the response has to be sent or not. */
    memset(&temp_ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
-   if(0 == m_NCS_OS_MEMCMP(ctxt, &temp_ctxt, sizeof(MDS_SYNC_SND_CTXT)))
+   if(0 == memcmp(ctxt, &temp_ctxt, sizeof(MDS_SYNC_SND_CTXT)))
    {
      /* This means that the response is not supposed to be sent. */
      return rc;

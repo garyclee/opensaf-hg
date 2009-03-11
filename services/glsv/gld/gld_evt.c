@@ -189,7 +189,7 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT* evt)
    tmp_node_list = &rsc_info->node_list;
    while(node_list != NULL) 
    {
-      if (!m_NCS_MEMCMP(&node_list->dest_id,&evt->fr_dest_id, sizeof(MDS_DEST)))
+      if (!memcmp(&node_list->dest_id,&evt->fr_dest_id, sizeof(MDS_DEST)))
          break;
       tmp_node_list = &node_list->next;
       node_list = node_list->next;
@@ -420,7 +420,7 @@ static uns32 gld_glnd_operational(GLSV_GLD_EVT* evt)
      rsc_info = gld_cb->rsc_info;
      while(rsc_info != NULL )
      {
-        if (!m_NCS_OS_MEMCMP(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
+        if (!memcmp(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
             gld_snd_master_status(gld_cb,rsc_info,GLND_RESOURCE_MASTER_OPERATIONAL);
         rsc_info = rsc_info->next;
      }
@@ -558,7 +558,7 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT* evt)
      {
        if( rsc_info->node_list )
        {
-         if (!m_NCS_OS_MEMCMP(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
+         if (!memcmp(&rsc_info->node_list->dest_id,&node_details->dest_id, sizeof(MDS_DEST)))
             gld_snd_master_status(gld_cb,rsc_info,GLND_RESOURCE_MASTER_RESTARTED);
        }
        rsc_info = rsc_info->next;
@@ -775,7 +775,7 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB  *gld_cb,GLSV_GLD_GL
     while(glnd_rsc)
     {
         rsc_id = glnd_rsc->rsc_id;
-        if (m_NCS_OS_MEMCMP(&glnd_rsc->rsc_info->node_list->dest_id, &node_details->dest_id, sizeof(MDS_DEST))) 
+        if (memcmp(&glnd_rsc->rsc_info->node_list->dest_id, &node_details->dest_id, sizeof(MDS_DEST))) 
         {
            memset(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
 

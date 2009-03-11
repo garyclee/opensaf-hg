@@ -64,7 +64,7 @@ eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
            /* if either filter or pattern alone is empty, then no match */
            if((pattern->patternSize == 0) && (filter->filter.patternSize !=0))
                return(FALSE);
-           if (m_NCS_MEMCMP(filter->filter.pattern, pattern->pattern,
+           if (memcmp(filter->filter.pattern, pattern->pattern,
                            (size_t)filter->filter.patternSize) != 0)
               return(FALSE); /* No match */
          break;
@@ -84,7 +84,7 @@ eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
          /* Set p to offset into pattern */
          p = pattern->pattern +
             ((int)pattern->patternSize - (int)filter->filter.patternSize);
-         if (m_NCS_MEMCMP(filter->filter.pattern, p,
+         if (memcmp(filter->filter.pattern, p,
                           (size_t)filter->filter.patternSize) != 0)
             return(FALSE);
          break;
@@ -95,7 +95,7 @@ eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
 
          if (filter->filter.patternSize == pattern->patternSize)
          {
-            if (m_NCS_MEMCMP(filter->filter.pattern, pattern->pattern,
+            if (memcmp(filter->filter.pattern, pattern->pattern,
                              (size_t)filter->filter.patternSize) != 0)
                return(FALSE);
          }

@@ -598,7 +598,7 @@ ncs_ifsv_vip_del_ip(IFSV_CB *cb,uns32 hdl,NCS_IPPFX *ipAddr)
 
            if (pIpInfo->vipIp)     
            {
-               if(m_NCS_MEMCMP(ipAddr,&pIpInfo->ipaddr,sizeof(NCS_IPPFX)) == 0)
+               if(memcmp(ipAddr,&pIpInfo->ipaddr,sizeof(NCS_IPPFX)) == 0)
                {
                   if (pIpInfo->poolHdl  == hdl)
                   {

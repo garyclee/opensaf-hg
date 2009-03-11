@@ -179,7 +179,6 @@ extern LEAPDLL_API int get_char_from_gui();
 
 #define m_NCS_STRCAT(s1,s2)     m_NCS_OS_STRCAT(s1,s2)
 #define m_NCS_STRNCAT(s1,s2,n)  m_NCS_OS_STRNCAT(s1,s2,n)
-#define m_NCS_MEMCMP(d,s,n)     m_NCS_OS_MEMCMP(d,s,n)
 
 /* Caution:  This macro is not THREAD SAFE. 
  * Use sysf_strtok_r for re-entrant functionality

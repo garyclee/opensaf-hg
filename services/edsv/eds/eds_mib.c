@@ -520,7 +520,7 @@ EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name)
    /*   len = chan_name.length; */
 
       /* Compare channel name */
-      if(m_NCS_OS_MEMCMP(wp->cname,chan_name.value,chan_name.length) == 0)
+      if(memcmp(wp->cname,chan_name.value,chan_name.length) == 0)
           return wp; /* match found */
     }
     wp=wp->next;

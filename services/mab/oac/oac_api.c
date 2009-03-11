@@ -330,7 +330,7 @@ uns32 oac_ss_row_move(NCSOAC_ROW_MOVE*  row_move, uns32 oac_hdl)
   else if(8 == sizeof(void *))
        ncs_encode_64bit( &stream,(long)row_move->i_move_req->i_rsp_fnc);
 
-  if(m_NCS_MEMCMP(&inst->my_vcard,&row_move->i_move_req->req.info.moverow_req.i_move_to,
+  if(memcmp(&inst->my_vcard,&row_move->i_move_req->req.info.moverow_req.i_move_to,
                   sizeof(inst->my_vcard)) == 0)
     {
     /* this is a local moverow request */
@@ -829,7 +829,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
    while(tmp != NULL)
    {
        if((lcl_len == m_NCS_STRLEN(tmp->pcn)) &&
-           (m_NCS_MEMCMP(pcn, tmp->pcn, lcl_len) == 0) &&
+           (memcmp(pcn, tmp->pcn, lcl_len) == 0) &&
            (tbl_id == tmp->tbl_id))
        {
           m_LOG_OAA_PCN_INFO_II(NCSFL_SEV_INFO, MAB_OAA_PCN_INFO_PCN_FND_IN_PCN_LIST_OAC_FINDADD_PCN_IN_LIST_FUNC, pcn, tbl_id);
@@ -900,7 +900,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
     uns32 lcl_len = m_NCS_STRLEN(wbr->i_pcn);
 
     if((lcl_len == m_NCS_STRLEN(list->pcn)) &&
-       (m_NCS_MEMCMP(wbr->i_pcn, list->pcn, lcl_len) == 0))
+       (memcmp(wbr->i_pcn, list->pcn, lcl_len) == 0))
     {
        /* Found the PCN here. Now, look for the specific table. */
        NCSOAC_PSS_TBL_LIST *wbr_tbl_elem = wbr->i_tbl_list;

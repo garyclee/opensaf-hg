@@ -167,7 +167,7 @@ NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr)
     NCS_IP_ADDR lcl_addr;
     
     memset(&lcl_addr, '\0', sizeof(NCS_IP_ADDR));
-    if(m_NCS_OS_MEMCMP((char *)addr, (char *)&lcl_addr, sizeof(NCS_IP_ADDR)) 
+    if(memcmp((char *)addr, (char *)&lcl_addr, sizeof(NCS_IP_ADDR)) 
         == 0)
     {
         return TRUE;
@@ -182,7 +182,7 @@ NCS_BOOL ncs_is_ip_addr_zero(NCS_IP_ADDR *addr)
     memset(&lcl_addr, 0, sizeof(NCS_IP_ADDR));
 
     lcl_addr.type = addr->type; 
-    if(m_NCS_OS_MEMCMP((char *)addr, (char *)&lcl_addr, sizeof(NCS_IP_ADDR)) 
+    if(memcmp((char *)addr, (char *)&lcl_addr, sizeof(NCS_IP_ADDR)) 
         == 0)
     {
         return TRUE;

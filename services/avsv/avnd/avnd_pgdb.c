@@ -516,7 +516,7 @@ uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2)
 {
    int i = 0;
 
-   i = m_NCS_OS_MEMCMP(key1, key2, sizeof(AVND_PG_TRK_KEY));
+   i = memcmp(key1, key2, sizeof(AVND_PG_TRK_KEY));
 
    return ( (i == 0) ? 0 : ( (i > 0) ? 1 : 2) );
 }

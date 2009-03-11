@@ -218,7 +218,7 @@ typedef struct avm_db
  SaHpiEntityPathT entity_path; \
  o_rc = 0; \
  memset(&entity_path.Entry, 0, sizeof(SaHpiEntityPathT));\
- rc = m_NCS_MEMCMP((ent_info)->entity_path.Entry, entity_path.Entry, sizeof(SaHpiEntityPathT));\
+ rc = memcmp((ent_info)->entity_path.Entry, entity_path.Entry, sizeof(SaHpiEntityPathT));\
 }
 
 

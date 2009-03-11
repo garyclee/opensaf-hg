@@ -874,11 +874,11 @@ uns32 avd_hlt_node_del_hlt_from_list(AVD_HLT *hlt_chk, AVD_AVND *node )
     while(temp_hlt_chk != AVD_HLT_NULL)
     {
        /* Compare primary index (Component name) */
-       if(m_NCS_MEMCMP(temp_hlt_chk->key_name.comp_name_net.value, hlt_chk->key_name.comp_name_net.value,
+       if(memcmp(temp_hlt_chk->key_name.comp_name_net.value, hlt_chk->key_name.comp_name_net.value,
                        m_NCS_OS_NTOHS(hlt_chk->key_name.comp_name_net.length)) == 0)
        {
           /* Compare secondary index (Health check key) */          
-          if(m_NCS_MEMCMP(temp_hlt_chk->key_name.name.key, hlt_chk->key_name.name.key,
+          if(memcmp(temp_hlt_chk->key_name.name.key, hlt_chk->key_name.name.key,
                           hlt_chk->key_name.name.keyLen) == 0)
           {
              /* Update the list */

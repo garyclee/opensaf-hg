@@ -1053,7 +1053,7 @@ void avnd_comp_cbq_finalize (AVND_CB      *cb,
    while (curr)
    {
       if ( (curr->cbk_info->hdl == hdl) && 
-           !m_NCS_OS_MEMCMP(&curr->dest, dest, sizeof(MDS_DEST)) )
+           !memcmp(&curr->dest, dest, sizeof(MDS_DEST)) )
       {
          if(curr->cbk_info && (curr->cbk_info->type == AVSV_AMF_COMP_TERM)
                && (!m_AVND_COMP_TYPE_IS_PROXIED(comp)))

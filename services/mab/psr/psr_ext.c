@@ -2112,7 +2112,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
     {
         pData = (PSS_MIB_TBL_DATA *) pNode;
         pss_get_key_from_data(tbl_info, cur_key, cur_ptr);
-        res = m_NCS_MEMCMP(pData->key, cur_key, tbl_info->max_key_length);
+        res = memcmp(pData->key, cur_key, tbl_info->max_key_length);
 
         if (res > 0)
         {
@@ -2180,7 +2180,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                        (((*i_continue_session) == TRUE) ||
                         (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                          ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                          (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                         (pwe_cb->processing_pending_active_events == FALSE))
                     {
@@ -2188,7 +2188,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                           ((*i_continue_session) == FALSE))
                        {
                           if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                             (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                             (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                idx->i_inst_len) == 0))
                           {
                              /* Found the last sent MIB object */
@@ -2219,7 +2219,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                     (((*i_continue_session) == TRUE) ||
                      (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                        ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                        (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                        (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                    (pwe_cb->processing_pending_active_events == FALSE))
                 {
@@ -2227,7 +2227,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                       ((*i_continue_session) == FALSE))
                    {
                       if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                         (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                         (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx->i_inst_len) == 0))
                       {
                          /* Found the last sent MIB object */
@@ -2282,7 +2282,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                        (((*i_continue_session) == TRUE) ||
                         (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                          ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                          (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                         (pwe_cb->processing_pending_active_events == FALSE))
                     {
@@ -2290,7 +2290,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                           ((*i_continue_session) == FALSE))
                        {
                           if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                             (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                             (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                idx->i_inst_len) == 0))
                           {
                              /* Found the last sent MIB object */
@@ -2321,7 +2321,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                     (((*i_continue_session) == TRUE) ||
                      (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                        ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                        (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                        (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                    (pwe_cb->processing_pending_active_events == FALSE))
                 {
@@ -2329,7 +2329,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                       ((*i_continue_session) == FALSE))
                    {
                       if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                         (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                         (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx->i_inst_len) == 0))
                       {
                          /* Found the last sent MIB object */
@@ -2386,7 +2386,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                     (((*i_continue_session) == TRUE) ||
                      (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                       ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                       (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                       (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                    (pwe_cb->processing_pending_active_events == FALSE))
                 {
@@ -2394,7 +2394,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                       ((*i_continue_session) == FALSE))
                    {
                       if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                         (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                         (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                idx->i_inst_len) == 0))
                       {
                          /* Found the last sent MIB object */
@@ -2425,7 +2425,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                 (((*i_continue_session) == TRUE) ||
                  (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                    ((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                    (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                    (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx->i_inst_len) == 0)))))) ||
                (pwe_cb->processing_pending_active_events == FALSE))
             {
@@ -2433,7 +2433,7 @@ uns32 pss_playback_process_tbl_curprofile(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE 
                   ((*i_continue_session) == FALSE))
                {
                   if((idx->i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                     (m_NCS_MEMCMP(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                     (memcmp(idx->i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx->i_inst_len) == 0))
                   {
                      /* Found the last sent MIB object */
@@ -2734,7 +2734,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 {
                     pData = (PSS_MIB_TBL_DATA *) pNode;
                     pss_get_key_from_data(tbl_info, cur_key, cur_ptr);
-                    res = m_NCS_MEMCMP(pData->key, cur_key, tbl_info->max_key_length);
+                    res = memcmp(pData->key, cur_key, tbl_info->max_key_length);
 
                     if (res > 0)
                     {
@@ -2853,7 +2853,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
 
         /* Now make the comparisons between the alternate profile and the current profile data */
         pss_get_key_from_data(tbl_info, alt_key, alt_ptr);
-        res = m_NCS_MEMCMP(alt_key, cur_key, tbl_info->max_key_length);
+        res = memcmp(alt_key, cur_key, tbl_info->max_key_length);
 
         if (res < 0)
         {
@@ -2871,7 +2871,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
         if (res == 0)
         {
             /* add to chg_q if data is different */
-            if (m_NCS_MEMCMP(alt_ptr, cur_data, tbl_info->max_row_length) != 0)
+            if (memcmp(alt_ptr, cur_data, tbl_info->max_row_length) != 0)
             {
                 retval = pss_add_to_diff_q(chg_q, tbl, p_pcn, alt_ptr, tbl_info->max_row_length);
                 if (retval != NCSCC_RC_SUCCESS)
@@ -2918,7 +2918,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                        (((*i_continue_session) == TRUE) ||
                         (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                          ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                          (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx.i_inst_len) == 0)))))) ||
                         (pwe_cb->processing_pending_active_events == FALSE))
                     {
@@ -2926,7 +2926,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                           ((*i_continue_session) == FALSE))
                        {
                           if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                             (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                             (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                idx.i_inst_len) == 0))
                           {
                              /* Found the last sent MIB object */
@@ -2955,7 +2955,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                     (((*i_continue_session) == TRUE) ||
                      (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                        ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                        (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                        (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx.i_inst_len) == 0)))))) ||
                    (pwe_cb->processing_pending_active_events == FALSE))
                 {
@@ -2963,7 +2963,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                       ((*i_continue_session) == FALSE))
                    {
                       if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                         (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                         (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx.i_inst_len) == 0))
                       {
                          /* Found the last sent MIB object */
@@ -3063,7 +3063,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 (((*i_continue_session) == TRUE) ||
                  (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                    ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                    (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                    (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx.i_inst_len) == 0)))))) ||
                (pwe_cb->processing_pending_active_events == FALSE))
             {
@@ -3071,7 +3071,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                   ((*i_continue_session) == FALSE))
                {
                   if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                     (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                     (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx.i_inst_len) == 0))
                   {
                      /* Found the last sent MIB object */
@@ -3448,7 +3448,7 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
                             ((tbl_info->ptbl_info->table_of_scalars) &&
                              (pwe_cb->curr_plbck_ssn_info.mib_obj_id == pv.i_param_id)) ||
                             ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                             (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                             (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx.i_inst_len) == 0)))))) ||
                         (pwe_cb->processing_pending_active_events == FALSE))
 #else
@@ -3467,7 +3467,7 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
                       if(((tbl_info->ptbl_info->table_of_scalars) &&
                           (pwe_cb->curr_plbck_ssn_info.mib_obj_id == pv.i_param_id)) ||
                          ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                          (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx.i_inst_len) == 0)))
                       {
                          /* Found the last sent MIB object */
@@ -3555,7 +3555,7 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
                       (((*i_continue_session) == TRUE) ||
                        (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                           ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                          (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                  idx.i_inst_len) == 0)))))) ||
                     (pwe_cb->processing_pending_active_events == FALSE)))
 #else
@@ -3571,7 +3571,7 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
                    ((*i_continue_session) == FALSE))
                 {
                    if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                      (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                      (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx.i_inst_len) == 0))
                    {
                       /* Found the last sent MIB object */
@@ -5427,7 +5427,7 @@ uns32 pss_dup_re_wbreq_info(MAB_PSS_WARMBOOT_REQ *src, MAB_PSS_WARMBOOT_REQ *dst
       return NCSCC_RC_FAILURE;
 
    memset(dst, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
-   if(m_NCS_MEMCMP(src, dst, sizeof(MAB_PSS_WARMBOOT_REQ)) == 0)
+   if(memcmp(src, dst, sizeof(MAB_PSS_WARMBOOT_REQ)) == 0)
       return NCSCC_RC_SUCCESS;
 
    *dst = *src;

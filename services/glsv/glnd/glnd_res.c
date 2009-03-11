@@ -93,7 +93,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_find_by_name(GLND_CB *glnd_cb, SaNameT re
    while(res_info)
    {
       prev_rsc_info = res_info->resource_id;
-      if (m_NCS_MEMCMP(&res_name, &res_info->resource_name, sizeof(SaNameT)) == 0)
+      if (memcmp(&res_name, &res_info->resource_name, sizeof(SaNameT)) == 0)
       {
          return res_info;
       }
@@ -657,7 +657,7 @@ uns32 glnd_initiate_deadlock_algorithm(GLND_CB             *cb,
             glnd_evt.info.dd_probe_info.lcl_rsc_id = lck_list_info->lcl_resource_id;
             /* Send the probe to the master... that is us... deadlock detection
             continues in fwd_dd_probe processing ...*/
-            if (!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &res_info->master_mds_dest,
+            if (!memcmp(&cb->glnd_mdest_id, &res_info->master_mds_dest,
                                     sizeof(MDS_DEST)))
             {
                   GLSV_GLND_EVT *tmp_glnd_evt;
@@ -794,7 +794,7 @@ SaLckLockIdT      lcl_lock_id)
           {
            if(res_info->lck_master_info.grant_list->lock_info.lock_type == SA_LCK_EX_LOCK_MODE)
            {
-             if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
+             if(!memcmp(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
              {
                   if(lock_info.handleId == res_info->lck_master_info.grant_list->lock_info.handleId)
                   {
@@ -813,7 +813,7 @@ SaLckLockIdT      lcl_lock_id)
             {
               if(client_res_list->rsc_info->resource_id != res_info->resource_id)
               {
-                if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,sizeof(MDS_DEST)))
+                if(!memcmp(&cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,sizeof(MDS_DEST)))
                 {
                   if (client_res_list->rsc_info->lck_master_info.wait_exclusive_list != NULL)
                   {
@@ -830,7 +830,7 @@ SaLckLockIdT      lcl_lock_id)
           {
             if(res_info->lck_master_info.grant_list->lock_info.lock_type == SA_LCK_PR_LOCK_MODE)
             {
-                if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
+                if(!memcmp(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
                 {
                    if(lock_info.handleId == res_info->lck_master_info.grant_list->lock_info.handleId)
                    {
@@ -897,7 +897,7 @@ SaLckLockIdT      lcl_lock_id)
          glnd_master_process_lock_initiate_waitercallbk(cb,res_info,lock_info,lcl_lock_id);
 
          /* start the timer */
-         if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
+         if(!memcmp(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
          {
           glnd_start_tmr(cb,&lck_list_info->timeout_tmr,
                GLND_TMR_RES_LOCK_REQ_TIMEOUT,
@@ -914,7 +914,7 @@ SaLckLockIdT      lcl_lock_id)
              {
                if(client_res_list->rsc_info->resource_id != res_info->resource_id)
                {
-                 if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,sizeof(MDS_DEST)))
+                 if(!memcmp(&cb->glnd_mdest_id, &client_res_list->rsc_info->master_mds_dest,sizeof(MDS_DEST)))
                  {
                   if (client_res_list->rsc_info->lck_master_info.wait_read_list != NULL)
                        glnd_initiate_deadlock_algorithm(cb, res_info, lock_info, lck_list_info);
@@ -929,7 +929,7 @@ SaLckLockIdT      lcl_lock_id)
           {
            if(res_info->lck_master_info.grant_list->lock_info.lock_type == SA_LCK_EX_LOCK_MODE)
            {
-                if(!m_NCS_OS_MEMCMP(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
+                if(!memcmp(&cb->glnd_mdest_id, &req_node_mds_dest,sizeof(MDS_DEST)))
                 {
                    if(lock_info.handleId == res_info->lck_master_info.grant_list->lock_info.handleId)
                    {
@@ -1906,7 +1906,7 @@ NCS_BOOL  glnd_deadlock_detect(GLND_CB                      *glnd_cb,
                                          lck_req_info->lck_req->lock_info.handleId,
                                          lck_req_info->lck_req->lock_info.lockid,0,0,0,0,0,0,lck_req_info->lck_req->lock_info.lcl_lockid,0);
       glnd_evt.info.node_lck_info.glnd_mds_dest = lck_req_info->lck_req->req_mdest_id;
-      if (m_NCS_OS_MEMCMP(&glnd_cb->glnd_mdest_id, &lck_req_info->lck_req->res_info->master_mds_dest, 
+      if (memcmp(&glnd_cb->glnd_mdest_id, &lck_req_info->lck_req->res_info->master_mds_dest, 
                             sizeof(MDS_DEST)))
       {
          if(glnd_mds_msg_send_glnd(glnd_cb,&glnd_evt,lck_req_info->lck_req->res_info->master_mds_dest)

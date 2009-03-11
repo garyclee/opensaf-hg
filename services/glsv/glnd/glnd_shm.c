@@ -62,11 +62,11 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
   glnd_shm_version.shm_version = GLSV_GLND_SHM_VERSION;
 
   /*Set the shared memory size to be created */
-  if(m_NCS_OS_MEMCMP(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
+  if(memcmp(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
      shm_size = sizeof(GLND_RESTART_RES_INFO) * GLND_RESOURCE_INFO_CKPT_MAX_SECTIONS;
-  if(m_NCS_OS_MEMCMP(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
+  if(memcmp(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
      shm_size = sizeof(GLND_RESTART_RES_LOCK_LIST_INFO) * GLND_RES_LOCK_INFO_CKPT_MAX_SECTIONS;
-  if(m_NCS_OS_MEMCMP(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
+  if(memcmp(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
      shm_size = sizeof(GLSV_RESTART_BACKUP_EVT_INFO) * GLND_BACKUP_EVT_CKPT_MAX_SECTIONS;
  
 
@@ -97,7 +97,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
       {
          m_LOG_GLND(GLND_SHM_CREATE_SUCCESS,NCSFL_LC_HEADLINE, NCSFL_SEV_INFO,rc,__FILE__,__LINE__, 0,0,0);
 
-         if(m_NCS_OS_MEMCMP(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
+         if(memcmp(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
          {
             /* Store the shared memory base address */
             cb->shm_base_addr     = glnd_open_req.info.open.o_addr;
@@ -106,9 +106,9 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
             /* Stor the Resource shared memory base address */
             cb->glnd_res_shm_base_addr = glnd_open_req.info.open.o_addr + sizeof(glnd_shm_version);
          }
-         if(m_NCS_OS_MEMCMP(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
+         if(memcmp(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
             cb->glnd_lck_shm_base_addr = glnd_open_req.info.open.o_addr;
-         if(m_NCS_OS_MEMCMP(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
+         if(memcmp(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
             cb->glnd_evt_shm_base_addr = glnd_open_req.info.open.o_addr;
 
          /* Set the the state of GLND as GLND_OPERATIONAL_STATE */
@@ -119,7 +119,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
    {
         m_LOG_GLND(GLND_SHM_OPEN_SUCCESS,NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,rc,__FILE__,__LINE__, 0,0,0);
 
-        if(m_NCS_OS_MEMCMP(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
+        if(memcmp(shm_name,RES_SHM_NAME,strlen(shm_name)) == 0)
         {
             /* Store the shared memory base address */
             cb->shm_base_addr     = glnd_open_req.info.open.o_addr;
@@ -128,9 +128,9 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
             /* Store the Resource shared memory base address */
             cb->glnd_res_shm_base_addr = glnd_open_req.info.open.o_addr + sizeof(glnd_shm_version);
         }
-        if(m_NCS_OS_MEMCMP(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
+        if(memcmp(shm_name,LCK_SHM_NAME,strlen(shm_name)) == 0)
             cb->glnd_lck_shm_base_addr = glnd_open_req.info.open.o_addr;
-        if(m_NCS_OS_MEMCMP(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
+        if(memcmp(shm_name,EVT_SHM_NAME,strlen(shm_name)) == 0)
             cb->glnd_evt_shm_base_addr = glnd_open_req.info.open.o_addr;
    
         /* Set the the state of GLND as GLND_CLIENT_INFO_GET_STATE*/

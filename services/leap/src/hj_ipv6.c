@@ -43,7 +43,7 @@ NCS_BOOL ncs_is_ipv6_addr_all_zero(NCS_IPV6_ADDR *addr)
     NCS_IPV6_ADDR lcl_addr;
     
     memset(&lcl_addr, '\0', sizeof(NCS_IPV6_ADDR));
-    if(m_NCS_OS_MEMCMP((char *)addr, (char *)&lcl_addr, sizeof(NCS_IPV6_ADDR)) 
+    if(memcmp((char *)addr, (char *)&lcl_addr, sizeof(NCS_IPV6_ADDR)) 
         == 0)
     {
         return TRUE;

@@ -495,7 +495,7 @@ is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uns8 *chan_name)
    if (wp->cname_len == chan_name_len)
    {
       /* Do the strings match? */
-      if (m_NCS_MEMCMP(wp->cname, chan_name, chan_name_len) == 0)
+      if (memcmp(wp->cname, chan_name, chan_name_len) == 0)
       { 
          /* Strings match, now make sure it isn't "unlinked" */
          if (! (wp->chan_attrib & CHANNEL_UNLINKED))

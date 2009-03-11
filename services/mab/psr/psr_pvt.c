@@ -2329,7 +2329,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
             if(param->i_length != 0)
             {
                /* To handle null octet strings */
-               retval = m_NCS_MEMCMP(pData->data + offset + sizeof(uns16),
+               retval = memcmp(pData->data + offset + sizeof(uns16),
                   param->info.i_oct, len16);
                if (retval == 0)
                {
@@ -2360,7 +2360,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
         }
         else
         {
-            retval = m_NCS_MEMCMP(pData->data + offset, param->info.i_oct, param->i_length);
+            retval = memcmp(pData->data + offset, param->info.i_oct, param->i_length);
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData->data, index + 1);
@@ -2393,7 +2393,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
 
         case sizeof(uns16):
             data16 = (uns16) param->info.i_int;
-            retval = m_NCS_MEMCMP(pData->data + offset, &data16, sizeof(uns16));
+            retval = memcmp(pData->data + offset, &data16, sizeof(uns16));
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData->data, index + 1);
@@ -2407,7 +2407,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
             break;
 
         case sizeof(uns32):
-            retval = m_NCS_MEMCMP(pData->data + offset, &param->info.i_int, sizeof(uns32));
+            retval = memcmp(pData->data + offset, &param->info.i_int, sizeof(uns32));
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData->data, index + 1);
@@ -2428,7 +2428,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
 
     case NCSMIB_FMAT_BOOL:
         data_bool = (NCS_BOOL) param->info.i_int;
-        retval = m_NCS_MEMCMP(pData->data + offset, & data_bool, sizeof(NCS_BOOL));
+        retval = memcmp(pData->data + offset, & data_bool, sizeof(NCS_BOOL));
         if (retval == 0)
         {
            bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData->data, index + 1);
@@ -2526,7 +2526,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
             if(param->i_length != 0)
             {
                /* To handle null octet strings */
-               retval = m_NCS_MEMCMP(pData + offset + sizeof(uns16),
+               retval = memcmp(pData + offset + sizeof(uns16),
                   param->info.i_oct, len16);
                if (retval == 0)
                {
@@ -2557,7 +2557,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
         }
         else
         {
-            retval = m_NCS_MEMCMP(pData + offset, param->info.i_oct, param->i_length);
+            retval = memcmp(pData + offset, param->info.i_oct, param->i_length);
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData, index + 1);
@@ -2590,7 +2590,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
 
         case sizeof(uns16):
             data16 = (uns16) param->info.i_int;
-            retval = m_NCS_MEMCMP(pData + offset, &data16, sizeof(uns16));
+            retval = memcmp(pData + offset, &data16, sizeof(uns16));
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData, index + 1);
@@ -2604,7 +2604,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
             break;
 
         case sizeof(uns32):
-            retval = m_NCS_MEMCMP(pData + offset, &param->info.i_int, sizeof(uns32));
+            retval = memcmp(pData + offset, &param->info.i_int, sizeof(uns32));
             if (retval == 0)
             {
                bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData, index + 1);
@@ -2625,7 +2625,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
 
     case NCSMIB_FMAT_BOOL:
         data_bool = (NCS_BOOL) param->info.i_int;
-        retval = m_NCS_MEMCMP(pData + offset, & data_bool, sizeof(NCS_BOOL));
+        retval = memcmp(pData + offset, & data_bool, sizeof(NCS_BOOL));
         if (retval == 0)
         {
            bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData, index + 1);
@@ -2941,7 +2941,7 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
         }
 
         pss_get_key_from_data(tbl_info, pkey, buffer);
-        res = m_NCS_MEMCMP(key, pkey, tbl_info->max_key_length);
+        res = memcmp(key, pkey, tbl_info->max_key_length);
 
         if (res < 0)
             high = mid - 1;
@@ -3561,7 +3561,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                          (((*i_continue_session) == TRUE) ||
                           (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                             ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                             (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
+                             (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids, 
                                        idx.i_inst_len) == 0)))))) ||
                         (pwe_cb->processing_pending_active_events == FALSE))
 #else
@@ -3578,7 +3578,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                        ((*i_continue_session) == FALSE))
                     {
                        if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                          (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                idx.i_inst_len) == 0) &&
                           (pv.i_param_id == pwe_cb->curr_plbck_ssn_info.mib_obj_id))
                        {
@@ -3659,7 +3659,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                       (((*i_continue_session) == TRUE) ||
                        (((pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len == 0) ||
                           ((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                          (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                          (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                  idx.i_inst_len) == 0)))))) ||
                     (pwe_cb->processing_pending_active_events == FALSE)))
 #else
@@ -3675,7 +3675,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                    ((*i_continue_session) == FALSE))
                 {
                    if((idx.i_inst_len == pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len) &&
-                      (m_NCS_MEMCMP(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
+                      (memcmp(idx.i_inst_ids, pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids,
                                 idx.i_inst_len) == 0))
                    {
                       /* Found the last sent MIB object */
@@ -4414,7 +4414,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
 
         pData = (PSS_MIB_TBL_DATA *)pNode;
         pss_get_key_from_data(tbl_info, key, in_ptr);
-        res = m_NCS_MEMCMP(pData->key, key, tbl_info->max_key_length);
+        res = memcmp(pData->key, key, tbl_info->max_key_length);
 
         if (res <= 0)
         {

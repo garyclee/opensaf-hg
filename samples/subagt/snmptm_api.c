@@ -248,7 +248,7 @@ uns32 snmptm_destroy(uns32 cb_hdl)
 
    memset(&nullEvtHandle, 0 , sizeof(SaEvtHandleT));
    /* Free the EVT related data */
-   if (m_NCS_MEMCMP(&snmptm->evtHandle, &nullEvtHandle, sizeof(SaEvtHandleT))!= 0)
+   if (memcmp(&snmptm->evtHandle, &nullEvtHandle, sizeof(SaEvtHandleT))!= 0)
    {
       snmptm_eda_finalize(snmptm);
    }
