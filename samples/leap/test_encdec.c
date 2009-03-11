@@ -206,7 +206,7 @@ static uns32 lt_test_uba_encdec_ops(void)
         return NCSCC_RC_FAILURE;
     }
     m_NCS_CONS_PRINTF("Decoded string of length %d...", len);
-    if(m_NCS_STRCMP((char*)&src_str_data, (char*)&dst_str_data) == 0)
+    if(strcmp((char*)&src_str_data, (char*)&dst_str_data) == 0)
     {
         /* Decode successful. */
         m_NCS_CONS_PRINTF("Decoded string matches the encoded string...\n");

@@ -327,7 +327,7 @@ SaHpiEntityTypeT get_entity_type(int8 *tok)
     ** corresponding value for a matching entity type.
     **/
    for (i=1; i < gl_num_etypes; i++)
-      if (0 == m_NCS_STRCMP(tok, gl_etype_list[i].etype_str))
+      if (0 == strcmp(tok, gl_etype_list[i].etype_str))
          break;
 
    /* entity type did not matched available types */

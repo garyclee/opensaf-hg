@@ -1123,7 +1123,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
     memset(&inst_ids, 0, sizeof(inst_ids));
     ncsmib_init(&ncsmib_arg);
 
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
         ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
@@ -1240,7 +1240,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    ncsmib_init(&ncsmib_arg);
    
    pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-   if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+   if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
    {
       /* Set the scalars. First set the ExistingProfile name*/
       ncsmib_init(&ncsmib_arg);
@@ -1416,7 +1416,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         /* Set the scalars. First set the ExistingProfile name*/
         ncsmib_init(&ncsmib_arg);
@@ -1601,7 +1601,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         /* Now trigger the copy operation */
         ncsmib_init(&ncsmib_arg);
@@ -1707,7 +1707,7 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         /* Now trigger the copy operation */
         ncsmib_init(&ncsmib_arg);
@@ -1813,7 +1813,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
     memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         if (arg_list->i_pos_value & 0x00000008)
             profile_desc = arg_list->i_arg_record[3].cmd.strval;
@@ -2094,7 +2094,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
-    if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no"))
     {
         /* Set the scalars. First set the ExistingProfile name*/
         ncsmib_init(&ncsmib_arg);

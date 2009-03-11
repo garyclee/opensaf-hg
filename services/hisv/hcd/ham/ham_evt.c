@@ -1861,7 +1861,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
 
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
    /* Set chassis type */
-   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   if (strcmp(arch_type, "ATCA") == 0)
    {
       chassis_type = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
    }
@@ -2064,7 +2064,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
 
    if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR) ||
        (flag == HPL_EPATH_FLAG_SHORTSTR)) {
-      if (m_NCS_OS_STRCMP(hpi_entity_path_buffer, "") != 0) 
+      if (strcmp(hpi_entity_path_buffer, "") != 0) 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
       else 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");

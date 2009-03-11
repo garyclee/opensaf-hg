@@ -453,7 +453,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
       return NCSCC_RC_FAILURE;
    }
 
-   if (0 != m_NCS_OS_STRCMP(fmat->fmat_type, msg->hdr.fmat_type))
+   if (0 != strcmp(fmat->fmat_type, msg->hdr.fmat_type))
    {
       m_MMGR_FREE_OCT(msg->hdr.fmat_type);
       ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_LOG_ERR, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLC", DTS_FMAT_TYPE_MISMATCH, fmat->fmat_id, msg->hdr.ss_id, spec->svc_name);

@@ -170,7 +170,6 @@ extern LEAPDLL_API int get_char_from_gui();
 
 #define m_NCS_STRLEN(s)         m_NCS_OS_STRLEN(s)
 
-#define m_NCS_STRCMP(s1,s2)     m_NCS_OS_STRCMP(s1,s2)
 #define m_NCS_STRNCMP(s1,s2,n)  m_NCS_OS_STRNCMP(s1,s2,n)
 #define m_NCS_STRCSPN(s,d)      m_NCS_OS_STRCSPN(s,d)
 

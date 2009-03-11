@@ -80,31 +80,31 @@ saAmfParseSaAwareComp(DOMNode *tmp, char *index)
 
 static uns32 get_capability_value(char *val)
 {
-   if(m_NCS_STRCMP(val, "X_ACTIVE_AND_Y_STANDBY") == 0)
+   if(strcmp(val, "X_ACTIVE_AND_Y_STANDBY") == 0)
    {
       return NCS_BAM_COMP_CAP_X_ACTIVE_AND_Y_STANDBY;
    }
-   else if(m_NCS_STRCMP(val, "X_ACTIVE_OR_Y_STANDBY") == 0)
+   else if(strcmp(val, "X_ACTIVE_OR_Y_STANDBY") == 0)
    {
       return NCS_BAM_COMP_CAP_X_ACTIVE_OR_Y_STANDBY;
    }
-   else if(m_NCS_STRCMP(val, "1_ACTIVE_OR_Y_STANDBY") == 0)
+   else if(strcmp(val, "1_ACTIVE_OR_Y_STANDBY") == 0)
    {
       return NCS_BAM_COMP_CAP_1_ACTIVE_OR_Y_STANDBY;
    }
-   else if(m_NCS_STRCMP(val, "1_ACTIVE_OR_1_STANDBY") == 0)
+   else if(strcmp(val, "1_ACTIVE_OR_1_STANDBY") == 0)
    {
       return NCS_BAM_COMP_CAP_1_ACTIVE_OR_1_STANDBY;
    }
-   else if(m_NCS_STRCMP(val, "X_ACTIVE") == 0)
+   else if(strcmp(val, "X_ACTIVE") == 0)
    {
       return NCS_BAM_COMP_CAP_X_ACTIVE;
    }
-   else if(m_NCS_STRCMP(val, "1_ACTIVE") == 0)
+   else if(strcmp(val, "1_ACTIVE") == 0)
    {
       return NCS_BAM_COMP_CAP_1_ACTIVE;
    }
-   else if(m_NCS_STRCMP(val, "NO_STATE") == 0)
+   else if(strcmp(val, "NO_STATE") == 0)
    {
       return NCS_BAM_COMP_CAP_NO_STATE;
    }
@@ -115,31 +115,31 @@ static uns32 get_capability_value(char *val)
 
 static uns32 get_recovery_value(char *val)
 {
-   if(m_NCS_STRCMP(val, "SA_AMF_NO_RECOMMENDATION") == 0)
+   if(strcmp(val, "SA_AMF_NO_RECOMMENDATION") == 0)
    {
       return SA_AMF_NO_RECOMMENDATION;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_COMPONENT_RESTART") == 0)
+   else if(strcmp(val, "SA_AMF_COMPONENT_RESTART") == 0)
    {
       return SA_AMF_COMPONENT_RESTART;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_COMPONENT_FAILOVER") == 0)
+   else if(strcmp(val, "SA_AMF_COMPONENT_FAILOVER") == 0)
    {
       return SA_AMF_COMPONENT_FAILOVER;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_NODE_SWITCHOVER") == 0)
+   else if(strcmp(val, "SA_AMF_NODE_SWITCHOVER") == 0)
    {
       return SA_AMF_NODE_SWITCHOVER;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_NODE_FAILOVER") == 0)
+   else if(strcmp(val, "SA_AMF_NODE_FAILOVER") == 0)
    {
       return SA_AMF_NODE_FAILOVER;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_NODE_FAILFAST") == 0)
+   else if(strcmp(val, "SA_AMF_NODE_FAILFAST") == 0)
    {
       return SA_AMF_NODE_FAILFAST;
    }
-   else if(m_NCS_STRCMP(val, "SA_AMF_CLUSTER_RESET") == 0)
+   else if(strcmp(val, "SA_AMF_CLUSTER_RESET") == 0)
    {
       return SA_AMF_CLUSTER_RESET;
    }
@@ -150,7 +150,7 @@ static uns32 get_recovery_value(char *val)
 static uns32 get_admstate_val(char *val)
 {
 /* Admin state at the intial time can have only two values LOCK and UNLOCK  */ 
-   if(m_NCS_STRCMP(val, "locked") == 0)
+   if(strcmp(val, "locked") == 0)
          return SA_AMF_LOCK;
    else
         return SA_AMF_UNLOCK;
@@ -173,7 +173,7 @@ saAmfParseProxiedComp(DOMNode *tmp, char *index, NCS_BOOL ext_comp_flag)
       {
          char *tag = XMLString::transcode(attributesNodes->item(i)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(i)->getNodeValue());
-         if(m_NCS_STRCMP(tag, "preInstantiable") == 0)
+         if(strcmp(tag, "preInstantiable") == 0)
          {
             if(atoi(val))
             {
@@ -212,10 +212,10 @@ saAmfParseProxiedComp(DOMNode *tmp, char *index, NCS_BOOL ext_comp_flag)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
          /* All other tags were parsed earlier only proxy specific */
-         if(!((m_NCS_STRCMP(tmpString, "registrationRetries") == 0) ||
-              (m_NCS_STRCMP(tmpString, "registrationTimeout") == 0) ||
-              (m_NCS_STRCMP(tmpString, "proxiedCompInstCbTimeout") == 0) ||
-              (m_NCS_STRCMP(tmpString, "proxiedCompCleanCbTimeout") == 0) ))
+         if(!((strcmp(tmpString, "registrationRetries") == 0) ||
+              (strcmp(tmpString, "registrationTimeout") == 0) ||
+              (strcmp(tmpString, "proxiedCompInstCbTimeout") == 0) ||
+              (strcmp(tmpString, "proxiedCompCleanCbTimeout") == 0) ))
          {
             XMLString::release(&tmpString);
             continue;
@@ -236,7 +236,7 @@ saAmfParseProxiedComp(DOMNode *tmp, char *index, NCS_BOOL ext_comp_flag)
             continue;
          }
 
-         if(m_NCS_STRCMP(tmpString, "registrationRetries") == 0) 
+         if(strcmp(tmpString, "registrationRetries") == 0) 
          {
 
             ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, 
@@ -295,7 +295,7 @@ saAmfParseNcsScalars(DOMNode *node)
       {
          char *tag = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tag, "clusterInitTime") == 0)
+         if(strcmp(tag, "clusterInitTime") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());   
 
@@ -311,11 +311,11 @@ saAmfParseNcsScalars(DOMNode *node)
       
             XMLString::release(&val);
          }
-         else if(m_NCS_STRCMP(tag, "sndHbInt") == 0)
+         else if(strcmp(tag, "sndHbInt") == 0)
          {
             tmpSndHb = XMLString::transcode(tmpNode->getTextContent());
          }
-         else if(m_NCS_STRCMP(tag, "rcvHbInt") == 0)
+         else if(strcmp(tag, "rcvHbInt") == 0)
          {
             tmpRcvHb = XMLString::transcode(tmpNode->getTextContent());
          }
@@ -424,7 +424,7 @@ saAmfParseVendorExt(DOMNode *node)
       {
          char *tag = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tag, "NCSScalars") == 0)
+         if(strcmp(tag, "NCSScalars") == 0)
          {
             rc = saAmfParseNcsScalars(tmpNode);
          }
@@ -462,7 +462,7 @@ saAmfParseHealthCheck(DOMNode *tmp, char *index)
       {
          tag = XMLString::transcode(attributesNodes->item(i)->getNodeName());
          val = XMLString::transcode(attributesNodes->item(i)->getNodeValue());
-         if(m_NCS_STRCMP(tag, "key") == 0)
+         if(strcmp(tag, "key") == 0)
          {
 	    ncs_bam_build_mib_idx(&mib_idx, index, NCSMIB_FMAT_OCT);	
 	    ncs_bam_add_sec_mib_idx(&mib_idx, val, NCSMIB_FMAT_OCT);	
@@ -486,8 +486,8 @@ saAmfParseHealthCheck(DOMNode *tmp, char *index)
                         "healthCheck", 
                         tag, &table_id, &param_id, &format);
                         
-             if((m_NCS_STRCMP(tag, "period") == 0) ||
-                (m_NCS_STRCMP(tag, "maxDuration") == 0))
+             if((strcmp(tag, "period") == 0) ||
+                (strcmp(tag, "maxDuration") == 0))
              {
                 ncs_bam_generate_counter64_mibset(table_id, param_id, 
                                              &mib_idx, val); 
@@ -565,7 +565,7 @@ saAmfParseAmfComponentT(DOMNode *tmp, char *index, uns32 compType)
       {
          char *tag = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tag, "healthCheck") == 0)
+         if(strcmp(tag, "healthCheck") == 0)
          {
             /* 
             ** The component name passed  as compoenent name is ignored for 
@@ -579,11 +579,11 @@ saAmfParseAmfComponentT(DOMNode *tmp, char *index, uns32 compType)
 
          char *val = XMLString::transcode(tmpNode->getTextContent());
 
-         if(m_NCS_STRCMP(tag, "capability") == 0)
+         if(strcmp(tag, "capability") == 0)
          {
             sprintf(val, "%d", get_capability_value(val)); 
          }
-         else if(m_NCS_STRCMP(tag, "recoveryOnTimeout") == 0)
+         else if(strcmp(tag, "recoveryOnTimeout") == 0)
          {
             sprintf(val, "%d", get_recovery_value(val)); 
          }
@@ -601,10 +601,10 @@ saAmfParseAmfComponentT(DOMNode *tmp, char *index, uns32 compType)
             continue;
          }
 
-         if((m_NCS_STRCMP(tag, "QuiescingDoneTimeout") == 0) ||
-            (m_NCS_STRCMP(tag, "terminationTimeout") == 0) ||
-            (m_NCS_STRCMP(tag, "csiSetCallbackTimeout") == 0) ||
-            (m_NCS_STRCMP(tag, "csiRmvCallbackTimeout") == 0) )
+         if((strcmp(tag, "QuiescingDoneTimeout") == 0) ||
+            (strcmp(tag, "terminationTimeout") == 0) ||
+            (strcmp(tag, "csiSetCallbackTimeout") == 0) ||
+            (strcmp(tag, "csiRmvCallbackTimeout") == 0) )
          {
             ncs_bam_generate_counter64_mibset(table_id, param_id,
                                               &mib_idx, val);
@@ -712,23 +712,23 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName,
       {
          char *tag = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tag, "clcCommands") == 0)
+         if(strcmp(tag, "clcCommands") == 0)
          {
             saAmfParseCompClcCommands(tmpNode, index);
          }
-         else if(m_NCS_STRCMP(tag, "saAwareComponent") == 0)
+         else if(strcmp(tag, "saAwareComponent") == 0)
          {
             saAmfParseSaAwareComp(tmpNode, index);
          }
-         else if(m_NCS_STRCMP(tag, "proxiedComponent") == 0)
+         else if(strcmp(tag, "proxiedComponent") == 0)
          {
             saAmfParseProxiedComp(tmpNode, index, ext_su_flag);
          }
-         else if(m_NCS_STRCMP(tag, "unproxiedComponent") == 0)
+         else if(strcmp(tag, "unproxiedComponent") == 0)
          {
             saAmfParseUnproxiedComp(tmpNode, index);
          }
-         else if(m_NCS_STRCMP(tag, "csiPrototypeName") == 0)
+         else if(strcmp(tag, "csiPrototypeName") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
 
@@ -758,8 +758,8 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName,
             XMLString::release(&val);
          }
 
-         else if( (m_NCS_STRCMP(tag, "instantiationLevel") == 0) ||
-                  (m_NCS_STRCMP(tag, "enableAM") == 0) )
+         else if( (strcmp(tag, "instantiationLevel") == 0) ||
+                  (strcmp(tag, "enableAM") == 0) )
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
 
@@ -820,7 +820,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
       for(unsigned int i=0; i < attributesNodes->getLength(); i++)
       {
          char *tag = XMLString::transcode(attributesNodes->item(i)->getNodeName());
-         if(m_NCS_STRCMP(tag, "finalPrototype") == 0)
+         if(strcmp(tag, "finalPrototype") == 0)
          {
             char *val = XMLString::transcode(attributesNodes->item(i)->getNodeValue());
             if((fromPrototype) && (atoi(val)))
@@ -913,7 +913,7 @@ saAmfParseCompProtoList(DOMNode *node, char *index, NCS_BOOL ext_su_flag)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());
-         if(m_NCS_STRCMP(tmpString, "componentPrototype") == 0)
+         if(strcmp(tmpString, "componentPrototype") == 0)
          {
             saAmfParseCompPrototype(val, index, TRUE, ext_su_flag);           
          }
@@ -965,7 +965,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
       {
          char *tag = XMLString::transcode(attributesNodes->item(i)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(i)->getNodeValue());
-         if(m_NCS_STRCMP(tag, "finalPrototype") == 0)
+         if(strcmp(tag, "finalPrototype") == 0)
          {
             if((fromPrototype) && (atoi(val)))
             {
@@ -1017,7 +1017,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
 
-         if(m_NCS_STRCMP(tmpString, "SUAttributes") == 0)
+         if(strcmp(tmpString, "SUAttributes") == 0)
          {
             saAmfParseSUAttributes(tmpNode, genName); /* catch the error and return ? */
 
@@ -1034,7 +1034,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
             ** SO, set the rowStatus Active in the comp parse context. 
             */
          }
-         else if(m_NCS_STRCMP(tmpString, "componentPrototypeList") == 0)
+         else if(strcmp(tmpString, "componentPrototypeList") == 0)
          {
             
             /* Set the num of components value and si_max_active variables
@@ -1108,7 +1108,7 @@ saAmfParseSUFinalProtoList(DOMNode *node, char *index)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());
-         if(m_NCS_STRCMP(tmpString, "SUFinalPrototype") == 0)
+         if(strcmp(tmpString, "SUFinalPrototype") == 0)
          {
             saAmfParseSUPrototype(val, index, TRUE,FALSE);
          }
@@ -1158,10 +1158,10 @@ saAmfParseNodePrototype(char *prototypeName, char *index, BAM_PARSE_SUB_TREE sub
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if((m_NCS_STRCMP(tmpString, "nodeAttributes") == 0) &&
+         if((strcmp(tmpString, "nodeAttributes") == 0) &&
             (sub_tree == BAM_PARSE_NCS) )
             rc = saAmfParseNodeAttributes(tmpNode, index);
-         else if(m_NCS_STRCMP(tmpString, "SUFinalPrototypeList") == 0)
+         else if(strcmp(tmpString, "SUFinalPrototypeList") == 0)
             rc = saAmfParseSUFinalProtoList(tmpNode, index);
 
          XMLString::release(&tmpString);
@@ -1242,7 +1242,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
                   char *tag = XMLString::transcode(command->getNodeName());
                   char *val = XMLString::transcode(command->getTextContent());
          
-                  if(m_NCS_STRCMP(tag, "command") == 0)
+                  if(strcmp(tag, "command") == 0)
                   {
                      lookup = commandString;
                      rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
@@ -1251,7 +1251,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
                             lookup, &table_id, &param_id, &format);
 
                   }
-                  else if(m_NCS_STRCMP(tag, "timeout") == 0)
+                  else if(strcmp(tag, "timeout") == 0)
                   {
                      char *c_ptr = strstr(commandString, "Command");
                      strncpy(c_ptr, "\0", 1);
@@ -1296,7 +1296,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
          }  /* End of parsing CLC params */
 
          /* set the default value for the retries in stop command */
-         if( (m_NCS_STRCMP(tmpString, "amStartCommand") == 0) )
+         if( (strcmp(tmpString, "amStartCommand") == 0) )
          {
             rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
                      gl_amfConfig_table_size,
@@ -1364,7 +1364,7 @@ saAmfParseNodeAttributes(DOMNode *node, char *index)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "nodeErrorEscalation") == 0)
+         if(strcmp(tmpString, "nodeErrorEscalation") == 0)
          {
             grandChildren = tmpNode->getChildNodes();
             if(grandChildren->getLength())
@@ -1391,7 +1391,7 @@ saAmfParseNodeAttributes(DOMNode *node, char *index)
                         XMLString::release(&val);
                         continue;
                      }
-                     if(m_NCS_STRCMP(tag, "SUFailoverProbation") == 0)
+                     if(strcmp(tag, "SUFailoverProbation") == 0)
                      {
                         ncs_bam_generate_counter64_mibset(table_id, param_id, 
                                                           &mib_idx, val); 
@@ -1408,7 +1408,7 @@ saAmfParseNodeAttributes(DOMNode *node, char *index)
                }
             }
          }
-         else if(m_NCS_STRCMP(tmpString, "adminstate")==0)
+         else if(strcmp(tmpString, "adminstate")==0)
          {
             /*Denote Initial admin state ,value received in String*/
             char *val = XMLString::transcode(tmpNode->getTextContent());
@@ -1497,7 +1497,7 @@ saAmfParseSUAttributes(DOMNode *node, char *suName)
          char *tag = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());   
 
-         if(m_NCS_STRCMP(tag, "vendorExtensions") == 0)
+         if(strcmp(tag, "vendorExtensions") == 0)
          {
             XMLString::release(&tag);
             XMLString::release(&val);
@@ -1518,7 +1518,7 @@ saAmfParseSUAttributes(DOMNode *node, char *suName)
                continue;
             }
   
-         if(m_NCS_STRCMP(tag, "adminstate")==0)
+         if(strcmp(tag, "adminstate")==0)
           {
                sprintf(val, "%d", get_admstate_val(val));
                ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx, 
@@ -1574,7 +1574,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
    {
       /* Only one attribute so lets avoid loop and get the name */
       tag = XMLString::transcode(attributesNodes->item(0)->getNodeName());
-      if(m_NCS_STRCMP(tag, "name") != 0)
+      if(strcmp(tag, "name") != 0)
       {
          XMLString::release(&tag);
          return SA_AIS_ERR_INVALID_PARAM;
@@ -1606,7 +1606,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
+         if(strcmp(tmpString, "prototypeName") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
             rc = saAmfParseCompPrototype(val, genName, FALSE, ext_su_flag);
@@ -1618,7 +1618,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
             }
             XMLString::release(&val);
          }
-         else if(m_NCS_STRCMP(tmpString, "componentAttributes") == 0)
+         else if(strcmp(tmpString, "componentAttributes") == 0)
             rc = saAmfParseComponentAttributes(tmpNode, NULL, genName, ext_su_flag);
 
          XMLString::release(&tmpString);
@@ -1686,7 +1686,7 @@ saAmfParseComponentList(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
          
-         if(m_NCS_STRCMP(tmpString, "componentInstance") != 0)
+         if(strcmp(tmpString, "componentInstance") != 0)
          {
             XMLString::release(&tmpString);
             return SA_AIS_ERR_NOT_SUPPORTED;
@@ -1746,7 +1746,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
       for(unsigned int x=0; x < attributesNodes->getLength(); x++)
       {
          tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
-         if(m_NCS_STRCMP(tag, "name") == 0)
+         if(strcmp(tag, "name") == 0)
          {
             suName = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
             memset(genName, 0, BAM_MAX_INDEX_LEN);
@@ -1791,7 +1791,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
+         if(strcmp(tmpString, "prototypeName") == 0)
          {
             if((0 == prototype_counter) || (FALSE == ext_su_flag))
             {
@@ -1813,7 +1813,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
             }
             prototype_counter ++;
          }
-         else if(m_NCS_STRCMP(tmpString, "SUAttributes") == 0)
+         else if(strcmp(tmpString, "SUAttributes") == 0)
          {
             if((su_attr_counter == 0) || (FALSE == ext_su_flag))
             {
@@ -1840,7 +1840,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
             */
          }
 
-         else if(m_NCS_STRCMP(tmpString, "componentList") == 0)
+         else if(strcmp(tmpString, "componentList") == 0)
          {
 
           if((complist_counter == 0) || (FALSE == ext_su_flag))
@@ -1929,7 +1929,7 @@ saAmfParseSUList(DOMNode *node, char *parentNodeName)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
          
-         if(m_NCS_STRCMP(tmpString, "SUInstance") != 0)
+         if(strcmp(tmpString, "SUInstance") != 0)
          {
             XMLString::release(&tmpString);
             return SA_AIS_ERR_NOT_SUPPORTED;
@@ -2016,14 +2016,14 @@ saAmfParseNodeInstance(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "nodeID") == 0)
+         if(strcmp(tag, "nodeID") == 0)
          {
             strcpy(nodeId, val);
             XMLString::release(&tag);
             XMLString::release(&val);
             continue;
          }
-         else if(m_NCS_STRCMP(tag, "name") == 0)
+         else if(strcmp(tag, "name") == 0)
          {
             strcpy(nodeName, val);
          }
@@ -2080,7 +2080,7 @@ saAmfParseNodeInstance(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
          ** coz we dont have handle to the prototype as it hangs 
          ** from the main tree not a containment here
          */
-         if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
+         if(strcmp(tmpString, "prototypeName") == 0)
          {
             char *tagValue = XMLString::transcode(tmpNode->getTextContent());
             saAmfParseNodePrototype(tagValue, nodeName, sub_tree);
@@ -2093,10 +2093,10 @@ saAmfParseNodeInstance(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
          * probably nothing in the parsing ??
          */
 
-         else if ((m_NCS_STRCMP(tmpString, "nodeAttributes") == 0) &&
+         else if ((strcmp(tmpString, "nodeAttributes") == 0) &&
                   (sub_tree == BAM_PARSE_NCS) )
             rc = saAmfParseNodeAttributes(tmpNode, nodeName);
-         else if(m_NCS_STRCMP(tmpString, "SUList") == 0)
+         else if(strcmp(tmpString, "SUList") == 0)
             rc = saAmfParseSUList(tmpNode, nodeName);
 
          XMLString::release(&tmpString);
@@ -2134,15 +2134,15 @@ saAmfConfigParseAllObjs(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
          m_LOG_BAM_MSG_TICL(BAM_PARSE_SUCCESS, NCSFL_SEV_INFO, 
                         "The AMF Config Node to be parsed is: ", tmpString);
          
-         if(m_NCS_STRCMP(tmpString, "SGInstance") == 0)
+         if(strcmp(tmpString, "SGInstance") == 0)
             rc = saAmfParseSGInstance(tmpNode);
          
-         else if(m_NCS_STRCMP(tmpString, "nodeInstance") == 0)
+         else if(strcmp(tmpString, "nodeInstance") == 0)
             rc = saAmfParseNodeInstance(tmpNode, sub_tree);
 
-         else if(m_NCS_STRCMP(tmpString, "vendorExtensions") == 0)
+         else if(strcmp(tmpString, "vendorExtensions") == 0)
             rc = saAmfParseVendorExt(tmpNode);
-         else if(m_NCS_STRCMP(tmpString, "extSUInstance") == 0)
+         else if(strcmp(tmpString, "extSUInstance") == 0)
             rc = saAmfParseExtSUInstance(tmpNode);
 
          if(rc != SA_AIS_OK)

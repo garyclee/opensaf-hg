@@ -636,7 +636,7 @@ ifsv_drv_check_update_reg_info (IFSV_DRV_PORT_REG_TBL *found_reg_tbl,
          &reg_msg->port_info.phy_addr, (6*sizeof(uns8)));
    }
 
-   if (m_NCS_STRCMP(&pres_port_tbl->port_info.if_name, 
+   if (strcmp(&pres_port_tbl->port_info.if_name, 
       &reg_msg->port_info.if_name) != 0)
    {
       chng_flag = TRUE;

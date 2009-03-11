@@ -427,10 +427,10 @@ get_dom_node_by_name(char *prototypeName, char* type)
               for(unsigned int x=0; x < attributesNodes->getLength(); x++)
               {
                  char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
-                 if(m_NCS_STRCMP(tag, "name") == 0 )
+                 if(strcmp(tag, "name") == 0 )
                  {
                     char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-                    if(m_NCS_STRCMP(val, prototypeName) == 0)
+                    if(strcmp(val, prototypeName) == 0)
                     {
                        XMLString::release(&tag);
                        XMLString::release(&val);

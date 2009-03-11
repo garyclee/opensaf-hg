@@ -517,7 +517,7 @@ kms_kre_find_by_name(KMS_REC_ENTRY** anchor,
 
   for(kre = *anchor;kre != NULL;kre = kre->next)
   {
-    if(m_NCS_STRCMP(kre->rec.name,name) == 0)
+    if(strcmp(kre->rec.name,name) == 0)
     {
       return kre;
     }

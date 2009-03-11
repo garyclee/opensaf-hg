@@ -2128,7 +2128,7 @@ uns32 oac_gen_tbl_bind(OAA_PCN_LIST *pcn_list, MAB_PSS_TBL_BIND_EVT **o_bind)
 
       for(list = list_head; list != NULL; prv_list = list, list = list->next)
       {
-         if(m_NCS_STRCMP(list->pcn_list.pcn, in_req->pcn) == 0)
+         if(strcmp(list->pcn_list.pcn, in_req->pcn) == 0)
          {
             break;
          }

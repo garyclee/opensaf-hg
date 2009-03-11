@@ -655,7 +655,7 @@ lt_fileIO(int argc, char **argv)
     }
     *rsptr = '\0';
 
-    if (m_NCS_STRCMP((char*)testString, (char*)readString) != 0)
+    if (strcmp((char*)testString, (char*)readString) != 0)
     {
         m_NCS_CONS_PRINTF("Failed! reading file did not match writing file\nFile Contents:\n%s\n", readString);
     }

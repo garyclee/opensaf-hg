@@ -98,7 +98,7 @@ NCS_IFSV_IFINDEX    ifsv_vip_get_global_ifindex(IFSV_CB *cb,uns8 *str)
                 (intfData->spt_info.subslot == cb->subslot) && 
                 (intfData->spt_info.type == NCS_IFSV_INTF_ETHERNET))
      {
-        if ((m_NCS_STRCMP(&intfData->if_info.if_name,str))== 0)
+        if ((strcmp(&intfData->if_info.if_name,str))== 0)
            return intfData->if_index;
      }
      if_node = ncs_patricia_tree_getnext(&cb->if_tbl, (uns8*)&ifIndex);
@@ -422,7 +422,7 @@ uns32 ifsv_vip_comp_intf(uns8 * valInDb, uns8 *key)
 {
    uns32 rc = 1;
 
-   if (m_NCS_STRCMP(valInDb,key) == 0)
+   if (strcmp(valInDb,key) == 0)
        rc = 0;
 
    return rc;

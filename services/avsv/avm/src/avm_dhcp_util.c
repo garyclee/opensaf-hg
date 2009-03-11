@@ -80,7 +80,7 @@ avm_check_config(uns8 *ent_info,
 
              avm_prepare_entity_path(buff,slotInfo);
 
-            if(m_NCS_OS_STRCMP(ent_info,buff)==0)
+            if(strcmp(ent_info,buff)==0)
             {
                *flag=1;
                break;

@@ -865,8 +865,8 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
    /* Check for blades only if the target system architecture is ATCA,  */
    /* or HP_CCLASS.                                                     */
-   if ((m_NCS_OS_STRCMP(arch_type, "ATCA") == 0) ||
-       (m_NCS_OS_STRCMP(arch_type, "HP_CCLASS") == 0))
+   if ((strcmp(arch_type, "ATCA") == 0) ||
+       (strcmp(arch_type, "HP_CCLASS") == 0))
    {
       if (i > MAX_NUM_SLOTS)
       {
@@ -1245,7 +1245,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 #else
    epath.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
    /* Check for architecture type */
-   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0)
+   if (strcmp(arch_type, "ATCA") == 0)
       epath.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
    else
       epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;

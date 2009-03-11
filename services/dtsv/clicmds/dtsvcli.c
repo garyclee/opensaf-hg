@@ -329,7 +329,7 @@ dtsv_cef_set_logging_level(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    uns32          rc = NCSCC_RC_SUCCESS, oid = 0; 
    uns8           get_value;
 
-   if(m_NCS_STRCMP(pArgv->cmd.strval,"global") == 0)
+   if(strcmp(pArgv->cmd.strval,"global") == 0)
    {
       dtsv_cfg_mib_arg(&mib, &oid, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
@@ -338,7 +338,7 @@ dtsv_cef_set_logging_level(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
                          NCS_SNMP_TRUE, reqfnc, MIB_VERR);
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"node") == 0)
+   else if(strcmp(pArgv->cmd.strval,"node") == 0)
    {
       pArgv = &arg_list->i_arg_record[4];
 
@@ -391,7 +391,7 @@ dtsv_cef_reset_logging_level(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
    uns32          rc = NCSCC_RC_SUCCESS, oid = 0; 
    uns8           get_value; 
 
-   if(m_NCS_STRCMP(pArgv->cmd.strval,"global") == 0)
+   if(strcmp(pArgv->cmd.strval,"global") == 0)
    {
       dtsv_cfg_mib_arg(&mib, &oid, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
@@ -400,7 +400,7 @@ dtsv_cef_reset_logging_level(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
                          NCS_SNMP_FALSE, reqfnc, MIB_VERR);
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"node") == 0)
+   else if(strcmp(pArgv->cmd.strval,"node") == 0)
    {
       pArgv = &arg_list->i_arg_record[5];
 
@@ -455,7 +455,7 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    uns32                   length;
    
 
-   if(m_NCS_STRCMP(pArgv->cmd.strval,"global") == 0)
+   if(strcmp(pArgv->cmd.strval,"global") == 0)
    {
       dtsv_cfg_mib_arg(&mib, oids, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
@@ -469,11 +469,11 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         dtsv_cfg_mib_arg(&mib, oids, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
         
-        if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+        if (strcmp(pArgv->cmd.strval,"file") == 0)
            device = (uns8)(LOG_FILE | get_val);
-        else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+        else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
            device = (uns8)(CIRCULAR_BUFFER | get_val);
-        else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0) 
+        else if (strcmp(pArgv->cmd.strval,"console") == 0) 
            device = (uns8)(OUTPUT_CONSOLE | get_val);
         else
         {
@@ -486,7 +486,7 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
      }
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"node") == 0)
+   else if(strcmp(pArgv->cmd.strval,"node") == 0)
    {
       pArgv = &arg_list->i_arg_record[4];
       
@@ -503,11 +503,11 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          
          pArgv = &arg_list->i_arg_record[5];
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
             device = (uns8)(LOG_FILE | get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
             device = (uns8)(CIRCULAR_BUFFER | get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0)
+         else if (strcmp(pArgv->cmd.strval,"console") == 0)
            device = (uns8)(OUTPUT_CONSOLE | get_val);
          else
          {
@@ -523,7 +523,7 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       }
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"service") == 0)
+   else if(strcmp(pArgv->cmd.strval,"service") == 0)
    {
       pArgv = &arg_list->i_arg_record[4];
       oids[0] = pArgv->cmd.intval;
@@ -543,11 +543,11 @@ dtsv_cef_set_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          
          pArgv = &arg_list->i_arg_record[6];
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
             device = (uns8)(LOG_FILE | get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
             device = (uns8)(CIRCULAR_BUFFER | get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0)
+         else if (strcmp(pArgv->cmd.strval,"console") == 0)
            device = (uns8)(OUTPUT_CONSOLE | get_val);
          else
          {
@@ -600,7 +600,7 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
    uns32                   length;
    
 
-   if(m_NCS_STRCMP(pArgv->cmd.strval,"global") == 0)
+   if(strcmp(pArgv->cmd.strval,"global") == 0)
    {
       dtsv_cfg_mib_arg(&mib, oids, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
@@ -614,11 +614,11 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
         dtsv_cfg_mib_arg(&mib, oids, GLOBAL_INST_ID_LEN, 
                     NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
         
-        if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+        if (strcmp(pArgv->cmd.strval,"file") == 0)
            device = (uns8)((~LOG_FILE) & get_val);
-        else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+        else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
            device = (uns8)((~CIRCULAR_BUFFER) & get_val);
-        else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0) 
+        else if (strcmp(pArgv->cmd.strval,"console") == 0) 
            device = (uns8)((~OUTPUT_CONSOLE) & get_val);
         else 
         {
@@ -631,7 +631,7 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
      }
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"node") == 0)
+   else if(strcmp(pArgv->cmd.strval,"node") == 0)
    {
       pArgv = &arg_list->i_arg_record[5];
       
@@ -649,11 +649,11 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
          
          pArgv = &arg_list->i_arg_record[6];
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
             device = (uns8)((~LOG_FILE) & get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
             device = (uns8)((~CIRCULAR_BUFFER) & get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0)
+         else if (strcmp(pArgv->cmd.strval,"console") == 0)
            device = (uns8)((~OUTPUT_CONSOLE) & get_val);
          else
          {
@@ -669,7 +669,7 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
       }
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"service") == 0)
+   else if(strcmp(pArgv->cmd.strval,"service") == 0)
    {
       pArgv = &arg_list->i_arg_record[5];
       oids[0] = pArgv->cmd.intval;
@@ -689,11 +689,11 @@ dtsv_cef_reset_logging_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_dat
          
          pArgv = &arg_list->i_arg_record[7];
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
             device = (uns8)((~LOG_FILE) & get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
             device = (uns8)((~CIRCULAR_BUFFER) & get_val);
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"console") == 0)
+         else if (strcmp(pArgv->cmd.strval,"console") == 0)
            device = (uns8)((~OUTPUT_CONSOLE) & get_val);
          else
          {
@@ -756,7 +756,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          dtsv_cfg_mib_arg(&mib, oids, GLOBAL_INST_ID_LEN, 
             NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL);
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -773,7 +773,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -789,7 +789,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
                }
             }
          }
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -806,7 +806,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -844,7 +844,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          dtsv_cfg_mib_arg(&mib, oids, NODE_INST_ID_LEN, 
             NCSMIB_TBL_DTSV_NODE, cli_hdl, dtsv_hdl, NULL);
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -877,7 +877,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -910,7 +910,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 
             }
          }
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -944,7 +944,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -990,7 +990,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          dtsv_cfg_mib_arg(&mib, oids, SVC_INST_ID_LEN, 
             NCSMIB_TBL_DTSV_SVC_PER_NODE, cli_hdl, dtsv_hdl, NULL);
          
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -1024,7 +1024,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -1057,7 +1057,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 
             }
          }
-         else if (m_NCS_STRCMP(pArgv->cmd.strval,"buffer") == 0)
+         else if (strcmp(pArgv->cmd.strval,"buffer") == 0)
          {
             pArgv = &arg_list->i_arg_record[6];
             
@@ -1090,7 +1090,7 @@ dtsv_cef_conf_log_device(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             {
                pArgv = &arg_list->i_arg_record[7];
                
-               if (m_NCS_STRCMP(pArgv->cmd.strval, "compressed") == 0)
+               if (strcmp(pArgv->cmd.strval, "compressed") == 0)
                   format = COMPRESSED_FORMAT;
                else
                   format = EXPANDED_FORMAT;
@@ -1352,7 +1352,7 @@ dtsv_cef_cnf_category(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             NCSMIB_TBL_DTSV_SCLR_GLOBAL, cli_hdl, dtsv_hdl, NULL); 
 
          pArgv = &arg_list->i_arg_record[5];
-         if (m_NCS_STRCMP(pArgv->cmd.strval, "set") == 0)
+         if (strcmp(pArgv->cmd.strval, "set") == 0)
              bit_set = TRUE;
          else 
              bit_set = FALSE;
@@ -1390,7 +1390,7 @@ dtsv_cef_cnf_category(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          dtsv_cfg_mib_arg(&mib, oids, NODE_INST_ID_LEN, NCSMIB_TBL_DTSV_NODE, cli_hdl, dtsv_hdl, NULL);
          
          pArgv = &arg_list->i_arg_record[5];
-         if (m_NCS_STRCMP(pArgv->cmd.strval, "set") == 0)
+         if (strcmp(pArgv->cmd.strval, "set") == 0)
              bit_set = TRUE;
          else 
              bit_set = FALSE;
@@ -1439,7 +1439,7 @@ dtsv_cef_cnf_category(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             NCSMIB_TBL_DTSV_SVC_PER_NODE, cli_hdl, dtsv_hdl, NULL);
          
          pArgv = &arg_list->i_arg_record[5];
-         if (m_NCS_STRCMP(pArgv->cmd.strval, "set") == 0)
+         if (strcmp(pArgv->cmd.strval, "set") == 0)
              bit_set = TRUE;
          else 
              bit_set = FALSE;
@@ -1648,7 +1648,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          /* configuring global console device */
          pArgv = &arg_list->i_arg_record[4];
 
-         if(m_NCS_STRCMP(pArgv->cmd.strval, "add") == 0)
+         if(strcmp(pArgv->cmd.strval, "add") == 0)
          {
             /* add Global console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvAddGlobalConsole;
@@ -1689,7 +1689,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* send the request */
             rc = dtsv_send_cmd_mib_req(&mib, cef_data, MIB_VERR);
          }/*end of add global console */
-         else if(m_NCS_STRCMP(pArgv->cmd.strval, "rmv") == 0)
+         else if(strcmp(pArgv->cmd.strval, "rmv") == 0)
          {
             /* remove global console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvGlobalConsole;
@@ -1737,7 +1737,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          /* configuring node console device */
          pArgv = &arg_list->i_arg_record[4];  
     
-         if(m_NCS_STRCMP(pArgv->cmd.strval, "add") == 0)
+         if(strcmp(pArgv->cmd.strval, "add") == 0)
          {
             /* add Node console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvAddNodeConsole;
@@ -1780,7 +1780,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* send the request */
             rc = dtsv_send_cmd_mib_req(&mib, cef_data, MIB_VERR);
          }/*end of add node console*/
-         else if(m_NCS_STRCMP(pArgv->cmd.strval, "rmv") == 0)
+         else if(strcmp(pArgv->cmd.strval, "rmv") == 0)
          {
             /* remove Node console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvNodeConsole;
@@ -1824,7 +1824,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          oids[1] = pArgv->cmd.intval; 
          pArgv = &arg_list->i_arg_record[4];
 
-         if(m_NCS_STRCMP(pArgv->cmd.strval, "add") == 0)
+         if(strcmp(pArgv->cmd.strval, "add") == 0)
          {
             /* add Service console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvAddSvcConsole;
@@ -1867,7 +1867,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             /* send the request */
             rc = dtsv_send_cmd_mib_req(&mib, cef_data, MIB_VERR);
          }/*end of add svc console*/
-         else if(m_NCS_STRCMP(pArgv->cmd.strval, "rmv") == 0)
+         else if(strcmp(pArgv->cmd.strval, "rmv") == 0)
          {
             /* remove Service console device */
             mib.req.info.cli_req.i_cmnd_id = dtsvRmvSvcConsole;
@@ -2331,7 +2331,7 @@ dtsv_cef_dump_buff_log(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          operation = pArgv->cmd.intval;
 
          pArgv = &arg_list->i_arg_record[6];
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             device = LOG_FILE;
          }
@@ -2359,7 +2359,7 @@ dtsv_cef_dump_buff_log(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          operation = pArgv->cmd.intval;
 
          pArgv = &arg_list->i_arg_record[6];
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             device = LOG_FILE;
          }
@@ -2377,7 +2377,7 @@ dtsv_cef_dump_buff_log(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
          operation = pArgv->cmd.intval;
 
          pArgv = &arg_list->i_arg_record[6];
-         if (m_NCS_STRCMP(pArgv->cmd.strval,"file") == 0)
+         if (strcmp(pArgv->cmd.strval,"file") == 0)
          {
             device = LOG_FILE;
          }
@@ -2421,7 +2421,7 @@ dtsv_cef_set_dflt_plcy(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    NCSCLI_ARG_VAL           *pArgv = &arg_list->i_arg_record[3];
    uns32                   rc = NCSCC_RC_SUCCESS, oids[SVC_INST_ID_LEN];
    
-   if(m_NCS_STRCMP(pArgv->cmd.strval,"node") == 0)
+   if(strcmp(pArgv->cmd.strval,"node") == 0)
    {
       pArgv = &arg_list->i_arg_record[4];
       
@@ -2434,7 +2434,7 @@ dtsv_cef_set_dflt_plcy(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
                              NCSMIB_ROWSTATUS_DESTROY, reqfnc, MIB_VERR);
 
    }
-   else if(m_NCS_STRCMP(pArgv->cmd.strval,"service") == 0)
+   else if(strcmp(pArgv->cmd.strval,"service") == 0)
    {
       pArgv = &arg_list->i_arg_record[4];
       oids[0] = pArgv->cmd.intval;

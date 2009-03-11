@@ -484,7 +484,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             {
             case NCSMIB_ROWSTATUS_CREATE_GO:
                 {
-                    if(m_NCS_STRCMP(&inst->current_profile, profile_name) == 0)
+                    if(strcmp(&inst->current_profile, profile_name) == 0)
                     {
                        return NCSCC_RC_INV_VAL;
                     }
@@ -525,7 +525,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
 
             case NCSMIB_ROWSTATUS_DESTROY:
                 {
-                    if(m_NCS_STRCMP(&inst->current_profile, profile_name) == 0)
+                    if(strcmp(&inst->current_profile, profile_name) == 0)
                     {
                        return NCSCC_RC_INV_VAL;
                     }
@@ -928,7 +928,7 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
         if (profile_exists == FALSE)
             return m_MAB_DBG_SINK(NCSCC_RC_NO_INSTANCE);
 
-        if(m_NCS_STRCMP(&inst->current_profile, &inst->existing_profile) == 0)
+        if(strcmp(&inst->current_profile, &inst->existing_profile) == 0)
         {
            /* We can't overwrite current profile over current profile */
            return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);
@@ -970,7 +970,7 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
             return m_MAB_DBG_SINK(NCSCC_RC_NO_INSTANCE);
         if (inst->new_profile[0] == '\0')
             return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);
-        if(m_NCS_STRCMP(&inst->new_profile, &inst->existing_profile) == 0)
+        if(strcmp(&inst->new_profile, &inst->existing_profile) == 0)
         {
            /* We can't overwrite the profile over itself */
            return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);
@@ -1003,8 +1003,8 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
             return m_MAB_DBG_SINK(NCSCC_RC_NO_INSTANCE);
         if (inst->new_profile[0] == '\0')
             return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);
-        if((m_NCS_STRCMP(&inst->new_profile, &inst->existing_profile) == 0) ||
-           (m_NCS_STRCMP(&inst->current_profile, &inst->existing_profile) == 0))
+        if((strcmp(&inst->new_profile, &inst->existing_profile) == 0) ||
+           (strcmp(&inst->current_profile, &inst->existing_profile) == 0))
         {
            /* We can't rename the profile to itself */
            return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);
@@ -1034,7 +1034,7 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         if (profile_exists == FALSE)
             return m_MAB_DBG_SINK(NCSCC_RC_NO_INSTANCE);
-        if(m_NCS_STRCMP(&inst->current_profile, &inst->existing_profile) == 0)
+        if(strcmp(&inst->current_profile, &inst->existing_profile) == 0)
         {
            /* We can't replace the profile with itself */
            return m_MAB_DBG_SINK(NCSCC_RC_INV_VAL);

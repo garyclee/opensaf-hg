@@ -269,7 +269,7 @@ uns32 ncs_nid_notify(uns16 status)
    uns32 nid_stat_code;
 
    /* NID is OFF */
-  if ( m_NCS_STRCMP(gl_nid_svc_name , "" ) == 0)
+  if ( strcmp(gl_nid_svc_name , "" ) == 0)
        return NCSCC_RC_SUCCESS;
 
     if(status != NCSCC_RC_SUCCESS)\
@@ -1325,8 +1325,8 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
    ** For SCAP/PCAP process the notification will be done
    ** after all the NCS processes are up 
    */
-   if(( m_NCS_STRCMP(gl_nid_svc_name , "SCAP" ) != 0)&& 
-       ( m_NCS_STRCMP(gl_nid_svc_name , "PCAP" ) != 0) ) 
+   if(( strcmp(gl_nid_svc_name , "SCAP" ) != 0)&& 
+       ( strcmp(gl_nid_svc_name , "PCAP" ) != 0) ) 
    {
       m_NCS_NID_NOTIFY(NCSCC_RC_SUCCESS);
    }

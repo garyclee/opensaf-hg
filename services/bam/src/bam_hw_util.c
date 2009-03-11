@@ -54,61 +54,61 @@ get_entity_type_from_text(char *str)
       return type;
    else
    {
-      if(m_NCS_STRCMP(str, "SAHPI_ENT_SYSTEM_BOARD") == 0)
+      if(strcmp(str, "SAHPI_ENT_SYSTEM_BOARD") == 0)
          type = SAHPI_ENT_SYSTEM_BOARD;
       
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_PROCESSOR_MODULE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_PROCESSOR_MODULE") == 0)
          type = SAHPI_ENT_PROCESSOR_MODULE;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_PROCESSOR") == 0)
+      else if(strcmp(str, "SAHPI_ENT_PROCESSOR") == 0)
          type = SAHPI_ENT_PROCESSOR;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_POWER_SUPPLY") == 0)
+      else if(strcmp(str, "SAHPI_ENT_POWER_SUPPLY") == 0)
          type = SAHPI_ENT_POWER_SUPPLY;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_PROCESSOR_BOARD") == 0)
+      else if(strcmp(str, "SAHPI_ENT_PROCESSOR_BOARD") == 0)
          type = SAHPI_ENT_PROCESSOR_BOARD;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SYSTEM_CHASSIS") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SYSTEM_CHASSIS") == 0)
          type = SAHPI_ENT_SYSTEM_CHASSIS;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_ADVANCEDTCA_CHASSIS") == 0)
+      else if(strcmp(str, "SAHPI_ENT_ADVANCEDTCA_CHASSIS") == 0)
          type = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
 		 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_RACK") == 0)
+      else if(strcmp(str, "SAHPI_ENT_RACK") == 0)
          type = SAHPI_ENT_RACK;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SYSTEM_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SYSTEM_BLADE") == 0)
          type = SAHPI_ENT_SYSTEM_BLADE;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
          type = SAHPI_ENT_SWITCH_BLADE;	 
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_IO_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_IO_BLADE") == 0)
          type = SAHPI_ENT_IO_BLADE;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_IO_SUBBOARD") == 0)
+      else if(strcmp(str, "SAHPI_ENT_IO_SUBBOARD") == 0)
          type = SAHPI_ENT_IO_SUBBOARD;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SBC_SUBBOARD") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SBC_SUBBOARD") == 0)
          type = SAHPI_ENT_SBC_SUBBOARD;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SUBBOARD_CARRIER_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SUBBOARD_CARRIER_BLADE") == 0)
          type = SAHPI_ENT_SUBBOARD_CARRIER_BLADE;
 
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SBC_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SBC_BLADE") == 0)
          type = SAHPI_ENT_SBC_BLADE;
 #ifndef HPI_A
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_PICMG_FRONT_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_PICMG_FRONT_BLADE") == 0)
          type = SAHPI_ENT_PICMG_FRONT_BLADE;
 #endif
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
+      else if(strcmp(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
          type = SAHPI_ENT_SWITCH_BLADE;
 #ifndef HPI_A
-      else if(m_NCS_STRCMP(str, "AMC_SUB_SLOT_TYPE") == 0)
+      else if(strcmp(str, "AMC_SUB_SLOT_TYPE") == 0)
          type = AMC_SUB_SLOT_TYPE;
 #endif
-      else if(m_NCS_STRCMP(str, "SAHPI_ENT_PHYSICAL_SLOT") == 0)
+      else if(strcmp(str, "SAHPI_ENT_PHYSICAL_SLOT") == 0)
 #ifdef HPI_A
          type = SAHPI_ENT_SYSTEM_SLOT;
 #else

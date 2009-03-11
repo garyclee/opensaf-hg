@@ -367,7 +367,7 @@ parse_ais_config(DOMNode *aisNode, BAM_PARSE_SUB_TREE sub_tree)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "AMFConfig") == 0)
+         if(strcmp(tmpString, "AMFConfig") == 0)
          {
             rc = saAmfConfigParseAllObjs(tmpNode, sub_tree);
          }
@@ -396,7 +396,7 @@ parse_ncs_config(DOMNode *ncsNode, BAM_PARSE_SUB_TREE sub_tree)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "AISConfig") == 0)
+         if(strcmp(tmpString, "AISConfig") == 0)
             rc = parse_ais_config(tmpNode, sub_tree);
 
           XMLString::release(&tmpString);
@@ -439,13 +439,13 @@ parse_system_bom(DOMDocument *doc, BAM_PARSE_SUB_TREE sub_tree)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if( (m_NCS_STRCMP(tmpString, "NCSConfig") == 0) && 
+         if( (strcmp(tmpString, "NCSConfig") == 0) && 
              ( (sub_tree == BAM_PARSE_NCS)  || (sub_tree == BAM_PARSE_APP) )
            )
          {
             rc = parse_ncs_config(tmpNode, sub_tree);
          }
-         else if((m_NCS_STRCMP(tmpString, "Hardware-Deployment-Config") == 0) &&
+         else if((strcmp(tmpString, "Hardware-Deployment-Config") == 0) &&
                   (sub_tree == BAM_PARSE_AVM) )
          {
             rc = parse_hw_deploy_config(tmpNode);
@@ -484,7 +484,7 @@ parse_app_config(DOMDocument *doc, BAM_PARSE_SUB_TREE sub_tree)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "AMFConfig") == 0)
+         if(strcmp(tmpString, "AMFConfig") == 0)
            
          {
             rc = saAmfConfigParseAllObjs(tmpNode, sub_tree);

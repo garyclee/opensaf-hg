@@ -136,11 +136,11 @@ saHwParseFRUInformation(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "ProductName") == 0 )
+         if(strcmp(tag, "ProductName") == 0 )
          {
             strcpy( entity_desc->fru_product_name, val);
          }
-         else if(m_NCS_STRCMP(tag, "ProductVersion") == 0 )
+         else if(strcmp(tag, "ProductVersion") == 0 )
          {
             strcpy( entity_desc->fru_product_version, val);
          }
@@ -182,7 +182,7 @@ saHwParseFRUPolicy(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
       char *tag = XMLString::transcode(attributesNodes->item(0)->getNodeName());
       char *val = XMLString::transcode(attributesNodes->item(0)->getNodeValue());
 
-      if(m_NCS_STRCMP(tag, "Applicable") == 0)
+      if(strcmp(tag, "Applicable") == 0)
       {
          entity_desc->is_fru = atoi(val);
       }
@@ -211,7 +211,7 @@ saHwParseFRUPolicy(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
          {
             char *tmpString = XMLString::transcode(tmpNode->getNodeName());
             
-            if(m_NCS_STRCMP(tmpString, "FruInformation") == 0)
+            if(strcmp(tmpString, "FruInformation") == 0)
             {
                rc = saHwParseFRUInformation(tmpNode, entity_desc);
             }
@@ -271,13 +271,13 @@ saHwParseLocationRange(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "ParentEntityTypeInstanceName") == 0)
+         if(strcmp(tag, "ParentEntityTypeInstanceName") == 0)
          {
             strcpy(
                        entity_desc->location_range[curr_num_parents].parent_ent,
                        val);
          }
-         else if(m_NCS_STRCMP(tag, "LocationRegularExpression") == 0 )
+         else if(strcmp(tag, "LocationRegularExpression") == 0 )
          {
             bam_fill_location_from_string(
                &(entity_desc->location_range[curr_num_parents].valid_location), 
@@ -344,15 +344,15 @@ parse_ent_type_instance(DOMNode *node)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "Name") == 0)
+         if(strcmp(tag, "Name") == 0)
          {
             strcpy(entity_desc->entity_name, val);
          }
-         else if(m_NCS_STRCMP(tag, "HPIEntityType") == 0)
+         else if(strcmp(tag, "HPIEntityType") == 0)
          {
             entity_desc->entity_type = get_entity_type_from_text(val);
          }
-         else if(m_NCS_STRCMP(tag, "IsNode") == 0)
+         else if(strcmp(tag, "IsNode") == 0)
          {
             entity_desc->isNode = atoi(val);
          }
@@ -378,11 +378,11 @@ parse_ent_type_instance(DOMNode *node)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "LocationRange") == 0)
+         if(strcmp(tmpString, "LocationRange") == 0)
          {
             rc = saHwParseLocationRange(tmpNode, entity_desc);
          }
-         else if(m_NCS_STRCMP(tmpString, "FRUActivationPolicy") == 0)
+         else if(strcmp(tmpString, "FRUActivationPolicy") == 0)
          {
             rc = saHwParseFRUPolicy(tmpNode, entity_desc);
          }
@@ -450,7 +450,7 @@ parse_hardware_bom(DOMDocument *doc)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "EntityTypeInstance") == 0)
+         if(strcmp(tmpString, "EntityTypeInstance") == 0)
             parse_ent_type_instance(tmpNode);
 
          XMLString::release(&tmpString);
