@@ -20,14 +20,14 @@
  * ========================================================================
  */
 
-#include <configmake.h>
-
 #define _GNU_SOURCE
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
+#include <poll.h>
+#include <configmake.h>
 
 #include <ncs_main_pvt.h>
 
@@ -38,6 +38,11 @@
  *   DEFINITIONS
  * ========================================================================
  */ 
+
+#define FD_AMF 0
+#define FD_MBCSV 1
+#define FD_MBX 2
+#define FD_IMM 3
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -149,7 +154,7 @@ static uns32 initialize_lgs(const char *progname)
     /* Initialize lgs control block */
     if (lgs_cb_init(lgs_cb) != NCSCC_RC_SUCCESS)
     {
-        TRACE("lgs_cb_init FAILED");
+        LOG_ER("lgs_cb_init FAILED");
         rc = NCSCC_RC_FAILURE;
         goto done;
     }
@@ -157,16 +162,16 @@ static uns32 initialize_lgs(const char *progname)
     /* Initialize stream class */
     if (log_stream_init() != NCSCC_RC_SUCCESS)
     {
-        TRACE("log_stream_init FAILED");
+        LOG_ER("log_stream_init FAILED");
         rc = NCSCC_RC_FAILURE;
         goto done;
     }
 
     /* Create pidfile */
-    sprintf(path, PIDPATH "%s.pid", basename(progname));
+    snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
     if ((fp = fopen(path, "w")) == NULL)
     {
-        LOG_ER("Could not open %s", path);
+        LOG_ER("Could not open '%s': %s", path, strerror(errno));
         rc = NCSCC_RC_FAILURE; 
         goto done;
     }
@@ -186,31 +191,34 @@ static uns32 initialize_lgs(const char *progname)
     /* Create the mailbox used for communication with LGS */
     if ((rc = m_NCS_IPC_CREATE(&lgs_cb->mbx)) != NCSCC_RC_SUCCESS)
     {
-        TRACE("m_NCS_IPC_CREATE FAILED %d", rc);
+        LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
         goto done;
     }
 
     /* Attach mailbox to this thread */
     if ((rc = m_NCS_IPC_ATTACH(&lgs_cb->mbx) != NCSCC_RC_SUCCESS))
     {
-        TRACE("m_NCS_IPC_ATTACH FAILED %d", rc);
+        LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
         goto done;
     }
 
     if ((rc = lgs_amf_init(lgs_cb)) != SA_AIS_OK)
     {
-        TRACE("lgs_amf_init FAILED %d", rc);
+        LOG_ER("lgs_amf_init FAILED %d", rc);
         goto done;
     }
 
     if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS)
     {
-        TRACE("lgs_mds_init FAILED %d", rc);
+        LOG_ER("lgs_mds_init FAILED %d", rc);
         return rc;
     }
 
     if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS)
-        TRACE("lgs_mbcsv_init FAILED");
+        LOG_ER("lgs_mbcsv_init FAILED");
+
+    if ((rc = lgs_imm_init(lgs_cb)) != NCSCC_RC_SUCCESS)
+        LOG_ER("lgs_imm_init FAILED");
 
 done:
     TRACE_LEAVE();
@@ -223,72 +231,68 @@ done:
  */
 static void main_process(void)
 {
-    NCS_SEL_OBJ_SET     all_sel_obj;
-    NCS_SEL_OBJ         mbx_fd, amf_ncs_sel_obj, mbcsv_sel_obj , numfds;
+    NCS_SEL_OBJ         mbx_fd;
     SaAisErrorT         error = SA_AIS_OK;
-    int                 count;
     uns32 rc;
+    struct pollfd fds[3];
 
     TRACE_ENTER();
 
-    mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&lgs_cb->mbx);
+    mbx_fd = ncs_ipc_get_sel_obj(&lgs_cb->mbx);
 
-    /* Set the fd for mbcsv events */
-    m_SET_FD_IN_SEL_OBJ(lgs_cb->mbcsv_sel_obj, mbcsv_sel_obj);
+    /* Set up all file descriptors to listen to */
+    fds[FD_AMF].fd       = lgs_cb->amfSelectionObject;
+    fds[FD_AMF].events   = POLLIN;
+    fds[FD_MBCSV].fd     = lgs_cb->mbcsv_sel_obj;
+    fds[FD_MBCSV].events = POLLIN;
+    fds[FD_MBX].fd       = mbx_fd.rmv_obj;
+    fds[FD_MBX].events   = POLLIN;
+    fds[FD_IMM].fd       = lgs_cb->immSelectionObject;
+    fds[FD_IMM].events   = POLLIN;
 
     while (1)
     {
-        /* re-intialize the FDs and count */
-        numfds.raise_obj = 0;
-        numfds.rmv_obj = 0;
-        m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+        int ret = poll(fds, 4, -1);
 
-        /* Get the selection object from the MBX */
-        /* Set the fd for internal events */
-        m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-        numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
-
-        /* Set the fd for amf events */
-        m_SET_FD_IN_SEL_OBJ(lgs_cb->amfSelectionObject, amf_ncs_sel_obj);
-        m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-        numfds = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, numfds);
-
-        /* set the Mbcsv selection object */
-        m_NCS_SEL_OBJ_SET(mbcsv_sel_obj, &all_sel_obj);
-        numfds = m_GET_HIGHER_SEL_OBJ(mbcsv_sel_obj, numfds);
-
-        /** LGS thread main processing loop.
-         **/
-        count = m_NCS_SEL_OBJ_SELECT(numfds, &all_sel_obj, 0, 0, 0); 
-        if (count > 0)
+        if (ret == -1)
         {
-            /* process all the AMF messages */
-            if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj))
-            {
-                /* dispatch all the AMF pending function */
-                error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL);
-                if (error != SA_AIS_OK)
-                    TRACE("saAmfDispatch FAILED: %u", error);
-            }
+            if (errno == EINTR)
+                continue;
 
-            /* process all mbcsv messages */
-            if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj, &all_sel_obj))
-            {
-                rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl);
-                if (rc != NCSCC_RC_SUCCESS)
-                    TRACE("MBCSV DISPATCH FAILED: %u", rc);
-                else
-                    m_NCS_SEL_OBJ_CLR(mbcsv_sel_obj, &all_sel_obj);
-            }
-
-            /* Process the LGS Mail box, if lgs is ACTIVE. */
-            if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj))
-                lgs_process_mbx(&lgs_cb->mbx);
+            LOG_ER("poll failed - %s", strerror(errno));
+            break;
         }
-        else
+
+        if (fds[FD_AMF].revents & POLLIN)
         {
-            TRACE("select FAILED");
-        } 
+            /* dispatch all the AMF pending function */
+            if ((error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK)
+            {
+                LOG_ER("saAmfDispatch failed: %u", error);
+                break;
+            }
+        }
+
+        if (fds[FD_MBCSV].revents & POLLIN)
+        {
+            if ((rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl)) != NCSCC_RC_SUCCESS)
+            {
+                LOG_ER("MBCSv Dispatch Failed");
+                break;
+            }
+        }
+
+        if (fds[FD_MBX].revents & POLLIN)
+            lgs_process_mbx(&lgs_cb->mbx);
+
+        if (fds[FD_IMM].revents & POLLIN)
+        {
+            if ((error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK)
+            {
+                LOG_ER("saImmOiDispatch FAILED: %u", error);
+                break;
+            }
+        }
     }
 }
 
@@ -306,7 +310,7 @@ int main(int argc, char *argv[])
     /* Initialize trace system first of all so we can see what is going on. */
     if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
     {
-        if (logtrace_init("opensaf-lgs", value) != 0)
+        if (logtrace_init(basename(argv[0]), value) != 0)
         {
             syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
             goto done;

@@ -49,11 +49,10 @@ extern "C" {
 typedef SaUint64T SaLogHandleT;
 typedef SaUint64T SaLogStreamHandleT;
 
-/* well known cluster wide log streams */
-#define SA_LOG_STREAM_SYSTEM            "safLgStr=saLogSystem"
-#define SA_LOG_STREAM_NOTIFICATION      "safLgStr=saLogNotification"
-#define SA_LOG_STREAM_ALARM             "safLgStr=saLogAlarm"
-
+/* Well known distinguished names (DNs) for cluster wide log streams */
+#define SA_LOG_STREAM_SYSTEM            "safLgStrCfg=saLogSystem,safApp=safLogService"
+#define SA_LOG_STREAM_NOTIFICATION      "safLgStrCfg=saLogNotification,safApp=safLogService"
+#define SA_LOG_STREAM_ALARM             "safLgStrCfg=saLogAlarm,safApp=safLogService"
 
 /* The Log severity level FLAGS */
 #define SA_LOG_SEV_EMERGENCY  0
@@ -188,6 +187,11 @@ typedef struct {
     SaUint16T maxFilesRotated;
     SaStringT logFileFmt;
 } SaLogFileCreateAttributesT_2;
+
+/* Admin operation IDs */
+typedef enum {
+    SA_LOG_ADMIN_CHANGE_FILTER = 1
+} saLogAdminOperationIdT;
 
 /* 
  * This callback is invoked by the Log Svc to convey Log filter 

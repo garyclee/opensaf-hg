@@ -52,6 +52,7 @@ typedef struct log_stream
     uint32_t logRecordId;          /* log record indentifier increased for each record */
     SaBoolT twelveHourModeFlag;
     logStreamTypeT streamType;
+    SaUint64T filtered;            /* discarded by server due to filtering */
 } log_stream_t;
 
 extern uns32 log_stream_init(void);
@@ -72,9 +73,11 @@ extern log_stream_t *log_stream_new(SaNameT *name,
                                     SaBoolT twelveHourModeFlag,
                                     uint32_t logRecordId);
 
+extern log_stream_t *log_stream_new_2(SaNameT *name, int stream_id);
+
 extern SaAisErrorT log_stream_open(log_stream_t *stream);
 
-extern int log_stream_close(log_stream_t *stream);
+extern int log_stream_close(log_stream_t **stream);
 extern int log_stream_file_close(log_stream_t *stream);
 extern int log_stream_write(log_stream_t *stream, const char *buf);
 extern void log_stream_id_print(void);

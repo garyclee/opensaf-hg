@@ -593,7 +593,6 @@ out:
 ******************************************************************************/
 lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hdl_rec, 
                                                       uns32               lstr_id, 
-                                                      uns32               lstr_open_id,
                                                       uns32               log_stream_open_flags, 
                                                       const SaNameT       *logStreamName,
                                                       uns32               log_header_type)
@@ -618,7 +617,6 @@ lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hd
     /** Initialize the known channel attributes at this point
      **/
     rec->lgs_log_stream_id = lstr_id;
-    rec->lgs_log_stream_open_id = lstr_open_id;
     rec->open_flags       = log_stream_open_flags;
     rec->log_stream_name.length = logStreamName->length;
     memcpy((void*)rec->log_stream_name.value, 

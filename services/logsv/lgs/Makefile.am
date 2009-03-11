@@ -38,14 +38,17 @@ opensaf_saflogd_CPPFLAGS = \
 	-I $(top_srcdir)/services/vds/inc \
 	-I $(top_srcdir)/services/common/inc \
 	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/logsv/lgs/inc
+	-I $(top_srcdir)/services/logsv/lgs/inc \
+	-I $(top_srcdir)/services/immsv/inc
 
 opensaf_saflogd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c \
+	$(top_srcdir)/services/immsv/utils/immutil.c \
 	lgs_amf.c \
 	lgs_evt.c \
 	lgs_mbcsv.c \
 	lgs_fmt.c \
+	lgs_imm.c \
 	lgs_main.c \
 	lgs_mds.c \
 	lgs_util.c \
@@ -54,4 +57,6 @@ opensaf_saflogd_SOURCES = \
 opensaf_saflogd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
+	$(top_builddir)/lib/lib_SaImm/libSaImmOi.la \
+	$(top_builddir)/lib/lib_SaImm/libSaImmOm.la \
 	$(top_builddir)/services/mbcsv/src/libmbca.la

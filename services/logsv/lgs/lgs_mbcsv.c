@@ -51,6 +51,11 @@ static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                      NCSCONTEXT ptr, uns32 *ptr_data_len,
                                      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
                                      EDU_ERR *o_err);
+
+static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+    EDU_ERR *o_err);
+
 static uns32 edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                    NCSCONTEXT ptr, uns32 *ptr_data_len,
                                    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
@@ -71,6 +76,7 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
 static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg); /* Common Callback interface to mbcsv */
 static uns32 ckpt_decode_async_update(lgs_cb_t *cb,NCS_MBCSV_CB_ARG *cbk_arg);
 static uns32 ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
+static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 static uns32 edp_ed_close_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                                      NCSCONTEXT ptr, uns32 *ptr_data_len,
                                      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
@@ -89,14 +95,15 @@ static uns32 edu_enc_reg_list(lgs_cb_t *cb, NCS_UBAID *uba);
 static uns32 edu_enc_streams(lgs_cb_t *cb, NCS_UBAID *uba);
 static uns32 process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data);
 
-static LGS_CKPT_HDLR ckpt_data_handler[LGS_CKPT_MSG_MAX - LGS_CKPT_MSG_BASE] = 
+static LGS_CKPT_HDLR ckpt_data_handler[] = 
 {
     ckpt_proc_initialize_client,
     ckpt_proc_finalize_client,
     ckpt_proc_agent_down,
     ckpt_proc_log_write,
     ckpt_proc_open_stream,
-    ckpt_proc_close_stream
+    ckpt_proc_close_stream,
+    ckpt_proc_cfg_stream
 };
 
 static void free_edu_mem(char* ptr)
@@ -198,7 +205,6 @@ done:
 uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
 {
     NCS_MBCSV_ARG     mbcsv_arg;
-    uns32             rc = SA_AIS_OK;
     memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
     /* Set the mbcsv args */
@@ -207,9 +213,9 @@ uns32 lgs_mbcsv_change_HA_state(lgs_cb_t *cb)
     mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
     mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
 
-    if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg) ))
+    if (ncs_mbcsv_svc(&mbcsv_arg) != NCSCC_RC_SUCCESS)
     {
-        TRACE("ncs_mbcsv_svc FAILED");
+        LOG_ER("ncs_mbcsv_svc NCS_MBCSV_OP_CHG_ROLE FAILED");
         return NCSCC_RC_FAILURE;
     }
     return NCSCC_RC_SUCCESS;
@@ -775,7 +781,8 @@ static uns32 ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
     lgs_ckpt_initialize_msg_t        *reg_rec;
     lgs_ckpt_write_log_t             *writelog;
     lgs_ckpt_stream_open_t           *stream;
-    lgs_ckpt_finalize_msg_t         *finalize;  
+    lgs_ckpt_finalize_msg_t          *finalize;
+    lgs_ckpt_stream_cfg_t            *cfg;
     MDS_DEST                         *agent_dest;
 
     TRACE_ENTER();
@@ -877,7 +884,19 @@ static uns32 ckpt_decode_async_update(lgs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
                 goto done;
             }
             break;
+        case LGS_CKPT_CFG_STREAM:
+            TRACE_2("CFG STREAM REC: AUPDATE");
+            cfg = &ckpt_msg->ckpt_rec.stream_cfg;
+            rc = m_NCS_EDU_EXEC(&cb->edu_hdl, edp_ed_cfg_stream_rec, &cbk_arg->info.decode.i_uba,
+                                EDP_OP_TYPE_DEC, &cfg, &ederror);
 
+            if (rc != NCSCC_RC_SUCCESS)
+            {
+                TRACE("CFG UPDATE FAILED");
+                m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+                goto done;
+            }
+            break;
         default:
             rc = NCSCC_RC_FAILURE;
             TRACE("   FAILED");
@@ -1062,7 +1081,8 @@ static uns32 process_ckpt_data(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 
     if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED))
     {
-        if (data->header.ckpt_rec_type >= LGS_CKPT_MSG_MAX){
+        if (data->header.ckpt_rec_type >= LGS_CKPT_MSG_MAX)
+        {
             TRACE("FAILED: data->header.ckpt_rec_type >= LGS_CKPT_MSG_MAX"); 
             return NCSCC_RC_FAILURE;
         }
@@ -1195,7 +1215,7 @@ static uns32 ckpt_proc_close_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 
     (void) lgs_client_stream_rmv(param->clientId, param->streamId);
 
-    if (log_stream_close(stream) != 0)
+    if (log_stream_close(&stream) != 0)
     {
         /* Do not allow standby to get out of sync */
         lgs_exit("Client attributes differ", SA_AMF_COMPONENT_RESTART);
@@ -1242,7 +1262,7 @@ uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
         SaNameT name;
 
         TRACE("New stream %s, id %u", param->logStreamName, param->streamId);
-        strcpy(name.value, param->logStreamName);
+        strcpy((char *) name.value, param->logStreamName);
         name.length = strlen(param->logStreamName);
 
         stream = log_stream_new(&name,
@@ -1347,7 +1367,49 @@ static uns32 ckpt_proc_agent_down(lgs_cb_t* cb, lgsv_ckpt_msg_t *data)
 }
 
 /****************************************************************************
- * Name          : ckpt_send_async_update
+ * Name          : ckpt_proc_cfg_streamc
+ *
+ * Description   : This function configures a stream.
+ *
+ * Arguments     : cb - pointer to LGS  ControlBlock.
+ *                 data - pointer to  LGS_CHECKPOINT_DATA. 
+ * 
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ ****************************************************************************/
+
+static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
+{
+    lgs_ckpt_stream_cfg_t *param = &data->ckpt_rec.stream_cfg;
+    log_stream_t* stream;
+
+    TRACE_ENTER();
+
+    if ((stream = log_stream_get_by_name(param->name)) == NULL)
+    {
+        LOG_ER("Could not lookup stream");
+        goto done;
+    }
+
+    TRACE("config stream %s, id: %u", stream->name, stream->streamId);
+    strcpy(stream->fileName, param->fileName);
+    stream->maxLogFileSize = param->maxLogFileSize;
+    stream->fixedLogRecordSize = param->fixedLogRecordSize;
+    stream->logFullAction = param->logFullAction;
+    stream->logFullHaltThreshold = param->logFullHaltThreshold;
+    stream->maxFilesRotated = param->maxFilesRotated;
+    strcpy(stream->logFileFormat, param->logFileFormat);
+    stream->severityFilter = param->severityFilter;
+
+done:
+    TRACE_LEAVE();
+    return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : lgs_ckpt_send_async
  *
  * Description   : This function makes a request to MBCSV to send an async
  *                 update to the STANDBY LGS for the record held at
@@ -1367,7 +1429,7 @@ static uns32 ckpt_proc_agent_down(lgs_cb_t* cb, lgsv_ckpt_msg_t *data)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 lgs_send_async_update(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action)
+uns32 lgs_ckpt_send_async(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action)
 {
     uns32 rc=NCSCC_RC_SUCCESS;
     NCS_MBCSV_ARG mbcsv_arg;
@@ -1385,7 +1447,7 @@ uns32 lgs_send_async_update(lgs_cb_t *cb,lgsv_ckpt_msg_t *ckpt_rec,uns32 action)
      *dereferenced during encode callback */
 
     mbcsv_arg.info.send_ckpt.i_reo_type=ckpt_rec->header.ckpt_rec_type;
-    mbcsv_arg.info.send_ckpt.i_send_type=NCS_MBCSV_SND_SYNC;
+    mbcsv_arg.info.send_ckpt.i_send_type=NCS_MBCSV_SND_USR_ASYNC;
 
     /* Send async update */
     if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg)))
@@ -1823,6 +1885,75 @@ static uns32 edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 }/* End edp_ed_finalize_rec() */
 
 /****************************************************************************
+ * Name          : edp_ed_cfg_stream_rec
+ *
+ * Description   : This function is an EDU program for encoding/decoding
+ *                 lgsv checkpoint cfg_update_stream log rec.
+ * 
+ * Arguments     : EDU_HDL - pointer to edu handle,
+ *                 EDU_TKN - internal edu token to help encode/decode,
+ *                 POINTER to the structure to encode/decode from/to,
+ *                 data length specifying number of structures,
+ *                 EDU_BUF_ENV - pointer to buffer for encoding/decoding.
+ *                 op - operation type being encode/decode. 
+ *                 EDU_ERR - out param to indicate errors in processing. 
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+    NCSCONTEXT ptr, uns32 *ptr_data_len,
+    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+    EDU_ERR *o_err)
+{
+    uns32 rc = NCSCC_RC_SUCCESS;
+    lgs_ckpt_stream_cfg_t *ckpt_stream_cfg_msg_ptr = NULL, **ckpt_stream_cfg_msg_dec_ptr;
+
+    EDU_INST_SET ckpt_stream_cfg_rec_ed_rules[] = {
+        {EDU_START, edp_ed_cfg_stream_rec, 0, 0, 0, sizeof(lgs_ckpt_stream_cfg_t), 0, NULL},
+        {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->name,0, NULL},
+        {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->fileName,0, NULL},
+        {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->pathName,0, NULL},
+        {EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->maxLogFileSize,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->fixedLogRecordSize,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->haProperty,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->logFullAction,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->logFullHaltThreshold,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->maxFilesRotated,0, NULL},
+        {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->logFileFormat,0, NULL},
+        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->severityFilter,0, NULL},
+        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+    };
+
+    if (op == EDP_OP_TYPE_ENC)
+    {
+        ckpt_stream_cfg_msg_ptr = (lgs_ckpt_stream_cfg_t *)ptr;
+    }
+    else if (op == EDP_OP_TYPE_DEC)
+    {
+        ckpt_stream_cfg_msg_dec_ptr = (lgs_ckpt_stream_cfg_t **)ptr;
+        if (*ckpt_stream_cfg_msg_dec_ptr == NULL)
+        {
+            *o_err = EDU_ERR_MEM_FAIL;
+            return NCSCC_RC_FAILURE;
+        }
+        memset(*ckpt_stream_cfg_msg_dec_ptr, '\0', sizeof(lgs_ckpt_stream_cfg_t));
+        ckpt_stream_cfg_msg_ptr = *ckpt_stream_cfg_msg_dec_ptr;
+    }
+    else
+    {
+        ckpt_stream_cfg_msg_ptr = ptr;
+    }
+
+    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, ckpt_stream_cfg_rec_ed_rules, ckpt_stream_cfg_msg_ptr, ptr_data_len,
+                             buf_env, op, o_err);
+    return rc;
+
+}
+
+/****************************************************************************
  * Name          : edp_ed_header_rec 
  *
  * Description   : This function is an EDU program for encoding/decoding
@@ -1912,7 +2043,8 @@ static int32 ckpt_msg_test_type(NCSCONTEXT arg)
         LCL_TEST_JUMP_OFFSET_LGS_CKPT_WRITE_LOG,
         LCL_TEST_JUMP_OFFSET_LGS_CKPT_OPEN_STREAM,
         LCL_TEST_JUMP_OFFSET_LGS_CKPT_CLOSE_STREAM,
-        LCL_TEST_JUMP_OFFSET_LGS_CKPT_AGENT_DOWN
+        LCL_TEST_JUMP_OFFSET_LGS_CKPT_AGENT_DOWN,
+        LCL_TEST_JUMP_OFFSET_LGS_CKPT_CFG_STREAM
     }LCL_TEST_JUMP_OFFSET;
     lgsv_ckpt_msg_type_t    ckpt_rec_type;
 
@@ -1934,6 +2066,8 @@ static int32 ckpt_msg_test_type(NCSCONTEXT arg)
             return LCL_TEST_JUMP_OFFSET_LGS_CKPT_CLOSE_STREAM;
         case LGS_CKPT_CLIENT_DOWN:
             return LCL_TEST_JUMP_OFFSET_LGS_CKPT_AGENT_DOWN;
+        case LGS_CKPT_CFG_STREAM:
+            return LCL_TEST_JUMP_OFFSET_LGS_CKPT_CFG_STREAM;
         default:
             return EDU_EXIT;
             break;
@@ -2002,6 +2136,10 @@ static uns32 edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         /* Agent dest */
         {EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
             (long)&((lgsv_ckpt_msg_t*)0)->ckpt_rec.agent_dest, 0, NULL},
+
+        /* Cfg stream */
+        {EDU_EXEC, edp_ed_cfg_stream_rec, 0, 0, EDU_EXIT,
+            (long)&((lgsv_ckpt_msg_t*)0)->ckpt_rec.stream_cfg, 0, NULL},
 
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
