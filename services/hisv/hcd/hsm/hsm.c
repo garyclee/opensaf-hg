@@ -1594,7 +1594,7 @@ CHECK:
             /* if DataLength look unsually long, try re-compute it */
             if (inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->DataLength > HISV_MAX_INV_STR_LEN)
                inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->DataLength = 
-                  m_NCS_STRLEN(inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->Data);
+                  strlen(inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->Data);
             if (data_type != SAHPI_TL_TYPE_LANGUAGE)
             {
                int ret_len;
@@ -1629,7 +1629,7 @@ CHECK:
             /* if DataLength look unsually long, try re-compute it */
             if (inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->DataLength > HISV_MAX_INV_STR_LEN)
                inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->DataLength = 
-                  m_NCS_STRLEN(inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->Data);
+                  strlen(inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->Data);
 
             data_type = inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->DataType;
             if (data_type != SAHPI_TL_TYPE_LANGUAGE)
@@ -1865,7 +1865,7 @@ CHECK:
    {
       /* copy product_name into event structure */
       if (product_name.Field.DataLength  > HISV_MAX_INV_STR_LEN)
-         product_name.Field.DataLength = m_NCS_STRLEN(product_name.Field.Data);
+         product_name.Field.DataLength = strlen(product_name.Field.Data);
 
       inv_var->product_name.DataLength = product_name.Field.DataLength;
       memcpy(inv_var->product_name.Data, product_name.Field.Data, inv_var->product_name.DataLength);
@@ -1888,7 +1888,7 @@ CHECK:
    {
       /* copy product_version into event structure */
       if (product_version.Field.DataLength  > HISV_MAX_INV_STR_LEN)
-         product_version.Field.DataLength = m_NCS_STRLEN(product_version.Field.Data);
+         product_version.Field.DataLength = strlen(product_version.Field.Data);
 
       inv_var->product_version.DataLength = product_version.Field.DataLength;
       memcpy(inv_var->product_version.Data, product_version.Field.Data, inv_var->product_version.DataLength);

@@ -690,7 +690,7 @@ static uns32  dtsv_encode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
    DTS_FILE_LIST   *file_list;
 
    m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_GLOBAL_POLICY); 
-   len = m_NCS_STRLEN(cb->log_path);
+   len = strlen(cb->log_path);
    /* Start encoding the log directory path */
    enc_data = ncs_enc_reserve_space(&enc->io_uba, (len+4)*(sizeof(char)));
    if(enc_data == NULL)

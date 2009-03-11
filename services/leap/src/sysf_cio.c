@@ -66,7 +66,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
 
     case NCS_CONIO_CMD_GETSTR:            /* get a string from console    */
         fgets((char *)request->getstr.i_string, request->getstr.i_strlen, stdin);
-        request->getstr.o_bytecnt = (int32)m_NCS_STRLEN((char*)request->getstr.i_string);
+        request->getstr.o_bytecnt = (int32)strlen((char*)request->getstr.i_string);
         retval = NCSCC_RC_SUCCESS;
         break;
 

@@ -667,7 +667,7 @@ static uns32 rda_write_msg(int sockfd, char *msg)
    ** Read from socket into input buffer
    */
 
-   msg_size = send(sockfd, msg, m_NCS_OS_STRLEN(msg) + 1, 0);
+   msg_size = send(sockfd, msg, strlen(msg) + 1, 0);
    if (msg_size < 0)
    {
         return PCSRDA_RC_IPC_SEND_FAILED;

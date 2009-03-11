@@ -120,7 +120,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
       /* Initialize SAF stuff */
    /* Fill in the Health check key */
    strcpy(inst->health_chk_key.key, DTS_AMF_HEALTH_CHECK_KEY);
-   inst->health_chk_key.keyLen = m_NCS_STRLEN(inst->health_chk_key.key);
+   inst->health_chk_key.keyLen = strlen(inst->health_chk_key.key);
 
    inst->invocationType = DTS_HB_INVOCATION_TYPE;
    /* Recommended recovery is to failover */

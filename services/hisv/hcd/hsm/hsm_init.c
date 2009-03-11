@@ -321,7 +321,7 @@ uns32 hsm_eda_chan_initialize(HSM_CB *hsm_cb)
    /* m_LOG_HISV_DEBUG("Opening event channel for publishing events\n"); */
    open_flags = SA_EVT_CHANNEL_CREATE | SA_EVT_CHANNEL_PUBLISHER;
 
-   hsm_cb->event_chan_name.length = m_NCS_STRLEN(EVT_CHANNEL_NAME);
+   hsm_cb->event_chan_name.length = strlen(EVT_CHANNEL_NAME);
    strcpy(hsm_cb->event_chan_name.value, EVT_CHANNEL_NAME);
 
    rc = saEvtChannelOpen(hsm_cb->eda_handle, &hsm_cb->event_chan_name, open_flags,

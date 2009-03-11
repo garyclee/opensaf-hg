@@ -355,7 +355,7 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
    {
       strcpy(Healthy.key,health_key);
    }
-   Healthy.keyLen=m_NCS_STRLEN(Healthy.key);
+   Healthy.keyLen=strlen(Healthy.key);
 
    amf_error = saAmfHealthcheckStart(hcd_cb->amf_hdl,&hcd_cb->comp_name,&Healthy,
       SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);

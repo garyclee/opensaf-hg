@@ -2052,7 +2052,7 @@ uns32 oac_dup_warmboot_req(MAB_PSS_WARMBOOT_REQ *in, MAB_PSS_WARMBOOT_REQ *out)
       memset(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
       req->is_system_client = in_req->is_system_client;
       if((req->pcn_list.pcn = 
-         m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(in_req->pcn_list.pcn)+1)) == NULL)
+         m_MMGR_ALLOC_MAB_PCN_STRING(strlen(in_req->pcn_list.pcn)+1)) == NULL)
       {
          m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
             "oac_dup_warmboot_req()");
@@ -2146,7 +2146,7 @@ uns32 oac_gen_tbl_bind(OAA_PCN_LIST *pcn_list, MAB_PSS_TBL_BIND_EVT **o_bind)
          memset(list, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
          
          if((list->pcn_list.pcn = 
-            m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(in_req->pcn)+1)) == NULL)
+            m_MMGR_ALLOC_MAB_PCN_STRING(strlen(in_req->pcn)+1)) == NULL)
          {
             m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
                "oac_gen_tbl_bind()");

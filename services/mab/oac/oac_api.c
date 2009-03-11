@@ -787,7 +787,7 @@ NCS_BOOL oac_validate_pcn(OAC_TBL *inst, char *pcn)
    uns32 str_len = 0;
 
    if((pcn == NULL) || (pcn[0] == '\0') || 
-      ((str_len = m_NCS_STRLEN(pcn)) == 0))
+      ((str_len = strlen(pcn)) == 0))
    {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_OAC_INVLD_PCN_IN_WARMBOOT_REQ);
       return FALSE;
@@ -795,7 +795,7 @@ NCS_BOOL oac_validate_pcn(OAC_TBL *inst, char *pcn)
       
    for(; pcn_list != NULL; pcn_list = pcn_list->next)
    {
-      if((str_len == m_NCS_STRLEN(pcn_list->pcn)) &&
+      if((str_len == strlen(pcn_list->pcn)) &&
          (strcmp(pcn_list->pcn, pcn) == 0))
          return TRUE;
    }
@@ -820,7 +820,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
    OAA_PCN_LIST *tmp = inst->pcn_list, *prv_tmp = NULL;
    uns32 lcl_len = 0;
 
-   if((pcn == NULL) || ((lcl_len = m_NCS_STRLEN(pcn)) == 0))
+   if((pcn == NULL) || ((lcl_len = strlen(pcn)) == 0))
    {
       m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_OAA_PCN_NULL_IN_OAC_FINDADD_PCN_IN_LIST_FUNC);
       return NULL;
@@ -828,7 +828,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
 
    while(tmp != NULL)
    {
-       if((lcl_len == m_NCS_STRLEN(tmp->pcn)) &&
+       if((lcl_len == strlen(tmp->pcn)) &&
            (memcmp(pcn, tmp->pcn, lcl_len) == 0) &&
            (tbl_id == tmp->tbl_id))
        {
@@ -849,14 +849,14 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
        return NULL;
    }
    memset(tmp, '\0', sizeof(OAA_PCN_LIST));
-   if((tmp->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(pcn)+1)) == NULL)
+   if((tmp->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(strlen(pcn)+1)) == NULL)
    {
        m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
            "oac_findadd_pcn_in_list()");
        m_MMGR_FREE_MAB_OAA_PCN_LIST(tmp);
        return NULL;
    }
-   memset(tmp->pcn, '\0', (m_NCS_STRLEN(pcn)+1));
+   memset(tmp->pcn, '\0', (strlen(pcn)+1));
    strcpy(tmp->pcn, pcn);
    tmp->tbl_id = tbl_id;
    if(prv_tmp != NULL)
@@ -897,9 +897,9 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
   list = inst->wbreq_list;
   while(list != NULL)
   {
-    uns32 lcl_len = m_NCS_STRLEN(wbr->i_pcn);
+    uns32 lcl_len = strlen(wbr->i_pcn);
 
-    if((lcl_len == m_NCS_STRLEN(list->pcn)) &&
+    if((lcl_len == strlen(list->pcn)) &&
        (memcmp(wbr->i_pcn, list->pcn, lcl_len) == 0))
     {
        /* Found the PCN here. Now, look for the specific table. */
@@ -959,7 +959,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
   }
   if(lcl_pcn_fnd == FALSE)
   {
-    uns32 lcl_strlen = m_NCS_STRLEN(wbr->i_pcn);
+    uns32 lcl_strlen = strlen(wbr->i_pcn);
 
     /* Insert the PCN into the list. */
     if((tmp_list = m_MMGR_ALLOC_MAB_OAA_WBREQ_PEND_LIST) == NULL)
@@ -1196,7 +1196,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
     memset(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
     req->is_system_client = list->is_system_client;
     if((req->pcn_list.pcn = 
-         m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(list->pcn)+1)) == NULL)
+         m_MMGR_ALLOC_MAB_PCN_STRING(strlen(list->pcn)+1)) == NULL)
     {
        m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
             "oac_send_pending_warmboot_reqs_to_pssv()");
@@ -1204,7 +1204,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
        oac_free_wbreq(req_head);
        return NCSCC_RC_FAILURE;
     }
-    memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(list->pcn))+1);
+    memset(req->pcn_list.pcn, '\0', (strlen(list->pcn))+1);
     strcpy(req->pcn_list.pcn, list->pcn);
     req->wbreq_hdl = list->wbreq_hdl;
 
@@ -1408,7 +1408,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
          return NCSCC_RC_FAILURE; 
       }
       req->pcn_list.pcn = 
-        m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(in_wbreq->i_pcn) + 1);
+        m_MMGR_ALLOC_MAB_PCN_STRING(strlen(in_wbreq->i_pcn) + 1);
       if(req->pcn_list.pcn == NULL)
       {
           m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
@@ -1416,7 +1416,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
           oac_free_pss_tbl_list(req->pcn_list.tbl_list);
           return NCSCC_RC_FAILURE;
       }
-      memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(in_wbreq->i_pcn)+1));
+      memset(req->pcn_list.pcn, '\0', (strlen(in_wbreq->i_pcn)+1));
       strcpy(req->pcn_list.pcn, in_wbreq->i_pcn);
       req->is_system_client = in_wbreq->is_system_client; 
     }
@@ -1555,13 +1555,13 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
          memset(&bind_evt, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
  
          if((bind_evt.pcn_list.pcn =
-            m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(p_pcn->pcn)+1)) == NULL)
+            m_MMGR_ALLOC_MAB_PCN_STRING(strlen(p_pcn->pcn)+1)) == NULL)
          {
             m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
                "oac_ss_tbl_reg()");
             return NCSCC_RC_FAILURE;
          }
-         memset(bind_evt.pcn_list.pcn, '\0', (m_NCS_STRLEN(p_pcn->pcn)+1));
+         memset(bind_evt.pcn_list.pcn, '\0', (strlen(p_pcn->pcn)+1));
          strcpy(bind_evt.pcn_list.pcn, p_pcn->pcn);
 
          if((bind_evt.pcn_list.tbl_list = m_MMGR_ALLOC_MAB_PSS_TBL_LIST) == NULL)

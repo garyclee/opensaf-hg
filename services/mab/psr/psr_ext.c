@@ -308,7 +308,7 @@ PSS_SPCN_LIST *pss_findadd_entry_frm_spcnlist(PSS_CB *inst, char *p_pcn,
                                               NCS_BOOL add)
 {
     PSS_SPCN_LIST *list = inst->spcn_list, *prv_list = NULL;
-    uns32 str_len = m_NCS_STRLEN(p_pcn);
+    uns32 str_len = strlen(p_pcn);
 
     for(; list != NULL; list = list->next)
     {
@@ -5162,7 +5162,7 @@ uns32 pss_add_entry_to_spcn_wbreq_pend_list(PSS_PWE_CB *pwe_cb, char *pcn)
    }
    memset(list, '\0', sizeof(PSS_SPCN_WBREQ_PEND_LIST));
 
-   if((list->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(pcn)+1)) == NULL)
+   if((list->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(strlen(pcn)+1)) == NULL)
    {
       m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_PCN_STRING_ALLOC_FAIL,
          "pss_add_entry_to_spcn_wbreq_pend_list()");
@@ -5170,7 +5170,7 @@ uns32 pss_add_entry_to_spcn_wbreq_pend_list(PSS_PWE_CB *pwe_cb, char *pcn)
       m_MMGR_FREE_PSS_SPCN_WBREQ_PEND_LIST(list);
       return NCSCC_RC_FAILURE;
    }
-   memset(list->pcn, '\0', m_NCS_STRLEN(pcn)+1);
+   memset(list->pcn, '\0', strlen(pcn)+1);
    strcpy(list->pcn, pcn);
 
    if(prv_list == NULL)
@@ -5343,7 +5343,7 @@ uns32 pss_updt_in_wbreq_into_cb(PSS_PWE_CB *pwe_cb, MAB_PSS_WARMBOOT_REQ *req)
       o_req->next = NULL;   /* safety measure */
       if(in_req->pcn_list.pcn != NULL)
       {
-         len = m_NCS_STRLEN(in_req->pcn_list.pcn);
+         len = strlen(in_req->pcn_list.pcn);
          o_req->pcn_list.pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len + 1);
          if(o_req->pcn_list.pcn == NULL)
             return NCSCC_RC_FAILURE;
@@ -5433,7 +5433,7 @@ uns32 pss_dup_re_wbreq_info(MAB_PSS_WARMBOOT_REQ *src, MAB_PSS_WARMBOOT_REQ *dst
    *dst = *src;
    if(src->pcn_list.pcn != NULL)
    {
-      len = m_NCS_STRLEN(src->pcn_list.pcn);
+      len = strlen(src->pcn_list.pcn);
       dst->pcn_list.pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len + 1);
       if(dst->pcn_list.pcn == NULL)
          return NCSCC_RC_FAILURE;

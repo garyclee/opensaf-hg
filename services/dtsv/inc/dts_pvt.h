@@ -1310,7 +1310,7 @@ EXTERN_C uns32 dts_ascii_spec_reload(DTS_CB *cb);
    char *str1; \
    sprintf((str), "0x%08X\n", (uns32)(addr));\
    /* Now get to the end of the string */ \
-   str1 = (str) + m_NCS_STRLEN((str)); \
+   str1 = (str) + strlen((str)); \
    /* Fill in the memory dump now */ \
    m_NCSFL_MAKE_STR_FROM_PDU ((str1), (len), (mem)); \
 }
@@ -1321,7 +1321,7 @@ EXTERN_C uns32 dts_ascii_spec_reload(DTS_CB *cb);
    char *str1; \
    sprintf((str), "0x%08llX\n", (uns64)(addr));\
    /* Now get to the end of the string */ \
-   str1 = (str) + m_NCS_STRLEN((str)); \
+   str1 = (str) + strlen((str)); \
    /* Fill in the memory dump now */ \
    m_NCSFL_MAKE_STR_FROM_PDU ((str1), (len), (mem)); \
 }

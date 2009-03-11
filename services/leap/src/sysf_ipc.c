@@ -334,7 +334,7 @@ ncs_ipc_attach_ext(SYSF_MBX *mbx, char* task_name)
      **/
     m_NCS_ATOMIC_INC(&ncs_ipc->ref_count);
 
-    if (NULL == (ncs_ipc->name = (char *)m_NCS_MEM_ALLOC(sizeof(char) * (m_NCS_STRLEN(task_name) + 1),
+    if (NULL == (ncs_ipc->name = (char *)m_NCS_MEM_ALLOC(sizeof(char) * (strlen(task_name) + 1),
                                     NCS_MEM_REGION_PERSISTENT,
                                     NCS_SERVICE_ID_OS_SVCS, 1)))
     {

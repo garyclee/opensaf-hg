@@ -415,7 +415,7 @@ avm_parse_inp(NCSCLI_ARG_VAL *arg,
        
        if(!token_end)
        {
-          token_end = arg->cmd.strval + m_NCS_STRLEN(arg->cmd.strval) - 1;
+          token_end = arg->cmd.strval + strlen(arg->cmd.strval) - 1;
        }else
        {
           token_end--;
@@ -489,7 +489,7 @@ avm_constr_ep(
        /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
        rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
        if (rc == NCSCC_RC_SUCCESS) {
-          if (m_NCS_STRLEN(ep) == 0) {
+          if (strlen(ep) == 0) {
              m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
              /* A zero length entity path means that HISv is working - but could not find the entity path */
              rc = NCSCC_RC_FAILURE;

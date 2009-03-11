@@ -362,7 +362,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          qtr = getField(&ptr, ':');
 
-         strLen = m_NCS_STRLEN(qtr);
+         strLen = strlen(qtr);
 
          if(strLen >= PDRBD_PROXIED_MAX_COMP_ID_LEN)
          {
@@ -391,7 +391,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          qtr = getField(&ptr, ':');
 
-         strLen = m_NCS_STRLEN(qtr);
+         strLen = strlen(qtr);
 
          if(strLen >= PDRBD_PROXIED_MAX_SU_ID_LEN)
          {
@@ -420,7 +420,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          qtr = getField(&ptr, ':');
 
-         strLen = m_NCS_STRLEN(qtr);
+         strLen = strlen(qtr);
 
          if(strLen >= PDRBD_PROXIED_MAX_RES_NAME_LEN)
          {
@@ -648,7 +648,7 @@ uns32 pseudoInitialise()
       sysf_sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
                      pseudoCB.nodeId);
       strcpy((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
-      pseudoCB.proxied_info[i].compName.length = m_NCS_STRLEN(buff);
+      pseudoCB.proxied_info[i].compName.length = strlen(buff);
    }
 
    /* Register the proxied (sub) component's callbacks with AMF */

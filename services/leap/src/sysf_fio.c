@@ -88,7 +88,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
                                  (int32)request->fileio_read.i_readsize,
                                  request->fileio_read.i_fileptr))
                 {
-                    request->fileio_read.o_bytecnt = m_NCS_STRLEN((char*)request->fileio_read.io_buffer);
+                    request->fileio_read.o_bytecnt = strlen((char*)request->fileio_read.io_buffer);
                     retval = NCSCC_RC_SUCCESS;
                 }
             }
@@ -103,7 +103,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
             {
                 if(EOF != fputs((char*)request->fileio_write.i_buffer, request->fileio_write.i_fileptr))
                 {
-                    request->fileio_write.o_bytecnt = m_NCS_STRLEN((char*)request->fileio_write.i_buffer);
+                    request->fileio_write.o_bytecnt = strlen((char*)request->fileio_write.i_buffer);
                     retval = NCSCC_RC_SUCCESS;
                 }
             }

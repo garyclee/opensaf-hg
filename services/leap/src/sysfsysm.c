@@ -1864,7 +1864,7 @@ uns32 sm_cpu_stats(NCSSYSM_CPU_STATS* info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -1953,7 +1953,7 @@ uns32 sm_mem_stats(NCSSYSM_MEM_STATS* info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -2077,7 +2077,7 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -2270,7 +2270,7 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -2394,7 +2394,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
     {  
       if(info->i_opp.fname != NULL)
       {
-        if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+        if(strlen(info->i_opp.fname) != 0) 
         {
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
@@ -2512,7 +2512,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
          {  
          if(info->i_opp.fname != NULL)
             {
-            if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+            if(strlen(info->i_opp.fname) != 0) 
                {
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
@@ -2648,7 +2648,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
          {  
          if(info->i_opp.fname != NULL)
             {
-            if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+            if(strlen(info->i_opp.fname) != 0) 
                {
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
@@ -2826,7 +2826,7 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
          {  
          if(info->i_opp.fname != NULL)
             {
-            if(m_NCS_STRLEN(info->i_opp.fname) != 0) 
+            if(strlen(info->i_opp.fname) != 0) 
                {
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
@@ -3126,7 +3126,7 @@ uns32 sm_stktrace_report(NCSSYSM_MEM_STK_RPT* info)
                  "|                 MEM ALLOC  STACK TRACE                |\n"\
                  "|---------------------------+---------------------------|\n"\
                  "| Watched                   | Age Range                 |\n");
-    loutlen = m_NCS_STRLEN((const char *)outstr);
+    loutlen = strlen((const char *)outstr);
 
     sysf_sprintf((char *)outstr+loutlen,
                  "|   Line: %13d     |   Min: %13d      |\n"\
@@ -3134,7 +3134,7 @@ uns32 sm_stktrace_report(NCSSYSM_MEM_STK_RPT* info)
                  "+---------------------------+---------------------------+\n",
                  info->i_line, info->i_ticks_min,
                  info->i_file, info->i_ticks_max);
-    loutlen = m_NCS_STRLEN((const char *)outstr);
+    loutlen = strlen((const char *)outstr);
 
     for(index=0; index<NCSSYSM_STKTRACE_INFO_MAX; index++)
     {
@@ -3173,9 +3173,9 @@ uns32 sm_stktrace_report(NCSSYSM_MEM_STK_RPT* info)
                        {
                            info->o_records++;
                            sysf_sprintf((char *)outstr+loutlen, "| Allocation: %d (ste=0x%08X)\tTicks: %d\n", info->o_records, (uns32)ste, ticks_diff);
-                           loutlen = m_NCS_STRLEN((const char *)outstr);
+                           loutlen = strlen((const char *)outstr);
                            m_NCS_OS_STACKTRACE_EXPAND(ste, outstr+loutlen, &loutlen);
-                           loutlen = m_NCS_STRLEN((const char *)outstr);
+                           loutlen = strlen((const char *)outstr);
                            m_NCS_ASSERT(maxlen > loutlen);
                            ste->flags = 1;
 

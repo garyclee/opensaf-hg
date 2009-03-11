@@ -88,7 +88,7 @@ to tokinse the commands specified in Netplane Command Language(NCL).
                       \
   if(CLI_CMD_BUFFER == lexCli->par_cb.bfrType)\
   {\
-      size = m_NCS_OS_STRLEN(lexCli->par_cb.ipbuffer);\
+      size = strlen(lexCli->par_cb.ipbuffer);\
       if(size < max_size)\
       {\
           memset(buf, 0, max_size);\

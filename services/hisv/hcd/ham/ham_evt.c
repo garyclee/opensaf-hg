@@ -2068,7 +2068,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
       else 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
-      entity_path_len = m_NCS_OS_STRLEN(hpi_entity_path_buffer);
+      entity_path_len = strlen(hpi_entity_path_buffer);
    } else if (flag == HPL_EPATH_FLAG_ARRAY) {
       if (epath.Entry[1].EntityType != SAHPI_ENT_UNSPECIFIED) { 
          m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on\n");

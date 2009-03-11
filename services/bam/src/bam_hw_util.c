@@ -166,7 +166,7 @@ ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
    strcat(ent->ent_path, "}");
    
    /* now pile the parent path */
-   if( (ent_path != NULL) && (m_NCS_STRLEN(ent_path)) )
+   if( (ent_path != NULL) && (strlen(ent_path)) )
    {
       strcat(ent->ent_path, ",");
       strcat(ent->ent_path, ent_path);

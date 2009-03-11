@@ -270,7 +270,7 @@ struct slot_info
 
 #define m_AVM_STR_TO_VER(st, ver) \
 { \
-   ver.length = m_NCS_STRLEN(st); \
+   ver.length = strlen(st); \
    memcpy(ver.name, st, ver.length); \
 }
 

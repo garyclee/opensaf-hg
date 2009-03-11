@@ -904,7 +904,7 @@ YY_MALLOC_DECL
                       \
   if(CLI_CMD_BUFFER == lexCli->par_cb.bfrType)\
   {\
-      size = m_NCS_OS_STRLEN(lexCli->par_cb.ipbuffer);\
+      size = strlen(lexCli->par_cb.ipbuffer);\
       if(size < max_size)\
       {\
           memset(buf, 0, max_size);\
@@ -1057,7 +1057,7 @@ YY_RULE_SETUP
                     /* token - Parameter (wildcard) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_WILDCARD);
                 }
@@ -1068,7 +1068,7 @@ YY_RULE_SETUP
                     /* token - Parameter (MacAddress) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_MACADDR);
                 }
@@ -1079,7 +1079,7 @@ YY_RULE_SETUP
                     /* token - Parameter (Ipv4Address/Ipv4Mask) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_COMMUNITY);
                 }
@@ -1091,7 +1091,7 @@ YY_RULE_SETUP
                     /* token - Parameter (Ipv4Address/Ipv4Mask) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_CIDRv4);
                 }
@@ -1103,7 +1103,7 @@ YY_RULE_SETUP
                     /* token - Parameter(IP-Addressv6) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                            
+                    lexCli->par_cb.chCnt += strlen(yytext);                            
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_IPADDRv6);
                 }   
@@ -1116,7 +1116,7 @@ YY_RULE_SETUP
                     /* token - Parameter(IP-Addressv4) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_IPADDRv4);
                 }
@@ -1128,7 +1128,7 @@ YY_RULE_SETUP
                     /* token - Parameter(IP-Address Maskv4) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                 
+                    lexCli->par_cb.chCnt += strlen(yytext);                 
                     return (CLI_TOK_MASKv4);
                 }
     YY_BREAK
@@ -1139,7 +1139,7 @@ YY_RULE_SETUP
                     /* token - Parameter(IP-Address Maskv6) */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_CIDRv6);
                 }                      
     YY_BREAK
@@ -1150,7 +1150,7 @@ YY_RULE_SETUP
                     /* token - Parameter(Number) */                    
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_NUMBER);                        
                 }
@@ -1163,7 +1163,7 @@ YY_RULE_SETUP
                        lower case */
                     m_CHECK_CONTINOUS_EXP_ERR();
                        
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);   
+                    lexCli->par_cb.chCnt += strlen(yytext);   
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_KEYWORD);                   
                 }
@@ -1173,7 +1173,7 @@ YY_RULE_SETUP
 {
                     /* token - Password */
                     /* A alfha numeric characters */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_PASSWORD);              
                 }               
@@ -1186,7 +1186,7 @@ YY_RULE_SETUP
                        in upper case */
                     m_CHECK_CONTINOUS_EXP_ERR();
                        
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);   
+                    lexCli->par_cb.chCnt += strlen(yytext);   
                     if(CLI_COMMAND_MODE == lexCli->par_cb.mode)
                         return (CLI_TOK_PARAM);                 
                 }               
@@ -1195,7 +1195,7 @@ case 20:
 YY_RULE_SETUP
 {
                     /* token - Range */ 
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RANGE);
                 }
     YY_BREAK
@@ -1203,7 +1203,7 @@ case 21:
 YY_RULE_SETUP
 {
                     /* Default value associated with the token */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return(CLI_TOK_DEFAULT_VAL);
                 }
     YY_BREAK
@@ -1211,7 +1211,7 @@ case 22:
 YY_RULE_SETUP
 {               
                     /* Help string associated with the token */
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);                    
+                    lexCli->par_cb.chCnt += strlen(yytext);                    
                     return (CLI_TOK_HELP_STR);
                 }
     YY_BREAK
@@ -1219,7 +1219,7 @@ case 23:
 YY_RULE_SETUP
 {
                     /* Node change string associated with the token */              
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_MODE_CHANGE);
                 }
     YY_BREAK
@@ -1235,7 +1235,7 @@ YY_RULE_SETUP
                         par_log_error(CLI_TOK_CONTINOUS_EXP);       
                         lexCli->par_cb.errFlag = TRUE;
                     }
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     lexCli->par_cb.cont_expFlag = TRUE;
                     return (CLI_TOK_CONTINOUS_EXP);             
                 }
@@ -1244,7 +1244,7 @@ case 25:
 YY_RULE_SETUP
 {
                     /* token - white space */                       
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     ; /* ignore white space */
                 }
     YY_BREAK
@@ -1324,7 +1324,7 @@ YY_RULE_SETUP
                     /* token - Group start brace */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LCURLYBRACE);
                 }                           
     YY_BREAK
@@ -1332,7 +1332,7 @@ case 29:
 YY_RULE_SETUP
 {
                     /* token - Group end brace */                    
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RCURLYBRACE);
                 }   
     YY_BREAK
@@ -1342,7 +1342,7 @@ YY_RULE_SETUP
                     /* token - Optional start brace */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LBRACE);
                 }                           
     YY_BREAK
@@ -1350,7 +1350,7 @@ case 31:
 YY_RULE_SETUP
 {
                     /* token - Optional end brace */                                                                
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_RBRACE);                    
                 }                                           
     YY_BREAK
@@ -1360,7 +1360,7 @@ YY_RULE_SETUP
                     /* token - or */ 
                     if(lexCli->par_cb.grpCntr == 0 && lexCli->par_cb.cont_expFlag) 
                         lexCli->par_cb.cont_expFlag = FALSE; 
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_OR);
                 }
     YY_BREAK
@@ -1370,7 +1370,7 @@ YY_RULE_SETUP
                     /* token - Less than */
                     m_CHECK_CONTINOUS_EXP_ERR();
                     
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_LESS_THAN);
                 }
     YY_BREAK
@@ -1378,7 +1378,7 @@ case 34:
 YY_RULE_SETUP
 {
                     /* token - Greater than */                    
-                    lexCli->par_cb.chCnt += m_NCS_OS_STRLEN(yytext);
+                    lexCli->par_cb.chCnt += strlen(yytext);
                     return (CLI_TOK_GRTR_THAN);
                 }
     YY_BREAK

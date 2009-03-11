@@ -131,7 +131,7 @@ ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS            *attribs,
     
     /* Fill in the Health check key */
     strcpy(attribs->healthCheckKey.key,health_key);
-    attribs->healthCheckKey.keyLen=m_NCS_STRLEN(attribs->healthCheckKey.key);
+    attribs->healthCheckKey.keyLen=strlen(attribs->healthCheckKey.key);
     attribs->invocationType = hc_inv_type; 
 
     /* some applications may do AMF interface for the purpose of health check */ 

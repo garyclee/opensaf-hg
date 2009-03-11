@@ -631,7 +631,7 @@ typedef struct avnd_comp_tag {
    ac++; \
    while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
            (ac < (AVND_COMP_CLC_PARAM_MAX+1)) ) { \
-      if ( m_NCS_STRLEN(tok) > AVND_COMP_CLC_PARAM_SIZE_MAX ) break; \
+      if ( strlen(tok) > AVND_COMP_CLC_PARAM_SIZE_MAX ) break; \
       strcpy(tav[ac], tok); \
       av[ac] = tav[ac]; \
       ac++;\

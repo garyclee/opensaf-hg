@@ -266,7 +266,7 @@ typedef struct pdrbd_evt
    ac++; \
    while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
            (ac < (PDRBD_NUM_ARGS+1)) ) { \
-      if ( m_NCS_STRLEN(tok) > PDRBD_MAX_ARG_SIZE ) break; \
+      if ( strlen(tok) > PDRBD_MAX_ARG_SIZE ) break; \
       strcpy(tav[ac], tok); \
       av[ac] = tav[ac]; \
       ac++;\

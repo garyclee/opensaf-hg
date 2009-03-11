@@ -125,7 +125,7 @@ snmpsubagt_cb_init(void)
     
     /* Fill in the Health check key */ 
     strcpy(cb->healthCheckKey.key,m_SNMPSUBAGT_AMF_HELATH_CHECK_KEY);
-    cb->healthCheckKey.keyLen=m_NCS_STRLEN(cb->healthCheckKey.key);
+    cb->healthCheckKey.keyLen=strlen(cb->healthCheckKey.key);
 
     /* Health check invocation type; for subagent, health check will be
      * driven by the AMF

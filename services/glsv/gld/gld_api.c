@@ -164,9 +164,9 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       m_LOG_GLD_SVC_PRVDR(GLD_MIBLIB_REGISTER_SUCCESS,NCSFL_SEV_INFO);
 
    strcpy(gld_cb->saf_spec_ver.value,"B.01.01");
-   gld_cb->saf_spec_ver.length   = m_NCS_STRLEN("B.01.01");
+   gld_cb->saf_spec_ver.length   = strlen("B.01.01");
    strcpy(gld_cb->saf_agent_vend.value,"OpenSAF");
-   gld_cb->saf_agent_vend.length = m_NCS_STRLEN("OpenSAF");
+   gld_cb->saf_agent_vend.length = strlen("OpenSAF");
    gld_cb->saf_agent_vend_prod   = 2;
    gld_cb->saf_serv_state_enabled= FALSE;
    gld_cb->saf_serv_state        = 1;

@@ -2417,7 +2417,7 @@ if(TRUE == mib_upd_needed)
    param.name_net = comp->name_net;
    param.act = AVSV_OBJ_OPR_MOD;
    strcpy(param.value,comp->pxy_comp->name_net.value);
-   param.value_len = m_NCS_STRLEN(comp->pxy_comp->name_net.value);
+   param.value_len = strlen(comp->pxy_comp->name_net.value);
 
    rc = avnd_di_mib_upd_send(cb, &param);
    if ( NCSCC_RC_SUCCESS != rc ) goto done;

@@ -145,7 +145,7 @@ sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
 {
     int32 i;
     int32 j;
-    uns32 rej_len = m_NCS_STRLEN((char*)reject);
+    uns32 rej_len = strlen((char*)reject);
 
     for(i=(int32)start_pos; i>=0; i--)
     {

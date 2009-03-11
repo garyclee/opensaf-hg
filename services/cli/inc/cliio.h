@@ -73,7 +73,7 @@
 {\
     uns32 len;\
     m_NCS_CONS_PUTCHAR(CLI_CONS_EOL); \
-    for(len=0; len<m_NCS_OS_STRLEN(prompt_str); len++)\
+    for(len=0; len<strlen(prompt_str); len++)\
     {\
         m_NCS_CONS_PUTCHAR(prompt_str[len]); \
     }\

@@ -841,7 +841,7 @@ uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
       ncs_enc_claim_space(&rsp_uba, sizeof(uns8));
 
       /* Now encode the serial device associated with DTS_CB */
-      str_len = m_NCS_STRLEN((char *)cb->cons_dev);
+      str_len = strlen((char *)cb->cons_dev);
       bit_map = cb->g_policy.g_policy.severity_bit_map;
 
       buff_ptr = ncs_enc_reserve_space(&rsp_uba, DTSV_RSP_CONS_SIZE);
@@ -873,7 +873,7 @@ uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
       for(count = 0; count < dev->num_of_cons_conf; count++)
       {
          /* Encode the serial device associated with global policy */
-         str_len = m_NCS_STRLEN(cons_ptr->cons_dev);
+         str_len = strlen(cons_ptr->cons_dev);
          bit_map = cons_ptr->cons_sev_filter;
          buff_ptr = ncs_enc_reserve_space(&rsp_uba, DTSV_RSP_CONS_SIZE);
          if(buff_ptr == NULL)

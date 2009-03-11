@@ -335,7 +335,7 @@ ncs_encode_key(uns8 **stream, NCS_KEY* key)
       break;
       
     case NCS_FMT_STR :
-      len = (uns8)m_NCS_STRLEN((char*)key->val.str); 
+      len = (uns8)strlen((char*)key->val.str); 
       ncs_encode_8bit(stream, len);
       ncs_encode_octets(stream, key->val.str, len);
       return (3 + len + 1);

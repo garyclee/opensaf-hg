@@ -231,7 +231,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
          goto ifnd_mab_fail;
       }
       /* register IfSv component with AvSv */
-      sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
+      sname.length = strlen(ifsv_cb->comp_name);
      /* strcpy(sname.value,comp_name); */
 
       amf_error = saAmfComponentRegister(ifsv_cb->amf_hdl, &sname, 
@@ -289,7 +289,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       /** start the AMF health check **/
       memset(&sname,0,sizeof(sname));
       strcpy(sname.value,ifsv_cb->comp_name);
-      sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
+      sname.length = strlen(ifsv_cb->comp_name);
 
       memset(&healthy,0,sizeof(healthy));
 
@@ -390,7 +390,7 @@ ifnd_lib_destroy (uns32 vrid, uns32 comp_type)
       return (NCSCC_RC_FAILURE);
    } else
    {  
-      sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
+      sname.length = strlen(ifsv_cb->comp_name);
       strcpy(sname.value,ifsv_cb->comp_name);
 
       saAmfComponentUnregister(ifsv_cb->amf_hdl, &sname, (SaNameT*)IFSV_NULL);

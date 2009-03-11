@@ -404,7 +404,7 @@ ifd_lib_destroy (uns32 vrid, uns32 comp_type)
       return (NCSCC_RC_FAILURE);
    } else
    {      
-      sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
+      sname.length = strlen(ifsv_cb->comp_name);
       strcpy(sname.value,ifsv_cb->comp_name);
       saAmfComponentUnregister(ifsv_cb->amf_hdl, &sname, (SaNameT*)IFSV_NULL);
       saAmfFinalize(ifsv_cb->amf_hdl);      

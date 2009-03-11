@@ -551,7 +551,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
               {
                   strcpy(str, ptr);
                   sysf_fprintf(fh,(const char *)str);
-                  ptr += (m_NCS_STRLEN(str) + 1);
+                  ptr += (strlen(str) + 1);
               }
               
               sysf_fclose(fh);
@@ -565,7 +565,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
           {
               strcpy(str, ptr);
               printf("%s",str);
-              ptr += (m_NCS_STRLEN(str) + 1);
+              ptr += (strlen(str) + 1);
           }
       }
       else
@@ -767,7 +767,7 @@ uns32 dts_cir_buff_set_default(CIR_BUFFER *cir_buff)
 \**************************************************************************/
 uns32 dts_dump_to_cir_buffer (CIR_BUFFER *cir_buff, char *str)
 {
-    uns32 str_len = m_NCS_STRLEN(str) + 1;
+    uns32 str_len = strlen(str) + 1;
 
     if (TRUE != cir_buff->buff_allocated)
         return NCSCC_RC_FAILURE;
@@ -1010,7 +1010,7 @@ uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff,
               return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
               "URGENT: dts_dump_to_cir_buffer: Failed to copy to new buffer");
 
-          ptr += (m_NCS_STRLEN(ptr) + 1);
+          ptr += (strlen(ptr) + 1);
       }
       
       

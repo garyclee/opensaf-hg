@@ -185,7 +185,7 @@ void nid_sleep(uns32 time_in_msec)
 void notify_bis(char *message)
 {
   uns32 size;
-   size = m_NCS_STRLEN(message);
+   size = strlen(message);
    if(m_NCS_POSIX_WRITE(nis_fifofd,message,size) != size)
      logme(NID_LOG2FILE,"Error writing to nis FIFO! Error:%s\n",strerror(errno));
    m_NCS_POSIX_CLOSE(nis_fifofd);
@@ -221,7 +221,7 @@ logme(uns32 level,char *s, ...)
    switch(level){
 
    case NID_LOG2CONS:
-      m_NCS_POSIX_WRITE(cons_fd,buf,m_NCS_STRLEN(buf));
+      m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
       break;
    case NID_LOG2FILE:
       m_NCS_POSIX_SYSLOG(LOG_LOCAL3|LOG_INFO,"%s",buf);
@@ -229,7 +229,7 @@ logme(uns32 level,char *s, ...)
 
    case NID_LOG2FILE_CONS:
       m_NCS_POSIX_SYSLOG(LOG_LOCAL3|LOG_INFO,"%s",buf);
-      m_NCS_POSIX_WRITE(cons_fd,buf,m_NCS_STRLEN(buf));
+      m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
       break;
    }
 
@@ -372,7 +372,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         break;
       }
       q = gettoken(&p,':');
-      if(m_NCS_STRLEN(q) > NID_MAXSFILE)
+      if(strlen(q) > NID_MAXSFILE)
       {
         sysf_sprintf(sbuf,": App file name length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAXSFILE);
@@ -405,7 +405,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
 	sysf_sprintf(sbuf,": Null/Empty string  not a valid service Name");
         break;
       }
-      if(m_NCS_STRLEN(q) > NID_MAX_SVC_NAME_LEN)
+      if(strlen(q) > NID_MAX_SVC_NAME_LEN)
       {
         sysf_sprintf(sbuf,": App name length exceeded max:%d in file",
                      NID_MAX_SVC_NAME_LEN);
@@ -428,7 +428,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         break;
       }
       q = gettoken(&p,':');
-      if(m_NCS_STRLEN(q) > NID_MAXAPPTYPE_LEN)
+      if(strlen(q) > NID_MAXAPPTYPE_LEN)
       {
         sysf_sprintf(sbuf,": File type length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAXAPPTYPE_LEN);
@@ -475,7 +475,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         }
       }
       q = gettoken(&p,':');
-      if(m_NCS_STRLEN(q) > NID_MAXSFILE)
+      if(strlen(q) > NID_MAXSFILE)
       {
         sysf_sprintf(sbuf,": Cleanup app file name length exceeded max:%d in file" 
                      NID_PLAT_CONF,NID_MAXSFILE);
@@ -503,7 +503,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         break;
       }
       q = gettoken(&p,':');
-      if(m_NCS_STRLEN(q) > NID_MAX_TIMEOUT_LEN)
+      if(strlen(q) > NID_MAX_TIMEOUT_LEN)
       {
         sysf_sprintf(sbuf,": Timeout field length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAX_TIMEOUT_LEN);
@@ -524,7 +524,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       }
       else
       {
-         if(m_NCS_STRLEN(q) > NID_MAX_PRIO_LEN)
+         if(strlen(q) > NID_MAX_PRIO_LEN)
          {
            sysf_sprintf(sbuf,": Priority field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_PRIO_LEN);
@@ -546,7 +546,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       }
       else
       {
-         if(m_NCS_STRLEN(q) > NID_MAX_RESP_LEN)
+         if(strlen(q) > NID_MAX_RESP_LEN)
          {
            sysf_sprintf(sbuf,": Respawn field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_RESP_LEN);
@@ -573,7 +573,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       }
       else
       {
-         if(m_NCS_STRLEN(q) > NID_MAX_REST_LEN)
+         if(strlen(q) > NID_MAX_REST_LEN)
          {
            sysf_sprintf(sbuf,": Restart field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_REST_LEN);
@@ -600,7 +600,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       }
       else
       {
-         if(m_NCS_STRLEN(q) > NID_MAXPARMS)
+         if(strlen(q) > NID_MAXPARMS)
          {
            sysf_sprintf(sbuf,": App param length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAXPARMS);
@@ -625,7 +625,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       }
       else
       {
-         if(m_NCS_STRLEN(q) > NID_MAXPARMS)
+         if(strlen(q) > NID_MAXPARMS)
          {
          sysf_sprintf(sbuf,": App param length exceeded max:%d in file" 
                       NID_PLAT_CONF,NID_MAXPARMS);
@@ -1907,7 +1907,7 @@ spawn_services(char * strbuf)
            m_NCS_POSIX_UNLINK(filename);
            lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
            sysf_sprintf(str,"%d\n",service->pid);
-           m_NCS_POSIX_WRITE(lfd,str,m_NCS_STRLEN(str));
+           m_NCS_POSIX_WRITE(lfd,str,strlen(str));
            m_NCS_POSIX_CLOSE(lfd);
          }
        }
@@ -2025,7 +2025,7 @@ daemonize_me(void)
    chdir(NID_RUNNING_DIR);
    lfd = m_NCS_POSIX_OPEN(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
    sysf_sprintf(str,"%d\n",getpid());
-   m_NCS_POSIX_WRITE(lfd,str,m_NCS_STRLEN(str));
+   m_NCS_POSIX_WRITE(lfd,str,strlen(str));
    m_NCS_POSIX_CLOSE(lfd);
 
    SETSIG(sa, SIGALRM,  SIG_IGN, 0);

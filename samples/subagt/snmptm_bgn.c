@@ -568,7 +568,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
 
          pv.i_fmat_id = NCSMIB_FMAT_OCT;
          pv.i_param_id = ncsTestTableSixName_ID;
-         pv.i_length = m_NCS_STRLEN((char*)&name);
+         pv.i_length = strlen((char*)&name);
          pv.info.i_oct = (uns8*)((char*)&name);
          arg.i_op = NCSMIB_OP_REQ_SET;
          arg.i_xch_id = xch_id++;
@@ -599,7 +599,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
 
          pv.i_fmat_id = NCSMIB_FMAT_OCT;
          pv.i_param_id = ncsTestTableSixName_ID;
-         pv.i_length = m_NCS_STRLEN((char*)&tblsix->tblsix_name);
+         pv.i_length = strlen((char*)&tblsix->tblsix_name);
          pv.info.i_oct = (uns8*)((char*)&tblsix->tblsix_name);
          ncsparm_enc_param(&pa, &pv);
 
@@ -638,7 +638,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
 
          pv.i_fmat_id = NCSMIB_FMAT_OCT;
          pv.i_param_id = ncsTestTableSixName_ID;
-         pv.i_length = m_NCS_STRLEN((char*)&tblsix->tblsix_name);
+         pv.i_length = strlen((char*)&tblsix->tblsix_name);
          pv.info.i_oct = (uns8*)((char*)&tblsix->tblsix_name);
          ncsrow_enc_param(&ra, &pv);
          ncsrow_enc_done(&ra);

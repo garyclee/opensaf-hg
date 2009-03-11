@@ -277,9 +277,9 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    }
 
    strcpy(cb->safSpecVer.value,"B.02.02"); 
-   cb->safSpecVer.length = m_NCS_STRLEN("B.02.02");
+   cb->safSpecVer.length = strlen("B.02.02");
    strcpy(cb->safAgtVen.value,"OpenSAF");
-   cb->safAgtVen.length = m_NCS_STRLEN("OpenSAF");
+   cb->safAgtVen.length = strlen("OpenSAF");
    cb->safAgtVenPro = 2;
    cb->serv_enabled = 2;
    cb->serv_state = 1; 

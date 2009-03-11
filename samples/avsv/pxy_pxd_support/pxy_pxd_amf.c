@@ -689,14 +689,14 @@ void pxy_pxd_proxy_initialize(void)
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[0].compName.value, 
                       "safComp=CompT_EXT,safEsu=SuT_EXT1");
   pxy_pxd_cb.pxd_info[0].compName.length = 
-     m_NCS_STRLEN("safComp=CompT_EXT,safEsu=SuT_EXT1");
+     strlen("safComp=CompT_EXT,safEsu=SuT_EXT1");
   pxy_pxd_cb.pxd_info[0].healthcheck_key.keyLen = 6;
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[0].healthcheck_key.key, "ABCD20");
 
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[1].compName.value, 
                       "safComp=CompT_EXT,safEsu=SuT_EXT2");
   pxy_pxd_cb.pxd_info[1].compName.length = 
-     m_NCS_STRLEN("safComp=CompT_EXT,safEsu=SuT_EXT2");
+     strlen("safComp=CompT_EXT,safEsu=SuT_EXT2");
   pxy_pxd_cb.pxd_info[1].healthcheck_key.keyLen = 6;
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[1].healthcheck_key.key, "ABCD20");
 
@@ -704,14 +704,14 @@ void pxy_pxd_proxy_initialize(void)
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[2].compName.value,
                       "safComp=CompT_PXD,safSu=SuT_PL_PXD1,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[2].compName.length =
-     m_NCS_STRLEN("safComp=CompT_PXD,safSu=SuT_PL_PXD1,safNode=PL_2_3");
+     strlen("safComp=CompT_PXD,safSu=SuT_PL_PXD1,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[2].healthcheck_key.keyLen = 10;
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[2].healthcheck_key.key, "A9FD64E12E");
 
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[3].compName.value,
                       "safComp=CompT_PXD,safSu=SuT_PL_PXD2,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[3].compName.length =
-     m_NCS_STRLEN("safComp=CompT_PXD,safSu=SuT_PL_PXD2,safNode=PL_2_3");
+     strlen("safComp=CompT_PXD,safSu=SuT_PL_PXD2,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[3].healthcheck_key.keyLen = 10;
   strcpy((uns8 *)pxy_pxd_cb.pxd_info[3].healthcheck_key.key, "A9FD64E12E");
 

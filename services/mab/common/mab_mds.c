@@ -1253,7 +1253,7 @@ uns32 oac_fir_msg_decode(NCSMAB_IDX_FREE* ifree, NCS_UBAID* uba)
 uns32 mab_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
     uns8*    data;
-    uns16    len = m_NCS_OS_STRLEN(pcn);
+    uns16    len = strlen(pcn);
 
     if(pcn == NULL)
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);

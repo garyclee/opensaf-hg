@@ -351,7 +351,7 @@ void ncs_lock_stats(char * filename) {
 #endif
 
   if(filename != NULL) {
-    if(m_NCS_STRLEN(filename) > 0) {
+    if(strlen(filename) > 0) {
       fh = sysf_fopen(filename, "at");
       if(fh == NULL) {
         m_NCS_CONS_PRINTF("Cannot open %s\n", filename);

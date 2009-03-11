@@ -194,7 +194,7 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
    /** start the AMF health check **/   
    memset(&SaCompName,0,sizeof(SaCompName));
    strcpy(SaCompName.value,cb->comp_name);
-   SaCompName.length = m_NCS_STRLEN(cb->comp_name);
+   SaCompName.length = strlen(cb->comp_name);
 
    memset(&Healthy,0,sizeof(Healthy));
    phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
