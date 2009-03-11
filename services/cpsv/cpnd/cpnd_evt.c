@@ -4109,7 +4109,7 @@ cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, \
          goto agent_rsp;
      }
 
-     m_NCS_MEMCPY(&send_evt.info.cpa.info.iter_next_rsp.sect_desc,&sect_desc,\
+     memcpy(&send_evt.info.cpa.info.iter_next_rsp.sect_desc,&sect_desc,\
                            sizeof(SaCkptSectionDescriptorT));
       /* need to cpy sec_id */
      rc=SA_AIS_OK;

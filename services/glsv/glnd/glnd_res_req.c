@@ -71,7 +71,7 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
       m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
      return NULL;           
    }         
-   m_NCS_OS_MEMCPY(&res_req_info->resource_name,&rsc_info->resource_name,sizeof(SaNameT));
+   memcpy(&res_req_info->resource_name,&rsc_info->resource_name,sizeof(SaNameT));
    res_req_info->client_handle_id = rsc_info->client_handle_id;
    res_req_info->invocation = rsc_info->invocation;
    res_req_info->agent_mds_dest = rsc_info->agent_mds_dest;

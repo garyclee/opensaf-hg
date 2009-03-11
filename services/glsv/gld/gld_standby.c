@@ -396,7 +396,7 @@ static uns32 glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT* async_evt)
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
                         (uns8*) &node_id)) != NULL)
    {
-     m_NCS_MEMCPY(&node_details->dest_id,&async_evt->info.glnd_mds_info.mdest_id,sizeof(MDS_DEST));
+     memcpy(&node_details->dest_id,&async_evt->info.glnd_mds_info.mdest_id,sizeof(MDS_DEST));
 
      /* Cancel the restart timer if started */
      gld_stop_tmr(&node_details->restart_timer);
@@ -412,7 +412,7 @@ static uns32 glsv_gld_standby_glnd_operational(GLSV_GLD_A2S_CKPT_EVT* async_evt)
       {
         if(node_list->node_id == node_id)
         {
-          m_NCS_MEMCPY(&node_list->dest_id,&async_evt->info.glnd_mds_info.mdest_id,sizeof(MDS_DEST));
+          memcpy(&node_list->dest_id,&async_evt->info.glnd_mds_info.mdest_id,sizeof(MDS_DEST));
         }
         node_list = node_list->next;
       }
@@ -474,7 +474,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_RSC_DETAILS *rsc_det
           node_details->status = node_list->status; 
        if(node_details->status == GLND_RESTART_STATE)
        {
-         m_NCS_MEMCPY(&node_details->restart_timer.mdest_id,&node_details->dest_id,sizeof(MDS_DEST));
+         memcpy(&node_details->restart_timer.mdest_id,&node_details->dest_id,sizeof(MDS_DEST));
 
          /* Start GLSV_GLD_GLND_RESTART_TIMEOUT timer */
          gld_start_tmr(gld_cb,&node_details->restart_timer,

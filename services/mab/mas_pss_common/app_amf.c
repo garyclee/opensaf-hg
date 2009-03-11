@@ -179,7 +179,7 @@ ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS            *attribs,
     }
 
     /* update the AMF callbacks */ 
-    m_NCS_OS_MEMCPY(&attribs->amfCallbacks, 
+    memcpy(&attribs->amfCallbacks, 
                     amfCallbacks, 
                     sizeof(SaAmfCallbacksT)); 
 

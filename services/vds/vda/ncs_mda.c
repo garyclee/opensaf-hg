@@ -445,7 +445,7 @@ void mds_fixed_vdest_to_inst_name(uns32 i_vdest_id, SaNameT *o_name)
 {
     m_NCS_MEMSET(o_name, 0, sizeof(o_name));
     o_name->length = (unsigned short)(glmds_vdest_inst_name_pref.length + VDEST_ID_STR_LEN);
-    m_NCS_MEMCPY(o_name->value, glmds_vdest_inst_name_pref.value,
+    memcpy(o_name->value, glmds_vdest_inst_name_pref.value,
         o_name->length - VDEST_ID_STR_LEN);
 
     sprintf((char*)(o_name->value + glmds_vdest_inst_name_pref.length), VDEST_FMT_STR, i_vdest_id);

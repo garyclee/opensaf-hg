@@ -67,7 +67,7 @@ data_at_end_test(void)
     /* TEST THE CHECKSUM ALGORITHM */
     /* Even byte boundary */
     ub1->count = sizeof(testpattern);
-    m_NCS_MEMCPY((ub1->payload->Data),testpattern, sizeof(testpattern));
+    memcpy((ub1->payload->Data),testpattern, sizeof(testpattern));
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
     m_NCS_CONS_PRINTF ("\nCHECKSUM 1 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);
     /* place the cksum back in and do a recompute, 
@@ -80,7 +80,7 @@ data_at_end_test(void)
 
     /* Odd byte boundary */
     ub1->start++;
-    m_NCS_MEMCPY((ub1->payload->Data+1),testpattern, sizeof(testpattern));
+    memcpy((ub1->payload->Data+1),testpattern, sizeof(testpattern));
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
     m_NCS_CONS_PRINTF ("CHECKSUM 2 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);    
     /* place the cksum back in and do a recompute, 
@@ -109,14 +109,14 @@ data_at_end_test(void)
         m_NCS_CONS_PRINTF("  !!Failed to reserve space in ub1!!\n");
         goto FREE_LIST2;
     }
-    m_NCS_MEMCPY (cp, ub1_msg, sz_msg1);
+    memcpy (cp, ub1_msg, sz_msg1);
 
     if ((cp = m_MMGR_RESERVE_AT_START (&ub2, sz_msg2, char *)) == NULL)
     {
         m_NCS_CONS_PRINTF("  !!Failed to reserve space in ub2!!\n");
         goto FREE_LIST2;
     }
-    m_NCS_MEMCPY (cp, ub2_msg, sz_msg2);
+    memcpy (cp, ub2_msg, sz_msg2);
 
 
     /* combine both USRBUFs into one chain */

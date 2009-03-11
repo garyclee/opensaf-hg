@@ -196,7 +196,7 @@ ifnd_mds_dest_destroy_all (IFSV_CB *cb)
 
   while (rec != NULL)
   {      
-    m_NCS_MEMCPY(&mds_dest, &rec->info.mds_dest, sizeof(MDS_DEST));
+    memcpy(&mds_dest, &rec->info.mds_dest, sizeof(MDS_DEST));
 
     ifnd_mds_dest_del(rec->info.mds_dest, cb);            
 
@@ -235,7 +235,7 @@ ifnd_send_idim_ifndup_event (IFSV_CB *cb)
 
   while (rec != NULL)
   {
-    m_NCS_MEMCPY(&mds_dest, &rec->info.mds_dest, sizeof(MDS_DEST));
+    memcpy(&mds_dest, &rec->info.mds_dest, sizeof(MDS_DEST));
     
     if(rec->info.type == NCSMDS_SVC_ID_IFDRV)
        idim_send_ifnd_up_evt(&mds_dest, cb);

@@ -146,7 +146,7 @@ ncs_bam_add_sec_mib_idx(NCSMIB_IDX *mib_idx, char *idx_val, NCSMIB_FMAT_ID forma
    uns32 inst_len=mib_idx->i_inst_len;
 
    /* copy the contents into a temp buffer */
-   m_NCS_MEMCPY(temp_buff, mib_idx->i_inst_ids, mib_idx->i_inst_len * sizeof(uns32));
+   memcpy(temp_buff, mib_idx->i_inst_ids, mib_idx->i_inst_len * sizeof(uns32));
 
    ncs_bam_free(mib_idx->i_inst_ids);
 
@@ -163,7 +163,7 @@ ncs_bam_add_sec_mib_idx(NCSMIB_IDX *mib_idx, char *idx_val, NCSMIB_FMAT_ID forma
          break;
       }
       /* copy the contents back from temp buffer */
-      m_NCS_MEMCPY((uns32 *)mib_idx->i_inst_ids, temp_buff, inst_len * sizeof(uns32));
+      memcpy((uns32 *)mib_idx->i_inst_ids, temp_buff, inst_len * sizeof(uns32));
 
       /* Move the ptr to the end of the existing index in mib_idx struct */
       ptr = (uns32 *)mib_idx->i_inst_ids + mib_idx->i_inst_len;
@@ -183,7 +183,7 @@ ncs_bam_add_sec_mib_idx(NCSMIB_IDX *mib_idx, char *idx_val, NCSMIB_FMAT_ID forma
          break;
       }
       /* copy the contents back from temp buffer */
-      m_NCS_MEMCPY((uns32 *)mib_idx->i_inst_ids, temp_buff, inst_len * sizeof(uns32));
+      memcpy((uns32 *)mib_idx->i_inst_ids, temp_buff, inst_len * sizeof(uns32));
       
       /* Move the ptr to the end of the existing index in mib_idx struct */
       ptr = (uns32 *)mib_idx->i_inst_ids + mib_idx->i_inst_len;

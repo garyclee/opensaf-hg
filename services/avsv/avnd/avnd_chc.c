@@ -369,10 +369,10 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
          }
          m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
-         m_NCS_MEMCPY(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+         memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_start->hc_key.keyLen;
          hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
-         m_NCS_MEMCPY(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
+         memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
          hlt_chk.name.keyLen = hc_start->hc_key.keyLen;
          
          /* get the record from healthcheck database */
@@ -419,10 +419,10 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
          }
          m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_stop->comp_name_net.length;
-         m_NCS_MEMCPY(hlt_chk.comp_name_net.value, hc_stop->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+         memcpy(hlt_chk.comp_name_net.value, hc_stop->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_stop->hc_key.keyLen;
          hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
-         m_NCS_MEMCPY(hlt_chk.name.key, hc_stop->hc_key.key, hc_stop->hc_key.keyLen);
+         memcpy(hlt_chk.name.key, hc_stop->hc_key.key, hc_stop->hc_key.keyLen);
          hlt_chk.name.keyLen = hc_stop->hc_key.keyLen;
          
          m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
@@ -462,10 +462,10 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
          }
          m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_confirm->comp_name_net.length;
-         m_NCS_MEMCPY(hlt_chk.comp_name_net.value, hc_confirm->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+         memcpy(hlt_chk.comp_name_net.value, hc_confirm->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_confirm->hc_key.keyLen;
          hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
-         m_NCS_MEMCPY(hlt_chk.name.key, hc_confirm->hc_key.key, hc_confirm->hc_key.keyLen);
+         memcpy(hlt_chk.name.key, hc_confirm->hc_key.key, hc_confirm->hc_key.keyLen);
          hlt_chk.name.keyLen = hc_confirm->hc_key.keyLen;
 
          m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
@@ -541,10 +541,10 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add (AVND_CB                 *cb,
 
    m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
    hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
-   m_NCS_MEMCPY(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+   memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
    l_num = hc_start->hc_key.keyLen;
    hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
-   m_NCS_MEMCPY(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
+   memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
    hlt_chk.name.keyLen = hc_start->hc_key.keyLen;   
 
    /* get the record from hc db */

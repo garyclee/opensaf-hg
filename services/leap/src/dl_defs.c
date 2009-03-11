@@ -225,7 +225,7 @@ l2filter_entry_exists(NCS_L2SOCKET_CONTEXT * socket_context, uns16 protocol, uns
 
 	tmp.protocol = protocol;
 	tmp.if_index = if_index;
-	m_NCS_OS_MEMCPY(tmp.addr, addr, 6);
+	memcpy(tmp.addr, addr, 6);
 
 	if (m_NCS_LOCK(&socket_context->lock, NCS_LOCK_READ) == NCSCC_RC_FAILURE)
 		return NULL;
@@ -254,7 +254,7 @@ l2filter_entry_create(NCS_L2SOCKET_CONTEXT * socket_context,
 
 	fe->key.protocol = protocol;
 	fe->key.if_index = if_index; 
-	m_NCS_OS_MEMCPY(fe->key.addr, addr, 6);
+	memcpy(fe->key.addr, addr, 6);
 	fe->node.key_info = (uns8 *)&fe->key;
 	fe->user_connection_handle = user_connection_handle;
 	fe->se = se;
@@ -604,15 +604,15 @@ l2socket_list_task(void *ctxt)
 		}
 		else /* there are sockets to process */
 		{
-			m_NCS_MEMCPY ((char*) &writefds,
+			memcpy ((char*) &writefds,
 					(char*) &socket_context->ReceiveQueue.writefds,
 					sizeof (fd_set));
 
-			m_NCS_MEMCPY ((char*) &exceptfds,
+			memcpy ((char*) &exceptfds,
 					(char*) &socket_context->ReceiveQueue.writefds,
 					sizeof (fd_set));
 
-			m_NCS_MEMCPY ((char*) &readfds,
+			memcpy ((char*) &readfds,
 					(char*) &socket_context->ReceiveQueue.readfds,
 					sizeof (fd_set));
 			FD_SET(m_GET_FD_FROM_SEL_OBJ(socket_context->fast_open_sel_obj), &readfds);
@@ -952,7 +952,7 @@ dl_svc_802_2_ethhdr_build (NCS_L2SOCKET_ENTRY*    se,
 
 
 	/* Fill the IEEE 802.2 ethernet Header (802.3 without SNAP is 802.2)*/
-	m_NCS_OS_MEMCPY (p8, dlr->info.data.send_data.i_remote_addr.data.eth, 6);
+	memcpy (p8, dlr->info.data.send_data.i_remote_addr.data.eth, 6);
 
 	p8 += 6;
 
@@ -961,7 +961,7 @@ dl_svc_802_2_ethhdr_build (NCS_L2SOCKET_ENTRY*    se,
 	m_NCS_MEMSET(&ifr,0,sizeof(ifr));
 
 	/* Directly get if_name stored in socket entry while opening socket */
-	m_NCS_MEMCPY (ifr.ifr_name, se->if_name, sizeof(ifr.ifr_name));   
+	memcpy (ifr.ifr_name, se->if_name, sizeof(ifr.ifr_name));   
 	/************* Fix ends ***************/
 
 	if(m_NCS_TS_SOCK_IOCTL(se->client_socket,SIOCGIFHWADDR,&ifr) < NCS_TS_SOCK_ERROR)
@@ -971,7 +971,7 @@ dl_svc_802_2_ethhdr_build (NCS_L2SOCKET_ENTRY*    se,
 	}
 
 	/* Fill the source Address */
-	m_NCS_OS_MEMCPY (p8, ifr.ifr_hwaddr.sa_data, 6);
+	memcpy (p8, ifr.ifr_hwaddr.sa_data, 6);
 
 	p8 += 6;
 
@@ -1023,7 +1023,7 @@ ncsl2sock_event_raw_send (NCS_L2SOCKET_ENTRY               *se,
 	uns32 total_bytes;
 
 	dst_addr.dl_type = dlr->info.data.send_data.i_remote_addr.dl_type;
-	m_NCS_OS_MEMCPY (dst_addr.data.eth , dlr->info.data.send_data.i_remote_addr.data.eth, 6);
+	memcpy (dst_addr.data.eth , dlr->info.data.send_data.i_remote_addr.data.eth, 6);
 
 	if_index  = se->if_index;
 	dl_handle = dlr->info.data.send_data.i_dl_handle;
@@ -1443,14 +1443,14 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 
 			return NCSCC_RC_FAILURE;
 		}
-		m_NCS_MEMCPY(se->if_name, ifr.ifr_name, sizeof(se->if_name));
+		memcpy(se->if_name, ifr.ifr_name, sizeof(se->if_name));
 	}
 	else /* Get if index */
 	{
 		/* get interface index number */
 		strncpy(se->if_name, dlr->info.ctrl.open.i_if_name, sizeof(se->if_name)); 
 		m_NCS_OS_MEMSET(&ifr, '\0', sizeof ifr);
-		m_NCS_MEMCPY (ifr.ifr_name, se->if_name, sizeof(se->if_name));
+		memcpy (ifr.ifr_name, se->if_name, sizeof(se->if_name));
 
 		if (m_NCS_TS_SOCK_IOCTL(se->client_socket,
 					SIOCGIFINDEX,
@@ -1468,7 +1468,7 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 
 	m_NCS_OS_MEMSET(&ifr,'\0',sizeof(ifr));
 
-	m_NCS_MEMCPY(ifr.ifr_name,se->if_name,sizeof(se->if_name));
+	memcpy(ifr.ifr_name,se->if_name,sizeof(se->if_name));
 
 	/* Get the IFFlags of the corresponding interface */
 	if (m_NCSSOCK_IOCTL(se->client_socket, SIOCGIFFLAGS, &ifr) < 0)
@@ -1660,7 +1660,7 @@ ReadRawPacket(NCS_L2SOCKET_ENTRY    *se,
 		m_NCS_OS_MEMSET(&request,0,sizeof(request));
 
 		/* Get the IFFlags of the corresponding interface */
-		m_NCS_MEMCPY(request.ifr_name,se->if_name,sizeof(se->if_name));    
+		memcpy(request.ifr_name,se->if_name,sizeof(se->if_name));    
 
 		if (m_NCSSOCK_IOCTL(rcv_socket, SIOCGIFFLAGS, &request) < 0)
 		{
@@ -1740,7 +1740,7 @@ ReadRawPacket(NCS_L2SOCKET_ENTRY    *se,
 			}
 
 			/* Copy to Usrbuf. */
-			m_NCS_MEMCPY(buf, pThisCopy, (size_t)buf_len);
+			memcpy(buf, pThisCopy, (size_t)buf_len);
 
 			PktLenRemaining -= buf_len;
 			pThisCopy += buf_len;
@@ -1913,10 +1913,10 @@ ncsl2sock_event_raw_indication (NCS_L2SOCKET_ENTRY               *se_in,
 			/* Extract the Ethernet header Info */
 			p8 = (uns8*) m_MMGR_DATA_AT_START(dlbuf, 17, eth_hdr);
 
-			m_NCS_OS_MEMCPY (dli.info.data.recv_data.i_local_addr.data.eth ,p8, 6);
+			memcpy (dli.info.data.recv_data.i_local_addr.data.eth ,p8, 6);
 			p8 += 6;
 
-			m_NCS_OS_MEMCPY (dli.info.data.recv_data.i_remote_addr.data.eth,p8,6);
+			memcpy (dli.info.data.recv_data.i_remote_addr.data.eth,p8,6);
 			p8 += 6;
 
 			data_len = m_NCS_OS_NTOHS_P(p8);
@@ -2032,7 +2032,7 @@ ncsl2sock_event_raw_indication (NCS_L2SOCKET_ENTRY               *se_in,
 
 
 
-				m_NCS_OS_MEMCPY(key.addr, dli.info.data.recv_data.i_remote_addr.data.eth, 6);
+				memcpy(key.addr, dli.info.data.recv_data.i_remote_addr.data.eth, 6);
 				sc = se->socket_context;
 
 				m_NCS_LOCK(&sc->lock, NCS_LOCK_READ);
@@ -2157,7 +2157,7 @@ ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_a
 		}
 		if (if_name != NULL)
 		{
-			m_NCS_MEMCPY (if_name, ifr.ifr_name, sizeof(ifr.ifr_name));
+			memcpy (if_name, ifr.ifr_name, sizeof(ifr.ifr_name));
 		}
 	}
 	else
@@ -2168,7 +2168,7 @@ ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_a
 		}
 		else
 		{
-			m_NCS_MEMCPY (ifr.ifr_name, if_name, sizeof(ifr.ifr_name));
+			memcpy (ifr.ifr_name, if_name, sizeof(ifr.ifr_name));
 			if (m_NCS_TS_SOCK_IOCTL(sock,
 						SIOCGIFINDEX,
 						&ifr)==NCS_TS_SOCK_ERROR)
@@ -2179,7 +2179,7 @@ ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_a
 			{
 				*if_index = ifr.ifr_ifindex;
 			}
-			m_NCS_MEMCPY (ifr.ifr_name, if_name, sizeof(ifr.ifr_name));
+			memcpy (ifr.ifr_name, if_name, sizeof(ifr.ifr_name));
 		}
 	}
 
@@ -2189,7 +2189,7 @@ ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_a
 	}
 
 	/* Copy the Hardware address */
-	m_NCS_OS_MEMCPY(mac_addr, ifr.ifr_hwaddr.sa_data, 6);
+	memcpy(mac_addr, ifr.ifr_hwaddr.sa_data, 6);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -2203,12 +2203,12 @@ ncsl2sock_event_raw_mcast_join (NCS_L2SOCKET_ENTRY  *se,
 
 	m_NCS_OS_MEMSET(&ifr,0,sizeof(ifr));
 
-	m_NCS_MEMCPY(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
+	memcpy(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
 
 	ifr.ifr_ifru.ifru_addr.sa_family= AF_UNSPEC;
 
 	/* Copy Multicast Address */
-	m_NCS_OS_MEMCPY(ifr.ifr_ifru.ifru_addr.sa_data,dlr->info.ctrl.multicastjoin.i_multicast_addr.data.eth, 6);
+	memcpy(ifr.ifr_ifru.ifru_addr.sa_data,dlr->info.ctrl.multicastjoin.i_multicast_addr.data.eth, 6);
 
 	if (m_NCSSOCK_IOCTL (se->client_socket,SIOCADDMULTI, &ifr) == NCSSOCK_ERROR)
 	{
@@ -2229,12 +2229,12 @@ ncsl2sock_event_raw_mcast_leave (NCS_L2SOCKET_ENTRY  *se,
 
 	m_NCS_OS_MEMSET(&ifr,0,sizeof(ifr));
 
-	m_NCS_MEMCPY(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
+	memcpy(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
 
 	ifr.ifr_ifru.ifru_addr.sa_family= AF_UNSPEC;
 
 	/* Copy Multicast Address */
-	m_NCS_OS_MEMCPY(ifr.ifr_ifru.ifru_addr.sa_data,dlr->info.ctrl.multicastleave.i_multicast_addr.data.eth, 6);
+	memcpy(ifr.ifr_ifru.ifru_addr.sa_data,dlr->info.ctrl.multicastleave.i_multicast_addr.data.eth, 6);
 
 	if (m_NCSSOCK_IOCTL (se->client_socket,SIOCDELMULTI, &ifr) == NCSSOCK_ERROR)
 	{

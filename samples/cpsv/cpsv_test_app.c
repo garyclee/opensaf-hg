@@ -101,7 +101,7 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
 
    m_NCS_MEMSET(&ckptName, 0, sizeof(ckptName));
    ckptName.length = 7;
-   m_NCS_MEMCPY(ckptName.value,"sample",7);
+   memcpy(ckptName.value,"sample",7);
 
    callbk.saCkptCheckpointOpenCallback = AppCkptOpenCallback;
    callbk.saCkptCheckpointSynchronizeCallback = AppCkptSyncCallback;

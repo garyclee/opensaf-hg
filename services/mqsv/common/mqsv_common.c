@@ -96,7 +96,7 @@ uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
    }
 
    m_NCS_OS_MEMSET(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
-   m_NCS_OS_MEMCPY(mq_msg.data, "A", 1);
+   memcpy(mq_msg.data, "A", 1);
 
    m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;

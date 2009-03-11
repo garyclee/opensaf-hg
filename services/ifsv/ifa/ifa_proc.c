@@ -908,7 +908,7 @@ static void ifa_cpy_attr(NCS_IFSV_SUBSCR *subr, NCS_IFSV_INTF_REC *src, NCS_IFSV
       {
          m_IFSV_PHYADDR_ATTR_SET(dest->if_info.if_am);
 
-         m_NCS_MEMCPY(dest->if_info.phy_addr, src->if_info.phy_addr, 
+         memcpy(dest->if_info.phy_addr, src->if_info.phy_addr, 
             sizeof(src->if_info.phy_addr));
       }
 
@@ -930,7 +930,7 @@ static void ifa_cpy_attr(NCS_IFSV_SUBSCR *subr, NCS_IFSV_INTF_REC *src, NCS_IFSV
                       m_IFSV_IS_NAME_ATTR_SET(subr->i_smap))
       {
          m_IFSV_NAME_ATTR_SET(dest->if_info.if_am);
-         m_NCS_MEMCPY(dest->if_info.if_name, src->if_info.if_name, 
+         memcpy(dest->if_info.if_name, src->if_info.if_name, 
             IFSV_IF_NAME_SIZE);
       }
 
@@ -938,7 +938,7 @@ static void ifa_cpy_attr(NCS_IFSV_SUBSCR *subr, NCS_IFSV_INTF_REC *src, NCS_IFSV
                        m_IFSV_IS_DESCR_ATTR_SET(subr->i_smap))
       {
          m_IFSV_DESCR_ATTR_SET(dest->if_info.if_am);
-         m_NCS_MEMCPY(dest->if_info.if_descr, src->if_info.if_descr, 
+         memcpy(dest->if_info.if_descr, src->if_info.if_descr, 
             IFSV_IF_DESC_SIZE);
       }
 

@@ -58,7 +58,7 @@ uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info)
     
     m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
-    m_NCS_OS_MEMCPY(queue_name, q_info->queueName.value, 
+    memcpy(queue_name, q_info->queueName.value, 
                     q_info->queueName.length);
     queue_name[q_info->queueName.length] = '\0';
     info.info.open.qname = queue_name;
@@ -106,7 +106,7 @@ uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
 
     m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
-    m_NCS_OS_MEMCPY(queue_name, q_info->queueName.value, 
+    memcpy(queue_name, q_info->queueName.value, 
                     q_info->queueName.length);
     queue_name[q_info->queueName.length] = '\0';
     info.info.open.qname = queue_name;
@@ -154,7 +154,7 @@ uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *mqsv_msg, uns32 size)
    NCS_OS_MQ_MSG       mq_msg;
 
    m_NCS_OS_MEMSET(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
-   m_NCS_OS_MEMCPY(mq_msg.data, mqsv_msg, size);
+   memcpy(mq_msg.data, mqsv_msg, size);
 
    m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;

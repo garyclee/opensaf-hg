@@ -152,7 +152,7 @@ SaAisErrorT  saLckInitialize(SaLckHandleT *lckHandle,
      
       /* copy the callbacks */
       if (lckCallbacks)
-         m_NCS_OS_MEMCPY((void *)&client_info->lckCallbk, (void *)lckCallbacks, sizeof(SaLckCallbacksT));
+         memcpy((void *)&client_info->lckCallbk, (void *)lckCallbacks, sizeof(SaLckCallbacksT));
       *lckHandle = out_evt->handle;
       m_MMGR_FREE_GLA_EVT(out_evt);
       m_GLSV_GLA_GIVEUP_GLA_CB;
@@ -644,7 +644,7 @@ SaAisErrorT  saLckResourceOpen(SaLckHandleT lckHandle,
    res_open_evt.info.rsc_info.client_handle_id = lckHandle;
    res_open_evt.info.rsc_info.call_type = GLSV_SYNC_CALL;
    res_open_evt.info.rsc_info.resource_name.length = lockResourceName->length;
-   m_NCS_MEMCPY(&res_open_evt.info.rsc_info.resource_name.value,&lockResourceName->value,
+   memcpy(&res_open_evt.info.rsc_info.resource_name.value,&lockResourceName->value,
       lockResourceName->length);
    res_open_evt.info.rsc_info.agent_mds_dest = gla_cb->gla_mds_dest;
    res_open_evt.info.rsc_info.timeout = timeout;
@@ -821,7 +821,7 @@ SaAisErrorT  saLckResourceOpenAsync(SaLckHandleT lckHandle,
    res_open_evt.info.rsc_info.client_handle_id = lckHandle;
    res_open_evt.info.rsc_info.lcl_resource_id = res_id_node->lcl_res_id;
    res_open_evt.info.rsc_info.call_type = GLSV_ASYNC_CALL;
-   m_NCS_MEMCPY(&res_open_evt.info.rsc_info.resource_name,lockResourceName,sizeof(SaNameT));
+   memcpy(&res_open_evt.info.rsc_info.resource_name,lockResourceName,sizeof(SaNameT));
    res_open_evt.info.rsc_info.agent_mds_dest = gla_cb->gla_mds_dest;
    res_open_evt.info.rsc_info.invocation = invocation;
    res_open_evt.info.rsc_info.flag = resourceFlags;

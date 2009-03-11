@@ -54,7 +54,7 @@ eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 
    pEventPattern = patternArray->patterns; /* Point to first pattern */
    for (x=0; x<(int32)patternArray->patternsNumber; x++) {
-      m_NCS_MEMCPY(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+      memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
       m_NCS_CONS_PRINTF("     pattern[%ld] =    {%2u, \"%s\"}\n",
              x, (uns32)pEventPattern->patternSize, buf);
@@ -106,7 +106,7 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
    for (x=1; x <= (int32)filterArray->filtersNumber; x++)
    {
       /* NULL terminate for printing */
-      m_NCS_MEMCPY(buf, pattern->pattern,
+      memcpy(buf, pattern->pattern,
                    (uns32)pattern->patternSize);
       buf[(uns32)pattern->patternSize] = '\0';
       m_NCS_CONS_PRINTF(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
@@ -149,7 +149,7 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
       }
 
       /* NULL terminate for printing */
-      m_NCS_MEMCPY(buf, filter->filter.pattern,
+      memcpy(buf, filter->filter.pattern,
                    (uns32)filter->filter.patternSize);
       buf[(uns32)filter->filter.patternSize] = '\0';
       m_NCS_CONS_PRINTF(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);

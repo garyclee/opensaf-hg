@@ -458,7 +458,7 @@ avm_refine_fault_domain(
    m_AVM_LOG_FUNC_ENTRY("avm_refine_fault_domain");
 
    *fault_domain = m_MMGR_ALLOC_AVM_FAULT_DOMAIN;
-   m_NCS_MEMCPY(&(*fault_domain)->ent_path, &ent_info->entity_path, sizeof(SaHpiEntityPathT));
+   memcpy(&(*fault_domain)->ent_path, &ent_info->entity_path, sizeof(SaHpiEntityPathT));
    (*fault_domain)->next = AVM_FAULT_DOMAIN_NULL;
 
    return rc;
@@ -843,7 +843,7 @@ avm_scope_fault_children(
          m_NCS_DBG_PRINTF("\n Malloc failed for AvM List Node");
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMCPY(&temp_node->node_name, &ent_info->node_name, sizeof(SaNameT));
+      memcpy(&temp_node->node_name, &ent_info->node_name, sizeof(SaNameT));
       
       temp_node->next  = AVM_LIST_NODE_NULL;
       if(head->node    == AVM_LIST_NODE_NULL)
@@ -1251,7 +1251,7 @@ avm_bld_validation_info(
       m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
       
       desc_name.length = m_NCS_STRLEN(ptr->entity_name);
-      m_NCS_MEMCPY(desc_name.name, ptr->entity_name, desc_name.length);
+      memcpy(desc_name.name, ptr->entity_name, desc_name.length);
 
       valid_info = avm_add_valid_info(cb, &desc_name);
       if(AVM_VALID_INFO_NULL == valid_info)
@@ -1265,10 +1265,10 @@ avm_bld_validation_info(
       valid_info->is_fru      = ptr->is_fru;
 
       valid_info->inv_data.product_name.DataLength =  m_NCS_STRLEN(ptr->fru_product_name);
-      m_NCS_MEMCPY(valid_info->inv_data.product_name.Data, ptr->fru_product_name, valid_info->inv_data.product_name.DataLength);
+      memcpy(valid_info->inv_data.product_name.Data, ptr->fru_product_name, valid_info->inv_data.product_name.DataLength);
       
       valid_info->inv_data.product_version.DataLength =  m_NCS_STRLEN(ptr->fru_product_version);
-      m_NCS_MEMCPY(valid_info->inv_data.product_version.Data, ptr->fru_product_version, valid_info->inv_data.product_version.DataLength);
+      memcpy(valid_info->inv_data.product_version.Data, ptr->fru_product_version, valid_info->inv_data.product_version.DataLength);
     
       valid_info->parent_cnt = ptr->num_possible_parents;
    
@@ -1280,7 +1280,7 @@ avm_bld_validation_info(
             valid_info->location[i].parent.length = NCS_MAX_INDEX_LEN; 
          }
          
-         m_NCS_MEMCPY(valid_info->location[i].parent.name, ptr->location_range[i].parent_ent, valid_info->location[i].parent.length);
+         memcpy(valid_info->location[i].parent.name, ptr->location_range[i].parent_ent, valid_info->location[i].parent.length);
 
          for(j = 0; j < MAX_POSSIBLE_LOC_RANGES; j++)
          {
@@ -1317,13 +1317,13 @@ avm_bld_valid_info_parent_child_relation(AVM_CB_T *cb)
       for(i = 0; i < valid_info->parent_cnt; i++)
       {
     m_NCS_MEMSET(parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
-    m_NCS_MEMCPY(parent_desc_name.name, valid_info->location[i].parent.name, NCS_MAX_INDEX_LEN);
+    memcpy(parent_desc_name.name, valid_info->location[i].parent.name, NCS_MAX_INDEX_LEN);
          parent_valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, parent_desc_name.name);
          valid_info->parents[i] = parent_valid_info;
      }
 
      m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
-     m_NCS_MEMCPY(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
+     memcpy(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
    }   
 
    return rc;
@@ -1396,7 +1396,7 @@ avm_check_deployment(AVM_CB_T *cb)
 
       m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
       ep_str.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-      m_NCS_MEMCPY(ep_str.name, ent_info->ep_str.name, ep_str.length);
+      memcpy(ep_str.name, ent_info->ep_str.name, ep_str.length);
     
       if(SAHPI_ENT_ROOT == ent_info->entity_type)
       { 

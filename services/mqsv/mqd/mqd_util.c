@@ -143,7 +143,7 @@ void mqd_qparam_upd(MQD_OBJ_NODE *pNode, ASAPi_QUEUE_PARAM *qparam)
    pNode->oinfo.info.q.dest = qparam->addr;
    pNode->oinfo.info.q.hdl = qparam->hdl;
    pNode->oinfo.info.q.creationFlags = qparam->creationFlags;
-   m_NCS_MEMCPY(pNode->oinfo.info.q.size, qparam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
+   memcpy(pNode->oinfo.info.q.size, qparam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 } /* End of mqd_qparam_upd() */
 
 /****************************************************************************\
@@ -166,7 +166,7 @@ void mqd_qparam_fill(MQD_QUEUE_PARAM *pParam, ASAPi_QUEUE_PARAM *pQparam)
    pQparam->hdl = pParam->hdl;
    pQparam->is_mqnd_down = pParam->is_mqnd_down;
    pQparam->creationFlags = pParam->creationFlags;
-   m_NCS_MEMCPY(pQparam->size, pParam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
+   memcpy(pQparam->size, pParam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
    
 } /* End of mqd_qparam_fill() */
 

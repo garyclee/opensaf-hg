@@ -775,7 +775,7 @@ static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
          m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));
         /* populate the evt to be sent to gld */
          gld_evt.evt_type = GLSV_GLD_EVT_RSC_OPEN;
-         m_NCS_OS_MEMCPY(&gld_evt.info.rsc_open_info.rsc_name,&rsc_info->resource_name,sizeof(SaNameT));
+         memcpy(&gld_evt.info.rsc_open_info.rsc_name,&rsc_info->resource_name,sizeof(SaNameT));
          gld_evt.info.rsc_open_info.flag = rsc_info->flag;
          glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
 
@@ -819,7 +819,7 @@ static uns32 glnd_process_gla_resource_open(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
          m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));        
         /* populate the evt to be sent to gld */
          gld_evt.evt_type = GLSV_GLD_EVT_RSC_OPEN;
-         m_NCS_OS_MEMCPY(&gld_evt.info.rsc_open_info.rsc_name,&rsc_info->resource_name,sizeof(SaNameT));
+         memcpy(&gld_evt.info.rsc_open_info.rsc_name,&rsc_info->resource_name,sizeof(SaNameT));
          gld_evt.info.rsc_open_info.flag = rsc_info->flag;
          glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
       }
@@ -1105,7 +1105,7 @@ static uns32 glnd_process_gla_resource_lock(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt
       uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME/10000000;
       GLSV_GLND_EVT  *resend_evt = m_MMGR_ALLOC_GLND_EVT;
       
-      m_NCS_MEMCPY(resend_evt,evt,sizeof(GLSV_GLND_EVT));
+      memcpy(resend_evt,evt,sizeof(GLSV_GLND_EVT));
       resend_evt->next = NULL;
       m_NCS_TASK_SLEEP(tm);
       glnd_evt_local_send(glnd_cb,resend_evt,NCS_IPC_PRIORITY_NORMAL); 
@@ -1354,7 +1354,7 @@ static uns32 glnd_process_gla_resource_unlock(GLND_CB *glnd_cb, GLSV_GLND_EVT *e
       uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME/10000000;
       GLSV_GLND_EVT  *resend_evt = m_MMGR_ALLOC_GLND_EVT;
       
-      m_NCS_MEMCPY(resend_evt,evt,sizeof(GLSV_GLND_EVT));
+      memcpy(resend_evt,evt,sizeof(GLSV_GLND_EVT));
       resend_evt->next = NULL;
       m_NCS_TASK_SLEEP(tm);
       glnd_evt_local_send(glnd_cb,resend_evt,NCS_IPC_PRIORITY_NORMAL); 
@@ -1675,7 +1675,7 @@ static uns32 glnd_process_glnd_lck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
       uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME/10000000;
       GLSV_GLND_EVT  *resend_evt = m_MMGR_ALLOC_GLND_EVT;
       
-      m_NCS_MEMCPY(resend_evt,evt,sizeof(GLSV_GLND_EVT));
+      memcpy(resend_evt,evt,sizeof(GLSV_GLND_EVT));
       resend_evt->next = NULL;
       m_NCS_TASK_SLEEP(tm);
       glnd_evt_local_send(glnd_cb,resend_evt,NCS_IPC_PRIORITY_NORMAL); 
@@ -1794,7 +1794,7 @@ static uns32 glnd_process_glnd_unlck_req(GLND_CB *glnd_cb, GLSV_GLND_EVT *evt)
       uns32 tm = GLSV_GLND_MASTER_REELECTION_WAIT_TIME/10000000;
       GLSV_GLND_EVT  *resend_evt = m_MMGR_ALLOC_GLND_EVT;
       
-      m_NCS_MEMCPY(resend_evt,evt,sizeof(GLSV_GLND_EVT));
+      memcpy(resend_evt,evt,sizeof(GLSV_GLND_EVT));
       resend_evt->next = NULL;
       m_NCS_TASK_SLEEP(tm);
       glnd_evt_local_send(glnd_cb,resend_evt,NCS_IPC_PRIORITY_NORMAL); 

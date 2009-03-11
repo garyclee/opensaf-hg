@@ -259,7 +259,7 @@ typedef enum eds_ckpt_dec_err
  chan->chan_attrib |=SA_EVT_CHANNEL_CREATE; \
  chan->chan_create_time = wl->chan_row.create_time; \
  chan->cname_len=wl->cname_len; \
- m_NCS_MEMCPY(chan->cname,wl->cname,wl->cname_len); \
+ memcpy(chan->cname,wl->cname,wl->cname_len); \
 }
 /*Here cname should be appended with '\0', TBD */
 
@@ -268,9 +268,9 @@ typedef enum eds_ckpt_dec_err
  rec->chan_id=list->chan_id; \
  rec->chan_open_id=list->chan_open_id; \
  rec->chan_attrib = list->chan_open_flags; \
- m_NCS_MEMCPY(&rec->chan_opener_dest,&list->chan_opener_dest,sizeof(MDS_DEST)); \
+ memcpy(&rec->chan_opener_dest,&list->chan_opener_dest,sizeof(MDS_DEST)); \
  rec->cname_len=wl->cname_len; \
- m_NCS_MEMCPY(rec->cname,wl->cname,wl->cname_len); \
+ memcpy(rec->cname,wl->cname,wl->cname_len); \
 }
 
 /* rec.reg_id=list.reg_id \ */
@@ -294,7 +294,7 @@ m_NCS_TMR_MSEC_REMAINING(list->ret_tmr.tmr_id,&remaining_time);\
 rec->data.retention_time=(SaTimeT)remaining_time; \
 rec->data.retention_time=rec->data.retention_time*100000; /*Revisit this */ \
 rec->data.publisher_name.length=list->publisherName.length;\
-m_NCS_MEMCPY(rec->data.publisher_name.value,list->publisherName.value,list->publisherName.length);\
+memcpy(rec->data.publisher_name.value,list->publisherName.value,list->publisherName.length);\
 rec->data.data_len=list->data_len;\
 rec->data.data=list->data;\
 }
@@ -438,7 +438,7 @@ rec->data.data=list->data;\
   ckpt.ckpt_rec.chan_rec.chan_opener_dest = dest;\
   ckpt.ckpt_rec.chan_rec.cname_len = evt->chan_name.length; \
   ckpt.ckpt_rec.chan_rec.chan_create_time = chan_create_time; \
-  m_NCS_MEMCPY(ckpt.ckpt_rec.chan_rec.cname,evt->chan_name.value,ckpt.ckpt_rec.chan_rec.cname_len);\
+  memcpy(ckpt.ckpt_rec.chan_rec.cname,evt->chan_name.value,ckpt.ckpt_rec.chan_rec.cname_len);\
 }
 
 #define m_EDSV_FILL_ASYNC_UPDATE_CCLOSE(ckpt,regid,cid,coid){ \
@@ -455,7 +455,7 @@ rec->data.data=list->data;\
   ckpt.header.num_ckpt_records=1; \
   ckpt.header.data_len=1; \
   ckpt.ckpt_rec.chan_unlink_rec.chan_name.length = clen;\
-  m_NCS_MEMCPY(ckpt.ckpt_rec.chan_unlink_rec.chan_name.value,cname,clen);\
+  memcpy(ckpt.ckpt_rec.chan_unlink_rec.chan_name.value,cname,clen);\
 }
 
 #define m_EDSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt,regid){ \
@@ -477,7 +477,7 @@ rec->data.data=list->data;\
   ckpt.ckpt_rec.retain_evt_rec.data.priority=evt->priority;\
   ckpt.ckpt_rec.retain_evt_rec.data.retention_time=evt->retention_time;\
   ckpt.ckpt_rec.retain_evt_rec.data.publisher_name.length=evt->publisher_name.length;\
-  m_NCS_MEMCPY(ckpt.ckpt_rec.retain_evt_rec.data.publisher_name.value,evt->publisher_name.value,evt->publisher_name.length);\
+  memcpy(ckpt.ckpt_rec.retain_evt_rec.data.publisher_name.value,evt->publisher_name.value,evt->publisher_name.length);\
   ckpt.ckpt_rec.retain_evt_rec.data.pattern_array=evt->pattern_array;\
   ckpt.ckpt_rec.retain_evt_rec.data.data=evt->data;\
   ckpt.ckpt_rec.retain_evt_rec.data.data_len=evt->data_len; \

@@ -1663,7 +1663,7 @@ void  eds_copy_evt_to_ckpt(EDSV_API_INFO evt_msg, EDSV_CKPT_DATA *ckpt_msg, MDS_
   ckpt.ckpt_rec.chan_rec.use_cnt = 0;\
   ckpt.ckpt_rec.chan_rec.chan_opener_dest = dest;\
   ckpt.ckpt_rec.chan_rec.cname_len = evt.param.chan_open_sync.chan_name.value; \
-  m_NCS_MEMCPY(ckpt.ckpt_rec.chan_rec.cname,evt.param.chan_open_sync.chan_name.value,ckpt.ckpt_rec.chan_rec.cname_len);
+  memcpy(ckpt.ckpt_rec.chan_rec.cname,evt.param.chan_open_sync.chan_name.value,ckpt.ckpt_rec.chan_rec.cname_len);
 
 
 #define m_EDSV_FILL_ASYNC_UPDATE_COPEN(evt,ckpt) \
@@ -1674,7 +1674,7 @@ void  eds_copy_evt_to_ckpt(EDSV_API_INFO evt_msg, EDSV_CKPT_DATA *ckpt_msg, MDS_
   ckpt.ckpt_rec.chan_open_rec.use_cnt=  \
   ckpt.ckpt_rec.chan_open_rec.chan_opener_dest=  \
   ckpt.ckpt_rec.chan_open_rec.cname_len=  \
-  m_NCS_MEMCPY(ckpt.ckpt_rec.chan_open_rec.cname,,ckpt.ckpt_rec.chan_open_rec.cname_len); 
+  memcpy(ckpt.ckpt_rec.chan_open_rec.cname,,ckpt.ckpt_rec.chan_open_rec.cname_len); 
 
 
 #define m_EDSV_FILL_ASYNC_UPDATE_CCLOSE(evt,ckpt)\

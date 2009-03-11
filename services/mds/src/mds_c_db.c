@@ -1579,7 +1579,7 @@ uns32 mds_subtn_res_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
     subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
     m_NCS_MEMSET(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
     
-    m_NCS_MEMCPY(&subtn_res_info->key, &subtn_res_key, 
+    memcpy(&subtn_res_info->key, &subtn_res_key, 
                     sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     subtn_res_info->node.key_info = (uns8 *)&subtn_res_info->key;
@@ -1611,7 +1611,7 @@ uns32 mds_subtn_res_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
                 active_subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
                 m_NCS_MEMSET(active_subtn_res_info, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
-                m_NCS_MEMCPY(&active_subtn_res_info->key, &subtn_res_key, 
+                memcpy(&active_subtn_res_info->key, &subtn_res_key, 
                                 sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
                 
                 /* Allocate active result info */
@@ -1970,7 +1970,7 @@ uns32 mds_subtn_res_tbl_add_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
         subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
         m_NCS_MEMSET(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
         
-        m_NCS_MEMCPY(&subtn_res_info->key, &subtn_res_key, 
+        memcpy(&subtn_res_info->key, &subtn_res_key, 
                         sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
         subtn_res_info->node.key_info = (uns8 *)&subtn_res_info->key;
 
@@ -2412,7 +2412,7 @@ uns32 mds_subtn_res_tbl_del_all (MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
                                     (NCS_PATRICIA_NODE *)subtn_res_info);
             
             /* Store the key for getting next node in tree */
-            m_NCS_MEMCPY (&subtn_res_key, &subtn_res_info->key, 
+            memcpy (&subtn_res_key, &subtn_res_info->key, 
                                 sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
             /* Free subscription entry */
@@ -2478,7 +2478,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
         }
 
         /* Store the key for getting next node in tree */
-        m_NCS_MEMCPY (&subtn_res_key, &subtn_res_info->key, 
+        memcpy (&subtn_res_key, &subtn_res_info->key, 
                             sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
         /* Delete entry from tree */

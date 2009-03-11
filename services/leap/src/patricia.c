@@ -540,7 +540,7 @@ ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree,
    }
    else
    {
-      m_NCS_MEMCPY(Target, pKey, pTree->params.key_size);
+      memcpy(Target, pKey, pTree->params.key_size);
    }
 
    p1 = Target + pTree->params.key_size - 1;  /* point to last byte of key */

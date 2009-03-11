@@ -95,7 +95,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
 
    *ckptHandle = 0;
 
-   m_NCS_OS_MEMCPY(&client_version, version, sizeof(SaVersionT)); 
+   memcpy(&client_version, version, sizeof(SaVersionT)); 
 
    /* Draft Validations : Version */   
    rc = cpa_version_validate(version);
@@ -300,7 +300,7 @@ clm_left:
 
    if(rc == SA_AIS_OK)
    {
-       m_NCS_OS_MEMCPY(&(cl_node->version), &client_version, sizeof(SaVersionT)); 
+       memcpy(&(cl_node->version), &client_version, sizeof(SaVersionT)); 
       /* Went well, return ckptHandle to the application */   
       *ckptHandle = cl_node->cl_hdl;
       m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
@@ -1525,7 +1525,7 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_UNLINK;
 
  /*  evt.info.cpnd.info.ulinkReq.ckpt_name.length = checkpointName->length;
-   m_NCS_MEMCPY(evt.info.cpnd.info.ulinkReq.ckpt_name.value,checkpointName->value,checkpointName->length);   */
+   memcpy(evt.info.cpnd.info.ulinkReq.ckpt_name.value,checkpointName->value,checkpointName->length);   */
 
    evt.info.cpnd.info.ulinkReq.ckpt_name = *checkpointName;   
    
@@ -2407,7 +2407,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
                } 
                m_NCS_OS_MEMSET(app_ptr.id, 0,out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));
                app_ptr.idLen = out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen;
-               m_NCS_MEMCPY(app_ptr.id,out_evt->info.cpa.info.sec_creat_rsp.sec_id.id,app_ptr.idLen);    
+               memcpy(app_ptr.id,out_evt->info.cpa.info.sec_creat_rsp.sec_id.id,app_ptr.idLen);    
 
                *sectionCreationAttributes->sectionId = app_ptr;
             }

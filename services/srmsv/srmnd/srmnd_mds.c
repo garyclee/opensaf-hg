@@ -350,7 +350,7 @@ uns32 srmnd_mds_copy(SRMND_CB *srmnd, MDS_CALLBACK_COPY_INFO *cp_info)
 
    m_NCS_MEMSET(msg, 0, sizeof(SRMND_MSG));
 
-   m_NCS_MEMCPY(msg, cp_info->i_msg, sizeof(SRMND_MSG));
+   memcpy(msg, cp_info->i_msg, sizeof(SRMND_MSG));
    cp_info->o_cpy = (uns8*)msg;
 
    return NCSCC_RC_SUCCESS;   

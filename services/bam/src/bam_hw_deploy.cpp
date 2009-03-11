@@ -314,7 +314,7 @@ parse_net_boot_childs(DOMNode *node, BAM_ENT_DEPLOY_DESC *deploy_ent)
          {
             uns32 int_val = inet_addr(val);
             char ptr[5];
-            m_NCS_MEMCPY(ptr, (char *)&int_val, sizeof(uns32));
+            memcpy(ptr, (char *)&int_val, sizeof(uns32));
             ptr[4] = '\0';
             
             m_NCS_STRCPY(deploy_ent->tftpServIp, ptr);

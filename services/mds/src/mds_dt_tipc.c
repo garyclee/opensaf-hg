@@ -3052,7 +3052,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
                  p8=(uns8 *)m_MMGR_DATA_AT_START(usrbuf,len,(char *)&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN]);
                  
                  if(p8!=&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN])
-                    m_NCS_OS_MEMCPY(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], p8, len);
+                    memcpy(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], p8, len);
 
                  if(NCSCC_RC_SUCCESS!=mdtm_add_mds_hdr(body,req))
                  {
@@ -3107,7 +3107,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
                  mds_free_direct_buff(req->msg.data.buff_info.buff);
                  return NCSCC_RC_FAILURE;
               }
-              m_NCS_OS_MEMCPY(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], req->msg.data.buff_info.buff, req->msg.data.buff_info.len);
+              memcpy(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], req->msg.data.buff_info.buff, req->msg.data.buff_info.len);
 
               if(NCSCC_RC_SUCCESS!=mdtm_sendto(body, (req->msg.data.buff_info.len+SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN), tipc_id))
               {
@@ -3229,7 +3229,7 @@ static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_p
                                                   (char *)&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN]);
 
             if(p8!=&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN])
-               m_NCS_OS_MEMCPY(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], p8, len_buf);
+               memcpy(&body[SUM_MDS_HDR_PLUS_MDTM_HDR_PLUS_LEN], p8, len_buf);
 
             if(NCSCC_RC_SUCCESS!=mdtm_add_mds_hdr(body,req))
             {
@@ -3253,7 +3253,7 @@ static uns32 mdtm_frag_and_send(MDTM_SEND_REQ *req, uns32 seq_num, struct tipc_p
          {
             p8=(uns8 *)m_MMGR_DATA_AT_START(usrbuf,len_buf-MDTM_FRAG_HDR_PLUS_LEN_2,(char *)&body[MDTM_FRAG_HDR_PLUS_LEN_2]);
             if(p8!=&body[MDTM_FRAG_HDR_PLUS_LEN_2])
-               m_NCS_OS_MEMCPY(&body[MDTM_FRAG_HDR_PLUS_LEN_2], p8, len_buf-MDTM_FRAG_HDR_PLUS_LEN_2);
+               memcpy(&body[MDTM_FRAG_HDR_PLUS_LEN_2], p8, len_buf-MDTM_FRAG_HDR_PLUS_LEN_2);
 
             if(NCSCC_RC_SUCCESS!=mdtm_add_frag_hdr(body, len_buf, seq_num, frag_val ))
             {

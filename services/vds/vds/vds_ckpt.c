@@ -94,7 +94,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
    m_NCS_OS_MEMSET(&ckptName, 0, sizeof(ckptName));
 
    /* Fill the Checkpoint Name */
-   m_NCS_OS_MEMCPY(ckptName.value,
+   memcpy(ckptName.value,
                    VDS_CKPT_DBINFO_CKPT_NAME, 
                    VDS_CKPT_DBINFO_CKPT_NAME_LEN);
 
@@ -393,7 +393,7 @@ void vds_ckpt_buffer_encode(VDS_CKPT_DBINFO *source ,char *dest)
    m_NCS_OS_HTONS_P(dest, source->vdest_name.length);
    dest += 2;
 
-   m_NCS_OS_MEMCPY(dest, source->vdest_name.value, SA_MAX_NAME_LENGTH);
+   memcpy(dest, source->vdest_name.value, SA_MAX_NAME_LENGTH);
    dest += SA_MAX_NAME_LENGTH;
 
    m_NCS_OS_HTONLL_P(dest,source->vdest_id);
@@ -436,7 +436,7 @@ void vds_ckpt_buffer_decode(VDS_CKPT_DBINFO *vds_ckpt_dbinfo_buffer ,char *decod
   vds_ckpt_dbinfo_buffer->vdest_name.length =  m_NCS_OS_NTOHS_P(decode);
   decode += 2;
 
-  m_NCS_OS_MEMCPY(vds_ckpt_dbinfo_buffer->vdest_name.value, decode, SA_MAX_NAME_LENGTH);
+  memcpy(vds_ckpt_dbinfo_buffer->vdest_name.value, decode, SA_MAX_NAME_LENGTH);
   decode += SA_MAX_NAME_LENGTH;
 
   vds_ckpt_dbinfo_buffer->vdest_id = m_NCS_OS_NTOHLL_P(decode);

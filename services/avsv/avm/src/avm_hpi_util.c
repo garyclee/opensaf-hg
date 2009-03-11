@@ -293,7 +293,7 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
 #endif
 
          *(ent_path_str++) = '{';
-         m_NCS_MEMCPY(ent_path_str, gl_hpi_ent_type_list[index].etype_str, m_NCS_STRLEN(gl_hpi_ent_type_list[index].etype_str));
+         memcpy(ent_path_str, gl_hpi_ent_type_list[index].etype_str, m_NCS_STRLEN(gl_hpi_ent_type_list[index].etype_str));
          
          ent_path_str += m_NCS_STRLEN(gl_hpi_ent_type_list[index].etype_str);
       

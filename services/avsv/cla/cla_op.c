@@ -67,7 +67,7 @@ uns32 cla_avnd_msg_prc (CLA_CB *cb, AVSV_NDA_CLA_MSG *msg)
    if(!cbk_info)
       return NCSCC_RC_FAILURE;
    
-   m_NCS_MEMCPY(cbk_info, &msg->info.cbk_info, sizeof(AVSV_CLM_CBK_INFO));
+   memcpy(cbk_info, &msg->info.cbk_info, sizeof(AVSV_CLM_CBK_INFO));
 
    if(cbk_info->type == AVSV_CLM_CBK_TRACK)
    {
@@ -83,7 +83,7 @@ uns32 cla_avnd_msg_prc (CLA_CB *cb, AVSV_NDA_CLA_MSG *msg)
          goto done;
       }
 
-      m_NCS_MEMCPY(cbk_info->param.track.notify.notification, 
+      memcpy(cbk_info->param.track.notify.notification, 
                    msg->info.cbk_info.param.track.notify.notification, 
                    size);
    }

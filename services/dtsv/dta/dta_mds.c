@@ -1001,7 +1001,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  
   *cpy = mm;
   
-  m_NCS_OS_MEMCPY(mm,msg,sizeof(DTSV_MSG));
+  memcpy(mm,msg,sizeof(DTSV_MSG));
 
   if (mm->msg_type == DTA_LOG_DATA)
   {
@@ -1082,7 +1082,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 
     m_NCS_OS_MEMSET(*dest, '\0', length);
 
-    m_NCS_OS_MEMCPY(*dest, src, (length * sizeof(uns8)));
+    memcpy(*dest, src, (length * sizeof(uns8)));
 
     return NCSCC_RC_SUCCESS;
  }

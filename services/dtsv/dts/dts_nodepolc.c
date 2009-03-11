@@ -453,7 +453,7 @@ ncsdtsvnodelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
             case ncsDtsvNodeSeverityBitMap_ID:
                /* Fill NCSMIB_ARG according to params struct before calling*/
                m_NCS_MEMSET(&arg->req.info.set_req.i_param_val, '\0', sizeof(NCSMIB_PARAM_VAL));
-               m_NCS_MEMCPY(&arg->req.info.set_req.i_param_val, &params[paramid-1].param, sizeof(NCSMIB_PARAM_VAL));
+               memcpy(&arg->req.info.set_req.i_param_val, &params[paramid-1].param, sizeof(NCSMIB_PARAM_VAL));
                /* Call DTS's own SET function for BITS MIB type */
                rc = dtsv_node_policy_set_oct(cb, arg, &node->svc_policy);
                break;
@@ -1058,21 +1058,21 @@ uns32 dtsv_node_extract_oct(NCSMIB_PARAM_VAL *param_val,
    {
       case ncsDtsvNodeLogDevice_ID:
          param_val->i_length = sizeof(uns8);
-         /*m_NCS_OS_MEMCPY((uns8*)&tmp, &node->svc_policy.log_dev, param_val->i_length);*/
+         /*memcpy((uns8*)&tmp, &node->svc_policy.log_dev, param_val->i_length);*/
          param_val->info.i_oct = (uns8*)&node->svc_policy.log_dev;
          break;
  
       case ncsDtsvNodeCategoryBitMap_ID:
          param_val->i_length = sizeof(uns32);
-         m_NCS_OS_MEMCPY((uns8*)&tmp, &node->svc_policy.category_bit_map, param_val->i_length);
+         memcpy((uns8*)&tmp, &node->svc_policy.category_bit_map, param_val->i_length);
          nworder = htonl(tmp);
-         m_NCS_OS_MEMCPY((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
+         memcpy((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
          param_val->info.i_oct = (uns8*)buffer;
          break;
 
       case ncsDtsvNodeSeverityBitMap_ID:
          param_val->i_length = sizeof(uns8);
-         /*m_NCS_OS_MEMCPY((uns8*)&tmp, &node->svc_policy.severity_bit_map, param_val->i_length);*/
+         /*memcpy((uns8*)&tmp, &node->svc_policy.severity_bit_map, param_val->i_length);*/
          param_val->info.i_oct = (uns8*)&node->svc_policy.severity_bit_map; 
          break;
 
@@ -1081,7 +1081,7 @@ uns32 dtsv_node_extract_oct(NCSMIB_PARAM_VAL *param_val,
    }
 
    /*nworder = htonl(tmp);
-   m_NCS_OS_MEMCPY((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
+   memcpy((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
 
    param_val->info.i_oct = (uns8*)buffer;*/
   

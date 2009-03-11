@@ -251,7 +251,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
          dom_args->chassis_id = 2;  /* don't mind, it will be discovered internally */
          dom_args->session_valid = 1;
 
-         m_NCS_MEMCPY(&dom_args->entry, &entry, sizeof(SaHpiRptEntryT));
+         memcpy(&dom_args->entry, &entry, sizeof(SaHpiRptEntryT));
 
          m_LOG_HISV_DTS_CONS("hisv_hcd_init: HPI Discovering Resources...\n");
          /* discover the HPI resources */

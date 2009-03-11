@@ -500,7 +500,7 @@ ifd_same_dst_all_intf_rec_mark_del (MDS_DEST *dest, IFSV_CB *ifsv_cb)
    IFD_IFND_NODE_ID_INFO_REC *rec = NULL;
    MDS_DEST mds_dest;
 
-   m_NCS_MEMCPY(&mds_dest,dest, sizeof(MDS_DEST));
+   memcpy(&mds_dest,dest, sizeof(MDS_DEST));
    node_id = m_NCS_NODE_ID_FROM_MDS_DEST(mds_dest);
 
    /* Add the node id of the DOWN IfND in the Patricia tree.*/ 
@@ -1075,7 +1075,7 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
    if ((rec_evt == IFSV_INTF_REC_ADD) || (rec_evt == IFSV_INTF_REC_MODIFY))
    {
      evt->type = IFND_EVT_INTF_CREATE;
-     m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create.intf_data,
+     memcpy(&evt->info.ifnd_evt.info.intf_create.intf_data,
      intf_data, sizeof(IFSV_INTF_DATA));
 
      evt->info.ifnd_evt.info.intf_create.if_attr = attr;

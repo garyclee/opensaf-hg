@@ -367,7 +367,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
       return m_NCS_SPRR_DBG_SINK(NCSCC_RC_FAILURE, "Bad instance name length");
    }
    spir_key.instance_name.length = m_HTON_SANAMET_LEN(info->i_instance_name.length);
-   m_NCS_MEMCPY(spir_key.instance_name.value, info->i_instance_name.value, info->i_instance_name.length);
+   memcpy(spir_key.instance_name.value, info->i_instance_name.value, info->i_instance_name.length);
 
    
    /*---STEP : Validate the "environment-id" given and copy it */
@@ -564,7 +564,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
          lib_req.info.inst.i_env_id = spir_entry->key.environment_id;
          lib_req.info.inst.i_inst_name.length = 
             m_NTOH_SANAMET_LEN(spir_entry->key.instance_name.length);
-         m_NCS_MEMCPY(lib_req.info.inst.i_inst_name.value,
+         memcpy(lib_req.info.inst.i_inst_name.value,
             spir_entry->key.instance_name.value, 
             lib_req.info.inst.i_inst_name.length);
          lib_req.info.inst.o_arg = info->info.lookup_create_inst.o_arg; /* o_arg should actually be io_arg? */
@@ -625,7 +625,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
          lib_req.info.uninst.i_env_id = spir_entry->key.environment_id;
          lib_req.info.uninst.i_inst_name.length = 
             m_NTOH_SANAMET_LEN(spir_entry->key.instance_name.length);
-         m_NCS_MEMCPY(lib_req.info.uninst.i_inst_name.value,
+         memcpy(lib_req.info.uninst.i_inst_name.value,
             spir_entry->key.instance_name.value, 
             lib_req.info.uninst.i_inst_name.length);
          lib_req.info.uninst.i_inst_hdl = spir_entry->handle;

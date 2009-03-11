@@ -1891,7 +1891,7 @@ uns32 cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info,CPND_CKPT_NODE *cp_no
    m_NCS_OS_MEMSET(&sec_hdr,'\0',sizeof(CPSV_SECT_HDR));
    sec_hdr.lcl_sec_id    = sec_info->lcl_sec_id;
    sec_hdr.idLen         = sec_info->sec_id.idLen;
-   m_NCS_MEMCPY(sec_hdr.id,sec_info->sec_id.id,sec_info->sec_id.idLen);
+   memcpy(sec_hdr.id,sec_info->sec_id.id,sec_info->sec_id.idLen);
    sec_hdr.sec_state     = sec_info->sec_state;
    sec_hdr.sec_size      = sec_info->sec_size;
    sec_hdr.exp_tmr       = sec_info->exp_tmr;

@@ -360,7 +360,7 @@ AVND_COMP * avnd_internode_comp_add (NCS_PATRICIA_TREE *ptree, SaNameT *name,
    m_NCS_OS_MEMSET(comp, 0, sizeof(AVND_COMP));
        
    /* update the comp-name (patricia key) */
-   m_NCS_OS_MEMCPY(&comp->name_net, name, sizeof(SaNameT));
+   memcpy(&comp->name_net, name, sizeof(SaNameT));
        
    comp->pres = NCS_PRES_UNINSTANTIATED;
 

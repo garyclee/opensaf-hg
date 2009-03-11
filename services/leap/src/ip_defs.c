@@ -172,7 +172,7 @@ ncssock_ipv6_rcv_msg (NCS_SOCKET_ENTRY *se, char *buf, uns32 buf_len,
          ptr = (struct in6_pktinfo *) CMSG_DATA (cmsgptr);
          pkt_info->if_index      = ptr->ipi6_ifindex;
          pkt_info->dst_addr.type = NCS_IP_ADDR_TYPE_IPV6;
-         m_NCS_OS_MEMCPY(&pkt_info->dst_addr.info.v6, &ptr->ipi6_addr, 
+         memcpy(&pkt_info->dst_addr.info.v6, &ptr->ipi6_addr, 
             sizeof(NCS_IPV6_ADDR));         
       }
       
@@ -251,7 +251,7 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
   m_NCS_OS_MEMSET (&nbo_ipv6, 0x0, m_IPV6_ADDR_SIZE);
   m_NCS_OS_MEMSET(&ifc,0,sizeof(ifc));
   
-  m_NCS_OS_MEMCPY (&nbo_ipv6, &hbo_ipv6, m_IPV6_ADDR_SIZE);
+  memcpy (&nbo_ipv6, &hbo_ipv6, m_IPV6_ADDR_SIZE);
     
   if((s = socket(PF_INET6,SOCK_DGRAM,0)) < 0)
     return -1;
@@ -394,7 +394,7 @@ os_ifidx_to_ipv6(unsigned int ifIndex, NCS_IPV6_ADDR *ip_addr)
        if(ioctl(s,SIOCGIFADDR,(int)&ifra) < 0)
           break;
        sin = (struct sockaddr_in6*)&ifra.ifr_addr;
-       m_NCS_OS_MEMCPY (ip_addr, &sin->sin6_addr, m_IPV6_ADDR_SIZE);       
+       memcpy (ip_addr, &sin->sin6_addr, m_IPV6_ADDR_SIZE);       
        break;
     }
   }

@@ -159,7 +159,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
     * Update the config parameters.
     */
    /* update the su-name (patricia key) */
-   m_NCS_OS_MEMCPY(&su->name_net, &info->name_net, sizeof(SaNameT));
+   memcpy(&su->name_net, &info->name_net, sizeof(SaNameT));
 
    /* update error recovery escalation parameters */
    su->comp_restart_prob = info->comp_restart_prob;

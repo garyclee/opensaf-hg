@@ -538,7 +538,7 @@ static uns32 gla_mds_rcv(GLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    {
      /*allocate the memory */
      gla_callbk_info = m_MMGR_ALLOC_GLA_CALLBACK_INFO;
-     m_NCS_MEMCPY(gla_callbk_info,&evt->info.gla_clbk_info,sizeof(GLSV_GLA_CALLBACK_INFO));
+     memcpy(gla_callbk_info,&evt->info.gla_clbk_info,sizeof(GLSV_GLA_CALLBACK_INFO));
       /* Stop & Destroy the timer */
      switch(gla_callbk_info->callback_type)
      {

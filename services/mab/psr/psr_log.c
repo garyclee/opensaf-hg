@@ -171,7 +171,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 param_info.param_id = (uns32)arg->rsp.info.get_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) arg->rsp.info.get_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)arg->rsp.info.get_rsp.i_param_val.i_length;
-                m_NCS_MEMCPY(&l_param_val, &arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = arg->rsp.i_status;
 
                 log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
@@ -191,7 +191,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 param_info.param_id = (uns32)arg->rsp.info.next_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) arg->rsp.info.next_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)arg->rsp.info.next_rsp.i_param_val.i_length;
-                m_NCS_MEMCPY(&l_param_val, &arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = arg->rsp.i_status;
 
                 log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
@@ -204,7 +204,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 param_info.param_id = (uns32)arg->req.info.set_req.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) arg->req.info.set_req.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)arg->req.info.set_req.i_param_val.i_length;
-                m_NCS_MEMCPY(&l_param_val, &arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
 
                 log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
                 log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
@@ -218,7 +218,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 param_info.param_id = (uns32)arg->rsp.info.set_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) arg->rsp.info.set_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)arg->rsp.info.set_rsp.i_param_val.i_length;
-                m_NCS_MEMCPY(&l_param_val, &arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = arg->rsp.i_status;
 
                 log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
@@ -242,7 +242,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                    param_info.param_id = (uns32)pv.i_param_id;
                    param_info.fmt_id =(uns32)pv.i_fmat_id;
                    param_info.i_len = (uns32)pv.i_length;
-                   m_NCS_MEMCPY(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
+                   memcpy(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
                    log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);
@@ -275,7 +275,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                    param_info.param_id = (uns32)pv.i_param_id;
                    param_info.fmt_id =(uns32)pv.i_fmat_id;
                    param_info.i_len = (uns32)pv.i_length;
-                   m_NCS_MEMCPY(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
+                   memcpy(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
                    log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);
@@ -332,7 +332,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       param_info.param_id = (uns32)pv.i_param_id;
                       param_info.fmt_id =(uns32)pv.i_fmat_id;
                       param_info.i_len = (uns32)pv.i_length;
-                      m_NCS_MEMCPY(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
+                      memcpy(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
                       log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
                       log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
                       m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);
@@ -395,7 +395,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       param_info.param_id = (uns32)pv.i_param_id;
                       param_info.fmt_id =(uns32)pv.i_fmat_id;
                       param_info.i_len = (uns32)pv.i_length;
-                      m_NCS_MEMCPY(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
+                      memcpy(&l_param_val, &pv, sizeof(NCSMIB_PARAM_VAL));
                       log_mem_dump.len = sizeof(PSS_LOG_PARAM_INFO);
                       log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
                       m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);

@@ -518,7 +518,7 @@ snmpsubagt_mab_oid_compose(oid             *io_oid,
     m_NCS_MEMSET(io_oid, 0, (*io_oid_length)*(sizeof(oid)));
     
     /* we have enough memory, compose the new instance */
-    m_NCS_OS_MEMCPY(io_oid, i_base_oid, i_base_oid_len*sizeof(oid));
+    memcpy(io_oid, i_base_oid, i_base_oid_len*sizeof(oid));
     
     /* 1. Move to update the column id */
     io_oid = io_oid+i_base_oid_len/*+1*/;
@@ -699,7 +699,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
                 param_info.param_id = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) io_mib_arg->rsp.info.get_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_length;  
-                m_NCS_MEMCPY(&l_param_val, &io_mib_arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &io_mib_arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = io_mib_arg->rsp.i_status; 
           break; 
 
@@ -711,7 +711,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
                 param_info.param_id = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) io_mib_arg->rsp.info.next_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_length;  
-                m_NCS_MEMCPY(&l_param_val, &io_mib_arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &io_mib_arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = io_mib_arg->rsp.i_status; 
           break; 
  
@@ -720,7 +720,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
                 param_info.param_id = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) io_mib_arg->req.info.set_req.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_length;  
-                m_NCS_MEMCPY(&l_param_val, &io_mib_arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &io_mib_arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
           break;
           
           case  NCSMIB_OP_RSP_SET:
@@ -728,7 +728,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
                 param_info.param_id = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_param_id;
                 param_info.fmt_id =(uns32) io_mib_arg->rsp.info.set_rsp.i_param_val.i_fmat_id;
                 param_info.i_len = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_length;  
-                m_NCS_MEMCPY(&l_param_val, &io_mib_arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+                memcpy(&l_param_val, &io_mib_arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
                 param_info.status   = io_mib_arg->rsp.i_status; 
           break;
   

@@ -120,7 +120,7 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
    }
 
    /* copy the common fields */
-   m_NCS_OS_MEMCPY(dmsg, smsg, sizeof(AVND_MSG));
+   memcpy(dmsg, smsg, sizeof(AVND_MSG));
 
    switch (smsg->type)
    {

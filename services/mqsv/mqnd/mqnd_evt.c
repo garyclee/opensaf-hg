@@ -1164,7 +1164,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
                                                           snd_msg->messageInfo.sender.sender_context.reply_buffer_size;
    }
 
-   m_NCS_OS_MEMCPY(mqsv_msg->info.msg.message.data, snd_msg->message.data, (uns32)snd_msg->message.size);
+   memcpy(mqsv_msg->info.msg.message.data, snd_msg->message.data, (uns32)snd_msg->message.size);
    mqsv_msg->info.msg.message.priority = snd_msg->message.priority;
    mqsv_msg->info.msg.message.size = snd_msg->message.size;
    mqsv_msg->info.msg.message.type = snd_msg->message.type;

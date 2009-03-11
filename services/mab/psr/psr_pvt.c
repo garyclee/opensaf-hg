@@ -2184,7 +2184,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
     m_NCS_MEMSET(tbl_data->key, 0, tbl_info->max_key_length);
 
     pNode->key_info = tbl_data->key;
-    m_NCS_MEMCPY(tbl_data->key, (uns8*)&pkey, tbl_info->max_key_length);
+    memcpy(tbl_data->key, (uns8*)&pkey, tbl_info->max_key_length);
 
     retval = ncs_patricia_tree_add(pTree, pNode);
     if (retval != NCSCC_RC_SUCCESS)
@@ -2322,7 +2322,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
         }
         if (var_info->var_length == TRUE)
         {
-            m_NCS_MEMCPY(&len16, pData->data + offset, sizeof(uns16));
+            memcpy(&len16, pData->data + offset, sizeof(uns16));
             if (len16 < param->i_length)
                 len16 = param->i_length;
 
@@ -2338,7 +2338,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                   {
                      m_NCS_MEMSET(pData->data + offset, 0,
                         max_len + sizeof(uns16));
-                     m_NCS_MEMCPY(pData->data + offset, &param->i_length, sizeof(uns16));
+                     memcpy(pData->data + offset, &param->i_length, sizeof(uns16));
                      pData->dirty = TRUE;  /* Need force a set back to the user, during playback */
                   }
                   break;
@@ -2346,8 +2346,8 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                
                m_NCS_MEMSET(pData->data + offset, 0,
                   max_len + sizeof(uns16));
-               m_NCS_MEMCPY(pData->data + offset, &param->i_length, sizeof(uns16));
-               m_NCS_MEMCPY(pData->data + offset + sizeof(uns16), param->info.i_oct,
+               memcpy(pData->data + offset, &param->i_length, sizeof(uns16));
+               memcpy(pData->data + offset + sizeof(uns16), param->info.i_oct,
                   param->i_length);
                pData->dirty = TRUE;
             }
@@ -2369,7 +2369,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
             }
 
             m_NCS_MEMSET(pData->data + offset, 0, var_info->var_info.len);
-            m_NCS_MEMCPY(pData->data + offset, param->info.i_oct, param->i_length);
+            memcpy(pData->data + offset, param->info.i_oct, param->i_length);
             pData->dirty = TRUE;
         }
 
@@ -2402,7 +2402,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                break;
             }
 
-            m_NCS_MEMCPY(pData->data + offset, &data16, sizeof(uns16));
+            memcpy(pData->data + offset, &data16, sizeof(uns16));
             pData->dirty = TRUE;
             break;
 
@@ -2416,7 +2416,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                break;
             }
 
-            m_NCS_MEMCPY(pData->data + offset, & param->info.i_int, sizeof(uns32));
+            memcpy(pData->data + offset, & param->info.i_int, sizeof(uns32));
             pData->dirty = TRUE;
             break;
 
@@ -2437,7 +2437,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
            break;
         }
 
-        m_NCS_MEMCPY(pData->data + offset, & data_bool, sizeof(NCS_BOOL)); /* Fix verification post SP03. TBD */
+        memcpy(pData->data + offset, & data_bool, sizeof(NCS_BOOL)); /* Fix verification post SP03. TBD */
         pData->dirty = TRUE;
         break;
 
@@ -2519,7 +2519,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
         }
         if (var_info->var_length == TRUE)
         {
-            m_NCS_MEMCPY(&len16, pData + offset, sizeof(uns16));
+            memcpy(&len16, pData + offset, sizeof(uns16));
             if (len16 < param->i_length)
                 len16 = param->i_length;
 
@@ -2535,7 +2535,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                   {
                      m_NCS_MEMSET(pData + offset, 0,
                         max_len + sizeof(uns16));
-                     m_NCS_MEMCPY(pData + offset, &param->i_length, sizeof(uns16));
+                     memcpy(pData + offset, &param->i_length, sizeof(uns16));
                      tbl_rec->dirty = TRUE;  /* Need force a set back to the user, during playback */
                   }
                   break;
@@ -2543,8 +2543,8 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                
                m_NCS_MEMSET(pData + offset, 0,
                   max_len + sizeof(uns16));
-               m_NCS_MEMCPY(pData + offset, &param->i_length, sizeof(uns16));
-               m_NCS_MEMCPY(pData + offset + sizeof(uns16), param->info.i_oct,
+               memcpy(pData + offset, &param->i_length, sizeof(uns16));
+               memcpy(pData + offset + sizeof(uns16), param->info.i_oct,
                   param->i_length);
                tbl_rec->dirty = TRUE;
             }
@@ -2567,7 +2567,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
             }
 
             m_NCS_MEMSET(pData + offset, 0, var_info->var_info.len);
-            m_NCS_MEMCPY(pData + offset, param->info.i_oct, param->i_length);
+            memcpy(pData + offset, param->info.i_oct, param->i_length);
             tbl_rec->dirty = TRUE;
         }
         break;
@@ -2599,7 +2599,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                 break;
             }
 
-            m_NCS_MEMCPY(pData + offset, &data16, sizeof(uns16));
+            memcpy(pData + offset, &data16, sizeof(uns16));
             tbl_rec->dirty = TRUE;
             break;
 
@@ -2613,7 +2613,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                 break;
             }
 
-            m_NCS_MEMCPY(pData + offset, & param->info.i_int, sizeof(uns32));
+            memcpy(pData + offset, & param->info.i_int, sizeof(uns32));
             tbl_rec->dirty = TRUE;
             break;
 
@@ -2634,7 +2634,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
            break;
         }
 
-        m_NCS_MEMCPY(pData + offset, & data_bool, sizeof(NCS_BOOL));
+        memcpy(pData + offset, & data_bool, sizeof(NCS_BOOL));
         tbl_rec->dirty = TRUE;
         break;
 
@@ -2684,7 +2684,7 @@ uns32 pss_apply_inst_ids_to_node(PSS_MIB_TBL_INFO * tbl_info,
                 if (var_info->var_length == TRUE)
                 {
                     len16 = (uns16)(inst_ids[num_inst_ids++]);
-                    m_NCS_MEMCPY(ptr, &len16, sizeof(uns16));
+                    memcpy(ptr, &len16, sizeof(uns16));
                     ptr += sizeof(uns16);
                 }
                 else
@@ -2710,11 +2710,11 @@ uns32 pss_apply_inst_ids_to_node(PSS_MIB_TBL_INFO * tbl_info,
 
                 case sizeof(uns16):
                     data16 = (uns16) inst_ids[num_inst_ids];
-                    m_NCS_MEMCPY(ptr, &data16, sizeof(uns16));
+                    memcpy(ptr, &data16, sizeof(uns16));
                     break;
 
                 case sizeof(uns32):
-                    m_NCS_MEMCPY(ptr, &inst_ids[num_inst_ids], sizeof(uns32));
+                    memcpy(ptr, &inst_ids[num_inst_ids], sizeof(uns32));
                     break;
 
                 default:
@@ -2728,7 +2728,7 @@ uns32 pss_apply_inst_ids_to_node(PSS_MIB_TBL_INFO * tbl_info,
             case NCSMIB_FMAT_BOOL:
                 data_bool = (NCS_BOOL) inst_ids[num_inst_ids];
                 num_inst_ids++;
-                m_NCS_MEMCPY(ptr, &data_bool, sizeof(NCS_BOOL));
+                memcpy(ptr, &data_bool, sizeof(NCS_BOOL));
                 break;
 
             default:
@@ -3129,12 +3129,12 @@ uns32 pss_get_inst_ids_from_data(PSS_MIB_TBL_INFO * tbl_info,
                     break;
 
                 case (sizeof(uns16)):
-                    m_NCS_MEMCPY(&data16, buffer + offset, sizeof(uns16));
+                    memcpy(&data16, buffer + offset, sizeof(uns16));
                     pinst_ids[inst_num] = (uns32) data16;
                     break;
 
                 case (sizeof(uns32)):
-                    m_NCS_MEMCPY(&pinst_ids[inst_num], buffer + offset, sizeof(uns32));
+                    memcpy(&pinst_ids[inst_num], buffer + offset, sizeof(uns32));
                     break;
 
                 default:
@@ -3150,7 +3150,7 @@ uns32 pss_get_inst_ids_from_data(PSS_MIB_TBL_INFO * tbl_info,
             {
                 if (var_info->var_length == TRUE)
                 {
-                    m_NCS_MEMCPY(&len16, buffer + offset, sizeof(uns16));
+                    memcpy(&len16, buffer + offset, sizeof(uns16));
                     pinst_ids[inst_num++] = len16;
                     offset += sizeof(uns16);
                 }
@@ -3173,7 +3173,7 @@ uns32 pss_get_inst_ids_from_data(PSS_MIB_TBL_INFO * tbl_info,
 
         case NCSMIB_FMAT_BOOL:
             {
-                m_NCS_MEMCPY(&data_bool, buffer + offset, sizeof(NCS_BOOL));
+                memcpy(&data_bool, buffer + offset, sizeof(NCS_BOOL));
                 pinst_ids[inst_num++] = (uns32) data_bool;
             }
             break;
@@ -3468,7 +3468,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                 ncsrow_enc_init(&ra);
                 if (i == 0) /* Preserve the first inst ids */
                 {
-                    m_NCS_OS_MEMCPY(pinst_ids_first, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
+                    memcpy(pinst_ids_first, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
                     idx_first.i_inst_len = idx.i_inst_len;
                 }
                 ncsrow_enc_inst_ids(&ra, &idx);
@@ -3509,11 +3509,11 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                         pv.info.i_int = (uns32) (*((uns8 *)(ptr + param_offset)));
                         break;
                     case sizeof(uns16):
-                        m_NCS_OS_MEMCPY(&data16, ptr + param_offset, sizeof(uns16));
+                        memcpy(&data16, ptr + param_offset, sizeof(uns16));
                         pv.info.i_int = (uns32) data16;
                         break;
                     case sizeof(uns32):
-                        m_NCS_OS_MEMCPY(&pv.info.i_int, ptr + param_offset, sizeof(uns32));
+                        memcpy(&pv.info.i_int, ptr + param_offset, sizeof(uns32));
                         break;
                     default:
                         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -3525,7 +3525,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                         NCS_BOOL data_bool;
                         pv.i_fmat_id = NCSMIB_FMAT_INT;
                         pv.i_param_id = tbl_info->pfields[j].var_info.param_id;
-                        m_NCS_OS_MEMCPY(&data_bool, ptr + param_offset, sizeof(NCS_BOOL));
+                        memcpy(&data_bool, ptr + param_offset, sizeof(NCS_BOOL));
                         pv.info.i_int = (uns32) data_bool;
                     }
                     break;
@@ -3535,7 +3535,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                         PSS_VAR_INFO * var_info = &(tbl_info->pfields[j]);
                         if (var_info->var_length == TRUE)
                         {
-                            m_NCS_MEMCPY(&pv.i_length, ptr + param_offset, sizeof(uns16));
+                            memcpy(&pv.i_length, ptr + param_offset, sizeof(uns16));
                             param_offset += sizeof(uns16);
                         }
                         else
@@ -3620,7 +3620,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                        /* Send Async updates to Standby */
                        pwe_cb->curr_plbck_ssn_info.tbl_id = tbl_rec->tbl_id;
                        pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len = idx.i_inst_len;
-                       m_NCS_OS_MEMCPY(pinst_re_ids, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
+                       memcpy(pinst_re_ids, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
                        pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids = pinst_re_ids;
                        pwe_cb->curr_plbck_ssn_info.mib_obj_id = pv.i_param_id;
                        m_PSS_RE_PLBCK_SSN_INFO(pwe_cb, &pwe_cb->curr_plbck_ssn_info);
@@ -3724,7 +3724,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                    /* Send Async updates to Standby */
                    pwe_cb->curr_plbck_ssn_info.tbl_id = tbl_rec->tbl_id;
                    pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len = idx.i_inst_len;
-                   m_NCS_OS_MEMCPY(pinst_re_ids, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
+                   memcpy(pinst_re_ids, pinst_ids, tbl_info->num_inst_ids * sizeof(uns32));
                    pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids = pinst_re_ids;
                    pwe_cb->curr_plbck_ssn_info.mib_obj_id = 0;
                    m_PSS_RE_PLBCK_SSN_INFO(pwe_cb, &pwe_cb->curr_plbck_ssn_info);
@@ -3802,7 +3802,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
           /* Send Async updates to Standby */
           pwe_cb->curr_plbck_ssn_info.tbl_id = tbl_rec->tbl_id;
           pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_len = idx_first.i_inst_len;
-          m_NCS_OS_MEMCPY(pinst_re_ids, idx_first.i_inst_ids, tbl_info->num_inst_ids * sizeof(uns32));
+          memcpy(pinst_re_ids, idx_first.i_inst_ids, tbl_info->num_inst_ids * sizeof(uns32));
           pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids = pinst_re_ids;
           pwe_cb->curr_plbck_ssn_info.mib_obj_id = 0;
           m_PSS_RE_PLBCK_SSN_INFO(pwe_cb, &pwe_cb->curr_plbck_ssn_info);
@@ -3992,11 +3992,11 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
                 pv.info.i_int = (uns32) (*((uns8 *)(curr_data + param_offset)));
                 break;
             case sizeof(uns16):
-                m_NCS_OS_MEMCPY(&data16, curr_data + param_offset, sizeof(uns16));
+                memcpy(&data16, curr_data + param_offset, sizeof(uns16));
                 pv.info.i_int = (uns32) data16;
                 break;
             case sizeof(uns32):
-                m_NCS_OS_MEMCPY(&pv.info.i_int, curr_data + param_offset, sizeof(uns32));
+                memcpy(&pv.info.i_int, curr_data + param_offset, sizeof(uns32));
                 break;
             default:
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -4008,7 +4008,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
                 NCS_BOOL data_bool;
                 pv.i_fmat_id = NCSMIB_FMAT_INT;
                 pv.i_param_id = tbl_info->pfields[j].var_info.param_id;
-                m_NCS_OS_MEMCPY(&data_bool, curr_data + param_offset, sizeof(NCS_BOOL));
+                memcpy(&data_bool, curr_data + param_offset, sizeof(NCS_BOOL));
                 pv.info.i_int = (uns32) data_bool;
             }
             break;
@@ -4018,7 +4018,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
                 PSS_VAR_INFO * var_info = &(tbl_info->pfields[j]);
                 if (var_info->var_length == TRUE)
                 {
-                    m_NCS_MEMCPY(&pv.i_length, curr_data + param_offset, sizeof(uns16));
+                    memcpy(&pv.i_length, curr_data + param_offset, sizeof(uns16));
                     param_offset += sizeof(uns16);
                 }
                 else
@@ -4343,9 +4343,9 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
 
         m_NCS_MEMSET(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
         /* Filling the current profile, pwe_id, pcn and table_id */
-        m_NCS_MEMCPY(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
+        memcpy(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
         ps_file_record.pwe_id = pwe_cb->pwe_id;
-        m_NCS_MEMCPY(&ps_file_record.pcn, &p_pcn, NCSMIB_PCN_LENGTH_MAX);
+        memcpy(&ps_file_record.pcn, &p_pcn, NCSMIB_PCN_LENGTH_MAX);
         ps_file_record.tbl_id = tbl_id;
         /* Write the table details header into temp file */
         retval = pss_tbl_details_header_write(inst, inst->pssts_hdl, tfile_hdl, &ps_file_record);
@@ -4420,7 +4420,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         {
             if (pData->deleted == FALSE)
             {
-                m_NCS_OS_MEMCPY(out_ptr, pData->data, row_size);
+                memcpy(out_ptr, pData->data, row_size);
                 out_ptr += row_size;
                 out_rows_filled++;
             }
@@ -4437,7 +4437,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         }
         else if (res > 0)
         {
-            m_NCS_MEMCPY(out_ptr, in_ptr, row_size);
+            memcpy(out_ptr, in_ptr, row_size);
             out_ptr += row_size;
             out_rows_filled++;
             in_ptr += row_size;
@@ -4556,7 +4556,7 @@ write_tree_to_file:
             pData = (PSS_MIB_TBL_DATA *)pNode;
             if (pData->deleted == FALSE)
             {
-                m_NCS_MEMCPY(out_ptr, pData->data, row_size);
+                memcpy(out_ptr, pData->data, row_size);
                 out_ptr += row_size;
                 out_rows_filled++;
             }
@@ -4722,9 +4722,9 @@ uns32 pss_save_to_sclr_store(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
 
     m_NCS_MEMSET(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
     /* Filling the current profile, pwe_id, pcn and table_id */
-    m_NCS_MEMCPY(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
+    memcpy(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
     ps_file_record.pwe_id = pwe_cb->pwe_id;
-    m_NCS_MEMCPY(&ps_file_record.pcn, &p_pcn, NCSMIB_PCN_LENGTH_MAX);
+    memcpy(&ps_file_record.pcn, &p_pcn, NCSMIB_PCN_LENGTH_MAX);
     ps_file_record.tbl_id = tbl_id;
     /* Write the table details header into temp file */
     retval = pss_tbl_details_header_write(inst, inst->pssts_hdl, tfile_hdl, &ps_file_record);
@@ -4923,12 +4923,12 @@ uns32 pss_get_key_from_data(PSS_MIB_TBL_INFO * tbl_info,
                     break;
 
                 case (sizeof(uns16)):
-                    m_NCS_MEMCPY(&data16, buffer + offset, sizeof(uns16));
+                    memcpy(&data16, buffer + offset, sizeof(uns16));
                     ncs_encode_16bit(&ptr, data16);
                     break;
 
                 case (sizeof(uns32)):
-                    m_NCS_MEMCPY(&data32, buffer + offset, sizeof(uns32));
+                    memcpy(&data32, buffer + offset, sizeof(uns32));
                     ncs_encode_32bit(&ptr, data32);
                     break;
 
@@ -4945,7 +4945,7 @@ uns32 pss_get_key_from_data(PSS_MIB_TBL_INFO * tbl_info,
  
                 if (var_info->var_length == TRUE)
                 {
-                    m_NCS_MEMCPY(&len16, (buffer + offset), sizeof(uns16));
+                    memcpy(&len16, (buffer + offset), sizeof(uns16));
                     offset += sizeof(uns16);
                     if(var_info->var_info.obj_type == NCSMIB_OCT_DISCRETE_OBJ_TYPE)
                        max_len = ncsmiblib_get_max_len_of_discrete_octet_string(&var_info->var_info);
@@ -5335,11 +5335,11 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 pv.info.i_int = (uns32) (*((uns8 *)(alt_data + param_offset)));
                 break;
             case sizeof(uns16):
-                m_NCS_OS_MEMCPY(&data16, alt_data + param_offset, sizeof(uns16));
+                memcpy(&data16, alt_data + param_offset, sizeof(uns16));
                 pv.info.i_int = (uns32) data16;
                 break;
             case sizeof(uns32):
-                m_NCS_OS_MEMCPY(&pv.info.i_int, alt_data + param_offset, sizeof(uns32));
+                memcpy(&pv.info.i_int, alt_data + param_offset, sizeof(uns32));
                 break;
             default:
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -5351,7 +5351,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                     NCS_BOOL data_bool;
                     pv.i_fmat_id = NCSMIB_FMAT_INT;
                     pv.i_param_id = tbl_info->pfields[j].var_info.param_id;
-                    m_NCS_OS_MEMCPY(&data_bool, alt_data + param_offset, sizeof(NCS_BOOL));
+                    memcpy(&data_bool, alt_data + param_offset, sizeof(NCS_BOOL));
                     pv.info.i_int = (uns32) data_bool;
                 }
                 break;
@@ -5361,7 +5361,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                     PSS_VAR_INFO * var_info = &(tbl_info->pfields[j]);
                     if (var_info->var_length == TRUE)
                     {
-                        m_NCS_MEMCPY(&pv.i_length, alt_data + param_offset, sizeof(uns16));
+                        memcpy(&pv.i_length, alt_data + param_offset, sizeof(uns16));
                         param_offset += sizeof(uns16);
                     }
                     else

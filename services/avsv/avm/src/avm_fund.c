@@ -45,7 +45,7 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
     /* avm_fund_get_scxb_ipaddr(&out_usr_buf); - remove later - JPL */
    
     /* vivek_avm */
-    m_NCS_MEMCPY(local_helper, ent_info->dhcp_serv_conf.ipmc_helper_node.name, ent_info->dhcp_serv_conf.ipmc_helper_node.length);
+    memcpy(local_helper, ent_info->dhcp_serv_conf.ipmc_helper_node.name, ent_info->dhcp_serv_conf.ipmc_helper_node.length);
     extract_slot_shelf_subslot(local_helper, &sss);
 
     inst_ids[0] =  htons(sss.slot);
@@ -68,7 +68,7 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
        return NCSCC_RC_FAILURE;
     }
     
-    m_NCS_OS_MEMCPY(buff_ptr,
+    memcpy(buff_ptr,
                    &out_usr_buf,
                    sizeof(AVM_FUND_USR_BUF));
 
@@ -395,7 +395,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                      /* Set the preferred label also to other label */
                      dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-                     m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                     memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                                   dhcp_conf->pref_label.length);
 
                      dhcp_conf->default_chg = FALSE;      /* TBD - JPL */
@@ -910,7 +910,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
             /* Set the preferred label also to other label */
             dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-            m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+            memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                          dhcp_conf->pref_label.length);
          
             dhcp_conf->default_chg = FALSE; 
@@ -1055,7 +1055,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
                dhcp_conf->default_label = dhcp_conf->default_label->other_label;
                dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-               m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+               memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                             dhcp_conf->pref_label.length);
 
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name,

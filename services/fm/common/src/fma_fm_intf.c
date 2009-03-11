@@ -131,7 +131,7 @@ uns32 fma_fm_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
    }
 
    m_NCS_OS_MEMSET(dst_msg, 0, sizeof(FMA_FM_MSG));
-   m_NCS_MEMCPY(dst_msg, src_msg, sizeof(FMA_FM_MSG));
+   memcpy(dst_msg, src_msg, sizeof(FMA_FM_MSG));
 
    /** Is this the rite thing to do !!! **/
    cpy_info->o_cpy = dst_msg;

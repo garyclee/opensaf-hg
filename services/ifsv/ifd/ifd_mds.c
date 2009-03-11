@@ -386,7 +386,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
   IFSV_TMR     *tmr=IFSV_NULL;
   uns32        ii;
 
-  m_NCS_MEMCPY(&mds_dest,&svc_evt->i_dest, sizeof(MDS_DEST));
+  memcpy(&mds_dest,&svc_evt->i_dest, sizeof(MDS_DEST));
 
    switch (svc_evt->i_change) 
    {
@@ -434,7 +434,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
              {
                 m_NCS_CONS_PRINTF("Marking %dth Entry to be deleted \n",ii);
                 cb->ifnd_mds_addr[ii].valid = TRUE;
-                m_NCS_MEMCPY(&cb->ifnd_mds_addr[ii].ifndAddr,&svc_evt->i_dest, sizeof(MDS_DEST));
+                memcpy(&cb->ifnd_mds_addr[ii].ifndAddr,&svc_evt->i_dest, sizeof(MDS_DEST));
                 break;
              }
           }  
@@ -648,7 +648,7 @@ static uns32 ifd_mds_ifnd_down_evt(MDS_DEST *mds_dest, IFSV_CB *ifsv_cb)
    pEvt->type = IFD_EVT_IFND_DOWN;
    /* Fill IFD CB handle in the received message */
    pEvt->cb_hdl  = ifsv_cb->cb_hdl;
-   m_NCS_MEMCPY(&pEvt->info.ifd_evt.info.mds_dest, mds_dest, sizeof(MDS_DEST));
+   memcpy(&pEvt->info.ifd_evt.info.mds_dest, mds_dest, sizeof(MDS_DEST));
 
    /* Put it in MQD's Event Queue */
    rc =m_IFD_EVT_SEND(&ifsv_cb->mbx, pEvt, NCS_IPC_PRIORITY_NORMAL);

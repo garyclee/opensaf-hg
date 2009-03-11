@@ -282,7 +282,7 @@ static uns32 mqa_mds_cpy(MQA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy)
    pEvt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQA); 
   
    if(pEvt) {
-      m_NCS_MEMCPY(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
+      memcpy(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
       if(MQSV_EVT_ASAPI == pEvt->type) {
          pEvt->msg.asapi->usg_cnt++; /* Increment the use count */
       }
@@ -473,7 +473,7 @@ static uns32 mqa_mds_rcv(MQA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
           m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,2,__FILE__,__LINE__);
           return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMCPY(mqa_callbk_info,&evt->msg.mqp_async_rsp,sizeof(MQP_ASYNC_RSP_MSG));
+      memcpy(mqa_callbk_info,&evt->msg.mqp_async_rsp,sizeof(MQP_ASYNC_RSP_MSG));
 
       /* Stop the timer that was started for this request by matching the invocation
        * in the timer table. 

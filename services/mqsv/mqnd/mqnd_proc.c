@@ -118,7 +118,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
         opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
         opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-        m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+        memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                        sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
         /* Request the ASAPi */
@@ -148,7 +148,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
           opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
           opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-          m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+          memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                        sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
           rc = asapi_opr_hdlr(&opr);  /*May be insert a log*/
          }
@@ -282,7 +282,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
         }
 
          size = (uns32) (sizeof(MQSV_MESSAGE)+tmp_msg->info.msg.message.size);
-         m_NCS_OS_MEMCPY(mqsv_message, tmp_msg, size);
+         memcpy(mqsv_message, tmp_msg, size);
 
         offset+=size;
         mqsv_message += size;
@@ -364,7 +364,7 @@ reg_req:
     opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
     opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-    m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+    memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                        sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
     /* Request the ASAPi */
@@ -393,7 +393,7 @@ reg_req:
       opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
       opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-      m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+      memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                        sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
       rc = asapi_opr_hdlr(&opr);  /*May be insert a log*/
       err = SA_AIS_OK;
@@ -803,7 +803,7 @@ uns32 mqnd_proc_queue_open (MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *s
     
       cre_attr.creationFlags = qinfo->oinfo.qparam->creationFlags;
       cre_attr.retentionTime = qinfo->oinfo.qparam->retentionTime;
-      m_NCS_MEMCPY(cre_attr.size, qinfo->oinfo.qparam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
+      memcpy(cre_attr.size, qinfo->oinfo.qparam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
       /* SA_MSG_QUEUE_CREATE is set */
       if(m_MQND_IS_SA_MSG_QUEUE_CREATE_SET(open->openFlags)) 
@@ -1090,7 +1090,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
       opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
       opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-      m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+      memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                          sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
       /* Request the ASAPi */
@@ -1124,7 +1124,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
          opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
          opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-         m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
+         memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size,
                                          sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
          rc = asapi_opr_hdlr(&opr);  /*May be insert a log*/

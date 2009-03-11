@@ -1214,7 +1214,7 @@ saEvtEventAllocate( SaEvtChannelHandleT   channelHandle,
      evt_hdl_rec->retention_time = (SaTimeT)0;
      evt_hdl_rec->publisher_name.length = 0;
      m_NCS_MEMSET(evt_hdl_rec->publisher_name.value,'\0',SA_MAX_NAME_LENGTH);
-     m_NCS_MEMCPY(evt_hdl_rec->publisher_name.value,(uns8 *)"NULL",EDSV_DEF_NAME_LEN);
+     memcpy(evt_hdl_rec->publisher_name.value,(uns8 *)"NULL",EDSV_DEF_NAME_LEN);
      if(NULL == (evt_hdl_rec->pattern_array=m_MMGR_ALLOC_EVENT_PATTERN_ARRAY))
      {
        rc = SA_AIS_ERR_NO_MEMORY;
@@ -1712,7 +1712,7 @@ saEvtEventAttributesGet( SaEvtEventHandleT              eventHandle,
      if(o_publisherName)
      {
        o_publisherName->length = evt_hdl_rec->publisher_name.length;
-       m_NCS_MEMCPY((void *)o_publisherName->value, (void *)evt_hdl_rec->publisher_name.value,
+       memcpy((void *)o_publisherName->value, (void *)evt_hdl_rec->publisher_name.value,
                   evt_hdl_rec->publisher_name.length);
      }
      
@@ -1937,7 +1937,7 @@ saEvtEventDataGet( SaEvtEventHandleT   eventHandle,
    {
       if (evt_hdl_rec->evt_data != NULL)
       {
-          m_NCS_MEMCPY((void *)eventData,
+          memcpy((void *)eventData,
                  (void *)evt_hdl_rec->evt_data,
                  (uns32)evt_hdl_rec->event_data_size);
 
@@ -2172,7 +2172,7 @@ saEvtEventPublish( SaEvtEventHandleT   eventHandle,
 
       if(eventData != NULL)
       {
-         m_NCS_MEMCPY((void *)evt_hdl_rec->evt_data,
+         memcpy((void *)evt_hdl_rec->evt_data,
          (void *)eventData,
          (uns32)evt_hdl_rec->event_data_size);
       }

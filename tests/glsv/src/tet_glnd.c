@@ -168,7 +168,7 @@ uns32 tet_glnd_testcase_3(SaNameT rscName)
   m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT)); 
   gld_evt.evt_type = GLSV_GLD_EVT_RSC_OPEN;
 
-  m_NCS_OS_MEMCPY(&gld_evt.info.rsc_open_info.rsc_name, \
+  memcpy(&gld_evt.info.rsc_open_info.rsc_name, \
                 &rscName,sizeof(SaNameT));
 
   ret=glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);

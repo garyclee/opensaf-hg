@@ -727,7 +727,7 @@ asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy
    
    /* Decode Group Name */      
    stream = ncs_dec_flatten_space(pBuff, space, group->length);
-   m_NCS_OS_MEMCPY(group->value, stream, group->length);
+   memcpy(group->value, stream, group->length);
    ncs_dec_skip_space(pBuff, group->length);
 
    return rc; 
@@ -826,7 +826,7 @@ static uns32 asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
 
    /* Decode Name */      
    stream = ncs_dec_flatten_space(pBuff, space, name->length);
-   m_NCS_OS_MEMCPY(name->value, stream, name->length);
+   memcpy(name->value, stream, name->length);
    ncs_dec_skip_space(pBuff, name->length);
 
    return rc;

@@ -3164,7 +3164,7 @@ static uns32  avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
    }
    
    comp_rec->mds_ctxt.length = comp_dec_ptr->mds_ctxt.length;
-   m_NCS_MEMCPY(&comp_rec->mds_ctxt.data, &comp_dec_ptr->mds_ctxt.data, 
+   memcpy(&comp_rec->mds_ctxt.data, &comp_dec_ptr->mds_ctxt.data, 
                 sizeof(MDS_SYNC_SND_CTXT_LEN_MAX));
 
    /* If update is successful, update async update count */
@@ -3279,7 +3279,7 @@ static uns32  avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
    comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len =
    comp_dec_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len;
 
-   m_NCS_MEMCPY(comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1]
+   memcpy(comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1]
                 .cmd, 
        comp_dec_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
        comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len);
@@ -3341,7 +3341,7 @@ static uns32  avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
    comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len =
    comp_dec_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len;
 
-   m_NCS_MEMCPY(comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1]
+   memcpy(comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1]
                 .cmd, 
        comp_dec_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
        comp_rec->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len);

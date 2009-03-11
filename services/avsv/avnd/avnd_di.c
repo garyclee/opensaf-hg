@@ -435,7 +435,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfCompInstantiateCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, 0, 
                               sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd));
-                  m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
+                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = param->value_len;
                   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD);
@@ -443,7 +443,7 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfCompTerminateCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 0, 
                               sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd));
-                  m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
+                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = param->value_len;
                   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CMD);
@@ -451,21 +451,21 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
                case saAmfCompCleanupCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 0, 
                               sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd));
-                  m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd,
+                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len = param->value_len;
                   break;
                case saAmfCompAmStartCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 0, 
                               sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd));
-                  m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd,
+                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len = param->value_len;
                   break;
                case saAmfCompAmStopCmd_ID:
                   m_NCS_MEMSET(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 0, 
                               sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd));
-                  m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd,
+                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd,
                               param->value, param->value_len);
                   comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len = param->value_len;
                   break;
@@ -608,9 +608,9 @@ uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
          l_num = hc_key.name.keyLen;
          hc_key.key_len_net = m_NCS_OS_HTONL(l_num);
 
-         m_NCS_OS_MEMCPY(hc_key.comp_name_net.value, param->name_net.value, 
+         memcpy(hc_key.comp_name_net.value, param->name_net.value, 
                          m_NCS_OS_NTOHS(hc_key.comp_name_net.length));
-         m_NCS_OS_MEMCPY(hc_key.name.key, param->name_sec_net.value, hc_key.name.keyLen);
+         memcpy(hc_key.name.key, param->name_sec_net.value, hc_key.name.keyLen);
 
          switch (param->act)
          {

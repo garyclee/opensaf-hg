@@ -33,25 +33,25 @@
 
 
 
-#define m_CPND_CKPT_HDR_UPDATE(ckpt_hdr,addr,offset)  m_NCS_OS_MEMCPY(&ckpt_hdr,addr+offset,sizeof(CPSV_CKPT_HDR))
+#define m_CPND_CKPT_HDR_UPDATE(ckpt_hdr,addr,offset)  memcpy(&ckpt_hdr,addr+offset,sizeof(CPSV_CKPT_HDR))
 
-#define m_CPND_SEC_HDR_UPDATE(sect_hdr,addr,offset)  m_NCS_OS_MEMCPY(&sect_hdr,addr+offset,sizeof(CPSV_SECT_HDR))
+#define m_CPND_SEC_HDR_UPDATE(sect_hdr,addr,offset)  memcpy(&sect_hdr,addr+offset,sizeof(CPSV_SECT_HDR))
 
-#define m_CPND_CLIHDR_INFO_READ(cli_hdr,addr,offset)  m_NCS_OS_MEMCPY(&cli_hdr,addr+offset,sizeof(CLIENT_HDR))
+#define m_CPND_CLIHDR_INFO_READ(cli_hdr,addr,offset)  memcpy(&cli_hdr,addr+offset,sizeof(CLIENT_HDR))
 
-#define m_CPND_CLIHDR_INFO_WRITE(addr,cli_hdr,offset)  m_NCS_OS_MEMCPY(addr+offset,&cli_hdr,sizeof(CLIENT_HDR))
+#define m_CPND_CLIHDR_INFO_WRITE(addr,cli_hdr,offset)  memcpy(addr+offset,&cli_hdr,sizeof(CLIENT_HDR))
 
-#define m_CPND_CKPTHDR_READ(ckpt_hdr,addr,offset)  m_NCS_OS_MEMCPY(&ckpt_hdr,addr+offset,sizeof(CKPT_HDR))
+#define m_CPND_CKPTHDR_READ(ckpt_hdr,addr,offset)  memcpy(&ckpt_hdr,addr+offset,sizeof(CKPT_HDR))
 
-#define m_CPND_CLINFO_READ(cli_info,addr,offset)  m_NCS_OS_MEMCPY(&cli_info,addr+offset,sizeof(CLIENT_INFO))
+#define m_CPND_CLINFO_READ(cli_info,addr,offset)  memcpy(&cli_info,addr+offset,sizeof(CLIENT_INFO))
 
-#define m_CPND_CLINFO_UPDATE(addr,cli_info,offset) m_NCS_OS_MEMCPY(addr+offset,&cli_info,sizeof(CLIENT_INFO))
+#define m_CPND_CLINFO_UPDATE(addr,cli_info,offset) memcpy(addr+offset,&cli_info,sizeof(CLIENT_INFO))
 
-#define m_CPND_CKPTINFO_READ(ckpt_info,addr,offset) m_NCS_OS_MEMCPY(&ckpt_info,addr+offset,sizeof(CKPT_INFO)) 
+#define m_CPND_CKPTINFO_READ(ckpt_info,addr,offset) memcpy(&ckpt_info,addr+offset,sizeof(CKPT_INFO)) 
 
-#define m_CPND_CKPTINFO_UPDATE(addr,ckpt_info,offset) m_NCS_OS_MEMCPY(addr+offset,&ckpt_info,sizeof(CKPT_INFO))
+#define m_CPND_CKPTINFO_UPDATE(addr,ckpt_info,offset) memcpy(addr+offset,&ckpt_info,sizeof(CKPT_INFO))
 
-#define m_CPND_CKPTHDR_UPDATE(ckpt_hdr,offset)  m_NCS_OS_MEMCPY(offset,&ckpt_hdr,sizeof(CKPT_HDR))
+#define m_CPND_CKPTHDR_UPDATE(ckpt_hdr,offset)  memcpy(offset,&ckpt_hdr,sizeof(CKPT_HDR))
 
 
 static uns32  cpnd_res_ckpt_sec_add(CPND_CKPT_SECTION_INFO *pSecPtr,CPND_CKPT_NODE *cp_node);
@@ -270,7 +270,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
          }
       }
    
-      m_NCS_MEMCPY(pSecPtr->sec_id.id,sect_hdr.id,sect_hdr.idLen);
+      memcpy(pSecPtr->sec_id.id,sect_hdr.id,sect_hdr.idLen);
       pSecPtr->sec_state  =  sect_hdr.sec_state;
       pSecPtr->sec_size   = sect_hdr.sec_size;
       pSecPtr->exp_tmr    = sect_hdr.exp_tmr;         
@@ -520,7 +520,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                    cp_node->ckpt_name.length = 0;
                  
                 m_NCS_MEMSET(&tmp_cp_info,'\0',sizeof(CKPT_INFO));
-                m_NCS_MEMCPY(&tmp_cp_info,&cp_info,sizeof(CKPT_INFO));
+                memcpy(&tmp_cp_info,&cp_info,sizeof(CKPT_INFO));
                 next_offset = cp_info.offset;
                 while(next_offset >= 0 )
                 {
@@ -853,7 +853,7 @@ NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb,CKPT_INFO *ckpt_info,uns32 bitmap_
    NCS_BOOL found = FALSE ;
  
    m_NCS_MEMSET(&prev_ckpt_info,0,sizeof(ckpt_info));
-   m_NCS_MEMCPY(&prev_ckpt_info,ckpt_info,sizeof(CKPT_INFO));
+   memcpy(&prev_ckpt_info,ckpt_info,sizeof(CKPT_INFO));
    next    = ckpt_info->offset; 
    *prev_offset = prev_ckpt_info.offset;
  
@@ -949,7 +949,7 @@ uns32  cpnd_update_ckpt_with_clienthdl(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkp
         /* Allocate New ckpt_info information */ 
         offset = prev_ckpt_info.next;
         /* bitmap_value = cpnd_client_bitmap_set((client_hdl%32)+1);*/
-        m_NCS_MEMCPY(&new_ckpt_info,&prev_ckpt_info,sizeof(CKPT_INFO));
+        memcpy(&new_ckpt_info,&prev_ckpt_info,sizeof(CKPT_INFO));
         new_ckpt_info.offset                   = offset;
         new_ckpt_info.client_bitmap            = bitmap_value;
         new_ckpt_info.bm_offset                = bitmap_offset;

@@ -303,7 +303,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    {
       /* Fill the Map Info */
       m_NCS_OS_MEMSET(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
-   /*   m_NCS_OS_MEMCPY(&map_info->ckpt_name,&ckpt_create->ckpt_name,sizeof(ckpt_create->ckpt_name.length)); */
+   /*   memcpy(&map_info->ckpt_name,&ckpt_create->ckpt_name,sizeof(ckpt_create->ckpt_name.length)); */
       map_info->ckpt_name = ckpt_create->ckpt_name; 
       map_info->attributes = ckpt_create->attributes;
       map_info->ckpt_id = cb->nxt_ckpt_id++;

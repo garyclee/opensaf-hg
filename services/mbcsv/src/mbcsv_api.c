@@ -845,7 +845,7 @@ uns32 mbcsv_process_snd_ckpt_request(NCS_MBCSV_ARG* arg)
 
          evt->msg_type = MBCSV_EVT_INTERNAL;
          evt->info.peer_msg.type = MBCSV_EVT_MBC_ASYNC_SEND;
-         m_NCS_MEMCPY(&evt->info.peer_msg.info.usr_msg_info,
+         memcpy(&evt->info.peer_msg.info.usr_msg_info,
                        &arg->info.send_ckpt, sizeof(NCS_MBCSV_SEND_CKPT));
 
          /* Indicates to check the peer existance while processing this event */

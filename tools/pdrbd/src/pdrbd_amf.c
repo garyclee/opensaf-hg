@@ -141,7 +141,7 @@ uns32 pseudoAmfRegister()
       goto parRet;
    }
 
-   m_NCS_MEMCPY((uns8 *) &pseudoCB.nodeId, &nodeId.value, nodeId.length);
+   memcpy((uns8 *) &pseudoCB.nodeId, &nodeId.value, nodeId.length);
 
 parRet:
    return(ret);

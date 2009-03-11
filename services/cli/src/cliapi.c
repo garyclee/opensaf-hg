@@ -706,7 +706,7 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
       cli_cb_main_unlock(pCli);
       return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
    }   
-   m_NCS_OS_MEMCPY(pBindery, info->i_bindery, sizeof(NCSCLI_BINDERY));  
+   memcpy(pBindery, info->i_bindery, sizeof(NCSCLI_BINDERY));  
    
    /* Parse each command string */
    for(count = 0; count<info->i_cmdlist->i_cmd_count; count++) {

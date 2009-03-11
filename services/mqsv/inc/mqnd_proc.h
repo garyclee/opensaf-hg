@@ -36,28 +36,28 @@
               mqsv_message->type = m_NCS_OS_NTOHL(mqsv_message->type); \
 \
               my_long_long = m_NCS_OS_NTOHLL_P(&mqsv_message->info.msg.message_info.sendTime); \
-              m_NCS_OS_MEMCPY(&mqsv_message->info.msg.message_info.sendTime, &my_long_long, 8); \
+              memcpy(&mqsv_message->info.msg.message_info.sendTime, &my_long_long, 8); \
 \
               mqsv_message->info.msg.message_info.sendReceive \
                             = m_NCS_OS_NTOHL(mqsv_message->info.msg.message_info.sendReceive); \
 \
               if (mqsv_message->info.msg.message_info.sendReceive) {  \
                  my_long_long = m_NCS_OS_NTOHLL_P(&mqsv_message->info.msg.message_info.sender.sender_context.sender_dest); \
-                 m_NCS_OS_MEMCPY(&mqsv_message->info.msg.message_info.sender.sender_context.sender_dest, &my_long_long, sizeof(MDS_DEST)); \
+                 memcpy(&mqsv_message->info.msg.message_info.sender.sender_context.sender_dest, &my_long_long, sizeof(MDS_DEST)); \
 \
                  my_long_long = m_NCS_OS_NTOHLL_P(&mqsv_message->info.msg.message_info.sender.sender_context.reply_buffer_size); \
-                 m_NCS_OS_MEMCPY(&mqsv_message->info.msg.message_info.sender.sender_context.reply_buffer_size, &my_long_long, 8); \
+                 memcpy(&mqsv_message->info.msg.message_info.sender.sender_context.reply_buffer_size, &my_long_long, 8); \
               } \
               else { \
                  my_long_long = m_NCS_OS_NTOHLL_P(&mqsv_message->info.msg.message_info.sender.senderId); \
-                 m_NCS_OS_MEMCPY(&mqsv_message->info.msg.message_info.sender.senderId, &my_long_long, 8); \
+                 memcpy(&mqsv_message->info.msg.message_info.sender.senderId, &my_long_long, 8); \
               } \
 \
               mqsv_message->info.msg.message.type = m_NCS_OS_NTOHL(mqsv_message->info.msg.message.type); \
               mqsv_message->info.msg.message.version = m_NCS_OS_NTOHL(mqsv_message->info.msg.message.version); \
 \
               my_long_long = m_NCS_OS_NTOHLL_P(&mqsv_message->info.msg.message.size); \
-              m_NCS_OS_MEMCPY(&mqsv_message->info.msg.message.size, &my_long_long, 8); \
+              memcpy(&mqsv_message->info.msg.message.size, &my_long_long, 8); \
 \
               mqsv_message->info.msg.message.senderName.length \
                 = m_NCS_OS_NTOHS(mqsv_message->info.msg.message.senderName.length); \
@@ -72,18 +72,18 @@
            mqsv_msg->type = m_NCS_OS_HTONL(mqsv_msg->type); \
 \
            m_NCS_OS_HTONLL_P(buff, mqsv_msg->info.msg.message_info.sendTime); \
-           m_NCS_OS_MEMCPY(&mqsv_msg->info.msg.message_info.sendTime, buff, 8); \
+           memcpy(&mqsv_msg->info.msg.message_info.sendTime, buff, 8); \
 \
            if (mqsv_msg->info.msg.message_info.sendReceive) { \
               m_NCS_OS_HTONLL_P(buff, mqsv_msg->info.msg.message_info.sender.sender_context.sender_dest); \
-              m_NCS_OS_MEMCPY(&mqsv_msg->info.msg.message_info.sender.sender_context.sender_dest, buff, sizeof(MDS_DEST)); \
+              memcpy(&mqsv_msg->info.msg.message_info.sender.sender_context.sender_dest, buff, sizeof(MDS_DEST)); \
 \
               m_NCS_OS_HTONLL_P(buff, mqsv_msg->info.msg.message_info.sender.sender_context.reply_buffer_size); \
-              m_NCS_OS_MEMCPY(&mqsv_msg->info.msg.message_info.sender.sender_context.reply_buffer_size, buff, 8); \
+              memcpy(&mqsv_msg->info.msg.message_info.sender.sender_context.reply_buffer_size, buff, 8); \
            } \
            else { \
               m_NCS_OS_HTONLL_P(buff, mqsv_msg->info.msg.message_info.sender.senderId); \
-              m_NCS_OS_MEMCPY(&mqsv_msg->info.msg.message_info.sender.senderId, buff, 8); \
+              memcpy(&mqsv_msg->info.msg.message_info.sender.senderId, buff, 8); \
            } \
 \
            mqsv_msg->info.msg.message_info.sendReceive \
@@ -93,7 +93,7 @@
            mqsv_msg->info.msg.message.version = m_NCS_OS_HTONL(mqsv_msg->info.msg.message.version); \
 \
            m_NCS_OS_HTONLL_P(buff, mqsv_msg->info.msg.message.size); \
-           m_NCS_OS_MEMCPY(&mqsv_msg->info.msg.message.size, buff, 8); \
+           memcpy(&mqsv_msg->info.msg.message.size, buff, 8); \
 \
            mqsv_msg->info.msg.message.senderName.length \
                 = m_NCS_OS_HTONS(mqsv_msg->info.msg.message.senderName.length); \

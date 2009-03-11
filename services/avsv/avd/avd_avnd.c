@@ -133,14 +133,14 @@ AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
    if (ckpt)
    {
       /* Fill the node name into the field and also into the key area. */ 
-      m_NCS_MEMCPY(avnd->node_info.nodeName.value, 
+      memcpy(avnd->node_info.nodeName.value, 
          node_name.value, m_NCS_OS_NTOHS(node_name.length));
       avnd->node_info.nodeName.length = node_name.length;
    }
    else
    {
       /* Fill the node name into the field and also into the key area. */ 
-      m_NCS_MEMCPY(avnd->node_info.nodeName.value, 
+      memcpy(avnd->node_info.nodeName.value, 
          node_name.value, node_name.length);
 
       avnd->node_info.nodeName.length = m_HTON_SANAMET_LEN(node_name.length);
@@ -252,7 +252,7 @@ AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb,SaNameT node_name)
    SaNameT lnode_name_net;
 
    m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   m_NCS_MEMCPY(lnode_name_net.value,node_name.value,node_name.length);
+   memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
    avnd = (AVD_AVND *)ncs_patricia_tree_get(&cb->avnd_anchor_name,
@@ -319,7 +319,7 @@ AVD_AVND * avd_avnd_struc_find_next(AVD_CL_CB *cb,SaNameT node_name)
    SaNameT lnode_name_net;
 
    m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   m_NCS_MEMCPY(lnode_name_net.value,node_name.value,node_name.length);
+   memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
    avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor_name,
@@ -361,7 +361,7 @@ static AVD_AVND * avd_avnd_struc_find_next_cl_member(AVD_CL_CB *cb,SaNameT node_
    SaNameT lnode_name_net;
 
    m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   m_NCS_MEMCPY(lnode_name_net.value,node_name.value,node_name.length);
+   memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
    do
@@ -1288,7 +1288,7 @@ uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             {
                backup_time = avnd->su_failover_prob;
                param.value_len = sizeof(SaTimeT);
-               m_NCS_MEMCPY(&param.value[0], 
+               memcpy(&param.value[0], 
                             arg->req.info.set_req.i_param_val.info.i_oct, 
                             param.value_len);
 

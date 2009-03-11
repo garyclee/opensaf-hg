@@ -304,7 +304,7 @@ uns32 mqa_create_and_start_timer (MQP_ASYNC_RSP_MSG *mqa_callback,
    }
    m_NCS_OS_MEMSET(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
 
-   m_NCS_OS_MEMCPY(callback, mqa_callback, sizeof(MQP_ASYNC_RSP_MSG));
+   memcpy(callback, mqa_callback, sizeof(MQP_ASYNC_RSP_MSG));
 
    if ( (rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id, 
                            MQA_ASYNC_TIMEOUT_DEFAULT,mqa_node_timeout_handler,

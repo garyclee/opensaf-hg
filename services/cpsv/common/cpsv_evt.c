@@ -59,7 +59,7 @@ uns32 cpsv_evt_cpy(CPSV_EVT *src, CPSV_EVT *dest, uns32 svc_id)
 
    if(dest) 
    {
-      m_NCS_MEMCPY(dest, src, sizeof(CPSV_EVT));
+      memcpy(dest, src, sizeof(CPSV_EVT));
 
       /* Copy the internal pointers TBD */
    }

@@ -500,7 +500,7 @@ static uns32 ipxs_ifd_ipaddr_info_bcast(IPXS_CB *cb, NCS_IPPFX *ip_pfx,
          m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       }
-      m_NCS_OS_MEMCPY(ipxs_evt.info.nd.dtond_upd.ip_info.addip_list, ip_pfx,
+      memcpy(ipxs_evt.info.nd.dtond_upd.ip_info.addip_list, ip_pfx,
                    (pfx_cnt * sizeof(IPXS_IFIP_IP_INFO)));
    }
    else if(del_flag)
@@ -514,7 +514,7 @@ static uns32 ipxs_ifd_ipaddr_info_bcast(IPXS_CB *cb, NCS_IPPFX *ip_pfx,
          m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       }
-      m_NCS_OS_MEMCPY(ipxs_evt.info.nd.dtond_upd.ip_info.delip_list, ip_pfx,
+      memcpy(ipxs_evt.info.nd.dtond_upd.ip_info.delip_list, ip_pfx,
                    (pfx_cnt * sizeof(NCS_IPPFX)));
    }
 
@@ -551,7 +551,7 @@ static uns32 ipxs_ifd_ipinfo_bcast(IPXS_CB *cb,
    ipxs_evt.info.nd.dtond_upd.if_index = if_index;
 
    /* Copy the IP info & its internal pointers */
-   m_NCS_OS_MEMCPY(&ipxs_evt.info.nd.dtond_upd.ip_info, 
+   memcpy(&ipxs_evt.info.nd.dtond_upd.ip_info, 
                                   ip_info, sizeof(NCS_IPXS_IPINFO));
 
    /* Nullify the internal pointers */
@@ -601,7 +601,7 @@ uns32 ipxs_ifd_ifip_info_bcast(IPXS_CB *cb,
       if(ifip_info->ipaddr_cnt)
       {
          ipxs_evt.info.nd.dtond_upd.ip_info.addip_cnt = ifip_info->ipaddr_cnt;
-         m_NCS_OS_MEMCPY(ipxs_evt.info.nd.dtond_upd.ip_info.addip_list,
+         memcpy(ipxs_evt.info.nd.dtond_upd.ip_info.addip_list,
                    ifip_info->ipaddr_list,
                    (ifip_info->ipaddr_cnt * sizeof(IPXS_IFIP_IP_INFO)));
       }
@@ -674,7 +674,7 @@ static uns32 ifd_ipxs_proc_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt, IFSV_SEND_
    o_ipxs_evt.info.nd.dtond_upd.if_index = if_index;
    
    /* Copy the IP info & its internal pointers */
-   m_NCS_OS_MEMCPY(&o_ipxs_evt.info.nd.dtond_upd.ip_info, 
+   memcpy(&o_ipxs_evt.info.nd.dtond_upd.ip_info, 
                     ipinfo, sizeof(NCS_IPXS_IPINFO));
 
    /* Sync resp to IfND.*/

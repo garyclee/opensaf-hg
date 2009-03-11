@@ -328,7 +328,7 @@ ifsv_demo_reg_port_info (uns32 port_num, uns32 port_type, uns8 *i_phy,
    port_reg.hw_get_set_cb = ifsv_drv_set_get_info;
    port_reg.port_info.mtu         = MTU;
    m_NCS_STRCPY(port_reg.port_info.if_name, if_name);
-   m_NCS_MEMCPY(port_reg.port_info.phy_addr,i_phy,6);
+   memcpy(port_reg.port_info.phy_addr,i_phy,6);
    port_reg.port_info.mtu         = MTU;
    port_reg.port_info.oper_state  = oper_state;
    port_reg.port_info.speed       = if_speed;

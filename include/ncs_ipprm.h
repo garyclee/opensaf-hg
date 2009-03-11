@@ -438,16 +438,16 @@ extern uns32 ip_svc_so_linger_enable(struct ncs_socket_entry_tag* se);
 { \
    if (((ra.m_ipv6_addr[0] & 0xf0) == 0xe0) || (se->is_multicast_raw_udp == TRUE))\
    {\
-      m_NCS_OS_MEMCPY(&sa, &in6addr_any, m_IPV6_ADDR_SIZE);\
+      memcpy(&sa, &in6addr_any, m_IPV6_ADDR_SIZE);\
    } else\
    {\
-      m_NCS_OS_MEMCPY(&sa, &la, m_IPV6_ADDR_SIZE);\
+      memcpy(&sa, &la, m_IPV6_ADDR_SIZE);\
    } \
 }
 
 #ifndef m_NCS_TS_SOCK_SET_IPV6_MULTIADDR
 #define m_NCS_TS_SOCK_SET_IPV6_MULTIADDR(s, ma, la, i)     \
-{ m_NCS_OS_MEMCPY( &(s.ipv6mr_multiaddr.s6_addr), &ma,m_IPV6_ADDR_SIZE);            \
+{ memcpy( &(s.ipv6mr_multiaddr.s6_addr), &ma,m_IPV6_ADDR_SIZE);            \
   s.ipv6mr_interface = (i);  \
 }
 #endif

@@ -91,7 +91,7 @@ NCS_IFSV_IFINDEX    ifsv_vip_get_global_ifindex(IFSV_CB *cb,uns8 *str)
    intfData = &intfRec->intf_data;
    while (intfRec != NULL)
    {
-     m_NCS_MEMCPY(&ifIndex,&intfData->if_index,sizeof(NCS_IFSV_IFINDEX));
+     memcpy(&ifIndex,&intfData->if_index,sizeof(NCS_IFSV_IFINDEX));
      /* embedding subslot changes */
      if((intfData->spt_info.shelf == cb->shelf) &&
                 (intfData->spt_info.slot == cb->slot) &&
@@ -341,7 +341,7 @@ uns32 ifsv_vip_add_owner_node (NCS_DB_LINK_LIST *list, MDS_DEST *dest
        return NCSCC_RC_FAILURE;
     }
     m_NCS_MEMSET(pOwnerList,0,sizeof(NCS_IFSV_VIP_OWNER_LIST));
-    m_NCS_MEMCPY(&pOwnerList->owner,dest,sizeof(MDS_DEST));
+    memcpy(&pOwnerList->owner,dest,sizeof(MDS_DEST));
 #if (VIP_HALS_SUPPORT == 1)
     pOwnerList->infraFlag = flag;
 #endif

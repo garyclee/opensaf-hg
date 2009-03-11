@@ -623,7 +623,7 @@ static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb,CPA_EVT *evt)
                  if((ckpt_data->sec_id.id != NULL)&&(ckpt_data->sec_id.idLen != 0))
                  {
                     callback->ioVector[i].sectionId.id=m_MMGR_ALLOC_CPSV_DEFAULT_VAL(ckpt_data->sec_id.idLen,NCS_SERVICE_ID_CPA);
-                    m_NCS_MEMCPY(callback->ioVector[i].sectionId.id,ckpt_data->sec_id.id, \
+                    memcpy(callback->ioVector[i].sectionId.id,ckpt_data->sec_id.id, \
                     ckpt_data->sec_id.idLen);
                     callback->ioVector[i].sectionId.idLen=ckpt_data->sec_id.idLen;
                  }
@@ -1460,7 +1460,7 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
              }
              m_NCS_OS_MEMSET(ioVector[iter].dataBuffer,'\0',read_data[iter].read_size);
           }
-          m_NCS_MEMCPY(ioVector[iter].dataBuffer,read_data[iter].data,read_data[iter].read_size);
+          memcpy(ioVector[iter].dataBuffer,read_data[iter].data,read_data[iter].read_size);
           ioVector[iter].readSize=read_data[iter].read_size;
        }
     }

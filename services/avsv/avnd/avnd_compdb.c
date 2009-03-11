@@ -208,7 +208,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
     * Update the config parameters.
     */
    /* update the comp-name (patricia key) */
-   m_NCS_OS_MEMCPY(&comp->name_net, &info->name_net, sizeof(SaNameT));
+   memcpy(&comp->name_net, &info->name_net, sizeof(SaNameT));
    
    /* update the component attributes */
    comp->inst_level = info->inst_level;
@@ -263,7 +263,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
    comp->clc_info.am_start_retry_max = info->max_num_amstart;
    
    /* instantiate cmd params */
-   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, 
+   memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, 
       info->init_info, info->init_len);
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = 
       info->init_len;
@@ -271,7 +271,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->init_time;
    
    /* terminate cmd params */
-   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 
+   memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 
       info->term_info, info->term_len);
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = 
       info->term_len;
@@ -279,7 +279,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->term_time;
 
    /* cleanup cmd params */
-   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 
+   memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 
       info->clean_info, info->clean_len);
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len = 
       info->clean_len;
@@ -287,7 +287,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->clean_time;
    
    /* am-start cmd params */
-   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 
+   memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 
       info->amstart_info, info->amstart_len);
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len = 
       info->amstart_len;
@@ -295,7 +295,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       info->amstart_time;
    
    /* am-stop cmd params */
-   m_NCS_MEMCPY(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 
+   memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 
       info->amstop_info, info->amstop_len);
    comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len = 
       info->amstop_len;

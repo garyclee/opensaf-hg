@@ -68,7 +68,7 @@ uns32  avsv_ckpt_add_rmv_updt_avnd(AVD_CL_CB *cb, AVD_AVND *avnd,
 
    m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
    node_name.length = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length);
-   m_NCS_MEMCPY(node_name.value, avnd->node_info.nodeName.value, node_name.length); 
+   memcpy(node_name.value, avnd->node_info.nodeName.value, node_name.length); 
    avnd_ptr = avd_avnd_struc_find(cb, node_name);
 
    switch(action)
@@ -354,7 +354,7 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
             su_ptr->row_status = su->row_status;
             su_ptr->su_is_external = su->su_is_external;
             su_ptr->sg_name.length = su->sg_name.length;
-            m_NCS_MEMCPY(su_ptr->sg_name.value, 
+            memcpy(su_ptr->sg_name.value, 
                    su->sg_name.value, su->sg_name.length);
 
             /* Add to SG list */
@@ -682,7 +682,7 @@ uns32  avsv_ckpt_add_rmv_updt_si_data(AVD_CL_CB *cb, AVD_SI *si,
             si_ptr_up->rank = si->rank;
             si_ptr_up->row_status = si->row_status;
             si_ptr_up->sg_name.length = si->sg_name.length;
-            m_NCS_MEMCPY(si_ptr_up->sg_name.value, 
+            memcpy(si_ptr_up->sg_name.value, 
                    si->sg_name.value, si->sg_name.length);
 
             /* Add to SG list */
@@ -1077,27 +1077,27 @@ uns32  avsv_ckpt_add_rmv_updt_comp_data(AVD_CL_CB *cb, AVD_COMP *comp,
             * updated with ADD.
             */
             comp_ptr->comp_info.init_len = comp->comp_info.init_len;
-            m_NCS_MEMCPY(comp_ptr->comp_info.init_info,
+            memcpy(comp_ptr->comp_info.init_info,
                          comp->comp_info.init_info, 
                          AVSV_MISC_STR_MAX_SIZE);
             comp_ptr->comp_info.init_time = comp->comp_info.init_time;
             comp_ptr->comp_info.term_len = comp->comp_info.term_len;
-            m_NCS_MEMCPY(comp_ptr->comp_info.term_info, 
+            memcpy(comp_ptr->comp_info.term_info, 
                          comp->comp_info.term_info,
                          AVSV_MISC_STR_MAX_SIZE);
             comp_ptr->comp_info.term_time = comp->comp_info.term_time;
             comp_ptr->comp_info.clean_len = comp->comp_info.clean_len;
-            m_NCS_MEMCPY(comp_ptr->comp_info.clean_info, 
+            memcpy(comp_ptr->comp_info.clean_info, 
                          comp->comp_info.clean_info,
                          AVSV_MISC_STR_MAX_SIZE);
             comp_ptr->comp_info.clean_time = comp->comp_info.clean_time;
             comp_ptr->comp_info.amstart_len = comp->comp_info.amstart_len;
-            m_NCS_MEMCPY(comp_ptr->comp_info.amstart_info,
+            memcpy(comp_ptr->comp_info.amstart_info,
                          comp->comp_info.amstart_info,
                          AVSV_MISC_STR_MAX_SIZE);
             comp_ptr->comp_info.amstart_time = comp->comp_info.amstart_time;
             comp_ptr->comp_info.amstop_len = comp->comp_info.amstop_len;
-            m_NCS_MEMCPY(comp_ptr->comp_info.amstop_info, 
+            memcpy(comp_ptr->comp_info.amstop_info, 
                          comp->comp_info.amstop_info,
                          AVSV_MISC_STR_MAX_SIZE);
             comp_ptr->comp_info.am_enable = comp->comp_info.am_enable;
@@ -1243,7 +1243,7 @@ uns32  avsv_ckpt_add_rmv_updt_csi_data(AVD_CL_CB *cb, AVD_CSI *csi,
             csi_ptr->list_param = csi->list_param;
 
             csi_ptr->csi_type.length = csi->csi_type.length;
-            m_NCS_MEMCPY(csi_ptr->csi_type.value, 
+            memcpy(csi_ptr->csi_type.value, 
                    csi->csi_type.value, csi->csi_type.length);
 
             m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
@@ -1848,7 +1848,7 @@ uns32  avsv_ckpt_add_rmv_updt_sus_per_si_rank_data(AVD_CL_CB *cb, AVD_SUS_PER_SI
             /* Update one time update fields */
             su_si->row_status = su_si_rank->row_status;
             su_si->su_name.length = su_si_rank->su_name.length;
-            m_NCS_MEMCPY(su_si->su_name.value,
+            memcpy(su_si->su_name.value,
                    su_si_rank->su_name.value, su_si->su_name.length);
          }
 

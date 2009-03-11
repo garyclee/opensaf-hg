@@ -100,7 +100,7 @@ uns8* ncsmem_aid_cpy(NCSMEM_AID* ma, const uns8* ref, uns32 len)
   
   if ((answer = ncsmem_aid_alloc(ma, len)) != NULL)
     {
-    m_NCS_MEMCPY(answer, ref, len);
+    memcpy(answer, ref, len);
     return answer;
     }
 
@@ -396,7 +396,7 @@ uns32  ncsstack_encode (NCS_STACK* st, struct ncs_ubaid* uba)
     if(stream == NULL)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    m_NCS_MEMCPY(stream,((uns8*)top + sizeof(NCS_SE)),(top->length - sizeof(NCS_SE)));
+    memcpy(stream,((uns8*)top + sizeof(NCS_SE)),(top->length - sizeof(NCS_SE)));
     ncs_enc_claim_space(uba,(top->length - sizeof(NCS_SE)));
 
     len         = (uns16*)((uns8*)top + top->length);
@@ -482,7 +482,7 @@ uns32  ncsstack_decode (NCS_STACK* st, NCS_UBAID* uba)
     ncs_dec_skip_space(uba,sizeof(uns16));
 
     stream = ncs_dec_flatten_space(uba,space,(top->length - sizeof(NCS_SE)));
-    m_NCS_MEMCPY(((uns8*)top + sizeof(NCS_SE)),stream,(top->length - sizeof(NCS_SE)));
+    memcpy(((uns8*)top + sizeof(NCS_SE)),stream,(top->length - sizeof(NCS_SE)));
     ncs_dec_skip_space(uba,(top->length - sizeof(NCS_SE)));
 
     len         = (uns16*)((uns8*)top + top->length);

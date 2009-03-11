@@ -57,7 +57,7 @@ void glnd_evt_backup_queue_add (GLND_CB   *glnd_cb, GLSV_GLND_EVT *glnd_evt)
       m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
       return;
    }
-   m_NCS_OS_MEMCPY(evt,glnd_evt,sizeof(GLSV_GLND_EVT));
+   memcpy(evt,glnd_evt,sizeof(GLSV_GLND_EVT));
 
    evt->next = NULL;
    /* add it to the queue */

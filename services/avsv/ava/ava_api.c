@@ -1407,7 +1407,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
          if (rsp_buf->numberOfItems <= buf->numberOfItems)
          {
             /* user supplied buffer is sufficient.. copy all the members */
-            m_NCS_OS_MEMCPY(buf->notification, rsp_buf->notification, 
+            memcpy(buf->notification, rsp_buf->notification, 
                rsp_buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
             buf->numberOfItems = rsp_buf->numberOfItems;
 
@@ -1419,7 +1419,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
          else
          {
             /* user supplied buffer isnt sufficient.. copy whatever is possible */
-            m_NCS_OS_MEMCPY(buf->notification, rsp_buf->notification, 
+            memcpy(buf->notification, rsp_buf->notification, 
                buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
             rc = SA_AIS_ERR_NO_SPACE;
 
@@ -1438,7 +1438,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
 		     buf->notification = malloc(buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 			 if(buf->notification != NULL)
 			 {
-                  m_NCS_OS_MEMCPY(buf->notification, rsp_buf->notification, 
+                  memcpy(buf->notification, rsp_buf->notification, 
                      buf->numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 
                   /* convert comp-name len into host order */

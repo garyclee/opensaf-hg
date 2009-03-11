@@ -580,7 +580,7 @@ ham_config_hotswap(HISV_EVT *evt)
    {
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-      m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)
+      memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)
                    &Timeout, arg_len);
    }
 ret:
@@ -676,7 +676,7 @@ ham_hs_indicator_state(HISV_EVT *evt)
       ret_state = stateT;
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-      m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+      memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                    (uns8 *)&ret_state, arg_len);
    }
 ret:
@@ -877,7 +877,7 @@ ham_hs_cur_state_get(HISV_EVT *evt)
    ret_state = stateT;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-   m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+   memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                 (uns8 *)&ret_state, arg_len);
 ret:
    /* send the message to HPL ADEST */
@@ -979,7 +979,7 @@ ham_config_hs_autoextract(HISV_EVT *evt)
    {
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-      m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+      memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                    (uns8 *)&Timeout, arg_len);
    }
 ret:
@@ -1205,7 +1205,7 @@ ham_alarm_get(HISV_EVT *evt)
    hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val = rc;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-   m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+   memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                 (uns8 *)&Alarm, arg_len);
 ret:
    /* send the message to HPL ADEST */
@@ -1305,7 +1305,7 @@ ham_evlog_time(HISV_EVT *evt)
    {
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
       hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(arg_len);
-      m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+      memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                    (uns8 *)&Timeout, arg_len);
    }
 ret:
@@ -1751,7 +1751,7 @@ ham_adest_update(HISV_MSG *msg, HAM_CB *ham_cb)
    if (dest == NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMCPY(&dest->addr, msg->info.api_info.data, sizeof(MDS_DEST));
+   memcpy(&dest->addr, msg->info.api_info.data, sizeof(MDS_DEST));
    dest->next = ham_cb->dest;
    ham_cb->dest = dest;
 
@@ -2096,12 +2096,12 @@ ham_entity_path_lookup(HISV_EVT *evt)
           (flag == HPL_EPATH_FLAG_SHORTSTR)) {
          /* Allocate a return buffer, add 1 byte for string NULL termination character */
          hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(entity_path_len + 1);
-         m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)hpi_entity_path_buffer, entity_path_len);
+         memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, (uns8 *)hpi_entity_path_buffer, entity_path_len);
          /* Set the string NULL termination byte in the transport buffer */
          hisv_msg.info.cbk_info.hpl_ret.h_gen.data[entity_path_len] = 0;
       } else if (flag == HPL_EPATH_FLAG_ARRAY) {
          hisv_msg.info.cbk_info.hpl_ret.h_gen.data = m_MMGR_ALLOC_HISV_DATA(entity_path_len);
-         m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, &epath, entity_path_len);
+         memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data, &epath, entity_path_len);
       }
    }
 
@@ -2220,7 +2220,7 @@ ham_bootbank_get (HISV_EVT *evt)
       As we need only boot bank info, we are extracting that here. */  
    discrete_val = discrete_val & 0x1;  
                                      
-   m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+   memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                 (uns8 *)&discrete_val, arg_len);
             
 #else 
@@ -2229,7 +2229,7 @@ ham_bootbank_get (HISV_EVT *evt)
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len ;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data     = m_MMGR_ALLOC_HISV_DATA(arg_len);
   
-   m_NCS_MEMCPY(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
+   memcpy(hisv_msg.info.cbk_info.hpl_ret.h_gen.data,
                 (uns8 *)&oem->Body[1], arg_len);
 #endif                        
 

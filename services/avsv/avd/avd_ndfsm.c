@@ -154,7 +154,7 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
    /* Retrive the information from the message */
    avnd->node_info.bootTimestamp = 
       n2d_msg->msg_info.n2d_clm_node_up.boot_timestamp;
-   m_NCS_MEMCPY(&avnd->node_info.nodeAddress,&n2d_msg->msg_info.n2d_clm_node_up.node_address,sizeof(SaClmNodeAddressT));
+   memcpy(&avnd->node_info.nodeAddress,&n2d_msg->msg_info.n2d_clm_node_up.node_address,sizeof(SaClmNodeAddressT));
    avnd->adest = n2d_msg->msg_info.n2d_clm_node_up.adest_address;
    avnd->rcv_msg_id = n2d_msg->msg_info.n2d_clm_node_up.msg_id;
 

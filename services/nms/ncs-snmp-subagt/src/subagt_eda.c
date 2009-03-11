@@ -1012,7 +1012,7 @@ snmpsubagt_eda_snmpTrapId_vb_populate(NCS_PATRICIA_TREE    *i_oid_db,
     }
 
     /* get the complete oid */
-    m_NCS_OS_MEMCPY(var_bind->name, 
+    memcpy(var_bind->name, 
                     objid_snmptrap, 
                     (var_bind->name_length)*sizeof(oid));
 

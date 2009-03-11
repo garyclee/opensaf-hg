@@ -716,7 +716,7 @@ active_mds_quiesced_ack(
       for(ent_info = avm_find_next_ent_info(cb, &entity_path); 
           ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(cb, &entity_path))
       {
-         m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+         memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
          ent_info->power_cycle = FALSE;
       }
       m_AVM_LOG_ROLE(AVM_LOG_ROLE_QUIESCED, AVM_LOG_RDA_SUCCESS, NCSFL_SEV_NOTICE);
@@ -1190,7 +1190,7 @@ avm_stop_all_tmrs(AVM_CB_T   *avm_cb)
    for(ent_info = avm_find_next_ent_info(avm_cb, &entity_path);
        ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(avm_cb, &entity_path))
    {
-       m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+       memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
        if(ent_info->upgd_succ_tmr.status ==   AVM_TMR_RUNNING)
        {
           m_AVM_LOG_GEN_EP_STR("upgd_succ_tmr timer stopped during switchover for the entity :", ent_info->ep_str.name, NCSFL_SEV_NOTICE);

@@ -321,7 +321,7 @@ avm_set_preferred_label(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, AVM_ENT_DHCP_CON
       m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
       /* Set the preferred label */
       dhcp_conf->pref_label.length = param_val.i_length;
-      m_NCS_MEMCPY(dhcp_conf->pref_label.name, param_val.info.i_oct,
+      memcpy(dhcp_conf->pref_label.name, param_val.info.i_oct,
                    param_val.i_length);
       /* Push the preferred label into pssv */
       m_AVM_SSU_PSSV_PUSH_STR(cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
@@ -353,7 +353,7 @@ avm_set_preferred_label(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, AVM_ENT_DHCP_CON
       m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
       /* Set the preferred label */
       dhcp_conf->pref_label.length = param_val.i_length;
-      m_NCS_MEMCPY(dhcp_conf->pref_label.name,
+      memcpy(dhcp_conf->pref_label.name,
          param_val.info.i_oct, param_val.i_length);
       /* Push the preferred label into pssv */
       m_AVM_SSU_PSSV_PUSH_STR(cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
@@ -607,10 +607,10 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
             return NCSCC_RC_FAILURE;
          }
          /* fill the MAC addresses in entity information */
-         m_NCS_MEMCPY(dhcp_conf->mac_address[0],
+         memcpy(dhcp_conf->mac_address[0],
                       hpi_evt->inv_data.oem_inv_data.interface_mac_addr[0], AVM_MAC_DATA_LEN);
 
-         m_NCS_MEMCPY(dhcp_conf->mac_address[1],
+         memcpy(dhcp_conf->mac_address[1],
                       hpi_evt->inv_data.oem_inv_data.interface_mac_addr[1], AVM_MAC_DATA_LEN);
       }
       
@@ -701,7 +701,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
                /* Set the preferred label also to other label */
                dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-               m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+               memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                    dhcp_conf->pref_label.length);
                /* Push the preferred label into pssv */
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
@@ -789,10 +789,10 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
       }
 
       /* fill the MAC addresses in entity information */
-      m_NCS_MEMCPY(dhcp_conf->mac_address[0],
+      memcpy(dhcp_conf->mac_address[0],
                    hpi_evt->inv_data.oem_inv_data.interface_mac_addr[0], AVM_MAC_DATA_LEN);
 
-      m_NCS_MEMCPY(dhcp_conf->mac_address[1],
+      memcpy(dhcp_conf->mac_address[1],
                    hpi_evt->inv_data.oem_inv_data.interface_mac_addr[1], AVM_MAC_DATA_LEN);
    }
    else if (conf_chg == FALSE)
@@ -894,7 +894,7 @@ avm_ssu_dhcp_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
          /* Set the preferred label */
          m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
          dhcp_conf->pref_label.length = dhcp_conf->label1.name.length;
-         m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->label1.name.name,
+         memcpy(dhcp_conf->pref_label.name, dhcp_conf->label1.name.name,
                       dhcp_conf->label1.name.length);
          /* Push the preferred label into pssv */
          m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
@@ -911,7 +911,7 @@ avm_ssu_dhcp_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
          /* Set the preferred label */
          m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
          dhcp_conf->pref_label.length = dhcp_conf->label2.name.length;
-         m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->label2.name.name,
+         memcpy(dhcp_conf->pref_label.name, dhcp_conf->label2.name.name,
                       dhcp_conf->label2.name.length);
          /* Push the preferred label into pssv */
          m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
@@ -1043,7 +1043,7 @@ avm_ssu_clear_mac (AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info_in)
       mac_change = 0;
       if (ent_info_in == ent_info)
       {
-         m_NCS_MEMCPY(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+         memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
          ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
          continue;
       }
@@ -1072,7 +1072,7 @@ avm_ssu_clear_mac (AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info_in)
          m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_DHCP_CONF_CHG);
       }
 
-      m_NCS_MEMCPY(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+      memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
       ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
    }
    return dhcp_entry_change;
@@ -1485,7 +1485,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
             dhcp_conf->default_label = dhcp_conf->default_label->other_label;
             /* Set the preferred label also to other label */
             dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-            m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+            memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                          dhcp_conf->pref_label.length);
 
             /* Push preferred label into PSSv */
@@ -1599,7 +1599,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
    for(ent_info = avm_find_next_ent_info(avm_cb, &entity_path);
        ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(avm_cb, &entity_path))
    {
-      m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+      memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
       if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
       {
          sysf_sprintf(logbuf, "StandbyToActive: Payload blade %s : Upgrade Timer Start ", ent_info->ep_str.name);
@@ -1648,7 +1648,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
 
                      dhcp_conf->default_label = dhcp_conf->default_label->other_label;
                      dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-                     m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                     memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                                   dhcp_conf->pref_label.length);
 
                      m_AVM_SSU_PSSV_PUSH_STR(avm_cb, ent_info->dhcp_serv_conf.pref_label.name,

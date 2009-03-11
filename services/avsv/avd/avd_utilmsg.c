@@ -850,7 +850,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb,AVD_AVND *avnd,AVSV_PARAM_INFO *param_inf
 
    op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
 
-   m_NCS_MEMCPY(&op_req_msg->msg_info.d2n_op_req.param_info,param_info,sizeof(AVSV_PARAM_INFO));
+   memcpy(&op_req_msg->msg_info.d2n_op_req.param_info,param_info,sizeof(AVSV_PARAM_INFO));
 
    if (avnd == AVD_AVND_NULL)
    {
@@ -1179,7 +1179,7 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb,AVD_COMP *comp,
    }
    
    m_NCS_MEMSET(comp_info,'\0',sizeof(AVSV_COMP_INFO_MSG));
-   m_NCS_MEMCPY(&comp_info->comp_info,&comp->comp_info,sizeof(AVSV_COMP_INFO));
+   memcpy(&comp_info->comp_info,&comp->comp_info,sizeof(AVSV_COMP_INFO));
    
    /* add it at the head of the list in the message */
    comp_info->next = comp_msg->msg_info.d2n_reg_comp.list;
@@ -1689,7 +1689,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb,AVSV_SUSI_ASGN *compcsi_info,
          continue;
       }
       
-      m_NCS_MEMCPY(i_ptr,&attr_ptr->param,sizeof(NCS_AVSV_ATTR_NAME_VAL));
+      memcpy(i_ptr,&attr_ptr->param,sizeof(NCS_AVSV_ATTR_NAME_VAL));
       compcsi_info->attrs.number ++;
       i_ptr = i_ptr + 1;
       attr_ptr = attr_ptr->param_next;     

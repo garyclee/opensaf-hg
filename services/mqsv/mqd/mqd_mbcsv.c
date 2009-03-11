@@ -131,7 +131,7 @@ void mqd_a2s_async_update(MQD_CB* pMqd,MQD_A2S_MSG_TYPE type,void *pmesg)
 static void mqd_a2s_async_reg_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.reg from the register message *mesg */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.reg,(ASAPi_REG_INFO *)pmesg,sizeof(ASAPi_REG_INFO));
+   memcpy(&pasync_msg->info.reg,(ASAPi_REG_INFO *)pmesg,sizeof(ASAPi_REG_INFO));
    return;
 }
 
@@ -151,7 +151,7 @@ static void mqd_a2s_async_reg_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 static void mqd_a2s_async_dereg_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.dereg from the deregister message *mesg */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.dereg,(ASAPi_DEREG_INFO *)pmesg,sizeof(ASAPi_DEREG_INFO));
+   memcpy(&pasync_msg->info.dereg,(ASAPi_DEREG_INFO *)pmesg,sizeof(ASAPi_DEREG_INFO));
    return;
 
 }
@@ -173,7 +173,7 @@ static void mqd_a2s_async_track_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.track from the track message *mesg */
   /*pasync_msg->track=(MQD_A2S_TRACK_INFO) (*pmesg);     */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.track,(MQD_A2S_TRACK_INFO *)pmesg,sizeof(MQD_A2S_TRACK_INFO));
+   memcpy(&pasync_msg->info.track,(MQD_A2S_TRACK_INFO *)pmesg,sizeof(MQD_A2S_TRACK_INFO));
    return;
 
 }
@@ -194,7 +194,7 @@ static void mqd_a2s_async_track_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 static void mqd_a2s_async_userevent_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.user_evt from the user event message *mesg */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.user_evt,(MQD_A2S_USER_EVENT_INFO *)pmesg,sizeof(MQD_A2S_USER_EVENT_INFO));
+   memcpy(&pasync_msg->info.user_evt,(MQD_A2S_USER_EVENT_INFO *)pmesg,sizeof(MQD_A2S_USER_EVENT_INFO));
    return;
 }
 
@@ -214,7 +214,7 @@ static void mqd_a2s_async_userevent_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 static void mqd_a2s_async_mqnd_stat_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.user_evt from the user event message *mesg */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.nd_stat_evt,(MQD_A2S_ND_STAT_INFO *)pmesg,sizeof(MQD_A2S_ND_STAT_INFO));
+   memcpy(&pasync_msg->info.nd_stat_evt,(MQD_A2S_ND_STAT_INFO *)pmesg,sizeof(MQD_A2S_ND_STAT_INFO));
    return;
 }
 
@@ -234,7 +234,7 @@ static void mqd_a2s_async_mqnd_stat_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 static void mqd_a2s_mqnd_timer_exp_info(MQD_A2S_MSG *pasync_msg,void *pmesg)
 {
   /* Fill the async_msg.info.user_evt from the user event message *mesg */
-   m_NCS_OS_MEMCPY(&pasync_msg->info.nd_tmr_exp_evt,(MQD_A2S_ND_TIMER_EXP_INFO *)pmesg,sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
+   memcpy(&pasync_msg->info.nd_tmr_exp_evt,(MQD_A2S_ND_TIMER_EXP_INFO *)pmesg,sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
    return;
 }
 

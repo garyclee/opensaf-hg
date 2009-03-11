@@ -140,7 +140,7 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG 
 
    m_NCS_MEMSET(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
    d_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes = NULL;
 
    prev_node_info = &d_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
@@ -158,7 +158,7 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG 
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_node_info,s_node_info,sizeof(AVSV_CLM_INFO_MSG));
+      memcpy(d_node_info,s_node_info,sizeof(AVSV_CLM_INFO_MSG));
       d_node_info->next = NULL;
       *prev_node_info = d_node_info;
       prev_node_info = &d_node_info->next;
@@ -193,7 +193,7 @@ uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG *s_node_
 
    m_NCS_MEMSET(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
    d_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes = NULL;
 
    prev_node_info = &d_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes;
@@ -211,7 +211,7 @@ uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG *s_node_
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_node_info,s_node_info,sizeof(AVSV_CLM_INFO_MSG));
+      memcpy(d_node_info,s_node_info,sizeof(AVSV_CLM_INFO_MSG));
       d_node_info->next = NULL;
       *prev_node_info = d_node_info;
       prev_node_info = &d_node_info->next;
@@ -284,7 +284,7 @@ uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg,AVSV_DND_MSG *s_hlth_msg)
 
    m_NCS_MEMSET(d_hlth_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_hlth_msg,s_hlth_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_hlth_msg,s_hlth_msg,sizeof(AVSV_DND_MSG));
    d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list = NULL;
 
    s_hlth_info = s_hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
@@ -298,7 +298,7 @@ uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg,AVSV_DND_MSG *s_hlth_msg)
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_hlth_info,s_hlth_info,sizeof(AVSV_HLT_INFO_MSG));
+      memcpy(d_hlth_info,s_hlth_info,sizeof(AVSV_HLT_INFO_MSG));
       d_hlth_info->next = d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
       d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list = d_hlth_info;
 
@@ -366,7 +366,7 @@ uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg,AVSV_DND_MSG *s_su_msg)
 
    m_NCS_MEMSET(d_su_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_su_msg,s_su_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_su_msg,s_su_msg,sizeof(AVSV_DND_MSG));
    d_su_msg->msg_info.d2n_reg_su.su_list = NULL;
 
    s_su_info = s_su_msg->msg_info.d2n_reg_su.su_list;
@@ -380,7 +380,7 @@ uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg,AVSV_DND_MSG *s_su_msg)
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_su_info,s_su_info,sizeof(AVSV_SU_INFO_MSG));
+      memcpy(d_su_info,s_su_info,sizeof(AVSV_SU_INFO_MSG));
       d_su_info->next = d_su_msg->msg_info.d2n_reg_su.su_list;
       d_su_msg->msg_info.d2n_reg_su.su_list = d_su_info;
 
@@ -444,7 +444,7 @@ uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg,AVSV_DND_MSG *s_comp_msg)
 
    m_NCS_MEMSET(d_comp_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_comp_msg,s_comp_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_comp_msg,s_comp_msg,sizeof(AVSV_DND_MSG));
    d_comp_msg->msg_info.d2n_reg_comp.list = NULL;
 
    s_comp_info = s_comp_msg->msg_info.d2n_reg_comp.list;
@@ -458,7 +458,7 @@ uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg,AVSV_DND_MSG *s_comp_msg)
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_comp_info,s_comp_info,sizeof(AVSV_COMP_INFO_MSG));
+      memcpy(d_comp_info,s_comp_info,sizeof(AVSV_COMP_INFO_MSG));
       d_comp_info->next = d_comp_msg->msg_info.d2n_reg_comp.list;
       d_comp_msg->msg_info.d2n_reg_comp.list = d_comp_info;
 
@@ -528,7 +528,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg,AVSV_DND_MSG *s_susi_msg)
 
    m_NCS_MEMSET(d_susi_msg,'\0',sizeof(AVSV_DND_MSG));
 
-   m_NCS_MEMCPY(d_susi_msg,s_susi_msg,sizeof(AVSV_DND_MSG));
+   memcpy(d_susi_msg,s_susi_msg,sizeof(AVSV_DND_MSG));
    d_susi_msg->msg_info.d2n_su_si_assign.list = NULL;
 
    s_compcsi_info = s_susi_msg->msg_info.d2n_su_si_assign.list;
@@ -542,7 +542,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg,AVSV_DND_MSG *s_susi_msg)
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMCPY(d_compcsi_info,s_compcsi_info,sizeof(AVSV_SUSI_ASGN));
+      memcpy(d_compcsi_info,s_compcsi_info,sizeof(AVSV_SUSI_ASGN));
       if (s_compcsi_info->attrs.list != NULL)
       {
          d_compcsi_info->attrs.list = 
@@ -552,7 +552,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg,AVSV_DND_MSG *s_susi_msg)
             avsv_free_d2n_susi_msg_info(d_susi_msg);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMCPY(d_compcsi_info->attrs.list,s_compcsi_info->attrs.list,(s_compcsi_info->attrs.number * sizeof(AVSV_SUSI_ASGN)));
+         memcpy(d_compcsi_info->attrs.list,s_compcsi_info->attrs.list,(s_compcsi_info->attrs.number * sizeof(AVSV_SUSI_ASGN)));
       }
       d_compcsi_info->next = d_susi_msg->msg_info.d2n_su_si_assign.list;
       d_susi_msg->msg_info.d2n_su_si_assign.list = d_compcsi_info;
@@ -616,7 +616,7 @@ uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg,AVSV_DND_MSG *s_pg_msg)
    m_NCS_MEMSET(d_pg_msg,'\0',sizeof(AVSV_DND_MSG));
 
    /* copy the common contents */
-   m_NCS_MEMCPY(d_pg_msg, s_pg_msg, sizeof(AVSV_DND_MSG));
+   memcpy(d_pg_msg, s_pg_msg, sizeof(AVSV_DND_MSG));
 
    if ( !s_info->mem_list.numberOfItems ) 
       return NCSCC_RC_SUCCESS;
@@ -630,7 +630,7 @@ uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg,AVSV_DND_MSG *s_pg_msg)
       return NCSCC_RC_FAILURE;
 
    /* copy the mem-list */
-   m_NCS_OS_MEMCPY(d_info->mem_list.notification, s_info->mem_list.notification, 
+   memcpy(d_info->mem_list.notification, s_info->mem_list.notification, 
                    sizeof(SaAmfProtectionGroupNotificationT) * s_info->mem_list.numberOfItems);
 
    return NCSCC_RC_SUCCESS;
@@ -752,7 +752,7 @@ uns32 avsv_dnd_msg_copy (AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
    }else
    {
       /* copy only the contents */
-      m_NCS_MEMCPY(dmsg, smsg, sizeof(AVSV_DND_MSG)); 
+      memcpy(dmsg, smsg, sizeof(AVSV_DND_MSG)); 
    }
 
    return NCSCC_RC_SUCCESS;

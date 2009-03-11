@@ -381,7 +381,7 @@ uns32 avnd_avnd_msg_send (AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type,
       m_NCS_OS_MEMSET(nd_nd_ava_msg, 0, sizeof(AVSV_ND2ND_AVA_MSG));
       msg.info.avnd->type = AVND_AVND_AVA_MSG;
       msg.info.avnd->info.msg = nd_nd_ava_msg; 
-      m_NCS_OS_MEMCPY(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
+      memcpy(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
    }
    else
    {
@@ -408,7 +408,7 @@ uns32 avnd_avnd_msg_send (AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type,
      case AVSV_AMF_RESP:
      {
        nd_nd_ava_msg->type = AVSV_AVA_API_MSG;
-       m_NCS_OS_MEMCPY(&nd_nd_ava_msg->info.api_info, info, sizeof(AVSV_AMF_API_INFO));
+       memcpy(&nd_nd_ava_msg->info.api_info, info, sizeof(AVSV_AMF_API_INFO));
        break;
      } /* case AVSV_AMF_HC_START */
 

@@ -166,7 +166,7 @@ static uns32 mqd_user_evt_process(MQD_CB *pMqd, MDS_DEST *dest)
       * pertaining to the user
       */
       mqd_user_evt_track_delete(pMqd,dest);    
-      m_NCS_OS_MEMCPY(&user_evt.dest,dest,sizeof(MDS_DEST));
+      memcpy(&user_evt.dest,dest,sizeof(MDS_DEST));
       /* Send async update to the stand by for MQD redundancy */
       mqd_a2s_async_update(pMqd, MQD_A2S_MSG_TYPE_USEREVT, (void*)&user_evt);
 

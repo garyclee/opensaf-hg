@@ -383,7 +383,7 @@ uns32 ncsifsvbindifentry_setrow(NCSCONTEXT hdl, NCSMIB_ARG *arg,NCSMIB_SETROW_PA
        }
 
 
-      m_NCS_MEMCPY((char *)&evt->info.ifd_evt.info.intf_create.intf_data.if_info,(char *)&intf_data->if_info, sizeof(NCS_IFSV_INTF_INFO));
+      memcpy((char *)&evt->info.ifd_evt.info.intf_create.intf_data.if_info,(char *)&intf_data->if_info, sizeof(NCS_IFSV_INTF_INFO));
 
    evt->info.ifd_evt.info.intf_create.intf_data.if_info.bind_master_ifindex = master_ifindex;
 
@@ -723,7 +723,7 @@ uns32 ifsv_ifd_bind_rec_create(IFSV_CB *cb, IFSV_BIND_NODE *ifsv_bind_node)
        }
 
 
-      m_NCS_MEMCPY((char *)&evt->info.ifd_evt.info.intf_create.intf_data.if_info,(char *)&intf_data->if_info, sizeof(NCS_IFSV_INTF_INFO));
+      memcpy((char *)&evt->info.ifd_evt.info.intf_create.intf_data.if_info,(char *)&intf_data->if_info, sizeof(NCS_IFSV_INTF_INFO));
 
    evt->info.ifd_evt.info.intf_create.intf_data.if_info.bind_master_ifindex = master_ifindex;
 

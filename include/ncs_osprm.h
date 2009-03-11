@@ -655,11 +655,6 @@ typedef int32 int64;
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-
-#ifndef m_NCS_OS_MEMCPY
-#define m_NCS_OS_MEMCPY(d,s,n)             memcpy(d,s,n)
-#endif
-
 #ifndef m_NCS_OS_MEMSET
 #define m_NCS_OS_MEMSET(b,c,n)             memset(b,c,n)
 #endif

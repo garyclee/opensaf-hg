@@ -58,7 +58,7 @@ uns32 glsv_gld_map_from_instid(const uns32* i_inst_ids, uns32 i_inst_len, GLSV_G
    tmp_rsc_map_info = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info,
                                     (uns8*)&rsc_name);
    if(tmp_rsc_map_info)
-     m_NCS_MEMCPY(rsc_map_info, tmp_rsc_map_info, sizeof(GLSV_GLD_RSC_MAP_INFO));
+     memcpy(rsc_map_info, tmp_rsc_map_info, sizeof(GLSV_GLD_RSC_MAP_INFO));
 
    return NCSCC_RC_SUCCESS;
 }

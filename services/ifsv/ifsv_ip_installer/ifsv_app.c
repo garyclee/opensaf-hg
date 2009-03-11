@@ -668,7 +668,7 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
       svc_req.info.i_ifadd.if_info.if_speed = speed;
       svc_req.info.i_ifadd.if_info.mtu      = MTU;
       svc_req.info.i_ifadd.if_info.oper_state = oper_state;
-      m_NCS_MEMCPY(svc_req.info.i_ifadd.if_info.phy_addr,phy,(6*sizeof(uns8)));
+      memcpy(svc_req.info.i_ifadd.if_info.phy_addr,phy,(6*sizeof(uns8)));
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
          m_NCS_CONS_PRINTF("IfA could not able to add the interface\n");

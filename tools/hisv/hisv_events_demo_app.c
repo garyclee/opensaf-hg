@@ -1033,7 +1033,7 @@ dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 
    pEventPattern = patternArray->patterns; /* Point to first pattern */
    for (x=0; x<(int32)patternArray->patternsNumber; x++) {
-      m_NCS_MEMCPY(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+      memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
       m_NCS_CONS_PRINTF("     pattern[%ld] =    {%2u, \"%s\"}\n",
              x, (uns32)pEventPattern->patternSize, buf);

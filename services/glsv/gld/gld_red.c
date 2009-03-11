@@ -43,8 +43,8 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB gld_cb, SaNameT rsc_name, SaLckResou
 
   a2s_evt.evt_type                    = GLSV_GLD_EVT_RSC_OPEN;
   a2s_evt.info.rsc_open_info.rsc_id   = rsc_id;
-  m_NCS_MEMCPY(&a2s_evt.info.rsc_open_info.rsc_name, &rsc_name, sizeof(SaNameT));
-  m_NCS_MEMCPY(&a2s_evt.info.rsc_open_info.mdest_id,&mdest_id,sizeof(MDS_DEST));
+  memcpy(&a2s_evt.info.rsc_open_info.rsc_name, &rsc_name, sizeof(SaNameT));
+  memcpy(&a2s_evt.info.rsc_open_info.mdest_id,&mdest_id,sizeof(MDS_DEST));
   a2s_evt.info.rsc_open_info.rsc_creation_time = creation_time;
 
   /* send msg to MBCSv */
@@ -76,7 +76,7 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB gld_cb, MDS_DEST mdest_id, uns32
 
 
   a2s_evt.evt_type                       = evt_type;  
-  m_NCS_MEMCPY(&a2s_evt.info.glnd_mds_info.mdest_id,&mdest_id,sizeof(MDS_DEST));
+  memcpy(&a2s_evt.info.glnd_mds_info.mdest_id,&mdest_id,sizeof(MDS_DEST));
   /* send msg to MBCSv */
   rc = glsv_gld_mbcsv_async_update(&gld_cb, &a2s_evt);
   if(rc != SA_AIS_OK)
@@ -108,7 +108,7 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB gld_cb,GLSV_GLD_EVT_TYPE    evt_t
   a2s_evt.info.rsc_details.orphan     = rsc_details.orphan;
   a2s_evt.info.rsc_details.lck_mode   = rsc_details.lck_mode;
   a2s_evt.info.rsc_details.lcl_ref_cnt   = lcl_ref_cnt;
-  m_NCS_MEMCPY(&a2s_evt.info.rsc_details.mdest_id,&mdest_id,sizeof(MDS_DEST));
+  memcpy(&a2s_evt.info.rsc_details.mdest_id,&mdest_id,sizeof(MDS_DEST));
 
   /* send msg to MBCSv */
   rc = glsv_gld_mbcsv_async_update(&gld_cb, &a2s_evt);

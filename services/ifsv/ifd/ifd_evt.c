@@ -671,7 +671,7 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
       no_data = FALSE;
       ifindex = intf_rec->intf_data.if_index;
 
-      m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create.intf_data, 
+      memcpy(&evt->info.ifnd_evt.info.intf_create.intf_data, 
                    &intf_rec->intf_data, sizeof(IFSV_INTF_DATA));
 
       evt->info.ifnd_evt.info.intf_create.intf_data.no_data = FALSE;
@@ -706,7 +706,7 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
         res = ipxs_ifsv_ifip_info_attr_cpy(ip_info, &ipxs_ip_info);
 
         /* Copy the IP info & its internal pointers */
-        m_NCS_OS_MEMCPY(&ipxs_evt.info.nd.dtond_upd.ip_info, 
+        memcpy(&ipxs_evt.info.nd.dtond_upd.ip_info, 
                                   &ipxs_ip_info, sizeof(NCS_IPXS_IPINFO));
         res = ifsv_mds_normal_send(cb->my_mds_hdl, NCSMDS_SVC_ID_IFD, 
                                 (NCSCONTEXT)&evt, mds_dest, NCSMDS_SVC_ID_IFND);
@@ -825,7 +825,7 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
            m_NCS_UNLOCK(intf_rec_lock, NCS_LOCK_WRITE);
            return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create.intf_data,
+         memcpy(&evt->info.ifnd_evt.info.intf_create.intf_data,
                       &intf_rec->intf_data, sizeof(IFSV_INTF_DATA));
 
          evt->info.ifnd_evt.info.intf_create.intf_data.no_data = FALSE;
@@ -864,7 +864,7 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
             res = ipxs_ifsv_ifip_info_attr_cpy(ip_info, &ipxs_ip_info);
 
             /* Copy the IP info & its internal pointers */
-            m_NCS_OS_MEMCPY(&ipxs_evt.info.nd.dtond_upd.ip_info,
+            memcpy(&ipxs_evt.info.nd.dtond_upd.ip_info,
             &ipxs_ip_info, sizeof(NCS_IPXS_IPINFO));
             res = ifsv_mds_normal_send(cb->my_mds_hdl, NCSMDS_SVC_ID_IFD,
             (NCSCONTEXT)&evt, mds_dest, NCSMDS_SVC_ID_IFND);
@@ -874,7 +874,7 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
       else
       {
         /* This intf has not been created by this IfND, so simply send to it */
-        m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create.intf_data,
+        memcpy(&evt->info.ifnd_evt.info.intf_create.intf_data,
                     &intf_rec->intf_data, sizeof(IFSV_INTF_DATA));
 
         evt->info.ifnd_evt.info.intf_create.intf_data.no_data = FALSE;
@@ -908,7 +908,7 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
            res = ipxs_ifsv_ifip_info_attr_cpy(ip_info, &ipxs_ip_info);
 
            /* Copy the IP info & its internal pointers */
-           m_NCS_OS_MEMCPY(&ipxs_evt.info.nd.dtond_upd.ip_info,
+           memcpy(&ipxs_evt.info.nd.dtond_upd.ip_info,
            &ipxs_ip_info, sizeof(NCS_IPXS_IPINFO));
            res = ifsv_mds_normal_send(cb->my_mds_hdl, NCSMDS_SVC_ID_IFD,
            (NCSCONTEXT)&evt, mds_dest, NCSMDS_SVC_ID_IFND);
@@ -1232,7 +1232,7 @@ ifd_mds_msg_send_sync_resp (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
    switch (msg_type)
    {
    case IFND_EVT_INTF_CREATE:
-      m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create.intf_data, msg, 
+      memcpy(&evt->info.ifnd_evt.info.intf_create.intf_data, msg, 
          sizeof(IFSV_INTF_DATA));
       /* whatever IfD wants to publish it assumes that it is the owner of
        * it 
@@ -1243,7 +1243,7 @@ ifd_mds_msg_send_sync_resp (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
 
       break;
    case IFND_EVT_INTF_DESTROY:
-      m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_destroy, msg, 
+      memcpy(&evt->info.ifnd_evt.info.intf_destroy, msg, 
          sizeof(IFSV_INTF_DESTROY_INFO));
 
       m_IFD_LOG_EVT_L(IFSV_LOG_IFD_EVT_INTF_DESTROY_RCV,\
@@ -1252,7 +1252,7 @@ ifd_mds_msg_send_sync_resp (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
 
       break;
    case IFND_EVT_IFINDEX_RESP:
-      m_NCS_MEMCPY(&evt->info.ifnd_evt.info.spt_map, msg, 
+      memcpy(&evt->info.ifnd_evt.info.spt_map, msg, 
          sizeof(IFSV_EVT_SPT_MAP_INFO));
 
       m_IFD_LOG_EVT_LL(IFSV_LOG_IFD_EVT_IFINDEX_RESP_SND,\
@@ -1312,7 +1312,7 @@ ifd_evt_send (NCSCONTEXT msg, IFSV_EVT_TYPE evt_type, IFSV_CB *ifsv_cb)
    switch(evt_type)
    {
       case IFD_EVT_INIT_DONE:
-         m_NCS_MEMCPY(&evt->info.ifd_evt.info.init_done, msg, 
+         memcpy(&evt->info.ifd_evt.info.init_done, msg, 
          sizeof(IFSV_EVT_INIT_DONE_INFO));
          m_IFD_LOG_EVT_INIT(IFSV_LOG_IFD_EVT_INIT_DONE_RCV,\
             evt->info.ifd_evt.info.init_done.init_done);

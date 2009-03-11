@@ -102,13 +102,13 @@ AVD_COMP * avd_comp_struc_crt(AVD_CL_CB *cb,SaNameT comp_name, NCS_BOOL ckpt)
 
    if (ckpt)
    {
-      m_NCS_MEMCPY(comp->comp_info.name_net.value,comp_name.value,
+      memcpy(comp->comp_info.name_net.value,comp_name.value,
          m_NCS_OS_NTOHS(comp_name.length));
       comp->comp_info.name_net.length = comp_name.length;
    }
    else
    {
-      m_NCS_MEMCPY(comp->comp_info.name_net.value,comp_name.value,comp_name.length);
+      memcpy(comp->comp_info.name_net.value,comp_name.value,comp_name.length);
       comp->comp_info.name_net.length = m_HTON_SANAMET_LEN(comp_name.length);
       
       comp->comp_info.cap = NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY;
@@ -190,7 +190,7 @@ AVD_COMP * avd_comp_struc_find(AVD_CL_CB *cb,SaNameT comp_name,NCS_BOOL host_ord
    lcomp_name.length = (host_order == FALSE) ? comp_name.length :  
                                            m_HTON_SANAMET_LEN(comp_name.length);
 
-   m_NCS_MEMCPY(lcomp_name.value,comp_name.value,m_NCS_OS_NTOHS(lcomp_name.length));
+   memcpy(lcomp_name.value,comp_name.value,m_NCS_OS_NTOHS(lcomp_name.length));
 
    comp = (AVD_COMP *)ncs_patricia_tree_get(&cb->comp_anchor, (uns8 *)&lcomp_name);
 
@@ -224,7 +224,7 @@ AVD_COMP * avd_comp_struc_find_next(AVD_CL_CB *cb,SaNameT comp_name,NCS_BOOL hos
    lcomp_name.length = (host_order == FALSE) ? comp_name.length :  
                                            m_HTON_SANAMET_LEN(comp_name.length);
 
-   m_NCS_MEMCPY(lcomp_name.value,comp_name.value,m_NCS_OS_NTOHS(lcomp_name.length));
+   memcpy(lcomp_name.value,comp_name.value,m_NCS_OS_NTOHS(lcomp_name.length));
    comp = (AVD_COMP *)ncs_patricia_tree_getnext(&cb->comp_anchor, 
                                                  (uns8*)&lcomp_name);
 
@@ -1172,7 +1172,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          {
          case saAmfCompInstantiateCmd_ID:
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1181,13 +1181,13 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.init_len = arg->req.info.set_req.i_param_val.i_length;
-               m_NCS_MEMCPY(comp->comp_info.init_info,
+               memcpy(comp->comp_info.init_info,
                             arg->req.info.set_req.i_param_val.info.i_oct,
                             comp->comp_info.init_len);
             break;
          case saAmfCompTerminateCmd_ID:
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1196,13 +1196,13 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.term_len = arg->req.info.set_req.i_param_val.i_length;
-               m_NCS_MEMCPY(comp->comp_info.term_info,
+               memcpy(comp->comp_info.term_info,
                             arg->req.info.set_req.i_param_val.info.i_oct,
                             comp->comp_info.term_len);
             break;
          case saAmfCompCleanupCmd_ID:
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1211,7 +1211,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.clean_len = arg->req.info.set_req.i_param_val.i_length;
-               m_NCS_MEMCPY(comp->comp_info.clean_info,
+               memcpy(comp->comp_info.clean_info,
                             arg->req.info.set_req.i_param_val.info.i_oct,
                             comp->comp_info.clean_len);
             break;
@@ -1220,7 +1220,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
 
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1229,7 +1229,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.amstart_len = arg->req.info.set_req.i_param_val.i_length;
-               m_NCS_MEMCPY(comp->comp_info.amstart_info,
+               memcpy(comp->comp_info.amstart_info,
                             arg->req.info.set_req.i_param_val.info.i_oct,
                             comp->comp_info.amstart_len);
             break;
@@ -1238,7 +1238,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
 
            param.value_len = arg->req.info.set_req.i_param_val.i_length;
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1247,13 +1247,13 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             else
                comp->comp_info.amstop_len = arg->req.info.set_req.i_param_val.i_length;
-               m_NCS_MEMCPY(comp->comp_info.amstop_info,
+               memcpy(comp->comp_info.amstop_info,
                             arg->req.info.set_req.i_param_val.info.i_oct,
                             comp->comp_info.amstop_len);
             break;
          case saAmfCompInstantiateTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1267,7 +1267,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompDelayBetweenInstantiateAttempts_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1280,7 +1280,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompTerminateTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1293,7 +1293,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompCleanupTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1309,7 +1309,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
 
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1325,7 +1325,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
 
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1338,7 +1338,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompTerminateCallbackTimeOut_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0], 
+           memcpy(&param.value[0], 
                         arg->req.info.set_req.i_param_val.info.i_oct, 
                         param.value_len);
 
@@ -1351,7 +1351,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompCSISetCallbackTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1364,7 +1364,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompQuiescingCompleteTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1377,7 +1377,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompCSIRmvCallbackTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1390,7 +1390,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1403,7 +1403,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             break;
          case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
            param.value_len = sizeof(SaTimeT);
-           m_NCS_MEMCPY(&param.value[0],
+           memcpy(&param.value[0],
                         arg->req.info.set_req.i_param_val.info.i_oct,
                         param.value_len);
 
@@ -1563,31 +1563,31 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       break;
    case saAmfCompInstantiateCmd_ID:
       comp->comp_info.init_len = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(comp->comp_info.init_info,
+      memcpy(comp->comp_info.init_info,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    comp->comp_info.init_len);
       break;
    case saAmfCompTerminateCmd_ID:
       comp->comp_info.term_len = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(comp->comp_info.term_info,
+      memcpy(comp->comp_info.term_info,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    comp->comp_info.term_len);
       break;
    case saAmfCompCleanupCmd_ID:
       comp->comp_info.clean_len = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(comp->comp_info.clean_info,
+      memcpy(comp->comp_info.clean_info,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    comp->comp_info.clean_len);
       break;
    case saAmfCompAmStartCmd_ID:
       comp->comp_info.amstart_len = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(comp->comp_info.amstart_info,
+      memcpy(comp->comp_info.amstart_info,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    comp->comp_info.amstart_len );
       break;
    case saAmfCompAmStopCmd_ID:
       comp->comp_info.amstop_len = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(comp->comp_info.amstop_info,
+      memcpy(comp->comp_info.amstop_info,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    comp->comp_info.amstop_len);
       break;
@@ -2064,11 +2064,11 @@ AVD_COMP_CS_TYPE * avd_comp_cs_type_struc_crt(AVD_CL_CB *cb, AVD_COMP_CS_TYPE_IN
    m_NCS_MEMSET((char *)cst, '\0', sizeof(AVD_COMP_CS_TYPE));
 
    cst->indx.comp_name_net.length = indx.comp_name_net.length;
-   m_NCS_MEMCPY(cst->indx.comp_name_net.value,indx.comp_name_net.value,
+   memcpy(cst->indx.comp_name_net.value,indx.comp_name_net.value,
                             m_NCS_OS_NTOHS(indx.comp_name_net.length));
    
    cst->indx.csi_type_name_net.length = indx.csi_type_name_net.length;
-   m_NCS_MEMCPY(cst->indx.csi_type_name_net.value, indx.csi_type_name_net.value, 
+   memcpy(cst->indx.csi_type_name_net.value, indx.csi_type_name_net.value, 
                                  m_NCS_OS_NTOHS(indx.csi_type_name_net.length));
   
    cst->row_status = NCS_ROW_NOT_READY;

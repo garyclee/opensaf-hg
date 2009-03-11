@@ -922,7 +922,7 @@ NCS_BOOL ncs_regx_get_result(void* regx_hdl, uns32 idx, char* space, uns32 len)
    m_NCS_ASSERT(idx < NBRA);
    m_NCS_ASSERT(strlen(regx->subsp[idx].s_cp) < len);
    
-   m_NCS_MEMCPY(space, regx->subsp[idx].s_cp, regx->subsp[idx].s_len);
+   memcpy(space, regx->subsp[idx].s_cp, regx->subsp[idx].s_len);
    space[regx->subsp[idx].s_len] = '\0';
    
    return TRUE;
