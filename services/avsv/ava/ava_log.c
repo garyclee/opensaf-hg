@@ -172,7 +172,7 @@ void ava_log_cbk (AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
 
    /* convert comp-name into string format */
    if (comp_name) 
-      m_NCS_STRNCPY(name, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(name, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CBK, AVA_FC_CBK, 
               NCSFL_LC_API, sev, NCSFL_TYPE_TIC, type - 1, name);
@@ -229,7 +229,7 @@ void ava_log_api (AVA_LOG_API   type,
 
    /* convert comp-name into string format */
    if (comp_name) 
-      m_NCS_STRNCPY(name, comp_name->value, comp_name->length);
+      strncpy(name, comp_name->value, comp_name->length);
 
    ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_API, AVA_FC_API, 
               NCSFL_LC_API, sev, NCSFL_TYPE_TIIC, type-1, status, name);

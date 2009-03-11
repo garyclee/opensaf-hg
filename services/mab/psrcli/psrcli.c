@@ -1917,7 +1917,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
 
                memset(&prdesc, '\0', sizeof(prdesc));
                profile_desc = (int8 *)ncsmib_arg.rsp.info.get_rsp.i_param_val.info.i_oct;
-               m_NCS_STRNCPY(&prdesc, profile_desc, ncsmib_arg.rsp.info.get_rsp.i_param_val.i_length);
+               strncpy(&prdesc, profile_desc, ncsmib_arg.rsp.info.get_rsp.i_param_val.i_length);
                prdesc[255] = '\0'; /* Preventive null termination */
                sysf_sprintf(display_str, "\nProfile description: %s\n", (char*)&prdesc);
                pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);

@@ -474,7 +474,7 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
 
    buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
    memset(buf,'\0',total_length);
-   m_NCS_OS_STRNCPY(buf,cp_node->ckpt_name.value,size);
+   strncpy(buf,cp_node->ckpt_name.value,size);
 
 
    m_NCS_OS_SPRINTF(buf+size-1,"_%d_%llu",(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id),cp_node->ckpt_id);

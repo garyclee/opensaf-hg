@@ -233,7 +233,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
     if(m_NCS_STRLEN(tbl_owned->tbl_info.mib_tbl_name) >= (PSS_MIB_TBL_NAME_LEN_MAX-1))
     {
        /* Truncate and store */
-       m_NCS_STRNCPY((char*)&tbl_info->ptbl_info->mib_tbl_name, (char*)tbl_owned->tbl_info.mib_tbl_name, (PSS_MIB_TBL_NAME_LEN_MAX-1));
+       strncpy((char*)&tbl_info->ptbl_info->mib_tbl_name, (char*)tbl_owned->tbl_info.mib_tbl_name, (PSS_MIB_TBL_NAME_LEN_MAX-1));
     }
     else
     {

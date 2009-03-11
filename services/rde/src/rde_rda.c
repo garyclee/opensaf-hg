@@ -529,7 +529,7 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   m_NCS_OS_STRNCPY(&rde_rda_cb->sock_address.sun_path, sock_name,
+   strncpy(&rde_rda_cb->sock_address.sun_path, sock_name,
        sizeof(rde_rda_cb->sock_address.sun_path));
    rde_rda_cb-> sock_address. sun_family = AF_UNIX ;
    rde_rda_cb-> fd                       = -1      ;

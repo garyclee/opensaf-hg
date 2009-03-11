@@ -203,7 +203,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
 
    vds->amf.health_check_key.keyLen = m_NCS_OS_STRLEN(VDS_AMF_HEALTH_CHECK_KEY);
    
-   m_NCS_STRNCPY(vds->amf.health_check_key.key, 
+   strncpy(vds->amf.health_check_key.key, 
                  VDS_AMF_HEALTH_CHECK_KEY,
                           vds->amf.health_check_key.keyLen);
    

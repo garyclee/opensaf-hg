@@ -973,7 +973,7 @@ Show_tests()
     {
         memset(disp, 0X20, sizeof(disp));
         disp[27] = 0;
-        m_NCS_STRNCPY(disp, tests[i].testName, m_NCS_STRLEN(tests[i].testName));
+        strncpy(disp, tests[i].testName, m_NCS_STRLEN(tests[i].testName));
         m_NCS_CONS_PRINTF("\n%s %3d  %s", disp, i, tests[i].usage_str);
     }
     m_NCS_CONS_PRINTF("\n");

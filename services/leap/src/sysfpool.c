@@ -2360,9 +2360,9 @@ static void leap_mem_print(void *ucontext, char *payload)
             record->transfer = (unsigned short)transfer;
             record->line = (unsigned short)line;
             if(m_NCS_STRLEN(file) >= OWNER_NAME)
-               m_NCS_STRNCPY(record->file, file + m_NCS_STRLEN(file) - OWNER_NAME + 1, OWNER_NAME-1);
+               strncpy(record->file, file + m_NCS_STRLEN(file) - OWNER_NAME + 1, OWNER_NAME-1);
             else
-               m_NCS_STRNCPY(record->file, file , OWNER_NAME-1);
+               strncpy(record->file, file , OWNER_NAME-1);
             record->file[OWNER_NAME-1] = 0;
             break;
             }

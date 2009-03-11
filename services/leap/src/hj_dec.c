@@ -373,7 +373,7 @@ ncs_decode_key(uns8 **stream, NCS_KEY* key)
     case NCS_FMT_STR :
       len = *(*stream)++;
       m_KEY_CHK_LEN(key->val.oct.len);
-      m_NCS_STRNCPY((char*)key->val.str, (char*)(*stream), len);
+      strncpy((char*)key->val.str, (char*)(*stream), len);
       *stream = *stream + len; /* move pointer beyond what was consumed */
       return (3 + len + 1);
       break;

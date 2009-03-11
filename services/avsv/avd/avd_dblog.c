@@ -69,7 +69,7 @@ void  avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state,
 
    /* convert name into string format */
    if (name_net)
-      m_NCS_STRNCPY(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+      strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_ADMIN, AVD_FC_ADMIN,
               NCSFL_LC_HEADLINE, sev, "TCI", name, state);
@@ -100,7 +100,7 @@ void  avd_log_si_unassigned_trap(AVD_TRAP_FLEX state,
 
    /* convert name into string format */
    if (name_net)
-      m_NCS_STRNCPY(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+      strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SI_UNASSIGN, AVD_FC_TRAP,
               NCSFL_LC_HEADLINE, sev, "TCI", name, state);
@@ -131,7 +131,7 @@ void  avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state,
 
    /* convert name into string format */
    if (name_net)
-      m_NCS_STRNCPY(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+      strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_OPER, AVD_FC_OPER,
               NCSFL_LC_HEADLINE, sev, "TCI", name, state);
@@ -165,7 +165,7 @@ void  avd_log_clm_node_traps(AVD_TRAP_FLEX cl,
 
    /* convert name into string format */
    if (name_net)
-      m_NCS_STRNCPY(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+      strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_CLM, AVD_FC_TRAP,
               NCSFL_LC_HEADLINE, sev, "TCII", name, op, cl);
@@ -204,11 +204,11 @@ void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state,
 
    /* convert name into string format */
    if (su_name_net)
-      m_NCS_STRNCPY(su_name, su_name_net->value, m_NCS_OS_NTOHS(su_name_net->length));
+      strncpy(su_name, su_name_net->value, m_NCS_OS_NTOHS(su_name_net->length));
    
    /* convert name into string format */
    if (si_name_net)
-      m_NCS_STRNCPY(si_name, si_name_net->value, m_NCS_OS_NTOHS(si_name_net->length));
+      strncpy(si_name, si_name_net->value, m_NCS_OS_NTOHS(si_name_net->length));
 
    if(isStateChanged)
       ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SUSI_HA, AVD_FC_SUSI_HA,
@@ -248,7 +248,7 @@ void avd_log_shutdown_failure (SaNameT           *node_name_net,
 
    /* convert name into string format */
    if (node_name_net)
-      m_NCS_STRNCPY(node_name, node_name_net->value, m_NCS_OS_NTOHS(node_name_net->length));
+      strncpy(node_name, node_name_net->value, m_NCS_OS_NTOHS(node_name_net->length));
 
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SHUTDOWN_FAILURE, AVD_FC_SHUTDOWN_FAILURE, 
            NCSFL_LC_HEADLINE, sev, "TCI", node_name, (errcode-1));
@@ -342,7 +342,7 @@ void avd_pxy_pxd_log(uns32   sev,
 
    /* convert name into string format */
    if (comp_name)
-      m_NCS_STRNCPY(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+      strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
       ncs_logmsg(NCS_SERVICE_ID_AVD,(uns8)AVD_PXY_PXD,(uns8)AVD_FC_PXY_PXD,
                  NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info,

@@ -607,7 +607,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
            break;
          }
 
-         m_NCS_STRNCPY(spawninfo->s_parameters,q,NID_MAXPARMS);
+         strncpy(spawninfo->s_parameters,q,NID_MAXPARMS);
          collect_param(spawninfo->s_parameters,spawninfo->s_name,spawninfo->serv_args);
          parse_state = NID_PLATCONF_CLNPARM;
          continue;
@@ -631,7 +631,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
                       NID_PLAT_CONF,NID_MAXPARMS);
          break;
          }
-         m_NCS_STRNCPY(spawninfo->cleanup_parms,q,NID_MAXPARMS);
+         strncpy(spawninfo->cleanup_parms,q,NID_MAXPARMS);
          collect_param(spawninfo->cleanup_parms,spawninfo->cleanup_file,spawninfo->clnup_args);
          parse_state = NID_PLATCONF_END;
          continue;
