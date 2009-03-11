@@ -160,12 +160,12 @@ char *bam_concatenate_twin_string (char *string1,char *string2, char *o_str)
     if(string1)
     {
         strcpy(o_str,string1);
-        m_NCS_STRCAT(o_str,",");
+        strcat(o_str,",");
     }
 
     if(string2) 
     {
-        m_NCS_STRCAT(o_str,string2);
+        strcat(o_str,string2);
     }
    
     return (o_str);

@@ -752,7 +752,7 @@ static uns32  dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
        ncs_dec_skip_space(&dec->i_uba, sizeof(uns8));
        str[i]=*c; 
        /* Now append this char to str */
-       /*m_NCS_STRCAT(str, c); */
+       /*strcat(str, c); */
    }
    /* If decoded log_path is not the same, copy it as new log_path */  
    if(m_NCS_STRCMP(str, cb->log_path) != 0) 

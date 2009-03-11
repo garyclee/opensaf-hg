@@ -1765,8 +1765,8 @@ void pss_cb_data_dump( )
 
    m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
    strcpy(tmp_file, "/tmp/ncs_pssv_dump");
-   m_NCS_STRCAT(tmp_file, asc_tod);
-   m_NCS_STRCAT(tmp_file, ".txt");
+   strcat(tmp_file, asc_tod);
+   strcat(tmp_file, ".txt");
 
    fh = sysf_fopen(tmp_file, "w");
    if(fh == NULL)

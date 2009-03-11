@@ -156,34 +156,34 @@ ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
    /* put the type and location */
 
    sprintf(tmpStr, "%d", ent->ent_type);
-   m_NCS_STRCAT(ent->ent_path, tmpStr);
+   strcat(ent->ent_path, tmpStr);
 
-   m_NCS_STRCAT(ent->ent_path, ",");
+   strcat(ent->ent_path, ",");
 
    sprintf(tmpStr, "%d", ent->location);
-   m_NCS_STRCAT(ent->ent_path, tmpStr);
+   strcat(ent->ent_path, tmpStr);
 
-   m_NCS_STRCAT(ent->ent_path, "}");
+   strcat(ent->ent_path, "}");
    
    /* now pile the parent path */
    if( (ent_path != NULL) && (m_NCS_STRLEN(ent_path)) )
    {
-      m_NCS_STRCAT(ent->ent_path, ",");
-      m_NCS_STRCAT(ent->ent_path, ent_path);
+      strcat(ent->ent_path, ",");
+      strcat(ent->ent_path, ent_path);
    }
    else
    { 
       /* Add root elem towards the end */
       sprintf(tmpStr, "%d", SAHPI_ENT_ROOT);
-      m_NCS_STRCAT(ent->ent_path, ",{");
-      m_NCS_STRCAT(ent->ent_path, tmpStr);
+      strcat(ent->ent_path, ",{");
+      strcat(ent->ent_path, tmpStr);
 
-      m_NCS_STRCAT(ent->ent_path, ",");
+      strcat(ent->ent_path, ",");
 
       sprintf(tmpStr, "%d", 0);
-      m_NCS_STRCAT(ent->ent_path, tmpStr);
+      strcat(ent->ent_path, tmpStr);
 
-      m_NCS_STRCAT(ent->ent_path, "}");
+      strcat(ent->ent_path, "}");
    }
 
    return ;

@@ -449,8 +449,8 @@ bam_send_hw_deployment_mibs(void)
       {
          /* send the related MIBS */
           strcpy(ent_path, "{");
-          m_NCS_STRCAT(ent_path, ent->ent_path);
-          m_NCS_STRCAT(ent_path, "}");
+          strcat(ent_path, ent->ent_path);
+          strcat(ent_path, "}");
 
 	       ncs_bam_build_mib_idx(&mib_idx, ent_path, NCSMIB_FMAT_OCT);	
 
@@ -595,8 +595,8 @@ bam_send_hw_deployment_mibs(void)
             if(dep_ent != NULL)
             {
                 strcpy(dep_ent_path, "{");
-                m_NCS_STRCAT(dep_ent_path, dep_ent->ent_path);
-                m_NCS_STRCAT(dep_ent_path, "}");
+                strcat(dep_ent_path, dep_ent->ent_path);
+                strcat(dep_ent_path, "}");
 
                if(strlen(dep_ent_path))
                {
@@ -623,8 +623,8 @@ bam_send_hw_deployment_mibs(void)
       ent = list_node->node;
 
       strcpy(ent_path, "{");
-      m_NCS_STRCAT(ent_path, ent->ent_path);
-      m_NCS_STRCAT(ent_path, "}");
+      strcat(ent_path, ent->ent_path);
+      strcat(ent_path, "}");
 
       ncs_bam_build_mib_idx(&mib_idx, ent_path, NCSMIB_FMAT_OCT);	
       

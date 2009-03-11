@@ -2943,7 +2943,7 @@ uns32 dtsv_chk_mib_rsp(char *err, NCSMIB_ARG *arg, uns32 cli_hdl)
       char* mib_err = "Unknown MIB Error!!";
  
       strcpy(bigerr, err);
-      m_NCS_OS_STRCAT(bigerr, ": ");
+      strcat(bigerr, ": ");
 
       switch (arg->rsp.i_status)
       {
@@ -2957,12 +2957,12 @@ uns32 dtsv_chk_mib_rsp(char *err, NCSMIB_ARG *arg, uns32 cli_hdl)
       default:                       break;
       }
 
-      m_NCS_OS_STRCAT(bigerr, mib_err);
+      strcat(bigerr, mib_err);
       if(NCSCC_RC_INV_SPECIFIC_VAL == arg->rsp.i_status)
       {
-         m_NCS_OS_STRCAT(bigerr, " - Check if \"row-status\" is set to \"not-in-service\" or check logs ");
+         strcat(bigerr, " - Check if \"row-status\" is set to \"not-in-service\" or check logs ");
       }
-      m_NCS_OS_STRCAT(bigerr, "\n");
+      strcat(bigerr, "\n");
 
       dtsv_cli_display(cli_hdl, bigerr);
 

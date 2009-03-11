@@ -298,7 +298,7 @@ uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot, uns32 subslot)
       }
       strcpy(task_name,"ifsv_app");
       sprintf(tmp_char,"%d",test_app_index);
-      m_NCS_STRCAT(task_name,tmp_char);
+      strcat(task_name,tmp_char);
       
       /* Create a application thread */
       if ((res = m_NCS_TASK_CREATE ((NCS_OS_CB)ifsv_dt_test_app_process, 

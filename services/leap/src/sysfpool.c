@@ -1779,7 +1779,7 @@ void
           sysf_sprintf(tmp, "\tFrom: %s at %d\n", record->file, record->line);
         else if(record->transfer == MEM_TO_OWNER)
           sysf_sprintf(tmp, "\tTo: %s at %d\n", record->file, record->line);
-        m_NCS_STRCAT(pBuf, tmp);
+        strcat(pBuf, tmp);
         }
       }
 #endif
@@ -2255,12 +2255,12 @@ static void leap_mem_print(void *ucontext, char *payload)
             if(index % BYTES_PER_LINE == 0)
               {
               sprintf(tmp, "0x%16lx  ",(long)(dump_ptr + index));
-              m_NCS_STRCAT(buffer, tmp);
+              strcat(buffer, tmp);
               }
             
             /* print the hex format of the character */
             sprintf(tmp, "%02x ", (*(dump_ptr + index) & 0XFF) );
-            m_NCS_STRCAT(buffer, tmp);
+            strcat(buffer, tmp);
             
             /* One line of hex is done, print characters */
             if((index + 1) % BYTES_PER_LINE == 0 || index + 1 == size)
@@ -2274,7 +2274,7 @@ static void leap_mem_print(void *ucontext, char *payload)
                 while(padding-- > 0)
                   {
                   /* 3 spaces */
-                  m_NCS_STRCAT(buffer, "   ");
+                  strcat(buffer, "   ");
                   }
                 
                 padding = (index + 1) % BYTES_PER_LINE;
@@ -2290,12 +2290,12 @@ static void leap_mem_print(void *ucontext, char *payload)
                 else
                   sprintf(tmp, "%c", '.');
                 
-                m_NCS_STRCAT(buffer, tmp);
+                strcat(buffer, tmp);
                 padding --;
                 }
-              m_NCS_STRCAT(buffer, "\n");
+              strcat(buffer, "\n");
               }
-            m_NCS_STRCAT(buffer, "\n");
+            strcat(buffer, "\n");
             }
           m_NCS_UNLOCK (&mp->lock, NCS_LOCK_WRITE); /* unlock this particular pool */
           return buffer;

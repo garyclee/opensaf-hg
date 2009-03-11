@@ -835,8 +835,8 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
                */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
                strcpy(genName, protoName);
-               m_NCS_STRCAT(genName, ",");
-               m_NCS_STRCAT(genName, index);
+               strcat(genName, ",");
+               strcat(genName, index);
             }
             /* we dont care about the other attributes... break */
             XMLString::release(&tag);
@@ -987,8 +987,8 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
             */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
                strcpy(genName, suName);
-               m_NCS_STRCAT(genName, ",");
-               m_NCS_STRCAT(genName, index);
+               strcat(genName, ",");
+               strcat(genName, index);
             }
             /* we dont care about the other attributes... break */
             XMLString::release(&tag);
@@ -1255,7 +1255,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
                   {
                      char *c_ptr = strstr(commandString, "Command");
                      strncpy(c_ptr, "\0", 1);
-                     m_NCS_STRCAT(commandString, tag);
+                     strcat(commandString, tag);
                      lookup = commandString;
                      rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
                             gl_amfConfig_table_size,
@@ -1583,8 +1583,8 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
 
       memset(genName, 0, BAM_MAX_INDEX_LEN);
       strcpy(genName, compName);
-      m_NCS_STRCAT(genName, ",");
-      m_NCS_STRCAT(genName, suName);
+      strcat(genName, ",");
+      strcat(genName, suName);
 
       XMLString::release(&compName);
       XMLString::release(&tag);
@@ -1754,8 +1754,8 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
             if(ext_su_flag == FALSE)
             {
               /* For external component, there is no node name. */
-              m_NCS_STRCAT(genName, ",");
-              m_NCS_STRCAT(genName, parentNodeName);
+              strcat(genName, ",");
+              strcat(genName, parentNodeName);
             }
             XMLString::release(&suName);
          }

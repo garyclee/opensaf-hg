@@ -1260,12 +1260,12 @@ EXTERN_C uns32 dts_ascii_spec_reload(DTS_CB *cb);
    for (index = 1; index <= mlen; index++)\
    {\
       sprintf(buf, " %02X", (mem)[index - 1]); \
-      m_NCS_STRCAT((str), buf);\
+      strcat((str), buf);\
       /* Print max of 16 bytes in a single line */ \
       if( index >= 16 && !(index % 16)) \
-         m_NCS_STRCAT((str), "\n"); \
+         strcat((str), "\n"); \
    }\
-   m_NCS_STRCAT((str), "\n"); \
+   strcat((str), "\n"); \
 }
 
 #if (NCS_IPV6 == 1)
