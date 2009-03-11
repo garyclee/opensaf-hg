@@ -583,8 +583,8 @@ saAmfParseCSIPrototype(char *csiName, char*siName)
 
    /* Add the prototype name */
    strcpy(csiDName, csiName);
-   m_NCS_STRCAT(csiDName, ",");
-   m_NCS_STRCAT(csiDName, siName);
+   strcat(csiDName, ",");
+   strcat(csiDName, siName);
 
    ncs_bam_build_mib_idx(&mib_idx, csiDName, NCSMIB_FMAT_OCT);
 
@@ -648,8 +648,8 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
          {
             memset(csiName, 0, BAM_MAX_INDEX_LEN);
             strcpy(csiName, val);
-            m_NCS_STRCAT(csiName, ",");
-            m_NCS_STRCAT(csiName, siName);
+            strcat(csiName, ",");
+            strcat(csiName, siName);
          }
          else /*if(m_NCS_STRCMP(tag, "rank") == 0) */
          {

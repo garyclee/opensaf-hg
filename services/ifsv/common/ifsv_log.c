@@ -606,27 +606,27 @@ ifsv_log_spt_string (NCS_IFSV_SPT spt, char *o_spt_str)
    char tem_char[35];
    sprintf(tem_char,"%d",spt.shelf);
    strcpy(o_spt_str,tem_char);
-   m_NCS_STRCAT(o_spt_str,"/");
+   strcat(o_spt_str,"/");
 
    sprintf(tem_char,"%d",spt.slot);
-   m_NCS_STRCAT(o_spt_str,tem_char);
-   m_NCS_STRCAT(o_spt_str,"/");
+   strcat(o_spt_str,tem_char);
+   strcat(o_spt_str,"/");
    
    /* embedding subslot changes */
    sprintf(tem_char,"%d",spt.subslot);
-   m_NCS_STRCAT(o_spt_str,tem_char);
-   m_NCS_STRCAT(o_spt_str,"/");
+   strcat(o_spt_str,tem_char);
+   strcat(o_spt_str,"/");
 
    sprintf(tem_char,"%d",spt.port);
-   m_NCS_STRCAT(o_spt_str,tem_char);
-   m_NCS_STRCAT(o_spt_str,"/");
+   strcat(o_spt_str,tem_char);
+   strcat(o_spt_str,"/");
 
    sprintf(tem_char,"%d",spt.type);
-   m_NCS_STRCAT(o_spt_str,tem_char);
-   m_NCS_STRCAT(o_spt_str,"/");
+   strcat(o_spt_str,tem_char);
+   strcat(o_spt_str,"/");
    
    sprintf(tem_char,"%d",spt.subscr_scope);
-   m_NCS_STRCAT(o_spt_str,tem_char);
+   strcat(o_spt_str,tem_char);
    
    return (o_spt_str);
 }

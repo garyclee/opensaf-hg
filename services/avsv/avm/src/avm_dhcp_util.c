@@ -1208,7 +1208,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
        }
        if (entity_path.Entry[i].EntityType == SAHPI_ENT_ROOT)
        {
-           /* m_NCS_STRCAT (str, "}"); */
+           /* strcat (str, "}"); */
            sprintf (&str [len] ,"%s", "}");
            break;
        }

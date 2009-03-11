@@ -1635,7 +1635,7 @@ static uns32 pssts_move_tbl_details_file(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_MOVE
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_STRCAT(buf2, "_tbl_details");
+    strcat(buf2, "_tbl_details");
 
     printf("\nTemp file path: %s", buf);
     printf("\nfull_path: %s", buf2);
@@ -1666,7 +1666,7 @@ static uns32 pssts_delete_tbl_details_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_D
     if (retval != NCSCC_RC_SUCCESS)
          return NCSCC_RC_FAILURE;
 
-    m_NCS_STRCAT(buf, "_tbl_details");
+    strcat(buf, "_tbl_details");
 
     printf("\nTable details file path: %s", buf);
 
