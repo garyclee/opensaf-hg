@@ -350,7 +350,7 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
    gl_ncs_main_pub_cb.my_procid = (uns32)getpid();
    NCSMAINPUB_DBG_TRACE1_ARG2("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -438,7 +438,7 @@ unsigned int ncs_mds_startup(int argc, char *argv[])
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = gl_pargc;
    lib_create.info.create.argv = gl_pargv;
@@ -500,7 +500,7 @@ unsigned int ncs_dta_startup(int argc, char *argv[])
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -561,7 +561,7 @@ unsigned int ncs_oac_startup(int argc, char *argv[])
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -669,7 +669,7 @@ unsigned int ncs_mbca_startup(int argc, char *argv[])
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -728,7 +728,7 @@ unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -787,7 +787,7 @@ unsigned int ncs_ifa_startup(int argc, char *argv[])
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -846,7 +846,7 @@ unsigned int ncs_maa_startup(int argc, char *argv[])
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -910,7 +910,7 @@ unsigned int ncs_ifa_shutdown(void)
       return rc;
    }
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;;
 
@@ -945,7 +945,7 @@ unsigned int ncs_hisv_hpl_shutdown(void)
       return rc;
    }
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;;
 
@@ -980,7 +980,7 @@ unsigned int ncs_mbca_shutdown(void)
       return rc;
    }
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;;
 
@@ -1016,7 +1016,7 @@ unsigned int ncs_maa_shutdown(void)
       return rc;
    }
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;;
 
@@ -1052,7 +1052,7 @@ void ncs_leap_shutdown()
    }
 
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;
 
@@ -1098,7 +1098,7 @@ void ncs_mds_shutdown()
    }
    
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;
 
@@ -1138,7 +1138,7 @@ void ncs_dta_shutdown()
    }
 
 
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;
 
@@ -1184,7 +1184,7 @@ void ncs_oac_shutdown()
             been created, and if yes, then it has to be destroyed. Please 
             see NCSVDA_PWE_DESTROY/NCSADA_PWE_DESTROY code for this.
    */
-   m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+   memset(&spir_req, 0, sizeof(spir_req));
    spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
    spir_req.i_environment_id = 1;
    spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
@@ -1192,7 +1192,7 @@ void ncs_oac_shutdown()
    if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS)
    {
         /* PWE1-OAC has been created. So destroy it */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_REL_INST;
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
@@ -1206,7 +1206,7 @@ void ncs_oac_shutdown()
     }
 
    /* STEP: Invoke OAC library shutdown */         
-   m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+   memset(&lib_destroy, 0, sizeof(lib_destroy));
    lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
    lib_destroy.info.destroy.dummy = 0;
 
@@ -1403,7 +1403,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    if((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS) 
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(temp_ncs_config_root,0,sizeof(temp_ncs_config_root));
+   memset(temp_ncs_config_root,0,sizeof(temp_ncs_config_root));
 
    strncpy(temp_ncs_config_root,ncs_config_root,sizeof(temp_ncs_config_root)-1);
   
@@ -1509,7 +1509,7 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
    char  *tmp_ptr;
    uns32 res = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(sys_params, 0, sizeof(NCS_SYS_PARAMS));
+   memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
    
    if((res = ncs_set_config_root())!= NCSCC_RC_SUCCESS)
    {
@@ -1554,7 +1554,7 @@ void ncs_get_sys_params_arg(int i_argc,
    for (tmp_ctr=0; tmp_ctr<NCS_MAX_INPUT_ARG_DEF; tmp_ctr++)
    {
      gl_pargv[(gl_pargc) + tmp_ctr] = (char*)malloc(NCS_MAX_STR_INPUT);
-     m_NCS_MEMSET(gl_pargv[(gl_pargc) + tmp_ctr],0,NCS_MAX_STR_INPUT);
+     memset(gl_pargv[(gl_pargc) + tmp_ctr],0,NCS_MAX_STR_INPUT);
    }
    gl_pargc += tmp_ctr;
 
@@ -1582,7 +1582,7 @@ void ncs_get_sys_params_arg(int i_argc,
       {
          /* else store whatever comes */
          gl_pargv[gl_pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-         m_NCS_MEMSET(gl_pargv[gl_pargc],0,NCS_MAX_STR_INPUT);
+         memset(gl_pargv[gl_pargc],0,NCS_MAX_STR_INPUT);
          m_NCS_STRCPY(gl_pargv[gl_pargc], i_argv[i_argc-1]);
          gl_pargc = (gl_pargc) + 1;
       }

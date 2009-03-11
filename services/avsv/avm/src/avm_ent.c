@@ -180,7 +180,7 @@ ncsavmentdeploytableentry_set(
 
    fsm_evt.evt.mib_req = arg;
 
-   m_NCS_MEMSET(ep.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep.name, '\0', AVM_MAX_INDEX_LEN);
 
    ep.length   = arg->i_idx.i_inst_ids[0];
 
@@ -409,7 +409,7 @@ ncsavmentdeploytableentry_set(
 
       case ncsAvmEntNodeName_ID:
       {
-         m_NCS_MEMSET(ent_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
+         memset(ent_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
 
          ent_info->node_name.length = arg->req.info.set_req.i_param_val.i_length;
          memcpy(ent_info->node_name.value, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->node_name.length);
@@ -418,7 +418,7 @@ ncsavmentdeploytableentry_set(
 
       case ncsAvmEntDependsOn_ID:
       {
-         m_NCS_MEMSET(ent_info->dep_ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+         memset(ent_info->dep_ep_str.name, '\0', AVM_MAX_INDEX_LEN);
 
          ent_info->dep_ep_str.length = arg->req.info.set_req.i_param_val.i_length;
       
@@ -457,7 +457,7 @@ ncsavmentdeploytableentry_set(
 
       case ncsAvmEntDescName_ID:
       {
-         m_NCS_MEMSET(ent_info->desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+         memset(ent_info->desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
          ent_info->desc_name.length = arg->req.info.set_req.i_param_val.i_length;
          memcpy(ent_info->desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->desc_name.length);
@@ -466,7 +466,7 @@ ncsavmentdeploytableentry_set(
       
       case ncsAvmEntParentDescName_ID:
       {
-         m_NCS_MEMSET(ent_info->parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+         memset(ent_info->parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
          ent_info->parent_desc_name.length = arg->req.info.set_req.i_param_val.i_length;
          memcpy(ent_info->parent_desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->parent_desc_name.length);
@@ -685,7 +685,7 @@ ncsavmentdeploytableentry_set(
             (!AVM_DHCONF_MEMCMP_LEN(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.label1.name.name,
                               ent_info->dhcp_serv_conf.label1.name.length, ent_info->dhcp_serv_conf.pref_label.length)))
          { 
-            m_NCS_MEMSET(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+            memset(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.pref_label, 
                            arg->req.info.set_req.i_param_val);
 
@@ -693,7 +693,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SSU_PSSV_PUSH_STR(cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length);
          }
 
-         m_NCS_MEMSET(ent_info->dhcp_serv_conf.label1.name.name, '\0', AVM_NAME_STR_LENGTH);
+         memset(ent_info->dhcp_serv_conf.label1.name.name, '\0', AVM_NAME_STR_LENGTH);
          /* Copy the name */
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label1.name, 
                         arg->req.info.set_req.i_param_val);
@@ -747,7 +747,7 @@ ncsavmentdeploytableentry_set(
             goto failure;
          }
 
-          m_NCS_MEMSET(ent_info->dhcp_serv_conf.label1.file_name.name, '\0', AVM_NAME_STR_LENGTH); 
+          memset(ent_info->dhcp_serv_conf.label1.file_name.name, '\0', AVM_NAME_STR_LENGTH); 
          /* Copy the file name */
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label1.file_name,
             arg->req.info.set_req.i_param_val);
@@ -809,7 +809,7 @@ ncsavmentdeploytableentry_set(
             (!AVM_DHCONF_MEMCMP_LEN(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.label2.name.name,
                               ent_info->dhcp_serv_conf.label2.name.length, ent_info->dhcp_serv_conf.pref_label.length)))
          { 
-            m_NCS_MEMSET(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+            memset(ent_info->dhcp_serv_conf.pref_label.name, '\0', AVM_NAME_STR_LENGTH);
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.pref_label, 
                            arg->req.info.set_req.i_param_val);
             
@@ -817,7 +817,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SSU_PSSV_PUSH_STR(cb, ent_info->dhcp_serv_conf.pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, ent_info->dhcp_serv_conf.pref_label.length);
          }
 
-         m_NCS_MEMSET(ent_info->dhcp_serv_conf.label2.name.name, '\0', AVM_NAME_STR_LENGTH);
+         memset(ent_info->dhcp_serv_conf.label2.name.name, '\0', AVM_NAME_STR_LENGTH);
          /* Copy the name */
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.name,
             arg->req.info.set_req.i_param_val);
@@ -872,7 +872,7 @@ ncsavmentdeploytableentry_set(
                                   &ent_info->dhcp_serv_conf.label2, LABEL2))
             goto failure;
 
-         m_NCS_MEMSET(ent_info->dhcp_serv_conf.label2.file_name.name, '\0', AVM_NAME_STR_LENGTH);
+         memset(ent_info->dhcp_serv_conf.label2.file_name.name, '\0', AVM_NAME_STR_LENGTH);
          /* Copy the file name */
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.file_name,
             arg->req.info.set_req.i_param_val);
@@ -995,7 +995,7 @@ ncsavmentdeploytableentry_set(
                  variable pss_curr_label, and set the current active label when the preferred label 
                  gets playedback 
             *****************************************************************************************/    
-            m_NCS_MEMSET(ent_info->dhcp_serv_conf.label2.file_name.name, '\0', AVM_NAME_STR_LENGTH);
+            memset(ent_info->dhcp_serv_conf.label2.file_name.name, '\0', AVM_NAME_STR_LENGTH);
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.pss_curr_label,arg->req.info.set_req.i_param_val);
          }
       }
@@ -1431,7 +1431,7 @@ ncsavmentdeploytableentry_get(
    
    avm_cb   = (AVM_CB_T*)cb;
 
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
 
    ep_str.length   = arg->i_idx.i_inst_ids[0];
    for(i = 0; i < ep_str.length; i++)
@@ -1467,7 +1467,7 @@ ncsavmentdeploytableentry_next(
 
    m_AVM_LOG_FUNC_ENTRY("ncsavmentdeploytableentry_next");
 
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
 
    if(arg->i_idx.i_inst_len  != 0)
    {
@@ -1664,7 +1664,7 @@ ncsavmentupgradetableentry_set(
  
    avm_cb->config_cnt++;
 
-   m_NCS_MEMSET(ep.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep.name, '\0', AVM_MAX_INDEX_LEN);
 
    ep.length   = arg->i_idx.i_inst_ids[0];
 
@@ -1730,7 +1730,7 @@ ncsavmentupgradetableentry_set(
             arg->req.info.set_req.i_param_val.i_length))
             return NCSCC_RC_SUCCESS;
 
-         m_NCS_MEMSET(helper_ep.name, '\0', AVM_MAX_INDEX_LEN);
+         memset(helper_ep.name, '\0', AVM_MAX_INDEX_LEN);
  
          /* Validate the helper payload entity path */
          if (NCSCC_RC_SUCCESS != avm_convert_nodeid_to_entpath(arg->req.info.set_req.i_param_val,&helper_ep))
@@ -1766,7 +1766,7 @@ ncsavmentupgradetableentry_set(
          ent_info->dhcp_serv_conf.ipmc_helper_ent_path.length = helper_ep.length;
          memcpy(ent_info->dhcp_serv_conf.ipmc_helper_ent_path.name, helper_ep.name,helper_ep.length);
 
-         m_NCS_MEMSET(ent_info->dhcp_serv_conf.ipmc_helper_node.name, '\0', AVM_NAME_STR_LENGTH); 
+         memset(ent_info->dhcp_serv_conf.ipmc_helper_node.name, '\0', AVM_NAME_STR_LENGTH); 
          /* Copy the ipmc helper node */
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.ipmc_helper_node,
             arg->req.info.set_req.i_param_val);
@@ -2105,7 +2105,7 @@ ncsavmentupgradetableentry_get(
    
    avm_cb   = (AVM_CB_T*)cb;
 
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
 
    ep_str.length   = arg->i_idx.i_inst_ids[0];
    for(i = 0; i < ep_str.length; i++)
@@ -2141,7 +2141,7 @@ ncsavmentupgradetableentry_next(
 
    m_AVM_LOG_FUNC_ENTRY("ncsavmentupgradetableentry_next");
 
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
 
    if(arg->i_idx.i_inst_len  != 0)
    {

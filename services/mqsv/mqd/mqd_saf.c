@@ -150,7 +150,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
          pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
          if(pEvt) 
          {
-            m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
+            memset(pEvt, 0, sizeof(MQSV_EVT));
             pEvt->type = MQSV_EVT_MQD_CTRL;
             pEvt->msg.mqd_ctrl.type = MQD_MSG_COMP;
             pEvt->msg.mqd_ctrl.info.init = TRUE;
@@ -180,7 +180,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
       {
          mds_role = V_DEST_RL_STANDBY;
       }
-      m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+      memset(&vda_info, 0, sizeof(vda_info));
       
       vda_info.req = NCSVDA_VDEST_CHG_ROLE;
       vda_info.info.vdest_chg_role.i_vdest = pMqd->my_dest;
@@ -218,7 +218,7 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
                pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
                if(pEvt)
                 {
-                 m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
+                 memset(pEvt, 0, sizeof(MQSV_EVT));
                  pEvt->type = MQSV_EVT_MQD_CTRL;
                  pEvt->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
                  pEvt->msg.mqd_ctrl.info.nd_info.dest = pNdNode->info.dest;
@@ -262,7 +262,7 @@ static uns32 mqd_process_quisced_state(MQD_CB *pMqd,SaInvocationT invocation,SaA
 
     pMqd->invocation = invocation;
     pMqd->is_quisced_set = TRUE;
-    m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+    memset(&vda_info, 0, sizeof(vda_info));
 
     mds_role     = V_DEST_RL_QUIESCED;
 
@@ -329,7 +329,7 @@ void mqd_amf_csi_rmv_callback(SaInvocationT invocation,
  
       mds_role = V_DEST_RL_STANDBY;
       
-      m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+      memset(&vda_info, 0, sizeof(vda_info));
 
       vda_info.req = NCSVDA_VDEST_CHG_ROLE;
       vda_info.info.vdest_chg_role.i_vdest = pMqd->my_dest;

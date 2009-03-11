@@ -58,7 +58,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
 
 
   /* Initializing shared memory vesion */
-  m_NCS_MEMSET(&glnd_shm_version,'\0',sizeof(glnd_shm_version));
+  memset(&glnd_shm_version,'\0',sizeof(glnd_shm_version));
   glnd_shm_version.shm_version = GLSV_GLND_SHM_VERSION;
 
   /*Set the shared memory size to be created */
@@ -70,7 +70,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[] )
      shm_size = sizeof(GLSV_RESTART_BACKUP_EVT_INFO) * GLND_BACKUP_EVT_CKPT_MAX_SECTIONS;
  
 
-  m_NCS_MEMSET(&glnd_open_req,'\0',sizeof(glnd_open_req));
+  memset(&glnd_open_req,'\0',sizeof(glnd_open_req));
 
   glnd_open_req.type                  = NCS_OS_POSIX_SHM_REQ_OPEN;
   glnd_open_req.info.open.i_size      = shm_size;
@@ -238,7 +238,7 @@ uns32  glnd_find_res_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
        continue;
     else  
     {
-       m_NCS_MEMSET((shm_base_addr+i),'\0',sizeof(GLND_RESTART_RES_INFO));
+       memset((shm_base_addr+i),'\0',sizeof(GLND_RESTART_RES_INFO));
        shm_base_addr[i].valid = GLND_SHM_INFO_VALID;            
        *index = i;
        return rc; 
@@ -272,7 +272,7 @@ uns32  glnd_find_lck_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
        continue;
     else
     {
-       m_NCS_MEMSET((shm_base_addr+i),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
+       memset((shm_base_addr+i),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
        shm_base_addr[i].valid = GLND_SHM_INFO_VALID;
        *index = i;
        return rc;
@@ -305,7 +305,7 @@ uns32  glnd_find_evt_shm_ckpt_empty_section(GLND_CB *cb, uns32 *index)
        continue;
     else
     {
-       m_NCS_MEMSET((shm_base_addr+i),'\0',sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
+       memset((shm_base_addr+i),'\0',sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
        shm_base_addr[i].valid = GLND_SHM_INFO_VALID;
        *index = i;
        return rc;
@@ -341,7 +341,7 @@ uns32 glnd_res_shm_section_invalidate(GLND_CB *cb, GLND_RESOURCE_INFO *res_info)
    if(shm_base_addr[offset].valid ==  GLND_SHM_INFO_VALID)
    {
        shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
-       m_NCS_MEMSET((shm_base_addr+offset),'\0',sizeof(GLND_RESTART_RES_INFO));  
+       memset((shm_base_addr+offset),'\0',sizeof(GLND_RESTART_RES_INFO));  
    }
    return NCSCC_RC_SUCCESS;
 }
@@ -372,7 +372,7 @@ uns32 glnd_lck_shm_section_invalidate(GLND_CB *cb, GLND_RES_LOCK_LIST_INFO *lock
    if(shm_base_addr[offset].valid ==  GLND_SHM_INFO_VALID)
    {
        shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
-       m_NCS_MEMSET((shm_base_addr+offset),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
+       memset((shm_base_addr+offset),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
    }
    return NCSCC_RC_SUCCESS;
 }
@@ -403,7 +403,7 @@ uns32 glnd_evt_shm_section_invalidate(GLND_CB *cb, GLSV_GLND_EVT *glnd_evt)
    if(shm_base_addr[offset].valid ==  GLND_SHM_INFO_VALID)
    {
        shm_base_addr[offset].valid = GLND_SHM_INFO_INVALID;
-       m_NCS_MEMSET((shm_base_addr+offset),'\0',sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
+       memset((shm_base_addr+offset),'\0',sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
    }
    return NCSCC_RC_SUCCESS;
 }

@@ -149,7 +149,7 @@ uns32 pss_mds_evt_cb(NCSMDS_CALLBACK_INFO * cbinfo)
          ncshm_give_hdl((uns32)cbinfo->i_yr_svc_hdl);
          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
       }
-      m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
+      memset(mm, '\0', sizeof(MAB_MSG));
       mm->yr_hdl = NCS_INT64_TO_PTR_CAST(yr_svc_hdl); 
       mm->fr_card = cbinfo->info.svc_evt.i_dest;
       mm->fr_svc = cbinfo->info.svc_evt.i_svc_id;
@@ -184,7 +184,7 @@ static uns32 pss_bam_decode_msg(NCSMDS_CALLBACK_INFO *cbinfo)
    if((mm = m_MMGR_ALLOC_MAB_MSG) != NULL)
    {
       cbinfo->info.dec.o_msg = mm;
-      m_NCS_OS_MEMSET(cbinfo->info.dec.o_msg, '\0', sizeof(MAB_MSG));
+      memset(cbinfo->info.dec.o_msg, '\0', sizeof(MAB_MSG));
 
       data = ncs_dec_flatten_space(cbinfo->info.dec.io_uba,data_buff, sizeof(uns8));
       if(data == NULL)

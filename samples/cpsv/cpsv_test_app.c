@@ -99,7 +99,7 @@ void cpsv_test_sync_app_process(NCSCONTEXT info)
    uns32  temp_var = (uns32)(long)info; 
 
 
-   m_NCS_MEMSET(&ckptName, 0, sizeof(ckptName));
+   memset(&ckptName, 0, sizeof(ckptName));
    ckptName.length = 7;
    memcpy(ckptName.value,"sample",7);
 

@@ -369,7 +369,7 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
            "dta_reg_svc: Memory allocation failed", svc_id);
     }
     
-    m_NCS_MEMSET(svc, 0, sizeof(REG_TBL_ENTRY));
+    memset(svc, 0, sizeof(REG_TBL_ENTRY));
     svc->svc_id = svc_id;
 
     svc->version = bind_svc->version;
@@ -409,7 +409,7 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
     /* 
      * DTS is up ... Send registration message to DTS. 
      */
-    m_NCS_MEMSET(&msg, '\0', sizeof(DTSV_MSG));
+    memset(&msg, '\0', sizeof(DTSV_MSG));
     dta_fill_reg_msg(&msg, svc_id, svc->version, svc->svc_name, DTA_REGISTER_SVC);
     
     m_DTA_UNLK(&inst->lock);
@@ -521,7 +521,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
         return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
       "dta_dereg_svc: Mem allocation failed, de-registration request is not sent to DTS.", svc_id);
     } 
-    m_NCS_OS_MEMSET(msg, '\0', sizeof(DTSV_MSG)); 
+    memset(msg, '\0', sizeof(DTSV_MSG)); 
      
     dta_fill_reg_msg(msg, svc_id, rmv_svc->version, rmv_svc->svc_name, DTA_UNREGISTER_SVC);
 
@@ -822,7 +822,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
        m_DTA_UNLK(&inst->lock);
        return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failer for DTSV_MSG");
     }
-    m_NCS_OS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
+    memset(msg, '\0', sizeof(DTSV_MSG));
 
     hdr = &msg->data.data.msg.log_msg.hdr;
 
@@ -867,7 +867,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
 
     m_DTA_UNLK(&inst->lock);
 
-    m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+    memset(uba, '\0', sizeof(NCS_UBAID));
 
     if (ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS)
     {
@@ -1223,7 +1223,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
        */
        msg->data.data.msg.msg_fmat_ver = min_dts_ver;
 
-       m_NCS_OS_MEMSET(buf, '\0', sizeof(DTA_BUFFERED_LOG));
+       memset(buf, '\0', sizeof(DTA_BUFFERED_LOG));
        buf->buf_msg = msg;
        buf->next = NULL;
 
@@ -1377,7 +1377,7 @@ uns32 dta_do_evt( DTSV_MSG* msg)
         {
            DTSV_MSG flow_msg;
 
-           m_NCS_MEMSET(&flow_msg, '\0', sizeof(DTSV_MSG));
+           memset(&flow_msg, '\0', sizeof(DTSV_MSG));
            flow_msg.msg_type = DTA_FLOW_CONTROL;
            while(dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS)
            {

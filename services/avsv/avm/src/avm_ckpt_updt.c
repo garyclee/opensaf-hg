@@ -401,7 +401,7 @@ avm_enqueue_hpi_evt(
       {
          m_NCS_DBG_PRINTF("\n Event Id of event enqueued in beginning is %u\n", event_id);
          m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
-         m_NCS_MEMSET((uns8*)avm_cb->evt_q.evt_q, 0, sizeof(AVM_EVT_Q_NODE_T));
+         memset((uns8*)avm_cb->evt_q.evt_q, 0, sizeof(AVM_EVT_Q_NODE_T));
 
          avm_cb->evt_q.evt_q->evt_id  = event_id;
          avm_cb->evt_q.evt_q->is_proc = bool;
@@ -415,7 +415,7 @@ avm_enqueue_hpi_evt(
       {
          m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
          avm_cb->evt_q.rear           = avm_cb->evt_q.rear->next;
-         m_NCS_MEMSET((uns8*)avm_cb->evt_q.rear, 0, sizeof(AVM_EVT_Q_NODE_T));
+         memset((uns8*)avm_cb->evt_q.rear, 0, sizeof(AVM_EVT_Q_NODE_T));
 
          avm_cb->evt_q.rear->evt_id   = event_id;
          avm_cb->evt_q.rear->is_proc = bool;
@@ -669,7 +669,7 @@ extern uns32 avm_cleanup_db(AVM_CB_T   *cb)
    
    SaHpiEntityPathT   entity_path;
   
-   m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));  
+   memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));  
    for(ent_info = avm_find_next_ent_info(cb, &entity_path); 
        ent_info != AVM_ENT_INFO_NULL; 
        ent_info = avm_find_next_ent_info(cb, &entity_path))
@@ -684,7 +684,7 @@ extern uns32 avm_cleanup_db(AVM_CB_T   *cb)
       ent_info =  AVM_ENT_INFO_NULL;
    }
 
-   m_NCS_MEMSET(desc_name.name, 0, NCS_MAX_INDEX_LEN);  
+   memset(desc_name.name, 0, NCS_MAX_INDEX_LEN);  
  
    for(valid_info  = avm_find_next_valid_info(cb, &desc_name);
        valid_info != AVM_VALID_INFO_NULL;

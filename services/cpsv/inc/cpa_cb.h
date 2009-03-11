@@ -133,7 +133,7 @@ EXTERN_C uns32 gl_cpa_hdl;
 
 #define m_CPSV_SET_SANAMET(name) \
 {\
-   m_NCS_MEMSET( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); \
+   memset( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); \
 }
 
 #define CPSV_MAX_DATA_SIZE 40000000

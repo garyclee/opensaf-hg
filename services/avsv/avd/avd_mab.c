@@ -204,7 +204,7 @@ uns32 avd_mab_snd_warmboot_req(AVD_CL_CB *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avd_mab_snd_warmboot_req");
    
-   m_NCS_MEMSET(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avd_oac_arg.i_oac_hdl = cb->mab_hdl;
    avd_oac_arg.i_op      = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
@@ -244,7 +244,7 @@ static uns32 avd_mab_reg_tbls(AVD_CL_CB *cb)
    m_AVD_LOG_FUNC_ENTRY("avd_mab_reg_tbls");
    
    /* Register for all tables */
-   m_NCS_MEMSET(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avd_oac_arg.i_oac_hdl = cb->mab_hdl;
    avd_oac_arg.i_op      = NCSOAC_SS_OP_TBL_OWNED;
@@ -306,7 +306,7 @@ static uns32 avd_mab_unreg_tbls(AVD_CL_CB *cb)
    m_AVD_LOG_FUNC_ENTRY("avd_mab_unreg_tbls");
    
    /* Register for all tables */
-   m_NCS_MEMSET(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avd_oac_arg.i_oac_hdl = cb->mab_hdl;
    avd_oac_arg.i_op      = NCSOAC_SS_OP_TBL_GONE;
@@ -396,7 +396,7 @@ uns32 avd_mab_reg_rows(AVD_CL_CB *cb)
    m_AVD_LOG_FUNC_ENTRY("avd_mab_reg_rows");
    
    /* Register for all tables rows*/
-   m_NCS_MEMSET(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avd_oac_arg.i_oac_hdl = cb->mab_hdl;
    avd_oac_arg.i_op      = NCSOAC_SS_OP_ROW_OWNED;
@@ -452,7 +452,7 @@ uns32 avd_mab_unreg_rows(AVD_CL_CB *cb)
    m_AVD_LOG_FUNC_ENTRY("avd_mab_unreg_rows");
    
    /* Register for all tables */
-   m_NCS_MEMSET(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avd_oac_arg.i_oac_hdl = cb->mab_hdl;
    avd_oac_arg.i_op      = NCSOAC_SS_OP_ROW_GONE;

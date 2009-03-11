@@ -78,7 +78,7 @@ ncs_mcast_sim_ipv4_rcv_sock(NCS_IPV4_ADDR mcast_addr, fd_set *read_fd, uns32 if_
          break;
       }
       
-      m_NCS_MEMSET (&saddr, 0x00, sizeof (saddr));
+      memset (&saddr, 0x00, sizeof (saddr));
       saddr.sin_family      = AF_INET;
       saddr.sin_port        = sysf_htons((uns16)(MCAST_SIM_PORT + if_index));
       /*saddr.sin_port = 0;*/
@@ -161,7 +161,7 @@ ncssock_ipv6_rcv_msg (NCS_SOCKET_ENTRY *se, char *buf, uns32 buf_len,
 
    buf_len = recvmsg (se->server_socket, &msg, 0);
    
-   m_NCS_OS_MEMSET(pkt_info, 0, sizeof(NCS_IP_PKT_INFO));
+   memset(pkt_info, 0, sizeof(NCS_IP_PKT_INFO));
    for (cmsgptr = CMSG_FIRSTHDR(&msg); cmsgptr != NULL;  cmsgptr = CMSG_NXTHDR(&msg, cmsgptr))
    {
       /* I want interface index which this packet comes from. */
@@ -248,8 +248,8 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
   uns32                ip_comp_result;
 
   
-  m_NCS_OS_MEMSET (&nbo_ipv6, 0x0, m_IPV6_ADDR_SIZE);
-  m_NCS_OS_MEMSET(&ifc,0,sizeof(ifc));
+  memset (&nbo_ipv6, 0x0, m_IPV6_ADDR_SIZE);
+  memset(&ifc,0,sizeof(ifc));
   
   memcpy (&nbo_ipv6, &hbo_ipv6, m_IPV6_ADDR_SIZE);
     
@@ -295,7 +295,7 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
        ** with SIOCGIFINDEX request.
        **/
     ifr = &ifc.ifc_req[i];
-    m_NCS_OS_MEMSET(&ifra,0,sizeof(ifra));
+    memset(&ifra,0,sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFADDR,(int)&ifra) < 0)
       { 
@@ -309,7 +309,7 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
       {
        continue;
       }
-    m_NCS_OS_MEMSET(&ifra,0,sizeof(ifra));
+    memset(&ifra,0,sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFINDEX,(int)&ifra) < 0)
       { 
@@ -348,7 +348,7 @@ os_ifidx_to_ipv6(unsigned int ifIndex, NCS_IPV6_ADDR *ip_addr)
   struct sockaddr_in6* sin;
   int                 i        = 0;
 
-  m_NCS_OS_MEMSET(&ifc,0,sizeof(ifc));
+  memset(&ifc,0,sizeof(ifc));
   
   if((s = socket(PF_INET6,SOCK_DGRAM,0)) < 0)
     return 0;
@@ -386,7 +386,7 @@ os_ifidx_to_ipv6(unsigned int ifIndex, NCS_IPV6_ADDR *ip_addr)
      (i < (length/sizeof(struct sockaddr_storage)));i++, length -= sizeof(struct sockaddr_storage))
   {
     ifr = &ifc.ifc_req[i];
-    m_NCS_OS_MEMSET(&ifra, 0, sizeof(ifra));
+    memset(&ifra, 0, sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     ioctl(s,SIOCGIFINDEX,(int)&ifra);
     if (ifra.ifr_ifindex == ifIndex)
@@ -416,7 +416,7 @@ uns32 ip_svc_bind_to_iface(NCS_SOCKET_ENTRY* se)
 ** since the  bind to device sockopt operates on name.
    **/
    struct ifreq ifr;
-   m_NCS_OS_MEMSET(&ifr, '\0', sizeof ifr);
+   memset(&ifr, '\0', sizeof ifr);
    ifr.ifr_ifindex = se->if_index;
    
    if (m_NCS_TS_SOCK_IOCTL(se->client_socket,
@@ -463,7 +463,7 @@ os_ipv4_to_ifidx(unsigned int hbo_ipv4)
   int                 i        = 0;
 
   
-  m_NCS_OS_MEMSET(&ifc,0,sizeof(ifc));
+  memset(&ifc,0,sizeof(ifc));
   
   nbo_ipv4 = htonl(hbo_ipv4);
   
@@ -508,7 +508,7 @@ os_ipv4_to_ifidx(unsigned int hbo_ipv4)
        ** with SIOCGIFINDEX request.
        **/
     ifr = &ifc.ifc_req[i];
-    m_NCS_OS_MEMSET(&ifra,0,sizeof(ifra));
+    memset(&ifra,0,sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFADDR,(int)&ifra) < 0)
       { 
@@ -520,7 +520,7 @@ os_ipv4_to_ifidx(unsigned int hbo_ipv4)
       {
        continue;
       }
-    m_NCS_OS_MEMSET(&ifra,0,sizeof(ifra));
+    memset(&ifra,0,sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFINDEX,(int)&ifra) < 0)
       { 
@@ -560,7 +560,7 @@ os_ifidx_to_ipv4(unsigned int ifIndex)
   struct sockaddr_in* sin;
   int                 i        = 0;
 
-  m_NCS_OS_MEMSET(&ifc,0,sizeof(ifc));
+  memset(&ifc,0,sizeof(ifc));
   
   if((s = socket(PF_INET,SOCK_DGRAM,0)) < 0)
     return 0;
@@ -597,7 +597,7 @@ os_ifidx_to_ipv4(unsigned int ifIndex)
   for(i = 0;(length >= sizeof(struct sockaddr)) && (i < (length/sizeof(struct sockaddr)));i++, length -= sizeof(struct sockaddr))
   {
     ifr = &ifc.ifc_req[i];
-    m_NCS_OS_MEMSET(&ifra, 0, sizeof(ifra));
+    memset(&ifra, 0, sizeof(ifra));
     m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
     ioctl(s,SIOCGIFINDEX,(int)&ifra);
     if (ifra.ifr_ifindex == ifIndex)

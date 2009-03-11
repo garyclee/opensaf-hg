@@ -897,7 +897,7 @@ SRMA_SRMND_USR_NODE *srma_create_srmnd_usr_add_rsrc(NCSCONTEXT srmnd_or_appl,
                      NCSFL_SEV_CRITICAL);
       return NULL;
    }
-   m_NCS_OS_MEMSET((char *)srmnd_usr, 0, sizeof(SRMA_SRMND_USR_NODE));
+   memset((char *)srmnd_usr, 0, sizeof(SRMA_SRMND_USR_NODE));
 
    /* Update the node type, whether srmnd_usr belongs to 
       SRMND specific list or User-Appl specific list */
@@ -1092,7 +1092,7 @@ SRMA_SRMND_INFO *srma_add_srmnd_node(SRMA_CB *srma, NODE_ID node_id)
       return srmnd;
    }
 
-   m_NCS_OS_MEMSET((char *)srmnd, 0, sizeof(SRMA_SRMND_INFO));
+   memset((char *)srmnd, 0, sizeof(SRMA_SRMND_INFO));
    
    /* Update the node id */
    srmnd->node_id = node_id;
@@ -1313,7 +1313,7 @@ void srma_send_srmnd_rsrc_mon_data(SRMA_CB *srma,
    if (srmnd->is_srmnd_up != TRUE)
       return;
       
-   m_NCS_OS_MEMSET(&dest, 0, sizeof(MDS_DEST));
+   memset(&dest, 0, sizeof(MDS_DEST));
    dest = srmnd->srmnd_dest;
 
    srmnd_usr = srmnd->start_usr_node;
@@ -1374,7 +1374,7 @@ uns32 srma_inform_appl_rsrc_expiry(SRMA_CB *srma, SRMA_RSRC_MON *rsrc)
    uns32 rc = NCSCC_RC_SUCCESS;
    NCS_SRMSV_RSRC_CBK_INFO cbk_info;
 
-   m_NCS_OS_MEMSET(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
+   memset(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
 
    cbk_info.rsrc_mon_hdl = rsrc->rsrc_mon_hdl;
    cbk_info.notif_type   = SRMSV_CBK_NOTIF_RSRC_MON_EXPIRED;

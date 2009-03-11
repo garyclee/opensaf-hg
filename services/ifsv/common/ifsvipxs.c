@@ -615,7 +615,7 @@ uns32 ipxs_iprec_get(IPXS_CB *cb, IPXS_IP_KEY *ipkeyNet,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET(*ip_node, 0 , sizeof(IPXS_IP_NODE));
+      memset(*ip_node, 0 , sizeof(IPXS_IP_NODE));
 
       ipinfo = &((*ip_node)->ipinfo);
 
@@ -757,7 +757,7 @@ uns32 ipxs_update_ifadd(NCS_SERVICE_ID svc_id, IFSV_INTF_DATA *intf_data)
       m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(ifip_node, 0, sizeof(IPXS_IFIP_NODE));
+   memset(ifip_node, 0, sizeof(IPXS_IFIP_NODE));
 
    ifip_node->ifip_info.ifindexNet = intf_data->if_index;
    ifip_node->ifip_info.is_v4_unnmbrd = NCS_SNMP_FALSE;
@@ -842,9 +842,9 @@ ipxs_ifa_app_if_info_indicate(IFSV_INTF_DATA *actual_data,
    IPXS_CB           *ipxs_cb;
    uns32             ipxs_hdl;
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
-   m_NCS_OS_MEMSET(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
    /* Fill the pointers */
    evt.info.ipxs_evt = (NCSCONTEXT)&send_evt;
@@ -986,9 +986,9 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
    NCS_IPXS_INTF_REC send_rec;
    uns32    rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
-   m_NCS_OS_MEMSET(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
    /* Fill the pointers */
    evt.info.ipxs_evt = (NCSCONTEXT)&send_evt;
@@ -1200,7 +1200,7 @@ uns32 ipxs_ipinfo_cpy(NCS_IPXS_IPINFO *src,
                       IFSV_MALLOC_USE_TYPE purpose)
 {
    /* Copy the record */
-   m_NCS_OS_MEMSET(dest, 0, sizeof(NCS_IPXS_IPINFO));
+   memset(dest, 0, sizeof(NCS_IPXS_IPINFO));
 
    memcpy(dest, src, sizeof(NCS_IPXS_IPINFO));
    if(m_NCS_IPXS_IS_IPAM_ADDR_SET(src->ip_attr))
@@ -1280,7 +1280,7 @@ void ipxs_ipinfo_free(NCS_IPXS_IPINFO *ip_info, IFSV_MALLOC_USE_TYPE purpose)
 uns32 ipxs_ifsv_ifip_info_attr_cpy(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
 {
 
-   m_NCS_OS_MEMSET(dest, 0, sizeof(NCS_IPXS_IPINFO));
+   memset(dest, 0, sizeof(NCS_IPXS_IPINFO));
 
    dest->ip_attr = src->ipam;
 
@@ -1343,7 +1343,7 @@ static uns32 ipxs_ipinfo_cpy_for_del(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
    uns32 count=0;
 
    /* Copy the record */
-   m_NCS_OS_MEMSET(dest, 0, sizeof(NCS_IPXS_IPINFO));
+   memset(dest, 0, sizeof(NCS_IPXS_IPINFO));
 
    dest->ip_attr = src->ipam;
 

@@ -64,7 +64,7 @@ uns32 dts_mds_reg (DTS_CB *cb)
    MDS_SVC_ID   svc_ids_array[2];
 
    /* prepare the cb with the vaddress */
-   m_NCS_OS_MEMSET(&cb->vaddr, 0, sizeof(MDS_DEST));
+   memset(&cb->vaddr, 0, sizeof(MDS_DEST));
    cb->vaddr = DTS_VDEST_ID;
 
    vda_info.req = NCSVDA_VDEST_CREATE;
@@ -97,7 +97,7 @@ uns32 dts_mds_reg (DTS_CB *cb)
 #endif
 
    /* Install mds */
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
    svc_to_mds_info.i_mds_hdl = cb->mds_hdl;
    svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_DTS;
    svc_to_mds_info.i_op = MDS_INSTALL;
@@ -116,7 +116,7 @@ uns32 dts_mds_reg (DTS_CB *cb)
    }
 
    /* DTS is subscribing for DTA MDS service */
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
    svc_to_mds_info.i_mds_hdl                       = cb->mds_hdl;
    svc_to_mds_info.i_svc_id                        = NCSMDS_SVC_ID_DTS;
    svc_to_mds_info.i_op                            = MDS_SUBSCRIBE;
@@ -152,7 +152,7 @@ uns32 dts_mds_change_role(DTS_CB *cb, SaAmfHAStateT role)
 {
    NCSVDA_INFO vda_info;
 
-   m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+   memset(&vda_info, 0, sizeof(vda_info));
 
    vda_info.req = NCSVDA_VDEST_CHG_ROLE;
    vda_info.info.vdest_chg_role.i_vdest = cb->vaddr;
@@ -218,7 +218,7 @@ uns32 dts_mds_send_msg(DTSV_MSG   *msg,
 {
    NCSMDS_INFO mds_info;
          
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    mds_info.i_mds_hdl = mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_DTS;
@@ -332,7 +332,7 @@ uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO * cbinfo)
          msg = m_MMGR_ALLOC_DTSV_MSG;
          if(msg == NULL)
              return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_callback: Failed to allocate memory for DTSV_MSG");
-         m_NCS_OS_MEMSET(msg, 0, sizeof(DTSV_MSG));
+         memset(msg, 0, sizeof(DTSV_MSG));
          msg->msg_type = DTS_QUIESCED_CMPLT;
          if(m_DTS_SND_MSG(&gl_dts_mbx, msg, 
             NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS)
@@ -501,7 +501,7 @@ void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
         m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_evt: Failed to allocate DTSV message");
         return;
     }
-    m_NCS_OS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
+    memset(msg, '\0', sizeof(DTSV_MSG));
  
     msg->msg_type = DTS_DTA_EVT_RCV;
     msg->node = svc_info.i_node_id;
@@ -803,7 +803,7 @@ uns32 dts_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_dec: DTS decode: Failed to allocate DTSV message");
   }
 
-  m_NCS_OS_MEMSET(mm, '\0', sizeof(DTSV_MSG));
+  memset(mm, '\0', sizeof(DTSV_MSG));
 
   *msg = mm;
 
@@ -967,7 +967,7 @@ uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
   {
      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_cpy: DTSV message allocation failed");
   }
-  m_NCS_OS_MEMSET(mm, '\0', sizeof(DTSV_MSG));
+  memset(mm, '\0', sizeof(DTSV_MSG));
  
   *cpy = mm;
   
@@ -1066,7 +1066,7 @@ uns32 dts_log_str_decode(NCS_UBAID* uba, char** str)
        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
        "dts_log_str_decode: Memory allocation failed");
 
-   m_NCS_OS_MEMSET(*str, '\0', length);
+   memset(*str, '\0', length);
 
    ncs_decode_n_octets_from_uba(uba, (uns8 *)*str, length);
 

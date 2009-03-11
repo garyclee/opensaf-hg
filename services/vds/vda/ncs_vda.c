@@ -123,7 +123,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
     case NCSVDA_VDEST_CREATE:
         
         /* Get the PWE-HDL */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;    
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -183,7 +183,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
           There is no other alternative here, other than a MDS_INSTALL
         and MDS_UNINSTALL merely to get the VDEST-IDENTIFIER. */
         
-        m_NCS_MEMSET(&svc_info, 0, sizeof(svc_info));
+        memset(&svc_info, 0, sizeof(svc_info));
         svc_info.i_mds_hdl = vda_info->info.vdest_create.o_mds_pwe1_hdl;
         svc_info.i_op = MDS_QUERY_PWE;
         svc_info.i_svc_id = NCSMDS_SVC_ID_VDA; /* Doesn't matter */
@@ -249,7 +249,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
               return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
         }
         
-        m_NCS_MEMSET(&svc_info, 0, sizeof(svc_info));
+        memset(&svc_info, 0, sizeof(svc_info));
         svc_info.i_mds_hdl = gl_vda_info.mds_adest_pwe1_hdl;
         svc_info.i_op = MDS_SEND;
         svc_info.i_svc_id = NCSMDS_SVC_ID_VDA; /* My i.e. source svc-id */
@@ -267,7 +267,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         
     case NCSVDA_VDEST_DESTROY:
         /* STEP : If there is an OAA for this PWE, then destroy it */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
         spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;    
@@ -319,7 +319,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         /*  Creating a PWE2 on VDEST with OAC service on it is Failing */
     
         /* First create pwe on give VDEST with LOOKUP_CREATE query */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
         spir_req.i_environment_id = (PW_ENV_ID)vda_info->info.pwe_create.i_pwe_id;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -357,7 +357,7 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
         /* NOTE: The PWE-ID from PWE-handle is done a little
                  bit differently from that in NCSVDA_PWE_DESTROY
         */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.i_environment_id = m_MDS_GET_PWE_ID_FROM_PWE_HDL(vda_info->info.pwe_destroy.i_mds_pwe_hdl);
         spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
         spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;    
@@ -485,7 +485,7 @@ static uns32 vda_create(NCS_LIB_REQ_INFO *req)
 {
    NCS_SPLR_REQ_INFO splr_req;
    NCS_SPIR_REQ_INFO spir_req;
-   m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+   memset(&splr_req, 0, sizeof(splr_req));
 
    m_NCS_LOCK_INIT(&gl_vda_info.vds_sync_lock);
    /* STEP : Register VDA as a service provider */
@@ -502,7 +502,7 @@ static uns32 vda_create(NCS_LIB_REQ_INFO *req)
    }
 
    /* STEP : Get the MDS-handle to the ADEST */
-   m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+   memset(&spir_req, 0, sizeof(spir_req));
    spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
    spir_req.i_environment_id = 1;
    spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
@@ -532,7 +532,7 @@ static uns32 vda_destroy(NCS_LIB_REQ_INFO *req)
    if(vda_vdest_create == TRUE)
    {
    /* STEP : Uninstall from ADEST with MDS as service NCSMDS_SVC_ID_VDA. */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(svc_info));
+   memset(&svc_info, 0, sizeof(svc_info));
    svc_info.i_mds_hdl = gl_vda_info.mds_adest_pwe1_hdl;
    svc_info.i_svc_id = NCSMDS_SVC_ID_VDA;
    svc_info.i_op = MDS_UNINSTALL;
@@ -543,7 +543,7 @@ static uns32 vda_destroy(NCS_LIB_REQ_INFO *req)
 
    }
    /* STEP : Release the use of ADEST MDS handle */
-   m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+   memset(&spir_req, 0, sizeof(spir_req));
    spir_req.type = NCS_SPIR_REQ_REL_INST;
    spir_req.i_environment_id = 1;
    spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
@@ -556,7 +556,7 @@ static uns32 vda_destroy(NCS_LIB_REQ_INFO *req)
    gl_vda_info.mds_adest_pwe1_hdl = 0;
 
    /* STEP : Deregister VDA as a service provider */
-   m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+   memset(&splr_req, 0, sizeof(splr_req));
    splr_req.i_sp_abstract_name = m_VDA_SP_ABST_NAME;
    splr_req.type = NCS_SPLR_REQ_DEREG;
    splr_req.info.dereg.dummy = 0;
@@ -581,7 +581,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
     uns32       attr_num;
 
 
-    m_NCS_MEMSET(&new_vdest, 0, sizeof(new_vdest));
+    memset(&new_vdest, 0, sizeof(new_vdest));
 
     /* STEP : Check for "reserved" instance names */
     switch (mda_get_inst_name_type(&req->info.inst.i_inst_name))
@@ -639,7 +639,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
                */
               return  m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
        }
-       m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+       memset(&vda_info, 0, sizeof(vda_info));
 
        /* We will need to construct an NCSVDA_INFO structure */
        /* Need to contact VDS to allocate VDEST value. */
@@ -649,7 +649,7 @@ static uns32 vda_instantiate(NCS_LIB_REQ_INFO *req)
        vda_info.info.vdest_create.info.named.i_name = req->info.inst.i_inst_name;
        vda_info.info.vdest_create.i_policy = policy;
        
-       m_NCS_MEMSET(&svc_info, 0, sizeof(svc_info));
+       memset(&svc_info, 0, sizeof(svc_info));
        svc_info.i_mds_hdl = gl_vda_info.mds_adest_pwe1_hdl;
        svc_info.i_op = MDS_SEND;
        svc_info.i_svc_id = NCSMDS_SVC_ID_VDA; /* My i.e. source svc-id */
@@ -691,7 +691,7 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
     NCS_BOOL    is_named_vdest;
     MDS_DEST    gone_vdest;
 
-    m_NCS_MEMSET(&gone_vdest, 0, sizeof(gone_vdest));
+    memset(&gone_vdest, 0, sizeof(gone_vdest));
 
     /* STEP : Check for "reserved" instance names */
     switch (mda_get_inst_name_type(&req->info.uninst.i_inst_name))
@@ -727,7 +727,7 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
        /* VDS would any clear the mapping of this VDEST to a string.
         So simply delete the VDEST locally and forget about it */
          
-       m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+       memset(&vda_info, 0, sizeof(vda_info));
          
        /* We will need to construct an NCSVDA_INFO structure */
        /* Need to contact VDS to allocate VDEST value. */
@@ -735,7 +735,7 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
        vda_info.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_NAMED;
        vda_info.info.vdest_destroy.i_name = req->info.uninst.i_inst_name;
 
-       m_NCS_MEMSET(&svc_info, 0, sizeof(svc_info));
+       memset(&svc_info, 0, sizeof(svc_info));
        svc_info.i_mds_hdl = gl_vda_info.mds_adest_pwe1_hdl;
        svc_info.i_op = MDS_SEND;
        svc_info.i_svc_id = NCSMDS_SVC_ID_VDA; /* My i.e. source svc-id */
@@ -782,7 +782,7 @@ uns32 vda_create_vdest_locally(uns32       i_pol,
 {
    NCSMDS_ADMOP_INFO  admop_info;
 
-   m_NCS_OS_MEMSET(&admop_info, 0, sizeof(admop_info));
+   memset(&admop_info, 0, sizeof(admop_info));
 
    /* STEP : We first check if the VDEST has already been created locally */
    admop_info.i_op = MDS_ADMOP_VDEST_QUERY;
@@ -815,7 +815,7 @@ uns32 vda_chg_role_vdest(MDS_DEST    *i_vdest,
 {
    NCSMDS_ADMOP_INFO  admop_info;
 
-   m_NCS_OS_MEMSET(&admop_info, 0, sizeof(admop_info));
+   memset(&admop_info, 0, sizeof(admop_info));
 
    admop_info.i_op = MDS_ADMOP_VDEST_CONFIG;
    admop_info.info.vdest_config.i_new_role = i_new_role;
@@ -831,7 +831,7 @@ static uns32 vda_destroy_vdest_locally(uns32 vdest_handle)
 {
    NCSMDS_ADMOP_INFO  admop_info;
 
-   m_NCS_OS_MEMSET(&admop_info, 0, sizeof(admop_info));
+   memset(&admop_info, 0, sizeof(admop_info));
 
    admop_info.i_op = MDS_ADMOP_VDEST_DESTROY;
    admop_info.info.vdest_destroy.i_vdest_hdl = (MDS_HDL)vdest_handle;

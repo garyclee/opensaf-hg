@@ -61,7 +61,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(eds_cb, '\0',sizeof(EDS_CB));
+   memset(eds_cb, '\0',sizeof(EDS_CB));
 
    /* Obtain the hdl for EDS_CB from hdl-mgr */
 
@@ -471,7 +471,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
    uns32           rc = NCSCC_RC_SUCCESS;
 
         /* RDA init */
-   m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+   memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
    pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
    rc = pcs_rda_request(&pcs_rda_req);
    if(rc != PCSRDA_RC_SUCCESS)
@@ -482,7 +482,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
    }
    
    /* Get initial role from RDA */
-   m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+   memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
    pcs_rda_req.req_type = PCS_RDA_GET_ROLE;
    rc = pcs_rda_request(&pcs_rda_req);
    if(rc != PCSRDA_RC_SUCCESS)
@@ -511,7 +511,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
          return NCSCC_RC_FAILURE;
    }
    /* RDA finalize */
-   m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+   memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
    pcs_rda_req.req_type = PCS_RDA_LIB_DESTROY;
    rc = pcs_rda_request(&pcs_rda_req);
    if(rc != PCSRDA_RC_SUCCESS)

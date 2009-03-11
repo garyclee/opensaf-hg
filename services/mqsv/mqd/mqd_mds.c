@@ -156,7 +156,7 @@ uns32 mqd_mds_init(MQD_CB *pMqd)
    }
    
    /* Install your service into MDS */
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));   
+   memset(&arg, 0, sizeof(arg));   
    arg.i_mds_hdl = pMqd->my_mds_hdl;
    arg.i_svc_id = NCSMDS_SVC_ID_MQD;
    arg.i_op = MDS_INSTALL;
@@ -177,7 +177,7 @@ uns32 mqd_mds_init(MQD_CB *pMqd)
    }
    
    /* MQD is subscribing for MQND MDS service */
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
    arg.i_mds_hdl = pMqd->my_mds_hdl;
    arg.i_svc_id = NCSMDS_SVC_ID_MQD;
    arg.i_op = MDS_SUBSCRIBE;
@@ -218,7 +218,7 @@ static uns32 mqd_mds_vdest_create(MQD_CB *pMqd)
    }
    pMqd->my_dest = MQD_VDEST_ID;
 
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
 
    arg.req = NCSVDA_VDEST_CREATE;   
    arg.info.vdest_create.i_persistent = FALSE;
@@ -261,7 +261,7 @@ uns32 mqd_mds_shut(MQD_CB *pMqd)
       return NCSCC_RC_FAILURE;
    }
    /* Un-install your service into MDS */
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
 
    arg.i_mds_hdl = pMqd->my_mds_hdl;
    arg.i_svc_id = NCSMDS_SVC_ID_MQD;
@@ -297,7 +297,7 @@ static uns32 mqd_mds_vdest_destroy(MQD_CB *pMqd)
       m_LOG_MQSV_D(MQD_DONOT_EXIST,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(&arg, 0, sizeof(NCSVDA_INFO));
+   memset(&arg, 0, sizeof(NCSVDA_INFO));
    
    arg.req = NCSVDA_VDEST_DESTROY;   
    arg.info.vdest_destroy.i_vdest = pMqd->my_dest;
@@ -476,7 +476,7 @@ static uns32 mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
       return NCSCC_RC_FAILURE;
     }
    
-    m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
+    memset(pEvt, 0, sizeof(MQSV_EVT));
     dec->o_msg = (NCSCONTEXT)pEvt;
    
     rc = m_NCS_EDU_EXEC(&pMqd->edu_hdl, mqsv_edp_mqsv_evt, 
@@ -566,7 +566,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
             pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
             if(pEvt)
             {
-               m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
+               memset(pEvt, 0, sizeof(MQSV_EVT));
                pEvt->type = MQSV_EVT_MQD_CTRL;
                pEvt->msg.mqd_ctrl.type = MQD_MSG_USER;
                pEvt->msg.mqd_ctrl.info.user = svc->i_dest;
@@ -589,7 +589,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
                   pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
                   if(pNdEvent)
                   {
-                     m_NCS_MEMSET(pNdEvent, 0, sizeof(MQSV_EVT));
+                     memset(pNdEvent, 0, sizeof(MQSV_EVT));
                      pNdEvent->type = MQSV_EVT_MQD_CTRL;
                      pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
                      pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
@@ -636,7 +636,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
               pNdEvent = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
               if(pNdEvent)
               {
-                 m_NCS_MEMSET(pNdEvent, 0, sizeof(MQSV_EVT));
+                 memset(pNdEvent, 0, sizeof(MQSV_EVT));
                  pNdEvent->type = MQSV_EVT_MQD_CTRL;
                  pNdEvent->msg.mqd_ctrl.type = MQD_ND_STATUS_INFO_TYPE;
                  pNdEvent->msg.mqd_ctrl.info.nd_info.dest = svc->i_dest;
@@ -690,7 +690,7 @@ static uns32 mqd_mds_quiesced_process(MQD_CB* pMqd)
         m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
         return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(pEvt, 0, sizeof(MQSV_EVT));
+      memset(pEvt, 0, sizeof(MQSV_EVT));
       pEvt->type = MQSV_EVT_MQD_CTRL;
       pEvt->msg.mqd_ctrl.type = MQD_QUISCED_STATE_INFO_TYPE;
       pEvt->msg.mqd_ctrl.info.quisced_info.invocation= pMqd->invocation;
@@ -723,7 +723,7 @@ uns32 mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
    NCSMDS_INFO                mds_info;
    uns32                      rc;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->my_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQD;
    mds_info.i_op = MDS_SEND;

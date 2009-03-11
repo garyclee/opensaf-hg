@@ -143,8 +143,8 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT* evt)
    uns32                   node_id;
 
    node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
-   m_NCS_MEMSET(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
 
    if ((evt == GLSV_GLD_EVT_NULL) || (gld_cb == NULL))
       return NCSCC_RC_FAILURE;
@@ -200,7 +200,7 @@ static uns32 gld_rsc_open(GLSV_GLD_EVT* evt)
    if (node_list == NULL)
    {
       node_list = m_MMGR_ALLOC_GLSV_NODE_LIST;
-      m_NCS_MEMSET(node_list, 0,sizeof(GLSV_NODE_LIST));
+      memset(node_list, 0,sizeof(GLSV_NODE_LIST));
       node_list->dest_id = node_details->dest_id;
       node_list->node_id = m_NCS_NODE_ID_FROM_MDS_DEST(evt->fr_dest_id);
       *tmp_node_list = node_list;
@@ -454,8 +454,8 @@ static uns32 gld_send_res_master_info(GLSV_GLD_CB   *gld_cb,GLSV_GLD_GLND_DETAIL
    GLSV_GLND_RSC_MASTER_INFO_LIST  rsc_master_list[GLND_MAX_RESOURCES_PER_NODE] ={{0},{0},{0},{0}};
   
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
-   m_NCS_MEMSET(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
 
    glnd_evt.type = GLSV_GLND_EVT_RSC_MASTER_INFO;
 
@@ -631,7 +631,7 @@ GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_
       m_LOG_GLD_MEMFAIL(GLD_NODE_DETAILS_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_MEMSET(node_details, 0,sizeof(GLSV_GLD_GLND_DETAILS));
+   memset(node_details, 0,sizeof(GLSV_GLD_GLND_DETAILS));
 
    memcpy(&node_details->dest_id,&glnd_mds_dest,sizeof(MDS_DEST));
    node_details->node_id = m_NCS_NODE_ID_FROM_MDS_DEST(glnd_mds_dest);
@@ -777,7 +777,7 @@ static uns32 gld_process_send_non_master_status(GLSV_GLD_CB  *gld_cb,GLSV_GLD_GL
         rsc_id = glnd_rsc->rsc_id;
         if (m_NCS_OS_MEMCMP(&glnd_rsc->rsc_info->node_list->dest_id, &node_details->dest_id, sizeof(MDS_DEST))) 
         {
-           m_NCS_MEMSET(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
+           memset(&glnd_evt, '\0', sizeof(GLSV_GLND_EVT));
 
            glnd_evt.type                    = GLSV_GLND_EVT_NON_MASTER_INFO;
            glnd_evt.info.non_master_info.dest_id = node_details->dest_id;

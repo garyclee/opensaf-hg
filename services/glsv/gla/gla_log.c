@@ -149,7 +149,7 @@ gla_flx_log_reg ()
 {
    NCS_DTSV_RQ            reg;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_GLA;
    /* fill version no. */
@@ -179,7 +179,7 @@ gla_flx_log_dereg ()
 {
    NCS_DTSV_RQ        reg;
    
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                   = NCS_DTSV_OP_UNBIND;
    reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_GLA;
    ncs_dtsv_su_req(&reg);

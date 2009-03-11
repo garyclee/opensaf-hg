@@ -62,10 +62,10 @@ uns32 srmst_proc_get_mem_stats(uns32 *mem_val, uns8 line_num, uns8 item_loc)
    *mem_val = 0;
 
    /* Get a line from the file */
-   m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+   memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
    if (srmst_file_parser("/proc/meminfo", line_buffer, line_num) == 1)
    {
-      m_NCS_OS_MEMSET(item_buffer , 0, SRMST_ITEM_BUF_SIZE);
+      memset(item_buffer , 0, SRMST_ITEM_BUF_SIZE);
       /* Get a mem item from the file */
       if (srmst_str_parser(line_buffer,
                            MEM_STAT_SPLIT_PATTERN,
@@ -106,14 +106,14 @@ uns32 srmst_proc_get_pid_mem_stats(uns32 pid,
    char  item_buffer [SRMST_ITEM_BUF_SIZE];
    char  pid_path[SRMST_DIR_PATH_LEN];
 
-   m_NCS_OS_MEMSET(&pid_path, 0, SRMST_DIR_PATH_LEN);
+   memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
    sysf_sprintf(pid_path, "/proc/%d/status", pid);  
 
    /* Get a line from the file */
-   m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+   memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
    if (srmst_file_parser(pid_path, line_buffer, line_num) == 1)
    {
-      m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+      memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
       /* Get the virtual memsize of a process */
       if (srmst_str_parser(line_buffer,
                            " ",
@@ -340,12 +340,12 @@ void srmst_proc_get_child_pids(uns32 i_pid, uns32 *c_pid, uns8 *pid_num)
           pid = atol(dit->d_name);
           if (pid == 0) continue;
 
-          m_NCS_OS_MEMSET(&dir_path, 0, SRMST_DIR_PATH_LEN);
+          memset(&dir_path, 0, SRMST_DIR_PATH_LEN);
           sysf_sprintf(dir_path, "/proc/%d", pid);
           strcat(dir_path, "/stat");
  
-          m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
-          m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+          memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+          memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
 
           /* get a line from the file */
           if (srmst_file_parser(dir_path, line_buffer, PID_STAT_LINE_NUM) != NCSCC_RC_SUCCESS)
@@ -401,14 +401,14 @@ static NCS_BOOL srmst_proc_check_thread(uns32 pid, NCS_BOOL *is_thread)
    char  pid_path[SRMST_DIR_PATH_LEN];
    uns32 mem_val = 0;
 
-   m_NCS_OS_MEMSET(&pid_path, 0, SRMST_DIR_PATH_LEN);
+   memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
    sysf_sprintf(pid_path, "/proc/%d/statm", pid);  
 
    /* Get a line from the file */
-   m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+   memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
    if (srmst_file_parser(pid_path, line_buffer, 1) == 1)
    {
-      m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+      memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
       /* Get the virtual memsize of a process */
       if (srmst_str_parser(line_buffer,
                            " ",
@@ -446,7 +446,7 @@ NCS_BOOL srmst_proc_check_process_active(uns32 pid, NCS_BOOL *is_thread)
    DIR   *dir;
    char  pid_path[SRMST_DIR_PATH_LEN];
 
-   m_NCS_OS_MEMSET(&pid_path, 0, SRMST_DIR_PATH_LEN);
+   memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
 
    /* Always initialise it with FALSE */
    *is_thread = FALSE;
@@ -459,7 +459,7 @@ NCS_BOOL srmst_proc_check_process_active(uns32 pid, NCS_BOOL *is_thread)
    {  int fd = 0;
 
       closedir(dir);
-      m_NCS_OS_MEMSET(&pid_path, 0, SRMST_DIR_PATH_LEN);
+      memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
       sysf_sprintf(pid_path, "/proc/%d/exe", pid);     
       if ((fd = open(pid_path, O_RDONLY)) < 0)
          return srmst_proc_check_thread(pid, is_thread);
@@ -496,15 +496,15 @@ uns32 srmst_proc_get_pid_cpu_stats(uns32 pid,
  
    *cpu_jiffies = 0;
 
-   m_NCS_OS_MEMSET(&pid_path, 0, SRMST_DIR_PATH_LEN);
+   memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
    sysf_sprintf(pid_path, "/proc/%d/stat", pid);  
 
    /* Get a line from the file */
-   m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+   memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
    if (srmst_file_parser(pid_path, line_buffer, CPU_STAT_PROC_UTIL_LINE_NUM) != 1)
       return NCSCC_RC_FAILURE;
    
-   m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+   memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
    /* Get the virtual memsize of a process */
    if (srmst_str_parser(line_buffer,
                         " ",
@@ -516,7 +516,7 @@ uns32 srmst_proc_get_pid_cpu_stats(uns32 pid,
    else
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+   memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
    /* Get the virtual memsize of a process */
    if (srmst_str_parser(line_buffer,
                         " ",

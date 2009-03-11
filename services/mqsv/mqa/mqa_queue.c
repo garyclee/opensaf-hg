@@ -302,7 +302,7 @@ uns32 mqa_create_and_start_timer (MQP_ASYNC_RSP_MSG *mqa_callback,
       m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
       goto err2;
    }
-   m_NCS_OS_MEMSET(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
+   memset(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
 
    memcpy(callback, mqa_callback, sizeof(MQP_ASYNC_RSP_MSG));
 

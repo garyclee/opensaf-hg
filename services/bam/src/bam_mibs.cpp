@@ -215,8 +215,8 @@ ncs_bam_generate_counter64_mibset(NCSMIB_TBL_ID table_id, uns32 param_id,
    uns8        buff_64bit[8];
    SaInt64T    value = 0;
 
-   m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(&mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(space, 0, sizeof(space));
 
    ncs_bam_cfg_mib_arg(&mib_arg, (uns32*)mib_idx->i_inst_ids, 
                                   mib_idx->i_inst_len, table_id); 
@@ -247,7 +247,7 @@ ncs_bam_generate_counter64_mibset(NCSMIB_TBL_ID table_id, uns32 param_id,
    mib_arg.i_mib_key = (uns64)gl_mac_handle; 
    mib_arg.i_usr_key = (uns64)gl_mac_handle; 
    
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    
    
    status = ncsmib_sync_request(&mib_arg, ncsmac_mib_request, 
@@ -283,8 +283,8 @@ ncs_bam_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    if(val == NULL)
       return status;
 
-   m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(&mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(space, 0, sizeof(space));
 
    ncs_bam_cfg_mib_arg(&mib_arg, (uns32*)mib_idx->i_inst_ids,mib_idx->i_inst_len, table_id); 
    ncsmem_aid_init(&mem_aid, space, 1024);
@@ -333,7 +333,7 @@ case NCSMIB_FMAT_BOOL:
    mib_arg.i_mib_key = (uns64)gl_mac_handle; 
    mib_arg.i_usr_key = (uns64)gl_mac_handle; 
    
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    
    
    status = ncsmib_sync_request(&mib_arg, ncsmac_mib_request, 

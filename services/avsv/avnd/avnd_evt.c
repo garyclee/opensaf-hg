@@ -73,7 +73,7 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
       goto done;
    }
 
-   m_NCS_OS_MEMSET(evt, 0, sizeof(AVND_EVT));
+   memset(evt, 0, sizeof(AVND_EVT));
 
    /* fill the common fields */
    evt->cb_hdl = cb->cb_hdl;

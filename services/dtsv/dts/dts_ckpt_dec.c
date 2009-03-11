@@ -200,14 +200,14 @@ static uns32  dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_D
    if( status != NCSCC_RC_SUCCESS )
    {
       /* Decode failed!!! */
-      m_NCS_OS_MEMSET(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST)); 
+      memset(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST)); 
       m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dts_svc_reg_tbl_config: Decode failed");
    }
    ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_ASYNC_UPDT, DTS_FC_UPDT, NCSFL_LC_EVENT, NCSFL_SEV_NOTICE, "TILLLL", DTS_ASYNC_SVC_REG, dec->i_action, svc_reg_ptr->my_key.node, svc_reg_ptr->my_key.ss_svc_id, (uns32)cb->svc_rmv_mds_dest);
    status = dtsv_ckpt_add_rmv_updt_svc_reg(cb, svc_reg_ptr, NULL, dec->i_action);
 
-   m_NCS_OS_MEMSET(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
+   memset(&cb->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
 
    /* If update is successful, update async update count */
    if (NCSCC_RC_SUCCESS == status)
@@ -249,7 +249,7 @@ static uns32  dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC
    if(dec_svc == NULL)
    {
        m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
-       m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+       memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dta_dest_list_config: Decode flatten space failed");
    }
    svc_key.ss_svc_id = ncs_decode_32bit(&dec_svc);
@@ -258,14 +258,14 @@ static uns32  dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC
    /* Versioning support: Now decode the SPEC_CKPT struct */
    if(ncs_decode_n_octets_from_uba(&dec->i_uba, (uns8*)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+      memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dta_dest_list_config: Decode octets failed");
    }
    dec_spec = ncs_dec_flatten_space(&dec->i_uba, (uns8*)&cb->last_spec_loaded.version, sizeof(uns16));
    if(dec_spec == NULL)
    {
        m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
-       m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+       memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_ckpt_dta_dest_list_config: Decode flatten space failed");
    }
    cb->last_spec_loaded.version = ncs_decode_16bit(&dec_spec);
@@ -299,7 +299,7 @@ static uns32  dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC
    {
       /* Decode failed!!! */
       m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
-      m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+      memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,"dtsv_decode_ckpt_dta_dest_list_config: Decode failed");
    }
 
@@ -314,7 +314,7 @@ static uns32  dtsv_decode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_DEC
       m_LOG_DTS_CHKOP(DTS_ASYNC_FAILED);
 
    /* Versioning support : reset the DTS CB's spec_ckpt structure */
-   m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+   memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
 
    return status;
 }
@@ -530,7 +530,7 @@ static uns32  dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config(DTS_CB *cb,
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp_dts_svc_reg_tbl_config: Decode failed");
       }
 
-      m_NCS_MEMSET(file_list, '\0', sizeof(DTS_FILE_LIST));
+      memset(file_list, '\0', sizeof(DTS_FILE_LIST));
       status = m_NCS_EDU_EXEC(&cb->edu_hdl, dtsv_edp_ckpt_msg_dts_file_list_config, &dec->i_uba, EDP_OP_TYPE_DEC, (DTS_FILE_LIST**)&file_list, &ederror);
 
        if( status != NCSCC_RC_SUCCESS )
@@ -656,7 +656,7 @@ static uns32  dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb,
            NCS_MBCSV_ACT_ADD, svc_key);
           
          /* Reset the CB last_spec_loaded struct */
-         m_NCS_MEMSET(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+         memset(&cb->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
 
          if( status != NCSCC_RC_SUCCESS )
             return NCSCC_RC_FAILURE;
@@ -771,7 +771,7 @@ static uns32  dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
          m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_FAILED);
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_decode_cold_sync_rsp_global_policy_config: Decode failed");
       }
-      m_NCS_MEMSET(file_list, '\0', sizeof(DTS_FILE_LIST));
+      memset(file_list, '\0', sizeof(DTS_FILE_LIST));
       status = m_NCS_EDU_EXEC(&cb->edu_hdl, dtsv_edp_ckpt_msg_dts_file_list_config, &dec->i_uba, EDP_OP_TYPE_DEC, (DTS_FILE_LIST**)&file_list, &ederror);
   
       if( status != NCSCC_RC_SUCCESS )

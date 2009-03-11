@@ -304,17 +304,17 @@ void tet_saEvtEventAttributesGet(SaEvtEventHandleT *ptrEventHandle)
   SaEvtEventPatternArrayT *ptrPatternArray=
     (SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
 
-  m_NCS_MEMSET(ptrPatternArray,'\0',(sizeof(SaEvtEventPatternArrayT)));
+  memset(ptrPatternArray,'\0',(sizeof(SaEvtEventPatternArrayT)));
 
   SaNameT *getPublishName=(SaNameT *)malloc(sizeof(SaNameT));
 
-  m_NCS_MEMSET(getPublishName,'\0',(sizeof(SaNameT)));
+  memset(getPublishName,'\0',(sizeof(SaNameT)));
 
   ptrPatternArray->allocatedNumber=gl_allocatedNumber;
   ptrPatternArray->patterns=
     (SaEvtEventPatternT *)malloc((sizeof(SaEvtEventPatternT))*gl_allocatedNumber);
 
-  m_NCS_MEMSET(ptrPatternArray->patterns,'\0',
+  memset(ptrPatternArray->patterns,'\0',
                sizeof(SaEvtEventPatternT)*gl_allocatedNumber);
 
   printf("\n\n******************************\n");
@@ -328,7 +328,7 @@ void tet_saEvtEventAttributesGet(SaEvtEventHandleT *ptrEventHandle)
       ptrPatternArray->patterns[pCount].pattern=
         (SaUint8T *)malloc(gl_patternLength);
 
-      m_NCS_MEMSET(ptrPatternArray->patterns[pCount].pattern,'\0',
+      memset(ptrPatternArray->patterns[pCount].pattern,'\0',
                    sizeof(gl_patternLength));
       pCount++;
     }

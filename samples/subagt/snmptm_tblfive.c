@@ -60,7 +60,7 @@ SNMPTM_TBLFIVE *snmptm_create_tblfive_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tblfive, '\0', sizeof(SNMPTM_TBLFIVE));
+   memset((char *)tblfive, '\0', sizeof(SNMPTM_TBLFIVE));
    
    /* Copy the key contents to tblfive struct */
    tblfive->tblfive_key.ip_addr = tblfive_key->ip_addr;

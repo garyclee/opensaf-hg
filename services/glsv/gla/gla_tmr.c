@@ -149,7 +149,7 @@ void gla_tmr_exp (void *uarg)
          return ;
 
       }
-      m_NCS_OS_MEMSET(gla_clbk_info, 0, sizeof(GLSV_GLA_CALLBACK_INFO));
+      memset(gla_clbk_info, 0, sizeof(GLSV_GLA_CALLBACK_INFO));
       switch(tmr->clbk_info.callback_type)
       {
          case GLSV_LOCK_RES_OPEN_CBK:

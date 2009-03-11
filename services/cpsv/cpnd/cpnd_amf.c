@@ -110,7 +110,7 @@ uns32 cpnd_amf_init (CPND_CB *cpnd_cb)
    SaAisErrorT        error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
    amfCallbacks.saAmfHealthcheckCallback = (SaAmfHealthcheckCallbackT)cpnd_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback      = cpnd_saf_csi_set_cb;
    amfCallbacks.saAmfComponentTerminateCallback

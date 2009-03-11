@@ -85,7 +85,7 @@ uns32 asapi_msg_dec(NCS_UBAID *pBuff, ASAPi_MSG_INFO **o_pMsg)
    if(!pMsg) {
       return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* Memmory failure ... */ 
    }
-   m_NCS_OS_MEMSET(pMsg, 0, sizeof(ASAPi_MSG_INFO));
+   memset(pMsg, 0, sizeof(ASAPi_MSG_INFO));
   
    /* Decode the ASAPi message type */
    stream  = ncs_dec_flatten_space(pBuff, space, sizeof(uns8));
@@ -611,7 +611,7 @@ asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *er
       if(!info->qparam) {
          return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* OOOppps Memory Failure */
       }
-      m_NCS_OS_MEMSET(info->qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
+      memset(info->qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
    
       for(idx=0; idx<info->qcnt; idx++)
       {
@@ -681,7 +681,7 @@ static uns32 asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *msg)
       if(!msg->oinfo.qparam) {
          return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
       }
-      m_NCS_OS_MEMSET(msg->oinfo.qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
+      memset(msg->oinfo.qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
    
       for(idx=0; idx<msg->oinfo.qcnt; idx++)
       {
@@ -712,7 +712,7 @@ asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy
    uns8        space[64]; /* sufficient space to decode data */
    uns32       rc = NCSCC_RC_SUCCESS;
   
-   m_NCS_OS_MEMSET(group, 0, sizeof(SaNameT));
+   memset(group, 0, sizeof(SaNameT));
  
    /* Decode Group Name Length */   
    stream  = ncs_dec_flatten_space(pBuff, space, sizeof(group->length));
@@ -816,7 +816,7 @@ static uns32 asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
    uns8        space[64]; /* sufficient space to decode data */
    uns32       rc = NCSCC_RC_SUCCESS;
   
-   m_NCS_OS_MEMSET(name, 0, sizeof(SaNameT));
+   memset(name, 0, sizeof(SaNameT));
 
    /* Decode Name Length */   
    stream  = ncs_dec_flatten_space(pBuff, space, sizeof(name->length));

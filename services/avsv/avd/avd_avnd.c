@@ -128,7 +128,7 @@ AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
       return AVD_AVND_NULL;
    }
 
-   m_NCS_MEMSET((char *)avnd, '\0', sizeof(AVD_AVND));
+   memset((char *)avnd, '\0', sizeof(AVD_AVND));
 
    if (ckpt)
    {
@@ -251,7 +251,7 @@ AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb,SaNameT node_name)
    AVD_AVND *avnd;
    SaNameT lnode_name_net;
 
-   m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
    memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
@@ -318,7 +318,7 @@ AVD_AVND * avd_avnd_struc_find_next(AVD_CL_CB *cb,SaNameT node_name)
    AVD_AVND *avnd;
    SaNameT lnode_name_net;
 
-   m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
    memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
@@ -360,7 +360,7 @@ static AVD_AVND * avd_avnd_struc_find_next_cl_member(AVD_CL_CB *cb,SaNameT node_
    AVD_AVND *avnd = AVD_AVND_NULL;
    SaNameT lnode_name_net;
 
-   m_NCS_MEMSET((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
    memcpy(lnode_name_net.value,node_name.value,node_name.length);
    lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
@@ -574,7 +574,7 @@ uns32 ncsndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0] ;
@@ -695,7 +695,7 @@ uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0] ;
@@ -745,7 +745,7 @@ uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    }
 
    /* All the fields are standard mib objects */
-   m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
    temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -803,7 +803,7 @@ uns32 ncsndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    
@@ -934,7 +934,7 @@ uns32 saamfnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1066,7 +1066,7 @@ uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1276,7 +1276,7 @@ uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       else if((arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverProb_ID) ||
               (arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverMax_ID))
       {  
-         m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+         memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
          param.table_id = NCSMIB_TBL_AVSV_AMF_NODE;
          param.obj_id = arg->req.info.set_req.i_param_val.i_param_id;   
          param.act = AVSV_OBJ_OPR_MOD;
@@ -1355,7 +1355,7 @@ uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       avnd->su_failover_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
       break;
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1427,7 +1427,7 @@ uns32 saamfnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
 
    if (arg->i_idx.i_inst_len != 0)
    {
@@ -1538,7 +1538,7 @@ uns32 saclmnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    /* Prepare the nodename database key from the instant ID */
    node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1718,7 +1718,7 @@ uns32 saclmnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
    
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    
    if (arg->i_idx.i_inst_len != 0)
    {

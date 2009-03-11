@@ -94,8 +94,8 @@ uns32 dtsv_cirbuff_op_table_register(void)
    NCSMIBLIB_REQ_INFO reqinfo;   
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
-   m_NCS_OS_MEMSET(&objinfo, 0, sizeof(objinfo));
+   memset(&reqinfo, 0, sizeof(reqinfo));
+   memset(&objinfo, 0, sizeof(objinfo));
   
    /* Populate the Table Information */
    dtsv_populate_cirbuff_op_tbl_info(&objinfo.tbl_info);
@@ -288,7 +288,7 @@ dtsv_setrow_cirbuff_op_obj(NCSCONTEXT cb, NCSMIB_ARG *args,
    uns8                  operation, op_device = 0;
    uns32                paramid = 0;
 
-   m_NCS_MEMSET(&key, 0, sizeof(SVC_KEY));
+   memset(&key, 0, sizeof(SVC_KEY));
 
    for(paramid = dtsvCirbuffOpIndexNode_Id; paramid < dtsvCirBuffOpMax_Id; paramid++)
    {
@@ -610,7 +610,7 @@ uns32 dts_circular_buffer_alloc(CIR_BUFFER *cir_buff, uns32 buffer_size)
 
     if(cir_buff->buff_part[0].cir_buff_ptr == NULL)
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_circular_buffer_alloc: Failed to allocate circular buffer");
-    m_NCS_OS_MEMSET(cir_buff->buff_part[0].cir_buff_ptr, '\0', (buffer_size * 1024));
+    memset(cir_buff->buff_part[0].cir_buff_ptr, '\0', (buffer_size * 1024));
 
     /* 
      * Now assign all the buffer partitions to default value.

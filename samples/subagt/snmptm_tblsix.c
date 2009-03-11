@@ -59,7 +59,7 @@ SNMPTM_TBLSIX *snmptm_create_tblsix_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tblsix, '\0', sizeof(SNMPTM_TBLSIX));
+   memset((char *)tblsix, '\0', sizeof(SNMPTM_TBLSIX));
    
    /* Copy the key contents to tblsix struct */
    tblsix->tblsix_key.count = tblsix_key->count;

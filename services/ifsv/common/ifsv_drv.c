@@ -224,7 +224,7 @@ ifsv_drv_init (uns32 vrid, uns8 pool_id)
          m_NCS_CONS_PRINTF("\nMemory failure\n");
          break;
       }
-      m_NCS_MEMSET(drv_cb, 0, sizeof(IFSV_DRV_CB));
+      memset(drv_cb, 0, sizeof(IFSV_DRV_CB));
 
       drv_cb->vrid     = vrid;
 
@@ -397,7 +397,7 @@ ifsv_register_hw_driver (NCS_IFSV_PORT_REG *reg_msg)
                   m_NCS_CONS_PRINTF("\nMemory failure\n");
                   break;
                }
-               m_NCS_MEMSET(reg_tbl, 0, sizeof(IFSV_DRV_PORT_REG_TBL));
+               memset(reg_tbl, 0, sizeof(IFSV_DRV_PORT_REG_TBL));
                memcpy(&reg_tbl->port_reg, reg_msg, 
                   sizeof(NCS_IFSV_PORT_REG));
                /* store the register information */
@@ -477,7 +477,7 @@ static uns32 ifsv_drv_mds_shut (IFSV_DRV_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFDRV;
@@ -518,7 +518,7 @@ ifsv_drv_mds_msg_send (NCSCONTEXT info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
          m_NCS_CONS_PRINTF("\nMemory failure\n");
          return (NCSCC_RC_FAILURE);
       }
-      m_NCS_MEMSET(hw_info, 0, sizeof(NCS_IFSV_HW_INFO));
+      memset(hw_info, 0, sizeof(NCS_IFSV_HW_INFO));
       
       hw_info->msg_type  = msg_type;
       hw_info->port_type.port_id   = port_type->port_id;      
@@ -688,7 +688,7 @@ ifsv_send_intf_info (NCS_IFSV_HW_INFO *intf_hw_info)
       m_NCS_CONS_PRINTF("\nMemory failure\n");
       return (NCSCC_RC_FAILURE);
    }
-   m_NCS_MEMSET(msg, 0, sizeof(NCS_IFSV_HW_INFO));
+   memset(msg, 0, sizeof(NCS_IFSV_HW_INFO));
    
    if ((drv_cb = (IFSV_DRV_CB*) ncshm_take_hdl(NCS_SERVICE_ID_IFDRV, 
       drv_hdl)) != NULL)
@@ -792,7 +792,7 @@ ifsv_drv_get_stats_evt (NCS_IFSV_HW_DRV_REQ *evt, IFSV_DRV_CB *drv_cb)
       ncs_db_link_list_find(&drv_cb->port_reg_tbl, (uns8*)&port_type);
    if (reg_tbl == NULL)
    {
-      m_NCS_MEMSET(&port_stats, 0, sizeof(NCS_IFSV_PORT_STATS));      
+      memset(&port_stats, 0, sizeof(NCS_IFSV_PORT_STATS));      
       /* send a failure message to IfND(IDIM) */
       ifsv_drv_mds_msg_send ((NCSCONTEXT)&port_stats, 
          NCS_IFSV_HW_DRV_STATS, &port_type, drv_cb);
@@ -977,7 +977,7 @@ ifsv_drv_mds_adest_get (IFSV_DRV_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
 
    arg.req                             = NCSADA_GET_HDLS;
 
@@ -1073,7 +1073,7 @@ ifsv_drv_mds_install (IFSV_DRV_CB *drv_cb)
    uns32                res = NCSCC_RC_SUCCESS;
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
 
    /* Create the virtual Destination for IFD */
@@ -1387,7 +1387,7 @@ ifsv_drv_mds_normal_send (MDS_HDL mds_hdl,
    NCSMDS_INFO   info;
    uns32         res;
    
-   m_NCS_MEMSET(&info, 0, sizeof(info));
+   memset(&info, 0, sizeof(info));
    
    info.i_mds_hdl  = mds_hdl;
    info.i_op       = MDS_SEND;
@@ -1398,7 +1398,7 @@ ifsv_drv_mds_normal_send (MDS_HDL mds_hdl,
    info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
    info.info.svc_send.i_to_svc   = to_svc;
    
-   m_NCS_MEMSET(&info.info.svc_send.info.snd.i_to_dest, 0, sizeof(MDS_DEST));
+   memset(&info.info.svc_send.info.snd.i_to_dest, 0, sizeof(MDS_DEST));
    info.info.svc_send.info.snd.i_to_dest = dest;
    
    res = ncsmds_api(&info);
@@ -1526,7 +1526,7 @@ uns32 ifsv_drv_edp_intf_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_INTF_INFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_INTF_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -1576,7 +1576,7 @@ uns32 ifsv_drv_edp_idim_ifnd_up_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFND_UP_INFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IFND_UP_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -1626,7 +1626,7 @@ uns32 ifsv_drv_edp_idim_hw_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_HW_REQ_INFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_HW_REQ_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -1678,7 +1678,7 @@ uns32 ifsv_drv_edp_idim_port_type(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_TYPE));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_TYPE));
         struct_ptr = *d_ptr;
     }
     else
@@ -1745,7 +1745,7 @@ uns32 ifsv_drv_edp_idim_hw_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_HW_DRV_REQ));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_HW_DRV_REQ));
         struct_ptr = *d_ptr;
     }
     else
@@ -1793,7 +1793,7 @@ uns32 ifsv_drv_edp_idim_port_status(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_STATUS));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_STATUS));
         struct_ptr = *d_ptr;
     }
     else
@@ -1851,7 +1851,7 @@ uns32 ifsv_drv_edp_idim_port_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_INFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -1913,7 +1913,7 @@ uns32 ifsv_drv_edp_stats_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_INTF_STATS));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_INTF_STATS));
         struct_ptr = *d_ptr;
     }
     else
@@ -1965,7 +1965,7 @@ uns32 ifsv_drv_edp_idim_port_stats(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_STATS));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_PORT_STATS));
         struct_ptr = *d_ptr;
     }
     else
@@ -2030,7 +2030,7 @@ uns32 ifsv_drv_edp_idim_hw_rcv_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IFSV_HW_INFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IFSV_HW_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -2116,7 +2116,7 @@ uns32 get_word_from_file(FILE **fp, char *o_chword)
 try_again:
    temp_ctr = 0;
 
-   m_NCS_MEMSET(o_chword, 0, 10);
+   memset(o_chword, 0, 10);
    while(( temp_char = (char)getc(*fp) ) == '#')
       go_to_next_line(fp);
    while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != ' ') && (temp_char != '\0') && (temp_char != '\t') )

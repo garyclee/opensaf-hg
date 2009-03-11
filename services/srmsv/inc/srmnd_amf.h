@@ -37,7 +37,7 @@
 /* Update AMF version details */
 #define m_SRMSV_GET_AMF_VER(amf_ver) \
 { \
-   m_NCS_OS_MEMSET(&amf_ver, 0, sizeof(SaVersionT));  \
+   memset(&amf_ver, 0, sizeof(SaVersionT));  \
    amf_ver.releaseCode='B';   \
    amf_ver.majorVersion=0x01; \
    amf_ver.minorVersion=0x01; \
@@ -46,7 +46,7 @@
 /* Update the SRMSv specific AMF callback functions */
 #define m_SRMSV_UPDATE_AMF_CBKS(amf_call_backs) \
 { \
-   m_NCS_OS_MEMSET(&amf_call_backs, 0, sizeof(SaAmfCallbacksT));               \
+   memset(&amf_call_backs, 0, sizeof(SaAmfCallbacksT));               \
    amf_call_backs.saAmfHealthcheckCallback = srmnd_amf_health_check_callback;  \
    amf_call_backs.saAmfComponentTerminateCallback =                            \
                                      srmnd_amf_component_terminate_callback;   \

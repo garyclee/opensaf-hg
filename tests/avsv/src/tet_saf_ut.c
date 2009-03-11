@@ -113,7 +113,7 @@ void tet_saf_initialize (int sub_test_arg)
     SaVersionT      amf_version;   
     SaAisErrorT        error;
 
-    m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+    memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    switch(sub_test_arg) {
 
@@ -411,7 +411,7 @@ void tet_saf_comp_register(int sub_test_arg)
 
      case 6:
 
-     m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+     memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
      m_TET_GET_AMF_VER(amf_version);
      amfCallbacks.saAmfCSISetCallback        = tet_saf_CSI_set_callback;
      amfCallbacks.saAmfCSIRemoveCallback     = tet_saf_CSI_remove_callback;

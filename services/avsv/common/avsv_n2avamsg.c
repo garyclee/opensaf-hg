@@ -248,7 +248,7 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 
    case AVSV_AMF_PG_TRACK:
       /* memset notify buffer */
-      m_NCS_OS_MEMSET(&(*o_dcbk)->param.pg_track.buf, 0, 
+      memset(&(*o_dcbk)->param.pg_track.buf, 0, 
                       sizeof(SaAmfProtectionGroupNotificationBufferT));
 
       /* copy the notify buffer, if any */
@@ -274,8 +274,8 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 
    case AVSV_AMF_CSI_SET:
       /* memset avsv & amf csi attr lists */
-      m_NCS_OS_MEMSET(&(*o_dcbk)->param.csi_set.attrs, 0, sizeof(NCS_AVSV_CSI_ATTRS));
-      m_NCS_OS_MEMSET(&(*o_dcbk)->param.csi_set.csi_desc.csiAttr, 0, 
+      memset(&(*o_dcbk)->param.csi_set.attrs, 0, sizeof(NCS_AVSV_CSI_ATTRS));
+      memset(&(*o_dcbk)->param.csi_set.csi_desc.csiAttr, 0, 
                       sizeof(SaAmfCSIAttributeListT));
 
       /* copy the avsv csi attr list */

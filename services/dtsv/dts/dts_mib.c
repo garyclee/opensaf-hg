@@ -198,7 +198,7 @@ uns32 dts_register_table(DTS_CB * inst,
 {
     NCSOAC_SS_ARG   dts_arg;
 
-    m_NCS_MEMSET(&dts_arg, 0, sizeof(dts_arg));
+    memset(&dts_arg, 0, sizeof(dts_arg));
 
     dts_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
     dts_arg.i_tbl_id = table_id;
@@ -251,7 +251,7 @@ uns32 dts_unregister_table(DTS_CB * inst, uns32 table_id, uns32 *tbl_hdl)
 {
     NCSOAC_SS_ARG   dts_arg;
 
-    m_NCS_MEMSET(&dts_arg, 0, sizeof(dts_arg));
+    memset(&dts_arg, 0, sizeof(dts_arg));
 
     if (*tbl_hdl != 0)
     {
@@ -288,7 +288,7 @@ uns32 dts_mab_snd_warmboot_req(DTS_CB *cb)
 {
    NCSOAC_SS_ARG  dts_arg;
 
-   m_NCS_MEMSET(&dts_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&dts_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    dts_arg.i_oac_hdl = cb->oac_hdl;
    dts_arg.i_op      = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
@@ -384,7 +384,7 @@ dtsv_policy_tbl_req(NCSMIB_ARG *args)
                     m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
                     return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_policy_tbl_req: Unable to allocate memory for reload spec CLI cmd");
                  }
-                 m_NCS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
+                 memset(msg, '\0', sizeof(DTSV_MSG));
                  msg->msg_type = DTS_SPEC_RELOAD;
 
                  /* Post this message to DTS mailbox */
@@ -412,7 +412,7 @@ dtsv_policy_tbl_req(NCSMIB_ARG *args)
                     m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
                     return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_policy_tbl_req: Unable to allocate memory for display config CLI cmd");
                  }
-                 m_NCS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
+                 memset(msg, '\0', sizeof(DTSV_MSG));
                  msg->msg_type = DTS_PRINT_CONFIG;
 
                  /* Post this message to DTS mailbox */
@@ -460,7 +460,7 @@ dtsv_policy_tbl_req(NCSMIB_ARG *args)
    } /*end of changes for processing NCSMIB_OP_REQ_CLI*/
    else
    {
-      m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
       miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
       miblib_req.info.i_mib_op_info.args = args; 
       miblib_req.info.i_mib_op_info.cb = inst; 

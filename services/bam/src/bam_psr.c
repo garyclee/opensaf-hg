@@ -116,7 +116,7 @@ uns32 pss_bam_snd_message(PSS_BAM_MSG *snd_msg)
       return NCSCC_RC_FAILURE;
    }
   
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = bam_cb->mds_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_BAM;
@@ -155,7 +155,7 @@ void pss_bam_send_cfg_done_msg(BAM_PARSE_SUB_TREE subTree)
    PSS_BAM_MSG *snd_msg = m_MMGR_ALLOC_PSS_BAM_MSG;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(PSS_BAM_MSG));
+   memset(snd_msg,'\0',sizeof(PSS_BAM_MSG));
    snd_msg->i_evt = PSS_BAM_EVT_CONF_DONE;
    if(subTree == BAM_PARSE_NCS)
       snd_msg->info.conf_done.pcn_list.pcn = "AVD";

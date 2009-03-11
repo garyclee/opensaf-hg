@@ -100,7 +100,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
             {
             /* send an event for the modifed parameters to the hardware
              * driver */
-               m_NCS_MEMSET(&hw_param,0,sizeof(hw_param));
+               memset(&hw_param,0,sizeof(hw_param));
                memcpy(&hw_param.hw_param, &create_intf->intf_data.if_info,
                   sizeof(NCS_IFSV_INTF_INFO));
                hw_param.hw_param.if_am  = create_intf->if_attr;
@@ -136,7 +136,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
 */
                       }
 
-                      m_NCS_MEMSET(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
+                      memset(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
                       spt_map.spt = create_intf->intf_data.spt_info;
                       spt_map.if_index = ifindex;
 
@@ -265,7 +265,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
                   res = ifsv_intf_rec_modify(rec_data, &create_intf->intf_data,
                                              &if_attr,ifsv_cb);
                  /* Now send sync resp to the IfA. */
-                 m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+                 memset(&send_evt, 0, sizeof(IFSV_EVT));
                  send_evt.type = IFA_EVT_INTF_CREATE_RSP;
                  if(res == NCSCC_RC_SUCCESS)
                   send_evt.error = NCS_IFSV_NO_ERROR;
@@ -404,7 +404,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
          /* If am the owner of this record, here assume that the ifindex
           * will be resolved asynchronously always 
           */
-         m_NCS_MEMSET(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
+         memset(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
          spt_map.spt = create_intf->intf_data.spt_info;
          
          if ((res = ifsv_ifnd_ifindex_alloc(&spt_map,ifsv_cb, 
@@ -573,7 +573,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
    if(ifindex || (res != NCSCC_RC_SUCCESS))
    {
       IFSV_EVT     send_evt;
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+      memset(&send_evt, 0, sizeof(IFSV_EVT));
 
       send_evt.type = IFA_EVT_INTF_CREATE_RSP;
       send_evt.error = error;
@@ -1195,7 +1195,7 @@ ifnd_amf_init (IFSV_CB *ifsv_cb)
    SaAisErrorT        error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback       = 
       ifnd_saf_health_chk_callback;
@@ -1349,7 +1349,7 @@ ifnd_ifap_ifindex_alloc (NCS_IFSV_SPT_MAP *spt_map,
    IFSV_EVT_SPT_MAP_INFO spt_info;
    uns32 res = NCSCC_RC_SUCCESS;
    
-   m_NCS_MEMSET(&spt_info, 0, sizeof(IFSV_EVT_SPT_MAP_INFO));
+   memset(&spt_info, 0, sizeof(IFSV_EVT_SPT_MAP_INFO));
    spt_info.app_svc_id   = NCS_SERVICE_ID_IFND;
    spt_info.app_dest     = ifsv_cb->my_dest;
    spt_info.spt_map.spt  = spt_map->spt;
@@ -1383,7 +1383,7 @@ ifnd_ifap_ifindex_free (NCS_IFSV_SPT_MAP *spt_map,
    IFSV_EVT_SPT_MAP_INFO spt_map_info;
    uns32 res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&spt_map_info, 0, sizeof(IFSV_EVT_SPT_MAP_INFO));
+   memset(&spt_map_info, 0, sizeof(IFSV_EVT_SPT_MAP_INFO));
    spt_map_info.app_svc_id    = NCS_SERVICE_ID_IFND;
    spt_map_info.app_dest      = ifsv_cb->my_dest;
    memcpy(&spt_map_info.spt_map,spt_map, sizeof(NCS_IFSV_SPT_MAP));
@@ -1434,7 +1434,7 @@ ifnd_intf_ifinfo_send (IFSV_CB *cb,  IFSV_EVT_INTF_INFO_GET  *if_get,
 
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_STATE_INFO, cb->ifnd_state, 0);
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->info.ifa_evt.usrhdl = (NCSCONTEXT)((long)if_get->usr_hdl);
 
    if(if_get->get_type == IFSV_INTF_GET_ALL)
@@ -1649,7 +1649,7 @@ ifnd_intf_statsinfo_send (IFSV_CB *cb,  IFSV_EVT_STATS_INFO  *stats_info)
 
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_STATE_INFO, cb->ifnd_state, 0);
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->info.ifa_evt.usrhdl = (NCSCONTEXT)((long)stats_info->usr_hdl);
    evt->type = IFA_EVT_IFINFO_GET_RSP;
 
@@ -1765,7 +1765,7 @@ ifsv_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
    IFSV_EVT evt;
    uns32    rc = NCSCC_RC_SUCCESS;
       
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
       
    evt.type = IFA_EVT_INTF_UPDATE;
    evt.info.ifa_evt.info.if_add_upd.if_index = actual_data->if_index;
@@ -1858,7 +1858,7 @@ ifnd_sync_send_to_ifd (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    if ((rec_evt == IFSV_INTF_REC_ADD) || (rec_evt == IFSV_INTF_REC_MODIFY))
    {
@@ -1918,7 +1918,7 @@ ifnd_sync_send_to_ifd (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
 uns32 ifnd_init_vip_db(IFSV_CB *cb)
 {
       NCS_PATRICIA_PARAMS params;
-      m_NCS_MEMSET(&params,0,sizeof(NCS_PATRICIA_PARAMS));
+      memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
       params.key_size = sizeof(NCS_IFSV_VIP_INT_HDL);
       params.info_size = 0;
       if ((ncs_patricia_tree_init(&cb->vipDBase, &params))

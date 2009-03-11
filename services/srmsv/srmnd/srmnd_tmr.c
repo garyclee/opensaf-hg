@@ -49,7 +49,7 @@ uns32 srmnd_timer_init(SRMND_CB *srmnd_cb)
 {
    NCS_RP_TMR_INIT tmr_init_info;
    
-   m_NCS_OS_MEMSET(&tmr_init_info, 0, sizeof(NCS_RP_TMR_INIT));
+   memset(&tmr_init_info, 0, sizeof(NCS_RP_TMR_INIT));
 
    tmr_init_info.callback_arg   = (void *)srmnd_cb;
    tmr_init_info.svc_id         = NCSMDS_SVC_ID_SRMND;

@@ -68,7 +68,7 @@ uns32 avd_amf_alarm_service_impaired_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_amf_alarm_service_impaired_trap");
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -84,7 +84,7 @@ uns32 avd_amf_alarm_service_impaired_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_OBJ;
@@ -130,7 +130,7 @@ uns32 avd_gen_cluster_reset_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_gen_cluster_reset_trap");
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -146,7 +146,7 @@ uns32 avd_gen_cluster_reset_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
    
    inst_id_len = m_NCS_OS_NTOHS(comp->comp_info.name_net.length); 
 
@@ -158,7 +158,7 @@ uns32 avd_gen_cluster_reset_trap(AVD_CL_CB *avd_cb,
    i_trap_varbind->i_param_val.info.i_oct = comp->comp_info.name_net.value;
 
    /* Prepare the instant ID from the comp name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    i_trap_varbind->i_idx.i_inst_len = inst_id_len + 1;
    
@@ -210,7 +210,7 @@ uns32 avd_gen_node_admin_state_changed_trap(AVD_CL_CB *avd_cb,
  
    m_AVD_LOG_ADMIN_STATE_TRAPS(node->su_admin_state, &(node->node_info.nodeName));
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
   
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -220,7 +220,7 @@ uns32 avd_gen_node_admin_state_changed_trap(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(node->node_info.nodeName.length);
    
    /* Prepare the instant ID from the node name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -238,7 +238,7 @@ uns32 avd_gen_node_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_NODE;
@@ -259,7 +259,7 @@ uns32 avd_gen_node_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_NODE;
@@ -312,7 +312,7 @@ uns32 avd_gen_sg_admin_state_changed_trap(AVD_CL_CB *avd_cb,
   
    m_AVD_LOG_ADMIN_STATE_TRAPS(sg->admin_state, &(sg->name_net));
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -322,7 +322,7 @@ uns32 avd_gen_sg_admin_state_changed_trap(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(sg->name_net.length);
 
   /* Prepare the instant ID from the sg name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -340,7 +340,7 @@ uns32 avd_gen_sg_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
 
    /* Fill in the object details */
@@ -363,7 +363,7 @@ uns32 avd_gen_sg_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SG;
@@ -417,7 +417,7 @@ uns32 avd_gen_su_admin_state_changed_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_ADMIN_STATE_TRAPS(su->admin_state, &(su->name_net));
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -427,7 +427,7 @@ uns32 avd_gen_su_admin_state_changed_trap(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(su->name_net.length);
 
   /* Prepare the instant ID from the su name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -445,7 +445,7 @@ uns32 avd_gen_su_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
 
    /* Fill in the object details */
@@ -468,7 +468,7 @@ uns32 avd_gen_su_admin_state_changed_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SU;
@@ -520,7 +520,7 @@ uns32 avd_gen_si_unassigned_trap(AVD_CL_CB *avd_cb,
 
   m_AVD_LOG_SI_UNASSIGNED_TRAP(&(si->name_net));
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -530,7 +530,7 @@ uns32 avd_gen_si_unassigned_trap(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(si->name_net.length);
    
    /* Prepare the instant ID from the si name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -548,7 +548,7 @@ uns32 avd_gen_si_unassigned_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SI;
@@ -590,7 +590,7 @@ uns32 avd_gen_si_oper_state_chg_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_gen_si_oper_state_chg_trap");
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -622,7 +622,7 @@ uns32 avd_gen_si_admin_state_chg_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_ADMIN_STATE_TRAPS(si->admin_state, &(si->name_net));
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_AMF_TRAP_TBL;
@@ -676,12 +676,12 @@ uns32 avd_populate_si_state_traps(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    inst_id_len = m_NCS_OS_NTOHS(si->name_net.length);
 
    /* Prepare the instant ID from the su name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -712,7 +712,7 @@ uns32 avd_populate_si_state_traps(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SI;
@@ -826,10 +826,10 @@ uns32 avd_fill_and_send_su_si_ha_state_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_SUSI_HA_TRAPS(susi->state, &(susi->su->name_net), &(susi->si->name_net), isAmfmibTrap);
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Prepare the instant ID from the su and si name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id_len = m_NCS_OS_NTOHS(susi->si->name_net.length) +
                  m_NCS_OS_NTOHS(susi->su->name_net.length) + 2;
@@ -853,7 +853,7 @@ uns32 avd_fill_and_send_su_si_ha_state_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
 
    /* Fill in the object details */
@@ -876,7 +876,7 @@ uns32 avd_fill_and_send_su_si_ha_state_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SU_SI;
@@ -901,7 +901,7 @@ uns32 avd_fill_and_send_su_si_ha_state_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(l_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(l_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    l_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SU_SI;
@@ -966,7 +966,7 @@ uns32 avd_clm_alarm_service_impaired_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_clm_alarm_service_impaired_trap");
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_CLM_TRAP_TBL;
@@ -982,7 +982,7 @@ uns32 avd_clm_alarm_service_impaired_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_CLM_TRAP_OBJ;
@@ -1024,7 +1024,7 @@ uns32 avd_clm_node_join_trap(AVD_CL_CB *avd_cb,
   
    m_AVD_LOG_CLM_NODE_TRAPS(&(node->node_info.nodeName), AVD_TRAP_JOINED);
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saClmStateChgClusterNodeEntry_ID;
@@ -1057,7 +1057,7 @@ uns32 avd_clm_node_exit_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_CLM_NODE_TRAPS(&(node->node_info.nodeName), AVD_TRAP_EXITED);
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saClmStateChgClusterNodeExit_ID;
@@ -1088,7 +1088,7 @@ uns32 avd_clm_node_reconfiured_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_clm_node_reconfiured_trap");
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saClmStateChgClusterNodeReconfigured_ID;
@@ -1131,7 +1131,7 @@ uns32 avd_populate_clm_node_traps(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(node->node_info.nodeName.length);
 
    /* Prepare the instant ID from the node name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -1149,7 +1149,7 @@ uns32 avd_populate_clm_node_traps(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_CLM_NODE;
@@ -1199,7 +1199,7 @@ uns32 avd_gen_ncs_init_success_trap(AVD_CL_CB *avd_cb,
  
    m_AVD_LOG_NCS_INIT_TRAP(node->node_info.nodeId);
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
   
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_NCS_TRAP_TBL;
@@ -1209,7 +1209,7 @@ uns32 avd_gen_ncs_init_success_trap(AVD_CL_CB *avd_cb,
    inst_id_len = m_NCS_OS_NTOHS(node->node_info.nodeName.length);
    
    /* Prepare the instant ID from the node name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -1227,7 +1227,7 @@ uns32 avd_gen_ncs_init_success_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_NODE;
@@ -1248,7 +1248,7 @@ uns32 avd_gen_ncs_init_success_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_NODE;
@@ -1305,7 +1305,7 @@ uns32 avd_node_shutdown_failure_trap(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 er
    m_AVD_LOG_FUNC_ENTRY("avd_node_shutdown_failure_trap");
    m_AVD_LOG_SHUTDOWN_FAILURE_TRAP(&(node->node_info.nodeName), errcode);
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Set trap table identifier */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_NCS_TRAP_TBL;
@@ -1328,11 +1328,11 @@ uns32 avd_node_shutdown_failure_trap(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 er
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(nodeid_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(nodeid_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Prepare index for ncsNDTable */
    inst_id_len = m_NCS_OS_NTOHS(node->node_info.nodeName.length);
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
 
    inst_id[0]= inst_id_len;
 
@@ -1361,7 +1361,7 @@ uns32 avd_node_shutdown_failure_trap(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 er
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(nodename_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(nodename_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    /* Fill */
    nodename_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_NODE;
@@ -1419,9 +1419,9 @@ uns32 avd_create_and_send_trap(AVD_CL_CB *avd_cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_create_and_send_trap");
 
-   m_NCS_OS_MEMSET(&patternArray, 0, sizeof(SaEvtEventPatternArrayT));
-   m_NCS_OS_MEMSET(&eventHandle, 0, sizeof(SaEvtEventHandleT));
-   m_NCS_OS_MEMSET(&eventId, 0, sizeof(SaEvtEventIdT));
+   memset(&patternArray, 0, sizeof(SaEvtEventPatternArrayT));
+   memset(&eventHandle, 0, sizeof(SaEvtEventHandleT));
+   memset(&eventId, 0, sizeof(SaEvtEventIdT));
 
    if(!trap)
       return NCSCC_RC_FAILURE;
@@ -1445,7 +1445,7 @@ uns32 avd_create_and_send_trap(AVD_CL_CB *avd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(encoded_buffer, '\0', tlv_size);
+   memset(encoded_buffer, '\0', tlv_size);
 
    /* call the EDU macro to encode with buffer pointer and size */
    status = m_NCS_EDU_TLV_EXEC(&avd_cb->edu_hdl, ncs_edp_ncs_trap, encoded_buffer,

@@ -100,7 +100,7 @@ AVD_CSI * avd_csi_struc_crt(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL ckpt)
       return AVD_CSI_NULL;
    }
 
-   m_NCS_MEMSET((char *)csi, '\0', sizeof(AVD_CSI));
+   memset((char *)csi, '\0', sizeof(AVD_CSI));
 
    if (ckpt)
    {
@@ -168,7 +168,7 @@ AVD_CSI * avd_csi_struc_find(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL host_order)
    AVD_CSI *csi;
    SaNameT  lcsi_name;
 
-   m_NCS_MEMSET((char *)&lcsi_name, '\0', sizeof(SaNameT));
+   memset((char *)&lcsi_name, '\0', sizeof(SaNameT));
    lcsi_name.length = (host_order == FALSE) ? csi_name.length :  
                                             m_HTON_SANAMET_LEN(csi_name.length);
    memcpy(lcsi_name.value,csi_name.value,m_NCS_OS_NTOHS(lcsi_name.length));
@@ -202,7 +202,7 @@ AVD_CSI * avd_csi_struc_find_next(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL host_o
    AVD_CSI *csi;
    SaNameT  lcsi_name;
 
-   m_NCS_MEMSET((char *)&lcsi_name, '\0', sizeof(SaNameT));
+   memset((char *)&lcsi_name, '\0', sizeof(SaNameT));
    lcsi_name.length = (host_order == FALSE) ? csi_name.length :  
                                             m_HTON_SANAMET_LEN(csi_name.length);
 
@@ -280,7 +280,7 @@ static AVD_CSI_PARAM * avd_csi_param_crt(AVD_CSI *csi, SaNameT param_name)
       return AVD_CSI_PARAM_NULL;
    }
 
-   m_NCS_MEMSET((char *)param, '\0', sizeof(AVD_CSI_PARAM));
+   memset((char *)param, '\0', sizeof(AVD_CSI_PARAM));
 
    memcpy(param->param.name.value, param_name.value, param_name.length);
    param->param.name.length = param_name.length;
@@ -553,7 +553,7 @@ AVD_COMP_CSI_REL * avd_compcsi_struc_crt(AVD_CL_CB *cb,AVD_SU_SI_REL *susi)
       return AVD_COMP_CSI_REL_NULL;
    }
 
-   m_NCS_MEMSET((char *)comp_csi, '\0', sizeof(AVD_COMP_CSI_REL));
+   memset((char *)comp_csi, '\0', sizeof(AVD_COMP_CSI_REL));
 
    comp_csi->susi_csicomp_next = AVD_COMP_CSI_REL_NULL;
    if (susi->list_of_csicomp == AVD_COMP_CSI_REL_NULL)
@@ -773,7 +773,7 @@ uns32 saamfcsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
    
    /* Prepare the CSI database key from the instant ID */
    csi_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -905,7 +905,7 @@ uns32 saamfcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
    
    /* Prepare the CSI database key from the instant ID */
    csi_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1186,7 +1186,7 @@ uns32 saamfcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                    csi->csi_type.length);
       break;
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1251,7 +1251,7 @@ uns32 saamfcsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
    
    /* Prepare the CSI database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -1366,7 +1366,7 @@ uns32 saamfcsinamevaluetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
    
    /* Prepare the CSI database key from the instant ID */
    csi_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1389,7 +1389,7 @@ uns32 saamfcsinamevaluetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
    /* Now find the param value structure for the CSI */
 
    /* prepare the param_name from the instance ID */
-   m_NCS_MEMSET(&param_name, '\0', sizeof(SaNameT));
+   memset(&param_name, '\0', sizeof(SaNameT));
    param_name.length = (SaUint16T)inst_ptr[0];
    inst_ptr = inst_ptr + 1;
    for(i = 0; i < param_name.length; i++)
@@ -1516,7 +1516,7 @@ uns32 saamfcsinamevaluetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
    
    /* Prepare the CSI database key from the instant ID */
    csi_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1555,7 +1555,7 @@ uns32 saamfcsinamevaluetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    inst_ptr = inst_ptr + csi_name.length;
 
    /* prepare the param_name from the instance ID */
-   m_NCS_MEMSET(&param_name, '\0', sizeof(SaNameT));
+   memset(&param_name, '\0', sizeof(SaNameT));
    param_name.length = (SaUint16T)inst_ptr[0];
    for(i = 0; i < param_name.length; i++)
    {
@@ -1701,7 +1701,7 @@ uns32 saamfcsinamevaluetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       }
       break;
    case saAmfCSINameValueParamValue_ID:
-      m_NCS_MEMSET(&param->param.value, '\0', sizeof(SaNameT));
+      memset(&param->param.value, '\0', sizeof(SaNameT));
       param->param.value.length = arg->req.info.set_req.i_param_val.i_length;
       memcpy(param->param.value.value, 
                    arg->req.info.set_req.i_param_val.info.i_oct, 
@@ -1764,8 +1764,8 @@ uns32 saamfcsinamevaluetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
-   m_NCS_MEMSET(&param_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
+   memset(&param_name, '\0', sizeof(SaNameT));
    
    if (arg->i_idx.i_inst_len != 0)
    {
@@ -1881,7 +1881,7 @@ uns32 avd_cs_type_param_find_match(AVD_CL_CB *cb, SaNameT csi_type, SaNameT para
    AVD_CS_TYPE_PARAM * type_param = AVD_CS_TYPE_PARAM_NULL;
    AVD_CS_TYPE_PARAM_INDX  indx;
 
-   m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset((char *)&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
 
    indx.type_name_net.length = m_NCS_OS_HTONS(csi_type.length);
 
@@ -1937,7 +1937,7 @@ AVD_CS_TYPE_PARAM * avd_cs_type_param_struc_crt(AVD_CL_CB *cb,AVD_CS_TYPE_PARAM_
       return AVD_CS_TYPE_PARAM_NULL;
    }
    
-   m_NCS_MEMSET((char *)type_param, '\0', sizeof(AVD_CS_TYPE_PARAM));
+   memset((char *)type_param, '\0', sizeof(AVD_CS_TYPE_PARAM));
 
    type_param->indx.type_name_net.length = indx.type_name_net.length;
    memcpy(type_param->indx.type_name_net.value,indx.type_name_net.value,m_NCS_OS_NTOHS(indx.type_name_net.length));
@@ -2098,7 +2098,7 @@ uns32 saamfcstypeparamentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
 
    /* Prepare the cstype-param database key from the instant ID */
   
@@ -2239,7 +2239,7 @@ uns32 saamfcstypeparamentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
 
    /* Prepare the cstype-param database key from the instant ID */
   
@@ -2439,7 +2439,7 @@ uns32 saamfcstypeparamentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
    
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
 
    /* Prepare the cstype-param database key from the instant ID */
 

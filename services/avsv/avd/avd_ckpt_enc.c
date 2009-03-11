@@ -2536,7 +2536,7 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb,
     */
    status = avsv_enc_cold_sync_rsp_data_func_list[enc->io_reo_type](cb, enc, &num_of_obj);
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"avd_entire_data_update\n\nSent reotype = %d num_obj = %d -------------\n", enc->io_reo_type, num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
    
@@ -2797,7 +2797,7 @@ static uns32 avsv_encode_cold_sync_rsp_avd_si_dep_config(AVD_CL_CB *cb,
    m_AVD_LOG_FUNC_ENTRY("avsv_encode_cold_sync_rsp_avd_si_dep_config");
 
    /* Walk through the entire list and send the entire list data. */
-   m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
    si_dep = avd_si_si_dep_find_next(cb, &indx, TRUE);
    while(si_dep)
@@ -3194,7 +3194,7 @@ static uns32  avsv_encode_cold_sync_rsp_avd_hlt_config(AVD_CL_CB *cb,
    /* 
     * Walk through the entire list and send the entire list data.
     */
-   m_NCS_MEMSET(&hlt_name, '\0', sizeof(AVSV_HLT_KEY));
+   memset(&hlt_name, '\0', sizeof(AVSV_HLT_KEY));
    for (hlt_chk = avd_hlt_struc_find_next(cb, hlt_name); hlt_chk != NULL;
         hlt_chk = avd_hlt_struc_find_next(cb, hlt_name))
    {
@@ -3278,7 +3278,7 @@ uns32  avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
    EDU_ERR         ederror = 0;
    uns8           logbuff[SA_MAX_NAME_LENGTH];
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"avsv_encode_warm_sync_rsp \n UPDATE CNTS AT ACTIVE(WarmSink) : cb=%d,avnd=%d,sg=%d,su=%d,si=%d,ol=%d,\nas=%d,rel=%d,co=%d,cs=%d,pl=%d,hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
            cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.avnd_updt, cb->async_updt_cnt.sg_updt, cb->async_updt_cnt.su_updt,
            cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt, cb->async_updt_cnt.sg_admin_si_updt,
@@ -3586,7 +3586,7 @@ static uns32  avsv_encode_cold_sync_rsp_avd_sus_per_si_rank_config(AVD_CL_CB *cb
    /*
     * Walk through the entire list and send the entire list data.
     */
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    for (su_si = avd_sus_per_si_rank_struc_find_next(cb, indx); su_si != NULL;
         su_si = avd_sus_per_si_rank_struc_find_next(cb, indx))
    {
@@ -3639,7 +3639,7 @@ static uns32  avsv_encode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb,
    /*
     * Walk through the entire list and send the entire list data.
     */
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
+   memset(&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
    for (cs_type = avd_comp_cs_type_struc_find_next(cb, indx); cs_type != NULL;
         cs_type = avd_comp_cs_type_struc_find_next(cb, indx))
    {
@@ -3693,7 +3693,7 @@ static uns32  avsv_encode_cold_sync_rsp_avd_cs_type_param_config(AVD_CL_CB *cb,
    /*
     * Walk through the entire list and send the entire list data.
     */
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset(&indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
    for (cs_param = avd_cs_type_param_struc_find_next(cb, indx); cs_param != NULL;
         cs_param = avd_cs_type_param_struc_find_next(cb, indx))
    {

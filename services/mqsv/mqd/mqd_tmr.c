@@ -64,7 +64,7 @@ mqd_timer_expiry (NCSCONTEXT uarg)
             m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL,NCSFL_LC_TIMER,NCSFL_SEV_ERROR,0,__FILE__,__LINE__);
             return;
          }
-         m_NCS_OS_MEMSET(evt, 0,sizeof(MQSV_EVT));
+         memset(evt, 0,sizeof(MQSV_EVT));
 
          evt->type = MQSV_EVT_MQD_CTRL;
          evt->msg.mqd_ctrl.type = MQD_MSG_TMR_EXPIRY;

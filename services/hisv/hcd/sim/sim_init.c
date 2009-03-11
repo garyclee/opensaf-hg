@@ -63,7 +63,7 @@ uns32 sim_initialize()
       m_LOG_HISV_DTS_CONS("sim_initialize: error allocating sim_cb\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(sim_cb, 0, sizeof(SIM_CB));
+   memset(sim_cb, 0, sizeof(SIM_CB));
 
    /* assign the SIM pool-id (used by hdl-mngr) */
    sim_cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -86,7 +86,7 @@ uns32 sim_initialize()
 
    m_LOG_HISV_DTS_CONS("sim_initialize: creating ShIM mbx\n");
 
-   m_NCS_MEMSET(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
+   memset(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
    /* create the mbx to communicate with the SIM thread */
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&sim_cb->mbx)))
    {

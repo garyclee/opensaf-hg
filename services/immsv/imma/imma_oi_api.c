@@ -784,7 +784,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle,
 
 
     /* Populate & Send the Open Event to IMMND */
-    m_NCS_OS_MEMSET(&evt, 0, sizeof(IMMSV_EVT));
+    memset(&evt, 0, sizeof(IMMSV_EVT));
     evt.type = IMMSV_EVT_TYPE_IMMND;
     evt.info.immnd.type = IMMND_EVT_A2ND_OI_IMPL_SET; 
     evt.info.immnd.info.implSet.client_hdl = immOiHandle;
@@ -917,7 +917,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
     }
 
     /* Populate & Send the Open Event to IMMND */
-    m_NCS_OS_MEMSET(&evt, 0, sizeof(IMMSV_EVT));
+    memset(&evt, 0, sizeof(IMMSV_EVT));
     evt.type = IMMSV_EVT_TYPE_IMMND;
     evt.info.immnd.type = IMMND_EVT_A2ND_OI_IMPL_CLR; 
     evt.info.immnd.info.implSet.client_hdl = immOiHandle;

@@ -90,7 +90,7 @@ ncs_ipc_create(SYSF_MBX *mbx)
        return NCSCC_RC_FAILURE;
     }
 
-    m_NCS_MEMSET(ncs_ipc,0,sizeof(NCS_IPC));
+    memset(ncs_ipc,0,sizeof(NCS_IPC));
 
     m_NCS_LOCK_INIT(&ncs_ipc->queue_lock);
 
@@ -197,7 +197,7 @@ ncs_ipc_get_sel_obj(SYSF_MBX *mbx)
     NCS_SEL_OBJ  sel_obj;
     NCS_IPC *ncs_ipc;
 
-    m_NCS_OS_MEMSET(&sel_obj,0,sizeof(NCS_SEL_OBJ));
+    memset(&sel_obj,0,sizeof(NCS_SEL_OBJ));
     if ((NULL == NCS_INT32_TO_PTR_CAST(mbx)) || (NULL == NCS_INT32_TO_PTR_CAST(*mbx)))
       return sel_obj;
 

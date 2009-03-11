@@ -100,7 +100,7 @@ ncs_encode_n_octets(USRBUF *u, uns8 *os, unsigned int count)
           * indicates an all-zero octet-string...
           */
          if (os == (uns8 *)0)
-            m_NCS_MEMSET( (char *)p, '\0', (size_t)count);
+            memset( (char *)p, '\0', (size_t)count);
          else
             memcpy( (char *)p, (char *)(os + offset), (size_t)count);
       }

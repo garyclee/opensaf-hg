@@ -373,7 +373,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
       pCli->ctree_cb.rootMrkr = m_MMGR_ALLOC_CLI_CMD_NODE;
       if(!pCli->ctree_cb.rootMrkr) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
       
-      m_NCS_OS_MEMSET(pCli->ctree_cb.rootMrkr, 0, sizeof(CLI_CMD_NODE));
+      memset(pCli->ctree_cb.rootMrkr, 0, sizeof(CLI_CMD_NODE));
       m_NCS_OS_STRCPY(pCli->ctree_cb.rootMrkr->name, token);            
    }
    
@@ -421,7 +421,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
 void cli_set_cmd_to_parse(CLI_CB *pCli, int8 *src, CLI_BUFFER_TYPE buffType)
 {   
    /* Reset the buffer contents to null */
-   m_NCS_OS_MEMSET(pCli->par_cb.ipbuffer, 0, CLI_BUFFER_SIZE * sizeof(char));
+   memset(pCli->par_cb.ipbuffer, 0, CLI_BUFFER_SIZE * sizeof(char));
    
    /* Ccheck buffer type */
    switch(buffType)
@@ -517,7 +517,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
          
          if(!cookie) return;  /* Do not create the node */
          
-         m_NCS_OS_MEMSET(pCli->ctree_cb.ctxtMrkr->pSibling, 0, sizeof(CLI_CMD_NODE)); 
+         memset(pCli->ctree_cb.ctxtMrkr->pSibling, 0, sizeof(CLI_CMD_NODE)); 
          m_NCS_OS_STRCPY(pCli->ctree_cb.ctxtMrkr->pSibling->name, tok);
          pCli->ctree_cb.ctxtMrkr->pSibling->pParent = pCli->ctree_cb.ctxtMrkr;
          pCli->ctree_cb.ctxtMrkr = pCli->ctree_cb.ctxtMrkr->pSibling;
@@ -527,7 +527,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
       if(!cookie) return;  /* Do not create the node */
       pCli->ctree_cb.ctxtMrkr->pChild = m_MMGR_ALLOC_CLI_CMD_NODE;        
       if(!pCli->ctree_cb.ctxtMrkr->pChild) return;
-      m_NCS_OS_MEMSET(pCli->ctree_cb.ctxtMrkr->pChild, 0, sizeof(CLI_CMD_NODE));    
+      memset(pCli->ctree_cb.ctxtMrkr->pChild, 0, sizeof(CLI_CMD_NODE));    
       m_NCS_OS_STRCPY(pCli->ctree_cb.ctxtMrkr->pChild->name, tok);
       
       /* Reset the context marker */
@@ -813,7 +813,7 @@ void cli_push_bindery(CLI_BINDERY_LIST **list, NCSCLI_BINDERY *node)
    
    ptr = (CLI_BINDERY_LIST *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(CLI_BINDERY_LIST));
    if(!ptr) return;
-   m_NCS_OS_MEMSET(ptr, 0, sizeof(CLI_BINDERY_LIST));   
+   memset(ptr, 0, sizeof(CLI_BINDERY_LIST));   
    ptr->bindery = node;
 
    if(*list) ptr->next = *list;

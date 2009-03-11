@@ -130,7 +130,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
       rc = SA_AIS_ERR_NO_MEMORY;
       goto cnode_alloc_fail;
    }
-   m_NCS_OS_MEMSET(cl_node, 0, sizeof(CPA_CLIENT_NODE));
+   memset(cl_node, 0, sizeof(CPA_CLIENT_NODE));
    
    /* Store the callback functions, if set */
    if(ckptCallbacks)
@@ -149,7 +149,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
    }
    
    /* populate the EVT structure */
-   m_NCS_OS_MEMSET(&init_evt, 0, sizeof(CPSV_EVT));
+   memset(&init_evt, 0, sizeof(CPSV_EVT));
    init_evt.type = CPSV_EVT_TYPE_CPND;
    init_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_INIT;
    init_evt.info.cpnd.info.initReq.version = *version;
@@ -255,7 +255,7 @@ lock_fail1:
       
       out_evt1 = NULL;
       /* populate the structure */
-      m_NCS_OS_MEMSET(&finalize_evt, 0, sizeof(CPSV_EVT));
+      memset(&finalize_evt, 0, sizeof(CPSV_EVT));
       finalize_evt.type = CPSV_EVT_TYPE_CPND;
       finalize_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_FINALIZE;
       finalize_evt.info.cpnd.info.finReq.client_hdl = cl_node->cl_hdl;
@@ -558,7 +558,7 @@ SaAisErrorT saCkptFinalize(SaCkptHandleT ckptHandle)
    }
 
    /* populate the structure */
-   m_NCS_OS_MEMSET(&finalize_evt, 0, sizeof(CPSV_EVT));
+   memset(&finalize_evt, 0, sizeof(CPSV_EVT));
    finalize_evt.type = CPSV_EVT_TYPE_CPND;
    finalize_evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_FINALIZE;
    finalize_evt.info.cpnd.info.finReq.client_hdl = cl_node->cl_hdl;
@@ -762,7 +762,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
       goto lc_node_alloc_fail;
    }
    
-   m_NCS_OS_MEMSET(lc_node, 0, sizeof(CPA_LOCAL_CKPT_NODE));
+   memset(lc_node, 0, sizeof(CPA_LOCAL_CKPT_NODE));
    lc_node->lcl_ckpt_hdl = NCS_PTR_TO_UNS64_CAST(lc_node);
    lc_node->cl_hdl = ckptHandle;
    lc_node->open_flags = checkpointOpenFlags;
@@ -783,7 +783,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
    }
    
    /* Populate & Send the Open Event to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_OPEN;
    evt.info.cpnd.info.openReq.client_hdl = ckptHandle;
@@ -1091,7 +1091,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle,
       goto lc_node_alloc_fail;
    }
    
-   m_NCS_OS_MEMSET(lc_node, 0, sizeof(CPA_LOCAL_CKPT_NODE));
+   memset(lc_node, 0, sizeof(CPA_LOCAL_CKPT_NODE));
    lc_node->lcl_ckpt_hdl = NCS_PTR_TO_UNS64_CAST(lc_node);
    lc_node->cl_hdl = ckptHandle;
    lc_node->open_flags = checkpointOpenFlags;
@@ -1109,7 +1109,7 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle,
    }
    
    /* Populate & Send the Open Event to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_OPEN;
    evt.info.cpnd.info.openReq.client_hdl = ckptHandle;
@@ -1311,7 +1311,7 @@ SaAisErrorT  saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
     }
 
    /* Populate evt.info.cpnd.info.closeReq &Call MDS sync Send */   
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_CLOSE;
    evt.info.cpnd.info.closeReq.client_hdl = lc_node->cl_hdl;
@@ -1520,7 +1520,7 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
    /* Populate evt.info.cpnd.info.unlinkReq & Call MDS sync Send */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_UNLINK;
 
@@ -1678,7 +1678,7 @@ SaAisErrorT  saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkp
 
     }
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_RDSET;
    evt.info.cpnd.info.rdsetReq.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -1863,7 +1863,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
 
    gc_node->is_active_bcast_came = FALSE;   
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_AREP_SET;
    evt.info.cpnd.info.arsetReq.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -2086,7 +2086,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
     }
 
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_STATUS_GET;
    evt.info.cpnd.info.statReq.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -2343,9 +2343,9 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
        gen_sec_flag = TRUE;
    }
 
-   m_NCS_OS_MEMSET(&app_ptr,0,sizeof(SaCkptSectionIdT));
+   memset(&app_ptr,0,sizeof(SaCkptSectionIdT));
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SECT_CREATE;
    evt.info.cpnd.info.sec_creatReq.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -2405,7 +2405,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
                                                 "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
                      goto fail1;
                } 
-               m_NCS_OS_MEMSET(app_ptr.id, 0,out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));
+               memset(app_ptr.id, 0,out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen * sizeof(SaUint8T));
                app_ptr.idLen = out_evt->info.cpa.info.sec_creat_rsp.sec_id.idLen;
                memcpy(app_ptr.id,out_evt->info.cpa.info.sec_creat_rsp.sec_id.id,app_ptr.idLen);    
 
@@ -2685,7 +2685,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
    }
    
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SECT_DELETE;
    evt.info.cpnd.info.sec_delReq.ckpt_id = lc_node->gbl_ckpt_hdl; 
@@ -2844,7 +2844,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
    }
    
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SECT_EXP_SET;
    evt.info.cpnd.info.sec_expset.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -3098,7 +3098,7 @@ SaAisErrorT saCkptSectionIterationInitialize(SaCkptCheckpointHandleT checkpointH
                              "SectIterInit", __FILE__ ,__LINE__, rc, checkpointHandle);
       goto iter_alloc_fail;
    }
-   m_NCS_OS_MEMSET(sect_iter_node, 0, sizeof(CPA_SECT_ITER_NODE));
+   memset(sect_iter_node, 0, sizeof(CPA_SECT_ITER_NODE));
    
    sect_iter_node->iter_id = NCS_PTR_TO_UNS64_CAST(sect_iter_node);
    sect_iter_node->lcl_ckpt_hdl = lc_node->lcl_ckpt_hdl;
@@ -3324,7 +3324,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
    }
 
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_ITER_GETNEXT;
    evt.info.cpnd.info.iter_getnext.ckpt_id = sect_iter_node->gbl_ckpt_hdl;
@@ -3595,7 +3595,7 @@ SaAisErrorT  saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
    CPA_CLIENT_NODE   *cl_node=NULL;
    SaSizeT all_ioVector_size=0;
 
-   m_NCS_OS_MEMSET(&evt, '\0', sizeof(CPSV_EVT));
+   memset(&evt, '\0', sizeof(CPSV_EVT));
 
    if (ioVector == NULL)
    {
@@ -3837,8 +3837,8 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
    NCS_BOOL     add_flag = FALSE;   
    CPA_CLIENT_NODE   *cl_node=NULL;
 
-   m_NCS_OS_MEMSET(&ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));
-   m_NCS_OS_MEMSET(&evt, '\0', sizeof(CPSV_EVT));
+   memset(&ckpt_data, '\0', sizeof(CPSV_CKPT_DATA));
+   memset(&evt, '\0', sizeof(CPSV_EVT));
 
    if (sectionId == NULL || dataBuffer == NULL)
    {
@@ -4057,7 +4057,7 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
    NCS_BOOL is_local_read = FALSE;
    CPA_CLIENT_NODE   *cl_node=NULL;
 
-   m_NCS_OS_MEMSET(&evt, '\0', sizeof(CPSV_EVT));
+   memset(&evt, '\0', sizeof(CPSV_EVT));
 
    /* retrieve CPA CB */
    if (ioVector == NULL )
@@ -4494,7 +4494,7 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
    }
 
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SYNC;
    evt.info.cpnd.info.ckpt_sync.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -4710,7 +4710,7 @@ SaAisErrorT saCkptCheckpointSynchronizeAsync(SaCkptCheckpointHandleT checkpointH
    }
    
    /* Populate the event & send it to CPND */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+   memset(&evt, 0, sizeof(CPSV_EVT));
    evt.type = CPSV_EVT_TYPE_CPND;
    evt.info.cpnd.type = CPND_EVT_A2ND_CKPT_SYNC;
    evt.info.cpnd.info.ckpt_sync.ckpt_id = lc_node->gbl_ckpt_hdl;
@@ -4865,7 +4865,7 @@ ncsCkptRegisterCkptArrivalCallback( SaCkptHandleT               ckptHandle,
    
 
    /* Send it to CPND */
-    m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+    memset(&evt, 0, sizeof(CPSV_EVT));
     evt.type = CPSV_EVT_TYPE_CPND;
     evt.info.cpnd.type = CPND_EVT_A2ND_ARRIVAL_CB_REG;
     evt.info.cpnd.info.arr_ntfy.client_hdl = ckptHandle; 

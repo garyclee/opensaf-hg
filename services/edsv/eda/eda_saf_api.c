@@ -1213,7 +1213,7 @@ saEvtEventAllocate( SaEvtChannelHandleT   channelHandle,
      evt_hdl_rec->publish_time = SA_TIME_UNKNOWN;
      evt_hdl_rec->retention_time = (SaTimeT)0;
      evt_hdl_rec->publisher_name.length = 0;
-     m_NCS_MEMSET(evt_hdl_rec->publisher_name.value,'\0',SA_MAX_NAME_LENGTH);
+     memset(evt_hdl_rec->publisher_name.value,'\0',SA_MAX_NAME_LENGTH);
      memcpy(evt_hdl_rec->publisher_name.value,(uns8 *)"NULL",EDSV_DEF_NAME_LEN);
      if(NULL == (evt_hdl_rec->pattern_array=m_MMGR_ALLOC_EVENT_PATTERN_ARRAY))
      {
@@ -2406,7 +2406,7 @@ saEvtEventSubscribe( SaEvtChannelHandleT            channelHandle,
          return SA_AIS_ERR_NO_MEMORY; 
       }
 
-      m_NCS_MEMSET(subsc_rec, '\0', sizeof(EDA_SUBSC_REC));
+      memset(subsc_rec, '\0', sizeof(EDA_SUBSC_REC));
       subsc_rec->subsc_id = i_subscriptionId;
       subsc_rec->next = channel_hdl_rec->subsc_list;
       channel_hdl_rec->subsc_list = subsc_rec;

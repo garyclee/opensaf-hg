@@ -70,7 +70,7 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
    uns32              ifindex = 0, temp_ifindex = 0;
    uns32              res = NCSCC_RC_SUCCESS, res1=NCSCC_RC_SUCCESS;   
    IFSV_EVT     send_evt;
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IFSV_EVT));
 
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
    /* this is the case where the interface record is already in the 
@@ -127,7 +127,7 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
          create_intf->intf_data.current_owner = NCS_IFSV_OWNER_IFD;
          create_intf->intf_data.current_owner_mds_destination = ifsv_cb->my_dest;
 
-         m_NCS_MEMSET(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
+         memset(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
          spt_map.spt = create_intf->intf_data.spt_info;
          if ((res = ifsv_ifd_ifindex_alloc(&spt_map,ifsv_cb)) == NCSCC_RC_SUCCESS)
          {            
@@ -229,7 +229,7 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
          if(res == NCSCC_RC_SUCCESS)
          {
            /* The following code is for logging */
-           m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
+           memset(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
            spt_map.spt      = create_intf->intf_data.spt_info;
            spt_map.if_index = create_intf->intf_data.if_index;
            m_IFSV_LOG_SPT_INFO(IFSV_LOG_IF_TBL_ADD_SUCCESS,&spt_map,"ifd_intf_create owner not ifd");
@@ -404,7 +404,7 @@ ifd_intf_delete (IFSV_CB *ifsv_cb,
             if (rec != NULL)
             {
               IFSV_EVT     send_evt;
-              m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+              memset(&send_evt, 0, sizeof(IFSV_EVT));
               /* Send the trigger point to Standby IfD. */
                m_IFD_LOG_STR_NORMAL(IFSV_LOG_IF_TBL_DEL_SUCCESS," Ifindex :",ifindex);
 /*
@@ -445,7 +445,7 @@ ifd_intf_delete (IFSV_CB *ifsv_cb,
         /* The down interface has come up before the aging timer expiry of IfND
            So, send the resp. */
            IFSV_EVT     send_evt;
-           m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+           memset(&send_evt, 0, sizeof(IFSV_EVT));
 
            send_evt.type = IFND_EVT_INTF_DESTROY_RSP;
            send_evt.error = NCS_IFSV_INT_ERROR;
@@ -774,7 +774,7 @@ ifd_amf_init (IFSV_CB *ifsv_cb)
    SaAisErrorT     error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = ifd_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback = ifd_saf_CSI_set_callback;
@@ -1070,7 +1070,7 @@ ifd_bcast_to_ifnds (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    if ((rec_evt == IFSV_INTF_REC_ADD) || (rec_evt == IFSV_INTF_REC_MODIFY))
    {

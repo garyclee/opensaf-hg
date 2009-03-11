@@ -527,7 +527,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
     }
 
     /* populate the structure */
-    m_NCS_OS_MEMSET(&finalize_evt, 0, sizeof(IMMSV_EVT));
+    memset(&finalize_evt, 0, sizeof(IMMSV_EVT));
     finalize_evt.type = IMMSV_EVT_TYPE_IMMND;
     finalize_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_FINALIZE;
     finalize_evt.info.immnd.info.finReq.client_hdl = cl_node->handle;
@@ -840,7 +840,7 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb,
     assert(locked && *locked);
 
     /* Populate & Send the Open Event to IMMND */
-    m_NCS_OS_MEMSET(&evt, 0, sizeof(IMMSV_EVT));
+    memset(&evt, 0, sizeof(IMMSV_EVT));
     evt.type = IMMSV_EVT_TYPE_IMMND;
     evt.info.immnd.type = IMMND_EVT_A2ND_CCBINIT; 
     evt.info.immnd.info.ccbinitReq.client_hdl = ao_node->mImmHandle;

@@ -131,7 +131,7 @@ uns32 avnd_evt_cla_track_start (AVND_CB *cb, AVND_EVT *evt)
    trk_info = m_MMGR_ALLOC_AVND_CLM_TRK_INFO;
    if(trk_info)
    {
-      m_NCS_MEMSET(trk_info, 0, sizeof(AVND_CLM_TRK_INFO));
+      memset(trk_info, 0, sizeof(AVND_CLM_TRK_INFO));
       
       trk_info->req_hdl = api_info->param.track_start.hdl;
       trk_info->track_flag = api_info->param.track_start.flags;
@@ -181,7 +181,7 @@ uns32 avnd_evt_cla_track_stop (AVND_CB *cb, AVND_EVT *evt)
       /* Log an error . This is low memory situation need not continue*/
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    cla_evt = evt->info.cla;
 
@@ -218,7 +218,7 @@ uns32 avnd_evt_cla_track_stop (AVND_CB *cb, AVND_EVT *evt)
    }
 
    /*** send the resp message to CLA ***/
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
    msg.type = AVND_MSG_CLA;
    msg.info.cla = cla_msg;
 
@@ -254,7 +254,7 @@ uns32 avnd_evt_cla_node_get (AVND_CB *cb, AVND_EVT *evt)
       /* Log an error . This is low memory situation need not continue*/
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    cla_evt = evt->info.cla;
 
@@ -301,7 +301,7 @@ uns32 avnd_evt_cla_node_get (AVND_CB *cb, AVND_EVT *evt)
    }
 
    /*** send the callback message to CLA ***/
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
    msg.type = AVND_MSG_CLA;
    msg.info.cla = cla_msg;
 
@@ -337,7 +337,7 @@ uns32 avnd_evt_cla_node_async_get (AVND_CB *cb, AVND_EVT *evt)
       /* Log an error . This is low memory situation need not continue*/
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    cla_evt = evt->info.cla;
 
@@ -388,7 +388,7 @@ uns32 avnd_evt_cla_node_async_get (AVND_CB *cb, AVND_EVT *evt)
    }
 
    /*** send the callback message to CLA ***/
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
    msg.type = AVND_MSG_CLA;
    msg.info.cla = cla_msg;
 
@@ -529,7 +529,7 @@ uns32 avnd_evt_avd_node_update_msg (AVND_CB *cb, AVND_EVT *evt)
          AVND_COMP *comp = NULL;
          SaNameT       name_net;
          AVND_COMP_PXIED_REC     *pxd_rec = 0, *curr_rec = 0;
-         m_NCS_OS_MEMSET(&name_net, 0, sizeof(SaNameT));
+         memset(&name_net, 0, sizeof(SaNameT));
  
          for(comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net);
              comp; comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net))
@@ -789,7 +789,7 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
          goto error;
       }
    }
-   m_NCS_MEMSET(notify, 0, num * sizeof(SaClmClusterNotificationT));
+   memset(notify, 0, num * sizeof(SaClmClusterNotificationT));
    
    /* Fill the notify buffer with the node info */
    rec = (AVND_CLM_REC *) m_NCS_DBLIST_FIND_FIRST(&cb->clmdb.clm_list);
@@ -820,7 +820,7 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
       rc = NCSCC_RC_FAILURE;
       goto error;
    }
-   m_NCS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    /* Fill the cla msg and make sure everything is linked */
    if(is_sync_api == TRUE)
@@ -845,7 +845,7 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
    }
 
    /*** send the callback message to CLA ***/
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
    msg.type = AVND_MSG_CLA;
    msg.info.cla = cla_msg;
 
@@ -955,7 +955,7 @@ void avnd_clm_snd_track_changes(AVND_CB *cb,
             /* Log an error . This is low memory situation need not continue*/
             return;
          }
-         m_NCS_MEMSET(notify, 0, num * sizeof(SaClmClusterNotificationT));
+         memset(notify, 0, num * sizeof(SaClmClusterNotificationT));
 
          i=0;
          rec = (AVND_CLM_REC *) m_NCS_DBLIST_FIND_FIRST(&cb->clmdb.clm_list);
@@ -1003,7 +1003,7 @@ void avnd_clm_snd_track_changes(AVND_CB *cb,
             m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(notify); 
          continue;
       }
-      m_NCS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+      memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
       /* Fill the cla msg and make sure everything is linked */
       cla_msg->type = AVSV_AVND_CLM_CBK_MSG;
@@ -1028,7 +1028,7 @@ void avnd_clm_snd_track_changes(AVND_CB *cb,
       cla_msg->info.cbk_info.param.track.notify.notification = notify;
 
       /*** send the callback message to CLA ***/
-      m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+      memset(&msg, 0, sizeof(AVND_MSG));
       msg.type = AVND_MSG_CLA;
       msg.info.cla = cla_msg;
 

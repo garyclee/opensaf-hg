@@ -88,10 +88,10 @@ uns32 mqnd_shm_create(MQND_CB *cb)
   if((cb->mqnd_shm.max_open_queues = mqnd_kernel_msgparams()) == NCSCC_RC_FAILURE)
   return NCSCC_RC_FAILURE;
 
-  m_NCS_MEMSET(&mqnd_open_req,'\0',sizeof(mqnd_open_req));
+  memset(&mqnd_open_req,'\0',sizeof(mqnd_open_req));
 
   /* Initializing shared memory version */
-  m_NCS_MEMSET(&mqnd_shm_version,'\0',sizeof(mqnd_shm_version));
+  memset(&mqnd_shm_version,'\0',sizeof(mqnd_shm_version));
   mqnd_shm_version.shm_version = MQSV_MQND_SHM_VERSION;
 
 
@@ -114,7 +114,7 @@ uns32 mqnd_shm_create(MQND_CB *cb)
       if( rc == NCSCC_RC_FAILURE)
          return rc; 
       else{
-           m_NCS_MEMSET(mqnd_open_req.info.open.o_addr,0,sizeof(MQND_QUEUE_CKPT_INFO)*(cb->mqnd_shm.max_open_queues));
+           memset(mqnd_open_req.info.open.o_addr,0,sizeof(MQND_QUEUE_CKPT_INFO)*(cb->mqnd_shm.max_open_queues));
            m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,SA_AIS_OK,__FILE__,__LINE__);
            cb->is_restart_done= TRUE;                    
            #ifdef NCS_MQND
@@ -216,7 +216,7 @@ uns32  mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
        continue;
      else  
        {
-        m_NCS_MEMSET((shm_base_addr+i),'\0',sizeof(MQND_QUEUE_CKPT_INFO));
+        memset((shm_base_addr+i),'\0',sizeof(MQND_QUEUE_CKPT_INFO));
         shm_base_addr[i].valid = SHM_QUEUE_INFO_VALID;            
         *index = i;
         return rc; 
@@ -297,7 +297,7 @@ uns32 mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode
    if(shm_base_addr[offset].valid ==  SHM_QUEUE_INFO_VALID)
      {
        shm_base_addr[offset].valid = SHM_QUEUE_INFO_INVALID;
-       m_NCS_MEMSET((shm_base_addr+offset),'\0',sizeof(MQND_QUEUE_CKPT_INFO));  
+       memset((shm_base_addr+offset),'\0',sizeof(MQND_QUEUE_CKPT_INFO));  
      }
    return NCSCC_RC_SUCCESS;
 }

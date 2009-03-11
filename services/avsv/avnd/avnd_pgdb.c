@@ -57,7 +57,7 @@ uns32 avnd_pgdb_init (AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = sizeof(SaNameT);
    rc = ncs_patricia_tree_init(&cb->pgdb, &params);
@@ -145,7 +145,7 @@ AVND_PG *avnd_pgdb_rec_add (AVND_CB *cb, SaNameT *csi_name_net, uns32 *rc)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(pg, 0, sizeof(AVND_PG));
+   memset(pg, 0, sizeof(AVND_PG));
 
    /* update the csi-name (patricia key) */
    pg->csi_name_net = *csi_name_net;
@@ -269,7 +269,7 @@ AVND_PG_TRK *avnd_pgdb_trk_rec_add (AVND_CB          *cb,
       pg_trk = m_MMGR_ALLOC_AVND_PG_TRK;
       if (!pg_trk) goto err;
 
-      m_NCS_OS_MEMSET(pg_trk, 0, sizeof(AVND_PG_TRK));
+      memset(pg_trk, 0, sizeof(AVND_PG_TRK));
       
       /* update the record key */
       pg_trk->info.key = trk_info->key;
@@ -379,7 +379,7 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_add (AVND_CB                           *cb,
       pg_mem = m_MMGR_ALLOC_AVND_PG_MEM;
       if (!pg_mem) goto err;
 
-      m_NCS_OS_MEMSET(pg_mem, 0, sizeof(AVND_PG_MEM));
+      memset(pg_mem, 0, sizeof(AVND_PG_MEM));
 
       /* a fresh rec.. mark this member as a new addition */
       pg_mem->info.change = mem_info->change;

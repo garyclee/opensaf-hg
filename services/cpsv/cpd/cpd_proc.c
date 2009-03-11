@@ -47,7 +47,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
    CPSV_D2ND_CKPT_INFO   *d2nd_info = NULL;
    SaNameT  ckpt_name;
 
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
+   memset(&ckpt_name,0,sizeof(SaNameT));
 
    /* Update the database with new replica */
    rc = cpd_ckpt_db_entry_update(cb, cpnd_dest,  NULL, &ckpt_node, &map_info);
@@ -61,7 +61,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
    cpd_a2s_ckpt_dest_add(cb,ckpt_node,cpnd_dest);
  
    /* Send the Replica create info to CPND */
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_CREATE;
 
@@ -95,7 +95,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
       }
       else
       {
-         m_NCS_OS_MEMSET(d2nd_info->dest_list, 0, 
+         memset(d2nd_info->dest_list, 0, 
                           (sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
          
          for(i=0; i< ckpt_node->dest_cnt; i++)
@@ -111,7 +111,7 @@ uns32 cpd_noncolloc_ckpt_rep_create(CPD_CB *cb,
    if(d2nd_info->dest_list)
       m_MMGR_FREE_CPSV_CPND_DEST_INFO(d2nd_info->dest_list); 
    /* Send the replica add info to other CPNDs */
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_ADD;
    send_evt.info.cpnd.info.ckpt_add.ckpt_id = ckpt_node->ckpt_id;
@@ -157,9 +157,9 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    SaNameT              ckpt_name;
    CPD_REP_KEY_INFO     key_info;
 
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
    /* Upfront allocate all the memory required for this ckpt */
    if(*io_map_info == NULL)
    {
@@ -234,7 +234,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
       if(reploc_info == NULL)
          goto free_mem;
 
-      m_NCS_OS_MEMSET(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
+      memset(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
 
       reploc_info->rep_key.node_name = cluster_node.nodeName;
 
@@ -302,7 +302,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    else
    {
       /* Fill the Map Info */
-      m_NCS_OS_MEMSET(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
+      memset(map_info, 0, sizeof(CPD_CKPT_MAP_INFO));
    /*   memcpy(&map_info->ckpt_name,&ckpt_create->ckpt_name,sizeof(ckpt_create->ckpt_name.length)); */
       map_info->ckpt_name = ckpt_create->ckpt_name; 
       map_info->attributes = ckpt_create->attributes;
@@ -315,7 +315,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
          goto map_node_add_fail;
       }
 
-      m_NCS_OS_MEMSET(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
+      memset(ckpt_node, 0, sizeof(CPD_CKPT_INFO_NODE));
       ckpt_node->ckpt_id = map_info->ckpt_id;
       ckpt_node->ckpt_name = ckpt_create->ckpt_name;
       ckpt_node->is_unlink_set = FALSE;
@@ -363,12 +363,12 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 
  
    /* Add the CPND Details (CPND reference) to the ckpt node */
-   m_NCS_OS_MEMSET(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
+   memset(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
    nref_info->dest = *cpnd_dest;
    cpd_node_ref_info_add(ckpt_node, nref_info);
    
    /* Add the ckpt reference to the CPND node info */
-   m_NCS_OS_MEMSET(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
+   memset(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
    cref_info->ckpt_node = ckpt_node;
    cpd_ckpt_ref_info_add(node_info, cref_info);
 
@@ -425,9 +425,9 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb,
    CPD_REP_KEY_INFO  key_info;
    CPD_CKPT_REPLOC_INFO *rep_info = NULL; 
  
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&node_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
 
    /* Only the created replicas are present, need to delete them */
    nref_info = ckpt_node->node_list;
@@ -452,9 +452,9 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb,
                break;
             }
          }
-         m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
-         m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-         m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
+         memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+         memset(&ckpt_name,0,sizeof(SaNameT));
+         memset(&node_name,0,sizeof(SaNameT));
          
          ckpt_name = ckpt_node->ckpt_name;
          key_info.ckpt_name = ckpt_name;
@@ -465,7 +465,7 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb,
       
          /* TBD Send the Replica Delete event to CPND */
           /* Send the Replica create info to CPND */
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPND;
          send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_DESTROY;
          send_evt.info.cpnd.info.ckpt_destroy.ckpt_id = ckpt_node->ckpt_id;
@@ -527,10 +527,10 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
    CPD_REP_KEY_INFO  key_info;   
    CPD_CKPT_REPLOC_INFO *rep_info = NULL; 
 
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
-   m_NCS_OS_MEMSET(&create_attr,0,sizeof(SaCkptCheckpointCreationAttributesT));
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&node_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&create_attr,0,sizeof(SaCkptCheckpointCreationAttributesT));
 
 
   if(ckpt_node->is_unlink_set != TRUE)
@@ -582,7 +582,7 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
       if(m_NCS_MDS_DEST_NODEID_EQUAL(m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest), m_NCS_NODE_ID_FROM_MDS_DEST(sinfo->dest)))
       {
          ckpt_node->is_active_exists = FALSE;
-         m_NCS_OS_MEMSET(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
+         memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
       }
       
          
@@ -628,7 +628,7 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
                 else
                 {
                    ckpt_node->is_active_exists = FALSE;
-                   m_NCS_MEMSET(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
+                   memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
             
                    if(nref_info)
                    {
@@ -726,7 +726,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
    CPD_REP_KEY_INFO  key_info;
    CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
   
  
   /* cpd_cpnd_info_node_get(&cb->cpnd_tree, cpnd_dest, &cpnd_info); */
@@ -789,7 +789,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
          }
 
          /* Before delete ckpt_node, update send_evt */
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPND;
          send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_DEL;
          send_evt.info.cpnd.info.ckpt_del.ckpt_id = ckpt_node->ckpt_id;
@@ -820,7 +820,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
              if(m_NCS_MDS_DEST_NODEID_EQUAL(m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),m_NCS_NODE_ID_FROM_MDS_DEST( *cpnd_dest)))
              {
                 ckpt_node->is_active_exists = FALSE;
-                m_NCS_OS_MEMSET(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
+                memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
              }
 
              if(ckpt_node->is_active_exists == FALSE)
@@ -862,7 +862,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                      }
                
                 /* Chosen the active dest, broadcast to all CPNDs */
-                m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+                memset(&send_evt, 0, sizeof(CPSV_EVT));
                 send_evt.type = CPSV_EVT_TYPE_CPND;
                 send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET;
                 send_evt.info.cpnd.info.active_set.ckpt_id = ckpt_node->ckpt_id;
@@ -873,7 +873,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                                ckpt_node->active_dest,__FILE__,__LINE__);
 
                 /*To broadcast the active MDS_DEST info of ckpt to all CPA's*/
-                m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+                memset(&send_evt, 0, sizeof(CPSV_EVT));
                 send_evt.type = CPSV_EVT_TYPE_CPA;
                 send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
                 send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
@@ -922,8 +922,8 @@ uns32  cpd_proc_active_set(CPD_CB *cb,SaCkptCheckpointHandleT ckpt_id,MDS_DEST m
    CPD_CPND_INFO_NODE *cpnd_info_node;
    SaNameT node_name;
    
-   m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&node_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
 
    cpd_ckpt_node_get(&cb->ckpt_tree,&ckpt_id, ckpt_node);
    if((*ckpt_node) == NULL)
@@ -949,7 +949,7 @@ uns32  cpd_proc_active_set(CPD_CB *cb,SaCkptCheckpointHandleT ckpt_id,MDS_DEST m
             {
                rep_info->rep_type = 2;
             }
-            m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+            memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
          }
       }
    }
@@ -1118,7 +1118,7 @@ void cpd_cb_dump(void)
          MDS_DEST key;
          CPD_CPND_INFO_NODE *cpnd_info_node;
          CPD_CKPT_REF_INFO  *list=NULL;
-         m_NCS_OS_MEMSET(&key, 0, sizeof(MDS_DEST));
+         memset(&key, 0, sizeof(MDS_DEST));
          cpnd_info_node = 
           (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8*)&key);
          while(cpnd_info_node)
@@ -1220,7 +1220,7 @@ void cpd_cb_dump(void)
          CPD_CKPT_MAP_INFO *ckpt_map_node=NULL;
          SaNameT     name;
          
-         m_NCS_OS_MEMSET(&name, 0, sizeof(SaNameT));
+         memset(&name, 0, sizeof(SaNameT));
    
          /* Get the First Node */
          ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,

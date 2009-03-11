@@ -334,7 +334,7 @@ parse_ent_type_instance(DOMNode *node)
       return SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_MEMSET(entity_desc, 0, sizeof(NCS_HW_ENT_TYPE_DESC));
+   memset(entity_desc, 0, sizeof(NCS_HW_ENT_TYPE_DESC));
 
    DOMNamedNodeMap *attributesNodes = node->getAttributes();
    if(attributesNodes->getLength() )

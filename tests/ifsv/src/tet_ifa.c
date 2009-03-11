@@ -5474,9 +5474,9 @@ void tet_run_ifsv_app()
   
   info=(NCS_IPXS_SVC_REQ *)malloc(sizeof(NCS_IPXS_REQ_INFO));
 
-  m_NCS_OS_MEMSET(req_info,'\0',sizeof(NCS_IFSV_SVC_REQ));
+  memset(req_info,'\0',sizeof(NCS_IFSV_SVC_REQ));
 
-  m_NCS_OS_MEMSET(info,'\0',sizeof(NCS_IPXS_REQ_INFO));
+  memset(info,'\0',sizeof(NCS_IPXS_REQ_INFO));
 
 #endif
 
@@ -5516,7 +5516,7 @@ void tet_run_ifsv_app()
 
   drv_info=(NCS_IFSV_DRV_SVC_REQ *)malloc(sizeof(NCS_IFSV_DRV_SVC_REQ));
 
-  m_NCS_OS_MEMSET(info,'\0',sizeof(NCS_IFSV_DRV_SVC_REQ));
+  memset(info,'\0',sizeof(NCS_IFSV_DRV_SVC_REQ));
 
 #endif
 

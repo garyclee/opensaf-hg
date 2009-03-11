@@ -79,7 +79,7 @@ dts_amf_init (DTS_CB *dts_cb_inst)
    SaVersionT      amf_version;   
    SaAisErrorT     error;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = dts_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback = dts_saf_CSI_set_callback;
@@ -129,7 +129,7 @@ uns32 dts_amf_finalize(DTS_CB *dts_cb_inst)
     SaAisErrorT status = SA_AIS_OK; 
 
     /* delete the fd from the select list */ 
-    m_NCS_OS_MEMSET(&dts_cb_inst->dts_amf_sel_obj, 0, sizeof(SaSelectionObjectT));
+    memset(&dts_cb_inst->dts_amf_sel_obj, 0, sizeof(SaSelectionObjectT));
 
     /* Disable the health monitoring */ 
     status = saAmfHealthcheckStop(dts_cb_inst->amf_hdl, 

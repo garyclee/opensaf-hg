@@ -72,7 +72,7 @@ uns32 dts_ascii_spec_register (NCSFL_ASCII_SPEC* spec)
    nt_svc_id = m_NCS_OS_HTONL(spec->ss_id);
  
    /* memset the spec_key struct */
-   m_NCS_MEMSET(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
+   memset(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
    spec_key.svc_id = nt_svc_id;
    spec_key.ss_ver = spec->ss_ver;
    /* Versioning support : No support for old method of spec loading */
@@ -145,7 +145,7 @@ uns32 dts_ascii_spec_register (NCSFL_ASCII_SPEC* spec)
    spec_entry = m_MMGR_ALLOC_DTS_SPEC_ENTRY; 
    if(spec_entry == NULL)
       return m_DTS_DBG_SINK_SVC_NAME(NCSCC_RC_FAILURE, "dts_ascii_spec_register: Failed to allocate memory for spec registration", spec->svc_name);
-   m_NCS_MEMSET(spec_entry, '\0', sizeof(SYSF_ASCII_SPECS));
+   memset(spec_entry, '\0', sizeof(SYSF_ASCII_SPECS));
 
    spec_entry->ss_spec = spec;
    /*  Network order key added */
@@ -190,7 +190,7 @@ uns32 dts_ascii_spec_deregister (SS_SVC_ID ss_id, uns16 version)
    SYSF_ASCII_SPECS *spec_entry;
    ASCII_SPEC_INDEX  spec_key;
 
-   m_NCS_MEMSET(&spec_key, '\0', sizeof(spec_key));
+   memset(&spec_key, '\0', sizeof(spec_key));
    spec_key.svc_id = m_NCS_OS_HTONL(ss_id);
    spec_key.ss_ver = version;
 
@@ -324,7 +324,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version,
    /* do the INIT/DEINIT now... */
    if (reg_unreg_routine != NULL)
    {
-      m_NCS_MEMSET(&req_info, 0, sizeof(NCS_LIB_REQ_INFO));
+      memset(&req_info, 0, sizeof(NCS_LIB_REQ_INFO));
 
       /* Reg/De-reg based upon action */
       if(action == DTS_SPEC_LOAD)
@@ -359,7 +359,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version,
                m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_ascii_spec_load: Memory allocation for patricia node failed");
                return NULL;
             }
-            m_NCS_OS_MEMSET(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
+            memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
             m_NCS_STRCPY(lib_entry->lib_name, lib_name);
             lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
             lib_entry->lib_hdl = lib_hdl;
@@ -416,7 +416,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
    asc_tod[0]  = 0;
 
    /*Initialize args to NULL to prevent DTS frm crashing*/
-   m_NCS_MEMSET(args, '\0', sizeof(args));
+   memset(args, '\0', sizeof(args));
  
    if (spec == NULL)
    {
@@ -648,7 +648,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
                return m_DTS_DBG_SINK_SVC_NAME(NCSCC_RC_FAILURE, 
                   "dts_log_msg_decode: Memory allocation failed",spec->svc_name);
             }
-            m_NCS_OS_MEMSET(mem_d.dump, '\0', mem_d.len); 
+            memset(mem_d.dump, '\0', mem_d.len); 
             ncs_decode_n_octets_from_uba(uba, (uns8*)mem_d.dump,
                mem_d.len);
            
@@ -684,7 +684,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
                return m_DTS_DBG_SINK_SVC_NAME(NCSCC_RC_FAILURE, 
                   "dts_log_msg_decode: Memory allocation failed", spec->svc_name);
             }
-            m_NCS_OS_MEMSET(pdu.dump, '\0', pdu.len); 
+            memset(pdu.dump, '\0', pdu.len); 
             ncs_decode_n_octets_from_uba(uba, (uns8*)pdu.dump, pdu.len);
             
             m_NCSFL_MAKE_STR_FROM_PDU(t_str, pdu.len, (uns8*)pdu.dump);

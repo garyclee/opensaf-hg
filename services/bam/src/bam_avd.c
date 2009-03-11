@@ -85,7 +85,7 @@ uns32 avd_bam_build_si_dep_list(char *si_name, char *si_dep_name, char *tol_time
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(si_dep_node, 0, sizeof(BAM_SI_DEP_NODE));
+   memset(si_dep_node, 0, sizeof(BAM_SI_DEP_NODE));
 
    m_NCS_STRCPY(si_dep_node->si_name, si_name);
    m_NCS_STRCPY(si_dep_node->si_dep_name, si_dep_name);
@@ -193,7 +193,7 @@ uns32 avd_bam_snd_message(AVD_BAM_MSG *snd_msg)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = bam_cb->mds_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_BAM;
@@ -241,7 +241,7 @@ void ncs_bam_send_cfg_done_msg()
    }
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_BAM_MSG));
+   memset(snd_msg,'\0',sizeof(AVD_BAM_MSG));
    snd_msg->msg_type = BAM_AVD_CFG_DONE_MSG;
    snd_msg->msg_info.msg.check_sum = gl_bam_avd_cfg_msg_num;
 

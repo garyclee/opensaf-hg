@@ -757,7 +757,7 @@ uns32 avnd_pg_cbk_send (AVND_CB     *cb,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_OS_MEMSET(cbk_info, 0, sizeof(AVSV_AMF_CBK_INFO));
+   memset(cbk_info, 0, sizeof(AVSV_AMF_CBK_INFO));
 
    pg_param = &cbk_info->param.pg_track;
 
@@ -793,7 +793,7 @@ uns32 avnd_pg_cbk_send (AVND_CB     *cb,
             rc = NCSCC_RC_FAILURE;
             goto done;
          }
-         m_NCS_OS_MEMSET(pg_param->buf.notification, 0,
+         memset(pg_param->buf.notification, 0,
                          sizeof(SaAmfProtectionGroupNotificationT) * number_of_items);
 
          /* fill all the current members */
@@ -872,7 +872,7 @@ uns32 avnd_pg_cbk_msg_send (AVND_CB           *cb,
    AVND_MSG msg;
    uns32    rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    /* allocate ava message */
    if ( 0 == (msg.info.ava = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG) )
@@ -880,7 +880,7 @@ uns32 avnd_pg_cbk_msg_send (AVND_CB           *cb,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_OS_MEMSET(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* populate the msg */
    msg.type = AVND_MSG_AVA;

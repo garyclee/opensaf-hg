@@ -39,7 +39,7 @@
 
 #define m_HAM_HISV_CHASSIS_ID_FILL(m, id, vdest, stat) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(HISV_MSG)); \
+   memset(&(m), 0, sizeof(HISV_MSG)); \
    (m).info.cbk_info.hpl_ret.h_vdest.chassis_id = (id); \
    (m).info.cbk_info.hpl_ret.h_vdest.ham_dest = (vdest); \
    (m).info.cbk_info.hpl_ret.h_vdest.ham_status = (stat); \
@@ -55,7 +55,7 @@ do { \
 
 #define m_HAM_HISV_LOG_CMD_MSG_FILL(m, act) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(HISV_MSG)); \
+   memset(&(m), 0, sizeof(HISV_MSG)); \
    (m).info.api_info.cmd = (act); \
    (m).info.api_info.data_len = 0; \
    (m).info.api_info.data = NULL; \

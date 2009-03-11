@@ -458,7 +458,7 @@ send_cb_evt:
    if(callback)
    {
       /* Fill the Call Back Info */   
-      m_NCS_MEMSET(callback, 0, sizeof(CPA_CALLBACK_INFO));
+      memset(callback, 0, sizeof(CPA_CALLBACK_INFO));
       callback->type = CPA_CALLBACK_TYPE_OPEN;
       callback->lcl_ckpt_hdl = evt->info.openRsp.lcl_ckpt_hdl;
       callback->invocation = evt->info.openRsp.invocation;
@@ -532,7 +532,7 @@ static void cpa_proc_async_sync_rsp(CPA_CB *cb, CPA_EVT *evt)
       return;
    }
    /* Fill the Call Back Info */   
-   m_NCS_MEMSET(callback, 0, sizeof(CPA_CALLBACK_INFO));
+   memset(callback, 0, sizeof(CPA_CALLBACK_INFO));
    callback->type = CPA_CALLBACK_TYPE_SYNC;
    callback->invocation = evt->info.sync_rsp.invocation;
    callback->sa_err = evt->info.sync_rsp.error;
@@ -599,7 +599,7 @@ static void cpa_proc_ckpt_arrival_ntfy(CPA_CB *cb,CPA_EVT *evt)
                  /* Log TBD */
                  goto free_mem;
               }
-              m_NCS_MEMSET(callback, 0, sizeof(CPA_CALLBACK_INFO));
+              memset(callback, 0, sizeof(CPA_CALLBACK_INFO));
                                                                                                                              
               callback->type = CPA_CALLBACK_TYPE_ARRIVAL_NTFY;
               callback->lcl_ckpt_hdl = lc_node->lcl_ckpt_hdl;
@@ -725,7 +725,7 @@ static void cpa_proc_tmr_expiry(CPA_CB *cb, CPA_EVT *evt)
          goto free_lock;
       }
       /* Fill the Call Back Info */   
-      m_NCS_MEMSET(callback, 0, sizeof(CPA_CALLBACK_INFO));
+      memset(callback, 0, sizeof(CPA_CALLBACK_INFO));
       if(evt->info.tmr_info.type == CPA_TMR_TYPE_OPEN)
          callback->type = CPA_CALLBACK_TYPE_OPEN;
       else if(evt->info.tmr_info.type == CPA_TMR_TYPE_SYNC)
@@ -1227,7 +1227,7 @@ uns32 cpa_proc_build_data_access_evt(const SaCkptIOVectorElementT *ioVector, \
          tmp_ckpt_data=m_MMGR_ALLOC_CPSV_CKPT_DATA;
          if (tmp_ckpt_data == NULL)
             return NCSCC_RC_FAILURE;
-         m_NCS_OS_MEMSET(tmp_ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
+         memset(tmp_ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
            
          switch(data_access_type)
          {
@@ -1364,7 +1364,7 @@ uns32 cpa_proc_replica_read(CPA_CB *cb,SaUint32T numberOfElements,
    CPA_GLOBAL_CKPT_NODE *gc_node;
    NCS_BOOL add_flag=FALSE;
    
-   m_NCS_MEMSET(&shm_info,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+   memset(&shm_info,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
    cpa_gbl_ckpt_node_find_add(&cb->gbl_ckpt_tree,
                     &gbl_ckpt_hdl, &gc_node, &add_flag);
@@ -1398,7 +1398,7 @@ uns32 cpa_proc_replica_read(CPA_CB *cb,SaUint32T numberOfElements,
              m_LOG_CPA_MEMFAIL(CPA_DATA_BUFF_ALLOC_FAILED); 
              return NCSCC_RC_FAILURE;
            }
-           m_NCS_MEMSET((*ioVector)[iter].dataBuffer,'\0',read_map[iter].read_size);
+           memset((*ioVector)[iter].dataBuffer,'\0',read_map[iter].read_size);
         }
         shm_info.type=NCS_OS_POSIX_SHM_REQ_READ;
         shm_info.info.read.i_addr = (void *) ( (char *)gc_node->open.info.open.o_addr + sizeof(CPSV_CKPT_HDR)+ \
@@ -1458,7 +1458,7 @@ uns32 cpa_proc_rmt_replica_read(SaUint32T numberOfElements,
                 m_LOG_CPA_MEMFAIL(CPA_DATA_BUFF_ALLOC_FAILED);
                 return NCSCC_RC_FAILURE;
              }
-             m_NCS_OS_MEMSET(ioVector[iter].dataBuffer,'\0',read_data[iter].read_size);
+             memset(ioVector[iter].dataBuffer,'\0',read_data[iter].read_size);
           }
           memcpy(ioVector[iter].dataBuffer,read_data[iter].data,read_data[iter].read_size);
           ioVector[iter].readSize=read_data[iter].read_size;

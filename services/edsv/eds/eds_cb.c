@@ -48,8 +48,8 @@ eds_cb_init(EDS_CB *eds_cb)
 {
    NCS_PATRICIA_PARAMS     reg_param, cname_param ;
    
-   m_NCS_MEMSET(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   m_NCS_MEMSET(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    reg_param.key_size = sizeof(uns32);
    cname_param.key_size = sizeof(SaNameT);

@@ -212,7 +212,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
       m_LOG_HISV_DTS_CONS("string_to_epath: Invalid arguments to string2entitypath\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(epath_ptr, 0, sizeof(SaHpiEntityPathT));
+   memset(epath_ptr, 0, sizeof(SaHpiEntityPathT));
 
    /* allocate memory to make a duplicate of epath_str */
    if (NULL == (epath = m_MMGR_ALLOC_HISV_DATA(epath_len)))

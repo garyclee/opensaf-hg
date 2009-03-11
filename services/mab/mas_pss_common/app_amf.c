@@ -56,7 +56,7 @@ ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
         return -1; 
 
     /* now say that, we are interested in this signal */ 
-    m_NCS_MEMSET(&sig_act, 0, sizeof(struct sigaction)); 
+    memset(&sig_act, 0, sizeof(struct sigaction)); 
     sig_act.sa_handler = i_sig_handler; 
     return sigaction(i_sig_num, &sig_act, NULL); 
 
@@ -233,7 +233,7 @@ ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
         /* log the error */ 
         saAmfFinalize(amf_attribs->amfHandle);
         amf_attribs->amfHandle = 0;
-        m_NCS_MEMSET(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
 
         return status;
     }
@@ -247,8 +247,8 @@ ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
         /* log the error */ 
         saAmfFinalize(amf_attribs->amfHandle);
         amf_attribs->amfHandle = 0;
-        m_NCS_MEMSET(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
-        m_NCS_MEMSET(&amf_attribs->compName, 0, sizeof(SaNameT));
+        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+        memset(&amf_attribs->compName, 0, sizeof(SaNameT));
         return status; 
     }
 
@@ -268,8 +268,8 @@ ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
                                  NULL); 
         saAmfFinalize(amf_attribs->amfHandle);
         amf_attribs->amfHandle = 0;
-        m_NCS_MEMSET(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
-        m_NCS_MEMSET(&amf_attribs->compName, 0, sizeof(SaNameT));
+        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+        memset(&amf_attribs->compName, 0, sizeof(SaNameT));
         return status; 
     }
 
@@ -302,7 +302,7 @@ ncs_app_amf_finalize(NCS_APP_AMF_ATTRIBS *amf_attribs)
     }
 
     /* delete the fd from the select list */ 
-    m_NCS_MEMSET(&amf_attribs->amfSelectionObject, 0, 
+    memset(&amf_attribs->amfSelectionObject, 0, 
                     sizeof(SaSelectionObjectT));
 
     /* Disable the health monitoring */ 
@@ -395,7 +395,7 @@ void ncs_app_amf_init_timer_cb (void* timer_data)
       return;
    }
 
-   m_NCS_MEMSET(post_me, 0, sizeof(MAB_MSG));
+   memset(post_me, 0, sizeof(MAB_MSG));
    post_me->op = amf_init_timer->msg_type;
 
    status = m_NCS_IPC_SEND(amf_init_timer->mbx,
@@ -438,7 +438,7 @@ app_rda_init_role_get(NCS_APP_AMF_HA_STATE *o_init_role)
     }
     
     /* initialize the RDA Library */ 
-    m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
+    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
     app_rda_req.req_type = PCS_RDA_LIB_INIT;
     rc = pcs_rda_request (&app_rda_req);
     if (rc  != PCSRDA_RC_SUCCESS)
@@ -449,7 +449,7 @@ app_rda_init_role_get(NCS_APP_AMF_HA_STATE *o_init_role)
     }
     
     /* get the role */ 
-    m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
+    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
     app_rda_req.req_type = PCS_RDA_GET_ROLE;
     rc = pcs_rda_request(&app_rda_req);
     if (rc != PCSRDA_RC_SUCCESS)
@@ -482,7 +482,7 @@ app_rda_init_role_get(NCS_APP_AMF_HA_STATE *o_init_role)
 
     /* finalize the library */ 
 finalize:    
-    m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
+    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
     app_rda_req.req_type = PCS_RDA_LIB_DESTROY;
     rc = pcs_rda_request(&app_rda_req);
     if (rc != PCSRDA_RC_SUCCESS)

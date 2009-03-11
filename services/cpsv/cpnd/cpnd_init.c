@@ -115,7 +115,7 @@ static uns32
 cpnd_extract_create_info(int argc, char *argv[], CPND_CREATE_INFO *create_info)
 {
 
-   m_NCS_MEMSET(create_info,0,sizeof(CPND_CREATE_INFO));
+   memset(create_info,0,sizeof(CPND_CREATE_INFO));
 
    /* Need to change this once we get these parameters in the argv */
    create_info->pool_id   = NCS_HM_POOL_ID_COMMON;
@@ -141,7 +141,7 @@ static uns32
 cpnd_extract_destroy_info(int argc, char *argv[], CPND_DESTROY_INFO *destroy_info)
 {
 
-   m_NCS_MEMSET(destroy_info,0,sizeof(CPND_DESTROY_INFO));
+   memset(destroy_info,0,sizeof(CPND_DESTROY_INFO));
 
    /* Need to fill this once we get these parameters in the argv */
 
@@ -174,7 +174,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    NCS_OS_POSIX_SHM_REQ_INFO cpnd_open_req;
    void     *shm_ptr;
    GBL_SHM_PTR   gbl_shm_addr;    
-   m_NCS_MEMSET(&cpnd_open_req,'\0',sizeof(cpnd_open_req));
+   memset(&cpnd_open_req,'\0',sizeof(cpnd_open_req));
    SaVersionT      clm_version;
    SaClmClusterNodeT    cluster_node;
    SaClmHandleT clmHandle;
@@ -183,7 +183,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    m_CPSV_GET_AMF_VER(clm_version);
    SaClmCallbacksT gen_cbk;
   
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
  
    /* register with the Flex log service */
    cpnd_flx_log_reg( );
@@ -198,7 +198,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
       rc = NCSCC_RC_OUT_OF_MEM;
       goto cpnd_cb_alloc_fail;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(CPND_CB));
+   memset(cb, 0, sizeof(CPND_CB));
    cb->pool_id       = info->pool_id;
    cb->cli_id_gen    = 1;
    /* Init the EDU Handle */
@@ -307,7 +307,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
 
 
    /* CODE  FOR THE NO REDUNDANCY */
-   m_NCS_MEMSET(&gbl_shm_addr,0,sizeof(GBL_SHM_PTR));
+   memset(&gbl_shm_addr,0,sizeof(GBL_SHM_PTR));
    shm_ptr  = cpnd_restart_shm_create(&cpnd_open_req,cb,cluster_node.nodeId);
    if(shm_ptr)
    {
@@ -331,7 +331,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    } 
 
    /*   start the AMF Health Check  */
-   m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(healthy));
  
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)

@@ -186,7 +186,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
         m_MAB_DBG_TRACE("\nmas_mbx_amf_process():left.");
         return;
     }
-    m_NCS_MEMSET(&ncs_amf_sel_obj, 0, sizeof(NCS_SEL_OBJ)); 
+    memset(&ncs_amf_sel_obj, 0, sizeof(NCS_SEL_OBJ)); 
 
     /* install the signal handler for SIGUSR2, to dump the data structure contents */ 
     if ((ncs_app_signal_install(SIGUSR2,mas_amf_sigusr2_handler)) == -1) 
@@ -198,7 +198,7 @@ mas_mbx_amf_process(SYSF_MBX   *mas_mbx)
     }
 
 #if (NCS_MAS_RED == 1)
-    m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
+    memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
     mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH; 
     mbcsv_arg.i_mbcsv_hdl = gl_mas_amf_attribs.mbcsv_attribs.mbcsv_hdl; 
     mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ONE; 
@@ -372,7 +372,7 @@ mas_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs)
     }
 
     /* initialize the HA state machine callbacks */ 
-    m_NCS_OS_MEMSET(&ha_hdls, 0, 
+    memset(&ha_hdls, 0, 
                     sizeof(NCS_APP_AMF_HA_STATE_HANDLERS)); 
     ha_hdls.invalidTrans = ncs_app_amf_invalid_state_process; 
     ha_hdls.initActive =  mas_amf_INIT_ACTIVE_process; 
@@ -384,7 +384,7 @@ mas_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs)
     ha_hdls.quiescingToQuiesced = mas_amf_QUIESCING_QUIESCED_process; 
 
     /* intialize the AMF callbaclks */ 
-    m_NCS_MEMSET(&amf_clbks, 0, 
+    memset(&amf_clbks, 0, 
                     sizeof(SaAmfCallbacksT)); 
     amf_clbks.saAmfHealthcheckCallback = mas_amf_health_check; 
     amf_clbks.saAmfComponentTerminateCallback = mas_amf_comp_terminate; 
@@ -405,7 +405,7 @@ mas_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs)
         m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, 
                           MAB_MAS_ERR_AMF_ATTRIBS_INIT_FAILED, status);
         /* reset the attribs */ 
-        m_NCS_MEMSET(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
+        memset(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
         m_MAB_DBG_TRACE("\nmas_amf_componentize():left.");
         return status; 
     }
@@ -511,7 +511,7 @@ mas_amf_prepare_will(void)
     }
 
     /* destroy the VDEST */ 
-    m_NCS_MEMSET(&vda_info, 0, sizeof(NCSVDA_INFO)); 
+    memset(&vda_info, 0, sizeof(NCSVDA_INFO)); 
     vda_info.req = NCSVDA_VDEST_DESTROY; 
     vda_info.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; 
     vda_info.info.vdest_destroy.i_vdest = MAS_VDEST_ID; 
@@ -746,7 +746,7 @@ mas_amf_csi_new(SaInvocationT invocation,
         }
         /* update the CSI Name */ 
         csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
-        m_NCS_OS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
+        memset(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
         memcpy(&csi->csi_info.work_desc.value, 
                         &csiDescriptor.csiName.value, 
                         csi->csi_info.work_desc.length); 
@@ -829,7 +829,7 @@ mas_amf_csi_create_and_install_env(PW_ENV_ID            envid,
 
     /* update the CSI Name filed */ 
     csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
-    m_NCS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
+    memset(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
     memcpy(&csi->csi_info.work_desc.value, 
                     &csiDescriptor.csiName.value, 
                     csi->csi_info.work_desc.length); 
@@ -1316,7 +1316,7 @@ mas_amf_csi_state_change_process(MAS_CSI_NODE *csi_node,
 
 #if (NCS_MAS_RED == 1)
     /* do the MBCSv role change */ 
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
     mbcsv_arg.i_mbcsv_hdl = csi_node->inst->red.mbcsv_hdl;
     mbcsv_arg.info.chg_role.i_ckpt_hdl = csi_node->inst->red.ckpt_hdl;
@@ -1370,7 +1370,7 @@ mas_amf_csi_remove_one(const MAS_CSI_NODE *csi_node)
 
 #if (NCS_MAS_RED == 1)
     /* Close the Checkpoint channel */ 
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
     mbcsv_arg.i_mbcsv_hdl = csi_node->inst->red.mbcsv_hdl;
     mbcsv_arg.info.close.i_ckpt_hdl = csi_node->inst->red.ckpt_hdl;
@@ -1387,7 +1387,7 @@ mas_amf_csi_remove_one(const MAS_CSI_NODE *csi_node)
 #endif /* #if (NCS_MAS_RED == 1) */ 
 
     /* uninstall the Env */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = csi_node->inst->mds_hdl;
     info.i_svc_id  = NCSMDS_SVC_ID_MAS;
     info.i_op      = MDS_UNINSTALL;
@@ -1404,7 +1404,7 @@ mas_amf_csi_remove_one(const MAS_CSI_NODE *csi_node)
     if ((gl_inited == TRUE)&&(csi_node->csi_info.env_id != m_MAS_DEFAULT_ENV_ID))
     {
         /* destroy the env only if it is not DEFAULT One */
-        m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+        memset(&vda_info, 0, sizeof(vda_info));
         vda_info.req = NCSVDA_PWE_DESTROY; 
         vda_info.info.pwe_destroy.i_mds_pwe_hdl = csi_node->csi_info.env_hdl; 
         status = ncsvda_api(&vda_info);
@@ -1604,7 +1604,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
         m_MAB_DBG_TRACE("\nmas_amf_csi_install():left.");
         return csi; 
     }
-    m_NCS_MEMSET(csi, 0, sizeof(MAS_CSI_NODE)); 
+    memset(csi, 0, sizeof(MAS_CSI_NODE)); 
 
     /* allocate memory for the table details for this environment */ 
     if ((inst = m_MMGR_ALLOC_MAS_TBL ) == NULL)
@@ -1621,7 +1621,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
     csi->inst = inst; 
 
     /* initialize the table details */ 
-    m_NCS_MEMSET(inst,0,sizeof(MAS_TBL));
+    memset(inst,0,sizeof(MAS_TBL));
     m_MAS_LK_CREATE(&inst->lock);
     m_MAS_LK(&inst->lock);
 
@@ -1641,7 +1641,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
           (gl_mas_amf_attribs.amf_attribs.amfHandle != 0)))) /* For CSI-1 creation after CSI-remove-all */
     {
         /* create the new PWE */ 
-        m_NCS_MEMSET(&vda_info, 0, sizeof(NCSVDA_INFO)); 
+        memset(&vda_info, 0, sizeof(NCSVDA_INFO)); 
         vda_info.req = NCSVDA_PWE_CREATE; 
         vda_info.info.pwe_create.i_mds_vdest_hdl = gl_mas_amf_attribs.mas_mds_hdl; 
         vda_info.info.pwe_create.i_pwe_id = envid; 
@@ -1699,7 +1699,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
 #endif
 
     /* install VDEST in this PWE */  
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = inst->mds_hdl;
     info.i_op      = MDS_INSTALL;
     info.i_svc_id  = NCSMDS_SVC_ID_MAS;
@@ -1726,7 +1726,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
 
 #if (NCS_MAS_RED == 1)
     /* Open the Checkpoint channel */ 
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
     mbcsv_arg.i_mbcsv_hdl = inst->red.mbcsv_hdl;
     mbcsv_arg.info.open.i_pwe_hdl = (uns32)inst->mds_hdl;
@@ -1750,7 +1750,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
     inst->red.ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
 
     /* Set the MBCSv Role */ 
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
     mbcsv_arg.i_mbcsv_hdl = inst->red.mbcsv_hdl;
     mbcsv_arg.info.chg_role.i_ckpt_hdl = inst->red.ckpt_hdl;
@@ -1775,7 +1775,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
     /* SPLITTED subscriptions for RED subscription from MAS to OAC */
     
     /* subscribe for the events */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = inst->mds_hdl;
     info.i_op      = MDS_SUBSCRIBE;
     info.i_svc_id  = NCSMDS_SVC_ID_MAS;
@@ -1799,7 +1799,7 @@ mas_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
     }
     
     /* subscribe for the events */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = inst->mds_hdl;
     info.i_op      = MDS_RED_SUBSCRIBE;
     info.i_svc_id  = NCSMDS_SVC_ID_MAS;
@@ -1859,7 +1859,7 @@ mas_amf_csi_vdest_role_change(MAS_CSI_NODE *csi,
     m_MAB_DBG_TRACE("\nmas_amf_csi_vdest_role_change():entered.");
 
     /* check in what state VDEST is created */ 
-    m_NCS_MEMSET(&info, 0, sizeof(NCSMDS_INFO)); 
+    memset(&info, 0, sizeof(NCSMDS_INFO)); 
     info.i_op = MDS_QUERY_PWE; 
     info.i_svc_id = MAS_VDEST_ID;  
     info.i_mds_hdl = csi_info->env_hdl; 
@@ -1880,7 +1880,7 @@ mas_amf_csi_vdest_role_change(MAS_CSI_NODE *csi,
          * the AMF driven state
          */ 
         /* update the role of the VDEST as per AMF given state */ 
-        m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+        memset(&vda_info, 0, sizeof(vda_info));
 
         vda_info.req = NCSVDA_VDEST_CHG_ROLE;
         vda_info.info.vdest_chg_role.i_vdest = MAS_VDEST_ID;
@@ -1955,7 +1955,7 @@ mas_amf_csi_list_find_csiname(const SaNameT *find_me)
     SaNameT         t_find_me; 
     MAS_CSI_NODE    *me = NULL; 
 
-    m_NCS_MEMSET(&t_find_me, 0, sizeof(SaNameT)); 
+    memset(&t_find_me, 0, sizeof(SaNameT)); 
     memcpy(&t_find_me, find_me, sizeof(SaNameT)); 
 
     me = gl_mas_amf_attribs.csi_list; 
@@ -1988,7 +1988,7 @@ mas_amf_csi_list_delink(const SaNameT  *csiName)
     MAS_CSI_NODE     *del_me = NULL; 
     MAS_CSI_NODE     *prev_csi = NULL; 
 
-    m_NCS_MEMSET(&t_del_me, 0, sizeof(SaNameT)); 
+    memset(&t_del_me, 0, sizeof(SaNameT)); 
     memcpy(&t_del_me, csiName, sizeof(SaNameT)); 
 
     del_me = gl_mas_amf_attribs.csi_list;

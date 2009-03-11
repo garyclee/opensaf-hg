@@ -190,7 +190,7 @@ void avd_tmr_exp (void *uarg)
       evt = m_MMGR_ALLOC_AVD_EVT;
       if (evt != AVD_EVT_NULL)
       {
-         m_NCS_MEMSET(evt,'\0',sizeof(AVD_EVT));
+         memset(evt,'\0',sizeof(AVD_EVT));
          evt->cb_hdl = tmr->cb_hdl;
          evt->info.tmr = *tmr;
          evt->rcv_evt = (tmr->type - AVD_TMR_SND_HB) + AVD_EVT_TMR_SND_HB;

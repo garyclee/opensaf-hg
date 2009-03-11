@@ -630,7 +630,7 @@ EXTERN_C DTS_CB   dts_cb;
    if (!n_file) \
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, \
           "Failed to allocate memory for log file list"); \
-   m_NCS_OS_MEMSET(n_file, '\0', sizeof(DTS_LL_FILE)); \
+   memset(n_file, '\0', sizeof(DTS_LL_FILE)); \
    strcat(n_file->file_name, ""); \
    n_file->next = NULL; \
    \
@@ -697,7 +697,7 @@ EXTERN_C DTS_CB   dts_cb;
      tmp = m_MMGR_ALLOC_DTS_CONS_DEV; \
      if(tmp == NULL) \
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "Failed to allocate memory"); \
-     m_NCS_OS_MEMSET(tmp, '\0', sizeof(DTS_CONS_LIST)); \
+     memset(tmp, '\0', sizeof(DTS_CONS_LIST)); \
      m_NCS_STRCPY(tmp->cons_dev, str); \
      tmp->cons_fd = fd; \
      if(prev != NULL) \
@@ -818,7 +818,7 @@ EXTERN_C DTS_CB   dts_cb;
 #define m_DTS_LOGFILE_CREATE(device, file_type) \
 { \
    DTS_LOG_CKPT_DATA data; \
-   m_NCS_OS_MEMSET(&data, '\0', sizeof(DTS_LOG_CKPT_DATA)); \
+   memset(&data, '\0', sizeof(DTS_LOG_CKPT_DATA)); \
    m_DTS_ADD_NEW_FILE(device); \
    if (0 == (device->cur_file_size = \
       dts_new_log_file_create(m_DTS_LOG_FILE_NAME(device), \

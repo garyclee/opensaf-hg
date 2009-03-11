@@ -345,7 +345,7 @@ uns32 dts_handle_signal(void)
     if(msg == NULL)
        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_signal: Failed to allocate memory for DTSV_MSG");
 
-    m_NCS_OS_MEMSET(msg, 0, sizeof(DTSV_MSG));
+    memset(msg, 0, sizeof(DTSV_MSG));
     msg->msg_type = DTS_AMF_COMPONENTIZE;
 
     /* Post this message to DTS mailbox */
@@ -456,7 +456,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
            m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
            return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: Memory allocation failed");
        }
-       m_NCS_MEMSET(node_reg, '\0', sizeof(DTS_SVC_REG_TBL));
+       memset(node_reg, '\0', sizeof(DTS_SVC_REG_TBL));
        node_reg->my_key.node      = key.node;
        node_reg->my_key.ss_svc_id = 0;
        /*  Network order key added */
@@ -531,7 +531,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
              m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
              return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: Memory allocation failed");
           }
-          m_NCS_OS_MEMSET(to_reg, '\0', sizeof(DTA_DEST_LIST));
+          memset(to_reg, '\0', sizeof(DTA_DEST_LIST));
           to_reg->dta_addr = dta_key;
           to_reg->node.key_info = (uns8 *)&to_reg->dta_addr;
 
@@ -572,7 +572,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
           m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
           return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: Memory allocation failed");
       }
-      m_NCS_MEMSET(svc, '\0', sizeof(DTS_SVC_REG_TBL));
+      memset(svc, '\0', sizeof(DTS_SVC_REG_TBL));
       svc->my_key.ss_svc_id = key.ss_svc_id;
       svc->my_key.node      = key.node;
       svc->my_node          = node_reg;
@@ -595,7 +595,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
                m_MMGR_FREE_SVC_REG_TBL(svc);
             return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: Memory allocation failed");
          }
-         m_NCS_OS_MEMSET(to_reg, '\0', sizeof(DTA_DEST_LIST));
+         memset(to_reg, '\0', sizeof(DTA_DEST_LIST));
          to_reg->dta_addr = dta_key;
          to_reg->node.key_info = (uns8 *)&to_reg->dta_addr;
 
@@ -677,12 +677,12 @@ uns32 dts_register_service (DTSV_MSG *msg)
       m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: MDS Sync send to Stby failed for Service registration");
  
    /* Versioning change - Reset the DTS CB last_spec_loaded to 0 */
-   m_NCS_MEMSET(&inst->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
+   memset(&inst->last_spec_loaded, '\0', sizeof(SPEC_CKPT));
  
    /* Versioning support -  form the key to index to existing ASCII_SPEC 
     * patricia tree 
     */
-   m_NCS_MEMSET(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
+   memset(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
    spec_key.svc_id = svc->ntwk_key.ss_svc_id;
    /* Get version from msg */
    spec_key.ss_ver = msg->data.data.reg.version;
@@ -708,7 +708,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
          /* Do rest of cleanup, cleaning service regsitration table etc. */
          return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: Memory allocation failed");
       }
-      m_NCS_MEMSET(per_dta_svc_spec, '\0', sizeof(SPEC_ENTRY));
+      memset(per_dta_svc_spec, '\0', sizeof(SPEC_ENTRY));
       per_dta_svc_spec->dta_addr = dta_key;
       per_dta_svc_spec->spec_struct = spec_entry;
       per_dta_svc_spec->lib_struct = lib_hdl;
@@ -836,7 +836,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
       m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV_FAIL, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
       m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED,
                     key.ss_svc_id, key.node, (uns32)vkey);
-      m_NCS_OS_MEMSET(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
+      memset(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
       m_DTS_UNLK(&inst->lock);
       m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_unregister_service: Unable to remove adest entry");
@@ -848,7 +848,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
    {
       m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED,
                     key.ss_svc_id, key.node, (uns32)vkey);
-      m_NCS_OS_MEMSET(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
+      memset(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
       m_DTS_UNLK(&inst->lock);
       m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_unregister_service: Unable to remove spec entry");
@@ -869,7 +869,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
    /* After svc unregister's async updates memset DTS_CB's svc_rmv_mds_dest
     * back to 0 for any further svc_reg remove async updates.
     */
-   m_NCS_OS_MEMSET(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
+   memset(&inst->svc_rmv_mds_dest, '\0', sizeof(MDS_DEST));
 
    /*Smik-Now check if the num of svs in DTA list is 0, if yes then delete the 
     *     DTA entry from the patricia tree */ 
@@ -976,7 +976,7 @@ uns32 dts_fail_over_enc_msg(DTSV_MSG *mm)
 
    uba = &mm->data.data.msg.log_msg.uba;
 
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
    if (ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS)
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_fail_over_enc_msg: userbuf init failed");
 
@@ -1062,7 +1062,7 @@ uns32 dts_log_data (DTSV_MSG *msg)
    MDS_DEST           dta_key = msg->dest_addr;
    NCSFL_ASCII_SPEC   *spec = NULL;
 
-   m_NCS_OS_MEMSET(&nt_key, '\0', sizeof(SVC_KEY)); 
+   memset(&nt_key, '\0', sizeof(SVC_KEY)); 
    /* 
     * If sequencing is enabled then queue the messgae into the sequencing 
     * buffer otherwise do normal logging.
@@ -1219,7 +1219,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
              "dtsv_log_msg: Failed to create new log file.");
          device->new_file  = FALSE;
 
-         m_NCS_OS_MEMSET(&data, '\0', sizeof(DTS_LOG_CKPT_DATA));
+         memset(&data, '\0', sizeof(DTS_LOG_CKPT_DATA));
          /* Fill the DTS_LOG_CKPT_DATA for async update */
          m_NCS_STRCPY(data.file_name, m_DTS_LOG_FILE_NAME(device));
          /* Fill data key with the key corresponding to node/svc whose policy
@@ -1473,7 +1473,7 @@ void dts_default_node_policy_set(POLICY *npolicy,
    device->svc_fh           = 0;
    device->file_open        = FALSE;
    device->last_rec_id      = 0;
-   m_NCS_MEMSET(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
+   memset(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
    device->cons_list_ptr = NULL;
    device->num_of_cons_conf = 0;
 
@@ -1541,7 +1541,7 @@ void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
    device->svc_fh        = 0;
    device->file_open     = 0;
    device->last_rec_id   = 0;
-   m_NCS_MEMSET(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
+   memset(&device->log_file_list, '\0', sizeof(DTS_FILE_LIST));
    device->cons_list_ptr = NULL;
    device->num_of_cons_conf = 0;
 
@@ -1692,7 +1692,7 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst,
         return NCSCC_RC_SUCCESS;
     }
 
-    m_NCS_OS_MEMSET(&msg, 0, sizeof(DTSV_MSG));
+    memset(&msg, 0, sizeof(DTSV_MSG));
     msg.vrid    = inst->vrid;
     msg.node    = svc->my_key.node;
     msg.msg_type= DTS_SVC_MSG_FLTR;
@@ -1895,7 +1895,7 @@ dts_create_new_pat_entry(DTS_CB       *inst,
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
         "dts_create_new_pat_entry: Failed to allocate memory");
 
-    m_NCS_MEMSET(*node, '\0', sizeof(DTS_SVC_REG_TBL));    
+    memset(*node, '\0', sizeof(DTS_SVC_REG_TBL));    
     (*node)->my_key.node       = node_id;
     (*node)->my_key.ss_svc_id  = svc_id;
      /*  Network order key added */
@@ -2076,7 +2076,7 @@ uns32 dts_stby_update_dta_config()
              m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
              return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_stby_update_dta_config:  Failed to allocate DTSV message");
           }
-          m_NCS_MEMSET(msg, '\0', sizeof(DTSV_MSG));
+          memset(msg, '\0', sizeof(DTSV_MSG));
 
           msg->vrid = inst->vrid;
           msg->msg_type = DTS_FAIL_OVER;
@@ -2165,7 +2165,7 @@ void dts_enqueue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
          m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_enqueue_dta: Failed to allocate memory");
          return;
       }
-      m_NCS_OS_MEMSET(dta_entry, 0, sizeof(DTA_ENTRY));
+      memset(dta_entry, 0, sizeof(DTA_ENTRY));
 
       tmp = svc->v_cd_list;
       svc->v_cd_list = dta_entry;
@@ -2205,7 +2205,7 @@ void dts_add_svc_to_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc)
          m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_add_svc_to_dta: Failed to allocate memory");
          return;
       }
-      m_NCS_OS_MEMSET(dta_svc_entry, 0, sizeof(SVC_ENTRY));
+      memset(dta_svc_entry, 0, sizeof(SVC_ENTRY));
       tmp = dta->svc_list;
       dta->svc_list = dta_svc_entry;
       dta_svc_entry->svc = svc;
@@ -2682,7 +2682,7 @@ void dts_print_dta_dest_pat(void)
    MDS_DEST            key;
    SVC_ENTRY          *svc_entry;
  
-   m_NCS_MEMSET(&key, 0, sizeof(MDS_DEST));
+   memset(&key, 0, sizeof(MDS_DEST));
    printf("\n***Printing DTS dta_list Patricia tree***");
    printf("\n--------------***-----------------\n");
    

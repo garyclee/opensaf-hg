@@ -48,7 +48,7 @@ uns32 pdrbd_get_ada_hdl(void)
 {
    NCSADA_INFO  ada_info;
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE;
@@ -88,7 +88,7 @@ uns32 pdrbd_mds_install_and_subscribe(void)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    /* Do common stuff */
    mds_info.i_mds_hdl = pseudoCB.mds_hdl;
@@ -143,7 +143,7 @@ uns32 pdrbd_mds_uninstall (void)
    uns32                rc;
 
    /* Un-install your service into MDS. */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = pseudoCB.mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_PDRBD;
@@ -424,7 +424,7 @@ uns32 pdrbd_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
      return NCSCC_RC_FAILURE;
   }
 
-  m_NCS_MEMSET(mm, '\0', sizeof(PDRBD_EVT));
+  memset(mm, '\0', sizeof(PDRBD_EVT));
 
   *msg = mm;
 
@@ -481,12 +481,12 @@ uns32 pdrbd_mds_async_send(PSEUDO_CB *inst, PDRBD_EVT_TYPE evt_type, uns32 rsrc_
    PDRBD_EVT msg;
 
    /* Fill event contents */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(PDRBD_EVT));
+   memset(&msg, 0, sizeof(PDRBD_EVT));
    msg.evt_type = evt_type;
    msg.evt_data.number = rsrc_num;
 
    /* Fill MDS info */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    mds_info.i_mds_hdl = inst->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_PDRBD;

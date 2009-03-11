@@ -802,14 +802,14 @@ uns32  avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
       m_AVND_LOG_INVALID_VAL_FATAL(ederror);
    }
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"\n UPDATE CNTS RCVD(Active -> Standby): hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
            updt_cnt->hlth_config_updt, updt_cnt->su_updt, updt_cnt->comp_updt, updt_cnt->su_si_updt,
            updt_cnt->siq_updt, updt_cnt->csi_updt, updt_cnt->comp_hlth_rec_updt, updt_cnt->comp_cbk_rec_updt);
 
    m_AVND_AVND_ENTRY_LOG((uns8 *)&logbuff,NULL,0,0,0,0);
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"\n UPDATE CNTS AT STANDBY: hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
            cb->avnd_async_updt_cnt.hlth_config_updt, cb->avnd_async_updt_cnt.su_updt, cb->avnd_async_updt_cnt.comp_updt, cb->avnd_async_updt_cnt.su_si_updt,
            cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt, cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
@@ -4600,7 +4600,7 @@ static uns32  avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC 
       return NCSCC_RC_FAILURE;
    }
  
-   m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+   memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
    tmp_hc_rec.key = comp_hc_dec_ptr->key;
    tmp_hc_rec.req_hdl = comp_hc_dec_ptr->req_hdl;
 
@@ -4670,7 +4670,7 @@ static uns32  avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
       return NCSCC_RC_FAILURE;
    }
  
-   m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+   memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
    tmp_hc_rec.key = comp_hc_dec_ptr->key;
    tmp_hc_rec.req_hdl = comp_hc_dec_ptr->req_hdl;
 

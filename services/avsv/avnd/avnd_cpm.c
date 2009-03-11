@@ -143,7 +143,7 @@ AVND_SRM_REQ *avnd_srm_req_add (AVND_CB *cb, uns32 rsrc_hdl, AVND_COMP_PM_REC *p
       srm_req = m_MMGR_ALLOC_AVND_SRM_REQ;
       if (srm_req)
       {
-         m_NCS_OS_MEMSET(srm_req, 0, sizeof(AVND_SRM_REQ));
+         memset(srm_req, 0, sizeof(AVND_SRM_REQ));
 
          /* update the record key */
          srm_req->rsrc_hdl = rsrc_hdl;
@@ -574,7 +574,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon (AVND_CB                 *cb,
    if ( (0 == (rec = m_MMGR_ALLOC_AVND_COMP_PM_REC)) )
       return rec;
 
-   m_NCS_OS_MEMSET(rec, 0, sizeof(AVND_COMP_PM_REC));
+   memset(rec, 0, sizeof(AVND_COMP_PM_REC));
 
    /* assign the pm params */
    rec->desc_tree_depth = pm_start->desc_tree_depth;

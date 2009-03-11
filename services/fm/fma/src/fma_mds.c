@@ -321,7 +321,7 @@ static uns32 fma_mds_register_adest(FMA_CB *cb)
    NCSMDS_INFO mds_info;
  
    m_FMA_LOG_FUNC_ENTRY("fma_mds_register_adest");
-   m_NCS_MEMSET(&ada_info, '\0', sizeof(NCSADA_INFO));
+   memset(&ada_info, '\0', sizeof(NCSADA_INFO));
  
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE;
@@ -335,7 +335,7 @@ static uns32 fma_mds_register_adest(FMA_CB *cb)
    cb->mds_hdl = (NCSCONTEXT) ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
    cb->my_dest = ada_info.info.adest_get_hdls.o_adest;
  
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
  
    mds_info.i_mds_hdl = (MDS_HDL) cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_FMA;
@@ -380,7 +380,7 @@ uns32 fma_mds_reg (FMA_CB *cb)
       return NCSCC_RC_FAILURE;
    }
     
-   m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
     
    mds_info.i_mds_hdl = (MDS_HDL) cb->mds_hdl;
    mds_info.i_svc_id  = NCSMDS_SVC_ID_FMA;
@@ -418,7 +418,7 @@ uns32 fma_mds_dereg (FMA_CB *cb)
       
    m_FMA_LOG_FUNC_ENTRY("fma_mds_dereg");      
    /* Un-install FMA service from MDS */
-   m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
       
    mds_info.i_mds_hdl  = (MDS_HDL) cb->mds_hdl;
    mds_info.i_svc_id   = NCSMDS_SVC_ID_FMA;
@@ -467,7 +467,7 @@ uns32 fma_fm_mds_msg_sync_send(FMA_CB *fma_cb, FMA_FM_MSG *i_msg, FMA_FM_MSG **o
    if(fma_cb->fm_up == FALSE)
       return NCSCC_RC_NO_TO_SVC;
     
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    
    mds_info.i_mds_hdl = (MDS_HDL)fma_cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_FMA;
@@ -528,7 +528,7 @@ uns32 fma_fm_mds_msg_async_send(FMA_CB *cb, FMA_FM_MSG *msg)
       return NCSCC_RC_NO_TO_SVC;
     
    /* populate the mds params */
-   m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+   memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = (MDS_HDL) cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_FMA;
@@ -573,7 +573,7 @@ uns32 fma_fm_mds_msg_bcast(FMA_CB *cb, FMA_FM_MSG *msg)
    m_FMA_LOG_FUNC_ENTRY("fma_fm_mds_msg_bcast");
     
    /* populate the mds params */
-   m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+   memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = (MDS_HDL) cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_FMA;

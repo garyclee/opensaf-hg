@@ -104,7 +104,7 @@ PEER_INST *mbcsv_add_new_peer(CKPT_INST *ckpt, MBCSV_ANCHOR anchor)
       return NULL;
    }
 
-   m_NCS_MEMSET(new_peer, '\0', sizeof(PEER_INST));
+   memset(new_peer, '\0', sizeof(PEER_INST));
 
    new_peer->peer_anchor = anchor;
    new_peer->state = NCS_MBCSV_INIT_STATE_IDLE;
@@ -933,7 +933,7 @@ uns32 mbcsv_send_peer_disc_msg(uns32  type, MBCSV_REG *mbc, CKPT_INST *ckpt,
 {
    MBCSV_EVT     evt;
 
-   m_NCS_MEMSET(&evt, '\0', sizeof(MBCSV_EVT));
+   memset(&evt, '\0', sizeof(MBCSV_EVT));
 
    evt.rcvr_peer_key.svc_id  = mbc->svc_id;
    evt.info.peer_msg.type    = MBCSV_EVT_INTERNAL_PEER_DISC;

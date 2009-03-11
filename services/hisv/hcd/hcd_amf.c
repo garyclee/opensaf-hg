@@ -267,7 +267,7 @@ hcd_amf_init (HCD_CB *hcd_cb)
    SaAisErrorT        error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = hcd_amf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback      = hcd_amf_CSI_set_callback;
@@ -344,7 +344,7 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
       return NCSCC_RC_FAILURE;
    }
       /** start the AMF health check **/
-   m_NCS_MEMSET(&Healthy,0,sizeof(Healthy));
+   memset(&Healthy,0,sizeof(Healthy));
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("HISV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {

@@ -227,7 +227,7 @@ CLA_HDL_REC *cla_hdl_rec_add (CLA_CB *cb,
    if ( !(rec = m_MMGR_ALLOC_CLA_HDL_REC) )
        goto error;
 
-   m_NCS_OS_MEMSET(rec, 0, sizeof(CLA_HDL_REC));
+   memset(rec, 0, sizeof(CLA_HDL_REC));
 
    /* create the association with hdl-mngr */
    if ( !(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CLA, 
@@ -302,7 +302,7 @@ uns32 cla_hdl_cbk_param_add (CLA_CB *cb, CLA_HDL_REC *hdl_rec,
       rc = NCSCC_RC_FAILURE; /* Need to define RC enums TBD */
       goto done;
    }
-   m_NCS_OS_MEMSET(rec, 0, sizeof(CLA_PEND_CBK_REC));
+   memset(rec, 0, sizeof(CLA_PEND_CBK_REC));
 
    /* populate the callbk parameters */
    rec->cbk_info = cbk_info;
@@ -390,7 +390,7 @@ uns32 cla_hdl_cbk_dispatch_one (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    SaClmCallbacksT reg_cbk;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* pop the rec from the list */
@@ -443,7 +443,7 @@ uns32 cla_hdl_cbk_dispatch_all (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    SaClmCallbacksT reg_cbk;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* pop all the records from the list & process them */
@@ -509,7 +509,7 @@ uns32 cla_hdl_cbk_dispatch_block (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
    m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
    
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* release all lock and handle - we are abt to go into deep sleep */

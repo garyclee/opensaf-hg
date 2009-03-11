@@ -569,7 +569,7 @@ avm_encode_cold_sync_rsp_validation_info(AVM_CB_T             *cb,
    
    ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
 
-   m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+   memset(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
    for(valid_info = (AVM_VALID_INFO_T*) ncs_patricia_tree_getnext(&cb->db.valid_info_anchor, (uns8*)desc_name.name); 
        valid_info != AVM_VALID_INFO_NULL; 
@@ -632,7 +632,7 @@ avm_encode_cold_sync_rsp_ent_state(AVM_CB_T             *cb,
    
    ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
 
-   m_NCS_MEMSET(ep.name, '\0', AVM_MAX_INDEX_LEN); 
+   memset(ep.name, '\0', AVM_MAX_INDEX_LEN); 
    ep.length = 0;
 
    for(ent_info = avm_find_next_ent_str_info(cb, &ep); 
@@ -728,7 +728,7 @@ uns32  avm_encode_warm_sync_rsp(AVM_CB_T *cb, NCS_MBCSV_CB_ENC *enc)
 
    m_AVM_LOG_FUNC_ENTRY("avm_encode_warm_sync_rsp");
 
-   m_NCS_MEMSET(sprbuf, '\0', sizeof(sprbuf));   
+   memset(sprbuf, '\0', sizeof(sprbuf));   
 
    sprintf(sprbuf, " ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d \n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt);
 

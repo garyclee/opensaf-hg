@@ -1736,8 +1736,8 @@ static void  printNewAgtScalarHandlerFunc(FILE *fd, SmiNode *grpNode)
                "\n          continue;"
                "\n          break;\n      }"); 
 
-   fprintf(fd, "\n\n      m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));"
-               "\n      m_NCS_OS_MEMSET(space, 0, sizeof(space));"
+   fprintf(fd, "\n\n      memset(&mib_arg, 0, sizeof(NCSMIB_ARG));"
+               "\n      memset(space, 0, sizeof(space));"
                "\n      ncsmem_aid_init(&ma, space, 1024);");
 
    fprintf(fd, "\n\n      /* process the request */"
@@ -1987,11 +1987,11 @@ static void  printNewAgtTblHandlerFunc(FILE *fd, SmiNode *grpNode)
                "\n      val_str = NULL; "
                "\n      val_len = 0; ", cParentName);
 
-   fprintf(fd, "\n\n      m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));"
-               "\n      m_NCS_OS_MEMSET(space, 0, sizeof(space));"
+   fprintf(fd, "\n\n      memset(&mib_arg, 0, sizeof(NCSMIB_ARG));"
+               "\n      memset(space, 0, sizeof(space));"
                "\n      ncsmem_aid_init(&ma, space, 1024);"
                "\n\n      /* compose the index */"
-               "\n      m_NCS_OS_MEMSET(instance, 0, (MAX_OID_LEN*sizeof(uns32)));"
+               "\n      memset(instance, 0, (MAX_OID_LEN*sizeof(uns32)));"
                "\n      for (index = 0; index < table_info->index_oid_len; index++)"
                "\n         instance[index] = (uns32)table_info->index_oid[index];");
 
@@ -2050,14 +2050,14 @@ static void  printNewAgtTblHandlerFunc(FILE *fd, SmiNode *grpNode)
 
    fprintf(fd, "\n\n           if (reqinfo->mode == MODE_GET)"
                "\n             {"
-               "\n                 m_NCS_OS_MEMSET(&l_rsp_param_val, 0, sizeof(NCSMIB_PARAM_VAL));"
+               "\n                 memset(&l_rsp_param_val, 0, sizeof(NCSMIB_PARAM_VAL));"
                "\n                 memcpy(&l_rsp_param_val,"
                "\n                                 &mib_arg.rsp.info.get_rsp.i_param_val,"
                "\n                                 sizeof(NCSMIB_PARAM_VAL));"
                "\n             }"
                "\n             else /* FOR GETNEXT */"
                "\n             {"
-               "\n                m_NCS_OS_MEMSET(&l_rsp_param_val, 0, sizeof(NCSMIB_PARAM_VAL));"
+               "\n                memset(&l_rsp_param_val, 0, sizeof(NCSMIB_PARAM_VAL));"
                "\n                memcpy(&l_rsp_param_val,"
                "\n                                &mib_arg.rsp.info.next_rsp.i_param_val,"
                "\n                                sizeof(NCSMIB_PARAM_VAL));"
@@ -3633,7 +3633,7 @@ static void printNcsAgtReadMethod(FILE *fd, SmiNode *grpNode)
    fprintf(fd, "       return NULL;\n   }\n\n");
 
    fprintf(fd, "   memset(&mib_arg, 0, sizeof(NCSMIB_ARG));"
-               "\n   m_NCS_OS_MEMSET(space, 0, sizeof(space));"
+               "\n   memset(space, 0, sizeof(space));"
                "\n   ncsmem_aid_init(&ma, space, 1024);\n\n");
    fprintf(fd, "   memset(&rsp_param_val, 0, sizeof(NCSMIB_PARAM_VAL));\n");
    fprintf(fd, "   memset(instance, 0, (MAX_OID_LEN*sizeof(uns32)));\n\n");
@@ -3760,8 +3760,8 @@ static void printNcsAgtWriteMethod(FILE *fd, SmiNode *smiNode)
    fprintf(fd, "   uns32       i_inst[MAX_OID_LEN] = {0};\n");
    fprintf(fd, "   uns32       i_inst_len = 0;\n");
    fprintf(fd, "   uns32       status = NCSCC_RC_FAILURE;\n\n"); 
-   fprintf(fd, "   m_NCS_OS_MEMSET(&io_mib_arg, 0, sizeof(NCSMIB_ARG));"
-               "\n   m_NCS_OS_MEMSET(space, 0, sizeof(space));"
+   fprintf(fd, "   memset(&io_mib_arg, 0, sizeof(NCSMIB_ARG));"
+               "\n   memset(space, 0, sizeof(space));"
                "\n   ncsmem_aid_init(&ma, space, 1024);\n\n");
    
    if (smiNode->nodekind != SMI_NODEKIND_SCALAR)
@@ -6447,7 +6447,7 @@ static void printObjInitHdr(FILE *fd, char *objInitName)
    /* Print the function */
    fprintf(fd, "\nstatic void  %s_%s(NCSMIB_VAR_INFO *var_info)\n{", tblNameSmall,
            (esmiNetSnmpOpt == ESMI_PSSV_OPT)?"pssv_obj_init":"obj_init");
-   fprintf(fd, "\n   m_NCS_OS_MEMSET(var_info," 
+   fprintf(fd, "\n   memset(var_info," 
                "\n                   0,"
                "\n                   sizeof(NCSMIB_VAR_INFO)*%s_%s);", 
                tblNameBig,  
@@ -7791,7 +7791,7 @@ static int  printMibLibOrPssvTblInit(FILE *fd, SmiNode *grpNode, int objCount)
    fprintf(fd, "\nstatic void  %s_%s(NCSMIB_TBL_INFO *tbl_info)\n{", tblNameSmall, 
            (esmiNetSnmpOpt == ESMI_PSSV_OPT)?"pssv_tbl_init":"tbl_init");
 
-   fprintf(fd, "\n   m_NCS_OS_MEMSET(tbl_info, 0, sizeof(NCSMIB_TBL_INFO));"); 
+   fprintf(fd, "\n   memset(tbl_info, 0, sizeof(NCSMIB_TBL_INFO));"); 
 
    /* Check if the Index exists in this table */
    if (esmiCheckIndexInThisTable(grpNode, &indexCount) == ESMI_SNMP_SUCCESS)
@@ -8020,7 +8020,7 @@ static void  printMibLibTblRegister(FILE *fd, SmiNode *grpNode, int objCount)
    fprintf(fd, "\nuns32  %s_tbl_reg()\n{", tblNameSmall);
    fprintf(fd, "\n   NCSMIBLIB_REQ_INFO  req_info;");
    fprintf(fd, "\n   uns32               status = NCSCC_RC_SUCCESS;");
-   fprintf(fd, "\n\n   m_NCS_OS_MEMSET(&req_info, 0, sizeof(NCSMIBLIB_REQ_INFO));");
+   fprintf(fd, "\n\n   memset(&req_info, 0, sizeof(NCSMIBLIB_REQ_INFO));");
    
    fprintf(fd, "\n\n   /* Update the object data */");
    fprintf(fd, "\n   %s_obj_init(%s_var_info);", tblNameSmall, tblNameSmall);
@@ -8079,8 +8079,8 @@ static void  printPssvTblRegister(FILE *fd, SmiNode *grpNode, int objCount)
    fprintf(fd, "\n\tNCSMIB_VAR_INFO  %s_pssv_var_info[%s_PSSV_TBL_MAX_PARAMS];",tblNameSmall, tblNameBig);  
    fprintf(fd, "\n\tNCSMIB_OBJ_INFO  %s_pssv_obj_info;", tblNameSmall); 
    fprintf(fd, "\n   uns32          status = NCSCC_RC_SUCCESS;");
-   fprintf(fd, "\n\n   m_NCS_OS_MEMSET(&pss_arg, 0, sizeof(NCSPSS_SS_ARG));");
-   fprintf(fd, "\n\n   m_NCS_OS_MEMSET(&%s_pssv_obj_info, 0, sizeof(NCSMIB_OBJ_INFO));", tblNameSmall);
+   fprintf(fd, "\n\n   memset(&pss_arg, 0, sizeof(NCSPSS_SS_ARG));");
+   fprintf(fd, "\n\n   memset(&%s_pssv_obj_info, 0, sizeof(NCSMIB_OBJ_INFO));", tblNameSmall);
    
    fprintf(fd, "\n\n   /* Update the object data */");
    fprintf(fd, "\n   %s_pssv_obj_init(%s_pssv_var_info);", tblNameSmall, tblNameSmall);

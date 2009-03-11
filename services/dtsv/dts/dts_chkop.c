@@ -250,7 +250,7 @@ uns32  dtsv_mbcsv_register(DTS_CB  *cb)
    /*
     * Send Async Update count to zero.
     */
-   m_NCS_MEMSET(&cb->async_updt_cnt, 0, sizeof(DTSV_ASYNC_UPDT_CNT));
+   memset(&cb->async_updt_cnt, 0, sizeof(DTSV_ASYNC_UPDT_CNT));
 
    /*
     * Compile Ckpt EDP's
@@ -776,7 +776,7 @@ static uns32 dtsv_mbcsv_initialize(DTS_CB *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    mbcsv_arg.info.initialize.i_service  = NCS_SERVICE_ID_DTSV;
@@ -810,7 +810,7 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB  *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -846,7 +846,7 @@ uns32 dtsv_set_ckpt_role(DTS_CB *cb, uns32 role)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -879,7 +879,7 @@ static uns32 dtsv_get_mbcsv_sel_obj(DTS_CB  *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -912,7 +912,7 @@ uns32 dtsv_mbcsv_dispatch(DTS_CB  *cb, uns32 flag)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -952,7 +952,7 @@ uns32 dtsv_send_ckpt_data(DTS_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns32
     * Get mbcsv_handle and checkpoint handle from CB.
     */
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1016,7 +1016,7 @@ static uns32 dtsv_mbcsv_close_ckpt(DTS_CB  *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1047,7 +1047,7 @@ static uns32 dtsv_mbcsv_finalize(DTS_CB  *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1078,7 +1078,7 @@ uns32 dtsv_mbcsv_obj_set(DTS_CB  *cb, uns32  obj, uns32 val)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1112,14 +1112,14 @@ uns32 dtsv_send_data_req(DTS_CB *cb)
    NCS_MBCSV_ARG     mbcsv_arg;
    NCS_UBAID         *uba = NULL;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 
    uba = &mbcsv_arg.info.send_data_req.i_uba;
 
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
    
    mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->ckpt_hdl;
 

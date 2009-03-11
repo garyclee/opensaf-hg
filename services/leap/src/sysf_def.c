@@ -550,7 +550,7 @@ uns32 leap_env_init()
       uns32 status;
 
       /* Initalize miblib */
-      m_NCS_MEMSET(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       /* register with MIBLIB */
       miblib_init.req = NCSMIBLIB_REQ_INIT_OP;

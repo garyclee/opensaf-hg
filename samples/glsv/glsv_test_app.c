@@ -141,7 +141,7 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -242,7 +242,7 @@ void glsv_test_neagtive_handle_process(NCSCONTEXT info)
    wrong_version.majorVersion = 1;
    wrong_version.minorVersion = 0;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"Ripple",7);
 
@@ -380,7 +380,7 @@ void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -443,7 +443,7 @@ void glsv_test_sync_resource_open_app1_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -488,7 +488,7 @@ void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -536,7 +536,7 @@ void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -583,7 +583,7 @@ void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -631,7 +631,7 @@ void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -680,7 +680,7 @@ void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -733,7 +733,7 @@ void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -785,7 +785,7 @@ void glsv_test_sync_master_change_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name, 0, sizeof(res_name));
+   memset(&res_name, 0, sizeof(res_name));
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
@@ -837,23 +837,23 @@ void glsv_test_sync_big_app1_process(NCSCONTEXT info)
    version.majorVersion = 1;
    version.minorVersion = 1;
 
-   m_NCS_MEMSET(&res_name[0], 0, sizeof(SaNameT));
+   memset(&res_name[0], 0, sizeof(SaNameT));
    res_name[0].length = 7;
    memcpy(res_name[0].value,"sample",7);
 
-   m_NCS_MEMSET(&res_name[1], 0, sizeof(SaNameT));
+   memset(&res_name[1], 0, sizeof(SaNameT));
    res_name[1].length = 7;
    memcpy(res_name[1].value,"simple",7);
 
-   m_NCS_MEMSET(&res_name[2], 0, sizeof(SaNameT));
+   memset(&res_name[2], 0, sizeof(SaNameT));
    res_name[2].length = 16;
    memcpy(res_name[2].value,"AsJunkAsItCanBe",16);
 
-   m_NCS_MEMSET(&res_name[3], 0, sizeof(SaNameT));
+   memset(&res_name[3], 0, sizeof(SaNameT));
    res_name[3].length = 4;
    memcpy(res_name[3].value,"cat",4);
 
-   m_NCS_MEMSET(&res_name[4], 0, sizeof(SaNameT));
+   memset(&res_name[4], 0, sizeof(SaNameT));
    res_name[4].length = 10;
    memcpy(res_name[4].value,"BootyBump",10);
 

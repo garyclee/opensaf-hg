@@ -329,7 +329,7 @@ void avnd_log_pg_db (AVND_LOG_PG_DB op,
 {
    uns8 csi[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(csi, '\0', SA_MAX_NAME_LENGTH);
+   memset(csi, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (csi_name) 
@@ -366,8 +366,8 @@ void avnd_log_su_db (AVND_LOG_SU_DB op,
    uns8 su[SA_MAX_NAME_LENGTH];
    uns8 si[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(su, '\0', SA_MAX_NAME_LENGTH);
-   m_NCS_OS_MEMSET(si, '\0', SA_MAX_NAME_LENGTH);
+   memset(su, '\0', SA_MAX_NAME_LENGTH);
+   memset(si, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (su_name) 
@@ -418,8 +418,8 @@ void avnd_log_comp_db (AVND_LOG_COMP_DB op,
    uns8 comp[SA_MAX_NAME_LENGTH];
    uns8 csi[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
-   m_NCS_OS_MEMSET(csi, '\0', SA_MAX_NAME_LENGTH);
+   memset(comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(csi, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name) 
@@ -474,7 +474,7 @@ void avnd_pxy_pxd_log (uns32   sev,
 {
    uns8 comp[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(comp, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name) 
@@ -507,7 +507,7 @@ void avnd_log_hc_db (AVND_LOG_HC_DB       op,
 {
    uns8 key[SA_AMF_HEALTHCHECK_KEY_MAX];
 
-   m_NCS_OS_MEMSET(key, '\0', SA_AMF_HEALTHCHECK_KEY_MAX);
+   memset(key, '\0', SA_AMF_HEALTHCHECK_KEY_MAX);
 
    /* convert key into string format */
    if (hc_key) m_NCS_STRNCPY(key, hc_key->key, hc_key->keyLen);
@@ -542,7 +542,7 @@ void avnd_log_su_fsm (AVND_LOG_SU_FSM     op,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (su_name_net) 
@@ -581,7 +581,7 @@ void avnd_log_comp_fsm (AVND_LOG_COMP_FSM         op,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name_net) 
@@ -616,7 +616,7 @@ void avnd_log_err (AVND_LOG_ERR src, AVND_LOG_ERR rec,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name_net) 
@@ -645,7 +645,7 @@ void avnd_log_misc (AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (sa_name) m_NCS_STRNCPY(name, sa_name->value, m_NCS_OS_NTOHS(sa_name->length));
@@ -688,7 +688,7 @@ void avnd_log_clc_traps (AVND_LOG_TRAP op,
 {
    uns8 comp[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(comp, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name)
@@ -721,7 +721,7 @@ void avnd_log_su_oper_state_trap (AVND_LOG_OPER_STATE state,
 {
    uns8 su[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(su, '\0', SA_MAX_NAME_LENGTH);
+   memset(su, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (su_name)
@@ -753,7 +753,7 @@ void avnd_log_su_pres_state_trap (AVND_LOG_PRES_STATE state,
 {
    uns8 su[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(su, '\0', SA_MAX_NAME_LENGTH);
+   memset(su, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (su_name)
@@ -791,8 +791,8 @@ void avnd_log_proxied_orphaned_trap (AVND_LOG_TRAP status,
    uns8 comp[SA_MAX_NAME_LENGTH];
    uns8 pxy_comp[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
-   m_NCS_OS_MEMSET(pxy_comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(pxy_comp, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name)
@@ -829,7 +829,7 @@ void  avnd_log_comp_failed_trap(uns32 node_id,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (name_net)
@@ -858,7 +858,7 @@ uns32 avnd_log_reg ()
    NCS_DTSV_RQ reg;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVND;
@@ -889,7 +889,7 @@ uns32 avnd_log_unreg ()
    NCS_DTSV_RQ reg;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
    reg.i_op = NCS_DTSV_OP_UNBIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVND;

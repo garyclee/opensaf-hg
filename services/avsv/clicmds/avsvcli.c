@@ -156,7 +156,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
       } 
    };
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = pBindery->i_cli_hdl;
    req.i_req = NCSCLI_OPREQ_REGISTER;
    req.info.i_register.i_bindery = pBindery;
@@ -178,7 +178,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
    *   AVSV CLI Top Level Commands                                            *
    *                                                                          *
    \**************************************************************************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/avsv";
    data.i_command_mode = "avsv";
    data.i_access_req = FALSE;
@@ -230,7 +230,7 @@ uns32 ncsavsv_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
         case NCS_LIB_REQ_CREATE:
-        m_NCS_OS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+        memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
         i_bindery.i_cli_hdl = gl_cli_hdl;
         i_bindery.i_mab_hdl = gl_mac_handle;
         i_bindery.i_req_fnc = ncsmac_mib_request;
@@ -269,7 +269,7 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
    NCSMIB_TBL_ID        table_id;
    uns32                param_id;
    
-   m_NCS_OS_MEMSET(val, 0, sizeof(val));
+   memset(val, 0, sizeof(val));
 
    if(m_NCS_STRCMP(action->cmd.strval,"adminstate") == 0)
    {
@@ -543,9 +543,9 @@ avm_cef_set_ent_adm_req(
     int8               ans;
     
 
-    m_NCS_MEMSET(entity_instance, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);
-    m_NCS_MEMSET(entity_type, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);
-    m_NCS_MEMSET(ep, '\0', sizeof(SaHpiEntityPathT));
+    memset(entity_instance, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);
+    memset(entity_type, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);
+    memset(ep, '\0', sizeof(SaHpiEntityPathT));
 
     if (NCSCC_RC_SUCCESS != (avm_parse_inp(&arg_list->i_arg_record[1], entity_instance, &ent_inst_cnt)))
     {
@@ -582,7 +582,7 @@ avm_cef_set_ent_adm_req(
      
     table_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
 
-    m_NCS_MEMSET(set_val, 0, sizeof(uns32));
+    memset(set_val, 0, sizeof(uns32));
    
     if(!m_NCS_STRCMP(cmd->cmd.strval, "reset"))
     {
@@ -688,7 +688,7 @@ avm_cef_set_adm_switch(
 
     table_id = NCSMIB_TBL_AVM_SCALAR;
 
-    m_NCS_MEMSET(set_val, 0, sizeof(uns32));
+    memset(set_val, 0, sizeof(uns32));
    
     if(!m_NCS_STRCMP(cmd->cmd.strval, "admswitch"))
     {
@@ -745,7 +745,7 @@ avsv_cli_done(uns8 *string, uns32 status, uns32 cli_hdl)
       avsv_cli_display(cli_hdl, (char *)string);
    }
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = cli_hdl;
    req.i_req = NCSCLI_OPREQ_DONE;
    req.info.i_done.i_status = status;
@@ -770,7 +770,7 @@ avsv_cli_display(uns32 cli_hdl, char *str)
    NCSCLI_OP_INFO req;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = cli_hdl;
    req.i_req = NCSCLI_OPREQ_DISPLAY;
    req.info.i_display.i_str = (uns8 *)str;
@@ -844,7 +844,7 @@ avsv_cli_cfg_mib_arg(NCSMIB_ARG    *mib,
 
    ncsmib_init(mib);
   
- /*  m_NCS_OS_MEMSET(mib, 0, sizeof(NCSMIB_ARG)); */
+ /*  memset(mib, 0, sizeof(NCSMIB_ARG)); */
  
    mib->i_idx.i_inst_ids  = index;
    mib->i_idx.i_inst_len  = index_len;
@@ -886,8 +886,8 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    if(val == NULL)
       return status;
 
-   m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(&mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(space, 0, sizeof(space));
     
    avsv_cli_cfg_mib_arg(&mib_arg, (uns32*)mib_idx->i_inst_ids, mib_idx->i_inst_len, table_id,0,0, NULL);
  
@@ -905,7 +905,7 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    mib_arg.i_mib_key = (uns64)gl_mac_handle;
    mib_arg.i_usr_key = (uns64)gl_mac_handle;
   
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
 
    /* call the MAB function prototype */
    ncsmib_pp(&mib_arg);

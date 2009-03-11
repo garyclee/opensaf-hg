@@ -27,7 +27,7 @@ static uns32 cpsv_maprec_getnext(CPD_CB *cb,SaNameT *ckpt_name,CPD_CKPT_MAP_INFO
 uns32 cpsv_map_from_instid(const uns32* i_inst_ids, uns32 i_inst_len, CPD_CKPT_MAP_INFO *map_info,CPD_CB *cb,int32 type)
 {
    SaNameT ckpt_name;
-   m_NCS_OS_MEMSET(&ckpt_name,'\0',sizeof(SaNameT));
+   memset(&ckpt_name,'\0',sizeof(SaNameT));
    uns32 length,*start_ptr,counter=0;
 /*   uns8 *name;    */
    CPD_CKPT_MAP_INFO *map=NULL;
@@ -41,7 +41,7 @@ uns32 cpsv_map_from_instid(const uns32* i_inst_ids, uns32 i_inst_len, CPD_CKPT_M
      return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(name,'\0',length+1); */
+   memset(name,'\0',length+1); */
 
    for(;counter<length;counter++)
    {
@@ -99,7 +99,7 @@ uns32 sackptcheckpointentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data
    CPD_CKPT_MAP_INFO map_info;
    CPD_CKPT_INFO_NODE *ckpt_node=NULL; 
 
-   m_NCS_OS_MEMSET(&map_info,'\0',sizeof(CPD_CKPT_MAP_INFO)); 
+   memset(&map_info,'\0',sizeof(CPD_CKPT_MAP_INFO)); 
    
    /* Get the CB pointer from the CB handle */
    cpd_cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uns32)arg->i_mib_key); 
@@ -180,7 +180,7 @@ uns32 sackptcheckpointentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *dat
    CPD_CKPT_INFO_NODE *ckpt_node=NULL;
    uns16 length=0;
 
-   m_NCS_OS_MEMSET(&map_info,'\0',sizeof(CPD_CKPT_MAP_INFO));
+   memset(&map_info,'\0',sizeof(CPD_CKPT_MAP_INFO));
    /* Get the CB pointer from the CB handle */
    cpd_cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uns32)arg->i_mib_key);
 
@@ -266,13 +266,13 @@ uns32 sackptcheckpointentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *va
           {
              return NCSCC_RC_FAILURE;
           }
-          m_NCS_OS_MEMSET(ckpt_size,0,sizeof(uns64));*/
+          memset(ckpt_size,0,sizeof(uns64));*/
           ckpt_size = (uns64)ckpt_node->attributes.checkpointSize;
           m_CPSV_UNS64_TO_PARAM(param,buffer,ckpt_size);             
           break;
 
      case saCkptCheckpointUsedSize_ID:
-          m_NCS_OS_MEMSET(&send_evt,0,sizeof(CPSV_EVT));
+          memset(&send_evt,0,sizeof(CPSV_EVT));
    
           send_evt.type = CPSV_EVT_TYPE_CPND;
           send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_SIZE;
@@ -308,7 +308,7 @@ uns32 sackptcheckpointentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *va
              {
                return NCSCC_RC_FAILURE;
              }
-             m_NCS_OS_MEMSET(ckpt_size,0,sizeof(uns64)); */
+             memset(ckpt_size,0,sizeof(uns64)); */
              ckpt_size = (uns64)ckpt_node->ckpt_used_size;
              m_CPSV_UNS64_TO_PARAM(param,buffer,ckpt_size);
              m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPD);
@@ -322,7 +322,7 @@ uns32 sackptcheckpointentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *va
           {
              return NCSCC_RC_FAILURE;
           }
-          m_NCS_OS_MEMSET(ckpt_size,0,sizeof(uns64)); */
+          memset(ckpt_size,0,sizeof(uns64)); */
           ckpt_size = (uns64)ckpt_node->attributes.maxSectionSize;
           m_CPSV_UNS64_TO_PARAM(param,buffer,ckpt_size);
           break;
@@ -333,7 +333,7 @@ uns32 sackptcheckpointentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *va
           {
              return NCSCC_RC_FAILURE;
           }
-          m_NCS_OS_MEMSET(ckpt_size,0,sizeof(uns64));*/
+          memset(ckpt_size,0,sizeof(uns64));*/
           ckpt_size = (uns64)ckpt_node->attributes.maxSectionIdSize;
           m_CPSV_UNS64_TO_PARAM(param,buffer,ckpt_size);
           break;
@@ -367,7 +367,7 @@ uns32 sackptcheckpointentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *va
          break;
 
        case saCkptCheckpointNumSections_ID:
-         m_NCS_OS_MEMSET(&send_evt,0,sizeof(CPSV_EVT));
+         memset(&send_evt,0,sizeof(CPSV_EVT));
 
          send_evt.type = CPSV_EVT_TYPE_CPND;
          send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_NUM_SECTIONS;

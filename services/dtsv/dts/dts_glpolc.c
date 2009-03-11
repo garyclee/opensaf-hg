@@ -85,7 +85,7 @@ ncsdtsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    OP_DEVICE            *device;   
    DTS_LOG_CKPT_DATA     data;
  
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
+   memset(&reqinfo, 0, sizeof(reqinfo));
    m_NCS_STRCPY(data.file_name, "");
  
    if(flag)
@@ -420,7 +420,7 @@ uns32 dtsv_global_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
    uns8       data_buff[DTSV_CLI_MAX_SIZE]="", *buf_ptr = NULL;
    uns32      rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&uba, '\0', sizeof(uba)); 
+   memset(&uba, '\0', sizeof(uba)); 
    
    ncs_dec_init_space(&uba, buf);
    if(flag == TRUE)
@@ -477,7 +477,7 @@ uns32 dtsv_global_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
    uns8       *buff_ptr = NULL, def_num_cons=1;
    uns32      count;
 
-   m_NCS_MEMSET(&rsp_uba, '\0', sizeof(rsp_uba));
+   memset(&rsp_uba, '\0', sizeof(rsp_uba));
 
    /* Set parameters for response */
    arg->rsp.info.cli_rsp.i_cmnd_id = dtsvDispGlobalConsole;

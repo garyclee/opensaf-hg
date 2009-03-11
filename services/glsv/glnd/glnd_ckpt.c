@@ -66,7 +66,7 @@ uns32 glnd_restart_resource_info_ckpt_write( GLND_CB *glnd_cb, GLND_RESOURCE_INF
   uns32                            shm_index = 0;
 
   /* Fill restart_resource_info */
-  m_NCS_MEMSET(&restart_resource_info,'\0',sizeof(GLND_RESTART_RES_INFO));
+  memset(&restart_resource_info,'\0',sizeof(GLND_RESTART_RES_INFO));
   restart_resource_info.resource_id     = res_info->resource_id; 
   restart_resource_info.resource_name   = res_info->resource_name; 
   restart_resource_info.lcl_ref_cnt     = res_info->lcl_ref_cnt; 
@@ -88,7 +88,7 @@ uns32 glnd_restart_resource_info_ckpt_write( GLND_CB *glnd_cb, GLND_RESOURCE_INF
   restart_resource_info.valid      = GLND_SHM_INFO_VALID;
 
   /* Fill the POSIX shared memory req info*/
-  m_NCS_MEMSET(&res_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&res_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
  
   res_info_write.type                    = NCS_OS_POSIX_SHM_REQ_WRITE;
   res_info_write.info.write.i_addr       = glnd_cb->glnd_res_shm_base_addr;
@@ -123,7 +123,7 @@ uns32 glnd_restart_lock_event_info_ckpt_write( GLND_CB *glnd_cb, GLSV_RESTART_BA
 
 
   /* Fill the POSIX shared memory req info*/
-  m_NCS_MEMSET(&evt_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&evt_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   evt_info_write.type                    = NCS_OS_POSIX_SHM_REQ_WRITE;
   evt_info_write.info.write.i_addr       = glnd_cb->glnd_evt_shm_base_addr;
@@ -164,7 +164,7 @@ uns32 glnd_restart_resource_info_ckpt_overwrite( GLND_CB *glnd_cb, GLND_RESOURCE
    glnd_res_shm_base_addr = glnd_cb->glnd_res_shm_base_addr;
 
    /* Fill restart_resource_info */
-   m_NCS_MEMSET(&restart_resource_info,'\0',sizeof(GLND_RESTART_RES_INFO));
+   memset(&restart_resource_info,'\0',sizeof(GLND_RESTART_RES_INFO));
    restart_resource_info.resource_id     = res_info->resource_id;
    restart_resource_info.resource_name   = res_info->resource_name;
    restart_resource_info.lcl_ref_cnt     = res_info->lcl_ref_cnt;
@@ -182,11 +182,11 @@ uns32 glnd_restart_resource_info_ckpt_overwrite( GLND_CB *glnd_cb, GLND_RESOURCE
    restart_resource_info.shm_index       = res_info->shm_index;
    restart_resource_info.valid           = GLND_SHM_INFO_VALID;
 
-   m_NCS_MEMSET((glnd_res_shm_base_addr + res_info->shm_index),'\0',sizeof(GLND_RESTART_RES_INFO));
+   memset((glnd_res_shm_base_addr + res_info->shm_index),'\0',sizeof(GLND_RESTART_RES_INFO));
 
 
    /* Fill the POSIX shared memory req info*/
-   m_NCS_MEMSET(&res_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+   memset(&res_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
    res_info_write.type                    = NCS_OS_POSIX_SHM_REQ_WRITE;
    res_info_write.info.write.i_addr       = glnd_cb->glnd_res_shm_base_addr;
@@ -224,7 +224,7 @@ uns32 glnd_restart_res_lock_list_ckpt_write( GLND_CB *glnd_cb, GLND_RES_LOCK_LIS
   uns32                            shm_index;
 
 
-  m_NCS_MEMSET(&restart_res_lock_list_info,0,sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
+  memset(&restart_res_lock_list_info,0,sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
 
   /* Fill resstart_res_lock_list_info*/
   restart_res_lock_list_info.app_handle_id    = app_handle_id;
@@ -246,7 +246,7 @@ uns32 glnd_restart_res_lock_list_ckpt_write( GLND_CB *glnd_cb, GLND_RES_LOCK_LIS
   restart_res_lock_list_info.valid     = GLND_SHM_INFO_VALID; 
 
   /* Fill the POSIX shared memory req info*/
-  m_NCS_MEMSET(&lck_list_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&lck_list_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   lck_list_info_write.type                    = NCS_OS_POSIX_SHM_REQ_WRITE;
   lck_list_info_write.info.write.i_addr       = glnd_cb->glnd_lck_shm_base_addr;
@@ -300,10 +300,10 @@ uns32 glnd_restart_res_lock_list_ckpt_overwrite( GLND_CB *glnd_cb, GLND_RES_LOCK
   restart_res_lock_list_info.shm_index        = res_lock_list->shm_index;
   restart_res_lock_list_info.valid            = GLND_SHM_INFO_VALID;
 
-  m_NCS_MEMSET((shm_base_addr + res_lock_list->shm_index),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
+  memset((shm_base_addr + res_lock_list->shm_index),'\0',sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
  
   /* Fill the POSIX shared memory req info*/
-  m_NCS_MEMSET(&lck_list_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&lck_list_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   lck_list_info_write.type                    = NCS_OS_POSIX_SHM_REQ_WRITE;
   lck_list_info_write.info.write.i_addr       = glnd_cb->glnd_lck_shm_base_addr;
@@ -339,7 +339,7 @@ uns32 glnd_restart_res_lock_ckpt_read( GLND_CB *glnd_cb, GLND_RESTART_RES_LOCK_L
   NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
   /*Use read option of shared memory to fill ckpt_queue_info*/
-  m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   read_req.type = NCS_OS_POSIX_SHM_REQ_READ;
   read_req.info.read.i_addr = glnd_cb->glnd_lck_shm_base_addr;
@@ -371,7 +371,7 @@ uns32 glnd_restart_resource_ckpt_read( GLND_CB *glnd_cb, GLND_RESTART_RES_INFO  
   uns32         rc = NCSCC_RC_FAILURE;
 
   /*Use read option of shared memory to fill ckpt_queue_info*/
-  m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   read_req.type                  = NCS_OS_POSIX_SHM_REQ_READ;
   read_req.info.read.i_addr      = glnd_cb->glnd_res_shm_base_addr;
@@ -403,7 +403,7 @@ uns32 glnd_restart_backup_event_read( GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_
   NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
   /*Use read option of shared memory to fill */
-  m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   read_req.type = NCS_OS_POSIX_SHM_REQ_READ;
   read_req.info.read.i_addr = glnd_cb->glnd_evt_shm_base_addr;

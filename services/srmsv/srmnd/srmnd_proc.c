@@ -479,7 +479,7 @@ SRMND_SAMPLE_DATA *srmnd_get_sample_record(SRMND_RSRC_MON_NODE *rsrc)
 
          return NULL;
       }
-      m_NCS_OS_MEMSET((char *)sample_data, 0, sizeof(SRMND_SAMPLE_DATA));
+      memset((char *)sample_data, 0, sizeof(SRMND_SAMPLE_DATA));
 
       /* Add the sample record to the rsrc sample list */
       sample_data->next_sample = rsrc->mon_data.sample_data;
@@ -821,7 +821,7 @@ void  srmnd_samples_dump(SRMND_SAMPLE_DATA *sample, FILE *fp)
    {
       fprintf(fp, "\n Sample ptr: 0x%lx", (long)sample);
       fprintf(fp, "\n Next sample ptr: 0x%lx", (long)sample->next_sample);
-      m_NCS_OS_MEMSET(update_time, 0, sizeof(update_time));
+      memset(update_time, 0, sizeof(update_time));
       m_GET_ASCII_DATE_TIME_STAMP(sample->when_updated, update_time);
       fprintf(fp, "\n\t Updated time: %s", update_time);
       fprintf(fp, "\n %d.Sample Value:", ++sample_count);

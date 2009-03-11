@@ -47,7 +47,7 @@ uns32 cpd_a2s_ckpt_create(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
    CPD_MBCSV_MSG   cpd_msg;
    SaAisErrorT   rc = SA_AIS_OK;
    uns32  count = 0;   
-   m_NCS_OS_MEMSET(&cpd_msg, '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg, '\0' , sizeof(CPD_MBCSV_MSG));
 
    
    cpd_msg.type                           = CPD_A2S_MSG_CKPT_CREATE;
@@ -77,7 +77,7 @@ uns32 cpd_a2s_ckpt_create(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
       }
       else
       {
-         m_NCS_OS_MEMSET(cpd_msg.info.ckpt_create.dest_list , '\0' , (sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
+         memset(cpd_msg.info.ckpt_create.dest_list , '\0' , (sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
  
          for(count=0 ; count < ckpt_node->dest_cnt ; count++)
          {
@@ -121,7 +121,7 @@ void  cpd_a2s_ckpt_unlink_set(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
 {
    CPD_MBCSV_MSG cpd_msg ;
    uns32 rc = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type = CPD_A2S_MSG_CKPT_UNLINK; 
    cpd_msg.info.ckpt_ulink.is_unlink_set = ckpt_node->is_unlink_set;
    cpd_msg.info.ckpt_ulink.ckpt_name = ckpt_node->ckpt_name;
@@ -151,7 +151,7 @@ void cpd_a2s_ckpt_rdset(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
 {
    CPD_MBCSV_MSG cpd_msg;
    uns32 rc  = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
      
    cpd_msg.type = CPD_A2S_MSG_CKPT_RDSET;
    cpd_msg.info.rd_set.ckpt_id = ckpt_node->ckpt_id;
@@ -181,7 +181,7 @@ void cpd_a2s_ckpt_arep_set(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
 {
    CPD_MBCSV_MSG cpd_msg;
    uns32 rc = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type              = CPD_A2S_MSG_CKPT_AREP_SET;
    cpd_msg.info.arep_set.ckpt_id  = ckpt_node->ckpt_id;
    cpd_msg.info.arep_set.mds_dest = ckpt_node->active_dest;
@@ -211,7 +211,7 @@ void cpd_a2s_ckpt_dest_add(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *de
 {
    CPD_MBCSV_MSG cpd_msg;
    uns32 rc = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type             = CPD_A2S_MSG_CKPT_DEST_ADD;
    cpd_msg.info.dest_add.ckpt_id = ckpt_node->ckpt_id;
    cpd_msg.info.dest_add.mds_dest = *dest;  
@@ -245,7 +245,7 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *d
 {
    CPD_MBCSV_MSG cpd_msg;
 
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type             = CPD_A2S_MSG_CKPT_DEST_DOWN;
    cpd_msg.info.dest_down.ckpt_id       = ckpt_node->ckpt_id; 
    cpd_msg.info.dest_down.mds_dest      = *dest;
@@ -272,7 +272,7 @@ void  cpd_a2s_ckpt_dest_del(CPD_CB *cb,SaCkptCheckpointHandleT ckpt_hdl,MDS_DEST
 {
    CPD_MBCSV_MSG cpd_msg;
    uns32 rc = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type             = CPD_A2S_MSG_CKPT_DEST_DEL;
    if(ckptid_flag)
    {
@@ -303,7 +303,7 @@ void cpd_a2s_ckpt_usr_info(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node)
 {
    CPD_MBCSV_MSG cpd_msg;
    uns32 rc = SA_AIS_OK;
-   m_NCS_OS_MEMSET(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
+   memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
 
    cpd_msg.type             = CPD_A2S_MSG_CKPT_USR_INFO;
    cpd_msg.info.usr_info.ckpt_id  = ckpt_node->ckpt_id;

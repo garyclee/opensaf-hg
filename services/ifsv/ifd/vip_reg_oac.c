@@ -110,7 +110,7 @@ uns32 vip_reg_with_oac(IFSV_CB *ifsv_vip_cb)
    NCSOAC_SS_ARG   oac_arg;
    NCSMIB_TBL_ID   tbl_id = NCSMIB_TBL_IFSV_VIPTBL;   
    
-   m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    oac_arg.i_oac_hdl = ifsv_vip_cb->oac_hdl;
 
@@ -174,7 +174,7 @@ uns32 ncsvip_tbl_req(struct ncsmib_arg *args)
        return NCSCC_RC_FAILURE;
     }
                                                                                                      
-    m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+    memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
                                                                                                      
     miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
     miblib_req.info.i_mib_op_info.args = args;
@@ -214,7 +214,7 @@ vip_unreg_with_oac(IFSV_CB *cb)
    NCSOAC_SS_ARG      oac_arg;
    NCSMIB_TBL_ID      tbl_id = NCSMIB_TBL_IFSV_VIPTBL;
                                                                                                                              
-   m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
    oac_arg.i_oac_hdl = cb->cb_hdl;
    oac_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
                                                                                                                              

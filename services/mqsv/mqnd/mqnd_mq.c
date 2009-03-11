@@ -56,7 +56,7 @@ uns32 mqnd_mq_create(MQND_QUEUE_INFO *q_info)
     uns32 rc = NCSCC_RC_SUCCESS;
 
     
-    m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+    memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
     memcpy(queue_name, q_info->queueName.value, 
                     q_info->queueName.length);
@@ -104,7 +104,7 @@ uns32 mqnd_mq_open(MQND_QUEUE_INFO *q_info)
     char                queue_name[SA_MAX_NAME_LENGTH];
 
 
-    m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+    memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
     memcpy(queue_name, q_info->queueName.value, 
                     q_info->queueName.length);
@@ -132,7 +132,7 @@ uns32 mqnd_mq_destroy(MQND_QUEUE_INFO *q_info)
 {
     NCS_OS_POSIX_MQ_REQ_INFO  info;
 
-    m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+    memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
     info.info.close.mqd = q_info->queueHandle;
 
@@ -153,10 +153,10 @@ uns32 mqnd_mq_msg_send(uns32 qhdl, MQSV_MESSAGE *mqsv_msg, uns32 size)
    NCS_OS_POSIX_MQ_REQ_INFO  info;
    NCS_OS_MQ_MSG       mq_msg;
 
-   m_NCS_OS_MEMSET(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
+   memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
    memcpy(mq_msg.data, mqsv_msg, size);
 
-   m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
    info.info.send.mqd = qhdl;
    info.info.send.datalen = size;
@@ -189,8 +189,8 @@ uns32 mqnd_mq_empty(SaMsgQueueHandleT handle)
    uns32 num_messages;
    uns64 count;
 
-   m_NCS_OS_MEMSET(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
-   m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
+   memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    
    mq_req.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
    mq_req.info.attr.i_mqd = handle;
@@ -206,7 +206,7 @@ uns32 mqnd_mq_empty(SaMsgQueueHandleT handle)
    /* TBD: When POSIX is ready, pass the timeout. right now 
     * wait indefinitely 
     */
-   m_NCS_OS_MEMSET(&mq_req.info.recv.timeout, 
+   memset(&mq_req.info.recv.timeout, 
                    0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
 
    /* Convert nano seconds to micro seconds. */
@@ -233,8 +233,8 @@ uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle)
    NCS_OS_POSIX_MQ_REQ_INFO  mq_req;
    
 
-   m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
-   m_NCS_OS_MEMSET(&transfer_mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
+   memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&transfer_mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
 
    mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV;
    mq_req.info.recv.mqd = handle;
@@ -242,7 +242,7 @@ uns32 mqnd_mq_rcv(SaMsgQueueHandleT handle)
    /* TBD: When POSIX is ready, pass the timeout. right now 
     * wait indefinitely 
     */
-   m_NCS_OS_MEMSET(&mq_req.info.recv.timeout, 
+   memset(&mq_req.info.recv.timeout, 
                    0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
 
    /* Convert nano seconds to micro seconds. */
@@ -275,9 +275,9 @@ uns32 mqnd_listenerq_create(MQND_QUEUE_INFO *q_info)
     MQND_QUEUE_INFO   zero_q;
     uns32 rc = NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+    memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_OPEN;
-    m_NCS_MEMSET(&queue_name, 0, SA_MAX_NAME_LENGTH);
+    memset(&queue_name, 0, SA_MAX_NAME_LENGTH);
     sprintf(queue_name, "NCS_MQSV%llu", q_info->queueHandle);
     info.info.open.qname = queue_name;
     info.info.open.node = m_NCS_NODE_ID_FROM_MDS_DEST(q_info->rcvr_mqa);
@@ -317,7 +317,7 @@ uns32 mqnd_listenerq_destroy(MQND_QUEUE_INFO *q_info)
     if (!q_info->listenerHandle)
        return NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+    memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
     info.req = NCS_OS_POSIX_MQ_REQ_CLOSE;
     info.info.close.mqd = q_info->listenerHandle;
 

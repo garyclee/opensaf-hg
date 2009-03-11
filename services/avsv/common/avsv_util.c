@@ -57,7 +57,7 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
 {
    char          *tmp = NULL;
 
-   m_NCS_MEMSET(d_su_dn, 0, sizeof(SaNameT));
+   memset(d_su_dn, 0, sizeof(SaNameT));
 
    /* SU DN name is  SU name + NODE name */
 
@@ -101,7 +101,7 @@ uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn,
 {
    char          *tmp = NULL;
 
-   m_NCS_MEMSET(d_node_dn, 0, sizeof(SaNameT));
+   memset(d_node_dn, 0, sizeof(SaNameT));
 
    /* get the node name */
    tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safNode");
@@ -162,7 +162,7 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn,
 {
    char          *tmp = NULL;
 
-   m_NCS_MEMSET(d_si_dn, 0, sizeof(SaNameT));
+   memset(d_si_dn, 0, sizeof(SaNameT));
 
    /* get the si name */
    tmp = m_NCS_OS_STRSTR(s_dn_name->value, "safSi");
@@ -302,7 +302,7 @@ NCS_BOOL avsv_sa_name_is_null (SaNameT *name)
 {
    SaNameT null_name;
 
-   m_NCS_OS_MEMSET(&null_name, 0, sizeof(SaNameT));
+   memset(&null_name, 0, sizeof(SaNameT));
 
    if ( !m_CMP_HORDER_SANAMET(*name, null_name) )
       return TRUE;

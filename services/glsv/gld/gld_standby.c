@@ -152,7 +152,7 @@ static uns32 glsv_gld_standby_rsc_open(GLSV_GLD_A2S_CKPT_EVT* async_evt)
    if (node_list == NULL)
    {
       node_list = m_MMGR_ALLOC_GLSV_NODE_LIST;
-      m_NCS_MEMSET(node_list, 0,sizeof(GLSV_NODE_LIST));
+      memset(node_list, 0,sizeof(GLSV_NODE_LIST));
       node_list->dest_id = node_details->dest_id;
       node_list->node_id = node_id;
       *tmp_node_list = node_list;
@@ -503,7 +503,7 @@ uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_RSC_DETAILS *rsc_det
     if (tmp1_node_list == NULL)
    {
       tmp1_node_list = m_MMGR_ALLOC_GLSV_NODE_LIST;
-      m_NCS_MEMSET(tmp1_node_list, 0,sizeof(GLSV_NODE_LIST));
+      memset(tmp1_node_list, 0,sizeof(GLSV_NODE_LIST));
       tmp1_node_list->dest_id = node_details->dest_id;
       *tmp2_node_list = tmp1_node_list;
 

@@ -239,7 +239,7 @@ uns32 srmnd_logstr_reg()
 {
    NCS_DTSV_REG_CANNED_STR arg;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCS_DTSV_REG_CANNED_STR)); 
+   memset(&arg, 0, sizeof(NCS_DTSV_REG_CANNED_STR)); 
    
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_REGISTER;
    arg.info.reg_ascii_spec.spec = &srmnd_ascii_spec;
@@ -266,7 +266,7 @@ uns32 srmnd_logstr_unreg()
 {
    NCS_DTSV_REG_CANNED_STR arg;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCS_DTSV_REG_CANNED_STR)); 
+   memset(&arg, 0, sizeof(NCS_DTSV_REG_CANNED_STR)); 
 
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_DEREGISTER;
    arg.info.dereg_ascii_spec.svc_id = NCS_SERVICE_ID_SRMND;

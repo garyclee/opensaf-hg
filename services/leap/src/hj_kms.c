@@ -456,7 +456,7 @@ uns32 kms_kre_insert(KMS_REC_ENTRY** anchor,
   new_kre = m_MMGR_ALLOC_KMS_REC_ENTRY;
   if(new_kre == NULL)
     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  m_NCS_MEMSET(new_kre,0,sizeof(KMS_REC_ENTRY));
+  memset(new_kre,0,sizeof(KMS_REC_ENTRY));
   new_kre->rec.pwe_id = pwe_id;
   new_kre->rec.name = m_NCS_MEM_ALLOC((m_NCS_STRLEN(name) + 1) * sizeof(char),
                                       NCS_MEM_REGION_PERSISTENT,
@@ -602,7 +602,7 @@ uns32 kms_kke_insert(KMS_KEY_ENTRY** anchor,
   new_kke = m_MMGR_ALLOC_KMS_KEY_ENTRY;
   if(new_kke == NULL)
     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  m_NCS_MEMSET(new_kke,0,sizeof(KMS_KEY_ENTRY));
+  memset(new_kke,0,sizeof(KMS_KEY_ENTRY));
   new_kke->key  = *key;
 
   new_kke->next = *anchor;

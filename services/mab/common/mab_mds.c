@@ -90,7 +90,7 @@ uns32 mab_mds_snd(MDS_HDL  mds_hdl,    NCSCONTEXT  msg,
 {
     NCSMDS_INFO info;
 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
 
     info.i_mds_hdl = mds_hdl;
     info.i_svc_id  = fr_svc;
@@ -319,7 +319,7 @@ uns32 mab_mds_dec(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT* msg,
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
   
   mm = m_MMGR_ALLOC_MAB_MSG;
-  m_NCS_OS_MEMSET(mm, '\0', sizeof(MAB_MSG));
+  memset(mm, '\0', sizeof(MAB_MSG));
 
   if(mm == NULL)
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -403,7 +403,7 @@ uns32 mab_mds_dec(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT* msg,
                return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
             }
 
-            m_NCS_MEMSET((uns8*)tbl_list, '\0', (cnt+1)*sizeof(uns16));
+            memset((uns8*)tbl_list, '\0', (cnt+1)*sizeof(uns16));
 
             /* First tuple contains the number of table-ids received from PSSv. */
             tbl_list[0] = cnt;
@@ -1298,7 +1298,7 @@ uns32 mab_decode_pcn(NCS_UBAID *uba, char **pcn)
           if((*pcn = m_MMGR_ALLOC_MAB_PCN_STRING(len+1)) == NULL)
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        }
-       m_NCS_MEMSET(*pcn, '\0', len+1);
+       memset(*pcn, '\0', len+1);
        if(ncs_decode_n_octets_from_uba(uba, *pcn, len) != NCSCC_RC_SUCCESS)
        {
            m_MMGR_FREE_MAB_PCN_STRING(*pcn);
@@ -1420,7 +1420,7 @@ uns32 oac_pss_decode_warmboot_req(NCS_UBAID *uba, MAB_PSS_WARMBOOT_REQ *warmboot
        if(levt == NULL)
        {
           levt = warmboot_req;
-          m_NCS_MEMSET(levt, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+          memset(levt, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
        }
        else
        {
@@ -1428,7 +1428,7 @@ uns32 oac_pss_decode_warmboot_req(NCS_UBAID *uba, MAB_PSS_WARMBOOT_REQ *warmboot
           {
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
           }
-          m_NCS_MEMSET(levt->next, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+          memset(levt->next, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
           levt = levt->next;
        }
 
@@ -1475,7 +1475,7 @@ uns32 oac_pss_decode_warmboot_req(NCS_UBAID *uba, MAB_PSS_WARMBOOT_REQ *warmboot
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
              p_tbl = p_tbl->next;
           }
-          m_NCS_MEMSET(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
+          memset(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
 
           data = ncs_dec_flatten_space(uba, (uns8*)&p_tbl->tbl_id, 2);
           if(data == NULL)
@@ -1573,7 +1573,7 @@ uns32 oac_pss_tbl_decode_bind_req(NCS_UBAID *uba, MAB_PSS_TBL_BIND_EVT *bind_req
        if(levt == NULL)
        {
           levt = bind_req;
-          m_NCS_MEMSET(levt, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
+          memset(levt, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
        }
        else
        {
@@ -1581,7 +1581,7 @@ uns32 oac_pss_tbl_decode_bind_req(NCS_UBAID *uba, MAB_PSS_TBL_BIND_EVT *bind_req
           {
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
           }
-          m_NCS_MEMSET(levt->next, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
+          memset(levt->next, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
           levt = levt->next;
        }
 
@@ -1610,7 +1610,7 @@ uns32 oac_pss_tbl_decode_bind_req(NCS_UBAID *uba, MAB_PSS_TBL_BIND_EVT *bind_req
                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
              p_tbl = p_tbl->next;
           }
-          m_NCS_MEMSET(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
+          memset(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
 
           data = ncs_dec_flatten_space(uba, (uns8*)&p_tbl->tbl_id, 4);
           if(data == NULL)

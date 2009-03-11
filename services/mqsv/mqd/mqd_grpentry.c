@@ -88,7 +88,7 @@ uns32  samsgqueuegroupentry_get(NCSCONTEXT pcb, NCSMIB_ARG *arg, NCSCONTEXT *dat
    if (cb == NULL)
       return NCSCC_RC_NO_INSTANCE;
 
-   m_NCS_OS_MEMSET(&queuename, '\0', sizeof(SaNameT));
+   memset(&queuename, '\0', sizeof(SaNameT));
    if(arg->i_idx.i_inst_len == 0)
    { 
       return NCSCC_RC_FAILURE;
@@ -139,7 +139,7 @@ uns32  samsgqueuegroupentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    if (cb == NULL)
       return NCSCC_RC_NO_INSTANCE;
 
-   m_NCS_OS_MEMSET(&queuename, '\0', sizeof(SaNameT));
+   memset(&queuename, '\0', sizeof(SaNameT));
    if(arg->i_idx.i_inst_len != 0)
    {
        queuename.length = (SaUint16T) arg->i_idx.i_inst_ids[0];

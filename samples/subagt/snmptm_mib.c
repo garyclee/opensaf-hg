@@ -134,7 +134,7 @@ uns32 snmptm_reg_with_oac(SNMPTM_CB* snmptm)
           }
 
           if(m_MDS_GET_VDEST_ID_FROM_MDS_DEST(snmptm->vcard) == SNMPTM_VCARD_ID1) {
-          m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+          memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
           oac_arg.i_oac_hdl = snmptm->oac_hdl;
           oac_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
           oac_arg.i_tbl_id = tbl_id;
@@ -156,7 +156,7 @@ uns32 snmptm_reg_with_oac(SNMPTM_CB* snmptm)
              return NCSCC_RC_FAILURE;       
       
           /* regiser the Filter for each table */
-          m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+          memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
           oac_arg.i_oac_hdl = snmptm->oac_hdl;
           oac_arg.i_op = NCSOAC_SS_OP_ROW_OWNED; 
           oac_arg.i_tbl_id = tbl_id;
@@ -193,7 +193,7 @@ uns32 snmptm_reg_with_oac(SNMPTM_CB* snmptm)
           {
             NCSOAC_PSS_TBL_LIST lcl_tbl_list;
 
-            m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+            memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
             oac_arg.i_op = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
             oac_arg.i_oac_hdl = snmptm->oac_hdl;
             oac_arg.i_tbl_id = tbl_id; /* This is not used by PSSv for playback */
@@ -201,7 +201,7 @@ uns32 snmptm_reg_with_oac(SNMPTM_CB* snmptm)
             oac_arg.info.warmboot_req.is_system_client = FALSE;
 
             /* Fill the list of tables to be played-back */
-            m_NCS_MEMSET(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
+            memset(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
             lcl_tbl_list.tbl_id = tbl_id;
             oac_arg.info.warmboot_req.i_tbl_list= &lcl_tbl_list;
 
@@ -232,7 +232,7 @@ uns32 snmptm_unreg_with_oac(SNMPTM_CB* snmptm)
    NCSOAC_SS_ARG   oac_arg;
    SNMPTM_TBL_ID   tbl_id;   
    
-   m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
    
    oac_arg.i_oac_hdl = snmptm->oac_hdl;   
    oac_arg.i_op = NCSOAC_SS_OP_TBL_GONE;     
@@ -290,7 +290,7 @@ uns32 snmptm_miblib_reg()
    SNMPTM_MIBREG_FNC   reg_func = NULL;
    
    /* Initalize miblib */
-   m_NCS_OS_MEMSET(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* register with MIBLIB */
    miblib_init.req = NCSMIBLIB_REQ_INIT_OP;

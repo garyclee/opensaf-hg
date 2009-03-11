@@ -54,7 +54,7 @@ uns32 pss_register_with_oac(PSS_CB * inst)
     NCSOAC_SS_ARG   mab_arg;
 
     /* Register the PSS Profile-MIB table with OAA */
-    m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+    memset(&mab_arg, 0, sizeof(mab_arg));
     mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
     mab_arg.i_tbl_id = NCSMIB_TBL_PSR_PROFILES;
     mab_arg.i_oac_hdl = inst->oac_key;
@@ -72,7 +72,7 @@ uns32 pss_register_with_oac(PSS_CB * inst)
     inst->profile_tbl_row_hdl = mab_arg.info.row_owned.o_row_hdl;
 
     /* Register the PSS Trigger-MIB table with OAA */
-    m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+    memset(&mab_arg, 0, sizeof(mab_arg));
     mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
     mab_arg.i_tbl_id = NCSMIB_SCLR_PSR_TRIGGER;
     mab_arg.i_oac_hdl = inst->oac_key;
@@ -90,7 +90,7 @@ uns32 pss_register_with_oac(PSS_CB * inst)
     inst->trigger_scl_row_hdl = mab_arg.info.row_owned.o_row_hdl;
 
     /* Register the PSS-command table with OAA */
-    m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+    memset(&mab_arg, 0, sizeof(mab_arg));
     mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
     mab_arg.i_tbl_id = NCSMIB_TBL_PSR_CMD;
     mab_arg.i_oac_hdl = inst->oac_key;
@@ -132,7 +132,7 @@ uns32 pss_unregister_with_oac(PSS_CB * inst)
 
     if (inst->profile_tbl_row_hdl != 0)
     {
-        m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+        memset(&mab_arg, 0, sizeof(mab_arg));
         mab_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
         mab_arg.i_tbl_id = NCSMIB_TBL_PSR_PROFILES;
         mab_arg.i_oac_hdl = inst->oac_key;
@@ -150,7 +150,7 @@ uns32 pss_unregister_with_oac(PSS_CB * inst)
 
     if (inst->trigger_scl_row_hdl != 0)
     {
-        m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+        memset(&mab_arg, 0, sizeof(mab_arg));
         mab_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
         mab_arg.i_tbl_id = NCSMIB_SCLR_PSR_TRIGGER;
         mab_arg.i_oac_hdl = inst->oac_key;
@@ -169,7 +169,7 @@ uns32 pss_unregister_with_oac(PSS_CB * inst)
     
     if (inst->cmd_tbl_row_hdl != 0)
     {
-        m_NCS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+        memset(&mab_arg, 0, sizeof(mab_arg));
         mab_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
         mab_arg.i_tbl_id = NCSMIB_TBL_PSR_CMD;
         mab_arg.i_oac_hdl = inst->oac_key;
@@ -220,7 +220,7 @@ uns32 pss_mib_request (struct ncsmib_arg *mib_args)
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
 
-    m_NCS_MEMSET(mab_msg, 0, sizeof(MAB_MSG));
+    memset(mab_msg, 0, sizeof(MAB_MSG));
     mab_msg->yr_hdl  = NCS_INT32_TO_PTR_CAST(inst->hm_hdl);
     mab_msg->op      = MAB_PSS_MIB_REQUEST;
 
@@ -290,7 +290,7 @@ uns32 ncspssvprofiletableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
         return NCSCC_RC_NO_INSTANCE;
     }
 
-    m_NCS_MEMSET(&inst->profile_extract, '\0', sizeof(inst->profile_extract));
+    memset(&inst->profile_extract, '\0', sizeof(inst->profile_extract));
     m_NCS_STRCPY((char*)&inst->profile_extract, (char*)&profile_name);
 
     *data = (NCSCONTEXT)inst;
@@ -352,8 +352,8 @@ uns32 ncspssvprofiletableentry_extract(NCSMIB_PARAM_VAL* param,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(profile_name, '\0', sizeof(profile_name));
-   m_NCS_MEMSET(profile_desc, '\0', sizeof(profile_desc));
+   memset(profile_name, '\0', sizeof(profile_name));
+   memset(profile_desc, '\0', sizeof(profile_desc));
    m_NCS_PSSTS_PROFILE_EXISTS(inst->pssts_api, inst->pssts_hdl,
                               retval, inst->profile_extract, profile_exists);
 
@@ -419,7 +419,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
     uns8  desc_text[NCS_PSS_MAX_PROFILE_DESC];
     NCS_BOOL profile_exists;
 
-    m_NCS_MEMSET(profile_name, '\0', sizeof(profile_name));
+    memset(profile_name, '\0', sizeof(profile_name));
     pss_get_profile_from_inst_ids(profile_name, arg->i_idx.i_inst_len,
                                   arg->i_idx.i_inst_ids);
 
@@ -594,9 +594,9 @@ uns32 ncspssvprofiletableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
     uns8  profile_desc[NCS_PSS_MAX_PROFILE_DESC];
     uns32 len, i;
 
-    m_NCS_MEMSET(profile_name, '\0', sizeof(profile_name));
-    m_NCS_MEMSET(profile_next, '\0', sizeof(profile_next));
-    m_NCS_MEMSET(profile_desc, '\0', sizeof(profile_desc));
+    memset(profile_name, '\0', sizeof(profile_name));
+    memset(profile_next, '\0', sizeof(profile_next));
+    memset(profile_desc, '\0', sizeof(profile_desc));
 
     arg->i_op = NCSMIB_OP_RSP_NEXT;
     if((arg->req.info.next_req.i_param_id != ncsPSSvProfileDesc_ID) &&
@@ -694,7 +694,7 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
            if(arg->req.info.set_req.i_param_val.i_length < sizeof(inst->existing_profile))
-              m_NCS_MEMSET(((char *)inst->existing_profile + arg->req.info.set_req.i_param_val.i_length),
+              memset(((char *)inst->existing_profile + arg->req.info.set_req.i_param_val.i_length),
                  '\0', (sizeof(inst->existing_profile) - arg->req.info.set_req.i_param_val.i_length));
 
            memcpy(&arg->rsp.info.set_rsp.i_param_val,
@@ -716,7 +716,7 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
         else
         {
            m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SET_NEW_PRO);
-           m_NCS_MEMSET((char *)inst->new_profile, '\0', sizeof(inst->new_profile));
+           memset((char *)inst->new_profile, '\0', sizeof(inst->new_profile));
            memcpy((char *)inst->new_profile,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
@@ -751,7 +751,7 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
         else
         {
            m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SET_CUR_PRO);
-           m_NCS_MEMSET((char *)inst->current_profile, '\0', sizeof(inst->current_profile));
+           memset((char *)inst->current_profile, '\0', sizeof(inst->current_profile));
            memcpy((char *)inst->current_profile,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
@@ -938,7 +938,7 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
            pwe_cb = gl_pss_amf_attribs.csi_list->pwe_cb;
 
            /* Write this request information into pwe_cb the first time. */
-           m_NCS_MEMSET(&pwe_cb->curr_plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+           memset(&pwe_cb->curr_plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
            m_NCS_STRCPY(&pwe_cb->curr_plbck_ssn_info.info.alt_profile, 
               inst->existing_profile);
            pwe_cb->curr_plbck_ssn_info.plbck_ssn_in_progress = TRUE;
@@ -986,8 +986,8 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
 
         m_NCS_PSSTS_PROFILE_COPY(inst->pssts_api, inst->pssts_hdl, retval,
                                 inst->new_profile, inst->existing_profile);
-        m_NCS_MEMSET(inst->existing_profile, '\0', sizeof(inst->existing_profile));
-        m_NCS_MEMSET(inst->new_profile, '\0', sizeof(inst->new_profile));
+        memset(inst->existing_profile, '\0', sizeof(inst->existing_profile));
+        memset(inst->new_profile, '\0', sizeof(inst->new_profile));
         if (retval != NCSCC_RC_SUCCESS)
             return m_MAB_DBG_SINK(retval);
         return retval;

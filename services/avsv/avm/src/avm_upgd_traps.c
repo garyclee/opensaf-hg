@@ -87,10 +87,10 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
       }
    }
 
-   m_NCS_OS_MEMSET(&patternArray, 0, sizeof(SaEvtEventPatternArrayT)); 
-   m_NCS_OS_MEMSET(&snmptm_avm_trap, 0, sizeof(NCS_TRAP)); 
-   m_NCS_OS_MEMSET(&eventHandle, 0, sizeof(SaEvtEventHandleT)); 
-   m_NCS_OS_MEMSET(&eventId, 0, sizeof(SaEvtEventIdT)); 
+   memset(&patternArray, 0, sizeof(SaEvtEventPatternArrayT)); 
+   memset(&snmptm_avm_trap, 0, sizeof(NCS_TRAP)); 
+   memset(&eventHandle, 0, sizeof(SaEvtEventHandleT)); 
+   memset(&eventId, 0, sizeof(SaEvtEventIdT)); 
 
    /* Fill in the trap details */ 
    snmptm_avm_trap.i_trap_tbl_id = NCSMIB_TBL_AVM_TRAPS; 
@@ -114,7 +114,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
       
       /* Fill in the object ncsAvmEntityPath details */ 
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
@@ -142,7 +142,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
       
       /* Fill in the object ncsAvmEntityPath details */ 
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
@@ -172,7 +172,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
       
       /* Fill in the object ncsAvmEntityPath details */ 
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
@@ -205,7 +205,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
       
       /* Fill in the object ncsAvmEntityPath details */ 
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_ENT_DEPLOYMENT;
@@ -231,7 +231,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
       
       /* Fill in the object ncsAvmUpgradeModule details */ 
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_SUPP;
@@ -252,7 +252,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+      memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
     
       if (trap_id == ncsAvmSwFwUpgradeFailure_ID) 
       {
@@ -291,7 +291,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
       goto done1;
    }
 
-   m_NCS_MEMSET(encoded_buffer, '\0', tlv_size);
+   memset(encoded_buffer, '\0', tlv_size);
 
    /* call the EDU macro to encode with buffer pointer and size */
    status = 

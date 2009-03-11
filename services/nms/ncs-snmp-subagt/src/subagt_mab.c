@@ -168,7 +168,7 @@ snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
                 if (temp_oid_in_nw_order == NULL)
                     return NCSCC_RC_OUT_OF_MEM;
 
-                m_NCS_MEMSET(oid_in_nw_order, 0, sizeof(oid_in_nw_order)); 
+                memset(oid_in_nw_order, 0, sizeof(oid_in_nw_order)); 
                 memset(temp_oid_in_nw_order, 0, i_set_val_len); 
 
                 /* encode the data in network order */ 
@@ -247,7 +247,7 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
     }
 
     /* set the NCSMIB_ARG */
-    m_NCS_MEMSET(io_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(io_mib_arg);
 
     /* Fill in the NCSMIB_ARG */
@@ -515,7 +515,7 @@ snmpsubagt_mab_oid_compose(oid             *io_oid,
     /* modify the ioutput length if it is not same */
     *io_oid_length = new_inst_len;
 
-    m_NCS_MEMSET(io_oid, 0, (*io_oid_length)*(sizeof(oid)));
+    memset(io_oid, 0, (*io_oid_length)*(sizeof(oid)));
     
     /* we have enough memory, compose the new instance */
     memcpy(io_oid, i_base_oid, i_base_oid_len*sizeof(oid));
@@ -596,7 +596,7 @@ snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL    *i_rsp_param_val,
                 *io_var_len = sizeof(g_counter64);
                 
                 /* convert the data into 64 bit value */
-                m_NCS_MEMSET(&g_counter64, 0, sizeof(g_counter64));
+                memset(&g_counter64, 0, sizeof(g_counter64));
                 llong = m_NCS_OS_NTOHLL_P(i_rsp_param_val->info.i_oct);
                 g_counter64.low = (u_long)(llong)&(0xFFFFFFFF);
                 g_counter64.high = (u_long)(llong>>32)&(0xFFFFFFFF);
@@ -656,12 +656,12 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
         NCSMIB_PARAM_VAL       l_param_val;
         
 
-        m_NCS_MEMSET(&tbl_info, 0, sizeof(SNMPSA_LOG_TBL_INFO));  
-        m_NCS_MEMSET(&param_info, 0, sizeof(SNMPSA_LOG_PARAM_INFO)); 
-        m_NCS_MEMSET(&log_mem_dump,   0, sizeof(NCSFL_MEM));
-        m_NCS_MEMSET(&oct_info,       0, sizeof(SNMPSA_LOG_OCTETS));
-        m_NCS_MEMSET(&int_info,       0, sizeof(SNMPSA_LOG_INT_INFO));
-        m_NCS_MEMSET(&l_param_val,    0, sizeof(NCSMIB_PARAM_VAL)); 
+        memset(&tbl_info, 0, sizeof(SNMPSA_LOG_TBL_INFO));  
+        memset(&param_info, 0, sizeof(SNMPSA_LOG_PARAM_INFO)); 
+        memset(&log_mem_dump,   0, sizeof(NCSFL_MEM));
+        memset(&oct_info,       0, sizeof(SNMPSA_LOG_OCTETS));
+        memset(&int_info,       0, sizeof(SNMPSA_LOG_INT_INFO));
+        memset(&l_param_val,    0, sizeof(NCSMIB_PARAM_VAL)); 
 
         /* LOG Table and Object Data */ 
         tbl_info.req_type = io_mib_arg->i_op; 
@@ -673,7 +673,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
         /* LOG Instance Ids */ 
         if (io_mib_arg->i_idx.i_inst_len != 0) 
         {
-            m_NCS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));  
+            memset(&log_mem_dump, 0, sizeof(log_mem_dump));  
             if (io_mib_arg->i_op == NCSMIB_OP_RSP_NEXT)
             {
                log_mem_dump.len = (io_mib_arg->rsp.info.next_rsp.i_next.i_inst_len)*sizeof(uns32);  
@@ -688,7 +688,7 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
         }
 
         /* LOG parameter id's */ 
-       m_NCS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+       memset(&log_mem_dump, 0, sizeof(log_mem_dump));
        switch(io_mib_arg->i_op)
        {
           case  NCSMIB_OP_REQ_GET:
@@ -958,11 +958,11 @@ snmpsubagt_mab_getnext_column_process(NCSMIB_ARG        *io_mib_arg,
                                           obj_details, num_of_objs)) == 0)
             break;
         /* clean up the vehicle */        
-        m_NCS_MEMSET(io_mib_arg, 0, sizeof(NCSMIB_ARG));    
+        memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));    
         ncsmib_init(io_mib_arg);
         
         /* clean up the temporary data required in getting the response to io_mib_arg */
-        m_NCS_MEMSET(space, 0, space_size);
+        memset(space, 0, space_size);
         ncsmem_aid_init(ma, space, space_size);
         
         /* ask the required */

@@ -91,7 +91,7 @@ int main (int argc, char *argv[])
       goto fm_agents_startup_failed;
    }
 
-   m_NCS_OS_MEMSET(fm_cb, 0, sizeof(FM_CB));
+   memset(fm_cb, 0, sizeof(FM_CB));
 
    /* Create CB handle */
    gl_fm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_GFM, (NCSCONTEXT)fm_cb);
@@ -344,7 +344,7 @@ static uns32 fm_hpl_init(void)
    uns32   rc = NCSCC_RC_SUCCESS;
 
    /* Initialize with HPL.*/ 
-   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_CREATE;
    rc = ncs_hpl_lib_req(&req_info);
    if (rc != NCSCC_RC_SUCCESS)
@@ -374,7 +374,7 @@ static uns32 fm_hpl_finalize(void)
    uns32   rc = NCSCC_RC_SUCCESS;
 
    /* Initialize with HPL.*/ 
-   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_DESTROY;
    rc = ncs_hpl_lib_req(&req_info);
 
@@ -409,7 +409,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
    if (NULL == fp)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(readline, 0, 101);
+   memset(readline, 0, 101);
    while(NULL!=(fgets(readline, 100, fp)))
    {
       token = fms_skip_white(readline);
@@ -716,7 +716,7 @@ void fm_tmr_exp (void *fm_tmr)
 
    if (evt != NULL)
    {
-      m_NCS_OS_MEMSET(evt,'\0',sizeof(FM_EVT));
+      memset(evt,'\0',sizeof(FM_EVT));
       evt->evt_code = FM_EVT_TMR_EXP;
       evt->info.fm_tmr = tmr;
 
@@ -785,7 +785,7 @@ static uns32 fm_can_smh_sw_process(FM_CB *fm_cb,FM_EVT *fm_mbx_evt)
    FMA_FM_MSG   msg;
    uns32        return_val;
 
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(FMA_FM_MSG));
+   memset(&msg, 0, sizeof(FMA_FM_MSG));
 
    msg.msg_type = FMA_FM_EVT_SMH_SW_RESP;
 
@@ -853,7 +853,7 @@ static uns32 fms_fma_node_reset_intimate(FM_CB *fm_cb, uns32 slot_id, uns32 sub_
 {
    FMA_FM_MSG   fma_msg;
 
-   m_NCS_OS_MEMSET(&fma_msg, 0, sizeof(FMA_FM_MSG));
+   memset(&fma_msg, 0, sizeof(FMA_FM_MSG));
 
    fma_msg.msg_type = FMA_FM_EVT_NODE_RESET_IND;
    fma_msg.info.phy_addr.slot = slot_id;
@@ -888,7 +888,7 @@ static uns32 fms_reset_peer(FM_CB *fm_cb)
    if(fm_cb->peer_adest != 0)
    {
       /* peer fms present */
-      m_NCS_OS_MEMSET(&gfm_msg, 0, sizeof(GFM_GFM_MSG));
+      memset(&gfm_msg, 0, sizeof(GFM_GFM_MSG));
       gfm_msg.msg_type = GFM_GFM_EVT_NODE_RESET_IND;
       gfm_msg.info.node_reset_ind_info.shelf = fm_cb->peer_shelf;
       gfm_msg.info.node_reset_ind_info.slot= fm_cb->peer_slot;

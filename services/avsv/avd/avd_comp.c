@@ -98,7 +98,7 @@ AVD_COMP * avd_comp_struc_crt(AVD_CL_CB *cb,SaNameT comp_name, NCS_BOOL ckpt)
       return AVD_COMP_NULL;
    }
 
-   m_NCS_MEMSET((char *)comp, '\0', sizeof(AVD_COMP));
+   memset((char *)comp, '\0', sizeof(AVD_COMP));
 
    if (ckpt)
    {
@@ -186,7 +186,7 @@ AVD_COMP * avd_comp_struc_find(AVD_CL_CB *cb,SaNameT comp_name,NCS_BOOL host_ord
    AVD_COMP *comp;
    SaNameT  lcomp_name;
 
-   m_NCS_MEMSET((char *)&lcomp_name, '\0', sizeof(SaNameT));
+   memset((char *)&lcomp_name, '\0', sizeof(SaNameT));
    lcomp_name.length = (host_order == FALSE) ? comp_name.length :  
                                            m_HTON_SANAMET_LEN(comp_name.length);
 
@@ -220,7 +220,7 @@ AVD_COMP * avd_comp_struc_find_next(AVD_CL_CB *cb,SaNameT comp_name,NCS_BOOL hos
    AVD_COMP *comp;
    SaNameT  lcomp_name;
 
-   m_NCS_MEMSET((char *)&lcomp_name, '\0', sizeof(SaNameT));
+   memset((char *)&lcomp_name, '\0', sizeof(SaNameT));
    lcomp_name.length = (host_order == FALSE) ? comp_name.length :  
                                            m_HTON_SANAMET_LEN(comp_name.length);
 
@@ -359,7 +359,7 @@ uns32 saamfcomptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&comp_name, '\0', sizeof(SaNameT));
+   memset(&comp_name, '\0', sizeof(SaNameT));
    
    /* Prepare the component database key from the instant ID */
    comp_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -631,7 +631,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
 
    temp_param_id = arg->req.info.set_req.i_param_val.i_param_id;
 
-   m_NCS_MEMSET(&comp_name, '\0', sizeof(SaNameT));
+   memset(&comp_name, '\0', sizeof(SaNameT));
    
    /* Prepare the component database key from the instant ID */
    comp_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1084,7 +1084,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
                   (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
                {
-                  m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+                  memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
                   param.act = AVSV_OBJ_OPR_DEL;
                   param.name_net = comp->comp_info.name_net;
                   param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
@@ -1162,7 +1162,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
          (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
       {
-         m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+         memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
          param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
          param.obj_id = arg->req.info.set_req.i_param_val.i_param_id;   
          param.act = AVSV_OBJ_OPR_MOD;
@@ -1658,7 +1658,7 @@ uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
          comp->comp_info.def_recvr = arg->req.info.set_req.i_param_val.info.i_int;
       }
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1729,7 +1729,7 @@ uns32 saamfcomptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&comp_name, '\0', sizeof(SaNameT));
+   memset(&comp_name, '\0', sizeof(SaNameT));
 
    if (arg->i_idx.i_inst_len != 0)
    {   
@@ -1967,7 +1967,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
        * deleted.
        */
       /* send a delete message to the AvND for the comp. */
-      m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+      memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
       param.act = AVSV_OBJ_OPR_DEL;
       param.name_net = ack_msg->msg_info.n2d_reg_comp.comp_name_net;
       param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
@@ -2061,7 +2061,7 @@ AVD_COMP_CS_TYPE * avd_comp_cs_type_struc_crt(AVD_CL_CB *cb, AVD_COMP_CS_TYPE_IN
       return AVD_COMP_CS_TYPE_NULL;
    }
 
-   m_NCS_MEMSET((char *)cst, '\0', sizeof(AVD_COMP_CS_TYPE));
+   memset((char *)cst, '\0', sizeof(AVD_COMP_CS_TYPE));
 
    cst->indx.comp_name_net.length = indx.comp_name_net.length;
    memcpy(cst->indx.comp_name_net.value,indx.comp_name_net.value,
@@ -2164,7 +2164,7 @@ uns32  avd_comp_cs_type_find_match(AVD_CL_CB *cb, AVD_CSI *csi,AVD_COMP *comp)
    AVD_COMP_CS_TYPE *cst = AVD_COMP_CS_TYPE_NULL;
    SaNameT  csi_type_net;
 
-   m_NCS_MEMSET((uns8 *)&i_idx,'\0',sizeof(i_idx));
+   memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
    i_idx.comp_name_net = comp->comp_info.name_net;
    csi_type_net = csi->csi_type;
    csi_type_net.length = m_NCS_OS_HTONS(csi_type_net.length);
@@ -2254,7 +2254,7 @@ uns32 saamfcompcstypesupportedtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
 
    /* Prepare the comp csi type database key from the instant ID */
    comp_len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -2392,7 +2392,7 @@ uns32 saamfcompcstypesupportedtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
 
    /* Prepare the comp csi type database key from the instant ID */
    comp_len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -2592,7 +2592,7 @@ uns32 saamfcompcstypesupportedtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
 
    if(arg->i_idx.i_inst_len != 0)
    {

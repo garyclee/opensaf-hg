@@ -105,7 +105,7 @@ uns32 pdrbd_script_execute(PSEUDO_CB *cb, char *cmd_str, uns32 time_out, uns32 s
    char                     tmp_argv[PDRBD_NUM_ARGS+2][PDRBD_MAX_ARG_SIZE];
    uns32                    argc = 0, rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
+   memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
 
    /* tokenize the cmd */
    m_SCRIPT_STR_PARSE(cmd_str, scr, argc, argv, tmp_argv);

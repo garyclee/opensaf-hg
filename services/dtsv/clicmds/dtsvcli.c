@@ -225,7 +225,7 @@ static uns32 dtsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
       }
    };
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = pBindery->i_cli_hdl;
    req.i_req = NCSCLI_OPREQ_REGISTER;
    req.info.i_register.i_bindery = pBindery;
@@ -247,7 +247,7 @@ static uns32 dtsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
    *   DTSV CLI Top Level Commands                                            *
    *                                                                          *
    \**************************************************************************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/dtsv"; 
    data.i_command_mode = "dtsv";
    data.i_access_req = FALSE;
@@ -292,7 +292,7 @@ uns32 ncsdtsv_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
         case NCS_LIB_REQ_CREATE:
-        m_NCS_OS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+        memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
         i_bindery.i_cli_hdl = gl_cli_hdl;
         i_bindery.i_mab_hdl = gl_mac_handle; 
         i_bindery.i_req_fnc = ncsmac_mib_request; 
@@ -1617,7 +1617,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    char                     *cons_str = NULL;
    uns8                     str_len = 0, bit_map = 0; /* For configuring console severity */
 
-   m_NCS_MEMSET(&mib, '\0', sizeof(mib));
+   memset(&mib, '\0', sizeof(mib));
 
    /* Console printing - CLI will send a MASv CLI cmd to DTS */
    mib.i_op = NCSMIB_OP_REQ_CLI; /* Operation type */
@@ -1630,7 +1630,7 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    mib.req.info.cli_req.i_wild_card = FALSE; /* set to TRUE for wild-card req */
 
    /* Initialize the userbuf */
-   m_NCS_MEMSET(&cli_uba, '\0', sizeof(cli_uba));
+   memset(&cli_uba, '\0', sizeof(cli_uba));
    if(ncs_enc_init_space(&cli_uba) != NCSCC_RC_SUCCESS)
    {
       dtsv_cli_display(cli_hdl, "\nUserbuf init failed");
@@ -1940,7 +1940,7 @@ uns32 dtsv_cef_disp_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    NCS_UBAID                cli_uba;
    uns8                     *buff_ptr = NULL;
 
-   m_NCS_MEMSET(&mib, '\0', sizeof(mib));
+   memset(&mib, '\0', sizeof(mib));
   
    /* Displaying console  devices - CLI will send a MASv CLI cmd to DTS */
    mib.i_op = NCSMIB_OP_REQ_CLI; /* Operation type */
@@ -1953,7 +1953,7 @@ uns32 dtsv_cef_disp_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    mib.req.info.cli_req.i_wild_card = FALSE; /* set to TRUE for wild-card req */
 
    /* Initialize userbuf */
-   m_NCS_MEMSET(&cli_uba, '\0', sizeof(cli_uba));
+   memset(&cli_uba, '\0', sizeof(cli_uba));
    if(ncs_enc_init_space(&cli_uba) != NCSCC_RC_SUCCESS)
    {
       dtsv_cli_display(cli_hdl, "\nUserbuf init failed");
@@ -2057,7 +2057,7 @@ uns32 dtsv_cef_spec_reload(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    uns32                    cli_hdl  = cef_data->i_bindery->i_cli_hdl;
    uns32                    rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&mib, '\0', sizeof(mib));
+   memset(&mib, '\0', sizeof(mib));
 
    /* ASCII_SPEC reload - CLI will send a MASv CLI cmd to DTS */
    mib.i_op = NCSMIB_OP_REQ_CLI; /* Operation type */
@@ -2105,7 +2105,7 @@ uns32 dtsv_cef_print_config(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    uns32                    cli_hdl  = cef_data->i_bindery->i_cli_hdl;
    uns32                    rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&mib, '\0', sizeof(mib));
+   memset(&mib, '\0', sizeof(mib));
 
    /* CLI will send a MASv CLI cmd to DTS for printing current config*/
    mib.i_op = NCSMIB_OP_REQ_CLI; /* Operation type */
@@ -2751,7 +2751,7 @@ dtsv_cli_display(uns32 cli_hdl, char *str)
    NCSCLI_OP_INFO req;
    uns32 rc = NCSCC_RC_SUCCESS;
    
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = cli_hdl;
    req.i_req = NCSCLI_OPREQ_DISPLAY;
    req.info.i_display.i_str = (uns8 *)str;
@@ -2781,7 +2781,7 @@ dtsv_cli_done(uns8 *string, uns32 status, uns32 cli_hdl)
       dtsv_cli_display(cli_hdl, (char *)string);
    }
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = cli_hdl;
    req.i_req = NCSCLI_OPREQ_DONE;
    req.info.i_done.i_status = status;
@@ -2996,7 +2996,7 @@ uns32 dtsv_cli_cmd_rsp(NCSMIB_ARG *resp, uns32 cli_hdl)
    }
    else
    {
-      m_NCS_MEMSET(&uba, '\0', sizeof(uba));
+      memset(&uba, '\0', sizeof(uba));
 
       ncs_dec_init_space(&uba, buff);
       buff_ptr = ncs_dec_flatten_space(&uba, data_buff, sizeof(uns8));
@@ -3010,8 +3010,8 @@ uns32 dtsv_cli_cmd_rsp(NCSMIB_ARG *resp, uns32 cli_hdl)
 
       for(count = 0; count < cons_count; count++)
       {
-         m_NCS_MEMSET(cli_display, '\0', sizeof(cli_display));
-         m_NCS_MEMSET(data_buff, '\0', sizeof(data_buff));
+         memset(cli_display, '\0', sizeof(cli_display));
+         memset(data_buff, '\0', sizeof(data_buff));
 
          buff_ptr = ncs_dec_flatten_space(&uba, data_buff, DTSV_RSP_CONS_SIZE);
          if(buff_ptr == NULL)

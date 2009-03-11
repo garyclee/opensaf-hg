@@ -549,7 +549,7 @@ void avd_main_proc(AVD_CL_CB *cb)
                /* Enqueue this event */
                if (NULL != (queue_evt = m_MMGR_ALLOC_EVT_ENTRY))
                {
-                  m_NCS_MEMSET(queue_evt, '\0', sizeof(AVD_EVT_QUEUE));
+                  memset(queue_evt, '\0', sizeof(AVD_EVT_QUEUE));
                   queue_evt->evt = evt;
                   m_AVD_EVT_QUEUE_ENQUEUE(cb_now, queue_evt);
                }

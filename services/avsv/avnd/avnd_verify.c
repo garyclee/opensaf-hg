@@ -57,7 +57,7 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
    AVND_PG          *pg = 0;
    SaNameT          csi_name;
 
-   m_NCS_MEMSET(&csi_name, '\0', sizeof(SaNameT));
+   memset(&csi_name, '\0', sizeof(SaNameT));
 
    while(NULL != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name)))
    {  

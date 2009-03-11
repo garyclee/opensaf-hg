@@ -95,7 +95,7 @@ uns32 avnd_edp_ckpt_msg_hlt_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_HC));
+        memset(*d_ptr, '\0', sizeof(AVND_HC));
         struct_ptr = *d_ptr;
     }
     else
@@ -182,7 +182,7 @@ uns32 avnd_edp_ckpt_msg_su(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_SU));
+        memset(*d_ptr, '\0', sizeof(AVND_SU));
         struct_ptr = *d_ptr;
     }
     else
@@ -248,7 +248,7 @@ uns32 avnd_edp_ckpt_msg_su_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_SU_SI_REC));
+        memset(*d_ptr, '\0', sizeof(AVND_SU_SI_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -406,7 +406,7 @@ uns32 avnd_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_COMP));
+        memset(*d_ptr, '\0', sizeof(AVND_COMP));
         struct_ptr = *d_ptr;
     }
     else
@@ -484,7 +484,7 @@ uns32 avnd_edp_ckpt_msg_csi_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_COMP_CSI_REC));
+        memset(*d_ptr, '\0', sizeof(AVND_COMP_CSI_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -554,7 +554,7 @@ uns32 avnd_edp_ckpt_msg_siq(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_SU_SI_PARAM));
+        memset(*d_ptr, '\0', sizeof(AVND_SU_SI_PARAM));
         struct_ptr = *d_ptr;
     }
     else
@@ -632,7 +632,7 @@ uns32 avnd_edp_ckpt_msg_comp_hc(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_COMP_HC_REC));
+        memset(*d_ptr, '\0', sizeof(AVND_COMP_HC_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -702,7 +702,7 @@ uns32 avnd_edp_ckpt_msg_comp_cbk_rec(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_COMP_CBK));
+        memset(*d_ptr, '\0', sizeof(AVND_COMP_CBK));
         struct_ptr = *d_ptr;
     }
     else
@@ -774,7 +774,7 @@ uns32 avnd_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVND_ASYNC_UPDT_CNT));
+        memset(*d_ptr, '\0', sizeof(AVND_ASYNC_UPDT_CNT));
         struct_ptr = *d_ptr;
     }
     else

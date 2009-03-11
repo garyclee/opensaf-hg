@@ -90,7 +90,7 @@ uns32 snmptm_tblsix_tbl_req(struct ncsmib_arg *args)
    {
       m_NCS_CONS_PRINTF("For TBLSIX, last playback update from PSS received...]n");
    }
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.args = args; 
@@ -168,7 +168,7 @@ uns32 get_tblsix_entry(SNMPTM_CB  *snmptm, NCSMIB_ARG  *arg, SNMPTM_TBLSIX  **tb
 {
    SNMPTM_TBLSIX_KEY  tblsix_key;
 
-   m_NCS_OS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+   memset(&tblsix_key, '\0', sizeof(tblsix_key));
 
    if(arg->i_idx.i_inst_len != SNMPTM_TBLSIX_TBL_INST_LEN) 
       return NCSCC_RC_FAILURE;
@@ -214,7 +214,7 @@ uns32 get_next_tblsix_entry(SNMPTM_CB *snmptm,
 {
    SNMPTM_TBLSIX_KEY  tblsix_key;
    
-   m_NCS_OS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+   memset(&tblsix_key, '\0', sizeof(tblsix_key));
    
    if ((arg->i_idx.i_inst_len == 0) ||
        (arg->i_idx.i_inst_ids == NULL))
@@ -277,8 +277,8 @@ uns32 ncstesttablesixentry_set(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 
-   m_NCS_OS_MEMSET(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));    
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));    
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
   
    /* Prepare the key from the instant ID */
    make_key_from_instance_id(&tblsix_key, arg->i_idx.i_inst_ids);
@@ -304,7 +304,7 @@ uns32 ncstesttablesixentry_set(NCSCONTEXT cb,
       if (tblsix == NULL)
          return NCSCC_RC_NO_INSTANCE;
 
-         m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+         memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
          temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
          temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -453,8 +453,8 @@ uns32 ncstesttablesixentry_setrow(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    
-   m_NCS_OS_MEMSET(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    /* Prepare the key from the instant ID */
    make_key_from_instance_id(&tblsix_key, arg->i_idx.i_inst_ids);
@@ -478,7 +478,7 @@ uns32 ncstesttablesixentry_setrow(NCSCONTEXT cb,
 
              if (tblsix_param[param_id - 1].set_flag == TRUE)
              {
-                 m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+                 memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
                    
                  /* If the corresponding entry does not exist, and if the object is 
                     writeable and the SET has come from PSS, then create a tblsix entry now. */
@@ -536,7 +536,7 @@ uns32 ncstesttablesixentry_rmvrow(NCSCONTEXT cb_hdl, NCSMIB_IDX *idx)
    }  
 
    /* Now, delete the row from the tblsix */
-   m_NCS_OS_MEMSET(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));    
+   memset(&tblsix_key, '\0', sizeof(SNMPTM_TBLSIX_KEY));    
   
    /* Prepare the key from the instant ID */
    make_key_from_instance_id(&tblsix_key, idx->i_inst_ids);

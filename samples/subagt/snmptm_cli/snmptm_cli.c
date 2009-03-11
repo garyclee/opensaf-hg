@@ -54,8 +54,8 @@ uns32 snmptm_cli_register(NCSCLI_BINDERY *bindery)
    NCSCLI_OP_INFO  reg_info;
    
    /*Register the Protocol with CLI*/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(data));
-   m_NCS_OS_MEMSET(&reg_info, 0, sizeof(reg_info));
+   memset(&data, 0, sizeof(data));
+   memset(&reg_info, 0, sizeof(reg_info));
 
    reg_info.i_hdl = bindery->i_cli_hdl;
    reg_info.i_req = NCSCLI_OPREQ_REGISTER; 
@@ -79,7 +79,7 @@ uns32 snmptm_cli_register(NCSCLI_BINDERY *bindery)
    if (NCSCC_RC_SUCCESS !=  ncscli_opr_request(&reg_info))
      return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&data, 0, sizeof(data));
+   memset(&data, 0, sizeof(data));
 
    data.i_node = "root/exec/snmptm";
    data.i_command_mode = "snmptm";
@@ -142,7 +142,7 @@ uns32 snmptm_cli_done(uns32 cli_hdl, uns32 rc)
    if (cmd_data != NULL)
       cmd_data->tbl_id = 0;
 
-   m_NCS_OS_MEMSET(&done_info, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&done_info, 0, sizeof(NCSCLI_OP_INFO));
         
    done_info.i_hdl = cli_hdl;
    done_info.i_req = NCSCLI_OPREQ_DONE;
@@ -170,7 +170,7 @@ NCSCLI_SUBSYS_CB *snmptmcli_get_subsys_cb(uns32 cli_hdl)
 {
    NCSCLI_OP_INFO get_info;
   
-   m_NCS_OS_MEMSET(&get_info, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&get_info, 0, sizeof(NCSCLI_OP_INFO));
         
    get_info.i_hdl = cli_hdl;
    get_info.i_req = NCSCLI_OPREQ_GET_DATA;
@@ -569,7 +569,7 @@ static void snmptm_show_tbl_data(USRBUF *buff, uns32 entry_count, uns32 tbl_id)
       if (tbl_id == NCSMIB_TBL_SNMPTM_TBLONE)
          cntr = m_NCS_OS_NTOHL_P(buff_ptr);
  
-      m_NCS_OS_MEMSET(&addr_str, 0, sizeof(addr_str));
+      memset(&addr_str, 0, sizeof(addr_str));
      
       sysf_sprintf(addr_str, "%d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),

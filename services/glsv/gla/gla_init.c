@@ -169,7 +169,7 @@ uns32 gla_create (NCS_LIB_CREATE *create_info)
       goto error1;
    }
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(GLA_CB));
+   memset(cb, 0, sizeof(GLA_CB));
 
    /* assign the GLA pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -333,7 +333,7 @@ uns32 gla_destroy (NCS_LIB_DESTROY *destroy_info)
 uns32 gla_client_tree_init (GLA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaLckHandleT);
    if (ncs_patricia_tree_init(&cb->gla_client_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -430,10 +430,10 @@ GLA_CLIENT_INFO *gla_client_tree_find_and_add(GLA_CB *gla_cb, SaLckHandleT hdl_i
             m_LOG_GLA_MEMFAIL(GLA_CLIENT_ALLOC_FAILED);
             return NULL;
          }
-         m_NCS_OS_MEMSET(client_info, 0, sizeof(GLA_CLIENT_INFO));
+         memset(client_info, 0, sizeof(GLA_CLIENT_INFO));
 
          NCS_PATRICIA_PARAMS     param;
-         m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+         memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
          param.key_size = sizeof(SaLckResourceIdT);
          if (ncs_patricia_tree_init(&client_info->client_res_tree, &param) != NCSCC_RC_SUCCESS)
          {
@@ -502,7 +502,7 @@ uns32 gla_client_info_send(GLA_CB *gla_cb)
    while(client_info)
    {
       /* populate the evt */
-      m_NCS_OS_MEMSET(&restart_client_info_evt, 0, sizeof(GLSV_GLND_EVT));
+      memset(&restart_client_info_evt, 0, sizeof(GLSV_GLND_EVT));
 
       restart_client_info_evt.type = GLSV_GLND_EVT_CLIENT_INFO;
       restart_client_info_evt.info.restart_client_info.client_handle_id = client_info->lock_handle_id;
@@ -554,7 +554,7 @@ static uns32 gla_resource_info_send(GLA_CB *gla_cb, SaLckHandleT  hdl_id)
       if(res_info->lock_handle_id == hdl_id)
       {
         /* populate the evt */
-        m_NCS_OS_MEMSET(&restart_res_info_evt, 0, sizeof(GLSV_GLND_EVT));
+        memset(&restart_res_info_evt, 0, sizeof(GLSV_GLND_EVT));
         restart_res_info_evt.type = GLSV_GLND_EVT_CLIENT_INFO;
         restart_res_info_evt.info.restart_client_info.resource_id = res_info->gbl_res_id;
         restart_res_info_evt.info.restart_client_info.client_handle_id = hdl_id;
@@ -617,7 +617,7 @@ uns32 gla_client_tree_delete_node(GLA_CB *gla_cb, GLA_CLIENT_INFO *client_info, 
 uns32 gla_res_tree_init (GLA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaLckResourceHandleT);
    if (ncs_patricia_tree_init(&cb->gla_resource_id_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -756,7 +756,7 @@ GLA_RESOURCE_ID_INFO *gla_res_tree_find_and_add(GLA_CB *gla_cb,
          /* TBD log message */
          return NULL;
       }
-      m_NCS_OS_MEMSET(res_id_info, 0, sizeof(GLA_RESOURCE_ID_INFO));
+      memset(res_id_info, 0, sizeof(GLA_RESOURCE_ID_INFO));
         /* create the association with hdl-mngr */
       if ( 0 == (res_id_info->lcl_res_id = ncshm_create_hdl(NCS_HM_POOL_ID_EXTERNAL2,NCS_SERVICE_ID_GLA,(NCSCONTEXT)res_id_info)))
       {
@@ -804,7 +804,7 @@ GLA_CLIENT_RES_INFO *gla_client_res_tree_find_and_add(GLA_CLIENT_INFO *client_in
          /* TBD log message */
          return NULL;
       }
-      m_NCS_OS_MEMSET(res_id_info, 0, sizeof(GLA_CLIENT_RES_INFO));
+      memset(res_id_info, 0, sizeof(GLA_CLIENT_RES_INFO));
       res_id_info->gbl_res_id = res_id; 
       res_id_info->patnode.key_info = (uns8*)&res_id_info->gbl_res_id;
 
@@ -928,7 +928,7 @@ void gla_res_tree_cleanup_client_down(GLA_CB *gla_cb,
 uns32 gla_lock_tree_init (GLA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaLckLockIdT);
    if (ncs_patricia_tree_init(&cb->gla_lock_id_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -1012,7 +1012,7 @@ GLA_LOCK_ID_INFO *gla_lock_tree_find_and_add(GLA_CB *gla_cb,
          /* TBD log message */
          return NULL;
       }
-      m_NCS_OS_MEMSET(lock_id_info, 0, sizeof(GLA_LOCK_ID_INFO));
+      memset(lock_id_info, 0, sizeof(GLA_LOCK_ID_INFO));
         /* create the association with hdl-mngr */
       if ( 0 == (lock_id_info->lcl_lock_id = ncshm_create_hdl(NCS_HM_POOL_ID_EXTERNAL3,NCS_SERVICE_ID_GLA,(NCSCONTEXT)lock_id_info)))
       {
@@ -1202,7 +1202,7 @@ unsigned int ncs_gla_startup(void)
    }
 
    /*** Init GLA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (gla_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -1247,7 +1247,7 @@ unsigned int ncs_gla_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 
       rc = gla_lib_req(&lib_destroy);

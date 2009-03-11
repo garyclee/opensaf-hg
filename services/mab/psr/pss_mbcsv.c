@@ -67,7 +67,7 @@ uns32 pss_mbcsv_register(PSS_CB *pss_cb)
    NCS_MBCSV_ARG init_arg, sel_obj_arg;
 
    /* Initialize with MBCSv library */
-   m_NCS_MEMSET(&init_arg, '\0', sizeof(init_arg));
+   memset(&init_arg, '\0', sizeof(init_arg));
    /* init_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)NULL; */
    init_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    init_arg.info.initialize.i_mbcsv_cb = pss_mbcsv_callback;
@@ -84,7 +84,7 @@ uns32 pss_mbcsv_register(PSS_CB *pss_cb)
    gl_pss_amf_attribs.handles.mbcsv_hdl = init_arg.info.initialize.o_mbcsv_hdl;
 
    /* Get MBCSv Selection Object */
-   m_NCS_MEMSET(&sel_obj_arg, '\0', sizeof(sel_obj_arg));
+   memset(&sel_obj_arg, '\0', sizeof(sel_obj_arg));
    sel_obj_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
    sel_obj_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
    sel_obj_arg.info.sel_obj_get.o_select_obj=0;
@@ -119,7 +119,7 @@ uns32 pss_mbcsv_deregister(PSS_CB *pss_cb)
    uns32 rc = NCSCC_RC_SUCCESS;
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
@@ -149,7 +149,7 @@ uns32 pss_mbcsv_obj_set(PSS_PWE_CB *pwe_cb,uns32 obj, uns32 val)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
@@ -183,7 +183,7 @@ uns32 pss_mbcsv_open_ckpt(PSS_PWE_CB *pwe_cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    /* Set the checkpoint open arguments */
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
@@ -219,7 +219,7 @@ uns32 pss_mbcsv_close_ckpt(NCS_MBCSV_CKPT_HDL ckpt_hdl)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    /* Set the checkpoint open arguments */
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
@@ -694,7 +694,7 @@ uns32 pss_enc_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
    ncs_enc_claim_space(io_uba, sizeof(uns16));
    re_data_cnt = 0;
 
-   m_NCS_MEMSET(&client_key, '\0', sizeof(client_key));
+   memset(&client_key, '\0', sizeof(client_key));
    /* Start the while-loop on the oaa_tree and client_table */
    while( (pNode = ncs_patricia_tree_getnext(&pwe_cb->client_table,
                         (const uns8 *)&client_key)) != NULL )
@@ -842,7 +842,7 @@ uns32 pss_dec_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
             "pss_dec_pwe_data_for_sync_with_standby()");
          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
       }
-      m_NCS_MEMSET(p_wbreq, '\0', sizeof(PSS_SPCN_WBREQ_PEND_LIST));
+      memset(p_wbreq, '\0', sizeof(PSS_SPCN_WBREQ_PEND_LIST));
       if(pss_decode_pcn(io_uba, &p_wbreq->pcn) != NCSCC_RC_SUCCESS)
       {
          m_MMGR_FREE_PSS_SPCN_WBREQ_PEND_LIST(p_wbreq);
@@ -887,7 +887,7 @@ uns32 pss_dec_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
          MDS_DEST **pp_mdest = NULL, *p_mdest = NULL;
 
          ederror = EDU_NORMAL;
-         m_NCS_MEMSET(&lcl_mdest, '\0', sizeof(lcl_mdest));
+         memset(&lcl_mdest, '\0', sizeof(lcl_mdest));
          p_mdest = &lcl_mdest;
          pp_mdest = &p_mdest;
          rc = m_NCS_EDU_VER_EXEC(&pwe_cb->p_pss_cb->edu_hdl, ncs_edp_mds_dest, io_uba, 
@@ -1081,7 +1081,7 @@ uns32 pss_ckpt_decode_async_update(NCS_MBCSV_CB_ARG *cbk_arg)
 
    type = (PSS_CKPT_DATA_TYPE)cbk_arg->info.decode.i_reo_type;
 
-   m_NCS_MEMSET(&data, '\0', sizeof(data));
+   memset(&data, '\0', sizeof(data));
 
    /* Get PSS_PWE_CB control block Handle. cbk_arg->arg->i_client_hdl! */
    if (NULL == (pwe_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_PSS,cbk_arg->i_client_hdl)))
@@ -1172,7 +1172,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
    PSS_PWE_CB *pwe_cb = NULL;
    uns16      mbcsv_version = 0;
 
-   m_NCS_MEMSET(addrstr, '\0', 255); 
+   memset(addrstr, '\0', 255); 
    m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_DEC_CB_INVOKED);
 
    mbcsv_version =  m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
@@ -1292,7 +1292,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
             ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                        NCSFL_LC_HEADLINE, NCSFL_SEV_DEBUG,
                        NCSFL_TYPE_TIC, PSS_HDLN_WARM_SYNC_RESP_DEC_SUCCESS, addrstr);
-            m_NCS_MEMSET(addrstr, '\0', 255);           
+            memset(addrstr, '\0', 255);           
             if(*is_in_sync == TRUE)
             {
                pwe_cb->ckpt_state = PSS_WARM_SYNC_COMPLETE;
@@ -1315,7 +1315,7 @@ uns32 pss_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL *is_in_syn
                {
                   m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_SEND_DATA_REQ_FAIL, pwe_cb->pwe_id);
                   pwe_cb->ckpt_state = PSS_WARM_SYNC_FAIL;
-                  m_NCS_MEMSET(addrstr, '\0', 255); 
+                  memset(addrstr, '\0', 255); 
                   sprintf(addrstr, "PWE-id:%d, CHK PT STATE: %s ", pwe_cb->pwe_id, chk_pt_states[pwe_cb->ckpt_state]);
                   ncs_logmsg(NCS_SERVICE_ID_PSS,  PSS_LID_HDLN_C, PSS_FC_HDLN,
                              NCSFL_LC_HEADLINE, NCSFL_SEV_ERROR,
@@ -1510,7 +1510,7 @@ uns32 pss_set_ckpt_role(PSS_PWE_CB *pwe_cb, SaAmfHAStateT role)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
@@ -1545,7 +1545,7 @@ uns32 pss_send_data_req(NCS_MBCSV_CKPT_HDL ckpt_hdl)
    NCS_MBCSV_ARG     mbcsv_arg;
    NCS_UBAID         *uba = NULL;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
@@ -1647,7 +1647,7 @@ uns32 pss_ckpt_convert_n_process_event(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data,
    PSS_CKPT_DATA_TYPE type = 0;
    MAB_MSG        mab_msg;
 
-   m_NCS_MEMSET(&mab_msg, '\0', sizeof(mab_msg));
+   memset(&mab_msg, '\0', sizeof(mab_msg));
 
    /*  Now we will be passing PWE handle rather than its pointer */
    mab_msg.yr_hdl = NCS_INT64_TO_PTR_CAST(cbk_arg->i_client_hdl);
@@ -1752,7 +1752,7 @@ uns32 pss_process_re_plbck_ssn_info(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data)
       default:    /* FALSE */
          /* New playback session is starting. Copy the info in pwe_cb. */
          pwe_cb->curr_plbck_ssn_info = data->ckpt_data.plbck_ssn_info;
-         m_NCS_MEMSET(&data->ckpt_data.plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+         memset(&data->ckpt_data.plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
          m_LOG_PSS_HDLN2_I(NCSFL_SEV_DEBUG, PSS_HDLN_MBCSV_RE_NEW_PLBCK_SSN_DETAILS_COPIED, pwe_cb->pwe_id);
          break;
       }
@@ -1822,7 +1822,7 @@ uns32 pss_mdfy_plbck_info(PSS_PWE_CB *pwe_cb, PSS_CKPT_MSG *data)
       pwe_cb->curr_plbck_ssn_info.mib_idx.i_inst_ids = data->ckpt_data.plbck_ssn_info.mib_idx.i_inst_ids;
 
       /* Free ownership of memory from data->ckpt_data.plbck_ssn_info */
-      m_NCS_MEMSET(&data->ckpt_data.plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+      memset(&data->ckpt_data.plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
    }
 
    return NCSCC_RC_SUCCESS;
@@ -1892,7 +1892,7 @@ void pss_flush_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *ssn_info)
       }
    }
 
-   m_NCS_MEMSET(ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+   memset(ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
 
    return;
 }
@@ -1950,7 +1950,7 @@ void pss_partial_flush_warmboot_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *ssn_info
       }
       else
       {
-         m_NCS_MEMSET(ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+         memset(ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
       }
    }
 
@@ -1979,7 +1979,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
    if((pwe_cb == NULL) || (mab_msg == NULL))
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(&msg, '\0', sizeof(msg));
+   memset(&msg, '\0', sizeof(msg));
    msg.ckpt_data_type = ckpt_type;
 
    m_LOG_PSS_HDLN2_II(NCSFL_SEV_DEBUG, PSS_HDLN_RE_SYNC_CKPT_EVT_TYPE, pwe_cb->pwe_id, ckpt_type);
@@ -2014,7 +2014,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
          m_LOG_PSS_HDLN2_II(NCSFL_SEV_ERROR, PSS_HDLN_RE_SYNC_CKPT_EVT_POPULATE_FAIL, pwe_cb->pwe_id, ckpt_type);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(msg.ckpt_data.bam_conf_done.pcn_list.pcn, '\0', len + 1);
+      memset(msg.ckpt_data.bam_conf_done.pcn_list.pcn, '\0', len + 1);
       m_NCS_STRCPY(msg.ckpt_data.bam_conf_done.pcn_list.pcn, mab_msg->data.data.bam_conf_done.pcn_list.pcn);
       break;
 
@@ -2023,7 +2023,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
    mbcsv_arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_ADD;
@@ -2066,7 +2066,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
    if((pwe_cb == NULL) || (i_msg == NULL))
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(&msg, '\0', sizeof(msg));
+   memset(&msg, '\0', sizeof(msg));
    msg.ckpt_data_type = ckpt_type;
 
    m_LOG_PSS_HDLN2_II(NCSFL_SEV_DEBUG, PSS_HDLN_RE_SYNC_CKPT_EVT_TYPE, pwe_cb->pwe_id, ckpt_type);
@@ -2099,7 +2099,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
             m_LOG_PSS_HDLN2_II(NCSFL_SEV_ERROR, PSS_HDLN_RE_SYNC_CKPT_EVT_POPULATE_FAIL, pwe_cb->pwe_id, ckpt_type);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, '\0', len + 1);
+         memset(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, '\0', len + 1);
          m_NCS_STRCPY(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, src_pcn);
       }
       break;
@@ -2117,7 +2117,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
    mbcsv_arg.info.send_ckpt.i_action = act_type;
@@ -2172,7 +2172,7 @@ uns32 pss_duplicate_pcn_list(MAB_PSS_CLIENT_LIST *src, MAB_PSS_CLIENT_LIST *dest
          "pss_duplicate_pcn_list()");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(dest->pcn, '\0', len + 1);
+   memset(dest->pcn, '\0', len + 1);
    m_NCS_STRCPY(dest->pcn, src->pcn);
 
    for(p_src_tbl = src->tbl_list, pp_dst_tbl = &dest->tbl_list;
@@ -2186,7 +2186,7 @@ uns32 pss_duplicate_pcn_list(MAB_PSS_CLIENT_LIST *src, MAB_PSS_CLIENT_LIST *dest
          pss_free_client_list(dest);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(p_dst_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
+      memset(p_dst_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
       p_dst_tbl->tbl_id = p_src_tbl->tbl_id;
       *pp_dst_tbl = p_dst_tbl;
    }
@@ -2223,7 +2223,7 @@ void pss_free_client_list(MAB_PSS_CLIENT_LIST *list)
       m_MMGR_FREE_MAB_PSS_TBL_LIST(tmp);
       tmp = nxt_tmp;
    }
-   m_NCS_MEMSET(list, '\0', sizeof(MAB_PSS_CLIENT_LIST));
+   memset(list, '\0', sizeof(MAB_PSS_CLIENT_LIST));
 
    return;
 }
@@ -2248,7 +2248,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
    if(!src || !dst)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+   memset(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
    if(m_NCS_MEMCMP(dst, src, sizeof(PSS_CURR_PLBCK_SSN_INFO)) == 0)
       return NCSCC_RC_SUCCESS;
 
@@ -2264,10 +2264,10 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_PCN_STRING_ALLOC_FAIL,
             "pss_duplicate_plbck_ssn_info()");
-         m_NCS_MEMSET(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+         memset(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(dst->pcn, '\0', len + 1);
+      memset(dst->pcn, '\0', len + 1);
       m_NCS_STRCPY(dst->pcn, src->pcn);
    }
    else
@@ -2305,7 +2305,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
          {
             pss_free_re_wbreq_info(&dst->info.info2.wb_req);
          }
-         m_NCS_MEMSET(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
+         memset(dst, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
          return NCSCC_RC_FAILURE;
       }
       dst->mib_idx.i_inst_len = src->mib_idx.i_inst_len;
@@ -2337,7 +2337,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
    if(!src || !wbreq)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(wbreq, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+   memset(wbreq, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
    if(m_NCS_MEMCMP(wbreq, &src->info.info2.wb_req, sizeof(MAB_PSS_WARMBOOT_REQ)) == 0)
       return NCSCC_RC_SUCCESS;
 
@@ -2352,7 +2352,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
                 "pss_gen_wbreq_from_cb()");
               return NCSCC_RC_FAILURE;
           }
-          m_NCS_MEMSET(*o_pp_req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+          memset(*o_pp_req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
       }
       o_req = (*o_pp_req);
       *o_req = *in_req;
@@ -2368,7 +2368,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
             return NCSCC_RC_FAILURE;
          }
 
-         m_NCS_MEMSET(o_req->pcn_list.pcn, '\0', len + 1);
+         memset(o_req->pcn_list.pcn, '\0', len + 1);
          m_NCS_STRCPY(o_req->pcn_list.pcn, in_req->pcn_list.pcn);
 
          o_req->pcn_list.tbl_list = NULL;
@@ -2382,11 +2382,11 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
                   "pss_gen_wbreq_from_cb()");
                m_MMGR_FREE_MAB_PCN_STRING(o_req->pcn_list.pcn);
                pss_free_tbl_list(o_req->pcn_list.tbl_list);
-               m_NCS_MEMSET(o_req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+               memset(o_req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
                /* Free all the earlier ones. TBD */
                return NCSCC_RC_FAILURE;
             }
-            m_NCS_MEMSET((*pp_tbl), '\0', sizeof(MAB_PSS_TBL_LIST));
+            memset((*pp_tbl), '\0', sizeof(MAB_PSS_TBL_LIST));
             (*pp_tbl)->tbl_id = p_tbl->tbl_id;
          }
       }
@@ -2702,7 +2702,7 @@ uns32 pss_ckpt_enc_plbck_ssn_info(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba, PSS_CKPT_P
    EDU_ERR           ederror = EDU_NORMAL;
    PSS_CKPT_PLBCK_SSN_INFO_MSG lcl_ssn;
 
-   m_NCS_MEMSET(&lcl_ssn, '\0', sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG));
+   memset(&lcl_ssn, '\0', sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG));
    if(m_NCS_MEMCMP(plbck_ssn, &lcl_ssn, sizeof(PSS_CKPT_PLBCK_SSN_INFO_MSG)) == 0)
    {
       m_PSS_RE_PLBCK_SET_SSN_IS_DONE(bmask);
@@ -3079,7 +3079,7 @@ uns32 pss_ckpt_dec_plbck_ssn_info(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba, PSS_CKPT_P
                      "pss_ckpt_dec_plbck_ssn_info()");
                   return NCSCC_RC_FAILURE;
                }
-               m_NCS_MEMSET(tmp, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+               memset(tmp, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
                *pp_wbreq = tmp;
             }
             else
@@ -3122,7 +3122,7 @@ uns32 pss_ckpt_dec_plbck_ssn_info(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba, PSS_CKPT_P
          str_len = ncs_decode_16bit(&p8);
          ncs_dec_skip_space(uba, 2);
 
-         m_NCS_MEMSET(&plbck_ssn->info.alt_profile, '\0', NCS_PSS_MAX_PROFILE_NAME);
+         memset(&plbck_ssn->info.alt_profile, '\0', NCS_PSS_MAX_PROFILE_NAME);
          if(ncs_decode_n_octets_from_uba(uba, (uns8*)&plbck_ssn->info.alt_profile,
                str_len) != NCSCC_RC_SUCCESS)
          {
@@ -3205,8 +3205,8 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
       return NCSCC_RC_FAILURE;
    }
     
-   m_NCS_MEMSET(&libname, '\0', sizeof(libname));
-   m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+   memset(&libname, '\0', sizeof(libname));
+   memset(&appname, '\0', sizeof(appname));
    while(((read = fscanf(fh, "%s %s", (char*)&libname, (char*)&appname)) == 2) &&
          (read != EOF))
    {
@@ -3237,8 +3237,8 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
       }
 
       m_LOG_PSS_LIB_INFO(NCSFL_SEV_INFO, PSS_LIB_INFO_CONF_FILE_ENTRY_MBCSV_ENC_DONE, &libname, &appname);
-      m_NCS_MEMSET(&libname, '\0', sizeof(libname));
-      m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+      memset(&libname, '\0', sizeof(libname));
+      memset(&appname, '\0', sizeof(appname));
    }   /* while loop */
    sysf_fclose(fh);
 
@@ -3304,8 +3304,8 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
    /* Merging the contents of the resident pssv_lib_conf and received lib_conf information */
    for(i = 0; i < cnt; i++)
    {
-      m_NCS_MEMSET(&libname, '\0', sizeof(libname));
-      m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+      memset(&libname, '\0', sizeof(libname));
+      memset(&appname, '\0', sizeof(appname));
       if(pss_decode_str(uba, (char*)&libname) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_DEC_LIBNAME_FAIL);
@@ -3330,13 +3330,13 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
 
    fseek(fh, 0L, SEEK_SET);
 
-   m_NCS_MEMSET(&libname, '\0', sizeof(libname));
-   m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+   memset(&libname, '\0', sizeof(libname));
+   memset(&appname, '\0', sizeof(appname));
    while(((read = fscanf(fh, "%s %s", (char*)&libname, (char*)&appname)) == 2) &&
          (read != EOF))
    {
       /* Load the library, and invoke the lib-register-function */
-      m_NCS_MEMSET(&fullname, '\0', sizeof(fullname));
+      memset(&fullname, '\0', sizeof(fullname));
       sysf_sprintf((char*)&fullname, "%s", (char*)&libname);
       lib_hdl = m_NCS_OS_DLIB_LOAD(fullname, m_NCS_OS_DLIB_ATTR);
       if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL)
@@ -3347,7 +3347,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
       }
 
       /* Get the registration symbol "__<appname>_pssv_reg" from the appname */
-      m_NCS_MEMSET(&funcname, '\0', sizeof(funcname));
+      memset(&funcname, '\0', sizeof(funcname));
       sysf_sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
       app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, funcname);
       if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL)
@@ -3368,8 +3368,8 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
       }
       m_LOG_PSS_LIB_INFO(NCSFL_SEV_INFO, PSS_LIB_INFO_CONF_FILE_ENTRY_LOADED, &libname, &funcname);
       m_NCS_OS_DLIB_CLOSE(lib_hdl);
-      m_NCS_MEMSET(&libname, '\0', sizeof(libname));
-      m_NCS_MEMSET(&appname, '\0', sizeof(appname));
+      memset(&libname, '\0', sizeof(libname));
+      memset(&appname, '\0', sizeof(appname));
    }
    sysf_fclose(fh);
 
@@ -3497,7 +3497,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
          sysf_fclose(fh);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(tmp, '\0', sizeof(PSS_SPCN_LIST));
+      memset(tmp, '\0', sizeof(PSS_SPCN_LIST));
       tmp->pcn = pcn;
       tmp->plbck_frm_bam = boolean_val;
 
@@ -3614,7 +3614,7 @@ uns32 pss_decode_pcn_list(NCS_UBAID *uba, MAB_PSS_CLIENT_LIST *pcn_list)
          pss_free_client_list(pcn_list);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
+      memset(p_tbl, '\0', sizeof(MAB_PSS_TBL_LIST));
 
       data = ncs_dec_flatten_space(uba, (uns8*)&p_tbl->tbl_id, 2);
       if(data == NULL)
@@ -3713,7 +3713,7 @@ uns32 pss_resume_active_role_activity(MAB_MSG *msg)
    {
       MAB_MSG lcl_msg;
 
-      m_NCS_MEMSET(&lcl_msg, '\0', sizeof(lcl_msg));
+      memset(&lcl_msg, '\0', sizeof(lcl_msg));
       lcl_msg.yr_hdl = (NCSCONTEXT)pwe_cb;
 
       if(pwe_cb->curr_plbck_ssn_info.is_warmboot_ssn)
@@ -3724,7 +3724,7 @@ uns32 pss_resume_active_role_activity(MAB_MSG *msg)
       else
       { 
          /* Invoke on-demand playback function handler */
-         m_NCS_MEMSET((char*)&pwe_cb->p_pss_cb->existing_profile,
+         memset((char*)&pwe_cb->p_pss_cb->existing_profile,
             '\0', NCS_PSS_MAX_PROFILE_NAME);
          m_NCS_STRCPY((char*)&pwe_cb->p_pss_cb->existing_profile,
             (char*)&pwe_cb->curr_plbck_ssn_info.info.alt_profile);
@@ -3831,7 +3831,7 @@ uns32 pss_decode_str(NCS_UBAID *uba, char *p_str)
 
     if(len != 0)
     {
-       m_NCS_MEMSET(p_str, '\0', len+1);
+       memset(p_str, '\0', len+1);
        if(ncs_decode_n_octets_from_uba(uba, p_str, len) != NCSCC_RC_SUCCESS)
        {
            return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -3923,7 +3923,7 @@ uns32 pss_decode_pcn(NCS_UBAID *uba, char **pcn)
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
           }
        }
-       m_NCS_MEMSET(*pcn, '\0', len+1);
+       memset(*pcn, '\0', len+1);
        if(ncs_decode_n_octets_from_uba(uba, *pcn, len) != NCSCC_RC_SUCCESS)
        {
            m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_DEC_PCN_FAIL,

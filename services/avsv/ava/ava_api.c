@@ -359,7 +359,7 @@ SaAisErrorT saAmfFinalize (SaAmfHandleT hdl)
    NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -441,8 +441,8 @@ SaAisErrorT saAmfComponentRegister (SaAmfHandleT  hdl,
    SaAisErrorT      rc = SA_AIS_OK;
 
    /* initialize the msg * proxy-comp name */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-   m_NCS_OS_MEMSET(&pcomp_name, 0, sizeof(SaNameT));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&pcomp_name, 0, sizeof(SaNameT));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -551,8 +551,8 @@ SaAisErrorT saAmfComponentUnregister (SaAmfHandleT hdl,
    SaAisErrorT      rc = SA_AIS_OK;
 
    /* initialize the msg & proxy-comp name */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
-   m_NCS_OS_MEMSET(&pcomp_name, 0, sizeof(SaNameT));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&pcomp_name, 0, sizeof(SaNameT));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -662,7 +662,7 @@ SaAisErrorT saAmfHealthcheckStart (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -744,7 +744,7 @@ SaAisErrorT saAmfHealthcheckStop (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -815,7 +815,7 @@ SaAisErrorT saAmfHealthcheckConfirm (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -894,7 +894,7 @@ SaAisErrorT saAmfPmStart (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1001,7 +1001,7 @@ SaAisErrorT saAmfPmStop (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1095,7 +1095,7 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT hdl,
       return SA_AIS_ERR_INVALID_PARAM;
    }
 
-   m_NCS_OS_MEMSET(o_comp_name, '\0', sizeof(SaNameT));
+   memset(o_comp_name, '\0', sizeof(SaNameT));
 
    /* api pre-processing */
    m_AVA_API_PRE_PROCESSING(AVSV_AMF_COMP_NAME_GET, gl_ava_hdl, 
@@ -1146,7 +1146,7 @@ SaAisErrorT saAmfCSIQuiescingComplete(SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1244,7 +1244,7 @@ SaAisErrorT saAmfHAStateGet (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1325,7 +1325,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
    uns32            i = 0;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1509,7 +1509,7 @@ SaAisErrorT saAmfProtectionGroupTrackStop (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1581,7 +1581,7 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1658,7 +1658,7 @@ saAmfComponentErrorClear(SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);
@@ -1729,7 +1729,7 @@ SaAisErrorT saAmfResponse (SaAmfHandleT hdl,
    SaAisErrorT     rc = SA_AIS_OK;
 
    /* initialize the msg */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(&msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* verify CB-hdl & input hdl  */
    m_AVA_API_HDL_VERIFY(gl_ava_hdl, hdl, rc);

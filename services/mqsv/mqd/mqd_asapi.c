@@ -135,7 +135,7 @@ mqd_asapi_reg_hdlr(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQSV_SEND_INFO *info)
    ASAPi_OBJECT_OPR  opr = 0;
    NCS_Q_ITR         itr;
 
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
 
    if(pMqd->ha_state == SA_AMF_HA_ACTIVE) {
       /* Update the database */
@@ -247,7 +247,7 @@ mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_INFO *info
    uns32             rc = NCSCC_RC_SUCCESS;
    ASAPi_MSG_INFO    msg;  
   
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
 
    if(pMqd->ha_state == SA_AMF_HA_ACTIVE) {
       rc = mqd_asapi_dereg_db_upd(pMqd, dereg, &msg);
@@ -351,7 +351,7 @@ mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_INFO *ms
    MQD_OBJECT_ELEM   *pOelm = NULL, *pQGelm = NULL;
    MQSV_EVT          mib_event;
 
-   m_NCS_MEMSET(&mib_event,0,sizeof(MQSV_EVT));
+   memset(&mib_event,0,sizeof(MQSV_EVT));
 
    switch (dereg->objtype) {
      
@@ -553,8 +553,8 @@ mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve,
    ASAPi_MSG_INFO    msg;
    MQD_A2S_TRACK_INFO track;
 
-   m_NCS_MEMSET(&track, 0, sizeof(track));
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&track, 0, sizeof(track));
+   memset(&msg, 0, sizeof(msg));
 
    if(pMqd->ha_state != SA_AMF_HA_ACTIVE) {
       rc = SA_AIS_ERR_NO_RESOURCES;
@@ -671,7 +671,7 @@ mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue,
    uns32                rc = NCSCC_RC_SUCCESS;
    ASAPi_MSG_INFO       msg;
    
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
 
    if(pMqd->ha_state != SA_AMF_HA_ACTIVE) {
       rc = SA_AIS_ERR_NO_RESOURCES;
@@ -765,8 +765,8 @@ mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info
    uns16             qcnt = 0;
    MQD_A2S_TRACK_INFO async_track;
 
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
-   m_NCS_MEMSET(&async_track, 0, sizeof(async_track));
+   memset(&msg, 0, sizeof(msg));
+   memset(&async_track, 0, sizeof(async_track));
 
    if(pMqd->ha_state != SA_AMF_HA_ACTIVE) {
       rc = SA_AIS_ERR_NO_RESOURCES;
@@ -981,7 +981,7 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
    uns32             rc = NCSCC_RC_SUCCESS;
    uns32             cons_rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
 
    if(MQSV_OBJ_QGROUP == pObjInfo->type) {
       memcpy(&msg.info.tntfy.oinfo.group, &pObjInfo->name, sizeof(SaNameT));
@@ -1195,7 +1195,7 @@ mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode,
    MQD_OBJ_NODE   *pObjNode = 0, *pQNode = 0;
    uns32          rc = NCSCC_RC_SUCCESS;
    MQSV_EVT       mib_event; 
-   m_NCS_MEMSET(&mib_event, 0, sizeof(MQSV_EVT));
+   memset(&mib_event, 0, sizeof(MQSV_EVT));
 
    switch (reg->objtype) {
       /* Insert queue into a QueueGroup */
@@ -1230,7 +1230,7 @@ mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode,
                     return SA_AIS_ERR_NO_MEMORY;
                  }
 
-                 m_NCS_MEMSET(pOelm, 0, sizeof(MQD_OBJECT_ELEM));
+                 memset(pOelm, 0, sizeof(MQD_OBJECT_ELEM));
 
                  pOelm->pObject = &pQNode->oinfo;
                  ncs_enqueue(&pObjNode->oinfo.ilist, pOelm);
@@ -1249,7 +1249,7 @@ mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode,
                     return SA_AIS_ERR_NO_MEMORY;
                  }
 
-                 m_NCS_MEMSET(pOelm, 0, sizeof(MQD_OBJECT_ELEM));
+                 memset(pOelm, 0, sizeof(MQD_OBJECT_ELEM));
 
                  pOelm->pObject = &pObjNode->oinfo;
                  ncs_enqueue(&pQNode->oinfo.ilist, pOelm);

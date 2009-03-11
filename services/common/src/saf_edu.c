@@ -94,7 +94,7 @@ uns32 ncs_edp_sanamet(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                return NCSCC_RC_FAILURE;
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaNameT));
+        memset(*d_ptr, '\0', sizeof(SaNameT));
         struct_ptr = *d_ptr;
     }
     else
@@ -152,7 +152,7 @@ uns32 ncs_edp_sanamet_net(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                return NCSCC_RC_FAILURE;
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaNameT));
+        memset(*d_ptr, '\0', sizeof(SaNameT));
         struct_ptr = *d_ptr;
     }
     else
@@ -207,7 +207,7 @@ uns32 ncs_edp_saversiont(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaVersionT));
+        memset(*d_ptr, '\0', sizeof(SaVersionT));
         struct_ptr = *d_ptr;
     }
     else
@@ -265,7 +265,7 @@ uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                 return NCSCC_RC_FAILURE;
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaAmfHealthcheckKeyT));
+        memset(*d_ptr, '\0', sizeof(SaAmfHealthcheckKeyT));
         struct_ptr = *d_ptr;
     }
     else
@@ -346,7 +346,7 @@ uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                 return NCSCC_RC_FAILURE;
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaClmNodeAddressT));
+        memset(*d_ptr, '\0', sizeof(SaClmNodeAddressT));
         struct_ptr = *d_ptr;
     }
     else
@@ -401,7 +401,7 @@ uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaAmfProtectionGroupMemberT));
+        memset(*d_ptr, '\0', sizeof(SaAmfProtectionGroupMemberT));
         struct_ptr = *d_ptr;
     }
     else
@@ -454,7 +454,7 @@ uns32 ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaAmfProtectionGroupNotificationT));
+        memset(*d_ptr, '\0', sizeof(SaAmfProtectionGroupNotificationT));
         struct_ptr = *d_ptr;
     }
     else

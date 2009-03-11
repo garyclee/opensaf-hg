@@ -78,7 +78,7 @@ uns32 snmptm_tbleight_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.cb = snmptm; 
 
@@ -125,7 +125,7 @@ SNMPTM_TBLEIGHT *snmptm_create_tbleight_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tbleight, '\0', sizeof(SNMPTM_TBLEIGHT));
+   memset((char *)tbleight, '\0', sizeof(SNMPTM_TBLEIGHT));
 
    /* Copy the key contents to tbleight struct */
    tbleight->tbleight_key.ifIndex = tbleight_key->ifIndex;
@@ -229,7 +229,7 @@ uns32 get_tbleight_entry(SNMPTM_CB  *snmptm, NCSMIB_ARG  *arg, SNMPTM_TBLEIGHT  
 {
    SNMPTM_TBLEIGHT_KEY  tbleight_key;
 
-   m_NCS_OS_MEMSET(&tbleight_key, '\0', sizeof(tbleight_key));
+   memset(&tbleight_key, '\0', sizeof(tbleight_key));
 
    if(arg->i_idx.i_inst_len != SNMPTM_TBLEIGHT_TBL_INST_LEN)
       return NCSCC_RC_FAILURE;
@@ -275,7 +275,7 @@ uns32 get_next_tbleight_entry(SNMPTM_CB *snmptm,
 {
    SNMPTM_TBLEIGHT_KEY  tbleight_key;
 
-   m_NCS_OS_MEMSET(&tbleight_key, '\0', sizeof(tbleight_key));
+   memset(&tbleight_key, '\0', sizeof(tbleight_key));
 
    if ((arg->i_idx.i_inst_len == 0) ||
        (arg->i_idx.i_inst_ids == NULL))
@@ -431,8 +431,8 @@ uns32 ncstesttableeightentry_set(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
-   m_NCS_OS_MEMSET(&tbleight_key, '\0', sizeof(SNMPTM_TBLEIGHT_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&tbleight_key, '\0', sizeof(SNMPTM_TBLEIGHT_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Prepare the key from the instant ID */
    tbleight_key.ifIndex = arg->i_idx.i_inst_ids[0];
@@ -502,7 +502,7 @@ uns32 ncstesttableeightentry_set(NCSCONTEXT cb,
       }
       else
       {
-         m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+         memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
          temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
          temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -552,8 +552,8 @@ uns32 ncstesttableeightentry_setrow(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
-   m_NCS_OS_MEMSET(&tbleight_key, '\0', sizeof(SNMPTM_TBLEIGHT_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&tbleight_key, '\0', sizeof(SNMPTM_TBLEIGHT_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Prepare the key from the instant ID */
    tbleight_key.ifIndex = arg->i_idx.i_inst_ids[0];
@@ -608,7 +608,7 @@ uns32 ncstesttableeightentry_setrow(NCSCONTEXT cb,
           {
              if (tbleight_param[param_id - 1].set_flag == TRUE)
              {
-                 m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+                 memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
                  temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
                  temp_mib_req.info.i_set_util_info.param = &(tbleight_param[param_id - 1].param);

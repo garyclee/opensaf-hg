@@ -64,7 +64,7 @@ uns32 edsv_mab_register(EDS_CB *cb)
         tbl_id ++)
    {
       /* Log Message # Register for table Id */
-       m_NCS_MEMSET(&edsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+       memset(&edsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
        edsv_oac_arg.i_oac_hdl                = cb->mab_hdl;
        edsv_oac_arg.info.tbl_owned.i_ss_id   = NCS_SERVICE_ID_EDS;
@@ -157,7 +157,7 @@ uns32 edsv_mab_unregister(EDS_CB *cb)
         tbl_id <= NCSMIB_TBL_EDSV_CHAN_TBL;
         tbl_id ++)
    {
-      m_NCS_MEMSET(&edsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+      memset(&edsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
      edsv_oac_arg.i_tbl_id = tbl_id;
      edsv_oac_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
@@ -542,7 +542,7 @@ uns32 saevtchannelentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
    if (eds_cb == NULL)
        return ( NCSCC_RC_FAILURE );
 
-   m_NCS_MEMSET(&chan_name, '\0', sizeof(SaNameT));
+   memset(&chan_name, '\0', sizeof(SaNameT));
 
    /* Get channel name instance, from the instant identifiers */
    chan_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -618,7 +618,7 @@ uns32 saevtchannelentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
    if (eds_cb == NULL)
        return ( NCSCC_RC_FAILURE );
 
-   m_NCS_MEMSET(&chan_name, '\0', sizeof(SaNameT));
+   memset(&chan_name, '\0', sizeof(SaNameT));
 
    /* Get channel name instance, from the instant identifiers */
    if (arg->i_idx.i_inst_len != 0)

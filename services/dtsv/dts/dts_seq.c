@@ -358,7 +358,7 @@ static void dts_tmrcb(void * arg)
     {
         return;
     }
-    m_NCS_OS_MEMSET(mm, '\0', sizeof(DTSV_MSG));   
+    memset(mm, '\0', sizeof(DTSV_MSG));   
  
     mm->msg_type = DTSV_DUMP_SEQ_MSGS;
     

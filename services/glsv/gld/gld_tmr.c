@@ -199,7 +199,7 @@ void gld_tmr_exp (void *uarg)
          ncshm_give_hdl(cb_hdl);
          return;
      }
-     m_NCS_MEMSET(evt, 0,sizeof(GLSV_GLD_EVT));
+     memset(evt, 0,sizeof(GLSV_GLD_EVT));
      if (evt)
      {
         /* assign the timer evt */

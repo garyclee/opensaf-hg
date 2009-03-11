@@ -82,9 +82,9 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
    avnd->avm_oper_state = NCS_OPER_STATE_ENABLE;
 
    avnd->node_info.bootTimestamp = 0;
-   m_NCS_MEMSET(&(avnd->node_info.nodeAddress),'\0',sizeof(SaClmNodeAddressT));
+   memset(&(avnd->node_info.nodeAddress),'\0',sizeof(SaClmNodeAddressT));
 
-   m_NCS_MEMSET(&(avnd->adest),'\0',sizeof(MDS_DEST));
+   memset(&(avnd->adest),'\0',sizeof(MDS_DEST));
    avnd->rcv_msg_id = 0;
    avnd->snd_msg_id = 0;
 

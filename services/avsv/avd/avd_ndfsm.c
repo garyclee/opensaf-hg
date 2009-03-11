@@ -71,8 +71,8 @@
 #define m_AVD_UNDO_UP_CHNG(cb,avnd) \
 {\
    avnd->node_info.bootTimestamp = 0; \
-   m_NCS_MEMSET(&(avnd->adest),'\0',sizeof(MDS_DEST)); \
-   m_NCS_MEMSET(&(avnd->node_info.nodeAddress),'\0',sizeof(SaClmNodeAddressT)); \
+   memset(&(avnd->adest),'\0',sizeof(MDS_DEST)); \
+   memset(&(avnd->node_info.nodeAddress),'\0',sizeof(SaClmNodeAddressT)); \
    avnd->rcv_msg_id = 0; \
    cb->cluster_view_number --; \
    avnd->node_info.initialViewNumber = 0; \
@@ -864,7 +864,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
             return;
          }
 
-         m_NCS_MEMSET((char *)node_to_add, '\0', sizeof(AVD_FAIL_OVER_NODE));
+         memset((char *)node_to_add, '\0', sizeof(AVD_FAIL_OVER_NODE));
 
          node_to_add->node_id = avnd->node_info.nodeId;
          node_to_add->tree_node_id_node.key_info = (uns8*)&(node_to_add->node_id);

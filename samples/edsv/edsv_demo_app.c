@@ -163,7 +163,7 @@ uns32 ncs_edsv_run(void)
    #########################################################################*/
 
    /* Fill the callbacks that are to be registered with EVT */
-   m_NCS_MEMSET(&reg_callback_set, 0, sizeof(SaEvtCallbacksT));
+   memset(&reg_callback_set, 0, sizeof(SaEvtCallbacksT));
 
    reg_callback_set.saEvtChannelOpenCallback  = edsv_chan_open_callback;
    reg_callback_set.saEvtEventDeliverCallback = edsv_evt_delv_callback;
@@ -436,8 +436,8 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    p_data = m_MMGR_ALLOC_EDSVTM_EVENT_DATA((uns32)data_len+1);
    if (p_data == NULL)
       return;
-   m_NCS_MEMSET(&publisher_name,'\0',sizeof(SaNameT));
-   m_NCS_MEMSET(p_data, 0, (size_t)data_len+1);
+   memset(&publisher_name,'\0',sizeof(SaNameT));
+   memset(p_data, 0, (size_t)data_len+1);
 
    /* Create an empty patternArray to be filled in by EDA */
    num_patterns = 8;

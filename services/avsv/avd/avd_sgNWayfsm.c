@@ -1244,7 +1244,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
       /* we've an unassigned si.. find su for active assignment */
 
       /* first, scan based on su rank for this si */
-      m_NCS_MEMSET((uns8 *)&i_idx,'\0',sizeof(i_idx));
+      memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
       i_idx.si_name_net = curr_si->name_net;
       i_idx.su_rank_net = 0;
       curr_su = AVD_SU_NULL;
@@ -1332,7 +1332,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
       /* we've a not-so-fully-assigned si.. find sus for standby assignment */
 
       /* first, scan based on su rank for this si */
-      m_NCS_MEMSET((uns8 *)&i_idx,'\0',sizeof(i_idx));
+      memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
       i_idx.si_name_net = curr_si->name_net;
       i_idx.su_rank_net = 0;
       for (su_rank_rec = avd_sus_per_si_rank_struc_find_valid_next(cb, i_idx, &curr_su);

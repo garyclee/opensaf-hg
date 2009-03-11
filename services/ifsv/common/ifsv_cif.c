@@ -130,7 +130,7 @@ uns32 ifentry_get(NCSCONTEXT hdl, NCSMIB_ARG *arg, NCSCONTEXT* data)
    }
 
    /* Reset the global if_rec stored in CB */
-   m_NCS_OS_MEMSET(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
+   memset(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
 
    /* Get the record for the given ifKey */
    rc = ifsv_ifrec_get(cb, ifkey, &cb->ifmib_rec);
@@ -191,7 +191,7 @@ uns32 ifentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    }
 
    /* Reset the global if_rec stored in CB */
-   m_NCS_OS_MEMSET(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
+   memset(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
 
    /* Get the record for the given ifKey */
    rc = ifsv_ifrec_getnext(cb, ifkey, &cb->ifmib_rec);
@@ -231,7 +231,7 @@ static uns32 ifsv_process_ifentry_set(IFSV_CB *cb, uns32 paramid)
    if (evt == IFSV_NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->cb_hdl = cb->cb_hdl;
 
    switch(paramid)
@@ -318,7 +318,7 @@ uns32 ifentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    rc = ifsv_ifkey_from_instid(arg->i_idx.i_inst_ids, 
                         arg->i_idx.i_inst_len, &ifkey);
@@ -337,7 +337,7 @@ uns32 ifentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    /* Set the object */
    if(test_flag != TRUE)
    {
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);

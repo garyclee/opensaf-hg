@@ -258,7 +258,7 @@ mas_red_msg_enc(MAS_TBL* inst, NCS_MBCSV_CB_ENC* enc)
             inst->red.cold_sync_done = FALSE; 
            
             /* clean the table - records */
-            m_NCS_MEMSET(inst->red.async_count, 0, 
+            memset(inst->red.async_count, 0, 
                             sizeof(uns32)*MAB_MIB_ID_HASH_TBL_SIZE);
 
             /* free the filter details of all the tables of this CSI */ 
@@ -435,7 +435,7 @@ mas_red_cold_sync_enc(MAS_TBL* inst, NCS_MBCSV_CB_ENC *enc)
     /* reset all our local values */ 
     if (bucket_id == MAB_MIB_ID_HASH_TBL_SIZE-1)
     {
-        m_NCS_MEMSET(inst->red.this_bucket_synced, 0, sizeof(inst->red.this_bucket_synced));
+        memset(inst->red.this_bucket_synced, 0, sizeof(inst->red.this_bucket_synced));
         enc->io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE; 
         enc->io_reo_hdl = 0;
         m_LOG_MAB_HDLN_I(NCSFL_SEV_NOTICE, MAB_HDLN_MAS_COLD_SYNC_ENC_COMPL, inst->vrid);
@@ -730,7 +730,7 @@ mas_red_bucket_dec(uns8 *bucket_id, MAS_ROW_REC **tbl_list,
                                "mas_red_bucket_dec()");
             return NCSCC_RC_OUT_OF_MEM; 
         }
-        m_NCS_MEMSET(tbl_rec, 0, sizeof(MAS_ROW_REC)); 
+        memset(tbl_rec, 0, sizeof(MAS_ROW_REC)); 
         
         /* decode the table-id, service-id */ 
         data = ncs_dec_flatten_space(&dec->i_uba, data_buff, sizeof(uns32));
@@ -905,7 +905,7 @@ mas_red_mas_fltr_dec(MAS_FLTR **fltr_list, NCS_UBAID *data_uba)
                                "mas_red_mas_fltr_dec()");
             return NCSCC_RC_OUT_OF_MEM; 
         }
-        m_NCS_MEMSET(new_fltr, 0, sizeof(MAS_FLTR)); 
+        memset(new_fltr, 0, sizeof(MAS_FLTR)); 
 
         /* decode the filter */ 
         if(mab_fltr_decode(&(new_fltr->fltr),data_uba) != NCSCC_RC_SUCCESS)
@@ -1170,7 +1170,7 @@ mas_red_mas_fltr_ids_dec(MAB_FLTR_ANCHOR_NODE **fltr_ids, NCS_UBAID *data_uba)
                                "mas_red_mas_fltr_ids_dec()");
             return NCSCC_RC_OUT_OF_MEM; 
         }
-        m_NCS_MEMSET(new_mapping, 0, sizeof(MAB_FLTR_ANCHOR_NODE));
+        memset(new_mapping, 0, sizeof(MAB_FLTR_ANCHOR_NODE));
 
         /* decode the anchor value */ 
         data = ncs_dec_flatten_space(data_uba, data_buff, sizeof(MAB_ANCHOR));
@@ -1227,7 +1227,7 @@ mas_red_async_count_enc(uns32  *async_count, NCS_UBAID *uba)
     NCSFL_MEM idx;
 
     /* log the async count at the ACTIVE MAS */ 
-    m_NCS_MEMSET(&idx, 0, sizeof(NCSFL_MEM));
+    memset(&idx, 0, sizeof(NCSFL_MEM));
     idx.len = MAB_MIB_ID_HASH_TBL_SIZE*sizeof(uns32);
     idx.addr = idx.dump = (char*)async_count;
     m_LOG_MAB_MEM(NCSFL_SEV_INFO, MAB_HDLN_MAS_ASYNC_COUNT_ENC, MAB_MIB_ID_HASH_TBL_SIZE, idx);
@@ -1288,12 +1288,12 @@ mas_red_warm_sync_resp_dec(MAS_TBL *inst, NCS_MBCSV_CB_DEC  *dec)
     }
 
     /* log the async counts of STANDBY MAS */ 
-    m_NCS_MEMSET(&idx, 0, sizeof(NCSFL_MEM));
+    memset(&idx, 0, sizeof(NCSFL_MEM));
     idx.len = MAB_MIB_ID_HASH_TBL_SIZE*sizeof(uns32);
     idx.addr = idx.dump = (char*)&(inst->red.async_count);
     m_LOG_MAB_MEM(NCSFL_SEV_NOTICE, MAB_HDLN_MAS_ASYNC_COUNT_SBY, MAB_MIB_ID_HASH_TBL_SIZE, idx);
    
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG)); 
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG)); 
     mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
     mbcsv_arg.i_mbcsv_hdl = gl_mas_amf_attribs.mbcsv_attribs.mbcsv_hdl;
     mbcsv_arg.info.send_data_req.i_ckpt_hdl = inst->red.ckpt_hdl;
@@ -1449,7 +1449,7 @@ mas_red_async_count_dec(uns32  *async_count, NCS_UBAID *uba)
     }
     
     /* log the decoded async count at the Standby MAS */ 
-    m_NCS_MEMSET(&idx, 0, sizeof(NCSFL_MEM));
+    memset(&idx, 0, sizeof(NCSFL_MEM));
     idx.len = MAB_MIB_ID_HASH_TBL_SIZE*sizeof(uns32);
     idx.addr = idx.dump = (char*)async_count;
     m_LOG_MAB_MEM(NCSFL_SEV_INFO, MAB_HDLN_MAS_ASYNC_COUNT_DEC, MAB_MIB_ID_HASH_TBL_SIZE, idx);
@@ -1502,7 +1502,7 @@ mas_red_data_req_dec(NCS_MBCSV_CB_DEC *dec)
                            "mas_red_data_req_dec()");
         return NCSCC_RC_OUT_OF_MEM; 
     }
-    m_NCS_MEMSET(warm_sync_cntxt, 0, sizeof(MAS_WARM_SYNC_CNTXT));
+    memset(warm_sync_cntxt, 0, sizeof(MAS_WARM_SYNC_CNTXT));
     /* update the number of buckets to be synced */
     warm_sync_cntxt->bkt_count = out_of_sync_buckets;
         
@@ -1515,7 +1515,7 @@ mas_red_data_req_dec(NCS_MBCSV_CB_DEC *dec)
                            "mas_red_data_req_dec()");
         return NCSCC_RC_OUT_OF_MEM; 
     }
-    m_NCS_MEMSET(warm_sync_cntxt->bkt_list, 0, out_of_sync_buckets); 
+    memset(warm_sync_cntxt->bkt_list, 0, out_of_sync_buckets); 
 
     /* copy the list of buckets */ 
     bkt_list = warm_sync_cntxt->bkt_list;
@@ -1565,7 +1565,7 @@ mas_red_sync_done(MAS_TBL* inst, MAS_ASYNC_UPDATE_TYPE type)
         return NCSCC_RC_OUT_OF_MEM; 
     }
         
-    m_NCS_MEMSET(new_msg, 0, sizeof(MAB_MSG));     
+    memset(new_msg, 0, sizeof(MAB_MSG));     
     new_msg->op = MAB_MAS_ASYNC_DONE; 
     status = mas_red_sync(inst, new_msg, type); 
     
@@ -1595,7 +1595,7 @@ mas_red_sync(MAS_TBL* inst, MAB_MSG* msg, MAS_ASYNC_UPDATE_TYPE type)
     
     m_MAB_DBG_TRACE("\nmas_red_sync():entered."); 
     
-    m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
     mbcsv_arg.i_mbcsv_hdl = inst->red.mbcsv_hdl;
     mbcsv_arg.info.send_ckpt.i_action = NCS_MBCSV_ACT_UPDATE;
@@ -1812,7 +1812,7 @@ mas_mbcsv_interface_initialize(MAS_MBCSV_ATTRIBS *mbcsv_attribs)
         return NCSCC_RC_FAILURE; 
 
     /* initialize the interface with MBCSv */ 
-    m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
+    memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
     mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE; 
     mbcsv_arg.info.initialize.i_mbcsv_cb = mas_mbcsv_cb; 
     mbcsv_arg.info.initialize.i_version = mbcsv_attribs->masv_version; 
@@ -1830,7 +1830,7 @@ mas_mbcsv_interface_initialize(MAS_MBCSV_ATTRIBS *mbcsv_attribs)
     mbcsv_attribs->mbcsv_hdl = mbcsv_arg.info.initialize.o_mbcsv_hdl; 
 
     /* get the selection object */ 
-    m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
+    memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
     mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET; 
     mbcsv_arg.i_mbcsv_hdl = mbcsv_attribs->mbcsv_hdl; 
     status = ncs_mbcsv_svc(&mbcsv_arg); 
@@ -1844,7 +1844,7 @@ mas_mbcsv_interface_initialize(MAS_MBCSV_ATTRIBS *mbcsv_attribs)
         /*  == Check for the TRY_AGAIN error code */ 
 
         /* finalize the interface with MBCSv */ 
-        m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
+        memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
         mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE; 
         mbcsv_arg.i_mbcsv_hdl = mbcsv_attribs->mbcsv_hdl; 
         status = ncs_mbcsv_svc(&mbcsv_arg); 

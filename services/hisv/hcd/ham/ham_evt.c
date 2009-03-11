@@ -1498,7 +1498,7 @@ GET_RES_ID:
                      break;
 
                      /* found root entry, zero out rest of Entry array */
-                  m_NCS_MEMSET(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
+                  memset(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
                   break;
                   }
                 }
@@ -1540,7 +1540,7 @@ GET_RES_ID:
                         break;
 
             /* found root entry, zero out rest of Entry array */
-            m_NCS_MEMSET(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
+            memset(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
             break;
          }
       }
@@ -1897,7 +1897,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
 
    /* Zero out the epath array if that is what we are returning.       */
    if (flag == HPL_EPATH_FLAG_ARRAY) {
-      m_NCS_MEMSET(&epath,0,sizeof(SaHpiEntityPathT));    }
+      memset(&epath,0,sizeof(SaHpiEntityPathT));    }
 
    next = SAHPI_FIRST_ENTRY;
    do
@@ -2163,7 +2163,7 @@ ham_bootbank_get (HISV_EVT *evt)
                                     oem->body[1],so giving length value as one */
 #endif
 
-   m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
+   memset(&hisv_msg,0,sizeof(hisv_msg));
    set_hisv_msg(&hisv_msg);
    m_LOG_HISV_DTS_CONS("ham_bootbank_get : Invoked\n");
    
@@ -2281,7 +2281,7 @@ ham_bootbank_set (HISV_EVT *evt)
 #endif
 
    m_LOG_HISV_DTS_CONS("ham_bootbank_set : Invoked\n");
-   m_NCS_MEMSET(&hisv_msg,0,sizeof(hisv_msg));
+   memset(&hisv_msg,0,sizeof(hisv_msg));
    set_hisv_msg (&hisv_msg);
 
    /** retrieve HAM CB

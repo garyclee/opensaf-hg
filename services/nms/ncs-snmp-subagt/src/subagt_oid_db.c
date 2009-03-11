@@ -89,7 +89,7 @@ snmpsubagt_table_oid_add(uns32              table_id,
         m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_OID_DB_NODE_MALLOC_FAIL);      
         return NCSCC_RC_OUT_OF_MEM; 
     }
-    m_NCS_MEMSET(db_node, 0, sizeof(NCSSA_OID_DATABASE_NODE));
+    memset(db_node, 0, sizeof(NCSSA_OID_DATABASE_NODE));
 
     /* no need to allocate the memory for the base OID */ 
     /* 'oid_base' is a static array in the generated code */
@@ -164,7 +164,7 @@ snmpsubagt_table_oid_del(uns32   table_id)
     }
     
     /* Fill in the key to get the element from data base */
-    m_NCS_MEMSET(&db_key, 0, sizeof(NCSSA_OID_DATABASE_KEY));
+    memset(&db_key, 0, sizeof(NCSSA_OID_DATABASE_KEY));
     db_key.i_table_id = table_id; 
     
     /* get the node pointer from the patricia tree */ 

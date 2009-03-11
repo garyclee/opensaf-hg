@@ -712,7 +712,7 @@ active_mds_quiesced_ack(
       }
       cb->ha_state = SA_AMF_HA_QUIESCED;
 
-      m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+      memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
       for(ent_info = avm_find_next_ent_info(cb, &entity_path); 
           ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(cb, &entity_path))
       {
@@ -1186,7 +1186,7 @@ avm_stop_all_tmrs(AVM_CB_T   *avm_cb)
       return NCSCC_RC_FAILURE;
    }
     
-   m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+   memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
    for(ent_info = avm_find_next_ent_info(avm_cb, &entity_path);
        ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(avm_cb, &entity_path))
    {

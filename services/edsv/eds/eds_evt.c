@@ -223,7 +223,7 @@ eds_proc_init_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       m_LOG_EDSV_SF(EDS_INIT_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0,evt->fr_dest);
    if(cb->ha_state == SA_AMF_HA_ACTIVE) /*Revisit this */
    {
-      m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt)); 
+      memset(&ckpt, 0, sizeof(ckpt)); 
       m_EDSV_FILL_ASYNC_UPDATE_REG(ckpt,cb->last_reg_id,evt->fr_dest)
       async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD); 
       if (async_rc != NCSCC_RC_SUCCESS)
@@ -270,7 +270,7 @@ eds_proc_finalize_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       m_LOG_EDSV_SF(EDS_FINALIZE_SUCCESS,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0,evt->fr_dest);
       if(cb->ha_state == SA_AMF_HA_ACTIVE) /*Revisit this */
       {  
-         m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+         memset(&ckpt, 0, sizeof(ckpt));
          m_EDSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt,evt->info.msg.info.api_info.param.finalize.reg_id)
          async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
          if (async_rc != NCSCC_RC_SUCCESS)
@@ -348,7 +348,7 @@ eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       /* Send an Async update to STANDBY EDS peer */
       if(cb->ha_state == SA_AMF_HA_ACTIVE)
       {
-         m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+         memset(&ckpt, 0, sizeof(ckpt));
          m_EDSV_FILL_ASYNC_UPDATE_CHAN(ckpt,open_sync_param,chan_id,chan_open_id,evt->fr_dest,chan_create_time)
          async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
          if(async_rc != NCSCC_RC_SUCCESS)
@@ -429,7 +429,7 @@ eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       /* Send an Async update to STANDBY EDS peer */
       if(cb->ha_state == SA_AMF_HA_ACTIVE)
       {  
-         m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+         memset(&ckpt, 0, sizeof(ckpt));
          m_EDSV_FILL_ASYNC_UPDATE_CHAN(ckpt,open_async_param,chan_id,chan_open_id,evt->fr_dest,chan_create_time)
          async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
          if(async_rc != NCSCC_RC_SUCCESS)
@@ -478,7 +478,7 @@ eds_proc_chan_close_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
         /* Send an Async update to STANDBY EDS peer */
      if(cb->ha_state == SA_AMF_HA_ACTIVE)
      {  
-        m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt)); 
+        memset(&ckpt, 0, sizeof(ckpt)); 
         m_EDSV_FILL_ASYNC_UPDATE_CCLOSE(ckpt,close_param->reg_id,close_param->chan_id,close_param->chan_open_id)
         async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
         if(async_rc != NCSCC_RC_SUCCESS)
@@ -537,7 +537,7 @@ eds_proc_chan_unlink_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
   {      /* Send an Async update to STANDBY EDS peer */
     if(cb->ha_state == SA_AMF_HA_ACTIVE)
     {
-       m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+       memset(&ckpt, 0, sizeof(ckpt));
        m_EDSV_FILL_ASYNC_UPDATE_CUNLINK(ckpt,unlink_param->chan_name.value,unlink_param->chan_name.length)
        async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
        if(async_rc != NCSCC_RC_SUCCESS)
@@ -690,7 +690,7 @@ eds_proc_publish_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
         /* Send an Async update to STANDBY EDS peer */
      if(cb->ha_state == SA_AMF_HA_ACTIVE)
      {  
-        m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+        memset(&ckpt, 0, sizeof(ckpt));
         m_EDSV_FILL_ASYNC_UPDATE_RETAIN_EVT(ckpt,publish_param,publish_time) 
         async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
        if(async_rc != NCSCC_RC_SUCCESS)
@@ -756,7 +756,7 @@ eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       m_LOG_EDSV_SF(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__,0,evt->fr_dest);
       return(NCSCC_RC_FAILURE);
    }
-   m_NCS_MEMSET(subrec, 0, sizeof(SUBSC_REC));
+   memset(subrec, 0, sizeof(SUBSC_REC));
 
    /* Fill in some data */
    subrec->reg_list      = reglst;
@@ -836,7 +836,7 @@ eds_proc_subscribe_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
    /* Send an async update to the STANDBY EDS peer */
      if(cb->ha_state == SA_AMF_HA_ACTIVE)
      {
-        m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+        memset(&ckpt, 0, sizeof(ckpt));
         m_EDSV_FILL_ASYNC_UPDATE_SUBSCRIBE(ckpt,subscribe_param)
         async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
        if(async_rc != NCSCC_RC_SUCCESS)
@@ -890,7 +890,7 @@ eds_proc_unsubscribe_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       /* Send an async checkpoint update to STANDBY EDS */
       if(cb->ha_state == SA_AMF_HA_ACTIVE)
       {
-         m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+         memset(&ckpt, 0, sizeof(ckpt));
          m_EDSV_FILL_ASYNC_UPDATE_UNSUBSCRIBE(ckpt,unsubscribe_param)
          async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
         if(async_rc != NCSCC_RC_SUCCESS)
@@ -964,7 +964,7 @@ eds_proc_retention_time_clr_msg(EDS_CB *cb, EDSV_EDS_EVT  *evt)
       /*Send an async checkpoint update to STANDBY EDS peer */
       if(cb->ha_state == SA_AMF_HA_ACTIVE)
       {
-          m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt)); 
+          memset(&ckpt, 0, sizeof(ckpt)); 
           m_EDSV_FILL_ASYNC_UPDATE_RETEN_CLEAR(ckpt,param)
           async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
           if(async_rc != NCSCC_RC_SUCCESS)
@@ -1187,7 +1187,7 @@ eds_proc_eda_updn_mds_msg (EDSV_EDS_EVT  *evt)
          /*Send an async checkpoint update to STANDBY EDS peer */
          if(cb->ha_state == SA_AMF_HA_ACTIVE)
          {
-            m_NCS_MEMSET(&ckpt, 0, sizeof(ckpt));
+            memset(&ckpt, 0, sizeof(ckpt));
             m_EDSV_FILL_ASYNC_UPDATE_AGENT_DOWN(ckpt,evt->fr_dest)
             async_rc=send_async_update(cb,&ckpt,NCS_MBCSV_ACT_ADD);
             if(async_rc != NCSCC_RC_SUCCESS)
@@ -1210,7 +1210,7 @@ eds_proc_eda_updn_mds_msg (EDSV_EDS_EVT  *evt)
                   m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
                   break;
               }
-              m_NCS_MEMSET(eda_down_rec, 0, sizeof(EDA_DOWN_LIST));
+              memset(eda_down_rec, 0, sizeof(EDA_DOWN_LIST));
               eda_down_rec->mds_dest = evt->fr_dest;
               if( cb->eda_down_list_head == NULL )
               {
@@ -1362,7 +1362,7 @@ eds_proc_mib_request_evt(EDSV_EDS_EVT *evt)
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
    
       miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
       miblib_req.info.i_mib_op_info.args = evt->info.mib_req;

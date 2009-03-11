@@ -833,7 +833,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
                * If the prototype is from the instance leave the genName to be 
                * just the suName.
                */
-               m_NCS_MEMSET(genName, 0, BAM_MAX_INDEX_LEN);
+               memset(genName, 0, BAM_MAX_INDEX_LEN);
                m_NCS_STRCPY(genName, protoName);
                m_NCS_STRCAT(genName, ",");
                m_NCS_STRCAT(genName, index);
@@ -985,7 +985,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
             * If the prototype is from the instance leave the genName to be 
             * just the suName.
             */
-               m_NCS_MEMSET(genName, 0, BAM_MAX_INDEX_LEN);
+               memset(genName, 0, BAM_MAX_INDEX_LEN);
                m_NCS_STRCPY(genName, suName);
                m_NCS_STRCAT(genName, ",");
                m_NCS_STRCAT(genName, index);
@@ -1581,7 +1581,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
       }
       compName = XMLString::transcode(attributesNodes->item(0)->getNodeValue());
 
-      m_NCS_MEMSET(genName, 0, BAM_MAX_INDEX_LEN);
+      memset(genName, 0, BAM_MAX_INDEX_LEN);
       m_NCS_STRCPY(genName, compName);
       m_NCS_STRCAT(genName, ",");
       m_NCS_STRCAT(genName, suName);
@@ -1749,7 +1749,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
          if(m_NCS_STRCMP(tag, "name") == 0)
          {
             suName = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-            m_NCS_MEMSET(genName, 0, BAM_MAX_INDEX_LEN);
+            memset(genName, 0, BAM_MAX_INDEX_LEN);
             m_NCS_STRCPY(genName, suName);
             if(ext_su_flag == FALSE)
             {
@@ -2171,7 +2171,7 @@ static SaAisErrorT saAmfParseExtSUInstance(DOMNode *node)
    SaAisErrorT          rc = SA_AIS_OK;
    char                 nodeName[BAM_MAX_INDEX_LEN];
 
-   m_NCS_OS_MEMSET(&nodeName, '\0', BAM_MAX_INDEX_LEN);
+   memset(&nodeName, '\0', BAM_MAX_INDEX_LEN);
    
    rc = saAmfParseSUInstance(node, (char *)&nodeName, TRUE);
 

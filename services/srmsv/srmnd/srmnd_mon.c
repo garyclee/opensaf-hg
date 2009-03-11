@@ -721,7 +721,7 @@ uns32 srmnd_check_memory_thresholds(SRMND_CB *srmnd, SRMND_RSRC_MON_NODE *rsrc)
    NCS_SRMSV_VALUE mem_avg;
 
    
-   m_NCS_OS_MEMSET(&mem_avg, 0, sizeof(NCS_SRMSV_VALUE));
+   memset(&mem_avg, 0, sizeof(NCS_SRMSV_VALUE));
 
    if ((rc = srmnd_get_memory_utilization_stats(rsrc)) != NCSCC_RC_SUCCESS)
       return rc;
@@ -828,7 +828,7 @@ uns32 srmnd_check_cpu_thresholds(SRMND_CB *srmnd, SRMND_RSRC_MON_NODE *rsrc)
    uns32 samples = rsrc->mon_data.monitor_data.mon_cfg.threshold.samples;
    NCS_SRMSV_VALUE cpu_util;
 
-   m_NCS_OS_MEMSET(&cpu_util, 0, sizeof(NCS_SRMSV_VALUE));
+   memset(&cpu_util, 0, sizeof(NCS_SRMSV_VALUE));
 
    if ((rc = srmnd_get_cpu_utilization_stats(rsrc)) != NCSCC_RC_SUCCESS)
       return rc;
@@ -966,7 +966,7 @@ uns32 srmnd_check_process_thresholds(SRMND_CB *srmnd,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&avg_val, 0, sizeof(NCS_SRMSV_VALUE));
+   memset(&avg_val, 0, sizeof(NCS_SRMSV_VALUE));
 
    switch (rsrc->rsrc_type_node->rsrc_type)
    {

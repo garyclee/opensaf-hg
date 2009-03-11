@@ -119,7 +119,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
       goto err;
    }
 
-   m_NCS_OS_MEMSET(si_rec, 0, sizeof(AVND_SU_SI_REC));
+   memset(si_rec, 0, sizeof(AVND_SU_SI_REC));
 
    /*
     * Update the supplied parameters.
@@ -236,7 +236,7 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add (AVND_CB             *cb,
       goto err;
    }
 
-   m_NCS_OS_MEMSET(csi_rec, 0, sizeof(AVND_COMP_CSI_REC));
+   memset(csi_rec, 0, sizeof(AVND_COMP_CSI_REC));
 
    /*
     * Update the supplied parameters.
@@ -676,7 +676,7 @@ uns32 avnd_su_si_del (AVND_CB *cb, SaNameT *su_name_net)
    if(cb->term_state == AVND_TERM_STATE_SHUTTING_APP_DONE)
    {
       /* check whether all NCS SI are removed */
-      m_NCS_MEMSET(&su_name, 0, sizeof(SaNameT));
+      memset(&su_name, 0, sizeof(SaNameT));
       su = m_AVND_SUDB_REC_GET_NEXT(cb->sudb, su_name);
 
       while(su && (su->si_list.n_nodes == 0))
@@ -871,7 +871,7 @@ AVND_SU_SIQ_REC *avnd_su_siq_rec_add (AVND_CB          *cb,
       goto err;
    }
 
-   m_NCS_OS_MEMSET(siq, 0, sizeof(AVND_SU_SIQ_REC));
+   memset(siq, 0, sizeof(AVND_SU_SIQ_REC));
 
    /* Add to the siq (maintained by su) */
    m_AVND_SUDB_REC_SIQ_ADD(*su, *siq, *rc);

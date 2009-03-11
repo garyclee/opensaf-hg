@@ -98,7 +98,7 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
 
    /* prepare the node update notification message */
@@ -203,7 +203,7 @@ static uns32 avd_prep_node_info(AVD_CL_CB *cb,AVD_AVND *avnd,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(node_info,'\0',sizeof(AVSV_CLM_INFO_MSG));
+   memset(node_info,'\0',sizeof(AVSV_CLM_INFO_MSG));
 
    node_info->clm_info.boot_timestamp = avnd->node_info.bootTimestamp;
    node_info->clm_info.member = SA_TRUE;
@@ -277,7 +277,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb,AVD_AVND *avnd, uns32 msg_id)
    }
    
    /* prepare the message */
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
    d2n_msg->msg_info.d2n_ack_info.node_id = avnd->node_info.nodeId;
    d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id;
@@ -345,7 +345,7 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
    }
    
    /* prepare the message */
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    d2n_msg->msg_type = AVSV_D2N_DATA_VERIFY_MSG;
    d2n_msg->msg_info.d2n_data_verify.node_id = avnd->node_info.nodeId;
    d2n_msg->msg_info.d2n_data_verify.rcv_id_cnt = avnd->rcv_msg_id;
@@ -420,7 +420,7 @@ uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
    }
    
    /* prepare the message */
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    d2n_msg->msg_type = AVSV_D2N_NODE_ON_FOVER;
    d2n_msg->msg_info.d2n_clm_node_fover.dest_node_id = avnd->node_info.nodeId;
    d2n_msg->msg_info.d2n_clm_node_fover.view_number = cb->cluster_view_number;
@@ -513,7 +513,7 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb,AVD_AVND *avnd,uns32 msg_id_ack)
    }
 
    /* prepare the message */
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UP_MSG;
    d2n_msg->msg_info.d2n_clm_node_up.node_id = avnd->node_info.nodeId;
    d2n_msg->msg_info.d2n_clm_node_up.node_type = avnd->type;
@@ -593,7 +593,7 @@ uns32 avd_snd_hbt_info_msg(AVD_CL_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
 
    /* prepare the heartbeat info message */
@@ -666,7 +666,7 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb,AVD_AVND *avnd,uns32 msg_id_ack)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
    d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
    d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id_ack;
@@ -739,7 +739,7 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb,AVD_SU *su,NCS_BOOL term_state)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
 
    /* prepare the SU presence state change notification message */
@@ -846,7 +846,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb,AVD_AVND *avnd,AVSV_PARAM_INFO *param_inf
 
    /* prepare the operation request message. */
    
-   m_NCS_MEMSET(op_req_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(op_req_msg,'\0',sizeof(AVD_DND_MSG));
 
    op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
 
@@ -948,7 +948,7 @@ static uns32 avd_prep_hlth_info(AVD_CL_CB *cb,AVD_HLT *hlt_chk,AVD_DND_MSG *hlth
       return NCSCC_RC_FAILURE;
    }
    
-   m_NCS_MEMSET(hlt_info,'\0',sizeof(AVSV_HLT_INFO_MSG));
+   memset(hlt_info,'\0',sizeof(AVSV_HLT_INFO_MSG));
 
    /*  Now fill and add the health check information
     * the health check message at the top of the list
@@ -1012,7 +1012,7 @@ uns32 avd_snd_hlt_msg(AVD_CL_CB *cb,AVD_AVND *avnd,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(hlth_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(hlth_msg,'\0',sizeof(AVD_DND_MSG));
    
    /* prepare the messages */
    hlth_msg->msg_type = AVSV_D2N_REG_HLT_MSG;
@@ -1121,7 +1121,7 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb,AVD_SU *su,AVD_DND_MSG *su_msg)
       return NCSCC_RC_FAILURE;
    }
    
-   m_NCS_MEMSET(su_info,'\0',sizeof(AVSV_SU_INFO_MSG));
+   memset(su_info,'\0',sizeof(AVSV_SU_INFO_MSG));
    
    /* fill and add the SU into
     * the SU message at the top of the list
@@ -1178,7 +1178,7 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb,AVD_COMP *comp,
       return NCSCC_RC_FAILURE;
    }
    
-   m_NCS_MEMSET(comp_info,'\0',sizeof(AVSV_COMP_INFO_MSG));
+   memset(comp_info,'\0',sizeof(AVSV_COMP_INFO_MSG));
    memcpy(&comp_info->comp_info,&comp->comp_info,sizeof(AVSV_COMP_INFO));
    
    /* add it at the head of the list in the message */
@@ -1252,8 +1252,8 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb,
 
    }
 
-   m_NCS_MEMSET(su_msg,'\0',sizeof(AVD_DND_MSG));
-   m_NCS_MEMSET(comp_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(su_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(comp_msg,'\0',sizeof(AVD_DND_MSG));
 
    /* prepare the SU and Component messages. */
 
@@ -1497,7 +1497,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb,AVD_SU *su)
    }
 
 
-   m_NCS_MEMSET(su_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(su_msg,'\0',sizeof(AVD_DND_MSG));
 
    /* prepare the SU  message. */
 
@@ -1587,7 +1587,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb,AVD_COMP *comp)
 
    }
 
-   m_NCS_MEMSET(comp_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(comp_msg,'\0',sizeof(AVD_DND_MSG));
 
    /* prepare the Component messages. */
 
@@ -1675,7 +1675,7 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb,AVSV_SUSI_ASGN *compcsi_info,
     * message content. 
     */
    i_ptr = compcsi_info->attrs.list;   
-   m_NCS_MEMSET(i_ptr,'\0',(compcsi->csi->num_active_params * sizeof(NCS_AVSV_ATTR_NAME_VAL)));   
+   memset(i_ptr,'\0',(compcsi->csi->num_active_params * sizeof(NCS_AVSV_ATTR_NAME_VAL)));   
    attr_ptr = compcsi->csi->list_param;
    compcsi_info->attrs.number = 0;
    
@@ -1769,7 +1769,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb,AVD_SU *su,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(susi_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(susi_msg,'\0',sizeof(AVD_DND_MSG));
 
    susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;
    susi_msg->msg_info.d2n_su_si_assign.node_id = avnd->node_info.nodeId;
@@ -1950,7 +1950,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb,AVD_SU *su,
             avsv_dnd_msg_free(susi_msg);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(compcsi_info,'\0',sizeof(AVSV_SUSI_ASGN));
+         memset(compcsi_info,'\0',sizeof(AVSV_SUSI_ASGN));
    
          compcsi_info->comp_name_net = l_compcsi->comp->comp_info.name_net;
          compcsi_info->csi_name_net = l_compcsi->csi->name_net;
@@ -2079,7 +2079,7 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
    d2n_msg->msg_type = AVSV_D2N_SHUTDOWN_APP_SU_MSG;
    d2n_msg->msg_info.d2n_shutdown_app_su.node_id = avnd->node_info.nodeId;
@@ -2131,7 +2131,7 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb,
 
    m_AVD_LOG_FUNC_ENTRY("avd_prep_pg_mem_list");
 
-   m_NCS_OS_MEMSET(mem_list, 0, sizeof(SaAmfProtectionGroupNotificationBufferT));
+   memset(mem_list, 0, sizeof(SaAmfProtectionGroupNotificationBufferT));
 
    if (csi->compcsi_cnt)
    {
@@ -2144,7 +2144,7 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb,
          m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_OS_MEMSET(mem_list->notification, 0, 
+      memset(mem_list->notification, 0, 
                       sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt);
 
       /* copy the contents */
@@ -2197,7 +2197,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_MEMSET(pg_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(pg_msg,'\0',sizeof(AVD_DND_MSG));
 
    pg_msg_info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
@@ -2288,7 +2288,7 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_MEMSET(pg_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(pg_msg,'\0',sizeof(AVD_DND_MSG));
 
    pg_msg_info = &pg_msg->msg_info.d2n_pg_upd;
 
@@ -2374,7 +2374,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb,AVD_AVND *avnd)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
    d2n_msg->msg_type = AVSV_D2N_SET_LEDS_MSG;
    d2n_msg->msg_info.d2n_set_leds.node_id = avnd->node_info.nodeId;
@@ -2443,7 +2443,7 @@ uns32 avd_snd_hb_msg(AVD_CL_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2d_msg,'\0',sizeof(AVD_D2D_MSG));
+   memset(d2d_msg,'\0',sizeof(AVD_D2D_MSG));
    
    d2d_msg->msg_type = AVD_D2D_HEARTBEAT_MSG;
    d2d_msg->msg_info.d2d_hrt_bt.node_id = cb->node_id_avd;
@@ -2502,7 +2502,7 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+   memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
    
 
    /* prepare the componenet validation response message */

@@ -220,7 +220,7 @@ static uns32 ipxs_subscribe (IFA_CB *cb, NCS_IPXS_SUBCR *i_subr)
    }
 
    /* Mem Set the Subr */
-   m_NCS_OS_MEMSET(subr, 0, sizeof(IPXS_SUBCR_INFO));
+   memset(subr, 0, sizeof(IPXS_SUBCR_INFO));
 
    /* Get the Handle from Handle Manager for this subscription Record*/
    i_subr->o_subr_hdl = ncshm_create_hdl(cb->hm_pid, NCS_SERVICE_ID_IFA,
@@ -248,8 +248,8 @@ static uns32 ipxs_subscribe (IFA_CB *cb, NCS_IPXS_SUBCR *i_subr)
          Send the event to IFND, IFND will send all the interface 
          records that it already has */
 
-      m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-      m_NCS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+      memset(&evt, 0, sizeof(IFSV_EVT));
+      memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
       ipxs_evt.type = IPXS_EVT_ATOND_IFIP_GET;
       ipxs_evt.info.nd.get.get_type = IFSV_INTF_GET_ALL;
@@ -339,8 +339,8 @@ static uns32 ipxs_ipinfo_get (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_GET *ip_get)
 
     return NCS_IFSV_IFND_DOWN_ERROR;
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.type = IFSV_IPXS_EVT;
    evt.info.ipxs_evt = (NCSCONTEXT) &ipxs_evt;
@@ -398,7 +398,7 @@ static uns32 ipxs_ipinfo_get (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_GET *ip_get)
               m_MMGR_FREE_IFSV_EVT(o_evt);
               return NCSCC_RC_FAILURE;
             }
-            m_NCS_OS_MEMSET(ip_get->o_rsp.ipinfo, 0, sizeof(NCS_IPXS_INTF_REC));
+            memset(ip_get->o_rsp.ipinfo, 0, sizeof(NCS_IPXS_INTF_REC));
 
             ipxs_intf_rec_cpy(o_ipxs_evt->info.agent.get_rsp.ipinfo, 
                               ip_get->o_rsp.ipinfo, IFSV_MALLOC_FOR_INTERNAL_USE);
@@ -453,8 +453,8 @@ static uns32 ipxs_proc_is_loc_req (IFA_CB *ifa_cb, NCS_IPXS_ISLOCAL *isloc)
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.type = IFSV_IPXS_EVT;
    evt.info.ipxs_evt = (NCSCONTEXT) &ipxs_evt;
@@ -576,8 +576,8 @@ static uns32 ipxs_ipinfo_upd (IFA_CB *ifa_cb, NCS_IPXS_IPINFO_SET *ip_upd)
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;   
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.type = IFSV_IPXS_EVT;
    evt.info.ipxs_evt = (NCSCONTEXT) &ipxs_evt;
@@ -658,8 +658,8 @@ static uns32 ipxs_proc_node_info_get (IFA_CB *ifa_cb, NCS_IPXS_GET_NODE_REC *nod
                      "IfND is not up. Req Not processed",IFSV_COMP_IFA);
       return NCS_IFSV_IFND_DOWN_ERROR;
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.type = IFSV_IPXS_EVT;
    evt.info.ipxs_evt = (NCSCONTEXT) &ipxs_evt;
@@ -761,7 +761,7 @@ static uns32 ipxs_app_send(IFA_CB *cb, NCS_IPXS_SUBCR *subr, IPXS_EVT *evt)
                                           to the same node.*/
 
 
-   m_NCS_MEMSET(&rsp, 0, sizeof(NCS_IPXS_RSP_INFO));
+   memset(&rsp, 0, sizeof(NCS_IPXS_RSP_INFO));
 
    switch(evt->type)
    {
@@ -935,7 +935,7 @@ uns32 ipxs_intf_rec_list_cpy(NCS_IPXS_INTF_REC *src, NCS_IPXS_INTF_REC **dest,
            m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,IFSV_COMP_IFA);
            return NCSCC_RC_FAILURE;
          }
-         m_NCS_OS_MEMSET(cur_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+         memset(cur_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
          /* Store the original attributes info */
          orig_ip = src_rec->ip_info.ip_attr;

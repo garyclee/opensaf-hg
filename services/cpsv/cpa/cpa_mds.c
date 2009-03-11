@@ -73,7 +73,7 @@ uns32 cpa_mds_get_handle(CPA_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
    arg.req = NCSADA_GET_HDLS;
    rc = ncsada_api(&arg);
 
@@ -111,7 +111,7 @@ uns32 cpa_mds_register (CPA_CB *cb)
        return NCSCC_RC_FAILURE;
 
    /* memset the svc_info */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
    /* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_CPA. */
    svc_info.i_mds_hdl = cb->cpa_mds_hdl;
@@ -170,7 +170,7 @@ void cpa_mds_unregister (CPA_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->cpa_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_CPA;
@@ -592,7 +592,7 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       msg_ptr = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPA);
       if(!msg_ptr) return NCSCC_RC_FAILURE;
 
-      m_NCS_MEMSET(msg_ptr, 0, sizeof(CPSV_EVT));
+      memset(msg_ptr, 0, sizeof(CPSV_EVT));
       dec_info->o_msg = (NCSCONTEXT)msg_ptr;
       pstream = ncs_dec_flatten_space(dec_info->io_uba, local_data , 8);
       msg_ptr->type = ncs_decode_32bit(&pstream);
@@ -657,7 +657,7 @@ uns32 cpa_mds_msg_sync_send (uns32     cpa_mds_hdl,
    if(!i_evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cpa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CPA;
    mds_info.i_op = MDS_SEND;
@@ -709,7 +709,7 @@ uns32 cpa_mds_msg_send (uns32   cpa_mds_hdl,
    if(!i_evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cpa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CPA; 
    mds_info.i_op = MDS_SEND;

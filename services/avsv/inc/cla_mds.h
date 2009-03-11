@@ -70,7 +70,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM Initialize' message */
 #define m_CLA_CLM_INIT_MSG_FILL(m, pid) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_INITIALIZE; \
    (m).info.api_info.prc_id = (pid); \
@@ -79,7 +79,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM Finalize' message */
 #define m_CLA_CLM_FINALIZE_MSG_FILL(m, pid, hd) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_FINALIZE; \
    (m).info.api_info.prc_id = (pid); \
@@ -89,7 +89,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM track start' message */
 #define m_CLA_TRACK_START_MSG_FILL(m, pid, hd, fl) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_TRACK_START; \
    (m).info.api_info.prc_id = (pid); \
@@ -100,7 +100,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM track stop' message */
 #define m_CLA_TRACK_STOP_MSG_FILL(m, pid, hd) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_TRACK_STOP; \
    (m).info.api_info.prc_id = (pid); \
@@ -110,7 +110,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM node get' message */
 #define m_CLA_NODE_GET_MSG_FILL(m, pid, hd, nid) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_NODE_GET; \
    (m).info.api_info.prc_id = (pid); \
@@ -121,7 +121,7 @@ typedef struct cla_avnd_intf_tag
 /* Macro to populate the 'CLM node async get' message */
 #define m_CLA_NODE_ASYNC_GET_MSG_FILL(m, pid, hd, in, nid) \
 { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
+   memset(&(m), 0, sizeof(AVSV_NDA_CLA_MSG)); \
    (m).type = AVSV_CLA_API_MSG; \
    (m).info.api_info.type = AVSV_CLM_NODE_ASYNC_GET; \
    (m).info.api_info.prc_id = (pid); \

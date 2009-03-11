@@ -102,7 +102,7 @@ static uns32 ipxs_ipkey_from_instance_id(IPXS_IP_KEY *key,
 {
    uns32 count = 0, temp = 0;
 
-   m_NCS_OS_MEMSET(key, 0, sizeof(IPXS_IP_KEY));
+   memset(key, 0, sizeof(IPXS_IP_KEY));
 
    if(!inst_len)
    {
@@ -336,9 +336,9 @@ uns32 ncsifsvipentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    uns32             rc = NCSCC_RC_SUCCESS;
    NCSMIBLIB_REQ_INFO temp_mib_req;
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
-   m_NCS_OS_MEMSET(&ipkeyNet, 0, sizeof(IPXS_IP_KEY));
+   memset(&ipkeyNet, 0, sizeof(IPXS_IP_KEY));
 
    /* Validate instance ID and get Key from Inst ID */
    rc = ipxs_ipkey_from_instance_id(&ipkeyNet, &type, 
@@ -456,7 +456,7 @@ uns32 ncsifsvipentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    /* Set the object */
    if(test_flag != TRUE)
    {
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -520,7 +520,7 @@ uns32 ncsifsvipentry_extract (NCSMIB_PARAM_VAL* param, NCSMIB_VAR_INFO* var_info
    IPXS_IP_INFO *ipinfo;
    uns16  len=0;
 
-   m_NCS_OS_MEMSET(&addrNet, 0, sizeof(addrNet));
+   memset(&addrNet, 0, sizeof(addrNet));
 
    switch(param->i_param_id)
    {
@@ -759,7 +759,7 @@ uns32 ncsifsvifipentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    uns32                rc = NCSCC_RC_SUCCESS;
    NCSMIBLIB_REQ_INFO   temp_mib_req;
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Validate instance ID and get Key from Inst ID */
    rc = ifsv_ifkey_from_instid(arg->i_idx.i_inst_ids, 
@@ -791,7 +791,7 @@ uns32 ncsifsvifipentry_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    /* Set the object */
    if(test_flag != TRUE)
    {
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -842,7 +842,7 @@ uns32 ncsifsvifipentry_extract (NCSMIB_PARAM_VAL* param, NCSMIB_VAR_INFO* var_in
    uns32  ipaddr_count =0;
    uns32  count =0;
    
-   m_NCS_OS_MEMSET(&addr, 0, sizeof(addr));
+   memset(&addr, 0, sizeof(addr));
 
    switch(param->i_param_id)
    {

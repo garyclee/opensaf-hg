@@ -112,7 +112,7 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       m_LOG_GLD_MEMFAIL(GLD_CB_ALLOC_FAILED);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(gld_cb, 0,sizeof(GLSV_GLD_CB));
+   memset(gld_cb, 0,sizeof(GLSV_GLD_CB));
 
    /* TBD- Pool id is to be set */
    gl_gld_hdl = gld_cb->my_hdl = ncshm_create_hdl(gld_cb->hm_poolid,
@@ -223,7 +223,7 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_SUCCESS,NCSFL_SEV_INFO);
 
    /** start the AMF health check **/   
-   m_NCS_MEMSET(&Healthy,0,sizeof(Healthy));
+   memset(&Healthy,0,sizeof(Healthy));
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
@@ -306,7 +306,7 @@ gld_cb_init (GLSV_GLD_CB *gld_cb)
 {
    NCS_PATRICIA_PARAMS      params;
 
-   m_NCS_OS_MEMSET(&params,0,sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
      
    /* Intialize all the patrica trees */
    params.key_size = sizeof(uns32);
@@ -585,7 +585,7 @@ void gld_dump_cb()
 
    gld_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
    
-   m_NCS_OS_MEMSET(&mds_dest_id,0,sizeof(MDS_DEST));
+   memset(&mds_dest_id,0,sizeof(MDS_DEST));
    
    m_NCS_OS_PRINTF("************ GLD CB info *************** \n");
    /* print Amf Info */

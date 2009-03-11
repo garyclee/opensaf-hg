@@ -208,7 +208,7 @@ uns32 ncshm_init(void)
 
   /* Done with basic tests; now we move on to normal initialization      */
   
-  m_NCS_MEMSET(&gl_hm,0,sizeof(HM_CORE));
+  memset(&gl_hm,0,sizeof(HM_CORE));
   for(cnt = 0; cnt < HM_POOL_CNT; cnt++)
     m_NCS_LOCK_INIT (&gl_hm.lock[cnt]);
 
@@ -258,7 +258,7 @@ void ncshm_delete(void)
     }
 
   /* Memset the gl_hm data structure. */
-  m_NCS_MEMSET(&gl_hm,0,sizeof(HM_CORE));
+  memset(&gl_hm,0,sizeof(HM_CORE));
 
   /* ncshm_init();*/ /* put struct back in start state.. Why not?? */
   }
@@ -585,7 +585,7 @@ uns32 hm_make_free_cells(HM_PMGR* pmgr)
     if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    m_NCS_MEMSET(unit,0,sizeof(HM_UNIT));
+    memset(unit,0,sizeof(HM_UNIT));
     gl_hm.unit[pmgr->curr] = unit;
     }
 
@@ -604,7 +604,7 @@ uns32 hm_make_free_cells(HM_PMGR* pmgr)
   if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL)
     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  m_NCS_MEMSET(cells,0,sizeof(HM_CELLS));
+  memset(cells,0,sizeof(HM_CELLS));
 
   hdl.idx1   = pmgr->curr;                    /* set handle conditions */
   hdl.idx2   = unit->curr;
@@ -660,7 +660,7 @@ HM_FREE* hm_target_cell(HM_HDL* hdl)
       return NULL;
     }
 
-    m_NCS_MEMSET(unit,0,sizeof(HM_UNIT));
+    memset(unit,0,sizeof(HM_UNIT));
     gl_hm.unit[hdl->idx1] = unit;
     }
 
@@ -672,7 +672,7 @@ HM_FREE* hm_target_cell(HM_HDL* hdl)
       return NULL;
     }
 
-    m_NCS_MEMSET(cells,0,sizeof(HM_CELLS));
+    memset(cells,0,sizeof(HM_CELLS));
 
     tmp_hdl.idx1   = hdl->idx1;
     tmp_hdl.idx2   = hdl->idx2;

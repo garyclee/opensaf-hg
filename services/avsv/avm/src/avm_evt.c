@@ -1147,7 +1147,7 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1446,7 +1446,7 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
  
-         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+         memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
          memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1502,7 +1502,7 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1549,7 +1549,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1560,7 +1560,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1671,7 +1671,7 @@ avm_active_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1731,7 +1731,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+         memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
            memcpy(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1744,7 +1744,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
             evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-            m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+            memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
             memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
@@ -1761,7 +1761,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2553,7 +2553,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2570,7 +2570,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
          memcpy(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2583,7 +2583,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+         memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
          memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2631,7 +2631,7 @@ avm_reset_req_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+   memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
    memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2674,7 +2674,7 @@ avm_reset_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -2721,7 +2721,7 @@ avm_reset_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_e
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+   memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
    memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
  
@@ -3141,7 +3141,7 @@ avm_ext_req_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+   memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
    memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len); 
 
@@ -3169,7 +3169,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
          memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
@@ -3182,7 +3182,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
          evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+         memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
          memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -3227,7 +3227,7 @@ avm_ext_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
@@ -3258,7 +3258,7 @@ avm_ext_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
 
    evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+   memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
    memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
   
@@ -3604,7 +3604,7 @@ avm_handle_invalid_event(
 
       evt->evt.mib_req->rsp.add_info = m_MMGR_ALLOC_MIB_OCT(evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
+      memset(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
       memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 

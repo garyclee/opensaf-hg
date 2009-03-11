@@ -346,12 +346,12 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 #endif
 
 #if (NCS_IFND == 1)
-   m_NCS_MEMSET(&drv_svc_req,0,sizeof(drv_svc_req));
+   memset(&drv_svc_req,0,sizeof(drv_svc_req));
 #endif
 
    /*** Init LIB_CREATE request for Directors, NodeDirectors, 
    and Server ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    lib_create.info.create.argc = argc;
    lib_create.info.create.argv = argv;
@@ -604,7 +604,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       }
      
       /* clear the parameters */   
-      m_NCS_OS_MEMSET(&subagt_req, 0, sizeof(NCS_LIB_REQ_INFO)); 
+      memset(&subagt_req, 0, sizeof(NCS_LIB_REQ_INFO)); 
       subagt_req.i_op = NCS_LIB_REQ_CREATE;
       subagt_req.info.create.argc = 0;
       subagt_req.info.create.argv = NULL;
@@ -857,7 +857,7 @@ static uns32 ncs_d_nd_svr_shutdown(int argc, char *argv[])
     uns32            dummy_status;
 #endif
 
-    m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+    memset(&lib_destroy, 0, sizeof(lib_destroy));
     lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 
    /*** Destroy VDS ***/
@@ -1034,7 +1034,7 @@ mainmib_mab_mac_msg_send(uns32       i_mib_key,
     /* Log the Function Entry */
 
     /* set the NCSMIB_ARG */
-    m_NCS_OS_MEMSET(&io_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&io_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&io_mib_arg);
 
     /* Fill in the NCSMIB_ARG */
@@ -1087,7 +1087,7 @@ mainmib_mab_mac_msg_send(uns32       i_mib_key,
      io_mib_arg.i_mib_key = i_mib_key; 
      io_mib_arg.i_usr_key = i_mib_key; 
 
-     m_NCS_OS_MEMSET(space, 0, sizeof(space));
+     memset(space, 0, sizeof(space));
 
      /* call the MAB function prototype */
      ncsmem_aid_init(&ma, space, 1024);
@@ -1346,7 +1346,7 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
    {
 #if (NCS_AVND == 1)
      m_NCS_SEM_TAKE(avnd_sem);
-     m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+     memset(&lib_destroy, 0, sizeof(lib_destroy));
      lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
      avnd_lib_req(&lib_destroy);
 #else

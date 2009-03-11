@@ -66,7 +66,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
       return NULL;
    }
 
-   m_NCS_MEMSET(glnd_cb, 0, sizeof(GLND_CB));
+   memset(glnd_cb, 0, sizeof(GLND_CB));
    glnd_cb->pool_id = pool_id;
 
 
@@ -159,7 +159,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
    
   /*   start the AMF Health Check  */
 
-   m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(healthy));
 
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
@@ -339,7 +339,7 @@ void glnd_dump_cb ()
    /* take the handle */
    glnd_cb = (GLND_CB*)m_GLND_TAKE_GLND_CB;
    
-   m_NCS_OS_MEMSET(&agent_mds_dest,0,sizeof(MDS_DEST));
+   memset(&agent_mds_dest,0,sizeof(MDS_DEST));
    
    /* display the handles */
    m_NCS_OS_PRINTF("\nGLND Node id - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id));

@@ -69,7 +69,7 @@ static uns32 fma_fm_node_reset_ind(FMA_CB *cb, FMA_FM_PHY_ADDR phy_addr)
          goto hdl_rec_mem_alloc_failed;
       }
 
-      m_NCS_OS_MEMSET(pend_cbk_rec, 0, sizeof(FMA_PEND_CBK_REC));
+      memset(pend_cbk_rec, 0, sizeof(FMA_PEND_CBK_REC));
 
       pend_cbk_rec->cbk_info = m_MMGR_ALLOC_FMA_CBK_INFO;
       if (!(pend_cbk_rec->cbk_info))
@@ -78,7 +78,7 @@ static uns32 fma_fm_node_reset_ind(FMA_CB *cb, FMA_FM_PHY_ADDR phy_addr)
          goto hdl_rec_cbk_info_mem_alloc_failed;
       }
 
-      m_NCS_OS_MEMSET(pend_cbk_rec->cbk_info, 0, sizeof(FMA_CBK_INFO));
+      memset(pend_cbk_rec->cbk_info, 0, sizeof(FMA_CBK_INFO));
 
       /* Populate the pending callback structure */ 
       fma_get_ent_path_from_slot_site(&(pend_cbk_rec->cbk_info->node_reset_info), 
@@ -170,7 +170,7 @@ static uns32 fma_fm_switchover_req(void)
          goto hdl_rec_mem_alloc_failed;
       }
 
-      m_NCS_OS_MEMSET(pend_cbk_rec, 0, sizeof(FMA_PEND_CBK_REC));
+      memset(pend_cbk_rec, 0, sizeof(FMA_PEND_CBK_REC));
 
       pend_cbk_rec->cbk_info = m_MMGR_ALLOC_FMA_CBK_INFO;
       if (!(pend_cbk_rec->cbk_info))
@@ -179,7 +179,7 @@ static uns32 fma_fm_switchover_req(void)
          goto hdl_rec_cbk_info_mem_alloc_failed;
       }
 
-      m_NCS_OS_MEMSET(pend_cbk_rec->cbk_info, 0, sizeof(FMA_CBK_INFO));
+      memset(pend_cbk_rec->cbk_info, 0, sizeof(FMA_CBK_INFO));
        
       /* Populate the pending callback structure */
       pend_cbk_rec->cbk_info->cbk_type = SWITCHOVER_REQ;
@@ -466,7 +466,7 @@ static uns32 fma_create (NCS_LIB_CREATE *create_info)
       goto fma_cb_alloc_fail;
    }
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(FMA_CB));
+   memset(cb, 0, sizeof(FMA_CB));
     
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
     
@@ -682,8 +682,8 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
    /* Retrieve the shelf id/chassis id from node_id */
    m_NCS_GET_PHYINFO_FROM_NODE_ID(cb->my_node_id, &shelf, NULL, NULL);
 
-   m_NCS_MEMSET(o_ent_path, 0, sizeof(SaHpiEntityPathT));
-   m_NCS_MEMSET(&temp_epath, 0, sizeof(SaHpiEntityPathT));
+   memset(o_ent_path, 0, sizeof(SaHpiEntityPathT));
+   memset(&temp_epath, 0, sizeof(SaHpiEntityPathT));
 
    if ((0 != site) && (15 != site))
    {
@@ -789,7 +789,7 @@ static uns32 fma_hpl_init(void)
    uns32   rc = NCSCC_RC_SUCCESS;
 
    /* Initialize with HPL.*/
-   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_CREATE;
    rc = ncs_hpl_lib_req(&req_info);
    if (rc != NCSCC_RC_SUCCESS)
@@ -818,7 +818,7 @@ static uns32 fma_hpl_finalize(void)
    uns32   rc = NCSCC_RC_SUCCESS;
 
    /* Initialize with HPL.*/
-   m_NCS_OS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_DESTROY;
    rc = ncs_hpl_lib_req(&req_info);
 

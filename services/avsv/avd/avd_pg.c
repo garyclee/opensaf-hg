@@ -221,13 +221,13 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
    }
 
    /* add the node to the pg list maintained by csi */
-   m_NCS_OS_MEMSET(pg_csi_node, 0, sizeof(AVD_PG_CSI_NODE));
+   memset(pg_csi_node, 0, sizeof(AVD_PG_CSI_NODE));
    pg_csi_node->node = node;
    pg_csi_node->csi_dll_node.key = (uns8 *)&pg_csi_node->node;
    ncs_db_link_list_add(&csi->pg_node_list, &pg_csi_node->csi_dll_node);
 
    /* add the csi to the pg list maintained by node */
-   m_NCS_OS_MEMSET(pg_node_csi, 0, sizeof(AVD_PG_NODE_CSI));
+   memset(pg_node_csi, 0, sizeof(AVD_PG_NODE_CSI));
    pg_node_csi->csi = csi;
    pg_node_csi->node_dll_node.key = (uns8 *)&pg_node_csi->csi;
    ncs_db_link_list_add(&node->pg_csi_list, &pg_node_csi->node_dll_node);

@@ -53,7 +53,7 @@ do { \
 /* Macro to populate the 'HPL command to clear SEL' in MDS message */
 #define m_HPL_HISV_LOG_CMD_MSG_FILL(m, act) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(HISV_MSG)); \
+   memset(&(m), 0, sizeof(HISV_MSG)); \
    (m).info.api_info.cmd = (act); \
    (m).info.api_info.data_len = 0; \
    (m).info.api_info.data = NULL; \

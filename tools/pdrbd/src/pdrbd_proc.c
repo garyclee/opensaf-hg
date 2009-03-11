@@ -644,7 +644,7 @@ uns32 pseudoInitialise()
    /* Form the full component name of each of the proxied (sub) components */
    for(i=0; i<pseudoCB.noOfProxied; i++)
    {
-      m_NCS_MEMSET(buff, 0, sizeof(buff));
+      memset(buff, 0, sizeof(buff));
       sysf_sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
                      pseudoCB.nodeId);
       m_NCS_STRCPY((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
@@ -675,7 +675,7 @@ uns32 pseudoInitialise()
    }
 
    /* Get and set the health check key */
-   m_NCS_MEMSET(&amfHthChkKey, 0, sizeof(amfHthChkKey));
+   memset(&amfHthChkKey, 0, sizeof(amfHthChkKey));
    hthChkKey = m_NCS_OS_PROCESS_GET_ENV_VAR("PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY");
 
    if(hthChkKey == NULL)

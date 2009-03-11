@@ -268,7 +268,7 @@ ncs_bam_process_message(BAM_EVT *evt)
                m_LOG_BAM_MSG_TII(BAM_NCS_CONFIG, BAM_PARSE_SUCCESS, NCSFL_SEV_NOTICE ); 
             }
             
-            m_NCS_MEMSET(&file_info,'\0',sizeof(NCS_OS_FILE)); 
+            memset(&file_info,'\0',sizeof(NCS_OS_FILE)); 
             file_info.info.open.i_file_name = (uns8 *)bam_cb->app_filename;
             file_info.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 
@@ -501,7 +501,7 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(cb,'\0',sizeof(NCS_BAM_CB));
+   memset(cb,'\0',sizeof(NCS_BAM_CB));
 
    if ((gl_ncs_bam_hdl = 
       ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_BAM, cb))

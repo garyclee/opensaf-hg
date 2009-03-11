@@ -101,7 +101,7 @@ ipxs_ifd_lib_create (IPXS_LIB_CREATE *create)
       m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(IPXS_CB));
+   memset(cb, 0, sizeof(IPXS_CB));
 
    cb->hm_pid     = create->pool_id;
    cb->my_svc_id  = create->svc_id;
@@ -282,7 +282,7 @@ uns32 ipxs_mib_tbl_req (struct ncsmib_arg *args)
 
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
    miblib_req.info.i_mib_op_info.args = args;
@@ -316,7 +316,7 @@ static uns32 ipxs_reg_with_mab(IPXS_CB *cb)
    NCSOAC_SS_ARG      mab_arg;
    NCSMIB_TBL_ID      tbl_id;   
    
-   m_NCS_OS_MEMSET(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
    mab_arg.i_oac_hdl = cb->oac_hdl;
 
    for(tbl_id = NCSMIB_TBL_IPXS_BASE; 
@@ -369,7 +369,7 @@ static uns32 ipxs_unreg_with_mab(IPXS_CB *cb)
    NCSOAC_SS_ARG      mab_arg;
    NCSMIB_TBL_ID      tbl_id;   
    
-   m_NCS_OS_MEMSET(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));   
+   memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));   
    mab_arg.i_oac_hdl = cb->cb_hdl;   
    mab_arg.i_op = NCSOAC_SS_OP_TBL_GONE;     
    
@@ -423,7 +423,7 @@ uns32 ipxs_ifd_ipinfo_process (IPXS_CB *cb, IPXS_IP_NODE *ip_node)
    }
 
    if_index = ip_info->if_index;
-   m_NCS_OS_MEMSET(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
+   memset(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
    ippfx.ipaddr.ipaddr   = ip_node->ipinfo.addr;
    ippfx.ipaddr.mask_len = ip_node->ipinfo.mask;
 
@@ -478,8 +478,8 @@ static uns32 ipxs_ifd_ipaddr_info_bcast(IPXS_CB *cb, NCS_IPPFX *ip_pfx,
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
 
@@ -539,8 +539,8 @@ static uns32 ipxs_ifd_ipinfo_bcast(IPXS_CB *cb,
    IFSV_EVT    evt;
    uns32       rc;
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
 
@@ -586,8 +586,8 @@ uns32 ipxs_ifd_ifip_info_bcast(IPXS_CB *cb,
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
    evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
 
@@ -646,8 +646,8 @@ static uns32 ifd_ipxs_proc_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt, IFSV_SEND_
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&o_ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&o_ipxs_evt, 0, sizeof(IPXS_EVT));
 
    ipinfo = &ipxs_evt->info.d.ndtod_upd.ip_info;
    
@@ -870,7 +870,7 @@ static uns32 ipxs_ifd_proc_ipaddr(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info,
          ip_node->ipinfo.status = NCS_ROW_ACTIVE;
          ip_node->ipinfo.mask = ip_info->addip_list[i].ipaddr.mask_len;
          
-         m_NCS_OS_MEMSET(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
+         memset(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
          ippfx.ipaddr.ipaddr   = ip_info->addip_list[i].ipaddr.ipaddr;
          ippfx.ipaddr.mask_len = ip_info->addip_list[i].ipaddr.mask_len;
 #if (NCS_VIP == 1) 
@@ -908,7 +908,7 @@ static uns32 ipxs_ifd_proc_ipaddr(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info,
       {
          ipxs_ip_record_del(cb, &cb->ip_tbl[index], ip_node);
          
-         m_NCS_OS_MEMSET(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
+         memset(&ippfx, 0, sizeof(IPXS_IFIP_IP_INFO));
          ippfx.ipaddr.ipaddr   = ip_info->delip_list[i].ipaddr;
          ippfx.ipaddr.mask_len = ip_info->delip_list[i].mask_len;
          

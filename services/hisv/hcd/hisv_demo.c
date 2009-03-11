@@ -272,7 +272,7 @@ static uns32 hpl_control()
             m_NCS_CONS_PRINTF("HPL already initialized\n");
             break;
          }
-         m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
+         memset(&req_info, '\0', sizeof(req_info));
          req_info.i_op = NCS_LIB_REQ_CREATE;
 
          /* request to initialize HPL library */
@@ -593,7 +593,7 @@ static uns32 hpl_control()
             m_NCS_CONS_PRINTF("HPL Not initiailized\n");
             break;
          }
-         m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
+         memset(&req_info, '\0', sizeof(req_info));
          req_info.i_op = NCS_LIB_REQ_DESTROY;
 
          /* request to finalize HPL library */
@@ -613,7 +613,7 @@ static uns32 hpl_control()
             m_NCS_CONS_PRINTF("HPL was Not initiailized\n");
          else
          {
-            m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
+            memset(&req_info, '\0', sizeof(req_info));
             req_info.i_op = NCS_LIB_REQ_DESTROY;
 
             /* request to finalize HPL library */

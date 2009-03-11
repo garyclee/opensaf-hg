@@ -100,7 +100,7 @@ AVD_SU_SI_REL * avd_susi_struc_crt(AVD_CL_CB *cb,AVD_SI *si,AVD_SU *su)
       return AVD_SU_SI_REL_NULL;
    }
 
-   m_NCS_MEMSET((char *)su_si, '\0', sizeof(AVD_SU_SI_REL));
+   memset((char *)su_si, '\0', sizeof(AVD_SU_SI_REL));
 
    su_si->state = SA_AMF_HA_STANDBY;
    su_si->fsm = AVD_SU_SI_STATE_ABSENT;
@@ -113,7 +113,7 @@ AVD_SU_SI_REL * avd_susi_struc_crt(AVD_CL_CB *cb,AVD_SI *si,AVD_SU *su)
     */
 
    /* determine if the su is ranked per si */
-   m_NCS_MEMSET((uns8 *)&i_idx,'\0',sizeof(i_idx));
+   memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
    i_idx.si_name_net = si->name_net;
    i_idx.su_rank_net = 0;
    for (su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
@@ -136,7 +136,7 @@ AVD_SU_SI_REL * avd_susi_struc_crt(AVD_CL_CB *cb,AVD_SI *si,AVD_SU *su)
          if (FALSE == su_si->is_per_si) continue;
 
          /* determine the su_rank rec for this rec */
-         m_NCS_MEMSET((uns8 *)&i_idx,'\0',sizeof(i_idx));
+         memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
          i_idx.si_name_net = si->name_net;
          i_idx.su_rank_net = 0;
          for (i_su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
@@ -238,7 +238,7 @@ AVD_SU_SI_REL * avd_su_susi_struc_find(AVD_CL_CB *cb,AVD_SU *su,
    
    if(host_order == TRUE)
    {
-      m_NCS_MEMSET((char *)&si_name_net, '\0', sizeof(SaNameT));
+      memset((char *)&si_name_net, '\0', sizeof(SaNameT));
       memcpy(si_name_net.value,si_name.value,si_name.length);
       si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
       
@@ -344,7 +344,7 @@ AVD_SU_SI_REL * avd_susi_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,
 
    if(host_order == TRUE)
    {
-      m_NCS_MEMSET((char *)&si_name_net, '\0', sizeof(SaNameT));
+      memset((char *)&si_name_net, '\0', sizeof(SaNameT));
       memcpy(si_name_net.value,si_name.value,si_name.length);
       si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
       
@@ -552,8 +552,8 @@ uns32 saamfsusitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the SU name from the instant ID */
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -735,8 +735,8 @@ uns32 saamfsusitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the SU name from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -879,7 +879,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_S
       return AVD_SU_PER_SI_RANK_NULL;
    }
 
-   m_NCS_MEMSET((char *)rank_elt, '\0', sizeof(AVD_SUS_PER_SI_RANK));
+   memset((char *)rank_elt, '\0', sizeof(AVD_SUS_PER_SI_RANK));
 
    rank_elt->indx.si_name_net.length = indx.si_name_net.length;
    memcpy(rank_elt->indx.si_name_net.value,indx.si_name_net.value,m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length));
@@ -928,7 +928,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_
    AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
    AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
-   m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
    memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
@@ -960,7 +960,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS
    AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
    AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
-   m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
    memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
@@ -998,7 +998,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *cb, A
    AVD_SI *si = AVD_SI_NULL;
    AVD_SU *su = AVD_SU_NULL;
 
-   m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
    memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
@@ -1103,7 +1103,7 @@ uns32 saamfsuspersirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
    
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
    /* Prepare the SuperSiRank database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1248,7 +1248,7 @@ uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
    /* Prepare the SuperSiRank database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1465,7 +1465,7 @@ uns32 saamfsuspersirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
    if (arg->i_idx.i_inst_len != 0)
    {

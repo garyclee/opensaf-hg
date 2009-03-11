@@ -168,7 +168,7 @@ uns32 mbcsv_process_initialize_request(NCS_MBCSV_ARG* arg)
       goto err1;
    }
    
-   m_NCS_MEMSET(new_reg, '\0', sizeof(MBCSV_REG));
+   memset(new_reg, '\0', sizeof(MBCSV_REG));
    /* 
    * Validate all the input parameters.
    */
@@ -470,7 +470,7 @@ uns32 mbcsv_process_open_request(NCS_MBCSV_ARG* arg)
       goto err1;
    }
 
-   m_NCS_MEMSET(new_ckpt, '\0', sizeof(CKPT_INST));
+   memset(new_ckpt, '\0', sizeof(CKPT_INST));
 
    new_ckpt->pwe_hdl       = pwe_hdl;
    new_ckpt->pat_node.key_info = (uns8 *)&new_ckpt->pwe_hdl;

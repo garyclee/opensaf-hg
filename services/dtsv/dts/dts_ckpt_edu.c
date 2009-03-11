@@ -136,7 +136,7 @@ uns32 dtsv_edp_ckpt_msg_dts_log_ckpt_data_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTS_LOG_CKPT_DATA));
+        memset(*d_ptr, '\0', sizeof(DTS_LOG_CKPT_DATA));
         struct_ptr = *d_ptr;
     }
     else
@@ -193,7 +193,7 @@ uns32 dtsv_edp_ckpt_msg_dts_ll_file_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                return NCSCC_RC_FAILURE; 
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTS_LL_FILE));
+        memset(*d_ptr, '\0', sizeof(DTS_LL_FILE));
         struct_ptr = *d_ptr;
     }
     else
@@ -246,7 +246,7 @@ uns32 dtsv_edp_ckpt_msg_dts_file_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTS_FILE_LIST));
+        memset(*d_ptr, '\0', sizeof(DTS_FILE_LIST));
         struct_ptr = *d_ptr;
     }
     else
@@ -341,7 +341,7 @@ uns32 dtsv_edp_ckpt_msg_dts_svc_reg_tbl_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTS_SVC_REG_TBL));
+        memset(*d_ptr, '\0', sizeof(DTS_SVC_REG_TBL));
         struct_ptr = *d_ptr;
     }
     else
@@ -405,7 +405,7 @@ uns32 dtsv_edp_ckpt_msg_dta_dest_list_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTA_DEST_LIST));
+        memset(*d_ptr, '\0', sizeof(DTA_DEST_LIST));
         struct_ptr = *d_ptr;
     }
     else
@@ -501,7 +501,7 @@ uns32 dtsv_edp_ckpt_msg_global_policy_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(GLOBAL_POLICY));
+        memset(*d_ptr, '\0', sizeof(GLOBAL_POLICY));
         struct_ptr = *d_ptr;
     }
     else
@@ -563,7 +563,7 @@ uns32 dtsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(DTSV_ASYNC_UPDT_CNT));
+        memset(*d_ptr, '\0', sizeof(DTSV_ASYNC_UPDT_CNT));
         struct_ptr = *d_ptr;
     }
     else

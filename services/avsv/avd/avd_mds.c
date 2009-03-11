@@ -104,7 +104,7 @@ uns32 avd_mds_set_vdest_role (AVD_CL_CB *cb, SaAmfHAStateT role)
 {
    NCSVDA_INFO vda_info;
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    /* set the role of the vdest */
    vda_info.req = NCSVDA_VDEST_CHG_ROLE;
@@ -144,7 +144,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
    /* prepare the cb with the vaddress */
    m_NCS_SET_VDEST_ID_IN_MDS_DEST(cb->vaddr, AVSV_AVD_VCARD_ID);
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    vda_info.req = NCSVDA_VDEST_CREATE;
    vda_info.info.vdest_create.i_persistent = FALSE;
@@ -179,7 +179,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
 
    if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
       ncsvda_api(&vda_info);
@@ -199,7 +199,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
    rc = ncsmds_api(&svc_to_mds_info);
    if ( NCSCC_RC_SUCCESS != rc ) 
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
       ncsvda_api(&vda_info);
@@ -210,7 +210,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
 
 
    /* AVD ADEST create install and subscription */
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE; 
@@ -237,7 +237,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
 
    if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
       ncsvda_api(&vda_info);
@@ -259,7 +259,7 @@ uns32 avd_mds_reg (AVD_CL_CB *cb)
    rc = ncsmds_api(&svc_to_mds_info);
    if ( NCSCC_RC_SUCCESS != rc ) 
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = cb->vaddr;
       ncsvda_api(&vda_info);
@@ -630,7 +630,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
       case NCSMDS_SVC_ID_AVM:
          if(m_NCS_MDS_DEST_EQUAL(&cb->avm_mds_dest, &evt_info->i_dest))
          {
-            m_NCS_OS_MEMSET(&cb->avm_mds_dest, 0, sizeof(MDS_DEST)); 
+            memset(&cb->avm_mds_dest, 0, sizeof(MDS_DEST)); 
          }
          break;
          
@@ -639,7 +639,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
          /* if(Is this down from an Adest) && (Is this adest same as Adest in CB)*/
          if(m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest) && m_NCS_MDS_DEST_EQUAL(&evt_info->i_dest, &cb->other_avd_adest))
          {
-            m_NCS_OS_MEMSET(&cb->other_avd_adest, '\0', sizeof(MDS_DEST));
+            memset(&cb->other_avd_adest, '\0', sizeof(MDS_DEST));
          } 
          /* cb->node_id_avd_other should not be made 0, because heart beat loss message to AvM relies on this field -  */
          break;
@@ -750,7 +750,7 @@ uns32 avd_avnd_mds_send (AVD_CL_CB *cb, AVD_AVND *nd_node,AVD_DND_MSG *snd_msg)
    m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
    m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,snd_msg,sizeof(AVD_DND_MSG),snd_msg);
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->adest_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;

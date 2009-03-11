@@ -270,7 +270,7 @@ static uns32 avnd_avd_comp_updt_on_fover (AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INF
     * Walk through the entire COMP table, and remove COMP for which 
     * updates are not received in the message.
     */
-   m_NCS_OS_MEMSET(&comp_name, 0, sizeof(SaNameT));
+   memset(&comp_name, 0, sizeof(SaNameT));
 
    while (NULL != (comp = 
       (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp_name)))
@@ -636,7 +636,7 @@ uns32 avnd_evt_mds_ava_dn (AVND_CB *cb, AVND_EVT *evt)
    SaNameT       name_net;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&name_net, 0, sizeof(SaNameT));
+   memset(&name_net, 0, sizeof(SaNameT));
 
    /* get the matching registered comp (if any) */
    for ( comp = m_AVND_COMPDB_REC_GET_NEXT(cb->compdb, name_net);
@@ -1061,8 +1061,8 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
      NCS_BOOL           int_ext_comp = FALSE;
      SaNameT            comp_name;
 
-     m_NCS_OS_MEMSET(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
-     m_NCS_OS_MEMSET(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
+     memset(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
+     memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
      
      api_info.type = AVSV_AMF_COMP_UNREG; 
      api_info.dest = comp->reg_dest; 
@@ -2095,7 +2095,7 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
       goto done;
    }
 
-   m_NCS_OS_MEMSET(cbk_info, 0, sizeof(AVSV_AMF_CBK_INFO));
+   memset(cbk_info, 0, sizeof(AVSV_AMF_CBK_INFO));
 
    /* fill the callback params */
    switch (type)
@@ -2118,7 +2118,7 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
          /* 
           * Populate the csi-desc structure.
           */
-         m_NCS_OS_MEMSET(&csi_desc, 0, sizeof(SaAmfCSIDescriptorT));
+         memset(&csi_desc, 0, sizeof(SaAmfCSIDescriptorT));
 
          csi_desc.csiFlags = (!csi_rec) ? SA_AMF_CSI_TARGET_ALL : ((csi_rec->prv_assign_state == 0 ) ||
                                             (csi_rec->prv_assign_state == AVND_COMP_CSI_ASSIGN_STATE_UNASSIGNED))? 
@@ -2154,7 +2154,7 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
          }
 
          /* copy the attributes */
-         m_NCS_OS_MEMSET(&attr, 0, sizeof(NCS_AVSV_CSI_ATTRS));
+         memset(&attr, 0, sizeof(NCS_AVSV_CSI_ATTRS));
          if ( (SA_AMF_CSI_ADD_ONE == csi_desc.csiFlags) &&
               (curr_csi->attrs.number != 0) )
          {
@@ -2194,7 +2194,7 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
          if ( SA_AMF_CSI_TARGET_ALL != csi_flag)
             csi_name = csi_rec->name_net;
          else
-            m_NCS_OS_MEMSET(&csi_name, 0, sizeof(SaNameT));
+            memset(&csi_name, 0, sizeof(SaNameT));
          
          /* fill the callback params */
          m_AVND_AMF_CSI_REM_CBK_FILL(*cbk_info, comp->name_net, csi_name, csi_flag);
@@ -2273,14 +2273,14 @@ uns32 avnd_amf_resp_send(AVND_CB           *cb,
    MDS_SYNC_SND_CTXT temp_ctxt;
 
    /* Check if the response has to be sent or not. */
-   m_NCS_OS_MEMSET(&temp_ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
+   memset(&temp_ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
    if(0 == m_NCS_OS_MEMCMP(ctxt, &temp_ctxt, sizeof(MDS_SYNC_SND_CTXT)))
    {
      /* This means that the response is not supposed to be sent. */
      return rc;
    }
 
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    if ( 0 == (msg.info.ava = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG) )
    {
@@ -2288,7 +2288,7 @@ uns32 avnd_amf_resp_send(AVND_CB           *cb,
       goto done;
    }
 
-   m_NCS_OS_MEMSET(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* populate the response */
    if ( AVSV_AMF_HA_STATE_GET == type )
@@ -2309,7 +2309,7 @@ uns32 avnd_amf_resp_send(AVND_CB           *cb,
          goto done;
       }
 
-         m_NCS_OS_MEMSET(avnd_msg, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+         memset(avnd_msg, 0, sizeof(AVSV_ND2ND_AVND_MSG));
 
       avnd_msg->comp_name = comp->name_net;
       avnd_msg->mds_ctxt = *ctxt;
@@ -2394,7 +2394,7 @@ uns32 avnd_comp_proxied_add(AVND_CB                 *cb,
    }
 
    /* memset the record */
-   m_NCS_OS_MEMSET(rec, 0, sizeof(AVND_COMP_PXIED_REC));
+   memset(rec, 0, sizeof(AVND_COMP_PXIED_REC));
 
    /* fill the params */
    rec->pxied_comp = comp;
@@ -2411,7 +2411,7 @@ uns32 avnd_comp_proxied_add(AVND_CB                 *cb,
 if(TRUE == mib_upd_needed)
 {
    /* inform avd of the change in proxy (mib-sync) */
-   m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO));
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO));
    param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
    param.obj_id = saAmfCompCurrProxyName_ID;
    param.name_net = comp->name_net;
@@ -2480,7 +2480,7 @@ uns32 avnd_comp_proxied_del(AVND_CB                 *cb,
 
    /*remove the association between proxy and proxied*/
    comp->pxy_comp=0;
-   m_NCS_MEMSET(&comp->proxy_comp_name_net, 0, sizeof(SaNameT)), 
+   memset(&comp->proxy_comp_name_net, 0, sizeof(SaNameT)), 
 
    /* mark the proxied as unregistered.
       No need to send Async Update here as the same thing happens on the STDBY,
@@ -2509,7 +2509,7 @@ uns32 avnd_comp_proxied_del(AVND_CB                 *cb,
 if(TRUE == mib_upd_needed)
 {
    /* inform avd of the change in proxy (mib-sync) */
-   m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO));
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO));
    param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
    param.obj_id = saAmfCompCurrProxyName_ID;
    param.name_net = comp->name_net;
@@ -2566,8 +2566,8 @@ uns32 avnd_comp_proxy_unreg(AVND_CB   *cb,
      NCS_BOOL           int_ext_comp = FALSE;
      SaNameT            comp_name;
 
-     m_NCS_OS_MEMSET(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
-     m_NCS_OS_MEMSET(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
+     memset(&ctxt, 0, sizeof(MDS_SYNC_SND_CTXT));
+     memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
      
      api_info.type = AVSV_AMF_COMP_UNREG; 
      api_info.dest = pxd_comp->reg_dest; 

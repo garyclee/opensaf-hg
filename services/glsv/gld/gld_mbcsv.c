@@ -162,7 +162,7 @@ uns32  glsv_gld_mbcsv_init(GLSV_GLD_CB *gld_cb)
    }
 
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
    
    arg.i_op                       = NCS_MBCSV_OP_INITIALIZE;
    arg.info.initialize.i_mbcsv_cb = glsv_gld_mbcsv_callback;
@@ -206,7 +206,7 @@ static uns32  glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
       return  NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                    =  NCS_MBCSV_OP_OPEN;
    arg.i_mbcsv_hdl             =  gld_cb->mbcsv_handle;
@@ -243,7 +243,7 @@ static uns32  glsv_gld_mbcsv_open(GLSV_GLD_CB *gld_cb)
 static uns32  glsv_gld_mbcsv_selobj_get(GLSV_GLD_CB *gld_cb)
 {
     NCS_MBCSV_ARG arg;
-    m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
     arg.i_op                           =  NCS_MBCSV_OP_SEL_OBJ_GET;
     arg.i_mbcsv_hdl                    =  gld_cb->mbcsv_handle;
@@ -275,7 +275,7 @@ static uns32 glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
 {
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op  =  NCS_MBCSV_OP_CLOSE;
    arg.info.close.i_ckpt_hdl = cb->o_ckpt_hdl;
@@ -303,7 +303,7 @@ static uns32 glsv_gld_mbcsv_close(GLSV_GLD_CB *cb)
 uns32  glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
 {
    NCS_MBCSV_ARG arg;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                      = NCS_MBCSV_OP_CHG_ROLE;
    arg.i_mbcsv_hdl               = gld_cb->mbcsv_handle;
@@ -335,7 +335,7 @@ static uns32  glsv_gld_mbcsv_finalize(GLSV_GLD_CB *gld_cb)
 {
     NCS_MBCSV_ARG arg;
     uns32 rc = NCSCC_RC_SUCCESS;
-    m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
     arg.i_op        = NCS_MBCSV_OP_FINALIZE;
     arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
@@ -572,7 +572,7 @@ static uns32 glsv_gld_mbcsv_dec_async_update(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_AR
        m_LOG_GLD_MEMFAIL(GLD_A2S_EVT_ALLOC_FAILED);
        return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(a2s_evt,0,sizeof(GLSV_GLD_A2S_CKPT_EVT));
+   memset(a2s_evt,0,sizeof(GLSV_GLD_A2S_CKPT_EVT));
   
 
     /* To store the value of Async Update received */
@@ -687,7 +687,7 @@ static uns32  glsv_gld_mbcsv_dec_warm_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB
 
     /*TBD check for the validity of gld_cb arg */
 
-    m_NCS_OS_MEMSET(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
 
     ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(int32));
     num_of_async_upd = ncs_decode_32bit(&ptr);
@@ -763,7 +763,7 @@ static uns32  glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG 
        return rc;
    }
 
-   m_NCS_MEMSET(rsc_info,0,sizeof(GLSV_GLD_A2S_RSC_DETAILS));
+   memset(rsc_info,0,sizeof(GLSV_GLD_A2S_RSC_DETAILS));
 
   /* 1. Decode the 1st uns8 region ,  we will get the num of ckpts*/
    ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(uns8));
@@ -781,7 +781,7 @@ static uns32  glsv_gld_mbcsv_dec_sync_resp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG 
       }
       rc = gld_sb_proc_data_rsp(gld_cb,rsc_info);
       count++;
-      m_NCS_MEMSET(rsc_info,0,sizeof(GLSV_GLD_A2S_RSC_DETAILS));
+      memset(rsc_info,0,sizeof(GLSV_GLD_A2S_RSC_DETAILS));
    }
 
    /* Get the async update count */
@@ -923,7 +923,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
       return rc;
    }
  
-   m_NCS_MEMSET(&rsc_details, '\0',sizeof(GLSV_GLD_A2S_RSC_DETAILS));
+   memset(&rsc_details, '\0',sizeof(GLSV_GLD_A2S_RSC_DETAILS));
 
    /* First reserve space to store the number of checkpoints that will be sent*/
 
@@ -978,7 +978,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
          m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED);
          return NCSCC_RC_FAILURE;
      }
-     m_NCS_MEMSET(rsc_details.node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
+     memset(rsc_details.node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
      if(node_list != NULL)
      {
         memcpy(&rsc_details.node_list->dest_id,&rsc_info->node_list->dest_id,sizeof(MDS_DEST));
@@ -1013,7 +1013,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
 
            return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(a2s_node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
+         memset(a2s_node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
          memcpy(&a2s_node_list->dest_id,&node_list->dest_id,sizeof(MDS_DEST));
          node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,(uns8*)&node_list->node_id);
          if(node_details == NULL)

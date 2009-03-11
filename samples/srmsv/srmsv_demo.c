@@ -592,13 +592,13 @@ void srmsv_demo_read_mon_cfg(NCS_SRMSV_MON_INFO *mon_info,
    char val_buffer[128];
    int len = 0;
 
-   m_NCS_MEMSET(mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
+   memset(mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
 
    while (1)
    {
-      m_NCS_MEMSET(line_buffer, 0, 1024);
-      m_NCS_MEMSET(item_buffer, 0, 128);
-      m_NCS_MEMSET(val_buffer, 0, 128);
+      memset(line_buffer, 0, 1024);
+      memset(item_buffer, 0, 128);
+      memset(val_buffer, 0, 128);
 
       *line_num = (*line_num) + 1;
 
@@ -694,7 +694,7 @@ void srmsv_demo_get_watermark()
    SaAisErrorT  saf_status = SA_AIS_OK; 
    NCS_SRMSV_RSRC_INFO rsrc_info;
 
-   m_NCS_OS_MEMSET(&rsrc_info, 0, sizeof(NCS_SRMSV_RSRC_INFO ));
+   memset(&rsrc_info, 0, sizeof(NCS_SRMSV_RSRC_INFO ));
 
    m_NCS_TASK_SLEEP(10000); 
    m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_get_watermark_val()");
@@ -852,7 +852,7 @@ void srmsv_demo_subscr_rsrc_mon()
 {     
    NCS_SRMSV_RSRC_INFO rsrc_info;
 
-   m_NCS_MEMSET(&rsrc_info, 0, sizeof(NCS_SRMSV_RSRC_INFO));
+   memset(&rsrc_info, 0, sizeof(NCS_SRMSV_RSRC_INFO));
    rsrc_info.rsrc_type = NCS_SRMSV_RSRC_MEM_PHYSICAL_USED; 
      
 
@@ -891,7 +891,7 @@ void srmsv_demo_modify_rsrc_mon()
 {     
    NCS_SRMSV_MON_INFO mon_info;
 
-   m_NCS_MEMSET(&mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
+   memset(&mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
    mon_info.rsrc_info.rsrc_type = NCS_SRMSV_RSRC_MEM_PHYSICAL_USED; 
    mon_info.rsrc_info.usr_type = NCS_SRMSV_USER_REQUESTOR_AND_SUBSCR;
    mon_info.monitor_data.monitoring_rate = 10;

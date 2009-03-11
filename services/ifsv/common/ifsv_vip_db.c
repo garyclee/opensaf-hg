@@ -85,7 +85,7 @@ NCS_IFSV_IFINDEX    ifsv_vip_get_global_ifindex(IFSV_CB *cb,uns8 *str)
    IFSV_INTF_DATA      *intfData;
    NCS_IFSV_IFINDEX     ifIndex;
 
-   m_NCS_MEMSET(&ifIndex,0, sizeof(NCS_IFSV_IFINDEX));
+   memset(&ifIndex,0, sizeof(NCS_IFSV_IFINDEX));
    if_node = ncs_patricia_tree_getnext(&cb->if_tbl, (uns8*)0);
    intfRec = (IFSV_INTF_REC*)if_node;
    intfData = &intfRec->intf_data;
@@ -281,7 +281,7 @@ uns32 ifsv_vip_add_ip_node (NCS_DB_LINK_LIST *list, NCS_IPPFX *ipAddr,uns8 *str)
        /* LOG ERROR MESSAGE */
        return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(pIpList,0,sizeof(NCS_IFSV_VIP_IP_LIST));
+    memset(pIpList,0,sizeof(NCS_IFSV_VIP_IP_LIST));
     pIpList->ip_addr.ipaddr.type = ipAddr->ipaddr.type;
     pIpList->ip_addr.ipaddr.info.v4 = ipAddr->ipaddr.info.v4;
     pIpList->ip_addr.mask_len = ipAddr->mask_len;
@@ -310,7 +310,7 @@ uns32 ifsv_vip_add_intf_node (NCS_DB_LINK_LIST *list,uns8 *str)
       /* LOG ERROR MESSAGE */
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(pIntfList,0,sizeof(NCS_IFSV_VIP_INTF_LIST));
+   memset(pIntfList,0,sizeof(NCS_IFSV_VIP_INTF_LIST));
    m_NCS_STRCPY(&pIntfList->intf_name,str);
    
    pIntfNode = (NCS_DB_LINK_LIST_NODE *)pIntfList;
@@ -340,7 +340,7 @@ uns32 ifsv_vip_add_owner_node (NCS_DB_LINK_LIST *list, MDS_DEST *dest
        /* LOG ERROR MESSAGE */
        return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(pOwnerList,0,sizeof(NCS_IFSV_VIP_OWNER_LIST));
+    memset(pOwnerList,0,sizeof(NCS_IFSV_VIP_OWNER_LIST));
     memcpy(&pOwnerList->owner,dest,sizeof(MDS_DEST));
 #if (VIP_HALS_SUPPORT == 1)
     pOwnerList->infraFlag = flag;

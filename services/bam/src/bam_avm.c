@@ -58,7 +58,7 @@ uns32 bam_avm_snd_message(BAM_AVM_MSG_T *snd_msg)
       return NCSCC_RC_FAILURE;
    }
   
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = bam_cb->mds_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_BAM;
@@ -100,7 +100,7 @@ void ncs_bam_avm_send_cfg_done_msg()
    BAM_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_BAM_AVM_MSG;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(BAM_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(BAM_AVM_MSG_T));
    snd_msg->msg_type = BAM_AVM_CFG_DONE_MSG;
    snd_msg->msg_info.msg.check_sum = gl_bam_avm_cfg_msg_num;
 

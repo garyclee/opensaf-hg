@@ -95,7 +95,7 @@ void tet_cpd_dump_cb()
 
    cpsv_evt=m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
 
-   m_NCS_OS_MEMSET(cpsv_evt,0,sizeof(CPSV_EVT));
+   memset(cpsv_evt,0,sizeof(CPSV_EVT));
    cpsv_evt->type = CPSV_EVT_TYPE_CPD;
    cpsv_evt->info.cpnd.type=CPD_EVT_CB_DUMP;
 

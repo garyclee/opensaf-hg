@@ -606,7 +606,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
           * 
           */
          AVD_EVT evt;
-         m_NCS_MEMSET(&evt, '\0', sizeof(AVD_EVT));
+         memset(&evt, '\0', sizeof(AVD_EVT));
          evt.cb_hdl = cb->cb_handle;
          evt.rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
@@ -755,7 +755,7 @@ void  avd_role_switch_ncs_su(AVD_CL_CB  *cb, AVD_EVT *evt)
    /* if we are not having any NCS SU's just jump to next level */
    if((avnd->list_of_ncs_su == AVD_SU_NULL) && (cb->role_switch == SA_TRUE))
    {
-      m_NCS_MEMSET(&assign, 0, sizeof(AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO));
+      memset(&assign, 0, sizeof(AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO));
       assign.ha_state = SA_AMF_HA_ACTIVE;
       assign.error = NCSCC_RC_SUCCESS; 
       avd_ncs_su_mod_rsp(cb, avnd, &assign);

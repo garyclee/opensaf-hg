@@ -139,7 +139,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
          break;
       }
       
-      m_NCS_MEMSET(ifsv_cb, 0, sizeof(IFSV_CB));
+      memset(ifsv_cb, 0, sizeof(IFSV_CB));
       ifsv_cb->hm_pid    = pwe_param->pool_id;
       ifsv_cb->comp_type = comp_type;
       ifsv_cb->my_svc_id = svc_id;
@@ -196,7 +196,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       
       
       /* get the component name */
-      m_NCS_MEMSET(&sname,0,sizeof(sname));
+      memset(&sname,0,sizeof(sname));
 
       amf_error = saAmfComponentNameGet(ifsv_cb->amf_hdl,&sname);
       if (amf_error != SA_AIS_OK)
@@ -245,7 +245,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
          goto ifnd_amf_reg_fail;
       }
 #if (NCS_IFSV_IPXS == 1)
-      m_NCS_OS_MEMSET(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
+      memset(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
       ipxs_info.op = NCS_LIB_REQ_CREATE;
       ipxs_info.info.create.oac_hdl = ifsv_cb->oac_hdl;
       ipxs_info.info.create.pool_id = ifsv_cb->hm_pid;
@@ -287,11 +287,11 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
 
       /*   start the AMF Health Check  */
       /** start the AMF health check **/
-      m_NCS_MEMSET(&sname,0,sizeof(sname));
+      memset(&sname,0,sizeof(sname));
       m_NCS_STRCPY(sname.value,ifsv_cb->comp_name);
       sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
 
-      m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+      memset(&healthy,0,sizeof(healthy));
 
       health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
       if(health_key == NULL)
@@ -408,7 +408,7 @@ ifnd_lib_destroy (uns32 vrid, uns32 comp_type)
       m_MMGR_FREE_IFSV_CB(ifsv_cb);
 
 #if (NCS_IFSV_IPXS == 1)
-      m_NCS_OS_MEMSET(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
+      memset(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
       ipxs_info.op = NCS_LIB_REQ_DESTROY;
       ipxs_ifnd_lib_req(&ipxs_info);
 #endif
@@ -583,7 +583,7 @@ ifnd_extract_input_info(int argc, char *argv[], IFSV_CREATE_PWE *ifsv_info)
 {
    char                 *p_field;
    uns32                node_id=0;
-   m_NCS_MEMSET(ifsv_info,0,sizeof(IFSV_CREATE_PWE));
+   memset(ifsv_info,0,sizeof(IFSV_CREATE_PWE));
 
    p_field = ifnd_search_argv_list(argc, argv, "SHELF_ID=");
    if (p_field == NULL)

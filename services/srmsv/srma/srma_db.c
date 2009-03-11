@@ -350,7 +350,7 @@ NCS_SRMSV_ERR srma_usr_appl_create(SRMA_CB *srma,
       return SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_OS_MEMSET((char *)appl, 0, sizeof(SRMA_USR_APPL_NODE));
+   memset((char *)appl, 0, sizeof(SRMA_USR_APPL_NODE));
 
    /* create the association with hdl-mngr */
    if (!(appl->user_hdl = ncshm_create_hdl(srma->pool_id,
@@ -803,7 +803,7 @@ NCS_SRMSV_ERR srma_appl_create_rsrc_mon(SRMA_CB *srma,
       return SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_OS_MEMSET((char *)rsrc, 0, sizeof(SRMA_RSRC_MON));
+   memset((char *)rsrc, 0, sizeof(SRMA_RSRC_MON));
 
    /* create the association with hdl-mngr */
    if (!(rsrc->rsrc_mon_hdl = ncshm_create_hdl(srma->pool_id, 
@@ -1268,7 +1268,7 @@ NCS_SRMSV_ERR srma_appl_subscr_rsrc_mon(SRMA_CB *srma,
       return SA_AIS_ERR_INVALID_PARAM;
    }
  
-   m_NCS_OS_MEMSET(&mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
+   memset(&mon_info, 0, sizeof(NCS_SRMSV_MON_INFO));
       
    /* Copy the content of rsrc specific info */
    mon_info.rsrc_info = *rsrc_info;
@@ -1304,7 +1304,7 @@ NCS_SRMSV_ERR srma_appl_subscr_rsrc_mon(SRMA_CB *srma,
       return SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_OS_MEMSET((char *)rsrc, 0, sizeof(SRMA_RSRC_MON));
+   memset((char *)rsrc, 0, sizeof(SRMA_RSRC_MON));
 
    /* create the association with hdl-mngr */
    if (!(rsrc->rsrc_mon_hdl = ncshm_create_hdl(srma->pool_id, 
@@ -1499,7 +1499,7 @@ NCS_SRMSV_ERR srma_get_watermark_val(SRMA_CB *srma,
       return SA_AIS_ERR_INVALID_PARAM;
    }
 
-   m_NCS_OS_MEMSET(&rsrc, 0, sizeof(SRMA_RSRC_MON));
+   memset(&rsrc, 0, sizeof(SRMA_RSRC_MON));
 
    /* Update the rsrc_type & watermark_monitor type */
    rsrc.rsrc_info.rsrc_type = rsrc_info->rsrc_type;

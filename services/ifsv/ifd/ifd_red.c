@@ -275,7 +275,7 @@ ifd_a2s_intf_data_create_handler (IFSV_INTF_DATA * evt, IFSV_CB *cb, uns32 oper_
      return (NCSCC_RC_FAILURE);
    }
    
-   m_NCS_MEMSET(rec, 0, sizeof(IFSV_INTF_REC));
+   memset(rec, 0, sizeof(IFSV_INTF_REC));
    memcpy(&rec->intf_data, evt, sizeof(IFSV_INTF_DATA));
    if(oper_status == TRUE)
      rec->intf_data.active = TRUE;
@@ -607,7 +607,7 @@ ifd_a2s_vip_rec_create_handler (VIP_REDUNDANCY_RECORD *pVipChkptPkt, IFSV_CB *cb
    if(pVipChkptPkt == IFSV_NULL)
       return NCSCC_RC_FAILURE;
   
-   m_NCS_MEMSET(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
+   memset(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
 
 
 /*
@@ -642,7 +642,7 @@ ifd_a2s_vip_rec_create_handler (VIP_REDUNDANCY_RECORD *pVipChkptPkt, IFSV_CB *cb
        return NCSCC_RC_FAILURE;
     }
 
-    m_NCS_MEMSET(pVipdRec,0,sizeof(IFSV_IFD_VIPD_RECORD));
+    memset(pVipdRec,0,sizeof(IFSV_IFD_VIPD_RECORD));
 
     m_NCS_STRCPY(&pVipdRec->handle.vipApplName,
              &pVipChkptPkt->handle.vipApplName);
@@ -1040,7 +1040,7 @@ uns32 ifd_a2s_ifindex_upd_handler (IFD_A2S_IFINDEX_UPD_EVT *info, IFSV_CB *cb)
   m_IFD_LOG_EVT_L(IFSV_LOG_IFD_EVT_A2S_ASYNC_UPDATE_RCV,"Ifindex Update Info. Index is :",info->type);
    
 
-  m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
+  memset(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
 
   switch (info->type)
   {
@@ -1227,7 +1227,7 @@ ifd_a2s_iaps_sync_resp (IFSV_CB *cb, IFAP_INFO_LIST_A2S *msg)
   NCS_IFSV_SPT_MAP  spt_map; /* Some dummy value. */
   uns32 *free_list = msg->free_list;
 
-  m_NCS_MEMSET(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
+  memset(&spt_map,0,sizeof(NCS_IFSV_SPT_MAP));
   m_IFD_LOG_EVT_L(IFSV_LOG_IFD_EVT_A2S_SYNC_RESP_RCV,"IAPS data.",0);
 
   max_ifindex = msg->max_ifindex;
@@ -1372,7 +1372,7 @@ ifd_ifnd_node_id_info_add (IFD_IFND_NODE_ID_INFO_REC **rec, NODE_ID *node_id,
     return (NCSCC_RC_FAILURE);
   }
 
-  m_NCS_MEMSET(ptr, 0, sizeof(IFD_IFND_NODE_ID_INFO_REC));
+  memset(ptr, 0, sizeof(IFD_IFND_NODE_ID_INFO_REC));
 
   ptr->info.ifnd_node_id = *node_id;
   ptr->pat_node.key_info = (uns8*)&ptr->info.ifnd_node_id;
@@ -1459,7 +1459,7 @@ ifd_ifnd_node_id_info_destroy_all (IFSV_CB *cb)
   IFD_IFND_NODE_ID_INFO_REC *rec = NULL;
   NODE_ID node_id;
 
-  m_NCS_MEMSET(&node_id, 0, sizeof(NODE_ID));
+  memset(&node_id, 0, sizeof(NODE_ID));
 
   node = ncs_patricia_tree_getnext(&cb->ifnd_node_id_tbl, (uns8*)&node_id);
 

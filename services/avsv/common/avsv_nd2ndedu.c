@@ -115,7 +115,7 @@ uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
                 return NCSCC_RC_FAILURE;
             }
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVSV_ND2ND_AVND_MSG));
+        memset(*d_ptr, '\0', sizeof(AVSV_ND2ND_AVND_MSG));
         struct_ptr = *d_ptr;
     }
     else

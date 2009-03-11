@@ -114,7 +114,7 @@ uns32 mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 
    pNode = m_MMGR_ALLOC_MQD_OBJ_NODE;
    if(!pNode) return NCSCC_RC_FAILURE;
-   m_NCS_MEMSET(pNode, 0, sizeof(MQD_OBJ_NODE));
+   memset(pNode, 0, sizeof(MQD_OBJ_NODE));
 
    /* Initialize the Queue/Group & Track List */
    ncs_create_queue(&pNode->oinfo.ilist);  

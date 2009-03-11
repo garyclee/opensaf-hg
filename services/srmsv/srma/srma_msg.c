@@ -60,7 +60,7 @@ uns32 srma_send_appl_msg(SRMA_CB *srma,
    /* Get the MDS dest data */
    if (srmnd_info)
    {
-      m_NCS_OS_MEMSET(&srmnd_dest, 0, sizeof(MDS_DEST));
+      memset(&srmnd_dest, 0, sizeof(MDS_DEST));
       srmnd_dest = srmnd_info->srmnd_dest;
    }
  
@@ -69,7 +69,7 @@ uns32 srma_send_appl_msg(SRMA_CB *srma,
    case SRMA_UNREGISTER_MSG:
    case SRMA_START_MON_MSG:
    case SRMA_STOP_MON_MSG:
-       m_NCS_OS_MEMSET(&srma_msg, 0, sizeof(SRMA_MSG));
+       memset(&srma_msg, 0, sizeof(SRMA_MSG));
 
        /* Update the event data */
        srma_msg.msg_type = msg_type;
@@ -133,7 +133,7 @@ uns32 srma_send_rsrc_msg(SRMA_CB *srma,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&srma_msg, 0, sizeof(SRMA_MSG));
+   memset(&srma_msg, 0, sizeof(SRMA_MSG));
 
    /* Update the event data */
    srma_msg.msg_type = msg_type;
@@ -287,7 +287,7 @@ uns32 srma_process_srmnd_msg(SRMA_CB   *srma,
           else
              appl = rsrc_mon->usr_appl->usr_appl;
 
-          m_NCS_OS_MEMSET(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
+          memset(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
 
           switch (rsrc_mon->rsrc_info.rsrc_type)
           {
@@ -339,7 +339,7 @@ uns32 srma_process_srmnd_msg(SRMA_CB   *srma,
           else
              appl = rsrc_mon->usr_appl->usr_appl;
 
-          m_NCS_OS_MEMSET(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
+          memset(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
 
           cbk_info.notif_type = SRMSV_CBK_NOTIF_RSRC_THRESHOLD;
           cbk_info.rsrc_mon_hdl = srmnd_msg->srma_rsrc_hdl;
@@ -395,7 +395,7 @@ uns32 srma_process_srmnd_msg(SRMA_CB   *srma,
           /* return application specific SRMSv handle */
           ncshm_give_hdl(srmnd_msg->srma_rsrc_hdl);
 
-          m_NCS_OS_MEMSET(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
+          memset(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
 
           /* Update the CBK record */
           cbk_info.notif_type = SRMSV_CBK_NOTIF_WATERMARK_VAL;
@@ -430,7 +430,7 @@ uns32 srma_process_srmnd_msg(SRMA_CB   *srma,
            else
               appl = rsrc_mon->usr_appl->usr_appl;
 
-           m_NCS_OS_MEMSET(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
+           memset(&cbk_info, 0, sizeof(NCS_SRMSV_RSRC_CBK_INFO));
 
            /* Update the CBK record */
            cbk_info.notif_type = SRMSV_CBK_NOTIF_WM_CFG_ALREADY_EXIST;

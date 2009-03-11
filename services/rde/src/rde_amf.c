@@ -290,7 +290,7 @@ static uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb)
    SaVersionT      amf_version;   
    SaAisErrorT     amf_error;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback        = rde_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback             = rde_saf_CSI_set_callback;
@@ -406,7 +406,7 @@ static uns32 rde_fla_log_bind(void)
 {
    NCS_DTSV_RQ            reg;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
    /* fill version no. */
@@ -432,7 +432,7 @@ static uns32 rde_fla_log_unbind(void)
 {
    NCS_DTSV_RQ            reg;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                 = NCS_DTSV_OP_UNBIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
    return(ncs_dtsv_su_req(&reg));   
@@ -519,11 +519,11 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
    /*
    ** Start the AMF health check 
    */   
-   m_NCS_MEMSET(&SaCompName,0,sizeof(SaCompName));
+   memset(&SaCompName,0,sizeof(SaCompName));
    m_NCS_STRCPY(SaCompName.value, rde_amf_cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(rde_amf_cb->comp_name);
 
-   m_NCS_MEMSET(&Healthy, 0, sizeof(Healthy));
+   memset(&Healthy, 0, sizeof(Healthy));
    phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("RDE_HA_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
@@ -589,7 +589,7 @@ static uns32 rde_amf_lib_init(RDE_AMF_CB *rde_amf_cb)
       /* 
       ** Get the component name 
       */
-      m_NCS_MEMSET(&sname, 0, sizeof(sname));
+      memset(&sname, 0, sizeof(sname));
       amf_error = saAmfComponentNameGet(rde_amf_cb->amf_hdl, &sname);
       if (amf_error != SA_AIS_OK)
       {

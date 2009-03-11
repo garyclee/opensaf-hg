@@ -1248,7 +1248,7 @@ avm_bld_validation_info(
    
    for(ptr = ent_desc_info; NCS_HW_ENT_TYPE_DESC_NULL != ptr; ptr = ptr->next)
    {
-      m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+      memset(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
       
       desc_name.length = m_NCS_STRLEN(ptr->entity_name);
       memcpy(desc_name.name, ptr->entity_name, desc_name.length);
@@ -1307,7 +1307,7 @@ avm_bld_valid_info_parent_child_relation(AVM_CB_T *cb)
    AVM_VALID_INFO_T *parent_valid_info; 
 
    m_AVM_LOG_FUNC_ENTRY("avm_bld_valid_info_parent_child_relation");
-   m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+   memset(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
    for(valid_info = (AVM_VALID_INFO_T*) ncs_patricia_tree_getnext(&cb->db.valid_info_anchor, desc_name.name);
        valid_info != AVM_VALID_INFO_NULL; 
@@ -1316,13 +1316,13 @@ avm_bld_valid_info_parent_child_relation(AVM_CB_T *cb)
    {
       for(i = 0; i < valid_info->parent_cnt; i++)
       {
-    m_NCS_MEMSET(parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+    memset(parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
     memcpy(parent_desc_name.name, valid_info->location[i].parent.name, NCS_MAX_INDEX_LEN);
          parent_valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, parent_desc_name.name);
          valid_info->parents[i] = parent_valid_info;
      }
 
-     m_NCS_MEMSET(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+     memset(desc_name.name, '\0', NCS_MAX_INDEX_LEN);
      memcpy(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
    }   
 
@@ -1385,7 +1385,7 @@ avm_check_deployment(AVM_CB_T *cb)
    AVM_NODE_INFO_T    *node_info = AVM_NODE_INFO_NULL;  
 
    m_AVM_LOG_FUNC_ENTRY("avm_check_deployment");
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
    ep_str.length = 0; 
    
    for(ent_info = (AVM_ENT_INFO_T*) avm_find_next_ent_str_info(cb, &ep_str);
@@ -1394,7 +1394,7 @@ avm_check_deployment(AVM_CB_T *cb)
      )
    {
 
-      m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
+      memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN);
       ep_str.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
       memcpy(ep_str.name, ent_info->ep_str.name, ep_str.length);
     
@@ -1664,11 +1664,11 @@ avm_add_root(AVM_CB_T *cb)
    AVM_ENT_INFO_T     *ent_info;
 
    m_AVM_LOG_FUNC_ENTRY("avm_add_root");
-   m_NCS_MEMSET(ep_str.name, '\0', AVM_MAX_INDEX_LEN); 
+   memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN); 
    sprintf(ep_str.name, "{{%d,0}}", SAHPI_ENT_ROOT);
    ep_str.length = m_NCS_STRLEN(ep_str.name);
    
-   m_NCS_MEMSET(ep.Entry, '\0', sizeof(SaHpiEntityPathT));
+   memset(ep.Entry, '\0', sizeof(SaHpiEntityPathT));
    ep.Entry[0].EntityType     = SAHPI_ENT_ROOT;
 #ifdef HPI_A
    ep.Entry[0].EntityInstance = 0;
@@ -1985,7 +1985,7 @@ avm_push_admin_mib_set_to_psr(AVM_CB_T *cb, AVM_ENT_INFO_T  *ent_info, AVM_ADM_O
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&mib_arg, 0, sizeof(NCSMIB_ARG));
 
    ncsmib_init(&mib_arg);
 
@@ -1999,7 +1999,7 @@ avm_push_admin_mib_set_to_psr(AVM_CB_T *cb, AVM_ENT_INFO_T  *ent_info, AVM_ADM_O
    mib_arg.rsp.i_status = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
 
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->mab_hdl;
@@ -2274,7 +2274,7 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* Initialize entity path */
-   m_NCS_MEMSET(ep->Entry, 0, sizeof(SaHpiEntityPathT));
+   memset(ep->Entry, 0, sizeof(SaHpiEntityPathT));
 
    /* Depending on HPI version construct entity path */
 

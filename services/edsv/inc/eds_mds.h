@@ -68,7 +68,7 @@ EXTERN_C uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag)
 /* Macro to populate the 'EVT Initialize' response message */
 #define m_EDS_EDSV_INIT_MSG_FILL(m, rs, regid) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_INITIALIZE_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
@@ -81,7 +81,7 @@ do { \
 /* Macro to populate the limit get response message */
 #define m_EDS_EDSV_LIMIT_GET_MSG_FILL(m, rs) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_LIMIT_GET_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
@@ -99,7 +99,7 @@ do { \
 /* Macro to populate the 'EVT Channel Open' response message */
 #define m_EDS_EDSV_CHAN_OPEN_SYNC_MSG_FILL(m, rs, chanid, copenid) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_CHAN_OPEN_SYNC_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
@@ -110,7 +110,7 @@ do { \
 /* Macro to populate the 'EVT Channel Unlink' response message */
 #define m_EDS_EDSV_CHAN_UNLINK_SYNC_MSG_FILL(m, rs, cname) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_CHAN_UNLINK_SYNC_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
@@ -120,7 +120,7 @@ do { \
 /* Macro to populate the 'EVT Channel Unlink' response message */
 #define m_EDS_EDSV_CHAN_RETENTION_TMR_CLEAR_SYNC_MSG_FILL(m, rs) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_RESP_MSG; \
    (m).info.api_resp_info.type = EDSV_EDA_CHAN_RETENTION_TIME_CLEAR_SYNC_RSP_MSG; \
    (m).info.api_resp_info.rc = (rs); \
@@ -129,7 +129,7 @@ do { \
 #define m_EDS_EDSV_CHAN_OPEN_CB_MSG_FILL(m, regid, invocation, cname, chanid, \
                                          copenid, copenflags, err) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDS_CBK_MSG; \
    (m).info.cbk_info.type = EDSV_EDS_CHAN_OPEN; \
    (m).info.cbk_info.eds_reg_id = (regid); \
@@ -148,7 +148,7 @@ do { \
                                             pub_name, pub_time, ret_time, \
                                             evid, recoid, buf_len, buf) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDS_CBK_MSG; \
    (m).info.cbk_info.type = EDSV_EDS_DELIVER_EVENT; \
    (m).info.cbk_info.eds_reg_id = (regid); \
@@ -169,7 +169,7 @@ do { \
 /* Macro to populate the 'CLM Cluster Node Status' callback message */
 #define m_EDS_EDSV_CLM_STATUS_CB_MSG_FILL(m, cluster_change) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDS_CBK_MSG; \
    (m).info.cbk_info.type = EDSV_EDS_CLMNODE_STATUS; \
    (m).info.cbk_info.param.clm_status_cbk.node_status = (cluster_change); \

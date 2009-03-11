@@ -39,7 +39,7 @@ void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB gld_cb, SaNameT rsc_name, SaLckResou
   GLSV_GLD_A2S_CKPT_EVT  a2s_evt;
   SaAisErrorT            rc = SA_AIS_OK;
 
-  m_NCS_OS_MEMSET(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
+  memset(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
   a2s_evt.evt_type                    = GLSV_GLD_EVT_RSC_OPEN;
   a2s_evt.info.rsc_open_info.rsc_id   = rsc_id;
@@ -72,7 +72,7 @@ void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB gld_cb, MDS_DEST mdest_id, uns32
   SaAisErrorT   rc = SA_AIS_OK;
 
 
-  m_NCS_OS_MEMSET(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
+  memset(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
 
   a2s_evt.evt_type                       = evt_type;  
@@ -100,7 +100,7 @@ void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB gld_cb,GLSV_GLD_EVT_TYPE    evt_t
   SaAisErrorT   rc = SA_AIS_OK;
 
 
-  m_NCS_OS_MEMSET(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
+  memset(&a2s_evt, '\0', sizeof(GLSV_GLD_A2S_CKPT_EVT));
 
 
   a2s_evt.evt_type                    = evt_type;  

@@ -55,7 +55,7 @@ uns32 avnd_sudb_init(AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = sizeof(SaNameT);
    rc = ncs_patricia_tree_init(&cb->sudb, &params);
@@ -153,7 +153,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(su, 0, sizeof(AVND_SU));
+   memset(su, 0, sizeof(AVND_SU));
 
    /*
     * Update the config parameters.
@@ -330,7 +330,7 @@ uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data)
       return NCSCC_RC_INV_VAL;
    }
 
-   m_NCS_OS_MEMSET(&su_name, 0, sizeof(SaNameT));
+   memset(&su_name, 0, sizeof(SaNameT));
    
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
    for (i = 0; i < su_name.length; i++)
@@ -496,7 +496,7 @@ uns32 ncsssutableentry_next(NCSCONTEXT cb,
       return NCSCC_RC_INV_VAL;
    }
 
-   m_NCS_OS_MEMSET(&su_name, 0, sizeof(SaNameT));
+   memset(&su_name, 0, sizeof(SaNameT));
   
    /* Prepare the SU name from the instant ID */
    if (arg->i_idx.i_inst_len != 0)

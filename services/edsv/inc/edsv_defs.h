@@ -60,7 +60,7 @@
 
 #define m_GET_MY_VENDOR(vendor) \
      vendor.length=13; \
-     m_NCS_OS_MEMSET(&vendor.value,'\0',SA_MAX_NAME_LENGTH); \
+     memset(&vendor.value,'\0',SA_MAX_NAME_LENGTH); \
      memcpy(&vendor.value,(uns8 *)"OpenSAF",7);
 
 /** Macro to validate the channel open flags **/

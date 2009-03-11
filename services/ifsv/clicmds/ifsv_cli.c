@@ -139,7 +139,7 @@ uns32 ncsifsv_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
         case NCS_LIB_REQ_CREATE:
-        m_NCS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+        memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
         i_bindery.i_cli_hdl = gl_cli_hdl;
         i_bindery.i_mab_hdl = gl_mac_handle; 
         i_bindery.i_req_fnc = ncsmac_mib_request; 
@@ -208,8 +208,8 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
    */
    
    /************** REGISTER COMMANDS IN THE "CONFIG" MODE **************/
-   m_NCS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
-   m_NCS_MEMSET(&info, 0, sizeof(info));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&info, 0, sizeof(info));
 
    data.i_node = "root/exec/config";
    data.i_command_mode = "config";
@@ -235,7 +235,7 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
 
    /**************** Interface mode is set ******************/
 
-   m_NCS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/interfaces";  /* Set path for the commands*/
    data.i_command_mode = "interfaces";   /* Set the mode */
    data.i_access_req = FALSE;        /* Password protected = FALSE */
@@ -271,7 +271,7 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
 
    /* IP SPECIFIC CONFIGURATION */
 
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/interfaces/configure";
    data.i_command_mode = "configure";
    data.i_access_req = FALSE;
@@ -320,7 +320,7 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
    if(NCSCC_RC_SUCCESS != ncscli_opr_request(&info)) 
                   return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/interfaces/configure/vip";
    data.i_command_mode = "vip";
    data.i_access_req = FALSE;
@@ -352,7 +352,7 @@ uns32 ncsifsv_cli_register(NCSCLI_BINDERY  *i_bindery)
 #if(NCS_IFSV_BOND_INTF == 1)
 
    /************** REGISTER Commands in "Binding" MODE **************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/interfaces/bind";  /* Set path for the commands*/
    data.i_command_mode = "bind";   /* Set the mode */
    data.i_access_req = FALSE;        /* Password protected = FALSE */
@@ -699,7 +699,7 @@ ifsv_cef_chng_interface_cmd(NCSCLI_ARG_SET *arg_list,
    inst_ids[5] = NCS_IFSV_SUBSCR_EXT;
 
    /* Initialize the MIB arg structure */
-   m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -770,7 +770,7 @@ uns32 ifsv_cef_conf_intf_shut (NCSCLI_ARG_SET *arg_list,
    inst_ids[0] = mode_data->ifindex;;
 
    /* Initialize the MIB arg structure */
-   m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -865,7 +865,7 @@ uns32 ncs_ifsv_cli_get_ifindex_from_spt(uns32            i_mib_key,
    inst_ids[4] = i_spt->type;
 
    /* Initialize the MIB arg structure */
-   m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -915,7 +915,7 @@ uns32 ncs_ifsv_cli_get_ippfx_from_spt(uns32            i_mib_key,
    inst_ids[4] = i_spt->type;
 
    /* Initialize the MIB arg structure */
-   m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -941,7 +941,7 @@ uns32 ncs_ifsv_cli_get_ippfx_from_spt(uns32            i_mib_key,
    inst_ids[0] = (NCS_IFSV_IFINDEX) ncsmib_arg.rsp.info.get_rsp.i_param_val.info.i_int;
    
       /* Initialize the MIB arg structure */
-   m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -975,7 +975,7 @@ uns32 ncs_ifsv_cli_get_ippfx_from_spt(uns32            i_mib_key,
       *o_ippfx = m_MMGR_ALLOC_NCSCLI_OPAQUE(sizeof(NCS_IPPFX));
       if(*o_ippfx == NULL)
          return NCSCC_RC_FAILURE;
-      m_NCS_MEMSET((*o_ippfx), 0, sizeof(NCS_IPPFX));
+      memset((*o_ippfx), 0, sizeof(NCS_IPPFX));
       (*o_ippfx)->ipaddr.type = NCS_IP_ADDR_TYPE_IPV4;
 
       for(count=0; count<4 ; count++)
@@ -1040,7 +1040,7 @@ ifsv_cef_conf_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    mode_data->spt.subscr_scope = NCS_IFSV_SUBSCR_INT;
    
    /* Initialize the MIB arg structure */
-   m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -1158,7 +1158,7 @@ ifsv_cef_conf_create_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
    }     
 
    /* Initialize the MIB arg structure */
-   m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -1173,7 +1173,7 @@ ifsv_cef_conf_create_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
 
 
    ncsparm_enc_init(&rsp_pa);
-   m_NCS_OS_MEMSET(&param_val, 0 , sizeof(NCSMIB_PARAM_VAL));
+   memset(&param_val, 0 , sizeof(NCSMIB_PARAM_VAL));
 
    /* No need of Rowstatus. Set the master and slave ifindices */
    param_val.i_fmat_id = NCSMIB_FMAT_INT;
@@ -1245,7 +1245,7 @@ ifsv_cef_conf_delete_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
    inst_ids[0] = bind_num;
 
    /* Initialize the MIB arg structure */
-   m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -1312,8 +1312,8 @@ ifsv_cef_show_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    bind_num = mode_data->spt.port;
 
    /* Initialize the MIB arg structure */
-   m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-   m_NCS_OS_MEMSET(space, 0, 2048);
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(space, 0, 2048);
    ncsmib_init(&ncsmib_arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -1354,8 +1354,8 @@ ifsv_cef_show_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 
          bind_num = ncsmib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids[0];
 
-         m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-         m_NCS_OS_MEMSET(space, 0, 2048);
+         memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+         memset(space, 0, 2048);
          ncsmib_init(&ncsmib_arg);
          ncsmem_aid_init(&ma, space, sizeof(space));    
 
@@ -1415,7 +1415,7 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
   if(ub == NULL)
      return;
 
-  m_NCS_OS_MEMSET(space, 0, sizeof(space));
+  memset(space, 0, sizeof(space));
   ncsmem_aid_init(&ma, space, 1024);
 
   param_cnt = ncsparm_dec_init(&rsp_pa,ub);
@@ -1518,7 +1518,7 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
     }
     ifindex = arg_list->i_arg_record[rel_offset + 6].cmd.intval;
 
-    m_NCS_MEMSET(&inst_ids, '\0', sizeof(inst_ids));
+    memset(&inst_ids, '\0', sizeof(inst_ids));
     inst_ids[0] = NCS_IP_ADDR_TYPE_IPV4;
     lcl_mask = 0xff000000;
     for(i = 0; i < 4; i++)
@@ -1528,8 +1528,8 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
     }
 
     /* Set the address mask length first. */
-    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_MEMSET(&ipaddr, 0, sizeof(ipaddr));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ipaddr, 0, sizeof(ipaddr));
     ncsmib_init(&ncsmib_arg);
     ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
     ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
@@ -1602,8 +1602,8 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
     }
 
 
-    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_MEMSET(&ipaddr, 0, sizeof(ipaddr));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ipaddr, 0, sizeof(ipaddr));
     ncsmib_init(&ncsmib_arg);
     ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
     ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
@@ -1639,8 +1639,8 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
        goto end;
     }
 
-    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_MEMSET(&ipaddr, 0, sizeof(ipaddr));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ipaddr, 0, sizeof(ipaddr));
     ncsmib_init(&ncsmib_arg);
     ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
     ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
@@ -1678,8 +1678,8 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
     }
 
     /* Create Row for this entry */
-    m_NCS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_MEMSET(&ipaddr, 0, sizeof(ipaddr));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ipaddr, 0, sizeof(ipaddr));
     ncsmib_init(&ncsmib_arg);
     ncsmib_arg.i_mib_key = cef_data->i_bindery->i_mab_hdl;
     ncsmib_arg.i_usr_key = cef_data->i_bindery->i_cli_hdl;
@@ -1877,9 +1877,9 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
    uns32 rc;
    uns32 rsp_status;
 
-   m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncs_mib_arg);
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
    p_vip_mode_data = (NCS_CLI_MODE_DATA *)
@@ -2015,9 +2015,9 @@ vip_process_get_row_request( NCSCLI_CEF_DATA *p_cef_data,
 
     NCS_BOOL records_exist = FALSE;
 
-    m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncs_mib_arg);
-    m_NCS_OS_MEMSET(space, 0, sizeof(space));
+    memset(space, 0, sizeof(space));
     ncsmem_aid_init(&ma, space, 1024);
 
     p_vip_mode_data = (NCS_CLI_MODE_DATA *)p_cef_data->i_subsys->i_cef_mode;
@@ -2123,9 +2123,9 @@ vip_process_get_row_request( NCSCLI_CEF_DATA *p_cef_data,
               sec_idx_len*sizeof(uns32));
 
 
-       m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+       memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
        ncsmib_init(&ncs_mib_arg);
-       m_NCS_OS_MEMSET(space, 0, sizeof(space));
+       memset(space, 0, sizeof(space));
        ncsmem_aid_init(&ma, space, 1024);
 
        ncs_mib_arg.i_idx.i_inst_ids =  sec_idxs;
@@ -2173,10 +2173,10 @@ vip_populate_display_data(NCSMIB_ARG *p_ncs_mib_arg,
 
 
 
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
-   m_NCS_OS_MEMSET(p_vip_data_display, 0, sizeof(VIP_DATA_DISPLAY));
+   memset(p_vip_data_display, 0, sizeof(VIP_DATA_DISPLAY));
 
 
    idx_len = p_ncs_mib_arg->rsp.info.nextrow_rsp.i_next.i_inst_len;
@@ -2505,9 +2505,9 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
     /* embedding subslot changes */
     sprintf(title_str, "%-10.8s%-10.7s%-15.10s%-10.7s%-10.9s%-15.11s%7.7s%10.7s", "SHELF-ID", "SLOT-ID", "SUBSLOT_ID", "PORT-ID", "TYPE-INFO", "SUBSCR-INFO", "IFINDEX", "IF-NAME");
 
-    m_NCS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncs_mib_arg);
-    m_NCS_MEMSET(space, 0, sizeof(space));
+    memset(space, 0, sizeof(space));
     ncsmem_aid_init(&ma, space, 1024);
 
 
@@ -2545,7 +2545,7 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
        memcpy(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
               sec_idx_len*sizeof(uns32));
 
-       m_NCS_MEMSET(&sspt_info, 0, sizeof(NCS_IFSV_SSPT_IF_INDEX_INFO));
+       memset(&sspt_info, 0, sizeof(NCS_IFSV_SSPT_IF_INDEX_INFO));
 
        sspt_info.sspt_info.shelf = sec_idxs[0];
        sspt_info.sspt_info.slot = sec_idxs[1];
@@ -2572,9 +2572,9 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
        }
 
        /* * For Processing the Next Row ........ */
-       m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+       memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
        ncsmib_init(&ncs_mib_arg);
-       m_NCS_OS_MEMSET(space, 0, sizeof(space));
+       memset(space, 0, sizeof(space));
        ncsmem_aid_init(&ma, space, 1024);
 
        ncs_mib_arg.i_idx.i_inst_ids =  sec_idxs;
@@ -2631,7 +2631,7 @@ ifsv_fill_sspt_display_data(NCSMIB_ARG *p_ncs_mib_arg,
    if(ub == NULL)
      return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
 
@@ -2760,9 +2760,9 @@ ipxs_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 range_start, uns
     sprintf(format_str, "%s", "-----------------------");
 
 
-    m_NCS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncs_mib_arg);
-    m_NCS_MEMSET(space, 0, sizeof(space));
+    memset(space, 0, sizeof(space));
     ncsmem_aid_init(&ma, space, 1024);
 
 
@@ -2802,7 +2802,7 @@ ipxs_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 range_start, uns
        memcpy(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
               sec_idx_len*sizeof(uns32));
 
-       m_NCS_MEMSET(&ipxs_data_display, 0, sizeof(IPXS_DATA_DISPLAY));
+       memset(&ipxs_data_display, 0, sizeof(IPXS_DATA_DISPLAY));
 
 /*
        ~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*
@@ -2826,9 +2826,9 @@ ipxs_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 range_start, uns
 
 
        /* * For Processing the Next Row ........ */
-       m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+       memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
        ncsmib_init(&ncs_mib_arg);
-       m_NCS_OS_MEMSET(space, 0, sizeof(space));
+       memset(space, 0, sizeof(space));
        ncsmem_aid_init(&ma, space, 1024);
 
        ncs_mib_arg.i_idx.i_inst_ids =  sec_idxs;
@@ -2872,10 +2872,10 @@ ipxs_populate_display_data(NCSMIB_ARG *p_ncs_mib_arg,
 
 
 
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
-   m_NCS_OS_MEMSET(p_ipxs_data_display, 0, sizeof(IPXS_DATA_DISPLAY));
+   memset(p_ipxs_data_display, 0, sizeof(IPXS_DATA_DISPLAY));
 
 
    idx_len = p_ncs_mib_arg->rsp.info.nextrow_rsp.i_next.i_inst_len;

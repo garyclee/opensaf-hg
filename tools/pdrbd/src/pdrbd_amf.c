@@ -39,7 +39,7 @@ uns32 pseudoAmfInitialise()
    SaAisErrorT error;
    uns32 ret=NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfCSISetCallback = pseudoAmfCsiSetCallback;
    amfCallbacks.saAmfHealthcheckCallback = (SaAmfHealthcheckCallbackT) pseudoAmfHealthcheckCallback;
@@ -111,7 +111,7 @@ uns32 pseudoAmfRegister()
    SaAisErrorT error;
    uns32 ret=NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&nodeId, 0, sizeof(nodeId));
+   memset(&nodeId, 0, sizeof(nodeId));
 
    /* Get the component name */
    if((error = saAmfComponentNameGet(pseudoCB.amfHandle, &pseudoCB.compName)) != SA_AIS_OK)

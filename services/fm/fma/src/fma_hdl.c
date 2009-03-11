@@ -55,7 +55,7 @@ FMA_HDL_REC *fma_hdl_rec_add(FMA_CB *cb,FMA_HDL_DB *hdl_db,
       m_FMA_LOG_MEM(FMA_LOG_HDL_REC_ALLOC,FMA_LOG_MEM_ALLOC_FAILURE,NCSFL_SEV_EMERGENCY);
       goto error; 
    }
-   m_NCS_OS_MEMSET(hdl_rec, '\0', sizeof(FMA_HDL_REC));
+   memset(hdl_rec, '\0', sizeof(FMA_HDL_REC));
    
    /** Associate with hdl manager **/
    hdl_rec->hdl = ncshm_create_hdl(cb->pool_id,NCS_SERVICE_ID_FMA,(NCSCONTEXT)hdl_rec);
@@ -376,7 +376,7 @@ static uns32 fma_hdl_callbk_dispatch_one (FMA_CB **cb, FMA_HDL_REC **hdl_rec)
 
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_callbk_dispatch_one");   
 
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(fmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
    
    /* Pop the rec from the pending callback list */
@@ -441,7 +441,7 @@ static uns32 fma_hdl_callbk_dispatch_all(FMA_CB **cb,
  
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_callbk_dispatch_all");
 
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(fmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
 
    /* Pop all the pending rec from the pending list and process all the callbacks */
@@ -508,7 +508,7 @@ static uns32 fma_hdl_callbk_dispatch_block (FMA_CB  **cb, FMA_HDL_REC **hdl_rec)
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_callbk_dispatch_block");
 
   
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
+   memset(&reg_cbk, 0, sizeof(fmCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
    
    m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);

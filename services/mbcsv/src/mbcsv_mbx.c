@@ -72,7 +72,7 @@ uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
    MBCSV_MBX_INFO    *new_entry;
    uns32             rc = NCSCC_RC_SUCCESS;
   
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_MBX_KEY));
+   memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.svc_id  = svc_id;
@@ -94,7 +94,7 @@ uns32 mbcsv_add_new_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id, SYSF_MBX mbx)
       goto done;
    }
 
-   m_NCS_MEMSET(new_entry, '\0', sizeof(MBCSV_MBX_INFO));
+   memset(new_entry, '\0', sizeof(MBCSV_MBX_INFO));
 
    new_entry->key.pwe_hdl = pwe_hdl;
    new_entry->key.svc_id  = svc_id;
@@ -135,7 +135,7 @@ uns32 mbcsv_rmv_entry(uns32 pwe_hdl, SS_SVC_ID svc_id)
    MBCSV_MBX_INFO    *tree_entry;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_MBX_KEY));
+   memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.svc_id  = svc_id;
@@ -209,7 +209,7 @@ uns32 mbcsv_destroy_mbx_list(void)
    MBCSV_MBX_KEY  key;
    MBCSV_MBX_INFO  *tree_entry;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_MBX_KEY));
+   memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
    key.pwe_hdl = 0;
    key.svc_id  = 0;
@@ -248,7 +248,7 @@ SYSF_MBX mbcsv_get_mbx(uns32 pwe_hdl, SS_SVC_ID svc_id)
    MBCSV_MBX_KEY  key;
    MBCSV_MBX_INFO  *tree_entry;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_MBX_KEY));
+   memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.svc_id  = svc_id;
@@ -295,7 +295,7 @@ SYSF_MBX mbcsv_get_next_entry_for_pwe(uns32 pwe_hdl, SS_SVC_ID *svc_id)
    MBCSV_MBX_KEY  key;
    MBCSV_MBX_INFO  *tree_entry;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_MBX_KEY));
+   memset(&key, '\0', sizeof(MBCSV_MBX_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.svc_id  = *svc_id;

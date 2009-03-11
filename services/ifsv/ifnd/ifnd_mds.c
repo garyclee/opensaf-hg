@@ -131,7 +131,7 @@ static uns32 ifnd_mds_adest_get (IFSV_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
 
    arg.req                             = NCSADA_GET_HDLS;
    arg.info.adest_get_hdls.i_create_oac = TRUE;
@@ -179,7 +179,7 @@ uns32 ifnd_mds_init (IFSV_CB *cb)
    }
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFND;
@@ -273,7 +273,7 @@ uns32 ifnd_mds_shut (IFSV_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFND;
@@ -320,7 +320,7 @@ static void ifnd_mds_cpy(IFSV_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 
    if(!evt)
       return;
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    stream = (uns8*)evt;
 
@@ -675,7 +675,7 @@ static uns32 ifnd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       {
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
+      memset(ifsv_evt,0,sizeof(IFSV_EVT));
       dec_info->o_msg  = (NCSCONTEXT)ifsv_evt;
 
       /* embedding subslot changes for backward compatibility */
@@ -708,7 +708,7 @@ static uns32 ifnd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       {
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(idim_evt,0,sizeof(IFSV_IDIM_EVT));
+      memset(idim_evt,0,sizeof(IFSV_IDIM_EVT));
       dec_info->o_msg = (NCSCONTEXT)&idim_evt->info.hw_info;
 
       /* embedding subslot changes for backward compatibility */

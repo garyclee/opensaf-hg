@@ -130,7 +130,7 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
          rc = NCSCC_RC_FAILURE;
          goto done;
       }
-      m_NCS_OS_MEMSET(dmsg->info.avd, 0, sizeof(AVSV_DND_MSG));
+      memset(dmsg->info.avd, 0, sizeof(AVSV_DND_MSG));
       rc = avsv_dnd_msg_copy(dmsg->info.avd, smsg->info.avd);
       break;
 
@@ -140,7 +140,7 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
          rc = NCSCC_RC_FAILURE;
          goto done;
       }
-      m_NCS_OS_MEMSET(dmsg->info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+      memset(dmsg->info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
       rc = avsv_ndnd_avnd_msg_copy(dmsg->info.avnd, smsg->info.avnd);
       break;
 
@@ -150,7 +150,7 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
          rc = NCSCC_RC_FAILURE;
          goto done;
       }
-      m_NCS_OS_MEMSET(dmsg->info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
+      memset(dmsg->info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
       rc = avsv_nda_ava_msg_copy(dmsg->info.ava, smsg->info.ava);
       break;
 
@@ -160,7 +160,7 @@ uns32 avnd_msg_copy (AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
          rc = NCSCC_RC_FAILURE;
          goto done;
       }
-      m_NCS_OS_MEMSET(dmsg->info.cla, 0, sizeof(AVSV_NDA_CLA_MSG));
+      memset(dmsg->info.cla, 0, sizeof(AVSV_NDA_CLA_MSG));
       rc = avsv_nda_cla_msg_copy(dmsg->info.cla, smsg->info.cla);
       break;
 

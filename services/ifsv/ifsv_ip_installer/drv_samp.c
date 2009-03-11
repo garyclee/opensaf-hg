@@ -69,13 +69,13 @@ ifsv_drv_set_get_info(struct ncs_ifsv_hw_drv_req *drv_req)
    struct ifreq ifr;
 
    port_num = drv_req->port_type.port_id;
-   m_NCS_MEMSET(&drv_svc_req, 0, sizeof(drv_svc_req));
+   memset(&drv_svc_req, 0, sizeof(drv_svc_req));
    switch(drv_req->req_type)
    {
       case NCS_IFSV_HW_DRV_STATS:
       {
-         m_NCS_MEMSET(&hw_info, 0, sizeof(hw_info));
-         m_NCS_MEMSET(&temp_stats, 0, sizeof(temp_stats));
+         memset(&hw_info, 0, sizeof(hw_info));
+         memset(&temp_stats, 0, sizeof(temp_stats));
          res = ifsv_get_linux_stats(&temp_stats, port_num);
          if (res == NCSCC_RC_FAILURE)
          {
@@ -113,7 +113,7 @@ ifsv_drv_set_get_info(struct ncs_ifsv_hw_drv_req *drv_req)
             m_NCS_CONS_PRINTF("sorry coulnd't able to create a socket\n");
             break;
          }
-         m_NCS_MEMSET(&ifr, 0, sizeof(ifr));
+         memset(&ifr, 0, sizeof(ifr));
          ifr.ifr_ifindex = port_num;
          if  (ioctl(sock, SIOCGIFNAME, ifr) < 0)
          {
@@ -203,7 +203,7 @@ ifsv_drv_get_specific_intf_info (INTF_INFO *intf_info, uns32 port_num)
    }
    while(1)
    {
-      m_NCS_MEMSET(&intf_info,0,sizeof(intf_info));
+      memset(&intf_info,0,sizeof(intf_info));
       tmp_var = extract_port_status(&fp, intf_info);
       if (tmp_var == IFSV_DRV_NOTSEND_END)
           break;
@@ -256,14 +256,14 @@ try_again:
       return NULL;
    }
    /** Adding a forcible loopback address for NTT **/
-   m_NCS_MEMSET(&phy_addr,0,6);
+   memset(&phy_addr,0,6);
    ifsv_demo_reg_port_info(1,24, phy_addr,
                     1,1,16436,
                     "lo",100000000);
    while(1)
    {
       m_NCS_TASK_SLEEP(500);
-      m_NCS_MEMSET(&o_info,0,sizeof(o_info));
+      memset(&o_info,0,sizeof(o_info));
       tmp_var = extract_port_status(&fp, &o_info);
       if (strcmp(o_info.name,"lo") == 0)
          continue;
@@ -322,8 +322,8 @@ ifsv_demo_reg_port_info (uns32 port_num, uns32 port_type, uns8 *i_phy,
 
    type.port_id = port_num;
    type.type    = port_type;
-   m_NCS_MEMSET(&drv_svc_req, 0, sizeof(drv_svc_req));
-   m_NCS_MEMSET(&port_reg, 0, sizeof(port_reg));
+   memset(&drv_svc_req, 0, sizeof(drv_svc_req));
+   memset(&port_reg, 0, sizeof(port_reg));
    m_IFSV_ALL_ATTR_SET(port_reg.port_info.if_am);
    port_reg.hw_get_set_cb = ifsv_drv_set_get_info;
    port_reg.port_info.mtu         = MTU;
@@ -400,8 +400,8 @@ extract_port_status(FILE **fp, INTF_INFO *o_info)
     int admin_status_up = 1;
     int admin_status_down = 2;
 
-    m_NCS_MEMSET(&ifr, '\0', sizeof (ifr));
-    m_NCS_MEMSET(temp_char, 0, sizeof (temp_char));
+    memset(&ifr, '\0', sizeof (ifr));
+    memset(temp_char, 0, sizeof (temp_char));
 
     o_info->admin_status = admin_status_down;
     /** check for Link string in the file **/

@@ -60,7 +60,7 @@ uns32 srmnd_process_srma_msg(SRMND_CB *srmnd,
    if (!(srma_msg))
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&usr_key, 0, sizeof(SRMND_SRMA_USR_KEY));
+   memset(&usr_key, 0, sizeof(SRMND_SRMA_USR_KEY));
 
    usr_key.srma_usr_hdl = srma_msg->handle;
    usr_key.srma_dest = *srma_dest;
@@ -177,7 +177,7 @@ uns32 srmnd_process_srma_msg(SRMND_CB *srmnd,
        {
            SRMND_WATERMARK_DATA get_wm;
 
-           m_NCS_OS_MEMSET(&get_wm, 0, sizeof(SRMND_WATERMARK_DATA));
+           memset(&get_wm, 0, sizeof(SRMND_WATERMARK_DATA));
           
            get_wm.srma_dest = *srma_dest;
            get_wm.usr_hdl = srma_msg->handle;
@@ -247,8 +247,8 @@ uns32 srmnd_send_msg(SRMND_CB *srmnd,
    if (srmnd->oper_status != SRMSV_ND_OPER_STATUS_UP)
       return NCSCC_RC_FAILURE;
    
-   m_NCS_OS_MEMSET(&srma_dest, 0, sizeof(MDS_DEST));
-   m_NCS_OS_MEMSET(&tmp_srmnd_msg, 0, sizeof(SRMND_MSG));
+   memset(&srma_dest, 0, sizeof(MDS_DEST));
+   memset(&tmp_srmnd_msg, 0, sizeof(SRMND_MSG));
    
    /* Update the event type */
    tmp_srmnd_msg.msg_type = msg_type;
@@ -352,7 +352,7 @@ uns32 srmnd_send_msg(SRMND_CB *srmnd,
 
       while (subscr_node)
       {
-         m_NCS_OS_MEMSET(&subscr_dest, 0, sizeof(MDS_DEST));
+         memset(&subscr_dest, 0, sizeof(MDS_DEST));
 
          next_subscr = subscr_node->next_rsrc_type_ptr;
         
@@ -370,7 +370,7 @@ uns32 srmnd_send_msg(SRMND_CB *srmnd,
          /* Get the MDS dest of the subscr node */
          subscr_dest = subscr_node->srma_usr_node->usr_key.srma_dest;
  
-         m_NCS_OS_MEMSET(&srmnd_msg, 0, sizeof(SRMND_MSG));
+         memset(&srmnd_msg, 0, sizeof(SRMND_MSG));
 
          /* Now copy the content of temp store of SRMND msg */
          srmnd_msg = tmp_srmnd_msg;
@@ -395,7 +395,7 @@ uns32 srmnd_send_msg(SRMND_CB *srmnd,
         (rsrc->usr_type == NCS_SRMSV_USER_REQUESTOR_AND_SUBSCR)) ||
        (msg_type != SRMND_APPL_NOTIF_MSG))
    {
-      m_NCS_OS_MEMSET(&srmnd_msg, 0, sizeof(SRMND_MSG));
+      memset(&srmnd_msg, 0, sizeof(SRMND_MSG));
 
       /* Now copy the content of temp store of SRMND msg */
       srmnd_msg = tmp_srmnd_msg;

@@ -78,7 +78,7 @@ uns32 snmptm_tblten_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.cb = snmptm; 
 
@@ -125,7 +125,7 @@ SNMPTM_TBLTEN *snmptm_create_tblten_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tblten, '\0', sizeof(SNMPTM_TBLTEN));
+   memset((char *)tblten, '\0', sizeof(SNMPTM_TBLTEN));
 
    /* Copy the key contents to tblten struct */
    tblten->tblten_key.tblten_unsigned32 = tblten_key->tblten_unsigned32;
@@ -226,7 +226,7 @@ uns32 get_tblten_entry(SNMPTM_CB  *snmptm, NCSMIB_ARG  *arg, SNMPTM_TBLTEN  **tb
 {
    SNMPTM_TBLTEN_KEY  tblten_key;
 
-   m_NCS_OS_MEMSET(&tblten_key, '\0', sizeof(tblten_key));
+   memset(&tblten_key, '\0', sizeof(tblten_key));
 
    if(arg->i_idx.i_inst_len != SNMPTM_TBLTEN_TBL_INST_LEN)
       return NCSCC_RC_FAILURE;
@@ -271,7 +271,7 @@ uns32 get_next_tblten_entry(SNMPTM_CB *snmptm,
 {
    SNMPTM_TBLTEN_KEY  tblten_key;
 
-   m_NCS_OS_MEMSET(&tblten_key, '\0', sizeof(tblten_key));
+   memset(&tblten_key, '\0', sizeof(tblten_key));
 
    if ((arg->i_idx.i_inst_len == 0) ||
        (arg->i_idx.i_inst_ids == NULL))
@@ -414,8 +414,8 @@ uns32 ncstesttabletenentry_set(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
-   m_NCS_OS_MEMSET(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Prepare the key from the instant ID */
    tblten_key.tblten_unsigned32 = arg->i_idx.i_inst_ids[0];
@@ -449,7 +449,7 @@ uns32 ncstesttabletenentry_set(NCSCONTEXT cb,
       if (tblten == NULL)
           return NCSCC_RC_NO_INSTANCE;
 
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -498,8 +498,8 @@ uns32 ncstesttabletenentry_setrow(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
-   m_NCS_OS_MEMSET(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Prepare the key from the instant ID */
    tblten_key.tblten_unsigned32 = arg->i_idx.i_inst_ids[0];
@@ -537,7 +537,7 @@ uns32 ncstesttabletenentry_setrow(NCSCONTEXT cb,
           {
              if (tblten_param[param_id - 1].set_flag == TRUE)
              {
-                 m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+                 memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
                  temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
                  temp_mib_req.info.i_set_util_info.param = &(tblten_param[param_id - 1].param);
@@ -606,7 +606,7 @@ uns32 ncstesttabletenentry_rmvrow(NCSCONTEXT cb_hdl, NCSMIB_IDX *idx)
    }
    
    /* Now, delete the row from the tblten */
-   m_NCS_OS_MEMSET(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
+   memset(&tblten_key, '\0', sizeof(SNMPTM_TBLTEN_KEY));
  
    /* Prepare the key from the instant ID */
    tblten_key.tblten_unsigned32 = idx->i_inst_ids[0];

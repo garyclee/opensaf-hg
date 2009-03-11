@@ -253,7 +253,7 @@ ham_mds_cb_dec (struct ncsmds_callback_info *info)
       m_LOG_HISV_DTS_CONS("ham_mds_cb_dec: m_MMGR_ALLOC_HISV_EVT failed\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(evt, '\0', sizeof(HISV_EVT));
+   memset(evt, '\0', sizeof(HISV_EVT));
 
    /** Allocate a new msg in both sync/async cases
     **/
@@ -438,7 +438,7 @@ ham_mds_cb_dec_flat(struct ncsmds_callback_info *info)
       m_LOG_HISV_DTS_CONS("ham_mds_cb_dec_flat: m_MMGR_ALLOC_HISV_EVT failed\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(evt, '\0', sizeof(HISV_EVT));
+   memset(evt, '\0', sizeof(HISV_EVT));
 
    /** Allocate a new msg in both sync/async cases
     **/
@@ -774,7 +774,7 @@ ham_mds_vdest_create(HAM_CB *ham_cb)
    NCSVDA_INFO vda_info;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&vda_info, '\0', sizeof(NCSVDA_INFO));
+   memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
    ham_cb->ham_vdest = HISV_VDEST_ID;
    ham_cb->my_anc = V_DEST_QA_1;
@@ -818,7 +818,7 @@ uns32 ham_mds_change_role(HAM_CB *cb)
 {
    NCSVDA_INFO arg;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSVDA_INFO));
+   memset(&arg, 0, sizeof(NCSVDA_INFO));
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->ham_vdest;
@@ -857,10 +857,10 @@ uns32 ham_mds_initialize(HAM_CB *ham_cb)
    if (NCSCC_RC_SUCCESS != (rc = ham_mds_vdest_create(ham_cb)))
       return rc;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    /* Install your service into MDS */
-   m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = ham_cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
@@ -879,7 +879,7 @@ uns32 ham_mds_initialize(HAM_CB *ham_cb)
    }
 
    /* Now subscribe for HAM events in MDS */
-   m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = ham_cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
@@ -917,7 +917,7 @@ ham_mds_vdest_destroy (HAM_CB *ham_cb)
    NCSVDA_INFO    vda_info;
    uns32          rc;
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    vda_info.req                             = NCSVDA_VDEST_DESTROY;
    vda_info.info.vdest_destroy.i_vdest      = ham_cb->ham_vdest;
@@ -950,7 +950,7 @@ uns32 ham_mds_finalize (HAM_CB *cb)
    uns32                rc;
 
    /* Un-install HAM service from MDS */
-   m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_HCD;
@@ -998,7 +998,7 @@ uns32 ham_mds_msg_send (HAM_CB *cb, HISV_MSG *msg, MDS_DEST *dest,
    MDS_SENDTYPE_SND_INFO *send;
 
    /* populate the mds params */
-   m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+   memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_HCD;

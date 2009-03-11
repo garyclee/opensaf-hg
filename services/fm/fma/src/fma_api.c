@@ -57,7 +57,7 @@ SaAisErrorT fmInitialize(fmHandleT *fmHandle, const fmCallbacksT *fmCallbacks,
    }
 
    /* Initialize FMA library connection */
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (fma_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
       return SA_AIS_ERR_LIBRARY;
@@ -122,7 +122,7 @@ done:
          fma_hdl_rec_del (cb, hdl_db, hdl_rec);
 
       /* Destroy library connection before returning. */
-      m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+      memset(&lib_create, 0, sizeof(lib_create));
       lib_create.i_op = NCS_LIB_REQ_DESTROY;
       fma_lib_req(&lib_create);
    }

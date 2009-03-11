@@ -45,7 +45,7 @@ uns32 dummycli_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
         case NCS_LIB_REQ_CREATE:
-        m_NCS_OS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+        memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
         i_bindery.i_cli_hdl = gl_cli_hdl;
         i_bindery.i_mab_hdl = gl_mac_handle; 
         i_bindery.i_req_fnc = ncsmac_mib_request; 
@@ -147,7 +147,7 @@ static uns32 dummy_cli_register(NCSCLI_BINDERY *pBindery)
    /**************************************************************************\
                         Register Config mode commands 
    \*************************************************************************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config";  /* Specify thw absoulte path of the Mode under which 
                                          the commands should get registered */
    data.i_command_mode = "config";    /* Specify the Mode name */
@@ -166,7 +166,7 @@ static uns32 dummy_cli_register(NCSCLI_BINDERY *pBindery)
    /**************************************************************************\
                         Register Interface mode commands 
    \*************************************************************************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config/interface"; 
    data.i_command_mode = "interface";
    data.i_access_req = FALSE;

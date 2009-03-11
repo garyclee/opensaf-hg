@@ -129,7 +129,7 @@ ifnd_idim_init (IFSV_CB *ifsv_cb)
          }     
 
          /* initialize the CB */
-         m_NCS_MEMSET(idim_cb, 0, sizeof(IFSV_IDIM_CB));
+         memset(idim_cb, 0, sizeof(IFSV_IDIM_CB));
          
          idim_cb->shelf   = ifsv_cb->shelf;
          idim_cb->slot    = ifsv_cb->slot;

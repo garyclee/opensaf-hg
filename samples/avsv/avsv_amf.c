@@ -263,7 +263,7 @@ void avsv_amf_process (void)
    #########################################################################*/
 
    /* Fill the callbacks that are to be registered with AMF */
-   m_NCS_OS_MEMSET(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
+   memset(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
    reg_callback_set.saAmfCSISetCallback = avsv_amf_csi_set_callback;
    reg_callback_set.saAmfCSIRemoveCallback = avsv_amf_csi_remove_callback;
    reg_callback_set.saAmfHealthcheckCallback = avsv_amf_healthcheck_callback;

@@ -170,7 +170,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
          mds_role = V_DEST_RL_QUIESCED;
          cb->amf_invocation = invocation;
          cb->is_quiesced_set = TRUE;
-         m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+         memset(&vda_info, 0, sizeof(vda_info));
 
          vda_info.req = NCSVDA_VDEST_CHG_ROLE;
          vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
@@ -194,7 +194,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
          m_NCS_CONS_PRINTF("STANDBY STATE\n");
       /*   anchor   = cb->cpd_anc; */
       }
-      m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+      memset(&vda_info, 0, sizeof(vda_info));
       
       vda_info.req = NCSVDA_VDEST_CHG_ROLE;
       vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
@@ -265,7 +265,7 @@ uns32 cpd_amf_init (CPD_CB *cpd_cb)
    SaAisErrorT     error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = cpd_saf_hlth_chk_cb;
    amfCallbacks.saAmfCSISetCallback      = cpd_saf_csi_set_cb;

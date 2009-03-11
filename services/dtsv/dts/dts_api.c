@@ -107,7 +107,7 @@ uns32 dts_svc_create(DTS_CREATE* create)
     
    m_DTS_LK_INIT;
 
-   m_NCS_OS_MEMSET(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    m_DTS_LK_CREATE(&inst->lock);
    
@@ -117,7 +117,7 @@ uns32 dts_svc_create(DTS_CREATE* create)
    inst->created = FALSE;
 
    /* review changes ; initialize pt_params to 0 */
-   m_NCS_OS_MEMSET(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    pt_params.key_size = sizeof(SVC_KEY);
 

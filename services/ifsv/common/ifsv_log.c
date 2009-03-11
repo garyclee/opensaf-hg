@@ -506,7 +506,7 @@ ifsv_flx_log_reg (uns32 comp_type)
    }
    
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = scv_id;
    /* fill version no. */
@@ -547,7 +547,7 @@ ifsv_flx_log_dereg (uns32 comp_type)
    {
       scv_id = NCS_SERVICE_ID_IFA;
    }
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                = NCS_DTSV_OP_UNBIND;
    reg.info.unbind_svc.svc_id = scv_id;
    ncs_dtsv_su_req(&reg);

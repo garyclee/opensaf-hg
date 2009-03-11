@@ -63,7 +63,7 @@ uns32 ham_initialize(HPI_SESSION_ARGS *args)
       rc = NCSCC_RC_FAILURE;
       goto error;
    }
-   m_NCS_OS_MEMSET(ham_cb, 0, sizeof(HAM_CB));
+   memset(ham_cb, 0, sizeof(HAM_CB));
 
    /* assign the HAM pool-id (used by hdl-mngr) */
    ham_cb->pool_id = NCS_HM_POOL_ID_COMMON;

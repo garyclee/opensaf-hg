@@ -62,7 +62,7 @@ uns32 mab_log_bind()
     if (gl_mab_dts_bind_cntr == 0)
     {
         NCS_DTSV_RQ        reg;
-        m_NCS_OS_MEMSET(&reg, 0, sizeof(NCS_DTSV_RQ)); 
+        memset(&reg, 0, sizeof(NCS_DTSV_RQ)); 
 
         reg.i_op = NCS_DTSV_OP_BIND;
         reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MAB;
@@ -94,7 +94,7 @@ uns32 mab_log_unbind()
     {
         NCS_DTSV_RQ        dereg;
 
-        m_NCS_OS_MEMSET(&dereg, 0, sizeof(NCS_DTSV_RQ)); 
+        memset(&dereg, 0, sizeof(NCS_DTSV_RQ)); 
         
         dereg.i_op = NCS_DTSV_OP_UNBIND;
         dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MAB;
@@ -159,7 +159,7 @@ uns32 log_mab_fltr_data(uns8 sev, uns32 env_id, uns32 tbl_id,
                            fltr_data->fltr.range.i_idx_len,  
                            fltr_data->fltr.range.i_bgn_idx); 
           
-          m_NCS_OS_MEMSET(&index, 0, sizeof(NCSFL_MEM)); 
+          memset(&index, 0, sizeof(NCSFL_MEM)); 
           index.len = (uns16)(fltr_data->fltr.range.i_idx_len * sizeof(fltr_data->fltr.range.i_idx_len)); 
 
           index.addr = index.dump = (char*)fltr_data->fltr.range.i_min_idx_fltr; 
@@ -180,7 +180,7 @@ uns32 log_mab_fltr_data(uns8 sev, uns32 env_id, uns32 tbl_id,
                            fltr_data->fltr.exact.i_idx_len,  
                            fltr_data->fltr.exact.i_bgn_idx); 
           
-          m_NCS_OS_MEMSET(&index, 0, sizeof(NCSFL_MEM)); 
+          memset(&index, 0, sizeof(NCSFL_MEM)); 
           index.len = (uns16)(fltr_data->fltr.exact.i_idx_len * sizeof(fltr_data->fltr.exact.i_idx_len)); 
 
           index.addr = index.dump = (char*)fltr_data->fltr.exact.i_exact_idx; 

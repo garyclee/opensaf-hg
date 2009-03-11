@@ -36,10 +36,10 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
     
     str[0] = '\0';
 
-    m_NCS_OS_MEMSET(&sss, 0, sizeof(struct  slot_info));
-    m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_OS_MEMSET(&out_usr_buf, 0, sizeof(AVM_FUND_USR_BUF));
-    m_NCS_OS_MEMSET(local_helper, 0, sizeof(local_helper));
+    memset(&sss, 0, sizeof(struct  slot_info));
+    memset(&arg, 0, sizeof(NCSMIB_ARG));
+    memset(&out_usr_buf, 0, sizeof(AVM_FUND_USR_BUF));
+    memset(local_helper, 0, sizeof(local_helper));
     ncsmib_init(&arg);
     
     /* avm_fund_get_scxb_ipaddr(&out_usr_buf); - remove later - JPL */

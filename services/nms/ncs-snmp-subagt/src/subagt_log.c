@@ -45,7 +45,7 @@ snmpsubagt_dla_initialize(NCS_SERVICE_ID i_svc_id)
     uns32                       status = NCSCC_RC_FAILURE; 
 
     /* Level the ground */
-    m_NCS_MEMSET(&reg_info, 0, sizeof(NCS_DTSV_RQ));
+    memset(&reg_info, 0, sizeof(NCS_DTSV_RQ));
     
     /* register the NCS SNMP SubAgent */
     reg_info.i_op = NCS_DTSV_OP_BIND;
@@ -83,7 +83,7 @@ snmpsubagt_dla_finalize(NCS_SERVICE_ID i_svc_id)
     NCS_DTSV_RQ                 reg_info; 
     uns32                       status = NCSCC_RC_FAILURE; 
 
-    m_NCS_MEMSET(&reg_info, 0, sizeof(NCS_DTSV_RQ));
+    memset(&reg_info, 0, sizeof(NCS_DTSV_RQ));
    
  
     /* Unbind the NCS SNMP SubAgent */

@@ -51,8 +51,8 @@ void  snmptm_cli_main(int argc, char **argv)
       return;
    }
 
-   m_NCS_OS_MEMSET(&req, 0, sizeof(req));
-   m_NCS_OS_MEMSET(&info, 0, sizeof(info));
+   memset(&req, 0, sizeof(req));
+   memset(&info, 0, sizeof(info));
 
    /* Creating CLI instance */
    req.i_op = NCS_LIB_REQ_CREATE;

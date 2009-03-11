@@ -267,7 +267,7 @@ uns32 avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(nd_msg, '\0', sizeof(AVSV_ND_MSG_QUEUE));
+   memset(nd_msg, '\0', sizeof(AVSV_ND_MSG_QUEUE));
 
    memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
@@ -354,7 +354,7 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node,AVD_DND_MSG *snd_msg)
    m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
    m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,snd_msg,sizeof(AVD_DND_MSG),snd_msg);
    
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->adest_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -394,7 +394,7 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
    m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_bcast");
    m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,bcast_msg,sizeof(AVD_DND_MSG),bcast_msg);
    
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->adest_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;

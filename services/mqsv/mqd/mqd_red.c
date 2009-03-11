@@ -96,7 +96,7 @@ uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode)
 
    pNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
    if(!pNode) return NCSCC_RC_FAILURE;
-   m_NCS_OS_MEMSET(pNode, 0, sizeof(MQD_ND_DB_NODE));
+   memset(pNode, 0, sizeof(MQD_ND_DB_NODE));
 
    *o_pnode = pNode;
    return NCSCC_RC_SUCCESS;

@@ -56,7 +56,7 @@ uns32 avnd_hcdb_init(AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = (sizeof(AVSV_HLT_KEY) -  sizeof(SaUint16T));
    rc = ncs_patricia_tree_init(&cb->hcdb, &params);
@@ -151,7 +151,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(hc, 0, sizeof(AVND_HC));
+   memset(hc, 0, sizeof(AVND_HC));
    
    /* Update the config parameters */
    memcpy(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));

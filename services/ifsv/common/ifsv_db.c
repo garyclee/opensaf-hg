@@ -133,7 +133,7 @@ ifsv_intf_rec_add (IFSV_INTF_DATA *i_rec_data,
       return (NCSCC_RC_FAILURE);
    }
    
-   m_NCS_MEMSET(rec,0,sizeof(IFSV_INTF_REC));
+   memset(rec,0,sizeof(IFSV_INTF_REC));
    memcpy(&rec->intf_data, i_rec_data, sizeof(IFSV_INTF_DATA));
    rec->intf_data.active = TRUE;
 
@@ -167,7 +167,7 @@ ifsv_intf_rec_add (IFSV_INTF_DATA *i_rec_data,
      }
       if (cb->comp_type == IFSV_COMP_IFND)
       {
-         m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
+         memset(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
          spt_map.spt      = rec->intf_data.spt_info;
          spt_map.if_index = rec->intf_data.if_index;
          /* Add the mapping b/w s/s/ss/p/t and Ifindex to interface map table
@@ -1066,7 +1066,7 @@ ifsv_ifindex_spt_map_add (NCS_IFSV_SPT_MAP *spt,
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_MEMSET(spt_if_map, 0, sizeof(IFSV_SPT_REC));
+   memset(spt_if_map, 0, sizeof(IFSV_SPT_REC));
 
    spt_if_map->spt_map.if_index  = spt->if_index;   
    spt_if_map->spt_map.spt.shelf = spt->spt.shelf;
@@ -1160,7 +1160,7 @@ ifsv_ifindex_spt_map_del_all (IFSV_CB *cb)
    IFSV_SPT_REC        *spt_info;
    uns32 res = NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET(&spt, 0, sizeof(NCS_IFSV_SPT));
+   memset(&spt, 0, sizeof(NCS_IFSV_SPT));
    if_node = ncs_patricia_tree_getnext(&cb->if_map_tbl, (uns8*)&spt);
    spt_info = (IFSV_SPT_REC*)if_node;
    while (spt_info != NULL)
@@ -1319,7 +1319,7 @@ static uns32 ifsv_reg_ifmib_row(IFSV_CB *cb,
    min_fltr[0]=ifindex;
    max_fltr[0]=ifindex;
 
-   m_NCS_MEMSET(&ifsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&ifsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Register for IFSV table rows*/
    ifsv_oac_arg.i_oac_hdl = cb->oac_hdl;
@@ -1368,7 +1368,7 @@ static uns32 ifsv_unreg_ifmib_row(IFSV_CB *cb, NCSCONTEXT row_hdl)
    uns32          rc = NCSCC_RC_SUCCESS ;
 
 
-   m_NCS_MEMSET(&ifsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&ifsv_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Unregister for IFSV table rows */
    ifsv_oac_arg.i_oac_hdl = cb->oac_hdl;

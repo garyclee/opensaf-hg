@@ -61,7 +61,7 @@ SRMND_EVT *srmnd_evt_create(uns32 cb_hdl,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)srmnd_evt, 0, sizeof(SRMND_EVT));
+   memset((char *)srmnd_evt, 0, sizeof(SRMND_EVT));
 
    /* Update the event type */
    srmnd_evt->evt_type = evt;

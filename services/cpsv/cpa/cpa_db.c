@@ -41,7 +41,7 @@
 uns32 cpa_client_tree_init (CPA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptHandleT);
    if (ncs_patricia_tree_init(&cb->client_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -182,7 +182,7 @@ void cpa_client_tree_cleanup(CPA_CB *cb)
 uns32 cpa_lcl_ckpt_tree_init (CPA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptCheckpointHandleT);
    if (ncs_patricia_tree_init(&cb->lcl_ckpt_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -366,7 +366,7 @@ void cpa_lcl_ckpt_tree_destroy(CPA_CB *cb)
 uns32 cpa_gbl_ckpt_tree_init (CPA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptCheckpointHandleT);
    if (ncs_patricia_tree_init(&cb->gbl_ckpt_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -406,7 +406,7 @@ uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
          return NCSCC_RC_FAILURE;
       }
       
-      m_NCS_OS_MEMSET(*gc_node, 0, sizeof(CPA_GLOBAL_CKPT_NODE));
+      memset(*gc_node, 0, sizeof(CPA_GLOBAL_CKPT_NODE));
       (*gc_node)->gbl_ckpt_hdl = (SaCkptCheckpointHandleT) *gc_hdl;
       
       m_NCS_LOCK_INIT(&((*gc_node)->cpd_active_sync_lock));
@@ -508,7 +508,7 @@ uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node)
 uns32 cpa_sect_iter_tree_init (CPA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptSectionIterationHandleT);
    if (ncs_patricia_tree_init(&cb->sect_iter_tree, &param) != NCSCC_RC_SUCCESS)
    {

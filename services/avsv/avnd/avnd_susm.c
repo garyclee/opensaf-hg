@@ -1129,7 +1129,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB        *cb,
    }
 
    /* inform avd of the change in presence state (mib-sync) */
-   m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO));
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO));
    param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
    param.obj_id = saAmfSUPresenceState_ID;
    param.name_net = su->name_net;

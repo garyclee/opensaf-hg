@@ -140,7 +140,7 @@ uns32 gld_mds_quiesced_process(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv
         m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(evt, 0,sizeof(GLSV_GLD_EVT));
+    memset(evt, 0,sizeof(GLSV_GLD_EVT));
     evt->gld_cb = cb;
     evt->evt_type = GLSV_GLD_EVT_QUISCED_STATE;
 
@@ -192,7 +192,7 @@ uns32 gld_mds_svc_evt(GLSV_GLD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *rcv_info)
                m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED);
                return NCSCC_RC_FAILURE;
             }
-            m_NCS_MEMSET(evt, 0,sizeof(GLSV_GLD_EVT));
+            memset(evt, 0,sizeof(GLSV_GLD_EVT));
             evt->gld_cb = cb;
             evt->evt_type = GLSV_GLD_EVT_GLND_DOWN;
             
@@ -492,7 +492,7 @@ uns32 gld_mds_cpy (GLSV_GLD_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
       m_LOG_GLD_MEMFAIL(GLD_EVT_ALLOC_FAILED);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cpy,0,sizeof(GLSV_GLND_EVT));
+   memset(cpy,0,sizeof(GLSV_GLND_EVT));
 
    *cpy = *src;
    switch(src->type)
@@ -529,9 +529,9 @@ uns32 gld_mds_vdest_create (GLSV_GLD_CB *cb)
    SaClmClusterNodeT    cluster_node;
    uns32          seed;
 
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSVDA_INFO));
+   memset(&arg,0,sizeof(NCSVDA_INFO));
    arg.req                                   = NCSVDA_VDEST_CREATE;
    arg.info.vdest_create.i_persistent        = FALSE;
    arg.info.vdest_create.i_policy            = NCS_VDEST_TYPE_DEFAULT;
@@ -581,7 +581,7 @@ uns32 gld_mds_vdest_destroy (GLSV_GLD_CB *cb)
    uns32          rc;
    SaNameT     name = {4, "GLD"};
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSVDA_INFO));
+   memset(&arg,0,sizeof(NCSVDA_INFO));
 
    arg.req                             = NCSVDA_VDEST_DESTROY;   
    arg.info.vdest_destroy.i_vdest      = cb->my_dest_id;
@@ -620,7 +620,7 @@ uns32 gld_mds_init(GLSV_GLD_CB *cb)
    uns32                rc;
    MDS_SVC_ID           subscr_svc = NCSMDS_SVC_ID_GLND;
 
-   m_NCS_OS_MEMSET(&cb->my_dest_id, 0, sizeof(MDS_DEST));
+   memset(&cb->my_dest_id, 0, sizeof(MDS_DEST));
    cb->my_dest_id = GLD_VDEST_ID;
    /* In future Anchor value will be taken from AVSV. Now we are using fix value */
    cb->my_anc = V_DEST_QA_1;
@@ -632,7 +632,7 @@ uns32 gld_mds_init(GLSV_GLD_CB *cb)
    /* Set the role to active  - Needs to be removed after integration with AvSv*/
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mds_handle;
    arg.i_svc_id         = NCSMDS_SVC_ID_GLD;
@@ -652,7 +652,7 @@ uns32 gld_mds_init(GLSV_GLD_CB *cb)
    }
 
    /* Now subscribe for GLND events in MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mds_handle;
    arg.i_svc_id         = NCSMDS_SVC_ID_GLD;
@@ -688,7 +688,7 @@ uns32 gld_mds_shut (GLSV_GLD_CB *cb)
    uns32                rc;
 
    /* Un-install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mds_handle;
    arg.i_svc_id         = NCSMDS_SVC_ID_GLD;
@@ -722,7 +722,7 @@ uns32 gld_mds_change_role(GLSV_GLD_CB *cb, V_DEST_RL role)
 {
    NCSVDA_INFO arg;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSVDA_INFO));
+   memset(&arg, 0, sizeof(NCSVDA_INFO));
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->my_dest_id;

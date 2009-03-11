@@ -107,7 +107,7 @@ uns32  samsgqueuepriorityentry_get(NCSCONTEXT pcb, NCSMIB_ARG *arg, NCSCONTEXT *
    uns32             priority_index=0;
    MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
-   m_NCS_MEMSET(&queuename, 0, sizeof(SaNameT));
+   memset(&queuename, 0, sizeof(SaNameT));
    cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, arg->i_mib_key);
 
    if (cb == NULL)
@@ -184,7 +184,7 @@ uns32  samsgqueuepriorityentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    uns32            len,i,offset;
    MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
-   m_NCS_MEMSET(&queuename,0,sizeof(SaNameT));
+   memset(&queuename,0,sizeof(SaNameT));
    cb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, arg->i_mib_key);
 
    if (cb == NULL)

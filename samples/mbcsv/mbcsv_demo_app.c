@@ -207,7 +207,7 @@ void create_fake_ss(void * arg)
 
       for (j=0; j < FAKE_NUM_CKPTS; j++)
       {
-         m_NCS_MEMSET(ss_cb[i].my_ckpt[j].my_data, '\0',
+         memset(ss_cb[i].my_ckpt[j].my_data, '\0',
                       10 * sizeof(FAKE_SS_DATA_STRUCT));
 
          if (NCSCC_RC_SUCCESS != mds_demo_create_named_vdest(ss_config[(i*3)+j].vdest_name,
@@ -894,7 +894,7 @@ static uns32 mds_demo_create_named_vdest(char * name, uns32 *pwe_hdl)
 {
    NCSVDA_INFO vda_info;
 
-   m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+   memset(&vda_info, 0, sizeof(vda_info));
 
    vda_info.req = NCSVDA_VDEST_CREATE;
    vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_NAMED;
@@ -931,7 +931,7 @@ static uns32 mbcsv_initialize_svc(SS_SVC_ID   svc_id,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    mbcsv_arg.info.initialize.i_service  = svc_id;
@@ -963,7 +963,7 @@ static uns32 mbcsv_open_ckpt(uns32    mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -994,7 +994,7 @@ uns32 mbcsv_set_ckpt_role(uns32    mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1023,7 +1023,7 @@ static uns32 mbcsv_get_sel_obj(uns32                 mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1051,7 +1051,7 @@ static uns32 mbcsv_fake_dispatch(uns32    mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1082,7 +1082,7 @@ static uns32 mbcsv_fake_send_data(uns32    mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1113,7 +1113,7 @@ static uns32 mbcsv_close_ckpt(uns32    mbcsv_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1139,7 +1139,7 @@ static uns32 mbcsv_finalize_svc(uns32   mbcsv_hdl)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1166,7 +1166,7 @@ static uns32 mbcsv_set_obj_svc(uns32  mbcsv_hdl, uns32 ckpt_hdl,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
@@ -1197,14 +1197,14 @@ static uns32 mbcsv_fake_send_data_req(uns32      mbcsv_hdl,
    NCS_UBAID         *uba = NULL;
    uns8*             data;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
 
    uba = &mbcsv_arg.info.send_data_req.i_uba;
 
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
 
    if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
    {
@@ -1294,7 +1294,7 @@ static void create_fake_data(NCS_BOOL send_data)
       for(j=0; j<FAKE_NUM_CKPTS; j++)
       {
          if (my_role == SA_AMF_HA_ACTIVE)
-            m_NCS_MEMSET(ss_cb[i].my_ckpt[j].my_data, '\0',
+            memset(ss_cb[i].my_ckpt[j].my_data, '\0',
                10 * sizeof(FAKE_SS_DATA_STRUCT));
       }
    }

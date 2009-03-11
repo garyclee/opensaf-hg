@@ -546,7 +546,7 @@ uns32 avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
       goto done;
    }
 
-   m_NCS_OS_MEMSET(&clc_evt, 0, sizeof (AVND_CLC_EVT));
+   memset(&clc_evt, 0, sizeof (AVND_CLC_EVT));
 
    /* fill the clc-evt param */
    clc_evt.exec_ctxt = info->i_exec_hdl;
@@ -597,7 +597,7 @@ uns32 avnd_comp_clc_fsm_trigger(AVND_CB *cb,
    AVND_EVT          *evt = 0;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&comp_fsm_evt, 0, sizeof (AVND_COMP_FSM_EVT));
+   memset(&comp_fsm_evt, 0, sizeof (AVND_COMP_FSM_EVT));
 
    /* fill the comp-fsm-evt param */
    comp_fsm_evt.comp_name_net = comp->name_net;
@@ -734,7 +734,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB        *cb,
       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_ERR_INFO);
 
       /* inform avd of the change in restart count (mib-sync) */
-      m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO));
+      memset(&param, 0, sizeof(AVSV_PARAM_INFO));
       param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
       param.obj_id = saAmfCompRestartCount_ID;
       param.name_net = comp->name_net;
@@ -1100,7 +1100,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB        *cb,
    }/*if((NCS_PRES_ORPHANED == prv_st)*/
 
    /* inform avd of the change in presence state (mib-sync) */
-   m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO));
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO));
    param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;
    param.obj_id = saAmfCompPresenceState_ID;
    param.name_net = comp->name_net;
@@ -2413,7 +2413,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
    {
     if(AVND_COMP_CLC_CMD_TYPE_CLEANUP == cmd_type)
     {
-     m_NCS_OS_MEMSET(&clc_evt, 0, sizeof(AVND_CLC_EVT));
+     memset(&clc_evt, 0, sizeof(AVND_CLC_EVT));
      memcpy(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
      clc_evt.cmd_type = cmd_type;
      clc_evt.exec_stat.value = NCS_OS_PROC_EXIT_NORMAL;
@@ -2446,12 +2446,12 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
     }
    }
 
-   m_NCS_OS_MEMSET(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
-   m_NCS_OS_MEMSET(env_set, 0, 3 * sizeof(NCS_OS_ENVIRON_SET_NODE));
+   memset(&cmd_info, 0, sizeof(NCS_OS_PROC_EXECUTE_TIMED_INFO));
+   memset(&arg, 0, sizeof(NCS_OS_ENVIRON_ARGS));
+   memset(env_set, 0, 3 * sizeof(NCS_OS_ENVIRON_SET_NODE));
 
-   m_NCS_OS_MEMSET(&env_val_name, '\0', sizeof(SaNameT));
-   m_NCS_OS_MEMSET(env_val_nodeid, '\0', sizeof(env_val_nodeid));
+   memset(&env_val_name, '\0', sizeof(SaNameT));
+   memset(env_val_nodeid, '\0', sizeof(env_val_nodeid));
    m_NCS_STRNCPY(env_val_name.value, comp->name_net.value, 
                  m_NCS_OS_NTOHS(comp->name_net.length));
 
@@ -2479,7 +2479,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
    if(cmd_type == AVND_COMP_CLC_CMD_TYPE_CLEANUP)
    {
       /* error code, will be set only if we are cleaning up */
-      m_NCS_OS_MEMSET(env_val_comp_err, '\0', sizeof(env_val_comp_err));
+      memset(env_val_comp_err, '\0', sizeof(env_val_comp_err));
       env_set[2].overwrite = 1;
       env_set[2].name = (char *)env_var_comp_err;
       sprintf((char *)env_val_comp_err, "%u", (uns32)(comp->err_info.src));
@@ -2535,7 +2535,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
    if ( NCSCC_RC_SUCCESS != rc )
    {
       /* generate a cmd failure event; it'll be executed asynchronously */
-      m_NCS_OS_MEMSET(&clc_evt, 0, sizeof(AVND_CLC_EVT));
+      memset(&clc_evt, 0, sizeof(AVND_CLC_EVT));
       
       /* fill the clc-evt param */
       memcpy(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
@@ -2730,7 +2730,7 @@ uns8*  avnd_prep_attr_env_var (AVND_COMP    *comp,
      return env_val ; 
     }
 
-     m_NCS_OS_MEMSET(env_val, '\0', (mem_length+1));
+     memset(env_val, '\0', (mem_length+1));
 
     /* Now make the Env. variable */
     if( 0 != curr_csi->attrs.number )

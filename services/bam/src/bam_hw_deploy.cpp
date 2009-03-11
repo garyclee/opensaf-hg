@@ -144,7 +144,7 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
       return SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_MEMSET(deploy_ent, 0, sizeof(BAM_ENT_DEPLOY_DESC));
+   memset(deploy_ent, 0, sizeof(BAM_ENT_DEPLOY_DESC));
    /* set defaults */
    deploy_ent->isActivationSourceNCS = 2;
 

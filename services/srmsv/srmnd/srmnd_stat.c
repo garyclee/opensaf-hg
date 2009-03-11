@@ -64,7 +64,7 @@ uns32 srmnd_get_cpu_utilization_stats(SRMND_RSRC_MON_NODE *rsrc)
    NCS_SRMSV_RSRC_TYPE rsrc_type = rsrc->rsrc_type_node->rsrc_type;
    double f_total_time = 0, f_diff_time = 0;
    
-   m_NCS_OS_MEMSET(&cpu_data, 0, sizeof(SRMND_CPU_DATA)); 
+   memset(&cpu_data, 0, sizeof(SRMND_CPU_DATA)); 
 
    /* Get the CPU utilization specific statistics */
    if (m_SRMSV_GET_CPU_UTIL_STATS(&cpu_data) != NCSCC_RC_SUCCESS)
@@ -388,7 +388,7 @@ uns32 srmnd_update_pid_data(SRMND_RSRC_MON_NODE *rsrc)
       return NCSCC_RC_SUCCESS;
    
    /* Clear off the content of input fields */
-   m_NCS_OS_MEMSET(&c_pid, 0, sizeof(uns32)*SRMSV_MAX_PID_DESCENDANTS);
+   memset(&c_pid, 0, sizeof(uns32)*SRMSV_MAX_PID_DESCENDANTS);
    pid_num = 0;
 
    /* Get the child pid information */
@@ -408,7 +408,7 @@ uns32 srmnd_update_pid_data(SRMND_RSRC_MON_NODE *rsrc)
          return NCSCC_RC_FAILURE;
       }
           
-      m_NCS_OS_MEMSET((char *)pid_data, 0, sizeof(SRMND_PID_DATA));
+      memset((char *)pid_data, 0, sizeof(SRMND_PID_DATA));
 
       pid_data->pid = c_pid[--pid_num];
       pid_data->child_level = 1;
@@ -453,7 +453,7 @@ uns32 srmnd_update_pid_data(SRMND_RSRC_MON_NODE *rsrc)
          else  /* Need to collect the child data */
          {
             /* Clear off the content of input fields */
-            m_NCS_OS_MEMSET(&c_pid, 0, sizeof(uns32)*SRMSV_MAX_PID_DESCENDANTS);
+            memset(&c_pid, 0, sizeof(uns32)*SRMSV_MAX_PID_DESCENDANTS);
             pid_num = 0;
             pid = pid_node->pid;
 
@@ -475,7 +475,7 @@ uns32 srmnd_update_pid_data(SRMND_RSRC_MON_NODE *rsrc)
                      return NCSCC_RC_FAILURE;
                   }
           
-                  m_NCS_OS_MEMSET((char *)pid_data, 0, sizeof(SRMND_PID_DATA));
+                  memset((char *)pid_data, 0, sizeof(SRMND_PID_DATA));
 
                   pid_data->pid = c_pid[--pid_num];
                   pid_data->child_level = (pid_node->child_level + 1);

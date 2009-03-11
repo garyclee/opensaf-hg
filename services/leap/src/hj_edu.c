@@ -231,7 +231,7 @@ uns32 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
     }
     /* Error checks end here. */
 
-    m_NCS_MEMSET(&lcl_edu_buf, '\0', sizeof(lcl_edu_buf));
+    memset(&lcl_edu_buf, '\0', sizeof(lcl_edu_buf));
     lcl_edu_buf.is_ubaid = TRUE;
     lcl_edu_buf.info.uba = uba;
 
@@ -398,7 +398,7 @@ uns32 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     }
     /* Error checks end here. */
 
-    m_NCS_MEMSET(&lcl_edu_buf, '\0', sizeof(lcl_edu_buf));
+    memset(&lcl_edu_buf, '\0', sizeof(lcl_edu_buf));
     lcl_edu_buf.info.tlv_env.cur_bufp = bufp;
     lcl_edu_buf.info.tlv_env.bytes_consumed = 0;
     lcl_edu_buf.info.tlv_env.size = buf_size;
@@ -774,7 +774,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         break;
     case EDU_TEST:
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-        m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+        memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
         sysf_sprintf(gl_log_string, "Test condition...\n");
         ncs_edu_log_msg(gl_log_string);
 
@@ -1240,7 +1240,7 @@ uns32 ncs_edu_prfm_dec_on_non_ptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 *o_err = EDU_ERR_MEM_FAIL;
                 return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
             }
-            m_NCS_MEMSET(lcl_mem_ptr, '\0', l_size * (*ptr_data_len));
+            memset(lcl_mem_ptr, '\0', l_size * (*ptr_data_len));
             (*(long**)((long)ptr + (long)rule->fld5)) = lcl_mem_ptr;
         }
 
@@ -1649,7 +1649,7 @@ int ncs_edu_run_test_condition(EDU_HDL *edu_hdl,
     {
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-        m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+        memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
         sysf_sprintf(gl_log_string, 
             "test_condition function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
@@ -1712,7 +1712,7 @@ int ncs_edu_run_version_usr(EDU_HDL *edu_hdl,
     {
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-        m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+        memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
         sysf_sprintf(gl_log_string, 
             "run_version_usr function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
@@ -1752,7 +1752,7 @@ int ncs_edu_run_version_ge(EDU_HDL *edu_hdl,
     {
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-        m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+        memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
         sysf_sprintf(gl_log_string, 
             "run_version_ge function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
@@ -1889,7 +1889,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
             else
             {
                 /* Not there in EDU_HDL. */
-                m_NCS_MEMSET(&admin_op, '\0', sizeof(admin_op));
+                memset(&admin_op, '\0', sizeof(admin_op));
                 admin_op.adm_op_type = NCS_EDU_ADMIN_OP_TYPE_GET_ATTRB;
                 admin_op.info.get_attrb.o_attrb = &dtype_attrb;
                 prog[cur_inst_indx].fld1(edu_hdl, NULL, (NCSCONTEXT)&admin_op, NULL,
@@ -1949,7 +1949,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                     {
                         cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-                        m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+                        memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                         sysf_sprintf(gl_log_string, 
                             "Switching to index = %d...\n", cur_inst_indx);
                         ncs_edu_log_msg(gl_log_string);
@@ -2051,7 +2051,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 {
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-                    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+                    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                     sysf_sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
@@ -2136,7 +2136,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
             }
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-            m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+            memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             sysf_sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
@@ -2248,7 +2248,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 {
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-                    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+                    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                     sysf_sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
@@ -2314,7 +2314,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 cur_inst_indx = rc_lbl;
             }
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-            m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+            memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             sysf_sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
@@ -2425,7 +2425,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 if(prog[cur_inst_indx].instr == EDU_EXEC)
                 {
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
-                    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+                    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                     sysf_sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
@@ -2488,7 +2488,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
             {
                 cur_inst_indx = rc_lbl;
             }
-            m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+            memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             sysf_sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
@@ -2991,8 +2991,8 @@ uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl,
     NCS_EDU_ADMIN_OP_INFO   admin_op;
     EDU_TKN                 edu_tkn;
 
-    m_NCS_MEMSET(&admin_op, '\0', sizeof(admin_op));
-    m_NCS_MEMSET(&edu_tkn, '\0', sizeof(edu_tkn));
+    memset(&admin_op, '\0', sizeof(admin_op));
+    memset(&edu_tkn, '\0', sizeof(edu_tkn));
 
     edu_tkn.i_edp = hdl_node->edp;
     admin_op.adm_op_type = NCS_EDU_ADMIN_OP_TYPE_COMPILE;
@@ -3086,7 +3086,7 @@ uns32 ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
                     *o_err = EDU_ERR_MEM_FAIL;
                     return NCSCC_RC_FAILURE;
                 }
-                m_NCS_MEMSET(tmp, '\0', sizeof(EDP_TEST_INSTR_REC));
+                memset(tmp, '\0', sizeof(EDP_TEST_INSTR_REC));
                 tmp->edp = rules_head[i].fld1;
                 tmp->offset = rules_head[i].fld5;
                 tmp->refcount = 1;
@@ -3149,7 +3149,7 @@ uns32 ncs_edu_validate_and_gen_test_instr_rec_list(EDP_TEST_INSTR_REC **head,
                         *o_err = EDU_ERR_MEM_FAIL;
                         return NCSCC_RC_FAILURE;
                     }
-                    m_NCS_MEMSET(tmp, '\0', sizeof(EDP_TEST_INSTR_REC));
+                    memset(tmp, '\0', sizeof(EDP_TEST_INSTR_REC));
                     tmp->edp = rules_head[i].fld1;
                     tmp->offset = rules_head[i].fld5;
                     tmp->refcount = 1;
@@ -3285,7 +3285,7 @@ static void edu_populate_ppdb_key(EDU_PPDB_KEY *key,
                             EDU_PROG_HANDLER self_edp, 
                             uns32   offset)
 {
-    m_NCS_MEMSET(key, '\0', sizeof(EDU_PPDB_KEY));
+    memset(key, '\0', sizeof(EDU_PPDB_KEY));
     key->parent_edp = parent_edp;
     key->self_edp = self_edp;
     key->field_offset = offset;
@@ -3329,7 +3329,7 @@ edu_ppdb_node_findadd(EDU_PPDB *ppdb,
                rc = NCSCC_RC_FAILURE; 
                goto done;
            }
-           m_NCS_OS_MEMSET(node, 0, sizeof(EDU_PPDB_NODE_INFO));
+           memset(node, 0, sizeof(EDU_PPDB_NODE_INFO));
 
            /* Init the node info */
            node->key = key;
@@ -3437,8 +3437,8 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     uns32           lclrc = NCSCC_RC_SUCCESS;
     uns32           lcl_cnt = 0;
 
-    m_NCS_MEMSET(&lcl_buf_env, '\0', sizeof(lcl_buf_env));
-    m_NCS_MEMSET(&pp_ubaid, '\0', sizeof(pp_ubaid));
+    memset(&lcl_buf_env, '\0', sizeof(lcl_buf_env));
+    memset(&pp_ubaid, '\0', sizeof(pp_ubaid));
     if(buf_env->is_ubaid)
     {
         if(buf_env->info.uba->start != NULL)
@@ -3464,7 +3464,7 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
             *o_err = EDU_ERR_UBAID_POINTER_NULL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(&pp_ubaid, '\0', sizeof(pp_ubaid));
+        memset(&pp_ubaid, '\0', sizeof(pp_ubaid));
         pp_ubaid = *buf_env->info.uba;
         pp_ubaid.ub = pp_ubuf;
         lcl_buf_env.is_ubaid = TRUE;
@@ -3479,7 +3479,7 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
         lcl_buf_env.info.tlv_env = buf_env->info.tlv_env;
     }
     
-    m_NCS_MEMSET(&lcl_edu_tkn, '\0', sizeof(lcl_edu_tkn));
+    memset(&lcl_edu_tkn, '\0', sizeof(lcl_edu_tkn));
     m_NCS_EDU_TKN_INIT(&lcl_edu_tkn);
     lcl_edu_tkn.i_edp = edp;
     lcl_edu_tkn.parent_edp = edp;  /* Used only during selective-encoding */
@@ -3492,7 +3492,7 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
     *o_err = EDU_NORMAL;
 
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     if(op == EDP_OP_TYPE_ENC)
         sysf_sprintf(gl_log_string, 
             "*****PRETTY-PRINT-AFTER-ENCODE***STARTS*****\n");
@@ -3518,7 +3518,7 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
         }
     }
 
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     if(op == EDP_OP_TYPE_ENC)
         sysf_sprintf(gl_log_string, 
             "*****PRETTY-PRINT-AFTER-ENCODE***ENDS*****\n");
@@ -3548,7 +3548,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     EDU_TKN         tkn;
     uns32           lclrc = NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&tkn, '\0', sizeof(tkn));
+    memset(&tkn, '\0', sizeof(tkn));
     m_NCS_EDU_TKN_INIT(&tkn);
     tkn.i_edp = edp;
     tkn.parent_edp = edp;  /* Used only during selective-encoding */
@@ -3567,7 +3567,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     *o_err = EDU_NORMAL;
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     sysf_sprintf(gl_log_string, 
         "*****ENCODE***STARTS*****\n");
     ncs_edu_log_msg(gl_log_string);
@@ -3578,7 +3578,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     m_NCS_EDU_TKN_FLUSH(&tkn);
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     sysf_sprintf(gl_log_string, "*****ENCODE***ENDS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -3604,7 +3604,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     EDU_TKN         tkn;
 
     /* Perform actual operation(Encode/Decode) below. */
-    m_NCS_MEMSET(&tkn, '\0', sizeof(tkn));
+    memset(&tkn, '\0', sizeof(tkn));
     m_NCS_EDU_TKN_INIT(&tkn);
     tkn.i_edp = edp;
     tkn.parent_edp = edp;  /* Used only during selective-decoding */
@@ -3631,7 +3631,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     *o_err = EDU_NORMAL;
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     sysf_sprintf(gl_log_string, 
         "*****DECODE***STARTS*****\n");
     ncs_edu_log_msg(gl_log_string);
@@ -3642,7 +3642,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
     m_NCS_EDU_TKN_FLUSH(&tkn);
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     sysf_sprintf(gl_log_string, "*****DECODE***ENDS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -3663,7 +3663,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 #if (NCS_EDU_VERBOSE_PRINT == 1)
 void ncs_edu_print_error_string(int enum_val)
 {
-    m_NCS_MEMSET(&gl_log_string, '\0', GL_LOG_STRING_LEN);
+    memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     switch(enum_val)
     {
     case EDU_ERR_MEM_FAIL:
@@ -3903,7 +3903,7 @@ uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE; 
         }
-        m_NCS_OS_MEMSET(lcl_hdl_node, 0, sizeof(EDU_HDL_NODE));
+        memset(lcl_hdl_node, 0, sizeof(EDU_HDL_NODE));
         
         /* Init the node info */
         lcl_hdl_node->edp = prog;
@@ -3947,7 +3947,7 @@ uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl)
 {
    NCS_PATRICIA_PARAMS  list_params;
 
-   m_NCS_MEMSET(edu_hdl, '\0', sizeof(EDU_HDL));
+   memset(edu_hdl, '\0', sizeof(EDU_HDL));
    /* Init the tree first */
    list_params.key_size = sizeof(EDU_PROG_HANDLER); 
    /*    list_params.info_size = 0;  */
@@ -4000,7 +4000,7 @@ uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl)
       ncs_patricia_tree_destroy(&edu_hdl->tree);
       /*edu_hdl->is_inited = FALSE;*/
    } 
-   m_NCS_MEMSET(edu_hdl, '\0', sizeof(EDU_HDL));
+   memset(edu_hdl, '\0', sizeof(EDU_HDL));
 
    return NCSCC_RC_SUCCESS;
 }
@@ -4495,7 +4495,7 @@ static void ncs_edu_free_uba_contents(NCS_UBAID *p_uba)
     else {
         m_MMGR_FREE_BUFR_LIST(p_uba->ub);
     }
-    m_NCS_MEMSET(p_uba, '\0', sizeof(NCS_UBAID));
+    memset(p_uba, '\0', sizeof(NCS_UBAID));
 
     return;
 }

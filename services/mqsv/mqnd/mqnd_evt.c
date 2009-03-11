@@ -327,7 +327,7 @@ static uns32 mqnd_evt_proc_mqp_finalize(MQND_CB *cb, MQSV_EVT *evt)
    }
 send_rsp:
 
-   m_NCS_MEMSET(&send_evt, 0, sizeof(MQSV_EVT));
+   memset(&send_evt, 0, sizeof(MQSV_EVT));
 
    send_evt.type = MQSV_EVT_MQP_RSP;
    send_evt.msg.mqp_rsp.type = MQP_EVT_FINALIZE_RSP;
@@ -359,7 +359,7 @@ static uns32 mqnd_evt_proc_mqp_init(MQND_CB *cb, MQSV_EVT *evt)
    MQSV_EVT     send_evt;
    uns32          rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(MQSV_EVT));
+   memset(&send_evt, 0, sizeof(MQSV_EVT));
 
    /* Do the Version Check here MQSV:TBD */
 
@@ -421,7 +421,7 @@ static uns32 mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
       goto error1;
    }
    /* Request the ASAPi (at MQD) for queue information */
-   m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+   memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
    opr.type = ASAPi_OPR_MSG;
    opr.info.msg.opr = ASAPi_MSG_SEND;
    /* Fill MDS info */
@@ -606,7 +606,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
    if(qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN) {
 
       /* Request the ASAPi (at MQD) for queue DEREG */
-      m_NCS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+      memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
       opr.type = ASAPi_OPR_MSG;
       opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -629,7 +629,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
          #ifdef NCS_MQND
           m_NCS_CONS_PRINTF("UNLINK TIMEOUT:ASYNC DEREG TO DELETE ORPHAN QUEUE\n");
          #endif 
-         m_NCS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+         memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
          opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -673,7 +673,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
       }
 
       /* Delete the mapping entry from the qname database */
-      m_NCS_MEMSET(&qname, 0, sizeof(SaNameT));
+      memset(&qname, 0, sizeof(SaNameT));
       qname = qnode->qinfo.queueName;
       mqnd_qname_node_get(cb, qname, &pnode);
       mqnd_qname_node_del(cb, pnode);
@@ -694,7 +694,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
       /* MQND Restart. In the else case, the sending state is updated.
       Update the checkpointing service of this queue node updation*/
-      m_NCS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+      memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
       mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
 
       mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
@@ -706,7 +706,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
       }
 
       /* Request the ASAPi (at MQD) for queue DEREG */
-      m_NCS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+      memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
       opr.type = ASAPi_OPR_MSG;
       opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -729,7 +729,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
          #ifdef NCS_MQND
           m_NCS_CONS_PRINTF("UNLINK TIMEOUT:ASYNC DEREG AVAILABLE QUEUE TO UNAVAIL\n");
          #endif
-         m_NCS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+         memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
          opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -769,7 +769,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
       }
 
       /* Delete the mapping entry from the qname database */
-      m_NCS_MEMSET(&qname, 0, sizeof(SaNameT));
+      memset(&qname, 0, sizeof(SaNameT));
       qname = qnode->qinfo.queueName;
       mqnd_qname_node_get(cb, qname, &pnode);
       mqnd_qname_node_del(cb, pnode);
@@ -839,7 +839,7 @@ static uns32 mqnd_evt_proc_status_req(MQND_CB *cb, MQSV_EVT *evt)
 
 send_rsp:
    /*Send the resp to MQA */
-   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+   memset(&rsp_evt, 0, sizeof(MQSV_EVT));
    rsp_evt.type = MQSV_EVT_MQP_RSP;
    rsp_evt.msg.mqp_rsp.error = err;
 
@@ -972,7 +972,7 @@ done:
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(direct_rsp_evt, 0, sizeof(MQSV_DSEND_EVT));
+   memset(direct_rsp_evt, 0, sizeof(MQSV_DSEND_EVT));
  
    direct_rsp_evt->evt_type = MQSV_DSEND_EVENT;
    direct_rsp_evt->type = MQP_EVT_STAT_UPD_RSP;
@@ -1096,7 +1096,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
    if (snd_msg->message.size > (qsize - qused)) {
         qnode->qinfo.numberOfFullErrors[snd_msg->message.priority]++;
         err = SA_AIS_ERR_QUEUE_FULL;
-        m_NCS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+        memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
         mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
         mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
         m_LOG_MQSV_ND(MQND_QUEUE_FULL,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,err,__FILE__,__LINE__);
@@ -1149,7 +1149,7 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
    }
 
    /* Write into Queue */
-   m_NCS_OS_MEMSET(mqsv_msg, 0, sizeof(size));
+   memset(mqsv_msg, 0, sizeof(size));
 
    mqsv_msg->type = MQP_EVT_GET_REQ;
    mqsv_msg->mqsv_version = MQSV_MSG_VERSION;
@@ -1212,7 +1212,7 @@ send_resp:
                return rc;
             }
 
-            m_NCS_OS_MEMSET(direct_rsp_evt, 0, sizeof(MQSV_DSEND_EVT));
+            memset(direct_rsp_evt, 0, sizeof(MQSV_DSEND_EVT));
             direct_rsp_evt->evt_type = MQSV_DSEND_EVENT;
             direct_rsp_evt->endianness = machineEndianness();
             direct_rsp_evt->msg_fmt_version = msg_fmt_ver;
@@ -1228,7 +1228,7 @@ send_resp:
          }
          else {
 
-            m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+            memset(&rsp_evt, 0, sizeof(MQSV_EVT));
 
             rsp_evt.type = MQSV_EVT_MQA_CALLBACK;
             rsp_evt.msg.mqp_async_rsp.callbackType = MQP_ASYNC_RSP_MSGDELIVERED;
@@ -1288,7 +1288,7 @@ uns32 mqnd_evt_proc_tmr_expiry (MQND_CB *cb, MQSV_EVT *evt)
          }
 
         /* Request the ASAPi (at MQD) for queue DEREG */
-        m_NCS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+        memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
         opr.type = ASAPi_OPR_MSG;
         opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -1357,7 +1357,7 @@ uns32 mqnd_evt_proc_tmr_expiry (MQND_CB *cb, MQSV_EVT *evt)
            return NCSCC_RC_FAILURE;
           }
 
-         m_NCS_OS_MEMSET(&transfer_complete, 0, sizeof(MQSV_EVT));
+         memset(&transfer_complete, 0, sizeof(MQSV_EVT));
          transfer_complete.type = MQSV_EVT_MQP_REQ;
          transfer_complete.msg.mqp_req.type = MQP_EVT_TRANSFER_QUEUE_COMPLETE;
          transfer_complete.msg.mqp_req.info.transferComplete.queueHandle = qhdl;
@@ -1383,7 +1383,7 @@ uns32 mqnd_evt_proc_tmr_expiry (MQND_CB *cb, MQSV_EVT *evt)
          
          /*Send req to mqd to find the state and owner 
            Request the ASAPi (at MQD) for queue information */
-         m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+         memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
          opr.info.msg.opr = ASAPi_MSG_SEND;
          opr.info.msg.sinfo.to_svc = NCSMDS_SVC_ID_MQD;
@@ -1492,7 +1492,7 @@ send_rsp:
    }
 
    /*Send the resp to MQA */
-   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+   memset(&rsp_evt, 0, sizeof(MQSV_EVT));
    rsp_evt.type = MQSV_EVT_MQND_CTRL;
    
    rsp_evt.msg.mqnd_ctrl.type = MQND_CTRL_EVT_QATTR_INFO;
@@ -1568,7 +1568,7 @@ static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 
 send_rsp:
    /*Send the resp to MQA */
-   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+   memset(&rsp_evt, 0, sizeof(MQSV_EVT));
 
    rsp_evt.type = MQSV_EVT_MQP_RSP;
    rsp_evt.msg.mqp_rsp.type = MQP_EVT_Q_RET_TIME_SET_RSP;
@@ -1619,7 +1619,7 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 
    shm_base_addr = cb->mqnd_shm.shm_base_addr; 
 
-   m_NCS_OS_MEMSET(&qname,'\0',sizeof(SaNameT));
+   memset(&qname,'\0',sizeof(SaNameT));
    m_NCS_OS_PRINTF("\n<<<<<<<<<<<<<<< MQND CB Details >>>>>>>>>>>>>>>\n\n");
 
    m_NCS_OS_PRINTF("MQND MDS DEST: %u\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->my_dest));

@@ -143,13 +143,13 @@ static uns32 ifsv_gbl_object_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    (cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, arg->i_mib_key)) == 0 ? (cb = 
       ncshm_take_hdl(NCS_SERVICE_ID_IFND, arg->i_mib_key)):(cb = cb);
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
 
    /* Set the object */
    if(test_flag != TRUE)
    {
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);

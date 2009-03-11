@@ -303,7 +303,7 @@ l2filter_entry_update_se(NCS_L2SOCKET_ENTRY *se)
 
 	tmp.protocol = se->protocol;
 	tmp.if_index = se->if_index;    
-	m_NCS_OS_MEMSET(tmp.addr, 0,  6);
+	memset(tmp.addr, 0,  6);
 
 	m_NCS_LOCK(&sc->lock, NCS_LOCK_WRITE);
 	fe = (NCS_L2FILTER_ENTRY *)ncs_patricia_tree_getnext(&sc->socket_tree, (const uns8 *)&tmp);
@@ -372,7 +372,7 @@ l2socket_entry_create(NCS_DL_REQUEST_INFO *dlr)
 		return (NULL);
 
 
-	m_NCS_OS_MEMSET (se, '\0', sizeof(NCS_L2SOCKET_ENTRY));
+	memset (se, '\0', sizeof(NCS_L2SOCKET_ENTRY));
 
 	if ((m_NCS_LOCK_INIT (&se->lock)) == NCSCC_RC_FAILURE)
 	{
@@ -862,7 +862,7 @@ l2socket_layer_create (int select_timeout)
 		return NULL;
 
 
-	m_NCS_OS_MEMSET(socket_context, 0, sizeof(*socket_context));
+	memset(socket_context, 0, sizeof(*socket_context));
 	m_NCS_LOCK_INIT(&socket_context->lock);
 
 	socket_context->tree_params.key_size =  sizeof(NCS_L2FILTER_KEY);   
@@ -958,7 +958,7 @@ dl_svc_802_2_ethhdr_build (NCS_L2SOCKET_ENTRY*    se,
 
 
 	/* set the source hw address */
-	m_NCS_MEMSET(&ifr,0,sizeof(ifr));
+	memset(&ifr,0,sizeof(ifr));
 
 	/* Directly get if_name stored in socket entry while opening socket */
 	memcpy (ifr.ifr_name, se->if_name, sizeof(ifr.ifr_name));   
@@ -1072,7 +1072,7 @@ ncsl2sock_event_raw_send (NCS_L2SOCKET_ENTRY               *se,
 		bytes_sent = NCSSOCK_ERROR;
 	}
 
-	m_NCS_MEMSET(&send_addr,0,sizeof(send_addr));
+	memset(&send_addr,0,sizeof(send_addr));
 	send_addr.sll_family = AF_PACKET;
 	send_addr.sll_protocol = htons(se->protocol);
 	send_addr.sll_ifindex = if_index;
@@ -1429,7 +1429,7 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 	if (dlr->info.ctrl.open.i_if_index != 0)
 	{
 		se->if_index = dlr->info.ctrl.open.i_if_index;
-		m_NCS_OS_MEMSET(&ifr, '\0', sizeof ifr);
+		memset(&ifr, '\0', sizeof ifr);
 		ifr.ifr_ifindex = se->if_index;
 
 		if (m_NCS_TS_SOCK_IOCTL(se->client_socket,
@@ -1449,7 +1449,7 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 	{
 		/* get interface index number */
 		strncpy(se->if_name, dlr->info.ctrl.open.i_if_name, sizeof(se->if_name)); 
-		m_NCS_OS_MEMSET(&ifr, '\0', sizeof ifr);
+		memset(&ifr, '\0', sizeof ifr);
 		memcpy (ifr.ifr_name, se->if_name, sizeof(se->if_name));
 
 		if (m_NCS_TS_SOCK_IOCTL(se->client_socket,
@@ -1466,7 +1466,7 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 		se->if_index = ifr.ifr_ifindex;
 	}
 
-	m_NCS_OS_MEMSET(&ifr,'\0',sizeof(ifr));
+	memset(&ifr,'\0',sizeof(ifr));
 
 	memcpy(ifr.ifr_name,se->if_name,sizeof(se->if_name));
 
@@ -1518,7 +1518,7 @@ ncsl2sock_event_raw_open (NCS_L2SOCKET_ENTRY               *se,
 	 *  packets that are destined to other interfaces in the
 	 *  system.
 	 */
-	m_NCS_OS_MEMSET(&serverAddr,0,sizeof(serverAddr));
+	memset(&serverAddr,0,sizeof(serverAddr));
 	serverAddr.sll_family   = AF_PACKET;
 	serverAddr.sll_protocol = htons(se->protocol);
 	serverAddr.sll_ifindex  = se->if_index;
@@ -1657,7 +1657,7 @@ ReadRawPacket(NCS_L2SOCKET_ENTRY    *se,
 		/* LOG_ISIS */
 		*p_dlbuf = NULL;
 
-		m_NCS_OS_MEMSET(&request,0,sizeof(request));
+		memset(&request,0,sizeof(request));
 
 		/* Get the IFFlags of the corresponding interface */
 		memcpy(request.ifr_name,se->if_name,sizeof(se->if_name));    
@@ -1812,11 +1812,11 @@ ncsl2sock_event_raw_indication (NCS_L2SOCKET_ENTRY               *se_in,
 
 	/** We have a RAW socket that select indicated was readable.
 	 **/
-	/* The below m_NCS_OS_MEMSET call is a temporary fix
+	/* The below memset call is a temporary fix
 	   to allow MDS to function on Layer 2 on a single
 	   Linux Box. (Phani's temporay MDS fix)
 	 */
-	m_NCS_OS_MEMSET(&dli, 0, sizeof(dli));
+	memset(&dli, 0, sizeof(dli));
 	if(se_in->state == NCS_SOCKET_STATE_CLOSING)
 	{
 #if (NCS_DL_DEFS_LOG == 1)
@@ -2138,7 +2138,7 @@ ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_a
 	if (sock == NCSSOCK_INVALID)
 		return NCSCC_RC_FAILURE;
 
-	m_NCS_OS_MEMSET(&ifr, 0, sizeof(ifr));
+	memset(&ifr, 0, sizeof(ifr));
 
 	/*
 	   if anyone of if_index or if_name is given then mac_address is returned back, 
@@ -2201,7 +2201,7 @@ ncsl2sock_event_raw_mcast_join (NCS_L2SOCKET_ENTRY  *se,
 	struct ncs_dl_request_info_tag* dlr = (struct ncs_dl_request_info_tag*)arg ;
 	struct ifreq  ifr;
 
-	m_NCS_OS_MEMSET(&ifr,0,sizeof(ifr));
+	memset(&ifr,0,sizeof(ifr));
 
 	memcpy(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
 
@@ -2227,7 +2227,7 @@ ncsl2sock_event_raw_mcast_leave (NCS_L2SOCKET_ENTRY  *se,
 	struct ncs_dl_request_info_tag* dlr = (struct ncs_dl_request_info_tag*)arg ;
 	struct ifreq  ifr;
 
-	m_NCS_OS_MEMSET(&ifr,0,sizeof(ifr));
+	memset(&ifr,0,sizeof(ifr));
 
 	memcpy(ifr.ifr_name,se->if_name,sizeof(ifr.ifr_name));
 

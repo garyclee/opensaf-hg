@@ -214,7 +214,7 @@ uns32  avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC  *su_si_ckpt
       {
          if (NULL == su_si_rec_ptr)
          {
-           m_NCS_MEMSET(&info, 0, sizeof(AVND_SU_SI_PARAM));
+           memset(&info, 0, sizeof(AVND_SU_SI_PARAM));
            info.su_name_net = su_si_ckpt->su_name_net;
            info.si_name_net = su_si_ckpt->name_net;
            su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name_net);
@@ -485,7 +485,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
            if (NULL == comp_ptr)
            {
              /* This is external component i.e. proxied component. */
-             m_NCS_MEMSET(&comp_info, 0, sizeof(AVND_COMP_PARAM));
+             memset(&comp_info, 0, sizeof(AVND_COMP_PARAM));
              /* We care for the name when adding, the rest of the param
                will be updated in NCS_MBCSV_ACT_UPDATE switch case.*/
              comp_info.name_net = comp->name_net;
@@ -527,7 +527,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
                is in orphan state and we need not add it to proxy, adding it
                in our data base is enough.*/
 
-             m_NCS_MEMSET(&temp_comp_name, 0, sizeof(SaNameT));
+             memset(&temp_comp_name, 0, sizeof(SaNameT));
              if(m_NCS_MEMCMP(&temp_comp_name, &comp->proxy_comp_name_net,
                 sizeof(SaNameT)) != 0)
              {
@@ -727,7 +727,7 @@ uns32  avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi,
       {
          if ((NULL == csi_ptr) && (NULL != su_si_rec))
          {
-           m_NCS_MEMSET(&csi_param, 0, sizeof(AVSV_SUSI_ASGN));
+           memset(&csi_param, 0, sizeof(AVSV_SUSI_ASGN));
            csi_param.comp_name_net = csi->comp_name_net;
            csi_param.csi_name_net = csi->name_net;
            csi_param.csi_rank = csi->rank;
@@ -848,7 +848,7 @@ uns32  avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt,
       {
          if (NULL == hlt_ptr)
          {   
-            m_NCS_MEMSET(&hc_info,0, sizeof(AVSV_HLT_INFO_MSG));
+            memset(&hc_info,0, sizeof(AVSV_HLT_INFO_MSG));
             memcpy(&hc_info.name, &hlt->key, sizeof(AVSV_HLT_KEY));
             hc_info.period = hlt->period;
             hc_info.max_duration = hlt->max_dur;
@@ -929,7 +929,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt,
    AVND_COMP             *comp = NULL;
    AVND_COMP_HC_REC tmp_hc_rec;
    
-   m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+   memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
    tmp_hc_rec.key = hlt->key;
    tmp_hc_rec.req_hdl = hlt->req_hdl;
    /* determine if this healthcheck is already active */
@@ -945,7 +945,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt,
       {
          if ((NULL == hc_rec) && (NULL != comp))
          {   
-            m_NCS_MEMSET(&hc_info,0, sizeof(AVSV_AMF_HC_START_PARAM));
+            memset(&hc_info,0, sizeof(AVSV_AMF_HC_START_PARAM));
             hc_info.comp_name_net = hlt->comp_name_net;
             hc_info.hc_key = hlt->key;
             hc_info.hdl = hlt->req_hdl;
@@ -1162,7 +1162,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
    AVND_HC *hc_config = NULL;  
    AVSV_HLT_KEY hc_key;
 
-   m_NCS_MEMSET(&hc_key, 0, sizeof(AVSV_HLT_KEY));
+   memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
 
    hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key);
    while(hc_config != 0)
@@ -1185,7 +1185,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 
   /* Reset the async count */
   if(FALSE == avnd_shut_down)
-    m_NCS_MEMSET(&cb->avnd_async_updt_cnt, 0 , sizeof(AVND_ASYNC_UPDT_CNT)); 
+    memset(&cb->avnd_async_updt_cnt, 0 , sizeof(AVND_ASYNC_UPDT_CNT)); 
 
   /****************** Destroy Internode db starts here***********************/
   {

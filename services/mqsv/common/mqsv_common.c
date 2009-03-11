@@ -73,7 +73,7 @@ uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
        return NCSCC_RC_SUCCESS;
 
    /* Get actual queue size and usage stats. This is needed to determine if queue size needs to be increased */
-   m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    info.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
    info.info.attr.i_mqd = listenerHandle;
 
@@ -84,7 +84,7 @@ uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
    actual_qused = info.info.attr.o_attr.mq_msgsize;
 
    if ((actual_qsize - actual_qused) < 1000) {
-      m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+      memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
       info.req = NCS_OS_POSIX_MQ_REQ_RESIZE;
       info.info.resize.mqd = listenerHandle;
 
@@ -95,10 +95,10 @@ uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
          return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
+   memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
    memcpy(mq_msg.data, "A", 1);
 
-   m_NCS_OS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
    info.info.send.mqd = listenerHandle;
    info.info.send.datalen = 1;

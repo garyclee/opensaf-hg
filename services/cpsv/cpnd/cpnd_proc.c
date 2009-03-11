@@ -72,7 +72,7 @@ uns32 cpnd_ckpt_client_add(CPND_CKPT_NODE *cp_node,
    }
 
    clist_node=m_MMGR_ALLOC_CPND_CKPT_CLIST_NODE;
-   m_NCS_OS_MEMSET(clist_node,'\0',sizeof(CPND_CKPT_CLLIST_NODE));
+   memset(clist_node,'\0',sizeof(CPND_CKPT_CLLIST_NODE));
 
    
    clist_node->next=ptr_cl_node;
@@ -184,7 +184,7 @@ uns32 cpnd_client_ckpt_info_add(CPND_CKPT_CLIENT_NODE *cl_node,
    cplist=m_MMGR_ALLOC_CPND_CKPT_LIST_NODE;
    
    /* need to check */
-   m_NCS_OS_MEMSET(cplist,'\0',sizeof(CPND_CKPT_CKPT_LIST_NODE));
+   memset(cplist,'\0',sizeof(CPND_CKPT_CKPT_LIST_NODE));
 
    cplist->next=ptr_cp_node;
    cplist->cnode=cp_node;
@@ -290,7 +290,7 @@ uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPSV_
 {
     CPND_CKPT_CLLIST_NODE *ptr_cl_node=cp_node->clist;
     CPSV_EVT send_evt;
-    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));  
+    memset(&send_evt,'\0',sizeof(CPSV_EVT));  
     uns32 rc= NCSCC_RC_SUCCESS;
 
     while(ptr_cl_node != NULL)
@@ -316,7 +316,7 @@ uns32 cpnd_proc_ckpt_arrival_info_ntfy(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPSV_
 uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
 {
     CPSV_EVT send_evt;
-    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));  
+    memset(&send_evt,'\0',sizeof(CPSV_EVT));  
     uns32 rc= NCSCC_RC_SUCCESS;
      cb->is_joined_cl = FALSE;
          send_evt.type = CPSV_EVT_TYPE_CPA;
@@ -327,7 +327,7 @@ uns32 cpnd_proc_ckpt_clm_node_left(CPND_CB *cb)
 uns32 cpnd_proc_ckpt_clm_node_joined(CPND_CB *cb)
 {
     CPSV_EVT send_evt;
-    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));  
+    memset(&send_evt,'\0',sizeof(CPSV_EVT));  
     uns32 rc= NCSCC_RC_SUCCESS;
     cb->is_joined_cl = TRUE;
 	send_evt.type = CPSV_EVT_TYPE_CPA;
@@ -360,7 +360,7 @@ uns32 cpnd_ckpt_replica_destroy(CPND_CB *cb,CPND_CKPT_NODE *cp_node, SaAisErrorT
      /* First delete all sections in the heckpoint about to be deleted */
      cpnd_ckpt_delete_all_sect(cp_node);
 
-     m_NCS_MEMSET(&shm_info,'\0',sizeof(shm_info));
+     memset(&shm_info,'\0',sizeof(shm_info));
 
      shm_info.type=NCS_OS_POSIX_SHM_REQ_CLOSE;
      shm_info.info.close.i_addr=cp_node->replica_info.open.info.open.o_addr;
@@ -401,7 +401,7 @@ uns32 cpnd_ckpt_replica_destroy(CPND_CB *cb,CPND_CKPT_NODE *cp_node, SaAisErrorT
   }
 
  /* send destroy evt to CPD */
-  m_NCS_MEMSET(&evt,'\0',sizeof(CPSV_EVT));
+  memset(&evt,'\0',sizeof(CPSV_EVT));
 
   evt.type=CPSV_EVT_TYPE_CPD;
   evt.info.cpd.type=CPD_EVT_ND2D_CKPT_DESTROY;
@@ -424,7 +424,7 @@ uns32 cpnd_ckpt_replica_destroy(CPND_CB *cb,CPND_CKPT_NODE *cp_node, SaAisErrorT
             return NCSCC_RC_FAILURE;
          }
 
-         m_NCS_OS_MEMSET(node,'\0',sizeof(CPND_CPD_DEFERRED_REQ_NODE));
+         memset(node,'\0',sizeof(CPND_CPD_DEFERRED_REQ_NODE));
          node->evt = evt;
 
          ncs_enqueue(&cb->cpnd_cpd_deferred_reqs_list, (void *)node);
@@ -473,13 +473,13 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    total_length=size+sizeof(cp_node->ckpt_id)+sizeof(NODE_ID)+5;
 
    buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
-   m_NCS_MEMSET(buf,'\0',total_length);
+   memset(buf,'\0',total_length);
    m_NCS_OS_STRNCPY(buf,cp_node->ckpt_name.value,size);
 
 
    m_NCS_OS_SPRINTF(buf+size-1,"_%d_%llu",(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id),cp_node->ckpt_id);
    /* size of chkpt */
-   m_NCS_MEMSET(&cp_node->replica_info.open,'\0',sizeof(cp_node->replica_info.open));
+   memset(&cp_node->replica_info.open,'\0',sizeof(cp_node->replica_info.open));
 
    cp_node->replica_info.open.type=NCS_OS_POSIX_SHM_REQ_OPEN;
    cp_node->replica_info.open.info.open.i_size=sizeof(CPSV_CKPT_HDR)+cp_node->create_attrib.maxSections*(sizeof(CPSV_SECT_HDR)+cp_node->create_attrib.maxSectionSize);
@@ -546,7 +546,7 @@ uns32 cpnd_ckpt_remote_cpnd_add(CPND_CKPT_NODE *cp_node,
    }
 
    cpnd_mdest=m_MMGR_ALLOC_CPND_DEST_INFO;
-   m_NCS_OS_MEMSET(cpnd_mdest,'\0',sizeof(CPSV_CPND_DEST_INFO));
+   memset(cpnd_mdest,'\0',sizeof(CPSV_CPND_DEST_INFO));
 
    cpnd_mdest->next=ptr_cpnd_mdest;
    cpnd_mdest->dest=mds_info;
@@ -892,7 +892,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
    while(cl_node)
    {
       prev_ckpt_hdl=cl_node->ckpt_app_hdl;
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPA;
       send_evt.info.cpa.type = CPA_EVT_ND2A_CKPT_BCAST_SEND;
       rc = cpnd_mds_msg_send(cb,NCSMDS_SVC_ID_CPA,cl_node->agent_mds_dest,&send_evt);
@@ -901,7 +901,7 @@ void cpnd_proc_app_status(CPND_CB *cb)
       {
         /* Post the CPA_DOWN event to CPND mailbox, this is in Main thread */
         evt = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);
-        m_NCS_OS_MEMSET(evt,0,sizeof(CPSV_EVT));
+        memset(evt,0,sizeof(CPSV_EVT));
         evt->type = CPSV_EVT_TYPE_CPND;
         evt->info.cpnd.type=CPND_EVT_MDS_INFO;
         evt->info.cpnd.info.mds_info.change = NCSMDS_DOWN;
@@ -1012,7 +1012,7 @@ uns32 cpnd_ckpt_read_replica(CPND_CB *cb,CPND_CKPT_NODE *cp_node ,\
        return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(evt->info.cpa.info.sec_data_rsp.info.read_data,'\0', \
+   memset(evt->info.cpa.info.sec_data_rsp.info.read_data,'\0', \
                      sizeof(CPSV_ND2A_READ_DATA) * read_data->num_of_elmts);
 
    ptr_read_data = evt->info.cpa.info.sec_data_rsp.info.read_data;
@@ -1116,7 +1116,7 @@ cpnd_ckpt_generate_cpsv_ckpt_access_evt(CPND_CKPT_NODE *cp_node)
    for(i=0;i<cp_node->replica_info.n_secs;i++)
    {
       tmp_sec_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
-      m_NCS_OS_MEMSET(tmp_sec_data,'\0',sizeof(CPSV_CKPT_DATA));
+      memset(tmp_sec_data,'\0',sizeof(CPSV_CKPT_DATA));
 
       tmp_sec_data->sec_id=tmp_sec_info->sec_id;
       tmp_sec_data->dataSize=tmp_sec_info->sec_size;
@@ -1230,7 +1230,7 @@ void  cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node,CPSV_CKPT_ACCESS *ckpt_read,
        evt->info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NO_MEMORY;
    }
 
-   m_NCS_MEMSET(evt->info.cpa.info.sec_data_rsp.info.read_mapping,'\0', \
+   memset(evt->info.cpa.info.sec_data_rsp.info.read_mapping,'\0', \
               sizeof(CPSV_ND2A_READ_MAP)* ckpt_read->num_of_elmts);
 
    sec_data = ckpt_read->data;
@@ -1300,7 +1300,7 @@ cpnd_proc_update_remote(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_EVT *in_evt ,\
    uns32 timeout=0;
    SaSizeT datasize=0; 
 
-   m_NCS_OS_MEMSET(&send_evt, '\0', sizeof(CPSV_EVT));
+   memset(&send_evt, '\0', sizeof(CPSV_EVT));
    if (m_CPND_IS_ALL_REPLICA_ATTR_SET(cp_node->create_attrib.creationFlags) == TRUE )
    {
       if(cp_node->cpnd_dest_list != NULL )
@@ -1328,7 +1328,7 @@ cpnd_proc_update_remote(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_EVT *in_evt ,\
          if(all_repl_evt)
          { 
         
-         m_NCS_OS_MEMSET(all_repl_evt,'\0',sizeof(CPSV_CPND_ALL_REPL_EVT_NODE));
+         memset(all_repl_evt,'\0',sizeof(CPSV_CPND_ALL_REPL_EVT_NODE));
 
          /*Populate the Event node */
          all_repl_evt->ckpt_id = cp_node->ckpt_id;
@@ -1343,7 +1343,7 @@ cpnd_proc_update_remote(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_EVT *in_evt ,\
               rc = NCSCC_RC_FAILURE; 
               goto mem_fail;
             }  
-           m_NCS_MEMSET(new, 0, sizeof(CPSV_CPND_UPDATE_DEST));
+           memset(new, 0, sizeof(CPSV_CPND_UPDATE_DEST));
            new->dest = tmp->dest;
            if(head == NULL)
            {
@@ -1519,7 +1519,7 @@ cpnd_proc_sec_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
    CPSV_EVT send_evt,*out_evt=NULL; 
    uns32 rc=NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&send_evt, '\0', sizeof(CPSV_EVT));
+   memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
    cpnd_ckpt_node_get(cb,tmr_info->ckpt_id,&cp_node);
    if ( cp_node == NULL)
@@ -1595,8 +1595,8 @@ cpnd_open_active_sync_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
 		   uns32 rc=NCSCC_RC_SUCCESS;
 		   CPSV_EVT des_evt, *out_evt=NULL;
 		   CPSV_EVT send_evt;
- 	  	   m_NCS_MEMSET(&des_evt,'\0',sizeof(CPSV_EVT));
-		   m_NCS_MEMSET(&send_evt,'\0',sizeof(CPSV_EVT));
+ 	  	   memset(&des_evt,'\0',sizeof(CPSV_EVT));
+		   memset(&send_evt,'\0',sizeof(CPSV_EVT));
   		   des_evt.type=CPSV_EVT_TYPE_CPD;
  		   des_evt.info.cpd.type=CPD_EVT_ND2D_CKPT_DESTROY;
 		   des_evt.info.cpd.info.ckpt_destroy.ckpt_id=tmr_info->ckpt_id;
@@ -1633,7 +1633,7 @@ cpnd_all_repl_rsp_expiry(CPND_CB *cb,CPND_TMR_INFO *tmr_info)
    cpnd_ckpt_node_get(cb,tmr_info->ckpt_id,&cp_node);
    cpnd_evt_node_get(cb,tmr_info->agent_dest,&evt_node);
 
-   m_NCS_MEMSET(&rsp_evt , 0 , sizeof(CPSV_EVT));
+   memset(&rsp_evt , 0 , sizeof(CPSV_EVT));
 
    rsp_evt.type=CPSV_EVT_TYPE_CPA;
    rsp_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_DATA_RSP;
@@ -1843,8 +1843,8 @@ uns32 cpnd_ckpt_hdr_update(CPND_CKPT_NODE *cp_node)
      uns32 rc = NCSCC_RC_SUCCESS;
      NCS_OS_POSIX_SHM_REQ_INFO write_req;
    
-    m_NCS_OS_MEMSET(&write_req,'\0',sizeof(write_req));
-    m_NCS_OS_MEMSET(&ckpt_hdr,'\0',sizeof(CPSV_CKPT_HDR));
+    memset(&write_req,'\0',sizeof(write_req));
+    memset(&ckpt_hdr,'\0',sizeof(CPSV_CKPT_HDR));
     ckpt_hdr.ckpt_id           = cp_node->ckpt_id;
     ckpt_hdr.ckpt_name         = cp_node->ckpt_name;
     ckpt_hdr.create_attrib     = cp_node->create_attrib;
@@ -1887,8 +1887,8 @@ uns32 cpnd_sec_hdr_update(CPND_CKPT_SECTION_INFO *sec_info,CPND_CKPT_NODE *cp_no
    CPSV_SECT_HDR  sec_hdr;
    uns32 rc = NCSCC_RC_SUCCESS;
    NCS_OS_POSIX_SHM_REQ_INFO write_req;
-   m_NCS_OS_MEMSET(&write_req,'\0',sizeof(write_req));
-   m_NCS_OS_MEMSET(&sec_hdr,'\0',sizeof(CPSV_SECT_HDR));
+   memset(&write_req,'\0',sizeof(write_req));
+   memset(&sec_hdr,'\0',sizeof(CPSV_SECT_HDR));
    sec_hdr.lcl_sec_id    = sec_info->lcl_sec_id;
    sec_hdr.idLen         = sec_info->sec_id.idLen;
    memcpy(sec_hdr.id,sec_info->sec_id.id,sec_info->sec_id.idLen);
@@ -2280,7 +2280,7 @@ uns32 cpnd_send_ckpt_usr_info_to_cpd(CPND_CB *cb, CPND_CKPT_NODE *cp_node,
    CPSV_EVT send_evt;
    uns32 rc;
 
-   m_NCS_OS_MEMSET(&send_evt, '\0', sizeof(CPSV_EVT));
+   memset(&send_evt, '\0', sizeof(CPSV_EVT));
 
    send_evt.type = CPSV_EVT_TYPE_CPD;
    send_evt.info.cpd.type = CPD_EVT_ND2D_CKPT_USR_INFO;

@@ -254,7 +254,7 @@ uns32 mas_get_crd_role(MDS_HDL  mds_hdl, MDS_DEST dest, MAB_ANCHOR anc, V_DEST_R
     else
     {/* Destination is VDEST */
       
-        m_NCS_MEMSET( &mds_info, 0, sizeof(mds_info));
+        memset( &mds_info, 0, sizeof(mds_info));
 
         mds_info.i_mds_hdl = mds_hdl;
         mds_info.i_svc_id = NCSMDS_SVC_ID_MAS;
@@ -652,7 +652,7 @@ MAS_FLTR* mas_fltr_create(MAS_TBL*     inst,
                           "mas_fltr_create()"); 
         return (MAS_FLTR*) m_MAB_DBG_SINK((long)NULL);
     }
-    m_NCS_MEMSET(ret,0,sizeof(MAS_FLTR));
+    memset(ret,0,sizeof(MAS_FLTR));
 
     /* copy the required information into the fitler from the message */ 
     ret->vcard = vcard;
@@ -894,7 +894,7 @@ MAS_FLTR* mas_locate_dst_oac(MAS_TBL* inst, MAS_FLTR* head, uns32* inst_ids, uns
 
   NCSFL_MEM idx; 
 
-  m_NCS_MEMSET(&idx, 0, sizeof(NCSFL_MEM)); 
+  memset(&idx, 0, sizeof(NCSFL_MEM)); 
   idx.len = inst_len*sizeof(inst_len); 
   idx.addr = idx.dump = (char*)inst_ids; 
   m_LOG_MAB_MEM(NCSFL_SEV_INFO, MAB_HDLN_MAS_IDX_RECEVD, inst_len, idx); 
@@ -942,7 +942,7 @@ mas_def_flter_del(MAS_TBL *inst, MAS_ROW_REC *tbl_rec, MDS_DEST *vcard,
             (tbl_rec->dfltr.fltr_ids.active_fltr == NULL))
         {
            tbl_rec->dfltr_regd = FALSE; 
-           m_NCS_MEMSET(&tbl_rec->dfltr.vcard, 0, sizeof(MDS_DEST));
+           memset(&tbl_rec->dfltr.vcard, 0, sizeof(MDS_DEST));
         }
         else
         {
@@ -1454,18 +1454,18 @@ uns32 mas_info_request(MAB_MSG* msg)
             break;
 
             case NCSMIB_OP_REQ_GET :
-                m_NCS_MEMSET(&mib_req->rsp.info.get_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+                memset(&mib_req->rsp.info.get_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
                 mib_req->rsp.info.get_rsp.i_param_val.i_param_id = mib_req->req.info.get_req.i_param_id;
             break;
 
             case NCSMIB_OP_REQ_NEXT:
-                m_NCS_MEMSET(&mib_req->rsp.info.next_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+                memset(&mib_req->rsp.info.next_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
                 mib_req->rsp.info.next_rsp.i_param_val.i_param_id = mib_req->req.info.next_req.i_param_id;
             break;
 
             case NCSMIB_OP_REQ_SET :
             case NCSMIB_OP_REQ_TEST:
-                m_NCS_MEMSET(&mib_req->rsp.info.set_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+                memset(&mib_req->rsp.info.set_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
                 mib_req->rsp.info.set_rsp.i_param_val.i_param_id = mib_req->req.info.set_req.i_param_val.i_param_id;
             break;
 
@@ -1652,7 +1652,7 @@ uns32 mas_info_response(MAB_MSG* msg)
     m_MAS_LK(&inst->lock);
     m_LOG_MAB_LOCK(MAB_LK_MAS_LOCKED,&inst->lock);
 
-    m_NCS_MEMSET(&dst_vcard, 0, sizeof(dst_vcard));
+    memset(&dst_vcard, 0, sizeof(dst_vcard));
     mib_rsp = msg->data.data.snmp;
 
     /* send the message to Standby MAS */ 
@@ -1743,7 +1743,7 @@ uns32 mas_info_response(MAB_MSG* msg)
                 MAB_LM_EVT        mle;
                 MAB_LM_FLTR_NULL  fn;
                 fn.i_fltr_id    = 0;
-                m_NCS_MEMSET(&fn.i_vcard, 0, sizeof(fn.i_vcard));
+                memset(&fn.i_vcard, 0, sizeof(fn.i_vcard));
                 mle.i_args      = (NCSCONTEXT)&fn;
                 mle.i_event     = MAS_FLTR_MRRSP_NO_FLTR;
                 mle.i_usr_key   = inst->hm_hdl;
@@ -1759,7 +1759,7 @@ uns32 mas_info_response(MAB_MSG* msg)
                 MAB_LM_EVT        mle;
                 MAB_LM_FLTR_NULL  fn;
                 fn.i_fltr_id    = 0;
-                m_NCS_MEMSET(&fn.i_vcard, 0, sizeof(fn.i_vcard));
+                memset(&fn.i_vcard, 0, sizeof(fn.i_vcard));
                 mle.i_args      = (NCSCONTEXT)&fn;
                 mle.i_event     = MAS_FLTR_MRRSP_NO_FLTR;
                 mle.i_usr_key   = inst->hm_hdl;
@@ -2348,7 +2348,7 @@ uns32 mas_info_register(MAB_MSG* msg)
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
 
-        m_NCS_MEMSET(tbl_rec,0,sizeof(MAS_ROW_REC));
+        memset(tbl_rec,0,sizeof(MAS_ROW_REC));
         tbl_rec->tbl_id = reg_req->tbl_id;
         tbl_rec->ss_id = msg->fr_svc; 
         tbl_rec->dfltr_regd = FALSE;
@@ -3376,7 +3376,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
             (tbl_rec->dfltr.fltr_ids.fltr_id_list == NULL))
             {
                 tbl_rec->dfltr_regd = FALSE;
-                m_NCS_MEMSET(&tbl_rec->dfltr.vcard, 0, sizeof(tbl_rec->dfltr.vcard));
+                memset(&tbl_rec->dfltr.vcard, 0, sizeof(tbl_rec->dfltr.vcard));
             }
 
             if((tbl_rec->dfltr_regd == FALSE) && (tbl_rec->fltr_list == NULL))
@@ -3549,7 +3549,7 @@ uns32 mas_info_unregister(MAB_MSG* msg)
 
                     idx_msg.op = MAB_OAC_FIR_HDLR;
                     idx_msg.vrid = inst->vrid;
-                    m_NCS_MEMSET(&idx_msg.fr_card, 0, sizeof(idx_msg.fr_card));
+                    memset(&idx_msg.fr_card, 0, sizeof(idx_msg.fr_card));
                     idx_msg.fr_svc = 0;
                     idx_msg.data.data.idx_free.fltr_type = fltr->fltr.type;
                     idx_msg.data.data.idx_free.idx_tbl_id = tbl_rec->tbl_id;
@@ -3641,7 +3641,7 @@ uns32 mas_forward_msg(MAB_MSG* msg, MAB_SVC_OP msg_op, MDS_HDL  mds_hdl,
   m_MAB_DBG_TRACE("\nmas_forward_msg():entered.");
 
   msg->op = msg_op;
-  m_NCS_MEMSET(&msg->fr_card, 0, sizeof(msg->fr_card));
+  memset(&msg->fr_card, 0, sizeof(msg->fr_card));
   msg->fr_svc = 0;
   code = mab_mds_snd(mds_hdl, msg, NCSMDS_SVC_ID_MAS, to_svc_id, to_vcard);
 
@@ -3756,7 +3756,7 @@ uns32  mas_cli_msg_to_mac(MAB_MSG *msg, MAS_TBL *inst)
      responses. It won't be so when traps are implemented
    */
   msg->op = mso;
-  m_NCS_MEMSET(&msg->fr_card, 0, sizeof(msg->fr_card));
+  memset(&msg->fr_card, 0, sizeof(msg->fr_card));
   msg->fr_svc = 0;
 
   if (mab_mds_snd(inst->mds_hdl, msg, NCSMDS_SVC_ID_MAS, (SS_SVC_ID)dst_svc_id, dst_vcard)
@@ -4141,7 +4141,7 @@ mab_fltrid_list_add(MAS_FLTR_IDS    *fltr_ids,
 
             return NCSCC_RC_OUT_OF_MEM; 
         }
-        m_NCS_MEMSET(fltr_ids->active_fltr, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
+        memset(fltr_ids->active_fltr, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
 
         /* copy the data */ 
         memcpy(&fltr_ids->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
@@ -4166,7 +4166,7 @@ mab_fltrid_list_add(MAS_FLTR_IDS    *fltr_ids,
 
                 return NCSCC_RC_OUT_OF_MEM; 
             }
-            m_NCS_MEMSET(new_anchor, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
+            memset(new_anchor, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
 
             /* copy the data */ 
             memcpy(&new_anchor->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
@@ -4336,18 +4336,18 @@ mas_inform_maa(MAB_MSG *msg, MAS_TBL *inst, NCSMIB_ARG *mib_req, uns32 error_cod
         break;
 
         case NCSMIB_OP_REQ_GET :
-        m_NCS_MEMSET(&mib_req->rsp.info.get_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+        memset(&mib_req->rsp.info.get_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
         mib_req->rsp.info.get_rsp.i_param_val.i_param_id = mib_req->req.info.get_req.i_param_id;
         break;
         
         case NCSMIB_OP_REQ_NEXT:
-        m_NCS_MEMSET(&mib_req->rsp.info.next_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+        memset(&mib_req->rsp.info.next_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
         mib_req->rsp.info.next_rsp.i_param_val.i_param_id = mib_req->req.info.next_req.i_param_id;
         break;
         
         case NCSMIB_OP_REQ_SET :
         case NCSMIB_OP_REQ_TEST:
-        m_NCS_MEMSET(&mib_req->rsp.info.set_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
+        memset(&mib_req->rsp.info.set_rsp.i_param_val,0,sizeof(NCSMIB_PARAM_VAL));
         mib_req->rsp.info.set_rsp.i_param_val.i_param_id = mib_req->req.info.set_req.i_param_val.i_param_id;
         break;
         

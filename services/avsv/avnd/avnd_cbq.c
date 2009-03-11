@@ -320,7 +320,7 @@ uns32 avnd_evt_ava_resp (AVND_CB *cb, AVND_EVT *evt)
       case AVSV_AMF_HC:
          {
             AVND_COMP_HC_REC tmp_hc_rec;
-            m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+            memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
             tmp_hc_rec.key = cbk_rec->cbk_info->param.hc.hc_key;
             tmp_hc_rec.req_hdl = cbk_rec->cbk_info->hdl; 
             hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
@@ -621,7 +621,7 @@ uns32 avnd_evt_tmr_cbk_resp (AVND_CB *cb, AVND_EVT *evt)
       if ( AVSV_AMF_HC == rec->cbk_info->type )
       {
          AVND_COMP_HC_REC tmp_hc_rec;
-         m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+         memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
          tmp_hc_rec.key = rec->cbk_info->param.hc.hc_key;
          tmp_hc_rec.req_hdl = rec->cbk_info->hdl; 
          hc_rec = m_AVND_COMPDB_REC_HC_GET(*(rec->comp), tmp_hc_rec);
@@ -747,7 +747,7 @@ uns32 avnd_comp_cbq_rec_send (AVND_CB   *cb,
    AVSV_ND2ND_AVND_MSG *avnd_msg = NULL;
    AVSV_NDA_AVA_MSG    *temp_ptr = NULL;
 
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    /* allocate ava message */
    if ( 0 == (msg.info.ava = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG) )
@@ -755,7 +755,7 @@ uns32 avnd_comp_cbq_rec_send (AVND_CB   *cb,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_OS_MEMSET(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(msg.info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* populate the msg */
    msg.type = AVND_MSG_AVA;
@@ -784,7 +784,7 @@ uns32 avnd_comp_cbq_rec_send (AVND_CB   *cb,
               goto done;
             }
 
-            m_NCS_OS_MEMSET(avnd_msg, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+            memset(avnd_msg, 0, sizeof(AVSV_ND2ND_AVND_MSG));
             avnd_msg->comp_name = comp->name_net;
             temp_ptr = msg.info.ava;
             msg.info.avnd = avnd_msg;
@@ -955,7 +955,7 @@ AVND_COMP_CBK *avnd_comp_cbq_rec_add (AVND_CB           *cb,
    if ( (0 == (rec = m_MMGR_ALLOC_AVND_COMP_CBK)) )
       goto error;
 
-   m_NCS_OS_MEMSET(rec, 0, sizeof(AVND_COMP_CBK));
+   memset(rec, 0, sizeof(AVND_COMP_CBK));
    
    /* create the association with hdl-mngr */
    if ( (0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND,

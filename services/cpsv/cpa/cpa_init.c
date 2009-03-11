@@ -159,7 +159,7 @@ static uns32 cpa_create (NCS_LIB_CREATE *create_info)
       m_LOG_CPA_CCL(CPA_MEM_ALLOC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"CPA_CB", __FILE__ ,__LINE__);
       goto cb_alloc_fail;
    }
-   m_NCS_OS_MEMSET(cb, 0, sizeof(CPA_CB));
+   memset(cb, 0, sizeof(CPA_CB));
 
    /* assign the CPA pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -328,7 +328,7 @@ unsigned int ncs_cpa_startup(void)
    }
 
    /*** Init CPA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (cpa_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -376,7 +376,7 @@ unsigned int ncs_cpa_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
       rc = cpa_lib_req(&lib_destroy);
 

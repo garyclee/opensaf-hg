@@ -138,7 +138,7 @@ AVND_CLM_REC *avnd_clmdb_rec_add(AVND_CB *cb, AVSV_CLM_INFO *node_info)
       rec = m_MMGR_ALLOC_AVND_CLM_REC;
       if (rec)
       {
-         m_NCS_OS_MEMSET(rec, 0, sizeof(AVND_CLM_REC));
+         memset(rec, 0, sizeof(AVND_CLM_REC));
 
          /* update the record key */
          rec->info.node_id = node_info->node_id;

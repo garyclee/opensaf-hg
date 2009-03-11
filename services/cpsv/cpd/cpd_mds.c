@@ -69,7 +69,7 @@ uns32  cpd_mds_vdest_create(CPD_CB *cb)
    uns32       rc = NCSCC_RC_SUCCESS;
 /*   SaNameT     name = {4,"CPD"}; */
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
 
    cb->cpd_dest_id = CPD_VDEST_ID;  
 
@@ -130,7 +130,7 @@ uns32 cpd_mds_register (CPD_CB *cb)
 
 
    /* memset the svc_info */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
    /* STEP 2 : Install with MDS with service ID NCSMDS_SVC_ID_CPD. */
    svc_info.i_mds_hdl = cb->mds_handle;
@@ -151,7 +151,7 @@ uns32 cpd_mds_register (CPD_CB *cb)
  /*  cb->cpd_dest_id = svc_info.info.svc_install.o_dest;  */
 
    /* STEP 3: Subscribe to CPD for redundancy events */ 
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
    svc_info.i_mds_hdl = cb->mds_handle;
    svc_info.i_svc_id = NCSMDS_SVC_ID_CPD;
    svc_info.i_op = MDS_RED_SUBSCRIBE;
@@ -166,7 +166,7 @@ uns32 cpd_mds_register (CPD_CB *cb)
    }
 
    /* STEP 4: Subscribe to CPND up/down events */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
    svc_info.i_mds_hdl = cb->mds_handle;
    svc_info.i_svc_id = NCSMDS_SVC_ID_CPD;
    svc_info.i_op = MDS_SUBSCRIBE;
@@ -181,7 +181,7 @@ uns32 cpd_mds_register (CPD_CB *cb)
       return NCSCC_RC_FAILURE;
    }
    /* STEP 5: Subscribe to CPA up/down events */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
    svc_id[0] = NCSMDS_SVC_ID_CPA;
    svc_info.i_mds_hdl = cb->mds_handle;
    svc_info.i_svc_id = NCSMDS_SVC_ID_CPD;
@@ -223,7 +223,7 @@ void cpd_mds_unregister (CPD_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mds_handle;
    arg.i_svc_id         = NCSMDS_SVC_ID_CPD;
@@ -383,7 +383,7 @@ static uns32 cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       msg_ptr = m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPD);
       if(!msg_ptr) return NCSCC_RC_FAILURE;
 
-      m_NCS_MEMSET(msg_ptr, 0, sizeof(CPSV_EVT));
+      memset(msg_ptr, 0, sizeof(CPSV_EVT));
       dec_info->o_msg = (NCSCONTEXT)msg_ptr;
    
       rc = m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT), 
@@ -599,7 +599,7 @@ static uns32 cpd_mds_svc_evt(CPD_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
    }
    
    /* Send the CPD_EVT_MDS_INFO to CPD */
-   m_NCS_OS_MEMSET(evt, 0, sizeof(CPSV_EVT));
+   memset(evt, 0, sizeof(CPSV_EVT));
    evt->type = CPSV_EVT_TYPE_CPD;
    evt->info.cpd.type = CPD_EVT_MDS_INFO;
    evt->info.cpd.info.mds_info.change = svc_evt->i_change;
@@ -645,7 +645,7 @@ uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb)
         return NCSCC_RC_OUT_OF_MEM;
       }
      
-      m_NCS_OS_MEMSET(evt, 0, sizeof(CPSV_EVT));
+      memset(evt, 0, sizeof(CPSV_EVT));
       evt->type = CPSV_EVT_TYPE_CPD;
       evt->info.cpd.type = CPD_EVT_MDS_QUIESCED_ACK_RSP;
  
@@ -679,7 +679,7 @@ uns32 cpd_mds_send_rsp(CPD_CB *cb, CPSV_SEND_INFO *s_info, CPSV_EVT *evt)
    NCSMDS_INFO                mds_info;
    uns32                      rc;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->mds_handle;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CPD;
    mds_info.i_op = MDS_SEND;
@@ -729,7 +729,7 @@ uns32 cpd_mds_msg_sync_send (CPD_CB *cb, uns32 to_svc, MDS_DEST  to_dest,
    if(!i_evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->mds_handle;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CPD;
    mds_info.i_op = MDS_SEND;
@@ -780,7 +780,7 @@ uns32 cpd_mds_msg_send (CPD_CB *cb, uns32 to_svc,
    if(!evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->mds_handle;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CPD;
    mds_info.i_op = MDS_SEND;
@@ -827,7 +827,7 @@ cpd_mds_bcast_send (CPD_CB *cb,
    NCSMDS_INFO   info;
    uns32         res;
    
-   m_NCS_MEMSET(&info, 0, sizeof(info));
+   memset(&info, 0, sizeof(info));
    
    info.i_mds_hdl  = cb->mds_handle;
    info.i_op       = MDS_SEND;

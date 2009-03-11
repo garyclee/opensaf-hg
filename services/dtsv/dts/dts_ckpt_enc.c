@@ -587,7 +587,7 @@ static uns32  dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb,
    m_LOG_DTS_CHKOP(DTS_CSYNC_ENC_DTA_DEST);
 
    /* Set the dta_key to NULL at the start */
-   m_NCS_MEMSET(&dta_key, 0, sizeof(MDS_DEST));
+   memset(&dta_key, 0, sizeof(MDS_DEST));
    /* 
     * Walk through the entire list and send the entire list data.
     */

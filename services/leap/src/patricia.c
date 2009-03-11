@@ -189,7 +189,7 @@ unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
       return (unsigned int) m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
-   m_NCS_MEMSET(pTree->root_node.key_info, '\0', (uns32)pTree->params.key_size);
+   memset(pTree->root_node.key_info, '\0', (uns32)pTree->params.key_size);
    pTree->n_nodes = 0;
 
    return NCSCC_RC_SUCCESS;
@@ -536,7 +536,7 @@ ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree,
    if (pKey == (const uns8*)0)
    {
       /* Start at root of tree. */
-      m_NCS_MEMSET(Target, '\0', pTree->params.key_size);
+      memset(Target, '\0', pTree->params.key_size);
    }
    else
    {

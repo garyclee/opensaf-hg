@@ -147,7 +147,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
                            VDS_LOG_AMF_SUCCESS,
                                      NCSFL_SEV_INFO, 0);    
    
-   m_NCS_OS_MEMSET(&saf_version, 0,sizeof(SaVersionT));
+   memset(&saf_version, 0,sizeof(SaVersionT));
 
    /* update the SAF version details */
    m_VDS_GET_AMF_VER(saf_version);
@@ -199,7 +199,7 @@ uns32 vds_amf_initialize(VDS_CB *vds)
    }
 
    
-   m_NCS_OS_MEMSET(&vds->amf.health_check_key, 0,sizeof(SaAmfHealthcheckKeyT));
+   memset(&vds->amf.health_check_key, 0,sizeof(SaAmfHealthcheckKeyT));
 
    vds->amf.health_check_key.keyLen = m_NCS_OS_STRLEN(VDS_AMF_HEALTH_CHECK_KEY);
    
@@ -249,7 +249,7 @@ uns32 vds_amf_finalize(VDS_CB *vds)
       return NCSCC_RC_SUCCESS;
 
    /* delete the fd from the select list */ 
-   m_NCS_OS_MEMSET(&vds->amf.amf_sel_obj, 0, sizeof(SaSelectionObjectT));
+   memset(&vds->amf.amf_sel_obj, 0, sizeof(SaSelectionObjectT));
 
    /* Disable the health monitoring */ 
    status = saAmfHealthcheckStop(vds->amf.amf_handle, 
@@ -312,7 +312,7 @@ void vds_amf_callbacks_init(SaAmfCallbacksT *amf_call_backs)
    VDS_TRACE1_ARG1("vds_amf_callbacks_init\n");
     
    /* Initialize all the callbacks to NULL */ 
-   m_NCS_OS_MEMSET(amf_call_backs, 0, sizeof(SaAmfCallbacksT)); 
+   memset(amf_call_backs, 0, sizeof(SaAmfCallbacksT)); 
 
    /* healthcheck callback */ 
    amf_call_backs->saAmfHealthcheckCallback = vds_amf_health_check_callback; 

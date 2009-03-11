@@ -1222,7 +1222,7 @@ eds_mds_dec(struct ncsmds_callback_info *info)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(evt, '\0', sizeof(EDSV_EDS_EVT));
+   memset(evt, '\0', sizeof(EDSV_EDS_EVT));
 
    /* Initialize the evt type */
    evt->evt_type = EDSV_EDS_EDSV_MSG;
@@ -1457,7 +1457,7 @@ eds_mds_svc_event(struct ncsmds_callback_info *info)
              goto give_hdl;
          }
       
-         m_NCS_MEMSET(evt, '\0',sizeof(EDSV_EDS_EVT));
+         memset(evt, '\0',sizeof(EDSV_EDS_EVT));
          evt->evt_type = EDSV_EDS_EVT_EDA_DOWN;
       
          /** Initialize the Event Header **/
@@ -1539,7 +1539,7 @@ eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
        m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
        return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(edsv_evt, '\0', sizeof(EDSV_EDS_EVT));
+    memset(edsv_evt, '\0', sizeof(EDSV_EDS_EVT));
 
     /* retrieve EDS CB */
     if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(
@@ -1641,7 +1641,7 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
    NCSVDA_INFO vda_info;
    uns32 rc = NCSCC_RC_SUCCESS;
    /*SaNameT name = {5, "EDSV"};*/
-   m_NCS_MEMSET(&vda_info, '\0', sizeof(NCSVDA_INFO));
+   memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
 #if 1  
    eds_cb->vaddr = EDS_VDEST_ID;
@@ -1717,7 +1717,7 @@ uns32 eds_mds_init(EDS_CB *cb)
    m_NCS_CONS_PRINTF(" eds_mds_init: MDS role change to %d SUCCESS \n",cb->mds_role);
    
    /* Install your service into MDS */
-   m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_EDS;
@@ -1739,7 +1739,7 @@ uns32 eds_mds_init(EDS_CB *cb)
    m_NCS_CONS_PRINTF(" eds_mds_init: MDS Install SUCCESS\n");
 
    /* Now subscribe for EDS events in MDS */
-   m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_EDS;
@@ -1776,7 +1776,7 @@ uns32 eds_mds_change_role(EDS_CB *cb)
 {
    NCSVDA_INFO arg;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSVDA_INFO));
+   memset(&arg, 0, sizeof(NCSVDA_INFO));
 
    arg.req = NCSVDA_VDEST_CHG_ROLE;
    arg.info.vdest_chg_role.i_vdest = cb->vaddr;
@@ -1806,7 +1806,7 @@ uns32 eds_mds_vdest_destroy (EDS_CB *eds_cb)
    uns32          rc;
    
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    vda_info.req                             = NCSVDA_VDEST_DESTROY;   
    vda_info.info.vdest_destroy.i_vdest      = eds_cb->vaddr;
@@ -1837,7 +1837,7 @@ uns32 eds_mds_finalize (EDS_CB *cb)
    uns32                rc;
 
    /* Un-install EDS service from MDS */
-   m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = cb->mds_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_EDS;
@@ -1885,7 +1885,7 @@ uns32 eds_mds_msg_send (EDS_CB            *cb,
    uns32         rc = NCSCC_RC_SUCCESS;
 
    /* populate the mds params */
-   m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+   memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_EDS;
@@ -1948,7 +1948,7 @@ uns32 eds_mds_ack_send (EDS_CB   *cb,
    uns32 rc = NCSCC_RC_SUCCESS;
    if (NULL == msg)
       return NCSCC_RC_FAILURE;
-   m_NCS_OS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+   memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_EDS;
    mds_info.i_op = MDS_SEND;

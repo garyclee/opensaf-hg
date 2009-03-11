@@ -147,7 +147,7 @@ static uns32 ifd_mds_vdest_create (IFSV_CB *cb)
    uns32         rc=NCSCC_RC_SUCCESS;
 /*   SaNameT       name = {4, "IFD"}; */
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSVDA_INFO));
+   memset(&arg,0,sizeof(NCSVDA_INFO));
    cb->my_dest = IFD_VDEST_ID;
 
    arg.req                             = NCSVDA_VDEST_CREATE;
@@ -192,7 +192,7 @@ static uns32 ifd_mds_vdest_destroy (IFSV_CB *cb)
    NCSVDA_INFO   arg;   
    uns32          rc;   
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSVDA_INFO));
+   memset(&arg,0,sizeof(NCSVDA_INFO));
 
    arg.req                             = NCSVDA_VDEST_DESTROY;   
    arg.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
@@ -238,7 +238,7 @@ uns32 ifd_mds_init (IFSV_CB *cb)
    }
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFD;
@@ -260,7 +260,7 @@ uns32 ifd_mds_init (IFSV_CB *cb)
    }
 
    /* IFD is subscribing for IFND MDS service */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
    arg.i_mds_hdl                       = cb->my_mds_hdl;
    arg.i_svc_id                        = NCSMDS_SVC_ID_IFD;
    arg.i_op                            = MDS_SUBSCRIBE;
@@ -272,7 +272,7 @@ uns32 ifd_mds_init (IFSV_CB *cb)
    rc = ncsmds_api(&arg);
 
    /* IFD is subscribing for IFD MDS service */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
    arg.i_mds_hdl                       = cb->my_mds_hdl;
    arg.i_svc_id                        = NCSMDS_SVC_ID_IFD;
    arg.i_op                            = MDS_RED_SUBSCRIBE;
@@ -302,7 +302,7 @@ uns32 ifd_mds_shut (IFSV_CB *cb)
    uns32                rc;
 
    /* Un-install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFD;
@@ -418,7 +418,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
                 break;
              }
 
-             m_NCS_MEMSET( tmr,0,sizeof(IFSV_TMR));
+             memset( tmr,0,sizeof(IFSV_TMR));
             
              m_NCS_CONS_PRINTF("Forming Timer Event in MDS Cbk \n");
 
@@ -569,7 +569,7 @@ static uns32 ifd_mds_dec (IFSV_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
    {
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
+   memset(ifsv_evt,0,sizeof(IFSV_EVT));
    dec_info->o_msg = (NCSCONTEXT)ifsv_evt;
 
    /* embedding subslot changes for backward compatibility */
@@ -608,7 +608,7 @@ uns32 ifd_mds_quiesced_process(IFSV_CB *ifsv_cb)
       {
         return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(pEvt, 0, sizeof(IFSV_EVT));
+      memset(pEvt, 0, sizeof(IFSV_EVT));
       pEvt->type = IFD_EVT_QUISCED_STATE_INFO;
       /* Fill IFD CB handle in the received message */
       pEvt->cb_hdl  = ifsv_cb->cb_hdl;
@@ -644,7 +644,7 @@ static uns32 ifd_mds_ifnd_down_evt(MDS_DEST *mds_dest, IFSV_CB *ifsv_cb)
    {
        return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(pEvt, 0, sizeof(IFSV_EVT));
+   memset(pEvt, 0, sizeof(IFSV_EVT));
    pEvt->type = IFD_EVT_IFND_DOWN;
    /* Fill IFD CB handle in the received message */
    pEvt->cb_hdl  = ifsv_cb->cb_hdl;

@@ -405,7 +405,7 @@ OAC_FLTR* oac_fltr_create(OAC_TBL* inst,NCSMAB_FLTR* mab_fltr)
     return (OAC_FLTR*) m_MAB_DBG_SINK((long)NULL);
   }
   
-  m_NCS_OS_MEMSET(ret,0,sizeof(OAC_FLTR));
+  memset(ret,0,sizeof(OAC_FLTR));
   
   /* nxt_fltr_id needs to be protected by a lock */
   inst->nxt_fltr_id++;
@@ -481,7 +481,7 @@ uns32 oac_fltr_reg_xmit(OAC_TBL* inst,OAC_FLTR* fltr,uns32 tbl_id)
     msg.vrid                  = inst->vrid;
 
     /* by setting fr_card & fr_svc = 0, MDS enc/dec/cpy funcs fill in fields */
-    m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+    memset(&msg.fr_card, 0, sizeof(msg.fr_card));
     msg.fr_svc                = 0;
     msg.fr_anc                = inst->my_anc;
     msg.op                    = MAB_MAS_REG_HDLR;
@@ -544,7 +544,7 @@ uns32 oac_fltr_unreg_xmit(OAC_TBL* inst,uns32 fltr_id,uns32 tbl_id)
     /* by setting fr_card and fr_svc to 0, 
     we allow MDS enc/dec/cpy functions fill in these fields 
     */
-    m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+    memset(&msg.fr_card, 0, sizeof(msg.fr_card));
     msg.fr_svc  = 0;
     msg.fr_anc  = inst->my_anc;
     msg.op = MAB_MAS_UNREG_HDLR;
@@ -598,7 +598,7 @@ void oac_sync_fltrs_with_mas(OAC_TBL* inst )
             if (tbl_rec->dfltr_regd == TRUE)
             {
                 OAC_FLTR    def_fltr;
-                m_NCS_OS_MEMSET(&def_fltr,0,sizeof(fltr));
+                memset(&def_fltr,0,sizeof(fltr));
                 def_fltr.fltr.type = NCSMAB_FLTR_DEFAULT;
                 code = oac_fltr_reg_xmit(inst,&def_fltr,tbl_rec->tbl_id);
             }
@@ -615,7 +615,7 @@ void oac_sync_fltrs_with_mas(OAC_TBL* inst )
                 /* by setting fr_card and fr_svc to 0, 
                 we allow MDS enc/dec/cpy functions fill in these fields 
                 */
-                m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+                memset(&msg.fr_card, 0, sizeof(msg.fr_card));
                 msg.fr_svc                = 0;
                 msg.op                    = MAB_MAS_REG_HDLR;
                 msg.data.data.reg.fltr_id = fltr->fltr_id;
@@ -742,7 +742,7 @@ static uns32 oac_mib_response(NCSMIB_ARG* rsp)
 
   msg.vrid    = vrid;
 
-  m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+  memset(&msg.fr_card, 0, sizeof(msg.fr_card));
   msg.fr_svc  = 0;
   msg.fr_anc  = inst->my_anc;
 
@@ -794,7 +794,7 @@ static uns32 oac_mib_response(NCSMIB_ARG* rsp)
        (rsp->i_op == NCSMIB_OP_RSP_REMOVEROWS)))
     {
        /* Forward this message to the PSR */
-       m_NCS_MEMSET(&msg2, 0, sizeof(msg2));
+       memset(&msg2, 0, sizeof(msg2));
 
        msg2.data.data.snmp = rsp;
        msg2.vrid    = vrid;
@@ -925,7 +925,7 @@ uns32 oac_mib_request(MAB_MSG* msg)
 
     msg->vrid    = vrid;
 
-    m_NCS_MEMSET(&msg->fr_card, 0, sizeof(msg->fr_card));
+    memset(&msg->fr_card, 0, sizeof(msg->fr_card));
     msg->fr_svc  = 0;
     msg->fr_anc  = inst->my_anc;
 
@@ -1792,7 +1792,7 @@ uns32 oac_handle_pss_eop_ind(MAB_MSG * msg)
          {
             break;
          }
-         m_NCS_MEMSET(&argcb, '\0', sizeof(argcb));
+         memset(&argcb, '\0', sizeof(argcb));
          argcb.i_mib_key = msg->data.data.oac_pss_eop_ind.mib_key;
          argcb.i_wbreq_hdl = msg->data.data.oac_pss_eop_ind.wbreq_hdl;
          argcb.i_rsp_status = msg->data.data.oac_pss_eop_ind.status;
@@ -1901,7 +1901,7 @@ uns32 oac_psr_add_to_buffer_zone(OAC_TBL *inst, MAB_MSG* msg)
    /* Add this message to the buffer zone. */
    /* Alloc msg_ptr, and duplicate arg->info.push_mibarg_data.arg here. */
    lcl_msg = m_MMGR_ALLOC_MAB_MSG;
-   m_NCS_OS_MEMSET(lcl_msg, '\0', sizeof(MAB_MSG));
+   memset(lcl_msg, '\0', sizeof(MAB_MSG));
 
    memcpy(lcl_msg, msg, sizeof(MAB_MSG));
    switch(msg->op)
@@ -1945,7 +1945,7 @@ uns32 oac_psr_add_to_buffer_zone(OAC_TBL *inst, MAB_MSG* msg)
       oac_free_buffer_zone_entry_msg(lcl_msg);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(bptr, '\0', sizeof(OAA_BUFR_HASH_LIST));
+   memset(bptr, '\0', sizeof(OAA_BUFR_HASH_LIST));
    bptr->msg = lcl_msg;
 
    if(prv_bptr == NULL)
@@ -2049,7 +2049,7 @@ uns32 oac_dup_warmboot_req(MAB_PSS_WARMBOOT_REQ *in, MAB_PSS_WARMBOOT_REQ *out)
          oac_free_wbreq(req_head);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+      memset(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
       req->is_system_client = in_req->is_system_client;
       if((req->pcn_list.pcn = 
          m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(in_req->pcn_list.pcn)+1)) == NULL)
@@ -2077,7 +2077,7 @@ uns32 oac_dup_warmboot_req(MAB_PSS_WARMBOOT_REQ *in, MAB_PSS_WARMBOOT_REQ *out)
             oac_free_wbreq(req_head);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
+         memset(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
          olist->tbl_id = tlist->tbl_id;
 
          /* Add the element to the list */
@@ -2143,7 +2143,7 @@ uns32 oac_gen_tbl_bind(OAA_PCN_LIST *pcn_list, MAB_PSS_TBL_BIND_EVT **o_bind)
             oac_free_bind_req_list(list_head);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(list, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
+         memset(list, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
          
          if((list->pcn_list.pcn = 
             m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(in_req->pcn)+1)) == NULL)
@@ -2181,7 +2181,7 @@ uns32 oac_gen_tbl_bind(OAA_PCN_LIST *pcn_list, MAB_PSS_TBL_BIND_EVT **o_bind)
             oac_free_bind_req_list(list_head);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
+         memset(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
          olist->tbl_id = in_req->tbl_id;
          if(prv_olist == NULL)
             list->pcn_list.tbl_list = olist;

@@ -77,7 +77,7 @@ static void pss_dump_param_val(NCSMIB_PARAM_VAL *l_param_val);
 uns32 pss_dtsv_bind()
 {
     NCS_DTSV_RQ        reg;
-    m_NCS_OS_MEMSET(&reg, 0, sizeof(NCS_DTSV_RQ)); 
+    memset(&reg, 0, sizeof(NCS_DTSV_RQ)); 
     
     reg.i_op = NCS_DTSV_OP_BIND;
     reg.info.bind_svc.svc_id = NCS_SERVICE_ID_PSS;
@@ -102,7 +102,7 @@ uns32 pss_dtsv_unbind()
 {
     NCS_DTSV_RQ        dereg;
     
-    m_NCS_OS_MEMSET(&dereg, 0, sizeof(NCS_DTSV_RQ)); 
+    memset(&dereg, 0, sizeof(NCS_DTSV_RQ)); 
     
     dereg.i_op = NCS_DTSV_OP_UNBIND;
     dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_PSS;
@@ -134,10 +134,10 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
         NCSMIB_IDX          idx;
         NCSREMROW_AID       rra;
 
-        m_NCS_OS_MEMSET(&tbl_info, 0, sizeof(PSS_LOG_TBL_INFO));
-        m_NCS_OS_MEMSET(&param_info, 0, sizeof(PSS_LOG_PARAM_INFO));
-        m_NCS_OS_MEMSET(&log_mem_dump,   0, sizeof(NCSFL_MEM));
-        m_NCS_OS_MEMSET(&l_param_val,    0, sizeof(NCSMIB_PARAM_VAL));
+        memset(&tbl_info, 0, sizeof(PSS_LOG_TBL_INFO));
+        memset(&param_info, 0, sizeof(PSS_LOG_PARAM_INFO));
+        memset(&log_mem_dump,   0, sizeof(NCSFL_MEM));
+        memset(&l_param_val,    0, sizeof(NCSMIB_PARAM_VAL));
 
         /* LOG Table and Object Data */
         tbl_info.req_type = arg->i_op;
@@ -149,14 +149,14 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
         /* LOG Instance Ids */
         if (arg->i_idx.i_inst_len != 0)
         {
-            m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+            memset(&log_mem_dump, 0, sizeof(log_mem_dump));
             log_mem_dump.len = (arg->i_idx.i_inst_len)*sizeof(uns32);
             log_mem_dump.dump = log_mem_dump.addr = (char *)arg->i_idx.i_inst_ids;
             m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
         }
 
         /* LOG parameter id's */
-       m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+       memset(&log_mem_dump, 0, sizeof(log_mem_dump));
        switch(arg->i_op)
        {
           case  NCSMIB_OP_REQ_GET:
@@ -237,7 +237,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 num_params = ncsparm_dec_init(&pa, ub);
                 for (i = 0; i < num_params; i++)
                 {
-                   m_NCS_OS_MEMSET(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
+                   memset(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
                    ncsparm_dec_parm(&pa, &pv, NULL);
                    param_info.param_id = (uns32)pv.i_param_id;
                    param_info.fmt_id =(uns32)pv.i_fmat_id;
@@ -270,7 +270,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                 num_params = ncsparm_dec_init(&pa, ub);
                 for (i = 0; i < num_params; i++)
                 {
-                   m_NCS_OS_MEMSET(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
+                   memset(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
                    ncsparm_dec_parm(&pa, &pv, NULL);
                    param_info.param_id = (uns32)pv.i_param_id;
                    param_info.fmt_id =(uns32)pv.i_fmat_id;
@@ -318,7 +318,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       /* Log error. TBD */
                       return;
                    }
-                   m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+                   memset(&log_mem_dump, 0, sizeof(log_mem_dump));
                    log_mem_dump.len = idx.i_inst_len * sizeof(uns32);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)idx.i_inst_ids;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
@@ -327,7 +327,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                    for (j = 0; j < num_params; j++)
                    {
-                      m_NCS_OS_MEMSET(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
+                      memset(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
                       ncsrow_dec_param(&ra, &pv, NULL);
                       param_info.param_id = (uns32)pv.i_param_id;
                       param_info.fmt_id =(uns32)pv.i_fmat_id;
@@ -381,7 +381,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       /* Log error. TBD */
                       return;
                    }
-                   m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+                   memset(&log_mem_dump, 0, sizeof(log_mem_dump));
                    log_mem_dump.len = idx.i_inst_len * sizeof(uns32);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)idx.i_inst_ids;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
@@ -390,7 +390,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
 
                    for (j = 0; j < num_params; j++)
                    {
-                      m_NCS_OS_MEMSET(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
+                      memset(&pv, 0, sizeof(PSS_LOG_PARAM_INFO));
                       ncsrow_dec_param(&ra, &pv, NULL);
                       param_info.param_id = (uns32)pv.i_param_id;
                       param_info.fmt_id =(uns32)pv.i_fmat_id;
@@ -439,7 +439,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       /* Log error. TBD */
                       return;
                    }
-                   m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+                   memset(&log_mem_dump, 0, sizeof(log_mem_dump));
                    log_mem_dump.len = idx.i_inst_len * sizeof(uns32);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)idx.i_inst_ids;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
@@ -471,7 +471,7 @@ void pss_log_ncsmib_arg(NCSMIB_ARG *arg)
                       /* Log error. TBD */
                       return;
                    }
-                   m_NCS_OS_MEMSET(&log_mem_dump, 0, sizeof(log_mem_dump));
+                   memset(&log_mem_dump, 0, sizeof(log_mem_dump));
                    log_mem_dump.len = idx.i_inst_len * sizeof(uns32);
                    log_mem_dump.dump = log_mem_dump.addr = (char *)idx.i_inst_ids;
                    m_PSS_MEMDUMP_LOG(PSS_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
@@ -509,9 +509,9 @@ static void pss_dump_param_val(NCSMIB_PARAM_VAL *l_param_val)
    PSS_LOG_INT_INFO    int_info;
    PSS_LOG_OCTETS      oct_info;
 
-   m_NCS_OS_MEMSET(&log_mem_dump,   0, sizeof(NCSFL_MEM));
-   m_NCS_OS_MEMSET(&int_info,       0, sizeof(PSS_LOG_INT_INFO));
-   m_NCS_OS_MEMSET(&oct_info,       0, sizeof(PSS_LOG_OCTETS));
+   memset(&log_mem_dump,   0, sizeof(NCSFL_MEM));
+   memset(&int_info,       0, sizeof(PSS_LOG_INT_INFO));
+   memset(&oct_info,       0, sizeof(PSS_LOG_OCTETS));
 
         /* Dump INT param value */
    if (l_param_val->i_fmat_id == NCSMIB_FMAT_INT)

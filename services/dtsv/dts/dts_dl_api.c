@@ -106,7 +106,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    PCS_RDA_REQ pcs_rda_req;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(inst,0,sizeof(DTS_CB));
+   memset(inst,0,sizeof(DTS_CB));
 
 #if (DTS_SIM_TEST_ENV == 1)
    if ('n' == ncs_util_get_char_option(req_info->info.create.argc, req_info->info.create.argv, "DTS_TEST="))
@@ -127,7 +127,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    inst->recommendedRecovery = DTS_RECOVERY;
 
     /* RDA init */
-    m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+    memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
     pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
     rc = pcs_rda_request(&pcs_rda_req);
     if(rc != PCSRDA_RC_SUCCESS)
@@ -136,7 +136,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
     }
 
     /* Get initial role from RDA */
-    m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+    memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
     pcs_rda_req.req_type = PCS_RDA_GET_ROLE;
     rc = pcs_rda_request(&pcs_rda_req);
     if(rc != PCSRDA_RC_SUCCESS)
@@ -162,7 +162,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
     }
   
     /* RDA finalize */
-    m_NCS_MEMSET(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
+    memset(&pcs_rda_req, '\0', sizeof(pcs_rda_req));
     pcs_rda_req.req_type = PCS_RDA_LIB_DESTROY;
     rc = pcs_rda_request(&pcs_rda_req);
     if(rc != PCSRDA_RC_SUCCESS)
@@ -233,7 +233,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
 
    {
       DTS_LM_ARG    arg;
-      m_NCS_OS_MEMSET(&arg,0,sizeof(DTS_LM_ARG));
+      memset(&arg,0,sizeof(DTS_LM_ARG));
 
       arg.i_op                    = DTS_LM_OP_CREATE;
       arg.info.create.i_hmpool_id = NCS_HM_POOL_ID_COMMON;
@@ -423,8 +423,8 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
         /* Check if lib is already loaded or not */
         if((lib_entry = (ASCII_SPEC_LIB *)ncs_patricia_tree_get(&dts_cb.libname_asciispec_tree ,(const uns8*)lib_name)) != NULL)
         {
-           m_NCS_OS_MEMSET(func_name, 0, DTS_MAX_FUNCNAME);
-           m_NCS_OS_MEMSET(lib_name, 0, DTS_MAX_LIBNAME);
+           memset(func_name, 0, DTS_MAX_FUNCNAME);
+           memset(lib_name, 0, DTS_MAX_LIBNAME);
            continue;
         }
  
@@ -441,8 +441,8 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
                 m_NCS_CONS_PRINTF("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n",lib_name);
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
-                m_NCS_OS_MEMSET(func_name, 0, DTS_MAX_FUNCNAME);
-                m_NCS_OS_MEMSET(lib_name, 0, DTS_MAX_LIBNAME);
+                memset(func_name, 0, DTS_MAX_FUNCNAME);
+                memset(lib_name, 0, DTS_MAX_LIBNAME);
                 continue; 
             }
         }
@@ -460,15 +460,15 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 
             reg_unreg_routine = NULL; 
             lib_hdl = NULL;
-            m_NCS_OS_MEMSET(func_name, 0, DTS_MAX_FUNCNAME);
-            m_NCS_OS_MEMSET(lib_name, 0, DTS_MAX_LIBNAME);
+            memset(func_name, 0, DTS_MAX_FUNCNAME);
+            memset(lib_name, 0, DTS_MAX_LIBNAME);
             continue; 
         }
 
         /* do the INIT/DEINIT now... */
         if (reg_unreg_routine != NULL)
         {
-            m_NCS_MEMSET(&req_info, 0, sizeof(NCS_LIB_REQ_INFO));
+            memset(&req_info, 0, sizeof(NCS_LIB_REQ_INFO));
             req_info.i_op = NCS_LIB_REQ_CREATE;
 
             /* do the registration */ 
@@ -489,7 +489,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
                     fclose(fp);
                     return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_apps_ascii_spec_load: Memory allocation for patricia node failed");
                 }
-                m_NCS_OS_MEMSET(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
+                memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
                 m_NCS_STRCPY(lib_entry->lib_name, lib_name);
                 lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
                 lib_entry->lib_hdl = lib_hdl;
@@ -506,8 +506,8 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 
         reg_unreg_routine = NULL; 
         lib_hdl = NULL;
-        m_NCS_OS_MEMSET(func_name, 0, DTS_MAX_FUNCNAME);
-        m_NCS_OS_MEMSET(lib_name, 0, DTS_MAX_LIBNAME);
+        memset(func_name, 0, DTS_MAX_FUNCNAME);
+        memset(lib_name, 0, DTS_MAX_LIBNAME);
         
     } /* for all the libraries  - end of while*/
 
@@ -636,7 +636,7 @@ dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
         return -1;
 
     /* now say that, we are interested in this signal */
-    m_NCS_MEMSET(&sig_act, 0, sizeof(struct sigaction));
+    memset(&sig_act, 0, sizeof(struct sigaction));
     sig_act.sa_handler = i_sig_handler;
     return sigaction(i_sig_num, &sig_act, NULL);
 

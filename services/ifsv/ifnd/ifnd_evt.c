@@ -130,7 +130,7 @@ ifnd_intf_create_modify (IFSV_EVT* evt, IFSV_CB *cb)
     if(intf_create->evt_orig == NCS_IFSV_EVT_ORIGN_IFA)
     {     
      /* Now send sync resp to the IfA. */
-     m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+     memset(&send_evt, 0, sizeof(IFSV_EVT));
      send_evt.type = IFA_EVT_INTF_CREATE_RSP;
      send_evt.error = NCS_IFSV_IFND_RESTARTING_ERROR;
      send_evt.info.ifa_evt.info.if_add_rsp_idx =
@@ -193,7 +193,7 @@ ifnd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
    {
     if(dest_info->orign == NCS_IFSV_EVT_ORIGN_IFA)
     {     
-     m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+     memset(&send_evt, 0, sizeof(IFSV_EVT));
      /* Now send sync resp to the IfA. */
      send_evt.type = IFA_EVT_INTF_DESTROY_RSP;
      send_evt.error = NCS_IFSV_IFND_RESTARTING_ERROR;
@@ -373,7 +373,7 @@ ifnd_intf_info_get (IFSV_EVT* evt, IFSV_CB *cb)
                     if_get->get_type, if_get->info_type);      
    m_IFND_LOG_HEAD_LINE_NORMAL(IFSV_LOG_STATE_INFO, cb->ifnd_state, 0);
 
-   m_NCS_MEMSET(&stats, 0, sizeof(IFSV_IDIM_EVT_GET_HW_STATS_INFO));
+   memset(&stats, 0, sizeof(IFSV_IDIM_EVT_GET_HW_STATS_INFO));
  
    if (cb->idim_up == TRUE)
    {
@@ -439,7 +439,7 @@ ifnd_intf_info_get (IFSV_EVT* evt, IFSV_CB *cb)
 
 stats_error:
    /* need to send an stats resp error to the Application*/
-   m_NCS_MEMSET(&stats_info, 0, sizeof(stats_info));
+   memset(&stats_info, 0, sizeof(stats_info));
 
    stats_info.status    = NCS_IFSV_IFGET_RSP_NO_REC;
    stats_info.dest      = if_get->my_dest;
@@ -642,7 +642,7 @@ ifnd_svcd_upd_from_ifa_proc (IFSV_EVT* evt, IFSV_CB *cb)
    {
 
     /* Send the information to IFD */
-     m_NCS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+     memset(&send_evt, 0, sizeof(IFSV_EVT));
      send_evt.type = IFA_EVT_SVCD_UPD_RSP;
      send_evt.error = NCS_IFSV_IFND_RESTARTING_ERROR;
      send_evt.info.ifa_evt.info.svcd_sync_resp = evt->info.ifnd_evt.info.svcd;
@@ -658,7 +658,7 @@ ifnd_svcd_upd_from_ifa_proc (IFSV_EVT* evt, IFSV_CB *cb)
        (evt->info.ifnd_evt.info.svcd.i_type == NCS_IFSV_SVCD_DEL))
    {
      /* Send the information to IFD */
-     m_NCS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+     memset(&send_evt, 0, sizeof(IFSV_EVT));
 
      send_evt.type = IFD_EVT_SVCD_UPD;
      send_evt.info.ifd_evt.info.svcd = evt->info.ifnd_evt.info.svcd;
@@ -845,7 +845,7 @@ ifnd_svcd_get_proc (IFSV_EVT* evt, IFSV_CB *cb)
                       evt->info.ifnd_evt.info.svcd_get.i_svcid,\
                       m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.ifnd_evt.info.svcd_get.o_dest));
    
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IFSV_EVT));
 
    send_evt.type = IFA_EVT_SVCD_GET_RSP;
    send_evt.error = NCS_IFSV_NO_ERROR;
@@ -1134,7 +1134,7 @@ ifnd_mds_msg_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type, IFSV_CB *ifsv_cb)
       return (NCSCC_RC_FAILURE);
    }
    
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = msg_type;
    evt->vrid = ifsv_cb->vrid;
 
@@ -1204,7 +1204,7 @@ ifnd_mds_msg_sync_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
       return (NCSCC_RC_FAILURE);
    }
    
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = msg_type;
    evt->vrid = ifsv_cb->vrid;
 
@@ -1265,7 +1265,7 @@ ifnd_idim_evt_send (NCSCONTEXT msg, IFSV_IDIM_EVT_TYPE msg_type,
                   0);
       return (res);
    }
-   m_NCS_MEMSET(evt,0,sizeof(IFSV_IDIM_EVT));
+   memset(evt,0,sizeof(IFSV_IDIM_EVT));
    evt->evt_type = msg_type;
 
    switch (msg_type)
@@ -1335,7 +1335,7 @@ ifnd_evt_send (NCSCONTEXT msg, IFSV_EVT_TYPE evt_type, IFSV_CB *ifsv_cb)
       return (res);
    }
    
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type   = evt_type;
    evt->cb_hdl = ifsv_cb->cb_hdl;
    evt->vrid   = ifsv_cb->vrid;
@@ -1396,7 +1396,7 @@ ifnd_mds_ifd_up_event (IFSV_CB *ifsv_cb)
       return (res);
    }
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type   = IFND_EVT_IFD_UP;
    evt->cb_hdl = ifsv_cb->cb_hdl;
    evt->vrid   = ifsv_cb->vrid;
@@ -1436,7 +1436,7 @@ static uns32 ifnd_ifd_up_process(IFSV_EVT* evt, IFSV_CB *cb)
 
    for(i = 0; i< ipxs_cb->nl_addr_info.num_ip_addr; i++)
    {
-     m_NCS_MEMSET(&ipxs_evt, '\0', sizeof(IPXS_EVT));
+     memset(&ipxs_evt, '\0', sizeof(IPXS_EVT));
 
      ipxs_evt.info.nd.atond_upd.if_index = ipxs_cb->nl_addr_info.list[i].if_index;
 
@@ -1454,13 +1454,13 @@ static uns32 ifnd_ifd_up_process(IFSV_EVT* evt, IFSV_CB *cb)
              != NCSCC_RC_SUCCESS)
      {
           m_NCS_CONS_PRINTF("Ip addition failed IP %x %s %d \n",del_ipinfo.ipaddr.info.v4,__FILE__,__LINE__);
-          m_NCS_MEMSET(&ipxs_cb->nl_addr_info, '\0', sizeof(ipxs_cb->nl_addr_info));
+          memset(&ipxs_cb->nl_addr_info, '\0', sizeof(ipxs_cb->nl_addr_info));
           ncshm_give_hdl(ipxs_hdl);
           return NCSCC_RC_FAILURE;
      }
    } /* for loop */
 
-  m_NCS_MEMSET(&ipxs_cb->nl_addr_info, '\0', sizeof(ipxs_cb->nl_addr_info));
+  memset(&ipxs_cb->nl_addr_info, '\0', sizeof(ipxs_cb->nl_addr_info));
   ncshm_give_hdl(ipxs_hdl);
   return NCSCC_RC_SUCCESS;
 } /* The function ifnd_ifd_up_process() ends here. */

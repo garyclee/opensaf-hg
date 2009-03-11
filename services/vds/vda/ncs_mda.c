@@ -75,7 +75,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
     case NCS_LIB_REQ_CREATE:
         m_NCSMDA_TRACE_ARG1("MDA:LIB_CREATE\n");
         /* STEP : Register MDA as a service-provider */
-        m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+        memset(&splr_req, 0, sizeof(splr_req));
         splr_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
         splr_req.type = NCS_SPLR_REQ_REG;
         splr_req.info.reg.instantiation_api = mda_lib_req;
@@ -102,7 +102,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
                       in NCSADA_GET_HDLS, etc. 
                   Till that is done, the ADEST SPIR entry is pre-created
         */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;    
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -124,7 +124,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
         vda_lib_req(req);
 
         /* Destroy pre-created ADEST-PWE1 - stuff */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_REL_INST;    
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -139,7 +139,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
         ada_lib_req(req);
 
         /* STEP : Deregister MDA as a service-provider */
-        m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+        memset(&splr_req, 0, sizeof(splr_req));
         splr_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
         splr_req.type = NCS_SPLR_REQ_DEREG;
         splr_req.info.dereg.dummy = 0;
@@ -156,7 +156,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
 
         /* Get a handle to the underlying the DESTINATION. We shall
         go to our service-providers namely ADA/VDA to get it */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.i_environment_id = 0; /* ADA/VDA libs don't create PWEs */
         spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
         
@@ -187,7 +187,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
         }
 
         /* STEP : Create PWE on the ADEST/VDEST */
-        m_NCS_MEMSET(&admop_info, 0, sizeof(admop_info));
+        memset(&admop_info, 0, sizeof(admop_info));
         admop_info.i_op = MDS_ADMOP_PWE_CREATE;
         admop_info.info.pwe_create.i_mds_dest_hdl = 
             (MDS_HDL)spir_req.info.lookup_create_inst.o_handle;
@@ -207,7 +207,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
         m_NCSMDA_TRACE_ARG1("MDA:LIB_UNINSTANTIATE\n");
 
         /* STEP : Destroy PWE on the ADEST/VDEST */
-        m_NCS_MEMSET(&admop_info, 0, sizeof(admop_info));
+        memset(&admop_info, 0, sizeof(admop_info));
         admop_info.i_op = MDS_ADMOP_PWE_DESTROY;
         admop_info.info.pwe_destroy.i_mds_pwe_hdl = 
             (MDS_HDL)req->info.uninst.i_inst_hdl;
@@ -216,7 +216,7 @@ uns32 mda_lib_req(NCS_LIB_REQ_INFO *req)
             return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
         /* STEP : Now release our lookup on the destination instance */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.i_environment_id = 0; /* ADA/VDA libs don't create PWEs */
         spir_req.type = NCS_SPIR_REQ_REL_INST;
         
@@ -269,7 +269,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 
            So here we simply need to LOOKUP the handle (instead of LOOKUP_CREATE)
         */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
         spir_req.i_environment_id = 1;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -290,7 +290,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         and the handle using an SPRR query to the ADA. That complication
         needs to be explored only if required. */
 
-        m_NCS_MEMSET(&svc_info, 0, sizeof(svc_info));
+        memset(&svc_info, 0, sizeof(svc_info));
         svc_info.i_mds_hdl = ada_info->info.adest_get_hdls.o_mds_pwe1_hdl;
         svc_info.i_op = MDS_QUERY_PWE;
         svc_info.i_svc_id = NCSMDS_SVC_ID_VDA; /* Doesn't matter */
@@ -307,7 +307,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         if (ada_info->info.adest_get_hdls.i_create_oac)
         {
             /* Lookup OAC instance */
-            m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+            memset(&spir_req, 0, sizeof(spir_req));
             spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
             spir_req.i_environment_id = 1;
             spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
@@ -326,7 +326,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
                    because NCSADA_GET_HDLS does not have a
                    matching NCSADA_REL_HDLS kind of thing. 
                 */
-                m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+                memset(&spir_req, 0, sizeof(spir_req));
                 spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
                 spir_req.i_environment_id = 1;
                 spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
@@ -345,7 +345,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         
     case NCSADA_PWE_CREATE:
         /* Get the PWE-HDL */
-        m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+        memset(&spir_req, 0, sizeof(spir_req));
         spir_req.i_environment_id = ada_info->info.pwe_create.i_pwe_id;
         spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
         spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -384,7 +384,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
         /* NOTE: The PWE-ID from PWE-handle is done a little
                  bit differently from that in NCSVDA_PWE_DESTROY
         */
-        m_NCS_MEMSET(&mds_info, 0, sizeof(mds_info));
+        memset(&mds_info, 0, sizeof(mds_info));
         mds_info.i_op = MDS_QUERY_PWE;        
         mds_info.i_mds_hdl = ada_info->info.pwe_destroy.i_mds_pwe_hdl;
         if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS)
@@ -443,7 +443,7 @@ MDA_INST_NAME_TYPE mda_get_inst_name_type(SaNameT *name)
 }
 void mds_fixed_vdest_to_inst_name(uns32 i_vdest_id, SaNameT *o_name)
 {
-    m_NCS_MEMSET(o_name, 0, sizeof(o_name));
+    memset(o_name, 0, sizeof(o_name));
     o_name->length = (unsigned short)(glmds_vdest_inst_name_pref.length + VDEST_ID_STR_LEN);
     memcpy(o_name->value, glmds_vdest_inst_name_pref.value,
         o_name->length - VDEST_ID_STR_LEN);

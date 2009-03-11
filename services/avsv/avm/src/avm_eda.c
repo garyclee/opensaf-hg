@@ -320,8 +320,8 @@ avm_evt_callback(
    }
    m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_SUCCESS, NCSFL_SEV_INFO);
 
-   m_NCS_MEMSET(&publisher_name, '\0', sizeof(SaNameT));
-   m_NCS_MEMSET(p_data, 0, (size_t)data_len + 1);
+   memset(&publisher_name, '\0', sizeof(SaNameT));
+   memset(p_data, 0, (size_t)data_len + 1);
    publisher_name.length = SA_MAX_NAME_LENGTH;
 
    num_patterns = AVM_MAX_PATTERNS;
@@ -440,7 +440,7 @@ avm_evt_callback(
    }
    
    m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_SUCCESS, NCSFL_SEV_INFO);
-   m_NCS_MEMSET(hpi_event, '\0', sizeof(HPI_EVT_T));
+   memset(hpi_event, '\0', sizeof(HPI_EVT_T));
 
    /* decode the event here */
    if ((rc = hpl_decode_hisv_evt ((HPI_HISV_EVT_T *)hpi_event, p_data, data_len, (HISV_SW_VERSION | HISV_EDS_INF_VERSION))) != NCSCC_RC_SUCCESS)

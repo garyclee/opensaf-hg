@@ -246,7 +246,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
             /* Code to handle zero length string */
             if(param_val->i_length == 0)
             {
-                 m_NCS_OS_MEMSET(((uns8*)data + var_info->offset), 0,
+                 memset(((uns8*)data + var_info->offset), 0,
                              max_len);
                 *val_same_flag = FALSE;
                 break;
@@ -265,7 +265,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
                     *val_same_flag = TRUE;
                 else
                 {
-                    m_NCS_OS_MEMSET(((uns8*)data + var_info->offset), 0,
+                    memset(((uns8*)data + var_info->offset), 0,
                                    max_len);
                     memcpy(((uns8*)data + var_info->offset),
                     param_val->info.i_oct, param_val->i_length);
@@ -273,7 +273,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
             }
             else
             {
-                m_NCS_OS_MEMSET(((uns8*)data + var_info->offset), 0,
+                memset(((uns8*)data + var_info->offset), 0,
                                 max_len);
                 memcpy(((uns8*)data + var_info->offset),
                 param_val->info.i_oct, param_val->i_length);
@@ -904,7 +904,7 @@ uns32 miblib_process_getrow_nextrow(NCSCONTEXT cb,
                 return NCSCC_RC_FAILURE;
             }
 
-            m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+            memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
         }
     }
     else /* Obj in a row that is distributed across multiple data structs */
@@ -967,7 +967,7 @@ uns32 miblib_process_getrow_nextrow(NCSCONTEXT cb,
                return NCSCC_RC_FAILURE;
            }
 
-           m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+           memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
         }
     }
     *p_rsp_usrbuf = ncsparm_enc_done(&rsp_pa);
@@ -1008,7 +1008,7 @@ uns32 miblib_process_setrow_testrow(NCSCONTEXT cb, NCSMIB_ARG* args)
    uns32             ret_code;
 
    ncsmem_aid_init(&mem_aid, space, NCSMIB_MAX_CUML_PARAM_SIZE);
-   m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+   memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
 
    if(args->i_op == NCSMIB_OP_REQ_SETROW)
    {
@@ -1031,7 +1031,7 @@ uns32 miblib_process_setrow_testrow(NCSCONTEXT cb, NCSMIB_ARG* args)
    if(param_cnt > num_objs)
        return NCSCC_RC_NO_INSTANCE;
 
-   m_NCS_OS_MEMSET(setrow_params, 0, (num_objs)*sizeof(NCSMIB_SETROW_PARAM_VAL));
+   memset(setrow_params, 0, (num_objs)*sizeof(NCSMIB_SETROW_PARAM_VAL));
 
    for(i = 1; i <= param_cnt; i++)
    {
@@ -1054,7 +1054,7 @@ uns32 miblib_process_setrow_testrow(NCSCONTEXT cb, NCSMIB_ARG* args)
       (setrow_params[param_val.i_param_id-1]).param = param_val;
       (setrow_params[param_val.i_param_id-1]).set_flag = TRUE;
 
-      m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+      memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
    }
 
    /* Call the subsystem's setrow function to do the rest of the processing */
@@ -1139,7 +1139,7 @@ uns32 miblib_process_setallrows(NCSCONTEXT cb, NCSMIB_ARG* args)
    uns32                ret_code, retval;
 
    ncsmem_aid_init(&mem_aid, space, NCSMIB_MAX_CUML_PARAM_SIZE);
-   m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+   memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
 
    /* The usrbuf is required in the response, to be sent to PSSv. */
    usrbuf = args->req.info.setallrows_req.i_usrbuf;
@@ -1167,7 +1167,7 @@ uns32 miblib_process_setallrows(NCSCONTEXT cb, NCSMIB_ARG* args)
        if (retval != NCSCC_RC_SUCCESS)
            return NCSCC_RC_FAILURE;
 
-       m_NCS_OS_MEMSET(&lcl_setrow, '\0', sizeof(lcl_setrow));
+       memset(&lcl_setrow, '\0', sizeof(lcl_setrow));
 
        num_objs = tbl_info->num_objects;
        if(param_cnt > num_objs)
@@ -1176,7 +1176,7 @@ uns32 miblib_process_setallrows(NCSCONTEXT cb, NCSMIB_ARG* args)
            return NCSCC_RC_NO_INSTANCE;
        }
        
-       m_NCS_OS_MEMSET(setrow_params, 0, (param_cnt)*sizeof(NCSMIB_SETROW_PARAM_VAL));
+       memset(setrow_params, 0, (param_cnt)*sizeof(NCSMIB_SETROW_PARAM_VAL));
        
        for(i = 1; i <= param_cnt; i++)
        {
@@ -1201,7 +1201,7 @@ uns32 miblib_process_setallrows(NCSCONTEXT cb, NCSMIB_ARG* args)
            (setrow_params[param_val.i_param_id-1]).param = param_val;
            (setrow_params[param_val.i_param_id-1]).set_flag = TRUE;
            
-           m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
+           memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL));
        }    /* for(i = 1; i <= param_cnt; i++) */
 
        /* Populate lcl_setrow structure appropriately. */
@@ -1591,7 +1591,7 @@ uns32 ncsmiblib_process_req(NCSMIBLIB_REQ_INFO* req_info)
         break;
 
     case NCSMIBLIB_REQ_INIT_OP:
-        m_NCS_OS_MEMSET(miblib_obj_info, 0, 
+        memset(miblib_obj_info, 0, 
                (MIB_UD_TBL_ID_END * sizeof(NCSMIB_OBJ_INFO*)));
         ret_code = NCSCC_RC_SUCCESS;
         break;

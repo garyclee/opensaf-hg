@@ -264,7 +264,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
        ASAPi_DEREG_INFO dereg;
        SaNameT   name;
 
-       m_NCS_OS_MEMSET(&dereg, 0, sizeof(ASAPi_DEREG_INFO));
+       memset(&dereg, 0, sizeof(ASAPi_DEREG_INFO));
   
        name = pNode->oinfo.name;
 
@@ -278,7 +278,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
        pNode = (MQD_OBJ_NODE *)ncs_patricia_tree_getnext(&pMqd->qdb,(uns8 *) &name);
       }
      /* Send an async Update to the standby */
-     m_NCS_MEMSET(&msg, 0 , sizeof(MQD_A2S_MSG) );
+     memset(&msg, 0 , sizeof(MQD_A2S_MSG) );
      msg.type= MQD_A2S_MSG_TYPE_MQND_TIMER_EXPEVT;
      msg.info.nd_tmr_exp_evt.nodeid=pNdNode->info.nodeid;
      /* Send async update to the standby for MQD redundancy */
@@ -336,7 +336,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd,MQD_ND_STATUS_INFO *nd_info)
        m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
        return rc;
       }
-     m_NCS_OS_MEMSET(pNdNode, 0, sizeof(MQD_ND_DB_NODE));
+     memset(pNdNode, 0, sizeof(MQD_ND_DB_NODE));
      pNdNode->info.nodeid = m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
      pNdNode->info.is_restarted= FALSE;
      pNdNode->info.timer.type= MQD_ND_TMR_TYPE_EXPIRY;
@@ -368,7 +368,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd,MQD_ND_STATUS_INFO *nd_info)
          mqd_red_db_node_del(pMqd, pNdNode);
          mqd_nd_restart_update_dest_info(pMqd,nd_info->dest);
          /* Send an async update event to standby MQD*/         
-         m_NCS_OS_MEMSET(&msg, 0, sizeof(MQD_A2S_MSG));
+         memset(&msg, 0, sizeof(MQD_A2S_MSG));
          msg.type=MQD_A2S_MSG_TYPE_MQND_STATEVT;
          msg.info.nd_stat_evt.nodeid =m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest);
          msg.info.nd_stat_evt.is_restarting= nd_info->is_up;
@@ -436,7 +436,7 @@ static uns32 mqd_cb_dump(void)
   MQD_ND_DB_NODE    *qNdnode=NULL;
   SaNameT           qname;
   NODE_ID           nodeid=0;
-  m_NCS_MEMSET(&qname, 0,sizeof(SaNameT));
+  memset(&qname, 0,sizeof(SaNameT));
   /* Get the Controll block */
   pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
   if(!pMqd) 
@@ -518,7 +518,7 @@ static uns32 mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd,MQSV_EVT *pevt)
    uns32   rc = NCSCC_RC_SUCCESS;
    MQSV_CTRL_EVT_QGRP_CNT *qgrp_cnt_info = &pevt->msg.mqd_ctrl.info.qgrp_cnt_info;
 
-   m_NCS_MEMSET(&rsp,0,sizeof(MQSV_EVT));
+   memset(&rsp,0,sizeof(MQSV_EVT));
 
    if(pMqd->ha_state == SA_AMF_HA_ACTIVE) 
     {
@@ -714,7 +714,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
      m_NCS_OS_PRINTF(" Creation time for this queue is :%llu \n",qnode->oinfo.creationTime);
   } 
   m_NCS_OS_PRINTF(" \n*********************Printing the ilist******************* \n");
-  m_NCS_MEMSET(&itr,0,sizeof(NCS_Q_ITR));
+  memset(&itr,0,sizeof(NCS_Q_ITR));
   itr.state = 0;
   while((pilist = (MQD_OBJECT_ELEM *)ncs_walk_items(&qnode->oinfo.ilist, &itr)))          
   {
@@ -723,7 +723,7 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
   }
   m_NCS_OS_PRINTF("\n********** End of the ilist************* \n");
   m_NCS_OS_PRINTF("\n********** Printing the track list************* \n");
-  m_NCS_MEMSET(&itr,0,sizeof(NCS_Q_ITR));
+  memset(&itr,0,sizeof(NCS_Q_ITR));
   itr.state = 0;
   while((pTrack = (MQD_TRACK_OBJ *)ncs_walk_items(&qnode->oinfo.tlist, &itr))) 
   {

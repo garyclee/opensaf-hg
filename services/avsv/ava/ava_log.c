@@ -168,7 +168,7 @@ void ava_log_cbk (AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert comp-name into string format */
    if (comp_name) 
@@ -225,7 +225,7 @@ void ava_log_api (AVA_LOG_API   type,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert comp-name into string format */
    if (comp_name) 
@@ -301,7 +301,7 @@ uns32 ava_log_reg (void)
    NCS_DTSV_RQ reg;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
@@ -330,7 +330,7 @@ uns32 ava_log_unreg (void)
    NCS_DTSV_RQ reg;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
    reg.i_op = NCS_DTSV_OP_UNBIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;

@@ -261,7 +261,7 @@ AVND_CB *avnd_cb_create ()
    }
    m_AVND_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(AVND_CB));
+   memset(cb, 0, sizeof(AVND_CB));
 
    /* assign the AvND pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;

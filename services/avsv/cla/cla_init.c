@@ -142,7 +142,7 @@ uns32 cla_create (NCS_LIB_CREATE *create_info)
    }
    m_CLA_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(CLA_CB));
+   memset(cb, 0, sizeof(CLA_CB));
 
    /* assign the CLA pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -340,7 +340,7 @@ unsigned int ncs_cla_startup(void)
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (cla_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -386,7 +386,7 @@ unsigned int ncs_cla_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
       
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
       rc = cla_lib_req(&lib_destroy);
       

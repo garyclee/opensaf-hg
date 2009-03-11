@@ -73,7 +73,7 @@ avm_fmat_time_display(
       m_AVM_LOG_INVALID_VAL_FATAL(0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET((*time_op), '\0', AVM_DISPLAY_TIME_LENGTH);
+   memset((*time_op), '\0', AVM_DISPLAY_TIME_LENGTH);
    
    year = m_NCS_OS_HTONS(time_fields->tm_year + 1900);
    (*time_op)[0] = *(char*)&year ;
@@ -126,7 +126,7 @@ avm_adm_switch_trap(
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET(i_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+      memset(i_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
       
       /* Fill in the object nfmResourceLink details */
       i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVM_SCALAR;
@@ -147,7 +147,7 @@ avm_adm_switch_trap(
          return NCSCC_RC_FAILURE;
       } 
       
-      m_NCS_OS_MEMSET(temp_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+      memset(temp_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
       temp_trap_varbind->i_tbl_id               = NCSMIB_TBL_AVM_SCALAR;
       temp_trap_varbind->i_param_val.i_param_id = ncsAvmSwitchTime_ID;
       temp_trap_varbind->i_param_val.i_fmat_id   = NCSMIB_FMAT_OCT;
@@ -230,11 +230,11 @@ uns32 avm_entity_locked_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       m_AVM_LOG_INVALID_VAL_ERROR(0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+   memset(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
 
    /* Prepare index for ncsAvmEntDeployTable */
    inst_id_len = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-   m_NCS_OS_MEMSET(inst_id, 0, AVM_MAX_INDEX_LEN);
+   memset(inst_id, 0, AVM_MAX_INDEX_LEN);
 
    inst_id[0]= inst_id_len;
 
@@ -308,11 +308,11 @@ uns32 avm_entity_inactive_hisv_ret_error_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *
       m_AVM_LOG_INVALID_VAL_ERROR(0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+   memset(entity_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
 
    /* Prepare index for ncsAvmEntDeployTable */
    inst_id_len = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-   m_NCS_OS_MEMSET(inst_id, 0, AVM_MAX_INDEX_LEN);
+   memset(inst_id, 0, AVM_MAX_INDEX_LEN);
    inst_id[0]= inst_id_len;
    for(i = 0; i < inst_id_len; i++)
    {
@@ -375,9 +375,9 @@ avm_publish_trap(
       }
    }
    
-   m_NCS_MEMSET(&patternArray, '\0', sizeof(SaEvtEventPatternArrayT));
-   m_NCS_MEMSET(&eventHandle,    '\0', sizeof(SaEvtEventHandleT));
-   m_NCS_MEMSET(&eventId,      '\0', sizeof(SaEvtEventIdT));
+   memset(&patternArray, '\0', sizeof(SaEvtEventPatternArrayT));
+   memset(&eventHandle,    '\0', sizeof(SaEvtEventHandleT));
+   memset(&eventId,      '\0', sizeof(SaEvtEventIdT));
 
    if(!trap)
       return NCSCC_RC_FAILURE;
@@ -396,7 +396,7 @@ avm_publish_trap(
       return NCSCC_RC_FAILURE;
    } 
    
-   m_NCS_MEMSET(enc_buffer, '\0', tlv_size);
+   memset(enc_buffer, '\0', tlv_size);
    
    /* Encode the Buffer */  
    status = m_NCS_EDU_TLV_EXEC(&avm_cb->edu_hdl, ncs_edp_ncs_trap, enc_buffer, tlv_size, EDP_OP_TYPE_ENC, trap, &o_err);

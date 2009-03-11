@@ -89,9 +89,9 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB              *gld_cb,
        m_LOG_GLD_MEMFAIL(GLD_RSC_INFO_ALLOC_FAILED);
        return NULL;
    }
-   m_NCS_MEMSET(rsc_info, '\0',sizeof(GLSV_GLD_RSC_INFO));
+   memset(rsc_info, '\0',sizeof(GLSV_GLD_RSC_INFO));
    memcpy(&rsc_info->lck_name, &rsc_name, sizeof(SaNameT));
-   m_NCS_MEMSET(&creation_time, '\0',sizeof(SaTimeT));
+   memset(&creation_time, '\0',sizeof(SaTimeT));
    rsc_info->saf_rsc_no_of_users   =  1;
    rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time);
 
@@ -130,7 +130,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB              *gld_cb,
        *error = SA_AIS_ERR_NO_MEMORY;
        return NULL;
    }
-   m_NCS_MEMSET(rsc_map_info, '\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
+   memset(rsc_map_info, '\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
    memcpy(&rsc_map_info->rsc_name, &rsc_name, sizeof(SaNameT));
    rsc_map_info->rsc_name.length = m_NCS_OS_HTONS(rsc_map_info->rsc_name.length);
  
@@ -263,7 +263,7 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
     GLSV_GLD_RSC_MAP_INFO  *rsc_map_info = NULL;
     SaNameT              lck_name;
 
-    m_NCS_MEMSET(&lck_name, '\0',sizeof(SaNameT));
+    memset(&lck_name, '\0',sizeof(SaNameT));
 
    /* Some node is still referring to this resource, so backout */
    if (rsc_info->node_list != NULL)
@@ -323,7 +323,7 @@ void  gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, un
    NCSMDS_INFO       snd_mds;
    uns32             res;
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
    /*TBD need to check rsc_info */
 
    if (rsc_info->node_list == NULL)
@@ -334,7 +334,7 @@ void  gld_snd_master_status(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info, un
    }
  
    /* Send the details to the glnd */
-   m_NCS_MEMSET(&glnd_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&glnd_evt, 0, sizeof(GLSV_GLND_EVT));
    glnd_evt.type = GLSV_GLND_EVT_RSC_NEW_MASTER;
    glnd_evt.info.new_master_info.rsc_id          = rsc_info->rsc_id;;
    glnd_evt.info.new_master_info.master_dest_id  = rsc_info->node_list->dest_id;
@@ -474,7 +474,7 @@ void gld_rsc_add_node_ref(GLSV_GLD_CB           *gld_cb,
       return;
    }
 
-   m_NCS_OS_MEMSET(glnd_rsc, 0, sizeof(GLSV_GLD_GLND_RSC_REF));
+   memset(glnd_rsc, 0, sizeof(GLSV_GLD_GLND_RSC_REF));
    glnd_rsc->rsc_id = rsc_info->rsc_id;
    glnd_rsc->rsc_info = rsc_info;
    glnd_rsc->pat_node.key_info = (uns8 *)&glnd_rsc->rsc_id;

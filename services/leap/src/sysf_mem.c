@@ -337,7 +337,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
   NCS_BOOL         all_ss = FALSE;
   uns32           min_age = 0;
 
-  m_NCS_MEMSET(info->o_wo,0,sizeof(info->o_wo));
+  memset(info->o_wo,0,sizeof(info->o_wo));
 
   min_age = info->i_age;
   if(info->i_ss_id == 0)
@@ -495,12 +495,12 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
   NCS_BOOL         all_ss = FALSE;
   uns32           min_age = 0;
 
-  m_NCS_MEMSET(info->o_wos,0,sizeof(info->o_wos));
+  memset(info->o_wos,0,sizeof(info->o_wos));
 
   ncsmem_aid_init (&ma, (uns8*)space, LBP_HIST_SPACE * sizeof(char));
   
-  m_NCS_MEMSET (space, '\0', LBP_HIST_SPACE * sizeof(char));
-  m_NCS_MEMSET (hash,  '\0', sizeof(hash));
+  memset (space, '\0', LBP_HIST_SPACE * sizeof(char));
+  memset (hash,  '\0', sizeof(hash));
 
   min_age = info->i_age;
   if(info->i_ss_id == 0)
@@ -947,7 +947,7 @@ ncs_lbp_free(void *free_me)
       }
     }
 
-  m_NCS_MEMSET(free_me,0xff,leap_buf_pool.size);    /* set memory to generally bad value */
+  memset(free_me,0xff,leap_buf_pool.size);    /* set memory to generally bad value */
   pe->free_line   = line;
   pe->free_file   = file;
 
@@ -1290,7 +1290,7 @@ mmgr_ub_svc_init(NCSMMGR_UB_INIT* init)
       gl_ub_pool_mgr.pools[i].mem_alloc = sysf_stub_alloc;
       gl_ub_pool_mgr.pools[i].mem_free  = sysf_stub_free;
 #if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-      m_NCS_MEMSET(&gl_ub_pool_mgr.pools[i].stats,0,sizeof(gl_ub_pool_mgr.pools[i].stats));
+      memset(&gl_ub_pool_mgr.pools[i].stats,0,sizeof(gl_ub_pool_mgr.pools[i].stats));
 #endif
       }
     }
@@ -2914,7 +2914,7 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
                   return (0);
                }
 
-               m_NCS_MEMSET((char *)pnew, '\0', sizeof(USRBUF));
+               memset((char *)pnew, '\0', sizeof(USRBUF));
                if (pfirst != NULL)
                {
                   pfirst->next = pnew;
@@ -2990,7 +2990,7 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
                return (0);
             }
 
-            m_NCS_MEMSET((char *)pnew, '\0', sizeof(USRBUF));
+            memset((char *)pnew, '\0', sizeof(USRBUF));
             if (pfirst != NULL)
             {
                pfirst->next = pnew;

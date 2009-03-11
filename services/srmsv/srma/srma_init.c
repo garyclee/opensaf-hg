@@ -94,7 +94,7 @@ uns32 srma_create(NCS_LIB_CREATE *create_info)
                  SRMSV_LOG_CB_SUCCESS,
                  NCSFL_SEV_INFO);
 
-   m_NCS_OS_MEMSET(srma, 0, sizeof(SRMA_CB));
+   memset(srma, 0, sizeof(SRMA_CB));
 
    /* assign the SRMA pool-id (used by hdl-mngr) */
    srma->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -126,7 +126,7 @@ uns32 srma_create(NCS_LIB_CREATE *create_info)
    m_NCS_EDU_HDL_INIT(&srma->edu_hdl);
    
    /* Initialize Resource Mon Tree */
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
    params.key_size = sizeof(uns32);
    params.info_size = 0;
    rc = ncs_patricia_tree_init(&srma->rsrc_mon_tree, &params);
@@ -391,7 +391,7 @@ unsigned int ncs_srma_startup(void)
    }
 
    /*** Init SRMA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (srma_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -437,7 +437,7 @@ unsigned int ncs_srma_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 
       rc = srma_lib_req(&lib_destroy);

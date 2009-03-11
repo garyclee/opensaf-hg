@@ -54,7 +54,7 @@ uns32 avnd_gen_comp_inst_failed_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
    
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saAmfAlarmCompInstantiationFailed_ID;
@@ -82,7 +82,7 @@ uns32 avnd_gen_comp_term_failed_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap object id */
    trap.i_trap_id = saAmfAlarmCompTerminationFailed_ID;
@@ -110,7 +110,7 @@ uns32 avnd_gen_comp_clean_failed_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saAmfAlarmCompCleanupFailed_ID;
@@ -139,7 +139,7 @@ uns32 avnd_gen_comp_proxied_orphaned_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saAmfStateChgProxiedCompOrphaned_ID;
@@ -191,12 +191,12 @@ uns32 avnd_populate_comp_traps(AVND_CB *avnd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    inst_id_len = m_NCS_OS_NTOHS(comp->name_net.length);
   
    /* Prepare the instant ID from the comp name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
  
    inst_id[0]= inst_id_len;
    
@@ -228,7 +228,7 @@ uns32 avnd_populate_comp_traps(AVND_CB *avnd_cb,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET(prox_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+      memset(prox_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
       /* Fill in the object details */
       prox_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_COMP;
@@ -281,7 +281,7 @@ uns32 avnd_gen_su_oper_state_chg_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saAmfStateChgSUOper_ID;
@@ -311,7 +311,7 @@ uns32 avnd_gen_su_pres_state_chg_trap(AVND_CB *avnd_cb,
 {
    NCS_TRAP           trap;
 
-   m_NCS_OS_MEMSET(&trap, 0, sizeof(NCS_TRAP));
+   memset(&trap, 0, sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_id = saAmfStateChgSUPresence_ID;
@@ -363,12 +363,12 @@ uns32 avnd_populate_su_traps(AVND_CB *avnd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
 
    inst_id_len = m_NCS_OS_NTOHS(su->name_net.length);
   
    /* Prepare the instant ID from the su name */
-   m_NCS_OS_MEMSET(inst_id, 0, SA_MAX_NAME_LENGTH);
+   memset(inst_id, 0, SA_MAX_NAME_LENGTH);
  
    inst_id[0]= inst_id_len;
    
@@ -398,7 +398,7 @@ uns32 avnd_populate_su_traps(AVND_CB *avnd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND));
    
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_AMF_SU;
@@ -458,7 +458,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
 
    m_AVND_LOG_COMP_FAIL_TRAP(avnd_cb->clmdb.node_info.nodeId, &(comp->name_net), errSrc);
 
-   m_NCS_OS_MEMSET(&trap, '\0', sizeof(NCS_TRAP));
+   memset(&trap, '\0', sizeof(NCS_TRAP));
 
    /* Fill in the trap details */
    trap.i_trap_tbl_id = NCSMIB_TBL_AVSV_NCS_TRAP_TBL;
@@ -470,7 +470,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
    inst_id_len = avnd_cb->clmdb.node_info.nodeName.length;
 
    /* Prepare the instant ID from the node name */
-   m_NCS_OS_MEMSET(inst_id_nd, '\0', SA_MAX_NAME_LENGTH);
+   memset(inst_id_nd, '\0', SA_MAX_NAME_LENGTH);
 
    inst_id_nd[0]= inst_id_len;
 
@@ -486,7 +486,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
       m_MMGR_NCS_TRAP_VARBIND_FREE(i_trap_varbind);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(s_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+   memset(s_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    s_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_NODE;
@@ -503,7 +503,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
    inst_id_len = m_NCS_OS_NTOHS(comp->name_net.length);
 
    /* Prepare the instant ID from the comp name */
-   m_NCS_OS_MEMSET(inst_id_comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(inst_id_comp, '\0', SA_MAX_NAME_LENGTH);
    inst_id_comp[0]= inst_id_len;
 
    for(i = 0; i < inst_id_len; i++)
@@ -518,7 +518,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+   memset(i_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
 
    /* Fill in the object details */
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_COMP_STAT;
@@ -540,7 +540,7 @@ uns32 avnd_gen_comp_fail_on_node_trap(AVND_CB *avnd_cb,
       m_MMGR_NCS_TRAP_VARBIND_FREE(s_trap_varbind);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(l_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
+   memset(l_trap_varbind, '\0', sizeof(NCS_TRAP_VARBIND));
 
    l_trap_varbind->i_tbl_id = NCSMIB_TBL_AVSV_NCS_COMP_STAT;
    l_trap_varbind->i_param_val.i_fmat_id = NCSMIB_FMAT_INT;
@@ -597,9 +597,9 @@ uns32 avnd_create_and_send_trap(AVND_CB *avnd_cb,
    SaEvtEventPatternArrayT  patternArray;
 
 
-   m_NCS_OS_MEMSET(&patternArray, 0, sizeof(SaEvtEventPatternArrayT));
-   m_NCS_OS_MEMSET(&eventHandle, 0, sizeof(SaEvtEventHandleT));
-   m_NCS_OS_MEMSET(&eventId, 0, sizeof(SaEvtEventIdT));
+   memset(&patternArray, 0, sizeof(SaEvtEventPatternArrayT));
+   memset(&eventHandle, 0, sizeof(SaEvtEventHandleT));
+   memset(&eventId, 0, sizeof(SaEvtEventIdT));
 
    if(avnd_eda_initialize(avnd_cb) != NCSCC_RC_SUCCESS)
    {
@@ -623,7 +623,7 @@ uns32 avnd_create_and_send_trap(AVND_CB *avnd_cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(encoded_buffer, '\0', tlv_size);
+   memset(encoded_buffer, '\0', tlv_size);
 
    /* call the EDU macro to encode with buffer pointer and size */
    status = m_NCS_EDU_TLV_EXEC(&avnd_cb->edu_hdl, ncs_edp_ncs_trap, encoded_buffer,
