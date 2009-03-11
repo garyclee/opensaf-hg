@@ -1707,91 +1707,91 @@ void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation,
       case NCSCLI_KEYWORD:
            cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(yytext)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-            m_NCS_OS_STRCPY(cmd_node->tokName, yytext);                
+            strcpy(cmd_node->tokName, yytext);                
          break;
 
       case NCSCLI_CONTINOUS_EXP:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_CONTINOUS_EXP)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_CONTINOUS_EXP);                
+         strcpy(cmd_node->tokName, CLI_CONTINOUS_EXP);                
          break;    
 
       case NCSCLI_GROUP:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_GRP_NODE)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_GRP_NODE);
+         strcpy(cmd_node->tokName, CLI_GRP_NODE);
          break;
 
       case NCSCLI_OPTIONAL:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_OPT_NODE)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_OPT_NODE);
+         strcpy(cmd_node->tokName, CLI_OPT_NODE);
          break;      
 
       case NCSCLI_STRING:
            cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_STRING)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_STRING);
+         strcpy(cmd_node->tokName, CLI_STRING);
          break;
 
       case NCSCLI_NUMBER:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_NUMBER)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_NUMBER);
+         strcpy(cmd_node->tokName, CLI_NUMBER);
          break;
 
       case NCSCLI_CIDRv4:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_CIDRv4)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_CIDRv4);
+         strcpy(cmd_node->tokName, CLI_CIDRv4);
          break;
 
       case NCSCLI_IPv4:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_IPADDRESSv4)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_IPADDRESSv4);
+         strcpy(cmd_node->tokName, CLI_IPADDRESSv4);
          break;
 
       case NCSCLI_IPv6:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_IPADDRESSv6)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_IPADDRESSv6);
+         strcpy(cmd_node->tokName, CLI_IPADDRESSv6);
          break;
 
       case NCSCLI_MASKv4:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_IPMASKv4)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_IPMASKv4);
+         strcpy(cmd_node->tokName, CLI_IPMASKv4);
          break;
 
       case NCSCLI_CIDRv6:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_CIDRv6)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_CIDRv6);
+         strcpy(cmd_node->tokName, CLI_CIDRv6);
          break;                
 
       case NCSCLI_PASSWORD:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_PASSWORD)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_PASSWORD);
+         strcpy(cmd_node->tokName, CLI_PASSWORD);
          break;
 
       case NCSCLI_COMMUNITY:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_COMMUNITY)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_COMMUNITY);
+         strcpy(cmd_node->tokName, CLI_COMMUNITY);
          break;  
 
       case NCSCLI_WILDCARD:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_WILDCARD)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_WILDCARD);
+         strcpy(cmd_node->tokName, CLI_WILDCARD);
          break;
 
       case NCSCLI_MACADDR:
             cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(CLI_MACADDR)+1);
             if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         m_NCS_OS_STRCPY(cmd_node->tokName, CLI_MACADDR);
+         strcpy(cmd_node->tokName, CLI_MACADDR);
          break;
 
       default:
@@ -1873,7 +1873,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
 
         i_node->helpStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(token)+1);
         if(!i_node->helpStr) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-      m_NCS_OS_STRCPY(i_node->helpStr, token);            
+      strcpy(i_node->helpStr, token);            
       break;    
 
    case CLI_DEFALUT_VALUE:
@@ -1888,7 +1888,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
          token_len = m_NCS_OS_STRLEN(token) + 1;
          i_node->defVal = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
          if(!i_node->defVal) return;
-         m_NCS_OS_STRCPY(((int8 *)i_node->defVal), token);
+         strcpy(((int8 *)i_node->defVal), token);
       }
       break;        
 
@@ -1912,7 +1912,7 @@ void cli_set_token_attrib(CLI_CB             *pCli,
       i_node->modChg = TRUE;
       i_node->nodePath = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(token)+1);
         if(!i_node->nodePath) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-      m_NCS_OS_STRCPY(i_node->nodePath, token);            
+      strcpy(i_node->nodePath, token);            
       break;
     
    case CLI_DO_FUNC:
@@ -1953,7 +1953,7 @@ get_range_values(CLI_CMD_ELEMENT    *i_node,
    
       i_node->range->lLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
       if(!i_node->range->lLimit) return;
-      m_NCS_OS_STRCPY(((int8 *)i_node->range->lLimit), token);
+      strcpy(((int8 *)i_node->range->lLimit), token);
    }
 
    while(0 != token) {
@@ -1972,7 +1972,7 @@ get_range_values(CLI_CMD_ELEMENT    *i_node,
             token_len = m_NCS_OS_STRLEN(token) + 1;
             i_node->range->uLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
             if(!i_node->range->uLimit) return;
-            m_NCS_OS_STRCPY(((int8 *)i_node->range->uLimit), token);
+            strcpy(((int8 *)i_node->range->uLimit), token);
          }
       }
    }

@@ -241,7 +241,7 @@ typedef struct ncs_key
 
 #define m_SET_STR_KEY(k,s,t,v)     { m_KEY_CHK_SLEN(v); k.svc=s;k.type=t; \
                                      k.fmat=NCS_FMT_STR;  \
-                                     m_NCS_STRCPY((char*)k.val.str,(const char*)v); }
+                                     strcpy((char*)k.val.str,(const char*)v); }
 
 #define m_GET_STR_KEY(k,s)         { m_KEY_CHK_FMT(k,NCS_FMT_STR);s=k.val.str; }
 

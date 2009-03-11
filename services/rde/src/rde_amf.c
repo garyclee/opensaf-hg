@@ -333,7 +333,7 @@ static uns32 rde_amf_register(RDE_AMF_CB *rde_amf_cb)
    SaNameT        sname;
    
    sname.length = m_NCS_STRLEN(rde_amf_cb->comp_name);
-   m_NCS_STRCPY(sname.value,rde_amf_cb->comp_name);
+   strcpy(sname.value,rde_amf_cb->comp_name);
 
    /* 
     * register RDE component with AvSv 
@@ -371,7 +371,7 @@ static uns32 rde_amf_unregister(RDE_AMF_CB *rde_amf_cb)
    SaNameT        sname;
    
    sname.length = m_NCS_STRLEN(rde_amf_cb->comp_name);
-   m_NCS_STRCPY(sname.value, rde_amf_cb->comp_name);
+   strcpy(sname.value, rde_amf_cb->comp_name);
 
    /* 
     * Unregister RDE component with AvSv 
@@ -412,7 +412,7 @@ static uns32 rde_fla_log_bind(void)
    /* fill version no. */
    reg.info.bind_svc.version = NCS_RDE_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "RDE");
+   strcpy(reg.info.bind_svc.svc_name, "RDE");
 
    return(ncs_dtsv_su_req(&reg));   
 }
@@ -520,7 +520,7 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
    ** Start the AMF health check 
    */   
    memset(&SaCompName,0,sizeof(SaCompName));
-   m_NCS_STRCPY(SaCompName.value, rde_amf_cb->comp_name);
+   strcpy(SaCompName.value, rde_amf_cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(rde_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
@@ -530,13 +530,13 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
       /*
       ** default health check key 
       */
-      m_NCS_STRCPY(hlth_str, "BAD10");
+      strcpy(hlth_str, "BAD10");
    } 
    else
    {
-      m_NCS_STRCPY(hlth_str, phlth_ptr);
+      strcpy(hlth_str, phlth_ptr);
    }
-   m_NCS_STRCPY(Healthy.key, hlth_str);
+   strcpy(Healthy.key, hlth_str);
    Healthy.keyLen = m_NCS_OS_STRLEN(Healthy.key);
 
    m_NCS_CONS_PRINTF("Healthcheck key: %s\n", Healthy.key);
@@ -599,7 +599,7 @@ static uns32 rde_amf_lib_init(RDE_AMF_CB *rde_amf_cb)
          rc = NCSCC_RC_FAILURE;
          break;
       }  
-      m_NCS_STRCPY(rde_amf_cb->comp_name, sname.value);
+      strcpy(rde_amf_cb->comp_name, sname.value);
 
       /* 
       ** Get the AMF selection object 

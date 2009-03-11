@@ -490,7 +490,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
   memset(p_vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
 
-  m_NCS_STRCPY(p_vip_redRec->handle.vipApplName, p_vipd_rec_info->handle.vipApplName);
+  strcpy(p_vip_redRec->handle.vipApplName, p_vipd_rec_info->handle.vipApplName);
   p_vip_redRec->handle.poolHdl = p_vipd_rec_info->handle.poolHdl;
   p_vip_redRec->handle.ipPoolType = p_vipd_rec_info->handle.ipPoolType;
   p_vip_redRec->vip_entry_attr = p_vipd_rec_info->vip_entry_attr;
@@ -516,7 +516,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
                p_temp_ip_rec->ip_addr.ipaddr.type = NCS_IP_ADDR_TYPE_IPV4;
                p_temp_ip_rec->ip_addr.mask_len = ip_list->ip_addr.mask_len;
                p_temp_ip_rec->ipAllocated =  m_IFSV_IS_VIP_ALLOCATED(p_vipd_rec_info->vip_entry_attr);
-               m_NCS_STRCPY(p_temp_ip_rec->intfName, ip_list->intfName);
+               strcpy(p_temp_ip_rec->intfName, ip_list->intfName);
       
                ip_node = ncs_db_link_list_find_next(&(p_vipd_rec_info)->ip_list, (uns8 *)(&p_temp_ip_rec->ip_addr) );
                if(ip_node != IFSV_NULL)
@@ -553,7 +553,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
                intf_list = (NCS_IFSV_VIP_INTF_LIST *)intf_node;
 
                /*p_temp_intf_rec->active_standby =*/ /*TBD::KISHORE*/
-               m_NCS_STRCPY(p_temp_intf_rec->intfName, intf_list->intf_name);
+               strcpy(p_temp_intf_rec->intfName, intf_list->intf_name);
          
                intf_node = ncs_db_link_list_find_next(&(p_vipd_rec_info)->intf_list, (uns8 *)(&p_temp_intf_rec->intfName) );
                if(intf_node != IFSV_NULL)

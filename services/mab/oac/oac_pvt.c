@@ -2060,7 +2060,7 @@ uns32 oac_dup_warmboot_req(MAB_PSS_WARMBOOT_REQ *in, MAB_PSS_WARMBOOT_REQ *out)
          oac_free_wbreq(req_head);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_STRCPY(req->pcn_list.pcn, in_req->pcn_list.pcn);
+      strcpy(req->pcn_list.pcn, in_req->pcn_list.pcn);
 
       /* Duplicate the table-list */
       tlist = in_req->pcn_list.tbl_list;
@@ -2154,7 +2154,7 @@ uns32 oac_gen_tbl_bind(OAA_PCN_LIST *pcn_list, MAB_PSS_TBL_BIND_EVT **o_bind)
             oac_free_bind_req_list(list_head);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_STRCPY(list->pcn_list.pcn, in_req->pcn);
+         strcpy(list->pcn_list.pcn, in_req->pcn);
 
          if(list_head == NULL)
             prv_list = list_head = list;

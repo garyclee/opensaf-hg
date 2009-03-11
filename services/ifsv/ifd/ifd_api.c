@@ -199,8 +199,8 @@ ifd_lib_init (IFSV_CREATE_PWE *pwe_param)
          printf("saAmfComponentNameGet failed\n");
          goto ifd_mds_fail;
       }
-      m_NCS_STRCPY(ifsv_cb->comp_name, sname.value);         
-      m_NCS_STRCPY(m_IFD_COMP_NAME, sname.value);         
+      strcpy(ifsv_cb->comp_name, sname.value);         
+      strcpy(m_IFD_COMP_NAME, sname.value);         
 
 
       if ((res = ifd_mds_init(ifsv_cb)) != NCSCC_RC_SUCCESS)
@@ -405,7 +405,7 @@ ifd_lib_destroy (uns32 vrid, uns32 comp_type)
    } else
    {      
       sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
-      m_NCS_STRCPY(sname.value,ifsv_cb->comp_name);
+      strcpy(sname.value,ifsv_cb->comp_name);
       saAmfComponentUnregister(ifsv_cb->amf_hdl, &sname, (SaNameT*)IFSV_NULL);
       saAmfFinalize(ifsv_cb->amf_hdl);      
       

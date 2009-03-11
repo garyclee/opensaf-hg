@@ -163,9 +163,9 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    else
       m_LOG_GLD_SVC_PRVDR(GLD_MIBLIB_REGISTER_SUCCESS,NCSFL_SEV_INFO);
 
-   m_NCS_OS_STRCPY(gld_cb->saf_spec_ver.value,"B.01.01");
+   strcpy(gld_cb->saf_spec_ver.value,"B.01.01");
    gld_cb->saf_spec_ver.length   = m_NCS_STRLEN("B.01.01");
-   m_NCS_OS_STRCPY(gld_cb->saf_agent_vend.value,"OpenSAF");
+   strcpy(gld_cb->saf_agent_vend.value,"OpenSAF");
    gld_cb->saf_agent_vend.length = m_NCS_STRLEN("OpenSAF");
    gld_cb->saf_agent_vend_prod   = 2;
    gld_cb->saf_serv_state_enabled= FALSE;
@@ -227,12 +227,12 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(Healthy.key,"A1B2");
+      strcpy(Healthy.key,"A1B2");
       m_LOG_GLD_HEADLINE(GLD_HEALTH_KEY_DEFAULT_SET, NCSFL_SEV_INFO);
    }
    else
    {
-      m_NCS_STRCPY(Healthy.key,health_key);
+      strcpy(Healthy.key,health_key);
    }
    Healthy.keyLen=strlen(Healthy.key);
 

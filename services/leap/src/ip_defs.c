@@ -296,7 +296,7 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
        **/
     ifr = &ifc.ifc_req[i];
     memset(&ifra,0,sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFADDR,(int)&ifra) < 0)
       { 
     /*printf("\nSIOCGIFADDR failed:%d\n", errno);*/
@@ -310,7 +310,7 @@ os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6)
        continue;
       }
     memset(&ifra,0,sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFINDEX,(int)&ifra) < 0)
       { 
     /*printf("\nSIOCGIFINDEX failed:%d\n", errno);*/
@@ -387,7 +387,7 @@ os_ifidx_to_ipv6(unsigned int ifIndex, NCS_IPV6_ADDR *ip_addr)
   {
     ifr = &ifc.ifc_req[i];
     memset(&ifra, 0, sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     ioctl(s,SIOCGIFINDEX,(int)&ifra);
     if (ifra.ifr_ifindex == ifIndex)
     {
@@ -509,7 +509,7 @@ os_ipv4_to_ifidx(unsigned int hbo_ipv4)
        **/
     ifr = &ifc.ifc_req[i];
     memset(&ifra,0,sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFADDR,(int)&ifra) < 0)
       { 
     /*printf("\nSIOCGIFADDR failed:%d\n", errno);*/
@@ -521,7 +521,7 @@ os_ipv4_to_ifidx(unsigned int hbo_ipv4)
        continue;
       }
     memset(&ifra,0,sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     if(ioctl(s,SIOCGIFINDEX,(int)&ifra) < 0)
       { 
     /*printf("\nSIOCGIFINDEX failed:%d\n", errno);*/
@@ -598,7 +598,7 @@ os_ifidx_to_ipv4(unsigned int ifIndex)
   {
     ifr = &ifc.ifc_req[i];
     memset(&ifra, 0, sizeof(ifra));
-    m_NCS_OS_STRCPY (ifra.ifr_name, ifr->ifr_name);
+    strcpy (ifra.ifr_name, ifr->ifr_name);
     ioctl(s,SIOCGIFINDEX,(int)&ifra);
     if (ifra.ifr_ifindex == ifIndex)
     {

@@ -81,7 +81,7 @@ void mqnd_flx_log_reg (void)
    /* fill version no. */
    reg.info.bind_svc.version = MQSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "MQSv");
+   strcpy(reg.info.bind_svc.svc_name, "MQSv");
 
    ncs_dtsv_su_req(&reg);
    return;

@@ -124,7 +124,7 @@ snmpsubagt_cb_init(void)
     cb->healthCheckStarted = FALSE; 
     
     /* Fill in the Health check key */ 
-    m_NCS_STRCPY(cb->healthCheckKey.key,m_SNMPSUBAGT_AMF_HELATH_CHECK_KEY);
+    strcpy(cb->healthCheckKey.key,m_SNMPSUBAGT_AMF_HELATH_CHECK_KEY);
     cb->healthCheckKey.keyLen=m_NCS_STRLEN(cb->healthCheckKey.key);
 
     /* Health check invocation type; for subagent, health check will be
@@ -145,7 +145,7 @@ snmpsubagt_cb_init(void)
     /* initialize the event filters */ 
 
     /* 1. Initialize the filter string */
-    m_NCS_STRCPY(cb->evtPatternStr, m_SNMPSUBAGT_EDA_EVT_FILTER_PATTERN);
+    strcpy(cb->evtPatternStr, m_SNMPSUBAGT_EDA_EVT_FILTER_PATTERN);
 
     /* 2. Initialize the pattern structure */
     cb->evtFilter.filterType = SA_EVT_PASS_ALL_FILTER;
@@ -158,7 +158,7 @@ snmpsubagt_cb_init(void)
     cb->evtFilters.filters = &cb->evtFilter; 
     
     /* update the Channel Name */
-    m_NCS_STRCPY(cb->evtChannelName.value, m_SNMPSUBAGT_EDA_EVT_CHANNEL_NAME); 
+    strcpy(cb->evtChannelName.value, m_SNMPSUBAGT_EDA_EVT_CHANNEL_NAME); 
     cb->evtChannelName.length = strlen(cb->evtChannelName.value);
 
     /* EDU_HDL init */

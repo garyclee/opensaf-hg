@@ -857,7 +857,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
        return NULL;
    }
    memset(tmp->pcn, '\0', (m_NCS_STRLEN(pcn)+1));
-   m_NCS_STRCPY(tmp->pcn, pcn);
+   strcpy(tmp->pcn, pcn);
    tmp->tbl_id = tbl_id;
    if(prv_tmp != NULL)
       prv_tmp->next = tmp;
@@ -979,7 +979,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
         return NCSCC_RC_FAILURE;
     }
     memset(tmp_list->pcn, '\0', lcl_strlen + 1);
-    m_NCS_STRCPY(tmp_list->pcn, wbr->i_pcn);
+    strcpy(tmp_list->pcn, wbr->i_pcn);
     tmp_list->is_system_client = wbr->is_system_client;
 
     /* Assign the wbreq_hdl here. */
@@ -1205,7 +1205,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
        return NCSCC_RC_FAILURE;
     }
     memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(list->pcn))+1);
-    m_NCS_STRCPY(req->pcn_list.pcn, list->pcn);
+    strcpy(req->pcn_list.pcn, list->pcn);
     req->wbreq_hdl = list->wbreq_hdl;
 
     /* Duplicate the table-list */
@@ -1417,7 +1417,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
           return NCSCC_RC_FAILURE;
       }
       memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(in_wbreq->i_pcn)+1));
-      m_NCS_STRCPY(req->pcn_list.pcn, in_wbreq->i_pcn);
+      strcpy(req->pcn_list.pcn, in_wbreq->i_pcn);
       req->is_system_client = in_wbreq->is_system_client; 
     }
 
@@ -1562,7 +1562,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
             return NCSCC_RC_FAILURE;
          }
          memset(bind_evt.pcn_list.pcn, '\0', (m_NCS_STRLEN(p_pcn->pcn)+1));
-         m_NCS_STRCPY(bind_evt.pcn_list.pcn, p_pcn->pcn);
+         strcpy(bind_evt.pcn_list.pcn, p_pcn->pcn);
 
          if((bind_evt.pcn_list.tbl_list = m_MMGR_ALLOC_MAB_PSS_TBL_LIST) == NULL)
          {

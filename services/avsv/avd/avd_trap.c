@@ -1552,11 +1552,11 @@ uns32 avd_eda_initialize(AVD_CL_CB  *avd_cb)
    
    if(!avd_cb->evtHandle)
    {
-         m_NCS_STRCPY(avd_cb->publisherName.value, AVD_EDA_EVT_PUBLISHER_NAME);
+         strcpy(avd_cb->publisherName.value, AVD_EDA_EVT_PUBLISHER_NAME);
          avd_cb->publisherName.length = m_NCS_STRLEN(avd_cb->publisherName.value);
 
          /* update the Channel Name */
-         m_NCS_STRCPY(avd_cb->evtChannelName.value, m_SNMP_EDA_EVT_CHANNEL_NAME);
+         strcpy(avd_cb->evtChannelName.value, m_SNMP_EDA_EVT_CHANNEL_NAME);
          avd_cb->evtChannelName.length = m_NCS_STRLEN(avd_cb->evtChannelName.value);
 
          /* initialize the eda  */

@@ -102,7 +102,7 @@ uns32 cli_stricmp(int8 *i_str1, int8 *i_str2)
 #define m_CLI_REDISPLAY_CMD(pCli, str)\
 {\
    if(0 != pCli->ctree_cb.htryMrkr.cmd_node)\
-      m_NCS_OS_STRCPY(str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);\
+      strcpy(str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);\
 }
 
 
@@ -142,7 +142,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
 
       pCli->ctree_cb.cmdHtry->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
       if(!pCli->ctree_cb.cmdHtry->pCmdStr) return;
-      m_NCS_OS_STRCPY(pCli->ctree_cb.cmdHtry->pCmdStr, i_cmdstr);      
+      strcpy(pCli->ctree_cb.cmdHtry->pCmdStr, i_cmdstr);      
       
       pCli->ctree_cb.htryMrkr.cmd_node = pCli->ctree_cb.cmdHtry;
       pCli->ctree_cb.htryMrkr.cmd_count++;
@@ -179,7 +179,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       memset(pCurr, 0, sizeof(CLI_CMD_HISTORY));      
       pCurr->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
       if(!pCurr->pCmdStr) return;
-      m_NCS_OS_STRCPY(pCurr->pCmdStr, i_cmdstr);
+      strcpy(pCurr->pCmdStr, i_cmdstr);
       
       pCurr->prev = pPrev;                
       pCli->ctree_cb.htryMrkr.cmd_node = pCurr;
@@ -202,7 +202,7 @@ void cli_get_cmd_from_history(CLI_CB *pCli, int8 *i_str, uns32 i_direction)
    if(!pCli->ctree_cb.htryMrkr.cmd_node) return;
 
    if(CLI_HIS_BWD_MVMT == i_direction) {               
-      m_NCS_OS_STRCPY(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
+      strcpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
       
       if(0 != pCli->ctree_cb.htryMrkr.cmd_node->prev) {
          pCli->ctree_cb.htryMrkr.cmd_node = 
@@ -212,7 +212,7 @@ void cli_get_cmd_from_history(CLI_CB *pCli, int8 *i_str, uns32 i_direction)
    else if(CLI_HIS_FWD_MVMT == i_direction) {        
       if(0 != pCli->ctree_cb.htryMrkr.cmd_node->next) {
          pCli->ctree_cb.htryMrkr.cmd_node = pCli->ctree_cb.htryMrkr.cmd_node->next;                
-         m_NCS_OS_STRCPY(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
+         strcpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
       }
    }   
 }
@@ -385,7 +385,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
    
    /*Reset the buffer */
    memset(buffer, 0, CLI_BUFFER_SIZE);    
-   m_NCS_OS_STRCPY(session_info.prompt_string, CLI_ROUTER_NAME);
+   strcpy(session_info.prompt_string, CLI_ROUTER_NAME);
    
    m_CLI_SET_CURRENT_CONTEXT(pCli, TRUE);
    
@@ -1091,9 +1091,9 @@ void cli_init(CLI_CB *pCli)
    m_NCS_SEM_CREATE(&pCli->cefSem);
 
    /* default cli user group names(59359) */
-   m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_viewer,NCSCLI_VIEWER);
-   m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_admin,NCSCLI_ADMIN);
-   m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_superuser,NCSCLI_SUPERUSER);
+   strcpy(pCli->cli_user_group.ncs_cli_viewer,NCSCLI_VIEWER);
+   strcpy(pCli->cli_user_group.ncs_cli_admin,NCSCLI_ADMIN);
+   strcpy(pCli->cli_user_group.ncs_cli_superuser,NCSCLI_SUPERUSER);
 
 }
 

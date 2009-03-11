@@ -237,7 +237,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
     }
     else
     {
-       m_NCS_STRCPY((char*)&tbl_info->ptbl_info->mib_tbl_name, (char*)tbl_owned->tbl_info.mib_tbl_name);
+       strcpy((char*)&tbl_info->ptbl_info->mib_tbl_name, (char*)tbl_owned->tbl_info.mib_tbl_name);
     }
 
     if(tbl_arg_info->objects_local_to_tbl != NULL)
@@ -291,7 +291,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
         var_info[i].var_info  = tbl_owned->var_info[i];
 
         var_info[i].var_info.mib_obj_name = NULL;
-        m_NCS_STRCPY((char*)&var_info[i].var_name, (char*)tbl_owned->var_info[i].mib_obj_name);
+        strcpy((char*)&var_info[i].var_name, (char*)tbl_owned->var_info[i].mib_obj_name);
 
         /* Need allocate memory for mib_obj_name from NCSMIB_VAR_INFO. */ 
         var_info[i].offset     = row_length;
@@ -730,7 +730,7 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
 
 
     /* copy the default current profile name */ 
-    m_NCS_STRCPY((char *)inst->current_profile, pssts_arg.info.pss_config.current_profile_name);
+    strcpy((char *)inst->current_profile, pssts_arg.info.pss_config.current_profile_name);
 
     /* get the OAA handle with the help of SPRR */ 
     memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO));
@@ -1114,7 +1114,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
             goto go_fail;
         }
         memset(list->pcn, '\0', str_len + 1);
-        m_NCS_STRCPY(list->pcn, &pcn);
+        strcpy(list->pcn, &pcn);
         list->plbck_frm_bam = (NCS_BOOL)boolean;
 
         m_LOG_PSS_INFO(NCSFL_SEV_INFO, PSS_INFO_SPCN, &pcn, boolean);
@@ -1764,7 +1764,7 @@ void pss_cb_data_dump( )
       return;
 
    m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod);
-   m_NCS_STRCPY(tmp_file, "/tmp/ncs_pssv_dump");
+   strcpy(tmp_file, "/tmp/ncs_pssv_dump");
    m_NCS_STRCAT(tmp_file, asc_tod);
    m_NCS_STRCAT(tmp_file, ".txt");
 

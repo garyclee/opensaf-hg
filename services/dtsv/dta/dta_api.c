@@ -373,7 +373,7 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
     svc->svc_id = svc_id;
 
     svc->version = bind_svc->version;
-    m_NCS_STRCPY(svc->svc_name, bind_svc->svc_name); 
+    strcpy(svc->svc_name, bind_svc->svc_name); 
  
     svc->node.key_info = (uns8 *)&svc->svc_id;
 
@@ -612,7 +612,7 @@ uns32 dta_fill_reg_msg(DTSV_MSG  *msg, SS_SVC_ID svc_id,
           msg->data.data.reg.svc_id = svc_id;
           msg->data.data.reg.version = version;
           if(svc_name != NULL)
-             m_NCS_STRCPY(msg->data.data.reg.svc_name, svc_name);
+             strcpy(msg->data.data.reg.svc_name, svc_name);
 
           break;
  
@@ -621,7 +621,7 @@ uns32 dta_fill_reg_msg(DTSV_MSG  *msg, SS_SVC_ID svc_id,
           msg->data.data.unreg.version = version;
 
           if(svc_name != NULL)
-             m_NCS_STRCPY(msg->data.data.unreg.svc_name, svc_name);
+             strcpy(msg->data.data.unreg.svc_name, svc_name);
 
           break;
 

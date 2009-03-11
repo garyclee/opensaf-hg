@@ -217,7 +217,7 @@ void ncs_str_to_ipv6addr(NCS_IPV6_ADDR *o_v6addr, int8* i_str)
 
    /* Fill the arg_val */
    memset(buffer, 0, sizeof(buffer));
-   m_NCS_OS_STRCPY(buffer, i_str);
+   strcpy(buffer, i_str);
 
    token = sysf_strtok(buffer, delimiter);
 

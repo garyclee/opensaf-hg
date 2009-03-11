@@ -843,7 +843,7 @@ void* ncs_regx_init(char* pattern)
       return NULL;
    }
    
-   m_NCS_STRCPY( regx->t_alist.t_pattern, pattern);
+   strcpy( regx->t_alist.t_pattern, pattern);
    return (void*) regx;
 }
 

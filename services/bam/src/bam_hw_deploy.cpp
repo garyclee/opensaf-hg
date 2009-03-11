@@ -74,7 +74,7 @@ bam_fill_dependant_ent_name(DOMNode *node,  BAM_ENT_DEPLOY_DESC *deploy_ent)
 
          if(m_NCS_STRCMP(tag, "EntityDeploymentInstanceName") == 0)
          {
-            m_NCS_STRCPY(deploy_ent->depends_on_for_act, val);
+            strcpy(deploy_ent->depends_on_for_act, val);
          }
          XMLString::release(&tag);
          XMLString::release(&val);
@@ -193,7 +193,7 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
 
             if(m_NCS_STRCMP(tag, "EntityTypeInstanceName") == 0)
             {
-               m_NCS_STRCPY(deploy_ent->ent_name, val);
+               strcpy(deploy_ent->ent_name, val);
             }
             else if(m_NCS_STRCMP(tag, "EntityLocation") == 0)
             {
@@ -201,11 +201,11 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
             }
             else if(m_NCS_STRCMP(tag, "NodeName") == 0)
             {
-               m_NCS_STRCPY(deploy_ent->ncs_node_name, val);
+               strcpy(deploy_ent->ncs_node_name, val);
             }
             else if(m_NCS_STRCMP(tag, "Name") == 0)
             {
-               m_NCS_STRCPY(deploy_ent->desc_name, val);
+               strcpy(deploy_ent->desc_name, val);
             }
             else if(m_NCS_STRCMP(tag, "HPIEntityType") == 0)
             {
@@ -243,7 +243,7 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
    
    if(parent_ent)
    {
-      m_NCS_STRCPY(deploy_ent->parent_ent_name, parent_ent);
+      strcpy(deploy_ent->parent_ent_name, parent_ent);
    }
      
    if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
@@ -317,27 +317,27 @@ parse_net_boot_childs(DOMNode *node, BAM_ENT_DEPLOY_DESC *deploy_ent)
             memcpy(ptr, (char *)&int_val, sizeof(uns32));
             ptr[4] = '\0';
             
-            m_NCS_STRCPY(deploy_ent->tftpServIp, ptr);
+            strcpy(deploy_ent->tftpServIp, ptr);
          }
          else if(m_NCS_STRCMP(tag, "label1Name") == 0)
          {
-            m_NCS_STRCPY(deploy_ent->label1Name, val);
+            strcpy(deploy_ent->label1Name, val);
          }
          else if(m_NCS_STRCMP(tag, "label1FileName") == 0)
          {
-            m_NCS_STRCPY(deploy_ent->label1FileName, val);
+            strcpy(deploy_ent->label1FileName, val);
          }
          else if(m_NCS_STRCMP(tag, "label2Name") == 0)
          {
-            m_NCS_STRCPY(deploy_ent->label2Name, val);
+            strcpy(deploy_ent->label2Name, val);
          }
          else if(m_NCS_STRCMP(tag, "label2FileName") == 0)
          {
-             m_NCS_STRCPY(deploy_ent->label2FileName, val);
+             strcpy(deploy_ent->label2FileName, val);
          }
          else if(m_NCS_STRCMP(tag, "preferredLabel") == 0)
          {
-            m_NCS_STRCPY(deploy_ent->preferredLabel, val);
+            strcpy(deploy_ent->preferredLabel, val);
          }
  
       }
@@ -448,7 +448,7 @@ bam_send_hw_deployment_mibs(void)
       if(ent != NULL)
       {
          /* send the related MIBS */
-          m_NCS_STRCPY(ent_path, "{");
+          strcpy(ent_path, "{");
           m_NCS_STRCAT(ent_path, ent->ent_path);
           m_NCS_STRCAT(ent_path, "}");
 
@@ -594,7 +594,7 @@ bam_send_hw_deployment_mibs(void)
                                               (uns8 *)ent->depends_on_for_act);
             if(dep_ent != NULL)
             {
-                m_NCS_STRCPY(dep_ent_path, "{");
+                strcpy(dep_ent_path, "{");
                 m_NCS_STRCAT(dep_ent_path, dep_ent->ent_path);
                 m_NCS_STRCAT(dep_ent_path, "}");
 
@@ -622,7 +622,7 @@ bam_send_hw_deployment_mibs(void)
    {
       ent = list_node->node;
 
-      m_NCS_STRCPY(ent_path, "{");
+      strcpy(ent_path, "{");
       m_NCS_STRCAT(ent_path, ent->ent_path);
       m_NCS_STRCAT(ent_path, "}");
 

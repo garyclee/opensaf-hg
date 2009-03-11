@@ -213,9 +213,9 @@ static uns32 mqd_lib_init(void)
    /* CLM Initialize */
 
    /* Initialize the MIBs scalar objects */
-   m_NCS_OS_STRCPY(pMqd->safSpecVer.value,"B.03.01");
+   strcpy(pMqd->safSpecVer.value,"B.03.01");
    pMqd->safSpecVer.length = m_NCS_STRLEN("B.03.01");
-   m_NCS_OS_STRCPY(pMqd->safAgtVen.value,"OpenSAF");
+   strcpy(pMqd->safAgtVen.value,"OpenSAF");
    pMqd->safAgtVen.length = m_NCS_STRLEN("OpenSAF");
    pMqd->safAgtVenPro = 2;
    pMqd->serv_enabled = FALSE;
@@ -247,7 +247,7 @@ static uns32 mqd_lib_init(void)
 #if NCS_2_0 /* Not needed for NCS ver(1.0) */
    /* Register MQSv - MQD component with AvSv */
    sname.length = m_NCS_STRLEN(MQD_COMP_NAME);
-   m_NCS_STRCPY(sname.value, MQD_COMP_NAME);
+   strcpy(sname.value, MQD_COMP_NAME);
 
    saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
    if(SA_AIS_OK != saErr) {    /* Handle failure */
@@ -305,11 +305,11 @@ static uns32 mqd_lib_init(void)
    health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(healthy.key,"E5F6");
+      strcpy(healthy.key,"E5F6");
    }
    else
    {
-       m_NCS_STRCPY(healthy.key,health_key);
+       strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);
 
@@ -362,7 +362,7 @@ static void mqd_lib_destroy(void)
    if(pMqd) {
 #if NCS_2_0 /* Required for NCS 2.0 */
       sname.length = m_NCS_STRLEN(MQD_COMP_NAME);
-      m_NCS_STRCPY(sname.value, MQD_COMP_NAME);
+      strcpy(sname.value, MQD_COMP_NAME);
 
       /* Deregister MQSv - MQD component from AVSv */
       saAmfComponentUnregister(pMqd->amf_hdl, &sname, (SaNameT*)0);
@@ -554,7 +554,7 @@ static uns32 mqd_cb_init(MQD_CB *pMqd)
 
    pMqd->hmpool = NCS_HM_POOL_ID_COMMON;
    pMqd->my_svc_id = NCS_SERVICE_ID_MQD;
-   m_NCS_STRCPY(&pMqd->my_name, MQD_COMP_NAME);
+   strcpy(&pMqd->my_name, MQD_COMP_NAME);
 
    /* Initilaze the database tree */
    params.key_size = sizeof(SaNameT);

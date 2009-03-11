@@ -296,7 +296,7 @@ uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot, uns32 subslot)
          return(NCSCC_RC_FAILURE);
          
       }
-      m_NCS_STRCPY(task_name,"ifsv_app");
+      strcpy(task_name,"ifsv_app");
       sprintf(tmp_char,"%d",test_app_index);
       m_NCS_STRCAT(task_name,tmp_char);
       
@@ -663,8 +663,8 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
       svc_req.info.i_ifadd.spt_info.type  = port_type;
       svc_req.info.i_ifadd.if_info.admin_state =  TRUE;
       svc_req.info.i_ifadd.if_info.if_am       = (NCS_IFSV_IAM_MTU|NCS_IFSV_IAM_IFSPEED|NCS_IFSV_IAM_PHYADDR|NCS_IFSV_IAM_ADMSTATE|NCS_IFSV_IAM_OPRSTATE);
-      m_NCS_STRCPY(svc_req.info.i_ifadd.if_info.if_descr,"haha dummy intf");
-      m_NCS_STRCPY(svc_req.info.i_ifadd.if_info.if_name,if_name);
+      strcpy(svc_req.info.i_ifadd.if_info.if_descr,"haha dummy intf");
+      strcpy(svc_req.info.i_ifadd.if_info.if_name,if_name);
       svc_req.info.i_ifadd.if_info.if_speed = speed;
       svc_req.info.i_ifadd.if_info.mtu      = MTU;
       svc_req.info.i_ifadd.if_info.oper_state = oper_state;
@@ -1010,7 +1010,7 @@ uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
        svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_NAME;                  
-      m_NCS_STRCPY(svc_req.info.i_ifadd.if_info.if_name,temp_name);
+      strcpy(svc_req.info.i_ifadd.if_info.if_name,temp_name);
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
          m_NCS_CONS_PRINTF("IfA could not able to Modify physical address\n");

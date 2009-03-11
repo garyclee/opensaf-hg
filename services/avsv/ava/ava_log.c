@@ -306,7 +306,7 @@ uns32 ava_log_reg (void)
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
    reg.info.bind_svc.version = AVSV_LOG_VERSION;
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "AvSv"); 
+   strcpy(reg.info.bind_svc.svc_name, "AvSv"); 
 
    rc = ncs_dtsv_su_req(&reg);
 

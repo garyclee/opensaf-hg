@@ -164,12 +164,12 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(healthy.key,"A1B2");
+      strcpy(healthy.key,"A1B2");
     /* TBD Log the info */
    }
    else
    {
-      m_NCS_STRCPY(healthy.key,health_key);
+      strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);
 

@@ -137,7 +137,7 @@ eds_flx_log_reg (void)
    /* fill version no. */
    reg.info.bind_svc.version = EDSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "EDSv");
+   strcpy(reg.info.bind_svc.svc_name, "EDSv");
 
    ncs_dtsv_su_req(&reg);
    return;

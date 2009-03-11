@@ -56,7 +56,7 @@ uns32 mbcsv_log_bind(void)
     reg.i_op = NCS_DTSV_OP_BIND;
     reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MBCSV;
     reg.info.bind_svc.version = MBCSV_LOG_VERSION;
-    m_NCS_STRCPY(reg.info.bind_svc.svc_name, "MBCSv");
+    strcpy(reg.info.bind_svc.svc_name, "MBCSv");
   
     if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
         return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 

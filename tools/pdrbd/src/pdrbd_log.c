@@ -52,7 +52,7 @@ uns32 pdrbd_log_bind(void)
     /* fill version no. */
     reg.info.bind_svc.version = PDRBD_LOG_VERSION;
     /* fill svc_name */
-    m_NCS_STRCPY(reg.info.bind_svc.svc_name, "PDRBD");
+    strcpy(reg.info.bind_svc.svc_name, "PDRBD");
 
     if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
     {

@@ -412,8 +412,8 @@ uns32 avsv_amf_csi_attr_list_copy (SaAmfCSIAttributeListT *dattr,
       }
 
       /* copy the attr name & value */
-      m_NCS_STRCPY(dattr->attr[cnt].attrName, sattr->attr[cnt].attrName);
-      m_NCS_STRCPY(dattr->attr[cnt].attrValue, sattr->attr[cnt].attrValue);
+      strcpy(dattr->attr[cnt].attrName, sattr->attr[cnt].attrName);
+      strcpy(dattr->attr[cnt].attrValue, sattr->attr[cnt].attrValue);
 
       /* increment the attr name-val pair cnt that is copied */
       dattr->number++;

@@ -60,7 +60,7 @@ void cpa_flx_log_reg(void)
    /* fill version no. */
    reg.info.bind_svc.version = CPSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "CPSv");
+   strcpy(reg.info.bind_svc.svc_name, "CPSv");
 
    ncs_dtsv_su_req(&reg);
    return;

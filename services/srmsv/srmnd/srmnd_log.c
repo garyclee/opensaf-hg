@@ -57,7 +57,7 @@ uns32 srmnd_log_reg()
    /* fill version no. */
    reg.info.bind_svc.version = SRMSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "SRMSv");
+   strcpy(reg.info.bind_svc.svc_name, "SRMSv");
 
    rc = ncs_dtsv_su_req(&reg);
 

@@ -334,7 +334,7 @@ lt_file_ops(int argc, char **argv)
             }
 
             m_NCS_CONS_PRINTF("Next file: %s\n", buf5);
-            m_NCS_OS_STRCPY(buf4, buf5);
+            strcpy(buf4, buf5);
             file_handle.info.get_next.i_file_name = (uns8 *) buf4;
         } while(buf5[0] != '\0');
     }

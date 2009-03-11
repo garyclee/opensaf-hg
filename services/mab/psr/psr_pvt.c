@@ -1911,7 +1911,7 @@ PSS_CLIENT_ENTRY * pss_find_client_entry(PSS_PWE_CB *pwe_cb, char *p_pcn,
     uns32              retval;
 
     memset(&client_key, '\0', sizeof(client_key));
-    m_NCS_STRCPY(&client_key.pcn, p_pcn);
+    strcpy(&client_key.pcn, p_pcn);
 
     pat_node = ncs_patricia_tree_get(&pwe_cb->client_table, (uns8 *)&client_key);
     if(pat_node != NULL)

@@ -286,7 +286,7 @@ uns32 ifsv_vip_add_ip_node (NCS_DB_LINK_LIST *list, NCS_IPPFX *ipAddr,uns8 *str)
     pIpList->ip_addr.ipaddr.info.v4 = ipAddr->ipaddr.info.v4;
     pIpList->ip_addr.mask_len = ipAddr->mask_len;
     pIpList->ipAllocated = TRUE;
-    m_NCS_STRCPY(&pIpList->intfName,str);
+    strcpy(&pIpList->intfName,str);
 
     pIpNode = (NCS_DB_LINK_LIST_NODE *)pIpList;
     pIpNode->key = (uns8 *)&pIpList->ip_addr;
@@ -311,7 +311,7 @@ uns32 ifsv_vip_add_intf_node (NCS_DB_LINK_LIST *list,uns8 *str)
       return NCSCC_RC_FAILURE;
    }
    memset(pIntfList,0,sizeof(NCS_IFSV_VIP_INTF_LIST));
-   m_NCS_STRCPY(&pIntfList->intf_name,str);
+   strcpy(&pIntfList->intf_name,str);
    
    pIntfNode = (NCS_DB_LINK_LIST_NODE *)pIntfList;
    pIntfNode->key = (uns8 *)&pIntfList->intf_name;

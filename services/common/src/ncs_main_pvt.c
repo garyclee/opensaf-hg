@@ -1213,7 +1213,7 @@ mainget_the_index(char *const i_inst_str, uns32 *instance_ids, uns32 *instance_i
    char  tmp_var[256];
    uns32   status = NCSCC_RC_SUCCESS;     
    
-   m_NCS_STRCPY(tmp_var,i_inst_str); 
+   strcpy(tmp_var,i_inst_str); 
    word = strtok(tmp_var, " ");
    do 
    {
@@ -1272,7 +1272,7 @@ static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name)
       return;
    }
 
-   m_NCS_STRCPY(o_nid_svc_name, nid_svc_name);
+   strcpy(o_nid_svc_name, nid_svc_name);
   
    return;
 }
@@ -1363,12 +1363,12 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
    uns32 res;
 #if (MDS_HUB == 1)
       pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-      m_NCS_STRCPY(pargv[*pargc],"HUB=y");
+      strcpy(pargv[*pargc],"HUB=y");
       *pargc = (*pargc) + 1;
 #endif
 #if (TDS_MASTER == 1)
       pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-      m_NCS_STRCPY(pargv[*pargc],"MASTER=y");
+      strcpy(pargv[*pargc],"MASTER=y");
       *pargc = (*pargc) + 1;
 #endif
    /*** There cane be a case where we don't want to enable any services ***/
@@ -1389,21 +1389,21 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strncmp(get_word,"RCP_LOG_MASK",sizeof("RCP_LOG_MASK")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
                 if (strncmp(get_word,"TDS_TRACE_LEVEL",sizeof("TDS_TRACE_LEVEL")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
                 if (strcmp(get_word,"HUB=y") == 0 || strcmp(get_word,"HUB=Y") == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
@@ -1411,7 +1411,7 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strcmp(get_word,"MASTER=y") == 0 || strcmp(get_word,"MASTER=Y") == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
@@ -1419,7 +1419,7 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strncmp(get_word,"MASTER_POLL_TMR",sizeof("MASTER_POLL_TMR")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
@@ -1427,7 +1427,7 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strncmp(get_word,"MASTER_KEEP_ALIVE_TO_POLL_RATIO",sizeof("MASTER_KEEP_ALIVE_TO_POLL_RATIO")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
@@ -1435,7 +1435,7 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strncmp(get_word,"SLAVE_HB_TMR",sizeof("SLAVE_HB_TMR")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
@@ -1443,14 +1443,14 @@ mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
                 if (strncmp(get_word,"SLAVE_HB_TO_WATCH_RATIO",sizeof("SLAVE_HB_TO_WATCH_RATIO")-1) == 0)
                 {
                    pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                   m_NCS_STRCPY(pargv[*pargc],get_word);
+                   strcpy(pargv[*pargc],get_word);
                    *pargc = (*pargc) + 1;
                    continue;
                 }
 
                 /* else store whatever comes */
                 pargv[*pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-                m_NCS_STRCPY(pargv[*pargc],get_word);
+                strcpy(pargv[*pargc],get_word);
                 *pargc = (*pargc) + 1;
           } 
           else

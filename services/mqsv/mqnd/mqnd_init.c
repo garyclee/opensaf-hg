@@ -379,11 +379,11 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(healthy.key,"E5F6");
+      strcpy(healthy.key,"E5F6");
    }
    else
    {
-      m_NCS_STRCPY(healthy.key,health_key);
+      strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);
    

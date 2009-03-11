@@ -368,7 +368,7 @@ idim_recv_hw_port_reg (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
 
    memcpy(intf_info.intf_data.if_info.phy_addr, 
       evt->info.hw_info.info.reg_port.phy_addr, (6*sizeof(uns8)));
-   m_NCS_STRCPY(intf_info.intf_data.if_info.if_name, 
+   strcpy(intf_info.intf_data.if_info.if_name, 
       evt->info.hw_info.info.reg_port.if_name);
 
    res = idim_send_ifnd_evt((void*)&intf_info, IFND_EVT_INTF_CREATE, cb);

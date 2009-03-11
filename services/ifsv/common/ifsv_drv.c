@@ -641,7 +641,7 @@ ifsv_drv_check_update_reg_info (IFSV_DRV_PORT_REG_TBL *found_reg_tbl,
    {
       chng_flag = TRUE;
       reg_msg->port_info.if_am |= NCS_IFSV_IAM_NAME;
-      m_NCS_STRCPY(&pres_port_tbl->port_info.if_name, 
+      strcpy(&pres_port_tbl->port_info.if_name, 
          &reg_msg->port_info.if_name);
    }
    
@@ -1267,7 +1267,7 @@ ifsv_drv_mds_cpy (MDS_CALLBACK_COPY_INFO *cpy, uns32 drv_hdl)
 
    USE (cpy->i_msg);
    
-   m_NCS_OS_STRCPY((char*)stream,(char*)cpy->i_msg);
+   strcpy((char*)stream,(char*)cpy->i_msg);
    cpy->o_cpy = (void*)stream;
    return NCSCC_RC_SUCCESS;
 }

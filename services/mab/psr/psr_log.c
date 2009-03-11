@@ -84,7 +84,7 @@ uns32 pss_dtsv_bind()
     /* fill version no. */
     reg.info.bind_svc.version = PSSV_LOG_VERSION;
     /* fill svc_name */
-    m_NCS_STRCPY(reg.info.bind_svc.svc_name, "PSSv");
+    strcpy(reg.info.bind_svc.svc_name, "PSSv");
 
     if (ncs_dtsv_su_req(&reg) == NCSCC_RC_FAILURE)
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);

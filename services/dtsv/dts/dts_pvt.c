@@ -669,7 +669,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
     * form the SPEC list. If loading of ASCII_SPEC fails here it'll also fail
     * at STBY DTS too.
     */
-   m_NCS_STRCPY(inst->last_spec_loaded.svc_name, msg->data.data.reg.svc_name);
+   strcpy(inst->last_spec_loaded.svc_name, msg->data.data.reg.svc_name);
    inst->last_spec_loaded.version = msg->data.data.reg.version;
 
    /* Now send the sync update for DTA_DEST_LIST to Standby */
@@ -712,7 +712,7 @@ uns32 dts_register_service (DTSV_MSG *msg)
       per_dta_svc_spec->dta_addr = dta_key;
       per_dta_svc_spec->spec_struct = spec_entry;
       per_dta_svc_spec->lib_struct = lib_hdl;
-      m_NCS_STRCPY(per_dta_svc_spec->svc_name, msg->data.data.reg.svc_name);
+      strcpy(per_dta_svc_spec->svc_name, msg->data.data.reg.svc_name);
 
       /* Add to the svc reg tbl's spec list */
       /* point next to the rest of list */
@@ -1221,7 +1221,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
 
          memset(&data, '\0', sizeof(DTS_LOG_CKPT_DATA));
          /* Fill the DTS_LOG_CKPT_DATA for async update */
-         m_NCS_STRCPY(data.file_name, m_DTS_LOG_FILE_NAME(device));
+         strcpy(data.file_name, m_DTS_LOG_FILE_NAME(device));
          /* Fill data key with the key corresponding to node/svc whose policy
             is being used */
          /* Fill key according to the logging levels */
@@ -2377,7 +2377,7 @@ uns32 dts_del_spec_frm_svc(DTS_SVC_REG_TBL *svc, MDS_DEST dta_addr,
    /* Fill the SPEC_CKPT struct for return purposes */
    if(ver != NULL)
    {
-      m_NCS_STRCPY(ver->svc_name, spec_entry->svc_name);
+      strcpy(ver->svc_name, spec_entry->svc_name);
       ver->version = spec_entry->spec_struct->ss_spec->ss_ver;
    }
    /*printf("\n#####dts_del_spec_frm_svc(): Spec Details - spec_use_count: %d, lib_use_count: %d, svcname: %s#####\n", spec_entry->spec_struct->use_count, spec_entry->lib_struct->use_count, spec_entry->svc_name);

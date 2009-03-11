@@ -291,7 +291,7 @@ uns32 ncspssvprofiletableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
     }
 
     memset(&inst->profile_extract, '\0', sizeof(inst->profile_extract));
-    m_NCS_STRCPY((char*)&inst->profile_extract, (char*)&profile_name);
+    strcpy((char*)&inst->profile_extract, (char*)&profile_name);
 
     *data = (NCSCONTEXT)inst;
 
@@ -620,7 +620,7 @@ uns32 ncspssvprofiletableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
     }
 
     *data = (NCSCONTEXT)inst;
-    m_NCS_STRCPY((char*)&inst->profile_extract, (char*)&profile_next);
+    strcpy((char*)&inst->profile_extract, (char*)&profile_next);
 
     len = m_NCS_STRLEN((const char *)profile_next);
     next_inst_id[0] = len;
@@ -939,7 +939,7 @@ uns32 pss_process_trigger_op(PSS_CB * inst, PSR_TRIGGER_VALUES val)
 
            /* Write this request information into pwe_cb the first time. */
            memset(&pwe_cb->curr_plbck_ssn_info, '\0', sizeof(PSS_CURR_PLBCK_SSN_INFO));
-           m_NCS_STRCPY(&pwe_cb->curr_plbck_ssn_info.info.alt_profile, 
+           strcpy(&pwe_cb->curr_plbck_ssn_info.info.alt_profile, 
               inst->existing_profile);
            pwe_cb->curr_plbck_ssn_info.plbck_ssn_in_progress = TRUE;
            pwe_cb->curr_plbck_ssn_info.is_warmboot_ssn = FALSE;

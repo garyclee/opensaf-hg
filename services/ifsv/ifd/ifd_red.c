@@ -644,7 +644,7 @@ ifd_a2s_vip_rec_create_handler (VIP_REDUNDANCY_RECORD *pVipChkptPkt, IFSV_CB *cb
 
     memset(pVipdRec,0,sizeof(IFSV_IFD_VIPD_RECORD));
 
-    m_NCS_STRCPY(&pVipdRec->handle.vipApplName,
+    strcpy(&pVipdRec->handle.vipApplName,
              &pVipChkptPkt->handle.vipApplName);
  
     pVipdRec->handle.poolHdl =

@@ -1484,7 +1484,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
           m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_GET_NEXT_PROFILE_OP_FAILED);
           return NCSCC_RC_FAILURE;
        }
-       m_NCS_STRCPY((char*)&profile_name, (char*)&profile_next);
+       strcpy((char*)&profile_name, (char*)&profile_next);
        printf("Profile_name :%s", profile_name);
     }while(NCSCC_RC_SUCCESS == get_profile_retval);
                      /* End of Loop do for all profiles in the cur_ps_format */

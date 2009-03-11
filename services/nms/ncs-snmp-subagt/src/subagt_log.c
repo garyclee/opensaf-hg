@@ -53,7 +53,7 @@ snmpsubagt_dla_initialize(NCS_SERVICE_ID i_svc_id)
     /* fill version no. */
     reg_info.info.bind_svc.version = SNMPSUBAGT_LOG_VERSION;
     /* fill svc_name */
-    m_NCS_STRCPY(reg_info.info.bind_svc.svc_name, "SUBAGT");
+    strcpy(reg_info.info.bind_svc.svc_name, "SUBAGT");
 
     status = ncs_dtsv_su_req(&reg_info);
     if (status != NCSCC_RC_SUCCESS)

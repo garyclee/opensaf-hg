@@ -328,7 +328,7 @@ static uns32 fm_amf_register (FM_AMF_CB *fm_amf_cb)
    SaNameT        sname;
    
    sname.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
-   m_NCS_STRCPY(sname.value,fm_amf_cb->comp_name);
+   strcpy(sname.value,fm_amf_cb->comp_name);
 
    /* 
     * register FM component with AvSv 
@@ -361,7 +361,7 @@ static uns32 fm_amf_unregister (FM_AMF_CB *fm_amf_cb)
    SaNameT        sname;
    
    sname.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
-   m_NCS_STRCPY(sname.value, fm_amf_cb->comp_name);
+   strcpy(sname.value, fm_amf_cb->comp_name);
 
    /* 
     * Unregister FM component with AvSv 
@@ -400,7 +400,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    ** Start the AMF health check 
    */   
    memset(&SaCompName,0,sizeof(SaCompName));
-   m_NCS_STRCPY(SaCompName.value, fm_amf_cb->comp_name);
+   strcpy(SaCompName.value, fm_amf_cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
@@ -410,13 +410,13 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
       /*
       ** default health check key 
       */
-      m_NCS_STRCPY(hlth_str, "BAD10");
+      strcpy(hlth_str, "BAD10");
    } 
    else
    {
-      m_NCS_STRCPY(hlth_str, phlth_ptr);
+      strcpy(hlth_str, phlth_ptr);
    }
-   m_NCS_STRCPY(Healthy.key, hlth_str);
+   strcpy(Healthy.key, hlth_str);
    Healthy.keyLen = m_NCS_OS_STRLEN(Healthy.key);
 
   
@@ -470,7 +470,7 @@ static uns32 fm_amf_lib_init (FM_AMF_CB *fm_amf_cb)
          rc = NCSCC_RC_FAILURE;
          break;
       }  
-      m_NCS_STRCPY(fm_amf_cb->comp_name, sname.value);
+      strcpy(fm_amf_cb->comp_name, sname.value);
 
       /* 
       ** Get the AMF selection object 

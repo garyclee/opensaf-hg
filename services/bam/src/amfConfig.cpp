@@ -811,7 +811,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
       return SA_AIS_ERR_NOT_EXIST;
    }
    
-   m_NCS_STRCPY(genName, index); /* for instances */
+   strcpy(genName, index); /* for instances */
 
    /* Check to see if the finalPrototype attribute is set to true */
    DOMNamedNodeMap *attributesNodes = compPrototype->getAttributes();
@@ -834,7 +834,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
                * just the suName.
                */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
-               m_NCS_STRCPY(genName, protoName);
+               strcpy(genName, protoName);
                m_NCS_STRCAT(genName, ",");
                m_NCS_STRCAT(genName, index);
             }
@@ -955,7 +955,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
       return SA_AIS_ERR_NOT_EXIST;
    }
    
-   m_NCS_STRCPY(genName, index); /* for instances */
+   strcpy(genName, index); /* for instances */
 
    /* Check to see if the finalPrototype attribute is set to true */
    DOMNamedNodeMap *attributesNodes = suPrototype->getAttributes();
@@ -986,7 +986,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
             * just the suName.
             */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
-               m_NCS_STRCPY(genName, suName);
+               strcpy(genName, suName);
                m_NCS_STRCAT(genName, ",");
                m_NCS_STRCAT(genName, index);
             }
@@ -1219,7 +1219,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         m_NCS_STRCPY(commandString, tmpString); 
+         strcpy(commandString, tmpString); 
                                       /* This string could be one of the 
                                        * a. instantiateCommand
                                        * b. terminateCommand
@@ -1582,7 +1582,7 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
       compName = XMLString::transcode(attributesNodes->item(0)->getNodeValue());
 
       memset(genName, 0, BAM_MAX_INDEX_LEN);
-      m_NCS_STRCPY(genName, compName);
+      strcpy(genName, compName);
       m_NCS_STRCAT(genName, ",");
       m_NCS_STRCAT(genName, suName);
 
@@ -1750,7 +1750,7 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
          {
             suName = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
             memset(genName, 0, BAM_MAX_INDEX_LEN);
-            m_NCS_STRCPY(genName, suName);
+            strcpy(genName, suName);
             if(ext_su_flag == FALSE)
             {
               /* For external component, there is no node name. */
@@ -2018,14 +2018,14 @@ saAmfParseNodeInstance(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
 
          if(m_NCS_STRCMP(tag, "nodeID") == 0)
          {
-            m_NCS_STRCPY(nodeId, val);
+            strcpy(nodeId, val);
             XMLString::release(&tag);
             XMLString::release(&val);
             continue;
          }
          else if(m_NCS_STRCMP(tag, "name") == 0)
          {
-            m_NCS_STRCPY(nodeName, val);
+            strcpy(nodeName, val);
          }
       }
    }

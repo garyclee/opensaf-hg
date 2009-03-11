@@ -44,7 +44,7 @@ static uns32 lt_test_invoke_dl_routine( )
     int8        *dl_error = NULL; 
 
 
-    m_NCS_STRCPY(&lib_name, "liblttest_invalid_dl_app.so");
+    strcpy(&lib_name, "liblttest_invalid_dl_app.so");
     m_NCS_CONS_PRINTF("\nPerforming load on invalid library name... \n");
     lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
@@ -55,7 +55,7 @@ static uns32 lt_test_invoke_dl_routine( )
     }
 
     m_NCS_CONS_PRINTF("\nPerforming load on a valid library name... \n");
-    m_NCS_STRCPY(&lib_name, "liblttest_dl_app.so");
+    strcpy(&lib_name, "liblttest_dl_app.so");
     lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
@@ -67,7 +67,7 @@ static uns32 lt_test_invoke_dl_routine( )
     m_NCS_CONS_PRINTF("\nLoaded library : %s\n",lib_name);
 
     /* get the function pointer for invoking. */ 
-    m_NCS_STRCPY(func_name, "lt_dl_app_routine");
+    strcpy(func_name, "lt_dl_app_routine");
 
     m_NCS_CONS_PRINTF("\nPerforming lookup on a valid symbol... \n");
     app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name); 
@@ -103,7 +103,7 @@ static uns32 lt_test_invoke_dl_routine( )
 
     /* Lookup for an invalid symbol. */
     m_NCS_CONS_PRINTF("\nPerforming lookup on an invalid symbol... \n");
-    m_NCS_STRCPY(func_name, "lt_dl_app_wrong_routine");
+    strcpy(func_name, "lt_dl_app_wrong_routine");
     app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
@@ -114,7 +114,7 @@ static uns32 lt_test_invoke_dl_routine( )
 
     /* Lookup for a Global variable . */
     m_NCS_CONS_PRINTF("\nPerforming lookup on a Global variable... \n");
-    m_NCS_STRCPY(&gbl_var_name, "gl_dl_app_status");
+    strcpy(&gbl_var_name, "gl_dl_app_status");
     global_value = m_NCS_OS_DLIB_SYMBOL(lib_hdl, gbl_var_name); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {

@@ -312,7 +312,7 @@ uns32 fma_log_reg(void)
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_FMA; 
    reg.info.bind_svc.version = FMA_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "FMA");
+   strcpy(reg.info.bind_svc.svc_name, "FMA");
    
    rc = ncs_dtsv_su_req(&reg);
    

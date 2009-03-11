@@ -588,7 +588,7 @@ uns32 srmnd_healthcheck_start(SRMND_CB *cb)
     if (cb->health_check_started == TRUE)
        return NCSCC_RC_SUCCESS; 
    
-    m_NCS_STRCPY(cb->health_check_key.key, SRMND_AMF_HEALTH_CHECK_KEY);
+    strcpy(cb->health_check_key.key, SRMND_AMF_HEALTH_CHECK_KEY);
     cb->health_check_key.keyLen = m_NCS_OS_STRLEN(cb->health_check_key.key);
     
     /* start the healthcheck */ 

@@ -259,7 +259,7 @@ static uns32 parseProxiedConfFile()
    uns32 compNo=0,ret=NCSCC_RC_SUCCESS;
 
    /* Get/set the conf file path before opening */
-   m_NCS_STRCPY(proxiedFilePath, PDRBD_PROXIED_CONF_FILE_PATH);
+   strcpy(proxiedFilePath, PDRBD_PROXIED_CONF_FILE_PATH);
    proxiedConfFile.info.open.i_file_name = proxiedFilePath;
    proxiedConfFile.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 
@@ -373,7 +373,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY((uns8 *) pseudoCB.proxied_info[compNo].compId, qtr);
+            strcpy((uns8 *) pseudoCB.proxied_info[compNo].compId, qtr);
             currField = PROXIED_CONF_SU_ID;
          }
 
@@ -402,7 +402,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY((uns8 *) pseudoCB.proxied_info[compNo].suId, qtr);
+            strcpy((uns8 *) pseudoCB.proxied_info[compNo].suId, qtr);
             currField = PROXIED_CONF_RES_NAME;
          }
 
@@ -431,7 +431,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY(pseudoCB.proxied_info[compNo].resName, qtr);
+            strcpy(pseudoCB.proxied_info[compNo].resName, qtr);
             currField = PROXIED_CONF_DEV_NAME;
          }
 
@@ -458,7 +458,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY(pseudoCB.proxied_info[compNo].devName, qtr);
+            strcpy(pseudoCB.proxied_info[compNo].devName, qtr);
             currField = PROXIED_CONF_MOUNT_PNT;
          }
 
@@ -485,7 +485,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY(pseudoCB.proxied_info[compNo].mountPnt, qtr);
+            strcpy(pseudoCB.proxied_info[compNo].mountPnt, qtr);
             currField = PROXIED_CONF_DATA_DISK;
          }
 
@@ -512,7 +512,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY(pseudoCB.proxied_info[compNo].dataDisk, qtr);
+            strcpy(pseudoCB.proxied_info[compNo].dataDisk, qtr);
             currField = PROXIED_CONF_META_DISK;
          }
 
@@ -539,7 +539,7 @@ static uns32 parseProxiedInfo(uns8 *str, uns32 compNo)
 
          else
          {
-            m_NCS_STRCPY(pseudoCB.proxied_info[compNo].metaDisk, qtr);
+            strcpy(pseudoCB.proxied_info[compNo].metaDisk, qtr);
             currField = PROXIED_CONF_END;
          }
 
@@ -647,7 +647,7 @@ uns32 pseudoInitialise()
       memset(buff, 0, sizeof(buff));
       sysf_sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
                      pseudoCB.nodeId);
-      m_NCS_STRCPY((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
+      strcpy((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
       pseudoCB.proxied_info[i].compName.length = m_NCS_STRLEN(buff);
    }
 
@@ -680,12 +680,12 @@ uns32 pseudoInitialise()
 
    if(hthChkKey == NULL)
    {
-      m_NCS_STRCPY(amfHthChkKey.key, "A5A5");   /* Key also defined in Pseudo init script */
+      strcpy(amfHthChkKey.key, "A5A5");   /* Key also defined in Pseudo init script */
    }
 
    else
    {
-      m_NCS_STRCPY(amfHthChkKey.key, hthChkKey);
+      strcpy(amfHthChkKey.key, hthChkKey);
    }
 
    amfHthChkKey.keyLen = strlen(amfHthChkKey.key);

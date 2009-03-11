@@ -512,7 +512,7 @@ ifsv_flx_log_reg (uns32 comp_type)
    /* fill version no. */
    reg.info.bind_svc.version = IFSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "IFSv");
+   strcpy(reg.info.bind_svc.svc_name, "IFSv");
 
 
    return(ncs_dtsv_su_req(&reg));   
@@ -605,7 +605,7 @@ ifsv_log_spt_string (NCS_IFSV_SPT spt, char *o_spt_str)
 {
    char tem_char[35];
    sprintf(tem_char,"%d",spt.shelf);
-   m_NCS_STRCPY(o_spt_str,tem_char);
+   strcpy(o_spt_str,tem_char);
    m_NCS_STRCAT(o_spt_str,"/");
 
    sprintf(tem_char,"%d",spt.slot);

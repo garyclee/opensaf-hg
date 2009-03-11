@@ -413,7 +413,7 @@ uns32 ifd_ifnd_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
                  /* Updating the New interface in IP LIST */
                 
                  pIpList = ( NCS_IFSV_VIP_IP_LIST *)ipNode;
-                 m_NCS_STRCPY(&pIpList->intfName,&evt->info.vip_evt.info.ifndVipAdd.intfName);
+                 strcpy(&pIpList->intfName,&evt->info.vip_evt.info.ifndVipAdd.intfName);
 
                  /* Update the interface to new interface */
                  /* First remove old interface from list and add new intf */
@@ -489,7 +489,7 @@ uns32 ifd_ifnd_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
  
                  /* Updating the New interface in IP LIST */
                  pIpList = ( NCS_IFSV_VIP_IP_LIST *)ipNode;
-                 m_NCS_STRCPY(&pIpList->intfName,&evt->info.vip_evt.info.ifndVipAdd.intfName);
+                 strcpy(&pIpList->intfName,&evt->info.vip_evt.info.ifndVipAdd.intfName);
 
                  /* Freeing Owner List. At present only one owner will be there */
                  startPtr = m_NCS_DBLIST_FIND_FIRST(&pVipdRec->owner_list);
@@ -583,7 +583,7 @@ uns32 ifd_ifnd_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
        memset(pVipdRec,0,sizeof(IFSV_IFD_VIPD_RECORD));
    
        /* TBD: Fill this attributes */
-       m_NCS_STRCPY(&pVipdRec->handle.vipApplName,
+       strcpy(&pVipdRec->handle.vipApplName,
                &evt->info.vip_evt.info.ifndVipAdd.handle.vipApplName);
 
        pVipdRec->handle.poolHdl = 

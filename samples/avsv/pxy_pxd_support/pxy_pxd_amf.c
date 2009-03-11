@@ -684,36 +684,36 @@ return;
 void pxy_pxd_proxy_initialize(void)
 {
   pxy_pxd_cb.pxy_info.healthcheck_key.keyLen = 10;
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxy_info.healthcheck_key.key, "A9FD64E12D");
+  strcpy((uns8 *)pxy_pxd_cb.pxy_info.healthcheck_key.key, "A9FD64E12D");
   /* External Component initialization. */
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[0].compName.value, 
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[0].compName.value, 
                       "safComp=CompT_EXT,safEsu=SuT_EXT1");
   pxy_pxd_cb.pxd_info[0].compName.length = 
      m_NCS_STRLEN("safComp=CompT_EXT,safEsu=SuT_EXT1");
   pxy_pxd_cb.pxd_info[0].healthcheck_key.keyLen = 6;
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[0].healthcheck_key.key, "ABCD20");
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[0].healthcheck_key.key, "ABCD20");
 
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[1].compName.value, 
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[1].compName.value, 
                       "safComp=CompT_EXT,safEsu=SuT_EXT2");
   pxy_pxd_cb.pxd_info[1].compName.length = 
      m_NCS_STRLEN("safComp=CompT_EXT,safEsu=SuT_EXT2");
   pxy_pxd_cb.pxd_info[1].healthcheck_key.keyLen = 6;
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[1].healthcheck_key.key, "ABCD20");
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[1].healthcheck_key.key, "ABCD20");
 
   /* Internode Component initialization. */
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[2].compName.value,
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[2].compName.value,
                       "safComp=CompT_PXD,safSu=SuT_PL_PXD1,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[2].compName.length =
      m_NCS_STRLEN("safComp=CompT_PXD,safSu=SuT_PL_PXD1,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[2].healthcheck_key.keyLen = 10;
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[2].healthcheck_key.key, "A9FD64E12E");
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[2].healthcheck_key.key, "A9FD64E12E");
 
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[3].compName.value,
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[3].compName.value,
                       "safComp=CompT_PXD,safSu=SuT_PL_PXD2,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[3].compName.length =
      m_NCS_STRLEN("safComp=CompT_PXD,safSu=SuT_PL_PXD2,safNode=PL_2_3");
   pxy_pxd_cb.pxd_info[3].healthcheck_key.keyLen = 10;
-  m_NCS_STRCPY((uns8 *)pxy_pxd_cb.pxd_info[3].healthcheck_key.key, "A9FD64E12E");
+  strcpy((uns8 *)pxy_pxd_cb.pxd_info[3].healthcheck_key.key, "A9FD64E12E");
 
 }
 

@@ -345,7 +345,7 @@ ncs_ipc_attach_ext(SYSF_MBX *mbx, char* task_name)
     }
 
 
-    m_NCS_STRCPY(ncs_ipc->name,task_name);
+    strcpy(ncs_ipc->name,task_name);
 
     m_NCS_UNLOCK(&ncs_ipc->queue_lock, NCS_LOCK_WRITE);
 

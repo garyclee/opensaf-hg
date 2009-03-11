@@ -764,7 +764,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
             l_val = n2d_msg->msg_info.n2d_data_req.param_info.value_len;
             comp->proxy_comp_name_net.length = m_NCS_OS_HTONS(l_val);
             
-            m_NCS_STRCPY(comp->proxy_comp_name_net.value,
+            strcpy(comp->proxy_comp_name_net.value,
                                              n2d_msg->msg_info.n2d_data_req.param_info.value);
          }else
          {

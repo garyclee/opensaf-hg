@@ -348,12 +348,12 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("HISV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(Healthy.key,"F6C7");
+      strcpy(Healthy.key,"F6C7");
       m_LOG_HISV_HEADLINE(HCD_HEALTH_KEY_DEFAULT_SET, NCSFL_SEV_INFO);
    }
    else
    {
-      m_NCS_STRCPY(Healthy.key,health_key);
+      strcpy(Healthy.key,health_key);
    }
    Healthy.keyLen=m_NCS_STRLEN(Healthy.key);
 

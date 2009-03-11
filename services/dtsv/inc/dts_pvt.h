@@ -476,7 +476,7 @@ typedef struct dts_svc_reg_tbl
       else if(svc_reg->spec_list->spec_struct->ss_spec->svc_name == NULL) \
          sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       else \
-         m_NCS_STRCPY(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
+         strcpy(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
    } \
 }
 
@@ -698,7 +698,7 @@ EXTERN_C DTS_CB   dts_cb;
      if(tmp == NULL) \
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "Failed to allocate memory"); \
      memset(tmp, '\0', sizeof(DTS_CONS_LIST)); \
-     m_NCS_STRCPY(tmp->cons_dev, str); \
+     strcpy(tmp->cons_dev, str); \
      tmp->cons_fd = fd; \
      if(prev != NULL) \
         prev->next = tmp; \
@@ -826,7 +826,7 @@ EXTERN_C DTS_CB   dts_cb;
       return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, \
          "dts_stby_svc_initialize: Failed to create new service log file"); \
    device->new_file = FALSE; \
-   m_NCS_STRCPY(data.file_name, m_DTS_LOG_FILE_NAME(device)); \
+   strcpy(data.file_name, m_DTS_LOG_FILE_NAME(device)); \
    data.key = key; \
    data.new_file = device->new_file; \
    m_DTSV_SEND_CKPT_UPDT_ASYNC(&dts_cb, NCS_MBCSV_ACT_ADD, \

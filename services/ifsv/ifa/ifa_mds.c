@@ -647,7 +647,7 @@ uns32 ifa_mds_cpy (IFA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 
    stream = (uns8*)evt;
 
-   m_NCS_OS_STRCPY((char*)stream,(char*)cpy_info->i_msg);
+   strcpy((char*)stream,(char*)cpy_info->i_msg);
    cpy_info->o_cpy = (void*)stream;
    return NCSCC_RC_SUCCESS;
 }

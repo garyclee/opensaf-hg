@@ -2942,7 +2942,7 @@ uns32 dtsv_chk_mib_rsp(char *err, NCSMIB_ARG *arg, uns32 cli_hdl)
    {
       char* mib_err = "Unknown MIB Error!!";
  
-      m_NCS_OS_STRCPY(bigerr, err);
+      strcpy(bigerr, err);
       m_NCS_OS_STRCAT(bigerr, ": ");
 
       switch (arg->rsp.i_status)
