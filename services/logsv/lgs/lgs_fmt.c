@@ -1042,7 +1042,7 @@ static int extractSystemField(char *dest, size_t dest_size,
 {
     SaInt32T fieldSize;
     SaInt32T stringSize;
-    SaInt32T characters;
+    SaInt32T characters = 0;
     SaUint16T fieldSizeOffset = 0;
     *fmtExpPtrOffset = DEFAULT_FMT_EXP_PTR_OFFSET;
 
@@ -1244,7 +1244,7 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
     SaUint16T fmtExpTokenOffset = 1;
     SaInt32T truncationLetterPos = -1;
     struct tm *timeStampData;
-    SaBoolT _twelveHourModeFlag;
+    SaBoolT _twelveHourModeFlag = SA_FALSE;
     const SaBoolT *twelveHourModeFlag = &_twelveHourModeFlag;
     int i = 0;
 

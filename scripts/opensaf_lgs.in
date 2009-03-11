@@ -16,39 +16,39 @@
 # Author(s): Ericsson AB
 #
 
+echo "`date`: $0 $*"
+
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 BIN=${LIBPATH}/opensaf_saflogd
 LOGFILE=${NCS_STDOUTS_PATH}/opensaf_saflogd.log
-CONFFILE=${SYSCONFDIR}/saflog.conf
+CONFIG=${SYSCONFDIR}/saflog.conf
 PIDFILE=${PIDPATH}/opensaf_saflogd.pid
 
 test -x $BIN || exit 1
-test -f $CONFFILE && source $CONFFILE
-test -f $PIDFILE && PID=`cat $PIDFILE`
+test -r $CONFIG || exit 1
+source $CONFIG
 
 mkdir -p $LOGSV_ROOT_DIRECTORY
-
-echo "`date`: $0 $*"
 
 case $1 in
     instantiate)
         $LOGTOOL $BIN >> $LOGFILE 2>&1 &
         ;;
     cleanup)
-        if [ "$LOGTOOL" == "" ]; then
-            kill -KILL $PID
-        else
-            kill -TERM $PID
+        if test -r $PIDFILE; then
+            PID=`cat $PIDFILE`
+
+            if [ "$LOGTOOL" == "" ]; then
+                kill -KILL $PID
+            else
+                kill -TERM $PID
+            fi
+            rm -f "$PIDFILE"
         fi
-        rm -f "$PIDFILE"
-        ;;
-    dump)
-        # Dump internal data structures to console
-        kill -USR2 $PID
         ;;
     *)
-        echo "Usage: $0 {instantiate|cleanup|dump}"
+        echo "Usage: $0 {instantiate|cleanup}"
         exit 1
 esac
 
