@@ -204,7 +204,7 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
    char              suName[BAM_MAX_INDEX_LEN];
    char              suRank[4];
 
-   m_NCS_MEMSET(suName, 0, BAM_MAX_INDEX_LEN);
+   memset(suName, 0, BAM_MAX_INDEX_LEN);
    DOMNodeList * children = node->getChildNodes();
 
    for(uns32 x =0; x< children->getLength(); x++)
@@ -226,7 +226,7 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
                   char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
                   if(m_NCS_STRCMP(tag, "SUName") == 0)
                   {
-                     m_NCS_MEMSET(suName, 0, BAM_MAX_INDEX_LEN);
+                     memset(suName, 0, BAM_MAX_INDEX_LEN);
                      m_NCS_STRCPY(suName, val);
                   }
                   else if(m_NCS_STRCMP(tag, "rank") == 0)
@@ -517,12 +517,12 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
                   val = XMLString::transcode(attributes->item(x)->getNodeValue());
                   if(m_NCS_STRCMP(tag, "name") == 0)
                   {
-                     m_NCS_MEMSET(nvName, 0, BAM_MAX_INDEX_LEN);
+                     memset(nvName, 0, BAM_MAX_INDEX_LEN);
                      m_NCS_STRCPY(nvName, val);
                   }
                   else if(m_NCS_STRCMP(tag, "value") == 0)
                   {
-                     m_NCS_MEMSET(nvValue, 0, BAM_MAX_INDEX_LEN);
+                     memset(nvValue, 0, BAM_MAX_INDEX_LEN);
                      m_NCS_STRCPY(nvValue, val);
                   }
                   XMLString::release(&tag);
@@ -629,7 +629,7 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
    NCSMIB_FMAT_ID       format;
    char                 rowStatus[4];
    
-   m_NCS_MEMSET(csiName, 0, BAM_MAX_INDEX_LEN);
+   memset(csiName, 0, BAM_MAX_INDEX_LEN);
    
    if(!node)
    {
@@ -646,7 +646,7 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
          val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
          if(m_NCS_STRCMP(tag, "name") == 0)
          {
-            m_NCS_MEMSET(csiName, 0, BAM_MAX_INDEX_LEN);
+            memset(csiName, 0, BAM_MAX_INDEX_LEN);
             m_NCS_STRCPY(csiName, val);
             m_NCS_STRCAT(csiName, ",");
             m_NCS_STRCAT(csiName, siName);
@@ -905,12 +905,12 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
              val = XMLString::transcode(attributes->item(x)->getNodeValue());
              if(m_NCS_STRCMP(tag, "name") == 0)
              {
-                m_NCS_MEMSET(siDepName, 0, BAM_MAX_INDEX_LEN);
+                memset(siDepName, 0, BAM_MAX_INDEX_LEN);
                 m_NCS_STRCPY(siDepName, val);
              }
              else if(m_NCS_STRCMP(tag, "tolTime") == 0)
              {
-                m_NCS_MEMSET(tolTime, 0, BAM_MAX_INDEX_LEN);
+                memset(tolTime, 0, BAM_MAX_INDEX_LEN);
                 m_NCS_STRCPY(tolTime, val);
              }
 
@@ -1369,12 +1369,12 @@ saAmfParseSISURankList(DOMNode *node, char *siName)
                char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
                if(m_NCS_STRCMP(tag, "SUName") == 0)
                {
-                  m_NCS_MEMSET(suName, 0, BAM_MAX_INDEX_LEN);
+                  memset(suName, 0, BAM_MAX_INDEX_LEN);
                   m_NCS_STRCPY(suName, val);
                }
                else if(m_NCS_STRCMP(tag, "rank") == 0)
                {
-                  m_NCS_MEMSET(rank, 0, 4);
+                  memset(rank, 0, 4);
                   m_NCS_STRCPY(rank, val);
                }
                XMLString::release(&tag);
@@ -1481,7 +1481,7 @@ saAmfParseCSIParamNameList(DOMNode *node, char *csiName)
             char *val = XMLString::transcode(attributes->item(x)->getNodeValue());
             if(m_NCS_STRCMP(tag, "name") == 0)
             {
-               m_NCS_MEMSET(param, 0, BAM_MAX_INDEX_LEN);
+               memset(param, 0, BAM_MAX_INDEX_LEN);
                m_NCS_STRCPY(param, val);
             }
             XMLString::release(&tag);

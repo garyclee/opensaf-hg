@@ -175,7 +175,7 @@ uns32 avnd_comp_amstop_clc_res_process(AVND_CB *cb, AVND_COMP *comp,
   AVND_ERR_INFO  err;
   uns32          rc = NCSCC_RC_SUCCESS;
 
-  m_NCS_MEMSET(&err,'\0',sizeof(AVND_ERR_INFO));
+  memset(&err,'\0',sizeof(AVND_ERR_INFO));
 
    /* reset the cmd exec context params */
    comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;

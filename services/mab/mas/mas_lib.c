@@ -102,7 +102,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
             sysf_fclose(fp);
 
             /* reset the AMF attributes */ 
-            m_NCS_MEMSET(&gl_mas_amf_attribs, 0,sizeof(MAS_ATTRIBS)); 
+            memset(&gl_mas_amf_attribs, 0,sizeof(MAS_ATTRIBS)); 
              
             /* Bind with DTA */ 
             if (mab_log_bind() != NCSCC_RC_SUCCESS)
@@ -175,8 +175,8 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
                 NCSVDA_INFO vda_info;
 
                 /* prepare the cb with the vaddress */
-                m_NCS_MEMSET(&arg, 0, sizeof(arg));
-                m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+                memset(&arg, 0, sizeof(arg));
+                memset(&vda_info, 0, sizeof(vda_info));
 
                 vda_info.req = NCSVDA_VDEST_CREATE;
                 vda_info.info.vdest_create.i_persistent = FALSE;
@@ -275,7 +275,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
                                  "maslib_request(): NCS_LIB_REQ_DESTROY"); 
                return m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM);
             }
-            m_NCS_MEMSET(post_me, 0, sizeof(MAB_MSG));
+            memset(post_me, 0, sizeof(MAB_MSG));
             post_me->op = MAB_MAS_DESTROY;
 
             /* post a message to MAS's thread */
@@ -315,7 +315,7 @@ uns32 maslib_mas_destroy(void)
     NCSMAS_LM_ARG arg;
 
     /* Destroy the instance */
-    m_NCS_MEMSET(&arg, 0, sizeof(NCSMAS_LM_ARG)); 
+    memset(&arg, 0, sizeof(NCSMAS_LM_ARG)); 
     arg.i_op      = NCSMAS_LM_OP_DESTROY;
     if (ncsmas_lm(&arg) != NCSCC_RC_SUCCESS)
     {
@@ -343,7 +343,7 @@ uns32 maslib_mas_destroy(void)
     m_NCS_TASK_RELEASE(gl_mas_amf_attribs.mbx_details.mas_mbx_hdl);
 
     /* reset the AMF and other attributes */ 
-    m_NCS_MEMSET(&gl_mas_amf_attribs, 0,sizeof(MAS_ATTRIBS)); 
+    memset(&gl_mas_amf_attribs, 0,sizeof(MAS_ATTRIBS)); 
     gl_inited = FALSE;
     
     return NCSCC_RC_SUCCESS;

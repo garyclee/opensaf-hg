@@ -86,7 +86,7 @@ uns32  avsv_mbcsv_register(AVD_CL_CB  *cb)
    /*
     * Send Async Update count to zero.
     */
-   m_NCS_MEMSET(&cb->async_updt_cnt, 0, sizeof(AVSV_ASYNC_UPDT_CNT));
+   memset(&cb->async_updt_cnt, 0, sizeof(AVSV_ASYNC_UPDT_CNT));
 
    /*
     * Compile Ckpt EDP's
@@ -508,7 +508,7 @@ static uns32  avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
          {
             /* Start Heart Beating with the peer */
             AVD_EVT evt;
-            m_NCS_MEMSET(&evt, 0, sizeof(evt));
+            memset(&evt, 0, sizeof(evt));
             evt.info.tmr.type = AVD_TMR_SND_HB;
             avd_tmr_snd_hb_func(cb, &evt);
          }
@@ -718,7 +718,7 @@ static uns32 avsv_mbcsv_initialize(AVD_CL_CB  *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_initialize");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    mbcsv_arg.info.initialize.i_service  = NCS_SERVICE_ID_AVD;
@@ -755,7 +755,7 @@ static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB  *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_open_ckpt");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -795,7 +795,7 @@ uns32 avsv_set_ckpt_role(AVD_CL_CB  *cb,
 
    m_AVD_LOG_FUNC_ENTRY("avsv_set_ckpt_role");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -864,7 +864,7 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB  *cb, NODE_ID node_id,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMSET(d2n_msg,'\0',sizeof(AVD_DND_MSG));
+      memset(d2n_msg,'\0',sizeof(AVD_DND_MSG));
 
       d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
       d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(avnd->snd_msg_id);
@@ -915,7 +915,7 @@ static uns32 avsv_get_mbcsv_sel_obj(AVD_CL_CB  *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_get_mbcsv_sel_obj");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -952,7 +952,7 @@ uns32 avsv_mbcsv_dispatch(AVD_CL_CB  *cb,
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_dispatch");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1005,7 +1005,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB  *cb,
    /*
     * Get mbcsv_handle and checkpoint handle from CB.
     */
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1150,7 +1150,7 @@ static uns32 avsv_mbcsv_close_ckpt(AVD_CL_CB  *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_close_ckpt");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1184,7 +1184,7 @@ static uns32 avsv_mbcsv_finalize(AVD_CL_CB  *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_finalize");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1219,7 +1219,7 @@ uns32 avsv_mbcsv_obj_set(AVD_CL_CB  *cb,
 
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_obj_set");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
@@ -1265,7 +1265,7 @@ static uns32  avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(updt_msg, '\0', sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE));
+   memset(updt_msg, '\0', sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE));
 
    updt_msg->dec = *dec;
 
@@ -1347,14 +1347,14 @@ uns32 avsv_send_data_req(AVD_CL_CB *cb)
 
    m_AVD_LOG_FUNC_ENTRY("avsv_send_data_req");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 
    uba = &mbcsv_arg.info.send_data_req.i_uba;
 
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
 
    mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->ckpt_hdl;
 

@@ -25,7 +25,7 @@ extern uns32 gl_gla_hdl;
 
 #define m_GLSV_MEMSET_SANAME(name) \
 {\
-   m_NCS_MEMSET((void *)&name->value[name->length],0,(size_t)( SA_MAX_NAME_LENGTH - name->length )); \
+   memset((void *)&name->value[name->length],0,(size_t)( SA_MAX_NAME_LENGTH - name->length )); \
 }
 
 typedef struct gla_client_info_tag

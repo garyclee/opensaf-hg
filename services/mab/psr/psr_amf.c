@@ -184,7 +184,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
     }
 
 #if (NCS_PSS_RED == 1)
-    m_NCS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG));
+    memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG));
     mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
     mbcsv_arg.i_mbcsv_hdl = gl_pss_amf_attribs.handles.mbcsv_hdl;
     mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ONE;
@@ -545,7 +545,7 @@ pss_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs, SaAisErrorT *o_saf_status
     }
 
     /* initialize the HA state machine callbacks */ 
-    m_NCS_MEMSET(&ha_hdls, 0, 
+    memset(&ha_hdls, 0, 
                     sizeof(NCS_APP_AMF_HA_STATE_HANDLERS)); 
     ha_hdls.invalidTrans = ncs_app_amf_invalid_state_process; 
     ha_hdls.initActive =  pss_amf_INIT_ACTIVE_process; 
@@ -557,7 +557,7 @@ pss_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs, SaAisErrorT *o_saf_status
     ha_hdls.quiescingToQuiesced = pss_amf_QUIESCING_QUIESCED_process; 
 
     /* intialize the AMF callbaclks */ 
-    m_NCS_MEMSET(&amf_clbks, 0, 
+    memset(&amf_clbks, 0, 
                     sizeof(SaAmfCallbacksT)); 
     amf_clbks.saAmfHealthcheckCallback = pss_amf_health_check; 
     amf_clbks.saAmfComponentTerminateCallback = pss_amf_comp_terminate; 
@@ -578,7 +578,7 @@ pss_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs, SaAisErrorT *o_saf_status
         m_LOG_PSS_ERROR_I(NCSFL_SEV_ERROR, 
                           PSS_ERR_AMF_ATTRIBS_INIT_FAILED, status);
         /* reset the attribs */ 
-        m_NCS_MEMSET(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
+        memset(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
         return status; 
     }
     
@@ -587,7 +587,7 @@ pss_amf_componentize(NCS_APP_AMF_ATTRIBS *amf_attribs, SaAisErrorT *o_saf_status
     if (status != NCSCC_RC_SUCCESS)
     {
         /* error is logged inside the function */ 
-        m_NCS_MEMSET(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
+        memset(amf_attribs, 0, sizeof(NCS_APP_AMF_ATTRIBS)); 
         return status; 
     }
 
@@ -680,7 +680,7 @@ pss_amf_prepare_will(void)
     }
 
     /* destroy the VDEST */ 
-    m_NCS_MEMSET(&vda_info, 0, sizeof(NCSVDA_INFO)); 
+    memset(&vda_info, 0, sizeof(NCSVDA_INFO)); 
     vda_info.req = NCSVDA_VDEST_DESTROY; 
     vda_info.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; 
     vda_info.info.vdest_destroy.i_vdest = PSR_VDEST_ID; 
@@ -894,7 +894,7 @@ pss_amf_csi_new(SaInvocationT invocation,
 
         /* update the CSI Name */ 
         csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
-        m_NCS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
+        memset(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
         memcpy(&csi->csi_info.work_desc.value, 
                         &csiDescriptor.csiName.value, 
                         csi->csi_info.work_desc.length); 
@@ -976,7 +976,7 @@ pss_amf_csi_create_and_install_env(PW_ENV_ID            envid,
 
     /* update the CSI Name filed */ 
     csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
-    m_NCS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
+    memset(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
     memcpy(&csi->csi_info.work_desc.value, 
                     &csiDescriptor.csiName.value, 
                     csi->csi_info.work_desc.length); 
@@ -1090,11 +1090,11 @@ pss_amf_csi_set_all(SaInvocationT invocation,
              as MIB reformatting need to be done for every switch-over].
         */
 
-       m_NCS_MEMSET(&buf, '\0', sizeof(buf));
+       memset(&buf, '\0', sizeof(buf));
        sprintf(buf, "%s%d", NCS_PSS_DEF_PSSV_ROOT_PATH, PSS_PS_FORMAT_VERSION);
 
        /* Now create the directory */
-       m_NCS_MEMSET(&file, '\0', sizeof(NCS_OS_FILE));
+       memset(&file, '\0', sizeof(NCS_OS_FILE));
        file.info.create_dir.i_dir_name = buf;
 
        retval = m_NCS_FILE_OP (&file, NCS_OS_FILE_CREATE_DIR);
@@ -1419,7 +1419,7 @@ pss_amf_ACTIVE_process(void                *data,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
+   memset(mm, '\0', sizeof(MAB_MSG));
    /*  Now we will be passing PWE handle rather than its pointer */
    mm->yr_hdl = NCS_INT32_TO_PTR_CAST(csi_node->pwe_cb->hm_hdl);
    mm->op = MAB_PSS_RE_RESUME_ACTIVE_ROLE_FUNCTIONALITY;
@@ -1611,7 +1611,7 @@ pss_amf_csi_remove_one(const PSS_CSI_NODE *csi_node)
     PW_ENV_ID       env_id = 0; 
     
     /* uninstall the Env */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = csi_node->pwe_cb->mds_pwe_handle;
     info.i_svc_id  = NCSMDS_SVC_ID_PSS;
     info.i_op      = MDS_UNINSTALL;
@@ -1777,7 +1777,7 @@ pss_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
                           "pss_amf_csi_install()"); 
         return csi; 
     }
-    m_NCS_MEMSET(csi, 0, sizeof(PSS_CSI_NODE)); 
+    memset(csi, 0, sizeof(PSS_CSI_NODE)); 
 
     /* allocate memory for the table details for this environment */ 
     if ((pwe_cb = m_MMGR_ALLOC_PSS_PWE_CB) == NULL)
@@ -1833,7 +1833,7 @@ pss_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
     gl_pss_amf_attribs.ha_state = haState;
 
     /* install VDEST in this PWE */  
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = pwe_cb->mds_pwe_handle;
     info.i_op      = MDS_INSTALL;
     info.i_svc_id  = NCSMDS_SVC_ID_PSS;
@@ -1860,7 +1860,7 @@ pss_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
        pss_amf_csi_list_add_front(csi); 
 
     /* subscribe for the VDEST events */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = pwe_cb->mds_pwe_handle;
     info.i_op      = MDS_SUBSCRIBE;
     info.i_svc_id  = NCSMDS_SVC_ID_PSS;
@@ -1887,7 +1887,7 @@ pss_amf_csi_install(PW_ENV_ID envid, SaAmfHAStateT haState)
      * For all ADEST events, we use Intra-node scoping to avoid
      * svc events from other nodes.
      */ 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = pwe_cb->mds_pwe_handle;
     info.i_op      = MDS_SUBSCRIBE;
     info.i_svc_id  = NCSMDS_SVC_ID_PSS;
@@ -1949,7 +1949,7 @@ pss_amf_csi_vdest_role_change(NCS_APP_AMF_CSI_ATTRIBS *csi_info,
     NCSVDA_INFO         vda_info;
 
     /* check in what state VDEST is created */ 
-    m_NCS_MEMSET(&info, 0, sizeof(NCSMDS_INFO)); 
+    memset(&info, 0, sizeof(NCSMDS_INFO)); 
     info.i_op = MDS_QUERY_PWE; 
     info.i_svc_id = PSR_VDEST_ID;  
     info.i_mds_hdl = csi_info->env_hdl; 
@@ -1969,7 +1969,7 @@ pss_amf_csi_vdest_role_change(NCS_APP_AMF_CSI_ATTRIBS *csi_info,
          * the AMF driven state
          */ 
         /* update the role of the VDEST as per AMF given state */ 
-        m_NCS_MEMSET(&vda_info, 0, sizeof(vda_info));
+        memset(&vda_info, 0, sizeof(vda_info));
 
         vda_info.req = NCSVDA_VDEST_CHG_ROLE;
         vda_info.info.vdest_chg_role.i_vdest = PSR_VDEST_ID;
@@ -2027,7 +2027,7 @@ pss_amf_csi_list_find_csiname(const SaNameT *find_me)
     SaNameT         t_find_me; 
     PSS_CSI_NODE    *me = NULL; 
 
-    m_NCS_MEMSET(&t_find_me, 0, sizeof(SaNameT)); 
+    memset(&t_find_me, 0, sizeof(SaNameT)); 
     memcpy(&t_find_me, find_me, sizeof(SaNameT)); 
 
     me = gl_pss_amf_attribs.csi_list; 
@@ -2060,7 +2060,7 @@ pss_amf_csi_list_delink(const SaNameT  *csiName)
     PSS_CSI_NODE     *del_me = NULL; 
     PSS_CSI_NODE     *prev_csi = NULL; 
 
-    m_NCS_MEMSET(&t_del_me, 0, sizeof(SaNameT)); 
+    memset(&t_del_me, 0, sizeof(SaNameT)); 
     memcpy(&t_del_me, csiName, sizeof(SaNameT)); 
 
     del_me = gl_pss_amf_attribs.csi_list;
@@ -2399,7 +2399,7 @@ uns32 pss_amf_vdest_role_chg_api_callback(MDS_CLIENT_HDL handle)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(mm, '\0', sizeof(MAB_MSG));
+   memset(mm, '\0', sizeof(MAB_MSG));
    /*  Now we will be passing PWE handle rather than its pointer */
    mm->yr_hdl = NCS_INT64_TO_PTR_CAST(handle);
    mm->op = MAB_PSS_VDEST_ROLE_QUIESCED;

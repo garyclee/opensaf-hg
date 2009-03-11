@@ -125,7 +125,7 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
          
         m_NCS_CONS_PRINTF("State Change : Stdby to Active. Forming TMR EXP EVT \n"); 
         evt = m_MMGR_ALLOC_IFSV_EVT;
-        m_NCS_MEMSET(evt,0,sizeof(IFSV_EVT));
+        memset(evt,0,sizeof(IFSV_EVT));
         evt->vrid = ifsv_cb->vrid;
         evt->cb_hdl = ifsv_cb->cb_hdl;
         evt->type = IFD_EVT_TMR_EXP;
@@ -160,7 +160,7 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
          m_IFD_LOG_HEAD_LINE(IFSV_LOG_IFSV_HA_STDBY_MSG,haState,0);
          printf("****** IFD IN STANDBY STATE********* \n");
       }
-      m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+      memset(&vda_info, 0, sizeof(vda_info));
       
       vda_info.req = NCSVDA_VDEST_CHG_ROLE;
       vda_info.info.vdest_chg_role.i_vdest = ifsv_cb->my_dest;
@@ -199,7 +199,7 @@ uns32 ifd_process_quisced_state(IFSV_CB *ifsv_cb,SaInvocationT invocation,SaAmfH
 
     ifsv_cb->invocation = invocation;
     ifsv_cb->is_quisced_set = TRUE;
-    m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+    memset(&vda_info, 0, sizeof(vda_info));
 
     mds_role     = V_DEST_RL_QUIESCED;
 

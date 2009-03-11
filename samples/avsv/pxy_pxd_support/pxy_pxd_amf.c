@@ -735,7 +735,7 @@ uns32 pxy_pxd_proxy_amf_init(void)
    SaVersionT         ver;
 
    /* Fill the callbacks that are to be registered with AMF */
-   m_NCS_OS_MEMSET(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
+   memset(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
    reg_callback_set.saAmfCSISetCallback = proxy_csi_set_callback;
    reg_callback_set.saAmfCSIRemoveCallback = proxy_csi_remove_callback;
    reg_callback_set.saAmfHealthcheckCallback = proxy_healthcheck_callback;
@@ -778,7 +778,7 @@ uns32 pxy_pxd_proxied_amf_init(uns32 index)
    SaVersionT         ver;
 
    /* Fill the callbacks that are to be registered with AMF */
-   m_NCS_OS_MEMSET(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
+   memset(&reg_callback_set, 0, sizeof(SaAmfCallbacksT));
 
 
    reg_callback_set.saAmfCSISetCallback = proxied_csi_set_callback;

@@ -199,7 +199,7 @@ void avm_tmr_exp (void *uarg)
    evt      = m_MMGR_ALLOC_AVM_EVT;
    if (evt != AVM_EVT_NULL)
    {
-      m_NCS_MEMSET(evt,'\0',sizeof(AVM_EVT_T));
+      memset(evt,'\0',sizeof(AVM_EVT_T));
 
 
       evt->src = AVM_TMR_EVTS_START + (tmr->type - 1);

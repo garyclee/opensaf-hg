@@ -147,7 +147,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       m_LOG_HISV_MEMFAIL(HCD_CB_ALLOC_FAILED);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(hcd_cb, 0,sizeof(HCD_CB));
+   memset(hcd_cb, 0,sizeof(HCD_CB));
 
    hcd_cb->hm_poolid = NCS_HM_POOL_ID_COMMON;
    hcd_cb->my_hdl = ncshm_create_hdl(hcd_cb->hm_poolid,
@@ -169,7 +169,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       m_LOG_HISV_DTS_CONS("hisv_hcd_init: malloc error for domain args\n");
       return rc;
    }
-   m_NCS_OS_MEMSET(dom_args, 0, sizeof(HPI_SESSION_ARGS));
+   memset(dom_args, 0, sizeof(HPI_SESSION_ARGS));
    hcd_cb->args = dom_args;
 
    /* Initialize the cb parameters */

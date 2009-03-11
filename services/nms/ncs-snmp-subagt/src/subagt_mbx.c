@@ -284,7 +284,7 @@ snmpsubagt_mbx_init_deinit_process(NCSSA_CB *cb, uns8*  reg_dereg_routine)
      {
         m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_REG_COMPLETED, reg_dereg_routine, 0, 0); 
         /* Set this to indicate the completion of registrations. */
-        m_NCS_MEMSET(cb->lastRegMsg, 0, 255);
+        memset(cb->lastRegMsg, 0, 255);
         strcpy(cb->lastRegMsg, "REG_COMPLETED");
 
         /* All the registrations are completed. Now check for edsv interface init status and snmpd.*/

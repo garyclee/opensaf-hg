@@ -6,8 +6,8 @@ extern int fill_syncparameters(int);
 /****************** ADEST WRAPPERS ***********************/
 uns32 adest_get_handle(NCS_BOOL create_oac)
 {
-  m_NCS_OS_MEMSET(&ada_info,'\0', sizeof(ada_info));
-  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest));
+  memset(&ada_info,'\0', sizeof(ada_info));
+  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest));
 
   ada_info.req=NCSADA_GET_HDLS;    
 
@@ -92,8 +92,8 @@ uns32 create_vdest(NCS_VDEST_TYPE policy,
                    NCS_BOOL create_oac,
                    MDS_DEST vdest)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
-  m_NCS_OS_MEMSET(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
+  memset(&vda_info,'\0', sizeof(vda_info));
+  memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
 
   vda_info.req=NCSVDA_VDEST_CREATE;  
 
@@ -128,7 +128,7 @@ uns32 create_vdest(NCS_VDEST_TYPE policy,
 }
 uns32 destroy_vdest(MDS_DEST vdest)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info)); /*zeroizing*/
+  memset(&vda_info,'\0', sizeof(vda_info)); /*zeroizing*/
   /*request*/
   vda_info.req=NCSVDA_VDEST_DESTROY;
 
@@ -139,7 +139,7 @@ uns32 destroy_vdest(MDS_DEST vdest)
     {
       printf("\n %lld : VDEST_DESTROY is SUCCESSFULL",vdest);
       fflush(stdout);
-      m_NCS_OS_MEMSET(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
+      memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
       gl_vdest_indx--;
       return NCSCC_RC_SUCCESS;
     }
@@ -155,8 +155,8 @@ uns32 create_named_vdest(NCS_BOOL persistent,
                          NCS_BOOL create_oac,
                          char *vname)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
-  m_NCS_OS_MEMSET(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));  
+  memset(&vda_info,'\0', sizeof(vda_info));
+  memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));  
 
   vda_info.req=NCSVDA_VDEST_CREATE;  
   
@@ -175,7 +175,7 @@ uns32 create_named_vdest(NCS_BOOL persistent,
   else
     {
       vda_info.info.vdest_create.info.named.i_name.length =0;
-       m_NCS_OS_MEMSET(&(vda_info.info.vdest_create.info.named.i_name.value), 0, 
+       memset(&(vda_info.info.vdest_create.info.named.i_name.value), 0, 
                                         sizeof(vda_info.info.vdest_create.info.named.i_name.value));
     }
   if(persistent)
@@ -212,7 +212,7 @@ uns32 destroy_named_vdest(NCS_BOOL non_persistent,
                           char *vname)
 {
   
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
+  memset(&vda_info,'\0', sizeof(vda_info));
 
   vda_info.req=NCSVDA_VDEST_DESTROY;
 
@@ -226,7 +226,7 @@ uns32 destroy_named_vdest(NCS_BOOL non_persistent,
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
     {
       printf("\n %lld : VDEST_NAMED DESTROY is SUCCESSFULL\n",vdest);
-      m_NCS_OS_MEMSET(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
+      memset(&gl_tet_vdest[gl_vdest_indx],'\0',sizeof(TET_VDEST));
       gl_vdest_indx--;
       return NCSCC_RC_SUCCESS;
     }
@@ -239,7 +239,7 @@ uns32 destroy_named_vdest(NCS_BOOL non_persistent,
 
 MDS_DEST vdest_lookup(char *vname)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
+  memset(&vda_info,'\0', sizeof(vda_info));
 
   vda_info.req=NCSVDA_VDEST_LOOKUP;
 
@@ -252,7 +252,7 @@ MDS_DEST vdest_lookup(char *vname)
   else
     {
       vda_info.info.vdest_lookup.i_name.length =0;
-      m_NCS_OS_MEMSET(&(vda_info.info.vdest_lookup.i_name.value), 0, 
+      memset(&(vda_info.info.vdest_lookup.i_name.value), 0, 
                                         sizeof(vda_info.info.vdest_lookup.i_name.value));
     }
   
@@ -271,7 +271,7 @@ MDS_DEST vdest_lookup(char *vname)
 uns32 vdest_change_role(MDS_DEST vdest,
                         V_DEST_RL new_role)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
+  memset(&vda_info,'\0', sizeof(vda_info));
 
   vda_info.req=NCSVDA_VDEST_CHG_ROLE;
 
@@ -292,7 +292,7 @@ uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
                           NCS_BOOL create_oac)
 {
   int i;
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info));
+  memset(&vda_info,'\0', sizeof(vda_info));
 
   vda_info.req=NCSVDA_PWE_CREATE;
 
@@ -329,7 +329,7 @@ uns32 create_pwe_on_vdest(MDS_HDL mds_vdest_hdl,
 uns32 destroy_pwe_on_vdest(MDS_HDL mds_pwe_hdl)
 { 
   int i,j;
-  m_NCS_OS_MEMSET(&vda_info,'\0',sizeof(vda_info)); 
+  memset(&vda_info,'\0',sizeof(vda_info)); 
 
   vda_info.req=NCSVDA_PWE_DESTROY;
 
@@ -425,7 +425,7 @@ uns32 mds_service_install(MDS_HDL mds_hdl,
                           NCS_BOOL fail_no_active_sends)
 {
   int i;
-  m_NCS_OS_MEMSET(&svc_to_mds_info, 0, sizeof(svc_to_mds_info));
+  memset(&svc_to_mds_info, 0, sizeof(svc_to_mds_info));
 
   svc_to_mds_info.i_mds_hdl=mds_hdl;
   svc_to_mds_info.i_svc_id=svc_id;
@@ -1271,7 +1271,7 @@ uns32 mds_direct_send_message(MDS_HDL mds_hdl,
       if(direct_buff==NULL)
         perror("Direct Buffer not allocated properly");
       else
-        m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+        memset(direct_buff, 0, sizeof(direct_buff));
     }
   if(direct_buff&&message)
     {
@@ -1367,7 +1367,7 @@ uns32 mds_direct_response(MDS_HDL mds_hdl,
   uns16 direct_buff_len;
   /*Before Sending the Message: Allocate the Direct Buffer*/
   direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(msg)+1);
-  m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+  memset(direct_buff, 0, sizeof(direct_buff));
   if(direct_buff==NULL)
     perror("Direct Buffer not allocated properly");
 
@@ -1456,7 +1456,7 @@ uns32 mds_direct_broadcast_message(MDS_HDL mds_hdl,
     {
       /*Allocating memory for the direct buffer*/
       direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(msg)+1);
-      m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+      memset(direct_buff, 0, sizeof(direct_buff));
       if(direct_buff==NULL)
         perror("Direct Buffer not allocated properly");
     }
@@ -1789,7 +1789,7 @@ uns32 tet_mds_cb_cpy(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
          mds_to_svc_info->i_yr_svc_id);
   out_msg = (TET_MDS_MSG *)malloc(sizeof(TET_MDS_MSG)); /*where are u clean it\
                                                           up?*/
-  m_NCS_OS_MEMSET(out_msg, 0, sizeof(TET_MDS_MSG));
+  memset(out_msg, 0, sizeof(TET_MDS_MSG));
   in_msg =  (TET_MDS_MSG *)mds_to_svc_info->info.cpy.i_msg;
   out_msg->recvd_len = in_msg->send_len;
   /*out_msg->recvd_data = (char *)malloc(out_msg->recvd_len);*/
@@ -1847,7 +1847,7 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
     {
       /* We are receiving an asynchronous message! */
       msg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-      m_NCS_OS_MEMSET(msg, 0, sizeof(TET_MDS_MSG));
+      memset(msg, 0, sizeof(TET_MDS_MSG));
       mds_to_svc_info->info.dec.o_msg = (uns8*)msg;
     }
   
@@ -1859,7 +1859,7 @@ uns32 tet_mds_cb_dec(NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /*Decode data*/
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
-  m_NCS_OS_MEMSET(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
+  memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec.io_uba, 
                                (uns8*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */
@@ -1910,7 +1910,7 @@ uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
     {
       /* We are receiving an asynchronous message! */
       msg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-      m_NCS_OS_MEMSET(msg, 0, sizeof(TET_MDS_MSG));
+      memset(msg, 0, sizeof(TET_MDS_MSG));
       mds_to_svc_info->info.dec_flat.o_msg = (uns8*)msg;
     }
   
@@ -1922,7 +1922,7 @@ uns32 tet_mds_cb_dec_flat (NCSMDS_CALLBACK_INFO *mds_to_svc_info)
   
   /*Decode data*/
   /*msg->recvd_data = (char *) malloc(msg->recvd_len+1);*/
-  m_NCS_OS_MEMSET(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
+  memset(msg->recvd_data, 0, sizeof(msg->recvd_len+1));
   ncs_decode_n_octets_from_uba(mds_to_svc_info->info.dec_flat.io_uba, 
                                (uns8*)msg->recvd_data, msg->recvd_len);
   msg->recvd_data[msg->recvd_len] = 0; /* NULL termination for string */

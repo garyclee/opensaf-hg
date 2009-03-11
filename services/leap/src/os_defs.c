@@ -2170,7 +2170,7 @@ unsigned int os_cur_cpu_usage(void)
     {
       fprintf(stderr,"Cannot open %s.\n",STATS);
     }   
-    m_NCS_OS_MEMSET(buf,0,80);
+    memset(buf,0,80);
     while(fgets(buf,80,stats_file) != NULL)
     {
       if(m_NCS_OS_STRNCMP(buf,"cpu ",4) == 0)

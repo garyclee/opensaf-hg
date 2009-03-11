@@ -67,7 +67,7 @@ SNMPTM_TBLONE *snmptm_create_tblone_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tblone, '\0', sizeof(SNMPTM_TBLONE));
+   memset((char *)tblone, '\0', sizeof(SNMPTM_TBLONE));
    
    /* Copy the key contents to tblone struct */
    tblone->tblone_key.ip_addr = tblone_key->ip_addr;
@@ -194,10 +194,10 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
    char               temp_oid_stream[128*4];
              
 
-   m_NCS_OS_MEMSET(&patternArray, 0, sizeof(SaEvtEventPatternArrayT)); 
-   m_NCS_OS_MEMSET(&snmptm_tblone, 0, sizeof(NCS_TRAP)); 
-   m_NCS_OS_MEMSET(&eventHandle, 0, sizeof(SaEvtEventHandleT)); 
-   m_NCS_OS_MEMSET(&eventId, 0, sizeof(SaEvtEventIdT)); 
+   memset(&patternArray, 0, sizeof(SaEvtEventPatternArrayT)); 
+   memset(&snmptm_tblone, 0, sizeof(NCS_TRAP)); 
+   memset(&eventHandle, 0, sizeof(SaEvtEventHandleT)); 
+   memset(&eventId, 0, sizeof(SaEvtEventIdT)); 
 
    /* Fill in the trap details */ 
    snmptm_tblone.i_version = m_NCS_TRAP_VERSION;
@@ -212,7 +212,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
 
    /* Fill in the object ncsTestTableOneDisplayString details */ 
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_SNMPTM_TBLONE;
@@ -247,7 +247,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
                                                                
    /* Fill in the object ncsTestTableOneCounter32 details */ 
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_SNMPTM_TBLONE;
@@ -273,7 +273,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
                                                                
    /* Fill in the object ncsTestTableOneRowStatus details */ 
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_SNMPTM_TBLONE;
@@ -301,7 +301,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
                                                                
    /* Fill in the object ncsTestTableOneRowStatus details */ 
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_SNMPTM_SCALAR;
@@ -330,7 +330,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
+   memset(i_trap_varbind, 0, sizeof(NCS_TRAP_VARBIND)); 
                                                                
    /* Fill in the object ncsTestTableOneRowStatus details */ 
    i_trap_varbind->i_tbl_id = NCSMIB_TBL_SNMPTM_TBLONE;
@@ -362,7 +362,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(encoded_buffer, '\0', tlv_size);
+   memset(encoded_buffer, '\0', tlv_size);
 
    /* call the EDU macro to encode with buffer pointer and size */
    status = 

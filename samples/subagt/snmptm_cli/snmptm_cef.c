@@ -55,10 +55,10 @@ uns32 snmptm_cef_conf_mode(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
                   m_MMGR_ALLOC_SNMPTM_CMD_DATA) == NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(svc_name, 0, SNMPTM_SERVICE_NAME_LEN);
+   memset(svc_name, 0, SNMPTM_SERVICE_NAME_LEN);
    memcpy(svc_name, SNMPTM_SERVICE_NAME, SNMPTM_SERVICE_NAME_LEN);
 
-   m_NCS_OS_MEMSET(pcmd_data, '\0', sizeof(SNMPTM_CEF_CMD_DATA));
+   memset(pcmd_data, '\0', sizeof(SNMPTM_CEF_CMD_DATA));
 
    /* Copy the svc_name + pwe_id to make it an index to identify the 
       destination OAC */
@@ -129,7 +129,7 @@ uns32 snmptm_cef_tbl_create_row(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
    NCSMEM_AID  ma;
 
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -216,7 +216,7 @@ uns32 snmptm_cef_show_tbl_data(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
    uns8        space[2048];
    NCSMEM_AID  ma;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -278,7 +278,7 @@ uns32 snmptm_cef_show_tbls_data(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
    uns8        space[2048];
    NCSMEM_AID  ma;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -327,7 +327,7 @@ uns32 snmptm_cef_show_glb_data(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
    uns8        space[2048];
    NCSMEM_AID  ma;
 
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
 

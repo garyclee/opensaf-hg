@@ -128,7 +128,7 @@
              *o_err = EDU_ERR_MEM_FAIL;               \
              return NCSCC_RC_FAILURE;                 \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS)); \
+          memset(*d_ptr, '\0', sizeof(DS)); \
           struct_ptr = *d_ptr;                                \
          break; \
                    \

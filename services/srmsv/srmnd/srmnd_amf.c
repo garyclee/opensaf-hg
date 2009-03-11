@@ -206,7 +206,7 @@ uns32 srmnd_amf_finalize(SRMND_CB *srmnd)
       return NCSCC_RC_SUCCESS;
 
    /* delete the fd from the select list */ 
-   m_NCS_OS_MEMSET(&srmnd->amf_sel_obj, 0, sizeof(SaSelectionObjectT));
+   memset(&srmnd->amf_sel_obj, 0, sizeof(SaSelectionObjectT));
 
    /* Disable the health monitoring */ 
    status = saAmfHealthcheckStop(srmnd->amf_handle, 

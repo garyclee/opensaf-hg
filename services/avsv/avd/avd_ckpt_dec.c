@@ -2920,7 +2920,7 @@ uns32  avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
     * Decode data received in the message.
     */
    dec->i_action = NCS_MBCSV_ACT_ADD;
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff, "\n\nReceived reotype = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
    status = 
@@ -3605,7 +3605,7 @@ uns32  avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
       m_AVD_LOG_INVALID_VAL_FATAL(ederror);
    }
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
            updt_cnt->cb_updt, updt_cnt->avnd_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt, updt_cnt->sg_su_oprlist_updt,
           updt_cnt->sg_admin_si_updt, updt_cnt->su_si_rel_updt, updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->csi_parm_list_updt,
@@ -3613,7 +3613,7 @@ uns32  avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
    m_AVD_LOG_FUNC_ENTRY(logbuff);
 
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d sus=%d, ccstype=%d, cspar=%d \n",
            cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.avnd_updt, cb->async_updt_cnt.sg_updt, cb->async_updt_cnt.su_updt,
            cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt, cb->async_updt_cnt.sg_admin_si_updt,
@@ -3690,7 +3690,7 @@ uns32  avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
    num_of_obj = ncs_decode_32bit(&ptr);
    ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
-   m_NCS_MEMSET(logbuff,'\0',SA_MAX_NAME_LENGTH);
+   memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"\n\nReceived reotype  data sync = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
    /* 

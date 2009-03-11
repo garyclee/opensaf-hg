@@ -59,7 +59,7 @@ uns32 hpl_initialize(NCS_LIB_CREATE *create_info)
       rc = NCSCC_RC_FAILURE;
       goto error;
    }
-   m_NCS_OS_MEMSET(hpl_cb, 0, sizeof(HPL_CB));
+   memset(hpl_cb, 0, sizeof(HPL_CB));
 
    /* assign the HPL pool-id (used by hdl-mngr) */
    hpl_cb->pool_id = NCS_HM_POOL_ID_COMMON;

@@ -228,7 +228,7 @@ int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr,
             break;
         }
 
-        m_NCS_OS_MEMSET(rda_callback_cb, 0, sizeof(RDA_CALLBACK_CB));
+        memset(rda_callback_cb, 0, sizeof(RDA_CALLBACK_CB));
         rda_callback_cb->sockfd          = sockfd;
         rda_callback_cb->callback_ptr    = rda_cb_ptr;
         rda_callback_cb->callback_handle = cb_handle;
@@ -501,7 +501,7 @@ static RDA_CONTROL_BLOCK *rda_get_control_block(void)
    if (!initialized)
    {
        initialized = TRUE;
-       m_NCS_OS_MEMSET( &rda_cb, 0, sizeof(rda_cb));
+       memset( &rda_cb, 0, sizeof(rda_cb));
 
        /* Init necessary members */
        m_NCS_OS_STRNCPY(&rda_cb.sock_address.sun_path, RDE_RDA_SOCK_NAME,

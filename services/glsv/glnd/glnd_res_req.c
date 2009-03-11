@@ -62,7 +62,7 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
       return NULL;
    }
    
-   m_NCS_OS_MEMSET(res_req_info,0,sizeof(GLND_RESOURCE_REQ_LIST));
+   memset(res_req_info,0,sizeof(GLND_RESOURCE_REQ_LIST));
    res_req_info->res_req_hdl_id = ncshm_create_hdl((uns8)glnd_cb->pool_id,
                                                    NCS_SERVICE_ID_GLND,(NCSCONTEXT)res_req_info);
    if(!res_req_info->res_req_hdl_id)

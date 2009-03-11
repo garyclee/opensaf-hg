@@ -141,7 +141,7 @@ uns32 ava_create (NCS_LIB_CREATE *create_info)
    }
    m_AVA_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(AVA_CB));
+   memset(cb, 0, sizeof(AVA_CB));
 
    /* fetch the comp name from the env variable */
    if ( m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME") )
@@ -347,7 +347,7 @@ unsigned int ncs_ava_startup(void)
    }
 
    /*** Init AVA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (ava_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -395,7 +395,7 @@ unsigned int ncs_ava_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
       rc = ava_lib_req(&lib_destroy);
      

@@ -186,8 +186,8 @@ void trap_filter_callback(SaEvtSubscriptionIdT sub_id,
     NCS_TRAP decoded_data; /* Note that the all data allocated within this structure MUST be freed */
     NCS_TRAP *decoded_data_ptr;
 
-    m_NCS_MEMSET(event_data, 0, SUD_MAX_EVENT_SIZE);
-    m_NCS_MEMSET(&decoded_data, 0, sizeof(decoded_data));
+    memset(event_data, 0, SUD_MAX_EVENT_SIZE);
+    memset(&decoded_data, 0, sizeof(decoded_data));
 
     printf("\nEvent size is %d", data_len);
 
@@ -201,7 +201,7 @@ void trap_filter_callback(SaEvtSubscriptionIdT sub_id,
 		exit(1);
 	}
     
-    m_NCS_MEMSET(&edu_hdl, 0, sizeof(edu_hdl));
+    memset(&edu_hdl, 0, sizeof(edu_hdl));
     m_NCS_EDU_HDL_INIT(&edu_hdl);
 
     decoded_data_ptr = &decoded_data;

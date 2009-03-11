@@ -47,7 +47,7 @@ uns32 ncs_vip_ip_lib_init (IFA_CB *cb)
    NCS_PATRICIA_PARAMS       params;
    uns32                     res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&params,0,sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
    params.key_size = sizeof(NCS_IFSV_VIP_INT_HDL); /* check this statement */
    params.info_size = 0;
 
@@ -107,7 +107,7 @@ uns32 m_ncs_validate_interface_name(char *str) {
         intfRes = NCSCC_RC_FAILURE;
         return intfRes;
      }
-     m_NCS_MEMSET(&ifr, 0, sizeof(ifr));
+     memset(&ifr, 0, sizeof(ifr));
      m_NCS_STRCPY(&ifr.ifr_ifrn.ifrn_name,str);
      if(ioctl(sock,SIOCGIFFLAGS,&ifr) < 0)
      {
@@ -247,7 +247,7 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
          /* If IP address is null, It means we need to get ip 
             from already existing stale entry (VIPDB) */      
 
-         m_NCS_MEMSET(&ipEvt, 0, sizeof(IFSV_EVT));
+         memset(&ipEvt, 0, sizeof(IFSV_EVT));
 
          ipEvt.type = IFA_GET_IP_FROM_STALE_ENTRY_REQ;
  
@@ -303,7 +303,7 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
            return (NCSCC_RC_FAILURE);
         }
 
-        m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+        memset(evt, 0, sizeof(IFSV_EVT));
 
         evt->type = IFA_VIPD_INFO_ADD_REQ;
 
@@ -414,7 +414,7 @@ ncs_ifsv_vip_free(IFA_CB *pifa_cb , NCS_IFSV_VIP_FREE *pFreeArg)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&evt,0,sizeof(IFSV_EVT));
+   memset(&evt,0,sizeof(IFSV_EVT));
 
    evt.type = IFA_VIP_FREE_REQ;
    m_NCS_STRCPY(&evt.info.vip_evt.info.ifaVipFree.handle.vipApplName,&pFreeArg->i_handle.vipApplName);

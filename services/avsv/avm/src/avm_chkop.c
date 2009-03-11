@@ -99,7 +99,7 @@ avm_mbc_init(AVM_CB_T *cb)
    NCS_MBCSV_ARG mbcsv_arg;
 
    m_AVM_LOG_FUNC_ENTRY("avm_mbcsv_initialize");
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    mbcsv_arg.info.initialize.i_service    = NCS_SERVICE_ID_AVM;
@@ -136,7 +136,7 @@ avm_mbc_open_ckpt(AVM_CB_T *cb)
    
    m_AVM_LOG_FUNC_ENTRY("avm_mbcsv_open_ckpt");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -172,7 +172,7 @@ uns32 avm_set_ckpt_role(AVM_CB_T *cb,
    
    m_AVM_LOG_FUNC_ENTRY("avm_set_ckpt_role");
    
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -205,7 +205,7 @@ static uns32 avm_mbc_get_sel_obj(AVM_CB_T *cb)
 
    NCS_MBCSV_ARG mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op        = NCS_MBCSV_OP_SEL_OBJ_GET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -237,7 +237,7 @@ avm_mbc_register(AVM_CB_T *cb)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&cb->async_updt_cnt, 0, sizeof(AVM_ASYNC_CNT_T));
+   memset(&cb->async_updt_cnt, 0, sizeof(AVM_ASYNC_CNT_T));
 
    /* Intializing MBCSv interface */
    if(NCSCC_RC_SUCCESS != avm_mbc_init(cb))
@@ -301,7 +301,7 @@ avm_mbc_dispatch(
 
    m_AVM_LOG_FUNC_ENTRY("avm_mbc_dispatch");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -337,7 +337,7 @@ avm_mbc_warm_sync_off( AVM_CB_T *cb)
 
    m_AVM_LOG_FUNC_ENTRY("avm_mbc_warm_sync_off");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -386,7 +386,7 @@ avm_send_ckpt_data(AVM_CB_T    *cb,
    
    m_AVM_LOG_FUNC_ENTRY("avm_send_ckpt_data");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -464,12 +464,12 @@ avm_send_data_req(AVM_CB_T *cb)
       
    m_AVM_LOG_FUNC_ENTRY("avm_send_data_req");
    
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
    uba = &mbcsv_arg.info.send_data_req.i_uba;
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
    mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->ckpt_hdl;
    
    if(NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
@@ -807,7 +807,7 @@ avm_mbc_finalize(AVM_CB_T *cb)
    
    m_AVM_LOG_FUNC_ENTRY("avm_mbcsv_finalize");
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -839,7 +839,7 @@ avm_mbc_close_ckpt(AVM_CB_T *cb)
    
    m_AVM_LOG_FUNC_ENTRY("avm_mbc_colse_ckpt");
    
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
@@ -992,12 +992,12 @@ avm_send_role_chg_notify_msg(
    m_AVM_LOG_ROLE_OP(AVM_LOG_RDA_AVM_ROLE, cb->ha_state, NCSFL_SEV_INFO);
 
    /* fill role notify msg */
-   m_NCS_MEMSET(&role_notify_msg, '\0', sizeof(AVM_ROLE_MSG_T));
+   memset(&role_notify_msg, '\0', sizeof(AVM_ROLE_MSG_T));
    role_notify_msg.msg_type = AVM_ROLE_CHG;
    role_notify_msg.role_info.role_chg.role = role;
 
    /* fill mbcsv arg struct */
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_NOTIFY;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
    mbcsv_arg.info.send_notify.i_ckpt_hdl = cb->ckpt_hdl;
@@ -1031,13 +1031,13 @@ avm_send_role_rsp_notify_msg(
    m_AVM_LOG_ROLE_OP(AVM_LOG_ROLE_CHG, status, NCSFL_SEV_INFO);
 
    /* fill role notify msg */
-   m_NCS_MEMSET(&role_notify_msg, '\0', sizeof(AVM_ROLE_MSG_T));
+   memset(&role_notify_msg, '\0', sizeof(AVM_ROLE_MSG_T));
    role_notify_msg.msg_type = AVM_ROLE_RSP;
    role_notify_msg.role_info.role_rsp.role = role;
    role_notify_msg.role_info.role_rsp.role_rsp = status;
 
    /* fill mbcsv arg struct */
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_NOTIFY;
    mbcsv_arg.i_mbcsv_hdl = cb->mbc_hdl;
    mbcsv_arg.info.send_notify.i_ckpt_hdl = cb->ckpt_hdl;

@@ -159,7 +159,7 @@ static uns32 avd_avm_send_msg(AVD_CL_CB *cb, AVD_AVM_MSG_T *snd_msg)
    NCSMDS_INFO snd_mds;
    uns32 rc;
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->adest_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -200,7 +200,7 @@ uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_NODE_SHUTDOWN_RESP_MSG;
 
    snd_msg->avd_avm_msg.shutdown_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
@@ -237,7 +237,7 @@ uns32 avd_avm_send_failover_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_NODE_FAILOVER_RESP_MSG;
 
    snd_msg->avd_avm_msg.failover_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
@@ -273,7 +273,7 @@ uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *cb, SaNameT *node)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_FAULT_DOMAIN_REQ_MSG;
 
    snd_msg->avd_avm_msg.fault_domain_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
@@ -309,7 +309,7 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
    m_AVD_LOG_FUNC_ENTRY("avd_avm_send_reset_req");
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_NODE_RESET_REQ_MSG;
 
    snd_msg->avd_avm_msg.reset_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
@@ -367,7 +367,7 @@ uns32 avd_avm_role_rsp(AVD_CL_CB *cb, NCS_BOOL status, SaAmfHAStateT role)
 /* m_NCS_DBG_PRINTF("\nAVD: ROLE = %d -- RESP = %d\n",role,status); */
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_SYS_CON_ROLE_ACK_MSG;
    snd_msg->avd_avm_msg.role_ack.rc = status;
    snd_msg->avd_avm_msg.role_ack.role = role;
@@ -408,7 +408,7 @@ uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    m_AVD_LOG_INVALID_VAL_ERROR(0);
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_LOST_MSG;
 
    /* Find the node from the node ID */
@@ -454,7 +454,7 @@ uns32 avd_avm_d_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
    m_AVD_LOG_FUNC_ENTRY("avd_avm_hb_restore_msg");
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_RESTORE_MSG;
 
    /* Find the node from the node ID */
@@ -498,7 +498,7 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_LOST_MSG;
    /* Fill in the logical node_id */
    snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
@@ -546,7 +546,7 @@ uns32 avd_avm_nd_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
+   memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));
    snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_RESTORE_MSG;
 
    /*Using the lost Heart beat structure only , as same information is 
@@ -599,7 +599,7 @@ uns32 avd_avm_node_reset_rsp(AVD_CL_CB *cb, uns32 node)
    m_AVD_LOG_FUNC_ENTRY("avd_avm_node_reset_rsp");
    
    msg = m_MMGR_ALLOC_AVM_AVD_MSG;
-   m_NCS_MEMSET(msg, '\0', sizeof(AVM_AVD_MSG_T));
+   memset(msg, '\0', sizeof(AVM_AVD_MSG_T));
 
    msg->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
    avnd = avd_avnd_struc_find_nodeid(cb, node);

@@ -83,7 +83,7 @@ uns32 srma_mds_reg (SRMA_CB *srma)
    }
 
    /* fill common fields */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = srma->mds_hdl;
    mds_info.i_svc_id  = NCSMDS_SVC_ID_SRMA;
 
@@ -153,7 +153,7 @@ uns32  srma_mds_unreg(SRMA_CB *srma)
    NCSMDS_INFO  mds_info;
    uns32        rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = srma->mds_hdl;
    mds_info.i_svc_id  = NCSMDS_SVC_ID_SRMA;
@@ -376,7 +376,7 @@ uns32 srma_mds_copy(SRMA_CB *srma, MDS_CALLBACK_COPY_INFO *cp_info)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(msg, 0, sizeof(SRMA_MSG));
+   memset(msg, 0, sizeof(SRMA_MSG));
 
    memcpy(msg, cp_info->i_msg, sizeof(SRMA_MSG));
    cp_info->o_cpy = (uns8*)msg;
@@ -572,7 +572,7 @@ uns32 srma_mds_send (SRMA_CB *srma,
    uns32       rc = NCSCC_RC_SUCCESS;
    MDS_SEND_INFO *send_info = NULL;
    
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = srma->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_SRMA;
@@ -677,7 +677,7 @@ void srma_srmnd_mds_down(SRMA_CB *srma, MDS_DEST *srmnd_dest)
 
    if ((srmnd = srma_check_srmnd_exists(srma, m_NCS_NODE_ID_FROM_MDS_DEST(*srmnd_dest))) != NULL)
    {
-      m_NCS_OS_MEMSET(&srmnd->srmnd_dest, 0, sizeof(MDS_DEST));
+      memset(&srmnd->srmnd_dest, 0, sizeof(MDS_DEST));
       srmnd->is_srmnd_up = FALSE;
 
       /* If no rsrc's are configured.. so delete the respective 
@@ -871,7 +871,7 @@ uns32  srma_mds_flat_dec(SRMA_CB *srma, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(msg, 0, sizeof(SRMND_MSG));
+   memset(msg, 0, sizeof(SRMND_MSG));
    
    /* decode the top level SRMND msg contents */
    if ((rc = ncs_decode_n_octets_from_uba(dec_info->io_uba,
@@ -906,7 +906,7 @@ uns32  srma_mds_flat_dec(SRMA_CB *srma, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
              return NCSCC_RC_FAILURE;
           }
 
-          m_NCS_OS_MEMSET(bulk_rsrc, 0, sizeof(SRMND_CREATED_RSRC_MON));
+          memset(bulk_rsrc, 0, sizeof(SRMND_CREATED_RSRC_MON));
 
           ncs_decode_n_octets_from_uba(dec_info->io_uba,
                                    (uns8 *)&bulk_rsrc->srma_rsrc_hdl,
@@ -958,7 +958,7 @@ static uns32  srma_mds_param_get(SRMA_CB *srma)
    NCSADA_INFO ada_info;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE;

@@ -204,7 +204,7 @@ uns32 cli_log_ascii_reg(void)
    NCS_DTSV_REG_CANNED_STR arg;
    uns32                   rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
 
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_REGISTER;
    arg.info.reg_ascii_spec.spec = &cli_ascii_spec;
@@ -230,7 +230,7 @@ uns32 cli_log_ascii_dereg()
    NCS_DTSV_REG_CANNED_STR arg;   
    uns32                   rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));      
+   memset(&arg, 0, sizeof(arg));      
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_DEREGISTER;
    arg.info.dereg_ascii_spec.svc_id = NCS_SERVICE_ID_CLI;
    arg.info.dereg_ascii_spec.version = CLI_LOG_VERSION;

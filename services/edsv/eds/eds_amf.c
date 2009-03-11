@@ -452,7 +452,7 @@ eds_healthcheck_start(EDS_CB *eds_cb)
     }
 
    /** start the AMF health check **/
-   m_NCS_MEMSET(&Healthy,0,sizeof(Healthy));
+   memset(&Healthy,0,sizeof(Healthy));
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("EDSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
@@ -533,7 +533,7 @@ eds_amf_init(EDS_CB *eds_cb)
    fp = NULL;
 
    /* Initialize amf callbacks */
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = eds_amf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback      = eds_amf_CSI_set_callback;
@@ -695,7 +695,7 @@ ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
         return -1;
 
     /* now say that, we are interested in this signal */
-    m_NCS_MEMSET(&sig_act, 0, sizeof(struct sigaction));
+    memset(&sig_act, 0, sizeof(struct sigaction));
     sig_act.sa_handler = i_sig_handler;
     return sigaction(i_sig_num, &sig_act, NULL);
 
@@ -722,9 +722,9 @@ SaAisErrorT eds_clm_init(EDS_CB *cb)
    SaAisErrorT        rc = SA_AIS_OK;
    SaTimeT            timeout = EDSV_CLM_TIMEOUT;
      
-   m_NCS_OS_MEMSET(&clm_version,0,sizeof(SaVersionT));
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
-   m_NCS_OS_MEMSET(&notify_buff,0,sizeof(SaClmClusterNotificationBufferT));
+   memset(&clm_version,0,sizeof(SaVersionT));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&notify_buff,0,sizeof(SaClmClusterNotificationBufferT));
 
    /* Fill version */
    m_EDSV_GET_CLM_VER(clm_version);
@@ -878,7 +878,7 @@ void update_node_db(EDS_CB *cb, NODE_ID node_id, SaClmClusterChangesT cluster_ch
    {
      /* Add a new node to the list after prev*/
      new = m_MMGR_ALLOC_CLUSTER_NODE_LIST(sizeof(NODE_INFO));
-     m_NCS_MEMSET(new,0,sizeof(NODE_INFO));
+     memset(new,0,sizeof(NODE_INFO));
      new->node_id = node_id;
      new->next = NULL;
      if (prev == NULL)

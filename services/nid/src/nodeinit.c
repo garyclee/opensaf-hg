@@ -728,7 +728,7 @@ parse_nodeinitconf(char *strbuf)
        /****************************************************
         *       Clear the new child info struct             *
         ****************************************************/
-       m_NCS_OS_MEMSET(childinfo,0,sizeof(NID_SPAWN_INFO));
+       memset(childinfo,0,sizeof(NID_SPAWN_INFO));
 
 
        /****************************************************

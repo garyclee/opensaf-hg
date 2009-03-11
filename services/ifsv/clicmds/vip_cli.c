@@ -109,7 +109,7 @@ uns32 ncsvip_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
        case NCS_LIB_REQ_CREATE:
-           m_NCS_OS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+           memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
            i_bindery.i_cli_hdl = gl_cli_hdl;
            i_bindery.i_mab_hdl = gl_mac_handle;
            i_bindery.i_req_fnc = ncsmac_mib_request;
@@ -140,7 +140,7 @@ vip_cli_register(NCSCLI_BINDERY *pBindery)
    NCSCLI_CMD_LIST data;
    NCSCLI_OP_INFO req;
                                                                                                                              
-   m_NCS_OS_MEMSET(&req, 0, sizeof(NCSCLI_OP_INFO));
+   memset(&req, 0, sizeof(NCSCLI_OP_INFO));
    req.i_hdl = pBindery->i_cli_hdl;
    req.i_req = NCSCLI_OPREQ_REGISTER;
    req.info.i_register.i_bindery = pBindery;
@@ -161,7 +161,7 @@ vip_cli_register(NCSCLI_BINDERY *pBindery)
    *   VIP CLI Top Level Commands                                           *
    *                                                                          *
    \**************************************************************************/
-   m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+   memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
    data.i_node = "root/exec/config";
    data.i_command_mode = "config";
    data.i_access_req = FALSE;
@@ -344,9 +344,9 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
    uns32 rc;
    uns32 rsp_status;
 
-   m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncs_mib_arg);
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
    p_vip_mode_data = (NCS_CLI_MODE_DATA *)
@@ -484,9 +484,9 @@ vip_process_get_row_request( NCSCLI_CEF_DATA *p_cef_data,
     uns8 title_str[200];
     sprintf(title_str, "%2s%10s%10s%10s%10s", "APPLICATION", "HANDLE", "IPPOOL", "IP/MASK", "INTERFACE");
 
-    m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncs_mib_arg);
-    m_NCS_OS_MEMSET(space, 0, sizeof(space));
+    memset(space, 0, sizeof(space));
     ncsmem_aid_init(&ma, space, 1024);
 
     p_vip_mode_data = (NCS_CLI_MODE_DATA *)p_cef_data->i_subsys->i_cef_mode;
@@ -593,9 +593,9 @@ vip_process_get_row_request( NCSCLI_CEF_DATA *p_cef_data,
               sec_idx_len*sizeof(uns32));
 
 
-       m_NCS_OS_MEMSET(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
+       memset(&ncs_mib_arg, 0, sizeof(NCSMIB_ARG));
        ncsmib_init(&ncs_mib_arg);
-       m_NCS_OS_MEMSET(space, 0, sizeof(space));
+       memset(space, 0, sizeof(space));
        ncsmem_aid_init(&ma, space, 1024);
 
        ncs_mib_arg.i_idx.i_inst_ids =  sec_idxs;
@@ -643,10 +643,10 @@ vip_populate_display_data(NCSMIB_ARG *p_ncs_mib_arg,
 
 
 
-   m_NCS_OS_MEMSET(space, 0, sizeof(space));
+   memset(space, 0, sizeof(space));
    ncsmem_aid_init(&ma, space, 1024);
 
-   m_NCS_OS_MEMSET(p_vip_data_display, 0, sizeof(VIP_DATA_DISPLAY));
+   memset(p_vip_data_display, 0, sizeof(VIP_DATA_DISPLAY));
 
 
    idx_len = p_ncs_mib_arg->rsp.info.nextrow_rsp.i_next.i_inst_len;

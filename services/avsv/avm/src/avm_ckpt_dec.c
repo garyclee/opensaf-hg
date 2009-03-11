@@ -915,7 +915,7 @@ avm_decode_warm_sync_rsp(
       m_AVM_LOG_INVALID_VAL_FATAL(ederror);
    }
   
-   m_NCS_MEMSET(sprbuf, '\0', sizeof(sprbuf));   
+   memset(sprbuf, '\0', sizeof(sprbuf));   
    sprintf(sprbuf, " Standby ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d dhconf_updt = %d dhstate_updt = %d \n Active  ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d dhconf_updt = %d dhstate_updt = %d upgd_state_updt = %d\n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt, cb->async_updt_cnt.ent_dhconf_updt, cb->async_updt_cnt.ent_dhstate_updt, updt_cnt->ent_updt, updt_cnt->ent_cfg_updt, updt_cnt->ent_adm_op_updt, updt_cnt->evt_id_updt, updt_cnt->ent_dhconf_updt, updt_cnt->ent_dhstate_updt, updt_cnt->ent_upgd_state_updt);
    
    m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_INFO);

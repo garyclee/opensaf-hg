@@ -341,7 +341,7 @@ ifsv_drv_demo_start(NCSCONTEXT *info)
    uns32 res;
    NCS_IFSV_DRV_SVC_REQ drv_svc_req;
 
-   m_NCS_MEMSET(&drv_svc_req, 0, sizeof(drv_svc_req));
+   memset(&drv_svc_req, 0, sizeof(drv_svc_req));
    drv_svc_req.req_type           = NCS_IFSV_DRV_INIT_REQ;
 
    /** SE API used to initialize driver service request **/

@@ -116,7 +116,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
                 m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&cb->lock);
                 return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_dta_dest: Memory allocation failed");
              }
-             m_NCS_OS_MEMSET(to_reg, '\0', sizeof(DTA_DEST_LIST));
+             memset(to_reg, '\0', sizeof(DTA_DEST_LIST));
              /* Update the fields of DTA_DEST_LIST */
              to_reg->dta_addr = dtadest->dta_addr;
              to_reg->dta_up   = dtadest->dta_up;
@@ -179,7 +179,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
          lib_hdl = (ASCII_SPEC_LIB *)dts_ascii_spec_load(cb->last_spec_loaded.svc_name, cb->last_spec_loaded.version, 1);
 
          /* memset the spec_key first before filling it up */
-         m_NCS_MEMSET(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
+         memset(&spec_key, '\0', sizeof(ASCII_SPEC_INDEX));
          spec_key.svc_id = svc->ntwk_key.ss_svc_id;
          spec_key.ss_ver = cb->last_spec_loaded.version;
          /*Check if ASCII_SPEC table for this service is already loaded.
@@ -207,7 +207,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
                /* Do rest of cleanup, cleaning service regsitration table etc*/
                return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_dta_dest: Memory allocation failed");
             }
-            m_NCS_MEMSET(per_dta_svc_spec, '\0', sizeof(SPEC_ENTRY));
+            memset(per_dta_svc_spec, '\0', sizeof(SPEC_ENTRY));
             per_dta_svc_spec->dta_addr = dta_key;
             per_dta_svc_spec->spec_struct = spec_entry;
             per_dta_svc_spec->lib_struct = lib_hdl;
@@ -402,7 +402,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                     m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock); 
                     return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_svc_reg: Memory allocation failed"); 
                  }
-                 m_NCS_MEMSET(node_reg_ptr, '\0', sizeof(DTS_SVC_REG_TBL));
+                 memset(node_reg_ptr, '\0', sizeof(DTS_SVC_REG_TBL));
                  /* Check for NULL value of svcreg parameter, if not NULL 
                     Copy the attributes of the node passed by decoder */
                  node_reg_ptr->my_key.node = key.node;
@@ -495,7 +495,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                    m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &cb->lock);
                    return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_ckpt_add_rmv_updt_svc_reg : Memory allocation failed");
                 }
-                m_NCS_MEMSET(svc_ptr, '\0', sizeof(DTS_SVC_REG_TBL)); 
+                memset(svc_ptr, '\0', sizeof(DTS_SVC_REG_TBL)); 
                 svc_ptr->my_key.ss_svc_id = key.ss_svc_id;
                 svc_ptr->my_key.node = key.node;
 
@@ -747,7 +747,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                      }
                      m_LOG_DTS_EVT(DTS_EV_SVC_DTA_RMV, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
 
-                     m_NCS_MEMSET(&spec_info, '\0', sizeof(SPEC_CKPT));
+                     memset(&spec_info, '\0', sizeof(SPEC_CKPT));
                      /* Versioning support : Remove spec entry corresponding to
                       * the DTA from svc's spec_list. */
                      if(dts_del_spec_frm_svc(svc_ptr, *vkey, &spec_info) != NCSCC_RC_SUCCESS)

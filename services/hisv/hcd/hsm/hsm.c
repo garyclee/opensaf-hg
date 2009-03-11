@@ -493,7 +493,7 @@ uns32 hcd_hsm()
       memcpy(event_data, (uns8 *)&event, evt_len);
 
       /* remove the grouping elements of entity path */
-      m_NCS_OS_MEMSET(&epath, 0, epath_len);
+      memset(&epath, 0, epath_len);
 #ifdef HPI_A
       for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
          epath.Entry[i-2] = RptEntry.ResourceEntity.Entry[i];
@@ -637,7 +637,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("dispatch_hotswap: dispatching outstanding hotwap events\n");
-   m_NCS_MEMSET(hsm_cb->node_state, 0, sizeof(hsm_cb->node_state));
+   memset(hsm_cb->node_state, 0, sizeof(hsm_cb->node_state));
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
@@ -944,7 +944,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 
 #ifdef HPI_A
    /* remove the grouping elements of entity path */
-   m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   memset(&epath, 0, epath_len);
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
       epath.Entry[i-2] = RptEntry->ResourceEntity.Entry[i];
 
@@ -969,7 +969,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       }
    }
 
-   m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   memset(&epath, 0, epath_len);
 
    if( RptEntry->ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) ) 
      {
@@ -1090,7 +1090,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 
 #ifdef HPI_A
    /* remove the grouping elements of entity path */
-   m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   memset(&epath, 0, epath_len);
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
       epath.Entry[i-2] = RptEntry->ResourceEntity.Entry[i];
 
@@ -1116,7 +1116,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       }
    }
 
-   m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   memset(&epath, 0, epath_len);
 
    if( RptEntry->ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) )
      {
@@ -1236,7 +1236,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
       /* invdata_size = 0; */
    }
    /* remove the grouping elements of entity path */
-   m_NCS_OS_MEMSET(&epath, 0, epath_len);
+   memset(&epath, 0, epath_len);
 
 #ifdef HPI_A
    epath.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
@@ -1434,7 +1434,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
       sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
       if (sim_cb != NULL)
       {
-         m_NCS_MEMSET(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
+         memset(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
          ncshm_give_hdl(gl_sim_hdl);
       }
       if (dispatch_hotswap(hsm_cb) != NCSCC_RC_SUCCESS)
@@ -1538,7 +1538,7 @@ CHECK:
 
    *invdata_size = sizeof(HISV_INV_DATA);
    *event_data = m_MMGR_ALLOC_HPI_INV_DATA(*invdata_size+evt_epathlen);
-   m_NCS_MEMSET(*event_data, 0, (*invdata_size+evt_epathlen)); 
+   memset(*event_data, 0, (*invdata_size+evt_epathlen)); 
 
 
    if (Rdr->RdrType == SAHPI_INVENTORY_RDR)
@@ -1577,7 +1577,7 @@ CHECK:
             m_MMGR_FREE_HPI_INV_DATA(*event_data);
             *actual_size = 0;
             *invdata_size = 0;
-            m_NCS_OS_MEMSET(Rdr, 0, sizeof(SaHpiRdrT));
+            memset(Rdr, 0, sizeof(SaHpiRdrT));
             goto CHECK;
          }
       }
@@ -1816,7 +1816,7 @@ CHECK:
    *invdata_size = sizeof(HISV_INV_DATA);
    *event_data = m_MMGR_ALLOC_HPI_INV_DATA(*invdata_size+evt_epathlen);
    inv_var = &((HPI_HISV_EVT_T *)*event_data)->inv_data;
-   m_NCS_MEMSET(*event_data, 0, (*invdata_size+evt_epathlen));
+   memset(*event_data, 0, (*invdata_size+evt_epathlen));
 
    if (Rdr->RdrType != SAHPI_INVENTORY_RDR) {
       m_LOG_HISV_DTS_CONS("hcd_hsm: Could not find RDR record\n");
@@ -1895,7 +1895,7 @@ CHECK:
    }
 
    areaId = SAHPI_FIRST_ENTRY;
-   m_NCS_MEMSET(&areaInfo, 0, sizeof(SaHpiIdrAreaHeaderT));
+   memset(&areaInfo, 0, sizeof(SaHpiIdrAreaHeaderT));
    err=SA_OK;
 
    while ((err == SA_OK) && (areaId != SAHPI_LAST_ENTRY))
@@ -2206,7 +2206,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             memcpy(event_data, (uns8 *)&event, evt_len);
 
             /* remove the grouping elements of entity path */
-            m_NCS_OS_MEMSET(&epath, 0, epath_len);
+            memset(&epath, 0, epath_len);
 #ifdef HPI_A
             for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
                epath.Entry[i-2] = entry->ResourceEntity.Entry[i];

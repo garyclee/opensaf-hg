@@ -107,7 +107,7 @@ uns32 pss_lib_init()
    uns32          rc;   
    NCSPSS_CREATE  pwe;
 
-   m_NCS_OS_MEMSET(&pwe, 0, sizeof(NCSPSS_CREATE)); 
+   memset(&pwe, 0, sizeof(NCSPSS_CREATE)); 
 
    /* bind with DTA/Tracing service */ 
    if (pss_dtsv_bind() != NCSCC_RC_SUCCESS)
@@ -300,7 +300,7 @@ uns32 pss_lib_shut(void)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
   
    /* destroy PSS */  
-   m_NCS_OS_MEMSET(&arg,0,sizeof(arg));
+   memset(&arg,0,sizeof(arg));
    arg.i_usr_key = gl_pss_amf_attribs.handles.pss_cb_hdl;
    arg.i_op      = NCSPSS_LM_OP_DESTROY;
    arg.info.destroy.i_meaningless = (void*)0x1234;
@@ -346,13 +346,13 @@ uns32 pss_ts_create(NCSPSS_CREATE *pwe, uns32 ps_format_version)
    char              def_pssv_root[256];
 
    /* set the ground level */ 
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
    arg.i_op = NCS_PSSTS_LM_OP_CREATE;
    arg.info.create.i_hmpool_id = NCS_HM_POOL_ID_COMMON;
    pssv_root = getenv("NCS_PSSV_ROOT");
    if(pssv_root == NULL)
    {
-      m_NCS_MEMSET(&def_pssv_root, '\0', sizeof(def_pssv_root));
+      memset(&def_pssv_root, '\0', sizeof(def_pssv_root));
       sprintf(def_pssv_root, "%s%d", NCS_PSS_DEF_PSSV_ROOT_PATH, ps_format_version); 
       pssv_root = (char*)&def_pssv_root;
    }
@@ -394,7 +394,7 @@ uns32 pss_ts_destroy(uns32 pss_ts_hdl)
    NCS_PSSTS_LM_ARG  arg;
 
    /* destory the target services */ 
-   m_NCS_MEMSET(&arg, 0, sizeof(NCS_PSSTS_LM_ARG));
+   memset(&arg, 0, sizeof(NCS_PSSTS_LM_ARG));
    arg.i_op = NCS_PSSTS_LM_OP_DESTROY;
    arg.info.destroy.i_handle = pss_ts_hdl;
    rc = ncspssts_lm(&arg); 
@@ -445,7 +445,7 @@ uns32 pss_create(NCSPSS_CREATE *pwe)
    m_LOG_PSS_HDLN2_I(NCSFL_SEV_NOTICE, PSS_HDLN2_RDA_GIVEN_INIT_ROLE, init_ha_role);
 
    /* Create PSS VDEST */ 
-   m_NCS_OS_MEMSET(&vda_info, 0, sizeof(NCSVDA_INFO)); 
+   memset(&vda_info, 0, sizeof(NCSVDA_INFO)); 
    vda_info.req = NCSVDA_VDEST_CREATE;
    vda_info.info.vdest_create.i_persistent = FALSE;
    vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
@@ -468,7 +468,7 @@ uns32 pss_create(NCSPSS_CREATE *pwe)
    gl_pss_amf_attribs.ha_state = init_ha_role;
   
    /* create PSS */  
-   m_NCS_OS_MEMSET(&arg,0,sizeof(arg));
+   memset(&arg,0,sizeof(arg));
    arg.i_op = NCSPSS_LM_OP_CREATE;
    arg.info.create.i_vrid = pwe->i_vrid;
    arg.info.create.i_mds_hdl = pwe->i_mds_hdl;

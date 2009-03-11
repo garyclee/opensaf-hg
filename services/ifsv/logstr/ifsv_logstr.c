@@ -591,7 +591,7 @@ void ifsv_flx_log_ascii_set_reg(void)
 {
    NCS_DTSV_REG_CANNED_STR arg;
 
-   m_NCS_MEMSET(&arg,0,sizeof(NCS_DTSV_REG_CANNED_STR));
+   memset(&arg,0,sizeof(NCS_DTSV_REG_CANNED_STR));
 
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_REGISTER;
    arg.info.reg_ascii_spec.spec = &ifd_ascii_spec;
@@ -625,7 +625,7 @@ void ifsv_flx_log_ascii_set_dereg(void)
 {
    NCS_DTSV_REG_CANNED_STR arg;   
    
-   m_NCS_MEMSET(&arg,0,sizeof(NCS_DTSV_REG_CANNED_STR));   
+   memset(&arg,0,sizeof(NCS_DTSV_REG_CANNED_STR));   
 
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_DEREGISTER;
 

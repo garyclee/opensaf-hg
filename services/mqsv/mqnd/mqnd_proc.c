@@ -64,7 +64,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
      {  
         
       /* Delete the native message queue */
-      m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_MQ_REQ_INFO));
+      memset(&info, 0, sizeof(NCS_OS_MQ_REQ_INFO));
       info.req = NCS_OS_MQ_REQ_DESTROY;
       info.info.destroy.i_hdl = qhdl;
 
@@ -78,7 +78,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
       mqnd_shm_queue_ckpt_section_invalidate(cb, qnode);
 
       /* Delete the mapping entry from the qname database */
-      m_NCS_MEMSET(&qname, 0, sizeof(SaNameT));
+      memset(&qname, 0, sizeof(SaNameT));
       qname = qnode->qinfo.queueName;
       mqnd_qname_node_get(cb, qname, &pnode);
       mqnd_qname_node_del(cb, pnode);
@@ -100,7 +100,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
         /*Q Timer expired on N1 so Trans Complete req with error code set was sent either from N1 
           or Timer Expiry routine running on N2*/
         /* Register with MQD the change in status to MQSV_QUEUE_ORPHAN*/
-        m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+        memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
         opr.type = ASAPi_OPR_MSG;
         opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -129,7 +129,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
           /*This is the case when REG request is assumed to be lost or not proceesed at MQD becoz of failover.So
             to compensate for the lost request we send an async REG request to MQD */
           /*Request the ASAPi (at MQD) for queue REG */
-          m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+          memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
           opr.type = ASAPi_OPR_MSG;
           opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -164,7 +164,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
         if(rc == SA_AIS_OK) 
          {
           qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_ORPHAN;
-          m_NCS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+          memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
           mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
 
           rc = mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
@@ -213,7 +213,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
     uns32 counter;
     MQND_QUEUE_CKPT_INFO queue_ckpt_node;   
  
-    m_NCS_OS_MEMSET(&transfer_rsp, 0, sizeof(MQSV_EVT));
+    memset(&transfer_rsp, 0, sizeof(MQSV_EVT));
 
     qhdl = req->msg.mqp_req.info.transferReq.old_queueHandle;
 
@@ -259,7 +259,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
          goto send_rsp;
        }
 
-       m_NCS_MEMSET(mqsv_message, 0, qreq.info.attr.o_attr.mq_msgsize);
+       memset(mqsv_message, 0, qreq.info.attr.o_attr.mq_msgsize);
        transfer_rsp.msg.mqp_rsp.info.transferRsp.mqsv_message = mqsv_message;
     }    
     
@@ -346,7 +346,7 @@ reg_req:
 
 
     /* Register with MQD the change in status to MQSV_QUEUE_OWN_STATE_PROGRESS */
-    m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+    memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
     opr.type = ASAPi_OPR_MSG;
     opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -374,7 +374,7 @@ reg_req:
       /*This is the case when REG request is assumed to be lost or not proceesed at MQD becoz of failover.So
         to compensate for the lost request we send an async REG request to MQD */
       /*Request the ASAPi (at MQD) for queue REG */
-      m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+      memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
       opr.type = ASAPi_OPR_MSG;
       opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -455,7 +455,7 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
    SaTimeT  timeout;
 
    /* Build and send transfer ownership request to remote MQND */
-   m_NCS_OS_MEMSET(&transfer_req, 0, sizeof(MQSV_EVT));
+   memset(&transfer_req, 0, sizeof(MQSV_EVT));
 
    transfer_req.type = MQSV_EVT_MQP_REQ;
    transfer_req.msg.mqp_req.type = MQP_EVT_TRANSFER_QUEUE_REQ;
@@ -496,7 +496,7 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
    }
 
    qevt_node = m_MMGR_ALLOC_MQND_QTRANSFER_EVT_NODE;
-   m_NCS_OS_MEMSET(qevt_node, 0, sizeof(MQND_QTRANSFER_EVT_NODE));
+   memset(qevt_node, 0, sizeof(MQND_QTRANSFER_EVT_NODE));
   
    if(!qevt_node)
     {
@@ -582,7 +582,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt)
       }
 
    /* Send the Queue remove message to old MQND */
-   m_NCS_OS_MEMSET(&transfer_complete, 0, sizeof(MQSV_EVT));
+   memset(&transfer_complete, 0, sizeof(MQSV_EVT));
    transfer_complete.type = MQSV_EVT_MQP_REQ;
    transfer_complete.msg.mqp_req.type = MQP_EVT_TRANSFER_QUEUE_COMPLETE;
    transfer_complete.msg.mqp_req.info.transferComplete.queueHandle = transfer_rsp->old_queueHandle;
@@ -629,7 +629,7 @@ uns32 mqnd_fill_queue_from_transfered_buffer(MQND_CB *cb, MQND_QUEUE_NODE *qnode
    }
 
    /* Resizze the new queue so that its able to hold all the incoming messages */
-   m_NCS_MEMSET(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
 
    info.req = NCS_OS_POSIX_MQ_REQ_RESIZE;
    info.info.resize.mqd = qnode->qinfo.queueHandle;
@@ -734,7 +734,7 @@ uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ 
    }
 
    /*MQND Restart. Here the owner of the queue is updated. Update the checkpoint for this record.*/
-   m_NCS_OS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+   memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
    mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
 
    rc = mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
@@ -799,7 +799,7 @@ uns32 mqnd_proc_queue_open (MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *s
     {
 
       /* Get the attributes of existing queue  */
-      m_NCS_OS_MEMSET(&cre_attr, 0, sizeof(SaMsgQueueCreationAttributesT));
+      memset(&cre_attr, 0, sizeof(SaMsgQueueCreationAttributesT));
     
       cre_attr.creationFlags = qinfo->oinfo.qparam->creationFlags;
       cre_attr.retentionTime = qinfo->oinfo.qparam->retentionTime;
@@ -908,7 +908,7 @@ uns32 mqnd_send_mqp_open_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
 
       open_req = &mqp_req->info.openReq;
       /*Send the resp to MQA */
-      m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+      memset(&rsp_evt, 0, sizeof(MQSV_EVT));
       rsp_evt.type = MQSV_EVT_MQP_RSP;
       rsp_evt.msg.mqp_rsp.error = err;
       rsp_evt.msg.mqp_rsp.type = MQP_EVT_OPEN_RSP;
@@ -972,7 +972,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
       if(qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) {
 
          /* Deregister the Queue with ASAPi */
-         m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+         memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
          opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -996,7 +996,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
           #ifdef NCS_MQND
            m_NCS_CONS_PRINTF("CLOSE TIMEOUT:ASYNC DEREG TO DELETE QUEUE\n");
           #endif
-          m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+          memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
           opr.type = ASAPi_OPR_MSG;
           opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -1033,7 +1033,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
       }
 
      /* Delete the mapping entry from the qname database */
-      m_NCS_MEMSET(&qname, 0, sizeof(SaNameT));
+      memset(&qname, 0, sizeof(SaNameT));
       qname = qnode->qinfo.queueName;
 
       mqnd_qname_node_get(cb, qname, &pnode);
@@ -1070,7 +1070,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
       qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_ORPHAN;
 
       /* Request the ASAPi */
-      m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+      memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
       opr.type = ASAPi_OPR_MSG;
       opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -1104,7 +1104,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
          #ifdef NCS_MQND
           m_NCS_CONS_PRINTF("CLOSE TIMEOUT:ASYNC REG:OWNED TO ORPHAN \n");
          #endif
-         m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+         memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
          opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -1153,7 +1153,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
       m_GET_TIME_STAMP(qnode->qinfo.queueStatus.closeTime);
 
      /* Update checkpoint section. Queue closeTime needs to be checkpointed with new value */
-      m_NCS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+      memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
       mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode,&queue_ckpt_node);
 
       rc = mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
@@ -1191,7 +1191,7 @@ uns32 mqnd_send_mqp_close_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
    
 
    /*Send the resp to MQA */
-   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+   memset(&rsp_evt, 0, sizeof(MQSV_EVT));
    rsp_evt.type = MQSV_EVT_MQP_RSP;
    rsp_evt.msg.mqp_rsp.error = err;
 
@@ -1213,7 +1213,7 @@ uns32 mqnd_send_mqp_ulink_rsp(MQND_CB *cb, MQSV_SEND_INFO *sinfo,
    
 
    /*Send the resp to MQA */
-   m_NCS_OS_MEMSET(&rsp_evt, 0, sizeof(MQSV_EVT));
+   memset(&rsp_evt, 0, sizeof(MQSV_EVT));
    rsp_evt.type = MQSV_EVT_MQP_RSP;
    rsp_evt.msg.mqp_rsp.error = err;
 
@@ -1286,7 +1286,7 @@ void mqnd_proc_ckpt_clm_node_left(MQND_CB *cb)
     
     MQSV_EVT send_evt;
 
-    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(MQSV_EVT));  
+    memset(&send_evt,'\0',sizeof(MQSV_EVT));  
     send_evt.type = MQSV_EVT_MQP_REQ;
     send_evt.msg.mqp_req.type = MQP_EVT_CLM_NOTIFY;
     send_evt.msg.mqp_req.info.clmNotify.node_joined = 0;
@@ -1307,7 +1307,7 @@ void mqnd_proc_ckpt_clm_node_joined(MQND_CB *cb)
     
     MQSV_EVT send_evt;
 
-    m_NCS_OS_MEMSET(&send_evt,'\0',sizeof(MQSV_EVT));  
+    memset(&send_evt,'\0',sizeof(MQSV_EVT));  
     send_evt.type = MQSV_EVT_MQP_REQ;
     send_evt.msg.mqp_req.type = MQP_EVT_CLM_NOTIFY;
     send_evt.msg.mqp_req.info.clmNotify.node_joined = 1;

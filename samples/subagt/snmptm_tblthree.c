@@ -60,7 +60,7 @@ SNMPTM_TBLTHREE *snmptm_create_tblthree_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET((char *)tblthree, '\0', sizeof(SNMPTM_TBLTHREE));
+   memset((char *)tblthree, '\0', sizeof(SNMPTM_TBLTHREE));
    
    /* Copy the key contents to tblthree struct */
    tblthree->tblthree_key.ip_addr = tblthree_key->ip_addr;

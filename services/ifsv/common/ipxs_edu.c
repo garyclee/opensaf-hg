@@ -138,7 +138,7 @@ uns32 ncs_edp_ip_addr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IP_ADDR));
+        memset(*d_ptr, '\0', sizeof(NCS_IP_ADDR));
         struct_ptr = *d_ptr;
     }
     else
@@ -188,7 +188,7 @@ uns32 ncs_edp_ippfx(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPPFX));
+        memset(*d_ptr, '\0', sizeof(NCS_IPPFX));
         struct_ptr = *d_ptr;
     }
     else
@@ -242,7 +242,7 @@ uns32 ncs_edp_ipxs_ifip_ip_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IPXS_IFIP_IP_INFO));
+        memset(*d_ptr, '\0', sizeof(IPXS_IFIP_IP_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -316,7 +316,7 @@ uns32 ipxs_edp_ifip_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -365,7 +365,7 @@ uns32 ipxs_edp_ipxs_intf_rec_info_noptr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_INTF_REC));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_INTF_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -413,7 +413,7 @@ uns32 ipxs_edp_ipxs_intf_rec_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         if(*d_ptr == NULL)
         *d_ptr = m_MMGR_ALLOC_NCS_IPXS_INTF_REC;
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_INTF_REC));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_INTF_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -459,7 +459,7 @@ uns32 ipxs_edp_evt_if_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IPXS_EVT_IF_INFO));
+        memset(*d_ptr, '\0', sizeof(IPXS_EVT_IF_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -556,7 +556,7 @@ uns32 ipxs_edp_ipxs_ifkey_info (EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IFKEY));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IFKEY));
         struct_ptr = *d_ptr;
     }
     else
@@ -606,7 +606,7 @@ uns32 ipxs_edp_evt_if_rec_get_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IPXS_EVT_IF_REC_GET));
+        memset(*d_ptr, '\0', sizeof(IPXS_EVT_IF_REC_GET));
         struct_ptr = *d_ptr;
     }
     else
@@ -654,7 +654,7 @@ uns32 ipxs_edp_ipxs_evt_islocal_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IPXS_EVT_ISLOCAL));
+        memset(*d_ptr, '\0', sizeof(IPXS_EVT_ISLOCAL));
         struct_ptr = *d_ptr;
     }
     else
@@ -728,7 +728,7 @@ uns32 ipxs_edp_ndtoa_ifip_rsp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_GET_RSP));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_GET_RSP));
         struct_ptr = *d_ptr;
     }
     else
@@ -777,7 +777,7 @@ uns32 ipxs_edp_ndtoa_ifip_add_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_ADD));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_ADD));
         struct_ptr = *d_ptr;
     }
     else
@@ -826,7 +826,7 @@ uns32 ipxs_edp_ndtoa_ifip_del_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_DEL));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_DEL));
         struct_ptr = *d_ptr;
     }
     else
@@ -875,7 +875,7 @@ uns32 ipxs_edp_ndtoa_ifip_upd_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_UPD));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_IPINFO_UPD));
         struct_ptr = *d_ptr;
     }
     else
@@ -927,7 +927,7 @@ uns32 ipxs_edp_node_rec_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCSIPXS_NODE_REC));
+        memset(*d_ptr, '\0', sizeof(NCSIPXS_NODE_REC));
         struct_ptr = *d_ptr;
     }
     else
@@ -977,7 +977,7 @@ uns32 ipxs_edp_ipxs_evt_isloc_rsp_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_IPXS_ISLOCAL));
+        memset(*d_ptr, '\0', sizeof(NCS_IPXS_ISLOCAL));
         struct_ptr = *d_ptr;
     }
     else
@@ -1082,7 +1082,7 @@ uns32 ifsv_edp_ifsv_ipxs_info (EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IPXS_EVT));
+        memset(*d_ptr, '\0', sizeof(IPXS_EVT));
         struct_ptr = *d_ptr;
     }
     else
@@ -1136,7 +1136,7 @@ uns32 ifsv_edp_ifd_a2s_ipxs_intf_info_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
            *o_err = EDU_ERR_MEM_FAIL;
            return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(IFD_A2S_IPXS_INTF_INFO_EVT));
+        memset(*d_ptr, '\0', sizeof(IFD_A2S_IPXS_INTF_INFO_EVT));
         struct_ptr = *d_ptr;
     }
     else

@@ -606,7 +606,7 @@ avm_proc_mib(
   }
 
 
-   m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
    miblib_req.info.i_mib_op_info.args = mib_req->evt.mib_req;
@@ -914,7 +914,7 @@ avm_proc_ssu(
       m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
       return rc;
    }
-   m_NCS_MEMSET(ssu_evt->evt.hpi_evt, 0, hpi_evt->data_len+1);
+   memset(ssu_evt->evt.hpi_evt, 0, hpi_evt->data_len+1);
    memcpy(ssu_evt->evt.hpi_evt, hpi_evt->evt.hpi_evt, hpi_evt->data_len);
 
    if (m_NCS_IPC_SEND(&avm_cb->ssu_mbx, ssu_evt, NCS_IPC_PRIORITY_HIGH)

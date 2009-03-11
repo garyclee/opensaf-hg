@@ -187,7 +187,7 @@ uns32 avnd_nodeid_to_mdsdest_map_db_init(AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = sizeof(NODE_ID);
    rc = ncs_patricia_tree_init(&cb->nodeid_mdsdest_db, &params);
@@ -257,7 +257,7 @@ uns32 avnd_internode_avail_comp_db_init(AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = sizeof(SaNameT);
    rc = ncs_patricia_tree_init(&cb->internode_avail_comp_db, &params);
@@ -357,7 +357,7 @@ AVND_COMP * avnd_internode_comp_add (NCS_PATRICIA_TREE *ptree, SaNameT *name,
      goto err;
    }
    
-   m_NCS_OS_MEMSET(comp, 0, sizeof(AVND_COMP));
+   memset(comp, 0, sizeof(AVND_COMP));
        
    /* update the comp-name (patricia key) */
    memcpy(&comp->name_net, name, sizeof(SaNameT));

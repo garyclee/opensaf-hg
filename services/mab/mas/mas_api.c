@@ -198,7 +198,7 @@ uns32 mas_svc_destroy(NCSMAS_DESTROY * destroy)
 
 #if (NCS_MAS_RED == 1)
   /* finalize the interface with MBCSv */ 
-  m_NCS_OS_MEMSET(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
+  memset(&mbcsv_arg, 0, sizeof(NCS_MBCSV_ARG)); 
   mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE; 
   /* Not good to access the global variable at some many different places */ 
   mbcsv_arg.i_mbcsv_hdl = gl_mas_amf_attribs.mbcsv_attribs.mbcsv_hdl; 

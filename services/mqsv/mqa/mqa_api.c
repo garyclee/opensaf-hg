@@ -96,7 +96,7 @@ SaAisErrorT mqa_queue_name_to_destination (const SaNameT *queueName, SaMsgQueueH
    ASAPi_OPR_INFO    asapi_or;
    SaAisErrorT       rc;
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
    asapi_or.type = ASAPi_OPR_GET_QUEUE;
    asapi_or.info.queue.i_name = *queueName;
    asapi_or.info.queue.i_sinfo.to_svc = NCSMDS_SVC_ID_MQD;
@@ -220,7 +220,7 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
       goto final2;
   } 
     /* populate the structure */
-   m_NCS_OS_MEMSET(&initialize_evt, 0, sizeof(MQSV_EVT));
+   memset(&initialize_evt, 0, sizeof(MQSV_EVT));
    initialize_evt.type = MQSV_EVT_MQP_REQ;
    initialize_evt.msg.mqp_req.type = MQP_EVT_INIT_REQ;
    initialize_evt.msg.mqp_req.info.initReq.version = *version;
@@ -283,7 +283,7 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
       if (msgCallbacks)
           client_info->msgCallbacks = *msgCallbacks;
       else
-          m_NCS_OS_MEMSET(&client_info->msgCallbacks, 0, 
+          memset(&client_info->msgCallbacks, 0, 
                           sizeof(client_info->msgCallbacks));
 
       *msgHandle = client_info->msgHandle;
@@ -639,7 +639,7 @@ saMsgFinalize(SaMsgHandleT msgHandle)
 
 
    /* populate the structure */
-   m_NCS_OS_MEMSET(&finalize_evt, 0, sizeof(MQSV_EVT));
+   memset(&finalize_evt, 0, sizeof(MQSV_EVT));
 
    finalize_evt.type = MQSV_EVT_MQP_REQ;
    finalize_evt.msg.mqp_req.type = MQP_EVT_FINALIZE_REQ;
@@ -892,11 +892,11 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&qopen_evt, 0, sizeof(MQSV_EVT));
+   memset(&qopen_evt, 0, sizeof(MQSV_EVT));
    qopen_evt.type = MQSV_EVT_MQP_REQ;
    qopen_evt.msg.mqp_req.type = MQP_EVT_OPEN_REQ;
    if (!creationAttributes)
-       m_NCS_OS_MEMSET(&qopen_evt.msg.mqp_req.info.openReq.creationAttributes, 0,  (sizeof(SaMsgQueueCreationAttributesT)));
+       memset(&qopen_evt.msg.mqp_req.info.openReq.creationAttributes, 0,  (sizeof(SaMsgQueueCreationAttributesT)));
    else
        qopen_evt.msg.mqp_req.info.openReq.creationAttributes = *creationAttributes;
    qopen_evt.msg.mqp_req.info.openReq.msgHandle = msgHandle;
@@ -1181,12 +1181,12 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&qopen_evt, 0, sizeof(MQSV_EVT));
+   memset(&qopen_evt, 0, sizeof(MQSV_EVT));
 
    qopen_evt.type = MQSV_EVT_MQP_REQ;
    qopen_evt.msg.mqp_req.type = MQP_EVT_OPEN_ASYNC_REQ;
    if (!creationAttributes)
-       m_NCS_OS_MEMSET(&qopen_evt.msg.mqp_req.info.openAsyncReq.mqpOpenReq.creationAttributes, 0,  (sizeof(SaMsgQueueCreationAttributesT)));
+       memset(&qopen_evt.msg.mqp_req.info.openAsyncReq.mqpOpenReq.creationAttributes, 0,  (sizeof(SaMsgQueueCreationAttributesT)));
    else
       qopen_evt.msg.mqp_req.info.openAsyncReq.mqpOpenReq.creationAttributes = *creationAttributes;
    qopen_evt.msg.mqp_req.info.openAsyncReq.mqpOpenReq.msgHandle = msgHandle;
@@ -1341,7 +1341,7 @@ saMsgQueueClose(SaMsgQueueHandleT queueHandle)
    queue_node->is_closed = TRUE;
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&qclose_evt, 0, sizeof(MQSV_EVT));
+   memset(&qclose_evt, 0, sizeof(MQSV_EVT));
    qclose_evt.type = MQSV_EVT_MQP_REQ;
    qclose_evt.msg.mqp_req.type = MQP_EVT_CLOSE_REQ;
    qclose_evt.msg.mqp_req.info.closeReq.queueHandle = queueHandle;
@@ -1527,7 +1527,7 @@ saMsgQueueStatusGet(SaMsgHandleT msgHandle,
 
    /* Now Send a MQP GET Status Message to destination MQND */
    
-   m_NCS_OS_MEMSET(&qstatus_evt, 0, sizeof(MQSV_EVT));
+   memset(&qstatus_evt, 0, sizeof(MQSV_EVT));
    qstatus_evt.type = MQSV_EVT_MQP_REQ;
    qstatus_evt.msg.mqp_req.type = MQP_EVT_STATUS_REQ;
    qstatus_evt.msg.mqp_req.agent_mds_dest = mqa_cb->mqa_mds_dest;
@@ -1675,7 +1675,7 @@ saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *retentionTime
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&qret_time_evt, 0, sizeof(MQSV_EVT));
+   memset(&qret_time_evt, 0, sizeof(MQSV_EVT));
    qret_time_evt.type = MQSV_EVT_MQP_REQ;
    qret_time_evt.msg.mqp_req.type = MQP_EVT_Q_RET_TIME_SET_REQ;
    qret_time_evt.msg.mqp_req.info.retTimeSetReq.queueHandle = queueHandle;
@@ -1844,7 +1844,7 @@ saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
    /* Now Send a MQP UNLINK Message to destination MQND */
    
 
-   m_NCS_OS_MEMSET(&qunlink_evt, 0, sizeof(MQSV_EVT));
+   memset(&qunlink_evt, 0, sizeof(MQSV_EVT));
    qunlink_evt.type = MQSV_EVT_MQP_REQ;
    qunlink_evt.msg.mqp_req.type = MQP_EVT_UNLINK_REQ;
    qunlink_evt.msg.mqp_req.agent_mds_dest = mqa_cb->mqa_mds_dest;
@@ -2088,7 +2088,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
         asapi_or->info.dest.o_cache->info.ginfo.pQueue=0;
 
         qsend_evt_buffer = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(length); 
-        m_NCS_OS_MEMSET(qsend_evt_buffer, 0, length); 
+        memset(qsend_evt_buffer, 0, length); 
         memcpy(qsend_evt_buffer, qsend_evt , length);
 
         rc = SA_AIS_OK;
@@ -2161,7 +2161,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
             
             if(num_queues > 0) {
                qsend_evt_copy = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(length);
-               m_NCS_OS_MEMSET(qsend_evt_copy, 0, length);
+               memset(qsend_evt_copy, 0, length);
 
                if (!qsend_evt_copy) 
                   return  SA_AIS_ERR_NO_MEMORY;
@@ -2301,7 +2301,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
    }
 
    /* Get the destination MQND from ASAPi */
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
    asapi_or.type = ASAPi_OPR_GET_DEST;
    asapi_or.info.dest.i_object = *destination;
    m_ASAPi_TRACK_ENABLE_SET(asapi_or.info.dest.i_track);
@@ -2367,7 +2367,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
       goto done;
    }
    
-   m_NCS_OS_MEMSET(qsend_evt, 0, length);
+   memset(qsend_evt, 0, length);
    qsend_evt->evt_type = MQSV_DSEND_EVENT;
    qsend_evt->endianness = machineEndianness();
    qsend_evt->agent_mds_dest = mqa_cb->mqa_mds_dest;  
@@ -2797,7 +2797,7 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
    mq_req.info.recv.mqd = queueHandle;
 
    /* TBD: When POSIX is ready, pass the timeout. right now * wait indefinitely */
-   m_NCS_OS_MEMSET(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
+   memset(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
 
    /* Convert nano seconds to micro seconds. */
    mq_req.info.recv.timeout.tv_nsec = timeout;
@@ -2882,7 +2882,7 @@ again:
          if (timer_arg == NULL) {
             /* If the timer expired and parallely the posix call unblocked due to error, the STOP TIMER
                message would still remain in the queue which needs to be removed */
-            m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+            memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
             mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC;
             mq_req.info.recv.mqd = queueHandle;
             mq_req.info.recv.timeout.tv_nsec = 0;
@@ -2916,7 +2916,7 @@ again:
             /* If the timer expired and parallely the posix call unblocked due to a genuine message, the 
                STOP TIMER message would still remain in the queue which needs to be removed. 
                First put the real message back into the queue at 2nd HIGHEST PRIORITY */
-            m_NCS_OS_MEMSET(&mq_req_snd, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+            memset(&mq_req_snd, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
             mq_req_snd.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
             mq_req_snd.info.send.mqd=queueHandle;
             mq_req_snd.info.send.datalen=sizeof(MQSV_MESSAGE)+message->size;
@@ -2930,7 +2930,7 @@ again:
             }
   
             /* the idea is to put the real message back and get back CANCEL message */
-            m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+            memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
             mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC;
             mq_req.info.recv.mqd = queueHandle;
             mq_req.info.recv.timeout.tv_nsec = 0;
@@ -2960,7 +2960,7 @@ again:
       /* The timer of another saMsgMessageGet call expired due to which the posix call unblocked. The
          STOP TIMER message meant for another call to saMsgMessageGet needs to be put back into the queue
          and resume waiting for a genuine message until our timer expiry */  
-         m_NCS_OS_MEMSET(&mq_req_snd, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+         memset(&mq_req_snd, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
          mq_req_snd.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
          mq_req_snd.info.send.mqd = queueHandle; 
          mq_req_snd.info.send.datalen=sizeof(MQSV_MESSAGE);
@@ -2974,7 +2974,7 @@ again:
          }
 
          if (is_timer_present == FALSE) {
-            m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+            memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
             mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC;
             mq_req.info.recv.mqd = queueHandle;
             mq_req.info.recv.timeout.tv_nsec = 0;
@@ -2994,7 +2994,7 @@ again:
          if (timer_arg == NULL) {
             /* If the timer expired and parallely the posix call unblocked due to MSG_CANCEL, the STOP TIMER
                message would still remain in the queue which needs to be removed */
-            m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+            memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
             mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC;
             mq_req.info.recv.mqd = queueHandle;
             mq_req.info.recv.timeout.tv_nsec = 0;
@@ -3054,7 +3054,7 @@ again:
          /* Post the message back to Queue, with second highest priority 
             Highest priority i.e. 1 is reserved for MQP_EVT_MSGGET_STOP_TIMER_REQ & 
             MQP_EVT_CANCEL_REQ messages */
-         m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+         memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
          mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
          mq_req.info.send.mqd=queueHandle;
          mq_req.info.send.datalen=sizeof(MQSV_MESSAGE)+message->size;
@@ -3107,7 +3107,7 @@ again:
    }
 
    /* populate the structure */
-   m_NCS_OS_MEMSET(stats, 0, sizeof(MQSV_DSEND_EVT));
+   memset(stats, 0, sizeof(MQSV_DSEND_EVT));
     
    stats->evt_type = MQSV_DSEND_EVENT;
    stats->endianness = machineEndianness();
@@ -3167,7 +3167,7 @@ check:
    if(stats_update_failure) {        
        /* Post the message back to Queue, with second highest priority 
           Highest priority i.e. 1 is reserved for MQP_EVT_MSGGET_STOP_TIMER_REQ & MQP_EVT_CANCEL_REQ messages */
-         m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+         memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
          mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
          mq_req.info.send.mqd=queueHandle;
          mq_req.info.send.datalen=sizeof(MQSV_MESSAGE)+message->size;
@@ -3417,7 +3417,7 @@ saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
    mqsv_message->info.cancel_req.queueHandle = queueHandle;
    mqsv_message->info.cancel_req.timerId = 0;  /* This is TO BE USED for stopping messageGet timers only */
 
-   m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO)); 
+   memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO)); 
    mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
    mq_req.info.send.i_msg = &mq_msg;
    mq_req.info.send.datalen = sizeof(MQSV_MESSAGE);
@@ -3657,7 +3657,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
    }
 
    /* Get the destination MQND from ASAPi */
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
    asapi_or.type = ASAPi_OPR_GET_DEST;
    asapi_or.info.dest.i_object = *destination;
    m_ASAPi_TRACK_ENABLE_SET(asapi_or.info.dest.i_track);
@@ -3680,7 +3680,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       goto done;
    }
 
-   m_NCS_OS_MEMSET(qsend_evt, 0, length);
+   memset(qsend_evt, 0, length);
 
    qsend_evt->evt_type = MQSV_DSEND_EVENT;
    qsend_evt->type = MQP_EVT_SEND_MSG;
@@ -3709,7 +3709,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       qsend_evt->info.snd_msg.messageInfo.sender.sender_context.reply_buffer_size = 0;
 
    /* context will be filled by MQND before putting into the queue at the destination node */
-   m_NCS_OS_MEMSET( &(qsend_evt->info.snd_msg.messageInfo.sender.sender_context.context), 
+   memset( &(qsend_evt->info.snd_msg.messageInfo.sender.sender_context.context), 
            0, sizeof(MDS_SYNC_SND_CTXT));
 
    qsend_evt->info.snd_msg.messageInfo.sendReceive = SA_TRUE;
@@ -4173,7 +4173,7 @@ SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
       goto done;
    }
 
-   m_NCS_OS_MEMSET(qreply_evt, 0, sizeof(MQSV_DSEND_EVT));
+   memset(qreply_evt, 0, sizeof(MQSV_DSEND_EVT));
    qreply_evt->evt_type = MQSV_DSEND_EVENT;
    qreply_evt->endianness = machineEndianness();
    qreply_evt->msg_fmt_version = o_msg_fmt_ver;
@@ -4559,7 +4559,7 @@ saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
       return SA_AIS_ERR_LIBRARY;
    }
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
   /* Check if mqd, mqnd are up */ 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
    {
@@ -4702,7 +4702,7 @@ saMsgQueueGroupDelete(SaMsgHandleT msgHandle,
       return SA_AIS_ERR_LIBRARY;
    }
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
 
    /* Check if mqd, mqnd are up */ 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
@@ -4865,7 +4865,7 @@ saMsgQueueGroupInsert(SaMsgHandleT msgHandle,
       return SA_AIS_ERR_LIBRARY;
    }
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
 
   /* Check if mqd, mqnd are up */ 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
@@ -5025,7 +5025,7 @@ saMsgQueueGroupRemove(SaMsgHandleT msgHandle,
       return SA_AIS_ERR_LIBRARY;
    }
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
   
    /* Check if mqd, mqnd are up */ 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
@@ -5256,7 +5256,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
    }
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
    
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
    asapi_or.type = ASAPi_OPR_GET_DEST;
    asapi_or.info.dest.i_object = *queueGroupName;
    m_ASAPi_TRACK_ENABLE_SET(asapi_or.info.dest.i_track); 
@@ -5287,7 +5287,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
       goto done;
    }
    
-   m_NCS_OS_MEMSET(&temp_notificationBuffer , 0 , sizeof(SaMsgQueueGroupNotificationBufferT));
+   memset(&temp_notificationBuffer , 0 , sizeof(SaMsgQueueGroupNotificationBufferT));
 
    if (num_queues != 0)
    {
@@ -5299,14 +5299,14 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
          return SA_AIS_ERR_NO_MEMORY;
       }
 
-      m_NCS_OS_MEMSET(temp_notificationBuffer.notification, 0 , num_queues*sizeof(SaMsgQueueGroupNotificationT));
+      memset(temp_notificationBuffer.notification, 0 , num_queues*sizeof(SaMsgQueueGroupNotificationT));
    }
    else
       temp_notificationBuffer.notification = NULL;
 
    temp_notificationBuffer.numberOfItems = num_queues;
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
    asapi_or.type = ASAPi_OPR_TRACK;
    asapi_or.info.track.i_group = *queueGroupName;
    asapi_or.info.track.i_flags = trackFlags;
@@ -5396,7 +5396,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
                     goto done;
                 }
 
-                m_NCS_OS_MEMSET(notificationBuffer->notification, 0, 
+                memset(notificationBuffer->notification, 0, 
                                   num_queues*sizeof(SaMsgQueueGroupNotificationT));
              }
              else
@@ -5519,7 +5519,7 @@ saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle,
       return SA_AIS_ERR_LIBRARY;
    }
 
-   m_NCS_OS_MEMSET(&asapi_or, 0, sizeof(asapi_or));
+   memset(&asapi_or, 0, sizeof(asapi_or));
 
   /* Check if mqd, mqnd are up */ 
    if(!mqa_cb->is_mqd_up || !mqa_cb->is_mqnd_up)
@@ -5798,7 +5798,7 @@ static void msgget_timer_expired(void *arg)
    mqsv_message->info.cancel_req.queueHandle = (*cancel_req)->queueHandle;
    mqsv_message->info.cancel_req.timerId = (*cancel_req)->timerId;
 
-   m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
    mq_req.info.send.i_msg = &mq_msg;
    mq_req.info.send.datalen = sizeof(MQSV_MESSAGE);

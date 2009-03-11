@@ -580,7 +580,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
       return NULL;
    }
 
-   m_NCS_MEMSET(pSecPtr,'\0',sizeof(CPND_CKPT_SECTION_INFO));
+   memset(pSecPtr,'\0',sizeof(CPND_CKPT_SECTION_INFO));
 
    if (gen_flag)
    {
@@ -598,7 +598,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
          m_LOG_CPND_CL(CPND_SECT_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
          return NULL;
       }
-      m_NCS_MEMSET(pSecPtr->sec_id.id,'\0',pSecPtr->sec_id.idLen);
+      memset(pSecPtr->sec_id.id,'\0',pSecPtr->sec_id.idLen);
 
       for(i=(CPSV_GEN_SECTION_ID_SIZE - pSecPtr->sec_id.idLen); i<CPSV_GEN_SECTION_ID_SIZE; i++)
       {
@@ -783,7 +783,7 @@ CPND_CKPT_SECTION_INFO *cpnd_get_sect_with_id(CPND_CKPT_NODE *cp_node,uns32 lcl_
 uns32 cpnd_ckpt_node_tree_init (CPND_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptCheckpointHandleT);
    if (ncs_patricia_tree_init(&cb->ckpt_info_db, &param) != NCSCC_RC_SUCCESS)
    {
@@ -805,7 +805,7 @@ uns32 cpnd_ckpt_node_tree_init (CPND_CB  *cb)
 uns32 cpnd_client_node_tree_init(CPND_CB *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptHandleT);
    if (ncs_patricia_tree_init(&cb->client_info_db,&param) != NCSCC_RC_SUCCESS)
    {
@@ -941,7 +941,7 @@ void cpnd_client_node_tree_destroy(CPND_CB *cb)
 uns32 cpnd_allrepl_write_evt_node_tree_init(CPND_CB *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(MDS_DEST);
    if (ncs_patricia_tree_init(&cb->writeevt_db,&param) != NCSCC_RC_SUCCESS)
       return NCSCC_RC_FAILURE;
@@ -1047,7 +1047,7 @@ void cpnd_agent_dest_add(CPND_CKPT_NODE *cp_node,MDS_DEST adest)
    cpnd_dest = m_MMGR_ALLOC_CPND_DEST_INFO;
    if(cpnd_dest)
    {
-      m_NCS_MEMSET(cpnd_dest,0,sizeof(CPSV_CPND_DEST_INFO));
+      memset(cpnd_dest,0,sizeof(CPSV_CPND_DEST_INFO));
 
       cpnd_dest->next = cp_node->agent_dest_list;
       cpnd_dest->dest = adest;

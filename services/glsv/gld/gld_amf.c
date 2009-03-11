@@ -285,7 +285,7 @@ gld_amf_init (GLSV_GLD_CB *gld_cb)
    SaAisErrorT        error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = gld_amf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback      = gld_amf_CSI_set_callback;

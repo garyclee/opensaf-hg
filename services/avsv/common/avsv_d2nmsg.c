@@ -138,7 +138,7 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG 
 {
    AVSV_CLM_INFO_MSG *s_node_info,*d_node_info, **prev_node_info;
 
-   m_NCS_MEMSET(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
    d_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes = NULL;
@@ -191,7 +191,7 @@ uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg,AVSV_DND_MSG *s_node_
 {
    AVSV_CLM_INFO_MSG *s_node_info,*d_node_info, **prev_node_info;
 
-   m_NCS_MEMSET(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_node_up_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_node_up_msg,s_node_up_msg,sizeof(AVSV_DND_MSG));
    d_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes = NULL;
@@ -282,7 +282,7 @@ uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg,AVSV_DND_MSG *s_hlth_msg)
 {
    AVSV_HLT_INFO_MSG *s_hlth_info,*d_hlth_info;
 
-   m_NCS_MEMSET(d_hlth_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_hlth_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_hlth_msg,s_hlth_msg,sizeof(AVSV_DND_MSG));
    d_hlth_msg->msg_info.d2n_reg_hlt.hlt_list = NULL;
@@ -364,7 +364,7 @@ uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg,AVSV_DND_MSG *s_su_msg)
 {
    AVSV_SU_INFO_MSG *s_su_info,*d_su_info;
 
-   m_NCS_MEMSET(d_su_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_su_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_su_msg,s_su_msg,sizeof(AVSV_DND_MSG));
    d_su_msg->msg_info.d2n_reg_su.su_list = NULL;
@@ -442,7 +442,7 @@ uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg,AVSV_DND_MSG *s_comp_msg)
 
    AVSV_COMP_INFO_MSG *s_comp_info,*d_comp_info;
 
-   m_NCS_MEMSET(d_comp_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_comp_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_comp_msg,s_comp_msg,sizeof(AVSV_DND_MSG));
    d_comp_msg->msg_info.d2n_reg_comp.list = NULL;
@@ -526,7 +526,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg,AVSV_DND_MSG *s_susi_msg)
 {
    AVSV_SUSI_ASGN *s_compcsi_info,*d_compcsi_info;
 
-   m_NCS_MEMSET(d_susi_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_susi_msg,'\0',sizeof(AVSV_DND_MSG));
 
    memcpy(d_susi_msg,s_susi_msg,sizeof(AVSV_DND_MSG));
    d_susi_msg->msg_info.d2n_su_si_assign.list = NULL;
@@ -613,7 +613,7 @@ uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg,AVSV_DND_MSG *s_pg_msg)
    AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *d_info = &d_pg_msg->msg_info.d2n_pg_track_act_rsp;
    AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *s_info = &s_pg_msg->msg_info.d2n_pg_track_act_rsp;
 
-   m_NCS_MEMSET(d_pg_msg,'\0',sizeof(AVSV_DND_MSG));
+   memset(d_pg_msg,'\0',sizeof(AVSV_DND_MSG));
 
    /* copy the common contents */
    memcpy(d_pg_msg, s_pg_msg, sizeof(AVSV_DND_MSG));

@@ -111,7 +111,7 @@ uns32 eda_create (NCS_LIB_CREATE *create_info)
       goto error;
    }
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(EDA_CB));
+   memset(cb, 0, sizeof(EDA_CB));
 
    /* assign the EDA pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -245,7 +245,7 @@ unsigned int ncs_eda_startup(void)
    }
 
    /*** Init EDA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (ncs_eda_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -290,7 +290,7 @@ unsigned int ncs_eda_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 
       rc = ncs_eda_lib_req(&lib_destroy);

@@ -117,7 +117,7 @@ GLND_CLIENT_INFO *glnd_client_node_add(GLND_CB    *glnd_cb,
       m_LOG_GLND_MEMFAIL(GLND_CLIENT_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_OS_MEMSET(client_info,0,sizeof(GLND_CLIENT_INFO));
+   memset(client_info,0,sizeof(GLND_CLIENT_INFO));
    if( app_handle_id )
    {
      client_info->app_handle_id = app_handle_id;
@@ -184,7 +184,7 @@ uns32  glnd_client_node_del(GLND_CB          *glnd_cb,
         if(res_info->lcl_ref_cnt > 0)
         {
 
-            m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));
+            memset(&gld_evt,0,sizeof(GLSV_GLD_EVT));
 
             gld_evt.evt_type = GLSV_GLD_EVT_RSC_CLOSE;
             gld_evt.info.rsc_details.rsc_id = res_info->resource_id;
@@ -248,7 +248,7 @@ uns32  glnd_client_node_resource_add(GLND_CLIENT_INFO *client_info,GLND_RESOURCE
          m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LIST_ALLOC_FAILED);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_OS_MEMSET(resource_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE));
+      memset(resource_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE));
       resource_list->rsc_info = res_info;
       resource_list->next = client_info->res_list;
       if(client_info->res_list)
@@ -492,7 +492,7 @@ uns32  glnd_client_node_resource_lock_req_add(GLND_CLIENT_INFO *client_info,
      m_LOG_GLND_MEMFAIL(GLND_CLIENT_RSC_LOCK_LIST_ALLOC_FAILED);
      return NCSCC_RC_FAILURE;
   }
-  m_NCS_OS_MEMSET(lock_req_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE_LOCK_REQ)); 
+  memset(lock_req_list, 0, sizeof(GLND_CLIENT_LIST_RESOURCE_LOCK_REQ)); 
   lock_req_list->lck_req = lock_req_info;
   lock_req_list->next = resource_list->lck_list;
   if(resource_list->lck_list)

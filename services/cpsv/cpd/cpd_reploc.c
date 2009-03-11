@@ -44,7 +44,7 @@ uns32 cpd_get_ckpt_and_node_name(const uns32* i_inst_ids, uns32 i_inst_len,SaNam
      return NCSCC_RC_FAILURE;
    }
    
-   m_NCS_OS_MEMSET(name,'\0',length+1); */
+   memset(name,'\0',length+1); */
 
    for(;counter<length;counter++)
    {
@@ -65,7 +65,7 @@ uns32 cpd_get_ckpt_and_node_name(const uns32* i_inst_ids, uns32 i_inst_len,SaNam
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(n_name,'\0',node_name_len+1);*/
+   memset(n_name,'\0',node_name_len+1);*/
    counter=0;
    for(;counter < node_name_len;counter++)
    {
@@ -98,9 +98,9 @@ uns32 sackptnodereplicalocentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *
    SaNameT       ckpt_name,node_name;
    CPD_CKPT_REPLOC_INFO *rep_info=NULL;
 
-   m_NCS_OS_MEMSET(&node_name,'\0',sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&node_name,'\0',sizeof(SaNameT));
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
 
    /* STEP 1 : get the cpd_cb */
    cpd_cb = (CPD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CPD, (uns32)arg->i_mib_key);
@@ -191,9 +191,9 @@ uns32 sackptnodereplicalocentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT 
    SaNameT  ckpt_name,node_name;
 
 
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO)); 
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO)); 
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&node_name,0,sizeof(SaNameT));
 
    CPD_CB *cpd_cb = NULL;
    /* Get the CB pointer from the CB handle */

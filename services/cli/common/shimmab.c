@@ -89,7 +89,7 @@ uns32 ncsshim_mib_request(struct ncsmib_arg *mib_args)
 {
     SHIM_MSG *shim_msg = m_MMGR_ALLOC_SHIM_MSG;
 
-    m_NCS_OS_MEMSET(shim_msg, 0, sizeof(SHIM_MSG));
+    memset(shim_msg, 0, sizeof(SHIM_MSG));
     shim_msg->event = mib_args->i_mib_key->svc;
 
     if((shim_msg->mib_arg = ncsmib_memcopy(mib_args)) == NULL)

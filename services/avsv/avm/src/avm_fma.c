@@ -303,7 +303,7 @@ uns32 avm_notify_fm_node_reset(AVM_CB_T *avm_cb,
 
    m_AVM_LOG_FUNC_ENTRY("avm_notify_fm_node_reset");
 
-   m_NCS_OS_MEMSET(&temp_ent_path, 0, sizeof(SaHpiEntityPathT));
+   memset(&temp_ent_path, 0, sizeof(SaHpiEntityPathT));
    memcpy(&temp_ent_path, ent_path, sizeof(SaHpiEntityPathT));
 
    /* Send notification to FM */

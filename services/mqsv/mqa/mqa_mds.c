@@ -64,7 +64,7 @@ uns32 mqa_mds_get_handle(MQA_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
    arg.req = NCSADA_GET_HDLS;
    rc = ncsada_api(&arg);
 
@@ -100,7 +100,7 @@ uns32 mqa_mds_register (MQA_CB *cb)
        return NCSCC_RC_FAILURE;
 
    /* memset the svc_info */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
    /* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_MQA. */
    svc_info.i_mds_hdl = cb->mqa_mds_hdl;
@@ -176,7 +176,7 @@ void mqa_mds_unregister (MQA_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->mqa_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_MQA;
@@ -413,7 +413,7 @@ static uns32 mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
      return rc;
     }
 
-    m_NCS_MEMSET(msg_ptr, 0, sizeof(MQSV_EVT));
+    memset(msg_ptr, 0, sizeof(MQSV_EVT));
     dec_info->o_msg = (NCSCONTEXT)msg_ptr;
 
     rc = m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt,
@@ -697,7 +697,7 @@ uns32 mqa_mds_msg_sync_send (uns32 mqa_mds_hdl,
    }
 
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA;
    mds_info.i_op = MDS_SEND;
@@ -776,7 +776,7 @@ uns32 mqa_mds_msg_sync_send_direct (uns32 mqa_mds_hdl,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA;
    mds_info.i_op = MDS_DIRECT_SEND;
@@ -963,7 +963,7 @@ uns32 mqa_mds_msg_sync_reply_direct(uns32 mqa_mds_hdl,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA;
    mds_info.i_op = MDS_DIRECT_SEND;
@@ -1048,7 +1048,7 @@ uns32 mqa_mds_msg_async_send (uns32 mqa_mds_hdl,
    }
 
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA; 
    mds_info.i_op = MDS_SEND;
@@ -1120,7 +1120,7 @@ uns32 mqa_mds_msg_async_send_direct(uns32 mqa_mds_hdl,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA;
    mds_info.i_op = MDS_DIRECT_SEND;
@@ -1193,7 +1193,7 @@ uns32 mqa_mds_msg_async_reply_direct(uns32 mqa_mds_hdl,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = mqa_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQA;
    mds_info.i_op = MDS_DIRECT_SEND;

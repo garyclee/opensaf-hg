@@ -293,7 +293,7 @@ void tet_saf_succ_init(int depth, int fill_cbks)
     /* Shardool */
     SaNameT proxied_comp = {60,"safComp=CompT_NCSPrx,safSu=SuT_NCSPrx,safNode=Node1_TypeSCXB"};
      
-    m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+    memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
      if ( fill_cbks )
      {
@@ -358,7 +358,7 @@ void tet_saf_succ_init(int depth, int fill_cbks)
 
         case 3:
         /* AMF Invoked HC */
-        m_NCS_OS_MEMSET(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
+        memset(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
         strcpy(Healthy.key,"ABCDEF20");
     Healthy.keyLen=strlen(Healthy.key);  
         
@@ -384,7 +384,7 @@ void tet_saf_succ_init(int depth, int fill_cbks)
 
         case 4:
         /* Comp Invoked HC */
-        m_NCS_OS_MEMSET(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
+        memset(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
     strcpy(Healthy.key,"ABCDEF20");
     Healthy.keyLen=strlen(Healthy.key); 
     if((error = saAmfComponentNameGet(gl_TetSafHandle,&SaCompName)) == SA_AIS_OK)
@@ -426,7 +426,7 @@ void tet_saf_succ_init(int depth, int fill_cbks)
 
     }
 
-        m_NCS_OS_MEMSET(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
+        memset(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
     strcpy(Healthy.key,"ABCDEF20");
     Healthy.keyLen=strlen(Healthy.key); 
          
@@ -503,7 +503,7 @@ void tet_saf_cleanup(int depth)
         { 
 
        case 1: 
-        m_NCS_OS_MEMSET(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
+        memset(&Healthy, 0, sizeof(SaAmfHealthcheckKeyT));
     strcpy(Healthy.key,"ABCDEF20");
     Healthy.keyLen=strlen(Healthy.key); 
 

@@ -508,7 +508,7 @@ extern unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 
 #if (NCS_IPV6 == 1)
 #ifndef m_NCS_OS_IFIDX_TO_IPV6
-#define m_NCS_OS_IFIDX_TO_IPV6(ifIndex, ipv6_addr)  m_NCS_OS_MEMSET(&ipv6_addr, 0x0, sizeof(ipv6_addr))
+#define m_NCS_OS_IFIDX_TO_IPV6(ifIndex, ipv6_addr)  memset(&ipv6_addr, 0x0, sizeof(ipv6_addr))
 extern unsigned int os_ifidx_to_ipv6(unsigned int ifIndex, NCS_IPV6_ADDR *ipaddr);
 #endif
 #endif

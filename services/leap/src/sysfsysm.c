@@ -816,7 +816,7 @@ uns32 sm_init()
   if(gl_sysm_created > 1)
      return NCSCC_RC_SUCCESS;
 
-  m_NCS_MEMSET(&gl_sysmon,0,sizeof(gl_sysmon));
+  memset(&gl_sysmon,0,sizeof(gl_sysmon));
   gl_sysmon.vrtr_id = 1; /* fix later */
 
 #if (NCSSYSM_IPRA_WATCH_ENABLE == 1)
@@ -2381,7 +2381,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
   uns32 i;
   uns32           bkt_cnt = NCSSYSM_MEM_BKT_CNT <= (MMGR_NUM_POOLS + 1) ? NCSSYSM_MEM_BKT_CNT : (MMGR_NUM_POOLS + 1);
 
-  m_NCS_MEMSET(info->o_bkt,0,sizeof(info->o_bkt));
+  memset(info->o_bkt,0,sizeof(info->o_bkt));
 
   to_std = info->i_opp.opp_bits & OPP_TO_STDOUT ? TRUE : FALSE;
   to_file = info->i_opp.opp_bits & OPP_TO_FILE ? TRUE : FALSE;
@@ -2472,7 +2472,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
 
 #else
 
-  m_NCS_MEMSET(info->o_bkt,0,sizeof(info->o_bkt));
+  memset(info->o_bkt,0,sizeof(info->o_bkt));
 
 #endif
 
@@ -2499,7 +2499,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
    uns32           unignored = 0;
    uns32           bkt_cnt = NCSSYSM_MEM_BKT_CNT <= (MMGR_NUM_POOLS + 1) ? NCSSYSM_MEM_BKT_CNT : (MMGR_NUM_POOLS + 1);
    
-   m_NCS_MEMSET(info->o_ssu,0,sizeof(info->o_ssu));
+   memset(info->o_ssu,0,sizeof(info->o_ssu));
    
    to_std = info->i_opp.opp_bits & OPP_TO_STDOUT ? TRUE : FALSE;
    to_file = info->i_opp.opp_bits & OPP_TO_FILE ? TRUE : FALSE;
@@ -2607,7 +2607,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
    
 #else
    
-   m_NCS_MEMSET(info->o_ssu,0,sizeof(info->o_ssu));
+   memset(info->o_ssu,0,sizeof(info->o_ssu));
    
 #endif      
    
@@ -2629,7 +2629,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
    NCS_BOOL         all_ss = FALSE;
    uns32           min_age = 0;
    
-   m_NCS_MEMSET(info->o_wo,0,sizeof(info->o_wo));
+   memset(info->o_wo,0,sizeof(info->o_wo));
    
    min_age = info->i_age;
    if(info->i_ss_id == 0)
@@ -2758,7 +2758,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
 #else
   
   info->o_filled = 0;
-  m_NCS_MEMSET(info->o_wo,0,sizeof(info->o_wo));
+  memset(info->o_wo,0,sizeof(info->o_wo));
   
 #endif      
   
@@ -2802,12 +2802,12 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
    NCS_BOOL         all_ss = FALSE;
    uns32           min_age = 0;
    
-   m_NCS_MEMSET(info->o_wos,0,sizeof(info->o_wos));
+   memset(info->o_wos,0,sizeof(info->o_wos));
    
    ncsmem_aid_init (&ma, (uns8*)space, MMGR_HIST_SPACE);
    
-   m_NCS_MEMSET (space, '\0', MMGR_HIST_SPACE);
-   m_NCS_MEMSET (hash,  '\0', sizeof(hash));
+   memset (space, '\0', MMGR_HIST_SPACE);
+   memset (hash,  '\0', sizeof(hash));
    
    min_age = info->i_age;
    if(info->i_ss_id == 0)
@@ -2967,7 +2967,7 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
 #else
   
   info->o_filled = 0;
-  m_NCS_MEMSET(info->o_wos,0,sizeof(info->o_wos));
+  memset(info->o_wos,0,sizeof(info->o_wos));
   
 #endif      
   
@@ -2998,7 +2998,7 @@ uns32 sm_buf_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
 #else
 
   info->o_filled = 0;
-  m_NCS_MEMSET(info->o_wo,0,sizeof(info->o_wo));
+  memset(info->o_wo,0,sizeof(info->o_wo));
 
 #endif
 
@@ -3032,7 +3032,7 @@ uns32 sm_buf_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
 #else
 
   info->o_filled = 0;
-  m_NCS_MEMSET(info->o_wos,0,sizeof(info->o_wos));
+  memset(info->o_wos,0,sizeof(info->o_wos));
 
 #endif
 

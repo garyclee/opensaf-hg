@@ -52,7 +52,7 @@
 /* Macro to populate the 'EVT Initialize' message */
 #define m_EDA_EDSV_INIT_MSG_FILL(m, ver) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_INITIALIZE; \
    (m).info.api_info.param.init.version = (ver); \
@@ -61,7 +61,7 @@ do { \
 /*Macro to populate the 'Lost Event' message */
 #define m_EDA_EDSV_LOST_EVT_MSG_FILL(m,regid) \
 do { \
-   m_NCS_MEMSET(&(m),0,sizeof(EDSV_MSG)); \
+   memset(&(m),0,sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_LOST_EVENT; \
 } while (0);
@@ -69,7 +69,7 @@ do { \
 /* Macro to populate the 'EVT Finalize' message */
 #define m_EDA_EDSV_FINALIZE_MSG_FILL(m, regid) \
 do { \
-    m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+    memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_FINALIZE; \
    (m).info.api_info.param.finalize.reg_id = (regid); \
@@ -79,7 +79,7 @@ do { \
 /* Macro to populate the 'EVT Channel Open' sync message */
 #define m_EDA_EDSV_CHAN_OPEN_SYNC_MSG_FILL(m, regid, copenflags, cn) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_CHAN_OPEN_SYNC; \
    (m).info.api_info.param.chan_open_sync.reg_id = (regid); \
@@ -91,7 +91,7 @@ do { \
 #define m_EDA_EDSV_CHAN_OPEN_ASYNC_MSG_FILL(m, i, regid, \
                                             copenflags, cn) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_CHAN_OPEN_ASYNC; \
    (m).info.api_info.param.chan_open_async.inv = (i); \
@@ -103,7 +103,7 @@ do { \
 /* Macro to populate the 'EVT Channel CLOSE' message */
 #define m_EDA_EDSV_CHAN_CLOSE_MSG_FILL(m, regid, cid, copenid) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_CHAN_CLOSE; \
    (m).info.api_info.param.chan_close.reg_id = (regid); \
@@ -114,7 +114,7 @@ do { \
 /* Macro to populate the 'EVT Channel UNLINK' message */
 #define m_EDA_EDSV_CHAN_UNLINK_MSG_FILL(m, regid, cn) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_CHAN_UNLINK; \
    (m).info.api_info.param.chan_unlink.reg_id = (regid); \
@@ -125,7 +125,7 @@ do { \
 #define m_EDA_EDSV_PUBLISH_MSG_FILL(m, regid, cid, copenid, pat, prio, \
                                     rettime, pubname, evtid, dlen, d) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_PUBLISH; \
    (m).info.api_info.param.publish.reg_id = (regid); \
@@ -143,7 +143,7 @@ do { \
 /* Macro to populate the 'EVT Channel SUBSCRIBE' message */
 #define m_EDA_EDSV_SUBSCRIBE_MSG_FILL(m, regid, cid, copenid, subid, filt) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_SUBSCRIBE; \
    (m).info.api_info.param.subscribe.reg_id = (regid); \
@@ -156,7 +156,7 @@ do { \
 /* Macro to populate the 'EVT Channel UNSUBSCRIBE' message */
 #define m_EDA_EDSV_UNSUBSCRIBE_MSG_FILL(m, regid, cid, copenid, subid) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_UNSUBSCRIBE; \
    (m).info.api_info.param.unsubscribe.reg_id = (regid); \
@@ -169,7 +169,7 @@ do { \
 #define m_EDA_EDSV_CHAN_RETENTION_TIME_CLR_MSG_FILL(m, regid, cid, \
                                                     copenid, evtid) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_RETENTION_TIME_CLR; \
    (m).info.api_info.param.rettimeclr.reg_id = (regid); \
@@ -191,7 +191,7 @@ do { \
 /* Macro to populate the 'Limit Get' message */
 #define m_EDA_EDSV_LIMIT_GET_MSG_FILL(m) \
 do { \
-   m_NCS_MEMSET(&(m), 0, sizeof(EDSV_MSG)); \
+   memset(&(m), 0, sizeof(EDSV_MSG)); \
    (m).type = EDSV_EDA_API_MSG; \
    (m).info.api_info.type = EDSV_EDA_LIMIT_GET; \
 } while (0);

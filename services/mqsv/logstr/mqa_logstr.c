@@ -247,7 +247,7 @@ uns32 mqa_log_ascii_reg(void)
    NCS_DTSV_REG_CANNED_STR arg;
    uns32                   rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));
+   memset(&arg, 0, sizeof(arg));
 
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_REGISTER;
    arg.info.reg_ascii_spec.spec = &mqa_ascii_spec;
@@ -272,7 +272,7 @@ void mqa_log_ascii_dereg(void)
 {
    NCS_DTSV_REG_CANNED_STR arg;   
    
-   m_NCS_MEMSET(&arg, 0, sizeof(arg));      
+   memset(&arg, 0, sizeof(arg));      
    arg.i_op = NCS_DTSV_OP_ASCII_SPEC_DEREGISTER;
    arg.info.dereg_ascii_spec.svc_id = NCS_SERVICE_ID_MQA;
    arg.info.dereg_ascii_spec.version = MQSV_LOG_VERSION;

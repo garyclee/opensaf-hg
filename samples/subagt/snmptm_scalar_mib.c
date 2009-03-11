@@ -66,7 +66,7 @@ uns32 snmptm_scalar_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.args = args; 
@@ -125,7 +125,7 @@ uns32 ncstestscalars_set(NCSCONTEXT cb,
    { 
        NCSMIBLIB_REQ_INFO  temp_mib_req;         
 
-       m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+       memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
        temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
        temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -278,7 +278,7 @@ uns32 ncstestscalars_rmvrow(NCSCONTEXT cb_hdl, NCSMIB_IDX *idx)
    m_NCS_CONS_PRINTF("\nncsTestScalars:  Received SNMP REMOVEROWS request\n\n");
 
    /* Now, initialize(memset) the scalar row */
-   m_NCS_OS_MEMSET(&snmptm->scalars, '\0', sizeof(snmptm->scalars));
+   memset(&snmptm->scalars, '\0', sizeof(snmptm->scalars));
 
    return status;
 }

@@ -147,7 +147,7 @@ static void asapi_usr_unbind(void)
    ncs_destroy_queue(&asapi.cache); 
 
    /* Reset the user information */ 
-   m_NCS_MEMSET(&asapi, 0, sizeof(asapi));   
+   memset(&asapi, 0, sizeof(asapi));   
 }
 
 /****************************************************************************\
@@ -235,7 +235,7 @@ static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
       */
       ASAPi_MSG_INFO msg; 
       
-      m_NCS_OS_MEMSET(&msg, 0, sizeof(ASAPi_MSG_INFO));     
+      memset(&msg, 0, sizeof(ASAPi_MSG_INFO));     
       
       /* Polulate the ASAPi Name Resolution message */
       msg.msgtype = ASAPi_MSG_NRESOLVE;      
@@ -624,7 +624,7 @@ static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr,
       if(!pCache) {
          return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
       }
-      m_NCS_MEMSET(pCache, 0, sizeof(ASAPi_CACHE_INFO)); 
+      memset(pCache, 0, sizeof(ASAPi_CACHE_INFO)); 
       m_NCS_LOCK_INIT(&pCache->clock);
 
       if(!pInfo->group.length) {
@@ -843,7 +843,7 @@ static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo,
    evt.msg.asapi = msg;   
    
    /* Send to the specified destination */
-   m_NCS_OS_MEMSET(mds, 0, sizeof(NCSMDS_INFO));
+   memset(mds, 0, sizeof(NCSMDS_INFO));
    mds->i_mds_hdl = asapi.mds_hdl;  /* MDS handle */
    mds->i_svc_id = asapi.mds_svc_id;    /* User's service id */ 
    mds->i_op = MDS_SEND;

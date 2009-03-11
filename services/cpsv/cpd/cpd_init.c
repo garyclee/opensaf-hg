@@ -109,7 +109,7 @@ static uns32
 cpd_extract_create_info(int argc, char *argv[], CPD_CREATE_INFO *create_info)
 {
 
-   m_NCS_MEMSET(create_info,0,sizeof(CPD_CREATE_INFO));
+   memset(create_info,0,sizeof(CPD_CREATE_INFO));
 
    /* Need to change this once we get these parameters in the argv */
    create_info->pool_id   = NCS_HM_POOL_ID_COMMON;
@@ -135,7 +135,7 @@ static uns32
 cpd_extract_destroy_info(int argc, char *argv[], CPD_DESTROY_INFO *destroy_info)
 {
 
-   m_NCS_MEMSET(destroy_info,0,sizeof(CPD_DESTROY_INFO));
+   memset(destroy_info,0,sizeof(CPD_DESTROY_INFO));
 
    /* Need to fill this once we get these parameters in the argv */
 
@@ -183,7 +183,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       rc = NCSCC_RC_OUT_OF_MEM;
       goto cpd_cb_alloc_fail;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(CPD_CB));
+   memset(cb, 0, sizeof(CPD_CB));
    cb->hm_poolid       = info->pool_id;
    
    /* Init the EDU Handle */
@@ -322,7 +322,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
 
 
  
-   m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(healthy));
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {

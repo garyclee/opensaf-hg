@@ -192,11 +192,11 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
 
    cb->init_done = evt->info.ifd_evt.info.init_done.init_done;
    /** start the AMF health check **/   
-   m_NCS_MEMSET(&SaCompName,0,sizeof(SaCompName));
+   memset(&SaCompName,0,sizeof(SaCompName));
    m_NCS_STRCPY(SaCompName.value,cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(cb->comp_name);
 
-   m_NCS_MEMSET(&Healthy,0,sizeof(Healthy));
+   memset(&Healthy,0,sizeof(Healthy));
    phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
@@ -477,7 +477,7 @@ ifd_tmr_exp (IFSV_EVT* evt, IFSV_CB *cb)
         {
            m_NCS_CONS_PRINTF("State is Standby \n");
         }
-        m_NCS_MEMSET(cb->ifnd_mds_addr,0,(MAX_IFND_NODES * sizeof(DOWN_IFND_ADDR)));
+        memset(cb->ifnd_mds_addr,0,(MAX_IFND_NODES * sizeof(DOWN_IFND_ADDR)));
         cb->ifnd_rec_flush_tmr = IFSV_NULL;
         break;
      } 
@@ -646,7 +646,7 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = IFND_EVT_INTF_CREATE;
    evt->vrid = cb->vrid;
 
@@ -694,8 +694,8 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
         /* Send IPXS event to IfND. */
         IPXS_EVT          ipxs_evt;
         IFSV_EVT          evt;
-        m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-        m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+        memset(&evt, 0, sizeof(IFSV_EVT));
+        memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
         /* Fill the pointers */
         evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
@@ -781,7 +781,7 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = IFND_EVT_INTF_CREATE;
    evt->vrid = cb->vrid;
 
@@ -852,8 +852,8 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
             /* Send IPXS event to IfND. */
             IPXS_EVT          ipxs_evt;
             IFSV_EVT          evt;
-            m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-            m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+            memset(&evt, 0, sizeof(IFSV_EVT));
+            memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
             /* Fill the pointers */
             evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
@@ -896,8 +896,8 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
            /* Send IPXS event to IfND. */
            IPXS_EVT          ipxs_evt;
            IFSV_EVT          evt;
-           m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-           m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
+           memset(&evt, 0, sizeof(IFSV_EVT));
+           memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
 
            /* Fill the pointers */
            evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
@@ -990,7 +990,7 @@ ifd_svcd_upd_from_ifnd_proc (IFSV_EVT* evt, IFSV_CB *cb)
     }
 
    /* Send the sync resp to IFND */
-   m_NCS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IFSV_EVT));
 
 
    if(rc == NCSCC_RC_SUCCESS)
@@ -1010,7 +1010,7 @@ ifd_svcd_upd_from_ifnd_proc (IFSV_EVT* evt, IFSV_CB *cb)
                           &evt->sinfo, &send_evt);
 
    /* Send the information to IFND */
-   m_NCS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IFSV_EVT));
 
    send_evt.type = IFND_EVT_SVCD_UPD_FROM_IFD;
    send_evt.info.ifnd_evt.info.svcd = evt->info.ifd_evt.info.svcd;
@@ -1225,7 +1225,7 @@ ifd_mds_msg_send_sync_resp (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
       return (res);
    }
    
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = msg_type;
    evt->error = error;
    evt->vrid = ifsv_cb->vrid;
@@ -1304,7 +1304,7 @@ ifd_evt_send (NCSCONTEXT msg, IFSV_EVT_TYPE evt_type, IFSV_CB *ifsv_cb)
       return (res);
    }
    
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
    evt->type = evt_type;
    evt->vrid = ifsv_cb->vrid;
    evt->cb_hdl = ifsv_cb->cb_hdl;

@@ -79,7 +79,7 @@ uns32 snmptm_tblfour_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.cb = snmptm; 
 
@@ -139,7 +139,7 @@ uns32 snmptm_oac_tblfour_register(SNMPTM_CB *snmptm)
    NCSOAC_SS_ARG       mab_arg;
 
    /* register the table */
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
   
    /* register the tblfour table with the OAC */
    mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
@@ -160,7 +160,7 @@ uns32 snmptm_oac_tblfour_register(SNMPTM_CB *snmptm)
       return NCSCC_RC_SUCCESS;
   
    /* register the DEFAULT filter */
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
   
    mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
    mab_arg.i_oac_hdl = snmptm->oac_hdl;
@@ -207,8 +207,8 @@ static uns32 ncstesttablefourentry_moverow(SNMPTM_CB* snmptm,
    NCS_BOOL      moverow_self = SNMPTM_MOVEROW_SELF;
           
            
-   m_NCS_OS_MEMSET(&ssarg, 0, sizeof(ssarg));
-   m_NCS_OS_MEMSET(&marg, 0, sizeof(marg));
+   memset(&ssarg, 0, sizeof(ssarg));
+   memset(&marg, 0, sizeof(marg));
 
    idx_inst[0] = mib_arg->i_idx.i_inst_ids[0];
 
@@ -285,7 +285,7 @@ static uns32 snmptm_tblfour_staging_area_handler(SNMPTM_CB* snmptm,
    case NCSMIB_OP_REQ_NEXT:
    case NCSMIB_OP_REQ_SETROW:
    case NCSMIB_OP_REQ_TESTROW:
-       m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+       memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
        miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
        miblib_req.info.i_mib_op_info.args = arg; 
@@ -365,7 +365,7 @@ static uns32 snmptm_oac_cb(NCSOAC_SS_CB_ARG* cbarg)
        {
           NCSOAC_SS_ARG mab_arg;
 
-          m_NCS_OS_MEMSET(&mab_arg, 0, sizeof(mab_arg));
+          memset(&mab_arg, 0, sizeof(mab_arg));
         
           /* finally, unregister the tblfour table */
           mab_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
@@ -703,7 +703,7 @@ uns32 ncstesttablefourentry_set(NCSCONTEXT cb,
    uns8                create_flag = FALSE;
 
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
   
    /* Check whether the entry exists in TBLONE table with the same key?? */
    tblfour =  snmptm_tblfour_find(&snmptm->tblfour, arg);
@@ -749,7 +749,7 @@ uns32 ncstesttablefourentry_set(NCSCONTEXT cb,
                     return NCSCC_RC_FAILURE; 
                 }
 
-                m_NCS_OS_MEMSET(tblfour, 0, sizeof(SNMPTM_TBLFOUR));
+                memset(tblfour, 0, sizeof(SNMPTM_TBLFOUR));
                 tblfour->index = *(arg->i_idx.i_inst_ids);
                 tblfour->status = NCSMIB_ROWSTATUS_ACTIVE;
 
@@ -786,7 +786,7 @@ uns32 ncstesttablefourentry_set(NCSCONTEXT cb,
       }
       else
       {
-         m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+         memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
          temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
          temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -828,7 +828,7 @@ uns32 ncstesttablefourentry_set(NCSCONTEXT cb,
           if (param_id == ncsTestTableFourIndex_ID)
               continue; 
                
-          m_NCS_OS_MEMSET(&param_val, 0, sizeof(NCSMIB_PARAM_VAL)); 
+          memset(&param_val, 0, sizeof(NCSMIB_PARAM_VAL)); 
 
           /* As SET operation just holds a var_info of a particular object, need to
              do '+' or '-' on this var_info to get the appropriate var_info field */
@@ -903,7 +903,7 @@ uns32 ncstesttablefourentry_setrow(NCSCONTEXT cb,
 
    m_NCS_CONS_PRINTF("\nncsTestTableFourEntry: Received SNMP SETROW request\n");
    
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    /* Check whether the entry exists in TBLONE table with the same key?? */
    tblfour =  snmptm_tblfour_find(&snmptm->tblfour, arg);
@@ -937,7 +937,7 @@ uns32 ncstesttablefourentry_setrow(NCSCONTEXT cb,
             return NCSCC_RC_FAILURE; 
          }
 
-         m_NCS_OS_MEMSET(tblfour, 0, sizeof(SNMPTM_TBLFOUR));
+         memset(tblfour, 0, sizeof(SNMPTM_TBLFOUR));
          tblfour->index = *(arg->i_idx.i_inst_ids);
          tblfour->status = NCSMIB_ROWSTATUS_ACTIVE; 
 
@@ -963,7 +963,7 @@ uns32 ncstesttablefourentry_setrow(NCSCONTEXT cb,
 
           if (tblfour_param[param_id - 1].set_flag == TRUE)
           {
-             m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+             memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
                
              temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
              temp_mib_req.info.i_set_util_info.param = &(tblfour_param[param_id - 1].param);
@@ -1045,7 +1045,7 @@ static uns32 ncstesttablefourentry_moverow_reg(SNMPTM_CB* snmptm,
       put it into the data structure.  Data can be send from the 
       staging area along with the MOVEROW request. -- TBD */
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(mab_arg));
+   memset(&mab_arg,0,sizeof(mab_arg));
 
    mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
    mab_arg.i_oac_hdl = snmptm->oac_hdl;
@@ -1093,7 +1093,7 @@ static uns32 ncstesttablefourentry_moverow_unreg(SNMPTM_CB* snmptm,
                                                  NCSCONTEXT row_hdl)
 {
    NCSOAC_SS_ARG  mab_arg;
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(mab_arg));
+   memset(&mab_arg,0,sizeof(mab_arg));
 
    mab_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
    mab_arg.i_oac_hdl = snmptm->oac_hdl;

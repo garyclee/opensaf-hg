@@ -67,7 +67,7 @@ uns32  saflckscalarobject_set(NCSCONTEXT cb, NCSMIB_ARG *arg,NCSMIB_VAR_INFO* va
    {
        NCSMIBLIB_REQ_INFO  temp_mib_req;
 
-       m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+       memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
        temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
        temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);

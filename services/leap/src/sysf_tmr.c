@@ -246,7 +246,7 @@ static uns32 ncs_tmr_add_pat_node(SYSF_TMR*  tmr)
         temp_tmr_pat_node = (SYSF_TMR_PAT_NODE*) m_NCS_MEM_ALLOC(sizeof(SYSF_TMR_PAT_NODE),
             NCS_MEM_REGION_PERSISTENT,
             NCS_SERVICE_ID_LEAP_TMR,0);         
-        m_NCS_MEMSET (temp_tmr_pat_node, '\0', sizeof (SYSF_TMR_PAT_NODE));
+        memset (temp_tmr_pat_node, '\0', sizeof (SYSF_TMR_PAT_NODE));
         temp_tmr_pat_node->key = tmr->key;
         temp_tmr_pat_node->pat_node.key_info = (uns8*)&temp_tmr_pat_node->key;   
         ncs_patricia_tree_add (&gl_tcb.tmr_pat_tree,
@@ -633,7 +633,7 @@ NCS_BOOL sysfTmrCreate(void)
         return TRUE;
 
     /* Empty Timer Service control block.*/
-    m_NCS_MEMSET (&gl_tcb, '\0', sizeof (SYSF_TMR_CB));
+    memset (&gl_tcb, '\0', sizeof (SYSF_TMR_CB));
 
     /* put local persistent guard in start state */
     ncslpg_create(&gl_tcb.persist);
@@ -642,7 +642,7 @@ NCS_BOOL sysfTmrCreate(void)
     m_NCS_LOCK_INIT(&gl_tcb.safe.enter_lock);
     m_NCS_LOCK_INIT(&gl_tcb.safe.free_lock);
 
-    m_NCS_OS_MEMSET((void *) &pat_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+    memset((void *) &pat_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
     pat_param.key_size = sizeof(uns64);
 
@@ -832,7 +832,7 @@ tmr_t ncs_tmr_alloc (char* file, uns32  line)
         tmr = (SYSF_TMR*) m_NCS_MEM_ALLOC(sizeof(SYSF_TMR), 
             NCS_MEM_REGION_PERSISTENT,
             NCS_SERVICE_ID_LEAP_TMR,0);
-        m_NCS_MEMSET (tmr, '\0', sizeof (SYSF_TMR));
+        memset (tmr, '\0', sizeof (SYSF_TMR));
         if (tmr == NULL)
             m_LEAP_DBG_SINK_VOID(0);                    /* can't allocate memory?? */
         else

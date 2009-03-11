@@ -186,7 +186,7 @@ uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons
      return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(spons_si_node, '\0', sizeof(AVD_SPONS_SI_NODE));
+   memset(spons_si_node, '\0', sizeof(AVD_SPONS_SI_NODE));
 
    spons_si_node->si = spons_si;
 
@@ -220,7 +220,7 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 
    m_AVD_LOG_FUNC_ENTRY("avd_si_dep_stop_tol_timer");
 
-   m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    indx.si_name_sec.length = si->name_net.length;
    memcpy(indx.si_name_sec.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
@@ -412,12 +412,12 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
    m_AVD_LOG_FUNC_ENTRY("avd_si_dep_delete");
 
    /* Get the sponsor index */
-   m_NCS_MEMSET((char *)&spons_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char *)&spons_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    spons_indx.si_name_prim.length = si->name_net.length;
    memcpy(spons_indx.si_name_prim.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
 
-   m_NCS_MEMSET((char *)&dep_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char *)&dep_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    dep_indx.si_name_sec.length = si->name_net.length;
    memcpy(dep_indx.si_name_sec.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
@@ -502,7 +502,7 @@ uns32  avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_de
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(evt,'\0',sizeof(AVD_EVT));
+   memset(evt,'\0',sizeof(AVD_EVT));
 
    /* Update evt struct, using tmr field even though this field is not
     * relevant for this event, but it accommodates the required data.
@@ -1058,7 +1058,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
       }
    }  
 
-   m_NCS_MEMSET((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    si_indx.si_name_prim.length  = si->name_net.length;
    memcpy(si_indx.si_name_prim.value,
                 si->name_net.value,
@@ -1217,7 +1217,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
       return NULL;
    }
 
-   m_NCS_MEMSET(rec, '\0', sizeof(AVD_SI_SI_DEP));
+   memset(rec, '\0', sizeof(AVD_SI_SI_DEP));
 
    rec->indx_mib.si_name_prim.length = indx->si_name_prim.length;
    memcpy(rec->indx_mib.si_name_prim.value,indx->si_name_prim.value,
@@ -1454,7 +1454,7 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
    while(last)
    {
-      m_NCS_MEMSET((char *)&idx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+      memset((char *)&idx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
       idx.si_name_prim.length = last->si_name.length;
       memcpy(idx.si_name_prim.value, last->si_name.value,
@@ -1559,7 +1559,7 @@ uns32 saamfsisideptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
    /* Get the indx data from the MIB arg */
    avd_si_si_dep_get_indx(arg, &indx);
@@ -1684,7 +1684,7 @@ uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
    /* Get the indx data from the MIB arg */
    avd_si_si_dep_get_indx(arg, &indx);
@@ -1929,7 +1929,7 @@ uns32 saamfsisideptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
+   memset((char*)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
    if (arg->i_idx.i_inst_len != 0)
    {

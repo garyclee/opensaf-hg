@@ -65,7 +65,7 @@ snmptm_tblseven_register_avsv_strs(SNMPTM_CB   *snmptm, char *str1, char *str2)
       put it into the data structure.  Data can be send from the 
       staging area along with the MOVEROW request. -- TBD */
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(mab_arg));
+   memset(&mab_arg,0,sizeof(mab_arg));
 
    mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
    mab_arg.i_oac_hdl = snmptm->oac_hdl;
@@ -90,7 +90,7 @@ snmptm_tblseven_register_avsv_strs(SNMPTM_CB   *snmptm, char *str1, char *str2)
         return NULL; 
    }
 
-   m_NCS_OS_MEMSET(tblseven, 0, sizeof(SNMPTM_TBLSEVEN));
+   memset(tblseven, 0, sizeof(SNMPTM_TBLSEVEN));
    /* get the index into the entry */ 
    for (i=0; i<inst_len; i++)
        tblseven->string[i] = (uns8)i_exact_idx[i]; 
@@ -132,7 +132,7 @@ uns32 snmptm_tblseven_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.cb = snmptm; 
 
@@ -168,7 +168,7 @@ uns32 snmptm_oac_tblseven_register(SNMPTM_CB *snmptm)
    NCSOAC_SS_ARG       mab_arg;
 
    /* register the table */
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
   
    /* register the tblseven table with the OAC */
    mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;

@@ -66,7 +66,7 @@ uns32  avsv_ckpt_add_rmv_updt_avnd(AVD_CL_CB *cb, AVD_AVND *avnd,
 
    m_AVD_LOG_FUNC_ENTRY("avsv_ckpt_add_rmv_updt_avnd");
 
-   m_NCS_MEMSET(&node_name, '\0', sizeof(SaNameT));
+   memset(&node_name, '\0', sizeof(SaNameT));
    node_name.length = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length);
    memcpy(node_name.value, avnd->node_info.nodeName.value, node_name.length); 
    avnd_ptr = avd_avnd_struc_find(cb, node_name);
@@ -370,7 +370,7 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
 
           if(FALSE == su_ptr->su_is_external)
           {
-            m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
+            memset(&temp_name, '\0', sizeof(SaNameT));
             /* Add to ND list */
             /* First get the node name */
             avsv_cpy_node_DN_from_DN(&temp_name, &su_ptr->name_net);
@@ -408,7 +408,7 @@ uns32  avsv_ckpt_add_rmv_updt_su_data(AVD_CL_CB *cb, AVD_SU *su,
                  avd_su_del_sg_list(cb,su_ptr);
                  return NCSCC_RC_INV_VAL;
                }
-               m_NCS_MEMSET(cb->ext_comp_info.ext_comp_hlt_check, 0,
+               memset(cb->ext_comp_info.ext_comp_hlt_check, 0,
                             sizeof(AVD_AVND));
             } /* if(NULL == cb->ext_comp_info.ext_comp_hlt_check) */
 
@@ -1031,7 +1031,7 @@ uns32  avsv_ckpt_add_rmv_updt_comp_data(AVD_CL_CB *cb, AVD_COMP *comp,
             comp_ptr->comp_info.category = comp->comp_info.category;
             comp_ptr->row_status = comp->row_status;
 
-            m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
+            memset(&temp_name, '\0', sizeof(SaNameT));
             /* get the SU name*/
             avsv_cpy_SU_DN_from_DN(&temp_name, &comp_ptr->comp_info.name_net);
 
@@ -1246,7 +1246,7 @@ uns32  avsv_ckpt_add_rmv_updt_csi_data(AVD_CL_CB *cb, AVD_CSI *csi,
             memcpy(csi_ptr->csi_type.value, 
                    csi->csi_type.value, csi->csi_type.length);
 
-            m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
+            memset(&temp_name, '\0', sizeof(SaNameT));
             /* check that the SI is present and is active.
              */
             /* First get the SI name */
@@ -1381,7 +1381,7 @@ uns32  avsv_ckpt_add_rmv_updt_hlt_data(AVD_CL_CB *cb, AVD_HLT *hlt,
          if(hlt_ptr->row_status != NCS_ROW_ACTIVE)
          {
             /* get the SU name*/
-            m_NCS_MEMSET(&temp_name, 0, sizeof(SaNameT));
+            memset(&temp_name, 0, sizeof(SaNameT));
             avsv_cpy_SU_DN_from_DN(&temp_name, &hlt->key_name.comp_name_net);
 
             if(temp_name.length == 0)
@@ -1435,7 +1435,7 @@ uns32  avsv_ckpt_add_rmv_updt_hlt_data(AVD_CL_CB *cb, AVD_HLT *hlt,
          if (NULL != hlt_ptr)
          {
             /* get the SU name*/
-            m_NCS_MEMSET(&temp_name, 0, sizeof(SaNameT));
+            memset(&temp_name, 0, sizeof(SaNameT));
             avsv_cpy_SU_DN_from_DN(&temp_name, &hlt_ptr->key_name.comp_name_net);
 
             if(temp_name.length == 0)
@@ -1545,7 +1545,7 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
     * Walk through the entire HLT list.
     * Delete all HLT entries.
     */
-   m_NCS_MEMSET(&hlt_name, '\0', sizeof(AVSV_HLT_KEY));
+   memset(&hlt_name, '\0', sizeof(AVSV_HLT_KEY));
    for (hlt_chk = avd_hlt_struc_find_next(cb, hlt_name); hlt_chk != NULL;
         hlt_chk = avd_hlt_struc_find_next(cb, hlt_name))
    {
@@ -1716,7 +1716,7 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
     * Walk through the entire SUS_PER_SI_RANK list.
     * Delete all entries.
     */
-   m_NCS_MEMSET(&su_si_rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+   memset(&su_si_rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    for (su_si_rank = avd_sus_per_si_rank_struc_find_next(cb, su_si_rank_indx); su_si_rank != NULL;
         su_si_rank = avd_sus_per_si_rank_struc_find_next(cb, su_si_rank_indx))
    {
@@ -1731,7 +1731,7 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
     * Walk through the entire COMP_CS_TYPE list.
     * Delete all entries.
     */
-   m_NCS_MEMSET(&comp_cs_indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
+   memset(&comp_cs_indx, '\0', sizeof(AVD_COMP_CS_TYPE_INDX));
    for (comp_cs = avd_comp_cs_type_struc_find_next(cb, comp_cs_indx); comp_cs != NULL;
         comp_cs = avd_comp_cs_type_struc_find_next(cb, comp_cs_indx))
    {
@@ -1746,7 +1746,7 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
     * Walk through the entire CS_TYPE_PARAM list.
     * Delete all entries.
     */
-   m_NCS_MEMSET(&cs_param_indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
+   memset(&cs_param_indx, '\0', sizeof(AVD_CS_TYPE_PARAM_INDX));
    for (cs_param = avd_cs_type_param_struc_find_next(cb, cs_param_indx); cs_param != NULL;
         cs_param = avd_cs_type_param_struc_find_next(cb, cs_param_indx))
    {

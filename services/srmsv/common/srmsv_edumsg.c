@@ -1051,7 +1051,7 @@ uns32 srma_edp_dec_all_rsrc(EDU_HDL *edu_hdl,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(SRMA_CREATE_RSRC_MON_NODE));      
+      memset(*d_ptr, '\0', sizeof(SRMA_CREATE_RSRC_MON_NODE));      
    }
    
    struct_ptr = *d_ptr;
@@ -1560,7 +1560,7 @@ uns32 srmnd_edp_dec_all_rsrc(EDU_HDL *edu_hdl,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(SRMND_CREATED_RSRC_MON));      
+      memset(*d_ptr, '\0', sizeof(SRMND_CREATED_RSRC_MON));      
    }
    
    struct_ptr = *d_ptr;
@@ -1866,7 +1866,7 @@ uns32 srmsv_edp_nd_msg(EDU_HDL *edu_hdl,
              *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
           }
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(SRMND_MSG));
+          memset(*d_ptr, '\0', sizeof(SRMND_MSG));
        }
        struct_ptr = *d_ptr;
        break;
@@ -1968,7 +1968,7 @@ uns32 srmsv_edp_agent_msg(EDU_HDL *edu_hdl,
              *o_err = EDU_ERR_MEM_FAIL;
              return NCSCC_RC_FAILURE;
           }
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(SRMA_MSG));
+          memset(*d_ptr, '\0', sizeof(SRMA_MSG));
        }
        struct_ptr = *d_ptr;
        break;

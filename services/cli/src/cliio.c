@@ -90,7 +90,7 @@ uns32 cli_stricmp(int8 *i_str1, int8 *i_str2)
    if(0 == (inbuf = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(len)))
       return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
    
-   m_NCS_OS_MEMSET(inbuf, '\0', len);   
+   memset(inbuf, '\0', len);   
    for(i=0; i<len-1; i++) inbuf[i] = (int8)tolower(i_str1[i]);   
    inbuf[i] = '\0';
    
@@ -137,8 +137,8 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       if(0 == (pCli->ctree_cb.cmdHtry = m_MMGR_ALLOC_CLI_CMD_HISTORY))
          return;
       
-      m_NCS_OS_MEMSET(pCli->ctree_cb.cmdHtry, 0, sizeof(CLI_CMD_HISTORY));
-      m_NCS_OS_MEMSET(&pCli->ctree_cb.htryMrkr, 0, sizeof(CLI_CMD_HISTORY_MARKER));
+      memset(pCli->ctree_cb.cmdHtry, 0, sizeof(CLI_CMD_HISTORY));
+      memset(&pCli->ctree_cb.htryMrkr, 0, sizeof(CLI_CMD_HISTORY_MARKER));
 
       pCli->ctree_cb.cmdHtry->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
       if(!pCli->ctree_cb.cmdHtry->pCmdStr) return;
@@ -176,7 +176,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       pCurr = pPrev->next = m_MMGR_ALLOC_CLI_CMD_HISTORY;
       if(!pCurr) return;
       
-      m_NCS_OS_MEMSET(pCurr, 0, sizeof(CLI_CMD_HISTORY));      
+      memset(pCurr, 0, sizeof(CLI_CMD_HISTORY));      
       pCurr->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_cmdstr)+1);
       if(!pCurr->pCmdStr) return;
       m_NCS_OS_STRCPY(pCurr->pCmdStr, i_cmdstr);
@@ -374,7 +374,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
    struct termios initial_settings;
    struct termios new_settings;
    
-   m_NCS_OS_MEMSET(&param, 0, sizeof(param));
+   memset(&param, 0, sizeof(param));
 /*   
 #if (NCS_PC_CLI == 1)
     Do not prompt - PowerCode is active 
@@ -384,7 +384,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
    */
    
    /*Reset the buffer */
-   m_NCS_OS_MEMSET(buffer, 0, CLI_BUFFER_SIZE);    
+   memset(buffer, 0, CLI_BUFFER_SIZE);    
    m_NCS_OS_STRCPY(session_info.prompt_string, CLI_ROUTER_NAME);
    
    m_CLI_SET_CURRENT_CONTEXT(pCli, TRUE);
@@ -450,8 +450,8 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
        
       param.i_execcmd = TRUE;  /* execute the command */
       {
-          m_NCS_MEMSET(&initial_settings, '\0', sizeof(initial_settings));
-          m_NCS_MEMSET(&new_settings, '\0', sizeof(new_settings));
+          memset(&initial_settings, '\0', sizeof(initial_settings));
+          memset(&new_settings, '\0', sizeof(new_settings));
           if(tcgetattr(fileno(input),&initial_settings)){
              fprintf(stderr,"tcgetattr: could not get attributes, reason: %s\n", strerror(errno));
           }
@@ -596,7 +596,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          }
          
          /*Reset the buffer */                    
-         m_NCS_OS_MEMSET(buffer, 0, CLI_BUFFER_SIZE);                        
+         memset(buffer, 0, CLI_BUFFER_SIZE);                        
          chCnt = 0;         
          break; /* CONTROL(CLI_CONS_EXIT_MODE) */
          
@@ -612,7 +612,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
       case CLI_CONS_EOL:  
          if(chCnt+1 >= CLI_BUFFER_SIZE) {           
             m_CLI_DBG_SINK_VOID(NCSCC_RC_FAILURE);
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);
+            memset(buffer, '\0', CLI_BUFFER_SIZE);
             chCnt = 0;
             break;
          }
@@ -684,8 +684,8 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);
             
             /*Reset the buffer after execution of command */
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);
-            m_NCS_OS_MEMSET(param.o_hotkey.tabstring, 0, sizeof(param.o_hotkey.tabstring));
+            memset(buffer, '\0', CLI_BUFFER_SIZE);
+            memset(param.o_hotkey.tabstring, 0, sizeof(param.o_hotkey.tabstring));
             chCnt = 0;            
             break;
          }
@@ -701,7 +701,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(0 == cli_stricmp(buffer, CLI_QUIT)) 
          {            
             /*Reset the buffer */                    
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);                        
+            memset(buffer, '\0', CLI_BUFFER_SIZE);                        
             chCnt = 0;            
             
             /* Unblock PowerCode task */
@@ -717,7 +717,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             
             /* User has  typed Help, equivalent to CLI_CONS_HELP */
             ch = CLI_CONS_HELP;
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);
+            memset(buffer, '\0', CLI_BUFFER_SIZE);
             chCnt = 0;       
             cmd_help = TRUE;
          }
@@ -748,7 +748,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             if((0 == cli_stricmp(buffer, CLI_EXIT)) && 
                (NCSCC_RC_CALL_PEND != pCli->cefStatus)) {
                cli_current_mode_exit(pCli, &session_info, &display_flag);
-               m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);
+               memset(buffer, '\0', CLI_BUFFER_SIZE);
                chCnt = 0;
                break;
             }
@@ -853,8 +853,8 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);
             
             /*Reset the buffer after execution of command */
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);
-            m_NCS_OS_MEMSET(param.o_hotkey.tabstring, 0, sizeof(param.o_hotkey.tabstring));
+            memset(buffer, '\0', CLI_BUFFER_SIZE);
+            memset(param.o_hotkey.tabstring, 0, sizeof(param.o_hotkey.tabstring));
             chCnt = 0;
             break;
          }
@@ -942,7 +942,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             chCnt--;
          }
          else {
-            m_NCS_OS_MEMSET(buffer, '\0', CLI_BUFFER_SIZE);                
+            memset(buffer, '\0', CLI_BUFFER_SIZE);                
             chCnt = 0;
          }
          break;
@@ -1228,8 +1228,8 @@ uns32 cli_clean_cmds(CLI_CB *pCli, NCSCLI_DEREG_CMD_LIST *list)
    uns32             cmdcnt = 0;
    CLI_CMD_ELEMENT   *stack[NCSCLI_ARG_COUNT];
 
-   m_NCS_OS_MEMSET(&cmdlist, 0, sizeof(cmdlist));  
-   m_NCS_OS_MEMSET(stack, 0, sizeof(stack));  
+   memset(&cmdlist, 0, sizeof(cmdlist));  
+   memset(stack, 0, sizeof(stack));  
    cmdlist.i_node = list->i_node;
    
    /* Reset all marker */   
@@ -1322,7 +1322,7 @@ uns32 cli_clean_mode(CLI_CB *pCli, int8 *node)
    CLI_CMD_NODE   *nptr = 0, *pptr = 0;
    NCSCLI_CMD_LIST cmdlist;
    
-   m_NCS_OS_MEMSET(&cmdlist, 0, sizeof(cmdlist));  
+   memset(&cmdlist, 0, sizeof(cmdlist));  
    cmdlist.i_node = node;
    
    /* Reset all marker */   
@@ -1386,8 +1386,8 @@ cli_exec_cmd_from_file(CLI_CB *pCli, CLI_EXECUTE_PARAM *io_param,
    CLI_CMD_NODE  *context_node = 0;
    NCS_BOOL display_flag = FALSE;
    
-   m_NCS_OS_MEMSET(buf, 0, sizeof(buf));
-   m_NCS_OS_MEMSET(cmdStr, 0, sizeof(cmdStr));
+   memset(buf, 0, sizeof(buf));
+   memset(cmdStr, 0, sizeof(cmdStr));
    
    fname = io_param->i_cmdbuf;
    
@@ -1409,7 +1409,7 @@ cli_exec_cmd_from_file(CLI_CB *pCli, CLI_EXECUTE_PARAM *io_param,
    
    /* Cycle until end of file reached: */
    for(;;) {
-      m_NCS_OS_MEMSET(cmdStr, 0, sizeof(cmdStr));
+      memset(cmdStr, 0, sizeof(cmdStr));
       if(!sysf_readln_from_file(cmdStr)) continue;
       m_GET_TIME_STAMP(pCli->cli_last_active_time);/*Added to fix bug 58609 */
       

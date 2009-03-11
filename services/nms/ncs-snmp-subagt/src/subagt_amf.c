@@ -303,7 +303,7 @@ snmpsubagt_amf_finalize(NCSSA_CB *cb)
 
 
     /* delete the fd from the select list */ 
-    m_NCS_MEMSET(&cb->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+    memset(&cb->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
 
     /* Disable the health monitoring */ 
     status = saAmfHealthcheckStop(cb->amfHandle, 
@@ -369,7 +369,7 @@ snmpsubagt_amf_callbacks_init(SaAmfCallbacksT     *amfCallbacks)
     }
 
     /* Initialize all the callbacks to NULL */ 
-    m_NCS_MEMSET(amfCallbacks, 0, sizeof(SaAmfCallbacksT)); 
+    memset(amfCallbacks, 0, sizeof(SaAmfCallbacksT)); 
 
     /* healthcheck callback */ 
     amfCallbacks->saAmfHealthcheckCallback = 
@@ -777,7 +777,7 @@ snmpsubagt_amf_healthcheck_start_msg_post(NCSSA_CB *cb)
         return NCSCC_RC_OUT_OF_MEM;
     }
     
-    m_NCS_MEMSET(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG));
+    memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG));
     post_me->msg_type = SNMPSUBAGT_MBX_MSG_HEALTH_CHECK_START;
 
     /* post a message to the SubAgent's thread */
@@ -1016,9 +1016,9 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                 /* reset the local variables */ 
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
-                m_NCS_MEMSET(appl_name, 0, 255);
-                m_NCS_MEMSET(func_name, 0, 255);
-                m_NCS_MEMSET(lib_name, 0, 255);
+                memset(appl_name, 0, 255);
+                memset(func_name, 0, 255);
+                memset(lib_name, 0, 255);
 
                 continue; 
             }
@@ -1042,9 +1042,9 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
             /* reset the local variables */ 
             reg_unreg_routine = NULL; 
             lib_hdl = NULL;
-            m_NCS_MEMSET(appl_name, 0, 255);
-            m_NCS_MEMSET(func_name, 0, 255);
-            m_NCS_MEMSET(lib_name, 0, 255);
+            memset(appl_name, 0, 255);
+            memset(func_name, 0, 255);
+            memset(lib_name, 0, 255);
 
             continue; 
         }
@@ -1065,7 +1065,7 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                 {
                     NCSSA_CB    *cb = m_SNMPSUBAGT_CB_GET; 
                     
-                    m_NCS_MEMSET(func_name, 0, 255);
+                    memset(func_name, 0, 255);
                     sprintf(func_name, "subagt_unregister_%s_subsys",appl_name);
                     unreg_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name); 
                     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
@@ -1077,9 +1077,9 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                         /* reset the local variables */ 
                         reg_unreg_routine = NULL; 
                         lib_hdl = NULL;
-                        m_NCS_MEMSET(appl_name, 0, 255);
-                        m_NCS_MEMSET(func_name, 0, 255);
-                        m_NCS_MEMSET(lib_name, 0, 255);
+                        memset(appl_name, 0, 255);
+                        memset(func_name, 0, 255);
+                        memset(lib_name, 0, 255);
 
                         continue; 
                     }
@@ -1095,15 +1095,15 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                         /* reset the local variables */ 
                         reg_unreg_routine = NULL; 
                         lib_hdl = NULL;
-                        m_NCS_MEMSET(appl_name, 0, 255);
-                        m_NCS_MEMSET(func_name, 0, 255);
-                        m_NCS_MEMSET(lib_name, 0, 255);
+                        memset(appl_name, 0, 255);
+                        memset(func_name, 0, 255);
+                        memset(lib_name, 0, 255);
                         
                         continue; 
                     }
                     
                     /* initialize */
-                    m_NCS_MEMSET(new_reg, 0, sizeof(SNMPSUBAGT_MIBS_REG_LIST));
+                    memset(new_reg, 0, sizeof(SNMPSUBAGT_MIBS_REG_LIST));
 
                     /* copy the unregister routine */ 
                     new_reg->deinit_routine = unreg_routine;
@@ -1126,9 +1126,9 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
                         /* reset the local variables */ 
                         reg_unreg_routine = NULL; 
                         lib_hdl = NULL;
-                        m_NCS_MEMSET(appl_name, 0, 255);
-                        m_NCS_MEMSET(func_name, 0, 255);
-                        m_NCS_MEMSET(lib_name, 0, 255);
+                        memset(appl_name, 0, 255);
+                        memset(func_name, 0, 255);
+                        memset(lib_name, 0, 255);
                         
                         continue; 
                     }
@@ -1142,9 +1142,9 @@ snmpsubagt_spa_job(uns8 *file_name, uns32 what_to_do)
         /* reset the local variables */ 
         reg_unreg_routine = NULL; 
         lib_hdl = NULL;
-        m_NCS_MEMSET(appl_name, 0, 255);
-        m_NCS_MEMSET(func_name, 0, 255);
-        m_NCS_MEMSET(lib_name, 0, 255);
+        memset(appl_name, 0, 255);
+        memset(func_name, 0, 255);
+        memset(lib_name, 0, 255);
     } /* for all the libraries */
 
     /* close the file */
@@ -1202,7 +1202,7 @@ uns32 snmpsubagt_mibs_reload(NCSSA_CB *cb)
         return NCSCC_RC_OUT_OF_MEM; 
     }
 
-    m_NCS_MEMSET(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
+    memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
     post_me->msg_type = SNMPSUBAGT_MBX_CONF_RELOAD;
 
     /* post a message to the SubAgent's thread */ 
@@ -1371,7 +1371,7 @@ subagt_rda_init_role_get(struct ncsSa_cb *cb)
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_RDA_INIT_ROLE_GET);
  
     /* initialize the RDA Library */
-    m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
     app_rda_req.req_type = PCS_RDA_LIB_INIT;
     rc = pcs_rda_request (&app_rda_req);
     if (rc  != PCSRDA_RC_SUCCESS)
@@ -1381,7 +1381,7 @@ subagt_rda_init_role_get(struct ncsSa_cb *cb)
         return NCSCC_RC_FAILURE;
     }
     /* get the role */
-    m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
     app_rda_req.req_type = PCS_RDA_GET_ROLE;
     rc = pcs_rda_request(&app_rda_req);
     if (rc != PCSRDA_RC_SUCCESS)
@@ -1409,7 +1409,7 @@ subagt_rda_init_role_get(struct ncsSa_cb *cb)
     }
     /* finalize the library */
 finalize:
-       m_NCS_MEMSET(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+       memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
        app_rda_req.req_type = PCS_RDA_LIB_DESTROY;
        rc = pcs_rda_request(&app_rda_req);
        if (rc != PCSRDA_RC_SUCCESS)

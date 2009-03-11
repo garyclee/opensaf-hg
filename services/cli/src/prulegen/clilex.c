@@ -907,9 +907,9 @@ YY_MALLOC_DECL
       size = m_NCS_OS_STRLEN(lexCli->par_cb.ipbuffer);\
       if(size < max_size)\
       {\
-          m_NCS_OS_MEMSET(buf, 0, max_size);\
+          memset(buf, 0, max_size);\
           m_NCS_OS_STRCPY(buf, lexCli->par_cb.ipbuffer);\
-          m_NCS_OS_MEMSET(lexCli->par_cb.ipbuffer, 0, size);\
+          memset(lexCli->par_cb.ipbuffer, 0, size);\
           result = size;\
       }\
   }\

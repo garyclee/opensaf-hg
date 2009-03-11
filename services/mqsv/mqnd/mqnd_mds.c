@@ -66,7 +66,7 @@ static uns32 mqnd_mds_get_handle(MQND_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
 
    arg.req = NCSADA_GET_HDLS;
    arg.info.adest_get_hdls.i_create_oac = TRUE;
@@ -111,7 +111,7 @@ uns32 mqnd_mds_register (MQND_CB *cb)
       return rc;
 
    /* memset the svc_info */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
    /* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_MQA. */
    svc_info.i_mds_hdl = cb->my_mds_hdl;
@@ -169,7 +169,7 @@ void mqnd_mds_unregister (MQND_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_MQND;
@@ -416,7 +416,7 @@ static uns32 mqnd_mds_dec(MQND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
      return NCSCC_RC_FAILURE;
     }
 
-    m_NCS_MEMSET(msg_ptr, 0, sizeof(MQSV_EVT));
+    memset(msg_ptr, 0, sizeof(MQSV_EVT));
     dec_info->o_msg = (NCSCONTEXT)msg_ptr;
    
     rc = m_NCS_EDU_EXEC(&cb->edu_hdl, mqsv_edp_mqsv_evt, 
@@ -793,7 +793,7 @@ uns32 mqnd_mds_send_rsp(MQND_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt)
    NCSMDS_INFO                mds_info;
    uns32                      rc;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->my_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQND;
    mds_info.i_op = MDS_SEND;
@@ -833,7 +833,7 @@ uns32 mqnd_mds_send_rsp_direct(MQND_CB *cb, MQSV_DSEND_INFO *s_info, MQSV_DSEND_
    NCSMDS_INFO                mds_info;
    uns32                      rc;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->my_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQND;
    mds_info.i_op = MDS_DIRECT_SEND;
@@ -886,7 +886,7 @@ uns32 mqnd_mds_msg_sync_send (MQND_CB *cb, uns32 to_svc, MDS_DEST  to_dest,
    if(!i_evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->my_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQND;
    mds_info.i_op = MDS_SEND;
@@ -937,7 +937,7 @@ uns32 mqnd_mds_send (MQND_CB *cb, uns32 to_svc,
    if(!evt)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->my_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MQND;
    mds_info.i_op = MDS_SEND;
@@ -983,7 +983,7 @@ uns32 mqnd_mds_bcast_send (MQND_CB *cb,
    NCSMDS_INFO   info;
    uns32         res;
 
-   m_NCS_MEMSET(&info, 0, sizeof(info));
+   memset(&info, 0, sizeof(info));
 
    info.i_mds_hdl  = cb->my_mds_hdl;
    info.i_op       = MDS_SEND;

@@ -105,8 +105,8 @@ uns32  samsgqueuegroupmembersentry_get(NCSCONTEXT pcb, NCSMIB_ARG *arg, NCSCONTE
    if(arg->i_idx.i_inst_len ==0)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&queuename, '\0', sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&memberQueueName, '\0', sizeof(SaNameT));
+   memset(&queuename, '\0', sizeof(SaNameT));
+   memset(&memberQueueName, '\0', sizeof(SaNameT));
 
    queuename.length = (SaUint16T) arg->i_idx.i_inst_ids[0];
    for(i = 0; i<queuename.length; i++)
@@ -170,8 +170,8 @@ uns32  samsgqueuegroupmembersentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    if (cb == NULL)
       return NCSCC_RC_NO_INSTANCE;
 
-   m_NCS_OS_MEMSET(&queuename, '\0', sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&memberQueueName, '\0', sizeof(SaNameT));
+   memset(&queuename, '\0', sizeof(SaNameT));
+   memset(&memberQueueName, '\0', sizeof(SaNameT));
 
    if(arg->i_idx.i_inst_len ==0)
    {
@@ -284,7 +284,7 @@ void mqd_get_node_from_group_for_getnext(MQD_CB *cb,MQD_OBJ_NODE **grpNode,MQD_O
    MQD_OBJECT_ELEM  *localQueuePtr = NULL;
    MQD_OBJECT_ELEM  *localQueuePtr2 = NULL;
    MQD_OBJECT_ELEM  *frontptr=(MQD_OBJECT_ELEM *)front;
-   m_NCS_OS_MEMSET(&localQueueName, 0, sizeof(SaNameT));
+   memset(&localQueueName, 0, sizeof(SaNameT));
    localQueueName = memberQueueName;
    front= queue->head;
 
@@ -337,7 +337,7 @@ void mqd_get_node_from_group_for_getnext(MQD_CB *cb,MQD_OBJ_NODE **grpNode,MQD_O
          *qNode =NULL;
          return;
       }
-      m_NCS_MEMSET(&memberQueueName, 0, sizeof(SaNameT));
+      memset(&memberQueueName, 0, sizeof(SaNameT));
       queue= &pNode->oinfo.ilist;
       front =queue->head;
       localQueuePtr=NULL; 

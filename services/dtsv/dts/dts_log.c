@@ -51,7 +51,7 @@ uns32 dts_log_bind(void)
 {
     NCS_DTSV_RQ        reg;
 
-    m_NCS_MEMSET(&reg, '\0', sizeof(NCS_DTSV_RQ));
+    memset(&reg, '\0', sizeof(NCS_DTSV_RQ));
     reg.i_op = NCS_DTSV_OP_BIND;
     reg.info.bind_svc.svc_id = NCS_SERVICE_ID_DTSV;
     /* fill version no. */

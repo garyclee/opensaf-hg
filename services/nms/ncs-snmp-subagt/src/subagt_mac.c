@@ -76,7 +76,7 @@ snmpsubagt_mac_finalize()
 
     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_MAC_FINALIZE);
 
-    m_NCS_MEMSET(&destroy_mac_intf, 0, sizeof(NCS_LIB_REQ_INFO));
+    memset(&destroy_mac_intf, 0, sizeof(NCS_LIB_REQ_INFO));
 
     /* fill in the inputs reqd to desrtoy the MAC interface */ 
     destroy_mac_intf.i_op = NCS_LIB_REQ_DESTROY; 

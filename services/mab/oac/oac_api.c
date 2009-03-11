@@ -239,7 +239,7 @@ static uns32 oac_mib_local_response(NCSMIB_ARG* rsp)
      uns32   code;
 
      /* Forward this message to the PSS */
-     m_NCS_MEMSET(&msg, 0, sizeof(msg));
+     memset(&msg, 0, sizeof(msg));
      msg.op = MAB_PSS_SET_REQUEST;
      msg.data.data.snmp = rsp;
      msg.fr_anc  = inst->my_anc;
@@ -394,7 +394,7 @@ uns32 oac_ss_row_move(NCSOAC_ROW_MOVE*  row_move, uns32 oac_hdl)
 
 
     msg.vrid           = inst->vrid;
-    m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+    memset(&msg.fr_card, 0, sizeof(msg.fr_card));
     msg.fr_svc         = 0;
     msg.op             = MAB_MAS_REQ_HDLR;
     msg.data.data.snmp = row_move->i_move_req;
@@ -478,7 +478,7 @@ uns32 oac_ss_push_mibarg_data_to_pssv(NCSOAC_SS_ARG *arg)
      uns32   code;
 
      /* Forward this message to the PSS */
-     m_NCS_MEMSET(&msg, 0, sizeof(msg));
+     memset(&msg, 0, sizeof(msg));
      msg.op = MAB_PSS_SET_REQUEST;
      msg.data.data.snmp = arg->info.push_mibarg_data.arg;
      msg.fr_anc  = inst->my_anc;
@@ -679,14 +679,14 @@ uns32 oac_ss_warmboot_req_to_pssv(NCSOAC_SS_ARG*  arg)
   {
      MAB_PSS_WARMBOOT_REQ wbreq;
      
-     m_NCS_MEMSET(&msg, 0, sizeof(msg));
+     memset(&msg, 0, sizeof(msg));
      msg.vrid    = inst->vrid;
      msg.op      = MAB_PSS_WARM_BOOT;
      msg.fr_anc  = inst->my_anc;
 
      m_LOG_MAB_HEADLINE(NCSFL_SEV_NOTICE, MAB_HDLN_OAC_INVOKING_SEND_WARMBOOT_REQ_TO_PSS);
 
-     m_NCS_MEMSET(&wbreq, '\0', sizeof(wbreq));
+     memset(&wbreq, '\0', sizeof(wbreq));
      ret_val = oac_convert_input_wbreq_to_mab_request(inst, 
                      &arg->info.warmboot_req, &wbreq);
      if (ret_val != NCSCC_RC_SUCCESS)
@@ -848,7 +848,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
            "oac_findadd_pcn_in_list()");
        return NULL;
    }
-   m_NCS_MEMSET(tmp, '\0', sizeof(OAA_PCN_LIST));
+   memset(tmp, '\0', sizeof(OAA_PCN_LIST));
    if((tmp->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(pcn)+1)) == NULL)
    {
        m_LOG_MAB_MEMFAIL(NCSFL_SEV_CRITICAL, MAB_MF_OAA_PCN_STRING_ALLOC_FAIL,
@@ -856,7 +856,7 @@ OAA_PCN_LIST *oac_findadd_pcn_in_list(OAC_TBL* inst, char *pcn,
        m_MMGR_FREE_MAB_OAA_PCN_LIST(tmp);
        return NULL;
    }
-   m_NCS_MEMSET(tmp->pcn, '\0', (m_NCS_STRLEN(pcn)+1));
+   memset(tmp->pcn, '\0', (m_NCS_STRLEN(pcn)+1));
    m_NCS_STRCPY(tmp->pcn, pcn);
    tmp->tbl_id = tbl_id;
    if(prv_tmp != NULL)
@@ -937,7 +937,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
                    "oac_add_warmboot_req_in_wbreq_list()");
                return NCSCC_RC_FAILURE;
            }
-           m_NCS_MEMSET(tmp_elem, '\0', sizeof(NCSOAC_PSS_TBL_LIST));
+           memset(tmp_elem, '\0', sizeof(NCSOAC_PSS_TBL_LIST));
            tmp_elem->tbl_id = wbr_tbl_elem->tbl_id;
 
            if(prv_oac_tbl_elem == NULL)
@@ -968,7 +968,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
             "oac_add_warmboot_req_in_wbreq_list()");
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(tmp_list, '\0', sizeof(OAA_WBREQ_PEND_LIST));
+    memset(tmp_list, '\0', sizeof(OAA_WBREQ_PEND_LIST));
     tmp_list->pcn = m_MMGR_ALLOC_MAB_PCN_STRING(lcl_strlen + 1);
     if(tmp_list->pcn == NULL)
     {
@@ -978,7 +978,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
         m_MMGR_FREE_MAB_OAA_WBREQ_PEND_LIST(tmp_list);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(tmp_list->pcn, '\0', lcl_strlen + 1);
+    memset(tmp_list->pcn, '\0', lcl_strlen + 1);
     m_NCS_STRCPY(tmp_list->pcn, wbr->i_pcn);
     tmp_list->is_system_client = wbr->is_system_client;
 
@@ -1019,7 +1019,7 @@ uns32 oac_add_warmboot_req_in_wbreq_list(OAC_TBL* inst, NCSOAC_PSS_WARMBOOT_REQ*
             m_MMGR_FREE_MAB_OAA_WBREQ_PEND_LIST(tmp_list);
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(lcl_tbl, '\0', sizeof(NCSOAC_PSS_TBL_LIST));
+        memset(lcl_tbl, '\0', sizeof(NCSOAC_PSS_TBL_LIST));
         lcl_tbl->tbl_id = tbl_elem->tbl_id;
 
         if(prv_p_tbl == NULL)
@@ -1069,7 +1069,7 @@ static uns32 oac_add_node_to_wbreq_hdl_list(OAC_TBL *inst,
       if((list = m_MMGR_ALLOC_OAA_WBREQ_HDL_LIST) == NULL)
          return NCSCC_RC_FAILURE;
 
-      m_NCS_MEMSET(list, '\0', sizeof(OAA_WBREQ_HDL_LIST));
+      memset(list, '\0', sizeof(OAA_WBREQ_HDL_LIST));
       list->wbreq_hdl = wbreq_hdl;
       list->eop_usr_ind_fnc = func;
       list->next = NULL;
@@ -1193,7 +1193,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
         oac_free_wbreq(req_head);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
+    memset(req, '\0', sizeof(MAB_PSS_WARMBOOT_REQ));
     req->is_system_client = list->is_system_client;
     if((req->pcn_list.pcn = 
          m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(list->pcn)+1)) == NULL)
@@ -1204,7 +1204,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
        oac_free_wbreq(req_head);
        return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(list->pcn))+1);
+    memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(list->pcn))+1);
     m_NCS_STRCPY(req->pcn_list.pcn, list->pcn);
     req->wbreq_hdl = list->wbreq_hdl;
 
@@ -1224,7 +1224,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
            oac_free_wbreq(req_head);
            return NCSCC_RC_FAILURE;
        }
-       m_NCS_MEMSET(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
+       memset(olist, '\0', sizeof(MAB_PSS_TBL_LIST));
        olist->tbl_id = tlist->tbl_id;
 
        /* Add the element to the list */
@@ -1255,7 +1255,7 @@ uns32 oac_send_pending_warmboot_reqs_to_pssv(OAC_TBL* inst)
   if(req_head != NULL)
   {
      /* Send the message now to PSS */
-     m_NCS_MEMSET(&msg, '\0', sizeof(msg));
+     memset(&msg, '\0', sizeof(msg));
      msg.vrid = inst->vrid;
      msg.op = MAB_PSS_WARM_BOOT;
      msg.fr_anc = inst->my_anc;
@@ -1391,7 +1391,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
                oac_free_pss_tbl_list(req->pcn_list.tbl_list);
                return NCSCC_RC_FAILURE;
            }
-           m_NCS_MEMSET(tmp_olist, '\0', sizeof(MAB_PSS_TBL_LIST));
+           memset(tmp_olist, '\0', sizeof(MAB_PSS_TBL_LIST));
            tmp_olist->tbl_id = tlist->tbl_id;
 
            /* Add to the list */ 
@@ -1416,7 +1416,7 @@ uns32 oac_convert_input_wbreq_to_mab_request(OAC_TBL* inst,
           oac_free_pss_tbl_list(req->pcn_list.tbl_list);
           return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(in_wbreq->i_pcn)+1));
+      memset(req->pcn_list.pcn, '\0', (m_NCS_STRLEN(in_wbreq->i_pcn)+1));
       m_NCS_STRCPY(req->pcn_list.pcn, in_wbreq->i_pcn);
       req->is_system_client = in_wbreq->is_system_client; 
     }
@@ -1512,7 +1512,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);    
     }
 
-  m_NCS_OS_MEMSET(tbl_rec,0,sizeof(OAC_TBL_REC));
+  memset(tbl_rec,0,sizeof(OAC_TBL_REC));
 
   tbl_rec->dfltr_regd = FALSE;
   tbl_rec->tbl_id = tbl_id;
@@ -1552,7 +1552,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
 
          m_LOG_MAB_HEADLINE(NCSFL_SEV_DEBUG, MAB_HDLN_OAC_INVOKING_SEND_BIND_REQ_TO_PSS);
 
-         m_NCS_MEMSET(&bind_evt, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
+         memset(&bind_evt, '\0', sizeof(MAB_PSS_TBL_BIND_EVT));
  
          if((bind_evt.pcn_list.pcn =
             m_MMGR_ALLOC_MAB_PCN_STRING(m_NCS_STRLEN(p_pcn->pcn)+1)) == NULL)
@@ -1561,7 +1561,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
                "oac_ss_tbl_reg()");
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(bind_evt.pcn_list.pcn, '\0', (m_NCS_STRLEN(p_pcn->pcn)+1));
+         memset(bind_evt.pcn_list.pcn, '\0', (m_NCS_STRLEN(p_pcn->pcn)+1));
          m_NCS_STRCPY(bind_evt.pcn_list.pcn, p_pcn->pcn);
 
          if((bind_evt.pcn_list.tbl_list = m_MMGR_ALLOC_MAB_PSS_TBL_LIST) == NULL)
@@ -1571,7 +1571,7 @@ uns32 oac_ss_tbl_reg(NCSOAC_TBL_OWNED* tbl_owned,uns32 tbl_id,
             m_MMGR_FREE_MAB_PCN_STRING(bind_evt.pcn_list.pcn);
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(bind_evt.pcn_list.tbl_list, '\0', sizeof(MAB_PSS_TBL_LIST));
+         memset(bind_evt.pcn_list.tbl_list, '\0', sizeof(MAB_PSS_TBL_LIST));
          bind_evt.pcn_list.tbl_list->tbl_id = tbl_id;
 
          (void)oac_psr_send_bind_req(inst, &bind_evt, FALSE);
@@ -1610,7 +1610,7 @@ uns32 oac_psr_send_bind_req(OAC_TBL *inst, MAB_PSS_TBL_BIND_EVT *bind_req, NCS_B
    uns32   code;
 
    /* Forward this message to the PSS */
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
    msg.op = MAB_PSS_TBL_BIND;
    msg.data.data.oac_pss_tbl_bind = *bind_req;
    msg.fr_anc  = inst->my_anc;
@@ -1826,7 +1826,7 @@ uns32 oac_psr_send_unbind_req(OAC_TBL *inst, uns32 tbl_id)
    uns32   code;
 
    /* Forward this message to the PSS */
-   m_NCS_MEMSET(&msg, 0, sizeof(msg));
+   memset(&msg, 0, sizeof(msg));
    msg.op = MAB_PSS_TBL_UNBIND;
    msg.data.data.oac_pss_tbl_unbind.tbl_id = tbl_id;
    msg.fr_anc  = inst->my_anc;
@@ -2015,7 +2015,7 @@ uns32 oac_ss_row_reg(NCSOAC_ROW_OWNED* row_owned,uns32 tbl_id,uns32 oac_hdl)
   if(row_owned->i_fltr.type == NCSMAB_FLTR_DEFAULT)
     {
     OAC_FLTR fltr;
-    m_NCS_OS_MEMSET(&fltr,0,sizeof(fltr));
+    memset(&fltr,0,sizeof(fltr));
     fltr.fltr.type = NCSMAB_FLTR_DEFAULT;
     tbl_rec->dfltr_regd = TRUE;
     tbl_rec->ss_cb_fnc = row_owned->i_ss_cb;
@@ -2282,7 +2282,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     }
 
     /* initialize the OAA control block */
-    m_NCS_OS_MEMSET(inst,0,sizeof(OAC_TBL));
+    memset(inst,0,sizeof(OAC_TBL));
 
     /* initialize locks */
     m_OAC_LK_CREATE(&inst->lock);
@@ -2292,7 +2292,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     inst->vrid = create->i_vrid;
 
     /* do I need to do this again, verify in the unit testing.  TBD Mahesh */ 
-    m_NCS_MEMSET(&inst->mas_vcard, 0, sizeof(inst->mas_vcard));
+    memset(&inst->mas_vcard, 0, sizeof(inst->mas_vcard));
 
     /* store mailbox ptr and callback */ 
     inst->mbx = create->i_mbx;
@@ -2314,7 +2314,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
 
 
     /* get the PWE handle of this OAA */ 
-    m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+    memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
     memcpy(&spir_info.i_instance_name, 
@@ -2338,7 +2338,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     inst->mds_hdl = (MDS_HDL)spir_info.info.lookup_create_inst.o_handle; 
 
     /* OAC joins the MDS crowd... advertises its presence */
-    m_NCS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
     mds_info.i_mds_hdl = inst->mds_hdl;
     mds_info.i_op      = MDS_INSTALL;
     mds_info.i_svc_id  = NCSMDS_SVC_ID_OAC;
@@ -2372,7 +2372,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
        NCSMDS_INFO         info;
 
        /* This is VDEST. So, get the initial role from MDS */
-       m_NCS_MEMSET(&info, 0, sizeof(NCSMDS_INFO));
+       memset(&info, 0, sizeof(NCSMDS_INFO));
        info.i_op = MDS_QUERY_PWE;
        info.i_svc_id = NCSMDS_SVC_ID_OAC;
        info.i_mds_hdl = inst->mds_hdl;
@@ -2398,7 +2398,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     inst->wbreq_list = NULL;
 
     /* subscribe to MAS and PSR */ 
-    m_NCS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
     subsvc[0] = NCSMDS_SVC_ID_MAS;
     subsvc[1] = NCSMDS_SVC_ID_PSS;
     mds_info.i_mds_hdl = inst->mds_hdl;
@@ -2421,7 +2421,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     }
 
     /* subscribe to OAA(self) SVC-events */
-    m_NCS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
     subsvc[0] = NCSMDS_SVC_ID_OAC;
     mds_info.i_mds_hdl = inst->mds_hdl;
     mds_info.i_op      = MDS_RED_SUBSCRIBE;
@@ -2489,7 +2489,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
 
     /* Tear down the services                                     */
     /* Unsubscribe from service events is implicit with Uninstall */
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = inst->mds_hdl;
     info.i_svc_id  = NCSMDS_SVC_ID_OAC;
     info.i_op      = MDS_UNINSTALL;
@@ -2506,7 +2506,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
     }
 
     /* release the PWE instance from SPRR */ 
-    m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+    memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_REL_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
     memcpy(&spir_info.i_instance_name, 

@@ -77,7 +77,7 @@ uns32 gla_mds_get_handle(GLA_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
    arg.req = NCSADA_GET_HDLS;
    rc = ncsada_api(&arg);
 
@@ -111,7 +111,7 @@ uns32 gla_mds_register (GLA_CB *cb)
    gla_mds_get_handle(cb);
 
    /* memset the svc_info */
-   m_NCS_OS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
 
    /* STEP 2 : Install on ADEST with MDS with service ID NCSMDS_SVC_ID_GLA. */
    svc_info.i_mds_hdl = cb->gla_mds_hdl;
@@ -164,7 +164,7 @@ void gla_mds_unregister (GLA_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->gla_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_GLA;
@@ -478,7 +478,7 @@ static uns32 gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
          m_LOG_GLA_MEMFAIL(GLA_EVT_ALLOC_FAILED);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(evt, 0, sizeof(GLSV_GLA_EVT));  
+      memset(evt, 0, sizeof(GLSV_GLA_EVT));  
       info->o_msg = (NCSCONTEXT)evt;
  
       p8 = ncs_dec_flatten_space(uba, local_data, 16);
@@ -651,7 +651,7 @@ static uns32 gla_mds_svc_evt(GLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
       {
          if(cb->glnd_svc_up != FALSE)
          {
-            m_NCS_OS_MEMSET(&cb->glnd_mds_dest, 0, sizeof(MDS_DEST));
+            memset(&cb->glnd_mds_dest, 0, sizeof(MDS_DEST));
             /* clean up the client tree */
             m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -733,7 +733,7 @@ uns32 gla_mds_msg_sync_send (GLA_CB *cb,
    if(!i_evt || cb->glnd_svc_up == FALSE )
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->gla_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_GLA;
    mds_info.i_op = MDS_SEND;
@@ -777,7 +777,7 @@ uns32 gla_mds_msg_async_send (GLA_CB *cb,
    if(!i_evt || cb->glnd_svc_up == FALSE)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->gla_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_GLA;
    mds_info.i_op = MDS_SEND;
@@ -815,12 +815,12 @@ uns32 gla_agent_register (GLA_CB *cb)
    if(cb->glnd_svc_up == FALSE)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&evt, 0, sizeof(GLSV_GLND_EVT));
    evt.type = GLSV_GLND_EVT_REG_AGENT;
    evt.info.agent_info.agent_mds_dest = cb->gla_mds_dest;
    evt.info.agent_info.process_id = cb->process_id;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->gla_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_GLA;
    mds_info.i_op = MDS_SEND;
@@ -857,12 +857,12 @@ uns32 gla_agent_unregister (GLA_CB *cb)
    if(cb->glnd_svc_up == FALSE)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&evt, 0, sizeof(GLSV_GLND_EVT));
    evt.type = GLSV_GLND_EVT_UNREG_AGENT;
    evt.info.agent_info.agent_mds_dest = cb->gla_mds_dest;
    evt.info.agent_info.process_id = cb->process_id;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->gla_mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_GLA;
    mds_info.i_op = MDS_SEND;

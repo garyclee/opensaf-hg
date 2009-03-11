@@ -136,7 +136,7 @@ uns32 srmnd_start_stop_appl_mon(SRMND_CB *srmnd,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET((char *)user_node, 0, sizeof(SRMND_MON_SRMA_USR_NODE));
+      memset((char *)user_node, 0, sizeof(SRMND_MON_SRMA_USR_NODE));
 
       /* Update the user specific key */
       user_node->usr_key = *usr_key; 
@@ -345,7 +345,7 @@ uns32 srmnd_add_rsrc_mon_to_user_list(SRMND_CB *srmnd,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET((char *)user, 0, sizeof(SRMND_MON_SRMA_USR_NODE));
+      memset((char *)user, 0, sizeof(SRMND_MON_SRMA_USR_NODE));
 
       /* Update the user specific key */
       user->usr_key = *usr_key; 
@@ -414,7 +414,7 @@ uns32 srmnd_add_rsrc_mon_to_rsrc_type_list(SRMND_CB *srmnd,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET((char *)rsrc_type_node, 0, sizeof(SRMND_RSRC_TYPE_NODE));
+      memset((char *)rsrc_type_node, 0, sizeof(SRMND_RSRC_TYPE_NODE));
 
       /* Update the user specific key */
       rsrc_type_node->rsrc_type = rsrc_type;
@@ -600,7 +600,7 @@ uns32 srmnd_create_rsrc_mon(SRMND_CB *srmnd,
       {
          SRMND_WATERMARK_DATA wm_data;
 
-         m_NCS_OS_MEMSET(&wm_data, 0, sizeof(SRMND_WATERMARK_DATA));
+         memset(&wm_data, 0, sizeof(SRMND_WATERMARK_DATA));
 
          wm_data.srma_dest = usr_key->srma_dest;
          wm_data.usr_hdl = create_mon->rsrc_hdl;
@@ -620,7 +620,7 @@ uns32 srmnd_create_rsrc_mon(SRMND_CB *srmnd,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET((char *)rsrc, 0, sizeof(SRMND_RSRC_MON_NODE));
+   memset((char *)rsrc, 0, sizeof(SRMND_RSRC_MON_NODE));
 
    /* create the handle for rsrc mon record (association with hdl-mngr) */
    if (!(rsrc->rsrc_mon_hdl = ncshm_create_hdl(srmnd->pool_id,
@@ -883,7 +883,7 @@ uns32 srmnd_modify_rsrc_mon(SRMND_CB *srmnd,
          /* Delete the resource mon from monitoring process */
          srmnd_del_rsrc_from_monitoring(srmnd->srmnd_tmr_cb, &rsrc->tmr_id);
 
-         m_NCS_OS_MEMSET(&rsrc->mon_data.monitor_data, 0,
+         memset(&rsrc->mon_data.monitor_data, 0,
                          sizeof(NCS_SRMSV_MON_DATA));
       }
 

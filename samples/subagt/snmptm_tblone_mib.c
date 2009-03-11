@@ -85,7 +85,7 @@ uns32 snmptm_tblone_tbl_req(struct ncsmib_arg *args)
       return NCSCC_RC_FAILURE;
    }  
    
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.args = args; 
@@ -187,7 +187,7 @@ uns32 get_tblone_entry(SNMPTM_CB  *snmptm, NCSMIB_ARG  *arg, SNMPTM_TBLONE  **tb
 {
    SNMPTM_TBL_KEY  tblone_key;
 
-   m_NCS_OS_MEMSET(&tblone_key, '\0', sizeof(tblone_key));
+   memset(&tblone_key, '\0', sizeof(tblone_key));
 
    if(arg->i_idx.i_inst_len != SNMPTM_TBLONE_TBL_INST_LEN) 
       return NCSCC_RC_FAILURE;
@@ -239,7 +239,7 @@ uns32 get_next_tblone_entry(SNMPTM_CB *snmptm,
 {
    SNMPTM_TBL_KEY  tblone_key;
    
-   m_NCS_OS_MEMSET(&tblone_key, '\0', sizeof(tblone_key));
+   memset(&tblone_key, '\0', sizeof(tblone_key));
    
    if ((arg->i_idx.i_inst_len == 0) ||
        (arg->i_idx.i_inst_ids == NULL))
@@ -308,8 +308,8 @@ uns32 ncstesttableoneentry_set(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 
-   m_NCS_OS_MEMSET(&tblone_key, '\0', sizeof(SNMPTM_TBL_KEY));    
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&tblone_key, '\0', sizeof(SNMPTM_TBL_KEY));    
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
   
    if (i_set_req->i_param_val.i_param_id == ncsTestTableOnePhysAddress_ID)
    {
@@ -404,7 +404,7 @@ uns32 ncstesttableoneentry_set(NCSCONTEXT cb,
          }
          else
          {
-            m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+            memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
             temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
             temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -589,8 +589,8 @@ uns32 ncstesttableoneentry_setrow(NCSCONTEXT cb,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
    
-   m_NCS_OS_MEMSET(&tblone_key, '\0', sizeof(SNMPTM_TBL_KEY));
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&tblone_key, '\0', sizeof(SNMPTM_TBL_KEY));
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    /* Prepare the key from the instant ID */
    make_key_from_instance_id(&tblone_key, arg->i_idx.i_inst_ids, arg->i_idx.i_inst_len);
@@ -638,7 +638,7 @@ uns32 ncstesttableoneentry_setrow(NCSCONTEXT cb,
                        return NCSCC_RC_FAILURE;
                  }
 
-                 m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+                 memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
                  temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
                  temp_mib_req.info.i_set_util_info.param = &(tblone_param[param_id - 1].param);
                  temp_mib_req.info.i_set_util_info.var_info = &obj_info->var_info[param_id - 1];

@@ -332,7 +332,7 @@ avm_edp_ckpt_msg_validation_info(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_VALID_INFO_T));
+         memset(*d_ptr, '\0', sizeof(AVM_VALID_INFO_T));
          struct_ptr = *d_ptr;
       }else
       {
@@ -483,7 +483,7 @@ avm_edp_ckpt_msg_ent(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ENT_INFO_T));
+         memset(*d_ptr, '\0', sizeof(AVM_ENT_INFO_T));
          struct_ptr = *d_ptr;
       }else
       {
@@ -553,7 +553,7 @@ avm_edp_inv_data_text_buff(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaHpiTextBufferT));
+      memset(*d_ptr, '\0', sizeof(SaHpiTextBufferT));
       struct_ptr = *d_ptr;
    }else
    {
@@ -623,7 +623,7 @@ avm_edp_sensor_event(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_SENSOR_EVENT_T));
+      memset(*d_ptr, '\0', sizeof(AVM_SENSOR_EVENT_T));
       struct_ptr = *d_ptr;
    }else
    {
@@ -693,7 +693,7 @@ avm_edp_ckpt_msg_evt_id(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_EVT_ID_T));
+         memset(*d_ptr, '\0', sizeof(AVM_EVT_ID_T));
          struct_ptr = *d_ptr;
       }else
       {
@@ -769,7 +769,7 @@ avm_edp_entity(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaHpiEntityT));
+         memset(*d_ptr, '\0', sizeof(SaHpiEntityT));
          struct_ptr = *d_ptr;
       }else
       {
@@ -869,7 +869,7 @@ avm_edp_ckpt_msg_async_updt_cnt(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ASYNC_CNT_T));
+         memset(*d_ptr, '\0', sizeof(AVM_ASYNC_CNT_T));
          struct_ptr = *d_ptr;
       }else
       {
@@ -936,7 +936,7 @@ avm_edp_inv_data(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_INV_DATA_T));
+      memset(*d_ptr, '\0', sizeof(AVM_INV_DATA_T));
       struct_ptr = *d_ptr;
    }else
    {
@@ -1004,7 +1004,7 @@ avm_edp_ent_desc_name(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ENT_DESC_NAME_T));
+      memset(*d_ptr, '\0', sizeof(AVM_ENT_DESC_NAME_T));
       struct_ptr = *d_ptr;
    }else
    {
@@ -1073,7 +1073,7 @@ avm_edp_ent_valid_location(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ENT_VALID_LOCATION_T));
+      memset(*d_ptr, '\0', sizeof(AVM_ENT_VALID_LOCATION_T));
       struct_ptr = *d_ptr;
    }else
    {
@@ -1140,7 +1140,7 @@ avm_edp_valid_location_range(EDU_HDL       *hdl,
          *o_err = EDU_ERR_MEM_FAIL;
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_VALID_LOC_RANGE_T));
+      memset(*d_ptr, '\0', sizeof(AVM_VALID_LOC_RANGE_T));
       struct_ptr = *d_ptr;
    }else
    {
@@ -1213,8 +1213,8 @@ avm_edp_ent_info_list(EDU_HDL       *hdl,
             return NCSCC_RC_FAILURE;
           }
       }   
-      m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ENT_INFO_LIST_T));
-      m_NCS_MEMSET(temp_ent_info, '\0', sizeof(AVM_ENT_INFO_T));
+      memset(*d_ptr, '\0', sizeof(AVM_ENT_INFO_LIST_T));
+      memset(temp_ent_info, '\0', sizeof(AVM_ENT_INFO_T));
       (*d_ptr)->ent_info    = temp_ent_info;
       (*d_ptr)->ep_str = &temp_ent_info->ep_str;
       struct_ptr = *d_ptr;
@@ -1268,7 +1268,7 @@ avm_edp_entity_path_str(
            *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_ENT_PATH_STR_T));
+        memset(*d_ptr, '\0', sizeof(AVM_ENT_PATH_STR_T));
         struct_ptr = *d_ptr;
      }else
      {
@@ -1315,7 +1315,7 @@ avm_edp_entity_path(
            *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaHpiEntityPathT));
+        memset(*d_ptr, '\0', sizeof(SaHpiEntityPathT));
         struct_ptr = *d_ptr;
      }else
      {
@@ -1553,7 +1553,7 @@ avm_edp_ent_dhconf_name_type(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_DHCP_CONF_NAME_TYPE));
+         memset(*d_ptr, '\0', sizeof(AVM_DHCP_CONF_NAME_TYPE));
          struct_ptr = *d_ptr;
       }else
       {
@@ -1634,7 +1634,7 @@ avm_edp_ent_per_label_conf(
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
          }
-         m_NCS_MEMSET(*d_ptr, '\0', sizeof(AVM_PER_LABEL_CONF));
+         memset(*d_ptr, '\0', sizeof(AVM_PER_LABEL_CONF));
          struct_ptr = *d_ptr;
       }else
       {

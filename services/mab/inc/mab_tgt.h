@@ -635,7 +635,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_PROFILE_EXISTS; \
         pssts_arg.info.profile_exists.i_profile_name = name; \
@@ -648,7 +648,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_GET_PROFILE_DESC; \
         pssts_arg.info.get_desc.i_profile_name = name; \
@@ -662,7 +662,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_SET_PROFILE_DESC; \
         pssts_arg.info.set_desc.i_profile_name = name; \
@@ -674,7 +674,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_CREATE_PROFILE; \
         pssts_arg.info.create_profile.i_profile_name = name; \
@@ -685,7 +685,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_DELETE_PROFILE; \
         pssts_arg.info.delete_profile.i_profile_name = name; \
@@ -696,7 +696,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_GET_NEXT_PROFILE; \
         pssts_arg.info.get_next.i_profile_name = name; \
@@ -709,7 +709,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_COPY_PROFILE; \
         pssts_arg.info.copy_profile.i_profile_name = copyfrom; \
@@ -721,7 +721,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_MOVE_PROFILE; \
         pssts_arg.info.move_profile.i_profile_name = movefrom; \
@@ -733,7 +733,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_PWE_EXISTS; \
         pssts_arg.info.pwe_exists.i_profile_name = name; \
@@ -747,7 +747,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_FILE_EXISTS; \
         pssts_arg.info.file_exists.i_profile_name = profile; \
@@ -763,7 +763,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_OPEN_FILE; \
         pssts_arg.info.open_file.i_profile_name = profile; \
@@ -780,7 +780,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_OPEN_TEMP_FILE; \
         ret = (func)(&pssts_arg); \
@@ -791,7 +791,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_READ_FILE; \
         pssts_arg.info.read_file.i_handle = filehdl; \
@@ -807,7 +807,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_WRITE_FILE; \
         pssts_arg.info.write_file.i_handle = filehdl; \
@@ -820,7 +820,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_CLOSE_FILE; \
         pssts_arg.info.close_file.i_handle = filehdl; \
@@ -831,7 +831,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_FILE_SIZE; \
         pssts_arg.info.file_size.i_profile_name = profile; \
@@ -846,7 +846,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_COPY_TEMP_FILE; \
         pssts_arg.info.copy_tfile.i_profile_name = profile; \
@@ -860,7 +860,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_SET_PSS_CONFIG; \
         pssts_arg.info.set_config.i_current_profile_name = current_profile; \
@@ -871,7 +871,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_FILE_DELETE; \
         pssts_arg.info.delete_file.i_profile_name = profile; \
@@ -885,7 +885,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_PCN_DELETE; \
         pssts_arg.info.delete_pcn.i_profile_name = profile; \
@@ -898,7 +898,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_GET_CLIENTS; \
         pssts_arg.info.get_clients.i_profile_name = profile; \
@@ -910,7 +910,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_GET_MIB_LIST_PER_PCN; \
         pssts_arg.info.get_miblist_per_pcn.i_profile_name = profile; \
@@ -923,7 +923,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_DELETE_TEMP_FILE; \
         ret = (func)(&pssts_arg); \
@@ -933,7 +933,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_MOVE_TBL_DETAILS_FILE; \
         pssts_arg.info.move_detailsfile.i_profile_name = profile; \
@@ -948,7 +948,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
     { \
         assert(gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE); \
         NCS_PSSTS_ARG pssts_arg; \
-        m_NCS_MEMSET(&pssts_arg, 0, sizeof(pssts_arg)); \
+        memset(&pssts_arg, 0, sizeof(pssts_arg)); \
         pssts_arg.ncs_hdl = hdl; \
         pssts_arg.i_op   = NCS_PSSTS_OP_DELETE_TBL_DETAILS_FILE; \
         pssts_arg.info.delete_file.i_profile_name = profile; \

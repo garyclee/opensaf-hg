@@ -92,9 +92,9 @@ ncsdtsvservicelogpolicyentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    uns32                rc = NCSCC_RC_SUCCESS, old_buff_size = 0;
    uns8                  old_log_device = 0;
 
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
-   m_NCS_OS_MEMSET(&key, 0, sizeof(SVC_KEY));
-   m_NCS_OS_MEMSET(&nt_key, 0, sizeof(SVC_KEY));
+   memset(&reqinfo, 0, sizeof(reqinfo));
+   memset(&key, 0, sizeof(SVC_KEY));
+   memset(&nt_key, 0, sizeof(SVC_KEY));
     
    /* Validate the index length */
    if(SVC_INST_ID_LEN != arg->i_idx.i_inst_len)
@@ -354,9 +354,9 @@ ncsdtsvservicelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
                          rc = NCSCC_RC_SUCCESS;
    uns8                  old_log_device = 0;
 
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
-   m_NCS_OS_MEMSET(&key, 0, sizeof(SVC_KEY));
-   m_NCS_OS_MEMSET(&nt_key, 0, sizeof(SVC_KEY));
+   memset(&reqinfo, 0, sizeof(reqinfo));
+   memset(&key, 0, sizeof(SVC_KEY));
+   memset(&nt_key, 0, sizeof(SVC_KEY));
 
    /* Validate the index length */
    if(SVC_INST_ID_LEN != arg->i_idx.i_inst_len)
@@ -452,7 +452,7 @@ ncsdtsvservicelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
 
             case ncsDtsvServiceCategoryBitMap_ID:
             case ncsDtsvServiceSeverityBitMap_ID:
-               m_NCS_MEMSET(&arg->req.info.set_req.i_param_val, '\0', sizeof(NCSMIB_PARAM_VAL));
+               memset(&arg->req.info.set_req.i_param_val, '\0', sizeof(NCSMIB_PARAM_VAL));
                /* Fill NCSMIB_ARG according to params struct before calling*/
                memcpy(&arg->req.info.set_req.i_param_val, &params[paramid-1].param, sizeof(NCSMIB_PARAM_VAL));
                /* Call DTS's own SET function for BITS MIB type */
@@ -717,7 +717,7 @@ uns32 dtsv_service_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
    SVC_KEY    nt_key;
    DTS_SVC_REG_TBL *svc_ptr;
 
-   m_NCS_MEMSET(&uba, '\0', sizeof(uba));
+   memset(&uba, '\0', sizeof(uba));
 
    ncs_dec_init_space(&uba, buf);
    arg->req.info.cli_req.i_usrbuf = NULL;
@@ -795,8 +795,8 @@ uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
    SVC_KEY    nt_key;
    DTS_SVC_REG_TBL *node_ptr;
 
-   m_NCS_MEMSET(&rsp_uba, '\0', sizeof(rsp_uba));
-   m_NCS_MEMSET(&uba, '\0', sizeof(uba));
+   memset(&rsp_uba, '\0', sizeof(rsp_uba));
+   memset(&uba, '\0', sizeof(uba));
 
    /* Set parameters for response */
    arg->rsp.info.cli_rsp.i_cmnd_id = dtsvDispNodeConsole;

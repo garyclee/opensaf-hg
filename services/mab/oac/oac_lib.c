@@ -126,7 +126,7 @@ uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
                NCS_SPLR_REQ_INFO splr_info;
 
                /* deregister with SPLR */ 
-               m_NCS_OS_MEMSET(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
+               memset(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
                splr_info.type = NCS_SPLR_REQ_DEREG; 
                splr_info.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
                status = ncs_splr_api(&splr_info); 
@@ -147,7 +147,7 @@ uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
                 {
                     return m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM);
                 }
-                m_NCS_OS_MEMSET(post_me, 0, sizeof(MAB_MSG));
+                memset(post_me, 0, sizeof(MAB_MSG));
                 post_me->op = MAB_OAC_DESTROY;
 
                 m_NCS_SEL_OBJ_CREATE(&oac_sync_sel);
@@ -163,7 +163,7 @@ uns32 oaclib_request(NCS_LIB_REQ_INFO * req_info)
                 }
                 m_NCS_SEL_OBJ_SELECT(oac_sync_sel, &set, 0, 0, &timeout);
                 m_NCS_SEL_OBJ_DESTROY(oac_sync_sel);
-                m_NCS_OS_MEMSET(&oac_sync_sel, 0, sizeof(oac_sync_sel));
+                memset(&oac_sync_sel, 0, sizeof(oac_sync_sel));
             }
         break;
        
@@ -206,7 +206,7 @@ oaclib_oac_create(NCS_LIB_REQ_INFO * req_info)
 
     /* register with SPLR data base */ 
     /* SPLR: Service Provider Library Registry */ 
-    m_NCS_OS_MEMSET(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
+    memset(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
     splr_info.type = NCS_SPLR_REQ_REG; 
     splr_info.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
     splr_info.info.reg.instantiation_flags = 
@@ -362,7 +362,7 @@ oaclib_oac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     }
 
     /* instantiate OAA in the asked PWE */
-    m_NCS_OS_MEMSET(&oac_lmarg, 0, sizeof(NCSOAC_LM_ARG)); 
+    memset(&oac_lmarg, 0, sizeof(NCSOAC_LM_ARG)); 
     oac_lmarg.i_op = NCSOAC_LM_OP_CREATE;
     /* take the env-id */ 
     oac_lmarg.info.create.i_vrid = req_info->info.inst.i_env_id; 
@@ -431,7 +431,7 @@ oaclib_oac_uninstantiate(PW_ENV_ID      i_env_id,
     NCSOAC_LM_ARG   arg;
 
     /* destroy this OAA instance */ 
-    m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSOAC_LM_ARG)); 
+    memset(&arg, 0, sizeof(NCSOAC_LM_ARG)); 
     arg.i_op      = NCSOAC_LM_OP_DESTROY;
     memcpy(&arg.info.destroy.i_inst_name, 
                     &i_inst_name, 
@@ -494,7 +494,7 @@ oaclib_oac_destroy(NCS_LIB_REQ_INFO *req_info)
         
         /* deregister the OAA handle of this Environment with SPIR */ 
         /* deregistering with SPIR should result in oaclib_oac_uninstantiate() */ 
-        m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+        memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
         spir_info.type = NCS_SPIR_REQ_REL_INST; 
         spir_info.i_sp_abstract_name = m_OAA_SP_ABST_NAME; 
         spir_info.i_environment_id = this_oac_inst->i_env_id; 
@@ -515,7 +515,7 @@ oaclib_oac_destroy(NCS_LIB_REQ_INFO *req_info)
     }
 
     /* deregister with SPLR */ 
-    m_NCS_OS_MEMSET(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
+    memset(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
     splr_info.type = NCS_SPLR_REQ_DEREG; 
     splr_info.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
     status = ncs_splr_api(&splr_info); 
@@ -580,7 +580,7 @@ oac_inst_list_add(PW_ENV_ID env_id, uns32 i_oac_hdl, SaNameT i_inst_name)
     }
 
     /* occupy */
-    m_NCS_OS_MEMSET(add_me, 0, sizeof(MAB_INST_NODE)); 
+    memset(add_me, 0, sizeof(MAB_INST_NODE)); 
     add_me->i_env_id = env_id; 
     add_me->i_hdl = i_oac_hdl; 
     memcpy(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT)); 

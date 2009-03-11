@@ -229,7 +229,7 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
       return m_NCS_SPRR_DBG_SINK(NCSCC_RC_FAILURE,"Bad SP abstract name");
    }
    /* Length is ok.  Do the copying */
-   m_NCS_OS_MEMSET(&splr_key, 0, sizeof(splr_key));
+   memset(&splr_key, 0, sizeof(splr_key));
    strcpy((char *)splr_key.sp_abstract_name, (char *)info->i_sp_abstract_name);
 
    /* Validate and get lock */
@@ -273,7 +273,7 @@ uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info)
          rc = NCSCC_RC_OUT_OF_MEM;
          goto quit;
       }
-      m_NCS_OS_MEMSET(splr_entry, 0, sizeof(*splr_entry));
+      memset(splr_entry, 0, sizeof(*splr_entry));
 
       /* Set it up */
       splr_entry->pat_node.key_info = (uns8*)&splr_entry->key;
@@ -345,10 +345,10 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
    uns32          sp_abs_name_len;
    NCS_LIB_REQ_INFO  lib_req;
 
-   m_NCS_MEMSET(&lib_req, 0, sizeof(lib_req));
+   memset(&lib_req, 0, sizeof(lib_req));
 
    /* MEMSET the SPIR-KEY. It will be used as PATRICIA key */
-   m_NCS_MEMSET(&spir_key, 0, sizeof(spir_key));
+   memset(&spir_key, 0, sizeof(spir_key));
 
    /*---STEP : Validate  service-provider info and copy  it*/
    sp_abs_name_len = strlen((char *)info->i_sp_abstract_name);
@@ -400,7 +400,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
    {
       /* This library does not instantiate an inst-name basis. So use
       a blank inst-name instead */
-      m_NCS_OS_MEMSET(&spir_key.instance_name, 0, sizeof(spir_key.instance_name));
+      memset(&spir_key.instance_name, 0, sizeof(spir_key.instance_name));
    }
    else if ((spir_key.instance_name.length == 0) &&
       (info->type != NCS_SPIR_REQ_LOOKUP_NEXT_INST))
@@ -449,7 +449,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
          rc = NCSCC_RC_OUT_OF_MEM;
          goto quit;
       }
-      m_NCS_OS_MEMSET(spir_entry, 0, sizeof(*spir_entry));
+      memset(spir_entry, 0, sizeof(*spir_entry));
 
       /* Set it up */
       spir_entry->pat_node.key_info = (uns8*)&spir_entry->key;
@@ -552,7 +552,7 @@ uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info)
             rc = NCSCC_RC_OUT_OF_MEM;
             goto quit;
          }
-         m_NCS_OS_MEMSET(spir_entry, 0, sizeof(*spir_entry));
+         memset(spir_entry, 0, sizeof(*spir_entry));
          
          /* Set it up */
          spir_entry->pat_node.key_info = (uns8*)&spir_entry->key;
@@ -677,7 +677,7 @@ static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req)
    sprr_cb = m_MMGR_ALLOC_NCS_SPRR_CB;
    if (sprr_cb == NULL)
       return m_NCS_SPRR_DBG_SINK(NCSCC_RC_FAILURE, "Out of memory");
-   m_NCS_MEMSET(sprr_cb, 0, sizeof(*sprr_cb));
+   memset(sprr_cb, 0, sizeof(*sprr_cb));
 
    /*  Start initialization of SPRR CB */
 
@@ -685,7 +685,7 @@ static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req)
    m_NCS_LOCK_INIT(&sprr_cb->lock);
 
    /* STEP : Setup the SPLR database */
-   m_NCS_MEMSET(&params, 0, sizeof(params));
+   memset(&params, 0, sizeof(params));
    params.key_size = sizeof(NCS_SPLR_KEY);
    if (ncs_patricia_tree_init(&sprr_cb->splr_cb.spl_list, &params) 
       != NCSCC_RC_SUCCESS)
@@ -696,7 +696,7 @@ static uns32 sprr_create(NCS_LIB_REQ_INFO *create_req)
    }
 
    /* STEP : Setup the SPIR database */
-   m_NCS_MEMSET(&params, 0, sizeof(params));
+   memset(&params, 0, sizeof(params));
    params.key_size = sizeof(NCS_SPIR_KEY);
    if (ncs_patricia_tree_init(&sprr_cb->spir_cb.spi_list, &params) 
       != NCSCC_RC_SUCCESS)

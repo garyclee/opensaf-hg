@@ -439,7 +439,7 @@ snmpsubagt_canned_str_reg(NCS_SERVICE_ID i_svc_id)
     NCS_DTSV_REG_CANNED_STR     canned_str; 
 
     /* Level the ground */
-    m_NCS_OS_MEMSET(&canned_str, 0, sizeof(NCS_DTSV_REG_CANNED_STR));
+    memset(&canned_str, 0, sizeof(NCS_DTSV_REG_CANNED_STR));
 
     /* register the canned string set with DTSV */ 
     canned_str.i_op = NCS_DTSV_OP_ASCII_SPEC_REGISTER;
@@ -471,7 +471,7 @@ snmpsubagt_canned_str_dereg(NCS_SERVICE_ID i_svc_id)
     NCS_DTSV_REG_CANNED_STR     canned_str; 
 
     /* Level the ground */
-    m_NCS_OS_MEMSET(&canned_str, 0, sizeof(NCS_DTSV_REG_CANNED_STR));
+    memset(&canned_str, 0, sizeof(NCS_DTSV_REG_CANNED_STR));
  
     /* register the canned string set with DTSV */ 
     canned_str.i_op = NCS_DTSV_OP_ASCII_SPEC_DEREGISTER;

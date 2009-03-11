@@ -58,7 +58,7 @@ ifd_ifap_init(NCSCONTEXT info)
    IFAP_INFO *ifap_info = m_IFAP_GET_IF_POOL_LIST;
    NCS_DB_LINK_LIST *db_list = &ifap_info->free_if_pool;
 
-   m_NCS_MEMSET(ifap_info,0,sizeof(IFAP_INFO));
+   memset(ifap_info,0,sizeof(IFAP_INFO));
    /* initialize the doubly link list for interface resolving que*/
    db_list->order                        = NCS_DBLIST_ASSCEND_ORDER;
    db_list->cmp_cookie                   = ifap_ifindex_cmp;
@@ -212,7 +212,7 @@ ifd_ifap_ifindex_free (NCS_IFSV_IFINDEX ifindex,
    if (ifindex_pool == NULL)
       return(NCSCC_RC_FAILURE);
 
-   m_NCS_MEMSET(ifindex_pool, 0, sizeof(IFAP_IFINDEX_FREE_POOL));
+   memset(ifindex_pool, 0, sizeof(IFAP_IFINDEX_FREE_POOL));
    ifindex_pool->if_index = ifindex;
    ifindex_pool->q_node.key = (uns8*)&ifindex_pool->if_index;
    res = ncs_db_link_list_add(&ifap_info->free_if_pool, &ifindex_pool->q_node);

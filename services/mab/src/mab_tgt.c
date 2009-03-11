@@ -260,8 +260,8 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     }
 
     /* Get the full path for pwe directory */
-    m_NCS_OS_MEMSET((char*)&buf2, '\0', sizeof(buf2));
-    m_NCS_OS_MEMSET((char*)&path2, '\0', sizeof(path2));
+    memset((char*)&buf2, '\0', sizeof(buf2));
+    memset((char*)&path2, '\0', sizeof(path2));
     m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
@@ -886,9 +886,9 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     NCS_PATRICIA_NODE *pNode = NULL;
     NCS_PSSTS_SORT_KEY key;
 
-    m_NCS_MEMSET(get_next->io_buffer, '\0', get_next->i_buf_length);
+    memset(get_next->io_buffer, '\0', get_next->i_buf_length);
 
-    m_NCS_MEMSET(&lcl_db, '\0', sizeof(lcl_db));
+    memset(&lcl_db, '\0', sizeof(lcl_db));
     lcl_db.params.key_size = sizeof(NCS_PSSTS_SORT_KEY);
     if (ncs_patricia_tree_init(&lcl_db.tree, &lcl_db.params) != NCSCC_RC_SUCCESS)
     {
@@ -896,7 +896,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     }
     m_NCS_MEM_DBG_LOC(lcl_db.tree.root_node.key_info);
 
-    m_NCS_MEMSET(&file, '\0', sizeof(file));
+    memset(&file, '\0', sizeof(file));
     file.info.get_list.i_dir_name   = inst->root_dir;
     retval = m_NCS_FILE_OP(&file, NCS_OS_FILE_GET_LIST);
     if (retval != NCSCC_RC_SUCCESS)
@@ -918,7 +918,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
           m_NCS_OS_MEMFREE(file.info.get_list.o_namelist, NULL);
           return NCSCC_RC_FAILURE;
        }
-       m_NCS_MEMSET(node, '\0', sizeof(NCS_PSSTS_SORT_NODE));
+       memset(node, '\0', sizeof(NCS_PSSTS_SORT_NODE));
        node->key.len = m_NCS_STRLEN(file.info.get_list.o_namelist[i]);
        m_NCS_STRCPY((char*)&node->key.name, file.info.get_list.o_namelist[i]);
        m_NCS_OS_MEMFREE(file.info.get_list.o_namelist[i], NULL);
@@ -939,7 +939,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     m_NCS_OS_MEMFREE(file.info.get_list.o_namelist, NULL);
 
     /* Now, look for the next match. */
-    m_NCS_MEMSET(&key, '\0', sizeof(key));
+    memset(&key, '\0', sizeof(key));
     if(get_next->i_profile_name != NULL)
     {
        key.len = m_NCS_STRLEN(get_next->i_profile_name);
@@ -1174,11 +1174,11 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
     uns8       *enc_pwe_cnt_loc = NULL, *enc_pcn_cnt_loc = NULL, *p8;
     uns16      len = 0;
 
-    m_NCS_MEMSET(&uba, 0, sizeof(uba));
-    m_NCS_MEMSET(&next_pwe, '\0', sizeof(next_pwe));
-    m_NCS_MEMSET(&cur_pwe, '\0', sizeof(cur_pwe));
-    m_NCS_MEMSET(&next_pcn, '\0', sizeof(next_pcn));
-    m_NCS_MEMSET(&cur_pcn, '\0', sizeof(cur_pcn));
+    memset(&uba, 0, sizeof(uba));
+    memset(&next_pwe, '\0', sizeof(next_pwe));
+    memset(&cur_pwe, '\0', sizeof(cur_pwe));
+    memset(&next_pcn, '\0', sizeof(next_pcn));
+    memset(&cur_pcn, '\0', sizeof(cur_pcn));
     file.info.dir_path.i_main_dir   = inst->root_dir;
     file.info.dir_path.i_sub_dir    = get_clients->i_profile_name;
     file.info.dir_path.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1341,11 +1341,11 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
     uns8       *enc_pwe_id_loc = NULL;
     NCS_BOOL   valid_tbl_id = FALSE;
 
-    m_NCS_MEMSET(&uba, 0, sizeof(uba));
-    m_NCS_MEMSET(&next_pwe, '\0', sizeof(next_pwe));
-    m_NCS_MEMSET(&cur_pwe, '\0', sizeof(cur_pwe));
-    m_NCS_MEMSET(&next_pcn, '\0', sizeof(next_pcn));
-    m_NCS_MEMSET(&cur_pcn, '\0', sizeof(cur_pcn));
+    memset(&uba, 0, sizeof(uba));
+    memset(&next_pwe, '\0', sizeof(next_pwe));
+    memset(&cur_pwe, '\0', sizeof(cur_pwe));
+    memset(&next_pcn, '\0', sizeof(next_pcn));
+    memset(&cur_pcn, '\0', sizeof(cur_pcn));
     file.info.dir_path.i_main_dir   = inst->root_dir;
     file.info.dir_path.i_sub_dir    = get_mlist->i_profile_name;
     file.info.dir_path.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;

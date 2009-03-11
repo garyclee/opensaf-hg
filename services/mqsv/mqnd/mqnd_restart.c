@@ -96,7 +96,7 @@ uns32 mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest)
      m_LOG_MQSV_ND(MQND_MQA_LNODE_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,SA_AIS_ERR_NO_MEMORY,__FILE__,__LINE__);
      return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(mqa_node, 0, sizeof(MQND_MQA_LIST_NODE));
+   memset(mqa_node, 0, sizeof(MQND_MQA_LIST_NODE));
    mqa_node->mqa_dest = dest;
    mqa_node->lnode.key =  (uns8 *)&mqa_node->mqa_dest;
 
@@ -161,7 +161,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
       if(shm_base_addr[i].valid == SHM_QUEUE_INFO_VALID)
        {
         /* Read the queue_info from shared memory and build the client tree */
-        m_NCS_MEMSET(&ckpt_queue_info, 0,sizeof(MQND_QUEUE_CKPT_INFO));
+        memset(&ckpt_queue_info, 0,sizeof(MQND_QUEUE_CKPT_INFO));
         rc = mqnd_restart_ckpt_read(cb, &ckpt_queue_info, i);
 
         qnode = m_MMGR_ALLOC_MQND_QUEUE_NODE;
@@ -170,7 +170,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
            rc = SA_AIS_ERR_NO_MEMORY;
            return rc;
           }
-        m_NCS_MEMSET(qnode, 0, sizeof(MQND_QUEUE_NODE));
+        memset(qnode, 0, sizeof(MQND_QUEUE_NODE));
 
         mqnd_fill_queue_node(&ckpt_queue_info,&(qnode->qinfo));
         /* Check for the insertion and add the queue info to the patricia tree*/
@@ -207,7 +207,7 @@ static SaAisErrorT mqnd_restart_ckpt_read(MQND_CB *cb,MQND_QUEUE_CKPT_INFO *ckpt
   NCS_OS_POSIX_SHM_REQ_INFO read_req;
 
   /*Use read option of shared memory to fill ckpt_queue_info*/
-  m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+  memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
   read_req.type = NCS_OS_POSIX_SHM_REQ_READ;
   read_req.info.read.i_addr = cb->mqnd_shm.shm_base_addr;
@@ -312,7 +312,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE* qnode)
        if(!pnode)
           return NCSCC_RC_FAILURE;
 
-       m_NCS_OS_MEMSET(pnode, 0, sizeof(MQND_QNAME_NODE));
+       memset(pnode, 0, sizeof(MQND_QNAME_NODE));
        pnode->qname= qnode->qinfo.queueName;
        pnode->qhdl = qnode->qinfo.queueHandle;
        mqnd_qname_node_add(cb, pnode);
@@ -382,7 +382,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE* qnode)
       {  
          MQSV_EVT evt;
          /* Retention timer started before restart, expired by now */
-         m_NCS_OS_MEMSET(&evt, 0, sizeof(MQSV_EVT));
+         memset(&evt, 0, sizeof(MQSV_EVT));
 
          evt.type = MQSV_EVT_MQND_CTRL;
          evt.msg.mqnd_ctrl.type = MQND_CTRL_EVT_TMR_EXPIRY;
@@ -494,7 +494,7 @@ uns32 mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_n
    NCS_OS_POSIX_SHM_REQ_INFO queue_info_write;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&queue_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+   memset(&queue_info_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
 
    queue_info_write.type = NCS_OS_POSIX_SHM_REQ_WRITE;
    queue_info_write.info.write.i_addr = cb->mqnd_shm.shm_base_addr;

@@ -4641,7 +4641,7 @@ void tet_saEvtLimitGetCases(int iOption)
       break;
 
     case 2:
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_rc=saEvtLimitGet((SaEvtHandleT)(long)NULL,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with NULL event handle",
              SA_AIS_ERR_BAD_HANDLE);
@@ -4650,7 +4650,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 3:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID+1;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with biggerlimitId value",
@@ -4660,7 +4660,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 4:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = 0;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with zero limitId value",
@@ -4670,7 +4670,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 5:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_NUM_CHANNELS_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Number of Channels",
@@ -4681,7 +4681,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 6:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_EVT_SIZE_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Event Size",
@@ -4692,7 +4692,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 7:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_PATTERN_SIZE_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Pattern Size",
@@ -4703,7 +4703,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 8:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_NUM_PATTERNS_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Num Patterns",
@@ -4714,7 +4714,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 9:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
+      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max RetentionTime Duration",
@@ -5271,7 +5271,7 @@ void gl_defs()
       gl_struct.publisherName.length=9;
       strcpy(gl_struct.publisherName.value,"Anonymous");
     }
-  m_NCS_MEMSET(gl_publisherName.value,'\0',sizeof(SaNameT));
+  memset(gl_publisherName.value,'\0',sizeof(SaNameT));
   gl_publisherName.length=gl_struct.publisherName.length;
   strcpy(gl_publisherName.value,gl_struct.publisherName.value);
   printf("\nPublisher Name: ");

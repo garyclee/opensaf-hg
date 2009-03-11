@@ -509,7 +509,7 @@ avm_mds_set_vdest_role(AVM_CB_T       *cb,
     NCSVDA_INFO vda_info;
 
     /* Assign Role Now */
-    m_NCS_MEMSET(&vda_info, '\0', sizeof(vda_info));
+    memset(&vda_info, '\0', sizeof(vda_info));
 
     vda_info.req = NCSVDA_VDEST_CHG_ROLE;
     vda_info.info.vdest_chg_role.i_vdest = cb->vaddr;
@@ -541,7 +541,7 @@ avm_mds_register_adest(AVM_CB_T *avm_cb)
     NCSMDS_INFO mds_info;  
     uns32 rc = NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&ada_info, '\0', sizeof(NCSADA_INFO));
+    memset(&ada_info, '\0', sizeof(NCSADA_INFO));
 
     ada_info.req = NCSADA_GET_HDLS;
     ada_info.info.adest_get_hdls.i_create_oac = FALSE;
@@ -556,7 +556,7 @@ avm_mds_register_adest(AVM_CB_T *avm_cb)
     avm_cb->adest_pwe_hdl =  ada_info.info.adest_get_hdls.o_mds_pwe1_hdl;
     avm_cb->adest         =  ada_info.info.adest_get_hdls.o_adest;
 
-    m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
    
     mds_info.i_mds_hdl = avm_cb->adest_pwe_hdl;
     mds_info.i_svc_id   = NCSMDS_SVC_ID_AVM;  
@@ -591,7 +591,7 @@ avm_mds_vdest_create(AVM_CB_T *avm_cb)
     NCSVDA_INFO vda_info;
     uns32 rc = NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&vda_info, '\0', sizeof(NCSVDA_INFO));
+    memset(&vda_info, '\0', sizeof(NCSVDA_INFO));
 
     /* prepare the cb with the vaddress */
     m_NCS_SET_VDEST_ID_IN_MDS_DEST(avm_cb->vaddr, AVM_VDEST_ID);
@@ -620,7 +620,7 @@ avm_mds_vdest_create(AVM_CB_T *avm_cb)
 
     if(NCSCC_RC_SUCCESS != avm_mds_set_vdest_role(avm_cb, avm_cb->ha_state))
     {
-       m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+       memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
        vda_info.req = NCSVDA_VDEST_DESTROY;
        vda_info.info.vdest_destroy.i_vdest = avm_cb->vaddr;
 
@@ -661,10 +661,10 @@ avm_mds_register_vdest(AVM_CB_T *avm_cb)
     }  
     m_AVM_LOG_MDS(AVM_LOG_MDS_VDEST_CRT, AVM_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
-    m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
 
     /* Install your service into MDS */
-    m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+    memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
     mds_info.i_mds_hdl        = avm_cb->vaddr_pwe_hdl;
     mds_info.i_svc_id         = NCSMDS_SVC_ID_AVM;
     mds_info.i_op             = MDS_INSTALL;
@@ -716,7 +716,7 @@ uns32 avm_mds_initialize(AVM_CB_T *cb)
    }
 
     /* Now subscribe for AVM events in MDS */
-    m_NCS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+    memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
     mds_info.i_mds_hdl        = cb->adest_pwe_hdl;
     mds_info.i_svc_id         = NCSMDS_SVC_ID_AVM;
@@ -757,7 +757,7 @@ avm_mds_vdest_destroy (AVM_CB_T *cb)
    NCSVDA_INFO    vda_info;
    uns32          rc;
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    vda_info.req                             = NCSVDA_VDEST_DESTROY;
    vda_info.info.vdest_destroy.i_vdest      = cb->vaddr;
@@ -793,7 +793,7 @@ uns32 avm_mds_finalize (AVM_CB_T *cb)
    m_AVM_LOG_FUNC_ENTRY("avm_mds_finalize");
 
    /* Un-install AVM service from MDS */
-   m_NCS_OS_MEMSET(&mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl        = cb->vaddr_pwe_hdl;
    mds_info.i_svc_id         = NCSMDS_SVC_ID_AVM;
@@ -843,7 +843,7 @@ avm_mds_msg_send(
     MDS_SENDTYPE_SND_INFO *send;
 
     /* populate the mds params */
-    m_NCS_MEMSET(&mds_info, '\0', sizeof(NCSMDS_INFO));
+    memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 
     mds_info.i_mds_hdl = cb->adest_pwe_hdl;
     mds_info.i_svc_id = NCSMDS_SVC_ID_AVM;

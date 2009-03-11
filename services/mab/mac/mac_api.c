@@ -246,7 +246,7 @@ MABMAC_API uns32 ncsmac_mib_request(NCSMIB_ARG* req)
 
     /* assign all msg fields rather then memset */
     msg.vrid           = inst->vrid;
-    m_NCS_MEMSET(&msg.fr_card, 0, sizeof(msg.fr_card));
+    memset(&msg.fr_card, 0, sizeof(msg.fr_card));
     msg.fr_svc         = 0;
     msg.op             = MAB_MAS_REQ_HDLR;
     msg.data.data.snmp = req;
@@ -346,7 +346,7 @@ uns32 mac_svc_create(NCSMAC_CREATE* create)
     }
 
     /* confirm all fields are initialized  memset(inst,0,sizeof(MAC_INST)); */
-    m_NCS_MEMSET(inst, 0, sizeof(MAC_INST));
+    memset(inst, 0, sizeof(MAC_INST));
     m_MAC_LK_CREATE(&inst->lock);
     m_MAC_LK(&inst->lock, NCS_LOCK_WRITE);
 
@@ -355,7 +355,7 @@ uns32 mac_svc_create(NCSMAC_CREATE* create)
     inst->vrid      = create->i_vrid;
 
     /* get the PWE handle for this PWE */ 
-    m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+    memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
     spir_info.i_instance_name = m_MDS_SPIR_ADEST_NAME; 
@@ -393,7 +393,7 @@ uns32 mac_svc_create(NCSMAC_CREATE* create)
 
     /* MAC joins the MDS crowd... advertises its presence */
     /* install MAA */ 
-    m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
     mds_info.i_mds_hdl = inst->mds_hdl;
     mds_info.i_op      = MDS_INSTALL;
     mds_info.i_svc_id  = NCSMDS_SVC_ID_MAC;
@@ -417,7 +417,7 @@ uns32 mac_svc_create(NCSMAC_CREATE* create)
     inst->my_vcard = mds_info.info.svc_install.o_dest;
 
     /* subscribe to MAS and PSS process events */ 
-    m_NCS_MEMSET(&mds_info, 0, sizeof(mds_info));
+    memset(&mds_info, 0, sizeof(mds_info));
     mds_info.i_mds_hdl = inst->mds_hdl;
     mds_info.i_op      = MDS_SUBSCRIBE;
     mds_info.i_svc_id  = NCSMDS_SVC_ID_MAC;
@@ -482,7 +482,7 @@ uns32 mac_svc_destroy(NCSMAC_DESTROY * destroy)
 
     /* Uninstall from MDS services                                */
     /* Unsubscribe from service events is implicit with Uninstall */
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl = inst->mds_hdl;
     info.i_svc_id  = NCSMDS_SVC_ID_MAC;
     info.i_op      = MDS_UNINSTALL;
@@ -498,7 +498,7 @@ uns32 mac_svc_destroy(NCSMAC_DESTROY * destroy)
     }
 
     /* release the PWE instance from SPRR */ 
-    m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+    memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_REL_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
     spir_info.i_instance_name = m_MDS_SPIR_ADEST_NAME;

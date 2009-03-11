@@ -42,7 +42,7 @@ NCS_BOOL ncs_is_ipv6_addr_all_zero(NCS_IPV6_ADDR *addr)
 {
     NCS_IPV6_ADDR lcl_addr;
     
-    m_NCS_OS_MEMSET(&lcl_addr, '\0', sizeof(NCS_IPV6_ADDR));
+    memset(&lcl_addr, '\0', sizeof(NCS_IPV6_ADDR));
     if(m_NCS_OS_MEMCMP((char *)addr, (char *)&lcl_addr, sizeof(NCS_IPV6_ADDR)) 
         == 0)
     {
@@ -62,7 +62,7 @@ void ncs_mask_prefix_addr(NCS_IPV6_ADDR *addr, uns32 pfxlen,
 
     if (pfxlen == 0)
     {
-       m_NCS_OS_MEMSET(o_masked_addr, 0, sizeof(*o_masked_addr));
+       memset(o_masked_addr, 0, sizeof(*o_masked_addr));
        return;
     }
 
@@ -112,7 +112,7 @@ void ncs_mask_prefix_addr(NCS_IPV6_ADDR *addr, uns32 pfxlen,
           15
           which makes it a total of (15 - byte_to_be_masked) bytes
        */
-       m_NCS_OS_MEMSET(&o_masked_addr->ipv6.ipv6_addr8[byte_to_be_masked+1], 
+       memset(&o_masked_addr->ipv6.ipv6_addr8[byte_to_be_masked+1], 
           0, 15 - byte_to_be_masked);
     }
 
@@ -216,7 +216,7 @@ void ncs_str_to_ipv6addr(NCS_IPV6_ADDR *o_v6addr, int8* i_str)
        dlmt_cnt--;
 
    /* Fill the arg_val */
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
+   memset(buffer, 0, sizeof(buffer));
    m_NCS_OS_STRCPY(buffer, i_str);
 
    token = sysf_strtok(buffer, delimiter);

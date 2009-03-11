@@ -250,7 +250,7 @@ uns32 ncsifsvbindifentry_setrow(NCSCONTEXT hdl, NCSMIB_ARG *arg,NCSMIB_SETROW_PA
    IFSV_INTF_DATA   *slave_intf_data;
    USRBUF *ub = NULL;
 
-   m_NCS_OS_MEMSET(&rsp_pa, 0, sizeof(NCSPARM_AID));
+   memset(&rsp_pa, 0, sizeof(NCSPARM_AID));
    ncsmem_aid_init(&mem_aid, space, 1024);
 
 
@@ -312,7 +312,7 @@ uns32 ncsifsvbindifentry_setrow(NCSCONTEXT hdl, NCSMIB_ARG *arg,NCSMIB_SETROW_PA
       return NCSCC_RC_FAILURE;
    }
 
-      m_NCS_MEMSET(evt,0,sizeof(IFSV_EVT));
+      memset(evt,0,sizeof(IFSV_EVT));
       evt->type = IFD_EVT_INTF_CREATE;
       evt->cb_hdl = arg->i_mib_key;
       evt->info.ifd_evt.info.intf_create.if_attr = (NCS_IFSV_IAM_CHNG_MASTER);
@@ -433,7 +433,7 @@ uns32 ncsifsvbindifentry_set(NCSCONTEXT hdl,
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 
-   m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
   
    bind_portnum = arg->i_idx.i_inst_ids[0];
 
@@ -508,7 +508,7 @@ uns32 ncsifsvbindifentry_set(NCSCONTEXT hdl,
    /* Set the object */
    if(test_flag != TRUE)
    {
-      m_NCS_OS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
       temp_mib_req.info.i_set_util_info.param = &(i_set_req->i_param_val);
@@ -611,7 +611,7 @@ uns32 ifsv_bind_rec_get(IFSV_CB *cb, uns32 *bind_no_key,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET(*ifsv_bind_node, 0 , sizeof(IFSV_BIND_NODE));
+      memset(*ifsv_bind_node, 0 , sizeof(IFSV_BIND_NODE));
 
       bind_info = &((*ifsv_bind_node)->bind_info);
 
@@ -664,7 +664,7 @@ uns32 ifsv_ifd_bind_rec_create(IFSV_CB *cb, IFSV_BIND_NODE *ifsv_bind_node)
       return NCSCC_RC_FAILURE;
    }
 
-      m_NCS_MEMSET(evt,0,sizeof(IFSV_EVT));
+      memset(evt,0,sizeof(IFSV_EVT));
       evt->type = IFD_EVT_INTF_CREATE;
       evt->cb_hdl = cb->cb_hdl;
       evt->info.ifd_evt.info.intf_create.if_attr = (NCS_IFSV_IAM_CHNG_MASTER);
@@ -755,7 +755,7 @@ uns32 ifsv_ifd_bind_rec_delete(IFSV_CB *cb, uns32 bind_portnum )
      m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
      return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(evt,0,sizeof(IFSV_EVT));
+   memset(evt,0,sizeof(IFSV_EVT));
    evt->type = IFD_EVT_INTF_DESTROY;
    evt->cb_hdl = cb->cb_hdl;
    evt->info.ifd_evt.info.intf_destroy.orign = NCS_IFSV_EVT_ORIGN_IFD;

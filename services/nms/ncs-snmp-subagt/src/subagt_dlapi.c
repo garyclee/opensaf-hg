@@ -510,7 +510,7 @@ ncs_snmpsubagt_destroy()
         m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_MBX_MSG_MALLOC_FAIL);
         return status; 
     }
-    m_NCS_MEMSET(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
+    memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
     post_me->msg_type = SNMPSUBAGT_MBX_MSG_DESTROY; 
 
     /* post a message to the SubAgent's thread */ 
@@ -701,8 +701,8 @@ snmpsubagt_cleanup(NCSSA_CB *cb)
        return; 
     }
 
-    m_NCS_MEMSET(&nullAmfHandle, 0 , sizeof(SaAmfHandleT));
-    m_NCS_MEMSET(&nullEvtHandle, 0 , sizeof(SaEvtHandleT));
+    memset(&nullAmfHandle, 0 , sizeof(SaAmfHandleT));
+    memset(&nullEvtHandle, 0 , sizeof(SaEvtHandleT));
 
 #if (BBS_SNMPSUBAGT == 0)
     /* Free the AMF related data */
@@ -802,7 +802,7 @@ ncs_snmpsubagt_init_deinit_msg_post(uns8* init_deinit_routine)
         m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_LOCK_RELEASED);
         return status; 
     }
-    m_NCS_MEMSET(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
+    memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
     post_me->msg_type = SNMPSUBAGT_MBX_MSG_MIB_INIT_OR_DEINIT;
     m_NCS_STRCPY(post_me->init_or_deinit_routine, 
                 init_deinit_routine);
@@ -824,7 +824,7 @@ ncs_snmpsubagt_init_deinit_msg_post(uns8* init_deinit_routine)
     /* Store the message in the last reg message */
     if (init_deinit_routine[2] == 'r')
     {
-       m_NCS_MEMSET (cb->lastRegMsg, 0, 255);
+       memset (cb->lastRegMsg, 0, 255);
        strcpy (cb->lastRegMsg, init_deinit_routine);
     }
     

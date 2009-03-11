@@ -64,7 +64,7 @@ uns32 dta_get_ada_hdl(void)
 {
    NCSADA_INFO  ada_info;
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE; 
@@ -102,7 +102,7 @@ uns32 dta_mds_install_and_subscribe(void)
       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_install_and_subscribe: MDS handle is NULL. Need to debug.");
    }
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    /* Do common stuff */
    mds_info.i_mds_hdl = dta_cb.mds_hdl;
@@ -160,7 +160,7 @@ uns32 dta_mds_uninstall (void)
    uns32                rc;
 
    /* Un-install your service into MDS. */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = dta_cb.mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_DTA;
@@ -641,7 +641,7 @@ void dta_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
                   warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failed for DTSV_MSG for sending buffered messages");
                   return;
                }
-               m_NCS_OS_MEMSET(msg, '\0', sizeof(DTSV_MSG)); 
+               memset(msg, '\0', sizeof(DTSV_MSG)); 
                msg->msg_type = DTS_UP_EVT;
                /* Now post this msg on the DTA mbx */
                if(m_DTA_SND_MSG(&gl_dta_mbx, msg, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS)
@@ -879,7 +879,7 @@ uns32 dta_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
 
   if(mm == NULL)
     return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_dec : Memory allocation failed.");
-  m_NCS_MEMSET(mm, '\0', sizeof(DTSV_MSG));
+  memset(mm, '\0', sizeof(DTSV_MSG));
 
   *msg = mm;
 
@@ -997,7 +997,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
   if(mm == NULL)
     return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_mds_cpy: Memory allocation failed");
  
-  m_NCS_OS_MEMSET(mm, '\0', sizeof(DTSV_MSG));
+  memset(mm, '\0', sizeof(DTSV_MSG));
  
   *cpy = mm;
   
@@ -1080,7 +1080,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
     if(*dest == NULL)
         return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_copy_octets: Memory allocation failed.");
 
-    m_NCS_OS_MEMSET(*dest, '\0', length);
+    memset(*dest, '\0', length);
 
     memcpy(*dest, src, (length * sizeof(uns8)));
 
@@ -1215,7 +1215,7 @@ uns32 dta_mds_sync_send (DTSV_MSG *msg, DTA_CB *inst, uns32  timeout)
    NCSMDS_INFO   mds_info;
    uns32         status = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = inst->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_DTA;
    mds_info.i_op = MDS_SEND;
@@ -1276,7 +1276,7 @@ uns32 dta_mds_async_send(DTSV_MSG *msg, DTA_CB *inst)
 {
    NCSMDS_INFO mds_info;
          
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    mds_info.i_mds_hdl = inst->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_DTA;

@@ -468,7 +468,7 @@ uns32 saamfscalars_extract(NCSMIB_PARAM_VAL* param,
    }
 
 /*
-  m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+  memset(&si_name, '\0', sizeof(SaNameT));
  temp_name.length = arg->req.info.set_req.i_param_val.i_length;
       memcpy(temp_name.value,
                    arg->req.info.set_req.i_param_val.info.i_oct,
@@ -977,7 +977,7 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
    }
 
-   m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO)); 
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
    miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
@@ -1062,7 +1062,7 @@ void avd_qsd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       return;
     }
 
-   m_NCS_MEMSET(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
    miblib_req.info.i_mib_op_info.args = evt->info.mib_req;

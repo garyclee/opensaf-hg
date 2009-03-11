@@ -66,7 +66,7 @@ VDS_EVT *vds_evt_create(NCSCONTEXT evt_data,
    }
    
 
-   m_NCS_OS_MEMSET((char *)vds_evt, 0, sizeof(VDS_EVT));
+   memset((char *)vds_evt, 0, sizeof(VDS_EVT));
 
    /* Update the event type */
    vds_evt->evt_type = evt;

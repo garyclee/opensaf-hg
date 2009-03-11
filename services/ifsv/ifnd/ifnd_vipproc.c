@@ -85,7 +85,7 @@ uns32 ifnd_create_mark_vip_entry_stale_evt(IFSV_CB *cb, uns8 * applName,uns32 hd
              "IFSV_EVT allocation failed in ifnd_create_mark_vip_entry_stale_evt()"," ");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(ifsv_evt,0,sizeof(IFSV_EVT));
+   memset(ifsv_evt,0,sizeof(IFSV_EVT));
    ifsv_evt->type = IFND_VIP_MARK_VIPD_STALE;
    m_NCS_STRCPY(ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName,applName);
    ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.poolHdl = hdl;
@@ -147,7 +147,7 @@ ifnd_proc_vip_mark_vipd_stale(IFSV_CB *cb, IFSV_EVT  *pEvt)
                           IFSV_VIP_RECEIVED_IFND_IFND_VIP_DEL_VIPD_EVT);
 */                                                                                                                              
    /* form IFND_VIP_MARK_VIPD_STALE event and send to IFD */
-   m_NCS_MEMSET(&sendEvt,0,sizeof(IFSV_EVT));
+   memset(&sendEvt,0,sizeof(IFSV_EVT));
                                                                                                                               
    sendEvt.type = IFND_VIP_MARK_VIPD_STALE;
 
@@ -236,7 +236,7 @@ ifnd_proc_ifnd_vip_del_vipd(IFSV_CB *cb, IFSV_EVT  *pEvt)
                           IFSV_VIP_RECEIVED_IFND_IFND_VIP_DEL_VIPD_EVT);
                                                                                                                               
    /* form IFND_VIP_FREE event and send to IFD */
-   m_NCS_MEMSET(&sendEvt,0,sizeof(IFSV_EVT));
+   memset(&sendEvt,0,sizeof(IFSV_EVT));
                                                                                                                               
    sendEvt.type = IFND_VIP_FREE_REQ;
    m_NCS_STRCPY(&sendEvt.info.vip_evt.info.ifndVipFree.handle.vipApplName,
@@ -354,8 +354,8 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
                                                                                                                              
-   m_NCS_MEMSET(&sendEvt,0,sizeof(IPXS_EVT));
-   m_NCS_MEMSET(&ifIpInfo,0,sizeof(IPXS_IFIP_IP_INFO));
+   memset(&sendEvt,0,sizeof(IPXS_EVT));
+   memset(&ifIpInfo,0,sizeof(IPXS_IFIP_IP_INFO));
 
 
    sendEvt.info.nd.atond_upd.if_index = index;
@@ -664,7 +664,7 @@ uns32 ifnd_ifa_proc_get_ip_from_stale_entry(IFSV_CB *cb, IFSV_EVT *evt)
     if (evt == IFSV_NULL || cb == IFSV_NULL)
        return NCSCC_RC_FAILURE;
 
-    m_NCS_MEMSET(&ipEvt, 0, sizeof(IFSV_EVT));
+    memset(&ipEvt, 0, sizeof(IFSV_EVT));
 
     ipEvt.type = IFND_GET_IP_FROM_STALE_ENTRY_REQ;
 
@@ -714,7 +714,7 @@ uns32 ifnd_ifa_proc_get_ip_from_stale_entry(IFSV_CB *cb, IFSV_EVT *evt)
     if ( o_evt->type == IFD_IP_FROM_STALE_ENTRY_RESP) 
     {
         /* Form the response event and send IP to IfND */
-        m_NCS_MEMSET(&respEvt,0,sizeof(IFSV_EVT));
+        memset(&respEvt,0,sizeof(IFSV_EVT));
 
         respEvt.type = IFND_IP_FROM_STALE_ENTRY_RESP;
 
@@ -784,7 +784,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
 
    /* form a Key to check into the VIPDC Table */
 
-    m_NCS_MEMSET(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
+    memset(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
 
     m_NCS_STRCPY(&vipHandle.vipApplName,evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
     vipHandle.poolHdl     = evt->info.vip_evt.info.ifaVipAdd.handle.poolHdl;
@@ -822,7 +822,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
     
 
          /* Since there is no vipdc record found, send a vipd add request to IfD */
-         m_NCS_MEMSET(&sendIfdEvt, 0, sizeof(IFSV_EVT));
+         memset(&sendIfdEvt, 0, sizeof(IFSV_EVT));
 
          sendIfdEvt.type = IFND_VIPD_INFO_ADD_REQ;
 
@@ -902,7 +902,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
          }
 
          /* Forming a VIPDC record entry */
-         m_NCS_MEMSET(pVipdcEntry,0,sizeof(IFSV_IFND_VIPDC));
+         memset(pVipdcEntry,0,sizeof(IFSV_IFND_VIPDC));
 
          m_NCS_STRCPY(&pVipdcEntry->handle.vipApplName,
                       &evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
@@ -1123,7 +1123,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
     }  /* end of else */
 
       /* send a IFND_IP_INSTALL event to ifa */
-    m_NCS_OS_MEMSET(&sendEvt, 0, sizeof(IFSV_EVT));
+    memset(&sendEvt, 0, sizeof(IFSV_EVT));
     sendEvt.type = IFND_VIPD_INFO_ADD_REQ_RESP;
     sendEvt.info.vip_evt.info.ifndVipAddResp.err = NCSCC_IFND_VIP_INSTALL;
 
@@ -1281,7 +1281,7 @@ uns32   ifnd_ifa_proc_vip_free(IFSV_CB *cb,IFSV_EVT  *pEvt)
        /* Check for the Nature of Free request. If it is for switchover
           or for normal free */
 
-       m_NCS_MEMSET(&sendEvt,0,sizeof(IFSV_EVT));
+       memset(&sendEvt,0,sizeof(IFSV_EVT));
  
        if(pEvt->info.vip_evt.info.ifaVipFree.infraFlag ==  VIP_ADDR_NORMAL)
        {
@@ -1343,7 +1343,7 @@ uns32   ifnd_ifa_proc_vip_free(IFSV_CB *cb,IFSV_EVT  *pEvt)
        }
    } /* end of else pvipdc->ref_cnt > 1 */
       /* Sync resp */
-   m_NCS_MEMSET(&sendEvt,0,sizeof(IFSV_EVT));
+   memset(&sendEvt,0,sizeof(IFSV_EVT));
    sendEvt.type = IFND_VIP_FREE_REQ_RESP;
 
    m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
@@ -1401,7 +1401,7 @@ uns32 ifnd_vip_evt_process(IFSV_CB *cb, IFSV_EVT *evt)
 
    if (rc != NCSCC_RC_SUCCESS && rc != NCSCC_RC_FAILURE)
    {
-      m_NCS_MEMSET(&errEvt,0,sizeof(IFSV_EVT));
+      memset(&errEvt,0,sizeof(IFSV_EVT));
       errEvt.type = IFSV_VIP_ERROR;
       printf("Sending Error Evt to ifa. Error Number %d \n",rc);
       errEvt.info.vip_evt.info.errEvt.err = rc;
@@ -1435,7 +1435,7 @@ uns32 ifnd_process_ifa_crash(IFSV_CB *cb, MDS_DEST *mdsDest)
                IFSV_VIP_RECEIVED_IFA_CRASH_MSG );
 
    /* Traverse the VIPD Cache tree for finding out the records belonging to crashed IfA */
-   m_NCS_MEMSET(&key,0,sizeof(NCS_IFSV_VIP_INT_HDL));
+   memset(&key,0,sizeof(NCS_IFSV_VIP_INT_HDL));
    vipdcNode = ncs_patricia_tree_getnext(&cb->vipDBase,(uns8 *)0);
 
    if (vipdcNode == NULL) {
@@ -1516,7 +1516,7 @@ uns32 ifnd_process_ifa_crash(IFSV_CB *cb, MDS_DEST *mdsDest)
       }            /* end of else if vipdcRec->ref_cnt == 0 */
       vipdcNode = ncs_patricia_tree_getnext(&cb->vipDBase,(uns8 *)&key);
       vipdcRec = (IFSV_IFND_VIPDC *)vipdcNode;
-      m_NCS_MEMSET(&key,0,sizeof(NCS_IFSV_VIP_INT_HDL));
+      memset(&key,0,sizeof(NCS_IFSV_VIP_INT_HDL));
    } /* end of while vipdcNode != NULL */
    return NCSCC_RC_SUCCESS;
 }

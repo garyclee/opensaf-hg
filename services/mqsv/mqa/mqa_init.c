@@ -209,7 +209,7 @@ static uns32 mqa_create (NCS_LIB_CREATE *create_info)
    /* Register with Logging subsystem */
    mqa_flx_log_reg();
 
-   m_NCS_OS_MEMSET(cb, 0, sizeof(MQA_CB));
+   memset(cb, 0, sizeof(MQA_CB));
 
    /* assign the MQA pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -464,7 +464,7 @@ static void mqa_asapi_unregister (MQA_CB *cb)
 static uns32 mqa_client_tree_init (MQA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaMsgHandleT);
    if (ncs_patricia_tree_init(&cb->mqa_client_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -666,7 +666,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
             m_LOG_MQSV_A(MQA_CLIENT_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__);
             return NULL;
          }
-         m_NCS_OS_MEMSET(client_info, 0, sizeof(MQA_CLIENT_INFO));
+         memset(client_info, 0, sizeof(MQA_CLIENT_INFO));
          /* Store the client_info pointer as msghandle. */
          client_info->msgHandle = NCS_PTR_TO_UNS64_CAST(client_info); 
          client_info->patnode.key_info = (uns8*)&client_info->msgHandle;
@@ -679,7 +679,7 @@ MQA_CLIENT_INFO *mqa_client_tree_find_and_add(MQA_CB *mqa_cb, SaMsgHandleT hdl_i
          }
 
          /* Create the group track tree */
-         m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+         memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
          param.key_size = SA_MAX_NAME_LENGTH;
          if (ncs_patricia_tree_init(&client_info->mqa_track_tree,
                                      &param) != NCSCC_RC_SUCCESS)
@@ -733,7 +733,7 @@ MQA_TRACK_INFO *mqa_track_tree_find_and_add(MQA_CLIENT_INFO *client_info,
             m_LOG_MQSV_A(MQA_TRACK_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__);
             return NULL;
          }
-         m_NCS_OS_MEMSET(track_info, 0, sizeof(MQA_TRACK_INFO));
+         memset(track_info, 0, sizeof(MQA_TRACK_INFO));
          track_info->queueGroupName = *group;
          track_info->patnode.key_info = (uns8*)track_info->queueGroupName.value;
         if(( rc = ncs_patricia_tree_add (&client_info->mqa_track_tree, 
@@ -815,7 +815,7 @@ static uns32 mqa_queue_tree_init (MQA_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
    uns32                   rc = NCSCC_RC_SUCCESS;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaMsgQueueHandleT);
    if ((rc = ncs_patricia_tree_init(&cb->mqa_queue_tree, &param) )!= NCSCC_RC_SUCCESS)
    {
@@ -939,7 +939,7 @@ MQA_QUEUE_INFO *mqa_queue_tree_find_and_add(MQA_CB *mqa_cb,
             m_LOG_MQSV_A(MQA_QUEUE_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__);
             return NULL;
          }
-         m_NCS_OS_MEMSET(queue_info, 0, sizeof(MQA_QUEUE_INFO));
+         memset(queue_info, 0, sizeof(MQA_QUEUE_INFO));
          queue_info->queueHandle = hdl_id;
          queue_info->openFlags = openFlags;
          queue_info->client_info = client_info;
@@ -1027,7 +1027,7 @@ unsigned int ncs_mqa_startup(void)
    }
 
    /*** Init MQA ***/
-   m_NCS_OS_MEMSET(&lib_create, 0, sizeof(lib_create));
+   memset(&lib_create, 0, sizeof(lib_create));
    lib_create.i_op = NCS_LIB_REQ_CREATE;
    if (mqa_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
    {
@@ -1072,7 +1072,7 @@ unsigned int ncs_mqa_shutdown(void)
    {
       NCS_LIB_REQ_INFO  lib_destroy;
 
-      m_NCS_OS_MEMSET(&lib_destroy, 0, sizeof(lib_destroy));
+      memset(&lib_destroy, 0, sizeof(lib_destroy));
       lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 
       rc = mqa_lib_req(&lib_destroy);

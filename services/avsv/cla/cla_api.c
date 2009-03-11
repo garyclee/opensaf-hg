@@ -509,7 +509,7 @@ SaAisErrorT saClmClusterTrack(SaClmHandleT              hdl,
                 /* Overwrite the numberOfItems and copy it to buffer */
                 buf->numberOfItems = msg_rsp->info.api_resp_info.param.track.num;
 
-                m_NCS_MEMSET(buf->notification, 0, 
+                memset(buf->notification, 0, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
                 memcpy(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
@@ -534,7 +534,7 @@ SaAisErrorT saClmClusterTrack(SaClmHandleT              hdl,
                 if(buf->notification == NULL )
                    rc = SA_AIS_ERR_NO_RESOURCES;
 
-                m_NCS_MEMSET(buf->notification, 0, 
+                memset(buf->notification, 0, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
                 memcpy(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
@@ -787,7 +787,7 @@ SaAisErrorT saClmClusterNodeGet(SaClmHandleT      hdl,
           * Copy the cluster node info into buffer cluster_node and 
           * since this is SYNC call the appl can read the buffer.
           */
-          m_NCS_MEMSET(cluster_node, 0, sizeof(SaClmClusterNodeT));
+          memset(cluster_node, 0, sizeof(SaClmClusterNodeT));
 
           if(rc == SA_AIS_OK)
           {

@@ -119,7 +119,7 @@ static uns32 glnd_restart_build_resource_tree(GLND_CB   *glnd_cb )
       if( shm_base_addr[i].valid == GLND_SHM_INFO_VALID )
       {
         /* Read the res_info from shared memory and build the client tree */
-        m_NCS_MEMSET(&restart_res_info, 0,sizeof(GLND_RESTART_RES_INFO));
+        memset(&restart_res_info, 0,sizeof(GLND_RESTART_RES_INFO));
         rc = glnd_restart_resource_ckpt_read(glnd_cb,&restart_res_info, i);
 
         if(rc == NCSCC_RC_SUCCESS)
@@ -159,7 +159,7 @@ static uns32 glnd_restart_build_res_lock_list( GLND_CB *glnd_cb )
        if( shm_base_addr[i].valid == GLND_SHM_INFO_VALID )
        {
          /* Read the res_info from shared memory and build the client tree */
-         m_NCS_MEMSET(&restart_res_lock_list_info, 0,sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
+         memset(&restart_res_lock_list_info, 0,sizeof(GLND_RESTART_RES_LOCK_LIST_INFO));
          rc = glnd_restart_res_lock_ckpt_read(glnd_cb, &restart_res_lock_list_info, i);
          if(rc == NCSCC_RC_SUCCESS)
          { 
@@ -213,7 +213,7 @@ static uns32 glnd_restart_add_res_lock_to_resource_tree( GLND_CB *glnd_cb,
    res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_res_tree,(uns8 *)&restart_res_lock_list_info.resource_id);
    if(res_info)
    {
-     m_NCS_OS_MEMSET(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
+     memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
 
      lck_list_info->lck_info_hdl_id =
       ncshm_create_hdl((uns8)glnd_cb->pool_id,NCS_SERVICE_ID_GLND,(NCSCONTEXT)lck_list_info);
@@ -343,7 +343,7 @@ static uns32 glnd_restart_resource_node_add(GLND_CB    *glnd_cb, GLND_RESTART_RE
        m_LOG_GLND_MEMFAIL(GLND_RSC_NODE_ALLOC_FAILED);
        return NCSCC_RC_FAILURE;
      }
-     m_NCS_OS_MEMSET(res_info, 0, sizeof(GLND_RESOURCE_INFO));
+     memset(res_info, 0, sizeof(GLND_RESOURCE_INFO));
    }
 
 
@@ -412,7 +412,7 @@ GLND_RESOURCE_INFO *glnd_restart_client_resource_node_add(GLND_CB    *glnd_cb,  
       m_LOG_GLND_MEMFAIL(GLND_RSC_NODE_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_OS_MEMSET(res_info, 0, sizeof(GLND_RESOURCE_INFO));
+   memset(res_info, 0, sizeof(GLND_RESOURCE_INFO));
 
    /* assign the values */
    res_info->resource_id = resource_id;
@@ -472,7 +472,7 @@ static uns32 glnd_restart_event_add(GLND_CB *glnd_cb, GLSV_RESTART_BACKUP_EVT_IN
      }
    }
    
-   m_NCS_OS_MEMSET(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
+   memset(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
    if(lck_list_info) 
    {
      if(evt_info->type == GLSV_GLND_EVT_LCK_PURGE)
@@ -522,7 +522,7 @@ static uns32 glnd_restart_build_backup_event_tree(GLND_CB *glnd_cb)
       if( shm_base_address[i].valid == GLND_SHM_INFO_VALID )
       {
          /* Read the res_info from shared memory and build the client tree */
-         m_NCS_MEMSET(&glnd_restart_backup_evt, 0,sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
+         memset(&glnd_restart_backup_evt, 0,sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
          rc = glnd_restart_backup_event_read(glnd_cb, &glnd_restart_backup_evt, i);
          if(rc == NCSCC_RC_SUCCESS)
          {

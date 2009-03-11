@@ -92,7 +92,7 @@ AVD_HLT * avd_hlt_struc_crt(AVD_CL_CB *cb,AVSV_HLT_KEY lhlt_chk,  NCS_BOOL ckpt)
       return AVD_HLT_NULL;
    }
 
-   m_NCS_MEMSET((char *)hlth, '\0', sizeof(AVD_HLT));
+   memset((char *)hlth, '\0', sizeof(AVD_HLT));
    
    hlth->key_name.comp_name_net.length = lhlt_chk.comp_name_net.length;
    memcpy(hlth->key_name.comp_name_net.value,lhlt_chk.comp_name_net.value,m_NCS_OS_NTOHS(lhlt_chk.comp_name_net.length));
@@ -246,7 +246,7 @@ uns32 saamfhealthchecktableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
+   memset(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
 
    /* Prepare the health check database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -392,7 +392,7 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
+   memset(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
    
    /* Prepare the health check database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -555,7 +555,7 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                /* check point to the standby AVD that this
                 * record need to be deleted
                 */
-               m_NCS_MEMSET(((uns8 *)&l_param),'\0',sizeof(AVSV_PARAM_INFO));
+               memset(((uns8 *)&l_param),'\0',sizeof(AVSV_PARAM_INFO));
                l_param.act = AVSV_OBJ_OPR_DEL;
               
                l_param.name_net.length = hlt_chk->key_name.comp_name_net.length;
@@ -715,7 +715,7 @@ uns32 saamfhealthchecktableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
+   memset(&lhlt_chk, '\0', sizeof(AVSV_HLT_KEY));
    
    /* Prepare the health check database key from the instant ID */
    if(arg->i_idx.i_inst_len != 0)
@@ -831,8 +831,8 @@ AVD_AVND *avd_hlt_node_find(SaNameT comp_name_net, AVD_CL_CB *avd_cb)
    SaNameT node_name;
    AVD_AVND *node_on_hlt = AVD_AVND_NULL;
 
-   m_NCS_MEMSET(&comp_name,0, sizeof(comp_name));
-   m_NCS_MEMSET(&node_name, 0, sizeof(node_name));
+   memset(&comp_name,0, sizeof(comp_name));
+   memset(&node_name, 0, sizeof(node_name));
    comp_name.length = m_NCS_OS_NTOHS(comp_name_net.length);
 
    memcpy(comp_name.value,comp_name_net.value, comp_name.length);
@@ -968,7 +968,7 @@ void avd_hlt_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
        * deleted.
        */
       /* send a delete message to the AvND for the HLT. */
-      m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+      memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
       param.act = AVSV_OBJ_OPR_DEL;
 
       param.name_net.length = ack_msg->msg_info.n2d_reg_hlt.hltchk_name.comp_name_net.length;

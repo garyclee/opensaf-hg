@@ -51,7 +51,7 @@ uns32 snmptm_oac_tblcmd_register(SNMPTM_CB *snmptm)
    uns8           i;
 
    /* register the table */
-   m_NCS_OS_MEMSET(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&oac_arg, 0, sizeof(NCSOAC_SS_ARG));
   
    /* register the tblfour table with the OAC */
    oac_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
@@ -118,7 +118,7 @@ static uns32  snmptm_tblcmd_create_row(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, uns32
    uns8   local_buff[4];
    SNMPTM_TBL_KEY tbl_key;
 
-   m_NCS_OS_MEMSET(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
+   memset(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
  
    buff = arg->req.info.cli_req.i_usrbuf;
    if (buff == NULL)
@@ -230,7 +230,7 @@ static uns32 snmptm_pack_tblone_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BOO
    SNMPTM_TBL_KEY tbl_key;
    uns32  ip_addr = 0;
    
-   m_NCS_OS_MEMSET(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
+   memset(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
  
    for (tblone = (SNMPTM_TBLONE*)ncs_patricia_tree_getnext(&snmptm->tblone_tree,
                                                      (uns8*)&tbl_key); 
@@ -321,7 +321,7 @@ static uns32 snmptm_pack_tblfive_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BO
    SNMPTM_TBLFIVE *tblfive;
    uns32  ip_addr = 0;
 
-   m_NCS_OS_MEMSET(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
+   memset(&tbl_key, '\0', sizeof(SNMPTM_TBL_KEY));
  
    for (tblfive = (SNMPTM_TBLFIVE*)ncs_patricia_tree_getnext(&snmptm->tblfive_tree,
                                                      (uns8*)&tbl_key); 

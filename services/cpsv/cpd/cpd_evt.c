@@ -219,7 +219,7 @@ void cpd_process_evt(CPSV_EVT *evt)
    else
    {
        SaCkptCheckpointCreationAttributesT    ckpt_local_attrib;  
-    m_NCS_OS_MEMSET(&ckpt_local_attrib,0,sizeof(SaCkptCheckpointCreationAttributesT));
+    memset(&ckpt_local_attrib,0,sizeof(SaCkptCheckpointCreationAttributesT));
    /*   ckpt_create->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_create->ckpt_name.length); */
       is_first_rep = TRUE;
       if(!(ckpt_create->ckpt_flags & SA_CKPT_CHECKPOINT_CREATE) &&
@@ -313,7 +313,7 @@ void cpd_process_evt(CPSV_EVT *evt)
  send_rsp:   
    /* Send the response to the creater of this ckpt */
    /* Populate & Send the Open Event to CPND */
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_INFO;
    send_evt.info.cpnd.info.ckpt_info.error = rc;
@@ -353,7 +353,7 @@ void cpd_process_evt(CPSV_EVT *evt)
          }
          else
          {
-            m_NCS_OS_MEMSET(send_evt.info.cpnd.info.ckpt_info.dest_list, 0, 
+            memset(send_evt.info.cpnd.info.ckpt_info.dest_list, 0, 
                              (sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
             
             for(i=0; i< ckpt_node->dest_cnt; i++)
@@ -383,7 +383,7 @@ void cpd_process_evt(CPSV_EVT *evt)
       will process this message */
    if((is_first_rep == FALSE)||(is_new_noncol == TRUE))
    {
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_ADD;
       send_evt.info.cpnd.info.ckpt_add.ckpt_id = ckpt_node->ckpt_id;
@@ -563,7 +563,7 @@ static uns32 cpd_evt_proc_ckpt_unlink (CPD_CB *cb,
    cpd_a2s_ckpt_unlink_set(cb,ckpt_node); 
   
 send_rsp:
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_UNLINK_ACK;
    send_evt.info.cpnd.info.ulink_ack.error = rc;
@@ -571,7 +571,7 @@ send_rsp:
 
    if (rc == SA_AIS_OK) {
       /* Broadcast the Unlink info to all CPNDs */
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_UNLINK;
       send_evt.info.cpnd.info.ckpt_ulink.ckpt_id = ckpt_node->ckpt_id;
@@ -618,7 +618,7 @@ static uns32 cpd_evt_proc_ckpt_rdset (CPD_CB *cb, \
         __FILE__,__LINE__);
 
 send_rsp:
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_RDSET_ACK;
    send_evt.info.cpnd.info.rdset_ack.error = rc;
@@ -626,7 +626,7 @@ send_rsp:
 
    if (rc == SA_AIS_OK) {
       /* Broadcast the Retention Duration info to all CPNDs */
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_RDSET;
       send_evt.info.cpnd.info.rdset.ckpt_id = evt->info.rd_set.ckpt_id;
@@ -665,7 +665,7 @@ static uns32 cpd_evt_proc_active_set (CPD_CB *cb,
    cpd_a2s_ckpt_arep_set(cb,ckpt_node);
 
 send_rsp:
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.type = CPSV_EVT_TYPE_CPND;
    send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET_ACK;
    send_evt.info.cpnd.info.arep_ack.error = rc;
@@ -673,7 +673,7 @@ send_rsp:
 
     if (rc == SA_AIS_OK) {
       /* Broadcast the Active Replica info to all CPNDs */
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET;
       send_evt.info.cpnd.info.active_set.ckpt_id = evt->info.arep_set.ckpt_id;
@@ -684,7 +684,7 @@ send_rsp:
      /*Broadcast the active MDS_DEST info of ckpt to all CPA's*/
     if(rc == SA_AIS_OK)
      {
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPA;
       send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
       send_evt.info.cpa.info.ackpt_info.ckpt_id =  evt->info.arep_set.ckpt_id;
@@ -718,7 +718,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
    NCS_BOOL           o_is_active_changed=FALSE;
    NCS_BOOL           ckptid_flag        =FALSE;
  
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
 
    cpd_ckpt_node_get(&cb->ckpt_tree, &evt->info.ckpt_destroy.ckpt_id, &ckpt_node);
 
@@ -741,7 +741,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
    if(o_ckpt_node_deleted)
    {
       /* Broadcast the Active Replica info to all CPNDs */
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_DEL;
       send_evt.info.cpnd.info.ckpt_del.ckpt_id = ckpt_node->ckpt_id;
@@ -756,7 +756,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
    /* Send the New Active in case if the Active replica got changed */
    if(o_is_active_changed)
    {
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET;
       send_evt.info.cpnd.info.active_set.ckpt_id = ckpt_node->ckpt_id;
@@ -767,7 +767,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);         
 
       /*To broadcast the active MDS_DEST info of ckpt to all CPA's*/
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       send_evt.type = CPSV_EVT_TYPE_CPA;
       send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
       send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
@@ -780,7 +780,7 @@ static uns32 cpd_evt_proc_ckpt_destroy (CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
    /* Send this info to Standby */
    cpd_a2s_ckpt_dest_del(cb,evt->info.ckpt_destroy.ckpt_id,&sinfo->dest,ckptid_flag);
 
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+   memset(&send_evt, 0, sizeof(CPSV_EVT));
    send_evt.info.cpnd.info.destroy_ack.error = SA_AIS_OK;
 
 send_rsp:
@@ -818,7 +818,7 @@ static uns32 cpd_evt_proc_ckpt_destroy_byname (CPD_CB *cb, CPD_EVT *evt, CPSV_SE
 
    if(map_info) {
   
-      m_NCS_OS_MEMSET(&destroy_evt,'\0', sizeof(CPD_EVT));
+      memset(&destroy_evt,'\0', sizeof(CPD_EVT));
 
       destroy_evt.type = CPD_EVT_ND2D_CKPT_DESTROY;
       destroy_evt.info.ckpt_destroy.ckpt_id = map_info->ckpt_id;     
@@ -826,7 +826,7 @@ static uns32 cpd_evt_proc_ckpt_destroy_byname (CPD_CB *cb, CPD_EVT *evt, CPSV_SE
       proc_rc = cpd_evt_proc_ckpt_destroy (cb, &destroy_evt, sinfo);
    }
    else {
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
 
       send_evt.type = CPSV_EVT_TYPE_CPND;
       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_DESTROY_ACK;
@@ -936,7 +936,7 @@ static uns32 cpnd_down_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_
    {
       if(m_CPD_IS_LOCAL_NODE(m_NCS_NODE_ID_FROM_MDS_DEST(cref_info->ckpt_node->active_dest),m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info->cpnd_ret_timer.info.cpnd_dest)))
       {
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPND;
          send_evt.info.cpnd.type = CPSV_D2ND_RESTART;
          send_evt.info.cpnd.info.cpnd_restart.ckpt_id = cref_info->ckpt_node->ckpt_id;
@@ -944,7 +944,7 @@ static uns32 cpnd_down_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_
       
          /* send this event to Standby also */
          /* cpd_a2s_ckpt_dest_down(cb,cref_info->ckpt_node,&mds_info->dest);*/
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPA;
          send_evt.info.cpa.type = CPA_EVT_D2A_NDRESTART;
          send_evt.info.cpa.info.ackpt_info.ckpt_id =  cref_info->ckpt_node->ckpt_id;
@@ -952,7 +952,7 @@ static uns32 cpnd_down_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_
       }
       else
       {
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPND;
          send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_REP_DEL;
          send_evt.info.cpnd.info.ckpt_del.ckpt_id = cref_info->ckpt_node->ckpt_id;
@@ -1035,7 +1035,7 @@ static uns32 cpnd_up_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_NO
 
    while(cref_info)
    {
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+      memset(&send_evt, 0, sizeof(CPSV_EVT));
       /* If the Node contains Active Replica, then send RESTART_DONE event */
       if(m_CPD_IS_LOCAL_NODE(m_NCS_NODE_ID_FROM_MDS_DEST(cref_info->ckpt_node->active_dest),m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info->cpnd_ret_timer.info.cpnd_dest)))
       {         
@@ -1079,7 +1079,7 @@ static uns32 cpnd_up_process(CPD_CB *cb,CPSV_MDS_INFO *mds_info,CPD_CPND_INFO_NO
          }
 
          /*To broadcast the active MDS_DEST info of ckpt to all CPA's*/
-         m_NCS_OS_MEMSET(&send_evt, 0, sizeof(CPSV_EVT));
+         memset(&send_evt, 0, sizeof(CPSV_EVT));
          send_evt.type = CPSV_EVT_TYPE_CPA;
          send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
          send_evt.info.cpa.info.ackpt_info.ckpt_id = cref_info->ckpt_node->ckpt_id;
@@ -1175,10 +1175,10 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
    SaNameT   ckpt_name;
    uns32 phy_slot_sub_slot;
 
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
+   memset(&ckpt_name,0,sizeof(SaNameT));
    mds_info = &evt->info.mds_info;
   
-  m_NCS_OS_MEMSET(&phy_slot_sub_slot,0,sizeof(uns32));    
+  memset(&phy_slot_sub_slot,0,sizeof(uns32));    
 
    switch(mds_info->change)
    {

@@ -323,7 +323,7 @@ VDS_CB *vds_cb_create()
                          VDS_LOG_MEM_ALLOC_SUCCESS,
                                      NCSFL_SEV_INFO);
    
-   m_NCS_OS_MEMSET((char *)cb, 0, sizeof(VDS_CB));
+   memset((char *)cb, 0, sizeof(VDS_CB));
 
    /* assign the VDS pool-id (used by hdl-mngr) */
    cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -352,7 +352,7 @@ VDS_CB *vds_cb_create()
                           VDS_LOG_HDL_SUCCESS,
                                   NCSFL_SEV_INFO);
    
-   m_NCS_OS_MEMSET((void *) &pat_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset((void *) &pat_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    /* STEP : Init VDEST-NAME DB */
    pat_param.key_size = sizeof(SaNameT);

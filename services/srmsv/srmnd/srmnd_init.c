@@ -269,7 +269,7 @@ SRMND_CB *srmnd_cb_create()
                    SRMND_MEM_ALLOC_SUCCESS,
                    NCSFL_SEV_INFO);
 
-   m_NCS_OS_MEMSET((char *)cb, 0, sizeof(SRMND_CB));
+   memset((char *)cb, 0, sizeof(SRMND_CB));
 
    /* make srmnd operational status to DOWN state */ 
    cb->oper_status = SRMSV_ND_OPER_STATUS_DOWN;   
@@ -301,7 +301,7 @@ SRMND_CB *srmnd_cb_create()
                    NCSFL_SEV_INFO);
    
    /* Initialize Resource Mon Tree */
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
    params.key_size = sizeof(uns32);
    params.info_size = 0;
    if (ncs_patricia_tree_init(&cb->rsrc_mon_tree, &params)

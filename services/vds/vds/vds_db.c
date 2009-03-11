@@ -284,7 +284,7 @@ VDS_VDEST_ADEST_INFO *vds_new_vdest_instance(VDS_VDEST_DB_INFO *db_node,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET(p_adest_node, 0, sizeof(*p_adest_node));
+   memset(p_adest_node, 0, sizeof(*p_adest_node));
 
    p_adest_node->adest = *adest;
 
@@ -329,7 +329,7 @@ static VDS_VDEST_DB_INFO  *vds_new_vdest(VDS_CB *vds_cb,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET(db_info, 0, sizeof(*db_info));
+   memset(db_info, 0, sizeof(*db_info));
    db_info->vdest_name = info->info.named.i_name;
    db_info->persistent = info->i_persistent;
    db_info->adest_list = NULL;

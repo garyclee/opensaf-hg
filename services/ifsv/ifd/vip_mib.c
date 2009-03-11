@@ -227,8 +227,8 @@ get_tbl_entry(IFSV_CB  *vip_ifsv_cb, NCSMIB_ARG  *arg,
     NCS_IFSV_VIP_INT_HDL vip_handle;
     VIP_IP_INTF_DATA ip_intf_data;
 
-    m_NCS_OS_MEMSET(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
-    m_NCS_OS_MEMSET(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
+    memset(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
+    memset(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
 
     if((arg->i_idx.i_inst_len < NCSMIB_TBL_VIP_TBLONE_MIN_INST_LEN) || 
             (arg->i_idx.i_inst_len > NCSMIB_TBL_VIP_TBLONE_MAX_INST_LEN))
@@ -307,8 +307,8 @@ uns32 get_next_tbl_entry(IFSV_CB *cb,
    uns32 *inst_ids;
    inst_ids = arg->i_idx.i_inst_ids;
    */
-    m_NCS_MEMSET(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
-    m_NCS_MEMSET(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
+    memset(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
+    memset(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
    
    if ((arg->i_idx.i_inst_len == 0) &&
        (arg->i_idx.i_inst_ids == NULL))
@@ -578,8 +578,8 @@ uns32  ncsvipentry_get(NCSCONTEXT cb,
     VIP_IP_INTF_DATA ip_intf_data;
     NCS_IPPFX ipAddr;
 
-    m_NCS_MEMSET(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
-    m_NCS_MEMSET(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
+    memset(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
+    memset(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
     m_NCS_CONS_PRINTF("\nncsTestTableOneEntry:  Received SNMP GET request\n");
     /* Pretty print the contents of NCSMIB_ARG */
     ncsmib_pp(p_get_req); 
@@ -681,8 +681,8 @@ uns32 ncsvipentry_next(NCSCONTEXT ifsv_vip_cb,
     NCS_IPPFX ipAddr;
     uns32 horder_dest;
   
-    m_NCS_OS_MEMSET(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
-    m_NCS_OS_MEMSET(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
+    memset(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
+    memset(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
 
     m_NCS_CONS_PRINTF("\n ncsvipentry:  Received SNMP NEXT request\n");
     /* Pretty print the contents of NCSMIB_ARG */

@@ -204,7 +204,7 @@ cli_check_ipv6prefix(int8 *i_str)
    /* Get the string length of the input string */
    str_len = (uns8) strlen(i_str);
 
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
+   memset(buffer, 0, sizeof(buffer));
 
    m_NCS_OS_STRCPY(buffer, i_str);
 
@@ -268,7 +268,7 @@ cli_check_macaddr(int8 *i_str)
    uns32 addr_cnt = 0;
    uns32 ret_val = CLI_NO_MATCH;
 
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
+   memset(buffer, 0, sizeof(buffer));
 
    m_NCS_OS_STRCPY(buffer, i_str);
    token = sysf_strtok(buffer, delimiter);      
@@ -307,7 +307,7 @@ cli_check_community(int8 *i_str)
    uns32 ret_val = CLI_NO_MATCH,
          ret = CLI_NO_MATCH;
       
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
+   memset(buffer, 0, sizeof(buffer));
    m_NCS_OS_STRCPY(buffer, i_str);
    token = sysf_strtok(buffer, delimiter);
    if(token) {
@@ -359,7 +359,7 @@ uns32 cli_check_number(int8 *i_str)
       if(0 == (buffer = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(m_NCS_OS_STRLEN(i_str)+1)))
          return NCSCC_RC_FAILURE;
       
-      m_NCS_OS_MEMSET(buffer, 0, m_NCS_OS_STRLEN(i_str));
+      memset(buffer, 0, m_NCS_OS_STRLEN(i_str));
       sysf_sprintf(buffer, "%d", num);      
       if(m_NCS_OS_STRLEN(buffer) == m_NCS_OS_STRLEN(i_str)) {
          m_MMGR_FREE_CLI_DEFAULT_VAL(buffer);
@@ -402,7 +402,7 @@ cli_check_ipv4addr (int8 *i_str)
    if(0 == i_str) return CLI_NO_MATCH;
    
    for(;;) {
-      m_NCS_OS_MEMSET (ipbuf,'\0', sizeof (ipbuf));
+      memset (ipbuf,'\0', sizeof (ipbuf));
       ptr = i_str;
       
       while('\0' != *i_str) {        
@@ -574,7 +574,7 @@ cli_matchtoken(int8 *i_str1, int8 *i_str2, CLI_CMD_ERROR *o_cli_cmd_error)
     /* At the end of loop both strings are same */
     if(!*s1 && !*s2) {
         /* reset error string */
-        m_NCS_OS_MEMSET(o_cli_cmd_error->errstring, '\0', sizeof(o_cli_cmd_error->errstring));    
+        memset(o_cli_cmd_error->errstring, '\0', sizeof(o_cli_cmd_error->errstring));    
         o_cli_cmd_error->errorpos = 0;
         return CLI_SUCCESSFULL_MATCH;
     }
@@ -582,7 +582,7 @@ cli_matchtoken(int8 *i_str1, int8 *i_str2, CLI_CMD_ERROR *o_cli_cmd_error)
     /* s2 is less then s1 its a partial match */
     if(!*s2) {
         /* reset error string */
-        m_NCS_OS_MEMSET(o_cli_cmd_error->errstring, 0, 
+        memset(o_cli_cmd_error->errstring, 0, 
             sizeof(o_cli_cmd_error->errstring));    
         o_cli_cmd_error->errorpos = 0;
         return CLI_PARTIAL_MATCH;
@@ -732,7 +732,7 @@ uns32 cli_set_arg(int8 * i_arg, NCSCLI_ARG_SET *o_cmd_tokens, CLI_CB *pCli) /* F
       len = m_NCS_OS_STRLEN(i_arg) + 1;
       o_cmd_tokens->i_arg_record[count].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
       if(!o_cmd_tokens->i_arg_record[count].cmd.strval) return NCSCC_RC_FAILURE;
-      m_NCS_OS_MEMSET(o_cmd_tokens->i_arg_record[count].cmd.strval, '\0', len);
+      memset(o_cmd_tokens->i_arg_record[count].cmd.strval, '\0', len);
       m_NCS_OS_STRNCPY((int8 *)o_cmd_tokens->i_arg_record[count].cmd.strval, 
          i_arg, len-1);
    }
@@ -871,7 +871,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
                m_MMGR_FREE_CLI_DEFAULT_VAL(i_argval->cmd.strval);
            i_argval->cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len+1);
            if(!i_argval->cmd.strval) return NCSCC_RC_FAILURE;
-           m_NCS_OS_MEMSET(i_argval->cmd.strval,'\0',len+1); 
+           memset(i_argval->cmd.strval,'\0',len+1); 
            sprintf(i_argval->cmd.strval,"%d",temp);
            i_argval->i_arg_type = NCSCLI_STRING;
          }
@@ -1240,7 +1240,7 @@ void cli_add_default_values(CLI_CMD_ELEMENT * i_cmdElement,
       o_cmd_tokens->i_arg_record[i_index].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
       if(!o_cmd_tokens->i_arg_record[i_index].cmd.strval) return;
       
-      m_NCS_OS_MEMSET(o_cmd_tokens->i_arg_record[i_index].cmd.strval, '\0', len);
+      memset(o_cmd_tokens->i_arg_record[i_index].cmd.strval, '\0', len);
       m_NCS_OS_STRNCPY((int8 *)o_cmd_tokens->i_arg_record[i_index].cmd.strval, 
          (int8 *)i_cmdElement->defVal, len-1);
    }
@@ -1536,7 +1536,7 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
             /* Alloc new chunk of memeory */
             io_cmd_tokens->i_arg_record[i].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
             if(!io_cmd_tokens->i_arg_record[i].cmd.strval) return ret;
-            m_NCS_OS_MEMSET(io_cmd_tokens->i_arg_record[i].cmd.strval, '\0', len);               
+            memset(io_cmd_tokens->i_arg_record[i].cmd.strval, '\0', len);               
             m_NCS_OS_STRNCPY(io_cmd_tokens->i_arg_record[i].cmd.strval, 
                pCli->ctree_cb.cmdElement->tokName, len-1);
             partialmatch = FALSE;
@@ -1689,7 +1689,7 @@ uns32 cli_check_syntax(CLI_CB             *pCli,
                      len = m_NCS_OS_STRLEN("?")+1;
                      io_cmd_tokens->i_arg_record[0].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
                      if(!io_cmd_tokens->i_arg_record[0].cmd.strval) return ret;
-                     m_NCS_OS_MEMSET(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);               
+                     memset(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);               
                      m_NCS_OS_STRNCPY(io_cmd_tokens->i_arg_record[0].cmd.strval,"?", len-1);
                      return (io_param->o_status = CLI_SUCCESSFULL_MATCH);
                   }
@@ -1989,8 +1989,8 @@ uns32 cli_execute_command(CLI_CB            *pCli,
     pCli->cefTmrFlag = FALSE;
 
     /* Parse the cmdbuf into tokens. returns cmdtokens struct */
-    m_NCS_OS_MEMSET(&ctok, 0, sizeof(NCSCLI_ARG_SET));
-    m_NCS_OS_MEMSET(&cdata, 0, sizeof(cdata));
+    memset(&ctok, 0, sizeof(NCSCLI_ARG_SET));
+    memset(&cdata, 0, sizeof(cdata));
    
    /* Commented out as a part of fixing the bug 59854 */
     /*if(NCSCC_RC_SUCCESS != cli_getcommand_tokens(io_param->i_cmdbuf, &ctok)) {
@@ -2013,8 +2013,8 @@ uns32 cli_execute_command(CLI_CB            *pCli,
     pCli->cefStatus = NCSCC_RC_FAILURE;
     pCli->ctree_cb.currNode = 0;
 
-    /* m_NCS_OS_MEMSET tab string */
-    m_NCS_OS_MEMSET(io_param->o_hotkey.tabstring, '\0', CLI_ARG_LEN);    
+    /* memset tab string */
+    memset(io_param->o_hotkey.tabstring, '\0', CLI_ARG_LEN);    
 
     /* Check user action */
 
@@ -2319,7 +2319,7 @@ cli_get_helpstr(CLI_CB             *pCli,
       get pointer to 'cmd-element' struct. Display the next level token.
    */   
    bit_pos = io_cmd_tokens->i_pos_value;
-   m_NCS_OS_MEMSET(&io_param->o_hotkey.hlpstr, '\0', sizeof(io_param->o_hotkey.hlpstr));
+   memset(&io_param->o_hotkey.hlpstr, '\0', sizeof(io_param->o_hotkey.hlpstr));
    
    /* Get index of last token */
    m_CLI_GET_LAST_TOKEN(bit_pos);
@@ -2376,7 +2376,7 @@ cli_get_helpstr(CLI_CB             *pCli,
       len = m_NCS_OS_STRLEN(tmpbuf) + 1;
       io_cmd_tokens->i_arg_record[0].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
       if(!io_cmd_tokens->i_arg_record[0].cmd.strval) return;
-      m_NCS_OS_MEMSET(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);
+      memset(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);
       m_NCS_OS_STRCPY(io_cmd_tokens->i_arg_record[0].cmd.strval, tmpbuf);
    }
    
@@ -2526,7 +2526,7 @@ static void convert_to_macaddr(NCSCLI_ARG_VAL *arg_val, int8* str)
    int8  *token = 0, idx = 0;
    uns32 val = 0;
    
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
+   memset(buffer, 0, sizeof(buffer));
    m_NCS_OS_STRCPY(buffer, str);
    token = sysf_strtok(buffer, delimiter);      
    
@@ -2551,8 +2551,8 @@ static void convert_to_community(NCSCLI_ARG_VAL *arg_val, int8* str)
    int8  *token = 0;
    uns32 ret = CLI_NO_MATCH;
    
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
-   m_NCS_OS_MEMSET(ipbuff, 0, sizeof(ipbuff));
+   memset(buffer, 0, sizeof(buffer));
+   memset(ipbuff, 0, sizeof(ipbuff));
    
    m_NCS_OS_STRCPY(buffer, str);
    token = sysf_strtok(buffer, delimiter);
@@ -2622,8 +2622,8 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
    char  buffer[CLI_BUFFER_SIZE];
    char  wldcbuff[CLI_BUFFER_SIZE];
    
-   m_NCS_OS_MEMSET(buffer, 0, sizeof(buffer));
-   m_NCS_OS_MEMSET(wldcbuff, 0, sizeof(wldcbuff));
+   memset(buffer, 0, sizeof(buffer));
+   memset(wldcbuff, 0, sizeof(wldcbuff));
    
    if(!io_param->o_tokprocs) return;
    
@@ -2652,14 +2652,14 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
             m_MMGR_FREE_CLI_DEFAULT_VAL(ctok->i_arg_record[i].cmd.strval);
          }
          
-         m_NCS_OS_MEMSET(&ctok->i_arg_record[i], 0, sizeof(NCSCLI_ARG_VAL));
+         memset(&ctok->i_arg_record[i], 0, sizeof(NCSCLI_ARG_VAL));
          ctok->i_arg_record[i].i_arg_type = NCSCLI_STRING;
          
          /* Alloc new chunk for wildcard characters */
          len = m_NCS_OS_STRLEN(wldcbuff) + 1;
          ctok->i_arg_record[i].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
          if(!ctok->i_arg_record[i].cmd.strval) return;
-         m_NCS_OS_MEMSET(ctok->i_arg_record[i].cmd.strval, '\0', len);   
+         memset(ctok->i_arg_record[i].cmd.strval, '\0', len);   
          m_NCS_OS_STRCPY(ctok->i_arg_record[i].cmd.strval, wldcbuff);
       }
       
@@ -2671,7 +2671,7 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
             ctok->i_arg_record[i].cmd.strval) {
             m_MMGR_FREE_CLI_DEFAULT_VAL(ctok->i_arg_record[i].cmd.strval);
          }
-         m_NCS_OS_MEMSET(&ctok->i_arg_record[i], 0, sizeof(NCSCLI_ARG_VAL));
+         memset(&ctok->i_arg_record[i], 0, sizeof(NCSCLI_ARG_VAL));
       }         
       ++i;
    }      

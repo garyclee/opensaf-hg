@@ -81,7 +81,7 @@ avm_hpl_init()
 {
    NCS_LIB_REQ_INFO req_info;
  
-   m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_CREATE;
  
    /* request to initialize HPL library */
@@ -110,7 +110,7 @@ avm_hpl_destroy()
    NCS_LIB_REQ_INFO req_info;
    uns32 rc;
  
-   m_NCS_MEMSET(&req_info, '\0', sizeof(req_info));
+   memset(&req_info, '\0', sizeof(req_info));
    req_info.i_op = NCS_LIB_REQ_DESTROY;
  
    /* request to initialize HPL library */
@@ -453,7 +453,7 @@ avm_init(NCS_LIB_REQ_INFO *req_info)
 
    m_AVM_LOG_CB(AVM_LOG_CB_CREATE, AVM_LOG_CB_SUCCESS,  NCSFL_SEV_INFO);
 
-   m_NCS_MEMSET(cb, '\0', sizeof(AVM_CB_T));
+   memset(cb, '\0', sizeof(AVM_CB_T));
    if ((g_avm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_AVM, cb)) == 0)
    {
         m_MMGR_FREE_AVM_CB(cb);

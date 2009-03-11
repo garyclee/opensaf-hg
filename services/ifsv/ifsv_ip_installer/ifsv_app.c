@@ -205,7 +205,7 @@ ifsv_dt_test_ifa_sub_cb(NCS_IFSV_SVC_RSP *rsp)
    IFSV_DT_TEST_APP_CB *app_cb = (IFSV_DT_TEST_APP_CB*)(long)rsp->usrhdl;
    IFSV_DT_TEST_APP_EVT *evt;
    evt = (IFSV_DT_TEST_APP_EVT*)malloc(sizeof(IFSV_DT_TEST_APP_EVT));   
-   m_NCS_MEMSET(evt,0,sizeof(IFSV_DT_TEST_APP_EVT));
+   memset(evt,0,sizeof(IFSV_DT_TEST_APP_EVT));
 
    switch(rsp->rsp_type)
    {
@@ -353,7 +353,7 @@ uns32 IfsvDtTestAppIfaSub(uns32 app_no, uns32 evt_attr, uns32 rec_attr)
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_SUBSCR;
       svc_req.info.i_subr.i_ifsv_cb = ifsv_dt_test_ifa_sub_cb;
       svc_req.info.i_subr.i_sevts   = evt_attr;
@@ -401,7 +401,7 @@ uns32 IfsvDtTestAppIfaUnsub(uns32 app_no)
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_UNSUBSCR;
       svc_req.info.i_unsubr.i_subr_hdl = app_cb->IfA_hdl;      
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
@@ -445,7 +445,7 @@ uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_GET;      
       svc_req.info.i_ifget.i_info_type = NCS_IFSV_IFSTATS_INFO;      
       svc_req.info.i_ifget.i_rsp_type  = NCS_IFSV_GET_RESP_ASYNC;
@@ -500,7 +500,7 @@ uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslo
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_GET;      
       svc_req.info.i_ifget.i_info_type = NCS_IFSV_IF_INFO;      
       svc_req.info.i_ifget.i_rsp_type  = NCS_IFSV_GET_RESP_ASYNC;
@@ -552,7 +552,7 @@ uns32 IfsvDtTestAppGetAll(uns32 app_no, uns32 ifindex)
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_GET;      
       svc_req.info.i_ifget.i_info_type = NCS_IFSV_IF_INFO | NCS_IFSV_IFSTATS_INFO;      
       svc_req.info.i_ifget.i_rsp_type  = NCS_IFSV_GET_RESP_ASYNC;
@@ -653,7 +653,7 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
@@ -708,7 +708,7 @@ uns32 IfsvDtTestAppModIntfStatus(uns32 app_num, uns32 port_num,
     if(app_num < IFSV_DT_MAX_TEST_APP)
     { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
@@ -743,7 +743,7 @@ uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns
    {
       app_cb = &gifsv_dt_test_app[app_no];      
       /* Register with the application with IfA */
-      m_NCS_MEMSET(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
+      memset(&svc_req,0,sizeof(NCS_IFSV_SVC_REQ));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_GET;      
       svc_req.info.i_ifget.i_info_type = NCS_IFSV_BIND_GET_LOCAL_INTF;      
       svc_req.info.i_ifget.i_rsp_type  = NCS_IFSV_GET_RESP_ASYNC;
@@ -785,7 +785,7 @@ uns32 IfsvDtTestAppSwapBondIntf(uns32 app_num, uns32 port_num,
     if(app_num < IFSV_DT_MAX_TEST_APP)
     { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = IFSV_BINDING_SHELF_ID;
@@ -841,7 +841,7 @@ uns32 IfsvDtTestAppModIntfMTU(uns32 app_num, uns32 port_num, uns32 port_type,
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
@@ -892,7 +892,7 @@ uns32 IfsvDtTestAppModIntfSpeed(uns32 app_num, uns32 port_num,
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
@@ -943,7 +943,7 @@ uns32 IfsvdtTestAppModIntfPhy(uns32 app_num, uns32 port_num, uns32 port_type,
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       /* extract the MAC address */
       if (ifsv_dt_extract_phy_addr(temp_phy, svc_req.info.i_ifadd.if_info.phy_addr)
          == NCSCC_RC_FAILURE)
@@ -1000,7 +1000,7 @@ uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
 
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_ADD;
       svc_req.info.i_ifadd.spt_info.port  = port_num;
@@ -1050,7 +1050,7 @@ uns32 IfsvDtTestAppDelIntf(uns32 app_num, uns32 port_num, uns32 port_type)
    if(app_num < IFSV_DT_MAX_TEST_APP)
    { 
       app_cb = &gifsv_dt_test_app[app_num];
-      m_NCS_MEMSET(&svc_req,0,sizeof(svc_req));
+      memset(&svc_req,0,sizeof(svc_req));
       svc_req.i_req_type = NCS_IFSV_SVC_REQ_IFREC_DEL;
       svc_req.info.i_ifdel.port  = port_num;
       svc_req.info.i_ifdel.shelf = app_cb->shelf_no;

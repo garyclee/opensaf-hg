@@ -137,10 +137,10 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
   
    str[0] = '\0';
 
-   m_NCS_MEMSET(&file, '\0', sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memset(&file, '\0', sizeof(AVM_DHCP_CONF_NAME_TYPE));
    m_AVM_SET_NAME(file, param_val);
 
-   m_NCS_MEMSET(file_name, '\0', sizeof(file_name));
+   memset(file_name, '\0', sizeof(file_name));
    sprintf(file_name, "/%s", file.name);
 
    /* Check whether file exist */
@@ -150,7 +150,7 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(&fileStat, '\0', sizeof(struct stat));
+   memset(&fileStat, '\0', sizeof(struct stat));
    stat(file_name, &fileStat);
 
    /* Check if the file is of DIRECTORY type */
@@ -162,7 +162,7 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    }
 
    /* Check for pxelinux.0 */
-   m_NCS_MEMSET(&fileStat, '\0', sizeof(struct stat));
+   memset(&fileStat, '\0', sizeof(struct stat));
    strcat(file_name,AVM_DHCPD_SW_PXE_FILE);
    stat(file_name, &fileStat);
 
@@ -318,7 +318,7 @@ avm_set_preferred_label(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, AVM_ENT_DHCP_CON
             dhcp_conf->label1.status = SSU_INSTALLED;
       }
 
-      m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+      memset(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
       /* Set the preferred label */
       dhcp_conf->pref_label.length = param_val.i_length;
       memcpy(dhcp_conf->pref_label.name, param_val.info.i_oct,
@@ -350,7 +350,7 @@ avm_set_preferred_label(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, AVM_ENT_DHCP_CON
             dhcp_conf->label2.status = SSU_INSTALLED;
       }
 
-      m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+      memset(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
       /* Set the preferred label */
       dhcp_conf->pref_label.length = param_val.i_length;
       memcpy(dhcp_conf->pref_label.name,
@@ -465,7 +465,7 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
    mac2 = dhcp_conf->mac_address[1];
 
    /* Get the configured Filename in local var */
-   m_NCS_MEMSET(pxe_file_name, '\0', sizeof(pxe_file_name));
+   memset(pxe_file_name, '\0', sizeof(pxe_file_name));
    sprintf(pxe_file_name, "%s", dhcp_label->file_name.name);
 
    /* Check for pxelinux.0 */
@@ -614,7 +614,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                       hpi_evt->inv_data.oem_inv_data.interface_mac_addr[1], AVM_MAC_DATA_LEN);
       }
       
-      m_NCS_MEMSET(mac_addr, 0, AVM_MAC_DATA_LEN); /* Initialise the mac address with 0.0.0.0.0.0 to compare */ 
+      memset(mac_addr, 0, AVM_MAC_DATA_LEN); /* Initialise the mac address with 0.0.0.0.0.0 to compare */ 
       /* check for the mac addresses, if these are 0.0.0.0.0.0, the insertion pending event is from F101, so just return */   
       if ((!m_NCS_MEMCMP(mac_addr, dhcp_conf->mac_address[0], AVM_MAC_DATA_LEN)) && 
           (!m_NCS_MEMCMP(mac_addr, dhcp_conf->mac_address[1], AVM_MAC_DATA_LEN)))
@@ -698,7 +698,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                } 
                dhcp_conf->default_label = dhcp_conf->default_label->other_label;
       
-               m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+               memset(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
                /* Set the preferred label also to other label */
                dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
                memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
@@ -892,7 +892,7 @@ avm_ssu_dhcp_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       if (dhcp_conf->default_label == &dhcp_conf->label1)
       {
          /* Set the preferred label */
-         m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+         memset(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
          dhcp_conf->pref_label.length = dhcp_conf->label1.name.length;
          memcpy(dhcp_conf->pref_label.name, dhcp_conf->label1.name.name,
                       dhcp_conf->label1.name.length);
@@ -909,7 +909,7 @@ avm_ssu_dhcp_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       else
       {
          /* Set the preferred label */
-         m_NCS_MEMSET(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
+         memset(dhcp_conf->pref_label.name, '\0', AVM_NAME_STR_LENGTH);
          dhcp_conf->pref_label.length = dhcp_conf->label2.name.length;
          memcpy(dhcp_conf->pref_label.name, dhcp_conf->label2.name.name,
                       dhcp_conf->label2.name.length);
@@ -1033,7 +1033,7 @@ avm_ssu_clear_mac (AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info_in)
    uns32 mac_change = 0, dhcp_entry_change = 0;
 
    m_AVM_LOG_FUNC_ENTRY("AVM-SSU: avm_ssu_clear_mac");
-   m_NCS_MEMSET(ep.name, '\0', AVM_MAX_INDEX_LEN); 
+   memset(ep.name, '\0', AVM_MAX_INDEX_LEN); 
    ep.length = 0;
 
    for(ent_info = avm_find_next_ent_str_info(cb, &ep); 
@@ -1054,14 +1054,14 @@ avm_ssu_clear_mac (AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info_in)
           (!m_NCS_MEMCMP(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[0], AVM_MAC_DATA_LEN)))
       {
          mac_change = 1;
-         m_NCS_MEMSET(dhcp_conf1->mac_address[0], 0, AVM_MAC_DATA_LEN);
+         memset(dhcp_conf1->mac_address[0], 0, AVM_MAC_DATA_LEN);
       }
 
       if ((!m_NCS_MEMCMP(dhcp_conf->mac_address[0], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)) ||
           (!m_NCS_MEMCMP(dhcp_conf->mac_address[1], dhcp_conf1->mac_address[1], AVM_MAC_DATA_LEN)))
       {
          mac_change = 1;
-         m_NCS_MEMSET(dhcp_conf1->mac_address[1], 0, AVM_MAC_DATA_LEN);
+         memset(dhcp_conf1->mac_address[1], 0, AVM_MAC_DATA_LEN);
       }
 
        /* async update for MAC configuration change */
@@ -1115,7 +1115,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    uns32 len = 0;
    SaHpiEntityPathT  entity_path;
 
-   m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+   memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
 
 #ifdef HPI_A
    entity_path.Entry[2].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
@@ -1224,7 +1224,7 @@ avm_convert_nodeid_to_entpath(NCSMIB_PARAM_VAL param_val, AVM_ENT_PATH_STR_T* ep
    uns32 rc = NCSCC_RC_FAILURE;
    AVM_DHCP_CONF_NAME_TYPE node_name;
    struct slot_info sInfo;
-   m_NCS_MEMSET(node_name.name, '\0', AVM_NAME_STR_LENGTH);
+   memset(node_name.name, '\0', AVM_NAME_STR_LENGTH);
    m_AVM_SET_NAME(node_name, param_val);
    
    if ((rc = extract_slot_shelf_subslot(node_name.name,&sInfo)) == NCSCC_RC_FAILURE)   
@@ -1274,7 +1274,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
        return NCSCC_RC_FAILURE;
    }
  
-   m_NCS_MEMSET(chassis_type, '\0', NCS_MAX_CHASSIS_TYPE_LEN+1);
+   memset(chassis_type, '\0', NCS_MAX_CHASSIS_TYPE_LEN+1);
    m_NCS_GET_CHASSIS_TYPE(NCS_MAX_CHASSIS_TYPE_LEN,chassis_type);
 
    len =  m_NCS_STRLEN(chassis_type);   
@@ -1595,7 +1595,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
    logbuf[0] = '\0';
 
    /* for each node, if upgrade is in progress, start the SSU timer */
-   m_NCS_MEMSET(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+   memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
    for(ent_info = avm_find_next_ent_info(avm_cb, &entity_path);
        ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(avm_cb, &entity_path))
    {

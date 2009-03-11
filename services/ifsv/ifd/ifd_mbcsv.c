@@ -103,7 +103,7 @@ ifd_a2s_async_update (IFSV_CB *cb, IFD_A2S_MSG_TYPE type, void *msg)
   uns32 res = NCSCC_RC_FAILURE;
   IFD_A2S_MSG a2s_msg;
   
-  m_NCS_OS_MEMSET(&a2s_msg , '\0' , sizeof(IFD_A2S_MSG));
+  memset(&a2s_msg , '\0' , sizeof(IFD_A2S_MSG));
 
   switch (type)
   {
@@ -487,7 +487,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
   VIP_RED_OWNER_NODE *p_temp_owner_rec;
   uns32 ip_cnt, intf_cnt, owner_cnt;
 
-  m_NCS_MEMSET(p_vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
+  memset(p_vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
 
   m_NCS_STRCPY(p_vip_redRec->handle.vipApplName, p_vipd_rec_info->handle.vipApplName);
@@ -503,7 +503,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
      p_vip_redRec->ipInfo = m_MMGR_ALLOC_IFSV_VIP_RED_IP_REC(p_vip_redRec->ip_list_cnt);
      if( p_vip_redRec->ipInfo != IFSV_NULL )
      {
-        m_NCS_MEMSET(p_vip_redRec->ipInfo, 0,(p_vip_redRec->ip_list_cnt)* sizeof(VIP_RED_IP_NODE));
+        memset(p_vip_redRec->ipInfo, 0,(p_vip_redRec->ip_list_cnt)* sizeof(VIP_RED_IP_NODE));
         p_temp_ip_rec = p_vip_redRec->ipInfo;
 
         ip_node = m_NCS_DBLIST_FIND_FIRST(&(p_vipd_rec_info)->ip_list); 
@@ -542,7 +542,7 @@ ifd_populate_vip_redundancy_rec(IFSV_IFD_VIPD_RECORD  *p_vipd_rec_info, VIP_REDU
     p_vip_redRec->intfInfo = m_MMGR_ALLOC_IFSV_VIP_RED_INTF_REC(p_vip_redRec->intf_list_cnt);
     if( p_vip_redRec->intfInfo != IFSV_NULL)
     {
-        m_NCS_MEMSET(p_vip_redRec->intfInfo, 0, (p_vip_redRec->intf_list_cnt)*sizeof(VIP_RED_INTF_NODE));
+        memset(p_vip_redRec->intfInfo, 0, (p_vip_redRec->intf_list_cnt)*sizeof(VIP_RED_INTF_NODE));
         p_temp_intf_rec = p_vip_redRec->intfInfo;
 
         intf_node = m_NCS_DBLIST_FIND_FIRST(&(p_vipd_rec_info)->intf_list);
@@ -585,7 +585,7 @@ if( res == NCSCC_RC_FAILURE )
     p_vip_redRec->ownerInfo = m_MMGR_ALLOC_IFSV_VIP_RED_OWNER_REC(p_vip_redRec->owner_list_cnt);
     if(p_vip_redRec->ownerInfo != IFSV_NULL)
     {
-       m_NCS_MEMSET(p_vip_redRec->ownerInfo, 0, (p_vip_redRec->owner_list_cnt)*sizeof(VIP_RED_OWNER_NODE));
+       memset(p_vip_redRec->ownerInfo, 0, (p_vip_redRec->owner_list_cnt)*sizeof(VIP_RED_OWNER_NODE));
        p_temp_owner_rec = p_vip_redRec->ownerInfo;
      
        owner_node = m_NCS_DBLIST_FIND_FIRST(&(p_vipd_rec_info)->owner_list);
@@ -861,7 +861,7 @@ ifd_mbcsv_async_update(IFSV_CB *cb, IFD_A2S_MSG *msg)
    NCS_MBCSV_ARG  arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
    arg.i_op                      = NCS_MBCSV_OP_SEND_CKPT;
    arg.i_mbcsv_hdl               = cb->mbcsv_hdl;
    arg.info.send_ckpt.i_ckpt_hdl = cb->o_ckpt_hdl;
@@ -969,7 +969,7 @@ static uns32  ifd_mbcsv_init(IFSV_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                       = NCS_MBCSV_OP_INITIALIZE;
    arg.info.initialize.i_mbcsv_cb = ifd_mbcsv_callback;
@@ -1005,7 +1005,7 @@ static uns32  ifd_mbcsv_open(IFSV_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                  = NCS_MBCSV_OP_OPEN;
    arg.i_mbcsv_hdl           = cb->mbcsv_hdl;
@@ -1043,7 +1043,7 @@ static uns32  ifd_mbcsv_warm_sync_timer_set(IFSV_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                  = NCS_MBCSV_OP_OBJ_SET;
    arg.i_mbcsv_hdl           = cb->mbcsv_hdl;
@@ -1081,7 +1081,7 @@ static uns32  ifd_mbcsv_close(IFSV_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                  = NCS_MBCSV_OP_CLOSE;
    arg.i_mbcsv_hdl           = cb->mbcsv_hdl;
@@ -1117,7 +1117,7 @@ uns32  ifd_mbcsv_finalize(IFSV_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                  = NCS_MBCSV_OP_FINALIZE;
    arg.i_mbcsv_hdl           = cb->mbcsv_hdl;
@@ -1152,7 +1152,7 @@ uns32  ifd_mbcsv_selobj_get(IFSV_CB *cb)
     NCS_MBCSV_ARG arg;
     uns32 rc = NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
     arg.i_op                           =  NCS_MBCSV_OP_SEL_OBJ_GET;
     arg.i_mbcsv_hdl                    =  cb->mbcsv_hdl;
@@ -1189,7 +1189,7 @@ uns32  ifd_mbcsv_chgrole(IFSV_CB *cb)
 {
    NCS_MBCSV_ARG  arg;
    uns32 rc = NCSCC_RC_SUCCESS;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                      = NCS_MBCSV_OP_CHG_ROLE;
    arg.i_mbcsv_hdl               = cb->mbcsv_hdl;
@@ -1227,7 +1227,7 @@ uns32  ifd_mbcsv_dispatch(IFSV_CB *cb)
    NCS_MBCSV_ARG  arg;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op                      = NCS_MBCSV_OP_DISPATCH;
    arg.i_mbcsv_hdl               = cb->mbcsv_hdl;
@@ -1816,7 +1816,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
        return NCSCC_RC_FAILURE;
      }     
      
-     m_NCS_OS_MEMSET(&ifap_info, 0, sizeof(IFAP_INFO_LIST_A2S));
+     memset(&ifap_info, 0, sizeof(IFAP_INFO_LIST_A2S));
 
      if(num_free_index)
      {
@@ -1920,7 +1920,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    EDU_ERR ederror = 0;   
    uns8 *header = NULL, *sync_cnt_ptr = NULL, *ifsv_vip_rec_ptr = NULL, *last_msg = NULL;
 
-   m_NCS_OS_MEMSET(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
+   memset(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
 
 
 
@@ -1980,7 +1980,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    while ((p_vipd_rec != IFSV_NULL))
    {
 
-      m_NCS_OS_MEMSET(&vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
+      memset(&vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
       res = ifd_populate_vip_redundancy_rec(p_vipd_rec, &vip_redRec);
       memcpy(&vip_handle, &p_vipd_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
@@ -2013,7 +2013,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
            arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE; 
 
       /* Now reset the vip handle for the next warm sync. */
-      m_NCS_OS_MEMSET(&ifsv_cb->record_handle,'\0',sizeof(vip_handle));
+      memset(&ifsv_cb->record_handle,'\0',sizeof(vip_handle));
 
       ifsv_cb->ifd_mbcsv_data_resp_enc_func_ptr = ifd_mbcsv_enc_data_resp;
       last_msg_flag = TRUE;
@@ -2415,7 +2415,7 @@ static uns32  ifd_mbcsv_dec_warm_sync_resp(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
    uns32 act_num_free_ifindex = 0, act_num_max_ifindex = 0;
    uns32 stdby_num_free_ifindex = 0, stdby_num_max_ifindex = 0, stdby_num_ifindex_present = 0;
 
-    m_NCS_OS_MEMSET(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
        
     ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(int32));
     num_of_async_upd = ncs_decode_32bit(&ptr);
@@ -2579,7 +2579,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
        return rc;
    }
 
-   m_NCS_OS_MEMSET(ifap_info,'\0',sizeof(IFAP_INFO_LIST_A2S));
+   memset(ifap_info,'\0',sizeof(IFAP_INFO_LIST_A2S));
 
    /* 1. Decode the 1st uns8 region ,  we will get the num of ckpts*/
    ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data,sizeof(uns32));
@@ -2601,9 +2601,9 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
 
    while(count < num_of_ckpts)
    {
-      m_NCS_MEMSET(ckpt_data_intf, 0, sizeof(IFSV_INTF_DATA));
+      memset(ckpt_data_intf, 0, sizeof(IFSV_INTF_DATA));
 #if(NCS_IFSV_IPXS == 1) 
-      m_NCS_MEMSET(ckpt_data_ipxs, 0, sizeof(NCS_IPXS_IPINFO));
+      memset(ckpt_data_ipxs, 0, sizeof(NCS_IPXS_IPINFO));
 #endif 
 
       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_intf_data, 
@@ -2750,7 +2750,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
 
    while(count < num_of_ckpts)
    {
-      m_NCS_MEMSET(ckpt_data_vip, 0, sizeof(VIP_REDUNDANCY_RECORD));
+      memset(ckpt_data_vip, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
       rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
            &arg->info.decode.i_uba, EDP_OP_TYPE_DEC, &ckpt_data_vip,&ederror, cb->edu_hdl.to_version);
@@ -2837,8 +2837,8 @@ static uns32  ifd_mbcsv_db_ifrec_sptmap_mismatch_correction(IFSV_CB *ifsv_cb)
  uns32 res = NCSCC_RC_SUCCESS;
  uns32 ifindex = 0;
 
- m_NCS_MEMSET(&spt, 0, sizeof(NCS_IFSV_SPT));
- m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
+ memset(&spt, 0, sizeof(NCS_IFSV_SPT));
+ memset(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
  
  if_node = ncs_patricia_tree_getnext(&ifsv_cb->if_map_tbl, (uns8*)&spt);
  spt_info = (IFSV_SPT_REC*)if_node;  
@@ -2894,7 +2894,7 @@ static uns32  ifd_mbcsv_db_mismatch_correction(IFSV_CB *ifsv_cb, uns32 num_max_i
  uns32 res =          NCSCC_RC_SUCCESS;
  uns32 ifindex = 0;
 
- m_NCS_MEMSET(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
+ memset(&spt_map, 0, sizeof(NCS_IFSV_SPT_MAP));
 
  for(ifindex = 1; ifindex <= num_max_ifindex; ifindex++) 
  {
@@ -2935,7 +2935,7 @@ static uns32  ifd_find_index_from_sptmap(uns32 ifindex,IFSV_CB *cb)
    NCS_PATRICIA_NODE   *if_node;
    IFSV_SPT_REC        *spt_info;
 
-   m_NCS_MEMSET(&spt, 0, sizeof(NCS_IFSV_SPT));
+   memset(&spt, 0, sizeof(NCS_IFSV_SPT));
 
    if_node = ncs_patricia_tree_getnext(&cb->if_map_tbl, (uns8*)&spt);
    spt_info = (IFSV_SPT_REC*)if_node;

@@ -87,7 +87,7 @@ uns32 avsv_edp_attr_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_AVSV_ATTR_NAME_VAL));
+        memset(*d_ptr, '\0', sizeof(NCS_AVSV_ATTR_NAME_VAL));
         struct_ptr = *d_ptr;
     }
     else
@@ -146,7 +146,7 @@ uns32 avsv_edp_csi_attr_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(NCS_AVSV_CSI_ATTRS));
+        memset(*d_ptr, '\0', sizeof(NCS_AVSV_CSI_ATTRS));
         struct_ptr = *d_ptr;
     }
     else
@@ -205,7 +205,7 @@ uns32 avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *ed
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaAmfProtectionGroupNotificationBufferT));
+        memset(*d_ptr, '\0', sizeof(SaAmfProtectionGroupNotificationBufferT));
         struct_ptr = *d_ptr;
     }
     else

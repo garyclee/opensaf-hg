@@ -520,7 +520,7 @@ NCSMIB_ARG* ncsmib_decode( NCS_UBAID*    uba, uns16 msg_fmt_ver)
       return NULL;
    }
 
-   m_NCS_MEMSET(new_arg,0,sizeof(NCSMIB_ARG));
+   memset(new_arg,0,sizeof(NCSMIB_ARG));
 
    stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
    new_arg->i_op = ncs_decode_16bit(&stream);

@@ -202,7 +202,7 @@ uns32 mqsv_edp_mqd_a2s_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-       m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_MSG));
+       memset(*d_ptr, '\0', sizeof(MQD_A2S_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -261,7 +261,7 @@ static uns32 mqsv_edp_mqd_asapi_reg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-       m_NCS_MEMSET(*d_ptr, '\0', sizeof(ASAPi_REG_INFO));
+       memset(*d_ptr, '\0', sizeof(ASAPi_REG_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -331,7 +331,7 @@ static uns32 mqsv_edp_mqd_asapi_que_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(ASAPi_QUEUE_PARAM));
+        memset(*d_ptr, '\0', sizeof(ASAPi_QUEUE_PARAM));
         struct_ptr = *d_ptr;
     }
     else
@@ -387,7 +387,7 @@ static uns32 mqsv_edp_mqd_asapi_dereg_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(ASAPi_DEREG_INFO));
+        memset(*d_ptr, '\0', sizeof(ASAPi_DEREG_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -442,7 +442,7 @@ static uns32 mqsv_edp_mqd_asapi_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(ASAPi_TRACK_INFO));
+        memset(*d_ptr, '\0', sizeof(ASAPi_TRACK_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -496,7 +496,7 @@ static uns32 mqsv_edp_mqd_a2s_user_evt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_USER_EVENT_INFO));
+        memset(*d_ptr, '\0', sizeof(MQD_A2S_USER_EVENT_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -555,7 +555,7 @@ static uns32 mqsv_edp_mqd_a2s_nd_stat_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-       m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_ND_STAT_INFO));
+       memset(*d_ptr, '\0', sizeof(MQD_A2S_ND_STAT_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -611,7 +611,7 @@ static uns32 mqsv_edp_mqd_a2s_nd_timer_exp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-       m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
+       memset(*d_ptr, '\0', sizeof(MQD_A2S_ND_TIMER_EXP_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -685,7 +685,7 @@ uns32 mqsv_edp_mqd_a2s_queue_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_QUEUE_INFO));
+        memset(*d_ptr, '\0', sizeof(MQD_A2S_QUEUE_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -755,7 +755,7 @@ static uns32 mqsv_edp_mqd_queue_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_QUEUE_PARAM));
+        memset(*d_ptr, '\0', sizeof(MQD_QUEUE_PARAM));
         struct_ptr = *d_ptr;
     }
     else
@@ -807,7 +807,7 @@ static uns32 mqsv_edp_mqd_qgroup_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_QGROUP_PARAM));
+        memset(*d_ptr, '\0', sizeof(MQD_QGROUP_PARAM));
         struct_ptr = *d_ptr;
     }
     else
@@ -904,7 +904,7 @@ static uns32 mqsv_edp_mqd_track_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_A2S_TRACK_INFO));
+        memset(*d_ptr, '\0', sizeof(MQD_A2S_TRACK_INFO));
         struct_ptr = *d_ptr;
     }
     else

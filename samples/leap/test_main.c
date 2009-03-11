@@ -706,7 +706,7 @@ mem_stktrace_add(int argc, char **argv)
     {
         NCSSYSM_LM_ARG   lm_arg;
 
-        m_NCS_MEMSET(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
+        memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
         lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_ADD;
         lm_arg.op.mem_stk_add.i_file = argv[1];
         lm_arg.op.mem_stk_add.i_line = atoi(argv[0]);
@@ -727,7 +727,7 @@ mem_stktrace_flush(int argc, char **argv)
 #if (NCSSYSM_STKTRACE)
     NCSSYSM_LM_ARG   lm_arg;
  
-    m_NCS_MEMSET(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
+    memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
     lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_FLUSH;
  
     if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
@@ -748,7 +748,7 @@ mem_stktrace_report(int argc, char **argv)
     uns8 outstr[STKTRACE_REPORT_SIZE];
     NCSSYSM_LM_ARG   lm_arg;
 
-    m_NCS_MEMSET(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
+    memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
     do
     {
         lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_RPT;
@@ -832,7 +832,7 @@ ipc_begin_lat_report(char *name)
 #if (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
    NCSSYSM_LM_ARG   lm_arg;
 
-   m_NCS_MEMSET(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
+   memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
    lm_arg.i_op = NCSSYSM_LM_OP_IPC_RPT_LBGN;
    lm_arg.op.ipc_rpt_lat_bgn.i_name = name;
    lm_arg.op.ipc_rpt_lat_bgn.i_cbfunc = ipc_lat_report_func;
@@ -858,7 +858,7 @@ ipc_lat_report(void)
 #if (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
    NCSSYSM_LM_ARG   lm_arg;
 
-   m_NCS_MEMSET(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
+   memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
    lm_arg.i_op = NCSSYSM_LM_OP_IPC_RPT_LTCY;
 
    if(ncssysm_lm(&lm_arg) == NCSCC_RC_SUCCESS)
@@ -971,7 +971,7 @@ Show_tests()
     m_NCS_CONS_PRINTF("\n----                    ---  ----------");
     for(i = 0; i < n; i ++)
     {
-        m_NCS_MEMSET(disp, 0X20, sizeof(disp));
+        memset(disp, 0X20, sizeof(disp));
         disp[27] = 0;
         m_NCS_STRNCPY(disp, tests[i].testName, m_NCS_STRLEN(tests[i].testName));
         m_NCS_CONS_PRINTF("\n%s %3d  %s", disp, i, tests[i].usage_str);

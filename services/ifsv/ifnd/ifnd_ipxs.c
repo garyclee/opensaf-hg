@@ -135,14 +135,14 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(IPXS_CB));
+   memset(cb, 0, sizeof(IPXS_CB));
 
    cb->hm_pid     = create->pool_id;
    cb->my_svc_id  = create->svc_id;
    cb->oac_hdl    = create->oac_hdl;
    cb->my_mds_hdl    = create->mds_hdl;
 
-   m_NCS_MEMSET(&cb->nl_addr_info, '\0', sizeof(cb->nl_addr_info));
+   memset(&cb->nl_addr_info, '\0', sizeof(cb->nl_addr_info));
 
    /* Initialize the IF-IP Table in IPXS CB */
    params.key_size = sizeof(uns32);
@@ -184,7 +184,7 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
       goto ipxs_netlink_socket_create_fail;            
    }
 
-   m_NCS_MEMSET(&local, '\0', sizeof(local));
+   memset(&local, '\0', sizeof(local));
    local.nl_family = AF_NETLINK;
    local.nl_pid = getpid();
    local.nl_groups = (RTMGRP_IPV4_IFADDR); 
@@ -372,7 +372,7 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
         m_NCS_CONS_PRINTF("Socket create failed \n");
 /*      goto ipxs_netlink_socket_create_fail; */
     }
-    m_NCS_MEMSET(local, '\0', sizeof(struct sockaddr_nl));
+    memset(local, '\0', sizeof(struct sockaddr_nl));
     local->nl_family = AF_NETLINK;
     local->nl_pid = getpid();
     local->nl_groups = (RTMGRP_IPV4_IFADDR);
@@ -557,7 +557,7 @@ static void ifnd_netlink_process(NCSCONTEXT info)
          {
             /* Compose the GETLINK request to netlink, after flushing the cache. */
             printf("Sending Request to update Links \n");
-            m_NCS_MEMSET(&ipxs_cb->ifndx_cache, '\0', sizeof(ipxs_cb->ifndx_cache));
+            memset(&ipxs_cb->ifndx_cache, '\0', sizeof(ipxs_cb->ifndx_cache));
             printf("Updating socket from retval == IPXS_NETLINK_REFRESH_CACHE cond \n");
             ipxs_ifnd_update_new_socket(ipxs_cb,&readfds,&netlink_fd,
                                         &numfds,&mbx_fd,&local);
@@ -736,7 +736,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
       if (rta_tb[IFLA_IFNAME] == NULL)
          return IPXS_NETLINK_WRONG_NLMSG_LEN;
 
-      m_NCS_MEMSET(&lcl_ifname, '\0', sizeof(lcl_ifname));
+      memset(&lcl_ifname, '\0', sizeof(lcl_ifname));
       /* memcpy(&lcl_ifname, RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ); */
       m_NCS_STRCPY(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]));
 
@@ -843,8 +843,8 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
          }
          
          temp_list = ncs_ipxs_ippfx_list_alloc(1);
-         m_NCS_MEMSET(temp_list, '\0', sizeof(IPXS_IFIP_IP_INFO));
-         m_NCS_MEMSET(&del_ipinfo, '\0', sizeof(NCS_IPPFX));
+         memset(temp_list, '\0', sizeof(IPXS_IFIP_IP_INFO));
+         memset(&del_ipinfo, '\0', sizeof(NCS_IPPFX));
 
          temp_list->ipaddr.ipaddr.type = NCS_IP_ADDR_TYPE_IPV4;
          temp_list->ipaddr.ipaddr.info.v4 = lcl_addr;
@@ -861,7 +861,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
             return IPXS_NETLINK_ALLOC_IPXS_EVT_FAIL;
          }
 
-         m_NCS_MEMSET(ipxs_evt, '\0', sizeof(IPXS_EVT));
+         memset(ipxs_evt, '\0', sizeof(IPXS_EVT));
 
          ipxs_evt->netlink_msg = TRUE;
          ipxs_evt->info.nd.atond_upd.if_index = ipxs_cb->ifndx_cache[ifa->ifa_index].if_index;
@@ -1027,7 +1027,7 @@ ifnd_ipxs_data_proc_ifip_info (IPXS_CB *cb, IPXS_EVT *ipxs_evt,
            updated_ipaddr_ptr = 
               (IPXS_IFIP_IP_INFO *)m_MMGR_ALLOC_IPXS_DEFAULT((temp_ptr->addip_cnt)*sizeof(IPXS_IFIP_IP_INFO));  
            if(updated_ipaddr_ptr != NULL)
-             m_NCS_OS_MEMSET(updated_ipaddr_ptr, 0 , (temp_ptr->addip_cnt)*sizeof(IPXS_IFIP_IP_INFO));   
+             memset(updated_ipaddr_ptr, 0 , (temp_ptr->addip_cnt)*sizeof(IPXS_IFIP_IP_INFO));   
            else
            {
              return NCSCC_RC_FAILURE;
@@ -1204,8 +1204,8 @@ uns32 ifnd_ipxs_proc_ifa_app_add(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    IPXS_IFIP_NODE    *ifip_node=0;
    NCS_IPXS_INTF_REC *cur_rec=0, *prev_rec=0;
    
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
    
 
    /* Fill the pointers */
@@ -1233,7 +1233,7 @@ uns32 ifnd_ipxs_proc_ifa_app_add(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
         m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
         return NCSCC_RC_FAILURE;
       }
-      m_NCS_OS_MEMSET(cur_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+      memset(cur_rec, 0, sizeof(NCS_IPXS_INTF_REC));
       cur_rec->if_index = ifip_node->ifip_info.ifindexNet;
       ifindex = ifip_node->ifip_info.ifindexNet;
 
@@ -1298,9 +1298,9 @@ static uns32 ifnd_ipxs_proc_get_ifip_req(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
       IFSV_EVT          evt;
       NCS_IPXS_INTF_REC send_rec;
 
-      m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-      m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
-      m_NCS_OS_MEMSET(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+      memset(&evt, 0, sizeof(IFSV_EVT));
+      memset(&send_evt, 0, sizeof(IPXS_EVT));
+      memset(&send_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
       /* Fill the pointers */
       evt.info.ipxs_evt = (NCSCONTEXT)&send_evt;
@@ -1368,8 +1368,8 @@ static uns32 ifnd_ipxs_node_rec_get(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
                   "Got IPXS_EVT_ATOND_NODE_REC_GET event from IfA",\
                    0);
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
  
    /* Fill the pointers */
    evt.info.ipxs_evt = (NCSCONTEXT)&send_evt;
@@ -1403,8 +1403,8 @@ static uns32 ifnd_ipxs_proc_isloc(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
        "Got IPXS_EVT_ATOND_IS_LOCAL event from IfA, ipaddr type and V4 : ",\
                      rcv_is_loc->ip_addr.type,rcv_is_loc->ip_addr.info.v4);
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
 
    is_loc = &send_evt.info.agent.isloc_rsp;
    is_loc->o_answer = FALSE;
@@ -1517,8 +1517,8 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    }
 
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
  
    /* Fill the pointers */
    evt.info.ipxs_evt = (NCSCONTEXT)&send_evt;
@@ -1578,9 +1578,9 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
          }
    }
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IPXS_EVT));
-   m_NCS_OS_MEMSET(&ip_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&send_evt, 0, sizeof(IPXS_EVT));
+   memset(&ip_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
    /* Fill the pointers */
    evt.info.ipxs_evt = (NCSCONTEXT)&send_evt; 
@@ -1643,9 +1643,9 @@ static uns32 ipxs_ifnd_ifip_info_bcast(IPXS_CB *cb, uns32 if_index,
    }
    
 
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
-   m_NCS_OS_MEMSET(&ipxs_evt, 0, sizeof(IPXS_EVT));
-   m_NCS_OS_MEMSET(&ip_rec, 0, sizeof(NCS_IPXS_INTF_REC));
+   memset(&evt, 0, sizeof(IFSV_EVT));
+   memset(&ipxs_evt, 0, sizeof(IPXS_EVT));
+   memset(&ip_rec, 0, sizeof(NCS_IPXS_INTF_REC));
 
    evt.info.ipxs_evt = (NCSCONTEXT)&ipxs_evt;
    ipxs_evt.info.agent.ip_upd.i_ipinfo = &ip_rec;

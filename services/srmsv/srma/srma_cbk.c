@@ -99,7 +99,7 @@ uns32 srma_update_sync_cbk_info(SRMA_CB *srma,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_OS_MEMSET((char *)cbk_rec, 0, sizeof(SRMA_PEND_CBK_REC));
+      memset((char *)cbk_rec, 0, sizeof(SRMA_PEND_CBK_REC));
             
       /* So this cbk info. is for SRMSv agent only, not for application */
       cbk_rec->for_srma = TRUE;
@@ -239,7 +239,7 @@ uns32 srma_update_appl_cbk_info(SRMA_CB *srma,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET((char *)cbk_rec, 0, sizeof(SRMA_PEND_CBK_REC));
+   memset((char *)cbk_rec, 0, sizeof(SRMA_PEND_CBK_REC));
   
    /* Update the Callback data */
    cbk_rec->info.cbk_info = *cbk_info;

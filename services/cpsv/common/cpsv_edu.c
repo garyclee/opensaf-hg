@@ -131,7 +131,7 @@ TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
                 return NCSCC_RC_FAILURE;              \
              } \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS));     \
+          memset(*d_ptr, '\0', sizeof(DS));     \
           struct_ptr = *d_ptr;                        \
           break;                                       \
                                                       \
@@ -163,7 +163,7 @@ TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
                 return NCSCC_RC_FAILURE;              \
              } \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS));     \
+          memset(*d_ptr, '\0', sizeof(DS));     \
           struct_ptr = *d_ptr;                        \
           break;                                       \
                                                       \
@@ -196,7 +196,7 @@ TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
                 return NCSCC_RC_FAILURE;              \
              } \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS));     \
+          memset(*d_ptr, '\0', sizeof(DS));     \
           struct_ptr = *d_ptr;                        \
           break;                                       \
                                                       \
@@ -229,7 +229,7 @@ TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
                 return NCSCC_RC_FAILURE;              \
              } \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS));     \
+          memset(*d_ptr, '\0', sizeof(DS));     \
           struct_ptr = *d_ptr;                        \
           break;                                       \
                                                       \
@@ -261,7 +261,7 @@ TEST_FUNC_DECLARATION(CPSV_ND2A_DATA_ACCESS_RSP);
                 return NCSCC_RC_FAILURE;              \
              } \
           }                                           \
-          m_NCS_MEMSET(*d_ptr, '\0', sizeof(DS));     \
+          memset(*d_ptr, '\0', sizeof(DS));     \
           struct_ptr = *d_ptr;                        \
           break;                                       \
                                                       \

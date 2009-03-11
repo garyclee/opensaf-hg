@@ -367,7 +367,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
                    return;
                }
          }
-         m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
+         memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
          memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_start->hc_key.keyLen;
@@ -382,7 +382,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
             return;
          }
          
-         m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+         memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
          tmp_hc_rec.key = hlt_chk.name;
          tmp_hc_rec.req_hdl = hc_start->hdl; 
          /* determine if this healthcheck is already active */
@@ -417,7 +417,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
                    return;
                }
          }
-         m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
+         memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_stop->comp_name_net.length;
          memcpy(hlt_chk.comp_name_net.value, hc_stop->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_stop->hc_key.keyLen;
@@ -425,7 +425,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
          memcpy(hlt_chk.name.key, hc_stop->hc_key.key, hc_stop->hc_key.keyLen);
          hlt_chk.name.keyLen = hc_stop->hc_key.keyLen;
          
-         m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+         memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
          tmp_hc_rec.key = hlt_chk.name;
          tmp_hc_rec.req_hdl = hc_stop->hdl; 
          /* get the record from component healthcheck list */
@@ -460,7 +460,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
                    return;
                }
          }
-         m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
+         memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
          hlt_chk.comp_name_net.length = hc_confirm->comp_name_net.length;
          memcpy(hlt_chk.comp_name_net.value, hc_confirm->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
          l_num = hc_confirm->hc_key.keyLen;
@@ -468,7 +468,7 @@ void avnd_comp_hc_param_val(AVND_CB           *cb,
          memcpy(hlt_chk.name.key, hc_confirm->hc_key.key, hc_confirm->hc_key.keyLen);
          hlt_chk.name.keyLen = hc_confirm->hc_key.keyLen;
 
-         m_NCS_MEMSET(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
+         memset(&tmp_hc_rec,'\0',sizeof(AVND_COMP_HC_REC));
          tmp_hc_rec.key = hlt_chk.name;
          tmp_hc_rec.req_hdl = hc_confirm->hdl; 
          /* get the record from component healthcheck list */
@@ -532,14 +532,14 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add (AVND_CB                 *cb,
    if ( (0 == (rec = m_MMGR_ALLOC_AVND_COMP_HC_REC)) )
       goto err;
 
-   m_NCS_OS_MEMSET(rec, 0, sizeof(AVND_COMP_HC_REC));
+   memset(rec, 0, sizeof(AVND_COMP_HC_REC));
    
    /* create the association with hdl-mngr */
    if ( (0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND,
                                                (NCSCONTEXT)rec))) )
       goto err;
 
-   m_NCS_MEMSET(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
+   memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
    hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
    memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value, m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
    l_num = hc_start->hc_key.keyLen;

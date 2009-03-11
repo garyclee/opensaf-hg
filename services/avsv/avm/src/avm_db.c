@@ -70,7 +70,7 @@ avm_add_ent_info(
       return AVM_ENT_INFO_NULL;
    }   
    
-   m_NCS_MEMSET((uns8 *)ent_info, '\0', sizeof(AVM_ENT_INFO_T));
+   memset((uns8 *)ent_info, '\0', sizeof(AVM_ENT_INFO_T));
    memcpy(ent_info->entity_path.Entry, entity_path->Entry, sizeof(SaHpiEntityPathT));
 
    ent_info->tree_node.key_info = (uns8 *)(ent_info->entity_path.Entry);
@@ -106,7 +106,7 @@ avm_add_ent_info(
    ent_info->fault_domain           = AVM_FAULT_DOMAIN_NULL;
    ent_info->depends_on_valid       = NCSCC_RC_FAILURE;
    
-   m_NCS_MEMSET(ent_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
+   memset(ent_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
    ent_info->node_name.length       = 0;
 
    ent_info->current_state          = AVM_ENT_NOT_PRESENT;
@@ -138,10 +138,10 @@ avm_add_ent_info(
     m_AVM_LOG_PATRICIA_OP(AVM_LOG_PAT_ADD, entity_path->Entry, sizeof(SaHpiEntityPathT), AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
 
    ent_info->desc_name.length = 0;
-   m_NCS_MEMSET(ent_info->desc_name.name, '\0', NCS_MAX_INDEX_LEN);
+   memset(ent_info->desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
    ent_info->parent_desc_name.length = 0;
-   m_NCS_MEMSET(ent_info->parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);   
+   memset(ent_info->parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);   
 
    return ent_info;
 }
@@ -285,9 +285,9 @@ avm_add_node_name_info(
       return AVM_NODE_INFO_NULL;
    }   
 
-   m_NCS_MEMSET((uns8 *)node_info, '\0', sizeof(AVM_NODE_INFO_T));
+   memset((uns8 *)node_info, '\0', sizeof(AVM_NODE_INFO_T));
    
-   m_NCS_MEMSET(node_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
+   memset(node_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
 
    memcpy(node_info->node_name.value, node_name.value, node_name.length);
    node_info->node_name.length = node_name.length;
@@ -623,7 +623,7 @@ avm_add_valid_info(
       return AVM_VALID_INFO_NULL;
    }   
    
-   m_NCS_MEMSET((uns8 *)valid_info, '\0', sizeof(AVM_VALID_INFO_T));
+   memset((uns8 *)valid_info, '\0', sizeof(AVM_VALID_INFO_T));
    memcpy(valid_info->desc_name.name, desc_name->name, desc_name->length);
    valid_info->desc_name.length = desc_name->length;
   
@@ -645,11 +645,11 @@ avm_add_valid_info(
 
    valid_info->inv_data.product_name.DataLength = 0;
    valid_info->inv_data.product_name.Language   = SAHPI_LANG_UNDEF;
-   m_NCS_MEMSET(valid_info->inv_data.product_name.Data, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
+   memset(valid_info->inv_data.product_name.Data, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
 
    valid_info->inv_data.product_version.DataLength = 0;
    valid_info->inv_data.product_version.Language   = SAHPI_LANG_UNDEF;
-   m_NCS_MEMSET(valid_info->inv_data.product_version.Data, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
+   memset(valid_info->inv_data.product_version.Data, '\0', SAHPI_MAX_TEXT_BUFFER_LENGTH);
    
    m_AVM_LOG_PATRICIA_OP_STR(AVM_LOG_PAT_ADD, desc_name->name, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
 
@@ -778,7 +778,7 @@ avm_find_ent_str_info(
    AVM_ENT_INFO_T *ent_info;
    AVM_ENT_PATH_STR_T ep_net;
    
-   m_NCS_MEMSET(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
    
    memcpy(ep_net.name, ep->name, ep->length);
    if(TRUE == is_host_order )
@@ -824,7 +824,7 @@ avm_find_next_ent_str_info(
    AVM_ENT_INFO_T *ent_info = AVM_ENT_INFO_NULL;
    AVM_ENT_PATH_STR_T ep_net;
    
-   m_NCS_MEMSET(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
+   memset(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
    
    memcpy(ep_net.name, ep->name, ep->length);
    ep_net.length = m_NCS_OS_HTONS(ep->length);      

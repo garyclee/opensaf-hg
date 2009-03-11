@@ -655,7 +655,7 @@ uns32 cpsv_ckpt_data_decode(CPSV_CKPT_DATA  **data, NCS_UBAID *io_uba )
    pdata = *data;
    while(num_of_nodes)
    {
-     m_NCS_MEMSET(pdata,0,sizeof(CPSV_CKPT_DATA));
+     memset(pdata,0,sizeof(CPSV_CKPT_DATA));
      rc = cpsv_ckpt_node_decode(pdata , io_uba);
      if(rc != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
@@ -706,7 +706,7 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata , NCS_UBAID *io_uba)
         m_MMGR_FREE_CPSV_CKPT_DATA(pdata);
         return NCSCC_RC_FAILURE;
      }
-     m_NCS_MEMSET(pdata->sec_id.id ,0,pdata->sec_id.idLen);
+     memset(pdata->sec_id.id ,0,pdata->sec_id.idLen);
      ncs_decode_n_octets_from_uba(io_uba, pdata->sec_id.id,
                                      (uns32)pdata->sec_id.idLen);
    }
@@ -727,7 +727,7 @@ uns32 cpsv_ckpt_node_decode(CPSV_CKPT_DATA *pdata , NCS_UBAID *io_uba)
         m_MMGR_FREE_CPSV_CKPT_DATA(pdata);
         return NCSCC_RC_FAILURE;
      }
-     m_NCS_MEMSET(pdata->data,0,pdata->dataSize);
+     memset(pdata->data,0,pdata->dataSize);
 
      ncs_decode_n_octets_from_uba(io_uba, pdata->data,
                                      (uns32)pdata->dataSize);
@@ -773,7 +773,7 @@ uns32 cpsv_nd2a_read_data_decode(CPSV_ND2A_READ_DATA *read_data , NCS_UBAID *io_
        m_MMGR_FREE_CPSV_ND2A_READ_DATA(read_data, NCS_SERVICE_ID_CPA);
        return m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"Memory alloc failed in cpsv_nd2a_read_data_decode \n");
     }
-    m_NCS_MEMSET(read_data->data , 0 , read_data->read_size);
+    memset(read_data->data , 0 , read_data->read_size);
     ncs_decode_n_octets_from_uba(io_uba, read_data->data, (uns32)read_data->read_size);
 
   }
@@ -827,7 +827,7 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID
               rc =NCSCC_RC_FAILURE;
            }
            write_err_index = data_rsp->info.write_err_index;
-           m_NCS_MEMSET(write_err_index , 0 , size);
+           memset(write_err_index , 0 , size);
            pstream = ncs_dec_flatten_space(io_uba, local_data , size);
            for(i = 0 ; i< data_rsp->size ; i++)
            {
@@ -847,7 +847,7 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID
            {
                rc = NCSCC_RC_FAILURE;
            }
-           m_NCS_MEMSET(data_rsp->info.read_data , 0 , data_rsp->size*sizeof(CPSV_ND2A_READ_DATA));
+           memset(data_rsp->info.read_data , 0 , data_rsp->size*sizeof(CPSV_ND2A_READ_DATA));
 
            for(i = 0; i< data_rsp->size; i++)
                 rc = cpsv_nd2a_read_data_decode(&data_rsp->info.read_data[i] , io_uba);

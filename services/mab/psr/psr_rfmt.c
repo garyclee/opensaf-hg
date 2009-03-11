@@ -103,7 +103,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    NCS_OS_FILE                dest_inst_file;
 
 
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
 
    m_NCS_CONS_PRINTF("\nDest_file: %s", dest_file);
    m_NCS_CONS_PRINTF("\nSource_file: %s", source_file);
@@ -120,7 +120,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
 
    m_NCS_CONS_PRINTF("\nfilesize: %d\t rem_file_size: %d", inst_file.info.size.o_file_size, rem_file_size);
    /* Now open source file for reading */
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    inst_file.info.open.i_file_name = source_file;
    inst_file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 
@@ -130,7 +130,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    src_file_handle = (long) inst_file.info.open.o_file_handle;
 
    /* Now open dest file for appending */
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    inst_file.info.open.i_file_name = dest_file;
    inst_file.info.open.i_read_write_mask = NCS_OS_FILE_PERM_APPEND;
     
@@ -138,7 +138,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    {
       if (src_file_handle != 0)
       {
-          m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+          memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
           inst_file.info.close.i_file_handle = (void *) src_file_handle;
           if(NCSCC_RC_SUCCESS != m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_CLOSE))
               return PSSRC_SRCFILECLOSE_FAILURE;
@@ -147,7 +147,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    }
 
    dest_file_handle = (long) inst_file.info.open.o_file_handle;
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* Moving till the offset location in the source file */
    inst_file.info.seek.i_file_handle = (void *) src_file_handle;
    inst_file.info.seek.i_offset = start_offset;
@@ -158,8 +158,8 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
    }
 
    m_NCS_CONS_PRINTF("\nfile size: %d", rem_file_size);
-   m_NCS_MEMSET(&src_inst_file, '\0', sizeof(NCS_OS_FILE));
-   m_NCS_MEMSET(&dest_inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&src_inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&dest_inst_file, '\0', sizeof(NCS_OS_FILE));
    src_inst_file.info.read.i_file_handle = (void *) src_file_handle;
    dest_inst_file.info.write.i_file_handle = (void *) dest_file_handle;
 
@@ -199,7 +199,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
 
    m_NCS_CONS_PRINTF("\nEnd of while: rem_file_size %d", rem_file_size);
 
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* Get the file size to determine how many times to read */
    inst_file.info.size.i_file_name = dest_file;
    if(NCSCC_RC_SUCCESS != m_NCS_OS_FILE(&inst_file, NCS_OS_FILE_SIZE))
@@ -226,7 +226,7 @@ closeallfiles:
 
    if(PSSRC_SUCCESS != pss_retval)
    {
-      m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+      memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
       inst_file.info.remove.i_file_name = dest_file;
       m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_REMOVE);
    }
@@ -299,7 +299,7 @@ uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl, PS
       /* Log that there is INCONSISTENTCY in header details */
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_ERR_TABLE_FOUND, rec->tbl_id);
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_INVALID_TABLE_DETAILS_HEADER_LEN, hdr->header_len);
-      m_NCS_MEMSET(hdr, '\0', PSS_TABLE_DETAILS_HEADER_LEN);
+      memset(hdr, '\0', PSS_TABLE_DETAILS_HEADER_LEN);
       return NCSCC_RC_FAILURE;
    }
 
@@ -505,7 +505,7 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
    m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_1EXT_TO_HIGHER");
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_1_TO_1EXT_START, rec->tbl_id);
 
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    snprintf(dest_file_path, sizeof(dest_file_path)-1, "%s%d/%s/%d/%s/%d_tbl_details",
                           NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
    m_NCS_CONS_PRINTF("\n dest_file_path : %s", dest_file_path);
@@ -524,7 +524,7 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
       if(PSSRC_SUCCESS == pss_retval)
       {
 /*       m_NCS_PSSTS_FILE_DELETE(inst->pssts_api, ts_hdl, retval, rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id); */
-         m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+         memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
          inst_file.info.rename.i_file_name     = dest_file_path;
          inst_file.info.rename.i_new_file_name = source_file_path;
          if(m_NCS_OS_FILE(&inst_file, NCS_OS_FILE_RENAME) != NCSCC_RC_SUCCESS)
@@ -817,7 +817,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_HIGHER_TO_1EXT_START,
                     rec->tbl_id);
    m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_MIB_IS_READY");
-   m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+   memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* The persistent store format version registered with targsvcs could be
       different with the version in which the table details file is being opened.
       Thus the targsvcs macros cannot be used.
@@ -832,7 +832,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
 
    if(inst_file.info.file_exists.o_file_exists == FALSE)
    {
-      m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+      memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
       /* Open the persistent file of the table for reading */
       m_NCS_PSSTS_FILE_OPEN(inst->pssts_api, ts_hdl, retval, rec->profile,
                             rec->pwe_id, rec->pcn, rec->tbl_id,
@@ -1040,7 +1040,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
    }
 
    bitmap_ptr = new_bitmap;
-   m_NCS_MEMSET(bitmap_ptr, '\0', max_bitmap_bytes);
+   memset(bitmap_ptr, '\0', max_bitmap_bytes);
 
    /* Framing bitmap for the changed MIB row */
    pss_frame_current_bitmap(inst, rec->tbl_id, new_bitmap);
@@ -1051,7 +1051,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
    {
       m_NCS_CONS_PRINTF("\nhdr->header_len: %d > PSS_TABLE_DETAILS_HEADER_LEN: %d ", hdr->header_len, PSS_TABLE_DETAILS_HEADER_LEN);
       /* Moving the file position indicator to point the first record */
-      m_NCS_MEMSET(&inst_file, '\0', sizeof(NCS_OS_FILE));
+      memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
       inst_file.info.seek.i_file_handle = (void *)(long) file_hdl;
       inst_file.info.seek.i_offset = hdr->header_len - PSS_TABLE_DETAILS_HEADER_LEN;
       retval = m_NCS_FILE_OP (&inst_file, NCS_OS_FILE_SEEK);
@@ -1106,7 +1106,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
    {
       uns8    temp[max_bitmap_bytes];
 
-      m_NCS_MEMSET(read_buff, '\0', read_buf_size);
+      memset(read_buff, '\0', read_buf_size);
       read_buff_ptr = read_buff;
 
       read_rows = (rem_num_rows < max_rows_in_chunk) ? rem_num_rows : max_rows_in_chunk;
@@ -1127,12 +1127,12 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_MEMSET(write_buff, '\0', write_buf_size);
+      memset(write_buff, '\0', write_buf_size);
       write_buff_ptr = write_buff;
       for(row = read_rows; row != 0; row--)
       {
          /* Modifying the bitmap as per the current MIB */
-         m_NCS_MEMSET(temp, '\0', max_bitmap_bytes);
+         memset(temp, '\0', max_bitmap_bytes);
          memcpy(temp, read_buff_ptr, hdr->bitmap_length);
          read_buff_ptr  += hdr->bitmap_length;
 
@@ -1259,7 +1259,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                                                                         profile_next);
              break;
           }
-          m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+          memset(&lcl_uba, '\0', sizeof(lcl_uba));
           ncs_dec_init_space(&lcl_uba, buff);
 
           buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pwe_cnt, sizeof(uns16));
@@ -1329,7 +1329,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                 str_len = ncs_decode_16bit(&buff_ptr);
                 ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
                 m_NCS_CONS_PRINTF("\nstr_len: %d", str_len);
-                m_NCS_MEMSET(pcn, '\0', sizeof(NCSMIB_PCN_LENGTH_MAX));
+                memset(pcn, '\0', sizeof(NCSMIB_PCN_LENGTH_MAX));
                 if(NCSCC_RC_SUCCESS != ncs_decode_n_octets_from_uba(&lcl_uba, (char*)&pcn, str_len))
                 {
                    m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_UBA_DEC_OCTETS_FAIL,

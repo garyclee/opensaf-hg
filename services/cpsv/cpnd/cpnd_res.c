@@ -182,7 +182,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
    CPND_CKPT_SECTION_INFO *pSecPtr=NULL;
    NCS_OS_POSIX_SHM_REQ_INFO read_req;
      
-   m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CPSV_CKPT_HDR));
+   memset(&ckpt_hdr,'\0',sizeof(CPSV_CKPT_HDR));
    open_req->type = NCS_OS_POSIX_SHM_REQ_OPEN;
    open_req->info.open.i_size = sizeof(CPSV_CKPT_HDR)+(cp_info->maxSections*((sizeof(CPSV_SECT_HDR)+cp_info->maxSecSize)));
    open_req->info.open.i_offset = 0;
@@ -227,8 +227,8 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
 
    while(counter < ckpt_hdr.n_secs)  
    {
-      m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
-      m_NCS_MEMSET(&sect_hdr,'\0',sizeof(CPSV_SECT_HDR));
+      memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+      memset(&sect_hdr,'\0',sizeof(CPSV_SECT_HDR));
       read_req.type = NCS_OS_POSIX_SHM_REQ_READ;
       read_req.info.read.i_addr = (void *)((char *)open_req->info.open.o_addr+sizeof(CPSV_CKPT_HDR));
       read_req.info.read.i_read_size = sizeof(CPSV_SECT_HDR);
@@ -256,7 +256,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
          goto end;
       }      
 
-      m_NCS_MEMSET(pSecPtr,'\0',sizeof(CPND_CKPT_SECTION_INFO));
+      memset(pSecPtr,'\0',sizeof(CPND_CKPT_SECTION_INFO));
       pSecPtr->lcl_sec_id = sect_hdr.lcl_sec_id;
       pSecPtr->sec_id.idLen     = sect_hdr.idLen;
       if(pSecPtr->sec_id.idLen != 0)
@@ -277,7 +277,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
       pSecPtr->lastUpdate = sect_hdr.lastUpdate;    
          
       cpnd_res_ckpt_sec_add(pSecPtr,*cp_node);
-      m_NCS_MEMSET(&sect_hdr,'\0',sizeof(CPSV_SECT_HDR));           
+      memset(&sect_hdr,'\0',sizeof(CPSV_SECT_HDR));           
 
       (*cp_node)->replica_info.mem_used+=pSecPtr->sec_size;
 
@@ -295,7 +295,7 @@ void cpnd_restart_update_timer(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaTimeT close
 {
    CKPT_INFO ckpt_info;
 
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
    if(cp_node->offset >= 0 )
    {
       m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
@@ -336,7 +336,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    SaCkptHandleT client_hdl;  
    uns8 *buf,size=0,total_length,*buffer;
    GBL_SHM_PTR   gbl_shm_addr;
-   m_NCS_MEMSET(&cp_info,'\0',sizeof(CKPT_INFO));
+   memset(&cp_info,'\0',sizeof(CKPT_INFO));
    NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
    SaTimeT   presentTime,timeout=0;
    int64 now,diff_time,giga_sec;
@@ -345,7 +345,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    CPND_SHM_VERSION    cpnd_shm_version;
 
    /* Initializing shared memory version */
-   m_NCS_MEMSET(&cpnd_shm_version,'\0',sizeof(cpnd_shm_version));
+   memset(&cpnd_shm_version,'\0',sizeof(cpnd_shm_version));
    cpnd_shm_version.shm_version = CPSV_CPND_SHM_VERSION;
 
    size = m_NCS_STRLEN("CPND_CHECKPOINT_INFO");
@@ -357,7 +357,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
       return NULL;   
    }
    cb->cpnd_res_shm_name = buffer;
-   m_NCS_MEMSET(buffer,'\0',total_length);
+   memset(buffer,'\0',total_length);
    m_NCS_OS_STRNCPY(buffer,"CPND_CHECKPOINT_INFO",total_length);
    m_NCS_OS_SPRINTF(buffer+size,"_%d",(uns32)nodeid);
 
@@ -386,7 +386,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
       }
       cb->cpnd_first_time = TRUE; 
 
-      m_NCS_MEMSET(cpnd_open_req->info.open.o_addr,0,sizeof(CLIENT_HDR)+(MAX_CLIENTS*sizeof(CLIENT_INFO))+sizeof(CKPT_HDR)+(MAX_CKPTS*sizeof(CKPT_INFO)));
+      memset(cpnd_open_req->info.open.o_addr,0,sizeof(CLIENT_HDR)+(MAX_CLIENTS*sizeof(CLIENT_INFO))+sizeof(CKPT_HDR)+(MAX_CKPTS*sizeof(CKPT_INFO)));
       m_LOG_CPND_CL(CPND_NEW_SHM_CREATE_SUCCESS,NCSFL_SEV_INFO,CPND_FC_RESTART,__FILE__,__LINE__);
       return cpnd_open_req->info.open.o_addr;
    }
@@ -414,7 +414,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
 
       m_NCS_CONS_PRINTF("\nCPND IS RESTARTING \n");
       /* Read the number of clients from the header */
-      m_NCS_MEMSET(&cli_hdr,'\0',sizeof(CLIENT_HDR));   
+      memset(&cli_hdr,'\0',sizeof(CLIENT_HDR));   
       m_CPND_CLIHDR_INFO_READ(cli_hdr,(char *)gbl_shm_addr.cli_addr,0);
 
       n_clients = cli_hdr.num_clients;
@@ -423,7 +423,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
       if(n_clients != 0)
       {
          while(counter < MAX_CLIENTS){
-              m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
+              memset(&cl_info,'\0',sizeof(CLIENT_INFO));
               i_offset = counter * sizeof(CLIENT_INFO);
               m_CPND_CLINFO_READ(cl_info,(char *)gbl_shm_addr.cli_addr+sizeof(CLIENT_HDR),i_offset);
       
@@ -440,7 +440,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                  rc = SA_AIS_ERR_NO_MEMORY;
                  goto memfail;
               }     
-              m_NCS_MEMSET(cl_node,'\0',sizeof(CPND_CKPT_CLIENT_NODE));
+              memset(cl_node,'\0',sizeof(CPND_CKPT_CLIENT_NODE));
               cl_node->ckpt_app_hdl   = cl_info.ckpt_app_hdl;
               cl_node->agent_mds_dest = cl_info.agent_mds_dest;
               cl_node->offset         = cl_info.offset;
@@ -468,7 +468,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
 
         /* TO READ THE NUMBER OF CHECKPOINTS FROM THE HEADER */
       while(counter < MAX_CKPTS){
-            m_NCS_MEMSET(&cp_info,'\0',sizeof(CKPT_INFO));
+            memset(&cp_info,'\0',sizeof(CKPT_INFO));
             i_offset = counter * sizeof(CKPT_INFO);
             m_CPND_CKPTINFO_READ(cp_info,(char *)gbl_shm_addr.ckpt_addr+sizeof(CKPT_HDR),i_offset);
 
@@ -486,7 +486,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                    goto memfail;
                 }
               
-                m_NCS_MEMSET(cp_node,'\0',sizeof(CPND_CKPT_NODE));
+                memset(cp_node,'\0',sizeof(CPND_CKPT_NODE));
                 cp_node->ckpt_name  = cp_info.ckpt_name;
                 cp_node->ckpt_id    = cp_info.ckpt_id;
                 cp_node->offset     = cp_info.offset;
@@ -502,7 +502,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                    size=cp_node->ckpt_name.length;
                    total_length=size+sizeof(cp_node->ckpt_id)+sizeof(NODE_ID)+5;
                    buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
-                   m_NCS_MEMSET(buf,'\0',total_length);
+                   memset(buf,'\0',total_length);
                    m_NCS_OS_STRNCPY(buf,cp_node->ckpt_name.value,size);
                    m_NCS_OS_SPRINTF(buf+size-1,"_%d_%d",(uns32)nodeid,(uns32)cp_node->ckpt_id);
                    rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open,buf,&cp_node,0,&cp_info);
@@ -519,7 +519,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                 if(cp_node->is_unlink)
                    cp_node->ckpt_name.length = 0;
                  
-                m_NCS_MEMSET(&tmp_cp_info,'\0',sizeof(CKPT_INFO));
+                memset(&tmp_cp_info,'\0',sizeof(CKPT_INFO));
                 memcpy(&tmp_cp_info,&cp_info,sizeof(CKPT_INFO));
                 next_offset = cp_info.offset;
                 while(next_offset >= 0 )
@@ -549,7 +549,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                        next_offset = tmp_cp_info.next;
                        if(next_offset >= 0 )
                        {
-                          m_NCS_MEMSET(&tmp_cp_info,'\0',sizeof(CKPT_INFO));
+                          memset(&tmp_cp_info,'\0',sizeof(CKPT_INFO));
                           i_offset = next_offset * sizeof(CKPT_INFO);
                           m_CPND_CKPTINFO_READ(tmp_cp_info,(char *)gbl_shm_addr.ckpt_addr+sizeof(CKPT_HDR),i_offset);
                        }
@@ -624,9 +624,9 @@ int32 cpnd_find_free_loc(CPND_CB *cb,CPND_TYPE_INFO type)
    CKPT_INFO ckpt_info;
    NCS_OS_POSIX_SHM_REQ_INFO read_req;
     
-   m_NCS_MEMSET(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
-   m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&read_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+   memset(&cl_info,'\0',sizeof(CLIENT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
     
    switch(type)
    {
@@ -646,7 +646,7 @@ int32 cpnd_find_free_loc(CPND_CB *cb,CPND_TYPE_INFO type)
            if(1  == ((CLIENT_INFO *)read_req.info.read.i_to_buff)->is_valid)
            {
               counter++;
-              m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
+              memset(&cl_info,'\0',sizeof(CLIENT_INFO));
               if(counter == MAX_CLIENTS)
               {
                  m_LOG_CPND_CL(CPND_MAX_CLIENTS_REACHED,CPND_FC_RESTART,NCSFL_SEV_INFO,__FILE__,__LINE__);
@@ -680,7 +680,7 @@ int32 cpnd_find_free_loc(CPND_CB *cb,CPND_TYPE_INFO type)
             if(1 == ((CKPT_INFO *)read_req.info.read.i_to_buff)->is_valid)
             {
                counter++;
-               m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+               memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
                if(counter == MAX_CKPTS)
                {
                   m_LOG_CPND_CL(CPND_MAX_CKPTS_REACHED,CPND_FC_RESTART,NCSFL_SEV_INFO,__FILE__,__LINE__);
@@ -717,7 +717,7 @@ uns32 cpnd_ckpt_write_header(CPND_CB *cb, uns32 nckpts)
    void *offset;
 /*   offset = (cb->shm_addr.cli_addr+sizeof(CLIENT_HDR)+(MAX_CLIENTS*sizeof(CLIENT_INFO)));*/
    offset = cb->shm_addr.ckpt_addr;
-   m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));   
+   memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));   
    
    ckpt_hdr.num_ckpts = nckpts;
 
@@ -741,7 +741,7 @@ uns32  cpnd_cli_info_write_header(CPND_CB *cb,int32 n_clients)
 {
    uns32 rc = NCSCC_RC_SUCCESS,offset;
    CLIENT_HDR cl_hdr;
-   m_NCS_MEMSET(&cl_hdr,'\0',sizeof(CLIENT_HDR));  
+   memset(&cl_hdr,'\0',sizeof(CLIENT_HDR));  
  
    cl_hdr.num_clients = n_clients;
    offset = 0;
@@ -766,8 +766,8 @@ uns32  cpnd_write_client_info(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node,int32 o
 {
     CLIENT_INFO cl_info;
     NCS_OS_POSIX_SHM_REQ_INFO write_req;
-    m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
-    m_NCS_MEMSET(&write_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+    memset(&cl_info,'\0',sizeof(CLIENT_INFO));
+    memset(&write_req,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
     uns32 rc = NCSCC_RC_SUCCESS,i_offset;
 
     cl_info.ckpt_app_hdl = cl_node->ckpt_app_hdl;
@@ -798,7 +798,7 @@ uns32  cpnd_write_client_info(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node,int32 o
 void cpnd_restart_set_arrcb(CPND_CB *cb,CPND_CKPT_CLIENT_NODE  *cl_node)
 {
    CLIENT_INFO cl_info;
-   m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
+   memset(&cl_info,'\0',sizeof(CLIENT_INFO));
 
    m_CPND_CLINFO_READ(cl_info,((char *)cb->shm_addr.cli_addr)+sizeof(CLIENT_HDR),
        cl_node->offset * sizeof(CLIENT_INFO));
@@ -852,14 +852,14 @@ NCS_BOOL cpnd_find_exact_ckptinfo(CPND_CB *cb,CKPT_INFO *ckpt_info,uns32 bitmap_
    uns32 i_offset ;
    NCS_BOOL found = FALSE ;
  
-   m_NCS_MEMSET(&prev_ckpt_info,0,sizeof(ckpt_info));
+   memset(&prev_ckpt_info,0,sizeof(ckpt_info));
    memcpy(&prev_ckpt_info,ckpt_info,sizeof(CKPT_INFO));
    next    = ckpt_info->offset; 
    *prev_offset = prev_ckpt_info.offset;
  
    while(next >= 0 )
    {
-        m_NCS_MEMSET(&prev_ckpt_info,0,sizeof(ckpt_info));
+        memset(&prev_ckpt_info,0,sizeof(ckpt_info));
         i_offset = next * sizeof(CKPT_INFO);
         m_CPND_CKPTINFO_READ(prev_ckpt_info, (char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR) ,i_offset); 
         if(prev_ckpt_info.bm_offset == bitmap_offset )
@@ -895,9 +895,9 @@ uns32  cpnd_update_ckpt_with_clienthdl(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkp
     uns32 bitmap_offset = 0,bitmap_value = 0 , i_offset, prev_offset, offset ,rc = NCSCC_RC_SUCCESS;
     NCS_BOOL found = FALSE;  
   
-    m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
-    m_NCS_MEMSET(&prev_ckpt_info,'\0',sizeof(CKPT_INFO));
-    m_NCS_MEMSET(&new_ckpt_info,'\0',sizeof(CKPT_INFO));
+    memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
+    memset(&prev_ckpt_info,'\0',sizeof(CKPT_INFO));
+    memset(&new_ckpt_info,'\0',sizeof(CKPT_INFO));
    
     /* Read the starting shared memory entry for this cp_node */ 
     prev_offset   = cp_node->offset; 
@@ -934,7 +934,7 @@ uns32  cpnd_update_ckpt_with_clienthdl(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkp
         }
         
         /* Update the Header with incremented number of ckpt_info 's */
-        m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
+        memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
         m_CPND_CKPTHDR_READ(ckpt_hdr,(char *)cb->shm_addr.ckpt_addr,0);
         no_ckpts = ++(ckpt_hdr.num_ckpts);
         
@@ -990,7 +990,7 @@ uns32 cpnd_write_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node,int32 offset,SaCk
    CKPT_INFO ckpt_info;
    uns32  rc = NCSCC_RC_SUCCESS,i_offset;
 
-   m_NCS_MEMSET(&ckpt_info,0,sizeof(CKPT_INFO));
+   memset(&ckpt_info,0,sizeof(CKPT_INFO));
    ckpt_info.ckpt_name       = cp_node->ckpt_name;
    ckpt_info.ckpt_id         = cp_node->ckpt_id;
    ckpt_info.maxSections     = cp_node->create_attrib.maxSections;
@@ -1039,8 +1039,8 @@ int32  cpnd_restart_shm_client_update(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node
    uns32 rc = NCSCC_RC_SUCCESS; 
    CLIENT_HDR cli_hdr;
  
-   m_NCS_MEMSET(&cli_hdr,'\0',sizeof(CLIENT_HDR));
-   m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO));
+   memset(&cli_hdr,'\0',sizeof(CLIENT_HDR));
+   memset(&cl_info,'\0',sizeof(CLIENT_INFO));
         
    free_shm_id = cpnd_find_free_loc(cb,CPND_CLIENT_INFO);
    if(free_shm_id == -1)
@@ -1090,11 +1090,11 @@ uns32  cpnd_restart_client_node_del(CPND_CB *cb,CPND_CKPT_CLIENT_NODE *cl_node)
    CLIENT_INFO cl_info;
    CLIENT_HDR cli_hdr;
 
-   m_NCS_MEMSET(&clinfo_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
-   m_NCS_MEMSET(&cl_info,'\0',sizeof(CLIENT_INFO)); 
+   memset(&clinfo_write,'\0',sizeof(NCS_OS_POSIX_SHM_REQ_INFO));
+   memset(&cl_info,'\0',sizeof(CLIENT_INFO)); 
    /* 1. Read from the cli header */
 
-   m_NCS_MEMSET(&cli_hdr,'\0',sizeof(CLIENT_HDR));  
+   memset(&cli_hdr,'\0',sizeof(CLIENT_HDR));  
    m_CPND_CLIHDR_INFO_READ(cli_hdr,(char *)cb->shm_addr.cli_addr,0);
    
    no_clients = --(cli_hdr.num_clients);
@@ -1186,10 +1186,10 @@ uns32 cpnd_restart_shm_ckpt_free(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    CKPT_HDR ckpt_hdr;
    uns32 rc=NCSCC_RC_SUCCESS,i_offset,no_ckpts =0 ;      
   
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
   
    /* Update the ckpt Header with number ckpt_info 's */ 
-   m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
+   memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
    m_CPND_CKPTHDR_READ(ckpt_hdr,(char *)cb->shm_addr.ckpt_addr,0);
    no_ckpts = --(ckpt_hdr.num_ckpts);
    cpnd_ckpt_write_header(cb,no_ckpts);
@@ -1218,7 +1218,7 @@ void cpnd_restart_ckpt_name_length_reset(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
 {
    CKPT_INFO ckpt_info;
 
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
    if( cp_node->offset >=0 )
    {
        m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
@@ -1247,7 +1247,7 @@ void cpnd_restart_set_close_flag(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
 {
    CKPT_INFO ckpt_info;
 
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
    if( cp_node->offset >=0 )
    {
        m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
@@ -1275,7 +1275,7 @@ void cpnd_restart_reset_close_flag(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
 {
    CKPT_INFO ckpt_info;
 
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
    if( cp_node->offset >=0 )
    { 
        m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
@@ -1302,9 +1302,9 @@ void cpnd_clear_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node, uns32 curr_offset
      uns32 i_offset, no_ckpts ;
      CKPT_HDR ckpt_hdr;
 
-     m_NCS_MEMSET(&prev_ckpt_info,'\0',sizeof(CKPT_INFO));
-     m_NCS_MEMSET(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
-     m_NCS_MEMSET(&next_ckpt_info,'\0',sizeof(CKPT_INFO));
+     memset(&prev_ckpt_info,'\0',sizeof(CKPT_INFO));
+     memset(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
+     memset(&next_ckpt_info,'\0',sizeof(CKPT_INFO));
 
      i_offset = prev_offset * sizeof(CKPT_INFO);
      m_CPND_CKPTINFO_READ(prev_ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),i_offset);
@@ -1315,7 +1315,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node, uns32 curr_offset
      /* Update the Next Location in the previous prev_ckpt_info.next as we have to clear the curr ckpt_info */
      if(cp_node->offset != curr_offset)
      {
-        m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
+        memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
         m_CPND_CKPTHDR_READ(ckpt_hdr,(char *)cb->shm_addr.ckpt_addr,0);
         no_ckpts = --(ckpt_hdr.num_ckpts);
         /* write the checkpoint info (number of ckpts)in the  header  */
@@ -1326,7 +1326,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node, uns32 curr_offset
         i_offset = prev_offset * sizeof(CKPT_INFO);
         m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),prev_ckpt_info,i_offset);
         
-        m_NCS_MEMSET(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
+        memset(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
         i_offset = curr_offset * sizeof(CKPT_INFO);
         m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),curr_ckpt_info,i_offset);
      }
@@ -1334,7 +1334,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node, uns32 curr_offset
      {
         if(curr_ckpt_info.next >= 0 )
         {
-           m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
+           memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
            m_CPND_CKPTHDR_READ(ckpt_hdr,(char *)cb->shm_addr.ckpt_addr,0);
            no_ckpts = --(ckpt_hdr.num_ckpts);
            /* write the checkpoint info (number of ckpts)in the  header  */
@@ -1352,7 +1352,7 @@ void cpnd_clear_ckpt_info(CPND_CB *cb,CPND_CKPT_NODE *cp_node, uns32 curr_offset
            m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),next_ckpt_info,i_offset);
           
            i_offset = (curr_ckpt_info.offset) * sizeof(CKPT_INFO);
-           m_NCS_MEMSET(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
+           memset(&curr_ckpt_info,'\0',sizeof(CKPT_INFO));
 
            m_CPND_CKPTINFO_UPDATE((char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),curr_ckpt_info,i_offset);
           
@@ -1384,7 +1384,7 @@ void cpnd_restart_client_reset(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_CKPT_CLI
 
    bitmap_offset = client_hdl/32;
    
-   m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+   memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
    
    if( cp_node->offset >= 0 )
    {
@@ -1394,7 +1394,7 @@ void cpnd_restart_client_reset(CPND_CB *cb,CPND_CKPT_NODE *cp_node,CPND_CKPT_CLI
            found = cpnd_find_exact_ckptinfo(cb , &ckpt_info , bitmap_offset ,&offset ,&prev_offset );
            if(found)
            {
-              m_NCS_MEMSET(&ckpt_info,'\0',sizeof(CKPT_INFO));
+              memset(&ckpt_info,'\0',sizeof(CKPT_INFO));
               m_CPND_CKPTINFO_READ(ckpt_info,(char *)cb->shm_addr.ckpt_addr+sizeof(CKPT_HDR),
                    offset*sizeof(CKPT_INFO));
               client_bitmap_reset(&ckpt_info.client_bitmap, (client_hdl%32) );
@@ -1430,7 +1430,7 @@ uns32  cpnd_restart_shm_ckpt_update(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkptHa
 { 
    int32 ckpt_id_exists = 0,no_ckpts=0;
    CKPT_INFO ckpt_info;
-   m_NCS_MEMSET(&ckpt_info,0,sizeof(ckpt_info));
+   memset(&ckpt_info,0,sizeof(ckpt_info));
    CKPT_HDR ckpt_hdr; 
  
    /* check if the ckpt already exists */ 
@@ -1446,7 +1446,7 @@ uns32  cpnd_restart_shm_ckpt_update(CPND_CB *cb,CPND_CKPT_NODE *cp_node,SaCkptHa
       }
       else
       {
-          m_NCS_MEMSET(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
+          memset(&ckpt_hdr,'\0',sizeof(CKPT_HDR));
           m_CPND_CKPTHDR_READ(ckpt_hdr,(char *)cb->shm_addr.ckpt_addr,0);
           no_ckpts = ++(ckpt_hdr.num_ckpts);
           

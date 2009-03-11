@@ -66,7 +66,7 @@ uns32 ncspss_cef_load_lib_req(NCS_LIB_REQ_INFO *libreq)
     switch (libreq->i_op)
     {
         case NCS_LIB_REQ_CREATE:
-        m_NCS_OS_MEMSET(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
+        memset(&i_bindery, 0, sizeof(NCSCLI_BINDERY));
         i_bindery.i_cli_hdl = gl_cli_hdl;
         i_bindery.i_mab_hdl = gl_mac_handle; 
         i_bindery.i_req_fnc = ncsmac_mib_request; 
@@ -135,7 +135,7 @@ uns32 ncspss_cli_register(NCSCLI_BINDERY  *i_bindery)
      */
    
     /* REGISTER THE EXEC MODE COMMANDS */
-    m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+    memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
 
     data.i_node = "root/exec/";
     data.i_command_mode = "exec";
@@ -163,7 +163,7 @@ uns32 ncspss_cli_register(NCSCLI_BINDERY  *i_bindery)
     
 
     /************** REGISTER COMMANDS IN THE "configure" MODE **************/
-    m_NCS_OS_MEMSET(&data, 0, sizeof(NCSCLI_CMD_LIST));
+    memset(&data, 0, sizeof(NCSCLI_CMD_LIST));
     data.i_node = "root/exec/config/pss";  /* Set path for the commands*/
     data.i_command_mode = "pssv";   /* Set the mode */
     data.i_access_req = FALSE;        /* Password protected = FALSE */
@@ -348,7 +348,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     char                 *str_ptr = NULL;
     uns32                str_len = 0;
     
-    m_NCS_MEMSET(&mib_arg, '\0', sizeof(mib_arg));
+    memset(&mib_arg, '\0', sizeof(mib_arg));
     
     mib_arg.i_op = NCSMIB_OP_REQ_CLI;    /* Operation type */
     mib_arg.i_tbl_id = NCSMIB_TBL_PSR_CMD; /* CMD-TBL-ID */
@@ -360,7 +360,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     mib_arg.req.info.cli_req.i_cmnd_id = PSS_CMD_TBL_CMD_NUM_SET_XML_OPTION;  /* Command id */
     mib_arg.req.info.cli_req.i_wild_card = FALSE; /* set to TRUE for wild-card req */
 
-    m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+    memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
       m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): USRBUF malloc failed");
@@ -432,7 +432,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     char                 *str_ptr = NULL, *file_name = NULL, *pcn_name = NULL;
     uns32                str_len = 0, file_str_len = 0, pcn_str_len = 0;
     
-    m_NCS_MEMSET(&mib_arg, '\0', sizeof(mib_arg));
+    memset(&mib_arg, '\0', sizeof(mib_arg));
     
     mib_arg.i_op = NCSMIB_OP_REQ_CLI;    /* Operation type */
     mib_arg.i_tbl_id = NCSMIB_TBL_PSR_CMD; /* CMD-TBL-ID */
@@ -460,7 +460,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     }
     sysf_fclose(fh);
 
-    m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+    memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
       m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): USRBUF malloc failed");
@@ -562,7 +562,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
     char                 *str_ptr = NULL;
     uns32                str_len = 0;
     
-    m_NCS_MEMSET(&mib_arg, '\0', sizeof(mib_arg));
+    memset(&mib_arg, '\0', sizeof(mib_arg));
     mib_arg.i_op = NCSMIB_OP_REQ_CLI;    /* Operation type */
     mib_arg.i_tbl_id = NCSMIB_TBL_PSR_CMD; /* CMD-TBL-ID */
     mib_arg.i_rsp_fnc = pss_cli_cmd_mib_resp_show_profile_clients;
@@ -573,7 +573,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
     mib_arg.req.info.cli_req.i_cmnd_id = PSS_CMD_TBL_CMD_NUM_DISPLAY_PROFILE;  /* Command id */
     mib_arg.req.info.cli_req.i_wild_card = FALSE; /* set to TRUE for wild-card req */
 
-    m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+    memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
       m_NCS_CONS_PRINTF("\n\npss_cef_show_profile_clients(): USRBUF malloc failed");
@@ -638,7 +638,7 @@ uns32 pss_cef_reload_pssv_lib_conf(NCSCLI_ARG_SET *arg_list,
     uns32                inst_ids[NCS_PSS_MAX_PROFILE_NAME+1];
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
     ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -718,7 +718,7 @@ uns32 pss_cef_reload_pssv_spcn_list(NCSCLI_ARG_SET *arg_list,
     uns32                inst_ids[NCS_PSS_MAX_PROFILE_NAME+1];
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
     ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -861,8 +861,8 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
                   pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                   return NCSCC_RC_FAILURE;
                } 
-               m_NCS_MEMSET(&pcn, '\0', sizeof(pcn));
-               m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+               memset(&pcn, '\0', sizeof(pcn));
+               memset(&lcl_uba, '\0', sizeof(lcl_uba));
                ncs_dec_init_space(&lcl_uba, buff);
 
                buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pwe_cnt, sizeof(uns16));
@@ -1119,8 +1119,8 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
-    m_NCS_OS_MEMSET(&inst_ids, 0, sizeof(inst_ids));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&inst_ids, 0, sizeof(inst_ids));
     ncsmib_init(&ncsmib_arg);
 
     if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
@@ -1236,7 +1236,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
    char                 display_str[PSS_DISPLAY_STR_SIZE+1];
    
    /* Initialize the MIB arg structure */
-   m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+   memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&ncsmib_arg);
    
    pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
@@ -1412,7 +1412,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
     uns32                inst_ids[NCS_PSS_MAX_PROFILE_NAME+1];
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
@@ -1597,7 +1597,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
     uns32                num_inst_ids = 0;
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
@@ -1703,7 +1703,7 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
     if (arg_list->i_pos_value & 0x00000004)
         profile_name = arg_list->i_arg_record[2].cmd.strval;
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
@@ -1810,7 +1810,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
     int8 *               profile_name;
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
     if(m_NCS_OS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no"))
@@ -1915,7 +1915,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             {
                char prdesc[256];
 
-               m_NCS_MEMSET(&prdesc, '\0', sizeof(prdesc));
+               memset(&prdesc, '\0', sizeof(prdesc));
                profile_desc = (int8 *)ncsmib_arg.rsp.info.get_rsp.i_param_val.info.i_oct;
                m_NCS_STRNCPY(&prdesc, profile_desc, ncsmib_arg.rsp.info.get_rsp.i_param_val.i_length);
                prdesc[255] = '\0'; /* Preventive null termination */
@@ -1958,7 +1958,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     uns32                inst_ids[NCS_PSS_MAX_PROFILE_NAME+1];
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
@@ -2090,7 +2090,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
     uns32                inst_ids[NCS_PSS_MAX_PROFILE_NAME+1];
 
     /* Initialize the MIB arg structure */
-    m_NCS_OS_MEMSET(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
+    memset(&ncsmib_arg, 0, sizeof(NCSMIB_ARG));
     ncsmib_init(&ncsmib_arg);
 
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");

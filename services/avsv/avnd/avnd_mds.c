@@ -97,7 +97,7 @@ uns32 avnd_mds_reg (AVND_CB *cb)
    m_AVND_LOG_MDS(AVSV_LOG_MDS_PRM_GET, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
    /* fill common fields */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
 
@@ -181,7 +181,7 @@ uns32 avnd_mds_reg (AVND_CB *cb)
    
    /* get the MAB handle from MDS */
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = TRUE;
@@ -227,7 +227,7 @@ uns32 avnd_mds_vdest_reg (AVND_CB *cb)
    NCSVDA_INFO vda_info;
    NCSMDS_INFO svc_to_mds_info;
   
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
   
    cb->avnd_mbcsv_vaddr = AVND_VDEST_ID;
 
@@ -250,7 +250,7 @@ uns32 avnd_mds_vdest_reg (AVND_CB *cb)
    cb->avnd_mbcsv_vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
    cb->avnd_mbcsv_vaddr_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
 
-   m_NCS_MEMSET(&svc_to_mds_info,'\0',sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,'\0',sizeof(NCSMDS_INFO));
    /* Install on mds VDEST */
    svc_to_mds_info.i_mds_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
    svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_AVND_CNTLR;
@@ -263,7 +263,7 @@ uns32 avnd_mds_vdest_reg (AVND_CB *cb)
 
    if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = cb->avnd_mbcsv_vaddr;
       ncsvda_api(&vda_info);
@@ -290,7 +290,7 @@ uns32 avnd_mds_unreg (AVND_CB *cb)
    NCSMDS_INFO  mds_info;
    uns32        rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
@@ -451,7 +451,7 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    AVND_MSG      msg;
    uns32         rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    if (!rcv_info->i_msg)
    {
@@ -564,7 +564,7 @@ uns32 avnd_mds_rcv (AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    }
 
    /* nullify the msg as it is used in the event */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    /* send the event */
    rc = avnd_evt_send(cb, evt);
@@ -726,7 +726,7 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
                return rc;
 
            /* reset the avd mds-dest */
-            m_NCS_OS_MEMSET(&cb->avd_dest, 0, sizeof(MDS_DEST));
+            memset(&cb->avd_dest, 0, sizeof(MDS_DEST));
 
             /* create the mds event */
             evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_DN, 0, 
@@ -1390,7 +1390,7 @@ uns32 avnd_mds_flat_ava_dec (AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(ava_msg, 0, sizeof(AVSV_NDA_AVA_MSG));
+   memset(ava_msg, 0, sizeof(AVSV_NDA_AVA_MSG));
 
    /* decode the msg */
    rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)ava_msg,
@@ -1435,7 +1435,7 @@ uns32 avnd_mds_flat_cla_dec (AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    /* decode the msg */
    rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)cla_msg,
@@ -1479,7 +1479,7 @@ uns32 avnd_mds_send (AVND_CB           *cb,
    uns32         rc = NCSCC_RC_SUCCESS;
 
    /* populate the mds params */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
@@ -1569,7 +1569,7 @@ uns32 avnd_mds_red_send (AVND_CB           *cb,
    uns32         rc = NCSCC_RC_SUCCESS;
 
    /* populate the mds params */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_AVND;
@@ -1615,7 +1615,7 @@ uns32 avnd_mds_param_get (AVND_CB *cb)
    NCSADA_INFO ada_info;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE;
@@ -1654,7 +1654,7 @@ uns32 avnd_avnd_mds_send (AVND_CB *cb, MDS_DEST mds_dest, AVND_MSG *i_msg)
    MDS_SEND_INFO            *send_info = NULL;
    MDS_SENDTYPE_SNDRSP_INFO *send = NULL;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->mds_hdl;
 
@@ -1703,7 +1703,7 @@ uns32 avnd_mds_set_vdest_role (AVND_CB *cb, SaAmfHAStateT role)
    {
       cb->is_quisced_set = TRUE;
    }
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    /* set the role of the vdest */
    vda_info.req = NCSVDA_VDEST_CHG_ROLE;

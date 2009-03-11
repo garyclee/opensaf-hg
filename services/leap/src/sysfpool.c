@@ -544,7 +544,7 @@ ncs_mem_create ()
   if ((mmgr.mpools = (NCS_MPOOL *)m_NCS_OS_MEMALLOC (len, NCS_MEM_REGION_PERSISTENT)) == NULL)
     return NCSCC_RC_FAILURE;
   
-  m_NCS_MEMSET ((char *)mmgr.mpools, '\0', len);
+  memset ((char *)mmgr.mpools, '\0', len);
   
   for (mdex = 0, mp = mmgr.mpools, size = 16;
   mdex <= MMGR_NUM_POOLS;
@@ -1024,7 +1024,7 @@ ncs_mem_free(void          *free_me,
         
         /* OK, adjust and cleanup DBG info before putting it back in pool */
 
-        m_NCS_MEMSET(free_me,0xff,mp->size);    /* set memory to generally bad value */
+        memset(free_me,0xff,mp->size);    /* set memory to generally bad value */
         me->free_line     = line;
         me->free_file     = file;
         
@@ -1883,8 +1883,8 @@ static void leap_mem_print(void *ucontext, char *payload)
       
       ncsmem_aid_init (&ma, (uns8*)space, MMGR_HIST_SPACE);
       
-      m_NCS_MEMSET (space, '\0', MMGR_HIST_SPACE);
-      m_NCS_MEMSET (hash,  '\0', sizeof(hash));
+      memset (space, '\0', MMGR_HIST_SPACE);
+      memset (hash,  '\0', sizeof(hash));
       
       if (ncslpg_take(&mmgr.lpg) == FALSE)
         return ((long) NULL); /* Either not created yet or already shut down */
@@ -2346,7 +2346,7 @@ static void leap_mem_print(void *ucontext, char *payload)
         {
         me->memory_owners = (char*)m_NCS_OS_MEMALLOC(OWNERS_TRACED * sizeof(MEM_TRACE_RECORD), 0);
         if(me->memory_owners)
-          m_NCS_MEMSET (me->memory_owners, 0, OWNERS_TRACED * sizeof(MEM_TRACE_RECORD));
+          memset (me->memory_owners, 0, OWNERS_TRACED * sizeof(MEM_TRACE_RECORD));
         }
       
       /* record information in an empty slot */

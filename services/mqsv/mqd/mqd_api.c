@@ -301,7 +301,7 @@ static uns32 mqd_lib_init(void)
    m_LOG_MQSV_D(MQD_ASAPi_BIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
 
    /*   start the AMF Health Check  */
-   m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(healthy));
    health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
@@ -548,9 +548,9 @@ static uns32 mqd_cb_init(MQD_CB *pMqd)
    uns32                rc = NCSCC_RC_SUCCESS;
 
    /* Initilize the constants variables */
-   m_NCS_MEMSET(pMqd, 0, sizeof(MQD_CB));
-   m_NCS_MEMSET(&params, 0, sizeof(params));
-   m_NCS_MEMSET(&params_nodedb, 0, sizeof(params_nodedb));
+   memset(pMqd, 0, sizeof(MQD_CB));
+   memset(&params, 0, sizeof(params));
+   memset(&params_nodedb, 0, sizeof(params_nodedb));
 
    pMqd->hmpool = NCS_HM_POOL_ID_COMMON;
    pMqd->my_svc_id = NCS_SERVICE_ID_MQD;
@@ -668,7 +668,7 @@ static uns32 mqd_amf_init(MQD_CB *pMqd)
    SaAmfCallbacksT   amfCallbacks;
    SaVersionT        amfVersion;   
    
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
    
    amfCallbacks.saAmfHealthcheckCallback = mqd_saf_hlth_chk_cb;
    amfCallbacks.saAmfCSISetCallback = mqd_saf_csi_set_cb;

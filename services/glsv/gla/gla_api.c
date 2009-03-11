@@ -120,7 +120,7 @@ SaAisErrorT  saLckInitialize(SaLckHandleT *lckHandle,
    }
 
    /* populate the structure */
-   m_NCS_OS_MEMSET(&initialize_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&initialize_evt, 0, sizeof(GLSV_GLND_EVT));
    initialize_evt.type = GLSV_GLND_EVT_INITIALIZE;
    initialize_evt.info.client_info.agent_mds_dest = gla_cb->gla_mds_dest;
    initialize_evt.info.client_info.client_proc_id = m_NCS_OS_PROCESS_GET_ID();
@@ -490,7 +490,7 @@ SaAisErrorT saLckFinalize (SaLckHandleT hdl)
 
 
    /* populate the structure */
-   m_NCS_OS_MEMSET(&finalize_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&finalize_evt, 0, sizeof(GLSV_GLND_EVT));
    finalize_evt.type = GLSV_GLND_EVT_FINALIZE;
    finalize_evt.info.finalize_info.agent_mds_dest = gla_cb->gla_mds_dest;
    finalize_evt.info.finalize_info.handle_id = hdl;
@@ -639,7 +639,7 @@ SaAisErrorT  saLckResourceOpen(SaLckHandleT lckHandle,
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_open_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_open_evt, 0, sizeof(GLSV_GLND_EVT));
    res_open_evt.type = GLSV_GLND_EVT_RSC_OPEN;
    res_open_evt.info.rsc_info.client_handle_id = lckHandle;
    res_open_evt.info.rsc_info.call_type = GLSV_SYNC_CALL;
@@ -816,7 +816,7 @@ SaAisErrorT  saLckResourceOpenAsync(SaLckHandleT lckHandle,
    
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_open_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_open_evt, 0, sizeof(GLSV_GLND_EVT));
    res_open_evt.type = GLSV_GLND_EVT_RSC_OPEN;
    res_open_evt.info.rsc_info.client_handle_id = lckHandle;
    res_open_evt.info.rsc_info.lcl_resource_id = res_id_node->lcl_res_id;
@@ -932,7 +932,7 @@ SaAisErrorT saLckResourceClose(SaLckResourceHandleT lockResourceHandle)
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_close_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_close_evt, 0, sizeof(GLSV_GLND_EVT));
    res_close_evt.type = GLSV_GLND_EVT_RSC_CLOSE;
    res_close_evt.info.rsc_info.client_handle_id = res_id_info->lock_handle_id;
    res_close_evt.info.rsc_info.resource_id = res_id_info->gbl_res_id;
@@ -1123,7 +1123,7 @@ SaAisErrorT saLckResourceLock(SaLckResourceHandleT lockResourceHandle,
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_lock_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_lock_evt, 0, sizeof(GLSV_GLND_EVT));
    res_lock_evt.type = GLSV_GLND_EVT_RSC_LOCK;
    res_lock_evt.info.rsc_lock_info.client_handle_id = res_id_info->lock_handle_id;
    res_lock_evt.info.rsc_lock_info.waiter_signal = waiterSignal;
@@ -1341,7 +1341,7 @@ SaAisErrorT saLckResourceLockAsync(SaLckResourceHandleT lockResourceHandle,
  
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_lock_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_lock_evt, 0, sizeof(GLSV_GLND_EVT));
    res_lock_evt.type = GLSV_GLND_EVT_RSC_LOCK;
    res_lock_evt.info.rsc_lock_info.client_handle_id = res_id_info->lock_handle_id;
    res_lock_evt.info.rsc_lock_info.invocation = invocation;
@@ -1484,7 +1484,7 @@ SaAisErrorT saLckResourceUnlock(SaLckLockIdT lockId,
    }
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_unlock_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_unlock_evt, 0, sizeof(GLSV_GLND_EVT));
    res_unlock_evt.type = GLSV_GLND_EVT_RSC_UNLOCK;
    res_unlock_evt.info.rsc_unlock_info.client_handle_id = lock_id_info->lock_handle_id;
    res_unlock_evt.info.rsc_unlock_info.agent_mds_dest= gla_cb->gla_mds_dest;
@@ -1631,7 +1631,7 @@ SaAisErrorT  saLckResourceUnlockAsync(SaInvocationT invocation,
 
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_unlock_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_unlock_evt, 0, sizeof(GLSV_GLND_EVT));
    res_unlock_evt.type = GLSV_GLND_EVT_RSC_UNLOCK;
    res_unlock_evt.info.rsc_unlock_info.client_handle_id = lock_id_info->lock_handle_id;
    res_unlock_evt.info.rsc_unlock_info.agent_mds_dest= gla_cb->gla_mds_dest;
@@ -1748,7 +1748,7 @@ SaAisErrorT saLckLockPurge(SaLckResourceHandleT lockResourceHandle)
 
 
    /* populate the evt */
-   m_NCS_OS_MEMSET(&res_purge_evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&res_purge_evt, 0, sizeof(GLSV_GLND_EVT));
    res_purge_evt.type = GLSV_GLND_EVT_RSC_PURGE;
    res_purge_evt.info.rsc_info.client_handle_id = res_id_info->lock_handle_id;
    res_purge_evt.info.rsc_info.call_type = GLSV_SYNC_CALL;

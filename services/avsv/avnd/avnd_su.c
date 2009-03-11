@@ -211,7 +211,7 @@ static uns32 avnd_avd_su_update_on_fover (AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO 
     * Walk through the entire SU table, and remove SU for which 
     * updates are not received in the message.
     */
-   m_NCS_OS_MEMSET(&su_name, 0, sizeof(SaNameT));
+   memset(&su_name, 0, sizeof(SaNameT));
    while (NULL != (su = 
       (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name)))
    {

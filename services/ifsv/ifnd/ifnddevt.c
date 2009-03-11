@@ -80,7 +80,7 @@ idim_send_ifnd_up_evt (MDS_DEST *to_dest, IFSV_CB *cb)
    NCS_IFSV_HW_DRV_REQ drv_evt;
    uns32 res = NCSCC_RC_FAILURE;
    
-   m_NCS_MEMSET(&drv_evt, 0, sizeof(NCS_IFSV_HW_DRV_REQ));
+   memset(&drv_evt, 0, sizeof(NCS_IFSV_HW_DRV_REQ));
    drv_evt.port_type.port_id = 0;
    drv_evt.port_type.type    = 0;   
    drv_evt.req_type          = NCS_IFSV_HW_DRV_IFND_UP;
@@ -126,7 +126,7 @@ idim_send_hw_drv_msg (void* info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
       m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
       return (NCSCC_RC_FAILURE);
    }
-   m_NCS_MEMSET(pMsg, 0, sizeof(NCS_IFSV_HW_DRV_REQ));
+   memset(pMsg, 0, sizeof(NCS_IFSV_HW_DRV_REQ));
    
    switch(msg_type)
    {
@@ -278,7 +278,7 @@ idim_recv_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    char log_info[45];
   
 
-   m_NCS_MEMSET(&stats, 0, sizeof(IFSV_EVT_STATS_INFO));
+   memset(&stats, 0, sizeof(IFSV_EVT_STATS_INFO));
    stats.spt_type.shelf = cb->shelf; 
    stats.spt_type.slot = cb->slot;
    /* embedding subslot changes */
@@ -338,7 +338,7 @@ idim_recv_hw_port_reg (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
          m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,0);
          return (NCSCC_RC_FAILURE);
       }     
-      m_NCS_MEMSET(reg_tbl, 0, sizeof(IFSV_IDIM_PORT_TYPE_REG_TBL));      
+      memset(reg_tbl, 0, sizeof(IFSV_IDIM_PORT_TYPE_REG_TBL));      
       reg_tbl->port_type.port_id = evt->info.hw_info.port_type.port_id;
       reg_tbl->port_type.type    = evt->info.hw_info.port_type.type;
       reg_tbl->q_node.key = (uns8*)&reg_tbl->port_type;
@@ -347,7 +347,7 @@ idim_recv_hw_port_reg (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    
    reg_tbl->drv_dest = evt->info.hw_info.info.reg_port.dest;
 
-   m_NCS_MEMSET(&intf_info, 0, sizeof(IFSV_INTF_CREATE_INFO));
+   memset(&intf_info, 0, sizeof(IFSV_INTF_CREATE_INFO));
    intf_info.if_attr = evt->info.hw_info.info.reg_port.if_am;
    intf_info.intf_data.spt_info.shelf = cb->shelf; 
    intf_info.intf_data.spt_info.slot = cb->slot;
@@ -403,7 +403,7 @@ idim_recv_hw_port_status (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    if ((evt->info.hw_info.info.port_status.oper_state == NCS_STATUS_DOWN) || 
       (evt->info.hw_info.info.port_status.oper_state == NCS_STATUS_LL_DOWN))
    {
-      m_NCS_MEMSET(&dest_info, 0, sizeof(IFSV_INTF_DESTROY_INFO));
+      memset(&dest_info, 0, sizeof(IFSV_INTF_DESTROY_INFO));
       dest_info.spt_type.shelf = cb->shelf;
       dest_info.spt_type.slot  = cb->slot;
       /* embedding subslot changes */
@@ -415,7 +415,7 @@ idim_recv_hw_port_status (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       res = idim_send_ifnd_evt((void*)&dest_info, IFND_EVT_INTF_DESTROY, cb);      
    } else
    {
-      m_NCS_MEMSET(&create_info, 0, sizeof(IFSV_INTF_CREATE_INFO));
+      memset(&create_info, 0, sizeof(IFSV_INTF_CREATE_INFO));
       create_info.if_attr = NCS_IFSV_IAM_OPRSTATE;
       create_info.intf_data.spt_info.shelf = cb->shelf; 
       create_info.intf_data.spt_info.slot = cb->slot;
@@ -510,7 +510,7 @@ idim_get_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       (uns8*)&port_type);
    if (reg_tbl != IFSV_NULL)
    {
-      m_NCS_MEMSET(&drv_evt,0,sizeof(drv_evt));
+      memset(&drv_evt,0,sizeof(drv_evt));
       drv_evt.port_type.port_id  = evt->info.get_stats.slot_port.port;
       drv_evt.port_type.type     = evt->info.get_stats.slot_port.type;
 /* EXT_INT */
@@ -524,7 +524,7 @@ idim_get_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
          &reg_tbl->drv_dest, cb->mds_hdl);
    } else
    {
-      m_NCS_MEMSET(&stats, 0, sizeof(IFSV_EVT_STATS_INFO));
+      memset(&stats, 0, sizeof(IFSV_EVT_STATS_INFO));
       /* send a failure message to the IfND */
       stats.spt_type.shelf = cb->shelf;
       stats.spt_type.slot  = cb->slot;
@@ -582,7 +582,7 @@ idim_set_hw_param (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       (uns8*)&port_type);
    if (reg_tbl != IFSV_NULL)
    {
-      m_NCS_MEMSET(&drv_evt,0,sizeof(drv_evt));
+      memset(&drv_evt,0,sizeof(drv_evt));
       drv_evt.port_type.port_id = port_type.port_id;
       drv_evt.port_type.type    = port_type.type;            
       drv_evt.req_type          = NCS_IFSV_HW_DRV_SET_PARAM;

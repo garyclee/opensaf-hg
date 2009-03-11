@@ -161,7 +161,7 @@ static uns32 mqsv_edp_send_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
          
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQSV_SEND_INFO));
+        memset(*d_ptr, '\0', sizeof(MQSV_SEND_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -220,7 +220,7 @@ static uns32 mqsv_edp_mqp_open_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             return NCSCC_RC_FAILURE;
          
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQP_OPEN_REQ));
+        memset(*d_ptr, '\0', sizeof(MQP_OPEN_REQ));
         struct_ptr = *d_ptr;
     }
     else
@@ -366,7 +366,7 @@ uns32 mqsv_edp_mqsv_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
           return NCSCC_RC_FAILURE;
 
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQSV_EVT));
+        memset(*d_ptr, '\0', sizeof(MQSV_EVT));
         struct_ptr = *d_ptr;
     }
     else
@@ -474,7 +474,7 @@ static uns32 mqsv_edp_message_info (EDU_HDL *hdl, EDU_TKN *edu_tkn,
                return NCSCC_RC_FAILURE;
 
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(QUEUE_MESSAGE_INFO));
+        memset(*d_ptr, '\0', sizeof(QUEUE_MESSAGE_INFO));
         struct_ptr = *d_ptr;
     }
     else
@@ -615,7 +615,7 @@ static uns32 mqsv_edp_samsgqueuecreationattributest(EDU_HDL *hdl, EDU_TKN *edu_t
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaMsgQueueCreationAttributesT ));
+        memset(*d_ptr, '\0', sizeof(SaMsgQueueCreationAttributesT ));
         struct_ptr = *d_ptr;
     }
     else
@@ -846,7 +846,7 @@ static uns32 mqsv_edp_mqp_req(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQP_REQ_MSG));
+        memset(*d_ptr, '\0', sizeof(MQP_REQ_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -902,7 +902,7 @@ static uns32 mqsv_edp_queue_usage(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaMsgQueueUsageT));
+        memset(*d_ptr, '\0', sizeof(SaMsgQueueUsageT));
         struct_ptr = *d_ptr;
     }
     else
@@ -965,7 +965,7 @@ static uns32 mqsv_edp_queue_status(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(SaMsgQueueStatusT));
+        memset(*d_ptr, '\0', sizeof(SaMsgQueueStatusT));
         struct_ptr = *d_ptr;
     }
     else
@@ -1181,7 +1181,7 @@ static uns32 mqsv_edp_mqp_rsp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQP_RSP_MSG));
+        memset(*d_ptr, '\0', sizeof(MQP_RSP_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -1315,7 +1315,7 @@ static uns32 mqsv_edp_mqa_callback(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQP_ASYNC_RSP_MSG));
+        memset(*d_ptr, '\0', sizeof(MQP_ASYNC_RSP_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -1449,7 +1449,7 @@ static uns32 mqsv_edp_mqd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQD_CTRL_MSG));
+        memset(*d_ptr, '\0', sizeof(MQD_CTRL_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -1513,7 +1513,7 @@ static uns32 mqsv_edp_mqnd_ctrl_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQND_CTRL_MSG));
+        memset(*d_ptr, '\0', sizeof(MQND_CTRL_MSG));
         struct_ptr = *d_ptr;
     }
     else
@@ -1568,7 +1568,7 @@ static uns32 mqsv_qgrp_cnt_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
             *o_err = EDU_ERR_MEM_FAIL;
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET(*d_ptr, '\0', sizeof(MQSV_CTRL_EVT_QGRP_CNT));
+        memset(*d_ptr, '\0', sizeof(MQSV_CTRL_EVT_QGRP_CNT));
         struct_ptr = *d_ptr;
     }
     else

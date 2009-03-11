@@ -95,7 +95,7 @@ data_at_end_test(void)
     /* Reset Userbuff fields */
     ub1->count = 0;
     ub1->start = 0;
-    m_NCS_MEMSET(ub1->payload->Data, '\0', sizeof(testpattern)+1);
+    memset(ub1->payload->Data, '\0', sizeof(testpattern)+1);
     
     if ((ub2 = m_MMGR_ALLOC_BUFR(0)) == BNULL)
     {

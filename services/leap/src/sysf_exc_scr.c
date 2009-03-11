@@ -267,7 +267,7 @@ void give_exec_mod_cb(int pid, uns32 status, int type)
 
    m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
-   m_NCS_MEMSET(&cb_info, '\0', sizeof(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO));
+   memset(&cb_info, '\0', sizeof(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO));
 
    if (NULL != (exec_pid = (SYSF_PID_LIST*)ncs_patricia_tree_get(&module_cb.pid_list,
        (const uns8 *)&pid)))
@@ -397,7 +397,7 @@ uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid)
 \**************************************************************************/
 uns32 init_exec_mod_cb(void)
 {  
-   m_NCS_MEMSET(&module_cb, '\0', sizeof(SYSF_EXECUTE_MODULE_CB));
+   memset(&module_cb, '\0', sizeof(SYSF_EXECUTE_MODULE_CB));
    m_NCS_LOCK_INIT(&module_cb.tree_lock);
    return NCSCC_RC_SUCCESS;
 }

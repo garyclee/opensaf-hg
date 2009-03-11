@@ -796,7 +796,7 @@ ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
              * indicates an all-zero octet-string...
              */
             if (os == (uns8 *)0)
-                m_NCS_MEMSET( (char *)p, '\0', try_put);
+                memset( (char *)p, '\0', try_put);
             else
                 memcpy( (char *)p, (char *)(os + count-remaining), try_put);
         }

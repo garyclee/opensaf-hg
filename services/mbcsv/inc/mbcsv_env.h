@@ -365,7 +365,7 @@ ncsmbcsv_quiesced_state_tbl[NCS_MBCSV_QUIESCED_MAX_STATES][NCSMBCSV_NUM_EVENTS-1
 #define m_MBCSV_INDICATE_ERROR(peer, h, c, e, v, arg, rc)           \
 {                                                                   \
    NCS_MBCSV_CB_ARG    parg;                                        \
-   m_NCS_MEMSET(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));             \
+   memset(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));             \
    parg.i_op                 = NCS_MBCSV_CBOP_ERR_IND;              \
    parg.i_client_hdl         = h;                                   \
    parg.i_ckpt_hdl           = peer->my_ckpt_inst->ckpt_hdl;        \
@@ -380,7 +380,7 @@ ncsmbcsv_quiesced_state_tbl[NCS_MBCSV_QUIESCED_MAX_STATES][NCSMBCSV_NUM_EVENTS-1
 #define m_MBCSV_PEER_INFO(peer, h, s, v, ic)                        \
 {                                                                   \
    NCS_MBCSV_CB_ARG    parg;                                        \
-   m_NCS_MEMSET(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));             \
+   memset(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));             \
    parg.i_op                 = NCS_MBCSV_CBOP_PEER;                 \
    parg.i_client_hdl         = h;                                   \
    parg.i_ckpt_hdl           = peer->my_ckpt_inst->ckpt_hdl;        \

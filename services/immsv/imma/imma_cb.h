@@ -132,7 +132,7 @@ typedef struct imma_cb
 
 #define m_IMMSV_SET_SANAMET(name) \
 {if(name->length <= SA_MAX_NAME_LENGTH) \
-{m_NCS_MEMSET( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); }\
+{memset( (uns8 *)&name->value[name->length], 0, (SA_MAX_NAME_LENGTH - name->length) ); }\
 }
 
 /* IMMA Function Declerations */

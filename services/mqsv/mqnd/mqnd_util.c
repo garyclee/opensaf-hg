@@ -77,7 +77,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
    }
 
 
-   m_NCS_OS_MEMSET(qnode, 0, sizeof(MQND_QUEUE_NODE));
+   memset(qnode, 0, sizeof(MQND_QUEUE_NODE));
 
    /* Store the receiver Information */
    qnode->qinfo.msgHandle = open->msgHandle;
@@ -131,7 +131,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
    if(transfer_rsp)
       qnode->qinfo.creationTime = transfer_rsp->creationTime;/* When queue transfer happens, old creation time is retained*/
    /*Checkpoint new queue information*/
-   m_NCS_OS_MEMSET(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
+   memset(&queue_ckpt_node, 0, sizeof(MQND_QUEUE_CKPT_INFO));
    mqnd_cpy_qnodeinfo_to_ckptinfo(cb, qnode, &queue_ckpt_node);
    rc = mqnd_ckpt_queue_info_write(cb, &queue_ckpt_node, qnode->qinfo.shm_queue_index);
    if(rc != NCSCC_RC_SUCCESS)
@@ -160,7 +160,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
    }
 
    /* Create & add qname structure used in MIBS */
-   m_NCS_OS_MEMSET(pnode, 0, sizeof(MQND_QNAME_NODE));
+   memset(pnode, 0, sizeof(MQND_QNAME_NODE));
    pnode->qname = qnode->qinfo.queueName;
    pnode->qhdl = (SaMsgQueueHandleT)qnode->qinfo.queueHandle;
    rc = mqnd_qname_node_add(cb, pnode);
@@ -267,7 +267,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
    ASAPi_OPR_INFO    opr;
 
    /* Request the ASAPi (at MQD) for queue REG */
-   m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+   memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
    opr.type = ASAPi_OPR_MSG;
    opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -297,7 +297,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
       to compensate for the lost request we send an async DEREG/REG request to MQD in case it if is registered
       and the standby update has not happened*/
    /* Request the ASAPi (at MQD) for queue DEREG */
-    m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+    memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
     opr.type = ASAPi_OPR_MSG;
     opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -408,7 +408,7 @@ uns32 mqsv_reg_mqndmib_queue_tbl_row(MQND_CB *cb,
      index_name[i+1]=(uns32) mqindex_name.value[i];
    }  
 
-   m_NCS_MEMSET(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Register for MQND table rows*/
    mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;
@@ -456,7 +456,7 @@ uns32 mqnd_unreg_mib_row(MQND_CB *cb,uns32 tbl_id, uns32 row_hdl)
    NCSOAC_SS_ARG  mqnd_oac_arg;
    uns32          rc = NCSCC_RC_SUCCESS ;
 
-   m_NCS_MEMSET(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Unregister for MQND table rows */
    mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;
@@ -516,7 +516,7 @@ uns32 mqsv_reg_mqndmib_queue_priority_tbl_row(MQND_CB *cb,
    index_name[i+1]= priority_index;
 
 
-   m_NCS_MEMSET(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
 
    /* Register for MQND table rows*/
    mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;

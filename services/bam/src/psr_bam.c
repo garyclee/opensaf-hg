@@ -107,7 +107,7 @@ uns32 pss_bam_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
   
   pm = m_MMGR_ALLOC_PSS_BAM_MSG;
-  m_NCS_OS_MEMSET(pm, '\0', sizeof(PSS_BAM_MSG));
+  memset(pm, '\0', sizeof(PSS_BAM_MSG));
 
   if(pm == NULL)
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -224,7 +224,7 @@ uns32 pss_bam_decode_pcn(NCS_UBAID *uba, char **pcn)
           if((*pcn = m_MMGR_ALLOC_BAM_PCN_STRING(len)) == NULL)
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        }
-       m_NCS_MEMSET(*pcn, '\0', len);
+       memset(*pcn, '\0', len);
        if(ncs_decode_n_octets_from_uba(uba, *pcn, len) != NCSCC_RC_SUCCESS)
        {
            m_MMGR_FREE_BAM_PCN_STRING(*pcn);
@@ -309,7 +309,7 @@ uns32 pss_bam_decode_warmboot_req(NCS_UBAID *uba, PSS_BAM_WARMBOOT_REQ *warmboot
        if(levt == NULL)
        {
           levt = warmboot_req;
-          m_NCS_MEMSET(levt, '\0', sizeof(PSS_BAM_WARMBOOT_REQ));
+          memset(levt, '\0', sizeof(PSS_BAM_WARMBOOT_REQ));
        }
        else
        {
@@ -317,7 +317,7 @@ uns32 pss_bam_decode_warmboot_req(NCS_UBAID *uba, PSS_BAM_WARMBOOT_REQ *warmboot
           {
              return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
           }
-          m_NCS_MEMSET(levt->next, '\0', sizeof(PSS_BAM_WARMBOOT_REQ));
+          memset(levt->next, '\0', sizeof(PSS_BAM_WARMBOOT_REQ));
           levt = levt->next;
        }
 

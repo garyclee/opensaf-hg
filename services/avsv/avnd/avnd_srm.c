@@ -197,7 +197,7 @@ uns32 avnd_srm_start (AVND_CB *cb, AVND_COMP_PM_REC *rec, NCS_SRMSV_ERR *srm_err
 
 
 
-   m_NCS_MEMSET(&mon_info, '\0', sizeof(NCS_SRMSV_MON_INFO));
+   memset(&mon_info, '\0', sizeof(NCS_SRMSV_MON_INFO));
    *srm_err = SA_AIS_OK;
 
 

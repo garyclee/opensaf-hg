@@ -78,7 +78,7 @@ static uns32 ada_create(NCS_LIB_REQ_INFO *req)
 {
     NCS_SPLR_REQ_INFO splr_req;
 
-    m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+    memset(&splr_req, 0, sizeof(splr_req));
     
     /* STEP : Register VDA as a service provider */
     splr_req.i_sp_abstract_name = m_ADA_SP_ABST_NAME;
@@ -97,7 +97,7 @@ static uns32 ada_create(NCS_LIB_REQ_INFO *req)
 static uns32 ada_destroy(NCS_LIB_REQ_INFO *req)
 {
     NCS_SPLR_REQ_INFO splr_req;
-    m_NCS_MEMSET(&splr_req, 0, sizeof(splr_req));
+    memset(&splr_req, 0, sizeof(splr_req));
     
     /* STEP : TODO : Reset ADEST stuff */
     /* STEP : Register VDA as a service provider */

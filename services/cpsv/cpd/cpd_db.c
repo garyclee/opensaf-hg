@@ -42,7 +42,7 @@
 uns32 cpd_ckpt_tree_init (CPD_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaCkptCheckpointHandleT);
    if (ncs_patricia_tree_init(&cb->ckpt_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -302,7 +302,7 @@ void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
 uns32 cpd_ckpt_reploc_tree_init(CPD_CB *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
  /*  param.key_size = 2 *sizeof(SaNameT); */
    param.key_size = sizeof(CPD_REP_KEY_INFO);
    if (ncs_patricia_tree_init(&cb->ckpt_reploc_tree, &param) != NCSCC_RC_SUCCESS)
@@ -436,7 +436,7 @@ void cpd_ckpt_reploc_cleanup(CPD_CB *cb)
    CPD_CKPT_REPLOC_INFO  *ckpt_reploc_node;
    CPD_REP_KEY_INFO key_info;
 
-   m_NCS_OS_MEMSET(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
+   memset(&key_info, 0, sizeof(CPD_REP_KEY_INFO));
 
    /*  Get the 1st Node */
    ckpt_reploc_node = (CPD_CKPT_REPLOC_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_reploc_tree,(uns8 *)&key_info);
@@ -490,7 +490,7 @@ void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb)
 uns32 cpd_ckpt_map_tree_init (CPD_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(SaNameT);
    if (ncs_patricia_tree_init(&cb->ckpt_map_tree, &param) != NCSCC_RC_SUCCESS)
    {
@@ -631,7 +631,7 @@ void cpd_ckpt_map_tree_cleanup(CPD_CB *cb)
    CPD_CKPT_MAP_INFO *ckpt_map_node;
    SaNameT     name;
    
-   m_NCS_OS_MEMSET(&name, 0, sizeof(SaNameT));
+   memset(&name, 0, sizeof(SaNameT));
    
    /* Get the First Node */
    ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,
@@ -682,7 +682,7 @@ void cpd_ckpt_map_tree_destroy(CPD_CB *cb)
 uns32 cpd_cpnd_info_tree_init (CPD_CB  *cb)
 {
    NCS_PATRICIA_PARAMS     param;
-   m_NCS_OS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    param.key_size = sizeof(NODE_ID);
    if (ncs_patricia_tree_init(&cb->cpnd_tree, &param) != NCSCC_RC_SUCCESS)
@@ -709,7 +709,7 @@ uns32 cpd_cpnd_info_node_get(NCS_PATRICIA_TREE *cpnd_tree,
 {
    NODE_ID  key;
    
-   m_NCS_OS_MEMSET(&key, 0, sizeof(NODE_ID));
+   memset(&key, 0, sizeof(NODE_ID));
    /* Fill the Key */
    key = m_NCS_NODE_ID_FROM_MDS_DEST((*dest));
    
@@ -733,7 +733,7 @@ void cpd_cpnd_info_node_getnext(NCS_PATRICIA_TREE *cpnd_tree,
                                 CPD_CPND_INFO_NODE **cpnd_info_node)
 {
     NODE_ID key;
-    m_NCS_OS_MEMSET(&key, 0, sizeof(NODE_ID));
+    memset(&key, 0, sizeof(NODE_ID));
    /* Fill the Key */
 
     if(dest) 
@@ -794,7 +794,7 @@ uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,  MDS_DEST *dest,
    /*MDS_DEST key;*/
    NODE_ID  key;
 
-   m_NCS_OS_MEMSET(&key, 0, sizeof(NODE_ID)); 
+   memset(&key, 0, sizeof(NODE_ID)); 
    /* Fill the Key */
    key = m_NCS_NODE_ID_FROM_MDS_DEST(( *dest));  
    
@@ -808,7 +808,7 @@ uns32 cpd_cpnd_info_node_find_add(NCS_PATRICIA_TREE *cpnd_tree,  MDS_DEST *dest,
          m_LOG_CPD_CL(CPD_CPND_INFO_ALLOC_FAILED,CPD_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_OS_MEMSET((*cpnd_info_node),'\0',sizeof(CPD_CPND_INFO_NODE));
+      memset((*cpnd_info_node),'\0',sizeof(CPD_CPND_INFO_NODE));
 
       /* Store the client_info pointer as msghandle. */
       (*cpnd_info_node)->cpnd_dest = *dest;
@@ -882,7 +882,7 @@ void cpd_cpnd_info_tree_cleanup(CPD_CB *cb)
    CPD_CPND_INFO_NODE *cpnd_info_node;
    NODE_ID  key;
    
-   m_NCS_OS_MEMSET(&key, 0, sizeof(NODE_ID));
+   memset(&key, 0, sizeof(NODE_ID));
    
    /* Get the First Node */
    cpnd_info_node = (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree,
@@ -1161,7 +1161,7 @@ uns32  cpd_process_cpnd_del(CPD_CB *cb,MDS_DEST *cpnd_dest)
    CPD_REP_KEY_INFO  key_info;
    CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
  
 
    cpd_cpnd_info_node_get(&cb->cpnd_tree, cpnd_dest, &cpnd_info);

@@ -246,7 +246,7 @@ uns32 snmptm_destroy(uns32 cb_hdl)
    /* EDU_HDL reset */
    m_NCS_EDU_HDL_FLUSH(&snmptm->edu_hdl);
 
-   m_NCS_OS_MEMSET(&nullEvtHandle, 0 , sizeof(SaEvtHandleT));
+   memset(&nullEvtHandle, 0 , sizeof(SaEvtHandleT));
    /* Free the EVT related data */
    if (m_NCS_MEMCMP(&snmptm->evtHandle, &nullEvtHandle, sizeof(SaEvtHandleT))!= 0)
    {
@@ -263,7 +263,7 @@ uns32 snmptm_destroy(uns32 cb_hdl)
           m_NCS_SET_VDEST_ID_IN_MDS_DEST(snmptm_vdest, SNMPTM_VCARD_ID2);
 
       /* destroy the VDEST */
-      m_NCS_MEMSET(&vda_info, 0, sizeof(NCSVDA_INFO));
+      memset(&vda_info, 0, sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
       vda_info.info.vdest_destroy.i_vdest = snmptm_vdest;

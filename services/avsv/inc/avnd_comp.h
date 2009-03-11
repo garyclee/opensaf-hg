@@ -509,7 +509,7 @@ typedef struct avnd_comp_tag {
    if ( m_AVND_TMR_IS_ACTIVE((comp)->clc_info.clc_reg_tmr) ) \
       m_AVND_TMR_COMP_REG_STOP((cb), *(comp)); \
    (comp)->reg_hdl = 0; \
-   m_NCS_OS_MEMSET(&(comp)->reg_dest, 0, sizeof(MDS_DEST)); \
+   memset(&(comp)->reg_dest, 0, sizeof(MDS_DEST)); \
    m_AVND_COMP_REG_RESET((comp)); \
 };
 
@@ -607,7 +607,7 @@ typedef struct avnd_comp_tag {
 #define m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, o_rc) \
 { \
    AVSV_PARAM_INFO param; \
-   m_NCS_OS_MEMSET(&param, 0, sizeof(AVSV_PARAM_INFO)); \
+   memset(&param, 0, sizeof(AVSV_PARAM_INFO)); \
    param.table_id = NCSMIB_TBL_AVSV_AMF_COMP; \
    param.obj_id = saAmfCompOperState_ID; \
    param.name_net = (comp)->name_net; \

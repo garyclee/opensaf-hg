@@ -130,7 +130,7 @@ uns32 fma_fm_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
-   m_NCS_OS_MEMSET(dst_msg, 0, sizeof(FMA_FM_MSG));
+   memset(dst_msg, 0, sizeof(FMA_FM_MSG));
    memcpy(dst_msg, src_msg, sizeof(FMA_FM_MSG));
 
    /** Is this the rite thing to do !!! **/
@@ -247,7 +247,7 @@ uns32 fma_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
-   m_NCS_OS_MEMSET(msg, 0, sizeof(FMA_FM_MSG));
+   memset(msg, 0, sizeof(FMA_FM_MSG));
 
    dec_info->o_msg = msg;
    uba = dec_info->io_uba;

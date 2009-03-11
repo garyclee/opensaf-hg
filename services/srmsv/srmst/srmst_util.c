@@ -56,8 +56,8 @@ uns32 srmst_get_data_from_file(char  *in_file,
    char line_buffer[SRMST_MAX_BUF_SIZE];
    char item_buffer[SRMST_ITEM_BUF_SIZE];
   
-   m_NCS_OS_MEMSET(line_buffer, 0, SRMST_MAX_BUF_SIZE);
-   m_NCS_OS_MEMSET(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
+   memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
+   memset(item_buffer, 0, SRMST_ITEM_BUF_SIZE);
 
    /* get a line from the file */
    if (srmst_file_parser(in_file, line_buffer, line_num) != NCSCC_RC_SUCCESS)
@@ -105,7 +105,7 @@ uns32 srmst_file_parser(char *in_file, char *out_string, uns16 line)
 
    for (num = 1; num<=line; num++)
    {
-      m_NCS_OS_MEMSET(out_string, 0, SRMST_MAX_BUF_SIZE);
+      memset(out_string, 0, SRMST_MAX_BUF_SIZE);
       if ((fgets(out_string, SRMST_MAX_BUF_SIZE, fd)) == NULL) 
       {
          /* LOG appropriate message */
@@ -144,7 +144,7 @@ uns32  srmst_str_parser(char *in_string,
    char  *out_data;
    char  buffer[SRMST_MAX_BUF_SIZE];
 
-   m_NCS_OS_MEMSET(&buffer, 0, SRMST_MAX_BUF_SIZE);   
+   memset(&buffer, 0, SRMST_MAX_BUF_SIZE);   
    m_NCS_STRCPY(buffer, in_string);
 
    if ((out_data = strtok(buffer, in_split_pattern)) == NULL)
@@ -157,7 +157,7 @@ uns32  srmst_str_parser(char *in_string,
          return NCSCC_RC_FAILURE;           
    }
 
-   m_NCS_OS_MEMSET(out_string, 0, SRMST_ITEM_BUF_SIZE);
+   memset(out_string, 0, SRMST_ITEM_BUF_SIZE);
    m_NCS_STRCPY(out_string, out_data);
 
    return NCSCC_RC_SUCCESS;

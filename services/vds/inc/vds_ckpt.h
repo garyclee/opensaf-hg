@@ -78,7 +78,7 @@ typedef enum
    ckpt_open_flags = SA_CKPT_CHECKPOINT_CREATE|SA_CKPT_CHECKPOINT_READ|SA_CKPT_CHECKPOINT_WRITE;
 
 #define m_VDS_CKPT_UPDATE_CREATE_ATTR(attr) \
-   m_NCS_OS_MEMSET(&attr, 0, sizeof(attr)); \
+   memset(&attr, 0, sizeof(attr)); \
    attr.creationFlags = SA_CKPT_CHECKPOINT_COLLOCATED | SA_CKPT_WR_ALL_REPLICAS; \
    attr.checkpointSize    = VDS_CKPT_DBINFO_SIZE; \
    attr.retentionDuration = VDS_CKPT_DBINFO_RET_TIME; \

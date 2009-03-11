@@ -118,7 +118,7 @@ ncs_rp_tmr_init(NCS_RP_TMR_INIT *tmr_init_info)
       return (NULL);
    }
 
-   m_NCS_MEMSET (tmr_cb, 0, sizeof(NCS_RP_TMR_CB));
+   memset (tmr_cb, 0, sizeof(NCS_RP_TMR_CB));
 
    tmr_cb->tmr_callback   = tmr_init_info->tmr_callback;
    tmr_cb->callback_arg   = tmr_init_info->callback_arg;
@@ -160,7 +160,7 @@ ncs_rp_tmr_create(NCS_RP_TMR_CB *tmr_cb)
       m_RP_TMR_LOG_MSG("ncs_rp_tmr_start NCS_RP_TMR_INFO OS alloc failed",0);
       return (0);
    }
-   m_NCS_MEMSET(tmr_info, 0, sizeof(NCS_RP_TMR_INFO));
+   memset(tmr_info, 0, sizeof(NCS_RP_TMR_INFO));
    return ((NCS_RP_TMR_HDL)tmr_info);
 }
 

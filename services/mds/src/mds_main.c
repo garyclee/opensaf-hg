@@ -325,7 +325,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
                selection-object can no longer be accessed. Hence, it is safe and correct 
                to destroy it now */
             m_NCS_SEL_OBJ_DESTROY(destroy_ack_obj);
-            m_NCS_MEMSET(&destroy_ack_obj, 0, sizeof(destroy_ack_obj)); /* Destroy info */
+            memset(&destroy_ack_obj, 0, sizeof(destroy_ack_obj)); /* Destroy info */
 
             /* Sanity check */
             if (gl_mds_mcm_cb == NULL)

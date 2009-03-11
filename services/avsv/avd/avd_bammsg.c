@@ -59,7 +59,7 @@ static uns32 avd_bam_snd_message(AVD_CL_CB *cb, AVD_BAM_MSG *snd_msg)
    NCSMDS_INFO snd_mds;
    uns32 rc;
 
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->vaddr_pwe_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -99,7 +99,7 @@ uns32 avd_bam_snd_restart(AVD_CL_CB *cb)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* Fill in the message */
-   m_NCS_MEMSET(snd_msg,'\0',sizeof(AVD_BAM_MSG));
+   memset(snd_msg,'\0',sizeof(AVD_BAM_MSG));
    snd_msg->msg_type = AVD_BAM_MSG_RESTART;
    
    rc = avd_bam_snd_message(cb, snd_msg);

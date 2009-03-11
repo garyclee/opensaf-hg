@@ -134,7 +134,7 @@ uns32 maclib_request(NCS_LIB_REQ_INFO * req_info)
                 NCS_SPIR_REQ_INFO spir_req;
                 
                 /* Get the PWE-HDL */
-                m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+                memset(&spir_req, 0, sizeof(spir_req));
                 spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;    
                 spir_req.i_environment_id = 1;
                 spir_req.i_sp_abstract_name = m_MAA_SP_ABST_NAME;
@@ -170,7 +170,7 @@ uns32 maclib_request(NCS_LIB_REQ_INFO * req_info)
             {
                return m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM);
             }
-            m_NCS_OS_MEMSET(post_me, 0, sizeof(MAB_MSG));
+            memset(post_me, 0, sizeof(MAB_MSG));
             post_me->op = MAB_MAC_DESTROY;
 
             /* post a message to MAC's thread */
@@ -228,7 +228,7 @@ maclib_mac_create(NCS_LIB_REQ_INFO * req_info)
 
     /* register with SPLR data base */ 
     /* SPLR: Service Provider Library Registry */ 
-    m_NCS_OS_MEMSET(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
+    memset(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
     splr_info.type = NCS_SPLR_REQ_REG; 
     splr_info.i_sp_abstract_name = m_MAA_SP_ABST_NAME;
     splr_info.info.reg.instantiation_flags = NCS_SPLR_INSTANTIATION_PER_ENV_ID; 
@@ -380,7 +380,7 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     }
     
     /* instantiate MAA in the asked PWE */
-    m_NCS_OS_MEMSET(&arg, 0, sizeof(arg));
+    memset(&arg, 0, sizeof(arg));
     arg.i_op = NCSMAC_LM_OP_CREATE;
 
     /* environement id */ 
@@ -417,7 +417,7 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
         m_NCS_SEL_OBJ_SELECT(inst->mas_sync_sel, &set, 0, 0, &timeout);
     }
     m_NCS_SEL_OBJ_DESTROY(inst->mas_sync_sel);
-    m_NCS_OS_MEMSET(&inst->mas_sync_sel, 0, sizeof(NCS_SEL_OBJ));
+    memset(&inst->mas_sync_sel, 0, sizeof(NCS_SEL_OBJ));
 
     ncshm_give_hdl((uns32)req_info->info.inst.o_inst_hdl);
     /* add the Environment to the list of all the envs */ 
@@ -469,7 +469,7 @@ maclib_mac_uninstantiate(PW_ENV_ID  env_id,
     NCS_SPIR_REQ_INFO   spir_info; 
 
     /* destroy this MAA instance */ 
-    m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMAC_LM_ARG)); 
+    memset(&arg, 0, sizeof(NCSMAC_LM_ARG)); 
     arg.i_op      = NCSMAC_LM_OP_DESTROY;
     arg.info.destroy.i_env_id = env_id;
     memcpy(&arg.info.destroy.i_inst_name, 
@@ -489,7 +489,7 @@ maclib_mac_uninstantiate(PW_ENV_ID  env_id,
     if (i_spir_cleanup == TRUE)
     {
         /* deregister the MAA handle of this Environment with SPIR */ 
-        m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
+        memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
         spir_info.type = NCS_SPIR_REQ_REL_INST; 
         spir_info.i_sp_abstract_name = m_MAA_SP_ABST_NAME; 
         spir_info.i_environment_id = env_id; 
@@ -561,7 +561,7 @@ maclib_mac_destroy(NCS_LIB_REQ_INFO *req_info)
     }
 
     /* deregister with SPLR */ 
-    m_NCS_OS_MEMSET(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
+    memset(&splr_info, 0, sizeof(NCS_SPLR_REQ_INFO)); 
     splr_info.type = NCS_SPLR_REQ_DEREG; 
     splr_info.i_sp_abstract_name = m_MAA_SP_ABST_NAME;
     status = ncs_splr_api(&splr_info); 
@@ -617,7 +617,7 @@ mac_inst_list_add(PW_ENV_ID env_id, uns32 i_mac_hdl, SaNameT i_inst_name)
     }
 
     /* occupy */
-    m_NCS_OS_MEMSET(add_me, 0, sizeof(MAB_INST_NODE)); 
+    memset(add_me, 0, sizeof(MAB_INST_NODE)); 
     add_me->i_env_id = env_id; 
     add_me->i_hdl = i_mac_hdl; 
     memcpy(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT));  

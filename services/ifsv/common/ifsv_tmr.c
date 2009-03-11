@@ -68,7 +68,7 @@ ifsv_timer_expiry (NCSCONTEXT uarg)
                IFSV_LOG_MEM_ALLOC_FAIL,0);
             return;
          }
-         m_NCS_MEMSET(evt,0,sizeof(IFSV_EVT));
+         memset(evt,0,sizeof(IFSV_EVT));
          evt->vrid   = cb->vrid;
          evt->cb_hdl = ifsv_hdl;
 

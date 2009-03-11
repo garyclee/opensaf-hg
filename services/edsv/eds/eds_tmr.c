@@ -196,7 +196,7 @@ void eds_tmr_exp (void *uarg)
       evt = m_MMGR_ALLOC_EDSV_EDS_EVT;
       if(evt)
       {
-         m_NCS_MEMSET(evt, '\0',sizeof(EDSV_EDS_EVT));
+         memset(evt, '\0',sizeof(EDSV_EDS_EVT));
 
          /* assign the timer evt */
          evt->evt_type = eds_tmr_evt_map(tmr->type);

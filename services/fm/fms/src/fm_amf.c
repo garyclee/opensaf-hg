@@ -290,7 +290,7 @@ static uns32 fm_amf_init (FM_AMF_CB *fm_amf_cb)
    SaVersionT      amf_version;   
    SaAisErrorT     amf_error;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback        = fm_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback             = fm_saf_CSI_set_callback;
@@ -399,11 +399,11 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    /*
    ** Start the AMF health check 
    */   
-   m_NCS_MEMSET(&SaCompName,0,sizeof(SaCompName));
+   memset(&SaCompName,0,sizeof(SaCompName));
    m_NCS_STRCPY(SaCompName.value, fm_amf_cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(fm_amf_cb->comp_name);
 
-   m_NCS_MEMSET(&Healthy, 0, sizeof(Healthy));
+   memset(&Healthy, 0, sizeof(Healthy));
    phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("FM_HA_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
@@ -462,7 +462,7 @@ static uns32 fm_amf_lib_init (FM_AMF_CB *fm_amf_cb)
       /* 
       ** Get the component name 
       */
-      m_NCS_MEMSET(&sname, 0, sizeof(sname));
+      memset(&sname, 0, sizeof(sname));
       amf_error = saAmfComponentNameGet(fm_amf_cb->amf_hdl, &sname);
       if (amf_error != SA_AIS_OK)
       {

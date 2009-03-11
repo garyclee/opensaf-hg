@@ -54,7 +54,7 @@ ifd_binding_mib_send_evt (IFSV_CB *cb, uns8 portnum, NCS_IFSV_IFINDEX masterIfin
     if (evt == IFSV_NULL)
       return NCSCC_RC_FAILURE;
 
-    m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+    memset(evt, 0, sizeof(IFSV_EVT));
     evt->cb_hdl = cb->cb_hdl;
 
 

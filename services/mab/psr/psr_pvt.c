@@ -327,7 +327,7 @@ uns32 pss_handle_svc_mds_evt(MAB_MSG * msg)
        {
        case NCSMDS_DOWN:
           pwe_cb->p_pss_cb->is_bam_alive = FALSE;
-          m_NCS_MEMSET(&pwe_cb->p_pss_cb->bam_address, 0, sizeof(MDS_DEST)); 
+          memset(&pwe_cb->p_pss_cb->bam_address, 0, sizeof(MDS_DEST)); 
           m_LOG_PSS_HEADLINE(NCSFL_SEV_DEBUG, PSS_HDLN_BAM_MDS_DOWN); 
           break;
 
@@ -589,7 +589,7 @@ uns32 pss_process_oac_warmboot(MAB_MSG * msg)
     }
 
     m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_ENTER_WBREQ_HNDLR_FUNC);
-    m_NCS_MEMSET(&lcl_uba, '\0', sizeof(lcl_uba));
+    memset(&lcl_uba, '\0', sizeof(lcl_uba));
 
 #if (NCS_PSS_RED == 1)
     if(pwe_cb->p_pss_cb->ha_state != SA_AMF_HA_STANDBY)
@@ -725,7 +725,7 @@ uns32 pss_process_oac_warmboot(MAB_MSG * msg)
           }
           m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_PCN_NODE_FOUND);
 
-          m_NCS_MEMSET(&lcl_sort_db, '\0', sizeof(lcl_sort_db));
+          memset(&lcl_sort_db, '\0', sizeof(lcl_sort_db));
           lcl_sort_db.sort_params.key_size = sizeof(PSS_WBSORT_KEY);
           if(ncs_patricia_tree_init(&lcl_sort_db.sort_db, &lcl_sort_db.sort_params) 
                 != NCSCC_RC_SUCCESS)
@@ -1537,7 +1537,7 @@ uns32 pss_process_setallrows_request(MAB_MSG * msg)
     /* Process all the rows */
     for (i = 0; i < num_rows; i++)
     {
-        m_NCS_MEMSET(&pv, '\0', sizeof(pv));
+        memset(&pv, '\0', sizeof(pv));
         num_params = ncsrow_dec_init(&ra);
         if (num_params == 0)
         {
@@ -1576,7 +1576,7 @@ uns32 pss_process_setallrows_request(MAB_MSG * msg)
         /* Process all the parameters in each row */
         for (j = 0; j < num_params; j++)
         {
-            m_NCS_MEMSET(&pv, '\0', sizeof(pv));
+            memset(&pv, '\0', sizeof(pv));
             retval = ncsrow_dec_param(&ra, &pv, NULL);
             if (retval != NCSCC_RC_SUCCESS)
             {
@@ -1910,7 +1910,7 @@ PSS_CLIENT_ENTRY * pss_find_client_entry(PSS_PWE_CB *pwe_cb, char *p_pcn,
     NCS_PATRICIA_NODE *pat_node;
     uns32              retval;
 
-    m_NCS_MEMSET(&client_key, '\0', sizeof(client_key));
+    memset(&client_key, '\0', sizeof(client_key));
     m_NCS_STRCPY(&client_key.pcn, p_pcn);
 
     pat_node = ncs_patricia_tree_get(&pwe_cb->client_table, (uns8 *)&client_key);
@@ -2029,7 +2029,7 @@ PSS_TBL_REC * pss_find_table_tree(PSS_PWE_CB *pwe_cb, PSS_CLIENT_ENTRY *client_n
         return (PSS_TBL_REC *) m_MAB_DBG_SINK(NULL);
     }
 
-    m_NCS_MEMSET(tbl_rec, '\0', sizeof(PSS_TBL_REC));
+    memset(tbl_rec, '\0', sizeof(PSS_TBL_REC));
     tbl_rec->dirty = FALSE;
     tbl_rec->tbl_id = tbl_id;
     if(pwe_cb->p_pss_cb->mib_tbl_desc[tbl_id]->ptbl_info->table_of_scalars)
@@ -2101,7 +2101,7 @@ void pss_client_entry_init(PSS_CLIENT_ENTRY *client_node)
     if (client_node == NULL)
         return;
 
-    m_NCS_MEMSET(client_node, '\0', sizeof(PSS_CLIENT_ENTRY));
+    memset(client_node, '\0', sizeof(PSS_CLIENT_ENTRY));
 
     for (i = 0; i < MAB_MIB_ID_HASH_TBL_SIZE; i++)
         client_node->hash[i] = NULL;
@@ -2136,7 +2136,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
     uns8               pkey[NCS_PATRICIA_MAX_KEY_SIZE];
     uns8 *             profile_name = pwe_cb->p_pss_cb->current_profile;
 
-    m_NCS_MEMSET((uns8*)&pkey, '\0', sizeof(pkey));
+    memset((uns8*)&pkey, '\0', sizeof(pkey));
     pss_set_key_from_inst_ids(tbl_info, (uns8*)&pkey, num_inst_ids, inst_ids);
     pNode = ncs_patricia_tree_get(pTree, pkey);
     if (pNode != NULL)
@@ -2156,7 +2156,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
         return (NCS_PATRICIA_NODE *)m_MAB_DBG_SINK(NULL);
     }
 
-    m_NCS_MEMSET(tbl_data, '\0', sizeof(PSS_MIB_TBL_DATA));
+    memset(tbl_data, '\0', sizeof(PSS_MIB_TBL_DATA));
     tbl_data->deleted = FALSE;
     tbl_data->dirty   = FALSE;
     tbl_data->key = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_key_length);
@@ -2180,8 +2180,8 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
         return (NCS_PATRICIA_NODE *)m_MAB_DBG_SINK(NULL);
     }
 
-    m_NCS_MEMSET(tbl_data->data, 0, tbl_info->max_row_length);
-    m_NCS_MEMSET(tbl_data->key, 0, tbl_info->max_key_length);
+    memset(tbl_data->data, 0, tbl_info->max_row_length);
+    memset(tbl_data->key, 0, tbl_info->max_key_length);
 
     pNode->key_info = tbl_data->key;
     memcpy(tbl_data->key, (uns8*)&pkey, tbl_info->max_key_length);
@@ -2210,7 +2210,7 @@ NCS_PATRICIA_NODE * pss_find_inst_node(PSS_PWE_CB *pwe_cb,
     tbl_data->entry_on_disk = entry_found;
     if (entry_found == FALSE)
     {
-        m_NCS_MEMSET(tbl_data->data, 0, tbl_info->max_row_length);
+        memset(tbl_data->data, 0, tbl_info->max_row_length);
         retval = pss_apply_inst_ids_to_node(tbl_info, tbl_data, num_inst_ids, inst_ids);
         if (retval != NCSCC_RC_SUCCESS)
         {
@@ -2261,7 +2261,7 @@ uns32 pss_find_scalar_node(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
     else
         return NCSCC_RC_SUCCESS;
 
-    m_NCS_MEMSET(tbl_rec->info.scalar.data, 0, tbl_rec->info.scalar.row_len);
+    memset(tbl_rec->info.scalar.data, 0, tbl_rec->info.scalar.row_len);
 
     retval = pss_read_from_sclr_store(pwe_cb, profile_name, tbl_rec->info.scalar.data,
                                  p_pcn, tbl_id, &entry_found);
@@ -2336,7 +2336,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                   bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData->data, index + 1);
                   if(!bitmap_already_set)
                   {
-                     m_NCS_MEMSET(pData->data + offset, 0,
+                     memset(pData->data + offset, 0,
                         max_len + sizeof(uns16));
                      memcpy(pData->data + offset, &param->i_length, sizeof(uns16));
                      pData->dirty = TRUE;  /* Need force a set back to the user, during playback */
@@ -2344,7 +2344,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                   break;
                }
                
-               m_NCS_MEMSET(pData->data + offset, 0,
+               memset(pData->data + offset, 0,
                   max_len + sizeof(uns16));
                memcpy(pData->data + offset, &param->i_length, sizeof(uns16));
                memcpy(pData->data + offset + sizeof(uns16), param->info.i_oct,
@@ -2353,7 +2353,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
             }
             else
             {
-               m_NCS_MEMSET(pData->data + offset, 0,
+               memset(pData->data + offset, 0,
                   max_len + sizeof(uns16));
                pData->dirty = TRUE;
             }
@@ -2368,7 +2368,7 @@ uns32 pss_apply_changes_to_node(PSS_MIB_TBL_INFO * tbl_info,
                   pData->dirty = TRUE;  /* Need force a set back to the user, during playback */
             }
 
-            m_NCS_MEMSET(pData->data + offset, 0, var_info->var_info.len);
+            memset(pData->data + offset, 0, var_info->var_info.len);
             memcpy(pData->data + offset, param->info.i_oct, param->i_length);
             pData->dirty = TRUE;
         }
@@ -2533,7 +2533,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                   bitmap_already_set = (NCS_BOOL)pss_get_bit_for_param(pData, index + 1);
                   if(!bitmap_already_set)
                   {
-                     m_NCS_MEMSET(pData + offset, 0,
+                     memset(pData + offset, 0,
                         max_len + sizeof(uns16));
                      memcpy(pData + offset, &param->i_length, sizeof(uns16));
                      tbl_rec->dirty = TRUE;  /* Need force a set back to the user, during playback */
@@ -2541,7 +2541,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                   break;
                }
                
-               m_NCS_MEMSET(pData + offset, 0,
+               memset(pData + offset, 0,
                   max_len + sizeof(uns16));
                memcpy(pData + offset, &param->i_length, sizeof(uns16));
                memcpy(pData + offset + sizeof(uns16), param->info.i_oct,
@@ -2550,7 +2550,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
             }
             else
             {
-               m_NCS_MEMSET(pData + offset, 0,
+               memset(pData + offset, 0,
                   max_len + sizeof(uns16));
                tbl_rec->dirty = TRUE;
             }
@@ -2566,7 +2566,7 @@ uns32 pss_apply_changes_to_sclr_node(PSS_MIB_TBL_INFO * tbl_info,
                 break;
             }
 
-            m_NCS_MEMSET(pData + offset, 0, var_info->var_info.len);
+            memset(pData + offset, 0, var_info->var_info.len);
             memcpy(pData + offset, param->info.i_oct, param->i_length);
             tbl_rec->dirty = TRUE;
         }
@@ -2694,7 +2694,7 @@ uns32 pss_apply_inst_ids_to_node(PSS_MIB_TBL_INFO * tbl_info,
                    max_len = ncsmiblib_get_max_len_of_discrete_octet_string(&var_info->var_info);
                 else
                    max_len = var_info->var_info.obj_spec.stream_spec.max_len;
-                m_NCS_MEMSET(ptr, 0, max_len);
+                memset(ptr, 0, max_len);
 
                 for (j = 0; j < len16; j++)
                     *ptr++ = (uns8) inst_ids[num_inst_ids++];
@@ -2894,7 +2894,7 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
 
     /* Now allocate space for the index ids and data buffer */
     pkey = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_key_length);
-    m_NCS_MEMSET(pkey, '\0', tbl_info->max_key_length);
+    memset(pkey, '\0', tbl_info->max_key_length);
     if (pkey == NULL)
     {
         m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_OCT_ALLOC_FAIL,
@@ -3041,7 +3041,7 @@ uns32 pss_read_from_sclr_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
            }
 
            /* Read in the data from the file*/
-           m_NCS_MEMSET(&pssts_arg, '\0', sizeof(pssts_arg));
+           memset(&pssts_arg, '\0', sizeof(pssts_arg));
            pssts_arg.i_op = NCS_PSSTS_OP_READ_FILE;
            pssts_arg.ncs_hdl = pwe_cb->p_pss_cb->pssts_hdl;
            pssts_arg.info.read_file.i_handle  = file_hdl;
@@ -3268,8 +3268,8 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
 
     tbl_info  = inst->mib_tbl_desc[tbl_rec->tbl_id];
 
-    m_NCS_MEMSET(&ra, '\0', sizeof(ra));
-    m_NCS_MEMSET(&pa, '\0', sizeof(pa));
+    memset(&ra, '\0', sizeof(ra));
+    memset(&pa, '\0', sizeof(pa));
 #if (NCS_PSS_RED == 1)
     if((pwe_cb->processing_pending_active_events == TRUE) &&
        ((*i_continue_session) == FALSE))
@@ -3381,10 +3381,10 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         goto cleanup;
     }
-    m_NCS_MEMSET(pinst_ids, '\0', tbl_info->num_inst_ids * sizeof(uns32));
-    m_NCS_MEMSET(pinst_ids_first, '\0', tbl_info->num_inst_ids * sizeof(uns32));
+    memset(pinst_ids, '\0', tbl_info->num_inst_ids * sizeof(uns32));
+    memset(pinst_ids_first, '\0', tbl_info->num_inst_ids * sizeof(uns32));
 #if (NCS_PSS_RED == 1)
-    m_NCS_MEMSET(pinst_re_ids, '\0', tbl_info->num_inst_ids * sizeof(uns32));
+    memset(pinst_re_ids, '\0', tbl_info->num_inst_ids * sizeof(uns32));
 #endif
 
     idx.i_inst_ids       = pinst_ids;
@@ -3492,7 +3492,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                 if((inst->mib_tbl_desc[tbl_rec->tbl_id]->capability == NCSMIB_CAPABILITY_SETROW) &&
                    (FALSE == pa_inited))
                 {
-                   m_NCS_MEMSET(&pa, '\0', sizeof(pa));
+                   memset(&pa, '\0', sizeof(pa));
                    ncsparm_enc_init(&pa);
                    pa_inited = TRUE;
                 }
@@ -3590,7 +3590,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                        }
                     }
 #endif
-                    m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+                    memset(&mib_arg, 0, sizeof(mib_arg));
                     ncsmib_init(&mib_arg);
                     ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -3689,7 +3689,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
                 }
 #endif
 
-                m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+                memset(&mib_arg, 0, sizeof(mib_arg));
                 ncsmib_init(&mib_arg);
                 ncsmem_aid_init(&ma, space, sizeof(space));
 
@@ -3772,7 +3772,7 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn,
           goto cleanup;
        }
 
-       m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+       memset(&mib_arg, 0, sizeof(mib_arg));
        ncsmem_aid_init(&ma, space, sizeof(space));
        /* Populate the mib_arg structure and send the request */
        ncsmib_init(&mib_arg);
@@ -3942,7 +3942,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         goto cleanup;
     }
-    m_NCS_MEMSET(curr_data, '\0', tbl_info->max_row_length);
+    memset(curr_data, '\0', tbl_info->max_row_length);
 
     /* Now open the files and read in data from them */
     m_NCS_PSSTS_FILE_OPEN(inst->pssts_api, inst->pssts_hdl, retval, 
@@ -3979,7 +3979,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
         if (pss_get_bit_for_param(curr_data, (j+1)) == 0)
             continue;
 
-        m_NCS_MEMSET(&pv, '\0', sizeof(pv));
+        memset(&pv, '\0', sizeof(pv));
         switch(tbl_info->pfields[j].var_info.fmat_id)
         {
         case NCSMIB_FMAT_INT:
@@ -4060,7 +4060,7 @@ uns32 pss_oac_warmboot_process_sclr_tbl(PSS_PWE_CB *pwe_cb, char *pcn,
                continue;   /* To the next object */
             }
 #endif
-            m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+            memset(&mib_arg, 0, sizeof(mib_arg));
             
             ncsmib_init(&mib_arg);
             ncsmem_aid_init(&ma, space, sizeof(space));
@@ -4157,13 +4157,13 @@ uns32 pss_signal_start_of_playback(PSS_PWE_CB *pwe_cb, USRBUF *ub)
     NCSMDS_INFO   info;
 
     /* send messages to MAC and OAC about the start of the playback session */
-    m_NCS_MEMSET(&msg, 0, sizeof(msg));
+    memset(&msg, 0, sizeof(msg));
     msg.vrid           = pwe_cb->pwe_id;
     msg.op             = MAB_MAC_PLAYBACK_START;
     if(ub != NULL)
        msg.data.data.plbck_start.i_ub = ub;
 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl     = pwe_cb->mds_pwe_handle;
     info.i_op          = MDS_SEND;
     info.i_svc_id      = NCSMDS_SVC_ID_PSS;
@@ -4207,11 +4207,11 @@ uns32 pss_signal_end_of_playback(PSS_PWE_CB *pwe_cb)
     NCSMDS_INFO info;
 
     /* send messages to MAAs about the end of the playback session */
-    m_NCS_MEMSET(&msg, 0, sizeof(msg));
+    memset(&msg, 0, sizeof(msg));
     msg.vrid           = pwe_cb->pwe_id;
     msg.op             = MAB_MAC_PLAYBACK_END;
 
-    m_NCS_MEMSET(&info, 0, sizeof(info));
+    memset(&info, 0, sizeof(info));
     info.i_mds_hdl     = pwe_cb->mds_pwe_handle;
     info.i_op          = MDS_SEND;
     info.i_svc_id      = NCSMDS_SVC_ID_PSS;
@@ -4290,7 +4290,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         goto cleanup;
     }
     in_ptr = in_buf;
-    m_NCS_MEMSET(in_buf, '\0', buf_size);
+    memset(in_buf, '\0', buf_size);
 
     out_buf = m_MMGR_ALLOC_PSS_OCT(buf_size);
     if (out_buf == NULL)
@@ -4300,7 +4300,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         goto cleanup;
     }
-    m_NCS_MEMSET(out_buf, '\0', buf_size);
+    memset(out_buf, '\0', buf_size);
     out_ptr = out_buf;
 
     key = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_key_length);
@@ -4311,7 +4311,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         goto cleanup;
     }
-    m_NCS_MEMSET(key, '\0', tbl_info->max_key_length);
+    memset(key, '\0', tbl_info->max_key_length);
     
     pNode = NULL;
     if(pTree->n_nodes != 0)
@@ -4341,7 +4341,7 @@ uns32 pss_save_to_store(PSS_PWE_CB *pwe_cb, NCS_PATRICIA_TREE * pTree,
     {
      /* 3.0.b addition: Writing Table details header temp file */ 
 
-        m_NCS_MEMSET(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
+        memset(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
         /* Filling the current profile, pwe_id, pcn and table_id */
         memcpy(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
         ps_file_record.pwe_id = pwe_cb->pwe_id;
@@ -4720,7 +4720,7 @@ uns32 pss_save_to_sclr_store(PSS_PWE_CB *pwe_cb, PSS_TBL_REC * tbl_rec,
 
   /* 3.0.b addition: Writing Table details header temp file */
 
-    m_NCS_MEMSET(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
+    memset(&ps_file_record, 0, sizeof(PSS_TABLE_PATH_RECORD));
     /* Filling the current profile, pwe_id, pcn and table_id */
     memcpy(&ps_file_record.profile, &inst->current_profile, NCS_PSS_MAX_PROFILE_NAME);
     ps_file_record.pwe_id = pwe_cb->pwe_id;
@@ -4810,8 +4810,8 @@ uns32 pss_set_key_from_inst_ids(PSS_MIB_TBL_INFO * tbl_info, uns8 * key,
     PSS_VAR_INFO * var_info;
 
     counter = 0;
-    m_NCS_MEMSET(key, 0, tbl_info->max_key_length);
-    /*m_NCS_MEMSET(key, '\0', NCS_PATRICIA_MAX_KEY_SIZE);*/
+    memset(key, 0, tbl_info->max_key_length);
+    /*memset(key, '\0', NCS_PATRICIA_MAX_KEY_SIZE);*/
     for (i = 0; i < tbl_info->ptbl_info->num_objects; i++)
     {
         var_info = &(tbl_info->pfields[i]);
@@ -4903,7 +4903,7 @@ uns32 pss_get_key_from_data(PSS_MIB_TBL_INFO * tbl_info,
     uns16  len16;
 
 
-    m_NCS_MEMSET(ptr, 0, tbl_info->max_key_length);
+    memset(ptr, 0, tbl_info->max_key_length);
     for (i = 0; i < tbl_info->ptbl_info->num_objects; i++)
     {
         var_info = &(tbl_info->pfields[i]);
@@ -5057,7 +5057,7 @@ uns32 pss_process_tbl_pss_profiles(PSS_CB * inst, NCSMIB_ARG * arg)
     if (!m_NCSMIB_ISIT_A_REQ(arg->i_op))
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 
-    m_NCS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+    memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
     miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
     miblib_req.info.i_mib_op_info.args = arg;
@@ -5092,7 +5092,7 @@ uns32 pss_process_sclr_trigger(PSS_CB * inst, NCSMIB_ARG * arg)
     if (!m_NCSMIB_ISIT_A_REQ(arg->i_op))
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 
-    m_NCS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+    memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
     miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
     miblib_req.info.i_mib_op_info.args = arg;
@@ -5285,7 +5285,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
         retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         goto cleanup;
     }
-    m_NCS_MEMSET(alt_data, '\0', tbl_info->max_row_length);
+    memset(alt_data, '\0', tbl_info->max_row_length);
 
     /* Now open the files and read in data from them */
     m_NCS_PSSTS_FILE_OPEN(pwe_cb->p_pss_cb->pssts_api, pwe_cb->p_pss_cb->pssts_hdl,
@@ -5322,7 +5322,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
         if (pss_get_bit_for_param(alt_data, (j+1)) == 0)
             continue;
         
-        m_NCS_MEMSET(&pv, '\0', sizeof(pv));
+        memset(&pv, '\0', sizeof(pv));
         switch(tbl_info->pfields[j].var_info.fmat_id)
         {
         case NCSMIB_FMAT_INT:
@@ -5407,7 +5407,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
             if(first_set_ready == FALSE)
             {
                /* Send the REMOVEROWS for the scalar table only once. */
-               m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+               memset(&mib_arg, 0, sizeof(mib_arg));
                ncsmib_init(&mib_arg);
                ncsmem_aid_init(&ma, space, sizeof(space));
             
@@ -5447,7 +5447,7 @@ uns32 pss_playback_process_sclr_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                first_set_ready = TRUE;
             }
 
-            m_NCS_MEMSET(&mib_arg, 0, sizeof(mib_arg));
+            memset(&mib_arg, 0, sizeof(mib_arg));
             
             ncsmib_init(&mib_arg);
             ncsmem_aid_init(&ma, space, sizeof(space));
@@ -5590,7 +5590,7 @@ uns32 pss_add_to_refresh_tbl_list(PSS_PWE_CB *pwe_cb, PSS_TBL_REC *tbl_rec)
             "pss_add_to_refresh_tbl_list");
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMSET(prv_tmp->next, '\0', sizeof(PSS_RFRSH_TBL_LIST));
+      memset(prv_tmp->next, '\0', sizeof(PSS_RFRSH_TBL_LIST));
       prv_tmp->next->pss_tbl_rec = tbl_rec;
       return NCSCC_RC_SUCCESS;
    }
@@ -5602,7 +5602,7 @@ uns32 pss_add_to_refresh_tbl_list(PSS_PWE_CB *pwe_cb, PSS_TBL_REC *tbl_rec)
          "pss_add_to_refresh_tbl_list");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(tmp, '\0', sizeof(PSS_RFRSH_TBL_LIST));
+   memset(tmp, '\0', sizeof(PSS_RFRSH_TBL_LIST));
    tmp->pss_tbl_rec = tbl_rec;
 
    pwe_cb->refresh_tbl_list = tmp; /* Add the first node to the list */
@@ -6074,7 +6074,7 @@ uns32 pss_stdby_oaa_down_list_update(MDS_DEST oaa_addr,NCSCONTEXT yr_hdl,PSS_STD
             return NCSCC_RC_FAILURE;
         }
         new_node = m_MMGR_ALLOC_STDBY_PSS_BUFFER_NODE;
-        m_NCS_MEMSET(new_node, '\0', sizeof(PSS_STDBY_OAA_DOWN_BUFFER_NODE));
+        memset(new_node, '\0', sizeof(PSS_STDBY_OAA_DOWN_BUFFER_NODE));
         new_node->oaa_addr = oaa_addr;
         new_node->oaa_node = oaa_node;
         new_node->next = NULL;

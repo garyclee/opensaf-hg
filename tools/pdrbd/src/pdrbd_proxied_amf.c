@@ -36,7 +36,7 @@ uns32 pdrbdProxiedAmfInitialise()
    SaAisErrorT error;
    uns32 ret=NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfCSISetCallback = pdrbdProxiedAmfCsiSetCallback;
 

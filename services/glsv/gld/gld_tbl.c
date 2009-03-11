@@ -40,7 +40,7 @@ uns32 glsv_gld_map_from_instid(const uns32* i_inst_ids, uns32 i_inst_len, GLSV_G
    if(i_inst_ids == NULL)
       return NCSCC_RC_FAILURE; 
 
-   m_NCS_MEMSET(&rsc_name,'\0',sizeof(SaNameT));
+   memset(&rsc_name,'\0',sizeof(SaNameT));
 
    rsc_name.length = *i_inst_ids;
    i_inst_ids++;
@@ -95,7 +95,7 @@ uns32 salckresourceentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
    GLSV_GLD_RSC_INFO     *rsc_info = NULL;
    GLSV_GLD_RSC_MAP_INFO  rsc_map_info;
 
-   m_NCS_MEMSET(&rsc_map_info,'\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
+   memset(&rsc_map_info,'\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
 
    /* Get the CB pointer from the CB handle */
    gld_cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, arg->i_mib_key);
@@ -225,7 +225,7 @@ uns32 salckresourceentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data,u
    GLSV_GLD_RSC_INFO     *rsc_info = NULL;
    GLSV_GLD_RSC_MAP_INFO rsc_map_info;
 
-   m_NCS_OS_MEMSET(&rsc_map_info,'\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
+   memset(&rsc_map_info,'\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
 
 
    gld_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);

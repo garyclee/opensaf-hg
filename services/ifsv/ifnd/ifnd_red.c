@@ -109,7 +109,7 @@ ifnd_mds_dest_add (MDS_DEST *mds_dest, IFSV_CB *cb, NCSMDS_SVC_ID type)
     return (NCSCC_RC_FAILURE);
   }
 
-  m_NCS_MEMSET(rec, 0, sizeof(IFND_MDS_DEST_INFO_REC));
+  memset(rec, 0, sizeof(IFND_MDS_DEST_INFO_REC));
 
   rec->info.mds_dest = *mds_dest;
   rec->info.type = type;
@@ -188,7 +188,7 @@ ifnd_mds_dest_destroy_all (IFSV_CB *cb)
   IFND_MDS_DEST_INFO_REC *rec = NULL;
   MDS_DEST mds_dest;
 
-  m_NCS_MEMSET(&mds_dest, 0, sizeof(MDS_DEST));
+  memset(&mds_dest, 0, sizeof(MDS_DEST));
 
   node = ncs_patricia_tree_getnext(&cb->mds_dest_tbl, (uns8*)&mds_dest);
 
@@ -227,7 +227,7 @@ ifnd_send_idim_ifndup_event (IFSV_CB *cb)
   IFND_MDS_DEST_INFO_REC *rec = NULL;
   MDS_DEST mds_dest;
 
-  m_NCS_MEMSET(&mds_dest, 0, sizeof(MDS_DEST));
+  memset(&mds_dest, 0, sizeof(MDS_DEST));
 
   node = ncs_patricia_tree_getnext(&cb->mds_dest_tbl, (uns8*)&mds_dest);
 
@@ -328,7 +328,7 @@ ifnd_data_retrival_from_ifd (IFSV_CB *ifsv_cb,
   else if(create_intf->evt_orig == NCS_IFSV_EVT_ORIGN_IFA)
   {
      /* Now send sync resp to the IfA. */
-     m_NCS_OS_MEMSET(&send_evt, 0, sizeof(IFSV_EVT));
+     memset(&send_evt, 0, sizeof(IFSV_EVT));
      send_evt.type = IFA_EVT_INTF_CREATE_RSP;
      send_evt.error = NCS_IFSV_IFND_RESTARTING_ERROR;
      send_evt.info.ifa_evt.info.if_add_rsp_idx =

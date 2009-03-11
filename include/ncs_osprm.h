@@ -655,10 +655,6 @@ typedef int32 int64;
 #define NCS_OS_PATH_MAX                    255
 #endif
 
-#ifndef m_NCS_OS_MEMSET
-#define m_NCS_OS_MEMSET(b,c,n)             memset(b,c,n)
-#endif
-
 #ifndef m_NCS_OS_MEMCMP
 #define m_NCS_OS_MEMCMP(d,s,n)             memcmp(d,s,n)
 #endif
@@ -2119,12 +2115,6 @@ EXTERN_C void my_free(void *mem_p);
 #ifndef m_NCS_OS_ASSERT
 #define m_NCS_OS_ASSERT(exp)         assert(exp)
 #endif
-
-
-#ifndef m_NCS_OS_MEMSET
-#define m_NCS_OS_MEMSET(b,c,n)       memset(b,c,n)
-#endif
-
 
 #ifndef m_NCS_OS_GETC
 #define m_NCS_OS_GETC                getc

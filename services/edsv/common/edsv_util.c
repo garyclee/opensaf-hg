@@ -71,7 +71,7 @@ edsv_copy_evt_pattern_array(const SaEvtEventPatternArrayT *src_pattern_array,
    }
    /** zero the memory
     **/
-   m_NCS_MEMSET(dst_pattern_array, '\0', sizeof(SaEvtEventPatternArrayT));
+   memset(dst_pattern_array, '\0', sizeof(SaEvtEventPatternArrayT));
 
    /** Initialize the allocated number field
     ** This is ignored in the case of AttributesSet */
@@ -99,7 +99,7 @@ edsv_copy_evt_pattern_array(const SaEvtEventPatternArrayT *src_pattern_array,
 
    /** zero the memory
     **/
-   m_NCS_MEMSET(dst_pattern_array->patterns, '\0', dst_pattern_array->patternsNumber * sizeof(SaEvtEventPatternT));
+   memset(dst_pattern_array->patterns, '\0', dst_pattern_array->patternsNumber * sizeof(SaEvtEventPatternT));
 
 
    for(n=0, src_pattern = src_pattern_array->patterns, dst_pattern =  dst_pattern_array->patterns;
@@ -133,7 +133,7 @@ edsv_copy_evt_pattern_array(const SaEvtEventPatternArrayT *src_pattern_array,
              return NULL;
          }
          /** Clear memory for the allocated pattern **/
-         m_NCS_MEMSET(dst_pattern->pattern, '\0', (uns32)dst_pattern->patternSize);
+         memset(dst_pattern->pattern, '\0', (uns32)dst_pattern->patternSize);
          /** Copy the pattern **/
          memcpy(dst_pattern->pattern, 
                       src_pattern->pattern, 
@@ -221,7 +221,7 @@ edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT *src_filter_array,
 
    /** zero the memory
     **/
-   m_NCS_MEMSET(dst_filter_array, '\0', (sizeof(SaEvtEventFilterArrayT)));
+   memset(dst_filter_array, '\0', (sizeof(SaEvtEventFilterArrayT)));
 
    /** Initialize the filters number field
     **/
@@ -243,7 +243,7 @@ edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT *src_filter_array,
 
       /** zero the memory
       **/
-      m_NCS_MEMSET(dst_filter_array->filters, '\0', n * sizeof(SaEvtEventFilterT));
+      memset(dst_filter_array->filters, '\0', n * sizeof(SaEvtEventFilterT));
 
 
       for(n=0, src_filter = src_filter_array->filters, dst_filter =  dst_filter_array->filters; 
@@ -273,7 +273,7 @@ edsv_copy_evt_filter_array(const SaEvtEventFilterArrayT *src_filter_array,
               return NULL;
            }
            /** Clear memory for the allocated pattern **/
-           m_NCS_MEMSET(dst_filter->filter.pattern, 
+           memset(dst_filter->filter.pattern, 
                          '\0', (uns32)dst_filter->filter.patternSize);
             /** Copy the pattern **/
             memcpy(dst_filter->filter.pattern, 

@@ -492,8 +492,8 @@ static uns32 cli_dflt_reg(uns32 hdl)
    
 
    /*Register the default commands with CLI*/
-    m_NCS_OS_MEMSET(&data, 0, sizeof(data));
-    m_NCS_OS_MEMSET(&pwd, 0, sizeof(pwd));
+    memset(&data, 0, sizeof(data));
+    memset(&pwd, 0, sizeof(pwd));
 
     /*Fill the root i_node */
     data.i_node = CLI_ROOT_NODE;
@@ -524,7 +524,7 @@ static uns32 cli_dflt_reg(uns32 hdl)
     if(NCSCC_RC_SUCCESS != ncscli_opr_request(&info)) return NCSCC_RC_FAILURE;
     
     /*Register the default commands with CLI*/
-    m_NCS_OS_MEMSET(&data, 0, sizeof(data));
+    memset(&data, 0, sizeof(data));
     data.i_node = "root/exec";
     data.i_command_mode = "exec";
     data.i_access_req = FALSE;
@@ -545,7 +545,7 @@ static uns32 cli_dflt_reg(uns32 hdl)
     if(NCSCC_RC_SUCCESS != ncscli_opr_request(&info)) return NCSCC_RC_FAILURE;
     
     /*Register the default commands with CLI*/
-    m_NCS_OS_MEMSET(&data, 0, sizeof(data));
+    memset(&data, 0, sizeof(data));
     data.i_node = "root/exec/config";
     data.i_command_mode = "config";
     data.i_access_req = FALSE;
@@ -616,7 +616,7 @@ uns32 cli_create(CLI_INST_CREATE *io_info, CLI_CB **o_cli)
    }
 
    /* Initializes CB */
-   m_NCS_OS_MEMSET(pCli, 0, sizeof(CLI_CB));
+   memset(pCli, 0, sizeof(CLI_CB));
    m_CLI_RESET_CB(pCli);
    
    pCli->readFunc = io_info->i_read_func;   
@@ -789,7 +789,7 @@ static uns32 cli_log_reg(void)
 #if (NCSCLI_LOG != 0)
    NCS_DTSV_RQ            reg;
    
-   m_NCS_MEMSET(&reg, 0, sizeof(reg));
+   memset(&reg, 0, sizeof(reg));
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CLI;
    /* fill version no. */
@@ -820,7 +820,7 @@ static void cli_log_dereg(void)
 #if (NCSCLI_LOG != 0)
    NCS_DTSV_RQ        reg;
       
-   m_NCS_MEMSET(&reg, 0, sizeof(reg));
+   memset(&reg, 0, sizeof(reg));
    reg.i_op = NCS_DTSV_OP_UNBIND;
    reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CLI;
 
@@ -880,7 +880,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
     }
 
     /* fill in the required parameters to be passed to the application */
-    m_NCS_OS_MEMSET(&libreq, 0, sizeof(NCS_LIB_REQ_INFO)); 
+    memset(&libreq, 0, sizeof(NCS_LIB_REQ_INFO)); 
     libreq.i_op = NCS_LIB_REQ_CREATE;  
    
     /* log the filename, from where CLI is reading the config spec */  
@@ -951,8 +951,8 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
                 m_NCS_CONS_PRINTF("\nWarning: %s\n",dl_error);
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
-                m_NCS_OS_MEMSET(arg2, 0, 255);
-                m_NCS_OS_MEMSET(arg1, 0, 255);
+                memset(arg2, 0, 255);
+                memset(arg1, 0, 255);
                 continue; 
             }
         }
@@ -968,8 +968,8 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
             m_NCS_CONS_PRINTF("\nWarning: %s\n",dl_error);
             reg_unreg_routine = NULL; 
             lib_hdl = NULL;
-            m_NCS_OS_MEMSET(arg2, 0, 255);
-            m_NCS_OS_MEMSET(arg1, 0, 255);
+            memset(arg2, 0, 255);
+            memset(arg1, 0, 255);
             continue; 
         }
 
@@ -997,8 +997,8 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
 
         reg_unreg_routine = NULL; 
         lib_hdl = NULL;
-        m_NCS_OS_MEMSET(arg2, 0, 255);
-        m_NCS_OS_MEMSET(arg1, 0, 255);
+        memset(arg2, 0, 255);
+        memset(arg1, 0, 255);
         
     } /* for all the libraries */
     if (nargs != EOF)

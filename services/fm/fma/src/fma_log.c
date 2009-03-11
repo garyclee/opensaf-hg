@@ -145,7 +145,7 @@ void fma_log_api (FMA_LOG_API   type,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    ncs_logmsg(NCS_SERVICE_ID_FMA, FMA_LID_API, FMA_FC_API,
               NCSFL_LC_API, sev, NCSFL_TYPE_TII, type, status);
@@ -307,7 +307,7 @@ uns32 fma_log_reg(void)
    NCS_DTSV_RQ            reg;
    uns32 rc = NCSCC_RC_SUCCESS;   
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_FMA; 
    reg.info.bind_svc.version = FMA_LOG_VERSION;
@@ -336,7 +336,7 @@ void fma_log_dereg(void)
 {
    NCS_DTSV_RQ  reg;
  
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op = NCS_DTSV_OP_UNBIND;
    reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_FMA;
    ncs_dtsv_su_req(&reg);

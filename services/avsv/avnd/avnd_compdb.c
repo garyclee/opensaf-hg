@@ -83,7 +83,7 @@ uns32 avnd_compdb_init(AVND_CB *cb)
    NCS_PATRICIA_PARAMS params;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    params.key_size = sizeof(SaNameT);
    rc = ncs_patricia_tree_init(&cb->compdb, &params);
@@ -182,7 +182,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
     * Determine if the SU is present
     */
    /* extract the su-name from comp dn */
-   m_NCS_MEMSET(&su_name_net, 0, sizeof(SaNameT));
+   memset(&su_name_net, 0, sizeof(SaNameT));
    avsv_cpy_SU_DN_from_DN(&su_name_net, &info->name_net);
    su_name_net.length = m_NCS_OS_HTONS(su_name_net.length);
    
@@ -202,7 +202,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
       goto err;
    }
 
-   m_NCS_OS_MEMSET(comp, 0, sizeof(AVND_COMP));
+   memset(comp, 0, sizeof(AVND_COMP));
    
    /*
     * Update the config parameters.
@@ -477,7 +477,7 @@ uns32 avnd_compdb_rec_del(AVND_CB *cb, SaNameT *name_net)
     * Determine if the SU is present
     */
    /* extract the su-name from comp dn */
-   m_NCS_MEMSET(&su_name_net, 0, sizeof(SaNameT));
+   memset(&su_name_net, 0, sizeof(SaNameT));
    avsv_cpy_SU_DN_from_DN(&su_name_net, name_net);
    su_name_net.length = m_NCS_OS_HTONS(su_name_net.length);
    
@@ -650,7 +650,7 @@ uns32 ncsscomptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data)
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_OS_MEMSET(&comp_name, 0, sizeof(SaNameT));
+   memset(&comp_name, 0, sizeof(SaNameT));
 
    /* Prepare the component name from the instant ID */
    comp_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -840,7 +840,7 @@ uns32 ncsscomptableentry_next(NCSCONTEXT cb,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_OS_MEMSET(&comp_name, 0, sizeof(SaNameT));
+   memset(&comp_name, 0, sizeof(SaNameT));
 
    if (arg->i_idx.i_inst_len != 0)
    {
@@ -955,8 +955,8 @@ uns32 saamfscompcsitableentry_get(NCSCONTEXT cb,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_OS_MEMSET(&comp_name, 0, sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&csi_name, 0, sizeof(SaNameT));
+   memset(&comp_name, 0, sizeof(SaNameT));
+   memset(&csi_name, 0, sizeof(SaNameT));
 
    /* Prepare the comp name from the instant ID */
    comp_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1146,8 +1146,8 @@ uns32 saamfscompcsitableentry_next(NCSCONTEXT cb,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_OS_MEMSET(&comp_name, 0, sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&csi_name, 0, sizeof(SaNameT));
+   memset(&comp_name, 0, sizeof(SaNameT));
+   memset(&csi_name, 0, sizeof(SaNameT));
 
    /* Prepare the SU name from the instant ID */
    if (arg->i_idx.i_inst_len != 0)

@@ -51,7 +51,7 @@ cpa_timer_expiry (NCSCONTEXT uarg)
    if (tmr != NULL)
    {
       hdl = tmr->uarg;
-      m_NCS_OS_MEMSET(&evt, 0, sizeof(CPSV_EVT));
+      memset(&evt, 0, sizeof(CPSV_EVT));
       evt.info.cpa.type = CPA_EVT_TIME_OUT;
       evt.info.cpa.info.tmr_info.type = tmr->type;
       if((tmr->type == CPA_TMR_TYPE_OPEN) || (tmr->type == CPA_TMR_TYPE_SYNC))

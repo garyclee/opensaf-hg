@@ -58,7 +58,7 @@ static uns32 mqnd_mib_tbl_req (struct ncsmib_arg *args)
    if(cb == NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
    miblib_req.info.i_mib_op_info.args = args;
@@ -96,7 +96,7 @@ uns32 mqnd_reg_with_mab(MQND_CB *cb)
    NCSOAC_SS_ARG      mab_arg;
    uns32              rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
    mab_arg.i_oac_hdl = cb->oac_hdl;
 
    mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;

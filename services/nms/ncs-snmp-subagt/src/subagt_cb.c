@@ -60,7 +60,7 @@ snmpsubagt_cb_init(void)
     }
 
     /* Level it */
-    m_NCS_MEMSET(cb, 0, sizeof(NCSSA_CB)); 
+    memset(cb, 0, sizeof(NCSSA_CB)); 
 
     /* initialize the lock */ 
     status = m_NCS_LOCK_INIT(&cb->cb_lock); 
@@ -82,7 +82,7 @@ snmpsubagt_cb_init(void)
     cb->block = SNMPSUBAGT_BLOCK_MODE; 
 
     /* initilize the OID data base tree  */
-    m_NCS_MEMSET(&tree_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+    memset(&tree_params, 0, sizeof(NCS_PATRICIA_PARAMS));
     tree_params.key_size = sizeof(NCSSA_OID_DATABASE_KEY);
     tree_params.info_size = 0;
     if ((ncs_patricia_tree_init(&cb->oidDatabase, &tree_params))
@@ -335,7 +335,7 @@ void snmpsubagt_timer_cb(void *arg)
         }
 
         /* compose the message to post to the subagent's mail box*/
-        m_NCS_MEMSET(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG));
+        memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG));
         if(timer_data->msg_type == SNMPSUBAGT_TMR_MSG_RETRY_EDA_INIT)
            post_me->msg_type = SNMPSUBAGT_MBX_MSG_RETRY_EDA_INIT;
         else if(timer_data->msg_type == SNMPSUBAGT_TMR_MSG_RETRY_AMF_INIT)

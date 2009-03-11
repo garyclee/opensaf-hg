@@ -496,7 +496,7 @@ typedef struct pss_stdby_oaa_down_buffer_node
 #define m_PSS_RE_RELOAD_PSSVLIBCONF(pwe_cb) \
 { \
    PSS_CKPT_MSG lcl_msg; \
-   m_NCS_MEMSET(&lcl_msg, '\0', sizeof(lcl_msg)); \
+   memset(&lcl_msg, '\0', sizeof(lcl_msg)); \
    pwe_cb->async_cnt ++; \
    lcl_msg.ckpt_data.reload_pssvlibconf.lib_conf_file = (char*)&pwe_cb->p_pss_cb->lib_conf_file; \
    if(pwe_cb->p_pss_cb->ha_state == SA_AMF_HA_ACTIVE) \
@@ -507,7 +507,7 @@ typedef struct pss_stdby_oaa_down_buffer_node
 #define m_PSS_RE_RELOAD_PSSVSPCNLIST(pwe_cb) \
 { \
    PSS_CKPT_MSG lcl_msg; \
-   m_NCS_MEMSET(&lcl_msg, '\0', sizeof(lcl_msg)); \
+   memset(&lcl_msg, '\0', sizeof(lcl_msg)); \
    pwe_cb->async_cnt ++; \
    lcl_msg.ckpt_data.reload_pssvspcnlist.spcn_list = pwe_cb->p_pss_cb->spcn_list; \
    if(pwe_cb->p_pss_cb->ha_state == SA_AMF_HA_ACTIVE) \

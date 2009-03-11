@@ -101,7 +101,7 @@ dta_lib_init (NCS_LIB_REQ_INFO *req_info)
    NCSCONTEXT task_handle;
    DTA_CB     *inst = &dta_cb;
 
-   m_NCS_OS_MEMSET(inst,0,sizeof(DTA_CB));
+   memset(inst,0,sizeof(DTA_CB));
    /* Smik - Changes to create a task for DTA */
    /* Create DTA mailbox */
    if(m_NCS_IPC_CREATE(&gl_dta_mbx) != NCSCC_RC_SUCCESS)
@@ -148,7 +148,7 @@ dta_lib_init (NCS_LIB_REQ_INFO *req_info)
 
    inst->task_handle = task_handle;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(DTA_LM_ARG));
+   memset(&arg,0,sizeof(DTA_LM_ARG));
 
    /* Create the DTA CB */
    arg.i_op                    = DTA_LM_OP_CREATE;
@@ -189,7 +189,7 @@ dta_lib_destroy (void)
    {
       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lib_destroy: Memory allocation failed.");
    }
-   m_NCS_OS_MEMSET(msg, 0, sizeof(DTSV_MSG));
+   memset(msg, 0, sizeof(DTSV_MSG));
    msg->msg_type = DTA_DESTROY_EVT; 
 
    m_NCS_SEL_OBJ_CREATE(&dta_cb.dta_dest_sel);
@@ -200,14 +200,14 @@ dta_lib_destroy (void)
    {
       m_MMGR_FREE_DTSV_MSG(msg);
       m_NCS_SEL_OBJ_DESTROY(dta_cb.dta_dest_sel);
-      m_NCS_OS_MEMSET(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
+      memset(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lib_destroy: IPC send failed"); 
    } 
 
    /* Wait for indication on destroy selection object */
    m_NCS_SEL_OBJ_SELECT(dta_cb.dta_dest_sel, &set, 0, 0, &tmout);
    m_NCS_SEL_OBJ_DESTROY(dta_cb.dta_dest_sel);
-   m_NCS_OS_MEMSET(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
+   memset(&dta_cb.dta_dest_sel, 0, sizeof(dta_cb.dta_dest_sel));
 
    return NCSCC_RC_SUCCESS;
 }

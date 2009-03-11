@@ -214,7 +214,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    struct sockaddr_tipc addr;
    socklen_t sz = sizeof(addr);
    
-   m_NCS_MEMSET(&tipc_cb, 0, sizeof(tipc_cb));
+   memset(&tipc_cb, 0, sizeof(tipc_cb));
    
    /* Added to assist the shutdown bug */
    mdtm_ref_hdl_list_hdr=NULL;
@@ -223,7 +223,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    mdtm_global_frag_num=0;
 
    /* REASSEMBLY TREE */
-   m_NCS_MEMSET(&pat_tree_params, 0, sizeof(pat_tree_params));
+   memset(&pat_tree_params, 0, sizeof(pat_tree_params));
    pat_tree_params.key_size = sizeof(MDTM_REASSEMBLY_KEY);
    ncs_patricia_tree_init(&mdtm_reassembly_list,&pat_tree_params); 
    
@@ -294,7 +294,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    
    
    /* Code for getting the self tipc random number */
-   m_NCS_MEMSET(&addr, 0, sizeof(addr));
+   memset(&addr, 0, sizeof(addr));
    if (0 > getsockname(tipc_cb.BSRsock,(struct sockaddr*)&addr,&sz))
    {
       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Failed to get the BSR Sockname");
@@ -311,7 +311,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    tipc_node_id=mdtm_tipc_own_node(tipc_cb.BSRsock); /* This gets the tipc ownaddress*/
    
    /* Connect to the Topology Server */
-   m_NCS_MEMSET(&topsrv, 0, sizeof(topsrv));
+   memset(&topsrv, 0, sizeof(topsrv));
    topsrv.family = AF_TIPC;
    topsrv.addrtype = TIPC_ADDR_NAME;
    topsrv.addr.name.name.type = TIPC_TOP_SRV;
@@ -476,7 +476,7 @@ static uns32 mdtm_tipc_own_node(int fd)
    struct sockaddr_tipc addr;
    socklen_t sz = sizeof(addr);
 
-   m_NCS_MEMSET(&addr, 0, sizeof(addr));
+   memset(&addr, 0, sizeof(addr));
    if (0 > getsockname(tipc_cb.Dsock,(struct sockaddr*)&addr,&sz))
    {
       m_MDS_LOG_ERR("MDTM: Failed to get Own Node Address");
@@ -615,7 +615,7 @@ static uns32 mdtm_process_recv_events(void)
 
         if (pollres > 0) /* Check for EINTR and discard */
         {
-            m_NCS_MEMSET(&event, 0, sizeof(event));
+            memset(&event, 0, sizeof(event));
             m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
 #if MDS_TIPC_1_5
             if (pfd[0].revents == POLLIN)
@@ -1555,7 +1555,7 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
            m_MDS_LOG_ERR("MDTM: Memory allocation failed for reassem_queue\n");
            return NCSCC_RC_FAILURE ;
         }
-        m_NCS_MEMSET(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
+        memset(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
 
         data=NULL;
         data=&buffer[MDS_HEADER_SNDR_VDEST_ID_POSITION];
@@ -1876,7 +1876,7 @@ static uns32 mdtm_process_recv_message_common(uns8 flag, uns8 *buffer, uns16 len
             m_MDS_LOG_ERR("MDTM: Memory allocation for timer request failed\n");
             return NCSCC_RC_FAILURE;
         }
-        m_NCS_MEMSET (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
+        memset (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
         tmr_req_info->type = MDS_REASSEMBLY_TMR;
         tmr_req_info->info.reassembly_tmr_info.seq_no=reassem_queue->key.frag_sequence_num;
         tmr_req_info->info.reassembly_tmr_info.id=reassem_queue->key.tipc_id;
@@ -1980,7 +1980,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_check_reassem_queue(uns32 seq_num, struct tip
     MDTM_REASSEMBLY_QUEUE *reassem_queue=NULL;
     MDTM_REASSEMBLY_KEY reassembly_key;
 
-    m_NCS_MEMSET(&reassembly_key, 0, sizeof(reassembly_key));
+    memset(&reassembly_key, 0, sizeof(reassembly_key));
 
     reassembly_key.frag_sequence_num=seq_num;
     reassembly_key.tipc_id=id;
@@ -2024,7 +2024,7 @@ static MDTM_REASSEMBLY_QUEUE *mdtm_add_reassemble_queue(uns32 seq_num, struct ti
         return reassem_queue;
     }
 
-    m_NCS_MEMSET(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
+    memset(reassem_queue, 0, sizeof(MDTM_REASSEMBLY_QUEUE));
     reassem_queue->key.frag_sequence_num=seq_num;
     reassem_queue->key.tipc_id=id;
     reassem_queue->node.key_info=(uns8 *)&reassem_queue->key;
@@ -2060,7 +2060,7 @@ static uns32 mdtm_del_reassemble_queue(uns32 seq_num, struct tipc_portid id)
     MDTM_REASSEMBLY_QUEUE *reassem_queue=NULL;
     MDTM_REASSEMBLY_KEY reassembly_key;
 
-    m_NCS_MEMSET(&reassembly_key, 0, sizeof(reassembly_key));
+    memset(&reassembly_key, 0, sizeof(reassembly_key));
 
     reassembly_key.frag_sequence_num=seq_num;
     reassembly_key.tipc_id=id;
@@ -2136,7 +2136,7 @@ uns32 mds_mdtm_svc_install_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOP
     }
 
 
-    m_NCS_MEMSET(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.family = AF_TIPC;
     server_addr.addrtype = TIPC_ADDR_NAMESEQ;
 
@@ -2240,10 +2240,10 @@ uns32 mds_mdtm_svc_uninstall_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 #if MDS_TIPC_1_5
     struct sockaddr_tipc server_addr;
-    m_NCS_MEMSET(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
 #else
     struct tipc_name_seq name_seq;
-    m_NCS_MEMSET(&name_seq, 0, sizeof(name_seq));
+    memset(&name_seq, 0, sizeof(name_seq));
 #endif
 
     server_type=server_type|MDS_TIPC_PREFIX|MDS_SVC_INST_TYPE|pwe_id|svc_id;
@@ -2376,7 +2376,7 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 
 
 #if MDS_TIPC_1_5
-    m_NCS_MEMSET(&subscr, 0, sizeof(subscr));
+    memset(&subscr, 0, sizeof(subscr));
     subscr.seq.type=server_type;
     subscr.seq.lower=0x00000000;
     subscr.seq.upper=0xffffffff;
@@ -2442,7 +2442,7 @@ static uns32  mdtm_add_to_ref_tbl(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL ref)
       m_MDS_LOG_ERR("MDTM: Memory allocation failed for HDL list\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(ref_ptr, 0, sizeof(MDTM_REF_HDL_LIST));
+   memset(ref_ptr, 0, sizeof(MDTM_REF_HDL_LIST));
    ref_ptr->ref_val=ref;
    ref_ptr->svc_hdl=svc_hdl;
 
@@ -2617,7 +2617,7 @@ uns32 mds_mdtm_vdest_install_tipc(MDS_VDEST_ID vdest_id)
     struct sockaddr_tipc server_addr;
     uns32 server_type=0, server_inst=0;
 
-    m_NCS_MEMSET(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.family = AF_TIPC;
 
     server_addr.addrtype = TIPC_ADDR_NAMESEQ;
@@ -2668,10 +2668,10 @@ uns32 mds_mdtm_vdest_uninstall_tipc(MDS_VDEST_ID vdest_id)
     uns32 server_inst=0, server_type=0;
 #if MDS_TIPC_1_5
     struct sockaddr_tipc server_addr;
-    m_NCS_MEMSET(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
 #else    
     struct tipc_name_seq name_seq;
-    m_NCS_MEMSET(&name_seq, 0, sizeof(name_seq));
+    memset(&name_seq, 0, sizeof(name_seq));
 #endif
 
     server_type=server_type|MDS_TIPC_PREFIX|MDS_VDEST_INST_TYPE;
@@ -2753,7 +2753,7 @@ uns32 mds_mdtm_vdest_subscribe_tipc(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *su
 
 
 #if MDS_TIPC_1_5
-    m_NCS_MEMSET(&subscr, 0, sizeof(subscr));
+    memset(&subscr, 0, sizeof(subscr));
     subscr.seq.type=server_type;
     subscr.seq.lower=inst;
     subscr.seq.upper=inst;
@@ -2925,7 +2925,7 @@ uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req)
     if(req->to==DESTINATION_SAME_PROCESS)
     {
        MDS_DATA_RECV  recv;
-       m_NCS_MEMSET(&recv, 0, sizeof(recv));
+       memset(&recv, 0, sizeof(recv));
 
        recv.dest_svc_hdl=(MDS_SVC_HDL)m_MDS_GET_SVC_HDL_FROM_PWE_ID_VDEST_ID_AND_SVC_ID(req->dest_pwe_id, req->dest_vdest_id, req->dest_svc_id);
        recv.src_svc_id=req->src_svc_id;
@@ -3332,7 +3332,7 @@ static uns32 mdtm_sendto(uns8 *buffer, uns16 buff_len, struct tipc_portid id)
     uns16 checksum = 0;
 #endif
     
-    m_NCS_MEMSET(&server_addr, 0, sizeof(server_addr));
+    memset(&server_addr, 0, sizeof(server_addr));
     server_addr.family=AF_TIPC;
     server_addr.addrtype = TIPC_ADDR_ID;
     server_addr.addr.id = id;
@@ -3483,7 +3483,7 @@ uns32 mdtm_process_reassem_timer_event(uns32 seq_num, struct tipc_portid id)
     mbx_evt_info = m_MMGR_ALLOC_MBX_EVT_INFO;
     if (mbx_evt_info == NULL)
         return NCSCC_RC_FAILURE;
-    m_NCS_MEMSET(mbx_evt_info, 0, sizeof(MDS_MBX_EVT_INFO));
+    memset(mbx_evt_info, 0, sizeof(MDS_MBX_EVT_INFO));
 
     mbx_evt_info->type = MDS_MBX_EVT_DESTROY;
     mbx_evt_info->info.destroy_ack_obj = destroy_ack_obj;
@@ -3513,7 +3513,7 @@ uns32 mdtm_process_reassem_timer_event(uns32 seq_num, struct tipc_portid id)
     MDS_MBX_EVT_INFO *mbx_tmr_info = NULL;
 
     mbx_tmr_info = m_MMGR_ALLOC_MBX_EVT_INFO;
-    m_NCS_MEMSET(mbx_tmr_info, 0, sizeof(MDS_MBX_EVT_INFO));
+    memset(mbx_tmr_info, 0, sizeof(MDS_MBX_EVT_INFO));
    
     mbx_tmr_info->type = MDS_MBX_EVT_TIMER_EXPIRY;
     mbx_tmr_info->info.tmr_info_hdl =(uns32)((long)tmr_info_hdl);

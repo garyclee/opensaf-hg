@@ -617,7 +617,7 @@ uns32  mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_in
        goto done;
    }
 
-   m_NCS_OS_MEMSET(track_current_callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
+   memset(track_current_callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
    num_items = track_info->notificationBuffer.numberOfItems; 
    track_index = track_info->track_index;
 
@@ -1129,12 +1129,12 @@ void mqa_queue_reader (NCSCONTEXT arg)
    }
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
    
-   m_NCS_OS_MEMSET(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+   memset(&mq_req, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
    mq_req.req = NCS_OS_POSIX_MQ_REQ_MSG_RECV;
    mq_req.info.recv.mqd = listenerHandle;
 
    /*  wait indefinitely */
-   m_NCS_OS_MEMSET(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
+   memset(&mq_req.info.recv.timeout, 0, sizeof(NCS_OS_POSIX_TIMESPEC)); 
    mq_req.info.recv.i_msg = (NCS_OS_MQ_MSG *)&mq_msg;
    mq_req.info.recv.datalen = 1;
    mq_req.info.recv.dataprio = 0;
@@ -1163,7 +1163,7 @@ void mqa_queue_reader (NCSCONTEXT arg)
          m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
          break;
       }
-      m_NCS_OS_MEMSET(mqa_callbk_info, 0, sizeof(MQP_ASYNC_RSP_MSG));
+      memset(mqa_callbk_info, 0, sizeof(MQP_ASYNC_RSP_MSG));
       mqa_callbk_info->callbackType = MQP_ASYNC_RSP_MSGRECEIVED;
       mqa_callbk_info->params.msgReceived.queueHandle = queueHandle;
       if( mqsv_mqa_callback_queue_write(mqa_cb, queue_node->client_info->msgHandle, mqa_callbk_info )!= NCSCC_RC_SUCCESS)

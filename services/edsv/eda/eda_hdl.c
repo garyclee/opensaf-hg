@@ -491,7 +491,7 @@ eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
       return NULL;
    }
 
-   m_NCS_MEMSET(rec, '\0', sizeof(EDA_EVENT_HDL_REC));
+   memset(rec, '\0', sizeof(EDA_EVENT_HDL_REC));
 
    /* create the association with hdl-mngr */
    if ( 0 == (rec->event_hdl = ncshm_create_hdl(1,NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
@@ -547,7 +547,7 @@ eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec,
       return NULL;
    }
 
-   m_NCS_MEMSET(rec, '\0', sizeof(EDA_CHANNEL_HDL_REC));
+   memset(rec, '\0', sizeof(EDA_CHANNEL_HDL_REC));
 
    /* create the association with hdl-mngr */
    if ( 0 == (rec->channel_hdl = ncshm_create_hdl(1,NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
@@ -611,7 +611,7 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
       goto error;
    }
 
-   m_NCS_MEMSET(rec, '\0', sizeof(EDA_CLIENT_HDL_REC));
+   memset(rec, '\0', sizeof(EDA_CLIENT_HDL_REC));
 
    /* create the association with hdl-mngr */
    if ( 0 == (rec->local_hdl = ncshm_create_hdl((*eda_cb)->pool_id, 
@@ -1080,7 +1080,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
             return error;
           }
           /** zero the memory **/
-          m_NCS_MEMSET((*to_pattern_array)->patterns, '\0', (*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
+          memset((*to_pattern_array)->patterns, '\0', (*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
           for(n = 0, 
               from_pattern = from_pattern_array->patterns, 
               to_pattern = (*to_pattern_array)->patterns; 
@@ -1102,7 +1102,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
                    return error;
                 }
                 /** Clear memory for the allocated pattern **/
-                m_NCS_MEMSET(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
+                memset(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
                 memcpy((void *)to_pattern->pattern, 
                              (void *)from_pattern->pattern, 
                              (uns32)from_pattern->patternSize);

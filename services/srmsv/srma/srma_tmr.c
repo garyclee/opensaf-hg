@@ -49,7 +49,7 @@ uns32 srma_timer_init(SRMA_CB *srma)
 {
    NCS_RP_TMR_INIT tmr_init_info;
 
-   m_NCS_OS_MEMSET(&tmr_init_info, 0, sizeof(NCS_RP_TMR_INIT));
+   memset(&tmr_init_info, 0, sizeof(NCS_RP_TMR_INIT));
 
    /* Update the timer specific data to initiate RP timer for SRMA */
    tmr_init_info.callback_arg   = (void *)srma;

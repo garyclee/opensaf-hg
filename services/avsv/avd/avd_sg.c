@@ -107,7 +107,7 @@ AVD_SG * avd_sg_struc_crt(AVD_CL_CB *cb,SaNameT sg_name, NCS_BOOL ckpt)
       return AVD_SG_NULL;
    }
 
-   m_NCS_MEMSET((char *)sg, '\0', sizeof(AVD_SG));
+   memset((char *)sg, '\0', sizeof(AVD_SG));
 
    if (ckpt)
    {
@@ -177,7 +177,7 @@ AVD_SG * avd_sg_struc_find(AVD_CL_CB *cb,SaNameT sg_name,NCS_BOOL host_order)
    AVD_SG *sg;
    SaNameT  lsg_name;
 
-   m_NCS_MEMSET((char *)&lsg_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsg_name, '\0', sizeof(SaNameT));
    if(host_order)
    {
       lsg_name.length = m_HTON_SANAMET_LEN(sg_name.length);
@@ -217,7 +217,7 @@ AVD_SG * avd_sg_struc_find_next(AVD_CL_CB *cb,SaNameT sg_name,NCS_BOOL host_orde
    AVD_SG *sg;
    SaNameT  lsg_name;
 
-   m_NCS_MEMSET((char *)&lsg_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsg_name, '\0', sizeof(SaNameT));
    if(host_order)
    {
       lsg_name.length = m_HTON_SANAMET_LEN(sg_name.length);
@@ -305,7 +305,7 @@ uns32 ncssgtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    sg_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -423,7 +423,7 @@ uns32 ncssgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    sg_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -523,7 +523,7 @@ uns32 ncssgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    } /* ncsSGAdjustState_ID */
 
 
-   m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
    temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -589,7 +589,7 @@ uns32 ncssgtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -718,7 +718,7 @@ uns32 saamfsgtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    sg_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -876,7 +876,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    sg_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1103,7 +1103,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             }
             break;
          case saAmfSGSuRestartProb_ID:
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SG;
             param.obj_id = param_id;     
             param.act = AVSV_OBJ_OPR_MOD;
@@ -1138,7 +1138,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
             break;
          case saAmfSGSuRestartMax_ID:
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SG;
             param.obj_id = param_id;     
             param.act = AVSV_OBJ_OPR_MOD;
@@ -1169,7 +1169,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
             break;
          case saAmfSGCompRestartProb_ID:
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SG;
             param.obj_id = param_id;     
             param.act = AVSV_OBJ_OPR_MOD;
@@ -1204,7 +1204,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
             break;
          case saAmfSGCompRestartMax_ID:
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SG;
             param.obj_id = param_id;     
             param.act = AVSV_OBJ_OPR_MOD;
@@ -1306,7 +1306,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       sg->su_restart_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
       break;
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1378,7 +1378,7 @@ uns32 saamfsgtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&sg_name, '\0', sizeof(SaNameT));
+   memset(&sg_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service group database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)

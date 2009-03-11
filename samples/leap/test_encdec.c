@@ -63,9 +63,9 @@ static uns32 lt_test_uba_encdec_ops(void)
     uns8        dst_8bit_data;
     char        dst_str_data[300];
 
-    m_NCS_OS_MEMSET(&src_uba, '\0', sizeof(src_uba));
-    m_NCS_OS_MEMSET(&src_str_data, '\0', sizeof(src_str_data));
-    m_NCS_OS_MEMSET(&dst_str_data, '\0', sizeof(dst_str_data));
+    memset(&src_uba, '\0', sizeof(src_uba));
+    memset(&src_str_data, '\0', sizeof(src_str_data));
+    memset(&dst_str_data, '\0', sizeof(dst_str_data));
 
     /* Populate input data */
     ((uns8*)&src_64bit_data)[0] = 0x01;

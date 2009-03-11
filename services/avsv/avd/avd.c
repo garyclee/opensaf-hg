@@ -629,7 +629,7 @@ static uns32 avd_initialize(NCS_LIB_REQ_INFO *req_info)
    
    m_AVD_LOG_RCVD_VAL((long)cb);
 
-   m_NCS_MEMSET(cb,'\0',sizeof(AVD_CL_CB));
+   memset(cb,'\0',sizeof(AVD_CL_CB));
 
    if ((g_avd_hdl = 
       ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,NCS_SERVICE_ID_AVD,cb))

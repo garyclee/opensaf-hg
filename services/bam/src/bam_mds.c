@@ -311,11 +311,11 @@ static uns32 bam_mds_svc_evt(NCS_BAM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_in
    case NCSMDS_DOWN:
       if(evt_info->i_svc_id == NCSMDS_SVC_ID_AVD)
       {
-         m_NCS_OS_MEMSET(&cb->avd_dest, 0, sizeof(MDS_DEST));
+         memset(&cb->avd_dest, 0, sizeof(MDS_DEST));
       }
       else if(evt_info->i_svc_id == NCSMDS_SVC_ID_AVM)
       {
-         m_NCS_OS_MEMSET(&cb->avm_dest, 0, sizeof(MDS_DEST));
+         memset(&cb->avm_dest, 0, sizeof(MDS_DEST));
       }
       break;
 
@@ -344,7 +344,7 @@ static uns32 bam_mds_adest_get (NCS_BAM_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
 
    arg.req = NCSADA_GET_HDLS;
    arg.info.adest_get_hdls.i_create_oac = FALSE;
@@ -377,7 +377,7 @@ uns32 ncs_bam_mds_reg(NCS_BAM_CB *cb)
    }
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
 
    svc_to_mds_info.i_mds_hdl        = cb->mds_hdl;
    svc_to_mds_info.i_svc_id         = NCSMDS_SVC_ID_BAM;
@@ -441,7 +441,7 @@ void bam_mds_unreg(NCS_BAM_CB *bam_cb)
    NCSMDS_INFO svc_to_mds_info;
    uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
 
    /* uninstall MDS */
    svc_to_mds_info.i_mds_hdl = bam_cb->mds_hdl;

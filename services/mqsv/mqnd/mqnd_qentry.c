@@ -139,7 +139,7 @@ uns32 samsgqueueentry_extract(NCSMIB_PARAM_VAL* param,
          /*Send an evt to MQD to get the no of members of Queue Group */
            MQSV_EVT req,*rsp = NULL;
  
-           m_NCS_OS_MEMSET(&req, 0, sizeof(MQSV_EVT));
+           memset(&req, 0, sizeof(MQSV_EVT));
 
            req.type = MQSV_EVT_MQD_CTRL;
            req.msg.mqd_ctrl.type = MQD_QGRP_CNT_GET;
@@ -185,7 +185,7 @@ uns32  samsgqueueentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
    SaNameT           queuename;
    uns32            i;
 
-   m_NCS_OS_MEMSET(&queuename, 0, sizeof(SaNameT));
+   memset(&queuename, 0, sizeof(SaNameT));
    pcb = (MQND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_MQND, arg->i_mib_key);
 
    if (pcb == NULL)
@@ -247,7 +247,7 @@ uns32  samsgqueueentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
 
    if (pcb == NULL)
       return NCSCC_RC_NO_INSTANCE;
-   m_NCS_MEMSET(&queuename,'\0',sizeof(SaNameT));
+   memset(&queuename,'\0',sizeof(SaNameT));
    if(arg->i_idx.i_inst_len ==0)
    {
       mqnd_qname_node_getnext(pcb,queuename,&pNode);

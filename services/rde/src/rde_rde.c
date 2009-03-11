@@ -907,7 +907,7 @@ uns32 rde_rde_client_read_role ()
         {
             /* The other server is active , so the current server is standby*/
             /* check how to update rda about role */
-            m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
+            memset(log,0,RDE_LOG_MSG_SIZE);
             sprintf(log,"Present RDE Role = %d. Changing role to PCS_RDA_STANDBY",rde_cb->ha_role);
             m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
             rde_cb->ha_role = PCS_RDA_STANDBY;
@@ -915,7 +915,7 @@ uns32 rde_rde_client_read_role ()
 
         else
         {
-            m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
+            memset(log,0,RDE_LOG_MSG_SIZE);
             sprintf(log,"Present RDE Role = %d. Changing role to PCS_RDA_ACTIVE",rde_cb->ha_role);
             m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
             rde_cb->ha_role = PCS_RDA_ACTIVE;
@@ -939,7 +939,7 @@ uns32 rde_rde_client_read_role ()
     else if(msg_type == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_RESP)
     {
         slot_number = value;     
-        m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
+        memset(log,0,RDE_LOG_MSG_SIZE);
         sprintf(log,"Recieved RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_RESP. Peer Slot Number = %d",slot_number);
         m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
         rde_cb->rde_rde_cb.peer_slot_number = slot_number; 

@@ -91,7 +91,7 @@ uns32 vds_ckpt_initialize(VDS_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&ckptName, 0, sizeof(ckptName));
+   memset(&ckptName, 0, sizeof(ckptName));
 
    /* Fill the Checkpoint Name */
    memcpy(ckptName.value,
@@ -265,7 +265,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
    
 
 
-   m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT));
+   memset(&section_id, 0, sizeof(SaCkptSectionIdT));
     
    /* when ever initial vdest is created ,we need to create new section and
     * write the latest_allocated_vdest value to it, when ever the latest_ 
@@ -323,7 +323,7 @@ uns32 vds_ckpt_cbinfo_write(VDS_CB *cb)
        } 
    }
      
-   m_NCS_OS_MEMSET(&sec_create_attr,
+   memset(&sec_create_attr,
                    0,
                    sizeof(SaCkptSectionCreationAttributesT));
    sec_create_attr.sectionId = &section_id;
@@ -388,7 +388,7 @@ void vds_ckpt_buffer_encode(VDS_CKPT_DBINFO *source ,char *dest)
 {
    int i=0;
 
-   m_NCS_OS_MEMSET(dest, 0, VDS_CKPT_BUFFER_SIZE);
+   memset(dest, 0, VDS_CKPT_BUFFER_SIZE);
 
    m_NCS_OS_HTONS_P(dest, source->vdest_name.length);
    dest += 2;
@@ -431,7 +431,7 @@ void vds_ckpt_buffer_decode(VDS_CKPT_DBINFO *vds_ckpt_dbinfo_buffer ,char *decod
 {
   int i=0;
  
-  m_NCS_OS_MEMSET(vds_ckpt_dbinfo_buffer,0,sizeof(VDS_CKPT_DBINFO));
+  memset(vds_ckpt_dbinfo_buffer,0,sizeof(VDS_CKPT_DBINFO));
 
   vds_ckpt_dbinfo_buffer->vdest_name.length =  m_NCS_OS_NTOHS_P(decode);
   decode += 2;
@@ -481,8 +481,8 @@ uns32 vds_ckpt_dbinfo_write(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
 
    VDS_TRACE1_ARG1("vds_ckpt_dbinfo_write\n");
 
-   m_NCS_OS_MEMSET(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
-   m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT));
+   memset(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
+   memset(&section_id, 0, sizeof(SaCkptSectionIdT));
    
    if ((temp_vds_ckpt_dbinfo_ptr  =(VDS_CKPT_DBINFO *)m_MMGR_ALLOC_CKPT_BUFFER(VDS_CKPT_BUFFER_SIZE)) == NULL)
    {
@@ -565,8 +565,8 @@ uns32 vds_ckpt_dbinfo_overwrite(VDS_CB *cb, VDS_VDEST_DB_INFO *vdest_dbinfo)
 
    VDS_TRACE1_ARG1("vds_ckpt_dbinfo_overwrite\n");
    
-   m_NCS_OS_MEMSET(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
-   m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT)); 
+   memset(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
+   memset(&section_id, 0, sizeof(SaCkptSectionIdT)); 
 
    /* Update the VDS db_info data into the record thats going to checkpoint */ 
    vds_ckpt_fill_ckpt_dbinfo(&vds_ckpt_dbinfo_node, vdest_dbinfo);
@@ -698,7 +698,7 @@ uns32 vds_ckpt_dbinfo_delete(VDS_CB *cb, MDS_DEST *vdest_id)
       return NCSCC_RC_FAILURE;
    }   
 
-   m_NCS_OS_MEMSET(&section_id , 0, sizeof(SaCkptSectionIdT));
+   memset(&section_id , 0, sizeof(SaCkptSectionIdT));
 
    section_id.id    = (SaUint8T *)vdest_id;
    section_id.idLen = sizeof(MDS_DEST);
@@ -764,7 +764,7 @@ VDS_VDEST_DB_INFO  *vds_ckpt_new_vdest(VDS_CB *vds_cb,
       return NULL;
    }
 
-   m_NCS_OS_MEMSET(db_info, 0, sizeof(db_info));
+   memset(db_info, 0, sizeof(db_info));
    db_info->vdest_name = info->vdest_name;
    db_info->persistent = info->persistent;
    db_info->adest_list = NULL; 
@@ -849,8 +849,8 @@ uns32 vds_ckpt_read(VDS_CB *cb)
 
    /* Create a section for VDS version if not present */
 
-   m_NCS_OS_MEMSET(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
-   m_NCS_OS_MEMSET(&section_id, 0, sizeof(SaCkptSectionIdT));
+   memset(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
+   memset(&section_id, 0, sizeof(SaCkptSectionIdT));
 
    section_id.id = (SaUint8T *)VDS_CKPT_VERSION_SECTIONID;
    section_id.idLen = VDS_CKPT_VERSION_SECTIONID_LEN;
@@ -872,7 +872,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
     /* If VDS version section doesn't exist, create one */
     if (rc == SA_AIS_ERR_NOT_EXIST)
     {
-        m_NCS_OS_MEMSET(&sec_create_attr, 0,
+        memset(&sec_create_attr, 0,
                        sizeof(SaCkptSectionCreationAttributesT));
         sec_create_attr.sectionId = &section_id;
         sec_create_attr.expirationTime   = VDS_CKPT_DBINFO_RET_TIME;
@@ -925,7 +925,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
       return NCSCC_RC_FAILURE;
    }  
 
-   m_NCS_OS_MEMSET(&sec_desc, 0, sizeof(SaCkptSectionDescriptorT));
+   memset(&sec_desc, 0, sizeof(SaCkptSectionDescriptorT));
    
    /* Moves the iterator to next section and fills sec_desc with 
       section attributes i.e section_id */  
@@ -937,7 +937,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
     
        m_VDS_LOG_GENERIC("SECTIONID in ",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(*((uns64 *)sec_desc.sectionId.id)),"CKPTREAD -ITnext");
        sec_iter_count++;
-       m_NCS_OS_MEMSET(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
+       memset(&io_vector[0], 0, sizeof(SaCkptIOVectorElementT));
        
        /* Fill io_vector */
        io_vector[0].sectionId  = sec_desc.sectionId;
@@ -991,12 +991,12 @@ uns32 vds_ckpt_read(VDS_CB *cb)
        }   
        else
        {
-          m_NCS_OS_MEMSET(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
+          memset(&vds_ckpt_dbinfo_node, 0, sizeof(VDS_CKPT_DBINFO));
 
           /* Fill io_vector datasize */
           io_vector[0].dataSize = VDS_CKPT_BUFFER_SIZE;
 
-           m_NCS_OS_MEMSET(vds_data_buffer, 0 ,VDS_CKPT_BUFFER_SIZE);
+           memset(vds_data_buffer, 0 ,VDS_CKPT_BUFFER_SIZE);
 
           io_vector[0].dataBuffer = vds_data_buffer;
 
@@ -1058,7 +1058,7 @@ uns32 vds_ckpt_read(VDS_CB *cb)
           }
        }
 
-       m_NCS_OS_MEMSET(&sec_desc, 0, sizeof(SaCkptSectionDescriptorT));
+       memset(&sec_desc, 0, sizeof(SaCkptSectionDescriptorT));
    } /* End of while loop of section iteration */
    if (rc_while != SA_AIS_ERR_NO_SECTIONS)
    {

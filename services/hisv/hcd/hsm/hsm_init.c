@@ -92,7 +92,7 @@ uns32 hsm_initialize(HPI_SESSION_ARGS *args)
       gl_hsm_hdl = 0;
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(hsm_cb, 0, sizeof(HSM_CB));
+   memset(hsm_cb, 0, sizeof(HSM_CB));
 
    /* assign the HSM pool-id (used by hdl-mngr) */
    hsm_cb->pool_id = NCS_HM_POOL_ID_COMMON;
@@ -489,7 +489,7 @@ hsm_encode_hisv_evt (HPI_HISV_EVT_T *evt_data, uns8 **evt_publish, uns32 version
    NCS_UBAID    uba;
    uns8         *p8;
 
-   m_NCS_OS_MEMSET(&uba, '\0', sizeof(uba));
+   memset(&uba, '\0', sizeof(uba));
    ncs_enc_init_space(&uba);
 
    /* encode HPI event */

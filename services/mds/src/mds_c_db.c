@@ -56,7 +56,7 @@ uns32 mds_vdest_tbl_add (MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE policy,
     }
     
     vdest_info = m_MMGR_ALLOC_VDEST_INFO;
-    m_NCS_MEMSET(vdest_info,0,sizeof(MDS_VDEST_INFO));
+    memset(vdest_info,0,sizeof(MDS_VDEST_INFO));
 
     vdest_info->vdest_id = vdest_id;
     vdest_info->policy = policy;
@@ -144,7 +144,7 @@ uns32 mds_vdest_tbl_update_role (MDS_VDEST_ID vdest_id, V_DEST_RL role, NCS_BOOL
             vdest_info->tmr_running = TRUE;
             
             tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
-            m_NCS_MEMSET (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
+            memset (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
             tmr_req_info->type = MDS_QUIESCED_TMR;
             tmr_req_info->info.quiesced_tmr_info.vdest_id = vdest_id;
 
@@ -462,7 +462,7 @@ uns32 mds_pwe_tbl_add (MDS_VDEST_HDL vdest_hdl, PW_ENV_ID pwe_id, MDS_PWE_HDL *p
         {
             /* PWE entry doesn't exist, so add */
             new_pwe_info = m_MMGR_ALLOC_PWE_INFO;
-            m_NCS_MEMSET(new_pwe_info,0,sizeof(MDS_PWE_INFO));
+            memset(new_pwe_info,0,sizeof(MDS_PWE_INFO));
             
             new_pwe_info->pwe_id = pwe_id;
             new_pwe_info->parent_vdest = vdest_info;
@@ -619,7 +619,7 @@ uns32 mds_svc_tbl_add (NCSMDS_INFO *info)
     }
     
     svc_info = m_MMGR_ALLOC_SVC_INFO;
-    m_NCS_MEMSET(svc_info,0,sizeof(MDS_SVC_INFO));
+    memset(svc_info,0,sizeof(MDS_SVC_INFO));
 
     svc_info->svc_hdl = m_MDS_GET_SVC_HDL_FROM_PWE_HDL_AND_SVC_ID
                         ((MDS_PWE_HDL)info->i_mds_hdl,info->i_svc_id);
@@ -1049,7 +1049,7 @@ uns32 mds_subtn_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_S
     }
 
     subtn_info = m_MMGR_ALLOC_SUBTN_INFO;
-    m_NCS_MEMSET (subtn_info, 0, sizeof(MDS_SUBSCRIPTION_INFO));
+    memset (subtn_info, 0, sizeof(MDS_SUBSCRIPTION_INFO));
 
     subtn_info->sub_svc_id = subscr_svc_id;
     subtn_info->scope = scope;
@@ -1065,7 +1065,7 @@ uns32 mds_subtn_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id, NCSMDS_S
     subtn_info->tmr_flag = TRUE;
 
     tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
-    m_NCS_MEMSET (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
+    memset (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
     tmr_req_info->type = MDS_SUBTN_TMR;
     tmr_req_info->info.subtn_tmr_info.svc_hdl = svc_hdl;
     tmr_req_info->info.subtn_tmr_info.sub_svc_id = subscr_svc_id;
@@ -1197,7 +1197,7 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_tbl_change_explicit");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     svc_info = (MDS_SVC_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->svc_list,(uns8 *)&svc_hdl);
     if (svc_info == NULL)
@@ -1559,7 +1559,7 @@ uns32 mds_subtn_res_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_add");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -1577,7 +1577,7 @@ uns32 mds_subtn_res_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
     }
 
     subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
-    m_NCS_MEMSET(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
+    memset(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
     
     memcpy(&subtn_res_info->key, &subtn_res_key, 
                     sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
@@ -1610,13 +1610,13 @@ uns32 mds_subtn_res_tbl_add (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
             {/* Active vdest entry doesn't exist */
 
                 active_subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
-                m_NCS_MEMSET(active_subtn_res_info, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
+                memset(active_subtn_res_info, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
                 memcpy(&active_subtn_res_info->key, &subtn_res_key, 
                                 sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
                 
                 /* Allocate active result info */
                 active_info = m_MMGR_ALLOC_SUBTN_ACTIVE_RESULT_INFO;
-                m_NCS_MEMSET(active_info, 0, sizeof(MDS_ACTIVE_RESULT_INFO));                    
+                memset(active_info, 0, sizeof(MDS_ACTIVE_RESULT_INFO));                    
                 
                 /* point to currently added active guy as active */
                 /* works for both n-way as well as mxn vdests */
@@ -1723,7 +1723,7 @@ uns32 mds_subtn_res_tbl_del (MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id,
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_del");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = sub_svc_id;
@@ -1773,7 +1773,7 @@ uns32 mds_subtn_res_tbl_query_by_adest (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_s
     MDS_SUBSCRIPTION_RESULTS_INFO *subtn_res_info; 
     MDS_SUBSCRIPTION_RESULTS_KEY subtn_res_key;
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -1811,7 +1811,7 @@ uns32 mds_subtn_res_tbl_change_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_change_active");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -1880,7 +1880,7 @@ uns32 mds_subtn_res_tbl_remove_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_remove_active");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -1902,7 +1902,7 @@ uns32 mds_subtn_res_tbl_remove_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_sv
 
         /* Start no active timer */
         tmr_req_info = m_MMGR_ALLOC_TMR_INFO;
-        m_NCS_MEMSET (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
+        memset (tmr_req_info, 0, sizeof(MDS_TMR_REQ_INFO));
         tmr_req_info->type = MDS_AWAIT_ACTIVE_TMR;
         tmr_req_info->info.await_active_tmr_info.svc_hdl = svc_hdl;
         tmr_req_info->info.await_active_tmr_info.sub_svc_id = subscr_svc_id;
@@ -1950,7 +1950,7 @@ uns32 mds_subtn_res_tbl_add_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_add_active");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -1968,7 +1968,7 @@ uns32 mds_subtn_res_tbl_add_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
     else
     {
         subtn_res_info = m_MMGR_ALLOC_SUBTN_RESULT_INFO;
-        m_NCS_MEMSET(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
+        memset(subtn_res_info,0,sizeof(MDS_SUBSCRIPTION_RESULTS_INFO));
         
         memcpy(&subtn_res_info->key, &subtn_res_key, 
                         sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
@@ -1979,7 +1979,7 @@ uns32 mds_subtn_res_tbl_add_active (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_i
 
         /* Allocate active result info */
         active_info = m_MMGR_ALLOC_SUBTN_ACTIVE_RESULT_INFO;
-        m_NCS_MEMSET(active_info, 0, sizeof(MDS_ACTIVE_RESULT_INFO));                    
+        memset(active_info, 0, sizeof(MDS_ACTIVE_RESULT_INFO));                    
         
         /* point to currently added active guy as active */
         /* works for both n-way as well as mxn vdests */
@@ -2021,7 +2021,7 @@ uns32 mds_subtn_res_tbl_change_role (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_change_role");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -2065,7 +2065,7 @@ uns32 mds_subtn_res_tbl_get (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_id,
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_get");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -2136,7 +2136,7 @@ uns32 mds_subtn_res_tbl_get_by_adest (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_get_by_adest");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
     
     subtn_res_key.svc_hdl = svc_hdl;
     subtn_res_key.sub_svc_id = subscr_svc_id;
@@ -2369,7 +2369,7 @@ uns32 mds_subtn_res_tbl_del_all (MDS_SVC_HDL svc_hdl, MDS_SVC_ID sub_svc_id)
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_del_all");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results,(uns8 *)NULL);
     
@@ -2441,7 +2441,7 @@ uns32 mds_subtn_res_tbl_cleanup(void)
 
     m_MDS_LOG_DBG("MCM_DB : Entering : mds_subtn_res_tbl_cleanup");
 
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     subtn_res_info = (MDS_SUBSCRIPTION_RESULTS_INFO *)ncs_patricia_tree_getnext(&gl_mds_mcm_cb->subtn_results,(uns8 *)NULL);
     
@@ -2530,7 +2530,7 @@ void ncsmds_pp()
 
     m_MDS_LOG_DBG("MCM_DB : Entering : ncsmds_pp");
     
-    m_NCS_MEMSET(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
+    memset(&subtn_res_key, 0, sizeof(MDS_SUBSCRIPTION_RESULTS_KEY));
 
     printf("\n\n  ==> M D S  P r e t t y  P r i n t <==\n\n");
     

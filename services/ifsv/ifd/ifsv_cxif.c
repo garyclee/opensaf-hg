@@ -62,7 +62,7 @@ uns32 ncsifsvifxentry_get(NCSCONTEXT hdl, NCSMIB_ARG *arg, NCSCONTEXT* data)
    }
 
    /* Reset the global if_rec stored in CB */
-   m_NCS_OS_MEMSET(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
+   memset(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
 
    /* Get the record for the given ifKey */
    rc = ifsv_ifrec_get(cb, ifkey, &cb->ifmib_rec);
@@ -122,7 +122,7 @@ uns32 ncsifsvifxentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
       }
    }
    /* Reset the global if_rec stored in CB */
-   m_NCS_OS_MEMSET(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
+   memset(&cb->ifmib_rec, 0, sizeof(NCS_IFSV_INTF_REC));
 
    /* Get the record for the given ifKey */
    rc = ifsv_ifrec_getnext(cb, ifkey, &cb->ifmib_rec);

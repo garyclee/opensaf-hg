@@ -120,7 +120,7 @@ uns32  avnd_mbcsv_register(AVND_CB  *cb)
    /*
     * Send Async Update count to zero.
     */
-   m_NCS_MEMSET(&cb->avnd_async_updt_cnt, 0, sizeof(AVND_ASYNC_UPDT_CNT));
+   memset(&cb->avnd_async_updt_cnt, 0, sizeof(AVND_ASYNC_UPDT_CNT));
 
    /*
     * First initialize and then call open.
@@ -657,7 +657,7 @@ static uns32 avnd_mbcsv_initialize(AVND_CB  *cb)
    m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_initialize",NULL,
                           0,0,0,0);
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
    mbcsv_arg.info.initialize.i_service  = NCSMDS_SVC_ID_AVND_CNTLR;
@@ -692,7 +692,7 @@ static uns32 avnd_mbcsv_open_ckpt(AVND_CB  *cb)
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -730,7 +730,7 @@ uns32 avnd_set_mbcsv_ckpt_role(AVND_CB  *cb,
    NCS_MBCSV_ARG     mbcsv_arg;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -767,7 +767,7 @@ static uns32 avnd_get_mbcsv_sel_obj(AVND_CB  *cb)
 
    /* LOG HERE */
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -802,7 +802,7 @@ uns32 avnd_mbcsv_dispatch(AVND_CB  *cb,
 {
    NCS_MBCSV_ARG     mbcsv_arg;
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -854,7 +854,7 @@ uns32 avnd_send_ckpt_data(AVND_CB  *cb,
    /*
     * Get mbcsv_handle and checkpoint handle from CB.
     */
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -999,7 +999,7 @@ static uns32 avnd_mbcsv_close_ckpt(AVND_CB  *cb)
 
    /* LOG HERE */
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -1033,7 +1033,7 @@ static uns32 avnd_mbcsv_finalize(AVND_CB  *cb)
 
    /* LOG HERE */
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_FINALIZE;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -1068,7 +1068,7 @@ uns32 avnd_mbcsv_obj_set(AVND_CB  *cb,
 
    /* LOG HERE */
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
@@ -1114,7 +1114,7 @@ static uns32  avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(updt_msg, '\0', sizeof(AVND_ASYNC_UPDT_MSG_QUEUE));
+   memset(updt_msg, '\0', sizeof(AVND_ASYNC_UPDT_MSG_QUEUE));
 
    updt_msg->dec = *dec;
 
@@ -1197,14 +1197,14 @@ uns32 avnd_send_data_req(AVND_CB *cb)
    m_AVND_AVND_ENTRY_LOG("avnd_send_data_req",NULL,
                           0,0,0,0);
 
-   m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
    mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
    mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
 
    uba = &mbcsv_arg.info.send_data_req.i_uba;
 
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
 
    mbcsv_arg.info.send_data_req.i_ckpt_hdl = cb->avnd_mbcsv_ckpt_hdl;
 

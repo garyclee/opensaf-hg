@@ -129,7 +129,7 @@ snmpsubagt_eda_initialize(NCSSA_CB     *pSacb)
 
        /* Interface with EDSv is not initialised. */
 
-       m_NCS_MEMSET(&timeout_in_ns, 0, sizeof(SaTimeT));
+       memset(&timeout_in_ns, 0, sizeof(SaTimeT));
        timeout_in_ns = m_SNMPSUBAGT_EDA_TIMEOUT;
 
        /* 1. Create the evt handle structure, set callbacks, etc */ 
@@ -350,7 +350,7 @@ snmpsubagt_eda_callback(SaEvtSubscriptionIdT   subscriptionid, /* input */
      eventData = (uns8*)malloc((uns32)evtSize+1);
      if (eventData == NULL)
         return;
-     m_NCS_MEMSET(eventData, 0, (size_t)evtSize+1);
+     memset(eventData, 0, (size_t)evtSize+1);
                               
 
     /* Get the event data  */
@@ -451,7 +451,7 @@ snmpsubagt_eda_trapevt_to_agentxtrap_populate(
         return NCSCC_RC_FAILURE; 
     }
 
-    m_NCS_MEMSET(&trap_header, 0, sizeof(NCS_TRAP));
+    memset(&trap_header, 0, sizeof(NCS_TRAP));
 
     /* decode the number of varbinds from the event data */
     status = subagt_edu_ncs_trap_decode(edu_hdl, evtData,
@@ -718,7 +718,7 @@ snmpsubagt_eda_varbind_compose(NCSSA_OID_DATABASE_NODE  *i_oid_db_node,
         m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_VAR_BIND_ALLOC_FAIL);
         return NULL;
     }
-    m_NCS_MEMSET(var_bind, 0, sizeof(netsnmp_variable_list));
+    memset(var_bind, 0, sizeof(netsnmp_variable_list));
 
     /* get the complete OID */
     var_bind->name = snmpsubagt_eda_full_oid_populate(i_oid_db_node->base_oid, 
@@ -839,7 +839,7 @@ snmpsubagt_eda_trap_varbind_value_populate(netsnmp_variable_list *var_bind,
             if (i_param_val->i_length != sizeof(struct counter64))
                 return NCSCC_RC_FAILURE; 
                 
-            m_NCS_MEMSET(&lc64, 0, sizeof (struct counter64)); 
+            memset(&lc64, 0, sizeof (struct counter64)); 
             
             llong = m_NCS_OS_NTOHLL_P(i_param_val->info.i_oct);
             lc64.low = (u_long)(llong)&(0xFFFFFFFF);
@@ -975,7 +975,7 @@ snmpsubagt_eda_snmpTrapId_vb_populate(NCS_PATRICIA_TREE    *i_oid_db,
         return NULL;
     }
 
-    m_NCS_MEMSET(&oid_db_key, 0, sizeof(NCSSA_OID_DATABASE_KEY));
+    memset(&oid_db_key, 0, sizeof(NCSSA_OID_DATABASE_KEY));
 
     /* trap_table_id */
     oid_db_key.i_table_id = i_trap_tbl_id;
@@ -997,7 +997,7 @@ snmpsubagt_eda_snmpTrapId_vb_populate(NCS_PATRICIA_TREE    *i_oid_db,
         m_SNMPSUBAGT_MEM_FAIL_LOG(SNMPSUBAGT_VAR_BIND_ALLOC_FAIL);
         return NULL; 
     }
-    m_NCS_MEMSET(var_bind, 0, sizeof(netsnmp_variable_list));
+    memset(var_bind, 0, sizeof(netsnmp_variable_list));
 
     /* allocate the memory for the snmpTrapOID.0 */
     var_bind->name_length = sizeof(objid_snmptrap)/sizeof(oid);
@@ -1198,8 +1198,8 @@ static void subagt_log_ncs_trap_data(NCS_TRAP *ncs_trap_data)
       return; 
   }
 
-  m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
-  m_NCS_MEMSET(&log_trap_tbl,  0, sizeof(SNMPSA_LOG_TRAP_TBL));
+  memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
+  memset(&log_trap_tbl,  0, sizeof(SNMPSA_LOG_TRAP_TBL));
 
   /* LOG the TRAP TBL information */ 
   log_trap_tbl.tbl_id   =  (uns32)ncs_trap_data->i_trap_tbl_id; 
@@ -1240,8 +1240,8 @@ static void subagt_log_ncs_trap_vb(NCS_TRAP_VARBIND *trap_vb)
   NCSFL_MEM                     log_trap_data;
   SNMPSA_LOG_TRAP_PARAM_INFO    param_info; 
    
-  m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
-  m_NCS_MEMSET(&param_info, 0, sizeof(SNMPSA_LOG_TRAP_PARAM_INFO));
+  memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
+  memset(&param_info, 0, sizeof(SNMPSA_LOG_TRAP_PARAM_INFO));
 
   if (trap_vb == NULL)
   {
@@ -1258,7 +1258,7 @@ static void subagt_log_ncs_trap_vb(NCS_TRAP_VARBIND *trap_vb)
   /* LOG the Instance IDs */ 
   if (trap_vb->i_idx.i_inst_len != 0)
   {
-      m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
+      memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
       log_trap_data.len    = (trap_vb->i_idx.i_inst_len)*sizeof(uns32);
       log_trap_data.dump   = log_trap_data.addr = (char *)trap_vb->i_idx.i_inst_ids;
       m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_INSTID_DUMP, log_trap_data);
@@ -1266,7 +1266,7 @@ static void subagt_log_ncs_trap_vb(NCS_TRAP_VARBIND *trap_vb)
 
   /* LOG the Paramater Information  */ 
 
-  m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
+  memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
   param_info.param_id = trap_vb->i_param_val.i_param_id; 
   param_info.fmt_id   = trap_vb->i_param_val.i_fmat_id; 
   param_info.i_len    = trap_vb->i_param_val.i_length; 
@@ -1277,7 +1277,7 @@ static void subagt_log_ncs_trap_vb(NCS_TRAP_VARBIND *trap_vb)
                            log_trap_data);
 
   /* LOG the INT Parameter value */
-  m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
+  memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
   if (trap_vb->i_param_val.i_fmat_id == NCSMIB_FMAT_INT)
       {
         log_trap_data.len = sizeof(uns32);
@@ -1287,7 +1287,7 @@ static void subagt_log_ncs_trap_vb(NCS_TRAP_VARBIND *trap_vb)
       }
 
  /* LOG the OCTET Parameter value */
-  m_NCS_MEMSET(&log_trap_data, 0, sizeof(NCSFL_MEM));
+  memset(&log_trap_data, 0, sizeof(NCSFL_MEM));
   if (trap_vb->i_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
       {
         log_trap_data.len = trap_vb->i_param_val.i_length;

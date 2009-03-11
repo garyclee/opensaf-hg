@@ -315,7 +315,7 @@ static uns32 rde_task_main (RDE_CONTROL_BLOCK * rde_cb)
        {
         /* Once the connection has been established and then gone down
             Try reconnecting for indefinite. */  
-           m_NCS_OS_MEMSET(log,0,RDE_LOG_MSG_SIZE);
+           memset(log,0,RDE_LOG_MSG_SIZE);
            sprintf(log,"Role = %d, RDE Got disconnected",rde_cb->ha_role);
            m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
            rc = rde_rde_clCheckConnect(rde_rde_cb);

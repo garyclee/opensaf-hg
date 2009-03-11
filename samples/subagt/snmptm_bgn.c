@@ -147,7 +147,7 @@ static uns32 snmptm_create_vdest()
    NCSVDA_INFO vda_info;
    uns32        status; 
 
-   m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+   memset(&vda_info, 0, sizeof(vda_info));
 
    vda_info.req = NCSVDA_VDEST_CREATE;
    vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
@@ -164,7 +164,7 @@ static uns32 snmptm_create_vdest()
    gl_snmptm_oac_hdl = vda_info.info.vdest_create.o_pwe1_oac_hdl;
    gl_mds_vdest = NCS_UNS32_TO_PTR_CAST(vda_info.info.vdest_create.o_mds_pwe1_hdl);
 
-   m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+   memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
 
    status = snmptm_role_change(gl_snmptm_role); 
    if (status != NCSCC_RC_SUCCESS)
@@ -178,7 +178,7 @@ static uns32 snmptm_role_change(uns32 role)
    NCSVDA_INFO vda_info;
    char state[30]= {0}; 
 
-   m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+   memset(&vda_info, 0, sizeof(vda_info));
     
    /* set the role of the vdest */
    vda_info.req = NCSVDA_VDEST_CHG_ROLE;
@@ -187,7 +187,7 @@ static uns32 snmptm_role_change(uns32 role)
 
    if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_MEMSET(&vda_info,'\0',sizeof(NCSVDA_INFO));
+      memset(&vda_info,'\0',sizeof(NCSVDA_INFO));
       vda_info.req = NCSVDA_VDEST_DESTROY;
       vda_info.info.vdest_destroy.i_vdest = gl_snmptm_vdest;
       ncsvda_api(&vda_info);
@@ -253,7 +253,7 @@ void  snmptm_main(int argc, char **argv)
                                     populated with the initialisation data */
 
    /* Memset lm_req struct to 0 */       
-   m_NCS_OS_MEMSET(&lm_req, 0, sizeof(NCSSNMPTM_LM_REQUEST_INFO));
+   memset(&lm_req, 0, sizeof(NCSSNMPTM_LM_REQUEST_INFO));
 
    /* Initialise OpenSAF agents, can be removed from here once MDS initialisation 
       is taken care  globally by demo initialisation just before calling
@@ -353,19 +353,19 @@ void  snmptm_main(int argc, char **argv)
                                              g_snmptm_hdl)) != NULL)
       {
          m_NCS_CONS_PRINTF("\nStarting TEST-3 on Node-1: To modify 3 rows of TBLSIX, and send the udpate to PSSv!\n"); 
-         m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+         memset(&tblsix_key, '\0', sizeof(tblsix_key));
          tblsix_key.count = 2;
          tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&lcl_snmptm->tblsix_tree,
                                                   (uns8*)&tblsix_key);
          tblsix->tblsix_data = 103;
 
-         m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+         memset(&tblsix_key, '\0', sizeof(tblsix_key));
          tblsix_key.count = 5;
          tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&lcl_snmptm->tblsix_tree,
                                                   (uns8*)&tblsix_key);
          tblsix->tblsix_data = 106;
 
-         m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+         memset(&tblsix_key, '\0', sizeof(tblsix_key));
          tblsix_key.count = 6;
          tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&lcl_snmptm->tblsix_tree,
                                                   (uns8*)&tblsix_key);
@@ -394,7 +394,7 @@ void  snmptm_main(int argc, char **argv)
             m_MMGR_FREE_SNMPTM_TBLSIX(tblsix);
          }
          /* Compose Warmboot-playback request to PSS */
-         m_NCS_MEMSET(&oac_arg, '\0', sizeof(oac_arg));
+         memset(&oac_arg, '\0', sizeof(oac_arg));
          oac_arg.i_op = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
          oac_arg.i_oac_hdl = lcl_snmptm->oac_hdl;   
          oac_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX; /* This is not used by PSSv for playback */
@@ -402,7 +402,7 @@ void  snmptm_main(int argc, char **argv)
          oac_arg.info.warmboot_req.is_system_client = FALSE;
 
          /* Fill the list of tables to be played-back */
-         m_NCS_MEMSET(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
+         memset(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
          lcl_tbl_list.tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
          oac_arg.info.warmboot_req.i_tbl_list= &lcl_tbl_list;
 
@@ -419,7 +419,7 @@ void  snmptm_main(int argc, char **argv)
                                              g_snmptm_hdl)) != NULL)
       {
          m_NCS_CONS_PRINTF("\nVerifying TEST-4 on Node-1: Dump of TBLSIX data, after waiting for 10 secs...\n\n"); 
-         m_NCS_MEMSET(&tblsix_key, '\0', sizeof(tblsix_key));
+         memset(&tblsix_key, '\0', sizeof(tblsix_key));
          while(SNMPTM_TBLSIX_NULL != (tblsix = (SNMPTM_TBLSIX*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblsix_tree, (uns8*)&tblsix_key)))
          {
@@ -459,7 +459,7 @@ void  snmptm_main(int argc, char **argv)
             m_MMGR_FREE_SNMPTM_TBLTEN(tblten);
          }
          /* Compose Warmboot-playback request to PSS */
-         m_NCS_MEMSET(&oac_arg, '\0', sizeof(oac_arg));
+         memset(&oac_arg, '\0', sizeof(oac_arg));
          oac_arg.i_op = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
          oac_arg.i_oac_hdl = lcl_snmptm->oac_hdl;   
          oac_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN; /* This is not used by PSSv for playback */
@@ -467,7 +467,7 @@ void  snmptm_main(int argc, char **argv)
          oac_arg.info.warmboot_req.is_system_client = FALSE;
 
          /* Fill the list of tables to be played-back */
-         m_NCS_MEMSET(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
+         memset(&lcl_tbl_list, '\0', sizeof(lcl_tbl_list));
          lcl_tbl_list.tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN;
          oac_arg.info.warmboot_req.i_tbl_list= &lcl_tbl_list;
 
@@ -484,7 +484,7 @@ void  snmptm_main(int argc, char **argv)
                                              g_snmptm_hdl)) != NULL)
       {
          m_NCS_CONS_PRINTF("\nVerifying TEST-7 on Node-1: Dump of TBLTEN data, after waiting for 5 secs...\n\n"); 
-         m_NCS_MEMSET(&tblten_key, '\0', sizeof(tblten_key));
+         memset(&tblten_key, '\0', sizeof(tblten_key));
          while(SNMPTM_TBLTEN_NULL != (tblten = (SNMPTM_TBLTEN*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblten_tree, (uns8*)&tblten_key)))
          {
@@ -528,8 +528,8 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
    char name[9];
    uns32 evt_type = 2; /* Default, SETROW for TBLSIX */
 
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -542,7 +542,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
    {
       read_cnt ++;
       lcl_key.count = tblsix->tblsix_key.count;
-      m_NCS_MEMSET(&name, '\0', sizeof(name));
+      memset(&name, '\0', sizeof(name));
       pv.i_fmat_id = NCSMIB_FMAT_INT;
       pv.i_param_id = ncsTestTableSixData_ID;
       pv.info.i_int = tblsix->tblsix_data;
@@ -556,7 +556,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
          arg.i_idx.i_inst_len = 1;
          arg.rsp.info.set_rsp.i_param_val = pv;
 
-         m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+         memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
          mab_arg.i_oac_hdl = cb->oac_hdl;
          mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -576,7 +576,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
          arg.i_idx.i_inst_len = 1;
          arg.rsp.info.set_rsp.i_param_val = pv;
 
-         m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+         memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
          mab_arg.i_oac_hdl = cb->oac_hdl;
          mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -607,7 +607,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
          arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
          m_BUFR_STUFF_OWNER(arg.req.info.setrow_rsp.i_usrbuf);
 
-         m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+         memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
          mab_arg.i_oac_hdl = cb->oac_hdl;
          mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -656,7 +656,7 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
       arg.i_idx.i_inst_len = idx.i_inst_len;
       arg.i_idx.i_inst_ids = idx.i_inst_ids;
 
-      m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+      memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
       mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
       mab_arg.i_oac_hdl = cb->oac_hdl;
       mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -690,14 +690,14 @@ static void snmptm_exec_test2(SNMPTM_CB *cb)
    USRBUF *ub = NULL;
 
    /* Delete two rows */
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
    lcl_key.count = 3;
    tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&cb->tblsix_tree,
                                                   (uns8*)&lcl_key);
    if(tblsix != NULL)
       snmptm_delete_tblsix_entry(cb, tblsix);
 
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
    lcl_key.count = 4;
    tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&cb->tblsix_tree,
                                                   (uns8*)&lcl_key);
@@ -705,8 +705,8 @@ static void snmptm_exec_test2(SNMPTM_CB *cb)
       snmptm_delete_tblsix_entry(cb, tblsix);
 
 
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_op = NCSMIB_OP_RSP_REMOVEROWS;
@@ -718,7 +718,7 @@ static void snmptm_exec_test2(SNMPTM_CB *cb)
    arg.i_idx.i_inst_ids = (const uns32 *)inst_ids;
    arg.i_idx.i_inst_len = idx.i_inst_len = 1;
 
-   m_NCS_OS_MEMSET(&rra, 0, sizeof(rra));
+   memset(&rra, 0, sizeof(rra));
    ncsremrow_enc_init(&rra);
    inst_ids[0] = 3;   /* First index in the REMOVEROWS event */
    idx.i_inst_ids = inst_ids;
@@ -733,7 +733,7 @@ static void snmptm_exec_test2(SNMPTM_CB *cb)
    ub = ncsremrow_enc_done(&rra);
    arg.rsp.info.removerows_rsp.i_usrbuf = ub;
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->oac_hdl;
    mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -770,8 +770,8 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    NCSMIB_ARG arg;
 
    /* Compose MIB SET event for ROW-2 */
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -789,7 +789,7 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    arg.i_idx.i_inst_len = 1;
    arg.rsp.info.set_rsp.i_param_val = pv;
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->oac_hdl;
    mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -800,8 +800,8 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    }
 
    /* Compose MIB SETROW event for ROW-5 */
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -823,7 +823,7 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
    m_BUFR_STUFF_OWNER(arg.rsp.info.setrow_rsp.i_usrbuf);
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->oac_hdl;
    mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -837,8 +837,8 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
                             arg.rsp.info.setrow_rsp.i_usrbuf);
 
    /* Compose MIB SETALLROWS event for ROW-6 */
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -863,7 +863,7 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    arg.rsp.info.setallrows_rsp.i_usrbuf = ncssetallrows_enc_done(&ra);
    m_BUFR_STUFF_OWNER(arg.rsp.info.setallrows_rsp.i_usrbuf);
 
-   m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+   memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->oac_hdl;
    mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLSIX;
@@ -899,8 +899,8 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
    char name[9];
    uns32 evt_type = 1; /* Default, SETROW for TBLTEN*/
 
-   m_NCS_MEMSET(&lcl_key, '\0', sizeof(lcl_key));
-   m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMIB_ARG));
+   memset(&lcl_key, '\0', sizeof(lcl_key));
+   memset(&arg, 0, sizeof(NCSMIB_ARG));
    ncsmib_init(&arg);
    ncsmem_aid_init(&ma, space, sizeof(space));
    arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN;
@@ -914,7 +914,7 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
       read_cnt ++;
       lcl_key.tblten_unsigned32 = tblten->tblten_key.tblten_unsigned32;
       lcl_key.tblten_int = tblten->tblten_key.tblten_int;
-      m_NCS_MEMSET(&name, '\0', sizeof(name));
+      memset(&name, '\0', sizeof(name));
       pv.i_fmat_id = NCSMIB_FMAT_INT;
       pv.i_param_id = ncsTestTableTenInt_ID;
       pv.info.i_int = tblten->tblten_key.tblten_int;
@@ -929,7 +929,7 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
          inst_ids[1] = lcl_key.tblten_int;
          arg.rsp.info.set_rsp.i_param_val = pv;
 
-         m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+         memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
          mab_arg.i_oac_hdl = cb->oac_hdl;
          mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN;
@@ -955,7 +955,7 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
          arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
          m_BUFR_STUFF_OWNER(arg.req.info.setrow_rsp.i_usrbuf);
 
-         m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+         memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
          mab_arg.i_oac_hdl = cb->oac_hdl;
          mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN;
@@ -995,7 +995,7 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
       arg.i_idx.i_inst_len = idx.i_inst_len;
       arg.i_idx.i_inst_ids = idx.i_inst_ids;
 
-      m_NCS_OS_MEMSET(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
+      memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
       mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
       mab_arg.i_oac_hdl = cb->oac_hdl;
       mab_arg.i_tbl_id = NCSMIB_TBL_SNMPTM_TBLTEN;

@@ -89,7 +89,7 @@ uns32 cla_mds_reg (CLA_CB *cb)
    }
 
    /* fill common fields */
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
    mds_info.i_mds_hdl = cb->avnd_intf.mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CLA;
 
@@ -145,7 +145,7 @@ uns32 cla_mds_unreg (CLA_CB *cb)
    NCSMDS_INFO  mds_info;
    uns32        rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->avnd_intf.mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CLA;
@@ -369,7 +369,7 @@ uns32 cla_mds_send (CLA_CB *cb, AVSV_NDA_CLA_MSG *i_msg,
       (m_NCS_NODE_ID_FROM_MDS_DEST( cb->avnd_intf.avnd_mds_dest) == 0))
       return NCSCC_RC_FAILURE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = cb->avnd_intf.mds_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_CLA;
@@ -475,13 +475,13 @@ uns32 cla_mds_svc_evt(CLA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
       switch(evt_info->i_svc_id)
       {
        case NCSMDS_SVC_ID_CLA:
-          m_NCS_OS_MEMSET(&cb->avnd_intf.cla_mds_dest, 0, sizeof(MDS_DEST));
+          memset(&cb->avnd_intf.cla_mds_dest, 0, sizeof(MDS_DEST));
           /* Is there anything that needs to be done? Discuss TBD */
           break;
            
         case NCSMDS_SVC_ID_AVND:
           cb->avnd_intf.avnd_up = FALSE;
-          m_NCS_OS_MEMSET(&cb->avnd_intf.avnd_mds_dest, 0, sizeof(MDS_DEST));
+          memset(&cb->avnd_intf.avnd_mds_dest, 0, sizeof(MDS_DEST));
           /* Is there anything that needs to be done? Discuss TBD */
           break;
 
@@ -561,7 +561,7 @@ uns32 cla_mds_dec_flat (CLA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
       rc = NCSCC_RC_FAILURE;
       goto err;
    }
-   m_NCS_OS_MEMSET(msg, 0, sizeof(AVSV_NDA_CLA_MSG));
+   memset(msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
    /* decode the top level CLA msg contents */
    rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)msg,
@@ -588,7 +588,7 @@ uns32 cla_mds_dec_flat (CLA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
                goto err;
             }
 
-            m_NCS_OS_MEMSET(msg->info.cbk_info.param.track.notify.notification, 0, size);
+            memset(msg->info.cbk_info.param.track.notify.notification, 0, size);
 
             /* decode cbk-info */
             rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, 
@@ -617,7 +617,7 @@ uns32 cla_mds_dec_flat (CLA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
                goto err;
             }
 
-            m_NCS_OS_MEMSET(msg->info.api_resp_info.param.track.notify, 0, size);
+            memset(msg->info.api_resp_info.param.track.notify, 0, size);
 
             /* decode cbk-info */
             rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, 
@@ -770,7 +770,7 @@ uns32 cla_mds_param_get (CLA_CB *cb)
    NCSADA_INFO ada_info;
    uns32       rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_OS_MEMSET(&ada_info, 0, sizeof(ada_info));
+   memset(&ada_info, 0, sizeof(ada_info));
 
    ada_info.req = NCSADA_GET_HDLS;
    ada_info.info.adest_get_hdls.i_create_oac = FALSE;

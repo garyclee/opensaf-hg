@@ -65,7 +65,7 @@ void  avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (name_net)
@@ -96,7 +96,7 @@ void  avd_log_si_unassigned_trap(AVD_TRAP_FLEX state,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (name_net)
@@ -127,7 +127,7 @@ void  avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (name_net)
@@ -161,7 +161,7 @@ void  avd_log_clm_node_traps(AVD_TRAP_FLEX cl,
 {
    uns8 name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (name_net)
@@ -199,8 +199,8 @@ void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state,
    uns8 su_name[SA_MAX_NAME_LENGTH];
    uns8 si_name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(su_name, '\0', SA_MAX_NAME_LENGTH);
-   m_NCS_OS_MEMSET(si_name, '\0', SA_MAX_NAME_LENGTH);
+   memset(su_name, '\0', SA_MAX_NAME_LENGTH);
+   memset(si_name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (su_name_net)
@@ -244,7 +244,7 @@ void avd_log_shutdown_failure (SaNameT           *node_name_net,
 {
    uns8 node_name[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(node_name, '\0', SA_MAX_NAME_LENGTH);
+   memset(node_name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (node_name_net)
@@ -272,7 +272,7 @@ avd_flx_log_reg ()
 {
    NCS_DTSV_RQ            reg;
 
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVD;
    /* fill version no. */
@@ -302,7 +302,7 @@ avd_flx_log_dereg ()
 {
    NCS_DTSV_RQ        reg;
    
-   m_NCS_MEMSET(&reg,0,sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
    reg.i_op                   = NCS_DTSV_OP_UNBIND;
    reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_AVD;
    ncs_dtsv_su_req(&reg);
@@ -338,7 +338,7 @@ void avd_pxy_pxd_log(uns32   sev,
 {
    uns8 comp[SA_MAX_NAME_LENGTH];
 
-   m_NCS_OS_MEMSET(comp, '\0', SA_MAX_NAME_LENGTH);
+   memset(comp, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert name into string format */
    if (comp_name)

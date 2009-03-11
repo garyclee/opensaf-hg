@@ -112,8 +112,8 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
    SaClmClusterNodeT    cluster_node;
    CPD_REP_KEY_INFO     key_info;
 
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
 
     /* 1. check if the checkpoint already exist  (this should not happen )*/
    cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &msg->info.ckpt_create.ckpt_name, &map_info);
@@ -143,7 +143,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
    }
        
    /* Fill the Map info structure  */
-   m_NCS_OS_MEMSET(map_info,0,sizeof(CPD_CKPT_MAP_INFO));
+   memset(map_info,0,sizeof(CPD_CKPT_MAP_INFO));
    map_info->ckpt_name  = msg->info.ckpt_create.ckpt_name;
    map_info->ckpt_id    = msg->info.ckpt_create.ckpt_id;
    map_info->attributes = msg->info.ckpt_create.ckpt_attrib;
@@ -159,7 +159,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
    }
 
        /*  Fill the CKPT_NODE structure  */
-   m_NCS_OS_MEMSET(ckpt_node,0,sizeof(CPD_CKPT_INFO_NODE));
+   memset(ckpt_node,0,sizeof(CPD_CKPT_INFO_NODE));
    ckpt_node->ckpt_id          = msg->info.ckpt_create.ckpt_id;
    ckpt_node->ckpt_name        = msg->info.ckpt_create.ckpt_name;
    dest_cnt                    = msg->info.ckpt_create.dest_cnt;
@@ -186,7 +186,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
          goto nref_info_alloc_fail;
       }  
       
-      m_NCS_OS_MEMSET(nref_info,'\0',sizeof(CPD_NODE_REF_INFO));
+      memset(nref_info,'\0',sizeof(CPD_NODE_REF_INFO));
       nref_info->dest = msg->info.ckpt_create.dest_list[count].dest;
   
       /*  cpd_cpnd database is updated  */
@@ -220,7 +220,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
       {
          reploc_info = m_MMGR_ALLOC_CPD_CKPT_REPLOC_INFO;
    
-         m_NCS_OS_MEMSET(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
+         memset(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
    
          reploc_info->rep_key.node_name = cluster_node.nodeName;
          reploc_info->rep_key.ckpt_name = msg->info.ckpt_create.ckpt_name;  
@@ -247,7 +247,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb,CPD_MBCSV_MSG *msg)
       }
       cref_info = m_MMGR_ALLOC_CPD_CKPT_REF_INFO;
 
-      m_NCS_OS_MEMSET(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
+      memset(cref_info, 0, sizeof(CPD_CKPT_REF_INFO));
       cref_info->ckpt_node = ckpt_node;
       cpd_ckpt_ref_info_add(node_info, cref_info);
       cpd_node_ref_info_add(ckpt_node,nref_info);
@@ -322,9 +322,9 @@ uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb,CPD_MBCSV_MSG *msg)
 
 
 
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
-   m_NCS_OS_MEMSET(&ckpt_name,0,sizeof(SaNameT));
-   m_NCS_OS_MEMSET(&node_name,0,sizeof(SaNameT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&ckpt_name,0,sizeof(SaNameT));
+   memset(&node_name,0,sizeof(SaNameT));
 
    /* IF CPND IS DOWN THEN CKPT_ID = 0 , DELETE THAT NODE INFO */
    if(msg->info.dest_del.ckpt_id == 0 )     
@@ -538,15 +538,15 @@ uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb,CPD_MBCSV_MSG *msg)
    SaClmClusterNodeT    cluster_node;
    CPD_REP_KEY_INFO     key_info;
 
-   m_NCS_OS_MEMSET(&cluster_node,0,sizeof(SaClmClusterNodeT));
-   m_NCS_OS_MEMSET(&key_info,0,sizeof(CPD_REP_KEY_INFO));
+   memset(&cluster_node,0,sizeof(SaClmClusterNodeT));
+   memset(&key_info,0,sizeof(CPD_REP_KEY_INFO));
 
    
    nref_info = m_MMGR_ALLOC_CPD_NODE_REF_INFO;
    cref_info = m_MMGR_ALLOC_CPD_CKPT_REF_INFO;
    
-   m_NCS_OS_MEMSET(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
-   m_NCS_OS_MEMSET(cref_info, 0 ,sizeof(CPD_CKPT_REF_INFO));    
+   memset(nref_info, 0, sizeof(CPD_NODE_REF_INFO));
+   memset(cref_info, 0 ,sizeof(CPD_CKPT_REF_INFO));    
      
    nref_info->dest = msg->info.dest_add.mds_dest;
    cpd_ckpt_node_get(&cb->ckpt_tree,&msg->info.dest_add.ckpt_id,&ckpt_node);
@@ -588,7 +588,7 @@ uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb,CPD_MBCSV_MSG *msg)
       if(reploc_info == NULL)
         goto free_mem;
 
-      m_NCS_OS_MEMSET(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
+      memset(reploc_info,0,sizeof(CPD_CKPT_REPLOC_INFO));
 
       reploc_info->rep_key.node_name = cluster_node.nodeName;
       reploc_info->rep_key.ckpt_name = ckpt_node->ckpt_name;

@@ -104,7 +104,7 @@ AVD_SU * avd_su_struc_crt(AVD_CL_CB *cb,SaNameT su_name, NCS_BOOL ckpt)
       return AVD_SU_NULL;
    }
 
-   m_NCS_MEMSET((char *)su, '\0', sizeof(AVD_SU));
+   memset((char *)su, '\0', sizeof(AVD_SU));
 
    if (ckpt)
    {
@@ -179,7 +179,7 @@ AVD_SU * avd_su_struc_find(AVD_CL_CB *cb,SaNameT su_name,NCS_BOOL host_order)
    AVD_SU *su;
    SaNameT  lsu_name;
 
-   m_NCS_MEMSET((char *)&lsu_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsu_name, '\0', sizeof(SaNameT));
    lsu_name.length = (host_order == FALSE) ? su_name.length :  
                                             m_HTON_SANAMET_LEN(su_name.length);
 
@@ -214,7 +214,7 @@ AVD_SU * avd_su_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,NCS_BOOL host_orde
    AVD_SU *su;
    SaNameT  lsu_name;
 
-   m_NCS_MEMSET((char *)&lsu_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsu_name, '\0', sizeof(SaNameT));
    lsu_name.length = (host_order == FALSE) ? su_name.length :  
                                             m_HTON_SANAMET_LEN(su_name.length);
 
@@ -459,7 +459,7 @@ uns32 saamfsutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -609,7 +609,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -763,7 +763,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                     avd_su_del_sg_list(avd_cb,su);
                     return NCSCC_RC_INV_VAL;
                   }
-                  m_NCS_MEMSET(avd_cb->ext_comp_info.ext_comp_hlt_check, 0,
+                  memset(avd_cb->ext_comp_info.ext_comp_hlt_check, 0,
                                sizeof(AVD_AVND));
                   avd_cb->ext_comp_info.local_avnd_node = 
                      avd_avnd_struc_find_nodeid(avd_cb, avd_cb->node_id_avd);
@@ -877,7 +877,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                   (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
                   (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
                {
-                  m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+                  memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
                   param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
                   param.act = AVSV_OBJ_OPR_DEL;
                   param.name_net = su->name_net;  
@@ -1131,7 +1131,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
             (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT))
          {
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
             param.obj_id = arg->req.info.set_req.i_param_val.i_param_id;   
             param.act = AVSV_OBJ_OPR_MOD;
@@ -1172,7 +1172,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    case saAmfSUParentSGName_ID:
       
       /* fill the SG name value */
-      m_NCS_MEMSET(&temp_name, '\0', sizeof(SaNameT));
+      memset(&temp_name, '\0', sizeof(SaNameT));
       temp_name.length = arg->req.info.set_req.i_param_val.i_length;
       memcpy(temp_name.value, arg->req.info.set_req.i_param_val.info.i_oct,
                    temp_name.length);
@@ -1199,7 +1199,7 @@ uns32 saamfsutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       su->is_su_failover = (arg->req.info.set_req.i_param_val.info.i_int == NCS_SNMP_TRUE) ? TRUE:FALSE;
       break;
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1270,7 +1270,7 @@ uns32 saamfsutableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -1438,7 +1438,7 @@ void avd_su_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
             su->list_of_comp->row_status = NCS_ROW_NOT_IN_SERVICE;
             m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, (su->list_of_comp), AVSV_CKPT_AVD_COMP_CONFIG);
             /* send a delete message to the AvND for the comp. */
-            m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+            memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
             param.act = AVSV_OBJ_OPR_DEL;
             param.name_net = su->list_of_comp->comp_info.name_net;
             param.table_id = NCSMIB_TBL_AVSV_AMF_COMP;      
@@ -1473,7 +1473,7 @@ void avd_su_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
        * deleted.
        */
       /* send a delete message to the AvND for the SU. */
-      m_NCS_MEMSET(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
+      memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
       param.act = AVSV_OBJ_OPR_DEL;
       param.name_net = ack_msg->msg_info.n2d_reg_su.su_name_net;
       param.table_id = NCSMIB_TBL_AVSV_AMF_SU;
@@ -1527,7 +1527,7 @@ uns32 ncssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1652,7 +1652,7 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1773,7 +1773,7 @@ uns32 ncssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    /* We now have the su block */
    
 
-   m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
    temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1831,7 +1831,7 @@ uns32 ncssutableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&su_name, '\0', sizeof(SaNameT));
+   memset(&su_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service unit database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -1935,7 +1935,7 @@ AVD_SG_SU_RANK * avd_sg_su_rank_add_row(AVD_CL_CB *cb, AVD_SU *su)
       return AVD_SG_SU_RANK_NULL;
    }
 
-   m_NCS_MEMSET((char *)rank_elt, '\0', sizeof(AVD_SG_SU_RANK));
+   memset((char *)rank_elt, '\0', sizeof(AVD_SG_SU_RANK));
 
    rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(su->sg_name.length);
 
@@ -2041,7 +2041,7 @@ uns32 avd_sg_su_rank_del_row(AVD_CL_CB *cb, AVD_SU *su)
    if (su == AVD_SU_NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
+   memset((char *)&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
 
    indx.sg_name_net.length = m_NCS_OS_HTONS(su->sg_name.length);
 
@@ -2109,7 +2109,7 @@ uns32 saamfsgsurankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
 
    /* Prepare the SG-SU Rank database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -2255,7 +2255,7 @@ uns32 saamfsgsurankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SG_SU_RANK_INDX));
 
    if (arg->i_idx.i_inst_len != 0)
    {

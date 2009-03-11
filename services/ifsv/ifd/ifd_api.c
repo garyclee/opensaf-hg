@@ -142,7 +142,7 @@ ifd_lib_init (IFSV_CREATE_PWE *pwe_param)
          goto ifd_cb_alloc_fail;
       }
       
-      m_NCS_MEMSET(ifsv_cb, 0, sizeof(IFSV_CB));
+      memset(ifsv_cb, 0, sizeof(IFSV_CB));
       ifsv_cb->ifd_mbcsv_data_resp_enc_func_ptr = ifd_mbcsv_enc_data_resp;
       ifsv_cb->ifd_mbcsv_data_resp_dec_func_ptr = ifd_mbcsv_dec_data_resp;
       ifsv_cb->hm_pid    = pwe_param->pool_id;
@@ -191,7 +191,7 @@ ifd_lib_init (IFSV_CREATE_PWE *pwe_param)
         }
 
       /* get the component name */
-      m_NCS_MEMSET(&sname,0,sizeof(sname));
+      memset(&sname,0,sizeof(sname));
 
       amf_error = saAmfComponentNameGet(ifsv_cb->amf_hdl,&sname);
       if (amf_error != SA_AIS_OK)
@@ -283,7 +283,7 @@ ifd_lib_init (IFSV_CREATE_PWE *pwe_param)
       }
      
 #if (NCS_IFSV_IPXS == 1)
-      m_NCS_OS_MEMSET(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
+      memset(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
       ipxs_info.op = NCS_LIB_REQ_CREATE;
       ipxs_info.info.create.oac_hdl = ifsv_cb->oac_hdl;
       ipxs_info.info.create.pool_id = ifsv_cb->hm_pid;
@@ -332,7 +332,7 @@ ifd_task_start_fail:
       m_NCS_TASK_RELEASE(m_IFSV_GET_TASK_HDL(vrid,comp_type));
 ifd_task_create_fail:
 #if (NCS_IFSV_IPXS == 1)
-      m_NCS_OS_MEMSET(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
+      memset(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
       ipxs_info.op = NCS_LIB_REQ_DESTROY;
       ipxs_ifd_lib_req(&ipxs_info);
 ifd_ipxs_init_fail:
@@ -426,7 +426,7 @@ ifd_lib_destroy (uns32 vrid, uns32 comp_type)
       m_MMGR_FREE_IFSV_CB(ifsv_cb);
 
 #if (NCS_IFSV_IPXS == 1)
-      m_NCS_OS_MEMSET(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
+      memset(&ipxs_info, 0, sizeof(IPXS_LIB_REQ_INFO));
       ipxs_info.op = NCS_LIB_REQ_DESTROY;
       ipxs_ifd_lib_req(&ipxs_info);
 #endif
@@ -616,7 +616,7 @@ ifd_extract_input_info(int argc, char *argv[], IFSV_CREATE_PWE *ifsv_info)
 {
    char                 *p_field;
    uns32                node_id=0;
-   m_NCS_MEMSET(ifsv_info,0,sizeof(IFSV_CREATE_PWE));
+   memset(ifsv_info,0,sizeof(IFSV_CREATE_PWE));
 
    p_field = ifd_search_argv_list(argc, argv, "SHELF_ID=");
    if (p_field == NULL)

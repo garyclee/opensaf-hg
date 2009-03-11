@@ -189,7 +189,7 @@ static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
   uns32             rc= NCSCC_RC_SUCCESS;
   ASAPi_MSG_INFO    mesg;
   
-  m_NCS_MEMSET(&mesg, 0, sizeof(mesg));
+  memset(&mesg, 0, sizeof(mesg));
   
   rc= mqd_asapi_dereg_db_upd(pMqd, (ASAPi_DEREG_INFO *)(&(msg.info.dereg)), &mesg);
 
@@ -223,7 +223,7 @@ static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
   MQD_OBJ_NODE      *pObjNode=0; 
   MQSV_SEND_INFO    info;
   
-  m_NCS_OS_MEMSET(&info, 0, sizeof(MQSV_SEND_INFO));
+  memset(&info, 0, sizeof(MQSV_SEND_INFO));
 
   info.dest = msg.info.track.dest;
   info.to_svc = msg.info.track.to_svc;

@@ -112,7 +112,7 @@ static uns32 create_app_stuff(int test_num)
     {
     case 1:
         /* Application 2 */
-        m_NCS_MEMSET(&gl_app2_cb, '\0', sizeof(gl_app2_cb));
+        memset(&gl_app2_cb, '\0', sizeof(gl_app2_cb));
         test_application = lt_test1_app2_process_main;
         if ((res = m_NCS_IPC_CREATE(&gl_app2_cb.mbx)) != NCSCC_RC_SUCCESS)
         {
@@ -145,7 +145,7 @@ static uns32 create_app_stuff(int test_num)
         }
 
         /* Application 1 */
-        m_NCS_MEMSET(&gl_app1_cb, '\0', sizeof(gl_app1_cb));
+        memset(&gl_app1_cb, '\0', sizeof(gl_app1_cb));
         test_application = lt_test1_app1_process_main;
         if ((res = m_NCS_IPC_CREATE(&gl_app1_cb.mbx)) != NCSCC_RC_SUCCESS)
         {
@@ -225,7 +225,7 @@ static void lt_test1_app1_process_main(SYSF_MBX *mbx)
 
     m_NCS_CONS_PRINTF("Application-1 : sending REQUEST to Application-2\n");
     sreq = m_MMGR_ALLOC_LT_EVT;
-    m_NCS_MEMSET(sreq, '\0', sizeof(LT_EVT));
+    memset(sreq, '\0', sizeof(LT_EVT));
     sreq->evt = LT_TEST_EVT_APP1_REQ;
     sreq->info.app1_req = 0x01020304;
     if(m_NCS_IPC_SEND(&gl_app2_cb.mbx, sreq, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS)
@@ -358,7 +358,7 @@ uns32 lt_test_app2_handle_req(LT_TEST_EVT_TYPE evt, uns32 data)
     {
         /* Send response to App1 */
         resp = m_MMGR_ALLOC_LT_EVT;
-        m_NCS_MEMSET(resp, '\0', sizeof(LT_EVT));
+        memset(resp, '\0', sizeof(LT_EVT));
         resp->info.app2_resp = 0x02030405;
         resp->evt = LT_TEST_EVT_APP2_RESPONSE;
         m_NCS_IPC_SEND(&gl_app1_cb.mbx, resp, NCS_IPC_PRIORITY_NORMAL);

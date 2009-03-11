@@ -104,12 +104,12 @@ uns32 avnd_evt_ava_comp_val_req (AVND_CB *cb, AVND_EVT *evt)
    m_AVND_AVND_ENTRY_LOG("avnd_evt_ava_comp_val_req():Comp,Type and Hdl are",
                         &reg->comp_name_net,api_info->type,reg->hdl,0,0);
    
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
 
    /* populate the msg */
    if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
    {
-      m_NCS_OS_MEMSET(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
       msg.type = AVND_MSG_AVD;
       msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
       msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
@@ -263,7 +263,7 @@ uns32 avnd_evt_avd_comp_validation_resp_msg (AVND_CB *cb, AVND_EVT *evt)
                 comp->pxy_comp=pxy_comp;
 
                 /* Send a registration message to the corresponding AvND */
-                  m_NCS_OS_MEMSET(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
+                  memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
                   m_AVND_COMP_REG_MSG_FILL(api_info, comp->reg_dest, 
                       comp->reg_hdl, &comp->name_net, &comp->pxy_comp->name_net);
                 rc = avnd_avnd_msg_send(cb, (uns8 *)&(api_info), AVSV_AMF_COMP_REG,  
@@ -362,12 +362,12 @@ uns32 avnd_avnd_msg_send (AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type,
                         NULL,type,node_id,0,0);
 
    /* Create a Registration message and send to AvND */
-   m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+   memset(&msg, 0, sizeof(AVND_MSG));
     
    /* populate the msg */
    if ( 0 != (msg.info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG) )
    {
-      m_NCS_OS_MEMSET(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+      memset(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
       msg.type = AVND_MSG_AVND;
 
 
@@ -378,7 +378,7 @@ uns32 avnd_avnd_msg_send (AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type,
          goto done;
       }
 
-      m_NCS_OS_MEMSET(nd_nd_ava_msg, 0, sizeof(AVSV_ND2ND_AVA_MSG));
+      memset(nd_nd_ava_msg, 0, sizeof(AVSV_ND2ND_AVA_MSG));
       msg.info.avnd->type = AVND_AVND_AVA_MSG;
       msg.info.avnd->info.msg = nd_nd_ava_msg; 
       memcpy(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
@@ -717,12 +717,12 @@ uns32 avnd_avnd_cbk_del_send (AVND_CB *cb, SaNameT *comp_name, uns32 *opq_hdl,
                         comp_name,*node_id,*opq_hdl,0,0);
 
   /* Create a Registration message and send to AvND */
-  m_NCS_OS_MEMSET(&msg, 0, sizeof(AVND_MSG));
+  memset(&msg, 0, sizeof(AVND_MSG));
 
   /* populate the msg */
   if ( 0 != (msg.info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG) )
   {
-     m_NCS_OS_MEMSET(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+     memset(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
      msg.type = AVND_MSG_AVND;
      msg.info.avnd->type = AVND_AVND_CBK_DEL;
      msg.info.avnd->info.cbk_del.comp_name = *comp_name;

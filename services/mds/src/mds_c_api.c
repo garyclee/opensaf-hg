@@ -1248,7 +1248,7 @@ uns32 mds_mcm_svc_subscribe (NCSMDS_INFO *info)
                 m_MDS_LOG_NOTIFY("MCM_API : svc_subscribe : Rollbacking previous subscriptions");
 
                 /* Unsubscribing the subscribed services */
-                m_NCS_MEMSET(&unsubscribe_info, 0, sizeof(unsubscribe_info));
+                memset(&unsubscribe_info, 0, sizeof(unsubscribe_info));
                 unsubscribe_info.i_mds_hdl = info->i_mds_hdl;
                 unsubscribe_info.i_svc_id = info->i_svc_id;
                 unsubscribe_info.i_op = MDS_CANCEL;
@@ -1639,7 +1639,7 @@ else (entry exists)
     }
 
     /* clear cbinfo contents */
-    m_NCS_MEMSET(&cbinfo, 0, sizeof(cbinfo));
+    memset(&cbinfo, 0, sizeof(cbinfo));
 
 
     /*************** Validation for SCOPE **********************/
@@ -3144,7 +3144,7 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
         m_MDS_LOG_ERR("Subscription callback processing:Out of memory\n");
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_MEMSET(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
+    memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
     event_msg->type = MDS_EVENT_TYPE;
     event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
 
@@ -3256,7 +3256,7 @@ uns32 mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
     while (status == NCSCC_RC_SUCCESS)
     {   
         event_msg = m_MMGR_ALLOC_MSGELEM;
-        m_NCS_MEMSET(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
+        memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
 
         event_msg->type = MDS_EVENT_TYPE;
         event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
@@ -3614,7 +3614,7 @@ uns32 mds_mcm_init (void)
 
     /* Add VDEST for ADEST entry in tree */
     vdest_for_adest_node = m_MMGR_ALLOC_VDEST_INFO;
-    m_NCS_MEMSET(vdest_for_adest_node,0,sizeof(MDS_VDEST_INFO));
+    memset(vdest_for_adest_node,0,sizeof(MDS_VDEST_INFO));
 
     vdest_for_adest_node->vdest_id = m_VDEST_ID_FOR_ADEST_ENTRY;
     vdest_for_adest_node->policy = NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN;

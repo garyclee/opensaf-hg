@@ -419,7 +419,7 @@ uns32 mbcsv_send_ckpt_data_to_all_peers(NCS_MBCSV_SEND_CKPT *msg_to_send,
        * Call encode callback to encode message to be sent.
        */
       uba = &parg.info.encode.io_uba;
-      m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+      memset(uba, '\0', sizeof(NCS_UBAID));
       
       if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
          return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
@@ -533,8 +533,8 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst,
    NCS_UBAID         *uba = NULL;
   
  
-   m_NCS_MEMSET(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));
-   m_NCS_MEMSET(&evt_msg, '\0', sizeof(MBCSV_EVT));
+   memset(&parg, '\0', sizeof(NCS_MBCSV_CB_ARG));
+   memset(&evt_msg, '\0', sizeof(MBCSV_EVT));
 
    /*
     * Generate the message to be sent.
@@ -576,7 +576,7 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst,
                    * Call encode callback to encode message to be sent.
                    */
                   uba = &parg.info.notify.i_uba;
-                  m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+                  memset(uba, '\0', sizeof(NCS_UBAID));
 
                   if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
                      return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -676,7 +676,7 @@ uns32 mbcsv_send_notify_msg(uns32 msg_dest, CKPT_INST *ckpt_inst,
                       * Call encode callback to encode message to be sent.
                       */
                      uba = &parg.info.notify.i_uba;
-                     m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+                     memset(uba, '\0', sizeof(NCS_UBAID));
 
                      if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
                         return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE,
@@ -846,7 +846,7 @@ uns32 ncs_mbcsv_encode_message(PEER_INST *peer, MBCSV_EVT *evt_msg,
    /*
     * Call encode callback to encode message to be sent.
     */
-   m_NCS_MEMSET(uba, '\0', sizeof(NCS_UBAID));
+   memset(uba, '\0', sizeof(NCS_UBAID));
    
    if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
       return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, 

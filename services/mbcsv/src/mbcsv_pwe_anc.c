@@ -68,7 +68,7 @@ uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
    MBCSV_PEER_LIST   *new_entry;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_PEER_KEY));
+   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.anchor  = anchor;
@@ -90,7 +90,7 @@ uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
       goto done;
    }
 
-   m_NCS_MEMSET(new_entry, '\0', sizeof(MBCSV_PEER_LIST));
+   memset(new_entry, '\0', sizeof(MBCSV_PEER_LIST));
 
    new_entry->key.pwe_hdl = pwe_hdl;
    new_entry->key.anchor  = anchor;
@@ -129,7 +129,7 @@ uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
    MBCSV_PEER_LIST   *tree_entry;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_PEER_KEY));
+   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.anchor  = anchor;
@@ -202,7 +202,7 @@ uns32 mbcsv_destroy_peer_list(void)
    MBCSV_PEER_KEY    key;
    MBCSV_PEER_LIST   *tree_entry;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_PEER_KEY));
+   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
    key.pwe_hdl = 0;
    key.anchor  = 0;
@@ -242,7 +242,7 @@ uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor)
    MBCSV_PEER_LIST   *tree_entry;
    uns32             rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_PEER_KEY));
+   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
    key.pwe_hdl = pwe_hdl;
    key.anchor  = *anchor;
@@ -313,7 +313,7 @@ uns32 mbcsv_rmv_ancs_for_pwe(uns32   pwe_hdl)
    MBCSV_PEER_KEY    key;
    uns32   rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&key, '\0', sizeof(MBCSV_PEER_KEY));
+   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
    key.pwe_hdl = pwe_hdl;
 

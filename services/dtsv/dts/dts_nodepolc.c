@@ -102,8 +102,8 @@ ncsdtsvnodelogpolicyentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    uns8                   log_device = 0;
    SVC_KEY                key, nt_key;
 
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
-   m_NCS_OS_MEMSET(&key, 0, sizeof(SVC_KEY));
+   memset(&reqinfo, 0, sizeof(reqinfo));
+   memset(&key, 0, sizeof(SVC_KEY));
   
    /* Validate the index length */
    if(NODE_INST_ID_LEN != arg->i_idx.i_inst_len)
@@ -353,7 +353,7 @@ ncsdtsvnodelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
    uns8                  log_device = 0;
    NCSMIBLIB_REQ_INFO    reqinfo;
    SVC_KEY                key, nt_key;
-   m_NCS_OS_MEMSET(&reqinfo, 0, sizeof(reqinfo));
+   memset(&reqinfo, 0, sizeof(reqinfo));
  
    /* Validate the index length */
    if(NODE_INST_ID_LEN != arg->i_idx.i_inst_len)
@@ -452,7 +452,7 @@ ncsdtsvnodelogpolicyentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *arg,
             case ncsDtsvNodeCategoryBitMap_ID:
             case ncsDtsvNodeSeverityBitMap_ID:
                /* Fill NCSMIB_ARG according to params struct before calling*/
-               m_NCS_MEMSET(&arg->req.info.set_req.i_param_val, '\0', sizeof(NCSMIB_PARAM_VAL));
+               memset(&arg->req.info.set_req.i_param_val, '\0', sizeof(NCSMIB_PARAM_VAL));
                memcpy(&arg->req.info.set_req.i_param_val, &params[paramid-1].param, sizeof(NCSMIB_PARAM_VAL));
                /* Call DTS's own SET function for BITS MIB type */
                rc = dtsv_node_policy_set_oct(cb, arg, &node->svc_policy);
@@ -785,7 +785,7 @@ uns32 dtsv_node_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
    SVC_KEY    nt_key;
    DTS_SVC_REG_TBL *node_ptr;
 
-   m_NCS_MEMSET(&uba, '\0', sizeof(uba));
+   memset(&uba, '\0', sizeof(uba));
 
    ncs_dec_init_space(&uba, buf);
    arg->req.info.cli_req.i_usrbuf = NULL;
@@ -861,8 +861,8 @@ uns32 dtsv_node_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
    SVC_KEY    nt_key;
    DTS_SVC_REG_TBL *node_ptr;
 
-   m_NCS_MEMSET(&rsp_uba, '\0', sizeof(rsp_uba));
-   m_NCS_MEMSET(&uba, '\0', sizeof(uba));
+   memset(&rsp_uba, '\0', sizeof(rsp_uba));
+   memset(&uba, '\0', sizeof(uba));
 
    /* Set parameters for response */
    arg->rsp.info.cli_rsp.i_cmnd_id = dtsvDispNodeConsole;

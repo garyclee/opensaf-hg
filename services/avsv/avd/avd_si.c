@@ -100,7 +100,7 @@ AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
       return AVD_SI_NULL;
    }
 
-   m_NCS_MEMSET((char *)si, '\0', sizeof(AVD_SI));
+   memset((char *)si, '\0', sizeof(AVD_SI));
 
    if (ckpt)
    {
@@ -166,7 +166,7 @@ AVD_SI * avd_si_struc_find(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_order)
    AVD_SI *si;
    SaNameT  lsi_name;
 
-   m_NCS_MEMSET((char *)&lsi_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsi_name, '\0', sizeof(SaNameT));
    lsi_name.length = (host_order == FALSE) ? si_name.length :  
                                             m_HTON_SANAMET_LEN(si_name.length);
 
@@ -200,7 +200,7 @@ AVD_SI * avd_si_struc_find_next(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_orde
    AVD_SI *si;
    SaNameT  lsi_name;
 
-   m_NCS_MEMSET((char *)&lsi_name, '\0', sizeof(SaNameT));
+   memset((char *)&lsi_name, '\0', sizeof(SaNameT));
    lsi_name.length = (host_order == FALSE) ? si_name.length :  
                                             m_HTON_SANAMET_LEN(si_name.length);
 
@@ -380,7 +380,7 @@ uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -523,7 +523,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -941,7 +941,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       break;
 
    default:
-      m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
       temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
       temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1006,7 +1006,7 @@ uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -1137,7 +1137,7 @@ uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1254,7 +1254,7 @@ uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_INV_VAL;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1338,7 +1338,7 @@ uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    }
 
 
-   m_NCS_MEMSET(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
    temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
    temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
@@ -1397,7 +1397,7 @@ uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;  
    }
 
-   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
+   memset(&si_name, '\0', sizeof(SaNameT));
    
    /* Prepare the service instance database key from the instant ID */
    if (arg->i_idx.i_inst_len != 0)
@@ -1500,7 +1500,7 @@ AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
       return AVD_SG_SI_RANK_NULL;
    }
 
-   m_NCS_MEMSET((char *)rank_elt, '\0', sizeof(AVD_SG_SI_RANK));
+   memset((char *)rank_elt, '\0', sizeof(AVD_SG_SI_RANK));
 
    rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
@@ -1606,7 +1606,7 @@ uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si)
    if (si == AVD_SI_NULL)
       return NCSCC_RC_FAILURE;
 
-   m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+   memset((char *)&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
    indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
@@ -1675,7 +1675,7 @@ uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
    /* Prepare the SuperSiRank database key from the instant ID */
    len = (SaUint16T)arg->i_idx.i_inst_ids[0];
@@ -1821,7 +1821,7 @@ uns32 saamfsgsirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_MEMSET(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+   memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
    if (arg->i_idx.i_inst_len != 0)
    {

@@ -123,7 +123,7 @@ uns32  cpd_mbcsv_init(CPD_CB *cb)
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
   
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG)); 
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG)); 
     
    arg.i_op                       = NCS_MBCSV_OP_INITIALIZE;
    arg.info.initialize.i_mbcsv_cb = cpd_mbcsv_callback;
@@ -157,7 +157,7 @@ uns32  cpd_mbcsv_open(CPD_CB *cb)
 {
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
    
    arg.i_op                   =  NCS_MBCSV_OP_OPEN;
    arg.i_mbcsv_hdl            =  cb->mbcsv_handle;
@@ -190,7 +190,7 @@ uns32  cpd_mbcsv_open(CPD_CB *cb)
 uns32  cpd_mbcsv_selobj_get(CPD_CB *cb)
 {
     NCS_MBCSV_ARG arg;
-    m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
     uns32 rc = NCSCC_RC_SUCCESS;
 
     arg.i_op                           =  NCS_MBCSV_OP_SEL_OBJ_GET;
@@ -225,7 +225,7 @@ uns32  cpd_mbcsv_chgrole(CPD_CB *cb)
 {
    NCS_MBCSV_ARG  arg;
    uns32 rc = NCSCC_RC_SUCCESS;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
  
    arg.i_op                      = NCS_MBCSV_OP_CHG_ROLE;
    arg.i_mbcsv_hdl               = cb->mbcsv_handle;
@@ -253,7 +253,7 @@ uns32 cpd_mbcsv_close(CPD_CB *cb)
 {
    NCS_MBCSV_ARG arg;
    uns32 rc = NCSCC_RC_SUCCESS;
-   m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+   memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
 
    arg.i_op  =  NCS_MBCSV_OP_CLOSE;
    arg.info.close.i_ckpt_hdl = cb->o_ckpt_hdl;
@@ -281,7 +281,7 @@ uns32  cpd_mbcsv_finalize(CPD_CB *cb)
 {
     NCS_MBCSV_ARG arg;
     uns32 rc = NCSCC_RC_SUCCESS;
-    m_NCS_MEMSET(&arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&arg,'\0',sizeof(NCS_MBCSV_ARG));
     
     arg.i_op        = NCS_MBCSV_OP_FINALIZE;
     arg.i_mbcsv_hdl = cb->mbcsv_handle;
@@ -563,7 +563,7 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
          }
          else
          {
-            m_NCS_OS_MEMSET(ckpt_create.dest_list,0,(sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
+            memset(ckpt_create.dest_list,0,(sizeof(CPSV_CPND_DEST_INFO)*ckpt_node->dest_cnt));
             for(i=0;i<ckpt_node->dest_cnt;i++)
             {
                ckpt_create.dest_list[i].dest = nref_info->dest;
@@ -781,7 +781,7 @@ uns32 cpd_mbcsv_dec_async_update(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }
-   m_NCS_OS_MEMSET(cpd_msg,0,sizeof(CPD_MBCSV_MSG));
+   memset(cpd_msg,0,sizeof(CPD_MBCSV_MSG));
    
  /* To store the value of Async Update received */
    cb->cpd_sync_cnt++;
@@ -1008,8 +1008,8 @@ uns32  cpd_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
        rc = NCSCC_RC_FAILURE;
        return rc;
    }
-   m_NCS_MEMSET(ckpt_data,0,sizeof(CPD_A2S_CKPT_CREATE));
-   m_NCS_MEMSET(&mbcsv_msg,0,sizeof(CPD_MBCSV_MSG));
+   memset(ckpt_data,0,sizeof(CPD_A2S_CKPT_CREATE));
+   memset(&mbcsv_msg,0,sizeof(CPD_MBCSV_MSG));
 
   /* 1. Decode the 1st uns8 region ,  we will get the num of ckpts*/
    ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(uns8));
@@ -1039,8 +1039,8 @@ uns32  cpd_mbcsv_dec_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
       if(ckpt_data->dest_list)
          m_MMGR_FREE_CPSV_SYS_MEMORY(ckpt_data->dest_list);
 
-      m_NCS_MEMSET(ckpt_data,0,sizeof(CPD_A2S_CKPT_CREATE));
-      m_NCS_MEMSET(&mbcsv_msg,0,sizeof(CPD_MBCSV_MSG));
+      memset(ckpt_data,0,sizeof(CPD_A2S_CKPT_CREATE));
+      memset(&mbcsv_msg,0,sizeof(CPD_MBCSV_MSG));
    }  
 
  /* Get the async update count */
@@ -1073,7 +1073,7 @@ uns32  cpd_mbcsv_dec_warm_sync_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
     uns8 data[16],*ptr;
     NCS_MBCSV_ARG ncs_arg;
        
-    m_NCS_OS_MEMSET(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
+    memset(&ncs_arg,'\0',sizeof(NCS_MBCSV_ARG));
     
     ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(int32));
     num_of_async_upd = ncs_decode_32bit(&ptr);

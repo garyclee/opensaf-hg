@@ -98,7 +98,7 @@ uns32 ifsv_ifa_subscribe (IFA_CB *ifa_cb, NCS_IFSV_SUBSCR *i_subr)
    }
 
    /* Mem Set the Subr */
-   m_NCS_OS_MEMSET(subr, 0, sizeof(IFSV_SUBSCR_INFO));
+   memset(subr, 0, sizeof(IFSV_SUBSCR_INFO));
 
    /* Get the Handle from Handle Manager for this subscription Record*/
    i_subr->o_subr_hdl = ncshm_create_hdl(ifa_cb->hm_pid, NCS_SERVICE_ID_IFA,
@@ -134,7 +134,7 @@ uns32 ifsv_ifa_subscribe (IFA_CB *ifa_cb, NCS_IFSV_SUBSCR *i_subr)
          return (NCSCC_RC_FAILURE);
       }   
 
-      m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+      memset(evt, 0, sizeof(IFSV_EVT));
 
       evt->type = IFND_EVT_INTF_INFO_GET;
 
@@ -263,7 +263,7 @@ uns32 ifsv_ifa_ifrec_get (IFA_CB *ifa_cb, NCS_IFSV_IFREC_GET *i_ifget,
      return (NCSCC_RC_FAILURE);
    }   
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    /* Send the Event to IFND */
    if(i_ifget->i_rsp_type == NCS_IFSV_GET_RESP_ASYNC)
@@ -436,7 +436,7 @@ uns32 ifsv_ifa_ifrec_add (IFA_CB *ifa_cb,  NCS_IFSV_INTF_REC *i_ifrec)
       return rc;
    }   
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    evt->type = IFND_EVT_INTF_CREATE;
 
@@ -532,7 +532,7 @@ uns32 ifsv_ifa_ifrec_del (IFA_CB *ifa_cb,  NCS_IFSV_SPT *i_ifdel)
       return rc;
    }   
 
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    evt->type = IFND_EVT_INTF_DESTROY;
 
@@ -603,7 +603,7 @@ uns32 ifsv_ifa_svcd_upd (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_UPD *i_svcd)
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
 
    evt.type = IFND_EVT_SVCD_UPD_FROM_IFA;
 
@@ -675,7 +675,7 @@ uns32 ifsv_ifa_svcd_get (IFA_CB *ifa_cb,  NCS_IFSV_SVC_DEST_GET *i_svcd)
                       IFSV_COMP_IFA);
      return NCS_IFSV_IFND_DOWN_ERROR;
    }
-   m_NCS_MEMSET(&evt, 0, sizeof(IFSV_EVT));
+   memset(&evt, 0, sizeof(IFSV_EVT));
 
    evt.type = IFND_EVT_SVCD_GET;
 
@@ -774,7 +774,7 @@ ifa_lib_init (NCS_LIB_CREATE *create)
       m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,IFSV_COMP_IFA);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(IFSV_CB));
+   memset(cb, 0, sizeof(IFSV_CB));
 
    cb->hm_pid = NCS_HM_POOL_ID_COMMON;
 
@@ -983,7 +983,7 @@ uns32 ifa_app_send(IFA_CB *cb, NCS_IFSV_SUBSCR *subr,
    uns32 rc = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_MEMSET(&rsp, 0, sizeof(NCS_IFSV_SVC_RSP));
+   memset(&rsp, 0, sizeof(NCS_IFSV_SVC_RSP));
 
    switch(evt_type)
    {

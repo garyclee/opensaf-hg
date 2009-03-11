@@ -1131,7 +1131,7 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
    uns8     *hpl_data = NULL;
    HPL_TLV  *hpl_tlv = NULL;
    uns32     status_len = sizeof(uns32);
-   m_NCS_OS_MEMSET(&hisv_msg, 0, sizeof(hisv_msg));
+   memset(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
    if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
    {
@@ -1228,7 +1228,7 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
    HPL_TLV  *hpl_tlv  = NULL;
    uns32     status_len = sizeof(uns32);
 
-   m_NCS_OS_MEMSET(&hisv_msg, 0, sizeof(hisv_msg));
+   memset(&hisv_msg, 0, sizeof(hisv_msg));
    /* validate entity path */
    if ((entity_path == NULL) || ((epath_len = (uns16)m_NCS_STRLEN(entity_path)) == 0) )
    {

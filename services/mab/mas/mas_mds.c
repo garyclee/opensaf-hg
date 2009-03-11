@@ -337,7 +337,7 @@ mas_mds_mbx_post(NCSMDS_CALLBACK_INFO *cbinfo, MAB_SVC_OP evt)
     if(mm == NULL)
         return (NCSCC_RC_OUT_OF_MEM); 
       
-    m_NCS_MEMSET(mm, 0, sizeof(MAB_MSG)); 
+    memset(mm, 0, sizeof(MAB_MSG)); 
     mm->yr_hdl = NCS_INT32_TO_PTR_CAST(inst->hm_hdl);  
     mm->fr_card = cbinfo->info.svc_evt.i_dest; 
     mm->fr_svc = cbinfo->info.svc_evt.i_svc_id; 

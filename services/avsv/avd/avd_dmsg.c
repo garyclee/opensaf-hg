@@ -114,7 +114,7 @@ void avd_mds_d_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
       return ;
    }
 
-   m_NCS_MEMSET(d2d_msg,'\0',sizeof(AVD_D2D_MSG));
+   memset(d2d_msg,'\0',sizeof(AVD_D2D_MSG));
 
    data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uns32));
    d2d_msg->msg_type = ncs_decode_32bit(&data);
@@ -148,7 +148,7 @@ uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
    m_AVD_LOG_FUNC_ENTRY("avd_d2d_msg_snd");
    m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG,snd_msg,sizeof(AVD_D2D_MSG),snd_msg);
    
-   m_NCS_MEMSET(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
 
    snd_mds.i_mds_hdl = cb->adest_hdl;
    snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
@@ -212,7 +212,7 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
       return NCSCC_RC_FAILURE;
    }
    
-   m_NCS_MEMSET(evt,'\0',sizeof(AVD_EVT));
+   memset(evt,'\0',sizeof(AVD_EVT));
 
    m_AVD_LOG_RCVD_VAL(((long)evt));
 

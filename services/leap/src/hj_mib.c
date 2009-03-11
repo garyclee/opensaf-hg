@@ -97,8 +97,8 @@ void ncsmib_init(NCSMIB_ARG* arg)
    arg->i_op      = 0;
    ncsstack_init(&arg->stack, NCSMIB_STACK_SIZE);
 
-   m_NCS_MEMSET(&arg->req, 0, sizeof(NCSMIB_REQ) );
-   m_NCS_MEMSET(&arg->rsp, 0, sizeof(NCSMIB_RSP) );
+   memset(&arg->req, 0, sizeof(NCSMIB_REQ) );
+   memset(&arg->rsp, 0, sizeof(NCSMIB_RSP) );
 
    arg->i_mib_key = 0;
    arg->i_usr_key = 0;
@@ -586,7 +586,7 @@ void mib_timed_expiry(void* opaque_to_tmr)
    mib_arg->i_rsp_fnc    = to_tmr->usr_rsp_fnc;
    mib_arg->rsp.i_status = NCSCC_RC_REQ_TIMOUT;
 
-   m_NCS_MEMSET(&mib_arg->rsp.info,0,sizeof(mib_arg->rsp.info));
+   memset(&mib_arg->rsp.info,0,sizeof(mib_arg->rsp.info));
 
 
    to_tmr->usr_rsp_fnc(mib_arg);
@@ -1846,7 +1846,7 @@ uns32 ncsmib_rsp_decode(NCSMIB_OP     op,
          {
             if((rsp->add_info = m_MMGR_ALLOC_MIB_OCT(rsp->add_info_len)) == NULL)
                return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            m_NCS_MEMSET(rsp->add_info, '\0', rsp->add_info_len);
+            memset(rsp->add_info, '\0', rsp->add_info_len);
             if(ncs_decode_n_octets_from_uba(uba, rsp->add_info, rsp->add_info_len) != NCSCC_RC_SUCCESS)
             {
                 m_MMGR_FREE_MIB_OCT(rsp->add_info); 
@@ -2097,7 +2097,7 @@ uns32 ncsparm_enc_int(NCSPARM_AID* pa,NCSMIB_PARAM_ID id,uns32 val)
    if (pa == NULL)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   m_NCS_MEMSET(&param,0,sizeof(param));
+   memset(&param,0,sizeof(param));
    param.i_param_id = id;
    param.i_fmat_id = NCSMIB_FMAT_INT;
    param.info.i_int = val;
@@ -2134,7 +2134,7 @@ uns32 ncsparm_enc_oct(NCSPARM_AID* pa,NCSMIB_PARAM_ID id,uns16 len,uns8* octs)
    if ((pa == NULL) || (octs == NULL))
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   m_NCS_MEMSET(&param,0,sizeof(param));
+   memset(&param,0,sizeof(param));
    param.i_param_id = id;
    param.i_fmat_id  = NCSMIB_FMAT_OCT;
    param.i_length   = len;
@@ -2479,7 +2479,7 @@ uns32 ncsrow_enc_int(NCSROW_AID* ra, NCSMIB_PARAM_ID id, uns32 val)
    
    pa = &ra->parm;
    
-   m_NCS_MEMSET(&param,0,sizeof(param));
+   memset(&param,0,sizeof(param));
    param.i_param_id = id;
    param.i_fmat_id = NCSMIB_FMAT_INT;
    param.info.i_int = val;
@@ -2507,7 +2507,7 @@ uns32 ncsrow_enc_oct(NCSROW_AID* ra, NCSMIB_PARAM_ID id, uns16 len, uns8* octs)
    
    pa = &ra->parm;
    
-   m_NCS_MEMSET(&param,0,sizeof(param));
+   memset(&param,0,sizeof(param));
    param.i_param_id = id;
    param.i_fmat_id  = NCSMIB_FMAT_OCT;
    param.i_length   = len;

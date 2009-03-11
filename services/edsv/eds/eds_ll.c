@@ -326,7 +326,7 @@ eds_add_subscription_to_reglist(EDS_CB *cb, uns32 reg_id,
                m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,NCSCC_RC_OUT_OF_MEM,__FILE__,__LINE__,0);
                return(NCSCC_RC_OUT_OF_MEM);
             }
-            m_NCS_MEMSET(sublist, 0, sizeof(SUBSC_LIST));
+            memset(sublist, 0, sizeof(SUBSC_LIST));
             sublist->subsc_rec = subrec;
             
             if(cl->subsc_list_head == NULL)
@@ -360,7 +360,7 @@ eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
    EDS_CNAME_REC  *rec_to_del;
    SaNameT        chan_name_del;
 
-   m_NCS_MEMSET(&chan_name_del, 0 , sizeof(SaNameT));
+   memset(&chan_name_del, 0 , sizeof(SaNameT));
    chan_name_del.length  = m_NCS_OS_HTONS(wp->cname_len);
    memcpy(chan_name_del.value , wp->cname, wp->cname_len);
 
@@ -525,7 +525,7 @@ eds_add_cname_rec (EDS_CB *cb, EDS_WORKLIST *wp, uns8 *chan_name, uns16 chan_nam
        m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,NCSCC_RC_OUT_OF_MEM,__FILE__,__LINE__,0);
        return(NCSCC_RC_OUT_OF_MEM);
    }
-   m_NCS_MEMSET(cn, 0, sizeof(EDS_CNAME_REC));
+   memset(cn, 0, sizeof(EDS_CNAME_REC));
 
    cn->chan_name.length  = m_NCS_OS_HTONS(chan_name_len);
    memcpy(cn->chan_name.value , chan_name, chan_name_len);
@@ -565,7 +565,7 @@ eds_add_chan_open_rec (EDS_WORKLIST *wp, uns32 reg_id, uns32 chan_id, MDS_DEST d
       m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,NCSCC_RC_OUT_OF_MEM,__FILE__,__LINE__,0);
       return(NCSCC_RC_OUT_OF_MEM);
    }
-   m_NCS_MEMSET(co, 0, sizeof(CHAN_OPEN_REC));
+   memset(co, 0, sizeof(CHAN_OPEN_REC));
 
    co->reg_id            = reg_id;
    co->chan_opener_dest  = dest;
@@ -643,7 +643,7 @@ eds_add_chan_open_list(EDS_CB *cb, uns32 reg_id, uns32 chan_id,
       rp->chan_open_list = saved_ptr;   /* Put original pointer back */
       return(NCSCC_RC_OUT_OF_MEM);
    }
-   m_NCS_MEMSET(rp->chan_open_list, 0, sizeof(CHAN_OPEN_LIST));
+   memset(rp->chan_open_list, 0, sizeof(CHAN_OPEN_LIST));
 
    rp->chan_open_list->reg_id       = reg_id;
    rp->chan_open_list->chan_id      = chan_id;
@@ -817,7 +817,7 @@ eds_add_reglist_entry (EDS_CB *cb, MDS_DEST dest, uns32 reg_id)
       return(NCSCC_RC_OUT_OF_MEM);
    }
 
-   m_NCS_MEMSET(rec, 0, sizeof(EDA_REG_REC));
+   memset(rec, 0, sizeof(EDA_REG_REC));
    /** Initialize the record **/
    if(cb->ha_state == SA_AMF_HA_STANDBY)
       cb->last_reg_id = reg_id;
@@ -1322,7 +1322,7 @@ eds_copen_patricia_init(EDS_WORKLIST *wp)
 {
    NCS_PATRICIA_PARAMS     param;
 
-   m_NCS_MEMSET(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
    param.key_size = sizeof(uns32);
 
    if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&wp->chan_open_rec, &param))
@@ -1385,7 +1385,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
          return(SA_AIS_ERR_NO_MEMORY);
       }
 
-      m_NCS_MEMSET(cb->eds_work_list, 0, sizeof(EDS_WORKLIST));
+      memset(cb->eds_work_list, 0, sizeof(EDS_WORKLIST));
       wp = (EDS_WORKLIST *)cb->eds_work_list;
       
       if(cb->ha_state == SA_AMF_HA_STANDBY)
@@ -1516,7 +1516,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
          m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,SA_AIS_ERR_NO_MEMORY,__FILE__,__LINE__,0);
          return(SA_AIS_ERR_NO_MEMORY);
       }
-      m_NCS_MEMSET(wp, 0, sizeof(EDS_WORKLIST));
+      memset(wp, 0, sizeof(EDS_WORKLIST));
       wp->cname_len = chan_name_len;
       wp->cname = m_MMGR_ALLOC_EDS_CHAN_NAME(chan_name_len+1);
       if (wp->cname == NULL)
@@ -1737,7 +1737,7 @@ eds_store_retained_event(EDS_CB         *cb,
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMSET(retained_evt, '\0', sizeof(EDS_RETAINED_EVT_REC));
+   memset(retained_evt, '\0', sizeof(EDS_RETAINED_EVT_REC));
 
    /* create the association with hdl-mngr */
    if (0 == (retained_evt->retd_evt_hdl = 

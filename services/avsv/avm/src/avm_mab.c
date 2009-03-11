@@ -173,7 +173,7 @@ static uns32 avm_mab_reg_tbls(AVM_CB_T *cb)
    uns32 rc = NCSCC_RC_SUCCESS ;
 
    /* Register for all tables */
-   m_NCS_MEMSET(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avm_oac_arg.i_oac_hdl = cb->mab_hdl;
    avm_oac_arg.i_op      = NCSOAC_SS_OP_TBL_OWNED;
@@ -246,7 +246,7 @@ static uns32 avm_mab_unreg_tbls(AVM_CB_T *cb)
    uns32           rc = NCSCC_RC_SUCCESS ;
 
    /* Register MIB tables */
-   m_NCS_MEMSET(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avm_oac_arg.i_oac_hdl = cb->mab_hdl;
    avm_oac_arg.i_op      = NCSOAC_SS_OP_TBL_GONE;
@@ -297,7 +297,7 @@ avm_mab_send_warmboot_req(AVM_CB_T *cb)
                                                                                 
    m_AVM_LOG_FUNC_ENTRY("avm_mab_send_warmboot_req");
                                                                                 
-   m_NCS_MEMSET(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
                                                                                 
    avm_oac_arg.i_oac_hdl = cb->mab_hdl;
    avm_oac_arg.i_op      = NCSOAC_SS_OP_WARMBOOT_REQ_TO_PSSV;
@@ -365,7 +365,7 @@ static uns32 avm_mab_reg_rows(AVM_CB_T *cb)
    uns32           rc = NCSCC_RC_SUCCESS ;
 
    /* Register for all tables rows*/
-   m_NCS_MEMSET(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avm_oac_arg.i_oac_hdl = cb->mab_hdl;
    avm_oac_arg.i_op      = NCSOAC_SS_OP_ROW_OWNED;
@@ -432,7 +432,7 @@ static uns32 avm_mab_unreg_rows(AVM_CB_T *cb)
    NCSMIB_TBL_ID            tbl_id;
    uns32                    rc = NCSCC_RC_SUCCESS ;
 
-   m_NCS_MEMSET(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
+   memset(&avm_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
  
    avm_oac_arg.i_oac_hdl = cb->mab_hdl;
    avm_oac_arg.i_op      = NCSOAC_SS_OP_ROW_GONE;
@@ -585,7 +585,7 @@ avm_send_dynamic_data(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_ID pa
    param_val.i_param_id = param_id;
    param_val.i_fmat_id =  fmt_id;
  
-   m_NCS_MEMSET(&mab_arg,'\0',sizeof(mab_arg));
+   memset(&mab_arg,'\0',sizeof(mab_arg));
    ncsmib_init(&local_mibarg);
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
    mab_arg.i_oac_hdl = cb->mab_hdl;

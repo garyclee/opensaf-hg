@@ -87,7 +87,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
    vds->mds_init_done = TRUE;
 
    /* We have reached here first time. We need to do mds-initialization */
-   m_NCS_MEMSET(&spir_req, 0, sizeof(spir_req));
+   memset(&spir_req, 0, sizeof(spir_req));
 
    spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
    spir_req.i_environment_id = 1;
@@ -103,7 +103,7 @@ uns32 vds_role_agent_callback(VDS_CB *vds, V_DEST_RL role)
    vds->mds_hdl = spir_req.info.lookup_create_inst.o_handle;
 
    /* STEP : Install on VDEST with MDS as service NCSMDS_SVC_ID_VDS. */
-   m_NCS_MEMSET(&svc_info, 0, sizeof(NCSMDS_INFO));
+   memset(&svc_info, 0, sizeof(NCSMDS_INFO));
    svc_info.i_mds_hdl = vds->mds_hdl;
    svc_info.i_svc_id  = NCSMDS_SVC_ID_VDS;
    svc_info.i_op      = MDS_INSTALL;
@@ -219,7 +219,7 @@ uns32  vds_mds_unreg(VDS_CB *vds)
 
    vds->mds_init_done = FALSE;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(NCSMDS_INFO));
+   memset(&mds_info, 0, sizeof(NCSMDS_INFO));
 
    mds_info.i_mds_hdl = vds->mds_hdl;
    mds_info.i_svc_id  = NCSMDS_SVC_ID_VDS;
@@ -383,7 +383,7 @@ uns32 vds_mds_cb_dec(VDS_CB *vds, struct ncsmds_callback_info *info)
                                     NCSFL_SEV_CRITICAL);             
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_OS_MEMSET(vda_info, 0, sizeof(*vda_info));
+   memset(vda_info, 0, sizeof(*vda_info));
 
    info->info.dec.o_msg = vda_info;
    uba = info->info.dec.io_uba;
@@ -669,7 +669,7 @@ uns32 vds_mds_cb_rcv(VDS_CB *vds, struct ncsmds_callback_info *info)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&vda_evt_msg,0,sizeof(VDS_VDA_EVT));
+   memset(&vda_evt_msg,0,sizeof(VDS_VDA_EVT));
  
     vda_evt_msg.i_msg_ctxt = info->info.receive.i_msg_ctxt;
     vda_evt_msg.dest = info->info.receive.i_fr_dest;
@@ -765,7 +765,7 @@ uns32 vds_mds_send(VDS_CB *vds, VDS_EVT *vds_evt)
 
    VDS_TRACE1_ARG1("vds_mds_send\n");
 
-   m_NCS_OS_MEMSET(&send_info, 0, sizeof(send_info));
+   memset(&send_info, 0, sizeof(send_info));
 
    send_info.i_op = MDS_SEND;
    send_info.i_svc_id = NCSMDS_SVC_ID_VDS;

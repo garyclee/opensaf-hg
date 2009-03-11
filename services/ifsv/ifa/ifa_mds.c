@@ -139,7 +139,7 @@ uns32 ifa_mds_adest_get (IFA_CB *cb)
    NCSADA_INFO   arg;
    uns32         rc;
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
 
    arg.req   = NCSADA_GET_HDLS;
 
@@ -187,7 +187,7 @@ uns32 ifa_mds_init (IFA_CB *cb)
    }
 
    /* Install your service into MDS */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFA;
@@ -263,7 +263,7 @@ void ifa_mds_shut (IFA_CB *cb)
 
    /* Un-install your service into MDS. 
    No need to cancel the services that are subscribed*/
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
 
    arg.i_mds_hdl        = cb->my_mds_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_IFA;
@@ -334,7 +334,7 @@ uns32 ifa_mds_svc_evt(IFA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
             return (NCSCC_RC_FAILURE);
          }   
          
-         m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+         memset(evt, 0, sizeof(IFSV_EVT));
          
          evt->type = IFND_EVT_INTF_INFO_GET;
          evt->info.ifnd_evt.info.if_get.get_type  = IFSV_INTF_GET_ALL;
@@ -643,7 +643,7 @@ uns32 ifa_mds_cpy (IFA_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
      m_IFA_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL,IFSV_COMP_IFA);
      return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMSET(evt, 0, sizeof(IFSV_EVT));
+   memset(evt, 0, sizeof(IFSV_EVT));
 
    stream = (uns8*)evt;
 

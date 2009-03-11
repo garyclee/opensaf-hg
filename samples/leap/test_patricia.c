@@ -78,7 +78,7 @@ static uns32 lt_test_patricia(void)
     LT_ELEM_KEY                     key;
 
     /* Perform tree-init. */
-    m_NCS_MEMSET(&params, '\0', sizeof(params));
+    memset(&params, '\0', sizeof(params));
     params.key_size = sizeof(LT_ELEM_KEY);
     if(ncs_patricia_tree_init(&gl_pat_cb.tree, &params) != NCSCC_RC_SUCCESS)
     {
@@ -98,8 +98,8 @@ static uns32 lt_test_patricia(void)
         return NCSCC_RC_FAILURE;
     }
     /* Populate "data in the entry", and "key" */
-    m_NCS_MEMSET(elem, '\0', sizeof(LT_PAT_ELEM));
-    m_NCS_MEMSET(&key, '\0', sizeof(LT_ELEM_KEY));
+    memset(elem, '\0', sizeof(LT_PAT_ELEM));
+    memset(&key, '\0', sizeof(LT_ELEM_KEY));
     key.index = m_NCS_OS_HTONL(0x00000001); /* Network order */
     elem->data = 0x0a0b0c0d;
     if(lt_add_node_entry(&gl_pat_cb.tree, elem, &key) != NCSCC_RC_SUCCESS)
@@ -113,7 +113,7 @@ static uns32 lt_test_patricia(void)
 
 
     /* Verify whether the node 0x00000001 can be retrieved */
-    m_NCS_MEMSET(&key, 0, sizeof(key));
+    memset(&key, 0, sizeof(key));
     key.index = m_NCS_OS_HTONL(0x00000001); /* Network order */
     pNode = ncs_patricia_tree_get(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
@@ -137,8 +137,8 @@ static uns32 lt_test_patricia(void)
         return NCSCC_RC_FAILURE;
     }
     /* Populate "data in the entry", and "key" */
-    m_NCS_MEMSET(elem, '\0', sizeof(LT_PAT_ELEM));
-    m_NCS_MEMSET(&key, '\0', sizeof(LT_ELEM_KEY));
+    memset(elem, '\0', sizeof(LT_PAT_ELEM));
+    memset(&key, '\0', sizeof(LT_ELEM_KEY));
     key.index = m_NCS_OS_HTONL(0x00000002); /* Network order */
     elem->data = 0x0f0a0b0c;
     if(lt_add_node_entry(&gl_pat_cb.tree, elem, &key) != NCSCC_RC_SUCCESS)
@@ -153,7 +153,7 @@ static uns32 lt_test_patricia(void)
     m_NCS_CONS_PRINTF("Addition of node with index=0x00000002 to patricia tree success...\n");
 
     /* Verify whether the node 0x00000002 can be retrieved */
-    m_NCS_MEMSET(&key, 0, sizeof(key));
+    memset(&key, 0, sizeof(key));
     key.index = m_NCS_OS_HTONL(0x00000002); /* Network order */
     pNode = ncs_patricia_tree_get(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
@@ -170,7 +170,7 @@ static uns32 lt_test_patricia(void)
 
 
     /* Do getnext on node 0x00000001. Verify whether node 0x00000002 is returned. */
-    m_NCS_MEMSET(&key, 0, sizeof(key));
+    memset(&key, 0, sizeof(key));
     key.index = m_NCS_OS_HTONL(0x00000001); /* Network order */
     pNode = ncs_patricia_tree_getnext(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
@@ -210,7 +210,7 @@ static void lt_destroy_pat_tree_nodes(LT_TEST_PAT_CB *cb)
     
     if(cb->is_inited)
     {
-    m_NCS_OS_MEMSET(&lclkey, '\0', sizeof(LT_ELEM_KEY));
+    memset(&lclkey, '\0', sizeof(LT_ELEM_KEY));
     key = &lclkey;
         for (;;)
         {

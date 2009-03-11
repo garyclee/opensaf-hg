@@ -93,7 +93,7 @@ typedef uns32 (*GLSV_GLND_EVT_HANDLER) (struct glnd_cb_tag *, GLSV_GLND_EVT *);
 
 #define m_GLND_RESOURCE_SYNC_LCK_GRANT_FILL(m,err,lockid,status,c_handle) \
 do { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(GLSV_GLA_EVT)); \
+   memset(&(m), 0, sizeof(GLSV_GLA_EVT)); \
    (m).type = GLSV_GLA_API_RESP_EVT; \
    (m).error = err; \
    (m).info.gla_resp_info.type = GLSV_GLA_LOCK_SYNC_LOCK; \
@@ -105,7 +105,7 @@ do { \
 
 #define m_GLND_RESOURCE_ASYNC_LCK_GRANT_FILL(m,err,lockid,lcllockid,mode,resid,invocation1,status,c_handle) \
 do { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(GLSV_GLA_EVT)); \
+   memset(&(m), 0, sizeof(GLSV_GLA_EVT)); \
    (m).type = GLSV_GLA_CALLBK_EVT; \
    (m).error = err; \
    (m).info.gla_clbk_info.callback_type = GLSV_LOCK_GRANT_CBK; \
@@ -123,7 +123,7 @@ do { \
 
 #define m_GLND_RESOURCE_ASYNC_LCK_WAITER_FILL(m,lockid,resid,inv,mode_held,mode_req,c_handle,wait,l_lockid) \
 do { \
-   m_NCS_OS_MEMSET(&(m), 0, sizeof(GLSV_GLA_EVT)); \
+   memset(&(m), 0, sizeof(GLSV_GLA_EVT)); \
    (m).type = GLSV_GLA_CALLBK_EVT; \
    (m).info.gla_clbk_info.callback_type = GLSV_LOCK_WAITER_CBK; \
    (m).info.gla_clbk_info.resourceId = (resid); \
@@ -139,7 +139,7 @@ do { \
 
 #define m_GLND_RESOURCE_NODE_LCK_INFO_FILL(evt,evt_type,resid,lcl_resid,hdl_id,lock_id,l_type,l_flag,l_status,waiter_sig,l_held,l_err,l_lockid,l_invocation)\
 do { \
-   m_NCS_OS_MEMSET(&(evt), 0, sizeof(GLSV_GLND_EVT)); \
+   memset(&(evt), 0, sizeof(GLSV_GLND_EVT)); \
    (evt).type= evt_type; \
    (evt).info.node_lck_info.resource_id = (resid); \
    (evt).info.node_lck_info.lcl_resource_id = (lcl_resid); \
@@ -157,7 +157,7 @@ do { \
 
 #define m_GLND_RESOURCE_LCK_FILL(l_evt,l_evt_type,rid,is_orphan,l_mode) \
 do { \
-   m_NCS_OS_MEMSET(&(l_evt), 0, sizeof(GLSV_GLD_EVT)); \
+   memset(&(l_evt), 0, sizeof(GLSV_GLD_EVT)); \
    (l_evt).evt_type = l_evt_type; \
    (l_evt).info.rsc_details.rsc_id = rid; \
    (l_evt).info.rsc_details.orphan = (is_orphan); \
@@ -166,7 +166,7 @@ do { \
 
 #define m_GLND_RESOURCE_ASYNC_LCK_UNLOCK_FILL(l_evt,l_err,l_inv,l_resid,l_lockid,l_status) \
 do { \
-   m_NCS_OS_MEMSET(&(l_evt), 0, sizeof(GLSV_GLA_EVT)); \
+   memset(&(l_evt), 0, sizeof(GLSV_GLA_EVT)); \
    (l_evt).type = GLSV_GLA_CALLBK_EVT; \
    (l_evt).info.gla_clbk_info.callback_type = GLSV_LOCK_UNLOCK_CBK; \
    (l_evt).info.gla_clbk_info.resourceId = (l_resid); \

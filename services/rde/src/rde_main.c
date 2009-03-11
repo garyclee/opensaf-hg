@@ -205,7 +205,7 @@ RDE_CONTROL_BLOCK *rde_get_control_block (void)
    if (!initialized)
    {
       initialized = TRUE;
-      m_NCS_OS_MEMSET( &rde_cb, 0, sizeof(rde_cb));
+      memset( &rde_cb, 0, sizeof(rde_cb));
    }
 
    return & rde_cb;

@@ -80,7 +80,7 @@ uns32 fm_mds_init(FM_CB *cb)
    }
     
    /* Install FM on ADEST. */
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
    arg.i_mds_hdl        = cb->adest_pwe1_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_GFM;
    arg.i_op             = MDS_INSTALL;
@@ -96,7 +96,7 @@ uns32 fm_mds_init(FM_CB *cb)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
    arg.i_mds_hdl        = cb->adest_pwe1_hdl;
    arg.i_svc_id         = NCSMDS_SVC_ID_GFM;
     
@@ -135,7 +135,7 @@ uns32 fm_mds_finalize(FM_CB *cb)
    NCSMDS_INFO  arg; 
    uns32        return_val;
    
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSMDS_INFO));
+   memset(&arg,0,sizeof(NCSMDS_INFO));
    arg.i_mds_hdl = (MDS_HDL)cb->adest_pwe1_hdl;
    arg.i_svc_id  = NCSMDS_SVC_ID_GFM;
    arg.i_op      = MDS_UNINSTALL;
@@ -161,7 +161,7 @@ static uns32 fm_mds_get_adest_hdls( FM_CB *cb)
 {
    NCSADA_INFO   arg;
      
-   m_NCS_OS_MEMSET(&arg,0,sizeof(NCSADA_INFO));
+   memset(&arg,0,sizeof(NCSADA_INFO));
      
    arg.req = NCSADA_GET_HDLS;
    arg.info.adest_get_hdls.i_create_oac = FALSE;
@@ -466,7 +466,7 @@ uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
    NCSMDS_INFO  info;
    uns32        return_val;
     
-   m_NCS_MEMSET(&info, '\0', sizeof(NCSMDS_INFO));
+   memset(&info, '\0', sizeof(NCSMDS_INFO));
 
    info.i_mds_hdl = (MDS_HDL)fm_cb->adest_pwe1_hdl;
    info.i_svc_id  = NCSMDS_SVC_ID_GFM;
@@ -518,7 +518,7 @@ uns32 fm_mds_async_send(FM_CB *fm_cb,NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
    if ((NCSMDS_SVC_ID_GFM == svc_id) || 
        (NCSMDS_SVC_ID_FMA == svc_id))
    {
-      m_NCS_OS_MEMSET(&info, 0, sizeof(info));
+      memset(&info, 0, sizeof(info));
 
       info.i_mds_hdl  = (MDS_HDL)fm_cb->adest_pwe1_hdl;
       info.i_op       = MDS_SEND;
@@ -529,7 +529,7 @@ uns32 fm_mds_async_send(FM_CB *fm_cb,NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
       info.info.svc_send.i_sendtype = send_type;
       info.info.svc_send.i_to_svc   = svc_id;
        
-      m_NCS_OS_MEMSET(&(info.info.svc_send.info.snd.i_to_dest), 0, 
+      memset(&(info.info.svc_send.info.snd.i_to_dest), 0, 
                                                 sizeof(MDS_DEST));
        
       if(bcast_scope)
@@ -736,7 +736,7 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
    if (NULL == msg)
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   m_NCS_OS_MEMSET(msg, 0, sizeof(GFM_GFM_MSG));
+   memset(msg, 0, sizeof(GFM_GFM_MSG));
 
    dec_info->o_msg = msg;
    uba = dec_info->io_uba;

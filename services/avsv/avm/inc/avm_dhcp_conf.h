@@ -301,7 +301,7 @@ struct slot_info
       { \
          AVM_PSSV_PUSH  avm_pssv; \
          uns8 push_logbuf[500]; \
-         m_NCS_MEMSET(&avm_pssv.oct_str.name, '\0', AVM_NAME_STR_LENGTH); \
+         memset(&avm_pssv.oct_str.name, '\0', AVM_NAME_STR_LENGTH); \
          avm_pssv.oct_str.length = push_length; \
          memcpy(&avm_pssv.oct_str.name, push_str, avm_pssv.oct_str.length); \
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \

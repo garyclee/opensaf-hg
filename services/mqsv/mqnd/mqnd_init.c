@@ -112,7 +112,7 @@ static uns32
 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info)
 {
 
-   m_NCS_MEMSET(create_info,0,sizeof(MQSV_CREATE_INFO));
+   memset(create_info,0,sizeof(MQSV_CREATE_INFO));
 
    /* SUD:TBD Need to change this once we get these parameters in the argv */
    create_info->pool_id   = NCS_HM_POOL_ID_COMMON;
@@ -138,7 +138,7 @@ static uns32
 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info)
 {
 
-   m_NCS_MEMSET(destroy_info,0,sizeof(MQSV_DESTROY_INFO));
+   memset(destroy_info,0,sizeof(MQSV_DESTROY_INFO));
 
    /* SUD:TBD Need to fill this once we get these parameters in the argv
    destroy_info->i_vcard_id  */
@@ -189,7 +189,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
       m_LOG_MQSV_ND(MQND_CB_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
    }
-   m_NCS_MEMSET(cb, 0, sizeof(MQND_CB));
+   memset(cb, 0, sizeof(MQND_CB));
    cb->hm_pool       = info->pool_id;
   
    /*** Set attributes of queue in global variable ***/ 
@@ -375,7 +375,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    }
    /* Code for No Redundancy Support */
    /*   start the AMF Health Check  */
-   m_NCS_MEMSET(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(healthy));
    health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
@@ -586,7 +586,7 @@ static uns32 mqnd_cb_db_destroy (MQND_CB *cb)
       mqnd_listenerq_destroy(&qnode->qinfo);
 
       /* Deregister the Queue with ASAPi */
-      m_NCS_OS_MEMSET(&opr, 0, sizeof(ASAPi_OPR_INFO));
+      memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
       opr.type = ASAPi_OPR_MSG;
       opr.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -652,7 +652,7 @@ static uns32 mqnd_cb_namedb_destroy (MQND_CB *cb)
    MQND_QNAME_NODE *qnode=0;
    SaNameT          qname;
 
-   m_NCS_OS_MEMSET( &qname, 0, sizeof(SaNameT));   
+   memset( &qname, 0, sizeof(SaNameT));   
    mqnd_qname_node_getnext(cb,qname,&qnode);
    while(qnode)
    {

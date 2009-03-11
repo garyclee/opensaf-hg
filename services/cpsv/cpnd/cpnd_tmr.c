@@ -69,7 +69,7 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
 
          /* Populate evt->info.cpnd.info.tmr_info 
          evt->info.cpnd.info.tmr_info = *tmr; */
-         m_NCS_MEMSET(evt, '\0', sizeof(CPSV_EVT));
+         memset(evt, '\0', sizeof(CPSV_EVT));
 
          evt->type = CPSV_EVT_TYPE_CPND;
          evt->info.cpnd.type=CPND_EVT_TIME_OUT;

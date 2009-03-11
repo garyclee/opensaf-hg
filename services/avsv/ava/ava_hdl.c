@@ -238,7 +238,7 @@ AVA_HDL_REC *ava_hdl_rec_add (AVA_CB *cb,
    if ( !(rec = m_MMGR_ALLOC_AVA_HDL_REC) )
        goto error;
 
-   m_NCS_OS_MEMSET(rec, '\0', sizeof(AVA_HDL_REC));
+   memset(rec, '\0', sizeof(AVA_HDL_REC));
 
    /* create the association with hdl-mngr */
    if ( !(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVA, 
@@ -313,7 +313,7 @@ uns32 ava_hdl_cbk_param_add (AVA_CB *cb, AVA_HDL_REC *hdl_rec,
       rc = NCSCC_RC_FAILURE;
       goto done;
    }
-   m_NCS_OS_MEMSET(rec, 0, sizeof(AVA_PEND_CBK_REC));
+   memset(rec, 0, sizeof(AVA_PEND_CBK_REC));
 
    /* populate the callbk parameters */
    rec->cbk_info = cbk_info;
@@ -402,7 +402,7 @@ uns32 ava_hdl_cbk_dispatch_one (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    SaAmfCallbacksT reg_cbk; 
    uns32 rc = SA_AIS_OK;
 
-   m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
+   memset(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* pop the rec from the list */
@@ -481,7 +481,7 @@ uns32 ava_hdl_cbk_dispatch_all (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    SaAmfCallbacksT reg_cbk; 
    uns32 rc = SA_AIS_OK;
 
-   m_NCS_MEMSET(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
+   memset(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* pop all the records from the list & process them */
@@ -568,7 +568,7 @@ uns32 ava_hdl_cbk_dispatch_block (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
    m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
    
-   m_NCS_MEMSET(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
+   memset(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
    memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* release all lock and handle - we are abt to go into deep sleep */

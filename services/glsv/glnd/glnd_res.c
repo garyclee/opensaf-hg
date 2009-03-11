@@ -140,7 +140,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
       m_LOG_GLND_MEMFAIL(GLND_RSC_NODE_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_OS_MEMSET(res_info, 0, sizeof(GLND_RESOURCE_INFO));
+   memset(res_info, 0, sizeof(GLND_RESOURCE_INFO));
 
    /* assign the values */
    res_info->resource_id = res_id;
@@ -204,7 +204,7 @@ uns32 glnd_set_orphan_state(GLND_CB            *glnd_cb,
          /* send notification to the GLD about the orphan locks */
          GLSV_GLD_EVT   gld_evt;
 
-         m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));
+         memset(&gld_evt,0,sizeof(GLSV_GLD_EVT));
          m_GLND_RESOURCE_LCK_FILL(gld_evt,GLSV_GLD_EVT_SET_ORPHAN,
             res_info->resource_id,TRUE,grant_list->lock_info.lock_type);
          glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
@@ -629,7 +629,7 @@ uns32 glnd_initiate_deadlock_algorithm(GLND_CB             *cb,
      GLSV_GLND_DD_INFO_LIST     *dd_info_list = NULL;
 
      /* triggering deadlock detection .. */
-     m_NCS_OS_MEMSET(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
+     memset(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
 
      /* Add this as the first element on the list... */
      dd_info_list = glnd_evt.info.dd_probe_info.dd_info_list =
@@ -641,7 +641,7 @@ uns32 glnd_initiate_deadlock_algorithm(GLND_CB             *cb,
      }
      else
      {
-            m_NCS_OS_MEMSET(dd_info_list, 0, sizeof(GLSV_GLND_DD_INFO_LIST));
+            memset(dd_info_list, 0, sizeof(GLSV_GLND_DD_INFO_LIST));
 
             /* Fill in the details of the blocked resource... */
             glnd_evt.type = GLSV_GLND_EVT_FWD_DD_PROBE;
@@ -668,7 +668,7 @@ uns32 glnd_initiate_deadlock_algorithm(GLND_CB             *cb,
                      m_MMGR_FREE_GLSV_GLND_DD_INFO_LIST(dd_info_list,NCS_SERVICE_ID_GLND);
                      return NCSCC_RC_FAILURE;
                   }
-                  m_NCS_OS_MEMSET(tmp_glnd_evt,0,sizeof(GLSV_GLND_EVT));
+                  memset(tmp_glnd_evt,0,sizeof(GLSV_GLND_EVT));
                   *tmp_glnd_evt = glnd_evt;
                   glnd_evt_local_send(cb, tmp_glnd_evt, MDS_SEND_PRIORITY_MEDIUM);
             }
@@ -717,7 +717,7 @@ SaLckLockIdT      lcl_lock_id)
       m_LOG_GLND_MEMFAIL(GLND_RSC_LOCK_LIST_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_OS_MEMSET(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
+   memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
    lck_list_info->lck_info_hdl_id = ncshm_create_hdl((uns8)cb->pool_id,NCS_SERVICE_ID_GLND,(NCSCONTEXT)lck_list_info);
 
    lck_list_info->lock_info = lock_info;
@@ -979,7 +979,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB  *cb,
       m_LOG_GLND_MEMFAIL(GLND_RSC_LOCK_LIST_ALLOC_FAILED);
       return NULL;
    }
-   m_NCS_OS_MEMSET(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
+   memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
    lck_list_info->lock_info = lock_info;
    lck_list_info->lcl_resource_id = lcl_resource_id;
    lck_list_info->res_info = res_info;
@@ -1002,7 +1002,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB  *cb,
       (uns32) lck_list_info->lck_info_hdl_id);
 
    /*  send the request to the master node director */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&evt, 0, sizeof(GLSV_GLND_EVT));
    evt.type = GLSV_GLND_EVT_LCK_REQ;
    
    evt.info.node_lck_info.glnd_mds_dest = cb->glnd_mdest_id;
@@ -1027,7 +1027,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_lock_req(GLND_CB  *cb,
    {
       glnd_evt_backup_queue_add(cb,&evt);
 
-      m_NCS_OS_MEMSET(&restart_backup_evt, 0, sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
+      memset(&restart_backup_evt, 0, sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
 
      /* Need to fill all the remaining fields including timer also, and start the timer once it retsrts */
       restart_backup_evt.type        = evt.type;
@@ -1143,7 +1143,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB            
       (uns32) lck_list_info->lck_info_hdl_id);
    
    /*  send the request to the master node director */
-   m_NCS_OS_MEMSET(&evt, 0, sizeof(GLSV_GLND_EVT));
+   memset(&evt, 0, sizeof(GLSV_GLND_EVT));
    evt.type = GLSV_GLND_EVT_UNLCK_REQ;
    
    evt.info.node_lck_info.glnd_mds_dest = cb->glnd_mdest_id;
@@ -1158,7 +1158,7 @@ GLND_RES_LOCK_LIST_INFO *glnd_resource_non_master_unlock_req(GLND_CB            
       glnd_mds_msg_send_glnd(cb,&evt,res_info->master_mds_dest);
    else
    {
-      m_NCS_OS_MEMSET(&restart_backup_evt, 0, sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
+      memset(&restart_backup_evt, 0, sizeof(GLSV_RESTART_BACKUP_EVT_INFO));
 
       /* Find valid sections to write res info in the shared memory  */
       glnd_find_res_shm_ckpt_empty_section(cb,&shm_index);
@@ -1329,7 +1329,7 @@ void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO  *
       {
          /* send notification to the GLD about the shared locks */
          GLSV_GLD_EVT   gld_evt;
-         m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));
+         memset(&gld_evt,0,sizeof(GLSV_GLD_EVT));
          m_GLND_RESOURCE_LCK_FILL(gld_evt,GLSV_GLD_EVT_SET_ORPHAN, 
             res_info->resource_id,FALSE,SA_LCK_EX_LOCK_MODE);
          glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
@@ -1343,7 +1343,7 @@ void glnd_resource_master_lock_purge_req(GLND_CB *glnd_cb, GLND_RESOURCE_INFO  *
       {
          /* send notification to the GLD about the shared locks */
          GLSV_GLD_EVT   gld_evt;
-         m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT));
+         memset(&gld_evt,0,sizeof(GLSV_GLD_EVT));
          m_GLND_RESOURCE_LCK_FILL(gld_evt,GLSV_GLD_EVT_SET_ORPHAN, 
             res_info->resource_id,FALSE,SA_LCK_PR_LOCK_MODE);
          glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);
@@ -1708,7 +1708,7 @@ void glnd_resource_resend_nonmaster_info_to_newmaster(GLND_CB *glnd_cb,GLND_RESO
       count++;
    }
    /* send the info to the new master glnd  */
-   m_NCS_OS_MEMSET(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
+   memset(&glnd_evt,0,sizeof(GLSV_GLND_EVT));
    glnd_evt.type = GLSV_GLND_EVT_SND_RSC_INFO;
    glnd_evt.info.node_rsc_info.resource_id = res_node->resource_id;
    glnd_evt.info.node_rsc_info.num_requests = count;
@@ -1763,7 +1763,7 @@ void glnd_resource_master_process_resend_lock_req(GLND_CB             *glnd_cb,
       m_LOG_GLND_MEMFAIL(GLND_RSC_LOCK_LIST_ALLOC_FAILED);
       return;
    }
-   m_NCS_OS_MEMSET(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
+   memset(lck_list_info, 0, sizeof(GLND_RES_LOCK_LIST_INFO));
    
    lck_list_info->lck_info_hdl_id = 
       ncshm_create_hdl((uns8)glnd_cb->pool_id,NCS_SERVICE_ID_GLND,(NCSCONTEXT)lck_list_info);
@@ -1900,7 +1900,7 @@ NCS_BOOL  glnd_deadlock_detect(GLND_CB                      *glnd_cb,
       }
 
       /*  step 2: send the request to the master node director */
-      m_NCS_OS_MEMSET(&glnd_evt, 0, sizeof(GLSV_GLND_EVT));
+      memset(&glnd_evt, 0, sizeof(GLSV_GLND_EVT));
       m_GLND_RESOURCE_NODE_LCK_INFO_FILL(glnd_evt, GLSV_GLND_EVT_LCK_REQ_CANCEL, 
                                          lck_req_info->lck_req->res_info->resource_id,lck_req_info->lck_req->lcl_resource_id,
                                          lck_req_info->lck_req->lock_info.handleId,
@@ -1965,7 +1965,7 @@ void glnd_resource_check_lost_unlock_requests(GLND_CB *glnd_cb,GLND_RESOURCE_INF
             m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
             return;
          }
-         m_NCS_OS_MEMSET(glnd_evt,0,sizeof(GLSV_GLND_EVT));
+         memset(glnd_evt,0,sizeof(GLSV_GLND_EVT));
          glnd_evt->glnd_hdl = glnd_cb->cb_hdl_id;
          glnd_evt->type = GLSV_GLND_EVT_RSC_UNLOCK;
          glnd_evt->info.rsc_unlock_info.agent_mds_dest = lck_list_nm_info->lock_info.agent_mds_dest;

@@ -69,7 +69,7 @@ uns32 mbcsv_mds_reg (uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR * anchor, MDS_DE
    }
 
    /* Install mds */
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
    svc_to_mds_info.i_mds_hdl = pwe_hdl;
    svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_MBCSV;
    svc_to_mds_info.i_op = MDS_INSTALL;
@@ -86,7 +86,7 @@ uns32 mbcsv_mds_reg (uns32 pwe_hdl, uns32 svc_hdl, MBCSV_ANCHOR * anchor, MDS_DE
    }
 
    /* MBCSV is subscribing for MBCSv events */
-   m_NCS_OS_MEMSET(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
+   memset(&svc_to_mds_info,0,sizeof(NCSMDS_INFO));
    svc_to_mds_info.i_mds_hdl                       = pwe_hdl;
    svc_to_mds_info.i_svc_id                        = NCSMDS_SVC_ID_MBCSV;
    svc_to_mds_info.i_op                            = MDS_RED_SUBSCRIBE;
@@ -125,7 +125,7 @@ uns32 mbcsv_query_mds (uns32 pwe_hdl, MBCSV_ANCHOR * anchor, MDS_DEST *vdest)
 {
    NCSMDS_INFO             mds_info;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    mds_info.i_mds_hdl = pwe_hdl; 
    mds_info.i_op = MDS_QUERY_PWE;
@@ -197,7 +197,7 @@ uns32 mbcsv_mds_send_msg(uns32            send_type,
 {
    NCSMDS_INFO mds_info;
 
-   m_NCS_OS_MEMSET(&mds_info, 0, sizeof(mds_info));
+   memset(&mds_info, 0, sizeof(mds_info));
 
    mds_info.i_mds_hdl = ckpt->pwe_hdl;
    mds_info.i_svc_id = NCSMDS_SVC_ID_MBCSV;
@@ -472,7 +472,7 @@ uns32 mbcsv_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
             "Memory allocation failure for m_MMGR_ALLOC_MBCSV_EVT");
       }
 
-      m_NCS_MEMSET(evt, '\0', sizeof(MBCSV_EVT));
+      memset(evt, '\0', sizeof(MBCSV_EVT));
 
       evt->msg_type = MBCSV_EVT_MDS_SUBSCR;
 
@@ -723,7 +723,7 @@ uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
       return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
       "mbcsv_mds_dec : Memory allocation failed.");
    
-   m_NCS_MEMSET(mm, '\0', sizeof(MBCSV_EVT));
+   memset(mm, '\0', sizeof(MBCSV_EVT));
 
    *msg = mm;
 
@@ -938,7 +938,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
          "mbcsv_mds_cpy: message allocation failed");
    }
 
-   m_NCS_MEMSET(mm, '\0', sizeof(MBCSV_EVT));
+   memset(mm, '\0', sizeof(MBCSV_EVT));
    *cpy = mm;
    
    /*No mem set is require here since we are copying the message */

@@ -124,7 +124,7 @@ uns32 mqnd_amf_init (MQND_CB *mqnd_cb)
    SaAisErrorT        error;
    uns32           res = NCSCC_RC_SUCCESS;
 
-   m_NCS_MEMSET(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
    amfCallbacks.saAmfHealthcheckCallback = mqnd_saf_health_chk_callback;
    amfCallbacks.saAmfCSISetCallback = mqnd_amf_CSI_set_callback;

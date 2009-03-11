@@ -379,7 +379,7 @@ uns32 bam_avm_send_validation_config(void)
    if(entity_desc != NULL)
    {
       /* Fill in the message */
-      m_NCS_MEMSET(snd_msg,'\0',sizeof(BAM_AVM_MSG_T));
+      memset(snd_msg,'\0',sizeof(BAM_AVM_MSG_T));
       snd_msg->msg_type = BAM_AVM_HW_ENT_INFO;
       snd_msg->msg_info.ent_info = entity_desc;
 
