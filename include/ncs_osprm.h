@@ -662,11 +662,6 @@ typedef int32 int64;
 #define m_NCS_OS_STRTOK(s,d)              strtok((char *)s,(char *)d)
 #endif
 
-/* use this for re-entrant function */
-#ifndef m_NCS_OS_STRTOK_R
-#define m_NCS_OS_STRTOK_R(s,d,r)       strtok_r((char *)s,(char *)d, (char **)r)
-#endif
-
 #ifndef m_NCS_OS_STRSTR
 #define m_NCS_OS_STRSTR(s1,s2)         strstr((char *)s1, (char *)s2)
 #endif

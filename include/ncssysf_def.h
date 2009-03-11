@@ -173,8 +173,6 @@ extern LEAPDLL_API int get_char_from_gui();
  */
 #define m_NCS_STRTOK(s,d)       m_NCS_OS_STRTOK(s,d)
 
-#define m_NCS_STRTOK_R          sysf_strtok_r
-
 #define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
