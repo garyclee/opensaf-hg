@@ -501,7 +501,7 @@ static uns32 cli_dflt_reg(uns32 hdl)
     data.i_access_req = TRUE;
     /* Supressing Password for enable cmd */
     /*pwd.i_encrptflag = FALSE;
-    m_NCS_OS_STRCPY(pwd.passwd.i_passwd, "ncs");    
+    strcpy(pwd.passwd.i_passwd, "ncs");    
     data.i_access_passwd = &pwd;*/ /*commented for 59359 */ 
     data.i_cmd_count = 3; /* set the command count */
     
@@ -700,7 +700,7 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
    }
    
    /* Set the mode */
-   m_NCS_OS_STRCPY(pCli->ctree_cb.ctxtMrkr->mode, info->i_cmdlist->i_command_mode);   
+   strcpy(pCli->ctree_cb.ctxtMrkr->mode, info->i_cmdlist->i_command_mode);   
    
    if(!info->i_bindery || (0 == (pBindery = m_MMGR_ALLOC_NCSCLI_BINDERY))) {
       cli_cb_main_unlock(pCli);
@@ -795,7 +795,7 @@ static uns32 cli_log_reg(void)
    /* fill version no. */
    reg.info.bind_svc.version = CLI_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "CLI");
+   strcpy(reg.info.bind_svc.svc_name, "CLI");
 
    /* Bind with Loging service */
    return ncs_dtsv_su_req(&reg);   
@@ -897,21 +897,21 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
         if( m_NCS_STRCMP(arg1,"NCS_CLI_SUPERUSER_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
-                  m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_superuser,arg2);
+                  strcpy(pCli->cli_user_group.ncs_cli_superuser,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the SUPERUSER GROUP given in configuration file is greater than %d . So default superuser group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( m_NCS_STRCMP(arg1,"NCS_CLI_ADMIN_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
-                  m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_admin,arg2);
+                  strcpy(pCli->cli_user_group.ncs_cli_admin,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the ADMIN GROUP given in configuration file is greater than %d . So default admin group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( m_NCS_STRCMP(arg1,"NCS_CLI_VIEWER_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
-                  m_NCS_STRCPY(pCli->cli_user_group.ncs_cli_viewer,arg2);
+                  strcpy(pCli->cli_user_group.ncs_cli_viewer,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the VIEWER GROUP given in configuration file is greater than %d . So default viewer group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }

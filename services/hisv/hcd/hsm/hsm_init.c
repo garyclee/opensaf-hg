@@ -322,7 +322,7 @@ uns32 hsm_eda_chan_initialize(HSM_CB *hsm_cb)
    open_flags = SA_EVT_CHANNEL_CREATE | SA_EVT_CHANNEL_PUBLISHER;
 
    hsm_cb->event_chan_name.length = m_NCS_STRLEN(EVT_CHANNEL_NAME);
-   m_NCS_STRCPY(hsm_cb->event_chan_name.value, EVT_CHANNEL_NAME);
+   strcpy(hsm_cb->event_chan_name.value, EVT_CHANNEL_NAME);
 
    rc = saEvtChannelOpen(hsm_cb->eda_handle, &hsm_cb->event_chan_name, open_flags,
                          timeout, &hsm_cb->chan_evt);

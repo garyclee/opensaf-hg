@@ -256,61 +256,61 @@ SNMPTM_CB* snmptm_cb_create(void)
       tblsix_key.count = 1;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 101;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW1");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW1");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 2;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 102;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW2");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW2");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 3;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 103;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW3");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW3");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 4;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 104;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW4");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW4");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 5;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 105;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW5");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW5");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 6;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 106;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW6");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW6");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 7;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 107;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW7");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW7");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 8;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 108;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW8");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW8");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 9;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 109;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW9");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW9");
 
       memset(&tblsix_key, '\0', sizeof(tblsix_key));
       tblsix_key.count = 10;
       tblsix = snmptm_create_tblsix_entry(snmptm, &tblsix_key);
       tblsix->tblsix_data = 110;
-      m_NCS_STRCPY(&tblsix->tblsix_name, "TBSIXROW10");
+      strcpy(&tblsix->tblsix_name, "TBSIXROW10");
    }
 
    /* Add entries into TBLTEN*/

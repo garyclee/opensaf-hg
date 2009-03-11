@@ -2015,7 +2015,7 @@ uns32 pss_re_sync(PSS_PWE_CB *pwe_cb, MAB_MSG *mab_msg, PSS_CKPT_DATA_TYPE ckpt_
          return NCSCC_RC_FAILURE;
       }
       memset(msg.ckpt_data.bam_conf_done.pcn_list.pcn, '\0', len + 1);
-      m_NCS_STRCPY(msg.ckpt_data.bam_conf_done.pcn_list.pcn, mab_msg->data.data.bam_conf_done.pcn_list.pcn);
+      strcpy(msg.ckpt_data.bam_conf_done.pcn_list.pcn, mab_msg->data.data.bam_conf_done.pcn_list.pcn);
       break;
 
    default:
@@ -2100,7 +2100,7 @@ uns32 pss_re_direct_sync(PSS_PWE_CB *pwe_cb, NCSCONTEXT i_msg, PSS_CKPT_DATA_TYP
             return NCSCC_RC_FAILURE;
          }
          memset(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, '\0', len + 1);
-         m_NCS_STRCPY(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, src_pcn);
+         strcpy(msg.ckpt_data.pend_wbreq_to_bam.pcn_list.pcn, src_pcn);
       }
       break;
 
@@ -2173,7 +2173,7 @@ uns32 pss_duplicate_pcn_list(MAB_PSS_CLIENT_LIST *src, MAB_PSS_CLIENT_LIST *dest
       return NCSCC_RC_FAILURE;
    }
    memset(dest->pcn, '\0', len + 1);
-   m_NCS_STRCPY(dest->pcn, src->pcn);
+   strcpy(dest->pcn, src->pcn);
 
    for(p_src_tbl = src->tbl_list, pp_dst_tbl = &dest->tbl_list;
        p_src_tbl != NULL;
@@ -2268,7 +2268,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
          return NCSCC_RC_FAILURE;
       }
       memset(dst->pcn, '\0', len + 1);
-      m_NCS_STRCPY(dst->pcn, src->pcn);
+      strcpy(dst->pcn, src->pcn);
    }
    else
    {
@@ -2286,7 +2286,7 @@ uns32 pss_duplicate_plbck_ssn_info(PSS_CURR_PLBCK_SSN_INFO *src, PSS_CURR_PLBCK_
       }
       else
       {
-         m_NCS_STRCPY((char*)&dst->info.alt_profile, 
+         strcpy((char*)&dst->info.alt_profile, 
             (char*)&src->info.alt_profile);
       }
    }
@@ -2369,7 +2369,7 @@ uns32 pss_gen_wbreq_from_cb(PSS_CURR_PLBCK_SSN_INFO *src, MAB_PSS_WARMBOOT_REQ *
          }
 
          memset(o_req->pcn_list.pcn, '\0', len + 1);
-         m_NCS_STRCPY(o_req->pcn_list.pcn, in_req->pcn_list.pcn);
+         strcpy(o_req->pcn_list.pcn, in_req->pcn_list.pcn);
 
          o_req->pcn_list.tbl_list = NULL;
          pp_tbl = &o_req->pcn_list.tbl_list;
@@ -3726,7 +3726,7 @@ uns32 pss_resume_active_role_activity(MAB_MSG *msg)
          /* Invoke on-demand playback function handler */
          memset((char*)&pwe_cb->p_pss_cb->existing_profile,
             '\0', NCS_PSS_MAX_PROFILE_NAME);
-         m_NCS_STRCPY((char*)&pwe_cb->p_pss_cb->existing_profile,
+         strcpy((char*)&pwe_cb->p_pss_cb->existing_profile,
             (char*)&pwe_cb->curr_plbck_ssn_info.info.alt_profile);
 
          (void)pss_on_demand_playback(pwe_cb->p_pss_cb, 

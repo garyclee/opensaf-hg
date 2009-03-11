@@ -119,7 +119,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
 
       /* Initialize SAF stuff */
    /* Fill in the Health check key */
-   m_NCS_STRCPY(inst->health_chk_key.key, DTS_AMF_HEALTH_CHECK_KEY);
+   strcpy(inst->health_chk_key.key, DTS_AMF_HEALTH_CHECK_KEY);
    inst->health_chk_key.keyLen = m_NCS_STRLEN(inst->health_chk_key.key);
 
    inst->invocationType = DTS_HB_INVOCATION_TYPE;
@@ -490,7 +490,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
                     return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_apps_ascii_spec_load: Memory allocation for patricia node failed");
                 }
                 memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
-                m_NCS_STRCPY(lib_entry->lib_name, lib_name);
+                strcpy(lib_entry->lib_name, lib_name);
                 lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
                 lib_entry->lib_hdl = lib_hdl;
                 lib_entry->use_count++;

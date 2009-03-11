@@ -57,7 +57,7 @@ uns32 dts_log_bind(void)
     /* fill version no. */
     reg.info.bind_svc.version = DTS_LOG_VERSION;
     /* fill svc_name */
-    m_NCS_STRCPY(reg.info.bind_svc.svc_name, "DTS");
+    strcpy(reg.info.bind_svc.svc_name, "DTS");
 
     if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, " dts_log_bind: NCS_SERVICE_ID_DTSV bind failed");

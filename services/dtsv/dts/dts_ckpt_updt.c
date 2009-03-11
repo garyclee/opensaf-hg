@@ -211,7 +211,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_M
             per_dta_svc_spec->dta_addr = dta_key;
             per_dta_svc_spec->spec_struct = spec_entry;
             per_dta_svc_spec->lib_struct = lib_hdl;
-            m_NCS_STRCPY(per_dta_svc_spec->svc_name, cb->last_spec_loaded.svc_name);
+            strcpy(per_dta_svc_spec->svc_name, cb->last_spec_loaded.svc_name);
 
             /* Add to the svc reg tbl's spec list */
             per_dta_svc_spec->next_spec_entry = svc->spec_list; /* point next to the rest of list */
@@ -450,7 +450,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                     for(count = 0; count < file_list->num_of_files; count++)
                     {
                        m_DTS_ADD_NEW_FILE(device);
-                       m_NCS_STRCPY(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
+                       strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
                        file_node = file_node->next;
                     } 
                  }
@@ -530,7 +530,7 @@ uns32  dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_F
                    for(count = 0; count < file_list->num_of_files; count++)
                    {
                       m_DTS_ADD_NEW_FILE(device);
-                      m_NCS_STRCPY(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
+                      strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
                       file_node = file_node->next;
                    }
                 }
@@ -889,7 +889,7 @@ uns32  dtsv_ckpt_add_rmv_updt_dts_log(DTS_CB *cb, DTS_LOG_CKPT_DATA *data, NCS_M
    case NCS_MBCSV_ACT_ADD:
       {
          m_DTS_ADD_NEW_FILE(device);
-         m_NCS_STRCPY(m_DTS_LOG_FILE_NAME(device), data->file_name);
+         strcpy(m_DTS_LOG_FILE_NAME(device), data->file_name);
          device->new_file = data->new_file;
          /* Set file open to TRUE, cuz a file has obviously been opened */
          device->file_open = TRUE;
@@ -978,7 +978,7 @@ uns32  dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_F
                for(count = 0; count < file_list->num_of_files; count++)
                { 
                   m_DTS_ADD_NEW_FILE(device);
-                  m_NCS_STRCPY(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
+                  strcpy(m_DTS_LOG_FILE_NAME(device), file_node->file_name);
                   file_node = file_node->next; 
                }            
             }

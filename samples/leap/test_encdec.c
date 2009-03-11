@@ -79,7 +79,7 @@ static uns32 lt_test_uba_encdec_ops(void)
     src_32bit_data = 0x0a0b0c0d;
     src_16bit_data = 0x0e0f;
     src_8bit_data = 0x0a;
-    m_NCS_STRCPY(&src_str_data, "this is test data for input strings into NCS_UBAID.(uns64, uns32, uns16, string-data are inserted into this USRBUF.). This further tries to stretch the data over two USRBUFs so that we can test whether the LEAP routines are still resilient. To add more tests later.");
+    strcpy(&src_str_data, "this is test data for input strings into NCS_UBAID.(uns64, uns32, uns16, string-data are inserted into this USRBUF.). This further tries to stretch the data over two USRBUFs so that we can test whether the LEAP routines are still resilient. To add more tests later.");
     /* Note: The strlen( ) of the above string is 265 bytes. */
     len = (uns16)strlen((char*)&src_str_data);
 

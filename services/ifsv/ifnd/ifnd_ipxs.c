@@ -738,7 +738,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
 
       memset(&lcl_ifname, '\0', sizeof(lcl_ifname));
       /* memcpy(&lcl_ifname, RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ); */
-      m_NCS_STRCPY(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]));
+      strcpy(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]));
 
       if(ifnd_ipxs_get_ifndx_for_interface_number(ifsv_cb, ipxs_cb, ifi->ifi_index,
             &lcl_ifindex, (char*)&lcl_ifname) != NCSCC_RC_SUCCESS)
@@ -758,7 +758,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
       }
       ipxs_cb->ifndx_cache[ifi->ifi_index].interface_number = ifi->ifi_index; /* Link number */
       ipxs_cb->ifndx_cache[ifi->ifi_index].if_index = lcl_ifindex; /* IFSv specific */
-      m_NCS_STRCPY(&ipxs_cb->ifndx_cache[ifi->ifi_index].ifname, &lcl_ifname);
+      strcpy(&ipxs_cb->ifndx_cache[ifi->ifi_index].ifname, &lcl_ifname);
       m_NCS_CONS_PRINTF("IfIndex allocated for interface %s is %d \n",lcl_ifname,ifi->ifi_index);
 
       return IPXS_NETLINK_OK;
@@ -1124,7 +1124,7 @@ ifnd_ipxs_data_proc_ifip_info (IPXS_CB *cb, IPXS_EVT *ipxs_evt,
      if((m_NCS_IPXS_IS_IPAM_VIP_SET(temp_ptr->ip_attr)) &&
             (!m_NCS_IPXS_IS_IPAM_VIP_REFCNT_SET(temp_ptr->ip_attr)))
      {
-        m_NCS_STRCPY(&ifip_node->ifip_info.intfName,&temp_ptr->intfName);
+        strcpy(&ifip_node->ifip_info.intfName,&temp_ptr->intfName);
         ifip_node->ifip_info.shelfId = temp_ptr->shelfId;
         ifip_node->ifip_info.slotId = temp_ptr->slotId;
         /* embedding subslot changes */

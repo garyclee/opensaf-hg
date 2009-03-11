@@ -145,7 +145,7 @@ uns32  srmst_str_parser(char *in_string,
    char  buffer[SRMST_MAX_BUF_SIZE];
 
    memset(&buffer, 0, SRMST_MAX_BUF_SIZE);   
-   m_NCS_STRCPY(buffer, in_string);
+   strcpy(buffer, in_string);
 
    if ((out_data = strtok(buffer, in_split_pattern)) == NULL)
       return NCSCC_RC_FAILURE;
@@ -158,7 +158,7 @@ uns32  srmst_str_parser(char *in_string,
    }
 
    memset(out_string, 0, SRMST_ITEM_BUF_SIZE);
-   m_NCS_STRCPY(out_string, out_data);
+   strcpy(out_string, out_data);
 
    return NCSCC_RC_SUCCESS;
 }

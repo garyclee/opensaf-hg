@@ -1583,7 +1583,7 @@ void ncs_get_sys_params_arg(int i_argc,
          /* else store whatever comes */
          gl_pargv[gl_pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
          memset(gl_pargv[gl_pargc],0,NCS_MAX_STR_INPUT);
-         m_NCS_STRCPY(gl_pargv[gl_pargc], i_argv[i_argc-1]);
+         strcpy(gl_pargv[gl_pargc], i_argv[i_argc-1]);
          gl_pargc = (gl_pargc) + 1;
       }
    }

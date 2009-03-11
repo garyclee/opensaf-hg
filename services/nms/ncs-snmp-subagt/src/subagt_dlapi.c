@@ -804,7 +804,7 @@ ncs_snmpsubagt_init_deinit_msg_post(uns8* init_deinit_routine)
     }
     memset(post_me, 0, sizeof(SNMPSUBAGT_MBX_MSG)); 
     post_me->msg_type = SNMPSUBAGT_MBX_MSG_MIB_INIT_OR_DEINIT;
-    m_NCS_STRCPY(post_me->init_or_deinit_routine, 
+    strcpy(post_me->init_or_deinit_routine, 
                 init_deinit_routine);
 
     /* post a message to the SubAgent's thread */ 

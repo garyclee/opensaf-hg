@@ -125,7 +125,7 @@ static uns32 create_app_stuff(int test_num)
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_STRCPY(task_name,"Application-2");
+        strcpy(task_name,"Application-2");
         /* Create a application thread */
         if ((res = m_NCS_TASK_CREATE ((NCS_OS_CB)test_application, 
             (NCSCONTEXT)&gl_app2_cb.mbx, task_name, m_LT_TEST_APP_PRIORITY, 
@@ -163,7 +163,7 @@ static uns32 create_app_stuff(int test_num)
             return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_STRCPY(task_name,"Application-1");
+        strcpy(task_name,"Application-1");
         /* Create a application thread */
         if ((res = m_NCS_TASK_CREATE ((NCS_OS_CB)test_application, 
             (NCSCONTEXT)&gl_app1_cb.mbx, task_name, m_LT_TEST_APP_PRIORITY, 

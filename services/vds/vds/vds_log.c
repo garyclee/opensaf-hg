@@ -56,7 +56,7 @@ uns32 vds_log_reg()
    /* fill version no. */
    reg.info.bind_svc.version = VDS_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "VDS");
+   strcpy(reg.info.bind_svc.svc_name, "VDS");
 
    rc = ncs_dtsv_su_req(&reg);
 

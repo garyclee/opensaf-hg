@@ -69,7 +69,7 @@ avm_flx_log_reg ()
    /* fill version no. */
    reg.info.bind_svc.version = AVM_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "AVM");
+   strcpy(reg.info.bind_svc.svc_name, "AVM");
 
    ncs_dtsv_su_req(&reg);
    return;

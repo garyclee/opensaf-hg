@@ -193,7 +193,7 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
    cb->init_done = evt->info.ifd_evt.info.init_done.init_done;
    /** start the AMF health check **/   
    memset(&SaCompName,0,sizeof(SaCompName));
-   m_NCS_STRCPY(SaCompName.value,cb->comp_name);
+   strcpy(SaCompName.value,cb->comp_name);
    SaCompName.length = m_NCS_STRLEN(cb->comp_name);
 
    memset(&Healthy,0,sizeof(Healthy));
@@ -201,12 +201,12 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
    if (phlth_ptr == NULL)
    {
       /** default health check key **/
-      m_NCS_STRCPY(hlth_str,"123");
+      strcpy(hlth_str,"123");
    } else
    {
-      m_NCS_STRCPY(hlth_str,phlth_ptr);
+      strcpy(hlth_str,phlth_ptr);
    }
-   m_NCS_STRCPY(Healthy.key,hlth_str);
+   strcpy(Healthy.key,hlth_str);
    Healthy.keyLen=strlen(Healthy.key);
   
    error = saAmfHealthcheckStart(cb->amf_hdl,&SaCompName,&Healthy,

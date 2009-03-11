@@ -783,7 +783,7 @@ static uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type,
     char               msg [64] = {0};
     char              *ptr;
 
-    m_NCS_STRCPY(msg, pmsg);
+    strcpy(msg, pmsg);
     *value    = -1;
     *cmd_type = RDE_RDA_UNKNOWN;
 

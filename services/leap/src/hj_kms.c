@@ -467,7 +467,7 @@ uns32 kms_kre_insert(KMS_REC_ENTRY** anchor,
      m_MMGR_FREE_KMS_REC_ENTRY(new_kre);
      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
   }
-  m_NCS_STRCPY(new_kre->rec.name,name);
+  strcpy(new_kre->rec.name,name);
 
   new_kre->next = *anchor;
   if(new_kre->next != NULL)

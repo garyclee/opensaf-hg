@@ -118,7 +118,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
  
    do
    {      
-      m_NCS_STRCPY(comp_name, m_IFND_COMP_NAME);
+      strcpy(comp_name, m_IFND_COMP_NAME);
       svc_id = NCS_SERVICE_ID_IFND;      
 
       /* register with the Flex log service */   
@@ -147,7 +147,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       ifsv_cb->slot      = pwe_param->slot_no;
       /* embedding subslot changes */
       ifsv_cb->subslot   = pwe_param->subslot_no;         
-      m_NCS_STRCPY(ifsv_cb->comp_name, comp_name);         
+      strcpy(ifsv_cb->comp_name, comp_name);         
       ifsv_cb->vrid      = pwe_param->vrid;
       ifsv_cb->oac_hdl   = pwe_param->oac_hdl;
 
@@ -205,8 +205,8 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
              "Amf Component Get Name Failed :ifnd_lib_init "," ");
          goto ifnd_mds_fail;
       }
-      m_NCS_STRCPY(ifsv_cb->comp_name, sname.value);
-      m_NCS_STRCPY(m_IFND_COMP_NAME, sname.value);
+      strcpy(ifsv_cb->comp_name, sname.value);
+      strcpy(m_IFND_COMP_NAME, sname.value);
       if ((res = ifnd_mds_init(ifsv_cb)) != NCSCC_RC_SUCCESS)
       {
          m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
@@ -232,7 +232,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       }
       /* register IfSv component with AvSv */
       sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
-     /* m_NCS_STRCPY(sname.value,comp_name); */
+     /* strcpy(sname.value,comp_name); */
 
       amf_error = saAmfComponentRegister(ifsv_cb->amf_hdl, &sname, 
          (SaNameT*)IFSV_NULL);
@@ -288,7 +288,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       /*   start the AMF Health Check  */
       /** start the AMF health check **/
       memset(&sname,0,sizeof(sname));
-      m_NCS_STRCPY(sname.value,ifsv_cb->comp_name);
+      strcpy(sname.value,ifsv_cb->comp_name);
       sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
 
       memset(&healthy,0,sizeof(healthy));
@@ -296,12 +296,12 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
       if(health_key == NULL)
       {
-         m_NCS_STRCPY(healthy.key,"C3D4");
+         strcpy(healthy.key,"C3D4");
          /* TBD Log the info */
       }
       else
       {
-         m_NCS_STRCPY(healthy.key,health_key);
+         strcpy(healthy.key,health_key);
       }
       healthy.keyLen=strlen(healthy.key);
 
@@ -391,7 +391,7 @@ ifnd_lib_destroy (uns32 vrid, uns32 comp_type)
    } else
    {  
       sname.length = m_NCS_STRLEN(ifsv_cb->comp_name);
-      m_NCS_STRCPY(sname.value,ifsv_cb->comp_name);
+      strcpy(sname.value,ifsv_cb->comp_name);
 
       saAmfComponentUnregister(ifsv_cb->amf_hdl, &sname, (SaNameT*)IFSV_NULL);
       saAmfFinalize(ifsv_cb->amf_hdl);      

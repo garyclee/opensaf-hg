@@ -157,7 +157,7 @@ uns32 hisv_log_bind()
    /* fill version no. */
     reg.info.bind_svc.version = HISV_LOG_VERSION;
     /* fill svc_name */
-    m_NCS_STRCPY(reg.info.bind_svc.svc_name, "HISv");
+    strcpy(reg.info.bind_svc.svc_name, "HISv");
 
    if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
       return NCSCC_RC_FAILURE;

@@ -257,17 +257,17 @@ typedef struct pdrbd_evt
 { \
    char str[100], *tok = NULL; \
    /* copy the str as strtok modifies the original str */ \
-   m_NCS_STRCPY(str, st); \
+   strcpy(str, st); \
    ac = 0; \
    if ( NULL != (tok = m_NCS_STRTOK(str, " ")) ) { \
-      m_NCS_STRCPY(sc, tok); \
+      strcpy(sc, tok); \
       av[ac] = sc; \
    } \
    ac++; \
    while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
            (ac < (PDRBD_NUM_ARGS+1)) ) { \
       if ( m_NCS_STRLEN(tok) > PDRBD_MAX_ARG_SIZE ) break; \
-      m_NCS_STRCPY(tav[ac], tok); \
+      strcpy(tav[ac], tok); \
       av[ac] = tav[ac]; \
       ac++;\
    } \

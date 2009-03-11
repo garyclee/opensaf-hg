@@ -108,7 +108,7 @@ uns32 m_ncs_validate_interface_name(char *str) {
         return intfRes;
      }
      memset(&ifr, 0, sizeof(ifr));
-     m_NCS_STRCPY(&ifr.ifr_ifrn.ifrn_name,str);
+     strcpy(&ifr.ifr_ifrn.ifrn_name,str);
      if(ioctl(sock,SIOCGIFFLAGS,&ifr) < 0)
      {
         close(sock);
@@ -251,7 +251,7 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
 
          ipEvt.type = IFA_GET_IP_FROM_STALE_ENTRY_REQ;
  
-         m_NCS_STRCPY(&ipEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,&instArg->i_handle.vipApplName);
+         strcpy(&ipEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,&instArg->i_handle.vipApplName);
          ipEvt.info.vip_evt.info.vipCommonEvt.handle.poolHdl = instArg->i_handle.poolHdl;
          ipEvt.info.vip_evt.info.vipCommonEvt.handle.ipPoolType =  NCS_IFSV_VIP_IP_INTERNAL;
         
@@ -307,10 +307,10 @@ ncs_ifsv_vip_install(IFA_CB *ifa_cb , NCS_IFSV_VIP_INSTALL *instArg)
 
         evt->type = IFA_VIPD_INFO_ADD_REQ;
 
-        m_NCS_STRCPY(&evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName,&instArg->i_handle.vipApplName);
+        strcpy(&evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName,&instArg->i_handle.vipApplName);
         evt->info.vip_evt.info.ifaVipAdd.handle.poolHdl = instArg->i_handle.poolHdl;
         evt->info.vip_evt.info.ifaVipAdd.handle.ipPoolType =  NCS_IFSV_VIP_IP_INTERNAL;
-        m_NCS_STRCPY(&evt->info.vip_evt.info.ifaVipAdd.intfName,&instArg->i_intf_name);
+        strcpy(&evt->info.vip_evt.info.ifaVipAdd.intfName,&instArg->i_intf_name);
         evt->info.vip_evt.info.ifaVipAdd.ipAddr.ipaddr.info.v4 = instArg->i_ip_addr.ipaddr.info.v4;
         evt->info.vip_evt.info.ifaVipAdd.ipAddr.ipaddr.type = instArg->i_ip_addr.ipaddr.type;
         evt->info.vip_evt.info.ifaVipAdd.ipAddr.mask_len = instArg->i_ip_addr.mask_len;     
@@ -417,7 +417,7 @@ ncs_ifsv_vip_free(IFA_CB *pifa_cb , NCS_IFSV_VIP_FREE *pFreeArg)
    memset(&evt,0,sizeof(IFSV_EVT));
 
    evt.type = IFA_VIP_FREE_REQ;
-   m_NCS_STRCPY(&evt.info.vip_evt.info.ifaVipFree.handle.vipApplName,&pFreeArg->i_handle.vipApplName);
+   strcpy(&evt.info.vip_evt.info.ifaVipFree.handle.vipApplName,&pFreeArg->i_handle.vipApplName);
    evt.info.vip_evt.info.ifaVipFree.handle.poolHdl = pFreeArg->i_handle.poolHdl;
    evt.info.vip_evt.info.ifaVipFree.handle.ipPoolType =  NCS_IFSV_VIP_IP_INTERNAL;
  

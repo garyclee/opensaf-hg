@@ -908,7 +908,7 @@ YY_MALLOC_DECL
       if(size < max_size)\
       {\
           memset(buf, 0, max_size);\
-          m_NCS_OS_STRCPY(buf, lexCli->par_cb.ipbuffer);\
+          strcpy(buf, lexCli->par_cb.ipbuffer);\
           memset(lexCli->par_cb.ipbuffer, 0, size);\
           result = size;\
       }\

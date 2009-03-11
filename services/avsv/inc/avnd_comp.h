@@ -622,17 +622,17 @@ typedef struct avnd_comp_tag {
 { \
    char str[SAAMF_CLC_LEN], *tok = NULL; \
    /* copy the str as strtok modifies the original str */ \
-   m_NCS_STRCPY(str, st); \
+   strcpy(str, st); \
    ac = 0; \
    if ( NULL != (tok = m_NCS_STRTOK(str, " ")) ) { \
-      m_NCS_STRCPY(sc, tok); \
+      strcpy(sc, tok); \
       av[ac] = sc; \
    } \
    ac++; \
    while ( (NULL != (tok = m_NCS_STRTOK(NULL, " "))) && \
            (ac < (AVND_COMP_CLC_PARAM_MAX+1)) ) { \
       if ( m_NCS_STRLEN(tok) > AVND_COMP_CLC_PARAM_SIZE_MAX ) break; \
-      m_NCS_STRCPY(tav[ac], tok); \
+      strcpy(tav[ac], tok); \
       av[ac] = tav[ac]; \
       ac++;\
    } \

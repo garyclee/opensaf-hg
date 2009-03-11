@@ -2416,7 +2416,7 @@ if(TRUE == mib_upd_needed)
    param.obj_id = saAmfCompCurrProxyName_ID;
    param.name_net = comp->name_net;
    param.act = AVSV_OBJ_OPR_MOD;
-   m_NCS_STRCPY(param.value,comp->pxy_comp->name_net.value);
+   strcpy(param.value,comp->pxy_comp->name_net.value);
    param.value_len = m_NCS_STRLEN(comp->pxy_comp->name_net.value);
 
    rc = avnd_di_mib_upd_send(cb, &param);
@@ -2514,7 +2514,7 @@ if(TRUE == mib_upd_needed)
    param.obj_id = saAmfCompCurrProxyName_ID;
    param.name_net = comp->name_net;
    param.act = AVSV_OBJ_OPR_MOD;
-   m_NCS_STRCPY(param.value,"");
+   strcpy(param.value,"");
    param.value_len = 0;
 
    rc = avnd_di_mib_upd_send(cb, &param);

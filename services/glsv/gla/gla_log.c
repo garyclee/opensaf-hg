@@ -155,7 +155,7 @@ gla_flx_log_reg ()
    /* fill version no. */
    reg.info.bind_svc.version = GLSV_LOG_VERSION;
    /* fill svc_name */
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "GLSv");
+   strcpy(reg.info.bind_svc.svc_name, "GLSv");
 
    ncs_dtsv_su_req(&reg);
    return;

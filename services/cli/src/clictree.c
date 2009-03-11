@@ -364,7 +364,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
    int8 cmd_path[CLI_BUFFER_SIZE];
    
    /* Copy the path string into an array */
-   m_NCS_OS_STRCPY(cmd_path, pList->i_node);    
+   strcpy(cmd_path, pList->i_node);    
    
    /* extract the root node from the path */   
    token = sysf_strtok(cmd_path, CLI_TOK_SEPARATOR);
@@ -374,7 +374,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
       if(!pCli->ctree_cb.rootMrkr) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
       
       memset(pCli->ctree_cb.rootMrkr, 0, sizeof(CLI_CMD_NODE));
-      m_NCS_OS_STRCPY(pCli->ctree_cb.rootMrkr->name, token);            
+      strcpy(pCli->ctree_cb.rootMrkr->name, token);            
    }
    
    /* Set the context pointer to the start of the tree*/
@@ -429,7 +429,7 @@ void cli_set_cmd_to_parse(CLI_CB *pCli, int8 *src, CLI_BUFFER_TYPE buffType)
    /* Copy contents into command buffer if buffer type is CLI_CMD_BUFFER */
    case CLI_CMD_BUFFER:
       if(src) {                
-         m_NCS_OS_STRCPY(pCli->par_cb.ipbuffer, src);
+         strcpy(pCli->par_cb.ipbuffer, src);
          strcat(pCli->par_cb.ipbuffer, CLI_TOK_EOC);
       }
       else m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_INVALID_PTR);      
@@ -518,7 +518,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
          if(!cookie) return;  /* Do not create the node */
          
          memset(pCli->ctree_cb.ctxtMrkr->pSibling, 0, sizeof(CLI_CMD_NODE)); 
-         m_NCS_OS_STRCPY(pCli->ctree_cb.ctxtMrkr->pSibling->name, tok);
+         strcpy(pCli->ctree_cb.ctxtMrkr->pSibling->name, tok);
          pCli->ctree_cb.ctxtMrkr->pSibling->pParent = pCli->ctree_cb.ctxtMrkr;
          pCli->ctree_cb.ctxtMrkr = pCli->ctree_cb.ctxtMrkr->pSibling;
       } 
@@ -528,7 +528,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
       pCli->ctree_cb.ctxtMrkr->pChild = m_MMGR_ALLOC_CLI_CMD_NODE;        
       if(!pCli->ctree_cb.ctxtMrkr->pChild) return;
       memset(pCli->ctree_cb.ctxtMrkr->pChild, 0, sizeof(CLI_CMD_NODE));    
-      m_NCS_OS_STRCPY(pCli->ctree_cb.ctxtMrkr->pChild->name, tok);
+      strcpy(pCli->ctree_cb.ctxtMrkr->pChild->name, tok);
       
       /* Reset the context marker */
       pCli->ctree_cb.ctxtMrkr->pChild->pParent = pCli->ctree_cb.ctxtMrkr;

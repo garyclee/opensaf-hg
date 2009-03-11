@@ -400,11 +400,11 @@ avm_open_trap_channel(AVM_CB_T *avm_cb)
    SaAisErrorT     status = SA_AIS_OK;
    SaTimeT         timeout = AVM_TRAP_CHANNEL_OPEN_TIMEOUT;
    
-   m_NCS_STRCPY(avm_cb->publisherName.value, AVM_EDA_EVT_PUBLISHER_NAME);
+   strcpy(avm_cb->publisherName.value, AVM_EDA_EVT_PUBLISHER_NAME);
    avm_cb->publisherName.length = strlen(avm_cb->publisherName.value);
    
    /* update the Channel Name */
-   m_NCS_STRCPY(avm_cb->trap_chan_name.value, m_SNMP_EDA_EVT_CHANNEL_NAME);
+   strcpy(avm_cb->trap_chan_name.value, m_SNMP_EDA_EVT_CHANNEL_NAME);
    avm_cb->trap_chan_name.length = strlen(avm_cb->trap_chan_name.value);
    
    /* Open event channel with remote server (EDS)  */

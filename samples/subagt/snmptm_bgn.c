@@ -272,13 +272,13 @@ void  snmptm_main(int argc, char **argv)
    {
       m_NCS_SET_VDEST_ID_IN_MDS_DEST(gl_snmptm_vdest, SNMPTM_VCARD_ID1);
       lm_req.io_create_snmptm.i_node_id = 1;
-      m_NCS_STRCPY(&lm_req.io_create_snmptm.i_pcn, "SNMPTM_NODE_1");
+      strcpy(&lm_req.io_create_snmptm.i_pcn, "SNMPTM_NODE_1");
    }
    else
    {
       m_NCS_SET_VDEST_ID_IN_MDS_DEST(gl_snmptm_vdest, SNMPTM_VCARD_ID2);
       lm_req.io_create_snmptm.i_node_id = (uns8)atoi(argv[1]);
-      m_NCS_STRCPY(&lm_req.io_create_snmptm.i_pcn, "SNMPTM_NODE_2");
+      strcpy(&lm_req.io_create_snmptm.i_pcn, "SNMPTM_NODE_2");
    }
 
    m_NCS_CONS_PRINTF("\nSNMPTM Node Id: %d \n", lm_req.io_create_snmptm.i_node_id); 

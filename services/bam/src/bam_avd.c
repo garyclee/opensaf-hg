@@ -87,9 +87,9 @@ uns32 avd_bam_build_si_dep_list(char *si_name, char *si_dep_name, char *tol_time
 
    memset(si_dep_node, 0, sizeof(BAM_SI_DEP_NODE));
 
-   m_NCS_STRCPY(si_dep_node->si_name, si_name);
-   m_NCS_STRCPY(si_dep_node->si_dep_name, si_dep_name);
-   m_NCS_STRCPY(si_dep_node->tol_time, tol_time);
+   strcpy(si_dep_node->si_name, si_name);
+   strcpy(si_dep_node->si_dep_name, si_dep_name);
+   strcpy(si_dep_node->tol_time, tol_time);
   
    si_dep_node->next = bam_cb->si_dep_list;
    bam_cb->si_dep_list = si_dep_node;

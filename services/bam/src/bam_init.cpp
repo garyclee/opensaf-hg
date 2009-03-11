@@ -549,11 +549,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "NCSSystemBOM.xml");
+      strcpy(filename, OSAF_SYSCONFDIR "NCSSystemBOM.xml");
    }
 
    /* Now set the NCS filename inthe CB */
-   m_NCS_STRCPY(cb->ncs_filename, filename);
+   strcpy(cb->ncs_filename, filename);
 
    /* repeat the above for APP XML file */
    if(ncs_bam_extract_app_filename(req_info->info.create.argc, 
@@ -562,11 +562,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "AppConfig.xml");
+      strcpy(filename, OSAF_SYSCONFDIR "AppConfig.xml");
    }
 
    /* Now set the filename inthe CB */
-   m_NCS_STRCPY(cb->app_filename, filename);
+   strcpy(cb->app_filename, filename);
 
    /*
    ** Fill in the control block with the path and filename of XML file
@@ -579,11 +579,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      m_NCS_STRCPY(filename, OSAF_SYSCONFDIR "ValidationConfig.xml");
+      strcpy(filename, OSAF_SYSCONFDIR "ValidationConfig.xml");
    }
 
    /* Now set the filename inthe CB */
-   m_NCS_STRCPY(cb->hw_filename, filename);
+   strcpy(cb->hw_filename, filename);
 
 
    /* create and start the BAM thread with the cb handle argument */

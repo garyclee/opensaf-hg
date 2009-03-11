@@ -557,7 +557,7 @@ void reg_dummy1_ss()
    reg.i_op = NCS_DTSV_OP_BIND;
    reg.info.bind_svc.svc_id = UD_DTSV_DEMO_SERVICE1;
    reg.info.bind_svc.version = 2;
-   m_NCS_STRCPY(reg.info.bind_svc.svc_name, "dummy");
+   strcpy(reg.info.bind_svc.svc_name, "dummy");
    ncs_dtsv_su_req(&reg);
 }
 

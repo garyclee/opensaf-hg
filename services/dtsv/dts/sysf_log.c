@@ -360,7 +360,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version,
                return NULL;
             }
             memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
-            m_NCS_STRCPY(lib_entry->lib_name, lib_name);
+            strcpy(lib_entry->lib_name, lib_name);
             lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
             lib_entry->lib_hdl = lib_hdl;
             /* Add node to patricia tree table */

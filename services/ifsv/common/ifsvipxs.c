@@ -1402,7 +1402,7 @@ static uns32 ipxs_ipinfo_cpy_for_del(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
 #if (NCS_VIP == 1)
    if(m_NCS_IPXS_IS_IPAM_VIP_SET(src->ipam))
    {
-      m_NCS_STRCPY(&dest->intfName,&src->intfName);
+      strcpy(&dest->intfName,&src->intfName);
       dest->shelfId    = src->shelfId;
       dest->slotId     = src->slotId;
       /* embedding subslot changes */

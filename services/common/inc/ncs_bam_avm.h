@@ -60,7 +60,7 @@ typedef struct ncs_hw_ent_loc_range
 
 struct ncs_hw_ent_type_desc
 {
-   uns8                  entity_name[NCS_MAX_INDEX_LEN];
+   char                  entity_name[NCS_MAX_INDEX_LEN];
    uns8                  ent_name_length;
 
    SaHpiEntityTypeT      entity_type;
@@ -71,8 +71,8 @@ struct ncs_hw_ent_type_desc
    uns8                  num_possible_parents;
 
    NCS_BOOL              is_fru;  /* is FRU Activation Policy Applicable */
-   uns8                  fru_product_name[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-   uns8                  fru_product_version[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+   char                  fru_product_name[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+   char                  fru_product_version[SAHPI_MAX_TEXT_BUFFER_LENGTH];
 
    NCS_HW_ENT_TYPE_DESC  *next;
    /*FaultDomainT          fault_domain;*/

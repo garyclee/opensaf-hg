@@ -82,14 +82,14 @@ bam_fill_location_from_string(NCS_HW_ENT_VALID_LOCATION *valid_location, char *v
       return;
    }
 
-   m_NCS_STRCPY(str[idx], token);
+   strcpy(str[idx], token);
 
    while( (idx < 8)) /* && (token) &&(strlen(token) != 0) ) */
    {
       idx++;
       token = m_NCS_OS_STRTOK_R(NULL, ",", &reentrant);
       if((token) && (m_NCS_STRLEN(token)))
-         m_NCS_STRCPY(str[idx], token);
+         strcpy(str[idx], token);
       else
       {
          idx--;
@@ -138,11 +138,11 @@ saHwParseFRUInformation(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
 
          if(m_NCS_STRCMP(tag, "ProductName") == 0 )
          {
-            m_NCS_STRCPY( entity_desc->fru_product_name, val);
+            strcpy( entity_desc->fru_product_name, val);
          }
          else if(m_NCS_STRCMP(tag, "ProductVersion") == 0 )
          {
-            m_NCS_STRCPY( entity_desc->fru_product_version, val);
+            strcpy( entity_desc->fru_product_version, val);
          }
          XMLString::release(&tag);
          XMLString::release(&val);
@@ -273,7 +273,7 @@ saHwParseLocationRange(DOMNode *node, NCS_HW_ENT_TYPE_DESC *entity_desc)
 
          if(m_NCS_STRCMP(tag, "ParentEntityTypeInstanceName") == 0)
          {
-            m_NCS_STRCPY(
+            strcpy(
                        entity_desc->location_range[curr_num_parents].parent_ent,
                        val);
          }
@@ -346,7 +346,7 @@ parse_ent_type_instance(DOMNode *node)
 
          if(m_NCS_STRCMP(tag, "Name") == 0)
          {
-            m_NCS_STRCPY(entity_desc->entity_name, val);
+            strcpy(entity_desc->entity_name, val);
          }
          else if(m_NCS_STRCMP(tag, "HPIEntityType") == 0)
          {

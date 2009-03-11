@@ -86,7 +86,7 @@ ncsdtsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    DTS_LOG_CKPT_DATA     data;
  
    memset(&reqinfo, 0, sizeof(reqinfo));
-   m_NCS_STRCPY(data.file_name, "");
+   strcpy(data.file_name, "");
  
    if(flag)
       return rc;

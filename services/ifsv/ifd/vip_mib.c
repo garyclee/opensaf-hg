@@ -465,12 +465,12 @@ uns32 get_next_tbl_entry(IFSV_CB *cb,
    }
 
     /* The Next Entry's IPAddress && InterfaceName */
-    m_NCS_STRCPY(vip_handle.vipApplName,&(*p_vip_rec)->handle.vipApplName); 
+    strcpy(vip_handle.vipApplName,&(*p_vip_rec)->handle.vipApplName); 
     vip_handle.poolHdl = (*p_vip_rec)->handle.poolHdl;
     vip_handle.ipPoolType = (*p_vip_rec)->handle.ipPoolType;
     ip_intf_data.mask_len = ip_list->ip_addr.mask_len;
     ip_intf_data.ipaddress = ip_list->ip_addr.ipaddr.info.v4;
-    m_NCS_STRCPY(ip_intf_data.interface_name, ip_list->intfName);
+    strcpy(ip_intf_data.interface_name, ip_list->intfName);
         
   
     printf("The Handle Elements are ::: :-)");

@@ -151,7 +151,7 @@ ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
       return ;
    }
 
-   m_NCS_STRCPY(ent->ent_path, "{");
+   strcpy(ent->ent_path, "{");
 
    /* put the type and location */
 

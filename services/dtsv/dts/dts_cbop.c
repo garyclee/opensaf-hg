@@ -549,7 +549,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
               
               for (j = 0;j < cir_buff->buff_part[num].num_of_elements; j++)
               {
-                  m_NCS_STRCPY(str, ptr);
+                  strcpy(str, ptr);
                   sysf_fprintf(fh,(const char *)str);
                   ptr += (m_NCS_STRLEN(str) + 1);
               }
@@ -563,7 +563,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
       {
           for (j = 0;j < cir_buff->buff_part[num].num_of_elements; j++)
           {
-              m_NCS_STRCPY(str, ptr);
+              strcpy(str, ptr);
               printf("%s",str);
               ptr += (m_NCS_STRLEN(str) + 1);
           }
@@ -806,7 +806,7 @@ uns32 dts_dump_to_cir_buffer (CIR_BUFFER *cir_buff, char *str)
         return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_dump_to_cir_buffer: Hmmm!! Looks like your message does not fit into the buffer part. Increase buffer size.");
 
     /* So everything is set to dump your message in buffer. Good Luck!! */
-    m_NCS_STRCPY(cir_buff->cur_location, str);
+    strcpy(cir_buff->cur_location, str);
     cir_buff->cur_location += str_len;
     
     cir_buff->buff_part[cir_buff->cur_buff_num].num_of_elements++;

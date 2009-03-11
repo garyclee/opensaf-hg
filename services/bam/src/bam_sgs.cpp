@@ -227,11 +227,11 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
                   if(m_NCS_STRCMP(tag, "SUName") == 0)
                   {
                      memset(suName, 0, BAM_MAX_INDEX_LEN);
-                     m_NCS_STRCPY(suName, val);
+                     strcpy(suName, val);
                   }
                   else if(m_NCS_STRCMP(tag, "rank") == 0)
                   {
-                     m_NCS_STRCPY(suRank, val);
+                     strcpy(suRank, val);
                   }
 
                   XMLString::release(&tag);
@@ -518,12 +518,12 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
                   if(m_NCS_STRCMP(tag, "name") == 0)
                   {
                      memset(nvName, 0, BAM_MAX_INDEX_LEN);
-                     m_NCS_STRCPY(nvName, val);
+                     strcpy(nvName, val);
                   }
                   else if(m_NCS_STRCMP(tag, "value") == 0)
                   {
                      memset(nvValue, 0, BAM_MAX_INDEX_LEN);
-                     m_NCS_STRCPY(nvValue, val);
+                     strcpy(nvValue, val);
                   }
                   XMLString::release(&tag);
                   XMLString::release(&val);
@@ -582,7 +582,7 @@ saAmfParseCSIPrototype(char *csiName, char*siName)
    }
 
    /* Add the prototype name */
-   m_NCS_STRCPY(csiDName, csiName);
+   strcpy(csiDName, csiName);
    m_NCS_STRCAT(csiDName, ",");
    m_NCS_STRCAT(csiDName, siName);
 
@@ -647,7 +647,7 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
          if(m_NCS_STRCMP(tag, "name") == 0)
          {
             memset(csiName, 0, BAM_MAX_INDEX_LEN);
-            m_NCS_STRCPY(csiName, val);
+            strcpy(csiName, val);
             m_NCS_STRCAT(csiName, ",");
             m_NCS_STRCAT(csiName, siName);
          }
@@ -906,12 +906,12 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
              if(m_NCS_STRCMP(tag, "name") == 0)
              {
                 memset(siDepName, 0, BAM_MAX_INDEX_LEN);
-                m_NCS_STRCPY(siDepName, val);
+                strcpy(siDepName, val);
              }
              else if(m_NCS_STRCMP(tag, "tolTime") == 0)
              {
                 memset(tolTime, 0, BAM_MAX_INDEX_LEN);
-                m_NCS_STRCPY(tolTime, val);
+                strcpy(tolTime, val);
              }
 
              XMLString::release(&tag);
@@ -1139,7 +1139,7 @@ saAmfParseSIList(DOMNode *node, char *parentSg)
                char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
                if(m_NCS_STRCMP(tag, "rank") == 0)
                {
-                  m_NCS_STRCPY(rank, val);
+                  strcpy(rank, val);
                }
                XMLString::release(&tag);
                XMLString::release(&val);
@@ -1198,7 +1198,7 @@ saAmfParseSGInstance(DOMNode *node)
          if(m_NCS_STRCMP(tag, "name") == 0)
          {
             /* this is name which is the index into the SG table */
-            m_NCS_STRCPY(index, val);
+            strcpy(index, val);
 
             XMLString::release(&tag);
             XMLString::release(&val);
@@ -1370,12 +1370,12 @@ saAmfParseSISURankList(DOMNode *node, char *siName)
                if(m_NCS_STRCMP(tag, "SUName") == 0)
                {
                   memset(suName, 0, BAM_MAX_INDEX_LEN);
-                  m_NCS_STRCPY(suName, val);
+                  strcpy(suName, val);
                }
                else if(m_NCS_STRCMP(tag, "rank") == 0)
                {
                   memset(rank, 0, 4);
-                  m_NCS_STRCPY(rank, val);
+                  strcpy(rank, val);
                }
                XMLString::release(&tag);
                XMLString::release(&val);
@@ -1482,7 +1482,7 @@ saAmfParseCSIParamNameList(DOMNode *node, char *csiName)
             if(m_NCS_STRCMP(tag, "name") == 0)
             {
                memset(param, 0, BAM_MAX_INDEX_LEN);
-               m_NCS_STRCPY(param, val);
+               strcpy(param, val);
             }
             XMLString::release(&tag);
             XMLString::release(&val);

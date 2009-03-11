@@ -338,7 +338,7 @@ PSS_SPCN_LIST *pss_findadd_entry_frm_spcnlist(PSS_CB *inst, char *p_pcn,
         return NULL;
     }
     memset(list->pcn, '\0', str_len + 1);
-    m_NCS_STRCPY(list->pcn, p_pcn);
+    strcpy(list->pcn, p_pcn);
     if(prv_list != NULL)
        prv_list->next = list;
     else
@@ -5171,7 +5171,7 @@ uns32 pss_add_entry_to_spcn_wbreq_pend_list(PSS_PWE_CB *pwe_cb, char *pcn)
       return NCSCC_RC_FAILURE;
    }
    memset(list->pcn, '\0', m_NCS_STRLEN(pcn)+1);
-   m_NCS_STRCPY(list->pcn, pcn);
+   strcpy(list->pcn, pcn);
 
    if(prv_list == NULL)
    { 
@@ -5349,7 +5349,7 @@ uns32 pss_updt_in_wbreq_into_cb(PSS_PWE_CB *pwe_cb, MAB_PSS_WARMBOOT_REQ *req)
             return NCSCC_RC_FAILURE;
 
          memset(o_req->pcn_list.pcn, '\0', len + 1);
-         m_NCS_STRCPY(o_req->pcn_list.pcn, in_req->pcn_list.pcn);
+         strcpy(o_req->pcn_list.pcn, in_req->pcn_list.pcn);
 
          o_req->pcn_list.tbl_list = NULL;
          pp_tbl = &o_req->pcn_list.tbl_list;
@@ -5439,7 +5439,7 @@ uns32 pss_dup_re_wbreq_info(MAB_PSS_WARMBOOT_REQ *src, MAB_PSS_WARMBOOT_REQ *dst
          return NCSCC_RC_FAILURE;
 
       memset(dst->pcn_list.pcn, '\0', len + 1);
-      m_NCS_STRCPY(dst->pcn_list.pcn, src->pcn_list.pcn);
+      strcpy(dst->pcn_list.pcn, src->pcn_list.pcn);
 
       dst->pcn_list.tbl_list = NULL;
       pp_tbl = &dst->pcn_list.tbl_list;

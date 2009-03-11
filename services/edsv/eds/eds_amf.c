@@ -456,12 +456,12 @@ eds_healthcheck_start(EDS_CB *eds_cb)
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("EDSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(Healthy.key,"E5F6");
+      strcpy(Healthy.key,"E5F6");
       /* Log it */
    }
    else
    {
-      m_NCS_STRCPY(Healthy.key,health_key);
+      strcpy(Healthy.key,health_key);
    }
    Healthy.keyLen=strlen(Healthy.key);
 

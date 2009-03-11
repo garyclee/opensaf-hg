@@ -378,7 +378,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
                      NID_PLAT_CONF,NID_MAXSFILE);
         break;
       }
-      m_NCS_STRCPY(spawninfo->s_name,q);
+      strcpy(spawninfo->s_name,q);
       if(spawninfo->s_name[0] != '/')
       {
         sysf_sprintf(sbuf,": Not an absolute path: %s",spawninfo->s_name);
@@ -412,7 +412,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         break;
       }
       
-      m_NCS_STRCPY(spawninfo->serv_name,q);
+      strcpy(spawninfo->serv_name,q);
       if((p == NULL) || (*p == '\0'))
       {
         sysf_sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
@@ -482,7 +482,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
         break;
       }
 
-      m_NCS_STRCPY(spawninfo->cleanup_file,q);
+      strcpy(spawninfo->cleanup_file,q);
       if(spawninfo->cleanup_file[0] != '/')
       {
         sysf_sprintf(sbuf,": Not an absolute path: %s",spawninfo->cleanup_file);
@@ -592,7 +592,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       q = gettoken(&p,':');
       if(q == NULL)
       {
-        m_NCS_STRCPY(spawninfo->s_parameters," ");
+        strcpy(spawninfo->s_parameters," ");
         spawninfo->serv_args[1] = NULL;
         spawninfo->serv_args[0] = spawninfo->s_name;
         parse_state = NID_PLATCONF_CLNPARM;
@@ -617,7 +617,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       q = gettoken(&p,':');
       if(q == NULL)
       {
-        m_NCS_STRCPY(spawninfo->cleanup_parms," ");
+        strcpy(spawninfo->cleanup_parms," ");
         spawninfo->clnup_args[1] = NULL;
         spawninfo->clnup_args[0] = spawninfo->cleanup_file;
         parse_state = NID_PLATCONF_END;
@@ -1411,7 +1411,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
      }
      else
      {
-         m_NCS_STRCPY(reqmsg.nid_serv_name,serv);
+         strcpy(reqmsg.nid_serv_name,serv);
      }
  
      reqmsg.nid_stat_code = atoi(stat);

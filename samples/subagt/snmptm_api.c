@@ -133,7 +133,7 @@ uns32 snmptm_create(NCSSNMPTM_LM_SNMPTM_CREATE_REQ_INFO *create_info)
    
    /* Acquire CB Lock */
    m_SNMPTM_LOCK(&snmptm->snmptm_cb_lock, NCS_LOCK_WRITE); 
-   m_NCS_STRCPY((char*)&snmptm->pcn_name, (char*)&create_info->i_pcn);
+   strcpy((char*)&snmptm->pcn_name, (char*)&create_info->i_pcn);
    
    /* Copy given information into SNMPTM control block */
    snmptm->oac_hdl   = create_info->i_oac_hdl;
@@ -150,11 +150,11 @@ uns32 snmptm_create(NCSSNMPTM_LM_SNMPTM_CREATE_REQ_INFO *create_info)
    /* EDU_HDL init */
    m_NCS_EDU_HDL_INIT(&snmptm->edu_hdl);
                
-   m_NCS_STRCPY(snmptm->publisherName.value, SNMPTM_EDA_EVT_PUBLISHER_NAME);
+   strcpy(snmptm->publisherName.value, SNMPTM_EDA_EVT_PUBLISHER_NAME);
    snmptm->publisherName.length = strlen(snmptm->publisherName.value); 
 
    /* 1. Initialize the filter string */
-   m_NCS_STRCPY(snmptm->evtPatternStr, SNMPTM_EDA_EVT_FILTER_PATTERN);
+   strcpy(snmptm->evtPatternStr, SNMPTM_EDA_EVT_FILTER_PATTERN);
                   
    /* 2. Initialize the pattern structure */
    snmptm->evtFilter.filterType = SA_EVT_EXACT_FILTER;
@@ -167,7 +167,7 @@ uns32 snmptm_create(NCSSNMPTM_LM_SNMPTM_CREATE_REQ_INFO *create_info)
    snmptm->evtFilters.filters = &snmptm->evtFilter;
                                               
    /* update the Channel Name */
-   m_NCS_STRCPY(snmptm->evtChannelName.value, SNMPTM_EDA_EVT_CHANNEL_NAME);
+   strcpy(snmptm->evtChannelName.value, SNMPTM_EDA_EVT_CHANNEL_NAME);
    snmptm->evtChannelName.length = strlen(snmptm->evtChannelName.value);
 
    /* Initialize EDA */

@@ -327,7 +327,7 @@ ifsv_demo_reg_port_info (uns32 port_num, uns32 port_type, uns8 *i_phy,
    m_IFSV_ALL_ATTR_SET(port_reg.port_info.if_am);
    port_reg.hw_get_set_cb = ifsv_drv_set_get_info;
    port_reg.port_info.mtu         = MTU;
-   m_NCS_STRCPY(port_reg.port_info.if_name, if_name);
+   strcpy(port_reg.port_info.if_name, if_name);
    memcpy(port_reg.port_info.phy_addr,i_phy,6);
    port_reg.port_info.mtu         = MTU;
    port_reg.port_info.oper_state  = oper_state;
@@ -454,7 +454,7 @@ extract_port_status(FILE **fp, INTF_INFO *o_info)
         return (-1);
     }
     o_info->port = ifr.ifr_ifindex;
-    m_NCS_STRCPY(o_info->name,ifr.ifr_name);
+    strcpy(o_info->name,ifr.ifr_name);
 
     if (ioctl(fd,SIOCGIFFLAGS,&ifr) < 0)
     {

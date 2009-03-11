@@ -484,7 +484,7 @@ static void ifd_mds_cpy(IFSV_CB *cb, MDS_CALLBACK_COPY_INFO *svc_evt)
    stream = (uns8*)m_MMGR_ALLOC_IFSV_EVT;
    USE (svc_evt->i_last);
    
-   m_NCS_OS_STRCPY((char*)stream,(char*)svc_evt->i_msg);
+   strcpy((char*)stream,(char*)svc_evt->i_msg);
    svc_evt->o_cpy = (void*)stream;
    return;
 }

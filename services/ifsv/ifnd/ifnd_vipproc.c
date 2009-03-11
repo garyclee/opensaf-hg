@@ -87,7 +87,7 @@ uns32 ifnd_create_mark_vip_entry_stale_evt(IFSV_CB *cb, uns8 * applName,uns32 hd
    }
    memset(ifsv_evt,0,sizeof(IFSV_EVT));
    ifsv_evt->type = IFND_VIP_MARK_VIPD_STALE;
-   m_NCS_STRCPY(ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName,applName);
+   strcpy(ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName,applName);
    ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.poolHdl = hdl;
 /*   ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.ipPoolType =  type; */
 
@@ -151,7 +151,7 @@ ifnd_proc_vip_mark_vipd_stale(IFSV_CB *cb, IFSV_EVT  *pEvt)
                                                                                                                               
    sendEvt.type = IFND_VIP_MARK_VIPD_STALE;
 
-   m_NCS_STRCPY(&sendEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,
+   strcpy(&sendEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,
                 &pEvt->info.vip_evt.info.vipCommonEvt.handle.vipApplName);
                                                                                                                               
    sendEvt.info.vip_evt.info.vipCommonEvt.handle.poolHdl =
@@ -239,7 +239,7 @@ ifnd_proc_ifnd_vip_del_vipd(IFSV_CB *cb, IFSV_EVT  *pEvt)
    memset(&sendEvt,0,sizeof(IFSV_EVT));
                                                                                                                               
    sendEvt.type = IFND_VIP_FREE_REQ;
-   m_NCS_STRCPY(&sendEvt.info.vip_evt.info.ifndVipFree.handle.vipApplName,
+   strcpy(&sendEvt.info.vip_evt.info.ifndVipFree.handle.vipApplName,
                 &pEvt->info.vip_evt.info.ifaVipFree.handle.vipApplName);
                                                                                                                               
    sendEvt.info.vip_evt.info.ifndVipFree.handle.poolHdl =
@@ -383,7 +383,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
 
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
-         m_NCS_STRCPY(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
          m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
                              IFSV_VIP_SENDING_IPXS_ADD_IP_REQ);
 
@@ -393,7 +393,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          NCS_IPXS_IPAM_VIP_SET(sendEvt.info.nd.atond_upd.ip_info.ip_attr);
          sendEvt.info.nd.atond_upd.ip_info.delip_cnt =  1;
          sendEvt.info.nd.atond_upd.ip_info.delip_list = ipInfo;
-         m_NCS_STRCPY(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
          m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
                              IFSV_VIP_SENDING_IPXS_DEL_IP_REQ );
          break;
@@ -404,7 +404,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          ifIpInfo.ipaddr.ipaddr.type = ipInfo->ipaddr.type;
          ifIpInfo.ipaddr.mask_len = ipInfo->mask_len;
          ifIpInfo.ipaddr.ipaddr.info.v4 = ipInfo->ipaddr.info.v4;
-         m_NCS_STRCPY(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
          ifIpInfo.refCnt = 0;
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
@@ -418,7 +418,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          ifIpInfo.ipaddr.ipaddr.type = ipInfo->ipaddr.type;
          ifIpInfo.ipaddr.mask_len = ipInfo->mask_len;
          ifIpInfo.ipaddr.ipaddr.info.v4 = ipInfo->ipaddr.info.v4;
-         m_NCS_STRCPY(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
          ifIpInfo.refCnt = 1;
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
@@ -668,7 +668,7 @@ uns32 ifnd_ifa_proc_get_ip_from_stale_entry(IFSV_CB *cb, IFSV_EVT *evt)
 
     ipEvt.type = IFND_GET_IP_FROM_STALE_ENTRY_REQ;
 
-    m_NCS_STRCPY(&ipEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,
+    strcpy(&ipEvt.info.vip_evt.info.vipCommonEvt.handle.vipApplName,
                  &evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName);
 
     ipEvt.info.vip_evt.info.vipCommonEvt.handle.poolHdl = 
@@ -786,7 +786,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
 
     memset(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
 
-    m_NCS_STRCPY(&vipHandle.vipApplName,evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
+    strcpy(&vipHandle.vipApplName,evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
     vipHandle.poolHdl     = evt->info.vip_evt.info.ifaVipAdd.handle.poolHdl;
     vipHandle.ipPoolType     = evt->info.vip_evt.info.ifaVipAdd.handle.ipPoolType;
 
@@ -827,7 +827,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
          sendIfdEvt.type = IFND_VIPD_INFO_ADD_REQ;
 
          /* Forming a IfD event and sending sync mds message to IfD */
-         m_NCS_STRCPY(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.handle.vipApplName,
+         strcpy(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.handle.vipApplName,
                           &evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
 
          sendIfdEvt.info.vip_evt.info.ifndVipAdd.handle.poolHdl = 
@@ -839,10 +839,10 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
          sprintf(intfStr,"NODE%d:%s",cb->my_node_id,
                             (uns8 *)&evt->info.vip_evt.info.ifaVipAdd.intfName);
 /*
-         m_NCS_STRCPY(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.intfName,
+         strcpy(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.intfName,
                            &evt->info.vip_evt.info.ifaVipAdd.intfName);
 */
-         m_NCS_STRCPY(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.intfName,
+         strcpy(&sendIfdEvt.info.vip_evt.info.ifndVipAdd.intfName,
                        intfStr);
 
          sendIfdEvt.info.vip_evt.info.ifndVipAdd.ipAddr.ipaddr.info.v4 =
@@ -904,7 +904,7 @@ uns32 ifnd_ifa_proc_vipd_info_add(IFSV_CB *cb, IFSV_EVT *evt)
          /* Forming a VIPDC record entry */
          memset(pVipdcEntry,0,sizeof(IFSV_IFND_VIPDC));
 
-         m_NCS_STRCPY(&pVipdcEntry->handle.vipApplName,
+         strcpy(&pVipdcEntry->handle.vipApplName,
                       &evt->info.vip_evt.info.ifaVipAdd.handle.vipApplName);
 
          pVipdcEntry->handle.poolHdl =
@@ -1292,7 +1292,7 @@ uns32   ifnd_ifa_proc_vip_free(IFSV_CB *cb,IFSV_EVT  *pEvt)
        {
            sendEvt.type = IFND_VIP_MARK_VIPD_STALE;
        }
-       m_NCS_STRCPY(&sendEvt.info.vip_evt.info.ifndVipFree.handle.vipApplName,
+       strcpy(&sendEvt.info.vip_evt.info.ifndVipFree.handle.vipApplName,
                     &pEvt->info.vip_evt.info.ifaVipFree.handle.vipApplName);
 
        sendEvt.info.vip_evt.info.ifndVipFree.handle.poolHdl = 

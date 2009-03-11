@@ -336,11 +336,11 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
-      m_NCS_STRCPY(healthy.key,"A1B2");
+      strcpy(healthy.key,"A1B2");
    }
    else
    {
-      m_NCS_STRCPY(healthy.key,health_key);
+      strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);
 

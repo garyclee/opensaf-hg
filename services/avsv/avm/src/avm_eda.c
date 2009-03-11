@@ -153,7 +153,7 @@ avm_eda_initialize(AVM_CB_T *cb)
 
    open_flags = SA_EVT_CHANNEL_CREATE | SA_EVT_CHANNEL_SUBSCRIBER;
    cb->event_chan_name.length = m_NCS_STRLEN(AVM_HPI_EVT_CHANNEL_NAME);
-   m_NCS_STRCPY(cb->event_chan_name.value, AVM_HPI_EVT_CHANNEL_NAME);
+   strcpy(cb->event_chan_name.value, AVM_HPI_EVT_CHANNEL_NAME);
   
    rc = saEvtSelectionObjectGet(cb->eda_hdl, &cb->eda_sel_obj);
    if(SA_AIS_OK != rc)

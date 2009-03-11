@@ -816,7 +816,7 @@ ifd_ipxs_proc_data_ifip_info(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
      if((m_NCS_IPXS_IS_IPAM_VIP_SET(ipinfo->ip_attr)) &&
            (!m_NCS_IPXS_IS_IPAM_VIP_REFCNT_SET(ipinfo->ip_attr)))
      {
-        m_NCS_STRCPY(ifip_info->intfName,ipinfo->intfName);
+        strcpy(ifip_info->intfName,ipinfo->intfName);
         ifip_info->shelfId    = ipinfo->shelfId;
         ifip_info->slotId     = ipinfo->slotId;
         /* embedding subslot changes */

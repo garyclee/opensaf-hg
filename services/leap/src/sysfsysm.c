@@ -892,7 +892,7 @@ uns32 sm_init()
 
 
   /* Create SYSMON MAIN TASK and MBX */
-  m_NCS_STRCPY(gl_sysmon.sysmon_task_name,"SYSMON_TASK");
+  strcpy(gl_sysmon.sysmon_task_name,"SYSMON_TASK");
 
   if (m_NCS_IPC_CREATE(&gl_sysmon.sysmon_mbx) != NCSCC_RC_SUCCESS)
     return NCSCC_RC_FAILURE;
@@ -3049,7 +3049,7 @@ uns32 sm_stktrace_add(NCSSYSM_MEM_STK_ADD * info)
     {
         if(NULL == mmgr.stktrace_info[index].ste)
         {
-            m_NCS_STRCPY(mmgr.stktrace_info[index].file, info->i_file);
+            strcpy(mmgr.stktrace_info[index].file, info->i_file);
             mmgr.stktrace_info[index].line = info->i_line;
             index++;
             break;
@@ -3080,7 +3080,7 @@ uns32 sm_stktrace_flush(NCSSYSM_MEM_STK_FLUSH * info)
                 ste = next;
                 count++;
             }while(NULL != ste);
-            m_NCS_STRCPY(mmgr.stktrace_info[index].file, "");
+            strcpy(mmgr.stktrace_info[index].file, "");
             mmgr.stktrace_info[index].line = 0;
             mmgr.stktrace_info[index].ste = NULL;
         }

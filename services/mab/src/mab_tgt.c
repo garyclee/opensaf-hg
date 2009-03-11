@@ -768,7 +768,7 @@ static uns32 pssts_set_config (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_SET_CONFIG * s
     uns32      retval;
     uns8       buf[NCS_PSSTS_MAX_PATH_LEN];
 
-    m_NCS_OS_STRCPY(inst->current_profile, set_config->i_current_profile_name);
+    strcpy(inst->current_profile, set_config->i_current_profile_name);
 
     /* Now create the Root directory */
     file.info.dir_exists.i_dir_name = inst->root_dir;
@@ -920,7 +920,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
        }
        memset(node, '\0', sizeof(NCS_PSSTS_SORT_NODE));
        node->key.len = m_NCS_STRLEN(file.info.get_list.o_namelist[i]);
-       m_NCS_STRCPY((char*)&node->key.name, file.info.get_list.o_namelist[i]);
+       strcpy((char*)&node->key.name, file.info.get_list.o_namelist[i]);
        m_NCS_OS_MEMFREE(file.info.get_list.o_namelist[i], NULL);
 
        pNode = (NCS_PATRICIA_NODE *)node;
@@ -946,7 +946,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
        len = m_NCS_STRLEN(get_next->i_profile_name);
        if(len != 0)
        {
-          m_NCS_STRCPY(&key.name, get_next->i_profile_name);
+          strcpy(&key.name, get_next->i_profile_name);
        }
     }
     if(len == 0)
@@ -965,7 +965,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     }
 
     /* Got the required node. Now, copy the data to the returnable-location. */
-    m_NCS_STRCPY(get_next->io_buffer, ((NCS_PSSTS_SORT_NODE*)pNode)->key.name);
+    strcpy(get_next->io_buffer, ((NCS_PSSTS_SORT_NODE*)pNode)->key.name);
 
     /* Cleanup the temporary sort database */
     pssts_destroy_temp_sort_db(&lcl_db.tree);
@@ -1201,7 +1201,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
           (m_NCS_STRCMP((char *)&next_pwe, "..") == 0) ||
           (m_NCS_STRCMP((char *)&next_pwe, "ProDesc.txt") == 0))
        {
-          m_NCS_STRCPY((char *)&cur_pwe, (char *)&next_pwe);
+          strcpy((char *)&cur_pwe, (char *)&next_pwe);
           file.info.get_next.i_dir_name = (char*)&prof_path;
           file.info.get_next.i_file_name  = (char*)&cur_pwe;
           file.info.get_next.i_buf_size   = 64;
@@ -1221,7 +1221,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
            ncs_enc_claim_space(&uba, 2);
            get_clients->o_usrbuf = uba.start;
        }
-       m_NCS_STRCPY((char *)&cur_pwe, (char *)&next_pwe);
+       strcpy((char *)&cur_pwe, (char *)&next_pwe);
        /* encode "cur_pwe" into o_uba */
        p8 = ncs_enc_reserve_space(&uba, 2);
        if(p8 == NULL)
@@ -1258,7 +1258,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
           if((m_NCS_STRCMP((char *)&next_pcn, ".") == 0) ||
              (m_NCS_STRCMP((char *)&next_pcn, "..") == 0))
           {
-             m_NCS_STRCPY((char *)&cur_pcn, (char *)&next_pcn);
+             strcpy((char *)&cur_pcn, (char *)&next_pcn);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
              file.info.get_next.i_file_name  = (char*)&cur_pcn;
              file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1276,7 +1276,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
              }
              ncs_enc_claim_space(&uba, 2);
           }
-          m_NCS_STRCPY((char *)&cur_pcn, (char *)&next_pcn);
+          strcpy((char *)&cur_pcn, (char *)&next_pcn);
           ++pcn_cnt;
           /* encode "cur_pcn" into o_uba */
           len = m_NCS_STRLEN((char*)&cur_pcn) + 1;
@@ -1368,7 +1368,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           (m_NCS_STRCMP((char *)&next_pwe, "..") == 0) ||
           (m_NCS_STRCMP((char *)&next_pwe, "ProDesc.txt") == 0))
        {
-          m_NCS_STRCPY((char *)&cur_pwe, (char *)&next_pwe);
+          strcpy((char *)&cur_pwe, (char *)&next_pwe);
           file.info.get_next.i_dir_name = (char*)&prof_path;
           file.info.get_next.i_file_name  = (char*)&cur_pwe;
           file.info.get_next.i_buf_size   = 64;
@@ -1390,7 +1390,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
            get_mlist->o_usrbuf = uba.start;
            ncs_enc_claim_space(&uba, 2);
        }
-       m_NCS_STRCPY((char *)&cur_pwe, (char *)&next_pwe);
+       strcpy((char *)&cur_pwe, (char *)&next_pwe);
 
        sscanf((char*)&cur_pwe, "%d", (int*)&pwe_id);
        enc_pwe_id_loc = NULL;
@@ -1416,7 +1416,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           if((m_NCS_STRCMP((char *)&next_pcn, ".") == 0) ||
              (m_NCS_STRCMP((char *)&next_pcn, "..") == 0))
           {
-             m_NCS_STRCPY((char *)&cur_pcn, (char *)&next_pcn);
+             strcpy((char *)&cur_pcn, (char *)&next_pcn);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
              file.info.get_next.i_file_name  = (char*)&cur_pcn;
              file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1427,7 +1427,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           else if(m_NCS_STRCMP((char*)&next_pcn, get_mlist->i_pcn) == 0)
           {
              /* Now, get the table-list */
-             m_NCS_STRCPY((char *)&cur_pcn, (char *)&next_pcn);
+             strcpy((char *)&cur_pcn, (char *)&next_pcn);
              file.info.dir_path.i_main_dir   = (char*)&pwe_path;
              file.info.dir_path.i_sub_dir    = (char*)&cur_pcn;
              file.info.dir_path.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1456,7 +1456,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
                 {
                    valid_tbl_id = FALSE;
                 }
-                m_NCS_STRCPY((char *)&cur_tbl, (char *)&next_tbl);
+                strcpy((char *)&cur_tbl, (char *)&next_tbl);
 
                 for(i = 0; next_tbl[i] != '\0'; i++)
                 {
@@ -1472,7 +1472,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
 
                 if(FALSE == valid_tbl_id)
                 {
-                   m_NCS_STRCPY((char *)&cur_tbl, (char *)&next_tbl);
+                   strcpy((char *)&cur_tbl, (char *)&next_tbl);
                    file.info.get_next.i_dir_name = (char*)&pcn_path;
                    file.info.get_next.i_file_name  = (char*)&cur_tbl;
                    file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1540,7 +1540,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
                 ncs_enc_claim_space(&uba, 4);
                 ++ tbl_cnt; /* Increment the count */
 
-                m_NCS_STRCPY((char *)&cur_tbl, (char *)&next_tbl);
+                strcpy((char *)&cur_tbl, (char *)&next_tbl);
                 file.info.get_next.i_dir_name = (char*)&pcn_path;
                 file.info.get_next.i_file_name  = (char*)&cur_tbl;
                 file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1559,7 +1559,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
              }
              break; /* Go to the next PWE for the same PCN */
           }
-          m_NCS_STRCPY((char *)&cur_pcn, (char *)&next_pcn);
+          strcpy((char *)&cur_pcn, (char *)&next_pcn);
           file.info.get_next.i_dir_name = (char*)&pwe_path;
           file.info.get_next.i_file_name  = (char*)&cur_pcn;
           file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1810,8 +1810,8 @@ static uns32 ncspssts_lm_create(NCS_PSSTS_LM_CREATE * create)
     if (inst == NULL)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_STRCPY(inst->root_dir, (char *)create->i_root_dir);
-    m_NCS_OS_STRCPY(inst->current_profile, NCS_PSSTS_DEFAULT_PROFILE);
+    strcpy(inst->root_dir, (char *)create->i_root_dir);
+    strcpy(inst->current_profile, NCS_PSSTS_DEFAULT_PROFILE);
     inst->my_key = create->i_usr_key;
 
     inst->hmpool_id = create->i_hmpool_id;
