@@ -287,7 +287,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
    opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
    opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-   m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
+   memcpy(opr.info.msg.req.info.reg.queue.size, qnode->qinfo.size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
 
    /* Request the ASAPi */
    rc = asapi_opr_hdlr(&opr);
@@ -342,7 +342,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
      opr.info.msg.req.info.reg.queue.status = qnode->qinfo.sendingState;
      opr.info.msg.req.info.reg.queue.creationFlags = qnode->qinfo.queueStatus.creationFlags;
 
-     m_NCS_MEMCPY(opr.info.msg.req.info.reg.queue.size,qnode->qinfo.size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
+     memcpy(opr.info.msg.req.info.reg.queue.size,qnode->qinfo.size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
      rc = asapi_opr_hdlr(&opr);  /*May be insert a log*/
      /* Free the response Event */
      if(opr.info.msg.resp) 

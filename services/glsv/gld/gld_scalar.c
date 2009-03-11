@@ -128,7 +128,7 @@ uns32  saflckscalarobject_extract(NCSMIB_PARAM_VAL* param,
    {
       param->i_fmat_id = NCSMIB_FMAT_OCT;
       param->i_length  = gld_cb->saf_spec_ver.length; 
-      m_NCS_MEMCPY((uns8 *)buffer,gld_cb->saf_spec_ver.value,param->i_length);
+      memcpy((uns8 *)buffer,gld_cb->saf_spec_ver.value,param->i_length);
       param->info.i_oct     = (uns8*)buffer;
    }
    else
@@ -136,7 +136,7 @@ uns32  saflckscalarobject_extract(NCSMIB_PARAM_VAL* param,
    {
       param->i_fmat_id = NCSMIB_FMAT_OCT;
       param->i_length  = gld_cb->saf_agent_vend.length;
-      m_NCS_MEMCPY((uns8 *)buffer,gld_cb->saf_agent_vend.value,param->i_length);
+      memcpy((uns8 *)buffer,gld_cb->saf_agent_vend.value,param->i_length);
       param->info.i_oct     = (uns8*)buffer;
    }
    else

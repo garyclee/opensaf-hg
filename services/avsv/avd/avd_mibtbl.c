@@ -470,7 +470,7 @@ uns32 saamfscalars_extract(NCSMIB_PARAM_VAL* param,
 /*
   m_NCS_MEMSET(&si_name, '\0', sizeof(SaNameT));
  temp_name.length = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(temp_name.value,
+      memcpy(temp_name.value,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    temp_name.length);
 

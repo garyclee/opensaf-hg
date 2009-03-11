@@ -82,7 +82,7 @@ ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
         m_LEAP_DBG_SINK(0);
         return (USRBUF *) 0;
      }
-     m_NCS_MEMCPY(os, s,(size_t)count);
+     memcpy(os, s,(size_t)count);
   }
 
   /** Strip off "count" number of octets from the packet...
@@ -382,7 +382,7 @@ ncs_decode_key(uns8 **stream, NCS_KEY* key)
       len = *(*stream)++;
       m_KEY_CHK_LEN(key->val.oct.len);
       key->val.oct.len = len;
-      m_NCS_MEMCPY(key->val.oct.data, *stream, len);
+      memcpy(key->val.oct.data, *stream, len);
       *stream = *stream + len; /* move pointer beyond what was consumed */
       return (3 + len + 1);
       break;

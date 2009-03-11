@@ -239,7 +239,7 @@ AVD_SU_SI_REL * avd_su_susi_struc_find(AVD_CL_CB *cb,AVD_SU *su,
    if(host_order == TRUE)
    {
       m_NCS_MEMSET((char *)&si_name_net, '\0', sizeof(SaNameT));
-      m_NCS_MEMCPY(si_name_net.value,si_name.value,si_name.length);
+      memcpy(si_name_net.value,si_name.value,si_name.length);
       si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
       
       while ((su_si != AVD_SU_SI_REL_NULL) && 
@@ -345,7 +345,7 @@ AVD_SU_SI_REL * avd_susi_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,
    if(host_order == TRUE)
    {
       m_NCS_MEMSET((char *)&si_name_net, '\0', sizeof(SaNameT));
-      m_NCS_MEMCPY(si_name_net.value,si_name.value,si_name.length);
+      memcpy(si_name_net.value,si_name.value,si_name.length);
       si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
       
       while ((su_si != AVD_SU_SI_REL_NULL) && 
@@ -882,7 +882,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_S
    m_NCS_MEMSET((char *)rank_elt, '\0', sizeof(AVD_SUS_PER_SI_RANK));
 
    rank_elt->indx.si_name_net.length = indx.si_name_net.length;
-   m_NCS_MEMCPY(rank_elt->indx.si_name_net.value,indx.si_name_net.value,m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length));
+   memcpy(rank_elt->indx.si_name_net.value,indx.si_name_net.value,m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length));
 
    rank_elt->indx.su_rank_net = indx.su_rank_net;
  
@@ -930,7 +930,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_
 
    m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
-   m_NCS_MEMCPY(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
    
    rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
@@ -962,7 +962,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS
 
    m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
-   m_NCS_MEMCPY(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
 
    rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
@@ -1000,7 +1000,7 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *cb, A
 
    m_NCS_MEMSET(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
    rank_indx.si_name_net.length = indx.si_name_net.length;
-   m_NCS_MEMCPY(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
    rank_indx.su_rank_net = indx.su_rank_net;
 
    rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
@@ -1405,7 +1405,7 @@ uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    }else if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSISUName_ID)
    {
          rank_elt->su_name.length = arg->req.info.set_req.i_param_val.i_length;
-         m_NCS_MEMCPY(rank_elt->su_name.value,
+         memcpy(rank_elt->su_name.value,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    rank_elt->su_name.length);
    }

@@ -276,7 +276,7 @@ static void mqnd_mds_cpy(MQND_CB *pMqnd, MDS_CALLBACK_COPY_INFO *cpy)
 
    pEvt = m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQND);
    if(pEvt) {
-      m_NCS_MEMCPY(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
+      memcpy(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
       if(MQSV_EVT_ASAPI == pEvt->type) {
          pEvt->msg.asapi->usg_cnt++; /* Increment the use count */
       }     

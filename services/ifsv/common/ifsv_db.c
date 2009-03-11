@@ -134,7 +134,7 @@ ifsv_intf_rec_add (IFSV_INTF_DATA *i_rec_data,
    }
    
    m_NCS_MEMSET(rec,0,sizeof(IFSV_INTF_REC));
-   m_NCS_MEMCPY(&rec->intf_data, i_rec_data, sizeof(IFSV_INTF_DATA));
+   memcpy(&rec->intf_data, i_rec_data, sizeof(IFSV_INTF_DATA));
    rec->intf_data.active = TRUE;
 
    /* While adding the record, set all the attributes to TRUE */
@@ -402,7 +402,7 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
       if (0 != m_NCS_MEMCMP ((char *)&actual_data->if_info.phy_addr, 
               (char *)&mod_data->if_info.phy_addr, 6))
       {
-              m_NCS_MEMCPY(actual_data->if_info.phy_addr, 
+              memcpy(actual_data->if_info.phy_addr, 
                            mod_data->if_info.phy_addr, 6);      
               modify = TRUE;
       }
@@ -1165,7 +1165,7 @@ ifsv_ifindex_spt_map_del_all (IFSV_CB *cb)
    spt_info = (IFSV_SPT_REC*)if_node;
    while (spt_info != NULL)
    {      
-      m_NCS_MEMCPY(&spt, &spt_info->spt_map.spt, 
+      memcpy(&spt, &spt_info->spt_map.spt, 
          sizeof(NCS_IFSV_SPT));
       ifsv_ifindex_spt_map_del(spt_info->spt_map.spt, cb);            
       if_node = ncs_patricia_tree_getnext(&cb->if_map_tbl, (uns8*)&spt);
@@ -1418,13 +1418,13 @@ uns32 ifsv_modify_svcdest_list(NCS_IFSV_SVC_DEST_UPD *svcd, IFSV_INTF_DATA *dest
       /* Restore the old list */
       if(old_svdcnt)
       {
-         m_NCS_OS_MEMCPY(&dest->if_info.addsvd_list[0], 
+         memcpy(&dest->if_info.addsvd_list[0], 
             &old_svdlist[0], 
             (old_svdcnt*sizeof(NCS_SVDEST)));
       }
       
       /* Append the old list */
-      m_NCS_OS_MEMCPY(&dest->if_info.addsvd_list[old_svdcnt], 
+      memcpy(&dest->if_info.addsvd_list[old_svdcnt], 
             &svcd->i_svdest, sizeof(NCS_SVDEST));
 
       dest->if_info.addsvd_cnt = (uns8) cnt;
@@ -1480,7 +1480,7 @@ uns32 ifsv_intf_info_cpy(NCS_IFSV_INTF_INFO *src,
    uns32 rc;
 
    /* Copy the record */
-   m_NCS_OS_MEMCPY(dest, src, sizeof(NCS_IFSV_INTF_INFO));
+   memcpy(dest, src, sizeof(NCS_IFSV_INTF_INFO));
 
    rc = ifsv_intf_info_svd_list_cpy(src, dest, purpose);
 
@@ -1514,7 +1514,7 @@ uns32 ifsv_intf_info_svd_list_cpy(NCS_IFSV_INTF_INFO *src,
    /* Copy the internal pointers */
    if(dest->addsvd_list)
    {
-      m_NCS_OS_MEMCPY(dest->addsvd_list, src->addsvd_list,
+      memcpy(dest->addsvd_list, src->addsvd_list,
                      (src->addsvd_cnt * sizeof(NCS_SVDEST)));
    }
 
@@ -1522,7 +1522,7 @@ uns32 ifsv_intf_info_svd_list_cpy(NCS_IFSV_INTF_INFO *src,
 
    if(dest->delsvd_list)
    {
-      m_NCS_OS_MEMCPY(dest->delsvd_list, src->delsvd_list,
+      memcpy(dest->delsvd_list, src->delsvd_list,
                      (src->delsvd_cnt * sizeof(NCS_SVDEST)));
    }
 

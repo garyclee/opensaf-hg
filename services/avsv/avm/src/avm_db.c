@@ -71,7 +71,7 @@ avm_add_ent_info(
    }   
    
    m_NCS_MEMSET((uns8 *)ent_info, '\0', sizeof(AVM_ENT_INFO_T));
-   m_NCS_MEMCPY(ent_info->entity_path.Entry, entity_path->Entry, sizeof(SaHpiEntityPathT));
+   memcpy(ent_info->entity_path.Entry, entity_path->Entry, sizeof(SaHpiEntityPathT));
 
    ent_info->tree_node.key_info = (uns8 *)(ent_info->entity_path.Entry);
 
@@ -289,7 +289,7 @@ avm_add_node_name_info(
    
    m_NCS_MEMSET(node_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
 
-   m_NCS_MEMCPY(node_info->node_name.value, node_name.value, node_name.length);
+   memcpy(node_info->node_name.value, node_name.value, node_name.length);
    node_info->node_name.length = node_name.length;
 
    node_info->tree_node_name.key_info = (uns8 *)(node_info->node_name.value);
@@ -585,7 +585,7 @@ avm_insert_fault_domain(
 
    node = m_MMGR_ALLOC_AVM_FAULT_DOMAIN;
    
-   m_NCS_MEMCPY(node->ent_path.Entry, entity_path->Entry, sizeof(SaHpiEntityPathT));
+   memcpy(node->ent_path.Entry, entity_path->Entry, sizeof(SaHpiEntityPathT));
 
    node->next             = head;
    ent_info->fault_domain = node;
@@ -624,7 +624,7 @@ avm_add_valid_info(
    }   
    
    m_NCS_MEMSET((uns8 *)valid_info, '\0', sizeof(AVM_VALID_INFO_T));
-   m_NCS_MEMCPY(valid_info->desc_name.name, desc_name->name, desc_name->length);
+   memcpy(valid_info->desc_name.name, desc_name->name, desc_name->length);
    valid_info->desc_name.length = desc_name->length;
   
 
@@ -735,7 +735,7 @@ avm_add_ent_str_info(
                     )
 {
    ent_info->ep_str.length = m_NCS_OS_HTONS(ep->length);
-   m_NCS_MEMCPY(ent_info->ep_str.name, ep->name, ep->length);    
+   memcpy(ent_info->ep_str.name, ep->name, ep->length);    
 
    ent_info->tree_node_str.key_info = (uns8 *)(&ent_info->ep_str);
    ent_info->tree_node_str.bit      = 0;
@@ -780,7 +780,7 @@ avm_find_ent_str_info(
    
    m_NCS_MEMSET(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
    
-   m_NCS_MEMCPY(ep_net.name, ep->name, ep->length);
+   memcpy(ep_net.name, ep->name, ep->length);
    if(TRUE == is_host_order )
       ep_net.length = m_NCS_OS_HTONS(ep->length);      
    else
@@ -826,7 +826,7 @@ avm_find_next_ent_str_info(
    
    m_NCS_MEMSET(ep_net.name, '\0', AVM_MAX_INDEX_LEN);
    
-   m_NCS_MEMCPY(ep_net.name, ep->name, ep->length);
+   memcpy(ep_net.name, ep->name, ep->length);
    ep_net.length = m_NCS_OS_HTONS(ep->length);      
    
    ent_info = (AVM_ENT_INFO_T*) ncs_patricia_tree_getnext(&avm_cb->db.ent_info_str_anchor, (uns8*)&ep_net);

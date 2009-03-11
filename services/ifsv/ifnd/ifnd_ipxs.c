@@ -737,7 +737,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
          return IPXS_NETLINK_WRONG_NLMSG_LEN;
 
       m_NCS_MEMSET(&lcl_ifname, '\0', sizeof(lcl_ifname));
-      /* m_NCS_MEMCPY(&lcl_ifname, RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ); */
+      /* memcpy(&lcl_ifname, RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ); */
       m_NCS_STRCPY(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]));
 
       if(ifnd_ipxs_get_ifndx_for_interface_number(ifsv_cb, ipxs_cb, ifi->ifi_index,
@@ -1042,7 +1042,7 @@ ifnd_ipxs_data_proc_ifip_info (IPXS_CB *cb, IPXS_EVT *ipxs_evt,
                         1 , &add_flag);
               if(rc == NCSCC_RC_SUCCESS)
               {
-               m_NCS_OS_MEMCPY(&updated_ipaddr_ptr[updated_ipaddr_counter], &temp_ptr->addip_list[i], 
+               memcpy(&updated_ipaddr_ptr[updated_ipaddr_counter], &temp_ptr->addip_list[i], 
                                sizeof(IPXS_IFIP_IP_INFO));
                updated_ipaddr_counter++;
               } 
@@ -1509,7 +1509,7 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
                                                                                     (intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x000000ff));        
        /* Store the IP Addresses in an array */
        cb->nl_addr_info.list[cb->nl_addr_info.num_ip_addr].if_index = intf_rec->if_index;
-       m_NCS_OS_MEMCPY(&(cb->nl_addr_info.list[cb->nl_addr_info.num_ip_addr].ippfx),
+       memcpy(&(cb->nl_addr_info.list[cb->nl_addr_info.num_ip_addr].ippfx),
                        intf_rec->ip_info.delip_list, sizeof(NCS_IPPFX));
        cb->nl_addr_info.num_ip_addr ++;
        goto end;
@@ -1531,7 +1531,7 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    send_evt.info.d.ndtod_upd.if_index = intf_rec->if_index;
 
    /* Copy the IP info, and its internal pointers */
-   m_NCS_OS_MEMCPY(&send_evt.info.d.ndtod_upd.ip_info, 
+   memcpy(&send_evt.info.d.ndtod_upd.ip_info, 
                    &intf_rec->ip_info, sizeof(NCS_IPXS_IPINFO));
 
     /* send the information to the IfD */

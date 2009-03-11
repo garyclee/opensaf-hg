@@ -387,7 +387,7 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     arg.info.create.i_vrid = req_info->info.inst.i_env_id;
     
     /* get the instance name of the application */ 
-    m_NCS_OS_MEMCPY(&arg.info.create.i_inst_name, 
+    memcpy(&arg.info.create.i_inst_name, 
                     &req_info->info.inst.i_inst_name, 
                     sizeof(SaNameT)); 
 
@@ -472,7 +472,7 @@ maclib_mac_uninstantiate(PW_ENV_ID  env_id,
     m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSMAC_LM_ARG)); 
     arg.i_op      = NCSMAC_LM_OP_DESTROY;
     arg.info.destroy.i_env_id = env_id;
-    m_NCS_OS_MEMCPY(&arg.info.destroy.i_inst_name, 
+    memcpy(&arg.info.destroy.i_inst_name, 
                     &i_inst_name, 
                     sizeof(SaNameT)); 
     arg.info.destroy.i_mac_hdl = i_mac_handle;
@@ -493,7 +493,7 @@ maclib_mac_uninstantiate(PW_ENV_ID  env_id,
         spir_info.type = NCS_SPIR_REQ_REL_INST; 
         spir_info.i_sp_abstract_name = m_MAA_SP_ABST_NAME; 
         spir_info.i_environment_id = env_id; 
-        m_NCS_OS_MEMCPY(&spir_info.i_instance_name, &i_inst_name, sizeof(SaNameT));
+        memcpy(&spir_info.i_instance_name, &i_inst_name, sizeof(SaNameT));
         status = ncs_spir_api(&spir_info);
         if (status != NCSCC_RC_SUCCESS)
         {
@@ -620,7 +620,7 @@ mac_inst_list_add(PW_ENV_ID env_id, uns32 i_mac_hdl, SaNameT i_inst_name)
     m_NCS_OS_MEMSET(add_me, 0, sizeof(MAB_INST_NODE)); 
     add_me->i_env_id = env_id; 
     add_me->i_hdl = i_mac_hdl; 
-    m_NCS_OS_MEMCPY(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT));  
+    memcpy(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT));  
 
     /* register with the society */ 
     add_me->next = gl_mac_inst_list; 

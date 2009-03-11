@@ -239,7 +239,7 @@ ifd_a2s_async_spt_map_create_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
   a2s_msg->type = IFD_A2S_EVT_IFINDEX_SPT_MAP;
   a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.type = 
                                    IFD_A2S_IFINDEX_SPT_MAP_EVT_CREATE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.info, msg, 
                sizeof(NCS_IFSV_SPT_MAP));
 
   return NCSCC_RC_SUCCESS;
@@ -271,7 +271,7 @@ ifd_a2s_async_spt_map_delete_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
   a2s_msg->type = IFD_A2S_EVT_IFINDEX_SPT_MAP;
   a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.type = 
                                    IFD_A2S_IFINDEX_SPT_MAP_EVT_DELETE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.info, msg,
+  memcpy(&a2s_msg->info.ifd_a2s_ifindex_spt_map_evt.info, msg,
                sizeof(NCS_IFSV_SPT_MAP));
 
   return NCSCC_RC_SUCCESS;
@@ -299,7 +299,7 @@ ifd_a2s_async_data_create_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
                   ((IFSV_INTF_DATA *)msg)->if_index);
   a2s_msg->type = IFD_A2S_EVT_INTF_DATA;
   a2s_msg->info.ifd_a2s_intf_data_evt.type = IFD_A2S_INTF_DATA_EVT_CREATE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
                sizeof(IFSV_INTF_DATA));
 
   return NCSCC_RC_SUCCESS;
@@ -327,7 +327,7 @@ ifd_a2s_async_data_modify_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
                   ((IFSV_INTF_DATA *)msg)->if_index);
   a2s_msg->type = IFD_A2S_EVT_INTF_DATA;
   a2s_msg->info.ifd_a2s_intf_data_evt.type = IFD_A2S_INTF_DATA_EVT_MODIFY;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
                sizeof(IFSV_INTF_DATA));
 
   return NCSCC_RC_SUCCESS;
@@ -356,7 +356,7 @@ ifd_a2s_async_data_marked_delete_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
   a2s_msg->type = IFD_A2S_EVT_INTF_DATA;
   a2s_msg->info.ifd_a2s_intf_data_evt.type = 
                                         IFD_A2S_INTF_DATA_EVT_MARKED_DELETE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
                sizeof(IFSV_INTF_DATA));
 
   return NCSCC_RC_SUCCESS;
@@ -384,7 +384,7 @@ ifd_a2s_async_data_delete_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
                   ((IFSV_INTF_DATA *)msg)->if_index);
   a2s_msg->type = IFD_A2S_EVT_INTF_DATA;
   a2s_msg->info.ifd_a2s_intf_data_evt.type = IFD_A2S_INTF_DATA_EVT_DELETE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_intf_data_evt.info, msg, 
                sizeof(IFSV_INTF_DATA));
 
   return NCSCC_RC_SUCCESS;
@@ -418,7 +418,7 @@ ifd_a2s_async_svc_upd_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
 
   a2s_msg->type = IFD_A2S_EVT_SVC_DEST_UPD;
   a2s_msg->info.ifd_a2s_svc_dest_upd_evt.type = IFD_A2S_SVC_DEST_UPD_EVT_BASE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_svc_dest_upd_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_svc_dest_upd_evt.info, msg, 
                sizeof(NCS_IFSV_SVC_DEST_UPD));
   return res;
 
@@ -452,7 +452,7 @@ ifd_a2s_ipxs_info_send(IFD_A2S_MSG *a2s_msg, char *msg)
   a2s_msg->type = IFD_A2S_EVT_IPXS_INTF_INFO;
   a2s_msg->info.ifd_a2s_ipxs_intf_info_evt.type = 
                                             IFD_A2S_IPXS_INTF_INFO_EVT_BASE;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ipxs_intf_info_evt.info, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ipxs_intf_info_evt.info, msg, 
                sizeof(IPXS_EVT_IF_INFO));
   return res;
 
@@ -755,7 +755,7 @@ ifd_a2s_ifnd_down_send(IFD_A2S_MSG *a2s_msg, char *msg)
 {
   a2s_msg->type = IFD_A2S_EVT_IFND_UP_DOWN;
   a2s_msg->info.ifd_a2s_ifnd_up_down_evt.type = IFD_A2S_IFND_DOWN_EVT;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifnd_up_down_evt.mds_dest, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ifnd_up_down_evt.mds_dest, msg, 
                sizeof(MDS_DEST));
 
   return NCSCC_RC_SUCCESS;
@@ -780,7 +780,7 @@ ifd_a2s_ifnd_up_send(IFD_A2S_MSG *a2s_msg, char *msg)
 {
   a2s_msg->type = IFD_A2S_EVT_IFND_UP_DOWN;
   a2s_msg->info.ifd_a2s_ifnd_up_down_evt.type = IFD_A2S_IFND_UP_EVT;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifnd_up_down_evt.mds_dest, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ifnd_up_down_evt.mds_dest, msg, 
                sizeof(MDS_DEST));
 
   return NCSCC_RC_SUCCESS;
@@ -808,7 +808,7 @@ ifd_a2s_ifindex_alloc_send(IFD_A2S_MSG *a2s_msg, char *msg)
                   *((NCS_IFSV_IFINDEX *)msg));
   a2s_msg->type = IFD_A2S_EVT_IFINDEX_UPD;
   a2s_msg->info.ifd_a2s_ifindex_upd_evt.type = IFD_A2S_IFINDEX_EVT_ALLOC;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifindex_upd_evt.ifindex, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ifindex_upd_evt.ifindex, msg, 
                sizeof(NCS_IFSV_IFINDEX));
 
   return NCSCC_RC_SUCCESS;
@@ -836,7 +836,7 @@ ifd_a2s_ifindex_dealloc_send(IFD_A2S_MSG *a2s_msg, char *msg)
                   *((NCS_IFSV_IFINDEX *)msg));
   a2s_msg->type = IFD_A2S_EVT_IFINDEX_UPD;
   a2s_msg->info.ifd_a2s_ifindex_upd_evt.type = IFD_A2S_IFINDEX_EVT_DEALLOC;
-  m_NCS_MEMCPY(&a2s_msg->info.ifd_a2s_ifindex_upd_evt.ifindex, msg, 
+  memcpy(&a2s_msg->info.ifd_a2s_ifindex_upd_evt.ifindex, msg, 
                sizeof(NCS_IFSV_IFINDEX));
 
   return NCSCC_RC_SUCCESS;
@@ -1971,7 +1971,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 
 
-   m_NCS_MEMCPY(&vip_handle, &ifsv_cb->record_handle, sizeof(vip_handle));
+   memcpy(&vip_handle, &ifsv_cb->record_handle, sizeof(vip_handle));
 
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
   
@@ -1983,7 +1983,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
       m_NCS_OS_MEMSET(&vip_redRec, 0, sizeof(VIP_REDUNDANCY_RECORD));
 
       res = ifd_populate_vip_redundancy_rec(p_vipd_rec, &vip_redRec);
-      m_NCS_MEMCPY(&vip_handle, &p_vipd_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
+      memcpy(&vip_handle, &p_vipd_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
 
       m_NCS_EDU_VER_EXEC(&ifsv_cb->edu_hdl, ifsv_edp_vip_chk_pt_full_rec, 
            &arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &vip_redRec, 
@@ -2001,7 +2001,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
 
    m_NCS_UNLOCK(intf_rec_lock, NCS_LOCK_WRITE);
 
-   m_NCS_MEMCPY(&ifsv_cb->record_handle, &vip_handle, sizeof(vip_handle));
+   memcpy(&ifsv_cb->record_handle, &vip_handle, sizeof(vip_handle));
  
    if(num_of_ckpts < MAX_NO_IFD_MSGS_A2S)
    {
@@ -2845,7 +2845,7 @@ static uns32  ifd_mbcsv_db_ifrec_sptmap_mismatch_correction(IFSV_CB *ifsv_cb)
  while(NULL != spt_info)
  {
    /* This intf rec corresponding to this ifindex should be available. */
-      m_NCS_MEMCPY(&spt, &spt_info->spt_map.spt, sizeof(NCS_IFSV_SPT));
+      memcpy(&spt, &spt_info->spt_map.spt, sizeof(NCS_IFSV_SPT));
       ifindex = spt_info->spt_map.if_index;
       rec_data = ifsv_intf_rec_find (ifindex, ifsv_cb); 
       if(rec_data == NULL)
@@ -2941,7 +2941,7 @@ static uns32  ifd_find_index_from_sptmap(uns32 ifindex,IFSV_CB *cb)
    spt_info = (IFSV_SPT_REC*)if_node;
    while (spt_info != NULL)
    {      
-      m_NCS_MEMCPY(&spt, &spt_info->spt_map.spt, 
+      memcpy(&spt, &spt_info->spt_map.spt, 
         sizeof(NCS_IFSV_SPT));
       if(ifindex == spt_info->spt_map.if_index)
       {

@@ -396,7 +396,7 @@ static uns32 gld_glnd_operational(GLSV_GLD_EVT* evt)
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
                         (uns8*) &node_id)) != NULL)
    {
-     m_NCS_MEMCPY(&node_details->dest_id,&evt->fr_dest_id,sizeof(MDS_DEST));
+     memcpy(&node_details->dest_id,&evt->fr_dest_id,sizeof(MDS_DEST));
      /* Cancel the restart timer if started */
      gld_stop_tmr(&node_details->restart_timer);
      node_details->status = GLND_OPERATIONAL_STATE;
@@ -409,7 +409,7 @@ static uns32 gld_glnd_operational(GLSV_GLD_EVT* evt)
       {
         if(node_list->node_id == node_id)
         {
-          m_NCS_MEMCPY(&node_list->dest_id,&evt->fr_dest_id,sizeof(MDS_DEST));
+          memcpy(&node_list->dest_id,&evt->fr_dest_id,sizeof(MDS_DEST));
         }
         node_list = node_list->next;
       }
@@ -527,7 +527,7 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT* evt)
       return NCSCC_RC_FAILURE;
 
    orphan_flag = evt->info.rsc_details.orphan;
-   m_NCS_MEMCPY(&evt->fr_dest_id,&evt->info.glnd_mds_info.mds_dest_id,sizeof(MDS_DEST)
+   memcpy(&evt->fr_dest_id,&evt->info.glnd_mds_info.mds_dest_id,sizeof(MDS_DEST)
 );
 
    if ((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,
@@ -539,7 +539,7 @@ static uns32 gld_mds_glnd_down(GLSV_GLD_EVT* evt)
    node_details->status = GLND_RESTART_STATE;
 
    m_LOG_GLD_EVT(GLD_EVT_MDS_GLND_DOWN, 0, node_details->node_id);
-   m_NCS_MEMCPY(&node_details->restart_timer.mdest_id,&node_details->dest_id,sizeof(MDS_DEST));
+   memcpy(&node_details->restart_timer.mdest_id,&node_details->dest_id,sizeof(MDS_DEST));
 
    /* Start GLSV_GLD_GLND_RESTART_TIMEOUT timer */
    gld_start_tmr(gld_cb,&node_details->restart_timer,
@@ -633,7 +633,7 @@ GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_
    }
    m_NCS_MEMSET(node_details, 0,sizeof(GLSV_GLD_GLND_DETAILS));
 
-   m_NCS_MEMCPY(&node_details->dest_id,&glnd_mds_dest,sizeof(MDS_DEST));
+   memcpy(&node_details->dest_id,&glnd_mds_dest,sizeof(MDS_DEST));
    node_details->node_id = m_NCS_NODE_ID_FROM_MDS_DEST(glnd_mds_dest);
    node_details->status = GLND_OPERATIONAL_STATE;
 

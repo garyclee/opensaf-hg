@@ -968,7 +968,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
      node_list =  rsc_info->node_list;
      no_of_ckpts++;
 
-     m_NCS_MEMCPY(&rsc_details.resource_name, &rsc_info->lck_name, sizeof(SaNameT));
+     memcpy(&rsc_details.resource_name, &rsc_info->lck_name, sizeof(SaNameT));
      rsc_details.rsc_id             = rsc_info->rsc_id;
      rsc_details.can_orphan         = rsc_info->can_orphan;
      rsc_details.orphan_lck_mode    = rsc_info->orphan_lck_mode;
@@ -981,7 +981,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
      m_NCS_MEMSET(rsc_details.node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
      if(node_list != NULL)
      {
-        m_NCS_MEMCPY(&rsc_details.node_list->dest_id,&rsc_info->node_list->dest_id,sizeof(MDS_DEST));
+        memcpy(&rsc_details.node_list->dest_id,&rsc_info->node_list->dest_id,sizeof(MDS_DEST));
         /* Get the master node for this resource */
         node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,(uns8*)&node_list->node_id);
         if(node_details == NULL)
@@ -1014,7 +1014,7 @@ static uns32  glsv_gld_mbcsv_enc_msg_rsp(GLSV_GLD_CB *gld_cb,NCS_MBCSV_CB_ARG *a
            return NCSCC_RC_FAILURE;
          }
          m_NCS_MEMSET(a2s_node_list, '\0',sizeof(GLSV_A2S_NODE_LIST));
-         m_NCS_MEMCPY(&a2s_node_list->dest_id,&node_list->dest_id,sizeof(MDS_DEST));
+         memcpy(&a2s_node_list->dest_id,&node_list->dest_id,sizeof(MDS_DEST));
          node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_get(&gld_cb->glnd_details,(uns8*)&node_list->node_id);
          if(node_details == NULL)
          {

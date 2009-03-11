@@ -241,8 +241,8 @@ uns32 hcd_hsm()
          SIM_EVT  *sim_evt;
          sim_evt = (SIM_EVT *)m_MMGR_ALLOC_SIM_EVT;
          sim_evt->evt_type = HCD_SIM_FIRMWARE_PROGRESS;
-         m_NCS_MEMCPY(&sim_evt->msg.fp_evt, (uns8 *)&event, evt_len);
-         m_NCS_MEMCPY(&sim_evt->msg.epath, (uns8 *)&RptEntry.ResourceEntity, epath_len);
+         memcpy(&sim_evt->msg.fp_evt, (uns8 *)&event, evt_len);
+         memcpy(&sim_evt->msg.epath, (uns8 *)&RptEntry.ResourceEntity, epath_len);
 
          if(m_NCS_IPC_SEND(&sim_cb->mbx, sim_evt, NCS_IPC_PRIORITY_NORMAL)
             == NCSCC_RC_FAILURE)
@@ -490,7 +490,7 @@ uns32 hcd_hsm()
          /* invdata_size = 0; */
       }
 
-      m_NCS_MEMCPY(event_data, (uns8 *)&event, evt_len);
+      memcpy(event_data, (uns8 *)&event, evt_len);
 
       /* remove the grouping elements of entity path */
       m_NCS_OS_MEMSET(&epath, 0, epath_len);
@@ -545,7 +545,7 @@ uns32 hcd_hsm()
       }
 #endif
 
-      m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+      memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
       /* Publish the consolidate event message */
       rc = hsm_eda_event_publish (evt_type, event_data, min_evt_len+invdata_size, hsm_cb);
@@ -940,7 +940,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       event_data = m_MMGR_ALLOC_HPI_INV_DATA(min_evt_len + invdata_size);
       /* invdata_size = 0; */
    }
-   m_NCS_MEMCPY(event_data, (uns8 *)&event, evt_len);
+   memcpy(event_data, (uns8 *)&event, evt_len);
 
 #ifdef HPI_A
    /* remove the grouping elements of entity path */
@@ -953,7 +953,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
        (RptEntry->ResourceEntity.Entry[0].EntityType != 160))
         epath.Entry[0].EntityType = RptEntry->ResourceEntity.Entry[0].EntityType;
 
-   m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+   memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
    print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                   RptEntry->ResourceEntity.Entry[2].EntityInstance,
@@ -1010,7 +1010,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
           }
       }
    }
-   m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+   memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
    print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                   RptEntry->ResourceEntity.Entry[slot_ind].EntityLocation,
@@ -1086,7 +1086,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       /* invdata_size = 0; */
    }
 
-   m_NCS_MEMCPY(event_data, (uns8 *)&event, evt_len);
+   memcpy(event_data, (uns8 *)&event, evt_len);
 
 #ifdef HPI_A
    /* remove the grouping elements of entity path */
@@ -1099,7 +1099,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
        (RptEntry->ResourceEntity.Entry[0].EntityType != 160))
         epath.Entry[0].EntityType = RptEntry->ResourceEntity.Entry[0].EntityType;
 
-   m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+   memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
    print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
@@ -1158,7 +1158,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
        }
     }
 
-   m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+   memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
    print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
@@ -1281,14 +1281,14 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 
       }
 
-      m_NCS_MEMCPY(event_data, (uns8 *)&event, evt_len);
+      memcpy(event_data, (uns8 *)&event, evt_len);
 
 #ifdef HPI_A
       epath.Entry[0].EntityInstance = i;
 #else
       epath.Entry[0].EntityLocation = i;
 #endif
-      m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+      memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
       /* print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                      event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                      epath.Entry[0].EntityInstance,
@@ -1614,7 +1614,7 @@ CHECK:
             {
                inv_var->product_name.DataLength = inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->DataLength;
 
-                m_NCS_MEMCPY(inv_var->product_name.Data,
+                memcpy(inv_var->product_name.Data,
                              inv_data->DataRecords[k]->RecordData.ProductInfo.ProductName->Data,
                              inv_var->product_name.DataLength);
                 inv_var->product_name.Data[inv_var->product_name.DataLength] = '\0';
@@ -1651,7 +1651,7 @@ CHECK:
             {
                inv_var->product_version.DataLength = inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->DataLength;
 
-               m_NCS_MEMCPY(inv_var->product_version.Data,
+               memcpy(inv_var->product_version.Data,
                             inv_data->DataRecords[k]->RecordData.ProductInfo.ProductVersion->Data,
                             inv_var->product_version.DataLength);
                inv_var->product_version.Data[inv_var->product_version.DataLength] = '\0';
@@ -1716,7 +1716,7 @@ CHECK:
                   }
                   for (i=0; i < inv_var->oem_inv_data.num_mac_entries; i++)
                   {
-                     m_NCS_MEMCPY(inv_var->oem_inv_data.interface_mac_addr[j++],
+                     memcpy(inv_var->oem_inv_data.interface_mac_addr[j++],
                                    &inv_data->DataRecords[k]->RecordData.OemData.Data[2 + (0*MAC_DATA_LEN) + 1],
                                    MAC_DATA_LEN);
                      inv_var->oem_inv_data.interface_mac_addr[j-1][5] = inv_var->oem_inv_data.interface_mac_addr[0][5] + i; 
@@ -1728,7 +1728,7 @@ CHECK:
                   inv_var->oem_inv_data.num_mac_entries = (inv_data->DataRecords[k]->DataLength - 5) / MAC_DATA_LEN;
                   for (i=0; i < inv_var->oem_inv_data.num_mac_entries; i++)
                   {
-                     m_NCS_MEMCPY(inv_var->oem_inv_data.interface_mac_addr[j++],
+                     memcpy(inv_var->oem_inv_data.interface_mac_addr[j++],
                                    &inv_data->DataRecords[k]->RecordData.OemData.Data[1 + (i*MAC_DATA_LEN) + 1],
                                    MAC_DATA_LEN);
                      if (j >= MAX_MAC_ENTRIES) break;
@@ -1741,7 +1741,7 @@ CHECK:
                {
                   /* copy base Mac Addresses only */
                   if (inv_data->DataRecords[k]->RecordData.OemData.Data[2 + (i*MAC_DATA_LEN) + (i+1)] == 0x01)
-                     m_NCS_MEMCPY(inv_var->oem_inv_data.interface_mac_addr[j++],
+                     memcpy(inv_var->oem_inv_data.interface_mac_addr[j++],
                                    &inv_data->DataRecords[k]->RecordData.OemData.Data[2 + (i*MAC_DATA_LEN) + (i+2)],
                                    MAC_DATA_LEN);
                   if (j >= MAX_MAC_ENTRIES) break;
@@ -1868,7 +1868,7 @@ CHECK:
          product_name.Field.DataLength = m_NCS_STRLEN(product_name.Field.Data);
 
       inv_var->product_name.DataLength = product_name.Field.DataLength;
-      m_NCS_MEMCPY(inv_var->product_name.Data, product_name.Field.Data, inv_var->product_name.DataLength);
+      memcpy(inv_var->product_name.Data, product_name.Field.Data, inv_var->product_name.DataLength);
    }
 
    err = saHpiIdrFieldGet(session_id,
@@ -1891,7 +1891,7 @@ CHECK:
          product_version.Field.DataLength = m_NCS_STRLEN(product_version.Field.Data);
 
       inv_var->product_version.DataLength = product_version.Field.DataLength;
-      m_NCS_MEMCPY(inv_var->product_version.Data, product_version.Field.Data, inv_var->product_version.DataLength);
+      memcpy(inv_var->product_version.Data, product_version.Field.Data, inv_var->product_version.DataLength);
    }
 
    areaId = SAHPI_FIRST_ENTRY;
@@ -2203,7 +2203,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
                event_data = m_MMGR_ALLOC_HPI_INV_DATA(min_evt_len + invdata_size);
                /* invdata_size = 0; */
             }
-            m_NCS_MEMCPY(event_data, (uns8 *)&event, evt_len);
+            memcpy(event_data, (uns8 *)&event, evt_len);
 
             /* remove the grouping elements of entity path */
             m_NCS_OS_MEMSET(&epath, 0, epath_len);
@@ -2224,7 +2224,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             }
 #endif
 
-            m_NCS_MEMCPY(event_data+evt_len, (uns8 *)&epath, epath_len);
+            memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
 #ifdef HPI_A
             print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,

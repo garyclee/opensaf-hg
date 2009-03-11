@@ -826,7 +826,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             if(buf_env->is_ubaid)
             {
                 p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8*)uptr, *ptr_data_len);
-                m_NCS_OS_MEMCPY(uptr, p8, *ptr_data_len);
+                memcpy(uptr, p8, *ptr_data_len);
                 ncs_dec_skip_space(buf_env->info.uba, *ptr_data_len);
             }
             else
@@ -863,7 +863,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             if(buf_env->is_ubaid)
             {
                 p8 = ncs_dec_flatten_space(buf_env->info.uba, (uns8*)uptr, *ptr_data_len);
-                m_NCS_OS_MEMCPY(uptr, p8, *ptr_data_len);
+                memcpy(uptr, p8, *ptr_data_len);
                 ncs_dec_skip_space(buf_env->info.uba, *ptr_data_len);
             }
             else

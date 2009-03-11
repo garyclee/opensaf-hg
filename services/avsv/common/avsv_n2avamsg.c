@@ -153,7 +153,7 @@ uns32 avsv_ndnd_avnd_msg_copy (AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *s
    }
 
    /* copy the common fields */
-   m_NCS_OS_MEMCPY(dmsg, smsg, sizeof(AVSV_ND2ND_AVND_MSG));
+   memcpy(dmsg, smsg, sizeof(AVSV_ND2ND_AVND_MSG));
    if(AVND_AVND_AVA_MSG == smsg->type)
      rc = avsv_nda_ava_msg_copy(dmsg->info.msg, smsg->info.msg);
 
@@ -184,7 +184,7 @@ uns32 avsv_nda_ava_msg_copy (AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
    }
 
    /* copy the common fields */
-   m_NCS_OS_MEMCPY(dmsg, smsg, sizeof(AVSV_NDA_AVA_MSG));
+   memcpy(dmsg, smsg, sizeof(AVSV_NDA_AVA_MSG));
 
    switch (smsg->type)
    {
@@ -235,7 +235,7 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
    }
 
    /* copy the common fields */
-   m_NCS_OS_MEMCPY(*o_dcbk, scbk, sizeof(AVSV_AMF_CBK_INFO));
+   memcpy(*o_dcbk, scbk, sizeof(AVSV_AMF_CBK_INFO));
 
    switch (scbk->type)
    {
@@ -263,7 +263,7 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
             goto done;
          }
 
-         m_NCS_OS_MEMCPY((*o_dcbk)->param.pg_track.buf.notification, 
+         memcpy((*o_dcbk)->param.pg_track.buf.notification, 
                          scbk->param.pg_track.buf.notification, 
                          sizeof(SaAmfProtectionGroupNotificationT) * 
                             scbk->param.pg_track.buf.numberOfItems);
@@ -290,7 +290,7 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
             goto done;
          }
 
-         m_NCS_OS_MEMCPY((*o_dcbk)->param.csi_set.attrs.list, scbk->param.csi_set.attrs.list, 
+         memcpy((*o_dcbk)->param.csi_set.attrs.list, scbk->param.csi_set.attrs.list, 
                          sizeof(NCS_AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
          (*o_dcbk)->param.csi_set.attrs.number = scbk->param.csi_set.attrs.number;
       }
@@ -518,9 +518,9 @@ uns32 avsv_amf_csi_attr_convert (AVSV_AMF_CBK_INFO *cbk_info)
       }
 
       /* copy the attr name & value */
-      m_NCS_OS_MEMCPY(amf_attrs->attr[cnt].attrName, avsv_attrs->list[cnt].name.value, 
+      memcpy(amf_attrs->attr[cnt].attrName, avsv_attrs->list[cnt].name.value, 
                       avsv_attrs->list[cnt].name.length);
-      m_NCS_OS_MEMCPY(amf_attrs->attr[cnt].attrValue, avsv_attrs->list[cnt].value.value, 
+      memcpy(amf_attrs->attr[cnt].attrValue, avsv_attrs->list[cnt].value.value, 
                       avsv_attrs->list[cnt].value.length);
       *(amf_attrs->attr[cnt].attrName + avsv_attrs->list[cnt].name.length) = '\0';
       *(amf_attrs->attr[cnt].attrValue + avsv_attrs->list[cnt].value.length) = '\0';

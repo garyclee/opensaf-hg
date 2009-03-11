@@ -398,7 +398,7 @@ ifsv_register_hw_driver (NCS_IFSV_PORT_REG *reg_msg)
                   break;
                }
                m_NCS_MEMSET(reg_tbl, 0, sizeof(IFSV_DRV_PORT_REG_TBL));
-               m_NCS_MEMCPY(&reg_tbl->port_reg, reg_msg, 
+               memcpy(&reg_tbl->port_reg, reg_msg, 
                   sizeof(NCS_IFSV_PORT_REG));
                /* store the register information */
                reg_tbl->q_node.key = (uns8*)&reg_tbl->port_reg.port_info.port_type;
@@ -541,20 +541,20 @@ ifsv_drv_mds_msg_send (NCSCONTEXT info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
       switch (msg_type)
       {
       case NCS_IFSV_HW_DRV_STATS:
-         m_NCS_MEMCPY(&hw_info->info.stats, info, sizeof(NCS_IFSV_PORT_STATS));
+         memcpy(&hw_info->info.stats, info, sizeof(NCS_IFSV_PORT_STATS));
          m_NCS_CONS_PRINTF("\nDRV Send Hardware Stats To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
                            port_type->port_id,port_type->type);
          break;
       case NCS_IFSV_HW_DRV_PORT_REG:
-         m_NCS_MEMCPY(&hw_info->info.reg_port, info, 
+         memcpy(&hw_info->info.reg_port, info, 
             sizeof(NCS_IFSV_PORT_INFO));
          m_NCS_CONS_PRINTF("\nDRV Send Port Reg To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
                            port_type->port_id,port_type->type);
          break;   
       case NCS_IFSV_HW_DRV_PORT_STATUS:
-         m_NCS_MEMCPY(&hw_info->info.port_status, info, 
+         memcpy(&hw_info->info.port_status, info, 
             sizeof(NCS_IFSV_PORT_STATUS));
          m_NCS_CONS_PRINTF("\nDRV Send Port Status To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
@@ -632,7 +632,7 @@ ifsv_drv_check_update_reg_info (IFSV_DRV_PORT_REG_TBL *found_reg_tbl,
    {
       chng_flag = TRUE;
       reg_msg->port_info.if_am |= NCS_IFSV_IAM_PHYADDR;
-      m_NCS_MEMCPY(&pres_port_tbl->port_info.phy_addr, 
+      memcpy(&pres_port_tbl->port_info.phy_addr, 
          &reg_msg->port_info.phy_addr, (6*sizeof(uns8)));
    }
 
@@ -726,7 +726,7 @@ ifsv_send_intf_info (NCS_IFSV_HW_INFO *intf_hw_info)
       
       
       /* copy the hardware message */
-      m_NCS_MEMCPY(msg, intf_hw_info, sizeof(NCS_IFSV_HW_INFO));
+      memcpy(msg, intf_hw_info, sizeof(NCS_IFSV_HW_INFO));
       /* Changes for INT/EXT scope for subscr_scope overwrite. EXT_INT */
       /* Ex: Takes the port Num and Type :: ethernet is 26 and PortNum is 0 for eth0
          on the basis of portno && Type, the below given api will search and overwrite the SubscriptionScope */

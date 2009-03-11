@@ -1445,7 +1445,7 @@ uns32 ifnd_process_ifa_crash(IFSV_CB *cb, MDS_DEST *mdsDest)
    vipdcRec = (IFSV_IFND_VIPDC *)vipdcNode;
    while (vipdcNode != IFSV_NULL)
    {
-      m_NCS_MEMCPY(&key,&vipdcRec->handle,sizeof(NCS_IFSV_VIP_INT_HDL));
+      memcpy(&key,&vipdcRec->handle,sizeof(NCS_IFSV_VIP_INT_HDL));
       if (vipdcRec->ref_cnt > 1) /* if more than 1 IfA is accessing the record */
       {
          /* Remove the owner node from the list and reduce the reference count */

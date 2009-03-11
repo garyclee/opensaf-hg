@@ -795,7 +795,7 @@ static uns32 mds_demo_cb_enc_flat (struct ncsmds_callback_info *info)
 
    /* ENCODE length */
    p8 = ncs_enc_reserve_space(uba, sizeof(msg->send_len));
-   m_NCS_OS_MEMCPY(p8, &msg->send_len, sizeof(msg->send_len)); /* htons not required */
+   memcpy(p8, &msg->send_len, sizeof(msg->send_len)); /* htons not required */
    ncs_enc_claim_space(uba, sizeof(msg->send_len));
    ncs_encode_n_octets_in_uba(uba, (uns8*)msg->send_data, msg->send_len);
    return NCSCC_RC_SUCCESS;
@@ -829,7 +829,7 @@ static uns32 mds_demo_cb_dec_flat (struct ncsmds_callback_info *info)
 
    p8 = ncs_dec_flatten_space(uba, (uns8*)&msg->recvd_len, sizeof(msg->send_len));
 
-   m_NCS_OS_MEMCPY(&msg->recvd_len, p8, sizeof(msg->send_len)); /* send_len and recvd_len should be same size */
+   memcpy(&msg->recvd_len, p8, sizeof(msg->send_len)); /* send_len and recvd_len should be same size */
    ncs_dec_skip_space(uba, sizeof(msg->send_len));
    /* DECODE data */
    ncs_decode_n_octets_from_uba(uba, (uns8*)msg->recvd_data, msg->recvd_len);

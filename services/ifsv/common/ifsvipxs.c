@@ -163,11 +163,11 @@ ipxs_ifip_ippfx_add(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info, IPXS_IFIP_IP_INFO *i
       }
       if(old_cnt)
       {
-         m_NCS_OS_MEMCPY(new_list, old_list, (sizeof(IPXS_IFIP_IP_INFO)*old_cnt));
+         memcpy(new_list, old_list, (sizeof(IPXS_IFIP_IP_INFO)*old_cnt));
          new_cnt += old_cnt;
       }
 
-      m_NCS_OS_MEMCPY(&new_list[new_cnt], ippfx, (sizeof(IPXS_IFIP_IP_INFO)*cnt));
+      memcpy(&new_list[new_cnt], ippfx, (sizeof(IPXS_IFIP_IP_INFO)*cnt));
       new_cnt += cnt;
       
       ifip_info->ipaddr_list = new_list;
@@ -268,7 +268,7 @@ ipxs_ifip_ippfx_del(IPXS_CB *cb, IPXS_IFIP_INFO *ifip_info, IPXS_IFIP_IP_INFO *i
                goto free_mem;
             }
 
-            m_NCS_OS_MEMCPY(ifip_info->ipaddr_list, temp_list, 
+            memcpy(ifip_info->ipaddr_list, temp_list, 
                                         (temp_cnt)*sizeof(IPXS_IFIP_IP_INFO));
          }
          else
@@ -719,7 +719,7 @@ void ipxs_get_ipkey_from_ipaddr(IPXS_IP_KEY  *ip_key, NCS_IP_ADDR *addr)
       break;
 #if (NCS_IPV6 == 1)
    case NCS_IP_ADDR_TYPE_IPV6:
-      m_NCS_OS_MEMCPY(&ip_key->ip.v6, &addr->info.v6, sizeof(NCS_IPV6_ADDR));
+      memcpy(&ip_key->ip.v6, &addr->info.v6, sizeof(NCS_IPV6_ADDR));
       break;
 #endif
    default:
@@ -1014,7 +1014,7 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
          m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       }
-      m_NCS_OS_MEMCPY(send_rec.if_info.addsvd_list, 
+      memcpy(send_rec.if_info.addsvd_list, 
                       &svc_dest->i_svdest, sizeof(NCS_SVDEST));
    }
    if(svc_dest->i_type == NCS_IFSV_SVCD_DEL)
@@ -1027,7 +1027,7 @@ ipxs_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
          m_IFSV_LOG_SYS_CALL_FAIL(cb->my_svc_id,IFSV_LOG_MEM_ALLOC_FAIL,0);
          return NCSCC_RC_OUT_OF_MEM;
       } 
-      m_NCS_OS_MEMCPY(send_rec.if_info.delsvd_list, 
+      memcpy(send_rec.if_info.delsvd_list, 
                       &svc_dest->i_svdest, sizeof(NCS_SVDEST));
    }
    else
@@ -1177,7 +1177,7 @@ uns32 ipxs_intf_rec_cpy(NCS_IPXS_INTF_REC *src, NCS_IPXS_INTF_REC *dest,
                         IFSV_MALLOC_USE_TYPE purpose)
 {
    /* Copy the record */
-   m_NCS_OS_MEMCPY(dest, src, sizeof(NCS_IPXS_INTF_REC));
+   memcpy(dest, src, sizeof(NCS_IPXS_INTF_REC));
 
    /* Copy the IP info */
    ipxs_ipinfo_cpy(&src->ip_info, &dest->ip_info, purpose);
@@ -1202,7 +1202,7 @@ uns32 ipxs_ipinfo_cpy(NCS_IPXS_IPINFO *src,
    /* Copy the record */
    m_NCS_OS_MEMSET(dest, 0, sizeof(NCS_IPXS_IPINFO));
 
-   m_NCS_OS_MEMCPY(dest, src, sizeof(NCS_IPXS_IPINFO));
+   memcpy(dest, src, sizeof(NCS_IPXS_IPINFO));
    if(m_NCS_IPXS_IS_IPAM_ADDR_SET(src->ip_attr))
    {
    /* Internal Use */
@@ -1233,7 +1233,7 @@ uns32 ipxs_ipinfo_cpy(NCS_IPXS_IPINFO *src,
    /* Copy the internal pointers */
    if(dest->addip_list)
    {
-      m_NCS_OS_MEMCPY(dest->addip_list, src->addip_list,
+      memcpy(dest->addip_list, src->addip_list,
                      (src->addip_cnt * sizeof(IPXS_IFIP_IP_INFO)));
    }
 
@@ -1241,7 +1241,7 @@ uns32 ipxs_ipinfo_cpy(NCS_IPXS_IPINFO *src,
 
    if(dest->delip_list)
    {
-      m_NCS_OS_MEMCPY(dest->delip_list, src->delip_list,
+      memcpy(dest->delip_list, src->delip_list,
                      (src->delip_cnt * sizeof(NCS_IPPFX)));
    }
 
@@ -1291,7 +1291,7 @@ uns32 ipxs_ifsv_ifip_info_attr_cpy(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
          m_MMGR_ALLOC_IPXS_DEFAULT(src->ipaddr_cnt*sizeof(IPXS_IFIP_IP_INFO));
 
       if(dest->addip_list)
-          m_NCS_OS_MEMCPY(dest->addip_list, src->ipaddr_list,
+          memcpy(dest->addip_list, src->ipaddr_list,
                    (src->ipaddr_cnt * sizeof(IPXS_IFIP_IP_INFO)));
       else
       {
@@ -1359,7 +1359,7 @@ static uns32 ipxs_ipinfo_cpy_for_del(IPXS_IFIP_INFO *src, NCS_IPXS_IPINFO *dest)
       {
         /* Size of delip_list and ipaddr_list are different. */
         for(count=0; count < dest->delip_cnt; count++)
-          m_NCS_OS_MEMCPY(&dest->delip_list[count], &src->ipaddr_list[count],
+          memcpy(&dest->delip_list[count], &src->ipaddr_list[count],
                    (sizeof(NCS_IPPFX)));
       }
       else

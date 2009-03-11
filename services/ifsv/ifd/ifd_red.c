@@ -276,7 +276,7 @@ ifd_a2s_intf_data_create_handler (IFSV_INTF_DATA * evt, IFSV_CB *cb, uns32 oper_
    }
    
    m_NCS_MEMSET(rec, 0, sizeof(IFSV_INTF_REC));
-   m_NCS_MEMCPY(&rec->intf_data, evt, sizeof(IFSV_INTF_DATA));
+   memcpy(&rec->intf_data, evt, sizeof(IFSV_INTF_DATA));
    if(oper_status == TRUE)
      rec->intf_data.active = TRUE;
    else
@@ -611,7 +611,7 @@ ifd_a2s_vip_rec_create_handler (VIP_REDUNDANCY_RECORD *pVipChkptPkt, IFSV_CB *cb
 
 
 /*
-   m_NCS_MEMCPY(&vipHandle,&pVipChkptPkt->handle,
+   memcpy(&vipHandle,&pVipChkptPkt->handle,
                                            sizeof(NCS_IFSV_VIP_INT_HDL));
 
    pVipdNode = ifsv_vipd_vipdc_rec_get(&cb->vipDBase,&vipHandle);
@@ -1173,7 +1173,7 @@ ifd_a2s_sync_resp (IFSV_CB *cb, uns8 *intf_msg
 #if(NCS_IFSV_IPXS == 1)
       /* Now add the IPXS. */
       ipxs_evt.info.d.ndtod_upd.if_index = spt_map.if_index;
-      m_NCS_MEMCPY(&ipxs_evt.info.d.ndtod_upd.ip_info, ipxs_msg, 
+      memcpy(&ipxs_evt.info.d.ndtod_upd.ip_info, ipxs_msg, 
                    sizeof(NCS_IPXS_IPINFO));
 
       res = ifd_ipxs_proc_data_ifip_info(ipxs_cb, &ipxs_evt, &if_index);
@@ -1467,7 +1467,7 @@ ifd_ifnd_node_id_info_destroy_all (IFSV_CB *cb)
 
   while (rec != NULL)
   {
-    m_NCS_MEMCPY(&node_id, &rec->info.ifnd_node_id, sizeof(NODE_ID));
+    memcpy(&node_id, &rec->info.ifnd_node_id, sizeof(NODE_ID));
 
     ifd_ifnd_node_id_info_del(rec->info.ifnd_node_id, cb);
 

@@ -328,7 +328,7 @@ avm_proc_hpi(
    {
       m_AVM_LOG_GEN("No Entity in the DB with Entity Path ", hpi_evt->evt.hpi_evt->entity_path.Entry, sizeof(SaHpiEntityPathT), NCSFL_SEV_WARNING);
 
-      m_NCS_MEMCPY(temp_ent_info.entity_path.Entry, hpi_evt->evt.hpi_evt->entity_path.Entry, sizeof(SaHpiEntityPathT));
+      memcpy(temp_ent_info.entity_path.Entry, hpi_evt->evt.hpi_evt->entity_path.Entry, sizeof(SaHpiEntityPathT));
 
       return NCSCC_RC_FAILURE;
    }
@@ -915,7 +915,7 @@ avm_proc_ssu(
       return rc;
    }
    m_NCS_MEMSET(ssu_evt->evt.hpi_evt, 0, hpi_evt->data_len+1);
-   m_NCS_MEMCPY(ssu_evt->evt.hpi_evt, hpi_evt->evt.hpi_evt, hpi_evt->data_len);
+   memcpy(ssu_evt->evt.hpi_evt, hpi_evt->evt.hpi_evt, hpi_evt->data_len);
 
    if (m_NCS_IPC_SEND(&avm_cb->ssu_mbx, ssu_evt, NCS_IPC_PRIORITY_HIGH)
        != NCSCC_RC_SUCCESS)

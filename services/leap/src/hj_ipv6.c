@@ -66,7 +66,7 @@ void ncs_mask_prefix_addr(NCS_IPV6_ADDR *addr, uns32 pfxlen,
        return;
     }
 
-    m_NCS_OS_MEMCPY((char *)o_masked_addr, (char *)addr, sizeof(NCS_IPV6_ADDR));
+    memcpy((char *)o_masked_addr, (char *)addr, sizeof(NCS_IPV6_ADDR));
 
     if (pfxlen >= 128)
     {

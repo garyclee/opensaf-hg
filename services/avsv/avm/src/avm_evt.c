@@ -446,7 +446,7 @@ avm_list_nodes_chgd(AVM_ENT_INFO_T *ent_info, AVM_LIST_HEAD_T *head)
       m_AVM_LOG_MEM(AVM_LOG_DEFAULT_ALLOC, AVM_LOG_MEM_ALLOC_FAILURE, NCSFL_SEV_EMERGENCY);
       return NCSCC_RC_FAILURE;
     }
-   m_NCS_MEMCPY(&temp_node->node_name, &ent_info->node_name, sizeof(SaNameT));
+   memcpy(&temp_node->node_name, &ent_info->node_name, sizeof(SaNameT));
 
  /* Incremnent the node counts  */
    head->count++;
@@ -468,7 +468,7 @@ avm_list_nodes_chgd(AVM_ENT_INFO_T *ent_info, AVM_LIST_HEAD_T *head)
           }
       
           temp_node = temp_node->next; 
-          m_NCS_MEMCPY(&temp_node->node_name, &child->ent_info->node_name, sizeof(SaNameT));
+          memcpy(&temp_node->node_name, &child->ent_info->node_name, sizeof(SaNameT));
           head->count++;
           temp_node->next = AVM_LIST_NODE_NULL ;
        
@@ -688,7 +688,7 @@ avm_active(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
          return NCSCC_RC_FAILURE;
       }  
 
-      m_NCS_MEMCPY(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
+      memcpy(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
       head.node->next    = AVM_LIST_NODE_NULL;
       head.count++;
       node                = head.node;
@@ -860,7 +860,7 @@ avm_not_pres_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       return NCSCC_RC_FAILURE;
    }  
 
-   m_NCS_MEMCPY(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
+   memcpy(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
    head.node->next    = AVM_LIST_NODE_NULL;
    head.count++;
    node               = head.node;
@@ -1149,7 +1149,7 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_INSERTION", ent_info->ep_str.name, NCSFL_SEV_INFO);
    }
@@ -1258,7 +1258,7 @@ avm_inactive_inactive(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       return NCSCC_RC_FAILURE;
    }  
 
-   m_NCS_MEMCPY(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
+   memcpy(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
    head.node->next    = AVM_LIST_NODE_NULL;
    head.count++;
    node               = head.node;
@@ -1448,7 +1448,7 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
  
          m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+         memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
          m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
       }else
@@ -1504,7 +1504,7 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
@@ -1551,7 +1551,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("Lock not yet completed", ent_info->ep_str.name, NCSFL_SEV_INFO); 
    }else
@@ -1562,7 +1562,7 @@ avm_active_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("Unlock not valid in Active", ent_info->ep_str.name, NCSFL_SEV_INFO); 
    }
@@ -1673,7 +1673,7 @@ avm_active_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       rc = NCSCC_RC_FAILURE;
    }   
@@ -1733,7 +1733,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
          m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-           m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
+           memcpy(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
 
            m_AVM_LOG_GEN_EP_STR("AvM failed to reset using HISV but AvD will attempt NCS Reboot of entity:",
                                     ent_info->ep_str.name, NCSFL_SEV_ERROR);
@@ -1746,7 +1746,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
             m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-            m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+            memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
             m_AVM_LOG_GEN_EP_STR("Cold/Adm Hard Reset Failure", ent_info->ep_str.name, NCSFL_SEV_ERROR);
          }
@@ -1763,7 +1763,7 @@ avm_active_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("Two un-compatible admin Operations", ent_info->ep_str.name, NCSFL_SEV_INFO); 
       rc = NCSCC_RC_FAILURE;
@@ -2075,7 +2075,7 @@ avm_faulty_node_failover_resp(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *
          return NCSCC_RC_FAILURE;
       }else
       {
-         m_NCS_MEMCPY(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
+         memcpy(&head.node->node_name, &ent_info->node_name, sizeof(SaNameT));
          head.count++;
          head.node->next = AVM_LIST_NODE_NULL;
          avm_avd_node_operstate(avm_cb, &head, AVM_NODES_ENABLED);
@@ -2555,7 +2555,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg2, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("Entity Locked, Ignore the Hard Reset by admin", ent_info->ep_str.name, NCSFL_SEV_WARNING);
       return NCSCC_RC_FAILURE;
@@ -2572,7 +2572,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
+         memcpy(evt->evt.mib_req->rsp.add_info, cli_msg3, evt->evt.mib_req->rsp.add_info_len);
 
          m_AVM_LOG_GEN_EP_STR("AvM failed to reset using HISV but AvD will attempt NCS Reboot of entity:",
                                     ent_info->ep_str.name, NCSFL_SEV_ERROR);
@@ -2585,7 +2585,7 @@ avm_reset_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, voi
 
          m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+         memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
          m_AVM_LOG_GEN_EP_STR("Hard/Cold Reset failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
       }
@@ -2633,7 +2633,7 @@ avm_reset_req_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
 
    m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+   memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
    m_AVM_LOG_GEN_EP_STR("Shutdown while Reset not valid", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    return rc;
@@ -2676,7 +2676,7 @@ avm_reset_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_EXTRACTION failed", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
@@ -2723,7 +2723,7 @@ avm_reset_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_e
 
    m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+   memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
  
    m_AVM_LOG_GEN_EP_STR("Adm Unock invalid in Reset Req state", ent_info->ep_str.name, NCSFL_SEV_ERROR);
 
@@ -3143,7 +3143,7 @@ avm_ext_req_adm_soft_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
    m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len); 
+   memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len); 
 
    return rc;
 }
@@ -3171,7 +3171,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
+         memcpy(evt->evt.mib_req->rsp.add_info, cli_msg1, evt->evt.mib_req->rsp.add_info_len);
 
          m_AVM_LOG_GEN_EP_STR("AvM failed to reset using HISV but AvD will attempt NCS Reboot of entity:",
                                     ent_info->ep_str.name, NCSFL_SEV_ERROR);
@@ -3184,7 +3184,7 @@ avm_ext_req_adm_hard_reset_req(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void 
 
          m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-         m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+         memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
          m_AVM_LOG_GEN_EP_STR("Adm Hard Reset/Cold Fail", ent_info->ep_str.name, NCSFL_SEV_ERROR);
       }
@@ -3229,7 +3229,7 @@ avm_ext_req_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("Adm Lock Failed in Ext-Req", ent_info->ep_str.name, NCSFL_SEV_ERROR);
    }else
@@ -3260,7 +3260,7 @@ avm_ext_req_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
 
    m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-   m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+   memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
   
    m_AVM_LOG_GEN_EP_STR("AdM Unlock invalid in Ext-Req", ent_info->ep_str.name, NCSFL_SEV_INFO);
    return rc;
@@ -3606,7 +3606,7 @@ avm_handle_invalid_event(
 
       m_NCS_OS_MEMSET(evt->evt.mib_req->rsp.add_info, 0, evt->evt.mib_req->rsp.add_info_len + 1);
 
-      m_NCS_OS_MEMCPY(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
+      memcpy(evt->evt.mib_req->rsp.add_info, cli_msg, evt->evt.mib_req->rsp.add_info_len);
 
       m_AVM_LOG_GEN_EP_STR("SAHPI_HS_ACTION_INSERTION", ent_info->ep_str.name, NCSFL_SEV_INFO);
       return rc;

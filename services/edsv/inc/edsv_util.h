@@ -58,7 +58,7 @@ eda_free_event_patterns(SaEvtEventPatternT *,  SaSizeT );
 do { \
    (m)->publisher_name.length = 4 ; \
    m_NCS_MEMSET((m)->publisher_name.value,'\0',SA_MAX_NAME_LENGTH);\
-   m_NCS_MEMCPY((m)->publisher_name.value,(SaUint8T *)"NULL",EDSV_DEF_NAME_LEN); \
+   memcpy((m)->publisher_name.value,(SaUint8T *)"NULL",EDSV_DEF_NAME_LEN); \
    (m)->priority = SA_EVT_HIGHEST_PRIORITY; \
    m_NCS_OS_GET_TIME_STAMP(time_of_day); \
    (m)->publish_time = (SaTimeT)time_of_day; \

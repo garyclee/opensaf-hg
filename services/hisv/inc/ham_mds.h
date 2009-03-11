@@ -50,7 +50,7 @@ do { \
    (m).info.api_info.cmd = (act); \
    (m).info.api_info.arg = (param); \
    (m).info.api_info.data_len = (len); \
-   m_NCS_MEMCPY((m).info.api_info.data, (data_ptr), (len)); \
+   memcpy((m).info.api_info.data, (data_ptr), (len)); \
 } while (0);
 
 #define m_HAM_HISV_LOG_CMD_MSG_FILL(m, act) \

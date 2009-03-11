@@ -95,10 +95,10 @@ AVD_HLT * avd_hlt_struc_crt(AVD_CL_CB *cb,AVSV_HLT_KEY lhlt_chk,  NCS_BOOL ckpt)
    m_NCS_MEMSET((char *)hlth, '\0', sizeof(AVD_HLT));
    
    hlth->key_name.comp_name_net.length = lhlt_chk.comp_name_net.length;
-   m_NCS_MEMCPY(hlth->key_name.comp_name_net.value,lhlt_chk.comp_name_net.value,m_NCS_OS_NTOHS(lhlt_chk.comp_name_net.length));
+   memcpy(hlth->key_name.comp_name_net.value,lhlt_chk.comp_name_net.value,m_NCS_OS_NTOHS(lhlt_chk.comp_name_net.length));
    
    hlth->key_name.key_len_net = lhlt_chk.key_len_net;
-   m_NCS_MEMCPY(hlth->key_name.name.key,lhlt_chk.name.key,lhlt_chk.name.keyLen);
+   memcpy(hlth->key_name.name.key,lhlt_chk.name.key,lhlt_chk.name.keyLen);
    hlth->key_name.name.keyLen = lhlt_chk.name.keyLen;
  
    hlth->period = AVSV_DEFAULT_HEALTH_CHECK_PERIOD;
@@ -559,11 +559,11 @@ uns32 saamfhealthchecktableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                l_param.act = AVSV_OBJ_OPR_DEL;
               
                l_param.name_net.length = hlt_chk->key_name.comp_name_net.length;
-               m_NCS_MEMCPY(l_param.name_net.value, hlt_chk->key_name.comp_name_net.value,
+               memcpy(l_param.name_net.value, hlt_chk->key_name.comp_name_net.value,
                             m_NCS_OS_NTOHS(hlt_chk->key_name.comp_name_net.length));
 
                l_param.name_sec_net.length = m_NCS_OS_HTONS(hlt_chk->key_name.name.keyLen);
-               m_NCS_MEMCPY(l_param.name_sec_net.value, hlt_chk->key_name.name.key,
+               memcpy(l_param.name_sec_net.value, hlt_chk->key_name.name.key,
                             hlt_chk->key_name.name.keyLen);
                l_param.table_id = NCSMIB_TBL_AVSV_AMF_HLT_CHK;
 
@@ -835,7 +835,7 @@ AVD_AVND *avd_hlt_node_find(SaNameT comp_name_net, AVD_CL_CB *avd_cb)
    m_NCS_MEMSET(&node_name, 0, sizeof(node_name));
    comp_name.length = m_NCS_OS_NTOHS(comp_name_net.length);
 
-   m_NCS_MEMCPY(comp_name.value,comp_name_net.value, comp_name.length);
+   memcpy(comp_name.value,comp_name_net.value, comp_name.length);
 
   /* Copy Node DN from Component DN */
    if(avsv_cpy_node_DN_from_DN(&node_name,&comp_name) == NCSCC_RC_SUCCESS)
@@ -972,11 +972,11 @@ void avd_hlt_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
       param.act = AVSV_OBJ_OPR_DEL;
 
       param.name_net.length = ack_msg->msg_info.n2d_reg_hlt.hltchk_name.comp_name_net.length;
-      m_NCS_MEMCPY(param.name_net.value, ack_msg->msg_info.n2d_reg_hlt.hltchk_name.comp_name_net.value,
+      memcpy(param.name_net.value, ack_msg->msg_info.n2d_reg_hlt.hltchk_name.comp_name_net.value,
                    m_NCS_OS_NTOHS(param.name_net.length));
 
       param.name_sec_net.length = m_NCS_OS_HTONS(ack_msg->msg_info.n2d_reg_hlt.hltchk_name.name.keyLen);
-      m_NCS_MEMCPY(param.name_sec_net.value, ack_msg->msg_info.n2d_reg_hlt.hltchk_name.name.key,
+      memcpy(param.name_sec_net.value, ack_msg->msg_info.n2d_reg_hlt.hltchk_name.name.key,
                    ack_msg->msg_info.n2d_reg_hlt.hltchk_name.name.keyLen);
       param.table_id = NCSMIB_TBL_AVSV_AMF_HLT_CHK;
       avnd = avd_avnd_struc_find_nodeid(cb,ack_msg->msg_info.n2d_reg_hlt.node_id);

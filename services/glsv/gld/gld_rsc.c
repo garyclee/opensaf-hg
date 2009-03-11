@@ -90,7 +90,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB              *gld_cb,
        return NULL;
    }
    m_NCS_MEMSET(rsc_info, '\0',sizeof(GLSV_GLD_RSC_INFO));
-   m_NCS_MEMCPY(&rsc_info->lck_name, &rsc_name, sizeof(SaNameT));
+   memcpy(&rsc_info->lck_name, &rsc_name, sizeof(SaNameT));
    m_NCS_MEMSET(&creation_time, '\0',sizeof(SaTimeT));
    rsc_info->saf_rsc_no_of_users   =  1;
    rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time);
@@ -131,7 +131,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB              *gld_cb,
        return NULL;
    }
    m_NCS_MEMSET(rsc_map_info, '\0',sizeof(GLSV_GLD_RSC_MAP_INFO));
-   m_NCS_MEMCPY(&rsc_map_info->rsc_name, &rsc_name, sizeof(SaNameT));
+   memcpy(&rsc_map_info->rsc_name, &rsc_name, sizeof(SaNameT));
    rsc_map_info->rsc_name.length = m_NCS_OS_HTONS(rsc_map_info->rsc_name.length);
  
    rsc_map_info->rsc_id = rsc_info->rsc_id;
@@ -277,7 +277,7 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
   
    if (rsc_info->next != NULL)
       rsc_info->next->prev = rsc_info->prev;
-   m_NCS_MEMCPY(&lck_name, &rsc_info->lck_name, sizeof(SaNameT));
+   memcpy(&lck_name, &rsc_info->lck_name, sizeof(SaNameT));
    lck_name.length = m_NCS_OS_HTONS(lck_name.length);
 
    rsc_map_info = (GLSV_GLD_RSC_MAP_INFO  *)ncs_patricia_tree_get(&gld_cb->rsc_map_info,(uns8*)(uns8*)&lck_name);

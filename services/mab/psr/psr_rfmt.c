@@ -1133,18 +1133,18 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
       {
          /* Modifying the bitmap as per the current MIB */
          m_NCS_MEMSET(temp, '\0', max_bitmap_bytes);
-         m_NCS_MEMCPY(temp, read_buff_ptr, hdr->bitmap_length);
+         memcpy(temp, read_buff_ptr, hdr->bitmap_length);
          read_buff_ptr  += hdr->bitmap_length;
 
          for(bitmap_byte = max_bitmap_bytes; bitmap_byte != 0; bitmap_byte--)
             temp[bitmap_byte-1] = temp[bitmap_byte-1] & new_bitmap[bitmap_byte-1];
 
          /* Copying the bitmap */
-         m_NCS_MEMCPY(write_buff_ptr, temp, tbl_info->bitmap_length);
+         memcpy(write_buff_ptr, temp, tbl_info->bitmap_length);
          write_buff_ptr += tbl_info->bitmap_length;
 
          /* Copying the index */
-         m_NCS_MEMCPY(write_buff_ptr, read_buff_ptr, hdr->max_key_length);
+         memcpy(write_buff_ptr, read_buff_ptr, hdr->max_key_length);
          write_buff_ptr += tbl_info->max_key_length;
          read_buff_ptr  += hdr->max_key_length;
 
@@ -1153,7 +1153,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
          cb_data_length  = tbl_info->max_row_length - tbl_info->max_key_length - tbl_info->bitmap_length;
          min_data_length = (hdr_data_length < cb_data_length) ? hdr_data_length : cb_data_length;
 
-         m_NCS_MEMCPY(write_buff_ptr, read_buff_ptr, min_data_length);
+         memcpy(write_buff_ptr, read_buff_ptr, min_data_length);
          write_buff_ptr += cb_data_length;
          read_buff_ptr += hdr_data_length;
       }
@@ -1377,9 +1377,9 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                           /* Filling the current persistent format version, profile,
                                        pwe_id, pcn and table_id in ps_file_record */
                           ps_file_record.ps_format_version = cur_ps_format;
-                          m_NCS_MEMCPY(&ps_file_record.profile, &profile_next, sizeof(profile_next));
+                          memcpy(&ps_file_record.profile, &profile_next, sizeof(profile_next));
                           ps_file_record.pwe_id = pwe_id;
-                          m_NCS_MEMCPY(&ps_file_record.pcn, &pcn, sizeof(pcn));
+                          memcpy(&ps_file_record.pcn, &pcn, sizeof(pcn));
                           ps_file_record.tbl_id = tbl_id;
 
                           switch(reformat_type)

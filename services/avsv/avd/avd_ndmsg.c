@@ -269,7 +269,7 @@ uns32 avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 
    m_NCS_MEMSET(nd_msg, '\0', sizeof(AVSV_ND_MSG_QUEUE));
 
-   m_NCS_MEMCPY(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
+   memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
    m_AVD_DTOND_MSG_PUSH(cb, nd_msg);
 

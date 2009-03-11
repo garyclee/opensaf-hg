@@ -670,7 +670,7 @@ MAS_FLTR* mas_fltr_create(MAS_TBL*     inst,
     ret->test = fltr_fnc;
 
     /* copy the filter information */ 
-    m_NCS_MEMCPY(&(ret->fltr), mab_fltr, sizeof(NCSMAB_FLTR));
+    memcpy(&(ret->fltr), mab_fltr, sizeof(NCSMAB_FLTR));
 
     /* clone the filter specific information */ 
     switch (mab_fltr->type)
@@ -3555,12 +3555,12 @@ uns32 mas_info_unregister(MAB_MSG* msg)
                     idx_msg.data.data.idx_free.idx_tbl_id = tbl_rec->tbl_id;
                     if (idx_msg.data.data.idx_free.fltr_type == NCSMAB_FLTR_RANGE)
                     {
-                        m_NCS_MEMCPY(&idx_msg.data.data.idx_free.idx_free_data.range_idx_free,
+                        memcpy(&idx_msg.data.data.idx_free.idx_free_data.range_idx_free,
                         &fltr->fltr.fltr.range,sizeof(NCSMAB_RANGE));
                     }
                     else if (idx_msg.data.data.idx_free.fltr_type == NCSMAB_FLTR_EXACT)
                     {
-                        m_NCS_MEMCPY(&idx_msg.data.data.idx_free.idx_free_data.exact_idx_free,
+                        memcpy(&idx_msg.data.data.idx_free.idx_free_data.exact_idx_free,
                         &fltr->fltr.fltr.exact,sizeof(NCSMAB_EXACT));
                     }
 
@@ -4144,7 +4144,7 @@ mab_fltrid_list_add(MAS_FLTR_IDS    *fltr_ids,
         m_NCS_MEMSET(fltr_ids->active_fltr, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
 
         /* copy the data */ 
-        m_NCS_MEMCPY(&fltr_ids->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
+        memcpy(&fltr_ids->active_fltr->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
         fltr_ids->active_fltr->fltr_id = i_fltr_id;
 
         return NCSCC_RC_SUCCESS;
@@ -4169,7 +4169,7 @@ mab_fltrid_list_add(MAS_FLTR_IDS    *fltr_ids,
             m_NCS_MEMSET(new_anchor, 0, sizeof(MAB_FLTR_ANCHOR_NODE)); 
 
             /* copy the data */ 
-            m_NCS_MEMCPY(&new_anchor->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
+            memcpy(&new_anchor->anchor, &i_anchor, sizeof(MAB_ANCHOR)); 
             new_anchor->fltr_id = i_fltr_id;
             
             /* add to the list in the front */ 

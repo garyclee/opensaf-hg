@@ -971,7 +971,7 @@ uns32 dts_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
  
   *cpy = mm;
   
-  m_NCS_OS_MEMCPY(mm,msg,sizeof(DTSV_MSG));
+  memcpy(mm,msg,sizeof(DTSV_MSG));
 
   
   switch(mm->msg_type)
@@ -1038,7 +1038,7 @@ uns32 dts_log_msg_decode(NCSFL_NORMAL* logmsg, NCS_UBAID* uba)
   if(dts_log_str_decode(uba, &logmsg->hdr.fmat_type) == NCSCC_RC_FAILURE)
      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_log_msg_decode: dts_log_str_decode returned memory alloc failure");
 
-  m_NCS_OS_MEMCPY(&logmsg->uba, uba, sizeof(NCS_UBAID));
+  memcpy(&logmsg->uba, uba, sizeof(NCS_UBAID));
   
   return NCSCC_RC_SUCCESS;
 }
@@ -1104,7 +1104,7 @@ uns32 decode_ip_address(NCS_UBAID* uba, NCS_IP_ADDR* ipa)
       {
           return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "decode_ip_address: Decode flatten space failed");
       }
-      m_NCS_OS_MEMCPY((uns8 *)&ipa->info.v6, data, NCS_IPV6_ADDR_UNS8_CNT);
+      memcpy((uns8 *)&ipa->info.v6, data, NCS_IPV6_ADDR_UNS8_CNT);
       ncs_dec_skip_space(uba, NCS_IPV6_ADDR_UNS8_CNT);
    }
 #endif

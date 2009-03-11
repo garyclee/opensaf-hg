@@ -195,16 +195,16 @@ send_resp:
     /* Fill Group name if specified */
     if(ASAPi_OBJ_GROUP == reg->objtype) 
     {
-      m_NCS_OS_MEMCPY(&msg.info.rresp.group, &reg->group, sizeof(SaNameT));
+      memcpy(&msg.info.rresp.group, &reg->group, sizeof(SaNameT));
     }
     else if(ASAPi_OBJ_QUEUE == reg->objtype) 
     {
-      m_NCS_OS_MEMCPY(&msg.info.rresp.queue, &reg->queue.name, sizeof(SaNameT));
+      memcpy(&msg.info.rresp.queue, &reg->queue.name, sizeof(SaNameT));
     }
     else if(ASAPi_OBJ_BOTH == reg->objtype) 
     {
-      m_NCS_OS_MEMCPY(&msg.info.rresp.group, &reg->group, sizeof(SaNameT));
-      m_NCS_OS_MEMCPY(&msg.info.rresp.queue, &reg->queue.name, sizeof(SaNameT));
+      memcpy(&msg.info.rresp.group, &reg->group, sizeof(SaNameT));
+      memcpy(&msg.info.rresp.queue, &reg->queue.name, sizeof(SaNameT));
     }
 
     /* Send Registration Response message */
@@ -287,16 +287,16 @@ mqd_asapi_dereg_hdlr(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, MQSV_SEND_INFO *info
       /* Fill Group name if specified */
       if(ASAPi_OBJ_GROUP == dereg->objtype) 
       {
-         m_NCS_OS_MEMCPY(&msg.info.dresp.group, &dereg->group, sizeof(SaNameT));
+         memcpy(&msg.info.dresp.group, &dereg->group, sizeof(SaNameT));
       }
       else if(ASAPi_OBJ_QUEUE == dereg->objtype) 
       {
-         m_NCS_OS_MEMCPY(&msg.info.dresp.queue, &dereg->queue, sizeof(SaNameT));
+         memcpy(&msg.info.dresp.queue, &dereg->queue, sizeof(SaNameT));
       }
       else if(ASAPi_OBJ_BOTH == dereg->objtype) 
       {
-         m_NCS_OS_MEMCPY(&msg.info.dresp.group, &dereg->group, sizeof(SaNameT));
-         m_NCS_OS_MEMCPY(&msg.info.dresp.queue, &dereg->queue, sizeof(SaNameT));
+         memcpy(&msg.info.dresp.group, &dereg->group, sizeof(SaNameT));
+         memcpy(&msg.info.dresp.queue, &dereg->queue, sizeof(SaNameT));
       }
    
       /* Send Deregistration Response message */ 
@@ -603,7 +603,7 @@ mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve,
       }
       else {
          /* Send Async update at active side by filling the track info*/
-         m_NCS_OS_MEMCPY(&(track.track.object),&(nresolve->object),sizeof(SaNameT));
+         memcpy(&(track.track.object),&(nresolve->object),sizeof(SaNameT));
        /*  m_NTOH_SANAMET_LEN(track.track.object.length);*/
          track.track.val=ASAPi_TRACK_ENABLE;
          track.dest = info->dest;
@@ -615,7 +615,7 @@ mqd_asapi_nresolve_hdlr(MQD_CB *pMqd, ASAPi_NRESOLVE_INFO *nresolve,
    }      
          
    if(MQSV_OBJ_QGROUP == pObjNode->oinfo.type) {
-      m_NCS_OS_MEMCPY(&msg.info.nresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
+      memcpy(&msg.info.nresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
       /* m_NTOH_SANAMET_LEN(msg.info.nresp.oinfo.group.length);*/
       msg.info.nresp.oinfo.policy = pObjNode->oinfo.info.qgrp.policy;
    }
@@ -724,7 +724,7 @@ mqd_asapi_getqueue_hdlr(MQD_CB *pMqd, ASAPi_GETQUEUE_INFO *getqueue,
    }           
 
    /* Polulate the queue fields */         
-   m_NCS_OS_MEMCPY(&msg.info.vresp.queue.name, &pObjNode->oinfo.name, sizeof(SaNameT));
+   memcpy(&msg.info.vresp.queue.name, &pObjNode->oinfo.name, sizeof(SaNameT));
    /*m_NTOH_SANAMET_LEN(msg.info.vresp.queue.name.length);*/
    mqd_qparam_fill(&pObjNode->oinfo.info.q, &msg.info.vresp.queue);         
 
@@ -855,7 +855,7 @@ mqd_asapi_track_hdlr(MQD_CB *pMqd, ASAPi_TRACK_INFO *track, MQSV_SEND_INFO *info
 
    if(MQSV_OBJ_QGROUP == pObjNode->oinfo.type) 
    {
-      m_NCS_OS_MEMCPY(&msg.info.tresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
+      memcpy(&msg.info.tresp.oinfo.group, &pObjNode->oinfo.name, sizeof(SaNameT));
       /*m_NTOH_SANAMET_LEN(msg.info.tresp.oinfo.group.length); */
       msg.info.tresp.oinfo.policy = pObjNode->oinfo.info.qgrp.policy;
    }
@@ -984,7 +984,7 @@ static uns32 mqd_asapi_track_ntfy_send(MQD_OBJ_INFO *pObjInfo, ASAPi_OBJECT_OPR 
    m_NCS_MEMSET(&msg, 0, sizeof(msg));
 
    if(MQSV_OBJ_QGROUP == pObjInfo->type) {
-      m_NCS_OS_MEMCPY(&msg.info.tntfy.oinfo.group, &pObjInfo->name, sizeof(SaNameT));
+      memcpy(&msg.info.tntfy.oinfo.group, &pObjInfo->name, sizeof(SaNameT));
       /*m_NTOH_SANAMET_LEN(msg.info.tntfy.oinfo.group.length);   */
       msg.info.tntfy.oinfo.policy = pObjInfo->info.qgrp.policy;  
    }
@@ -1116,7 +1116,7 @@ mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue,
       }
       
       /* Polulate the queue fields */         
-      m_NCS_OS_MEMCPY(&pQueue->name, &pObjInfo->name, sizeof(SaNameT));
+      memcpy(&pQueue->name, &pObjInfo->name, sizeof(SaNameT));
       /*m_NTOH_SANAMET_LEN(pQueue->name.length);        */
       mqd_qparam_fill(&pObjInfo->info.q, pQueue);
       qcnt = 1;
@@ -1136,7 +1136,7 @@ mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue,
             }
             
             /* Get the queue params */
-            m_NCS_OS_MEMCPY(&pQueue->name, &pOelm->pObject->name, sizeof(SaNameT));
+            memcpy(&pQueue->name, &pOelm->pObject->name, sizeof(SaNameT));
             mqd_qparam_fill(&pOelm->pObject->info.q, pQueue);
             qcnt = 1;
             break;
@@ -1159,7 +1159,7 @@ mqd_asapi_queue_make(MQD_OBJ_INFO *pObjInfo, ASAPi_QUEUE_PARAM **o_queue,
          for(idx=0; idx<qcnt; idx++) {
             pOelm = (MQD_OBJECT_ELEM *)ncs_walk_items(&pObjInfo->ilist, &itr);
           
-            m_NCS_OS_MEMCPY(&pQueue[idx].name, &pOelm->pObject->name, sizeof(SaNameT));
+            memcpy(&pQueue[idx].name, &pOelm->pObject->name, sizeof(SaNameT));
             mqd_qparam_fill(&pOelm->pObject->info.q, &pQueue[idx]);            
          }
       }
@@ -1283,7 +1283,7 @@ mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode,
                  m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
                  return SA_AIS_ERR_NO_MEMORY;
               }
-              m_NCS_OS_MEMCPY(&pObjNode->oinfo.name, &reg->group, sizeof(SaNameT));
+              memcpy(&pObjNode->oinfo.name, &reg->group, sizeof(SaNameT));
               pObjNode->oinfo.type = MQSV_OBJ_QGROUP;
               pObjNode->oinfo.info.qgrp.policy = reg->policy;
 
@@ -1334,7 +1334,7 @@ mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode,
                     return SA_AIS_ERR_NO_MEMORY;
                  }
 
-                 m_NCS_OS_MEMCPY(&pObjNode->oinfo.name, &reg->queue.name, sizeof(SaNameT));
+                 memcpy(&pObjNode->oinfo.name, &reg->queue.name, sizeof(SaNameT));
                  pObjNode->oinfo.type = MQSV_OBJ_QUEUE;
 
                  /* Update the Queue params */

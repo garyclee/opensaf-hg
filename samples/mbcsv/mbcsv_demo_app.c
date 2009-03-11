@@ -903,7 +903,7 @@ static uns32 mds_demo_create_named_vdest(char * name, uns32 *pwe_hdl)
    vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
    vda_info.info.vdest_create.info.named.i_name.length = 
       (uns16)(strlen(name) + 1);
-   m_NCS_OS_MEMCPY(vda_info.info.vdest_create.info.named.i_name.value,
+   memcpy(vda_info.info.vdest_create.info.named.i_name.value,
       name, vda_info.info.vdest_create.info.named.i_name.length);
 
    if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)

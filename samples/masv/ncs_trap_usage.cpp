@@ -95,7 +95,7 @@ int main (void)
     SaNameT event_channel_name;
 
     event_channel_name.length = strlen(m_SNMP_EDA_EVT_CHANNEL_NAME);
-    m_NCS_MEMCPY(event_channel_name.value, m_SNMP_EDA_EVT_CHANNEL_NAME, 
+    memcpy(event_channel_name.value, m_SNMP_EDA_EVT_CHANNEL_NAME, 
                 event_channel_name.length);
 
     chan_open_flags = SA_EVT_CHANNEL_SUBSCRIBER;

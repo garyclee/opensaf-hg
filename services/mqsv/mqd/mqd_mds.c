@@ -342,7 +342,7 @@ static uns32 mqd_mds_cpy(MQD_CB *pMqd, MDS_CALLBACK_COPY_INFO *cpy)
    pEvt = m_MMGR_ALLOC_MQSV_EVT(pMqd->my_svc_id);
    if(pEvt) 
    {
-      m_NCS_MEMCPY(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
+      memcpy(pEvt, cpy->i_msg, sizeof(MQSV_EVT));
       if(MQSV_EVT_ASAPI == pEvt->type) 
       {
          pEvt->msg.asapi->usg_cnt++; /* Increment the use count */

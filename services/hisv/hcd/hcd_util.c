@@ -221,7 +221,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
       return NCSCC_RC_FAILURE;
    }
    /* copy epath_str to epath */
-   m_NCS_MEMCPY(epath, epath_str, epath_len);
+   memcpy(epath, epath_str, epath_len);
 
    /* set the pointers */
    tok = epath;

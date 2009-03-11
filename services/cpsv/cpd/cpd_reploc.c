@@ -155,14 +155,14 @@ uns32 sackptnodereplicalocentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO
       case saCkptCheckpointNameLoc_ID:
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = rep_info->rep_key.ckpt_name.length;
-         m_NCS_MEMCPY((uns8 *)buffer,rep_info->rep_key.ckpt_name.value,param->i_length);
+         memcpy((uns8 *)buffer,rep_info->rep_key.ckpt_name.value,param->i_length);
          param->info.i_oct     = (uns8*)buffer;
          break;
 
       case saCkptNodeNameLoc_ID:
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length = rep_info->rep_key.node_name.length;
-         m_NCS_MEMCPY((uns8 *)buffer,rep_info->rep_key.node_name.value,param->i_length);
+         memcpy((uns8 *)buffer,rep_info->rep_key.node_name.value,param->i_length);
          param->info.i_oct     = (uns8*)buffer;
          break;  
      

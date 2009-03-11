@@ -222,14 +222,14 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 
    m_NCS_MEMSET((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    indx.si_name_sec.length = si->name_net.length;
-   m_NCS_MEMCPY(indx.si_name_sec.value, si->name_net.value,
+   memcpy(indx.si_name_sec.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
 
    while (spons_si_node)
    {
       /* Need to stop the tolerance timer */
       indx.si_name_prim.length = spons_si_node->si->name_net.length;
-      m_NCS_MEMCPY(indx.si_name_prim.value, spons_si_node->si->name_net.value,
+      memcpy(indx.si_name_prim.value, spons_si_node->si->name_net.value,
                    m_NCS_OS_NTOHS(spons_si_node->si->name_net.length));
 
       if((rec = avd_si_si_dep_find(cb, &indx, TRUE)) != NULL)
@@ -414,12 +414,12 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
    /* Get the sponsor index */
    m_NCS_MEMSET((char *)&spons_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    spons_indx.si_name_prim.length = si->name_net.length;
-   m_NCS_MEMCPY(spons_indx.si_name_prim.value, si->name_net.value,
+   memcpy(spons_indx.si_name_prim.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
 
    m_NCS_MEMSET((char *)&dep_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    dep_indx.si_name_sec.length = si->name_net.length;
-   m_NCS_MEMCPY(dep_indx.si_name_sec.value, si->name_net.value,
+   memcpy(dep_indx.si_name_sec.value, si->name_net.value,
                 m_NCS_OS_NTOHS(si->name_net.length));
 
    rec = avd_si_si_dep_find_next(cb, &spons_indx, TRUE);
@@ -432,7 +432,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
       }
       
       dep_indx.si_name_prim.length = spons_indx.si_name_sec.length;
-      m_NCS_MEMCPY(dep_indx.si_name_prim.value, spons_indx.si_name_sec.value,
+      memcpy(dep_indx.si_name_prim.value, spons_indx.si_name_sec.value,
                    m_NCS_OS_NTOHS(spons_indx.si_name_sec.length));  
   
       if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_mib)
@@ -520,7 +520,7 @@ uns32  avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_de
    else  /* For ASSIGN evt, just enough to feed SI name */
    {
       evt->info.tmr.spons_si_name.length = si->name_net.length;
-      m_NCS_MEMCPY(evt->info.tmr.spons_si_name.value,
+      memcpy(evt->info.tmr.spons_si_name.value,
                    si->name_net.value,
                    m_NCS_OS_NTOHS(si->name_net.length));
    }
@@ -1060,7 +1060,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
 
    m_NCS_MEMSET((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    si_indx.si_name_prim.length  = si->name_net.length;
-   m_NCS_MEMCPY(si_indx.si_name_prim.value,
+   memcpy(si_indx.si_name_prim.value,
                 si->name_net.value,
                 m_NCS_OS_NTOHS(si_indx.si_name_prim.length));
 
@@ -1122,7 +1122,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
 
       /* Frame the index completely to the associated si_dep_rec */
       si_indx.si_name_sec.length  = si_dep->name_net.length;
-      m_NCS_MEMCPY(si_indx.si_name_sec.value,
+      memcpy(si_indx.si_name_sec.value,
                    si_dep->name_net.value,
                    m_NCS_OS_NTOHS(si_dep->name_net.length));
       
@@ -1220,19 +1220,19 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
    m_NCS_MEMSET(rec, '\0', sizeof(AVD_SI_SI_DEP));
 
    rec->indx_mib.si_name_prim.length = indx->si_name_prim.length;
-   m_NCS_MEMCPY(rec->indx_mib.si_name_prim.value,indx->si_name_prim.value,
+   memcpy(rec->indx_mib.si_name_prim.value,indx->si_name_prim.value,
                 si_prim_len);
 
    rec->indx_mib.si_name_sec.length = indx->si_name_sec.length;
-   m_NCS_MEMCPY(rec->indx_mib.si_name_sec.value,indx->si_name_sec.value,
+   memcpy(rec->indx_mib.si_name_sec.value,indx->si_name_sec.value,
                 si_sec_len);
 
    rec->indx.si_name_prim.length = indx->si_name_sec.length;
-   m_NCS_MEMCPY(rec->indx.si_name_prim.value,indx->si_name_sec.value,
+   memcpy(rec->indx.si_name_prim.value,indx->si_name_sec.value,
                 si_sec_len);
 
    rec->indx.si_name_sec.length = indx->si_name_prim.length;
-   m_NCS_MEMCPY(rec->indx.si_name_sec.value,indx->si_name_prim.value,
+   memcpy(rec->indx.si_name_sec.value,indx->si_name_prim.value,
                 si_prim_len);
 
    rec->row_status = NCS_ROW_NOT_READY;
@@ -1457,7 +1457,7 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
       m_NCS_MEMSET((char *)&idx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
       idx.si_name_prim.length = last->si_name.length;
-      m_NCS_MEMCPY(idx.si_name_prim.value, last->si_name.value,
+      memcpy(idx.si_name_prim.value, last->si_name.value,
                     m_NCS_OS_NTOHS(last->si_name.length));
 
       rec = avd_si_si_dep_find_next(cb, &idx, FALSE);

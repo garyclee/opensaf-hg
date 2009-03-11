@@ -115,7 +115,7 @@ static uns32 hpl_mds_cb_cpy(struct ncsmds_callback_info *info)
    info->info.cpy.o_msg_fmt_ver = HPL_MSG_FMT_VER;
    info->info.cpy.o_cpy = (uns8*)evt;
    m_NCS_MEMSET(evt, '\0', sizeof(HISV_EVT));
-   m_NCS_MEMCPY(&evt->msg, hisv_msg, sizeof(HISV_MSG));
+   memcpy(&evt->msg, hisv_msg, sizeof(HISV_MSG));
 
    data_len = hisv_msg->info.api_info.data_len;
 
@@ -129,7 +129,7 @@ static uns32 hpl_mds_cb_cpy(struct ncsmds_callback_info *info)
          m_MMGR_FREE_HISV_EVT(evt);
          return NCSCC_RC_FAILURE;
       }
-      m_NCS_MEMCPY(evt->msg.info.api_info.data, hisv_msg->info.api_info.data, (int32)data_len);
+      memcpy(evt->msg.info.api_info.data, hisv_msg->info.api_info.data, (int32)data_len);
    }
    else
    {
@@ -730,7 +730,7 @@ hpl_msg_proc(HPL_CB *hpl_cb, HISV_MSG *hisv_msg, MDS_SEND_PRIORITY_TYPE prio)
 
          if (ham_inst != NULL)   /* entry already exists, just update it */
          {
-            m_NCS_MEMCPY(&ham_inst->ham_dest, &hisv_msg->info.cbk_info.hpl_ret.h_vdest.ham_dest,
+            memcpy(&ham_inst->ham_dest, &hisv_msg->info.cbk_info.hpl_ret.h_vdest.ham_dest,
                          (int32)sizeof(MDS_DEST) );
             ham_inst->chassis_id = hisv_msg->info.cbk_info.hpl_ret.h_vdest.chassis_id;
             break;
@@ -751,7 +751,7 @@ hpl_msg_proc(HPL_CB *hpl_cb, HISV_MSG *hisv_msg, MDS_SEND_PRIORITY_TYPE prio)
             ham_inst->ham_next = ham_info;
          }
          /* fill the information in new entry */
-         m_NCS_MEMCPY(&ham_info->ham_dest, &hisv_msg->info.cbk_info.hpl_ret.h_vdest.ham_dest,
+         memcpy(&ham_info->ham_dest, &hisv_msg->info.cbk_info.hpl_ret.h_vdest.ham_dest,
                       (int32)sizeof(MDS_DEST) );
          ham_info->chassis_id = hisv_msg->info.cbk_info.hpl_ret.h_vdest.chassis_id;
          break;
@@ -832,7 +832,7 @@ uns32 hpl_mds_msg_async_send (HPL_CB *cb, HISV_MSG *i_msg,
    mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
 
    /* fill the sub send strcuture */
-   m_NCS_MEMCPY(&mds_info.info.svc_send.info.snd.i_to_dest, ham_dest,
+   memcpy(&mds_info.info.svc_send.info.snd.i_to_dest, ham_dest,
                 (int32)sizeof(MDS_DEST));
 
    /* send the message */
@@ -880,7 +880,7 @@ HISV_MSG* hpl_mds_msg_sync_send (HPL_CB *cb, HISV_MSG *i_msg,
    mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;
 
    /* fill the sub send strcuture */
-   m_NCS_MEMCPY(&mds_info.info.svc_send.info.sndrsp.i_to_dest, ham_dest,
+   memcpy(&mds_info.info.svc_send.info.sndrsp.i_to_dest, ham_dest,
                 (int32)sizeof(MDS_DEST));
 
    /* send the message */

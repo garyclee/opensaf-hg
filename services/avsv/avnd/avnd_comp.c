@@ -1068,13 +1068,13 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
      api_info.dest = comp->reg_dest; 
      api_info.param.unreg.hdl = comp->reg_hdl; 
      api_info.param.unreg.comp_name_net.length = m_NCS_OS_NTOHS(comp->name_net.length); 
-     m_NCS_OS_MEMCPY(api_info.param.unreg.comp_name_net.value, 
+     memcpy(api_info.param.unreg.comp_name_net.value, 
          comp->name_net.value, api_info.param.unreg.comp_name_net.length);
      api_info.param.unreg.comp_name_net.length = 
          m_NCS_OS_HTONS(api_info.param.unreg.comp_name_net.length); 
      api_info.param.unreg.proxy_comp_name_net.length = 
                    m_NCS_OS_NTOHS(pxy_comp->name_net.length); 
-     m_NCS_OS_MEMCPY(api_info.param.unreg.proxy_comp_name_net.value, 
+     memcpy(api_info.param.unreg.proxy_comp_name_net.value, 
                      pxy_comp->name_net.value, 
                      api_info.param.unreg.proxy_comp_name_net.length);
      api_info.param.unreg.proxy_comp_name_net.length = 
@@ -2166,7 +2166,7 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
                goto done;
             }
 
-            m_NCS_OS_MEMCPY(attr.list, curr_csi->attrs.list, 
+            memcpy(attr.list, curr_csi->attrs.list, 
                             sizeof(NCS_AVSV_ATTR_NAME_VAL) * curr_csi->attrs.number);
             attr.number = curr_csi->attrs.number;
          }
@@ -2573,13 +2573,13 @@ uns32 avnd_comp_proxy_unreg(AVND_CB   *cb,
      api_info.dest = pxd_comp->reg_dest; 
      api_info.param.unreg.hdl = pxd_comp->reg_hdl; 
      api_info.param.unreg.comp_name_net.length = m_NCS_OS_NTOHS(pxd_comp->name_net.length); 
-     m_NCS_OS_MEMCPY(api_info.param.unreg.comp_name_net.value, 
+     memcpy(api_info.param.unreg.comp_name_net.value, 
          pxd_comp->name_net.value, api_info.param.unreg.comp_name_net.length);
      api_info.param.unreg.comp_name_net.length = 
          m_NCS_OS_HTONS(api_info.param.unreg.comp_name_net.length); 
      api_info.param.unreg.proxy_comp_name_net.length = 
                    m_NCS_OS_NTOHS(pxd_comp->pxy_comp->name_net.length); 
-     m_NCS_OS_MEMCPY(api_info.param.unreg.proxy_comp_name_net.value, 
+     memcpy(api_info.param.unreg.proxy_comp_name_net.value, 
                      pxd_comp->pxy_comp->name_net.value, 
                      api_info.param.unreg.proxy_comp_name_net.length);
      api_info.param.unreg.proxy_comp_name_net.length = 

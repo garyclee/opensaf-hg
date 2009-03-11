@@ -204,7 +204,7 @@ uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
    snd_msg->msg_type = AVD_AVM_NODE_SHUTDOWN_RESP_MSG;
 
    snd_msg->avd_avm_msg.shutdown_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.shutdown_resp.node_name.value, node->value, snd_msg->avd_avm_msg.shutdown_resp.node_name.length);
+   memcpy(&snd_msg->avd_avm_msg.shutdown_resp.node_name.value, node->value, snd_msg->avd_avm_msg.shutdown_resp.node_name.length);
 
    snd_msg->avd_avm_msg.shutdown_resp.recovery_status = status;
    
@@ -241,7 +241,7 @@ uns32 avd_avm_send_failover_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
    snd_msg->msg_type = AVD_AVM_NODE_FAILOVER_RESP_MSG;
 
    snd_msg->avd_avm_msg.failover_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.failover_resp.node_name.value, node->value, snd_msg->avd_avm_msg.failover_resp.node_name.length);
+   memcpy(&snd_msg->avd_avm_msg.failover_resp.node_name.value, node->value, snd_msg->avd_avm_msg.failover_resp.node_name.length);
 
    snd_msg->avd_avm_msg.failover_resp.recovery_status = status;
    rc = avd_avm_send_msg(cb, snd_msg);
@@ -277,7 +277,7 @@ uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *cb, SaNameT *node)
    snd_msg->msg_type = AVD_AVM_FAULT_DOMAIN_REQ_MSG;
 
    snd_msg->avd_avm_msg.fault_domain_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.fault_domain_req.node_name.value, node->value, snd_msg->avd_avm_msg.fault_domain_req.node_name.length);
+   memcpy(&snd_msg->avd_avm_msg.fault_domain_req.node_name.value, node->value, snd_msg->avd_avm_msg.fault_domain_req.node_name.length);
    
    rc = avd_avm_send_msg(cb, snd_msg);
 
@@ -313,7 +313,7 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
    snd_msg->msg_type = AVD_AVM_NODE_RESET_REQ_MSG;
 
    snd_msg->avd_avm_msg.reset_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.reset_req.node_name.value, node->value, snd_msg->avd_avm_msg.reset_req.node_name.length);
+   memcpy(&snd_msg->avd_avm_msg.reset_req.node_name.value, node->value, snd_msg->avd_avm_msg.reset_req.node_name.length);
    
    rc = avd_avm_send_msg(cb, snd_msg);
 
@@ -421,7 +421,7 @@ uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    snd_msg->avd_avm_msg.avd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
+   memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
                 snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
 
@@ -467,7 +467,7 @@ uns32 avd_avm_d_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
    snd_msg->avd_avm_msg.avd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
+   memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
                 snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
 
@@ -514,7 +514,7 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
+   memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
                 snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
 
@@ -565,7 +565,7 @@ uns32 avd_avm_nd_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
    snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = 
         m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
 
-   m_NCS_MEMCPY(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
+   memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value, 
                 avnd->node_info.nodeName.value, 
                 snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
 
@@ -610,7 +610,7 @@ uns32 avd_avm_node_reset_rsp(AVD_CL_CB *cb, uns32 node)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_MEMCPY(msg->avm_avd_msg.reset_resp.node_name.value,
+   memcpy(msg->avm_avd_msg.reset_resp.node_name.value,
                 avnd->node_info.nodeName.value,
                 m_NCS_OS_NTOHS(avnd->node_info.nodeName.length));
 

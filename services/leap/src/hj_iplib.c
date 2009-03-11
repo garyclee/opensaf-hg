@@ -124,7 +124,7 @@ uns16 ncs_ip_addr_to_octdata(uns8 *o_oct_data, NCS_IP_ADDR *i_addr, NCS_BOOL is_
       break;
 #if(NCS_IPV6 == 1)
    case NCS_IP_ADDR_TYPE_IPV6:
-      m_NCS_OS_MEMCPY(o_oct_data, &i_addr->info.v6.m_ipv6_addr,
+      memcpy(o_oct_data, &i_addr->info.v6.m_ipv6_addr,
                                              NCS_IPV6_ADDR_UNS8_CNT);
       len = NCS_IPV6_ADDR_UNS8_CNT;
       break;
@@ -151,7 +151,7 @@ void ncs_oct_data_to_ip_addr(uns8 *i_oct_data, NCS_IP_ADDR *o_addr, NCS_BOOL is_
       break;
 #if(NCS_IPV6 == 1)
    case NCS_IP_ADDR_TYPE_IPV6:
-      m_NCS_OS_MEMCPY(&o_addr->info.v6.m_ipv6_addr, i_oct_data,
+      memcpy(&o_addr->info.v6.m_ipv6_addr, i_oct_data,
                                              NCS_IPV6_ADDR_UNS8_CNT);
       break;
 #endif

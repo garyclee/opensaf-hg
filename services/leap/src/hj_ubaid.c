@@ -798,7 +798,7 @@ ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
             if (os == (uns8 *)0)
                 m_NCS_MEMSET( (char *)p, '\0', try_put);
             else
-                m_NCS_MEMCPY( (char *)p, (char *)(os + count-remaining), try_put);
+                memcpy( (char *)p, (char *)(os + count-remaining), try_put);
         }
         else
         {
@@ -851,7 +851,7 @@ ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
     {
         /* If "uba->ub" has the required data, it returns the offset
            into its "uba->ub" where the data starts. */
-        m_NCS_OS_MEMCPY(os, p8, count);
+        memcpy(os, p8, count);
     }
     else
     {

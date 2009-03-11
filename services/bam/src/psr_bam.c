@@ -154,7 +154,7 @@ uns32 pss_bam_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
   
   *cpy = pm;
   
-  m_NCS_OS_MEMCPY(pm,msg,sizeof(PSS_BAM_MSG));
+  memcpy(pm,msg,sizeof(PSS_BAM_MSG));
 
   switch(pm->i_evt)
     {

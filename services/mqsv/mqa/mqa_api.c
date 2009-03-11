@@ -2089,7 +2089,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
 
         qsend_evt_buffer = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(length); 
         m_NCS_OS_MEMSET(qsend_evt_buffer, 0, length); 
-        m_NCS_OS_MEMCPY(qsend_evt_buffer, qsend_evt , length);
+        memcpy(qsend_evt_buffer, qsend_evt , length);
 
         rc = SA_AIS_OK;
         do {
@@ -2167,7 +2167,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
                   return  SA_AIS_ERR_NO_MEMORY;
 
                qsend_evt = qsend_evt_copy;
-               m_NCS_OS_MEMCPY(qsend_evt, qsend_evt_buffer, length);   
+               memcpy(qsend_evt, qsend_evt_buffer, length);   
              }
 
         }while (num_queues > 0 );
@@ -2394,7 +2394,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
       qsend_evt->info.snd_msg.message.priority = message->priority;
 
       if (message->data)
-         m_NCS_OS_MEMCPY(qsend_evt->info.snd_msg.message.data, message->data, message->size);
+         memcpy(qsend_evt->info.snd_msg.message.data, message->data, message->size);
       
       if (message->senderName) 
          qsend_evt->info.snd_msg.message.senderName = *message->senderName;
@@ -2419,7 +2419,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
       qsend_evt->info.sndMsgAsync.SendMsg.message.priority = message->priority;
   
       if (message->data)
-         m_NCS_OS_MEMCPY(qsend_evt->info.sndMsgAsync.SendMsg.message.data, message->data, message->size);
+         memcpy(qsend_evt->info.sndMsgAsync.SendMsg.message.data, message->data, message->size);
 
       if (message->senderName) 
          qsend_evt->info.sndMsgAsync.SendMsg.message.senderName = *message->senderName;
@@ -3075,7 +3075,7 @@ again:
       }
    }
 
-   m_NCS_OS_MEMCPY( message->data, mqsv_message->info.msg.message.data, mqsv_message->info.msg.message.size) ;
+   memcpy( message->data, mqsv_message->info.msg.message.data, mqsv_message->info.msg.message.size) ;
    message->priority = mqsv_message->info.msg.message.priority;
    message->size = mqsv_message->info.msg.message.size;
    message->type  = mqsv_message->info.msg.message.type;
@@ -3698,7 +3698,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       qsend_evt->info.snd_msg.message.senderName = *sendMessage->senderName;
 
    if (sendMessage->data) 
-      m_NCS_OS_MEMCPY(qsend_evt->info.snd_msg.message.data, sendMessage->data, sendMessage->size);
+      memcpy(qsend_evt->info.snd_msg.message.data, sendMessage->data, sendMessage->size);
 
    qsend_evt->info.snd_msg.messageInfo.sender.sender_context.sender_dest = mqa_cb->mqa_mds_dest;
    qsend_evt->info.snd_msg.messageInfo.sender.sender_context.src_dest_version = MQA_PVT_SUBPART_VERSION;
@@ -3821,7 +3821,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
 
    if (qreply_evt->type == MQP_EVT_REPLY_MSG_ASYNC) {
       if (receiveMessage->senderName)
-         m_NCS_OS_MEMCPY(receiveMessage->senderName, 
+         memcpy(receiveMessage->senderName, 
                          &qreply_evt->info.replyAsyncMsg.reply.message.senderName, 
                          sizeof(SaNameT));
 
@@ -3831,14 +3831,14 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       receiveMessage->priority = qreply_evt->info.replyAsyncMsg.reply.message.priority;
 
       if (reply_msgsize) {
-         m_NCS_OS_MEMCPY(receiveMessage->data, 
+         memcpy(receiveMessage->data, 
                          qreply_evt->info.replyAsyncMsg.reply.message.data,
                          receiveMessage->size);
       }
    }
    else {
       if (receiveMessage->senderName)
-         m_NCS_OS_MEMCPY(receiveMessage->senderName, 
+         memcpy(receiveMessage->senderName, 
                          &qreply_evt->info.replyMsg.message.senderName, 
                          sizeof(SaNameT));
 
@@ -3848,7 +3848,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
       receiveMessage->priority = qreply_evt->info.replyMsg.message.priority;
 
       if (reply_msgsize) {
-         m_NCS_OS_MEMCPY(receiveMessage->data, 
+         memcpy(receiveMessage->data, 
                          qreply_evt->info.replyMsg.message.data,
                          receiveMessage->size);
       }
@@ -4193,10 +4193,10 @@ SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
          qreply_evt->info.replyMsg.message.senderName = *message->senderName;
 
       if (message->data)
-         m_NCS_OS_MEMCPY(qreply_evt->info.replyMsg.message.data, message->data, message->size);
+         memcpy(qreply_evt->info.replyMsg.message.data, message->data, message->size);
 
       qreply_evt->info.replyMsg.msgHandle = msgHandle;
-      m_NCS_OS_MEMCPY(&(qreply_evt->info.replyMsg.messageInfo), &reply_info, sizeof(reply_info));
+      memcpy(&(qreply_evt->info.replyMsg.messageInfo), &reply_info, sizeof(reply_info));
 
       rc = mqa_reply_to_destination(mqa_cb, &destination_mqa, qreply_evt, 
                                         ackFlags, param->info.timeout, &destination_context, length);
@@ -4220,10 +4220,10 @@ SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
          qreply_evt->info.replyAsyncMsg.reply.message.senderName = *message->senderName;
 
       if (message->data)
-         m_NCS_OS_MEMCPY(qreply_evt->info.replyAsyncMsg.reply.message.data, message->data, message->size);
+         memcpy(qreply_evt->info.replyAsyncMsg.reply.message.data, message->data, message->size);
 
       qreply_evt->info.replyAsyncMsg.reply.msgHandle = msgHandle;
-      m_NCS_OS_MEMCPY(&(qreply_evt->info.replyAsyncMsg.reply.messageInfo), &reply_info, sizeof(reply_info));
+      memcpy(&(qreply_evt->info.replyAsyncMsg.reply.messageInfo), &reply_info, sizeof(reply_info));
 
       rc = mqa_reply_to_destination_async(mqa_cb, &destination_mqa, qreply_evt, &destination_context, length);
         
@@ -5356,7 +5356,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
                goto done;
             }
 
-            m_NCS_OS_MEMCPY(track_current_callback->params.qGrpTrack.notificationBuffer.notification, 
+            memcpy(track_current_callback->params.qGrpTrack.notificationBuffer.notification, 
                           temp_notificationBuffer.notification,
                           temp_notificationBuffer.numberOfItems*sizeof(SaMsgQueueGroupNotificationT));
          }
@@ -5404,7 +5404,7 @@ saMsgQueueGroupTrack(SaMsgHandleT msgHandle,
           }
           notificationBuffer->queueGroupPolicy = asapi_or.info.track.o_ginfo.policy;
           notificationBuffer->numberOfItems = temp_notificationBuffer.numberOfItems;
-          m_NCS_OS_MEMCPY(notificationBuffer->notification, temp_notificationBuffer.notification,
+          memcpy(notificationBuffer->notification, temp_notificationBuffer.notification,
                            temp_notificationBuffer.numberOfItems*sizeof(SaMsgQueueGroupNotificationT));
       }
    }

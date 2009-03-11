@@ -106,7 +106,7 @@ uns32 hpl_resource_reset(uns32 chassis_id, uns8 *entity_path, uns32 reset_type)
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
 
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_RESOURCE_RESET, reset_type,
                               (epath_len + 4), hpl_data);
@@ -202,7 +202,7 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
 
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_RESOURCE_POWER, power_state,
                               (epath_len+4), hpl_data);
@@ -340,7 +340,7 @@ uns32 hpl_config_hotswap(uns32 chassis_id, HISV_API_CMD hs_config_cmd, uns64 *ar
    hpl_tlv->d_type = HOTSWAP_CONFIG;
    hpl_tlv->d_len = arg_len;
    len = arg_len + 4;
-   m_NCS_MEMCPY(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
+   memcpy(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, hs_config_cmd, hs_config_cmd,
                                         len, hpl_data);
@@ -356,7 +356,7 @@ uns32 hpl_config_hotswap(uns32 chassis_id, HISV_API_CMD hs_config_cmd, uns64 *ar
    ret_len = msg->info.cbk_info.hpl_ret.h_gen.data_len;
 
    if ((hs_config_cmd == HS_AUTO_INSERT_TIMEOUT_GET) && (ret_len > 0))
-      m_NCS_MEMCPY((uns8 *)arg, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
+      memcpy((uns8 *)arg, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
    free_hisv_ret_msg(msg);
 
    return rc;
@@ -433,7 +433,7 @@ uns32 hpl_config_hs_indicator(uns32 chassis_id, uns8 *entity_path,
    hpl_tlv = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
    len = epath_len+4;
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, hs_ind_cmd, (*arg),
@@ -517,7 +517,7 @@ uns32 hpl_config_hs_state_get(uns32 chassis_id, uns8 *entity_path, uns32 *arg)
    hpl_tlv = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
    len = epath_len+4;
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HS_CURRENT_HS_STATE_GET, (*arg),
@@ -613,14 +613,14 @@ uns32 hpl_config_hs_autoextract(uns32 chassis_id, uns8 *entity_path,
    hpl_tlv = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
    len = epath_len+4;
 
    hpl_tlv = (HPL_TLV *)(hpl_data + epath_len + 4);
    hpl_tlv->d_type = HOTSWAP_CONFIG;
    hpl_tlv->d_len = arg_len;
    len += arg_len + 4;
-   m_NCS_MEMCPY(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
+   memcpy(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, hs_config_cmd, hs_config_cmd,
                                         len, hpl_data);
@@ -637,7 +637,7 @@ uns32 hpl_config_hs_autoextract(uns32 chassis_id, uns8 *entity_path,
    ret_len = msg->info.cbk_info.hpl_ret.h_gen.data_len;
 
    if ((hs_config_cmd == HS_AUTO_EXTRACT_TIMEOUT_GET) && (ret_len > 0))
-      m_NCS_MEMCPY((uns8 *)arg, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), 8);
+      memcpy((uns8 *)arg, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), 8);
 
    free_hisv_ret_msg(msg);
 
@@ -721,7 +721,7 @@ uns32 hpl_manage_hotswap(uns32 chassis_id, uns8 *entity_path,
    hpl_tlv = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
    len = epath_len+4;
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, hs_manage_cmd, arg,
@@ -799,7 +799,7 @@ uns32 hpl_alarm_add(uns32 chassis_id, HISV_API_CMD alarm_cmd,
    hpl_tlv->d_type = ALARM_TYPE;
    hpl_tlv->d_len = arg_len;
    len = arg_len + 4;
-   m_NCS_MEMCPY(((uns8 *)hpl_tlv)+4, arg, arg_len);
+   memcpy(((uns8 *)hpl_tlv)+4, arg, arg_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, alarm_cmd, alarm_cmd,
                                         len, hpl_data);
@@ -878,7 +878,7 @@ uns32 hpl_alarm_get(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
    rc = msg->info.cbk_info.hpl_ret.h_gen.ret_val;
    ret_len = msg->info.cbk_info.hpl_ret.h_gen.data_len;
    if (ret_len > 0)
-      m_NCS_MEMCPY(arg, msg->info.cbk_info.hpl_ret.h_gen.data, arg_len);
+      memcpy(arg, msg->info.cbk_info.hpl_ret.h_gen.data, arg_len);
    free_hisv_ret_msg(msg);
 
    return rc;
@@ -942,7 +942,7 @@ uns32 hpl_alarm_delete(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
    hpl_tlv->d_type = ALARM_SEVERITY;
    hpl_tlv->d_len = 4;
    len = 8;
-   m_NCS_MEMCPY(((uns8 *)hpl_tlv)+4, (uns8 *)&alarm_severity, 4);
+   memcpy(((uns8 *)hpl_tlv)+4, (uns8 *)&alarm_severity, 4);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, alarm_cmd, alarm_id,
                                         len, hpl_data);
@@ -1031,14 +1031,14 @@ uns32 hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
    hpl_tlv = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len = epath_len;
-   m_NCS_MEMCPY(hpl_data+4, entity_path, epath_len);
+   memcpy(hpl_data+4, entity_path, epath_len);
    len = epath_len+4;
 
    hpl_tlv = (HPL_TLV *)(hpl_data + epath_len + 4);
    hpl_tlv->d_type = EVLOG_TIME;
    hpl_tlv->d_len = arg_len;
    len += arg_len + 4;
-   m_NCS_MEMCPY(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
+   memcpy(((uns8 *)hpl_tlv)+4, (uns8 *)arg, arg_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, evlog_time_cmd, evlog_time_cmd,
                                         len, hpl_data);
@@ -1165,7 +1165,7 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
    hpl_tlv         = (HPL_TLV *)hpl_data;
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len  = epath_len;
-   m_NCS_MEMCPY (hpl_data + status_len, entity_path, epath_len);
+   memcpy (hpl_data + status_len, entity_path, epath_len);
    len             = epath_len + status_len;
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_BOOTBANK_GET, (*o_bootbank_number),
@@ -1263,7 +1263,7 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
    hpl_tlv->d_type = ENTITY_PATH;
    hpl_tlv->d_len  = epath_len;
 
-   m_NCS_MEMCPY(hpl_data + status_len, entity_path, epath_len);
+   memcpy(hpl_data + status_len, entity_path, epath_len);
 
    m_HPL_HISV_ENTITY_MSG_FILL(hisv_msg, HISV_BOOTBANK_SET, i_bootbank_number,
                               (epath_len + status_len), hpl_data);
@@ -1324,7 +1324,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    evt_struct->hpi_event.Timestamp = ncs_decode_32bit(&p8);
    evt_struct->hpi_event.Severity = ncs_decode_32bit(&p8);
 
-   m_NCS_OS_MEMCPY((uns8 *)&evt_struct->hpi_event.EventDataUnion, p8, (int32)sizeof(SaHpiEventUnionT));
+   memcpy((uns8 *)&evt_struct->hpi_event.EventDataUnion, p8, (int32)sizeof(SaHpiEventUnionT));
    p8 += (int32)sizeof(SaHpiEventUnionT);
 
    /* decode entity path */
@@ -1344,7 +1344,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    evt_struct->inv_data.product_name.Language = ncs_decode_32bit(&p8);
    evt_struct->inv_data.product_name.DataLength = ncs_decode_8bit(&p8);
 
-   m_NCS_OS_MEMCPY((uns8 *)&evt_struct->inv_data.product_name.Data, p8, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+   memcpy((uns8 *)&evt_struct->inv_data.product_name.Data, p8, SAHPI_MAX_TEXT_BUFFER_LENGTH);
    p8 += SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
    /* decode product version */
@@ -1352,7 +1352,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    evt_struct->inv_data.product_version.Language = ncs_decode_32bit(&p8);
    evt_struct->inv_data.product_version.DataLength = ncs_decode_8bit(&p8);
 
-   m_NCS_OS_MEMCPY((uns8 *)&evt_struct->inv_data.product_version.Data, p8, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+   memcpy((uns8 *)&evt_struct->inv_data.product_version.Data, p8, SAHPI_MAX_TEXT_BUFFER_LENGTH);
    p8 += SAHPI_MAX_TEXT_BUFFER_LENGTH;
 
    /* decode OEM inventory data */
@@ -1362,7 +1362,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    evt_struct->inv_data.oem_inv_data.rec_format_ver = ncs_decode_32bit(&p8);
    evt_struct->inv_data.oem_inv_data.num_mac_entries = ncs_decode_32bit(&p8);
 
-   m_NCS_OS_MEMCPY((uns8 *)&evt_struct->inv_data.oem_inv_data.interface_mac_addr, p8, mac_len);
+   memcpy((uns8 *)&evt_struct->inv_data.oem_inv_data.interface_mac_addr, p8, mac_len);
    p8 += mac_len;
 
    /* decode version */
@@ -1452,7 +1452,7 @@ uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 
       if (((flag == HPL_EPATH_FLAG_ARRAY) && (ret_len <= entity_path_size)) ||
           (ret_len < entity_path_size))
       { 
-         m_NCS_MEMCPY((uns8 *)entity_path, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
+         memcpy((uns8 *)entity_path, (uns8 *)(msg->info.cbk_info.hpl_ret.h_gen.data), ret_len);
       } 
       else
       { 

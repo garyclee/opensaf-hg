@@ -2119,7 +2119,7 @@ vip_process_get_row_request( NCSCLI_CEF_DATA *p_cef_data,
         * For Processing the Next Row ........
        */
        sec_idx_len = ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_len;
-       m_NCS_OS_MEMCPY(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
+       memcpy(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
               sec_idx_len*sizeof(uns32));
 
 
@@ -2240,7 +2240,7 @@ vip_populate_display_data(NCSMIB_ARG *p_ncs_mib_arg,
 
                case ncsVIPInstalledInterfaceName_ID:
                {
-                   m_NCS_OS_MEMCPY(p_vip_data_display->installed_intf, 
+                   memcpy(p_vip_data_display->installed_intf, 
                    param_val.info.i_oct, 
                    param_val.i_length);
                }
@@ -2542,7 +2542,7 @@ ifsv_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 shelf, uns32 slo
        }
 
        sec_idx_len = ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_len;
-       m_NCS_OS_MEMCPY(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
+       memcpy(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
               sec_idx_len*sizeof(uns32));
 
        m_NCS_MEMSET(&sspt_info, 0, sizeof(NCS_IFSV_SSPT_IF_INDEX_INFO));
@@ -2651,7 +2651,7 @@ ifsv_fill_sspt_display_data(NCSMIB_ARG *p_ncs_mib_arg,
 
             case ncsIfsvIfMapEntryIfInfo_ID:
             {
-                m_NCS_OS_MEMCPY(p_sspt_info_display->if_name,
+                memcpy(p_sspt_info_display->if_name,
                                 param_val.info.i_oct,
                                 param_val.i_length);
 
@@ -2799,7 +2799,7 @@ ipxs_process_get_row_request(NCSCLI_CEF_DATA *p_cef_data, uns32 range_start, uns
        }
 
        sec_idx_len = ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_len;
-       m_NCS_OS_MEMCPY(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
+       memcpy(sec_idxs,ncs_mib_arg.rsp.info.nextrow_rsp.i_next.i_inst_ids,
               sec_idx_len*sizeof(uns32));
 
        m_NCS_MEMSET(&ipxs_data_display, 0, sizeof(IPXS_DATA_DISPLAY));

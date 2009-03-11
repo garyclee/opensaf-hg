@@ -252,7 +252,7 @@ typedef enum {
 {\
    param->i_fmat_id = NCSMIB_FMAT_OCT; \
    param->i_length = len; \
-   m_NCS_MEMCPY((uns8 *)buffer,val,param->i_length); \
+   memcpy((uns8 *)buffer,val,param->i_length); \
    param->info.i_oct = (uns8 *)buffer; \
 }
 

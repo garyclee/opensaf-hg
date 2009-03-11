@@ -358,7 +358,7 @@ static uns32 glnd_restart_resource_node_add(GLND_CB    *glnd_cb, GLND_RESTART_RE
    res_info->lck_master_info.ex_orphaned = restart_res_info.ex_orphaned;
    res_info->shm_index           = restart_res_info.shm_index;
    
-   m_NCS_MEMCPY(&res_info->resource_name , &restart_res_info.resource_name, sizeof(SaNameT));
+   memcpy(&res_info->resource_name , &restart_res_info.resource_name, sizeof(SaNameT));
 
    node_id = m_NCS_NODE_ID_FROM_MDS_DEST( restart_res_info.master_mds_dest);
 

@@ -367,7 +367,7 @@ oaclib_oac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     /* take the env-id */ 
     oac_lmarg.info.create.i_vrid = req_info->info.inst.i_env_id; 
     /* get the instance name of the application */ 
-    m_NCS_OS_MEMCPY(&oac_lmarg.info.create.i_inst_name, 
+    memcpy(&oac_lmarg.info.create.i_inst_name, 
                     &req_info->info.inst.i_inst_name, 
                     sizeof(SaNameT)); 
     oac_lmarg.info.create.i_mbx = &gl_oacmbx.oac_mbx;
@@ -433,7 +433,7 @@ oaclib_oac_uninstantiate(PW_ENV_ID      i_env_id,
     /* destroy this OAA instance */ 
     m_NCS_OS_MEMSET(&arg, 0, sizeof(NCSOAC_LM_ARG)); 
     arg.i_op      = NCSOAC_LM_OP_DESTROY;
-    m_NCS_OS_MEMCPY(&arg.info.destroy.i_inst_name, 
+    memcpy(&arg.info.destroy.i_inst_name, 
                     &i_inst_name, 
                     sizeof(SaNameT)); 
     arg.info.destroy.i_env_id = i_env_id;
@@ -498,7 +498,7 @@ oaclib_oac_destroy(NCS_LIB_REQ_INFO *req_info)
         spir_info.type = NCS_SPIR_REQ_REL_INST; 
         spir_info.i_sp_abstract_name = m_OAA_SP_ABST_NAME; 
         spir_info.i_environment_id = this_oac_inst->i_env_id; 
-        m_NCS_OS_MEMCPY(&spir_info.i_instance_name, &this_oac_inst->i_inst_name, sizeof(SaNameT)); 
+        memcpy(&spir_info.i_instance_name, &this_oac_inst->i_inst_name, sizeof(SaNameT)); 
         status = ncs_spir_api(&spir_info);
         if (status != NCSCC_RC_SUCCESS)
         {
@@ -583,7 +583,7 @@ oac_inst_list_add(PW_ENV_ID env_id, uns32 i_oac_hdl, SaNameT i_inst_name)
     m_NCS_OS_MEMSET(add_me, 0, sizeof(MAB_INST_NODE)); 
     add_me->i_env_id = env_id; 
     add_me->i_hdl = i_oac_hdl; 
-    m_NCS_OS_MEMCPY(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT)); 
+    memcpy(&add_me->i_inst_name, &i_inst_name, sizeof(SaNameT)); 
 
     /* register with the society */ 
     add_me->next = gl_oac_inst_list; 

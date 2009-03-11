@@ -143,7 +143,7 @@ uns32 mbcsv_query_mds (uns32 pwe_hdl, MBCSV_ANCHOR * anchor, MDS_DEST *vdest)
    else
    {
       *anchor = mds_info.info.query_pwe.info.virt_info.o_anc;
-      m_NCS_MEMCPY(vdest, &mds_info.info.query_pwe.info.virt_info.o_vdest, sizeof(MDS_DEST));
+      memcpy(vdest, &mds_info.info.query_pwe.info.virt_info.o_vdest, sizeof(MDS_DEST));
    }
 
    return NCSCC_RC_SUCCESS;
@@ -878,7 +878,7 @@ uns32 mbcsv_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
          ncs_dec_skip_space(uba, MBCSV_INT_CLIENT_MSG_SIZE);
        
          /* Copy user buffer */
-         m_NCS_OS_MEMCPY(&mm->info.peer_msg.info.client_msg.uba,
+         memcpy(&mm->info.peer_msg.info.client_msg.uba,
             uba, sizeof(NCS_UBAID));
 
          break;
@@ -942,7 +942,7 @@ uns32 mbcsv_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
    *cpy = mm;
    
    /*No mem set is require here since we are copying the message */
-   m_NCS_OS_MEMCPY(mm,msg,sizeof(MBCSV_EVT));
+   memcpy(mm,msg,sizeof(MBCSV_EVT));
    
    return NCSCC_RC_SUCCESS;
 }

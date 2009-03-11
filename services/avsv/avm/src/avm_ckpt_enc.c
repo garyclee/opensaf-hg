@@ -584,7 +584,7 @@ avm_encode_cold_sync_rsp_validation_info(AVM_CB_T             *cb,
          return status;
       }
       
-      m_NCS_MEMCPY(desc_name.name, valid_info->desc_name.name, NCS_MAX_INDEX_LEN);
+      memcpy(desc_name.name, valid_info->desc_name.name, NCS_MAX_INDEX_LEN);
 
       (num_of_inst)++;
    }
@@ -641,7 +641,7 @@ avm_encode_cold_sync_rsp_ent_state(AVM_CB_T             *cb,
    {
       if(NCS_ROW_ACTIVE != ent_info->row_status)
       {
-         m_NCS_MEMCPY(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+         memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
          ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
          continue;
       }
@@ -657,7 +657,7 @@ avm_encode_cold_sync_rsp_ent_state(AVM_CB_T             *cb,
          return status;
       }
 
-      m_NCS_MEMCPY(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+      memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
       ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
       
       (num_of_inst)++;

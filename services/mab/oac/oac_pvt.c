@@ -411,7 +411,7 @@ OAC_FLTR* oac_fltr_create(OAC_TBL* inst,NCSMAB_FLTR* mab_fltr)
   inst->nxt_fltr_id++;
   ret->fltr_id = inst->nxt_fltr_id;
  
-  m_NCS_OS_MEMCPY(&(ret->fltr),mab_fltr,sizeof(NCSMAB_FLTR));
+  memcpy(&(ret->fltr),mab_fltr,sizeof(NCSMAB_FLTR));
  
   switch (ret->fltr.type)
    {
@@ -486,7 +486,7 @@ uns32 oac_fltr_reg_xmit(OAC_TBL* inst,OAC_FLTR* fltr,uns32 tbl_id)
     msg.fr_anc                = inst->my_anc;
     msg.op                    = MAB_MAS_REG_HDLR;
     msg.data.data.reg.fltr_id = fltr->fltr_id;
-    m_NCS_OS_MEMCPY(&(msg.data.data.reg.fltr),&(fltr->fltr),sizeof(NCSMAB_FLTR));
+    memcpy(&(msg.data.data.reg.fltr),&(fltr->fltr),sizeof(NCSMAB_FLTR));
     msg.data.data.reg.tbl_id  = tbl_id;
 
     /* Send the message */
@@ -620,7 +620,7 @@ void oac_sync_fltrs_with_mas(OAC_TBL* inst )
                 msg.op                    = MAB_MAS_REG_HDLR;
                 msg.data.data.reg.fltr_id = fltr->fltr_id;
                 msg.data.data.reg.tbl_id  = tbl_rec->tbl_id;
-                m_NCS_OS_MEMCPY(&(msg.data.data.reg.fltr),&(fltr->fltr),sizeof(NCSMAB_FLTR));
+                memcpy(&(msg.data.data.reg.fltr),&(fltr->fltr),sizeof(NCSMAB_FLTR));
 
                 /* Send the message */
                 code = mab_mds_snd(inst->mds_hdl, &msg, NCSMDS_SVC_ID_OAC, NCSMDS_SVC_ID_MAS,
@@ -1903,7 +1903,7 @@ uns32 oac_psr_add_to_buffer_zone(OAC_TBL *inst, MAB_MSG* msg)
    lcl_msg = m_MMGR_ALLOC_MAB_MSG;
    m_NCS_OS_MEMSET(lcl_msg, '\0', sizeof(MAB_MSG));
 
-   m_NCS_OS_MEMCPY(lcl_msg, msg, sizeof(MAB_MSG));
+   memcpy(lcl_msg, msg, sizeof(MAB_MSG));
    switch(msg->op)
    {
    case MAB_PSS_SET_REQUEST:

@@ -65,11 +65,11 @@ avm_copy_inv_data(AVM_VALID_INFO_T *dest,
     uns32 rc = NCSCC_RC_SUCCESS;
 
     dest->inv_data.product_name.DataLength = src->inv_data.product_name.DataLength;
-    m_NCS_MEMCPY(dest->inv_data.product_name.Data, src->inv_data.product_name.Data, src->inv_data.product_name.DataLength);
+    memcpy(dest->inv_data.product_name.Data, src->inv_data.product_name.Data, src->inv_data.product_name.DataLength);
             
             
     dest->inv_data.product_version.DataLength = src->inv_data.product_version.DataLength;
-    m_NCS_MEMCPY(dest->inv_data.product_version.Data, src->inv_data.product_version.Data, dest->inv_data.product_version.DataLength);
+    memcpy(dest->inv_data.product_version.Data, src->inv_data.product_version.Data, dest->inv_data.product_version.DataLength);
          
     return rc;   
 }   
@@ -188,7 +188,7 @@ avm_ckpt_update_valid_info_db( AVM_CB_T             *cb,
                valid_info_lp->location[i].parent.length = NCS_MAX_INDEX_LEN; 
             }
          
-            m_NCS_MEMCPY(valid_info_lp->location[i].parent.name, valid_info->location[i].parent.name, valid_info_lp->location[i].parent.length);
+            memcpy(valid_info_lp->location[i].parent.name, valid_info->location[i].parent.name, valid_info_lp->location[i].parent.length);
 
             for(j = 0; j < MAX_POSSIBLE_LOC_RANGES; j++)
             {
@@ -259,7 +259,7 @@ uns32 avm_ckpt_update_ent_db(
             }
             
             ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-            m_NCS_MEMCPY(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+            memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
             avm_add_ent_str_info(cb, ent_info_lp, &ep);
          }
          
@@ -274,7 +274,7 @@ uns32 avm_ckpt_update_ent_db(
          ent_info_lp->adm_shutdown  = ent_info->adm_shutdown;
          ent_info_lp->adm_req       = ent_info->adm_req;
 
-         m_NCS_MEMCPY(ent_info_lp->node_name.value, ent_info->node_name.value, SA_MAX_NAME_LENGTH);
+         memcpy(ent_info_lp->node_name.value, ent_info->node_name.value, SA_MAX_NAME_LENGTH);
     
          if(ent_info_lp->is_node)
          {    
@@ -293,13 +293,13 @@ uns32 avm_ckpt_update_ent_db(
          ent_info_lp->depends_on_valid = ent_info->depends_on_valid;
          
          ent_info_lp->dep_ep_str.length = ent_info->dep_ep_str.length;
-         m_NCS_MEMCPY(ent_info_lp->dep_ep_str.name, ent_info->dep_ep_str.name, AVM_MAX_INDEX_LEN);
+         memcpy(ent_info_lp->dep_ep_str.name, ent_info->dep_ep_str.name, AVM_MAX_INDEX_LEN);
  
          ent_info_lp->desc_name.length = ent_info->desc_name.length;
-         m_NCS_MEMCPY(ent_info_lp->desc_name.name, ent_info->desc_name.name, NCS_MAX_INDEX_LEN);
+         memcpy(ent_info_lp->desc_name.name, ent_info->desc_name.name, NCS_MAX_INDEX_LEN);
     
          ent_info_lp->parent_desc_name.length = ent_info->parent_desc_name.length;
-         m_NCS_MEMCPY(ent_info_lp->parent_desc_name.name, ent_info->parent_desc_name.name, NCS_MAX_INDEX_LEN);
+         memcpy(ent_info_lp->parent_desc_name.name, ent_info->parent_desc_name.name, NCS_MAX_INDEX_LEN);
  
          ent_info_lp->valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, ent_info->desc_name.name);
          ent_info_lp->parent_valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, ent_info->parent_desc_name.name);
@@ -674,7 +674,7 @@ extern uns32 avm_cleanup_db(AVM_CB_T   *cb)
        ent_info != AVM_ENT_INFO_NULL; 
        ent_info = avm_find_next_ent_info(cb, &entity_path))
    {
-      m_NCS_MEMCPY(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+      memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
 
       avm_rmv_ent_info(cb, ent_info);
       avm_delete_ent_info(cb, ent_info);
@@ -691,7 +691,7 @@ extern uns32 avm_cleanup_db(AVM_CB_T   *cb)
        valid_info  = avm_find_next_valid_info(cb, &desc_name))
    {
       
-      m_NCS_MEMCPY(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
+      memcpy(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
       avm_delete_valid_info(cb, valid_info);
       m_MMGR_FREE_AVM_VALID_INFO(valid_info);
       valid_info = AVM_VALID_INFO_NULL; 
@@ -739,11 +739,11 @@ avm_dhcp_conf_per_label_update(
                                AVM_PER_LABEL_CONF *temp_label
                               )
 {
-   m_NCS_MEMCPY(&dhcp_label->name, &temp_label->name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memcpy(&dhcp_label->name, &temp_label->name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
    m_NCS_DBG_PRINTF("\n Label Name = %s",dhcp_label->name.name);
-   m_NCS_MEMCPY(&dhcp_label->file_name, &temp_label->file_name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   m_NCS_MEMCPY(&dhcp_label->sw_version, &temp_label->sw_version, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   m_NCS_MEMCPY(&dhcp_label->install_time, &temp_label->install_time, AVM_TIME_STR_LEN);
+   memcpy(&dhcp_label->file_name, &temp_label->file_name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memcpy(&dhcp_label->sw_version, &temp_label->sw_version, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memcpy(&dhcp_label->install_time, &temp_label->install_time, AVM_TIME_STR_LEN);
    dhcp_label->conf_chg = temp_label->conf_chg;
 
    return NCSCC_RC_SUCCESS;
@@ -773,14 +773,14 @@ avm_decode_ckpt_dhcp_conf_update(
    uns32 i;
    /* copy the mac addresses */
    for (i=0; i<AVM_MAX_MAC_ENTRIES; i++)
-      m_NCS_MEMCPY(dhcp_conf->mac_address[i], temp_conf->mac_address[i], AVM_MAC_DATA_LEN);
+      memcpy(dhcp_conf->mac_address[i], temp_conf->mac_address[i], AVM_MAC_DATA_LEN);
 
    /* netboot and tftpserver */
    dhcp_conf->net_boot = temp_conf->net_boot;
-   m_NCS_MEMCPY(dhcp_conf->tftp_serve_ip, temp_conf->tftp_serve_ip, 4);
+   memcpy(dhcp_conf->tftp_serve_ip, temp_conf->tftp_serve_ip, 4);
 
    /* preferred label, label1 and label2 */
-   m_NCS_MEMCPY(&dhcp_conf->pref_label, &temp_conf->pref_label, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memcpy(&dhcp_conf->pref_label, &temp_conf->pref_label, sizeof(AVM_DHCP_CONF_NAME_TYPE));
    avm_dhcp_conf_per_label_update(&dhcp_conf->label1, &temp_conf->label1);
    avm_dhcp_conf_per_label_update(&dhcp_conf->label2, &temp_conf->label2);
 
@@ -874,10 +874,10 @@ avm_decode_ckpt_upgd_state_update(
                         AVM_ENT_DHCP_CONF *temp_conf
                         )
 {
-   m_NCS_MEMCPY(&dhcp_conf->ipmc_helper_node, &temp_conf->ipmc_helper_node, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+   memcpy(&dhcp_conf->ipmc_helper_node, &temp_conf->ipmc_helper_node, sizeof(AVM_DHCP_CONF_NAME_TYPE));
 
    dhcp_conf->ipmc_helper_ent_path.length = temp_conf->ipmc_helper_ent_path.length;
-   m_NCS_MEMCPY(dhcp_conf->ipmc_helper_ent_path.name, temp_conf->ipmc_helper_ent_path.name, AVM_MAX_INDEX_LEN);
+   memcpy(dhcp_conf->ipmc_helper_ent_path.name, temp_conf->ipmc_helper_ent_path.name, AVM_MAX_INDEX_LEN);
 
    dhcp_conf->upgrade_type        = temp_conf->upgrade_type;
    dhcp_conf->ipmb_addr           = temp_conf->ipmb_addr;

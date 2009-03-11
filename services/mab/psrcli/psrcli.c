@@ -1171,7 +1171,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             if ((num_inst_ids == 0) || (num_inst_ids == 1))
                 goto end;
 
-            m_NCS_MEMCPY(inst_ids, ncsmib_arg.rsp.info.next_rsp.i_next.i_inst_ids,
+            memcpy(inst_ids, ncsmib_arg.rsp.info.next_rsp.i_next.i_inst_ids,
                         num_inst_ids * sizeof(uns32));
             for (i = 1; i < num_inst_ids; i++)
                 profile_name[i-1] = (char) inst_ids[i];

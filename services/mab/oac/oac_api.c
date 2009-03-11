@@ -2317,7 +2317,7 @@ uns32 oac_svc_create(NCSOAC_CREATE* create)
     m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
-    m_NCS_OS_MEMCPY(&spir_info.i_instance_name, 
+    memcpy(&spir_info.i_instance_name, 
                     &create->i_inst_name, 
                     sizeof(SaNameT)); 
     spir_info.i_environment_id =  create->i_vrid; 
@@ -2509,7 +2509,7 @@ uns32 oac_svc_destroy(NCSOAC_DESTROY *destroy)
     m_NCS_OS_MEMSET(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO)); 
     spir_info.type = NCS_SPIR_REQ_REL_INST; 
     spir_info.i_sp_abstract_name = m_MDS_SP_ABST_NAME; 
-    m_NCS_OS_MEMCPY(&spir_info.i_instance_name, 
+    memcpy(&spir_info.i_instance_name, 
                     &destroy->i_inst_name, sizeof(SaNameT)); 
     spir_info.i_environment_id =  destroy->i_env_id; 
     status = ncs_spir_api(&spir_info);

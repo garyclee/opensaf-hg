@@ -517,7 +517,7 @@ uns32 mab_mds_cpy(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT msg,
   
   *cpy = mm;
   
-  m_NCS_OS_MEMCPY(mm,msg,sizeof(MAB_MSG));
+  memcpy(mm,msg,sizeof(MAB_MSG));
 
   
   switch(mm->op)
@@ -578,11 +578,11 @@ uns32 mab_mds_cpy(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT msg,
               }
             }
           
-          m_NCS_OS_MEMCPY((void*)dst_mf->fltr.range.i_min_idx_fltr,
+          memcpy((void*)dst_mf->fltr.range.i_min_idx_fltr,
                  (void*)src_mf->fltr.range.i_min_idx_fltr,
                  dst_mf->fltr.range.i_idx_len * sizeof(uns32));
           
-          m_NCS_OS_MEMCPY((void*)dst_mf->fltr.range.i_max_idx_fltr,
+          memcpy((void*)dst_mf->fltr.range.i_max_idx_fltr,
                  (void*)src_mf->fltr.range.i_max_idx_fltr,
                  dst_mf->fltr.range.i_idx_len * sizeof(uns32));
         }
@@ -638,11 +638,11 @@ uns32 mab_mds_cpy(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT msg,
           }
         }
       
-      m_NCS_OS_MEMCPY((void*)dst_mr->i_min_idx_fltr,
+      memcpy((void*)dst_mr->i_min_idx_fltr,
         (void*)src_mr->i_min_idx_fltr,
         dst_mr->i_idx_len * sizeof(uns32));
       
-      m_NCS_OS_MEMCPY((void*)dst_mr->i_max_idx_fltr,
+      memcpy((void*)dst_mr->i_max_idx_fltr,
         (void*)src_mr->i_max_idx_fltr,
         dst_mr->i_idx_len * sizeof(uns32));
       }
@@ -1783,7 +1783,7 @@ mas_mab_range_fltr_clone(NCSMAB_RANGE *src_range, NCSMAB_RANGE *dst_range)
                               "mas_mab_range_fltr_clone()"); 
             return NCSCC_RC_OUT_OF_MEM;
         }
-        m_NCS_OS_MEMCPY((void*)dst_range->i_min_idx_fltr,
+        memcpy((void*)dst_range->i_min_idx_fltr,
                         (void*)src_range->i_min_idx_fltr,
                         (src_range->i_idx_len * sizeof(uns32)));
 
@@ -1797,7 +1797,7 @@ mas_mab_range_fltr_clone(NCSMAB_RANGE *src_range, NCSMAB_RANGE *dst_range)
             m_MMGR_FREE_MIB_INST_IDS(dst_range->i_min_idx_fltr); 
             return NCSCC_RC_OUT_OF_MEM;
         }
-        m_NCS_OS_MEMCPY((void*)dst_range->i_max_idx_fltr,
+        memcpy((void*)dst_range->i_max_idx_fltr,
                         (void*)src_range->i_max_idx_fltr,
                         (src_range->i_idx_len * sizeof(uns32)));
         
@@ -1820,7 +1820,7 @@ mas_mab_exact_fltr_clone(NCSMAB_EXACT *src_exact, NCSMAB_EXACT *dst_exact)
                           "mas_mab_exact_fltr_clone()"); 
         return NCSCC_RC_OUT_OF_MEM;
     }
-    m_NCS_OS_MEMCPY((void*)dst_exact->i_exact_idx,
+    memcpy((void*)dst_exact->i_exact_idx,
                     (void*)src_exact->i_exact_idx,
                     (src_exact->i_idx_len * sizeof(uns32)));
     

@@ -104,12 +104,12 @@ AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
 
    if (ckpt)
    {
-      m_NCS_MEMCPY(si->name_net.value,si_name.value,m_NCS_OS_NTOHS(si_name.length));
+      memcpy(si->name_net.value,si_name.value,m_NCS_OS_NTOHS(si_name.length));
       si->name_net.length = si_name.length;
    }
    else
    {
-      m_NCS_MEMCPY(si->name_net.value,si_name.value,si_name.length);
+      memcpy(si->name_net.value,si_name.value,si_name.length);
       si->name_net.length = m_HTON_SANAMET_LEN(si_name.length);
       
       si->row_status = NCS_ROW_NOT_READY;
@@ -170,7 +170,7 @@ AVD_SI * avd_si_struc_find(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_order)
    lsi_name.length = (host_order == FALSE) ? si_name.length :  
                                             m_HTON_SANAMET_LEN(si_name.length);
 
-   m_NCS_MEMCPY(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
+   memcpy(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
 
    si = (AVD_SI *)ncs_patricia_tree_get(&cb->si_anchor, (uns8*)&lsi_name);
 
@@ -204,7 +204,7 @@ AVD_SI * avd_si_struc_find_next(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_orde
    lsi_name.length = (host_order == FALSE) ? si_name.length :  
                                             m_HTON_SANAMET_LEN(si_name.length);
 
-   m_NCS_MEMCPY(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
+   memcpy(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
 
    si = (AVD_SI *)ncs_patricia_tree_getnext(&cb->si_anchor, (uns8*)&lsi_name);
 
@@ -914,7 +914,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       
       /* fill the SG name value */
       temp_name.length = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(temp_name.value,
+      memcpy(temp_name.value,
                    arg->req.info.set_req.i_param_val.info.i_oct,
                    temp_name.length);
 
@@ -935,7 +935,7 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
       }
 
       si->sg_name.length = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(si->sg_name.value, 
+      memcpy(si->sg_name.value, 
                    arg->req.info.set_req.i_param_val.info.i_oct, 
                    si->sg_name.length);
       break;
@@ -1504,7 +1504,7 @@ AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
 
    rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
-   m_NCS_MEMCPY(rank_elt->indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
+   memcpy(rank_elt->indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
 
    rank_elt->indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
  
@@ -1522,7 +1522,7 @@ AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
    }
 
    rank_elt->si_name.length = m_NCS_OS_NTOHS(si->name_net.length);
-   m_NCS_MEMCPY(rank_elt->si_name.value, si->name_net.value, rank_elt->si_name.length);
+   memcpy(rank_elt->si_name.value, si->name_net.value, rank_elt->si_name.length);
 
 
    return rank_elt;
@@ -1610,7 +1610,7 @@ uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si)
 
    indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
-   m_NCS_MEMCPY(indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
+   memcpy(indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
 
    indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
 

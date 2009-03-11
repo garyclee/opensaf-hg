@@ -380,7 +380,7 @@ uns32 ncspssvprofiletableentry_extract(NCSMIB_PARAM_VAL* param,
    if(desc_exists == TRUE)
    {
       param->i_length = (uns16) m_NCS_STRLEN((const char *) profile_desc);
-      m_NCS_MEMCPY((uns8*)buffer, (uns8*)profile_desc, param->i_length); /* Using buffer passed from MIBLIB to return OCT value. */
+      memcpy((uns8*)buffer, (uns8*)profile_desc, param->i_length); /* Using buffer passed from MIBLIB to return OCT value. */
       param->i_fmat_id = NCSMIB_FMAT_OCT;
       param->info.i_oct = (uns8 *)buffer; /* This is not required to be freed. */
    }
@@ -463,7 +463,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                 }
             }
 
-            m_NCS_MEMCPY(&desc_text, (uns8*)arg->req.info.set_req.i_param_val.info.i_oct,
+            memcpy(&desc_text, (uns8*)arg->req.info.set_req.i_param_val.info.i_oct,
                arg->req.info.set_req.i_param_val.i_length);
             m_NCS_PSSTS_SET_DESC(inst->pssts_api, inst->pssts_hdl, retval, profile_name, (char*)&desc_text);
             if (retval != NCSCC_RC_SUCCESS)
@@ -471,7 +471,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                return NCSCC_RC_INV_VAL;
             }
 
-            m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+            memcpy(&arg->rsp.info.set_rsp.i_param_val,
                         &arg->req.info.set_req.i_param_val,
                         sizeof(NCSMIB_PARAM_VAL));
         }
@@ -517,7 +517,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                        return NCSCC_RC_FAILURE;
                     }
 
-                    m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+                    memcpy(&arg->rsp.info.set_rsp.i_param_val,
                                 &arg->req.info.set_req.i_param_val,
                                 sizeof(NCSMIB_PARAM_VAL));
                 }
@@ -551,7 +551,7 @@ uns32 ncspssvprofiletableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                        return NCSCC_RC_INV_VAL;
                     }
 
-                    m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+                    memcpy(&arg->rsp.info.set_rsp.i_param_val,
                                 &arg->req.info.set_req.i_param_val,
                                 sizeof(NCSMIB_PARAM_VAL));
                 }
@@ -690,14 +690,14 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
         else
         {
            m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SET_EXST_PRO);
-           m_NCS_MEMCPY((char *)inst->existing_profile,
+           memcpy((char *)inst->existing_profile,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
            if(arg->req.info.set_req.i_param_val.i_length < sizeof(inst->existing_profile))
               m_NCS_MEMSET(((char *)inst->existing_profile + arg->req.info.set_req.i_param_val.i_length),
                  '\0', (sizeof(inst->existing_profile) - arg->req.info.set_req.i_param_val.i_length));
 
-           m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+           memcpy(&arg->rsp.info.set_rsp.i_param_val,
                     &arg->req.info.set_req.i_param_val,
                     sizeof(NCSMIB_PARAM_VAL));
         }
@@ -717,10 +717,10 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
         {
            m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SET_NEW_PRO);
            m_NCS_MEMSET((char *)inst->new_profile, '\0', sizeof(inst->new_profile));
-           m_NCS_MEMCPY((char *)inst->new_profile,
+           memcpy((char *)inst->new_profile,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
-           m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+           memcpy(&arg->rsp.info.set_rsp.i_param_val,
                     &arg->req.info.set_req.i_param_val,
                     sizeof(NCSMIB_PARAM_VAL));
         }
@@ -737,7 +737,7 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
            m_LOG_PSS_HEADLINE2(NCSFL_SEV_INFO, PSS_HDLN_SET_CUR_PRO);
            retval = pss_process_trigger_op(inst,
                                         arg->req.info.set_req.i_param_val.info.i_int);
-           m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+           memcpy(&arg->rsp.info.set_rsp.i_param_val,
                     &arg->req.info.set_req.i_param_val,
                     sizeof(NCSMIB_PARAM_VAL));
         }
@@ -752,12 +752,12 @@ uns32 ncspssvscalars_set(NCSCONTEXT cb,
         {
            m_LOG_PSS_HEADLINE(NCSFL_SEV_INFO, PSS_HDLN_SET_CUR_PRO);
            m_NCS_MEMSET((char *)inst->current_profile, '\0', sizeof(inst->current_profile));
-           m_NCS_MEMCPY((char *)inst->current_profile,
+           memcpy((char *)inst->current_profile,
                     (char *)arg->req.info.set_req.i_param_val.info.i_oct,
                     arg->req.info.set_req.i_param_val.i_length);
            m_NCS_PSSTS_SET_PSS_CONFIG(inst->pssts_api, inst->pssts_hdl, retval,
                                   inst->current_profile);
-           m_NCS_MEMCPY(&arg->rsp.info.set_rsp.i_param_val,
+           memcpy(&arg->rsp.info.set_rsp.i_param_val,
                     &arg->req.info.set_req.i_param_val,
                     sizeof(NCSMIB_PARAM_VAL));
         }
@@ -795,21 +795,21 @@ uns32 ncspssvscalars_extract(NCSMIB_PARAM_VAL *param,
     case ncsPSSvExistingProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
        param->i_length = m_NCS_STRLEN(inst->existing_profile);
-       m_NCS_MEMCPY((uns8 *)buffer, inst->existing_profile, param->i_length);
+       memcpy((uns8 *)buffer, inst->existing_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;
 
     case ncsPSSvNewProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
        param->i_length = m_NCS_STRLEN(inst->new_profile);
-       m_NCS_MEMCPY((uns8 *)buffer, inst->new_profile, param->i_length);
+       memcpy((uns8 *)buffer, inst->new_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;
 
     case ncsPSSvCurrentProfile_ID:
        param->i_fmat_id = NCSMIB_FMAT_OCT;
        param->i_length = m_NCS_STRLEN(inst->current_profile);
-       m_NCS_MEMCPY((uns8 *)buffer, inst->current_profile, param->i_length);
+       memcpy((uns8 *)buffer, inst->current_profile, param->i_length);
        param->info.i_oct = (uns8 *)buffer;
        break;
 

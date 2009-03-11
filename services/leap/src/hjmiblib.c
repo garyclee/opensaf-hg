@@ -267,7 +267,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
                 {
                     m_NCS_OS_MEMSET(((uns8*)data + var_info->offset), 0,
                                    max_len);
-                    m_NCS_OS_MEMCPY(((uns8*)data + var_info->offset),
+                    memcpy(((uns8*)data + var_info->offset),
                     param_val->info.i_oct, param_val->i_length);
                 }
             }
@@ -275,7 +275,7 @@ uns32 miblib_set_obj_value(NCSMIB_PARAM_VAL *param_val,
             {
                 m_NCS_OS_MEMSET(((uns8*)data + var_info->offset), 0,
                                 max_len);
-                m_NCS_OS_MEMCPY(((uns8*)data + var_info->offset),
+                memcpy(((uns8*)data + var_info->offset),
                 param_val->info.i_oct, param_val->i_length);
             }
           break;

@@ -104,13 +104,13 @@ AVD_CSI * avd_csi_struc_crt(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL ckpt)
 
    if (ckpt)
    {
-      m_NCS_MEMCPY(csi->name_net.value,csi_name.value,
+      memcpy(csi->name_net.value,csi_name.value,
          m_NCS_OS_NTOHS(csi_name.length));
       csi->name_net.length = csi_name.length;
    }
    else
    {
-      m_NCS_MEMCPY(csi->name_net.value,csi_name.value,csi_name.length);
+      memcpy(csi->name_net.value,csi_name.value,csi_name.length);
       csi->name_net.length = m_HTON_SANAMET_LEN(csi_name.length);
 
       csi->row_status = NCS_ROW_NOT_READY;
@@ -171,7 +171,7 @@ AVD_CSI * avd_csi_struc_find(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL host_order)
    m_NCS_MEMSET((char *)&lcsi_name, '\0', sizeof(SaNameT));
    lcsi_name.length = (host_order == FALSE) ? csi_name.length :  
                                             m_HTON_SANAMET_LEN(csi_name.length);
-   m_NCS_MEMCPY(lcsi_name.value,csi_name.value,m_NCS_OS_NTOHS(lcsi_name.length));
+   memcpy(lcsi_name.value,csi_name.value,m_NCS_OS_NTOHS(lcsi_name.length));
 
    csi = (AVD_CSI *)ncs_patricia_tree_get(&cb->csi_anchor,
                      (uns8*)&lcsi_name);
@@ -206,7 +206,7 @@ AVD_CSI * avd_csi_struc_find_next(AVD_CL_CB *cb,SaNameT csi_name,NCS_BOOL host_o
    lcsi_name.length = (host_order == FALSE) ? csi_name.length :  
                                             m_HTON_SANAMET_LEN(csi_name.length);
 
-   m_NCS_MEMCPY(lcsi_name.value,csi_name.value,m_NCS_OS_NTOHS(lcsi_name.length));
+   memcpy(lcsi_name.value,csi_name.value,m_NCS_OS_NTOHS(lcsi_name.length));
 
    csi = (AVD_CSI *)ncs_patricia_tree_getnext(&cb->csi_anchor,
                      (uns8*)&lcsi_name);
@@ -282,7 +282,7 @@ static AVD_CSI_PARAM * avd_csi_param_crt(AVD_CSI *csi, SaNameT param_name)
 
    m_NCS_MEMSET((char *)param, '\0', sizeof(AVD_CSI_PARAM));
 
-   m_NCS_MEMCPY(param->param.name.value, param_name.value, param_name.length);
+   memcpy(param->param.name.value, param_name.value, param_name.length);
    param->param.name.length = param_name.length;
 
    param->row_status = NCS_ROW_NOT_READY;
@@ -495,7 +495,7 @@ avd_csi_find_next_param(AVD_CL_CB *cb, AVD_CSI **csi_ptr, SaNameT csi_name, SaNa
    {
       /* The length is in host order change it */
       temp_name.length = m_NTOH_SANAMET_LEN(csi_name.length);
-      m_NCS_MEMCPY(temp_name.value,csi_name.value,csi_name.length);
+      memcpy(temp_name.value,csi_name.value,csi_name.length);
 
       while((csi = avd_csi_struc_find_next(cb, temp_name, FALSE)) != AVD_CSI_NULL)
       {
@@ -1181,7 +1181,7 @@ uns32 saamfcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    
    case saAmfCSType_ID:
       csi->csi_type.length = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(csi->csi_type.value, 
+      memcpy(csi->csi_type.value, 
                    arg->req.info.set_req.i_param_val.info.i_oct, 
                    csi->csi_type.length);
       break;
@@ -1703,7 +1703,7 @@ uns32 saamfcsinamevaluetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
    case saAmfCSINameValueParamValue_ID:
       m_NCS_MEMSET(&param->param.value, '\0', sizeof(SaNameT));
       param->param.value.length = arg->req.info.set_req.i_param_val.i_length;
-      m_NCS_MEMCPY(param->param.value.value, 
+      memcpy(param->param.value.value, 
                    arg->req.info.set_req.i_param_val.info.i_oct, 
                    param->param.value.length);
       break;
@@ -1885,11 +1885,11 @@ uns32 avd_cs_type_param_find_match(AVD_CL_CB *cb, SaNameT csi_type, SaNameT para
 
    indx.type_name_net.length = m_NCS_OS_HTONS(csi_type.length);
 
-   m_NCS_MEMCPY(indx.type_name_net.value, csi_type.value, csi_type.length);
+   memcpy(indx.type_name_net.value, csi_type.value, csi_type.length);
 
    indx.param_name_net.length = m_NCS_OS_HTONS(param_name.length);
 
-   m_NCS_MEMCPY(indx.param_name_net.value, param_name.value, param_name.length);
+   memcpy(indx.param_name_net.value, param_name.value, param_name.length);
 
    type_param = avd_cs_type_param_struc_find(cb, indx);
 
@@ -1940,10 +1940,10 @@ AVD_CS_TYPE_PARAM * avd_cs_type_param_struc_crt(AVD_CL_CB *cb,AVD_CS_TYPE_PARAM_
    m_NCS_MEMSET((char *)type_param, '\0', sizeof(AVD_CS_TYPE_PARAM));
 
    type_param->indx.type_name_net.length = indx.type_name_net.length;
-   m_NCS_MEMCPY(type_param->indx.type_name_net.value,indx.type_name_net.value,m_NCS_OS_NTOHS(indx.type_name_net.length));
+   memcpy(type_param->indx.type_name_net.value,indx.type_name_net.value,m_NCS_OS_NTOHS(indx.type_name_net.length));
 
    type_param->indx.param_name_net.length = indx.param_name_net.length;
-   m_NCS_MEMCPY(type_param->indx.param_name_net.value,indx.param_name_net.value,m_NCS_OS_NTOHS(indx.param_name_net.length));
+   memcpy(type_param->indx.param_name_net.value,indx.param_name_net.value,m_NCS_OS_NTOHS(indx.param_name_net.length));
 
    type_param->row_status = NCS_ROW_NOT_READY;
 

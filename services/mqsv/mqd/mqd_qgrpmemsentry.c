@@ -74,7 +74,7 @@ uns32 samsgqueuegroupmembersentry_extract(NCSMIB_PARAM_VAL* param,
    {
       param->i_fmat_id = NCSMIB_FMAT_OCT;
       param->i_length  = qnode->name.length;
-      m_NCS_MEMCPY((uns8 *)buffer,qnode->name.value,param->i_length);
+      memcpy((uns8 *)buffer,qnode->name.value,param->i_length);
       param->info.i_oct     = (uns8*)buffer;
    }
    else

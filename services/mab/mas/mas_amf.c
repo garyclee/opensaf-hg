@@ -631,8 +631,8 @@ mas_amf_csi_set(SaInvocationT invocation,
     m_MAB_DBG_TRACE("\nmas_amf_csi_set():entered.");
 
     /* log the information about the received CSI assignment */ 
-    m_NCS_OS_MEMCPY(tCompName, compName->value, compName->length); 
-    m_NCS_OS_MEMCPY(tCsiName, csiDescriptor.csiName.value, csiDescriptor.csiName.length);
+    memcpy(tCompName, compName->value, compName->length); 
+    memcpy(tCsiName, csiDescriptor.csiName.value, csiDescriptor.csiName.length);
     m_LOG_MAB_CSI_DETAILS(NCSFL_SEV_NOTICE, 
                           MAB_HDLN_MAS_AMF_CSI_DETAILS, 
                           csiDescriptor.csiFlags, 
@@ -747,7 +747,7 @@ mas_amf_csi_new(SaInvocationT invocation,
         /* update the CSI Name */ 
         csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
         m_NCS_OS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
-        m_NCS_OS_MEMCPY(&csi->csi_info.work_desc.value, 
+        memcpy(&csi->csi_info.work_desc.value, 
                         &csiDescriptor.csiName.value, 
                         csi->csi_info.work_desc.length); 
         saf_status = SA_AIS_OK; 
@@ -830,7 +830,7 @@ mas_amf_csi_create_and_install_env(PW_ENV_ID            envid,
     /* update the CSI Name filed */ 
     csi->csi_info.work_desc.length = csiDescriptor.csiName.length; 
     m_NCS_MEMSET(&csi->csi_info.work_desc.value, 0, SA_MAX_NAME_LENGTH);
-    m_NCS_MEMCPY(&csi->csi_info.work_desc.value, 
+    memcpy(&csi->csi_info.work_desc.value, 
                     &csiDescriptor.csiName.value, 
                     csi->csi_info.work_desc.length); 
 
@@ -1956,7 +1956,7 @@ mas_amf_csi_list_find_csiname(const SaNameT *find_me)
     MAS_CSI_NODE    *me = NULL; 
 
     m_NCS_MEMSET(&t_find_me, 0, sizeof(SaNameT)); 
-    m_NCS_MEMCPY(&t_find_me, find_me, sizeof(SaNameT)); 
+    memcpy(&t_find_me, find_me, sizeof(SaNameT)); 
 
     me = gl_mas_amf_attribs.csi_list; 
     while (me)
@@ -1989,7 +1989,7 @@ mas_amf_csi_list_delink(const SaNameT  *csiName)
     MAS_CSI_NODE     *prev_csi = NULL; 
 
     m_NCS_MEMSET(&t_del_me, 0, sizeof(SaNameT)); 
-    m_NCS_MEMCPY(&t_del_me, csiName, sizeof(SaNameT)); 
+    memcpy(&t_del_me, csiName, sizeof(SaNameT)); 
 
     del_me = gl_mas_amf_attribs.csi_list;
     while (del_me)

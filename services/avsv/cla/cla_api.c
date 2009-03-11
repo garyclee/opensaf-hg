@@ -512,7 +512,7 @@ SaAisErrorT saClmClusterTrack(SaClmHandleT              hdl,
                 m_NCS_MEMSET(buf->notification, 0, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
-                m_NCS_MEMCPY(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
+                memcpy(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
 
@@ -537,7 +537,7 @@ SaAisErrorT saClmClusterTrack(SaClmHandleT              hdl,
                 m_NCS_MEMSET(buf->notification, 0, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
-                m_NCS_MEMCPY(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
+                memcpy(buf->notification, msg_rsp->info.api_resp_info.param.track.notify, 
                           sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
 
 
@@ -791,7 +791,7 @@ SaAisErrorT saClmClusterNodeGet(SaClmHandleT      hdl,
 
           if(rc == SA_AIS_OK)
           {
-             m_NCS_MEMCPY(cluster_node, 
+             memcpy(cluster_node, 
                           &msg_rsp->info.api_resp_info.param.node_get, 
                           sizeof(SaClmClusterNodeT));
           }

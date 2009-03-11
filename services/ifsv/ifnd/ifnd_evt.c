@@ -337,7 +337,7 @@ ifnd_mds_evt(MDS_DEST *ifd_dest, IFSV_CB *cb, IFSV_EVT_TYPE evt_type)
    MDS_DEST mds_dest;
    uns32 res = NCSCC_RC_SUCCESS;
       
-   m_NCS_MEMCPY(&mds_dest, ifd_dest, sizeof(MDS_DEST));
+   memcpy(&mds_dest, ifd_dest, sizeof(MDS_DEST));
 
    res = ifnd_evt_send((NCSCONTEXT)&mds_dest, evt_type, cb);
 
@@ -1141,7 +1141,7 @@ ifnd_mds_msg_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type, IFSV_CB *ifsv_cb)
    switch (msg_type)
    {
    case IFD_EVT_IFINDEX_CLEANUP:
-      m_NCS_MEMCPY(&evt->info.ifd_evt.info.spt_map, msg, 
+      memcpy(&evt->info.ifd_evt.info.spt_map, msg, 
          sizeof(IFSV_EVT_SPT_MAP_INFO));
 
       m_IFND_LOG_EVT_IFINDEX(IFSV_LOG_IFND_EVT_IFINDEX_CLEANUP_SND,\
@@ -1149,7 +1149,7 @@ ifnd_mds_msg_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type, IFSV_CB *ifsv_cb)
 
       break;
    case IFD_EVT_INTF_REC_SYNC:
-      m_NCS_MEMCPY(&evt->info.ifd_evt.info.rec_sync, msg, 
+      memcpy(&evt->info.ifd_evt.info.rec_sync, msg, 
          sizeof(IFSV_EVT_INTF_REC_SYNC));
 
       m_IFND_LOG_EVT_INIT(IFSV_LOG_IFND_EVT_REC_SYNC_SND,\
@@ -1211,7 +1211,7 @@ ifnd_mds_msg_sync_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type,
    switch (msg_type)
    {
    case IFD_EVT_IFINDEX_REQ:
-      m_NCS_MEMCPY(&evt->info.ifd_evt.info.spt_map, msg,
+      memcpy(&evt->info.ifd_evt.info.spt_map, msg,
          sizeof(IFSV_EVT_SPT_MAP_INFO));
 
       m_IFND_LOG_EVT_L(IFSV_LOG_IFND_EVT_IFINDEX_REQ_SND,\
@@ -1271,14 +1271,14 @@ ifnd_idim_evt_send (NCSCONTEXT msg, IFSV_IDIM_EVT_TYPE msg_type,
    switch (msg_type)
    {
    case IFSV_IDIM_EVT_HEALTH_CHK:
-      m_NCS_MEMCPY(&evt->info.health_chk, msg, sizeof(NCS_IFSV_HW_INFO));
+      memcpy(&evt->info.health_chk, msg, sizeof(NCS_IFSV_HW_INFO));
       priority = NCS_IPC_PRIORITY_HIGH;
 
       m_IFND_LOG_EVT_L(IFSV_LOG_IFND_EVT_IDIM_HEALTH_CHK_SND,"None",evt->evt_type);
 
       break;
    case IFSV_IDIM_EVT_GET_HW_STATS:
-      m_NCS_MEMCPY(&evt->info.get_stats, msg, 
+      memcpy(&evt->info.get_stats, msg, 
          sizeof(IFSV_IDIM_EVT_GET_HW_STATS_INFO));
       priority = NCS_IPC_PRIORITY_NORMAL;
 
@@ -1288,7 +1288,7 @@ ifnd_idim_evt_send (NCSCONTEXT msg, IFSV_IDIM_EVT_TYPE msg_type,
 
       break;   
    case IFSV_IDIM_EVT_SET_HW_PARM:
-      m_NCS_MEMCPY(&evt->info.set_hw_parm, msg, 
+      memcpy(&evt->info.set_hw_parm, msg, 
          sizeof(IFSV_IDIM_EVT_SET_HW_PARAM_INFO));
       priority = NCS_IPC_PRIORITY_NORMAL;
       
@@ -1343,7 +1343,7 @@ ifnd_evt_send (NCSCONTEXT msg, IFSV_EVT_TYPE evt_type, IFSV_CB *ifsv_cb)
    switch(evt_type)
    {
       case IFND_EVT_INIT_DONE:
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.init_done, msg, 
+         memcpy(&evt->info.ifnd_evt.info.init_done, msg, 
          sizeof(IFSV_EVT_INIT_DONE_INFO));
 
          m_IFND_LOG_EVT_INIT(IFSV_LOG_IFND_EVT_INIT_DONE_RCV,\
@@ -1357,7 +1357,7 @@ ifnd_evt_send (NCSCONTEXT msg, IFSV_EVT_TYPE evt_type, IFSV_CB *ifsv_cb)
       case IFND_EVT_IFDRV_DOWN_IN_OPER_STATE:
       case IFND_EVT_IFDRV_DOWN_IN_DATA_RET_STATE:
       case IFND_EVT_IFDRV_DOWN_IN_MDS_DEST_STATE:
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.mds_svc_info.mds_dest, msg, 
+         memcpy(&evt->info.ifnd_evt.info.mds_svc_info.mds_dest, msg, 
          sizeof(MDS_DEST));
       break;
 
@@ -1443,7 +1443,7 @@ static uns32 ifnd_ifd_up_process(IFSV_EVT* evt, IFSV_CB *cb)
      m_NCS_IPXS_IPAM_ADDR_SET(ipxs_evt.info.nd.atond_upd.ip_info.ip_attr);
 
      ipxs_evt.info.nd.atond_upd.ip_info.delip_cnt ++;
-     m_NCS_OS_MEMCPY(&del_ipinfo, &(ipxs_cb->nl_addr_info.list[i].ippfx),
+     memcpy(&del_ipinfo, &(ipxs_cb->nl_addr_info.list[i].ippfx),
                      sizeof(NCS_IPPFX)); 
      ipxs_evt.info.nd.atond_upd.ip_info.delip_list = &del_ipinfo;
 

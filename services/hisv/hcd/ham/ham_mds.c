@@ -111,7 +111,7 @@ static uns32 ham_mds_cb_cpy(struct ncsmds_callback_info *info)
       m_LOG_HISV_DTS_CONS("ham_mds_cb_cpy: m_MMGR_ALLOC_HISV_MSG failed\n");
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_MEMCPY(hisv_msg, msg, sizeof(HISV_MSG));
+   memcpy(hisv_msg, msg, sizeof(HISV_MSG));
    info->info.cpy.o_cpy = (uns8*)hisv_msg;
    return NCSCC_RC_SUCCESS;
 }

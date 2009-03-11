@@ -154,7 +154,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
    m_NCS_OS_MEMSET(hc, 0, sizeof(AVND_HC));
    
    /* Update the config parameters */
-   m_NCS_OS_MEMCPY(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));
+   memcpy(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));
    hc->period = info->period;
    hc->max_dur = info->max_duration;
    hc->is_ext = info->is_ext;

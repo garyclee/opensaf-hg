@@ -613,7 +613,7 @@ CPND_CKPT_SECTION_INFO * cpnd_ckpt_sec_add(CPND_CKPT_NODE * cp_node,SaCkptSectio
       if (id->idLen > 0)
       {
          pSecPtr->sec_id.id=m_MMGR_ALLOC_CPND_DEFAULT(id->idLen);
-         m_NCS_MEMCPY(pSecPtr->sec_id.id,id->id,pSecPtr->sec_id.idLen);
+         memcpy(pSecPtr->sec_id.id,id->id,pSecPtr->sec_id.idLen);
       }
    }
 

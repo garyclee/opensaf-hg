@@ -149,7 +149,7 @@ GLND_RESOURCE_INFO *glnd_resource_node_add(GLND_CB *glnd_cb,
    else
       res_info->status = GLND_RESOURCE_ACTIVE_NON_MASTER;
 
-   m_NCS_MEMCPY(&res_info->resource_name , &resource_name, sizeof(SaNameT));
+   memcpy(&res_info->resource_name , &resource_name, sizeof(SaNameT));
    res_info->master_mds_dest =  master_mds_dest;
    res_info->master_status  =  GLND_OPERATIONAL_STATE;
 

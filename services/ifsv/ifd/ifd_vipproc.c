@@ -82,7 +82,7 @@ uns32 ifd_proc_ifnd_get_ip_from_stale_entry(IFSV_CB *cb, IFSV_EVT *pEvt)
 
     m_NCS_MEMSET(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
 
-    m_NCS_MEMCPY(&vipHandle,&pEvt->info.vip_evt.info.vipCommonEvt.handle,
+    memcpy(&vipHandle,&pEvt->info.vip_evt.info.vipCommonEvt.handle,
                                            sizeof(NCS_IFSV_VIP_INT_HDL));
 
     pPNode = ifsv_vipd_vipdc_rec_get(&cb->vipDBase,&vipHandle);
@@ -147,7 +147,7 @@ uns32 ifd_vip_mark_entry_stale(IFSV_CB *cb,IFSV_EVT *pEvt)
 
     m_NCS_MEMSET(&vipHandle,0,sizeof(NCS_IFSV_VIP_INT_HDL));
 
-    m_NCS_MEMCPY(&vipHandle,&pEvt->info.vip_evt.info.vipCommonEvt.handle,
+    memcpy(&vipHandle,&pEvt->info.vip_evt.info.vipCommonEvt.handle,
                                            sizeof(NCS_IFSV_VIP_INT_HDL));
 
     pPNode = ifsv_vipd_vipdc_rec_get(&cb->vipDBase,&vipHandle);
@@ -212,7 +212,7 @@ uns32 ifd_vip_process_ifnd_crash(MDS_DEST *pIfndDst,IFSV_CB *pIfsvCb)
     while (pPNode)
     {
         pVipdRec = (IFSV_IFD_VIPD_RECORD *)pPNode;
-        m_NCS_MEMCPY(&vipHandle,&pVipdRec->handle,sizeof(NCS_IFSV_VIP_INT_HDL));
+        memcpy(&vipHandle,&pVipdRec->handle,sizeof(NCS_IFSV_VIP_INT_HDL));
         /* Write logic here for finding record related to crashed IFND */
         pOwnerNode = ncs_db_link_list_find(&pVipdRec->owner_list,(uns8 *)pIfndDst);
         if(pOwnerNode != IFSV_NULL)
@@ -824,7 +824,7 @@ ifd_all_vip_rec_del (IFSV_CB *ifsv_cb)
       
       res = ifsv_vipd_vipdc_rec_del(&ifsv_cb->vipDBase, (NCS_PATRICIA_NODE *)p_vip_db_rec, IFSV_VIP_REC_TYPE_VIPD);
 
-      m_NCS_MEMCPY(&vip_handle, &p_vip_db_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
+      memcpy(&vip_handle, &p_vip_db_rec->handle, sizeof(NCS_IFSV_VIP_INT_HDL));
       p_vip_db_rec = (IFSV_IFD_VIPD_RECORD* )ncs_patricia_tree_getnext(&ifsv_cb->vipDBase, (uns8*)&vip_handle);
       
    }

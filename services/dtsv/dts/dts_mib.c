@@ -719,14 +719,14 @@ dtsv_extract_policy_obj(NCSMIB_PARAM_VAL *param_val, NCSMIB_VAR_INFO *var_info,
           if (var_info->obj_spec.stream_spec.min_len ==
                    var_info->obj_spec.stream_spec.max_len)
           {
-              m_NCS_OS_MEMCPY((uns8*)buffer,((uns8*)data + var_info->offset), var_info->len);
+              memcpy((uns8*)buffer,((uns8*)data + var_info->offset), var_info->len);
           }
           else
           {
               uns32 tmp;
-              m_NCS_OS_MEMCPY((uns8*)&tmp,((uns8*)data + var_info->offset), var_info->len);
+              memcpy((uns8*)&tmp,((uns8*)data + var_info->offset), var_info->len);
               nworder = htonl(tmp);
-              m_NCS_OS_MEMCPY((uns8*)buffer,(uns8*)&nworder, var_info->len);
+              memcpy((uns8*)buffer,(uns8*)&nworder, var_info->len);
           }
 
           param_val->info.i_oct = (uns8*)buffer;

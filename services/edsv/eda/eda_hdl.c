@@ -563,7 +563,7 @@ eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec,
    rec->eds_chan_open_id = chan_open_id;
    rec->open_flags       = channel_open_flags;
    rec->channel_name.length = channelName->length;
-   m_NCS_MEMCPY((void*)rec->channel_name.value, 
+   memcpy((void*)rec->channel_name.value, 
                (void*)channelName->value, 
                channelName->length);
    /** Initialize the parent handle **/
@@ -623,7 +623,7 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
 
    /* store the registered callbacks */
    if (reg_cbks)
-       m_NCS_MEMCPY((void *)&rec->reg_cbk, (void *)reg_cbks, 
+       memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, 
                        sizeof(SaEvtCallbacksT));
 
    /** Associate with the reg_id obtained from EDS
@@ -1046,7 +1046,7 @@ eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
       }
       else
       {
-         m_NCS_MEMCPY((void *)to_pattern->pattern, 
+         memcpy((void *)to_pattern->pattern, 
                       (void *)from_pattern->pattern, 
                       (uns32)from_pattern->patternSize);
       }
@@ -1103,7 +1103,7 @@ eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_patter
                 }
                 /** Clear memory for the allocated pattern **/
                 m_NCS_MEMSET(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
-                m_NCS_MEMCPY((void *)to_pattern->pattern, 
+                memcpy((void *)to_pattern->pattern, 
                              (void *)from_pattern->pattern, 
                              (uns32)from_pattern->patternSize);
              }

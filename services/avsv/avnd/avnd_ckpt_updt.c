@@ -504,7 +504,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
              }
              comp_ptr->node_id = comp->node_id;
              comp_ptr->comp_type = comp->comp_type;
-             m_NCS_OS_MEMCPY(&(comp_ptr->mds_ctxt), &(comp->mds_ctxt), 
+             memcpy(&(comp_ptr->mds_ctxt), &(comp->mds_ctxt), 
                              sizeof(MDS_SYNC_SND_CTXT));
              comp_ptr->reg_resp_pending = comp->reg_resp_pending;
              comp_ptr->proxy_comp_name_net = comp->proxy_comp_name_net;
@@ -576,7 +576,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
            comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = 
            comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len;
 
-           m_NCS_MEMCPY(&comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
+           memcpy(&comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
            &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, 
            sizeof(SAAMF_CLC_LEN));
 
@@ -586,7 +586,7 @@ uns32  avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp,
            comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = 
            comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len;
 
-           m_NCS_MEMCPY(&comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
+           memcpy(&comp_ptr->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
            &comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 
            sizeof(SAAMF_CLC_LEN));
 
@@ -849,7 +849,7 @@ uns32  avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt,
          if (NULL == hlt_ptr)
          {   
             m_NCS_MEMSET(&hc_info,0, sizeof(AVSV_HLT_INFO_MSG));
-            m_NCS_MEMCPY(&hc_info.name, &hlt->key, sizeof(AVSV_HLT_KEY));
+            memcpy(&hc_info.name, &hlt->key, sizeof(AVSV_HLT_KEY));
             hc_info.period = hlt->period;
             hc_info.max_duration = hlt->max_dur;
             hc_info.is_ext = hlt->is_ext;
@@ -1167,7 +1167,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
    hc_config = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key);
    while(hc_config != 0)
    {
-      m_NCS_MEMCPY(&hc_key, &hc_config->key, sizeof(AVSV_HLT_KEY));
+      memcpy(&hc_key, &hc_config->key, sizeof(AVSV_HLT_KEY));
     if(TRUE == hc_config->is_ext)
     {
       rc = avnd_hcdb_rec_del(cb, &hc_config->key);

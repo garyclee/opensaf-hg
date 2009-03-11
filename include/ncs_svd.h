@@ -249,7 +249,7 @@ typedef struct ncs_key
 
 #define m_SET_OCT_KEY(k,s,t,l,v)   { m_KEY_CHK_LEN(l); k.svc=s;k.type=t;     \
                                      k.fmat=NCS_FMT_OCT; k.val.oct.len = l;   \
-                                     m_NCS_MEMCPY((void*)(&k.val.oct.data),(const void *)v,l); }
+                                     memcpy((void*)(&k.val.oct.data),(const void *)v,l); }
 
 #define m_GET_OCT_KEY(k,o)         { m_KEY_CHK_FMT(k,NCS_FMT_OCT); o = &k.val.oct; }
 

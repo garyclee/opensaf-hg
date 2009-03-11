@@ -705,7 +705,7 @@ uns32 ncsmib_make_req_looklike_rsp( NCSMIB_ARG* req,
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
     
     req->i_op = rsp->i_op;
-    m_NCS_MEMCPY(&req->rsp,&rsp->rsp,sizeof(req->rsp));/* do the first order copy, w/no reguard to memory */
+    memcpy(&req->rsp,&rsp->rsp,sizeof(req->rsp));/* do the first order copy, w/no reguard to memory */
     
     /* reuse the arg.i_idx value */
     if (req->i_idx.i_inst_len != rsp->i_idx.i_inst_len)
@@ -912,7 +912,7 @@ uns32* ncsmib_inst_memcopy(uns32 len, const uns32* ref)
        m_LEAP_DBG_SINK(0);
        return (uns32*)NULL;
      }
-     m_NCS_MEMCPY((uns32*)cpy,ref,len * sizeof(uns32));
+     memcpy((uns32*)cpy,ref,len * sizeof(uns32));
      return cpy;
      }
    else
@@ -932,7 +932,7 @@ uns8* ncsmib_oct_memcopy(uns32 len, const uns8*  ref)
          m_LEAP_DBG_SINK(0);
          return (uns8*)NULL;
       }
-      m_NCS_MEMCPY( (uns8*)cpy, ref, (size_t)len);
+      memcpy( (uns8*)cpy, ref, (size_t)len);
       return cpy;
    }
    else
@@ -954,7 +954,7 @@ NCSMIB_ARG* ncsmib_memcopy( NCSMIB_ARG*    arg)
    /* NOTE!! When we do the copy, we believe the values of the fields copied below */
    /* That is, messing with this memcpy() line messes with algorythms below........*/
 
-   m_NCS_MEMCPY(cpy,arg,sizeof(NCSMIB_ARG));
+   memcpy(cpy,arg,sizeof(NCSMIB_ARG));
 
    if (arg->i_idx.i_inst_ids != NULL)
       cpy->i_idx.i_inst_ids = ncsmib_inst_memcopy(cpy->i_idx.i_inst_len,arg->i_idx.i_inst_ids);
@@ -1930,7 +1930,7 @@ uns32 ncsmib_param_val_decode( NCSMIB_PARAM_VAL* mpv,
          /* Flatten it. If stream == octets, flatten used octets to fillin answer */
          stream = ncs_dec_flatten_space(uba, octets, mpv->i_length);
          if (stream != octets)            /* Data may be in right place already ! */
-            m_NCS_MEMCPY(octets, stream, mpv->i_length);
+            memcpy(octets, stream, mpv->i_length);
          ncs_dec_skip_space(uba, mpv->i_length);
 
       }

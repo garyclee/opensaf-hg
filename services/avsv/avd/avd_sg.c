@@ -111,12 +111,12 @@ AVD_SG * avd_sg_struc_crt(AVD_CL_CB *cb,SaNameT sg_name, NCS_BOOL ckpt)
 
    if (ckpt)
    {
-      m_NCS_MEMCPY(sg->name_net.value,sg_name.value,m_NCS_OS_NTOHS(sg_name.length));
+      memcpy(sg->name_net.value,sg_name.value,m_NCS_OS_NTOHS(sg_name.length));
       sg->name_net.length = sg_name.length;
    }
    else
    {
-      m_NCS_MEMCPY(sg->name_net.value,sg_name.value,sg_name.length);
+      memcpy(sg->name_net.value,sg_name.value,sg_name.length);
       sg->name_net.length = m_HTON_SANAMET_LEN(sg_name.length);
       
       sg->su_failback = FALSE;
@@ -181,12 +181,12 @@ AVD_SG * avd_sg_struc_find(AVD_CL_CB *cb,SaNameT sg_name,NCS_BOOL host_order)
    if(host_order)
    {
       lsg_name.length = m_HTON_SANAMET_LEN(sg_name.length);
-      m_NCS_MEMCPY(lsg_name.value,sg_name.value,sg_name.length);
+      memcpy(lsg_name.value,sg_name.value,sg_name.length);
    }
    else
    {
       lsg_name.length = sg_name.length;
-      m_NCS_MEMCPY(lsg_name.value,sg_name.value,m_NCS_OS_NTOHS(lsg_name.length));
+      memcpy(lsg_name.value,sg_name.value,m_NCS_OS_NTOHS(lsg_name.length));
    }
 
    sg = (AVD_SG *)ncs_patricia_tree_get(&cb->sg_anchor, (uns8*)&lsg_name);
@@ -221,12 +221,12 @@ AVD_SG * avd_sg_struc_find_next(AVD_CL_CB *cb,SaNameT sg_name,NCS_BOOL host_orde
    if(host_order)
    {
       lsg_name.length = m_HTON_SANAMET_LEN(sg_name.length);
-      m_NCS_MEMCPY(lsg_name.value,sg_name.value,sg_name.length);
+      memcpy(lsg_name.value,sg_name.value,sg_name.length);
    }
    else
    {
       lsg_name.length = sg_name.length;
-      m_NCS_MEMCPY(lsg_name.value,sg_name.value,m_NCS_OS_NTOHS(lsg_name.length));
+      memcpy(lsg_name.value,sg_name.value,m_NCS_OS_NTOHS(lsg_name.length));
    }
 
    sg = (AVD_SG *)ncs_patricia_tree_getnext(&cb->sg_anchor, (uns8*)&lsg_name);
@@ -1109,7 +1109,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.act = AVSV_OBJ_OPR_MOD;
 
             param.value_len = sizeof(SaTimeT);
-            m_NCS_MEMCPY(&param.value[0], 
+            memcpy(&param.value[0], 
                          arg->req.info.set_req.i_param_val.info.i_oct, 
                          param.value_len);
 
@@ -1175,7 +1175,7 @@ uns32 saamfsgtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             param.act = AVSV_OBJ_OPR_MOD;
 
             param.value_len = sizeof(SaTimeT);
-            m_NCS_MEMCPY(&param.value[0], 
+            memcpy(&param.value[0], 
                          arg->req.info.set_req.i_param_val.info.i_oct, 
                          param.value_len);
 

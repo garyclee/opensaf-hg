@@ -2414,7 +2414,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
     if(AVND_COMP_CLC_CMD_TYPE_CLEANUP == cmd_type)
     {
      m_NCS_OS_MEMSET(&clc_evt, 0, sizeof(AVND_CLC_EVT));
-     m_NCS_OS_MEMCPY(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
+     memcpy(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
      clc_evt.cmd_type = cmd_type;
      clc_evt.exec_stat.value = NCS_OS_PROC_EXIT_NORMAL;
 
@@ -2538,7 +2538,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb,
       m_NCS_OS_MEMSET(&clc_evt, 0, sizeof(AVND_CLC_EVT));
       
       /* fill the clc-evt param */
-      m_NCS_OS_MEMCPY(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
+      memcpy(&clc_evt.comp_name_net, &comp->name_net, sizeof(SaNameT));
       clc_evt.cmd_type = cmd_type;
  
       /* create the event */

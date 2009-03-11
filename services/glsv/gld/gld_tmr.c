@@ -206,7 +206,7 @@ void gld_tmr_exp (void *uarg)
         evt->evt_type = gld_tmr_evt_map(tmr->type);
         evt->info.tmr.opq_hdl = tmr->opq_hdl;
         evt->info.tmr.resource_id = tmr->resource_id;
-        m_NCS_MEMCPY(&evt->info.tmr.mdest_id,&tmr->mdest_id,sizeof(MDS_DEST));
+        memcpy(&evt->info.tmr.mdest_id,&tmr->mdest_id,sizeof(MDS_DEST));
         evt->gld_cb = cb;
         /* Push the event and we are done */
         if(m_NCS_IPC_SEND(&cb->mbx, evt, NCS_IPC_PRIORITY_NORMAL) == NCSCC_RC_FAILURE)

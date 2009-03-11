@@ -252,7 +252,7 @@ AVA_HDL_REC *ava_hdl_rec_add (AVA_CB *cb,
    
    /* store the registered callbacks */
    if (reg_cbks)
-       m_NCS_OS_MEMCPY((void *)&rec->reg_cbk, (void *)reg_cbks, 
+       memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, 
                        sizeof(SaAmfCallbacksT));
 
    /* add the record to the hdl db */
@@ -403,7 +403,7 @@ uns32 ava_hdl_cbk_dispatch_one (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    uns32 rc = SA_AIS_OK;
 
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaAmfCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* pop the rec from the list */
    m_AVA_HDL_PEND_CBK_POP(list, rec);
@@ -482,7 +482,7 @@ uns32 ava_hdl_cbk_dispatch_all (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    uns32 rc = SA_AIS_OK;
 
    m_NCS_MEMSET(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* pop all the records from the list & process them */
    do
@@ -569,7 +569,7 @@ uns32 ava_hdl_cbk_dispatch_block (AVA_CB **cb, AVA_HDL_REC **hdl_rec)
    m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
    
    m_NCS_MEMSET(&reg_cbk, 0,sizeof(SaAmfCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaAmfCallbacksT));
 
    /* release all lock and handle - we are abt to go into deep sleep */
    m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
@@ -786,7 +786,7 @@ void ava_hdl_cbk_rec_prc (AVSV_AMF_CBK_INFO *info, SaAmfCallbacksT *reg_cbk)
             buf.notification = m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
             if (buf.notification)
             {
-               m_NCS_OS_MEMCPY(buf.notification, pg_track->buf.notification,
+               memcpy(buf.notification, pg_track->buf.notification,
                                buf.numberOfItems * sizeof(SaAmfProtectionGroupNotificationT));
 
                reg_cbk->saAmfProtectionGroupTrackCallback(&pg_track->csi_name_net,

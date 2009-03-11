@@ -253,7 +253,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
           return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        }
        m_NCS_MEMSET(tbl_info->ptbl_info->objects_local_to_tbl, '\0', (sizeof(uns16) * (tbl_arg_info->objects_local_to_tbl[0] + 1)));
-       m_NCS_MEMCPY(tbl_info->ptbl_info->objects_local_to_tbl, tbl_arg_info->objects_local_to_tbl, (sizeof(uns16) * (tbl_arg_info->objects_local_to_tbl[0] + 1)));
+       memcpy(tbl_info->ptbl_info->objects_local_to_tbl, tbl_arg_info->objects_local_to_tbl, (sizeof(uns16) * (tbl_arg_info->objects_local_to_tbl[0] + 1)));
     }
     else
     {
@@ -352,7 +352,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
            }
            m_NCS_MEMSET(var_info[i].var_info.obj_spec.disc_stream_spec.values, '\0', 
               (sizeof(NCSMIB_OCT_OBJ) * var_info[i].var_info.obj_spec.disc_stream_spec.num_values));
-           m_NCS_MEMCPY(var_info[i].var_info.obj_spec.disc_stream_spec.values, 
+           memcpy(var_info[i].var_info.obj_spec.disc_stream_spec.values, 
               tbl_owned->var_info[i].obj_spec.disc_stream_spec.values,
               (sizeof(NCSMIB_OCT_OBJ) * var_info[i].var_info.obj_spec.disc_stream_spec.num_values));
         }
@@ -378,7 +378,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
               }
               m_NCS_MEMSET(var_info[i].var_info.obj_spec.value_spec.values, '\0', 
                  (sizeof(NCSMIB_INT_OBJ_RANGE) * var_info[i].var_info.obj_spec.value_spec.num_values));
-              m_NCS_MEMCPY(var_info[i].var_info.obj_spec.value_spec.values, 
+              memcpy(var_info[i].var_info.obj_spec.value_spec.values, 
                  tbl_owned->var_info[i].obj_spec.value_spec.values,
                  (sizeof(NCSMIB_INT_OBJ_RANGE) * var_info[i].var_info.obj_spec.value_spec.num_values));
            }
@@ -433,7 +433,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
        }
        m_NCS_MEMSET(tbl_info->ptbl_info->idx_data, '\0', (sizeof(uns16) * (index_loc[0] + 1)));
 
-       m_NCS_MEMCPY(tbl_info->ptbl_info->idx_data, index_loc, (sizeof(uns16) * (index_loc[0] + 1)));
+       memcpy(tbl_info->ptbl_info->idx_data, index_loc, (sizeof(uns16) * (index_loc[0] + 1)));
     }
 
     tbl_info->max_row_length = row_length;

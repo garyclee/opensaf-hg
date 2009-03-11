@@ -412,7 +412,7 @@ ncsavmentdeploytableentry_set(
          m_NCS_MEMSET(ent_info->node_name.value, '\0', SA_MAX_NAME_LENGTH);
 
          ent_info->node_name.length = arg->req.info.set_req.i_param_val.i_length;
-         m_NCS_MEMCPY(ent_info->node_name.value, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->node_name.length);
+         memcpy(ent_info->node_name.value, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->node_name.length);
       }
       break;
 
@@ -422,7 +422,7 @@ ncsavmentdeploytableentry_set(
 
          ent_info->dep_ep_str.length = arg->req.info.set_req.i_param_val.i_length;
       
-         m_NCS_MEMCPY(ent_info->dep_ep_str.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->dep_ep_str.length);
+         memcpy(ent_info->dep_ep_str.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->dep_ep_str.length);
         
          if(ent_info->dep_ep_str.length)
          { 
@@ -460,7 +460,7 @@ ncsavmentdeploytableentry_set(
          m_NCS_MEMSET(ent_info->desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
          ent_info->desc_name.length = arg->req.info.set_req.i_param_val.i_length;
-         m_NCS_MEMCPY(ent_info->desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->desc_name.length);
+         memcpy(ent_info->desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->desc_name.length);
       }
       break;
       
@@ -469,7 +469,7 @@ ncsavmentdeploytableentry_set(
          m_NCS_MEMSET(ent_info->parent_desc_name.name, '\0', NCS_MAX_INDEX_LEN);
 
          ent_info->parent_desc_name.length = arg->req.info.set_req.i_param_val.i_length;
-         m_NCS_MEMCPY(ent_info->parent_desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->parent_desc_name.length);
+         memcpy(ent_info->parent_desc_name.name, arg->req.info.set_req.i_param_val.info.i_oct, ent_info->parent_desc_name.length);
       }
       break;
       
@@ -531,7 +531,7 @@ ncsavmentdeploytableentry_set(
          if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
          {
             /* If it is playback from PSS, just store it. Don't act on it  */   
-            m_NCS_MEMCPY(ent_info->dhcp_serv_conf.tftp_serve_ip,
+            memcpy(ent_info->dhcp_serv_conf.tftp_serve_ip,
             arg->req.info.set_req.i_param_val.info.i_oct,4);
 
             ckpt_dhconf = TRUE; /* Checkpoint it */
@@ -543,7 +543,7 @@ ncsavmentdeploytableentry_set(
             arg->req.info.set_req.i_param_val.info.i_oct,4))
             return NCSCC_RC_SUCCESS;
 
-         m_NCS_MEMCPY(ent_info->dhcp_serv_conf.tftp_serve_ip,
+         memcpy(ent_info->dhcp_serv_conf.tftp_serve_ip,
             arg->req.info.set_req.i_param_val.info.i_oct,4);
 
          /* Check if any of the label is in no config, If yes then 
@@ -926,7 +926,7 @@ ncsavmentdeploytableentry_set(
          if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
          {
             /* If it is playback from PSS, just store it. Don't act on it  */   
-           m_NCS_MEMCPY(ent_info->dhcp_serv_conf.label1.install_time.install_time,arg->req.info.set_req.i_param_val.info.i_oct,8);
+           memcpy(ent_info->dhcp_serv_conf.label1.install_time.install_time,arg->req.info.set_req.i_param_val.info.i_oct,8);
            
            /* Checkpoint it */
            ckpt_dhconf = TRUE;
@@ -940,7 +940,7 @@ ncsavmentdeploytableentry_set(
          {
             /* If it is playback from PSS, just store it. Don't act on it  */  
            ent_info->dhcp_serv_conf.label1.sw_version.length = arg->req.info.set_req.i_param_val.i_length;  
-           m_NCS_MEMCPY(ent_info->dhcp_serv_conf.label1.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
+           memcpy(ent_info->dhcp_serv_conf.label1.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
                                                                      ent_info->dhcp_serv_conf.label1.sw_version.length);
 
            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1SwVersion_ID played back to: %s ",ent_info->ep_str.name,
@@ -958,7 +958,7 @@ ncsavmentdeploytableentry_set(
          if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
          {
             /* If it is playback from PSS, just store it. Don't act on it  */   
-           m_NCS_MEMCPY(ent_info->dhcp_serv_conf.label2.install_time.install_time,arg->req.info.set_req.i_param_val.info.i_oct,8);
+           memcpy(ent_info->dhcp_serv_conf.label2.install_time.install_time,arg->req.info.set_req.i_param_val.info.i_oct,8);
            
            /* Checkpoint it */
            ckpt_dhconf = TRUE;
@@ -972,7 +972,7 @@ ncsavmentdeploytableentry_set(
          {
             /* If it is playback from PSS, just store it. Don't act on it  */  
            ent_info->dhcp_serv_conf.label2.sw_version.length = arg->req.info.set_req.i_param_val.i_length;  
-           m_NCS_MEMCPY(ent_info->dhcp_serv_conf.label2.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
+           memcpy(ent_info->dhcp_serv_conf.label2.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
                                                                      ent_info->dhcp_serv_conf.label2.sw_version.length);
 
            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2SwVersion_ID played back to: %s ",ent_info->ep_str.name,
@@ -1076,7 +1076,7 @@ ncsavmentdeploytableentry_extract(
          param->i_fmat_id = NCSMIB_FMAT_OCT;
 
          param->i_length  = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->ep_str.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->ep_str.name, param->i_length);
          param->info.i_oct     = (uns8*)buffer;  
       }
       break;   
@@ -1093,7 +1093,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->node_name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->node_name.value, param->i_length);
+         memcpy((uns8*)buffer, ent_info->node_name.value, param->i_length);
          param->info.i_oct     = (uns8*)buffer;  
       }
       break;
@@ -1106,7 +1106,7 @@ ncsavmentdeploytableentry_extract(
          {
             param->i_fmat_id = NCSMIB_FMAT_OCT;
             param->i_length  = ent_info->valid_info->inv_data.product_name.DataLength;
-            m_NCS_MEMCPY((uns8*)buffer, ent_info->valid_info->inv_data.product_name.Data, param->i_length);
+            memcpy((uns8*)buffer, ent_info->valid_info->inv_data.product_name.Data, param->i_length);
             param->info.i_oct     = (uns8*)buffer;  
          }
          
@@ -1121,7 +1121,7 @@ ncsavmentdeploytableentry_extract(
          if(AVM_VALID_INFO_NULL != ent_info->valid_info)
          { 
             param->i_length  = ent_info->valid_info->inv_data.product_version.DataLength;
-            m_NCS_MEMCPY((uns8*)buffer, ent_info->valid_info->inv_data.product_version.Data, param->i_length);
+            memcpy((uns8*)buffer, ent_info->valid_info->inv_data.product_version.Data, param->i_length);
             param->info.i_oct     = (uns8*)buffer;  
          } 
       }
@@ -1135,7 +1135,7 @@ ncsavmentdeploytableentry_extract(
          if(ent_info->depends_on_valid == TRUE)
          {
             param->i_length  = ent_info->dep_ep_str.length;
-            m_NCS_MEMCPY((uns8*)buffer, ent_info->dep_ep_str.name, param->i_length);
+            memcpy((uns8*)buffer, ent_info->dep_ep_str.name, param->i_length);
             param->info.i_oct     = (uns8*)buffer;  
          }
       }
@@ -1167,7 +1167,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->desc_name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->desc_name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->desc_name.name, param->i_length);
          param->info.i_oct     = (uns8*)buffer;  
       }
       break;
@@ -1176,7 +1176,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->parent_desc_name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->parent_desc_name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->parent_desc_name.name, param->i_length);
          param->info.i_oct     = (uns8*)buffer;  
       }
       break;
@@ -1236,7 +1236,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = 4;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.tftp_serve_ip, 4);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.tftp_serve_ip, 4);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1245,7 +1245,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.pref_label.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.pref_label.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.pref_label.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1256,7 +1256,7 @@ ncsavmentdeploytableentry_extract(
          if (NULL != ent_info->dhcp_serv_conf.curr_act_label)
          {
             param->i_length  = ent_info->dhcp_serv_conf.curr_act_label->name.length;
-            m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.curr_act_label->name.name, param->i_length);
+            memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.curr_act_label->name.name, param->i_length);
          }
          else
             param->i_length  = 0;
@@ -1268,7 +1268,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label1.name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label1.name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label1.name.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1277,7 +1277,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label1.file_name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label1.file_name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label1.file_name.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1305,7 +1305,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = 8;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label1.install_time.install_time, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label1.install_time.install_time, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1314,7 +1314,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label1.sw_version.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label1.sw_version.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label1.sw_version.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1323,7 +1323,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label2.name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label2.name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label2.name.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1332,7 +1332,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label2.file_name.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label2.file_name.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label2.file_name.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1359,7 +1359,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = 8;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label2.install_time.install_time, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label2.install_time.install_time, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1368,7 +1368,7 @@ ncsavmentdeploytableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.label2.sw_version.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.label2.sw_version.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.label2.sw_version.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -1486,7 +1486,7 @@ ncsavmentdeploytableentry_next(
       } 
       
       ep_str.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-      m_NCS_MEMCPY(ep_str.name, ent_info->ep_str.name, ep_str.length);
+      memcpy(ep_str.name, ent_info->ep_str.name, ep_str.length);
    }
   
    ent_info = avm_find_next_ent_str_info(avm_cb, &ep_str);
@@ -1764,7 +1764,7 @@ ncsavmentupgradetableentry_set(
          }
          /* store the helper entity path, for future reference */
          ent_info->dhcp_serv_conf.ipmc_helper_ent_path.length = helper_ep.length;
-         m_NCS_MEMCPY(ent_info->dhcp_serv_conf.ipmc_helper_ent_path.name, helper_ep.name,helper_ep.length);
+         memcpy(ent_info->dhcp_serv_conf.ipmc_helper_ent_path.name, helper_ep.name,helper_ep.length);
 
          m_NCS_MEMSET(ent_info->dhcp_serv_conf.ipmc_helper_node.name, '\0', AVM_NAME_STR_LENGTH); 
          /* Copy the ipmc helper node */
@@ -1863,7 +1863,7 @@ ncsavmentupgradetableentry_set(
 
             /* Set the preferred label also to other label */
             ent_info->dhcp_serv_conf.pref_label.length = ent_info->dhcp_serv_conf.default_label->name.length;
-            m_NCS_MEMCPY(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.default_label->name.name,
+            memcpy(ent_info->dhcp_serv_conf.pref_label.name, ent_info->dhcp_serv_conf.default_label->name.name,
                 ent_info->dhcp_serv_conf.pref_label.length);
 
             /* Push preferred label into PSSv */
@@ -1981,7 +1981,7 @@ ncsavmentupgradetableentry_set(
                      dhcp_conf->default_label = dhcp_conf->default_label->other_label;
                      /* Set the preferred label also to other label */
                      dhcp_conf->pref_label.length = dhcp_conf->default_label->name.length;
-                     m_NCS_MEMCPY(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
+                     memcpy(dhcp_conf->pref_label.name, dhcp_conf->default_label->name.name,
                                   dhcp_conf->pref_label.length);
 
                      /* Push preferred label into PSSv */
@@ -2062,7 +2062,7 @@ ncsavmentupgradetableentry_extract(
       {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = ent_info->dhcp_serv_conf.ipmc_helper_node.length;
-         m_NCS_MEMCPY((uns8*)buffer, ent_info->dhcp_serv_conf.ipmc_helper_node.name, param->i_length);
+         memcpy((uns8*)buffer, ent_info->dhcp_serv_conf.ipmc_helper_node.name, param->i_length);
          param->info.i_oct = (uns8*)buffer;
       }
       break;
@@ -2160,7 +2160,7 @@ ncsavmentupgradetableentry_next(
       } 
       
       ep_str.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-      m_NCS_MEMCPY(ep_str.name, ent_info->ep_str.name, ep_str.length);
+      memcpy(ep_str.name, ent_info->ep_str.name, ep_str.length);
    }
   
    ent_info = avm_find_next_ent_str_info(avm_cb, &ep_str);

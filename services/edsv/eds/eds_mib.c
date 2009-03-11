@@ -459,14 +459,14 @@ uns32 safevtscalarobject_extract(NCSMIB_PARAM_VAL *param,
      {
          param->i_fmat_id = NCSMIB_FMAT_OCT;
          param->i_length  = scalar->version.length;
-         m_NCS_MEMCPY((uns8 *)buffer,scalar->version.value,param->i_length);
+         memcpy((uns8 *)buffer,scalar->version.value,param->i_length);
          param->info.i_oct     = (uns8*)buffer;
      }
      else if (var_info->param_id == safAgentVendor_ID)
      {
           param->i_fmat_id = NCSMIB_FMAT_OCT;
           param->i_length  = scalar->vendor.length;
-          m_NCS_MEMCPY((uns8 *)buffer,scalar->vendor.value,param->i_length);
+          memcpy((uns8 *)buffer,scalar->vendor.value,param->i_length);
           param->info.i_oct     = (uns8*)buffer;
      }
      else if (var_info->param_id == safServiceStartEnabled_ID)

@@ -67,10 +67,10 @@
    (m).info.api_info.type = AVSV_AMF_COMP_REG; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.reg.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.reg.comp_name_net.value, \
+   memcpy((m).info.api_info.param.reg.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.reg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.reg.proxy_comp_name_net.value, \
+   memcpy((m).info.api_info.param.reg.proxy_comp_name_net.value, \
                    (pcn).value, (pcn).length); \
    (m).info.api_info.param.reg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
 }
@@ -82,10 +82,10 @@
    (m).info.api_info.type = AVSV_AMF_COMP_UNREG; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.unreg.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.unreg.comp_name_net.value, \
+   memcpy((m).info.api_info.param.unreg.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.unreg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.unreg.proxy_comp_name_net.value, \
+   memcpy((m).info.api_info.param.unreg.proxy_comp_name_net.value, \
                    (pcn).value, (pcn).length); \
    (m).info.api_info.param.unreg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
 }
@@ -97,13 +97,13 @@
    (m).info.api_info.type = AVSV_AMF_HC_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_start.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_start.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_start.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.hc_start.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_start.proxy_comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_start.proxy_comp_name_net.value, \
                    (pcn).value, m_NCS_OS_NTOHS((pcn).length)); \
    (m).info.api_info.param.hc_start.proxy_comp_name_net.length = (pcn).length; \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_start.hc_key.key, \
+   memcpy((m).info.api_info.param.hc_start.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_start.hc_key.keyLen = (hck).keyLen; \
    (m).info.api_info.param.hc_start.inv_type = (inv); \
@@ -117,13 +117,13 @@
    (m).info.api_info.type = AVSV_AMF_HC_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_stop.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_stop.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_stop.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.hc_stop.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_stop.proxy_comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_stop.proxy_comp_name_net.value, \
                    (pcn).value,  m_NCS_OS_NTOHS((pcn).length)); \
    (m).info.api_info.param.hc_stop.proxy_comp_name_net.length = (pcn).length; \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_stop.hc_key.key, \
+   memcpy((m).info.api_info.param.hc_stop.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_stop.hc_key.keyLen = (hck).keyLen; \
 }
@@ -135,13 +135,13 @@
    (m).info.api_info.type = AVSV_AMF_HC_CONFIRM; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_confirm.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_confirm.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_confirm.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.hc_confirm.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_confirm.proxy_comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_confirm.proxy_comp_name_net.value, \
                    (pcn).value,  m_NCS_OS_NTOHS((pcn).length)); \
    (m).info.api_info.param.hc_confirm.proxy_comp_name_net.length = (pcn).length; \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.hc_confirm.hc_key.key, \
+   memcpy((m).info.api_info.param.hc_confirm.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_confirm.hc_key.keyLen = (hck).keyLen; \
    (m).info.api_info.param.hc_confirm.hc_res = (res); \
@@ -154,7 +154,7 @@
    (m).info.api_info.type = AVSV_AMF_PM_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_start.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.pm_start.comp_name_net.value, \
+   memcpy((m).info.api_info.param.pm_start.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.pm_start.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
    (m).info.api_info.param.pm_start.pid = (processId); \
@@ -170,7 +170,7 @@
    (m).info.api_info.type = AVSV_AMF_PM_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pm_stop.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.pm_stop.comp_name_net.value, \
+   memcpy((m).info.api_info.param.pm_stop.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.pm_stop.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
    (m).info.api_info.param.pm_stop.stop_qual = (stop); \
@@ -185,10 +185,10 @@
    (m).info.api_info.type = AVSV_AMF_HA_STATE_GET; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.ha_get.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.ha_get.comp_name_net.value, \
+   memcpy((m).info.api_info.param.ha_get.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.ha_get.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.ha_get.csi_name_net.value, \
+   memcpy((m).info.api_info.param.ha_get.csi_name_net.value, \
                    (csi).value, (csi).length); \
    (m).info.api_info.param.ha_get.csi_name_net.length = m_NCS_OS_HTONS((csi).length); \
 }
@@ -200,7 +200,7 @@
    (m).info.api_info.type = AVSV_AMF_PG_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pg_start.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.pg_start.csi_name_net.value, \
+   memcpy((m).info.api_info.param.pg_start.csi_name_net.value, \
                    (csin).value, (csin).length); \
    (m).info.api_info.param.pg_start.csi_name_net.length = m_NCS_OS_HTONS((csin).length); \
    (m).info.api_info.param.pg_start.flags = (fl); \
@@ -214,7 +214,7 @@
    (m).info.api_info.type = AVSV_AMF_PG_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pg_stop.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.pg_stop.csi_name_net.value, \
+   memcpy((m).info.api_info.param.pg_stop.csi_name_net.value, \
                    (csin).value, (csin).length); \
    (m).info.api_info.param.pg_stop.csi_name_net.length = m_NCS_OS_HTONS((csin).length); \
 }
@@ -226,7 +226,7 @@
    (m).info.api_info.type = AVSV_AMF_ERR_REP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.err_rep.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.err_rep.err_comp_net.value, \
+   memcpy((m).info.api_info.param.err_rep.err_comp_net.value, \
                    (ec).value, (ec).length); \
    (m).info.api_info.param.err_rep.err_comp_net.length = m_NCS_OS_HTONS((ec).length); \
    (m).info.api_info.param.err_rep.detect_time = (et); \
@@ -240,7 +240,7 @@
    (m).info.api_info.type = AVSV_AMF_ERR_CLEAR; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.err_clear.hdl = (hd); \
-   m_NCS_OS_MEMCPY((m).info.api_info.param.err_clear.comp_name_net.value, \
+   memcpy((m).info.api_info.param.err_clear.comp_name_net.value, \
                    (cn).value, (cn).length); \
    (m).info.api_info.param.err_clear.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
 }

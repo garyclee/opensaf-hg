@@ -650,21 +650,21 @@ uns32 dtsv_global_extract_oct(NCSMIB_PARAM_VAL *param_val,
    {
       case ncsDtsvGlobalLogDevice_ID:
          param_val->i_length = sizeof(uns8);
-         /*m_NCS_OS_MEMCPY((uns8*)&tmp, (uns8*)&gp->g_policy.log_dev, param_val->i_length);*/
+         /*memcpy((uns8*)&tmp, (uns8*)&gp->g_policy.log_dev, param_val->i_length);*/
          param_val->info.i_oct = (uns8*)&gp->g_policy.log_dev;
          break;
 
       case ncsDtsvGlobalCategoryBitMap_ID:
          param_val->i_length = sizeof(uns32);
-         m_NCS_OS_MEMCPY((uns8*)&tmp, (uns8*)&gp->g_policy.category_bit_map, param_val->i_length);
+         memcpy((uns8*)&tmp, (uns8*)&gp->g_policy.category_bit_map, param_val->i_length);
          nworder = htonl(tmp);
-         m_NCS_OS_MEMCPY((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
+         memcpy((uns8*)buffer, (uns8*)&nworder, param_val->i_length);
          param_val->info.i_oct = (uns8*)buffer;
          break;
 
       case ncsDtsvGlobalSeverityBitMap_ID:
          param_val->i_length = sizeof(uns8);
-          /*m_NCS_OS_MEMCPY((uns8*)&tmp, (uns8*)&gp->g_policy.severity_bit_map, param_val->i_length);*/
+          /*memcpy((uns8*)&tmp, (uns8*)&gp->g_policy.severity_bit_map, param_val->i_length);*/
          param_val->info.i_oct = (uns8*)&gp->g_policy.severity_bit_map;
          break;
 
@@ -673,7 +673,7 @@ uns32 dtsv_global_extract_oct(NCSMIB_PARAM_VAL *param_val,
    }
 
    /*nworder = htonl(tmp);
-   m_NCS_OS_MEMCPY((uns8*)buffer, (uns8*)&nworder, param_val->i_length);*/
+   memcpy((uns8*)buffer, (uns8*)&nworder, param_val->i_length);*/
 
    /*param_val->info.i_oct = (uns8*)buffer;*/
 

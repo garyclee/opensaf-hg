@@ -171,7 +171,7 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
    
    /* clc event types */
    case AVND_EVT_CLC_RESP:
-      m_NCS_OS_MEMCPY(&evt->info.clc, clc, sizeof(AVND_CLC_EVT));
+      memcpy(&evt->info.clc, clc, sizeof(AVND_CLC_EVT));
       break;
       
    /* AvND-AvND event types */
@@ -181,7 +181,7 @@ AVND_EVT *avnd_evt_create (AVND_CB           *cb,
       
    /* internal event types */
    case AVND_EVT_COMP_PRES_FSM_EV:
-      m_NCS_OS_MEMCPY(&evt->info.comp_fsm, comp_fsm, sizeof(AVND_COMP_FSM_EVT));
+      memcpy(&evt->info.comp_fsm, comp_fsm, sizeof(AVND_COMP_FSM_EVT));
       break;
       
    case AVND_EVT_LAST_STEP_TERM:

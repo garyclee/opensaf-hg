@@ -131,7 +131,7 @@ idim_send_hw_drv_msg (void* info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
    switch(msg_type)
    {
    case NCS_IFSV_HW_DRV_STATS:
-      m_NCS_MEMCPY(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
+      memcpy(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
 
       m_IFND_LOG_EVT_LL(IFSV_LOG_IDIM_EVT_INTF_DESTROY_SND,"IDIM Evt",\
          pMsg->port_type.port_id,pMsg->port_type.type);
@@ -139,14 +139,14 @@ idim_send_hw_drv_msg (void* info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
       break;
 
    case NCS_IFSV_HW_DRV_IFND_UP:
-      m_NCS_MEMCPY(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
+      memcpy(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
 
       m_IFND_LOG_EVT_L(IFSV_LOG_IDIM_EVT_IFND_UP_SND,"IDIM Evt",\
          pMsg->req_type);
 
       break;
    case NCS_IFSV_HW_DRV_SET_PARAM:
-      m_NCS_MEMCPY(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
+      memcpy(pMsg, info, sizeof(NCS_IFSV_HW_DRV_REQ));
 
       m_IFND_LOG_EVT_L(IFSV_LOG_IDIM_EVT_SET_HW_DRV_PARAM_SND,"IDIM Evt",\
          pMsg->req_type);
@@ -214,7 +214,7 @@ idim_send_ifnd_evt (void* info, IFSV_EVT_TYPE evt_type, IFSV_IDIM_CB *cb)
       {
       case IFND_EVT_INTF_CREATE:         
          
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_create, info, 
+         memcpy(&evt->info.ifnd_evt.info.intf_create, info, 
             sizeof(IFSV_INTF_CREATE_INFO));
          evt->info.ifnd_evt.info.intf_create.evt_orig = 
                                                 NCS_IFSV_EVT_ORIGN_HW_DRV;
@@ -228,7 +228,7 @@ idim_send_ifnd_evt (void* info, IFSV_EVT_TYPE evt_type, IFSV_IDIM_CB *cb)
 
          break;
       case IFND_EVT_INTF_DESTROY:
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.intf_destroy, info, 
+         memcpy(&evt->info.ifnd_evt.info.intf_destroy, info, 
             sizeof(IFSV_INTF_DESTROY_INFO));
          evt->info.ifnd_evt.info.intf_destroy.orign = 
             NCS_IFSV_EVT_ORIGN_HW_DRV;
@@ -238,7 +238,7 @@ idim_send_ifnd_evt (void* info, IFSV_EVT_TYPE evt_type, IFSV_IDIM_CB *cb)
             m_NCS_NODE_ID_FROM_MDS_DEST(((IFSV_INTF_DESTROY_INFO*)info)->own_dest));
          break;
       case IFND_EVT_IDIM_STATS_RESP:
-         m_NCS_MEMCPY(&evt->info.ifnd_evt.info.stats_info, info, 
+         memcpy(&evt->info.ifnd_evt.info.stats_info, info, 
             sizeof(IFSV_EVT_STATS_INFO));
 
          m_IFND_LOG_EVT_L(IFSV_LOG_IDIM_EVT_INTF_STATS_RESP_SND,\
@@ -291,7 +291,7 @@ idim_recv_hw_stats (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    stats.dest                = evt->info.hw_info.info.stats.app_dest;
    stats.svc_id              = evt->info.hw_info.info.stats.app_svc_id;
    stats.usr_hdl             = evt->info.hw_info.info.stats.usr_hdl;
-   m_NCS_MEMCPY(&stats.stat_info, &evt->info.hw_info.info.stats.stats, 
+   memcpy(&stats.stat_info, &evt->info.hw_info.info.stats.stats, 
       sizeof(NCS_IFSV_INTF_STATS));
 
    m_IFND_LOG_EVT_L(IFSV_LOG_IDIM_EVT_HW_STATS_RCV,\
@@ -366,7 +366,7 @@ idim_recv_hw_port_reg (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
    intf_info.intf_data.if_info.oper_state = evt->info.hw_info.info.reg_port.oper_state;
    intf_info.intf_data.if_info.admin_state = evt->info.hw_info.info.reg_port.admin_state;
 
-   m_NCS_MEMCPY(intf_info.intf_data.if_info.phy_addr, 
+   memcpy(intf_info.intf_data.if_info.phy_addr, 
       evt->info.hw_info.info.reg_port.phy_addr, (6*sizeof(uns8)));
    m_NCS_STRCPY(intf_info.intf_data.if_info.if_name, 
       evt->info.hw_info.info.reg_port.if_name);
@@ -588,7 +588,7 @@ idim_set_hw_param (IFSV_IDIM_EVT *evt, IFSV_IDIM_CB *cb)
       drv_evt.req_type          = NCS_IFSV_HW_DRV_SET_PARAM;
 /*EXT_INT */
       drv_evt.subscr_scope      = evt->info.get_stats.slot_port.subscr_scope;
-      m_NCS_MEMCPY(&drv_evt.info.set_param,&hw_parm->hw_param,
+      memcpy(&drv_evt.info.set_param,&hw_parm->hw_param,
          sizeof(NCS_IFSV_INTF_INFO));
       /* send a message to the hardware driver to fetch the statisctics */
       res = idim_send_hw_drv_msg((void*)&drv_evt, NCS_IFSV_HW_DRV_SET_PARAM,

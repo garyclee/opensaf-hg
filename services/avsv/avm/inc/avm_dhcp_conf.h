@@ -264,14 +264,14 @@ struct slot_info
 #define m_AVM_SET_NAME(dest_name,param_val) \
 { \
    dest_name.length = param_val.i_length; \
-   m_NCS_MEMCPY(dest_name.name, param_val.info.i_oct, param_val.i_length); \
+   memcpy(dest_name.name, param_val.info.i_oct, param_val.i_length); \
    dest_name.name[param_val.i_length] = '\0'; \
 }
 
 #define m_AVM_STR_TO_VER(st, ver) \
 { \
    ver.length = m_NCS_STRLEN(st); \
-   m_NCS_MEMCPY(ver.name, st, ver.length); \
+   memcpy(ver.name, st, ver.length); \
 }
 
 /* Macro to push an Integer value to PSSV */
@@ -303,7 +303,7 @@ struct slot_info
          uns8 push_logbuf[500]; \
          m_NCS_MEMSET(&avm_pssv.oct_str.name, '\0', AVM_NAME_STR_LENGTH); \
          avm_pssv.oct_str.length = push_length; \
-         m_NCS_MEMCPY(&avm_pssv.oct_str.name, push_str, avm_pssv.oct_str.length); \
+         memcpy(&avm_pssv.oct_str.name, push_str, avm_pssv.oct_str.length); \
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_OCT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \

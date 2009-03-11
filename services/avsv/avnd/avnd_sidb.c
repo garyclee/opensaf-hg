@@ -125,7 +125,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
     * Update the supplied parameters.
     */
    /* update the si-name (key) */
-   m_NCS_OS_MEMCPY(&si_rec->name_net, &param->si_name_net, sizeof(SaNameT));
+   memcpy(&si_rec->name_net, &param->si_name_net, sizeof(SaNameT));
    si_rec->curr_state = param->ha_state;
 
    /*
@@ -242,11 +242,11 @@ AVND_COMP_CSI_REC *avnd_su_si_csi_rec_add (AVND_CB             *cb,
     * Update the supplied parameters.
     */
    /* update the csi-name & csi-rank (keys to comp-csi & si-csi lists resp) */
-   m_NCS_OS_MEMCPY(&csi_rec->name_net, &param->csi_name_net, sizeof(SaNameT));
+   memcpy(&csi_rec->name_net, &param->csi_name_net, sizeof(SaNameT));
    csi_rec->rank = param->csi_rank;
 
    /* update the assignment related parameters */
-   m_NCS_OS_MEMCPY(&csi_rec->act_comp_name_net, &param->active_comp_name_net, 
+   memcpy(&csi_rec->act_comp_name_net, &param->active_comp_name_net, 
                    sizeof(SaNameT));
    csi_rec->trans_desc = param->active_comp_dsc;
    csi_rec->standby_rank = param->stdby_rank;
@@ -682,7 +682,7 @@ uns32 avnd_su_si_del (AVND_CB *cb, SaNameT *su_name_net)
       while(su && (su->si_list.n_nodes == 0))
       {
          su_name.length = su->name_net.length;
-         m_NCS_MEMCPY(&su_name.value, &su->name_net.value, m_NCS_OS_NTOHS(su->name_net.length));
+         memcpy(&su_name.value, &su->name_net.value, m_NCS_OS_NTOHS(su->name_net.length));
          su = m_AVND_SUDB_REC_GET_NEXT(cb->sudb, su_name);
       }
 

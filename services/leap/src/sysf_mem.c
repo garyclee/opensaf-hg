@@ -1728,7 +1728,7 @@ sysf_copy_pkt(USRBUF *dup_me)
       ub->payload = payload;
 
 
-      m_NCS_MEMCPY(ub->payload->Data,dup_me->payload->Data,PAYLOAD_BUF_SIZE);
+      memcpy(ub->payload->Data,dup_me->payload->Data,PAYLOAD_BUF_SIZE);
 
 
       /* setup link pointers */
@@ -2213,7 +2213,7 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
   while (TRUE)
     {
     /* copy what data is in this working usrbuf ... then step backwards in chain */
-    m_NCS_MEMCPY(spare + size - num_in_buff, m_MMGR_DATA(pb_work, char *), num_in_buff);  
+    memcpy(spare + size - num_in_buff, m_MMGR_DATA(pb_work, char *), num_in_buff);  
     
     size -= num_in_buff; /* adjust amt of data still to find & copy */
     
@@ -2230,7 +2230,7 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
     
     if (num_in_buff >= size)   /* is there enuf data in this usrbuf ? */
       {                          /* yes, copy it and leave; otherwise go loop again */
-      m_NCS_MEMCPY(spare, m_MMGR_DATA(pb_work, char*) + num_in_buff - size, size);
+      memcpy(spare, m_MMGR_DATA(pb_work, char*) + num_in_buff - size, size);
       break;  /* from 'while' */
       }
     }
@@ -2266,7 +2266,7 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
   
   while (TRUE)
     {
-    m_NCS_MEMCPY(spare_work, m_MMGR_DATA(pb, char*), num_in_buff);  
+    memcpy(spare_work, m_MMGR_DATA(pb, char*), num_in_buff);  
     size -= num_in_buff;
     spare_work += num_in_buff;
     
@@ -2278,7 +2278,7 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
     
     if (num_in_buff >= size)
       {
-      m_NCS_MEMCPY(spare_work, m_MMGR_DATA(pb, char*), size);
+      memcpy(spare_work, m_MMGR_DATA(pb, char*), size);
       break;  /* from 'while' */
       }
     }
@@ -2317,7 +2317,7 @@ sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
     {
     if ( copy_flag == TRUE )
       {
-      m_NCS_MEMCPY(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);  
+      memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);  
       return copy_buf;
       }
     else
@@ -2348,7 +2348,7 @@ sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
     else
       {
       /* copy data to caller supplied buffer */
-      m_NCS_MEMCPY(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
+      memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), size);
       return copy_buf;
       }
     }
@@ -2358,7 +2358,7 @@ sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
     ** Copy data from first USRBUF to caller supplied buffer. 
     */
   cpcnt = num_in_buf - offset;
-  m_NCS_MEMCPY(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), cpcnt);
+  memcpy(copy_buf, m_MMGR_DATA_AT_OFFSET(pb, offset, char *), cpcnt);
   
   size -= cpcnt;
   cb_work = copy_buf + cpcnt;
@@ -2376,12 +2376,12 @@ sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size,
     /* if this is last portion of data, copy and return */
     if ( num_in_buf >= size )
       {
-      m_NCS_MEMCPY(cb_work, m_MMGR_DATA(pb, char *), size);
+      memcpy(cb_work, m_MMGR_DATA(pb, char *), size);
       return copy_buf;
       }
     
     /* do copy of data from this USRBUF and continue */
-    m_NCS_MEMCPY(cb_work, m_MMGR_DATA(pb, char *), num_in_buf);  
+    memcpy(cb_work, m_MMGR_DATA(pb, char *), num_in_buf);  
     size -= num_in_buf;
     cb_work += num_in_buf;
     }
@@ -2447,7 +2447,7 @@ sysf_reserve_in_mid (USRBUF *pb, unsigned int offset, unsigned int size )
       return (char *)0;
     
     ud->RefCnt = 1;
-    m_NCS_MEMCPY(ud->Data, pb->payload->Data, sizeof(pb->payload->Data));
+    memcpy(ud->Data, pb->payload->Data, sizeof(pb->payload->Data));
     pb->payload->RefCnt--;
     pb->payload = ud;
     }
@@ -2477,7 +2477,7 @@ sysf_reserve_in_mid (USRBUF *pb, unsigned int offset, unsigned int size )
       new_ub = m_MMGR_ALLOC_POOLBUFR(pb->pool_ops->pool_id,NCSMEM_HI_PRI);
       if (( new_ub == (USRBUF *)0 ) || ( new_ub->start != 0 ))
         return (char *)0;
-      m_NCS_MEMCPY ( m_MMGR_DATA(new_ub, char *) + size, 
+      memcpy ( m_MMGR_DATA(new_ub, char *) + size, 
         m_MMGR_DATA_AT_OFFSET(pb, offset, char *), post_data_len);
       new_ub->link  = pb->link;
       new_ub->count = size + post_data_len;
@@ -2499,7 +2499,7 @@ sysf_reserve_in_mid (USRBUF *pb, unsigned int offset, unsigned int size )
       if (( new_ub2 == (USRBUF *)0 ) || ( new_ub2->start != 0 ))
         return (char *)0;
       
-      m_NCS_MEMCPY ( m_MMGR_DATA(new_ub2, char *), 
+      memcpy ( m_MMGR_DATA(new_ub2, char *), 
         m_MMGR_DATA_AT_OFFSET(pb, offset, char *), post_data_len);
       
       /* update links and sizes */
@@ -2552,7 +2552,7 @@ sysf_insert_in_mid (USRBUF *pb, unsigned int offset,
   insert_spot = sysf_reserve_in_mid ( pb, offset, size );
   
   if ( insert_spot != (char *)0 )
-    m_NCS_MEMCPY ( insert_spot, ins_data, size );
+    memcpy ( insert_spot, ins_data, size );
   
   return insert_spot;
   }
@@ -2604,13 +2604,13 @@ sysf_write_in_mid (USRBUF *pb, unsigned int offset,
       return (char *)0;
     
     ud->RefCnt = 1;
-    m_NCS_MEMCPY(ud->Data, pb->payload->Data, sizeof(pb->payload->Data));
+    memcpy(ud->Data, pb->payload->Data, sizeof(pb->payload->Data));
     pb->payload->RefCnt--;
     pb->payload = ud;
     }
   
   /* all set up; just do the copy */
-  m_NCS_MEMCPY ( m_MMGR_DATA_AT_OFFSET(pb, offset, char *), cdata, size );
+  memcpy ( m_MMGR_DATA_AT_OFFSET(pb, offset, char *), cdata, size );
   return cdata;
   }
 
@@ -3098,7 +3098,7 @@ sysf_copy_to_usrbuf( uns8 *packet, unsigned int length)
       m_MMGR_FREE_BUFR_LIST(first_uu_pdu);
       return BNULL;
       }
-    m_NCS_MEMCPY (dst, src, len);
+    memcpy (dst, src, len);
     src += len;
     length -= len;
     

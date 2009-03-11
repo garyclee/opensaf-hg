@@ -201,7 +201,7 @@ avm_avd_fault_domain_resp(
    avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG; 
    avm_avd->msg_type = AVM_AVD_FAULT_DOMAIN_RESP_MSG;
    avm_avd->avm_avd_msg.faultdomain_resp.head = *head;
-   m_NCS_MEMCPY(&avm_avd->avm_avd_msg.faultdomain_resp.node_name, &node_name, sizeof(SaNameT));
+   memcpy(&avm_avd->avm_avd_msg.faultdomain_resp.node_name, &node_name, sizeof(SaNameT));
 
    if(AVM_LIST_NODE_NULL == head->node)
    {
@@ -248,7 +248,7 @@ avm_avd_node_reset_resp(
    avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
    avm_avd->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
    avm_avd->avm_avd_msg.reset_resp.resp = reset_resp;
-   m_NCS_MEMCPY(&avm_avd->avm_avd_msg.reset_resp.node_name, &node_name, sizeof(SaNameT));
+   memcpy(&avm_avd->avm_avd_msg.reset_resp.node_name, &node_name, sizeof(SaNameT));
 
    rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
      

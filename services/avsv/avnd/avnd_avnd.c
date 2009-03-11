@@ -137,7 +137,7 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl (AVND_CB *cb, AVND_EVT *evt)
       those are quiescing_compl and ava_resp, these wouln't require
       mds context information and it will be NULL for these two calls */
          
-   m_NCS_OS_MEMCPY(&(evt->mds_ctxt), &(evt->info.avnd->mds_ctxt), sizeof(MDS_SYNC_SND_CTXT));
+   memcpy(&(evt->mds_ctxt), &(evt->info.avnd->mds_ctxt), sizeof(MDS_SYNC_SND_CTXT));
 
    /* Create AvA message, so that it look like it is coming from AvA. */ 
    evt_type = evt->info.avnd->info.msg->info.api_info.type - 

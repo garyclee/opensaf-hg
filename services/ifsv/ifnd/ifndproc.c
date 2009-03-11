@@ -101,7 +101,7 @@ ifnd_intf_create (IFSV_CB *ifsv_cb,
             /* send an event for the modifed parameters to the hardware
              * driver */
                m_NCS_MEMSET(&hw_param,0,sizeof(hw_param));
-               m_NCS_MEMCPY(&hw_param.hw_param, &create_intf->intf_data.if_info,
+               memcpy(&hw_param.hw_param, &create_intf->intf_data.if_info,
                   sizeof(NCS_IFSV_INTF_INFO));
                hw_param.hw_param.if_am  = create_intf->if_attr;
                hw_param.slot_port       = rec_data->spt_info;
@@ -1386,7 +1386,7 @@ ifnd_ifap_ifindex_free (NCS_IFSV_SPT_MAP *spt_map,
    m_NCS_MEMSET(&spt_map_info, 0, sizeof(IFSV_EVT_SPT_MAP_INFO));
    spt_map_info.app_svc_id    = NCS_SERVICE_ID_IFND;
    spt_map_info.app_dest      = ifsv_cb->my_dest;
-   m_NCS_MEMCPY(&spt_map_info.spt_map,spt_map, sizeof(NCS_IFSV_SPT_MAP));
+   memcpy(&spt_map_info.spt_map,spt_map, sizeof(NCS_IFSV_SPT_MAP));
 
    /* send an interface index cleanup to the IfD */
    res = ifnd_mds_msg_send((NCSCONTEXT)&spt_map_info, 
@@ -1784,7 +1784,7 @@ ifsv_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
          m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
          return NCSCC_RC_OUT_OF_MEM;
       }
-      m_NCS_OS_MEMCPY(evt.info.ifa_evt.info.if_add_upd.if_info.addsvd_list, 
+      memcpy(evt.info.ifa_evt.info.if_add_upd.if_info.addsvd_list, 
                       &svc_dest->i_svdest, sizeof(NCS_SVDEST));
    }
    else if(svc_dest->i_type == NCS_IFSV_SVCD_DEL)
@@ -1798,7 +1798,7 @@ ifsv_ifa_app_svd_info_indicate(IFSV_CB *cb, IFSV_INTF_DATA *actual_data,
          m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
          return NCSCC_RC_OUT_OF_MEM;
       }
-      m_NCS_OS_MEMCPY(evt.info.ifa_evt.info.if_add_upd.if_info.delsvd_list, 
+      memcpy(evt.info.ifa_evt.info.if_add_upd.if_info.delsvd_list, 
                       &svc_dest->i_svdest, sizeof(NCS_SVDEST));
    }
    else
@@ -1864,7 +1864,7 @@ ifnd_sync_send_to_ifd (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
    {
      evt->type = IFD_EVT_INTF_CREATE;
 
-     m_NCS_MEMCPY(&evt->info.ifd_evt.info.intf_create.intf_data,
+     memcpy(&evt->info.ifd_evt.info.intf_create.intf_data,
                   intf_data, sizeof(IFSV_INTF_CREATE_INFO));
      /* Here while sending the record to IFD, it will keep IfND's
       * destination address in the record info, so that IfD will

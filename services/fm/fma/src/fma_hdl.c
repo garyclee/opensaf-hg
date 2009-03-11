@@ -73,7 +73,7 @@ FMA_HDL_REC *fma_hdl_rec_add(FMA_CB *cb,FMA_HDL_DB *hdl_db,
 
    /** Store the registered callbacks **/
    if (fmaCallback)
-      m_NCS_OS_MEMCPY((void *)&hdl_rec->reg_cbk, (void *)fmaCallback,
+      memcpy((void *)&hdl_rec->reg_cbk, (void *)fmaCallback,
                       sizeof(fmCallbacksT));
 
    hdl_rec->hdl_node.key_info = (uns8 *)&hdl_rec->hdl; 
@@ -377,7 +377,7 @@ static uns32 fma_hdl_callbk_dispatch_one (FMA_CB **cb, FMA_HDL_REC **hdl_rec)
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_callbk_dispatch_one");   
 
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
    
    /* Pop the rec from the pending callback list */
    m_FMA_HDL_PEND_CBK_GET(pend_cbk,rec);
@@ -442,7 +442,7 @@ static uns32 fma_hdl_callbk_dispatch_all(FMA_CB **cb,
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_callbk_dispatch_all");
 
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
 
    /* Pop all the pending rec from the pending list and process all the callbacks */
    m_FMA_HDL_PEND_CBK_GET(pend_cbk,rec);
@@ -509,7 +509,7 @@ static uns32 fma_hdl_callbk_dispatch_block (FMA_CB  **cb, FMA_HDL_REC **hdl_rec)
 
   
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(fmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(fmCallbacksT));
    
    m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 

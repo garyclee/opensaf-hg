@@ -92,7 +92,7 @@ typedef struct ncs_ippfx
 #define m_NCS_HTON_IP_ADDR(i_addr, o_addr)                      \
 {                                                              \
    if((o_addr) != (i_addr))                                    \
-      m_NCS_OS_MEMCPY((o_addr), (i_addr), sizeof(NCS_IP_ADDR));  \
+      memcpy((o_addr), (i_addr), sizeof(NCS_IP_ADDR));  \
    if((i_addr)->type == NCS_IP_ADDR_TYPE_IPV4)                  \
       (o_addr)->info.v4 = m_NCS_OS_HTONL((i_addr)->info.v4);    \
 }                                                              \
@@ -103,7 +103,7 @@ typedef struct ncs_ippfx
 #define m_NCS_NTOH_IP_ADDR(i_addr, o_addr)                      \
 {                                                              \
    if((o_addr) != (i_addr))                                    \
-      m_NCS_OS_MEMCPY((o_addr), (i_addr), sizeof(NCS_IP_ADDR));  \
+      memcpy((o_addr), (i_addr), sizeof(NCS_IP_ADDR));  \
    if((i_addr)->type == NCS_IP_ADDR_TYPE_IPV4)                  \
       (o_addr)->info.v4 = m_NCS_OS_NTOHL((i_addr)->info.v4);    \
 }                                                              \

@@ -4404,7 +4404,7 @@ uns8* ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
     (src)++;
     if(count != 0)
     {
-        m_NCS_MEMCPY(dest, src, count);
+        memcpy(dest, src, count);
     }
     
     return dest;
@@ -4427,7 +4427,7 @@ uns8* ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count)
     (src)++;
     (src)++;
     (src)++;
-    m_NCS_MEMCPY(dest, src, count);
+    memcpy(dest, src, count);
     
     return dest;
 }

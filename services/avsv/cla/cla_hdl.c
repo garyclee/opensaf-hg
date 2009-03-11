@@ -241,7 +241,7 @@ CLA_HDL_REC *cla_hdl_rec_add (CLA_CB *cb,
    
    /* store the registered callbacks */
    if (reg_cbks)
-       m_NCS_OS_MEMCPY((void *)&rec->reg_cbk, (void *)reg_cbks, 
+       memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, 
                        sizeof(SaClmCallbacksT));
 
    /* add the record to the hdl db */
@@ -391,7 +391,7 @@ uns32 cla_hdl_cbk_dispatch_one (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* pop the rec from the list */
    m_CLA_HDL_PEND_CBK_POP(list, rec);
@@ -444,7 +444,7 @@ uns32 cla_hdl_cbk_dispatch_all (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* pop all the records from the list & process them */
    do
@@ -510,7 +510,7 @@ uns32 cla_hdl_cbk_dispatch_block (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
    m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
    
    m_NCS_MEMSET(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   m_NCS_MEMCPY(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
 
    /* release all lock and handle - we are abt to go into deep sleep */
    m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);

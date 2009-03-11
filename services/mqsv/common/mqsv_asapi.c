@@ -240,7 +240,7 @@ static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
       /* Polulate the ASAPi Name Resolution message */
       msg.msgtype = ASAPi_MSG_NRESOLVE;      
 
-      m_NCS_OS_MEMCPY(&msg.info.nresolve.object, &dinfo->i_object, sizeof(SaNameT)); 
+      memcpy(&msg.info.nresolve.object, &dinfo->i_object, sizeof(SaNameT)); 
       msg.info.nresolve.track = dinfo->i_track;           
       dinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP; /* Make syncronous request */
       
@@ -317,7 +317,7 @@ static uns32 asapi_queue_get(ASAPi_Q_INFO *qinfo)
       /* Polulate the ASAPi Name Resolution message */
       msg.msgtype = ASAPi_MSG_GETQUEUE;
       
-      m_NCS_OS_MEMCPY(&msg.info.getqueue.queue, &qinfo->i_name, sizeof(SaNameT));            
+      memcpy(&msg.info.getqueue.queue, &qinfo->i_name, sizeof(SaNameT));            
       qinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
       
       /* Send the message to the specified destination */
@@ -442,7 +442,7 @@ static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
          /* Polulate the ASAPi Name Resolution message */
          msg.msgtype = ASAPi_MSG_TRACK;
                   
-         m_NCS_OS_MEMCPY(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
+         memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
          msg.info.track.val = tinfo->i_option;
          tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
          
@@ -472,7 +472,7 @@ static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
       /* Polulate the ASAPi Name Resolution message */
       msg.msgtype = ASAPi_MSG_TRACK;
       
-      m_NCS_OS_MEMCPY(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
+      memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
       msg.info.track.val = tinfo->i_option;
       tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP; /* Make syncronous request */
       
@@ -633,7 +633,7 @@ static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr,
       }
       else {
          pCache->objtype = ASAPi_OBJ_GROUP;
-         m_NCS_OS_MEMCPY(&pCache->info.ginfo.group, &pInfo->group, sizeof(SaNameT));                      
+         memcpy(&pCache->info.ginfo.group, &pInfo->group, sizeof(SaNameT));                      
       
          /* Initilize the group list for queues */
          ncs_create_queue(&pCache->info.ginfo.qlist);
@@ -1180,7 +1180,7 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
    if(!pMsg) {
       return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* Memmory failure ... */ 
    }
-   m_NCS_OS_MEMCPY(pMsg, from, sizeof(ASAPi_MSG_INFO));
+   memcpy(pMsg, from, sizeof(ASAPi_MSG_INFO));
 
    /* Need to futher re-alloc internal messages if any offor certian type of 
     * messages
@@ -1193,7 +1193,7 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
       if(!info->qparam) {
          return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);         
       }
-      m_NCS_OS_MEMCPY(info->qparam, (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype)?
+      memcpy(info->qparam, (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype)?
          &pMsg->info.nresp.oinfo.qparam:&pMsg->info.tntfy.oinfo.qparam, 
          sizeof(ASAPi_QUEUE_PARAM));
    }   

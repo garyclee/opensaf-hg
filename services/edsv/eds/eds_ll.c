@@ -362,7 +362,7 @@ eds_remove_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp)
 
    m_NCS_MEMSET(&chan_name_del, 0 , sizeof(SaNameT));
    chan_name_del.length  = m_NCS_OS_HTONS(wp->cname_len);
-   m_NCS_MEMCPY(chan_name_del.value , wp->cname, wp->cname_len);
+   memcpy(chan_name_del.value , wp->cname, wp->cname_len);
 
 
    /* Get the record pointer from the patricia tree */
@@ -528,7 +528,7 @@ eds_add_cname_rec (EDS_CB *cb, EDS_WORKLIST *wp, uns8 *chan_name, uns16 chan_nam
    m_NCS_MEMSET(cn, 0, sizeof(EDS_CNAME_REC));
 
    cn->chan_name.length  = m_NCS_OS_HTONS(chan_name_len);
-   m_NCS_MEMCPY(cn->chan_name.value , chan_name, chan_name_len);
+   memcpy(cn->chan_name.value , chan_name, chan_name_len);
    cn->wp_rec            = wp;
    cn->pat_node.key_info = (uns8*)&cn->chan_name;
 
@@ -1401,7 +1401,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
          m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_DATA,NCSFL_SEV_ERROR,SA_AIS_ERR_NO_MEMORY,__FILE__,__LINE__,0);
          return(SA_AIS_ERR_NO_MEMORY);
       }
-      m_NCS_MEMCPY(wp->cname, chan_name, chan_name_len);
+      memcpy(wp->cname, chan_name, chan_name_len);
       *(wp->cname+chan_name_len) = '\0';
 
       /* Update MIB - channel Table objects with default values & creation time stamp */
@@ -1525,7 +1525,7 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
          return(SA_AIS_ERR_NO_MEMORY);
       }
 
-      m_NCS_MEMCPY(wp->cname, chan_name, chan_name_len);
+      memcpy(wp->cname, chan_name, chan_name_len);
       *(wp->cname+chan_name_len) = '\0';
       
       if(cb->ha_state == SA_AMF_HA_STANDBY)
@@ -1771,7 +1771,7 @@ eds_store_retained_event(EDS_CB         *cb,
    } 
 
    /* Copy the publisher name */
-   m_NCS_MEMCPY(retained_evt->publisherName.value,
+   memcpy(retained_evt->publisherName.value,
                 publish_param->publisher_name.value,
                 sizeof(SaNameT));
 

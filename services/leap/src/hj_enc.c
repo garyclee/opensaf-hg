@@ -102,7 +102,7 @@ ncs_encode_n_octets(USRBUF *u, uns8 *os, unsigned int count)
          if (os == (uns8 *)0)
             m_NCS_MEMSET( (char *)p, '\0', (size_t)count);
          else
-            m_NCS_MEMCPY( (char *)p, (char *)(os + offset), (size_t)count);
+            memcpy( (char *)p, (char *)(os + offset), (size_t)count);
       }
       else
       {
@@ -204,7 +204,7 @@ ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int length)
     return BNULL;
     }
   
-  m_NCS_MEMCPY( (char *)pch, (char *)os,(size_t)length);
+  memcpy( (char *)pch, (char *)os,(size_t)length);
   return( pbuf );  
   }
 

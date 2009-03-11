@@ -640,7 +640,7 @@ uns32  mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_in
       if(track_info->notificationBuffer.notification) {
          buffer = track_info->notificationBuffer.notification;
          /* Copy the current queue member i.e without the new change*/
-         m_NCS_MEMCPY(callback_buffer, buffer, (track_index) * sizeof(SaMsgQueueGroupNotificationT));
+         memcpy(callback_buffer, buffer, (track_index) * sizeof(SaMsgQueueGroupNotificationT));
       }
    }
    
@@ -679,7 +679,7 @@ uns32  mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_in
             rc = NCSCC_RC_FAILURE;
             goto done;
          } 
-         m_NCS_OS_MEMCPY(track_info->notificationBuffer.notification,
+         memcpy(track_info->notificationBuffer.notification,
                         track_current_callback->params.qGrpTrack.notificationBuffer.notification,
                         (track_index+1)*sizeof(SaMsgQueueGroupNotificationT));
          track_info->notificationBuffer.notification[track_index].change = SA_MSG_QUEUE_GROUP_NO_CHANGE;
@@ -716,7 +716,7 @@ uns32  mqa_notify_changes(MQA_CLIENT_INFO *client_info, MQA_TRACK_INFO *track_in
                if ((buff->notification[i].member.queueName.length == name->length) && 
                     m_NCS_MEMCMP(buff->notification[i].member.queueName.value,name->value,name->length)==0)
                   continue;
-               m_NCS_OS_MEMCPY(&track_info->notificationBuffer.notification[j],
+               memcpy(&track_info->notificationBuffer.notification[j],
                               &buff->notification[i],
                               sizeof(SaMsgQueueGroupNotificationT)); 
                j++; 

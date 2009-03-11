@@ -169,7 +169,7 @@ uns32 create_named_vdest(NCS_BOOL persistent,
     {
       vda_info.info.vdest_create.info.named.i_name.length =
         (uns16)(strlen(vname)+1);/*FIX THIS*/
-      m_NCS_OS_MEMCPY(vda_info.info.vdest_create.info.named.i_name.value,vname,
+      memcpy(vda_info.info.vdest_create.info.named.i_name.value,vname,
                       (uns16)(strlen(vname)+1));
     }
   else
@@ -220,7 +220,7 @@ uns32 destroy_named_vdest(NCS_BOOL non_persistent,
   vda_info.info.vdest_destroy.i_vdest=vdest;
   vda_info.info.vdest_destroy.i_make_vdest_non_persistent=non_persistent;
   vda_info.info.vdest_destroy.i_name.length=(uns16)(strlen(vname)+1);
-  m_NCS_OS_MEMCPY(vda_info.info.vdest_destroy.i_name.value,vname,
+  memcpy(vda_info.info.vdest_destroy.i_name.value,vname,
                   (uns16)(strlen(vname)+1));
 
   if(ncsvda_api(&vda_info)==NCSCC_RC_SUCCESS)
@@ -246,7 +246,7 @@ MDS_DEST vdest_lookup(char *vname)
   if(vname)
     {
       vda_info.info.vdest_lookup.i_name.length =(uns16)(strlen(vname)+1);
-      m_NCS_OS_MEMCPY(vda_info.info.vdest_lookup.i_name.value,vname,
+      memcpy(vda_info.info.vdest_lookup.i_name.value,vname,
                       (uns16)(strlen(vname)+1));
     }
   else
