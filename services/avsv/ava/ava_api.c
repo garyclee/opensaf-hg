@@ -477,7 +477,7 @@ SaAisErrorT saAmfComponentRegister (SaAmfHandleT  hdl,
   
     /* non-proxied component should not forge its name while registering */
    if(!proxy_comp_name && 
-         m_NCS_STRNCMP(comp_name->value, cb->comp_name_net.value, comp_name->length))
+         strncmp(comp_name->value, cb->comp_name_net.value, comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -485,7 +485,7 @@ SaAisErrorT saAmfComponentRegister (SaAmfHandleT  hdl,
 
    /* proxy component should not forge its name while registering its proxied*/
    if(proxy_comp_name && 
-         m_NCS_STRNCMP(proxy_comp_name->value, cb->comp_name_net.value, proxy_comp_name->length))
+         strncmp(proxy_comp_name->value, cb->comp_name_net.value, proxy_comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -588,7 +588,7 @@ SaAisErrorT saAmfComponentUnregister (SaAmfHandleT hdl,
   
     /* non-proxied component should not forge its name while unregistering */
    if(!proxy_comp_name && 
-         m_NCS_STRNCMP(comp_name->value, cb->comp_name_net.value, comp_name->length))
+         strncmp(comp_name->value, cb->comp_name_net.value, comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -597,7 +597,7 @@ SaAisErrorT saAmfComponentUnregister (SaAmfHandleT hdl,
 
    /* proxy component should not forge its name while unregistering proxied */
    if(proxy_comp_name && 
-         m_NCS_STRNCMP(proxy_comp_name->value, cb->comp_name_net.value, proxy_comp_name->length))
+         strncmp(proxy_comp_name->value, cb->comp_name_net.value, proxy_comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;

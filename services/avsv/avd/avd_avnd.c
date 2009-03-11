@@ -114,7 +114,7 @@ AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
 {
    AVD_AVND *avnd;
 
-   if( (node_name.length <= 8) || (m_NCS_OS_STRNCMP(node_name.value,"safNode=",8) != 0) )
+   if( (node_name.length <= 8) || (strncmp(node_name.value,"safNode=",8) != 0) )
    {
       return AVD_AVND_NULL;
    }

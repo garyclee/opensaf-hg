@@ -659,10 +659,6 @@ typedef int32 int64;
 #define m_NCS_OS_STRLEN(s)                 strlen((char*)s)
 #endif
 
-#ifndef m_NCS_OS_STRNCMP
-#define m_NCS_OS_STRNCMP(s1,s2,n)          strncmp((char *)s1,(char *)s2, n)
-#endif
-
 #ifndef m_NCS_OS_STRCSPN
 #define m_NCS_OS_STRCSPN(s,d)              (int32)strcspn((char *)s,d)
 #endif
