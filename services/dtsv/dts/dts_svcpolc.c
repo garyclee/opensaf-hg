@@ -765,7 +765,7 @@ uns32 dtsv_service_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag)
       m_DTS_ADD_CONS(cb, dev, (char *)&data_buff, bit_map)
    else
    {
-      if(m_NCS_STRCMP((char *)&data_buff, "all") == 0)
+      if(strcmp((char *)&data_buff, "all") == 0)
          m_DTS_RMV_ALL_CONS(dev)
       else
          m_DTS_RMV_CONS(cb, dev, (char *)&data_buff);

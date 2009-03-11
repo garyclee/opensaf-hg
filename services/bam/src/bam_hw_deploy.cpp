@@ -72,7 +72,7 @@ bam_fill_dependant_ent_name(DOMNode *node,  BAM_ENT_DEPLOY_DESC *deploy_ent)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "EntityDeploymentInstanceName") == 0)
+         if(strcmp(tag, "EntityDeploymentInstanceName") == 0)
          {
             strcpy(deploy_ent->depends_on_for_act, val);
          }
@@ -106,7 +106,7 @@ bam_parse_child_entities(DOMNode *node, char *ent_path, char *parent_ent)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "EntityDeploymentInstance") == 0)
+         if(strcmp(tmpString, "EntityDeploymentInstance") == 0)
          {
             rc = parseDeploymentInstance(tmpNode, ent_path, parent_ent);
          }
@@ -165,25 +165,25 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
          char *val = NULL;
          
          /* NOTE:-  XML will send the value 1 if netBoot and 2 if diskBoot else nothing in the mib*/
-         if(m_NCS_STRCMP(tag, "netBoot") == 0)
+         if(strcmp(tag, "netBoot") == 0)
          { /* Call the function to parse the all child of netBoot tag here 
               as well set the netBoot tag value in data structure as 1 */
 
             deploy_ent->netBoot = 1;
             parse_net_boot_childs(tmpNode, deploy_ent);
          }
-         else if(m_NCS_STRCMP(tag, "diskBoot") == 0)
+         else if(strcmp(tag, "diskBoot") == 0)
          {
            /* set the netBoot tag value in data structure as 2 */
             deploy_ent->netBoot = 2;
          }
-         else if(m_NCS_STRCMP(tag, "contains") == 0)
+         else if(strcmp(tag, "contains") == 0)
          {
             containsNode = tmpNode;
             XMLString::release(&tag);
             continue;
          }
-         else if(m_NCS_STRCMP(tag, "dependsOnForActivation") == 0)
+         else if(strcmp(tag, "dependsOnForActivation") == 0)
          {
             rc = bam_fill_dependant_ent_name(tmpNode, deploy_ent);
          }
@@ -191,33 +191,33 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
          {
             val = XMLString::transcode(tmpNode->getTextContent());
 
-            if(m_NCS_STRCMP(tag, "EntityTypeInstanceName") == 0)
+            if(strcmp(tag, "EntityTypeInstanceName") == 0)
             {
                strcpy(deploy_ent->ent_name, val);
             }
-            else if(m_NCS_STRCMP(tag, "EntityLocation") == 0)
+            else if(strcmp(tag, "EntityLocation") == 0)
             {
                deploy_ent->location = atoi(val);
             }
-            else if(m_NCS_STRCMP(tag, "NodeName") == 0)
+            else if(strcmp(tag, "NodeName") == 0)
             {
                strcpy(deploy_ent->ncs_node_name, val);
             }
-            else if(m_NCS_STRCMP(tag, "Name") == 0)
+            else if(strcmp(tag, "Name") == 0)
             {
                strcpy(deploy_ent->desc_name, val);
             }
-            else if(m_NCS_STRCMP(tag, "HPIEntityType") == 0)
+            else if(strcmp(tag, "HPIEntityType") == 0)
             {
                deploy_ent->ent_type = get_entity_type_from_text(val);
             }
-            else if(m_NCS_STRCMP(tag, "isActivationSourceNCS") == 0)
+            else if(strcmp(tag, "isActivationSourceNCS") == 0)
             {
-               if(m_NCS_STRCMP(val,"1") == 0)
+               if(strcmp(val,"1") == 0)
                {
                   deploy_ent->isActivationSourceNCS =  1;
                }
-               else if(m_NCS_STRCMP(val,"3") == 0)
+               else if(strcmp(val,"3") == 0)
                {
                   deploy_ent->isActivationSourceNCS =  3;
                }
@@ -310,7 +310,7 @@ parse_net_boot_childs(DOMNode *node, BAM_ENT_DEPLOY_DESC *deploy_ent)
          char *tag = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());
 
-         if(m_NCS_STRCMP(tag, "tftpServIP") == 0)
+         if(strcmp(tag, "tftpServIP") == 0)
          {
             uns32 int_val = inet_addr(val);
             char ptr[5];
@@ -319,23 +319,23 @@ parse_net_boot_childs(DOMNode *node, BAM_ENT_DEPLOY_DESC *deploy_ent)
             
             strcpy(deploy_ent->tftpServIp, ptr);
          }
-         else if(m_NCS_STRCMP(tag, "label1Name") == 0)
+         else if(strcmp(tag, "label1Name") == 0)
          {
             strcpy(deploy_ent->label1Name, val);
          }
-         else if(m_NCS_STRCMP(tag, "label1FileName") == 0)
+         else if(strcmp(tag, "label1FileName") == 0)
          {
             strcpy(deploy_ent->label1FileName, val);
          }
-         else if(m_NCS_STRCMP(tag, "label2Name") == 0)
+         else if(strcmp(tag, "label2Name") == 0)
          {
             strcpy(deploy_ent->label2Name, val);
          }
-         else if(m_NCS_STRCMP(tag, "label2FileName") == 0)
+         else if(strcmp(tag, "label2FileName") == 0)
          {
              strcpy(deploy_ent->label2FileName, val);
          }
-         else if(m_NCS_STRCMP(tag, "preferredLabel") == 0)
+         else if(strcmp(tag, "preferredLabel") == 0)
          {
             strcpy(deploy_ent->preferredLabel, val);
          }
@@ -378,7 +378,7 @@ parse_hw_deploy_config(DOMNode *node)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
          
-         if(m_NCS_STRCMP(tmpString, "EntityDeploymentInstance") == 0)
+         if(strcmp(tmpString, "EntityDeploymentInstance") == 0)
             rc = parseDeploymentInstance(tmpNode, NULL, NULL);
          
          if(rc != SA_AIS_OK)

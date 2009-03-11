@@ -271,17 +271,17 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
    
    memset(val, 0, sizeof(val));
 
-   if(m_NCS_STRCMP(action->cmd.strval,"adminstate") == 0)
+   if(strcmp(action->cmd.strval,"adminstate") == 0)
    {
-      if(m_NCS_STRCMP(value->cmd.strval,"locked") == 0)
+      if(strcmp(value->cmd.strval,"locked") == 0)
       {
          sprintf(val, "%d", 1);
       }
-      else if(m_NCS_STRCMP(value->cmd.strval,"unlocked") == 0)
+      else if(strcmp(value->cmd.strval,"unlocked") == 0)
       {
          sprintf(val, "%d", 2);
       }
-      else if(m_NCS_STRCMP(value->cmd.strval,"shuttingdown") == 0)
+      else if(strcmp(value->cmd.strval,"shuttingdown") == 0)
       {
          sprintf(val, "%d", 3);
       }
@@ -318,13 +318,13 @@ avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
          return NCSCC_RC_FAILURE;
       }
    }
-   else if(m_NCS_STRCMP(action->cmd.strval,"termstate") == 0)
+   else if(strcmp(action->cmd.strval,"termstate") == 0)
    {
-      if(m_NCS_STRCMP(value->cmd.strval,"true") == 0)
+      if(strcmp(value->cmd.strval,"true") == 0)
       {
          sprintf(val, "%d", 1);
       }
-      else if(m_NCS_STRCMP(value->cmd.strval,"false") == 0)
+      else if(strcmp(value->cmd.strval,"false") == 0)
       {
          sprintf(val, "%d", 2);
       }
@@ -584,13 +584,13 @@ avm_cef_set_ent_adm_req(
 
     memset(set_val, 0, sizeof(uns32));
    
-    if(!m_NCS_STRCMP(cmd->cmd.strval, "reset"))
+    if(!strcmp(cmd->cmd.strval, "reset"))
     {
         param_id = 10;
-        if(!m_NCS_STRCMP(value->cmd.strval, "softreset"))
+        if(!strcmp(value->cmd.strval, "softreset"))
         {
            sprintf(set_val, "%d", 1);
-        }else if(!m_NCS_STRCMP(value->cmd.strval, "hardreset"))
+        }else if(!strcmp(value->cmd.strval, "hardreset"))
         {
            sprintf(set_val, "%d", 2);
         }else
@@ -598,13 +598,13 @@ avm_cef_set_ent_adm_req(
            m_RETURN_AVSV_CLI_DONE("\n Failure: Invalid State", NCSCC_RC_FAILURE, cli_hdl);
            return NCSCC_RC_FAILURE;
         }
-    }else if(!m_NCS_STRCMP(cmd->cmd.strval, "admreq"))
+    }else if(!strcmp(cmd->cmd.strval, "admreq"))
     {
         param_id = 11;
-        if(!m_NCS_STRCMP(value->cmd.strval, "shutdown"))
+        if(!strcmp(value->cmd.strval, "shutdown"))
         {
            sprintf(set_val, "%d", 1);
-        }else if(!m_NCS_STRCMP(value->cmd.strval, "lock"))
+        }else if(!strcmp(value->cmd.strval, "lock"))
         {
            avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
 
@@ -624,7 +624,7 @@ avm_cef_set_ent_adm_req(
               return NCSCC_RC_SUCCESS;
            }
            FLUSHIN(ans);
-        }else if(!m_NCS_STRCMP(value->cmd.strval, "unlock"))
+        }else if(!strcmp(value->cmd.strval, "unlock"))
         {
            sprintf(set_val, "%d", 3);
         }else
@@ -690,7 +690,7 @@ avm_cef_set_adm_switch(
 
     memset(set_val, 0, sizeof(uns32));
    
-    if(!m_NCS_STRCMP(cmd->cmd.strval, "admswitch"))
+    if(!strcmp(cmd->cmd.strval, "admswitch"))
     {
         param_id = 1;
         sprintf(set_val, "%d", 1);

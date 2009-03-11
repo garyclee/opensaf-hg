@@ -683,7 +683,7 @@ EXTERN_C DTS_CB   dts_cb;
   int32 fd=-1; \
   while(tmp != NULL) \
   { \
-     if(m_NCS_STRCMP(str, tmp->cons_dev) == 0) \
+     if(strcmp(str, tmp->cons_dev) == 0) \
         break; \
      \
      prev = tmp; \
@@ -717,7 +717,7 @@ EXTERN_C DTS_CB   dts_cb;
      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "Console device list already empty"); \
   while(rmv_ptr != NULL) \
   { \
-     if(m_NCS_STRCMP(rmv_ptr->cons_dev, str) == 0) \
+     if(strcmp(rmv_ptr->cons_dev, str) == 0) \
      { \
         next_ptr = rmv_ptr->next; \
         if(rmv_ptr->cons_fd > 0) \
@@ -863,41 +863,41 @@ EXTERN_C DTS_CB   dts_cb;
 
 #define m_DTS_CLI_SEV_FLTR(pArgv, bit_map) \
 { \
-   if(m_NCS_STRCMP(pArgv->cmd.strval, "emergency") == 0) \
+   if(strcmp(pArgv->cmd.strval, "emergency") == 0) \
       bit_map = 0x80; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "alert") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "alert") == 0) \
       bit_map = 0xC0; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "critical") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "critical") == 0) \
       bit_map = 0xE0; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "error") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "error") == 0) \
       bit_map = 0xF0; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "warning") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "warning") == 0) \
       bit_map = 0xF8; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "notice") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "notice") == 0) \
       bit_map = 0xFC; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "info") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "info") == 0) \
       bit_map = 0xFE; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "debug") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "debug") == 0) \
       bit_map = 0xFF; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "none") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "none") == 0) \
       bit_map = 0x00; \
 } \
 
 #define m_DTS_CLI_CONF_CONS(pArgv, bit_map) \
 { \
-   if(m_NCS_STRCMP(pArgv->cmd.strval, "emergency") == 0) \
+   if(strcmp(pArgv->cmd.strval, "emergency") == 0) \
       bit_map = 0x80; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "alert") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "alert") == 0) \
       bit_map = 0x40; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "critical") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "critical") == 0) \
       bit_map = 0x20; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "error") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "error") == 0) \
       bit_map = 0x10; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "warning") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "warning") == 0) \
       bit_map = 0x08; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "notice") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "notice") == 0) \
       bit_map = 0x04; \
-   else if(m_NCS_STRCMP(pArgv->cmd.strval, "all") == 0) \
+   else if(strcmp(pArgv->cmd.strval, "all") == 0) \
       bit_map = 0xFC; \
 } \
 

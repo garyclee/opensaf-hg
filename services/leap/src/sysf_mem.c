@@ -556,7 +556,7 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
              (test->pe->service_id == pe->service_id) &&
              (test->pe->sub_id     == pe->sub_id)     && 
              (test->pe->age        == pe->age)      &&
-             (m_NCS_STRCMP(pe->file,test->pe->file) == 0) )
+             (strcmp(pe->file,test->pe->file) == 0) )
         {
           test->hit_cnt++;
           found = TRUE;

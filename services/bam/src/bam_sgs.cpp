@@ -108,8 +108,8 @@ saAmfParseSGErrorEsc(DOMNode *node, char *sgName)
             continue;
          }
 
-         if((m_NCS_STRCMP(tag, "componentRestartProbation") == 0) ||
-            (m_NCS_STRCMP(tag, "SURestartProbation") == 0))
+         if((strcmp(tag, "componentRestartProbation") == 0) ||
+            (strcmp(tag, "SURestartProbation") == 0))
          {
             ncs_bam_generate_counter64_mibset(table_id, param_id, 
                                               &mib_idx, val); 
@@ -162,10 +162,10 @@ saAmfParseSGVendorExt(DOMNode *node, char *sgName)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());
 
-         if(m_NCS_STRCMP(tmpString, "isNCS") == 0)
+         if(strcmp(tmpString, "isNCS") == 0)
          {
 	    /* To synchronize with true/false supported by xml file as a value of isNCS element */
-	    if( (m_NCS_STRCMP(val, "0") == 0) || (m_NCS_STRCMP(val, "false") == 0) )
+	    if( (strcmp(val, "0") == 0) || (strcmp(val, "false") == 0) )
 	    {
 	      sprintf(isNCS, "%d", FALSE);
 	    }
@@ -214,7 +214,7 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "SU") == 0)
+         if(strcmp(tmpString, "SU") == 0)
          {
             /* Get the Attributes for that node */
             DOMNamedNodeMap *attributesNodes = tmpNode->getAttributes();
@@ -224,12 +224,12 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
                {
                   char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
                   char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-                  if(m_NCS_STRCMP(tag, "SUName") == 0)
+                  if(strcmp(tag, "SUName") == 0)
                   {
                      memset(suName, 0, BAM_MAX_INDEX_LEN);
                      strcpy(suName, val);
                   }
-                  else if(m_NCS_STRCMP(tag, "rank") == 0)
+                  else if(strcmp(tag, "rank") == 0)
                   {
                      strcpy(suRank, val);
                   }
@@ -314,14 +314,14 @@ saAmfParseMoreRedElems(DOMNode *node, char *sgName, uns32 red_model)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          char *val = XMLString::transcode(tmpNode->getTextContent());
 
-         if(m_NCS_STRCMP(tmpString, "SURankList") == 0)
+         if(strcmp(tmpString, "SURankList") == 0)
          {
             saAmfParseSURankList(tmpNode, sgName);
             XMLString::release(&tmpString);
             XMLString::release(&val);
             continue;
          }
-         else if(m_NCS_STRCMP(tmpString, "failbackOption") == 0)
+         else if(strcmp(tmpString, "failbackOption") == 0)
          {
             /* This is a boolean */
             rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, gl_amfConfig_table_size,
@@ -390,27 +390,27 @@ saAmfParseRedModel(DOMNode *node, char *sgName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "model_2N") == 0)
+         if(strcmp(tmpString, "model_2N") == 0)
          {
             red_model = NCS_BAM_SG_REDMODEL_2N;
          }
 
-         else if(m_NCS_STRCMP(tmpString, "model_NplusM") == 0)
+         else if(strcmp(tmpString, "model_NplusM") == 0)
          {
             red_model = NCS_BAM_SG_REDMODEL_NPLUSM;
          }
          
-         else if(m_NCS_STRCMP(tmpString, "model_NWay") == 0)
+         else if(strcmp(tmpString, "model_NWay") == 0)
          {
             red_model = NCS_BAM_SG_REDMODEL_NWAY;
          }
 
-         else if(m_NCS_STRCMP(tmpString, "model_NWayActive") == 0)
+         else if(strcmp(tmpString, "model_NWayActive") == 0)
          {
             red_model = NCS_BAM_SG_REDMODEL_NWAYACTIVE;
          }
 
-         else if(m_NCS_STRCMP(tmpString, "noRedundancy") == 0)
+         else if(strcmp(tmpString, "noRedundancy") == 0)
          {
             red_model = NCS_BAM_SG_REDMODEL_NONE;
          }
@@ -472,12 +472,12 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
       
       char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-      if(m_NCS_STRCMP(tmpString, "vendorExtensions") == 0)
+      if(strcmp(tmpString, "vendorExtensions") == 0)
       {
          XMLString::release(&tmpString);
          continue;
       }
-      else if(m_NCS_STRCMP(tmpString, "nameValueList") == 0)
+      else if(strcmp(tmpString, "nameValueList") == 0)
       {
          grandChildren = tmpNode->getChildNodes();
          
@@ -501,7 +501,7 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
             XMLString::release(&tmpString);
             tmpString = XMLString::transcode(grandNode->getNodeName());
             
-            if(m_NCS_STRCMP(tmpString, "nameValue") == 0)
+            if(strcmp(tmpString, "nameValue") == 0)
             {
 
                DOMNamedNodeMap *attributes= grandNode->getAttributes();
@@ -515,12 +515,12 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
                {
                   tag = XMLString::transcode(attributes->item(x)->getNodeName());
                   val = XMLString::transcode(attributes->item(x)->getNodeValue());
-                  if(m_NCS_STRCMP(tag, "name") == 0)
+                  if(strcmp(tag, "name") == 0)
                   {
                      memset(nvName, 0, BAM_MAX_INDEX_LEN);
                      strcpy(nvName, val);
                   }
-                  else if(m_NCS_STRCMP(tag, "value") == 0)
+                  else if(strcmp(tag, "value") == 0)
                   {
                      memset(nvValue, 0, BAM_MAX_INDEX_LEN);
                      strcpy(nvValue, val);
@@ -644,14 +644,14 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
       {
          tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-         if(m_NCS_STRCMP(tag, "name") == 0)
+         if(strcmp(tag, "name") == 0)
          {
             memset(csiName, 0, BAM_MAX_INDEX_LEN);
             strcpy(csiName, val);
             strcat(csiName, ",");
             strcat(csiName, siName);
          }
-         else /*if(m_NCS_STRCMP(tag, "rank") == 0) */
+         else /*if(strcmp(tag, "rank") == 0) */
          {
 
             rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
@@ -694,7 +694,7 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "prototypeName") == 0)
+         if(strcmp(tmpString, "prototypeName") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
             rc = saAmfParseCSIPrototype(val, siName);
@@ -717,7 +717,7 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
 
             XMLString::release(&val);
          }
-         else if(m_NCS_STRCMP(tmpString, "CSIAttributes") == 0)
+         else if(strcmp(tmpString, "CSIAttributes") == 0)
             rc = saAmfParseCSIAttributes(tmpNode, csiName, siName);
 
          XMLString::release(&tmpString);
@@ -779,7 +779,7 @@ saAmfParseCSIList(DOMNode *node, char *siName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "CSIInstance") != 0)
+         if(strcmp(tmpString, "CSIInstance") != 0)
          {
             XMLString::release(&tmpString);
             return SA_AIS_ERR_NOT_SUPPORTED;
@@ -888,7 +888,7 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
      
       char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-      if(m_NCS_STRCMP(tmpString, "SIDep") == 0)
+      if(strcmp(tmpString, "SIDep") == 0)
       {
          DOMNamedNodeMap *attributes = tmpNode->getAttributes();
 
@@ -903,12 +903,12 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
          {
              tag = XMLString::transcode(attributes->item(x)->getNodeName());
              val = XMLString::transcode(attributes->item(x)->getNodeValue());
-             if(m_NCS_STRCMP(tag, "name") == 0)
+             if(strcmp(tag, "name") == 0)
              {
                 memset(siDepName, 0, BAM_MAX_INDEX_LEN);
                 strcpy(siDepName, val);
              }
-             else if(m_NCS_STRCMP(tag, "tolTime") == 0)
+             else if(strcmp(tag, "tolTime") == 0)
              {
                 memset(tolTime, 0, BAM_MAX_INDEX_LEN);
                 strcpy(tolTime, val);
@@ -993,14 +993,14 @@ saAmfParseSIInstance(char *siName, char *parentSg, char *rank)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "CSIList") == 0)
+         if(strcmp(tmpString, "CSIList") == 0)
          {
             ncs_bam_count_CSIs(tmpNode, siName);
             XMLString::release(&tmpString);
             continue; 
          }
 
-         else if(m_NCS_STRCMP(tmpString, "SURankList") == 0)
+         else if(strcmp(tmpString, "SURankList") == 0)
          {
             saAmfParseSISURankList(tmpNode, siName);
             XMLString::release(&tmpString);
@@ -1008,7 +1008,7 @@ saAmfParseSIInstance(char *siName, char *parentSg, char *rank)
          }
 
 
-         else if(m_NCS_STRCMP(tmpString, "preferredNumOfAssignments") == 0)
+         else if(strcmp(tmpString, "preferredNumOfAssignments") == 0)
          {
             char *val = XMLString::transcode(tmpNode->getTextContent());
             
@@ -1071,9 +1071,9 @@ saAmfParseSIInstance(char *siName, char *parentSg, char *rank)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "CSIList") == 0)
+         if(strcmp(tmpString, "CSIList") == 0)
             rc = saAmfParseCSIList(tmpNode, siName);
-         else if(m_NCS_STRCMP(tmpString, "SIDepList") == 0)
+         else if(strcmp(tmpString, "SIDepList") == 0)
             rc = saAmfParseSIDepList(tmpNode, siName);
 
          XMLString::release(&tmpString);
@@ -1123,7 +1123,7 @@ saAmfParseSIList(DOMNode *node, char *parentSg)
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          char *siName = XMLString::transcode(tmpNode->getTextContent());
 
-         if(m_NCS_STRCMP(tmpString, "SI") != 0)
+         if(strcmp(tmpString, "SI") != 0)
          {
             XMLString::release(&tmpString);
             XMLString::release(&siName);
@@ -1137,7 +1137,7 @@ saAmfParseSIList(DOMNode *node, char *parentSg)
             {
                char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
                char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-               if(m_NCS_STRCMP(tag, "rank") == 0)
+               if(strcmp(tag, "rank") == 0)
                {
                   strcpy(rank, val);
                }
@@ -1195,7 +1195,7 @@ saAmfParseSGInstance(DOMNode *node)
          char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
          char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
 
-         if(m_NCS_STRCMP(tag, "name") == 0)
+         if(strcmp(tag, "name") == 0)
          {
             /* this is name which is the index into the SG table */
             strcpy(index, val);
@@ -1230,15 +1230,15 @@ saAmfParseSGInstance(DOMNode *node)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "redundancyModel") == 0)
+         if(strcmp(tmpString, "redundancyModel") == 0)
             rc = saAmfParseRedModel(tmpNode, index);
 
-         else if(m_NCS_STRCMP(tmpString, "SGErrorEscalation") == 0)
+         else if(strcmp(tmpString, "SGErrorEscalation") == 0)
             rc = saAmfParseSGErrorEsc(tmpNode, index);
 
-         else if(m_NCS_STRCMP(tmpString, "vendorExtensions") == 0)
+         else if(strcmp(tmpString, "vendorExtensions") == 0)
             rc = saAmfParseSGVendorExt(tmpNode, index);
-         else if(m_NCS_STRCMP(tmpString, "adminstate") == 0) 
+         else if(strcmp(tmpString, "adminstate") == 0) 
          {
      /* This is String a code change is require to convert the value into integer to be sent as Mib data */
             /* This is a boolean */
@@ -1301,7 +1301,7 @@ saAmfParseSGInstance(DOMNode *node)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
          
-         if(m_NCS_STRCMP(tmpString, "SIList") == 0)
+         if(strcmp(tmpString, "SIList") == 0)
             rc = saAmfParseSIList(tmpNode, index);
 
          XMLString::release(&tmpString);
@@ -1354,7 +1354,7 @@ saAmfParseSISURankList(DOMNode *node, char *siName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "SU") != 0)
+         if(strcmp(tmpString, "SU") != 0)
          {
             XMLString::release(&tmpString);
             return SA_AIS_ERR_NOT_SUPPORTED;
@@ -1367,12 +1367,12 @@ saAmfParseSISURankList(DOMNode *node, char *siName)
             {
                char *tag = XMLString::transcode(attributesNodes->item(x)->getNodeName());
                char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
-               if(m_NCS_STRCMP(tag, "SUName") == 0)
+               if(strcmp(tag, "SUName") == 0)
                {
                   memset(suName, 0, BAM_MAX_INDEX_LEN);
                   strcpy(suName, val);
                }
-               else if(m_NCS_STRCMP(tag, "rank") == 0)
+               else if(strcmp(tag, "rank") == 0)
                {
                   memset(rank, 0, 4);
                   strcpy(rank, val);
@@ -1462,7 +1462,7 @@ saAmfParseCSIParamNameList(DOMNode *node, char *csiName)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         if(m_NCS_STRCMP(tmpString, "ParamName") != 0)
+         if(strcmp(tmpString, "ParamName") != 0)
          {
             XMLString::release(&tmpString);
             continue;
@@ -1479,7 +1479,7 @@ saAmfParseCSIParamNameList(DOMNode *node, char *csiName)
          {
             char *tag = XMLString::transcode(attributes->item(x)->getNodeName());
             char *val = XMLString::transcode(attributes->item(x)->getNodeValue());
-            if(m_NCS_STRCMP(tag, "name") == 0)
+            if(strcmp(tag, "name") == 0)
             {
                memset(param, 0, BAM_MAX_INDEX_LEN);
                strcpy(param, val);

@@ -496,7 +496,7 @@ ncs_vip_check_ip_exists(IFSV_CB *cb, uns32 hdl,uns32 ipaddr,uns8 *intf)
                      ifip_node->ifip_info.shelfId == cb->shelf && 
                      ifip_node->ifip_info.nodeId == cb->my_node_id) 
                   {
-                     if(m_NCS_STRCMP(intf,ifip_node->ifip_info.intfName) == 0)
+                     if(strcmp(intf,ifip_node->ifip_info.intfName) == 0)
                      {
                         ncshm_give_hdl(ipxs_hdl);
                         return NCSCC_RC_SUCCESS;

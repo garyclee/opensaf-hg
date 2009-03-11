@@ -94,7 +94,7 @@ uns32 cli_stricmp(int8 *i_str1, int8 *i_str2)
    for(i=0; i<len-1; i++) inbuf[i] = (int8)tolower(i_str1[i]);   
    inbuf[i] = '\0';
    
-   rc = m_NCS_OS_STRCMP(inbuf, i_str2);
+   rc = strcmp(inbuf, i_str2);
    m_MMGR_FREE_CLI_DEFAULT_VAL(inbuf);   
    return rc;
 }
@@ -163,7 +163,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       
       pCurr = pCli->ctree_cb.cmdHtry;
       while(pCurr) {                
-         if(0 == m_NCS_OS_STRCMP(pCurr->pCmdStr, i_cmdstr))
+         if(0 == strcmp(pCurr->pCmdStr, i_cmdstr))
          {
             pCli->ctree_cb.htryMrkr.cmd_node = pCurr;
             return;
@@ -848,7 +848,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             default:
                break;
             }                
-            if(m_NCS_STRCMP(pCli->ctree_cb.trvMrkr->mode , "exec") == 0) 
+            if(strcmp(pCli->ctree_cb.trvMrkr->mode , "exec") == 0) 
                 display_flag = TRUE; /*For suppressing for passwd for enable */
             m_CLI_SET_PROMPT(session_info.prompt_string, display_flag);
             
@@ -1050,7 +1050,7 @@ void cli_current_mode_exit(CLI_CB *pCli, CLI_SESSION_INFO *io_session_info,
 
    m_CLI_SET_CURRENT_CONTEXT(pCli, context_flag);
    m_CLI_GET_CURRENT_CONTEXT(pCli, context_node);
-   if((context_node) && (0 != m_NCS_OS_STRCMP(context_node->name, CLI_ROOT_NODE))) {
+   if((context_node) && (0 != strcmp(context_node->name, CLI_ROOT_NODE))) {
       prev_mode = strrchr(io_session_info->prompt_string, '-');
       if(0 != prev_mode)
          io_session_info->prompt_string[m_NCS_OS_STRLEN(io_session_info->prompt_string)

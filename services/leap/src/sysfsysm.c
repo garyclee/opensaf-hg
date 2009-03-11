@@ -1595,7 +1595,7 @@ uns32 sm_ipc_watch_reg(NCS_SYSMON* sysmon,NCS_KEY* usr_key,NCSSYSM_IPC_REG* info
 
   for(ipc_stats = sysmon->ipc_stats;ipc_stats != NULL;ipc_stats = ipc_stats->next)
   {
-    if(m_NCS_STRCMP((const char* )info->i_name,ipc_stats->resource->name) == 0)
+    if(strcmp((const char* )info->i_name,ipc_stats->resource->name) == 0)
       break;
   }
 
@@ -2246,7 +2246,7 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
   
   for(ipc_stats = gl_sysmon.ipc_stats;ipc_stats != NULL;ipc_stats = ipc_stats->next)
   {
-    if(m_NCS_STRCMP(info->i_name,ipc_stats->resource->name) == 0)
+    if(strcmp(info->i_name,ipc_stats->resource->name) == 0)
       break;
   }
   
@@ -2865,7 +2865,7 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
                   (test->me->service_id == me->service_id) &&
                   (test->me->sub_id     == me->sub_id)     && 
                   (test->me->age        == me->age)        &&
-                  (m_NCS_STRCMP(me->file,test->me->file) == 0) )
+                  (strcmp(me->file,test->me->file) == 0) )
                   {
                   test->hit_cnt++;
                   found = TRUE;
@@ -3140,7 +3140,7 @@ uns32 sm_stktrace_report(NCSSYSM_MEM_STK_RPT* info)
     {
        if (info->i_line == mmgr.stktrace_info[index].line)
        {
-           if(0 == m_NCS_STRCMP(pfile, mmgr.stktrace_info[index].file))
+           if(0 == strcmp(pfile, mmgr.stktrace_info[index].file))
            {
                /* if this is the first of the get/next cycle, then
                   clear the 'fetched' flag for each stktrace entry */

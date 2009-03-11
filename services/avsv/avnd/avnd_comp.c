@@ -922,7 +922,7 @@ void avnd_comp_unreg_val(AVND_CB                   *cb,
       }
 
       /*verify if pxy name maches */
-      if(m_NCS_STRCMP((*o_pxy_comp)->name_net.value, unreg->proxy_comp_name_net.value))
+      if(strcmp((*o_pxy_comp)->name_net.value, unreg->proxy_comp_name_net.value))
       {
          *o_amf_rc = SA_AIS_ERR_BAD_OPERATION;
          return;

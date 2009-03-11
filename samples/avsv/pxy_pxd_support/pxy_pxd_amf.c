@@ -845,7 +845,7 @@ void proxied_csi_set_callback(SaInvocationT       inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    
@@ -913,7 +913,7 @@ void proxied_csi_remove_callback(SaInvocationT  inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    
@@ -972,7 +972,7 @@ void proxied_healthcheck_callback(SaInvocationT        inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    
@@ -1020,7 +1020,7 @@ void proxied_comp_terminate_callback(SaInvocationT inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    
@@ -1067,7 +1067,7 @@ void proxied_comp_instantiate_callback(SaInvocationT inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    
@@ -1111,7 +1111,7 @@ void proxied_comp_cleanup_callback(SaInvocationT inv,
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      if(0 == m_NCS_STRCMP(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
+      if(0 == strcmp(comp_name->value, pxy_pxd_cb.pxd_info[index].compName.value))
          break;
    }
    

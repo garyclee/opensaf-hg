@@ -537,7 +537,7 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
    /* Start up the boot timer only if the target system architecture is ATCA */
-   if (m_NCS_OS_STRCMP(arch_type, "ATCA") == 0) {
+   if (strcmp(arch_type, "ATCA") == 0) {
       m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
    }
 

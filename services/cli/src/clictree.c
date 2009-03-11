@@ -496,7 +496,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
       /* loop to check the exsistence of the node */
       while(0 != pCli->ctree_cb.ctxtMrkr)
       {
-         ret_value = m_NCS_OS_STRCMP(pCli->ctree_cb.ctxtMrkr->name, tok);
+         ret_value = strcmp(pCli->ctree_cb.ctxtMrkr->name, tok);
          
          /* check for the command match */
          if(!ret_value) {
@@ -582,7 +582,7 @@ NCS_BOOL cli_cmd_ispresent(CLI_CMD_ELEMENT **node, int8* tok)
    
    /* Check if the token node already exist or not */
    while(0 != (*node)) {        
-      if(0 != m_NCS_OS_STRCMP((*node)->tokName, tok)) {            
+      if(0 != strcmp((*node)->tokName, tok)) {            
          temp_node = *node;
          *node = (*node)->node_ptr.pSibling;            
       }
@@ -616,8 +616,8 @@ uns32 cli_append_node(CLI_CMD_ELEMENT *root,
    NCS_BOOL         done = FALSE;   
    CLI_CMD_ELEMENT *temp = 0;   
    
-   if(m_NCS_OS_STRCMP((*i_node)->tokName, cnode->tokName) < 0) {
-      while(m_NCS_OS_STRCMP((*i_node)->tokName, cnode->tokName) < 0) {   
+   if(strcmp((*i_node)->tokName, cnode->tokName) < 0) {
+      while(strcmp((*i_node)->tokName, cnode->tokName) < 0) {   
          done = TRUE;
 
          if(cnode == root) {
@@ -640,7 +640,7 @@ uns32 cli_append_node(CLI_CMD_ELEMENT *root,
          return CLI_CMD_ADDED_PARTIALL;
       }
    }
-   else if(m_NCS_OS_STRCMP((*i_node)->tokName, cnode->tokName) > 0) {
+   else if(strcmp((*i_node)->tokName, cnode->tokName) > 0) {
       cnode->node_ptr.pSibling = *i_node;    
       (*i_node)->node_ptr.pParent = cnode;
    }   

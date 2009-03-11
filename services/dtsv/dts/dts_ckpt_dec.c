@@ -755,7 +755,7 @@ static uns32  dtsv_decode_cold_sync_rsp_global_policy_config(DTS_CB *cb,
        /*strcat(str, c); */
    }
    /* If decoded log_path is not the same, copy it as new log_path */  
-   if(m_NCS_STRCMP(str, cb->log_path) != 0) 
+   if(strcmp(str, cb->log_path) != 0) 
       strcpy(cb->log_path, str);
    
    /* 

@@ -796,7 +796,7 @@ NCS_BOOL oac_validate_pcn(OAC_TBL *inst, char *pcn)
    for(; pcn_list != NULL; pcn_list = pcn_list->next)
    {
       if((str_len == m_NCS_STRLEN(pcn_list->pcn)) &&
-         (m_NCS_STRCMP(pcn_list->pcn, pcn) == 0))
+         (strcmp(pcn_list->pcn, pcn) == 0))
          return TRUE;
    }
 

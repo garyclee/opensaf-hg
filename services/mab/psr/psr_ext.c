@@ -312,7 +312,7 @@ PSS_SPCN_LIST *pss_findadd_entry_frm_spcnlist(PSS_CB *inst, char *p_pcn,
 
     for(; list != NULL; list = list->next)
     {
-        if(m_NCS_STRCMP(list->pcn, p_pcn) == 0)
+        if(strcmp(list->pcn, p_pcn) == 0)
         {
             return list;
         }
@@ -5141,7 +5141,7 @@ uns32 pss_add_entry_to_spcn_wbreq_pend_list(PSS_PWE_CB *pwe_cb, char *pcn)
    for(list = pwe_cb->spcn_wbreq_pend_list; list != NULL;
        prv_list = list, list = list->next)
    {
-      if(m_NCS_STRCMP(list->pcn, pcn) == 0)
+      if(strcmp(list->pcn, pcn) == 0)
       { 
          /* Entry already existing. */
          m_LOG_PSS_HDLN_STR2(NCSFL_SEV_DEBUG, PSS_HDLN_SPCN_PEND_WBREQ_LIST_NODE_ALREADY_PRESENT, pcn);
@@ -5204,7 +5204,7 @@ void pss_del_entry_frm_spcn_wbreq_pend_list(PSS_PWE_CB *pwe_cb, char *pcn)
    for(list = pwe_cb->spcn_wbreq_pend_list; list != NULL;
        prv_list = list, list = list->next)
    {
-      if(m_NCS_STRCMP(list->pcn, pcn) == 0)
+      if(strcmp(list->pcn, pcn) == 0)
       { 
          m_LOG_PSS_HDLN_STR2(NCSFL_SEV_DEBUG, PSS_HDLN_DEL_SPCN_PEND_WBREQ_LIST_NODE, pcn);
          /* Entry found. To be deleted. */

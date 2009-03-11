@@ -558,7 +558,7 @@ intf_str_comp (char *pStr1, char *pStr2)
       /* convert the string to lower case and compare the string*/
       pStr1[tempCounter] = (char)tolower(pStr1[tempCounter]);
    }
-   return (m_NCS_STRCMP(pStr1, pStr2));
+   return (strcmp(pStr1, pStr2));
 }
 
 
@@ -758,7 +758,7 @@ uns32 ifsv_cef_conf_intf_shut (NCSCLI_ARG_SET *arg_list,
    uns32                pos=0;
    uns32                admin_status, rc;
 
-   if(m_NCS_STRCMP(arg_list->i_arg_record[pos].cmd.strval,"no") == 0)
+   if(strcmp(arg_list->i_arg_record[pos].cmd.strval,"no") == 0)
    {
       admin_status = NCS_STATUS_UP;  /* Set to UP */
    }
@@ -1113,14 +1113,14 @@ ifsv_cef_conf_create_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
 
    /* create [bind <bind-num>] master <ifindex> [slave <ifindex>] */
    pos = 1;
-   if(m_NCS_STRCMP(arg_list->i_arg_record[pos].cmd.strval,"bind-num") == 0)
+   if(strcmp(arg_list->i_arg_record[pos].cmd.strval,"bind-num") == 0)
    {
         pos++;
         bind_num = arg_list->i_arg_record[pos].cmd.intval;
         pos ++;
    }
 
-   if(m_NCS_STRCMP(arg_list->i_arg_record[pos].cmd.strval,"master") == 0)
+   if(strcmp(arg_list->i_arg_record[pos].cmd.strval,"master") == 0)
    {
         pos++;
         master_ifindex = arg_list->i_arg_record[pos].cmd.intval;
@@ -1129,7 +1129,7 @@ ifsv_cef_conf_create_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
 
    if((arg_list->i_pos_value & 0x60) == 0x60)
    {
-      if(m_NCS_STRCMP(arg_list->i_arg_record[pos].cmd.strval,"slave") == 0)
+      if(strcmp(arg_list->i_arg_record[pos].cmd.strval,"slave") == 0)
       {
            pos++;
            slave_ifindex = arg_list->i_arg_record[pos].cmd.intval;
@@ -1237,7 +1237,7 @@ ifsv_cef_conf_delete_bind_intf(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
 
 
    /* delete bind <bind-num> */
-   if(m_NCS_STRCMP(arg_list->i_arg_record[1].cmd.strval,"bind-num") == 0)
+   if(strcmp(arg_list->i_arg_record[1].cmd.strval,"bind-num") == 0)
    {
         bind_num = arg_list->i_arg_record[2].cmd.intval;
    }
@@ -1492,16 +1492,16 @@ void ifsv_bind_intf_show_intf_info(USRBUF *usrbuf)
     uns32                retval = NCSCC_RC_SUCCESS, i, ret_val = NCSCC_RC_SUCCESS;
     uns32                inst_ids[IPXS_IPENTRY_INST_MAX_LEN], mask_len = 0;
 
-    if(m_NCS_STRCMP(arg_list->i_arg_record[0].cmd.strval, "no") == 0)
+    if(strcmp(arg_list->i_arg_record[0].cmd.strval, "no") == 0)
     {
        rel_offset = 1;
     }
 
     /* Verify the keywords first. */
-    if((m_NCS_STRCMP(arg_list->i_arg_record[rel_offset].cmd.strval, "ip") != 0) &&
-       (m_NCS_STRCMP(arg_list->i_arg_record[rel_offset + 1].cmd.strval, "address") != 0) &&
-       (m_NCS_STRCMP(arg_list->i_arg_record[rel_offset + 3].cmd.strval, "mask") != 0) &&
-       (m_NCS_STRCMP(arg_list->i_arg_record[rel_offset + 5].cmd.strval, "interface-index") != 0))
+    if((strcmp(arg_list->i_arg_record[rel_offset].cmd.strval, "ip") != 0) &&
+       (strcmp(arg_list->i_arg_record[rel_offset + 1].cmd.strval, "address") != 0) &&
+       (strcmp(arg_list->i_arg_record[rel_offset + 3].cmd.strval, "mask") != 0) &&
+       (strcmp(arg_list->i_arg_record[rel_offset + 5].cmd.strval, "interface-index") != 0))
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
        ifsv_cli_display(cef_data->i_bindery->i_cli_hdl, "Wrong command usage\n\n");
@@ -2413,7 +2413,7 @@ vip_single_entry_check(uns32 idx_len,
       p_vip_data_display->p_service_name[slen_ctr] = '\0';
       p_vip_data_display->handle = idxs[++slen_ctr];
 
-      if((m_NCS_STRCMP(p_vip_data_display->p_service_name, 
+      if((strcmp(p_vip_data_display->p_service_name, 
                  p_given_service_name) == 0)
           &&(p_vip_data_display->handle == given_handle))
       {

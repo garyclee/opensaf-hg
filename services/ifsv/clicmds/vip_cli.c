@@ -851,7 +851,7 @@ vip_single_entry_check(uns32 idx_len,
       p_vip_data_display->p_service_name[slen_ctr] = '\0';
       p_vip_data_display->handle = idxs[++slen_ctr];
 
-      if((m_NCS_STRCMP(p_vip_data_display->p_service_name, 
+      if((strcmp(p_vip_data_display->p_service_name, 
                  p_given_service_name) == 0)
           &&(p_vip_data_display->handle == given_handle))
       {

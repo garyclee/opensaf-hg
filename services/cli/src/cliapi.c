@@ -313,8 +313,8 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     for(i = 0 ; i<numofgroups ; i++) {
         retry1: gp = m_NCS_GETGRGID(list[i]);
         if(gp){
-            if((m_NCS_STRCMP(gp->gr_name , pCli->cli_user_group.ncs_cli_superuser)==0) ||
-               (m_NCS_STRCMP(gp->gr_name , "root")==0))
+            if((strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_superuser)==0) ||
+               (strcmp(gp->gr_name , "root")==0))
             {
                 return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_SUPERUSER_ACCESS-1));
             }
@@ -333,7 +333,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     for(i = 0 ; i<numofgroups ; i++) {
         retry2: gp = m_NCS_GETGRGID(list[i]);
         if(gp){
-          if(m_NCS_STRCMP(gp->gr_name , pCli->cli_user_group.ncs_cli_admin)==0){
+          if(strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_admin)==0){
             return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_ADMIN_ACCESS-1));
           }
         }
@@ -351,7 +351,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     for(i = 0 ; i<numofgroups ; i++) {
         retry3: gp = m_NCS_GETGRGID(list[i]);
         if(gp){
-         if(m_NCS_STRCMP(gp->gr_name , pCli->cli_user_group.ncs_cli_viewer)==0){
+         if(strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_viewer)==0){
             return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_VIEWER_ACCESS-1));
          }
         }
@@ -894,21 +894,21 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
           (nargs != EOF))
     {
         /* Load ncs cli user group names(59359) */
-        if( m_NCS_STRCMP(arg1,"NCS_CLI_SUPERUSER_GROUP")  == 0 )
+        if( strcmp(arg1,"NCS_CLI_SUPERUSER_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_superuser,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the SUPERUSER GROUP given in configuration file is greater than %d . So default superuser group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
-        if( m_NCS_STRCMP(arg1,"NCS_CLI_ADMIN_GROUP")  == 0 )
+        if( strcmp(arg1,"NCS_CLI_ADMIN_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_admin,arg2);
             else m_NCS_CONS_PRINTF("\nLength of the ADMIN GROUP given in configuration file is greater than %d . So default admin group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
-        if( m_NCS_STRCMP(arg1,"NCS_CLI_VIEWER_GROUP")  == 0 )
+        if( strcmp(arg1,"NCS_CLI_VIEWER_GROUP")  == 0 )
         {
             if(m_NCS_STRLEN(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_viewer,arg2);
@@ -916,7 +916,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
             continue;
         }
         /* The below 'if' Added to read configurable parameter CLI_IDLE_TIME */
-        if( m_NCS_STRCMP(arg1,"CLI_IDLE_TIME")  == 0 )
+        if( strcmp(arg1,"CLI_IDLE_TIME")  == 0 )
         {
             cli_idle_time=arg2;
             if( (cli_idle_time != NULL) && (cliidletime = atoi(cli_idle_time)) )

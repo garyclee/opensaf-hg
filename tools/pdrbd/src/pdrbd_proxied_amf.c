@@ -202,7 +202,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
    {
-      if(0 == m_NCS_STRCMP(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
          break;
    }
 
@@ -342,7 +342,7 @@ void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *c
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
    {
-      if(0 == m_NCS_STRCMP(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
          break;
    }
 
@@ -401,7 +401,7 @@ void pdrbdProxiedAmfTerminateCallback(SaInvocationT invocation, const SaNameT *c
 
    for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
    {
-      if(0 == m_NCS_STRCMP(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
          break;
    }
 

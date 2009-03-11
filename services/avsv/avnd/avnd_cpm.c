@@ -836,7 +836,7 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
              srm_req = (AVND_SRM_REQ *)m_NCS_DBLIST_FIND_NEXT(&srm_req->cb_dll_node))
          {
             if(srm_req->pm_rec->pid == pm_start->pid &&
-                m_NCS_STRCMP(srm_req->pm_rec->comp->name_net.value,
+                strcmp(srm_req->pm_rec->comp->name_net.value,
                                              pm_start->comp_name_net.value))
             {
                *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;

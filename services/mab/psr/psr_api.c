@@ -1081,7 +1081,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
         src_str_len = m_NCS_STRLEN(&source);
         if(src_str_len == 0) /* Ignore this line */
            continue;
-        if(m_NCS_STRCMP(&source, m_PSS_SPCN_SOURCE_BAM) == 0)
+        if(strcmp(&source, m_PSS_SPCN_SOURCE_BAM) == 0)
            boolean = TRUE;
         else
            boolean = FALSE;

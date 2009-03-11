@@ -1017,7 +1017,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
          }
       }
       else {
-         if(!m_NCS_OS_STRCMP(trvmarker->accPswd.passwd.i_passwd, passwdbuf)) {
+         if(!strcmp(trvmarker->accPswd.passwd.i_passwd, passwdbuf)) {
             ret = CLI_PASSWORD_MATCHED;
          }
          else {
@@ -1060,7 +1060,7 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
    tmpnode = pCli->ctree_cb.rootMrkr;
    if(!tmpnode) return tmpnode;
    
-   if(0 != m_NCS_OS_STRCMP(tmpnode->name, token)) return 0;
+   if(0 != strcmp(tmpnode->name, token)) return 0;
    
    /* Check if path user has given exists */
    while(0 != token) {                                       
@@ -1071,7 +1071,7 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
          tmpnode = tmpnode->pChild; 
          if(!tmpnode) return tmpnode;
          
-         if(0 != m_NCS_OS_STRCMP(tmpnode->name, token))
+         if(0 != strcmp(tmpnode->name, token))
          {
             /* If node does not matches, check if there are
                any sibling nodes 
@@ -1080,7 +1080,7 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
                tmpnode = tmpnode->pSibling;
                /* Loop thru sibling nodes until a match is found */
                for(;;) {
-                  if(0 != m_NCS_OS_STRCMP(tmpnode->name, token)) {
+                  if(0 != strcmp(tmpnode->name, token)) {
                      if(tmpnode->pSibling) tmpnode = tmpnode->pSibling;
                      else {
                         tmpnode = 0;
@@ -2107,7 +2107,7 @@ uns32 cli_execute_command(CLI_CB            *pCli,
                       [++pCli->ctree_cb.modeStackPtr] = pCli->ctree_cb.currNode;
                    
                    if(CLI_PASSWORD_MATCHED != io_param->o_status) {
-                    if(m_NCS_STRCMP(pCli->ctree_cb.trvMrkr->mode , "exec") != 0)
+                    if(strcmp(pCli->ctree_cb.trvMrkr->mode , "exec") != 0)
                     {               /*For suppressing passwd for enable cmd */
                       strcat(o_session->prompt_string, "-");
                       strcat(o_session->prompt_string, pCli->ctree_cb.trvMrkr->mode);

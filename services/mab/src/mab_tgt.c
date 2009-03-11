@@ -904,8 +904,8 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
 
     for(i = 0; i < file.info.get_list.o_list_count; i++)
     {
-       if((m_NCS_STRCMP(file.info.get_list.o_namelist[i], ".") == 0) ||
-          (m_NCS_STRCMP(file.info.get_list.o_namelist[i], "..") == 0))
+       if((strcmp(file.info.get_list.o_namelist[i], ".") == 0) ||
+          (strcmp(file.info.get_list.o_namelist[i], "..") == 0))
        {
           continue;
        }
@@ -1197,9 +1197,9 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
 
     while((retval == NCSCC_RC_SUCCESS) && (next_pwe[0] != '\0'))
     {
-       if((m_NCS_STRCMP((char *)&next_pwe, ".") == 0) ||
-          (m_NCS_STRCMP((char *)&next_pwe, "..") == 0) ||
-          (m_NCS_STRCMP((char *)&next_pwe, "ProDesc.txt") == 0))
+       if((strcmp((char *)&next_pwe, ".") == 0) ||
+          (strcmp((char *)&next_pwe, "..") == 0) ||
+          (strcmp((char *)&next_pwe, "ProDesc.txt") == 0))
        {
           strcpy((char *)&cur_pwe, (char *)&next_pwe);
           file.info.get_next.i_dir_name = (char*)&prof_path;
@@ -1255,8 +1255,8 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
 
        while((retval == NCSCC_RC_SUCCESS) && (next_pcn[0] != '\0'))
        {
-          if((m_NCS_STRCMP((char *)&next_pcn, ".") == 0) ||
-             (m_NCS_STRCMP((char *)&next_pcn, "..") == 0))
+          if((strcmp((char *)&next_pcn, ".") == 0) ||
+             (strcmp((char *)&next_pcn, "..") == 0))
           {
              strcpy((char *)&cur_pcn, (char *)&next_pcn);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
@@ -1364,9 +1364,9 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
 
     while((retval == NCSCC_RC_SUCCESS) && (next_pwe[0] != '\0'))
     {
-       if((m_NCS_STRCMP((char *)&next_pwe, ".") == 0) ||
-          (m_NCS_STRCMP((char *)&next_pwe, "..") == 0) ||
-          (m_NCS_STRCMP((char *)&next_pwe, "ProDesc.txt") == 0))
+       if((strcmp((char *)&next_pwe, ".") == 0) ||
+          (strcmp((char *)&next_pwe, "..") == 0) ||
+          (strcmp((char *)&next_pwe, "ProDesc.txt") == 0))
        {
           strcpy((char *)&cur_pwe, (char *)&next_pwe);
           file.info.get_next.i_dir_name = (char*)&prof_path;
@@ -1413,8 +1413,8 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
 
        while((retval == NCSCC_RC_SUCCESS) && (next_pcn[0] != '\0'))
        {
-          if((m_NCS_STRCMP((char *)&next_pcn, ".") == 0) ||
-             (m_NCS_STRCMP((char *)&next_pcn, "..") == 0))
+          if((strcmp((char *)&next_pcn, ".") == 0) ||
+             (strcmp((char *)&next_pcn, "..") == 0))
           {
              strcpy((char *)&cur_pcn, (char *)&next_pcn);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
@@ -1424,7 +1424,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
              retval = m_NCS_FILE_OP(&file, NCS_OS_FILE_GET_NEXT);
              continue;
           }
-          else if(m_NCS_STRCMP((char*)&next_pcn, get_mlist->i_pcn) == 0)
+          else if(strcmp((char*)&next_pcn, get_mlist->i_pcn) == 0)
           {
              /* Now, get the table-list */
              strcpy((char *)&cur_pcn, (char *)&next_pcn);
@@ -1451,8 +1451,8 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
              {
                 valid_tbl_id = TRUE;
                 m_NCS_CONS_PRINTF("\nnext_tbl : %s", next_tbl);
-                if((m_NCS_STRCMP((char *)&next_tbl, ".") == 0) ||
-                   (m_NCS_STRCMP((char *)&next_tbl, "..") == 0))
+                if((strcmp((char *)&next_tbl, ".") == 0) ||
+                   (strcmp((char *)&next_tbl, "..") == 0))
                 {
                    valid_tbl_id = FALSE;
                 }

@@ -1938,7 +1938,7 @@ static uns32 ifnd_ipxs_get_ifndx_for_interface_number(IFSV_CB *ifsv_cb, IPXS_CB 
    {
       lcl_indx = rec->intf_data.if_index;
       /* Look for records which are owned by the MDS_DEST of the local IFND */
-      if((m_NCS_STRCMP(ifname, &rec->intf_data.if_info.if_name) == 0) &&
+      if((strcmp(ifname, &rec->intf_data.if_info.if_name) == 0) &&
          (memcmp((uns8*)&ifsv_cb->my_dest, 
              (uns8*)&rec->intf_data.current_owner_mds_destination,
              sizeof(MDS_DEST)) == 0))

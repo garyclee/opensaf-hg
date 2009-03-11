@@ -741,7 +741,7 @@ parse_nodeinitconf(char *strbuf)
        }
 
 
-       if( m_NCS_STRCMP (childinfo->serv_name , info.faild_serv_name)    == 0)
+       if( strcmp (childinfo->serv_name , info.faild_serv_name)    == 0)
          childinfo->recovery_matrix[NID_RESET].retry_count = info.count;
 
        /****************************************************
@@ -1399,10 +1399,10 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 
      sysf_sprintf(magic_str,"%x",NID_MAGIC);
      strtolower(magicno);
-     if(m_NCS_STRCMP(magic_str,magicno) == 0) reqmsg.nid_magic_no = NID_MAGIC;
+     if(strcmp(magic_str,magicno) == 0) reqmsg.nid_magic_no = NID_MAGIC;
      else reqmsg.nid_magic_no = -1;
 
-     if(m_NCS_STRCMP(serv,service->serv_name) != 0)
+     if(strcmp(serv,service->serv_name) != 0)
      {
          sysf_sprintf(strbuff,"Failed \nReceived invalid service name received :"
                       " %s sent service->serv_name : %s",
@@ -1428,7 +1428,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
    *    LOOKS LIKE CORRECT RESPONSE LETS PROCESS              *
    ***********************************************************/
 
-     if(m_NCS_STRCMP(reqmsg.nid_serv_name , service->serv_name) !=0)
+     if(strcmp(reqmsg.nid_serv_name , service->serv_name) !=0)
      {
        sysf_sprintf(strbuff,"Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
                     service->serv_name,reqmsg.nid_serv_name);
@@ -1871,8 +1871,8 @@ spawn_services(char * strbuf)
        {
          logme(NID_LOG2FILE_CONS,"%s\n",sbuff);
          logme(NID_LOG2FILE_CONS,"Going for recovery\n",sbuff);
-         if ((m_NCS_STRCMP(service->serv_name, "BIOSUP") == 0) ||
-             (m_NCS_STRCMP(service->serv_name, "IPMCUP") == 0))
+         if ((strcmp(service->serv_name, "BIOSUP") == 0) ||
+             (strcmp(service->serv_name, "IPMCUP") == 0))
          {
            notify_bis("FAILED\n");
            _exit(1);
@@ -1893,8 +1893,8 @@ spawn_services(char * strbuf)
         *    We need to save the SCAP or PCAP PID in files,     *
         *    which will be used during shutdown.                *
         ********************************************************/
-       if((m_NCS_STRCMP(service->serv_name ,"SCAP") ==0 ) || 
-          (m_NCS_STRCMP(service->serv_name ,"PCAP") ==0 ))
+       if((strcmp(service->serv_name ,"SCAP") ==0 ) || 
+          (strcmp(service->serv_name ,"PCAP") ==0 ))
        {
          /* If type is script, nis_scxb && nis_pld start scripts 
             will write the pid accordingly
@@ -1917,7 +1917,7 @@ spawn_services(char * strbuf)
         *    Needed while initializing DRBD and SCAP/PCAP.        *
         ***********************************************************/
 
-       if(m_NCS_STRCMP(service->serv_name ,"RDF") ==0 )
+       if(strcmp(service->serv_name ,"RDF") ==0 )
        {
          if(getrole() != NCSCC_RC_SUCCESS)
          {
