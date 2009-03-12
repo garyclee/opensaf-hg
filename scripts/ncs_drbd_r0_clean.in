@@ -1,0 +1,5 @@
+#!/bin/sh
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+echo "Called NCS DRBD resource r0 cleanup";
+
+exit 0

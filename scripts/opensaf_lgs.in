@@ -1,0 +1,55 @@
+#!/bin/sh 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+echo "`date`: $0 $*"
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+BIN=${LIBPATH}/opensaf_saflogd
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_saflogd.log
+CONFIG=${SYSCONFDIR}/saflog.conf
+PIDFILE=${PIDPATH}/opensaf_saflogd.pid
+
+test -x $BIN || exit 1
+test -r $CONFIG || exit 1
+source $CONFIG
+
+mkdir -p $LOGSV_ROOT_DIRECTORY
+
+case $1 in
+    instantiate)
+        $LOGTOOL $BIN >> $LOGFILE 2>&1 &
+        ;;
+    cleanup)
+        if test -r $PIDFILE; then
+            PID=`cat $PIDFILE`
+
+            if [ "$LOGTOOL" == "" ]; then
+                kill -KILL $PID
+            else
+                kill -TERM $PID
+            fi
+            rm -f "$PIDFILE"
+        fi
+        ;;
+    *)
+        echo "Usage: $0 {instantiate|cleanup}"
+        exit 1
+esac
+
+exit 0

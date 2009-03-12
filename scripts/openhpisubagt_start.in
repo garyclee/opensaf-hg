@@ -1,0 +1,53 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+PIDFILE="$PIDPATH/openhpisubagt.pid"
+
+compName="$SA_AMF_COMPONENT_NAME"
+if [ "$compName" = "" ]; then
+    $ECHO "No Environment Variable of OPENHPISUBAGT Component name set" >> "$DBGFILE"
+    exit -1;
+fi
+
+# CHECK FOR THE EXISTENCE OF THE OPENHPID COMPONENT
+pidval=`cat "$PIDFILE"`
+echo "PID Value $pidval "
+$ECHO "Executing openhpisubagt-init-script...";
+$XTERM "$BINPATH/hpiSubagent -f -x localhost:705"
+sleep 2;
+
+pidval=`ps ax | grep "$BINPATH/hpiSubagent" | grep -v grep | grep -o -E "^[ ]*[0-9]+" | grep -o -E "*[0-9]+"`
+echo "PID Value $pidval "
+
+# GET THE PID OF THE OPENHPID COMPONENT
+#if [ -f $PIDFILE ]; then
+#   pidval=`cat $PIDFILE`
+#   if [ "$pidval" = "" ]; then
+#      $ECHO "Unable to start the OPENHPISUBAGT component....Quitting...\n"
+#      exit -1;
+#   fi
+#else
+#   $ECHO "Unable to start the OPENHPISUBAGT component....Quitting...\n"
+#   exit -1;
+#fi
+
+$CAT  /dev/null > "$PIDPATH/$compName$EXTN";
+$ECHO $pidval > "$PIDPATH/$compName$EXTN";
+$ECHO "OPENHPISUBAGT Successfully Started" >> "$DBGFILE"
+exit 0

@@ -1,0 +1,39 @@
+# This file contains configuration for the SAF IMM service
+# See the file services/immsv/README for more configuration options.
+
+# Uncomment the next line if you want to run immd through valgrind
+#export IMMDTOOL="valgrind --leak-check=full --log-file=/tmp/immd.valgrind"
+
+# Uncomment the next line if you want to run immnd through valgrind
+#export IMMNDTOOL="valgrind --leak-check=full --log-file=/tmp/immnd.valgrind"
+
+# Uncomment the next lines to enable traces from the IMMD and IMMND servers
+# At the moment we want all traces until IMM is "production ready".
+export IMMD_TRACE_CATEGORIES=ALL
+export IMMND_TRACE_CATEGORIES=ALL
+export IMMD_TRACE_PATHNAME="${LOCALSTATEDIR}/stdouts/opensaf_immd.log"
+export IMMND_TRACE_PATHNAME="${LOCALSTATEDIR}/stdouts/opensaf_immnd.log"
+
+# The directory where the imm.xml files are stored.
+# All imm dump files will be stored here or in a subdirectory.
+# Normally this directory should reside on the replicated partition for 
+# obtaining redundancy (HA).
+export IMMSV_ROOT_DIRECTORY=${SYSCONFDIR}
+
+# The file name for the file that will ALWAYS be loaded by the immsv
+# when the immsv is (re)started. Switching to a new version must be done
+# by giving the new version this name. To do this atomically it should be
+# mv'ed to this name under IMMSV_ROOT_DIRECTORY. The mv should be done within
+# the file system (otherwise it will be a cp and not atomic).
+export IMMSV_LOAD_FILE=imm.xml
+
+# Minimum number of nodes to expect, the imm-loading will wait for this
+# number of nodes to join, before starting the loading. Straggler nodes
+# will need to sync, which may prolong the startup of the clusterwide Immsv.
+export IMMSV_NUM_NODES=1
+
+# Maximum time in seconds to wait for the IMMSV_NUM_NODES. Loading will start
+# before this time has expired if the requisite number of nodes have joined.
+# If this time expires before the requisite number of nodes have joined, then
+# loading will start anyway.
+export IMMSV_MAX_WAIT=3

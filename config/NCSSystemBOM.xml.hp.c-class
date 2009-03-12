@@ -1,0 +1,2698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ *      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+-->
+<!--
+     All the timeouts specified in this file are in milliseconds (ms)
+
+     All the booleans can be specified as 0-false, 1-true. false/true are case sensitive.
+
+     All SUs inside a SG must have unique order number (SU Rank should be unique).
+
+     All SIs inside a SG must have unique order number (SI Rank should be unique).
+
+     If you edit this file make sure to tell the AMF to read this file by editing the
+     xxSYSCONFDIRxx/pssv_spcn_list file
+-->
+<SystemConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="NCSConfig.xsd" name="NCSDescription">
+
+        <!--
+             All the software configuration is captured under this tag
+        -->
+	<NCSConfig>
+
+               <!--
+                     AIS standard specified s/w elements configuration is captured under this element
+                     The list includes
+                     a. AMFConfig
+                     b. Check point configuration
+                     c. Event distribution configuration
+                -->
+		<AISConfig>
+
+                        <!--
+                             All the AMF Configuration starts here and ends with corresponding AMFConfig tag
+                             The configuration includes one or more components under AMF framework by defining
+                             SAF elements like SG, SI, SU, NODE, COMPONENT, CSI
+                        -->
+			<AMFConfig cluster="myAmfConfig">
+
+                                <!--
+                                   The Configuration for Controller CHECK POINT  NODE DIRECTOR component CompT_SC_CPND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <componentPrototype name="safComp=CompT_SC_CPND" finalPrototype="1">
+                    
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_CPND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+       
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+
+                                <!--
+                                   The Configuration for Controller MESSAGE QUEUE NODE DIRECTOR component CompT_SC_MQND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_SC_MQND" finalPrototype="1">
+        
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>4</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_MQND</csiPrototypeName>
+ 
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="E5F6">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+					<enableAM>0</enableAM>
+				</componentPrototype>
+
+                               <!--
+                                   The Configuration for Controller GLOBAL LOCKING NODE DIRECTOR component CompT_SC_GLND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_SC_GLND" finalPrototype="1">
+        
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_glnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_glnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_glnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>5</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_GLND</csiPrototypeName>
+ 
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+					<enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for CHECK POINT NODE DIRECTOR component CompT_CPND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_CPND" finalPrototype="1"> 
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_cpnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_CPND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+				
+			       <!--
+                                   TEAM_IFSV::: MODIFIED
+                                   The Configuration for payload INTERFACE NODE DIRECTOR component CompT_IFND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_IFND" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_clean</command>
+							<timeout>500</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_clean</command>
+							<timeout>500</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_IFND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="C3D4">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for MESSAGE QUEUE NODE DIRECTOR component CompT_MQND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_MQND" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_mqnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_MQND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="E5F6">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for GLOBAL LOCKING NODE DIRECTOR component CompT_GLND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_GLND" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_glnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_glnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_glnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>3</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_GLND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->   
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+
+                                <!--
+                                   The Configuration for SNMP SUBAGENT component CompT_SSA
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_SSA" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_snmpsubagt_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_snmpsubagt_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_snmpsubagt_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>8</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_SSA</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A9FD64E12C">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for EVENT DISTRIBUTION SERVICE component CompT_EDS
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_EDS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_eds_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_eds_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_eds_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_EDS</csiPrototypeName>
+ 
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="E5F6">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
+                                <!--
+                                   The Configuration for CHECK POINT DIRECTOR component CompT_CPD
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <componentPrototype name="safComp=CompT_CPD" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/ncs_cpd_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/ncs_cpd_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/ncs_cpd_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_CPD</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for GLOBAL LOCK DIRECTOR component CompT_GLD
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_GLD" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_gld_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_gld_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_gld_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>6</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_GLD</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A1B2">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for INTERFACE SERVICE DIRECTOR component CompT_IFD
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_IFD" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_ifd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_ifd_clean</command>
+							<timeout>500</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_ifd_clean</command>
+							<timeout>500</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_IFD</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="C3D4">
+							<period>180000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+				                                <!--
+                                   The Configuration for Switch manager INTERFACE SERVICE NODE DIRECTOR component CompT_IFND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                   START:::: TEAM_IFSV
+                                -->
+				<componentPrototype name="safComp=CompT_SC_IFND" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_clean</command>
+							<timeout>500</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_ifnd_clean</command>
+							<timeout>500</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_IFND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="C3D4">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+                                <!--
+                                   END:::: TEAM_IFSV
+                                   The Configuration for IFSv component CompT_IFND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+
+                                <!--
+                                   The Configuration for DTSv component CompT_DTS
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <componentPrototype name="safComp=CompT_DTS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/ncs_dts_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/ncs_dts_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/ncs_dts_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_DTS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="A9FD64E12C12">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
+                                <!--
+                                   The Configuration for MANAGEMENT ACCESS SERVICE component CompT_MAS
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_MAS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_mas_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_mas_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_mas_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>3</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_MAS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A9FD64E12D">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for PRESISTENT STORAGE SERVICE component CompT_PSS
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_PSS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_pss_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_pss_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_pss_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>4</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_PSS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A9FD64E12F">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>30000</terminationTimeout>
+						<csiSetCallbackTimeout>30000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>30000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for MESSAGE QUEUE DIRECTOR component CompT_MQD
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+				<componentPrototype name="safComp=CompT_MQD" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_mqd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_mqd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_mqd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>5</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_MQD</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="E5F6">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>1</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for H/W INTERFACE SERVICE component CompT_HISV
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <componentPrototype name="safComp=CompT_HISV" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->  
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_hisv_start</command>
+							<timeout>300000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_hisv_clean</command>
+							<timeout>500</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_hisv_clean</command>
+							<timeout>500</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>7</instantiationLevel>
+ 
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_HISV</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>2</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="F6C7">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+				
+
+                                <!--
+                                   The Configuration for Controller SYSTEM RESOURCE MONITORING NODE DIRECTOR component CompT_SC_SRMND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <componentPrototype name="safComp=CompT_SC_SRMND" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>3</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_SRMND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A9A9">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <!--
+                                   The Configuration for SYSTEM RESOURCE MONITORING NODE DIRECTOR component CompT_SRMND
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                --> 
+                                <componentPrototype name="safComp=CompT_SRMND" finalPrototype="1">
+                                
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+                                       
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+					<csiPrototypeName>safCsi=Csi_SRMND</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+					<saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+						<capability>1_ACTIVE</capability>
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+						<healthCheck key="A9A9">
+							<period>240000</period>
+							<maxDuration>180000</maxDuration>
+						</healthCheck>
+						<disableRestart>0</disableRestart>
+						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+						<terminationTimeout>240000</terminationTimeout>
+						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+					</saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+				</componentPrototype>
+
+                                <componentPrototype name="safComp=CompT_VDS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/ncs_vds_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/ncs_vds_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/ncs_vds_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>9</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_VDS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="B9B9">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
+                                <!--
+                                   The Configuration for NCS proxied (r0) component CompT_REPL0
+                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
+                                -->
+                                <!--
+                                <componentPrototype name="safComp=CompT_REPL0" finalPrototype="1">
+                                -->
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                -->
+                                        <!--
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>junk</command>
+                                                        <timeout>500000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>junk</command>
+                                                        <timeout>5000</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/ncs_drbd_r0_clean</command>
+                                                        <timeout>5000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>1</instantiationLevel>
+                                        -->
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <!--
+                                        <csiPrototypeName>safCsi=Csi_REPL0</csiPrototypeName>
+                                        -->
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <!--
+                                        <proxiedComponent preInstantiable="1" >
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+                                                <healthCheck key="ABCDEF20">
+                                                        <period>60000</period>
+                                                        <maxDuration>80000</maxDuration>
+                                                </healthCheck>
+                                                <healthCheck key="ABCDEF30">
+                                                        <period>60000</period>
+                                                        <maxDuration>80000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>120000</QuiescingDoneTimeout>
+                                                <terminationTimeout>120000</terminationTimeout>
+                                                <csiSetCallbackTimeout>1800000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>120000</csiRmvCallbackTimeout>
+                                        </proxiedComponent>
+                                        -->
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <!--
+                                        <enableAM>0</enableAM>
+
+                                  </componentPrototype>
+                                -->
+
+                                <!--
+                                   The Configuration for PDRBD component CompT_PDRBD
+                                   The SAF standard mandates that the component name should start with "safComp="
+                                -->
+
+
+                                <!--
+                                <componentPrototype name="safComp=CompT_PDRBD" finalPrototype="1">
+                                -->
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <!--
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/drbd_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/drbd_clean</command>
+                                                        <timeout>500</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/drbd_clean</command>
+                                                        <timeout>500</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>1</instantiationLevel>
+                                        -->
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <!--
+                                        <csiPrototypeName>safCsi=Csi_PDRBD</csiPrototypeName>
+                                        -->
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <!--
+                                        <saAwareComponent>
+                                        -->
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <!--
+                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
+                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
+                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
+                                                -->
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <!--
+                                                <healthCheck key="A5A5">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>120000</QuiescingDoneTimeout>
+                                                <terminationTimeout>120000</terminationTimeout>
+                                                <csiSetCallbackTimeout>1800000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>120000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                        -->
+
+                                        <!--
+                                             Do you want Active Monitoring for this component ?
+                                             Here is the place to configure it.
+                                        -->
+                                        <!--
+                                        <enableAM>0</enableAM>
+
+                                  </componentPrototype>
+
+                                  -->
+
+                                <!--
+                                   The Configuration for Controller ROLE DISTRIBUTION ENTITY component CompT_SC_RDE
+                                   The SAF standard mandates that the component name should start with "safComp="
+                                -->
+                                <componentPrototype name="safComp=CompT_SC_RDE" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/ncs_rde_start</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/ncs_rde_clean</command>
+                                                        <timeout>500</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/ncs_rde_clean</command>
+                                                        <timeout>30000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_RDE</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE</capability>
+<!--                                                <numMaxActiveCSIs>1</numMaxActiveCSIs> -->
+<!--                                                <numMaxStandbyCSIs>1</numMaxStandbyCSIs> -->
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="BAD8">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                </componentPrototype>
+
+                                <!--
+                                   The Configuration for LOG SERVICE component CompT_SAFLOG
+                                -->
+				<componentPrototype name="safComp=CompT_SAFLOG" finalPrototype="1">
+					<clcCommands>
+						<instantiateCommand>
+							<command>xxLIBDIRxx/opensaf_lgs instantiate</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>xxLIBDIRxx/opensaf_lgs terminate</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>xxLIBDIRxx/opensaf_lgs cleanup</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+					<csiPrototypeName>safCsi=Csi_SAFLOG</csiPrototypeName>
+					<saAwareComponent>
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>1</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+                                                <healthCheck key="F1B2">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
+                                <componentPrototype name="safComp=CompT_SC_FMS" finalPrototype="1">
+
+                                        <!--
+                                             All the commands to manage the component life cycle
+                                        -->
+                                        <clcCommands>
+                                                <instantiateCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms instantiate</command>
+                                                        <timeout>50000</timeout>
+                                                        <numMaxInstantiate>5</numMaxInstantiate>
+                                                </instantiateCommand>
+                                                <terminateCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
+                                                        <timeout>500</timeout>
+                                                </terminateCommand>
+                                                <cleanupCommand>
+                                                        <command>xxLIBDIRxx/opensaf_fms clean</command>
+                                                        <timeout>30000</timeout>
+                                                </cleanupCommand>
+                                        </clcCommands>
+                                        <instantiationLevel>2</instantiationLevel>
+
+                                        <!--
+                                             Match the CSI Type specified here with
+                                             the one specified in CSI descriptor under SI
+                                        -->
+                                        <csiPrototypeName>safCsi=Csi_FMS</csiPrototypeName>
+
+                                        <!--
+                                             Make a choice of SA_Aware component/proxied/unproxied
+                                        -->
+                                        <saAwareComponent>
+
+                                                <!--
+                                                     Set the capability supported by the component
+                                                -->
+                                                <capability>1_ACTIVE</capability>
+<!--                                                <numMaxActiveCSIs>1</numMaxActiveCSIs> -->
+<!--                                                <numMaxStandbyCSIs>1</numMaxStandbyCSIs> -->
+
+                                                <!--
+                                                     Configure the Health check Key here
+                                                -->
+                                                <healthCheck key="BAD9">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>0</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                </componentPrototype>
+
+
+                                <!--
+                                     Leave this junk prototype if you dont have
+                                     any other csi prototypes defined to satisfy the schema
+                                --> 
+				<CSIPrototype name="safCsi=junk">
+						<ParamName name="Param1"/>
+						<ParamName name="Param2"/>
+				</CSIPrototype>
+
+                                <!--
+                                     The entries as the list of ParamName will be the only
+                                     valid entries for the corresponding nameValue pairs for
+                                     the corresponding CSI Descriptor
+                                -->
+				<CSIPrototype name="safCsi=Csi_MAS">
+						<ParamName name="Env-Id"/>
+				</CSIPrototype>
+
+				<CSIPrototype name="safCsi=Csi_PSS">
+						<ParamName name="Env-Id"/>
+				</CSIPrototype>
+
+                                <!--
+                                     Service Unit for the EDS , with list of components
+                                     which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_EDS" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_EDS</componentPrototype>
+
+                                        </componentPrototypeList>
+                                </SUPrototype>
+ 
+                                <!--
+                                     Service Unit for the IFD, with list of components
+                                     which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_IFD" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_IFD</componentPrototype>
+
+                                        </componentPrototypeList>
+                                </SUPrototype>
+				
+
+                                <!--
+                                     Service Unit for the CONTROLLER IFND, with list of components
+                                     which collectively provide the service
+                                     START:::TEAM-IFSV Modified
+                                -->
+                                <SUPrototype name="safSu=SuT_SC_IFND" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_SC_IFND</componentPrototype>
+
+                                        </componentPrototypeList>
+                                </SUPrototype>
+
+                                <!--
+                                     Service Unit for the PAYLOAD IFND, with list of components
+                                     which collectively provide the service
+                                     START:::TEAM-IFSV Modified
+                                -->
+                                <SUPrototype name="safSu=SuT_IFND" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_IFND</componentPrototype>
+
+                                        </componentPrototypeList>
+                                </SUPrototype>
+
+                                <!--
+                                     Service Unit for the CPD, with list of components
+                                     which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_CPD" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_CPD</componentPrototype>
+
+                                        </componentPrototypeList>
+                                </SUPrototype>
+
+                                <!--
+                                     Service Unit for the CPND Node Director on Controller, with list of
+                                     components which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_SC_CPND" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_SC_CPND</componentPrototype>
+                                        </componentPrototypeList>
+                                </SUPrototype>
+
+                                <!--
+                                     Service Unit for the CPND Node Director on payload, with list of
+                                     components which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_CPND" finalPrototype="1">
+                                        <componentPrototypeList>
+                                                <componentPrototype>safComp=CompT_CPND</componentPrototype>
+                                        </componentPrototypeList>
+                                </SUPrototype>
+				
+
+                                <!--
+                                     Service Unit for the NCS Directors on Controller, with list of
+                                     components which collectively provide the service
+                                -->
+			        <SUPrototype name="safSu=SuT_NCS_CNTLR" finalPrototype="1">
+					<componentPrototypeList>
+                                                <!--
+                                                <componentPrototype>safComp=CompT_REPL0</componentPrototype>
+                                                -->
+                                                <componentPrototype>safComp=CompT_DTS</componentPrototype>
+						<componentPrototype>safComp=CompT_MAS</componentPrototype>
+						<componentPrototype>safComp=CompT_PSS</componentPrototype>
+						<componentPrototype>safComp=CompT_MQD</componentPrototype>
+						<componentPrototype>safComp=CompT_GLD</componentPrototype>
+                                                <componentPrototype>safComp=CompT_HISV</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SSA</componentPrototype>
+                                                <componentPrototype>safComp=CompT_VDS</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
+					</componentPrototypeList>
+				</SUPrototype>
+
+                                <!--
+                                     Service Unit for the NCS Node Directors on Controller, with list of
+                                     components which collectively provide the service
+                                -->
+                                <SUPrototype name="safSu=SuT_NCS_ND_CNTLR" finalPrototype="1">
+					<componentPrototypeList>
+                                <!--
+                                                <componentPrototype>safComp=CompT_PDRBD</componentPrototype>
+                                -->
+						<componentPrototype>safComp=CompT_SC_RDE</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SC_FMS</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SC_SRMND</componentPrototype>
+						<componentPrototype>safComp=CompT_SC_MQND</componentPrototype>
+                                                <componentPrototype>safComp=CompT_SC_GLND</componentPrototype>
+					</componentPrototypeList>
+				</SUPrototype>
+
+                                
+                                 <!--    Service Unit for the NCS Node Directors on payload, with list of
+                                     components which collectively provide the service
+                                 --> 
+				<SUPrototype name="safSu=SuT_NCS_PLD" finalPrototype="1">
+					<componentPrototypeList>
+						<componentPrototype>safComp=CompT_SRMND</componentPrototype>
+						<componentPrototype>safComp=CompT_MQND</componentPrototype>
+                                                <componentPrototype>safComp=CompT_GLND</componentPrototype>
+					</componentPrototypeList>
+				</SUPrototype>
+                              
+
+                                <!--
+                                    The SI descriptor Si_PLD1 for PAYLOAD with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+				<SIInstance name="safSi=Si_ND_CNTLR1">
+					<CSIList>
+						<CSIInstance name="safCsi=Csi_RDE" rank="1">
+							<prototypeName>safCsi=Csi_RDE</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_SRMND" rank="2">
+							<prototypeName>safCsi=Csi_SRMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQND" rank="3">
+							<prototypeName>safCsi=Csi_MQND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_GLND" rank="4">
+							<prototypeName>safCsi=Csi_GLND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                                                        <prototypeName>safCsi=Csi_FMS</prototypeName>
+                                                        <CSIAttributes/>
+                                                 </CSIInstance>
+                                <!--
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
+							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                -->
+					</CSIList>
+				</SIInstance>
+
+                                <!--
+                                    The SI descriptor Si_PLD2 for PAYLOAD with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+				<SIInstance name="safSi=Si_ND_CNTLR2">
+					<CSIList>
+						<CSIInstance name="safCsi=Csi_RDE" rank="1">
+							<prototypeName>safCsi=Csi_RDE</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_SRMND" rank="2">
+							<prototypeName>safCsi=Csi_SRMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQND" rank="3">
+							<prototypeName>safCsi=Csi_MQND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_GLND" rank="4">
+							<prototypeName>safCsi=Csi_GLND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_FMS" rank="5">
+                                                        <prototypeName>safCsi=Csi_FMS</prototypeName>
+                                                        <CSIAttributes/>
+                                                 </CSIInstance>
+                                <!--
+                                                <CSIInstance name="safCsi=Csi_PDRBD" rank="6">
+							<prototypeName>safCsi=Csi_PDRBD</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                -->
+
+					</CSIList>
+				</SIInstance>
+	
+                                <!--
+                                    The SI descriptor Si_PLD3 for PAYLOAD with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+				<SIInstance name="safSi=Si_PLD3">
+					<CSIList>
+						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
+							<prototypeName>safCsi=Csi_SRMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQND" rank="2">
+							<prototypeName>safCsi=Csi_MQND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_GLND" rank="3">
+							<prototypeName>safCsi=Csi_GLND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+
+					</CSIList>
+				</SIInstance>
+                                
+
+                                <!--
+                                    The SI descriptor Si_PLD4 for PAYLOAD with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+				<SIInstance name="safSi=Si_PLD4">
+					<CSIList>
+						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
+							<prototypeName>safCsi=Csi_SRMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQND" rank="2">
+							<prototypeName>safCsi=Csi_MQND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_GLND" rank="3">
+							<prototypeName>safCsi=Csi_GLND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+
+					</CSIList>
+				</SIInstance>
+                                
+
+                                <!--
+                                    The SI descriptor Si_PLD5 for PAYLOAD with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+				<SIInstance name="safSi=Si_PLD5">
+					<CSIList>
+						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
+							<prototypeName>safCsi=Csi_SRMND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQND" rank="2">
+							<prototypeName>safCsi=Csi_MQND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_GLND" rank="3">
+							<prototypeName>safCsi=Csi_GLND</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+
+					</CSIList>
+				</SIInstance>
+                                
+
+
+                                <!--
+                                    The SI descriptor Si_CPND1 for Check Point Node Director with the list 
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_CPND1">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPND" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+        
+                                <!--
+                                    The SI descriptor Si_CPND2 for Check Point Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_CPND2">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPND" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+
+                                <!--
+                                    The SI descriptor Si_CPND3 for Check Point Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+                                <SIInstance name="safSi=Si_CPND3">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPND" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                                
+                                <!--
+                                    The SI descriptor Si_CPND4 for Check Point Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+                                <SIInstance name="safSi=Si_CPND4">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPND" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                                
+                                <!--
+                                    The SI descriptor Si_CPND5 for Check Point Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                -->
+                                <SIInstance name="safSi=Si_CPND5">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPND" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                                
+                 
+                                <!--
+                                    The SI descriptor Si_IFND for Interface Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+
+
+                                <!--
+                                    The SI descriptor Si_EDS for Event Distribution service with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_EDS">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_EDS" rank="1">
+                                                        <prototypeName>safCsi=Csi_EDS</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+
+                                <!--
+                                    The SI descriptor Si_IFD for Interface Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_IFD">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFD" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFD</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+
+
+                                <SIInstance name="safSi=Si_IFND1">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFND" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                                <!--
+                                    The SI descriptor Si_IFND for Interface Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_IFND2">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFND" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                                <!--
+                                    The SI descriptor Si_IFND for Interface Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                 -->
+                                <SIInstance name="safSi=Si_IFND3">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFND" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                               
+                                <!--
+                                    The SI descriptor Si_IFND for Interface Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                 -->
+                                <SIInstance name="safSi=Si_IFND4">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFND" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                               
+                                <!--
+                                    The SI descriptor Si_IFND for Interface Node Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to 
+                                 -->
+                                <SIInstance name="safSi=Si_IFND5">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_IFND" rank="1">
+                                                        <prototypeName>safCsi=Csi_IFND</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+                               
+
+
+                                <!--
+                                    The SI descriptor Si_CPD for Check Pointing Director with the list
+                                    of CSIs. Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+                                <SIInstance name="safSi=Si_CPD">
+                                        <CSIList>
+                                                <CSIInstance name="safCsi=Csi_CPD" rank="1">
+                                                        <prototypeName>safCsi=Csi_CPD</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                        </CSIList>
+                                </SIInstance>
+
+                                <!--
+                                    The SI descriptor Si_CNTLR for NCS Directors on Controller with the list of CSIs.
+                                    Make sure that the number of CSIs actually match with the number
+                                    of components in the SU which this SI will be assigned to
+                                -->
+				<SIInstance name="safSi=Si_CNTLR">
+					<CSIList>
+                                                <!--
+                                                <CSIInstance name="safCsi=Csi_REPL0" rank="1">
+                                                        <prototypeName>safCsi=Csi_REPL0</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                -->
+                                                <CSIInstance name="safCsi=Csi_DTS" rank="2">
+                                                        <prototypeName>safCsi=Csi_DTS</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+						<CSIInstance name="safCsi=Csi_MAS" rank="3">
+							<prototypeName>safCsi=Csi_MAS</prototypeName>
+							<CSIAttributes>
+							<nameValueList>
+							    <nameValue name="Env-Id" value="1"/>
+							</nameValueList>
+						    </CSIAttributes>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_PSS" rank="4">
+							<prototypeName>safCsi=Csi_PSS</prototypeName>
+							<CSIAttributes>
+							<nameValueList>
+							    <nameValue name="Env-Id" value="1"/>
+							</nameValueList>
+						    </CSIAttributes>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_MQD" rank="5">
+							<prototypeName>safCsi=Csi_MQD</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+						<CSIInstance name="safCsi=Csi_GLD" rank="6">
+							<prototypeName>safCsi=Csi_GLD</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_HISV" rank="7">
+							<prototypeName>safCsi=Csi_HISV</prototypeName>
+							<CSIAttributes/>
+						</CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_SSA" rank="8">
+                                                        <prototypeName>safCsi=Csi_SSA</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_VDS" rank="9">
+                                                        <prototypeName>safCsi=Csi_VDS</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_SAFLOG" rank="10">
+                                                        <prototypeName>safCsi=Csi_SAFLOG</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+					</CSIList>
+				</SIInstance>
+
+                                <!--
+                                    The actual grouping of Event Distribution Service SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+                                <SGInstance name="safSg=SG_EDS">
+                                        <redundancyModel>
+                                                <model_2N>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_EDS,safNode=SC_2_1" rank="1"/>
+                                                                <SU SUName="safSu=SuT_EDS,safNode=SC_2_2" rank="2"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </model_2N>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_EDS</SI>
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+
+                                <!--
+                                    The actual grouping of Interface Director SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+                                <SGInstance name="safSg=SG_IFD">
+                                        <redundancyModel>
+                                                <model_2N>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_IFD,safNode=SC_2_1" rank="1"/>
+                                                                <SU SUName="safSu=SuT_IFD,safNode=SC_2_2" rank="2"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </model_2N>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_IFD</SI>
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+				
+                                <!--
+                                    The actual grouping of Interface Node  Director SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+                                <SGInstance name="safSg=SG_IFND">
+                                        <redundancyModel>
+                                                <noRedundancy>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_SC_IFND,safNode=SC_2_1" rank="1"/>
+                                                                <SU SUName="safSu=SuT_SC_IFND,safNode=SC_2_2" rank="2"/>
+                                                                <SU SUName="safSu=SuT_IFND,safNode=PL_2_3" rank="3"/>
+                                                                <SU SUName="safSu=SuT_IFND,safNode=PL_2_4" rank="4"/>
+                                                                <SU SUName="safSu=SuT_IFND,safNode=PL_2_5" rank="5"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </noRedundancy>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_IFND1</SI>
+                                                <SI rank="2">safSi=Si_IFND2</SI>
+                                                <SI rank="3">safSi=Si_IFND3</SI> 
+                                                <SI rank="4">safSi=Si_IFND4</SI>
+                                                <SI rank="5">safSi=Si_IFND5</SI> 
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+
+                                <!--
+                                    The actual grouping of CheckPoint Director SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+                                <SGInstance name="safSg=SG_CPD">
+                                        <redundancyModel>
+                                                <model_2N>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_CPD,safNode=SC_2_1" rank="1"/>
+                                                                <SU SUName="safSu=SuT_CPD,safNode=SC_2_2" rank="2"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </model_2N>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_CPD</SI>
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+
+                                <!--
+                                    The actual grouping of CheckPoint Director SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+                                <SGInstance name="safSg=SG_CPND">
+                                        <redundancyModel>
+                                                <noRedundancy>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_SC_CPND,safNode=SC_2_1" rank="1"/>
+                                                                <SU SUName="safSu=SuT_SC_CPND,safNode=SC_2_2" rank="2"/>
+                                                                <SU SUName="safSu=SuT_CPND,safNode=PL_2_3" rank="3"/>
+                                                                <SU SUName="safSu=SuT_CPND,safNode=PL_2_4" rank="4"/>
+                                                                <SU SUName="safSu=SuT_CPND,safNode=PL_2_5" rank="5"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </noRedundancy>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_CPND1</SI>
+                                                <SI rank="2">safSi=Si_CPND2</SI>
+                                                <SI rank="3">safSi=Si_CPND3</SI>
+                                                <SI rank="4">safSi=Si_CPND4</SI>
+                                                <SI rank="5">safSi=Si_CPND5</SI>
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+
+				
+
+                                <!--
+                                    The actual grouping of NCS DIRECTORS SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+				<SGInstance name="safSg=SG_NCS_DIRECTORS">
+					<redundancyModel>
+						<model_2N>
+							<SURankList>
+								<SU SUName="safSu=SuT_NCS_CNTLR,safNode=SC_2_1" rank="1"/>
+								<SU SUName="safSu=SuT_NCS_CNTLR,safNode=SC_2_2" rank="2"/>
+							</SURankList>
+							<numPrefInserviceSUs>2</numPrefInserviceSUs>
+							<failbackOption>0</failbackOption>
+						</model_2N>
+					</redundancyModel>
+					<SGErrorEscalation>
+						<componentRestartMax>10</componentRestartMax>
+						<componentRestartProbation>4000000</componentRestartProbation>
+						<SURestartMax>10</SURestartMax>
+						<SURestartProbation>4000000</SURestartProbation>
+					</SGErrorEscalation>
+					<SIList>
+						<SI rank="1">safSi=Si_CNTLR</SI>
+					</SIList>
+                                        <vendorExtensions> 
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+				</SGInstance>
+
+                                
+                                <!--
+                                    The actual grouping of NCS NODE DIRECTORS SUs and SIs and bringing them under
+                                    the redundancy Model
+                                -->
+				<SGInstance name="safSg=SG_NCS_NODE_DIRECTORS">
+					<redundancyModel>
+						<noRedundancy>
+							<SURankList>
+								<SU SUName="safSu=SuT_NCS_ND_CNTLR,safNode=SC_2_1" rank="1"/>
+								<SU SUName="safSu=SuT_NCS_ND_CNTLR,safNode=SC_2_2" rank="2"/>
+							</SURankList>
+							<numPrefInserviceSUs>2</numPrefInserviceSUs>
+							<failbackOption>0</failbackOption>
+						</noRedundancy>
+					</redundancyModel>
+					<SGErrorEscalation>
+						<componentRestartMax>10</componentRestartMax>
+						<componentRestartProbation>4000000</componentRestartProbation>
+						<SURestartMax>10</SURestartMax>
+						<SURestartProbation>4000000</SURestartProbation>
+					</SGErrorEscalation>
+					<SIList>
+						<SI rank="1">safSi=Si_ND_CNTLR1</SI>
+						<SI rank="2">safSi=Si_ND_CNTLR2</SI>
+					</SIList>
+                                        <vendorExtensions> 
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+				</SGInstance>
+
+                                <SGInstance name="safSg=SG_NCS_ND_PLD">
+                                        <redundancyModel>
+                                                <noRedundancy>
+                                                        <SURankList>
+                                                                <SU SUName="safSu=SuT_NCS_PLD,safNode=PL_2_3" rank="1"/>
+                                                                <SU SUName="safSu=SuT_NCS_PLD,safNode=PL_2_4" rank="2"/>
+                                                                <SU SUName="safSu=SuT_NCS_PLD,safNode=PL_2_5" rank="3"/>
+                                                        </SURankList>
+                                                        <numPrefInserviceSUs>2</numPrefInserviceSUs>
+                                                        <failbackOption>0</failbackOption>
+                                                </noRedundancy>
+                                        </redundancyModel>
+                                        <SGErrorEscalation>
+                                                <componentRestartMax>10</componentRestartMax>
+                                                <componentRestartProbation>4000000</componentRestartProbation>
+                                                <SURestartMax>10</SURestartMax>
+                                                <SURestartProbation>4000000</SURestartProbation>
+                                        </SGErrorEscalation>
+                                        <SIList>
+                                                <SI rank="1">safSi=Si_PLD3</SI>
+                                                <SI rank="2">safSi=Si_PLD4</SI>
+                                                <SI rank="3">safSi=Si_PLD5</SI>
+                                        </SIList>
+                                        <vendorExtensions>
+
+                                                <!--
+                                                      Make sure to set this to TRUE if your component is NCS component
+                                                -->
+                                                <isNCS>1</isNCS>
+                                        </vendorExtensions>
+                                </SGInstance>
+
+                                
+                                  <!--   Capture the service unit instantiations on the Payload node 
+                                  -->
+			        <nodePrototype name="safNode=NodeT_Payload">
+			                <nodeAttributes>
+				                <nodeErrorEscalation>
+				                        <SUFailoverMax>2</SUFailoverMax>
+				                        <SUFailoverProbation>100</SUFailoverProbation>
+				                </nodeErrorEscalation>
+			                </nodeAttributes>
+				        <SUFinalPrototypeList>
+                                                <SUFinalPrototype>safSu=SuT_CPND</SUFinalPrototype>
+                                                <SUFinalPrototype>safSu=SuT_IFND</SUFinalPrototype>
+ 				                <SUFinalPrototype>safSu=SuT_NCS_PLD</SUFinalPrototype>
+				        </SUFinalPrototypeList>
+			        </nodePrototype>
+                                
+
+                                <!-- Configure the Payload Nodes here 
+                                --> 
+				<nodeInstance name="safNode=PL_2_3" nodeID="0002030F">
+					<prototypeName>safNode=NodeT_Payload</prototypeName>
+				</nodeInstance>
+				<nodeInstance name="safNode=PL_2_4" nodeID="0002040F">
+					<prototypeName>safNode=NodeT_Payload</prototypeName>
+				</nodeInstance>
+				<nodeInstance name="safNode=PL_2_5" nodeID="0002050F">
+					<prototypeName>safNode=NodeT_Payload</prototypeName>
+				</nodeInstance>
+
+                                <!-- Capture the service unit instantiations on the CNTLR Node -->
+				<nodeInstance name="safNode=SC_2_1" nodeID="0002010F">
+					<nodeAttributes>
+						<nodeErrorEscalation>
+							<SUFailoverMax>2</SUFailoverMax>
+							<SUFailoverProbation>100</SUFailoverProbation>
+						</nodeErrorEscalation>
+			   		</nodeAttributes>
+					<SUList>
+                                                <SUInstance name="safSu=SuT_EDS">
+                                                        <prototypeName>safSu=SuT_EDS</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_IFD">
+                                                        <prototypeName>safSu=SuT_IFD</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_CPD">
+                                                        <prototypeName>safSu=SuT_CPD</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_SC_CPND">
+                                                        <prototypeName>safSu=SuT_SC_CPND</prototypeName>
+                                                </SUInstance>
+						<SUInstance name="safSu=SuT_NCS_CNTLR">
+							<prototypeName>safSu=SuT_NCS_CNTLR</prototypeName>
+						</SUInstance>
+						<SUInstance name="safSu=SuT_NCS_ND_CNTLR">
+							<prototypeName>safSu=SuT_NCS_ND_CNTLR</prototypeName>
+						</SUInstance>
+                                                <SUInstance name="safSu=SuT_SC_IFND">
+                                                        <prototypeName>safSu=SuT_SC_IFND</prototypeName>
+                                                </SUInstance>
+	                                </SUList>
+				</nodeInstance>
+
+                                <!-- Capture the service unit instantiations on the second CNTLR Node -->
+ 				<nodeInstance name="safNode=SC_2_2" nodeID="0002020F">
+					<nodeAttributes>
+						<nodeErrorEscalation>
+							<SUFailoverMax>2</SUFailoverMax>
+							<SUFailoverProbation>100</SUFailoverProbation>
+						</nodeErrorEscalation>
+					</nodeAttributes>
+					<SUList>
+                                                <SUInstance name="safSu=SuT_EDS">
+                                                        <prototypeName>safSu=SuT_EDS</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_IFD">
+                                                        <prototypeName>safSu=SuT_IFD</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_CPD">
+                                                        <prototypeName>safSu=SuT_CPD</prototypeName>
+                                                </SUInstance>
+                                                <SUInstance name="safSu=SuT_SC_CPND">
+                                                        <prototypeName>safSu=SuT_SC_CPND</prototypeName>
+                                                </SUInstance>
+						<SUInstance name="safSu=SuT_NCS_CNTLR">
+							<prototypeName>safSu=SuT_NCS_CNTLR</prototypeName>
+						</SUInstance>
+						<SUInstance name="safSu=SuT_NCS_ND_CNTLR">
+							<prototypeName>safSu=SuT_NCS_ND_CNTLR</prototypeName>
+						</SUInstance>
+                                                <SUInstance name="safSu=SuT_SC_IFND">
+                                                        <prototypeName>safSu=SuT_SC_IFND</prototypeName>
+                                                </SUInstance>
+				        </SUList>
+				</nodeInstance>
+                                <vendorExtensions>
+
+                                        <!--
+                                             The Scalars to set the Rx and Tx heartbeat intervals for
+                                             heartbeat between AVD and AvND
+                                        -->
+                                        <NCSScalars>
+                                                <sndHbInt>1000</sndHbInt>
+                                                <rcvHbInt>3000</rcvHbInt>
+                                                <clusterInitTime>40000</clusterInitTime>
+                                        </NCSScalars>
+                                </vendorExtensions>
+                        </AMFConfig>
+			
+		       	 	</AISConfig>
+			</NCSConfig>
+
+   <!--
+         End of SOFTWARE configuration and mark the Begining of the HARDWARE config
+   -->							
+   <Hardware-Deployment-Config>
+      <EntityDeploymentInstance>
+         <Name>chassis_descriptor</Name>
+         <EntityTypeInstanceName>CHASSIS</EntityTypeInstanceName> 
+         <NodeName>safNode=Chassis_Pc_Cluster</NodeName>
+         <EntityLocation>2</EntityLocation>
+         <HPIEntityType>SAHPI_ENT_SYSTEM_CHASSIS</HPIEntityType>
+         <isActivationSourceNCS>1</isActivationSourceNCS>
+         <contains>
+            <EntityDeploymentInstance>
+                <Name>Payload_3</Name>
+                <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
+                <NodeName>safNode=PL_2_3</NodeName>
+                <EntityLocation>3</EntityLocation>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
+                <isActivationSourceNCS>1</isActivationSourceNCS>
+            </EntityDeploymentInstance>
+
+            <EntityDeploymentInstance>
+                <Name>Payload_4</Name>
+                <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
+                <NodeName>safNode=PL_2_4</NodeName>
+                <EntityLocation>4</EntityLocation>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
+                <isActivationSourceNCS>1</isActivationSourceNCS>
+            </EntityDeploymentInstance>
+
+            <EntityDeploymentInstance>
+                <Name>Payload_5</Name>
+                <EntityTypeInstanceName>PAYLOAD_PC</EntityTypeInstanceName>
+                <NodeName>safNode=PL_2_5</NodeName>
+                <EntityLocation>5</EntityLocation>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
+                <isActivationSourceNCS>1</isActivationSourceNCS>
+            </EntityDeploymentInstance>
+
+            <EntityDeploymentInstance>
+                <Name>Controller_1</Name>
+                <EntityTypeInstanceName>CONTROLLER_1</EntityTypeInstanceName>
+                <NodeName>safNode=SC_2_1</NodeName>
+                <EntityLocation>1</EntityLocation>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
+                <isActivationSourceNCS>1</isActivationSourceNCS>
+
+			    <diskBoot/>
+
+            </EntityDeploymentInstance>
+
+            <EntityDeploymentInstance>
+                <Name>Controller_2</Name>
+                <EntityTypeInstanceName>CONTROLLER_2</EntityTypeInstanceName>
+                <NodeName>safNode=SC_2_2</NodeName>
+                <EntityLocation>2</EntityLocation>
+                <HPIEntityType>SAHPI_ENT_SYSTEM_BLADE</HPIEntityType>
+                <isActivationSourceNCS>1</isActivationSourceNCS>
+
+			    <diskBoot/>
+
+            </EntityDeploymentInstance>
+
+         </contains>
+      </EntityDeploymentInstance>
+   </Hardware-Deployment-Config>
+							
+   
+</SystemConfig>

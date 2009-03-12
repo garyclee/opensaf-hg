@@ -1,0 +1,2 @@
+export TET_TMP_DIR=/tmp
+tcc -e -s reg_srmsv.scen $TET_BASE_DIR/srmsv/suites

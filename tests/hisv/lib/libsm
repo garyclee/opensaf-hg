@@ -1,0 +1,758 @@
+#!/usr/bin/expect --
+################################################################################
+#
+# File:         libsm
+# Description:  Generic state-machine routines
+#
+# Routines:
+#   Interrupt      - Interrupt Handler Routine
+#   ConnectConsole - Connect to the iLO console
+#   SendExpectPrompt - Send a string, expecting the user's prompt
+#   SendFile         - Send commands in a file.
+#   TimeStamp        - Write a timestamp
+#   ComputeElapsedTime - Compute the time elapsed between two timestamps
+#   Done             - Exit routine; clean up on exit
+#   TimedOut         - Print an error and exit in the event of a timeout.
+#   Warning          - Print a warning message
+#   ErrorMessage     - Print an error message and exit
+#   SetSigTraps      - Trap Handler
+#   SetSigTraps      - Trap Handler
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+#
+################################################################################
+
+if {![info exists __LIBSM_SOURCED] || !$__LIBSM_SOURCED } {
+   set __LIBSM_SOURCED 1
+} \
+else {
+   return 0
+}
+
+source $basepath/defaults
+source $basepath/libssh
+source $basepath/libilo
+
+#**************************** Interrupt Trap Handler ***************************
+# Inputs:  <none>
+#
+# Outputs: <none>
+#
+# Processes the interrupt received after being setup with
+# the trap command.
+# Exits with signal number
+#*******************************************************************************
+proc Interrupt {} {
+    send_user "\n\[SM] Received SIG[trap -name], exiting status [trap -number]\n"
+    Done [trap -number]
+}  ;# End Interrupt
+
+#*************************** Connect to System Console *************************
+# ConnectConsole: Connects to the console of the system
+# Inputs:   
+#          type    - ilo for direct-to-iLO connection (uses a ssh connection
+#                        to the console)
+#                    oa  for connection to the virtual serial console
+#                        from the OA (connect to iLO from the OA).  
+#                        The system whose iLO to connect to is passed using
+#                        the rsut argument below.
+#          console - serial-console hostname
+#          rsut    - reference to a system number for connection via
+#                    the OA (uses oa command, "connect server $sut").
+#
+# Outputs: (global) connected   - flag if we are connected
+#          (global) atOAprompt  - set in ConnectSsh
+#          (global) atILOprompt - set in ConnectSsh
+#          (global) atConsole   - set in ConnectSsh
+# Return:  1 => success
+#          0 => failure
+#
+# Notes:
+#       If $type == "oa" and rsut is a defined, this will connect to the system
+#       console via the Onboard-Adminstrator.  In any other circumstance, it will
+#       be ignored.
+#*******************************************************************************
+proc ConnectConsole { type console rsut } {
+    global connected endl tetExit
+    global iloUser iloPasswd oaUser oaPasswd
+    global prompt ilo_prompt oa_prompt
+    global root_prompt login_prompt user_prompt send_slow
+    global atConsole atILOprompt atOAprompt
+    global timeout_setting
+    global endl domain
+    global VERBOSE DRYRUN
+
+    upvar spawn_id spawn_id    ;# This declares spawn_id in the caller's scope
+    upvar $rsut sut
+
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] Connecting to console $console ...\n"
+        send_user "\ttype: $type\n\n"
+        send_user "\tdomain = $domain\n"
+        send_user "\ttimeout = $timeout_setting\n"
+        send_user "\ttimeout_setting = $timeout_setting\n"
+    }
+
+    set retVal 0
+    if {$type == "ilo"} {
+       set success [ConnectFW $console $iloUser $iloPasswd]
+       if {$VERBOSE} { send_user "\tAfter ConnectFW, success = $success\n"}
+       if {$VERBOSE} { send_user "\tatILOprompt = $atILOprompt\n"}
+       if {!$success} { return 0 }
+    }
+    if {$type == "oa"} {
+       set success [ConnectFW $console $oaUser $oaPasswd]
+       if {$VERBOSE} { send_user "\tAfter ConnectFW, success = $success\n"}
+       if {$VERBOSE} { send_user "\tatOAprompt = $atOAprompt\n"}
+       if {!$success} { return 0 }
+    }
+
+    if {$DRYRUN} {
+       if {$type == "ilo" } {
+          send_user "vsp\n"
+          set atConsole 1
+          set atILOprompt 1
+       } \
+       elseif {$type == "oa"} {
+          if [info exists sut] {
+            if [regexp {[0-9]+} $sut] {
+               send_user "connect system $sut\n"
+               sleep .1
+               send_user "vsp\n"
+               set atConsole 1
+                 # These determine how many levels we have to exit from
+               set atILOprompt 1
+               set atOAprompt 1
+            }
+          }
+       }
+       return 1
+    }
+          
+    if {$type == "ilo"} {
+        if {$atILOprompt} {
+           if {! [ConnectVSP] } {
+              Error "Failed to log into the ilo serial console"
+              return 0
+           } \
+           else {
+              return 1
+           }
+        } \
+        else {
+           ErrorMessage "ConnectConsole: Something's wrong -- should be a the iLO prompt" $tetExit(NORESULT)
+        }
+    } \
+    elseif {$type == "oa"} {
+       if {$atOAprompt} {
+           if [info exists sut] {
+               if { [regexp {[0-9]+} $sut] } {
+                  if {$VERBOSE} {  send_user "\nConnecting to iLO console for system $sut from the OA\n" }
+                  send -s "connect server $sut\r"
+               } \
+               else {
+                   ErrorMessage "At the OA prompt, invalid sut info, exiting ...\n" $tetExit(NORESULT)
+               }
+           } \
+           else {
+               ErrorMessage "At the OA prompt, no valid sut set, so returning\n" $tetExit(NORESULT)
+           }
+       }
+    }
+
+    expect {
+        timeout {
+            send_user "\n\[SM] ERROR: Could not connect to system console\n";
+            send_user "$expect_out(buffer)\n"
+            set connected 0
+            return 0
+        }
+
+        eof {
+            Error "Detected EOF when trying to connect to the system console from the OA"
+            set connected 0
+            return 0
+        }
+
+        -re "connect server" {
+            # Saw command echoed when connecting from OA
+            exp_continue
+        }
+
+        -re "$ilo_prompt" {
+            set connected 1
+            set atConsole 0
+            set atILOprompt 1
+            set prompt "$expect_out(0,string)"
+            if {![ConnectVSP]} {
+               Error "Failed to connect to the serial console for server$sut from the OA"
+               return 0
+            }
+            return 1
+        }
+
+		-re "Invalid Arguments" {
+			# OA error message
+            ErrorMessage "Bad OA parameters detected, bailing...\n" 1
+		}
+
+        -re "$oa_prompt" {
+            set connected 1
+            set atConsole 0
+            set atOAprompt 1
+            set prompt "$expect_out(0,string)"
+            if [info exists sut] {
+               if { [regexp {[0-9]+} $sut] } {
+                  if {$VERBOSE} {  send_user "\nConnecting to iLO console for system $sut from the OA\n" }
+                  send -s "connect server $sut\r"
+                  exp_continue
+               }
+            }
+            if {$VERBOSE} {
+               send_user "\n\[CC] At the OA prompt, no sut set, so returning\n"
+            }
+        }
+    }    ;# End expect{}
+
+    expect_after {
+       eof {
+           if {$VERBOSE} { send_user "\texpect_after: detected EOF\n" }
+           catch {close -i $spawn_id}
+		   wait -nowait -i $spawn_id
+           return 0
+       }
+    }
+    return $connected
+
+}  ;# End ConnectConsole
+
+#*************************** Send Expect Prompt ********************************
+# Inputs: str - String to send to the OS
+#         noEcho - Sometimes the string we send is sufficiently
+#                  complicated that we only want to check that
+#                  we get the prompt back because we may
+#                  not 'match' the sent string.
+#                  
+#                  
+#   (global) prompt - string for prompt to look for in regexp
+#   (global) endl - the regexp to grab everything to the end-
+#            of-line sequence
+# Outputs: <none>
+#
+# Sends the string passed as a parameter and then looks for
+# the prompt from the caller.
+#
+#*******************************************************************************
+proc SendExpectPrompt { str noEcho } {
+    global prompt endl send_slow
+    global timeout_setting 
+    global login_prompt root_prompt ilo_prompt
+    global tetExit
+    global VERBOSE DRYRUN
+
+     # Only grab the first twenty characters of the string to
+     #  match the echo, since long command lines can get spurious
+     #  newlines, depending on the terminal setting.
+    set echoed [format "%.20s" $str]
+
+     # Regexp's don't like characters that might be interpreted
+     #  as flags, so we dispense with them (match only up to "+"
+     #  or "-").
+    regsub -all {\+.*} $echoed "" echoed
+    regsub -all {\-.*} $echoed "" echoed
+    if {![info exists prompt]} {
+       if ! [GetPrompt] {
+          ErrorMessage "SEP: Failed to set user's prompt" $tetExit(NORESULT)
+       }
+    }
+
+    if {$VERBOSE > 1} {
+        send_user "\[SEP] prompt is $prompt\n"
+        send_user "\ttimeout_setting is $timeout_setting\n"
+        send_user "\tcommand is $str\n"
+        send_user "\techoed is $echoed\n"
+        send_user "\tnoEcho is $noEcho\n"
+        send_user "\ttimeout_setting is $timeout_setting\n"
+    }
+    if {$DRYRUN} {
+       if {[info exists send_slow]} {
+          send_user "\n\tSending slow\n"   
+          send_user "$str\n"
+          return $prompt
+       }
+    }
+
+     # Trying to save me from myself -- remove a properly added
+     #  carriage return and add it back when it's sent.
+    regsub {\r$} $str "" str
+
+       # These are for the cases where we resend the
+       #  command, so that we don't loop forever here.
+    set sendCount 0
+    set sendMax 3
+
+    # Clear the buffer of old stuff so we don't match
+    #  the prompt if it was output before we got here
+    expect *
+
+    if { [info exists send_slow] } {
+        if {$VERBOSE > 1} { send_user "\n\[SM] sep: Sending slow\n" }
+        send -s "$str\r"
+    } else {
+        send "$str\r"
+    }
+
+    if [info exists timeout_setting] {
+       set timeout $timeout_setting
+    } \
+    else {
+        set timeout 60
+    }
+
+    set sawIt 0
+     # Initialize:
+    set state ""
+    while {$state == ""} {
+       expect {
+           timeout {
+               send_user "\nERROR: Timed out sending command, '$str'\n"
+               return "FAILED"
+           }
+    
+           -re "$echoed" { 
+                set sawIt 1
+                exp_continue
+           }
+    
+           -re "No such file or directory" {
+              set state "FAILED"
+           }
+    
+           -re "cannot move" {
+              set state "FAILED"
+           }
+    
+           -re "Error$endl" {
+               exp_continue
+           }
+    
+           -re "bash: (\[^ \t]+): command not found\r" {
+               ErrorMessage "\nERROR: You must install $expect_out(1,string)!\n" $tetExit(UNRESOLVED)
+           }
+    
+           -re "bash:" {
+                # Some other bash error
+               set state "FAILED"
+           }
+
+           -re "\r\n>" {
+               # Continuation line
+               if {$VERBOSE && [regexp {>} $str]} {
+                  send_user "\nSaw a '>' sign, but the command had one too.\n"
+               } \
+               elseif {$VERBOSE} {
+                  send_user "\nSaw a '>' sign, and treating it as a continuation\n"
+               }
+               exp_continue
+           }
+    
+           -re "$prompt" {
+               if {$VERBOSE} {
+                    send_user "\[SEP] sawIt (saw command repeated) is $sawIt\n"
+                }
+                if {!$noEcho && !$sawIt} { exp_continue }
+                set state "SUCCESS"
+           }
+    
+           -re "$login_prompt" {
+                if {$VERBOSE} {
+                   send_user "\[SEP] sawIt (saw command repeated) is $sawIt\n"
+                }
+                set state "LOGIN"
+           }
+    
+           -re $endl {
+                if {![log_user -info]} { send_user -- "$expect_out(buffer)"}
+                exp_continue
+           }  ;# End match endl
+       }  ;# End expect{}
+    }
+    if {$VERBOSE} { send_user "\[SEP] Returning $state\n" }
+    return $state
+}   ;# End SendExpectPrompt
+   
+
+#********************************** Send File **********************************
+# Inputs: filename  - self-explanatory
+#         checkFlag - Flag whether or not to use checking
+#                    (using SendExpectPrompt)
+#                    when sending lines.
+#
+# Outputs: <none>
+#
+# Sends the file passed as a parameter one line at a time by
+# calling SendExpectPrompt.
+#*******************************************************************************
+proc SendFile { filename checkFlag } {
+    global send_slow
+    global tetExit
+
+    if {![info exists send_slow]} {
+       set send_slow {1 .005}
+    }
+
+    if { [file exists $filename] } {
+    set FILE [open $filename "r"]
+    while { [gets $FILE line] != -1 } {
+        regsub #.*$ $line "" line        ;# Remove comments
+        if { $line == "" } {
+        continue
+        }
+            if {[regexp -nocase {<CR>} $line]} {
+               set line ""
+            }
+            if {[regexp -nocase {\^B} $line]} {
+               set line "\x02"
+            }
+        if {$checkFlag} {
+           set state [SendExpectPrompt "$line\r" 1]
+               if {$state  == "FAILED"} {
+                  send_user "\nCommand: '$line' failed\n"
+                  ErrorMessage "Failed to send command from $filename\n" $tetExit(FAIL)
+               }
+        } \
+        else {
+           send -s "$line\r"
+        }
+         
+    }
+    } else {
+    send_user "\[SM] Error: Could not locate '$filename'\n"
+    Done 3
+    }
+}   ;# End SendFile
+
+
+################################################################################
+#   Other utility routines
+################################################################################
+
+#********************************** Time Stamp *********************************
+#  Write a timestamp into the shmoo log
+#  Input:  None
+#  Output:  Print a timestamp to STDOUT
+#  Return:  A timestamp in the format YYYY:MM:DD_hh:mm:ss
+#           where
+#             YYYY = year
+#             MM   = Month (01 = January)
+#             DD   = Day of the month
+#             hh   = hour (24-hour clock)
+#             mm   = minute
+#             ss   = second
+#           This timestamp is in the format for the ComputeElapsedTime
+#           subroutine (below).
+#*******************************************************************************
+proc TimeStamp {} {
+    global VERBOSE
+    if {$VERBOSE} {send_user "\n\[SM] Getting Date Stamp\n"}
+    set failed [catch {exec date +%Y:%m:%d_%H:%M:%S} dateStamp]
+    if {!$failed} {
+         send_user "\t\[SM] Timestamp: $dateStamp\n"
+    } \
+    else {
+         send_user "\[SM] Failed to read time!\n"
+         send_user "\tDEBUG: Exit value is $failed\n"
+         send_user "\tDEBUG: $dateStamp\n"
+    }
+    return $dateStamp
+}   ;# End TimeStamp
+
+#******************************* ComputeElapsedTime ****************************
+#  Compute the difference in time between two events
+#  Input:  Start time in TimeStamp format
+#          End time in TimeStamp format
+#  Output:  Print a timestamp to STDOUT
+#
+#*******************************************************************************
+proc ComputeElapsedTime { start stop } {
+   global VERBOSE
+   global tetExit
+   if {$VERBOSE} {
+      send_user "\n\[Sm] Computing Elapsed Time:\n"
+      send_user "\tStart Time = $start\n"
+      send_user "\tStop Time = $stop\n"
+      send_user "\n"
+   }
+   # Check to see that the input times are in the right format:
+   if {! [regexp {[0-9]+:[0-9]+:[0-9]+_[0-9]+:[0-9]+:[0-9]} $start]} {
+       send_user "\n\[SM] ERROR:  Start time is not in correct format!!\n"
+       Done 1
+   }
+   if {! [regexp {[0-9]+:[0-9]+:[0-9]+_[0-9]+:[0-9]+:[0-9]} $stop]} {
+       send_user "\n\[SM] ERROR:  Stop time is not in correct format!!\n"
+       Done 1
+   }
+   set startOrts [split $start :_]
+   set stopOrts [split $stop :_]
+   # Set the start and stop times to decimal integers otherwise
+   #  fields like 08 will be interpreted as octal
+   for { set i 0 } {$i < [llength $startOrts]} {incr i} {
+      scan [lindex $startOrts $i] %d atom
+      lappend beginOrts $atom
+   }
+   for { set i 0 } {$i < [llength $stopOrts]} {incr i} {
+      scan [lindex $stopOrts $i] %d atom
+      lappend endOrts $atom
+   }
+   set deltaYear [expr [expr int([lindex $endOrts 0])] - [expr int([lindex $beginOrts 0])]]
+   set deltaMonth [expr [expr int([lindex $endOrts 1])] - [expr int([lindex $beginOrts 1])]]
+    # We will only compute changes with hourly granularity
+    # To extend to longer periods, we need a mapping of days in each
+    #  month and a leap year filter.
+
+   set deltaDay [expr [expr int([lindex $endOrts 2])] - \
+                  [expr int([lindex $beginOrts 2])]]
+
+   set deltaHour [expr [expr int([lindex $endOrts 3])] - \
+                  [expr int([lindex $beginOrts 3])]]
+
+   if {$VERBOSE} {
+       send_user "Raw deltaDay = $deltaDay\n"
+       send_user "Raw deltaHour = $deltaHour\n"
+   }
+
+   if {[expr $deltaHour < 0]} {
+       set deltaDay [expr int($deltaDay - 1)]
+       set deltaHour [expr int($deltaHour + 24)]
+   }
+
+   if {$VERBOSE} {
+       send_user "Cooked deltaDay = $deltaDay\n"
+       send_user "Cooked deltaHour = $deltaHour\n"
+   }
+
+   set deltaMinute [expr [expr int([lindex $endOrts 4])] - \
+                    [expr int([lindex $beginOrts 4])]]
+   if {$VERBOSE} {
+       send_user "Raw deltaMinute = $deltaMinute\n"
+   }
+   if {[expr $deltaMinute < 0]} {
+       set deltaHour [expr int($deltaHour - 1)]
+       set deltaMinute [expr int($deltaMinute + 60)]
+   }
+
+   if {$VERBOSE} {
+       send_user "Cooked deltaHour = $deltaHour\n"
+       send_user "Cooked deltaMinute = $deltaMinute\n"
+   }
+
+   set deltaSecond [expr [expr int([lindex $endOrts 5])] - [expr int([lindex $beginOrts 5])]]
+
+   if {$VERBOSE} {
+       send_user "Raw deltaMinute = $deltaMinute\n"
+       send_user "Raw deltaSecond = $deltaSecond\n"
+   }
+   if {[expr $deltaSecond < 0]} {
+       set deltaMinute [expr int($deltaMinute - 1)]
+       set deltaSecond [expr int($deltaSecond + 60)]
+   }
+   if {$VERBOSE} {
+       send_user "Cooked deltaMinute = $deltaMinute\n"
+       send_user "Cooked deltaSecond = $deltaSecond\n"
+   }
+   set deltaHour [format "%0.2d" $deltaHour]
+   set deltaMinute [format "%0.2d" $deltaMinute]
+   set deltaSecond [format "%0.2d" $deltaSecond]
+   if {$VERBOSE} {
+      send_user "\tComputeElapsedTime returning:\n"
+      send_user "\t${deltaHour}:${deltaMinute}:${deltaSecond}\n"
+   }
+
+   return "${deltaHour}:${deltaMinute}:${deltaSecond}"
+}
+   
+#*********************************** Done **************************************
+# Inputs: code - the exit code
+#
+# Outputs: <none>
+#
+# Done prints the failure chassis codes if any and then
+# exits with the code passed as a parameter.
+#*******************************************************************************
+proc Done { code } {
+    global connected atOAprompt atILOprompt
+    global atConsole
+    global TimeIt
+    global type
+    global DRYRUN VERBOSE
+
+    # Send disconnect key strokes with pauses to prevent
+    #  dropping characters
+    set send_slow {1 .005}
+    # Make sure referenced global variables exists
+    if {! [info exists VERBOSE] } {
+        # Do we want debug messages?
+        set VERBOSE 0
+    }
+    if {! [info exists DRYRUN] } {
+        # Are we doing a dryrun test?
+    set DRYRUN 0
+    }
+    if {! [info exists atConsole] } {
+        # Are we at the system console?
+        set atConsole 0
+    }
+    if {! [info exists atILOprompt] } {
+        # Are we at the iLO prompt?
+        set atILOprompt 0
+    }
+    if {! [info exists atOAprompt] } {
+        # Are we at the OA prompt?
+        set atOaprompt 0
+    }
+    if {! [info exists caller] } {
+        # Who is calling this routine
+        set caller ""
+    }
+        # Print out a timestamp of when we finished
+    if {[info exists TimeIt] && $TimeIt} {
+        TimeStamp
+    }
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] Done:\n"
+        send_user "\tconnected = $connected\n"
+        if {$atConsole} {send_user "\tAt system console\n"}
+        if {$atILOprompt} {send_user "\tDisconnecting from iLO"}
+        if {$atOAprompt} {send_user "\tDisconnecting ... from OA\n"}
+        send_user "\n\[SM] Return code is $code\n"
+    }
+
+    if {!$VERBOSE} {log_user 0}
+    if {$connected} {
+        if {$atConsole} {
+           if {$VERBOSE} {
+              send_user "\[SM] Disconnecting from the system console\n"
+           }
+           if {![ILOlogout]} {
+              send_user "\n\tWARNING: Couldn't log out of iLO console\n"
+           }
+        }
+        if {$atOAprompt} {
+           if {![OAlogout]} {
+              send_user "\n\tWARNING: Couldn't log out from OA session\n"
+           }
+        }
+        # Harvest the process table wait status as soon as available
+        set waitval [catch {wait -nowait} reason]
+        if { $VERBOSE >= 3 } {
+            send_user "\n\[SM] Wait return code: $waitval, output: $reason\n"
+        }
+
+        # Give it half a second in case it is slow to react
+        sleep 0.5
+    }
+
+    exit $code;
+}   ;# End Done
+
+
+#********************************* Timed Out ***********************************
+# Inputs: str - String to print with the timeout message
+#    code - return code to pass to done which exits
+#
+# Outputs: <none>
+#
+# Prints the timeout message and calls done with the exit
+# value passed
+#*******************************************************************************
+proc TimedOut { str code } {
+    send_user "\n\[SM] Timed out $str\n";
+    Done $code
+}
+
+#********************************** Warning ************************************
+# Inputs: str - String to print with the error message
+#    code - return code to pass to done, which exits
+#
+# Outputs: <none>
+#
+# Prints the error message and calls done with the exit
+# value passed
+#*******************************************************************************
+proc Warning {msg} {
+
+     # Remove the first trailing newline, we'll
+     # give that one for free.
+    regsub "\n$" $msg "" msg
+    send_user "\n\tWARNING: $msg\n\n";
+}
+
+#****************************** Error Message **********************************
+# Inputs: str - String to print with the error message
+#    code - return code to pass to done, which exits
+#
+# Outputs: <none>
+#
+# Prints the error message and calls done with the exit
+# value passed
+#*******************************************************************************
+proc ErrorMessage { msg code } {
+
+     # Remove the first trailing newline, we'll
+     # give that one for free.
+    regsub "\n$" $msg "" msg
+    send_user "\n\ERROR: $msg\n";
+    
+    Done $code
+}
+
+#************************************ Error **************************************
+# Inputs: str - String to print with the error message
+#
+# Outputs: <none>
+#
+# Prints the error message and returns
+#*********************************************************************************
+proc Error { msg } {
+
+     # Remove the first trailing newline, we'll
+     # give that one for free.
+    regsub "\n$" $msg "" msg
+    send_user "\n\ERROR: $msg\n";
+}
+
+#******************************* Set Sig Traps ************************************
+# Inputs:
+# Outputs:  None.  Routine will exit state machine if any of the setup fails
+#        
+#
+# Set traps for different signals that the state machines might encounter.
+#
+#**********************************************************************************
+proc SetSigTraps {} {
+  # Set interrupt handlers
+  trap Interrupt { INT QUIT TERM ABRT }
+}
+
+
+#
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+#
