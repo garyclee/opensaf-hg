@@ -1,0 +1,165 @@
+#!/bin/bash
+#
+#  Name: bug_306
+#
+#  Description: Regression test for bug 306, hisv power-cycle powers down,
+#			 	but does not power up a bl465.
+# 
+#  Notes:
+#	 Uses ../src/hisv_power_ctrl binary to make API calls.
+#
+#    The test sequence is
+#		1.  Get the power state of all systems in the enclosure
+#		2.  Set the power state of the system to be tested to a known state
+#		3.  Make a copy of the HISv log to be able to identify new entries.
+#		4.  Use the API code to set the power state of a system.
+#		5.  Read the power state of all the systems again.
+#		6.  Verify that the power states of the systems are as expected
+#			- Systems that did not have the API-test code applied to them 
+#			  are in the same state as before.
+#			- The system whose power state was changed by the API is now
+#			  in the new power state.
+#		7.  Read new entries in the HISv log and verify their validity.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+################################################################################
+
+#*******************************************************************************
+#                             Common Environment
+#*******************************************************************************
+shopt -s extglob 		# POSIX regular expression matches
+[[ $DEBUG = 1 ]] && set -o xtrace
+
+#*******************************************************************************
+#                                  Libraries
+#*******************************************************************************
+ # Figure out where the libraries are located and source them
+declare MyPath=$(which ${0##*/} | sed -e "s:/[^/]*$::")
+[[ -z $LIB_PATH ]] && export LIB_PATH=${MyPath}/../lib
+if [[ -s $LIB_PATH/libTestUtils ]]
+then
+   . $LIB_PATH/libTestUtils
+else
+   echo -e "\n**>ERROR: Couldn't find libTestUtils"
+   exit 1
+fi
+if [[ -s $LIB_PATH/libHisvApi ]]
+then
+   . $LIB_PATH/libHisvApi
+else
+   echo -e "\n**>ERROR: Couldn't find libHisvApi"
+   exit 1
+fi
+
+#*******************************************************************************
+#                          Global and Default Variables
+#*******************************************************************************
+ # Test-related Global variables
+export APItest=hisv_power_ctrl
+export WaitTime=20
+
+#*******************************************************************************
+#                              Local Subroutines
+#*******************************************************************************
+function fCheckInput
+{
+  local inputError=0
+  [[ -z $ConfigFile ]] && \
+	fError  "You must specify a configuration file with test parameters" && \
+      inputError=1
+
+  [[ -z $ControllerBlade ]] && \
+	fError "You must specify the controller blade number in the configuration file" && \
+      inputError=1
+
+  [[ -z $PayloadBlade ]] && \
+	fError "You must specify the payload blade number in the configuration file" && \
+      inputError=1
+
+  [[ -z $ControllerEntityPath ]] && \
+	fError "You must specify the controller entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $PayloadEntityPath ]] && \
+	fError "You must specify the payload entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $OA ]] && \
+	fError "You must specify the OA host name or IP in the configuration file" && \
+      inputError=1
+
+  if (( inputError ))
+  then
+     exit $NORESULT
+  else
+     return
+  fi
+}
+
+#*******************************************************************************
+#                                    MAIN
+#*******************************************************************************
+ # Insure cleanup on exit
+trap 'fCleanup' EXIT
+
+ # Get the user's data
+fParseCmdline $*
+
+if [[ -z $ConfigFile ]]
+then
+	ConfigFile=$DefaultConfigFile
+	fWarn "User didn't input config file, using default, $ConfigFile"
+fi
+
+ # Verify whether or not the test should be run
+fCheckRunTest
+
+ # Print the system configuration
+fShowConfig
+
+ # Verify that this is a bl46* system
+if [[ $MODEL != *@(B|b)@(L|l)46* ]]
+then
+   fErrorExit $SKIPPED "This is not a ProLiant BL46* system, skipping test"
+fi
+
+ # Read the data from the configuration file
+if ! fReadCfgFile $ConfigFile
+then
+    fErrorExit $SKIPPED "Failed to read $ConfigFile"
+fi
+
+ # Verify that the user set up the required parameters
+fCheckInput
+
+
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ #                                 Run Tests
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  # Print the test header
+fInitTest "Bug 306, hisv power-cycle only powers down a blade"
+
+fBeginTest "Power-cycle Payload using entity path"
+declare ep=$PayloadEntityPath
+fRunApiTest -t Payload -p $ep -s cycle -c $Chassis
+fEndTest
+#  Test is done, exit with the appropriate value
+exit $EXIT_VAL
+
+# vim: tabstop=4
+# -*- tab-width:4 -*-

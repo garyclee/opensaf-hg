@@ -1,0 +1,2184 @@
+#!/bin/bash
+#
+# libHisvApi: Library of common routines for the HISv tests
+#
+# Routines:
+#   fHisvApiTest		Run the API-test code.
+#   fRunApiTest			Run a power-APi test.
+#   fCheckHotSwapEvents Check the HISv log file for reported hot-swap events
+#   fSetKnownPowerState Set the system under test into a known power state
+#   fReadPowerState		Read power state of systems in an enclosure
+#   fBckupLog			Make a copy of the HISv log
+#   fDiffLog			Get latest entries in the HISv log
+#   fVerifyPowerState 	Check the power states of systems in the enclosure
+#   fVerifyReset		Verify that a system was really reset
+#   fRunLookupTest		Run a entity-path lookup test
+#   fGenExpectedPath	Generate what the expected path will look like
+#   fPerformLookup		Run the API code that does the lookup
+#   fGetReportedEntityPath
+#						Parse the output of the API application to get the
+#						entity path from it.
+#   fCheckPath			Check the expected entity path against what's
+#						expected.
+#   fReadCfgFile		Read user's test-configuration file
+#   fFillInVariables	Given an entity path, get the chassis ID and
+#						blade ID, or vice versa.
+#   fCleanup			Exit routine to clean up after running tests
+#						 - Turn systems back on
+#						 - Print a test summary
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+################################################################################
+if [[ -z $__LIB_HISV_API ]]
+then
+export __LIB_HISV_API=1
+# POSIX regular expressions
+shopt -s extglob
+
+#*******************************************************************************
+#                             Globals and Defaults
+#*******************************************************************************
+ # Make sure that the tools are in the user's path
+export PATH=.:../src:../suites:$PATH
+
+ # Tools used by routines in this library
+export ReadPowerTool=readOaPower
+export ResetCheckTool=getState
+export SetPowerTool=setPower
+export HpiHeaderParser=sahpi_parser
+
+ # Default user's configuration file
+export DefaultConfigFile="test.dat"
+ # HISV service log location
+export HplLog="/var/lib/opensaf/stdouts/ncs_hisv.log"
+ # Entity-related constants
+export HpiBladeEntity="SAHPI_ENT_SYSTEM_BLADE"
+export HpiChassisEntity="SAHPI_ENT_SYSTEM_CHASSIS"
+export HpiRootEntity="SAHPI_ENT_ROOT"
+export HpiRootLocation=0
+
+ # HISv log errors that we keep track of for logging
+export LogNoEntries=0x01
+export LogEntityError=0x02
+export LogNoEntity=0x04
+export LogWrongReset=0x08
+export LogHpiError=0x10
+export -a LogAllErrors=($LogNoEntries $LogEntityError $LogNoEntity $LogWrongReset $LogHpiError)
+ # HISv log hot swap events
+export LogHSActive=0x100
+export LogHSxPending=0x200
+export LogHSInactive=0x400
+export LogHSAny=$(( LogHSActive | LogHSxPending | LogHSInactive ))
+ # HISv API-test error output
+export ApiNoHamError=0x01
+export ApiMdsError=0x02
+export ApiInvalidIndexErr=0x04
+export ApiLookupError=0x08
+export ApiInvalidInputErr=0x10
+
+ # Messages associated with the log entries
+export -a LogErrMsg
+	LogErrMsg[$((LogNoEntries))]="no new entries in HISv log"
+	LogErrMsg[$((LogEntityError))]="entity-path lookup error"
+	LogErrMsg[$((LogNoEntity))]="HAM didn't find an entity for the given path"
+	LogErrMsg[$((LogWrongReset))]="HAM applied the wrong reset"
+	LogErrMsg[$((LogHpiError))]="API caused HPI error"
+	LogErrMsg[$((LogHSActive))]="transition to hot-swap active state"
+	LogErrMsg[$((LogHSxPending))]="hot-swap extraction pending state"
+	LogErrMsg[$((LogHSInactive))]="transition to hot-swap inactive state"
+	LogErrMsg[$((LogHSAny))]="any hot-swap inactive state"
+	
+ # For keeping track of log files to check HISv library calls.
+export LastLog
+export HisvDiffFile
+ # Other information used by the test
+export -a Cluster
+export FwWaitTime=90
+export ApiWaitTime=45
+fi
+
+ # Get access to library routines like fErrorExit, fWarn, fError, etc.
+. $LIB_PATH/libTestUtils
+
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fHisvApiTest: run the API test code, checking the return value to verify
+#               success or failure (of the API code).
+# Input:
+#       (global) APItest - the name of the API test application (in the ../src
+#						   directory).
+#       -t bladeType     - Controller or Payload.  Just for printing 
+#                          informational messages.
+#       -p entityPath    - The entity path required by the API to communicate
+#                          with the target resource.  Used in entity path tests.
+#       -s state         - Set target system to power state $state.
+#       -r reset         - Apply this reset to target system.
+#       -c chassis       - Specify the chassis for the first argument of
+#                          hpl_resource_power_set() and hpl_resource_reset()
+#                          APIs as well as in the path-lookup tests.
+#       -b bladeNumber   - Specify the blade/bay number of the system to
+#                          apply the reset or power set.  Used in the
+#                          entity lookup tests.
+#       -f               - Force -- cause the API-test code to skip input
+#                          validity checking.
+#       -fail [type]     - Expect the API call to fail (so don't print an
+#                          error message if a failure is detected).
+#						   <type> specifies the expected failure type:
+#							  1 => No HAM managing chassis
+#
+# Return:
+#       0  (shell success) if the test code succeeds or fails as specified
+#                          by the -fail option.
+#       1  (shell failure) if the test code fails or succeeds as specified
+#                          by the -fail option.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fHisvApiTest
+{
+	local retVal=0 		# The return value from this routine
+    local bladeType
+    local entityPath
+    local state
+    local reset
+    local expectFail
+    local bladeNumber
+    local chassis
+    local verb
+    local testType
+	local testLog=$APItest.log.$(eval $TS)
+	local failType
+
+    local apiOpts
+
+     # Parse the options passed to this routine
+    while (( $# ))
+    do
+       local opt=$1
+       shift
+       case $opt in
+          #( ( ( ( ( ( ( editor syntax matching
+		  -b )
+			 blade=$1
+			 [[ -z $apiOpts ]] && apiOpts="-blade $1" || apiOpts="$apiOpts -blade $1"
+			 testType="path lookup"
+			 shift
+			 ;;
+
+		  -c ) 
+			 chassis=$1
+			 [[ -z $apiOpts ]] && apiOpts="-chassis $1" || apiOpts="$apiOpts -chassis $1"
+			 shift
+			 ;;
+
+		  -fail )
+			 expectFail=1
+			 [[ -z $apiOpts ]] && apiOpts="-f" || apiOpts="$apiOpts -f"
+			 while [[ $1 = +([0-9]) ]] || [[ $1 = 0+(x|X)+([0-9A-Fa-f]) ]]
+			 do
+				(( failType |= $1 ))
+				shift
+			 done
+			 ;;
+
+		  -F | -f ) 
+			 expectFail=1
+			 [[ -z $apiOpts ]] && apiOpts="-f" || apiOpts="$apiOpts -f"
+			 ;;
+
+		  -p )
+			 entityPath=$1
+			 [[ -z $apiOpts ]] && apiOpts="-path '$1'" || apiOpts="$apiOpts -path '$1'"
+			 testType="entity-path"
+			 shift
+			 ;;
+
+		  -r )
+			 reset=$1
+			 [[ -z $apiOpts ]] && apiOpts="-reset $1" || apiOpts="$apiOpts -reset $1"
+			 verb="$reset reset"
+			 shift
+			 ;;
+			 
+          -s )
+             state=$1
+             verb="set power $state"
+             [[ -z $apiOpts ]] && apiOpts="-state $1" || apiOpts="$apiOpts -state $1"
+             shift
+             ;;
+             
+          -t )
+             bladeType=$1
+             shift
+             ;;
+       esac
+    done
+             
+		# verb is set when a reset type or power setting is specified
+    [[ -z $verb ]] && fErrorExit $SKIPPED "test is broken -- fHisvApiTest called w/o reset or power command"
+    echo -e "\nPerforming $verb using command:\n    $APItest $apiOpts"
+		# Capture test output to parse later
+    $APItest $apiOpts 2>&1 | tee $testLog
+    local status=${PIPESTATUS[0]}
+    echo "$APItest returned $status"
+    if (( status ))
+    then
+       if (( expectFail ))
+       then
+		  echo -e "\t$verb failed (as expected) on $bladeType"
+		  retVal=0
+       else
+		  fError "Failed to $verb on $bladeType"
+		  retVal=1
+       fi
+	elif (( expectFail )) && (( ! status ))
+	then
+		fError "$APItest returned success, expected failure"
+		retVal=1
+	else
+		echo -e "\t$verb succeeded"
+    fi
+
+	  # Check for error messages in the API output
+	if grep -iq "No HAM managing chassis"  $testLog
+	then
+		if [[ -n $failType ]] && (( $failType & $ApiNoHamError ))
+		then
+			:
+		else
+			fError "Found unexpected HAM error message in $APItest output"
+			retVal=1
+		fi
+	else
+		if [[ -n $failType ]] && (( $failType & $ApiNoHamError ))
+		then
+			fError "Didn't find expected HAM error message in $APItest output"
+			retVal=1
+		fi
+	fi
+
+	if grep -iq "MDS:ERR"  $testLog
+	then
+		if [[ -n $failType ]] && (( $failType & $ApiMdsError ))
+		then
+			:
+		else
+				fError "Found unexpected MDS error message in $APItest output"
+				retVal=1
+		fi
+	else
+		if [[ -n $failType ]] && (( $failType & $ApiMdsError ))
+		then
+			fError "Didn't find expected MDS error message in $APItest output"
+			retVal=1
+		fi
+	fi
+
+	if grep -iq "Invalid Index"  $testLog
+	then
+		if [[ -n $failType ]] && (( $failType & $ApiInvalidIndexErr ))
+		then
+			:
+		else
+			fError "Found unexpected 'invalid index' error message in $APItest output"
+			retVal=1
+		fi
+	else
+		if [[ -n $failType ]] && (( $failType & $ApiInvalidIndexErr ))
+		then
+			fError "Didn't find expected 'invalid index' error message in $APItest output"
+			retVal=1
+		fi
+	fi
+
+	if grep -iq "hpl_entity_path_lookup.*did not find"  $testLog
+	then
+		if [[ -n $failType ]] && (( $failType & $ApiLookupError ))
+		then
+			:
+		else
+			fError "Found unexpected hpl_entity_path_lookup error message in $APItest output"
+			retVal=1
+		fi
+	else
+		if [[ -n $failType ]] && (( $failType & $ApiLookupError ))
+		then
+			fError "Didn't find expected hpl_entity_path_lookup error message in $APItest output"
+			retVal=1
+		fi
+	fi
+
+	if grep -iq "Invalid input detected"  $testLog
+	then
+		if [[ -n $failType ]] && (( $failType & $ApiInvalidInputErr ))
+		then
+			:
+		else
+			fError "Saw unexpected Invalid input error message in $APItest output"
+			retVal=1
+		fi
+	else
+		if [[ -n $failType ]] && (( $failType & $ApiInvalidInputErr ))
+		then
+			fError "Didn't find expected invalid input error message in $APItest output"
+			retVal=1
+		fi
+	fi
+
+	 # Clean up the test log
+#    (( ! retVal )) && rm -f $testLog
+		# Remove the log since its output was printed out above.
+    rm -f $testLog
+    return $retVal
+}	# End fHisvApiTest
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fRunApiTest:
+#		Do each of the following steps for a test of the power or reset API.
+#			1.  Get the power state of all systems in the enclosure
+#			2.  Set the power state of the system to be tested to a known state
+#			3.  Make a copy of the HISv log to be able to identify new entries.
+#			4.  Use the API code to set the power state of or reset a system.
+#			5.  Read the power state of all the systems again.
+#			6.  Verify that the power states of the systems are as expected
+#			    - Systems that did not have the API-test code applied to them
+#			      are in the same state as before.
+#			    - The system whose power state was changed by the API is now
+#			      in the new power state.
+#			7.  If the test is a reset test, verify whether the target system
+#				was reset.
+#			8.  Read new entries in the HISv log and verify their validity.
+#
+# Input:
+#	The following options are passed to fHisvApiTest:
+#       -t bladeType     - Controller or Payload.
+#       -p entityPath    - The entity path required by the API to communicate
+#                          with the target resource.  Used in entity path tests.
+#       -s state         - Set target system to power state $state.
+#       -c chassis       - Specify the chassis for the first argument of
+#                          hpl_resource_power_set() and hpl_resource_reset()
+#                          APIs as well as in the path-lookup tests.
+#       -b bladeNumber   - Specify the blade/bay number of the system to
+#                          apply the reset or power set.  Used in the
+#                          entity lookup tests.
+#       -f               - Force -- cause the API-test code to skip input
+#                          validity checking.
+#       -fail            - Expect the API call to fail (so don't print an
+#                          error message if a failure is detected).
+#	The following options are used within this routine
+#		-logerr logMask1 logMask2 ...
+#						 -  Masks for entries in the HISv log that indicate errors.
+#		-logreq logMask1 logMask2 ...
+#						 -  Masks for entries expected in the HISv log file.
+# Return:
+#		void			 - Will exit if any critical steps in the test
+#						   fail.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fRunApiTest
+{
+	 # This is for log-entry types
+	local -a logExpected
+	 # Other test parameters we need to know here
+	local pwrState
+	local resetType
+	local testType			# Is this a power or reset test?
+	local bladeType
+	local expectFail=0 		# Expect API command to fail
+	local verb				# For test description
+
+     # Parse the options passed to this routine
+    local i
+	local lexpIndex=0
+
+	 # Use a for loop to keep the arguments intact so that they
+	 #  can be passed as is to fHisvApiTest
+    for (( i = 1; i <= $#; i++ ))
+    do
+       local opt=$(eval echo '${'$i'}')
+
+       case $opt in
+
+		  -fail )
+			expectFail=1
+			local j=$(( i + 1 ))
+			[[ $(eval echo '${'$j'}') = +([0-9]) ]] && (( i++ ))
+			;;
+
+		  -logreq | -lreq | -log_req | -logexp | -lexp | -logExp | -log_exp )
+			for (( i++ ; i <= $#; i++ ))
+			do
+				local logOpt=$(eval echo '${'$i'}')
+				if [[ $logOpt != 0+(X|x)+([0-9A-Fa-f]) ]] && [[ $logOpt != +([0-9]) ]]
+				then
+					(( i-- ))
+					break
+				else
+					logExpected[$lexpIndex]=$logOpt
+					(( lexpIndex++ ))
+				fi
+			done
+			;;
+
+          -r | -reset )
+			 (( i++ ))
+             resetType=$(eval echo '${'$i'}')
+			 testType="reset"
+			 verb="apply $resetType reset"
+			  # The test uses this to set the initial power state to "on"
+			  #  for resets.
+			 if [[ $(echo $resetType | tr [:upper:] [:lower:]) = deassert ]]
+			 then
+				pwrState="on"
+			 else
+			 	pwrState="off"
+			 fi
+             ;;
+
+          -s )
+			 (( i++ ))
+             pwrState=$(eval echo '${'$i'}')
+			 testType="power"
+			 verb="set power $pwrState state"
+             ;;
+             
+          -t )
+			 (( i++ ))
+             bladeType=$(eval echo '${'$i'}')
+             ;;
+
+       esac
+    done
+	# We have to do some parameter adjustment for reset tests that
+	# are expected to fail -- the systems should always be "on".
+	if (( expectFail )) && [[ $testType = "reset" ]]
+	then
+		# pwrState is the "final" power state expected, so fSetKnownPowerState
+		# will set the power state to the opposite state... (the interface
+		# seemed logical at the time....
+		pwrState=off
+	fi
+	
+
+	# Start the test
+	  # Read the power states of the systems in the enclosure
+	  # to check against the power states after the API call.
+	if ! fReadPowerState SysPowerBefore
+	then
+  		fError "Failed to read the power status of systems with oa '$OA'"
+		return
+	fi
+
+	  # Make sure that the system is initially a power state
+	  #  where the change in state can be detected
+	
+	fSetKnownPowerState $pwrState $bladeType
+	local pwrStateChanged=$?
+	(( ! ContinueTest )) && return
+	if (( $pwrStateChanged ))
+	then
+		# For a reset test, the system has to be booted to the login prompt
+		# or else the test will report that it is resetting.
+		if [[ $testType = "reset" ]]
+		then
+			echo -e "\nWaiting additional 120 seconds for the system to finish booting\n"
+			(( ! DRYRUN )) && sleep 120
+		fi
+	fi
+
+	  # Get a backup of the HISv log file so we can see any changes after
+	  #  applying the API test.
+	if ! fBckupLog
+	then
+    	fError "Failed to back up hisv log"
+		return
+	fi
+
+	  # Now run the API test
+	fHisvApiTest $*
+
+	  # Verify that the state of the all of the systems in the
+	  # enclosure are at the correct power state.
+		# First wait a moment to make sure that the power has reached
+		# its final state
+	[[ -z $ApiWaitTime ]] && export ApiWaitTime=45
+	echo -e "Waiting $ApiWaitTime seconds for system to $verb"
+	(( ! $DRYRUN )) && sleep $ApiWaitTime
+	if ! fReadPowerState SysPowerAfter
+	then
+   		fError "Failed to read the power state of systems in $OA after trying reset"
+	fi
+	  # If the API is expected to succeed, the power state should be 
+	  #  the input power state. 
+	  # Decide what the final power state should be based on the type of
+	  #  test and the action being applied.
+	  #   - For a test that should fail, the power state should be unchanged.
+	  #   - For a warm, cold or reboot-reset test, the power state should be
+	  #     unchanged.
+	  #   - For an assert reset, where #RESET is asserted, the power state
+	  #     should be off, see section 7.12.2 of the B.02.01 revison of
+	  #     SA forum's HPI spec.
+	  #   - For a deassert reset, where #RESET is deasserted, the power state
+	  #     should be on, see section 7.12.2 of the B.02.01 revison of
+	  #     SA forum's HPI spec.
+	local finalPwrState
+	if (( expectFail ))
+	then
+ 		finalPwrState="UNCHANGED"
+	elif [[ $testType = "reset" ]] && [[ $(echo $resetType | tr [:upper:] [:lower:]) != *assert ]]
+	then
+ 		finalPwrState="UNCHANGED"
+	elif [[ $testType = "reset" ]] && [[ $(echo $resetType | tr [:upper:] [:lower:]) = assert ]]
+	then
+ 		finalPwrState="OFF"
+	elif [[ $testType = "reset" ]] && [[ $(echo $resetType | tr [:upper:] [:lower:]) = deassert ]]
+	then
+ 		finalPwrState="ON"
+	else
+		# This is the case where we're running a power-API functional test:
+		finalPwrState=$pwrState
+	fi
+
+	if ! fVerifyPowerState $bladeType $finalPwrState
+	then
+ 		fError "verifying power states of systems before and after tests"
+	fi
+
+	  # If the test is a reset test, check if the system reset
+	if [[ $testType = "reset" ]] && [[ $(echo $bladeType | tr [:upper:] [:lower:]) != "invalid" ]]
+	then
+		if fVerifyReset $bladeType $resetType
+		then
+			if (( ! expectFail ))
+			then
+				echo -e "\n\tDetected reset"
+			else
+				fError "Detected system resetting when it shouldn't"
+			fi
+		fi
+	fi
+
+	  # Check that the HISv log has the right messages in it.
+	fDiffLog
+	local cmdStatus=$?
+      # Verify that the log has the correct entries
+#		# First check for error entries:
+#    local logErrEntry
+#	for logErrEntry in ${logError[*]}
+#    do
+#		if (( cmdStatus & $logErrEntry ))
+#		then
+#			fError "${LogErrMsg[$((logErrEntry))]}"
+#		fi
+#    done
+
+	  # Now check for entries that we expect to be in the log
+	local logReq
+	for logReq in ${logExpected[*]}
+    do
+		if (( ! cmdStatus )) || (( ! cmdStatus & $logReq ))
+		then
+			fError "Didn't see expected ${LogErrMsg[$((logReq))]} in log"
+		fi
+    done
+
+	 # Check for other log errors that we aren't expecting
+	for logErrEntry in ${LogAllErrors[*]}
+	do
+		local skip=0
+		 # Skip the entries that we expect to see in the log file.
+		for logReq in ${logExpected[*]}
+		do
+			if (( $logErrEntry & $logReq ))
+			then
+				skip=1
+				break
+			fi
+		done
+		if (( ! skip ))
+		then
+			(( cmdStatus & logErrEntry )) && fError "Saw unexpected ${LogErrMsg[$((logErrEntry))]}"
+		fi
+	done
+	
+	
+
+	  # Check for Hot-swap events -- don't expect any if the API call is expected to fail.
+	if (( ! expectFail ))
+	then
+		if [[ $testType = "power" ]] || [[ $(echo $resetType | tr [:upper:] [:lower:]) = *assert ]]
+		then
+			fCheckHotSwapEvents $cmdStatus $pwrState
+		fi
+	else
+		if (( cmdStatus & LogHSAny ))
+		then
+			fError "Detected unexpected hot-swap-state changes in the HISv log"
+		fi
+	fi
+	return
+}	# End fRunApiTest
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fCheckHotSwapEvents: Check the HISv log file for reported hot swap events
+#
+# Input:
+#       $1 = logContent 	- the return value of fDiffLog
+#       $2 = pwrState		- The final power state of the system.
+#                         	  The assumption made here is that the power
+#							  state of the system transitioned from the
+#							  opposite state (e.g., off to on, or, in the
+#							  case of power-cycle on to off to on) during
+#							  the test.
+# Return:
+#       null				If expected hot swap events don't appear in the
+#							log file, fError is called, which sets the global
+#							test status variable FAILED.
+# Note:
+#       This routine should be called just after calling fDiffLog and
+#		should be passed the return value of this function.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fCheckHotSwapEvents
+{
+	local cmdStatus=$1
+	local pwrState=$(echo $2 | tr [:lower:] [:upper:])
+	
+	if [[ $pwrState = "OFF" ]] || [[ $pwrState = *CYCLE ]]
+	then
+		(( ! cmdStatus & LogHSxPending )) && \
+		  fError "Didn't see expected hot-swap extraction pending state"
+		(( ! cmdStatus & LogHSInactive )) && \
+		  fError "Didn't see expected hot-swap inactive state"
+	  	if [[ $pwrState = "OFF" ]] && (( cmdStatus & LogHSActive )) 
+	 	then
+			fError "saw unexpected hot-swap-active state when shutting down"
+		fi
+  	fi
+  	if [[ $pwrState = "ON" ]] || [[ $pwrState = *CYCLE ]]
+	then
+	  	(( ! cmdStatus & LogHSxPending )) && \
+			fError "Didn't see expected hot-swap extraction pending state"
+		(( ! cmdStatus & LogHSActive )) && \
+			fError "Didn't see expected hot-swap active state"
+		if [[ $pwrState = "ON" ]] && (( cmdStatus & LogHSInactive )) 
+		then
+			fError "saw unexpected hot-swap inactive state when powering up"
+		fi
+	fi
+}	# End fCheckHotSwapStates
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fSetKnownPowerState: Set the system under test into a known power state
+#               before running the API test.
+# Input:
+#       $1 = targetState	- the target state of the system after the test
+#       $2 = bladeID		- Specify which blade/bay number that will be
+#                         	  tested.
+#		(global) SysPowerBefore
+#							- The power state measured just prior to running
+#							  the test.
+# Return:
+#       0	- The system's power state was not changed.
+#		1	- The system's power state was changed.
+#
+#		If setting the power fails, the test exits, since
+#		any test results will not be reliable.
+#
+# Note:
+#       This routine should be called just after calling fReadPowerState and
+#		just before running fHisvApiTest.
+#
+#		This routine sets the appropriate state in the global variable
+#		SysPowerBefore if it successfully sets the power state.
+#
+#		This routine is tolerant of input that doesn't specify a power
+#		state, since it can be called for error handling test cases.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fSetKnownPowerState
+{
+	local targetState=$(echo $1 | tr [:lower:] [:upper:])
+	local bladeID=$2
+	local bay
+	local powerStateChanged=0
+
+    echo -e "\nVerifying that the test system is in the expected power state"
+      # Check input parameters
+    [[ -z $targetState ]] && return $powerStateChanged
+    [[ -z $bladeID ]] && return $powerStateChanged
+
+		# If we're power cycling the target, it's target state will be ON
+	if [[ $targetState = *CYCLE ]] 
+	then
+		targetState="OFF"
+	fi
+
+     # Set the bay number based on the blade ID
+	local console
+	if [[ $bladeID = +([0-9]) ]]
+	then
+	   bay=$blade
+	elif [[ $bladeID = Controller ]] || [[ $bladeID = Payload ]]
+	then
+	   bay=$(eval echo '${'${bladeType}Blade'}')
+	   console=$(eval echo '${'${bladeType}ILO'}')
+	elif [[ $bladeID = $ControllerEntityPath ]]
+	then
+	   bay=$ControllerBlade
+	   console=$ControllerILO
+	elif [[ $bladeID = $PayloadEntityPath ]]
+	then
+	   bay=$PayloadBlade
+	   console=$PayloadILO
+    else
+		# No info for state to set
+	   echo -e "\tPower state OK..."
+	   return
+	fi
+
+	local cmd
+	if [[ -n $console ]]
+	then
+    	cmd="$SetPowerTool -ilo $console"
+		[[ -n $ILOuser ]] && cmd="$cmd -ilo_user $ILOuser"
+		[[ -n $ILOpassword ]] && cmd="$cmd -ilo_passwd $ILOpassword"
+	elif [[ -n $OA ]] && [[ -n $bay ]]
+	then
+    	cmd="$SetPowerTool -oa $OA -sut $bay"
+		[[ -n $OAuser ]] && cmd="$cmd -oa_user $OAuser"
+		[[ -n $OApassword ]] && cmd="$cmd -oa_passwd $OApassword"
+	else
+		# This is for error-handling tests where an invalid
+		#  bay or entity path was given
+		fMessage "\tPower state is OK"
+		return
+	fi
+     # Allow the user to set junk in case this is a error-handling test.
+	if [[ $targetState != ON ]] && [[ $targetState != OFF ]]
+	then
+		# No info for state to set
+		echo -e "\tTarget power state is \"$targetState\", not setting power state"
+		return
+	fi
+
+    echo -e "\tCurrent state of the system is ${SysPowerBefore[$bay]}"
+	 # Now set the power to the expected state (on if it will be turned off)
+    if [[ ${SysPowerBefore[$bay]} = @([Oo][Ff][Ff]) ]] && [[ $targetState = @([Oo][Ff][Ff]) ]]
+    then
+
+		cmd="$cmd -on"
+		fMessage "\tTurning blade $bay ON at $(date +%H:%M:%S)"
+	 	$cmd
+		local cmdStatus=$?
+		fMessage "\tPower ON complete at $(date +%H:%M:%S)" 2
+	  	if (( $cmdStatus ))
+	  	then
+			fError "Blade $bay is OFF and can't turn it on for test"
+			ContinueTest=0
+	  	fi
+
+		# Wait a while for the system to power up
+		fMessage "Waiting $FwWaitTime seconds for the system to power up"
+		(( ! DRYRUN )) && sleep $FwWaitTime
+
+		# Now re-read the power state and set the power state.
+		if ! fReadPowerState SysPowerBefore
+		then
+  			fError "Failed to read the power status of systems after turning system $bay on"
+			ContinueTest=0
+		fi
+
+	  	if [[ ${SysPowerBefore[$bay]} != @([Oo][Nn]) ]]
+		then
+			fError "Failed to turn system $bay on to run test"
+			ContinueTest=0
+		fi
+		powerStateChanged=1
+    fi 
+	 # Set the power of the test system to off if it will be turned on)
+    if [[ ${SysPowerBefore[$bay]} = @([Oo][Nn]) ]] && [[ $targetState = @([Oo][Nn]) ]]
+    then
+		fMessage "\tTurning blade in bay $bay OFF at $(date +%H:%M:%S)"
+		cmd="$cmd -off"
+	 	$cmd
+		local cmdStatus=$?
+		fMessage "\tPower OFF complete at $(date +%H:%M:%S)" 2
+	  	if (( $cmdStatus ))
+	  	then
+			fError "Blade $bay is ON and can't turn it off for test"
+			ContinueTest=0
+	  	fi
+
+		# Wait a while for the system to bring power down
+		fMessage "Waiting $FwWaitTime seconds for the system to power down"
+		(( ! DRYRUN )) && sleep $FwWaitTime
+
+		# Now re-read the power state and set the power state.
+		if ! fReadPowerState SysPowerBefore
+		then
+  			fError "Failed to read the power status of systems after turning system $bay off"
+			ContinueTest=0
+		fi
+
+	  	if [[ ${SysPowerBefore[$bay]} != @([Oo][Ff][Ff]) ]]
+		then
+			fError "Failed to turn system $bay off to run test"
+			ContinueTest=0
+		fi
+		powerStateChanged=1
+    fi 
+
+	return $powerStateChanged
+}	# End fSetKnownPowerState
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fReadPowerState: Read the power state of all systems in enclosure specified
+#                  by the global variable OA.
+# Input:
+#       (global) OA		- the hostname or IP address of the 
+#						  on-board administrator module for the enclosure.
+#		(global) Cluster
+#						- Array defining which systems belong in the cluster.
+#						  Only read the power states for those systems in
+#						  the cluster.  Since the OA reports power states for
+#						  all systems in the enclosure, and other systems
+#						  could be affected by their primary controllers.
+#       (global) ReadPowerTool
+#						- The tool that dumps the power states of the 
+#						  systems in the enclosure.  The default is
+#						  readOaPower (set at the head of this library).
+#       sysVar			- the global array variable that will contain the
+#						  results of the reading.
+#						  fVerifyPowerState assumes that the variables are
+#						  called SysPowerBefore and SysPowerAfter for readings
+#						  before and after calling the API application.
+# Return:
+#       0  (shell success) if power states were successfully read by
+#						   readOaPower.
+#       1  (shell failure) if readOaPower fails.
+# Note:
+#		This uses a tool to actually dump the power states of the systems
+#		in the enclosure.  The name of the tool is set in global variable
+#       ReadPowerTool.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fReadPowerState
+{
+   local sysVar=$1
+   local oaLog=rop.log.$(eval $TS)
+
+   echo -e "\nReading power state of systems in enclosure $OA"
+
+   local cmd="$ReadPowerTool -oa $OA"
+   [[ -n $Domain ]] && cmd="$cmd -domain $Domain"
+   [[ -n $OAuser ]] && cmd="$cmd -oa_user $OAuser"
+   [[ -n $OApassword ]] && cmd="$cmd -oa_passwd $OApassword"
+   (( $DEBUG )) && cmd="$cmd -v"
+   $cmd | tee $oaLog
+   local status=${PIPESTATUS[0]}
+   if (( status ))
+   then
+      fError "Failed to read power status of the enclosure from $OA"
+      return 1
+   fi
+
+	# Define the members of the cluster to be all the systems in the
+	#  enclosure if not set by the user.
+   (( ! ${#Cluster[*]} )) && Cluster=(1 2 3 4 5 6 7 8 9 10 11 12)
+
+	# This command sets the array members of the variable passed into the
+	#  routine, whose indices match the cluster members, to the state reported
+	#  by the OA.  e.g., if the variable passed into the routine is
+	#  "SysPowerBefore" and the global Cluster array is (1 2 3 4),
+	#  then the following command reads the the OA output line,
+	#  "  3 ILOUSE7103JCE                 10.105.1.57     OK       Off Off"
+	#  set sets SysPowerBefore[3]="Off".
+   eval $(awk  -v var=$sysVar -v cluster="$(echo ${Cluster[*]} | sed 's/ /,/g')" '
+			BEGIN { numSys = split(cluster, members, ","); }
+			{
+             if ($0 ~ /ILO.*OK.*O[fn]/) {
+				for ( i = 1; i <= numSys; i++ ) {
+					if ($1 == members[i]) {
+                		print var "[" $1 "]=" $5;
+						break;
+					}
+				}
+			 }
+            }' $oaLog)
+
+     # Remove the temp file if we got a list of system-power states
+   if (( $(eval echo '${#'${sysVar}'[*]}') ))
+   then
+       rm -f $oaLog
+       return 0
+   fi
+     # Didn't successfully read system power states
+   return 1
+}	# End fReadPowerState
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fBckupLog: Make a backup copy of the HISv log so that new entries can easily
+#            be recognized.
+# Input:
+#       (global) TS		- Timestamp the copy of the log for debugging later.
+#       (global) HplLog - Full path to the HISv log file
+#       (global) LastLog
+#						- Set to the name of the copy of the log so that the
+#						  new entries can be captured by a diff of the current
+#						  log and LastLog.
+# Return:
+#       0  (shell success) if the log file was successfully copied.
+#       1  (shell failure) if the log file couldn't be backed up.
+# Note:
+#		Backup files are located in the same directory as the HISv log file.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fBckupLog
+{
+   local timeStamp=$(eval $TS)
+   LastLog=$HplLog.$timeStamp 
+
+   echo -e "\nMaking copy of $HplLog to diff after running $APItest."
+   if ! cp $HplLog $LastLog
+   then
+       fError "Failed to get backup of $HplLog to ${LastLog##*/}"
+       return 1
+   fi
+   return 0
+}	# End fBckupLog
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fDiffLog: Get the difference of the current contents of the HISv log
+#			and the copy created before running the API test code.
+# Input:
+#       (global) TS		- Timestamp the copy of the log for debugging later.
+#       (global) LastLog
+#						- Set to the name of the copy of the log so that the
+#						  new entries can be captured by a diff of the current
+#						  log and LastLog.
+#
+# Returns OR of the following values:
+#        0	- the log file has new entries after the API test and no error messages
+#			  detected in the entries.
+#        1	- if the log file does not have new entries.
+#		 2	- entity-translation error reported in the log file
+#        2	- no match to entity path
+#		 4	- HISv used a different reset than requested
+#		 8	- HPI error detected
+#		16	- Hot-Swap Active state reported
+#		32	- Hot-Swap Extraction Pending state reported
+#		64	- Hot-Swap Inactive state reported
+#
+# Note:
+#		Creates a log of the new entries.  Since the new entries are
+#		spit out during the course of the test the log file is deleted. 
+#
+#		The error messages that this function detects are
+#			- errors in translating a resource ID
+#			  These are matches to the following strings
+#				"error getting resource-id"
+#				"ham_entity_path_lookup: No match found"
+#				"resource does not exist for give entity-path"
+#			  The return bit is, LogEntityError = 0x02
+#			- errors saHpiResourceResetStateSet that result in a
+#			  different reset being applied to a system
+#			  These errors are detected by searching the log file for,
+#				"error in saHpiResourceResetStateSet; Attempting"
+#			  The return bit is, LogWrongReset = 0x08
+#			- any HPI error.
+#			  These errors are detected by searching the log file for,
+#				"HPI error code"
+#			  The return bit is, LogHpiError = 0x10
+#		Uses globals
+#			LogNoEntries, LogEntityError, LogWrongReset, LogHpiError,
+#			LogHSActive, LogHSxPending, LogHSInactive
+#			to set the return value for log entries.
+#
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fDiffLog
+{
+   local diffFile=diff.log.$(eval $TS)
+   local retVal=0
+
+   echo -e "\nChecking log file entries."
+   echo -e "\tdiff $HplLog $LastLog\n"
+   if (( DRYRUN ))
+   then
+      diffFile=$(ls diff.log.* | head -n 1)
+   else
+      diff $HplLog $LastLog 2>&1 | tee $diffFile
+   fi
+   if [[ ! -s $diffFile ]]
+   then
+	  fError "No new entries in $HplLog"
+	  rm -f $diffFile
+	  return $((LogNoEntries))
+   fi
+   
+
+   # We parse $diffFile here for messages that indicate what happened
+    # Check for various error messages
+   if grep -q "error getting resource-id" $diffFile
+   then
+	  fMessage "Found error in resource ID translation"
+	  echo -en "--> "
+	  grep "error getting resource-id" $diffFile
+	  (( retVal |= LogEntityError ))
+   fi
+
+   if grep -q "ham_entity_path_lookup: No match found" $diffFile
+   then
+	  fMessage "Didn't find match to entity path"
+	  echo -en "--> "
+	  grep "ham_entity_path_lookup: No match found" $diffFile
+	  (( retVal |= LogEntityError ))
+   fi
+
+   if grep -q "resource does not exist for give entity-path" $diffFile
+   then
+	  fMessage "failed to find a resource"
+	  echo -en "--> "
+   	  grep "resource does not exist for give entity-path" $diffFile
+	  (( retVal |= LogEntityError ))
+   fi
+
+   if grep -q "error in saHpiResourceResetStateSet; Attempting" $diffFile
+   then
+	  fError "HISv applied the wrong reset!"
+	  echo -en "--> "
+	  grep "error in saHpiResourceResetStateSet; Attempting" $diffFile
+	  (( retVal |= LogWrongReset ))
+   fi
+
+   if grep -q "HPI error code" $diffFile
+   then
+	  fError "HISv reported an HPI error code"
+	  echo -en "--> "
+	  grep "HPI error code" $diffFile
+	  (( retVal |= LogHpiError ))
+   fi
+	# Cli test output
+
+   if grep -iq "Invalid Index" $diffFile
+   then
+	  fMessage "CLI detected an invalid index" 
+	  echo -en "--> "
+	  grep -i "Invalid Index" $diffFile
+	  (( retVal |= ApiInvalidIndexErr ))
+   fi
+   if grep -iq "hpl_entity_path_lookup.*did not find" $diffFile
+   then
+	  fMessage "Entity lookup failed" 
+	  echo -en "--> "
+	  grep -i "hpl_entity_path_lookup.*did not find" $diffFile
+	  (( retVal |= ApiLookupError ))
+   fi
+   if grep -iq "Invalid input detected" $diffFile
+   then
+	  fMessage "CLI detected invalid input" 
+	  echo -en "--> "
+	  grep -i "Invalid input detected" $diffFile
+	  (( retVal |= ApiInvalidInputErr ))
+   fi
+
+    # Check log file for hot-swap states
+   if grep -q "SAHPI_HS_STATE_ACTIVE" $diffFile
+   then
+	  (( retVal |= LogHSActive ))
+   fi
+
+   if grep -q "SAHPI_HS_STATE_EXTRACTION_PENDING" $diffFile
+   then
+	  (( retVal |= LogHSxPending ))
+   fi
+
+   if grep -q "SAHPI_HS_STATE_ACTIVE" $diffFile
+   then
+	  (( retVal |= LogHSActive ))
+   fi
+
+   (( ! DRYRUN )) && rm -f $diffFile
+   return $retVal
+}	# End fDiffLog
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fVerifyPowerState: Compare the power states of the systems before and after
+#                    running the API test.
+# Input:
+#       $1 - system	 	- The system that will have a different power state
+#						  after running the API test.  This parameter should
+#						  either be "Payload" or "Controller", a bay number,
+#						  or "NULL"/"Invalid".
+#						  (optional -- won't check if this is NULL/Invalid
+#						  or isn't set)
+#       $2 - expectedState
+#						- Expected power state of the system after running
+#						  the API test.
+#						  (optional -- won't check if this isn't set)
+#       (global) SysPowerBefore	- Array of system power states before
+#						  running the API test.
+#       (global) SysPowerAfter	- Array of system power states after
+#						  running the API test.
+#		(global) ControllerBlade
+#						- the controller blade number (used if system
+#						  is specified on the command line as "Controller")
+#		(global) PayloadBlade
+#						  is specified on the command line as "Payload")
+#							
+# Return:
+#       0  (shell success) if the power states are set as the user expects
+#						   (including having the same number of systems
+#						   reporting power states after the API test as
+#						   before the test, and all systems, except the
+#						   one specified on the command line, in the same
+#						   power state as before the test).
+#       1  (shell failure) if power states are not as expected.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fVerifyPowerState 
+{
+    local system=$1
+	local expectedState
+	[[ -n $2 ]] && expectedState=$(echo $2 | tr [:lower:] [:upper:])
+    local retVal=0
+    local desc
+
+	 # Don't do final state checking of a particular system if it is "NULL"
+	[[ $system = "NULL" ]] && unset system
+	[[ $system = @(I|i)@(N|n)@(V|v)@(A|a)@(L|l)@(I|i)@(D|d) ]] && unset system
+
+	 # If the expected state is "cycle/power-cycle", set the state to "on"
+	[[ $expectedState = *CYCLE ]] && expectedState=ON
+
+     # Translate the system to a bay number for simplicity
+    local bay
+    if [[ -n $system ]]
+    then
+	    if [[ $system = +([0-9]) ]]
+	    then
+		   bay=$system
+		   desc="system in bay $bay"
+		else
+		   bay=$(eval echo '${'${system}Blade'}')
+		   desc="$system"
+	    fi
+	fi
+      # Check that there are the right number of systems reported
+      #   before and after the test.
+    if (( ! ${#SysPowerBefore[*]} ))
+    then
+      fError "No info on system power state before the test"
+      return 1
+    elif (( ! ${#SysPowerAfter[*]} ))
+    then
+      fError "No info on system power state after the test"
+      return 1
+    elif (( ${#SysPowerBefore[*]} != ${#SysPowerAfter[*]} ))
+    then
+      fError "Power info for systems before test does not match number of systems after test."
+      return 1
+    fi
+
+     # Go through the list of systems before and after the
+     #  test, verifying that the power state of all the
+     #  systems is unchanged
+    local i
+    for  (( i=1; i <= ${#SysPowerAfter[*]} ; i++ ))
+    do
+        local reported=$(echo ${SysPowerAfter[$i]} | tr [:lower:] [:upper:]) 
+        local previous=$(echo ${SysPowerBefore[$i]} | tr [:lower:] [:upper:])
+		if [[ -n $bay ]]  && [[ $i = $bay ]]
+		then
+			if [[ -z $expectedState ]]
+			then
+				if [[ $reported = $previous ]]
+				then
+					fError "$desc state did not change after running API\n\tBefore = $previous\n\tAfter = $reported"
+					retVal=1
+				fi
+			elif [[ $expectedState = UNCHANGED ]]
+			then
+				if [[ $reported != $previous ]]
+				then
+					fError "$desc state changed but should NOT have after running API"
+					retVal=1
+				fi
+			elif [[ $reported != $expectedState ]]
+			then
+					fError "$desc state does not match expected state $expectedState after applying API"
+					retVal=1
+			fi
+		else
+	        if [[ $reported != $previous ]]
+	        then
+	           fError "Current state does not match previous state for blade $i"
+	           retVal=1
+	        fi
+		fi
+       
+    done
+    return $retVal
+}	# End fVerifyPowerState
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fVerifyReset: Verify that a reset has occurred.
+# Input:
+#       (global) ResetCheckTool	
+#						- Tool that logs into the serial console of a system
+#						  and returns the system's current state.
+#						  Default is getState and is specifed in the Globals/
+#						  Default section of this library.
+#		(global) OA		- Hostname or IP of the OA for the enclosure
+#       $1 - sys	 	- The system to check for a reset.
+#		$2 - resetType	- The reset type, assert turns the system off
+#							
+# Return:
+#       0  (shell success) if the system is found in the state of
+#						   shutting down or booting.  (Note that 
+#						   shutting down is not a reliable measure
+#						   if the system was reset, since it could
+#						   simply be shut down.  It is up to the caller
+#						   to wait long enough for the system to begin
+#						   the boot sequence.
+#       1  (shell failure) if any other state (LOGIN, OTL, LINUX) is
+#						   returned by $ResetCheckTool.
+# Note:
+#		Whatever tool is specified to determine the systems' state, it must
+#		print out the state in the format,
+#			"State=SYSTEM_STATE"
+#		SYSTEM_STATE must be "BOOTING" or "SHUTDOWN" for is function to
+#		return success.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fVerifyReset
+{
+    local sys=$1
+	local resetType=$2
+    local stateLog=state.log.$(eval $TS)
+    local retVal=0
+
+    echo -e "\nChecking to see if the target was reset"
+
+	 # If the blade is "Invalid", return that the blade was not reset.
+	[[ $(echo $sys | tr [:upper:] [:lower:]) = "invalid" ]] && return 1
+      # use $ResetCheckTool to see what the systems' current
+      #   state is.
+	local bay=$(eval echo '${'${sys}Blade'}')
+
+	local cmd
+	local console=$(eval echo '${'${sys}ILO'}')
+
+	if [[ -n $console ]]
+	then
+    	cmd="$ResetCheckTool -ilo $console"
+		[[ -n $ILOuser ]] && cmd="$cmd -ilo_user $ILOuser"
+		[[ -n $ILOpassword ]] && cmd="$cmd -ilo_passwd $ILOpassword"
+	elif [[ -n $OA ]] && [[ -n $bay ]]
+	then
+    	cmd="$ResetCheckTool -oa $OA -sut $bay"
+		[[ -n $OAuser ]] && cmd="$cmd -oa_user $OAuser"
+		[[ -n $OApassword ]] && cmd="$cmd -oa_passwd $OApassword"
+	else
+		# This is for error-handling tests where an invalid
+		#  bay or entity path was given
+		return
+	fi
+
+	 # Add the domain if needed...
+	[[ -n $Domain ]] && cmd="$cmd -domain $Domain"
+
+    (( DEBUG )) && cmd="$cmd -v"
+    $cmd | tee $stateLog
+	local status=${PIPESTATUS[0]}
+    if (( status ))
+    then
+        fError "$ResetCheckTool failed to determine the state of $sys"
+        return 1
+    fi
+
+    local curState=$(grep "State=" $stateLog | sed -e "s/.*State=//")
+    if [[ -n $curState ]]
+    then
+       case $curState in
+          BOOTING )
+             retVal=0
+             ;;
+
+          SHUTDOWN )
+             retVal=0
+             ;;
+
+		  OTL )
+			if [[ $(echo $resetType | tr [:upper:] [:lower:]) = assert ]]
+			then
+				retVal=0
+			else
+			    fError "The system appears to be off in the weeds (or powered off)."
+            fi
+            retVal=1
+            ;;
+
+			
+            * )
+             retVal=1 
+             ;;
+       esac
+       rm -f $stateLog
+	else
+	   fError "$ResetCheckTool did not return a state of system $bay in $OA"
+	   retVal=1
+    fi
+    (( ! retVal )) && rm -f $stateLog
+    return $retVal
+}	# End fVerifyReset
+
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  fRunLookupTest: perform the steps of the lookup test.
+#  Input:  The input will be parsed, so order doesn't matter.
+#		-b blade	- the blade number
+#		-c chassis	- the chassis number
+#		-t pathType	- the path type
+#       -l len		- the buffer size for the path
+#		-fail		- expect the API to fail
+#
+#  Output: Sets global array variable ExpectedPath
+# 
+#  Return:
+#		void -	Global FAILED variable will be set to keep track of the test
+#				status
+# 
+#  Notes:
+#	Test Steps:
+#		1.  Determine the expected path for an entity, given the blade ID,
+#			the chassis ID and the path type.
+#		2.  Make a copy of the HISv log to be able to identify new entries.
+#		3.  Run the API test, capturing the output to parse for the
+#			entity path found by the API.
+#		4.  Compare the path returned by the API with the expected path.
+#		5.  Read new entries in the HISv log and verify their validity.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fRunLookupTest
+{
+	local bay
+	local chassis
+	local pathType
+    local buffLen
+	local expectFail=0
+	local -a logError
+	local lerrIndex=0
+	local -a logExpected
+	local lexpIndex=0
+
+	  # These are static, global variables, so reset them at the beginning
+	  # of the test.
+	unset EntityPath
+	unset ExpectedPath
+	local i
+	# Preserve the command line to pass to fPerformLookup
+	for (( i = 1; i <= $#; i++ ))
+	do
+		local opt=$(eval echo '${'$i'}')
+		case $opt in
+			-b | -bay | -blade )
+				(( i++ ))
+				bay=$(eval echo '${'$i'}')
+				;;
+
+			-c | -chassis )
+				(( i++ ))
+				chassis=$(eval echo '${'$i'}')
+				;;
+
+			-f | -F | -fail )
+				expectFail=1
+#				local j=$(( i + 1 ))
+#				local dummy=$(eval echo '${'$j'}')
+#				[[ $dummy = +([0-9]) ]] && (( i++ ))
+				;;
+
+			-t | -type )
+				(( i++ ))
+				pathType=$(eval echo '${'$i'}')
+				;;
+
+            -l | -length | -len )
+                (( i++ ))
+				buffLen=$(eval echo '${'$i'}')
+				;;
+
+			-logreq | -lreq | -log_req | -logexp | logExp | -log_exp )
+				(( i++ ))
+				for (( ; i <= $#; i++ ))
+				do
+				    local logOpt=$(eval echo '${'$i'}')
+					if [[ $logOpt != 0x+([0-9A-Fa-f]) ]]
+					then
+					    (( i-- ))
+					    break
+					else
+					    logExpected[$lexpIndex]=$logOpt
+					    (( lexpIndex++ ))
+					fi
+				done
+				;;
+		esac
+	done	# End reading command line
+
+	# Step 1:  Get the expected path
+	if ! fGenExpectedPath $bay $chassis $pathType
+	then
+		(( ! expectFail )) && fError "Failed to generate an expected path output"
+		(( ! ContinueTest )) && return
+	fi
+
+	# Step 2: Make a back up of the HISv log to identify new entries
+	if ! fBckupLog
+	then
+		fError "Failed to make copy of the hisv log"
+		return
+	fi
+
+	# Step 3: Run the API code
+	fPerformLookup $*
+
+	# Step 4: Compare the lookup path with the expected path
+	if (( ${#ExpectedPath[*]} )) && (( ${#EntityPath[*]} ))
+	then
+		if ! fCheckPath $pathType
+		then
+			if (( ! expectFail ))
+			then
+				fError "Expected and actual paths differ!"
+				if (( $pathType != 2 ))
+				then
+					echo "API-returned path: ${EntityPath[0]}"
+					echo "Expected path:     ${ExpectedPath[0]}"
+				else
+					for (( i = 0; i < ${#EntityPath[*]}; i++ ))
+					do
+						echo -e "\nDepth = $i"
+						echo -e "\tEntity Type (act | exp)     = ${EntityPath[$i]} | ${ExpectedPath[$i]}"
+						(( i++ ))
+						echo -e "\tEntity Location (act | exp) = ${EntityPath[$i]} | ${ExpectedPath[$i]}"
+					done
+				fi
+			fi
+		fi
+	fi
+		
+	# Step 5: Check the log file
+	fDiffLog
+	local cmdStatus=$?
+	# Verify that the correct entries are in the log
+		# Check for error entries
+	local logErrEntry
+	for logErrEntry in ${logError[*]}
+	do
+		if (( cmdStatus & $logErrEntry ))
+		then
+			fError ${LogErrMsg[$((logErrEntry))]}
+		fi
+	done
+
+	# Check for log entries that we expect to see in the log
+	local logReq
+	for logReq in ${logExpected[*]}
+	do
+		if (( ! cmdStatus )) || (( ! $cmdStatus & $logReq ))
+		then
+			fError "Didn't see expected ${LogErrMsg[$((logErrEntry))]} in HISv log"
+		fi
+	done
+	# We don't expect to see hot-swap events in the log
+	if (( $cmdStatus & LogHSAny ))
+	then
+		fError "Detected unexpected hot-swap messages in the HISv log"
+	fi
+	 # Now we're done with the test.
+	return
+}	# End fRunLookupTest
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  fGenExpectedPath: Generate the path for a system given a blade ID, chassis ID
+#					 and path type.
+#  Input:
+#		$1	- blade		- the blade number
+#		$2	- chassis	- the chassis number
+#		$3	- pathType	- the path type
+#
+#  Output: Sets global array variable ExpectedPath
+# 
+#  Return:
+#		0 => success
+#		1 => failure
+# 
+#  Notes:
+#	- The four types of return paths used by OpenSAF are,
+#		(from services/hisv/hpl/hpl_api.c)
+#		0 - Full HPI string for the entity path
+#		1 - Full HPI string for the entity path in numeric format (using
+#			SaHpiEntityTypeT enum values).
+#		2 - The result is an SaHpiEntityPathT type.  SaHpiEntityPathT is an
+#			array of SaHpiEntityT structs.  A SaHpiEntityT struct contains
+#			two members:  The first is a SaEntityTypeT (enum value) for the
+#			entity type.  The second is a SaHpiEntityLocationT type (uns32)
+#			for the location of the entity (e.g., blade bay 12).
+#		3 - Short entity-path string, of the format accepted by
+#			hpl_resource_reset() or hpl_resource_power_set().
+#	- For paths of type 0, 1 and 3, ExpectedPath will contain only one element
+#	  the string of the entity path.
+#	- For paths of type 2, ExpectedPath will have 6 elements:
+#		- Elements 0, 2 and 4 will have the entity type, and n/2 will give the
+#		  depth of that entity (e.g., will n/2 will correspond to the index into
+#		  the SaHpiEntityPathT data), and ExpectedPath[n] will give the
+#		  entity type for that entity).
+#		- Elements 1, 3 and 5 will have the entity location for the entity with
+#		  index (n - 1)/2.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fGenExpectedPath
+{
+	local blade=$1
+	local chassis=$2
+	local pathType=$3
+
+	  # Check input
+	if [[ -z $blade ]]
+	then
+		fError "Test is broken -- fGenExpectedPath didn't get a blade ID"
+		ContinueTest=0
+		return 1
+	fi
+	if [[ -z $chassis ]]
+	then
+		fError "Test is broken -- fGenExpectedPath didn't get a chassis ID"
+		ContinueTest=0
+		return 1
+	fi
+	if [[ -z $pathType ]]
+	then
+		fError "Test is broken -- fGenExpectedPath didn't get a path type"
+		ContinueTest=0
+		return 1
+	fi
+
+	case $pathType in
+		0 ) ExpectedPath[0]="{{${HpiBladeEntity},$blade},{${HpiChassisEntity},$chassis},{${HpiRootEntity},$HpiRootLocation}}"
+			;;
+
+		1 ) ExpectedPath[0]="{{${BladeEntityType},$blade},{${ChassisEntityType},$chassis},{${RootEntityType},$HpiRootLocation}}"
+			;;
+
+		2 )
+			# This one is more complex:
+			#  The path is an array of structs, whose members are
+			#  the SaHpiEntityTypeT entity type, and the entity
+			#  location (e.g., the bay number for a blade)
+			# The entries we'll put into ExpectedPath will be
+			#   - entity type info for entity m = floor(n/2) goes into
+			#		 EntityPath[n], (n % 2) == 0
+			#   - entity location info for entity m = floor(n/2) goes into
+			#		 EntityPath[n], (n % 2) == 1
+			ExpectedPath[0]=$BladeEntityType
+			ExpectedPath[1]=$blade
+			ExpectedPath[2]=$ChassisEntityType
+			ExpectedPath[3]=$chassis
+			ExpectedPath[4]=$RootEntityType
+			ExpectedPath[5]=$HpiRootLocation
+			;;
+
+		3 ) 
+			ExpectedPath[0]="{{${HpiBladeEntity},$blade},{${HpiChassisEntity},$chassis}}"
+			  # Get rid of SAHPI_ENT_ in the entity types
+			ExpectedPath[0]=$(echo ${ExpectedPath[0]} | sed -e "s/SAHPI_ENT_//g")
+			;;
+	esac
+
+	if [[ $blade != +([0-9]) ]] || [[ $chassis != +([0-9]) ]] || [[ $pathType != @([0-3]) ]]
+	then
+		unset ExpectedPath
+		retVal=1
+	fi
+
+	export ExpectedPath
+    return $retVal 
+}	# End fGenExpectedPath
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  fPerformLookup: Run the API code, verifying that the command was successful or not
+#			Capture the output and get the entity path from it to compare
+#			with the expected entity path.
+#  Input:  The input will be parsed, so order doesn't matter.
+#		-b blade		- the blade number
+#		-c chassis		- the chassis number
+#		-t pathType		- the path type
+#       -fail [type]    - Expect the API call to fail (so don't print an
+#                         error message if a failure is detected).
+#						  <type> specifies the expected failure type:
+#						  1 => No HAM managing chassis
+#
+#		(global) APItest	- The API test code
+#
+#  Output:	Sets global variable EntityPath, with elements like those
+#			described for ExpectedPath (see the header for the subroutine
+#			fGenExpectedPath)
+#
+#  Return:
+#		void	- The test outcome is recorded in the global variable
+#				  FAILED.
+# 
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fPerformLookup
+{
+	local bay
+	local chassis
+	local pathType
+	local expectFail=0
+	local failType
+	local apiOpts
+    local buffLen
+	local testLog=lookup.log.$(eval $TS)
+
+	local retVal=0
+
+	set -- $(echo $* | sed -e "s/=/ /g")
+	 # Parse the command line
+	while (( $# ))
+	do
+		local opt=$1
+		shift
+		case $opt in
+			-b | -bay | -blade )
+				bay=$1
+				[[ -z $apiOpts ]] && apiOpts="-blade $bay" || apiOpts="$apiOpts -blade $bay"
+				shift
+				;;
+
+			-c | -chassis )
+				chassis=$1
+				[[ -z $apiOpts ]] && apiOpts="-chassis $chassis" || apiOpts="$apiOpts -chassis $chassis"
+				shift
+				;;
+
+			-f | -F | -fail )
+				expectFail=1
+				[[ -z $apiOpts ]] && apiOpts="-f" || apiOpts="$apiOpts -f"
+			 	if [[ $1 = +([0-9]) ]]
+			 	then
+					failType=$1
+					shift
+			 	fi
+				;;
+
+            -l | -length | -len )
+				buffLen=$1
+				[[ -z $apiOpts ]] && apiOpts="-length $buffLen" || apiOpts="$apiOpts -length $buffLen"
+                shift
+				;;
+
+			-t | -type )
+				pathType=$1
+				[[ -z $apiOpts ]] && apiOpts="-type $pathType" || apiOpts="$apiOpts -type $pathType"
+				shift
+				;;
+		esac
+	done	# End reading command line
+
+	local cmd="$APItest $apiOpts"
+	fMessage "$cmd"
+	$cmd 2>&1 | tee $testLog
+	local status=${PIPESTATUS[0]}
+	fMessage "$APItest returned $status"
+	if [[ -n $status ]] && (( $status ))
+	then
+		if (( expectFail ))
+		then
+			fMessage "Lookup failed as expected"
+		else
+			fError "API path lookup failed for blade $bay in chassis $chassis, path type $pathType"
+		fi
+	else
+		if (( $expectFail ))
+		then
+			fError "Lookup succeeded when it should have failed"
+		else
+			fMessage "Lookup succeeded"
+		fi
+	fi
+
+	  # Look for messages in the API output for some error types
+	if [[ -n $failType ]]
+	then
+		if (( $failType & $ApiNoHamError ))
+		then
+			if ! grep -iq "No HAM managing chassis"  $testLog
+			then
+				fError "Didn't find expected HAM error message in $APItest output"
+				retVal=1
+			fi
+		fi
+		if (( $failType & $ApiMdsError ))
+		then
+			if ! grep -iq "MDS:ERR"  $testLog
+			then
+				fError "Didn't find expected MDS error message in $APItest output"
+				retVal=1
+			fi
+		fi
+	else
+		if  grep -iq "No HAM managing chassis"  $testLog
+		then
+			fError "Saw HAM error message in $APItest output"
+		fi
+		if  grep -iq "MDS:ERR"  $testLog
+		then
+			fError "Saw MDS error message in $APItest output"
+		fi
+	fi
+
+	  # Get the entity path from the API code's output to be able to
+	  #  check against the expected path.
+	fMessage "Parsing $testLog for entity path"
+	if ! fGetReportedEntityPath $testLog		
+	then
+		((! expectFail)) && fError "Failed to get entity path from $APItest output"
+	fi
+	rm -f $testLog
+	return
+}	# End fPerformLookup
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  fGetReportedEntityPath: parse the output of the API code to determine the
+#			path reported by HAM.
+#
+#  Input:  The log file with API output
+#
+#
+#  Output:	Sets global variable EntityPath, with elements like those
+#			described for ExpectedPath (see the header for the subroutine
+#			fGenExpectedPath)
+#
+#  Return:
+#		0 => Was able to set up EntityPath variable.
+#		1 => Failed to get entity path info from the log file
+# 
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fGetReportedEntityPath
+{
+	local dataFile=$1
+	local retVal=1
+
+	if [[ ! -s $dataFile ]]
+	then
+		fError "$dataFile doesn't contain path data"
+		return 1
+	fi
+
+	local line
+	local readingPath=0 	# Flag for when we're reading path data
+	local arrayIndex=0
+	local lineNo=0
+	while read line
+	do
+		((lineNo++))
+		if [[ $line = "Returned path:" ]]
+		then
+			readingPath=1
+			continue
+		fi
+		(( ! readingPath )) && continue
+		# If we're still here, we're reading the entity path
+		if [[ $line = {{*}} ]]
+		then
+			# This is a type 0, 1, or 3 path
+			EntityPath[$arrayIndex]="$line"
+			retVal=0
+			break
+		elif [[ $line = "Depth ="* ]]
+		then
+			line=${line##*= }
+			arrayIndex=$(( 2 * $line ))
+		elif [[ $line = "Entity Type = "* ]]
+		then
+			line=${line##*= }
+			EntityPath[$arrayIndex]=$line
+			(( arrayIndex++ ))
+		elif [[ $line = "Entity Location = "* ]]
+		then
+			line=${line##*= }
+			EntityPath[$arrayIndex]=$line
+			(( arrayIndex++ ))
+		fi
+	done < $dataFile
+	export EntityPath
+	if (( $retVal )) && (( $(( ${#EntityPath[*]} % 2)) == 0 ))
+	then
+		return 0
+	else
+		return $retVal
+	fi
+}	# End fGetReportedEntityPath
+
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  fCheckPath: Check the expected entity path with the reported entity path
+#
+#  Input:  $1 => pathType => the path type
+#		 (global)	ExpectedPath -> array of expected path components
+#		 (global)	EntityPath	 -> array of reported path components
+#
+#  Return:
+#		0 => Paths match
+#		1 => Paths don't match
+# 
+#
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fCheckPath
+{
+	local pathType=$1
+	local retVal=0
+
+	fMessage "\nVerifying that the reported path matches expected path"
+	if (( ${#ExpectedPath[*]} != ${#EntityPath[*]} ))
+	then
+		fWarn "Expected path and reported path don't match in number of components!"
+		retVal=1
+	fi
+
+#	[[ $pathType != +([0-9]) ]] && fErrorMessage "Test is broken -- fCheckPath didn't get a numerical path type"
+	case $pathType in
+		0 | 1 | 3 )
+			if [[ ${ExpectedPath[0]} != ${EntityPath[0]} ]]
+			then
+				retVal=1
+			fi
+			;;
+
+		2 )
+			local j
+			local max
+			(( ${#ExpectedPath[*]} >= ${#EntityPath[*]} )) && max=${#ExpectedPath[*]} || max=${#EntityPath[*]}
+			for (( j = 0; j < max; j++ ))
+			do
+				if [[ ${ExpectedPath[$j]} != ${EntityPath[$j]} ]]
+				then
+					echo -e "\tExpected path differs from reported path at index $j"
+					retVal=1
+				fi
+			done
+			;;
+
+		* )
+			fWarn "\nfCheckPath: Unknown path type $pathType"
+			retVal=1
+			;;
+	esac
+	return $retVal
+}	# End fCheckPath
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fReadCfgFile: Read a configuration file for test parameters
+#			Sets global variables,
+#				- ControllerBlade		: Blade ID for the standby controller
+#				- ControllerEntityPath	: Entity path for the controller
+#				- ControllerILO			: Hostname or IP for controller's iLO
+#				- PayloadBlade			: Blade ID for a payload system
+#				- PayloadEntityPath		: Entity path for a payload system
+#				- PayloadILO			: Hostname or IP for payload's iLO
+#				- InvalidBlade			: Blade ID for an invalid  system
+#				- InvalidEntityPath		: Entity path for an invalid system
+#				- InvalidChassis		: Invalid Chassis ID.
+#				- OA					: Hostname or IP for the OA module in
+#										  the enclosure.
+#				- Chassis				: Chassis number of the enclosure
+#										  (consistent with OpenHPI configuration)
+#				- Domain				: Network for the OA/iLO of the target
+#										  system.  (Note that this is
+#										  used for getState, readOaPower and
+#										  other state-machine scripts.)
+# Input:
+#       cfgFile	- User's configuration file.
+# 
+# Return:
+#		0 (shell success) - Successfully read user's file
+#		1 (shell failure) - Couldn't read user's file
+# Notes:
+#
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fReadCfgFile
+{
+    local cfgFile=$1
+    local retVal=0
+
+    if [[ ! -s $cfgFile ]]
+    then
+       fErrorExit $SKIPPED "Couldn't open $cfgFile to read"
+    fi
+
+	# Filter out comments and, if the file is in shell-script format,
+	#  eliminate "export ":
+	local tmpCfg=/tmp/userConfig.$(eval $TS)
+	if ! sed -e "s/#.*$//" -e "s/export //" -e "/^[ \t]*$/d" $cfgFile > $tmpCfg
+	then
+		fError "Failed to remove comments in $cfgFile"
+		return 1
+	fi
+
+     # Use awk to parse the config file
+    eval $(
+        awk -F "[ =\t]+" '{
+		   gsub(/"/,"");
+		   if ($1 ~ /^[Cc][Oo][Nn][Tt][Rr][Oo][Ll].*[Pp][Aa][Tt][Hh]/) {
+			  print "export ControllerEntityPath=\"" $2 "\"";
+		   }
+			
+		   if ($1 ~ /^[Pp][Aa][Yy][Ll][Oo][Aa][Dd].*[Pp][Aa][Tt][Hh]/) {
+			  print "export PayloadEntityPath=\"" $2 "\"";
+		   }
+		
+		   if ($1 ~ /^[Ii][Nn][Vv][Aa][Ll][Ii][Dd].*[Pp][Aa][Tt][Hh]/) {
+			  print "export InvalidEntityPath=\"" $2 "\"";
+		   }
+		
+		   if (($1 ~ /^[Cc][Oo][Nn][Tt][Rr][Oo][Ll][Ll][Ee][Rr][Bb][Ll][Aa][Dd][Ee]/) ||
+				 ($1 ~ /^[Cc][Oo][Nn][Tt][Rr][Oo][Ll][Ll][Ee][Rr][Bb][Aa][Yy]/)) {
+			  print "export ControllerBlade=" $2;
+		   }
+		
+		   if (($1 ~ /^[Pp][Aa][Yy][Ll][Oo][Aa][Dd][Bb][Ll][Aa][Dd][Ee]/) ||
+				 ($1 ~ /^[Pp][Aa][Yy][Ll][Oo][Aa][Dd][Bb][Aa][Yy]/) ) {
+			  print "export PayloadBlade=" $2;
+		   }
+		
+		   if ($1 ~ /^[Ii][Nn][Vv][Aa][Ll][Ii][Dd][Bb][Ll][Aa][Dd][Ee]/) {
+			  print "export InvalidBlade=\"" $2 "\"";
+		   }
+		
+		   if ($1 ~ /^[Cc][Oo][Nn][Tt][Rr][Oo][Ll].*[Ii][Ll][Oo]/) {
+			  print "export ControllerILO=\"" $2 "\"";
+		   }
+			
+		   if ($1 ~ /^[Pp][Aa][Yy][Ll][Oo][Aa][Dd].*[Ii][Ll][Oo]/) {
+			  print "export PayloadILO=\"" $2 "\"";
+		   }
+		
+		   if ($1 ~ /^[Oo][Aa]$/) {
+			  print "export OA=" $2;
+		   }
+		
+		   if ($1 ~ /^[Oo][Aa][-_]*[Uu][Ss][Ee][Rr]$/) {
+			  print "export OAuser=" $2;
+		   }
+		
+		   if ($1 ~ /^[Oo][Aa][-_]*[Pp][Aa][Ss][Ss][Ww][Oo]*[Rr]*[Dd]$/) {
+			  print "export OApassword=" $2;
+		   }
+
+		   if ($1 ~ /^[Ii][Ll][Oo][-_]*[Uu][Ss][Ee][Rr]$/) {
+			  print "export ILOuser=" $2;
+		   }
+		
+		   if ($1 ~ /^[Ii][Ll][Oo][-_]*[Pp][Aa][Ss][Ss][Ww][Oo]*[Rr]*[Dd]$/) {
+			  print "export ILOpassword=" $2;
+		   }
+
+		   if ($1 ~ /^[Cc][Hh][Aa][Ss][Ss][Ii][Ss]/) {
+			  print "export Chassis=" $2;
+		   }
+		
+		   if ($1 ~ /^[Ii][Nn][Vv][Aa][Ll][Ii][Dd][Cc][Hh][Aa][Ss][Ss][Ii][Ss]/) {
+			  print "export InvalidChassis=" $2;
+		   }
+
+		   if ($1 ~ /^[Dd][Oo][Mm][Aa][Ii][Nn]/) {
+			  print "export Domain=" $2;
+		   }
+        }' $tmpCfg
+    )
+
+		# Setting an array needs to be done outside
+		#  of the previous loop, since any line that matches
+		#  the above patterns will put the command to export
+		#  the variable, and bash doesn't like exporting
+		#  individual array elements.
+		# Note that Cluster is exported at the top of this
+		#  libarary.
+    eval $(
+        awk -F "[ =\t]+" '{
+		   if ($1 ~ /^[Cc][Ll][Uu][Ss][Tt][Ee][Rr]$/) {
+      		  for (i = 2; i <= NF; i++ ) {
+        		n = split($i, blade, ",");
+        		for (j = 1; j <= n; j++) {
+					cluster = cluster " " blade[j];
+        		}
+      		  }
+			  print "Cluster=(" cluster " )";
+		   }
+        }' $tmpCfg
+    )
+
+	local status=$?
+	rm -f $tmpCfg
+	# Fill in variables used by the tests that can be inferred from other data:
+	fFillInVariables
+	return $status
+}	# End fReadCfgFile
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fFillInVariables: Fill in variables that are not set by the user and that
+#					can be inferred from other variable values
+#			Sets global variables,
+#				- ControllerBlade		: Blade ID for the standby controller
+#				- ControllerEntityPath	: Entity path for the controller
+#				- ControllerILO			: Hostname or IP for controller's iLO
+#				- PayloadBlade			: Blade ID for a payload system
+#				- PayloadEntityPath		: Entity path for a payload system
+#				- PayloadILO			: Hostname or IP for payload's iLO
+#				- InvalidBlade			: Blade ID for a nonexistent system
+#				- InvalidChassis		: Chassis ID for a nonexistent system
+#				- InvalidEntityPath		: Entity path for a nonexistent system
+#				- OA					: Hostname or IP for the OA module in
+#										  the enclosure.
+#				- Chassis				: Chassis number of the enclosure
+#										  (consistent with OpenHPI configuration)
+#				- Domain				: Network for the OA/iLO of the target
+#										  system.  (Note that this is
+#										  used for getState, readOaPower and
+#										  other state-machine scripts.)
+# Input:
+#       Global variables listed above
+# 
+# Return:
+#		void
+#
+# Notes:
+#		Sets global variables listed above
+#
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fFillInVariables
+{
+	 # Define indices for each of the system types that we will use
+	local Controller=0
+	local Payload=1
+	local Invalid=2
+
+	# Make two passes to fill in all the information
+	local i
+	for (( i = 0; i < 2; i++ ))
+	do
+	local system
+	for system in Controller Payload Invalid
+	do
+		  # Check Entity Path
+		local ep="${system}EntityPath"
+		local bay="${system}Blade"
+		local chassis="${system}Chassis"
+		  # Check if the entity path is set
+		fMessage "Checking if entity path for $system is set..." 2
+		if [[ -z $(eval echo '$'$ep) ]]
+		then
+			  # Check if the chassis ID is set to create the entity path
+			local chassisID=$Chassis
+			[[ $system = "Invalid" ]] && chassisID=$InvalidChassis
+			fMessage "\tEntity path not set... Checking chassis id ($chassisID)" 2
+			if [[ -n $chassisID ]]
+			then
+				  # Check if the blade ID is set to create the entity path
+				fMessage "\tChassis ID set, checking Blade id" 2
+				if [[ -n $(eval echo '${'$bay'}') ]]
+				then
+					eval $(echo export $ep="'{{SYSTEM_BLADE,$(eval echo '${'${bay}'}')},{SYSTEM_CHASSIS,$chassisID}}'")
+				fi
+				eval $(echo export ${system}Chassis=$chassisID)
+			fi
+		else
+			local path=$(eval echo '${'$ep'}')
+			if [[ -z $(eval echo '$'$bay) ]]
+			then
+				eval $(echo "export $bay=$(echo $path | \
+					 sed -e 's:^[{A-Z_,]\{1,\},\([0-9]\{1,\}\).*$:\1:')")
+			fi
+			if [[ -z $(eval echo '${'${system}Chassis'}') ]]
+			then
+				eval $(echo "export ${system}Chassis=$(echo $path | \
+					sed -e 's:^[{A-Z_]\{1,\},[0-9]\{1,\}},::' | \
+					sed -e 's:^[{A-Z_,]\{1,\},\([0-9]\{1,\}\)}\{1,\}:\1:' )")
+			fi
+		fi
+		
+ 	done	
+	[[ -z $Chassis ]] && export Chassis=${ControllerChassis:=$PayloadChassis}
+	done
+	return
+}	# End fFillInVariables
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# fCleanup: Clean up after running the tests.  If the controller or payload
+#			target for the API test has power state "OFF", turn it on again.
+#			Print a test summary for all of the tests run.
+# Input:
+#       (global) ControllerBlade	- Bay number of the controller target
+#									  for the API test.
+#       (global) PayloadBlade		- Bay number of the payload target
+#									  for the API test.
+#       (global) SysPowerAfter		- Array of power states of systems in the
+#									  enclosure
+#       (global) TestType			- Name of the test that was run -- for
+#									  printing a test summary.
+#       (global) TotalPassed		- Total number of tests that passed
+#       (global) TotalFailed		- Total number of tests that failed
+#		(global) EXIT_VAL			- Cumulative test state.
+# 
+# Return:
+#		void
+#
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+function fCleanup
+{
+	local cmd="$SetPowerTool -oa $OA -on"
+	[[ -n $OAuser ]] && cmd="$cmd -oa_user $OAuser"
+	[[ -n $OApassword ]] && cmd="$cmd -oa_passwd $OApassword"
+	[[ -n $Domain ]] && cmd="$cmd -domain $Domain"
+
+    if [[ ${SysPowerAfter[$ControllerBlade]} = @([Oo][Ff][Ff]) ]]
+    then
+	   cmd="$cmd -sut $ControllerBlade"
+       if ! $cmd
+       then
+            echo -e "\n**>WARNING: Couldn't set power back on for controller blade $ControllerBlade"
+       fi
+    fi
+    if [[ ${SysPowerAfter[$PayloadBlade]} = @([Oo][Ff][Ff]) ]]
+    then
+	   cmd="$cmd -sut $PayloadBlade"
+       if ! $cmd
+       then
+            echo -e "\n**>WARNING: Couldn't set power back on for payload blade $PayloadBlade"
+       fi
+    fi
+
+    if (( ! EXIT_VAL ))
+    then
+       # Clean up logs if we had a successful run.
+       rm -f ${HplLog}.$(date +%m%d_)*
+       rm -f diff.$(date +%m%d_)*
+    fi
+
+    if [[ -n $TestSuiteName ]] && [[ -n $TotalPassed ]] && [[ -n $TotalFailed ]]
+    then
+		fPrintTestSummary
+	fi
+ 
+}	# End fCleanup
+
+#
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+#
