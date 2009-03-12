@@ -234,7 +234,7 @@ static void main_process(void)
     NCS_SEL_OBJ         mbx_fd;
     SaAisErrorT         error = SA_AIS_OK;
     uns32 rc;
-    struct pollfd fds[3];
+    struct pollfd fds[4];
 
     TRACE_ENTER();
 
