@@ -46,8 +46,8 @@ uns32     mbcstm_dest_start()
   uns32 svc_index, svc_count, ssn_index, ssn_count;
   char fun_name[] = "mbcstm_system_close";
 
-  memset(&vda_info, 0, sizeof(vda_info));
-  memset(&dest , 0, sizeof(dest));
+  m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+  m_NCS_OS_MEMSET(&dest , 0, sizeof(dest));
   /* Fill all common feilds */
   vda_info.req = NCSVDA_VDEST_CREATE;
   vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
@@ -90,8 +90,8 @@ uns32 mbcstm_dest_close()
   uns32 ssn_count,ssn_index,svc_index;
   char fun_name[] = "mbcstm_dest_close";
 
-  memset(&vda_info, 0, sizeof(vda_info));
-  memset(&dest , 0, sizeof(dest));
+  m_NCS_OS_MEMSET(&vda_info, 0, sizeof(vda_info));
+  m_NCS_OS_MEMSET(&dest , 0, sizeof(dest));
   vda_info.req = NCSVDA_VDEST_DESTROY;
   vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 
@@ -128,7 +128,7 @@ uns32   mbcstm_svc_registration(uns32 svc_index)
   char        fun_name[] = "mbcstm_svc_registration";            
 
   svc = &mbcstm_cb.svces[svc_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
   mbcsv_arg.info.initialize.i_service  = svc->svc_id;
@@ -162,7 +162,7 @@ uns32   mbcstm_svc_finalize (uns32 svc_index)
   char            fun_name[] = "mbcstm_svc_finalize";
 
   svc = &mbcstm_cb.svces[svc_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   /* first zero select objest */
   svc->sel_obj = 0;
@@ -188,7 +188,7 @@ uns32   mbcstm_ssn_open(uns32 svc_index, uns32 ssn_index)
 
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -223,7 +223,7 @@ uns32    mbcstm_ssn_open_all(uns32 svc_index)
 
   svc = &mbcstm_cb.svces[svc_index];
   ssn_count = svc->ssn_count;
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   for(ssn_index = 1; ssn_index <= ssn_count; ssn_index++)
     {
@@ -248,7 +248,7 @@ uns32   mbcstm_ssn_set_role (uns32 svc_index, uns32 ssn_index)
 
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -275,7 +275,7 @@ uns32   mbcstm_ssn_close(uns32 svc_index, uns32 ssn_index)
 
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_CLOSE;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -298,7 +298,7 @@ uns32   mbcstm_ssn_get_select(uns32 svc_index)
   char            fun_name[] = "mbcstm_ssn_get_selection";
 
   svc = &mbcstm_cb.svces[svc_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -321,7 +321,7 @@ uns32   mbcstm_svc_dispatch (uns32  svc_index)
   char            fun_name[] = "mbcstm_svc_dispatch";
 
   svc = &mbcstm_cb.svces[svc_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -395,7 +395,7 @@ uns32  mbcstm_svc_obj(uns32 svc_index, uns32 ssn_index, uns32 action,
 
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = action;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -452,7 +452,7 @@ uns32   mbcstm_svc_cp_send(uns32 svc_index, uns32 ssn_index,
   ssn = &svc->ssns[ssn_index];
 
 
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -485,7 +485,7 @@ uns32   mbcstm_svc_data_request(uns32 svc_index, uns32 ssn_index)
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
 
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -532,7 +532,7 @@ uns32   mbcstm_svc_send_notify(uns32 svc_index, uns32 ssn_index,
   svc = &mbcstm_cb.svces[svc_index];
   ssn = &svc->ssns[ssn_index];
 
-  memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+  m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
   mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_NOTIFY;
   mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl;
@@ -828,7 +828,7 @@ uns32   mbcstm_svc_encode_cb(NCS_MBCSV_CB_ARG *arg)
           size = (ssn->perf_msg_size += ssn->perf_msg_inc);
 
           msg = (char *) malloc(sizeof(ssn->perf_msg_size));
-          memset(msg,'c',ssn->perf_msg_size);
+          m_NCS_MEMSET(msg,'c',ssn->perf_msg_size);
           msg[size-1] = '\0';
           crc = mbcstm_crc(msg,size);
 
@@ -1021,7 +1021,7 @@ static uns32 mbcstm_data_decode(MBCSTM_CSI_DATA_TYPE type, NCS_UBAID *uba,
       ncs_dec_skip_space(uba, sizeof(uns32));
 
       info->msg = (char *) malloc(info->length);
-      memset(info->msg, 0, sizeof(info->length));
+      m_NCS_OS_MEMSET(info->msg, 0, sizeof(info->length));
       ncs_decode_n_octets_from_uba(uba, (uns8*)info->msg, info->length);
       if(mbcstm_verify_sync_msg(info,ssn) != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;

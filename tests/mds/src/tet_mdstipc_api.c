@@ -55,259 +55,9 @@ void ncs_agents_shut_start(int choice)
   printf("\n**********************************************************\n");    
 }
 
-struct tet_testlist svc_testlist[]={
-  {tet_svc_install_tp,1,1},
-  {tet_svc_install_tp,1,2},
-  {tet_svc_install_tp,1,3},
-  {tet_svc_install_tp,1,5},
-  {tet_svc_install_tp,1,6},
-  {tet_svc_install_tp,1,7},
-  {tet_svc_install_tp,1,8},
-  {tet_svc_install_tp,1,9},
-  {tet_svc_install_tp,1,10},
-  {tet_svc_install_tp,1,11},
-  {tet_svc_install_tp,1,12},
-  {tet_svc_install_tp,1,13},
-  {tet_svc_install_tp,1,14},
-  {tet_svc_install_tp,1,15},
-  {tet_svc_install_tp,1,14},
-  {tet_svc_install_tp,1,16},
-  {tet_svc_install_tp,1,17},
-
-  {tet_svc_unstall_tp,2,1},
-  {tet_svc_unstall_tp,2,2},
-  {tet_svc_unstall_tp,2,3},
-  {tet_svc_unstall_tp,2,4},
-  {tet_svc_unstall_tp,2,5},
-  
-  {tet_svc_install_upto_MAX,3},
-
-  {tet_svc_subscr_ADEST,4,1},
-  {tet_svc_subscr_ADEST,4,2},
-  {tet_svc_subscr_ADEST,4,3},
-  {tet_svc_subscr_ADEST,4,4},
-  {tet_svc_subscr_ADEST,4,5},
-  {tet_svc_subscr_ADEST,4,6},
-  {tet_svc_subscr_ADEST,4,7},
-  {tet_svc_subscr_ADEST,4,8},
-  {tet_svc_subscr_ADEST,4,9},
-  {tet_svc_subscr_ADEST,4,10},
-  {tet_svc_subscr_ADEST,4,11},
-  {tet_svc_subscr_ADEST,4,12},
-
-  {tet_svc_subscr_VDEST,5,1},
-  {tet_svc_subscr_VDEST,5,2},
-  {tet_svc_subscr_VDEST,5,3},
-  {tet_svc_subscr_VDEST,5,4},
-  {tet_svc_subscr_VDEST,5,5},
-  {tet_svc_subscr_VDEST,5,6},
-  {tet_svc_subscr_VDEST,5,7},
-  {tet_svc_subscr_VDEST,5,8},
-  {tet_svc_subscr_VDEST,5,9},
-  {tet_svc_subscr_VDEST,5,10},
-  {tet_svc_subscr_VDEST,5,11},
-  {tet_svc_subscr_VDEST,5,12},
-
-  {tet_just_send_tp,7,1},
-  {tet_just_send_tp,7,2},
-  {tet_just_send_tp,7,3},
-  {tet_just_send_tp,7,4},
-  {tet_just_send_tp,7,5},
-  {tet_just_send_tp,7,6},
-  {tet_just_send_tp,7,7},
-  {tet_just_send_tp,7,8},
-  {tet_just_send_tp,7,9},
-  {tet_just_send_tp,7,10},
-  {tet_just_send_tp,7,11},
-  {tet_just_send_tp,7,12},
-  {tet_just_send_tp,7,13},
-  {tet_just_send_tp,7,14},
-
-  {tet_send_ack_tp,8,1},
-  {tet_send_ack_tp,8,2},
-  {tet_send_ack_tp,8,3},
-  {tet_send_ack_tp,8,4},
-  {tet_send_ack_tp,8,5},
-  {tet_send_ack_tp,8,6},
-  {tet_send_ack_tp,8,7},
-  {tet_send_ack_tp,8,8},
-  {tet_send_ack_tp,8,9},
-  {tet_send_ack_tp,8,10},
-  {tet_send_ack_tp,8,11},
-  {tet_send_ack_tp,8,12},
-  {tet_send_ack_tp,8,13},
-  {tet_broadcast_to_svc_tp,11,1},
-  {tet_broadcast_to_svc_tp,11,2},
-  {tet_broadcast_to_svc_tp,11,3},
-  {tet_broadcast_to_svc_tp,11,4},
-  {tet_broadcast_to_svc_tp,11,5},
-  {tet_broadcast_to_svc_tp,11,6},
-
-  {tet_send_response_tp,12,1},
-  {tet_send_response_tp,12,2},
-  {tet_send_response_tp,12,3},
-  {tet_send_response_tp,12,4},    
-  {tet_send_response_tp,12,5}, 
-  {tet_send_response_tp,12,6},
-  {tet_send_response_tp,12,7},
-  {tet_send_response_tp,12,8},
-  {tet_send_response_tp,12,9},
-  {tet_send_response_tp,12,10},
-  {tet_send_response_tp,12,11},
-
-  {tet_send_response_ack_tp,13,1},
-  {tet_send_response_ack_tp,13,2},
-  {tet_send_response_ack_tp,13,3},
-  {tet_send_response_ack_tp,13,4},
-  {tet_send_response_ack_tp,13,5},
-  {tet_send_response_ack_tp,13,6},
-  {tet_send_response_ack_tp,13,7},
-  {tet_send_response_ack_tp,13,8},
-  {tet_direct_just_send_tp,16,1},
-  {tet_direct_just_send_tp,16,2},
-  {tet_direct_just_send_tp,16,3},
-  {tet_direct_just_send_tp,16,4},
-  {tet_direct_just_send_tp,16,5},
-  {tet_direct_just_send_tp,16,6},
-  {tet_direct_just_send_tp,16,7},
-  {tet_direct_just_send_tp,16,8},
-  {tet_direct_just_send_tp,16,9},
-  {tet_direct_just_send_tp,16,10},
-  {tet_direct_just_send_tp,16,11},
-  {tet_direct_just_send_tp,16,12},
-  {tet_direct_just_send_tp,16,13},
-  {tet_direct_just_send_tp,16,14},
-  {tet_direct_just_send_tp,16,15},
-
-  {tet_direct_send_ack_tp,17,1},
-  {tet_direct_send_ack_tp,17,2},
-  {tet_direct_send_ack_tp,17,3},
-  {tet_direct_send_ack_tp,17,4},
-  {tet_direct_send_ack_tp,17,5},
-  {tet_direct_send_ack_tp,17,6},
-  {tet_direct_send_ack_tp,17,7},
-  {tet_direct_send_ack_tp,17,8},
-  {tet_direct_send_ack_tp,17,9},
-  {tet_direct_send_ack_tp,17,10},
-  {tet_direct_send_ack_tp,17,11},
-  {tet_direct_send_ack_tp,17,12}, 
-  {tet_direct_send_ack_tp,17,13},
-
-
-  {tet_direct_broadcast_to_svc_tp,20,1},
-  {tet_direct_broadcast_to_svc_tp,20,2},
-  {tet_direct_broadcast_to_svc_tp,20,3},
-  {tet_direct_broadcast_to_svc_tp,20,4},
-  {tet_direct_broadcast_to_svc_tp,20,5},
-  {tet_direct_broadcast_to_svc_tp,20,6},
-  {tet_direct_broadcast_to_svc_tp,20,7},
-  {tet_direct_broadcast_to_svc_tp,20,8},
-
-  {tet_direct_send_response_tp,21,1},
-  {tet_direct_send_response_tp,21,2},
-  {tet_direct_send_response_tp,21,3},
-  {tet_direct_send_response_tp,21,4},
-  {tet_direct_send_response_tp,21,5},
-
-  {tet_direct_send_response_ack_tp,22,1},
-  {tet_direct_send_response_ack_tp,22,2},
-  {tet_direct_send_response_ack_tp,22,3},
-  {tet_direct_send_response_ack_tp,22,4},
-  {tet_direct_send_response_ack_tp,22,5},
-  {ncs_agents_shut_start,25,0},
-
-  {tet_send_all_tp,25,1},
-  {tet_send_all_tp,25,2},
-
-  {tet_direct_send_all_tp,26,1},
-  {tet_direct_send_all_tp,26,2},
-  {tet_direct_send_all_tp,26,3},
-  {tet_direct_send_all_tp,26,4},
-  {tet_direct_send_all_tp,26,5},
-  {tet_direct_send_all_tp,26,6},
-
-  {tet_query_pwe_tp,30,1},
-  {tet_query_pwe_tp,30,2},
-
-  {NULL,0}
-};
 
 MDS_SVC_ID svc_ids[3]={2006,2007,2008};
 
-/*************************************
-TETWARE RELATED : ACTUAL INVOCATION
-**************************************/
-void tet_mds_tds_startup(void)
-{
-  int no_iterations=1,test_case,i;
-
-  
-    int SERV_SUIT=0;
-    
-  char *tmpprt=NULL;
-  tmpprt= (char *) getenv("TET_ITERATION");
-  if(tmpprt)
-    no_iterations= atoi(tmpprt);
-  else
-    no_iterations=0;
-  
-  tmpprt= (char *) getenv("TET_SERV_SUITE");
-  if(tmpprt)
-    SERV_SUIT= atoi(tmpprt);
-  else
-    SERV_SUIT=0; 
-  tmpprt= (char *) getenv("TET_CASE");
-  if(tmpprt)
-    test_case = atoi(tmpprt);
-  else
-    test_case =0; 
-
-
-  tet_infoline("MDS_Startup : Starting");
-
-    {  
-      for(i=1;i<=no_iterations;i++)
-        {
-          if(i!=1)
-            {
-              if(ncs_agents_shutdown(0,0)!=NCSCC_RC_SUCCESS)
-                {
-                  perror("\n\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n\n");
-                  tet_printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
-                  break;
-                }
-              sleep(5);
-              if(ncs_agents_startup(0,0)!=NCSCC_RC_SUCCESS)
-                {
-                  perror("\n\n ----- NCS AGENTS START UP FAILED ------- \n\n");
-                  tet_printf("\n ----- NCS AGENTS START UP FAILED ------- \n");
-                  break;
-                }
-            }         
-          tet_printf("\n--------------  ITERATION %d -----------\n",i);
-          
-          if(SERV_SUIT)
-            {
-              /*Starting Service related test cases*/
-              tware_mem_ign();  
-              tet_test_start(test_case,svc_testlist);
-              tware_mem_dump();
-              sleep(1);
-              tware_mem_dump();
-              ncs_tmr_whatsout();
-            }
-        }
-    }
-  tet_mds_tds_cleanup();
-  
-  return;
-}
-void tet_mds_tds_cleanup(void)
-{
-  tet_test_cleanup();
-  exit(0);
-  return;
-}
 
 /*****************************************************************************/
 /************        SERVICE API TEST PURPOSES   *****************************/
@@ -2271,7 +2021,7 @@ void tet_just_send_tp(int choice)
   char tmp[]=" Hi Receiver ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -2506,7 +2256,7 @@ void tet_just_send_tp(int choice)
         case 10:
           tet_printf("Case 10 : \tNow send a message( > \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
-          memset(mesg->send_data,'S',2*1400+2 );
+          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_just_send(gl_tet_adest.mds_pwe1_hdl,
                            NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -2646,7 +2396,7 @@ void tet_send_ack_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -2896,7 +2646,7 @@ void tet_send_ack_tp(int choice)
         case 11:
           tet_printf("Case 11 : \tNow send a message( > \
                   MDTM_NORMAL_MSG_FRAG_SIZE) to 1700");
-          memset(mesg->send_data,'S',2*1400+2 );
+          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_send_get_ack(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -3115,7 +2865,7 @@ void tet_adest_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -3148,7 +2898,7 @@ void tet_adest_rcvr_svc_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -3180,7 +2930,7 @@ void tet_vdest_rcvr_resp_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);    
   
@@ -3211,7 +2961,7 @@ void tet_send_response_tp(int choice)
   char tmp[]=" Hi Receiver! What is your Name? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -3712,7 +3462,7 @@ sends a message to Svc EXTMIN on Active Vdest=200 and Times out");
         case 11:
           tet_printf("Case 11 : \tNow send_response a message(> \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
-          memset(mesg->send_data,'S',2*1400+2 );
+          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           /*Receiver thread*/
           if(tet_create_task((NCS_OS_CB)tet_adest_rcvr_thread,
@@ -3796,7 +3546,7 @@ void tet_vdest_rcvr_thread()
   char tmp[]=" Yes Sender! I am in. Message Delivered?";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);    
 
@@ -3832,7 +3582,7 @@ void tet_Dadest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3914,7 +3664,7 @@ void tet_adest_all_chgrole_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3968,7 +3718,7 @@ void tet_vdest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -4009,7 +3759,7 @@ void tet_adest_all_rcvrack_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -4047,7 +3797,7 @@ void tet_adest_all_rcvrack_chgrole_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -4152,7 +3902,7 @@ void tet_adest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -4192,7 +3942,7 @@ void tet_send_all_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -4617,7 +4367,7 @@ void tet_send_response_ack_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -5023,7 +4773,7 @@ sends a LOWPriority message to Svc EXTMIN on VDEST=200 and expects Response");
         case 8:
           tet_printf("Case 8 : \tNow send_response a message(> \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
-          memset(mesg->send_data,'S',2*1400+2 );
+          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           /*Receiver thread*/
           if(tet_create_task((NCS_OS_CB)tet_vdest_rcvr_thread,
@@ -5072,7 +4822,7 @@ void tet_vdest_Srcvr_thread()
   char tmp[]=" Yes Sender! I am STANDBY? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));  
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));  
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -5101,7 +4851,7 @@ void tet_vdest_Arcvr_thread()
   char tmp[]=" Yes Man! I am in: Message Delivered? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));  
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));  
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
         
@@ -5134,7 +4884,7 @@ void tet_broadcast_to_svc_tp(int choice)
   char tmp[]=" Hi All ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  memset(mesg, 0, sizeof(TET_MDS_MSG));   
+  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -5332,7 +5082,7 @@ void tet_broadcast_to_svc_tp(int choice)
         case 6:
           tet_printf("Case 6 : \tSvc INTMIN on VDEST=200 Broadcasting a VERY \
  HIGH Priority message (>MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
-          memset(mesg->send_data,'S',2*1400+2 );
+          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_service_subscribe(gl_tet_vdest[1].mds_pwe1_hdl,
                                    NCSMDS_SVC_ID_INTERNAL_MIN,
@@ -5686,7 +5436,7 @@ is Not installed");
           tet_printf("Case 11 : \tNot able to send a message with Invalid \
  Message length");
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          memset(direct_buff, 0, sizeof(direct_buff));
+          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -5768,7 +5518,7 @@ is Not installed");
           tet_printf("Case 14 : \tNot able to send a message of size >(\
  MDS_DIRECT_BUF_MAXSIZE) to 2000");
 
-          memset(big_message, 's', 8000);
+          m_NCS_OS_MEMSET(big_message, 's', 8000);
           if(mds_direct_send_message(gl_tet_adest.mds_pwe1_hdl,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,1,
@@ -5786,8 +5536,8 @@ is Not installed");
           tet_printf("Case 15 : \tAble to send a message of size =(\
  MDS_DIRECT_BUF_MAXSIZE) to 2000");
           
-          memset(big_message, '\0', 8000);
-          memset(big_message, 's', 7999);
+          m_NCS_OS_MEMSET(big_message, '\0', 8000);
+          m_NCS_OS_MEMSET(big_message, 's', 7999);
           
           if(mds_direct_send_message(gl_tet_adest.mds_pwe1_hdl,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -6911,7 +6661,7 @@ on Vdest=200 with Wrong DEST");
 #if 0
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          memset(direct_buff, 0, sizeof(direct_buff));
+          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -6942,7 +6692,7 @@ on Vdest=200 with Wrong DEST");
  with Direct Buff as NULL");
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          memset(direct_buff, 0, sizeof(direct_buff));
+          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -6974,7 +6724,7 @@ on Vdest=200 with Wrong DEST");
  Message length");
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          memset(direct_buff, 0, sizeof(direct_buff));
+          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -8188,7 +7938,7 @@ void tet_destroy_PWE_ADEST_twice_tp()
   tet_printf("            tet_destroy_PWE_ADEST_twice_tp");
   printf("\n*********tet_destroy_PWE_ADEST_twice_tp*****************\n");    
   /*start up*/
-  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
     
   tet_printf("Getting an ADEST handle");
@@ -8231,7 +7981,7 @@ void tet_create_PWE_ADEST_twice_tp()
   tet_printf("            tet_create_PWE_ADEST_twice_tp");
   printf("\n**************tet_create_PWE_ADEST_twice_tp*************\n");     
   /*start up*/
-  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
     
   tet_printf("Getting an ADEST handle");
@@ -8278,7 +8028,7 @@ void tet_create_default_PWE_ADEST_tp()
   tet_printf("            tet_create_default_PWE_ADEST_tp");
   printf("\n*********tet_create_default_PWE_ADEST_tp***************\n");     
   /*start up*/
-  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
   if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
@@ -8315,7 +8065,7 @@ void tet_create_PWE_upto_MAX_tp()
   tet_printf("            tet_create_PWE_upto_MAX_tp");
   printf("\n**********tet_create_PWE_upto_MAX_tp****************\n");     
   /*start up*/
-  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
   if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
@@ -8368,7 +8118,7 @@ void tet_create_MxN_VDEST(int choice)
   gl_vdest_indx=0;
   printf("\n**********tet_create_MxN_VDEST %d *************\n",choice);
   /*Start up*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8438,7 +8188,7 @@ void tet_create_Nway_VDEST(int choice)
     
   printf("\n**************tet_create_Nway_VDEST %d ***********\n",choice);
     
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8508,7 +8258,7 @@ void tet_create_OAC_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n********** tet_create_OAC_VDEST_tp %d ********\n",choice);
   /*Start up*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8557,7 +8307,7 @@ void tet_destroy_VDEST_twice_tp(int choice)
   gl_vdest_indx=0;
   printf("\n************tet_destroy_VDEST_twice_tp %d ************\n",choice);
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8593,7 +8343,7 @@ void tet_destroy_ACTIVE_MxN_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n*********tet_destroy_ACTIVE_MxN_VDEST_tp %d **********\n",choice);
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
 
   switch(choice)
     {
@@ -8654,7 +8404,7 @@ void tet_chg_standby_to_queisced_tp(int choice)
   gl_vdest_indx=0;
   printf("\n*********tet_chg_standby_to_queisced_tp %d ***********\n",choice);
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   tet_printf("Creating a VDEST in N-way model");
   if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
                   1200)!=NCSCC_RC_SUCCESS)
@@ -8734,7 +8484,7 @@ void tet_create_named_VDEST(int choice)
   tet_printf("                 tet_create_named_VDEST");
   printf("\n************tet_create_named_VDEST %d ************\n",choice);
   /*start up*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   switch(choice)
     {
@@ -8943,7 +8693,7 @@ void tet_test_PWE_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n**************tet_test_PWE_VDEST_tp %d ************\n",choice);
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
   if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1250)!=NCSCC_RC_SUCCESS)
@@ -9085,7 +8835,7 @@ void tet_create_PWE_upto_MAX_VDEST()
   gl_vdest_indx=0;
   printf("\n*************************tet_create_PWE_upto_MAX_VDEST********\n");
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
   if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1200)!=NCSCC_RC_SUCCESS)
@@ -9137,7 +8887,7 @@ void tet_create_default_PWE_VDEST_tp()
   gl_vdest_indx=0;
   printf("\n**************tet_create_default_PWE_VDEST_tp****************\n");
   /*Start UP*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in N-WAY model");
   if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
@@ -9205,7 +8955,7 @@ void tet_VDS(int choice)
   tet_printf("                 tet_VDS");
   printf("\n*************************tet_VDS**************************\n");
   /*start up*/
-  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   
   tet_printf("Creating a Named VDEST in MxN model");
   for(j=0;j<5;j++)

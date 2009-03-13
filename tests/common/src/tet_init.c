@@ -1,3 +1,15 @@
+/**********************************************************************************************
+#
+# modification:
+# 2008-11   Jony <jiangnan_hw@huawei.com>  Huawei Technologies CO., LTD.
+#   1.  Delete three functions: tware_ncs_startup(), tware_ncs_end(), and tet_svcs_startup(). 
+#       Test case tet_startup and tet_cleanup functions are provided in each of the tests. 
+#       In this case, developers do not need to modify this file when adding a new test. 
+#   2.  If not using the "tetware-patch", delete tet_chill() function and tet_testlist[] array. 
+#       Because the array has provided in the test.
+#  
+************************************************************************************************/
+
 #include "tet_startup.h"
 #include "ncs_main_papi.h"
 #include "ncssysf_tmr.h"
@@ -6,7 +18,7 @@
 SYS_CFG_INFO sys_cfg;
 
 /* TET function declarations */
-
+#if 0
 void tware_ncs_startup(void);
 void tware_ncs_end(void);
 void tet_chill(int); 
@@ -46,9 +58,10 @@ int fill_syncparameters(int vote);
 
 void tet_avsv_startup(void);
 
+
 void (*tet_startup)()=tware_ncs_startup;
 void (*tet_cleanup)()=tware_ncs_end;
-
+#endif
 
 #define NCS_MAIN_MAX_INPUT 25
 #define NCS_MAIN_MAND_PARAMS 7
@@ -162,6 +175,7 @@ void fill_std_config (char **t_argv)
 
 }
 
+#if 0
 void tware_ncs_startup()
 {
     int tmp_ctr = NCS_MAIN_MAND_PARAMS;
@@ -306,6 +320,7 @@ void tet_svcs_startup()
     return;
 
 }
+#endif
 
 #ifdef TET_ALL
 
@@ -637,6 +652,7 @@ int fill_syncparameters(int vote)
    return TET_PASS;
 }
 
+#if (TET_PATCH==1)
 void tet_chill(int sub_test_arg) 
 {
 
@@ -664,5 +680,5 @@ struct tet_testlist tet_testlist[]={
     {NULL,-1}
 };
 
-
+#endif
 

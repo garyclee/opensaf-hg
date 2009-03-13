@@ -4641,7 +4641,7 @@ void tet_saEvtLimitGetCases(int iOption)
       break;
 
     case 2:
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_rc=saEvtLimitGet((SaEvtHandleT)(long)NULL,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with NULL event handle",
              SA_AIS_ERR_BAD_HANDLE);
@@ -4650,7 +4650,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 3:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID+1;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with biggerlimitId value",
@@ -4660,7 +4660,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 4:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = 0;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with zero limitId value",
@@ -4670,7 +4670,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 5:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_NUM_CHANNELS_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Number of Channels",
@@ -4681,7 +4681,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 6:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_EVT_SIZE_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Event Size",
@@ -4692,7 +4692,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 7:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_PATTERN_SIZE_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Pattern Size",
@@ -4703,7 +4703,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 8:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_NUM_PATTERNS_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max Num Patterns",
@@ -4714,7 +4714,7 @@ void tet_saEvtLimitGetCases(int iOption)
     case 9:
       var_initialize();
       tet_saEvtInitialize(&gl_evtHandle);
-      memset(&gl_limitValue,0,sizeof(SaLimitValueT));
+      m_NCS_MEMSET(&gl_limitValue,0,sizeof(SaLimitValueT));
       gl_limitId = SA_EVT_MAX_RETENTION_DURATION_ID;
       gl_rc=saEvtLimitGet(gl_evtHandle,gl_limitId,&gl_limitValue);
       result("saEvtLimitGet() with limitId = Max RetentionTime Duration",
@@ -4870,330 +4870,7 @@ void resultSuccess(char *gl_saf_msg,SaAisErrorT rc)
   gl_cbk=0;
 }
 #endif
-struct tet_testlist edsv_test[]=
-  {
-    {tet_saEvtInitializeCases,1,1},
-    {tet_saEvtInitializeCases,1,2},
-    /*    {tet_saEvtInitializeCases,1,3},*/
-    {tet_saEvtInitializeCases,1,4},
-    {tet_saEvtInitializeCases,1,5},
-    {tet_saEvtInitializeCases,1,6},
-    {tet_saEvtInitializeCases,1,7},
-    {tet_saEvtInitializeCases,1,8},
-    {tet_saEvtInitializeCases,1,9},
-    {tet_saEvtInitializeCases,1,10},
-    {tet_saEvtInitializeCases,1,11},
-    {tet_saEvtInitializeCases,1,12},
-    {tet_saEvtInitializeCases,1,13},
-    {tet_saEvtInitializeCases,1,14},
 
-    {tet_saEvtSelectionObjectGetCases,2,1},
-    {tet_saEvtSelectionObjectGetCases,2,2},
-    {tet_saEvtSelectionObjectGetCases,2,3},
-    {tet_saEvtSelectionObjectGetCases,2,4},
-    {tet_saEvtSelectionObjectGetCases,2,5},
-    {tet_saEvtSelectionObjectGetCases,2,6},
-    {tet_saEvtSelectionObjectGetCases,2,7},
-    {tet_saEvtSelectionObjectGetCases,2,8},
-    {tet_saEvtSelectionObjectGetCases,2,9},
-
-    {tet_saEvtDispatchCases,3,1},
-    {tet_saEvtDispatchCases,3,2},
-    {tet_saEvtDispatchCases,3,3},
-    {tet_saEvtDispatchCases,3,4},
-    {tet_saEvtDispatchCases,3,5},
-    {tet_saEvtDispatchCases,3,6},
-    {tet_saEvtDispatchCases,3,7},
-    /*  {tet_saEvtDispatchCases,3,8},*/
-    {tet_saEvtDispatchCases,3,9},
-
-    {tet_saEvtFinalizeCases,4,1},
-    {tet_saEvtFinalizeCases,4,2},
-    {tet_saEvtFinalizeCases,4,3},
-    {tet_saEvtFinalizeCases,4,4},
-
-    {tet_saEvtChannelOpenCases,5,1},
-    {tet_saEvtChannelOpenCases,5,2},
-    {tet_saEvtChannelOpenCases,5,3},
-    {tet_saEvtChannelOpenCases,5,4},
-    {tet_saEvtChannelOpenCases,5,5},
-    {tet_saEvtChannelOpenCases,5,6},
-    {tet_saEvtChannelOpenCases,5,7},
-    {tet_saEvtChannelOpenCases,5,8},
-    {tet_saEvtChannelOpenCases,5,9},
-    {tet_saEvtChannelOpenCases,5,10},
-    {tet_saEvtChannelOpenCases,5,11},
-    {tet_saEvtChannelOpenCases,5,12},
-    {tet_saEvtChannelOpenCases,5,13},
-    {tet_saEvtChannelOpenCases,5,14},
-    {tet_saEvtChannelOpenCases,5,15},
-    {tet_saEvtChannelOpenCases,5,16},
-
-    {tet_saEvtChannelOpenAsyncCases,6,1},
-    {tet_saEvtChannelOpenAsyncCases,6,2},
-    {tet_saEvtChannelOpenAsyncCases,6,3},
-    {tet_saEvtChannelOpenAsyncCases,6,4},
-    {tet_saEvtChannelOpenAsyncCases,6,5},
-    {tet_saEvtChannelOpenAsyncCases,6,6},
-    {tet_saEvtChannelOpenAsyncCases,6,7},
-    {tet_saEvtChannelOpenAsyncCases,6,8},
-    {tet_saEvtChannelOpenAsyncCases,6,9},
-    {tet_saEvtChannelOpenAsyncCases,6,10},
-    {tet_saEvtChannelOpenAsyncCases,6,11},
-    /*  {tet_saEvtChannelOpenAsyncCases,6,12},*/
-    {tet_saEvtChannelOpenAsyncCases,6,13},
-    {tet_saEvtChannelOpenAsyncCases,6,14},
-    {tet_saEvtChannelOpenAsyncCases,6,15},
-    {tet_saEvtChannelOpenAsyncCases,6,16},
-    {tet_saEvtChannelOpenAsyncCases,6,17},
-    {tet_saEvtChannelOpenAsyncCases,6,18},
-
-    {tet_saEvtChannelCloseCases,7,1},
-    {tet_saEvtChannelCloseCases,7,2},
-    {tet_saEvtChannelCloseCases,7,3},
-    {tet_saEvtChannelCloseCases,7,4},
-
-    {tet_saEvtChannelUnlinkCases,8,1},
-    {tet_saEvtChannelUnlinkCases,8,2},
-    {tet_saEvtChannelUnlinkCases,8,3},
-    {tet_saEvtChannelUnlinkCases,8,4},
-    {tet_saEvtChannelUnlinkCases,8,5},
-    {tet_saEvtChannelUnlinkCases,8,6},
-    {tet_saEvtChannelUnlinkCases,8,7},
-    {tet_saEvtChannelUnlinkCases,8,8},
-
-    {tet_saEvtEventAllocateCases,9,1},
-    {tet_saEvtEventAllocateCases,9,2},
-    {tet_saEvtEventAllocateCases,9,3},
-    {tet_saEvtEventAllocateCases,9,4},
-    {tet_saEvtEventAllocateCases,9,5},
-    {tet_saEvtEventAllocateCases,9,6},
-    {tet_saEvtEventAllocateCases,9,7},
-
-    {tet_saEvtEventFreeCases,10,1},
-    {tet_saEvtEventFreeCases,10,2},
-    {tet_saEvtEventFreeCases,10,3},
-    {tet_saEvtEventFreeCases,10,4},
-    {tet_saEvtEventFreeCases,10,5},
-    {tet_saEvtEventFreeCases,10,6},
-
-    {tet_saEvtEventAttributesSetCases,11,1},
-    {tet_saEvtEventAttributesSetCases,11,2},
-    {tet_saEvtEventAttributesSetCases,11,3},
-    {tet_saEvtEventAttributesSetCases,11,4},
-    {tet_saEvtEventAttributesSetCases,11,5},
-    {tet_saEvtEventAttributesSetCases,11,6},
-    {tet_saEvtEventAttributesSetCases,11,7},
-    {tet_saEvtEventAttributesSetCases,11,8},
-    {tet_saEvtEventAttributesSetCases,11,9},
-    {tet_saEvtEventAttributesSetCases,11,10},
-    {tet_saEvtEventAttributesSetCases,11,11},
-    {tet_saEvtEventAttributesSetCases,11,12},
-    {tet_saEvtEventAttributesSetCases,11,13},
-    {tet_saEvtEventAttributesSetCases,11,14},
-    {tet_saEvtEventAttributesSetCases,11,15},
-    {tet_saEvtEventAttributesSetCases,11,16},
-    {tet_saEvtEventAttributesSetCases,11,17},
-
-    {tet_saEvtEventAttributesGetCases,12,1},
-    {tet_saEvtEventAttributesGetCases,12,2},
-    {tet_saEvtEventAttributesGetCases,12,3},
-    {tet_saEvtEventAttributesGetCases,12,4},
-    {tet_saEvtEventAttributesGetCases,12,5},
-    {tet_saEvtEventAttributesGetCases,12,6},
-    {tet_saEvtEventAttributesGetCases,12,7},
-    {tet_saEvtEventAttributesGetCases,12,8},
-    {tet_saEvtEventAttributesGetCases,12,9},
-    {tet_saEvtEventAttributesGetCases,12,10},
-    {tet_saEvtEventAttributesGetCases,12,11},
-    {tet_saEvtEventAttributesGetCases,12,12},
-    {tet_saEvtEventAttributesGetCases,12,13},
-    {tet_saEvtEventAttributesGetCases,12,14},
-    
-    {tet_saEvtEventDataGetCases,13,1},
-    {tet_saEvtEventDataGetCases,13,2},
-    {tet_saEvtEventDataGetCases,13,3},
-   /* {tet_saEvtEventDataGetCases,13,4},
-      {tet_saEvtEventDataGetCases,13,5},
-      {tet_saEvtEventDataGetCases,13,6},*/
-    {tet_saEvtEventDataGetCases,13,7},
-    {tet_saEvtEventDataGetCases,13,8},
-    {tet_saEvtEventDataGetCases,13,9},
-    {tet_saEvtEventDataGetCases,13,10},
-
-    {tet_saEvtEventPublishCases,14,1},  
-    {tet_saEvtEventPublishCases,14,2},
-    {tet_saEvtEventPublishCases,14,3},
-    {tet_saEvtEventPublishCases,14,4},
-    {tet_saEvtEventPublishCases,14,5},
-    {tet_saEvtEventPublishCases,14,6},
-    {tet_saEvtEventPublishCases,14,7},
-    {tet_saEvtEventPublishCases,14,8},
-    {tet_saEvtEventPublishCases,14,9},
-    {tet_saEvtEventPublishCases,14,10},
-    {tet_saEvtEventPublishCases,14,11},
-    {tet_saEvtEventPublishCases,14,12},
-    {tet_saEvtEventPublishCases,14,13},
-
-    {tet_saEvtEventSubscribeCases,15,1},
-    {tet_saEvtEventSubscribeCases,15,2},
-    {tet_saEvtEventSubscribeCases,15,3},
-    {tet_saEvtEventSubscribeCases,15,4},
-    {tet_saEvtEventSubscribeCases,15,5},
-    {tet_saEvtEventSubscribeCases,15,6},
-    {tet_saEvtEventSubscribeCases,15,7},
-    {tet_saEvtEventSubscribeCases,15,8},
-    {tet_saEvtEventSubscribeCases,15,9},
-    {tet_saEvtEventSubscribeCases,15,10},
-    {tet_saEvtEventSubscribeCases,15,11},
-    {tet_saEvtEventSubscribeCases,15,12},
-    {tet_saEvtEventSubscribeCases,15,13},
-
-    {tet_saEvtEventUnsubscribeCases,16,1},
-    {tet_saEvtEventUnsubscribeCases,16,2},
-    {tet_saEvtEventUnsubscribeCases,16,3},
-    {tet_saEvtEventUnsubscribeCases,16,4},
-    {tet_saEvtEventUnsubscribeCases,16,5},
-    {tet_saEvtEventUnsubscribeCases,16,6},
-    {tet_saEvtEventUnsubscribeCases,16,7},
-    {tet_saEvtEventUnsubscribeCases,16,8},
-
-    {tet_saEvtEventRetentionTimeClearCases,17,1},
-    {tet_saEvtEventRetentionTimeClearCases,17,2},
-    {tet_saEvtEventRetentionTimeClearCases,17,3},
-    {tet_saEvtEventRetentionTimeClearCases,17,4},
-    {tet_saEvtEventRetentionTimeClearCases,17,5},
-    {tet_saEvtEventRetentionTimeClearCases,17,6},
-    {tet_saEvtEventRetentionTimeClearCases,17,7},
-    {tet_saEvtEventRetentionTimeClearCases,17,8},
-    {tet_saEvtEventRetentionTimeClearCases,17,9},
-    {tet_saEvtEventRetentionTimeClearCases,17,10},
-    {tet_saEvtEventRetentionTimeClearCases,17,11},
-    {NULL,0}
-  };
-struct tet_testlist api_test[]=
-  {
-    {tet_Initialize,1},
-    {tet_ChannelOpen,2},
-    {tet_ChannelOpenAsync,3},
-    {tet_Subscribe,4},
-    {tet_Allocate,5},
-    {tet_AttributesSet,6},
-    {tet_Publish,7},
-    {tet_SelectionObjectGet,8},
-    {tet_Dispatch,9},
-    {tet_AttributesGet,10},
-    {tet_DataGet,11},
-    {tet_Unsubscribe,12},
-    {tet_RetentionTimeClear,13},
-    {tet_Free,14},
-    {tet_ChannelClose,15},
-    {tet_ChannelUnlink,16},
-    {tet_Finalize,17},
-    {NULL,0}
-  };
-struct tet_testlist func_test[]=
-  {
-    {tet_ChannelOpen_SingleEvtHandle,1},
-#if 1 
-    {tet_ChannelOpen_SingleEvtHandle_SamePatterns,2},
-    {tet_ChannelOpen_SingleEvtHandle_DifferentPatterns,3},
-    {tet_ChannelOpen_MultipleEvtHandle,4},
-    {tet_ChannelOpen_MultipleEvtHandle_SamePatterns,5}, /*run in a loop failing*/
-    {tet_ChannelOpen_MultipleEvtHandle_DifferentPatterns,6},
-    {tet_ChannelOpen_MultipleOpen,7},
-    {tet_ChannelClose_Simple,8},
-    {tet_ChannelClose_Subscriber,9},
-    {tet_ChannelUnlink_Simple,10},
-    {tet_ChannelUnlink_OpenInstance,11},
-    {tet_EventFree_Simple,12},
-    {tet_AttributesSet_DeliverCallback,13},
-    {tet_AttributesGet_ReceivedEvent,14},
-    {tet_EventPublish_NullPatternArray,15}, 
-    {tet_EventSubscribe_PrefixFilter,16},
-    {tet_EventSubscribe_SuffixFilter,17},
-    {tet_EventSubscribe_ExactFilter,18},
-    {tet_EventSubscribe_AllPassFilter,19},
-    {tet_EventSubscribe_LessFilters,20},
-    {tet_EventSubscribe_LessPatterns,21},
-    {tet_EventSubscribe_LessPatterns_FilterSize,22},
-    {tet_EventSubscribe_LessFilters_DifferentOrder,23},
-    {tet_EventSubscribe_PatternMatch_DifferentSubscriptions,24}, /*snmp printfs added till here*/
-    {tet_ChannelOpenAsync_Simple,25},
-    {tet_EventSubscribe_multipleFilters,26},
-    {tet_EventSubscribe_PrefixFilter_NoMatch,27},
-    {tet_EventSubscribe_SuffixFilter_NoMatch,28},
-    {tet_EventSubscribe_ExactFilter_NoMatch,29},
-    {tet_EventSubscribe_DiffFilterTypes,30},
-    {tet_EventSubscribe_PrefixFilter_FilterSize,31},
-    {tet_EventPublish_NullPatternArray_AttributesSet,32},
-    {tet_Complex_Subscriber_Publisher,33},
-    {tet_Same_Subscriber_Publisher_DiffChannel,34},
-    {tet_Sync_Async_Subscriber_Publisher,35},
-    {tet_Event_Subscriber_Unsubscriber,36},
-    {tet_EventDeliverCallback_AttributesSet_RetentionTimeClear,37},
-    {tet_MultipleHandle_Subscribers_Publisher,38},
-    {tet_EventPublish_Priority,39},
-    {tet_EventPublish_EventOrder,40},
-    {tet_EventPublish_EventFree,41},
-    {tet_EventFree_DeliverCallback,42},
-    {tet_EventRetentionTimeClear_EventFree,43},
-    {tet_EventPublish_ChannelUnlink,44},
-    {tet_EventUnsubscribe_EventPublish,45},
-    {tet_EventAttributesGet_LessPatternsNumber,46},
-    {tet_Simple_Test,47},
-#endif
-#if gl_red == 1
-#endif
-    {NULL,0}
-  };
-
-struct tet_testlist b03_test[]=
-  {
-    {tet_saEvtInitializeCases,1,15},
-#if 0 
-    {tet_saEvtInitializeCases,1,16}, /* Manual test for SA_AIS_ERR_UNAVAILABLE */
-#endif
-    {tet_saEvtLimitGetCases,2,1},
-    {tet_saEvtLimitGetCases,2,2},
-    {tet_saEvtLimitGetCases,2,3},
-    {tet_saEvtLimitGetCases,2,4},
-    {tet_saEvtLimitGetCases,2,5},
-    {tet_saEvtLimitGetCases,2,6},
-    {tet_saEvtLimitGetCases,2,7},
-    {tet_saEvtLimitGetCases,2,8},
-    {tet_saEvtLimitGetCases,2,9},
-    {tet_saEvtEventAttributesGetCases,3,15},/*saEvtEventPatternFree cases by EventAlloc*/
-    {tet_saEvtEventAttributesGetCases,3,16},
-    {tet_saEvtEventAttributesGetCases,3,17},
-    {tet_PatternFree_ReceivedEvent,18},
-    {NULL,0}
-  };
-
-struct tet_testlist *edsv_testlist[]=
-  {
-    [EDSV_TEST]=edsv_test,
-    [EDSV_API_TEST] = api_test,
-    [EDSV_FUNC_TEST] = func_test,
-    [EDSV_CLM_TEST] = b03_test,
-  };
-
-void tet_edsv_startup()
-{
-#ifdef TET_SMOKE_TEST
-  edsv_smoke_test();
-  return;
-#endif
-   
-#ifdef TET_EDSV
-  tet_run_edsv_app();
-#endif
-}
-void tet_edsv_cleanup()
-{
-  tet_test_cleanup();
-  return;
-}
 void gl_defs()
 {
   int length=0;
@@ -5271,7 +4948,7 @@ void gl_defs()
       gl_struct.publisherName.length=9;
       strcpy(gl_struct.publisherName.value,"Anonymous");
     }
-  memset(gl_publisherName.value,'\0',sizeof(SaNameT));
+  m_NCS_MEMSET(gl_publisherName.value,'\0',sizeof(SaNameT));
   gl_publisherName.length=gl_struct.publisherName.length;
   strcpy(gl_publisherName.value,gl_struct.publisherName.value);
   printf("\nPublisher Name: ");
@@ -5307,66 +4984,4 @@ void gl_defs()
   printf("\nSubscription Id: %u",gl_subscriptionId);
 
   printf("\n\n********************");
-}
-
-void tet_run_edsv_app()
-{
-  int iterCount=0,listCount=0;
-  gl_defs();
-#if 1 
-#ifndef TET_ALL
-
-  tware_mem_ign();
-  for(iterCount=1;iterCount<=gl_iteration;iterCount++)
-    {
-      printf("\n---------------- ITERATION : %d --------------\n",iterCount);
-      tet_printf("\n-------------- ITERATION : %d --------------\n",iterCount);
-      if(gl_listNumber==-1)
-        {
-            {
-              for(listCount=1;listCount<=4;listCount++)
-                {
-                  tet_test_start(gl_tCase,edsv_testlist[listCount]);
-                }
-            }
-        }
-      else
-        {
-          if(gl_listNumber!=4)
-            {
-              tet_test_start(gl_tCase,edsv_testlist[gl_listNumber]);
-            }
-          
-        }
-      printf("\nNumber of iterations: %d",iterCount);
-      tet_printf("\nNumber of iterations: %d",iterCount);
-      sleep(2);
-    }
-  printf("\nPRESS ENTER TO GET MEM DUMP");
-
-  getchar();
-
-  tware_mem_dump();
-  sleep(2);
-  tware_mem_dump();
-  tet_edsv_cleanup(); 
-
-#else
-
-  while(1)
-    {
-      tet_test_start(gl_tCase,edsv_test);
-
-      tet_test_start(gl_tCase,api_test);
-
-      tet_test_start(gl_tCase,func_test);
-
-      tet_test_start(gl_tCase,b03_test);
-    }
-#endif
-#endif
-}
-
-void tet_run_edsv_dist_cases()
-{
 }

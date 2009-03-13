@@ -1,4 +1,2 @@
 all
-	"Start executing..."
-            /reg_edsv.sh
-        "completed"
+    /reg_edsv.exe

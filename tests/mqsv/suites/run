@@ -1,2 +1,0 @@
-export TET_TMP_DIR=/tmp
-tcc -e -s reg_mqsv.scen $TET_BASE_DIR/mqsv/suites

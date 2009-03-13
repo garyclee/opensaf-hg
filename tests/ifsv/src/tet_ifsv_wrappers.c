@@ -164,7 +164,7 @@ void ifsv_cb(NCS_IFSV_SVC_RSP *rsp)
   int i=0;
   printf("\n\n--------Within ifsv_cb : Callback Invoked-----\n");
 
-  memcpy(&testrsp,rsp,sizeof(NCS_IFSV_SVC_RSP));
+  m_NCS_MEMCPY(&testrsp,rsp,sizeof(NCS_IFSV_SVC_RSP));
 
   printf("\nResponse type: %d\n",testrsp.rsp_type);
 
@@ -277,7 +277,7 @@ void ifsv_cb(NCS_IFSV_SVC_RSP *rsp)
         }
 
       /*get bond interfaces to a file*/
-      char inputfile[]="/opt/opensaf/tetware/ifsv/suites/bond.text";
+      char inputfile[]="/opt/motorola/tetware/ncs/ifsv/suites/bond.text";
       FILE *fp;
       if(!strncmp(rsp->info.ifadd_ntfy.if_info.if_name,"bond",4)) 
         {

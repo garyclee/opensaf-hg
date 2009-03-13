@@ -1,3 +1,6 @@
+#ifndef _TET_STARTUP_H
+#define _TET_STARTUP_H
+
 /* system files ...*/
 
 
@@ -113,3 +116,4 @@ typedef struct sys_cfg_info {
 
 }SYS_CFG_INFO;
 
+#endif

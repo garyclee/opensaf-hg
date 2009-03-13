@@ -9,7 +9,7 @@ uns32 mbcstm_input()
   
   input_ptr = (char *) getenv("MBCSTM_SYS_ID");
   sys_id = atoi(input_ptr);
-  memset(&mbcstm_cb,'\0', sizeof(mbcstm_cb));
+  m_NCS_OS_MEMSET(&mbcstm_cb,'\0', sizeof(mbcstm_cb));
   switch(sys_id)
     {
     case 0 :
@@ -34,7 +34,7 @@ MDS_DEST get_vdest_anchor()
 {
   NCSADA_INFO    ada_info;
   MDS_DEST dest;
-  memset(&ada_info,'\0', sizeof(ada_info));
+  m_NCS_OS_MEMSET(&ada_info,'\0', sizeof(ada_info));
   /*request*/
   ada_info.req=NCSADA_GET_HDLS;    
   /*input*/
@@ -87,7 +87,7 @@ uns32 mbcstm_config()
       mbcstm_cb.vdests[ssn_index].anchor = anc_index;
     }
   
-  /* memset(&mbcstm_cb, '\0', sizeof(mbcstm_cb)); */
+  /* m_NCS_MEMSET(&mbcstm_cb, '\0', sizeof(mbcstm_cb)); */
   for(svc_count = 1; svc_count < MBCSTM_SVC_MAX; svc_count++)
     {
       ++mbcstm_cb.svc_count;
@@ -172,7 +172,7 @@ uns32 tet_mbcsv_config()
       mbcstm_cb.vdests[ssn_index].anchor = anc_index;
     }
   
-  /* memset(&mbcstm_cb, '\0', sizeof(mbcstm_cb)); */
+  /* m_NCS_MEMSET(&mbcstm_cb, '\0', sizeof(mbcstm_cb)); */
   for(svc_count = 1; svc_count <=1; svc_count++)
     {
       ++mbcstm_cb.svc_count;

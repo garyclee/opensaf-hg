@@ -1,3 +1,6 @@
+#ifndef _MBCSV_PURPOSE_H
+#define _MBCSV_PURPOSE_H
+
 /* enum vlaues */
 /* typedef enum mbcstm_test_event {
    MBCSTM_PURPOSE_SAMPLE
@@ -186,5 +189,6 @@ void mbcstm_ckpt_idle_sendsync(void);
 void mbcstm_ckpt_send_usrasync(void);
 void mbcstm_ckpt_send_mbcasync(void);
 uns32 mbcstm_close(void);
-uns32 tet_mbcsv_startup(void);
+//uns32 tet_mbcsv_startup(void);
 
+#endif

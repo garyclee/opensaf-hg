@@ -17,74 +17,7 @@ void tet_mbcsv_send_checkpoint(int);
 void tet_mbcsv_data_request(int);
 void tet_mbcsv_test();
 uns32 initsemaphore();
-/* tet list definations */
-struct tet_testlist api_testlist[]={
-  {tet_mbcsv_initialize,1,1},
-  {tet_mbcsv_initialize,1,2},
-  {tet_mbcsv_initialize,1,3},
-  {tet_mbcsv_initialize,1,4},
-  {tet_mbcsv_initialize,1,6},
-  {tet_mbcsv_initialize,1,7},
-  {tet_mbcsv_initialize,1,8},
 
-  {tet_mbcsv_open_close,2,1},
-  {tet_mbcsv_open_close,2,2},
-  {tet_mbcsv_open_close,2,3},
-  {tet_mbcsv_open_close,2,4},
-  {tet_mbcsv_open_close,2,5},
-  {tet_mbcsv_open_close,2,6},
-
-  {tet_mbcsv_change_role,3,1},
-  {tet_mbcsv_change_role,3,2},
-  {tet_mbcsv_change_role,3,3},
-  {tet_mbcsv_change_role,3,4},
-  {tet_mbcsv_change_role,3,5},
-  {tet_mbcsv_change_role,3,6},
-  {tet_mbcsv_change_role,3,7},
-  {tet_mbcsv_change_role,3,8},
-  {tet_mbcsv_change_role,3,9},
-  {tet_mbcsv_change_role,3,10},
-  {tet_mbcsv_change_role,3,11},
-  {tet_mbcsv_change_role,3,12},
-
-  {tet_mbcsv_op,4,1},
-  {tet_mbcsv_op,4,2},
-  {tet_mbcsv_op,4,3},
-
-  {NULL,0},
-};
-
-uns32 mbcstm_startup()
-{
-  int distributed,test_case,single;
-  char *tmpprt=NULL;
-  tmpprt= (char *) getenv("DISTRIBUTED");
-  distributed= atoi(tmpprt);
-  tmpprt= (char *) getenv("TET_CASE");
-  test_case= atoi(tmpprt);
-  tmpprt= (char *) getenv("SINGLE");
-  single= atoi(tmpprt);
-  if(!distributed)
-    {
-      if(single)
-        {
-          tware_mem_ign();  
-          tet_test_start(test_case,api_testlist);
-          sleep(1);
-          tware_mem_dump();
-          tet_test_cleanup();
-        }    
-    }  
-  /*change*/
-  return 0;
-}
-
-uns32 tet_mbcsv_startup()
-{
-  mbcstm_startup();
-  /*change*/
-  return 0;
-}
 
 uns32 mbcstm_close()
 {

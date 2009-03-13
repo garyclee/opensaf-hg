@@ -1,6 +1,3 @@
 all
-	"Start executing..."
-         :parallel:
-         /reg_mqsv.sh
-         :endparallel:
-        "completed"
+	/reg_mqsv.exe
+        
