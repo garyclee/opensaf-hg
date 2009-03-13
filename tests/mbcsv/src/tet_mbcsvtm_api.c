@@ -22,7 +22,7 @@ void tet_mbcsv_op(int choice)
 {
   int FAIL=0;
   NCS_MBCSV_ARG mbcsv_arg;
-  m_NCS_MEMSET(&mbcsv_arg,'\0',sizeof(NCS_MBCSV_ARG));
+  memset(&mbcsv_arg,'\0',sizeof(NCS_MBCSV_ARG));
   printf("\n------- tet_mbcsv_op: Case %d -------------\n",choice);
   mbcstm_input();
   if(mbcstm_cb.sys == MBCSTM_SVC_INS1)
@@ -598,7 +598,7 @@ void tet_mbcsv_Notify(int choice)
       tet_printf("BIG(1151 Bytes) Notify message to STANDBY from STANDBY");
       if(mbcstm_cb.sys == MBCSTM_SVC_INS1)
         {
-          m_NCS_OS_MEMSET(BIG,'S',1200);
+          memset(BIG,'S',1200);
           BIG[1199]='\0';
           printf("\n BIG length = %ld\n",(long)strlen(BIG)); /*1100*/        
           mbcstm_sync_point();
@@ -1565,7 +1565,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 9:
       tet_printf("GET with invalid Checkpoint Handle");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_GET;
       mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
       mbcsv_arg.info.obj_get.i_obj=NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
@@ -1575,7 +1575,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 10:
       tet_printf("GET with invalid Object ID");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_GET;
       mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
       mbcsv_arg.info.obj_get.i_obj=6; /*wrong valude*/
@@ -1585,7 +1585,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 11:
       tet_printf("GET with invalid Mbcsv Handle");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_GET;
       mbcsv_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)(long)NULL;/*wrong valude*/
       mbcsv_arg.info.obj_get.i_obj=NCS_MBCSV_OBJ_TMR_WSYNC;
@@ -1595,7 +1595,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 12:
       tet_printf("SET with invalid Checkpoint Handle");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
       mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
       mbcsv_arg.info.obj_set.i_obj=NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
@@ -1606,7 +1606,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 13:
       tet_printf("SET with invalid Object ID");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
       mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
       mbcsv_arg.info.obj_set.i_obj=6; /*wrong valude*/
@@ -1616,7 +1616,7 @@ void tet_get_set_warm_sync(int choice)
       break;
     case 14:
       tet_printf("SET with invalid Mbcsv Handle");
-      m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+      memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
       mbcsv_arg.i_op = NCS_MBCSV_OP_OBJ_SET;
       mbcsv_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)(long)NULL;/*wrong valude*/
       mbcsv_arg.info.obj_set.i_obj=NCS_MBCSV_OBJ_TMR_WSYNC;
@@ -1886,7 +1886,7 @@ void tet_mbcsv_data_request(int choice)
               svc = &mbcstm_cb.svces[1];
               ssn = &svc->ssns[1];
               
-              m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+              memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
               
               mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
               mbcsv_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)(long)NULL; /*Wrong Value*/
@@ -1974,7 +1974,7 @@ void tet_mbcsv_data_request(int choice)
               svc = &mbcstm_cb.svces[1];
               ssn = &svc->ssns[1];
               
-              m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+              memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
               
               mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
               mbcsv_arg.i_mbcsv_hdl = svc->mbcsv_hdl; 
@@ -2084,7 +2084,7 @@ void tet_mbcsv_send_checkpoint(int choice)
     FAIL=1;
   if(mbcstm_ssn_open(1,1)!=NCSCC_RC_SUCCESS)
     FAIL=1;
-  m_NCS_OS_MEMSET(mbcstm_cb.svces[1].ssns[1].data, '\0', 
+  memset(mbcstm_cb.svces[1].ssns[1].data, '\0', 
                   sizeof(MBCSTM_CSI_DATA));
   mbcstm_sync_point();
 
@@ -2544,7 +2544,7 @@ void tet_mbcsv_send_checkpoint(int choice)
 
           mbcstm_create_data_point(1,1);
 
-          m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+          memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
           
           mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
           mbcsv_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)(long)NULL;/*wrong value*/
@@ -2592,7 +2592,7 @@ void tet_mbcsv_send_checkpoint(int choice)
 
           mbcstm_create_data_point(1,1);
 
-          m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+          memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
           
           mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
           mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
@@ -2640,7 +2640,7 @@ void tet_mbcsv_send_checkpoint(int choice)
 
           mbcstm_create_data_point(1,1);
 
-          m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+          memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
           
           mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
           mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
@@ -2688,7 +2688,7 @@ void tet_mbcsv_send_checkpoint(int choice)
 
           mbcstm_create_data_point(1,1);
 
-          m_NCS_MEMSET(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+          memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
           
           mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
           mbcsv_arg.i_mbcsv_hdl = mbcstm_cb.svces[1].mbcsv_hdl;
@@ -3377,7 +3377,7 @@ void tet_mbcsv_test()
 
 uns32 create_vdest(MDS_DEST vdest)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info)); 
+  memset(&vda_info,'\0', sizeof(vda_info)); 
 
   vda_info.req=NCSVDA_VDEST_CREATE;  
 
@@ -3405,7 +3405,7 @@ count  = %d\n", vdest,mbcstm_cb.svc_count,mbcstm_cb.vdest_count);
 }
 uns32 destroy_vdest(MDS_DEST vdest)
 {
-  m_NCS_OS_MEMSET(&vda_info,'\0', sizeof(vda_info)); 
+  memset(&vda_info,'\0', sizeof(vda_info)); 
 
   vda_info.req=NCSVDA_VDEST_DESTROY;
 
@@ -3428,7 +3428,7 @@ uns32 tet_mbcsv_dest_start(void)
   MDS_DEST    dest;
   uns32 svc_count, ssn_index, ssn_count;
   
-  m_NCS_OS_MEMSET(&dest , 0, sizeof(dest));
+  memset(&dest , 0, sizeof(dest));
   ssn_count = mbcstm_cb.vdest_count;
   svc_count = mbcstm_cb.svc_count;
   for(ssn_index = 1; ssn_index <= ssn_count; ssn_index++)
@@ -3450,7 +3450,7 @@ uns32 tet_mbcsv_dest_close(void)
   MDS_DEST        dest;
   uns32 ssn_count,ssn_index,svc_index;
   
-  m_NCS_OS_MEMSET(&dest , 0, sizeof(dest));
+  memset(&dest , 0, sizeof(dest));
   ssn_count = mbcstm_cb.vdest_count;
   for(ssn_index = 1; ssn_index <= ssn_count; ssn_index++)
     {
@@ -3731,7 +3731,7 @@ void tet_mbcsv_Notify(int choice)
       tet_printf("BIG(1151 Bytes) Notify message to STANDBY from STANDBY");
       if(mbcstm_cb.sys == MBCSTM_SVC_INS1)
         {
-          m_NCS_OS_MEMSET(BIG,'S',1200);
+          memset(BIG,'S',1200);
           BIG[1199]='\0';
           printf("\n BIG length = %d\n",strlen(BIG)); /*1100*/        
           if( mbcstm_svc_send_notify(1,1,NCS_MBCSV_STANDBY,BIG,1150) 

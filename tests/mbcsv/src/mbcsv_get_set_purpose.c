@@ -20,7 +20,7 @@ uns32 mbcstm_get_set_purposes(uns32 svc_index, uns32 ssn_index, uns32 asys,
   uns32 mbcstm_check_inv(MBCSTM_CHECK , uns32 , uns32 , void *);
   int PASS=0;
 
-  m_NCS_MEMSET(&peers, '\0', sizeof(MBCSTM_PEERS_DATA));
+  memset(&peers, '\0', sizeof(MBCSTM_PEERS_DATA));
   
   if(mbcstm_cb.sys == MBCSTM_SVC_INS3 || mbcstm_cb.sys == MBCSTM_SVC_INS4)
     {

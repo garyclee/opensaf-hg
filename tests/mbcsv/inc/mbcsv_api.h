@@ -25,6 +25,7 @@
 /* include files */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncssysf_def.h"

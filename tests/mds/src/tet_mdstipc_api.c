@@ -2021,7 +2021,7 @@ void tet_just_send_tp(int choice)
   char tmp[]=" Hi Receiver ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -2256,7 +2256,7 @@ void tet_just_send_tp(int choice)
         case 10:
           tet_printf("Case 10 : \tNow send a message( > \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
-          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
+          memset(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_just_send(gl_tet_adest.mds_pwe1_hdl,
                            NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -2396,7 +2396,7 @@ void tet_send_ack_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -2646,7 +2646,7 @@ void tet_send_ack_tp(int choice)
         case 11:
           tet_printf("Case 11 : \tNow send a message( > \
                   MDTM_NORMAL_MSG_FRAG_SIZE) to 1700");
-          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
+          memset(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_send_get_ack(gl_tet_adest.mds_pwe1_hdl,
                               NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -2865,7 +2865,7 @@ void tet_adest_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -2898,7 +2898,7 @@ void tet_adest_rcvr_svc_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -2930,7 +2930,7 @@ void tet_vdest_rcvr_resp_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);    
   
@@ -2961,7 +2961,7 @@ void tet_send_response_tp(int choice)
   char tmp[]=" Hi Receiver! What is your Name? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -3462,7 +3462,7 @@ sends a message to Svc EXTMIN on Active Vdest=200 and Times out");
         case 11:
           tet_printf("Case 11 : \tNow send_response a message(> \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
-          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
+          memset(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           /*Receiver thread*/
           if(tet_create_task((NCS_OS_CB)tet_adest_rcvr_thread,
@@ -3546,7 +3546,7 @@ void tet_vdest_rcvr_thread()
   char tmp[]=" Yes Sender! I am in. Message Delivered?";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);    
 
@@ -3582,7 +3582,7 @@ void tet_Dadest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3664,7 +3664,7 @@ void tet_adest_all_chgrole_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3718,7 +3718,7 @@ void tet_vdest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3759,7 +3759,7 @@ void tet_adest_all_rcvrack_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3797,7 +3797,7 @@ void tet_adest_all_rcvrack_chgrole_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3902,7 +3902,7 @@ void tet_adest_all_rcvr_thread()
   char tmp[]=" Hi Sender! My Name is RECEIVER ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));
+  memset(mesg, 0, sizeof(TET_MDS_MSG));
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -3942,7 +3942,7 @@ void tet_send_all_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -4367,7 +4367,7 @@ void tet_send_response_ack_tp(int choice)
   char tmp[]=" Hi Receiver! Are you there? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -4773,7 +4773,7 @@ sends a LOWPriority message to Svc EXTMIN on VDEST=200 and expects Response");
         case 8:
           tet_printf("Case 8 : \tNow send_response a message(> \
  MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN on Active Vdest");
-          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
+          memset(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           /*Receiver thread*/
           if(tet_create_task((NCS_OS_CB)tet_vdest_rcvr_thread,
@@ -4822,7 +4822,7 @@ void tet_vdest_Srcvr_thread()
   char tmp[]=" Yes Sender! I am STANDBY? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));  
+  memset(mesg, 0, sizeof(TET_MDS_MSG));  
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
   
@@ -4851,7 +4851,7 @@ void tet_vdest_Arcvr_thread()
   char tmp[]=" Yes Man! I am in: Message Delivered? ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));  
+  memset(mesg, 0, sizeof(TET_MDS_MSG));  
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
         
@@ -4884,7 +4884,7 @@ void tet_broadcast_to_svc_tp(int choice)
   char tmp[]=" Hi All ";
   TET_MDS_MSG *mesg;
   mesg = (TET_MDS_MSG*)malloc(sizeof(TET_MDS_MSG));
-  m_NCS_OS_MEMSET(mesg, 0, sizeof(TET_MDS_MSG));   
+  memset(mesg, 0, sizeof(TET_MDS_MSG));   
   memcpy(mesg->send_data,tmp,sizeof(tmp));
   mesg->send_len=sizeof(tmp);
 
@@ -5082,7 +5082,7 @@ void tet_broadcast_to_svc_tp(int choice)
         case 6:
           tet_printf("Case 6 : \tSvc INTMIN on VDEST=200 Broadcasting a VERY \
  HIGH Priority message (>MDTM_NORMAL_MSG_FRAG_SIZE) to Svc EXTMIN");
-          m_NCS_OS_MEMSET(mesg->send_data,'S',2*1400+2 );
+          memset(mesg->send_data,'S',2*1400+2 );
           mesg->send_len=2*1400+2;
           if(mds_service_subscribe(gl_tet_vdest[1].mds_pwe1_hdl,
                                    NCSMDS_SVC_ID_INTERNAL_MIN,
@@ -5436,7 +5436,7 @@ is Not installed");
           tet_printf("Case 11 : \tNot able to send a message with Invalid \
  Message length");
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+          memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -5518,7 +5518,7 @@ is Not installed");
           tet_printf("Case 14 : \tNot able to send a message of size >(\
  MDS_DIRECT_BUF_MAXSIZE) to 2000");
 
-          m_NCS_OS_MEMSET(big_message, 's', 8000);
+          memset(big_message, 's', 8000);
           if(mds_direct_send_message(gl_tet_adest.mds_pwe1_hdl,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,1,
@@ -5536,8 +5536,8 @@ is Not installed");
           tet_printf("Case 15 : \tAble to send a message of size =(\
  MDS_DIRECT_BUF_MAXSIZE) to 2000");
           
-          m_NCS_OS_MEMSET(big_message, '\0', 8000);
-          m_NCS_OS_MEMSET(big_message, 's', 7999);
+          memset(big_message, '\0', 8000);
+          memset(big_message, 's', 7999);
           
           if(mds_direct_send_message(gl_tet_adest.mds_pwe1_hdl,
                                      NCSMDS_SVC_ID_EXTERNAL_MIN,
@@ -6661,7 +6661,7 @@ on Vdest=200 with Wrong DEST");
 #if 0
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+          memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -6692,7 +6692,7 @@ on Vdest=200 with Wrong DEST");
  with Direct Buff as NULL");
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+          memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -6724,7 +6724,7 @@ on Vdest=200 with Wrong DEST");
  Message length");
           /*Allocating memory for the direct buffer*/
           direct_buff=m_MDS_ALLOC_DIRECT_BUFF(strlen(message)+1);
-          m_NCS_OS_MEMSET(direct_buff, 0, sizeof(direct_buff));
+          memset(direct_buff, 0, sizeof(direct_buff));
           if(direct_buff==NULL)
             perror("Direct Buffer not allocated properly");
           memcpy(direct_buff,(uns8 *)message,strlen(message)+1);
@@ -7938,7 +7938,7 @@ void tet_destroy_PWE_ADEST_twice_tp()
   tet_printf("            tet_destroy_PWE_ADEST_twice_tp");
   printf("\n*********tet_destroy_PWE_ADEST_twice_tp*****************\n");    
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
     
   tet_printf("Getting an ADEST handle");
@@ -7981,7 +7981,7 @@ void tet_create_PWE_ADEST_twice_tp()
   tet_printf("            tet_create_PWE_ADEST_twice_tp");
   printf("\n**************tet_create_PWE_ADEST_twice_tp*************\n");     
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
     
   tet_printf("Getting an ADEST handle");
@@ -8028,7 +8028,7 @@ void tet_create_default_PWE_ADEST_tp()
   tet_printf("            tet_create_default_PWE_ADEST_tp");
   printf("\n*********tet_create_default_PWE_ADEST_tp***************\n");     
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
   if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
@@ -8065,7 +8065,7 @@ void tet_create_PWE_upto_MAX_tp()
   tet_printf("            tet_create_PWE_upto_MAX_tp");
   printf("\n**********tet_create_PWE_upto_MAX_tp****************\n");     
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
+  memset(&gl_tet_adest,'\0', sizeof(gl_tet_adest)); /*zeroizing*/
     
   tet_printf("Getting an ADEST handle");
   if(adest_get_handle(FALSE)!=NCSCC_RC_SUCCESS)
@@ -8118,7 +8118,7 @@ void tet_create_MxN_VDEST(int choice)
   gl_vdest_indx=0;
   printf("\n**********tet_create_MxN_VDEST %d *************\n",choice);
   /*Start up*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8188,7 +8188,7 @@ void tet_create_Nway_VDEST(int choice)
     
   printf("\n**************tet_create_Nway_VDEST %d ***********\n",choice);
     
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8258,7 +8258,7 @@ void tet_create_OAC_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n********** tet_create_OAC_VDEST_tp %d ********\n",choice);
   /*Start up*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8307,7 +8307,7 @@ void tet_destroy_VDEST_twice_tp(int choice)
   gl_vdest_indx=0;
   printf("\n************tet_destroy_VDEST_twice_tp %d ************\n",choice);
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   switch(choice)
     {
     case 1:
@@ -8343,7 +8343,7 @@ void tet_destroy_ACTIVE_MxN_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n*********tet_destroy_ACTIVE_MxN_VDEST_tp %d **********\n",choice);
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
 
   switch(choice)
     {
@@ -8404,7 +8404,7 @@ void tet_chg_standby_to_queisced_tp(int choice)
   gl_vdest_indx=0;
   printf("\n*********tet_chg_standby_to_queisced_tp %d ***********\n",choice);
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   tet_printf("Creating a VDEST in N-way model");
   if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
                   1200)!=NCSCC_RC_SUCCESS)
@@ -8484,7 +8484,7 @@ void tet_create_named_VDEST(int choice)
   tet_printf("                 tet_create_named_VDEST");
   printf("\n************tet_create_named_VDEST %d ************\n",choice);
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   switch(choice)
     {
@@ -8693,7 +8693,7 @@ void tet_test_PWE_VDEST_tp(int choice)
   gl_vdest_indx=0;
   printf("\n**************tet_test_PWE_VDEST_tp %d ************\n",choice);
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
   if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1250)!=NCSCC_RC_SUCCESS)
@@ -8835,7 +8835,7 @@ void tet_create_PWE_upto_MAX_VDEST()
   gl_vdest_indx=0;
   printf("\n*************************tet_create_PWE_upto_MAX_VDEST********\n");
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in MxN model");
   if(create_vdest(NCS_VDEST_TYPE_MxN,FALSE,1200)!=NCSCC_RC_SUCCESS)
@@ -8887,7 +8887,7 @@ void tet_create_default_PWE_VDEST_tp()
   gl_vdest_indx=0;
   printf("\n**************tet_create_default_PWE_VDEST_tp****************\n");
   /*Start UP*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
     
   tet_printf("Creating a VDEST in N-WAY model");
   if(create_vdest(NCS_VDEST_TYPE_N_WAY_ROUND_ROBIN,FALSE,
@@ -8955,7 +8955,7 @@ void tet_VDS(int choice)
   tet_printf("                 tet_VDS");
   printf("\n*************************tet_VDS**************************\n");
   /*start up*/
-  m_NCS_OS_MEMSET(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
+  memset(&gl_tet_vdest,'\0', sizeof(gl_tet_vdest)); /*zeroizing*/
   
   tet_printf("Creating a Named VDEST in MxN model");
   for(j=0;j<5;j++)

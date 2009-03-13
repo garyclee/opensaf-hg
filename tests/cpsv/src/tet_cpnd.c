@@ -95,7 +95,7 @@ void print_cpnd_cb() {
 
    cpsv_evt=m_MMGR_ALLOC_CPSV_EVT(NCS_SERVICE_ID_CPND);
 
-   m_NCS_OS_MEMSET(cpsv_evt,0,sizeof(CPSV_EVT));
+   memset(cpsv_evt,0,sizeof(CPSV_EVT));
    cpsv_evt->type = CPSV_EVT_TYPE_CPND;
    cpsv_evt->info.cpnd.type=CPND_EVT_CB_DUMP;
 
@@ -107,3 +107,5 @@ void print_cpnd_cb() {
 
 
 #endif
+
+
