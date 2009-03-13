@@ -38,7 +38,7 @@ uns32 mbcstm_perf_sync_msg(uns32 svc_index, uns32 ssn_index,uns32 size,uns32 sen
 
   data = ( SSN_PERF_DATA *) malloc(sizeof(SSN_PERF_DATA));
   data->msg = (char *) malloc(size);
-  m_NCS_MEMSET(data->msg,'c',size);
+  memset(data->msg,'c',size);
   data->msg[size-1] = '\0';    
   data->length = size;
   data->crc = mbcstm_crc(data->msg,size);
