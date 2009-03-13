@@ -78,7 +78,7 @@ void tet_gld_dump_cb(void) {
    GLSV_GLD_EVT      *gld_evt;
                                                                                 
    gld_evt = m_MMGR_ALLOC_GLSV_GLD_EVT;
-   memset(gld_evt, 0,sizeof(GLSV_GLD_EVT));
+   m_NCS_OS_MEMSET(gld_evt, 0,sizeof(GLSV_GLD_EVT));
    cb =   (GLSV_GLD_CB*)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl);
    gld_evt->gld_cb = cb;
    gld_evt->evt_type = GLSV_GLD_EVT_CB_DUMP;

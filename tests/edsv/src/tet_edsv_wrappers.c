@@ -12,7 +12,7 @@ extern SaTimeT gl_timeout;
 extern SaInvocationT gl_invocation;
 extern SaEvtEventPatternT gl_pattern[2];
 extern SaEvtEventFilterT gl_filter[1];
-extern const char *gl_saf_error[28];
+extern const char *gl_saf_error[32];
 extern int gl_major_version;
 extern int gl_minor_version;
 extern int gl_b03_flag;
@@ -304,17 +304,17 @@ void tet_saEvtEventAttributesGet(SaEvtEventHandleT *ptrEventHandle)
   SaEvtEventPatternArrayT *ptrPatternArray=
     (SaEvtEventPatternArrayT *)malloc(sizeof(SaEvtEventPatternArrayT));
 
-  memset(ptrPatternArray,'\0',(sizeof(SaEvtEventPatternArrayT)));
+  m_NCS_MEMSET(ptrPatternArray,'\0',(sizeof(SaEvtEventPatternArrayT)));
 
   SaNameT *getPublishName=(SaNameT *)malloc(sizeof(SaNameT));
 
-  memset(getPublishName,'\0',(sizeof(SaNameT)));
+  m_NCS_MEMSET(getPublishName,'\0',(sizeof(SaNameT)));
 
   ptrPatternArray->allocatedNumber=gl_allocatedNumber;
   ptrPatternArray->patterns=
     (SaEvtEventPatternT *)malloc((sizeof(SaEvtEventPatternT))*gl_allocatedNumber);
 
-  memset(ptrPatternArray->patterns,'\0',
+  m_NCS_MEMSET(ptrPatternArray->patterns,'\0',
                sizeof(SaEvtEventPatternT)*gl_allocatedNumber);
 
   printf("\n\n******************************\n");
@@ -328,7 +328,7 @@ void tet_saEvtEventAttributesGet(SaEvtEventHandleT *ptrEventHandle)
       ptrPatternArray->patterns[pCount].pattern=
         (SaUint8T *)malloc(gl_patternLength);
 
-      memset(ptrPatternArray->patterns[pCount].pattern,'\0',
+      m_NCS_MEMSET(ptrPatternArray->patterns[pCount].pattern,'\0',
                    sizeof(gl_patternLength));
       pCount++;
     }

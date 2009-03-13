@@ -79,7 +79,7 @@ void print_glnd_cb() {
    GLSV_GLND_EVT     *glnd_evt;
                                                                                 
    glnd_evt = m_MMGR_ALLOC_GLND_EVT;
-   memset(glnd_evt,0,sizeof(GLSV_GLND_EVT));
+   m_NCS_OS_MEMSET(glnd_evt,0,sizeof(GLSV_GLND_EVT));
    glnd_evt->type = GLSV_GLND_EVT_CB_DUMP;
                                                                                 
    cb =   (GLND_CB*)ncshm_take_hdl(NCS_SERVICE_ID_GLND, m_GLND_RETRIEVE_GLND_CB_HDL);
@@ -165,10 +165,10 @@ uns32 tet_glnd_testcase_3(SaNameT rscName)
     return NCSCC_RC_FAILURE;
   }
 
-  memset(&gld_evt,0,sizeof(GLSV_GLD_EVT)); 
+  m_NCS_OS_MEMSET(&gld_evt,0,sizeof(GLSV_GLD_EVT)); 
   gld_evt.evt_type = GLSV_GLD_EVT_RSC_OPEN;
 
-  memcpy(&gld_evt.info.rsc_open_info.rsc_name, \
+  m_NCS_OS_MEMCPY(&gld_evt.info.rsc_open_info.rsc_name, \
                 &rscName,sizeof(SaNameT));
 
   ret=glnd_mds_msg_send_gld(glnd_cb,&gld_evt,glnd_cb->gld_mdest_id);

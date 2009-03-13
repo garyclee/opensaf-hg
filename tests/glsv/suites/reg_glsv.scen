@@ -1,6 +1,2 @@
 all
-	"Start executing..."
-         :parallel:
-         /reg_glsv.sh
-         :endparallel:
-        "completed"
+    /reg_glsv.exe
