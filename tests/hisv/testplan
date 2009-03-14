@@ -1018,3 +1018,15 @@ Foot Notes:
 		"error in saHpiResourceResetStateSet; Attempting"
 	- HPI reported an error,
 		""HPI error code"
+
+[4] The following error messages are detected in API-code output
+	- "No HAM managing chassis"
+	  Invalid chassis ID used.
+	- "MDS:ERR"
+	   Message-distribution service had an error.
+	- "Invalid Index"
+	  Input to the CLI was invalid.
+	- "hpl_entity_path_lookup.*did not find" 
+	   The ".*" here is a regular expression matching anything.
+	- "Invalid input detected"
+	  Input to the CLI was invalid.
