@@ -164,7 +164,7 @@ void ifsv_cb(NCS_IFSV_SVC_RSP *rsp)
   int i=0;
   printf("\n\n--------Within ifsv_cb : Callback Invoked-----\n");
 
-  m_NCS_MEMCPY(&testrsp,rsp,sizeof(NCS_IFSV_SVC_RSP));
+  memcpy(&testrsp,rsp,sizeof(NCS_IFSV_SVC_RSP));
 
   printf("\nResponse type: %d\n",testrsp.rsp_type);
 
