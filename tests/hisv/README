@@ -1,7 +1,24 @@
+Contents
+========
+	Introduction
+	Manifest		- List of files in this suite and their purposes
+	Test Set		- Requirements and instructions to set up the test.
+	Running Tests	- Instructions for running the tests
+	Known Test		- A list of tests that are known to fail as of
+	Failures		  revision 3.0.M3.  All other tests pass.
+	Debugging Test	- How to determine if a test is really failing or
+	Failures		  if something else is causing the failure.
+	Appendix A		- Instructions for OpenHPI configuration specific
+					  to running these tests.
+	Appendix B		- Instructions for OpenSAF configuration specific
+					  to running these tests.
+
 Introduction
 ============
-This file provides a manifest, test setup guide, known bug list and
-test-debug information for the tests in this directory.
+This file provides a manifest, test-setup guide, known-bug list and
+test-debug information for HISv tests on HP ProLiant BL blades in a
+c-Class chassis.  More information on BL blades and c-Class chassis at
+http://h18004.www1.hp.com/products/blades/components/c-class-components.html
 
 Manifest
 ========
@@ -9,21 +26,21 @@ Manifest
   src directory
   -------------
   --------------------------------------------------------------------
-  |         File    |                Description             |
+  |         File        |                Description                 |
   --------------------------------------------------------------------
-  |libcli            | Command-line interface routines         |
+  |libcli               | Command-line interface routines            |
   --------------------------------------------------------------------
-  |Makefile.am        | Automake configuration file             |
+  |Makefile.am          | Automake configuration file                |
   --------------------------------------------------------------------
   |hisv_power_ctrl.c    | hpl_resource_power_set() API-test code     |
   --------------------------------------------------------------------
   |hisv_reset_ctrl.c    | hpl_resource_reset() API-test code         |
   --------------------------------------------------------------------
-  |hisv_test.h        | #include's and definitions for API tests   |
+  |hisv_test.h          | #include's and definitions for API tests   |
   --------------------------------------------------------------------
-  |hisv_test_common.c    | Common test functions for HISv-API tests   |
+  |hisv_test_common.c   | Common test functions for HISv-API tests   |
   --------------------------------------------------------------------
-  |hpl_entity_lookup.c    | hpl_entity_path_lookup() API-test code     |
+  |hpl_entity_lookup.c  | hpl_entity_path_lookup() API-test code     |
   --------------------------------------------------------------------
 
   lib directory
@@ -68,7 +85,7 @@ Manifest
   ----------------
   Note that tests are run from this directory.
   --------------------------------------------------------------------
-  |         File        |              Description             |
+  |         File            |               Description              |
   --------------------------------------------------------------------
   |Run_all                  | Test harness that will run tests in    |
   |                         | test.list, logging the results to      |
@@ -86,7 +103,7 @@ Manifest
   |                         | carriage return and returns BOOTING if |
   |                         | grub or init messages are detecte,     |
   |                         | LINUX if the root prompt or a user     |
-  |                         | prompt are detected; LOGIN if a login  |  
+  |                         | prompt are detected; LOGIN if a login  |
   |                         | prompt is detected; SHUTDOWN if        |
   |                         | messages related to shutdown are       |
   |                         | detected.                              |
@@ -115,7 +132,7 @@ Manifest
   |power_api                | Functional tests of the                |
   |                         | hpl_resource_power_set() API.          |
   --------------------------------------------------------------------
-  |power_api_error_handling | Test of hpl_resource_power_set() error | 
+  |power_api_error_handling | Test of hpl_resource_power_set() error |
   |                         | handling.                              |
   --------------------------------------------------------------------
   |power_cli                | Functional tests of power-control using|
@@ -144,14 +161,17 @@ Test Setup
 
   Requirements
   ------------
-    1.  Install, configure and start OpenHPI, revision 2.11.3 or newer.
+    1.  Make sure your OA is running Firmware revision 2.21 or newer.
+        Make sure that the iLO revision on your BL46* systems is 1.70
+        or newer.
+    2.  Install, configure and start OpenHPI, revision 2.11.3 or newer.
         See Appendix A for test-specific details of the set up.
-    2.  This suite is intended to run on HP c-Class blades and enclosures.
+    3.  This suite is intended to run on HP c-Class blades and enclosures.
         - The tests are set up to run on a two-controller, one payload
           cluster.
-    3.  The test suite was written and tested on RHEL 5.x with HP bl46x
+    4.  The test suite was written and tested on RHEL 5.x with HP bl46x
         blades in a c-7000 enclosure.
-    4.  Install expect.  Expect is used in all scripts with names like
+    5.  Install expect.  Expect is used in all scripts with names like
         readOaPower, setPower and runCli that need to interact with a
         command line.
   OpenSAF Set Up
@@ -244,8 +264,8 @@ Known Test Failures
   reset_cli failures:
   -------------------
     Bug 317 (related): OpenSAF defines HISV_RES_GRACEFUL_REBOOT, which
-    is not defined by OpenHPI, so these resets will fail, and OpenSAF
-    will substitute a cold reset instead.
+             is not defined by OpenHPI, so these resets will fail, and
+             OpenSAF will substitute a cold reset instead.
 
 Debugging Test Failures
 =======================
@@ -281,6 +301,17 @@ General
     is tests that fail because the HISv log,
     /var/lib/opensaf/stdouts/ncs_hisv.log, does not exist.  e.g.,
     cp: cannot stat `/var/lib/opensaf/stdouts/ncs_hisv.log': No such file or directory 
+
+6.  Error messages from the test similar to,
+    "**> ERROR: Blade N is ON and can't turn it off fot test", or
+    "**> ERROR: Failed to turn system N to run test"
+    indicate that the test was unable to set the system power to the
+    correct state (opposite of what the test is trying to set it to).
+    The test uses the OA or iLO console to power the system off or on.
+    Sometimes setting the power this way does not succeed.  To remedy
+    this, log in directly to the OA or iLO and set the power -- it may
+    take multiple tries.
+
 
 -----------------------------------------------------------------------------
 WARNING: This is a private system.  Do not attempt to login unless you are an
@@ -505,6 +536,6 @@ and note the following:
 </Hardware-Deployment-Config>
 
 =========
-vim: tabstop=8
+vim: tabstop=4
 -*- tab-width:4 -*-
 
