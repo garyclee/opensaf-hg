@@ -639,6 +639,12 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    m_LOG_HISV_DTS_CONS("dispatch_hotswap: dispatching outstanding hotwap events\n");
    memset(hsm_cb->node_state, 0, sizeof(hsm_cb->node_state));
 
+   /* Get the target system architecture type - as HP PROLIANT is treated */
+   /* differently than ATCA or HP c-Class - because it does not support   */
+   /* the 5-state hotswap model.                                          */
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   m_NCS_CONS_PRINTF("dispatch_hotswap: target system architecture is: %s\n", arch_type);
+
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
@@ -689,11 +695,24 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          saHpiEventLogClear(session_id, entry.ResourceId);
       }
       /* if it is a FRU and hotswap managable then publish outstanding inspending events */
-       if ((entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP) && 
-          (entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU))
+      /* Also, in the case of HP_PROLIANT - just check that his device is considered     */
+      /* to be a system blade.                                                           */
+      if (((entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
+           (entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) ||
+          ((strcmp(arch_type, "HP_PROLIANT") == 0) &&
+           (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)))
       {
 
-         hpi_rc = saHpiHotSwapStateGet(session_id, entry.ResourceId, &state);
+         if (strcmp(arch_type, "HP_PROLIANT") != 0) {
+            /* Get the current hotswap state in the normal way */
+            hpi_rc = saHpiHotSwapStateGet(session_id, entry.ResourceId, &state);
+         }
+         else {
+            /* Since we cannot get the hotswap state of an HP Proliant - get the current */
+            /* power state instead.                                                      */
+            hpi_rc = saHpiResourcePowerStateGet(session_id, entry.ResourceId, &state);
+         }
+
          if (hpi_rc != SA_OK)
          {
             /* m_LOG_HISV_DTS_CONS("failed to get hotswap state\n"); */
@@ -789,6 +808,17 @@ dispatch_hotswap(HSM_CB *hsm_cb)
                /* publish_fwprog_events(hsm_cb, &entry); */
             }
 #else
+        /* If this is HP PROLIANT - convert the current power state to something */
+        /* the OpenSAF AVM state machine can understand.                         */
+        if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+           if (state == SAHPI_POWER_ON) {
+              state = SAHPI_HS_STATE_ACTIVE;
+           }
+           else {
+              state = SAHPI_HS_STATE_INACTIVE;
+           }
+        }
+
             /* Allow for the case where blades are ATCA or non-ATCA.                        */
         if(!((entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1))  ||
            (entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) ||
@@ -862,17 +892,10 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          break;
    }
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
-   /* Check for blades only if the target system architecture is ATCA,  */
-   /* or HP_CCLASS.                                                     */
-   if ((strcmp(arch_type, "ATCA") == 0) ||
-       (strcmp(arch_type, "HP_CCLASS") == 0))
+   if (i > MAX_NUM_SLOTS)
    {
-      if (i > MAX_NUM_SLOTS)
-      {
-         m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
-         return NCSCC_RC_FAILURE;
-      }
+      m_LOG_HISV_DTS_CONS("no blades found. possibly discovery problem\n");
+      return NCSCC_RC_FAILURE;
    }
 
    /* publish the dummy suprise extraction events of boards which are not present */
@@ -1212,6 +1235,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("publish_extracted: Invoked\n");
+
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* collect the domain-id and session-id of HPI session */
@@ -1244,7 +1268,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    epath.Entry[1].EntityInstance = hsm_cb->args->chassis_id;
 #else
    epath.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
-   /* Check for architecture type */
+   /* Note: ATCA is handled differently here that the other architecture types */
    if (strcmp(arch_type, "ATCA") == 0)
       epath.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
    else

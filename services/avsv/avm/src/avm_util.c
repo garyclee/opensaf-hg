@@ -1053,8 +1053,12 @@ avm_hisv_api_cmd(
    uns8  *entity_path     = NULL;
    AVM_CB_T  *avm_cb = NULL;
    uns8  bootbank_number;
+   char *arch_type = NULL;
 
    m_AVM_LOG_FUNC_ENTRY("avm_hisv_api_cmd");
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+
    rc = avm_convert_entity_path_to_string(ent_info->entity_path, &entity_path);
 
    if(NCSCC_RC_SUCCESS != rc)
@@ -1076,7 +1080,30 @@ avm_hisv_api_cmd(
       case HS_RESOURCE_INACTIVE_SET:
       case HS_RESOURCE_ACTIVE_SET:
       {
-         rc = hpl_manage_hotswap(chassis_id, entity_path, api_cmd, arg);
+         if (strcmp(arch_type, "HP_PROLIANT") != 0) {
+            /* Use normal HS commands for this device.  */
+            rc = hpl_manage_hotswap(chassis_id, entity_path, api_cmd, arg);
+         }
+         else { 
+            /* This is HP Proliant rack-mount which does not support hotswap - so instead */
+            /* use these basic HPI power commands which will achieve the same effect.     */
+            if (api_cmd == HS_RESOURCE_ACTIVE_SET) {
+               rc = hpl_resource_power_set(chassis_id, entity_path, HISV_RES_POWER_ON);
+            }
+            else {
+               if (api_cmd == HS_RESOURCE_INACTIVE_SET) {
+                  rc = hpl_resource_power_set(chassis_id, entity_path, HISV_RES_POWER_OFF);
+               }
+               else {
+                  if (arg == SAHPI_HS_ACTION_EXTRACTION) {
+                     rc = hpl_resource_power_set(chassis_id, entity_path, HISV_RES_POWER_OFF);
+                  }
+                  else {
+                     rc = hpl_resource_power_set(chassis_id, entity_path, HISV_RES_POWER_ON);
+                  }
+               }
+            }
+         }
       }
       break;
 
@@ -2040,12 +2067,19 @@ avm_push_admin_mib_set_to_psr(AVM_CB_T *cb, AVM_ENT_INFO_T  *ent_info, AVM_ADM_O
 extern 
 uns32 avm_standby_boot_succ_tmr_handler(AVM_CB_T *avm_cb,AVM_EVT_T *hpi_evt,AVM_ENT_INFO_T *ent_info,AVM_FSM_EVT_TYPE_T   fsm_evt_type)
 {
+   char *arch_type = NULL;
 
    /* start the boot_succ_tmr if it is a AVM_EVT_INSERTION_PENDING event  */
    if(((ent_info->current_state == AVM_ENT_NOT_PRESENT) || (ent_info->current_state == AVM_ENT_INACTIVE))
       && (fsm_evt_type == AVM_EVT_INSERTION_PENDING))
    {
-      m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
+      arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+      /* Start up the boot timer only if the target system architecture is not   */
+      /* HP_CCLASS and not HP_PROLIANT.                                          */
+      if ((strcmp(arch_type, "HP_CCLASS") != 0) &&
+          (strcmp(arch_type, "HP_PROLIANT") != 0)) {
+         m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
+      }
    }
    /* stop the boot_succ_tmr if it is a HPI_FWPROG_BOOT_SUCCESS event */
    if(ent_info->current_state == AVM_ENT_ACTIVE && fsm_evt_type == AVM_EVT_SENSOR_FW_PROGRESS)
