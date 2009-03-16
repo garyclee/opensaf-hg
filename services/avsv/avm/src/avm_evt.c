@@ -536,8 +536,11 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    }
 
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
-   /* Start up the boot timer only if the target system architecture is ATCA */
-   if (strcmp(arch_type, "ATCA") == 0) {
+
+   /* Start up the boot timer only if the target system architecture is not   */
+   /* HP_CCLASS and not HP_PROLIANT.                                          */
+   if ((strcmp(arch_type, "HP_CCLASS") != 0) &&
+       (strcmp(arch_type, "HP_PROLIANT") != 0)) {
       m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
    }
 
@@ -1115,8 +1118,11 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
 
    uns8 *cli_msg = "HISV returned error, so this entity could not be activated but has been unlocked in AVM db";
+   char *arch_type = NULL;
 
    m_AVM_LOG_GEN_EP_STR("Unlock issued in INACTIVE state for", ent_info->ep_str.name, NCSFL_SEV_INFO);
+   
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /*****************************************************************
        While IPMC upgrade is going on, this event is not supposed
@@ -1158,6 +1164,11 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    {
      ent_info->adm_lock     = AVM_ADM_UNLOCK;
      ent_info->adm_shutdown = FALSE;
+     if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+        /* HP PROLIANT does not post an INSERTION_PENDING EVENT - therefore, we     */
+        /* need to manually advance the state to active or this architecture type.  */
+        avm_inactive_active(avm_cb, ent_info, fsm_evt);
+     }
    }
 
    return rc;
@@ -1434,8 +1445,11 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be shutdown";
+   char *arch_type = NULL;
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_shutdown_req"); 
+
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if((AVM_ADM_LOCK != ent_info->adm_lock)  && (!ent_info->adm_shutdown))
    {
@@ -1454,6 +1468,11 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       }else
       {
          ent_info->adm_shutdown = TRUE;
+         if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+            /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we     */
+            /* need to manually advance the state to inactive or this architecture type. */
+            avm_active_inactive(avm_cb, ent_info, fsm_evt);
+         }
       }
    }
 
@@ -1484,9 +1503,11 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be locked";
+   char *arch_type = NULL;
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_lock"); 
 
+   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if(ent_info->adm_shutdown)
    {
@@ -1510,6 +1531,11 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    }else
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
+      if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+         /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we     */
+         /* need to manually advance the state to inactive or this architecture type. */
+         avm_active_inactive(avm_cb, ent_info, fsm_evt);
+      }
    }
 
    return rc;
