@@ -29,6 +29,7 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
 #include <SaHpi.h>
 
 #include "hcd.h"
@@ -98,7 +99,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
       data2 = (data2 >> 8) & 0xff;
 
    /* log the event through DTS */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if ((offset == HPI_EVT_FWPROG_PROG) && (data2 >= HPI_SE_FWPROG_CODE_OFFSET) && 
        (epath->Entry[2].EntityInstance <= MAX_NUM_SLOTS))
    {

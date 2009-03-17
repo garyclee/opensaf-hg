@@ -28,6 +28,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "avm.h"
 
 static uns32 avm_ssu_clear_mac (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info_in);
@@ -1117,7 +1119,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
 
    memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    entity_path.Entry[2].EntityType  = SAHPI_ENT_ROOT; /* Same for all entities */
    entity_path.Entry[2].EntityInstance = 0;
    no_entries++;
@@ -1167,7 +1169,7 @@ avm_prepare_entity_path (uns8* str, const struct slot_info sInfo)
    {
        switch (entity_path.Entry[i].EntityType)
        {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
        case SAHPI_ENT_SYSTEM_CHASSIS:
 
            sprintf (& (str[len]), "%s%d%s", "{23,", sInfo.shelf, "},");

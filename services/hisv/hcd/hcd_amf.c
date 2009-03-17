@@ -24,6 +24,7 @@
   FUNCTIONS INCLUDED in this module:
 ******************************************************************************/
 
+#include <config.h>
 
 #include "hcd.h"
 #include "hcd_amf.h"
@@ -121,7 +122,7 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
           local_hsm_cb = (HSM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_hsm_hdl);
           saHpiUnsubscribe(local_hsm_cb->args->session_id);
           saHpiSessionClose(local_hsm_cb->args->session_id);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
           saHpiFinalize();
 #endif
           local_hsm_cb->args->session_valid = 0;

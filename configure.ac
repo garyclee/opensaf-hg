@@ -115,31 +115,6 @@ AM_CONDITIONAL([WITH_OPENHPI], [test "x$with_openhpi" = xyes])
 AC_SUBST([OPENHPI_ENABLED], ["$with_openhpi"])
 
 
-dnl Specifies the SAI-HPI specification used by the HPI implementation
-AC_ARG_WITH([hpirev],
-   [AS_HELP_STRING([--with-hpirev=@<:@ARG@:>@],
-      [HPI implementation is SAI-HPI-B.02.01 (ARG=B02 default); HPI implementation is
-      SAI-HPI-B.01.01 (ARG=B01); HPI implementation is SAI-HPI-A.01.01
-      (ARG=A01)])],
-   [ if test "x$withval" = xB02; then
-       with_hpirev=B02
-       HPI_DEF="-DHPI_B_02"
-     elif test "x$withval" = xB01; then
-       with_hpirev=B01
-       HPI_DEF="-DHPI_B_01"
-     elif test "x$withval" = xA01; then
-       with_hpirev=A01
-       HPI_DEF="-DHPI_A"
-     else
-       echo
-       echo "Unknown SAI-HPI specification version"
-       exit -1
-     fi
-   ],
-   [with_hpirev=B02])
-
-AC_SUBST(HPI_DEF)
-
 m4_include([m4/java.m4])
 
 dnl Enable Java AIS interface mapping
@@ -280,8 +255,103 @@ AC_SUBST( MDS_WORD_ARCH_FLAGS," -DMDS_ARCH_TYPE=$mdsarchtype" )
 if test "x$enable_hpi" = xyes; then
    if test "x$with_openhpi" = xyes; then
       PKG_CHECK_MODULES(HPI, openhpi)
+      
+      # Workaround to prevent failure when cross-compiling this
+      # simple oneliner and when executing on the host
+      CC_TMP="$CC"
+      CC=cc
+
+      # Test for the SAHPI_INTERFACE_VERSION
+      AC_RUN_IFELSE(
+         AC_LANG_PROGRAM(
+            [#include <openhpi/SaHpi.h>],
+            [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
+         ),
+         AC_DEFINE(
+            [HAVE_HPI_A01], 1, [SAHPI_INTERFACE_VERSION == A01]
+         )
+      )
+      AC_RUN_IFELSE(
+         AC_LANG_PROGRAM(
+            [#include <openhpi/SaHpi.h>],
+            [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
+         ),
+         AC_DEFINE(
+            [HAVE_HPI_B01], 1, [SAHPI_INTERFACE_VERSION == B01]
+         )
+      )
+      AC_RUN_IFELSE(
+         AC_LANG_PROGRAM(
+            [#include <openhpi/SaHpi.h>],
+            [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
+         ),
+         AC_DEFINE(
+            [HAVE_HPI_B02], 1, [SAHPI_INTERFACE_VERSION == B02]
+         )
+      )
+      AC_RUN_IFELSE(
+         AC_LANG_PROGRAM(
+            [#include <openhpi/SaHpi.h>],
+            [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
+         ),
+         AC_DEFINE(
+            [HAVE_HPI_B03], 1, [SAHPI_INTERFACE_VERSION == B03]
+         )
+      )
+
+      CC="$CC_TMP"
    fi
+else
+   # FIXME
+   # Not supposed to be using HPI if here, but we currently
+   # need a workaround because typedefs from SaHpi.h are used
+   # even if HPI support is disabled in OpenSAF.
+
+   # Workaround to prevent failure when cross-compiling
+   # simple oneliner and when executing on the host
+   CC_TMP="$CC"
+   CC=cc
+
+   AC_RUN_IFELSE(
+      AC_LANG_PROGRAM(
+         [#include <SaHpi.h>],
+         [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
+      ),
+      AC_DEFINE(
+         [HAVE_HPI_A01], 1, [SAHPI_INTERFACE_VERSION == A01]
+      )
+   )
+   AC_RUN_IFELSE(
+      AC_LANG_PROGRAM(
+         [#include <SaHpi.h>],
+         [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
+      ),
+      AC_DEFINE(
+         [HAVE_HPI_B01], 1, [SAHPI_INTERFACE_VERSION == B01]
+      )
+   )
+   AC_RUN_IFELSE(
+      AC_LANG_PROGRAM(
+         [#include <SaHpi.h>],
+         [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
+      ),
+      AC_DEFINE(
+         [HAVE_HPI_B02], 1, [SAHPI_INTERFACE_VERSION == B02]
+      )
+   )
+   AC_RUN_IFELSE(
+      AC_LANG_PROGRAM(
+         [#include <SaHpi.h>],
+         [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
+      ),
+      AC_DEFINE(
+         [HAVE_HPI_B03], 1, [SAHPI_INTERFACE_VERSION == B03]
+      )
+   )
+
+   CC="$CC_TMP"
 fi
+
 
 # TODO: Fix the hardcoded locations, and add flexible --with
 XERCESC_LIB=""
@@ -628,9 +698,10 @@ fi
 AM_CONDITIONAL([WITH_VPATH], [test "$srcdir" != "."])
 echo ""
 echo "Dependencies Options:"
-echo "${ECHO_T} HPI Specification: ${with_hpirev}"
+if test "x$enable_hpi" = xyes; then
 echo "${ECHO_T} HPI_CFLAGS: ${HPI_CFLAGS}"
 echo "${ECHO_T} HPI_LIBS: ${HPI_LIBS}"
+fi
 echo "${ECHO_T} NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
 echo "${ECHO_T} NETSNMP_LIBS: ${NETSNMP_LIBS}"
 echo "${ECHO_T} MIBDIRS: ${MIBDIRS}"

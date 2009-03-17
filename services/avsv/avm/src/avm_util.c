@@ -38,6 +38,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "avm.h"
 
 #define m_AVM_ADM_LOCK_ENT(avm_cb, ent_info)\
@@ -153,7 +155,7 @@ avm_map_hpi2fsm(
              break;  
          }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY)
 #else
          if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE)
@@ -296,7 +298,7 @@ avm_find_chassis_id(
       rc = NCSCC_RC_FAILURE;
    }else
    {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       *chassis_id = entity_path->Entry[i-1].EntityInstance;
 #else
       *chassis_id = entity_path->Entry[i-1].EntityLocation;
@@ -341,7 +343,7 @@ avm_convert_entity_path_to_string(
          break;
       }else
       {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if((SAHPI_ENT_UNSPECIFIED > entity_path.Entry[i].EntityType) ||
             (SAHPI_ENT_SUBBOARD_CARRIER_BLADE < entity_path.Entry[i].EntityType))
          {
@@ -382,7 +384,7 @@ avm_convert_entity_path_to_string(
          } 
 #else
          if((SAHPI_ENT_UNSPECIFIED > entity_path.Entry[i].EntityType)
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
              || (SAHPI_ENT_OEM < entity_path.Entry[i].EntityType))
 #else
              || (SAHPI_ENT_PHYSICAL_SLOT < entity_path.Entry[i].EntityType))
@@ -399,7 +401,7 @@ avm_convert_entity_path_to_string(
                break;
             }
             index++;
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
          } while (gl_hpi_ent_type_list[index -1].etype_val != SAHPI_ENT_OEM);
 
          if (gl_hpi_ent_type_list[index -1].etype_val == SAHPI_ENT_OEM) {
@@ -1373,7 +1375,7 @@ avm_validate_loc_range(
          if(ent_info->parent_valid_info == valid_info->parents[i])
          {
             for(j = 0; j < MAX_POSSIBLE_LOC_RANGES; j++)
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             if((entity.EntityInstance >= valid_info->location[i].range[j].min) &&
                (entity.EntityInstance <= valid_info->location[i].range[j].max))   
 #else
@@ -1697,7 +1699,7 @@ avm_add_root(AVM_CB_T *cb)
    
    memset(ep.Entry, '\0', sizeof(SaHpiEntityPathT));
    ep.Entry[0].EntityType     = SAHPI_ENT_ROOT;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    ep.Entry[0].EntityInstance = 0;
 #else
    ep.Entry[0].EntityLocation = 0;
@@ -1895,7 +1897,7 @@ avm_map_hs_to_hpi_hs(AVM_FSM_STATES_T  hs_state)
 
      case  AVM_ENT_ACTIVE:
      {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
        hpi_hs_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 #else
        hpi_hs_state = SAHPI_HS_STATE_ACTIVE;
@@ -1906,7 +1908,7 @@ avm_map_hs_to_hpi_hs(AVM_FSM_STATES_T  hs_state)
 
      case  AVM_ENT_RESET_REQ:
      {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
        hpi_hs_state = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 #else
        hpi_hs_state = SAHPI_HS_STATE_ACTIVE;
@@ -2172,7 +2174,7 @@ avm_standby_map_hpi2fsm(
              break;
          }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE_HEALTHY)
 #else
          if(hpi_event.EventDataUnion.HotSwapEvent.HotSwapState == SAHPI_HS_STATE_ACTIVE)
@@ -2312,7 +2314,7 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
 
    /* Depending on HPI version construct entity path */
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 
    ep->Entry[2].EntityType  = SAHPI_ENT_ROOT; 
    ep->Entry[2].EntityInstance = 0;
@@ -2401,7 +2403,7 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
    {
    ent_path1_lev++;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if(ent_path1.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BOARD)
       phy_slot1 = ent_path1.Entry[i].EntityInstance;
    if(ent_path1.Entry[i].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)
@@ -2433,7 +2435,7 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
    {
    ent_path2_lev++;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if(ent_path2.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BOARD)
       phy_slot2 = ent_path2.Entry[i].EntityInstance;
    if(ent_path2.Entry[i].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)

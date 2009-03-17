@@ -38,6 +38,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "avm.h"
 
 /**********************************************************************
@@ -537,7 +539,7 @@ find_parent_entity_path(
    for(i = 0; i < SAHPI_MAX_ENTITY_PATH - 1; i++)
    {    
       parent_entity_path->Entry[i].EntityType        = child_entity_path->Entry[i+1].EntityType;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
         parent_entity_path->Entry[i].EntityInstance    = child_entity_path->Entry[i+1].EntityInstance;   
 #else
         parent_entity_path->Entry[i].EntityLocation    = child_entity_path->Entry[i+1].EntityLocation;   
@@ -545,7 +547,7 @@ find_parent_entity_path(
    }
 
    parent_entity_path->Entry[SAHPI_MAX_ENTITY_PATH - 1].EntityType     = 0;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    parent_entity_path->Entry[SAHPI_MAX_ENTITY_PATH - 1].EntityInstance = 0;
 #else
    parent_entity_path->Entry[SAHPI_MAX_ENTITY_PATH - 1].EntityLocation = 0;

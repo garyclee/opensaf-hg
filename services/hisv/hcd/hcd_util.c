@@ -29,6 +29,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hcd.h"
 
 /* local function declaration */
@@ -85,7 +87,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
     {"BATTERY",                    SAHPI_ENT_BATTERY},
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
     {"CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
     {"BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
     {"OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
@@ -110,7 +112,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"ALARM_MANAGER_BLADE",        SAHPI_ENT_ALARM_MANAGER_BLADE},
     {"SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE}
 #else
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"RESERVED_1",                 SAHPI_ENT_RESERVED_1},
     {"RESERVED_2",                 SAHPI_ENT_RESERVED_2},
     {"RESERVED_3",                 SAHPI_ENT_RESERVED_3},
@@ -158,7 +160,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
     {"AMC_SUB_SLOT",               AMC_SUB_SLOT_TYPE},
 
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
     {"SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
     {"FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
@@ -274,7 +276,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
       remove_spaces(&tok);
 
       /* put the entity instance value in the epath_ptr structure */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       sscanf(tok, "%d", &epath_ptr->Entry[i].EntityInstance);
 #else
       sscanf(tok, "%d", &epath_ptr->Entry[i].EntityLocation);
@@ -289,7 +291,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
    if (i < SAHPI_MAX_ENTITY_PATH)
    {
       epath_ptr->Entry[i].EntityType = SAHPI_ENT_ROOT;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       epath_ptr->Entry[i++].EntityInstance = 0;
 #else
       epath_ptr->Entry[i++].EntityLocation = 0;
@@ -412,7 +414,7 @@ get_chassis_id(SaHpiEntityPathT *epath, int32 *chassis_id)
    if ((i == 0) || (i >= SAHPI_MAX_ENTITY_PATH))
       return NCSCC_RC_FAILURE;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    *chassis_id = epath->Entry[i-1].EntityInstance;
 #else
    *chassis_id = epath->Entry[i-1].EntityLocation;
@@ -439,7 +441,7 @@ uns32
 discover_domain(HPI_SESSION_ARGS *ptr)
 {
    SaErrorT        err, autoinsert_err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiRptInfoT   rpt_info_before;
 #endif
    SaHpiEntryIdT   current;
@@ -474,14 +476,14 @@ discover_domain(HPI_SESSION_ARGS *ptr)
    }
 
    /* discover the resources on this session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    err = saHpiResourcesDiscover(session_id);
 #else
    err = saHpiDiscover(session_id);
 #endif
    if (SA_OK != err)
    {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       m_LOG_HISV_DTS_CONS("discover_domain: saHpiResourcesDiscover Error...\n");
 #else
       m_LOG_HISV_DTS_CONS("discover_domain: saHpiDiscover Error...\n");
@@ -490,7 +492,7 @@ discover_domain(HPI_SESSION_ARGS *ptr)
       return NCSCC_RC_FAILURE;
    }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* grab copy of the update counter before traversing RPT */
    err = saHpiRptInfoGet(session_id, &rpt_info_before);
    if (SA_OK != err)
@@ -553,7 +555,7 @@ uns32
 print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_num, SaHpiEntityTypeT type)
 {
    /* check if it is normal board */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
@@ -578,7 +580,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
       case SAHPI_HS_STATE_INSERTION_PENDING:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_INSERTION_PENDING\n");
          break;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_ACTIVE_HEALTHY\n");
          break;
@@ -601,7 +603,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
          break;
    }
    /* check if it is normal board */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
@@ -625,7 +627,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
       case SAHPI_HS_STATE_INSERTION_PENDING:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_INSERTION_PENDING\n");
          break;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_ACTIVE_HEALTHY\n");
          break;

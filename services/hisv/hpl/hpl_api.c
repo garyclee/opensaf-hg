@@ -30,6 +30,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hpl.h"
 
 /****************************************************************************
@@ -1331,7 +1333,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    for (i=0; i<SAHPI_MAX_ENTITY_PATH; i++)
    {
       evt_struct->entity_path.Entry[i].EntityType = ncs_decode_32bit(&p8);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       evt_struct->entity_path.Entry[i].EntityInstance = ncs_decode_32bit(&p8);
 #else
       evt_struct->entity_path.Entry[i].EntityLocation = ncs_decode_32bit(&p8);

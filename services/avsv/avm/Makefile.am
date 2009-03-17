@@ -51,7 +51,6 @@ MIBLIB_GENERATED_FILES = \
 
 libavm_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	@HPI_DEF@ \
 	-DNCS_AVM=1 -DNCS_AVM_LOG=1 \
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \

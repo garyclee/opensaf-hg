@@ -20,7 +20,6 @@ noinst_LTLIBRARIES = libhcd.la
 
 libhcd_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	@HPI_DEF@ \
 	-DNCS_HISV_LOG=1 \
 	-I $(top_srcdir)/services/hisv/inc \
 	-I $(top_srcdir)/services/leap/inc \
