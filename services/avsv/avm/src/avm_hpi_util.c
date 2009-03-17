@@ -32,7 +32,7 @@
 ******************************************************************************
 */
 
-
+#include <config.h>
 
 #include "avm.h"
 
@@ -85,7 +85,7 @@ HPI_ENTITY_TYPE_LIST  gl_hpi_ent_type_list[] = {
     {"REMOTE",                     SAHPI_ENT_REMOTE},
     {"EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
     {"BATTERY",                    SAHPI_ENT_BATTERY},
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
     {"CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
     {"BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
     {"OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
@@ -110,7 +110,7 @@ HPI_ENTITY_TYPE_LIST  gl_hpi_ent_type_list[] = {
     {"ALARM_MANAGER_BLADE",        SAHPI_ENT_ALARM_MANAGER_BLADE},
     {"SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE}
 #else
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"RESERVED_1",                 SAHPI_ENT_RESERVED_1},
     {"RESERVED_2",                 SAHPI_ENT_RESERVED_2},
     {"RESERVED_3",                 SAHPI_ENT_RESERVED_3},
@@ -157,7 +157,7 @@ HPI_ENTITY_TYPE_LIST  gl_hpi_ent_type_list[] = {
 
     {"PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
     {"AMC_SUB_SLOT",               AMC_SUB_SLOT_TYPE},
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
     {"SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
     {"FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
@@ -212,7 +212,7 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
          break;
       }else
       {  
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
         if((SAHPI_ENT_UNSPECIFIED > entity_path->Entry[i].EntityType) ||
             (SAHPI_ENT_SUBBOARD_CARRIER_BLADE < entity_path->Entry[i].EntityType))
          {
@@ -254,7 +254,7 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
          }
 #else
         if((SAHPI_ENT_UNSPECIFIED > entity_path->Entry[i].EntityType)
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
             || (SAHPI_ENT_OEM < entity_path->Entry[i].EntityType))
 #else  
             || (SAHPI_ENT_PHYSICAL_SLOT < entity_path->Entry[i].EntityType))
@@ -271,7 +271,7 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
                break;
             }
             index++;
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
          } while (gl_hpi_ent_type_list[index -1].etype_val != SAHPI_ENT_OEM);
 
          if (gl_hpi_ent_type_list[index -1].etype_val == SAHPI_ENT_OEM) {
@@ -299,7 +299,7 @@ hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str)
       
          *(ent_path_str++) = ',';
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          count = sprintf(ent_path_str, "%d", entity_path->Entry[i].EntityInstance);
 #else
          count = sprintf(ent_path_str, "%d", entity_path->Entry[i].EntityLocation);

@@ -33,6 +33,8 @@
    dtsv_cef_set_logging_level.........CEF for setting DTSV logging level
 ***************************************************************************/
 
+#include <config.h>
+
 #include "avsv.h"
 #include "mac_papi.h"
 #include "ncs_cli.h"
@@ -483,7 +485,7 @@ avm_constr_ep(
     {
        if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
        {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
        /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */

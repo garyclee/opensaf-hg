@@ -34,6 +34,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "avm.h"
 
 
@@ -54,7 +56,7 @@ avm_octet_string_2_entity_path(
    for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++ )
    {
       entity_path->Entry[i].EntityType    = 0;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       entity_path->Entry[i].EntityInstance = 0; 
 #else
       entity_path->Entry[i].EntityLocation = 0; 
@@ -110,7 +112,7 @@ avm_octet_string_2_entity_path(
       }
       if(entity_instance)
       {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          entity_path->Entry[count++].EntityInstance = entity_instance;
 #else
          entity_path->Entry[count++].EntityLocation = entity_instance;

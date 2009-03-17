@@ -27,6 +27,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hcd.h"
 
 /* forward declarations of local functions */
@@ -75,7 +77,7 @@ uns32 hcd_hsm()
    HSM_EVT_TYPE evt_type = HSM_FAULT_EVT;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
    uns32 slot_ind;
 #endif
 
@@ -115,7 +117,7 @@ uns32 hcd_hsm()
    else
    {
      /* subscribe to receive events on this HPI session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       val = saHpiSubscribe(*session_id, SAHPI_FALSE);
 #else
       val = saHpiSubscribe(*session_id);
@@ -147,7 +149,7 @@ uns32 hcd_hsm()
    while (TRUE)
    {
       /* block to receive event on HPI session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if ((rc = saHpiEventGet(*session_id, SAHPI_TIMEOUT_BLOCK, &event, &Rdr,
                         &RptEntry)) != SA_OK)
 #else
@@ -160,7 +162,7 @@ uns32 hcd_hsm()
           */
          m_NCS_SEM_GIVE(hcd_cb->p_s_handle);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          /* wait for sometime before looking for next event */
          if (rc != SA_ERR_HPI_TIMEOUT)
          {
@@ -193,7 +195,7 @@ uns32 hcd_hsm()
       if (hcd_cb->ha_state != SA_AMF_HA_ACTIVE)
          continue;
 
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
       if (!((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)||
             (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)||
             (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
@@ -221,7 +223,7 @@ uns32 hcd_hsm()
               ((RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
               (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT)) &&
               (
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
            (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
@@ -269,7 +271,7 @@ uns32 hcd_hsm()
       }
       if (event.EventType != SAHPI_ET_HOTSWAP) 
       {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          m_NCS_CONS_PRINTF("Non hotswap HPI event from entity_type=%d,%d slot=%d event_type=%d, resource_id=%d\n",
                             RptEntry.ResourceEntity.Entry[2].EntityType,
                             RptEntry.ResourceEntity.Entry[0].EntityType,
@@ -308,7 +310,7 @@ uns32 hcd_hsm()
            if(event.EventDataUnion.SensorEvent.SensorType == SAHPI_ENTITY_PRESENCE)
            {
               m_NCS_CONS_PRINTF("Entity presence sensor event received\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
               if (hsm_cb->node_state[RptEntry.ResourceEntity.Entry[2].EntityInstance] == NODE_HS_STATE_NOT_PRESENT)
 #else
               if (hsm_cb->node_state[RptEntry.ResourceEntity.Entry[1].EntityLocation] == NODE_HS_STATE_NOT_PRESENT)
@@ -324,7 +326,7 @@ uns32 hcd_hsm()
       }
       else
       {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                         event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                         RptEntry.ResourceEntity.Entry[2].EntityInstance,
@@ -398,7 +400,7 @@ uns32 hcd_hsm()
            SAHPI_HS_STATE_EXTRACTION_PENDING))
       {
          /* take the control of extraction */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
 #else
          policy_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
@@ -427,7 +429,7 @@ uns32 hcd_hsm()
       {
          SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if (saHpiHotSwapControlRequest(*session_id, RptEntry.ResourceId) != SA_OK)
 #else
          hotswap_err = saHpiHotSwapPolicyCancel(*session_id, RptEntry.ResourceId);
@@ -494,7 +496,7 @@ uns32 hcd_hsm()
 
       /* remove the grouping elements of entity path */
       memset(&epath, 0, epath_len);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
          epath.Entry[i-2] = RptEntry.ResourceEntity.Entry[i];
 
@@ -582,7 +584,7 @@ error:
    /* finalize HPI session */
    saHpiSessionClose(*session_id);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* finalize the HPI session */
    saHpiFinalize();
 #endif
@@ -624,7 +626,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
 {
    SaHpiHsStateT  state;
    SaErrorT       err, hpi_rc, policy_err, hotswap_err, autoextract_err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiRptInfoT   rpt_info_before;
 #endif
    SaHpiEntryIdT   current;
@@ -649,7 +651,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* grab copy of the update counter before traversing RPT */
    err = saHpiRptInfoGet(session_id, &rpt_info_before);
    if (SA_OK != err)
@@ -686,7 +688,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
       }
 
       /* clear the SEL if it supports; in order to avoid duplicate playback of events */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
 #else
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
@@ -716,7 +718,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          if (hpi_rc != SA_OK)
          {
             /* m_LOG_HISV_DTS_CONS("failed to get hotswap state\n"); */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
              m_NCS_CONS_PRINTF("Failed to get hotswap state from entity_type=%d,%d slot=%d, resource_id=%d: Error=%d\n",
                     entry.ResourceEntity.Entry[2].EntityType,
                     entry.ResourceEntity.Entry[0].EntityType,
@@ -732,7 +734,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
 
           SaHpiTimeoutT auto_exttime = SAHPI_TIMEOUT_BLOCK;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
           autoextract_err = saHpiAutoExtractTimeoutSet(session_id, entry.ResourceId, auto_exttime);
           
           if (autoextract_err != SA_OK)
@@ -748,7 +750,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
              }
           }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
         hotswap_err = saHpiHotSwapControlRequest(session_id, entry.ResourceId);
 #else
         hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry.ResourceId);
@@ -823,7 +825,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
         if(!((entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1))  ||
            (entry.ResourceEntity.Entry[0].EntityType == (SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)) ||
             ( 
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
                    (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
@@ -930,7 +932,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
    uns32 slot_ind = 0;
 #endif
 
@@ -965,7 +967,7 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    }
    memcpy(event_data, (uns8 *)&event, evt_len);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* remove the grouping elements of entity path */
    memset(&epath, 0, epath_len);
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
@@ -1084,7 +1086,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
    uns32 slot_ind = 0;
 #endif
    /* collect the domain-id and session-id of HPI session */
@@ -1093,7 +1095,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 
    event.Severity = SAHPI_CRITICAL;
    event.EventType = SAHPI_ET_HOTSWAP;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 #else
    event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_ACTIVE;
@@ -1111,7 +1113,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 
    memcpy(event_data, (uns8 *)&event, evt_len);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* remove the grouping elements of entity path */
    memset(&epath, 0, epath_len);
    for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
@@ -1245,7 +1247,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    event.Severity = SAHPI_CRITICAL;
    event.EventType = SAHPI_ET_HOTSWAP;
    event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_NOT_PRESENT;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 #else
    event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
@@ -1262,7 +1264,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
    /* remove the grouping elements of entity path */
    memset(&epath, 0, epath_len);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    epath.Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
    epath.Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
    epath.Entry[1].EntityInstance = hsm_cb->args->chassis_id;
@@ -1291,7 +1293,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
             break;
          case NODE_HS_STATE_EXTRACTION_PENDING:
             event.EventDataUnion.HotSwapEvent.HotSwapState = SAHPI_HS_STATE_EXTRACTION_PENDING;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE_HEALTHY;
 #else
             event.EventDataUnion.HotSwapEvent.PreviousHotSwapState = SAHPI_HS_STATE_ACTIVE;
@@ -1307,7 +1309,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 
       memcpy(event_data, (uns8 *)&event, evt_len);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       epath.Entry[0].EntityInstance = i;
 #else
       epath.Entry[0].EntityLocation = i;
@@ -1351,7 +1353,7 @@ static uns32
 hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 {
    SaErrorT           val, err,session_err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiVersionT      version;
 #endif
    uns32 retry ;
@@ -1362,7 +1364,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
       /* restart the session */
       if((session_err=saHpiSessionClose(*session_id))!= SA_OK);
           m_NCS_CONS_PRINTF("hsm_rediscover:Close session return error :- %d:\n",session_err);
-#ifdef HPI_A 
+#ifdef HAVE_HPI_A01 
       saHpiFinalize();
 #endif
       retry = 0;
@@ -1371,7 +1373,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 
       while (1)
       {
-#ifdef HPI_A     
+#ifdef HAVE_HPI_A01     
          err = saHpiInitialize(&version);
          if (SA_OK != err)
 #else
@@ -1396,7 +1398,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
          /* Every domain requires a new session */
          rc = NCSCC_RC_SUCCESS;
          m_LOG_HISV_DTS_CONS("hsm_rediscover: Re-Opening HPI Session...\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, session_id, NULL);
 #else
          err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, session_id, NULL);
@@ -1409,7 +1411,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
          }
          /* store the HPI session information */
          hsm_cb->args->session_id = *session_id;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          hsm_cb->args->domain_id = SAHPI_DEFAULT_DOMAIN_ID;
 #else
          hsm_cb->args->domain_id = SAHPI_UNSPECIFIED_DOMAIN_ID;
@@ -1429,7 +1431,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
          hsm_cb->args->session_valid = 1;
          hcd_cb->args->rediscover = 0;
          /* subscribe to receive events on this HPI session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if ((val = saHpiSubscribe(*session_id, SAHPI_FALSE)) != SA_OK)
 #else
          if ((val = saHpiSubscribe(*session_id)) != SA_OK)
@@ -1504,7 +1506,7 @@ hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
                   SaHpiUint32T   *actual_size, SaHpiUint32T   *invdata_size,
                   uns32 evt_epathlen)
 {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    uns32 rc, j, i, k;
    uns32 retry=0;
    SaHpiEntryIdT  current_rdr, next_rdr;
@@ -2133,7 +2135,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
        (entry->ResourceCapabilities & SAHPI_CAPABILITY_FRU))
    {
 /*  Nitin : Why it is required here */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (saHpiHotSwapControlRequest(session_id, entry->ResourceId) != SA_OK)
 #else
       hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry->ResourceId);
@@ -2162,7 +2164,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
       else
       {
          /* fill hotswap states */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          if ((entry->ResourceEntity.Entry[2].EntityInstance > 0) && 
              (entry->ResourceEntity.Entry[2].EntityInstance <= MAX_NUM_SLOTS) &&
              (entry->ResourceEntity.Entry[2].EntityType == SAHPI_ENT_SYSTEM_BOARD) &&
@@ -2181,7 +2183,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             /* Change the state of the resourece in the local list */
             switch (state)
             {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
               case SAHPI_HS_STATE_INACTIVE:
                  hsm_cb->node_state[entry->ResourceEntity.Entry[2].EntityInstance] = NODE_HS_STATE_INACTIVE;
                  break;
@@ -2231,7 +2233,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
 
             /* remove the grouping elements of entity path */
             memset(&epath, 0, epath_len);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             for (i=2; i < SAHPI_MAX_ENTITY_PATH; i++)
                epath.Entry[i-2] = entry->ResourceEntity.Entry[i];
 
@@ -2250,7 +2252,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
 
             memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                       event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                       entry->ResourceEntity.Entry[2].EntityInstance,
@@ -2277,7 +2279,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
             }
             m_MMGR_FREE_HPI_INV_DATA(event_data);
             return NCSCC_RC_SUCCESS;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
         } /* End ifdef A_01 */
 #endif
       } /* End else */

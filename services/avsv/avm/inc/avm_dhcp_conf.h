@@ -28,6 +28,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #ifndef __AVM_DHCP_CONF_H__
 #define __AVM_DHCP_CONF_H__
 
@@ -234,7 +236,7 @@ struct slot_info
 
 
 /* Macro to create host entry name  for this entity path */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 #define m_AVM_CREATE_HOST_ENTRY(entity_path,dhcp_serv_conf) \
 { \
    int i; \

@@ -31,6 +31,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "bamHWEntities.h"
 #include "bam_log.h"
 
@@ -98,18 +100,18 @@ get_entity_type_from_text(char *str)
 
       else if(strcmp(str, "SAHPI_ENT_SBC_BLADE") == 0)
          type = SAHPI_ENT_SBC_BLADE;
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
       else if(strcmp(str, "SAHPI_ENT_PICMG_FRONT_BLADE") == 0)
          type = SAHPI_ENT_PICMG_FRONT_BLADE;
 #endif
       else if(strcmp(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
          type = SAHPI_ENT_SWITCH_BLADE;
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
       else if(strcmp(str, "AMC_SUB_SLOT_TYPE") == 0)
          type = AMC_SUB_SLOT_TYPE;
 #endif
       else if(strcmp(str, "SAHPI_ENT_PHYSICAL_SLOT") == 0)
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          type = SAHPI_ENT_SYSTEM_SLOT;
 #else
          type = SAHPI_ENT_PHYSICAL_SLOT;

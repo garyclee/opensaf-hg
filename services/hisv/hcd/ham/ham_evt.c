@@ -28,6 +28,7 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
 #include <SaHpi.h>
 
 #include "hcd.h"
@@ -136,7 +137,7 @@ ham_resource_power_set(HISV_EVT *evt)
    HISV_MSG *msg = &evt->msg, hisv_msg;
    HAM_CB  *ham_cb;
    SaErrorT       err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiHsPowerStateT  power_state;
 #else
    SaHpiPowerStateT  power_state;
@@ -168,7 +169,7 @@ ham_resource_power_set(HISV_EVT *evt)
       goto ret;
    }
    /* get required power status */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    power_state = (SaHpiHsPowerStateT)msg->info.api_info.arg;
 #else
    power_state = (SaHpiPowerStateT)msg->info.api_info.arg;
@@ -270,7 +271,7 @@ ham_resource_reset(HISV_EVT *evt)
       SaHpiCtrlNumT ctrlNum;
       SaHpiCtrlStateT state;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       ctrlNum = 15;
 #else
       ctrlNum = 4608;
@@ -278,7 +279,7 @@ ham_resource_reset(HISV_EVT *evt)
       state.Type = SAHPI_CTRL_TYPE_ANALOG;
       state.StateUnion.Analog = 1;
       m_LOG_HISV_DTS_CONS("Invoking graceful reboot\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       err = saHpiControlStateSet(ham_cb->args->session_id, resourceid, ctrlNum, &state);
 #else
       err = saHpiControlSet(ham_cb->args->session_id, resourceid, ctrlNum, SAHPI_CTRL_MODE_MANUAL, &state);
@@ -378,7 +379,7 @@ ham_sel_clear(HISV_EVT *evt)
          }
       }
       /* invoke HPI call to clear system event log of entire domain controller */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
 #else
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
@@ -461,7 +462,7 @@ ham_tmr_sel_clear(HISV_EVT *evt)
          else
          {
             m_LOG_HISV_DTS_CONS("ham_tmr_sel_clear: Empty RPT\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             saHpiResourcesDiscover(ham_cb->args->session_id);
 #else
             saHpiDiscover(ham_cb->args->session_id);
@@ -470,7 +471,7 @@ ham_tmr_sel_clear(HISV_EVT *evt)
          }
       }
       /* invoke HPI call to clear system event log of entire domain controller */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
 #else
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
@@ -747,7 +748,7 @@ ham_manage_hotswap(HISV_EVT *evt)
    switch (msg->info.api_info.cmd)
    {
    case HS_POLICY_CANCEL:
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       err = saHpiHotSwapControlRequest(ham_cb->args->session_id, resourceid);
 #else
       err = saHpiHotSwapPolicyCancel(ham_cb->args->session_id, resourceid);
@@ -1432,7 +1433,7 @@ GET_RES_ID:
    next = SAHPI_FIRST_ENTRY;
    do
    {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       int32 len = (SAHPI_MAX_ENTITY_PATH - 2) * sizeof(SaHpiEntityT);
 #else
       int32 len = (SAHPI_MAX_ENTITY_PATH - 1) * sizeof(SaHpiEntityT);
@@ -1464,7 +1465,7 @@ GET_RES_ID:
          }
       }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       /* got the entry, check for matching entity path, ignore Group tuples */
       if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[2], len))
          continue;
@@ -1519,7 +1520,7 @@ GET_RES_ID:
              (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
              (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)) &&
             (
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
@@ -1856,7 +1857,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
    char 	    *arch_type = NULL;
    uns32	    chassis_type;
 
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
    m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
 
    arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
@@ -2147,7 +2148,7 @@ ham_bootbank_get (HISV_EVT *evt)
    SaErrorT           err;
    SaHpiCtrlStateT    state;
    uns32              rc = NCSCC_RC_FAILURE;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    uns16              arg_len = sizeof(SaHpiCtrlStateDiscreteT);
    SaHpiCtrlStateDiscreteT discrete_val = 0;
 #else
@@ -2190,7 +2191,7 @@ ham_bootbank_get (HISV_EVT *evt)
 
    /** Invoke HPI call to get the current boot bank of the payload blade.
     **/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    err = saHpiControlStateGet (ham_cb->args->session_id, resourceid,
                                CTRL_NUM_BOOTBANK, &state);
 
@@ -2208,7 +2209,7 @@ ham_bootbank_get (HISV_EVT *evt)
 
    /** populate the mds message with return value, to send across to the HPL
     **/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    hisv_msg.info.cbk_info.ret_type               = HPL_GENERIC_DATA;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val  = rc;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
@@ -2308,7 +2309,7 @@ ham_bootbank_set (HISV_EVT *evt)
    /* get the boot bank number to be set */
    i_boot_bank_number = (SaHpiCtrlNumT)msg->info.api_info.arg;
    m_NCS_CONS_PRINTF("ham_bootbank_set : boot bank number = %d\n", i_boot_bank_number);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 
    /** got the resource-id of resource with given entity-path
     ** Invoke HPI call to set the boot bank of payload blade.
