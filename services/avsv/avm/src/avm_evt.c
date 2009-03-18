@@ -1165,8 +1165,8 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
      ent_info->adm_lock     = AVM_ADM_UNLOCK;
      ent_info->adm_shutdown = FALSE;
      if (strcmp(arch_type, "HP_PROLIANT") == 0) {
-        /* HP PROLIANT does not post an INSERTION_PENDING EVENT - therefore, we     */
-        /* need to manually advance the state to active or this architecture type.  */
+        /* HP PROLIANT does not post an INSERTION_PENDING EVENT - therefore, we      */
+        /* need to manually advance the state to active for this architecture type.  */
         avm_inactive_active(avm_cb, ent_info, fsm_evt);
      }
    }
@@ -1443,6 +1443,7 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    uns32 rc = NCSCC_RC_SUCCESS;
 
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be shutdown";
    char *arch_type = NULL;
@@ -1469,9 +1470,20 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       {
          ent_info->adm_shutdown = TRUE;
          if (strcmp(arch_type, "HP_PROLIANT") == 0) {
-            /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we     */
-            /* need to manually advance the state to inactive or this architecture type. */
-            avm_active_inactive(avm_cb, ent_info, fsm_evt);
+            /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we      */
+            /* need to manually advance the state to inactive for this architecture type. */
+            /* Note: We cannot call avm_active_inactive() here because its operation      */
+            /* interferes with the HP PROLIANT server that is presently shutting down.    */
+            ent_info->adm_lock     = AVM_ADM_LOCK;
+            ent_info->adm_shutdown = FALSE;
+
+            /* Set child entity in inactive state */
+            for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+               if((AVM_ENT_INACTIVE < (child->ent_info->current_state)) && (AVM_ENT_INVALID >(child->ent_info->current_state)))
+                  avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
+            /* Inactive state for the parent one */
+            avm_assign_state(ent_info, AVM_ENT_INACTIVE);
          }
       }
    }
@@ -1501,6 +1513,7 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be locked";
    char *arch_type = NULL;
@@ -1532,9 +1545,18 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
       if (strcmp(arch_type, "HP_PROLIANT") == 0) {
-         /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we     */
-         /* need to manually advance the state to inactive or this architecture type. */
-         avm_active_inactive(avm_cb, ent_info, fsm_evt);
+         /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we      */
+         /* need to manually advance the state to inactive for this architecture type. */
+         /* Note: We cannot call avm_active_inactive() here because its operation      */
+         /* interferes with the HP PROLIANT server that is presently shutting down.    */
+
+         /* Set child entity in inactive state */
+         for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+            if((AVM_ENT_INACTIVE < (child->ent_info->current_state)) && (AVM_ENT_INVALID >(child->ent_info->current_state)))
+               avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
+         /* Inactive state for the parent one */
+         avm_assign_state(ent_info, AVM_ENT_INACTIVE);
       }
    }
 
