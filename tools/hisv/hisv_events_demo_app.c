@@ -717,6 +717,12 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
          } 
   
          m_NCS_CONS_PRINTF("      Sensor Type : %s\n", hpi_sensor_type_string);
+         if (hpi_event->hpi_event.EventDataUnion.SensorEvent.Assertion == 0) {
+            m_NCS_CONS_PRINTF("      Event State : DEASSERTED\n");
+         }
+         else {
+            m_NCS_CONS_PRINTF("      Event State : ASSERTED\n");
+         }
       }
       if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
           (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_THRESHOLD)) {
