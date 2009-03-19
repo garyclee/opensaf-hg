@@ -162,7 +162,6 @@ extern LEAPDLL_API int get_char_from_gui();
 #define sysf_difftime(t0, t1)  m_NCS_OS_DIFFTIME (t0, t1)
 
 
-#define m_NCS_SYSTEM            m_NCS_OS_SYSTEM
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
 
 #define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF

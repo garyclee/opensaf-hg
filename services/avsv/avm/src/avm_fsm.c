@@ -994,7 +994,7 @@ avm_proc_ssu_tmr_exp(
    m_NCS_TASK_SLEEP(100);
    /* Invoke script to stop the DHCP server, if its configuration has been changed */
    if (dhconf_chg == AVM_DHCP_CONF_CHANGE)
-      if (m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG));
+      if (system(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG));
       {
          return NCSCC_RC_FAILURE;
       }
@@ -1205,7 +1205,7 @@ avm_proc_dhcp_fail_tmr_exp(
 
    avm_stop_tmr(avm_cb, &avm_cb->dhcp_fail_tmr);
    
-   if ((rc = (m_NCS_SYSTEM(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG))))
+   if ((rc = (system(AVM_DHCPD_SCRIPT AVM_DHCP_SCRIPT_ARG))))
    {
       m_AVM_LOG_DEBUG("AVM-SSU: DHCP STOP failed again. Restarting DHCP FAIL timer.",NCSFL_SEV_ERROR);
       m_AVM_SSU_DHCP_FAIL_TMR_START(avm_cb);
