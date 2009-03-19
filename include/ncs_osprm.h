@@ -2375,14 +2375,10 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 
 #define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
-#define m_NCS_SIGNAL_WAITPID(pid,status,options)     ncs_os_signal_waitpid(pid,status,options)
-
 /* declarations */
 EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
 EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],NCS_OS_ENVIRON_ARGS *set_env_args);
-
-EXTERN_C LEAPDLL_API unsigned int ncs_os_process_get_id(void);
 
 EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
 
@@ -2391,8 +2387,6 @@ EXTERN_C LEAPDLL_API int ncs_os_process_set_priority(int which, int who, int pri
 EXTERN_C LEAPDLL_API int ncs_os_process_get_priority(int which, int who);
 
 EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
-
-EXTERN_C LEAPDLL_API int ncs_os_signal_waitpid(int pid, int *status,int options);
 
 /****************************************************************************
  **                                                                        **
