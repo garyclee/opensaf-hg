@@ -159,7 +159,7 @@ static uns32  snmptm_tblcmd_create_row(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, uns32
          }
          
          /* Sample counter update with some random value */
-         tblone->tblone_cntr32 = (sysf_rand() % 10000);
+         tblone->tblone_cntr32 = (rand() % 10000);
       }
       else
       {

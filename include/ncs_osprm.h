@@ -2066,15 +2066,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_FGETS               fgets
 #endif
 
-
-#ifndef m_NCS_OS_SRAND
-#define m_NCS_OS_SRAND               srand
-#endif
-
-#ifndef m_NCS_OS_RAND
-#define m_NCS_OS_RAND             rand
-#endif
-
 #ifndef m_NCS_OS_GETCHAR
 #define m_NCS_OS_GETCHAR             getchar
 #endif
