@@ -47,7 +47,7 @@ timer_accuracy_test(void)
 
    m_NCS_CONS_PRINTF("\nTimer Accuracy Test.\n");
 
-   sysf_srand (m_NCS_GET_TIME_MS); /* seed the generator used to keep out of sync with timer service */
+   srand (m_NCS_GET_TIME_MS); /* seed the generator used to keep out of sync with timer service */
 
    m_NCS_TMR_CREATE (timer, 0, 0, (void *) 0);
 
@@ -59,7 +59,7 @@ timer_accuracy_test(void)
 #else
        m_NCS_CONS_PRINTF ("Measuring %d Seconds...   ", period/1000);
 #endif
-      m_NCS_TASK_SLEEP (sysf_rand() % 100); /* keep out of sync with timer service tick */
+      m_NCS_TASK_SLEEP (rand() % 100); /* keep out of sync with timer service tick */
       start  = m_NCS_GET_TIME_MS;
       m_NCS_TMR_START (timer, period/10, timer_accuracy_cb_func, (void *) &expired);
 
@@ -131,7 +131,7 @@ timer_ringload_test(void)
    testdepth  = 10;   /* select ring index depth to test */
 
 
-   sysf_srand (m_NCS_GET_TIME_MS); /* seed the generator used for picking laps */
+   srand (m_NCS_GET_TIME_MS); /* seed the generator used for picking laps */
    total_timers = 0;
    tp = &anchor;
    for (rdepth = 0; rdepth < testdepth; rdepth++)    /* go around ring 'testdepth' times */
@@ -151,7 +151,7 @@ timer_ringload_test(void)
          }
          ttmr->expire_time = 0;
                /* use rand # of laps, add to current index */
-         ttmr->period = (((sysf_rand() % testdepth) * lap_ms) + (rindex * ticklength));
+         ttmr->period = (((rand() % testdepth) * lap_ms) + (rindex * ticklength));
          if (tp == &anchor)
             ttmr->prev = NULL;
          else

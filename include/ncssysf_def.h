@@ -159,8 +159,6 @@ extern LEAPDLL_API int get_char_from_gui();
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#define sysf_srand             m_NCS_OS_SRAND
-#define sysf_rand              m_NCS_OS_RAND
 #define sysf_difftime(t0, t1)  m_NCS_OS_DIFFTIME (t0, t1)
 
 
