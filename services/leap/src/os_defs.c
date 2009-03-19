@@ -2519,29 +2519,6 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
    return NCSCC_RC_SUCCESS;
 }
 
-
-/***************************************************************************
- *
- * ncs_os_process_get_id
- *
- * Description: To get the process identifier
- *
- * Synopsis:
- *
- * Call Arguments:
- *   None
- *
- * Returns:
- *   Process Id
- *
- * Notes:
- *
- **************************************************************************/
-unsigned int ncs_os_process_get_id(void)
-{
-   return (unsigned int)getpid();
-}
-
 /***************************************************************************
  *
  * ncs_os_process_terminate

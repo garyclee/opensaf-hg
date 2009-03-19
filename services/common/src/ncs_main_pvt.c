@@ -306,7 +306,7 @@ uns32 ncspvt_svcs_startup(int argc, char *argv[], FILE *fp)
    if (ncs_core_agents_startup(argc, argv) != NCSCC_RC_SUCCESS)
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"NODE_ID=0x%08X PID %u \n",ncs_get_node_id(),m_NCS_OS_PROCESS_GET_ID());
+   m_NCS_SYSLOG(NCS_LOG_INFO,"NODE_ID=0x%08X PID %u \n",ncs_get_node_id(),getpid());
 
    if (mainget_svc_enable_info(gl_pargv,&gl_pargc,fp) != NCSCC_RC_SUCCESS)
       return(NCSCC_RC_FAILURE);

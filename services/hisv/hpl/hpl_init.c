@@ -76,7 +76,7 @@ uns32 hpl_initialize(NCS_LIB_CREATE *create_info)
    gl_hpl_hdl = hpl_cb->cb_hdl;
 
    /* get the process id */
-   hpl_cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   hpl_cb->prc_id = getpid();
 
    /* initialize the HPL cb lock */
    m_NCS_LOCK_INIT(&hpl_cb->cb_lock);
