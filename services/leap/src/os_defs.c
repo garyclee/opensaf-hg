@@ -2544,54 +2544,6 @@ int ncs_os_process_terminate(unsigned int proc_id)
 
 /***************************************************************************
  *
- * ncs_os_process_set_priority
- *
- * Description: To set the process priority
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Which - Mention the type of the priority to be set.
- *   who - the process id of the process
- *   prio - the priority for the process
- *
- * Returns:
- *   the success/failure
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_process_set_priority(int which, int who, int prio)
-{
-   return setpriority(which,who,prio);
-}
-
-
-/***************************************************************************
- *
- * ncs_os_process_get_priority
- *
- * Description: To get the process priority
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Which - Mention the type of the priority to be set.
- *   who - the process id of the process
- *
- * Returns:
- *   the priority of the process.
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_process_get_priority(int which, int who)
-{
-   return getpriority(which, who);
-}
-
-/***************************************************************************
- *
  * ncs_os_signal 
  *
  * Description: To handle the system call signal
