@@ -31,6 +31,6 @@ librda_la_CPPFLAGS = \
 
 librda_la_SOURCES = \
 	src/rda_main.c \
-	$(top_srcdir)/services/common/src/rda_papi.c
+	src/rda_papi.c
 
 librda_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
