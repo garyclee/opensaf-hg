@@ -994,7 +994,7 @@ uns32 avnd_err_esc_comp_restart (AVND_CB *cb, AVND_SU *su,
          break;
     
       default:
-         m_NCS_ASSERT(0);
+         assert(0);
    }
 
    m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
@@ -1320,7 +1320,7 @@ uns32 avnd_evt_tmr_node_err_esc (AVND_CB *cb, AVND_EVT *evt)
    
    if(evt->info.tmr.opq_hdl != cb->cb_hdl)
    {
-      m_NCS_ASSERT(0);
+      assert(0);
    }
 
    /* reset all parameters */

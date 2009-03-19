@@ -166,7 +166,6 @@ extern LEAPDLL_API int get_char_from_gui();
 
 #define m_NCS_SYSTEM            m_NCS_OS_SYSTEM
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
-#define m_NCS_ASSERT(exp)       m_NCS_OS_ASSERT(exp)
 
 #define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF
 

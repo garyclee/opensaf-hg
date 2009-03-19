@@ -2476,7 +2476,7 @@ uns32 avnd_comp_proxied_del(AVND_CB                 *cb,
    else
      rec = rec_to_be_deleted;
    /* rec has to be there */
-   m_NCS_ASSERT(rec);
+   assert(rec);
 
    /*remove the association between proxy and proxied*/
    comp->pxy_comp=0;
@@ -2634,7 +2634,7 @@ err:
          rc = avnd_comp_clc_fsm_run(cb, rec->pxied_comp,
                                  AVND_COMP_CLC_PRES_FSM_EV_ORPH);
       
-      m_NCS_ASSERT(rec->pxied_comp);
+      assert(rec->pxied_comp);
       
       /* remove the association between proxy and proxied */
       rec->pxied_comp->pxy_comp=0;

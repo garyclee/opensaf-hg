@@ -41,7 +41,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
 {
     uns32 retval = NCSCC_RC_FAILURE;
 
-    m_NCS_ASSERT(NCS_CONIO_CMD_SENTINAL > request->i_request);
+    assert(NCS_CONIO_CMD_SENTINAL > request->i_request);
 
     USE(context);
     USE(id);
@@ -87,7 +87,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
 
     case NCS_CONIO_CMD_SENTINAL:
     default:
-        m_NCS_ASSERT(NCS_CONIO_CMD_SENTINAL <= request->i_request);
+        assert(NCS_CONIO_CMD_SENTINAL <= request->i_request);
         break;
     }
     return retval;

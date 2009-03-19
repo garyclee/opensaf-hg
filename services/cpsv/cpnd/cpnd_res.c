@@ -194,7 +194,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
    if (rc != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPND_CCL(CPND_OPEN_REQ_FAILED,CPND_FC_RESTART,NCSFL_SEV_ERROR,buf,__FILE__,__LINE__);
-   /*   m_NCS_OS_ASSERT(0); */
+   /*   assert(0); */
       return rc;
    }
 
@@ -216,7 +216,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
    if((*cp_node)->replica_info.shm_sec_mapping == NULL)
    {
       m_LOG_CPND_CL(CPND_DEFAULT_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-    /*  m_NCS_OS_ASSERT(0); */
+    /*  assert(0); */
       return NCSCC_RC_FAILURE;
    }
 
@@ -238,7 +238,7 @@ uns32  cpnd_ckpt_replica_create_res(NCS_OS_POSIX_SHM_REQ_INFO *open_req,uns8* bu
       if(rc != NCSCC_RC_SUCCESS)
       {
          m_LOG_CPND_CL(CPND_SECT_HDR_READ_FAILED,CPND_FC_RESTART,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      /*   m_NCS_OS_ASSERT(0); */
+      /*   assert(0); */
          return rc;
       }
 
@@ -508,7 +508,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                    rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open,buf,&cp_node,0,&cp_info);
                    if (rc != NCSCC_RC_SUCCESS)
                    {
-                      /*   m_NCS_OS_ASSERT(0); */
+                      /*   assert(0); */
                       m_LOG_CPND_LCL(CPND_CKPT_REP_CREATE_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,\
                                      rc,__FILE__,__LINE__);
                       counter++;
@@ -536,7 +536,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                           if(cl_node == NULL)
                           {
                              /* this should not have happened , quit */
-                             /*  m_NCS_OS_ASSERT(0); */
+                             /*  assert(0); */
                              m_NCS_CONS_PRINTF("RESTART: CLIENT HDL DOES NOT EXIST %d\n",client_hdl);
                              m_LOG_CPND_FCL(CPND_CLIENT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
                              client_hdl,__FILE__,__LINE__);

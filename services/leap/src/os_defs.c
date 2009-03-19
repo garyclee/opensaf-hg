@@ -802,7 +802,7 @@ void ncs_os_atomic_init(void)
 
 void ncs_os_atomic_inc(void *p_uns32)
 {            
-    m_NCS_OS_ASSERT(gl_ncs_atomic_mtx_initialise); 
+    assert(gl_ncs_atomic_mtx_initialise); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
     ((*(uns32 *)p_uns32)++); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
@@ -811,7 +811,7 @@ void ncs_os_atomic_inc(void *p_uns32)
 
 void ncs_os_atomic_dec(void *p_uns32)
 {
-    m_NCS_OS_ASSERT(gl_ncs_atomic_mtx_initialise);
+    assert(gl_ncs_atomic_mtx_initialise);
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
     ((*(uns32 *)p_uns32)--); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);

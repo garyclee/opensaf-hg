@@ -110,7 +110,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
 
    /* Generate the pidfilename. Also assert for string buffer overflow */
-   m_NCS_OS_ASSERT(sprintf(pidfilename, "%s", EDS_PID_FILE)
+   assert(sprintf(pidfilename, "%s", EDS_PID_FILE)
             < sizeof(pidfilename));
 
    /*Open pidfile for writing the process id */

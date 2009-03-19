@@ -814,7 +814,7 @@ void* ncs_regx_init(char* pattern)
    NCS_REGX* regx = m_MMGR_ALLOC_REGX;
    int32    ret  = 0;
    
-   m_NCS_ASSERT( strlen(pattern) < (T_PATTERN_SIZE - 1));
+   assert( strlen(pattern) < (T_PATTERN_SIZE - 1));
    
    if (regx == NULL)
    {
@@ -855,7 +855,7 @@ void* ncs_regx_init(char* pattern)
 uns32 ncs_regx_destroy(void* regx_hdl)
 {
    NCS_REGX* regx = (NCS_REGX*) regx_hdl;
-   m_NCS_ASSERT(regx->exists == NCS_REGX_EXISTS);
+   assert(regx->exists == NCS_REGX_EXISTS);
    
    m_MMGR_FREE_REGX(regx);
    
@@ -875,7 +875,7 @@ uns32 ncs_regx_destroy(void* regx_hdl)
 uns32 ncs_regx_match(void* regx_hdl, char*  src)
 {
    NCS_REGX* regx = (NCS_REGX*) regx_hdl;
-   m_NCS_ASSERT(regx->exists == NCS_REGX_EXISTS);
+   assert(regx->exists == NCS_REGX_EXISTS);
    
    resetSubsArray(regx);   /* prepare for loading new stuff */
    if (gMatch(regx, regx->t_alist.c_pattern, src, regx->subsp))
@@ -894,7 +894,7 @@ uns32 ncs_regx_get_count(void* regx_hdl)
    NCS_REGX* regx = (NCS_REGX*) regx_hdl;
    uns32    i    = 0;
    
-   m_NCS_ASSERT(regx->exists == NCS_REGX_EXISTS);
+   assert(regx->exists == NCS_REGX_EXISTS);
    
    for (i = 0; regx->subsp[i].s_cp; i++)
       ;
@@ -918,9 +918,9 @@ NCS_BOOL ncs_regx_get_result(void* regx_hdl, uns32 idx, char* space, uns32 len)
 {
    NCS_REGX* regx = (NCS_REGX*) regx_hdl;
    
-   m_NCS_ASSERT(regx->exists == NCS_REGX_EXISTS);
-   m_NCS_ASSERT(idx < NBRA);
-   m_NCS_ASSERT(strlen(regx->subsp[idx].s_cp) < len);
+   assert(regx->exists == NCS_REGX_EXISTS);
+   assert(idx < NBRA);
+   assert(strlen(regx->subsp[idx].s_cp) < len);
    
    memcpy(space, regx->subsp[idx].s_cp, regx->subsp[idx].s_len);
    space[regx->subsp[idx].s_len] = '\0';
@@ -936,7 +936,7 @@ NCS_BOOL ncs_regx_get_result(void* regx_hdl, uns32 idx, char* space, uns32 len)
 uns32 ncs_regx_get_length(void* regx_hdl)
 {
    NCS_REGX* regx = (NCS_REGX*) regx_hdl;
-   m_NCS_ASSERT(regx->exists == NCS_REGX_EXISTS);
+   assert(regx->exists == NCS_REGX_EXISTS);
    
    return regx->subsp[0].s_len;
 }

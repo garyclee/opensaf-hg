@@ -173,7 +173,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    inst->in_sync = TRUE; 
  
    /* Generate the pidfilename. Also assert for string buffer overflow */
-   m_NCS_OS_ASSERT(sprintf(pidfilename, "%s", DTS_PID_FILE)
+   assert(sprintf(pidfilename, "%s", DTS_PID_FILE)
            < sizeof(pidfilename));
 
    /*Open pidfile for writing the process id */

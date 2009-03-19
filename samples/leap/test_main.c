@@ -1177,7 +1177,7 @@ consoleMain (int argc, char **argv)
                 continue;
             }
 
-            m_NCS_ASSERT(testNum < (sizeof(tests)/sizeof(NCS_LT_TESTINFO)));
+            assert(testNum < (sizeof(tests)/sizeof(NCS_LT_TESTINFO)));
 
             if (tests[testNum].testfunc(pc-1, &pv[1]) == NCS_LT_TEST_RC_INVALID_USAGE) /*lint !e661 !e662*/
             {

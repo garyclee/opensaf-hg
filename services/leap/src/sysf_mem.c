@@ -1970,7 +1970,7 @@ sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 *cons
      ret_buf = sysf_reserve_at_end_amap(ppb, &io_size, TRUE);
      /* Warn people if reserved size is not equal to requested size */
      if (ret_buf != NULL) 
-         m_NCS_OS_ASSERT( io_size == i_size );
+         assert( io_size == i_size );
      return ret_buf;
  }
 /***************************************************************************
@@ -2024,7 +2024,7 @@ sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 *cons
        /* Cannot reserve so many bytes at a time */
        if (total)
        {
-           m_NCS_OS_ASSERT(0); 
+           assert(0); 
            return NULL;
        }
        else
