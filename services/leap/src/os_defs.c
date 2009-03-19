@@ -503,7 +503,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             }
             else
             {
-               p_field = m_NCS_OS_PROCESS_GET_ENV_VAR("LEAP_THREADS_ENABLE_RT"); 
+               p_field = getenv("LEAP_THREADS_ENABLE_RT"); 
                if ((p_field != NULL) && (atoi(p_field) == 1))
                {
                }else
@@ -2541,30 +2541,6 @@ unsigned int ncs_os_process_get_id(void)
 {
    return (unsigned int)getpid();
 }
-
-
-/***************************************************************************
- *
- * ncs_os_process_get_env_var
- *
- * Description: To get the environment Variable
- *
- * Synopsis:
- *
- * Call Arguments:
- *   str - The environment Variable Name
- *
- * Returns:
- *   the environment Value
- *
- * Notes:
- *
- **************************************************************************/
-char* ncs_os_process_get_env_var(char *str)
-{
-   return(char *)getenv(str);
-}
-
 
 /***************************************************************************
  *

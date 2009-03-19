@@ -224,7 +224,7 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
    /** start the AMF health check **/   
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"A1B2");

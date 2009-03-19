@@ -346,7 +346,7 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
    }
       /** start the AMF health check **/
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("HISV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("HISV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"F6C7");

@@ -535,7 +535,7 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* Start up the boot timer only if the target system architecture is not   */
    /* HP_CCLASS and not HP_PROLIANT.                                          */
@@ -1122,7 +1122,7 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
    m_AVM_LOG_GEN_EP_STR("Unlock issued in INACTIVE state for", ent_info->ep_str.name, NCSFL_SEV_INFO);
    
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /*****************************************************************
        While IPMC upgrade is going on, this event is not supposed
@@ -1450,7 +1450,7 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_shutdown_req"); 
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if((AVM_ADM_LOCK != ent_info->adm_lock)  && (!ent_info->adm_shutdown))
    {
@@ -1520,7 +1520,7 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_lock"); 
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if(ent_info->adm_shutdown)
    {

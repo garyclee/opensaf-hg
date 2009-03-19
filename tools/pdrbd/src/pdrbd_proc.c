@@ -676,7 +676,7 @@ uns32 pseudoInitialise()
 
    /* Get and set the health check key */
    memset(&amfHthChkKey, 0, sizeof(amfHthChkKey));
-   hthChkKey = m_NCS_OS_PROCESS_GET_ENV_VAR("PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY");
+   hthChkKey = getenv("PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY");
 
    if(hthChkKey == NULL)
    {

@@ -453,7 +453,7 @@ eds_healthcheck_start(EDS_CB *eds_cb)
 
    /** start the AMF health check **/
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("EDSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("EDSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"E5F6");

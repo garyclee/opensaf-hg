@@ -293,7 +293,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
 
       memset(&healthy,0,sizeof(healthy));
 
-      health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
+      health_key = getenv("IFSV_ENV_HEALTHCHECK_KEY");
       if(health_key == NULL)
       {
          strcpy(healthy.key,"C3D4");

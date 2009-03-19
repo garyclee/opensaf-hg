@@ -156,10 +156,10 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    }
    if ( !m_AVA_FLAG_IS_COMP_NAME(cb) )
    {
-      if ( m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME") )
+      if ( getenv("SA_AMF_COMPONENT_NAME") )
       {
          strcpy(cb->comp_name_net.value, 
-            m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME"));
+            getenv("SA_AMF_COMPONENT_NAME"));
          cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
          m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
       }

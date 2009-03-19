@@ -376,7 +376,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    /* Code for No Redundancy Support */
    /*   start the AMF Health Check  */
    memset(&healthy,0,sizeof(healthy));
-   health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
+   health_key =  getenv("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(healthy.key,"E5F6");

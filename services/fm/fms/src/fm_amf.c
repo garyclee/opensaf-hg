@@ -404,7 +404,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    SaCompName.length = strlen(fm_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
-   phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("FM_HA_ENV_HEALTHCHECK_KEY");
+   phlth_ptr = getenv("FM_HA_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
       /*

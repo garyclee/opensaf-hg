@@ -524,7 +524,7 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
    SaCompName.length = strlen(rde_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
-   phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("RDE_HA_ENV_HEALTHCHECK_KEY");
+   phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
       /*
