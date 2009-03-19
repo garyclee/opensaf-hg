@@ -2808,7 +2808,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 /* If the tree contains no data, there should be some data in the buffer */
                 if (cur_rows_left > 0)
                 {
-                    m_NCS_ASSERT(pNode == NULL);
+                    assert(pNode == NULL);
                     memcpy(cur_data, cur_ptr, tbl_info->max_row_length);
                     pss_get_key_from_data(tbl_info, cur_key, cur_data);
                     cur_ptr += tbl_info->max_row_length;
@@ -2820,7 +2820,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 /* There is no more data on the disk, so the tree contains all the data */
                 if (pNode != NULL)
                 {
-                    m_NCS_ASSERT(cur_rows_left == 0);
+                    assert(cur_rows_left == 0);
 
                     while (pNode != NULL)
                     {

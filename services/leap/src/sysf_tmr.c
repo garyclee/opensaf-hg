@@ -116,7 +116,7 @@ typedef struct sysf_tmr_leak
 #endif
 
 #if ( NCS_TMR_DBG_ENABLE == 1)
-#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID(0);m_NCS_OS_ASSERT((t->state&s));}}
+#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID(0);assert((t->state&s));}}
 #else
 #define TMR_DBG_ASSERT_STATE(t,s)
 #endif 
@@ -545,7 +545,7 @@ static uns32 ncs_tmr_wait(void)
         if(rc < 0) 
         {
             if(save_errno != EINTR)
-                m_NCS_OS_ASSERT(0);  
+                assert(0);  
 
             if( ncs_tmr_select_intr_process(&tv,&ts_current,next_delay) == NCSCC_RC_SUCCESS)
             {

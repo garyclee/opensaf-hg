@@ -631,7 +631,7 @@ static uns32 dts_get_and_return_val(char* t_str, char* ch, char* time,
             /* Versioning changes : New code for 64-bit support */
             else 
             {
-               m_NCS_ASSERT(msg_fmat_ver == 2);
+               assert(msg_fmat_ver == 2);
                data = ncs_dec_flatten_space(uba, data_buff,
                                             (sizeof(uns16) + sizeof(uns64)));
                if(data == NULL)

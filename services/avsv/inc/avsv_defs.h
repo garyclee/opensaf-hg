@@ -244,7 +244,7 @@ typedef enum {
 } SaAdjustState;
 
 /* Macro for AvSv assert */
-#define m_AVSV_ASSERT(condition) if(!(condition)) m_NCS_OS_ASSERT(0)
+#define m_AVSV_ASSERT(condition) if(!(condition)) assert(0)
 
 
 /* Macros for data to MIB arg modification */

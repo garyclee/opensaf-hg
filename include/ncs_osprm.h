@@ -2058,12 +2058,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
 #endif
 
-/* Assertion defaults to nothing unless provided in osprims
-*/
-#ifndef m_NCS_OS_ASSERT
-#define m_NCS_OS_ASSERT(exp)         assert(exp)
-#endif
-
 #ifndef m_NCS_OS_GETC
 #define m_NCS_OS_GETC                getc
 #endif

@@ -168,7 +168,7 @@ unsigned int ncs_lock_destroy(NCS_LOCK * lock,
 
    if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }
@@ -224,7 +224,7 @@ unsigned int  ncs_lock  (NCS_LOCK*      lock,
 
   if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }
@@ -264,7 +264,7 @@ EXTERN_C unsigned int  ncs_unlock      (NCS_LOCK*      lock,
 
   if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }

@@ -178,7 +178,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
        }
       else
        if(shm_base_addr[i].valid)
-         m_NCS_ASSERT(0);   
+         assert(0);   
      }
   cb->is_restart_done = TRUE;  
   return rc;

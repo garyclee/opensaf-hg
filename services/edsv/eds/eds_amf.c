@@ -505,7 +505,7 @@ eds_amf_init(EDS_CB *eds_cb)
 
 
    /* Read the component name file now, AMF should have populated it by now */
-   m_NCS_OS_ASSERT(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
+   assert(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
 
    fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_eds_comp_name */
    if(fp == NULL)

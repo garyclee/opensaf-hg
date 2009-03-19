@@ -312,7 +312,7 @@ uns32 leap_failure(uns32 l, char* f, uns32 err, uns32 retval)
 
 #if (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
 
-      m_NCS_OS_ASSERT(0);  /* Policy is to crash! */
+      assert(0);  /* Policy is to crash! */
 
 #endif /* CRASH */
 #endif /* BANNER or CRASH */

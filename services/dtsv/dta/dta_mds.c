@@ -818,7 +818,7 @@ uns32 dta_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
              \*****************************************************/
 
              *msg_fmat_ver = mm->data.data.msg.msg_fmat_ver;
-             m_NCS_ASSERT(
+             assert(
                    (mm->data.data.msg.msg_fmat_ver == 1) ||
                    (mm->data.data.msg.msg_fmat_ver == 2));
              return dta_log_msg_encode(&mm->data.data.msg.log_msg,uba);
@@ -1030,7 +1030,7 @@ uns32 dta_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
           \*****************************************************/
 
           *msg_fmat_ver = mm->data.data.msg.msg_fmat_ver;
-          m_NCS_ASSERT(
+          assert(
                 (mm->data.data.msg.msg_fmat_ver == 1) ||
                 (mm->data.data.msg.msg_fmat_ver == 2));
       } 

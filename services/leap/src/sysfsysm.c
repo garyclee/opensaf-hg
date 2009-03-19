@@ -3176,7 +3176,7 @@ uns32 sm_stktrace_report(NCSSYSM_MEM_STK_RPT* info)
                            loutlen = strlen((const char *)outstr);
                            m_NCS_OS_STACKTRACE_EXPAND(ste, outstr+loutlen, &loutlen);
                            loutlen = strlen((const char *)outstr);
-                           m_NCS_ASSERT(maxlen > loutlen);
+                           assert(maxlen > loutlen);
                            ste->flags = 1;
 
                            if(NULL == ste->next)
