@@ -2366,7 +2366,6 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 #define m_NCS_OS_PROCESS_EXECUTE_TIMED(arg)           ncs_os_process_execute_timed(arg)
 #define m_NCS_OS_PROCESS_EXECUTE(script,argv)         ncs_os_process_execute((char *)script,(char **)argv,(NCS_OS_ENVIRON_ARGS *)NULL)
 #define m_NCS_OS_PROCESS_GET_ID()                     ncs_os_process_get_id()
-#define m_NCS_OS_PROCESS_SET_ENV_VAR(str,val,op)      ncs_os_process_set_env_var((char*)str,(char *)val,(int)op)
 #define m_NCS_OS_PROCESS_TERMINATE(proc_id)           ncs_os_process_terminate((unsigned int)proc_id)
 #define m_NCS_OS_PROCESS_SET_PRIORITY(which,who,prio) ncs_os_process_set_priority((int)which,(int)who,(int)prio)
 #define m_NCS_OS_PROCESS_GET_PRIORITY(which,who)      ncs_os_process_get_priority((int)which,(int)who)
@@ -2385,8 +2384,6 @@ EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIME
 EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],NCS_OS_ENVIRON_ARGS *set_env_args);
 
 EXTERN_C LEAPDLL_API unsigned int ncs_os_process_get_id(void);
-
-EXTERN_C LEAPDLL_API int ncs_os_process_set_env_var(char *str,char *val, int op);
 
 EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
 

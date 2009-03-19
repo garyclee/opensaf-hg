@@ -733,7 +733,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Set SA_AMF_COMPONENT_NAME env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR ("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
+   if (setenv ("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
    {
       return NCSCC_RC_FAILURE;
    }
@@ -741,7 +741,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Set FM_HA_ENV_HEALTHCHECK_KEY env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR ("FM_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
+   if (setenv ("FM_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
    {
       return NCSCC_RC_FAILURE;
    }
