@@ -2615,31 +2615,6 @@ sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 
 /***************************************************************************
  *
- * ncs_os_signal_waitpid
- *
- * Description: Implementation of waitpid 
- *
- * Synopsis:
- *
- * Call Arguments:
- *   signum - Signal number.
- *   status - Status to be returned 
- *   options - Options for the waitpid call 
- *
- * Returns:
- *   the priority of the process.
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_signal_waitpid(int pid, int *status,int options)
-{
-  return waitpid(pid,status,options);
-}
-
-
-/***************************************************************************
- *
  * ncs_sel_obj_*  primitives
  * 
  *

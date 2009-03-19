@@ -216,7 +216,7 @@ repeat_srch_from_beginning:
               pid = exec_pid->pid;
               /*m_NCS_CONS_PRINTF(" Going to wait on waitpid  %d \n", pid);*/
 
-              if((pid == m_NCS_SIGNAL_WAITPID(pid, &status, WNOHANG)))
+              if((pid == waitpid(pid, &status, WNOHANG)))
               {
                  /* TIMED OUT CHILDS which are terminated by sending  SIG CHILD */ 
                  if(exec_pid->exec_info_type == SYSF_EXEC_INFO_TIME_OUT) 
