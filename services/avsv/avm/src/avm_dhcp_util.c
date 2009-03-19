@@ -497,7 +497,7 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
 
    m_AVM_LOG_DEBUG(log_str,NCSFL_SEV_NOTICE);
    /* Invoke script to reconfigure the DHCP server */
-   rc = m_NCS_SYSTEM(script_buf);
+   rc = system(script_buf);
    if (rc)
    {
       uns32 ret_val;

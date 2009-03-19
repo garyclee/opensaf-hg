@@ -301,7 +301,7 @@ avm_init_proc(uns32 *avm_init_hdl)
               "filename", "tftpserver", dhcp_initialise);
 
       /* Invoke script to initialise the DHCP Configuration file */
-      if (m_NCS_SYSTEM(script_buf))
+      if (system(script_buf))
       {
           /* ncshm_give_hdl(g_avm_hdl);
              g_avm_hdl = 0;
