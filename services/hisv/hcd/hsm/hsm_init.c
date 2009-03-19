@@ -118,7 +118,7 @@ uns32 hsm_initialize(HPI_SESSION_ARGS *args)
    gl_hsm_hdl = hsm_cb->cb_hdl;
 
    /* get the process id */
-   hsm_cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   hsm_cb->prc_id = getpid();
 
    /* Initialize the EDA channels used for publishing events */
    if ( (NCSCC_RC_SUCCESS != hsm_eda_chan_initialize(hsm_cb)))

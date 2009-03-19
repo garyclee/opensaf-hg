@@ -2365,7 +2365,6 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 
 #define m_NCS_OS_PROCESS_EXECUTE_TIMED(arg)           ncs_os_process_execute_timed(arg)
 #define m_NCS_OS_PROCESS_EXECUTE(script,argv)         ncs_os_process_execute((char *)script,(char **)argv,(NCS_OS_ENVIRON_ARGS *)NULL)
-#define m_NCS_OS_PROCESS_GET_ID()                     ncs_os_process_get_id()
 #define m_NCS_OS_PROCESS_TERMINATE(proc_id)           ncs_os_process_terminate((unsigned int)proc_id)
 #define m_NCS_OS_PROCESS_SET_PRIORITY(which,who,prio) ncs_os_process_set_priority((int)which,(int)who,(int)prio)
 #define m_NCS_OS_PROCESS_GET_PRIORITY(which,who)      ncs_os_process_get_priority((int)which,(int)who)

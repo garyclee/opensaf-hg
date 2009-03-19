@@ -351,7 +351,7 @@ static NCS_BOOL sysfTmrExpiry (SYSF_TMR_PAT_NODE *tmp )
                 gl_tcb.stats.cnt--;
                 if(gl_tcb.stats.cnt == 0)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active in Expiry PID %u \n",m_NCS_OS_PROCESS_GET_ID());
+                    m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active in Expiry PID %u \n",getpid());
                 }
 #endif
                 now_tmr->tmrCB (now_tmr->tmrUarg);    /* OK this is it! Expire ! */
@@ -1016,7 +1016,7 @@ uns32 ncs_tmr_stop_v2(tmr_t tmrID,void  **o_tmr_arg)
             gl_tcb.stats.cnt--;
             if(gl_tcb.stats.cnt == 0)
             {         
-                m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP_V2 PID %u \n",m_NCS_OS_PROCESS_GET_ID()); 
+                m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP_V2 PID %u \n",getpid()); 
             }
 #endif
             /* set tmr to DORMANT state */
@@ -1056,7 +1056,7 @@ void ncs_tmr_stop (tmr_t tmrID)
         gl_tcb.stats.cnt--;
         if(gl_tcb.stats.cnt == 0)
         {
-            m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP PID %u \n",m_NCS_OS_PROCESS_GET_ID()); 
+            m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP PID %u \n",getpid()); 
         }
     }
 #endif

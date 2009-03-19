@@ -82,7 +82,7 @@ uns32 sim_initialize()
    gl_sim_hdl = sim_cb->cb_hdl;
 
    /* get the process id */
-   sim_cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   sim_cb->prc_id = getpid();
 
    m_LOG_HISV_DTS_CONS("sim_initialize: creating ShIM mbx\n");
 

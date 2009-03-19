@@ -228,7 +228,7 @@ static uns32 mqa_create (NCS_LIB_CREATE *create_info)
    gl_mqa_hdl = cb->agent_handle_id;
 
    /* get the process id */
-   cb->process_id = m_NCS_OS_PROCESS_GET_ID();
+   cb->process_id = getpid();
 
    /* initialize the mqa cb lock */
    if((rc = m_NCS_LOCK_INIT(&cb->cb_lock)) != NCSCC_RC_SUCCESS)
