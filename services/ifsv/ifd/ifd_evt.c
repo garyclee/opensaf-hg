@@ -197,7 +197,7 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
    SaCompName.length = strlen(cb->comp_name);
 
    memset(&Healthy,0,sizeof(Healthy));
-   phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("IFSV_ENV_HEALTHCHECK_KEY");
+   phlth_ptr = getenv("IFSV_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
       /** default health check key **/

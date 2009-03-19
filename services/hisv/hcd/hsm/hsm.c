@@ -644,7 +644,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    /* Get the target system architecture type - as HP PROLIANT is treated */
    /* differently than ATCA or HP c-Class - because it does not support   */
    /* the 5-state hotswap model.                                          */
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
    m_NCS_CONS_PRINTF("dispatch_hotswap: target system architecture is: %s\n", arch_type);
 
    /* collect the domain-id and session-id of HPI session */
@@ -1238,7 +1238,7 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 
    m_LOG_HISV_DTS_CONS("publish_extracted: Invoked\n");
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;

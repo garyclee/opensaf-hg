@@ -1059,7 +1059,7 @@ avm_hisv_api_cmd(
 
    m_AVM_LOG_FUNC_ENTRY("avm_hisv_api_cmd");
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    rc = avm_convert_entity_path_to_string(ent_info->entity_path, &entity_path);
 
@@ -2075,7 +2075,7 @@ uns32 avm_standby_boot_succ_tmr_handler(AVM_CB_T *avm_cb,AVM_EVT_T *hpi_evt,AVM_
    if(((ent_info->current_state == AVM_ENT_NOT_PRESENT) || (ent_info->current_state == AVM_ENT_INACTIVE))
       && (fsm_evt_type == AVM_EVT_INSERTION_PENDING))
    {
-      arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+      arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
       /* Start up the boot timer only if the target system architecture is not   */
       /* HP_CCLASS and not HP_PROLIANT.                                          */
       if ((strcmp(arch_type, "HP_CCLASS") != 0) &&
@@ -2307,7 +2307,7 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
 {
    char *arch_type = NULL;
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* Initialize entity path */
    memset(ep->Entry, 0, sizeof(SaHpiEntityPathT));
@@ -2396,7 +2396,7 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
    uns8 i=0;
    char *arch_type = NULL;
  
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* Extract values from two entity paths. */ 
    while(ent_path1.Entry[i].EntityType  != SAHPI_ENT_ROOT)

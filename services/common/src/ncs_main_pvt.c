@@ -445,7 +445,7 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
    /*** Init DTS ***/
 #if (NCS_DTS == 1)
    /****** DTSV default service severity level *******/
-   p_field = m_NCS_OS_PROCESS_GET_ENV_VAR("DTS_LOG_ALL");
+   p_field = getenv("DTS_LOG_ALL");
    if (p_field != NULL)
    {
       if (atoi(p_field))

@@ -247,7 +247,7 @@ uns32 dts_svc_create(DTS_CREATE* create)
 #ifdef __NCSINC_LINUX__
    {
        char * env_var;
-       env_var = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_LOG_PATH");
+       env_var = getenv("NCS_LOG_PATH");
        
        if(env_var)
        {

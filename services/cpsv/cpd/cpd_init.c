@@ -323,7 +323,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
 
  
    memset(&healthy,0,sizeof(healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(healthy.key,"A1B2");

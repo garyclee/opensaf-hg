@@ -333,7 +333,7 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    /*   start the AMF Health Check  */
    memset(&healthy,0,sizeof(healthy));
  
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(healthy.key,"A1B2");

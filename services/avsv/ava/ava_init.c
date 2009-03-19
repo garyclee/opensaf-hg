@@ -144,10 +144,10 @@ uns32 ava_create (NCS_LIB_CREATE *create_info)
    memset(cb, 0, sizeof(AVA_CB));
 
    /* fetch the comp name from the env variable */
-   if ( m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME") )
+   if ( getenv("SA_AMF_COMPONENT_NAME") )
    {
       strcpy(cb->comp_name_net.value, 
-                   m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME"));
+                   getenv("SA_AMF_COMPONENT_NAME"));
       cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
       m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
    }

@@ -1860,7 +1860,7 @@ ham_entity_path_lookup(HISV_EVT *evt)
 #if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
    m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
    /* Set chassis type */
    if (strcmp(arch_type, "ATCA") == 0)
    {

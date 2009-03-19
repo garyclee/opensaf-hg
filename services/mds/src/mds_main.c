@@ -141,9 +141,9 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Get gl_mds_log_level */
 
             /*  setting MDS_LOG_LEVEL from environment variable if given */
-            if ( m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_LOG_LEVEL") )
+            if ( getenv("MDS_LOG_LEVEL") )
             {
-                gl_mds_log_level = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_LOG_LEVEL"));
+                gl_mds_log_level = atoi(getenv("MDS_LOG_LEVEL"));
             }
             else
             {
@@ -172,9 +172,9 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Get gl_mds_checksum */
 
             /*  setting MDS_CHECKSUM from environment variable if given */
-            if ( m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_CHECKSUM") )
+            if ( getenv("MDS_CHECKSUM") )
             {
-                gl_mds_checksum = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("MDS_CHECKSUM"));
+                gl_mds_checksum = atoi(getenv("MDS_CHECKSUM"));
             }
             else
             {
