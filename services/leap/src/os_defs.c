@@ -2381,7 +2381,7 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
       /* set the environment variables */
       for(;count>0;count--)
       {
-          ncs_os_process_set_env_var(node->name,node->value,node->overwrite);
+          setenv(node->name,node->value,node->overwrite);
           node++;
       }
       
@@ -2477,7 +2477,7 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
       /* set the environment variables */
       for(;count>0;count--)
       {
-          ncs_os_process_set_env_var(node->name,node->value,node->overwrite);
+          setenv(node->name,node->value,node->overwrite);
           node++;
       }
 
@@ -2541,32 +2541,6 @@ unsigned int ncs_os_process_get_id(void)
 {
    return (unsigned int)getpid();
 }
-
-/***************************************************************************
- *
- * ncs_os_process_set_env_var
- *
- * Description: To set the environment Variable
- *
- * Synopsis:
- *
- * Call Arguments:
- *   str - The environment Variable Name
- *   val - The value for setting the variable
- *   op - option for overriding
- * Returns:
- *   the success/failure
- *
- * Notes:
- *
- **************************************************************************/
-
-int ncs_os_process_set_env_var(char *str,char *val, int op)
-{
-   return setenv(str,val,op);
-}
-
-
 
 /***************************************************************************
  *

@@ -881,7 +881,7 @@ uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_amf_cb)
    /*
    ** Set SA_AMF_COMPONENT_NAME env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
+   if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
    {
        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_COMP_NAME_FAIL, errno);
        return NCSCC_RC_FAILURE;
@@ -890,7 +890,7 @@ uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_amf_cb)
    /*
    ** Set RDE_HA_ENV_HEALTHCHECK_KEY env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR("RDE_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
+   if (setenv("RDE_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
    {
        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_HC_KEYE_FAIL, errno);
        return NCSCC_RC_FAILURE;
