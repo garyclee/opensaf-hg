@@ -229,6 +229,9 @@ BASE_SUBDIRS = \
 	services/logsv/lga \
 	lib/lib_SaLog \
 	tests/logsv \
+	services/ntfsv/ntfa \
+	lib/lib_SaNtf \
+	tests/ntfsv \
 	services/mqsv/common \
 	services/mqsv/mqa \
 	lib/lib_SaMsg \
@@ -294,6 +297,7 @@ controller_sysconf = \
 	$(top_srcdir)/config/.drbd_sync_state_3 \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/saflog.conf \
+	$(top_srcdir)/config/ntf.conf \
 	$(top_srcdir)/config/rde.conf \
 	$(top_srcdir)/config/fms.conf \
 	$(top_srcdir)/config/imm.xml \
@@ -385,6 +389,7 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/immd_script \
 	$(top_builddir)/scripts/immnd_script \
 	$(top_builddir)/scripts/opensaf_lgs \
+	$(top_builddir)/scripts/opensaf_ntfs \
 	$(top_builddir)/scripts/pdrbdctrl \
 	$(top_builddir)/scripts/rde_script \
 	$(top_builddir)/scripts/tipc_reset.sh 

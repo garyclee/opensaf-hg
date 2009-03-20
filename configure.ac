@@ -515,6 +515,7 @@ AC_CONFIG_FILES([opensaf.spec
                  scripts/immd_script
                  scripts/immnd_script
                  scripts/opensaf_lgs
+                 scripts/opensaf_ntfs
                  scripts/pdrbdctrl
                  scripts/rde_script
                  scripts/tipc_reset.sh
@@ -538,6 +539,7 @@ AC_CONFIG_FILES([opensaf.spec
                  lib/lib_SaImm/Makefile
                  lib/lib_SaLck/Makefile
                  lib/lib_SaLog/Makefile
+                 lib/lib_SaNtf/Makefile
                  lib/lib_ncs_core/Makefile
                  services/Makefile
                  services/avsv/Makefile
@@ -617,6 +619,10 @@ AC_CONFIG_FILES([opensaf.spec
                  services/logsv/lga/Makefile
                  services/logsv/lgs/Makefile
                  services/logsv/utils/Makefile
+                 services/ntfsv/Makefile
+                 services/ntfsv/ntfa/Makefile
+                 services/ntfsv/ntfs/Makefile
+                 services/ntfsv/utils/Makefile
                  services/mab/Makefile
                  services/mab/logstr/Makefile
                  services/mab/mac/Makefile
@@ -657,6 +663,7 @@ AC_CONFIG_FILES([opensaf.spec
                  tests/immsv/implementer/Makefile
                  tests/immsv/management/Makefile
                  tests/logsv/Makefile
+                 tests/ntfsv/Makefile
                  tools/hisv/Makefile
                  tools/pdrbd/Makefile
                  tools/pdrbd/logstr/Makefile

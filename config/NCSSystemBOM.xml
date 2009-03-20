@@ -1772,6 +1772,44 @@
 
 
                                 <!--
+                                   The Configuration for NTF SERVICE component CompT_NTF
+                                -->
+				<componentPrototype name="safComp=CompT_NTF" finalPrototype="1">
+					<clcCommands>
+						<instantiateCommand>
+							<command>/xxLIBDIRxx/opensaf_ntfs start</command>
+							<timeout>50000</timeout>
+							<numMaxInstantiate>5</numMaxInstantiate>
+						</instantiateCommand>
+						<terminateCommand>
+							<command>/xxLIBDIRxx/opensaf_ntfs clean</command>
+							<timeout>5000</timeout>
+						</terminateCommand>
+						<cleanupCommand>
+							<command>/xxLIBDIRxx/opensaf_ntfs clean</command>
+							<timeout>5000</timeout>
+						</cleanupCommand>
+					</clcCommands>
+					<instantiationLevel>1</instantiationLevel>
+					<csiPrototypeName>safCsi=Csi_NTF</csiPrototypeName>
+					<saAwareComponent>
+						<capability>1_ACTIVE_OR_1_STANDBY</capability>
+						<numMaxActiveCSIs>1</numMaxActiveCSIs>
+						<numMaxStandbyCSIs>1</numMaxStandbyCSIs>
+                                                <healthCheck key="F1B2">
+                                                        <period>240000</period>
+                                                        <maxDuration>180000</maxDuration>
+                                                </healthCheck>
+                                                <disableRestart>1</disableRestart>
+                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
+                                                <terminationTimeout>240000</terminationTimeout>
+                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
+                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
+                                        </saAwareComponent>
+                                        <enableAM>0</enableAM>
+                                </componentPrototype>
+
+                                <!--
                                      Leave this junk prototype if you dont have
                                      any other csi prototypes defined to satisfy the schema
                                 --> 
@@ -1893,6 +1931,7 @@
                                                 <componentPrototype>safComp=CompT_SSA</componentPrototype>
                                                 <componentPrototype>safComp=CompT_VDS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
+                                                <componentPrototype>safComp=CompT_NTF</componentPrototype>
 					</componentPrototypeList>
 				</SUPrototype>
 
@@ -2338,6 +2377,10 @@
                                                 </CSIInstance>
                                                 <CSIInstance name="safCsi=Csi_SAFLOG" rank="11">
                                                         <prototypeName>safCsi=Csi_SAFLOG</prototypeName>
+                                                        <CSIAttributes/>
+                                                </CSIInstance>
+                                                <CSIInstance name="safCsi=Csi_NTF" rank="11">
+                                                        <prototypeName>safCsi=Csi_NTF</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>
 					</CSIList>

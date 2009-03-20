@@ -11,10 +11,19 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
+#
 #
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = hisv avsv cpsv cli dtsv edsv glsv ifsv mab mbcsv mqsv nms nid rde \
-	srmsv vds logsv fm immsv ntfsv
+CONTROLLER_SUBDIRS = ntfs
+
+SUBDIRS = utils $(CONTROLLER_SUBDIRS)
+
+noinst_HEADERS = \
+	inc/ntfsv_defs.h \
+	inc/ntfsv_enc_dec.h \
+	inc/ntfsv_mem.h \
+	inc/ntfsv_msg.h
+

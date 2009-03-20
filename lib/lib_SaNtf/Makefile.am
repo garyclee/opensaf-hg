@@ -11,10 +11,27 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
 #
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = hisv avsv cpsv cli dtsv edsv glsv ifsv mab mbcsv mqsv nms nid rde \
-	srmsv vds logsv fm immsv ntfsv
+LIB_VERSION=0:0:0
+
+EXTRA_DIST = \
+	libSaNtf.version
+
+lib_LTLIBRARIES = libSaNtf.la
+
+libSaNtf_la_SOURCES = 
+
+libSaNtf_la_CPPFLAGS = \
+	@NCS_CORE_CPP_DEFINES@
+
+libSaNtf_la_LDFLAGS = -Wl,-version-script=$(top_srcdir)/lib/lib_SaNtf/libSaNtf.version \
+                      -version-info $(LIB_VERSION)
+
+libSaNtf_la_LIBADD = \
+	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
+	$(top_builddir)/services/common/libsaf_common.la \
+	$(top_builddir)/services/ntfsv/ntfa/libntfa.la
