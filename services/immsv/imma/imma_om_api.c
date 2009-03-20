@@ -3264,7 +3264,9 @@ SaAisErrorT saImmOmClassDescriptionGet_2 (
                         case SA_IMM_ATTR_SANAMET:
                             namep= (SaNameT *) copyv;
                             memset(namep, 0, sizeof(SaNameT));
-                            namep->length = q->attrDefaultValue->val.x.size;
+                            namep->length = strnlen(q->attrDefaultValue->val.x.buf,
+                                q->attrDefaultValue->val.x.size);
+                            assert(namep->length <= SA_MAX_NAME_LENGTH);
                             memcpy(namep->value, q->attrDefaultValue->val.x.buf, 
                                    namep->length);
                             break;
@@ -4723,9 +4725,11 @@ SaAisErrorT saImmOmSearchNext_2(
 
         objectName->length = 0;
         m_IMMSV_SET_SANAMET(objectName);
-        objectName->length = res_body->objectName.size;
-        strncpy((char *) objectName->value, 
-                (char *) res_body->objectName.buf, SA_MAX_NAME_LENGTH);
+        objectName->length = strnlen(res_body->objectName.buf,
+            res_body->objectName.size);
+        assert(objectName->length <= SA_MAX_NAME_LENGTH);
+        memcpy(objectName->value, res_body->objectName.buf, 
+            objectName->length);
 
 
         IMMSV_ATTR_VALUES_LIST* p = res_body->attrValuesList;

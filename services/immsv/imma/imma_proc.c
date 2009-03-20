@@ -388,9 +388,10 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
         SaInvocationT saInv = *((SaInvocationT *) &invoc);
         callback->invocation = saInv;
 
-        callback->name.length = evt->info.admOpReq.objectName.size;
+        callback->name.length = strnlen(evt->info.admOpReq.objectName.buf,
+            evt->info.admOpReq.objectName.size);
         assert(callback->name.length <= SA_MAX_NAME_LENGTH);
-        strncpy((char *) callback->name.value, 
+        memcpy((char *) callback->name.value, 
                 evt->info.admOpReq.objectName.buf,
                 callback->name.length);
         free(evt->info.admOpReq.objectName.buf);
@@ -473,10 +474,12 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
         callback->type = IMMA_CALLBACK_OI_RT_ATTR_UPDATE;
         callback->lcl_imm_hdl = implHandle;
 
-        callback->name.length = evt->info.searchRemote.objectName.size;
+        callback->name.length = strnlen(evt->info.searchRemote.objectName.buf, 
+            evt->info.searchRemote.objectName.size);
         assert(callback->name.length <= SA_MAX_NAME_LENGTH);
-        strncpy((char *) callback->name.value, 
-                evt->info.searchRemote.objectName.buf, callback->name.length);
+        memcpy((char *) callback->name.value, 
+                evt->info.searchRemote.objectName.buf, 
+            callback->name.length);
         free(evt->info.searchRemote.objectName.buf);
         evt->info.searchRemote.objectName.buf = NULL;
         evt->info.searchRemote.objectName.size = 0;
@@ -709,10 +712,11 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
         callback->lcl_imm_hdl = implHandle;
         callback->ccbID = evt->info.objDelete.ccbId;
         callback->inv = evt->info.objDelete.adminOwnerId; /*ugly*/
-        callback->name.length = evt->info.objDelete.objectName.size;
-        assert(callback->name.length < SA_MAX_NAME_LENGTH);
-        strncpy((char *) callback->name.value,  evt->info.objDelete.objectName.buf,
-                callback->name.length);
+        callback->name.length = strnlen(evt->info.objDelete.objectName.buf,
+            evt->info.objDelete.objectName.size);
+        assert(callback->name.length <= SA_MAX_NAME_LENGTH);
+        memcpy((char *) callback->name.value,  
+            evt->info.objDelete.objectName.buf, callback->name.length);
         free(evt->info.objDelete.objectName.buf);
         evt->info.objDelete.objectName.buf=NULL;
         evt->info.objDelete.objectName.size=0;
@@ -774,9 +778,10 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
         callback->ccbID = evt->info.objCreate.ccbId;
         callback->inv = evt->info.objCreate.adminOwnerId;/*Actually continuationId*/
 
-        callback->name.length = evt->info.objCreate.parentName.size;
+        callback->name.length = strnlen(evt->info.objCreate.parentName.buf,
+            evt->info.objCreate.parentName.size);
         assert(callback->name.length <= SA_MAX_NAME_LENGTH);
-        strncpy((char *) callback->name.value, 
+        memcpy((char *) callback->name.value, 
                 evt->info.objCreate.parentName.buf,
                 callback->name.length);
         free(evt->info.objCreate.parentName.buf);
@@ -854,9 +859,10 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
         callback->inv = evt->info.objModify.adminOwnerId;
         /*Actually continuationId*/
 
-        callback->name.length = evt->info.objModify.objectName.size;
+        callback->name.length = strnlen(evt->info.objModify.objectName.buf,
+            evt->info.objModify.objectName.size);
         assert(callback->name.length <= SA_MAX_NAME_LENGTH);
-        strncpy((char *) callback->name.value, 
+        memcpy((char *) callback->name.value, 
                 evt->info.objModify.objectName.buf,
                 callback->name.length);
         free(evt->info.objModify.objectName.buf);
@@ -2050,7 +2056,7 @@ static void imma_process_callback_info (IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
                     invocp->owner;
 
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = 
-                    callback->name.length;
+                    callback->name.length + 1; /*Adding one to get the terminating null sent*/
                 /* Only borowing the name string from the SaName in the callback */
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.buf = 
                     (char *) callback->name.value;

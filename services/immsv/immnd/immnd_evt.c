@@ -878,7 +878,6 @@ search_req_continue(
     }
 
     TRACE_2("Last result found, add current runtime values");
-    assert(rsp->objectName.size == reply->runtimeAttrs.objectName.size);
     assert(strncmp((const char *) rsp->objectName.buf, 
                (const char *) reply->runtimeAttrs.objectName.buf, 
                rsp->objectName.size) == 0);
