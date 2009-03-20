@@ -34,7 +34,7 @@
 #include <logtrace.h>
 
 #define MAX_DEPTH 10
-#define MAX_CHAR_BUFFER_SIZE 200
+#define MAX_CHAR_BUFFER_SIZE 8192  //8k
 
 static bool opensafClassCreated=false;
 static bool opensafObjectCreated=false;
@@ -95,6 +95,8 @@ typedef struct ParserStateStruct
 
     std::list<SaImmAttrValuesT_2> attrValues;
     std::list<char*>            attrValueBuffers;
+    int                         valueContinue;
+
     std::map<std::string, SaImmAttrValuesT_2>    classRDNMap;
 
     SaImmHandleT         immHandle;
@@ -687,6 +689,7 @@ static void startElementHandler(void* userData,
     else if (strcmp((const char*)name, "value") == 0)
     {
         state->state[state->depth] = VALUE;
+        state->valueContinue = 0;
         /* <category> */
     }
     else if (strcmp((const char*)name, "category") == 0)
@@ -760,6 +763,9 @@ static void endElementHandler(void* userData,
             str[0] = '\0';
             state->attrValueBuffers.push_front(str);
         }
+
+        state->valueContinue = 0; /* Actually redundant. */
+
         /* </default-value> */
     }
     else if (strcmp((const char*)name, "default-value") == 0)
@@ -993,6 +999,7 @@ static void charactersHandler(void* userData,
             break;
         case DN:
             /* Copy the distinguished name */
+            assert(len < SA_MAX_NAME_LENGTH);
             state->objectName = (char*)malloc((size_t)len + 1);
 
             strncpy(state->objectName, (const char*)chars, (size_t)len);
@@ -1027,17 +1034,51 @@ static void charactersHandler(void* userData,
             {
                 char* str;
 
-                str = (char*)malloc((size_t)len + 1);
-                if (str == NULL)
+                if(!state->valueContinue)
                 {
-                    LOG_ER("Failed to malloc state->attrName");
-                    exit(1);
+                    /* Start of value, also end of value for 99.999% of cases */
+                    state->valueContinue = 1;
+                    str = (char*)malloc((size_t)len + 1);
+                    if (str == NULL)
+                    {
+                        LOG_ER("Failed to malloc value");
+                        exit(1);
+                    }
+
+                    strncpy(str, (const char*)chars, (size_t)len);
+                    str[len] = '\0';
+
+                    state->attrValueBuffers.push_front(str);
+                } else {
+                     /* CONTINUATION of CURRENT value, typically only happens for loooong strings. */
+                    TRACE_8("APPEND TO CURRENT VALUE");
+                    
+                    size_t oldsize = strlen(state->attrValueBuffers.front());
+                    TRACE_8("APPEND VALUE newsize:%u", oldsize + len + 1);
+
+                    str = (char *) malloc(oldsize + len + 1);
+                    if (str == NULL)
+                    {
+                        LOG_ER("Failed to malloc value");
+                        exit(1);
+                    }
+                    strncpy(str, state->attrValueBuffers.front(), oldsize + 1);
+                    TRACE_8("COPIED OLD VALUE %u %s", oldsize, str);
+
+                    strncpy(str + oldsize, (const char*)chars, (size_t)len + 1);
+                    str[oldsize + len] = '\0';
+                    LOG_IN("APPENDED NEW VALUE newsize %u %s", oldsize + len + 1, str);
+
+                    /* Remove the old string */
+                    free(state->attrValueBuffers.front());
+                    state->attrValueBuffers.pop_front();
+                    /* state->attrValueBuffers.clear();
+                       clear not appropriate since we could ALSO have several values! 
+                       We are here only operating on the front value in the list.
+                    */
+                    state->attrValueBuffers.push_front(str);
                 }
 
-                strncpy(str, (const char*)chars, (size_t)len);
-                str[len] = '\0';
-
-                state->attrValueBuffers.push_front(str);
             }
             else
             {
@@ -1554,6 +1595,7 @@ static void charsToValueHelper(SaImmAttrValueT* value,
             break;
         case SA_IMM_ATTR_SANAMET:
             len = strlen(str);
+            assert(len < SA_MAX_NAME_LENGTH);
             *value = malloc(sizeof(SaNameT));
             ((SaNameT*)*value)->length = (SaUint16T)len;
             strncpy((char*)((SaNameT*)*value)->value, str, len);
