@@ -5406,7 +5406,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                                 ObjectInfo* obj = oi->second;
                                 if(obj->mClassInfo == classInfo) {
                                     if(obj->mImplementer &&
-                                        obj->mImplementer != classInfo->mImplementer) {
+                                        obj->mImplementer != info) {
                                         TRACE_7("Object '%s' already has implementer "
                                             "%s != %s", oi->first.c_str(), 
                                             obj->mImplementer->mImplementerName.c_str(),
