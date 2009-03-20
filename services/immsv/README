@@ -426,7 +426,7 @@ To enable traces from the very start, uncomment lines:
         #export IMMD_TRACE_CATEGORIES=ALL
         #export IMMND_TRACE_CATEGORIES=ALL
 
-in safimm.conf and restart the cluster.
+in imm.conf and restart the cluster.
 
 Errors, warnings and notice level messages are logged to the syslog.
 
