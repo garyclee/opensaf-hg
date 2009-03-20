@@ -12,9 +12,32 @@
 # licensing terms.
 #
 # Author(s): Wind River Systems
+#            Ericsson AB
+#
 #
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = hisv avsv cpsv cli dtsv edsv glsv ifsv mab mbcsv mqsv nms nid rde \
-	srmsv vds logsv fm immsv ntfsv
+noinst_HEADERS = \
+	inc/ntfa.h
+
+noinst_LTLIBRARIES = libntfa.la
+
+libntfa_la_CPPFLAGS = \
+	@NCS_CORE_CPP_DEFINES@ \
+	-I $(top_srcdir)/services/ntfsv/inc \
+	-I $(top_srcdir)/services/leap/inc \
+	-I $(top_srcdir)/services/mds/inc \
+	-I $(top_srcdir)/services/mab/inc \
+	-I $(top_srcdir)/services/common/inc \
+	-I $(top_srcdir)/include \
+	-I $(top_srcdir)/services/ntfsv/ntfa/inc
+
+libntfa_la_SOURCES = \
+	ntfa_api.c \
+	ntfa_util.c \
+	$(top_srcdir)/services/ntfsv/common/ntfsv_enc_dec.c \
+	$(top_srcdir)/services/ntfsv/common/ntfsv_mem.c \
+	ntfa_mds.c
+
+libntfa_la_LDFLAGS = -static

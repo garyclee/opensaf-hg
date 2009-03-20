@@ -1,0 +1,169 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+The NTF service is implemented as a server process executing on the controllers
+using a 2N redundancy model. Message based check pointing is used to synchronize
+the two server instances.
+
+The NTF service was originally cloned from the lgsv service. The server part 
+consists of one c++ part that has been ported from an earlier implementation.
+In this preliminary version debug printout for the server is on. Library trace is 
+handled in the same way as for the saflog implementation 
+(see services/logsv/README file).
+
+SERVER
+The encoding/decoding, mbscsv and amf are implemented in c. All the logic and 
+data storage is handled in the c++ part. All actions is handled via the NtfAdmin
+class. The interface between the c and c++ part is defined in NtfCom.h.
+
+DEPENDENCIES
+ntfsv depends of the following other OpenSAF services:
+- MBCSV
+- MDS
+- LEAP
+- logtrace
+
+DIRECTORY STRUCTURE
+services/ntfsv/inc	Common header files used by both a and ntfs
+services/ntfsv/ntfa	ntf library implementation
+services/ntfsv/ntfs	ntf server
+services/ntfsv/common	implementation used by both server and library.
+services/ntfsv/utils	ntfsend, ntfsubscribe commands
+lib/lib_SaNtf		NTF library staging
+tests/ntfsv/src		Test suite
+
+COMMAND LINE INTERFACE
+The 'ntfsend'/'ntfsubscribe' commands can be used to send/receive notifications.
+Please see the on line help for more information.
+
+ITEMS TO BE DONE:
+-----------------
+NTF integrated with opensSAF
+============================
+Discarded notification API
+
+Cleanup:
+-remove trace
+-review/remove TODO statements in code
+-restructure lib (ntfa_api.c)
+
+Test:
+-update unit test:
+-improve extension tests
+
+Make NTF to fully A.01.01 compliant 
+===================================
+Filter:
+-NotificationFilterAllocate functions:
+  saNtfObjectCreateDelete  
+  saNtfAttributeChange 
+  saNtfStateChange 
+  saNtfAlarm 
+  saNtfSecurityAlarm 
+-saNtfNotificationFilterFree
+
+Internationalization
+-saNtfLocalizedMessageGet
+-saNtfLocalizedMessageFree
+
+Reader API from SAFLog records
+
+Support all params in structs:
+-SaNtfNotificationHeaderT
+ numCorrelatedNotifications
+ numAdditionalInfo
+ *correlatedNotifiations
+ *additionalInfo
+
+-SaNtfAlarmNotificationT
+ numSpecificProblems
+ numMonitoredAttributes
+ numProposedRepairActions
+ *specificProblems
+ *trend
+ *thresholdInformation
+ *monitoredAttributes
+ *proposedRepairActions
+
+-SaNtfAttribute
+ SA_NTF_VALUE_LDAP_NAME
+ SA_NTF_VALUE_STRING
+ SA_NTF_VALUE_IPADDRESS
+ SA_NTF_VALUE_BINARY
+ SA_NTF_VALUE_ARRAY
+ corresponding helpfunctions:
+  saNtfPtrValGet 
+  saNtfArrayValGet
+  saNtfPtrValAllocate
+  saNtfArrayValAllocate
+
+Compliant to SAI-AIS-NTF-A.02.01:
+=================================
+Use CLM, only provide service for cluster members
+Suppression mechanism
+Changed StateChangeNotificationFilter
+
+New functions:
+saNtfVariableDataSizeGet
+SaNtfStaticSuppressionFilterSetCallcackT
+
+Changed functions:
+ saNtfInitialize_2 *
+ saNtfNotificationUnsubscribe_2
+ saNtfStateChangeNotificationFilter_2
+ saNtfStateChangeNotificationAllocateFilter_2
+ saNtfLocalizedMessageFree_2
+ saNtfNotificationUnsubscribe_2
+ saNtfNotificationReadInitialize_2 *
+ saNtfCallbacksT_2 *
+ * = changed in A.03.01  
+
+Admin API - IMM integration 
+Notifications 
+
+Compliant to SAI-AIS-NTF-A.03.01:
+=================================
+Suppression extended to use EventTypeBitMap
+New miscellaneous notification type
+New way of handling correlation identifier
+Management if MIB removed
+Changes leads to 8 types and 5 functions are changed and renamed
+
+New functions:
+ saNtfMiscellaneousNotificationAllocate
+ saNtfMiscellaneousNotificationFilterAllocate
+ satNtfIdentifierAllocate
+ saNtfNotificationSendWithId
+  
+Changed functions:
+ saNtfInitialize_3
+ saNtfStaticSuppressionFilterSetCallcackT_3
+ saNtfNotificationSubscribe_3
+ saNtfNotificationReadInitialize_3
+ saNtfStateChangeNotificationAllocate_3
+ SaNtfNotificationCallbackT_3
+ saNtfNotificationReadNext_3
+
+
+CONTRIBUTORS/MAINTAINERS
+Kenneth Andersson <kenneth.k.andersson@ericsson.com>
+Gábor Balla
+Arne Eriksson <Arne.R.Eriksson@ericsson.com>
+Hans Feldt
+Niklas Nilsson
+
