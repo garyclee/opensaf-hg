@@ -233,7 +233,7 @@
         	<dn>safApp=safLogService</dn>
 	</object>
 	<object class="SaLogStreamConfig">
-		<dn>safLgStrCfg=saLogAlarm,safApp=safLogService</dn>
+		<dn>safLgStr=saLogAlarm</dn>
 		<attr>
 			<name>saLogStreamFileName</name>
 			<value>saLogAlarm</value>
@@ -244,7 +244,7 @@
 		</attr>
 	</object>
 	<object class="SaLogStreamConfig">
-		<dn>safLgStrCfg=saLogNotification,safApp=safLogService</dn>
+		<dn>safLgStr=saLogNotification</dn>
 		<attr>
 			<name>saLogStreamFileName</name>
 			<value>saLogNotification</value>
@@ -255,7 +255,7 @@
 		</attr>
 	</object>
 	<object class="SaLogStreamConfig">
-		<dn>safLgStrCfg=saLogSystem,safApp=safLogService</dn>
+		<dn>safLgStr=saLogSystem</dn>
 		<attr>
 			<name>saLogStreamFileName</name>
 			<value>saLogSystem</value>
