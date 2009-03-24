@@ -2070,10 +2070,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_PRINTF              printf
 #endif
 
-#ifndef m_NCS_OS_SNPRINTF
-#define m_NCS_OS_SNPRINTF            snprintf
-#endif
-
 #ifndef m_NCS_OS_UNBUF_GETCHAR
 #define m_NCS_OS_UNBUF_GETCHAR       getchar
 #endif

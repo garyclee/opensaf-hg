@@ -189,7 +189,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the pwe directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -200,7 +200,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the n_pcn directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%s", n_pcn);
+    snprintf((char *)buf2, sizeof(buf2), "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -211,7 +211,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the table file */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", tbl);
+    snprintf((char *)buf2, sizeof(buf2), "%d", tbl);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = buf_len;
@@ -262,7 +262,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     /* Get the full path for pwe directory */
     memset((char*)&buf2, '\0', sizeof(buf2));
     memset((char*)&path2, '\0', sizeof(path2));
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -289,7 +289,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     }
 
     /* Get the full path for n_pcn directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, strlen(n_pcn) + 1, "%s", n_pcn);
+    snprintf((char *)buf2, strlen(n_pcn) + 1, "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -1030,7 +1030,7 @@ static uns32 pssts_pwe_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", pwe_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", pwe_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1066,7 +1066,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", pcn_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", pcn_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1075,7 +1075,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
+    snprintf((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf);
@@ -1130,7 +1130,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", delete_pcn->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", delete_pcn->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1139,7 +1139,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%s", delete_pcn->i_pcn);
+    snprintf((char *)buf3, sizeof(buf3), "%s", delete_pcn->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf4);
