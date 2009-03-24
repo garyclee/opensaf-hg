@@ -107,7 +107,7 @@ uns32 srmst_proc_get_pid_mem_stats(uns32 pid,
    char  pid_path[SRMST_DIR_PATH_LEN];
 
    memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
-   sysf_sprintf(pid_path, "/proc/%d/status", pid);  
+   sprintf(pid_path, "/proc/%d/status", pid);  
 
    /* Get a line from the file */
    memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
@@ -341,7 +341,7 @@ void srmst_proc_get_child_pids(uns32 i_pid, uns32 *c_pid, uns8 *pid_num)
           if (pid == 0) continue;
 
           memset(&dir_path, 0, SRMST_DIR_PATH_LEN);
-          sysf_sprintf(dir_path, "/proc/%d", pid);
+          sprintf(dir_path, "/proc/%d", pid);
           strcat(dir_path, "/stat");
  
           memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
@@ -402,7 +402,7 @@ static NCS_BOOL srmst_proc_check_thread(uns32 pid, NCS_BOOL *is_thread)
    uns32 mem_val = 0;
 
    memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
-   sysf_sprintf(pid_path, "/proc/%d/statm", pid);  
+   sprintf(pid_path, "/proc/%d/statm", pid);  
 
    /* Get a line from the file */
    memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);
@@ -451,7 +451,7 @@ NCS_BOOL srmst_proc_check_process_active(uns32 pid, NCS_BOOL *is_thread)
    /* Always initialise it with FALSE */
    *is_thread = FALSE;
 
-   sysf_sprintf(pid_path, "/proc/%d", pid);
+   sprintf(pid_path, "/proc/%d", pid);
    /* Check whether the process directory exists in the proc file system */
    if ((dir = opendir(pid_path)) == NULL)
       return FALSE;
@@ -460,7 +460,7 @@ NCS_BOOL srmst_proc_check_process_active(uns32 pid, NCS_BOOL *is_thread)
 
       closedir(dir);
       memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
-      sysf_sprintf(pid_path, "/proc/%d/exe", pid);     
+      sprintf(pid_path, "/proc/%d/exe", pid);     
       if ((fd = open(pid_path, O_RDONLY)) < 0)
          return srmst_proc_check_thread(pid, is_thread);
       else
@@ -497,7 +497,7 @@ uns32 srmst_proc_get_pid_cpu_stats(uns32 pid,
    *cpu_jiffies = 0;
 
    memset(&pid_path, 0, SRMST_DIR_PATH_LEN);
-   sysf_sprintf(pid_path, "/proc/%d/stat", pid);  
+   sprintf(pid_path, "/proc/%d/stat", pid);  
 
    /* Get a line from the file */
    memset(line_buffer, 0, SRMST_MAX_BUF_SIZE);

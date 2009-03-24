@@ -1798,7 +1798,7 @@ void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation,
          break;
       }
         
-        sysf_sprintf(parCli->par_cb.str, "OF LEVEL (%d)", i_token_level);     
+        sprintf(parCli->par_cb.str, "OF LEVEL (%d)", i_token_level);     
       m_LOG_NCSCLI_COMMENTS(cmd_node->tokName, (TRUE == cmd_node->isMand)?
                      NCSCLI_PAR_MANDATORY_TOKEN:NCSCLI_PAR_OPTIONAL_TOKEN, 
                      parCli->par_cb.str);             

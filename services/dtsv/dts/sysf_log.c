@@ -264,8 +264,8 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version,
    /* Note: Version is given as per SAF versioning standards, so release code
     * should always be a character and major & minor versions always intergers
     */
-   sysf_sprintf(lib_name, "lib%s_logstr.so.%d", svc_name, version);
-   sysf_sprintf(func_name, "%s_log_str_lib_req", svc_name);
+   sprintf(lib_name, "lib%s_logstr.so.%d", svc_name, version);
+   sprintf(func_name, "%s_log_str_lib_req", svc_name);
 
    /* convert them to all lowercase */
    dts_to_lowercase(lib_name);
@@ -339,12 +339,12 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version,
          /* log the error */
          if(action == DTS_SPEC_LOAD)
          {
-            sysf_sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
+            sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
             m_LOG_DTS_DBGSTR_NAME(DTS_GLOBAL, dbg_str, 0, 0);
          }
          else 
          {
-            sysf_sprintf(dbg_str, "ASCII spec de-registration failed for - %s", lib_name);
+            sprintf(dbg_str, "ASCII spec de-registration failed for - %s", lib_name);
             m_LOG_DTS_DBGSTR_NAME(DTS_GLOBAL, dbg_str, 0, 0);
          }
       }
@@ -433,7 +433,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
    /*m_NCS_TIME_TO_STR(tod, asc_tod);*/
    m_NCS_DATE_TIME_TO_STR(tod, asc_tod);
 
-   sysf_sprintf((asc_tod + strlen(asc_tod)) ,".%.3d",msg->hdr.time.millisecs);
+   sprintf((asc_tod + strlen(asc_tod)) ,".%.3d",msg->hdr.time.millisecs);
 
    fmat = &spec->fmat_set[msg->hdr.fmat_id];
    set  =  spec->str_set;
@@ -491,7 +491,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
     * Node ID from where we got this log message.
     */
    /* Node-id display change */
-   *len += (log_msg_len = sysf_sprintf(str, "%s 0x%08x %u %d %d ", sev, node, proc_id, 
+   *len += (log_msg_len = sprintf(str, "%s 0x%08x %u %d %d ", sev, node, proc_id, 
                          msg->hdr.ss_id, msg->hdr.inst_id));
 
    str += log_msg_len;
@@ -511,7 +511,7 @@ uns32 dts_log_msg_to_str (DTA_LOG_MSG* logmsg, char *str, NODE_ID node, uns32 pr
    }
 
    /* Return length of string to the calling function for console printing */
-   *len += sysf_sprintf(str, fmat->fmat_str, 
+   *len += sprintf(str, fmat->fmat_str, 
                 args[0], args[1], args[2], args[3], args[4], args[5], args[6], 
                 args[7], args[8], args[9], args[10], args[11], args[12], args[13],
                 args[14], args[15], args[16], args[17], args[18], args[19], args[20]);

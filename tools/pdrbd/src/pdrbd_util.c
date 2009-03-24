@@ -274,7 +274,7 @@ uns32 pdrbd_process_peer_msg(PSEUDO_CB *cb, PDRBD_EVT *evt)
          /* Invoke the pdrbdctrl script to clean metadata */
          cb->proxied_info[evt->evt_data.number].cleaning_metadata = TRUE;
 
-         sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "clean_meta", evt->evt_data.number,
+         sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "clean_meta", evt->evt_data.number,
                         cb->proxied_info[evt->evt_data.number].resName, cb->proxied_info[evt->evt_data.number].devName,
                         cb->proxied_info[evt->evt_data.number].mountPnt, cb->proxied_info[evt->evt_data.number].dataDisk,
                         cb->proxied_info[evt->evt_data.number].metaDisk);
@@ -301,7 +301,7 @@ uns32 pdrbd_process_peer_msg(PSEUDO_CB *cb, PDRBD_EVT *evt)
          m_LOG_PDRBD_MISC(PDRBD_MISC_RECONNECTING_RESOURCE, NCSFL_SEV_NOTICE,
                               cb->proxied_info[evt->evt_data.number].resName );
 
-         sysf_sprintf(buff, "%s %s", "/sbin/drbdadm connect", cb->proxied_info[evt->evt_data.number].resName);
+         sprintf(buff, "%s %s", "/sbin/drbdadm connect", cb->proxied_info[evt->evt_data.number].resName);
          system(buff);
       }
    }

@@ -830,7 +830,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
                   case CLI_SUCCESSFULL_MATCH:
                      /* Display the command */
                      for(index=0; index<param.o_hotkey.hlpstr.count; index++) {
-                        sysf_sprintf(display_str, "\n %-25s %s", 
+                        sprintf(display_str, "\n %-25s %s", 
                            param.o_hotkey.hlpstr.helpargs[index].cmdstring,
                            param.o_hotkey.hlpstr.helpargs[index].helpstr);
                         
@@ -915,7 +915,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          case CLI_SUCCESSFULL_MATCH:
             /* Display the command */
             for(index=0; index<param.o_hotkey.hlpstr.count; index++) {
-               sysf_sprintf(display_str, "\n %-25s %s", 
+               sprintf(display_str, "\n %-25s %s", 
                   param.o_hotkey.hlpstr.helpargs[index].cmdstring,
                   param.o_hotkey.hlpstr.helpargs[index].helpstr);
                

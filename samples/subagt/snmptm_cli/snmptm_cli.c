@@ -571,7 +571,7 @@ static void snmptm_show_tbl_data(USRBUF *buff, uns32 entry_count, uns32 tbl_id)
  
       memset(&addr_str, 0, sizeof(addr_str));
      
-      sysf_sprintf(addr_str, "%d.%d.%d.%d", (uns8)(ip_addr >> 24),
+      sprintf(addr_str, "%d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),
                                             (uns8)(ip_addr >> 8),
                                             (uns8)(ip_addr)); 

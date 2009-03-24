@@ -2952,7 +2952,7 @@ ipxs_cli_display_all(NCSCLI_CEF_DATA *p_cef_data,
       * */
    prn_cursor = prfx_prn_len;
 
-   prn_cursor += sysf_sprintf(display_str + prn_cursor, "%-20.20s ",ip_net_str);
+   prn_cursor += sprintf(display_str + prn_cursor, "%-20.20s ",ip_net_str);
 
    vip_ncs_cli_display(p_cef_data->i_bindery->i_cli_hdl, (uns8 *)"\n");
    vip_ncs_cli_display(p_cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);

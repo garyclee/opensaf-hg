@@ -476,7 +476,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
             if (status != NCSCC_RC_SUCCESS)
             {
                 /* log the error */ 
-                sysf_sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
+                sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
                 m_LOG_DTS_DBGSTR_NAME(DTS_GLOBAL, dbg_str, 0, 0);
             }
             else

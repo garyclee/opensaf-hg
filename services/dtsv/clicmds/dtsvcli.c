@@ -3032,7 +3032,7 @@ uns32 dtsv_cli_cmd_rsp(NCSMIB_ARG *resp, uns32 cli_hdl)
             goto error_return;
          }
 
-         sysf_sprintf(cli_display, "\nDevice:%s with severity:%d", data_buff, bit_map);
+         sprintf(cli_display, "\nDevice:%s with severity:%d", data_buff, bit_map);
          /* Print the decoded stuff */
          dtsv_cli_display(cli_hdl, cli_display); 
       }

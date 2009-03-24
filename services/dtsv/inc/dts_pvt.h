@@ -471,10 +471,10 @@ typedef struct dts_svc_reg_tbl
       { \
          m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
                     registered with service"); \
-         sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
+         sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       } \
       else if(svc_reg->spec_list->spec_struct->ss_spec->svc_name == NULL) \
-         sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
+         sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       else \
          strcpy(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
    } \

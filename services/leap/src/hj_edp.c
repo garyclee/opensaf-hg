@@ -84,7 +84,7 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded NCS_BOOL: 0x%x \n", u32);
+        sprintf(gl_log_string, "Encoded NCS_BOOL: 0x%x \n", u32);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -122,7 +122,7 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = u32;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded NCS_BOOL: 0x%x \n", u32);
+            sprintf(gl_log_string, "Decoded NCS_BOOL: 0x%x \n", u32);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -161,12 +161,12 @@ uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u32;
                 (*(NCS_BOOL**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated NCS_BOOL in PPDB: 0x%x \n", u32);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP NCS_BOOL: 0x%x \n", u32);
+            sprintf(gl_log_string, "PP NCS_BOOL: 0x%x \n", u32);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -210,7 +210,7 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             ncs_enc_claim_space(buf_env->info.uba, 1);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Encoded uns8: 0x%x \n", *(uns8*)ptr);
             ncs_edu_log_msg(gl_log_string);
 #endif
@@ -228,17 +228,17 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 EDU_TLV_HDR_SIZE + (*ptr_data_len));
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Encoded uns8: len = %d\n", *ptr_data_len);
             ncs_edu_log_msg(gl_log_string);
             for(i = 0; i < *ptr_data_len; i++)
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                 if(i == 0)
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                     "Encoded uns8: 0x%x \n", *(uns8*)ptr);
                 else
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                     "        uns8: 0x%x \n", *(uns8*)((uns8*)ptr + i));
                 ncs_edu_log_msg(gl_log_string);
             }
@@ -284,7 +284,7 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u8;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded uns8: 0x%x \n", u8);
+                sprintf(gl_log_string, "Decoded uns8: 0x%x \n", u8);
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -297,17 +297,17 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Decoded uns8: len = %d\n", len);
                 ncs_edu_log_msg(gl_log_string);
                 for(i = 0; i < len; i++)
                 {
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                     if(i == 0)
-                        sysf_sprintf(gl_log_string, 
+                        sprintf(gl_log_string, 
                         "Decoded uns8: 0x%x \n", *(uns8*)uptr);
                     else
-                        sysf_sprintf(gl_log_string, 
+                        sprintf(gl_log_string, 
                         "        uns8: 0x%x \n", *(uns8*)((uns8*)uptr + i));
                     ncs_edu_log_msg(gl_log_string);
                 }
@@ -347,7 +347,7 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u8;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP uns8: 0x%x \n", u8);
+                sprintf(gl_log_string, "PP uns8: 0x%x \n", u8);
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -360,17 +360,17 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "PP uns8: len = %d\n", len);
                 ncs_edu_log_msg(gl_log_string);
                 for(i = 0; i < len; i++)
                 {
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                     if(i == 0)
-                        sysf_sprintf(gl_log_string, 
+                        sprintf(gl_log_string, 
                         "PP uns8: 0x%x \n", *(uns8*)uptr);
                     else
-                        sysf_sprintf(gl_log_string, 
+                        sprintf(gl_log_string, 
                         "   uns8: 0x%x \n", *(uns8*)((uns8*)uptr + i));
                     ncs_edu_log_msg(gl_log_string);
                 }
@@ -381,7 +381,7 @@ uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             {
                 (*(uns8**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated uns8 in PPDB: len = %d\n", len);
                 ncs_edu_log_msg(gl_log_string);
             }
@@ -430,7 +430,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             ncs_enc_claim_space(buf_env->info.uba, 2);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Encoded uns16: 0x%x\n", u16);
+            sprintf(gl_log_string, "Encoded uns16: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -448,7 +448,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Encoded uns16: 0x%x\n", u16);
+            sprintf(gl_log_string, "Encoded uns16: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -493,7 +493,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u16;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded uns16: 0x%x\n", u16);
+                sprintf(gl_log_string, "Decoded uns16: 0x%x\n", u16);
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -507,7 +507,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                     EDU_TLV_HDR_SIZE + (sizeof(uns16)*uns16_cnt));
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded uns16: 0x%x\n", (*uptr));
+                sprintf(gl_log_string, "Decoded uns16: 0x%x\n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -544,7 +544,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 ncs_dec_skip_space(buf_env->info.uba, 2);
                 *uptr = u16;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP uns16: 0x%x\n", u16);
+                sprintf(gl_log_string, "PP uns16: 0x%x\n", u16);
                 ncs_edu_log_msg(gl_log_string);
             }
             else
@@ -556,7 +556,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 ncs_edu_skip_space(&buf_env->info.tlv_env, 
                     EDU_TLV_HDR_SIZE + (sizeof(uns16)*uns16_cnt));
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP uns16: 0x%x\n", (*uptr));
+                sprintf(gl_log_string, "PP uns16: 0x%x\n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
             }
 
@@ -564,7 +564,7 @@ uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             {
                 (*(uns16**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Populated uns16 in PPDB: 0x%x \n", (*uptr));
+                sprintf(gl_log_string, "Populated uns16 in PPDB: 0x%x \n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
             }
             else
@@ -612,7 +612,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             ncs_enc_claim_space(buf_env->info.uba, 4);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Encoded uns32: 0x%x \n", u32);
+                sprintf(gl_log_string, "Encoded uns32: 0x%x \n", u32);
                 ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -628,7 +628,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             ncs_edu_skip_space(&buf_env->info.tlv_env, byte_cnt);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Encoded uns32: 0x%x \n", u32);
+            sprintf(gl_log_string, "Encoded uns32: 0x%x \n", u32);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -671,7 +671,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u32;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded uns32: 0x%x \n", u32);
+                sprintf(gl_log_string, "Decoded uns32: 0x%x \n", u32);
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -685,7 +685,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                     EDU_TLV_HDR_SIZE + (4*uns32_cnt));
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded uns32: 0x%x \n", (*uptr));
+                sprintf(gl_log_string, "Decoded uns32: 0x%x \n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -719,7 +719,7 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 ncs_dec_skip_space(buf_env->info.uba, 4);
                 *uptr = u32;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP uns32: 0x%x \n", u32);
+                sprintf(gl_log_string, "PP uns32: 0x%x \n", u32);
                 ncs_edu_log_msg(gl_log_string);
             }
             else
@@ -731,14 +731,14 @@ uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 ncs_edu_skip_space(&buf_env->info.tlv_env, 
                     EDU_TLV_HDR_SIZE + (4*uns32_cnt));
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP uns32: 0x%x \n", (*uptr));
+                sprintf(gl_log_string, "PP uns32: 0x%x \n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
             }
             if(ptr != NULL)
             {
                 (*(uns32**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated uns32 in PPDB: 0x%x \n", (*uptr));
                 ncs_edu_log_msg(gl_log_string);
             }
@@ -794,7 +794,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             if(((char*)ptr)[0] != '\0')
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Encoded char: %c \n", ((char*)ptr)[0]);
+                sprintf(gl_log_string, "Encoded char: %c \n", ((char*)ptr)[0]);
                 ncs_edu_log_msg(gl_log_string);
             }
 #endif
@@ -839,7 +839,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             if(((char*)uptr)[0] != '\0')
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Decoded char: %c \n", ((char*)uptr)[0]);
+                sprintf(gl_log_string, "Decoded char: %c \n", ((char*)uptr)[0]);
                 ncs_edu_log_msg(gl_log_string);
             }
 #endif
@@ -876,7 +876,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             if(((char*)uptr)[0] != '\0')
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP char: %c \n", ((char*)uptr)[0]);
+                sprintf(gl_log_string, "PP char: %c \n", ((char*)uptr)[0]);
                 ncs_edu_log_msg(gl_log_string);
             }
 
@@ -884,7 +884,7 @@ uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             {
                 (*(char**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated char in PPDB: %c \n", ((char*)uptr)[0]);
                 ncs_edu_log_msg(gl_log_string);
             }
@@ -949,10 +949,10 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded string: len = 0x%x\n", len);
+        sprintf(gl_log_string, "Encoded string: len = 0x%x\n", len);
         ncs_edu_log_msg(gl_log_string);
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded string: %s\n", src_p8);
+        sprintf(gl_log_string, "Encoded string: %s\n", src_p8);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -979,7 +979,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                ncs_edu_skip_space(&buf_env->info.tlv_env, EDU_TLV_HDR_SIZE);
 #if(NCS_EDU_VERBOSE_PRINT == 1)
                memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-               sysf_sprintf(gl_log_string, "Decoded string: len = 0x%x\n", len);
+               sprintf(gl_log_string, "Decoded string: len = 0x%x\n", len);
                ncs_edu_log_msg(gl_log_string);
 #endif
             }
@@ -1025,10 +1025,10 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded string: len = 0x%x\n", len);
+            sprintf(gl_log_string, "Decoded string: len = 0x%x\n", len);
             ncs_edu_log_msg(gl_log_string);
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded string: %s\n", uptr);
+            sprintf(gl_log_string, "Decoded string: %s\n", uptr);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1058,7 +1058,7 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *ptr_data_len = len;
 
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP string: len = 0x%x\n", len);
+            sprintf(gl_log_string, "PP string: len = 0x%x\n", len);
             ncs_edu_log_msg(gl_log_string);
 
             if(len != 0)
@@ -1092,14 +1092,14 @@ uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 }
 
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "PP string: %s\n", uptr);
+                sprintf(gl_log_string, "PP string: %s\n", uptr);
                 ncs_edu_log_msg(gl_log_string);
 
                 if(ptr != NULL)
                 {
                     (*(char**)ptr) = uptr;
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                         "Populated string in PPDB: %s \n", uptr);
                     ncs_edu_log_msg(gl_log_string);
                 }
@@ -1155,7 +1155,7 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded short: 0x%x\n", u16);
+        sprintf(gl_log_string, "Encoded short: 0x%x\n", u16);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -1195,7 +1195,7 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = u16;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded short: 0x%x\n", u16);
+            sprintf(gl_log_string, "Decoded short: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1237,12 +1237,12 @@ uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u16;
                 (*(short**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated short in PPDB: 0x%x \n", u16);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP short: 0x%x\n", u16);
+            sprintf(gl_log_string, "PP short: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -1291,7 +1291,7 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded int: %d \n", u32);
+        sprintf(gl_log_string, "Encoded int: %d \n", u32);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -1331,7 +1331,7 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = (int)u32;   /* Typecast uns32 to int */
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded int: %d \n", u32);
+            sprintf(gl_log_string, "Decoded int: %d \n", u32);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1373,12 +1373,12 @@ uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = (int)u32;    /* Typecast uns32 to int */
                 (*(int**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated int in PPDB: %d \n", u32);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP int: %d \n", u32);
+            sprintf(gl_log_string, "PP int: %d \n", u32);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -1427,7 +1427,7 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "Encoded int8: 0x%x \n", *(int8*)ptr);
         ncs_edu_log_msg(gl_log_string);
 #endif
@@ -1466,7 +1466,7 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = u8;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded int8: 0x%x \n", u8);
+            sprintf(gl_log_string, "Decoded int8: 0x%x \n", u8);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1508,12 +1508,12 @@ uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u8;
                 (*(int8**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated int8 in PPDB: 0x%x \n", u8);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP int8: 0x%x\n", u8);
+            sprintf(gl_log_string, "PP int8: 0x%x\n", u8);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -1561,7 +1561,7 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded int16: 0x%x\n", u16);
+        sprintf(gl_log_string, "Encoded int16: 0x%x\n", u16);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -1599,7 +1599,7 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = u16;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded int16: 0x%x\n", u16);
+            sprintf(gl_log_string, "Decoded int16: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1641,11 +1641,11 @@ uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u16;
                 (*(int16**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, "Populated int16 in PPDB: 0x%x \n", u16);
+                sprintf(gl_log_string, "Populated int16 in PPDB: 0x%x \n", u16);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP int16: 0x%x\n", u16);
+            sprintf(gl_log_string, "PP int16: 0x%x\n", u16);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -1693,7 +1693,7 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         }
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Encoded int32: 0x%x \n", (int)u32);
+        sprintf(gl_log_string, "Encoded int32: 0x%x \n", (int)u32);
         ncs_edu_log_msg(gl_log_string);
 #endif
         break;
@@ -1731,7 +1731,7 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             *uptr = u32;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "Decoded int32: 0x%x \n", (int)u32);
+            sprintf(gl_log_string, "Decoded int32: 0x%x \n", (int)u32);
             ncs_edu_log_msg(gl_log_string);
 #endif
         }
@@ -1772,12 +1772,12 @@ uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
                 *uptr = u32;
                 (*(int32**)ptr) = uptr;
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                sysf_sprintf(gl_log_string, 
+                sprintf(gl_log_string, 
                     "Populated int32 in PPDB: 0x%x \n", (int)u32);
                 ncs_edu_log_msg(gl_log_string);
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, "PP int32: 0x%x \n", (int)u32);
+            sprintf(gl_log_string, "PP int32: 0x%x \n", (int)u32);
             ncs_edu_log_msg(gl_log_string);
         }
         break;
@@ -2254,16 +2254,16 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "Encoded uns64: len = 0x%x : ", sizeof(uns64));
         ncs_edu_log_msg(gl_log_string);
         for(cnt=0;cnt<sizeof(uns64);cnt++)
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(uns64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 #endif
@@ -2302,7 +2302,7 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "Decoded uns64: len = 0x%x : ", sizeof(uns64));
         ncs_edu_log_msg(gl_log_string);
         src_p8 = (uns8 *)uptr;
@@ -2310,9 +2310,9 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(uns64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 #endif
@@ -2346,16 +2346,16 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         src_p8 = (uns8 *)uptr;
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "PP uns64: len = 0x%x : ", sizeof(uns64));
         ncs_edu_log_msg(gl_log_string);
         for(cnt=0;cnt<sizeof(uns64);cnt++)
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(uns64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 #endif
@@ -2365,16 +2365,16 @@ uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             (*(uns64**)ptr) = uptr;
             
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Populated uns64 in PPDB: len = 0x%x : ", sizeof(uns64));
             ncs_edu_log_msg(gl_log_string);
             for(cnt=0;cnt<sizeof(uns64);cnt++)
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                 if(cnt == (sizeof(uns64)-1))
-                    sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                    sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
                 else
-                    sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                    sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
                 ncs_edu_log_msg(gl_log_string);
             }
         }
@@ -2437,16 +2437,16 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "Encoded int64: len = 0x%x : ", sizeof(int64));
         ncs_edu_log_msg(gl_log_string);
         for(cnt=0;cnt<sizeof(int64);cnt++)
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(int64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 #endif
@@ -2485,7 +2485,7 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         
 #if(NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "Decoded int64: len = 0x%x : ", sizeof(int64));
         ncs_edu_log_msg(gl_log_string);
         src_p8 = (uns8 *)uptr;
@@ -2493,9 +2493,9 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(int64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 #endif
@@ -2528,16 +2528,16 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
 
         src_p8 = (uns8 *)uptr;
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "PP int64: len = 0x%x : ", sizeof(int64));
         ncs_edu_log_msg(gl_log_string);
         for(cnt=0;cnt<sizeof(int64);cnt++)
         {
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
             if(cnt == (sizeof(int64)-1))
-                sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
             else
-                sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
             ncs_edu_log_msg(gl_log_string);
         }
 
@@ -2546,16 +2546,16 @@ uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, NCSCONTEXT ptr,
             (*(int64**)ptr) = uptr;
             
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Populated int64 in PPDB: len = 0x%x : ", sizeof(int64));
             ncs_edu_log_msg(gl_log_string);
             for(cnt=0;cnt<sizeof(int64);cnt++)
             {
                 memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
                 if(cnt == (sizeof(int64)-1))
-                    sysf_sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
+                    sprintf(gl_log_string, "0x%x \n", src_p8[cnt]);
                 else
-                    sysf_sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
+                    sprintf(gl_log_string, "0x%x ", src_p8[cnt]);
                 ncs_edu_log_msg(gl_log_string);
             }
         }

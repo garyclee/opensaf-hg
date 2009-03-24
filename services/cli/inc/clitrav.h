@@ -46,9 +46,9 @@
 
 #define m_CHECK_IF_NUMBER(argtype, argvalue, argbuf)\
     if (NCSCLI_NUMBER == argtype)\
-        sysf_sprintf(argbuf, "%d", argvalue.intval);\
+        sprintf(argbuf, "%d", argvalue.intval);\
     else\
-        sysf_sprintf(argbuf, "%s", (int8 *)argvalue.strval);
+        sprintf(argbuf, "%s", (int8 *)argvalue.strval);
 
 
 #define m_TRAVERSE_DATANODE(cmd_Element, dummy_stack, stack_level)\

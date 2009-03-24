@@ -2168,9 +2168,9 @@ pss_amf_csi_attrib_decode(SaAmfCSIAttributeListT csiAttr)
 
     /* good amount of input validation, now get to the work */ 
     /* log the received attribute and value pair */ 
-    sysf_sprintf(attrName, "%s:%s\n", "pss_amf_csi_attrib_decode():attribute name", 
+    sprintf(attrName, "%s:%s\n", "pss_amf_csi_attrib_decode():attribute name", 
             csiAttr.attr->attrName); 
-    sysf_sprintf(attrValue, "%s:%s\n", "pss_amf_csi_attrib_decode():attribute value", 
+    sprintf(attrValue, "%s:%s\n", "pss_amf_csi_attrib_decode():attribute value", 
             csiAttr.attr->attrValue); 
     m_LOG_PSS_STR(NCSFL_SEV_NOTICE, attrName); 
     m_LOG_PSS_STR(NCSFL_SEV_NOTICE, attrValue); 

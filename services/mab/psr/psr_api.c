@@ -780,8 +780,8 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
         }
     }
 
-    m_NCS_OS_LOG_SPRINTF((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
-    m_NCS_OS_LOG_SPRINTF((char*)&inst->spcn_list_file, m_PSS_SPCN_LIST_FILE_NAME);
+    sprintf((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
+    sprintf((char*)&inst->spcn_list_file, m_PSS_SPCN_LIST_FILE_NAME);
 
     /* Read pssv_lib_conf file, to load the application MIB definition libraries. */
     if(pss_read_lib_conf_info(inst, (char*)&inst->lib_conf_file) != NCSCC_RC_SUCCESS)
@@ -989,7 +989,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
         m_LOG_PSS_LIB_INFO(NCSFL_SEV_INFO, PSS_LIB_INFO_CONF_FILE_ENTRY, &libname, &appname);
         /* Load the library, and invoke the lib-register-function */
         memset(&fullname, '\0', sizeof(fullname));
-        sysf_sprintf((char*)&fullname, "%s", (char*)&libname);
+        sprintf((char*)&fullname, "%s", (char*)&libname);
         lib_hdl = m_NCS_OS_DLIB_LOAD(fullname, m_NCS_OS_DLIB_ATTR); 
         if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
         {
@@ -1000,7 +1000,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
 
         /* Get the registration symbol "__<appname>_pssv_reg" from the appname */
         memset(&funcname, '\0', sizeof(funcname));
-        sysf_sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
+        sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
         app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, funcname); 
         if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
         {
