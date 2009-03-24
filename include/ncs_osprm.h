@@ -1943,10 +1943,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
 #endif
 
-#ifndef m_NCS_OS_GETCHAR
-#define m_NCS_OS_GETCHAR             getchar
-#endif
-
 #ifndef m_NCS_OS_PRINTF
 #define m_NCS_OS_PRINTF              printf
 #endif
