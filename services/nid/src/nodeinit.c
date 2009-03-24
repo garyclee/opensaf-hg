@@ -897,11 +897,11 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
    m_NCS_POSIX_PIPE(filedes);
 
-   if((pid = m_NCS_POSIX_FORK()) == 0)
+   if((pid = fork()) == 0)
    {
 
      if (nis_fifofd > 0) close(nis_fifofd);
-     if((tmp_pid = m_NCS_POSIX_FORK()) > 0)
+     if((tmp_pid = fork()) > 0)
      {
              exit(0);
      }
@@ -1017,7 +1017,7 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
    m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
 
-   if ((pid = m_NCS_POSIX_FORK()) == 0)
+   if ((pid = fork()) == 0)
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
@@ -1091,7 +1091,7 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
    m_NCS_POSIX_SIGEMPTYSET(&nmask);
    m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
-   if ((pid = m_NCS_POSIX_FORK()) == 0)
+   if ((pid = fork()) == 0)
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
@@ -1986,7 +1986,7 @@ daemonize_me(void)
    /******************************************************************
    *    exit if we fail to fork or if we are parent                  *
    *******************************************************************/
-   if((pid = m_NCS_POSIX_FORK()) < 0)
+   if((pid = fork()) < 0)
    {
      logme(NID_LOG2FILE_CONS,"fork failed: %s\n",strerror(errno));
      exit(1);

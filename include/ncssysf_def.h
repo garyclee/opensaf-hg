@@ -302,7 +302,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
  **                   POSIX System call Macros                              **
  **                                                                         **
  ****************************************************************************/
-#define m_NCS_POSIX_FORK                    m_NCS_OS_POSIX_FORK
 #define m_NCS_POSIX_EXECVP                  m_NCS_OS_POSIX_EXECVP
 
 #define m_NCS_POSIX_MKFIFO                  m_NCS_OS_POSIX_MKFIFO
