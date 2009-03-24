@@ -686,10 +686,6 @@ typedef int32 int64;
 #define m_NCS_OS_POSIX_DUP              dup
 #endif
 
-#ifndef m_NCS_OS_POSIX_CLOSE
-#define m_NCS_OS_POSIX_CLOSE            close
-#endif
-
 #ifndef m_NCS_OS_POSIX_UNLINK
 #define m_NCS_OS_POSIX_UNLINK           unlink
 #endif

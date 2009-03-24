@@ -573,7 +573,7 @@ void dts_cons_init(void)
    if (fd < 0)
       inst->cons_dev = "/dev/null";
    else
-      m_NCS_POSIX_CLOSE(fd);
+      close(fd);
 
    return;
 }

@@ -721,7 +721,7 @@ EXTERN_C DTS_CB   dts_cb;
      { \
         next_ptr = rmv_ptr->next; \
         if(rmv_ptr->cons_fd > 0) \
-           m_NCS_POSIX_CLOSE(rmv_ptr->cons_fd); \
+           close(rmv_ptr->cons_fd); \
         m_MMGR_FREE_DTS_CONS_DEV(rmv_ptr); \
         rmv_ptr = NULL; \
         if(tmp == NULL) \
@@ -746,7 +746,7 @@ EXTERN_C DTS_CB   dts_cb;
    { \
       dev->cons_list_ptr = ptr->next; \
       if(ptr->cons_fd > 0) \
-         m_NCS_POSIX_CLOSE(ptr->cons_fd); \
+         close(ptr->cons_fd); \
       m_MMGR_FREE_DTS_CONS_DEV(ptr); \
       ptr = dev->cons_list_ptr; \
       dev->num_of_cons_conf--; \

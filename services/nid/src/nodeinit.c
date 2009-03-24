@@ -188,7 +188,7 @@ void notify_bis(char *message)
    size = strlen(message);
    if(m_NCS_POSIX_WRITE(nis_fifofd,message,size) != size)
      logme(NID_LOG2FILE,"Error writing to nis FIFO! Error:%s\n",strerror(errno));
-   m_NCS_POSIX_CLOSE(nis_fifofd);
+   close(nis_fifofd);
 }
 
 
@@ -819,7 +819,7 @@ cons_init(void)
    if (fd < 0)
       cons_dev = "/dev/null";
    else
-      m_NCS_POSIX_CLOSE(fd);
+      close(fd);
 }
 
 
@@ -900,14 +900,14 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
    if((pid = m_NCS_POSIX_FORK()) == 0)
    {
 
-     if (nis_fifofd > 0) m_NCS_POSIX_CLOSE(nis_fifofd);
+     if (nis_fifofd > 0) close(nis_fifofd);
      if((tmp_pid = m_NCS_POSIX_FORK()) > 0)
      {
              exit(0);
      }
 
      /* We dont need reader open here */
-     m_NCS_POSIX_CLOSE(filedes[0]);
+     close(filedes[0]);
 
      SETSIG(sa, SIGPIPE,  SIG_IGN, 0);
 
@@ -924,7 +924,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
      setsid();
 
-     m_NCS_POSIX_CLOSE(0);m_NCS_POSIX_CLOSE(1);m_NCS_POSIX_CLOSE(2);
+     close(0);close(1);close(2);
 
      prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
      if(prio_stat < 0)
@@ -955,7 +955,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
    }
 
    /* We dont need writer open here */
-   m_NCS_POSIX_CLOSE(filedes[1]);
+   close(filedes[1]);
 
    /*Lets not block indefinitely for reading pid */
    FD_ZERO(&set);
@@ -967,7 +967,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
         if (n == 0)
         {
            logme(NID_LOG2FILE,"Writer couldn't return PID\n");
-           m_NCS_POSIX_CLOSE(filedes[0]);
+           close(filedes[0]);
            return tmp_pid;
         }
         if (errno == EINTR) continue;
@@ -977,7 +977,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
        if(errno == EINTR) continue;
        else break;
 
-   m_NCS_POSIX_CLOSE(filedes[0]);
+   close(filedes[0]);
 
    m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
    return tmp_pid;
@@ -1021,13 +1021,13 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
-      if (nis_fifofd > 0) m_NCS_POSIX_CLOSE(nis_fifofd);
+      if (nis_fifofd > 0) close(nis_fifofd);
       m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
 
       setsid();
-      m_NCS_POSIX_CLOSE(0);
-      m_NCS_POSIX_CLOSE(1);
-      m_NCS_POSIX_CLOSE(2);
+      close(0);
+      close(1);
+      close(2);
  
       prio_stat = setpriority(PRIO_PROCESS,0,service->priority);
       if(prio_stat < 0)
@@ -1095,11 +1095,11 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
-      if (nis_fifofd > 0) m_NCS_POSIX_CLOSE(nis_fifofd);
+      if (nis_fifofd > 0) close(nis_fifofd);
 
       m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
 
-      m_NCS_POSIX_CLOSE(0);m_NCS_POSIX_CLOSE(1);m_NCS_POSIX_CLOSE(2);
+      close(0);close(1);close(2);
       
      if ( nid_log_filename )
      {
@@ -1908,7 +1908,7 @@ spawn_services(char * strbuf)
            lfd = open(filename,O_CREAT|O_WRONLY,S_IRWXU);
            sprintf(str,"%d\n",service->pid);
            m_NCS_POSIX_WRITE(lfd,str,strlen(str));
-           m_NCS_POSIX_CLOSE(lfd);
+           close(lfd);
          }
        }
 
@@ -2011,7 +2011,7 @@ daemonize_me(void)
    if((nis_fifofd = m_NCS_POSIX_DUP(1)) < 0)
      logme(NID_LOG2FILE,"Failed To duplicate NIS FIFO\n");
 
-   m_NCS_POSIX_CLOSE(0);m_NCS_POSIX_CLOSE(1);m_NCS_POSIX_CLOSE(2);
+   close(0);close(1);close(2);
    if((cons_fd = cons_open(O_RDWR|O_NOCTTY)) >= 0)
    {
    /*  (void)ioctl(cons_fd, TIOCSCTTY, 1);*/
@@ -2026,7 +2026,7 @@ daemonize_me(void)
    lfd = open(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
    sprintf(str,"%d\n",getpid());
    m_NCS_POSIX_WRITE(lfd,str,strlen(str));
-   m_NCS_POSIX_CLOSE(lfd);
+   close(lfd);
 
    SETSIG(sa, SIGALRM,  SIG_IGN, 0);
    SETSIG(sa, SIGHUP,   SIG_IGN, 0);

@@ -1733,7 +1733,7 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
    if((fd_init = open(str, O_RDONLY|O_NONBLOCK)) < 0)
       return fd_init;
    else
-      m_NCS_POSIX_CLOSE(fd_init);
+      close(fd_init);
    
    /*Open device in non blocking mode*/
    m = mode|O_NONBLOCK;

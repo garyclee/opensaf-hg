@@ -305,7 +305,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 #define m_NCS_POSIX_READ                    m_NCS_OS_POSIX_READ
 #define m_NCS_POSIX_WRITE                   m_NCS_OS_POSIX_WRITE
 #define m_NCS_POSIX_DUP                     m_NCS_OS_POSIX_DUP
-#define m_NCS_POSIX_CLOSE                   m_NCS_OS_POSIX_CLOSE
 #define m_NCS_POSIX_UNLINK                  m_NCS_OS_POSIX_UNLINK
 
 #define m_NCS_POSIX_FORK                    m_NCS_OS_POSIX_FORK

@@ -114,7 +114,7 @@ uns32 nid_open_ipc(int32 *fd, char *strbuf)
 void nid_close_ipc(void)
 {
 
-  m_NCS_POSIX_CLOSE(fifo_fd);
+  close(fifo_fd);
   fifo_fd = -1;
 }
 
