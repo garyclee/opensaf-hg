@@ -264,7 +264,7 @@ ncs_enc_reserve_space(NCS_UBAID* uba, int32 res)
 
 #ifdef _DEBUG
   if(uba->bufp == NULL)
-     m_NCS_CONS_PRINTF("\nOut of memory in ncs_enc_reserve_space()!");
+     printf("\nOut of memory in ncs_enc_reserve_space()!");
 #endif
 
   return uba->bufp;

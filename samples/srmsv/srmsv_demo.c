@@ -108,23 +108,23 @@ void  srmsv_demo_print_rsrc_val(NCS_SRMSV_VALUE *value)
    switch (value->val_type)
    {
    case NCS_SRMSV_VAL_TYPE_FLOAT:
-       m_NCS_CONS_PRINTF("\n Resource Statistics Value: %f", value->val.f_val);
+       printf("\n Resource Statistics Value: %f", value->val.f_val);
        break;
 
    case NCS_SRMSV_VAL_TYPE_INT32:
-       m_NCS_CONS_PRINTF("\n Resource Statistics Value: %lu", value->val.i_val32);
+       printf("\n Resource Statistics Value: %lu", value->val.i_val32);
        break;
 
    case NCS_SRMSV_VAL_TYPE_UNS32:
-       m_NCS_CONS_PRINTF("\n Resource Statistics Value: %lu", value->val.u_val32);
+       printf("\n Resource Statistics Value: %lu", value->val.u_val32);
        break;
 
    case NCS_SRMSV_VAL_TYPE_INT64:
-       m_NCS_CONS_PRINTF("\n Resource Statistics Value: %ll", value->val.i_val64);
+       printf("\n Resource Statistics Value: %ll", value->val.i_val64);
        break;
 
    case NCS_SRMSV_VAL_TYPE_UNS64:
-       m_NCS_CONS_PRINTF("\n Resource Statistics Value: %ll", value->val.u_val64);
+       printf("\n Resource Statistics Value: %ll", value->val.u_val64);
        break;
 
    default:
@@ -151,67 +151,67 @@ void srmsv_demo_print_rsrc_type(NCS_SRMSV_RSRC_TYPE rsrc_type)
    switch(rsrc_type)
    {
    case NCS_SRMSV_RSRC_CPU_UTIL: 
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL");
        break;
 
    case NCS_SRMSV_RSRC_CPU_KERNEL:     
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_KERNEL");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_KERNEL");
        break;
 
    case NCS_SRMSV_RSRC_CPU_USER:       
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_USER");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_USER");
        break;
 
    case NCS_SRMSV_RSRC_CPU_UTIL_ONE:  
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_ONE");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_ONE");
        break;
 
    case NCS_SRMSV_RSRC_CPU_UTIL_FIVE:  
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_FIVE");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_FIVE");
        break;
 
    case NCS_SRMSV_RSRC_CPU_UTIL_FIFTEEN: 
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_FIFTEEN");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_CPU_UTIL_FIFTEEN");
        break;
 
    case NCS_SRMSV_RSRC_MEM_PHYSICAL_USED:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_MEM_PHYSICAL_USED");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_MEM_PHYSICAL_USED");
        break;
 
    case NCS_SRMSV_RSRC_MEM_PHYSICAL_FREE:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_MEM_PHYSICAL_FREE");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_MEM_PHYSICAL_FREE");
        break;
 
    case NCS_SRMSV_RSRC_SWAP_SPACE_USED:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_SWAP_SPACE_USED");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_SWAP_SPACE_USED");
        break;
 
    case NCS_SRMSV_RSRC_SWAP_SPACE_FREE:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_SWAP_SPACE_FREE");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_SWAP_SPACE_FREE");
        break;
 
    case NCS_SRMSV_RSRC_USED_BUFFER_MEM:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_USED_BUFFER_MEM");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_USED_BUFFER_MEM");
        break;
 
    case NCS_SRMSV_RSRC_USED_CACHED_MEM:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_USED_CACHED_MEM");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_USED_CACHED_MEM");
        break;
 
    case NCS_SRMSV_RSRC_PROC_EXIT:  
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_PROC_EXIT");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_PROC_EXIT");
        break;
 
    case NCS_SRMSV_RSRC_PROC_MEM: 
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_PROC_MEM");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_PROC_MEM");
        break;
 
    case NCS_SRMSV_RSRC_PROC_CPU:
-       m_NCS_CONS_PRINTF("\n Resource Type:  NCS_SRMSV_RSRC_PROC_CPU");
+       printf("\n Resource Type:  NCS_SRMSV_RSRC_PROC_CPU");
        break;
 
    default:
-       m_NCS_CONS_PRINTF("\n Invalid Resource Type");
+       printf("\n Invalid Resource Type");
        break;
    }
 
@@ -234,7 +234,7 @@ void srmsv_demo_print_wm_val(SRMSV_WATERMARK_VAL *watermarks)
 {
    if (!watermarks->wm_exist)
    {
-      m_NCS_CONS_PRINTF("\n Watermark values doesn't exists for the rsrc");
+      printf("\n Watermark values doesn't exists for the rsrc");
       return;
    }
 
@@ -244,20 +244,20 @@ void srmsv_demo_print_wm_val(SRMSV_WATERMARK_VAL *watermarks)
    switch(watermarks->wm_type)
    {
    case NCS_SRMSV_WATERMARK_HIGH:
-       m_NCS_CONS_PRINTF("\n High Watermark Value");
+       printf("\n High Watermark Value");
        srmsv_demo_print_rsrc_val(&watermarks->high_val);
        break; 
 
    case NCS_SRMSV_WATERMARK_LOW:
-       m_NCS_CONS_PRINTF("\n Low Watermark Value");
+       printf("\n Low Watermark Value");
        srmsv_demo_print_rsrc_val(&watermarks->low_val);
        break; 
 
    case NCS_SRMSV_WATERMARK_DUAL:
-       m_NCS_CONS_PRINTF("\n High Watermark Value");
+       printf("\n High Watermark Value");
        srmsv_demo_print_rsrc_val(&watermarks->high_val);
 
-       m_NCS_CONS_PRINTF("\n Low Watermark Value");
+       printf("\n Low Watermark Value");
        srmsv_demo_print_rsrc_val(&watermarks->low_val);
        break; 
 
@@ -286,29 +286,29 @@ void srmsv_demo_cbkinfo(NCS_SRMSV_RSRC_CBK_INFO *rsrc_cbk_info)
    if (rsrc_cbk_info == NULL)
       return;
 
-   m_NCS_CONS_PRINTF("\n\n\n SRMSv NOTIFICATION:");
+   printf("\n\n\n SRMSv NOTIFICATION:");
 
    switch (rsrc_cbk_info->notif_type)
    {
    case SRMSV_CBK_NOTIF_RSRC_THRESHOLD:
-       m_NCS_CONS_PRINTF("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
-       m_NCS_CONS_PRINTF("\n THRESHOLD event arrived for Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
+       printf("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
+       printf("\n THRESHOLD event arrived for Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
        srmsv_demo_print_rsrc_val(&rsrc_cbk_info->notify.rsrc_value);
        break;
 
    case SRMSV_CBK_NOTIF_RSRC_MON_EXPIRED:
-       m_NCS_CONS_PRINTF("\n RESOURCE EXPIRED event arrived for Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
+       printf("\n RESOURCE EXPIRED event arrived for Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
        break;
 
    case SRMSV_CBK_NOTIF_WATERMARK_VAL:
-       m_NCS_CONS_PRINTF("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
-       m_NCS_CONS_PRINTF("\n WATERMARK event arrived");
+       printf("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
+       printf("\n WATERMARK event arrived");
        srmsv_demo_print_wm_val(&rsrc_cbk_info->notify.watermarks);
        break;
 
    case SRMSV_CBK_NOTIF_WM_CFG_ALREADY_EXIST:
-       m_NCS_CONS_PRINTF("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
-       m_NCS_CONS_PRINTF("\n WATERMARK already EXISTS for the Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
+       printf("\n Arrived from NODE: 0x%08x", rsrc_cbk_info->node_num);
+       printf("\n WATERMARK already EXISTS for the Resource Handle: 0x%x", rsrc_cbk_info->rsrc_mon_hdl);
        break;
 
    default:
@@ -332,7 +332,7 @@ void srmsv_demo_cbkinfo(NCS_SRMSV_RSRC_CBK_INFO *rsrc_cbk_info)
 ******************************************************************************/
 void srmsv_demo_finalize()
 {         
-   m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_finalize()");
+   printf("\n\n SRMSv-API: ncs_srmsv_finalize()");
    if (ncs_srmsv_finalize(gl_srmsv_hdl) == SA_AIS_OK)
    {  
       int i = 0;
@@ -343,11 +343,11 @@ void srmsv_demo_finalize()
          gl_rsrc_mon_hdl[i] = 0;
       }
       gl_rsrc_count = 0;
-      m_NCS_CONS_PRINTF("\n\n status: SUCCESS, SRMSv Handle: 0x%x", (uns32)gl_srmsv_hdl);
+      printf("\n\n status: SUCCESS, SRMSv Handle: 0x%x", (uns32)gl_srmsv_hdl);
    }
    else 
    {
-      m_NCS_CONS_PRINTF("\n\n status: FAILED, SRMSv Handle: 0x%x", (uns32)gl_srmsv_hdl);
+      printf("\n\n status: FAILED, SRMSv Handle: 0x%x", (uns32)gl_srmsv_hdl);
    }
 
    return;
@@ -413,7 +413,7 @@ void  srmsv_demo_update_rsrc_type(NCS_SRMSV_RSRC_TYPE *rsrc_type, char *buffer)
    if (!strcmp(buffer, "NCS_SRMSV_RSRC_PROC_CPU"))
       *rsrc_type = NCS_SRMSV_RSRC_PROC_CPU;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown RESOURCE type: srmsv_demo_update_rsrc_type()");
+      printf("\n\n Unknown RESOURCE type: srmsv_demo_update_rsrc_type()");
 
    return;
 }
@@ -442,7 +442,7 @@ void  srmsv_demo_update_user_type(NCS_SRMSV_USER_TYPE *usr_type, char *buffer)
    if (!strcmp(buffer, "NCS_SRMSV_USER_REQUESTOR_AND_SUBSCR"))
       *usr_type = NCS_SRMSV_USER_REQUESTOR_AND_SUBSCR;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown USER type: srmsv_demo_update_user_type()");
+      printf("\n\n Unknown USER type: srmsv_demo_update_user_type()");
 
    return;
 }
@@ -471,7 +471,7 @@ void  srmsv_demo_update_rsrc_loc(NCS_SRMSV_NODE_LOCATION *loc, char *buffer)
    if (!strcmp(buffer, "NCS_SRMSV_NODE_ALL"))
       *loc = NCS_SRMSV_NODE_ALL;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown LOCATION type: srmsv_demo_update_rsrc_loc()");
+      printf("\n\n Unknown LOCATION type: srmsv_demo_update_rsrc_loc()");
   
    return;
 }
@@ -497,7 +497,7 @@ void srmsv_demo_update_mon_type(NCS_SRMSV_MONITOR_TYPE *mon_type, char *buffer)
    if (!strcmp(buffer, "NCS_SRMSV_MON_TYPE_WATERMARK"))
       *mon_type = NCS_SRMSV_MON_TYPE_WATERMARK;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown MONITOR type: srmsv_demo_update_mon_type()");
+      printf("\n\n Unknown MONITOR type: srmsv_demo_update_mon_type()");
 
    return;
 }
@@ -526,7 +526,7 @@ void srmsv_demo_update_wm_type(NCS_SRMSV_WATERMARK_TYPE *wm_type, char *buffer)
    if (!strcmp(buffer, "NCS_SRMSV_WATERMARK_DUAL"))
       *wm_type = NCS_SRMSV_WATERMARK_DUAL;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown WATERMARK type: srmsv_demo_update_wm_type()");
+      printf("\n\n Unknown WATERMARK type: srmsv_demo_update_wm_type()");
 
    return;
 }
@@ -565,7 +565,7 @@ void  srmsv_demo_update_threshold_cond(NCS_SRMSV_THRESHOLD_TEST_CONDITION *cond,
    if (!strcmp(buffer, "NCS_SRMSV_THRESHOLD_VAL_IS_AT_OR_BELOW"))
       *cond = NCS_SRMSV_THRESHOLD_VAL_IS_AT_OR_BELOW;
    else
-      m_NCS_CONS_PRINTF("\n\n Unknown THRESHOLD CONDITION type: srmsv_demo_update_threshold_cond()");
+      printf("\n\n Unknown THRESHOLD CONDITION type: srmsv_demo_update_threshold_cond()");
   
    return;   
 }
@@ -671,7 +671,7 @@ void srmsv_demo_read_mon_cfg(NCS_SRMSV_MON_INFO *mon_info,
       if (!strcmp(item_buffer, "THRESHOLD_TL_VAL"))
          mon_info->monitor_data.mon_cfg.threshold.tolerable_val.val.u_val32 = atol(val_buffer);
       else
-         m_NCS_CONS_PRINTF("\n\n Unknown Input in CONFIGURATION file: srmsv_demo_read_mon_cfg()");
+         printf("\n\n Unknown Input in CONFIGURATION file: srmsv_demo_read_mon_cfg()");
    }
   
    return;
@@ -697,7 +697,7 @@ void srmsv_demo_get_watermark()
    memset(&rsrc_info, 0, sizeof(NCS_SRMSV_RSRC_INFO ));
 
    m_NCS_TASK_SLEEP(10000); 
-   m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_get_watermark_val()");
+   printf("\n\n SRMSv-API: ncs_srmsv_get_watermark_val()");
 
    /* Print the Resource Type */
    srmsv_demo_print_rsrc_type(wm_rsrc_type);
@@ -714,15 +714,15 @@ void srmsv_demo_get_watermark()
    switch(saf_status)
    {
    case SA_AIS_OK:
-       m_NCS_CONS_PRINTF("\n status: SUCCESS");
+       printf("\n status: SUCCESS");
        break;
 
    case SA_AIS_ERR_NOT_EXIST:
-       m_NCS_CONS_PRINTF("\n status: DESTINATION SRMND NOT EXIST");
+       printf("\n status: DESTINATION SRMND NOT EXIST");
        break;
 
    default:
-       m_NCS_CONS_PRINTF("\n status: FAILED");
+       printf("\n status: FAILED");
        break;
    }
 
@@ -756,16 +756,16 @@ void srmsv_demo_start_rsrc_mon()
      
       rsrc_mon_hdl = 0;
 
-      m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_start_rsrc_mon()");
+      printf("\n\n SRMSv-API: ncs_srmsv_start_rsrc_mon()");
       if (mon_info.monitor_data.monitor_type == NCS_SRMSV_MON_TYPE_WATERMARK)
       {
          wm_rsrc_type = mon_info.rsrc_info.rsrc_type;
          wm_rsrc_pid = mon_info.rsrc_info.pid;
 
-         m_NCS_CONS_PRINTF("\n Monitor Type:  WATERMARK");
+         printf("\n Monitor Type:  WATERMARK");
       }
       else
-          m_NCS_CONS_PRINTF("\n Monitor Type:  THRESHOLD");
+          printf("\n Monitor Type:  THRESHOLD");
 
       /* Print the Resource Type */
       srmsv_demo_print_rsrc_type(mon_info.rsrc_info.rsrc_type);
@@ -779,17 +779,17 @@ void srmsv_demo_start_rsrc_mon()
       switch(saf_status)
       {
       case SA_AIS_OK:
-         m_NCS_CONS_PRINTF("\n status: SUCCESS,  rsrc_hdl: 0x%x", (uns32)rsrc_mon_hdl);
+         printf("\n status: SUCCESS,  rsrc_hdl: 0x%x", (uns32)rsrc_mon_hdl);
          gl_rsrc_mon_hdl[gl_rsrc_count++] = rsrc_mon_hdl;
          break;
 
       case SA_AIS_ERR_NOT_EXIST:
-          m_NCS_CONS_PRINTF("\n status: DESTINATION SRMND NOT EXIST for NodeId: 0x%08x,  rsrc_hdl: 0x%x", mon_info.rsrc_info.node_num, (uns32)rsrc_mon_hdl);
+          printf("\n status: DESTINATION SRMND NOT EXIST for NodeId: 0x%08x,  rsrc_hdl: 0x%x", mon_info.rsrc_info.node_num, (uns32)rsrc_mon_hdl);
           gl_rsrc_mon_hdl[gl_rsrc_count++] = rsrc_mon_hdl;
           break;
 
       default:
-         m_NCS_CONS_PRINTF("\n status: FAILED");
+         printf("\n status: FAILED");
          break;
       }
  
@@ -818,15 +818,15 @@ void srmsv_demo_stop_rsrc_mon()
 
    for (i=0; i<gl_rsrc_count; i++)
    {     
-      m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_stop_rsrc_mon(), rsrc_hdl: 0x%x", (uns32)gl_rsrc_mon_hdl[i]);
+      printf("\n\n SRMSv-API: ncs_srmsv_stop_rsrc_mon(), rsrc_hdl: 0x%x", (uns32)gl_rsrc_mon_hdl[i]);
       if (ncs_srmsv_stop_rsrc_mon(gl_rsrc_mon_hdl[i]) == SA_AIS_OK)
       {
-         m_NCS_CONS_PRINTF("\n status: SUCCESS");
+         printf("\n status: SUCCESS");
          gl_rsrc_mon_hdl[i] = 0;
       }
       else 
       { 
-         m_NCS_CONS_PRINTF("\n status: FAILED");
+         printf("\n status: FAILED");
       }
    }
 
@@ -856,8 +856,8 @@ void srmsv_demo_subscr_rsrc_mon()
    rsrc_info.rsrc_type = NCS_SRMSV_RSRC_MEM_PHYSICAL_USED; 
      
 
-   m_NCS_CONS_PRINTF("\n\n\n SRMSv-API: ncs_srmsv_subscr_rsrc_mon()");
-   m_NCS_CONS_PRINTF("\n Monitor Type:  THRESHOLD");
+   printf("\n\n\n SRMSv-API: ncs_srmsv_subscr_rsrc_mon()");
+   printf("\n Monitor Type:  THRESHOLD");
    /* Print the Resource Type */
    srmsv_demo_print_rsrc_type(rsrc_info.rsrc_type);
 
@@ -867,9 +867,9 @@ void srmsv_demo_subscr_rsrc_mon()
    if (ncs_srmsv_subscr_rsrc_mon(gl_srmsv_hdl,
                                  &rsrc_info,
                                  &gl_subscr_hdl) == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n status: SUCCESS, subscr_hdl: 0x%x ", (uns32)gl_subscr_hdl);
+      printf("\n status: SUCCESS, subscr_hdl: 0x%x ", (uns32)gl_subscr_hdl);
    else 
-      m_NCS_CONS_PRINTF("\n\n status: FAILED ");
+      printf("\n\n status: FAILED ");
 
    return;
 }
@@ -901,14 +901,14 @@ void srmsv_demo_modify_rsrc_mon()
    mon_info.monitor_data.mon_cfg.threshold.threshold_val.val.u_val32 = 90;
    mon_info.monitor_data.mon_cfg.threshold.condition = NCS_SRMSV_THRESHOLD_VAL_IS_ABOVE; 
 
-   m_NCS_CONS_PRINTF("\n\n\n SRMSv-API: ncs_srmsv_start_rsrc_mon(), MODIFY rsrc_hdl: 0x%x", gl_rsrc_mon_hdl[5]);
+   printf("\n\n\n SRMSv-API: ncs_srmsv_start_rsrc_mon(), MODIFY rsrc_hdl: 0x%x", gl_rsrc_mon_hdl[5]);
 
    if (ncs_srmsv_start_rsrc_mon(gl_srmsv_hdl,
                                 &mon_info,
                                 &gl_rsrc_mon_hdl[5]) == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n status: SUCCESS");
+      printf("\n status: SUCCESS");
    else 
-      m_NCS_CONS_PRINTF("\n status: FAILED");
+      printf("\n status: FAILED");
 
    return;
 }
@@ -932,14 +932,14 @@ void srmsv_demo_scavanger()
         Demonstrating the use of ncs_srmsv_unsubscr_rsrc_mon()
    ================================================================*/
    m_NCS_TASK_SLEEP(2000);
-   m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_unsubscr_rsrc_mon(), subscr_hdl: 0x%x", (uns32)gl_subscr_hdl);
+   printf("\n\n SRMSv-API: ncs_srmsv_unsubscr_rsrc_mon(), subscr_hdl: 0x%x", (uns32)gl_subscr_hdl);
    if (ncs_srmsv_unsubscr_rsrc_mon(gl_subscr_hdl) == SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n status: SUCCESS");
+      printf("\n status: SUCCESS");
       gl_subscr_hdl = 0;
    }
    else 
-      m_NCS_CONS_PRINTF("\n status: SUCCESS");
+      printf("\n status: SUCCESS");
 
    /*===============================================================
            Demonstrating the use of ncs_srmsv_stop_rsrc_mon()
@@ -953,8 +953,8 @@ void srmsv_demo_scavanger()
    m_NCS_TASK_SLEEP(2000);
    srmsv_demo_finalize(); 
 
-   m_NCS_CONS_PRINTF("\n SRMSv service DEMO OVER!!!");
-   m_NCS_CONS_PRINTF("\n\n\n************ THANKYOU *************\n\n");
+   printf("\n SRMSv service DEMO OVER!!!");
+   printf("\n\n\n************ THANKYOU *************\n\n");
 
    exit(1);
 
@@ -1002,30 +1002,30 @@ void srmsv_main_process(void)
    /*=======================================================================
                 Demonstrating the use of ncs_srmsv_initialize()
    =======================================================================*/
-   m_NCS_CONS_PRINTF("\n\n SRMSv-API:  ncs_srmsv_initialize()\n");
+   printf("\n\n SRMSv-API:  ncs_srmsv_initialize()\n");
    if (ncs_srmsv_initialize(srmsv_callback, &gl_srmsv_hdl) != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n status: FAILED \n");
+      printf("\n status: FAILED \n");
       return;
    }
    else
-      m_NCS_CONS_PRINTF("\n status: SUCCESS, ncs_srmsv_initialize(): SRMSv Handle: 0x%x \n", (uns32)gl_srmsv_hdl);
+      printf("\n status: SUCCESS, ncs_srmsv_initialize(): SRMSv Handle: 0x%x \n", (uns32)gl_srmsv_hdl);
 
    /*======================================================================
            Demonstrating the use of ncs_srmsv_selection_object_get()
    ======================================================================*/
    /* m_NCS_TASK_SLEEP(2000); */
    /* Get the selection object corresponding to this SRMSv handle */
-   m_NCS_CONS_PRINTF("\n SRMSv-API:  ncs_srmsv_selection_object_get()");
+   printf("\n SRMSv-API:  ncs_srmsv_selection_object_get()");
    if (ncs_srmsv_selection_object_get(gl_srmsv_hdl, &gl_srmsv_sel_obj) 
       != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n status: FAILED \n");
+      printf("\n status: FAILED \n");
       ncs_srmsv_finalize(gl_srmsv_hdl);
       return;
    }
    else
-      m_NCS_CONS_PRINTF("\n status: SUCCESS \n");
+      printf("\n status: SUCCESS \n");
 
    /*=====================================================================
               Demonstrating the use of ncs_srmsv_start_rsrc_mon()
@@ -1086,21 +1086,21 @@ void srmsv_main_process(void)
                    Demonstrating the use of ncs_srmsv_stop_monitor()
             =====================================================================*/
             m_NCS_TASK_SLEEP(2000);
-            m_NCS_CONS_PRINTF("\n\n SRMSv-API:  ncs_srmsv_stop_monitor(), srmsv_hdl: 0x%x", gl_srmsv_hdl);
+            printf("\n\n SRMSv-API:  ncs_srmsv_stop_monitor(), srmsv_hdl: 0x%x", gl_srmsv_hdl);
             if (ncs_srmsv_stop_monitor(gl_srmsv_hdl) == SA_AIS_OK)
-               m_NCS_CONS_PRINTF("\n status: SUCCESS");
+               printf("\n status: SUCCESS");
             else 
-               m_NCS_CONS_PRINTF("\n status: FAILED");
+               printf("\n status: FAILED");
 
             /*=====================================================================
                    Demonstrating the use of ncs_srmsv_restart_monitor()
             =====================================================================*/
             m_NCS_TASK_SLEEP(2000);
-            m_NCS_CONS_PRINTF("\n\n SRMSv-API: ncs_srmsv_restart_monitor(), srmsv_hdl: 0x%x", gl_srmsv_hdl);
+            printf("\n\n SRMSv-API: ncs_srmsv_restart_monitor(), srmsv_hdl: 0x%x", gl_srmsv_hdl);
             if (ncs_srmsv_restart_monitor(gl_srmsv_hdl) == SA_AIS_OK)
-               m_NCS_CONS_PRINTF("\n status: SUCCESS");
+               printf("\n status: SUCCESS");
             else 
-               m_NCS_CONS_PRINTF("\n status: FAILED");
+               printf("\n status: FAILED");
 
             m_NCS_TASK_SLEEP(2000);
 
@@ -1154,7 +1154,7 @@ uns32 ncs_srmsv_init(void)
       goto err;
    }
 
-   m_NCS_CONS_PRINTF("\n\n SUCCESS: SRMSV TASK CREATION !!!");
+   printf("\n\n SUCCESS: SRMSV TASK CREATION !!!");
    return rc;
 
 err:
@@ -1162,7 +1162,7 @@ err:
    if (gl_srmsv_task_hdl)
        m_NCS_TASK_RELEASE(gl_srmsv_task_hdl);
 
-   m_NCS_CONS_PRINTF("\n\n SRMSV TASK CREATION FAILED !!! \n\n");
+   printf("\n\n SRMSV TASK CREATION FAILED !!! \n\n");
    return rc;
 }
 

@@ -209,7 +209,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
    {
       proc_rc = NCSCC_RC_FAILURE;
       m_LOG_CPD_LCL(CPD_DB_ADD_FAILED,CPD_FC_DB,NCSFL_SEV_ERROR,node_id,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CLUSTER NODE GET FAILED\n");
+      printf("CLUSTER NODE GET FAILED\n");
       goto free_mem;
    }
  
@@ -378,7 +378,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 ckpt_node_add_fail:   
 map_node_add_fail:
    /* This is the unexpected failure case, (Process TBD ) */
-   m_NCS_CONS_PRINTF("UNEXPECTED FAILURE\n");
+   printf("UNEXPECTED FAILURE\n");
    return proc_rc;
    
 free_mem:
@@ -1099,18 +1099,18 @@ void cpd_cb_dump(void)
    }        
 
  /* # if ( CPSV_DEBUG == 1)  */
-   m_NCS_CONS_PRINTF("\n\n");   
-   m_NCS_CONS_PRINTF("*****************Printing CPD CB Dump******************");
-   m_NCS_CONS_PRINTF("\n MDS Handle:             %x", (uns32)cb->mds_handle);
-   m_NCS_CONS_PRINTF("\n Handle Manager Pool ID: %d", cb->hm_poolid);
-   m_NCS_CONS_PRINTF("\n Handle Manager Handle:  %d", cb->cpd_hdl);
-   m_NCS_CONS_PRINTF("\n CPD State:  %d",cb->ha_state); 
-   m_NCS_CONS_PRINTF("ACTIVE : ENC ASYNC UPDATE COUNT %d\n",cb->cpd_sync_cnt);
-   m_NCS_CONS_PRINTF("STANDBY : DEC ASYNC UPDATE COUNT %d\n",cb->sync_upd_cnt);
+   printf("\n\n");   
+   printf("*****************Printing CPD CB Dump******************");
+   printf("\n MDS Handle:             %x", (uns32)cb->mds_handle);
+   printf("\n Handle Manager Pool ID: %d", cb->hm_poolid);
+   printf("\n Handle Manager Handle:  %d", cb->cpd_hdl);
+   printf("\n CPD State:  %d",cb->ha_state); 
+   printf("ACTIVE : ENC ASYNC UPDATE COUNT %d\n",cb->cpd_sync_cnt);
+   printf("STANDBY : DEC ASYNC UPDATE COUNT %d\n",cb->sync_upd_cnt);
    if(cb->is_cpnd_tree_up)
    {
-      m_NCS_CONS_PRINTF("\n+++++++++++++CPND Tree is UP+++++++++++++++++++++++++++");
-      m_NCS_CONS_PRINTF("\nNumber of nodes in CPND Tree:  %d", cb->cpnd_tree.n_nodes);
+      printf("\n+++++++++++++CPND Tree is UP+++++++++++++++++++++++++++");
+      printf("\nNumber of nodes in CPND Tree:  %d", cb->cpnd_tree.n_nodes);
       
       /* Print the CPND Details */
       if(cb->cpnd_tree.n_nodes >0)
@@ -1124,30 +1124,30 @@ void cpd_cb_dump(void)
          while(cpnd_info_node)
          {
             key = cpnd_info_node->cpnd_dest;
-            m_NCS_CONS_PRINTF("\n------------------------------------------------------");
-            m_NCS_CONS_PRINTF("\n MDS Node ID:  = %d", m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest));
-            m_NCS_CONS_PRINTF("\n Number of CKPTs  = %d", cpnd_info_node->ckpt_cnt);
+            printf("\n------------------------------------------------------");
+            printf("\n MDS Node ID:  = %d", m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_info_node->cpnd_dest));
+            printf("\n Number of CKPTs  = %d", cpnd_info_node->ckpt_cnt);
             list = cpnd_info_node->ckpt_ref_list;
-            m_NCS_CONS_PRINTF("\n List of CKPT IDs: ");
+            printf("\n List of CKPT IDs: ");
             while(list && cpnd_info_node->ckpt_cnt > 0)
             {
-               m_NCS_CONS_PRINTF(" %d ", (uns32)list->ckpt_node->ckpt_id);
+               printf(" %d ", (uns32)list->ckpt_node->ckpt_id);
                list = list->next;
             }
-            m_NCS_CONS_PRINTF("\n End of CKPT IDs List ");
+            printf("\n End of CKPT IDs List ");
            cpnd_info_node = 
            (CPD_CPND_INFO_NODE *)ncs_patricia_tree_getnext(&cb->cpnd_tree, (uns8*)&key);
          }
-         m_NCS_CONS_PRINTF("\n End of CPND Info");
+         printf("\n End of CPND Info");
       }
-      m_NCS_CONS_PRINTF("\n End of CPND info nodes ");
+      printf("\n End of CPND info nodes ");
    }
    
    /* Print the Checkpoint Details */
    if(cb->is_ckpt_tree_up)
    {
-      m_NCS_CONS_PRINTF("\n+++++++++++++CKPT Tree is UP+++++++++++++++++++++++++++");
-      m_NCS_CONS_PRINTF("\nNumber of nodes in CKPT Tree:  %d", cb->ckpt_tree.n_nodes);
+      printf("\n+++++++++++++CKPT Tree is UP+++++++++++++++++++++++++++");
+      printf("\nNumber of nodes in CKPT Tree:  %d", cb->ckpt_tree.n_nodes);
       
       /* Print the CKPT Details */
       if(cb->ckpt_tree.n_nodes > 0)
@@ -1165,54 +1165,54 @@ void cpd_cb_dump(void)
             uns32 i=0;
             prev_ckpt_id = ckpt_node->ckpt_id;
             
-            m_NCS_CONS_PRINTF("\n------------------------------------------------------");
-            m_NCS_CONS_PRINTF("\n CKPT ID:  = %d", (uns32)ckpt_node->ckpt_id);
-            m_NCS_CONS_PRINTF("\n CKPT Name len  = %d", ckpt_node->ckpt_name.length);
-            m_NCS_CONS_PRINTF("\n CKPT Name: ");
+            printf("\n------------------------------------------------------");
+            printf("\n CKPT ID:  = %d", (uns32)ckpt_node->ckpt_id);
+            printf("\n CKPT Name len  = %d", ckpt_node->ckpt_name.length);
+            printf("\n CKPT Name: ");
             for(i=0; i < ckpt_node->ckpt_name.length; i++)
             {
-               m_NCS_CONS_PRINTF("%c", ckpt_node->ckpt_name.value[i]);
+               printf("%c", ckpt_node->ckpt_name.value[i]);
             }
             
-            m_NCS_CONS_PRINTF("\n UNLINK = %d, Active Exists = %d", ckpt_node->is_unlink_set, 
+            printf("\n UNLINK = %d, Active Exists = %d", ckpt_node->is_unlink_set, 
                                                         ckpt_node->is_active_exists);
             if(ckpt_node->is_unlink_set)
             {
-               m_NCS_CONS_PRINTF("\n Create Attributes");
-               m_NCS_CONS_PRINTF("\n creationFlags: %d, ", (uns32)ckpt_node->attributes.creationFlags);
-               m_NCS_CONS_PRINTF("\n retentionDuration: %d, ", (uns32)ckpt_node->attributes.retentionDuration);
-               m_NCS_CONS_PRINTF("\n maxSections: %ld, ", ckpt_node->attributes.maxSections);
-               m_NCS_CONS_PRINTF("\n maxSectionSize: %d, ", (uns32)ckpt_node->attributes.maxSectionSize);
-               m_NCS_CONS_PRINTF("\n maxSectionIdSize: %d, ", (uns32)ckpt_node->attributes.maxSectionIdSize);
+               printf("\n Create Attributes");
+               printf("\n creationFlags: %d, ", (uns32)ckpt_node->attributes.creationFlags);
+               printf("\n retentionDuration: %d, ", (uns32)ckpt_node->attributes.retentionDuration);
+               printf("\n maxSections: %ld, ", ckpt_node->attributes.maxSections);
+               printf("\n maxSectionSize: %d, ", (uns32)ckpt_node->attributes.maxSectionSize);
+               printf("\n maxSectionIdSize: %d, ", (uns32)ckpt_node->attributes.maxSectionIdSize);
             }
             
             if(ckpt_node->is_active_exists)
-               m_NCS_CONS_PRINTF("\n Active DEST NODE ID: %d", m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest));
+               printf("\n Active DEST NODE ID: %d", m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest));
 
-            m_NCS_CONS_PRINTF("Reteintion Time = %d", (uns32)ckpt_node->ret_time);
+            printf("Reteintion Time = %d", (uns32)ckpt_node->ret_time);
 
             list = ckpt_node->node_list;
-            m_NCS_CONS_PRINTF("No of Dest: %d", ckpt_node->dest_cnt);
-            m_NCS_CONS_PRINTF("\n List of NODEs: ");
+            printf("No of Dest: %d", ckpt_node->dest_cnt);
+            printf("\n List of NODEs: ");
             while(list && ckpt_node->dest_cnt > 0)
             {
-               m_NCS_CONS_PRINTF(" %d, ", m_NCS_NODE_ID_FROM_MDS_DEST(list->dest));
+               printf(" %d, ", m_NCS_NODE_ID_FROM_MDS_DEST(list->dest));
                list = list->next;
             }
-            m_NCS_CONS_PRINTF("\n End of CKPT NODE s List ");
+            printf("\n End of CKPT NODE s List ");
             ckpt_node = (CPD_CKPT_INFO_NODE *)ncs_patricia_tree_getnext(&cb->ckpt_tree,
                                                    (uns8*)&prev_ckpt_id);
          }
-         m_NCS_CONS_PRINTF("\n End of CKPT Info");
+         printf("\n End of CKPT Info");
       }
-      m_NCS_CONS_PRINTF("\n End of CKPT nodes information ");
+      printf("\n End of CKPT nodes information ");
    }
    
       /* Print the Checkpoint Details */
    if(cb->is_ckpt_map_up)
    {
-      m_NCS_CONS_PRINTF("\n+++++++++++++CKPT MAP Tree is UP+++++++++++++++++++++++++++");
-      m_NCS_CONS_PRINTF("\nNumber of nodes in CKPT Map Tree:  %d", cb->ckpt_map_tree.n_nodes);
+      printf("\n+++++++++++++CKPT MAP Tree is UP+++++++++++++++++++++++++++");
+      printf("\nNumber of nodes in CKPT Map Tree:  %d", cb->ckpt_map_tree.n_nodes);
       
       /* Print the CKPT Details */
       if (cb->ckpt_map_tree.n_nodes > 0)
@@ -1231,30 +1231,30 @@ void cpd_cb_dump(void)
             
             name = ckpt_map_node->ckpt_name;
          
-            m_NCS_CONS_PRINTF("\n------------------------------------------------------");
-            m_NCS_CONS_PRINTF("\n CKPT Name len  = %d", ckpt_map_node->ckpt_name.length);
-            m_NCS_CONS_PRINTF("\n CKPT Name: ");
+            printf("\n------------------------------------------------------");
+            printf("\n CKPT Name len  = %d", ckpt_map_node->ckpt_name.length);
+            printf("\n CKPT Name: ");
             for(i=0; i<ckpt_map_node->ckpt_name.length; i++)
             {
-               m_NCS_CONS_PRINTF("%c", ckpt_map_node->ckpt_name.value[i]);
+               printf("%c", ckpt_map_node->ckpt_name.value[i]);
             }
             
-            m_NCS_CONS_PRINTF("\n CKPT ID:  = %d", (uns32)ckpt_map_node->ckpt_id);
+            printf("\n CKPT ID:  = %d", (uns32)ckpt_map_node->ckpt_id);
             
-            m_NCS_CONS_PRINTF("\n Create Attributes");
-            m_NCS_CONS_PRINTF("\n creationFlags: %d, ", (uns32)ckpt_map_node->attributes.creationFlags);
-            m_NCS_CONS_PRINTF("\n retentionDuration: %d, ", (uns32)ckpt_map_node->attributes.retentionDuration);
-            m_NCS_CONS_PRINTF("\n maxSections: %ld, ", ckpt_map_node->attributes.maxSections);
-            m_NCS_CONS_PRINTF("\n maxSectionSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionSize);
-            m_NCS_CONS_PRINTF("\n maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
+            printf("\n Create Attributes");
+            printf("\n creationFlags: %d, ", (uns32)ckpt_map_node->attributes.creationFlags);
+            printf("\n retentionDuration: %d, ", (uns32)ckpt_map_node->attributes.retentionDuration);
+            printf("\n maxSections: %ld, ", ckpt_map_node->attributes.maxSections);
+            printf("\n maxSectionSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionSize);
+            printf("\n maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
             ckpt_map_node = (CPD_CKPT_MAP_INFO *)ncs_patricia_tree_getnext(&cb->ckpt_map_tree,(uns8*)name.value);
          }
-         m_NCS_CONS_PRINTF("\n End of CKPT Info");
+         printf("\n End of CKPT Info");
       }
-      m_NCS_CONS_PRINTF("\n End of CKPT nodes information \n");
+      printf("\n End of CKPT nodes information \n");
    }  
-   m_NCS_CONS_PRINTF("*****************End of CPD CB Dump******************");
-   m_NCS_CONS_PRINTF("\n\n");   
+   printf("*****************End of CPD CB Dump******************");
+   printf("\n\n");   
 /* #endif    */
    return;  
 }

@@ -119,14 +119,14 @@ uns32 avsv_app_init(void)
       goto err;
    }
 
-   m_NCS_CONS_PRINTF("\n\n AVSV-APP TASK CREATION SUCCESS !!! \n\n");
+   printf("\n\n AVSV-APP TASK CREATION SUCCESS !!! \n\n");
 
    return rc;
 
 err:
    /* destroy the task */
    if (gl_app_task_hdl) m_NCS_TASK_RELEASE(gl_app_task_hdl);
-   m_NCS_CONS_PRINTF("\n\n AVSV-APP TASK CREATION FAILED !!! \n\n");
+   printf("\n\n AVSV-APP TASK CREATION FAILED !!! \n\n");
 
    return rc;
 }
@@ -152,7 +152,7 @@ void avsv_app_process (void)
       {
          gl_count1++;
 	 gl_count2 = gl_count1 +500;
-       //  m_NCS_CONS_PRINTF("\n\n COUNTER VALUE: %d \n\n", gl_count1);
+       //  printf("\n\n COUNTER VALUE: %d \n\n", gl_count1);
 
          /* Update the standby with this value */
          avsv_ckpt_data_write(&gl_count1,&gl_count2);

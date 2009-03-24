@@ -361,7 +361,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -376,26 +376,26 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
     
  
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|  N O N - I G N O R E D   O U T S T A N D I N G   B U F   R E P O R T  |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|  #| Age|Real|   alloc'ed|Owner|Ownr claims|  Real  |Svc|Sub|          |RefCnt|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|  #| Cnt|line|    in file| line|    in file|  size  | ID| ID| Ptr value|      |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
       for(pe = leap_buf_pool.inuse,j = 0;pe != NULL;pe = pe->next)
@@ -437,7 +437,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
 
       j++;
 
-          if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+          if(to_std == TRUE) printf("%s", output_string);
           if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
       }
@@ -524,7 +524,7 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -581,31 +581,31 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
 
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
   sprintf(output_string, "%s","|         B U F  O U T   - S U M M A R Y          |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
   sprintf(output_string, "%s","|hit   |show |   alloc'ed  |Owner |Svc |Sub |real |bkt  |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
   sprintf(output_string, "%s","|Cnt   |Cnt  |    in file  | line | ID | ID |size |size |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
  
     
-  if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+  if(to_std == TRUE) printf("%s", output_string);
   if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
   j = 0;
@@ -636,13 +636,13 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
        j++;
      }
 
-     if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+     if(to_std == TRUE) printf("%s", output_string);
      if(to_file == TRUE) sysf_fprintf (fh, output_string);
     }
   }
    
   sprintf(output_string,"|------+-----+-------------+------+----+----+-----+-----|\n");
-  if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+  if(to_std == TRUE) printf("%s", output_string);
   if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
       if (((to_file == TRUE)) && fh) 
@@ -1939,7 +1939,7 @@ sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const u, unsigned int PktLen, uns16 *cons
    }
 
    if(PktLen)
-      m_NCS_CONS_PRINTF("\nCKSUM ERROR : Bad PktLen\n");
+      printf("\nCKSUM ERROR : Bad PktLen\n");
 
    if(bufLen == -1)
    {
@@ -3283,7 +3283,7 @@ sysf_pick_output(char* str, char* fname)
     sysf_fclose(file);
     }
   else
-    m_NCS_CONS_PRINTF("%s\n",str);
+    printf("%s\n",str);
 
   return NCSCC_RC_SUCCESS;
   }
@@ -3296,10 +3296,10 @@ extern void *my_malloc(size_t nbytes)
    if ((gl_my_malloc_curr_size+=nbytes) > MY_MALLOC_SIZE)
    {
       gl_my_malloc_curr_size-= nbytes;
-      m_NCS_CONS_PRINTF("my_malloc FAILED: current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
+      printf("my_malloc FAILED: current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
       return NULL;
    }
-   m_NCS_CONS_PRINTF("current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
+   printf("current=%d, requested=%d, allowed=%d\n", gl_my_malloc_curr_size, nbytes, MY_MALLOC_SIZE);
    return malloc(nbytes);
 }
 

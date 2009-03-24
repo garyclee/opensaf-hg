@@ -1747,10 +1747,6 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
  *                                                                         *
  ***************************************************************************/
 
-#ifndef m_NCS_OS_CONS_PRINTF
-#error Warning! Implementation needed for CONS Printf
-#endif
-
 #ifndef m_NCS_OS_DBG_PRINTF
 #error Warning! Implementation needed for DBG Printf
 #endif

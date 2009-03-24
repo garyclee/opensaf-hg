@@ -447,7 +447,7 @@ snmpsubagt_canned_str_reg(NCS_SERVICE_ID i_svc_id)
     status = ncs_dtsv_ascii_spec_api(&canned_str);
     if (status != NCSCC_RC_SUCCESS)
     {
-         m_NCS_CONS_PRINTF ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",
+         printf ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",
                             __LINE__,__FILE__);
     }
         
@@ -481,7 +481,7 @@ snmpsubagt_canned_str_dereg(NCS_SERVICE_ID i_svc_id)
     status = ncs_dtsv_ascii_spec_api(&canned_str);
     if (status != NCSCC_RC_SUCCESS)
     {
-         m_NCS_CONS_PRINTF ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",
+         printf ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",
                             __LINE__,__FILE__);
     }
         

@@ -49,18 +49,18 @@ data_at_end_test(void)
 
     char store[BOTH_MSGS]; /* should = sz_msg1 + sz_msg2 */
 
-    m_NCS_CONS_PRINTF("- Start Testing m_MMGR_DATA_AT_END -\n");
+    printf("- Start Testing m_MMGR_DATA_AT_END -\n");
 
     if ((sz_msg1 + sz_msg2) > BOTH_MSGS)
     {
-        m_NCS_CONS_PRINTF("  Coding Error: test array must be larger\n");
+        printf("  Coding Error: test array must be larger\n");
         goto GET_OUT;
     }
 
     /* allocate the USRBUFs */
     if ((ub1 = m_MMGR_ALLOC_BUFR(0)) == BNULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to allocate a USRBUF!!\n");
+        printf("  !!Failed to allocate a USRBUF!!\n");
         goto FREE_LIST1;
     }
 
@@ -69,27 +69,27 @@ data_at_end_test(void)
     ub1->count = sizeof(testpattern);
     memcpy((ub1->payload->Data),testpattern, sizeof(testpattern));
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
-    m_NCS_CONS_PRINTF ("\nCHECKSUM 1 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);
+    printf ("\nCHECKSUM 1 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);
     /* place the cksum back in and do a recompute, 
      * the resultant should be 0 if all goes well 
      */
     p_cksum_field = (uns16*)(((uns8*)ub1->payload->Data)+2);
     *p_cksum_field = m_NCS_OS_NTOHS_P((uns8*)&cksum);
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
-    m_NCS_CONS_PRINTF ("CHECKSUM 1 RECOMPUTE RETURNED (%x) SHOULD BE 0\n", cksum);
+    printf ("CHECKSUM 1 RECOMPUTE RETURNED (%x) SHOULD BE 0\n", cksum);
 
     /* Odd byte boundary */
     ub1->start++;
     memcpy((ub1->payload->Data+1),testpattern, sizeof(testpattern));
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
-    m_NCS_CONS_PRINTF ("CHECKSUM 2 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);    
+    printf ("CHECKSUM 2 RETURNED (%x) SHOULD BE 0x7cc5\n", cksum);    
     /* place the cksum back in and do a recompute, 
      * the resultant should be 0 if all goes well 
      */
     p_cksum_field = (uns16*)(((uns8*)ub1->payload->Data)+3);
     *p_cksum_field = m_NCS_OS_NTOHS_P((uns8*)&cksum);
     m_MMGR_BUFR_CALC_CKSUM(ub1, ub1->count, &cksum);
-    m_NCS_CONS_PRINTF ("CHECKSUM 2 RECOMPUTE RETURNED (%x) SHOULD BE 0\n", cksum);
+    printf ("CHECKSUM 2 RECOMPUTE RETURNED (%x) SHOULD BE 0\n", cksum);
 
     
     /* Reset Userbuff fields */
@@ -99,21 +99,21 @@ data_at_end_test(void)
     
     if ((ub2 = m_MMGR_ALLOC_BUFR(0)) == BNULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to allocate a USRBUF!!\n");
+        printf("  !!Failed to allocate a USRBUF!!\n");
         goto FREE_LIST2;
     }
 
     /* put messages into USRBUFs */
     if ((cp = m_MMGR_RESERVE_AT_START (&ub1, sz_msg1, char *)) == NULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to reserve space in ub1!!\n");
+        printf("  !!Failed to reserve space in ub1!!\n");
         goto FREE_LIST2;
     }
     memcpy (cp, ub1_msg, sz_msg1);
 
     if ((cp = m_MMGR_RESERVE_AT_START (&ub2, sz_msg2, char *)) == NULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to reserve space in ub2!!\n");
+        printf("  !!Failed to reserve space in ub2!!\n");
         goto FREE_LIST2;
     }
     memcpy (cp, ub2_msg, sz_msg2);
@@ -125,12 +125,12 @@ data_at_end_test(void)
     /* read entire message from chain */
     if ((cp = m_MMGR_DATA_AT_END (ub1, sz_msg1+sz_msg2, store)) == NULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to read data from chain!!\n");
+        printf("  !!Failed to read data from chain!!\n");
         goto FREE_LIST1;
     }
 
 
-    m_NCS_CONS_PRINTF ("Entire Message:\n%s", cp);
+    printf ("Entire Message:\n%s", cp);
     goto FREE_LIST1;
 
 
@@ -140,20 +140,20 @@ FREE_LIST1:
     m_MMGR_FREE_BUFR_LIST (ub1);
 
 GET_OUT:
-    m_NCS_CONS_PRINTF("- Complete Testing m_MMGR_DATA_AT_END -\n\n");
+    printf("- Complete Testing m_MMGR_DATA_AT_END -\n\n");
 }
 
 
 int
 bufferManager_testSuite (int argc, char **argv)
 {
-    m_NCS_CONS_PRINTF("Buffer Manager Test Suite\n");
+    printf("Buffer Manager Test Suite\n");
     ncs_mem_create ();
 
     data_at_end_test();
 
     ncs_mem_destroy ();
-    m_NCS_CONS_PRINTF("-Exiting Buffer Manager Macro Test-\n\n");
+    printf("-Exiting Buffer Manager Macro Test-\n\n");
     return 0;
 }
 

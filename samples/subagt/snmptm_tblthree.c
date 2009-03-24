@@ -56,7 +56,7 @@ SNMPTM_TBLTHREE *snmptm_create_tblthree_entry(SNMPTM_CB *snmptm,
    if ((tblthree = (SNMPTM_TBLTHREE*)m_MMGR_ALLOC_SNMPTM_TBLTHREE)
         == SNMPTM_TBLTHREE_NULL)   
    {
-      m_NCS_CONS_PRINTF("\nNot able to alloc the memory for TBLTHREE \n");
+      printf("\nNot able to alloc the memory for TBLTHREE \n");
       return NULL;
    }
 
@@ -71,7 +71,7 @@ SNMPTM_TBLTHREE *snmptm_create_tblthree_entry(SNMPTM_CB *snmptm,
    if(NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&(snmptm->tblthree_tree),
                                                 &(tblthree->tblthree_pat_node)))
    {
-      m_NCS_CONS_PRINTF("\nNot able add TBLTHREE node to TBLTHREE tree.\n");
+      printf("\nNot able add TBLTHREE node to TBLTHREE tree.\n");
 
       /* Free the alloc memory of TBLTHREE */
       m_MMGR_FREE_SNMPTM_TBLTHREE(tblthree);

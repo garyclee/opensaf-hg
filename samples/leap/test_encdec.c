@@ -90,25 +90,25 @@ static uns32 lt_test_uba_encdec_ops(void)
     p8 = ncs_enc_reserve_space(&src_uba, sizeof(uns64));
     ncs_encode_64bit(&p8, src_64bit_data);
     ncs_enc_claim_space(&src_uba, sizeof(uns64));
-    m_NCS_CONS_PRINTF("Encoded 64-bit value...\n");
+    printf("Encoded 64-bit value...\n");
 
     /* Encoding 32bit data */
     p8 = ncs_enc_reserve_space(&src_uba, sizeof(uns32));
     ncs_encode_32bit(&p8, src_32bit_data);
     ncs_enc_claim_space(&src_uba, sizeof(uns32));
-    m_NCS_CONS_PRINTF("Encoded 32-bit value...\n");
+    printf("Encoded 32-bit value...\n");
 
     /* Encoding 16bit data */
     p8 = ncs_enc_reserve_space(&src_uba, sizeof(uns16));
     ncs_encode_16bit(&p8, src_16bit_data);
     ncs_enc_claim_space(&src_uba, sizeof(uns16));
-    m_NCS_CONS_PRINTF("Encoded 16-bit value...\n");
+    printf("Encoded 16-bit value...\n");
 
     /* Encoding 8bit data */
     p8 = ncs_enc_reserve_space(&src_uba, sizeof(uns8));
     ncs_encode_8bit(&p8, src_8bit_data);
     ncs_enc_claim_space(&src_uba, sizeof(uns8));
-    m_NCS_CONS_PRINTF("Encoded 8-bit value...\n");
+    printf("Encoded 8-bit value...\n");
 
     /* Encoding string data */
     /* Length of the string(typically 16bit) is also to be 
@@ -122,7 +122,7 @@ static uns32 lt_test_uba_encdec_ops(void)
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Encoded string of length %d...\n", len);
+    printf("Encoded string of length %d...\n", len);
 
     /*** Now start decoding the NCS_UBAID ***/
     /* Always do "dec-init" before decoding starts */
@@ -132,15 +132,15 @@ static uns32 lt_test_uba_encdec_ops(void)
     p8 = ncs_dec_flatten_space(&src_uba, (uns8*)&dst_64bit_data, sizeof(uns64));
     dst_64bit_data = ncs_decode_64bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns64));
-    m_NCS_CONS_PRINTF("Decoded 64-bit value...");
+    printf("Decoded 64-bit value...");
     if(memcmp((uns8*)&src_64bit_data, (uns8*)&dst_64bit_data, sizeof(uns64))
         == 0)
     {
-        m_NCS_CONS_PRINTF("Decoded 64-bit value matches the encoded value...\n");
+        printf("Decoded 64-bit value matches the encoded value...\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("FAILURE : Decoded 64-bit value didn't match the encoded value!!!!\n");
+        printf("FAILURE : Decoded 64-bit value didn't match the encoded value!!!!\n");
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
@@ -149,15 +149,15 @@ static uns32 lt_test_uba_encdec_ops(void)
     p8 = ncs_dec_flatten_space(&src_uba, (uns8*)&dst_32bit_data, sizeof(uns32));
     dst_32bit_data = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns32));
-    m_NCS_CONS_PRINTF("Decoded 32-bit value...");
+    printf("Decoded 32-bit value...");
     if(memcmp((uns8*)&src_32bit_data, (uns8*)&dst_32bit_data, sizeof(uns32))
         == 0)
     {
-        m_NCS_CONS_PRINTF("Decoded 32-bit value matches the encoded value...\n");
+        printf("Decoded 32-bit value matches the encoded value...\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("FAILURE : Decoded 32-bit value didn't match the encoded value!!!!\n");
+        printf("FAILURE : Decoded 32-bit value didn't match the encoded value!!!!\n");
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
@@ -166,15 +166,15 @@ static uns32 lt_test_uba_encdec_ops(void)
     p8 = ncs_dec_flatten_space(&src_uba, (uns8*)&dst_16bit_data, sizeof(uns16));
     dst_16bit_data = ncs_decode_16bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns16));
-    m_NCS_CONS_PRINTF("Decoded 16-bit value...");
+    printf("Decoded 16-bit value...");
     if(memcmp((uns8*)&src_16bit_data, (uns8*)&dst_16bit_data, sizeof(uns16))
         == 0)
     {
-        m_NCS_CONS_PRINTF("Decoded 16-bit value matches the encoded value...\n");
+        printf("Decoded 16-bit value matches the encoded value...\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("FAILURE : Decoded 16-bit value didn't match the encoded value!!!!\n");
+        printf("FAILURE : Decoded 16-bit value didn't match the encoded value!!!!\n");
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
@@ -183,14 +183,14 @@ static uns32 lt_test_uba_encdec_ops(void)
     p8 = ncs_dec_flatten_space(&src_uba, (uns8*)&dst_8bit_data, sizeof(uns8));
     dst_8bit_data = ncs_decode_8bit(&p8);
     ncs_dec_skip_space(&src_uba, sizeof(uns8));
-    m_NCS_CONS_PRINTF("Decoded 8-bit value...");
+    printf("Decoded 8-bit value...");
     if(src_8bit_data == dst_8bit_data)
     {
-        m_NCS_CONS_PRINTF("Decoded 8-bit value matches the encoded value...\n");
+        printf("Decoded 8-bit value matches the encoded value...\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("FAILURE : Decoded 8-bit value didn't match the encoded value!!!!\n");
+        printf("FAILURE : Decoded 8-bit value didn't match the encoded value!!!!\n");
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
@@ -205,15 +205,15 @@ static uns32 lt_test_uba_encdec_ops(void)
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Decoded string of length %d...", len);
+    printf("Decoded string of length %d...", len);
     if(strcmp((char*)&src_str_data, (char*)&dst_str_data) == 0)
     {
         /* Decode successful. */
-        m_NCS_CONS_PRINTF("Decoded string matches the encoded string...\n");
+        printf("Decoded string matches the encoded string...\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("FAILURE : Decoded string didn't match the encoded string!!!!\n");
+        printf("FAILURE : Decoded string didn't match the encoded string!!!!\n");
         lt_free_uba_contents(&src_uba);
         return NCSCC_RC_FAILURE;
     }

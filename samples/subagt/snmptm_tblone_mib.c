@@ -96,7 +96,7 @@ uns32 snmptm_tblone_tbl_req(struct ncsmib_arg *args)
    if((args->i_policy & NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER) ==
          NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER)
    {
-      m_NCS_CONS_PRINTF("For TBLONE, last playback update from PSS received...]n");
+      printf("For TBLONE, last playback update from PSS received...]n");
    }
 
    /* call the miblib routine handler */ 
@@ -304,7 +304,7 @@ uns32 ncstesttableoneentry_set(NCSCONTEXT cb,
    uns8                create_flag = FALSE;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableOneEntry:  Received SNMP SET request\n");
+   printf("\nncsTestTableOneEntry:  Received SNMP SET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 
@@ -506,7 +506,7 @@ uns32  ncstesttableoneentry_get(NCSCONTEXT cb,
    uns32         ret_code = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableOneEntry:  Received SNMP GET request\n");
+   printf("\nncsTestTableOneEntry:  Received SNMP GET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    
@@ -544,7 +544,7 @@ uns32 ncstesttableoneentry_next(NCSCONTEXT snmptm,
    uns32         ret_code = NCSCC_RC_SUCCESS;
  
   
-   m_NCS_CONS_PRINTF("\nncsTestTableOneEntry:  Received SNMP NEXT request\n");
+   printf("\nncsTestTableOneEntry:  Received SNMP NEXT request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    
@@ -585,7 +585,7 @@ uns32 ncstesttableoneentry_setrow(NCSCONTEXT cb,
    SNMPTM_TBL_KEY   tblone_key;
    NCSMIBLIB_REQ_INFO  temp_mib_req;   
 
-   m_NCS_CONS_PRINTF("\nncsTestTableOneEntry: Received SNMP SETROW request\n");
+   printf("\nncsTestTableOneEntry: Received SNMP SETROW request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
    

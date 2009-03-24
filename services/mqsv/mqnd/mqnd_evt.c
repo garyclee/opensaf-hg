@@ -627,7 +627,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
          to compensate for the lost request we send an async request to MQD to process it once again to be
          in sync with database at MQND*/
          #ifdef NCS_MQND
-          m_NCS_CONS_PRINTF("UNLINK TIMEOUT:ASYNC DEREG TO DELETE ORPHAN QUEUE\n");
+          printf("UNLINK TIMEOUT:ASYNC DEREG TO DELETE ORPHAN QUEUE\n");
          #endif 
          memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
@@ -727,7 +727,7 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
          to compensate for the lost request we send an async request to MQD to process it once again to be
          in sync with database at MQND*/
          #ifdef NCS_MQND
-          m_NCS_CONS_PRINTF("UNLINK TIMEOUT:ASYNC DEREG AVAILABLE QUEUE TO UNAVAIL\n");
+          printf("UNLINK TIMEOUT:ASYNC DEREG AVAILABLE QUEUE TO UNAVAIL\n");
          #endif
          memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;
@@ -911,13 +911,13 @@ static uns32 mqnd_evt_proc_update_stats_shm(MQND_CB *cb, MQSV_DSEND_EVT *evt)
     {
      m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                               is_valid_msg_fmt, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:1 %d\n",is_valid_msg_fmt);
+     printf("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:1 %d\n",is_valid_msg_fmt);
     }
     if(!msg_fmt_ver)
     {
      m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                               msg_fmt_ver, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:2 %d\n",msg_fmt_ver);
+     printf("mqnd_evt_proc_update_stats_shm:INVALID MSG FORMAT:2 %d\n",msg_fmt_ver);
     }
 
     err = SA_AIS_ERR_VERSION;
@@ -1036,13 +1036,13 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
     {
      m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                               is_valid_msg_fmt, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:1 %d\n",is_valid_msg_fmt);
+     printf("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:1 %d\n",is_valid_msg_fmt);
     }
     if(!msg_fmt_ver)
     {
      m_LOG_MQSV_ND(MQND_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                               msg_fmt_ver, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:2 %d\n",msg_fmt_ver);
+     printf("mqnd_evt_proc_send_msg:INVALID MSG FORMAT:2 %d\n",msg_fmt_ver);
     }
     err = SA_AIS_ERR_VERSION;
     rc = NCSCC_RC_FAILURE;
@@ -1620,99 +1620,99 @@ static uns32 mqnd_evt_proc_cb_dump(void)
    shm_base_addr = cb->mqnd_shm.shm_base_addr; 
 
    memset(&qname,'\0',sizeof(SaNameT));
-   m_NCS_OS_PRINTF("\n<<<<<<<<<<<<<<< MQND CB Details >>>>>>>>>>>>>>>\n\n");
+   printf("\n<<<<<<<<<<<<<<< MQND CB Details >>>>>>>>>>>>>>>\n\n");
 
-   m_NCS_OS_PRINTF("MQND MDS DEST: %u\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->my_dest));
+   printf("MQND MDS DEST: %u\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->my_dest));
    switch(cb->ha_state)
     {
      case SA_AMF_HA_ACTIVE:
-       m_NCS_OS_PRINTF("HA STATE     : SA_AMF_HA_ACTIVE\n");
+       printf("HA STATE     : SA_AMF_HA_ACTIVE\n");
        break;
      case SA_AMF_HA_STANDBY:
-       m_NCS_OS_PRINTF("HA STATE     : SA_AMF_HA_STANDBY\n");
+       printf("HA STATE     : SA_AMF_HA_STANDBY\n");
        break; 
      case SA_AMF_HA_QUIESCED:
-       m_NCS_OS_PRINTF("HA STATE     : SA_AMF_HA_QUIESCED\n");
+       printf("HA STATE     : SA_AMF_HA_QUIESCED\n");
        break;
      case SA_AMF_HA_QUIESCING:
-       m_NCS_OS_PRINTF("HA STATE     : SA_AMF_HA_QUIESCING\n");
+       printf("HA STATE     : SA_AMF_HA_QUIESCING\n");
        break; 
      default:
-       m_NCS_OS_PRINTF("HA STATE     : UNDEFINED\n"); 
+       printf("HA STATE     : UNDEFINED\n"); 
     }
    if(cb->is_restart_done)
-     m_NCS_OS_PRINTF("MQND RESTART : COMPLETE\n");
+     printf("MQND RESTART : COMPLETE\n");
    else
-     m_NCS_OS_PRINTF("MQND RESTART : INCOMPLETE\n");
+     printf("MQND RESTART : INCOMPLETE\n");
    if (cb->is_mqd_up)
-      m_NCS_OS_PRINTF("MQD          : UP  \n");
+      printf("MQD          : UP  \n");
    else
-      m_NCS_OS_PRINTF("MQD          : DOWN \n");
-   m_NCS_OS_PRINTF("\n------------- QUEUE NODE Details -------------\n\n");
+      printf("MQD          : DOWN \n");
+   printf("\n------------- QUEUE NODE Details -------------\n\n");
    mqnd_queue_node_getnext(cb, 0, &qnode);
    while(qnode)
    {
-      m_NCS_OS_PRINTF("~~~~~~~~~~ START %s's INFO ~~~~~~~~~~\n",qnode->qinfo.queueName.value); 
-      m_NCS_OS_PRINTF(" Message Handle : %llu\n",qnode->qinfo.msgHandle);
-      m_NCS_OS_PRINTF(" Queue Handle   : %llu\n",qnode->qinfo.queueHandle);
+      printf("~~~~~~~~~~ START %s's INFO ~~~~~~~~~~\n",qnode->qinfo.queueName.value); 
+      printf(" Message Handle : %llu\n",qnode->qinfo.msgHandle);
+      printf(" Queue Handle   : %llu\n",qnode->qinfo.queueHandle);
 
       if(qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)  
-         m_NCS_OS_PRINTF("\n Sending State  : MSG_QUEUE_UNAVAILABLE\n");
+         printf("\n Sending State  : MSG_QUEUE_UNAVAILABLE\n");
       else
         if(qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE)
-         m_NCS_OS_PRINTF("\n Sending State  : MSG_QUEUE_AVAILABLE\n");
+         printf("\n Sending State  : MSG_QUEUE_AVAILABLE\n");
       switch(qnode->qinfo.owner_flag)
        {
         case MQSV_QUEUE_OWN_STATE_ORPHAN:
-         m_NCS_OS_PRINTF(" Owner Flag     : MQSV_QUEUE_OWN_STATE_ORPHAN\n");
+         printf(" Owner Flag     : MQSV_QUEUE_OWN_STATE_ORPHAN\n");
          break; 
         case MQSV_QUEUE_OWN_STATE_OWNED:
-         m_NCS_OS_PRINTF(" Owner Flag     : MQSV_QUEUE_OWN_STATE_OWNED\n");
+         printf(" Owner Flag     : MQSV_QUEUE_OWN_STATE_OWNED\n");
          break;
         case MQSV_QUEUE_OWN_STATE_PROGRESS:
-         m_NCS_OS_PRINTF(" Owner Flag     : MQSV_QUEUE_OWN_STATE_PROGRESS\n");
+         printf(" Owner Flag     : MQSV_QUEUE_OWN_STATE_PROGRESS\n");
          break;
         default:
-         m_NCS_OS_PRINTF(" Owner Flag     : UNDEFINED\n");
+         printf(" Owner Flag     : UNDEFINED\n");
        }  
-      m_NCS_OS_PRINTF(" \n Queue Key      : %d\n",qnode->qinfo.q_key);
-      m_NCS_OS_PRINTF(" Agent info of the receiver: %u\n",m_NCS_NODE_ID_FROM_MDS_DEST(qnode->qinfo.rcvr_mqa));
+      printf(" \n Queue Key      : %d\n",qnode->qinfo.q_key);
+      printf(" Agent info of the receiver: %u\n",m_NCS_NODE_ID_FROM_MDS_DEST(qnode->qinfo.rcvr_mqa));
       
       if(qnode->qinfo.tmr.is_active){
-        m_NCS_OS_PRINTF("\n\n~~~~~~~~~~RETENTION TIMER DETAILS~~~~~~~~~~\n");   
+        printf("\n\n~~~~~~~~~~RETENTION TIMER DETAILS~~~~~~~~~~\n");   
         mqnd_dump_timer_info(qnode->qinfo.tmr);
        }
       else
-        m_NCS_OS_PRINTF("\n\n RETENTION TIMER INACTIVE\n");
+        printf("\n\n RETENTION TIMER INACTIVE\n");
       if(qnode->qinfo.qtransfer_complete_tmr.is_active){ 
-        m_NCS_OS_PRINTF("~~~~~~~~~~QTRANSFER TIMER DETAILS~~~~~~~~~~\n");
+        printf("~~~~~~~~~~QTRANSFER TIMER DETAILS~~~~~~~~~~\n");
         mqnd_dump_timer_info(qnode->qinfo.qtransfer_complete_tmr); 
        }
       else
-        m_NCS_OS_PRINTF(" QTRANSFER TIMER INACTIVE\n\n"); 
+        printf(" QTRANSFER TIMER INACTIVE\n\n"); 
 
       offset = qnode->qinfo.shm_queue_index; 
       mqnd_dump_queue_status(cb, &qnode->qinfo.queueStatus, offset);
-      m_NCS_OS_PRINTF("\n\n Queue Total Size          : %u\n",qnode->qinfo.totalQueueSize);
-      m_NCS_OS_PRINTF(" Queue Total Used Size     : %llu\n", shm_base_addr[offset].QueueStatsShm.totalQueueUsed);
-      m_NCS_OS_PRINTF(" Queue Total No of Messages: %u\n",shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
-      m_NCS_OS_PRINTF("\n~~~~~~~~~~ MIB Related Queue Info ~~~~~~~~~~\n");
-      m_NCS_OS_PRINTF(" Queue Creation Time:  %llu\n",qnode->qinfo.creationTime);
+      printf("\n\n Queue Total Size          : %u\n",qnode->qinfo.totalQueueSize);
+      printf(" Queue Total Used Size     : %llu\n", shm_base_addr[offset].QueueStatsShm.totalQueueUsed);
+      printf(" Queue Total No of Messages: %u\n",shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
+      printf("\n~~~~~~~~~~ MIB Related Queue Info ~~~~~~~~~~\n");
+      printf(" Queue Creation Time:  %llu\n",qnode->qinfo.creationTime);
       for(i=SA_MSG_MESSAGE_HIGHEST_PRIORITY;i< SA_MSG_MESSAGE_LOWEST_PRIORITY+1;i++)
-          m_NCS_OS_PRINTF(" Number of Full Errors of %u priority: %u\n", i, qnode->qinfo.numberOfFullErrors[i]);
+          printf(" Number of Full Errors of %u priority: %u\n", i, qnode->qinfo.numberOfFullErrors[i]);
 
-      m_NCS_OS_PRINTF("~~~~~~~~~~ END %s's INFO ~~~~~~~~~~\n",qnode->qinfo.queueName.value);
+      printf("~~~~~~~~~~ END %s's INFO ~~~~~~~~~~\n",qnode->qinfo.queueName.value);
       mqnd_queue_node_getnext(cb, qnode->qinfo.queueHandle, &qnode);
    }   
    if(cb->is_qname_db_up)
    {
-      m_NCS_OS_PRINTF(" QNAME Database : UP\n");
+      printf(" QNAME Database : UP\n");
         
       mqnd_qname_node_getnext(cb, qname, &pnode);        
       while(pnode)
       {
-         m_NCS_OS_PRINTF(" Queue Name     : %s\n",pnode->qname.value);
-         m_NCS_OS_PRINTF(" Queue Handle   : %llu\n",pnode->qhdl);
+         printf(" Queue Name     : %s\n",pnode->qname.value);
+         printf(" Queue Handle   : %llu\n",pnode->qhdl);
          qname = pnode->qname;
          qname.length = m_NTOH_SANAMET_LEN(qname.length); 
          mqnd_qname_node_getnext(cb,qname, &pnode);        
@@ -1720,16 +1720,16 @@ static uns32 mqnd_evt_proc_cb_dump(void)
    }
    if(cb->is_qevt_hdl_db_up)
     {
-     m_NCS_OS_PRINTF("\n QEVT NODE Database  :UP\n");
+     printf("\n QEVT NODE Database  :UP\n");
      mqnd_qevt_node_getnext(cb,0,&qevt_node);
      while(qevt_node)
       {
-       m_NCS_OS_PRINTF(" Queue Handle : %llu\n",qevt_node->tmr.qhdl);
+       printf(" Queue Handle : %llu\n",qevt_node->tmr.qhdl);
        mqnd_qevt_node_getnext(cb,qevt_node->tmr.qhdl,&qevt_node);
       }
     }
 
-   m_NCS_OS_PRINTF("<<<<<<<<<<<<<<< End of the CB >>>>>>>>>>>>>>>\n");
+   printf("<<<<<<<<<<<<<<< End of the CB >>>>>>>>>>>>>>>\n");
 
    /* Return the Handle */
    ncshm_give_hdl(cb_hdl);
@@ -1742,19 +1742,19 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
    uns32 i;
    MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
-   m_NCS_OS_PRINTF("~~~~~~~~~~ Queue Status Parameters ~~~~~~~~~~\n");
-   m_NCS_OS_PRINTF(" Creation Flags: %u\n",queueStatus->creationFlags);
-   m_NCS_OS_PRINTF(" Retention time: %llu\n",queueStatus->retentionTime);
-   m_NCS_OS_PRINTF(" Close Time    : %llu\n",queueStatus->closeTime);
+   printf("~~~~~~~~~~ Queue Status Parameters ~~~~~~~~~~\n");
+   printf(" Creation Flags: %u\n",queueStatus->creationFlags);
+   printf(" Retention time: %llu\n",queueStatus->retentionTime);
+   printf(" Close Time    : %llu\n",queueStatus->closeTime);
 
 
    shm_base_addr = cb->mqnd_shm.shm_base_addr;
    for(i= SA_MSG_MESSAGE_HIGHEST_PRIORITY;i<SA_MSG_MESSAGE_LOWEST_PRIORITY+1;i++)
    {
-      m_NCS_OS_PRINTF("\n Priority: %d",i);
-      m_NCS_OS_PRINTF("     Queue Size: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
-      m_NCS_OS_PRINTF("     Queue Used: %llu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueUsed);
-      m_NCS_OS_PRINTF("     No of messages: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
+      printf("\n Priority: %d",i);
+      printf("     Queue Size: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueSize);
+      printf("     Queue Used: %llu", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].queueUsed);
+      printf("     No of messages: %u", shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[i].numberOfMessages);
    }
 }
 
@@ -1762,10 +1762,10 @@ static void mqnd_dump_queue_status(MQND_CB *cb, SaMsgQueueStatusT *queueStatus, 
 
 static void mqnd_dump_timer_info(MQND_TMR tmr)
 {
-    m_NCS_OS_PRINTF("\n Timer Type: %d\n",tmr.type);
-    m_NCS_OS_PRINTF(" Timer ID: %p\n", tmr.tmr_id);
-    m_NCS_OS_PRINTF(" Queue Handle: %llu\n",tmr.qhdl);
-    m_NCS_OS_PRINTF(" uarg: %u\ni",tmr.uarg);
+    printf("\n Timer Type: %d\n",tmr.type);
+    printf(" Timer ID: %p\n", tmr.tmr_id);
+    printf(" Queue Handle: %llu\n",tmr.qhdl);
+    printf(" uarg: %u\ni",tmr.uarg);
 }
 
 

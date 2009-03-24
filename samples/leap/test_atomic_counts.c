@@ -126,7 +126,7 @@ counting (void * arg)/*lint -e715 */
 
         case UNKNOWN:
         default:
-            m_NCS_CONS_PRINTF("Failed in task function counting() ! invalid test_type %d\n", test_type);
+            printf("Failed in task function counting() ! invalid test_type %d\n", test_type);
             break;
 
     }
@@ -162,15 +162,15 @@ atomic_counting_test (int direction)
                               NCS_STACKSIZE_HUGE,
                               &taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
         {
-            m_NCS_CONS_PRINTF("Failed! to create task %d\n", tsk_num);
+            printf("Failed! to create task %d\n", tsk_num);
             break;
         }
         if (m_NCS_TASK_START (taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
         {
-            m_NCS_CONS_PRINTF("Failed! to start task %d\n", tsk_num);
+            printf("Failed! to start task %d\n", tsk_num);
             break;
         }
-        m_NCS_CONS_PRINTF("Created & started task %d with handle %ld\n",
+        printf("Created & started task %d with handle %ld\n",
                          tsk_num, (long) taskhandles[tsk_num]);
     }
 
@@ -183,7 +183,7 @@ atomic_counting_test (int direction)
         expected_count += (ITERATIONS_TO_DO * 10 * direction);/*lint !e737 */
     }
 
-    m_NCS_CONS_PRINTF("counter = %u and expected result = %u\n", counter, expected_count);
+    printf("counter = %u and expected result = %u\n", counter, expected_count);
 
     return (counter == expected_count);
 }
@@ -197,26 +197,26 @@ atomic_inc_test(void)
 {
     NCS_BOOL result;
 
-    m_NCS_CONS_PRINTF("-Entering Atomic Increment Macro Test- it will take many minutes\n");
+    printf("-Entering Atomic Increment Macro Test- it will take many minutes\n");
 
 
-    m_NCS_CONS_PRINTF("\nFirst - perform nonatomic counting as a test reference - we want this to fail.\n");
+    printf("\nFirst - perform nonatomic counting as a test reference - we want this to fail.\n");
     test_type = INC_NON_ATOMIC;
     result = atomic_counting_test (1);
     if (result == TRUE)
     {
-        m_NCS_CONS_PRINTF("...Test may be invalid - nonatomic counting should not match...continuing anyway\n");
+        printf("...Test may be invalid - nonatomic counting should not match...continuing anyway\n");
     }
 
-    m_NCS_CONS_PRINTF("\nSecond - perform atomic counting.\n");
+    printf("\nSecond - perform atomic counting.\n");
     test_type = INC_ATOMIC;
     result = atomic_counting_test (1);
     if (result == FALSE)
-        m_NCS_CONS_PRINTF("...Test FAILED!\n");
+        printf("...Test FAILED!\n");
     else
-        m_NCS_CONS_PRINTF("...SUCCESS!\n");
+        printf("...SUCCESS!\n");
 
-    m_NCS_CONS_PRINTF("\n-Exiting Atomic Increment Macro Test-\n\n");
+    printf("\n-Exiting Atomic Increment Macro Test-\n\n");
     return 0;
 }
 
@@ -231,25 +231,25 @@ atomic_dec_test(void)
 {
     NCS_BOOL result;
 
-    m_NCS_CONS_PRINTF("-Entering Atomic Decrement Macro Test- it will take many minutes\n");
+    printf("-Entering Atomic Decrement Macro Test- it will take many minutes\n");
 
-    m_NCS_CONS_PRINTF("\nFirst - perform nonatomic counting as a test reference - we want this to fail.\n");
+    printf("\nFirst - perform nonatomic counting as a test reference - we want this to fail.\n");
     test_type = DEC_NON_ATOMIC;
     result = atomic_counting_test (-1);
     if (result == TRUE)
     {
-        m_NCS_CONS_PRINTF("...Test may be invalid - nonatomic counting should not match...continuing anyway\n");
+        printf("...Test may be invalid - nonatomic counting should not match...continuing anyway\n");
     }
 
-    m_NCS_CONS_PRINTF("\nSecond - perform atomic counting.\n");
+    printf("\nSecond - perform atomic counting.\n");
     test_type = DEC_ATOMIC;
     result = atomic_counting_test (-1);
     if (result == FALSE)
-        m_NCS_CONS_PRINTF("...Test FAILED!\n");
+        printf("...Test FAILED!\n");
     else
-        m_NCS_CONS_PRINTF("...SUCCESS!\n");
+        printf("...SUCCESS!\n");
 
-    m_NCS_CONS_PRINTF("\n-Exiting Atomic Decrement Macro Test-\n\n");
+    printf("\n-Exiting Atomic Decrement Macro Test-\n\n");
     return 0;
 }
 

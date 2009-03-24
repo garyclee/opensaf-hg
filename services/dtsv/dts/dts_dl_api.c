@@ -438,7 +438,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
                  m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
                     "dts_apps_ascii_spec_load: Unable to load library.");
 
-                m_NCS_CONS_PRINTF("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n",lib_name);
+                printf("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n",lib_name);
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
                 memset(func_name, 0, DTS_MAX_FUNCNAME);
@@ -455,7 +455,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
             m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
                     "dts_apps_ascii_spec_load: Unable to load symbol");
 
-            m_NCS_CONS_PRINTF("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
+            printf("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
                               lib_name, func_name, dl_error);
 
             reg_unreg_routine = NULL; 

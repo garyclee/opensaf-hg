@@ -1932,28 +1932,28 @@ void cpnd_cb_dump(void)
    if(!cb)
    {
       m_LOG_CPND_CL(CPND_CB_HDL_TAKE_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CB RETRIEVAL FAILED\n");
+      printf("CB RETRIEVAL FAILED\n");
       return;
    }
 
    CPND_CKPT_NODE *ckpt_node=NULL;
    CPND_CKPT_CLIENT_NODE *cl_node=NULL;
 
-   m_NCS_CONS_PRINTF("************ CPND CB Details *************** \n");
+   printf("************ CPND CB Details *************** \n");
   
-   m_NCS_CONS_PRINTF("**** Global Cb Details ***************\n\n");
-   m_NCS_CONS_PRINTF("CPND MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id));
+   printf("**** Global Cb Details ***************\n\n");
+   printf("CPND MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id));
    if (cb->is_cpd_up) 
    {
-      m_NCS_CONS_PRINTF("CPD is UP  \n");
-      m_NCS_CONS_PRINTF("CPD MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpd_mdest_id));
+      printf("CPD is UP  \n");
+      printf("CPD MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpd_mdest_id));
    } else
-     m_NCS_CONS_PRINTF("CPD is DOWN \n");
+     printf("CPD is DOWN \n");
 
-   m_NCS_CONS_PRINTF("*************************************************\n");
-   m_NCS_CONS_PRINTF("Number of Shared memory segments %d\n",cb->num_rep);
+   printf("*************************************************\n");
+   printf("Number of Shared memory segments %d\n",cb->num_rep);
 
-   m_NCS_CONS_PRINTF("***** Start of Ckpt Details ***************\n\n");
+   printf("***** Start of Ckpt Details ***************\n\n");
    cpnd_ckpt_node_getnext(cb,0,&ckpt_node);
    while ( ckpt_node != NULL) 
    {
@@ -1974,9 +1974,9 @@ void cpnd_cb_dump(void)
       prev_ckpt_id = ckpt_node->ckpt_id;
       cpnd_ckpt_node_getnext(cb,prev_ckpt_id,&ckpt_node);
    }
-   m_NCS_CONS_PRINTF("***** End of Ckpt Details ***************\n\n");
+   printf("***** End of Ckpt Details ***************\n\n");
 
-   m_NCS_CONS_PRINTF("***** Start of Client Details ***************\n\n");
+   printf("***** Start of Client Details ***************\n\n");
    cpnd_client_node_getnext(cb,0,&cl_node);
    while ( cl_node != NULL)
    {
@@ -1993,7 +1993,7 @@ void cpnd_cb_dump(void)
       prev_cl_hdl = cl_node->ckpt_app_hdl;
       cpnd_client_node_getnext(cb,prev_cl_hdl,&cl_node);
    }
-   m_NCS_CONS_PRINTF("***** End of Client Details ***************\n\n");
+   printf("***** End of Client Details ***************\n\n");
 
 }
 /****************************************************************************
@@ -2010,36 +2010,36 @@ static
 void cpnd_dump_ckpt_attri(CPND_CKPT_NODE *cp_node)
 {
  
-   m_NCS_CONS_PRINTF("++++++++++++++++++++ATTRI+++++++++++++++++++++++++++\n");
-   m_NCS_CONS_PRINTF(" Creation Flags :\t");
+   printf("++++++++++++++++++++ATTRI+++++++++++++++++++++++++++\n");
+   printf(" Creation Flags :\t");
    switch(cp_node->create_attrib.creationFlags)
    {
       case SA_CKPT_WR_ALL_REPLICAS:
-         m_NCS_CONS_PRINTF("SA_CKPT_WR_ALL_REPLICAS\n");
+         printf("SA_CKPT_WR_ALL_REPLICAS\n");
          break;
 
       case SA_CKPT_WR_ACTIVE_REPLICA:
-         m_NCS_CONS_PRINTF("SA_CKPT_WR_ACTIVE_REPLICA\n");
+         printf("SA_CKPT_WR_ACTIVE_REPLICA\n");
          break;
 
       case SA_CKPT_WR_ACTIVE_REPLICA_WEAK:
-         m_NCS_CONS_PRINTF("SA_CKPT_WR_ACTIVE_REPLICA_WEAK\n");
+         printf("SA_CKPT_WR_ACTIVE_REPLICA_WEAK\n");
          break;
 
       case SA_CKPT_CHECKPOINT_COLLOCATED:
-         m_NCS_CONS_PRINTF("SA_CKPT_CHECKPOINT_COLLOCATED\n");
+         printf("SA_CKPT_CHECKPOINT_COLLOCATED\n");
          break;
 
       default:
-         m_NCS_CONS_PRINTF("\n Unkown creationFlags ..\n");
+         printf("\n Unkown creationFlags ..\n");
          break; 
    }
 
-   m_NCS_CONS_PRINTF("Ckpt Size %d \t retnetion time %d(scale of 100ms) \n",(uns32)(cp_node->create_attrib.checkpointSize),(uns32)(cp_node->create_attrib.retentionDuration));
-   m_NCS_CONS_PRINTF("Ckpt Max Sections %d\t Ckpt Max Section Size %d\n",\
+   printf("Ckpt Size %d \t retnetion time %d(scale of 100ms) \n",(uns32)(cp_node->create_attrib.checkpointSize),(uns32)(cp_node->create_attrib.retentionDuration));
+   printf("Ckpt Max Sections %d\t Ckpt Max Section Size %d\n",\
         (uns32)(cp_node->create_attrib.maxSections),(uns32)(cp_node->create_attrib.maxSectionSize));
-   m_NCS_CONS_PRINTF("Ckpt Section Max Size %d \n",(uns32)(cp_node->create_attrib.maxSectionIdSize));
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("Ckpt Section Max Size %d \n",(uns32)(cp_node->create_attrib.maxSectionIdSize));
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
  
 }
 
@@ -2057,13 +2057,13 @@ static
 void cpnd_dump_shm_info(NCS_OS_POSIX_SHM_REQ_INFO *open)
 {
 
-   m_NCS_CONS_PRINTF("+++++++++++++++++SHM++++++++++++++++++++++++++++++\n");
+   printf("+++++++++++++++++SHM++++++++++++++++++++++++++++++\n");
 
-   m_NCS_CONS_PRINTF("Shm File Name %s \n",open->info.open.i_name);
-   m_NCS_CONS_PRINTF("Shm Starting Address %p\t",open->info.open.o_addr);
-   m_NCS_CONS_PRINTF("Shm File Descriptor %d \n",(uns32)open->info.open.o_fd);
+   printf("Shm File Name %s \n",open->info.open.i_name);
+   printf("Shm Starting Address %p\t",open->info.open.o_addr);
+   printf("Shm File Descriptor %d \n",(uns32)open->info.open.o_fd);
 
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 /****************************************************************************
  * Name          : cpnd_dump_section_info
@@ -2081,11 +2081,11 @@ void cpnd_dump_section_info(CPND_CKPT_SECTION_INFO *sec_info)
    int i;
    SaUint8T *buf;
 
-   m_NCS_CONS_PRINTF("++++++++++++++++++++SEC+++++++++++++++++++++++++++\n");
+   printf("++++++++++++++++++++SEC+++++++++++++++++++++++++++\n");
    if (sec_info != NULL)
    {
-      m_NCS_CONS_PRINTF("Shm Offset %d \n",sec_info->lcl_sec_id);
-      m_NCS_CONS_PRINTF("Section Id ");
+      printf("Shm Offset %d \n",sec_info->lcl_sec_id);
+      printf("Section Id ");
       i=sec_info->sec_id.idLen; 
       buf=sec_info->sec_id.id;
 
@@ -2093,15 +2093,15 @@ void cpnd_dump_section_info(CPND_CKPT_SECTION_INFO *sec_info)
       {
          while(i >= 0)
         {
-           m_NCS_CONS_PRINTF("%c",buf[sec_info->sec_id.idLen-i]);
+           printf("%c",buf[sec_info->sec_id.idLen-i]);
           i--;
         }
       }
-        m_NCS_CONS_PRINTF("\n");
-        m_NCS_CONS_PRINTF("Section Size %d \t - Section state %d \n",\
+        printf("\n");
+        printf("Section Size %d \t - Section state %d \n",\
            (uns32)sec_info->sec_size,(uns32)sec_info->sec_state);
-        m_NCS_CONS_PRINTF("Expiration Time %d \n",(uns32)sec_info->exp_tmr);
-        m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+        printf("Expiration Time %d \n",(uns32)sec_info->exp_tmr);
+        printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
   }
 
 }
@@ -2144,11 +2144,11 @@ void cpnd_dump_replica_info(CPND_CKPT_REPLICA_INFO *ckpt_replica_node)
 static
 void cpnd_dump_client_info(CPND_CKPT_CLIENT_NODE *cl_node)
 {
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 
-    m_NCS_CONS_PRINTF("Client_hdl  %d\t MDS DEST %d \n", \
+    printf("Client_hdl  %d\t MDS DEST %d \n", \
             (uns32)(cl_node->ckpt_app_hdl),(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cl_node->agent_mds_dest));
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
 }
 static
 void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node) 
@@ -2156,28 +2156,28 @@ void cpnd_dump_ckpt_info(CPND_CKPT_NODE *ckpt_node)
 
    CPSV_CPND_DEST_INFO *cpnd_dest_list=NULL;
     
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-   m_NCS_CONS_PRINTF("Ckpt_id - %d \t Ckpt Name - %.10s \n", \
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("Ckpt_id - %d \t Ckpt Name - %.10s \n", \
              (uns32)ckpt_node->ckpt_id, ckpt_node->ckpt_name.value);
    if (ckpt_node->is_unlink)
-         m_NCS_CONS_PRINTF("Ckpt Unlinked - \t");
+         printf("Ckpt Unlinked - \t");
    if (ckpt_node->is_close)
-         m_NCS_CONS_PRINTF("Ckpt Closed \t");
-   m_NCS_CONS_PRINTF("\n");
-   m_NCS_CONS_PRINTF("ref count - %d\n", ckpt_node->ckpt_lcl_ref_cnt);
-   m_NCS_CONS_PRINTF("ACTIVE CKPT NODE MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_mds_dest));
+         printf("Ckpt Closed \t");
+   printf("\n");
+   printf("ref count - %d\n", ckpt_node->ckpt_lcl_ref_cnt);
+   printf("ACTIVE CKPT NODE MDS dest - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_mds_dest));
 
-   m_NCS_CONS_PRINTF("CPND List ......\n");
+   printf("CPND List ......\n");
 
 
    cpnd_dest_list=ckpt_node->cpnd_dest_list;
    while(cpnd_dest_list != NULL) 
    {
-       m_NCS_CONS_PRINTF("--%d->\t", m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_dest_list->dest));
+       printf("--%d->\t", m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_dest_list->dest));
        cpnd_dest_list=cpnd_dest_list->next;
    }
-   m_NCS_CONS_PRINTF("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
-   m_NCS_CONS_PRINTF("\n");
+   printf("++++++++++++++++++++++++++++++++++++++++++++++++++\n");
+   printf("\n");
 }
 
 

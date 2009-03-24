@@ -215,14 +215,14 @@ uns32 avsv_amf_init(void)
       goto err;
    }
 
-   m_NCS_CONS_PRINTF("\n\n AMF-INTF TASK CREATION SUCCESS !!! \n\n");
+   printf("\n\n AMF-INTF TASK CREATION SUCCESS !!! \n\n");
 
    return rc;
 
 err:
    /* destroy the task */
    if (gl_amf_task_hdl) m_NCS_TASK_RELEASE(gl_amf_task_hdl);
-   m_NCS_CONS_PRINTF("\n\n AMF-INTF TASK CREATION FAILED !!! \n\n");
+   printf("\n\n AMF-INTF TASK CREATION FAILED !!! \n\n");
 
    return rc;
 }
@@ -278,7 +278,7 @@ void avsv_amf_process (void)
    if (SA_AIS_OK != rc)
       return;
 
-   m_NCS_CONS_PRINTF("\n AMF Initialization Done !!! \n AmfHandle: %d \n", (uns32)gl_amf_hdl);
+   printf("\n AMF Initialization Done !!! \n AmfHandle: %d \n", (uns32)gl_amf_hdl);
 
    /*#########################################################################
                   Demonstrating the use of saAmfSelectionObjectGet()
@@ -294,7 +294,7 @@ void avsv_amf_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n AMF Selection Object Get Successful !!! \n");
+   printf("\n AMF Selection Object Get Successful !!! \n");
 
    /*#########################################################################
                    Demonstrating the use of saAmfCompNameGet()
@@ -309,7 +309,7 @@ void avsv_amf_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Component Name Get Successful !!! \n CompName: %s \n",
+   printf("\n Component Name Get Successful !!! \n CompName: %s \n",
                       gl_comp_name.value);
 
    /*#########################################################################
@@ -325,7 +325,7 @@ void avsv_amf_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Component Registered !!! \n");
+   printf("\n Component Registered !!! \n");
 
    /***** Now wait (select) on AMF selection object *****/
 
@@ -361,7 +361,7 @@ void avsv_amf_process (void)
       m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &wait_sel_objs);
    }
 
-   m_NCS_CONS_PRINTF("\n\n DEMO OVER !!! \n\n");
+   printf("\n\n DEMO OVER !!! \n\n");
 
    return;
 }
@@ -408,7 +408,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
    uns8    trk_flags;
    SaAmfProtectionGroupNotificationBufferT *not_buf;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
+   printf("\n Dispatched 'CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_desc.csiName.value, 
                       ha_state_str[ha_state], csi_flag_str[csi_desc.csiFlags]);
 
@@ -436,7 +436,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
                  Demonstrating the use of saAmfHAStateGet()
       ######################################################################*/
 
-      m_NCS_CONS_PRINTF("\n\n INVOKING saAmfHAStateGet() API !!! \n");
+      printf("\n\n INVOKING saAmfHAStateGet() API !!! \n");
       m_NCS_TASK_SLEEP(2000);
 
       rc = saAmfHAStateGet(gl_amf_hdl, &gl_comp_name, &csi_desc.csiName, &ha_st);
@@ -447,7 +447,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
          return;
       }
 
-      m_NCS_CONS_PRINTF(" CompName: %s \n CSIName: %s \n HAState: %s \n", 
+      printf(" CompName: %s \n CSIName: %s \n HAState: %s \n", 
                          gl_comp_name.value, csi_desc.csiName.value, 
                          ha_state_str[ha_st]);
 
@@ -455,7 +455,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
                   Demonstrating the use of saAmfHealthcheckStart()
       ######################################################################*/
 
-      m_NCS_CONS_PRINTF("\n\n DEMONSTRATING AMF-INITIATED HEALTHCHECK !!! \n\n");
+      printf("\n\n DEMONSTRATING AMF-INITIATED HEALTHCHECK !!! \n\n");
       m_NCS_TASK_SLEEP(2000);
 
       /* Fill the healthcheck parameters */
@@ -472,7 +472,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
          return;
       }
 
-      m_NCS_CONS_PRINTF(" Started AMF-Initiated HealthCheck (with Component Failover Recommended Recovery) \n Comp: %s \n HealthCheckKey: %s \n", 
+      printf(" Started AMF-Initiated HealthCheck (with Component Failover Recommended Recovery) \n Comp: %s \n HealthCheckKey: %s \n", 
                          gl_comp_name.value, gl_healthcheck_key.key);
    }
 
@@ -500,7 +500,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
          return;
       }
 
-      m_NCS_CONS_PRINTF("\n Started Protection Group Tracking \n CSI: %s \n Track Flags: Changes Only \n",
+      printf("\n Started Protection Group Tracking \n CSI: %s \n Track Flags: Changes Only \n",
                          csi_name->value);
 
       /* Initiate initial data read */
@@ -512,7 +512,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
         (SA_AMF_CSI_NEW_ASSIGN != 
            csi_desc.csiStateDescriptor.activeDescriptor.transitionDescriptor) )
    {
-      m_NCS_CONS_PRINTF("\n\n DEMO OVER (UNREGISTER & FINALIZE THE COMPONENT) !!! \n\n");
+      printf("\n\n DEMO OVER (UNREGISTER & FINALIZE THE COMPONENT) !!! \n\n");
 
       /*######################################################################
                  Demonstrating the use of saAmfComponentUnregister()
@@ -524,7 +524,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
       if ( SA_AIS_OK != rc ) 
          return;
 
-      m_NCS_CONS_PRINTF(" Component UnRegistered !!! \n");
+      printf(" Component UnRegistered !!! \n");
 
       /*######################################################################
                      Demonstrating the use of saAmfFinalize()
@@ -536,7 +536,7 @@ void avsv_amf_csi_set_callback(SaInvocationT       inv,
       if ( SA_AIS_OK != rc ) 
          return;
 
-      m_NCS_CONS_PRINTF(" AMF Finalize Done !!! \n");
+      printf(" AMF Finalize Done !!! \n");
 
       /* Reset the ha state */
       gl_ha_state = 0;
@@ -568,7 +568,7 @@ void avsv_amf_csi_remove_callback(SaInvocationT  inv,
 {
    SaAisErrorT rc;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
+   printf("\n Dispatched 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_name->value, csi_flag_str[csi_flags]);
 
    /* Reset the ha state */
@@ -615,7 +615,7 @@ void avsv_amf_healthcheck_callback(SaInvocationT        inv,
    SaAisErrorT rc;
    static int healthcheck_count = 0;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
+   printf("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
                       comp_name->value, health_check_key->key);
 
    /* Respond immediately */
@@ -645,14 +645,14 @@ void avsv_amf_healthcheck_callback(SaInvocationT        inv,
          return;
       }
 
-      m_NCS_CONS_PRINTF("\n Stopped HealthCheck for Comp: %s with HealthCheckKey: %s \n", 
+      printf("\n Stopped HealthCheck for Comp: %s with HealthCheckKey: %s \n", 
                          gl_comp_name.value, gl_healthcheck_key.key);
 
       /*######################################################################
                 Demonstrating the use of saAmfComponentErrorReport()
       ######################################################################*/
 
-      m_NCS_CONS_PRINTF("\n\n DEMONSTRATING COMPONENT FAILOVER THROUGH ERROR REPORT !!! \n\n");
+      printf("\n\n DEMONSTRATING COMPONENT FAILOVER THROUGH ERROR REPORT !!! \n\n");
       m_NCS_TASK_SLEEP(2000);
 
       rc = saAmfComponentErrorReport(gl_amf_hdl, &gl_comp_name, 0, SA_AMF_COMPONENT_FAILOVER, 0);
@@ -663,7 +663,7 @@ void avsv_amf_healthcheck_callback(SaInvocationT        inv,
          return;
       }
 
-      m_NCS_CONS_PRINTF("\n Sent Error Report for Comp: %s with CompFailover as the recommended recovery \n", 
+      printf("\n Sent Error Report for Comp: %s with CompFailover as the recommended recovery \n", 
                          gl_comp_name.value);
 
       /* Reset the ha state */
@@ -693,7 +693,7 @@ void avsv_amf_comp_terminate_callback(SaInvocationT inv,
 {
    SaAisErrorT rc;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'Component Terminate' Callback \n Component: %s \n", 
+   printf("\n Dispatched 'Component Terminate' Callback \n Component: %s \n", 
                       comp_name->value);
 
    /* Respond immediately */
@@ -739,7 +739,7 @@ void avsv_amf_protection_group_callback(const SaNameT *csi_name,
    SaAmfPmStopQualifierT     stop_qual;
    SaAisErrorT  rc;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'Protection Group' Callback \n CSI: %s \n No. of Members: %d \n", 
+   printf("\n Dispatched 'Protection Group' Callback \n CSI: %s \n No. of Members: %d \n", 
                       csi_name->value, (uns32)mem_num);
 
    if ( SA_AIS_OK != err )
@@ -748,16 +748,16 @@ void avsv_amf_protection_group_callback(const SaNameT *csi_name,
    /* Print the Protection Group members */
    for (item_count= 0; item_count < not_buf->numberOfItems; item_count++)
    {
-      m_NCS_CONS_PRINTF(" CompName[%d]: %s \n", 
+      printf(" CompName[%d]: %s \n", 
                         item_count, not_buf->notification[item_count].member.compName.value);
-      m_NCS_CONS_PRINTF(" Rank[%d]    : %d \n", 
+      printf(" Rank[%d]    : %d \n", 
                         item_count, (uns32)not_buf->notification[item_count].member.rank);
-      m_NCS_CONS_PRINTF(" HAState[%d] : %s \n", 
+      printf(" HAState[%d] : %s \n", 
                         item_count, ha_state_str[not_buf->notification[item_count].member.haState]);
-      m_NCS_CONS_PRINTF(" Change[%d]  : %s \n", 
+      printf(" Change[%d]  : %s \n", 
                         item_count, pg_change_str[not_buf->notification[item_count].change]);
 
-      m_NCS_CONS_PRINTF("\n"); 
+      printf("\n"); 
    }
 
 
@@ -773,7 +773,7 @@ void avsv_amf_protection_group_callback(const SaNameT *csi_name,
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Stopped Protection Group Tracking for CSI: %s \n", 
+   printf("\n Stopped Protection Group Tracking for CSI: %s \n", 
                       csi_name->value);
 
 
@@ -795,7 +795,7 @@ void avsv_amf_protection_group_callback(const SaNameT *csi_name,
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Started Passive Monitoring for Comp: %s \n", 
+   printf("\n Started Passive Monitoring for Comp: %s \n", 
                       gl_comp_name.value);
 
 
@@ -817,7 +817,7 @@ void avsv_amf_protection_group_callback(const SaNameT *csi_name,
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Stopped Passive Monitoring for Comp: %s \n", 
+   printf("\n Stopped Passive Monitoring for Comp: %s \n", 
                       gl_comp_name.value);
 
 

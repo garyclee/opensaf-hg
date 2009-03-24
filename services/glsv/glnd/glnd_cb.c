@@ -125,7 +125,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
    /* resigter with the MDS */
    if(glnd_mds_register(glnd_cb) != NCSCC_RC_SUCCESS)
    {
-       m_NCS_CONS_PRINTF("\n GLND_MDS_REGISTER_FAILED\n");
+       printf("\n GLND_MDS_REGISTER_FAILED\n");
       m_LOG_GLND_HEADLINE(GLND_MDS_REGISTER_FAILED,NCSFL_SEV_ERROR);
       goto mds_err;
    }
@@ -135,7 +135,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
    /* Initialise with the AMF service */
    if(glnd_amf_init(glnd_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\n GLND_AMF_INIT_FAILED\n");
+      printf("\n GLND_AMF_INIT_FAILED\n");
       m_LOG_GLND_HEADLINE(GLND_AMF_INIT_FAILED,NCSFL_SEV_ERROR);
       goto amf_init_err;
    }
@@ -145,7 +145,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
    /* register with the AMF service */
    if(glnd_amf_register(glnd_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\n GLND_AMF_REGISTER_FAILED\n");
+      printf("\n GLND_AMF_REGISTER_FAILED\n");
       m_LOG_GLND_HEADLINE(GLND_AMF_REGISTER_FAILED,NCSFL_SEV_ERROR);
       goto amf_reg_err;
    }
@@ -177,7 +177,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
       SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);
    if (amf_error != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n ERROR IN HEALTH CHECK START\n");
+      printf("\n ERROR IN HEALTH CHECK START\n");
       m_LOG_GLND_HEADLINE(GLND_AMF_HEALTHCHECK_START_FAILED,NCSFL_SEV_ERROR);
    }
    else
@@ -185,7 +185,7 @@ GLND_CB* glnd_cb_create(uns32 pool_id)
 
    if(glnd_cb->node_state != GLND_CLIENT_INFO_GET_STATE)
    {
-     m_NCS_CONS_PRINTF("\n setting the state as  GLND_OPERATIONAL_STATE\n");
+     printf("\n setting the state as  GLND_OPERATIONAL_STATE\n");
      /* GLND HAS STRTED */
      glnd_cb->node_state = GLND_OPERATIONAL_STATE; 
 
@@ -342,33 +342,33 @@ void glnd_dump_cb ()
    memset(&agent_mds_dest,0,sizeof(MDS_DEST));
    
    /* display the handles */
-   m_NCS_OS_PRINTF("\nGLND Node id - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id));
+   printf("\nGLND Node id - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(glnd_cb->glnd_mdest_id));
    if(glnd_cb->gld_card_up == TRUE)
-      m_NCS_OS_PRINTF("GLD is UP  \n");
+      printf("GLD is UP  \n");
    else
-      m_NCS_OS_PRINTF("GLD is DOWN \n");
+      printf("GLD is DOWN \n");
    
    /* display Agent data */
    agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree,(uns8 *)&agent_mds_dest); 
    while(agent_info)
    {
       agent_mds_dest = agent_info->agent_mds_id;
-      m_NCS_OS_PRINTF("************ Agent info *************** \n");
-      m_NCS_OS_PRINTF("Agent Node id - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(agent_info->agent_mds_id));
+      printf("************ Agent info *************** \n");
+      printf("Agent Node id - %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(agent_info->agent_mds_id));
       
       while((client_info = glnd_client_node_find_next(glnd_cb,handle_id,agent_info->agent_mds_id)))
       {
          handle_id = client_info->app_handle_id;
-         m_NCS_OS_PRINTF("Client Handle id - %d\n",(uns32)client_info->app_handle_id);
+         printf("Client Handle id - %d\n",(uns32)client_info->app_handle_id);
          
          /*display the resource list */
          for(resource_list=client_info->res_list;resource_list!=NULL;resource_list=resource_list->next)
          {
-            m_NCS_OS_PRINTF("Resource id - %d\n",(uns32)resource_list->rsc_info->resource_id);
+            printf("Resource id - %d\n",(uns32)resource_list->rsc_info->resource_id);
          }
          client_info = glnd_client_node_find_next(glnd_cb,handle_id,agent_info->agent_mds_id);
       }
-      m_NCS_OS_PRINTF("******************************************************** \n");
+      printf("******************************************************** \n");
       agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_agent_tree,(uns8 *)&agent_mds_dest); 
    }
    
@@ -377,42 +377,42 @@ void glnd_dump_cb ()
    while(res_info)
    {
       res_id = res_info->resource_id;
-      m_NCS_OS_PRINTF("************ Resource info *************** \n");
-      m_NCS_OS_PRINTF("resource id - %d \t Resource Name - %s \n", (uns32)res_info->resource_id, res_info->resource_name.value);
-      m_NCS_OS_PRINTF("local ref count - %d \t Mds Node id - %d \n", res_info->lcl_ref_cnt, 
+      printf("************ Resource info *************** \n");
+      printf("resource id - %d \t Resource Name - %s \n", (uns32)res_info->resource_id, res_info->resource_name.value);
+      printf("local ref count - %d \t Mds Node id - %d \n", res_info->lcl_ref_cnt, 
          m_NCS_NODE_ID_FROM_MDS_DEST(res_info->master_mds_dest));   
-      m_NCS_OS_PRINTF("PR orphaned - %d \t EX Orphaned - %d \n", res_info->lck_master_info.pr_orphaned, 
+      printf("PR orphaned - %d \t EX Orphaned - %d \n", res_info->lck_master_info.pr_orphaned, 
          res_info->lck_master_info.ex_orphaned);
       if(res_info->status == GLND_RESOURCE_ACTIVE_MASTER)
       {
          GLND_RES_LOCK_LIST_INFO       *list;
-         m_NCS_OS_PRINTF("############ Master info #############\n");
-         m_NCS_OS_PRINTF("PR orphaned - %d \t EX Orphaned - %d \n", res_info->lck_master_info.pr_orphaned, 
+         printf("############ Master info #############\n");
+         printf("PR orphaned - %d \t EX Orphaned - %d \n", res_info->lck_master_info.pr_orphaned, 
             res_info->lck_master_info.ex_orphaned);
          
-         m_NCS_OS_PRINTF(" Grant list : \n");
+         printf(" Grant list : \n");
          list = res_info->lck_master_info.grant_list;
          while(list)
          {
-            m_NCS_OS_PRINTF(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
+            printf(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
                m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
                (uns32)list->lock_info.handleId);
             list = list->next;
          }
-         m_NCS_OS_PRINTF("\n Wait Ex list : \n");
+         printf("\n Wait Ex list : \n");
          list = res_info->lck_master_info.wait_exclusive_list;
          while(list)
          {
-            m_NCS_OS_PRINTF(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
+            printf(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
                m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
                (uns32)list->lock_info.handleId);
             list = list->next;
          }
-         m_NCS_OS_PRINTF("\n Wait PR list : \n");
+         printf("\n Wait PR list : \n");
          list = res_info->lck_master_info.wait_read_list;
          while(list)
          {
-            m_NCS_OS_PRINTF(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
+            printf(" Lock Id : %d   Node Id : %d  App Handle : %d \n", (uns32)list->lock_info.lockid,
                m_NCS_NODE_ID_FROM_MDS_DEST(list->req_mdest_id),
                (uns32)list->lock_info.handleId);
             list = list->next;
@@ -421,15 +421,15 @@ void glnd_dump_cb ()
       else
       {
          GLND_RES_LOCK_LIST_INFO *lock_list= res_info->lcl_lck_req_info; 
-         m_NCS_OS_PRINTF("############ Non-Master info #############\n");
+         printf("############ Non-Master info #############\n");
          while(lock_list)
          {
-            m_NCS_OS_PRINTF(" Lock Id : %d  App Handle : %d \n", (uns32)lock_list->lock_info.lockid,
+            printf(" Lock Id : %d  App Handle : %d \n", (uns32)lock_list->lock_info.lockid,
                (uns32)lock_list->lock_info.handleId);
             lock_list= lock_list->next;
          }
       }
-      m_NCS_OS_PRINTF("******************************************************** \n");
+      printf("******************************************************** \n");
       res_info = (GLND_RESOURCE_INFO *)ncs_patricia_tree_getnext(&glnd_cb->glnd_res_tree,(uns8 *)&res_id);
    }
 

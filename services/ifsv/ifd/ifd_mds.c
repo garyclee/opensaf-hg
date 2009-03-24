@@ -397,7 +397,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
       switch(svc_evt->i_svc_id)
       {
       case NCSMDS_SVC_ID_IFND:                  
-       m_NCS_CONS_PRINTF("received IfND Down Event \n");
+       printf("received IfND Down Event \n");
        if(cb->ha_state == SA_AMF_HA_ACTIVE)
        {
          /* Send it in the mail box */
@@ -407,7 +407,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 /* This piece of code is added to remove hack. If any issues remove this code */
        else  /* if state is standby */ 
        {
-          m_NCS_CONS_PRINTF("State is Standby : FROM mds call back func\n ");
+          printf("State is Standby : FROM mds call back func\n ");
           if (cb->ifnd_rec_flush_tmr == IFSV_NULL )  
           {
              tmr = m_MMGR_ALLOC_IFSV_TMR;
@@ -420,7 +420,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
              memset( tmr,0,sizeof(IFSV_TMR));
             
-             m_NCS_CONS_PRINTF("Forming Timer Event in MDS Cbk \n");
+             printf("Forming Timer Event in MDS Cbk \n");
 
              /* Start a timer for 1 min to wait for IfD to get active */
              tmr->tmr_type = NCS_IFSV_IFD_IFND_REC_FLUSH_TMR;
@@ -432,7 +432,7 @@ static void ifd_mds_svc_evt(IFSV_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
           {
              if (cb->ifnd_mds_addr[ii].valid != TRUE)
              {
-                m_NCS_CONS_PRINTF("Marking %dth Entry to be deleted \n",ii);
+                printf("Marking %dth Entry to be deleted \n",ii);
                 cb->ifnd_mds_addr[ii].valid = TRUE;
                 memcpy(&cb->ifnd_mds_addr[ii].ifndAddr,&svc_evt->i_dest, sizeof(MDS_DEST));
                 break;

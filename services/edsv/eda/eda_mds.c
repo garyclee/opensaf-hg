@@ -1293,7 +1293,7 @@ eda_dec_limit_get_rsp_msg(NCS_UBAID *uba,  EDSV_MSG *msg)
 
    if (NULL == uba)
    {
-      m_NCS_CONS_PRINTF("NULL uba received for decoding limit get response message\n");
+      printf("NULL uba received for decoding limit get response message\n");
       return 0;
    }
 

@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
 
    if(fm_create_pidfile() != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm pid file create failed.");
+      printf("\nfm pid file create failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE);
       goto fm_agents_startup_failed;
    }
@@ -76,7 +76,7 @@ int main (int argc, char *argv[])
    if (fm_agents_startup() != NCSCC_RC_SUCCESS)
    {
        /* notify the NID */
-       m_NCS_CONS_PRINTF("\nfm_agents_startup() failed.");
+       printf("\nfm_agents_startup() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
        goto fm_agents_startup_failed;
    }
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
    if (NULL == fm_cb)
    {
        /* notify the NID */
-      m_NCS_CONS_PRINTF("\nCB Allocation failed.");
+      printf("\nCB Allocation failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_agents_startup_failed;
    }
@@ -102,7 +102,7 @@ int main (int argc, char *argv[])
    if (fm_get_args(fm_cb) != NCSCC_RC_SUCCESS)
    {
       /* notify the NID */
-      m_NCS_CONS_PRINTF("\nfm_get_args() failed.");
+      printf("\nfm_get_args() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
@@ -115,7 +115,7 @@ int main (int argc, char *argv[])
    /* Create MBX. */
    if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nm_NCS_IPC_CREATE() failed.");
+      printf("\nm_NCS_IPC_CREATE() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
    /* Attach MBX */
    if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nm_NCS_IPC_ATTACH() failed.");
+      printf("\nm_NCS_IPC_ATTACH() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mbx_attach_failure;
    }
@@ -131,7 +131,7 @@ int main (int argc, char *argv[])
    /* MDS initialization */
    if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_mds_init() failed.");
+      printf("\nfm_mds_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mds_init_failed;
    }
@@ -139,7 +139,7 @@ int main (int argc, char *argv[])
    /* RDA initialization */
    if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_rda_init() failed.");
+      printf("\nfm_rda_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_rda_init_failed;
    }
@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
    /* HPL initialization */
    if (fm_hpl_init() != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_hpl_init() failed.");
+      printf("\nfm_hpl_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
@@ -155,7 +155,7 @@ int main (int argc, char *argv[])
    /* Open FM pipe for receiving AMF up intimation */
    if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm pipe open failed (avm) failed.");
+      printf("\nfm pipe open failed (avm) failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
@@ -292,7 +292,7 @@ static uns32 fm_agents_startup(void)
    rc = ncs_agents_startup(0, NULL);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("ncs core agent startup failed\n ");
+      printf("ncs core agent startup failed\n ");
       return rc;
    }
 
@@ -319,7 +319,7 @@ static uns32 fm_agents_shutdown(void)
    rc = ncs_agents_shutdown(0, NULL);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("ncs core agent shutdown failed\n ");
+      printf("ncs core agent shutdown failed\n ");
       return rc;
    }
 
@@ -349,7 +349,7 @@ static uns32 fm_hpl_init(void)
    rc = ncs_hpl_lib_req(&req_info);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("hpl lib init failed\n ");
+      printf("hpl lib init failed\n ");
       return rc;
    }
 

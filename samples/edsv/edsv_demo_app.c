@@ -173,11 +173,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF(
+   printf(
       "\n EDSv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (uns32)gl_evt_hdl);
 
    /*#########################################################################
@@ -186,11 +186,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evt_hdl, &evt_sel_obj)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
+   printf("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
 
   /*#########################################################################
                   Demonstrating the usage of saEvtChannelOpen()
@@ -205,11 +205,11 @@ uns32 ncs_edsv_run(void)
          (rc = 
             saEvtChannelOpen(gl_evt_hdl, &gl_chan_name, chan_open_flags, timeout, &gl_chan_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Opened DEMO - Channel Successfully !!! \n");
+   printf("\n EDSv: Opened DEMO - Channel Successfully !!! \n");
 
   /*#########################################################################
                   Demonstrating the usage of SaEvtEventSubscribe()
@@ -220,11 +220,11 @@ uns32 ncs_edsv_run(void)
    filter_array.filters = gl_trap_filter_array;
    if (SA_AIS_OK != (rc = saEvtEventSubscribe(gl_chan_hdl, &filter_array, gl_subid)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Subscribed for events on DEMO channel successfully !!! \n");
+   printf("\n EDSv: Subscribed for events on DEMO channel successfully !!! \n");
 
    /*#########################################################################
                   Demonstrating the usage of saEvtEventAllocate()
@@ -233,11 +233,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtEventAllocate(gl_chan_hdl, &gl_chan_pub_event_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventAllocate() failed. rc=%d \n", rc);
+      printf("\n EDSv: EDA: SaEvtEventAllocate() failed. rc=%d \n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Allocated an Event Successfully !!! \n");
+   printf("\n EDSv: Allocated an Event Successfully !!! \n");
 
    /*#########################################################################
                   Demonstrating the usage of saEvtEventAttributesSet()
@@ -252,11 +252,11 @@ uns32 ncs_edsv_run(void)
                                           retention_time, 
                                           &gl_pubname)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventAttributesSet() failed. rc=%d \n", rc);
+      printf("\n EDSv: EDA: SaEvtEventAttributesSet() failed. rc=%d \n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Set the attributes for the event successfully !!! \n");
+   printf("\n EDSv: Set the attributes for the event successfully !!! \n");
 
    /*#########################################################################
                   Demonstrating the usage of saEvtEventPublish()
@@ -269,9 +269,9 @@ uns32 ncs_edsv_run(void)
                   &gl_chan_pub_event_id);
 
    if (rc != SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventPublish() failed. rc=%d\n", rc);
+      printf("\n EDSv: EDA: SaEvtEventPublish() failed. rc=%d\n", rc);
 
-   m_NCS_CONS_PRINTF(
+   printf(
       "\n EDSv: Published event on demo channel successfully !!!, event_id = %llu \n",gl_chan_pub_event_id);
 
    
@@ -293,7 +293,7 @@ uns32 ncs_edsv_run(void)
       if (m_NCS_SEL_OBJ_ISSET(evt_ncs_sel_obj, &wait_sel_obj))
       {
          /* Dispatch all pending messages */
-         m_NCS_CONS_PRINTF("\n EDSv: EDA: Dispatching message received on demo channel\n");
+         printf("\n EDSv: EDA: Dispatching message received on demo channel\n");
          
          /*######################################################################
                         Demonstrating the usage of saEvtDispatch()
@@ -301,7 +301,7 @@ uns32 ncs_edsv_run(void)
          rc = saEvtDispatch(gl_evt_hdl, SA_DISPATCH_ALL);
 
          if (rc != SA_AIS_OK)
-            m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
+            printf("\n EDSv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
          
          /* Rcvd the published event, now escape */
          break;
@@ -318,11 +318,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtEventFree(gl_chan_pub_event_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
+      printf("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Freed the event Successfully !!! \n");
+   printf("\n EDSv: Freed the event Successfully !!! \n");
 
    /*##########################################################################
                         Demonstrating the usage of saEvtEventUnsubscribe()
@@ -331,11 +331,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtEventUnsubscribe(gl_chan_hdl, gl_subid)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Unsubscribed for events Successfully !!! \n");
+   printf("\n EDSv: Unsubscribed for events Successfully !!! \n");
 
    /*###########################################################################
                         Demonstrating the usage of saEvtChannelClose()
@@ -344,11 +344,11 @@ uns32 ncs_edsv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtChannelClose(gl_chan_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
+      printf("\n EDSv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Closed DEMO channel Successfully !!! \n");
+   printf("\n EDSv: Closed DEMO channel Successfully !!! \n");
 
    /*###########################################################################
                         Demonstrating the usage of SaEvtFinalize()
@@ -359,11 +359,11 @@ uns32 ncs_edsv_run(void)
 
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
+      printf("\n EDSv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Finalized with event service successfully !!! \n");
+   printf("\n EDSv: Finalized with event service successfully !!! \n");
 
    return NCSCC_RC_SUCCESS;
 
@@ -446,7 +446,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    if (NCSCC_RC_SUCCESS != 
          (rc = alloc_pattern_array(&pattern_array, num_patterns, pattern_size)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
+      printf("\n EDSv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
       return;
    }
 
@@ -462,11 +462,11 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                                 &event_id);
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
+      printf("\n EDSv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Got Attributes of the Events Successfully !!! \n");
+   printf("\n EDSv: Got Attributes of the Events Successfully !!! \n");
 
   /*#############################################################################
                  Demonstrating the usage of SaEvtEventDataGet()
@@ -476,25 +476,25 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    rc = saEvtEventDataGet(event_hdl, p_data, &data_len);
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventDataGet() failed. rc=%d\n",rc);
+      printf("\n EDSv: EDA: SaEvtEventDataGet() failed. rc=%d\n",rc);
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: Got Data from the received event successfully !!! \n");
+   printf("\n EDSv: Got Data from the received event successfully !!! \n");
 
 
    /* Say what we received */
-   m_NCS_CONS_PRINTF("\n-------------- Received Event --------------------------\n");
-   m_NCS_CONS_PRINTF(" publisherName  =    %s\n", publisher_name.value);
-   m_NCS_CONS_PRINTF(" patternArray\n");
+   printf("\n-------------- Received Event --------------------------\n");
+   printf(" publisherName  =    %s\n", publisher_name.value);
+   printf(" patternArray\n");
    dump_event_patterns(pattern_array);
-   m_NCS_CONS_PRINTF(" priority       =    %d\n", priority);
-   m_NCS_CONS_PRINTF(" publishTime    =    %llu\n", (uns64)publish_time);
-   m_NCS_CONS_PRINTF(" retentionTime  =    %llu\n", (uns64)retention_time);
-   m_NCS_CONS_PRINTF(" eventId        =    %llu\n", (uns64)event_id);
-   m_NCS_CONS_PRINTF(" dataLen        =    %d\n", (uns32)data_len);
-   m_NCS_CONS_PRINTF(" data           =    %s\n", p_data);
-   m_NCS_CONS_PRINTF("---------------------------------------------------------\n\n");
+   printf(" priority       =    %d\n", priority);
+   printf(" publishTime    =    %llu\n", (uns64)publish_time);
+   printf(" retentionTime  =    %llu\n", (uns64)retention_time);
+   printf(" eventId        =    %llu\n", (uns64)event_id);
+   printf(" dataLen        =    %d\n", (uns32)data_len);
+   printf(" data           =    %s\n", p_data);
+   printf("---------------------------------------------------------\n\n");
 
   /*#############################################################################
                Demonstrating the usage of saEvtEventRetentionTimeClear()
@@ -506,11 +506,11 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
       rc = saEvtEventRetentionTimeClear(gl_chan_hdl, event_id);
       if (rc != SA_AIS_OK)
       {
-         m_NCS_CONS_PRINTF("\n EDSv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n",rc);
+         printf("\n EDSv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n",rc);
          goto done;
       }
 
-      m_NCS_CONS_PRINTF("\n EDSv: Cleared retention timer Successfully !!! \n");
+      printf("\n EDSv: Cleared retention timer Successfully !!! \n");
    }
 
 done:
@@ -522,9 +522,9 @@ done:
    /* Free the rcvd event */
    rc =  saEvtEventFree(event_hdl);
    if (rc != SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
+      printf("\n EDSv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
    else
-      m_NCS_CONS_PRINTF("\n EDSv: Freed the Event Successfully \n");
+      printf("\n EDSv: Freed the Event Successfully \n");
 
    /* Free the pattern_array */
    pattern_array->patternsNumber = 8;
@@ -640,7 +640,7 @@ dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
    for (x=0; x<(int32)patternArray->patternsNumber; x++) {
       memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
-      m_NCS_CONS_PRINTF("     pattern[%ld] =    {%2u, \"%s\"}\n",
+      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
              x, (uns32)pEventPattern->patternSize, buf);
       pEventPattern++;
    }

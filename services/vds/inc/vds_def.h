@@ -40,9 +40,9 @@ EXTERN_C uns32 vds_destroying;
 #endif
 
 #if (VDS_TRACE_LEVEL == 1)
-#define VDS_TRACE1_ARG1(x)    m_NCS_CONS_PRINTF(x)
-#define VDS_TRACE1_ARG2(x,y)  m_NCS_CONS_PRINTF(x,y)
-#define VDS_TRACE1_ARG3(x,y,z) m_NCS_CONS_PRINTF(x,y,z)
+#define VDS_TRACE1_ARG1(x)    printf(x)
+#define VDS_TRACE1_ARG2(x,y)  printf(x,y)
+#define VDS_TRACE1_ARG3(x,y,z) printf(x,y,z)
 #else
 #define VDS_TRACE1_ARG1(x)
 #define VDS_TRACE1_ARG2(x,y)

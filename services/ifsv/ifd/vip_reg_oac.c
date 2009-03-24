@@ -184,7 +184,7 @@ uns32 ncsvip_tbl_req(struct ncsmib_arg *args)
     if((args->i_policy & NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER) ==
           NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER)
     {
-       m_NCS_CONS_PRINTF("For TBLONE, last playback update from PSS received...]n");
+       printf("For TBLONE, last playback update from PSS received...]n");
     }
   /* call the miblib routine handler */
     status = ncsmiblib_process_req(&miblib_req);

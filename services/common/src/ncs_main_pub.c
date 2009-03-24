@@ -251,8 +251,8 @@ static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 #endif
 
 #if (NCSMAINPUB_TRACE_LEVEL == 1)
-#define NCSMAINPUB_TRACE1_ARG1(x)    m_NCS_CONS_PRINTF(x)
-#define NCSMAINPUB_TRACE1_ARG2(x,y)  m_NCS_CONS_PRINTF(x,y)
+#define NCSMAINPUB_TRACE1_ARG1(x)    printf(x)
+#define NCSMAINPUB_TRACE1_ARG2(x,y)  printf(x,y)
 
 #define NCSMAINPUB_DBG_TRACE1_ARG1(x)    m_NCS_DBG_PRINTF(x)
 #define NCSMAINPUB_DBG_TRACE1_ARG2(x,y)  m_NCS_DBG_PRINTF(x,y)
@@ -1351,7 +1351,7 @@ uns32 mainget_node_id(uns32 *node_id)
    f_len = strlen("/node_id");
    if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
    {
-       m_NCS_CONS_PRINTF("\n Filename too long \n");
+       printf("\n Filename too long \n");
       return NCSCC_RC_FAILURE;
    }
    /* Hack ncs_config_root to construct path */
@@ -1415,7 +1415,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    f_len = strlen("/chassis_type");
    if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
    {
-      m_NCS_CONS_PRINTF("\n Filename too long \n");
+      printf("\n Filename too long \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1424,14 +1424,14 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    fp = fopen(temp_ncs_config_root,"r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
+      printf("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
       return NCSCC_RC_FAILURE;
    }
 
    /* positions the file pointer to the end of the file */
    if(0 != fseek(fp,0L,SEEK_END))
    {
-      m_NCS_CONS_PRINTF("fseek call failed with errno  %d \n",errno);
+      printf("fseek call failed with errno  %d \n",errno);
       fclose(fp);
       return NCSCC_RC_FAILURE;
    }
@@ -1440,7 +1440,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    file_size  = ftell(fp);
    if(file_size == -1)
    { 
-        m_NCS_CONS_PRINTF("ftell call failed with errno %d \n",errno);
+        printf("ftell call failed with errno %d \n",errno);
         fclose(fp);
         return NCSCC_RC_FAILURE;
    }
@@ -1448,7 +1448,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    /* validating the file size */
    if((file_size > NCS_MAX_CHASSIS_TYPE_LEN +1)||(file_size > i_max_len + 1) ||(file_size == 0)) 
    {
-     m_NCS_CONS_PRINTF("Some thing wrong with chassis_type file \n");
+     printf("Some thing wrong with chassis_type file \n");
      fclose(fp);
      return NCSCC_RC_FAILURE;
    }
@@ -1456,7 +1456,7 @@ ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
    /* positions the file pointer to the end of the file */
    if(0 != fseek(fp,0L,SEEK_SET))
    {
-      m_NCS_CONS_PRINTF("fseek call failed with errno  %d \n",errno);
+      printf("fseek call failed with errno  %d \n",errno);
       fclose(fp);
       return NCSCC_RC_FAILURE;
    }
@@ -1489,7 +1489,7 @@ static uns32 ncs_set_config_root(void)
       if (strlen (tmp) >= MAX_NCS_CONFIG_ROOTDIR_LEN)
       {
           /* m_NCS_NID_NOTIFY(NID_NCS_CFG_DIR_ROOTNAME_LEN_EXCEED); */
-             m_NCS_CONS_PRINTF("Config directory root name too long\n");
+             printf("Config directory root name too long\n");
              return NCSCC_RC_FAILURE;
       }
      sprintf(ncs_config_root, "%s", tmp);
@@ -1513,7 +1513,7 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
    
    if((res = ncs_set_config_root())!= NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Unable to set config root \n");
+      printf("Unable to set config root \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1521,7 +1521,7 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
    if(mainget_node_id(&sys_params->node_id)!= NCSCC_RC_SUCCESS)
    {
       /* m_NCS_NID_NOTIFY(NID_NCS_GET_NODE_ID_FAILED); */
-       m_NCS_CONS_PRINTF("Not able to get the NODE ID\n");
+       printf("Not able to get the NODE ID\n");
       return(NCSCC_RC_FAILURE);
    }
 

@@ -94,8 +94,8 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
     return rc;
   }
   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,1);
-  m_NCS_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Initialize  SUCCESS\n");
-  m_NCS_CONS_PRINTF(" MBCSV SERVICE VERSION :%d\n",EDS_MBCSV_VERSION);
+  printf(" eds_mbcsv_init: Mbcsv Initialize  SUCCESS\n");
+  printf(" MBCSV SERVICE VERSION :%d\n",EDS_MBCSV_VERSION);
 
   /* Store MBCSv handle in our CB */
   eds_cb->mbcsv_hdl= init_arg.info.initialize.o_mbcsv_hdl;
@@ -104,10 +104,10 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
   if (NCSCC_RC_SUCCESS != (error = eds_mbcsv_open_ckpt(eds_cb)))
   {
       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF(" eds_mbcsv_init: eds Mbcsv open ckpt FAILED\n");
+      printf(" eds_mbcsv_init: eds Mbcsv open ckpt FAILED\n");
       return rc;
   }
-  m_NCS_CONS_PRINTF(" eds_mbcsv_init: eds Mbcsv open ckpt SUCCESS\n");
+  printf(" eds_mbcsv_init: eds Mbcsv open ckpt SUCCESS\n");
  
   /* Get MBCSv Selection Object */
   sel_obj_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
@@ -121,7 +121,7 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
      return rc;
   }
   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,1);
-  m_NCS_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Selection object get SUCCESS\n");
+  printf(" eds_mbcsv_init: Mbcsv Selection object get SUCCESS\n");
 
   /* Update the CB with mbcsv selectionobject */
   eds_cb->mbcsv_sel_obj = sel_obj_arg.info.sel_obj_get.o_select_obj;
@@ -361,18 +361,18 @@ uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
                break;
 
      case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-               m_NCS_CONS_PRINTF("COLD SYNC REQ ENCODE CALLED\n"); 
+               printf("COLD SYNC REQ ENCODE CALLED\n"); 
                m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
                break;
 
      case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-               m_NCS_CONS_PRINTF("COLD SYNC RESPONSE ENCODE CALLED\n"); 
+               printf("COLD SYNC RESPONSE ENCODE CALLED\n"); 
                /* Encode cold sync response */
                rc = eds_ckpt_enc_cold_sync_data(cb,cbk_arg,FALSE);
                if (rc != NCSCC_RC_SUCCESS)
                {
                    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-                   m_NCS_CONS_PRINTF(" COLD SYNC ENCODE FAIL....\n");
+                   printf(" COLD SYNC ENCODE FAIL....\n");
                }
                else
                {
@@ -458,7 +458,7 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
  * This shall avoid "delta data" problems that are associated during
  * multiple sends
  */
-    m_NCS_CONS_PRINTF("COLD SYNC ENCODE START........\n");
+    printf("COLD SYNC ENCODE START........\n");
  /* Encode Registration list */
     rc = eds_edu_enc_reg_list(eds_cb,&cbk_arg->info.encode.io_uba);
     if (rc != NCSCC_RC_SUCCESS)
@@ -521,7 +521,7 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
      cbk_arg->info.encode.io_msg_type=NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
   
 
-  m_NCS_CONS_PRINTF("COLD SYNC ENCODE END........\n");
+  printf("COLD SYNC ENCODE END........\n");
   return rc;
 
 }/*End  eds_ckpt_enc_cold_sync_data() */
@@ -1087,19 +1087,19 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  switch(cbk_arg->info.decode.i_msg_type)
  {
     case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-            m_NCS_CONS_PRINTF(" COLD SYNC REQ DECODE called\n"); 
+            printf(" COLD SYNC REQ DECODE called\n"); 
             m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
             break;
 
     case NCS_MBCSV_MSG_COLD_SYNC_RESP:
     case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-            m_NCS_CONS_PRINTF(" COLD SYNC RESP DECODE called\n"); 
+            printf(" COLD SYNC RESP DECODE called\n"); 
             if (cb->ckpt_state != COLD_SYNC_COMPLETE)/*this check is needed to handle repeated requests */
             {
               if((rc=eds_ckpt_decode_cold_sync(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
               {
                  m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-                 m_NCS_CONS_PRINTF(" COLD SYNC RESPONSE DECODE FAILED....\n");
+                 printf(" COLD SYNC RESPONSE DECODE FAILED....\n");
               }
               else
               {
@@ -1419,7 +1419,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
  while (1)
  {
  
-   m_NCS_CONS_PRINTF("COLD SYNC DECODE START........\n");
+   printf("COLD SYNC DECODE START........\n");
   /* Allocate memory to hold the checkpoint Data */
    data=m_MMGR_ALLOC_EDSV_CKPT_DATA;
    if (data == NULL)
@@ -1454,7 +1454,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
 
      if(rc != NCSCC_RC_SUCCESS)
      {
-        m_NCS_CONS_PRINTF("COLD SYNC DECODE REG REC FAILED........\n");
+        printf("COLD SYNC DECODE REG REC FAILED........\n");
         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
         m_MMGR_FREE_EDSV_CKPT_DATA(data);
         m_NCS_EDU_PRINT_ERROR_STRING(ederror);
@@ -1499,7 +1499,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
 
        if(rc != NCSCC_RC_SUCCESS)
        {
-          m_NCS_CONS_PRINTF("COLD SYNC DECODE CHAN REC FAILED........\n");
+          printf("COLD SYNC DECODE CHAN REC FAILED........\n");
           m_NCS_EDU_PRINT_ERROR_STRING(ederror);
           rc = NCSCC_RC_FAILURE;
           m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
@@ -1542,7 +1542,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
    
        if(rc != NCSCC_RC_SUCCESS)
        {
-          m_NCS_CONS_PRINTF("COLD SYNC DECODE CHAN OPEN REC FAILED........\n");
+          printf("COLD SYNC DECODE CHAN OPEN REC FAILED........\n");
           m_NCS_EDU_PRINT_ERROR_STRING(ederror);
           m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
           rc = NCSCC_RC_FAILURE;
@@ -1582,7 +1582,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
        rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
        if(!rc)
        {
-          m_NCS_CONS_PRINTF("COLD SYNC DECODE SUBSCRIBE FAILED........\n");
+          printf("COLD SYNC DECODE SUBSCRIBE FAILED........\n");
           m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
           rc= NCSCC_RC_FAILURE;
           goto err;
@@ -1622,7 +1622,7 @@ uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
            rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
            if(!rc) /*Encode failed.Zero bytes */
            {
-              m_NCS_CONS_PRINTF("COLD SYNC DECODE PUBLISH FAILED........\n");
+              printf("COLD SYNC DECODE PUBLISH FAILED........\n");
               m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
               m_NCS_EDU_PRINT_ERROR_STRING(ederror);
               rc =  NCSCC_RC_FAILURE;
@@ -1654,11 +1654,11 @@ err:
      if(rc!= NCSCC_RC_SUCCESS)
      {
         /* Clean up all data */
-        m_NCS_CONS_PRINTF("COLD SYNC DECODE FAILED CLEANING DATABASE........\n");
+        printf("COLD SYNC DECODE FAILED CLEANING DATABASE........\n");
         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
         eds_remove_reglist_entry(cb, 0, TRUE);
      }
-     m_NCS_CONS_PRINTF("COLD SYNC DECODE END........\n");
+     printf("COLD SYNC DECODE END........\n");
      return rc;
  }/*End while(1) */
 
@@ -2222,7 +2222,7 @@ uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB* cb, NCS_UBAID *uba)
     else
     {
        /* Clean up all data */
-       m_NCS_CONS_PRINTF(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request ...\n");
+       printf(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request ...\n");
        eds_remove_reglist_entry(cb, 0, TRUE);
 
        /* Compose and send a data request to ACTIVE */ 

@@ -55,7 +55,7 @@ uns32 mqnd_restart_init(MQND_CB *cb)
       m_LOG_MQSV_ND(MQND_RESTART_INIT_OPEN_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,SA_AIS_OK,__FILE__,__LINE__);
       rc= mqnd_build_database_from_shm(cb);
       #ifdef NCS_MQND
-       m_NCS_CONS_PRINTF("\nAfter Building database\n");
+       printf("\nAfter Building database\n");
       #endif
       if(rc != NCSCC_RC_SUCCESS)
        {
@@ -152,7 +152,7 @@ static SaAisErrorT mqnd_build_database_from_shm(MQND_CB *cb)
   shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
   #ifdef NCS_MQND
-   m_NCS_CONS_PRINTF("\nBuilding Database\n");
+   printf("\nBuilding Database\n");
   #endif
 
 

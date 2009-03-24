@@ -26,21 +26,21 @@ void tet_readFile()
      if ((fp1 = fopen(base_dir,"r"))==NULL)
      {
         perror("\nERROR OPENING FILE");
-        m_NCS_CONS_PRINTF("Cannot Open tet_cpa.c\n");
+        printf("Cannot Open tet_cpa.c\n");
         exit(0);
      }
 
      if ((fp2 = fopen(base_dir,"r"))==NULL)
      {
         perror("\nERROR OPENING FILE");
-        m_NCS_CONS_PRINTF("Cannot Open tet_cpa.c\n");
+        printf("Cannot Open tet_cpa.c\n");
         exit(0);
      }
 
      if ((fp3 = fopen(base_dir,"r"))==NULL)
      {
         perror("\nERROR OPENING FILE");
-        m_NCS_CONS_PRINTF("Cannot Open tet_cpa.c\n");
+        printf("Cannot Open tet_cpa.c\n");
         exit(0);
      }
 

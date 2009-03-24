@@ -45,44 +45,44 @@ static uns32 lt_test_invoke_dl_routine( )
 
 
     strcpy(&lib_name, "liblttest_invalid_dl_app.so");
-    m_NCS_CONS_PRINTF("\nPerforming load on invalid library name... \n");
+    printf("\nPerforming load on invalid library name... \n");
     lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
         /* log the error returned from dlopen() */
-        m_NCS_CONS_PRINTF("\nLibrary could not be loaded: %s\n",lib_name);
-        m_NCS_CONS_PRINTF("\tReported error : %s\n",dl_error);
+        printf("\nLibrary could not be loaded: %s\n",lib_name);
+        printf("\tReported error : %s\n",dl_error);
     }
 
-    m_NCS_CONS_PRINTF("\nPerforming load on a valid library name... \n");
+    printf("\nPerforming load on a valid library name... \n");
     strcpy(&lib_name, "liblttest_dl_app.so");
     lib_hdl = m_NCS_OS_DLIB_LOAD(lib_name, m_NCS_OS_DLIB_ATTR); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
         /* log the error returned from dlopen() */
-        m_NCS_CONS_PRINTF("\nLibrary could not be loaded: %s\n",lib_name);
-        m_NCS_CONS_PRINTF("\tReported error : %s\n",dl_error);
+        printf("\nLibrary could not be loaded: %s\n",lib_name);
+        printf("\tReported error : %s\n",dl_error);
         return NCSCC_RC_FAILURE; 
     }
-    m_NCS_CONS_PRINTF("\nLoaded library : %s\n",lib_name);
+    printf("\nLoaded library : %s\n",lib_name);
 
     /* get the function pointer for invoking. */ 
     strcpy(func_name, "lt_dl_app_routine");
 
-    m_NCS_CONS_PRINTF("\nPerforming lookup on a valid symbol... \n");
+    printf("\nPerforming lookup on a valid symbol... \n");
     app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
         /* log the error returned from dlopen() */
-        m_NCS_CONS_PRINTF("\nFATAL FAILURE : Symbol(%s) not found\n",func_name);
-        m_NCS_CONS_PRINTF("\tReported error : %s\n",dl_error);
+        printf("\nFATAL FAILURE : Symbol(%s) not found\n",func_name);
+        printf("\tReported error : %s\n",dl_error);
         m_NCS_OS_DLIB_CLOSE(lib_hdl);
         return NCSCC_RC_FAILURE; 
     }
-    m_NCS_CONS_PRINTF("\nSymbol(%s) looked up successful \n",func_name);
+    printf("\nSymbol(%s) looked up successful \n",func_name);
     
     /* Invoke the function now, with argument 1. */
-    m_NCS_CONS_PRINTF("\nInvoking Symbol(%s) with argument = 1\n",
+    printf("\nInvoking Symbol(%s) with argument = 1\n",
     func_name);
     status = (*app_routine)(1); 
     if (status != NCSCC_RC_SUCCESS)
@@ -92,7 +92,7 @@ static uns32 lt_test_invoke_dl_routine( )
     }
     
     /* Invoke the function now, with argument 2. */
-    m_NCS_CONS_PRINTF("\nInvoking Symbol(%s) with argument = 2\n",
+    printf("\nInvoking Symbol(%s) with argument = 2\n",
     func_name);
     status = (*app_routine)(2); 
     if (status != NCSCC_RC_SUCCESS)
@@ -102,33 +102,33 @@ static uns32 lt_test_invoke_dl_routine( )
     }
 
     /* Lookup for an invalid symbol. */
-    m_NCS_CONS_PRINTF("\nPerforming lookup on an invalid symbol... \n");
+    printf("\nPerforming lookup on an invalid symbol... \n");
     strcpy(func_name, "lt_dl_app_wrong_routine");
     app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, func_name); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
         /* log the error returned from dlopen() */
-        m_NCS_CONS_PRINTF("\nLookup failed. Symbol(%s) not found\n",func_name);
-        m_NCS_CONS_PRINTF("\tReported error : %s\n",dl_error);
+        printf("\nLookup failed. Symbol(%s) not found\n",func_name);
+        printf("\tReported error : %s\n",dl_error);
     }
 
     /* Lookup for a Global variable . */
-    m_NCS_CONS_PRINTF("\nPerforming lookup on a Global variable... \n");
+    printf("\nPerforming lookup on a Global variable... \n");
     strcpy(&gbl_var_name, "gl_dl_app_status");
     global_value = m_NCS_OS_DLIB_SYMBOL(lib_hdl, gbl_var_name); 
     if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
     {
         /* log the error returned from dlopen() */
-        m_NCS_CONS_PRINTF("\nLookup on Global value failed. Global variable(%s) not found\n", 
+        printf("\nLookup on Global value failed. Global variable(%s) not found\n", 
         gbl_var_name);
-        m_NCS_CONS_PRINTF("\tReported error : %s\n",dl_error);
+        printf("\tReported error : %s\n",dl_error);
     }
-    m_NCS_CONS_PRINTF("\tGlobal variable retrieved, %s : %x\n", 
+    printf("\tGlobal variable retrieved, %s : %x\n", 
     gbl_var_name, *global_value);
     
 
     m_NCS_OS_DLIB_CLOSE(lib_hdl);
 
-    m_NCS_CONS_PRINTF("\nTest successful... \n");
+    printf("\nTest successful... \n");
     return NCSCC_RC_SUCCESS;
 }

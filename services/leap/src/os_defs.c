@@ -124,14 +124,14 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
   
    if(o_uptime == NULL)
    {
-      m_NCS_CONS_PRINTF("Wrong input ..\n"); 
+      printf("Wrong input ..\n"); 
       return NCSCC_RC_FAILURE;
    } 
 
    fp = ncs_os_fopen ("/proc/uptime", "r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("Unable to open the /proc/uptime \n");
+      printf("Unable to open the /proc/uptime \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -141,7 +141,7 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
 
    if (result != 1)
    {
-      m_NCS_CONS_PRINTF("fscanf failed .. \n");
+      printf("fscanf failed .. \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -280,26 +280,6 @@ NCS_BOOL ncs_is_root(void) { return TRUE; }
  * Notes:
  *
  ****************************************************************************/
-
-/*static struct timeval  tmr_now;
-static struct timeval  tmr_old;
-static unsigned long   tmr_period_ns;
-static NCS_OS_CB       tmr_os_cb;
-static void *          tmr_cb_arg;
-static void *          status = NULL;*/
-int
-ncs_logscreen(const char *fmt,... )
-{
-   int logmessage_length = 0;
-   va_list args;
-
-   va_start(args,fmt);
-   logmessage_length = vprintf(fmt,args); 
-   va_end(args);
-   fflush(stdout);
-   return logmessage_length;
-}
-
 
 int
 ncs_dbg_logscreen(const char *fmt,... )

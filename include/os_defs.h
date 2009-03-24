@@ -102,8 +102,6 @@ struct msgbuf
 #define USE(x)                  (x=x)
 #define CONST_USE(x) {void * dummy = &x;}
 
-#define snprintf      snprintf
-
 /*****************************************************************************
 
   INCLUDE trg_defs.h IF THE END USER DEFINES "USE_TARGET_SYSTEM_TYPEDEFS" non zero
@@ -177,11 +175,6 @@ extern "C" {
 
 extern void ncs_os_atomic_init(void);
 extern void ncs_os_atomic_destroy(void);
-
-#ifndef m_NCS_OS_CONS_PRINTF
-EXTERN_C LEAPDLL_API int ncs_logscreen(const char *str , ...);
-#define m_NCS_OS_CONS_PRINTF         ncs_logscreen
-#endif
 
 #ifndef m_NCS_OS_DBG_PRINTF
 EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); 
@@ -260,18 +253,6 @@ void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
 
 unsigned int linux_char_normalizer(void);
 #define m_NCS_OS_NORMALIZE_CHR           linux_char_normalizer
-
-#undef  m_NCS_OS_PRINTF
-#if (__GNUC__==2 && __GNUC_MINOR__==91)
-#define m_NCS_OS_PRINTF(str...)          printf(##str), fflush(stdout)
-#endif
-#if (__GNUC__==2 && __GNUC_MINOR__>=96)
-#define m_NCS_OS_PRINTF(str, ...)        printf(str, ##__VA_ARGS__), fflush(stdout)
-#endif
-#if (__GNUC__==3 && __GNUC_MINOR__>=0)  /*What will GCC 3.0 expect???*/
-#define m_NCS_OS_PRINTF(str, ...)        printf(str, ##__VA_ARGS__), fflush(stdout)
-#endif
-
 
 #define __NCSINC_LINUX__
 

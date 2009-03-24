@@ -287,7 +287,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
      if(pNdNode)
        mqd_red_db_node_del(pMqd, pNdNode);
      #ifdef NCS_MQD 
-      m_NCS_CONS_PRINTF("MQND TMR EXPIRY PROCESSED ON ACTIVE\n"); 
+      printf("MQND TMR EXPIRY PROCESSED ON ACTIVE\n"); 
      #endif
     }
     else
@@ -295,7 +295,7 @@ uns32 mqd_timer_expiry_evt_process(MQD_CB *pMqd, NODE_ID *nodeid)
       {
        pNdNode->info.timer.is_expired = TRUE; 
        #ifdef NCS_MQD
-        m_NCS_CONS_PRINTF("MQND TMR EXPIRY PROCESSED ON STANDBY\n"); 
+        printf("MQND TMR EXPIRY PROCESSED ON STANDBY\n"); 
        #endif
       }
     return rc;
@@ -323,7 +323,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd,MQD_ND_STATUS_INFO *nd_info)
    MQD_A2S_MSG    msg;
    
    #ifdef NCS_MQD
-    m_NCS_CONS_PRINTF("MQND status:MDS EVT :processing %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
+    printf("MQND status:MDS EVT :processing %d\n", m_NCS_NODE_ID_FROM_MDS_DEST(nd_info->dest));
    #endif
 
    /* Process MQND Related events */
@@ -351,7 +351,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd,MQD_ND_STATUS_INFO *nd_info)
      if(pMqd->ha_state == SA_AMF_HA_ACTIVE)
       mqd_nd_down_update_info(pMqd,nd_info->dest);
      #ifdef NCS_MQD
-      m_NCS_CONS_PRINTF("MDS DOWN PROCESSED ON %d DONE\n",pMqd->ha_state);
+      printf("MDS DOWN PROCESSED ON %d DONE\n",pMqd->ha_state);
      #endif
     }
    else
@@ -378,7 +378,7 @@ static uns32 mqd_nd_status_evt_process(MQD_CB *pMqd,MQD_ND_STATUS_INFO *nd_info)
         }
       }
      #ifdef NCS_MQD
-      m_NCS_CONS_PRINTF("MDS UP PROCESSED ON %d DONE\n",pMqd->ha_state);
+      printf("MDS UP PROCESSED ON %d DONE\n",pMqd->ha_state);
      #endif
     }
    return rc;
@@ -444,33 +444,33 @@ static uns32 mqd_cb_dump(void)
     m_LOG_MQSV_D(MQD_DONOT_EXIST,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__);
     return NCSCC_RC_FAILURE;
   }
-  m_NCS_OS_PRINTF("************ MQD CB Dump  *************** \n");
-  m_NCS_OS_PRINTF("**** Global Control Block Details ***************\n\n");
+  printf("************ MQD CB Dump  *************** \n");
+  printf("**** Global Control Block Details ***************\n\n");
 
-  m_NCS_OS_PRINTF(" Self MDS Handle is : %u \n",(uns32)pMqd->my_mds_hdl);
-  m_NCS_OS_PRINTF("MQD MDS dest Nodeid is : %u\n", m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
-  m_NCS_OS_PRINTF("MQD MDS dest is        : %llu \n", pMqd->my_dest);
-  m_NCS_OS_PRINTF("Service ID of MQD is : %u \n",pMqd->my_svc_id);
-  m_NCS_OS_PRINTF("Component name of MQD: %s \n",pMqd->my_name);
-  m_NCS_OS_PRINTF("Async update counter : %u \n",pMqd->mqd_sync_updt_count);
-  m_NCS_OS_PRINTF(" Last Recorded name  : %s \n",pMqd->record_qindex_name.value);
-  m_NCS_OS_PRINTF(" ColdSyn or WarmSync on :%u \n",pMqd->cold_or_warm_sync_on); 
-  m_NCS_OS_PRINTF("AMF Handle is        :%llu  \n",pMqd->amf_hdl);
-  m_NCS_OS_PRINTF("My HA State is       :%u  \n",pMqd->ha_state);
-  m_NCS_OS_PRINTF("MBCSV HAndle is      :%u  \n",pMqd->mbcsv_hdl);
-  m_NCS_OS_PRINTF("MBCSV Opened Checkpoint Handle is :%u \n",pMqd->o_ckpt_hdl);
-  m_NCS_OS_PRINTF("MBCSV Selection Object is :%llu \n",pMqd->mbcsv_sel_obj);
-  m_NCS_OS_PRINTF("CB Structure Handle is :%u \n",pMqd->hdl);
-  m_NCS_OS_PRINTF("OAC Handle is          :%u \n",pMqd->oac_hdl);
-  m_NCS_OS_PRINTF("Component Active flag is:%u \n",pMqd->active);
-  m_NCS_OS_PRINTF(" Invocation of Quisced State is:%llu \n",pMqd->invocation);
-  m_NCS_OS_PRINTF(" IS the invocation from the Quisced state set :%u \n",pMqd->is_quisced_set);
+  printf(" Self MDS Handle is : %u \n",(uns32)pMqd->my_mds_hdl);
+  printf("MQD MDS dest Nodeid is : %u\n", m_NCS_NODE_ID_FROM_MDS_DEST(pMqd->my_dest));
+  printf("MQD MDS dest is        : %llu \n", pMqd->my_dest);
+  printf("Service ID of MQD is : %u \n",pMqd->my_svc_id);
+  printf("Component name of MQD: %s \n",pMqd->my_name);
+  printf("Async update counter : %u \n",pMqd->mqd_sync_updt_count);
+  printf(" Last Recorded name  : %s \n",pMqd->record_qindex_name.value);
+  printf(" ColdSyn or WarmSync on :%u \n",pMqd->cold_or_warm_sync_on); 
+  printf("AMF Handle is        :%llu  \n",pMqd->amf_hdl);
+  printf("My HA State is       :%u  \n",pMqd->ha_state);
+  printf("MBCSV HAndle is      :%u  \n",pMqd->mbcsv_hdl);
+  printf("MBCSV Opened Checkpoint Handle is :%u \n",pMqd->o_ckpt_hdl);
+  printf("MBCSV Selection Object is :%llu \n",pMqd->mbcsv_sel_obj);
+  printf("CB Structure Handle is :%u \n",pMqd->hdl);
+  printf("OAC Handle is          :%u \n",pMqd->oac_hdl);
+  printf("Component Active flag is:%u \n",pMqd->active);
+  printf(" Invocation of Quisced State is:%llu \n",pMqd->invocation);
+  printf(" IS the invocation from the Quisced state set :%u \n",pMqd->is_quisced_set);
 
-  m_NCS_OS_PRINTF( "********* Printing the Queue Data base********** \n");
+  printf( "********* Printing the Queue Data base********** \n");
   if(pMqd->qdb_up)
   {
-    m_NCS_OS_PRINTF("Queue Data Base is Ready\n ");
-    m_NCS_OS_PRINTF("Total number of nodes in main database :%u\n ",pMqd->qdb.n_nodes);
+    printf("Queue Data Base is Ready\n ");
+    printf("Total number of nodes in main database :%u\n ",pMqd->qdb.n_nodes);
     mqd_obj_next_validate(pMqd, NULL, &qnode);
     while(qnode)
     {
@@ -480,11 +480,11 @@ static uns32 mqd_cb_dump(void)
     }
   }
   else
-    m_NCS_OS_PRINTF("Queue Data Baseis not  Ready\n");
+    printf("Queue Data Baseis not  Ready\n");
   
   if(pMqd->node_db_up)
   {
-    m_NCS_OS_PRINTF("Queue Node Data Base is Ready\n ");
+    printf("Queue Node Data Base is Ready\n ");
     mqd_nodedb_next_validate(pMqd, &nodeid, &qNdnode);
     while(qNdnode)
     {
@@ -494,7 +494,7 @@ static uns32 mqd_cb_dump(void)
     }
   }
   else
-    m_NCS_OS_PRINTF("Queue Node Data Baseis not  Ready\n");
+    printf("Queue Node Data Baseis not  Ready\n");
   
   ncshm_give_hdl(gl_mqdinfo.inst_hdl);
  
@@ -611,9 +611,9 @@ mqd_nodedb_next_validate(MQD_CB *pMqd, NODE_ID *node_id, MQD_ND_DB_NODE **o_node
 
 static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode)
 {
-  m_NCS_OS_PRINTF(" The node id is : %u\n",qnode->info.nodeid);
-  m_NCS_OS_PRINTF(" Value of MQND is _restarted is : %u\n",qnode->info.is_restarted);
-  m_NCS_OS_PRINTF("MQD Timer Information for this node\n ");
+  printf(" The node id is : %u\n",qnode->info.nodeid);
+  printf(" Value of MQND is _restarted is : %u\n",qnode->info.is_restarted);
+  printf("MQD Timer Information for this node\n ");
   mqd_dump_timer_info(qnode->info.timer);
   return;
 }
@@ -631,11 +631,11 @@ static void mqd_dump_nodedb_node(MQD_ND_DB_NODE *qnode)
 
 static void mqd_dump_timer_info(MQD_TMR tmr)
 {
-   m_NCS_OS_PRINTF("\n Timer Type is : %d\n",tmr.type);
-   m_NCS_OS_PRINTF("\n Tmr_t is : %p\n",tmr.tmr_id);
-   m_NCS_OS_PRINTF("\n Queue Handle is : %u\n",tmr.nodeid);
-   m_NCS_OS_PRINTF("\n uarg : %u\n",tmr.uarg);
-   m_NCS_OS_PRINTF("\n Is Active : %d\n",tmr.is_active);
+   printf("\n Timer Type is : %d\n",tmr.type);
+   printf("\n Tmr_t is : %p\n",tmr.tmr_id);
+   printf("\n Queue Handle is : %u\n",tmr.nodeid);
+   printf("\n uarg : %u\n",tmr.uarg);
+   printf("\n Is Active : %d\n",tmr.is_active);
 }
 
 /****************************************************************************\
@@ -658,79 +658,79 @@ static void mqd_dump_obj_node(MQD_OBJ_NODE *qnode)
    {
      return;
    }
-   m_NCS_OS_PRINTF(" The Qnode value is : %p \n",qnode);
-   m_NCS_OS_PRINTF(" The Qnode Ohjinfo pointer value is : %p \n",&(qnode->oinfo));
+   printf(" The Qnode value is : %p \n",qnode);
+   printf(" The Qnode Ohjinfo pointer value is : %p \n",&(qnode->oinfo));
    if(qnode->oinfo.type == MQSV_OBJ_QGROUP)
    {
-     m_NCS_OS_PRINTF("Queue Group Name is : %s\n",qnode->oinfo.name.value);
+     printf("Queue Group Name is : %s\n",qnode->oinfo.name.value);
      switch(qnode->oinfo.info.qgrp.policy)
      {
        case SA_MSG_QUEUE_GROUP_ROUND_ROBIN:
-            m_NCS_OS_PRINTF("Policy is :Round Robini\n");
+            printf("Policy is :Round Robini\n");
             break;
        case SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN:
-            m_NCS_OS_PRINTF("Policy is :Local Round Robini\n");
+            printf("Policy is :Local Round Robini\n");
             break;
        case SA_MSG_QUEUE_GROUP_LOCAL_BEST_QUEUE:
-            m_NCS_OS_PRINTF("Policy is :Local Best Queue\n"); 
+            printf("Policy is :Local Best Queue\n"); 
             break;
         case SA_MSG_QUEUE_GROUP_BROADCAST:
-            m_NCS_OS_PRINTF("Policy is :Group Broadcast\n");
+            printf("Policy is :Group Broadcast\n");
             break;
         default:
-            m_NCS_OS_PRINTF("Policy is :Unknown\n");
+            printf("Policy is :Unknown\n");
      }
    }
    else if(qnode->oinfo.type == MQSV_OBJ_QUEUE)
    { 
-     m_NCS_OS_PRINTF("Queue Name is : %s\n",qnode->oinfo.name.value);
+     printf("Queue Name is : %s\n",qnode->oinfo.name.value);
      if(qnode->oinfo.info.q.send_state ==MSG_QUEUE_AVAILABLE)
-        m_NCS_OS_PRINTF("The sending state is : MSG_QUEUE_AVAILABLE \n");
+        printf("The sending state is : MSG_QUEUE_AVAILABLE \n");
      else if(qnode->oinfo.info.q.send_state ==MSG_QUEUE_UNAVAILABLE)
-        m_NCS_OS_PRINTF("The sending state is : MSG_QUEUE_UNAVAILABLE \n");
-     m_NCS_OS_PRINTF(" Retention Time is : %llu \n",qnode->oinfo.info.q.retentionTime);
-     m_NCS_OS_PRINTF(" MDS Destination is :%llu \n",qnode->oinfo.info.q.dest);
-     m_NCS_OS_PRINTF(" Node id from the MDS Destination of the queue is :%u \n",m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
+        printf("The sending state is : MSG_QUEUE_UNAVAILABLE \n");
+     printf(" Retention Time is : %llu \n",qnode->oinfo.info.q.retentionTime);
+     printf(" MDS Destination is :%llu \n",qnode->oinfo.info.q.dest);
+     printf(" Node id from the MDS Destination of the queue is :%u \n",m_NCS_NODE_ID_FROM_MDS_DEST(qnode->oinfo.info.q.dest));
      switch(qnode->oinfo.info.q.owner)
      {
         case MQSV_QUEUE_OWN_STATE_ORPHAN:
-             m_NCS_OS_PRINTF(" Ownership is: MQSV_QUEUE_OWN_STATE_ORPHAN \n");
+             printf(" Ownership is: MQSV_QUEUE_OWN_STATE_ORPHAN \n");
              break;
         case MQSV_QUEUE_OWN_STATE_OWNED:
-             m_NCS_OS_PRINTF(" Owner ship is: MQSV_QUEUE_OWN_STATE_OWNED\n");
+             printf(" Owner ship is: MQSV_QUEUE_OWN_STATE_OWNED\n");
              break;
         case MQSV_QUEUE_OWN_STATE_PROGRESS:
-             m_NCS_OS_PRINTF(" Owner ship is:MQSV_QUEUE_OWN_STATE_PROGRESS\n");
+             printf(" Owner ship is:MQSV_QUEUE_OWN_STATE_PROGRESS\n");
              break;
         default:
-             m_NCS_OS_PRINTF(" Owner ship is:Unknown \n");
+             printf(" Owner ship is:Unknown \n");
      }  
-     m_NCS_OS_PRINTF(" Queue Handle is : %u", qnode->oinfo.info.q.hdl);
+     printf(" Queue Handle is : %u", qnode->oinfo.info.q.hdl);
      if(qnode->oinfo.info.q.adv)
-       m_NCS_OS_PRINTF(" Advertisement flag is set \n");
+       printf(" Advertisement flag is set \n");
      else
-       m_NCS_OS_PRINTF(" Advertisement flag is not set \n");
-     m_NCS_OS_PRINTF(" Is mqnd down for this queue is :%d \n",qnode->oinfo.info.q.is_mqnd_down);
-     m_NCS_OS_PRINTF(" Creation time for this queue is :%llu \n",qnode->oinfo.creationTime);
+       printf(" Advertisement flag is not set \n");
+     printf(" Is mqnd down for this queue is :%d \n",qnode->oinfo.info.q.is_mqnd_down);
+     printf(" Creation time for this queue is :%llu \n",qnode->oinfo.creationTime);
   } 
-  m_NCS_OS_PRINTF(" \n*********************Printing the ilist******************* \n");
+  printf(" \n*********************Printing the ilist******************* \n");
   memset(&itr,0,sizeof(NCS_Q_ITR));
   itr.state = 0;
   while((pilist = (MQD_OBJECT_ELEM *)ncs_walk_items(&qnode->oinfo.ilist, &itr)))          
   {
-    m_NCS_OS_PRINTF(" The ilist member pointer value is: %p \n",pilist->pObject);
-    m_NCS_OS_PRINTF(" The ilist member Name is : %s \n",pilist->pObject->name.value);  
+    printf(" The ilist member pointer value is: %p \n",pilist->pObject);
+    printf(" The ilist member Name is : %s \n",pilist->pObject->name.value);  
   }
-  m_NCS_OS_PRINTF("\n********** End of the ilist************* \n");
-  m_NCS_OS_PRINTF("\n********** Printing the track list************* \n");
+  printf("\n********** End of the ilist************* \n");
+  printf("\n********** Printing the track list************* \n");
   memset(&itr,0,sizeof(NCS_Q_ITR));
   itr.state = 0;
   while((pTrack = (MQD_TRACK_OBJ *)ncs_walk_items(&qnode->oinfo.tlist, &itr))) 
   {
-      m_NCS_OS_PRINTF(" To service is :%u \n", pTrack->to_svc);
-      m_NCS_OS_PRINTF(" The MDSdest destination of the track subscibed element is: %llu \n",pTrack->dest);
-      m_NCS_OS_PRINTF(" The Nodeid from MDSdest of the track subscibed element is: %u \n",m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
+      printf(" To service is :%u \n", pTrack->to_svc);
+      printf(" The MDSdest destination of the track subscibed element is: %llu \n",pTrack->dest);
+      printf(" The Nodeid from MDSdest of the track subscibed element is: %u \n",m_NCS_NODE_ID_FROM_MDS_DEST(pTrack->dest));
   }
-  m_NCS_OS_PRINTF("\n********** End of the track list************* \n");
+  printf("\n********** End of the track list************* \n");
  
 }

@@ -57,7 +57,7 @@ uns32 pseudoLibReq(NCS_LIB_REQ_INFO *reqInfo)
 
       if((ret = pseudoCreate(reqInfo)) == NCSCC_RC_FAILURE)
       {
-         m_NCS_CONS_PRINTF("ERROR: Pseudo DRBD component creation failed!!");
+         printf("ERROR: Pseudo DRBD component creation failed!!");
       }
 
       else
@@ -100,7 +100,7 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
    /* Register with logging service */
    if(pdrbd_log_bind() == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("ERROR: Pseudo DRBD FLS registration failed!!");
+      printf("ERROR: Pseudo DRBD FLS registration failed!!");
       ret = NCSCC_RC_FAILURE;
       goto pcRet;
    }

@@ -1822,7 +1822,7 @@ void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation,
 void yyerror(int8 *text)
 {
     if(strlen(yytext) != 0)
-       m_NCS_CONS_PRINTF("Error on line %d at %s (%s)\n",yylineno, yytext, text);
+       printf("Error on line %d at %s (%s)\n",yylineno, yytext, text);
 }
 
 /*****************************************************************************

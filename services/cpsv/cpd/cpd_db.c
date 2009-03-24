@@ -1062,7 +1062,7 @@ void cpd_ckpt_ref_info_del(CPD_CPND_INFO_NODE *node_info,
       }
       
        node_info->ckpt_cnt--;
-   /*    m_NCS_CONS_PRINTF("cpnd_node ckpt_reference %d \n",node_info->ckpt_cnt);  */
+   /*    printf("cpnd_node ckpt_reference %d \n",node_info->ckpt_cnt);  */
        m_MMGR_FREE_CPD_CKPT_REF_INFO(cref);
    } 
    
@@ -1093,7 +1093,7 @@ void cpd_node_ref_info_add(CPD_CKPT_INFO_NODE *ckpt_node,
    nref_info->next = ckpt_node->node_list;
    ckpt_node->node_list = nref_info;
    ckpt_node->dest_cnt++;
- /*  m_NCS_CONS_PRINTF("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
+ /*  printf("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
    
    return;
 }
@@ -1134,7 +1134,7 @@ void cpd_node_ref_info_del(CPD_CKPT_INFO_NODE *ckpt_node,
          nref_prev->next = nref->next;
       }
        ckpt_node->dest_cnt--;
-     /*  m_NCS_CONS_PRINTF("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
+     /*  printf("ckpt_node dest_reference %d \n",ckpt_node->dest_cnt); */
        m_MMGR_FREE_CPD_NODE_REF_INFO(nref);
    } 
    

@@ -88,7 +88,7 @@ EXTERN_C DTADLL_API uns32 dta_dbg_sink_svc (uns32,char*,uns32,char*,uns32);
 
 #if (DTA_TRACE == 1)
 
-#define m_DTA_DBG_TRACE(t) m_NCS_CONS_PRINTF(t)
+#define m_DTA_DBG_TRACE(t) printf(t)
 
 #else
 

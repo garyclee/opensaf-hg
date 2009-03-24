@@ -153,14 +153,14 @@ uns32 pxy_pxd_amf_init(void)
       goto err;
    }
 
-   m_NCS_CONS_PRINTF("\n\n AMF-INTF TASK CREATION SUCCESS !!! \n\n");
+   printf("\n\n AMF-INTF TASK CREATION SUCCESS !!! \n\n");
 
    return rc;
 
 err:
    /* destroy the task */
    if (gl_amf_task_hdl) m_NCS_TASK_RELEASE(gl_amf_task_hdl);
-   m_NCS_CONS_PRINTF("\n\n AMF-INTF TASK CREATION FAILED !!! \n\n");
+   printf("\n\n AMF-INTF TASK CREATION FAILED !!! \n\n");
 
    return rc;
 }
@@ -225,12 +225,12 @@ void pxy_pxd_amf_process (void)
      if (SA_AIS_OK != rc)
      {
        saAmfFinalize(pxy_pxd_cb.pxy_info.amfHandle);
-       m_NCS_CONS_PRINTF("\n AMF Selection Object Get Failed for index %d !!!\n",index);
+       printf("\n AMF Selection Object Get Failed for index %d !!!\n",index);
        return;
      }
    }
 
-   m_NCS_CONS_PRINTF("\n AMF Selection Object Get Successful !!! \n");
+   printf("\n AMF Selection Object Get Successful !!! \n");
 
    rc = saAmfComponentNameGet(pxy_pxd_cb.pxy_info.amfHandle, 
                                  &pxy_pxd_cb.pxy_info.compName);
@@ -240,7 +240,7 @@ void pxy_pxd_amf_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Component Name Get Successful !!! \n CompName: %s \n",
+   printf("\n Component Name Get Successful !!! \n CompName: %s \n",
                       pxy_pxd_cb.pxy_info.compName.value);
 
 
@@ -252,7 +252,7 @@ void pxy_pxd_amf_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n Proxy Component Registered !!! \n");
+   printf("\n Proxy Component Registered !!! \n");
 
    /* Reset the wait select objects */
    m_NCS_SEL_OBJ_ZERO(&all_sel_objs);
@@ -279,12 +279,12 @@ void pxy_pxd_amf_process (void)
     /* Check if it's an event from AMF */
     if(m_NCS_SEL_OBJ_ISSET(pxy_amf_ncs_sel_obj, &wait_sel_objs))
     {
-      m_NCS_CONS_PRINTF("\n Got Proxy AMF event!!! \n");
+      printf("\n Got Proxy AMF event!!! \n");
       /* There is an AMF callback waiting to be be processed. Process it */
       rc = saAmfDispatch(pxy_pxd_cb.pxy_info.amfHandle, SA_DISPATCH_ALL);
       if (SA_AIS_OK != rc)
       {
-         m_NCS_CONS_PRINTF("\n Proxy saAmfDispatch failed !!! \n");
+         printf("\n Proxy saAmfDispatch failed !!! \n");
          break;
       }
     }
@@ -292,14 +292,14 @@ void pxy_pxd_amf_process (void)
    {
     if(TRUE == pxy_pxd_cb.pxd_info[index].reg_pxied_comp)
     {
-      m_NCS_CONS_PRINTF("\n Before registering pxd[%d]!!!\n",index);
+      printf("\n Before registering pxd[%d]!!!\n",index);
       /* Need to register proxied component */
       rc = saAmfComponentRegister(pxy_pxd_cb.pxd_info[index].amfHandle,
                                    &pxy_pxd_cb.pxd_info[index].compName,
                                    &pxy_pxd_cb.pxy_info.compName);
       if (SA_AIS_OK == rc)
       {
-        m_NCS_CONS_PRINTF("\n Proxied[%d] Component Registeration Successful. "
+        printf("\n Proxied[%d] Component Registeration Successful. "
                               "Comp %s. rc is %d\n",index,
                               pxy_pxd_cb.pxd_info[index].compName.value,rc);
         pxy_pxd_cb.pxd_info[index].health_start = TRUE;
@@ -307,13 +307,13 @@ void pxy_pxd_amf_process (void)
       }
       else if (SA_AIS_ERR_TRY_AGAIN == rc)
       {
-        m_NCS_CONS_PRINTF("\n Proxied[%d] Component Registeration failed. TRY_AGAIN"
+        printf("\n Proxied[%d] Component Registeration failed. TRY_AGAIN"
                               " Comp %s. rc is %d\n",index,
                               pxy_pxd_cb.pxd_info[index].compName.value,rc);
       }
       else
       {
-        m_NCS_CONS_PRINTF("\n Proxied[%d] Component Registeration failed."
+        printf("\n Proxied[%d] Component Registeration failed."
                               " Comp %s. rc is %d\n",index,
                               pxy_pxd_cb.pxd_info[index].compName.value,rc);
         pxy_pxd_cb.pxd_info[index].reg_pxied_comp = FALSE;
@@ -330,7 +330,7 @@ void pxy_pxd_amf_process (void)
      {
        if(TRUE == pxy_pxd_cb.pxd_info[index].health_start)
        { 
-        m_NCS_CONS_PRINTF("\n Before registering hc [%d]!!!\n",index);
+        printf("\n Before registering hc [%d]!!!\n",index);
         hc_inv = SA_AMF_HEALTHCHECK_AMF_INVOKED;
         rec_rcvr = SA_AMF_COMPONENT_FAILOVER;
 
@@ -340,7 +340,7 @@ void pxy_pxd_amf_process (void)
                                    hc_inv, rec_rcvr);
         if (SA_AIS_OK == rc )
         {
-          m_NCS_CONS_PRINTF("Started AMF-Initiated HealthCheck (with Component "
+          printf("Started AMF-Initiated HealthCheck (with Component "
                           "Failover Recommended Recovery) \n Comp: %s \n" 
                           "HealthCheckKey: %s \n",
                           pxy_pxd_cb.pxd_info[index].compName.value, 
@@ -350,7 +350,7 @@ void pxy_pxd_amf_process (void)
         }
         else if(SA_AIS_ERR_TRY_AGAIN == rc)
         {
-          m_NCS_CONS_PRINTF(" AMF-Initiated HealthCheck TRY_AGAIN (with Component"
+          printf(" AMF-Initiated HealthCheck TRY_AGAIN (with Component"
                             " Failover Recommended Recovery) \n Comp: %s \n" 
                             "HealthCheckKey: %s. Res %d \n",
                             pxy_pxd_cb.pxd_info[index].compName.value, 
@@ -358,7 +358,7 @@ void pxy_pxd_amf_process (void)
         }
         else
         {
-          m_NCS_CONS_PRINTF(" AMF-Initiated HealthCheck failed (with Component "
+          printf(" AMF-Initiated HealthCheck failed (with Component "
                             "Failover Recommended Recovery) \n Comp: %s \n" 
                             "HealthCheckKey: %s. Res %d \n",
                             pxy_pxd_cb.pxd_info[index].compName.value, 
@@ -374,19 +374,19 @@ void pxy_pxd_amf_process (void)
   {
    for(index = 0; index < PXY_PXD_NUM_OF_PROXIED_COMP; index++)
    {
-      m_NCS_CONS_PRINTF("\n Before unregistering PXD[%d]!!! \n",index);
+      printf("\n Before unregistering PXD[%d]!!! \n",index);
       /* Need to unregister proxied component */
        rc = saAmfComponentUnregister(pxy_pxd_cb.pxd_info[index].amfHandle,
                                      &pxy_pxd_cb.pxd_info[index].compName,
                                      &pxy_pxd_cb.pxy_info.compName);
        if (SA_AIS_OK != rc)
        {
-          m_NCS_CONS_PRINTF("\n Proxied Component unreg failed. Comp %s, Pxy Comp %s, Res %d\n",
+          printf("\n Proxied Component unreg failed. Comp %s, Pxy Comp %s, Res %d\n",
                                 pxy_pxd_cb.pxd_info[index].compName.value,
                                 pxy_pxd_cb.pxy_info.compName.value,rc);
        }
        else
-          m_NCS_CONS_PRINTF("\n Proxied Component unreg Succ. Comp %s, Pxy Comp %s\n",
+          printf("\n Proxied Component unreg Succ. Comp %s, Pxy Comp %s\n",
                                 pxy_pxd_cb.pxd_info[index].compName.value,
                                 pxy_pxd_cb.pxy_info.compName.value);
        pxy_pxd_cb.unreg_pxied_comp = FALSE;
@@ -399,12 +399,12 @@ void pxy_pxd_amf_process (void)
     /* Check if it's an event from AMF */
     if(m_NCS_SEL_OBJ_ISSET(pxd_amf_ncs_sel_obj[index], &wait_sel_objs))
     {
-      m_NCS_CONS_PRINTF("\n Before Pxd dispatch PXD[%d] !!!\n",index);
+      printf("\n Before Pxd dispatch PXD[%d] !!!\n",index);
       /* There is an AMF callback waiting to be be processed. Process it */
       rc = saAmfDispatch(pxy_pxd_cb.pxd_info[index].amfHandle, SA_DISPATCH_ONE);
       if (SA_AIS_OK != rc)
       {
-         m_NCS_CONS_PRINTF("\n PXD[%d] saAmfDispatch failed !!! \n",index);
+         printf("\n PXD[%d] saAmfDispatch failed !!! \n",index);
          break;
       }
     }
@@ -414,7 +414,7 @@ void pxy_pxd_amf_process (void)
       wait_sel_fd  = highest_sel_obj;
    }/* While loop */
 
-   m_NCS_CONS_PRINTF("\n\n Proxy Exited, ret %d!!!\n\n",ret);
+   printf("\n\n Proxy Exited, ret %d!!!\n\n",ret);
 
    return;
 }
@@ -449,7 +449,7 @@ void proxy_csi_set_callback(SaInvocationT       inv,
    uns8    trk_flags;
    uns32   index = 0;
 
-   m_NCS_CONS_PRINTF("\n'Proxy CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
+   printf("\n'Proxy CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_desc.csiName.value, 
                       ha_state_str[ha_state], csi_flag_str[csi_desc.csiFlags]);
 
@@ -483,7 +483,7 @@ void proxy_csi_set_callback(SaInvocationT       inv,
    rc = saAmfResponse(pxy_pxd_cb.pxy_info.amfHandle, inv, rc);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse returned failure for CSI Set. Result %d\n",rc);
+      printf("\nsaAmfResponse returned failure for CSI Set. Result %d\n",rc);
       saAmfComponentUnregister(pxy_pxd_cb.pxy_info.amfHandle, 
                                &pxy_pxd_cb.pxy_info.compName, 0);
       saAmfFinalize(pxy_pxd_cb.pxy_info.amfHandle);
@@ -516,7 +516,7 @@ void proxy_csi_remove_callback(SaInvocationT  inv,
 {
    SaAisErrorT rc;
 
-   m_NCS_CONS_PRINTF("\n Proxy 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
+   printf("\n Proxy 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_name->value, csi_flag_str[csi_flags]);
 
    /* Reset the ha state */
@@ -528,7 +528,7 @@ void proxy_csi_remove_callback(SaInvocationT  inv,
    {
       saAmfComponentUnregister(pxy_pxd_cb.pxy_info.amfHandle, &pxy_pxd_cb.pxy_info.compName, 0);
       saAmfFinalize(pxy_pxd_cb.pxy_info.amfHandle);
-      m_NCS_CONS_PRINTF("\nsaAmfResponse returned failure for CSI Remove. Result %d\n",rc);
+      printf("\nsaAmfResponse returned failure for CSI Remove. Result %d\n",rc);
    }
 
    return;
@@ -564,7 +564,7 @@ void proxy_healthcheck_callback(SaInvocationT        inv,
    SaAisErrorT rc;
    static int healthcheck_count = 0;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
+   printf("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
                       comp_name->value, health_check_key->key);
 
    /* Respond immediately */
@@ -573,7 +573,7 @@ void proxy_healthcheck_callback(SaInvocationT        inv,
    {
       saAmfComponentUnregister(pxy_pxd_cb.pxy_info.amfHandle, &pxy_pxd_cb.pxy_info.compName, 0);
       saAmfFinalize(pxy_pxd_cb.pxy_info.amfHandle);
-      m_NCS_CONS_PRINTF("\nsaAmfResponse returned failure for Health Check. Result %d\n",rc);
+      printf("\nsaAmfResponse returned failure for Health Check. Result %d\n",rc);
       return;
    }
 
@@ -603,7 +603,7 @@ void proxy_comp_terminate_callback(SaInvocationT inv,
 {
    SaAisErrorT rc;
 
-   m_NCS_CONS_PRINTF("\n Proxy 'Component Terminate' Callback \n Component: %s \n", 
+   printf("\n Proxy 'Component Terminate' Callback \n Component: %s \n", 
                       comp_name->value);
 
    rc = saAmfResponse(pxy_pxd_cb.pxy_info.amfHandle, inv, SA_AIS_OK);
@@ -612,7 +612,7 @@ void proxy_comp_terminate_callback(SaInvocationT inv,
       saAmfComponentUnregister(pxy_pxd_cb.pxy_info.amfHandle, 
                                &pxy_pxd_cb.pxy_info.compName, 0);
       saAmfFinalize(pxy_pxd_cb.pxy_info.amfHandle);
-      m_NCS_CONS_PRINTF("\nsaAmfResponse returned failure for Comp Terminate. Result %d\n",rc);
+      printf("\nsaAmfResponse returned failure for Comp Terminate. Result %d\n",rc);
    }
 
    return;
@@ -642,28 +642,28 @@ void proxy_comp_pg_callback(const SaNameT *csi_name,
    uns32  item_count;
    SaAisErrorT  rc;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'Protection Group' Callback \n CSI: %s \n No. of Members: %d \n",
+   printf("\n Dispatched 'Protection Group' Callback \n CSI: %s \n No. of Members: %d \n",
                       csi_name->value, (uns32)mem_num);
 
    if ( SA_AIS_OK != err )
    {
-      m_NCS_CONS_PRINTF("\n Error Returned is %d\n",err);   
+      printf("\n Error Returned is %d\n",err);   
       return;
    }
 
    /* Print the Protection Group members */
    for (item_count= 0; item_count < not_buf->numberOfItems; item_count++)
    {
-      m_NCS_CONS_PRINTF(" CompName[%d]: %s \n",
+      printf(" CompName[%d]: %s \n",
                         item_count, not_buf->notification[item_count].member.compName.value);
-      m_NCS_CONS_PRINTF(" Rank[%d]    : %d \n",
+      printf(" Rank[%d]    : %d \n",
                         item_count, (uns32)not_buf->notification[item_count].member.rank);
-      m_NCS_CONS_PRINTF(" HAState[%d] : %s \n",
+      printf(" HAState[%d] : %s \n",
                         item_count, ha_state_str[not_buf->notification[item_count].member.haState]);
-      m_NCS_CONS_PRINTF(" Change[%d]  : %s \n",
+      printf(" Change[%d]  : %s \n",
                         item_count, pg_change_str[not_buf->notification[item_count].change]);
 
-      m_NCS_CONS_PRINTF("\n");
+      printf("\n");
    }
 
 return;
@@ -749,12 +749,12 @@ uns32 pxy_pxd_proxy_amf_init(void)
    rc = saAmfInitialize(&pxy_pxd_cb.pxy_info.amfHandle, &reg_callback_set, &ver);
    if (SA_AIS_OK != rc)
    {
-      m_NCS_CONS_PRINTF("\n Proxy AMF Initialization Failed !!! \n AmfHandle: %lld \n", 
+      printf("\n Proxy AMF Initialization Failed !!! \n AmfHandle: %lld \n", 
                        pxy_pxd_cb.pxy_info.amfHandle);
       return rc;
    }
 
-   m_NCS_CONS_PRINTF("\n Proxy AMF Initialization Done !!! \n AmfHandle: %lld \n", 
+   printf("\n Proxy AMF Initialization Done !!! \n AmfHandle: %lld \n", 
                        pxy_pxd_cb.pxy_info.amfHandle);
    return rc;
 
@@ -797,11 +797,11 @@ uns32 pxy_pxd_proxied_amf_init(uns32 index)
    rc = saAmfInitialize(&pxy_pxd_cb.pxd_info[index].amfHandle, &reg_callback_set, &ver);
    if (SA_AIS_OK != rc)
    {
-      m_NCS_CONS_PRINTF("\n Proxied[%d] AMF Initialization Failed !!! \n AmfHandle: %lld \n", 
+      printf("\n Proxied[%d] AMF Initialization Failed !!! \n AmfHandle: %lld \n", 
                        index,pxy_pxd_cb.pxd_info[index].amfHandle);
       return rc;
    }
-   m_NCS_CONS_PRINTF("\n Proxied[%d] AMF Initialization Done !!! \n AmfHandle: %lld \n", 
+   printf("\n Proxied[%d] AMF Initialization Done !!! \n AmfHandle: %lld \n", 
                      index,pxy_pxd_cb.pxd_info[index].amfHandle);
 
    return rc;
@@ -839,7 +839,7 @@ void proxied_csi_set_callback(SaInvocationT       inv,
    SaAisErrorT error=SA_AIS_OK;
    uns32 index = 0;
 
-   m_NCS_CONS_PRINTF("\n'Proxied CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
+   printf("\n'Proxied CSI Set' Callback \n Component: %s \n CSIName: %s \n HAState: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_desc.csiName.value, 
                       ha_state_str[ha_state], csi_flag_str[csi_desc.csiFlags]);
 
@@ -850,9 +850,9 @@ void proxied_csi_set_callback(SaInvocationT       inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
 
    switch(ha_state)
@@ -876,7 +876,7 @@ void proxied_csi_set_callback(SaInvocationT       inv,
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, error);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for CSI Set. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for CSI Set. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
       return;
    }
@@ -908,7 +908,7 @@ void proxied_csi_remove_callback(SaInvocationT  inv,
    SaAisErrorT rc;
    uns32 index = 0;
 
-   m_NCS_CONS_PRINTF("\n Proxied 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
+   printf("\n Proxied 'CSI Remove' Callback \n Component: %s \n CSI: %s \n CSIFlags: %s \n", 
                       comp_name->value, csi_name->value, csi_flag_str[csi_flags]);
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
@@ -918,9 +918,9 @@ void proxied_csi_remove_callback(SaInvocationT  inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
    /* Reset the ha state */
    pxy_pxd_cb.pxd_info[index].haState = 0;
@@ -929,7 +929,7 @@ void proxied_csi_remove_callback(SaInvocationT  inv,
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, SA_AIS_OK);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for CSI Rem. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for CSI Rem. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
    }
 
@@ -967,7 +967,7 @@ void proxied_healthcheck_callback(SaInvocationT        inv,
    static int healthcheck_count = 0;
    uns32 index = 0;
 
-   m_NCS_CONS_PRINTF("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
+   printf("\n Dispatched 'HealthCheck' Callback \n Component: %s \n HealthCheckKey: %s \n", 
                       comp_name->value, health_check_key->key);
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
@@ -977,16 +977,16 @@ void proxied_healthcheck_callback(SaInvocationT        inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
 
    /* Respond immediately */
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, SA_AIS_OK);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for HC. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for HC. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
       return;
    }
@@ -1015,7 +1015,7 @@ void proxied_comp_terminate_callback(SaInvocationT inv,
    SaAisErrorT rc;
    uns32 index = 0;
 
-   m_NCS_CONS_PRINTF("\n Proxied 'Component Terminate' Callback \n Component: %s \n", 
+   printf("\n Proxied 'Component Terminate' Callback \n Component: %s \n", 
                       comp_name->value);
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
@@ -1025,15 +1025,15 @@ void proxied_comp_terminate_callback(SaInvocationT inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
 
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, SA_AIS_OK);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for Comp Term. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for Comp Term. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
    }
 
@@ -1062,7 +1062,7 @@ void proxied_comp_instantiate_callback(SaInvocationT inv,
    uns32 index = 0;
 
    /*error=SA_AIS_ERR_FAILED_OPERATION;*/
-   m_NCS_CONS_PRINTF("\n Proxied 'Pxied Comp Inst ' Callback \n Component: %s \n", 
+   printf("\n Proxied 'Pxied Comp Inst ' Callback \n Component: %s \n", 
                       comp_name->value);
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
@@ -1072,15 +1072,15 @@ void proxied_comp_instantiate_callback(SaInvocationT inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
 
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, error);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for Pxd Comp Inst. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for Pxd Comp Inst. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
    }
 return;
@@ -1106,7 +1106,7 @@ void proxied_comp_cleanup_callback(SaInvocationT inv,
    SaAisErrorT rc;
    uns32 index = 0;
 
-   m_NCS_CONS_PRINTF("\n Proxied 'Pxied Comp Cleanup ' Callback \n Component: %s \n",
+   printf("\n Proxied 'Pxied Comp Cleanup ' Callback \n Component: %s \n",
                       comp_name->value);
 
    for(index=0; index<PXY_PXD_NUM_OF_PROXIED_COMP; index++)
@@ -1116,15 +1116,15 @@ void proxied_comp_cleanup_callback(SaInvocationT inv,
    }
    
    if(PXY_PXD_NUM_OF_PROXIED_COMP == index)
-       m_NCS_CONS_PRINTF("\n Component not found, index\n");
+       printf("\n Component not found, index\n");
    else
-       m_NCS_CONS_PRINTF("\n Component %s, index %d\n",
+       printf("\n Component %s, index %d\n",
                             pxy_pxd_cb.pxd_info[index].compName.value, index);
 
    rc = saAmfResponse(pxy_pxd_cb.pxd_info[index].amfHandle, inv, error);
    if ( SA_AIS_OK != rc )
    {
-      m_NCS_CONS_PRINTF("\nsaAmfResponse failure for Pxd Comp Term. Comp %s,Result %d\n",
+      printf("\nsaAmfResponse failure for Pxd Comp Term. Comp %s,Result %d\n",
                            pxy_pxd_cb.pxd_info[index].compName.value, rc);
    }
    return;

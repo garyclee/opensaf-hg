@@ -46,7 +46,7 @@
 #ifdef NDEBUG
 #define m_NCS_SPRR_DBG_SINK(x,y)  (x)
 #else
-#define m_NCS_SPRR_DBG_SINK(x,y)  m_NCS_CONS_PRINTF("SPRR:%s\n", y),m_LEAP_DBG_SINK(x)
+#define m_NCS_SPRR_DBG_SINK(x,y)  printf("SPRR:%s\n", y),m_LEAP_DBG_SINK(x)
 #endif
 
 #define m_NCSSPRR_TRACE_ARG2(x,y)  

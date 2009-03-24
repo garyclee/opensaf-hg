@@ -399,7 +399,7 @@ static uns32 cpd_mds_dec(CPD_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
   else
   {
      m_LOG_CPD_CL(CPD_MDS_DEC_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-     m_NCS_CONS_PRINTF("INVALID MSG FORMAT VERSION IN DECODE FULL, VER %d SVC_ID  %d \n",dec_info->i_msg_fmt_ver,dec_info->i_fr_svc_id );
+     printf("INVALID MSG FORMAT VERSION IN DECODE FULL, VER %d SVC_ID  %d \n",dec_info->i_msg_fmt_ver,dec_info->i_fr_svc_id );
      return NCSCC_RC_FAILURE;
   }
 }
@@ -459,7 +459,7 @@ static uns32 cpd_mds_enc_flat(CPD_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
    {
      
        m_LOG_CPD_CL(CPD_MDS_ENC_FLAT_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-       m_NCS_CONS_PRINTF("INVALID MSG FORMAT VERSION IN ENC FLAT, VER %d SVC_ID  %d \n",info->i_rem_svc_pvt_ver,info->i_to_svc_id);
+       printf("INVALID MSG FORMAT VERSION IN ENC FLAT, VER %d SVC_ID  %d \n",info->i_rem_svc_pvt_ver,info->i_to_svc_id);
        return NCSCC_RC_FAILURE ;  /* Drop The Message */
         
    }
@@ -524,7 +524,7 @@ static uns32 cpd_mds_dec_flat(CPD_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
   {
       /* Drop The message */
       m_LOG_CPD_CL(CPD_MDS_DEC_FLAT_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("INVALID MSG FORMAT VERSION IN DECODE FLAT, VER %d SVC_ID  %d \n",info->i_msg_fmt_ver,info->i_fr_svc_id );
+      printf("INVALID MSG FORMAT VERSION IN DECODE FLAT, VER %d SVC_ID  %d \n",info->i_msg_fmt_ver,info->i_fr_svc_id );
       return NCSCC_RC_FAILURE;
 
   } 

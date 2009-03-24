@@ -227,7 +227,7 @@ EXTERN_C void hisv_log_lck_oper(uns8 lck_id, uns8 sev ,
 #define m_LOG_HISV_DTS_CONS(str)   \
 { \
    m_LOG_HISV_DEBUG(str); \
-   m_NCS_CONS_PRINTF(str); \
+   printf(str); \
 }
 
 #define m_LOG_HISV_GEN(str, addrs, length, severity) \
