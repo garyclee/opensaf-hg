@@ -194,9 +194,6 @@ extern void ncs_reboot(const char *reason);
 #define m_NCS_GET_UPTIME \
     m_NCS_OS_GET_UPTIME  
 
-#define m_NCS_GETGROUPS(num_of_groups,list) \
-    m_NCS_OS_GETGROUPS(num_of_groups,list) 
-
 #define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)
 
