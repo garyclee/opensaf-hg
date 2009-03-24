@@ -674,10 +674,6 @@ typedef int32 int64;
  * POSIX Sytem Calls Definitaions 
  ***************************************************************************/
 
-#ifndef m_NCS_OS_POSIX_FORK
-#define m_NCS_OS_POSIX_FORK             fork
-#endif
-
 #ifndef m_NCS_OS_POSIX_EXECVP
 #define m_NCS_OS_POSIX_EXECVP           execvp
 #endif
