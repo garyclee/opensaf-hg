@@ -56,9 +56,11 @@ uns32 hpl_initialize(NCS_LIB_CREATE *create_info)
    uns32  rc = NCSCC_RC_SUCCESS;
    char *arch_type = NULL;
 
-   /* If running on HP_PROLIANT, set the HPL MDS timeout to a different value. */
+   /* If running on HP_PROLIANT, or if the arch env variable is not set */
+   /* then set the HPL MDS timeout to the higher value.                 */
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
-   if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+   if ((arch_type == NULL) ||
+       (strcmp(arch_type, "HP_PROLIANT") == 0)) {
       gl_hpl_mds_timeout = HPL_MDS_SYNC_TIMEOUT_HP_PROLIANT;
    }
 
