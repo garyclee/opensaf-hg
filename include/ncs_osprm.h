@@ -674,10 +674,6 @@ typedef int32 int64;
  * POSIX Sytem Calls Definitaions 
  ***************************************************************************/
 
-#ifndef m_NCS_OS_POSIX_OPEN
-#define m_NCS_OS_POSIX_OPEN             open
-#endif
-
 #ifndef m_NCS_OS_POSIX_READ
 #define m_NCS_OS_POSIX_READ             read
 #endif

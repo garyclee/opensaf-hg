@@ -91,7 +91,7 @@ uns32 nid_open_ipc(int32 *fd, char *strbuf)
    *    Try to open FIFO if its not already open         *
    ******************************************************/
    if(fifo_fd < 0)
-   if((fifo_fd = m_NCS_POSIX_OPEN(NID_FIFO, O_RDWR|O_NONBLOCK)) < 0){
+   if((fifo_fd = open(NID_FIFO, O_RDWR|O_NONBLOCK)) < 0){
      sprintf(strbuf,"NID FAILURE: Unable To Open FIFO Error:%s\n",strerror(errno));
      return NCSCC_RC_FAILURE;
    }
