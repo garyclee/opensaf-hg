@@ -645,7 +645,7 @@ uns32 pseudoInitialise()
    for(i=0; i<pseudoCB.noOfProxied; i++)
    {
       memset(buff, 0, sizeof(buff));
-      sysf_sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
+      sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
                      pseudoCB.nodeId);
       strcpy((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
       pseudoCB.proxied_info[i].compName.length = strlen(buff);

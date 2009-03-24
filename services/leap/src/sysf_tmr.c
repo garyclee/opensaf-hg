@@ -1193,7 +1193,7 @@ uns32 ncs_tmr_whatsout (void)
     {
         if (!TMR_TEST_STATE(free,TMR_STATE_DESTROY)) /* some may be in transition, but report all */
         {
-            sysf_sprintf (pBuf, "%4d%5d%6d%12s%12s%16lx\n",
+            sprintf (pBuf, "%4d%5d%6d%12s%12s%16lx\n",
                 cnt++,                          /* Nmber  */
                 gl_tcb.tick - free->dbg.stamp,  /* age    */
                 free->dbg.line,                 /* OwnrL  */

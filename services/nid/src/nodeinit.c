@@ -368,25 +368,25 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
    case NID_PLATCONF_SFILE:
       if(p[0] == ':')
       {
-        sysf_sprintf(sbuf,": Missing application file name in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing application file name in file:"NID_PLAT_CONF);
         break;
       }
       q = gettoken(&p,':');
       if(strlen(q) > NID_MAXSFILE)
       {
-        sysf_sprintf(sbuf,": App file name length exceeded max:%d in file"
+        sprintf(sbuf,": App file name length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAXSFILE);
         break;
       }
       strcpy(spawninfo->s_name,q);
       if(spawninfo->s_name[0] != '/')
       {
-        sysf_sprintf(sbuf,": Not an absolute path: %s",spawninfo->s_name);
+        sprintf(sbuf,": Not an absolute path: %s",spawninfo->s_name);
         break;
       }
       if((p == NULL) || (*p == '\0') )
       {
-        sysf_sprintf(sbuf,": Missing app name in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing app name in file:"NID_PLAT_CONF);
         break;
       }
       parse_state = NID_PLATCONF_SNAME;
@@ -395,19 +395,19 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
    case NID_PLATCONF_SNAME:
       if((p[0] == ':') || (p[0] == '\n'))
       {
-        sysf_sprintf(sbuf,": Missing app name in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing app name in file:"NID_PLAT_CONF);
         break;
       }
       q = gettoken(&p,':');
 	  
       if((q == NULL) || (*q == '\0') )
       {
-	sysf_sprintf(sbuf,": Null/Empty string  not a valid service Name");
+	sprintf(sbuf,": Null/Empty string  not a valid service Name");
         break;
       }
       if(strlen(q) > NID_MAX_SVC_NAME_LEN)
       {
-        sysf_sprintf(sbuf,": App name length exceeded max:%d in file",
+        sprintf(sbuf,": App name length exceeded max:%d in file",
                      NID_MAX_SVC_NAME_LEN);
         break;
       }
@@ -415,7 +415,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       strcpy(spawninfo->serv_name,q);
       if((p == NULL) || (*p == '\0'))
       {
-        sysf_sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
         break;
       }
       parse_state = NID_PLATCONF_APPTYP;
@@ -424,29 +424,29 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
    case NID_PLATCONF_APPTYP:
       if((p[0] == ':') || (p[0] == '\n'))
       {
-        sysf_sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing file type in file:"NID_PLAT_CONF);
         break;
       }
       q = gettoken(&p,':');
       if(strlen(q) > NID_MAXAPPTYPE_LEN)
       {
-        sysf_sprintf(sbuf,": File type length exceeded max:%d in file"
+        sprintf(sbuf,": File type length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAXAPPTYPE_LEN);
         break;
       }
       spawninfo->app_type = get_apptype(q);
       if(spawninfo->app_type < 0)
       {
-        sysf_sprintf(sbuf,": Not an identified file type,\"%s\"",q);
+        sprintf(sbuf,": Not an identified file type,\"%s\"",q);
         break;
       }
       if(( p == NULL) || (*p == '\0'))
       {
         if((spawninfo->app_type == NID_SCRIPT))
-          sysf_sprintf(sbuf,": Missing cleanup script in file:" NID_PLAT_CONF);
+          sprintf(sbuf,": Missing cleanup script in file:" NID_PLAT_CONF);
         else
           if((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN))
-             sysf_sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
+             sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
           break;
       }
 
@@ -458,7 +458,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
         if((spawninfo->app_type == NID_SCRIPT))
         {
-          sysf_sprintf(sbuf,": Missing cleanup script in file:"NID_PLAT_CONF);
+          sprintf(sbuf,": Missing cleanup script in file:"NID_PLAT_CONF);
           break;
         }
         else if((spawninfo->app_type == NID_EXEC) || (spawninfo->app_type == NID_DAEMN))
@@ -467,7 +467,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
            gettoken(&p,':');
            if((p == NULL) || (*p == '\0'))
            {
-             sysf_sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
+             sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
              break;
            }
            parse_state = NID_PLATCONF_TOUT;
@@ -477,7 +477,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       q = gettoken(&p,':');
       if(strlen(q) > NID_MAXSFILE)
       {
-        sysf_sprintf(sbuf,": Cleanup app file name length exceeded max:%d in file" 
+        sprintf(sbuf,": Cleanup app file name length exceeded max:%d in file" 
                      NID_PLAT_CONF,NID_MAXSFILE);
         break;
       }
@@ -485,12 +485,12 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       strcpy(spawninfo->cleanup_file,q);
       if(spawninfo->cleanup_file[0] != '/')
       {
-        sysf_sprintf(sbuf,": Not an absolute path: %s",spawninfo->cleanup_file);
+        sprintf(sbuf,": Not an absolute path: %s",spawninfo->cleanup_file);
         break;
       }
       if((p == NULL) || (*p == '\0'))
       {
-        sysf_sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
         break;
       }
       parse_state = NID_PLATCONF_TOUT;
@@ -499,13 +499,13 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
    case NID_PLATCONF_TOUT:
       if((p[0] == ':') || (p[0] == '\n'))
       {
-        sysf_sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
+        sprintf(sbuf,": Missing timeout value in file:"NID_PLAT_CONF);
         break;
       }
       q = gettoken(&p,':');
       if(strlen(q) > NID_MAX_TIMEOUT_LEN)
       {
-        sysf_sprintf(sbuf,": Timeout field length exceeded max:%d in file"
+        sprintf(sbuf,": Timeout field length exceeded max:%d in file"
                      NID_PLAT_CONF,NID_MAX_TIMEOUT_LEN);
         break;
       }
@@ -526,7 +526,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
          if(strlen(q) > NID_MAX_PRIO_LEN)
          {
-           sysf_sprintf(sbuf,": Priority field length exceeded max:%d in file"
+           sprintf(sbuf,": Priority field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_PRIO_LEN);
            break;
          }
@@ -548,13 +548,13 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
          if(strlen(q) > NID_MAX_RESP_LEN)
          {
-           sysf_sprintf(sbuf,": Respawn field length exceeded max:%d in file"
+           sprintf(sbuf,": Respawn field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_RESP_LEN);
            break;
          }
          if((*q < '0') || (*q > '9'))
          {
-           sysf_sprintf(sbuf,": Not a digit");
+           sprintf(sbuf,": Not a digit");
            break;
          }
          spawninfo->recovery_matrix[NID_RESPAWN].retry_count = atoi(q);
@@ -575,13 +575,13 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
          if(strlen(q) > NID_MAX_REST_LEN)
          {
-           sysf_sprintf(sbuf,": Restart field length exceeded max:%d in file"
+           sprintf(sbuf,": Restart field length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAX_REST_LEN);
            break;
          }
          if((*q < '0') || (*q > '1'))
          {
-          sysf_sprintf(sbuf,": Not a valid digit");
+          sprintf(sbuf,": Not a valid digit");
           break;
          }
          spawninfo->recovery_matrix[NID_RESET].retry_count = atoi(q);
@@ -602,7 +602,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
          if(strlen(q) > NID_MAXPARMS)
          {
-           sysf_sprintf(sbuf,": App param length exceeded max:%d in file"
+           sprintf(sbuf,": App param length exceeded max:%d in file"
                         NID_PLAT_CONF,NID_MAXPARMS);
            break;
          }
@@ -627,7 +627,7 @@ get_spawn_info(char *srcstr,NID_SPAWN_INFO * spawninfo,char *sbuf)
       {
          if(strlen(q) > NID_MAXPARMS)
          {
-         sysf_sprintf(sbuf,": App param length exceeded max:%d in file" 
+         sprintf(sbuf,": App param length exceeded max:%d in file" 
                       NID_PLAT_CONF,NID_MAXPARMS);
          break;
          }
@@ -679,12 +679,12 @@ parse_nodeinitconf(char *strbuf)
       logme(NID_LOG2FILE,"NID_CONFIG_PATH not set. Default:%s",NID_PLAT_CONF_PATH);
       nid_plat_conf_path = NID_PLAT_CONF_PATH;
    }
-   sysf_sprintf(nid_plat_conf_file,"%s/"NID_PLAT_CONF,nid_plat_conf_path);
+   sprintf(nid_plat_conf_file,"%s/"NID_PLAT_CONF,nid_plat_conf_path);
    plat_conf.info.open.i_file_name = (uns8 *) nid_plat_conf_file;
    plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
    if(m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS)
    {
-     sysf_sprintf(strbuf,"FAILURE: No "NID_PLAT_CONF" file found\n");
+     sprintf(strbuf,"FAILURE: No "NID_PLAT_CONF" file found\n");
      return NCSCC_RC_FAILURE;
    }
 
@@ -720,7 +720,7 @@ parse_nodeinitconf(char *strbuf)
        {
            if(retry++ == 5)
            {
-             sysf_sprintf(strbuf,"FAILURE: Out of memory\n");
+             sprintf(strbuf,"FAILURE: Out of memory\n");
              return NCSCC_RC_FAILURE;
            }
            nid_sleep(1000);
@@ -736,7 +736,7 @@ parse_nodeinitconf(char *strbuf)
         ****************************************************/
        if(get_spawn_info(ch,childinfo,sbuf) != NCSCC_RC_SUCCESS)
        {
-         sysf_sprintf(strbuf,"%s, At: %d\n",sbuf,lineno);
+         sprintf(strbuf,"%s, At: %d\n",sbuf,lineno);
          return NCSCC_RC_FAILURE;
        }
 
@@ -756,7 +756,7 @@ parse_nodeinitconf(char *strbuf)
    plat_conf_close.info.close.i_file_handle =  plat_conf.info.open.o_file_handle;
    if(m_NCS_OS_FILE(&plat_conf_close, NCS_OS_FILE_CLOSE) != NCSCC_RC_SUCCESS)
    {
-     sysf_sprintf(strbuf,"Failed to close "NID_PLAT_CONF"\n");
+     sprintf(strbuf,"Failed to close "NID_PLAT_CONF"\n");
      return NCSCC_RC_FAILURE;
    }
 
@@ -1305,7 +1305,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
    while(retry)
    {
         logme(NID_LOG2CONS,"Starting %s service... ",service->serv_name);
-        sysf_sprintf(nid_log_filename,"%s/NID_%s.log",nid_log_path,service->serv_name);
+        sprintf(nid_log_filename,"%s/NID_%s.log",nid_log_path,service->serv_name);
         pid = (fork_funcs[service->app_type])(service,service->s_name,service->serv_args,nid_log_filename,strbuff);
 
         if(pid <= 0)
@@ -1374,7 +1374,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
          }
          else
          {
-            sysf_sprintf(strbuff,"Failed \nError reading NID FIFO: %d",errno);
+            sprintf(strbuff,"Failed \nError reading NID FIFO: %d",errno);
             return NCSCC_RC_FAILURE;
          }
      }
@@ -1397,14 +1397,14 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
        return NCSCC_RC_FAILURE;
      }
 
-     sysf_sprintf(magic_str,"%x",NID_MAGIC);
+     sprintf(magic_str,"%x",NID_MAGIC);
      strtolower(magicno);
      if(strcmp(magic_str,magicno) == 0) reqmsg.nid_magic_no = NID_MAGIC;
      else reqmsg.nid_magic_no = -1;
 
      if(strcmp(serv,service->serv_name) != 0)
      {
-         sysf_sprintf(strbuff,"Failed \nReceived invalid service name received :"
+         sprintf(strbuff,"Failed \nReceived invalid service name received :"
                       " %s sent service->serv_name : %s",
                       serv,service->serv_name);
          return NCSCC_RC_FAILURE;
@@ -1418,7 +1418,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 
     if(reqmsg.nid_magic_no != NID_MAGIC)
     {
-      sysf_sprintf(strbuff,"Failed \nReceived invalid message: %x",
+      sprintf(strbuff,"Failed \nReceived invalid message: %x",
 	               reqmsg.nid_magic_no);
       return NCSCC_RC_FAILURE;
     }
@@ -1430,13 +1430,13 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 
      if(strcmp(reqmsg.nid_serv_name , service->serv_name) !=0)
      {
-       sysf_sprintf(strbuff,"Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
+       sprintf(strbuff,"Failed \nService name  mismatch! Srvc spawned: %s, Srvc code received:%s",
                     service->serv_name,reqmsg.nid_serv_name);
        return NCSCC_RC_FAILURE;
      }
      else if(reqmsg.nid_stat_code ==  NCSCC_RC_SUCCESS)
      {
-           sysf_sprintf(strbuff,"Done.");
+           sprintf(strbuff,"Done.");
            return NCSCC_RC_SUCCESS;
      }
 
@@ -1444,7 +1444,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
 
      if((reqmsg.nid_stat_code > NCSCC_RC_SUCCESS) )
      {
-       sysf_sprintf(strbuff,"Failed \n DESC:%s",\
+       sprintf(strbuff,"Failed \n DESC:%s",\
        service->serv_name);
 
        return NCSCC_RC_FAILURE;
@@ -1473,7 +1473,7 @@ check_process(NID_SPAWN_INFO * service)
    struct stat sb;
    char buf[32];
 
-   sysf_sprintf(buf, "/proc/%d",service->pid);
+   sprintf(buf, "/proc/%d",service->pid);
    if(stat(buf, &sb) != 0) return 0;
    else return 1;
 }
@@ -1770,11 +1770,11 @@ insert_role_svc_name(NID_SPAWN_INFO *service)
     *      Insert the role only if its available                *
     ************************************************************/
    if( role ){
-       sysf_sprintf(rolebuff,"ROLE=%d",role);
+       sprintf(rolebuff,"ROLE=%d",role);
        service->serv_args[f++] = rolebuff;
    }
      /* Set the service-id to be passed */
-     sysf_sprintf(svc_name,"NID_SVC_NAME=%s",service->serv_name);
+     sprintf(svc_name,"NID_SVC_NAME=%s",service->serv_name);
      service->serv_args[f++] = svc_name;
 
    service->serv_args[f] = NULL;
@@ -1839,7 +1839,7 @@ spawn_services(char * strbuf)
 
    if(sp_list.head == NULL)
    {
-     sysf_sprintf(strbuf,"No services to spawn\n");
+     sprintf(strbuf,"No services to spawn\n");
      return NCSCC_RC_FAILURE;
    }
 
@@ -1903,10 +1903,10 @@ spawn_services(char * strbuf)
          {
            int32 lfd;
            char filename[30],str[15];
-           sysf_sprintf(filename, PIDPATH "%s.pid","ncsspcap");
+           sprintf(filename, PIDPATH "%s.pid","ncsspcap");
            m_NCS_POSIX_UNLINK(filename);
            lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
-           sysf_sprintf(str,"%d\n",service->pid);
+           sprintf(str,"%d\n",service->pid);
            m_NCS_POSIX_WRITE(lfd,str,strlen(str));
            m_NCS_POSIX_CLOSE(lfd);
          }
@@ -2024,7 +2024,7 @@ daemonize_me(void)
 
    chdir(NID_RUNNING_DIR);
    lfd = m_NCS_POSIX_OPEN(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
-   sysf_sprintf(str,"%d\n",getpid());
+   sprintf(str,"%d\n",getpid());
    m_NCS_POSIX_WRITE(lfd,str,strlen(str));
    m_NCS_POSIX_CLOSE(lfd);
 

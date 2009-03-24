@@ -3337,7 +3337,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
    {
       /* Load the library, and invoke the lib-register-function */
       memset(&fullname, '\0', sizeof(fullname));
-      sysf_sprintf((char*)&fullname, "%s", (char*)&libname);
+      sprintf((char*)&fullname, "%s", (char*)&libname);
       lib_hdl = m_NCS_OS_DLIB_LOAD(fullname, m_NCS_OS_DLIB_ATTR);
       if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL)
       {
@@ -3348,7 +3348,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
 
       /* Get the registration symbol "__<appname>_pssv_reg" from the appname */
       memset(&funcname, '\0', sizeof(funcname));
-      sysf_sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
+      sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
       app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, funcname);
       if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL)
       {

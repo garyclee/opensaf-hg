@@ -3452,7 +3452,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
          if (NULL != ent_info->dhcp_serv_conf.curr_act_label->name.name)
          { 
             logbuf[0] = '\0'; 
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          }
 
@@ -3462,7 +3462,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
             avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmUpgradeSuccess_ID);
             ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
                          ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          } 
@@ -3475,7 +3475,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 
         if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
         {
-          sysf_sprintf(logbuf, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
+          sprintf(logbuf, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           return NCSCC_RC_FAILURE;
         }
@@ -3485,12 +3485,12 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
           {
             /* flag=1 suggest that present blade is not 7221 its 7150 which has */
             /*has ipmc support of bios rollback if upgraded bios is currupted*/
-          sysf_sprintf(logbuf, "AVM-SSU: present blade is 7150  %s ", " ");
+          sprintf(logbuf, "AVM-SSU: present blade is 7150  %s ", " ");
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           }
           else
           {
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
             m_AVM_SSU_BIOS_UPGRADE_TMR_START(avm_cb, ent_info);
             ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_STARTED;
@@ -3504,7 +3504,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       /* timer                                                   */
       else if (evt_type == HPI_FWPROG_SYS_BOOT)
       {
-         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
+         sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
          avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr);
@@ -3540,13 +3540,13 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 /* functional                                                         */
 
             /* async update */
-            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
             m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
             return rc;
          } 
-         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
+         sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
                     ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,ent_info->boot_prg_status);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
         avm_cb->upgrade_error_type = GEN_ERROR;
@@ -3554,7 +3554,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
         avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmSwFwUpgradeFailure_ID);
 
          avm_ssu_dhcp_rollback(avm_cb, ent_info);
-         sysf_sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
+         sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
                                ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          
@@ -3568,7 +3568,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             ent_info->dhcp_serv_conf.bios_upgd_state = 0;
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
             logbuf[0] = '\0';
-            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
             return NCSCC_RC_FAILURE;
          } 

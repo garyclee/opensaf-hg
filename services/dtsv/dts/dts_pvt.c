@@ -1589,16 +1589,16 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       {
          m_DTS_GET_SVC_NAME(svc, name);
          /* Node-id display change */
-         sysf_sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
+         sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
       }
       else if (file_type == GLOBAL_FILE)
       {
-         sysf_sprintf(tfile, "%s_%s%s", "NCS", asc_dtime, ".log");
+         sprintf(tfile, "%s_%s%s", "NCS", asc_dtime, ".log");
       }
       else
       {
           /* Node-id display change */ 
-          sysf_sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
+          sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
       }
 
       strcat(file, tfile);
@@ -2651,7 +2651,7 @@ uns32 dts_print_current_config(DTS_CB *cb)
 
    m_GET_ASCII_DATE_TIME_STAMP(tod, asc_dtime);
    strcpy(file, cb->log_path);
-   sysf_sprintf(tfile, "%s_%s%s", "DTS", asc_dtime, ".config");
+   sprintf(tfile, "%s_%s%s", "DTS", asc_dtime, ".config");
    strcat(file, tfile);
    if ((fh = sysf_fopen(file, "a+")) != NULL)
    {

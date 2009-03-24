@@ -662,7 +662,7 @@ uns32 pss_cef_reload_pssv_lib_conf(NCSCLI_ARG_SET *arg_list,
     if (retval != NCSCC_RC_SUCCESS)
     {
        ret_val = m_MAB_DBG_SINK(retval);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -670,7 +670,7 @@ uns32 pss_cef_reload_pssv_lib_conf(NCSCLI_ARG_SET *arg_list,
     if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -678,11 +678,11 @@ uns32 pss_cef_reload_pssv_lib_conf(NCSCLI_ARG_SET *arg_list,
     if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
-    sysf_sprintf(display_str, "Reload pssv_lib_conf operation success\n");
+    sprintf(display_str, "Reload pssv_lib_conf operation success\n");
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
 
 end:
@@ -742,7 +742,7 @@ uns32 pss_cef_reload_pssv_spcn_list(NCSCLI_ARG_SET *arg_list,
     if (retval != NCSCC_RC_SUCCESS)
     {
        ret_val = m_MAB_DBG_SINK(retval);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -750,7 +750,7 @@ uns32 pss_cef_reload_pssv_spcn_list(NCSCLI_ARG_SET *arg_list,
     if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -758,11 +758,11 @@ uns32 pss_cef_reload_pssv_spcn_list(NCSCLI_ARG_SET *arg_list,
     if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
-    sysf_sprintf(display_str, "Reload pssv_spcn_list operation success\n");
+    sprintf(display_str, "Reload pssv_spcn_list operation success\n");
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
 
 end:
@@ -1141,7 +1141,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         else if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1152,7 +1152,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             if (ncsmib_arg.i_op != NCSMIB_OP_RSP_NEXT)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "Invalid MIB Response failed\n");
+                sprintf(display_str, "Invalid MIB Response failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1162,7 +1162,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             if(ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "MIB Request failed\n");
+                sprintf(display_str, "MIB Request failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1176,7 +1176,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             for (i = 1; i < num_inst_ids; i++)
                 profile_name[i-1] = (char) inst_ids[i];
             profile_name[num_inst_ids-1] = '\0';
-            sysf_sprintf(display_str, "%s\n", profile_name);
+            sprintf(display_str, "%s\n", profile_name);
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
 
             ncsmib_init(&ncsmib_arg);
@@ -1197,7 +1197,7 @@ uns32 pss_cef_list_profiles(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
             else if (retval != NCSCC_RC_SUCCESS)
             {
                 ret_val = m_MAB_DBG_SINK(retval);
-                sysf_sprintf(display_str, "MIB Request failed\n");
+                sprintf(display_str, "MIB Request failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1262,7 +1262,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (retval != NCSCC_RC_SUCCESS)
       {
          ret_val = m_MAB_DBG_SINK(retval);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1270,7 +1270,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1278,7 +1278,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1303,7 +1303,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (retval != NCSCC_RC_SUCCESS)
       {
          ret_val = m_MAB_DBG_SINK(retval);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1311,7 +1311,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1319,7 +1319,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1343,7 +1343,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (retval != NCSCC_RC_SUCCESS)
       {
          ret_val = m_MAB_DBG_SINK(retval);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1351,7 +1351,7 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1359,14 +1359,14 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "Invalid profile name combination specified\n");
+         sprintf(display_str, "Invalid profile name combination specified\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
       if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "No such profile\n");
+         sprintf(display_str, "No such profile\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
@@ -1374,11 +1374,11 @@ uns32 pss_cef_copy_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
       if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
       {
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_sprintf(display_str, "MIB Request failed\n");
+         sprintf(display_str, "MIB Request failed\n");
          pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
          goto end;
       }
-      sysf_sprintf(display_str, "copy profile success\n");
+      sprintf(display_str, "copy profile success\n");
       pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
     }
     
@@ -1438,7 +1438,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1446,7 +1446,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1454,7 +1454,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1479,7 +1479,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1487,7 +1487,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1495,7 +1495,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1519,7 +1519,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1527,7 +1527,7 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1535,21 +1535,21 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Invalid profile name combination specified\n");
+            sprintf(display_str, "Invalid profile name combination specified\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Source profile does not exist\n");
+            sprintf(display_str, "Source profile does not exist\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_OBJECT)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Destination profile already exists\n");
+            sprintf(display_str, "Destination profile already exists\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1557,11 +1557,11 @@ uns32 pss_cef_rename_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
-        sysf_sprintf(display_str, "rename profile success\n");
+        sprintf(display_str, "rename profile success\n");
         pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
     }
 
@@ -1626,7 +1626,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1634,7 +1634,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1642,7 +1642,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Invalid profile name specified\n");
+            sprintf(display_str, "Invalid profile name specified\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1650,7 +1650,7 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "No such profile\n");
+            sprintf(display_str, "No such profile\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1658,11 +1658,11 @@ uns32 pss_cef_delete_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
-        sysf_sprintf(display_str, "delete profile success\n");
+        sprintf(display_str, "delete profile success\n");
         pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
 
     }
@@ -1744,7 +1744,7 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1752,7 +1752,7 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed...response is not of SET type\n");
+            sprintf(display_str, "MIB Request failed...response is not of SET type\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl,(uns8 *) display_str);
             goto end;
         }
@@ -1760,18 +1760,18 @@ uns32 pss_cef_save_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Invalid operation specified...\n");
+            sprintf(display_str, "Invalid operation specified...\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed...response is not success\n");
+            sprintf(display_str, "MIB Request failed...response is not success\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
-        sysf_sprintf(display_str, "save profile success\n");
+        sprintf(display_str, "save profile success\n");
         pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
     }
 end:
@@ -1853,7 +1853,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -1863,7 +1863,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "MIB Request failed\n");
+                sprintf(display_str, "MIB Request failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1871,12 +1871,12 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "MIB Request failed\n");
+                sprintf(display_str, "MIB Request failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
 
-            sysf_sprintf(display_str, "\nProfile description set success: %s\n", profile_desc);
+            sprintf(display_str, "\nProfile description set success: %s\n", profile_desc);
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             retval = NCSCC_RC_SUCCESS;
             goto end;
@@ -1886,7 +1886,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             if (ncsmib_arg.i_op != NCSMIB_OP_RSP_GET)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "MIB Request failed\n");
+                sprintf(display_str, "MIB Request failed\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1894,7 +1894,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "No such profile\n");
+                sprintf(display_str, "No such profile\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
@@ -1902,13 +1902,13 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
             if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
             {
                 retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-                sysf_sprintf(display_str, "Description not set\n");
+                sprintf(display_str, "Description not set\n");
                 pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                 goto end;
             }
             if(ncsmib_arg.rsp.info.get_rsp.i_param_val.i_length == 0)
             {
-               sysf_sprintf(display_str, "\nDescription not set\n");
+               sprintf(display_str, "\nDescription not set\n");
                pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
                goto end;
             }
@@ -1919,7 +1919,7 @@ uns32 pss_cef_describe_profile(NCSCLI_ARG_SET *arg_list,
                profile_desc = (int8 *)ncsmib_arg.rsp.info.get_rsp.i_param_val.info.i_oct;
                strncpy(&prdesc, profile_desc, ncsmib_arg.rsp.info.get_rsp.i_param_val.i_length);
                prdesc[255] = '\0'; /* Preventive null termination */
-               sysf_sprintf(display_str, "\nProfile description: %s\n", (char*)&prdesc);
+               sprintf(display_str, "\nProfile description: %s\n", (char*)&prdesc);
                pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             }
             goto end;
@@ -1982,14 +1982,14 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (retval != NCSCC_RC_SUCCESS)
     {
        ret_val = m_MAB_DBG_SINK(retval);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
     if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -1997,7 +1997,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -2020,7 +2020,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (retval != NCSCC_RC_SUCCESS)
     {
        ret_val = m_MAB_DBG_SINK(retval);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -2028,7 +2028,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -2036,7 +2036,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "No such profile\n");
+       sprintf(display_str, "No such profile\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -2044,7 +2044,7 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "Invalid alternate profile specified\n");
+       sprintf(display_str, "Invalid alternate profile specified\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
@@ -2052,11 +2052,11 @@ uns32 pss_cef_replace_current_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA 
     if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
     {
        retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-       sysf_sprintf(display_str, "MIB Request failed\n");
+       sprintf(display_str, "MIB Request failed\n");
        pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
        goto end;
     }
-    sysf_sprintf(display_str, "Replace operation success\n");
+    sprintf(display_str, "Replace operation success\n");
     pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
 
 end:
@@ -2116,7 +2116,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2124,7 +2124,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2132,7 +2132,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2156,7 +2156,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (retval != NCSCC_RC_SUCCESS)
         {
             ret_val = m_MAB_DBG_SINK(retval);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2164,7 +2164,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.i_op != NCSMIB_OP_RSP_SET)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2172,7 +2172,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_NO_INSTANCE)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "No such profile\n");
+            sprintf(display_str, "No such profile\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2180,7 +2180,7 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.rsp.i_status == NCSCC_RC_INV_VAL)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "Invalid alternate profile specified\n");
+            sprintf(display_str, "Invalid alternate profile specified\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
@@ -2188,11 +2188,11 @@ uns32 pss_cef_load_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
         if (ncsmib_arg.rsp.i_status != NCSCC_RC_SUCCESS)
         {
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-            sysf_sprintf(display_str, "MIB Request failed\n");
+            sprintf(display_str, "MIB Request failed\n");
             pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
             goto end;
         }
-        sysf_sprintf(display_str, "Load operation success\n");
+        sprintf(display_str, "Load operation success\n");
         pss_cli_display(cef_data->i_bindery->i_cli_hdl, (uns8 *)display_str);
     }
 

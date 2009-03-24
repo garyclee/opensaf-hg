@@ -792,14 +792,14 @@ vip_cli_display_all(NCSCLI_CEF_DATA *p_cef_data,
       * */
    prn_cursor = prfx_prn_len;
 
-   prn_cursor += sysf_sprintf(display_str + prn_cursor, "%13d ",vip_data_display.handle);/*2*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%13d ",vip_data_display.handle);/*2*/
 
    if(vip_data_display.ip_type == 0)/*declare an enum and replace the numbers*/
-      prn_cursor += sysf_sprintf(display_str + prn_cursor, "%13s ","INTERNAL");/*3*/
+      prn_cursor += sprintf(display_str + prn_cursor, "%13s ","INTERNAL");/*3*/
    else
-      prn_cursor += sysf_sprintf(display_str + prn_cursor, "%13s ","EXTERNAL");/*3*/
+      prn_cursor += sprintf(display_str + prn_cursor, "%13s ","EXTERNAL");/*3*/
 
-   prn_cursor += sysf_sprintf(display_str + prn_cursor, "%10s ",ip_net_str);/*4&5&6 IpAddress,Mask,Installed Interface*/
+   prn_cursor += sprintf(display_str + prn_cursor, "%10s ",ip_net_str);/*4&5&6 IpAddress,Mask,Installed Interface*/
 
    prn_cursor += sprintf(display_str + prn_cursor, "%10s",vip_data_display.installed_intf);/*1*/
 
