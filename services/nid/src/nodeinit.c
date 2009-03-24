@@ -689,7 +689,7 @@ parse_nodeinitconf(char *strbuf)
    }
 
 
-   while(m_NCS_OS_FGETS(buff,sizeof(buff),(FILE *)plat_conf.info.open.o_file_handle))
+   while(fgets(buff,sizeof(buff),(FILE *)plat_conf.info.open.o_file_handle))
    {
 
       lineno++;

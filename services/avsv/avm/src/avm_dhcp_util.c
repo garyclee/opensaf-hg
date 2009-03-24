@@ -71,7 +71,7 @@ avm_check_config(uns8 *ent_info,
           }
           else
           {
-             while(m_NCS_OS_FGETS(buff,sizeof(buff),(FILE *)conf_file.info.open.o_file_handle))
+             while(fgets(buff,sizeof(buff),(FILE *)conf_file.info.open.o_file_handle))
              {
                 buff[(strlen(buff)-1)]='\0';
 
