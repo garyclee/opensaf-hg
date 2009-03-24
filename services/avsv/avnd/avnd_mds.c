@@ -733,7 +733,7 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
                                   &evt_info->i_dest, 0, 0, 0);
             
             m_NCS_DBG_PRINTF("\nAvSv: Controller node not available\n");
-            m_NCS_SYSLOG(NCS_LOG_ERR,
+            syslog(LOG_ERR,
                          "NCS_AvSv: Controller node not available");
          }
          break;

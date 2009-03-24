@@ -1131,7 +1131,7 @@ err:
    {
       m_NCS_DBG_PRINTF("\nAvSv: %s unregistered\n",
             comp->name_net.value);
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: %s unregistered",
+      syslog(LOG_ERR,"NCS_AvSv: %s unregistered",
             comp->name_net.value);
    }
 

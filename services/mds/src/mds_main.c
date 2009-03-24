@@ -95,7 +95,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 
             if (gl_mds_mcm_cb != NULL)
             {
-                m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : MDS is already initialized");
+                syslog(LOG_ERR,"MDS_LIB_CREATE : MDS is already initialized");
                 m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                 return NCSCC_RC_FAILURE;
             }
@@ -112,7 +112,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in NODE_ID argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in NODE_ID argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -128,7 +128,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("CLUSTER_ID="), "%d", &cluster_id) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in CLUSTER_ID argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in CLUSTER_ID argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -155,7 +155,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
                 {
                     if (sscanf(p_field + strlen("MDS_LOG_LEVEL="), "%d", &gl_mds_log_level) != 1)
                     {
-                        m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in MDS_LOG_LEVEL argument\n");
+                        syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in MDS_LOG_LEVEL argument\n");
                         mds_mcm_destroy();
                         m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -186,7 +186,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
                 {
                     if (sscanf(p_field + strlen("MDS_CHECKSUM="), "%d", &gl_mds_checksum) != 1)
                     {
-                        m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in MDS_CHECKSUM argument\n");
+                        syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in MDS_CHECKSUM argument\n");
                         mds_mcm_destroy();
                         m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -212,7 +212,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("SUBSCRIPTION_TMR_VAL="), "%d", &MDS_SUBSCRIPTION_TMR_VAL) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in SUBSCRIPTION_TMR_VAL argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in SUBSCRIPTION_TMR_VAL argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -227,7 +227,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("AWAIT_ACTIVE_TMR_VAL="), "%d", &MDS_AWAIT_ACTIVE_TMR_VAL) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in AWAIT_ACTIVE_TMR_VAL argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in AWAIT_ACTIVE_TMR_VAL argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -242,7 +242,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("QUIESCED_TMR_VAL="), "%d", &MDS_QUIESCED_TMR_VAL) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in QUIESCED_TMR_VAL argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in QUIESCED_TMR_VAL argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -257,7 +257,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             {
                 if (sscanf(p_field + strlen("REASSEMBLE_TMR_VAL="), "%d", &MDTM_REASSEMBLE_TMR_VAL) != 1)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_CREATE : Problem in REASSEMBLE_TMR_VAL argument\n");
+                    syslog(LOG_ERR,"MDS_LIB_CREATE : Problem in REASSEMBLE_TMR_VAL argument\n");
                     mds_mcm_destroy();
                     m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -330,7 +330,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Sanity check */
             if (gl_mds_mcm_cb == NULL)
             {
-                m_NCS_SYSLOG(NCS_LOG_ERR,"MDS_LIB_DESTROY : MDS is already Destroyed");
+                syslog(LOG_ERR,"MDS_LIB_DESTROY : MDS is already Destroyed");
                 m_NCS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
                 return NCSCC_RC_FAILURE;
             }
