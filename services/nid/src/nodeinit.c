@@ -895,7 +895,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
    m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
 
 
-   m_NCS_POSIX_PIPE(filedes);
+   pipe(filedes);
 
    if((pid = fork()) == 0)
    {
