@@ -61,7 +61,6 @@ extern "C" {
 
 #define sysf_fopen(fname,fmode)     m_NCS_OS_LOG_FOPEN(fname,fmode)
 
-#define m_NCS_FOPEN_R(filename)      m_NCS_OS_FOPEN_R(filename)
 #define m_NCS_LOG_WRITE(filename, string)  m_NCS_TS_LOG_WRITE(filename, string)
 
 

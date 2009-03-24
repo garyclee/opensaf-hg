@@ -1906,10 +1906,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_LOG_FOPEN           fopen
 #endif
 
-#ifndef m_NCS_OS_FOPEN_R
-#define m_NCS_OS_FOPEN_R(filename)   fopen(filename,"r")
-#endif
-
 #ifndef m_NCS_OS_START
 #define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
 #endif
