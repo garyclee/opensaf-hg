@@ -57,7 +57,7 @@ uns32 nid_create_ipc(char *strbuf)
    /******************************************************
    *    Lets Remove any such file if it already exists*
    ******************************************************/
-   m_NCS_POSIX_UNLINK(NID_FIFO);
+   unlink(NID_FIFO);
                                                                                                       
    /******************************************************
    *    Create nid fifo                               *
