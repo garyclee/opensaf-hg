@@ -934,8 +934,8 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
      {
         if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,S_IRWXU)) >= 0)
         {
-          m_NCS_POSIX_DUP(f);
-          m_NCS_POSIX_DUP(f);
+          dup(f);
+          dup(f);
         }
         else logme(NID_LOG2FILE,"Failed opening file: %s",nid_log_filename);
      }
@@ -1038,8 +1038,8 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
          if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
         {
-           m_NCS_POSIX_DUP(f);
-           m_NCS_POSIX_DUP(f);
+           dup(f);
+           dup(f);
         }
         else logme(NID_LOG2FILE,"Failed opening file : %s",nid_log_filename);
      }
@@ -1106,8 +1106,8 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
          if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
          {
-            m_NCS_POSIX_DUP(f);
-            m_NCS_POSIX_DUP(f);
+            dup(f);
+            dup(f);
          }
          else logme(NID_LOG2FILE,"Failed opening file : %s",nid_log_filename);
      }
@@ -2008,15 +2008,15 @@ daemonize_me(void)
    *    code things would have been in control but we have leaps       *
    *    library comming in so it may write something to O/P desc.      *
    *********************************************************************/
-   if((nis_fifofd = m_NCS_POSIX_DUP(1)) < 0)
+   if((nis_fifofd = dup(1)) < 0)
      logme(NID_LOG2FILE,"Failed To duplicate NIS FIFO\n");
 
    close(0);close(1);close(2);
    if((cons_fd = cons_open(O_RDWR|O_NOCTTY)) >= 0)
    {
    /*  (void)ioctl(cons_fd, TIOCSCTTY, 1);*/
-      m_NCS_POSIX_DUP(cons_fd);
-      m_NCS_POSIX_DUP(cons_fd);
+      dup(cons_fd);
+      dup(cons_fd);
    }
    else logme(NID_LOG2FILE,"Failed to open console: %s\n",strerror(errno));
 
