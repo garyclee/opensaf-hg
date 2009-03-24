@@ -800,7 +800,7 @@ cons_init(void)
       tried_devcons++;
    }
 
-   while ((fd = m_NCS_POSIX_OPEN(cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
+   while ((fd = open(cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
    {
      if (!tried_devcons)
      {
@@ -847,7 +847,7 @@ cons_open(uns32 mode)
    m = mode|O_NONBLOCK;
 
    for(f=0; f<5; f++)
-    if((fd = m_NCS_POSIX_OPEN(cons_dev,m)) >= 0) break;
+    if((fd = open(cons_dev,m)) >= 0) break;
 
    if(fd < 0) return fd;
 
@@ -932,7 +932,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
      if ( nid_log_filename )
      {
-        if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,S_IRWXU)) >= 0)
+        if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,S_IRWXU)) >= 0)
         {
           m_NCS_POSIX_DUP(f);
           m_NCS_POSIX_DUP(f);
@@ -1035,7 +1035,7 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
 
      if ( nid_log_filename )
      {
-         if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
+         if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
         {
            m_NCS_POSIX_DUP(f);
@@ -1103,7 +1103,7 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
       
      if ( nid_log_filename )
      {
-         if(( f = m_NCS_POSIX_OPEN(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
+         if(( f = open(nid_log_filename,O_CREAT | O_RDWR | O_APPEND,
              S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) >= 0)
          {
             m_NCS_POSIX_DUP(f);
@@ -1905,7 +1905,7 @@ spawn_services(char * strbuf)
            char filename[30],str[15];
            sprintf(filename, PIDPATH "%s.pid","ncsspcap");
            m_NCS_POSIX_UNLINK(filename);
-           lfd = m_NCS_POSIX_OPEN(filename,O_CREAT|O_WRONLY,S_IRWXU);
+           lfd = open(filename,O_CREAT|O_WRONLY,S_IRWXU);
            sprintf(str,"%d\n",service->pid);
            m_NCS_POSIX_WRITE(lfd,str,strlen(str));
            m_NCS_POSIX_CLOSE(lfd);
@@ -2023,7 +2023,7 @@ daemonize_me(void)
    umask(022);
 
    chdir(NID_RUNNING_DIR);
-   lfd = m_NCS_POSIX_OPEN(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
+   lfd = open(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
    sprintf(str,"%d\n",getpid());
    m_NCS_POSIX_WRITE(lfd,str,strlen(str));
    m_NCS_POSIX_CLOSE(lfd);

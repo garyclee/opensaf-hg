@@ -1730,7 +1730,7 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
    uns32 m;
 
    /*Init console device */
-   if((fd_init = m_NCS_POSIX_OPEN(str, O_RDONLY|O_NONBLOCK)) < 0)
+   if((fd_init = open(str, O_RDONLY|O_NONBLOCK)) < 0)
       return fd_init;
    else
       m_NCS_POSIX_CLOSE(fd_init);
@@ -1739,7 +1739,7 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
    m = mode|O_NONBLOCK;
 
    for(f=0; f<5; f++)
-     if((fd = m_NCS_POSIX_OPEN(str,m)) >= 0) break;
+     if((fd = open(str,m)) >= 0) break;
 
    if(fd < 0) return fd;
 

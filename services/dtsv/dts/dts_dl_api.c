@@ -553,7 +553,7 @@ void dts_cons_init(void)
       tried_devcons++;
    }
 
-   while ((fd = m_NCS_POSIX_OPEN(inst->cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
+   while ((fd = open(inst->cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
    {
       if (!tried_devcons)
       {
@@ -602,7 +602,7 @@ int32 dts_cons_open(uns32 mode)
    m = mode|O_NONBLOCK;
 
    for(f=0; f<5; f++)
-   if((fd = m_NCS_POSIX_OPEN(inst->cons_dev,m)) >= 0) break;
+   if((fd = open(inst->cons_dev,m)) >= 0) break;
 
    if(fd < 0) return fd;
 
