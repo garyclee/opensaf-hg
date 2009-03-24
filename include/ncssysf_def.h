@@ -301,8 +301,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
  **                                                                         **
  ****************************************************************************/
 
-#define m_NCS_POSIX_PIPE                    m_NCS_OS_POSIX_PIPE
-
 #define m_NCS_POSIX_SIGACTION               m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_POSIX_SIGADDSET               m_NCS_OS_POSIX_SIGADDSET
 #define m_NCS_POSIX_SIGEMPTYSET             m_NCS_OS_POSIX_SIGEMPTYSET

@@ -674,10 +674,6 @@ typedef int32 int64;
  * POSIX Sytem Calls Definitaions 
  ***************************************************************************/
 
-#ifndef m_NCS_OS_POSIX_PIPE
-#define m_NCS_OS_POSIX_PIPE             pipe
-#endif
-
 #ifndef m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_OS_POSIX_SIGACTION        sigaction
 #endif
