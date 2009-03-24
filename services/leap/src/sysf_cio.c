@@ -54,7 +54,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
         break;
 
     case NCS_CONIO_CMD_GETCHR:            /* get a character from console */
-        request->getchr.o_char = m_NCS_CONS_GETCHAR();
+        request->getchr.o_char = getchar();
         retval = NCSCC_RC_SUCCESS;
         break;
 

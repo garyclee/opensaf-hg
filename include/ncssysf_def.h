@@ -121,8 +121,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#define m_NCS_CONS_GETCHAR        m_NCS_OS_GETCHAR
-
 #define m_NCS_CONS_UNBUF_GETCHAR  m_NCS_OS_UNBUF_GETCHAR
 
 #define m_NCS_CONIO_NORMALIZE_CHR m_NCS_OS_NORMALIZE_CHR

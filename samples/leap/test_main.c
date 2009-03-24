@@ -69,19 +69,19 @@ lt_consoleIO(int argc, char **argv)
     printf("    character (b)  = %c\n", 'b');
     printf("    string (Hello) = %s\n", "Hello");
 
-    printf("Testing m_NCS_CONS_GETCHAR: please enter a character >");
-    c = (char) m_NCS_CONS_GETCHAR();
+    printf("Testing getchar: please enter a character >");
+    c = (char) getchar();
     printf("You entered a '%c'\n", c);
 
     while (c != '\n') /* empty input buffer */
-        c = (char) m_NCS_CONS_GETCHAR();
+        c = (char) getchar();
 
-    printf("Testing m_NCS_CONS_GETCHAR: please enter a second character >");
-    c = (char) m_NCS_CONS_GETCHAR();
+    printf("Testing getchar: please enter a second character >");
+    c = (char) getchar();
     printf("You entered a '%c'\n", c);
 
     while (c != '\n') /* empty input buffer */
-        c = (char) m_NCS_CONS_GETCHAR();
+        c = (char) getchar();
 
     printf("Testing m_NCS_CONS_UNBUF_GETCHAR: please enter a third character (unbuffered) >");
 
@@ -1121,7 +1121,7 @@ consoleMain (int argc, char **argv)
 
     printf("Starting Leap Test");
     printf("Press Enter to start\n");
-    m_NCS_CONS_GETCHAR();
+    getchar();
 
     if(argc > 1) /* run test from command line, skipping lt prompt */
     {

@@ -51,7 +51,7 @@
 #define AVM_DEFAULT_HIERARCHY_LVL 2
 #define AVM_EXT_HIERARCHY_LVL     3
 
-#define FLUSHIN(c) while(((c = m_NCS_CONS_GETCHAR()) != EOF) && (c != '\n'))
+#define FLUSHIN(c) while(((c = getchar()) != EOF) && (c != '\n'))
 
 uns32
 avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data);
@@ -611,7 +611,7 @@ avm_cef_set_ent_adm_req(
            avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
 
            avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
-           ans = m_NCS_CONS_GETCHAR(); 
+           ans = getchar(); 
            if((ans=='Y') || (ans=='y'))
               sprintf(set_val, "%d", 2);
            else if(ans=='\n')
