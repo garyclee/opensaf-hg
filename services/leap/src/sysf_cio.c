@@ -49,7 +49,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
     switch(request->i_request)
     {
     case NCS_CONIO_CMD_PUTCHR:            /* put a character to console   */
-        m_NCS_CONS_PUTCHAR(request->putchr.i_char);
+        putchar(request->putchr.i_char);
         retval = NCSCC_RC_SUCCESS;
         break;
 
@@ -71,7 +71,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
         break;
 
     case NCS_CONIO_CMD_UNBUF_PUTCHR:      /* put an unbuffered character  */
-        m_NCS_CONS_PUTCHAR(request->unbuf_putchr.i_char);
+        putchar(request->unbuf_putchr.i_char);
         retval = NCSCC_RC_SUCCESS;
         break;
 

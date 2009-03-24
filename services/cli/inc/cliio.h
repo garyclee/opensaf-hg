@@ -72,15 +72,15 @@
 #define m_CLI_SET_PROMPT(prompt_str, display)\
 {\
     uns32 len;\
-    m_NCS_CONS_PUTCHAR(CLI_CONS_EOL); \
+    putchar(CLI_CONS_EOL); \
     for(len=0; len<strlen(prompt_str); len++)\
     {\
-        m_NCS_CONS_PUTCHAR(prompt_str[len]); \
+        putchar(prompt_str[len]); \
     }\
     if(FALSE == display)\
-        m_NCS_CONS_PUTCHAR(CLI_CONS_BEFORE_LOGIN_PMT);\
+        putchar(CLI_CONS_BEFORE_LOGIN_PMT);\
     else\
-        m_NCS_CONS_PUTCHAR(CLI_CONS_AFTER_LOGIN_PMT);\
+        putchar(CLI_CONS_AFTER_LOGIN_PMT);\
 }
 
 #define m_CLI_SET_CURRENT_CONTEXT(pCli, context_flag)\
@@ -106,11 +106,11 @@
 #define m_CLI_CONS_PUTLINE(string)\
 {\
     uns32   index = 0;\
-    m_NCS_CONS_PUTCHAR(CLI_CONS_EOL);\
-    m_NCS_CONS_PUTCHAR(CLI_CONS_EOL);\
+    putchar(CLI_CONS_EOL);\
+    putchar(CLI_CONS_EOL);\
     while('\0' != string[index])\
     {\
-        m_NCS_CONS_PUTCHAR(string[index]);\
+        putchar(string[index]);\
         index++;\
     }\
 }
@@ -123,12 +123,12 @@
 #define m_CLI_DISPLAY_ERROR_MARKER(pos)\
 {\
     int8   index;\
-    m_NCS_CONS_PUTCHAR(CLI_CONS_EOL);\
+    putchar(CLI_CONS_EOL);\
     for(index=0; index<pos; index++)\
     {\
-        m_NCS_CONS_PUTCHAR(32);\
+        putchar(32);\
     }\
-    m_NCS_CONS_PUTCHAR(CLI_CONS_ERR_MARK);\
+    putchar(CLI_CONS_ERR_MARK);\
 }
 
 typedef enum { /* Request types to be made to the CLI LM Routine */

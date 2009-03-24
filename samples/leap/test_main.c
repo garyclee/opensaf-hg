@@ -89,14 +89,14 @@ lt_consoleIO(int argc, char **argv)
     printf("\n");
     printf("You entered a '%c'\n", c);
 
-    printf("Testing m_NCS_CONS_PUTCHAR...");
-    m_NCS_CONS_PUTCHAR('a');
-    m_NCS_CONS_PUTCHAR('b');
-    m_NCS_CONS_PUTCHAR('c');
-    m_NCS_CONS_PUTCHAR('d');
-    m_NCS_CONS_PUTCHAR('e');
-    m_NCS_CONS_PUTCHAR('.');
-    m_NCS_CONS_PUTCHAR('\n');
+    printf("Testing putchar...");
+    putchar('a');
+    putchar('b');
+    putchar('c');
+    putchar('d');
+    putchar('e');
+    putchar('.');
+    putchar('\n');
     printf("-Exiting I/O Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
