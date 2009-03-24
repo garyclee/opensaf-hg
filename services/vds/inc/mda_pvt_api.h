@@ -106,8 +106,8 @@ MDA_INST_NAME_TYPE mda_get_inst_name_type(SaNameT *name);
 #endif
 
 #if (MDA_TRACE_LEVEL == 1)
-#define MDA_TRACE1_ARG1(x)  m_NCS_CONS_PRINTF(x)
-#define MDA_TRACE1_ARG2(x,y)  m_NCS_CONS_PRINTF(x,y)
+#define MDA_TRACE1_ARG1(x)  printf(x)
+#define MDA_TRACE1_ARG2(x,y)  printf(x,y)
 #else
 #define MDA_TRACE1_ARG1(x)  
 #define MDA_TRACE1_ARG2(x,y)  

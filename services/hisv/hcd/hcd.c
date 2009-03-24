@@ -203,7 +203,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       if ((SA_OK != err) && (err != SA_ERR_HPI_DUPLICATE))
       {
          m_LOG_HISV_DEBUG("hisv_hcd_init: saHpiInitialize Failed - May need to do E-Keying\n");
-         m_NCS_CONS_PRINTF("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
+         printf("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
          m_LOG_HISV_DTS_CONS("hisv_hcd_init: Re-Trying...\n");
          saHpiFinalize();
          continue;
@@ -215,7 +215,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    if (retry >= HPI_INIT_MAX_RETRY)
    {
       m_LOG_HISV_DEBUG("hisv_hcd_init: saHpiInitialize Failed - May need to do E-Keying\n");
-      m_NCS_CONS_PRINTF("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
+      printf("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
       m_LOG_HISV_DTS_CONS("hsm_rediscover: This is expected if standby SCXB does not have connectivity to shelf manager\n");
       dom_args->session_valid = 0;
       dom_args->rediscover = 1;

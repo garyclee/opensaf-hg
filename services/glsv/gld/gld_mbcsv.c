@@ -310,7 +310,7 @@ uns32  glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb)
    arg.info.chg_role.i_ckpt_hdl  = gld_cb->o_ckpt_hdl;
    arg.info.chg_role.i_ha_state  = gld_cb->ha_state;       /*  ha_state is assigned at the time of amf_init where csi_set_callback will assign the state*/
 
-    m_NCS_CONS_PRINTF("\n SETTING THE STATE AS:%d\n",gld_cb->ha_state);
+    printf("\n SETTING THE STATE AS:%d\n",gld_cb->ha_state);
    if(ncs_mbcsv_svc(&arg) != SA_AIS_OK )
    {
       m_LOG_GLD_MBCSV(GLD_MBCSV_CHGROLE_FAILED,NCSFL_SEV_ERROR);
@@ -424,7 +424,7 @@ static uns32  glsv_gld_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
    {
     /* Drop The Message */
     m_LOG_GLD_MBCSV(GLD_MSG_FRMT_VER_INVALID,NCSFL_SEV_INFO);
-    m_NCS_CONS_PRINTF("glsv_gld_mbcsv_encode_proc:INVALID MSG FORMAT %d\n", msg_fmt_version);
+    printf("glsv_gld_mbcsv_encode_proc:INVALID MSG FORMAT %d\n", msg_fmt_version);
     return NCSCC_RC_FAILURE;
    }
 
@@ -500,7 +500,7 @@ static uns32  glsv_gld_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
    {
     /* Drop The Message */
     m_LOG_GLD_MBCSV(GLD_MSG_FRMT_VER_INVALID,NCSFL_SEV_INFO);
-    m_NCS_CONS_PRINTF("glsv_gld_mbcsv_decode_proc:INVALID MSG FORMAT %d\n", msg_fmt_version);
+    printf("glsv_gld_mbcsv_decode_proc:INVALID MSG FORMAT %d\n", msg_fmt_version);
     return NCSCC_RC_FAILURE;
    }
 

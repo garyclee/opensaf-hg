@@ -103,7 +103,7 @@ uns32 m_ncs_validate_interface_name(char *str) {
      sock = socket(PF_INET,SOCK_DGRAM,0);
      if (sock == -1)
      {
-        m_NCS_CONS_PRINTF("sorry coulnd't able to create a socket\n");
+        printf("sorry coulnd't able to create a socket\n");
         intfRes = NCSCC_RC_FAILURE;
         return intfRes;
      }

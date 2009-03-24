@@ -85,7 +85,7 @@ typedef enum
 
 /* DEBUG and LOG info that are scattered in the code */
 #if(NCS_GLSV_DEBUG == 1)
-#define m_GLSV_DEBUG_CONS_PRINTF   m_NCS_CONS_PRINTF 
+#define m_GLSV_DEBUG_CONS_PRINTF   printf 
 #else
 #define m_GLSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func  
 #endif

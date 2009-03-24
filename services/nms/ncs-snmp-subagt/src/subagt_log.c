@@ -326,7 +326,7 @@ void snmpsubagt_log_table_id (uns8 index, uns32 table_id)
  ******************************************************************************/
 uns32 snmpsubagt_dbg_sink(uns32 l, char* f, uns32 code)
 {
-    m_NCS_CONS_PRINTF ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",l,f);
+    printf ("IN SNMPSUBAGT_DBG_SINK: line %d, file %s\n",l,f);
     return code;
 }
            

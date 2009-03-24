@@ -56,7 +56,7 @@ uns32 pdrbd_log_bind(void)
 
     if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("pdrbd_log_bind: NCS_SERVICE_ID_PDRBD bind failed");
+       printf("pdrbd_log_bind: NCS_SERVICE_ID_PDRBD bind failed");
        return NCSCC_RC_FAILURE;
     }
 
@@ -79,7 +79,7 @@ uns32 pdrbd_log_unbind(void)
     dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_PDRBD;
     if (ncs_dtsv_su_req(&dereg) != NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("pdrbd_log_bind: Unbind failed for NCS_SERVICE_ID_PDRBD");
+       printf("pdrbd_log_bind: Unbind failed for NCS_SERVICE_ID_PDRBD");
        return NCSCC_RC_FAILURE;
     }
 

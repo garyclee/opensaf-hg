@@ -118,7 +118,7 @@ uns32 mqnd_shm_create(MQND_CB *cb)
            m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,SA_AIS_OK,__FILE__,__LINE__);
            cb->is_restart_done= TRUE;                    
            #ifdef NCS_MQND
-            m_NCS_CONS_PRINTF("\nFirsttime Openingthe Ckpt\n");
+            printf("\nFirsttime Openingthe Ckpt\n");
            #endif
            cb->is_create_ckpt = TRUE;
            memcpy(mqnd_open_req.info.open.o_addr,&mqnd_shm_version,sizeof(mqnd_shm_version));

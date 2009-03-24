@@ -363,7 +363,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): USRBUF malloc failed");
+      printf("\n\npss_cef_set_playback_option_from_xml_config(): USRBUF malloc failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
     }
@@ -373,7 +373,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     str_len = strlen(str_ptr);
     if(str_len > 255)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): PCN length more than 255 characters....");
+      printf("\n\npss_cef_set_playback_option_from_xml_config(): PCN length more than 255 characters....");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -381,7 +381,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): reserve space for uns16 failed");
+      printf("\n\npss_cef_set_playback_option_from_xml_config(): reserve space for uns16 failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -391,7 +391,7 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list,
 
     if(ncs_encode_n_octets_in_uba(&lcl_uba, str_ptr, str_len) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_set_playback_option_from_xml_config(): encode_n_octets_in_uba for the PCN name failed");
+      printf("\n\npss_cef_set_playback_option_from_xml_config(): encode_n_octets_in_uba for the PCN name failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -454,7 +454,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     fh = sysf_fopen(file_name, "a+");
     if(fh == NULL)
     {
-       m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", str_ptr);
+       printf("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", str_ptr);
        pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
        return NCSCC_RC_FAILURE;
     }
@@ -463,7 +463,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): USRBUF malloc failed");
+      printf("\n\npss_cef_dump_profile(): USRBUF malloc failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
     }
@@ -472,7 +472,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
+      printf("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -482,7 +482,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
 
     if(ncs_encode_n_octets_in_uba(&lcl_uba, str_ptr, str_len) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the Profile name failed");
+      printf("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the Profile name failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -491,7 +491,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
+      printf("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -501,7 +501,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
 
     if(ncs_encode_n_octets_in_uba(&lcl_uba, file_name, file_str_len) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the LOG file name failed");
+      printf("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the LOG file name failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -510,7 +510,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
+      printf("\n\npss_cef_dump_profile(): reserve space for uns16 failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -520,7 +520,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
 
     if(ncs_encode_n_octets_in_uba(&lcl_uba, pcn_name, pcn_str_len) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the PCN name failed");
+      printf("\n\npss_cef_dump_profile(): encode_n_octets_in_uba for the PCN name failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       m_MMGR_FREE_BUFR_LIST(lcl_uba.start);
       return NCSCC_RC_FAILURE;
@@ -576,7 +576,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
     memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_show_profile_clients(): USRBUF malloc failed");
+      printf("\n\npss_cef_show_profile_clients(): USRBUF malloc failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
     }
@@ -587,7 +587,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
     buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
     if (buff_ptr == NULL)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_show_profile_clients(): reserve space for uns16 failed");
+      printf("\n\npss_cef_show_profile_clients(): reserve space for uns16 failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
     }
@@ -596,7 +596,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
 
     if(ncs_encode_n_octets_in_uba(&lcl_uba, str_ptr, str_len) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\n\npss_cef_show_profile_clients(): encode_n_octets_in_uba for the profile-name failed");
+      printf("\n\npss_cef_show_profile_clients(): encode_n_octets_in_uba for the profile-name failed");
       pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
     }
@@ -792,11 +792,11 @@ uns32 pss_cli_mib_resp(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_SUCCESS:
-        m_NCS_CONS_PRINTF("\nCLI Command Failed");
+        printf("\nCLI Command Failed");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
 
     default:
-        m_NCS_CONS_PRINTF("\nCLI Command Failed");
+        printf("\nCLI Command Failed");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         break;
     }
@@ -837,7 +837,7 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        m_NCS_CONS_PRINTF("\nThe CLI command show profile-clients failed...");
+        printf("\nThe CLI command show profile-clients failed...");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
@@ -857,7 +857,7 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
                buff_len = m_MMGR_LINK_DATA_LEN(buff);
                if(buff_len == 0)
                {
-                  m_NCS_CONS_PRINTF("\nNo clients found for the profile...");
+                  printf("\nNo clients found for the profile...");
                   pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                   return NCSCC_RC_FAILURE;
                } 
@@ -868,32 +868,32 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
                buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pwe_cnt, sizeof(uns16));
                if(buff_ptr == NULL)
                {
-                  m_NCS_CONS_PRINTF("\npayload decode failed...");
+                  printf("\npayload decode failed...");
                   pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                   return NCSCC_RC_FAILURE;
                } 
                pwe_cnt = ncs_decode_16bit(&buff_ptr);
                ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
 
-               m_NCS_CONS_PRINTF("\n\n***Registered clients are shown below :***\n");
+               printf("\n\n***Registered clients are shown below :***\n");
 
                for(j = 0; j < pwe_cnt; j++)
                { 
                   buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pwe_id, sizeof(uns16));
                   if(buff_ptr == NULL)
                   {
-                     m_NCS_CONS_PRINTF("\npayload decode failed...");
+                     printf("\npayload decode failed...");
                      pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                      return NCSCC_RC_FAILURE;
                   } 
                   pwe_id = ncs_decode_16bit(&buff_ptr);
                   ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
-                  m_NCS_CONS_PRINTF("\n\t PWE_ID = %d\n", pwe_id);  
+                  printf("\n\t PWE_ID = %d\n", pwe_id);  
 
                   buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pcn_cnt, sizeof(uns16));
                   if(buff_ptr == NULL)
                   {
-                     m_NCS_CONS_PRINTF("\npayload decode failed...");
+                     printf("\npayload decode failed...");
                      pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                      return NCSCC_RC_FAILURE;
                   } 
@@ -905,7 +905,7 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
                      buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&str_len, sizeof(uns16));
                      if(buff_ptr == NULL)
                      {
-                        m_NCS_CONS_PRINTF("\npayload decode failed...");
+                        printf("\npayload decode failed...");
                         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                         return NCSCC_RC_FAILURE;
                      } 
@@ -913,11 +913,11 @@ uns32 pss_cli_cmd_mib_resp_show_profile_clients(NCSMIB_ARG *resp)
                      ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
                      if(ncs_decode_n_octets_from_uba(&lcl_uba, (char*)&pcn, str_len) != NCSCC_RC_SUCCESS)
                      {
-                        m_NCS_CONS_PRINTF("\npayload decode failed...");
+                        printf("\npayload decode failed...");
                         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                         return NCSCC_RC_FAILURE;
                      }
-                     m_NCS_CONS_PRINTF("\t\t - %s\n", (char*)&pcn);  
+                     printf("\t\t - %s\n", (char*)&pcn);  
                   } 
                } 
             }
@@ -970,13 +970,13 @@ uns32 pss_cli_cmd_mib_resp_set_playback_option_from_xml(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        m_NCS_CONS_PRINTF("\nFailed to update SPCN entry in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
+        printf("\nFailed to update SPCN entry in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
         
     case NCSCC_RC_SUCCESS:
-        m_NCS_CONS_PRINTF("\nSPCN Entry updated in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
+        printf("\nSPCN Entry updated in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
         break;
        
     default:
@@ -1025,7 +1025,7 @@ uns32 pss_cli_cmd_mib_resp_dump_profile(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        m_NCS_CONS_PRINTF("\nFailed to dump Profile information into file...\n");
+        printf("\nFailed to dump Profile information into file...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
@@ -1033,7 +1033,7 @@ uns32 pss_cli_cmd_mib_resp_dump_profile(NCSMIB_ARG *resp)
     case NCSCC_RC_SUCCESS:
         if(resp->rsp.info.cli_rsp.i_cmnd_id == PSS_CMD_TBL_CMD_NUM_DISPLAY_MIB)
         {
-           m_NCS_CONS_PRINTF("\nProfile information dumped into file...\n");
+           printf("\nProfile information dumped into file...\n");
            pss_cli_done(resp->i_usr_key, NCSCC_RC_SUCCESS);
         }
         break;
@@ -1041,18 +1041,18 @@ uns32 pss_cli_cmd_mib_resp_dump_profile(NCSMIB_ARG *resp)
     case NCSCC_RC_NO_INSTANCE:
         if(resp->rsp.info.cli_rsp.i_cmnd_id == PSS_CMD_TBL_CMD_NUM_DISPLAY_MIB)
         {
-           m_NCS_CONS_PRINTF("\nClient information not found for the specified profile...\n");
+           printf("\nClient information not found for the specified profile...\n");
            pss_cli_done(resp->i_usr_key, NCSCC_RC_SUCCESS);
         }
         break;
 
     case NCSCC_RC_INV_VAL:
-        m_NCS_CONS_PRINTF("\nInvalid profile specified...\n");
+        printf("\nInvalid profile specified...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         break;
 
     case NCSCC_RC_NOSUCHNAME:
-        m_NCS_CONS_PRINTF("\nNo MIBs recorded for this PCN...\n");
+        printf("\nNo MIBs recorded for this PCN...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         break;
 

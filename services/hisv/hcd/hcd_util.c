@@ -565,11 +565,11 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Current Hotswap state of non-board resource is: ");
-      m_NCS_CONS_PRINTF("Current Hotswap state of non-board resource of type %d is: ",type);
+      printf("Current Hotswap state of non-board resource of type %d is: ",type);
    }
    else
    {
-      m_NCS_CONS_PRINTF("Current Hotswap state of board in physical slot %d is: ",board_num);
+      printf("Current Hotswap state of board in physical slot %d is: ",board_num);
       m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
    }
    switch (cur_state)
@@ -616,7 +616,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    }
    else
    {
-      m_NCS_CONS_PRINTF("Previous Hotswap state of board in physical slot %d is: ",board_num);
+      printf("Previous Hotswap state of board in physical slot %d is: ",board_num);
       m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_PREV_STATE, board_num);
    }
    switch (prev_state)
@@ -764,7 +764,7 @@ hpi_decode_to_ascii(SaHpiTextTypeT data_type, unsigned char *inbuff,
          return hpi_decode_bcd_plus(inbuff, inlen, outbuff);
          break;
       default:
-         m_NCS_CONS_PRINTF("Unsuported decode type %d may result in FRU Invalidation\n", data_type);
+         printf("Unsuported decode type %d may result in FRU Invalidation\n", data_type);
          return -1;
          break;
    }
@@ -788,19 +788,19 @@ print_invdata(HISV_INV_DATA *inv_data)
    /* check for proper argument */
    if (inv_data == NULL)
    {
-      m_NCS_CONS_PRINTF("null variable in print_invdata\n");
+      printf("null variable in print_invdata\n");
       return NCSCC_RC_FAILURE;
    }
    /* print the inventory data */
    if (inv_data->product_name.Data != NULL)
    {
-      m_NCS_CONS_PRINTF("Product Name = %s\n",inv_data->product_name.Data);
-      m_NCS_CONS_PRINTF("Product Name Length = %d\n",inv_data->product_name.DataLength);
+      printf("Product Name = %s\n",inv_data->product_name.Data);
+      printf("Product Name Length = %d\n",inv_data->product_name.DataLength);
    }
    if (inv_data->product_version.Data != NULL)
    {
-      m_NCS_CONS_PRINTF("Product Version = %s\n",inv_data->product_version.Data);
-      m_NCS_CONS_PRINTF("Product Version Length = %d\n",inv_data->product_version.DataLength);
+      printf("Product Version = %s\n",inv_data->product_version.Data);
+      printf("Product Version Length = %d\n",inv_data->product_version.DataLength);
    }
 
 
@@ -808,22 +808,22 @@ print_invdata(HISV_INV_DATA *inv_data)
    if (inv_data->oem_inv_data.num_mac_entries == 2)
    {
       uns32 i;
-      m_NCS_CONS_PRINTF("OEM Type = %d\n",inv_data->oem_inv_data.type);
-      m_NCS_CONS_PRINTF("mId = %d\n",inv_data->oem_inv_data.mId);
-      m_NCS_CONS_PRINTF("mot_oem_rec_id = %d\n",inv_data->oem_inv_data.mot_oem_rec_id);
-      m_NCS_CONS_PRINTF("rec_format_ver = %d\n",inv_data->oem_inv_data.rec_format_ver);
-      m_NCS_CONS_PRINTF("num_mac_entries = %d\n",inv_data->oem_inv_data.num_mac_entries);
-      m_NCS_CONS_PRINTF("Base Mac Addr 1 :\n");
+      printf("OEM Type = %d\n",inv_data->oem_inv_data.type);
+      printf("mId = %d\n",inv_data->oem_inv_data.mId);
+      printf("mot_oem_rec_id = %d\n",inv_data->oem_inv_data.mot_oem_rec_id);
+      printf("rec_format_ver = %d\n",inv_data->oem_inv_data.rec_format_ver);
+      printf("num_mac_entries = %d\n",inv_data->oem_inv_data.num_mac_entries);
+      printf("Base Mac Addr 1 :\n");
       for (i=0; i<6; i++)
-         m_NCS_CONS_PRINTF("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[0][i]);
+         printf("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[0][i]);
 
-      m_NCS_CONS_PRINTF("\nBase Mac Addr 2 :\n");
+      printf("\nBase Mac Addr 2 :\n");
       for (i=0; i<6; i++)
-         m_NCS_CONS_PRINTF("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[1][i]);
-      m_NCS_CONS_PRINTF("\n");
+         printf("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[1][i]);
+      printf("\n");
    }
    else
-      m_NCS_CONS_PRINTF("Mac address entries does not exist in inventory data\n");
+      printf("Mac address entries does not exist in inventory data\n");
 
    return NCSCC_RC_SUCCESS;
 }

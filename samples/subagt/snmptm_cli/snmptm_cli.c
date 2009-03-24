@@ -231,7 +231,7 @@ uns32 snmptm_cli_set_resp(NCSMIB_ARG *resp)
    /* Check the Response */
    if (resp->rsp.i_status != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nCommand Failed.");
+      printf("\nCommand Failed.");
       rc = NCSCC_RC_FAILURE;
    }
    else
@@ -275,7 +275,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
    switch(resp->rsp.i_status)
    {
    case NCSCC_RC_FAILURE:
-       m_NCS_CONS_PRINTF("Command Failed");
+       printf("Command Failed");
        snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
        break;
 
@@ -300,7 +300,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
 
              if (cmd_data == NULL)
              {
-                m_NCS_CONS_PRINTF("\n\n Not able to find command mode data");
+                printf("\n\n Not able to find command mode data");
                 snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                 return NCSCC_RC_FAILURE;  
              }
@@ -312,7 +312,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
           /* Buffer doesn't has enough data.. incorrect */
           if (buff_len < SNMPTM_HDR_SIZE)
           {
-             m_NCS_CONS_PRINTF("\n\n USRBUF doesn't have enough data in it");
+             printf("\n\n USRBUF doesn't have enough data in it");
              snmptm_cli_done(resp->i_usr_key, NCSCC_RC_SUCCESS);
              return NCSCC_RC_SUCCESS;
           }
@@ -334,7 +334,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
           if ((cmd_data->instance_id != inst_id) && 
               (resp->rsp.info.cli_rsp.i_cmnd_id != tblone_tblfive_show_glb_data_cmdid))
           {
-             m_NCS_CONS_PRINTF("\n\n Wrong Instance Id placed in the arrived buffer");
+             printf("\n\n Wrong Instance Id placed in the arrived buffer");
              snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
              return NCSCC_RC_FAILURE; 
           }
@@ -350,7 +350,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
           if ((table_id != NCSMIB_TBL_SNMPTM_TBLONE) && 
               (table_id != NCSMIB_TBL_SNMPTM_TBLFIVE))
           {
-             m_NCS_CONS_PRINTF("\n\nPacket has wrong TABLE-ID");
+             printf("\n\nPacket has wrong TABLE-ID");
              snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
              return NCSCC_RC_FAILURE;
           }
@@ -358,7 +358,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
           /* No data in the USRBUF, just return */
           if (buff_len == 0)
           {
-             m_NCS_CONS_PRINTF("\n\n USRBUF doesn't have enough data in it");
+             printf("\n\n USRBUF doesn't have enough data in it");
              snmptm_cli_done(resp->i_usr_key, NCSCC_RC_SUCCESS);
              return NCSCC_RC_FAILURE;
           }
@@ -370,7 +370,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
                 should be exact to the multiple number of SNMPTM_TBL_ENTRY_SIZE */ 
              if (buff_len % SNMPTM_TBLONE_ENTRY_SIZE) 
              {
-                m_NCS_CONS_PRINTF("\n\n USRBUF size is not aligned to TBLONE entries");
+                printf("\n\n USRBUF size is not aligned to TBLONE entries");
                 snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                 return NCSCC_RC_FAILURE;
              }
@@ -383,7 +383,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
                 should be exact to the multiple number of SNMPTM_TBL_ENTRY_SIZE */ 
              if (buff_len % SNMPTM_TBLFIVE_ENTRY_SIZE) 
              {
-                m_NCS_CONS_PRINTF("\n\n USRBUF size is not aligned to TBLFIVE entries");
+                printf("\n\n USRBUF size is not aligned to TBLFIVE entries");
                 snmptm_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
                 return NCSCC_RC_FAILURE;
              }
@@ -399,7 +399,7 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
           /* No entries in the USRBUF, just return */
           if (entry_count == 0)
           {
-             m_NCS_CONS_PRINTF("\n\n USRBUF doesn't have any entries in it.");
+             printf("\n\n USRBUF doesn't have any entries in it.");
              snmptm_cli_done(resp->i_usr_key, NCSCC_RC_SUCCESS);
              return NCSCC_RC_FAILURE;
           }
@@ -415,11 +415,11 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
                  
               if (cmd_data->tbl_id != table_id)
               { 
-                 m_NCS_CONS_PRINTF("\n\n          +----------------------------------+");
-                 m_NCS_CONS_PRINTF("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
-                 m_NCS_CONS_PRINTF("\n          +----------------------------------+");
-                 m_NCS_CONS_PRINTF("\nIp Address                    RowStatus         Counters");
-                 m_NCS_CONS_PRINTF("\n===========================================================");
+                 printf("\n\n          +----------------------------------+");
+                 printf("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
+                 printf("\n          +----------------------------------+");
+                 printf("\nIp Address                    RowStatus         Counters");
+                 printf("\n===========================================================");
 
                  cmd_data->tbl_id = table_id;
               }
@@ -436,11 +436,11 @@ uns32 snmptm_cli_show_resp(NCSMIB_ARG *resp)
 
               if (cmd_data->tbl_id != table_id)
               {
-                 m_NCS_CONS_PRINTF("\n\n +-----------------------------------+");
-                 m_NCS_CONS_PRINTF("\n + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
-                 m_NCS_CONS_PRINTF("\n +-----------------------------------+");
-                 m_NCS_CONS_PRINTF("\nIp Address                   RowStatus");
-                 m_NCS_CONS_PRINTF("\n========================================");
+                 printf("\n\n +-----------------------------------+");
+                 printf("\n + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
+                 printf("\n +-----------------------------------+");
+                 printf("\nIp Address                   RowStatus");
+                 printf("\n========================================");
 
                  cmd_data->tbl_id = table_id;
               }
@@ -578,18 +578,18 @@ static void snmptm_show_tbl_data(USRBUF *buff, uns32 entry_count, uns32 tbl_id)
       
       if (tbl_id != NCSMIB_TBL_SNMPTM_TBLONE)
       {
-         m_NCS_CONS_PRINTF("\n %-16s            %s", addr_str, snmptm_print_status_str(status));
+         printf("\n %-16s            %s", addr_str, snmptm_print_status_str(status));
          m_MMGR_REMOVE_FROM_START(&buff, SNMPTM_TBLFIVE_ENTRY_SIZE);
       }
       else
       {
-         m_NCS_CONS_PRINTF("\n %-16s              %s               %d",
+         printf("\n %-16s              %s               %d",
                          addr_str, snmptm_print_status_str(status), cntr);
          m_MMGR_REMOVE_FROM_START(&buff, SNMPTM_TBLONE_ENTRY_SIZE);
       }
    } /* End of for() loop */
    
-   m_NCS_CONS_PRINTF("\n");
+   printf("\n");
 
    return;
 }
@@ -620,20 +620,20 @@ static void snmptm_show_tbls_data(USRBUF *buff, uns32 entry_count, uns32 tbl_id,
    {
       if (tbl_id == NCSMIB_TBL_SNMPTM_TBLONE)
       {
-         m_NCS_CONS_PRINTF("\n\n          +----------------------------------+");
-         m_NCS_CONS_PRINTF("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
-         m_NCS_CONS_PRINTF("\n          +----------------------------------+");
-         m_NCS_CONS_PRINTF("\nIp Address                     RowStatus            Counters");
-         m_NCS_CONS_PRINTF("\n==============================================================");
+         printf("\n\n          +----------------------------------+");
+         printf("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
+         printf("\n          +----------------------------------+");
+         printf("\nIp Address                     RowStatus            Counters");
+         printf("\n==============================================================");
          *cmd_tbl_id = tbl_id;
       }
       else
       {
-         m_NCS_CONS_PRINTF("\n\n  +-----------------------------------+");
-         m_NCS_CONS_PRINTF("\n  + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
-         m_NCS_CONS_PRINTF("\n  +-----------------------------------+");
-         m_NCS_CONS_PRINTF("\nIp Address                   RowStatus");
-         m_NCS_CONS_PRINTF("\n========================================");
+         printf("\n\n  +-----------------------------------+");
+         printf("\n  + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
+         printf("\n  +-----------------------------------+");
+         printf("\nIp Address                   RowStatus");
+         printf("\n========================================");
          *cmd_tbl_id = tbl_id;
       }
    }
@@ -663,19 +663,19 @@ static void  snmptm_show_glb_tbls_data(USRBUF *buff, uns32 entry_count, uns32 tb
 {
    if (tbl_id == NCSMIB_TBL_SNMPTM_TBLONE)
    {
-      m_NCS_CONS_PRINTF("\n\n          +----------------------------------+");
-      m_NCS_CONS_PRINTF("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
-      m_NCS_CONS_PRINTF("\n          +----------------------------------+");
-      m_NCS_CONS_PRINTF("\nIp Address                    RowStatus           Counters");
-      m_NCS_CONS_PRINTF("\n============================================================");
+      printf("\n\n          +----------------------------------+");
+      printf("\n          + TABLE-ONE DATA (Instance ID# %d)  +", inst_id);
+      printf("\n          +----------------------------------+");
+      printf("\nIp Address                    RowStatus           Counters");
+      printf("\n============================================================");
    }
    else
    {
-      m_NCS_CONS_PRINTF("\n\n  +-----------------------------------+");
-      m_NCS_CONS_PRINTF("\n  + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
-      m_NCS_CONS_PRINTF("\n  +-----------------------------------+");
-      m_NCS_CONS_PRINTF("\nIp Address                  RowStatus");
-      m_NCS_CONS_PRINTF("\n=======================================");
+      printf("\n\n  +-----------------------------------+");
+      printf("\n  + TABLE-FIVE DATA (Instance ID# %d)  +", inst_id);
+      printf("\n  +-----------------------------------+");
+      printf("\nIp Address                  RowStatus");
+      printf("\n=======================================");
    }
 
    snmptm_show_tbl_data(buff, entry_count, tbl_id);

@@ -122,7 +122,7 @@ EXTERN_C MABCOM_API uns32 mab_dbg_sink (uns32,char*,uns32);
 
 #if (MAB_TRACE == 1)
 
-#define m_MAB_DBG_TRACE(t) m_NCS_CONS_PRINTF(t)
+#define m_MAB_DBG_TRACE(t) printf(t)
 
 #else
 
@@ -169,7 +169,7 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
 #if (NCS_RMS == 1) 
 
 #define m_MAB_DBG_TRACE2_MAS_IN(i,m) \
-  m_NCS_CONS_PRINTF("\nMAS:%p,role:%s | MSG:%p\n", \
+  printf("\nMAS:%p,role:%s | MSG:%p\n", \
                     inst, \
                       inst->re.role == NCSFT_ROLE_PRIMARY ? "PRIMARY" : \
                     inst->re.role == NCSFT_ROLE_BACKUP ? "BACKUP" : "OTHER", \
@@ -177,7 +177,7 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
 #else
 
 #define m_MAB_DBG_TRACE2_MAS_IN(i,m) \
-  m_NCS_CONS_PRINTF("\nMAS:%p,role:%s | MSG:%p\n", \
+  printf("\nMAS:%p,role:%s | MSG:%p\n", \
                     inst, \
                     "NONE", \
                       msg)
@@ -185,16 +185,16 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
 #endif 
 
 #define m_MAB_DBG_TRACE2_MAS_TR_ALLOC(tr) \
-  m_NCS_CONS_PRINTF("\n ALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
+  printf("\n ALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
 
 
 #define m_MAB_DBG_TRACE2_MAS_TR_DALLOC(tr) \
-  m_NCS_CONS_PRINTF("\n DEALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
+  printf("\n DEALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
 
 #if (NCS_RMS == 1) 
 
 #define m_MAB_DBG_TRACE2_MAS_DF_OP(i,m,tr,o) \
-  m_NCS_CONS_PRINTF("\n[DEF FLTR]:MAS_TBL:%p/role:%s/tbl_id:%d/vcard:%d/anc:%d\n", \
+  printf("\n[DEF FLTR]:MAS_TBL:%p/role:%s/tbl_id:%d/vcard:%d/anc:%d\n", \
       i, \
       i->re.role == NCSFT_ROLE_PRIMARY ? "PRIMARY" : "OTHER", \
       tr->tbl_id, \
@@ -203,7 +203,7 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
 #else
 
 #define m_MAB_DBG_TRACE2_MAS_DF_OP(i,m,tr,o) \
-  m_NCS_CONS_PRINTF("\n[DEF FLTR]:MAS_TBL:%p/role:%s/tbl_id:%d/vcard:%d/anc:%d\n", \
+  printf("\n[DEF FLTR]:MAS_TBL:%p/role:%s/tbl_id:%d/vcard:%d/anc:%d\n", \
       i, \
       "NONE", \
       tr->tbl_id, \
@@ -940,7 +940,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.info.move_detailsfile.i_pwe_id       = pwe; \
         pssts_arg.info.move_detailsfile.i_pcn          = pcn_name; \
         pssts_arg.info.move_detailsfile.i_tbl_id       = tbl; \
-        m_NCS_CONS_PRINTF("\nEntered Move Table Details macro");\
+        printf("\nEntered Move Table Details macro");\
         ret = (func)(&pssts_arg); \
     }
 

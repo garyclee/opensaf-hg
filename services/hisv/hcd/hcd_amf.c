@@ -133,7 +133,7 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
       m_HISV_HCD_GIVEUP_HCD_CB;
    }
    else
-      m_NCS_CONS_PRINTF("HCD Control block found NULL in CSI Assignment\n");
+      printf("HCD Control block found NULL in CSI Assignment\n");
 }
 
 

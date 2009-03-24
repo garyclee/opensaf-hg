@@ -59,7 +59,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
         break;
 
     case NCS_CONIO_CMD_PUTSTR:            /* put a string to console      */
-        request->putstr.o_bytecnt = m_NCS_CONS_PRINTF((const char *)"%s",
+        request->putstr.o_bytecnt = printf((const char *)"%s",
                                                      (char *)request->putstr.i_string);
         retval = NCSCC_RC_SUCCESS;
         break;

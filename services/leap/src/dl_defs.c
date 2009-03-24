@@ -82,12 +82,12 @@ NOTES:
 #define NCS_DL_DEFS_LOG  0
 
 #if (NCS_DL_DEFS_TRACE == 1)
-#define m_NCS_DL_DEFS_TRACE m_NCS_CONS_PRINTF
+#define m_NCS_DL_DEFS_TRACE printf
 #else
 #define m_NCS_DL_DEFS_TRACE 
 #endif
 #if (NCS_DL_DEFS_LOG == 1)
-#define m_NCS_DL_DEFS_LOG m_NCS_CONS_PRINTF
+#define m_NCS_DL_DEFS_LOG printf
 #else
 #define m_NCS_DL_DEFS_LOG 
 #endif

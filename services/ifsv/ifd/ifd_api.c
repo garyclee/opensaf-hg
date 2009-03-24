@@ -621,37 +621,37 @@ ifd_extract_input_info(int argc, char *argv[], IFSV_CREATE_PWE *ifsv_info)
    p_field = ifd_search_argv_list(argc, argv, "SHELF_ID=");
    if (p_field == NULL)
    {      
-      m_NCS_CONS_PRINTF("\nERROR:Problem in shelf_id argument\n");
+      printf("\nERROR:Problem in shelf_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
    if (sscanf(p_field + strlen("SHELF_ID="), "%d", &ifsv_info->shelf_no) != 1)
    {      
-      m_NCS_CONS_PRINTF("\nERROR:Problem in shelf_id argument\n");
+      printf("\nERROR:Problem in shelf_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
 
    p_field = ifd_search_argv_list(argc, argv, "SLOT_ID=");
    if (p_field == NULL)
    {      
-      m_NCS_CONS_PRINTF("\nERROR:Problem in slot_id argument\n");
+      printf("\nERROR:Problem in slot_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
    if (sscanf(p_field + strlen("SLOT_ID="), "%d", &ifsv_info->slot_no) != 1)
    {      
-      m_NCS_CONS_PRINTF("\nERROR:Problem in slot_id argument\n");
+      printf("\nERROR:Problem in slot_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
   /* embedding subslot changes */
    p_field = ifd_search_argv_list(argc, argv, "NODE_ID=");
    if (p_field == NULL)
    {
-      m_NCS_CONS_PRINTF("\nERROR:Problem in node_id argument\n");
+      printf("\nERROR:Problem in node_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
    
    if (sscanf(p_field + strlen("NODE_ID="), "%d", &node_id) != 1)
    {
-      m_NCS_CONS_PRINTF("\nERROR:Problem in node_id argument\n");
+      printf("\nERROR:Problem in node_id argument\n");
       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
    }
 

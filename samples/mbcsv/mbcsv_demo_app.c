@@ -192,7 +192,7 @@ void create_fake_ss(void * arg)
                                                    ss_cb[i].my_version,
                                                    &ss_cb[i].mbcsv_hdl))
       {
-         m_NCS_CONS_PRINTF(" MBCSV Initialization failed !!.\n");
+         printf(" MBCSV Initialization failed !!.\n");
          return;
       }
 
@@ -213,7 +213,7 @@ void create_fake_ss(void * arg)
          if (NCSCC_RC_SUCCESS != mds_demo_create_named_vdest(ss_config[(i*3)+j].vdest_name,
                                                              &ss_cb[i].my_ckpt[j].pwe_hdl))
          {
-            m_NCS_CONS_PRINTF(" VDEST creation failed !!.\n");
+            printf(" VDEST creation failed !!.\n");
             return;
          }
          
@@ -222,7 +222,7 @@ void create_fake_ss(void * arg)
                                                  ss_cb[i].my_ckpt[j].pwe_hdl,
                                                  &ss_cb[i].my_ckpt[j].ckpt_hdl))
          {
-            m_NCS_CONS_PRINTF(" MBCSV Open ckpt failed !!.\n");
+            printf(" MBCSV Open ckpt failed !!.\n");
             return;
          }
          
@@ -236,28 +236,28 @@ void create_fake_ss(void * arg)
                                                      ss_cb[i].my_ckpt[j].ckpt_hdl,
                                                      ss_config[(i*3)+j].role))
          {
-            m_NCS_CONS_PRINTF(" MBCSV Role change failed. !!.\n");
+            printf(" MBCSV Role change failed. !!.\n");
             return;
          }
          
          if (NCSCC_RC_SUCCESS != mbcsv_get_sel_obj(ss_cb[i].mbcsv_hdl,
                                &ss_cb[i].sel_obj))
          {
-            m_NCS_CONS_PRINTF(" MBCSV get selection object failed !!.\n");
+            printf(" MBCSV get selection object failed !!.\n");
             return;
          }
          
          if (NCSCC_RC_SUCCESS != mbcsv_set_obj_svc(ss_cb[i].mbcsv_hdl,
             ss_cb[i].my_ckpt[j].ckpt_hdl, NCS_MBCSV_OBJ_TMR_WSYNC, 1000))
          {
-            m_NCS_CONS_PRINTF(" MBCSV set object (NCS_MBCSV_OBJ_TMR_WSYNC) failed !!.\n");
+            printf(" MBCSV set object (NCS_MBCSV_OBJ_TMR_WSYNC) failed !!.\n");
             return;
          }
 
          if (NCSCC_RC_SUCCESS != mbcsv_set_obj_svc(ss_cb[i].mbcsv_hdl,
             ss_cb[i].my_ckpt[j].ckpt_hdl, NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF, FALSE))
          {
-            m_NCS_CONS_PRINTF(" MBCSV set object failed !!.\n");
+            printf(" MBCSV set object failed !!.\n");
          }
 
       }
@@ -268,7 +268,7 @@ void create_fake_ss(void * arg)
 
    m_NCS_TASK_SLEEP(1000); 
 /*
-   m_NCS_CONS_PRINTF(" \n...CHANGE ROLE OF ACTIVE AND STANDBY...REPEAT TEST....!!.\n"); 
+   printf(" \n...CHANGE ROLE OF ACTIVE AND STANDBY...REPEAT TEST....!!.\n"); 
 
    for (i=0; i<FAKE_NUM_SVCS; i++)
    {
@@ -277,7 +277,7 @@ void create_fake_ss(void * arg)
          if (NCSCC_RC_SUCCESS != mbcsv_set_obj_svc(ss_cb[i].mbcsv_hdl,
             ss_cb[i].my_ckpt[j].ckpt_hdl, NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF, FALSE))
          {
-            m_NCS_CONS_PRINTF(" MBCSV set object failed !!.\n");
+            printf(" MBCSV set object failed !!.\n");
          }
 
          if (ss_config[(i*3)+j].role == SA_AMF_HA_ACTIVE)
@@ -286,7 +286,7 @@ void create_fake_ss(void * arg)
                                                      ss_cb[i].my_ckpt[j].ckpt_hdl,
                                                      SA_AMF_HA_QUIESCED))
          {
-            m_NCS_CONS_PRINTF(" MBCSV Role change failed. !!.\n");
+            printf(" MBCSV Role change failed. !!.\n");
             return;
          }
 
@@ -296,7 +296,7 @@ void create_fake_ss(void * arg)
                                                      ss_cb[i].my_ckpt[j].ckpt_hdl,
                                                      SA_AMF_HA_STANDBY))
          {
-            m_NCS_CONS_PRINTF(" MBCSV Role change failed. !!.\n");
+            printf(" MBCSV Role change failed. !!.\n");
             return;
          }
          my_role = SA_AMF_HA_STANDBY;
@@ -308,7 +308,7 @@ void create_fake_ss(void * arg)
                                                      ss_cb[i].my_ckpt[j].ckpt_hdl,
                                                      SA_AMF_HA_ACTIVE))
          {
-            m_NCS_CONS_PRINTF(" MBCSV Role change failed. !!.\n");
+            printf(" MBCSV Role change failed. !!.\n");
             return;
          }
          my_role = SA_AMF_HA_ACTIVE;
@@ -345,17 +345,17 @@ static void mbcsv_dummy_testapp()
    /*
     * Peer Discovery is done. So print Inventory.
     */
-   m_NCS_CONS_PRINTF("\n PRINTING MBCSV Inventory\n");
+   printf("\n PRINTING MBCSV Inventory\n");
    m_NCS_TASK_SLEEP(10000);
    mbcsv_prt_inv();
 
    /*
     * First Application will sync using Cold Sync.
     */
-   m_NCS_CONS_PRINTF("\n  PRINTING DATA AFTER COLD SYNC\n");
+   printf("\n  PRINTING DATA AFTER COLD SYNC\n");
    /*mbcsv_print_fake_ss_data();*/
 
-   m_NCS_CONS_PRINTF(" \n ...COLD SYNC TEST DONE......STARTING ASYNC UPDATE TEST.... \n");
+   printf(" \n ...COLD SYNC TEST DONE......STARTING ASYNC UPDATE TEST.... \n");
 
    /*
     * Async update test.
@@ -363,7 +363,7 @@ static void mbcsv_dummy_testapp()
    m_NCS_TASK_SLEEP(2000);
    create_fake_data(TRUE);
    m_NCS_TASK_SLEEP(10000);
-   m_NCS_CONS_PRINTF(" PRINTING DATA AFTER ASYNC Update\n");
+   printf(" PRINTING DATA AFTER ASYNC Update\n");
    mbcsv_print_fake_ss_data();
 
    m_NCS_TASK_SLEEP(10000);
@@ -378,17 +378,17 @@ static void mbcsv_dummy_testapp()
          if (NCSCC_RC_SUCCESS != mbcsv_set_obj_svc(ss_cb[i].mbcsv_hdl,
             ss_cb[i].my_ckpt[j].ckpt_hdl, NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF, TRUE))
          {
-            m_NCS_CONS_PRINTF(" MBCSV set object failed !!.\n");
+            printf(" MBCSV set object failed !!.\n");
             return;
          }
       }
    }
 
-   m_NCS_CONS_PRINTF(" \n ...COLD SYNC TEST DONE......STARTING WARM SYNC TEST.... \n");
+   printf(" \n ...COLD SYNC TEST DONE......STARTING WARM SYNC TEST.... \n");
 
    create_fake_data(FALSE);
    m_NCS_TASK_SLEEP(20000);
-   m_NCS_CONS_PRINTF(" PRINTING DATA AFTER WARM SYNC Update\n");
+   printf(" PRINTING DATA AFTER WARM SYNC Update\n");
    mbcsv_print_fake_ss_data();
 
    return;
@@ -414,13 +414,13 @@ void mbcsv_print_fake_ss_data()
       {
          m_NCS_LOCK(&ss_cb[i].fake_ss_lock, NCS_LOCK_READ);
 
-         m_NCS_OS_PRINTF("\n---------------------------------------------------------------------");
-         m_NCS_OS_PRINTF("\n|FAKE SS DATA SVC = %3d MBCSV = %X PWE = %8X STATE = %d |",
+         printf("\n---------------------------------------------------------------------");
+         printf("\n|FAKE SS DATA SVC = %3d MBCSV = %X PWE = %8X STATE = %d |",
                        ss_cb[i].svc_id, ss_cb[i].mbcsv_hdl,
                        ss_cb[i].my_ckpt[j].pwe_hdl, ss_cb[i].my_ckpt[j].ha_state);
-         m_NCS_OS_PRINTF("\n---------------------------------------------------------------------");
-         m_NCS_OS_PRINTF("\n|  INDEX   |    EXIST    |     NUMBER   |           TIME             ");
-         m_NCS_OS_PRINTF("\n---------------------------------------------------------------------");
+         printf("\n---------------------------------------------------------------------");
+         printf("\n|  INDEX   |    EXIST    |     NUMBER   |           TIME             ");
+         printf("\n---------------------------------------------------------------------");
          
          for (loop = 0; loop < 10; loop++)
          {
@@ -436,11 +436,11 @@ void mbcsv_print_fake_ss_data()
                  sprintf(asc_tod, "%s", "--------------------");
               }
             
-            m_NCS_OS_PRINTF("\n|    %d     |    %d        |     %3d      |   %s   |",
+            printf("\n|    %d     |    %d        |     %3d      |   %s   |",
                loop, ss_cb[i].my_ckpt[j].my_data[loop].exist, ss_cb[i].my_ckpt[j].my_data[loop].rand_value, asc_tod);
          }
          
-         m_NCS_OS_PRINTF("\n---------------------------------------------------------------------");
+         printf("\n---------------------------------------------------------------------");
          
          m_NCS_UNLOCK(&ss_cb[i].fake_ss_lock, NCS_LOCK_READ);
       }
@@ -908,7 +908,7 @@ static uns32 mds_demo_create_named_vdest(char * name, uns32 *pwe_hdl)
 
    if (ncsvda_api(&vda_info) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF(" VDEST creation failed !!.\n");
+      printf(" VDEST creation failed !!.\n");
 
       return NCSCC_RC_FAILURE;
    }
@@ -940,7 +940,7 @@ static uns32 mbcsv_initialize_svc(SS_SVC_ID   svc_id,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Initialize operation failed !!.\n");
+      printf(" MBCSV Initialize operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -972,7 +972,7 @@ static uns32 mbcsv_open_ckpt(uns32    mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Open operation failed !!.\n");
+      printf(" MBCSV Open operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1005,7 +1005,7 @@ uns32 mbcsv_set_ckpt_role(uns32    mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Role set operation failed!!.\n");
+      printf(" MBCSV Role set operation failed!!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1030,7 +1030,7 @@ static uns32 mbcsv_get_sel_obj(uns32                 mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV get selection object operation failed !!.\n");
+      printf(" MBCSV get selection object operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1059,7 +1059,7 @@ static uns32 mbcsv_fake_dispatch(uns32    mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV dispatch operation failed !!.\n");
+      printf(" MBCSV dispatch operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1094,7 +1094,7 @@ static uns32 mbcsv_fake_send_data(uns32    mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV send data operation failed !!.\n");
+      printf(" MBCSV send data operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1121,7 +1121,7 @@ static uns32 mbcsv_close_ckpt(uns32    mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Close operation failed !!.\n");
+      printf(" MBCSV Close operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1146,7 +1146,7 @@ static uns32 mbcsv_finalize_svc(uns32   mbcsv_hdl)
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Finalize operation failed !!.\n");
+      printf(" MBCSV Finalize operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1176,7 +1176,7 @@ static uns32 mbcsv_set_obj_svc(uns32  mbcsv_hdl, uns32 ckpt_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF(" MBCSV Set operation failed !!.\n");
+      printf(" MBCSV Set operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1208,7 +1208,7 @@ static uns32 mbcsv_fake_send_data_req(uns32      mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_enc_init_space(uba))
    {
-      m_NCS_CONS_PRINTF("mbcsv_fake_send_data_req: Function ncs_enc_init_space returns failure.\n");
+      printf("mbcsv_fake_send_data_req: Function ncs_enc_init_space returns failure.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1220,7 +1220,7 @@ static uns32 mbcsv_fake_send_data_req(uns32      mbcsv_hdl,
 
    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg))
    {
-      m_NCS_CONS_PRINTF("mbcsv_fake_send_data_req: MBCSV send data req operation failed !!.\n");
+      printf("mbcsv_fake_send_data_req: MBCSV send data req operation failed !!.\n");
       return NCSCC_RC_FAILURE;
    }
 

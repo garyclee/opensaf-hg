@@ -4282,7 +4282,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    fh = sysf_fopen((char*)&file_name, "a+");
    if(fh == NULL)
    {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", (char*)&file_name);
+      printf("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", (char*)&file_name);
       return NCSCC_RC_FAILURE;
    }
    sysf_fprintf(fh, "***STARTING DUMP of PROFILE:%s for PCN:%s(ALL VALUES ARE SHOWN IN DECIMAL NOTATION)***\n", (char*)&profile_name, (char*)&pcn_name);

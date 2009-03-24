@@ -412,7 +412,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    
       /* READ FROM THE SHARED MEMORY */
 
-      m_NCS_CONS_PRINTF("\nCPND IS RESTARTING \n");
+      printf("\nCPND IS RESTARTING \n");
       /* Read the number of clients from the header */
       memset(&cli_hdr,'\0',sizeof(CLIENT_HDR));   
       m_CPND_CLIHDR_INFO_READ(cli_hdr,(char *)gbl_shm_addr.cli_addr,0);
@@ -537,7 +537,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                           {
                              /* this should not have happened , quit */
                              /*  assert(0); */
-                             m_NCS_CONS_PRINTF("RESTART: CLIENT HDL DOES NOT EXIST %d\n",client_hdl);
+                             printf("RESTART: CLIENT HDL DOES NOT EXIST %d\n",client_hdl);
                              m_LOG_CPND_FCL(CPND_CLIENT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
                              client_hdl,__FILE__,__LINE__);
                              continue;

@@ -117,13 +117,13 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
         if ((ifsv_cb->ifnd_rec_flush_tmr != IFSV_NULL ) &&
               (ifsv_cb->ifnd_rec_flush_tmr->is_active == TRUE))
         {
-           m_NCS_CONS_PRINTF("Stopping the timer state : Stdby to Active\n");
+           printf("Stopping the timer state : Stdby to Active\n");
            ifsv_tmr_stop(ifsv_cb->ifnd_rec_flush_tmr, ifsv_cb);
            m_MMGR_FREE_IFSV_TMR(ifsv_cb->ifnd_rec_flush_tmr);
            ifsv_cb->ifnd_rec_flush_tmr = IFSV_NULL;
         }
          
-        m_NCS_CONS_PRINTF("State Change : Stdby to Active. Forming TMR EXP EVT \n"); 
+        printf("State Change : Stdby to Active. Forming TMR EXP EVT \n"); 
         evt = m_MMGR_ALLOC_IFSV_EVT;
         memset(evt,0,sizeof(IFSV_EVT));
         evt->vrid = ifsv_cb->vrid;
@@ -131,7 +131,7 @@ void ifd_saf_CSI_set_callback(SaInvocationT invocation,
         evt->type = IFD_EVT_TMR_EXP;
         evt->info.ifd_evt.info.tmr_exp.tmr_type = NCS_IFSV_IFD_IFND_REC_FLUSH_TMR;
 
-        m_NCS_CONS_PRINTF("Successfully formed timer expiry event \n");
+        printf("Successfully formed timer expiry event \n");
 
         /* Put the event in mail box */
         m_NCS_IPC_SEND(&ifsv_cb->mbx, evt, priority);

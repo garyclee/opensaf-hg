@@ -838,7 +838,7 @@ void* ncs_regx_init(char* pattern)
       regx->t_alist.c_pattern + sizeof(regx->t_alist.c_pattern),
       '\0')) < 0)
    {
-      m_NCS_CONS_PRINTF(" NCS_REGX:%s  COMPILING: %s\n",patErrStr(ret), pattern);
+      printf(" NCS_REGX:%s  COMPILING: %s\n",patErrStr(ret), pattern);
       m_MMGR_FREE_REGX(regx);
       return NULL;
    }

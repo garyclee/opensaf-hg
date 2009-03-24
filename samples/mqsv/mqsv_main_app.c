@@ -47,8 +47,8 @@ int main(int argc, char **argv)
    temp_var = atoi(argv[1]);
 
    
-   m_NCS_CONS_PRINTF("\nSTARTING THE MQSv DEMO\n");
-   m_NCS_CONS_PRINTF("======================\n");
+   printf("\nSTARTING THE MQSv DEMO\n");
+   printf("======================\n");
 
 
 

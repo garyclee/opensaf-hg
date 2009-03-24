@@ -121,7 +121,7 @@ SNMPTM_TBLEIGHT *snmptm_create_tbleight_entry(SNMPTM_CB *snmptm,
    if ((tbleight = (SNMPTM_TBLEIGHT*)m_MMGR_ALLOC_SNMPTM_TBLEIGHT)
         == SNMPTM_TBLEIGHT_NULL)
    {
-      m_NCS_CONS_PRINTF("\nNot able to alloc the memory for TBLEIGHT \n");
+      printf("\nNot able to alloc the memory for TBLEIGHT \n");
       return NULL;
    }
 
@@ -138,7 +138,7 @@ SNMPTM_TBLEIGHT *snmptm_create_tbleight_entry(SNMPTM_CB *snmptm,
    if(NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&(snmptm->tbleight_tree),
                                                 &(tbleight->tbleight_pat_node)))
    {
-      m_NCS_CONS_PRINTF("\nNot able add TBLEIGHT node to TBLEIGHT tree.\n");
+      printf("\nNot able add TBLEIGHT node to TBLEIGHT tree.\n");
 
       /* Free the alloc memory of TBLEIGHT */
       m_MMGR_FREE_SNMPTM_TBLEIGHT(tbleight);
@@ -347,7 +347,7 @@ uns32  ncstesttableeightentry_get(NCSCONTEXT cb,
    uns32         ret_code = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableEightEntry:  Received SNMP GET request\n");
+   printf("\nncsTestTableEightEntry:  Received SNMP GET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
@@ -384,7 +384,7 @@ uns32 ncstesttableeightentry_next(NCSCONTEXT snmptm,
    uns32         ret_code = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableEightEntry:  Received SNMP NEXT request\n");
+   printf("\nncsTestTableEightEntry:  Received SNMP NEXT request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
@@ -427,7 +427,7 @@ uns32 ncstesttableeightentry_set(NCSCONTEXT cb,
    uns8                create_flag = FALSE;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableEightEntry:  Received SNMP SET request\n");
+   printf("\nncsTestTableEightEntry:  Received SNMP SET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
@@ -548,7 +548,7 @@ uns32 ncstesttableeightentry_setrow(NCSCONTEXT cb,
    NCSMIBLIB_REQ_INFO  temp_mib_req;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableEightEntry: Received SNMP SETROW request\n");
+   printf("\nncsTestTableEightEntry: Received SNMP SETROW request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 

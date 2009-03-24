@@ -81,7 +81,7 @@ static uns32 ham_mds_callback(struct ncsmds_callback_info *info)
       return (*cb_set[info->i_op])(info);
    else
    {
-      m_NCS_CONS_PRINTF("ham_mds_callback: info->i_op is beyond MDS_CALLBACK_SVC_MAX\n");
+      printf("ham_mds_callback: info->i_op is beyond MDS_CALLBACK_SVC_MAX\n");
       return NCSCC_RC_FAILURE;
    }
 }

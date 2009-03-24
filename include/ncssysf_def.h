@@ -139,18 +139,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
 
 #define m_NCS_CONIO_NORMALIZE_CHR m_NCS_OS_NORMALIZE_CHR
 
-/* redefine printf() and getchar() */
-#ifdef NEW_GUI_CODE
-#undef m_NCS_OS_PRINTF
-extern LEAPDLL_API int send_cons_to_gui(const char *format , ...);
-#define m_NCS_OS_PRINTF           send_cons_to_gui
-
-#undef m_NCS_OS_GETCHAR
-extern LEAPDLL_API int get_char_from_gui();
-#define m_NCS_OS_GETCHAR           get_char_from_gui
-
-#endif
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
@@ -162,8 +150,6 @@ extern LEAPDLL_API int get_char_from_gui();
 
 
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
-
-#define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
 

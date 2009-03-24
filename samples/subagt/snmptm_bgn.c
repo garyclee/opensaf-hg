@@ -260,7 +260,7 @@ void  snmptm_main(int argc, char **argv)
       snmptm_main() */
    if (snmptm_agt_init(argc, argv) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM ERROR: Not able to initialize Agents\n"); 
+      printf("\nSNMPTM ERROR: Not able to initialize Agents\n"); 
       return;
    }
 
@@ -281,11 +281,11 @@ void  snmptm_main(int argc, char **argv)
       strcpy(&lm_req.io_create_snmptm.i_pcn, "SNMPTM_NODE_2");
    }
 
-   m_NCS_CONS_PRINTF("\nSNMPTM Node Id: %d \n", lm_req.io_create_snmptm.i_node_id); 
+   printf("\nSNMPTM Node Id: %d \n", lm_req.io_create_snmptm.i_node_id); 
 
    if (snmptm_create_vdest() != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM ERROR: Not able to create VDEST \n"); 
+      printf("\nSNMPTM ERROR: Not able to create VDEST \n"); 
       return;
    }
 
@@ -299,7 +299,7 @@ void  snmptm_main(int argc, char **argv)
 
    if (! lm_req.io_create_snmptm.i_oac_hdl)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM ERROR: Not able to get the OAC handle\n"); 
+      printf("\nSNMPTM ERROR: Not able to get the OAC handle\n"); 
    }
  
    /* Handle manager pool_id, set to NCS_HM_POOL_ID_EXTERNAL1 , usually the 
@@ -311,11 +311,11 @@ void  snmptm_main(int argc, char **argv)
    /* Call SNMPTM LM request API, this creates the SNMPTM CB and does
       the initialisation/registration process that are required for
       SNMPTM application */ 
-   m_NCS_CONS_PRINTF("\nCreating SNMPTM Instance[Node=%d]..\n", lm_req.io_create_snmptm.i_node_id); 
+   printf("\nCreating SNMPTM Instance[Node=%d]..\n", lm_req.io_create_snmptm.i_node_id); 
    if (ncssnmptm_lm_request(&lm_req) != NCSCC_RC_SUCCESS)
    {
       /* Failed to create SNMPTM instance */
-      m_NCS_CONS_PRINTF("\nFAILED!\n"); 
+      printf("\nFAILED!\n"); 
       return;
    }
  
@@ -330,7 +330,7 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nStarting TEST-1 on Node-1: To send dynamic data, i.e., 10 rows of TBLSIX to PSSv!\n"); 
+         printf("\nStarting TEST-1 on Node-1: To send dynamic data, i.e., 10 rows of TBLSIX to PSSv!\n"); 
          snmptm_exec_test1(lcl_snmptm);
          ncshm_give_hdl(g_snmptm_hdl);
       }
@@ -341,7 +341,7 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nStarting TEST-2 on Node-1: To delete 2 rows of TBLSIX, and send the update to PSSv!\n"); 
+         printf("\nStarting TEST-2 on Node-1: To delete 2 rows of TBLSIX, and send the update to PSSv!\n"); 
          snmptm_exec_test2(lcl_snmptm);
          ncshm_give_hdl(g_snmptm_hdl);
       }
@@ -352,7 +352,7 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nStarting TEST-3 on Node-1: To modify 3 rows of TBLSIX, and send the udpate to PSSv!\n"); 
+         printf("\nStarting TEST-3 on Node-1: To modify 3 rows of TBLSIX, and send the udpate to PSSv!\n"); 
          memset(&tblsix_key, '\0', sizeof(tblsix_key));
          tblsix_key.count = 2;
          tblsix = (SNMPTM_TBLSIX*)ncs_patricia_tree_get(&lcl_snmptm->tblsix_tree,
@@ -383,7 +383,7 @@ void  snmptm_main(int argc, char **argv)
          NCSOAC_PSS_TBL_LIST lcl_tbl_list;
          NCSOAC_SS_ARG oac_arg;
 
-         m_NCS_CONS_PRINTF("\nStarting TEST-4 on Node-1: To delete all rows of TBLSIX, and request for warmboot playback from PSSv!\n"); 
+         printf("\nStarting TEST-4 on Node-1: To delete all rows of TBLSIX, and request for warmboot playback from PSSv!\n"); 
          while(SNMPTM_TBLSIX_NULL != (tblsix = (SNMPTM_TBLSIX*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblsix_tree, 0)))
          {
@@ -418,13 +418,13 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nVerifying TEST-4 on Node-1: Dump of TBLSIX data, after waiting for 10 secs...\n\n"); 
+         printf("\nVerifying TEST-4 on Node-1: Dump of TBLSIX data, after waiting for 10 secs...\n\n"); 
          memset(&tblsix_key, '\0', sizeof(tblsix_key));
          while(SNMPTM_TBLSIX_NULL != (tblsix = (SNMPTM_TBLSIX*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblsix_tree, (uns8*)&tblsix_key)))
          {
             tblsix_key.count = tblsix->tblsix_key.count;
-            m_NCS_CONS_PRINTF("\tTBLSIX entry after warmboot playback: Index = %d, data = %d, Name = %s!\n",
+            printf("\tTBLSIX entry after warmboot playback: Index = %d, data = %d, Name = %s!\n",
                tblsix->tblsix_key.count, tblsix->tblsix_data, (char*)&tblsix->tblsix_name); 
          }
          ncshm_give_hdl(g_snmptm_hdl);
@@ -434,7 +434,7 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nStarting TEST-5 on Node-1: To send dynamic data, i.e., 2 rows of TBLTEN to PSSv!\n"); 
+         printf("\nStarting TEST-5 on Node-1: To send dynamic data, i.e., 2 rows of TBLTEN to PSSv!\n"); 
          snmptm_exec_test5(lcl_snmptm);
          ncshm_give_hdl(g_snmptm_hdl);
       }
@@ -448,7 +448,7 @@ void  snmptm_main(int argc, char **argv)
          NCSOAC_PSS_TBL_LIST lcl_tbl_list;
          NCSOAC_SS_ARG oac_arg;
 
-         m_NCS_CONS_PRINTF("\nStarting TEST-6 on Node-1: To delete all rows of TBLTEN, and request for warmboot playback from PSSv!\n"); 
+         printf("\nStarting TEST-6 on Node-1: To delete all rows of TBLTEN, and request for warmboot playback from PSSv!\n"); 
          while(SNMPTM_TBLTEN_NULL != (tblten = (SNMPTM_TBLTEN*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblten_tree, 0)))
          {
@@ -483,20 +483,20 @@ void  snmptm_main(int argc, char **argv)
       if ((lcl_snmptm = (SNMPTM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_SNMPTM,
                                              g_snmptm_hdl)) != NULL)
       {
-         m_NCS_CONS_PRINTF("\nVerifying TEST-7 on Node-1: Dump of TBLTEN data, after waiting for 5 secs...\n\n"); 
+         printf("\nVerifying TEST-7 on Node-1: Dump of TBLTEN data, after waiting for 5 secs...\n\n"); 
          memset(&tblten_key, '\0', sizeof(tblten_key));
          while(SNMPTM_TBLTEN_NULL != (tblten = (SNMPTM_TBLTEN*)
                         ncs_patricia_tree_getnext(&lcl_snmptm->tblten_tree, (uns8*)&tblten_key)))
          {
             tblten_key.tblten_unsigned32 = tblten->tblten_key.tblten_unsigned32;
             tblten_key.tblten_int = tblten->tblten_key.tblten_int;
-            m_NCS_CONS_PRINTF("\tTBLTEN entry after warmboot playback: Index-uns32 = %d, Index-int = %d!\n",
+            printf("\tTBLTEN entry after warmboot playback: Index-uns32 = %d, Index-int = %d!\n",
                tblten->tblten_key.tblten_unsigned32, tblten->tblten_key.tblten_int);
          }
          ncshm_give_hdl(g_snmptm_hdl);
       }
 
-      m_NCS_CONS_PRINTF("\nIntegration of the demo node-1 with Persistency service(PSSv) complete...\n\n"); 
+      printf("\nIntegration of the demo node-1 with Persistency service(PSSv) complete...\n\n"); 
 
   } /* if(snmptm->node_id == 1) */
 

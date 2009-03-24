@@ -1363,7 +1363,7 @@ uns32  ifd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 
       case NCS_MBCSV_MSG_COLD_SYNC_REQ:
          cb->cold_or_warm_sync_on = TRUE;
-         m_NCS_CONS_PRINTF("Cold sync started\n");
+         printf("Cold sync started\n");
          m_IFSV_LOG_HEAD_LINE(cb->my_svc_id,IFSV_WARM_COLD_SYNC_START, 0, 0);
          break;
 
@@ -1722,7 +1722,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL : ifsv_vip_rec_ptr: ifd_mbcsv_enc_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL : ifsv_vip_rec_ptr: ifd_mbcsv_enc_data_resp");
       return NCSCC_RC_FAILURE;
    }
     
@@ -1735,7 +1735,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL last_msg:ifd_mbcsv_enc_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL last_msg:ifd_mbcsv_enc_data_resp");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1747,7 +1747,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL : header : ifd_mbcsv_enc_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL : header : ifd_mbcsv_enc_data_resp");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1812,7 +1812,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
        m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get",0);
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
       "Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get");
+      printf("Data Encode Failure, ifd_ifap_max_num_free_ifindex_get returned FAILURE : ifd_ifap_max_num_free_ifindex_get");
        return NCSCC_RC_FAILURE;
      }     
      
@@ -1825,7 +1825,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
        if(ifap_info.free_list == NULL)
        {
          m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
-         m_NCS_CONS_PRINTF("Memory alloc failure in enc the data for ifap_info.free_list\n");
+         printf("Memory alloc failure in enc the data for ifap_info.free_list\n");
          return NCSCC_RC_FAILURE;
        }
      }
@@ -1867,7 +1867,7 @@ uns32  ifd_mbcsv_enc_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL for sync_cnt_ptr:ifd_mbcsv_enc_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL for sync_cnt_ptr:ifd_mbcsv_enc_data_resp");
       /*TBD */
       return NCSCC_RC_FAILURE;
    }
@@ -1932,14 +1932,14 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
       rc = NCSCC_RC_FAILURE;
       return rc;
    }      
-   m_NCS_CONS_PRINTF("\nVIP ifd_mbcsv_enc_vip_data_resp");
+   printf("\nVIP ifd_mbcsv_enc_vip_data_resp");
    /*First reserve space to store the IfSv rec or Vip Rec that will be sent*/
    ifsv_vip_rec_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns32));
    if(ifsv_vip_rec_ptr == NULL)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL for ifsv_vip_rec_ptr : ifd_mbcsv_enc_vip_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL for ifsv_vip_rec_ptr : ifd_mbcsv_enc_vip_data_resp");
       return NCSCC_RC_FAILURE;
    }
     
@@ -1952,7 +1952,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL:last_msg:ifd_mbcsv_enc_vip_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL:last_msg:ifd_mbcsv_enc_vip_data_resp");
       return NCSCC_RC_FAILURE;
    }
 
@@ -1964,7 +1964,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL:header:ifd_mbcsv_enc_vip_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL:header:ifd_mbcsv_enc_vip_data_resp");
       return NCSCC_RC_FAILURE;
    }
 
@@ -2018,7 +2018,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
       ifsv_cb->ifd_mbcsv_data_resp_enc_func_ptr = ifd_mbcsv_enc_data_resp;
       last_msg_flag = TRUE;
    } /* if(num_of_ckpts < MAX_NO_IFD_MSGS_A2S) */
-   m_NCS_CONS_PRINTF("VIP : num_of_ckpts being set = %d\n",num_of_ckpts);
+   printf("VIP : num_of_ckpts being set = %d\n",num_of_ckpts);
    ncs_encode_32bit(&header, num_of_ckpts);
 
    /* This will have the count of async updates that have been sent,
@@ -2028,7 +2028,7 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    {
       m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,\
                  "Data Encode Failure, ncs_enc_reserve_space returned NULL",0);
-      m_NCS_CONS_PRINTF("Data Encode Failure, ncs_enc_reserve_space returned NULL:sync_cnt_ptr:ifd_mbcsv_enc_vip_data_resp");
+      printf("Data Encode Failure, ncs_enc_reserve_space returned NULL:sync_cnt_ptr:ifd_mbcsv_enc_vip_data_resp");
       /*TBD */
       return NCSCC_RC_FAILURE;
    }
@@ -2036,8 +2036,8 @@ static uns32  ifd_mbcsv_enc_vip_data_resp(void *cb, NCS_MBCSV_CB_ARG *arg)
    ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
    ncs_encode_32bit(&sync_cnt_ptr, ifsv_cb->ifd_async_cnt);
    ncs_encode_32bit(&last_msg, last_msg_flag);
-   m_NCS_CONS_PRINTF("VIP : ifsv_cb->ifd_async_cnt being set = %d\n",ifsv_cb->ifd_async_cnt);
-   m_NCS_CONS_PRINTF("VIP : last_msg_flag being set = %d\n",last_msg_flag);
+   printf("VIP : ifsv_cb->ifd_async_cnt being set = %d\n",ifsv_cb->ifd_async_cnt);
+   printf("VIP : last_msg_flag being set = %d\n",last_msg_flag);
 
    m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Data Encode Success",0);
 
@@ -2438,7 +2438,7 @@ static uns32  ifd_mbcsv_dec_warm_sync_resp(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
      if(stdby_num_ifindex_present != (stdby_num_max_ifindex - stdby_num_free_ifindex))
      {
-       m_NCS_CONS_PRINTF("Error :DB Mismatch on STDBY : stdby_num_max_ifindex %d, stdby_num_free_ifindex %d, stdby_num_ifindex_present %d\n",stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present);
+       printf("Error :DB Mismatch on STDBY : stdby_num_max_ifindex %d, stdby_num_free_ifindex %d, stdby_num_ifindex_present %d\n",stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present);
        m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Error :DB Mismatch on STDBY : stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present,stdby_num_of_async_cnt,act_num_max_ifindex,act_num_free_ifindex,act_num_of_async_upd",stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present,cb->ifd_async_cnt,act_num_max_ifindex,act_num_free_ifindex,num_of_async_upd);
        start_cold_sync = TRUE;
      }
@@ -2450,7 +2450,7 @@ static uns32  ifd_mbcsv_dec_warm_sync_resp(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
          (act_num_free_ifindex != stdby_num_free_ifindex))
         {
          /* There is a problem, start the data base sync again. */
-          m_NCS_CONS_PRINTF("Mismatch in Act and Stdby DB : ifd_mbcsv_dec_warm_sync_resp: act_num_max_ifindex = %d,stdby_num_max_ifindex = %d,act_num_free_ifindex = %d,stdby_num_free_ifindex = %d\n",act_num_max_ifindex,stdby_num_max_ifindex,act_num_free_ifindex,stdby_num_free_ifindex);
+          printf("Mismatch in Act and Stdby DB : ifd_mbcsv_dec_warm_sync_resp: act_num_max_ifindex = %d,stdby_num_max_ifindex = %d,act_num_free_ifindex = %d,stdby_num_free_ifindex = %d\n",act_num_max_ifindex,stdby_num_max_ifindex,act_num_free_ifindex,stdby_num_free_ifindex);
           m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Error : Mismatch in Act and Stdby DB : ifd_mbcsv_dec_warm_sync_resp: act_num_max_ifindex,stdby_num_max_ifindex,act_num_free_ifindex,stdby_num_free_ifindex,stdby_num_ifindex_present,act_num_of_async_upd,stdby_num_of_async_cnt",act_num_max_ifindex,stdby_num_max_ifindex,act_num_free_ifindex,stdby_num_free_ifindex,stdby_num_ifindex_present,num_of_async_upd,cb->ifd_async_cnt);
           start_cold_sync = TRUE;
         }
@@ -2460,7 +2460,7 @@ static uns32  ifd_mbcsv_dec_warm_sync_resp(IFSV_CB *cb, NCS_MBCSV_CB_ARG *arg)
    {
      start_cold_sync = TRUE;
      m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Error : Mismatch between act_num_of_async_upd and stdby_num_of_async_cnt : act_num_of_async_upd,stdby_num_of_async_cnt,stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present,act_num_max_ifindex,act_num_free_ifindex",num_of_async_upd,cb->ifd_async_cnt,stdby_num_max_ifindex, stdby_num_free_ifindex, stdby_num_ifindex_present,act_num_max_ifindex,act_num_free_ifindex);
-     m_NCS_CONS_PRINTF("cb->ifd_async_cnt and num_of_async_upd mismatch\n");
+     printf("cb->ifd_async_cnt and num_of_async_upd mismatch\n");
    }
 
     if(start_cold_sync == TRUE)
@@ -2534,7 +2534,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
 
    if(ifsv_vip_rec != IFD_DATA_RES_IFSV_REC)
     {
-     m_NCS_CONS_PRINTF("Not a IFSV Rec\n"); 
+     printf("Not a IFSV Rec\n"); 
      return NCSCC_RC_FAILURE;
     }
 
@@ -2550,7 +2550,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    {
        m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
        rc = NCSCC_RC_FAILURE;
-       m_NCS_CONS_PRINTF("Mem Alloc Failure :ckpt_data_intf:ifd_mbcsv_dec_data_resp\n"); 
+       printf("Mem Alloc Failure :ckpt_data_intf:ifd_mbcsv_dec_data_resp\n"); 
        return rc;
    }
 
@@ -2562,7 +2562,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
        m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
        rc = NCSCC_RC_FAILURE;
        m_MMGR_FREE_INFTDATA(ckpt_data_intf); 
-       m_NCS_CONS_PRINTF("Mem Alloc Failure :ckpt_data_ipxs:ifd_mbcsv_dec_data_resp\n"); 
+       printf("Mem Alloc Failure :ckpt_data_ipxs:ifd_mbcsv_dec_data_resp\n"); 
        return rc;
    }
 
@@ -2575,7 +2575,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
        rc = NCSCC_RC_FAILURE;
        m_MMGR_FREE_INFTDATA(ckpt_data_intf);
        m_MMGR_FREE_IPXSDATA(ckpt_data_ipxs);
-       m_NCS_CONS_PRINTF("Mem Alloc Failure :ifap_info:ifd_mbcsv_dec_data_resp\n"); 
+       printf("Mem Alloc Failure :ifap_info:ifd_mbcsv_dec_data_resp\n"); 
        return rc;
    }
 
@@ -2585,7 +2585,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data,sizeof(uns32));
    num_of_ckpts = ncs_decode_32bit(&ptr);
    ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
-   m_NCS_CONS_PRINTF("num_of_ckpts rcved = %d\n",num_of_ckpts); 
+   printf("num_of_ckpts rcved = %d\n",num_of_ckpts); 
    if((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
       (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE) ||
       (last_msg == TRUE))
@@ -2613,7 +2613,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       {
         m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Decode Failure, Data Rsp : ifsv_edp_intf_data:ifd_mbcsv_dec_data_resp,rc:",rc);
         m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Failure, Data Rsp",0);
-        m_NCS_CONS_PRINTF("Decode Failure, Data Rsp : ifsv_edp_intf_data:ifd_mbcsv_dec_data_resp");
+        printf("Decode Failure, Data Rsp : ifsv_edp_intf_data:ifd_mbcsv_dec_data_resp");
         m_MMGR_FREE_INFTDATA(ckpt_data_intf);
         m_MMGR_FREE_IPXSDATA(ckpt_data_ipxs);
         m_MMGR_FREE_IFAP_INFO_LIST(ifap_info);
@@ -2629,7 +2629,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       {
         m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Decode Failure, Data Rsp : ipxs_edp_ifip_info:ifd_mbcsv_dec_data_resp,rc:",rc);
         m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Failure, Data Rsp",0);
-        m_NCS_CONS_PRINTF("Decode Failure, Data Rsp : ipxs_edp_ifip_info:ifd_mbcsv_dec_data_resp");
+        printf("Decode Failure, Data Rsp : ipxs_edp_ifip_info:ifd_mbcsv_dec_data_resp");
         m_MMGR_FREE_INFTDATA(ckpt_data_intf);
         m_MMGR_FREE_IPXSDATA(ckpt_data_ipxs);
         m_MMGR_FREE_IFAP_INFO_LIST(ifap_info);
@@ -2644,7 +2644,7 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       count++;   
 
    }  
-   m_NCS_CONS_PRINTF("last_msg rcved = %d\n",last_msg); 
+   printf("last_msg rcved = %d\n",last_msg); 
    if((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
       (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE) ||
       (last_msg == TRUE))
@@ -2664,14 +2664,14 @@ uns32  ifd_mbcsv_dec_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
    cb->ifd_async_cnt = num_of_async_upd;   
    m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Received : Async count",num_of_async_upd,0,0,0,0,0,0);
-   m_NCS_CONS_PRINTF("num_of_async_upd rcved = %d\n",num_of_async_upd);
+   printf("num_of_async_upd rcved = %d\n",num_of_async_upd);
 #if (NCS_VIP != 1)   
    if((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
       (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE) ||
       (last_msg == TRUE))
    {
       cb->cold_or_warm_sync_on = FALSE;
-      m_NCS_CONS_PRINTF("Cold Sync Compl: ifd_mbcsv_dec_data_resp()\n");
+      printf("Cold Sync Compl: ifd_mbcsv_dec_data_resp()\n");
    }
 #endif
     m_MMGR_FREE_INFTDATA(ckpt_data_intf);
@@ -2721,7 +2721,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
 
    if(ifsv_vip_rec != IFD_DATA_RES_VIP_REC)
    {
-     m_NCS_CONS_PRINTF("ifsv_vip_rec  = %d is not of type IFD_DATA_RES_VIP_REC\n",ifsv_vip_rec);
+     printf("ifsv_vip_rec  = %d is not of type IFD_DATA_RES_VIP_REC\n",ifsv_vip_rec);
      return NCSCC_RC_FAILURE;
    }
 
@@ -2736,7 +2736,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    if(ckpt_data_vip == NULL)
    {
        m_IFD_LOG_SYS_CALL_FAIL(IFSV_LOG_MEM_ALLOC_FAIL, 0);
-       m_NCS_CONS_PRINTF("Mem fail:ckpt_data_vip:ifd_mbcsv_dec_vip_data_resp\n");
+       printf("Mem fail:ckpt_data_vip:ifd_mbcsv_dec_vip_data_resp\n");
        rc = NCSCC_RC_FAILURE;
        return rc;
    }
@@ -2745,7 +2745,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data,sizeof(uns32));
    num_of_ckpts = ncs_decode_32bit(&ptr);
    ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
-   m_NCS_CONS_PRINTF("VIP:num_of_ckpts rcved = %d\n",num_of_ckpts); 
+   printf("VIP:num_of_ckpts rcved = %d\n",num_of_ckpts); 
    /* Decode the data */
 
    while(count < num_of_ckpts)
@@ -2759,7 +2759,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       {
         m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Decode Failure, Data Rsp :ifsv_edp_vip_chk_pt_full_rec:ifd_mbcsv_dec_vip_data_resp,rc:",rc);
         m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Failure, Data Rsp",0);
-        m_NCS_CONS_PRINTF("Decode Failure, Data Rsp:ifsv_edp_vip_chk_pt_full_rec:ifd_mbcsv_dec_vip_data_resp\n");
+        printf("Decode Failure, Data Rsp:ifsv_edp_vip_chk_pt_full_rec:ifd_mbcsv_dec_vip_data_resp\n");
         m_MMGR_FREE_INFTDATA(ckpt_data_vip);
         return rc;
       }
@@ -2777,8 +2777,8 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    num_of_async_upd = ncs_decode_32bit(&ptr);
    ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
    cb->ifd_async_cnt = num_of_async_upd;   
-   m_NCS_CONS_PRINTF("VIP:num_of_async_upd rcved = %d\n",num_of_async_upd); 
-   m_NCS_CONS_PRINTF("VIP:last_msg rcved = %d\n",last_msg); 
+   printf("VIP:num_of_async_upd rcved = %d\n",num_of_async_upd); 
+   printf("VIP:last_msg rcved = %d\n",last_msg); 
    
    if((arg->info.decode.i_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE) ||
       (arg->info.decode.i_msg_type == NCS_MBCSV_MSG_DATA_RESP_COMPLETE) ||
@@ -2786,7 +2786,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
    {
       cb->cold_or_warm_sync_on = FALSE;
       m_IFSV_LOG_HEAD_LINE(cb->my_svc_id,IFSV_WARM_COLD_SYNC_STOP, 0, 0);
-      m_NCS_CONS_PRINTF("Cold sync compl : ifd_mbcsv_dec_vip_data_resp\n");
+      printf("Cold sync compl : ifd_mbcsv_dec_vip_data_resp\n");
       cb->ifd_mbcsv_data_resp_dec_func_ptr = ifd_mbcsv_dec_data_resp;
       /* Check whether we need to send AMF resp here or not. */
       if(cb->amf_req_in_cold_syn.amf_req == TRUE)

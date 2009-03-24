@@ -53,29 +53,29 @@ extern MBCSV_CB mbcsv_cb;
 
 #define m_MBCSV_PRT_INV_HDR \
 { \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
-   m_NCS_OS_PRINTF("\n|             M  B  C  S  V     I  n  v  e  n  t  o  r  y                     |"); \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
-   m_NCS_OS_PRINTF("\n|       SVC     |          CSI          |               PEER's                |"); \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
-   m_NCS_OS_PRINTF("\n|SVC_ID|MBCSVHDL| PWEHDL | CSIHDL | W |R|    My Anchor   | My hdl |peer hdl|  |"); \
-   m_NCS_OS_PRINTF("\n|---------------|    My Anchor   |ipfrd |R|FSMS|C|SYN|iwpcooacdcw|Version|    |"); \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
+   printf("\n------------------------------------------------------------------------------"); \
+   printf("\n|             M  B  C  S  V     I  n  v  e  n  t  o  r  y                     |"); \
+   printf("\n------------------------------------------------------------------------------"); \
+   printf("\n|       SVC     |          CSI          |               PEER's                |"); \
+   printf("\n------------------------------------------------------------------------------"); \
+   printf("\n|SVC_ID|MBCSVHDL| PWEHDL | CSIHDL | W |R|    My Anchor   | My hdl |peer hdl|  |"); \
+   printf("\n|---------------|    My Anchor   |ipfrd |R|FSMS|C|SYN|iwpcooacdcw|Version|    |"); \
+   printf("\n------------------------------------------------------------------------------"); \
 }
 
 #define m_MBCSV_PRT_INV_FOOTER \
 { \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
-   m_NCS_OS_PRINTF("\n----------M  B  C  S  V     I  n  v  e  n  t  o  r  y    E  n  d -------------"); \
-   m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------"); \
+   printf("\n------------------------------------------------------------------------------"); \
+   printf("\n----------M  B  C  S  V     I  n  v  e  n  t  o  r  y    E  n  d -------------"); \
+   printf("\n------------------------------------------------------------------------------"); \
 }
 
 #define m_MBCSV_PRT_PEER_INFO(peer_ptr) \
 { \
-   m_NCS_OS_PRINTF("\n|               |                       |%16llX|%8X|%8X|  |", \
+   printf("\n|               |                       |%16llX|%8X|%8X|  |", \
    (uns64)peer_ptr->peer_anchor,(uns32)peer_ptr->hdl, (uns32)peer_ptr->peer_hdl); \
    \
-   m_NCS_OS_PRINTF("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
+   printf("\n|               |                       |%c|%s|%c| %c |%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d%1d|%2d |    |", \
    mbcsv_prt_role[peer_ptr->peer_role],  \
    mbcsv_prt_fsm_state[ckpt->my_role][peer_ptr->state - 1], ((peer_ptr->incompatible)?'F':'T'), \
    ((peer_ptr->cold_sync_done)?'T':'F'), peer_ptr->incompatible, peer_ptr->warm_sync_sent,  \
@@ -127,7 +127,7 @@ uns32 mbcsv_prt_inv (void)
       m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
       svc_id = mbc_reg->svc_id;
 
-      m_NCS_OS_PRINTF("\n|%6d|%8X|         MY  CSI       |                                  |",
+      printf("\n|%6d|%8X|         MY  CSI       |                                  |",
                       svc_id, mbc_reg->mbcsv_hdl);
       
       c_count = 0;
@@ -139,9 +139,9 @@ uns32 mbcsv_prt_inv (void)
          c_count++;
          pwe_hdl = ckpt->pwe_hdl;
 
-         m_NCS_OS_PRINTF("\n|               |%8X|%8X| %c |%c|                                  |",
+         printf("\n|               |%8X|%8X| %c |%c|                                  |",
             ckpt->pwe_hdl, ckpt->ckpt_hdl, (ckpt->warm_sync_on?'T':'F'), mbcsv_prt_role[ckpt->my_role]);
-         m_NCS_OS_PRINTF("\n|               |%16llX|%1d%1d%1d%1d%1d |           MY   PEERS              |",
+         printf("\n|               |%16llX|%1d%1d%1d%1d%1d |           MY   PEERS              |",
             (uns64)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, 
             ckpt->ftm_role_set, ckpt->role_set, ckpt->data_req_sent);
 
@@ -156,22 +156,22 @@ uns32 mbcsv_prt_inv (void)
          }
 
          if (p_count == 0)
-            m_NCS_OS_PRINTF("\n|               |                       |           NONE                   |");
+            printf("\n|               |                       |           NONE                   |");
          else
          {
             if (NULL != ckpt->active_peer)
             {
-               m_NCS_OS_PRINTF("\n|               |                       |           MY ACTIVE PEER         |");
+               printf("\n|               |                       |           MY ACTIVE PEER         |");
                m_MBCSV_PRT_PEER_INFO(ckpt->active_peer);
             }
          }
-         m_NCS_OS_PRINTF("\n|               |-----------------------|----------------------------------|");
+         printf("\n|               |-----------------------|----------------------------------|");
       }
 
       if (c_count == 0)
-         m_NCS_OS_PRINTF("\n|               |           NONE        |           NONE                   |");
+         printf("\n|               |           NONE        |           NONE                   |");
 
-      m_NCS_OS_PRINTF("\n------------------------------------------------------------------------------");
+      printf("\n------------------------------------------------------------------------------");
 
       m_NCS_UNLOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
       m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_UNLOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);

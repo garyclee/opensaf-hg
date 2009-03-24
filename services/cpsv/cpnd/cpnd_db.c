@@ -1159,11 +1159,11 @@ void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest
 		  {
 			  if( cpnd_proc_ckpt_clm_node_left(cb) != NCSCC_RC_SUCCESS)
 			  {
-			  	 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_left  to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+			  	 printf(" ERROR -fail to broadcast  node_left  to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
 			  	 m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
 			  }
 		  }
-		  m_NCS_CONS_PRINTF("node_left -%d -%s line-%d clusterChange-%d \n",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+		  printf("node_left -%d -%s line-%d clusterChange-%d \n",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
            }
 	    else  if(notificationBuffer->notification[counter].clusterChange == (SA_CLM_NODE_NO_CHANGE || SA_CLM_NODE_JOINED || SA_CLM_NODE_RECONFIGURED ))
 	    {
@@ -1173,10 +1173,10 @@ void cpnd_proc_pending_writes(CPND_CB *cb,CPND_CKPT_NODE *cp_node,MDS_DEST adest
 		 	 if( cpnd_proc_ckpt_clm_node_joined(cb) != NCSCC_RC_SUCCESS)
 		  	{
 			 	m_LOG_CPND_CL(CPND_CLM_NODE_GET_FAILED,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-				 m_NCS_CONS_PRINTF(" ERROR -fail to broadcast  node_joined to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
+				 printf(" ERROR -fail to broadcast  node_joined to clients/agents file-%s line-%d \n",__FILE__,__LINE__); 
                 	 }
 		  }
-		  m_NCS_CONS_PRINTF("node_joined -%d -%s line-%d clusterChange-%d\n ",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
+		  printf("node_joined -%d -%s line-%d clusterChange-%d\n ",node_id,__FILE__,__LINE__,notificationBuffer->notification[counter].clusterChange); 
      	 }  
       	}
 	m_CPND_GIVEUP_CB;

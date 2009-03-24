@@ -580,7 +580,7 @@ uns32  ncsvipentry_get(NCSCONTEXT cb,
 
     memset(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
     memset(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
-    m_NCS_CONS_PRINTF("\nncsTestTableOneEntry:  Received SNMP GET request\n");
+    printf("\nncsTestTableOneEntry:  Received SNMP GET request\n");
     /* Pretty print the contents of NCSMIB_ARG */
     ncsmib_pp(p_get_req); 
    
@@ -684,7 +684,7 @@ uns32 ncsvipentry_next(NCSCONTEXT ifsv_vip_cb,
     memset(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
     memset(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
 
-    m_NCS_CONS_PRINTF("\n ncsvipentry:  Received SNMP NEXT request\n");
+    printf("\n ncsvipentry:  Received SNMP NEXT request\n");
     /* Pretty print the contents of NCSMIB_ARG */
     ncsmib_pp(p_next_req); 
                                                                                                                              

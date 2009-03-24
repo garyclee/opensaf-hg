@@ -285,7 +285,7 @@ snmpsubagt_request_process(NCSSA_CB    *cb)
               }
               else
               {
-                  m_NCS_CONS_PRINTF("NCS SSA: exiting...\n");
+                  printf("NCS SSA: exiting...\n");
                   exit(1);
               }
          }
@@ -530,8 +530,8 @@ snmpsubagt_agt_startup_params_process(int32    argc,
             /* version info  --version */
             if (strcasecmp(optarg, "version") == 0)
             {
-                m_NCS_CONS_PRINTF("NCS SNMP SubAgt 1.0\n");
-                m_NCS_CONS_PRINTF("NET-SNMP Version %s\n", netsnmp_get_version());
+                printf("NCS SNMP SubAgt 1.0\n");
+                printf("NET-SNMP Version %s\n", netsnmp_get_version());
                 exit(1);
             }
             /* I did not get what this long options is all about?? */
@@ -606,13 +606,13 @@ snmpsubagt_agt_startup_params_process(int32    argc,
             break;
 
             case 'v':
-            m_NCS_CONS_PRINTF("NCS SNMP SubAgt 1.0\n");
-            m_NCS_CONS_PRINTF("NET-SNMP Version %s\n", netsnmp_get_version());
+            printf("NCS SNMP SubAgt 1.0\n");
+            printf("NET-SNMP Version %s\n", netsnmp_get_version());
             exit(1);
             break;
 
             default:
-            m_NCS_CONS_PRINTF("Illegal input...\n");
+            printf("Illegal input...\n");
             status = NCSCC_RC_FAILURE;
             break;
         }
@@ -625,17 +625,17 @@ snmpsubagt_agt_startup_params_process(int32    argc,
 static void
 snmpsubagt_agt_usage(char *subagt)
 {
-    m_NCS_CONS_PRINTF("%s Usage...\n", subagt);
-    m_NCS_CONS_PRINTF("NCS SNMP SubAgt 1.0\n");
-    m_NCS_CONS_PRINTF("\nNET-SNMP Version %s\n", netsnmp_get_version());
-    m_NCS_CONS_PRINTF("  -c FILE\t\tread FILE as a configuration file\n");
-    m_NCS_CONS_PRINTF("  -C\t\t\tdo not read the default configuration files\n");
-    m_NCS_CONS_PRINTF("  -d\t\t\tdump sent and received SNMP packets\n");
-    m_NCS_CONS_PRINTF("  -D\t\t\tturn on debugging output\n");
-    m_NCS_CONS_PRINTF("  -h, --help\t\tdisplay this usage message\n");
-    m_NCS_CONS_PRINTF("  -l FILE\t\tprint warnings/messages to FILE\n");
-    m_NCS_CONS_PRINTF("  -v --version\t\tVersion Information of the subagent\n");
-    m_NCS_CONS_PRINTF("\n");
+    printf("%s Usage...\n", subagt);
+    printf("NCS SNMP SubAgt 1.0\n");
+    printf("\nNET-SNMP Version %s\n", netsnmp_get_version());
+    printf("  -c FILE\t\tread FILE as a configuration file\n");
+    printf("  -C\t\t\tdo not read the default configuration files\n");
+    printf("  -d\t\t\tdump sent and received SNMP packets\n");
+    printf("  -D\t\t\tturn on debugging output\n");
+    printf("  -h, --help\t\tdisplay this usage message\n");
+    printf("  -l FILE\t\tprint warnings/messages to FILE\n");
+    printf("  -v --version\t\tVersion Information of the subagent\n");
+    printf("\n");
     exit(1);
 }
 

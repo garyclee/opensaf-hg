@@ -73,7 +73,7 @@ main (int    argc, char * argv[])
    fp = fopen(OSAF_SYSCONFDIR "slot_id", "r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF (OSAF_SYSCONFDIR "slot_id couldn't be opened\n");
+      printf (OSAF_SYSCONFDIR "slot_id couldn't be opened\n");
       return RDE_RDE_RC_FAILURE;
    }
 
@@ -96,19 +96,19 @@ main (int    argc, char * argv[])
    }
    else
    {
-      m_NCS_CONS_PRINTF ("Slot_id couldn't be read\n");
+      printf ("Slot_id couldn't be read\n");
       fclose(fp);
       return RDE_RDE_RC_FAILURE;
    }
    /*
    ** Print options
    */
-   m_NCS_CONS_PRINTF ("PID  file          : %s\n", rde_cb->options.pid_file);
-   m_NCS_CONS_PRINTF ("Shelf number       : %d\n", rde_cb->options.shelf_number);
-   m_NCS_CONS_PRINTF ("Slot number        : %d\n", rde_cb->options.slot_number);
-   m_NCS_CONS_PRINTF ("Site number        : %d\n", rde_cb->options.site_number);
-   m_NCS_CONS_PRINTF ("Log level          : %u\n", rde_cb->options.log_level);
-   m_NCS_CONS_PRINTF ("Interactive mode   : %s\n", (rde_cb->options.is_daemon ? "FALSE" : "TRUE")) ;
+   printf ("PID  file          : %s\n", rde_cb->options.pid_file);
+   printf ("Shelf number       : %d\n", rde_cb->options.shelf_number);
+   printf ("Slot number        : %d\n", rde_cb->options.slot_number);
+   printf ("Site number        : %d\n", rde_cb->options.site_number);
+   printf ("Log level          : %u\n", rde_cb->options.log_level);
+   printf ("Interactive mode   : %s\n", (rde_cb->options.is_daemon ? "FALSE" : "TRUE")) ;
 
    /***************************************************************\
     *                                                               *
@@ -130,7 +130,7 @@ main (int    argc, char * argv[])
    if (rde_agents_startup () != NCSCC_RC_SUCCESS)
    {
       remove(rde_cb-> options. pid_file);
-      m_NCS_CONS_PRINTF ("RDE NCS_AGENTS START FAILED\n");
+      printf ("RDE NCS_AGENTS START FAILED\n");
       exit (-1);
    }
 
@@ -151,7 +151,7 @@ main (int    argc, char * argv[])
       syslog(LOG_ERR, "RDE: rde_initialize failed, check rde.conf");
       rde_agents_shutdown ();    
       remove(rde_cb-> options. pid_file);
-      m_NCS_CONS_PRINTF ("RDE INITIALIZATION FAILED: %l\n", rc);
+      printf ("RDE INITIALIZATION FAILED: %l\n", rc);
       exit (-1);
    }
 
@@ -159,7 +159,7 @@ main (int    argc, char * argv[])
    /* RDE is successfully initialized, notify the same to NID later after 
       getting the correct role. */
    {
-      m_NCS_CONS_PRINTF ("RDE INITIALIZATION SUCCESS\n");
+      printf ("RDE INITIALIZATION SUCCESS\n");
    }
 
 
@@ -281,7 +281,7 @@ uns32 rde_get_options (
          else
          {
             m_RDE_LOG_COND (RDE_SEV_ERROR, RDE_LOG_COND_NO_PID_FILE);
-            m_NCS_CONS_PRINTF ("PID file not specified, for help use -h option\n");
+            printf ("PID file not specified, for help use -h option\n");
             rc = NCSCC_RC_FAILURE;
          }
 
@@ -298,7 +298,7 @@ uns32 rde_get_options (
          if (optarg == NULL)
          {
             m_RDE_LOG_COND (RDE_SEV_ERROR, RDE_LOG_COND_NO_SHELF_NUMBER);
-            m_NCS_CONS_PRINTF ("Shelf number not specified, for help use -h option\n");
+            printf ("Shelf number not specified, for help use -h option\n");
             rc = NCSCC_RC_FAILURE;
          }
          else
@@ -319,7 +319,7 @@ uns32 rde_get_options (
          if (optarg == NULL)
          {
             m_RDE_LOG_COND (RDE_SEV_ERROR, RDE_LOG_COND_NO_SLOT_NUMBER);
-            m_NCS_CONS_PRINTF ("Slot number not specified, for help use -h option\n");
+            printf ("Slot number not specified, for help use -h option\n");
             rc = NCSCC_RC_FAILURE;
          }
          else
@@ -340,7 +340,7 @@ uns32 rde_get_options (
          if (optarg == NULL)
          {
             m_RDE_LOG_COND (RDE_SEV_ERROR, RDE_LOG_COND_NO_SITE_NUMBER);
-            m_NCS_CONS_PRINTF ("Site number not specified, for help use -h option\n");
+            printf ("Site number not specified, for help use -h option\n");
             rc = NCSCC_RC_FAILURE;
          }
          else
@@ -364,7 +364,7 @@ uns32 rde_get_options (
             if (log_level < RDE_LOG_EMERGENCY ||
                 log_level > RDE_LOG_DEBUG)
             {
-               m_NCS_CONS_PRINTF ("Invalid Loglevel. 0(EMERG) to 7(DEBUG)\n");
+               printf ("Invalid Loglevel. 0(EMERG) to 7(DEBUG)\n");
                rc = NCSCC_RC_FAILURE;
             }
 
@@ -394,7 +394,7 @@ uns32 rde_get_options (
 
       case 'v':
          
-         m_NCS_CONS_PRINTF(" rde_rde version:  Development Version\n");
+         printf(" rde_rde version:  Development Version\n");
          break;
 
          /*******************************************************\
@@ -406,25 +406,25 @@ uns32 rde_get_options (
       case 'u':
       case 'h':
       default :
-         m_NCS_CONS_PRINTF("Usage:\n");
-         m_NCS_CONS_PRINTF("  %s [options]\n", progName);
-         m_NCS_CONS_PRINTF("     Available options:\n");
-         m_NCS_CONS_PRINTF("        -h             :     Display this help message.\n");
-         m_NCS_CONS_PRINTF("        -i             :     Run interactively\n");
-         m_NCS_CONS_PRINTF("        -l <0-7>       :     Set log level <0-7>\n");
-         m_NCS_CONS_PRINTF("        -v             :     Display version information\n");
-         m_NCS_CONS_PRINTF("        -p <file path> :     Use file as PID file \n");
-         m_NCS_CONS_PRINTF("        -f <shelfnum>  :     Use the specified shelf number\n");
-         m_NCS_CONS_PRINTF("        -s <slotnum>   :     Use the specified slot number\n");
-         m_NCS_CONS_PRINTF("        -t <sitenum>   :     Use the specified site number\n");
-         m_NCS_CONS_PRINTF("\n");
-         m_NCS_CONS_PRINTF ("    Default Values:\n");
-         m_NCS_CONS_PRINTF ("       PID  file          : %s\n", RDE_DEFAULT_PID_FILE);
-         m_NCS_CONS_PRINTF ("       Shelf number       : %d\n", RDE_DEFAULT_SHELF_NUMBER);
-         m_NCS_CONS_PRINTF ("       Slot number        : %d\n", RDE_DEFAULT_SLOT_NUMBER);
-         m_NCS_CONS_PRINTF ("       Site number        : %d\n", RDE_DEFAULT_SITE_NUMBER);
-         m_NCS_CONS_PRINTF ("       Log level          : %u\n", RDE_DEFAULT_LOG_LEVEL);
-         m_NCS_CONS_PRINTF ("       Interactive mode   : %s\n", (options-> is_daemon ? "FALSE" : "TRUE")) ;
+         printf("Usage:\n");
+         printf("  %s [options]\n", progName);
+         printf("     Available options:\n");
+         printf("        -h             :     Display this help message.\n");
+         printf("        -i             :     Run interactively\n");
+         printf("        -l <0-7>       :     Set log level <0-7>\n");
+         printf("        -v             :     Display version information\n");
+         printf("        -p <file path> :     Use file as PID file \n");
+         printf("        -f <shelfnum>  :     Use the specified shelf number\n");
+         printf("        -s <slotnum>   :     Use the specified slot number\n");
+         printf("        -t <sitenum>   :     Use the specified site number\n");
+         printf("\n");
+         printf ("    Default Values:\n");
+         printf ("       PID  file          : %s\n", RDE_DEFAULT_PID_FILE);
+         printf ("       Shelf number       : %d\n", RDE_DEFAULT_SHELF_NUMBER);
+         printf ("       Slot number        : %d\n", RDE_DEFAULT_SLOT_NUMBER);
+         printf ("       Site number        : %d\n", RDE_DEFAULT_SITE_NUMBER);
+         printf ("       Log level          : %u\n", RDE_DEFAULT_LOG_LEVEL);
+         printf ("       Interactive mode   : %s\n", (options-> is_daemon ? "FALSE" : "TRUE")) ;
 
          return NCSCC_RC_FAILURE;  /* Cause program to exit */
          break;
@@ -433,7 +433,7 @@ uns32 rde_get_options (
 
    if (optind!=argc)
    {
-      m_NCS_CONS_PRINTF("Bad Arguments for rde_rde... Use -h option for help.\n");
+      printf("Bad Arguments for rde_rde... Use -h option for help.\n");
       return NCSCC_RC_FAILURE;
    }
    return rc;
@@ -471,7 +471,7 @@ uns32 rde_create_pidfile (void)
    }
    else 
    {
-      m_NCS_CONS_PRINTF("%s: pidfile %s open failed\n", 
+      printf("%s: pidfile %s open failed\n", 
                         rde_cb->prog_name, 
                         rde_cb-> options. pid_file);
 
@@ -502,7 +502,7 @@ uns32 rde_main_loop (void)
    /* TBD: Wait forever for now */
    if (m_NCS_OS_SEM (&rde_cb-> semaphore, NCS_OS_SEM_TAKE) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF ("RDE MAIN LOOP, SEM TAKE FAILED\n");
+      printf ("RDE MAIN LOOP, SEM TAKE FAILED\n");
       return NCSCC_RC_FAILURE;
    }
 

@@ -308,7 +308,7 @@ uns32 pdrbd_process_peer_msg(PSEUDO_CB *cb, PDRBD_EVT *evt)
 
    else
    {
-/*      m_NCS_CONS_PRINTF("ERROR: received invalid event type");     */
+/*      printf("ERROR: received invalid event type");     */
    }
 
    return NCSCC_RC_SUCCESS;

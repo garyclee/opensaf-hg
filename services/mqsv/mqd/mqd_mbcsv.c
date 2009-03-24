@@ -721,7 +721,7 @@ static uns32 mqd_mbcsv_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
    /* Drop The Message */
    m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                            msg_fmt_version, __FILE__ ,__LINE__);
-   m_NCS_CONS_PRINTF("mqd_mbcsv_ckpt_encode_cbk_handler:INVALID MSG FORMAT %d\n",msg_fmt_version);
+   printf("mqd_mbcsv_ckpt_encode_cbk_handler:INVALID MSG FORMAT %d\n",msg_fmt_version);
    return NCSCC_RC_FAILURE;
   }
    
@@ -848,7 +848,7 @@ static uns32 mqd_mbcsv_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *arg)
    /* Drop The Message */
    m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                            msg_fmt_version, __FILE__ ,__LINE__);
-   m_NCS_CONS_PRINTF("mqd_mbcsv_ckpt_decode_cbk_handler:INVALID MSG FORMAT %d\n",msg_fmt_version);
+   printf("mqd_mbcsv_ckpt_decode_cbk_handler:INVALID MSG FORMAT %d\n",msg_fmt_version);
    return NCSCC_RC_FAILURE;
   }
  

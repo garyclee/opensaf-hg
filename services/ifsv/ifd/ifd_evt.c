@@ -151,7 +151,7 @@ ifd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
                                  dest_info->orign,
                                  ifindex);
    
-    m_NCS_CONS_PRINTF("ifd_intf_destroy: From: s/s/ss/p/t/s --  %d/%d/%d/%d/%d/%d \n", dest_info->spt_type.shelf,
+    printf("ifd_intf_destroy: From: s/s/ss/p/t/s --  %d/%d/%d/%d/%d/%d \n", dest_info->spt_type.shelf,
                                  dest_info->spt_type.slot,
                                  dest_info->spt_type.subslot,
                                  dest_info->spt_type.port,
@@ -458,16 +458,16 @@ ifd_tmr_exp (IFSV_EVT* evt, IFSV_CB *cb)
 
      case NCS_IFSV_IFD_IFND_REC_FLUSH_TMR:
      {
-        m_NCS_CONS_PRINTF("Recived IFND REC FLUSH TIMER expiry event \n");
+        printf("Recived IFND REC FLUSH TIMER expiry event \n");
         if(cb->ha_state == SA_AMF_HA_ACTIVE)
         {
-           m_NCS_CONS_PRINTF("State is Active Now \n");
+           printf("State is Active Now \n");
            for (ii = 0; ii < MAX_IFND_NODES; ii++)
            {
               if (cb->ifnd_mds_addr[ii].valid == TRUE)
               {
                  /* Mark DEL to all interfaces created by this IfND. */
-                 m_NCS_CONS_PRINTF("Deleting the %dth Entry \n",ii);
+                 printf("Deleting the %dth Entry \n",ii);
                  ifd_same_dst_all_intf_rec_mark_del(&cb->ifnd_mds_addr[ii].ifndAddr,cb);
                  cb->ifnd_mds_addr[ii].valid = FALSE;
               }
@@ -475,7 +475,7 @@ ifd_tmr_exp (IFSV_EVT* evt, IFSV_CB *cb)
         }
         else 
         {
-           m_NCS_CONS_PRINTF("State is Standby \n");
+           printf("State is Standby \n");
         }
         memset(cb->ifnd_mds_addr,0,(MAX_IFND_NODES * sizeof(DOWN_IFND_ADDR)));
         cb->ifnd_rec_flush_tmr = IFSV_NULL;

@@ -80,7 +80,7 @@ uns32 hcd_sim()
       if(m_NCS_SEL_OBJ_SELECT(mbx_fd, &temp_all_sel_obj,NULL,NULL,NULL) < 0)
       {
          rc = NCSCC_RC_FAILURE;
-         m_NCS_CONS_PRINTF("hcd_sim: error in select\n");
+         printf("hcd_sim: error in select\n");
          m_NCS_TASK_SLEEP(2000);
          continue;
       }

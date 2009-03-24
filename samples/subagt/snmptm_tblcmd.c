@@ -65,7 +65,7 @@ uns32 snmptm_oac_tblcmd_register(SNMPTM_CB *snmptm)
             
    if (ncsoac_ss(&oac_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_oac_tblcmd_register(): ncsoac_ss() failed to register a table.\n");
+      printf("snmptm_oac_tblcmd_register(): ncsoac_ss() failed to register a table.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -88,7 +88,7 @@ uns32 snmptm_oac_tblcmd_register(SNMPTM_CB *snmptm)
 
    if (ncsoac_ss(&oac_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_oac_tblcmd_register(): ncsoac_ss() failed to register a Row/instance idx info.\n");
+      printf("snmptm_oac_tblcmd_register(): ncsoac_ss() failed to register a Row/instance idx info.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -163,7 +163,7 @@ static uns32  snmptm_tblcmd_create_row(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, uns32
       }
       else
       {
-         m_NCS_CONS_PRINTF("\n\n ROW exists in TBLONE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
+         printf("\n\n ROW exists in TBLONE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),
                                             (uns8)(ip_addr >> 8),
                                             (uns8)(ip_addr)); 
@@ -191,7 +191,7 @@ static uns32  snmptm_tblcmd_create_row(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, uns32
       }
       else
       {
-         m_NCS_CONS_PRINTF("\n\n ROW exists in TBLFIVE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
+         printf("\n\n ROW exists in TBLFIVE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),
                                             (uns8)(ip_addr >> 8),
                                             (uns8)(ip_addr)); 
@@ -199,7 +199,7 @@ static uns32  snmptm_tblcmd_create_row(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, uns32
    }
    else
    {
-      m_NCS_CONS_PRINTF("Invalid Tbl-ID specified for create-row command....\n");
+      printf("Invalid Tbl-ID specified for create-row command....\n");
       return NCSCC_RC_FAILURE;
    }
    
@@ -248,7 +248,7 @@ static uns32 snmptm_pack_tblone_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BOO
          /* Alloc the memory for USRBUF */
          if ((buff = m_MMGR_ALLOC_BUFR(sizeof(USRBUF))) == NULL)
          {
-            m_NCS_CONS_PRINTF("\n\nsnmptm_pack_tblone_data(): MEM  alloc for USRBUF failed");
+            printf("\n\nsnmptm_pack_tblone_data(): MEM  alloc for USRBUF failed");
             return NCSCC_RC_FAILURE;
          }
 
@@ -259,7 +259,7 @@ static uns32 snmptm_pack_tblone_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BOO
          if (buff_ptr == NULL)
          {
             m_MMGR_FREE_BUFR_LIST(buff);
-            m_NCS_CONS_PRINTF("\n\nsnmptm_pack_tblone_data(): Reserve MEM for HDR failed");
+            printf("\n\nsnmptm_pack_tblone_data(): Reserve MEM for HDR failed");
             return NCSCC_RC_FAILURE;
          }   /* USRBUF Malloc */
 
@@ -275,7 +275,7 @@ static uns32 snmptm_pack_tblone_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BOO
       if (buff_ptr == NULL)
       {
          m_MMGR_FREE_BUFR_LIST(buff);
-         m_NCS_CONS_PRINTF("\n\nsnmptm_pack_tblone_data(): Reserve MEM for TBLONE entry failed");
+         printf("\n\nsnmptm_pack_tblone_data(): Reserve MEM for TBLONE entry failed");
          return NCSCC_RC_FAILURE;
       } 
      

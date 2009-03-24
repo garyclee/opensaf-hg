@@ -111,7 +111,7 @@ static uns32 cli_lib_init(void)
    /* Register logging */
    rc = cli_log_reg();
    if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_init(): Logging registration failed\n");
+      printf("\nERROR cli_lib_init(): Logging registration failed\n");
       return rc;
    }
 
@@ -126,7 +126,7 @@ static uns32 cli_lib_init(void)
    rc = cli_inst_request(&g_lm);
    if(NCSCC_RC_SUCCESS != rc) {
       cli_log_dereg();
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_init(): CLI_INST_REQ_CREATE failed\n");
+      printf("\nERROR cli_lib_init(): CLI_INST_REQ_CREATE failed\n");
       return rc;
    }
 
@@ -141,7 +141,7 @@ static uns32 cli_lib_init(void)
       g_lm.i_req = CLI_INST_REQ_DESTROY;
       cli_inst_request(&g_lm);
 
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_init(): NCSCLI_OPREQ_REGISTER failed\n");
+      printf("\nERROR cli_lib_init(): NCSCLI_OPREQ_REGISTER failed\n");
       return rc;
    }
 
@@ -150,8 +150,8 @@ static uns32 cli_lib_init(void)
    /* CLI will not care if there is a problem in loading the Application CEFs */ 
    rc = cli_apps_cefs_load(m_NCSCLI_CEFS_CONFIG_FILE, 1 /* register */); 
    if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_CONS_PRINTF("\ncli_lib_init(): cli_apps_cefs_load() failed\n");
-      m_NCS_CONS_PRINTF("cli_lib_init(): Quiting the CLI process\n");
+      printf("\ncli_lib_init(): cli_apps_cefs_load() failed\n");
+      printf("cli_lib_init(): Quiting the CLI process\n");
       cli_lib_shut_except_task_release(); 
       exit(1);
    }
@@ -179,7 +179,7 @@ static uns32 cli_lib_init(void)
       g_lm.i_req = CLI_INST_REQ_DESTROY;
       cli_inst_request(&g_lm);
 
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_init(): m_NCS_TASK_CREATE failed\n");
+      printf("\nERROR cli_lib_init(): m_NCS_TASK_CREATE failed\n");
       return rc;
    }
    
@@ -187,7 +187,7 @@ static uns32 cli_lib_init(void)
    rc = m_NCS_TASK_START(gl_CliTaskId);
    if (NCSCC_RC_SUCCESS != rc)
    {
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_init(): m_NCS_TASK_START failed\n");
+      printf("\nERROR cli_lib_init(): m_NCS_TASK_START failed\n");
       
       cli_log_dereg();
       
@@ -225,12 +225,12 @@ static uns32 cli_lib_shut(void)
 
    rc = cli_inst_request(&lm);
    if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_shut(): CLI_INST_REQ_DESTROY failed\n");
+      printf("\nERROR cli_lib_shut(): CLI_INST_REQ_DESTROY failed\n");
    }
 
    rc = m_NCS_TASK_RELEASE(gl_CliTaskId);
    if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_shut(): m_NCS_TASK_RELEASE failed\n");
+      printf("\nERROR cli_lib_shut(): m_NCS_TASK_RELEASE failed\n");
    } 
 
    /* Deregister CLI from logging service */
@@ -265,7 +265,7 @@ uns32 cli_lib_shut_except_task_release(void)
    lm.i_req = CLI_INST_REQ_DESTROY;
    rc = cli_inst_request(&lm);
    if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_CONS_PRINTF("\nERROR cli_lib_shut(): CLI_INST_REQ_DESTROY failed\n");
+      printf("\nERROR cli_lib_shut(): CLI_INST_REQ_DESTROY failed\n");
    }
    /* Deregister CLI from logging service */
    cli_log_dereg();
@@ -295,7 +295,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     errno = 0;
     numofgroups = m_NCS_GETGROUPS(0,list);
     if(numofgroups == ERROR){
-        m_NCS_CONS_PRINTF("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
+        printf("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
         m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGROUPS");
         perror("getgroups: ");
         return NCSCLI_USER_FIND_ERROR;
@@ -304,7 +304,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     errno = 0;
     numofgroups = m_NCS_GETGROUPS(numofgroups,list);
     if(numofgroups == ERROR){
-        m_NCS_CONS_PRINTF("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
+        printf("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
         m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGROUPS");
         perror("getgroups: ");
         return NCSCLI_USER_FIND_ERROR;
@@ -320,7 +320,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
             }
        }
        else if(gp == NULL){
-           m_NCS_CONS_PRINTF("\nError %d occured while fetching the group name of the cli user\n",errno);
+           printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
         m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
            if(errno == EINTR){
@@ -338,7 +338,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
           }
         }
         else if (gp == NULL){
-           m_NCS_CONS_PRINTF("\nError %d occured while fetching the group name of the cli user\n",errno);
+           printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
         m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
            if(errno == EINTR){
@@ -356,7 +356,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
          }
         }
         else if (gp == NULL){
-           m_NCS_CONS_PRINTF("\nError %d occured while fetching the group name of the cli user\n",errno);
+           printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
         m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
            if(errno == EINTR){
@@ -366,7 +366,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
            return NCSCLI_USER_FIND_ERROR;
         }
     }
-    m_NCS_CONS_PRINTF("\n\tncs cli user is not an authenticated cli user...exiting CLI process.\n");
+    printf("\n\tncs cli user is not an authenticated cli user...exiting CLI process.\n");
     m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER,"non cli user");
     return NCSCLI_USER_FIND_ERROR;
 }
@@ -396,7 +396,7 @@ uns32 cli_timer_start(CLI_CB *cliCb)
     timer_data->period = cliCb->cli_idle_time;
     timer_data->grace_period = 60 * 100; /*one minute */
     timer_data->warning_msg = 0;
-    m_NCS_CONS_PRINTF("\ncli idle time is %u seconds\n",cliCb->cli_idle_time/100);
+    printf("\ncli idle time is %u seconds\n",cliCb->cli_idle_time/100);
     timer_data->cb = (void*)cliCb;
     if( timer_data->timer_id == TMR_T_NULL )
     {
@@ -441,7 +441,7 @@ static void  cli_timer_cb(void *arg)
        if( !timer_data->warning_msg )
        {
            timer_data->warning_msg = 1;
-           m_NCS_CONS_PRINTF("\ncli will quit if it is idle for 1 more minute \n\r");
+           printf("\ncli will quit if it is idle for 1 more minute \n\r");
            m_NCS_TMR_START(timer_data->timer_id,
                       timer_data->grace_period ,
                       cli_timer_cb,
@@ -716,7 +716,7 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
       if(cmd_access_level == NCSCLI_VIEWER_ACCESS || cmd_access_level == NCSCLI_ADMIN_ACCESS || cmd_access_level == NCSCLI_SUPERUSER_ACCESS)
           pCli->ctree_cb.cmd_access_level = (1<<cmd_access_level);
       else {
-          m_NCS_CONS_PRINTF("\nThe command %s is not registered with proper access level...bydefault registering with NCSCLI_VIEWER_ACCESS level\n",  info->i_cmdlist->i_command_list[count].i_cmdstr); 
+          printf("\nThe command %s is not registered with proper access level...bydefault registering with NCSCLI_VIEWER_ACCESS level\n",  info->i_cmdlist->i_command_list[count].i_cmdstr); 
           pCli->ctree_cb.cmd_access_level = (1<<NCSCLI_VIEWER_ACCESS);
       }
       cli_set_cmd_to_parse(pCli, info->i_cmdlist->i_command_list[count].i_cmdstr, CLI_CMD_BUFFER);
@@ -869,9 +869,9 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
     if (fp == NULL)
     {
         /* inform that there is no such file, and return */
-        m_NCS_CONS_PRINTF("\ncli_apps_cefs_load(): fopen() failed for the file: %s\n", 
+        printf("\ncli_apps_cefs_load(): fopen() failed for the file: %s\n", 
                           file_name);
-        m_NCS_CONS_PRINTF("cli_apps_cefs_load(): or You may be trying to bring up CLI on standby node\n");
+        printf("cli_apps_cefs_load(): or You may be trying to bring up CLI on standby node\n");
         /* log the critical error, file_name */ 
         m_LOG_NCSCLI_STR(NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_CRITICAL, 
                          NCSCLI_HDLN_CLI_CONF_FILE_OPEN_FAILED,
@@ -898,21 +898,21 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
         {
             if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_superuser,arg2);
-            else m_NCS_CONS_PRINTF("\nLength of the SUPERUSER GROUP given in configuration file is greater than %d . So default superuser group is considered\n",NCSCLI_GROUP_LEN_MAX);
+            else printf("\nLength of the SUPERUSER GROUP given in configuration file is greater than %d . So default superuser group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( strcmp(arg1,"NCS_CLI_ADMIN_GROUP")  == 0 )
         {
             if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_admin,arg2);
-            else m_NCS_CONS_PRINTF("\nLength of the ADMIN GROUP given in configuration file is greater than %d . So default admin group is considered\n",NCSCLI_GROUP_LEN_MAX);
+            else printf("\nLength of the ADMIN GROUP given in configuration file is greater than %d . So default admin group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         if( strcmp(arg1,"NCS_CLI_VIEWER_GROUP")  == 0 )
         {
             if(strlen(arg2) <= NCSCLI_GROUP_LEN_MAX)
                   strcpy(pCli->cli_user_group.ncs_cli_viewer,arg2);
-            else m_NCS_CONS_PRINTF("\nLength of the VIEWER GROUP given in configuration file is greater than %d . So default viewer group is considered\n",NCSCLI_GROUP_LEN_MAX);
+            else printf("\nLength of the VIEWER GROUP given in configuration file is greater than %d . So default viewer group is considered\n",NCSCLI_GROUP_LEN_MAX);
             continue;
         }
         /* The below 'if' Added to read configurable parameter CLI_IDLE_TIME */
@@ -927,14 +927,14 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
                     else
                     {
                         pCli->cli_idle_time = m_CLI_DEFAULT_IDLE_TIME_IN_SEC * 100;
-                        m_NCS_CONS_PRINTF("\ncli idle time is out of valid range,. so taking default value of %u seconds\n",pCli->cli_idle_time/100);
+                        printf("\ncli idle time is out of valid range,. so taking default value of %u seconds\n",pCli->cli_idle_time/100);
                     }
 
             }
             else
             {
                         pCli->cli_idle_time = m_CLI_DEFAULT_IDLE_TIME_IN_SEC * 100;
-                        m_NCS_CONS_PRINTF("\ncli idle time is out of valid range,. so taking default value of %u seconds\n",pCli->cli_idle_time/100);
+                        printf("\ncli idle time is out of valid range,. so taking default value of %u seconds\n",pCli->cli_idle_time/100);
             }
             continue;
         }
@@ -948,7 +948,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
                 m_LOG_NCSCLI_STR_STR(NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_CRITICAL, 
                                     NCSCLI_HDLN_CLI_DLIB_LOAD_FAILED,
                                     arg1, dl_error); 
-                m_NCS_CONS_PRINTF("\nWarning: %s\n",dl_error);
+                printf("\nWarning: %s\n",dl_error);
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
                 memset(arg2, 0, 255);
@@ -965,7 +965,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
             m_LOG_NCSCLI_STR_STR_STR(NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_CRITICAL,
                                      NCSCLI_HDLN_CLI_DLIB_SYM_FAILED,
                                      arg1, arg2, dl_error); 
-            m_NCS_CONS_PRINTF("\nWarning: %s\n",dl_error);
+            printf("\nWarning: %s\n",dl_error);
             reg_unreg_routine = NULL; 
             lib_hdl = NULL;
             memset(arg2, 0, 255);
@@ -1003,7 +1003,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
     } /* for all the libraries */
     if (nargs != EOF)
     { 
-        m_NCS_CONS_PRINTF("\ncli_apps_cefs_load(): cli conf file %s is corrupted.\n",file_name); 
+        printf("\ncli_apps_cefs_load(): cli conf file %s is corrupted.\n",file_name); 
         /* log the error */ 
         m_LOG_NCSCLI_STR_I(NCSFL_LC_DATA, NCSFL_SEV_ERROR,
                        NCSCLI_HDLN_CLI_CONF_FILE_CORRUPTED, 
@@ -1018,7 +1018,7 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
     if (cefs_loaded == FALSE)
     {
        status =  NCSCC_RC_FAILURE;
-       m_NCS_CONS_PRINTF("\ncli_apps_cefs_load(): No cefs loaded with CLI\n");
+       printf("\ncli_apps_cefs_load(): No cefs loaded with CLI\n");
     }
     ncshm_give_hdl(pCli->cli_hdl);
     return status; 

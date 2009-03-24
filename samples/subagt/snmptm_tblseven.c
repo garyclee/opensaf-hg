@@ -80,7 +80,7 @@ snmptm_tblseven_register_avsv_strs(SNMPTM_CB   *snmptm, char *str1, char *str2)
 
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_tblseven_register_avsv_strs(): ncsoac_ss() failed to register a row.\n");
+      printf("snmptm_tblseven_register_avsv_strs(): ncsoac_ss() failed to register a row.\n");
       return NULL;
    }
 
@@ -180,7 +180,7 @@ uns32 snmptm_oac_tblseven_register(SNMPTM_CB *snmptm)
             
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_oac_tblseven_register(): ncsoac_ss() failed to register a table.\n");
+      printf("snmptm_oac_tblseven_register(): ncsoac_ss() failed to register a table.\n");
       return NCSCC_RC_FAILURE;
    }
 

@@ -55,7 +55,7 @@ SNMPTM_TBLSIX *snmptm_create_tblsix_entry(SNMPTM_CB *snmptm,
    if ((tblsix = (SNMPTM_TBLSIX*)m_MMGR_ALLOC_SNMPTM_TBLSIX)
         == SNMPTM_TBLSIX_NULL)   
    {
-      m_NCS_CONS_PRINTF("\nNot able to alloc the memory for TBLSIX \n");
+      printf("\nNot able to alloc the memory for TBLSIX \n");
       return NULL;
    }
 
@@ -70,7 +70,7 @@ SNMPTM_TBLSIX *snmptm_create_tblsix_entry(SNMPTM_CB *snmptm,
    if(NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&(snmptm->tblsix_tree),
                                                 &(tblsix->tblsix_pat_node)))
    {
-      m_NCS_CONS_PRINTF("\nNot able add TBLSIX node to TBLSIX tree.\n");
+      printf("\nNot able add TBLSIX node to TBLSIX tree.\n");
 
       /* Free the alloc memory of TBLSIX */
       m_MMGR_FREE_SNMPTM_TBLSIX(tblsix);
@@ -78,7 +78,7 @@ SNMPTM_TBLSIX *snmptm_create_tblsix_entry(SNMPTM_CB *snmptm,
       return NULL;
    }
 
-   m_NCS_CONS_PRINTF("\n\n ROW created in the TBLSIX, INDEX: %d, DATA: %d, NAME: %s\n", tblsix->tblsix_key.count, tblsix->tblsix_data, (char*)&tblsix->tblsix_name);
+   printf("\n\n ROW created in the TBLSIX, INDEX: %d, DATA: %d, NAME: %s\n", tblsix->tblsix_key.count, tblsix->tblsix_data, (char*)&tblsix->tblsix_name);
 
    return tblsix;
 }
@@ -101,7 +101,7 @@ void snmptm_delete_tblsix_entry(SNMPTM_CB *snmptm,
                                  SNMPTM_TBLSIX *tblsix)
 {
 
-   m_NCS_CONS_PRINTF("\n\n ROW deleted in the TBLSIX, INDEX: %d, DATA: %d, NAME: %s\n", tblsix->tblsix_key.count, tblsix->tblsix_data, (char*)&tblsix->tblsix_name);
+   printf("\n\n ROW deleted in the TBLSIX, INDEX: %d, DATA: %d, NAME: %s\n", tblsix->tblsix_key.count, tblsix->tblsix_data, (char*)&tblsix->tblsix_name);
 
    /* Delete the tblsix entry from the tblsix patricia tree */
    ncs_patricia_tree_del(&(snmptm->tblsix_tree), &(tblsix->tblsix_pat_node));

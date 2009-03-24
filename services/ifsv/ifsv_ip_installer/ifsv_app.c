@@ -44,48 +44,48 @@ static void print_if_attr(NCS_IFSV_INTF_INFO *if_info)
 {
    if((if_info->if_am & NCS_IFSV_IAM_MTU) != 0)
    {
-      m_NCS_CONS_PRINTF("MTU - %d \n ", if_info->mtu);
+      printf("MTU - %d \n ", if_info->mtu);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_IFSPEED) != 0)
    {
-      m_NCS_CONS_PRINTF("IF SPEED - %d \n ", if_info->if_speed);
+      printf("IF SPEED - %d \n ", if_info->if_speed);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_PHYADDR) != 0)
    {
-      m_NCS_CONS_PRINTF("physical Addr: - %x:%x:%x:%x:%x:%x \n", (uns32)if_info->phy_addr[0],(uns32)if_info->phy_addr[1],(uns32)if_info->phy_addr[2],(uns32)if_info->phy_addr[3],(uns32)if_info->phy_addr[4],(uns32)if_info->phy_addr[5]);
+      printf("physical Addr: - %x:%x:%x:%x:%x:%x \n", (uns32)if_info->phy_addr[0],(uns32)if_info->phy_addr[1],(uns32)if_info->phy_addr[2],(uns32)if_info->phy_addr[3],(uns32)if_info->phy_addr[4],(uns32)if_info->phy_addr[5]);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_ADMSTATE) != 0)
    {
-      m_NCS_CONS_PRINTF("ADMIN STATUS - %d\n",if_info->admin_state);
+      printf("ADMIN STATUS - %d\n",if_info->admin_state);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_OPRSTATE) != 0)
    {
-      m_NCS_CONS_PRINTF("OPERATION STATUS - %d\n",if_info->oper_state);
+      printf("OPERATION STATUS - %d\n",if_info->oper_state);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_NAME) != 0)
    {
-      m_NCS_CONS_PRINTF("INTERFACE NAME - %s \n", if_info->if_name);
+      printf("INTERFACE NAME - %s \n", if_info->if_name);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_DESCR) != 0)
    {
-      m_NCS_CONS_PRINTF(" INTF DESC - %s \n",if_info->if_descr);
+      printf(" INTF DESC - %s \n",if_info->if_descr);
    }
    
    if((if_info->if_am & NCS_IFSV_IAM_LAST_CHNG) != 0)
    {
-      m_NCS_CONS_PRINTF("LAST Change %d\n", (int)if_info->last_change);
+      printf("LAST Change %d\n", (int)if_info->last_change);
    }
 
    if((if_info->if_am & NCS_IFSV_IAM_CHNG_MASTER) != 0)
    {
-      m_NCS_CONS_PRINTF("Master ifindex %d\n", (int)if_info->bind_master_ifindex);
-      m_NCS_CONS_PRINTF("slave ifindex %d\n", (int)if_info->bind_slave_ifindex);
+      printf("Master ifindex %d\n", (int)if_info->bind_master_ifindex);
+      printf("slave ifindex %d\n", (int)if_info->bind_slave_ifindex);
     }
 
 }
@@ -121,70 +121,70 @@ ifsv_dt_test_app_process(NCSCONTEXT info)
          case IFSV_DT_TEST_APP_EVT_ADD_INTF:
             intf = &rsp->info.ifadd_ntfy;
             if_info = &intf->if_info;
-            m_NCS_CONS_PRINTF("App%d received Intf Add Info \n", cb->app_no);
+            printf("App%d received Intf Add Info \n", cb->app_no);
             /* subslot changes need modification */
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
-            m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
+            printf("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
+            printf("IFINDEX: %d \n", intf->if_index);
             print_if_attr(&intf->if_info);
             break;
          case IFSV_DT_TEST_APP_EVT_DEL_INTF:
-            m_NCS_CONS_PRINTF("App%d received Intf Del for IFINDEX %d\n",
+            printf("App%d received Intf Del for IFINDEX %d\n",
                cb->app_no,rsp->info.ifdel_ntfy);
             break;
          case IFSV_DT_TEST_APP_EVT_MOD_INTF:            
             intf = &rsp->info.ifupd_ntfy;
             if_info = &intf->if_info;
-            m_NCS_CONS_PRINTF("App%d received Intf Update Info \n", cb->app_no);
+            printf("App%d received Intf Update Info \n", cb->app_no);
             /* subslot changes not implemented */
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot,intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
-            m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
+            printf("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot,intf->spt_info.slot, intf->spt_info.port, intf->spt_info.type);
+            printf("IFINDEX: %d \n", intf->if_index);
             print_if_attr(&intf->if_info);
                         break;
 
          case IFSV_DT_TEST_APP_EVT_INTF_INFO:
             intf = &rsp->info.ifget_rsp.if_rec;
             if_info = &intf->if_info;
-            m_NCS_CONS_PRINTF("App%d received Intf Resp \n", cb->app_no);
+            printf("App%d received Intf Resp \n", cb->app_no);
             /* subslot changes not implemented */
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
-            m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
+            printf("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
+            printf("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
                print_if_attr(&intf->if_info);
             else
-               m_NCS_CONS_PRINTF("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
+               printf("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
 
             break;
          case IFSV_DT_TEST_APP_BIND_GET_LOCAL_INTF:
             intf = &rsp->info.ifget_rsp.if_rec;
             if_info = &intf->if_info;
-            m_NCS_CONS_PRINTF("App%d received Intf Resp \n", cb->app_no);
+            printf("App%d received Intf Resp \n", cb->app_no);
             /* subslot changes not implemented */
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
-            m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
+            printf("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
+            printf("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
-               m_NCS_CONS_PRINTF("INTERFACE INDEX on local shelf/slot is %d\n",if_info->bind_master_ifindex);
+               printf("INTERFACE INDEX on local shelf/slot is %d\n",if_info->bind_master_ifindex);
             else
-               m_NCS_CONS_PRINTF("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
+               printf("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
 
             break;
          case IFSV_DT_TEST_APP_EVT_STAT_INFO:
             intf = &rsp->info.ifget_rsp.if_rec;
             stat = &intf->if_stats;
-            m_NCS_CONS_PRINTF("App%d Received Statistics Get Resp \n", cb->app_no);
+            printf("App%d Received Statistics Get Resp \n", cb->app_no);
                         /* subslot changes not implemented */
-            m_NCS_CONS_PRINTF("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
-            m_NCS_CONS_PRINTF("IFINDEX: %d \n", intf->if_index);
+            printf("Shelf: %d Slot: %d Subslot: %d Port: %d Type %d\n ",  intf->spt_info.shelf, intf->spt_info.slot, intf->spt_info.subslot, intf->spt_info.port, intf->spt_info.type);
+            printf("IFINDEX: %d \n", intf->if_index);
             if(rsp->info.ifget_rsp.error == NCSCC_RC_SUCCESS)
-               m_NCS_CONS_PRINTF("App%d last_chg - %d in_octs - %d in_upkts - %d in_dscrds - %d in_errs - %d \n",stat->last_chg,stat->in_octs,stat->in_upkts,stat->in_nupkts,stat->in_dscrds,stat->in_errs);
+               printf("App%d last_chg - %d in_octs - %d in_upkts - %d in_dscrds - %d in_errs - %d \n",stat->last_chg,stat->in_octs,stat->in_upkts,stat->in_nupkts,stat->in_dscrds,stat->in_errs);
             else
-               m_NCS_CONS_PRINTF("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
+               printf("ERROR - Error Code %d", rsp->info.ifget_rsp.error);
             break;
          default:
-            m_NCS_CONS_PRINTF("Test app - %d received unknown event - %d\n",cb->app_no,evt->evt_type);
+            printf("Test app - %d received unknown event - %d\n",cb->app_no,evt->evt_type);
             break;
       }
    }
-   m_NCS_CONS_PRINTF("sorry App%d is quiting bc of mail box problem pls destroy it\n",cb->app_no);
+   printf("sorry App%d is quiting bc of mail box problem pls destroy it\n",cb->app_no);
 }
 
 /****************************************************************************
@@ -236,7 +236,7 @@ ifsv_dt_test_ifa_sub_cb(NCS_IFSV_SVC_RSP *rsp)
       }      
       break;
    default:
-      m_NCS_CONS_PRINTF("App%d received wrong event type %d\n",app_cb->app_no,rsp->rsp_type);
+      printf("App%d received wrong event type %d\n",app_cb->app_no,rsp->rsp_type);
       free(evt);
       return(NCSCC_RC_FAILURE);
    }
@@ -321,10 +321,10 @@ uns32 IfsvDtTestAppCreate(uns32 shelf, uns32 slot, uns32 subslot)
       
       
       app_cb->inited = TRUE;
-      m_NCS_CONS_PRINTF("App Num - %d, This number should be given for             destroy\n",test_app_index);
+      printf("App Num - %d, This number should be given for             destroy\n",test_app_index);
    } else
    {
-      m_NCS_CONS_PRINTF("Sorry You have already created enough test applications\n");
+      printf("Sorry You have already created enough test applications\n");
    }
    return(NCSCC_RC_SUCCESS);
    
@@ -364,14 +364,14 @@ uns32 IfsvDtTestAppIfaSub(uns32 app_no, uns32 evt_attr, uns32 rec_attr)
       svc_req.info.i_subr.i_usrhdl = (long)(NCSCONTEXT)app_cb;
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to register with IfA\n",app_no);
+         printf("App%d failed to register with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
          
       }
       app_cb->IfA_hdl = svc_req.info.i_subr.o_subr_hdl;
    } else
    {
-      m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+      printf("App%d not found\n",app_no);
       return(NCSCC_RC_FAILURE);
    }
    
@@ -406,12 +406,12 @@ uns32 IfsvDtTestAppIfaUnsub(uns32 app_no)
       svc_req.info.i_unsubr.i_subr_hdl = app_cb->IfA_hdl;      
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to deregister with IfA\n",app_no);
+         printf("App%d failed to deregister with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
       }
    } else
    {
-      m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+      printf("App%d not found\n",app_no);
       return(NCSCC_RC_FAILURE);
    }
 
@@ -461,13 +461,13 @@ uns32 IfsvDtTestAppGetStats(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslot
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to get status with IfA\n",app_no);
+         printf("App%d failed to get status with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
          
       }
    } else
    {
-      m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+      printf("App%d not found\n",app_no);
       return(NCSCC_RC_FAILURE);
       
    }
@@ -515,13 +515,13 @@ uns32 IfsvDtTestAppGetIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns32 subslo
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to get ifinfo with IfA\n",app_no);
+         printf("App%d failed to get ifinfo with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
          
       }
    } else
    {
-      m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+      printf("App%d not found\n",app_no);
       return(NCSCC_RC_FAILURE);
       
    }
@@ -562,12 +562,12 @@ uns32 IfsvDtTestAppGetAll(uns32 app_no, uns32 ifindex)
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to get all with IfA\n",app_no);
+         printf("App%d failed to get all with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
          
       } else
       {
-          m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+          printf("App%d not found\n",app_no);
           return(NCSCC_RC_FAILURE);
       
       }
@@ -601,11 +601,11 @@ uns32 IfsvDtTestAppDestroy(uns32 app_no)
          return(NCSCC_RC_SUCCESS);
       } else
       {
-         m_NCS_CONS_PRINTF("Sorry You have entered wrong test app number %d\n",app_no);
+         printf("Sorry You have entered wrong test app number %d\n",app_no);
       }
    } else
    {
-      m_NCS_CONS_PRINTF("Sorry You have entered wrong test app number %d\n",app_no);
+      printf("Sorry You have entered wrong test app number %d\n",app_no);
       return(NCSCC_RC_FAILURE);
    }   
    return(NCSCC_RC_SUCCESS);
@@ -643,7 +643,7 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
    /* extract the MAC address */
    if (ifsv_dt_extract_phy_addr(iphy, phy) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("Phy extract failed \n");
+      printf("Phy extract failed \n");
       return(NCSCC_RC_FAILURE);
       
    }
@@ -671,15 +671,15 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
       memcpy(svc_req.info.i_ifadd.if_info.phy_addr,phy,(6*sizeof(uns8)));
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to add the interface\n");
+         printf("IfA could not able to add the interface\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA added the interface successfully\n");
+         printf("IfA added the interface successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -720,15 +720,15 @@ uns32 IfsvDtTestAppModIntfStatus(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.if_info.oper_state = oper_state;      
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to Modify operation status\n");
+         printf("IfA could not able to Modify operation status\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA Modified operation status successfully\n");
+         printf("IfA Modified operation status successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -759,13 +759,13 @@ uns32 IfsvDtTestAppGetBondLocalIfinfo(uns32 app_no, uns32 shelf, uns32 slot, uns
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {         
-         m_NCS_CONS_PRINTF("App%d failed to get ifinfo with IfA\n",app_no);
+         printf("App%d failed to get ifinfo with IfA\n",app_no);
          return(NCSCC_RC_FAILURE);
  
       }
    } else
    {
-      m_NCS_CONS_PRINTF("App%d not found\n",app_no);
+      printf("App%d not found\n",app_no);
       return(NCSCC_RC_FAILURE);
       
    }
@@ -799,15 +799,15 @@ uns32 IfsvDtTestAppSwapBondIntf(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.if_info.bind_slave_ifindex = slave_ifindex;            
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("Ifa not able to add bind interface\n");
+         printf("Ifa not able to add bind interface\n");
       } else
       {
-         m_NCS_CONS_PRINTF("Ifa successfully added bind interface\n");
+         printf("Ifa successfully added bind interface\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -853,15 +853,15 @@ uns32 IfsvDtTestAppModIntfMTU(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.if_info.mtu    = MTU;      
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to Modify MTU\n");
+         printf("IfA could not able to Modify MTU\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA Modified MTU successfully\n");
+         printf("IfA Modified MTU successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -904,15 +904,15 @@ uns32 IfsvDtTestAppModIntfSpeed(uns32 app_num, uns32 port_num,
       svc_req.info.i_ifadd.if_info.if_speed    = speed;      
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to Modify interface speed\n");
+         printf("IfA could not able to Modify interface speed\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA Modified interface speed successfully\n");
+         printf("IfA Modified interface speed successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -962,15 +962,15 @@ uns32 IfsvdtTestAppModIntfPhy(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_PHYADDR;                  
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to Modify physical address\n");
+         printf("IfA could not able to Modify physical address\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA Modified physical address successfully\n");
+         printf("IfA Modified physical address successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -1013,15 +1013,15 @@ uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
       strcpy(svc_req.info.i_ifadd.if_info.if_name,temp_name);
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to Modify physical address\n");
+         printf("IfA could not able to Modify physical address\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA Modified physical address successfully\n");
+         printf("IfA Modified physical address successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
    
@@ -1061,15 +1061,15 @@ uns32 IfsvDtTestAppDelIntf(uns32 app_num, uns32 port_num, uns32 port_type)
 
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("IfA could not able to del the interface\n");
+         printf("IfA could not able to del the interface\n");
       } else
       {
-         m_NCS_CONS_PRINTF("IfA del the interface successfully\n");
+         printf("IfA del the interface successfully\n");
       }
       return(NCSCC_RC_SUCCESS);
    } else
    {
-      m_NCS_CONS_PRINTF("Wrong App Number - %d\n",app_num);
+      printf("Wrong App Number - %d\n",app_num);
       return(NCSCC_RC_FAILURE);
    }     
 }

@@ -36,13 +36,13 @@
 
 int main()
 {
-   m_NCS_CONS_PRINTF("\n\n ********************************************** \n");
-   m_NCS_CONS_PRINTF(" *                                            * \n");
-   m_NCS_CONS_PRINTF(" *   You are about to witness SRMSv Demo !!!  * \n");
-   m_NCS_CONS_PRINTF(" *   To start the demo, press any key         * \n");
-   m_NCS_CONS_PRINTF(" *   To quit, press 'q'                       * \n");
-   m_NCS_CONS_PRINTF(" *                                            * \n");
-   m_NCS_CONS_PRINTF(" ********************************************** \n");
+   printf("\n\n ********************************************** \n");
+   printf(" *                                            * \n");
+   printf(" *   You are about to witness SRMSv Demo !!!  * \n");
+   printf(" *   To start the demo, press any key         * \n");
+   printf(" *   To quit, press 'q'                       * \n");
+   printf(" *                                            * \n");
+   printf(" ********************************************** \n");
 
    /* Wait for the start trigger from the user */
    if ( 'q' == getchar() )

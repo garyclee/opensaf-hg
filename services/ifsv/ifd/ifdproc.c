@@ -214,7 +214,7 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
                 send_evt.info.ifnd_evt.info.spt_map.spt_map.if_index =
                      create_intf->intf_data.if_index;
                 m_IFD_LOG_FUNC_ENTRY_INFO(IFSV_LOG_IFD_MSG, "Error : No Spt Map for Intf Rec with Ifindex, Shelf, Slot, Port, Type, Scope, mds destination",create_intf->intf_data.if_index, create_intf->intf_data.spt_info.shelf, create_intf->intf_data.spt_info.slot, create_intf->intf_data.spt_info.port, create_intf->intf_data.spt_info.type, create_intf->intf_data.spt_info.subscr_scope, create_intf->intf_data.originator_mds_destination);
-                m_NCS_CONS_PRINTF(" error: ifindex - %d ***** No spt map for Intf s/s/ss/p/t/s- %d/%d/%d/%d/%d/%d \n",  create_intf->intf_data.if_index, create_intf->intf_data.spt_info.shelf, create_intf->intf_data.spt_info.slot, create_intf->intf_data.spt_info.subslot, create_intf->intf_data.spt_info.port, create_intf->intf_data.spt_info.type, create_intf->intf_data.spt_info.subscr_scope);
+                printf(" error: ifindex - %d ***** No spt map for Intf s/s/ss/p/t/s- %d/%d/%d/%d/%d/%d \n",  create_intf->intf_data.if_index, create_intf->intf_data.spt_info.shelf, create_intf->intf_data.spt_info.slot, create_intf->intf_data.spt_info.subslot, create_intf->intf_data.spt_info.port, create_intf->intf_data.spt_info.type, create_intf->intf_data.spt_info.subscr_scope);
  
                /* Sync resp to IfND.*/
                ifsv_mds_send_rsp(ifsv_cb->my_mds_hdl,
@@ -976,7 +976,7 @@ ifsv_ifd_ifindex_alloc (NCS_IFSV_SPT_MAP *spt_map, IFSV_CB *ifsv_cb)
         m_IFD_LOG_FUNC_ENTRY_CRITICAL_INFO(IFSV_LOG_IFD_MSG, "Error :Intf Index for Shelf, Slot, Port, Type, Scope has already been allocated.",spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,0);
         m_IFD_LOG_FUNC_ENTRY_CRITICAL_INFO(IFSV_LOG_IFD_MSG, "Error : Previously Intf Index had been allocated to Shelf, Slot, Port, Type, Scope.",spt_map->if_index,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,0);
 
-         m_NCS_CONS_PRINTF("Error :Intf Index %d for Shelf %d, Slot %d, Port %d, Type %d Scope %d has already been allocated to Shelf %d, Slot %d, Port %d, Type %d Scope %d, originator %d, originator_mds_destination %d, current_owner %d, current_owner_mds_destination %d, marked_del %d\n", spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,rec_data->originator,rec_data->originator_mds_destination,rec_data->current_owner,rec_data->current_owner_mds_destination,rec_data->marked_del);
+         printf("Error :Intf Index %d for Shelf %d, Slot %d, Port %d, Type %d Scope %d has already been allocated to Shelf %d, Slot %d, Port %d, Type %d Scope %d, originator %d, originator_mds_destination %d, current_owner %d, current_owner_mds_destination %d, marked_del %d\n", spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,rec_data->originator,rec_data->originator_mds_destination,rec_data->current_owner,rec_data->current_owner_mds_destination,rec_data->marked_del);
         return NCSCC_RC_FAILURE;
       }
  

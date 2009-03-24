@@ -193,7 +193,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
    /* Attempt to initialize the HISv client library */
    rc = avsv_cli_hisv_init();
    if (rc == NCSCC_RC_FAILURE) {
-      m_NCS_CONS_PRINTF("\nWarning: could not initialize HISv hpl_api library\n");
+      printf("\nWarning: could not initialize HISv hpl_api library\n");
    }
 
    req.info.i_register.i_cmdlist = &data;
@@ -492,7 +492,7 @@ avm_constr_ep(
        rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
        if (rc == NCSCC_RC_SUCCESS) {
           if (strlen(ep) == 0) {
-             m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
+             printf("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
              /* A zero length entity path means that HISv is working - but could not find the entity path */
              rc = NCSCC_RC_FAILURE;
           }

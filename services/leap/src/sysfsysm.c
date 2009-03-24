@@ -1869,7 +1869,7 @@ uns32 sm_cpu_stats(NCSSYSM_CPU_STATS* info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -1884,21 +1884,21 @@ uns32 sm_cpu_stats(NCSSYSM_CPU_STATS* info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   C P U  U T I L I Z A T I O N  S T A T S  |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "       Current %%: %d\n",m_NCS_CUR_CPU_USAGE);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
 
@@ -1958,7 +1958,7 @@ uns32 sm_mem_stats(NCSSYSM_MEM_STATS* info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -1973,32 +1973,32 @@ uns32 sm_mem_stats(NCSSYSM_MEM_STATS* info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
       
       sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|     M E M     S T A T S     T O T A L S    |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|   ttl  |  curr  | alloced| freed  |  hwm   |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "| avail  | alloced| so far | so far |in bytes|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%9d%9d%9d%9d%9d\n",info->o_ttl,
         info->o_curr,
         gl_sysmon.mmgr->stats.alloced,
         gl_sysmon.mmgr->stats.freed,
         info->o_hwm);
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
 
@@ -2082,7 +2082,7 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -2097,31 +2097,31 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|             B U F  P O O L   S T A T S              |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|                P O O L  I D : %d           |\n",    
                  info->i_pool_id);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   cnt  |   curr |  hwm   |  new   |  free  |  max   |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     sprintf(output_string, "%9d%9d%9d%9d%9d%9d\n",
@@ -2132,31 +2132,31 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
       info->o_free,
       info->o_ttl);
 
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|    F R E E   T I M E   S T A T S :                  |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|    N U M B E R  O F  B U F F E R S  C H A I N E D   |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "| 1 buf  | 2 bufs | 3 bufs | 4 bufs |5 / more|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "%9d%9d%9d%9d%9d\n",
@@ -2167,24 +2167,24 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
       info->o_fc_gt
       );
 
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|                P A Y L O A D   S I Z E              |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|< 32 b  |< 64 b  |< 128 b |< 256 b |< 512 b |< 1024 b|< 2048 b|> 2048 b|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
     sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d\n",
@@ -2198,7 +2198,7 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
       info->o_big_b 
       );
     
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
           
       
@@ -2275,7 +2275,7 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -2289,31 +2289,31 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|         I P C  Q U E U E  S T A T S        |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   M B X : %9x  , N A M E :  |%9s|\n",
       (uns32)ipc_stats->resource,ipc_stats->resource->name);
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   curr |  hwm   |  on_q  |  off_q |  max   |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     sprintf(output_string, "%9d%9d%9d%9d%9d\n",
@@ -2323,7 +2323,7 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
       info->o_off_q,
       info->o_ttl);
     
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     
     if (((to_file == TRUE)) && fh) 
@@ -2399,7 +2399,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
           fh = sysf_fopen( info->i_opp.fname, "at");
           if(fh == NULL) 
           {
-            m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+            printf("Unable to open %s\n", info->i_opp.fname);
             return NCSCC_RC_FAILURE;
           }
         }
@@ -2414,24 +2414,24 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
     
     /* SMM removed global _mpool_lock.. These pools should have their own lock!!?? */
 
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|        |    M E M  P O O L S   R E P O R T    (all are raw counts)      |\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   pool +--------+--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc|\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
     sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+\n");
-    if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+    if(to_std == TRUE) printf("%s", output_string);
     if(to_file == TRUE) sysf_fprintf (fh, output_string);
 
       for (i = 0;i < bkt_cnt;i++)
@@ -2454,7 +2454,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
           info->o_bkt[i].o_frees,
           info->o_bkt[i].o_errors,
           info->o_bkt[i].o_null);
-          if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+          if(to_std == TRUE) printf("%s", output_string);
           if(to_file == TRUE) sysf_fprintf (fh, output_string);
         
       }
@@ -2517,7 +2517,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
                   {
-                  m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+                  printf("Unable to open %s\n", info->i_opp.fname);
                   return NCSCC_RC_FAILURE;
                   }
                }
@@ -2532,23 +2532,23 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
       asc_tod[0] = '\0';
       m_GET_ASCII_TIME_STAMP(tod, asc_tod);
       sprintf(output_string, "%s\n", asc_tod);
-      fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+      fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
       
       
       sprintf(output_string, "|--------+--------+--------+--------+--------+--------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "| S U B S Y S T E M S  M E M  P O O L S   R E P O R T |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|------------+------------+------------+--------------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|  pool size |  inuse_uni |  inuse_ign |   inuse_ttl  |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|------------+------------+------------+--------------+\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
       ss_id = info->i_ss_id;
@@ -2585,7 +2585,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
                                      info->o_ssu[i].o_inuse_ign,
                                      info->o_ssu[i].o_inuse_ttl);
          
-         if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+         if(to_std == TRUE) printf("%s", output_string);
          if(to_file == TRUE) sysf_fprintf (fh, output_string);
          
          m_NCS_UNLOCK (&mp->lock, NCS_LOCK_WRITE); 
@@ -2653,7 +2653,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
                   {
-                  m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+                  printf("Unable to open %s\n", info->i_opp.fname);
                   return NCSCC_RC_FAILURE;
                   }
                }
@@ -2668,26 +2668,26 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
       asc_tod[0] = '\0';
       m_GET_ASCII_TIME_STAMP(tod, asc_tod);
       sprintf(output_string, "%s\n", asc_tod);
-      fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+      fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
       
       
       sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|  N O N - I G N O R E D   O U T S T A N D I N G   M E M O R Y   R E P O R T |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|  #| Age|Real|   alloc'ed|Owner|Ownr claims|  Real  |Svc|Sub|          |Bkt |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|  #| Cnt|line|    in file| line|    in file|  size  | ID| ID| Ptr value|size|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
       for (mp = gl_sysmon.mmgr->mpools;; mp++)
@@ -2735,7 +2735,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
             
             j++;
             
-            if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+            if(to_std == TRUE) printf("%s", output_string);
             if(to_file == TRUE) sysf_fprintf (fh, output_string);
             
             }
@@ -2831,7 +2831,7 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
                fh = sysf_fopen( info->i_opp.fname, "at");
                if(fh == NULL) 
                   {
-                  m_NCS_CONS_PRINTF("Unable to open %s\n", info->i_opp.fname);
+                  printf("Unable to open %s\n", info->i_opp.fname);
                   return NCSCC_RC_FAILURE;
                   }
                }
@@ -2890,27 +2890,27 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
       asc_tod[0] = '\0';
       m_GET_ASCII_TIME_STAMP(tod, asc_tod);
       sprintf(output_string, "%s\n", asc_tod);
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
       
       sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%s","|         M E M  O U T   - S U M M A R Y          |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%s","|hit   |show |   alloc'ed  |Owner |Svc |Sub |real |bkt  |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%s","|Cnt   |Cnt  |    in file  | line | ID | ID |size |size |\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
       
@@ -2943,13 +2943,13 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
                j++;
                }
             
-            if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+            if(to_std == TRUE) printf("%s", output_string);
             if(to_file == TRUE) sysf_fprintf (fh, output_string);
             }
          }
       
       sprintf(output_string,"|------+-----+-------------+------+----+----+-----+-----|\n");
-      if(to_std == TRUE) m_NCS_CONS_PRINTF("%s", output_string);
+      if(to_std == TRUE) printf("%s", output_string);
       if(to_file == TRUE) sysf_fprintf (fh, output_string);
       
       if (((to_file == TRUE)) && fh) 

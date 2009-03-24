@@ -144,7 +144,7 @@ uns32 snmptm_cef_tbl_create_row(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
       arg.req.info.cli_req.i_cmnd_id = tblfive_create_row_cmdid;
    else
    {
-      m_NCS_CONS_PRINTF("\n\nsnmptm_cef_tbl_create_row(): Invalid table number: %d", tbl_id);
+      printf("\n\nsnmptm_cef_tbl_create_row(): Invalid table number: %d", tbl_id);
       snmptm_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
    }
@@ -163,7 +163,7 @@ uns32 snmptm_cef_tbl_create_row(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
 
    if ((buff = m_MMGR_ALLOC_BUFR(sizeof(USRBUF))) == NULL)
    {
-      m_NCS_CONS_PRINTF("\n\nIsnmptm_cef_tbl_create_row(): USRBUF malloc failed");
+      printf("\n\nIsnmptm_cef_tbl_create_row(): USRBUF malloc failed");
       snmptm_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE; 
    }
@@ -175,7 +175,7 @@ uns32 snmptm_cef_tbl_create_row(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
 
    if (buff_ptr == NULL)
    {
-      m_NCS_CONS_PRINTF("\n\nIsnmptm_cef_tbl_create_row(): USRBUF reserve at end failed");
+      printf("\n\nIsnmptm_cef_tbl_create_row(): USRBUF reserve at end failed");
       snmptm_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE; 
    }
@@ -229,7 +229,7 @@ uns32 snmptm_cef_show_tbl_data(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_da
       arg.req.info.cli_req.i_cmnd_id = tblfive_show_all_rows_cmdid;
    else
    {
-      m_NCS_CONS_PRINTF("\n\nsnmptm_cef_show_tbl_data(): Invalid table number: %d", tbl_id);
+      printf("\n\nsnmptm_cef_show_tbl_data(): Invalid table number: %d", tbl_id);
       snmptm_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
       return NCSCC_RC_FAILURE;
    }

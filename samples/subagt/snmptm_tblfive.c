@@ -56,7 +56,7 @@ SNMPTM_TBLFIVE *snmptm_create_tblfive_entry(SNMPTM_CB *snmptm,
    if ((tblfive = (SNMPTM_TBLFIVE*)m_MMGR_ALLOC_SNMPTM_TBLFIVE)
         == SNMPTM_TBLFIVE_NULL)   
    {
-      m_NCS_CONS_PRINTF("\nNot able to alloc the memory for TBLFIVE \n");
+      printf("\nNot able to alloc the memory for TBLFIVE \n");
       return NULL;
    }
 
@@ -71,7 +71,7 @@ SNMPTM_TBLFIVE *snmptm_create_tblfive_entry(SNMPTM_CB *snmptm,
    if(NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&(snmptm->tblfive_tree),
                                                 &(tblfive->tblfive_pat_node)))
    {
-      m_NCS_CONS_PRINTF("\nNot able add TBLFIVE node to TBLFIVE tree.\n");
+      printf("\nNot able add TBLFIVE node to TBLFIVE tree.\n");
 
       /* Free the alloc memory of TBLFIVE */
       m_MMGR_FREE_SNMPTM_TBLFIVE(tblfive);
@@ -82,7 +82,7 @@ SNMPTM_TBLFIVE *snmptm_create_tblfive_entry(SNMPTM_CB *snmptm,
    tblfive->tblfive_row_status = NCSMIB_ROWSTATUS_ACTIVE; 
 
    ip_addr = ntohl(tblfive_key->ip_addr.info.v4);
-   m_NCS_CONS_PRINTF("\n\n ROW created in the TBLFIVE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
+   printf("\n\n ROW created in the TBLFIVE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),
                                             (uns8)(ip_addr >> 8),
                                             (uns8)(ip_addr)); 

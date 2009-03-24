@@ -88,7 +88,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
       data2 = fp_evt->EventDataUnion.SensorEvent.Oem;
    else
    {
-      m_NCS_CONS_PRINTF("Non OEM sensor specific firmware progress event\n");
+      printf("Non OEM sensor specific firmware progress event\n");
       ncshm_give_hdl(gl_hcd_hdl);
       return NCSCC_RC_SUCCESS;
    }
@@ -114,7 +114,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
             sim_cb->fwprog_done[epath->Entry[2].EntityInstance] = 0;
       }
       else
-         m_NCS_CONS_PRINTF("dropped a set event receiver logic triggered event\n");
+         printf("dropped a set event receiver logic triggered event\n");
    }
    else
    if ((offset == HPI_EVT_FWPROG_ERROR) && (data2 >= HPI_SE_FWPROG_CODE_OFFSET))
@@ -123,7 +123,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
       m_LOG_HISV_FWERR(data2, NCSFL_SEV_ALERT, epath->Entry[2].EntityInstance);
    }
    else
-      m_NCS_CONS_PRINTF("Firmware progress event %d %2x received from resource %d\n", offset, data2, epath->Entry[2].EntityInstance);
+      printf("Firmware progress event %d %2x received from resource %d\n", offset, data2, epath->Entry[2].EntityInstance);
 #else
    if ((offset == HPI_EVT_FWPROG_PROG) && (data2 >= HPI_SE_FWPROG_CODE_OFFSET) &&
        (epath->Entry[1].EntityLocation <= MAX_NUM_SLOTS))
@@ -139,7 +139,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
             sim_cb->fwprog_done[epath->Entry[1].EntityLocation] = 0;
       }
       else
-         m_NCS_CONS_PRINTF("dropped a set event receiver logic triggered event\n");
+         printf("dropped a set event receiver logic triggered event\n");
    }
    else
    if ((offset == HPI_EVT_FWPROG_ERROR) && (data2 >= HPI_SE_FWPROG_CODE_OFFSET))
@@ -148,7 +148,7 @@ sim_log_fprog_evt (SIM_EVT *evt)
       m_LOG_HISV_FWERR(data2, NCSFL_SEV_ALERT, epath->Entry[1].EntityLocation);
    }
    else
-      m_NCS_CONS_PRINTF("Firmware progress event %d %2x received from resource %d\n", offset, data2, epath->Entry[1].EntityLocation);
+      printf("Firmware progress event %d %2x received from resource %d\n", offset, data2, epath->Entry[1].EntityLocation);
 #endif
    
    ncshm_give_hdl(gl_hcd_hdl);

@@ -77,7 +77,7 @@ uns32 snmptm_scalar_tbl_req(struct ncsmib_arg *args)
    if((args->i_policy & NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER) ==
          NCSMIB_POLICY_PSS_LAST_PLBCK_TRIGGER)
    {
-      m_NCS_CONS_PRINTF("For TBLSCALAR, last playback update from PSS received...]n");
+      printf("For TBLSCALAR, last playback update from PSS received...]n");
    }
 
    /* call the mib routine handler */ 
@@ -117,7 +117,7 @@ uns32 ncstestscalars_set(NCSCONTEXT cb,
    NCSMIB_SET_RSP  *io_set_rsp = &arg->rsp.info.set_rsp; 
    uns32           rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_CONS_PRINTF("\nncsTestScalars:  Received SNMP SET request\n\n");
+   printf("\nncsTestScalars:  Received SNMP SET request\n\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg);
 
@@ -275,7 +275,7 @@ uns32 ncstestscalars_rmvrow(NCSCONTEXT cb_hdl, NCSMIB_IDX *idx)
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_CONS_PRINTF("\nncsTestScalars:  Received SNMP REMOVEROWS request\n\n");
+   printf("\nncsTestScalars:  Received SNMP REMOVEROWS request\n\n");
 
    /* Now, initialize(memset) the scalar row */
    memset(&snmptm->scalars, '\0', sizeof(snmptm->scalars));

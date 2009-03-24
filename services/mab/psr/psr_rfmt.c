@@ -105,9 +105,9 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
 
    memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
 
-   m_NCS_CONS_PRINTF("\nDest_file: %s", dest_file);
-   m_NCS_CONS_PRINTF("\nSource_file: %s", source_file);
-   m_NCS_CONS_PRINTF("\nStart_offset: %d", start_offset);
+   printf("\nDest_file: %s", dest_file);
+   printf("\nSource_file: %s", source_file);
+   printf("\nStart_offset: %d", start_offset);
    /* Get the file size to determine how many times to read */
    inst_file.info.size.i_file_name = source_file;
    if(NCSCC_RC_SUCCESS != m_NCS_OS_FILE(&inst_file, NCS_OS_FILE_SIZE))
@@ -118,7 +118,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
 
    rem_file_size = (inst_file.info.size.o_file_size - start_offset);
 
-   m_NCS_CONS_PRINTF("\nfilesize: %d\t rem_file_size: %d", inst_file.info.size.o_file_size, rem_file_size);
+   printf("\nfilesize: %d\t rem_file_size: %d", inst_file.info.size.o_file_size, rem_file_size);
    /* Now open source file for reading */
    memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    inst_file.info.open.i_file_name = source_file;
@@ -157,7 +157,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
        goto closeallfiles;
    }
 
-   m_NCS_CONS_PRINTF("\nfile size: %d", rem_file_size);
+   printf("\nfile size: %d", rem_file_size);
    memset(&src_inst_file, '\0', sizeof(NCS_OS_FILE));
    memset(&dest_inst_file, '\0', sizeof(NCS_OS_FILE));
    src_inst_file.info.read.i_file_handle = (void *) src_file_handle;
@@ -179,7 +179,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
       bytes_read = src_inst_file.info.read.o_bytes_read;
       if(NCSCC_RC_SUCCESS != retval || bytes_read != read_bytes)
       {
-         m_NCS_CONS_PRINTF("\nRead on file %s failed", source_file);
+         printf("\nRead on file %s failed", source_file);
          pss_retval = PSSRC_SRCFILEREAD_FAILURE;
          goto closeallfiles;
       }
@@ -189,7 +189,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
     
       if(NCSCC_RC_SUCCESS != m_NCS_FILE_OP (&dest_inst_file, NCS_OS_FILE_WRITE))
       {
-         m_NCS_CONS_PRINTF("\nWrite on file %s failed", dest_file);
+         printf("\nWrite on file %s failed", dest_file);
          pss_retval = PSSRC_DESTFILEWRITE_FAILURE;
          goto closeallfiles;
       }
@@ -197,7 +197,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
       rem_file_size -= bytes_read;
    }
 
-   m_NCS_CONS_PRINTF("\nEnd of while: rem_file_size %d", rem_file_size);
+   printf("\nEnd of while: rem_file_size %d", rem_file_size);
 
    memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* Get the file size to determine how many times to read */
@@ -208,7 +208,7 @@ PSS_RETURN_CODES pss_fappend(char *dest_file, char *source_file, uns32 start_off
       return PSSRC_SRCFILESIZE_FAILURE;
    }
 
-   m_NCS_CONS_PRINTF("\nReached End file_size: %d", inst_file.info.size.o_file_size);
+   printf("\nReached End file_size: %d", inst_file.info.size.o_file_size);
 
 closeallfiles:
    if (src_file_handle != 0)
@@ -292,7 +292,7 @@ uns32 pss_tbl_details_header_read(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl, PS
        m_LOG_PSS_STORE_C(NCSFL_SEV_ERROR, PSS_MIB_TABLE_DETAILS_READ_FAIL, src_file_id);
        return retval;
    }
-   m_NCS_CONS_PRINTF("\nRead Header details: \n\theader_len: %d \n\tPS_FORMAT: %d \n\tTableVersion: %d \n\tmax_row_length: %d\n\tmax_key_length: %d \n\tbitmap_length: %d", hdr->header_len, hdr->ps_format_version, hdr->table_version, hdr->max_row_length, hdr->max_key_length, hdr->bitmap_length);
+   printf("\nRead Header details: \n\theader_len: %d \n\tPS_FORMAT: %d \n\tTableVersion: %d \n\tmax_row_length: %d\n\tmax_key_length: %d \n\tbitmap_length: %d", hdr->header_len, hdr->ps_format_version, hdr->table_version, hdr->max_row_length, hdr->max_key_length, hdr->bitmap_length);
 
    if(hdr->header_len < PSS_MIN_TABLE_DETAILS_HEADER_LEN)
    {
@@ -335,7 +335,7 @@ uns32 pss_tbl_details_header_write(PSS_CB *inst, uns32 ts_hdl, long tfile_hdl,
    hdr.max_row_length = inst->mib_tbl_desc[tbl_id]->max_row_length;
    hdr.max_key_length = inst->mib_tbl_desc[tbl_id]->max_key_length;
    hdr.bitmap_length = inst->mib_tbl_desc[tbl_id]->bitmap_length;
-   m_NCS_CONS_PRINTF("\nFilling Header details: \n\theader_len: %d \n\tPS_FORMAT: %d \n\tTableVersion: %d \n\tmax_row_length: %d\n\tmax_key_length: %d \n\tbitmap_length: %d\n", hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
+   printf("\nFilling Header details: \n\theader_len: %d \n\tPS_FORMAT: %d \n\tTableVersion: %d \n\tmax_row_length: %d\n\tmax_key_length: %d \n\tbitmap_length: %d\n", hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
 
    m_NCS_PSSTS_FILE_WRITE(inst->pssts_api, ts_hdl, retval,
                          tfile_hdl, PSS_TABLE_DETAILS_HEADER_LEN, (char*)&hdr);
@@ -371,7 +371,7 @@ uns32 pss_store_reformatting_1_to_1ext(PSS_CB *inst, PSS_TABLE_PATH_RECORD *rec)
    uns32         final_retval = NCSCC_RC_SUCCESS;
    long         tfile_hdl = 0;
 
-   m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_1_TO_1EXT");
+   printf("\nEntered case PSS_REFORMAT_TYPE_STORE_1_TO_1EXT");
 
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_1_TO_1EXT_START,
                     rec->tbl_id);
@@ -385,7 +385,7 @@ uns32 pss_store_reformatting_1_to_1ext(PSS_CB *inst, PSS_TABLE_PATH_RECORD *rec)
       m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_SET_OPEN_TEMP_FILE_FAIL);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_CONS_PRINTF("\nOpening Temporary file success");
+   printf("\nOpening Temporary file success");
  
  /* Write the table details header into <tbl_id>_tbl_details file and save it in proper location */
    final_retval = pss_tbl_details_header_write(inst, inst->pssts_hdl, tfile_hdl, rec);
@@ -400,7 +400,7 @@ uns32 pss_store_reformatting_1_to_1ext(PSS_CB *inst, PSS_TABLE_PATH_RECORD *rec)
       m_NCS_PSSTS_DELETE_TEMP_FILE(inst->pssts_api, inst->pssts_hdl, retval);
       return final_retval;
    }
-   m_NCS_CONS_PRINTF("Profile: %s, PWE: %d, PCN: %s, TBL: %d", rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
+   printf("Profile: %s, PWE: %d, PCN: %s, TBL: %d", rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
    m_NCS_PSSTS_MOVE_TBL_DETAILS_FILE(inst->pssts_api, inst->pssts_hdl, retval,
                                      rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
    if(NCSCC_RC_SUCCESS != retval)
@@ -410,7 +410,7 @@ uns32 pss_store_reformatting_1_to_1ext(PSS_CB *inst, PSS_TABLE_PATH_RECORD *rec)
       m_NCS_PSSTS_DELETE_TEMP_FILE(inst->pssts_api, inst->pssts_hdl, retval);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_CONS_PRINTF("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_1_TO_1EXT", rec->tbl_id);
+   printf("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_1_TO_1EXT", rec->tbl_id);
 
    return NCSCC_RC_SUCCESS;
 }
@@ -502,13 +502,13 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
    char               src_file_id[NCS_PSSTS_MAX_PATH_LEN] = "\0";
    uns32              retval = NCSCC_RC_SUCCESS;
 
-   m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_1EXT_TO_HIGHER");
+   printf("\nEntered case PSS_REFORMAT_TYPE_STORE_1EXT_TO_HIGHER");
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_1_TO_1EXT_START, rec->tbl_id);
 
    memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    snprintf(dest_file_path, sizeof(dest_file_path)-1, "%s%d/%s/%d/%s/%d_tbl_details",
                           NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
-   m_NCS_CONS_PRINTF("\n dest_file_path : %s", dest_file_path);
+   printf("\n dest_file_path : %s", dest_file_path);
    inst_file.info.file_exists.i_file_name = dest_file_path;
    m_NCS_OS_FILE(&inst_file, NCS_OS_FILE_EXISTS);
    if(inst_file.info.file_exists.o_file_exists == TRUE)
@@ -516,7 +516,7 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
       /* Prefixing table details to the persistent file of the table */
       snprintf(source_file_path, sizeof(source_file_path)-1, "%s%d/%s/%d/%s/%d",
                      NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
-      m_NCS_CONS_PRINTF("\n source_file_path : %s", source_file_path);
+      printf("\n source_file_path : %s", source_file_path);
 
       /* Now Source_file is persistent of the table i.e., <tbl_id>
              Dest_file is <tbl_id>_tbl_details file */
@@ -542,7 +542,7 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
          snprintf(src_file_id, sizeof(src_file_id)-1, "%d", rec->tbl_id);
          /* Log that appending the files failed */
          pss_log_pss_return_codes(pss_retval, src_file_id, dest_file_id);
-         m_NCS_CONS_PRINTF("\nFailed to append the file");
+         printf("\nFailed to append the file");
       }
    }
    else
@@ -552,7 +552,7 @@ uns32 pss_store_reformatting_1ext_to_higher(PSS_CB *inst, uns32 ts_hdl, PSS_TABL
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_ERR_TABLE_FOUND, rec->tbl_id);
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_TABLE_DETAILS_EXISTS_ON_PERSISTENT_STORE, rec->tbl_id);
       m_NCS_PSSTS_FILE_DELETE(inst->pssts_api, ts_hdl, retval, rec->profile, rec->pwe_id, rec->pcn, rec->tbl_id);
-      m_NCS_CONS_PRINTF("\nINCONSISTENT ...%d... PSS_REFORMAT_TYPE_STORE_1EXT_TO_HIGHER", rec->tbl_id);
+      printf("\nINCONSISTENT ...%d... PSS_REFORMAT_TYPE_STORE_1EXT_TO_HIGHER", rec->tbl_id);
    }
    return NCSCC_RC_SUCCESS;
 }
@@ -593,7 +593,7 @@ uns32 pss_store_reformatting_higher_to_2(PSS_CB *inst, uns32 ts_hdl,
 
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_HIGHER_TO_2_START,
                     rec->tbl_id);
-   m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_HIGHER_TO_2");
+   printf("\nEntered case PSS_REFORMAT_TYPE_STORE_HIGHER_TO_2");
    /* Write table details header of format 2 */
    /* Open the temporary file for writing table details */
    m_NCS_PSSTS_FILE_OPEN_TEMP(inst->pssts_api, ts_hdl, retval, tfile_hdl);
@@ -603,7 +603,7 @@ uns32 pss_store_reformatting_higher_to_2(PSS_CB *inst, uns32 ts_hdl,
       m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_SET_OPEN_TEMP_FILE_FAIL);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_CONS_PRINTF("\nOpening temp file success");
+   printf("\nOpening temp file success");
 
    /* Write the table details header into temporary file
                                    and save it in proper location */
@@ -649,12 +649,12 @@ uns32 pss_store_reformatting_higher_to_2(PSS_CB *inst, uns32 ts_hdl,
             NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile,
             rec->pwe_id, rec->pcn, rec->tbl_id);
 
-   m_NCS_CONS_PRINTF("\n temp_file_path : %s", temp_file_path);
-   m_NCS_CONS_PRINTF("\n source_file_path : %s", source_file_path);
+   printf("\n temp_file_path : %s", temp_file_path);
+   printf("\n source_file_path : %s", source_file_path);
    if(PSSRC_SUCCESS == pss_fappend(temp_file_path, source_file_path, hdr.header_len))
    {
       /* Log store reformatting is done for this table */
-      m_NCS_CONS_PRINTF("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_2_TO_1EXT", rec->tbl_id);
+      printf("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_2_TO_1EXT", rec->tbl_id);
       m_NCS_PSSTS_FILE_COPY_TEMP(inst->pssts_api, ts_hdl, retval, rec->profile,
                                  rec->pwe_id, rec->pcn, rec->tbl_id);
       if (NCSCC_RC_SUCCESS != retval)
@@ -707,7 +707,7 @@ uns32 pss_store_reformatting_higher_to_1ext(PSS_CB *inst, uns32 ts_hdl,
 
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_HIGHER_TO_1EXT_START,
                     rec->tbl_id);
-   m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_STORE_2_TO_1EXT");
+   printf("\nEntered case PSS_REFORMAT_TYPE_STORE_2_TO_1EXT");
    /* Create <tbl_id>_tbl_details file */
    /* Open the temporary file for writing table details */
    m_NCS_PSSTS_FILE_OPEN_TEMP(inst->pssts_api, ts_hdl, retval, tfile_hdl);
@@ -717,7 +717,7 @@ uns32 pss_store_reformatting_higher_to_1ext(PSS_CB *inst, uns32 ts_hdl,
       m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN2_SET_OPEN_TEMP_FILE_FAIL);
       return NCSCC_RC_FAILURE;
    }
-   m_NCS_CONS_PRINTF("\nOpening temp file success");
+   printf("\nOpening temp file success");
 
    /* Write the table details header into <tbl_id>_tbl_details file
                                    and save it in proper location */
@@ -761,12 +761,12 @@ uns32 pss_store_reformatting_higher_to_1ext(PSS_CB *inst, uns32 ts_hdl,
             NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile,
             rec->pwe_id, rec->pcn, rec->tbl_id);
 
-   m_NCS_CONS_PRINTF("\n temp_file_path : %s", temp_file_path);
-   m_NCS_CONS_PRINTF("\n source_file_path : %s", source_file_path);
+   printf("\n temp_file_path : %s", temp_file_path);
+   printf("\n source_file_path : %s", source_file_path);
    if(PSSRC_SUCCESS == pss_fappend(temp_file_path, source_file_path, PSS_TABLE_DETAILS_HEADER_LEN))
    {
       /* Log store reformatting is done for this table */
-      m_NCS_CONS_PRINTF("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_2_TO_1EXT", rec->tbl_id);
+      printf("\nDone ...%d... PSS_REFORMAT_TYPE_STORE_2_TO_1EXT", rec->tbl_id);
       m_NCS_PSSTS_FILE_COPY_TEMP(inst->pssts_api, ts_hdl, retval, rec->profile,
                                  rec->pwe_id, rec->pcn, rec->tbl_id);
       if (NCSCC_RC_SUCCESS != retval)
@@ -816,7 +816,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
 
    m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_STORE_REFORMATTING_FROM_HIGHER_TO_1EXT_START,
                     rec->tbl_id);
-   m_NCS_CONS_PRINTF("\nEntered case PSS_REFORMAT_TYPE_MIB_IS_READY");
+   printf("\nEntered case PSS_REFORMAT_TYPE_MIB_IS_READY");
    memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
    /* The persistent store format version registered with targsvcs could be
       different with the version in which the table details file is being opened.
@@ -826,7 +826,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
             NCS_PSS_DEF_PSSV_ROOT_PATH, rec->ps_format_version, rec->profile,
             rec->pwe_id, rec->pcn, rec->tbl_id);
 
-   m_NCS_CONS_PRINTF("\ndest_file_path: %s", dest_file_path);
+   printf("\ndest_file_path: %s", dest_file_path);
    inst_file.info.file_exists.i_file_name = dest_file_path;
    m_NCS_OS_FILE(&inst_file, NCS_OS_FILE_EXISTS);
 
@@ -868,7 +868,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
          return NCSCC_RC_FAILURE;
       }
 
-      m_NCS_CONS_PRINTF("\nfile_size : %d, hdr.max_row_length: %d", file_size, hdr.max_row_length);
+      printf("\nfile_size : %d, hdr.max_row_length: %d", file_size, hdr.max_row_length);
 
       if(file_size == 0)
       {
@@ -913,7 +913,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
          (hdr.max_key_length == tbl_info->max_key_length) &&
          (hdr.bitmap_length == tbl_info->bitmap_length))
          {
-            m_NCS_CONS_PRINTF("\n No change in the table_version and the table details are consistent: %d", rec->tbl_id);
+            printf("\n No change in the table_version and the table details are consistent: %d", rec->tbl_id);
             if (file_hdl != 0)
                m_NCS_PSSTS_FILE_CLOSE(inst->pssts_api, ts_hdl, retval, file_hdl);
             return NCSCC_RC_SUCCESS;
@@ -926,7 +926,7 @@ uns32 pss_verify_n_mib_reformat(PSS_CB *inst, uns32 ts_hdl,
                                hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length,
                                tbl_info->i_tbl_version, tbl_info->max_row_length,
                                tbl_info->max_key_length, tbl_info->bitmap_length);
-            m_NCS_CONS_PRINTF("\nINCONSISTENT: Table_version is not changed but table details are changed: %d", rec->tbl_id);
+            printf("\nINCONSISTENT: Table_version is not changed but table details are changed: %d", rec->tbl_id);
             if (file_hdl != 0)
                m_NCS_PSSTS_FILE_CLOSE(inst->pssts_api, ts_hdl, retval, file_hdl);
             return NCSCC_RC_FAILURE;
@@ -1049,7 +1049,7 @@ uns32 pss_mib_reformat(PSS_CB *inst, uns32 ts_hdl, long file_hdl, uns32 file_siz
    where there could be extensions in Table details header */
    if(hdr->header_len > PSS_TABLE_DETAILS_HEADER_LEN)
    {
-      m_NCS_CONS_PRINTF("\nhdr->header_len: %d > PSS_TABLE_DETAILS_HEADER_LEN: %d ", hdr->header_len, PSS_TABLE_DETAILS_HEADER_LEN);
+      printf("\nhdr->header_len: %d > PSS_TABLE_DETAILS_HEADER_LEN: %d ", hdr->header_len, PSS_TABLE_DETAILS_HEADER_LEN);
       /* Moving the file position indicator to point the first record */
       memset(&inst_file, '\0', sizeof(NCS_OS_FILE));
       inst_file.info.seek.i_file_handle = (void *)(long) file_hdl;
@@ -1210,8 +1210,8 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
     struct dirent              **tbl_list;
     NCS_UBAID                  lcl_uba;
 
-    m_NCS_CONS_PRINTF("Entered pss_reformat, reformat_type: %d\n", reformat_type);
-    m_NCS_CONS_PRINTF("cur_ps_format: %d\n", cur_ps_format);
+    printf("Entered pss_reformat, reformat_type: %d\n", reformat_type);
+    printf("cur_ps_format: %d\n", cur_ps_format);
     m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_REFORMAT_REQUEST, reformat_type);
 
     do /* Loop for all profiles in the cur_ps_format */
@@ -1235,7 +1235,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
           PSS_MIB_TBL_INFO     *tbl_info = NULL;
           char                 pcn[NCSMIB_PCN_LENGTH_MAX];
 
-          m_NCS_CONS_PRINTF("\nProfile found: %s", profile_next);
+          printf("\nProfile found: %s", profile_next);
           m_LOG_PSS_HDLN_STR(NCSFL_SEV_NOTICE, PSS_HDLN_PROFILE_FOUND, profile_next);
 
           /* Profile exists */
@@ -1251,7 +1251,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
 
           /* Decode the USRBUF for clients information */
           buff_len = m_MMGR_LINK_DATA_LEN(buff);
-          m_NCS_CONS_PRINTF("\nbuff_len: %d", buff_len);
+          printf("\nbuff_len: %d", buff_len);
           if(buff_len == 0)
           {
              /* No Clients in the profile */
@@ -1272,7 +1272,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
           }
           pwe_cnt = ncs_decode_16bit(&buff_ptr);
           ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
-          m_NCS_CONS_PRINTF("\npwe_cnt: %d", pwe_cnt);
+          printf("\npwe_cnt: %d", pwe_cnt);
           m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_PWE_COUNT, pwe_cnt);
 
           /* Creating _ISU profile */
@@ -1301,7 +1301,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
              pwe_id = ncs_decode_16bit(&buff_ptr);
              ncs_dec_skip_space(&lcl_uba, sizeof(PW_ENV_ID));
 
-             m_NCS_CONS_PRINTF("\npwe_id: %d", pwe_id);
+             printf("\npwe_id: %d", pwe_id);
              m_LOG_PSS_HDLN_I(NCSFL_SEV_NOTICE, PSS_HDLN_PWE_FOUND, pwe_id);
              buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&pcn_cnt, sizeof(uns16));
              if(buff_ptr == NULL)
@@ -1314,7 +1314,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
              pcn_cnt = ncs_decode_16bit(&buff_ptr);
              ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
 
-             m_NCS_CONS_PRINTF("\npcn_cnt: %d", pcn_cnt);
+             printf("\npcn_cnt: %d", pcn_cnt);
              m_LOG_PSS_HDLN_I(NCSFL_SEV_DEBUG, PSS_HDLN_PCN_COUNT, pcn_cnt);
              for(k = 0; k < pcn_cnt; k++) /* Loop for all PCNs */
              {
@@ -1328,7 +1328,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                 }
                 str_len = ncs_decode_16bit(&buff_ptr);
                 ncs_dec_skip_space(&lcl_uba, sizeof(uns16));
-                m_NCS_CONS_PRINTF("\nstr_len: %d", str_len);
+                printf("\nstr_len: %d", str_len);
                 memset(pcn, '\0', sizeof(NCSMIB_PCN_LENGTH_MAX));
                 if(NCSCC_RC_SUCCESS != ncs_decode_n_octets_from_uba(&lcl_uba, (char*)&pcn, str_len))
                 {
@@ -1345,9 +1345,9 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                          root_dir, cur_ps_format, profile_next, pwe_id, pcn);
                 /* None of the Leap implementations accept filter routines,
                    they always pass NULL- Thats the reason scandir is used directly */
-                m_NCS_CONS_PRINTF("\nPCN_PATH: %s", pcn_path);
+                printf("\nPCN_PATH: %s", pcn_path);
                 table_cnt = scandir(pcn_path, &tbl_list, NULL, NULL);
-                m_NCS_CONS_PRINTF("\ntable_cnt: %d", table_cnt);
+                printf("\ntable_cnt: %d", table_cnt);
                 if (table_cnt < 0)
                 {
                    m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_SCAN_DIR_FAILED);
@@ -1362,7 +1362,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                     {
                        char *endptr = NULL;
 
-                       m_NCS_CONS_PRINTF("%s\n", tbl_list[table_cnt]->d_name);
+                       printf("%s\n", tbl_list[table_cnt]->d_name);
                        tbl_id = strtol(tbl_list[table_cnt]->d_name, &endptr, 0);
                        if(*endptr)
                        {
@@ -1370,7 +1370,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                           free(tbl_list[table_cnt]);
                           continue;
                        }
-                       m_NCS_CONS_PRINTF("%d\n", tbl_id);
+                       printf("%d\n", tbl_id);
                        if(NULL != (tbl_info = inst->mib_tbl_desc[tbl_id]))
                        {
                           tbl_info = inst->mib_tbl_desc[tbl_id];
@@ -1452,7 +1452,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
                                                                             pwe_id, pcn, tbl_id);
                        }
 
-                       m_NCS_CONS_PRINTF("\nDone with table %d\n", tbl_id);
+                       printf("\nDone with table %d\n", tbl_id);
                        free(tbl_list[table_cnt]);
                     } /* End of while (table_cnt--) */
                     free(tbl_list);
@@ -1491,7 +1491,7 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
 
     m_NCS_PSSTS_DELETE_TEMP_FILE(inst->pssts_api, inst->pssts_hdl, retval);
 
-    m_NCS_CONS_PRINTF("\n Done with loop COMPLETED WITH ALL PROFILES");
+    printf("\n Done with loop COMPLETED WITH ALL PROFILES");
     if(NCSCC_RC_NO_INSTANCE == get_profile_retval)
     {
        if(PSS_REFORMAT_TYPE_STORE_HIGHER_TO_1EXT == reformat_type)
@@ -1509,14 +1509,14 @@ pss_reformat(PSS_CB *inst, PSS_REFORMAT_TYPE reformat_type, uns32 ts_hdl,
 
        if(PSS_REFORMAT_TYPE_STORE_1_TO_1EXT != reformat_type && PSS_REFORMAT_TYPE_MIB != reformat_type)
        {
-          m_NCS_CONS_PRINTF("\n dest_file_path: %s", dest_file_path);
+          printf("\n dest_file_path: %s", dest_file_path);
           /* Deleting the old persistent store */
           inst_dir.info.copy_dir.i_dir_name = dest_file_path;
           m_NCS_FILE_OP (&inst_dir, NCS_OS_FILE_DELETE_DIR);
    
           snprintf(source_file_path, sizeof(source_file_path)-1, "%s%d",
                                                 root_dir, cur_ps_format);
-          m_NCS_CONS_PRINTF("\n source_file_path: %s", source_file_path);
+          printf("\n source_file_path: %s", source_file_path);
           /* coyping the persistent store */
           inst_dir.info.copy_dir.i_dir_name = source_file_path;
           inst_dir.info.copy_dir.i_new_dir_name = dest_file_path;

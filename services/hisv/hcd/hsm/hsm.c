@@ -206,7 +206,7 @@ uns32 hcd_hsm()
             continue;
          }
 
-      m_NCS_CONS_PRINTF(" HPI event from resource_id=%d\n", RptEntry.ResourceId);
+      printf(" HPI event from resource_id=%d\n", RptEntry.ResourceId);
 
       if(RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))
          {
@@ -272,14 +272,14 @@ uns32 hcd_hsm()
       if (event.EventType != SAHPI_ET_HOTSWAP) 
       {
 #ifdef HAVE_HPI_A01
-         m_NCS_CONS_PRINTF("Non hotswap HPI event from entity_type=%d,%d slot=%d event_type=%d, resource_id=%d\n",
+         printf("Non hotswap HPI event from entity_type=%d,%d slot=%d event_type=%d, resource_id=%d\n",
                             RptEntry.ResourceEntity.Entry[2].EntityType,
                             RptEntry.ResourceEntity.Entry[0].EntityType,
                             RptEntry.ResourceEntity.Entry[2].EntityInstance, event.EventType, RptEntry.ResourceId);
 
          m_LOG_HISV_DEBUG_VAL(HCD_NON_HOTSWAP_TYPE, RptEntry.ResourceEntity.Entry[2].EntityType);
 #else
-         m_NCS_CONS_PRINTF("Non hotswap HPI event from entity_type=%d slot=%d event_type=%d, resource_id=%d\n",
+         printf("Non hotswap HPI event from entity_type=%d slot=%d event_type=%d, resource_id=%d\n",
                             RptEntry.ResourceEntity.Entry[1].EntityType,
                             RptEntry.ResourceEntity.Entry[1].EntityLocation, event.EventType, RptEntry.ResourceId);
 
@@ -291,7 +291,7 @@ uns32 hcd_hsm()
         {
            if(event.EventDataUnion.ResourceEvent.ResourceEventType == SAHPI_RESE_RESOURCE_RESTORED)
            {
-              /* m_NCS_CONS_PRINTF("Resource restored event received\n"); */
+              /* printf("Resource restored event received\n"); */
               publish_curr_hs_state_evt(hsm_cb, &RptEntry);
            }
         }
@@ -301,7 +301,7 @@ uns32 hcd_hsm()
             completes) */
         if (event.EventType == SAHPI_ET_SENSOR)
         {
-            m_NCS_CONS_PRINTF ("Sensor event: Type=%d, Cat=%d, state=%d, prevstate=%d\n", 
+            printf ("Sensor event: Type=%d, Cat=%d, state=%d, prevstate=%d\n", 
                                                         event.EventDataUnion.SensorEvent.SensorType,
                                                         event.EventDataUnion.SensorEvent.EventCategory,
                                                         event.EventDataUnion.SensorEvent.EventState,
@@ -309,14 +309,14 @@ uns32 hcd_hsm()
 
            if(event.EventDataUnion.SensorEvent.SensorType == SAHPI_ENTITY_PRESENCE)
            {
-              m_NCS_CONS_PRINTF("Entity presence sensor event received\n");
+              printf("Entity presence sensor event received\n");
 #ifdef HAVE_HPI_A01
               if (hsm_cb->node_state[RptEntry.ResourceEntity.Entry[2].EntityInstance] == NODE_HS_STATE_NOT_PRESENT)
 #else
               if (hsm_cb->node_state[RptEntry.ResourceEntity.Entry[1].EntityLocation] == NODE_HS_STATE_NOT_PRESENT)
 #endif
               {
-                  m_NCS_CONS_PRINTF("Invoking publish_curr_hs_state_evt to check the HS state of resource\n");
+                  printf("Invoking publish_curr_hs_state_evt to check the HS state of resource\n");
                   publish_curr_hs_state_evt(hsm_cb, &RptEntry);
               }
 
@@ -415,7 +415,7 @@ uns32 hcd_hsm()
                m_LOG_HISV_DTS_CONS("hcd_hsm: saHpiHotSwapPolicyCancel cannot cancel hotswap policy\n");
             }
             else
-               m_NCS_CONS_PRINTF("Extraction: Error taking control of resource Error  %d , Resouce ID %d \n",policy_err,RptEntry.ResourceId );
+               printf("Extraction: Error taking control of resource Error  %d , Resouce ID %d \n",policy_err,RptEntry.ResourceId );
             policy_err=SA_OK;
          }
       }
@@ -465,7 +465,7 @@ uns32 hcd_hsm()
          if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
              &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
          {
-            m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
+            printf("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
          }
       }
       else {
@@ -476,7 +476,7 @@ uns32 hcd_hsm()
            if (hsm_inv_data_proc(*session_id, *domain_id, &Rdr, &RptEntry, &event_data, &actual_size, 
                &invdata_size, min_evt_len) == NCSCC_RC_FAILURE)
            {
-              m_NCS_CONS_PRINTF("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
+              printf("hcd_hsm: Inventory data not found during event type: %d\n", event.EventType);
            }
         }
       }
@@ -486,7 +486,7 @@ uns32 hcd_hsm()
          event_data = m_MMGR_ALLOC_HPI_INV_DATA(min_evt_len + invdata_size);
          if (event_data == NULL)
          {
-            m_NCS_CONS_PRINTF("hcd_hsm: memory error\n");
+            printf("hcd_hsm: memory error\n");
             continue;
          }
          /* invdata_size = 0; */
@@ -645,7 +645,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
    /* differently than ATCA or HP c-Class - because it does not support   */
    /* the 5-state hotswap model.                                          */
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
-   m_NCS_CONS_PRINTF("dispatch_hotswap: target system architecture is: %s\n", arch_type);
+   printf("dispatch_hotswap: target system architecture is: %s\n", arch_type);
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
@@ -675,13 +675,13 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          if (current != SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("dispatch_hotswap: Error saHpiRptEntryGet\n");
-            m_NCS_CONS_PRINTF ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
+            printf ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
             return NCSCC_RC_FAILURE;
          }
          else
          {
             m_LOG_HISV_DTS_CONS("dispatch_hotswap: Empty RPT\n");
-            m_NCS_CONS_PRINTF ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
+            printf ("dispatch_hotswap: saHpiRptEntryGet, HPI error code = %d\n", err);
             rc = NCSCC_RC_FAILURE;
             break;
          }
@@ -719,12 +719,12 @@ dispatch_hotswap(HSM_CB *hsm_cb)
          {
             /* m_LOG_HISV_DTS_CONS("failed to get hotswap state\n"); */
 #ifdef HAVE_HPI_A01
-             m_NCS_CONS_PRINTF("Failed to get hotswap state from entity_type=%d,%d slot=%d, resource_id=%d: Error=%d\n",
+             printf("Failed to get hotswap state from entity_type=%d,%d slot=%d, resource_id=%d: Error=%d\n",
                     entry.ResourceEntity.Entry[2].EntityType,
                     entry.ResourceEntity.Entry[0].EntityType,
                     entry.ResourceEntity.Entry[2].EntityInstance, entry.ResourceId, hpi_rc);
 #else
-             m_NCS_CONS_PRINTF("Failed to get hotswap state from entity_type=%d slot=%d, resource_id=%d: Error=%d\n",
+             printf("Failed to get hotswap state from entity_type=%d slot=%d, resource_id=%d: Error=%d\n",
                     entry.ResourceEntity.Entry[1].EntityType,
                     entry.ResourceEntity.Entry[1].EntityLocation, entry.ResourceId, hpi_rc);
 #endif
@@ -1363,7 +1363,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
    {
       /* restart the session */
       if((session_err=saHpiSessionClose(*session_id))!= SA_OK);
-          m_NCS_CONS_PRINTF("hsm_rediscover:Close session return error :- %d:\n",session_err);
+          printf("hsm_rediscover:Close session return error :- %d:\n",session_err);
 #ifdef HAVE_HPI_A01 
       saHpiFinalize();
 #endif
@@ -1405,7 +1405,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 #endif
          if (SA_OK != err)
          {
-          m_NCS_CONS_PRINTF("hsm_rediscover:open session return error code :- %d:\n",err);
+          printf("hsm_rediscover:open session return error code :- %d:\n",err);
             m_LOG_HISV_DTS_CONS("hsm_rediscover: saHpiSessionReOpen\n");
             rc = NCSCC_RC_FAILURE;
          }
@@ -1438,7 +1438,7 @@ hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id)
 #endif
          {
             m_LOG_HISV_DTS_CONS("hsm_rediscover: saHpiReSubscribe has failed \n");
-            m_NCS_CONS_PRINTF("hsm_rediscover:saHpiSubscribe  session return error code :- %d:\n",val);
+            printf("hsm_rediscover:saHpiSubscribe  session return error code :- %d:\n",val);
 
             hsm_cb->args->session_valid = 0;
             hcd_cb->args->rediscover = 1;
@@ -1870,7 +1870,7 @@ CHECK:
    if ( err != SA_OK )
    {
       /* Note: This data is not available on all hardware platforms. */
-      m_NCS_CONS_PRINTF("hcd_hsm: PRODUCT_INFO for resource %d is not available.\n", RptEntry->ResourceId);
+      printf("hcd_hsm: PRODUCT_INFO for resource %d is not available.\n", RptEntry->ResourceId);
       return(NCSCC_RC_FAILURE);
    }
 
@@ -2037,7 +2037,7 @@ CHECK:
     else
     {
       /* Note: This data is not available on all hardware platforms. */
-      m_NCS_CONS_PRINTF("hcd_hsm: OEM info for resource %d is not available.\n", RptEntry->ResourceId);
+      printf("hcd_hsm: OEM info for resource %d is not available.\n", RptEntry->ResourceId);
       return(NCSCC_RC_FAILURE);
     }
    areaId = next_area; 
@@ -2124,7 +2124,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
 
-   m_NCS_CONS_PRINTF("publish_curr_hs_state_evt ()\n");
+   printf("publish_curr_hs_state_evt ()\n");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
@@ -2158,7 +2158,7 @@ publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *entry)
       if (hpi_rc != SA_OK)
       {
          m_LOG_HISV_DTS_CONS("failed to get hotswap state here\n");
-         m_NCS_CONS_PRINTF("HPI return code=%d\n", hpi_rc);
+         printf("HPI return code=%d\n", hpi_rc);
 
       }
       else

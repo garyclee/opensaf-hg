@@ -198,7 +198,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
       /* Using snprintf directly, because the leap routine does not accept variable arguments, which leads to multiple function calls */
       filter = &persistent_file_filter;
       ps_cnt = scandir(NCS_PSS_DEF_PSSV_ROOT_PATH, &ps_list, filter, NULL);
-      m_NCS_CONS_PRINTF("ps_cnt: %d\n", ps_cnt);
+      printf("ps_cnt: %d\n", ps_cnt);
       if (ps_cnt < 0)
           perror("scandir");
       if(ps_cnt > 2)
@@ -215,12 +215,12 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
       if(ps_cnt >= 1 )
       {
          tmp_ps0 = atoi(ps_list[0]->d_name);
-         m_NCS_CONS_PRINTF("tmp_ps0: %d\n", tmp_ps0);
+         printf("tmp_ps0: %d\n", tmp_ps0);
       }
       if(ps_cnt == 2)
       {
          tmp_ps1 = atoi(ps_list[1]->d_name);
-         m_NCS_CONS_PRINTF("tmp_ps0: %d\n", tmp_ps0);
+         printf("tmp_ps0: %d\n", tmp_ps0);
       }
       if(tmp_ps0 == PSS_PS_FORMAT_VERSION)
       {
@@ -249,7 +249,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
      
          return;
       }
-      m_NCS_CONS_PRINTF("ps_format_version: %d\n", ps_format_version);
+      printf("ps_format_version: %d\n", ps_format_version);
    }
  /* End of 3.0.a addition */
 
@@ -1101,7 +1101,7 @@ pss_amf_csi_set_all(SaInvocationT invocation,
        if (retval != NCSCC_RC_SUCCESS)
            return;
 
-       m_NCS_CONS_PRINTF ("Persistent store with format %d created successfully", PSS_PS_FORMAT_VERSION);
+       printf ("Persistent store with format %d created successfully", PSS_PS_FORMAT_VERSION);
 
        /* Using snprintf directly, because the leap routine does not accept variable arguments,
                                                       which leads to multiple function calls */
