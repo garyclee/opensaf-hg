@@ -3411,7 +3411,7 @@ void ncs_edu_log_msg(char *string)
         return;
 
     fprintf(log_fh, string);
-    sysf_fclose(log_fh);
+    fclose(log_fh);
 
     return;
 }

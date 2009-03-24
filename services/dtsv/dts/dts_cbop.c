@@ -554,7 +554,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
                   ptr += (strlen(str) + 1);
               }
               
-              sysf_fclose(fh);
+              fclose(fh);
           }
           else
               return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "URGENT: dts_dump_log_to_op_device: Unable to Open FILE. Something is going wrong.");

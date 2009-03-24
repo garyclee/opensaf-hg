@@ -638,7 +638,7 @@ lt_fileIO(int argc, char **argv)
     }
     if ((rc = fprintf(fp, "%s", testString)) < 0)
         printf("Failed! printing to  file returned %d\n", rc);
-    if ((rc = sysf_fclose(fp)) != 0)
+    if ((rc = fclose(fp)) != 0)
         printf("Failed! closing file returned %d\n", rc);
 
 
@@ -660,7 +660,7 @@ lt_fileIO(int argc, char **argv)
         printf("Failed! reading file did not match writing file\nFile Contents:\n%s\n", readString);
     }
 
-    if ((rc = sysf_fclose(fp)) != 0)
+    if ((rc = fclose(fp)) != 0)
         printf("Failed! closing file returned %d\n", rc);
 
 lt_fileIO_exit:

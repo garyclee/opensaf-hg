@@ -910,7 +910,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
       /* Cleanup the console devices associated with the node */
       m_DTS_RMV_ALL_CONS(dev);
       if ((TRUE == node->device.file_open) && (node->device.svc_fh != NULL))
-         sysf_fclose(node->device.svc_fh);
+         fclose(node->device.svc_fh);
       ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node);
       m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, node->my_key.ss_svc_id, node->my_key.node, (uns32)vkey);
       if (NULL != node)
@@ -1255,7 +1255,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
           * old file is getting closed when we are creating a new file.
           */
         if ((TRUE == device->file_open) && (device->svc_fh != NULL))
-             sysf_fclose(device->svc_fh);
+             fclose(device->svc_fh);
 
          if (NULL == (device->svc_fh = sysf_fopen(m_DTS_LOG_FILE_NAME(device), "a+")))
              return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_log_msg: Failed to open log file");
@@ -1644,7 +1644,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 
           count += (CARRIAGE_RETURN + 
               fprintf(fh, "************************************************************************\n"));
-          sysf_fclose(fh);
+          fclose(fh);
       } 
       else
           return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: Failed to open log file");
@@ -1788,7 +1788,7 @@ uns32 dts_close_opened_files (void)
     /* First close files in global policy */
     if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
     {
-       sysf_fclose(inst->g_policy.device.svc_fh);
+       fclose(inst->g_policy.device.svc_fh);
        inst->g_policy.device.file_open = FALSE;
        inst->g_policy.device.new_file = TRUE;
        inst->g_policy.device.svc_fh = NULL;
@@ -1807,7 +1807,7 @@ uns32 dts_close_opened_files (void)
         nt_key  = service->ntwk_key;
         if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
         {
-            sysf_fclose(service->device.svc_fh);
+            fclose(service->device.svc_fh);
             service->device.file_open = FALSE;
             service->device.new_file = TRUE;
             service->device.svc_fh = NULL;
@@ -1843,7 +1843,7 @@ uns32 dts_close_files_quiesced (void)
     /* First close files in global policy */
     if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
     {
-       sysf_fclose(inst->g_policy.device.svc_fh);
+       fclose(inst->g_policy.device.svc_fh);
        inst->g_policy.device.svc_fh = NULL;
     }
 
@@ -1854,7 +1854,7 @@ uns32 dts_close_files_quiesced (void)
         nt_key  = service->ntwk_key;
         if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
         {
-            sysf_fclose(service->device.svc_fh);
+            fclose(service->device.svc_fh);
             service->device.svc_fh = NULL;
         }
         service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8*)&nt_key);
@@ -2660,7 +2660,7 @@ uns32 dts_print_current_config(DTS_CB *cb)
       dts_print_svc_reg_pat(cb, fh);
       m_DTS_UNLK(&cb->lock);
       fflush(fh);
-      sysf_fclose(fh);
+      fclose(fh);
    }
    else
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_print_current_config: Failed to open file for printing configuration data");

@@ -1904,7 +1904,7 @@ uns32 sm_cpu_stats(NCSSYSM_CPU_STATS* info)
 
     if (((to_file == TRUE)) && fh) 
     {
-      sysf_fclose(fh);
+      fclose(fh);
     }
 
   }
@@ -2004,7 +2004,7 @@ uns32 sm_mem_stats(NCSSYSM_MEM_STATS* info)
 
       if (((to_file == TRUE)) && fh) 
       {
-        sysf_fclose(fh);
+        fclose(fh);
       }
       
   }
@@ -2204,7 +2204,7 @@ uns32 sm_buf_stats(NCSSYSM_BUF_STATS* info)
       
       if (((to_file == TRUE)) && fh) 
       {
-        sysf_fclose(fh);
+        fclose(fh);
       }
       
   }
@@ -2328,7 +2328,7 @@ uns32 sm_ipc_stats(NCSSYSM_IPC_STATS* info)
     
     if (((to_file == TRUE)) && fh) 
     {
-      sysf_fclose(fh);
+      fclose(fh);
     }
     
   }
@@ -2461,7 +2461,7 @@ uns32 sm_mem_rpt_thup(NCSSYSM_MEM_RPT_THUP*  info)
 
       if (((to_file == TRUE)) && fh) 
       {
-        sysf_fclose(fh);
+        fclose(fh);
       }   
   }
 
@@ -2595,7 +2595,7 @@ uns32 sm_mem_rpt_ssup(NCSSYSM_MEM_RPT_SSUP*  info)
       
       if (((to_file == TRUE)) && fh) 
          {
-         sysf_fclose(fh);
+         fclose(fh);
          }
       
       }
@@ -2745,7 +2745,7 @@ uns32 sm_mem_rpt_wo  (NCSSYSM_MEM_RPT_WO*    info)
       
       if (((to_file == TRUE)) && fh) 
          {
-         sysf_fclose(fh);
+         fclose(fh);
          }
       
   }
@@ -2954,7 +2954,7 @@ uns32 sm_mem_rpt_wos (NCSSYSM_MEM_RPT_WOS*   info)
       
       if (((to_file == TRUE)) && fh) 
          {
-         sysf_fclose(fh);
+         fclose(fh);
          }
       
   }
