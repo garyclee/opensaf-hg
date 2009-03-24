@@ -102,7 +102,7 @@ struct msgbuf
 #define USE(x)                  (x=x)
 #define CONST_USE(x) {void * dummy = &x;}
 
-#define m_NCS_OS_SNPRINTF      snprintf
+#define snprintf      snprintf
 
 /*****************************************************************************
 

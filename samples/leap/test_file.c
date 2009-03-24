@@ -78,7 +78,7 @@ lt_file_ops(int argc, char **argv)
     file_handle.info.write.i_buffer      = (uns8 *) data;
     memset(data, 'a', sizeof(data) - 1);
     data[511] = '\0';
-    m_NCS_OS_SNPRINTF(data, sizeof(data) - 1, "Test string, testing file io operations\n");
+    snprintf(data, sizeof(data) - 1, "Test string, testing file io operations\n");
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_WRITE);
     if (NCSCC_RC_SUCCESS != retval)
@@ -256,7 +256,7 @@ lt_file_ops(int argc, char **argv)
     file_handle.info.write.i_buffer      = (uns8 *) data;
     memset(data, 'a', sizeof(data) - 1);
     data[511] = '\0';
-    m_NCS_OS_SNPRINTF(data, sizeof(data) - 1, "Test string, testing file io operations\n");
+    snprintf(data, sizeof(data) - 1, "Test string, testing file io operations\n");
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_WRITE);
     if (NCSCC_RC_SUCCESS != retval)
