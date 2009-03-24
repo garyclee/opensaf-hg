@@ -92,7 +92,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
 
             status = getpid();
 
-            status = sysf_fprintf(fp, "%d", status);
+            status = fprintf(fp, "%d", status);
             if(status < 1)
             {
                 fclose(fp);

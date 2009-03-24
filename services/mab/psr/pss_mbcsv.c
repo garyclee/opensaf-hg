@@ -3325,7 +3325,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
             entry_exists = TRUE;
       }
       if(entry_exists == FALSE)
-         sysf_fprintf(fh, "%s %s\n", libname, appname);
+         fprintf(fh, "%s %s\n", libname, appname);
    }
 
    fseek(fh, 0L, SEEK_SET);
@@ -3502,9 +3502,9 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
       tmp->plbck_frm_bam = boolean_val;
 
       if(tmp->plbck_frm_bam)
-         sysf_fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_BAM);
+         fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_BAM);
       else
-         sysf_fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_PSSV);
+         fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_PSSV);
 
       tmp->next = list;
       list = tmp;

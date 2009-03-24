@@ -1271,7 +1271,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
           return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
           "dtsv_log_msg: Unbale to dump message. Either file handle is NULL or file is not opened properly");
       }
-      device->cur_file_size += (CARRIAGE_RETURN + sysf_fprintf(device->svc_fh,str));
+      device->cur_file_size += (CARRIAGE_RETURN + fprintf(device->svc_fh,str));
 
       fflush(device->svc_fh);
    }
@@ -1608,42 +1608,42 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       if ((fh= sysf_fopen(file, "a+")) != NULL)
       {
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "*********************** F I L E   H E A D E R **************************\n"));
+              fprintf(fh, "*********************** F I L E   H E A D E R **************************\n"));
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "**   Logging Type  = %s\n", logging_type[file_type]));
+              fprintf(fh, "**   Logging Type  = %s\n", logging_type[file_type]));
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "**   Creation Time = %s\n", asc_dtime));
+              fprintf(fh, "**   Creation Time = %s\n", asc_dtime));
 
           if (file_type == GLOBAL_FILE)
           {
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Node ID       = %s\n", "ALL"));
+                  fprintf(fh, "**   Node ID       = %s\n", "ALL"));
 
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", "ALL"));
+                  fprintf(fh, "**   Service Name  = %s\n", "ALL"));
           }
           else if (file_type == PER_SVC_FILE)
           {
               count += (CARRIAGE_RETURN + 
                   /* Node-id display change */
-                  sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
+                  fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
 
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", name));
+                  fprintf(fh, "**   Service Name  = %s\n", name));
           }
           else
           {
               count += (CARRIAGE_RETURN + 
                   /* Node-id display change */
-                  sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
+                  fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", "ALL"));
+                  fprintf(fh, "**   Service Name  = %s\n", "ALL"));
           }
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "************************************************************************\n"));
+              fprintf(fh, "************************************************************************\n"));
           sysf_fclose(fh);
       } 
       else

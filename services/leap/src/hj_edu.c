@@ -3410,7 +3410,7 @@ void ncs_edu_log_msg(char *string)
     if(log_fh == NULL)
         return;
 
-    sysf_fprintf(log_fh, string);
+    fprintf(log_fh, string);
     sysf_fclose(log_fh);
 
     return;
