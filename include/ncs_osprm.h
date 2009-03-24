@@ -669,27 +669,6 @@ typedef int32 int64;
 #define m_NCS_OS_DLIB_CLOSE(lib_hdl)
 #endif
 
-
-/****************************************************************************
- * POSIX Sytem Calls Definitaions 
- ***************************************************************************/
-
-#ifndef m_NCS_OS_POSIX_SIGACTION
-#define m_NCS_OS_POSIX_SIGACTION        sigaction
-#endif
-
-#ifndef m_NCS_OS_POSIX_SIGADDSET
-#define m_NCS_OS_POSIX_SIGADDSET        sigaddset
-#endif
-
-#ifndef m_NCS_OS_POSIX_SIGEMPTYSET
-#define m_NCS_OS_POSIX_SIGEMPTYSET      sigemptyset
-#endif
-
-#ifndef m_NCS_OS_POSIX_SIGPROCMASK
-#define m_NCS_OS_POSIX_SIGPROCMASK      sigprocmask
-#endif
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************
