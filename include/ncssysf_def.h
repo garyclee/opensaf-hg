@@ -132,8 +132,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#define sysf_difftime(t0, t1)  m_NCS_OS_DIFFTIME (t0, t1)
-
 
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
 
