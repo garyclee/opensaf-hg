@@ -194,9 +194,6 @@ extern void ncs_reboot(const char *reason);
 #define m_NCS_GET_UPTIME \
     m_NCS_OS_GET_UPTIME  
 
-#define m_NCS_GETGRGID(gid) \
-    m_NCS_OS_GETGRGID(gid)
-
 #define m_NCS_GETGROUPS(num_of_groups,list) \
     m_NCS_OS_GETGROUPS(num_of_groups,list) 
 
