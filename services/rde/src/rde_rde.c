@@ -560,17 +560,6 @@ uns32 rde_rde_parse_msg(char * msg,RDE_RDE_CB  * rde_rde_cb)
         m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Received RDE_RDE_CLIENT_ROLE_REQUEST from other RDE");
         return req;
     }
-    else if(req == RDE_RDE_REBOOT_CMD)
-    {
-      m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Received RDE_RDE_REBOOT_CMD from other RDE");
-      syslog(LOG_INFO, "Received reboot command from other RDE");
-      sleep(5);
-      rde_rde_close(rde_rde_cb);
-      sleep(5);
-      syslog(LOG_NOTICE, "Rebooting the system...");
-      m_NCS_REBOOT;  
-      exit(0); 
-    }
    else if(req == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ)
    {
     sprintf(log,"Received RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ from other RDE. Peer Slot Number %d",slot_number);

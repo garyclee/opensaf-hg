@@ -160,9 +160,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
 #define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
 
-
-#define m_NCS_REBOOT                   m_NCS_OS_REBOOT
-
 extern void ncs_reboot(const char *reason);
 
 

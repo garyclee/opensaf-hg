@@ -256,9 +256,6 @@ unsigned int linux_char_normalizer(void);
 
 #define __NCSINC_LINUX__
 
-#define m_NCS_OS_REBOOT system("reboot &")
-
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
