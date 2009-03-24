@@ -727,7 +727,7 @@ static void pseudoProcessPipeMsgs()
 
    while(count < (SCRIPT_MSG_SIZE + 1))
    {
-      nBytes = m_NCS_POSIX_READ(pseudoCB.pipeFd, buff + count, (sizeof(buff) - count));
+      nBytes = read(pseudoCB.pipeFd, buff + count, (sizeof(buff) - count));
 
       if (nBytes <= 0)
          break;

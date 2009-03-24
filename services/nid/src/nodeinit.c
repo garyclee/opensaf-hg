@@ -973,7 +973,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
         if (errno == EINTR) continue;
    }
 
-   while(m_NCS_POSIX_READ(filedes[0],&tmp_pid,sizeof(int)) < 0)
+   while(read(filedes[0],&tmp_pid,sizeof(int)) < 0)
        if(errno == EINTR) continue;
        else break;
 
@@ -1366,7 +1366,7 @@ spawn_wait(NID_SPAWN_INFO *service, char *strbuff)
    /******************************************************************
    *  Read the message from FIFO and fill in structure.              *
    ******************************************************************/
-     while((n = m_NCS_POSIX_READ(select_fd, buff1,sizeof(buff1))) <= 0)
+     while((n = read(select_fd, buff1,sizeof(buff1))) <= 0)
      {
          if (errno == EINTR)
          {
