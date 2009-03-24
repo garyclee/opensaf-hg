@@ -1913,10 +1913,6 @@ EXTERN_C void my_free(void *mem_p);
 #error Warning! macro for uptime usage to be defined
 #endif
 
-#ifndef m_NCS_OS_GETGROUPS
-#error Warning! macro for getgroups usage to be defined
-#endif 
-
 /****************************************************************************
  **                                                                        **
  **                  Standard CLIB/STDIO Interfaces                        **

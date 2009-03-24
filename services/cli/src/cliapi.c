@@ -293,19 +293,19 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     int numofgroups;
     int i;
     errno = 0;
-    numofgroups = m_NCS_GETGROUPS(0,list);
+    numofgroups = getgroups(0,list);
     if(numofgroups == ERROR){
         printf("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
-        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGROUPS");
+        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in getgroups");
         perror("getgroups: ");
         return NCSCLI_USER_FIND_ERROR;
     }
     list = (gid_t*)malloc(numofgroups*sizeof(gid_t));
     errno = 0;
-    numofgroups = m_NCS_GETGROUPS(numofgroups,list);
+    numofgroups = getgroups(numofgroups,list);
     if(numofgroups == ERROR){
         printf("\nError %d  occured while fetching the list of all the groups the cli user belongs to \n",errno);
-        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGROUPS");
+        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in getgroups");
         perror("getgroups: ");
         return NCSCLI_USER_FIND_ERROR;
     }

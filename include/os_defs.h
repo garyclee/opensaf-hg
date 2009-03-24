@@ -257,9 +257,6 @@ uns64 ncs_os_time_ns(void);
 
 /* Over riding macros for linux */
 
-/* num_of_groups is of int ,list is of gid_t [] */
-#define m_NCS_OS_GETGROUPS(num_of_groups,list) getgroups(num_of_groups,list)
-
 #define m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)  \
 { \
     struct tm IR58027_temp_tm/* special auto var-name to avoid conflict with macro arguments */; \
