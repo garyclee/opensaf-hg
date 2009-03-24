@@ -153,7 +153,7 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
    }
 
    /* Remove the FIFO (pipe) if it's existing */
-   m_NCS_POSIX_UNLINK(PSEUDO_DRBD_FIFO);
+   unlink(PSEUDO_DRBD_FIFO);
 
    /* Create the FIFO (pipe) */
    if(m_NCS_POSIX_MKFIFO(PSEUDO_DRBD_FIFO, 0600) < 0)

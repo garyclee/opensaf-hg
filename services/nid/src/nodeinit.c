@@ -1904,7 +1904,7 @@ spawn_services(char * strbuf)
            int32 lfd;
            char filename[30],str[15];
            sprintf(filename, PIDPATH "%s.pid","ncsspcap");
-           m_NCS_POSIX_UNLINK(filename);
+           unlink(filename);
            lfd = open(filename,O_CREAT|O_WRONLY,S_IRWXU);
            sprintf(str,"%d\n",service->pid);
            write(lfd,str,strlen(str));
