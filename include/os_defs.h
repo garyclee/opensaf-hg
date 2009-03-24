@@ -257,9 +257,6 @@ uns64 ncs_os_time_ns(void);
 
 /* Over riding macros for linux */
 
-/* gid is of gid_t*/
-#define m_NCS_OS_GETGRGID(gid) getgrgid(gid)
-
 /* num_of_groups is of int ,list is of gid_t [] */
 #define m_NCS_OS_GETGROUPS(num_of_groups,list) getgroups(num_of_groups,list)
 

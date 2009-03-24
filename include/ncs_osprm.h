@@ -1913,10 +1913,6 @@ EXTERN_C void my_free(void *mem_p);
 #error Warning! macro for uptime usage to be defined
 #endif
 
-#ifndef m_NCS_OS_GETGRGID 
-#error Warning! macro for getgrgid usage to be defined
-#endif 
-
 #ifndef m_NCS_OS_GETGROUPS
 #error Warning! macro for getgroups usage to be defined
 #endif 
@@ -1941,10 +1937,6 @@ EXTERN_C void my_free(void *mem_p);
 
 #ifndef m_NCS_OS_START
 #define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
-#endif
-
-#ifndef m_NCS_OS_PRINTF
-#define m_NCS_OS_PRINTF              printf
 #endif
 
 #ifndef m_NCS_OS_UNBUF_GETCHAR

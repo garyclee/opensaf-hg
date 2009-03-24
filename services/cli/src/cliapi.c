@@ -311,7 +311,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
     }
     errno = 0;
     for(i = 0 ; i<numofgroups ; i++) {
-        retry1: gp = m_NCS_GETGRGID(list[i]);
+        retry1: gp = getgrgid(list[i]);
         if(gp){
             if((strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_superuser)==0) ||
                (strcmp(gp->gr_name , "root")==0))
@@ -322,7 +322,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
        else if(gp == NULL){
            printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
-        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
+        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in getgrgid");
            if(errno == EINTR){
                errno = 0;
                goto retry1;
@@ -331,7 +331,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
        }
     }
     for(i = 0 ; i<numofgroups ; i++) {
-        retry2: gp = m_NCS_GETGRGID(list[i]);
+        retry2: gp = getgrgid(list[i]);
         if(gp){
           if(strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_admin)==0){
             return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_ADMIN_ACCESS-1));
@@ -340,7 +340,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
         else if (gp == NULL){
            printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
-        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
+        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in getgrgid");
            if(errno == EINTR){
                errno = 0;
                goto retry2;
@@ -349,7 +349,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
         }
     }
     for(i = 0 ; i<numofgroups ; i++) {
-        retry3: gp = m_NCS_GETGRGID(list[i]);
+        retry3: gp = getgrgid(list[i]);
         if(gp){
          if(strcmp(gp->gr_name , pCli->cli_user_group.ncs_cli_viewer)==0){
             return (NCSCLI_USER_MASK>>(NCSCLI_ACCESS_END-NCSCLI_VIEWER_ACCESS-1));
@@ -358,7 +358,7 @@ uns8  ncscli_user_access_level_find(CLI_CB *pCli)
         else if (gp == NULL){
            printf("\nError %d occured while fetching the group name of the cli user\n",errno);
            perror("getgrgid: ");
-        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in m_NCS_GETGRGID");
+        m_LOG_NCSCLI_STR(NCSFL_LC_HEADLINE,NCSFL_SEV_NOTICE,NCSCLI_HDLN_CLI_USER_INFO_ACCESS_ERROR,"in getgrgid");
            if(errno == EINTR){
                errno = 0;
                goto retry3;
