@@ -1347,19 +1347,19 @@ ncs_mem_stats_dump(char * filename)
   asc_tod[0] = '\0';
   m_GET_ASCII_TIME_STAMP(tod, asc_tod);
   sprintf(output_string, "%s\n", asc_tod);
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
   
   sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|        |    M E M  P O O L   D E T A I L S  (all are raw counts)      |\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|   pool +--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc| freed to os\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
   /* We are walking one pool at a time, so others are busy .........................*/
   
@@ -1375,7 +1375,7 @@ ncs_mem_stats_dump(char * filename)
       mp->stat.frees,
       mp->stat.errors,
       mp->stat.failed_alloc,mp->stat.num_freed_to_os);
-    fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
     
     /* last pool needs to be handled differently since pool size does not apply */
     if(mp->size == 0) {
@@ -1402,27 +1402,27 @@ ncs_mem_stats_dump(char * filename)
   
   
   sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|               S T A T I S T I C     T O T A L S                       |\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc|freed to os\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|   no op|   bytes|   bytes|   bytes| raw cnt| raw cnt| raw cnt| raw cnt|  bytes \n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d%9d\n",0,niu,na,hw,al,fr,er,fa,mmgr.stats.freed_to_os);
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
 
   sprintf(output_string, "\nTotal bytes allocated (includes NCS_MPOOL_ENTRY overhead) %9d\n",ttl);
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   sprintf(output_string, "Overhead size: %d\n\n", control_size);
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
   sprintf(output_string, "Total OS allocs :%9d  bytes Total Os frees :%9d  bytes \n",mmgr.stats.total_os_allocs,mmgr.stats.total_os_frees);
-  fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
 
 
   if (fh)
@@ -1951,7 +1951,7 @@ static void leap_mem_print(void *ucontext, char *payload)
         );
       
       if (fh)
-        sysf_fprintf ( fh, pBuf);
+        fprintf ( fh, pBuf);
       else
         printf("%s", pBuf);
       
@@ -1971,7 +1971,7 @@ static void leap_mem_print(void *ucontext, char *payload)
             test->me->real_size);
           
           if (fh)
-            sysf_fprintf ( fh, pBuf);
+            fprintf ( fh, pBuf);
           else
             printf("%s", pBuf);
           }
@@ -1980,7 +1980,7 @@ static void leap_mem_print(void *ucontext, char *payload)
       sprintf(pBuf,"|------+-----+-------------+------+----+----+-----|\n");
       
       if (fh)
-        sysf_fprintf ( fh, pBuf);
+        fprintf ( fh, pBuf);
       else
         printf("%s", pBuf);
       

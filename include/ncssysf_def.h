@@ -59,7 +59,6 @@ extern "C" {
  ****************************************************************************
  ***************************************************************************/
 
-#define sysf_fprintf                m_NCS_OS_LOG_FPRINTF
 #define sysf_fclose                 m_NCS_OS_LOG_FCLOSE
 #define sysf_fopen(fname,fmode)     m_NCS_OS_LOG_FOPEN(fname,fmode)
 #define sysf_getc                   m_NCS_OS_GETC
@@ -127,13 +126,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
  ****************************************************************************/
 #define m_NCS_CONS_PUTCHAR        m_NCS_OS_PUTCHAR
 #define m_NCS_CONS_GETCHAR        m_NCS_OS_GETCHAR
-
-
-
-
-#ifndef m_NCS_CONS_VFPRINTF
-#define m_NCS_CONS_VFPRINTF       vfprintf
-#endif
 
 #define m_NCS_CONS_UNBUF_GETCHAR  m_NCS_OS_UNBUF_GETCHAR
 

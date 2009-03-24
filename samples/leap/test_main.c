@@ -636,7 +636,7 @@ lt_fileIO(int argc, char **argv)
         printf("Failed! could not open file for write\n");
         goto lt_fileIO_exit;
     }
-    if ((rc = sysf_fprintf(fp, "%s", testString)) < 0)
+    if ((rc = fprintf(fp, "%s", testString)) < 0)
         printf("Failed! printing to  file returned %d\n", rc);
     if ((rc = sysf_fclose(fp)) != 0)
         printf("Failed! closing file returned %d\n", rc);

@@ -376,27 +376,27 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
     asc_tod[0] = '\0';
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
-    fh==NULL ? printf("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
     
  
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     sprintf(output_string, "|  N O N - I G N O R E D   O U T S T A N D I N G   B U F   R E P O R T  |\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     sprintf(output_string, "|  #| Age|Real|   alloc'ed|Owner|Ownr claims|  Real  |Svc|Sub|          |RefCnt|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     sprintf(output_string, "|  #| Cnt|line|    in file| line|    in file|  size  | ID| ID| Ptr value|      |\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
 
       for(pe = leap_buf_pool.inuse,j = 0;pe != NULL;pe = pe->next)
       {
@@ -438,7 +438,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
       j++;
 
           if(to_std == TRUE) printf("%s", output_string);
-          if(to_file == TRUE) sysf_fprintf (fh, output_string);
+          if(to_file == TRUE) fprintf (fh, output_string);
 
       }
 
@@ -582,31 +582,31 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
     m_GET_ASCII_TIME_STAMP(tod, asc_tod);
     sprintf(output_string, "%s\n", asc_tod);
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
     
 
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
   sprintf(output_string, "%s","|         B U F  O U T   - S U M M A R Y          |\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
   sprintf(output_string, "%s","|hit   |show |   alloc'ed  |Owner |Svc |Sub |real |bkt  |\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
   sprintf(output_string, "%s","|Cnt   |Cnt  |    in file  | line | ID | ID |size |size |\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
   sprintf(output_string, "%s","|------+-----+-------------+------+----+----+-----+-----|\n");
     if(to_std == TRUE) printf("%s", output_string);
-    if(to_file == TRUE) sysf_fprintf (fh, output_string);
+    if(to_file == TRUE) fprintf (fh, output_string);
  
     
   if(to_std == TRUE) printf("%s", output_string);
-  if(to_file == TRUE) sysf_fprintf (fh, output_string);
+  if(to_file == TRUE) fprintf (fh, output_string);
 
   j = 0;
   for (itr = 0; itr < NCS_SERVICE_ID_MAX; itr++)
@@ -637,13 +637,13 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
      }
 
      if(to_std == TRUE) printf("%s", output_string);
-     if(to_file == TRUE) sysf_fprintf (fh, output_string);
+     if(to_file == TRUE) fprintf (fh, output_string);
     }
   }
    
   sprintf(output_string,"|------+-----+-------------+------+----+----+-----+-----|\n");
   if(to_std == TRUE) printf("%s", output_string);
-  if(to_file == TRUE) sysf_fprintf (fh, output_string);
+  if(to_file == TRUE) fprintf (fh, output_string);
 
       if (((to_file == TRUE)) && fh) 
       {
@@ -3279,7 +3279,7 @@ sysf_pick_output(char* str, char* fname)
     {
     if ((file = sysf_fopen(fname, "at")) == NULL)
       return NCSCC_RC_FAILURE;
-    sysf_fprintf(file, "%s\n", str);
+    fprintf(file, "%s\n", str);
     sysf_fclose(file);
     }
   else

@@ -192,7 +192,7 @@ ncs_snmpsubagt_create(int32 argc, uns8 **argv)
     }
 
     status = getpid();
-    status = sysf_fprintf(fp, "%d", status);
+    status = fprintf(fp, "%d", status);
     if(status < 1)
     {
         fclose(fp);
