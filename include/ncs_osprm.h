@@ -1955,10 +1955,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_NORMALIZE_CHR       getchar
 #endif
 
-#ifndef m_NCS_OS_DIFFTIME
-#define m_NCS_OS_DIFFTIME(t0, t1) difftime (t0, t1)
-#endif
-
 #ifndef m_NCS_OS_NTOHL
 #define m_NCS_OS_NTOHL(x)            ntohl(x)
 #endif
