@@ -445,7 +445,7 @@ uns32 lbp_rpt_wo  (NCSSYSM_BUF_RPT_WO*    info)
     
       if (((to_file == TRUE)) && fh) 
       {
-        sysf_fclose(fh);
+        fclose(fh);
       }
       
   }
@@ -647,7 +647,7 @@ uns32 lbp_rpt_wos (NCSSYSM_BUF_RPT_WOS*   info)
 
       if (((to_file == TRUE)) && fh) 
       {
-        sysf_fclose(fh);
+        fclose(fh);
       }
       
   }
@@ -3280,7 +3280,7 @@ sysf_pick_output(char* str, char* fname)
     if ((file = sysf_fopen(fname, "at")) == NULL)
       return NCSCC_RC_FAILURE;
     fprintf(file, "%s\n", str);
-    sysf_fclose(file);
+    fclose(file);
     }
   else
     printf("%s\n",str);

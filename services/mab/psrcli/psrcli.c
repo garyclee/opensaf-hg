@@ -458,7 +458,7 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list,
        pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
        return NCSCC_RC_FAILURE;
     }
-    sysf_fclose(fh);
+    fclose(fh);
 
     memset(&lcl_uba, '\0', sizeof(lcl_uba));
     if(ncs_enc_init_space(&lcl_uba) != NCSCC_RC_SUCCESS)

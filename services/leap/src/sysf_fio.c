@@ -73,7 +73,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
             assert(NULL != request->fileio_close.i_fileptr);
             if(NULL != request->fileio_close.i_fileptr)
             {
-                sysf_fclose(request->fileio_close.i_fileptr);
+                fclose(request->fileio_close.i_fileptr);
             }
             retval = NCSCC_RC_SUCCESS;
         }

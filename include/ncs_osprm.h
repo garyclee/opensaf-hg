@@ -1971,10 +1971,6 @@ EXTERN_C void my_free(void *mem_p);
  **                                                                        **
  ***************************************************************************/
 
-#ifndef m_NCS_OS_LOG_FCLOSE
-#define m_NCS_OS_LOG_FCLOSE          fclose
-#endif
-
 #ifndef m_NCS_OS_LOG_FOPEN
 #define m_NCS_OS_LOG_FOPEN           fopen
 #endif

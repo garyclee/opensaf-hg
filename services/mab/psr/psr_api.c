@@ -1024,7 +1024,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
         memset(&libname, '\0', sizeof(libname));
         memset(&appname, '\0', sizeof(appname));
     }   /* while loop */
-    sysf_fclose(fh);
+    fclose(fh);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -1067,7 +1067,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
        }
 
        /* After creating the file, continue to the next job. */
-       sysf_fclose(fh);
+       fclose(fh);
        return NCSCC_RC_SUCCESS;
     }
 
@@ -1120,7 +1120,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
         m_LOG_PSS_INFO(NCSFL_SEV_INFO, PSS_INFO_SPCN, &pcn, boolean);
         memset(&pcn, '\0', sizeof(pcn));
     }   /* while loop */
-    sysf_fclose(fh);
+    fclose(fh);
 
 
     inst->spcn_list = list_head;
@@ -1128,7 +1128,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
 
 
 go_fail:
-    sysf_fclose(fh);
+    fclose(fh);
     return NCSCC_RC_FAILURE;
 
 }
@@ -1920,7 +1920,7 @@ void pss_cb_data_dump( )
 
    fprintf(fh, "*************PSS DATA STRUCTS DUMP END(%s)*************\n", asc_tod);
    fflush(fh);
-   sysf_fclose(fh);
+   fclose(fh);
    return;
 }
 

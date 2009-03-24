@@ -627,7 +627,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
                    m_DTS_FREE_FILE_LIST(dev);
                    if ((TRUE == svc->device.file_open) && (svc->device.svc_fh != NULL))
                    {
-                       sysf_fclose(svc->device.svc_fh);
+                       fclose(svc->device.svc_fh);
                        svc->device.svc_fh = NULL;
                    }
                    /* Cleanup the console devices associated with the node */

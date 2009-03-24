@@ -99,7 +99,7 @@ uns32 maslib_request(NCS_LIB_REQ_INFO * req_info)
                 return NCSCC_RC_FAILURE;
             }
 
-            sysf_fclose(fp);
+            fclose(fp);
 
             /* reset the AMF attributes */ 
             memset(&gl_mas_amf_attribs, 0,sizeof(MAS_ATTRIBS)); 

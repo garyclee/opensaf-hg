@@ -412,7 +412,7 @@ void ncs_lock_stats(char * filename) {
 
 #endif
 
-  if(fh != NULL) sysf_fclose(fh);
+  if(fh != NULL) fclose(fh);
 }
 
 

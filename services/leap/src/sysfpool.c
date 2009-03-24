@@ -1426,7 +1426,7 @@ ncs_mem_stats_dump(char * filename)
 
 
   if (fh)
-    sysf_fclose(fh);
+    fclose(fh);
     
   ncslpg_give(&mmgr.lpg, 0);
   
@@ -1985,7 +1985,7 @@ static void leap_mem_print(void *ucontext, char *payload)
         printf("%s", pBuf);
       
       if (fh)
-        sysf_fclose(fh);
+        fclose(fh);
       
 #endif
       

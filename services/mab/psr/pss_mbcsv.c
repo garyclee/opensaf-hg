@@ -3217,7 +3217,7 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
          {
             m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_UBA_ENC_RESERVE_SPACE_FAIL,
               "pss_ckpt_enc_reload_pssvlibconf()");
-            sysf_fclose(fh);
+            fclose(fh);
             return NCSCC_RC_FAILURE;
          }
          ncs_enc_claim_space(uba, 2);
@@ -3226,13 +3226,13 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
       if(pss_encode_str(uba, (char*)&libname) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ENC_LIBNAME_FAIL, (char*)&libname);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       if(pss_encode_str(uba, (char*)&appname) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HDLN_STR(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ENC_APPNAME_FAIL, (char*)&appname);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
 
@@ -3240,7 +3240,7 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
       memset(&libname, '\0', sizeof(libname));
       memset(&appname, '\0', sizeof(appname));
    }   /* while loop */
-   sysf_fclose(fh);
+   fclose(fh);
 
    if(p_line_cnt != NULL)
    {
@@ -3297,7 +3297,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
    {
       /* Log error occured while reading pssv_lib_conf, also log loop value */
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_READ_LIB_CONF_FAIL, loop);
-      sysf_fclose(fh);
+      fclose(fh);
       return NCSCC_RC_FAILURE;
    }
 
@@ -3309,13 +3309,13 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
       if(pss_decode_str(uba, (char*)&libname) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_DEC_LIBNAME_FAIL);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       if(pss_decode_str(uba, (char*)&appname) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_DEC_LIBNAME_FAIL);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
 
@@ -3371,7 +3371,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
       memset(&libname, '\0', sizeof(libname));
       memset(&appname, '\0', sizeof(appname));
    }
-   sysf_fclose(fh);
+   fclose(fh);
 
    return NCSCC_RC_SUCCESS;
 }
@@ -3461,7 +3461,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
    {
       m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_UBA_DEC_FLATTEN_SPACE_FAIL,
          "pss_ckpt_dec_n_updt_reload_pssvspcnlist()");
-      sysf_fclose(fh);
+      fclose(fh);
       return NCSCC_RC_FAILURE;
    }
    cnt = ncs_decode_16bit(&p8);
@@ -3476,7 +3476,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
       if(pss_decode_pcn(uba, &pcn) != NCSCC_RC_SUCCESS)
       {
          m_LOG_PSS_HEADLINE2(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_DEC_PCN_FAIL);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       p8 = ncs_dec_flatten_space(uba, (uns8*)&boolean_val, 4);
@@ -3484,7 +3484,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_ERROR, PSS_MF_UBA_DEC_FLATTEN_SPACE_FAIL,
             "pss_ckpt_dec_n_updt_reload_pssvspcnlist()");
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       boolean_val = ncs_decode_32bit(&p8);
@@ -3494,7 +3494,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_PSS_SPCN_LIST,
              "pss_ckpt_dec_n_updt_reload_pssvspcnlist()");
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       memset(tmp, '\0', sizeof(PSS_SPCN_LIST));
@@ -3513,7 +3513,7 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvspcnlist(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba
    }
    pwe_cb->p_pss_cb->spcn_list = list;
 
-   sysf_fclose(fh);
+   fclose(fh);
 
    return NCSCC_RC_SUCCESS;
 }

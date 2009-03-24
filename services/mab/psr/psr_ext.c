@@ -4190,7 +4190,7 @@ uns32 pss_update_entry_in_spcn_conf_file(PSS_CB *inst, PSS_SPCN_LIST *entry)
         tmp = tmp->next;
     }
 
-    sysf_fclose(fh); /* Close the file handle */
+    fclose(fh); /* Close the file handle */
 
     return NCSCC_RC_SUCCESS;
 }
@@ -4319,7 +4319,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          /* Not able to get the copy of NCSMIB_ARG */
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4336,7 +4336,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
 
       return NCSCC_RC_INV_VAL;
    }
@@ -4354,7 +4354,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          /* Not able to get the copy of NCSMIB_ARG */
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4371,7 +4371,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
 
       return NCSCC_RC_FAILURE;
    }
@@ -4384,7 +4384,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    {
        m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
-       sysf_fclose(fh);
+       fclose(fh);
        return NCSCC_RC_FAILURE;
    }
    pwe_cnt = ncs_decode_16bit(&buff_ptr);
@@ -4399,7 +4399,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          /* Not able to get the copy of NCSMIB_ARG */
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4416,7 +4416,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
       return NCSCC_RC_NO_INSTANCE;
    }
 
@@ -4434,7 +4434,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       {
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
 
@@ -4446,7 +4446,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
            "pss_process_display_mib_entries()");
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       pwe_id = ncs_decode_16bit(&buff_ptr);
@@ -4461,7 +4461,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
            "pss_process_display_mib_entries()");
          fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       tbl_cnt = ncs_decode_16bit(&buff_ptr);
@@ -4476,7 +4476,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
             /* Not able to get the copy of NCSMIB_ARG */
             fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
             ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-            sysf_fclose(fh);
+            fclose(fh);
             return NCSCC_RC_FAILURE;
          }
       }
@@ -4492,7 +4492,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
             fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
             ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
             ncsmib_memfree(temp_arg);
-            sysf_fclose(fh);
+            fclose(fh);
             return NCSCC_RC_FAILURE;
          }
          tbl_id = ncs_decode_32bit(&buff_ptr);
@@ -4584,7 +4584,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    ncsmib_memfree(temp_arg);
    fprintf(fh, "***COMPLETED DUMP of PROFILE:%s for PCN:%s***\n", (char*)&profile_name, (char*)&pcn_name);
    ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-   sysf_fclose(fh);
+   fclose(fh);
    return NCSCC_RC_SUCCESS;
 }
 

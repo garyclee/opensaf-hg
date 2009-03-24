@@ -525,7 +525,7 @@ uns32 pss_create(NCSPSS_CREATE *pwe)
 
    fprintf(fh, "%d\n", getpid());
 
-   sysf_fclose(fh);
+   fclose(fh);
    
    return rc;
 }
