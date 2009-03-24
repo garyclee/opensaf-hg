@@ -272,7 +272,7 @@ static uns32 parseProxiedConfFile()
    }
 
    /* Start reading the conf file contents */
-   while(m_NCS_OS_FGETS(buff, sizeof(buff), (FILE *) proxiedConfFile.info.open.o_file_handle))
+   while(fgets(buff, sizeof(buff), (FILE *) proxiedConfFile.info.open.o_file_handle))
    {
       /* Skip comments and tabs in the beginning */
       ch = buff;

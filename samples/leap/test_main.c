@@ -999,7 +999,7 @@ static int lt_get_usercmdline(char * cmd, char **pv)
     char *t;
 
     printf("lt> ");
-    sysf_fgets(cmd, CMD_CH_MAX, stdin);
+    fgets(cmd, CMD_CH_MAX, stdin);
     t = strtok(cmd, " \n");
     while (t != NULL)
     {
