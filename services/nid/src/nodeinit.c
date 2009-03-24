@@ -186,7 +186,7 @@ void notify_bis(char *message)
 {
   uns32 size;
    size = strlen(message);
-   if(m_NCS_POSIX_WRITE(nis_fifofd,message,size) != size)
+   if(write(nis_fifofd,message,size) != size)
      logme(NID_LOG2FILE,"Error writing to nis FIFO! Error:%s\n",strerror(errno));
    close(nis_fifofd);
 }
@@ -221,7 +221,7 @@ logme(uns32 level,char *s, ...)
    switch(level){
 
    case NID_LOG2CONS:
-      m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
+      write(cons_fd,buf,strlen(buf));
       break;
    case NID_LOG2FILE:
       syslog(LOG_LOCAL3|LOG_INFO,"%s",buf);
@@ -229,7 +229,7 @@ logme(uns32 level,char *s, ...)
 
    case NID_LOG2FILE_CONS:
       syslog(LOG_LOCAL3|LOG_INFO,"%s",buf);
-      m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
+      write(cons_fd,buf,strlen(buf));
       break;
    }
 
@@ -913,7 +913,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
      tmp_pid = getpid();
      /*write tmp_pid to filedes[1]*/
-     while(m_NCS_POSIX_WRITE(filedes[1],&tmp_pid,sizeof(int)) < 0)
+     while(write(filedes[1],&tmp_pid,sizeof(int)) < 0)
         if (errno == EINTR) continue;
         else if(errno == EPIPE)
         {
@@ -1907,7 +1907,7 @@ spawn_services(char * strbuf)
            m_NCS_POSIX_UNLINK(filename);
            lfd = open(filename,O_CREAT|O_WRONLY,S_IRWXU);
            sprintf(str,"%d\n",service->pid);
-           m_NCS_POSIX_WRITE(lfd,str,strlen(str));
+           write(lfd,str,strlen(str));
            close(lfd);
          }
        }
@@ -2025,7 +2025,7 @@ daemonize_me(void)
    chdir(NID_RUNNING_DIR);
    lfd = open(NID_PID_FILE,O_CREAT|O_WRONLY,S_IRWXU);
    sprintf(str,"%d\n",getpid());
-   m_NCS_POSIX_WRITE(lfd,str,strlen(str));
+   write(lfd,str,strlen(str));
    close(lfd);
 
    SETSIG(sa, SIGALRM,  SIG_IGN, 0);
