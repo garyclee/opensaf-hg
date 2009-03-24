@@ -910,14 +910,14 @@ EXTERN_C DTS_CB   dts_cb;
       { \
          if(((msg->data.data.msg.log_msg.hdr.severity)&(cons_dev->cons_sev_filter)) && (cons_dev->cons_fd > 0)) \
          { \
-            m_NCS_POSIX_WRITE(cons_dev->cons_fd, str, len); \
+            write(cons_dev->cons_fd, str, len); \
          } \
          cons_dev = cons_dev->next; \
       } \
    } \
    else if(dts_cb.cons_fd >= 0) \
    { \
-      m_NCS_POSIX_WRITE(dts_cb.cons_fd, str, len); \
+      write(dts_cb.cons_fd, str, len); \
    } \
 } \
 
