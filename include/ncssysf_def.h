@@ -60,7 +60,6 @@ extern "C" {
  ***************************************************************************/
 
 #define sysf_fopen(fname,fmode)     m_NCS_OS_LOG_FOPEN(fname,fmode)
-#define sysf_getc                   m_NCS_OS_GETC
 #define sysf_fgets                  m_NCS_OS_FGETS
 
 #define m_NCS_FOPEN_R(filename)      m_NCS_OS_FOPEN_R(filename)

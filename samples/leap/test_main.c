@@ -649,7 +649,7 @@ lt_fileIO(int argc, char **argv)
     }
 
     rsptr = (char *)readString;
-    while ((c = sysf_getc(fp)) != EOF)
+    while ((c = getc(fp)) != EOF)
     {
       *rsptr++ = (char) c;
     }
