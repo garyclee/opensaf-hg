@@ -120,7 +120,7 @@ frpm script files.
 {\
     uns32 index,len = strlen(prompt_str);\
     for(index=0; index<len; index++)\
-    m_NCS_CONS_PUTCHAR(prompt_str[index]);\
+    putchar(prompt_str[index]);\
 }
 
 

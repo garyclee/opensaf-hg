@@ -1947,10 +1947,6 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_GETCHAR             getchar
 #endif
 
-#ifndef m_NCS_OS_PUTCHAR
-#define m_NCS_OS_PUTCHAR             putchar
-#endif
-
 #ifndef m_NCS_OS_PRINTF
 #define m_NCS_OS_PRINTF              printf
 #endif
