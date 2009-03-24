@@ -34,6 +34,8 @@
 
 #include "hpl.h"
 
+extern uns32 gl_hpl_mds_timeout;
+
 /****************************************************************************
  * Name          : hpl_resource_reset
  *
@@ -115,7 +117,7 @@ uns32 hpl_resource_reset(uns32 chassis_id, uns8 *entity_path, uns32 reset_type)
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -211,7 +213,7 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -268,7 +270,7 @@ uns32 hpl_sel_clear(uns32 chassis_id)
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    if (msg == NULL) return NCSCC_RC_FAILURE;
@@ -349,7 +351,7 @@ uns32 hpl_config_hotswap(uns32 chassis_id, HISV_API_CMD hs_config_cmd, uns64 *ar
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -443,7 +445,7 @@ uns32 hpl_config_hs_indicator(uns32 chassis_id, uns8 *entity_path,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -527,7 +529,7 @@ uns32 hpl_config_hs_state_get(uns32 chassis_id, uns8 *entity_path, uns32 *arg)
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -629,7 +631,7 @@ uns32 hpl_config_hs_autoextract(uns32 chassis_id, uns8 *entity_path,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -731,7 +733,7 @@ uns32 hpl_manage_hotswap(uns32 chassis_id, uns8 *entity_path,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -808,7 +810,7 @@ uns32 hpl_alarm_add(uns32 chassis_id, HISV_API_CMD alarm_cmd,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -872,7 +874,7 @@ uns32 hpl_alarm_get(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
 
@@ -951,7 +953,7 @@ uns32 hpl_alarm_delete(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -1047,7 +1049,7 @@ uns32 hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
    m_MMGR_FREE_HPL_DATA(hpl_data);
@@ -1175,7 +1177,7 @@ hpl_bootbank_get (uns32 chassis_id, uns8 *entity_path, uns8 *o_bootbank_number)
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
 
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
@@ -1272,7 +1274,7 @@ hpl_bootbank_set (uns32 chassis_id, uns8 *entity_path, uns8 i_bootbank_number)
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
 
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);
@@ -1438,7 +1440,7 @@ uns32 hpl_entity_path_lookup(uns32 flag, uns32 chassis_id, uns32 blade_id, uns8 
 
    /* send the synchronous MDS request message to HAM instance */
    msg = hpl_mds_msg_sync_send (hpl_cb, &hisv_msg, &ham_dest,
-                                MDS_SEND_PRIORITY_HIGH, HPL_MDS_SYNC_TIMEOUT);
+                                MDS_SEND_PRIORITY_HIGH, gl_hpl_mds_timeout);
 
    /* give control block handle */
    ncshm_give_hdl(gl_hpl_hdl);

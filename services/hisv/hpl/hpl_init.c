@@ -32,6 +32,9 @@
 /* global cb handle */
 uns32 gl_hpl_hdl = 0;
 
+/* global HPL MDS timeout value */
+uns32 gl_hpl_mds_timeout = HPL_MDS_SYNC_TIMEOUT;
+
 
 /****************************************************************************
  * Name          : hpl_initialize
@@ -51,6 +54,13 @@ uns32 hpl_initialize(NCS_LIB_CREATE *create_info)
 {
    HPL_CB *hpl_cb = NULL;
    uns32  rc = NCSCC_RC_SUCCESS;
+   char *arch_type = NULL;
+
+   /* If running on HP_PROLIANT, set the HPL MDS timeout to a different value. */
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+      gl_hpl_mds_timeout = HPL_MDS_SYNC_TIMEOUT_HP_PROLIANT;
+   }
 
    /* allocate HPL cb */
    if ( NULL == (hpl_cb = m_MMGR_ALLOC_HPL_CB))
