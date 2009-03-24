@@ -147,8 +147,6 @@
 /* DTSv version support */
 #define CPSV_LOG_VERSION 3
 
-#define m_NCS_OS_SPRINTF         sprintf
-
 #define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
 
 
