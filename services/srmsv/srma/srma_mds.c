@@ -240,7 +240,7 @@ uns32 srma_mds_enc(SRMA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
        break;
 
    default:
-      m_SRMSV_ASSERT(0);
+      assert(0);
       break;
    }
 
@@ -296,7 +296,7 @@ uns32 srma_mds_dec(SRMA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
        break;
 
    default:
-      m_SRMSV_ASSERT(0);
+      assert(0);
       break;
    }
 
@@ -538,7 +538,7 @@ uns32 srma_mds_cbk(NCSMDS_CALLBACK_INFO *info)
        break;
 
    default:
-       m_SRMSV_ASSERT(0);
+       assert(0);
        break;
    }
 
@@ -719,7 +719,7 @@ uns32 srma_mds_svc_evt(SRMA_CB *srma, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
           break;
 
       default:
-          m_SRMSV_ASSERT(0);
+          assert(0);
           break;
       }
       break;
@@ -732,7 +732,7 @@ uns32 srma_mds_svc_evt(SRMA_CB *srma, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
           break;
          
       default:
-          m_SRMSV_ASSERT(0);
+          assert(0);
           break;
       }
       break;
