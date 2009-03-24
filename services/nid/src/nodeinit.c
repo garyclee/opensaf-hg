@@ -944,7 +944,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
      /* Reset all the signals */
      for(f = 1; f < NSIG; f++) SETSIG(sa, f, SIG_DFL, SA_RESTART);
-     m_NCS_POSIX_EXECVP(app,args);
+     execvp(app,args);
 
      /***********************************************************
       *    Hope we never come here, incase if we are here       *
@@ -1046,7 +1046,7 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
 
       /* Reset all the signals */
       for(f = 1; f < NSIG; f++) SETSIG(sa, f, SIG_DFL, SA_RESTART);
-      m_NCS_POSIX_EXECVP(app,args);
+      execvp(app,args);
       /***********************************************************
        *    Hope we never come here, incase if we are here          *
        *    Lets rest in peace.                      *
@@ -1120,7 +1120,7 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
      }
      /* Reset all the signals */
       for(f = 1; f < NSIG; f++) SETSIG(sa, f, SIG_DFL, SA_RESTART);
-      m_NCS_POSIX_EXECVP(app,args);
+      execvp(app,args);
 
       /***********************************************************
        *    Hope we never come here, incase if we are here          *
