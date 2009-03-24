@@ -62,7 +62,7 @@ uns32 nid_create_ipc(char *strbuf)
    /******************************************************
    *    Create nid fifo                               *
    ******************************************************/
-   if(m_NCS_POSIX_MKFIFO(NID_FIFO,0600) < 0){
+   if(mkfifo(NID_FIFO,0600) < 0){
      sprintf(strbuf," FAILURE: Unable To Create FIFO Error:%s\n",strerror(errno));
      return NCSCC_RC_FAILURE;
    }

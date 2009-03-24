@@ -156,7 +156,7 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
    unlink(PSEUDO_DRBD_FIFO);
 
    /* Create the FIFO (pipe) */
-   if(m_NCS_POSIX_MKFIFO(PSEUDO_DRBD_FIFO, 0600) < 0)
+   if(mkfifo(PSEUDO_DRBD_FIFO, 0600) < 0)
    {
       m_LOG_PDRBD_HEADLINE(PDRBD_HDLN_PDRBD_PIPE_CREATE_FAILURE, NCSFL_SEV_ERROR, 0);
       ret = NCSCC_RC_FAILURE;
