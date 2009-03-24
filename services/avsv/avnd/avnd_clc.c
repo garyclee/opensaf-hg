@@ -766,7 +766,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB        *cb,
    {
        m_NCS_DBG_PRINTF( "\nAvSv: %s got Inst failed\n",
              comp->name_net.value);
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: %s got Inst failed",
+       syslog(LOG_ERR, "NCS_AvSv: %s got Inst failed",
              comp->name_net.value);
    }
 

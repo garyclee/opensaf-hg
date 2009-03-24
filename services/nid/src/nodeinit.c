@@ -217,18 +217,18 @@ logme(uns32 level,char *s, ...)
    vsnprintf(buf,sizeof(buf), s, arg_list);
    va_end(arg_list);
 
-   m_NCS_POSIX_OPENLOG("NID",LOG_CONS,LOG_LOCAL3);
+   openlog("NID",LOG_CONS,LOG_LOCAL3);
    switch(level){
 
    case NID_LOG2CONS:
       m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
       break;
    case NID_LOG2FILE:
-      m_NCS_POSIX_SYSLOG(LOG_LOCAL3|LOG_INFO,"%s",buf);
+      syslog(LOG_LOCAL3|LOG_INFO,"%s",buf);
       break;
 
    case NID_LOG2FILE_CONS:
-      m_NCS_POSIX_SYSLOG(LOG_LOCAL3|LOG_INFO,"%s",buf);
+      syslog(LOG_LOCAL3|LOG_INFO,"%s",buf);
       m_NCS_POSIX_WRITE(cons_fd,buf,strlen(buf));
       break;
    }

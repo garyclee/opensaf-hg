@@ -160,30 +160,12 @@ extern "C" {
 #define NCS_64BIT_DATA_TYPE_SUPPORT 1
 #define NCS_UNS64_DEFINED 1
 
-/************************************************************
-*                 syslog priorities mapping                 *
-*                                                           * 
-*************************************************************/
-#define  NCS_OS_LOG_EMERG    LOG_EMERG   /* system is unusable */
-#define  NCS_OS_LOG_ALERT    LOG_ALERT  /* action must be taken immediately */
-#define  NCS_OS_LOG_CRIT     LOG_CRIT   /* critical conditions */
-#define  NCS_OS_LOG_ERR      LOG_ERR      /* error conditions */
-#define  NCS_OS_LOG_WARNING  LOG_WARNING   /* warning conditions */
-#define  NCS_OS_LOG_NOTICE   LOG_NOTICE  /* normal but significant condition */
-#define  NCS_OS_LOG_INFO     LOG_INFO   /* informational */
-#define  NCS_OS_LOG_DEBUG    LOG_DEBUG  /* debug-level messages */
-
 extern void ncs_os_atomic_init(void);
 extern void ncs_os_atomic_destroy(void);
 
 #ifndef m_NCS_OS_DBG_PRINTF
 EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); 
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
-#endif
-
-#ifndef m_NCS_OS_SYSLOG
-EXTERN_C LEAPDLL_API void ncs_syslog(int priority, const char *str , ...); 
-#define m_NCS_OS_SYSLOG         ncs_syslog
 #endif
 
 #ifndef m_NCS_OS_ATOMIC_INC

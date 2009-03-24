@@ -714,18 +714,6 @@ typedef int32 int64;
 #define m_NCS_OS_POSIX_PIPE             pipe
 #endif
 
-#ifndef m_NCS_OS_POSIX_OPENLOG
-#define m_NCS_OS_POSIX_OPENLOG          openlog
-#endif
-
-#ifndef m_NCS_OS_POSIX_SYSLOG
-#define m_NCS_OS_POSIX_SYSLOG           syslog
-#endif
-
-#ifndef m_NCS_OS_POSIX_CLOSELOG
-#define m_NCS_OS_POSIX_CLOSELOG         closelog
-#endif
-
 #ifndef m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_OS_POSIX_SIGACTION        sigaction
 #endif
@@ -1750,49 +1738,6 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
 #ifndef m_NCS_OS_DBG_PRINTF
 #error Warning! Implementation needed for DBG Printf
 #endif
-
-#ifndef m_NCS_OS_SYSLOG
-#error Warning! Implementation needed for SYSLOG
-#endif
-
-
-/****************************************************************************
- *                            Sys Log Priority defines                     *
- *                                                                         *
- ***************************************************************************/
-
-#ifndef NCS_OS_LOG_EMERG
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_ALERT  /* action must be taken immediately */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_CRIT   /* critical conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef  NCS_OS_LOG_ERR   /* error conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_WARNING  /* warning conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_NOTICE    /* normal but significant condition */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_INFO   /* informational */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_DEBUG   /* debug-level messages */
-#error Warning! mapping needed for syslog priorities
-#endif
-
 
 /****************************************************************************
  * OS CPU usage Primitive definition

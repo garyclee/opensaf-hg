@@ -145,8 +145,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
 
-#define m_NCS_SYSLOG             m_NCS_OS_SYSLOG
-
 
 /*****************************************************************************
  **                                                                         **
@@ -318,11 +316,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 #define m_NCS_POSIX_MKFIFO                  m_NCS_OS_POSIX_MKFIFO
 #define m_NCS_POSIX_PIPE                    m_NCS_OS_POSIX_PIPE
 
-#define m_NCS_POSIX_OPENLOG                 m_NCS_OS_POSIX_OPENLOG
-#define m_NCS_POSIX_SYSLOG                  m_NCS_OS_POSIX_SYSLOG
-#define m_NCS_POSIX_CLOSELOG                m_NCS_OS_POSIX_CLOSELOG
-
-
 #define m_NCS_POSIX_SIGACTION               m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_POSIX_SIGADDSET               m_NCS_OS_POSIX_SIGADDSET
 #define m_NCS_POSIX_SIGEMPTYSET             m_NCS_OS_POSIX_SIGEMPTYSET
@@ -377,23 +370,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 #define NCS_TASK_PRIORITY_14              NCS_OS_TASK_PRIORITY_14
 #define NCS_TASK_PRIORITY_15              NCS_OS_TASK_PRIORITY_15
 #define NCS_TASK_PRIORITY_16              NCS_OS_TASK_PRIORITY_16
-
-
-/*****************************************************************************
- **                                                                         **
- **                   m_NCS_SYSLOG Priorities                               **
- **                                                                         **
- ****************************************************************************/
-
-#define  NCS_LOG_EMERG      NCS_OS_LOG_EMERG   /* system is unusable */
-#define  NCS_LOG_ALERT      NCS_OS_LOG_ALERT  /* action must be taken immediately */
-#define  NCS_LOG_CRIT       NCS_OS_LOG_CRIT   /* critical conditions */
-#define  NCS_LOG_ERR        NCS_OS_LOG_ERR      /* error conditions */
-#define  NCS_LOG_WARNING    NCS_OS_LOG_WARNING   /* warning conditions */
-#define  NCS_LOG_NOTICE     NCS_OS_LOG_NOTICE  /* normal but significant condition */
-#define  NCS_LOG_INFO       NCS_OS_LOG_INFO   /* informational */
-#define  NCS_LOG_DEBUG      NCS_OS_LOG_DEBUG  /* debug-level messages */
-
 
 /*****************************************************************************
  **                                                                         **

@@ -316,16 +316,6 @@ ncs_dbg_logscreen(const char *fmt,... )
    return logmessage_length;
 }
 
-void
-ncs_syslog(int priority, const char *fmt,... )
-{
-   va_list args;
-   va_start(args,fmt);
-   vsyslog(priority,fmt,args);
-   va_end(args);
-   return;
-}
-
 /***************************************************************************
  *
  * uns64

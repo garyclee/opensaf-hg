@@ -505,7 +505,7 @@ parse_and_build_hw_validation(char *xmlFile)
     catch (const XMLException& toCatch)
     {
        char *str = XMLString::transcode(toCatch.getMessage());
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Error!: %s  during XML Parser initialization for! : %s file ", str, xmlFile);
+       syslog(LOG_ERR, "NCS_AvSv: Error!: %s  during XML Parser initialization for! : %s file ", str, xmlFile);
        XMLString::release(&str);
        return 1;
     }
@@ -555,9 +555,9 @@ parse_and_build_hw_validation(char *xmlFile)
 
     catch (const XMLException& toCatch)
     {
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Error during parsing! : %s", xmlFile);
+       syslog(LOG_ERR, "NCS_AvSv: Error during parsing! : %s", xmlFile);
        char *str = XMLString::transcode(toCatch.getMessage()); 
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Exception message is! : %s", str);
+       syslog(LOG_ERR, "NCS_AvSv: Exception message is! : %s", str);
        XMLString::release(&str);
        errorOccurred = true;
     }
@@ -566,20 +566,20 @@ parse_and_build_hw_validation(char *xmlFile)
        const unsigned int maxChars = 2047;
        XMLCh errText[maxChars + 1];
 
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Error during parsing! : %s", xmlFile);
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Exception code is!  : %s", toCatch.code);
+       syslog(LOG_ERR, "NCS_AvSv: Error during parsing! : %s", xmlFile);
+       syslog(LOG_ERR, "NCS_AvSv: Exception code is!  : %s", toCatch.code);
 
        if (DOMImplementation::loadDOMExceptionMsg(toCatch.code, errText, maxChars))
        {
           char *str = XMLString::transcode(errText);
-          m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Message is! : %s", str);
+          syslog(LOG_ERR, "NCS_AvSv: Message is! : %s", str);
           XMLString::release(&str);
           errorOccurred = true;
        }
     }
     catch (...)
     {
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Unexpected exception during parsing! : %s", xmlFile);
+       syslog(LOG_ERR, "NCS_AvSv: Unexpected exception during parsing! : %s", xmlFile);
        errorOccurred = true;
     }
 
@@ -589,7 +589,7 @@ parse_and_build_hw_validation(char *xmlFile)
     */
     if (errorHandler.getSawErrors())
     {
-       m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: Errors occurred in DOM tree during parsing xml file: %s, no output available", xmlFile);
+       syslog(LOG_ERR, "NCS_AvSv: Errors occurred in DOM tree during parsing xml file: %s, no output available", xmlFile);
        errorOccurred = true;
     }
     else

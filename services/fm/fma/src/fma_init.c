@@ -351,7 +351,7 @@ static void fma_main_proc( uns32 *fma_init_hdl)
       temp_sel_obj_set = cb->sel_obj;
    }
     
-   m_NCS_SYSLOG(NCS_LOG_INFO, "Exiting from FMA Thread. \n");
+   syslog(LOG_INFO, "Exiting from FMA Thread. \n");
 
    return ;
 }

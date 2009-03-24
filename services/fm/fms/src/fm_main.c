@@ -425,7 +425,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_slot_1=atoi(substr);
          if (!temp_slot_1)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid slot_ids given \n");
+            syslog(LOG_ERR,"Invalid slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -433,7 +433,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_sub_slot_1=atoi(substr);
          if (!temp_sub_slot_1)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid sub_slot_ids given \n");
+            syslog(LOG_ERR,"Invalid sub_slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -444,7 +444,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_slot_2=atoi(substr);
          if (!temp_slot_2)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid slot_ids given \n");
+            syslog(LOG_ERR,"Invalid slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -453,14 +453,14 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_sub_slot_2=atoi(substr);
          if (!temp_sub_slot_2)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid sub_slot_ids given \n");
+            syslog(LOG_ERR,"Invalid sub_slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
       }
       else
       {
-          m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid token mentioned in the configuration file: %s\n", substr);
+          syslog(LOG_ERR,"Invalid token mentioned in the configuration file: %s\n", substr);
            fclose(fp);
            return NCSCC_RC_FAILURE;
       }
@@ -510,7 +510,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
    switch (fm_mbx_evt->evt_code)
    {
    case FM_EVT_HB_LOSS:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, FM_EVT_HB_LOSS: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        if (fm_cb->role == PCS_RDA_STANDBY)
@@ -520,7 +520,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           {
              /* Start Promote active timer */
              fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
-             m_NCS_SYSLOG(NCS_LOG_INFO, "Promote active timer started\n");
+             syslog(LOG_INFO, "Promote active timer started\n");
           }
        }
        else if (fm_cb->role == PCS_RDA_ACTIVE)
@@ -549,7 +549,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        break;
 
    case FM_EVT_HB_RESTORE:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, FM_EVT_HB_RESTORE: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        break;
@@ -560,7 +560,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        break;
 
    case FM_EVT_AVM_NODE_RESET_IND:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, NODE_RESET_IND: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
                 
@@ -586,7 +586,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
           /* Timer started only in case of reset of peer FMS, so getting slot and shelf id from cb */
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired." 
+          syslog(LOG_INFO,"Promote active timer expired." 
                 " Reseting peer controller slot_id=%u\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
@@ -596,7 +596,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
           if (status != NCSCC_RC_SUCCESS)
           {
-             m_NCS_SYSLOG(NCS_LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
+             syslog(LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
              fm_tmr_start(&fm_cb->reset_retry_tmr, fm_cb->reset_retry_tmr_val);
           }
 
@@ -606,7 +606,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_RESET_RETRY)
        {
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired."
+          syslog(LOG_INFO,"Reset retry timer expired."
                        " Reseting peer controller slot_id=%u failed.\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
@@ -701,7 +701,7 @@ void fm_tmr_exp (void *fm_tmr)
 
    if(fm_cb == NULL)
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"Taking handle failed in timer expiry \n");
+      syslog(LOG_ERR,"Taking handle failed in timer expiry \n");
       return;
    }
 
@@ -722,7 +722,7 @@ void fm_tmr_exp (void *fm_tmr)
 
       if (m_NCS_IPC_SEND(&fm_cb->mbx,evt,NCS_IPC_PRIORITY_HIGH)!= NCSCC_RC_SUCCESS)
       {
-          m_NCS_SYSLOG(NCS_LOG_ERR,"IPC send failed in timer expiry \n");
+          syslog(LOG_ERR,"IPC send failed in timer expiry \n");
           m_MMGR_FREE_FM_EVT(evt);
       }
    }
@@ -863,7 +863,7 @@ static uns32 fms_fma_node_reset_intimate(FM_CB *fm_cb, uns32 slot_id, uns32 sub_
                                       NCSMDS_SVC_ID_FMA, MDS_SEND_PRIORITY_MEDIUM,
                                       MDS_SENDTYPE_BCAST, 0, NCSMDS_SCOPE_INTRANODE))
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"Intimation node reset to FMA failed\n");
+      syslog(LOG_ERR,"Intimation node reset to FMA failed\n");
    }
 
    return NCSCC_RC_SUCCESS;
@@ -898,7 +898,7 @@ static uns32 fms_reset_peer(FM_CB *fm_cb)
                                       NCSMDS_SVC_ID_GFM, MDS_SEND_PRIORITY_MEDIUM,
                                       0, fm_cb->peer_adest, 0))
       {
-         m_NCS_SYSLOG(NCS_LOG_ERR,"Sending node-reset message to peer fms failed\n");
+         syslog(LOG_ERR,"Sending node-reset message to peer fms failed\n");
          return NCSCC_RC_FAILURE;
       }
 
@@ -981,7 +981,7 @@ static uns32 fm_create_pidfile(void)
    }
    else
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"FM PID file open failed \n");   
+      syslog(LOG_ERR,"FM PID file open failed \n");   
       return NCSCC_RC_FAILURE;
    }
 

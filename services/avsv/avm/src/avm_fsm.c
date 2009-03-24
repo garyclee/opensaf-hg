@@ -1154,7 +1154,7 @@ avm_proc_boot_succ_tmr_exp(
    /* Send node reset indication to FM, so that FM starts timer to check boot progress */
    rc_fm = avm_notify_fm_node_reset(avm_cb, &ent_info->entity_path);
 
-   m_NCS_SYSLOG (NCS_LOG_NOTICE, "avm_proc_boot_succ_tmr_exp(): AVM issued cold reset for payload - %s, return value of API: %d, sent reset indication to FMwith return value of API: %d\n", ent_info->ep_str.name, res, rc_fm);
+   syslog (LOG_NOTICE, "avm_proc_boot_succ_tmr_exp(): AVM issued cold reset for payload - %s, return value of API: %d, sent reset indication to FMwith return value of API: %d\n", ent_info->ep_str.name, res, rc_fm);
 
    ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
 
