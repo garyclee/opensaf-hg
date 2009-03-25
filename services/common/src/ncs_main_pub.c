@@ -1548,7 +1548,7 @@ void ncs_get_sys_params_arg(int i_argc,
    uns32  orig_argc;
    NCS_SUB_SLOT_ID   sub_slot_id = 0;
    NCS_SYS_PARAMS params;
-
+   char *ptr;
  
    orig_argc = gl_pargc;
    for (tmp_ctr=0; tmp_ctr<NCS_MAX_INPUT_ARG_DEF; tmp_ctr++)
@@ -1588,8 +1588,8 @@ void ncs_get_sys_params_arg(int i_argc,
       }
    }
    
-   if ( getenv("NCS_ENV_NODE_ID") )
-       sys_params->node_id = atoi(getenv("NCS_ENV_NODE_ID"));
+   if ((ptr = getenv("NCS_ENV_NODE_ID")) != NULL)
+       sys_params->node_id = atoi(ptr);
    
    m_NCS_DBG_PRINTF("NCS:NODE_ID=0x%08X\n", sys_params->node_id);
 

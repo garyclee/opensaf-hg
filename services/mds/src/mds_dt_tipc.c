@@ -726,7 +726,7 @@ static uns32 mdtm_process_recv_events(void)
                 uns16 new_checksum = 0;
 #endif
                 struct sockaddr_tipc client_addr;
-                int alen = sizeof(client_addr);
+                socklen_t alen = sizeof(client_addr);
 
                 uns16 recd_buf_len=0;
                 m_MDS_LOG_INFO("MDTM: Data received: Processing data ");
