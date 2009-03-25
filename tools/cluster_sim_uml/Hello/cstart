@@ -21,6 +21,9 @@
 pidfile="/var/run/${SA_AMF_COMPONENT_NAME}".pid
 approot=/opt/aishello/
 log=/var/log/cstart.log
+die=/tmp/die/${SA_AMF_COMPONENT_NAME}
+
+mkdir -p /tmp/die
 
 errquit() {
     echo "ERROR: $*" >> $log
@@ -36,7 +39,8 @@ app=$2
 case "$cmd" in
     instantiate)
         logger -t hello "Instantiate $SA_AMF_COMPONENT_NAME"
-        if test -f /tmp/die; then
+        if test -f $die; then
+            rm -f $die
             logger -t hello "Sorry, will die..."
             exit 1
         fi
