@@ -128,6 +128,9 @@ create_rootfs()
     cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | \
         grep /usr/$lib_dir | sed -e 's,/tls,,'` usr/$lib_dir
 
+    # Change LOG configuration to use "replicated" disk
+    sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' etc/opensaf/saflog.conf
+
     echo "Building aishello"
     export OPENSAF_INCLUDE=$root/usr/local/include
     export OPENSAF_LIB=$root/usr/local/$lib_dir
