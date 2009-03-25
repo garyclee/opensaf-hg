@@ -351,6 +351,18 @@ uns32 leap_env_init()
     return NCSCC_RC_SUCCESS;
   }  
 
+  /* 
+  ** Change buffering type for the stdout stream to line buffered.
+  ** Otherwise printf output will be block buffered and not immidiately
+  ** printed to file.
+  ** TODO: to be removed in OpenSAF 4.0
+  */
+  if (setvbuf(stdout, (char *)NULL, _IOLBF, 0) != 0)
+  {
+      fprintf(stderr, "%s:%d - setvbuf failed\n", __FILE__, __LINE__);
+      return NCSCC_RC_FAILURE;
+  }
+
   m_NCS_DBG_PRINTF("\n\n\nINITIALIZING LEAP ENVIRONMENT\n");
 
   /* initialize OS target */
