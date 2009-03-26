@@ -93,6 +93,7 @@ The `OpenSAF' Programmer's Reference Manuals can be obtained from here:
     * OpenSAF Event Distribution Service
     * OpenSAF Global Lock Service
     * OpenSAF HPI Integration Service
+    * OpenSAF Information Model Management Service
     * OpenSAF Interface Service
     * OpenSAF Installation and Configuration
     * OpenSAF LEAP
@@ -198,9 +199,11 @@ Source Tree Structure
       | +-lib_SaCkpt/
       | +-lib_SaClm/
       | +-lib_SaEvt/
+      | +-lib_SaImm/
       | +-lib_SaLck/
       | +-lib_SaLog/
       | +-lib_SaMsg/
+      | +-lib_SaNtf/
       +-m4/                         (Extra M4 macros for the build process)
       +-mibs/                       (`OpenSAF' specific MIBS)
       +-samples/                    (Sample applications source)
@@ -217,6 +220,7 @@ Source Tree Structure
       | +-glsv/
       | +-hisv/
       | +-ifsv/
+      | +-immsv/
       | +-leap/
       | +-logsv/
       | +-mab/
@@ -225,6 +229,7 @@ Source Tree Structure
       | +-mqsv/
       | +-nid/
       | +-nms/
+      | +-ntfsv/
       | +-rde/
       | +-srmsv/
       | +-vds/
@@ -560,9 +565,11 @@ in `$(libdir)/pkgconfig':
    * opensaf-ckpt.pc
    * opensaf-clm.pc
    * opensaf-evt.pc
+   * opensaf-imm.pc
    * opensaf-lck.pc
    * opensaf-log.pc
    * opensaf-msg.pc
+   * opensaf-ntf.pc
 
 There is two easy ways to use `pkgconfig'. The first one is to call it directly
 from a `Makefile' and assign its content to make variables e.g.:
