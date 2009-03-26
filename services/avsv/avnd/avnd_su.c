@@ -375,7 +375,7 @@ uns32 avnd_evt_tmr_su_err_esc (AVND_CB *cb, AVND_EVT *evt)
          cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
          break;
       default:
-         m_NCS_ASSERT(0);
+         assert(0);
    }
    m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
 done:

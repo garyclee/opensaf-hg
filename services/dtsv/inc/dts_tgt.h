@@ -89,7 +89,7 @@ EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32,char*,uns32,char*,char*);
 
 #if (DTS_TRACE == 1)
 
-#define m_DTS_DBG_TRACE(t) m_NCS_CONS_PRINTF(t)
+#define m_DTS_DBG_TRACE(t) printf(t)
 
 #else
 

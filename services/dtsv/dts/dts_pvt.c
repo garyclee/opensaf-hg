@@ -910,7 +910,7 @@ uns32 dts_unregister_service (DTSV_MSG *msg)
       /* Cleanup the console devices associated with the node */
       m_DTS_RMV_ALL_CONS(dev);
       if ((TRUE == node->device.file_open) && (node->device.svc_fh != NULL))
-         sysf_fclose(node->device.svc_fh);
+         fclose(node->device.svc_fh);
       ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node);
       m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_RMVD, node->my_key.ss_svc_id, node->my_key.node, (uns32)vkey);
       if (NULL != node)
@@ -1255,7 +1255,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
           * old file is getting closed when we are creating a new file.
           */
         if ((TRUE == device->file_open) && (device->svc_fh != NULL))
-             sysf_fclose(device->svc_fh);
+             fclose(device->svc_fh);
 
          if (NULL == (device->svc_fh = sysf_fopen(m_DTS_LOG_FILE_NAME(device), "a+")))
              return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_log_msg: Failed to open log file");
@@ -1271,7 +1271,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg,
           return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
           "dtsv_log_msg: Unbale to dump message. Either file handle is NULL or file is not opened properly");
       }
-      device->cur_file_size += (CARRIAGE_RETURN + sysf_fprintf(device->svc_fh,str));
+      device->cur_file_size += (CARRIAGE_RETURN + fprintf(device->svc_fh,str));
 
       fflush(device->svc_fh);
    }
@@ -1589,16 +1589,16 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       {
          m_DTS_GET_SVC_NAME(svc, name);
          /* Node-id display change */
-         sysf_sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
+         sprintf(tfile, "%s_0x%08x_%s%s", name, svc->node, asc_dtime, ".log");
       }
       else if (file_type == GLOBAL_FILE)
       {
-         sysf_sprintf(tfile, "%s_%s%s", "NCS", asc_dtime, ".log");
+         sprintf(tfile, "%s_%s%s", "NCS", asc_dtime, ".log");
       }
       else
       {
           /* Node-id display change */ 
-          sysf_sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
+          sprintf(tfile, "%s_0x%08x_%s%s", "NODE", svc->node, asc_dtime, ".log");
       }
 
       strcat(file, tfile);
@@ -1608,43 +1608,43 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
       if ((fh= sysf_fopen(file, "a+")) != NULL)
       {
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "*********************** F I L E   H E A D E R **************************\n"));
+              fprintf(fh, "*********************** F I L E   H E A D E R **************************\n"));
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "**   Logging Type  = %s\n", logging_type[file_type]));
+              fprintf(fh, "**   Logging Type  = %s\n", logging_type[file_type]));
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "**   Creation Time = %s\n", asc_dtime));
+              fprintf(fh, "**   Creation Time = %s\n", asc_dtime));
 
           if (file_type == GLOBAL_FILE)
           {
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Node ID       = %s\n", "ALL"));
+                  fprintf(fh, "**   Node ID       = %s\n", "ALL"));
 
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", "ALL"));
+                  fprintf(fh, "**   Service Name  = %s\n", "ALL"));
           }
           else if (file_type == PER_SVC_FILE)
           {
               count += (CARRIAGE_RETURN + 
                   /* Node-id display change */
-                  sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
+                  fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
 
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", name));
+                  fprintf(fh, "**   Service Name  = %s\n", name));
           }
           else
           {
               count += (CARRIAGE_RETURN + 
                   /* Node-id display change */
-                  sysf_fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
+                  fprintf(fh, "**   Node ID       = 0x%08x\n", svc->node));
               count += (CARRIAGE_RETURN + 
-                  sysf_fprintf(fh, "**   Service Name  = %s\n", "ALL"));
+                  fprintf(fh, "**   Service Name  = %s\n", "ALL"));
           }
 
           count += (CARRIAGE_RETURN + 
-              sysf_fprintf(fh, "************************************************************************\n"));
-          sysf_fclose(fh);
+              fprintf(fh, "************************************************************************\n"));
+          fclose(fh);
       } 
       else
           return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: Failed to open log file");
@@ -1730,16 +1730,16 @@ int32 dts_open_conf_cons (DTS_CB *cb, uns32 mode, char *str)
    uns32 m;
 
    /*Init console device */
-   if((fd_init = m_NCS_POSIX_OPEN(str, O_RDONLY|O_NONBLOCK)) < 0)
+   if((fd_init = open(str, O_RDONLY|O_NONBLOCK)) < 0)
       return fd_init;
    else
-      m_NCS_POSIX_CLOSE(fd_init);
+      close(fd_init);
    
    /*Open device in non blocking mode*/
    m = mode|O_NONBLOCK;
 
    for(f=0; f<5; f++)
-     if((fd = m_NCS_POSIX_OPEN(str,m)) >= 0) break;
+     if((fd = open(str,m)) >= 0) break;
 
    if(fd < 0) return fd;
 
@@ -1788,7 +1788,7 @@ uns32 dts_close_opened_files (void)
     /* First close files in global policy */
     if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
     {
-       sysf_fclose(inst->g_policy.device.svc_fh);
+       fclose(inst->g_policy.device.svc_fh);
        inst->g_policy.device.file_open = FALSE;
        inst->g_policy.device.new_file = TRUE;
        inst->g_policy.device.svc_fh = NULL;
@@ -1807,7 +1807,7 @@ uns32 dts_close_opened_files (void)
         nt_key  = service->ntwk_key;
         if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
         {
-            sysf_fclose(service->device.svc_fh);
+            fclose(service->device.svc_fh);
             service->device.file_open = FALSE;
             service->device.new_file = TRUE;
             service->device.svc_fh = NULL;
@@ -1843,7 +1843,7 @@ uns32 dts_close_files_quiesced (void)
     /* First close files in global policy */
     if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
     {
-       sysf_fclose(inst->g_policy.device.svc_fh);
+       fclose(inst->g_policy.device.svc_fh);
        inst->g_policy.device.svc_fh = NULL;
     }
 
@@ -1854,7 +1854,7 @@ uns32 dts_close_files_quiesced (void)
         nt_key  = service->ntwk_key;
         if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
         {
-            sysf_fclose(service->device.svc_fh);
+            fclose(service->device.svc_fh);
             service->device.svc_fh = NULL;
         }
         service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8*)&nt_key);
@@ -2651,7 +2651,7 @@ uns32 dts_print_current_config(DTS_CB *cb)
 
    m_GET_ASCII_DATE_TIME_STAMP(tod, asc_dtime);
    strcpy(file, cb->log_path);
-   sysf_sprintf(tfile, "%s_%s%s", "DTS", asc_dtime, ".config");
+   sprintf(tfile, "%s_%s%s", "DTS", asc_dtime, ".config");
    strcat(file, tfile);
    if ((fh = sysf_fopen(file, "a+")) != NULL)
    {
@@ -2660,7 +2660,7 @@ uns32 dts_print_current_config(DTS_CB *cb)
       dts_print_svc_reg_pat(cb, fh);
       m_DTS_UNLK(&cb->lock);
       fflush(fh);
-      sysf_fclose(fh);
+      fclose(fh);
    }
    else
       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_print_current_config: Failed to open file for printing configuration data");

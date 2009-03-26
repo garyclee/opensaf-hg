@@ -136,7 +136,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
      if ((cb->ha_state == SA_AMF_HA_STANDBY)  && (haState == SA_AMF_HA_ACTIVE)){
        if (cb->cold_or_warm_sync_on == TRUE)
         {
-              m_NCS_CONS_PRINTF("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+              printf("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
            saErr=SA_AIS_ERR_TRY_AGAIN;
             saAmfResponse(cb->amf_hdl, invocation, saErr);
         ncshm_give_hdl(cb->cpd_hdl);
@@ -149,7 +149,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
      if ((cb->ha_state == SA_AMF_HA_ACTIVE)  && (haState == SA_AMF_HA_QUIESCED)){
        if (cb->cold_or_warm_sync_on == TRUE)
         {
-              m_NCS_CONS_PRINTF("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+              printf("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
         }
         }
      
@@ -162,7 +162,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 
       if(SA_AMF_HA_ACTIVE == cb->ha_state) {
          mds_role = V_DEST_RL_ACTIVE;
-         m_NCS_CONS_PRINTF("ACTIVE STATE\n");
+         printf("ACTIVE STATE\n");
       /*   anchor   = cb->cpd_anc; */
       }
       else if(SA_AMF_HA_QUIESCED == cb->ha_state)
@@ -191,7 +191,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
       else
       {
          mds_role = V_DEST_RL_STANDBY;
-         m_NCS_CONS_PRINTF("STANDBY STATE\n");
+         printf("STANDBY STATE\n");
       /*   anchor   = cb->cpd_anc; */
       }
       memset(&vda_info, 0, sizeof(vda_info));
@@ -204,13 +204,13 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
       if(NCSCC_RC_SUCCESS != rc) {
          m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
          m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
-         m_NCS_CONS_PRINTF("NCSVDA_API RETURNED FAILOVER CHG ROLE %d\n",rc);
+         printf("NCSVDA_API RETURNED FAILOVER CHG ROLE %d\n",rc);
          ncshm_give_hdl(cb->cpd_hdl);
          return;
       }
       if(cpd_mbcsv_chgrole(cb)!=NCSCC_RC_SUCCESS)
       {
-         m_NCS_CONS_PRINTF("CPD_MBCSV_CHGROLE_FAILED\n");
+         printf("CPD_MBCSV_CHGROLE_FAILED\n");
          m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED,CPD_FC_MBCSV,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
       }
 
@@ -226,7 +226,7 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
          prev_dest = node_info->cpnd_dest;
          if(node_info->timer_state == 2)
          {
-            m_NCS_CONS_PRINTF("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE\n");
+            printf("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE\n");
             cpd_process_cpnd_down(cb,&node_info->cpnd_dest);
          }
          cpd_cpnd_info_node_getnext(&cb->cpnd_tree,&prev_dest,&node_info);

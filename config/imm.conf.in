@@ -9,8 +9,8 @@
 
 # Uncomment the next lines to enable traces from the IMMD and IMMND servers
 # At the moment we want all traces until IMM is "production ready".
-export IMMD_TRACE_CATEGORIES=ALL
-export IMMND_TRACE_CATEGORIES=ALL
+#export IMMD_TRACE_CATEGORIES=ALL
+#export IMMND_TRACE_CATEGORIES=ALL
 export IMMD_TRACE_PATHNAME="${LOCALSTATEDIR}/stdouts/opensaf_immd.log"
 export IMMND_TRACE_PATHNAME="${LOCALSTATEDIR}/stdouts/opensaf_immnd.log"
 

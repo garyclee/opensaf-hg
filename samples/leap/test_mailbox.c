@@ -189,7 +189,7 @@ static uns32 create_app_stuff(int test_num)
         }
         
     m_NCS_TASK_SLEEP(5000);
-    m_NCS_CONS_PRINTF("*** Waited for 5 seconds before destroying the tasks/mailboxes...\n");
+    printf("*** Waited for 5 seconds before destroying the tasks/mailboxes...\n");
 
         m_NCS_TASK_STOP(gl_app1_cb.task_hdl);
         m_NCS_TASK_RELEASE(gl_app1_cb.task_hdl);
@@ -201,13 +201,13 @@ static uns32 create_app_stuff(int test_num)
         (void)m_NCS_IPC_DETACH(&gl_app2_cb.mbx, NULL, NULL);
         m_NCS_IPC_RELEASE(&gl_app2_cb.mbx, lt_leave_on_queue_cb);
 
-    m_NCS_CONS_PRINTF("Destroyed the tasks for Applications 1 & 2...\n");
-    m_NCS_CONS_PRINTF("Destroyed the mailboxes for Applications 1 & 2...\n");
-    m_NCS_CONS_PRINTF("Returning from the test...\n");
+    printf("Destroyed the tasks for Applications 1 & 2...\n");
+    printf("Destroyed the mailboxes for Applications 1 & 2...\n");
+    printf("Returning from the test...\n");
         break;
 
     default:
-        m_NCS_CONS_PRINTF("Test Num is wrong \n");
+        printf("Test Num is wrong \n");
         return NCSCC_RC_FAILURE;
     }
     
@@ -221,16 +221,16 @@ static void lt_test1_app1_process_main(SYSF_MBX *mbx)
     NCS_SEL_OBJ_SET     all_sel_obj;
     LT_EVT          *sreq = NULL;
 
-    m_NCS_CONS_PRINTF("Application-1 thread created...\n");
+    printf("Application-1 thread created...\n");
 
-    m_NCS_CONS_PRINTF("Application-1 : sending REQUEST to Application-2\n");
+    printf("Application-1 : sending REQUEST to Application-2\n");
     sreq = m_MMGR_ALLOC_LT_EVT;
     memset(sreq, '\0', sizeof(LT_EVT));
     sreq->evt = LT_TEST_EVT_APP1_REQ;
     sreq->info.app1_req = 0x01020304;
     if(m_NCS_IPC_SEND(&gl_app2_cb.mbx, sreq, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS)
     {
-    m_NCS_CONS_PRINTF("Application-1 : Evt post to Application-2 mailbox failed...\n");
+    printf("Application-1 : Evt post to Application-2 mailbox failed...\n");
     }
 
     /* Then start waiting for events on its own mailbox */
@@ -240,7 +240,7 @@ static void lt_test1_app1_process_main(SYSF_MBX *mbx)
 
     while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj,&all_sel_obj,0,0,0) != -1)
     {
-        m_NCS_CONS_PRINTF("Application-1 : Selection Object for Application-1 returned\n");
+        printf("Application-1 : Selection Object for Application-1 returned\n");
     if (m_NCS_SEL_OBJ_ISSET(mbx_fd,&all_sel_obj))
     {
             /* now got the IPC mail box event */
@@ -248,7 +248,7 @@ static void lt_test1_app1_process_main(SYSF_MBX *mbx)
         }
     else
     {
-            m_NCS_CONS_PRINTF("Application-1 : no fd set for select( )\n");
+            printf("Application-1 : no fd set for select( )\n");
     }
     /* do the fd set for the select obj */
     m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
@@ -265,7 +265,7 @@ void test1_app1_process_mbx(LT_TEST_APP_CB *cb, SYSF_MBX *mbx)
      now itself. */
   while((evt = (LT_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt)))
   {
-        m_NCS_CONS_PRINTF("Application-1 : NonBlock receive on mailbox successful\n");
+        printf("Application-1 : NonBlock receive on mailbox successful\n");
     if(lt_test1_common_process_evt(cb, evt) != NCSCC_RC_SUCCESS)
     {
         /* Show up a DBG SINK. */
@@ -281,7 +281,7 @@ static void lt_test1_app2_process_main(SYSF_MBX *mbx)
     NCS_SEL_OBJ         highest_sel_obj;
     NCS_SEL_OBJ_SET     all_sel_obj;
 
-    m_NCS_CONS_PRINTF("Application-2 thread created...\n");
+    printf("Application-2 thread created...\n");
 
     /* Start waiting for events on its own mailbox */
     m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
@@ -290,7 +290,7 @@ static void lt_test1_app2_process_main(SYSF_MBX *mbx)
 
     while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj,&all_sel_obj,0,0,0) != -1)
     {
-        m_NCS_CONS_PRINTF("Application-2 : Selection Object returned\n");
+        printf("Application-2 : Selection Object returned\n");
     if (m_NCS_SEL_OBJ_ISSET(mbx_fd,&all_sel_obj))
     {
             /* now got the IPC mail box event */
@@ -298,7 +298,7 @@ static void lt_test1_app2_process_main(SYSF_MBX *mbx)
         }
     else
     {
-            m_NCS_CONS_PRINTF("Application-2 : no fd set for select( )\n");
+            printf("Application-2 : no fd set for select( )\n");
     }
     /* do the fd set for the select obj */
     m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
@@ -315,7 +315,7 @@ void test1_app2_process_mbx(LT_TEST_APP_CB *cb, SYSF_MBX *mbx)
      now itself. */
   while((evt = (LT_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt)))
   {
-        m_NCS_CONS_PRINTF("Application-2 : NonBlock receive on mailbox successful\n");
+        printf("Application-2 : NonBlock receive on mailbox successful\n");
     if(lt_test1_common_process_evt(cb, evt) != NCSCC_RC_SUCCESS)
     {
         /* Show up a DBG SINK. */
@@ -332,13 +332,13 @@ uns32 lt_test1_common_process_evt(LT_TEST_APP_CB *cb, LT_EVT   *evt)
    {
    case LT_TEST_EVT_APP1_REQ:
     /* App2 receives this event. */
-        m_NCS_CONS_PRINTF("Application-2 : received REQUEST from Application-1\n");
+        printf("Application-2 : received REQUEST from Application-1\n");
         rc = lt_test_app2_handle_req(evt->evt, evt->info.app1_req);
       break;
       
    case LT_TEST_EVT_APP2_RESPONSE:
     /* App1 receives this event. */
-        m_NCS_CONS_PRINTF("Application-1 : received RESPONSE from Application-2\n");
+        printf("Application-1 : received RESPONSE from Application-2\n");
        rc = lt_test_app1_handle_response(evt->evt, evt->info.app2_resp);
       break;
    default:
@@ -363,11 +363,11 @@ uns32 lt_test_app2_handle_req(LT_TEST_EVT_TYPE evt, uns32 data)
         resp->evt = LT_TEST_EVT_APP2_RESPONSE;
         m_NCS_IPC_SEND(&gl_app1_cb.mbx, resp, NCS_IPC_PRIORITY_NORMAL);
 
-        m_NCS_CONS_PRINTF("Application-2 : sent RESPONSE to Application-1\n");
+        printf("Application-2 : sent RESPONSE to Application-1\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("Application-2 : received INVALID event..\n");
+        printf("Application-2 : received INVALID event..\n");
     }
     return NCSCC_RC_SUCCESS;
 }
@@ -376,11 +376,11 @@ uns32 lt_test_app1_handle_response(LT_TEST_EVT_TYPE evt, uns32 data)
 {
     if(evt == LT_TEST_EVT_APP2_RESPONSE)
     {
-        m_NCS_CONS_PRINTF("Application-1 : processed RESPONSE from Application-2\n");
+        printf("Application-1 : processed RESPONSE from Application-2\n");
     }
     else
     {
-        m_NCS_CONS_PRINTF("Application-1 : received INVALID event..\n");
+        printf("Application-1 : received INVALID event..\n");
     }
     return NCSCC_RC_SUCCESS;
 }

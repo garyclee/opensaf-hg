@@ -24,6 +24,7 @@
   FUNCTIONS INCLUDED in this module:
 ******************************************************************************/
 
+#include <config.h>
 
 #include "hcd.h"
 #include "hcd_amf.h"
@@ -121,7 +122,7 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
           local_hsm_cb = (HSM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_hsm_hdl);
           saHpiUnsubscribe(local_hsm_cb->args->session_id);
           saHpiSessionClose(local_hsm_cb->args->session_id);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
           saHpiFinalize();
 #endif
           local_hsm_cb->args->session_valid = 0;
@@ -132,7 +133,7 @@ hcd_amf_CSI_set_callback (SaInvocationT invocation,
       m_HISV_HCD_GIVEUP_HCD_CB;
    }
    else
-      m_NCS_CONS_PRINTF("HCD Control block found NULL in CSI Assignment\n");
+      printf("HCD Control block found NULL in CSI Assignment\n");
 }
 
 
@@ -345,7 +346,7 @@ hisv_hcd_health_check(SYSF_MBX *mbx)
    }
       /** start the AMF health check **/
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("HISV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("HISV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"F6C7");

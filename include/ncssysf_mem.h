@@ -46,7 +46,7 @@ extern "C" {
 
 #if (NCSSYSM_BUF_DBG_ENABLE == 1)
 
-#define m_NCSSYSM_BUF_ASSERT(exp)  m_NCS_ASSERT(exp)
+#define m_NCSSYSM_BUF_ASSERT(exp)  assert(exp)
 
 #else
 

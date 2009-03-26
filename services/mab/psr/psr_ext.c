@@ -2808,7 +2808,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 /* If the tree contains no data, there should be some data in the buffer */
                 if (cur_rows_left > 0)
                 {
-                    m_NCS_ASSERT(pNode == NULL);
+                    assert(pNode == NULL);
                     memcpy(cur_data, cur_ptr, tbl_info->max_row_length);
                     pss_get_key_from_data(tbl_info, cur_key, cur_data);
                     cur_ptr += tbl_info->max_row_length;
@@ -2820,7 +2820,7 @@ uns32 pss_playback_process_tbl(PSS_PWE_CB *pwe_cb, uns8 *profile,
                 /* There is no more data on the disk, so the tree contains all the data */
                 if (pNode != NULL)
                 {
-                    m_NCS_ASSERT(cur_rows_left == 0);
+                    assert(cur_rows_left == 0);
 
                     while (pNode != NULL)
                     {
@@ -4184,13 +4184,13 @@ uns32 pss_update_entry_in_spcn_conf_file(PSS_CB *inst, PSS_SPCN_LIST *entry)
     {
 
         if(tmp->plbck_frm_bam)
-           sysf_fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_BAM); /* Add entry */
+           fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_BAM); /* Add entry */
         else
-           sysf_fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_PSSV); /* Add entry */
+           fprintf(fh, "%s %s\n", tmp->pcn, m_PSS_SPCN_SOURCE_PSSV); /* Add entry */
         tmp = tmp->next;
     }
 
-    sysf_fclose(fh); /* Close the file handle */
+    fclose(fh); /* Close the file handle */
 
     return NCSCC_RC_SUCCESS;
 }
@@ -4282,10 +4282,10 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    fh = sysf_fopen((char*)&file_name, "a+");
    if(fh == NULL)
    {
-      m_NCS_CONS_PRINTF("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", (char*)&file_name);
+      printf("\n\npss_cef_dump_profile(): Can't open file %s in append mode...\n\n", (char*)&file_name);
       return NCSCC_RC_FAILURE;
    }
-   sysf_fprintf(fh, "***STARTING DUMP of PROFILE:%s for PCN:%s(ALL VALUES ARE SHOWN IN DECIMAL NOTATION)***\n", (char*)&profile_name, (char*)&pcn_name);
+   fprintf(fh, "***STARTING DUMP of PROFILE:%s for PCN:%s(ALL VALUES ARE SHOWN IN DECIMAL NOTATION)***\n", (char*)&profile_name, (char*)&pcn_name);
 
    buff_ptr = ncs_dec_flatten_space(&lcl_uba, (uns8*)&str_len, sizeof(uns16));
    if(buff_ptr == NULL)
@@ -4317,9 +4317,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       if (temp_arg == NULL)
       {
          /* Not able to get the copy of NCSMIB_ARG */
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4336,7 +4336,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
 
       return NCSCC_RC_INV_VAL;
    }
@@ -4352,9 +4352,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       if (temp_arg == NULL)
       {
          /* Not able to get the copy of NCSMIB_ARG */
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4371,7 +4371,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
 
       return NCSCC_RC_FAILURE;
    }
@@ -4384,7 +4384,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    {
        m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
-       sysf_fclose(fh);
+       fclose(fh);
        return NCSCC_RC_FAILURE;
    }
    pwe_cnt = ncs_decode_16bit(&buff_ptr);
@@ -4397,9 +4397,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       if (temp_arg == NULL)
       {
          /* Not able to get the copy of NCSMIB_ARG */
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       /* Send response back to the CLI engine */
@@ -4416,7 +4416,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       temp_arg->rsp.info.cli_rsp.o_answer = NULL;
       m_MMGR_FREE_NCSMIB_ARG(temp_arg);
       temp_arg = NULL;
-      sysf_fclose(fh);
+      fclose(fh);
       return NCSCC_RC_NO_INSTANCE;
    }
 
@@ -4432,9 +4432,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       retval = m_NCS_FILE_OP(&file, NCS_OS_FILE_DIR_PATH);
       if (retval != NCSCC_RC_SUCCESS)
       {
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
 
@@ -4444,14 +4444,14 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       pwe_id = ncs_decode_16bit(&buff_ptr);
       ncs_dec_skip_space(&lcl_uba1, sizeof(uns16));
-      sysf_fprintf(fh, "PWE:%d:START\n", pwe_id);
+      fprintf(fh, "PWE:%d:START\n", pwe_id);
 
       /* Decode tbl_cnt */
       buff_ptr = ncs_dec_flatten_space(&lcl_uba1, (uns8*)&tbl_cnt, sizeof(uns16));
@@ -4459,9 +4459,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
       {
          m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
-         sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+         fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
          ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-         sysf_fclose(fh);
+         fclose(fh);
          return NCSCC_RC_FAILURE;
       }
       tbl_cnt = ncs_decode_16bit(&buff_ptr);
@@ -4474,9 +4474,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          if (temp_arg == NULL)
          {
             /* Not able to get the copy of NCSMIB_ARG */
-            sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+            fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
             ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-            sysf_fclose(fh);
+            fclose(fh);
             return NCSCC_RC_FAILURE;
          }
       }
@@ -4489,10 +4489,10 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          {
             m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
               "pss_process_display_mib_entries()");
-            sysf_fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
+            fprintf(fh, "***DUMP of PROFILE:%s for PCN:%s INCOMPLETE***\n", (char*)&profile_name, (char*)&pcn_name);
             ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
             ncsmib_memfree(temp_arg);
-            sysf_fclose(fh);
+            fclose(fh);
             return NCSCC_RC_FAILURE;
          }
          tbl_id = ncs_decode_32bit(&buff_ptr);
@@ -4502,7 +4502,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          {
             continue;
          }
-         sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:START:STATUS-PARAM_ID[%d]\n", tbl_id,
+         fprintf(fh, "\n\t  MIB-TBL:%d:%s:START:STATUS-PARAM_ID[%d]\n", tbl_id,
             (char*)tbl_info->ptbl_info->mib_tbl_name,
             tbl_info->ptbl_info->status_field);
 
@@ -4548,12 +4548,12 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
             {
                if (file_hdl != 0)
                   m_NCS_PSSTS_FILE_CLOSE(inst->pssts_api, inst->pssts_hdl, retval, file_hdl);
-               sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
+               fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
                return NCSCC_RC_FAILURE;
             }
             if (file_hdl != 0)
                m_NCS_PSSTS_FILE_CLOSE(inst->pssts_api, inst->pssts_hdl, retval, file_hdl);
-            sysf_fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d\n",
+            fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d\n",
                                          hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
          }
       /* End of 3.0.a addition */
@@ -4562,9 +4562,9 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          rc = pss_pop_mibrows_into_buffer(inst, (char*)&profile_name, pwe_id, (char*)&pcn_name, tbl_id,
                  temp_arg, fh);
          if(rc == NCSCC_RC_SUCCESS)
-            sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:END\n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
+            fprintf(fh, "\n\t  MIB-TBL:%d:%s:END\n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
          else
-            sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR\n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
+            fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR\n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
 
          /* Send response back to the CLI engine */
          temp_arg->rsp.info.cli_rsp.o_partial = partial;
@@ -4579,12 +4579,12 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
          }
          /* Assuming success return, would imply that temp_arg->rsp.info.cli_rsp.o_answer is freed already. */
       }
-      sysf_fprintf(fh, "PWE:%d:END\n\n", pwe_id);
+      fprintf(fh, "PWE:%d:END\n\n", pwe_id);
    }
    ncsmib_memfree(temp_arg);
-   sysf_fprintf(fh, "***COMPLETED DUMP of PROFILE:%s for PCN:%s***\n", (char*)&profile_name, (char*)&pcn_name);
+   fprintf(fh, "***COMPLETED DUMP of PROFILE:%s for PCN:%s***\n", (char*)&profile_name, (char*)&pcn_name);
    ncshm_give_hdl(gl_pss_amf_attribs.handles.pssts_hdl);
-   sysf_fclose(fh);
+   fclose(fh);
    return NCSCC_RC_SUCCESS;
 }
 
@@ -4647,10 +4647,10 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
    
    if(NCSCC_RC_SUCCESS != retval)
    {
-      sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
+      fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
       goto cleanup;
    }
-   sysf_fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
+   fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
                      hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
  
  /* End of 3.0.b addition */
@@ -4670,7 +4670,7 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
       goto cleanup;
    }
 
-   sysf_fprintf(fh, "\t    ROW:START\n");
+   fprintf(fh, "\t    ROW:START\n");
    /* lcl_params_max = pss_get_count_of_valid_params(curr_data, tbl_info); */
    /* Send MIB SET requests for each of the parameters of the scalar table. */
    for (j = 0; j < tbl_info->ptbl_info->num_objects; j++)
@@ -4701,7 +4701,7 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
             memcpy(&pv.info.i_int, curr_data + param_offset, sizeof(uns32));
             break;
          default:
-            sysf_fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid var_len for FMAT_ID\n");
+            fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid var_len for FMAT_ID\n");
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
          }
          break;
@@ -4735,12 +4735,12 @@ uns32 pss_dump_sclr_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
 
       default:
          retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-         sysf_fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid FMAT_ID\n");
+         fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid FMAT_ID\n");
          goto cleanup;
       }
       pss_dump_mib_var(fh, &pv, tbl_info, j);   /* Log the Variable info */
    } /* for (j = 0; j < tbl_info->ptbl_info->num_objects; j++) */
-   sysf_fprintf(fh, "\t    ROW:END\n\n");
+   fprintf(fh, "\t    ROW:END\n\n");
 
 cleanup:
    if (curr_data != NULL)
@@ -4764,7 +4764,7 @@ void pss_dump_mib_var(FILE *fh, NCSMIB_PARAM_VAL *pv, PSS_MIB_TBL_INFO *tbl_info
    switch(pv->i_fmat_id)
    {
    case NCSMIB_FMAT_INT:
-      sysf_fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:INT, LEN:%d, VAL:%d\n", pv->i_param_id, 
+      fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:INT, LEN:%d, VAL:%d\n", pv->i_param_id, 
          var_info->var_name, (var_info->var_info.is_index_id ? "YES":"NO"), 
          var_info->var_info.len, pv->info.i_int);
       break;
@@ -4779,34 +4779,34 @@ void pss_dump_mib_var(FILE *fh, NCSMIB_PARAM_VAL *pv, PSS_MIB_TBL_INFO *tbl_info
       else
          max_len = pv->i_length;
 
-      sysf_fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:OCT, LEN:%d, MAX:%d", 
+      fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:OCT, LEN:%d, MAX:%d", 
          pv->i_param_id, var_info->var_name, (var_info->var_info.is_index_id ? "YES":"NO"), 
          pv->i_length, max_len);
       for(cnt = 0, p8 = (uns8*)pv->info.i_oct; cnt < pv->i_length; cnt++, ++p8)
       {
          /* Approximately 20 Octet values are being accomodated in one row dump of 80 columns each */
          if((cnt % 20) == 0)
-            sysf_fprintf(fh, "\n\t        OCT-VAL[%d] : %d ", cnt, (uns8)(*p8));
+            fprintf(fh, "\n\t        OCT-VAL[%d] : %d ", cnt, (uns8)(*p8));
          else
-            sysf_fprintf(fh, "%d ", (uns8)(*p8));
+            fprintf(fh, "%d ", (uns8)(*p8));
       }
       for(j = cnt; j < max_len; j++)
       {
          /* Approximately 20 Octet values are being accomodated in one row dump of 80 columns each */
          if((j % 20) == 0)
-            sysf_fprintf(fh, "\n\t        OCT-VAL[%d] : %d ", j, 0);
+            fprintf(fh, "\n\t        OCT-VAL[%d] : %d ", j, 0);
          else
-            sysf_fprintf(fh, "%d ", 0);
+            fprintf(fh, "%d ", 0);
       }
-      sysf_fprintf(fh, "\n");
+      fprintf(fh, "\n");
       break;
    case NCSMIB_FMAT_BOOL:
-      sysf_fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:BOOL, LEN:%ld, VAL:%d\n", 
+      fprintf(fh, "\t      PARAM-ID(%d:%s), IS_INDEX[%s], FMAT-ID:BOOL, LEN:%ld, VAL:%d\n", 
          pv->i_param_id, var_info->var_name, (var_info->var_info.is_index_id ? "YES":"NO"), 
          (long)sizeof(NCS_BOOL), pv->info.i_int);
       break;
    default:
-      sysf_fprintf(fh, "PARAM-INFO:ERROR - Invalid FMAT_ID\n");
+      fprintf(fh, "PARAM-INFO:ERROR - Invalid FMAT_ID\n");
       break;
    }
  
@@ -4870,10 +4870,10 @@ uns32 pss_dump_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
    
    if(NCSCC_RC_SUCCESS != retval)
    {
-      sysf_fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
+      fprintf(fh, "\n\t  MIB-TBL:%d:%s:ERROR Reading Table details \n\n", tbl_id, (char*)tbl_info->ptbl_info->mib_tbl_name);
       goto cleanup;
    }
-   sysf_fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
+   fprintf(fh, "\t TABLE DETAILS:\tHEADER LEN:%dPERSISTENT STORE VERSION:%d\n\tTABLE VERSION:%d\tMAX ROW LEN:%d\tMAX KEY LEN:%d\tBITMAP LEN:%d",
                      hdr.header_len, hdr.ps_format_version, hdr.table_version, hdr.max_row_length, hdr.max_key_length, hdr.bitmap_length);
  /* End of 3.0.b addition */
 
@@ -4929,7 +4929,7 @@ uns32 pss_dump_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
 
       for(i = 0, ptr = in_buf; i < num_items; i++, ptr += item_size)
       {
-         sysf_fprintf(fh, "\t    ROW:START\n");
+         fprintf(fh, "\t    ROW:START\n");
          /* lcl_params_max = pss_get_count_of_valid_params(curr_data, tbl_info); */
          for (j = 0; j < tbl_info->ptbl_info->num_objects; j++)
          {
@@ -4960,7 +4960,7 @@ uns32 pss_dump_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
                   memcpy(&pv.info.i_int, ptr + param_offset, sizeof(uns32));
                   break;
                default:
-                  sysf_fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid var_len for FMAT_ID\n");
+                  fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid var_len for FMAT_ID\n");
                   return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
                }
                break;
@@ -4994,12 +4994,12 @@ uns32 pss_dump_tbl(PSS_CB *inst, char *profile, uns16 pwe_id, char *pcn,
 
             default:
                retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-               sysf_fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid FMAT_ID\n");
+               fprintf(fh, "\t    ROW:PARAM-ERROR - Invalid FMAT_ID\n");
                goto cleanup;
             }
             pss_dump_mib_var(fh, &pv, tbl_info, j);   /* Log the Variable info */
          }  /* for (j = 0; j < tbl_info->ptbl_info->num_objects; j++) */
-         sysf_fprintf(fh, "\t    ROW:END\n");
+         fprintf(fh, "\t    ROW:END\n");
       }  /* for(i = 0, ptr = in_buf; i < num_items; i++, ptr += item_size) */
    }  /* while(rem_file_size != 0) */
     

@@ -1335,7 +1335,7 @@ ncs_mem_stats_dump(char * filename)
     if(strlen(filename) != 0) {
       fh = sysf_fopen( filename, "at");
       if(fh == NULL) {
-        m_NCS_CONS_PRINTF("Unable to open %s\n", filename);
+        printf("Unable to open %s\n", filename);
         return NCSCC_RC_FAILURE;
         }
       }
@@ -1346,27 +1346,27 @@ ncs_mem_stats_dump(char * filename)
   
   asc_tod[0] = '\0';
   m_GET_ASCII_TIME_STAMP(tod, asc_tod);
-  sysf_sprintf(output_string, "%s\n", asc_tod);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+  sprintf(output_string, "%s\n", asc_tod);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
   
-  sysf_sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|        |    M E M  P O O L   D E T A I L S  (all are raw counts)      |\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|   pool +--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc| freed to os\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+  sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|        |    M E M  P O O L   D E T A I L S  (all are raw counts)      |\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|   pool +--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc| freed to os\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
   /* We are walking one pool at a time, so others are busy .........................*/
   
   for (mp = mmgr.mpools; ; mp++)
     {
     m_NCS_LOCK (&mp->lock, NCS_LOCK_WRITE);
-    sysf_sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d%9d\n",
+    sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d%9d\n",
       mp->stat.size,
       mp->stat.num_inuse,
       mp->stat.num_avail,
@@ -1375,7 +1375,7 @@ ncs_mem_stats_dump(char * filename)
       mp->stat.frees,
       mp->stat.errors,
       mp->stat.failed_alloc,mp->stat.num_freed_to_os);
-    fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+    fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
     
     /* last pool needs to be handled differently since pool size does not apply */
     if(mp->size == 0) {
@@ -1401,32 +1401,32 @@ ncs_mem_stats_dump(char * filename)
     }
   
   
-  sysf_sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|               S T A T I S T I C     T O T A L S                       |\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc|freed to os\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|   no op|   bytes|   bytes|   bytes| raw cnt| raw cnt| raw cnt| raw cnt|  bytes \n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d%9d\n",0,niu,na,hw,al,fr,er,fa,mmgr.stats.freed_to_os);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+  sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|               S T A T I S T I C     T O T A L S                       |\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|   size |  in-use|   avail|  hwater|  allocs|   frees|  errors|  falloc|freed to os\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|   no op|   bytes|   bytes|   bytes| raw cnt| raw cnt| raw cnt| raw cnt|  bytes \n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "|--------+--------+--------+--------+--------+--------+--------+--------+-------------|\n");
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "%9d%9d%9d%9d%9d%9d%9d%9d%9d\n",0,niu,na,hw,al,fr,er,fa,mmgr.stats.freed_to_os);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
 
-  sysf_sprintf(output_string, "\nTotal bytes allocated (includes NCS_MPOOL_ENTRY overhead) %9d\n",ttl);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
-  sysf_sprintf(output_string, "Overhead size: %d\n\n", control_size);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+  sprintf(output_string, "\nTotal bytes allocated (includes NCS_MPOOL_ENTRY overhead) %9d\n",ttl);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
+  sprintf(output_string, "Overhead size: %d\n\n", control_size);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
   
-  sysf_sprintf(output_string, "Total OS allocs :%9d  bytes Total Os frees :%9d  bytes \n",mmgr.stats.total_os_allocs,mmgr.stats.total_os_frees);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", output_string) : sysf_fprintf (fh, output_string);
+  sprintf(output_string, "Total OS allocs :%9d  bytes Total Os frees :%9d  bytes \n",mmgr.stats.total_os_allocs,mmgr.stats.total_os_frees);
+  fh==NULL ? printf("%s", output_string) : fprintf (fh, output_string);
 
 
   if (fh)
-    sysf_fclose(fh);
+    fclose(fh);
     
   ncslpg_give(&mmgr.lpg, 0);
   
@@ -1734,7 +1734,7 @@ void
 #if (NCS_MMGR_ENABLE_PRINT_TIMESTAMP == 1)
     if (ignore_timestamp == 0)
       {
-      sysf_sprintf (pBuf, "%4d%5d%5d%12s%6d%12s%9s%4d%4d%16lx%5d  %s\n",
+      sprintf (pBuf, "%4d%5d%5d%12s%6d%12s%9s%4d%4d%16lx%5d  %s\n",
         i++,                                /* Nmber */
         ++(me->count),                      /* count */
         me->line,                           /* Line  */
@@ -1752,7 +1752,7 @@ void
     else
 #endif
       {
-      sysf_sprintf (pBuf, "%4d%5d%5d%12s%6d%12s%9s%4d%4d%16lx%5d\n",
+      sprintf (pBuf, "%4d%5d%5d%12s%6d%12s%9s%4d%4d%16lx%5d\n",
         i++,                                /* Nmber */
         ++(me->count),                      /* count */
         me->line,                           /* Line  */
@@ -1776,9 +1776,9 @@ void
         if(record->transfer == 0)
           break;
         if(record->transfer == MEM_FROM_OWNER)
-          sysf_sprintf(tmp, "\tFrom: %s at %d\n", record->file, record->line);
+          sprintf(tmp, "\tFrom: %s at %d\n", record->file, record->line);
         else if(record->transfer == MEM_TO_OWNER)
-          sysf_sprintf(tmp, "\tTo: %s at %d\n", record->file, record->line);
+          sprintf(tmp, "\tTo: %s at %d\n", record->file, record->line);
         strcat(pBuf, tmp);
         }
       }
@@ -1789,7 +1789,7 @@ void
       if(ptr_custom != NULL)
            (*ptr_custom)( ucontext, pBuf);
       else
-           m_NCS_CONS_PRINTF (pBuf);
+           printf (pBuf);
     }
 #endif
     }
@@ -1800,7 +1800,7 @@ void
 
 static void leap_mem_print(void *ucontext, char *payload)
 {
-    m_NCS_CONS_PRINTF(payload);
+    printf(payload);
 }
 #endif 
     /****************************************************************************
@@ -1941,7 +1941,7 @@ static void leap_mem_print(void *ucontext, char *payload)
       
       ncslpg_give(&mmgr.lpg, 0);
       
-      sysf_sprintf(pBuf, "%s%s%s%s%s%s",
+      sprintf(pBuf, "%s%s%s%s%s%s",
         "|------+-----+-------------+------+----+----+-----|\n",
         "|         M E M  O U T   - S U M M A R Y          |\n",
         "|------+-----+-------------+------+----+----+-----|\n",
@@ -1951,9 +1951,9 @@ static void leap_mem_print(void *ucontext, char *payload)
         );
       
       if (fh)
-        sysf_fprintf ( fh, pBuf);
+        fprintf ( fh, pBuf);
       else
-        m_NCS_CONS_PRINTF("%s", pBuf);
+        printf("%s", pBuf);
       
       
       
@@ -1961,7 +1961,7 @@ static void leap_mem_print(void *ucontext, char *payload)
         {
         for (test = hash[itr]; test != NULL; test = test->next)
           {
-          sysf_sprintf(pBuf, "|%6d|%5d|%13s|%6d|%4d|%4d|%5d|\n",
+          sprintf(pBuf, "|%6d|%5d|%13s|%6d|%4d|%4d|%5d|\n",
             test->hit_cnt,                   /* hits  */
             test->me->count,                 /* count */
             ncs_fname(test->me->file),        /* File  */
@@ -1971,21 +1971,21 @@ static void leap_mem_print(void *ucontext, char *payload)
             test->me->real_size);
           
           if (fh)
-            sysf_fprintf ( fh, pBuf);
+            fprintf ( fh, pBuf);
           else
-            m_NCS_CONS_PRINTF("%s", pBuf);
+            printf("%s", pBuf);
           }
         }
       
-      sysf_sprintf(pBuf,"|------+-----+-------------+------+----+----+-----|\n");
+      sprintf(pBuf,"|------+-----+-------------+------+----+----+-----|\n");
       
       if (fh)
-        sysf_fprintf ( fh, pBuf);
+        fprintf ( fh, pBuf);
       else
-        m_NCS_CONS_PRINTF("%s", pBuf);
+        printf("%s", pBuf);
       
       if (fh)
-        sysf_fclose(fh);
+        fclose(fh);
       
 #endif
       
@@ -2416,38 +2416,38 @@ void  ncs_mpool_entry_dump(NCSCONTEXT payload_address)
        return;
     }
 
-    m_NCS_CONS_PRINTF(" start_marker   0x%x \n",me->start_marker);
-    m_NCS_CONS_PRINTF(" from_pool_size %5d \n",me->from_pool_sz);
+    printf(" start_marker   0x%x \n",me->start_marker);
+    printf(" from_pool_size %5d \n",me->from_pool_sz);
 
-    m_NCS_CONS_PRINTF(" free_line      %5d \n",me->free_line);
+    printf(" free_line      %5d \n",me->free_line);
 
-    m_NCS_CONS_PRINTF(" free_file      %s \n",ncs_fname(me->free_file));
-    m_NCS_CONS_PRINTF(" line           %5d \n",me->line);
-    m_NCS_CONS_PRINTF(" file           %s \n",ncs_fname(me->file));
-    m_NCS_CONS_PRINTF(" loc_line       %5d \n",me->loc_line);
-    m_NCS_CONS_PRINTF(" loc_file       %s \n",ncs_fname(me->loc_file));
-    m_NCS_CONS_PRINTF(" prev_svc_id    %5d \n",me->prev_svc_id);
-    m_NCS_CONS_PRINTF(" prev_sub_id    %5d \n",me->prev_sub_id);
-    m_NCS_CONS_PRINTF(" prev_loc_line  %5d \n",me->prev_loc_line);
-    m_NCS_CONS_PRINTF(" prev_loc_file  %s \n",ncs_fname(me->prev_loc_file));
-    m_NCS_CONS_PRINTF(" service id     %4d \n",me->service_id);
-    m_NCS_CONS_PRINTF(" sub id         %4d \n",me->sub_id);
-    m_NCS_CONS_PRINTF(" usr data       0x%lx \n",(long)me->usr_data);
-    m_NCS_CONS_PRINTF(" ignore         %4d \n", me->ignore);
-    m_NCS_CONS_PRINTF(" count          %4d \n",++(me->count));
-    m_NCS_CONS_PRINTF(" age            %4d \n",me->age);
-    m_NCS_CONS_PRINTF(" next           0x%lx \n",(long)me->next);
-    m_NCS_CONS_PRINTF(" prev           0x%lx \n",(long)me->prev);
+    printf(" free_file      %s \n",ncs_fname(me->free_file));
+    printf(" line           %5d \n",me->line);
+    printf(" file           %s \n",ncs_fname(me->file));
+    printf(" loc_line       %5d \n",me->loc_line);
+    printf(" loc_file       %s \n",ncs_fname(me->loc_file));
+    printf(" prev_svc_id    %5d \n",me->prev_svc_id);
+    printf(" prev_sub_id    %5d \n",me->prev_sub_id);
+    printf(" prev_loc_line  %5d \n",me->prev_loc_line);
+    printf(" prev_loc_file  %s \n",ncs_fname(me->prev_loc_file));
+    printf(" service id     %4d \n",me->service_id);
+    printf(" sub id         %4d \n",me->sub_id);
+    printf(" usr data       0x%lx \n",(long)me->usr_data);
+    printf(" ignore         %4d \n", me->ignore);
+    printf(" count          %4d \n",++(me->count));
+    printf(" age            %4d \n",me->age);
+    printf(" next           0x%lx \n",(long)me->next);
+    printf(" prev           0x%lx \n",(long)me->prev);
 
-    m_NCS_CONS_PRINTF(" pool           0x%lx \n",(long)me->pool);
-    m_NCS_CONS_PRINTF(" owned          %4d \n",me->owned);
-    m_NCS_CONS_PRINTF(" real_size      %5d \n",me->real_size);
-    m_NCS_CONS_PRINTF(" mpool entry    0x%lx \n",(long)me);
+    printf(" pool           0x%lx \n",(long)me->pool);
+    printf(" owned          %4d \n",me->owned);
+    printf(" real_size      %5d \n",me->real_size);
+    printf(" mpool entry    0x%lx \n",(long)me);
 
     /* T E S T  lower boundary of returned memory */
     uns32* bottom  = (uns32*)((char*)mem_addr + me->real_size); 
     if(bottom)
-       m_NCS_CONS_PRINTF(" bottom marker   0x%x \n",*bottom);
+       printf(" bottom marker   0x%x \n",*bottom);
 
 #endif
     return;

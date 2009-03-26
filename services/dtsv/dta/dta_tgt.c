@@ -57,20 +57,20 @@
 
 uns32 dta_dbg_sink(uns32 l, char* f, uns32 code, char * str)
   {
-  m_NCS_CONS_PRINTF ("IN DTA_DBG_SINK: line %d, file %s\n",l,f);
+  printf ("IN DTA_DBG_SINK: line %d, file %s\n",l,f);
 
   if (NULL != str)
-      m_NCS_CONS_PRINTF ("Reason : %s \n", str);
+      printf ("Reason : %s \n", str);
 
   return code;
   }
 
 uns32 dta_dbg_sink_svc(uns32 l, char* f, uns32 code, char * str, SS_SVC_ID svc_id)
   {
-  m_NCS_CONS_PRINTF ("IN DTA_DBG_SINK: SVC_ID %d, line %d, file %s\n",svc_id,l,f);
+  printf ("IN DTA_DBG_SINK: SVC_ID %d, line %d, file %s\n",svc_id,l,f);
 
   if (NULL != str)
-      m_NCS_CONS_PRINTF ("Reason : %s \n", str);
+      printf ("Reason : %s \n", str);
 
   return code;
   }

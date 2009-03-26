@@ -405,43 +405,43 @@ void par_log_error(uns32 sel)
     switch(sel) {
     case CLI_TOK_RANGE:
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;      
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_INVALID_RANGE, lexCli->par_cb.str);
         break;    
         
     case CLI_TOK_DEFAULT_VAL:
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                            
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                            
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_INVALID_DEFVAL, lexCli->par_cb.str);
         break;    
         
     case CLI_TOK_HELP_STR:
 	    lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;          
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                            
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                            
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_INVALID_HELPSTR, lexCli->par_cb.str);
         break;    
         
     case CLI_TOK_MODE_CHANGE:    
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;                  
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_INVALID_MODECHG, lexCli->par_cb.str);
         break;    
         
     case CLI_TOK_LCURLYBRACE:    
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;      
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);                
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_UNTERMINATED_GRPBRACE, lexCli->par_cb.str);
         break;                                              
         
     case CLI_TOK_LBRACE:
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_UNTERMINATED_OPTBRACE, lexCli->par_cb.str);
         break;                                   
     
     case CLI_TOK_CONTINOUS_EXP:
         lexCli->par_cb.errPos = (uns16)lexCli->par_cb.chCnt;
-        sysf_sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
+        sprintf(lexCli->par_cb.str, "AT POSITION (%d)", lexCli->par_cb.errPos);        
         m_LOG_NCSCLI_COMMENTS(yytext, NCSCLI_PAR_INVALID_CONTINOUS_EXP, lexCli->par_cb.str);
         break;           
     }

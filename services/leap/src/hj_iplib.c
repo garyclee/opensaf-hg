@@ -74,7 +74,7 @@ void ncs_ip_addr_to_display_str(NCS_IP_ADDR *i_addr, int8 *o_str)
    {
    case NCS_IP_ADDR_TYPE_IPV4:
       ipaddr = i_addr->info.v4;
-      sysf_sprintf(o_str, "%d.%d.%d.%d", ((ipaddr >> 24) & 0xFF),
+      sprintf(o_str, "%d.%d.%d.%d", ((ipaddr >> 24) & 0xFF),
                                        ((ipaddr >> 16) & 0xFF),
                                        ((ipaddr >> 8) & 0xFF),
                                         (ipaddr) & 0xFF);

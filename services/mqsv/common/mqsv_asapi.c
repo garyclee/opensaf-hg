@@ -1228,7 +1228,7 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
 
 uns32 asapi_dbg_sink(uns32 l, char* f, uns32 code)
   {
-  m_NCS_CONS_PRINTF ("IN ASAPi_DBG_SINK: line %d, file %s\n",l,f);
+  printf ("IN ASAPi_DBG_SINK: line %d, file %s\n",l,f);
   return code;
   }
 

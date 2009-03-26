@@ -72,7 +72,7 @@ uns32 rde_rde_parse_config_file()
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.hostip= inet_addr(tmp_ptr);
-     m_NCS_CONS_PRINTF("rde_cb->rde_rde_cb.hostip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.hostip));
+     printf("rde_cb->rde_rde_cb.hostip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.hostip));
   }
   else
       return RDE_RDE_RC_FAILURE;
@@ -81,7 +81,7 @@ uns32 rde_rde_parse_config_file()
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.servip = inet_addr(tmp_ptr);
-     m_NCS_CONS_PRINTF("rde_cb->rde_rde_cb.servip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.servip));
+     printf("rde_cb->rde_rde_cb.servip is 0x%X\n",ntohl(rde_cb->rde_rde_cb.servip));
   }
   else
       return RDE_RDE_RC_FAILURE;
@@ -90,7 +90,7 @@ uns32 rde_rde_parse_config_file()
   if(tmp_ptr)
   {
      rde_cb->rde_rde_cb.hostportnum = rde_cb->rde_rde_cb.servportnum = htons(atoi(tmp_ptr));
-     m_NCS_CONS_PRINTF("Rde port number %d\n",ntohs(rde_cb->rde_rde_cb.hostportnum));
+     printf("Rde port number %d\n",ntohs(rde_cb->rde_rde_cb.hostportnum));
   }
   else
       return RDE_RDE_RC_FAILURE;
@@ -99,7 +99,7 @@ uns32 rde_rde_parse_config_file()
   if(tmp_ptr)
   {
      rde_cb->ha_role = atoi(tmp_ptr);
-     m_NCS_CONS_PRINTF("Rde initial HA role %d\n", rde_cb->ha_role);
+     printf("Rde initial HA role %d\n", rde_cb->ha_role);
   }
   else
       return RDE_RDE_RC_FAILURE;
@@ -559,17 +559,6 @@ uns32 rde_rde_parse_msg(char * msg,RDE_RDE_CB  * rde_rde_cb)
         /* The client request is a valid request for the role */
         m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Received RDE_RDE_CLIENT_ROLE_REQUEST from other RDE");
         return req;
-    }
-    else if(req == RDE_RDE_REBOOT_CMD)
-    {
-      m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, "Received RDE_RDE_REBOOT_CMD from other RDE");
-      syslog(LOG_INFO, "Received reboot command from other RDE");
-      sleep(5);
-      rde_rde_close(rde_rde_cb);
-      sleep(5);
-      syslog(LOG_NOTICE, "Rebooting the system...");
-      m_NCS_REBOOT;  
-      exit(0); 
     }
    else if(req == RDE_RDE_CLIENT_SLOT_ID_EXCHANGE_REQ)
    {

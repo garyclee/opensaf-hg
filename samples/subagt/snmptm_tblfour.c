@@ -96,7 +96,7 @@ uns32 snmptm_tblfour_tbl_req(struct ncsmib_arg *args)
    }
    else
    {
-      m_NCS_CONS_PRINTF("SNMPTM TBLFOUR: Received MOVEROW request \n");
+      printf("SNMPTM TBLFOUR: Received MOVEROW request \n");
       
       move_row_flg = TRUE;
        
@@ -151,7 +151,7 @@ uns32 snmptm_oac_tblfour_register(SNMPTM_CB *snmptm)
             
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_oac_tblfour_register(): ncsoac_ss() failed to register a table.\n");
+      printf("snmptm_oac_tblfour_register(): ncsoac_ss() failed to register a table.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -174,7 +174,7 @@ uns32 snmptm_oac_tblfour_register(SNMPTM_CB *snmptm)
 
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("snmptm_oac_tblfour_register(): ncsoac_ss() failed to register a row.\n");
+      printf("snmptm_oac_tblfour_register(): ncsoac_ss() failed to register a row.\n");
       return NCSCC_RC_FAILURE;
    }
    
@@ -245,11 +245,11 @@ static uns32 ncstesttablefourentry_moverow(SNMPTM_CB* snmptm,
 
    if (ncsoac_ss(&ssarg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("ncstesttablefourentry_moverow(): ncsoac_ss() failed MOVEROW.\n");
+      printf("ncstesttablefourentry_moverow(): ncsoac_ss() failed MOVEROW.\n");
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_CONS_PRINTF("SNMPTM TBLFOUR: MOVEROW request has been sent\n");
+   printf("SNMPTM TBLFOUR: MOVEROW request has been sent\n");
 
    return NCSCC_RC_SUCCESS;
 }
@@ -274,7 +274,7 @@ static uns32 snmptm_tblfour_staging_area_handler(SNMPTM_CB* snmptm,
    uns32               status = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_CONS_PRINTF("snmptm_tblfour_staging_area_handler(): Arrived\n");
+   printf("snmptm_tblfour_staging_area_handler(): Arrived\n");
 
    switch(arg->i_op)
    {
@@ -323,7 +323,7 @@ static uns32 snmptm_tblfour_staging_area_handler(SNMPTM_CB* snmptm,
 *****************************************************************************/
 static uns32 snmptm_tblfour_moverow_rsp_handler(struct ncsmib_arg* rsp)
 {
-   m_NCS_CONS_PRINTF("\n\nsnmptm_tblfour_moverow_rsp_handler():rsp status:%s.\n",rsp->rsp.i_status == NCSCC_RC_SUCCESS ? "SUCCESS" : "FAILURE");
+   printf("\n\nsnmptm_tblfour_moverow_rsp_handler():rsp status:%s.\n",rsp->rsp.i_status == NCSCC_RC_SUCCESS ? "SUCCESS" : "FAILURE");
    if (rsp->rsp.info.moverow_rsp.i_usrbuf != NULL)
    { 
       /*
@@ -357,7 +357,7 @@ static uns32 snmptm_oac_cb(NCSOAC_SS_CB_ARG* cbarg)
    switch(cbarg->i_op)
     {
     case NCSOAC_SS_CB_OP_IDX_FREE:
-        m_NCS_CONS_PRINTF("\nsnmptm_oac_cb():deallocated index:%u (tbl:%u)\n",
+        printf("\nsnmptm_oac_cb():deallocated index:%u (tbl:%u)\n",
                            cbarg->info.idx_free->idx_free_data.range_idx_free.i_max_idx_fltr[0],
                            cbarg->info.idx_free->idx_tbl_id);
 
@@ -375,7 +375,7 @@ static uns32 snmptm_oac_cb(NCSOAC_SS_CB_ARG* cbarg)
             
           if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
           {
-             m_NCS_CONS_PRINTF("snmptm_oac_cb(): ncsoac_ss() failed to unregister a table.\n");
+             printf("snmptm_oac_cb(): ncsoac_ss() failed to unregister a table.\n");
              return NCSCC_RC_FAILURE;
           }
        }
@@ -865,7 +865,7 @@ uns32 ncstesttablefourentry_set(NCSCONTEXT cb,
       /* Form a MOVEROW request */ 
       if (buff)
       {
-         m_NCS_CONS_PRINTF("SNMPTM TBLFOUR: Sending MOVEROW request \n");
+         printf("SNMPTM TBLFOUR: Sending MOVEROW request \n");
          ncstesttablefourentry_moverow(snmptm, arg, buff);
       }
    }
@@ -901,7 +901,7 @@ uns32 ncstesttablefourentry_setrow(NCSCONTEXT cb,
    NCS_BOOL            row_owned = TRUE;
    uns32               rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_CONS_PRINTF("\nncsTestTableFourEntry: Received SNMP SETROW request\n");
+   printf("\nncsTestTableFourEntry: Received SNMP SETROW request\n");
    
    memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
 
@@ -1065,13 +1065,13 @@ static uns32 ncstesttablefourentry_moverow_reg(SNMPTM_CB* snmptm,
 
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("ncstesttablefourentry_moverow_reg(): ncsoac_ss() failed to register a row.\n");
+      printf("ncstesttablefourentry_moverow_reg(): ncsoac_ss() failed to register a row.\n");
       return NCSCC_RC_FAILURE;
    }
 
    *row_hdl = NCS_UNS32_TO_PTR_CAST(mab_arg.info.row_owned.o_row_hdl);
 
-   m_NCS_CONS_PRINTF("ncstesttablefourentry_moverow_reg(): ROW has been registered with the new OAC.\n");
+   printf("ncstesttablefourentry_moverow_reg(): ROW has been registered with the new OAC.\n");
 
    return NCSCC_RC_SUCCESS;
 }
@@ -1103,11 +1103,11 @@ static uns32 ncstesttablefourentry_moverow_unreg(SNMPTM_CB* snmptm,
 
    if (ncsoac_ss(&mab_arg) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("ncstesttablefourentry_moverow_unreg(): ncsoac_ss() failed to de-register a row.\n");
+      printf("ncstesttablefourentry_moverow_unreg(): ncsoac_ss() failed to de-register a row.\n");
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_CONS_PRINTF("ncstesttablefourentry_moverow_unreg(): ROW has been de-registered with the new OAC.\n");
+   printf("ncstesttablefourentry_moverow_unreg(): ROW has been de-registered with the new OAC.\n");
 
    return NCSCC_RC_SUCCESS;
 }

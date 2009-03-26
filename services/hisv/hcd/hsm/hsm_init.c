@@ -30,6 +30,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hcd.h"
 #include "hpl_msg.h"
 
@@ -116,7 +118,7 @@ uns32 hsm_initialize(HPI_SESSION_ARGS *args)
    gl_hsm_hdl = hsm_cb->cb_hdl;
 
    /* get the process id */
-   hsm_cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   hsm_cb->prc_id = getpid();
 
    /* Initialize the EDA channels used for publishing events */
    if ( (NCSCC_RC_SUCCESS != hsm_eda_chan_initialize(hsm_cb)))
@@ -177,7 +179,7 @@ uns32 hsm_finalize ()
    /* finalize HPI session */
    saHpiSessionClose(hsm_cb->args->session_id);
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* finalize the HPI session */
    saHpiFinalize();
 #endif
@@ -519,7 +521,7 @@ hsm_encode_hisv_evt (HPI_HISV_EVT_T *evt_data, uns8 **evt_publish, uns32 version
       ncs_enc_claim_space(&uba, 4);
 
       p8 = ncs_enc_reserve_space(&uba, 4);
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       ncs_encode_32bit(&p8, evt_data->entity_path.Entry[i].EntityInstance);
 #else
       ncs_encode_32bit(&p8, evt_data->entity_path.Entry[i].EntityLocation);

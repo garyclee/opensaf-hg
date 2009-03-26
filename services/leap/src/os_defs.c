@@ -124,14 +124,14 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
   
    if(o_uptime == NULL)
    {
-      m_NCS_CONS_PRINTF("Wrong input ..\n"); 
+      printf("Wrong input ..\n"); 
       return NCSCC_RC_FAILURE;
    } 
 
    fp = ncs_os_fopen ("/proc/uptime", "r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("Unable to open the /proc/uptime \n");
+      printf("Unable to open the /proc/uptime \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -141,7 +141,7 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
 
    if (result != 1)
    {
-      m_NCS_CONS_PRINTF("fscanf failed .. \n");
+      printf("fscanf failed .. \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -281,26 +281,6 @@ NCS_BOOL ncs_is_root(void) { return TRUE; }
  *
  ****************************************************************************/
 
-/*static struct timeval  tmr_now;
-static struct timeval  tmr_old;
-static unsigned long   tmr_period_ns;
-static NCS_OS_CB       tmr_os_cb;
-static void *          tmr_cb_arg;
-static void *          status = NULL;*/
-int
-ncs_logscreen(const char *fmt,... )
-{
-   int logmessage_length = 0;
-   va_list args;
-
-   va_start(args,fmt);
-   logmessage_length = vprintf(fmt,args); 
-   va_end(args);
-   fflush(stdout);
-   return logmessage_length;
-}
-
-
 int
 ncs_dbg_logscreen(const char *fmt,... )
 {
@@ -334,16 +314,6 @@ ncs_dbg_logscreen(const char *fmt,... )
    va_end(args);
    fflush(stdout);
    return logmessage_length;
-}
-
-void
-ncs_syslog(int priority, const char *fmt,... )
-{
-   va_list args;
-   va_start(args,fmt);
-   vsyslog(priority,fmt,args);
-   va_end(args);
-   return;
 }
 
 /***************************************************************************
@@ -503,7 +473,7 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
             }
             else
             {
-               p_field = m_NCS_OS_PROCESS_GET_ENV_VAR("LEAP_THREADS_ENABLE_RT"); 
+               p_field = getenv("LEAP_THREADS_ENABLE_RT"); 
                if ((p_field != NULL) && (atoi(p_field) == 1))
                {
                }else
@@ -802,7 +772,7 @@ void ncs_os_atomic_init(void)
 
 void ncs_os_atomic_inc(void *p_uns32)
 {            
-    m_NCS_OS_ASSERT(gl_ncs_atomic_mtx_initialise); 
+    assert(gl_ncs_atomic_mtx_initialise); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
     ((*(uns32 *)p_uns32)++); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
@@ -811,7 +781,7 @@ void ncs_os_atomic_inc(void *p_uns32)
 
 void ncs_os_atomic_dec(void *p_uns32)
 {
-    m_NCS_OS_ASSERT(gl_ncs_atomic_mtx_initialise);
+    assert(gl_ncs_atomic_mtx_initialise);
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
     ((*(uns32 *)p_uns32)--); 
     m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
@@ -2381,7 +2351,7 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
       /* set the environment variables */
       for(;count>0;count--)
       {
-          ncs_os_process_set_env_var(node->name,node->value,node->overwrite);
+          setenv(node->name,node->value,node->overwrite);
           node++;
       }
       
@@ -2477,7 +2447,7 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
       /* set the environment variables */
       for(;count>0;count--)
       {
-          ncs_os_process_set_env_var(node->name,node->value,node->overwrite);
+          setenv(node->name,node->value,node->overwrite);
           node++;
       }
 
@@ -2519,79 +2489,6 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
    return NCSCC_RC_SUCCESS;
 }
 
-
-/***************************************************************************
- *
- * ncs_os_process_get_id
- *
- * Description: To get the process identifier
- *
- * Synopsis:
- *
- * Call Arguments:
- *   None
- *
- * Returns:
- *   Process Id
- *
- * Notes:
- *
- **************************************************************************/
-unsigned int ncs_os_process_get_id(void)
-{
-   return (unsigned int)getpid();
-}
-
-
-/***************************************************************************
- *
- * ncs_os_process_get_env_var
- *
- * Description: To get the environment Variable
- *
- * Synopsis:
- *
- * Call Arguments:
- *   str - The environment Variable Name
- *
- * Returns:
- *   the environment Value
- *
- * Notes:
- *
- **************************************************************************/
-char* ncs_os_process_get_env_var(char *str)
-{
-   return(char *)getenv(str);
-}
-
-
-/***************************************************************************
- *
- * ncs_os_process_set_env_var
- *
- * Description: To set the environment Variable
- *
- * Synopsis:
- *
- * Call Arguments:
- *   str - The environment Variable Name
- *   val - The value for setting the variable
- *   op - option for overriding
- * Returns:
- *   the success/failure
- *
- * Notes:
- *
- **************************************************************************/
-
-int ncs_os_process_set_env_var(char *str,char *val, int op)
-{
-   return setenv(str,val,op);
-}
-
-
-
 /***************************************************************************
  *
  * ncs_os_process_terminate
@@ -2617,54 +2514,6 @@ int ncs_os_process_terminate(unsigned int proc_id)
 
 /***************************************************************************
  *
- * ncs_os_process_set_priority
- *
- * Description: To set the process priority
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Which - Mention the type of the priority to be set.
- *   who - the process id of the process
- *   prio - the priority for the process
- *
- * Returns:
- *   the success/failure
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_process_set_priority(int which, int who, int prio)
-{
-   return setpriority(which,who,prio);
-}
-
-
-/***************************************************************************
- *
- * ncs_os_process_get_priority
- *
- * Description: To get the process priority
- *
- * Synopsis:
- *
- * Call Arguments:
- *   Which - Mention the type of the priority to be set.
- *   who - the process id of the process
- *
- * Returns:
- *   the priority of the process.
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_process_get_priority(int which, int who)
-{
-   return getpriority(which, who);
-}
-
-/***************************************************************************
- *
  * ncs_os_signal 
  *
  * Description: To handle the system call signal
@@ -2685,31 +2534,6 @@ sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 {
    return  signal(signum,handler);
 }
-
-/***************************************************************************
- *
- * ncs_os_signal_waitpid
- *
- * Description: Implementation of waitpid 
- *
- * Synopsis:
- *
- * Call Arguments:
- *   signum - Signal number.
- *   status - Status to be returned 
- *   options - Options for the waitpid call 
- *
- * Returns:
- *   the priority of the process.
- *
- * Notes:
- *
- **************************************************************************/
-int ncs_os_signal_waitpid(int pid, int *status,int options)
-{
-  return waitpid(pid,status,options);
-}
-
 
 /***************************************************************************
  *

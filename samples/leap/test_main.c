@@ -60,44 +60,44 @@ lt_consoleIO(int argc, char **argv)
 {
     int c = 0;
 
-    m_NCS_CONS_PRINTF("--Entering I/O Macro Test-\n");
-    m_NCS_CONS_PRINTF("Testing m_NCS_CONS_PRINTF:\n");
-    m_NCS_CONS_PRINTF("    integer (8)    = %d\n", 8);
+    printf("--Entering I/O Macro Test-\n");
+    printf("Testing printf:\n");
+    printf("    integer (8)    = %d\n", 8);
 #if (NCS_NOFLOAT == 0)
-    m_NCS_CONS_PRINTF("    float (5.2)    = %f\n", 5.2);
+    printf("    float (5.2)    = %f\n", 5.2);
 #endif
-    m_NCS_CONS_PRINTF("    character (b)  = %c\n", 'b');
-    m_NCS_CONS_PRINTF("    string (Hello) = %s\n", "Hello");
+    printf("    character (b)  = %c\n", 'b');
+    printf("    string (Hello) = %s\n", "Hello");
 
-    m_NCS_CONS_PRINTF("Testing m_NCS_CONS_GETCHAR: please enter a character >");
-    c = (char) m_NCS_CONS_GETCHAR();
-    m_NCS_CONS_PRINTF("You entered a '%c'\n", c);
-
-    while (c != '\n') /* empty input buffer */
-        c = (char) m_NCS_CONS_GETCHAR();
-
-    m_NCS_CONS_PRINTF("Testing m_NCS_CONS_GETCHAR: please enter a second character >");
-    c = (char) m_NCS_CONS_GETCHAR();
-    m_NCS_CONS_PRINTF("You entered a '%c'\n", c);
+    printf("Testing getchar: please enter a character >");
+    c = (char) getchar();
+    printf("You entered a '%c'\n", c);
 
     while (c != '\n') /* empty input buffer */
-        c = (char) m_NCS_CONS_GETCHAR();
+        c = (char) getchar();
 
-    m_NCS_CONS_PRINTF("Testing m_NCS_CONS_UNBUF_GETCHAR: please enter a third character (unbuffered) >");
+    printf("Testing getchar: please enter a second character >");
+    c = (char) getchar();
+    printf("You entered a '%c'\n", c);
+
+    while (c != '\n') /* empty input buffer */
+        c = (char) getchar();
+
+    printf("Testing m_NCS_CONS_UNBUF_GETCHAR: please enter a third character (unbuffered) >");
 
     c = (char) m_NCS_CONS_UNBUF_GETCHAR();
-    m_NCS_CONS_PRINTF("\n");
-    m_NCS_CONS_PRINTF("You entered a '%c'\n", c);
+    printf("\n");
+    printf("You entered a '%c'\n", c);
 
-    m_NCS_CONS_PRINTF("Testing m_NCS_CONS_PUTCHAR...");
-    m_NCS_CONS_PUTCHAR('a');
-    m_NCS_CONS_PUTCHAR('b');
-    m_NCS_CONS_PUTCHAR('c');
-    m_NCS_CONS_PUTCHAR('d');
-    m_NCS_CONS_PUTCHAR('e');
-    m_NCS_CONS_PUTCHAR('.');
-    m_NCS_CONS_PUTCHAR('\n');
-    m_NCS_CONS_PRINTF("-Exiting I/O Macro Test-\n\n");
+    printf("Testing putchar...");
+    putchar('a');
+    putchar('b');
+    putchar('c');
+    putchar('d');
+    putchar('e');
+    putchar('.');
+    putchar('\n');
+    printf("-Exiting I/O Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -119,17 +119,17 @@ lt_timestamp(int argc, char **argv)
     /* need to be changed; the two timestamp macros are not designed to work together,
     the test should verify them separately */
 
-    m_NCS_CONS_PRINTF("-Entering Timestamp Macro Test-\n");
-    m_NCS_CONS_PRINTF("...getting current time...");
+    printf("-Entering Timestamp Macro Test-\n");
+    printf("...getting current time...");
     m_GET_TIME_STAMP(now);
     m_GET_ASCII_TIME_STAMP(now, ascii_time);
-    m_NCS_CONS_PRINTF("...it's %s\n", ascii_time);
-    m_NCS_CONS_PRINTF("...waiting 10 seconds...");
+    printf("...it's %s\n", ascii_time);
+    printf("...waiting 10 seconds...");
     m_NCS_TASK_SLEEP(10000); /* wait 10 seconds */
     m_GET_TIME_STAMP(now);
     m_GET_ASCII_TIME_STAMP(now, ascii_time);
-    m_NCS_CONS_PRINTF(".it's now %s\n", ascii_time);
-    m_NCS_CONS_PRINTF("-Exiting Timestamp Macro Test-\n\n");
+    printf(".it's now %s\n", ascii_time);
+    printf("-Exiting Timestamp Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -150,16 +150,16 @@ lt_memManager(int argc, char **argv)
 
     ncs_mem_create ();
 
-    m_NCS_CONS_PRINTF("-Entering Memory Manager Macro Test-\n");
+    printf("-Entering Memory Manager Macro Test-\n");
 
     for(i=0; i<5; i++){
         mptr[i] = m_NCS_MEM_ALLOC(10, 0, 0, 0);
-        m_NCS_CONS_PRINTF(" Allocated Memory\n");
+        printf(" Allocated Memory\n");
     }
 
     if (mptr == NULL)
     {
-        m_NCS_CONS_PRINTF("  !!Failed to allocate memory!!\n");
+        printf("  !!Failed to allocate memory!!\n");
     }
 
     i=2;
@@ -168,7 +168,7 @@ lt_memManager(int argc, char **argv)
 #endif
         m_NCS_MEM_FREE(mptr[i], 0, 0, 0);
 
-    m_NCS_CONS_PRINTF("-Exiting Memory Manager Macro Test-\n\n");
+    printf("-Exiting Memory Manager Macro Test-\n\n");
 
     ncs_mem_destroy ();
 
@@ -192,23 +192,23 @@ int lt_bufferManager(int argc, char **argv)
     char store[10];
 
     ncs_mem_create ();
-    m_NCS_CONS_PRINTF("-Entering Buffer Manager Macro Test-\n");
+    printf("-Entering Buffer Manager Macro Test-\n");
 
     ub = m_MMGR_ALLOC_BUFR(0);
     if (ub == BNULL)
-        m_NCS_CONS_PRINTF("  !!Failed to allocate a USRBUF!!\n");
+        printf("  !!Failed to allocate a USRBUF!!\n");
     else
     {
-        m_NCS_CONS_PRINTF("Allocated USRBUF - okay\n");
+        printf("Allocated USRBUF - okay\n");
 
         /* try to read from empty usrbuf */
         if (m_MMGR_DATA_AT_END (ub, 10, store) != NULL)
-            m_NCS_CONS_PRINTF("  !!Failure; incorrectly read from empty usrbuf\n");
+            printf("  !!Failure; incorrectly read from empty usrbuf\n");
         m_MMGR_FREE_BUFR_LIST(ub);
     }
 
     ncs_mem_destroy ();
-    m_NCS_CONS_PRINTF("-Exiting Buffer Manager Macro Test-\n\n");
+    printf("-Exiting Buffer Manager Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -230,12 +230,12 @@ int gl_task_test2_kickoff=0;
 static NCS_OS_CB
 task_test2_even(void * arg) /* this routine serves the next test function */
 {
-    m_NCS_CONS_PRINTF("-Entered task even %p...wait for global kickoff\n", arg);
+    printf("-Entered task even %p...wait for global kickoff\n", arg);
 
     while (gl_task_test2_kickoff==0) /* wait for kickoff */
         m_NCS_TASK_SLEEP(500); /* allow 1/2 second for other tasks */
 
-    m_NCS_CONS_PRINTF("-Task %p has received the kickoff\n", arg);
+    printf("-Task %p has received the kickoff\n", arg);
 
     gl_task_test2_kickoff++; /* count me in */
 
@@ -246,12 +246,12 @@ task_test2_even(void * arg) /* this routine serves the next test function */
 static NCS_OS_CB
 task_test2_odd(void * arg) /* this routine serves the next test function */
 {
-    m_NCS_CONS_PRINTF("-Entered task odd %p...wait for global kickoff\n", arg);
+    printf("-Entered task odd %p...wait for global kickoff\n", arg);
 
     while (gl_task_test2_kickoff==0) /* wait for kickoff */
         m_NCS_TASK_SLEEP(500); /* allow 1/2 second for other tasks */
 
-    m_NCS_CONS_PRINTF("-Task %p dhas received the kickoff\n", arg);
+    printf("-Task %p dhas received the kickoff\n", arg);
 
     gl_task_test2_kickoff++; /* count me in */
 
@@ -266,7 +266,7 @@ lt_taskManager2(int argc, char **argv)
     int   tsk_num;
     void *taskhandles[MAX_TASKS];
 
-    m_NCS_CONS_PRINTF("-Entering Task Manager Macro Test #2-\n");
+    printf("-Entering Task Manager Macro Test #2-\n");
 
     gl_task_test2_kickoff=0;
     for (tsk_num=0; tsk_num<MAX_TASKS; tsk_num++)
@@ -278,15 +278,15 @@ lt_taskManager2(int argc, char **argv)
                               NCS_STACKSIZE_HUGE,
                               &taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
         {
-            m_NCS_CONS_PRINTF("Failed! to create task %d\n", tsk_num);
+            printf("Failed! to create task %d\n", tsk_num);
             break;
         }
         if (m_NCS_TASK_START (taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
         {
-            m_NCS_CONS_PRINTF("Failed! to start task %d\n", tsk_num);
+            printf("Failed! to start task %d\n", tsk_num);
             break;
         }
-        m_NCS_CONS_PRINTF("Created & started task %d with handle %lx\n",
+        printf("Created & started task %d with handle %lx\n",
                          tsk_num, (long) taskhandles[tsk_num]);
     }
 
@@ -299,14 +299,14 @@ lt_taskManager2(int argc, char **argv)
     for (tsk_num--; tsk_num >= 0; tsk_num--)
     {
         if (m_NCS_TASK_STOP(taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
-            m_NCS_CONS_PRINTF("Failed! to stop task %d\n", tsk_num);
+            printf("Failed! to stop task %d\n", tsk_num);
         if (m_NCS_TASK_RELEASE(taskhandles[tsk_num]) != NCSCC_RC_SUCCESS)
-            m_NCS_CONS_PRINTF("Failed! to release task %d\n", tsk_num);
+            printf("Failed! to release task %d\n", tsk_num);
         else
-            m_NCS_CONS_PRINTF("Released task %d\n", tsk_num);
+            printf("Released task %d\n", tsk_num);
     }
 
-    m_NCS_CONS_PRINTF("-Exiting Task Manager Macro Test #2-\n\n");
+    printf("-Exiting Task Manager Macro Test #2-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -332,26 +332,26 @@ task_oscb_entry(void * arg) /* this routine serves the next test function */
     void         *temp_task_hdl = 0;
     NCS_IPC_MSG   *msg;
 
-    m_NCS_CONS_PRINTF("Entered second task with arg %p.\n", arg);
-    m_NCS_CONS_PRINTF ("Call to m_NCS_TASK_CURRENT(..) - ");
+    printf("Entered second task with arg %p.\n", arg);
+    printf ("Call to m_NCS_TASK_CURRENT(..) - ");
 
     m_NCS_TASK_CURRENT (&temp_task_hdl);
 
     if (temp_task_hdl == gl_dummy_task_hdl)
-        m_NCS_CONS_PRINTF ("Success\n");
+        printf ("Success\n");
     else
     {
-        m_NCS_CONS_PRINTF ("Failed\n");
-        m_NCS_CONS_PRINTF ("Task Handles: original = %lx,  temp = %lx\n",
+        printf ("Failed\n");
+        printf ("Task Handles: original = %lx,  temp = %lx\n",
                           (long) gl_dummy_task_hdl, (long) temp_task_hdl);
     }
 
     msg = (NCS_IPC_MSG*)m_NCS_IPC_RECEIVE(&gl_dummy_mbx, NULL);
-    m_NCS_CONS_PRINTF("msg coming out 0x%lx\n", (long)msg);
+    printf("msg coming out 0x%lx\n", (long)msg);
 
     while (1) /*lint !e716 */
     {
-        m_NCS_CONS_PRINTF("Wait for main task to delete this second test.\n");
+        printf("Wait for main task to delete this second test.\n");
         gl_task_oscb_done = 1; /* tell main task that this second task is running */
 
         m_NCS_TASK_SLEEP(10000); /* 10 seconds */
@@ -369,9 +369,9 @@ lt_taskManager(int argc, char **argv)
     gl_dummy_task_hdl = 0;
     gl_dummy_mbx = 0;
 
-    m_NCS_CONS_PRINTF("-Entering Task Manager Macro Test-\n");
+    printf("-Entering Task Manager Macro Test-\n");
 
-    m_NCS_CONS_PRINTF("msg going in 0x%lx\n", (long)&msg);
+    printf("msg going in 0x%lx\n", (long)&msg);
 
     if (m_NCS_IPC_CREATE(&gl_dummy_mbx) != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
@@ -387,7 +387,7 @@ lt_taskManager(int argc, char **argv)
         return NCSCC_RC_FAILURE;
     }
 
-    m_NCS_CONS_PRINTF("Task Handle = %lx\n", (long) gl_dummy_task_hdl);
+    printf("Task Handle = %lx\n", (long) gl_dummy_task_hdl);
 
     if (m_NCS_TASK_START (gl_dummy_task_hdl) != NCSCC_RC_SUCCESS)
     {
@@ -395,7 +395,7 @@ lt_taskManager(int argc, char **argv)
         m_NCS_IPC_RELEASE(&gl_dummy_mbx, NULL);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Created & started task with handle %lx\n",
+    printf("Created & started task with handle %lx\n",
                      (long) gl_dummy_task_hdl);
 
     m_NCS_IPC_ATTACH_EXT(&gl_dummy_mbx, "TSKT");
@@ -406,16 +406,16 @@ lt_taskManager(int argc, char **argv)
         m_NCS_TASK_SLEEP(1000); /* 1 second */
 
     if ((rc = m_NCS_TASK_STOP(gl_dummy_task_hdl)) != NCSCC_RC_SUCCESS)
-        m_NCS_CONS_PRINTF("Failure when stopping task\n");
+        printf("Failure when stopping task\n");
 
     ipc_lat_report();
     m_NCS_IPC_DETACH(&gl_dummy_mbx, NULL, "TSKT");
 
     if ((rc = m_NCS_TASK_RELEASE(gl_dummy_task_hdl)) != NCSCC_RC_SUCCESS)
-        m_NCS_CONS_PRINTF("Failure when releasing task\n");
+        printf("Failure when releasing task\n");
     m_NCS_IPC_RELEASE(&gl_dummy_mbx, NULL);
 
-    m_NCS_CONS_PRINTF("-Exiting Task Manager Macro Test-\n\n");
+    printf("-Exiting Task Manager Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -437,37 +437,37 @@ lt_UserBufferQueue(int argc, char **argv)
     USRBUF   *ub;
     unsigned int count;
 
-    m_NCS_CONS_PRINTF("-Entering User Buffer Queue Test-\n");
+    printf("-Entering User Buffer Queue Test-\n");
 
     m_MMGR_UBQ_CREATE(q);
     ncs_mem_create ();
 
     ub = m_MMGR_ALLOC_BUFR(0);
     if (ub == BNULL)
-        m_NCS_CONS_PRINTF("  !!Failed to allocate a USRBUF!!\n");
+        printf("  !!Failed to allocate a USRBUF!!\n");
     else
     {
         if ((count=m_MMGR_UBQ_COUNT(q)) != 0){
-            m_NCS_CONS_PRINTF("FAILED! Queue Count = %d; it should be 0.\n", count);
+            printf("FAILED! Queue Count = %d; it should be 0.\n", count);
         }
         else if(count== 0){
-            m_NCS_CONS_PRINTF("Queue Count = %d; it should be 0. Passed!\n", count);
+            printf("Queue Count = %d; it should be 0. Passed!\n", count);
         }
 
         m_MMGR_UBQ_NQ_TAIL(q, ub);
         if ((count=m_MMGR_UBQ_COUNT(q)) != 1){
-            m_NCS_CONS_PRINTF("FAILED! Queue Count = %d; it should be 1.\n", count);
+            printf("FAILED! Queue Count = %d; it should be 1.\n", count);
         }
         else if(count== 1){
-            m_NCS_CONS_PRINTF("Queue Count = %d; it should be 1. Passed!\n", count);
+            printf("Queue Count = %d; it should be 1. Passed!\n", count);
         }
 
         ub = m_MMGR_UBQ_DQ_HEAD(q);
         if ((count=m_MMGR_UBQ_COUNT(q)) != 0){
-            m_NCS_CONS_PRINTF("FAILED! Queue Count = %d; it should be 0.\n", count);
+            printf("FAILED! Queue Count = %d; it should be 0.\n", count);
         }
         else if(count== 0){
-           m_NCS_CONS_PRINTF("Queue Count = %d; it should be 0. Passed!\n", count);
+           printf("Queue Count = %d; it should be 0. Passed!\n", count);
         }
 
         m_MMGR_FREE_BUFR_LIST(ub);
@@ -476,7 +476,7 @@ lt_UserBufferQueue(int argc, char **argv)
     m_MMGR_UBQ_RELEASE(q);
     ncs_mem_destroy ();
 
-    m_NCS_CONS_PRINTF("-Exiting User Buffer Queue Test-\n\n");
+    printf("-Exiting User Buffer Queue Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -499,7 +499,7 @@ test_timer_cb(void * t_arg)
     m_GET_TIME_STAMP(now);
     m_GET_ASCII_TIME_STAMP(now, ascii_time);
 
-    m_NCS_CONS_PRINTF("Timer Callback: timer arg = %p,  it's %s\n", t_arg, ascii_time);
+    printf("Timer Callback: timer arg = %p,  it's %s\n", t_arg, ascii_time);
     * (int *) t_arg = 1;
     return (0);
 }
@@ -512,7 +512,7 @@ lt_Timer(int argc, char **argv)
 
     ncs_mem_create ();
 
-    m_NCS_CONS_PRINTF("-Entering Timer Test-\n");
+    printf("-Entering Timer Test-\n");
 
     m_NCS_TMR_CREATE(test_tmr_handle, 100, test_timer_cb, 0);
 
@@ -525,7 +525,7 @@ lt_Timer(int argc, char **argv)
 
     m_NCS_TMR_DESTROY(test_tmr_handle);
 
-    m_NCS_CONS_PRINTF("-Exiting Timer Test-\n\n");
+    printf("-Exiting Timer Test-\n\n");
 
     ncs_mem_destroy ();
 
@@ -552,10 +552,10 @@ lt_timer_remaining(int argc, char **argv)
     time_t now;
     char   ascii_time[32];
 
-    m_NCS_CONS_PRINTF("-Entering Time Remaining Test-\n");
+    printf("-Entering Time Remaining Test-\n");
     if (argc < 2)
     {
-        m_NCS_CONS_PRINTF ("Invalid number of parameters\n");
+        printf ("Invalid number of parameters\n");
         return NCSCC_RC_FAILURE;
     }
 
@@ -566,7 +566,7 @@ lt_timer_remaining(int argc, char **argv)
 
     m_GET_TIME_STAMP(now);
     m_GET_ASCII_TIME_STAMP(now, ascii_time);
-    m_NCS_CONS_PRINTF("...it's %s\n", ascii_time);
+    printf("...it's %s\n", ascii_time);
 
     m_NCS_TMR_START (test_tmr_handle, timer_period/10, (TMR_CALLBACK) test_timer_cb, (void *) &timer_cb_done);
 
@@ -575,15 +575,15 @@ lt_timer_remaining(int argc, char **argv)
     {
         m_NCS_TASK_SLEEP(check_period);
         if (NCSCC_RC_SUCCESS == m_NCS_TMR_MSEC_REMAINING (test_tmr_handle, &remaining))
-            m_NCS_CONS_PRINTF ("  time left = %d msec\n", remaining);
+            printf ("  time left = %d msec\n", remaining);
         else
-            m_NCS_CONS_PRINTF ("  timer is no longer valid\n");
+            printf ("  timer is no longer valid\n");
     }
 
 
     m_NCS_TMR_DESTROY(test_tmr_handle);
 
-    m_NCS_CONS_PRINTF("-Exiting Time Remaining Test-\n\n");
+    printf("-Exiting Time Remaining Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -600,12 +600,12 @@ int
 lt_malloc(int argc, char **argv)
 {
   if (argc == 0){
-     m_NCS_CONS_PRINTF("Please enter a memory size value to allocate.\n\n");
+     printf("Please enter a memory size value to allocate.\n\n");
   }
   else{
      unsigned int  nbytes = (unsigned int)atoi(argv[0]);     
      m_NCS_MEM_ALLOC(nbytes, 0,0,0);
-     m_NCS_CONS_PRINTF("-Allocated %d bytes from memory-\n\n", nbytes);
+     printf("-Allocated %d bytes from memory-\n\n", nbytes);
   }
   return 0;
 }
@@ -629,27 +629,27 @@ lt_fileIO(int argc, char **argv)
     char *rsptr;
     int  c;
 
-    m_NCS_CONS_PRINTF("-Entering File I/O Test-\n");
+    printf("-Entering File I/O Test-\n");
 
     if ((fp = sysf_fopen(argv[0], "w")) == NULL)
     {
-        m_NCS_CONS_PRINTF("Failed! could not open file for write\n");
+        printf("Failed! could not open file for write\n");
         goto lt_fileIO_exit;
     }
-    if ((rc = sysf_fprintf(fp, "%s", testString)) < 0)
-        m_NCS_CONS_PRINTF("Failed! printing to  file returned %d\n", rc);
-    if ((rc = sysf_fclose(fp)) != 0)
-        m_NCS_CONS_PRINTF("Failed! closing file returned %d\n", rc);
+    if ((rc = fprintf(fp, "%s", testString)) < 0)
+        printf("Failed! printing to  file returned %d\n", rc);
+    if ((rc = fclose(fp)) != 0)
+        printf("Failed! closing file returned %d\n", rc);
 
 
     if ((fp = sysf_fopen(argv[0], "r")) == 0)
     {
-        m_NCS_CONS_PRINTF("Failed! could not open file for read\n");
+        printf("Failed! could not open file for read\n");
         goto lt_fileIO_exit;
     }
 
     rsptr = (char *)readString;
-    while ((c = sysf_getc(fp)) != EOF)
+    while ((c = getc(fp)) != EOF)
     {
       *rsptr++ = (char) c;
     }
@@ -657,15 +657,15 @@ lt_fileIO(int argc, char **argv)
 
     if (strcmp((char*)testString, (char*)readString) != 0)
     {
-        m_NCS_CONS_PRINTF("Failed! reading file did not match writing file\nFile Contents:\n%s\n", readString);
+        printf("Failed! reading file did not match writing file\nFile Contents:\n%s\n", readString);
     }
 
-    if ((rc = sysf_fclose(fp)) != 0)
-        m_NCS_CONS_PRINTF("Failed! closing file returned %d\n", rc);
+    if ((rc = fclose(fp)) != 0)
+        printf("Failed! closing file returned %d\n", rc);
 
 lt_fileIO_exit:
 
-    m_NCS_CONS_PRINTF("-Exiting File I/O Test-\n\n");
+    printf("-Exiting File I/O Test-\n\n");
     return 0;
 }
 
@@ -713,7 +713,7 @@ mem_stktrace_add(int argc, char **argv)
 
         if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
         {
-          m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
+          printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
           return NCSCC_RC_FAILURE;
         }
     }
@@ -732,7 +732,7 @@ mem_stktrace_flush(int argc, char **argv)
  
     if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
+      printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
       return NCSCC_RC_FAILURE;
     }
 #endif
@@ -770,11 +770,11 @@ mem_stktrace_report(int argc, char **argv)
         {
             if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
             {
-              m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
+              printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
               return NCSCC_RC_FAILURE;
             }
     
-            m_NCS_CONS_PRINTF((char*)outstr);
+            printf((char*)outstr);
         }
         
     } while(TRUE == lm_arg.op.mem_stk_rpt.o_more);
@@ -787,7 +787,7 @@ mem_stktrace_report(int argc, char **argv)
 static int
 lt_time_ms(int argc, char **argv)
 {
-    m_NCS_CONS_PRINTF("Testing getting time in milliseconds\n");
+    printf("Testing getting time in milliseconds\n");
     if(argc < 3)
        return NCSCC_RC_FAILURE;
     int iterations = atoi(argv[0]);
@@ -801,7 +801,7 @@ lt_time_ms(int argc, char **argv)
         t1 = m_NCS_GET_TIME_MS;
         m_NCS_TASK_SLEEP (start);
         t2 = m_NCS_GET_TIME_MS;
-        m_NCS_CONS_PRINTF("t1==%lld t2==%lld diff==%lld (%u)\n", t1, t2, t2-t1, start);
+        printf("t1==%lld t2==%lld diff==%lld (%u)\n", t1, t2, t2-t1, start);
     }
 
     return 0;
@@ -822,7 +822,7 @@ crash_me(int argc, char **argv)
 void 
 ipc_lat_report_func(void)
 {
-    m_NCS_CONS_PRINTF("\nIPC Report is ready\n");
+    printf("\nIPC Report is ready\n");
     return;
 }
 
@@ -839,12 +839,12 @@ ipc_begin_lat_report(char *name)
 
    if(ncssysm_lm(&lm_arg) == NCSCC_RC_SUCCESS)
    {
-     m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_RPT_LBGN depth=%d percentile=%d\n", lm_arg.op.ipc_rpt_lat_bgn.o_cr_depth, lm_arg.op.ipc_rpt_lat_bgn.o_cr_pcnt);
+     printf("\nncssysm_lm(): NCSSYSM_LM_OP_RPT_LBGN depth=%d percentile=%d\n", lm_arg.op.ipc_rpt_lat_bgn.o_cr_depth, lm_arg.op.ipc_rpt_lat_bgn.o_cr_pcnt);
      return NCS_LT_TEST_RC_FAILURE;
    }
    else
    {
-      m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
+      printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
       return NCS_LT_TEST_RC_SUCCESS;
    }
 #endif
@@ -863,7 +863,7 @@ ipc_lat_report(void)
 
    if(ncssysm_lm(&lm_arg) == NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY name %s\nstart time=%u finish time=%u (diff=%u)\nstart depth=%d finish depth=%d\n",
+      printf("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY name %s\nstart time=%u finish time=%u (diff=%u)\nstart depth=%d finish depth=%d\n",
                              lm_arg.op.ipc_rpt_lat.o_name, 
                              lm_arg.op.ipc_rpt_lat.o_st_time,
                              lm_arg.op.ipc_rpt_lat.o_fn_time, 
@@ -874,7 +874,7 @@ ipc_lat_report(void)
    }
    else
    {
-      m_NCS_CONS_PRINTF("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY failed\n");
+      printf("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY failed\n");
       return NCS_LT_TEST_RC_FAILURE;
    }
 #endif
@@ -946,15 +946,15 @@ static NCS_LT_TESTINFO tests[] =
 static void
 test_usage(unsigned int tNum)
 {
-    m_NCS_CONS_PRINTF("\n%s Test Usage:\nlt> %d %s\n\n", tests[tNum].testName, tNum, tests[tNum].usage_str);
+    printf("\n%s Test Usage:\nlt> %d %s\n\n", tests[tNum].testName, tNum, tests[tNum].usage_str);
 }
 
 
 static void
 leaptest_usage(void)
 {
-    m_NCS_CONS_PRINTF("\nLeaptest Usage:\nlt> <test #> <other parameters as needed by test>\n");
-    m_NCS_CONS_PRINTF("For a lists of tests, type '?' at the prompt.\n\n");
+    printf("\nLeaptest Usage:\nlt> <test #> <other parameters as needed by test>\n");
+    printf("For a lists of tests, type '?' at the prompt.\n\n");
 }
 
 
@@ -966,17 +966,17 @@ Show_tests()
     char disp[28];
     n = sizeof(tests) / sizeof(NCS_LT_TESTINFO);
 
-    m_NCS_CONS_PRINTF("\nAvailable leaptests:");
-    m_NCS_CONS_PRINTF("\nName                     #   Parameters");
-    m_NCS_CONS_PRINTF("\n----                    ---  ----------");
+    printf("\nAvailable leaptests:");
+    printf("\nName                     #   Parameters");
+    printf("\n----                    ---  ----------");
     for(i = 0; i < n; i ++)
     {
         memset(disp, 0X20, sizeof(disp));
         disp[27] = 0;
         strncpy(disp, tests[i].testName, strlen(tests[i].testName));
-        m_NCS_CONS_PRINTF("\n%s %3d  %s", disp, i, tests[i].usage_str);
+        printf("\n%s %3d  %s", disp, i, tests[i].usage_str);
     }
-    m_NCS_CONS_PRINTF("\n");
+    printf("\n");
 }
 
 
@@ -998,8 +998,8 @@ static int lt_get_usercmdline(char * cmd, char **pv)
 
     char *t;
 
-    m_NCS_CONS_PRINTF("lt> ");
-    sysf_fgets(cmd, CMD_CH_MAX, stdin);
+    printf("lt> ");
+    fgets(cmd, CMD_CH_MAX, stdin);
     t = strtok(cmd, " \n");
     while (t != NULL)
     {
@@ -1041,8 +1041,8 @@ lt_taskprio(int argc, char **argv)
     void *taskhandle1;
     void *taskhandle2;  
     
-    m_NCS_CONS_PRINTF("-Entering Task Priority Test -\n");
-    m_NCS_CONS_PRINTF("\nBoth tests set to same priority level: \n\n");
+    printf("-Entering Task Priority Test -\n");
+    printf("\nBoth tests set to same priority level: \n\n");
 
     /* The tasks below are set to the same priority  */
     /* to allow equal CPU time. Lower priority level */
@@ -1060,7 +1060,7 @@ lt_taskprio(int argc, char **argv)
                             NCS_STACKSIZE_HUGE,
                             &taskhandle1) != NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("Failed! to create task 1\n");
+       printf("Failed! to create task 1\n");
     }
     
     /* Create Task 2 with lowest priority */
@@ -1071,31 +1071,31 @@ lt_taskprio(int argc, char **argv)
                             NCS_STACKSIZE_HUGE,
                             &taskhandle2) != NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("Failed! to create task 2\n");
+       printf("Failed! to create task 2\n");
     }   
      
     if (m_NCS_TASK_START (taskhandle1) == NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("  Created & started task 1 (-) with handle %lx\n",
+       printf("  Created & started task 1 (-) with handle %lx\n",
                       (long) taskhandle1);       
     }
     else{
-       m_NCS_CONS_PRINTF("Failed! to start task 1\n");
+       printf("Failed! to start task 1\n");
     }
    
     if (m_NCS_TASK_START (taskhandle2) == NCSCC_RC_SUCCESS)
     {
-       m_NCS_CONS_PRINTF("  Created & started task 2 (+) with handle %lx\n\n",
+       printf("  Created & started task 2 (+) with handle %lx\n\n",
                         (long) taskhandle2);
     }
     else{
-       m_NCS_CONS_PRINTF("Failed! to start task\n");
+       printf("Failed! to start task\n");
     }
        
     /* Let's Pause to allow tasks to run momentarily */
     m_NCS_TASK_SLEEP(50);
 
-    m_NCS_CONS_PRINTF("\n\n-Exiting Task Priority Test -\n");
+    printf("\n\n-Exiting Task Priority Test -\n");
     return NCSCC_RC_SUCCESS;
 }
 
@@ -1119,9 +1119,9 @@ consoleMain (int argc, char **argv)
     if(leap_env_init() != NCSCC_RC_SUCCESS)
        return 1;
 
-    m_NCS_CONS_PRINTF("Starting Leap Test");
-    m_NCS_CONS_PRINTF("Press Enter to start\n");
-    m_NCS_CONS_GETCHAR();
+    printf("Starting Leap Test");
+    printf("Press Enter to start\n");
+    getchar();
 
     if(argc > 1) /* run test from command line, skipping lt prompt */
     {
@@ -1177,7 +1177,7 @@ consoleMain (int argc, char **argv)
                 continue;
             }
 
-            m_NCS_ASSERT(testNum < (sizeof(tests)/sizeof(NCS_LT_TESTINFO)));
+            assert(testNum < (sizeof(tests)/sizeof(NCS_LT_TESTINFO)));
 
             if (tests[testNum].testfunc(pc-1, &pv[1]) == NCS_LT_TEST_RC_INVALID_USAGE) /*lint !e661 !e662*/
             {

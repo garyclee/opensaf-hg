@@ -192,13 +192,13 @@ ncs_snmpsubagt_create(int32 argc, uns8 **argv)
     }
 
     status = getpid();
-    status = sysf_fprintf(fp, "%d", status);
+    status = fprintf(fp, "%d", status);
     if(status < 1)
     {
         fclose(fp);
         return NCSCC_RC_FAILURE;
     }
-    sysf_fclose(fp);
+    fclose(fp);
 
     /* install the signal handler */ 
     m_NCS_SIGNAL(SIGHUP, snmpsubagt_sighup_handler);

@@ -59,12 +59,7 @@ extern "C" {
  ****************************************************************************
  ***************************************************************************/
 
-#define sysf_fprintf                m_NCS_OS_LOG_FPRINTF
-#define sysf_fclose                 m_NCS_OS_LOG_FCLOSE
 #define sysf_fopen(fname,fmode)     m_NCS_OS_LOG_FOPEN(fname,fmode)
-#define sysf_sprintf                m_NCS_OS_LOG_SPRINTF
-#define sysf_getc                   m_NCS_OS_GETC
-#define sysf_fgets                  m_NCS_OS_FGETS
 
 #define m_NCS_FOPEN_R(filename)      m_NCS_OS_FOPEN_R(filename)
 #define m_NCS_LOG_WRITE(filename, string)  m_NCS_TS_LOG_WRITE(filename, string)
@@ -126,31 +121,9 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#define m_NCS_CONS_PUTCHAR        m_NCS_OS_PUTCHAR
-#define m_NCS_CONS_GETCHAR        m_NCS_OS_GETCHAR
-
-
-
-
-#ifndef m_NCS_CONS_VFPRINTF
-#define m_NCS_CONS_VFPRINTF       vfprintf
-#endif
-
 #define m_NCS_CONS_UNBUF_GETCHAR  m_NCS_OS_UNBUF_GETCHAR
 
 #define m_NCS_CONIO_NORMALIZE_CHR m_NCS_OS_NORMALIZE_CHR
-
-/* redefine printf() and getchar() */
-#ifdef NEW_GUI_CODE
-#undef m_NCS_OS_PRINTF
-extern LEAPDLL_API int send_cons_to_gui(const char *format , ...);
-#define m_NCS_OS_PRINTF           send_cons_to_gui
-
-#undef m_NCS_OS_GETCHAR
-extern LEAPDLL_API int get_char_from_gui();
-#define m_NCS_OS_GETCHAR           get_char_from_gui
-
-#endif
 
 /*****************************************************************************
  **                                                                         **
@@ -159,20 +132,10 @@ extern LEAPDLL_API int get_char_from_gui();
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-#define sysf_srand             m_NCS_OS_SRAND
-#define sysf_rand              m_NCS_OS_RAND
-#define sysf_difftime(t0, t1)  m_NCS_OS_DIFFTIME (t0, t1)
 
-
-#define m_NCS_SYSTEM            m_NCS_OS_SYSTEM
 #define m_NCS_START(a,b)        m_NCS_OS_START(a,b)
-#define m_NCS_ASSERT(exp)       m_NCS_OS_ASSERT(exp)
-
-#define m_NCS_CONS_PRINTF        m_NCS_OS_CONS_PRINTF
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
-
-#define m_NCS_SYSLOG             m_NCS_OS_SYSLOG
 
 
 /*****************************************************************************
@@ -186,9 +149,6 @@ extern LEAPDLL_API int get_char_from_gui();
 #define m_INIT_CRITICAL                m_NCS_OS_INIT_TASK_LOCK
 #define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
-
-
-#define m_NCS_REBOOT                   m_NCS_OS_REBOOT
 
 extern void ncs_reboot(const char *reason);
 
@@ -233,12 +193,6 @@ extern void ncs_reboot(const char *reason);
 
 #define m_NCS_GET_UPTIME \
     m_NCS_OS_GET_UPTIME  
-
-#define m_NCS_GETGRGID(gid) \
-    m_NCS_OS_GETGRGID(gid)
-
-#define m_NCS_GETGROUPS(num_of_groups,list) \
-    m_NCS_OS_GETGROUPS(num_of_groups,list) 
 
 #define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)
@@ -335,23 +289,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
  **                   POSIX System call Macros                              **
  **                                                                         **
  ****************************************************************************/
-#define m_NCS_POSIX_OPEN                    m_NCS_OS_POSIX_OPEN
-#define m_NCS_POSIX_READ                    m_NCS_OS_POSIX_READ
-#define m_NCS_POSIX_WRITE                   m_NCS_OS_POSIX_WRITE
-#define m_NCS_POSIX_DUP                     m_NCS_OS_POSIX_DUP
-#define m_NCS_POSIX_CLOSE                   m_NCS_OS_POSIX_CLOSE
-#define m_NCS_POSIX_UNLINK                  m_NCS_OS_POSIX_UNLINK
-
-#define m_NCS_POSIX_FORK                    m_NCS_OS_POSIX_FORK
-#define m_NCS_POSIX_EXECVP                  m_NCS_OS_POSIX_EXECVP
-
-#define m_NCS_POSIX_MKFIFO                  m_NCS_OS_POSIX_MKFIFO
-#define m_NCS_POSIX_PIPE                    m_NCS_OS_POSIX_PIPE
-
-#define m_NCS_POSIX_OPENLOG                 m_NCS_OS_POSIX_OPENLOG
-#define m_NCS_POSIX_SYSLOG                  m_NCS_OS_POSIX_SYSLOG
-#define m_NCS_POSIX_CLOSELOG                m_NCS_OS_POSIX_CLOSELOG
-
 
 #define m_NCS_POSIX_SIGACTION               m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_POSIX_SIGADDSET               m_NCS_OS_POSIX_SIGADDSET
@@ -407,23 +344,6 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
 #define NCS_TASK_PRIORITY_14              NCS_OS_TASK_PRIORITY_14
 #define NCS_TASK_PRIORITY_15              NCS_OS_TASK_PRIORITY_15
 #define NCS_TASK_PRIORITY_16              NCS_OS_TASK_PRIORITY_16
-
-
-/*****************************************************************************
- **                                                                         **
- **                   m_NCS_SYSLOG Priorities                               **
- **                                                                         **
- ****************************************************************************/
-
-#define  NCS_LOG_EMERG      NCS_OS_LOG_EMERG   /* system is unusable */
-#define  NCS_LOG_ALERT      NCS_OS_LOG_ALERT  /* action must be taken immediately */
-#define  NCS_LOG_CRIT       NCS_OS_LOG_CRIT   /* critical conditions */
-#define  NCS_LOG_ERR        NCS_OS_LOG_ERR      /* error conditions */
-#define  NCS_LOG_WARNING    NCS_OS_LOG_WARNING   /* warning conditions */
-#define  NCS_LOG_NOTICE     NCS_OS_LOG_NOTICE  /* normal but significant condition */
-#define  NCS_LOG_INFO       NCS_OS_LOG_INFO   /* informational */
-#define  NCS_LOG_DEBUG      NCS_OS_LOG_DEBUG  /* debug-level messages */
-
 
 /*****************************************************************************
  **                                                                         **

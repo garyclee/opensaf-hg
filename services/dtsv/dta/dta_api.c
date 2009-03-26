@@ -1061,7 +1061,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
         case 'F':
             {
                 char str[DTS_MAX_DBL_DIGITS]="";
-                sysf_sprintf(str, "%f", va_arg(argp, double));
+                sprintf(str, "%f", va_arg(argp, double));
                 if(NULL == str)
                 {
                     warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Float to string conversion gives NULL");
@@ -1095,7 +1095,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                         min_dts_ver = 2;
                 }
 
-                sysf_sprintf(str, "%lld", va_arg(argp, long long));
+                sprintf(str, "%lld", va_arg(argp, long long));
 
                 if(NULL == str)
                 {
@@ -1131,7 +1131,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                         min_dts_ver = 2;
                 }
 
-                sysf_sprintf(str, "%llu", va_arg(argp, unsigned long long));
+                sprintf(str, "%llu", va_arg(argp, unsigned long long));
                 if(NULL == str)
                 {
                     warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: unsigned long long to string conversion gives NULL");
@@ -1166,7 +1166,7 @@ uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
                         min_dts_ver = 2;
                 }
 
-                sysf_sprintf(str, "Ox%016llx", va_arg(argp, long long));
+                sprintf(str, "Ox%016llx", va_arg(argp, long long));
 
                 if(NULL == str)
                 {

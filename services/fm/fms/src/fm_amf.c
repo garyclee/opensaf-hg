@@ -129,7 +129,7 @@ void fm_saf_CSI_set_callback(SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_set_callback: Comp %s, state %s\n",
+   syslog(LOG_INFO,"fm_saf_CSI_set_callback: Comp %s, state %s\n",
                 compName->value, ha_role_string[haState - 1]);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
@@ -219,7 +219,7 @@ void fm_saf_CSI_rem_callback (SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_CSI_rem_callback: Comp %s\n", 
+   syslog(LOG_INFO,"fm_saf_CSI_rem_callback: Comp %s\n", 
                 compName->value);
 
    fm_amf_cb = fm_amf_take_hdl();
@@ -259,7 +259,7 @@ void fm_saf_comp_terminate_callback (SaInvocationT invocation,
    FM_AMF_CB *fm_amf_cb;
    SaAisErrorT error = SA_AIS_OK;
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_saf_comp_terminate_callback: Comp %s\n",
+   syslog(LOG_INFO,"fm_saf_comp_terminate_callback: Comp %s\n",
                 compName->value);
    fm_amf_cb = fm_amf_take_hdl();
    if (fm_amf_cb != NULL)   
@@ -302,7 +302,7 @@ static uns32 fm_amf_init (FM_AMF_CB *fm_amf_cb)
    amf_error = saAmfInitialize(&fm_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
    if (amf_error != SA_AIS_OK)
    {         
-         m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d\n",  amf_error);
+         syslog(LOG_ERR, "FM_COND_AMF_INIT_FAILED: amf_rc %d\n",  amf_error);
          return NCSCC_RC_FAILURE;
    }
 
@@ -336,7 +336,7 @@ static uns32 fm_amf_register (FM_AMF_CB *fm_amf_cb)
    amf_error = saAmfComponentRegister(fm_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
    if (amf_error != SA_AIS_OK)
    {            
-      m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d\n",  amf_error);
+      syslog(LOG_ERR, "FM_COND_AMF_REG_FAILED: amf_rc %d\n",  amf_error);
       return NCSCC_RC_FAILURE;
    }
    return (res);
@@ -369,7 +369,7 @@ static uns32 fm_amf_unregister (FM_AMF_CB *fm_amf_cb)
    amf_error = saAmfComponentUnregister(fm_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
    if (amf_error != SA_AIS_OK)
    {    
-      m_NCS_SYSLOG(NCS_LOG_ERR,"FM_COND_AMF_UNREG_FAILED: amf_rc %d\n",  amf_error);
+      syslog(LOG_ERR,"FM_COND_AMF_UNREG_FAILED: amf_rc %d\n",  amf_error);
       return NCSCC_RC_FAILURE;
    }
 
@@ -404,7 +404,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    SaCompName.length = strlen(fm_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
-   phlth_ptr = m_NCS_OS_PROCESS_GET_ENV_VAR("FM_HA_ENV_HEALTHCHECK_KEY");
+   phlth_ptr = getenv("FM_HA_ENV_HEALTHCHECK_KEY");
    if (phlth_ptr == NULL)
    {
       /*
@@ -424,7 +424,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
       SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);
    if (amf_error != SA_AIS_OK)
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL:" 
+      syslog(LOG_ERR, "FM_COND_AMF_HEALTH_CHK_START_FAIL:" 
                   " Healthcheck key: %s amf_rc %d\n", Healthy.key, amf_error);
        
    } 
@@ -466,7 +466,7 @@ static uns32 fm_amf_lib_init (FM_AMF_CB *fm_amf_cb)
       amf_error = saAmfComponentNameGet(fm_amf_cb->amf_hdl, &sname);
       if (amf_error != SA_AIS_OK)
       {
-         m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d\n",  amf_error);
+         syslog(LOG_ERR, "FM_COND_AMF_GET_NAME_FAILED: amf_rc %d\n",  amf_error);
          rc = NCSCC_RC_FAILURE;
          break;
       }  
@@ -478,7 +478,7 @@ static uns32 fm_amf_lib_init (FM_AMF_CB *fm_amf_cb)
       amf_error = saAmfSelectionObjectGet(fm_amf_cb->amf_hdl, &fm_amf_cb->amf_fd);
       if (amf_error != SA_AIS_OK)
       {     
-         m_NCS_SYSLOG(NCS_LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n",  amf_error);
+         syslog(LOG_ERR, "FM_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n",  amf_error);
          break;
       }
 
@@ -733,7 +733,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Set SA_AMF_COMPONENT_NAME env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR ("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
+   if (setenv ("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
    {
       return NCSCC_RC_FAILURE;
    }
@@ -741,7 +741,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    /*
    ** Set FM_HA_ENV_HEALTHCHECK_KEY env variable 
    */
-   if (m_NCS_OS_PROCESS_SET_ENV_VAR ("FM_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
+   if (setenv ("FM_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
    {
       return NCSCC_RC_FAILURE;
    }

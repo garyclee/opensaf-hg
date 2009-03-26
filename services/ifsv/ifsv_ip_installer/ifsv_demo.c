@@ -46,7 +46,7 @@ int main (int argc, char *argv[])
  
    if (argc != 2)
    {
-      m_NCS_CONS_PRINTF ("\nWrong Arguments USAGE: <ifsv_demo.out> <1 - app demo create (or) 2 - driver demo create \n");
+      printf ("\nWrong Arguments USAGE: <ifsv_demo.out> <1 - app demo create (or) 2 - driver demo create \n");
       return (NCSCC_RC_FAILURE);
    }
 
@@ -69,7 +69,7 @@ int main (int argc, char *argv[])
          shlef_slot.subslot  = 1;
          if (ifsv_app_demo_start((NCSCONTEXT)&shlef_slot) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_CONS_PRINTF ("ifsv_app_demo_start create failed \n");
+            printf ("ifsv_app_demo_start create failed \n");
             return (NCSCC_RC_FAILURE);
          }
          break;
@@ -82,7 +82,7 @@ int main (int argc, char *argv[])
          ncs_agents_startup(3, pargv);
          if (ifsv_drv_demo_start(NULL) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_CONS_PRINTF ("ifsv_drv_demo_start create failed \n");
+            printf ("ifsv_drv_demo_start create failed \n");
             return (NCSCC_RC_FAILURE);
          }
          break;
@@ -101,7 +101,7 @@ int main (int argc, char *argv[])
          ncs_ifsv_red_demo_flag = 1;
          if (ifsv_app_demo_start((NCSCONTEXT)&shlef_slot) != NCSCC_RC_SUCCESS)
          {
-            m_NCS_CONS_PRINTF ("ifsv_app_demo_start create failed \n");
+            printf ("ifsv_app_demo_start create failed \n");
             return (NCSCC_RC_FAILURE);
          }
         break;
@@ -176,7 +176,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    /** create an MOCK application for demo **/
    if (IfsvDtTestAppCreate(shelf, slot, subslot) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't able to create demo's\n");
+      printf("Sorry couldn't able to create demo's\n");
       return(NCSCC_RC_FAILURE);
    }
    /** sleep for some time to create demo application and be stable so that 
@@ -189,7 +189,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    /** application subscribe with IfA **/
    if (IfsvDtTestAppIfaSub(0, 7, 512) != NCSCC_RC_SUCCESS)
    {
-   m_NCS_CONS_PRINTF("Sorry couldn't able to subscribe with IfA \n");
+   printf("Sorry couldn't able to subscribe with IfA \n");
    return(NCSCC_RC_FAILURE);
    }
    }
@@ -199,7 +199,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    /** application subscribe with IfA **/
    if (IfsvDtTestAppIfaSub(0, 7, 255) != NCSCC_RC_SUCCESS)
    {
-   m_NCS_CONS_PRINTF("Sorry couldn't able to subscribe with IfA \n");
+   printf("Sorry couldn't able to subscribe with IfA \n");
    return(NCSCC_RC_FAILURE);
   }
 
@@ -210,7 +210,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    if (IfsvDtTestAppAddIntf(app_num, if_name, port_num, port_type, i_phy, oper_state, MTU, speed) !=
        NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't add an interface from application\n");
+      printf("Sorry couldn't add an interface from application\n");
       return(NCSCC_RC_FAILURE);
    }
    }
@@ -231,7 +231,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
                        if (IfsvDtTestAppAddIntf(app_num, if_name, port_num, port_type, i_phy, oper_state, MTU, speed) !=
                               NCSCC_RC_SUCCESS)
                         {
-                            m_NCS_CONS_PRINTF("Sorry couldn't add an interface 1 from application\n");
+                            printf("Sorry couldn't add an interface 1 from application\n");
                             return(NCSCC_RC_FAILURE);
                         }
                       printf("Adding Interface 2\n");
@@ -239,7 +239,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
                        if (IfsvDtTestAppAddIntf(app_num, if_name, 67, port_type, i_phy, oper_state, MTU, speed) !=
                               NCSCC_RC_SUCCESS)
                        {
-                           m_NCS_CONS_PRINTF("Sorry couldn't add an interface 2 from application\n");
+                           printf("Sorry couldn't add an interface 2 from application\n");
                            return(NCSCC_RC_FAILURE);
                        }
                        printf("Added two interfaces\n");
@@ -279,7 +279,7 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    oper_state = 2;
    if (IfsvDtTestAppModIntfStatus(app_num, port_num, port_type, oper_state) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't modify an interface from application\n");
+      printf("Sorry couldn't modify an interface from application\n");
       return(NCSCC_RC_FAILURE);
    }
 
@@ -288,13 +288,13 @@ ifsv_app_demo_start(NCSCONTEXT *info)
    port_type  = 26;
    if (IfsvDtTestAppGetStats(app_num, shelf, slot, subslot, port_num, port_type) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't get interface statistics from application\n");
+      printf("Sorry couldn't get interface statistics from application\n");
       return(NCSCC_RC_FAILURE);
    }
    /** get interface infomation for the give shlef/slot/port/type **/
    if (IfsvDtTestAppGetIfinfo(app_num, shelf, slot, subslot, port_num, port_type) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't get interface info from application\n");
+      printf("Sorry couldn't get interface info from application\n");
       return(NCSCC_RC_FAILURE);
    }
    /** wait for 30 seconds **/
@@ -304,7 +304,7 @@ cleanup:
    /** unsubscribe with IfA **/
    if (IfsvDtTestAppIfaUnsub(app_num) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't unsubscribe\n");
+      printf("Sorry couldn't unsubscribe\n");
       return(NCSCC_RC_FAILURE);
    }
    
@@ -315,7 +315,7 @@ cleanup:
    /** destroy the application **/
    if (IfsvDtTestAppDestroy(app_num) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't destroy the application\n");
+      printf("Sorry couldn't destroy the application\n");
       return(NCSCC_RC_FAILURE);
    }
    return (NCSCC_RC_SUCCESS);
@@ -347,7 +347,7 @@ ifsv_drv_demo_start(NCSCONTEXT *info)
    /** SE API used to initialize driver service request **/
    if (ncs_ifsv_drv_svc_req(&drv_svc_req) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't able to destroy the application\n");
+      printf("Sorry couldn't able to destroy the application\n");
       return(NCSCC_RC_FAILURE);
    }
 
@@ -358,12 +358,12 @@ ifsv_drv_demo_start(NCSCONTEXT *info)
    (NCSCONTEXT)NULL, "IFSV_DRV_DEMO", IFSV_DRV_DEMO_PRIORITY, IFSV_DRV_DEMO_STACK_SIZE,
    &task_hdl)) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't able to create the task \n");
+      printf("Sorry couldn't able to create the task \n");
       return(NCSCC_RC_FAILURE);
    }
    if ((res = m_NCS_TASK_START(task_hdl)) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("Sorry couldn't able to create the task \n");
+      printf("Sorry couldn't able to create the task \n");
       return(NCSCC_RC_FAILURE);
    }
    return (NCSCC_RC_SUCCESS);

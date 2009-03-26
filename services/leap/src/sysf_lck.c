@@ -168,7 +168,7 @@ unsigned int ncs_lock_destroy(NCS_LOCK * lock,
 
    if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }
@@ -224,7 +224,7 @@ unsigned int  ncs_lock  (NCS_LOCK*      lock,
 
   if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }
@@ -264,7 +264,7 @@ EXTERN_C unsigned int  ncs_unlock      (NCS_LOCK*      lock,
 
   if (lock->exists != NCS_LOCK_EXISTS)
     {
-    m_NCS_OS_ASSERT(0);
+    assert(0);
     m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* so we know its this LOCK failure */
     return m_LEAP_GOTO_DBG_SINK(line,file,NCSCC_RC_FAILURE);
     }
@@ -354,7 +354,7 @@ void ncs_lock_stats(char * filename) {
     if(strlen(filename) > 0) {
       fh = sysf_fopen(filename, "at");
       if(fh == NULL) {
-        m_NCS_CONS_PRINTF("Cannot open %s\n", filename);
+        printf("Cannot open %s\n", filename);
         return;
       }
     }
@@ -364,21 +364,21 @@ void ncs_lock_stats(char * filename) {
 
   asc_tod[0] = '\0';
   m_GET_ASCII_TIME_STAMP(tod, asc_tod);
-  sysf_sprintf(buffer, "%s\n", asc_tod);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
+  sprintf(buffer, "%s\n", asc_tod);
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
 
-  sysf_sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf(buffer, "|                  Lock Statistics                  |\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf(buffer, "| Service | Initialized |  Destroyed  |  Difference |\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf(buffer, "|   ID    |    Locks    |    Locks    |             |\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
+  sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf(buffer, "|                  Lock Statistics                  |\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf(buffer, "| Service | Initialized |  Destroyed  |  Difference |\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf(buffer, "|   ID    |    Locks    |    Locks    |             |\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
 
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0 )
 
@@ -392,27 +392,27 @@ void ncs_lock_stats(char * filename) {
     diff_count = init_lock_count[i] - destroy_lock_count[i];
     total_diff_count += diff_count;
     if(init_lock_count[i] > 0 || destroy_lock_count[i] > 0) {
-      sysf_sprintf (buffer, "   %3u    %9u     %9u     %9u\n",
+      sprintf (buffer, "   %3u    %9u     %9u     %9u\n",
                     i, init_lock_count[i], destroy_lock_count[i] , diff_count);
-      fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
+      fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
     }
   }
   m_NCS_UNLOCK_V2(&lock_mngr, NCS_LOCK_WRITE, NCS_SERVICE_ID_OS_SVCS, 0);
-  sysf_sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
-  sysf_sprintf (buffer, " Total    %9u     %9u     %9u\n\n",
+  sprintf(buffer, "|---------+-------------+-------------+-------------|\n");
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
+  sprintf (buffer, " Total    %9u     %9u     %9u\n\n",
                 total_init_count, total_destroy_count , total_diff_count);
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
 
 #else
 
-  sysf_sprintf (buffer, "Compile time flag NCSSYSM_LOCK_DBG_ENABLE must be set to 1\n") ;
-  fh==NULL ? m_NCS_CONS_PRINTF("%s", buffer) : sysf_fprintf (fh, buffer);
+  sprintf (buffer, "Compile time flag NCSSYSM_LOCK_DBG_ENABLE must be set to 1\n") ;
+  fh==NULL ? printf("%s", buffer) : fprintf (fh, buffer);
 
 
 #endif
 
-  if(fh != NULL) sysf_fclose(fh);
+  if(fh != NULL) fclose(fh);
 }
 
 

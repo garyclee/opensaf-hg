@@ -1575,9 +1575,9 @@ eds_publish_log_event(EDS_WORKLIST *wp,
    }
 
    if (is_ascii)
-      m_NCS_OS_LOG_SPRINTF(str, "Channel:%s, ", wp->cname);
+      sprintf(str, "Channel:%s, ", wp->cname);
    else
-      m_NCS_OS_LOG_SPRINTF(str, "Channel:<BINARY VALUE Length:%d>, ", wp->cname_len);
+      sprintf(str, "Channel:<BINARY VALUE Length:%d>, ", wp->cname_len);
 
 
    /*
@@ -1606,9 +1606,9 @@ eds_publish_log_event(EDS_WORKLIST *wp,
 
    ptr = &str[strlen(str)];   /* Get to end of previous string */
    if (is_ascii)
-      m_NCS_OS_LOG_SPRINTF(ptr, "Publisher:%s", publish_param->publisher_name.value);
+      sprintf(ptr, "Publisher:%s", publish_param->publisher_name.value);
    else
-      m_NCS_OS_LOG_SPRINTF(ptr, "Publisher:<BINARY VALUE Length:%d>, ",
+      sprintf(ptr, "Publisher:<BINARY VALUE Length:%d>, ",
               publish_param->publisher_name.length);
 
 

@@ -355,7 +355,7 @@ static uns32 mqa_mds_enc(MQA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
     /* Drop The Message */
     m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, 
                                             enc_info->o_msg_fmt_ver, __FILE__ ,__LINE__);
-    m_NCS_CONS_PRINTF("mqa_mds_enc:INVALID MSG FORMAT %d\n",enc_info->o_msg_fmt_ver);
+    printf("mqa_mds_enc:INVALID MSG FORMAT %d\n",enc_info->o_msg_fmt_ver);
     return NCSCC_RC_FAILURE;
    }
 }
@@ -431,7 +431,7 @@ static uns32 mqa_mds_dec(MQA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
     /* Drop The Message */
     m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             is_valid_msg_fmt, __FILE__ ,__LINE__);
-    m_NCS_CONS_PRINTF("mqa_mds_dec:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
+    printf("mqa_mds_dec:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
     return NCSCC_RC_FAILURE;
    }
 }
@@ -810,7 +810,7 @@ uns32 mqa_mds_msg_sync_send_direct (uns32 mqa_mds_hdl,
        /* Drop The Message */
        m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                               is_valid_msg_fmt, __FILE__ ,__LINE__);
-       m_NCS_CONS_PRINTF("mqa_mds_msg_sync_send_direct:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
+       printf("mqa_mds_msg_sync_send_direct:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
        m_MQSV_MQA_GIVEUP_MQA_CB;
        return NCSCC_RC_FAILURE;
       }

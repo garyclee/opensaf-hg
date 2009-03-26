@@ -89,7 +89,7 @@ void err_exit(int exitVal, char *fmt, ...)
 
     // Automatically add a new line too
    msg[msglen + prependSize] = '\n';
-   m_NCS_CONS_PRINTF(msg);
+   printf(msg);
    fflush(stdout);
    va_end(ap);
    exit(exitVal);
@@ -118,7 +118,7 @@ uns32 init_ncs_hisv(void)
    SaAisErrorT              rc;
 
    /* Initialize the event subsystem for communcation with HISv */
-   m_NCS_CONS_PRINTF("\tInitializing the event subsystem\n");
+   printf("\tInitializing the event subsystem\n");
       // Variables related to event-system registration
    extern SaEvtHandleT		gl_evt_hdl;
    SaVersionT               ver;
@@ -133,7 +133,7 @@ uns32 init_ncs_hisv(void)
        err_exit(1, "Failed to register hisv events with evsv: ret code is %d (NCSCC_RC_FAILURE)\n", rc);
 
    /* Initialize the client-side library */
-   m_NCS_CONS_PRINTF("\tInitializing the client-side library\n");
+   printf("\tInitializing the client-side library\n");
 
    NCS_LIB_CREATE hisv_create_info;
    rc = hpl_initialize(&hisv_create_info);
@@ -169,7 +169,7 @@ uns32 init_ncs_hisv(void)
 void hisv_cleanup(void)
 {
    NCS_LIB_DESTROY destroy_info;
-   m_NCS_CONS_PRINTF("Unregistering HPI Private Library for this application\n");
+   printf("Unregistering HPI Private Library for this application\n");
    fflush(stdout);
    hpl_finalize(&destroy_info);
 }

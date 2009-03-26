@@ -471,10 +471,10 @@ typedef struct dts_svc_reg_tbl
       { \
          m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: No Spec \
                     registered with service"); \
-         sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
+         sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       } \
       else if(svc_reg->spec_list->spec_struct->ss_spec->svc_name == NULL) \
-         sysf_sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
+         sprintf(name,"SVC%d", svc_reg->my_key.ss_svc_id); \
       else \
          strcpy(name, svc_reg->spec_list->spec_struct->ss_spec->svc_name); \
    } \
@@ -721,7 +721,7 @@ EXTERN_C DTS_CB   dts_cb;
      { \
         next_ptr = rmv_ptr->next; \
         if(rmv_ptr->cons_fd > 0) \
-           m_NCS_POSIX_CLOSE(rmv_ptr->cons_fd); \
+           close(rmv_ptr->cons_fd); \
         m_MMGR_FREE_DTS_CONS_DEV(rmv_ptr); \
         rmv_ptr = NULL; \
         if(tmp == NULL) \
@@ -746,7 +746,7 @@ EXTERN_C DTS_CB   dts_cb;
    { \
       dev->cons_list_ptr = ptr->next; \
       if(ptr->cons_fd > 0) \
-         m_NCS_POSIX_CLOSE(ptr->cons_fd); \
+         close(ptr->cons_fd); \
       m_MMGR_FREE_DTS_CONS_DEV(ptr); \
       ptr = dev->cons_list_ptr; \
       dev->num_of_cons_conf--; \
@@ -910,14 +910,14 @@ EXTERN_C DTS_CB   dts_cb;
       { \
          if(((msg->data.data.msg.log_msg.hdr.severity)&(cons_dev->cons_sev_filter)) && (cons_dev->cons_fd > 0)) \
          { \
-            m_NCS_POSIX_WRITE(cons_dev->cons_fd, str, len); \
+            write(cons_dev->cons_fd, str, len); \
          } \
          cons_dev = cons_dev->next; \
       } \
    } \
    else if(dts_cb.cons_fd >= 0) \
    { \
-      m_NCS_POSIX_WRITE(dts_cb.cons_fd, str, len); \
+      write(dts_cb.cons_fd, str, len); \
    } \
 } \
 

@@ -152,14 +152,14 @@ uns32 avsv_ckpt_init(void)
       goto err;
    }
 
-   m_NCS_CONS_PRINTF("\n\n CKPT :: CKPT-INTF TASK CREATION SUCCESS !!! \n\n");
+   printf("\n\n CKPT :: CKPT-INTF TASK CREATION SUCCESS !!! \n\n");
 
    return rc;
 
 err:
    /* destroy the task */
    if (gl_ckpt_task_hdl) m_NCS_TASK_RELEASE(gl_ckpt_task_hdl);
-   m_NCS_CONS_PRINTF("\n\n CKPT :: CKPT-INTF TASK CREATION FAILED !!! \n\n");
+   printf("\n\n CKPT :: CKPT-INTF TASK CREATION FAILED !!! \n\n");
 
    return rc;
 }
@@ -207,8 +207,8 @@ void avsv_ckpt_ArrivalCallback(const SaCkptCheckpointHandleT    ckptHandle,
                                                                                                                              
    if(rc == SA_AIS_OK)
    {
-   	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -A ---%d from the CheckPoint", read_buff1);
-	m_NCS_CONS_PRINTF("\n CKPT :: ReadVector -B ---%d from the CheckPoint", read_buff2);
+   	printf("\n CKPT :: ReadVector -A ---%d from the CheckPoint", read_buff1);
+	printf("\n CKPT :: ReadVector -B ---%d from the CheckPoint", read_buff2);
    }
 
    gl_count1 = read_buff1;
@@ -252,12 +252,12 @@ void avsv_ckpt_data_read(void)
    if(rc == SA_AIS_OK)
    {  
       gl_count1 = read_buff1;
-      m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A --%d during initial read\n", read_buff1);
+      printf("\n CKPT :: ReadVector A --%d during initial read\n", read_buff1);
       gl_count2 = read_buff2;
-      m_NCS_CONS_PRINTF("\n CKPT :: ReadVector B --%d during initial read\n", read_buff2);
+      printf("\n CKPT :: ReadVector B --%d during initial read\n", read_buff2);
    }
    else
-   	 m_NCS_CONS_PRINTF("\n CKPT :: ReadVector A & B saCkptCheckpointRead fail -RC-%d during initial read\n", rc);
+   	 printf("\n CKPT :: ReadVector A & B saCkptCheckpointRead fail -RC-%d during initial read\n", rc);
 
 }
 
@@ -304,7 +304,7 @@ void avsv_ckpt_process (void)
    if (rc != SA_AIS_OK)
       return;
 
-   m_NCS_CONS_PRINTF("\n CKPT Initialization Done !!! \n CkptHandle: %d \n", (uns32)gl_ckpt_hdl);
+   printf("\n CKPT Initialization Done !!! \n CkptHandle: %d \n", (uns32)gl_ckpt_hdl);
                                                                                                                              
    /*#############################################################################
                 Demonstrating the use of ncsCkptRegisterCkptArrivalCallback()
@@ -315,7 +315,7 @@ void avsv_ckpt_process (void)
    if (rc != SA_AIS_OK)
       return;
 
-   m_NCS_CONS_PRINTF("\n CKPT :: Registered Arrival Callback !!!\n ");
+   printf("\n CKPT :: Registered Arrival Callback !!!\n ");
 
    /*#########################################################################
                   Demonstrating the use of saCkptCheckpointOpen()
@@ -343,7 +343,7 @@ void avsv_ckpt_process (void)
    if(rc != SA_AIS_OK)
       return;
 
-   m_NCS_CONS_PRINTF("\n CKPT :: Checkpoint Opened !!!\n");
+   printf("\n CKPT :: Checkpoint Opened !!!\n");
 #if 0 
   /* Fix for Ticket #11 */
    sectionCreationAttributes.sectionId = (SaCkptSectionIdT*) malloc(sizeof \
@@ -352,13 +352,13 @@ void avsv_ckpt_process (void)
    sectionCreationAttributes.sectionId = &sec_id;
    sectionCreationAttributes.expirationTime = SA_TIME_END;
                                                                                                                              
-   m_NCS_CONS_PRINTF("\n CKPT :: Ckpt Section Create being called ....\t");
+   printf("\n CKPT :: Ckpt Section Create being called ....\t");
    rc = saCkptSectionCreate(checkpointHandle,
                                   &sectionCreationAttributes,0,0);
    if(rc == SA_AIS_OK || rc == SA_AIS_ERR_EXIST )
-      m_NCS_CONS_PRINTF("PASSED \n\n");
+      printf("PASSED \n\n");
    else
-      m_NCS_CONS_PRINTF("Failed rc = %d \n", rc);
+      printf("Failed rc = %d \n", rc);
                                                                                                                             
 
    /*#########################################################################
@@ -375,7 +375,7 @@ void avsv_ckpt_process (void)
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n CKPT :: Selection Object Get Successful !!! \n");
+   printf("\n CKPT :: Selection Object Get Successful !!! \n");
 
    /***** Now wait (select) on CKPT selection object *****/
 
@@ -410,7 +410,7 @@ void avsv_ckpt_process (void)
       m_NCS_SEL_OBJ_SET(ckpt_ncs_sel_obj, &wait_sel_objs);
    }
 
-   m_NCS_CONS_PRINTF("\n\n DEMO OVER !!! \n\n");
+   printf("\n\n DEMO OVER !!! \n\n");
 
    return;
 }
@@ -446,8 +446,8 @@ void avsv_ckpt_data_write(uns32 *write_buff1,uns32 *write_buff2)
    rc = saCkptCheckpointWrite(checkpointHandle,writeVector,2,&erroneousVectorIndex);
    if(rc == SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n CKPT :: writeVector-A-- %d to the CheckPoint\n", *write_buff1);
-      m_NCS_CONS_PRINTF("\n CKPT :: writeVectort-B-- %d to the CheckPoint\n", *write_buff2);
+      printf("\n CKPT :: writeVector-A-- %d to the CheckPoint\n", *write_buff1);
+      printf("\n CKPT :: writeVectort-B-- %d to the CheckPoint\n", *write_buff2);
    }
    return;
 }

@@ -878,7 +878,6 @@ search_req_continue(
     }
 
     TRACE_2("Last result found, add current runtime values");
-    assert(rsp->objectName.size == reply->runtimeAttrs.objectName.size);
     assert(strncmp((const char *) rsp->objectName.buf, 
                (const char *) reply->runtimeAttrs.objectName.buf, 
                rsp->objectName.size) == 0);
@@ -4720,7 +4719,7 @@ static uns32 immnd_evt_proc_loading_ok(IMMND_CB *cb,
         assert(((cb->mMyEpoch +1) == cb->mRulingEpoch));
         ++(cb->mMyEpoch);
         immModel_prepareForLoading(cb);
-        TRACE_2("prepareForLoading variant 1 was called. fevsMsgCount reset to %llu",
+        TRACE_2("prepareForLoading non-coord variant. fevsMsgCount reset to %llu",
            cb->highestProcessed);
         cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
         cb->highestReceived = evt->info.ctrl.fevsMsgStart;
@@ -4729,14 +4728,20 @@ static uns32 immnd_evt_proc_loading_ok(IMMND_CB *cb,
         immModel_prepareForLoading(cb);
         cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
         cb->highestReceived = evt->info.ctrl.fevsMsgStart;
-        TRACE_2("prepareForLoading variant 2 was called. fevsMsgCount reset to %llu",
+        TRACE_2("prepareForLoading coord variant. fevsMsgCount reset to %llu",
              cb->highestProcessed);
     } else {
         /* Note: corrected for case of IMMND at *both* controllers failing.
           This must force down IMMND on all payloads, since these can
           not act as IMM coordinator. */
-        assert((cb->mState <= IMM_SERVER_CLUSTER_WAITING) ||
-            (cb->mState == IMM_SERVER_SYNC_PENDING));
+        if(cb->mState > IMM_SERVER_SYNC_PENDING) {
+            LOG_ER("This IMMND can not accept start loading in state %s %u",
+                (cb->mState == IMM_SERVER_SYNC_CLIENT)?"IMM_SERVER_SYNC_CLIENT":
+                (cb->mState == IMM_SERVER_SYNC_SERVER)?"IMM_SERVER_SYNC_SERVER":
+                (cb->mState == IMM_SERVER_READY)?"IMM_SERVER_READY":
+                "UNKNOWN", cb->mState);
+            exit(1);
+        }
     }
     TRACE_LEAVE();
     return NCSCC_RC_SUCCESS;

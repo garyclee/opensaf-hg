@@ -102,8 +102,6 @@ struct msgbuf
 #define USE(x)                  (x=x)
 #define CONST_USE(x) {void * dummy = &x;}
 
-#define m_NCS_OS_SNPRINTF      snprintf
-
 /*****************************************************************************
 
   INCLUDE trg_defs.h IF THE END USER DEFINES "USE_TARGET_SYSTEM_TYPEDEFS" non zero
@@ -162,35 +160,12 @@ extern "C" {
 #define NCS_64BIT_DATA_TYPE_SUPPORT 1
 #define NCS_UNS64_DEFINED 1
 
-/************************************************************
-*                 syslog priorities mapping                 *
-*                                                           * 
-*************************************************************/
-#define  NCS_OS_LOG_EMERG    LOG_EMERG   /* system is unusable */
-#define  NCS_OS_LOG_ALERT    LOG_ALERT  /* action must be taken immediately */
-#define  NCS_OS_LOG_CRIT     LOG_CRIT   /* critical conditions */
-#define  NCS_OS_LOG_ERR      LOG_ERR      /* error conditions */
-#define  NCS_OS_LOG_WARNING  LOG_WARNING   /* warning conditions */
-#define  NCS_OS_LOG_NOTICE   LOG_NOTICE  /* normal but significant condition */
-#define  NCS_OS_LOG_INFO     LOG_INFO   /* informational */
-#define  NCS_OS_LOG_DEBUG    LOG_DEBUG  /* debug-level messages */
-
 extern void ncs_os_atomic_init(void);
 extern void ncs_os_atomic_destroy(void);
-
-#ifndef m_NCS_OS_CONS_PRINTF
-EXTERN_C LEAPDLL_API int ncs_logscreen(const char *str , ...);
-#define m_NCS_OS_CONS_PRINTF         ncs_logscreen
-#endif
 
 #ifndef m_NCS_OS_DBG_PRINTF
 EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); 
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
-#endif
-
-#ifndef m_NCS_OS_SYSLOG
-EXTERN_C LEAPDLL_API void ncs_syslog(int priority, const char *str , ...); 
-#define m_NCS_OS_SYSLOG         ncs_syslog
 #endif
 
 #ifndef m_NCS_OS_ATOMIC_INC
@@ -261,22 +236,7 @@ void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
 unsigned int linux_char_normalizer(void);
 #define m_NCS_OS_NORMALIZE_CHR           linux_char_normalizer
 
-#undef  m_NCS_OS_PRINTF
-#if (__GNUC__==2 && __GNUC_MINOR__==91)
-#define m_NCS_OS_PRINTF(str...)          printf(##str), fflush(stdout)
-#endif
-#if (__GNUC__==2 && __GNUC_MINOR__>=96)
-#define m_NCS_OS_PRINTF(str, ...)        printf(str, ##__VA_ARGS__), fflush(stdout)
-#endif
-#if (__GNUC__==3 && __GNUC_MINOR__>=0)  /*What will GCC 3.0 expect???*/
-#define m_NCS_OS_PRINTF(str, ...)        printf(str, ##__VA_ARGS__), fflush(stdout)
-#endif
-
-
 #define __NCSINC_LINUX__
-
-#define m_NCS_OS_REBOOT system("reboot &")
-
 
 /*****************************************************************************
  **                                                                         **
@@ -296,12 +256,6 @@ uns64 ncs_os_time_ns(void);
 #define m_NCS_OS_GET_TIME_NS   ncs_os_time_ns()
 
 /* Over riding macros for linux */
-
-/* gid is of gid_t*/
-#define m_NCS_OS_GETGRGID(gid) getgrgid(gid)
-
-/* num_of_groups is of int ,list is of gid_t [] */
-#define m_NCS_OS_GETGROUPS(num_of_groups,list) getgroups(num_of_groups,list)
 
 #define m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)  \
 { \

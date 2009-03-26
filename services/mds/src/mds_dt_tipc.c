@@ -236,14 +236,14 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
 #endif
    if (tipc_cb.Dsock < 0)
    {
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Dsock Socket creation failed in MDTM_INIT\n");
+       syslog(LOG_ERR,"MDS:MDTM: Dsock Socket creation failed in MDTM_INIT\n");
        assert(0);
        return NCSCC_RC_FAILURE;
    }
    tipc_cb.BSRsock = socket (AF_TIPC, SOCK_RDM,0);
    if (tipc_cb.BSRsock < 0)
    {
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: BSRsock Socket creation failed in MDTM_INIT\n");
+       syslog(LOG_ERR,"MDS:MDTM: BSRsock Socket creation failed in MDTM_INIT\n");
        assert(0);
        return NCSCC_RC_FAILURE;
    }
@@ -252,7 +252,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    flags=fcntl(tipc_cb.Dsock, F_GETFD, 0);
    if( (flags<0) || (flags>1) )
    {
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Unable to get the CLOEXEC Flag on Dsock");
+       syslog(LOG_ERR,"MDS:MDTM: Unable to get the CLOEXEC Flag on Dsock");
        close(tipc_cb.Dsock);
        close(tipc_cb.BSRsock);
        assert(0);
@@ -262,7 +262,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    {
       if(fcntl(tipc_cb.Dsock, F_SETFD, (flags | FD_CLOEXEC))==(-1))
       {
-         m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Unable to set the CLOEXEC Flag on Dsock");
+         syslog(LOG_ERR,"MDS:MDTM: Unable to set the CLOEXEC Flag on Dsock");
          close(tipc_cb.Dsock);
          close(tipc_cb.BSRsock);
          assert(0);
@@ -273,7 +273,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    flags=fcntl(tipc_cb.BSRsock, F_GETFD, 0);
    if( (flags<0) || (flags>1) )
    {
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Unable to get the CLOEXEC Flag on BSRsock");
+       syslog(LOG_ERR,"MDS:MDTM: Unable to get the CLOEXEC Flag on BSRsock");
        close(tipc_cb.Dsock);
        close(tipc_cb.BSRsock);
        assert(0);
@@ -283,7 +283,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    {
        if(fcntl(tipc_cb.BSRsock, F_SETFD, (flags | FD_CLOEXEC))==(-1))
        {
-          m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Unable to set the CLOEXEC Flag on BSRsock");
+          syslog(LOG_ERR,"MDS:MDTM: Unable to set the CLOEXEC Flag on BSRsock");
           close(tipc_cb.Dsock);
           close(tipc_cb.BSRsock);
           assert(0);
@@ -297,7 +297,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    memset(&addr, 0, sizeof(addr));
    if (0 > getsockname(tipc_cb.BSRsock,(struct sockaddr*)&addr,&sz))
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Failed to get the BSR Sockname");
+      syslog(LOG_ERR,"MDS:MDTM: Failed to get the BSR Sockname");
       assert(0);
       exit(1);
    }
@@ -319,14 +319,14 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
 
    if (0 > connect(tipc_cb.Dsock,(struct sockaddr*)&topsrv,sizeof(topsrv)))
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Failed to connect to topology server");
+      syslog(LOG_ERR,"MDS:MDTM: Failed to connect to topology server");
       assert(0);
       exit(1);
    }
 #else
    if(ioctl(tipc_cb.BSRsock,TIPC_OWN_NODE,&tipc_node_id))/* This gets the tipc ownaddress*/
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Unable to get the TIPC Self NODE_ID");
+      syslog(LOG_ERR,"MDS:MDTM: Unable to get the TIPC Self NODE_ID");
       assert(0);
    }
 #endif
@@ -336,7 +336,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    if(m_NCS_IPC_CREATE(&tipc_cb.tmr_mbx)!=NCSCC_RC_SUCCESS)
    {
        /* Mail box creation failed */
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Tmr Mailbox Creation failed:\n");
+       syslog(LOG_ERR,"MDS:MDTM: Tmr Mailbox Creation failed:\n");
        assert(0);
        return NCSCC_RC_FAILURE;
    }
@@ -349,7 +349,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
       if (NCSCC_RC_SUCCESS != m_NCS_IPC_ATTACH(&tipc_cb.tmr_mbx))
       {
         m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, NULL);
-        m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Tmr Mailbox  Attach failed:\n");
+        syslog(LOG_ERR,"MDS:MDTM: Tmr Mailbox  Attach failed:\n");
         assert(0);
         return NCSCC_RC_FAILURE;
       }
@@ -363,7 +363,7 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    /* Create a task to receive the events and data */
    if (mdtm_create_rcv_task(tipc_cb.hdle_mdtm) != NCSCC_RC_SUCCESS)
    {
-       m_NCS_SYSLOG(NCS_LOG_ERR,"MDS:MDTM: Receive Task Creation Failed in MDTM_INIT\n");
+       syslog(LOG_ERR,"MDS:MDTM: Receive Task Creation Failed in MDTM_INIT\n");
        close(tipc_cb.Dsock);
        close(tipc_cb.BSRsock);
        m_NCS_IPC_RELEASE(&tipc_cb.tmr_mbx, NULL);

@@ -58,10 +58,10 @@ bool DOMBamErrorHandler::handleError(const DOMError& domError)
             domError.getLocation()->getLineNumber(),
             "char: ", domError.getLocation()->getColumnNumber()); 
 
-    m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: XML Parse error! : %s", str1);
-    m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: XML Parse error! : %s", location);
+    syslog(LOG_ERR, "NCS_AvSv: XML Parse error! : %s", str1);
+    syslog(LOG_ERR, "NCS_AvSv: XML Parse error! : %s", location);
     if(str2)
-        m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: XML Parse error! : %s", str2);
+        syslog(LOG_ERR, "NCS_AvSv: XML Parse error! : %s", str2);
 
     if (domError.getSeverity() == DOMError::DOM_SEVERITY_WARNING)
         m_LOG_BAM_MSG_TICL(BAM_BOMFILE_ERROR, NCSFL_SEV_ERROR, 

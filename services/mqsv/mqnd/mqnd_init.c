@@ -310,7 +310,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    if(rc != SA_AIS_OK) 
    {
       m_LOG_MQSV_ND(MQND_CLM_INIT_FAILED,MQND_FC_HDLN,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("saClmInitialize Failed %d\n",rc); 
+      printf("saClmInitialize Failed %d\n",rc); 
       goto mqnd_mds_fail;
    }
     
@@ -318,7 +318,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    if(rc != SA_AIS_OK)
    {
       m_LOG_MQSV_ND(MQND_CLM_NODE_GET_FAILED,MQND_FC_HDLN,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("saClmClusterNodeGet Failed %d\n",rc);
+      printf("saClmClusterNodeGet Failed %d\n",rc);
       goto mqnd_clm_fail;
    }
 
@@ -327,7 +327,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    rc  = saClmClusterTrack(cb->clm_hdl,(SA_TRACK_CURRENT |SA_TRACK_CHANGES) ,NULL);
    if ( rc != SA_AIS_OK)
    {
-       m_NCS_CONS_PRINTF("saClmClusterTrack Failed\n");
+       printf("saClmClusterTrack Failed\n");
        goto mqnd_clm_fail;
    }   
    
@@ -376,7 +376,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    /* Code for No Redundancy Support */
    /*   start the AMF Health Check  */
    memset(&healthy,0,sizeof(healthy));
-   health_key =  m_NCS_OS_PROCESS_GET_ENV_VAR("MQSV_ENV_HEALTHCHECK_KEY");
+   health_key =  getenv("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(healthy.key,"E5F6");
@@ -820,7 +820,7 @@ static void mqnd_main_process(NCSCONTEXT info)
 
    if(saClmSelectionObjectGet(cb->clm_hdl,&clm_sel_obj) != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("CLM Selection Object Get failed\n");
+      printf("CLM Selection Object Get failed\n");
       return;
    }
 

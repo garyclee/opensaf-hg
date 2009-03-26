@@ -611,7 +611,7 @@ dts_log_device_set(POLICY        *policy,
         
         /*if (TRUE == device->file_open)
         {
-            sysf_fclose(device->svc_fh);
+            fclose(device->svc_fh);
             device->file_open = FALSE;
         }*/
     }
@@ -621,7 +621,7 @@ dts_log_device_set(POLICY        *policy,
         device->new_file = TRUE;
         /*if (TRUE == device->file_open)
         {
-            sysf_fclose(device->svc_fh);
+            fclose(device->svc_fh);
             device->file_open = FALSE;
         }*/
     }

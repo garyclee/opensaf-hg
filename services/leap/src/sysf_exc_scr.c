@@ -115,7 +115,7 @@ void ncs_exec_module_signal_hdlr(int signal)
        info.status = 0;
        info.type = SYSF_EXEC_INFO_SIG_CHLD;
 
-    /*  m_NCS_CONS_PRINTF("\n In  SIGCHLD Handler \n"); */
+    /*  printf("\n In  SIGCHLD Handler \n"); */
 
       write(module_cb.write_fd, (const void *)&info, sizeof(EXEC_MOD_INFO));
    }
@@ -199,7 +199,7 @@ void ncs_exec_mod_hdlr(void)
        
        if(info.type ==   SYSF_EXEC_INFO_TIME_OUT)  
        {
-           /* m_NCS_CONS_PRINTF("Time out signal \n");*/
+           /* printf("Time out signal \n");*/
            pid = info.pid;
            give_exec_mod_cb(info.pid, info.status, info.type);
 
@@ -214,9 +214,9 @@ repeat_srch_from_beginning:
                exec_pid = (SYSF_PID_LIST*)ncs_patricia_tree_getnext(&module_cb.pid_list,(const uns8 *) &exec_pid->pid))
           {
               pid = exec_pid->pid;
-              /*m_NCS_CONS_PRINTF(" Going to wait on waitpid  %d \n", pid);*/
+              /*printf(" Going to wait on waitpid  %d \n", pid);*/
 
-              if((pid == m_NCS_SIGNAL_WAITPID(pid, &status, WNOHANG)))
+              if((pid == waitpid(pid, &status, WNOHANG)))
               {
                  /* TIMED OUT CHILDS which are terminated by sending  SIG CHILD */ 
                  if(exec_pid->exec_info_type == SYSF_EXEC_INFO_TIME_OUT) 

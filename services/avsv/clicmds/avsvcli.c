@@ -33,6 +33,8 @@
    dtsv_cef_set_logging_level.........CEF for setting DTSV logging level
 ***************************************************************************/
 
+#include <config.h>
+
 #include "avsv.h"
 #include "mac_papi.h"
 #include "ncs_cli.h"
@@ -49,7 +51,7 @@
 #define AVM_DEFAULT_HIERARCHY_LVL 2
 #define AVM_EXT_HIERARCHY_LVL     3
 
-#define FLUSHIN(c) while(((c = m_NCS_CONS_GETCHAR()) != EOF) && (c != '\n'))
+#define FLUSHIN(c) while(((c = getchar()) != EOF) && (c != '\n'))
 
 uns32
 avsv_cef_set_sg_param_values(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data);
@@ -191,7 +193,7 @@ static uns32 avsv_cli_cmds_reg(NCSCLI_BINDERY *pBindery)
    /* Attempt to initialize the HISv client library */
    rc = avsv_cli_hisv_init();
    if (rc == NCSCC_RC_FAILURE) {
-      m_NCS_CONS_PRINTF("\nWarning: could not initialize HISv hpl_api library\n");
+      printf("\nWarning: could not initialize HISv hpl_api library\n");
    }
 
    req.info.i_register.i_cmdlist = &data;
@@ -483,14 +485,14 @@ avm_constr_ep(
     {
        if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
        {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
        len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
        /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
        rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
        if (rc == NCSCC_RC_SUCCESS) {
           if (strlen(ep) == 0) {
-             m_NCS_CONS_PRINTF("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
+             printf("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
              /* A zero length entity path means that HISv is working - but could not find the entity path */
              rc = NCSCC_RC_FAILURE;
           }
@@ -609,7 +611,7 @@ avm_cef_set_ent_adm_req(
            avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
 
            avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
-           ans = m_NCS_CONS_GETCHAR(); 
+           ans = getchar(); 
            if((ans=='Y') || (ans=='y'))
               sprintf(set_val, "%d", 2);
            else if(ans=='\n')

@@ -170,7 +170,7 @@ ipxs_ifnd_lib_create (IPXS_LIB_CREATE *create)
    if(m_NCS_OS_LOCK(&cb->ipxs_db_lock, NCS_OS_LOCK_CREATE, 0) == NCSCC_RC_FAILURE)
    {
        rc = NCSCC_RC_FAILURE;
-       m_NCS_CONS_PRINTF("\nLock create failure\n");
+       printf("\nLock create failure\n");
        m_IFND_LOG_SYS_CALL_FAIL(IFSV_LOG_LOCK_CREATE_FAIL,(long)cb);
        goto ipxs_lock_create_fail;
    }
@@ -362,14 +362,14 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
     uns32 rc;
 
     m_NCS_SEL_OBJ_CLR(*netlink_fd, readfds);
-    m_NCS_CONS_PRINTF("Closing the previous socket \n");
+    printf("Closing the previous socket \n");
     m_NCS_TS_SOCK_CLOSE(ipxs_cb->netlink_fd);
-    m_NCS_CONS_PRINTF("Opening a New socket \n");
+    printf("Opening a New socket \n");
     ipxs_cb->netlink_fd = m_NCS_TS_SOCK_SOCKET(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
     if(ipxs_cb->netlink_fd < 0)
     {
         rc = NCSCC_RC_FAILURE;
-        m_NCS_CONS_PRINTF("Socket create failed \n");
+        printf("Socket create failed \n");
 /*      goto ipxs_netlink_socket_create_fail; */
     }
     memset(local, '\0', sizeof(struct sockaddr_nl));
@@ -379,7 +379,7 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
     if(m_NCS_TS_SOCK_BIND(ipxs_cb->netlink_fd, (struct sockaddr*)local, sizeof(struct sockaddr_nl)) < 0)
     {
         rc = NCSCC_RC_FAILURE;
-        m_NCS_CONS_PRINTF("Socket Bind Failed \n");
+        printf("Socket Bind Failed \n");
 /*      goto ipxs_netlink_socket_bind_fail; */
     }
     fd = ipxs_cb->netlink_fd;
@@ -475,9 +475,9 @@ static void ifnd_netlink_process(NCSCONTEXT info)
    m_NCS_SEL_OBJ_SET(netlink_fd,&readfds);
    m_NCS_SEL_OBJ_SET(mbx_fd,&readfds);
    numfds = m_GET_HIGHER_SEL_OBJ(netlink_fd, numfds);
-   m_NCS_CONS_PRINTF("Event1 numfds.rmv_obj = %d \n", numfds.rmv_obj);
+   printf("Event1 numfds.rmv_obj = %d \n", numfds.rmv_obj);
    numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
-   m_NCS_CONS_PRINTF("Event2 numfds.rmv_obj = %d \n", numfds.rmv_obj);
+   printf("Event2 numfds.rmv_obj = %d \n", numfds.rmv_obj);
  
    
   (void)ipxs_ifnd_gen_getv4addr_req(ipxs_cb);
@@ -494,7 +494,7 @@ static void ifnd_netlink_process(NCSCONTEXT info)
       /* process if event from ifnd regarding newly added intf */
       if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &readfds))
       {
-         m_NCS_CONS_PRINTF("Got an event in mailbox for new addition of intf in &ipxs_cb->mbx 0x%x\n", &ipxs_cb->mbx);
+         printf("Got an event in mailbox for new addition of intf in &ipxs_cb->mbx 0x%x\n", &ipxs_cb->mbx);
          if (IFSV_NULL != (evt = (IFSV_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(&ipxs_cb->mbx,evt)))
          {
             /* now got the IPC mail box event */
@@ -575,7 +575,7 @@ static void ifnd_netlink_process(NCSCONTEXT info)
 
             /* Since no interfaces are updated in the IFND table, don't request
                for address update from the kernel. */
-            m_NCS_CONS_PRINTF("About to request netlink to update addresses \n");
+            printf("About to request netlink to update addresses \n");
             if(ifsv_cb->if_tbl.n_nodes != 0)
             {
 /******************/
@@ -586,7 +586,7 @@ static void ifnd_netlink_process(NCSCONTEXT info)
                 numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
 /******************/               
                (void)ipxs_ifnd_gen_getv4addr_req(ipxs_cb);
-               m_NCS_CONS_PRINTF("Requested Netlink to update addresses \n");
+               printf("Requested Netlink to update addresses \n");
             }
          }
          ncshm_give_hdl(ipxs_hdl);
@@ -675,7 +675,7 @@ static IPXS_NETLINK_RETVAL ipxs_netlink_dispatch(IFSV_CB *ifsv_cb, IPXS_CB *ipxs
       if(h->nlmsg_type == NLMSG_DONE)
       {
 /*         ipxs_cb->netlink_updated = TRUE; */
-         m_NCS_CONS_PRINTF("Received End of Netlink Message \n");
+         printf("Received End of Netlink Message \n");
          return retval;
       }
    }
@@ -753,13 +753,13 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
             return IPXS_NETLINK_NEW_INTF;
          }
 */
-         m_NCS_CONS_PRINTF("NETLINK:At this time IfSV doesn't know abt intf %s \n",lcl_ifname);
+         printf("NETLINK:At this time IfSV doesn't know abt intf %s \n",lcl_ifname);
          return IPXS_NETLINK_OK;
       }
       ipxs_cb->ifndx_cache[ifi->ifi_index].interface_number = ifi->ifi_index; /* Link number */
       ipxs_cb->ifndx_cache[ifi->ifi_index].if_index = lcl_ifindex; /* IFSv specific */
       strcpy(&ipxs_cb->ifndx_cache[ifi->ifi_index].ifname, &lcl_ifname);
-      m_NCS_CONS_PRINTF("IfIndex allocated for interface %s is %d \n",lcl_ifname,ifi->ifi_index);
+      printf("IfIndex allocated for interface %s is %d \n",lcl_ifname,ifi->ifi_index);
 
       return IPXS_NETLINK_OK;
    }
@@ -768,20 +768,20 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
       (n->nlmsg_type == RTM_DELADDR))
    {
       ifa = NLMSG_DATA(n);
-      m_NCS_CONS_PRINTF("We Are In Second Comparision!!!! \n");
+      printf("We Are In Second Comparision!!!! \n");
 
       /* Sanity check */
       len -= NLMSG_LENGTH(sizeof(*ifa));
       if(len < 0)
       {
-         m_NCS_CONS_PRINTF("IPXS_NETLINK_WRONG_NLMSG_LEN \n");
+         printf("IPXS_NETLINK_WRONG_NLMSG_LEN \n");
          return IPXS_NETLINK_WRONG_NLMSG_LEN;
       }
 
       /* Check whether it is IPv4 */
       if(ifa->ifa_family != AF_INET)
       {
-         m_NCS_CONS_PRINTF("Address is not IPv4 \n");
+         printf("Address is not IPv4 \n");
          return IPXS_NETLINK_OK;
       }
 
@@ -792,22 +792,22 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
             and request for a full update of GET_LINK and GET_ADDR from netlink. */
          if(ipxs_cb->is_full_netlink_updt_in_progress)
          {
-            m_NCS_CONS_PRINTF("Full update in progress \n");
+            printf("Full update in progress \n");
             return IPXS_NETLINK_OK;
          }
          if(ifsv_cb->ifd_card_up == FALSE)
          {
-            m_NCS_CONS_PRINTF("IfD Still not up \n");
+            printf("IfD Still not up \n");
             /* It makes sense to request for IF updates from kernel only when IFD is up. */
             return IPXS_NETLINK_OK;
          }
          if(ipxs_cb->netlink_updated == TRUE)
          {
             /* By this time we already learnt interfaces so no refresh */ 
-            m_NCS_CONS_PRINTF("New Addr Added on a Newly Created Intf %s :\n", ipxs_cb->ifndx_cache[ifa->ifa_index].ifname);
+            printf("New Addr Added on a Newly Created Intf %s :\n", ipxs_cb->ifndx_cache[ifa->ifa_index].ifname);
             return IPXS_NETLINK_NEW_INTF;
          }
-         m_NCS_CONS_PRINTF("marking full netlink update in progress : True \n");
+         printf("marking full netlink update in progress : True \n");
          ipxs_cb->is_full_netlink_updt_in_progress = TRUE;
          return IPXS_NETLINK_REFRESH_CACHE;
       }
@@ -835,7 +835,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
             if(ifnd_ipxs_proc_is_ipaddr(ipxs_cb, ipaddr))
             {
                /* IP Address already exists, so return from here.*/
-               m_NCS_CONS_PRINTF("IP address already exists: %s %d \n",__FILE__,__LINE__);
+               printf("IP address already exists: %s %d \n",__FILE__,__LINE__);
                m_NCS_UNLOCK(&ipxs_cb->ipxs_db_lock, NCS_LOCK_READ);
                return NCSCC_RC_FAILURE; 
             }
@@ -857,7 +857,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
          if((ipxs_evt = m_MMGR_ALLOC_IPXS_EVT) == NULL)
          {
             ncs_ipxs_ippfx_list_free(temp_list);
-            m_NCS_CONS_PRINTF("IPXS Evt allocation failed !!!! \n");
+            printf("IPXS Evt allocation failed !!!! \n");
             return IPXS_NETLINK_ALLOC_IPXS_EVT_FAIL;
          }
 
@@ -878,17 +878,17 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
             ipxs_evt->info.nd.atond_upd.ip_info.delip_list = &del_ipinfo;
          }
          
-         m_NCS_CONS_PRINTF("Sending IP ADDR UPDATE \n");
-/*       m_NCS_CONS_PRINTF("Sending IP addr update to ifnd for ip : %x \n",temp_list->ipaddr.ipaddr.info.v4); */
+         printf("Sending IP ADDR UPDATE \n");
+/*       printf("Sending IP addr update to ifnd for ip : %x \n",temp_list->ipaddr.ipaddr.info.v4); */
          /* Displaying the decimal format of the IP address */
-         m_NCS_CONS_PRINTF("Sending IP addr update to ifnd for ip : %d.%d.%d.%d \n",((temp_list->ipaddr.ipaddr.info.v4)&(0xff000000))>>24,
+         printf("Sending IP addr update to ifnd for ip : %d.%d.%d.%d \n",((temp_list->ipaddr.ipaddr.info.v4)&(0xff000000))>>24,
                                                                                     ((temp_list->ipaddr.ipaddr.info.v4)&(0x00ff0000))>>16,
                                                                                     ((temp_list->ipaddr.ipaddr.info.v4)&(0x0000ff00))>>8,
                                                                                     (temp_list->ipaddr.ipaddr.info.v4)&(0x000000ff));
          if((rc = ifnd_ipxs_proc_ifip_upd(ipxs_cb, ipxs_evt, NULL))
             == NCSCC_RC_FAILURE)
          {
-            m_NCS_CONS_PRINTF("Ip addition failed %s %d \n",__FILE__,__LINE__);
+            printf("Ip addition failed %s %d \n",__FILE__,__LINE__);
             ncs_ipxs_ippfx_list_free(temp_list);
             m_MMGR_FREE_IPXS_EVT(ipxs_evt);
             return IPXS_NETLINK_SEND_IFSV_EVT_TO_MBX_FAIL;
@@ -1502,8 +1502,8 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
      if((m_NCS_IPXS_IS_IPAM_ADDR_SET(intf_rec->ip_info.ip_attr)) && (intf_rec->ip_info.delip_cnt != 0) &&
          (intf_rec->ip_info.delip_list != NULL))
      {
-/*       m_NCS_CONS_PRINTF("ifnd_ipxs_proc_ifip_upd : delip_list %x \n", intf_rec->ip_info.delip_list[0].ipaddr.info.v4); */
-         m_NCS_CONS_PRINTF("ifnd_ipxs_proc_ifip_upd - delip_list : %d.%d.%d.%d \n", ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0xff000000))>>24,
+/*       printf("ifnd_ipxs_proc_ifip_upd : delip_list %x \n", intf_rec->ip_info.delip_list[0].ipaddr.info.v4); */
+         printf("ifnd_ipxs_proc_ifip_upd - delip_list : %d.%d.%d.%d \n", ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0xff000000))>>24,
                                                                                     ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x00ff0000))>>16,
                                                                                     ((intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x0000ff00))>>8,
                                                                                     (intf_rec->ip_info.delip_list[0].ipaddr.info.v4)&(0x000000ff));        
@@ -1866,11 +1866,11 @@ static uns32 ipxs_ifnd_gen_getlink_req(IPXS_CB *ipxs_cb)
    nlh.nlmsg_seq = count++;
    err = sendmsg(ipxs_cb->netlink_fd, &msg, 0);
    if (err == nlh.nlmsg_len){
-      m_NCS_CONS_PRINTF("ipxs_ifnd_gen_getlink_req succ \n");
+      printf("ipxs_ifnd_gen_getlink_req succ \n");
       return NCSCC_RC_SUCCESS;
    }
 
-   m_NCS_CONS_PRINTF("ipxs_ifnd_gen_getlink_req fail \n");
+   printf("ipxs_ifnd_gen_getlink_req fail \n");
    return NCSCC_RC_FAILURE;
 }
 

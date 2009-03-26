@@ -640,7 +640,7 @@ void avd_main_proc(AVD_CL_CB *cb)
    } /* end of the infinite loop */
 
   m_AVD_LOG_INVALID_VAL_FATAL(0);
-  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Avd-Functional Thread Failed");
+  syslog(LOG_CRIT,"NCS_AvSv: Avd-Functional Thread Failed");
 
   sleep(3);/*Let the DTSV log be Printed */
   exit(0);

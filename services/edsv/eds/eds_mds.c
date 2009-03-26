@@ -1531,7 +1531,7 @@ eds_mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 
    eds_cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
 
-      m_NCS_CONS_PRINTF(
+      printf(
               "\n EDS Rcvd MDS QUISED ACK\n");
    /** allocate an EDSV_EDS_EVENT now **/
    if (NULL == (edsv_evt = m_MMGR_ALLOC_EDSV_EDS_EVT))
@@ -1695,10 +1695,10 @@ uns32 eds_mds_init(EDS_CB *cb)
    /* Create the VDEST for EDS */
    if (NCSCC_RC_SUCCESS != (rc = eds_mds_vdest_create(cb)))
    {
-      m_NCS_CONS_PRINTF(" eds_mds_init: named vdest create FAILED\n");
+      printf(" eds_mds_init: named vdest create FAILED\n");
       return rc;
    }
-   m_NCS_CONS_PRINTF(" eds_mds_init: named vdest create SUCCESS\n");
+   printf(" eds_mds_init: named vdest create SUCCESS\n");
   
    /* Set the role of MDS */ 
    if(cb->ha_state == SA_AMF_HA_ACTIVE)
@@ -1710,11 +1710,11 @@ uns32 eds_mds_init(EDS_CB *cb)
    if (NCSCC_RC_SUCCESS != (rc = eds_mds_change_role(cb)))
    {
       m_LOG_EDSV_S(EDS_MDS_INIT_ROLE_CHANGE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF(" eds_mds_init: MDS role change to %d FAILED\n",cb->mds_role);
+      printf(" eds_mds_init: MDS role change to %d FAILED\n",cb->mds_role);
       return rc;
    }
    m_LOG_EDSV_S(EDS_MDS_INIT_ROLE_CHANGE_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0);
-   m_NCS_CONS_PRINTF(" eds_mds_init: MDS role change to %d SUCCESS \n",cb->mds_role);
+   printf(" eds_mds_init: MDS role change to %d SUCCESS \n",cb->mds_role);
    
    /* Install your service into MDS */
    memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
@@ -1731,12 +1731,12 @@ uns32 eds_mds_init(EDS_CB *cb)
    
    if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info)))
    {
-      m_NCS_CONS_PRINTF(" eds_mds_init: MDS Install FAILED\n");
+      printf(" eds_mds_init: MDS Install FAILED\n");
       m_LOG_EDSV_S(EDS_MDS_INSTALL_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0);
       return rc;
    }
    m_LOG_EDSV_S(EDS_MDS_INSTALL_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0);
-   m_NCS_CONS_PRINTF(" eds_mds_init: MDS Install SUCCESS\n");
+   printf(" eds_mds_init: MDS Install SUCCESS\n");
 
    /* Now subscribe for EDS events in MDS */
    memset(&mds_info,'\0',sizeof(NCSMDS_INFO));
@@ -1752,12 +1752,12 @@ uns32 eds_mds_init(EDS_CB *cb)
    rc = ncsmds_api(&mds_info);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF(" eds_mds_init: MDS subscribe FAILED\n");
+      printf(" eds_mds_init: MDS subscribe FAILED\n");
       m_LOG_EDSV_S(EDS_MDS_SUBSCRIBE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
       return rc;
    }
    m_LOG_EDSV_S(EDS_MDS_SUBSCRIBE_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,0);
-   m_NCS_CONS_PRINTF(" eds_mds_init: MDS subscribe SUCCESS\n");
+   printf(" eds_mds_init: MDS subscribe SUCCESS\n");
    return rc;
 }
 

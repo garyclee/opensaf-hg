@@ -20,7 +20,6 @@ pkglib_LTLIBRARIES = libavsv_clicef.la
 
 libavsv_clicef_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
-	@HPI_DEF@ \
 	-DNCS_CLI=1 -DNCSCLI_FILE=1 -DNCSCLI_LOG=1 \
 	-I $(top_srcdir)/services/avsv/inc \
 	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \

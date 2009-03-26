@@ -41,7 +41,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
 {
     uns32 retval = NCSCC_RC_FAILURE;
 
-    m_NCS_ASSERT(NCS_CONIO_CMD_SENTINAL > request->i_request);
+    assert(NCS_CONIO_CMD_SENTINAL > request->i_request);
 
     USE(context);
     USE(id);
@@ -49,17 +49,17 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
     switch(request->i_request)
     {
     case NCS_CONIO_CMD_PUTCHR:            /* put a character to console   */
-        m_NCS_CONS_PUTCHAR(request->putchr.i_char);
+        putchar(request->putchr.i_char);
         retval = NCSCC_RC_SUCCESS;
         break;
 
     case NCS_CONIO_CMD_GETCHR:            /* get a character from console */
-        request->getchr.o_char = m_NCS_CONS_GETCHAR();
+        request->getchr.o_char = getchar();
         retval = NCSCC_RC_SUCCESS;
         break;
 
     case NCS_CONIO_CMD_PUTSTR:            /* put a string to console      */
-        request->putstr.o_bytecnt = m_NCS_CONS_PRINTF((const char *)"%s",
+        request->putstr.o_bytecnt = printf((const char *)"%s",
                                                      (char *)request->putstr.i_string);
         retval = NCSCC_RC_SUCCESS;
         break;
@@ -71,7 +71,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
         break;
 
     case NCS_CONIO_CMD_UNBUF_PUTCHR:      /* put an unbuffered character  */
-        m_NCS_CONS_PUTCHAR(request->unbuf_putchr.i_char);
+        putchar(request->unbuf_putchr.i_char);
         retval = NCSCC_RC_SUCCESS;
         break;
 
@@ -87,7 +87,7 @@ ncs_conio(NCSCONTEXT context, NCS_VRID id, NCS_CONIO_REQUEST *request)
 
     case NCS_CONIO_CMD_SENTINAL:
     default:
-        m_NCS_ASSERT(NCS_CONIO_CMD_SENTINAL <= request->i_request);
+        assert(NCS_CONIO_CMD_SENTINAL <= request->i_request);
         break;
     }
     return retval;

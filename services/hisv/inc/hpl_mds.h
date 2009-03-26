@@ -32,6 +32,7 @@
 #define HPL_MDS_H
 
 #define HPL_MDS_SYNC_TIMEOUT  1500
+#define HPL_MDS_SYNC_TIMEOUT_HP_PROLIANT  5000
 /*
  * Wrapper structure that encapsulates communication
  * semantics for communication with HAM

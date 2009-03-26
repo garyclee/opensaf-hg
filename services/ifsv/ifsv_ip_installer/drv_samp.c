@@ -110,14 +110,14 @@ ifsv_drv_set_get_info(struct ncs_ifsv_hw_drv_req *drv_req)
          sock = socket(PF_INET,SOCK_DGRAM,0);
          if (sock == -1)
          {
-            m_NCS_CONS_PRINTF("sorry coulnd't able to create a socket\n");
+            printf("sorry coulnd't able to create a socket\n");
             break;
          }
          memset(&ifr, 0, sizeof(ifr));
          ifr.ifr_ifindex = port_num;
          if  (ioctl(sock, SIOCGIFNAME, ifr) < 0)
          {
-            m_NCS_CONS_PRINTF("sorry invalid interface name \n");
+            printf("sorry invalid interface name \n");
             close(sock);
             break;
          }
@@ -198,7 +198,7 @@ ifsv_drv_get_specific_intf_info (INTF_INFO *intf_info, uns32 port_num)
    fp = fopen("/etc/ncs_samp_drv","r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("\ndriver file couldn't able to open ..\n");
+      printf("\ndriver file couldn't able to open ..\n");
       return found_flag;
    }
    while(1)
@@ -252,7 +252,7 @@ try_again:
    fp = fopen("/etc/ncs_samp_drv","r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("\ndriver file couldn't able to open ..\n");
+      printf("\ndriver file couldn't able to open ..\n");
       return NULL;
    }
    /** Adding a forcible loopback address for NTT **/
@@ -449,7 +449,7 @@ extract_port_status(FILE **fp, INTF_INFO *o_info)
     strcpy(ifr.ifr_name,prev_word);
     if (ioctl(fd,SIOCGIFINDEX,&ifr) < 0)
     {
-        m_NCS_CONS_PRINTF ("error in ioctl \n");
+        printf ("error in ioctl \n");
         close(fd);
         return (-1);
     }
@@ -458,7 +458,7 @@ extract_port_status(FILE **fp, INTF_INFO *o_info)
 
     if (ioctl(fd,SIOCGIFFLAGS,&ifr) < 0)
     {
-        m_NCS_CONS_PRINTF ("error in ioctl  SIOCGIFFLAGS \n");
+        printf ("error in ioctl  SIOCGIFFLAGS \n");
         close(fd);
         return (-1);
     }
@@ -716,7 +716,7 @@ ifsv_get_linux_stats(STATS_INFO *o_info, uns32 port_num)
    fp = fopen("/etc/ncs_drv_stats","r");
    if (fp == NULL)
    {
-       m_NCS_CONS_PRINTF ("devices are not available \n");
+       printf ("devices are not available \n");
        return 0;
    }
    /** skip first 2 lines **/
@@ -727,7 +727,7 @@ ifsv_get_linux_stats(STATS_INFO *o_info, uns32 port_num)
        sock = socket(PF_INET,SOCK_DGRAM,0);
        if (sock == -1)
        {
-           m_NCS_CONS_PRINTF ("sorry couldn't able to open the socket \n");
+           printf ("sorry couldn't able to open the socket \n");
            return res;
        }
 try_again:
@@ -740,13 +740,13 @@ try_again:
        }
        get_word_before_marker(pres_word,temp_word,':');
        /** check whether the given name is a valid interface **/
-       m_NCS_CONS_PRINTF("the interface name is %s\n",temp_word);
+       printf("the interface name is %s\n",temp_word);
        memset(&ifr, '\0', sizeof ifr);
        strcpy(ifr.ifr_name,temp_word);
             
        if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0)
        {
-          m_NCS_CONS_PRINTF ("wrong IOCTL index \n");
+          printf ("wrong IOCTL index \n");
           close (sock);
           return res;
        }

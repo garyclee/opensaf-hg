@@ -994,7 +994,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
             in sync with database at MQND*/  
            /* Deregister the Queue with ASAPi */
           #ifdef NCS_MQND
-           m_NCS_CONS_PRINTF("CLOSE TIMEOUT:ASYNC DEREG TO DELETE QUEUE\n");
+           printf("CLOSE TIMEOUT:ASYNC DEREG TO DELETE QUEUE\n");
           #endif
           memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
           opr.type = ASAPi_OPR_MSG;
@@ -1102,7 +1102,7 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
          in sync with database at MQND*/
           /* Deregister the Queue with ASAPi */
          #ifdef NCS_MQND
-          m_NCS_CONS_PRINTF("CLOSE TIMEOUT:ASYNC REG:OWNED TO ORPHAN \n");
+          printf("CLOSE TIMEOUT:ASYNC REG:OWNED TO ORPHAN \n");
          #endif
          memset(&opr, 0, sizeof(ASAPi_OPR_INFO));
          opr.type = ASAPi_OPR_MSG;

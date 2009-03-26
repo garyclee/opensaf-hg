@@ -61,7 +61,7 @@ uns32 ncssnmptm_lm_request(NCSSNMPTM_LM_REQUEST_INFO *request)
       (g_snmptm_hdl != 0))
    {   
       /* Wrong call, snmptm already exists ! */
-      m_NCS_CONS_PRINTF("\nSNMPTM Control Block already created\n");
+      printf("\nSNMPTM Control Block already created\n");
       return NCSCC_RC_FAILURE;
    }
    
@@ -71,7 +71,7 @@ uns32 ncssnmptm_lm_request(NCSSNMPTM_LM_REQUEST_INFO *request)
       (g_snmptm_hdl == 0))
    {
       /* Wrong call, snmptm does not exists ! */
-      m_NCS_CONS_PRINTF("\nSNMPTM Control Block doesn't exists for deletion\n");
+      printf("\nSNMPTM Control Block doesn't exists for deletion\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -81,17 +81,17 @@ uns32 ncssnmptm_lm_request(NCSSNMPTM_LM_REQUEST_INFO *request)
    case NCSSNMPTM_LM_REQ_SNMPTM_CREATE: /* Create SNMPTM instance */
         if(snmptm_create(&request->io_create_snmptm) == NCSCC_RC_FAILURE)
         {
-           m_NCS_CONS_PRINTF("\n NOT ABLE TO CREATE SNMPTM INSTANCE\n");
+           printf("\n NOT ABLE TO CREATE SNMPTM INSTANCE\n");
            return NCSCC_RC_FAILURE;
         }
 
-        m_NCS_CONS_PRINTF("\n SNMPTM CREATED SUCCESSFULLY\n");
+        printf("\n SNMPTM CREATED SUCCESSFULLY\n");
         break;
       
    case NCSSNMPTM_LM_REQ_SNMPTM_DESTROY: /* Destroy SNMPTM instance */
         if(snmptm_destroy(g_snmptm_hdl) == NCSCC_RC_FAILURE)
         {
-           m_NCS_CONS_PRINTF("\n NOT ABLE TO DESTROY SNMPTM INSTANCE\n");
+           printf("\n NOT ABLE TO DESTROY SNMPTM INSTANCE\n");
            return NCSCC_RC_FAILURE;
         }
         break;       
@@ -127,7 +127,7 @@ uns32 snmptm_create(NCSSNMPTM_LM_SNMPTM_CREATE_REQ_INFO *create_info)
    /* Create the SNMPTM Control Block */   
    if (SNMPTM_CB_NULL == (snmptm = snmptm_cb_create()))
    {
-      m_NCS_CONS_PRINTF("\n NOT ABLE CREATE SNMPTM CB");
+      printf("\n NOT ABLE CREATE SNMPTM CB");
       return NCSCC_RC_FAILURE;
    }
    

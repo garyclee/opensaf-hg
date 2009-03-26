@@ -321,7 +321,7 @@ void ncs_ipv6_str_from_ipv6addr(NCS_IPV6_ADDR *i_v6addr, int8 *o_str)
          (uns16)m_NCS_OS_NTOHS((uns16)temp_addr.ipv6.ipv6_addr16[i]);
    }
 
-   sysf_sprintf(o_str,"%x:%x:%x:%x:%x:%x:%x:%x",temp_addr.ipv6.ipv6_addr16[0],
+   sprintf(o_str,"%x:%x:%x:%x:%x:%x:%x:%x",temp_addr.ipv6.ipv6_addr16[0],
       temp_addr.ipv6.ipv6_addr16[1], temp_addr.ipv6.ipv6_addr16[2], 
       temp_addr.ipv6.ipv6_addr16[3], temp_addr.ipv6.ipv6_addr16[4], 
       temp_addr.ipv6.ipv6_addr16[5], temp_addr.ipv6.ipv6_addr16[6], 

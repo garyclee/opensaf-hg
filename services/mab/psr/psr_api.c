@@ -780,8 +780,8 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
         }
     }
 
-    m_NCS_OS_LOG_SPRINTF((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
-    m_NCS_OS_LOG_SPRINTF((char*)&inst->spcn_list_file, m_PSS_SPCN_LIST_FILE_NAME);
+    sprintf((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
+    sprintf((char*)&inst->spcn_list_file, m_PSS_SPCN_LIST_FILE_NAME);
 
     /* Read pssv_lib_conf file, to load the application MIB definition libraries. */
     if(pss_read_lib_conf_info(inst, (char*)&inst->lib_conf_file) != NCSCC_RC_SUCCESS)
@@ -989,7 +989,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
         m_LOG_PSS_LIB_INFO(NCSFL_SEV_INFO, PSS_LIB_INFO_CONF_FILE_ENTRY, &libname, &appname);
         /* Load the library, and invoke the lib-register-function */
         memset(&fullname, '\0', sizeof(fullname));
-        sysf_sprintf((char*)&fullname, "%s", (char*)&libname);
+        sprintf((char*)&fullname, "%s", (char*)&libname);
         lib_hdl = m_NCS_OS_DLIB_LOAD(fullname, m_NCS_OS_DLIB_ATTR); 
         if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
         {
@@ -1000,7 +1000,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
 
         /* Get the registration symbol "__<appname>_pssv_reg" from the appname */
         memset(&funcname, '\0', sizeof(funcname));
-        sysf_sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
+        sprintf((char*)&funcname, "__%s_pssv_reg", (char*)&appname);
         app_routine = m_NCS_OS_DLIB_SYMBOL(lib_hdl, funcname); 
         if ((dl_error = m_NCS_OS_DLIB_ERROR()) != NULL) 
         {
@@ -1024,7 +1024,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
         memset(&libname, '\0', sizeof(libname));
         memset(&appname, '\0', sizeof(appname));
     }   /* while loop */
-    sysf_fclose(fh);
+    fclose(fh);
 
     return NCSCC_RC_SUCCESS;
 }
@@ -1067,7 +1067,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
        }
 
        /* After creating the file, continue to the next job. */
-       sysf_fclose(fh);
+       fclose(fh);
        return NCSCC_RC_SUCCESS;
     }
 
@@ -1120,7 +1120,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
         m_LOG_PSS_INFO(NCSFL_SEV_INFO, PSS_INFO_SPCN, &pcn, boolean);
         memset(&pcn, '\0', sizeof(pcn));
     }   /* while loop */
-    sysf_fclose(fh);
+    fclose(fh);
 
 
     inst->spcn_list = list_head;
@@ -1128,7 +1128,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
 
 
 go_fail:
-    sysf_fclose(fh);
+    fclose(fh);
     return NCSCC_RC_FAILURE;
 
 }
@@ -1772,51 +1772,51 @@ void pss_cb_data_dump( )
    if(fh == NULL)
       return;
 
-   sysf_fprintf(fh, "*************PSS DATA STRUCTS DUMP START(%s)*************\n", asc_tod);
+   fprintf(fh, "*************PSS DATA STRUCTS DUMP START(%s)*************\n", asc_tod);
 
-   sysf_fprintf(fh, "PERSISTENT-STORE-LOCATION: " OSAF_LOCALSTATEDIR "pssv_store \n");
+   fprintf(fh, "PERSISTENT-STORE-LOCATION: " OSAF_LOCALSTATEDIR "pssv_store \n");
 
-   sysf_fprintf(fh, "MIB_DESC_INFO-DB:*** DUMP START***\n");
+   fprintf(fh, "MIB_DESC_INFO-DB:*** DUMP START***\n");
    fflush(fh);
    for(i = 0; i < MIB_UD_TBL_ID_END; i++)
    {
       if(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[i] == NULL)  
          continue;
 
-      sysf_fprintf(fh, "\tTable[%d]:%s, Capability=%d, Rank=%d loaded\n", 
+      fprintf(fh, "\tTable[%d]:%s, Capability=%d, Rank=%d loaded\n", 
          i, gl_pss_amf_attribs.pss_cb->mib_tbl_desc[i]->ptbl_info->mib_tbl_name,
          gl_pss_amf_attribs.pss_cb->mib_tbl_desc[i]->capability,
          gl_pss_amf_attribs.pss_cb->mib_tbl_desc[i]->ptbl_info->table_rank);
       /* pss_dump_mib_desc(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[i]); */
       fflush(fh);
    }
-   sysf_fprintf(fh, "MIB_DESC_INFO-DB:*** DUMP END***\n");
+   fprintf(fh, "MIB_DESC_INFO-DB:*** DUMP END***\n");
    fflush(fh);
 
    for(list = gl_pss_amf_attribs.pss_cb->spcn_list; list != NULL; list = list->next)
    {
       if(list == gl_pss_amf_attribs.pss_cb->spcn_list)
       {
-         sysf_fprintf(fh, "SPCN-LIST:*** DUMP START***\n");
+         fprintf(fh, "SPCN-LIST:*** DUMP START***\n");
          fflush(fh);
       }
 
-      sysf_fprintf(fh, "\tClient:%s, Source=%s\n", list->pcn, 
+      fprintf(fh, "\tClient:%s, Source=%s\n", list->pcn, 
          (list->plbck_frm_bam?"XML":"PSS"));
       fflush(fh);
    }
    if(gl_pss_amf_attribs.pss_cb->spcn_list != NULL)
    {
-      sysf_fprintf(fh, "SPCN-LIST:*** DUMP END***\n");
+      fprintf(fh, "SPCN-LIST:*** DUMP END***\n");
       fflush(fh);
    }
 
    for(csi = gl_pss_amf_attribs.csi_list; csi != NULL; csi = csi->next)
    {
       pwe_cb = csi->pwe_cb;
-      sysf_fprintf(fh, "***CSI:%d: *** DUMP START***\n", pwe_cb->pwe_id);
+      fprintf(fh, "***CSI:%d: *** DUMP START***\n", pwe_cb->pwe_id);
       
-      sysf_fprintf(fh, "OAA-DB:*** DUMP START***\n");
+      fprintf(fh, "OAA-DB:*** DUMP START***\n");
       fflush(fh);
       memset(&oaa_key, '\0', sizeof(oaa_key));
       while((pNode = ncs_patricia_tree_getnext(&pwe_cb->oaa_tree,
@@ -1825,35 +1825,35 @@ void pss_cb_data_dump( )
          oaa_entry  = (PSS_OAA_ENTRY *) pNode;
          oaa_key = oaa_entry->key;
 
-         sysf_fprintf(fh, "\t#OAA-MDS_DEST:%x:%x:%x:%x:%x:%x:%x:%x:\n",
+         fprintf(fh, "\t#OAA-MDS_DEST:%x:%x:%x:%x:%x:%x:%x:%x:\n",
             ((uns8*)&oaa_key.mds_dest)[0], ((uns8*)&oaa_key.mds_dest)[1],
             ((uns8*)&oaa_key.mds_dest)[2], ((uns8*)&oaa_key.mds_dest)[3],
             ((uns8*)&oaa_key.mds_dest)[4], ((uns8*)&oaa_key.mds_dest)[5],
             ((uns8*)&oaa_key.mds_dest)[6], ((uns8*)&oaa_key.mds_dest)[7]
             );
-         sysf_fprintf(fh, "\t - Table-Count : %d\n", oaa_entry->tbl_cnt);
+         fprintf(fh, "\t - Table-Count : %d\n", oaa_entry->tbl_cnt);
          fflush(fh);
 
          for(i = 0; i < MAB_MIB_ID_HASH_TBL_SIZE; i++)
          {
-             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, (long)(oaa_entry->hash[i]));
+             fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, (long)(oaa_entry->hash[i]));
              fflush(fh);
 
              for(j = 0, oaa_clt_entry = oaa_entry->hash[i]; 
                  oaa_clt_entry != NULL;
                  oaa_clt_entry = oaa_clt_entry->next, ++j)
              {
-                sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
+                fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
                    j, (long)oaa_clt_entry->tbl_rec, oaa_clt_entry->tbl_rec->tbl_id,
                    gl_pss_amf_attribs.pss_cb->mib_tbl_desc[oaa_clt_entry->tbl_rec->tbl_id]->ptbl_info->mib_tbl_name);
                 fflush(fh);
              }
          }
       }
-      sysf_fprintf(fh, "OAA-DB:*** DUMP END***\n");
+      fprintf(fh, "OAA-DB:*** DUMP END***\n");
       fflush(fh);
  
-      sysf_fprintf(fh, "CLIENT_TABLE-DB:*** DUMP START***\n");
+      fprintf(fh, "CLIENT_TABLE-DB:*** DUMP START***\n");
       fflush(fh);
       memset(&client_key, '\0', sizeof(client_key));
       while((pNode = ncs_patricia_tree_getnext(&pwe_cb->client_table,
@@ -1862,13 +1862,13 @@ void pss_cb_data_dump( )
          clt_node = (PSS_CLIENT_ENTRY *) pNode;
          client_key = clt_node->key;
 
-         sysf_fprintf(fh, "\t#CLIENT_ENTRY:key:%s\n", (char*)client_key.pcn);
-         sysf_fprintf(fh, "\t - Table-Count : %d\n", clt_node->tbl_cnt);
+         fprintf(fh, "\t#CLIENT_ENTRY:key:%s\n", (char*)client_key.pcn);
+         fprintf(fh, "\t - Table-Count : %d\n", clt_node->tbl_cnt);
          fflush(fh);
 
          for(i = 0; i < MAB_MIB_ID_HASH_TBL_SIZE; i++)
          {
-             sysf_fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, 
+             fprintf(fh, "\t - hash[%d]: START POINTER=%lx\n", i, 
                 (long)clt_node->hash[i]);
              fflush(fh);
 
@@ -1876,13 +1876,13 @@ void pss_cb_data_dump( )
              {
                 if(gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id] != NULL) 
                 {
-                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
+                   fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_name = %s\n", 
                       j, (long)trec, trec->tbl_id,
                       gl_pss_amf_attribs.pss_cb->mib_tbl_desc[trec->tbl_id]->ptbl_info->mib_tbl_name);
-                   sysf_fprintf(fh, "\t\t\t\t - dirty:%d, is_scalar:%d,\n", trec->dirty, trec->is_scalar);
-                   sysf_fprintf(fh, "\t\t\t\t - client_key:%s\n", trec->pss_client_key->pcn);
-                   sysf_fprintf(fh, "\t\t\t\t - oaa_entry-pointer:%lx\n", (long)trec->p_oaa_entry);
-                   sysf_fprintf(fh, "\t\t\t\t -  Related OAA-MDS_DEST:%x:%x:%x:%x:%x:%x:%x:%x:\n",
+                   fprintf(fh, "\t\t\t\t - dirty:%d, is_scalar:%d,\n", trec->dirty, trec->is_scalar);
+                   fprintf(fh, "\t\t\t\t - client_key:%s\n", trec->pss_client_key->pcn);
+                   fprintf(fh, "\t\t\t\t - oaa_entry-pointer:%lx\n", (long)trec->p_oaa_entry);
+                   fprintf(fh, "\t\t\t\t -  Related OAA-MDS_DEST:%x:%x:%x:%x:%x:%x:%x:%x:\n",
                       ((uns8*)&trec->p_oaa_entry->key.mds_dest)[0], 
                       ((uns8*)&trec->p_oaa_entry->key.mds_dest)[1],
                       ((uns8*)&trec->p_oaa_entry->key.mds_dest)[2], 
@@ -1896,31 +1896,31 @@ void pss_cb_data_dump( )
                 }
                 else  
                 {
-                   sysf_fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_description = NULL!!!\n", j, (long)trec, trec->tbl_id);
+                   fprintf(fh, "\t\t - [%d] - tbl_rec = %lx, tbl_id = %d, tbl_description = NULL!!!\n", j, (long)trec, trec->tbl_id);
                    fflush(fh);
                 }
              }
          }
       }
-      sysf_fprintf(fh, "CLIENT_TABLE-DB:*** DUMP END***\n");
+      fprintf(fh, "CLIENT_TABLE-DB:*** DUMP END***\n");
  
-      sysf_fprintf(fh, "***CSI:%d: *** DUMP END***\n", csi->pwe_cb->pwe_id);
+      fprintf(fh, "***CSI:%d: *** DUMP END***\n", csi->pwe_cb->pwe_id);
       fflush(fh);
    }
  
    /* dump the standby psr oaa down list contents */
-   sysf_fprintf(fh, "*************STANDBY PSS OAA DOWN LIST DUMP START*************\n");
+   fprintf(fh, "*************STANDBY PSS OAA DOWN LIST DUMP START*************\n");
    for(csi = gl_pss_amf_attribs.csi_list; csi != NULL; csi = csi->next)
    {
        pwe_cb = csi->pwe_cb;
        pss_stdby_oaa_down_list_dump(pwe_cb->pss_stdby_oaa_down_buffer,fh);
        fflush(fh);
    }
-   sysf_fprintf(fh, "*************STANDBY PSS OAA DOWN LIST DUMP END*************\n");
+   fprintf(fh, "*************STANDBY PSS OAA DOWN LIST DUMP END*************\n");
 
-   sysf_fprintf(fh, "*************PSS DATA STRUCTS DUMP END(%s)*************\n", asc_tod);
+   fprintf(fh, "*************PSS DATA STRUCTS DUMP END(%s)*************\n", asc_tod);
    fflush(fh);
-   sysf_fclose(fh);
+   fclose(fh);
    return;
 }
 

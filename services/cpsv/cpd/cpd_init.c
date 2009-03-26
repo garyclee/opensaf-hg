@@ -191,7 +191,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    
    if ((rc = cpd_cb_db_init(cb)) == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("CPD_CB_DB_INIT FAILED\n");
+      printf("CPD_CB_DB_INIT FAILED\n");
       goto cpd_cb_init_fail;         
    } 
    
@@ -199,7 +199,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       NCS_SERVICE_ID_CPD, (NCSCONTEXT)cb)) == 0)
    {
       m_LOG_CPD_CL(CPD_CB_HDL_CREATE_FAILED,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_CB_HDL_CREATE_FAILED\n");
+      printf("CPD_CB_HDL_CREATE_FAILED\n");
       rc = NCSCC_RC_FAILURE;
       goto cpd_hdl_fail;            
    }                        
@@ -211,7 +211,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if ((rc = m_NCS_IPC_CREATE(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS)         
    {
       m_LOG_CPD_CL(CPD_IPC_CREATE_FAIL,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_IPC_CREATE_FAIL\n");
+      printf("CPD_IPC_CREATE_FAIL\n");
       goto cpd_ipc_create_fail;
    }
    
@@ -219,14 +219,14 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if ((rc = m_NCS_IPC_ATTACH(&cb->cpd_mbx)) != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_IPC_ATTACH_FAIL,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_IPC_ATTACH_FAILED\n");
+      printf("CPD_IPC_ATTACH_FAILED\n");
       goto cpd_ipc_att_fail;
    }
    
    if ((rc = cpd_mds_register(cb)) != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_MDS_REGISTER_FAILED,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_MDS_REGISTER_FAILED %d\n",rc);
+      printf("CPD_MDS_REGISTER_FAILED %d\n",rc);
       goto cpd_mds_fail;
    }
       
@@ -234,7 +234,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if(cpd_amf_init(cb) != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_AMF_INIT_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_AMF_INIT_FAILED %d\n",rc);
+      printf("CPD_AMF_INIT_FAILED %d\n",rc);
       goto amf_init_err;
    }
 
@@ -246,7 +246,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if(cpd_amf_register(cb) != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_AMF_REGISTER_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_AMF_REGISTER_FAILED\n");
+      printf("CPD_AMF_REGISTER_FAILED\n");
       goto amf_reg_err;
    }
    
@@ -255,7 +255,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if(cpd_mbcsv_register(cb)!=NCSCC_RC_SUCCESS)
    {
         m_LOG_CPD_CL(CPD_MBCSV_INIT_FAILED,CPD_FC_MBCSV,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
-        m_NCS_CONS_PRINTF("CPD_MBCSV_INIT_FAILED\n");
+        printf("CPD_MBCSV_INIT_FAILED\n");
         goto mbcsv_reg_err;
    }
 
@@ -265,14 +265,14 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if ( saClmInitialize(&cb->clm_hdl,&cpd_clm_cbk,&clm_version) != SA_AIS_OK)
    {
        m_LOG_CPD_CL(CPD_CLM_REGISTER_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-       m_NCS_CONS_PRINTF("CPD_CLM_REGISTER_FAIL\n");
+       printf("CPD_CLM_REGISTER_FAIL\n");
        goto cpd_clm_fail;
    }
 
    if ( saClmClusterTrack(cb->clm_hdl,SA_TRACK_CHANGES_ONLY,NULL)!= SA_AIS_OK)
    {
       m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-       m_NCS_CONS_PRINTF("CPD_CLM_CLUSTER_TRACK_FAIL \n");
+       printf("CPD_CLM_CLUSTER_TRACK_FAIL \n");
        goto cpd_clm_fail;
    }
 
@@ -290,7 +290,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       m_CPD_STACKSIZE, &cb->task_hdl)) != NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_TASK_CREATE_FAIL,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_TASK_CREATE_FAIL\n");
+      printf("CPD_TASK_CREATE_FAIL\n");
       goto cpd_task_create_fail;
    }
    
@@ -298,7 +298,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
       != NCSCC_RC_SUCCESS)         
    {
       m_LOG_CPD_CL(CPD_TASK_START_FAIL,CPD_FC_HDLN, NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_TASK_START_FAIL\n");
+      printf("CPD_TASK_START_FAIL\n");
       goto cpd_task_start_fail;            
    }
   
@@ -306,14 +306,14 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    if((rc = cpd_reg_with_miblib())!= NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_MIBLIB_REGISTER_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CPD_MIBLIB_REGISTER_FAILED\n");
+      printf("CPD_MIBLIB_REGISTER_FAILED\n");
       goto cpd_mab_fail;
    }
   /* Register with MASv */
    if((rc = cpd_reg_with_mab(cb))!= NCSCC_RC_SUCCESS)
    {
       m_LOG_CPD_CL(CPD_MASV_REGISTER_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
-      m_NCS_CONS_PRINTF("CPD_MASV_REGISTER_FAILED\n"); 
+      printf("CPD_MASV_REGISTER_FAILED\n"); 
       goto cpd_mab_fail;
    }
 
@@ -323,7 +323,7 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
 
  
    memset(&healthy,0,sizeof(healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("CPSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("CPSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(healthy.key,"A1B2");
@@ -542,7 +542,7 @@ static void cpd_main_process(NCSCONTEXT info)
    if(saClmSelectionObjectGet(cb->clm_hdl,&clm_sel_obj) != SA_AIS_OK)
    {
       m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      m_NCS_CONS_PRINTF("CLM Selection Object Get failed\n");
+      printf("CLM Selection Object Get failed\n");
       return;
    }
 

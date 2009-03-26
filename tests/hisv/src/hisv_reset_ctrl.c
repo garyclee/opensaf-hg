@@ -53,16 +53,16 @@ short SpecifiedBlade= 0;    // Flag if the user specified a blade ID
  *  
  *****************************************************************************/
 void print_usage(const char* name) {
-   m_NCS_CONS_PRINTF("%s:  reset an entity\n", name);
-   m_NCS_CONS_PRINTF("USAGE: %s -path=\"<{entity_path}>\" -reset=<cold|warm|assert|deassert|reboot> [-force]\n", name);
-   m_NCS_CONS_PRINTF("   OR: %s -c=<chassis_id> -b=<blade_id> -reset=<cold|warm|assert|deassert|reboot> [-force]\n", name);
-   m_NCS_CONS_PRINTF("\t-path\tRequired if chassis_id and blade_id are not specified.\n\t\t\tSpecify the path to the entity, e.g., \"{{SYSTEM_BLADE,12},{SYSTEM_CHASSIS,2}}\"\n");
-   m_NCS_CONS_PRINTF("\t\tNOTE: Be sure to quote the path on the command line (braces are interpreted by the shell.\n");
-   m_NCS_CONS_PRINTF("\t-c\tRequired if entity_path is not specified.\n\t\t\tSpecify the chassis of entity.\n");
-   m_NCS_CONS_PRINTF("\t-b\tRequired if entity_path is not specified.\n\t\t\tSpecify the blade-bay of the entity.\n");
-   m_NCS_CONS_PRINTF("\t-reset\tRequired - Specify the type of reset to apply e.g., warm, cold, assert, deasert, reboot \n");
-   m_NCS_CONS_PRINTF("\t-force\tSkip parameter checking to force %s to use the exact parameters input.\n", name);
-   m_NCS_CONS_PRINTF("\n");
+   printf("%s:  reset an entity\n", name);
+   printf("USAGE: %s -path=\"<{entity_path}>\" -reset=<cold|warm|assert|deassert|reboot> [-force]\n", name);
+   printf("   OR: %s -c=<chassis_id> -b=<blade_id> -reset=<cold|warm|assert|deassert|reboot> [-force]\n", name);
+   printf("\t-path\tRequired if chassis_id and blade_id are not specified.\n\t\t\tSpecify the path to the entity, e.g., \"{{SYSTEM_BLADE,12},{SYSTEM_CHASSIS,2}}\"\n");
+   printf("\t\tNOTE: Be sure to quote the path on the command line (braces are interpreted by the shell.\n");
+   printf("\t-c\tRequired if entity_path is not specified.\n\t\t\tSpecify the chassis of entity.\n");
+   printf("\t-b\tRequired if entity_path is not specified.\n\t\t\tSpecify the blade-bay of the entity.\n");
+   printf("\t-reset\tRequired - Specify the type of reset to apply e.g., warm, cold, assert, deasert, reboot \n");
+   printf("\t-force\tSkip parameter checking to force %s to use the exact parameters input.\n", name);
+   printf("\n");
    fflush(stdout);
 }
 
@@ -89,40 +89,40 @@ void print_usage(const char* name) {
 uns32 check_user_input(char* entity_path, HISV_RESET_ARGS resetType, int chassis, int blade)
 {
     int ret = NCSCC_RC_SUCCESS;
-    m_NCS_CONS_PRINTF("\ncheck_user_input:\n");
-    m_NCS_CONS_PRINTF("\tSpecifiedChassis : %d\n", SpecifiedChassis);
-    m_NCS_CONS_PRINTF("\tSpecifiedBlade : %d\n", SpecifiedBlade);
-    if (strlen(entity_path)) {m_NCS_CONS_PRINTF("\tentity_path : %s\n", entity_path);}
-    m_NCS_CONS_PRINTF("\tchassis : %d\n", chassis);
-    m_NCS_CONS_PRINTF("\tblade : %d\n", blade);
+    printf("\ncheck_user_input:\n");
+    printf("\tSpecifiedChassis : %d\n", SpecifiedChassis);
+    printf("\tSpecifiedBlade : %d\n", SpecifiedBlade);
+    if (strlen(entity_path)) {printf("\tentity_path : %s\n", entity_path);}
+    printf("\tchassis : %d\n", chassis);
+    printf("\tblade : %d\n", blade);
 
     if (!strlen(entity_path)) {
         if ((!SpecifiedChassis) || (!SpecifiedBlade)) {
-		   m_NCS_CONS_PRINTF("\nERROR: Specify an entity path using -path on the command line\n");
-		   m_NCS_CONS_PRINTF("   OR: Specify the chassis ID and blade ID using -chassis and -blade\n");
+		   printf("\nERROR: Specify an entity path using -path on the command line\n");
+		   printf("   OR: Specify the chassis ID and blade ID using -chassis and -blade\n");
            fflush(stdout);
 		   ret = NCSCC_RC_FAILURE;
         }
     }
 
 	if ( (resetType > ResetTypeMaxIndex) || (resetType < 0)) {
-		m_NCS_CONS_PRINTF("\nERROR: User requested an unrecognized reset state.\n");
-		m_NCS_CONS_PRINTF("\tAllowed reset states are:\n\t\tcold (0)\n\t\twarm (1)\n\t\tassert (2)\n\t\tdeassert (3)\n\t\treboot (4)\n");
+		printf("\nERROR: User requested an unrecognized reset state.\n");
+		printf("\tAllowed reset states are:\n\t\tcold (0)\n\t\twarm (1)\n\t\tassert (2)\n\t\tdeassert (3)\n\t\treboot (4)\n");
         fflush(stdout);
 		ret = NCSCC_RC_FAILURE;
     }
     if (!strlen(entity_path)) {
         if ( (!SpecifiedChassis) || (!SpecifiedBlade) ) {
-			m_NCS_CONS_PRINTF("\nERROR: Specify an entity path using -path on the command line\n");
-			m_NCS_CONS_PRINTF("\tOR: Specify the chassis ID and blade ID using -chassis and -blade\n");
+			printf("\nERROR: Specify an entity path using -path on the command line\n");
+			printf("\tOR: Specify the chassis ID and blade ID using -chassis and -blade\n");
         	fflush(stdout);
 			ret = NCSCC_RC_FAILURE;
 		}
     }
 
 	if ( (resetType > ResetTypeMaxIndex) || (resetType < 0)) {
-		m_NCS_CONS_PRINTF("\nERROR:  User requested an unrecognized reset, %d.\n", (int)resetType);
-		m_NCS_CONS_PRINTF("\tAllowed resets are cold (0), warm (1), assert (2), deassert (3), reboot (4).\n");
+		printf("\nERROR:  User requested an unrecognized reset, %d.\n", (int)resetType);
+		printf("\tAllowed resets are cold (0), warm (1), assert (2), deassert (3), reboot (4).\n");
         fflush(stdout);
 		ret = NCSCC_RC_FAILURE;
     }
@@ -259,7 +259,7 @@ int main(int argc, char** argv)
     // Set a default value for the chassis ID if the user gave an entity path.
     if (strlen(hisv_entity_path) && (!SpecifiedChassis)) {
        chassis = 2;
-       m_NCS_CONS_PRINTF("\tUser specified an entity path, but not chassis ID.  Using %d\n", chassis);
+       printf("\tUser specified an entity path, but not chassis ID.  Using %d\n", chassis);
     }
     // Guarantee cleanup at exit
     atexit(hisv_cleanup);
@@ -273,8 +273,8 @@ int main(int argc, char** argv)
     //  blade IDs to generate one.
     if (!strlen(hisv_entity_path)) {
        if (SpecifiedBlade && SpecifiedChassis) {
-		  m_NCS_CONS_PRINTF("Looking up entity path for chassis %d / blade %d\n", chassis, blade);
-		  m_NCS_CONS_PRINTF("\thpl_entity_path_lookup(3, chassis, blade, hisv_entity_path, sizeof(hisv_entity_path))\n");
+		  printf("Looking up entity path for chassis %d / blade %d\n", chassis, blade);
+		  printf("\thpl_entity_path_lookup(3, chassis, blade, hisv_entity_path, sizeof(hisv_entity_path))\n");
 		  if ( (hpl_entity_path_lookup(3, (uns32) chassis, (uns32) blade, hisv_entity_path, sizeof(hisv_entity_path)) != NCSCC_RC_SUCCESS) 
 			|| (!strlen(hisv_entity_path)) )
           {
@@ -289,26 +289,26 @@ int main(int argc, char** argv)
 	}
 
     if ( (resetType > 0) && (resetType <= ResetTypeMaxIndex) ) {
-        m_NCS_CONS_PRINTF("\n--> Applying %s reset ", ResetStateDesc[resetType]);
+        printf("\n--> Applying %s reset ", ResetStateDesc[resetType]);
     }
     else {
-        m_NCS_CONS_PRINTF("\n--> Applying %d reset ", (int)resetType);
+        printf("\n--> Applying %d reset ", (int)resetType);
     }
-    m_NCS_CONS_PRINTF("to %s <--\n", hisv_entity_path);
-    m_NCS_CONS_PRINTF("\n--> hpl_resource_reset(%d, %s, %d)\n", chassis, hisv_entity_path, (int)resetType);
+    printf("to %s <--\n", hisv_entity_path);
+    printf("\n--> hpl_resource_reset(%d, %s, %d)\n", chassis, hisv_entity_path, (int)resetType);
     fflush(stdout);
     ret = hpl_resource_reset(chassis, hisv_entity_path, resetType);
     if (ret != NCSCC_RC_SUCCESS) {
 	   if (resetType <= ResetTypeMaxIndex) {
-       	  m_NCS_CONS_PRINTF("\nERROR: Failed to apply %s reset to %s!\n", ResetStateDesc[resetType], hisv_entity_path);
+       	  printf("\nERROR: Failed to apply %s reset to %s!\n", ResetStateDesc[resetType], hisv_entity_path);
 	   }
 	   else {
-      	  m_NCS_CONS_PRINTF("\nERROR: Failed to apply type %d reset to %s!\n", (int)resetType, hisv_entity_path);
+      	  printf("\nERROR: Failed to apply type %d reset to %s!\n", (int)resetType, hisv_entity_path);
 	   }
        err_exit(1, "hpl_resource_reset(chassis, hisv_entity_path, reset_type) returned an error\n");
     }
 	else {
-    	m_NCS_CONS_PRINTF("Waiting a moment for the request to trickle down to ham\n");
+    	printf("Waiting a moment for the request to trickle down to ham\n");
     	m_NCS_TASK_SLEEP(3000);
 		ret = 0;
 	}

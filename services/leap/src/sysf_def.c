@@ -240,10 +240,10 @@ uns32 leap_dbg_sink(uns32 l, char* f, long code)
   switch(code)
    {
    case NCSCC_RC_NO_TO_SVC:
-      m_NCS_CONS_PRINTF ("MDS: Destination service is not UP: line %d, file %s\n", (unsigned int) l,f);
+      printf ("MDS: Destination service is not UP: line %d, file %s\n", (unsigned int) l,f);
       break;
    default:
-      m_NCS_CONS_PRINTF ("IN LEAP_DBG_SINK: line %d, file %s\n", (unsigned int) l,f);
+      printf ("IN LEAP_DBG_SINK: line %d, file %s\n", (unsigned int) l,f);
       break;
    }
 #endif
@@ -308,11 +308,11 @@ uns32 leap_failure(uns32 l, char* f, uns32 err, uns32 retval)
 
 #if (NCS_MMGR_ERROR_BEHAVIOR == BANNER_ERR) || (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)        
 
-      m_NCS_CONS_PRINTF ("MEMORY FAILURE: %s line %d, file %s\n", gl_fail_str[err],l,f);
+      printf ("MEMORY FAILURE: %s line %d, file %s\n", gl_fail_str[err],l,f);
 
 #if (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
 
-      m_NCS_OS_ASSERT(0);  /* Policy is to crash! */
+      assert(0);  /* Policy is to crash! */
 
 #endif /* CRASH */
 #endif /* BANNER or CRASH */
@@ -351,6 +351,18 @@ uns32 leap_env_init()
     return NCSCC_RC_SUCCESS;
   }  
 
+  /* 
+  ** Change buffering type for the stdout stream to line buffered.
+  ** Otherwise printf output will be block buffered and not immidiately
+  ** printed to file.
+  ** TODO: to be removed in OpenSAF 4.0
+  */
+  if (setvbuf(stdout, (char *)NULL, _IOLBF, 0) != 0)
+  {
+      fprintf(stderr, "%s:%d - setvbuf failed\n", __FILE__, __LINE__);
+      return NCSCC_RC_FAILURE;
+  }
+
   m_NCS_DBG_PRINTF("\n\n\nINITIALIZING LEAP ENVIRONMENT\n");
 
   /* initialize OS target */
@@ -360,7 +372,7 @@ uns32 leap_env_init()
   /* initialize LEAP Memory Manager */
   if(ncs_mem_create() != NCSCC_RC_SUCCESS)
   {
-    m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Memory Manager\n");
+    printf("\nleap_env_init: FAILED to initialize Memory Manager\n");
     return NCSCC_RC_FAILURE;
   }
 #endif
@@ -370,7 +382,7 @@ uns32 leap_env_init()
   /* initialize LEAP Buffer Pool */
   if(ncs_lbp_create() != NCSCC_RC_SUCCESS)
   {
-    m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Buffer Pool\n");
+    printf("\nleap_env_init: FAILED to initialize Buffer Pool\n");
 
 #if (NCSL_ENV_INIT_MMGR == 1)
     (void)ncs_mem_destroy();
@@ -384,7 +396,7 @@ uns32 leap_env_init()
   /* initialize LEAP Lock Manager */
   if(ncs_lock_create_mngr() != NCSCC_RC_SUCCESS)
   {
-    m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Lock Manager\n");
+    printf("\nleap_env_init: FAILED to initialize Lock Manager\n");
 
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
@@ -405,7 +417,7 @@ uns32 leap_env_init()
   /* initialize LEAP Timer Service */
   if(sysfTmrCreate() != NCSCC_RC_SUCCESS)
   {
-    m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Timer Service\n");
+    printf("\nleap_env_init: FAILED to initialize Timer Service\n");
 
 #if (NCSL_ENV_INIT_LM == 1)
     (void)ncs_lock_destroy_mngr();
@@ -430,7 +442,7 @@ uns32 leap_env_init()
     kms_arg.i_op = NCSKMS_LM_CREATE;
     if(ncskms_lm(&kms_arg) != NCSCC_RC_SUCCESS)
     {
-      m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize KMS\n");
+      printf("\nleap_env_init: FAILED to initialize KMS\n");
 
 #if (NCSL_ENV_INIT_TMR == 1)
      (void)sysfTmrDestroy();
@@ -462,7 +474,7 @@ uns32 leap_env_init()
   /* initialize Handle Manager */
   if(ncshm_init() != NCSCC_RC_SUCCESS)
   {
-    m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Handle Manager\n");
+    printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
 
 #if (NCSL_ENV_INIT_MTM == 1)
     (void)ncsmib_tm_destroy();
@@ -502,7 +514,7 @@ uns32 leap_env_init()
     sm_arg.i_vrtr_id = 1;
     if(ncssysm_lm(&sm_arg) != NCSCC_RC_SUCCESS)
     {    
-      m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize SYSMON\n");
+      printf("\nleap_env_init: FAILED to initialize SYSMON\n");
 
 #if (NCSL_ENV_INIT_HM == 1)      
     (void)ncshm_delete();
@@ -559,7 +571,7 @@ uns32 leap_env_init()
       {
          /* Log error */
 
-         m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize MIBLIB\n");
+         printf("\nleap_env_init: FAILED to initialize MIBLIB\n");
            
          return m_LEAP_DBG_SINK(status);
       }
@@ -570,7 +582,7 @@ uns32 leap_env_init()
   if (NCSCC_RC_SUCCESS != init_exec_mod_cb())
   {
      /* Log error */
-     m_NCS_CONS_PRINTF("\nleap_env_init: FAILED to initialize Execute Module CB \n");
+     printf("\nleap_env_init: FAILED to initialize Execute Module CB \n");
  
      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
   }

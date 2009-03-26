@@ -48,8 +48,8 @@
 #define m_SYSF_IP_LOG_ERROR(str,num)   dbgprintf("%s::0x%x\n",(str),(unsigned int)(num))
 #define m_SYSF_IP_LOG_INFO(str,num)    dbgprintf("%s::0x%x\n",(str),(unsigned int)(num))
 #else
-#define m_SYSF_IP_LOG_ERROR(str,num)   m_NCS_CONS_PRINTF("%s::0x%x\n",(str),(unsigned int)(num))
-#define m_SYSF_IP_LOG_INFO(str,num)    m_NCS_CONS_PRINTF("%s::0x%x\n",(str),(unsigned int)(num))
+#define m_SYSF_IP_LOG_ERROR(str,num)   printf("%s::0x%x\n",(str),(unsigned int)(num))
+#define m_SYSF_IP_LOG_INFO(str,num)    printf("%s::0x%x\n",(str),(unsigned int)(num))
 #endif
 #else
 #define m_SYSF_IP_LOG_ERROR(str,num)

@@ -52,11 +52,11 @@ tsklck_oscb_entry(void * dummy_handle) /* this routine serves the next test func
 
 
     /* Test Point 2: try to get the lock that task 1 currently owns.. */
-    m_NCS_CONS_PRINTF("Test Point 2: task 2 will block trying to get the lock...");
+    printf("Test Point 2: task 2 will block trying to get the lock...");
 
     if ((rc = m_NCS_LOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS) /* task 2 should block here */
     {
-        m_NCS_CONS_PRINTF("Failed!....return error::%d\n", rc);
+        printf("Failed!....return error::%d\n", rc);
         tsk2_failed=1; /* tell task 1 about failure */
         return;        /* let's get out */
     }
@@ -65,7 +65,7 @@ tsklck_oscb_entry(void * dummy_handle) /* this routine serves the next test func
 
     if (tsk1_has_lock == 1) /* if task 1 still thinks it has ownership ? */
     {
-        m_NCS_CONS_PRINTF("Failed!....obtained lock.\n");
+        printf("Failed!....obtained lock.\n");
         tsk2_failed = 1; /* tell task 1 about failure */
         return;
     }
@@ -83,17 +83,17 @@ tsklck_oscb_entry(void * dummy_handle) /* this routine serves the next test func
 
 
     /* Test Point 5: task 2 will nest the lock */
-    m_NCS_CONS_PRINTF("Test Point 5: task 2 will nest its lock ownership...");
+    printf("Test Point 5: task 2 will nest its lock ownership...");
     if ((rc = m_NCS_LOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Failed! when nesting lock, return::%d\n", rc);
+        printf("Failed! when nesting lock, return::%d\n", rc);
         tsk2_failed=1; /* tell task 1 about failure */
         return;
     }
     /* start unlocking - part of test point 5 */
     if ((rc = m_NCS_UNLOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Failed! when unlocking the nested lock, return::%d\n", rc);
+        printf("Failed! when unlocking the nested lock, return::%d\n", rc);
         tsk2_failed=1; /* tell task 1 about failure */
         return;
     }
@@ -101,21 +101,21 @@ tsklck_oscb_entry(void * dummy_handle) /* this routine serves the next test func
     m_NCS_TASK_SLEEP(2000); /* allow task 1 to try to get lock - it should block */
     if (tsk1_has_lock == 1) /* if task 1 got the lock .. */
     {
-        m_NCS_CONS_PRINTF("Failed! task 1 got the lock\n");
+        printf("Failed! task 1 got the lock\n");
         tsk2_failed=1; /* tell task 1 about failure */
         return;
     }
     if (tsk1_failed != 1) /* if task 1 failed, don't say "Passed" */
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
     /* Test Point 6: task 2 will release the lock */
-    m_NCS_CONS_PRINTF("Test Point 6: task 2 will release its lock ownership...");
+    printf("Test Point 6: task 2 will release its lock ownership...");
     tsk2_has_lock = 0; /* let task 1 know that task 2 does not own lock; must do prior to releasing */
     if ((rc = m_NCS_UNLOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
     task2_is_in_tp = 6;
 
     return;
@@ -138,18 +138,18 @@ lt_lockManager(int argc, char **argv)
     int rc = 0;
 
 
-    m_NCS_CONS_PRINTF("-Entering Lock Manager Macro Test-\n");
+    printf("-Entering Lock Manager Macro Test-\n");
     ncs_mem_create ();
 
     /* Test Point 0: create lock */
-    m_NCS_CONS_PRINTF("Test Point 0: task 1 will create lock...");
+    printf("Test Point 0: task 1 will create lock...");
     if ((rc = m_NCS_LOCK_INIT(&gl_lock)) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
         goto GET_OUT;
     }
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
 
@@ -182,15 +182,15 @@ lt_lockManager(int argc, char **argv)
 
 
     /* Test Point 1: get lock - task 2 will not compete here */
-    m_NCS_CONS_PRINTF("Test Point 1: task 1 will get lock ownership...");
+    printf("Test Point 1: task 1 will get lock ownership...");
     task1_is_in_tp = 1; /* tell task 2 where task 1 is */
     if ((rc = m_NCS_LOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
         goto DESTROY_LOCK;
     }
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
     tsk1_has_lock = 1; /* let task 2 know that task 1 has the lock */
 
 
@@ -200,35 +200,35 @@ lt_lockManager(int argc, char **argv)
     if (tsk2_failed == 1) /* if task 2 did not block .. */
         goto DESTROY_LOCK;
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
 
     /* Test Point 3: task 1 will release lock... */
-    m_NCS_CONS_PRINTF("Test Point 3: task 1 will release lock...");
+    printf("Test Point 3: task 1 will release lock...");
     tsk1_has_lock = 0; /* let task 2 know that task 1 does not own lock; must do prior to releasing */
     task1_is_in_tp = 3; /* tell task 2 where task 1 is */
     if ((rc = m_NCS_UNLOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
         goto DESTROY_LOCK;
     }
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
     /* Test Point 4: task 2 will take lock ownership... */
-    m_NCS_CONS_PRINTF("Test Point 4: task 2 will take lock ownership...");
+    printf("Test Point 4: task 2 will take lock ownership...");
     task1_is_in_tp = 4;       /* tell task 2 it can proceed */
     m_NCS_TASK_SLEEP(2000); /* allow time for tasks to synchronize - just in case */
 
     if (tsk2_has_lock == 0) /* if task 2 does not have the lock by now .. */
     {
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
         goto DESTROY_LOCK;
     }
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
 
@@ -244,7 +244,7 @@ lt_lockManager(int argc, char **argv)
     /* make sure that even after task 2 unlocks nest, there is still a lock on */
     if ((rc = m_NCS_LOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS) /* task 1 should block here */
     {
-        m_NCS_CONS_PRINTF("Failed!..task 1 trying to get lock, return error::%d\n", rc);
+        printf("Failed!..task 1 trying to get lock, return error::%d\n", rc);
         tsk1_failed = 1; /* tell task 2 about failure */
     }
     else
@@ -258,36 +258,36 @@ lt_lockManager(int argc, char **argv)
 
 
     /* Test Point 7: task 1 will release the lock */
-    m_NCS_CONS_PRINTF("Test Point 7: task 1 will release lock...");
+    printf("Test Point 7: task 1 will release lock...");
     tsk1_has_lock = 0;
     task1_is_in_tp = 7;     /* tell task 2 where task 1 is */
     if ((rc = m_NCS_UNLOCK(&gl_lock, NCS_LOCK_WRITE)) != NCSCC_RC_SUCCESS)
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
 
 DESTROY_LOCK:
     /* Test Point 8: task 1 will destroy the lock */
-    m_NCS_CONS_PRINTF("Test Point 8: task 1 will destroy the lock...");
+    printf("Test Point 8: task 1 will destroy the lock...");
     if ((rc = m_NCS_LOCK_DESTROY(&gl_lock)) != NCSCC_RC_SUCCESS)
-        m_NCS_CONS_PRINTF("Failed! return::%d\n", rc);
+        printf("Failed! return::%d\n", rc);
     else
-        m_NCS_CONS_PRINTF("Passed.\n");
+        printf("Passed.\n");
 
     /* cleanup by removing task 2 */
     if (task2_is_in_tp < 6)
     {
         if (m_NCS_TASK_STOP(gl_dummy_task_hdl) != NCSCC_RC_SUCCESS)
-            m_NCS_CONS_PRINTF("Cleanup: Failed! stopping task 2 returned error\n");
+            printf("Cleanup: Failed! stopping task 2 returned error\n");
         if (m_NCS_TASK_RELEASE(gl_dummy_task_hdl) != NCSCC_RC_SUCCESS)
-            m_NCS_CONS_PRINTF("Cleanup: Failed! releasing task 2 returned error\n");
+            printf("Cleanup: Failed! releasing task 2 returned error\n");
     }
     m_NCS_IPC_RELEASE(&gl_dummy_mbx, NULL);
 
 GET_OUT:
     ncs_mem_destroy ();
-    m_NCS_CONS_PRINTF("-Exiting Lock Manager Macro Test-\n\n");
+    printf("-Exiting Lock Manager Macro Test-\n\n");
     return NCSCC_RC_SUCCESS;
 }
 

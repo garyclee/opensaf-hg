@@ -148,7 +148,7 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
    SaVersionT        client_version;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgInitialize Called \n");
+   printf("\n saMsgInitialize Called \n");
 #endif
 
    /* Initialize the environment */
@@ -317,9 +317,9 @@ final1:
 
 #if (NCS_MQA_DEBUG==1)
    if (rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgInitialize Success handle - %d \n",*msgHandle);
+      printf("\n saMsgInitialize Success handle - %d \n",*msgHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgInitialize Failed \n");
+      printf("\n saMsgInitialize Failed \n");
 #endif
 
    return rc;
@@ -354,7 +354,7 @@ saMsgSelectionObjectGet(SaMsgHandleT msgHandle,
       return rc;
    }
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgSelectionObjectGet Called with Handle %d \n",(uns32)msgHandle);
+   printf("\n saMsgSelectionObjectGet Called with Handle %d \n",(uns32)msgHandle);
 #endif
    /* retrieve MQA CB */
    mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
@@ -420,9 +420,9 @@ done0:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgSelectionObjectGet Called -  SUCCESS \n");
+      printf("\n saMsgSelectionObjectGet Called -  SUCCESS \n");
    else
-      m_NCS_CONS_PRINTF("\n saMsgSelectionObjectGet Called -  FAILURE \n");
+      printf("\n saMsgSelectionObjectGet Called -  FAILURE \n");
 #endif
    return rc;
 }
@@ -450,7 +450,7 @@ saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags)
    SaAisErrorT    rc = SA_AIS_OK;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgDispatch Called with Handle %d \n",(uns32)msgHandle);
+   printf("\n saMsgDispatch Called with Handle %d \n",(uns32)msgHandle);
 #endif
 
    /* retrieve MQA CB */
@@ -528,9 +528,9 @@ done:
       
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgDispatch Called -  SUCCESS \n");
+      printf("\n saMsgDispatch Called -  SUCCESS \n");
    else
-      m_NCS_CONS_PRINTF("\n saMsgDispatch Called -  FAILURE \n");
+      printf("\n saMsgDispatch Called -  FAILURE \n");
 #endif
 
    /* return MQA CB */
@@ -569,7 +569,7 @@ saMsgFinalize(SaMsgHandleT msgHandle)
    char **argv=NULL;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n SaMsgFinalize Called with Handle %d \n",(uns32)msgHandle);
+   printf("\n SaMsgFinalize Called with Handle %d \n",(uns32)msgHandle);
 #endif
 
    /* retrieve MQA CB */
@@ -709,9 +709,9 @@ lock_fail:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n SaMsgFinalize Called -  SUCCESS \n");
+      printf("\n SaMsgFinalize Called -  SUCCESS \n");
    else
-      m_NCS_CONS_PRINTF("\n SaMsgFinalize Called -  FAILURE \n");
+      printf("\n SaMsgFinalize Called -  FAILURE \n");
 #endif
    return rc;
 }
@@ -756,7 +756,7 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
    SaTimeT           timeout1;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueOpen Called with Handle %d and Name %.7s \n",(uns32)msgHandle,queueName->value) ;
+   printf("\n saMsgQueueOpen Called with Handle %d and Name %.7s \n",(uns32)msgHandle,queueName->value) ;
 #endif
 
 
@@ -1022,9 +1022,9 @@ done1:
       
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueOpen Called -  SUCCESS Res_id %d \n",*queueHandle);
+      printf("\n saMsgQueueOpen Called -  SUCCESS Res_id %d \n",*queueHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueOpen Called -  FAILURE \n");
+      printf("\n saMsgQueueOpen Called -  FAILURE \n");
 #endif
 
    return rc;
@@ -1062,7 +1062,7 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
    MQP_ASYNC_RSP_MSG mqp_async_rsp;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueOpenAsync Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
+   printf("\n saMsgQueueOpenAsync Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
 #endif
 
    if(queueName == NULL)
@@ -1250,9 +1250,9 @@ done1:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueOpenAsync Called -  SUCCESS message handle %d \n",msgHandle);
+      printf("\n saMsgQueueOpenAsync Called -  SUCCESS message handle %d \n",msgHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueOpenAsync Called -  FAILURE \n");
+      printf("\n saMsgQueueOpenAsync Called -  FAILURE \n");
 #endif
 
 
@@ -1288,7 +1288,7 @@ saMsgQueueClose(SaMsgQueueHandleT queueHandle)
    uns32             mds_rc;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueClose Called with Handle %d \n",(uns32)queueHandle) ;
+   printf("\n saMsgQueueClose Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
 
 
@@ -1408,9 +1408,9 @@ done:
       m_LOG_MQSV_A(MQA_API_QUEUE_CLOSE_SYNC_SUCCESS,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueClose Called -  SUCCESS Res_id %d \n",queueHandle);
+      printf("\n saMsgQueueClose Called -  SUCCESS Res_id %d \n",queueHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueClose Called -  FAILURE \n");
+      printf("\n saMsgQueueClose Called -  FAILURE \n");
 #endif
    return rc;
 
@@ -1447,7 +1447,7 @@ saMsgQueueStatusGet(SaMsgHandleT msgHandle,
 
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueStatusGet Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
+   printf("\n saMsgQueueStatusGet Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
 #endif
 
 
@@ -1590,9 +1590,9 @@ done1:
      
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueStatusGet Called -  SUCCESS Queue Name - %s \n",queueName->value);
+      printf("\n saMsgQueueStatusGet Called -  SUCCESS Queue Name - %s \n",queueName->value);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueStatusGet Called -  FAILURE \n");
+      printf("\n saMsgQueueStatusGet Called -  FAILURE \n");
 #endif
    return rc;
 
@@ -1624,7 +1624,7 @@ saMsgQueueRetentionTimeSet(SaMsgQueueHandleT queueHandle, SaTimeT *retentionTime
 
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n SaMsgQueueHandleT Called with Handle %d \n",(uns32)queueHandle) ;
+   printf("\n SaMsgQueueHandleT Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
 
 
@@ -1722,9 +1722,9 @@ done:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueRetentionTimeSet Called -  SUCCESS Res_id %d \n",queueHandle);
+      printf("\n saMsgQueueRetentionTimeSet Called -  SUCCESS Res_id %d \n",queueHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueRetentionTimeSet Called -  FAILURE \n");
+      printf("\n saMsgQueueRetentionTimeSet Called -  FAILURE \n");
 #endif
    return rc;
 
@@ -1758,7 +1758,7 @@ saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *queueName)
 
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueUnlink Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
+   printf("\n saMsgQueueUnlink Called with Handle %d and Name %s \n",(uns32)msgHandle,queueName->value) ;
 #endif
 
 
@@ -1901,9 +1901,9 @@ done:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueUnlink Called -  SUCCESS Queue Name %s \n",*queueName);
+      printf("\n saMsgQueueUnlink Called -  SUCCESS Queue Name %s \n",*queueName);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueUnlink Called -  FAILURE \n");
+      printf("\n saMsgQueueUnlink Called -  FAILURE \n");
 #endif
    return rc;
 
@@ -2058,7 +2058,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
          /* Drop The Message */
          m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-         m_NCS_CONS_PRINTF("mqa_send_to_group:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+         printf("mqa_send_to_group:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
          mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt);
          rc = SA_AIS_ERR_VERSION;  
          return rc;      
@@ -2127,7 +2127,7 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
               /* Drop The Message */
               m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-              m_NCS_CONS_PRINTF("mqa_send_to_group:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+              printf("mqa_send_to_group:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
               mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt);
               rc = SA_AIS_ERR_VERSION;
               return rc;
@@ -2222,7 +2222,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
    sender.value[0] = '\0';
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueSend Called with Handle %d \n",(uns32)msgHandle) ;
+   printf("\n saMsgQueueSend Called with Handle %d \n",(uns32)msgHandle) ;
 #endif
 
    if ( (destination == NULL) || (message == NULL) )
@@ -2351,7 +2351,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
       /* Drop The Message */
       m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-      m_NCS_CONS_PRINTF("mqa_send_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+      printf("mqa_send_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
       rc = SA_AIS_ERR_LIBRARY;
       goto done;
      }
@@ -2461,9 +2461,9 @@ done:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueSend Called -  SUCCESS Queue Name %s \n",*queueName);
+      printf("\n saMsgQueueSend Called -  SUCCESS Queue Name %s \n",*queueName);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueSend Called -  FAILURE \n");
+      printf("\n saMsgQueueSend Called -  FAILURE \n");
 #endif
 
    return rc;
@@ -2726,7 +2726,7 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
    NCS_BOOL             lock_taken = FALSE;    
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgMessageGet Called with Handle %d \n",(uns32)queueHandle) ;
+   printf("\n saMsgMessageGet Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
 
 
@@ -3094,7 +3094,7 @@ again:
      /* Drop The Message */
      m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqa_receive_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+     printf("mqa_receive_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
      goto done;
     }
 
@@ -3298,7 +3298,7 @@ saMsgMessageGet(SaMsgQueueHandleT queueHandle,
 {
    SaAisErrorT rc= SA_AIS_OK;
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgMessageGet Called with Handle %d \n",(uns32)queueHandle) ;
+   printf("\n saMsgMessageGet Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
    
    if(m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE)
@@ -3355,7 +3355,7 @@ saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
    uns8                 i;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgMessageCancel Called with Handle %d \n",(uns32)queueHandle) ;
+   printf("\n saMsgMessageCancel Called with Handle %d \n",(uns32)queueHandle) ;
 #endif
 
    /* retrieve MQA CB */
@@ -3566,7 +3566,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
    sender.value[0] = '\0';
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgMessageSendReceive Called with message Handle %d \n",(uns32)msgHandle) ;
+   printf("\n saMsgMessageSendReceive Called with message Handle %d \n",(uns32)msgHandle) ;
 #endif
 
    if ( (!destination) || (!sendMessage) || (!receiveMessage) ) {
@@ -3775,7 +3775,7 @@ saMsgMessageSendReceive(SaMsgHandleT msgHandle,
      rc = SA_AIS_ERR_VERSION;
      m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("saMsgMessageSendReceive:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+     printf("saMsgMessageSendReceive:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
      goto done;
     }
 
@@ -3918,9 +3918,9 @@ done:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueSendReceive Called -  SUCCESS Queue Name %s \n",*queueName);
+      printf("\n saMsgQueueSendReceive Called -  SUCCESS Queue Name %s \n",*queueName);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueSendReceive Called -  FAILURE \n");
+      printf("\n saMsgQueueSendReceive Called -  FAILURE \n");
 #endif
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
@@ -4151,7 +4151,7 @@ SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
      /* Drop The Message */
      m_LOG_MQSV_A(MQA_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             o_msg_fmt_ver, __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("mqa_reply_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
+     printf("mqa_reply_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
      goto done;
     }
  
@@ -4285,7 +4285,7 @@ saMsgMessageReply(SaMsgHandleT msgHandle,
    MQA_CLIENT_INFO   *client_info=NULL;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
+   printf("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
 #endif
    
    /* retrieve MQA CB */
@@ -4347,9 +4347,9 @@ done:
  
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueReply Called -  SUCCESS message handle %d \n",msgHandle);
+      printf("\n saMsgQueueReply Called -  SUCCESS message handle %d \n",msgHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueReply Called -  FAILURE \n");
+      printf("\n saMsgQueueReply Called -  FAILURE \n");
 #endif
 
    /* return MQA CB */
@@ -4394,7 +4394,7 @@ saMsgMessageReplyAsync(SaMsgHandleT msgHandle,
    MQA_CLIENT_INFO   *client_info=NULL;
 
 #if (NCS_MQA_DEBUG==1)
-   m_NCS_CONS_PRINTF("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
+   printf("\n saMsgQueueReply Called with Handle %d \n",(uns32)msgHandle) ;
 #endif
    
    /* retrieve MQA CB */
@@ -4470,9 +4470,9 @@ done:
 
 #if (NCS_MQA_DEBUG==1)
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n saMsgQueueReplyAsync Called -  SUCCESS message handle %d \n",msgHandle);
+      printf("\n saMsgQueueReplyAsync Called -  SUCCESS message handle %d \n",msgHandle);
    else
-      m_NCS_CONS_PRINTF("\n saMsgQueueReplyAsync Called -  FAILURE \n");
+      printf("\n saMsgQueueReplyAsync Called -  FAILURE \n");
 #endif
 
    /* return MQA CB */

@@ -28,14 +28,14 @@ uns32 lt_dl_app_routine(int argument)
     {
         /* Change the status to 2 */
         gl_dl_app_status = 2;
-        m_NCS_CONS_PRINTF("lt_dl_app_routine( ): Argument passed(%d) is invalid...\n", 
+        printf("lt_dl_app_routine( ): Argument passed(%d) is invalid...\n", 
             argument);
         return NCSCC_RC_SUCCESS;
     }
 
     /* Confirm the status to 1 */
     gl_dl_app_status = 1;
-    m_NCS_CONS_PRINTF("lt_dl_app_routine( ): Argument passed(%d) is valid...\n", 
+    printf("lt_dl_app_routine( ): Argument passed(%d) is valid...\n", 
         argument);
 
     return NCSCC_RC_SUCCESS;

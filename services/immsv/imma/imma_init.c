@@ -455,7 +455,7 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType,
             assert(0);
     }
 
-    retVal = malloc(valueSize);
+    retVal = calloc(1, valueSize);
 
     switch (attrValueType)
     {
@@ -483,12 +483,10 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType,
 
         case SA_IMM_ATTR_SANAMET:
             saNameTp= (SaNameT *) retVal;
-            saNameTp->length = attrValue->val.x.size;
-            if (saNameTp->length > SA_MAX_NAME_LENGTH)
-            {
-                saNameTp->length = SA_MAX_NAME_LENGTH -1;
-            }
-            strncpy((char *) saNameTp->value, attrValue->val.x.buf, 
+            saNameTp->length = strnlen(attrValue->val.x.buf, 
+                attrValue->val.x.size);
+            assert(saNameTp->length <= SA_MAX_NAME_LENGTH);
+            memcpy(saNameTp->value, attrValue->val.x.buf, 
                     saNameTp->length);
             break;
 

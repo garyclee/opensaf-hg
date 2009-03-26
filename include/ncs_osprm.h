@@ -674,58 +674,6 @@ typedef int32 int64;
  * POSIX Sytem Calls Definitaions 
  ***************************************************************************/
 
-#ifndef m_NCS_OS_POSIX_OPEN
-#define m_NCS_OS_POSIX_OPEN             open
-#endif
-
-#ifndef m_NCS_OS_POSIX_READ
-#define m_NCS_OS_POSIX_READ             read
-#endif
-
-#ifndef m_NCS_OS_POSIX_WRITE
-#define m_NCS_OS_POSIX_WRITE            write
-#endif
-
-#ifndef m_NCS_OS_POSIX_DUP
-#define m_NCS_OS_POSIX_DUP              dup
-#endif
-
-#ifndef m_NCS_OS_POSIX_CLOSE
-#define m_NCS_OS_POSIX_CLOSE            close
-#endif
-
-#ifndef m_NCS_OS_POSIX_UNLINK
-#define m_NCS_OS_POSIX_UNLINK           unlink
-#endif
-
-#ifndef m_NCS_OS_POSIX_FORK
-#define m_NCS_OS_POSIX_FORK             fork
-#endif
-
-#ifndef m_NCS_OS_POSIX_EXECVP
-#define m_NCS_OS_POSIX_EXECVP           execvp
-#endif
-
-#ifndef m_NCS_OS_POSIX_MKFIFO
-#define m_NCS_OS_POSIX_MKFIFO           mkfifo
-#endif
-
-#ifndef m_NCS_OS_POSIX_PIPE
-#define m_NCS_OS_POSIX_PIPE             pipe
-#endif
-
-#ifndef m_NCS_OS_POSIX_OPENLOG
-#define m_NCS_OS_POSIX_OPENLOG          openlog
-#endif
-
-#ifndef m_NCS_OS_POSIX_SYSLOG
-#define m_NCS_OS_POSIX_SYSLOG           syslog
-#endif
-
-#ifndef m_NCS_OS_POSIX_CLOSELOG
-#define m_NCS_OS_POSIX_CLOSELOG         closelog
-#endif
-
 #ifndef m_NCS_OS_POSIX_SIGACTION
 #define m_NCS_OS_POSIX_SIGACTION        sigaction
 #endif
@@ -1747,56 +1695,9 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
  *                                                                         *
  ***************************************************************************/
 
-#ifndef m_NCS_OS_CONS_PRINTF
-#error Warning! Implementation needed for CONS Printf
-#endif
-
 #ifndef m_NCS_OS_DBG_PRINTF
 #error Warning! Implementation needed for DBG Printf
 #endif
-
-#ifndef m_NCS_OS_SYSLOG
-#error Warning! Implementation needed for SYSLOG
-#endif
-
-
-/****************************************************************************
- *                            Sys Log Priority defines                     *
- *                                                                         *
- ***************************************************************************/
-
-#ifndef NCS_OS_LOG_EMERG
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_ALERT  /* action must be taken immediately */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_CRIT   /* critical conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef  NCS_OS_LOG_ERR   /* error conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_WARNING  /* warning conditions */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_NOTICE    /* normal but significant condition */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_INFO   /* informational */
-#error Warning! mapping needed for syslog priorities
-#endif
-
-#ifndef NCS_OS_LOG_DEBUG   /* debug-level messages */
-#error Warning! mapping needed for syslog priorities
-#endif
-
 
 /****************************************************************************
  * OS CPU usage Primitive definition
@@ -2012,14 +1913,6 @@ EXTERN_C void my_free(void *mem_p);
 #error Warning! macro for uptime usage to be defined
 #endif
 
-#ifndef m_NCS_OS_GETGRGID 
-#error Warning! macro for getgrgid usage to be defined
-#endif 
-
-#ifndef m_NCS_OS_GETGROUPS
-#error Warning! macro for getgroups usage to be defined
-#endif 
-
 /****************************************************************************
  **                                                                        **
  **                  Standard CLIB/STDIO Interfaces                        **
@@ -2030,18 +1923,6 @@ EXTERN_C void my_free(void *mem_p);
  **                                                                        **
  ***************************************************************************/
 
-#ifndef m_NCS_OS_LOG_SPRINTF
-#define m_NCS_OS_LOG_SPRINTF         sprintf
-#endif
-
-#ifndef m_NCS_OS_LOG_FPRINTF
-#define m_NCS_OS_LOG_FPRINTF         fprintf
-#endif
-
-#ifndef m_NCS_OS_LOG_FCLOSE
-#define m_NCS_OS_LOG_FCLOSE          fclose
-#endif
-
 #ifndef m_NCS_OS_LOG_FOPEN
 #define m_NCS_OS_LOG_FOPEN           fopen
 #endif
@@ -2050,51 +1931,8 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_FOPEN_R(filename)   fopen(filename,"r")
 #endif
 
-#ifndef m_NCS_OS_SYSTEM
-#define m_NCS_OS_SYSTEM              system
-#endif
-
 #ifndef m_NCS_OS_START
 #define m_NCS_OS_START(a,b)          NCSCC_RC_FAILURE
-#endif
-
-/* Assertion defaults to nothing unless provided in osprims
-*/
-#ifndef m_NCS_OS_ASSERT
-#define m_NCS_OS_ASSERT(exp)         assert(exp)
-#endif
-
-#ifndef m_NCS_OS_GETC
-#define m_NCS_OS_GETC                getc
-#endif
-
-#ifndef m_NCS_OS_FGETS
-#define m_NCS_OS_FGETS               fgets
-#endif
-
-
-#ifndef m_NCS_OS_SRAND
-#define m_NCS_OS_SRAND               srand
-#endif
-
-#ifndef m_NCS_OS_RAND
-#define m_NCS_OS_RAND             rand
-#endif
-
-#ifndef m_NCS_OS_GETCHAR
-#define m_NCS_OS_GETCHAR             getchar
-#endif
-
-#ifndef m_NCS_OS_PUTCHAR
-#define m_NCS_OS_PUTCHAR             putchar
-#endif
-
-#ifndef m_NCS_OS_PRINTF
-#define m_NCS_OS_PRINTF              printf
-#endif
-
-#ifndef m_NCS_OS_SNPRINTF
-#define m_NCS_OS_SNPRINTF            snprintf
 #endif
 
 #ifndef m_NCS_OS_UNBUF_GETCHAR
@@ -2103,10 +1941,6 @@ EXTERN_C void my_free(void *mem_p);
 
 #ifndef m_NCS_OS_NORMALIZE_CHR
 #define m_NCS_OS_NORMALIZE_CHR       getchar
-#endif
-
-#ifndef m_NCS_OS_DIFFTIME
-#define m_NCS_OS_DIFFTIME(t0, t1) difftime (t0, t1)
 #endif
 
 #ifndef m_NCS_OS_NTOHL
@@ -2384,12 +2218,7 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 
 #define m_NCS_OS_PROCESS_EXECUTE_TIMED(arg)           ncs_os_process_execute_timed(arg)
 #define m_NCS_OS_PROCESS_EXECUTE(script,argv)         ncs_os_process_execute((char *)script,(char **)argv,(NCS_OS_ENVIRON_ARGS *)NULL)
-#define m_NCS_OS_PROCESS_GET_ID()                     ncs_os_process_get_id()
-#define m_NCS_OS_PROCESS_GET_ENV_VAR(str)             ncs_os_process_get_env_var((char *)str)
-#define m_NCS_OS_PROCESS_SET_ENV_VAR(str,val,op)      ncs_os_process_set_env_var((char*)str,(char *)val,(int)op)
 #define m_NCS_OS_PROCESS_TERMINATE(proc_id)           ncs_os_process_terminate((unsigned int)proc_id)
-#define m_NCS_OS_PROCESS_SET_PRIORITY(which,who,prio) ncs_os_process_set_priority((int)which,(int)who,(int)prio)
-#define m_NCS_OS_PROCESS_GET_PRIORITY(which,who)      ncs_os_process_get_priority((int)which,(int)who)
 
 #define m_NCS_OS_EXECUTE_SCRIPT(script)               ncs_os_process_execute((char *)script,(char *)NULL,(NCS_OS_ENVIRON_ARGS *))
 
@@ -2397,28 +2226,14 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 
 #define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
-#define m_NCS_SIGNAL_WAITPID(pid,status,options)     ncs_os_signal_waitpid(pid,status,options)
-
 /* declarations */
 EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
 EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],NCS_OS_ENVIRON_ARGS *set_env_args);
 
-EXTERN_C LEAPDLL_API unsigned int ncs_os_process_get_id(void);
-
-EXTERN_C LEAPDLL_API char* ncs_os_process_get_env_var(char *str);
-
-EXTERN_C LEAPDLL_API int ncs_os_process_set_env_var(char *str,char *val, int op);
-
 EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
 
-EXTERN_C LEAPDLL_API int ncs_os_process_set_priority(int which, int who, int prio);
-
-EXTERN_C LEAPDLL_API int ncs_os_process_get_priority(int which, int who);
-
 EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
-
-EXTERN_C LEAPDLL_API int ncs_os_signal_waitpid(int pid, int *status,int options);
 
 /****************************************************************************
  **                                                                        **

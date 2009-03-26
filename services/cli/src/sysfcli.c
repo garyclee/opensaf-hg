@@ -266,7 +266,7 @@ sysf_close_file(void)
 uns32 cli_dbg_sink(uns32 l, char* f, uns32 code)
   {
 
-  m_NCS_CONS_PRINTF ("IN CLI_DBG_SINK: line %d, file %s\n",l,f);
+  printf ("IN CLI_DBG_SINK: line %d, file %s\n",l,f);
 
   return code;
   }

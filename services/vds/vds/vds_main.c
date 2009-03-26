@@ -894,17 +894,17 @@ void vds_debug_dump(void)
                          (uns8 *)vdest_name)) != NULL)
    {
       adest_node = vdest_db_node->adest_list;
-      m_NCS_CONS_PRINTF("VNAME - %s ::  ID -  %lld :: PERSISTENT %ld :: ADESTS ",
+      printf("VNAME - %s ::  ID -  %lld :: PERSISTENT %ld :: ADESTS ",
                                                vdest_db_node->vdest_name.value,vdest_db_node->vdest_id,vdest_db_node->persistent);
       while (adest_node)
       {
-         m_NCS_CONS_PRINTF(" %lld ",adest_node->adest);
+         printf(" %lld ",adest_node->adest);
 
          adest_node = adest_node->next;
       }
       vdest_name = &vdest_db_node->vdest_name;
 
-      m_NCS_CONS_PRINTF("\n");
+      printf("\n");
    }
 
 

@@ -775,7 +775,7 @@ int ncs_edu_exec_rule(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
     case EDU_TEST:
 #if (NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, "Test condition...\n");
+        sprintf(gl_log_string, "Test condition...\n");
         ncs_edu_log_msg(gl_log_string);
 
         /* Retrieve "ptr" from "PPDB" and pass to the "test" function.
@@ -1650,7 +1650,7 @@ int ncs_edu_run_test_condition(EDU_HDL *edu_hdl,
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "test_condition function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
 #endif
@@ -1713,7 +1713,7 @@ int ncs_edu_run_version_usr(EDU_HDL *edu_hdl,
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "run_version_usr function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
 #endif
@@ -1753,7 +1753,7 @@ int ncs_edu_run_version_ge(EDU_HDL *edu_hdl,
         /* Error!!!! Rule doesn't have "test" function pointer. */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "run_version_ge function returning...fld7 = NULL...\n");
         ncs_edu_log_msg(gl_log_string);
 #endif
@@ -1950,7 +1950,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                         cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
                         memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                        sysf_sprintf(gl_log_string, 
+                        sprintf(gl_log_string, 
                             "Switching to index = %d...\n", cur_inst_indx);
                         ncs_edu_log_msg(gl_log_string);
 #endif
@@ -2052,7 +2052,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -2137,7 +2137,7 @@ EDU_LABEL ncs_edu_run_rules_for_enc(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
 #endif
@@ -2249,7 +2249,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
 #if (NCS_EDU_VERBOSE_PRINT == 1)
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -2315,7 +2315,7 @@ EDU_LABEL ncs_edu_run_rules_for_dec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
             }
 #if (NCS_EDU_VERBOSE_PRINT == 1)
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
 #endif
@@ -2426,7 +2426,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 {
                     cur_inst_indx = prog[cur_inst_indx].nxt_lbl;
                     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-                    sysf_sprintf(gl_log_string, 
+                    sprintf(gl_log_string, 
                         "Switching to index = %d...\n", cur_inst_indx);
                     ncs_edu_log_msg(gl_log_string);
                 }
@@ -2489,7 +2489,7 @@ EDU_LABEL ncs_edu_run_rules_for_pp(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
                 cur_inst_indx = rc_lbl;
             }
             memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-            sysf_sprintf(gl_log_string, 
+            sprintf(gl_log_string, 
                 "Switching to index = %d...\n", cur_inst_indx);
             ncs_edu_log_msg(gl_log_string);
             continue;
@@ -3410,8 +3410,8 @@ void ncs_edu_log_msg(char *string)
     if(log_fh == NULL)
         return;
 
-    sysf_fprintf(log_fh, string);
-    sysf_fclose(log_fh);
+    fprintf(log_fh, string);
+    fclose(log_fh);
 
     return;
 }
@@ -3494,10 +3494,10 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     if(op == EDP_OP_TYPE_ENC)
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "*****PRETTY-PRINT-AFTER-ENCODE***STARTS*****\n");
     else
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "*****PRETTY-PRINT-BEFORE-DECODE***STARTS*****\n");
     ncs_edu_log_msg(gl_log_string);
 
@@ -3520,10 +3520,10 @@ uns32 ncs_edu_perform_pp_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
     if(op == EDP_OP_TYPE_ENC)
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "*****PRETTY-PRINT-AFTER-ENCODE***ENDS*****\n");
     else
-        sysf_sprintf(gl_log_string, 
+        sprintf(gl_log_string, 
             "*****PRETTY-PRINT-BEFORE-DECODE***ENDS*****\n");
     ncs_edu_log_msg(gl_log_string);
 
@@ -3568,7 +3568,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-    sysf_sprintf(gl_log_string, 
+    sprintf(gl_log_string, 
         "*****ENCODE***STARTS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -3579,7 +3579,7 @@ uns32 ncs_edu_perform_enc_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-    sysf_sprintf(gl_log_string, "*****ENCODE***ENDS*****\n");
+    sprintf(gl_log_string, "*****ENCODE***ENDS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
 
@@ -3632,7 +3632,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-    sysf_sprintf(gl_log_string, 
+    sprintf(gl_log_string, 
         "*****DECODE***STARTS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
@@ -3643,7 +3643,7 @@ uns32 ncs_edu_perform_dec_op(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp,
 
 #if (NCS_EDU_VERBOSE_PRINT == 1)
     memset(&gl_log_string, '\0', GL_LOG_STRING_LEN);
-    sysf_sprintf(gl_log_string, "*****DECODE***ENDS*****\n");
+    sprintf(gl_log_string, "*****DECODE***ENDS*****\n");
     ncs_edu_log_msg(gl_log_string);
 #endif
 
@@ -3667,124 +3667,124 @@ void ncs_edu_print_error_string(int enum_val)
     switch(enum_val)
     {
     case EDU_ERR_MEM_FAIL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Memory alloc failed...\n");
+        sprintf(gl_log_string, "EDU-ERR:Memory alloc failed...\n");
         break;
     case EDU_ERR_UBUF_PARSE_FAIL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:USRBUF parse failed...\n");
+        sprintf(gl_log_string, "EDU-ERR:USRBUF parse failed...\n");
         break;
     case EDU_ERR_INV_EDP_VALUE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid EDP value encountered...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid EDP value encountered...\n");
         break;
     case EDU_ERR_EDU_START_NOT_FIRST_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_START is not the first instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_START is not the first instruction...\n");
         break;
     case EDU_ERR_EDP_NOT_MATCHING_IN_EDU_START_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDP not matching in EDU_START instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDP not matching in EDU_START instruction...\n");
         break;
     case EDU_ERR_INV_NUMBER_OF_EDU_INSTRUCTIONS:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid number of EDU instructions in EDP...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid number of EDU instructions in EDP...\n");
         break;
     case EDU_ERR_EDU_END_NOT_LAST_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_END is not last instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_END is not last instruction...\n");
         break;
     case EDU_ERR_ILLEGAL_INSTR_GIVEN:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Illegal EDU instruction given in EDP rules...\n");
+        sprintf(gl_log_string, "EDU-ERR:Illegal EDU instruction given in EDP rules...\n");
         break;
     case EDU_ERR_DUPLICATE_EDU_START_INSTR_FOUND:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_START instruction in EDP rules...\n");
+        sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_START instruction in EDP rules...\n");
         break;
     case EDU_ERR_DUPLICATE_EDU_END_INSTR_FOUND:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_END instruction in EDP rules...\n");
+        sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_END instruction in EDP rules...\n");
         break;
     case EDU_ERR_DUPLICATE_EDU_TEST_LL_PTR_INSTR_FOUND:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_TEST_LL_PTR instruction in EDP rules...\n");
+        sprintf(gl_log_string, "EDU-ERR:Duplicate EDU_TEST_LL_PTR instruction in EDP rules...\n");
         break;
     case EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Field offset exceeds EDP-size...\n");
+        sprintf(gl_log_string, "EDU-ERR:Field offset exceeds EDP-size...\n");
         break;
     case EDU_ERR_VAR_LEN_PARAMETER_NOT_BASIC_EDP_TYPE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Variable-length-parameter is not of basic EDP type...\n");
+        sprintf(gl_log_string, "EDU-ERR:Variable-length-parameter is not of basic EDP type...\n");
         break;
     case EDU_ERR_INV_ATTRIBUTE_FOR_LINKED_LIST_EDP:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid attribute for linked list EDP...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid attribute for linked list EDP...\n");
         break;
     case EDU_ERR_INV_ATTRIBUTE_COMBINATION_IN_START_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid attribute combination in EDU_START instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid attribute combination in EDU_START instruction...\n");
         break;
     case EDU_ERR_INV_ATTRIBUTE_FOR_EXEC_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid attribute for EDU_EXEC instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid attribute for EDU_EXEC instruction...\n");
         break;
     case EDU_ERR_EDP_REFERENCES_SELF:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDP executing self EDP, infinite loop...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDP executing self EDP, infinite loop...\n");
         break;
     case EDU_ERR_EXEC_INSTR_DOES_NOT_EXIST_FOR_OFFSET_OF_TEST_INSTR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:No EDU_EXEC existing for offset of EDU_TEST instruction...\n");
+        sprintf(gl_log_string, "EDU-ERR:No EDU_EXEC existing for offset of EDU_TEST instruction...\n");
         break;
     case EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by TEST fnc...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by TEST fnc...\n");
         break;
     case EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_GE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by VER_GE...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by VER_GE...\n");
         break;
     case EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_USR:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by VER_USR...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid JUMP-TO offset provided by VER_USR...\n");
         break;
     case EDU_ERR_EDP_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDP Program handler NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDP Program handler NULL...\n");
         break;
     case EDU_ERR_SRC_POINTER_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Source data structure pointer is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Source data structure pointer is NULL...\n");
         break;
     case EDU_ERR_DEST_DOUBLE_POINTER_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Double pointer to destination data structure is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Double pointer to destination data structure is NULL...\n");
         break;
     case EDU_ERR_POINTER_TO_EDU_ERR_RET_VAL_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Pointer to EDU_ERR return value is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Pointer to EDU_ERR return value is NULL...\n");
         break;
     case EDU_ERR_INV_OP_TYPE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid operation type specified...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid operation type specified...\n");
         break;
     case EDU_ERR_EDU_HDL_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Pointer to EDU_HDL is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Pointer to EDU_HDL is NULL...\n");
         break;
     case EDU_ERR_UBAID_POINTER_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Pointer to NCS_UBAID is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Pointer to NCS_UBAID is NULL...\n");
         break;
     case EDU_ERR_POINTER_TO_CNT_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Pointer to count-argument is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Pointer to count-argument is NULL...\n");
         break;
     case EDU_ERR_TEST_FUNC_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_TEST function is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_TEST function is NULL...\n");
         break;
     case EDU_ERR_VER_GE_FIELD_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_VER_GE variable is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_VER_GE variable is NULL...\n");
         break;
     case EDU_ERR_VER_USR_FIELD_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_VER_USR function is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_VER_USR function is NULL...\n");
         break;
     case EDU_ERR_EDU_TEST_LL_PTR_INSTR_NOT_FOUND:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_TEST_LL_PTR instruction not found...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_TEST_LL_PTR instruction not found...\n");
         break;
     case EDU_ERR_ILLEGAL_NEXT_LABEL_VALUE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Illegal Next-Label found...\n");
+        sprintf(gl_log_string, "EDU-ERR:Illegal Next-Label found...\n");
         break;
     case EDU_ERR_EDP_NOT_USABLE_AT_EXEC_TIME:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDP not usable at exec-time...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDP not usable at exec-time...\n");
         break;
     case EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDP not found at exec-time...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDP not found at exec-time...\n");
         break;
     case EDU_ERR_INV_LEN_SIZE_FOUND_FOR_VAR_SIZED_DATA:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid length-size found for Variable-sized-data...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid length-size found for Variable-sized-data...\n");
         break;
     case EDU_ERR_TLV_BUF_POINTER_NULL:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Pointer to TLV-buffer is NULL...\n");
+        sprintf(gl_log_string, "EDU-ERR:Pointer to TLV-buffer is NULL...\n");
         break;
     case EDU_ERR_INV_TLV_BUF_SIZE:
-        sysf_sprintf(gl_log_string, "EDU-ERR:Invalid TLV-buffer size specified...\n");
+        sprintf(gl_log_string, "EDU-ERR:Invalid TLV-buffer size specified...\n");
         break;
     case EDU_ERR_EDU_HDL_NOT_INITED_BY_OWNER:
-        sysf_sprintf(gl_log_string, "EDU-ERR:EDU_HDL not inited by owner...\n");
+        sprintf(gl_log_string, "EDU-ERR:EDU_HDL not inited by owner...\n");
         break;
     }
     ncs_edu_log_msg(gl_log_string);

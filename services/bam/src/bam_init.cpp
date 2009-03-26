@@ -231,7 +231,7 @@ ncs_bam_process_message(BAM_EVT *evt)
           * serious enough to be logged to CONS as parsing 
           *  will be stalled 
           */
-         m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: PSSV asked to playback nothing.");
+         syslog(LOG_ERR,"NCS_AvSv: PSSV asked to playback nothing.");
          m_LOG_BAM_MSG_TIC(BAM_PSS_NAME, NCSFL_SEV_ERROR, "PSSV asked to playback nothing");
          return ;
       }
@@ -363,7 +363,7 @@ ncs_bam_main_loop(SYSF_MBX *bam_mbx)
   }
   m_LOG_BAM_MSG_TIC(BAM_IPC_RECV_FAIL,NCSFL_SEV_CRITICAL, 
          "Bam Msg recv failed");
-  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Bam Msg ipc Rcv Failure");
+  syslog(LOG_CRIT,"NCS_AvSv: Bam Msg ipc Rcv Failure");
   return ;
 }
 

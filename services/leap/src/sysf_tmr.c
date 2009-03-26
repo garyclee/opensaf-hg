@@ -46,8 +46,8 @@
 #endif
 
 #if (SYSF_TMR_LOG == 1)
-#define m_SYSF_TMR_LOG_ERROR(str,num)   m_NCS_CONS_PRINTF("%s::0x%x\n",(str),(unsigned int)(num))
-#define m_SYSF_TMR_LOG_INFO(str,num)   m_NCS_CONS_PRINTF("%s::0x%x\n",(str),(unsigned int)(num))
+#define m_SYSF_TMR_LOG_ERROR(str,num)   printf("%s::0x%x\n",(str),(unsigned int)(num))
+#define m_SYSF_TMR_LOG_INFO(str,num)   printf("%s::0x%x\n",(str),(unsigned int)(num))
 #else
 #define m_SYSF_TMR_LOG_ERROR(str,num)
 #define m_SYSF_TMR_LOG_INFO(str,num)   
@@ -116,7 +116,7 @@ typedef struct sysf_tmr_leak
 #endif
 
 #if ( NCS_TMR_DBG_ENABLE == 1)
-#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID(0);m_NCS_OS_ASSERT((t->state&s));}}
+#define TMR_DBG_ASSERT_STATE(t,s) {if(!(t->state&s)){m_LEAP_DBG_SINK_VOID(0);assert((t->state&s));}}
 #else
 #define TMR_DBG_ASSERT_STATE(t,s)
 #endif 
@@ -351,7 +351,7 @@ static NCS_BOOL sysfTmrExpiry (SYSF_TMR_PAT_NODE *tmp )
                 gl_tcb.stats.cnt--;
                 if(gl_tcb.stats.cnt == 0)
                 {
-                    m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active in Expiry PID %u \n",m_NCS_OS_PROCESS_GET_ID());
+                    syslog(LOG_INFO,"NO Timers Active in Expiry PID %u \n",getpid());
                 }
 #endif
                 now_tmr->tmrCB (now_tmr->tmrUarg);    /* OK this is it! Expire ! */
@@ -460,8 +460,8 @@ static uns32 ncs_tmr_engine(struct timeval *tv,uns64 *next_delay)
                 sum_of_tmr_exp_gaps += TIMESPEC_DIFF_IN_NS(tmr_exp_curr_start, tmr_exp_prev_finish);
                 if (tot_tmr_exp >= 100)
                 {
-                    m_NCS_CONS_PRINTF("\nTotal active timers: %d\n",gl_tcb.stats.cnt);
-                    m_NCS_CONS_PRINTF("Average timer-expiry gap (last %d expiries) = %lld\n",
+                    printf("\nTotal active timers: %d\n",gl_tcb.stats.cnt);
+                    printf("Average timer-expiry gap (last %d expiries) = %lld\n",
                         tot_tmr_exp, sum_of_tmr_exp_gaps/tot_tmr_exp);
                     tot_tmr_exp = 0;
                     sum_of_tmr_exp_gaps = 0;
@@ -545,7 +545,7 @@ static uns32 ncs_tmr_wait(void)
         if(rc < 0) 
         {
             if(save_errno != EINTR)
-                m_NCS_OS_ASSERT(0);  
+                assert(0);  
 
             if( ncs_tmr_select_intr_process(&tv,&ts_current,next_delay) == NCSCC_RC_SUCCESS)
             {
@@ -930,7 +930,7 @@ tmr_t ncs_tmr_start (tmr_t        tid,
     gl_tcb.stats.cnt++;
     if (gl_tcb.stats.cnt == 1)
     {
-        m_NCS_SYSLOG(NCS_LOG_INFO,"At least one timer started\n");
+        syslog(LOG_INFO,"At least one timer started\n");
     }
 #endif
     if (gl_tcb.msg_count == 0)
@@ -1016,7 +1016,7 @@ uns32 ncs_tmr_stop_v2(tmr_t tmrID,void  **o_tmr_arg)
             gl_tcb.stats.cnt--;
             if(gl_tcb.stats.cnt == 0)
             {         
-                m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP_V2 PID %u \n",m_NCS_OS_PROCESS_GET_ID()); 
+                syslog(LOG_INFO,"NO Timers Active STOP_V2 PID %u \n",getpid()); 
             }
 #endif
             /* set tmr to DORMANT state */
@@ -1056,7 +1056,7 @@ void ncs_tmr_stop (tmr_t tmrID)
         gl_tcb.stats.cnt--;
         if(gl_tcb.stats.cnt == 0)
         {
-            m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active STOP PID %u \n",m_NCS_OS_PROCESS_GET_ID()); 
+            syslog(LOG_INFO,"NO Timers Active STOP PID %u \n",getpid()); 
         }
     }
 #endif
@@ -1087,7 +1087,7 @@ void ncs_tmr_free (tmr_t tmrID)
         gl_tcb.stats.cnt--;
         if(gl_tcb.stats.cnt == 0)
         {
-            m_NCS_SYSLOG(NCS_LOG_INFO,"NO Timers Active Destroy PID %s \n", __LINE__);
+            syslog(LOG_INFO,"NO Timers Active Destroy PID %s \n", __LINE__);
         }
     }
 #endif
@@ -1173,16 +1173,16 @@ uns32 ncs_tmr_whatsout (void)
     uns32     cnt = 1;
     char      pBuf[100];
   
-    m_NCS_CONS_PRINTF ("|---+----+-----+-----------+-----------------------------|\n");
-    m_NCS_CONS_PRINTF ("|            O U T S T A N D I N G   T M R S             |\n");
-    m_NCS_CONS_PRINTF ("|---+----+-----+-----------+------------+----------------|\n");
-    m_NCS_CONS_PRINTF ("|  #|age |Owner|Owner file |    state   |       pointer  |\n");
-    m_NCS_CONS_PRINTF ("|  #|    | line|           |            |                |\n");
-    m_NCS_CONS_PRINTF ("|---|----+-----+-----------+------------+----------------|\n");
+    printf ("|---+----+-----+-----------+-----------------------------|\n");
+    printf ("|            O U T S T A N D I N G   T M R S             |\n");
+    printf ("|---+----+-----+-----------+------------+----------------|\n");
+    printf ("|  #|age |Owner|Owner file |    state   |       pointer  |\n");
+    printf ("|  #|    | line|           |            |                |\n");
+    printf ("|---|----+-----+-----------+------------+----------------|\n");
       
     if ((ncslpg_take(&gl_tcb.persist) == FALSE) || (tmr_destroying == TRUE))
     {
-        m_NCS_CONS_PRINTF ("< . . . TMR SVC DESTROYED: .CLEANUP ALREADY DONE..>\n");
+        printf ("< . . . TMR SVC DESTROYED: .CLEANUP ALREADY DONE..>\n");
         return NCSCC_RC_FAILURE; /* going or gone away.. Lets leave */
     }
 
@@ -1193,14 +1193,14 @@ uns32 ncs_tmr_whatsout (void)
     {
         if (!TMR_TEST_STATE(free,TMR_STATE_DESTROY)) /* some may be in transition, but report all */
         {
-            sysf_sprintf (pBuf, "%4d%5d%6d%12s%12s%16lx\n",
+            sprintf (pBuf, "%4d%5d%6d%12s%12s%16lx\n",
                 cnt++,                          /* Nmber  */
                 gl_tcb.tick - free->dbg.stamp,  /* age    */
                 free->dbg.line,                 /* OwnrL  */
                 ncs_fname(free->dbg.file),       /* OwnrF  */
                 gl_tmr_states[free->state],     /* state  */
                 (long)free);                          /* pointr */
-            m_NCS_CONS_PRINTF (pBuf);
+            printf (pBuf);
         }
         free = free->keep;
     }  
@@ -1226,18 +1226,18 @@ uns32 ncs_tmr_getstats (void) {return NCSCC_RC_SUCCESS;}
 uns32       
 ncs_tmr_getstats (void)
 {
-    m_NCS_CONS_PRINTF ("|---------------------------------------|\n");
-    m_NCS_CONS_PRINTF ("|   T I M E R      S T A T I S T I C S  |\n");
-    m_NCS_CONS_PRINTF ("|----------------------+----------------|\n");
-    m_NCS_CONS_PRINTF (" worst ring hwm        :   %d\n", gl_tcb.stats.ring_hwm);
-    m_NCS_CONS_PRINTF (" ttl timers hwm        :   %d\n", gl_tcb.stats.ring_hwm);
-    m_NCS_CONS_PRINTF (" raw started tmrs      :   %d\n", gl_tcb.stats.start_cnt);
-    m_NCS_CONS_PRINTF (" raw expired tmrs      :   %d\n", gl_tcb.stats.expiry_cnt);
-    m_NCS_CONS_PRINTF (" raw cancelled tmrs    :   %d\n", gl_tcb.stats.stop_cnt);
-    m_NCS_CONS_PRINTF (" free pool hwm         :   %d\n", gl_tcb.stats.free_hwm);
-    m_NCS_CONS_PRINTF (" free pool now         :   %d\n", gl_tcb.stats.free_now);
-    m_NCS_CONS_PRINTF (" ttl active tmrs       :   %d\n", gl_tcb.stats.ttl_active);
-    m_NCS_CONS_PRINTF (" ttl tmr-blks in sys   :   %d\n", gl_tcb.stats.ttl_tmrs);
+    printf ("|---------------------------------------|\n");
+    printf ("|   T I M E R      S T A T I S T I C S  |\n");
+    printf ("|----------------------+----------------|\n");
+    printf (" worst ring hwm        :   %d\n", gl_tcb.stats.ring_hwm);
+    printf (" ttl timers hwm        :   %d\n", gl_tcb.stats.ring_hwm);
+    printf (" raw started tmrs      :   %d\n", gl_tcb.stats.start_cnt);
+    printf (" raw expired tmrs      :   %d\n", gl_tcb.stats.expiry_cnt);
+    printf (" raw cancelled tmrs    :   %d\n", gl_tcb.stats.stop_cnt);
+    printf (" free pool hwm         :   %d\n", gl_tcb.stats.free_hwm);
+    printf (" free pool now         :   %d\n", gl_tcb.stats.free_now);
+    printf (" ttl active tmrs       :   %d\n", gl_tcb.stats.ttl_active);
+    printf (" ttl tmr-blks in sys   :   %d\n", gl_tcb.stats.ttl_tmrs);
 
     return NCSCC_RC_SUCCESS;
 }

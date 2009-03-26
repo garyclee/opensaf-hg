@@ -56,7 +56,7 @@ eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
    for (x=0; x<(int32)patternArray->patternsNumber; x++) {
       memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
-      m_NCS_CONS_PRINTF("     pattern[%ld] =    {%2u, \"%s\"}\n",
+      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
              x, (uns32)pEventPattern->patternSize, buf);
       pEventPattern++;
    }
@@ -100,7 +100,7 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
    filter  = filterArray->filters;
 
 
-   m_NCS_CONS_PRINTF("          PATTERN            FILTER\n");
+   printf("          PATTERN            FILTER\n");
 
 
    for (x=1; x <= (int32)filterArray->filtersNumber; x++)
@@ -109,19 +109,19 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
       memcpy(buf, pattern->pattern,
                    (uns32)pattern->patternSize);
       buf[(uns32)pattern->patternSize] = '\0';
-      m_NCS_CONS_PRINTF(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
+      printf(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
 
       match = 0;
       switch (filter->filterType)
       {
       case SA_EVT_PREFIX_FILTER:
-         m_NCS_CONS_PRINTF("  SA_EVT_PREFIX_FILTER");
+         printf("  SA_EVT_PREFIX_FILTER");
          if (memcmp(filter->filter.pattern, pattern->pattern,
                           (size_t)filter->filter.patternSize) == 0)
             match = 1;
          break;
       case SA_EVT_SUFFIX_FILTER:
-         m_NCS_CONS_PRINTF("  SA_EVT_SUFFIX_FILTER");
+         printf("  SA_EVT_SUFFIX_FILTER");
          /* Pattern must be at least as long as filter */
          if (pattern->patternSize < filter->filter.patternSize)
             break; /* No match */
@@ -134,27 +134,27 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
             match = 1;
          break;
       case SA_EVT_EXACT_FILTER:
-         m_NCS_CONS_PRINTF("   SA_EVT_EXACT_FILTER");
+         printf("   SA_EVT_EXACT_FILTER");
          if (filter->filter.patternSize == pattern->patternSize)
             if (memcmp(filter->filter.pattern, pattern->pattern,
                              (size_t)filter->filter.patternSize) == 0)
                match = 1;
          break;
       case SA_EVT_PASS_ALL_FILTER:
-         m_NCS_CONS_PRINTF("SA_EVT_PASS_ALL_FILTER");
+         printf("SA_EVT_PASS_ALL_FILTER");
          match = 1;
          break;
       default:
-         m_NCS_CONS_PRINTF("ERROR: Unknown filterType(%d)\n", filter->filterType);
+         printf("ERROR: Unknown filterType(%d)\n", filter->filterType);
       }
 
       /* NULL terminate for printing */
       memcpy(buf, filter->filter.pattern,
                    (uns32)filter->filter.patternSize);
       buf[(uns32)filter->filter.patternSize] = '\0';
-      m_NCS_CONS_PRINTF(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);
-      if (match) m_NCS_CONS_PRINTF(" [MATCH]\n");
-      else m_NCS_CONS_PRINTF(" [no]\n");
+      printf(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);
+      if (match) printf(" [MATCH]\n");
+      else printf(" [no]\n");
 
 
       filter++;
@@ -189,8 +189,8 @@ eds_dump_reglist()
    uns32 temp;
    EDA_DOWN_LIST *down_rec = NULL;
 
-   m_NCS_CONS_PRINTF("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
-   m_NCS_CONS_PRINTF("     regIDs         Subscription IDs\n");
+   printf("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
+   printf("     regIDs         Subscription IDs\n");
    
    /* Get the cb from the global handle */
    if (NULL == (cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
@@ -203,7 +203,7 @@ eds_dump_reglist()
    while(rl)  /* While there are registration entries... */
    {
       num_registrations++;
-      m_NCS_CONS_PRINTF("%6u %-8s->", rl->reg_id, " ");
+      printf("%6u %-8s->", rl->reg_id, " ");
       buff[0] = '\0';
       bp = buff;
 
@@ -223,7 +223,7 @@ eds_dump_reglist()
                 ((s->next) || (co->next)))     /* and something follows? */
             {
                /* Output this chunk and start a new one */
-               m_NCS_CONS_PRINTF("%s\n", buff);
+               printf("%s\n", buff);
                bp = buff;
 
                /* Space over the continuation line */
@@ -234,7 +234,7 @@ eds_dump_reglist()
          }
          co = co->next;
       }
-      m_NCS_CONS_PRINTF("%s\n", buff);
+      printf("%s\n", buff);
 
       rl = (EDA_REG_REC *)ncs_patricia_tree_getnext
                (&cb->eda_reg_list,(uns8 *)&rl->reg_id_Net);
@@ -247,9 +247,9 @@ eds_dump_reglist()
        down_rec = down_rec->next;
     }
 
-   m_NCS_CONS_PRINTF("\nTotal Registrations:%d   Total Subscriptions:%d\n",
+   printf("\nTotal Registrations:%d   Total Subscriptions:%d\n",
           num_registrations, num_subscriptions);
-   m_NCS_CONS_PRINTF("\nEDA DOWN recs : %d Async Update Count :%d \n",temp,cb->async_upd_cnt);
+   printf("\nEDA DOWN recs : %d Async Update Count :%d \n",temp,cb->async_upd_cnt);
    
    /* Give back the handle */
    ncshm_give_hdl(gl_eds_hdl);
@@ -278,11 +278,11 @@ eds_dump_worklist()
    EDS_WORKLIST    *wp = NULL;
    EDS_CNAME_REC *cn= NULL;  
    
-   m_NCS_CONS_PRINTF("\n-=-=-=-=- WORKLIST SUBSCRIPTION IDs -=-=-=-=-\n");
-   m_NCS_CONS_PRINTF("     Channel               Copenid:retained events\n");
+   printf("\n-=-=-=-=- WORKLIST SUBSCRIPTION IDs -=-=-=-=-\n");
+   printf("     Channel               Copenid:retained events\n");
   
 
-   m_NCS_CONS_PRINTF("   OpenID:regID            Subscription IDs\n");
+   printf("   OpenID:regID            Subscription IDs\n");
    
    /* Get the cb from the global handle. */
     if (NULL == (eds_cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
@@ -299,22 +299,22 @@ eds_dump_worklist()
       if (wp->chan_attrib & CHANNEL_UNLINKED) /* Flag if channel is UnLinked */
          sprintf(buff, "u");
       else sprintf(buff, " ");
-      m_NCS_CONS_PRINTF("\n%s%6u %s", buff, wp->chan_id, wp->cname);
+      printf("\n%s%6u %s", buff, wp->chan_id, wp->cname);
       
-      m_NCS_CONS_PRINTF("         ");
+      printf("         ");
       for(list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY ; list_iter++)
       {
           retd_evt_rec = wp->ret_evt_list_head[list_iter];
    
-          m_NCS_CONS_PRINTF("    P:%u", list_iter );
+          printf("    P:%u", list_iter );
           while (retd_evt_rec)
           {
-               m_NCS_CONS_PRINTF("  %d:%u",retd_evt_rec->retd_evt_chan_open_id,retd_evt_rec->event_id );
+               printf("  %d:%u",retd_evt_rec->retd_evt_chan_open_id,retd_evt_rec->event_id );
                retd_evt_rec = retd_evt_rec->next;
           }
        }
        
-       m_NCS_CONS_PRINTF("\n");
+       printf("\n");
        bp = buff;
 
 
@@ -337,7 +337,7 @@ eds_dump_worklist()
                 (s->next))     /* and something follows? */
             {
                /* Output this chunk and start a new one */
-               m_NCS_CONS_PRINTF("%s\n", buff);
+               printf("%s\n", buff);
                bp = buff;
 
                /* Space over the continuation line */
@@ -346,7 +346,7 @@ eds_dump_worklist()
             }                    
             s = s->next;
          }
-         m_NCS_CONS_PRINTF("%s\n", buff);
+         printf("%s\n", buff);
          bp = buff;
 
          co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
@@ -355,18 +355,18 @@ eds_dump_worklist()
       wp = wp->next;
    }
    
-   m_NCS_CONS_PRINTF("\nTotal Channel IDs:%d   Total Subscriptions:%d\n",
+   printf("\nTotal Channel IDs:%d   Total Subscriptions:%d\n",
           num_events, num_subscriptions);
    
 /* Code for MIB DUMP */
-   m_NCS_CONS_PRINTF("\nMIB DATA BASE \n");
+   printf("\nMIB DATA BASE \n");
    cn =  (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list,
                                                         (uns8*)NULL);
 
    while (cn)
    {
       if(cn->wp_rec)
-         m_NCS_CONS_PRINTF("\nMib : %s                 Actual: %s" , cn->chan_name.value,(cn->wp_rec)->cname);
+         printf("\nMib : %s                 Actual: %s" , cn->chan_name.value,(cn->wp_rec)->cname);
       cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext
                (&eds_cb->eds_cname_list,(uns8 *)&cn->chan_name);
    }

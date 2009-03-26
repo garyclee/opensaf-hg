@@ -234,7 +234,7 @@ void avnd_main_process (void *arg)
             /*
              * Log error; but continue with our loop.
              */
-            m_NCS_SYSLOG(NCS_LOG_ERR,"avnd_mbcsv_dispatch Failed"); 
+            syslog(LOG_ERR,"avnd_mbcsv_dispatch Failed"); 
          }
       }/* if (m_NCS_SEL_OBJ_ISSET (mbcsv_sel_obj, &wait_sel_objs))*/
 #endif
@@ -255,7 +255,7 @@ void avnd_main_process (void *arg)
   if(FALSE == avnd_exit)
   {
     m_AVND_LOG_INVALID_VAL_ERROR(0);
-    m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Avnd Func. Thread Exited"); 
+    syslog(LOG_ERR,"NCS_AvSv: Avnd Func. Thread Exited"); 
   }
 
    /* Give some time for cleanup and reboot scipts */

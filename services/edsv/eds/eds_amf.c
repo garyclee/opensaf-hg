@@ -59,7 +59,7 @@ uns32 eds_quiescing_state_handler(EDS_CB *cb,
                                         error);
 
    saAmfResponse(cb->amf_hdl, invocation, error);
-   m_NCS_CONS_PRINTF("I AM IN HA AMF QUIESCING STATE\n");
+   printf("I AM IN HA AMF QUIESCING STATE\n");
    return NCSCC_RC_SUCCESS;
 }
                                                                                                                        
@@ -96,7 +96,7 @@ uns32 eds_quiesced_state_handler(EDS_CB *cb,
    cb->amf_invocation_id = invocation;
    
    cb->is_quisced_set = TRUE; 
-   m_NCS_CONS_PRINTF("I AM IN HA AMF QUIESCED STATE\n");
+   printf("I AM IN HA AMF QUIESCED STATE\n");
    return NCSCC_RC_SUCCESS;
 
 }
@@ -226,11 +226,11 @@ eds_amf_CSI_set_callback (SaInvocationT invocation,
       { 
         case SA_AMF_HA_ACTIVE :
              eds_cb->mds_role = V_DEST_RL_ACTIVE;
-             m_NCS_CONS_PRINTF("I AM HA AMF ACTIVE\n");
+             printf("I AM HA AMF ACTIVE\n");
              break;
         case SA_AMF_HA_STANDBY :
              eds_cb->mds_role = V_DEST_RL_STANDBY;
-             m_NCS_CONS_PRINTF("I AM HA AMF STANDBY\n");
+             printf("I AM HA AMF STANDBY\n");
              break;
         case SA_AMF_HA_QUIESCED :
              eds_quiesced_state_handler(eds_cb,invocation);
@@ -277,23 +277,23 @@ eds_amf_CSI_set_callback (SaInvocationT invocation,
            if ( (rc = eds_mds_change_role(eds_cb) ) != NCSCC_RC_SUCCESS )
            {
                m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,eds_cb->mds_role);
-               m_NCS_CONS_PRINTF(" eds_amf_CSI_set_callback: MDS role change to %d FAILED\n",eds_cb->mds_role);
+               printf(" eds_amf_CSI_set_callback: MDS role change to %d FAILED\n",eds_cb->mds_role);
            }
            else
            {
                m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__,eds_cb->mds_role);
-               m_NCS_CONS_PRINTF(" eds_amf_CSI_set_callback: MDS role change to %d SUCCESS\n",eds_cb->mds_role);
+               printf(" eds_amf_CSI_set_callback: MDS role change to %d SUCCESS\n",eds_cb->mds_role);
            }
        }
        /* Inform MBCSV of HA state change */
        if (NCSCC_RC_SUCCESS != (error=eds_mbcsv_change_HA_state(eds_cb)))
        {
            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,new_haState);
-           m_NCS_CONS_PRINTF(" eds_amf_CSI_set_callback: MBCSV state change to (in CSI AssignMent Cbk): %d FAILED \n",eds_cb->ha_state);
+           printf(" eds_amf_CSI_set_callback: MBCSV state change to (in CSI AssignMent Cbk): %d FAILED \n",eds_cb->ha_state);
        }
        else
        {
-           m_NCS_CONS_PRINTF(" eds_amf_CSI_set_callback: MBCSV state change to (in CSI Assignment Cbk): %d SUCCESS \n",eds_cb->ha_state);
+           printf(" eds_amf_CSI_set_callback: MBCSV state change to (in CSI Assignment Cbk): %d SUCCESS \n",eds_cb->ha_state);
            m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
        }
        /* Send the response to AMF */ 
@@ -453,7 +453,7 @@ eds_healthcheck_start(EDS_CB *eds_cb)
 
    /** start the AMF health check **/
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("EDSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("EDSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"E5F6");
@@ -505,20 +505,20 @@ eds_amf_init(EDS_CB *eds_cb)
 
 
    /* Read the component name file now, AMF should have populated it by now */
-   m_NCS_OS_ASSERT(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
+   assert(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
 
    fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_eds_comp_name */
    if(fp == NULL)
    {   
       m_LOG_EDSV_S(EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("  eds_amf_init: eds_amf_init: Unable to open compname file FAILED\n");
+      printf("  eds_amf_init: eds_amf_init: Unable to open compname file FAILED\n");
       return NCSCC_RC_FAILURE; 
    }
    if(fscanf(fp, "%s", comp_name) != 1)
    {
       fclose(fp);
       m_LOG_EDSV_S(EDS_AMF_COMP_FILE_READ_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("  eds_amf_init: Unable to retrieve component name FAILED\n");
+      printf("  eds_amf_init: Unable to retrieve component name FAILED\n");
       return NCSCC_RC_FAILURE; 
    }
 
@@ -526,7 +526,7 @@ eds_amf_init(EDS_CB *eds_cb)
    {
       fclose(fp);
       m_LOG_EDSV_S(EDS_AMF_ENV_NAME_SET_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("  eds_amf_init: Unable to set SA_AMF_COMPONENT_NAME enviroment variable\n");
+      printf("  eds_amf_init: Unable to set SA_AMF_COMPONENT_NAME enviroment variable\n");
       return NCSCC_RC_FAILURE; 
    }
    fclose(fp);
@@ -549,7 +549,7 @@ eds_amf_init(EDS_CB *eds_cb)
 
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("  eds_amf_init: saAmfInitialize() AMF initialization FAILED\n");
+      printf("  eds_amf_init: saAmfInitialize() AMF initialization FAILED\n");
       m_LOG_EDSV_S(EDS_AMF_INIT_ERROR,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
       return NCSCC_RC_FAILURE;
    }
@@ -558,7 +558,7 @@ eds_amf_init(EDS_CB *eds_cb)
    /* Obtain the amf selection object to wait for amf events */
    if (SA_AIS_OK != (rc = saAmfSelectionObjectGet(eds_cb->amf_hdl, &eds_cb->amfSelectionObject)))
    {
-      m_NCS_CONS_PRINTF("  eds_amf_init: saAmfSelectionObjectGet() FAILED\n");
+      printf("  eds_amf_init: saAmfSelectionObjectGet() FAILED\n");
       m_LOG_EDSV_S(EDS_AMF_GET_SEL_OBJ_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
       return rc;
    }
@@ -568,7 +568,7 @@ eds_amf_init(EDS_CB *eds_cb)
    rc = saAmfComponentNameGet(eds_cb->amf_hdl,&eds_cb->comp_name);
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("  eds_amf_init: saAmfComponentNameGet() FAILED\n");
+      printf("  eds_amf_init: saAmfComponentNameGet() FAILED\n");
       m_LOG_EDSV_S(EDS_AMF_COMP_NAME_GET_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
       return NCSCC_RC_FAILURE;
    }
@@ -605,12 +605,12 @@ uns32 eds_amf_register(EDS_CB *eds_cb)
    {
       m_LOG_EDSV_S(EDS_AMF_INIT_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
       m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
-      m_NCS_CONS_PRINTF(" eds_amf_register: eds_amf_init() FAILED\n");
+      printf(" eds_amf_register: eds_amf_init() FAILED\n");
       return NCSCC_RC_FAILURE;
    }
    m_LOG_EDSV_S(EDS_AMF_INIT_OK,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
    
-   m_NCS_CONS_PRINTF(" eds_amf_register: eds_amf_init() SUCCESS\n");
+   printf(" eds_amf_register: eds_amf_init() SUCCESS\n");
 
       /* register EDS component with AvSv */
    error = saAmfComponentRegister(eds_cb->amf_hdl, 
@@ -620,20 +620,20 @@ uns32 eds_amf_register(EDS_CB *eds_cb)
    {
       m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
       m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
-      m_NCS_CONS_PRINTF(" eds_amf_register: saAmfComponentRegister() FAILED\n");
+      printf(" eds_amf_register: saAmfComponentRegister() FAILED\n");
       return NCSCC_RC_FAILURE;
    }
    m_LOG_EDSV_S(EDS_AMF_COMP_REGISTER_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF(" eds_amf_register: saAmfComponentRegister() SUCCESS \n");
+   printf(" eds_amf_register: saAmfComponentRegister() SUCCESS \n");
    if (NCSCC_RC_SUCCESS != (rc = eds_healthcheck_start(eds_cb) ) )
    {
       m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF(" eds_amf_register: saAmfHealthcheckStart FAILED \n");
+      printf(" eds_amf_register: saAmfHealthcheckStart FAILED \n");
       m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
       return NCSCC_RC_FAILURE;
    }
    m_LOG_EDSV_S(EDS_AMF_HLTH_CHK_START_DONE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF(" eds_amf_register: saAmfHealthcheckStart SUCCESS\n");
+   printf(" eds_amf_register: saAmfHealthcheckStart SUCCESS\n");
    m_NCS_UNLOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
   return NCSCC_RC_SUCCESS;
@@ -657,7 +657,7 @@ eds_amf_sigusr1_handler(int i_sig_num)
    if (NULL == (eds_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl)))
    {  
        m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       m_NCS_CONS_PRINTF("eds_amf_sigusr1_handler : eds_cb take FAILED...... \n");
+       printf("eds_amf_sigusr1_handler : eds_cb take FAILED...... \n");
        return;
    }
    else
@@ -817,7 +817,7 @@ void eds_clm_cluster_track_cbk (const SaClmClusterNotificationBufferT *notificat
                  node_id = notificationBuffer->notification[counter].clusterNode.nodeId;
                  update_node_db(cb, node_id, cluster_change);
                  /* Send to all EDAs on node_id */
-                 m_NCS_CONS_PRINTF("Sending ClusterChange Update to Agents on NodeId = %d\n",node_id);
+                 printf("Sending ClusterChange Update to Agents on NodeId = %d\n",node_id);
                  send_clm_status_change(cb, cluster_change, node_id);
              }
           }
@@ -916,7 +916,7 @@ void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NOD
          if (rc != NCSCC_RC_SUCCESS)
             m_LOG_EDSV_S(EDS_CLUSTER_CHANGE_NOTIFY_SEND_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
         else
-            m_NCS_CONS_PRINTF("ClusterNodeUpdate = %d send to %d Success\n",cluster_change, node_id);
+            printf("ClusterNodeUpdate = %d send to %d Success\n",cluster_change, node_id);
       }
       reg_rec=(EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8*)&reg_rec->reg_id_Net);
    }

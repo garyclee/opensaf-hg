@@ -82,18 +82,18 @@ static uns32 lt_test_patricia(void)
     params.key_size = sizeof(LT_ELEM_KEY);
     if(ncs_patricia_tree_init(&gl_pat_cb.tree, &params) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Patricia tree init failed...\n");
+        printf("Patricia tree init failed...\n");
         return NCSCC_RC_FAILURE;
     }
     gl_pat_cb.is_inited = TRUE;
-    m_NCS_CONS_PRINTF("Patricia tree init success...\n");
+    printf("Patricia tree init success...\n");
 
-    m_NCS_CONS_PRINTF("Pls note that Index(32-bit key) to this tree is always in network-order...\n\n");
+    printf("Pls note that Index(32-bit key) to this tree is always in network-order...\n\n");
 
     /* Add first entry, with index value "0x00000001" */
     if((elem = m_MMGR_ALLOC_LT_PAT_ELEM) == NULL)
     {
-        m_NCS_CONS_PRINTF("Malloc call failed...\n");
+        printf("Malloc call failed...\n");
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
@@ -104,12 +104,12 @@ static uns32 lt_test_patricia(void)
     elem->data = 0x0a0b0c0d;
     if(lt_add_node_entry(&gl_pat_cb.tree, elem, &key) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Addition of node with index=0x00000001 to patricia tree failed...\n\n");
+        printf("Addition of node with index=0x00000001 to patricia tree failed...\n\n");
         m_MMGR_FREE_LT_PAT_ELEM(elem);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Addition of node with index=0x00000001 to patricia tree success...\n\n");
+    printf("Addition of node with index=0x00000001 to patricia tree success...\n\n");
 
 
     /* Verify whether the node 0x00000001 can be retrieved */
@@ -118,20 +118,20 @@ static uns32 lt_test_patricia(void)
     pNode = ncs_patricia_tree_get(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
     {
-        m_NCS_CONS_PRINTF("Get operation on node with index=0x00000001 failed...\n\n");
+        printf("Get operation on node with index=0x00000001 failed...\n\n");
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Get operation on the node with index=0x00000001 success...\n");
-    m_NCS_CONS_PRINTF("\tReturned node details : Index - %x, Data - %x...\n\n", 
+    printf("Get operation on the node with index=0x00000001 success...\n");
+    printf("\tReturned node details : Index - %x, Data - %x...\n\n", 
     m_NCS_OS_NTOHL(((LT_PAT_ELEM*)pNode)->key.index),
     ((LT_PAT_ELEM*)pNode)->data);
 
     /* Add second entry, with index value "0x00000002" */
     if((elem = m_MMGR_ALLOC_LT_PAT_ELEM) == NULL)
     {
-        m_NCS_CONS_PRINTF("Malloc call failed for index=0x00000002...\n");
+        printf("Malloc call failed for index=0x00000002...\n");
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
@@ -143,14 +143,14 @@ static uns32 lt_test_patricia(void)
     elem->data = 0x0f0a0b0c;
     if(lt_add_node_entry(&gl_pat_cb.tree, elem, &key) != NCSCC_RC_SUCCESS)
     {
-        m_NCS_CONS_PRINTF("Addition of node with index=0x00000002 to patricia tree failed...\n\n");
+        printf("Addition of node with index=0x00000002 to patricia tree failed...\n\n");
         m_MMGR_FREE_LT_PAT_ELEM(elem);
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
-        m_NCS_CONS_PRINTF("Destroyed the patricia tree...\n");
+        printf("Destroyed the patricia tree...\n");
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Addition of node with index=0x00000002 to patricia tree success...\n");
+    printf("Addition of node with index=0x00000002 to patricia tree success...\n");
 
     /* Verify whether the node 0x00000002 can be retrieved */
     memset(&key, 0, sizeof(key));
@@ -158,13 +158,13 @@ static uns32 lt_test_patricia(void)
     pNode = ncs_patricia_tree_get(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
     {
-        m_NCS_CONS_PRINTF("Get operation on node with index=0x00000002 failed...\n");
+        printf("Get operation on node with index=0x00000002 failed...\n");
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Get operation on the node with index=0x00000002 success...\n");
-    m_NCS_CONS_PRINTF("\tReturned node details : Index - %x, Data - %x...\n\n", 
+    printf("Get operation on the node with index=0x00000002 success...\n");
+    printf("\tReturned node details : Index - %x, Data - %x...\n\n", 
     m_NCS_OS_NTOHL(((LT_PAT_ELEM*)pNode)->key.index),
     ((LT_PAT_ELEM*)pNode)->data);
 
@@ -175,30 +175,30 @@ static uns32 lt_test_patricia(void)
     pNode = ncs_patricia_tree_getnext(&gl_pat_cb.tree, (const uns8*)&key);
     if(pNode == NULL)
     {
-        m_NCS_CONS_PRINTF("Get operation on node with index=0x00000001 failed...\n");
+        printf("Get operation on node with index=0x00000001 failed...\n");
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
     if(((LT_PAT_ELEM*)pNode)->key.index != m_NCS_OS_HTONL(0x00000002))
     {
-        m_NCS_CONS_PRINTF("Get operation on node with index=0x00000001 didn't return 0x00000002...\n");
+        printf("Get operation on node with index=0x00000001 didn't return 0x00000002...\n");
         lt_destroy_pat_tree_nodes(&gl_pat_cb);
         ncs_patricia_tree_destroy(&gl_pat_cb.tree);
         return NCSCC_RC_FAILURE;
     }
-    m_NCS_CONS_PRINTF("Getnext operation on index=0x00000001 returned node with index=0x00000002 ...\n");
-    m_NCS_CONS_PRINTF("\tReturned node details : Index - %x, Data - %x...\n\n", 
+    printf("Getnext operation on index=0x00000001 returned node with index=0x00000002 ...\n");
+    printf("\tReturned node details : Index - %x, Data - %x...\n\n", 
     m_NCS_OS_NTOHL(((LT_PAT_ELEM*)pNode)->key.index),
     ((LT_PAT_ELEM*)pNode)->data);
 
 
     /* Cleaning up the tree now */
-    m_NCS_CONS_PRINTF("Destroying Patricia tree and its nodes now...\n");
+    printf("Destroying Patricia tree and its nodes now...\n");
     lt_destroy_pat_tree_nodes(&gl_pat_cb);
     ncs_patricia_tree_destroy(&gl_pat_cb.tree);
     gl_pat_cb.is_inited = FALSE;
-    m_NCS_CONS_PRINTF("Exiting from the test now...\n");
+    printf("Exiting from the test now...\n");
 
     return NCSCC_RC_SUCCESS;
 }
@@ -235,7 +235,7 @@ static void lt_pat_node_del(LT_TEST_PAT_CB *cb, LT_PAT_ELEM *elem)
     /* Detach the node from tree */
     ncs_patricia_tree_del(&cb->tree, (NCS_PATRICIA_NODE *)&elem->node);
 
-    m_NCS_CONS_PRINTF("Node with Index:%x and Data:%x is deleted...\n", 
+    printf("Node with Index:%x and Data:%x is deleted...\n", 
     m_NCS_OS_NTOHL(elem->key.index), elem->data);
 
     /* If node has any alloc'ed memory, free it. */

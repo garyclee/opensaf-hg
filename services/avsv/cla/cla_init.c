@@ -158,7 +158,7 @@ uns32 cla_create (NCS_LIB_CREATE *create_info)
    m_CLA_LOG_CB(AVSV_LOG_CB_HDL_ASS_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
    /* get the process id */
-   cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   cb->prc_id = getpid();
 
    /* initialize the CLA cb lock */
    m_NCS_LOCK_INIT(&cb->lock);

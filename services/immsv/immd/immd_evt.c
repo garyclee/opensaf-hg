@@ -1803,7 +1803,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
             /* get the peer mds_red_up */
             /* from the phy slot get the mds_dest of remote IMMND */
             TRACE_5("Process MDS EVT NCSMDS_RED_UP, my PID:%u",
-                    m_NCS_OS_PROCESS_GET_ID());
+                    getpid());
             if (cb->node_id != mds_info->node_id)
             {
                 MDS_DEST tmpDest = 0LL;
@@ -1851,7 +1851,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
 
         case NCSMDS_UP:
             TRACE_5("PROCESS MDS EVT: NCSMDS_UP, my PID:%u",
-                    m_NCS_OS_PROCESS_GET_ID());
+                    getpid());
             if (mds_info->svc_id == NCSMDS_SVC_ID_IMMD)
             {
                 TRACE_5("unhandled UP case ? NCSMDS_UP for IMMD");
@@ -1926,7 +1926,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
 
         case NCSMDS_DOWN:
             TRACE_5("PROCESS MDS EVT: NCSMDS_DOWN, my PID:%u",
-                    m_NCS_OS_PROCESS_GET_ID());
+                    getpid());
             if (mds_info->svc_id == NCSMDS_SVC_ID_IMMD)
             {
                 TRACE_5("unhandled DOWN case ? NCSMDS_DOWN for IMMD");

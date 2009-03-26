@@ -28,6 +28,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #ifndef __AVM_DHCP_CONF_H__
 #define __AVM_DHCP_CONF_H__
 
@@ -234,17 +236,17 @@ struct slot_info
 
 
 /* Macro to create host entry name  for this entity path */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 #define m_AVM_CREATE_HOST_ENTRY(entity_path,dhcp_serv_conf) \
 { \
    int i; \
    char  str[50], *tmp_str; \
    tmp_str = str; \
-   tmp_str += sysf_sprintf(tmp_str,"dhcp_host_"); \
+   tmp_str += sprintf(tmp_str,"dhcp_host_"); \
    for (i = 0; i < AVM_HPI_ENT_HIR_LVL; i++)  \
-      tmp_str += sysf_sprintf(tmp_str,"%d_",entity_path->Entry[i].EntityInstance); \
-   sysf_sprintf(dhcp_serv_conf.host_name_bc1,"%sbc1",str); \
-   sysf_sprintf(dhcp_serv_conf.host_name_bc2,"%sbc2",str); \
+      tmp_str += sprintf(tmp_str,"%d_",entity_path->Entry[i].EntityInstance); \
+   sprintf(dhcp_serv_conf.host_name_bc1,"%sbc1",str); \
+   sprintf(dhcp_serv_conf.host_name_bc2,"%sbc2",str); \
 }
 #else
 #define m_AVM_CREATE_HOST_ENTRY(entity_path,dhcp_serv_conf) \
@@ -252,11 +254,11 @@ struct slot_info
    int i; \
    char  str[50], *tmp_str; \
    tmp_str = str; \
-   tmp_str += sysf_sprintf(tmp_str,"dhcp_host_"); \
+   tmp_str += sprintf(tmp_str,"dhcp_host_"); \
    for (i = 0; i < AVM_HPI_ENT_HIR_LVL; i++)  \
-      tmp_str += sysf_sprintf(tmp_str,"%d_",entity_path->Entry[i].EntityLocation); \
-   sysf_sprintf(dhcp_serv_conf.host_name_bc1,"%sbc1",str); \
-   sysf_sprintf(dhcp_serv_conf.host_name_bc2,"%sbc2",str); \
+      tmp_str += sprintf(tmp_str,"%d_",entity_path->Entry[i].EntityLocation); \
+   sprintf(dhcp_serv_conf.host_name_bc1,"%sbc1",str); \
+   sprintf(dhcp_serv_conf.host_name_bc2,"%sbc2",str); \
 }
 #endif
 
@@ -283,13 +285,13 @@ struct slot_info
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_INT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \
@@ -307,13 +309,13 @@ struct slot_info
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_OCT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sysf_sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \

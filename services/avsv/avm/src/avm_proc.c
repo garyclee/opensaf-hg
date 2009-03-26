@@ -139,7 +139,7 @@ extern uns32 avm_proc(void)
    }
 
    m_AVM_LOG_DEBUG("AVM Thread Exited", NCSFL_SEV_CRITICAL);
-   m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: AvM Functional Thread Exited");
+   syslog(LOG_CRIT,"NCS_AvSv: AvM Functional Thread Exited");
 
    return NCSCC_RC_SUCCESS;
 }

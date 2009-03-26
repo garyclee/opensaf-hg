@@ -146,7 +146,7 @@ void avnd_srm_callback(NCS_SRMSV_RSRC_CBK_INFO *rsrc_cbk_info)
    /* COMP_PM_REC */
    pm_rec = srm_req->pm_rec;
   
-   m_NCS_ASSERT(pm_rec);
+   assert(pm_rec);
 
    /* store the info */
    err.src = AVND_ERR_SRC_PM;

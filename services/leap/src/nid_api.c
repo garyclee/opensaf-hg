@@ -80,7 +80,7 @@ uns32 nid_notify(char *service, uns32 status, uns32 *error)
    ************************************************************/
    retry=3;
    while(retry){
-        if(m_NCS_POSIX_WRITE(fd,msg,strlen(msg)) == strlen(msg)) break;
+        if(write(fd,msg,strlen(msg)) == strlen(msg)) break;
         else retry--;
    }
                                                                                                          
@@ -133,7 +133,7 @@ uns32 nis_notify(char *status, uns32 *error)
    ************************************************************/
    retry=3;
    while(retry){
-        if(m_NCS_POSIX_WRITE(fd,status,strlen(status)) == strlen(status)) break;
+        if(write(fd,status,strlen(status)) == strlen(status)) break;
         else retry--;
    }
                                                                                                          

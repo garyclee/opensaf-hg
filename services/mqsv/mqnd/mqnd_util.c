@@ -313,7 +313,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
     if(!is_q_reopen)
     {
      #ifdef NCS_MQND
-      m_NCS_CONS_PRINTF("QUEUE OPEN TIMEOUT :DEREG  \n"); 
+      printf("QUEUE OPEN TIMEOUT :DEREG  \n"); 
      #endif
      opr.info.msg.req.msgtype = ASAPi_MSG_DEREG;
      opr.info.msg.req.info.dereg.objtype = ASAPi_OBJ_QUEUE;
@@ -329,7 +329,7 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
     else
     {
      #ifdef NCS_MQND
-      m_NCS_CONS_PRINTF("QUEUE REOPEN TIMEOUT :REG TO ORPHAN\n"); 
+      printf("QUEUE REOPEN TIMEOUT :REG TO ORPHAN\n"); 
      #endif
      opr.info.msg.req.msgtype = ASAPi_MSG_REG;
      opr.info.msg.req.info.reg.objtype = ASAPi_OBJ_QUEUE;

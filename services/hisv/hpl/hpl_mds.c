@@ -82,7 +82,7 @@ static uns32 hpl_mds_callback(struct ncsmds_callback_info *info)
       return (*cb_set[info->i_op])(info);
    else
    {
-      m_NCS_CONS_PRINTF("hpl_mds_callback: info->i_op is beyond MDS_CALLBACK_SVC_MAX\n");
+      printf("hpl_mds_callback: info->i_op is beyond MDS_CALLBACK_SVC_MAX\n");
       return NCSCC_RC_FAILURE;
    }
 }
@@ -585,7 +585,7 @@ static uns32 hpl_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
 
    /* Retrieve the HPL_CB hdl */
    hpl_mds_hdl = (uns32) mds_cb_info->i_yr_svc_hdl;
-   m_NCS_CONS_PRINTF("HPL Rcvd MDS subscribe evt from HAM\n");
+   printf("HPL Rcvd MDS subscribe evt from HAM\n");
    m_LOG_HISV_DEBUG("HPL Rcvd MDS subscribe evt from HAM\n");
                      /* mds_cb_info->info.svc_evt.i_svc_id; */
 
@@ -645,7 +645,7 @@ static uns32 hpl_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
 
 static uns32 hpl_mds_sys_event (struct ncsmds_callback_info *mds_cb_info)
 {
-   m_NCS_CONS_PRINTF("hpl_mds_sys_event\n");
+   printf("hpl_mds_sys_event\n");
    return NCSCC_RC_SUCCESS;
 }
 
@@ -664,7 +664,7 @@ static uns32 hpl_mds_sys_event (struct ncsmds_callback_info *mds_cb_info)
 
 static uns32 hpl_mds_quiesced_event (struct ncsmds_callback_info *mds_cb_info)
 {
-   m_NCS_CONS_PRINTF("hpl_mds_quiesced_event\n");
+   printf("hpl_mds_quiesced_event\n");
    return NCSCC_RC_SUCCESS;
 }
 
@@ -683,7 +683,7 @@ static uns32 hpl_mds_quiesced_event (struct ncsmds_callback_info *mds_cb_info)
 
 static uns32 hpl_mds_cb_rcv_direct (struct ncsmds_callback_info *mds_cb_info)
 {
-   m_NCS_CONS_PRINTF("hpl_mds_cb_rcv_direct\n");
+   printf("hpl_mds_cb_rcv_direct\n");
    return NCSCC_RC_SUCCESS;
 }
 

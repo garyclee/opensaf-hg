@@ -305,7 +305,7 @@ static uns32 cpa_mds_enc_flat(CPA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
    {
      /* Drop The Message */
      m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"mds_enc_flat", __FILE__ ,__LINE__,rc);
-     m_NCS_CONS_PRINTF("INCOMPATIBLE  MSG FORMAT IN ENCODE FLAT VER %d SVC_ID %d \n", info->i_rem_svc_pvt_ver,info->i_to_svc_id);
+     printf("INCOMPATIBLE  MSG FORMAT IN ENCODE FLAT VER %d SVC_ID %d \n", info->i_rem_svc_pvt_ver,info->i_to_svc_id);
      return NCSCC_RC_FAILURE;
    }
 }
@@ -370,7 +370,7 @@ static uns32 cpa_mds_dec_flat(CPA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
    else
    {
          m_LOG_CPA_CCLL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,"mds_dec_flat", __FILE__ ,__LINE__,rc);
-         m_NCS_CONS_PRINTF("INVALID MSG FORMAT VERSION IN DECODE FLAT,VER %d  SVC_ID  %d \n",info->i_msg_fmt_ver,info->i_fr_svc_id );
+         printf("INVALID MSG FORMAT VERSION IN DECODE FLAT,VER %d  SVC_ID  %d \n",info->i_msg_fmt_ver,info->i_fr_svc_id );
          return NCSCC_RC_FAILURE;
    }   
 }
@@ -545,7 +545,7 @@ static uns32 cpa_mds_enc(CPA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
    {
        /* Drop The Message As Msg Fmt Version Not understandable */
        m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,"mds_enc", __FILE__ ,__LINE__);
-       m_NCS_CONS_PRINTF("INCOMPATIBLE  MSG FORMAT IN ENCODE FULL VER %d SVC_ID %d \n", enc_info->i_rem_svc_pvt_ver,enc_info->i_to_svc_id);
+       printf("INCOMPATIBLE  MSG FORMAT IN ENCODE FULL VER %d SVC_ID %d \n", enc_info->i_rem_svc_pvt_ver,enc_info->i_to_svc_id);
        return NCSCC_RC_FAILURE;
    }
 }
@@ -622,7 +622,7 @@ static uns32 cpa_mds_dec(CPA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
   else
   {
      m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,"mds_dec", __FILE__ ,__LINE__);
-     m_NCS_CONS_PRINTF("INVALID MSG FORMAT VERSION IN DECODE FULL, VER %d  SVC_ID  %d \n",dec_info->i_msg_fmt_ver,dec_info->i_fr_svc_id );
+     printf("INVALID MSG FORMAT VERSION IN DECODE FULL, VER %d  SVC_ID  %d \n",dec_info->i_msg_fmt_ver,dec_info->i_fr_svc_id );
      return NCSCC_RC_FAILURE;
   }   
 }

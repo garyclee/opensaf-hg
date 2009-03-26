@@ -29,6 +29,7 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
 
 #include "hcd.h"
 #include "hcd_amf.h"
@@ -121,7 +122,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    HAM_CB *ham_cb;
    HCD_CB    *hcd_cb;
    uns32 rc = NCSCC_RC_FAILURE; 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    uns32 retry;
    SaHpiVersionT      version;
 #endif
@@ -191,7 +192,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    }
    m_LOG_HISV_DTS_CONS("hisv_hcd_init: Starting HPI Chassis Director...\n");
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    retry = 0;
    /* first step in openhpi */
    m_LOG_HISV_DTS_CONS("hisv_hcd_init: HPI Initialization...\n");
@@ -202,7 +203,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       if ((SA_OK != err) && (err != SA_ERR_HPI_DUPLICATE))
       {
          m_LOG_HISV_DEBUG("hisv_hcd_init: saHpiInitialize Failed - May need to do E-Keying\n");
-         m_NCS_CONS_PRINTF("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
+         printf("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
          m_LOG_HISV_DTS_CONS("hisv_hcd_init: Re-Trying...\n");
          saHpiFinalize();
          continue;
@@ -214,7 +215,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
    if (retry >= HPI_INIT_MAX_RETRY)
    {
       m_LOG_HISV_DEBUG("hisv_hcd_init: saHpiInitialize Failed - May need to do E-Keying\n");
-      m_NCS_CONS_PRINTF("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
+      printf("hisv_hcd_init: saHpiInitialize Error %d: May need to do E-keying of interface to shelf manager\n", err);
       m_LOG_HISV_DTS_CONS("hsm_rediscover: This is expected if standby SCXB does not have connectivity to shelf manager\n");
       dom_args->session_valid = 0;
       dom_args->rediscover = 1;
@@ -226,7 +227,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
 #endif
       /* Every domain requires a new session */
       m_LOG_HISV_DTS_CONS("hisv_hcd_init: Opening HPI Session...\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       err = saHpiSessionOpen(SAHPI_DEFAULT_DOMAIN_ID, &session_id, NULL);
 #else
       err = saHpiSessionOpen(SAHPI_UNSPECIFIED_DOMAIN_ID, &session_id, NULL);
@@ -242,7 +243,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       else
       {
          /* store the HPI session information */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          dom_args->domain_id = SAHPI_DEFAULT_DOMAIN_ID;
 #else
          dom_args->domain_id = SAHPI_UNSPECIFIED_DOMAIN_ID;
@@ -267,7 +268,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
 
          m_LOG_HISV_DTS_CONS("hisv_hcd_init: Initializing HSM...\n");
       }
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    }
 #endif
    /* initialize the HSM control block */
@@ -277,7 +278,7 @@ uns32 hisv_hcd_init(NCS_LIB_REQ_INFO *req_info)
       /* finalize HPI session */
       saHpiSessionClose(session_id);
       /* finalize the HPI session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       saHpiFinalize();
 #endif
       return NCSCC_RC_FAILURE;

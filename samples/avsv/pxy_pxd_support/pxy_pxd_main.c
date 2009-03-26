@@ -47,9 +47,9 @@ int main(int argc, char **argv)
    /* Initialize the environment */
    ncs_agents_startup(argc, argv);
    
-   m_NCS_CONS_PRINTF("\n\n ############################################## \n");
-   m_NCS_CONS_PRINTF(" #   Proxy for Internode and External Component!!! #\n");
-   m_NCS_CONS_PRINTF(" ############################################## \n");
+   printf("\n\n ############################################## \n");
+   printf(" #   Proxy for Internode and External Component!!! #\n");
+   printf(" ############################################## \n");
 
    /* Start the AMF thread */ 
    pxy_pxd_amf_init();

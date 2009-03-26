@@ -186,9 +186,9 @@ uns32 ncshm_init(void)
   if(gl_im_created > 1)
     return NCSCC_RC_SUCCESS;
 
-  m_NCS_ASSERT(sizeof(HM_FREE) == sizeof(HM_CELL)); /* must be same size */
+  assert(sizeof(HM_FREE) == sizeof(HM_CELL)); /* must be same size */
 
-  m_NCS_ASSERT(sizeof(uns32) == sizeof(HM_HDL));    /* must be same size */
+  assert(sizeof(uns32) == sizeof(HM_HDL));    /* must be same size */
 
   ha.idx1   = 1;                     /* make up a fake handle with values */
   ha.idx2   = 2;
@@ -203,7 +203,7 @@ uns32 ncshm_init(void)
 
   /* are all the bitfields still in tact?? ..............................*/
 
-  m_NCS_ASSERT(((ha.idx1==hb.idx1)&&(ha.idx2  ==hb.idx2)&&
+  assert(((ha.idx1==hb.idx1)&&(ha.idx2  ==hb.idx2)&&
                (ha.idx3==hb.idx3)&&(ha.seq_id==hb.seq_id)));
 
   /* Done with basic tests; now we move on to normal initialization      */
@@ -285,7 +285,7 @@ uns32 ncshm_create_hdl(uns8 pool, NCS_SERVICE_ID id, NCSCONTEXT save)
   if ((free = hm_alloc_cell(pool)) != NULL)
     {
     cell   = hm_find_cell(&free->hdl);          /* These two lines are sanity */
-    m_NCS_ASSERT(((void*)free == (void*)cell));/* checks that add no value   */
+    assert(((void*)free == (void*)cell));/* checks that add no value   */
 
     ret           = (*(uns32*)&free->hdl);
     cell->data    = save;         /* store user stuff and internal state */
@@ -329,7 +329,7 @@ uns32 ncshm_declare_hdl(uns32  uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
   if ((free = hm_target_cell(hdl)) != NULL)     /* must have THIS cell */
     {
     cell   = hm_find_cell(hdl);                 /* These two lines are sanity */
-    m_NCS_ASSERT(((void*)free == (void*)cell));/* checks that add no value   */
+    assert(((void*)free == (void*)cell));/* checks that add no value   */
 
     cell->data    = save;         /* store user stuff and internal state */
     cell->use_ct  = 1;

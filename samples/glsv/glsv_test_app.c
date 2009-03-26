@@ -55,10 +55,10 @@ static void App1_ResourceOpenCallbackT(SaInvocationT invocation,
    if(error == SA_AIS_OK)
    {
       *my_res_id = resourceId;
-      m_NCS_CONS_PRINTF(" App1- resource Open Callback Success - resid %llu \n",resourceId);
+      printf(" App1- resource Open Callback Success - resid %llu \n",resourceId);
    }
    else
-      m_NCS_CONS_PRINTF(" App1- resource Open Callback Failed - Error - %d\n",error); 
+      printf(" App1- resource Open Callback Failed - Error - %d\n",error); 
 
 }
 
@@ -70,10 +70,10 @@ static void App1_LockGrantCallbackT(SaInvocationT invocation,
    SaLckLockIdT   *lock_id = (SaLckLockIdT*)((long)invocation);
    if(error == SA_AIS_OK && lockStatus == SA_LCK_LOCK_GRANTED)
    {
-      m_NCS_CONS_PRINTF(" App1- Lock Grant Callback Success - lockid %p\n",lock_id);
+      printf(" App1- Lock Grant Callback Success - lockid %p\n",lock_id);
    }
    else
-      m_NCS_CONS_PRINTF(" App1- Lock Grant Callback  Failed - status %d, error %d \n",
+      printf(" App1- Lock Grant Callback  Failed - status %d, error %d \n",
       lockStatus, error);
 }
 
@@ -82,16 +82,16 @@ static void App1_LockWaiterCallbackT(SaLckWaiterSignalT invocation,
                                      SaLckLockModeT modeHeld,
                                      SaLckLockModeT modeRequested)
 {
-   m_NCS_CONS_PRINTF(" App1- Lock Waiter Callback - lockid %llu ",lockId);
+   printf(" App1- Lock Waiter Callback - lockid %llu ",lockId);
    if(modeHeld == SA_LCK_PR_LOCK_MODE)
-      m_NCS_CONS_PRINTF(" ModeHeld - Shared");
+      printf(" ModeHeld - Shared");
    else
-      m_NCS_CONS_PRINTF(" ModeHeld - Write");
+      printf(" ModeHeld - Write");
    
    if(modeRequested == SA_LCK_PR_LOCK_MODE)
-      m_NCS_CONS_PRINTF(" ModeRequested - Shared");
+      printf(" ModeRequested - Shared");
    else
-      m_NCS_CONS_PRINTF(" ModeRequested - Write");
+      printf(" ModeRequested - Write");
    
 }
 
@@ -99,9 +99,9 @@ static void App1_ResourceUnlockCallbackT(SaInvocationT invocation,
                                          SaAisErrorT error)
 {
    if(error == SA_AIS_OK)
-      m_NCS_CONS_PRINTF(" App1- UnLock Callback Success ");
+      printf(" App1- UnLock Callback Success ");
    else
-      m_NCS_CONS_PRINTF(" App1- UnLock Callback Failed ");
+      printf(" App1- UnLock Callback Failed ");
    
 }
 
@@ -145,57 +145,57 @@ void glsv_test_sync_app1_process(NCSCONTEXT info)
    res_name.length = 7;
    memcpy(res_name.value,"sample",7);
 
-   m_NCS_CONS_PRINTF("Lock Initialising being called ....\t");
+   printf("Lock Initialising being called ....\t");
    rc = saLckInitialize(&hdl1,&callbk,&version);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED \n");
+      printf("PASSED \n");
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
 
-   m_NCS_CONS_PRINTF("Lock selection object get  being called ....");
+   printf("Lock selection object get  being called ....");
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED \n");
+      printf("PASSED \n");
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
    
-   m_NCS_CONS_PRINTF("Resource Open  being called ....");
+   printf("Resource Open  being called ....");
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED res_id = %lu\n",res_id);
+      printf("PASSED res_id = %lu\n",res_id);
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
 
-   m_NCS_CONS_PRINTF("Resource Lock for Exclusive lock being called ....");
+   printf("Resource Lock for Exclusive lock being called ....");
    rc = saLckResourceLock(res_id,&lockid,2,0,0,10000000000ll,&status);
    if(rc == SA_AIS_OK && status == SA_LCK_LOCK_GRANTED)
-      m_NCS_CONS_PRINTF("PASSED lock_id = %lu\n",lockid);
+      printf("PASSED lock_id = %lu\n",lockid);
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
    
-   m_NCS_CONS_PRINTF("Waiting for 5 seconds....\n");
+   printf("Waiting for 5 seconds....\n");
    m_NCS_TASK_SLEEP(5000);
 
-   m_NCS_CONS_PRINTF("Resource unlock being called ....");
+   printf("Resource unlock being called ....");
    rc = saLckResourceUnlock(lockid,10000000000ll);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED \n");
+      printf("PASSED \n");
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
    
-   m_NCS_CONS_PRINTF("resource close being called ....");
+   printf("resource close being called ....");
    rc = saLckResourceClose(res_id);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED \n");
+      printf("PASSED \n");
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
    
-   m_NCS_CONS_PRINTF("Lock Finalize being called ....");
+   printf("Lock Finalize being called ....");
    rc = saLckFinalize(hdl1);
    if(rc == SA_AIS_OK)
-      m_NCS_CONS_PRINTF("PASSED \n");
+      printf("PASSED \n");
    else
-      m_NCS_CONS_PRINTF("Failed \n");
+      printf("Failed \n");
 
    m_NCS_TASK_SLEEP(2000);
 }
@@ -246,103 +246,103 @@ void glsv_test_neagtive_handle_process(NCSCONTEXT info)
    res_name.length = 7;
    memcpy(res_name.value,"Ripple",7);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Initialization with a wrong inputs \n");
+   printf("\nCalling  Lock Initialization with a wrong inputs \n");
    rc = saLckInitialize(NULL,NULL,NULL);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Initialization with a wrong Version \n");
+   printf("\nCalling  Lock Initialization with a wrong Version \n");
    rc = saLckInitialize(&hdl1,&callbk,&wrong_version);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Initialization with a Correct Version \n");
+   printf("\nCalling  Lock Initialization with a Correct Version \n");
    rc = saLckInitialize(&hdl1,&callbk,&version);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
    
-   m_NCS_CONS_PRINTF("\nCalling  Lock Selection with a wrong handle \n");
+   printf("\nCalling  Lock Selection with a wrong handle \n");
    rc = saLckSelectionObjectGet(hdl1+1, &obj1);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Selection with a wrong input \n");
+   printf("\nCalling  Lock Selection with a wrong input \n");
    rc = saLckSelectionObjectGet(hdl1, NULL);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Selection with a correct handle \n");
+   printf("\nCalling  Lock Selection with a correct handle \n");
    rc = saLckSelectionObjectGet(hdl1, &obj1);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource open with a wrong name \n");
+   printf("\nCalling  Lock Resource open with a wrong name \n");
    rc = saLckResourceOpen(hdl1,NULL,SA_LCK_RESOURCE_CREATE,10000000000ll,NULL);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource open with a wrong handle \n");
+   printf("\nCalling  Lock Resource open with a wrong handle \n");
    rc = saLckResourceOpen(hdl1+1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Async open with a wrong handle \n");
+   printf("\nCalling  Lock Resource Async open with a wrong handle \n");
    rc = saLckResourceOpenAsync(hdl1+1,100,&res_name,SA_LCK_RESOURCE_CREATE);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Async open with a wrong name \n");
+   printf("\nCalling  Lock Resource Async open with a wrong name \n");
    rc = saLckResourceOpenAsync(hdl1,100,NULL,SA_LCK_RESOURCE_CREATE);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource open with Zero Timeout \n");
+   printf("\nCalling  Lock Resource open with Zero Timeout \n");
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,0,&res_id);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource open with Correct handle \n");
+   printf("\nCalling  Lock Resource open with Correct handle \n");
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Async open with InCorrect handle \n");
+   printf("\nCalling  Lock Resource Async open with InCorrect handle \n");
    rc = saLckResourceLockAsync(res_id+1,100,&lockid,0,0,0);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Lock with NULL params \n");
+   printf("\nCalling  Lock Resource Lock with NULL params \n");
    rc = saLckResourceLock(res_id,NULL,4,0,0,10000000000ll,NULL);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Lock with Incorrect lockmode \n");
+   printf("\nCalling  Lock Resource Lock with Incorrect lockmode \n");
    rc = saLckResourceLock(res_id,&lockid,4,0,0,10000000000ll,&status);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Async open with InCorrect lockmode \n");
+   printf("\nCalling  Lock Resource Async open with InCorrect lockmode \n");
    rc = saLckResourceLockAsync(res_id,100,&lockid,4,0,0);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Lock with Incorrect LockFlags \n");
+   printf("\nCalling  Lock Resource Lock with Incorrect LockFlags \n");
    rc = saLckResourceLock(res_id,&lockid,2,10,0,10000000000ll,&status);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Async open with InCorrect LockFlags \n");
+   printf("\nCalling  Lock Resource Async open with InCorrect LockFlags \n");
    rc = saLckResourceLockAsync(res_id,100,&lockid,0,10,0);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource Lock with correct parameters \n");
+   printf("\nCalling  Lock Resource Lock with correct parameters \n");
    rc = saLckResourceLock(res_id,&lockid,2,0,0,10000000000ll,&status);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource UnLock with Incorrect handle \n");
+   printf("\nCalling  Lock Resource UnLock with Incorrect handle \n");
    rc = saLckResourceUnlock(lockid+1,10000000000ll);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource UnLock with Incorrect handle \n");
+   printf("\nCalling  Lock Resource UnLock with Incorrect handle \n");
    rc = saLckResourceUnlockAsync(100,lockid);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Resource UnLock with correct handle \n");
+   printf("\nCalling  Lock Resource UnLock with correct handle \n");
    rc = saLckResourceUnlock(lockid,10000000000ll);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Finalize with a wrong handle \n");
+   printf("\nCalling  Lock Finalize with a wrong handle \n");
    rc = saLckFinalize(hdl1+1);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Lock Finalize with a correct handle \n");
+   printf("\nCalling  Lock Finalize with a correct handle \n");
    rc = saLckFinalize(hdl1);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("sorry Negative Handle App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Negative Handle App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -388,25 +388,25 @@ void glsv_test_neagtive_resource_handle_process(NCSCONTEXT info)
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    
-   m_NCS_CONS_PRINTF("\nCalling  Resource Lock with a wrong resource handle \n");
+   printf("\nCalling  Resource Lock with a wrong resource handle \n");
    rc = saLckResourceLock(res_id+1,&lockid,2,0,0,10000000000ll,&status);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Resource Lock with a correct resource handle \n");
+   printf("\nCalling  Resource Lock with a correct resource handle \n");
    rc = saLckResourceLock(res_id,&lockid,2,0,0,10000000000ll,&status);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Resource Close with a wrong resource handle \n");
+   printf("\nCalling  Resource Close with a wrong resource handle \n");
    rc = saLckResourceClose(res_id+1);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
-   m_NCS_CONS_PRINTF("\nCalling  Resource Close with a correct resource handle \n");
+   printf("\nCalling  Resource Close with a correct resource handle \n");
    rc = saLckResourceClose(res_id);
-   m_NCS_CONS_PRINTF("Status - %d\n",rc);
+   printf("Status - %d\n",rc);
 
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Negative Resource handle App is quiting !\n");
+   printf("sorry Negative Resource handle App is quiting !\n");
 }
 
 
@@ -500,7 +500,7 @@ void glsv_test_sync_app1_pre_purge_process(NCSCONTEXT info)
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -547,7 +547,7 @@ void glsv_test_sync_app1_post_purge_process(NCSCONTEXT info)
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -592,7 +592,7 @@ void glsv_test_sync_app_res_timeout_process(NCSCONTEXT info)
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,1000000,&res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Sync resource timeout App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Sync resource timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 
@@ -642,7 +642,7 @@ void glsv_test_sync_app_lock_timeout_non_master_process(NCSCONTEXT info)
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 /****************************************************************************
@@ -688,13 +688,13 @@ void glsv_test_sync_app_lock_timeout_master_process(NCSCONTEXT info)
    rc = saLckSelectionObjectGet(hdl1, &obj1);
    rc = saLckResourceOpen(hdl1,&res_name,SA_LCK_RESOURCE_CREATE,10000000000ll,&res_id);
    rc = saLckResourceLock(res_id,&lockid,2,0x0,0,1000000,&status);
-   m_NCS_CONS_PRINTF("\n Calling the same lock again with a timeout to test the tmr failure \n");
+   printf("\n Calling the same lock again with a timeout to test the tmr failure \n");
    rc = saLckResourceLock(res_id,&lockid,2,0,0,1000000,&status);
    rc = saLckResourceUnlock(lockid,10000000000ll);
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry lock timeout App is quiting bc of mail box problem pls destroy it\n");
 }
 
 
@@ -746,7 +746,7 @@ void glsv_test_sync_app_unlock_timeout_process(NCSCONTEXT info)
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 
@@ -798,7 +798,7 @@ void glsv_test_sync_master_change_process(NCSCONTEXT info)
    rc = saLckResourceClose(res_id);
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 
 
@@ -893,6 +893,6 @@ void glsv_test_sync_big_app1_process(NCSCONTEXT info)
 
    rc = saLckFinalize(hdl1);
 
-   m_NCS_CONS_PRINTF("sorry BIG Sync App is quiting bc of mail box problem pls destroy it\n");
+   printf("sorry BIG Sync App is quiting bc of mail box problem pls destroy it\n");
 }
 

@@ -34,6 +34,8 @@
 ******************************************************************************
 */
 
+#include <config.h>
+
 #include "avm.h"
 
 
@@ -54,7 +56,7 @@ avm_octet_string_2_entity_path(
    for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++ )
    {
       entity_path->Entry[i].EntityType    = 0;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       entity_path->Entry[i].EntityInstance = 0; 
 #else
       entity_path->Entry[i].EntityLocation = 0; 
@@ -110,7 +112,7 @@ avm_octet_string_2_entity_path(
       }
       if(entity_instance)
       {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          entity_path->Entry[count++].EntityInstance = entity_instance;
 #else
          entity_path->Entry[count++].EntityLocation = entity_instance;
@@ -501,7 +503,7 @@ ncsavmentdeploytableentry_set(
             ent_info->dhcp_serv_conf.net_boot = 
                arg->req.info.set_req.i_param_val.info.i_int;
 
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntNetBoot_ID played back to: %d ",ent_info->ep_str.name,
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntNetBoot_ID played back to: %d ",ent_info->ep_str.name,
                                                                                             ent_info->dhcp_serv_conf.net_boot);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);  
 
@@ -590,14 +592,14 @@ ncsavmentdeploytableentry_set(
             }
             else
             {
-               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : ncsAvmEntDHCPConfPrefLabel_ID playback failed.. not matching to any label",
+               sprintf(logbuf, "AVM-SSU: Payload blade %s : ncsAvmEntDHCPConfPrefLabel_ID playback failed.. not matching to any label",
                                                      ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
                return NCSCC_RC_FAILURE;
             } 
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.pref_label,
                            arg->req.info.set_req.i_param_val);
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfPrefLabel_ID played back to: %s ",ent_info->ep_str.name,
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfPrefLabel_ID played back to: %s ",ent_info->ep_str.name,
                                                                                        ent_info->dhcp_serv_conf.pref_label.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
             /* Check point it */
@@ -624,7 +626,7 @@ ncsavmentdeploytableentry_set(
             }
             else
             {
-               sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : pss_curr_label:%s not matching to any label",
+               sprintf(logbuf, "AVM-SSU: Payload blade %s : pss_curr_label:%s not matching to any label",
                                                      ent_info->ep_str.name,ent_info->dhcp_serv_conf.pss_curr_label.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
             }
@@ -639,7 +641,7 @@ ncsavmentdeploytableentry_set(
          {
             ckpt_dhstate = TRUE;
             ckpt_dhconf = TRUE;
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : ncsAvmEntDHCPConfPrefLabel SET to: %s",
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : ncsAvmEntDHCPConfPrefLabel SET to: %s",
                                                      ent_info->ep_str.name,ent_info->dhcp_serv_conf.pref_label.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          }
@@ -654,7 +656,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label1.name,
                         arg->req.info.set_req.i_param_val);
 
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Name playedback to: %s ",
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Name playedback to: %s ",
                                   ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -699,7 +701,7 @@ ncsavmentdeploytableentry_set(
                         arg->req.info.set_req.i_param_val);
 
          ckpt_dhconf = TRUE;
-         sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Name SET to %s",
+         sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Name SET to %s",
                                ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -721,7 +723,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label1.file_name,
                         arg->req.info.set_req.i_param_val);
             
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel1 played back to: %s ",
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel1 played back to: %s ",
                                  ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.file_name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -752,7 +754,7 @@ ncsavmentdeploytableentry_set(
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label1.file_name,
             arg->req.info.set_req.i_param_val);
          ckpt_dhconf = TRUE;
-         sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel1 SET to %s",
+         sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel1 SET to %s",
                               ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.file_name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -777,7 +779,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.name,
                         arg->req.info.set_req.i_param_val);
 
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Name played back to: %s ",
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Name played back to: %s ",
                               ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -822,7 +824,7 @@ ncsavmentdeploytableentry_set(
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.name,
             arg->req.info.set_req.i_param_val);
          ckpt_dhconf = TRUE;
-         sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Name SET to %s",
+         sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Name SET to %s",
                               ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -844,7 +846,7 @@ ncsavmentdeploytableentry_set(
             m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.file_name,
                         arg->req.info.set_req.i_param_val);
 
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel2 played back to: %s ",
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel2 played back to: %s ",
                                  ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.file_name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -877,7 +879,7 @@ ncsavmentdeploytableentry_set(
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.label2.file_name,
             arg->req.info.set_req.i_param_val);
          ckpt_dhconf = TRUE;
-         sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel2 SET to %s",
+         sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfFileNameLabel2 SET to %s",
                               ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.file_name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -898,7 +900,7 @@ ncsavmentdeploytableentry_set(
          if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
          {
             ent_info->dhcp_serv_conf.label1.status = arg->req.info.set_req.i_param_val.info.i_int;
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Status_ID played back to: %d ",ent_info->ep_str.name,
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1Status_ID played back to: %d ",ent_info->ep_str.name,
                                                           ent_info->dhcp_serv_conf.label1.status);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
 
@@ -912,7 +914,7 @@ ncsavmentdeploytableentry_set(
          if ( arg->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME )
          {
             ent_info->dhcp_serv_conf.label2.status = arg->req.info.set_req.i_param_val.info.i_int;
-            sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Status_ID played back to: %d ",ent_info->ep_str.name,
+            sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2Status_ID played back to: %d ",ent_info->ep_str.name,
                                                             ent_info->dhcp_serv_conf.label2.status);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);  
 
@@ -943,7 +945,7 @@ ncsavmentdeploytableentry_set(
            memcpy(ent_info->dhcp_serv_conf.label1.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
                                                                      ent_info->dhcp_serv_conf.label1.sw_version.length);
 
-           sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1SwVersion_ID played back to: %s ",ent_info->ep_str.name,
+           sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel1SwVersion_ID played back to: %s ",ent_info->ep_str.name,
                                                             ent_info->dhcp_serv_conf.label1.sw_version.name);
            m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
  
@@ -975,7 +977,7 @@ ncsavmentdeploytableentry_set(
            memcpy(ent_info->dhcp_serv_conf.label2.sw_version.name,arg->req.info.set_req.i_param_val.info.i_oct,
                                                                      ent_info->dhcp_serv_conf.label2.sw_version.length);
 
-           sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2SwVersion_ID played back to: %s ",ent_info->ep_str.name,
+           sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntDHCPConfLabel2SwVersion_ID played back to: %s ",ent_info->ep_str.name,
                                                             ent_info->dhcp_serv_conf.label2.sw_version.name);
            m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
 
@@ -1771,7 +1773,7 @@ ncsavmentupgradetableentry_set(
          m_AVM_SET_NAME(ent_info->dhcp_serv_conf.ipmc_helper_node,
             arg->req.info.set_req.i_param_val);
 
-         sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntHelperPayload_ID SET to %s",
+         sprintf(logbuf,"AVM-SSU: Payload blade %s: ncsAvmEntHelperPayload_ID SET to %s",
                               ent_info->ep_str.name,ent_info->dhcp_serv_conf.ipmc_helper_node.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
@@ -1829,7 +1831,7 @@ ncsavmentupgradetableentry_set(
 
                ent_info->dhcp_serv_conf.default_chg = FALSE;
                ckpt_dhstate = TRUE;
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
+               sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label1.name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
 
                /* Reset the IPMC upgrade flags */
@@ -1844,7 +1846,7 @@ ncsavmentupgradetableentry_set(
 
                ent_info->dhcp_serv_conf.default_chg = FALSE;
                ckpt_dhstate = TRUE;
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
+               sprintf(logbuf,"AVM-SSU: Payload blade %s: %s's state SSU_COMMITTED",ent_info->ep_str.name,ent_info->dhcp_serv_conf.label2.name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE); 
  
                /* Reset the IPMC upgrade flags */
@@ -1853,7 +1855,7 @@ ncsavmentupgradetableentry_set(
             }
             else
             {
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: Can't COMMIT the LABEL, it is not in COMMIT_PENDING State",ent_info->ep_str.name);
+               sprintf(logbuf,"AVM-SSU: Payload blade %s: Can't COMMIT the LABEL, it is not in COMMIT_PENDING State",ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
                goto failure;
             }
@@ -1881,13 +1883,13 @@ ncsavmentupgradetableentry_set(
             if ((ent_info->dhcp_serv_conf.ipmc_upgd_state != 0) || (ent_info->dhcp_serv_conf.upgd_prgs == TRUE))
             {
                 /* Upgrade is already in progress */
-                sysf_sprintf(logbuf, "AVM-SSU: Payload %s: Upgrade is already in progress. Upgrade not allowed", ent_info->ep_str.name);
+                sprintf(logbuf, "AVM-SSU: Payload %s: Upgrade is already in progress. Upgrade not allowed", ent_info->ep_str.name);
                 m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                 goto failure;
             }
             if (ent_info->dhcp_serv_conf.curr_act_label == NULL)
             {
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: No current active label. Upgrade not allowed",ent_info->ep_str.name);
+               sprintf(logbuf,"AVM-SSU: Payload blade %s: No current active label. Upgrade not allowed",ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                goto failure;
             }
@@ -1916,7 +1918,7 @@ ncsavmentupgradetableentry_set(
                rc =  avm_upgrade_ipmc_trigger(avm_cb,ent_info);
                if (rc == NCSCC_RC_FAILURE)
                {
-                  sysf_sprintf(logbuf, "AVM-SSU: Payload %s: IPMC upgrade trigger failed", ent_info->ep_str.name);
+                  sprintf(logbuf, "AVM-SSU: Payload %s: IPMC upgrade trigger failed", ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -1937,7 +1939,7 @@ ncsavmentupgradetableentry_set(
                                   ent_info->dhcp_serv_conf.curr_act_label->name.name,
                                   ent_info->dhcp_serv_conf.pref_label.length)))
                {
-                  sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: Preferred label is the current active label. No Upgrade",ent_info->ep_str.name);
+                  sprintf(logbuf,"AVM-SSU: Payload blade %s: Preferred label is the current active label. No Upgrade",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                }
                else if ((ent_info->dhcp_serv_conf.pref_label.length == ent_info->dhcp_serv_conf.curr_act_label->other_label->name.length)
@@ -1955,7 +1957,7 @@ ncsavmentupgradetableentry_set(
  
                   if (rc == NCSCC_RC_FAILURE)
                   {
-                     sysf_sprintf(logbuf, "AVM-SSU: Payload %s: INTEG upgrade trigger failed", ent_info->ep_str.name);
+                     sprintf(logbuf, "AVM-SSU: Payload %s: INTEG upgrade trigger failed", ent_info->ep_str.name);
                      m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
 
                      ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -1998,14 +2000,14 @@ ncsavmentupgradetableentry_set(
                }
                else
                {
-                  sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: Not a valid Preferred label.",ent_info->ep_str.name);
+                  sprintf(logbuf,"AVM-SSU: Payload blade %s: Not a valid Preferred label.",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);
                   goto failure;
                }
             }  
             else
             {
-               sysf_sprintf(logbuf,"AVM-SSU: Payload blade %s: Invalid Operation",ent_info->ep_str.name);
+               sprintf(logbuf,"AVM-SSU: Payload blade %s: Invalid Operation",ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_ERROR);  
                goto failure;
             }

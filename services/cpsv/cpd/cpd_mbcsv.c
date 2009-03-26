@@ -1143,7 +1143,7 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 
        case NCS_MBCSV_MSG_COLD_SYNC_REQ:
            cb->cold_or_warm_sync_on = TRUE;
-         m_NCS_CONS_PRINTF("Cold sync started\n"); 
+         printf("Cold sync started\n"); 
        break; 
 
        case NCS_MBCSV_MSG_COLD_SYNC_RESP:
@@ -1154,7 +1154,7 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
           {
               if (status == NCSCC_RC_SUCCESS){
               cb->cold_or_warm_sync_on=FALSE;
-            m_NCS_CONS_PRINTF("Cold sync completed\n");
+            printf("Cold sync completed\n");
           }
            
                  ncshm_give_hdl(cb->cpd_hdl);
@@ -1180,7 +1180,7 @@ uns32  cpd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
        {
            if (status == NCSCC_RC_SUCCESS){
             cb->cold_or_warm_sync_on = FALSE;
-          m_NCS_CONS_PRINTF("Warm sync completed\n"); 
+          printf("Warm sync completed\n"); 
          }
     }  
        break;

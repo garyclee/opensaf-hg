@@ -195,7 +195,7 @@ uns32 dts_amf_register(DTS_CB *inst)
    m_LOG_DTS_LOCK(DTS_LK_LOCKED,&inst->lock);
 
    /* Read the component name file now, AMF should have populated it by now */
-   m_NCS_OS_ASSERT(sprintf(compfilename, "%s", m_DTS_COMP_NAME_FILE) < sizeof(compfilename));
+   assert(sprintf(compfilename, "%s", m_DTS_COMP_NAME_FILE) < sizeof(compfilename));
 
    fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_dts_comp_name */
    if(fp == NULL)

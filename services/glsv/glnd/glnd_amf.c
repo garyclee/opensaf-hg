@@ -223,7 +223,7 @@ void glnd_amf_CSI_set_callback (SaInvocationT invocation,
    if(glnd_cb)
    {
       glnd_cb->ha_state = haState; /* Set the HA State */
-      m_NCS_CONS_PRINTF("\n glnd_amf_CSI_set_callback setting the state as %d\n",haState);
+      printf("\n glnd_amf_CSI_set_callback setting the state as %d\n",haState);
 
    }
 

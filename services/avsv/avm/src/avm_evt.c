@@ -535,9 +535,12 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
-   /* Start up the boot timer only if the target system architecture is ATCA */
-   if (strcmp(arch_type, "ATCA") == 0) {
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+
+   /* Start up the boot timer only if the target system architecture is not   */
+   /* HP_CCLASS and not HP_PROLIANT.                                          */
+   if ((strcmp(arch_type, "HP_CCLASS") != 0) &&
+       (strcmp(arch_type, "HP_PROLIANT") != 0)) {
       m_AVM_SSU_BOOT_TMR_START(avm_cb, ent_info);
    }
 
@@ -1115,8 +1118,11 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
 
    uns8 *cli_msg = "HISV returned error, so this entity could not be activated but has been unlocked in AVM db";
+   char *arch_type = NULL;
 
    m_AVM_LOG_GEN_EP_STR("Unlock issued in INACTIVE state for", ent_info->ep_str.name, NCSFL_SEV_INFO);
+   
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /*****************************************************************
        While IPMC upgrade is going on, this event is not supposed
@@ -1158,6 +1164,11 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    {
      ent_info->adm_lock     = AVM_ADM_UNLOCK;
      ent_info->adm_shutdown = FALSE;
+     if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+        /* HP PROLIANT does not post an INSERTION_PENDING EVENT - therefore, we      */
+        /* need to manually advance the state to active for this architecture type.  */
+        avm_inactive_active(avm_cb, ent_info, fsm_evt);
+     }
    }
 
    return rc;
@@ -1432,10 +1443,14 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    uns32 rc = NCSCC_RC_SUCCESS;
 
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be shutdown";
+   char *arch_type = NULL;
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_shutdown_req"); 
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if((AVM_ADM_LOCK != ent_info->adm_lock)  && (!ent_info->adm_shutdown))
    {
@@ -1454,6 +1469,22 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
       }else
       {
          ent_info->adm_shutdown = TRUE;
+         if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+            /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we      */
+            /* need to manually advance the state to inactive for this architecture type. */
+            /* Note: We cannot call avm_active_inactive() here because its operation      */
+            /* interferes with the HP PROLIANT server that is presently shutting down.    */
+            ent_info->adm_lock     = AVM_ADM_LOCK;
+            ent_info->adm_shutdown = FALSE;
+
+            /* Set child entity in inactive state */
+            for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+               if((AVM_ENT_INACTIVE < (child->ent_info->current_state)) && (AVM_ENT_INVALID >(child->ent_info->current_state)))
+                  avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
+            /* Inactive state for the parent one */
+            avm_assign_state(ent_info, AVM_ENT_INACTIVE);
+         }
       }
    }
 
@@ -1482,11 +1513,14 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
    AVM_EVT_T *evt = (AVM_EVT_T*)fsm_evt;
+   AVM_ENT_INFO_LIST_T   *child = AVM_ENT_INFO_LIST_NULL ;
 
    uns8 *cli_msg = "HISV returned error, so entity could not be locked";
+   char *arch_type = NULL;
 
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_lock"); 
 
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    if(ent_info->adm_shutdown)
    {
@@ -1510,6 +1544,20 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    }else
    {
       ent_info->adm_lock = AVM_ADM_LOCK;
+      if (strcmp(arch_type, "HP_PROLIANT") == 0) {
+         /* HP PROLIANT does not post an EXTRACTION_PENDING EVENT - therefore, we      */
+         /* need to manually advance the state to inactive for this architecture type. */
+         /* Note: We cannot call avm_active_inactive() here because its operation      */
+         /* interferes with the HP PROLIANT server that is presently shutting down.    */
+
+         /* Set child entity in inactive state */
+         for(child = ent_info->child; child != AVM_ENT_INFO_LIST_NULL; child = child->next)
+            if((AVM_ENT_INACTIVE < (child->ent_info->current_state)) && (AVM_ENT_INVALID >(child->ent_info->current_state)))
+               avm_assign_state(child->ent_info, AVM_ENT_INACTIVE);
+
+         /* Inactive state for the parent one */
+         avm_assign_state(ent_info, AVM_ENT_INACTIVE);
+      }
    }
 
    return rc;
@@ -3404,7 +3452,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
          if (NULL != ent_info->dhcp_serv_conf.curr_act_label->name.name)
          { 
             logbuf[0] = '\0'; 
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          }
 
@@ -3414,7 +3462,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
             avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmUpgradeSuccess_ID);
             ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
                          ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          } 
@@ -3427,7 +3475,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 
         if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
         {
-          sysf_sprintf(logbuf, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
+          sprintf(logbuf, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           return NCSCC_RC_FAILURE;
         }
@@ -3437,12 +3485,12 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
           {
             /* flag=1 suggest that present blade is not 7221 its 7150 which has */
             /*has ipmc support of bios rollback if upgraded bios is currupted*/
-          sysf_sprintf(logbuf, "AVM-SSU: present blade is 7150  %s ", " ");
+          sprintf(logbuf, "AVM-SSU: present blade is 7150  %s ", " ");
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           }
           else
           {
-            sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
             m_AVM_SSU_BIOS_UPGRADE_TMR_START(avm_cb, ent_info);
             ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_STARTED;
@@ -3456,7 +3504,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       /* timer                                                   */
       else if (evt_type == HPI_FWPROG_SYS_BOOT)
       {
-         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
+         sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
          avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr);
@@ -3492,13 +3540,13 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 /* functional                                                         */
 
             /* async update */
-            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
             m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
             return rc;
          } 
-         sysf_sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
+         sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
                     ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,ent_info->boot_prg_status);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
         avm_cb->upgrade_error_type = GEN_ERROR;
@@ -3506,7 +3554,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
         avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmSwFwUpgradeFailure_ID);
 
          avm_ssu_dhcp_rollback(avm_cb, ent_info);
-         sysf_sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
+         sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
                                ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          
@@ -3520,7 +3568,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             ent_info->dhcp_serv_conf.bios_upgd_state = 0;
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
             logbuf[0] = '\0';
-            sysf_sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
+            sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
             return NCSCC_RC_FAILURE;
          } 

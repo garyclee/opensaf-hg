@@ -68,7 +68,7 @@ int main (int argc, char *argv[])
 
    if(fm_create_pidfile() != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm pid file create failed.");
+      printf("\nfm pid file create failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE);
       goto fm_agents_startup_failed;
    }
@@ -76,7 +76,7 @@ int main (int argc, char *argv[])
    if (fm_agents_startup() != NCSCC_RC_SUCCESS)
    {
        /* notify the NID */
-       m_NCS_CONS_PRINTF("\nfm_agents_startup() failed.");
+       printf("\nfm_agents_startup() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
        goto fm_agents_startup_failed;
    }
@@ -86,7 +86,7 @@ int main (int argc, char *argv[])
    if (NULL == fm_cb)
    {
        /* notify the NID */
-      m_NCS_CONS_PRINTF("\nCB Allocation failed.");
+      printf("\nCB Allocation failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_agents_startup_failed;
    }
@@ -102,7 +102,7 @@ int main (int argc, char *argv[])
    if (fm_get_args(fm_cb) != NCSCC_RC_SUCCESS)
    {
       /* notify the NID */
-      m_NCS_CONS_PRINTF("\nfm_get_args() failed.");
+      printf("\nfm_get_args() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
@@ -115,7 +115,7 @@ int main (int argc, char *argv[])
    /* Create MBX. */
    if (m_NCS_IPC_CREATE(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nm_NCS_IPC_CREATE() failed.");
+      printf("\nm_NCS_IPC_CREATE() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_get_args_failed;
    }
@@ -123,7 +123,7 @@ int main (int argc, char *argv[])
    /* Attach MBX */
    if (m_NCS_IPC_ATTACH(&fm_cb->mbx) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nm_NCS_IPC_ATTACH() failed.");
+      printf("\nm_NCS_IPC_ATTACH() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mbx_attach_failure;
    }
@@ -131,7 +131,7 @@ int main (int argc, char *argv[])
    /* MDS initialization */
    if (fm_mds_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_mds_init() failed.");
+      printf("\nfm_mds_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_mds_init_failed;
    }
@@ -139,7 +139,7 @@ int main (int argc, char *argv[])
    /* RDA initialization */
    if (fm_rda_init(fm_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_rda_init() failed.");
+      printf("\nfm_rda_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_rda_init_failed;
    }
@@ -147,7 +147,7 @@ int main (int argc, char *argv[])
    /* HPL initialization */
    if (fm_hpl_init() != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm_hpl_init() failed.");
+      printf("\nfm_hpl_init() failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
@@ -155,7 +155,7 @@ int main (int argc, char *argv[])
    /* Open FM pipe for receiving AMF up intimation */
    if (fm_amf_open(&fm_cb->fm_amf_cb) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nfm pipe open failed (avm) failed.");
+      printf("\nfm pipe open failed (avm) failed.");
         fm_nid_notify((uns32)NCSCC_RC_FAILURE); 
       goto fm_hpl_lib_init_failed;
    }
@@ -292,7 +292,7 @@ static uns32 fm_agents_startup(void)
    rc = ncs_agents_startup(0, NULL);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("ncs core agent startup failed\n ");
+      printf("ncs core agent startup failed\n ");
       return rc;
    }
 
@@ -319,7 +319,7 @@ static uns32 fm_agents_shutdown(void)
    rc = ncs_agents_shutdown(0, NULL);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("ncs core agent shutdown failed\n ");
+      printf("ncs core agent shutdown failed\n ");
       return rc;
    }
 
@@ -349,7 +349,7 @@ static uns32 fm_hpl_init(void)
    rc = ncs_hpl_lib_req(&req_info);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("hpl lib init failed\n ");
+      printf("hpl lib init failed\n ");
       return rc;
    }
 
@@ -425,7 +425,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_slot_1=atoi(substr);
          if (!temp_slot_1)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid slot_ids given \n");
+            syslog(LOG_ERR,"Invalid slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -433,7 +433,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_sub_slot_1=atoi(substr);
          if (!temp_sub_slot_1)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid sub_slot_ids given \n");
+            syslog(LOG_ERR,"Invalid sub_slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -444,7 +444,7 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_slot_2=atoi(substr);
          if (!temp_slot_2)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid slot_ids given \n");
+            syslog(LOG_ERR,"Invalid slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
@@ -453,14 +453,14 @@ static uns32 fm_get_args(FM_CB *fm_cb)
          temp_sub_slot_2=atoi(substr);
          if (!temp_sub_slot_2)
          {
-            m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid sub_slot_ids given \n");
+            syslog(LOG_ERR,"Invalid sub_slot_ids given \n");
             fclose(fp);
             return NCSCC_RC_FAILURE;
          }
       }
       else
       {
-          m_NCS_SYSLOG(NCS_LOG_ERR,"Invalid token mentioned in the configuration file: %s\n", substr);
+          syslog(LOG_ERR,"Invalid token mentioned in the configuration file: %s\n", substr);
            fclose(fp);
            return NCSCC_RC_FAILURE;
       }
@@ -510,7 +510,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
    switch (fm_mbx_evt->evt_code)
    {
    case FM_EVT_HB_LOSS:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, FM_EVT_HB_LOSS: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        if (fm_cb->role == PCS_RDA_STANDBY)
@@ -520,7 +520,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
           {
              /* Start Promote active timer */
              fm_tmr_start(&fm_cb->promote_active_tmr, fm_cb->active_promote_tmr_val);
-             m_NCS_SYSLOG(NCS_LOG_INFO, "Promote active timer started\n");
+             syslog(LOG_INFO, "Promote active timer started\n");
           }
        }
        else if (fm_cb->role == PCS_RDA_ACTIVE)
@@ -549,7 +549,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        break;
 
    case FM_EVT_HB_RESTORE:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, FM_EVT_HB_RESTORE: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
        break;
@@ -560,7 +560,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        break;
 
    case FM_EVT_AVM_NODE_RESET_IND:
-       m_NCS_SYSLOG(NCS_LOG_INFO,
+       syslog(LOG_INFO,
        "Role: %s, NODE_RESET_IND: for slot_id: %d, subslot_id: %d", 
        role_string[fm_cb->role], fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
                 
@@ -586,7 +586,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
           /* Timer started only in case of reset of peer FMS, so getting slot and shelf id from cb */
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Promote active timer expired." 
+          syslog(LOG_INFO,"Promote active timer expired." 
                 " Reseting peer controller slot_id=%u\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
@@ -596,7 +596,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 
           if (status != NCSCC_RC_SUCCESS)
           {
-             m_NCS_SYSLOG(NCS_LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
+             syslog(LOG_INFO,"Reseting peer controller slot_id=%d failed. Starting reset retry timer\n",fm_cb->peer_slot);
              fm_tmr_start(&fm_cb->reset_retry_tmr, fm_cb->reset_retry_tmr_val);
           }
 
@@ -606,7 +606,7 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
        else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_RESET_RETRY)
        {
           fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf, fm_cb->peer_slot, fm_cb->peer_sub_slot);
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Reset retry timer expired."
+          syslog(LOG_INFO,"Reset retry timer expired."
                        " Reseting peer controller slot_id=%u failed.\n",fm_cb->peer_slot);
 
           if (fm_cb->is_platform == TRUE)
@@ -701,7 +701,7 @@ void fm_tmr_exp (void *fm_tmr)
 
    if(fm_cb == NULL)
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"Taking handle failed in timer expiry \n");
+      syslog(LOG_ERR,"Taking handle failed in timer expiry \n");
       return;
    }
 
@@ -722,7 +722,7 @@ void fm_tmr_exp (void *fm_tmr)
 
       if (m_NCS_IPC_SEND(&fm_cb->mbx,evt,NCS_IPC_PRIORITY_HIGH)!= NCSCC_RC_SUCCESS)
       {
-          m_NCS_SYSLOG(NCS_LOG_ERR,"IPC send failed in timer expiry \n");
+          syslog(LOG_ERR,"IPC send failed in timer expiry \n");
           m_MMGR_FREE_FM_EVT(evt);
       }
    }
@@ -863,7 +863,7 @@ static uns32 fms_fma_node_reset_intimate(FM_CB *fm_cb, uns32 slot_id, uns32 sub_
                                       NCSMDS_SVC_ID_FMA, MDS_SEND_PRIORITY_MEDIUM,
                                       MDS_SENDTYPE_BCAST, 0, NCSMDS_SCOPE_INTRANODE))
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"Intimation node reset to FMA failed\n");
+      syslog(LOG_ERR,"Intimation node reset to FMA failed\n");
    }
 
    return NCSCC_RC_SUCCESS;
@@ -898,7 +898,7 @@ static uns32 fms_reset_peer(FM_CB *fm_cb)
                                       NCSMDS_SVC_ID_GFM, MDS_SEND_PRIORITY_MEDIUM,
                                       0, fm_cb->peer_adest, 0))
       {
-         m_NCS_SYSLOG(NCS_LOG_ERR,"Sending node-reset message to peer fms failed\n");
+         syslog(LOG_ERR,"Sending node-reset message to peer fms failed\n");
          return NCSCC_RC_FAILURE;
       }
 
@@ -981,7 +981,7 @@ static uns32 fm_create_pidfile(void)
    }
    else
    {
-      m_NCS_SYSLOG(NCS_LOG_ERR,"FM PID file open failed \n");   
+      syslog(LOG_ERR,"FM PID file open failed \n");   
       return NCSCC_RC_FAILURE;
    }
 

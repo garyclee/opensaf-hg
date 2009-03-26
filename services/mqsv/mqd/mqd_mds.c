@@ -417,7 +417,7 @@ static uns32 mqd_mds_enc(MQD_CB * pMqd, MDS_CALLBACK_ENC_INFO *enc)
     m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             enc->o_msg_fmt_ver, __FILE__ ,__LINE__);
     #ifdef NCS_MQD
-    m_NCS_CONS_PRINTF("mqd_mds_enc:INVALID MSG FORMAT %d\n",enc->o_msg_fmt_ver);
+    printf("mqd_mds_enc:INVALID MSG FORMAT %d\n",enc->o_msg_fmt_ver);
     #endif
     return NCSCC_RC_FAILURE;
    }
@@ -496,7 +496,7 @@ static uns32 mqd_mds_dec(MQD_CB *pMqd, MDS_CALLBACK_DEC_INFO *dec)
     m_LOG_MQSV_D(MQD_MSG_FRMT_VER_INVALID, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
                                             is_valid_msg_fmt, __FILE__ ,__LINE__);
     #ifdef NCS_MQD
-    m_NCS_CONS_PRINTF("mqd_mds_dec:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
+    printf("mqd_mds_dec:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
     #endif
     return NCSCC_RC_FAILURE;
    }
@@ -599,7 +599,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
                      /* Put it in MQD's Event Queue */
                      rc =m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
                      #ifdef NCS_MQD
-                     m_NCS_CONS_PRINTF("MQND MDS DOWN EVENT POSTED\n");
+                     printf("MQND MDS DOWN EVENT POSTED\n");
                      #endif
                      if(NCSCC_RC_SUCCESS != rc)
                      {
@@ -646,7 +646,7 @@ static void mqd_mds_svc_evt(MQD_CB *pMqd, MDS_CALLBACK_SVC_EVENT_INFO *svc)
                   /* Put it in MQD's Event Queue */
                  rc =m_MQD_EVT_SEND(&pMqd->mbx, pNdEvent, NCS_IPC_PRIORITY_NORMAL);
                  #ifdef NCS_MQD
-                 m_NCS_CONS_PRINTF("MQND MDS UP EVENT POSTED\n");
+                 printf("MQND MDS UP EVENT POSTED\n");
                  #endif
                  if(NCSCC_RC_SUCCESS != rc)
                  {

@@ -147,16 +147,16 @@ printInternalMsgDump( int cnt, void *msg )
     */
     int i;
     unsigned char *tmp = msg;
-    m_NCS_CONS_PRINTF("--Message Dump--\n");
+    printf("--Message Dump--\n");
 
 
     for( i = 0 ; i< cnt ; i++ )
     {
- m_NCS_CONS_PRINTF("%2x ",*tmp++ );
+ printf("%2x ",*tmp++ );
  if( ( (i+1) % 30 ) == 0 )
-     m_NCS_CONS_PRINTF("\n");
+     printf("\n");
     }
-    m_NCS_CONS_PRINTF("\n");
+    printf("\n");
 }
 
 NCS_BOOL
@@ -200,20 +200,20 @@ ncs_dumpIpcStatsToConsole( void )
     m_NCS_LOCK ((NCS_LOCK *)&ncs_ipc_stats.stats_lock, NCS_LOCK_WRITE );
     */
     if( ( curr = ncs_ipc_stats.head ) == NULL )
- m_NCS_CONS_PRINTF("---- Statistics List contains no IPC Resources!-----\n");
+ printf("---- Statistics List contains no IPC Resources!-----\n");
     else
     {
  int i = 1;
    unsigned long now;
    m_NCS_OS_GET_TIME_STAMP(now);
 
- m_NCS_CONS_PRINTF ("|---|---+------+-------+------+----------+----------+---------------|\n");
- m_NCS_CONS_PRINTF ("|  #|Ref|high  |Current|Fail  |Q-counts  | Lifetime | Resource      |\n");
- m_NCS_CONS_PRINTF ("|   |cnt|water |Depth  |Count |Hi-p,Lo-p | in ticks |  Address      |\n");
- m_NCS_CONS_PRINTF ("|---|---+------+-------+------+----------+----------+---------------+\n");
+ printf ("|---|---+------+-------+------+----------+----------+---------------|\n");
+ printf ("|  #|Ref|high  |Current|Fail  |Q-counts  | Lifetime | Resource      |\n");
+ printf ("|   |cnt|water |Depth  |Count |Hi-p,Lo-p | in ticks |  Address      |\n");
+ printf ("|---|---+------+-------+------+----------+----------+---------------+\n");
  while( curr )
  {
-     m_NCS_CONS_PRINTF("%4d%4d%7d%8d%7d%5d %5d%11d%11x\n",
+     printf("%4d%4d%7d%8d%7d%5d %5d%11d%11x\n",
        i++,
        curr->refCount,
        curr->highWaterMark,
@@ -266,7 +266,7 @@ ncs_walkAndDumpIpcQue( int id, int cnt )
 
   /*  m_NCS_LOCK ((NCS_LOCK *)&ncs_ipc_stats.stats_lock, NCS_LOCK_WRITE );*/
     if( ( curr = ncs_ipc_stats.head ) == NULL )
- m_NCS_CONS_PRINTF("---- Statistics List contains no IPC Resources!----\n");
+ printf("---- Statistics List contains no IPC Resources!----\n");
     else
     {
  while( curr )
@@ -294,7 +294,7 @@ ncs_walkAndDumpIpcQue( int id, int cnt )
   if( expose_flush( (NCS_IPC *)curr->resource, internalDumpMsg,
           (void *)&cnt )
       != NCSCC_RC_SUCCESS )
-      m_NCS_CONS_PRINTF( "Could not access resource %d\n", id );
+      printf( "Could not access resource %d\n", id );
   
   /*
   ** Release queue
@@ -307,7 +307,7 @@ ncs_walkAndDumpIpcQue( int id, int cnt )
      curr = curr->next;
  }
  if( curr == NULL )
-     m_NCS_CONS_PRINTF( "resource id %d not found\n", id );
+     printf( "resource id %d not found\n", id );
     }
     /*
     ** Release list

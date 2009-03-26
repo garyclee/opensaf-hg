@@ -185,7 +185,7 @@ uns32 gla_create (NCS_LIB_CREATE *create_info)
    }
 
    /* get the process id */
-   cb->process_id = m_NCS_OS_PROCESS_GET_ID();
+   cb->process_id = getpid();
 
    /* initialize the gla cb lock */
    if(m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS)

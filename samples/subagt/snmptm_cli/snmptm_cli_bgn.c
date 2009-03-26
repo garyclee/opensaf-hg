@@ -47,7 +47,7 @@ void  snmptm_cli_main(int argc, char **argv)
    /* initiliase the Environment */
    if (ncs_agents_startup(argc, argv) != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM-CLI ERR: Not able to initialize Agents\n"); 
+      printf("\nSNMPTM-CLI ERR: Not able to initialize Agents\n"); 
       return;
    }
 
@@ -63,12 +63,12 @@ void  snmptm_cli_main(int argc, char **argv)
    info.i_mab_hdl = gl_mac_handle; /* Global MAC handle */
 
    /* Register the SNMPTM commands */
-   m_NCS_CONS_PRINTF("\n\n SNMPTM CLI DEMO STARTED ...\n");
+   printf("\n\n SNMPTM CLI DEMO STARTED ...\n");
 
    info.i_req_fnc = ncsmac_mib_request; /* MAC request function */
    snmptm_cli_register(&info); 
 
-   m_NCS_CONS_PRINTF(" Registered SNMPTM CLI Commnds  ...\n\n");   
+   printf(" Registered SNMPTM CLI Commnds  ...\n\n");   
    /* S l e e p      F o r e v e r */ 
    while(1)
       m_NCS_TASK_SLEEP(5000); 
