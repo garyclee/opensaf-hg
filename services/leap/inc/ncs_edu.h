@@ -43,7 +43,7 @@
 
 #include "ncs_edu_pub.h"
 
-#define m_NCS_EDU_ASSERT        m_NCS_OS_ASSERT(0)
+#define m_NCS_EDU_ASSERT        assert(0)
 
 /* EDU Protocol Marker used in EDU header */
 #define EDU_PROT_MARKER 0xed

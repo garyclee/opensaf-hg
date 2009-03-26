@@ -3338,24 +3338,24 @@ static void mibpp_inst(const uns32* inst, uns32 len)
 {
    uns32 i;
 
-   m_NCS_CONS_PRINTF("Index vals as int: ");
+   printf("Index vals as int: ");
    if (inst == NULL)
-      m_NCS_CONS_PRINTF("NULL\n");
+      printf("NULL\n");
    else
    {
       for (i = 0; i < len; i++)
-         m_NCS_CONS_PRINTF(", %d",inst[i]);
-      m_NCS_CONS_PRINTF(" \n");
+         printf(", %d",inst[i]);
+      printf(" \n");
    }
 
-   m_NCS_CONS_PRINTF("Index vals as ascii: ");
+   printf("Index vals as ascii: ");
    if (inst == NULL)
-      m_NCS_CONS_PRINTF("NULL\n");
+      printf("NULL\n");
    else
    {
       for (i = 0; i < len; i++)
-         m_NCS_CONS_PRINTF(", %c",inst[i]);
-      m_NCS_CONS_PRINTF(" \n");
+         printf(", %c",inst[i]);
+      printf(" \n");
    }
 }
 
@@ -3379,16 +3379,16 @@ static void mibpp_param_val(NCSMIB_PARAM_VAL* val)
 {
    uns32 i;
 
-   m_NCS_CONS_PRINTF("Param Val: ");
-   m_NCS_CONS_PRINTF("Id %d, %s, Val ",val->i_param_id, pp_fmat_str[val->i_fmat_id]);
+   printf("Param Val: ");
+   printf("Id %d, %s, Val ",val->i_param_id, pp_fmat_str[val->i_fmat_id]);
    if (val->i_fmat_id == NCSMIB_FMAT_INT || val->i_fmat_id == NCSMIB_FMAT_BOOL)
-      m_NCS_CONS_PRINTF("%d\n",val->info.i_int );
+      printf("%d\n",val->info.i_int );
 
    else if (val->i_fmat_id == NCSMIB_FMAT_OCT)
    {
       for (i = 0; i < val->i_length; i++)
-         m_NCS_CONS_PRINTF(", 0x%x ",val->info.i_oct[i]);
-      m_NCS_CONS_PRINTF(" \n");
+         printf(", 0x%x ",val->info.i_oct[i]);
+      printf(" \n");
    }
 }
 
@@ -3443,7 +3443,7 @@ static void mibpp_row(USRBUF* inub)
   NCSMIB_PARAM_VAL pv;
   USRBUF*         ub = NULL;
 
-  m_NCS_CONS_PRINTF("ROW STARTS\n");
+  printf("ROW STARTS\n");
 
   if(inub == NULL)
     return;
@@ -3472,7 +3472,7 @@ static void mibpp_row(USRBUF* inub)
     return;
     }
 
-  m_NCS_CONS_PRINTF("ROW ENDS\n");
+  printf("ROW ENDS\n");
 
   return;
 }
@@ -3493,20 +3493,20 @@ static void mibpp_row(USRBUF* inub)
 void ncsmib_pp( NCSMIB_ARG* arg)
 {
    uns32 i;
-   m_NCS_CONS_PRINTF("=================================\n");
-   m_NCS_CONS_PRINTF("MIB_ARG  PP @ address %lx\n", (unsigned long)arg);
-   m_NCS_CONS_PRINTF("=================================\n");
-   m_NCS_CONS_PRINTF("Op: %s, Tbl Id: %d, Exch Id: %x\n", mibpp_opstr(arg->i_op),
+   printf("=================================\n");
+   printf("MIB_ARG  PP @ address %lx\n", (unsigned long)arg);
+   printf("=================================\n");
+   printf("Op: %s, Tbl Id: %d, Exch Id: %x\n", mibpp_opstr(arg->i_op),
                     arg->i_tbl_id, 
                     arg->i_xch_id);
-   m_NCS_CONS_PRINTF("User Key: %lu\n", arg->i_usr_key);
-   m_NCS_CONS_PRINTF("MIB Key: %lu\n", arg->i_mib_key);
-   m_NCS_CONS_PRINTF("Source: %d\n", arg->i_policy);
+   printf("User Key: %lu\n", arg->i_usr_key);
+   printf("MIB Key: %lu\n", arg->i_mib_key);
+   printf("Source: %d\n", arg->i_policy);
 
    if (m_NCSMIB_ISIT_A_RSP(arg->i_op))
    {
       if (arg->rsp.i_status != 0)
-          m_NCS_CONS_PRINTF("Status : %s\n", mibpp_status(arg->rsp.i_status));
+          printf("Status : %s\n", mibpp_status(arg->rsp.i_status));
       if (arg->rsp.i_status == NCSCC_RC_SUCCESS)
       {
          switch (arg->i_op)
@@ -3551,7 +3551,7 @@ void ncsmib_pp( NCSMIB_ARG* arg)
          case NCSMIB_OP_RSP_MOVEROW:
             {
                NCSMIB_MOVEROW_RSP* rsp = &arg->rsp.info.moverow_rsp;
-               /* m_NCS_CONS_PRINTF("move_to vcard:%u\n",rsp->i_move_to.info.v1.vcard); */
+               /* printf("move_to vcard:%u\n",rsp->i_move_to.info.v1.vcard); */
                mibpp_row(rsp->i_usrbuf);
                break;
             }
@@ -3574,7 +3574,7 @@ void ncsmib_pp( NCSMIB_ARG* arg)
             }
          default:
             {
-               m_NCS_CONS_PRINTF("!!! Invalid Operation Type !!!\n");
+               printf("!!! Invalid Operation Type !!!\n");
                m_LEAP_DBG_SINK_VOID(0);
                return;
             }
@@ -3589,8 +3589,8 @@ void ncsmib_pp( NCSMIB_ARG* arg)
       if(arg->rsp.add_info_len > 0){
           if(arg->rsp.add_info != NULL){
               for(i=0; i<arg->rsp.add_info_len; i++)
-                 m_NCS_CONS_PRINTF("%c", arg->rsp.add_info[i]);
-              m_NCS_CONS_PRINTF("\n");
+                 printf("%c", arg->rsp.add_info[i]);
+              printf("\n");
           }  
       }  
    }
@@ -3614,7 +3614,7 @@ void       ncsmib_req_pp(NCSMIB_ARG* arg)
       case NCSMIB_OP_REQ_NEXT :
          {
             NCSMIB_GET_REQ* req = &arg->req.info.get_req;
-            m_NCS_CONS_PRINTF("Param ID %d\n",req->i_param_id);
+            printf("Param ID %d\n",req->i_param_id);
             break;
          }
 
@@ -3648,11 +3648,11 @@ void       ncsmib_req_pp(NCSMIB_ARG* arg)
             NCSMIB_MOVEROW_REQ* req = &arg->req.info.moverow_req;
             if (m_NCS_NODE_ID_FROM_MDS_DEST(req->i_move_to) == 0)
             {
-                m_NCS_CONS_PRINTF("move_to VDEST:%lld\n",req->i_move_to);
+                printf("move_to VDEST:%lld\n",req->i_move_to);
             }
             else
             {
-                m_NCS_CONS_PRINTF("move_to ADEST:%lld\n",req->i_move_to);
+                printf("move_to ADEST:%lld\n",req->i_move_to);
             }
             mibpp_row(req->i_usrbuf);
             break;
@@ -3672,7 +3672,7 @@ void       ncsmib_req_pp(NCSMIB_ARG* arg)
 
       default:
          {
-            m_NCS_CONS_PRINTF("!!! Invalid Operation Type !!!\n");
+            printf("!!! Invalid Operation Type !!!\n");
             m_LEAP_DBG_SINK_VOID(0);
             return;
          }

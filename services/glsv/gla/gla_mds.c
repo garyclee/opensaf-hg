@@ -282,7 +282,7 @@ static uns32 gla_mds_enc_flat(GLA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
    {
     /* Drop The Message */
     m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
-    m_NCS_CONS_PRINTF("gla_mds_enc_flat:INVALID MSG FORMAT %d\n",info->o_msg_fmt_ver);
+    printf("gla_mds_enc_flat:INVALID MSG FORMAT %d\n",info->o_msg_fmt_ver);
     return NCSCC_RC_FAILURE;
    }
 }
@@ -384,7 +384,7 @@ static uns32 gla_mds_enc(GLA_CB *cb, MDS_CALLBACK_ENC_INFO *info)
    {
     /* Drop The Message */
     m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
-    m_NCS_CONS_PRINTF("gla_mds_enc_flat:INVALID MSG FORMAT %d\n",info->o_msg_fmt_ver);
+    printf("gla_mds_enc_flat:INVALID MSG FORMAT %d\n",info->o_msg_fmt_ver);
     return NCSCC_RC_FAILURE;
    }
 }
@@ -435,7 +435,7 @@ static uns32 gla_mds_dec_flat(GLA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
       if(!is_valid_msg_fmt)
        {    
         m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
-        m_NCS_CONS_PRINTF("gla_mds_dec_flat:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
+        printf("gla_mds_dec_flat:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
        }
       m_LOG_GLA_HEADLINE(GLA_MDS_DEC_FLAT_FAILURE ,NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;
@@ -507,7 +507,7 @@ static uns32 gla_mds_dec(GLA_CB *cb, MDS_CALLBACK_DEC_INFO *info)
       if(!is_valid_msg_fmt)
        {    
         m_LOG_GLA_HEADLINE(GLA_MSG_FRMT_VER_INVALID, NCSFL_SEV_ERROR);
-        m_NCS_CONS_PRINTF("gla_mds_dec_flat:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
+        printf("gla_mds_dec_flat:INVALID MSG FORMAT %d\n",is_valid_msg_fmt);
        }
       m_LOG_GLA_HEADLINE(GLA_MDS_ENC_FLAT_FAILURE ,NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;

@@ -30,7 +30,7 @@
               ((ver->releaseCode == 'B') && \
                (ver->majorVersion <= FMA_MAJOR_VERSION))
 
-#define m_FMA_ASSERT( condition ) if(!(condition)) m_NCS_OS_ASSERT(0)
+#define m_FMA_ASSERT( condition ) if(!(condition)) assert(0)
 
 EXTERN_C uns32 gl_fma_hdl;
 

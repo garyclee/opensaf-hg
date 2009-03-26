@@ -55,7 +55,7 @@ uns32 snmptm_eda_initialize(SNMPTM_CB  *snmptm_cb)
 
    if (snmptm_cb == NULL)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM ERROR: Not able to initialize EDA\n"); 
+      printf("\nSNMPTM ERROR: Not able to initialize EDA\n"); 
       return NCSCC_RC_FAILURE;
    }
 
@@ -109,7 +109,7 @@ uns32  snmptm_eda_finalize(SNMPTM_CB *snmptm_cb)
    /* validate the inputs */
    if (snmptm_cb == NULL)
    {
-      m_NCS_CONS_PRINTF("\nSNMPTM ERROR: Not able to Finalize EDA\n"); 
+      printf("\nSNMPTM ERROR: Not able to Finalize EDA\n"); 
       return NCSCC_RC_FAILURE;
    }
 
@@ -159,7 +159,7 @@ SNMPTM_CB* snmptm_cb_create(void)
    /* Allocate SNMPTM_CB structure */   
    if ((snmptm = (SNMPTM_CB *)m_MMGR_ALLOC_SNMPTM_CB) == SNMPTM_CB_NULL)
    {
-      m_NCS_CONS_PRINTF("\n MALLOC failed for SNMPTM Control Block\n");
+      printf("\n MALLOC failed for SNMPTM Control Block\n");
       return SNMPTM_CB_NULL;   
    }
 

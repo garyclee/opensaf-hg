@@ -173,7 +173,7 @@ dts_lib_init (NCS_LIB_REQ_INFO *req_info)
    inst->in_sync = TRUE; 
  
    /* Generate the pidfilename. Also assert for string buffer overflow */
-   m_NCS_OS_ASSERT(sprintf(pidfilename, "%s", DTS_PID_FILE)
+   assert(sprintf(pidfilename, "%s", DTS_PID_FILE)
            < sizeof(pidfilename));
 
    /*Open pidfile for writing the process id */
@@ -438,7 +438,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
                  m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
                     "dts_apps_ascii_spec_load: Unable to load library.");
 
-                m_NCS_CONS_PRINTF("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n",lib_name);
+                printf("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_LOAD() failed: %s\n",lib_name);
                 reg_unreg_routine = NULL; 
                 lib_hdl = NULL;
                 memset(func_name, 0, DTS_MAX_FUNCNAME);
@@ -455,7 +455,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
             m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
                     "dts_apps_ascii_spec_load: Unable to load symbol");
 
-            m_NCS_CONS_PRINTF("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
+            printf("\ndts_apps_ascii_spec_load(): m_NCS_OS_DLIB_SYMBOL()  failed(lib name, func name, error): %s, %s, %s\n",
                               lib_name, func_name, dl_error);
 
             reg_unreg_routine = NULL; 
@@ -476,7 +476,7 @@ dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
             if (status != NCSCC_RC_SUCCESS)
             {
                 /* log the error */ 
-                sysf_sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
+                sprintf(dbg_str, "ASCII spec registration failed for - %s", lib_name);
                 m_LOG_DTS_DBGSTR_NAME(DTS_GLOBAL, dbg_str, 0, 0);
             }
             else
@@ -553,7 +553,7 @@ void dts_cons_init(void)
       tried_devcons++;
    }
 
-   while ((fd = m_NCS_POSIX_OPEN(inst->cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
+   while ((fd = open(inst->cons_dev, O_RDONLY|O_NONBLOCK)) < 0)
    {
       if (!tried_devcons)
       {
@@ -573,7 +573,7 @@ void dts_cons_init(void)
    if (fd < 0)
       inst->cons_dev = "/dev/null";
    else
-      m_NCS_POSIX_CLOSE(fd);
+      close(fd);
 
    return;
 }
@@ -602,7 +602,7 @@ int32 dts_cons_open(uns32 mode)
    m = mode|O_NONBLOCK;
 
    for(f=0; f<5; f++)
-   if((fd = m_NCS_POSIX_OPEN(inst->cons_dev,m)) >= 0) break;
+   if((fd = open(inst->cons_dev,m)) >= 0) break;
 
    if(fd < 0) return fd;
 

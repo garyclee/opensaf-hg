@@ -47,11 +47,11 @@ lt_file_ops(int argc, char **argv)
     /* Create the root directory */
     file_handle.info.create_dir.i_dir_name = (uns8 *)root_dir;
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_CREATE_DIR);
-    m_NCS_CONS_PRINTF("Test1: ");
+    printf("Test1: ");
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to create root directory %s\n", root_dir);
+        printf("Unable to create root directory %s\n", root_dir);
     else
-        m_NCS_CONS_PRINTF("Created root directory successfully\n");
+        printf("Created root directory successfully\n");
 
     /* Create a new file, write some data and close it */
     file_handle.info.dir_path.i_buf_size = sizeof(buf1);
@@ -61,38 +61,38 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get dir path for dir %s and file %s\n", root_dir, file1);
+        printf("Unable to get dir path for dir %s and file %s\n", root_dir, file1);
     else
-        m_NCS_CONS_PRINTF("Dir path for file is %s\n", buf1);
+        printf("Dir path for file is %s\n", buf1);
 
     file_handle2.info.create.i_file_name = (uns8 *) buf1;
 
     retval = m_NCS_OS_FILE(&file_handle2, NCS_OS_FILE_CREATE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to create file %s\n", buf1);
+        printf("Unable to create file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Created file %s\n", buf1);
+        printf("Created file %s\n", buf1);
 
     file_handle.info.write.i_file_handle = file_handle2.info.create.o_file_handle;
     file_handle.info.write.i_buf_size    = sizeof(data);
     file_handle.info.write.i_buffer      = (uns8 *) data;
     memset(data, 'a', sizeof(data) - 1);
     data[511] = '\0';
-    m_NCS_OS_SNPRINTF(data, sizeof(data) - 1, "Test string, testing file io operations\n");
+    snprintf(data, sizeof(data) - 1, "Test string, testing file io operations\n");
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_WRITE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to write to file %s\n", buf1);
+        printf("Unable to write to file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Wrote to file %s\n", buf1);
+        printf("Wrote to file %s\n", buf1);
 
     file_handle.info.close.i_file_handle = file_handle2.info.create.o_file_handle;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_CLOSE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to close file %s\n", buf1);
+        printf("Unable to close file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Closed file %s\n", buf1);
+        printf("Closed file %s\n", buf1);
 
 
     /* Get the size of the existing file */
@@ -100,9 +100,9 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE (&file_handle, NCS_OS_FILE_SIZE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get size of file %s\n", buf1);
+        printf("Unable to get size of file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Size of file %s is %d\n", buf1,file_handle.info.size.o_file_size);
+        printf("Size of file %s is %d\n", buf1,file_handle.info.size.o_file_size);
 
     /* Open the existing file and read data from it and close it */
     file_handle2.info.open.i_file_name = (uns8 *) buf1;
@@ -110,9 +110,9 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle2, NCS_OS_FILE_OPEN);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to open file %s for reading\n", buf1);
+        printf("Unable to open file %s for reading\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Opened file %s for reading\n", buf1);
+        printf("Opened file %s for reading\n", buf1);
 
     file_handle.info.read.i_file_handle = file_handle2.info.open.o_file_handle;
     file_handle.info.read.i_buffer      = (uns8 *)buf2;
@@ -120,18 +120,18 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_READ);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Error reading from file %s\n", buf1);
+        printf("Error reading from file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Read %d bytes from file %s\n",
+        printf("Read %d bytes from file %s\n",
                             file_handle.info.read.o_bytes_read, buf1);
 
     file_handle.info.close.i_file_handle = file_handle2.info.open.o_file_handle;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_CLOSE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to close file %s\n", buf1);
+        printf("Unable to close file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Closed file %s\n", buf1);
+        printf("Closed file %s\n", buf1);
 
     /* Copy the existing file */
     file_handle.info.dir_path.i_main_dir = (uns8 *) root_dir;
@@ -141,18 +141,18 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path of file %s\n", file2);
+        printf("Unable to get full path of file %s\n", file2);
     else
-        m_NCS_CONS_PRINTF("The 2nd file name is %s\n", buf3);
+        printf("The 2nd file name is %s\n", buf3);
 
     file_handle.info.copy.i_file_name = (uns8 *) buf1;
     file_handle.info.copy.i_new_file_name = (uns8 *) buf3;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_COPY);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to copy file %s to %s\n", buf1, buf3);
+        printf("Unable to copy file %s to %s\n", buf1, buf3);
     else
-        m_NCS_CONS_PRINTF("Copied file %s to %s\n", buf1, buf3);
+        printf("Copied file %s to %s\n", buf1, buf3);
 
 
     /* Rename an existing file */
@@ -164,18 +164,18 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path for file %s\n", file3);
+        printf("Unable to get full path for file %s\n", file3);
     else
-        m_NCS_CONS_PRINTF("Full path is %s\n", buf4);
+        printf("Full path is %s\n", buf4);
 
     file_handle.info.rename.i_file_name = (uns8 *) buf3;
     file_handle.info.rename.i_new_file_name = (uns8 *) buf4;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_RENAME);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to rename file %s\n", file3);
+        printf("Unable to rename file %s\n", file3);
     else
-        m_NCS_CONS_PRINTF("Renamed file %s to %s\n", buf3, buf4);
+        printf("Renamed file %s to %s\n", buf3, buf4);
 
     /* Check if the file exists */
 
@@ -183,9 +183,9 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE (&file_handle, NCS_OS_FILE_EXISTS);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get file info %s\n", buf1);
+        printf("Unable to get file info %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("File %s is present?: %d\n",
+        printf("File %s is present?: %d\n",
             buf1, file_handle.info.file_exists.o_file_exists);
 
     /* Delete an existing file */
@@ -194,9 +194,9 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_REMOVE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to remove file %s\n", buf1);
+        printf("Unable to remove file %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Removed file %s\n", buf1);
+        printf("Removed file %s\n", buf1);
 
     /* Check again if the file exists */
 
@@ -204,9 +204,9 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE (&file_handle, NCS_OS_FILE_EXISTS);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get file info %s\n", buf1);
+        printf("Unable to get file info %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("File %s is present?: %d\n",
+        printf("File %s is present?: %d\n",
             buf1, file_handle.info.file_exists.o_file_exists);
 
     /* Create a new directory */
@@ -218,17 +218,17 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE (&file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path %s\n", subdir1);
+        printf("Unable to get full path %s\n", subdir1);
     else
-        m_NCS_CONS_PRINTF("Full path is %s\n", buf1);
+        printf("Full path is %s\n", buf1);
 
     file_handle.info.create_dir.i_dir_name = (uns8 *)buf1;
 
     retval = m_NCS_OS_FILE (&file_handle, NCS_OS_FILE_CREATE_DIR);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to create directory %s\n", buf1);
+        printf("Unable to create directory %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Created directory %s\n", buf1);
+        printf("Created directory %s\n", buf1);
 
     /* Now create a file inside this directory */
 
@@ -239,38 +239,38 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE( &file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path %s\n", file4);
+        printf("Unable to get full path %s\n", file4);
     else
-        m_NCS_CONS_PRINTF("Full path is %s\n", buf3);
+        printf("Full path is %s\n", buf3);
 
     file_handle2.info.create.i_file_name = (uns8 *) buf3;
 
     retval = m_NCS_OS_FILE(&file_handle2, NCS_OS_FILE_CREATE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to create file %s\n", buf3);
+        printf("Unable to create file %s\n", buf3);
     else
-        m_NCS_CONS_PRINTF("Created file %s\n", buf3);
+        printf("Created file %s\n", buf3);
 
     file_handle.info.write.i_file_handle = file_handle2.info.create.o_file_handle;
     file_handle.info.write.i_buf_size    = sizeof(data);
     file_handle.info.write.i_buffer      = (uns8 *) data;
     memset(data, 'a', sizeof(data) - 1);
     data[511] = '\0';
-    m_NCS_OS_SNPRINTF(data, sizeof(data) - 1, "Test string, testing file io operations\n");
+    snprintf(data, sizeof(data) - 1, "Test string, testing file io operations\n");
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_WRITE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to write to file %s\n", buf3);
+        printf("Unable to write to file %s\n", buf3);
     else
-        m_NCS_CONS_PRINTF("Wrote to file %s\n", buf3);
+        printf("Wrote to file %s\n", buf3);
 
     file_handle.info.close.i_file_handle = file_handle2.info.create.o_file_handle;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_CLOSE);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to close file %s\n", buf3);
+        printf("Unable to close file %s\n", buf3);
     else
-        m_NCS_CONS_PRINTF("Closed file %s\n", buf3);
+        printf("Closed file %s\n", buf3);
 
     /* Create a new directory within the first subdirectory */
 
@@ -281,17 +281,17 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE( &file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path %s\n", subdir3);
+        printf("Unable to get full path %s\n", subdir3);
     else
-        m_NCS_CONS_PRINTF("Full path is %s\n", buf5);
+        printf("Full path is %s\n", buf5);
 
     file_handle.info.create_dir.i_dir_name = (uns8 *) buf5;
 
     retval = m_NCS_OS_FILE( &file_handle, NCS_OS_FILE_CREATE_DIR);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get create dir %s\n", buf5);
+        printf("Unable to get create dir %s\n", buf5);
     else
-        m_NCS_CONS_PRINTF("Created dir %s\n", buf5);
+        printf("Created dir %s\n", buf5);
 
 
     /* Copy a directory */
@@ -303,18 +303,18 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE( &file_handle, NCS_OS_FILE_DIR_PATH);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to get full path %s\n", subdir2);
+        printf("Unable to get full path %s\n", subdir2);
     else
-        m_NCS_CONS_PRINTF("Full path is %s\n", buf4);
+        printf("Full path is %s\n", buf4);
 
     file_handle.info.copy_dir.i_dir_name = (uns8 *) buf1;
     file_handle.info.copy_dir.i_new_dir_name = (uns8 *) buf4;
 
     retval = m_NCS_OS_FILE( &file_handle, NCS_OS_FILE_COPY_DIR);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to copy dir %s to %s\n", buf1, buf4);
+        printf("Unable to copy dir %s to %s\n", buf1, buf4);
     else
-        m_NCS_CONS_PRINTF("Copied dir %s to %s\n", buf1, buf4);
+        printf("Copied dir %s to %s\n", buf1, buf4);
 
 
     /* Now list all the directories under the root directory */
@@ -329,11 +329,11 @@ lt_file_ops(int argc, char **argv)
             retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_GET_NEXT);
             if(retval != NCSCC_RC_SUCCESS)
             {
-                m_NCS_CONS_PRINTF("Unable to get the next file\n");
+                printf("Unable to get the next file\n");
                 break;
             }
 
-            m_NCS_CONS_PRINTF("Next file: %s\n", buf5);
+            printf("Next file: %s\n", buf5);
             strcpy(buf4, buf5);
             file_handle.info.get_next.i_file_name = (uns8 *) buf4;
         } while(buf5[0] != '\0');
@@ -344,36 +344,36 @@ lt_file_ops(int argc, char **argv)
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DIR_EXISTS);
     if (TRUE == file_handle.info.dir_exists.o_exists)
-        m_NCS_CONS_PRINTF("The directory %s exists\n", buf1);
+        printf("The directory %s exists\n", buf1);
     else
-        m_NCS_CONS_PRINTF("The directory %s does not exist\n", buf1);
+        printf("The directory %s does not exist\n", buf1);
 
 
     file_handle.info.delete_dir.i_dir_name = (uns8 *) buf1;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DELETE_DIR);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to delete dir %s\n", buf1);
+        printf("Unable to delete dir %s\n", buf1);
     else
-        m_NCS_CONS_PRINTF("Deleted dir %s\n", buf1);
+        printf("Deleted dir %s\n", buf1);
 
 
     file_handle.info.dir_exists.i_dir_name = (uns8 *) buf1;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DIR_EXISTS);
     if (TRUE == file_handle.info.dir_exists.o_exists)
-        m_NCS_CONS_PRINTF("The directory %s exists\n", buf1);
+        printf("The directory %s exists\n", buf1);
     else
-        m_NCS_CONS_PRINTF("The directory %s does not exist\n", buf1);
+        printf("The directory %s does not exist\n", buf1);
 
     /* Delete the root directory */
     file_handle.info.delete_dir.i_dir_name = (uns8 *) root_dir;
 
     retval = m_NCS_OS_FILE(&file_handle, NCS_OS_FILE_DELETE_DIR);
     if (NCSCC_RC_SUCCESS != retval)
-        m_NCS_CONS_PRINTF("Unable to delete dir %s\n", root_dir);
+        printf("Unable to delete dir %s\n", root_dir);
     else
-        m_NCS_CONS_PRINTF("Deleted dir %s\n", root_dir);
+        printf("Deleted dir %s\n", root_dir);
 
 
     return NCSCC_RC_SUCCESS;

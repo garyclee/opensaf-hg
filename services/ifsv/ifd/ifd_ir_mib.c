@@ -154,7 +154,7 @@ uns32 ncsifsvbindifentry_next(NCSCONTEXT cb,
     uns32 next_index;
    
   
-   m_NCS_CONS_PRINTF("\n ncsifsvbindifentry_next:  Received SNMP NEXT request\n");
+   printf("\n ncsifsvbindifentry_next:  Received SNMP NEXT request\n");
 
     if(( p_next_req->i_idx.i_inst_ids == NULL)&&( p_next_req->i_idx.i_inst_len == 0 ))
        bind_portnum = 0;
@@ -429,7 +429,7 @@ uns32 ncsifsvbindifentry_set(NCSCONTEXT hdl,
       return NCSCC_RC_NO_INSTANCE;
    }
 
-   m_NCS_CONS_PRINTF("\nncsifsvbindifentry:  Received SNMP SET request\n");
+   printf("\nncsifsvbindifentry:  Received SNMP SET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 

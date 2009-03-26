@@ -42,7 +42,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
 {
     uns32 retval = NCSCC_RC_FAILURE;
 
-    m_NCS_ASSERT(NCS_FILEIO_CMD_SENTINAL > request->i_request);
+    assert(NCS_FILEIO_CMD_SENTINAL > request->i_request);
 
     USE(context);
     USE(id);
@@ -55,7 +55,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
             uns8 *openmode = request->fileio_open.i_openmode;
             FILE *fileptr = NULL;
 
-            m_NCS_ASSERT(NULL != filename);
+            assert(NULL != filename);
             if(NULL != filename)
             {
                 fileptr = sysf_fopen((char *)filename, (char *)openmode);
@@ -70,10 +70,10 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
 
     case NCS_FILEIO_CMD_CLOSE:
         {
-            m_NCS_ASSERT(NULL != request->fileio_close.i_fileptr);
+            assert(NULL != request->fileio_close.i_fileptr);
             if(NULL != request->fileio_close.i_fileptr)
             {
-                sysf_fclose(request->fileio_close.i_fileptr);
+                fclose(request->fileio_close.i_fileptr);
             }
             retval = NCSCC_RC_SUCCESS;
         }
@@ -81,7 +81,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
 
     case NCS_FILEIO_CMD_READLINE:
         {
-            m_NCS_ASSERT(NULL != request->fileio_read.i_fileptr);
+            assert(NULL != request->fileio_read.i_fileptr);
             if(NULL != request->fileio_read.i_fileptr)
             {
                 if(NULL != fgets((char*)request->fileio_read.io_buffer,
@@ -97,7 +97,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
 
     case NCS_FILEIO_CMD_WRITELINE:
         {
-            m_NCS_ASSERT(NULL != request->fileio_write.i_fileptr);
+            assert(NULL != request->fileio_write.i_fileptr);
             USE(request->fileio_write.i_writesize);
             if(NULL != request->fileio_write.i_fileptr)
             {
@@ -118,7 +118,7 @@ ncs_fileio(NCSCONTEXT context, NCS_VRID id, NCS_FILEIO_REQUEST *request)
 
     case NCS_FILEIO_CMD_SENTINAL:
     default:
-        m_NCS_ASSERT(NCS_FILEIO_CMD_SENTINAL <= request->i_request);
+        assert(NCS_FILEIO_CMD_SENTINAL <= request->i_request);
         break;
     }
     return retval;

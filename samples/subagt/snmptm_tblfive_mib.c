@@ -297,7 +297,7 @@ uns32 ncstesttablefiveentry_set(NCSCONTEXT cb,
    uns8                create_flag = FALSE;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableFiveEntry:  Received SNMP SET request\n");
+   printf("\nncsTestTableFiveEntry:  Received SNMP SET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
 
@@ -435,7 +435,7 @@ uns32  ncstesttablefiveentry_get(NCSCONTEXT cb,
    uns32         ret_code = NCSCC_RC_SUCCESS;
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableFiveEntry:  Received SNMP GET request\n");
+   printf("\nncsTestTableFiveEntry:  Received SNMP GET request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    
@@ -473,7 +473,7 @@ uns32 ncstesttablefiveentry_next(NCSCONTEXT snmptm,
    uns32         ret_code = NCSCC_RC_SUCCESS;
  
   
-   m_NCS_CONS_PRINTF("\nncsTestTableFiveEntry:  Received SNMP NEXT request\n");
+   printf("\nncsTestTableFiveEntry:  Received SNMP NEXT request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    
@@ -515,7 +515,7 @@ uns32 ncstesttablefiveentry_setrow(NCSCONTEXT cb,
    NCSMIBLIB_REQ_INFO  temp_mib_req;   
 
 
-   m_NCS_CONS_PRINTF("\nncsTestTableFiveEntry: Received SNMP SETROW request\n");
+   printf("\nncsTestTableFiveEntry: Received SNMP SETROW request\n");
    /* Pretty print the contents of NCSMIB_ARG */
    ncsmib_pp(arg); 
    

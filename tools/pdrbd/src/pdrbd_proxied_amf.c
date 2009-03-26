@@ -220,7 +220,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
       pseudoCB.proxied_info[compNo].script_status_array[PDRBD_PRI_ROLE_ASSIGN_CB].invocation = invocation;
 
       /* Put the DRBD in Primary state */
-      sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_pri", compNo,
+      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_pri", compNo,
                      pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
                      pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
                      pseudoCB.proxied_info[compNo].metaDisk);
@@ -253,7 +253,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
       pseudoCB.proxied_info[compNo].script_status_array[PDRBD_SEC_ROLE_ASSIGN_CB].invocation = invocation;
 
       /* Put the DRBD in Secondary state */
-      sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_sec", compNo,
+      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_sec", compNo,
                      pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
                      pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
                      pseudoCB.proxied_info[compNo].metaDisk);
@@ -286,7 +286,7 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
       pseudoCB.proxied_info[compNo].script_status_array[PDRBD_QUI_ROLE_ASSIGN_CB].invocation = invocation;
 
       /* Put the DRBD in Secondary state */
-      sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_qui", compNo,
+      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_qui", compNo,
                      pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
                      pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
                      pseudoCB.proxied_info[compNo].metaDisk);
@@ -356,7 +356,7 @@ void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *c
    pseudoCB.proxied_info[compNo].script_status_array[PDRBD_REMOVE_CB].invocation = invocation;
 
    /* Terminate (cleanup) the DRBD */
-   sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "remove", compNo,
+   sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "remove", compNo,
                   pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
                   pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
                   pseudoCB.proxied_info[compNo].metaDisk);
@@ -412,7 +412,7 @@ void pdrbdProxiedAmfTerminateCallback(SaInvocationT invocation, const SaNameT *c
    pseudoCB.proxied_info[compNo].script_status_array[PDRBD_TERMINATE_CB].invocation = invocation;
 
    /* Terminate (cleanup) the DRBD */
-   sysf_sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "terminate", compNo,
+   sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "terminate", compNo,
                   pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
                   pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
                   pseudoCB.proxied_info[compNo].metaDisk);

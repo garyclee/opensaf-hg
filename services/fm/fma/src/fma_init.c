@@ -351,7 +351,7 @@ static void fma_main_proc( uns32 *fma_init_hdl)
       temp_sel_obj_set = cb->sel_obj;
    }
     
-   m_NCS_SYSLOG(NCS_LOG_INFO, "Exiting from FMA Thread. \n");
+   syslog(LOG_INFO, "Exiting from FMA Thread. \n");
 
    return ;
 }
@@ -387,11 +387,11 @@ uns32 fma_lib_req(NCS_LIB_REQ_INFO *req_info)
    case NCS_LIB_REQ_DESTROY:
         rc = fma_destroy(&req_info->info.destroy);
         if (rc == NCSCC_RC_SUCCESS)
-           m_NCS_CONS_PRINTF("FMA Destroy Success\n");
+           printf("FMA Destroy Success\n");
         else
         {
            m_FMA_LOG_SEAPI(FMA_LOG_SEAPI_DESTROY,FMA_LOG_SEAPI_FAILURE,NCSFL_SEV_CRITICAL);
-           m_NCS_CONS_PRINTF("FMA Destroy Failure\n");
+           printf("FMA Destroy Failure\n");
         }
         break;
           
@@ -597,7 +597,7 @@ static uns32 fma_destroy (NCS_LIB_DESTROY *destroy_info)
 
    if(!lib_use_count)
    {
-      m_NCS_CONS_PRINTF("\nFMA library not yet created...! \n");
+      printf("\nFMA library not yet created...! \n");
       return NCSCC_RC_FAILURE;
    }
     
@@ -616,7 +616,7 @@ static uns32 fma_destroy (NCS_LIB_DESTROY *destroy_info)
    
    /* Finalize the hpl library */
    if (fma_hpl_finalize() != NCSCC_RC_SUCCESS)
-      m_NCS_CONS_PRINTF("Hpl library finalize failed\n");
+      printf("Hpl library finalize failed\n");
 
    /** Free all rec and destroy hdl-db patricia tree **/
    fma_hdl_db_del(cb);
@@ -702,7 +702,7 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
 
    if ((rc == NCSCC_RC_SUCCESS) && (temp_epath.Entry[0].EntityType != 0)) {
 
-       m_NCS_CONS_PRINTF("HPL lookup of entity path successful\n");
+       printf("HPL lookup of entity path successful\n");
        /* Copy the epath dynamically obtained from HPL<->HISV<->HPI */
       o_ent_path->Entry[count].EntityType = temp_epath.Entry[0].EntityType;
       o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)temp_epath.Entry[0].EntityLocation;
@@ -794,7 +794,7 @@ static uns32 fma_hpl_init(void)
    rc = ncs_hpl_lib_req(&req_info);
    if (rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("hpl lib init failed\n ");
+      printf("hpl lib init failed\n ");
       return rc;
    }
 

@@ -94,11 +94,11 @@ static void saMsgQueueOpenCallback(SaInvocationT invocation,
 {
    if(error == SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("Queue Open Callback Success - queueHandle %llu \n",queueHandle);
-      m_NCS_CONS_PRINTF("Invocation - %llu\n", invocation);
+      printf("Queue Open Callback Success - queueHandle %llu \n",queueHandle);
+      printf("Invocation - %llu\n", invocation);
    }
    else
-      m_NCS_CONS_PRINTF("Queue Open Callback Failed. Invocation - %llu,  Error - %u \n",invocation, error); 
+      printf("Queue Open Callback Failed. Invocation - %llu,  Error - %u \n",invocation, error); 
 }
 
 /****************************************************************************
@@ -120,10 +120,10 @@ static void saMsgMessageDeliveredCallback(SaInvocationT invocation, SaAisErrorT 
 {
    if(error == SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF(" Message delivered Callback Success - invocation %llu  \n",invocation);
+      printf(" Message delivered Callback Success - invocation %llu  \n",invocation);
    }
    else
-      m_NCS_CONS_PRINTF(" Message delivered Callback - invocation %llu,  error %u \n", invocation, error);
+      printf(" Message delivered Callback - invocation %llu,  error %u \n", invocation, error);
 }
 
 /****************************************************************************
@@ -150,7 +150,7 @@ static void saMsgMessageReceivedCallback(SaMsgQueueHandleT queueHandle)
  SaAisErrorT rc;
  int32 i;
 
- m_NCS_CONS_PRINTF(" \n\nMessage Received Callback  invoked with Queue Handle - %llu \n",queueHandle );
+ printf(" \n\nMessage Received Callback  invoked with Queue Handle - %llu \n",queueHandle );
 
  memset(&receive_message, '\0', sizeof(receive_message));
 
@@ -164,17 +164,17 @@ static void saMsgMessageReceivedCallback(SaMsgQueueHandleT queueHandle)
 
  if (rc != SA_AIS_OK)
   {
-   m_NCS_CONS_PRINTF("saMsgMessageReceivedGet failed with rc - %d\n", rc);
+   printf("saMsgMessageReceivedGet failed with rc - %d\n", rc);
    return;
   }
 
- m_NCS_CONS_PRINTF("Received Message\n");
- m_NCS_CONS_PRINTF("-------------------\n");
+ printf("Received Message\n");
+ printf("-------------------\n");
 
  for(i=0;i<receive_message.size;i++)
-   m_NCS_CONS_PRINTF("%c", (((char *)(receive_message.data))[i])); 
+   printf("%c", (((char *)(receive_message.data))[i])); 
 
- m_NCS_CONS_PRINTF("\n\n");
+ printf("\n\n");
 }
 
 /****************************************************************************
@@ -211,13 +211,13 @@ void message_send_sync(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#1:Sending Messages via Sync API - saMsgMessageSend START\n\n");
+  printf("\nSCENARIO#1:Sending Messages via Sync API - saMsgMessageSend START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
     return;
    }
 
@@ -225,70 +225,70 @@ void message_send_sync(void)
 
   queueName.length = strlen(queueName.value);
 
-  m_NCS_CONS_PRINTF(" Sending Message0 using saMsgMessageSend()...");
+  printf(" Sending Message0 using saMsgMessageSend()...");
 
   rc = saMsgMessageSend(msgHandle, &queueName, &message[0], timeout); 
 
   if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSend0 failed with rc - %d\n", rc);
+     printf("saMsgMessageSend0 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-  m_NCS_CONS_PRINTF("success.\n"); 
-  m_NCS_CONS_PRINTF(" Sending Message1 using saMsgMessageSend...");
+  printf("success.\n"); 
+  printf(" Sending Message1 using saMsgMessageSend...");
 
   rc = saMsgMessageSend(msgHandle, &queueName, &message[1], timeout);
 
   if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSend1 failed with rc - %d\n", rc);
+     printf("saMsgMessageSend1 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF(" Sending Message2 using saMsgMessageSend...");
+   printf("success.\n"); 
+   printf(" Sending Message2 using saMsgMessageSend...");
 
    rc = saMsgMessageSend(msgHandle, &queueName, &message[2], timeout);
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSend2 failed with rc - %d\n", rc);
+     printf("saMsgMessageSend2 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF(" Sending Message3 using saMsgMessageSend...");
+   printf("success.\n"); 
+   printf(" Sending Message3 using saMsgMessageSend...");
 
    rc = saMsgMessageSend(msgHandle, &queueName, &message[3], timeout);
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSend3 failed with rc - %d\n", rc);
+     printf("saMsgMessageSend3 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF(" Sending Message4 using saMsgMessageSend...");
+   printf("success.\n"); 
+   printf(" Sending Message4 using saMsgMessageSend...");
 
    rc = saMsgMessageSend(msgHandle, &queueName, &message[4], timeout);
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSend4 failed with rc - %d\n", rc);
+     printf("saMsgMessageSend4 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF("SCENARIO#1:Sending Messages via Sync API - saMsgMessageSend END\n");
-   m_NCS_CONS_PRINTF(" \n\n\n");
+   printf("success.\n"); 
+   printf("SCENARIO#1:Sending Messages via Sync API - saMsgMessageSend END\n");
+   printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -333,13 +333,13 @@ void message_send_async(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync START\n\n");
+  printf("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
        return;
    }
 
@@ -349,7 +349,7 @@ void message_send_async(void)
 
   if (rc != NCSCC_RC_SUCCESS)
   {
-   m_NCS_CONS_PRINTF("failed to create thread\n");
+   printf("failed to create thread\n");
    goto finalize;
   }
 
@@ -357,7 +357,7 @@ void message_send_async(void)
 
   if (rc != NCSCC_RC_SUCCESS)
   {
-   m_NCS_CONS_PRINTF("failed to start thread\n");
+   printf("failed to start thread\n");
    goto finalize;
   }
 
@@ -367,22 +367,22 @@ void message_send_async(void)
    ackFlags = 0;
    invocation=1;
 
-   m_NCS_CONS_PRINTF(" Sending Message0 using saMsgMessageSendAsync...");
+   printf(" Sending Message0 using saMsgMessageSendAsync...");
 
    rc = saMsgMessageSendAsync(msgHandle, invocation,  &queueName, 
                               &message[0], ackFlags); 
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendAsync0 failed with rc - %d\n", rc);
+     printf("saMsgMessageSendAsync0 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
+   printf("success.\n"); 
 
    ackFlags = 0;
 
-   m_NCS_CONS_PRINTF(" Sending Message1 using saMsgMessageSendAsync...");
+   printf(" Sending Message1 using saMsgMessageSendAsync...");
 
    invocation=2;
 
@@ -391,12 +391,12 @@ void message_send_async(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendAsync1 failed with rc - %d\n", rc);
+     printf("saMsgMessageSendAsync1 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF(" Sending Message2 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=3...");
+   printf("success.\n"); 
+   printf(" Sending Message2 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=3...");
 
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
    ackFlags = 0;
@@ -407,53 +407,53 @@ void message_send_async(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendAsync2 failed with rc - %d\n", rc);
+     printf("saMsgMessageSendAsync2 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
+   printf("success.\n"); 
 
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
    ackFlags = 0;
    invocation=4;
 
-   m_NCS_CONS_PRINTF(" Sending Message3 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=4...");
+   printf(" Sending Message3 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=4...");
 
    rc = saMsgMessageSendAsync(msgHandle, invocation,  &queueName, 
                               &message[3], ackFlags); 
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendAsync3 failed with rc - %d\n", rc);
+     printf("saMsgMessageSendAsync3 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
+   printf("success.\n"); 
 
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
    ackFlags = 0;
    invocation=5;
 
-   m_NCS_CONS_PRINTF(" Sending Message4 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=5..");
+   printf(" Sending Message4 using saMsgMessageSendAsync with SA_MSG_MESSAGE_DELIVERED_ACK set and invocation=5..");
    rc = saMsgMessageSendAsync(msgHandle, invocation,  &queueName, 
                               &message[4], ackFlags); 
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendAsync4 failed with rc - %d\n", rc);
+     printf("saMsgMessageSendAsync4 failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync END\n");
-   m_NCS_CONS_PRINTF(" \n\n\n");
+   printf("success.\n"); 
+   printf("\nSCENARIO#2:Sending Messages via Async API - saMsgMessageSendAsync END\n");
+   printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 
@@ -498,13 +498,13 @@ void message_send_receive(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive START \n\n");
+  printf("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive START \n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
       return;
    }
 
@@ -512,7 +512,7 @@ void message_send_receive(void)
 
    queueName.length = strlen(queueName.value);
 
-   m_NCS_CONS_PRINTF(" Sending Message using saMsgMessageSendReceive()...");
+   printf(" Sending Message using saMsgMessageSendReceive()...");
 
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
    receive_msg.senderName = &name;
@@ -523,20 +523,20 @@ void message_send_receive(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendReceive failed with rc - %d\n", rc);
+     printf("saMsgMessageSendReceive failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive END\n");
-   m_NCS_CONS_PRINTF(" \n\n\n");
+   printf("success.\n"); 
+   printf("\nSCENARIO#3:Sending & Receiving Messages via Sync API - saMsgMessageSendReceive END\n");
+   printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -580,12 +580,12 @@ void message_send_receive_a(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
   
-  m_NCS_CONS_PRINTF("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive \n");
+  printf("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive \n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
       return;
    }
 
@@ -594,7 +594,7 @@ void message_send_receive_a(void)
    queueName.length = strlen(queueName.value);
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
 
-   m_NCS_CONS_PRINTF(" Sending Message using saMsgMessageSendReceive()...");
+   printf(" Sending Message using saMsgMessageSendReceive()...");
 
    receive_msg.senderName = &name;
    receive_msg.data =NULL;
@@ -604,20 +604,20 @@ void message_send_receive_a(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageSendReceive failed with rc - %d\n", rc);
+     printf("saMsgMessageSendReceive failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("success.\n"); 
-   m_NCS_CONS_PRINTF("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive END \n");
-   m_NCS_CONS_PRINTF(" \n\n\n");
+   printf("success.\n"); 
+   printf("\nSCENARIO#4:Sending & Receiving Messages via Async API - saMsgMessageSendReceive END \n");
+   printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -658,13 +658,13 @@ void message_rcv_sync(void)
  version.majorVersion = 1;
  version.minorVersion = 1;
 
- m_NCS_CONS_PRINTF("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet START\n\n");
+ printf("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet START\n\n");
 
  rc = saMsgInitialize(&msgHandle,NULL,&version); 
 
  if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
     return;
    }
 
@@ -687,21 +687,21 @@ void message_rcv_sync(void)
 
  if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgQueueOpen failed with rc - %d\n", rc);
+     printf("saMsgQueueOpen failed with rc - %d\n", rc);
      goto finalize;
    }
 
- m_NCS_CONS_PRINTF("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+ printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 /* retention time set test */
  newRetentionTime = 20000000000ll;
  rc = saMsgQueueRetentionTimeSet(queue_handle, &newRetentionTime); 
  
  if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgQueueRetentionTimeSet failed with rc - %d\n", rc);
+     printf("saMsgQueueRetentionTimeSet failed with rc - %d\n", rc);
      goto finalize;
    }
- m_NCS_CONS_PRINTF("Retention time set function passed \n");
+ printf("Retention time set function passed \n");
 
  for (i=0;i< NUM_MESSAGES_SENT; i++)
    {
@@ -709,7 +709,7 @@ void message_rcv_sync(void)
     receive_message.data = data;
     receive_message.size = message[i].size ;
 
-    m_NCS_CONS_PRINTF("Reading the message using saMsgMessageGet()\n");
+    printf("Reading the message using saMsgMessageGet()\n");
 
     memset(&sendTime, '\0', sizeof(sendTime));
     memset(&senderId, '\0', sizeof(senderId));
@@ -718,29 +718,29 @@ void message_rcv_sync(void)
 
     if (rc != SA_AIS_OK)
      {
-      m_NCS_CONS_PRINTF("saMsgMessageGet failed with rc - %d\n", rc);
+      printf("saMsgMessageGet failed with rc - %d\n", rc);
       goto api_error;
      }
 
-    m_NCS_CONS_PRINTF("\nReceived message%d\n", i);
-    m_NCS_CONS_PRINTF("-------------------\n");
+    printf("\nReceived message%d\n", i);
+    printf("-------------------\n");
 
     for (j=0; j<receive_message.size;j++)
       {
-       m_NCS_CONS_PRINTF("%c", (((char *)(receive_message.data))[j])); 
+       printf("%c", (((char *)(receive_message.data))[j])); 
       }
             
-    m_NCS_CONS_PRINTF("\nmessage%d info \n",i);
-    m_NCS_CONS_PRINTF("------------- \n");
-    m_NCS_CONS_PRINTF("send time - %lld\n", sendTime);
-    m_NCS_CONS_PRINTF("sender id - %llu\n", senderId);
+    printf("\nmessage%d info \n",i);
+    printf("------------- \n");
+    printf("send time - %lld\n", sendTime);
+    printf("sender id - %llu\n", senderId);
    }
 
  rc = saMsgQueueClose(queue_handle);
 
  if(rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("saMsgQueueClose failed with rc - %d\n", rc);
+    printf("saMsgQueueClose failed with rc - %d\n", rc);
     goto api_error;
    }
 
@@ -749,19 +749,19 @@ api_error:
 
  if(rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("saMsgQueueUnlink failed with rc - %d\n", rc);
+    printf("saMsgQueueUnlink failed with rc - %d\n", rc);
     goto finalize;
    }
 
- m_NCS_CONS_PRINTF("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet END\n");
- m_NCS_CONS_PRINTF(" \n\n\n");
+ printf("\nSCENARIO#1: Receiving messages via Sync API - saMsgMessageGet END\n");
+ printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -808,13 +808,13 @@ void message_rcv_async(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch START\n\n");
+  printf("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch START\n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-     m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+     printf(" Error Initialising saMsgInitialize with error - %d", rc);
      return;
    }
 
@@ -831,23 +831,23 @@ void message_rcv_async(void)
 
   open_flags = SA_MSG_QUEUE_RECEIVE_CALLBACK| SA_MSG_QUEUE_CREATE; 
 
-  m_NCS_CONS_PRINTF("Open Flags - SA_MSG_QUEUE_SELECTION_OBJECT_SET\n");
+  printf("Open Flags - SA_MSG_QUEUE_SELECTION_OBJECT_SET\n");
 
   rc = saMsgQueueOpen(msgHandle,  &queueName, &creation_attributes, open_flags, timeout, &queue_handle);
 
   if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("saMsgQueueOpen failed with rc - %d\n", rc);
+    printf("saMsgQueueOpen failed with rc - %d\n", rc);
     goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+   printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
    rc = saMsgSelectionObjectGet(msgHandle, &selection_object);
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("Error Getting Selection Object - %d", rc);
+     printf("Error Getting Selection Object - %d", rc);
      goto api_error;
    }
 
@@ -857,24 +857,24 @@ void message_rcv_async(void)
 
    for (num_messages=0;num_messages <5;num_messages++)
    {
-       m_NCS_CONS_PRINTF("\nWaiting on Select...\n");
+       printf("\nWaiting on Select...\n");
 
        sel_rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
 
        if (sel_rc < 1)
        {
-         m_NCS_CONS_PRINTF("Select failed\n");
+         printf("Select failed\n");
          goto api_error;
        }
 
        if (m_NCS_SEL_OBJ_ISSET(sel_obj, &io_readfds) )
        {
-            m_NCS_CONS_PRINTF("Dispatching the notification using saMsgDispatch\n");
+            printf("Dispatching the notification using saMsgDispatch\n");
 
             rc = saMsgDispatch(msgHandle, SA_DISPATCH_ONE);
 
             if (rc != SA_AIS_OK)
-                m_NCS_CONS_PRINTF("Dispatch failed\n");
+                printf("Dispatch failed\n");
 
        }
    }
@@ -886,19 +886,19 @@ api_error:
 
    if (rc != SA_AIS_OK)
      {
-      m_NCS_CONS_PRINTF("saMsgQueueUnlink failed with rc - %d\n", rc);
+      printf("saMsgQueueUnlink failed with rc - %d\n", rc);
       goto finalize;
      }
 
-   m_NCS_CONS_PRINTF("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch END\n");
-   m_NCS_CONS_PRINTF(" \n\n\n");
+   printf("\nSCENARIO#2: Receiving messages via Async API - m_NCS_OS_SEL_OBJ_SELECT and saMsgDispatch END\n");
+   printf(" \n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -946,13 +946,13 @@ void message_reply_sync(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#3:Replying Messages via Sync API - saMsgMessageReply START \n\n");
+  printf("\nSCENARIO#3:Replying Messages via Sync API - saMsgMessageReply START \n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
       return;
    }
 
@@ -973,11 +973,11 @@ void message_reply_sync(void)
 
   if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgQueueOpen failed with rc - %d\n",  rc);
+     printf("saMsgQueueOpen failed with rc - %d\n",  rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+   printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
    memset(&receive_message, '\0', sizeof(receive_message));
    receive_message.data = data;
@@ -990,64 +990,64 @@ void message_reply_sync(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgMessageGet failed with rc - %d\n", rc);
+     printf("saMsgMessageGet failed with rc - %d\n", rc);
      goto api_error;
    }
 
-   m_NCS_CONS_PRINTF("\nReceived message\n");
+   printf("\nReceived message\n");
 
-   m_NCS_CONS_PRINTF("-------------------\n");
+   printf("-------------------\n");
 
    for (j=0; j<receive_message.size;j++)
       {
-       m_NCS_CONS_PRINTF("%c", (((char *)(receive_message.data))[j])); 
+       printf("%c", (((char *)(receive_message.data))[j])); 
       }
 
-   m_NCS_CONS_PRINTF("\nmessage info \n");
-   m_NCS_CONS_PRINTF("------------- \n");
-   m_NCS_CONS_PRINTF("send time - %lld\n", sendTime);
-   m_NCS_CONS_PRINTF("sender id - %llu\n", senderId);
+   printf("\nmessage info \n");
+   printf("------------- \n");
+   printf("send time - %lld\n", sendTime);
+   printf("sender id - %llu\n", senderId);
 
    ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
 
    /* In B.1.1 the struct SaMsgMessageInfoT is obsolate */
    if (senderId)
    {
-    m_NCS_CONS_PRINTF("Received a  message with sendReceive Flags set to TRUE\n");
-    m_NCS_CONS_PRINTF("Replying to the sender using saMsgMessageReply\n");
+    printf("Received a  message with sendReceive Flags set to TRUE\n");
+    printf("Replying to the sender using saMsgMessageReply\n");
 
     rc = saMsgMessageReply(msgHandle, &receive_message, &senderId, timeout);
 
     if (rc != SA_AIS_OK)
        {
-        m_NCS_CONS_PRINTF("saMsgMessageReply failed with rc - %d\n", rc);
+        printf("saMsgMessageReply failed with rc - %d\n", rc);
         goto api_error;
        }
 
-    m_NCS_CONS_PRINTF("saMsgMessageReply success\n");
+    printf("saMsgMessageReply success\n");
    }
 
    else
-     m_NCS_CONS_PRINTF("sendReceive Flag not set to SA_TRUE in the received message. No Reply sent\n");
+     printf("sendReceive Flag not set to SA_TRUE in the received message. No Reply sent\n");
 
 api_error:
    rc = saMsgQueueUnlink(msgHandle, &queueName); 
 
    if (rc != SA_AIS_OK)
     {
-     m_NCS_CONS_PRINTF("saMsgQueueUnlink failed with rc - %d\n", rc);
+     printf("saMsgQueueUnlink failed with rc - %d\n", rc);
      goto finalize;
     }
 
-   m_NCS_CONS_PRINTF("\nSCENARIO#3:Replying Messages via Sync API - saMsgMessageReply END \n");
-   m_NCS_CONS_PRINTF("\n\n\n");
+   printf("\nSCENARIO#3:Replying Messages via Sync API - saMsgMessageReply END \n");
+   printf("\n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }
@@ -1098,13 +1098,13 @@ void message_reply_async(void)
   version.majorVersion = 1;
   version.minorVersion = 1;
 
-  m_NCS_CONS_PRINTF("\nSCENARIO#4:Replying Messages via Async API - saMsgMessageReplyAsync START \n\n");
+  printf("\nSCENARIO#4:Replying Messages via Async API - saMsgMessageReplyAsync START \n\n");
 
   rc = saMsgInitialize(&msgHandle,&callbk,&version); 
 
   if ( rc != SA_AIS_OK ) 
    {
-    m_NCS_CONS_PRINTF(" Error Initialising saMsgInitialize with error - %d", rc);
+    printf(" Error Initialising saMsgInitialize with error - %d", rc);
     return;
    }
 
@@ -1125,11 +1125,11 @@ void message_reply_async(void)
 
   if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("saMsgQueueOpen failed with rc - %d\n", rc);
+    printf("saMsgQueueOpen failed with rc - %d\n", rc);
     goto finalize;
    }
 
-  m_NCS_CONS_PRINTF("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
+  printf("Opening message queue with params: Queue Name - %s,creation flags %lu, size - %llu, retention time - %lld\n",queueName.value, creation_attributes.creationFlags, creation_attributes.size[0], creation_attributes.retentionTime);
 
   memset(&receive_message, '\0', sizeof(receive_message));
 
@@ -1143,43 +1143,43 @@ void message_reply_async(void)
 
   if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("saMsgMessageGet failed with rc - %d\n", rc);
+    printf("saMsgMessageGet failed with rc - %d\n", rc);
     goto api_error;
    }
 
-  m_NCS_CONS_PRINTF("\nReceived message\n");
-  m_NCS_CONS_PRINTF("-------------------\n");
+  printf("\nReceived message\n");
+  printf("-------------------\n");
 
   for(j=0; j<receive_message.size;j++)
      {
-      m_NCS_CONS_PRINTF("%c", (((char *)(receive_message.data))[j])); 
+      printf("%c", (((char *)(receive_message.data))[j])); 
      }
 
-  m_NCS_CONS_PRINTF("\nmessage info \n");
-  m_NCS_CONS_PRINTF("------------- \n");
-  m_NCS_CONS_PRINTF("send time - %lld\n", sendTime);
-  m_NCS_CONS_PRINTF("sender id - %llu\n", senderId);
+  printf("\nmessage info \n");
+  printf("------------- \n");
+  printf("send time - %lld\n", sendTime);
+  printf("sender id - %llu\n", senderId);
 
   ackFlags = SA_MSG_MESSAGE_DELIVERED_ACK;
 
   /* SaMsgMessageInfoT is deleted in B-Spec */
   if (senderId)
    {
-     m_NCS_CONS_PRINTF("Received a  message with sendReceive Flags set to TRUE\n");
-     m_NCS_CONS_PRINTF("Replying to the sender using saMsgMessageReplyAsync\n");
+     printf("Received a  message with sendReceive Flags set to TRUE\n");
+     printf("Replying to the sender using saMsgMessageReplyAsync\n");
 
      rc = saMsgMessageReplyAsync(msgHandle, invocation, &receive_message, &senderId, ackFlags);
 
      if (rc != SA_AIS_OK)
       {
-        m_NCS_CONS_PRINTF("saMsgMessageReplyAsync failed with rc - %d\n", rc);
+        printf("saMsgMessageReplyAsync failed with rc - %d\n", rc);
         goto api_error;
       }
 
-      m_NCS_CONS_PRINTF("saMsgMessageReplyAsync success\n");
+      printf("saMsgMessageReplyAsync success\n");
    }
    else
-     m_NCS_CONS_PRINTF("sendReceive Flag not set to SA_TRUE in the received message. No Reply sent\n");
+     printf("sendReceive Flag not set to SA_TRUE in the received message. No Reply sent\n");
 
    sleep(100);
 
@@ -1187,7 +1187,7 @@ void message_reply_async(void)
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgQueueClose failed with rc - %d\n", rc);
+     printf("saMsgQueueClose failed with rc - %d\n", rc);
      goto api_error;
    }
 
@@ -1196,19 +1196,19 @@ api_error:
 
    if (rc != SA_AIS_OK)
    {
-     m_NCS_CONS_PRINTF("saMsgQueueUnlink failed with rc - %d\n", rc);
+     printf("saMsgQueueUnlink failed with rc - %d\n", rc);
      goto finalize;
    }
 
-   m_NCS_CONS_PRINTF("\nSCENARIO#4:Replying Messages via Async API - saMsgMessageReplyAsync END \n");
-   m_NCS_CONS_PRINTF("\n\n\n");
+   printf("\nSCENARIO#4:Replying Messages via Async API - saMsgMessageReplyAsync END \n");
+   printf("\n\n\n");
 
 finalize:
    rc = saMsgFinalize(msgHandle);
 
    if (rc != SA_AIS_OK)
    {
-    m_NCS_CONS_PRINTF("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
+    printf("Error in Finalize: saMsgFinalize failed with rc - %d\n", rc);
     return;
    }
 }

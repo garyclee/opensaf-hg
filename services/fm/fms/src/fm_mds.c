@@ -198,7 +198,7 @@ static uns32 fm_mds_callback (NCSMDS_CALLBACK_INFO *info)
 
     if (info == NULL)
     {
-       m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_callback: Invalid param info\n");
+       syslog(LOG_INFO,"fm_mds_callback: Invalid param info\n");
        return NCSCC_RC_SUCCESS;
     }
     
@@ -206,7 +206,7 @@ static uns32 fm_mds_callback (NCSMDS_CALLBACK_INFO *info)
     cb =(FM_CB *) ncshm_take_hdl(NCS_SERVICE_ID_GFM, cb_hdl);
     if (cb == NULL)
     {
-       m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_callback: CB retrieve failed\n");
+       syslog(LOG_INFO,"fm_mds_callback: CB retrieve failed\n");
        return NCSCC_RC_SUCCESS;
     }
     
@@ -272,7 +272,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
       
    if (NULL == svc_evt)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_svc_evt: svc_evt NULL.\n");
+      syslog(LOG_INFO,"fm_mds_svc_evt: svc_evt NULL.\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -293,7 +293,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
            break;
 
        default:
-           m_NCS_SYSLOG(NCS_LOG_INFO,"Wrong MDS DOWN event type\n");
+           syslog(LOG_INFO,"Wrong MDS DOWN event type\n");
            break;
        }
        break;  
@@ -318,7 +318,7 @@ static uns32 fm_mds_svc_evt(FM_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
        break;
 
    default:
-       m_NCS_SYSLOG(NCS_LOG_INFO,"Wrong MDS event\n");
+       syslog(LOG_INFO,"Wrong MDS event\n");
        break;
    }
 
@@ -346,14 +346,14 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
    if (NULL == rcv_info)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_rcv_evt: rcv_info NULL.\n");
+      syslog(LOG_INFO,"fm_mds_rcv_evt: rcv_info NULL.\n");
       return NCSCC_RC_FAILURE;
    }
 
    fm_evt = m_MMGR_ALLOC_FM_EVT;
    if( NULL == fm_evt )
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_rcv_evt: fm_evt allocation FAILED.\n");
+      syslog(LOG_INFO,"fm_mds_rcv_evt: fm_evt allocation FAILED.\n");
       return NCSCC_RC_FAILURE;
    }
          
@@ -403,7 +403,7 @@ static uns32 fm_mds_rcv_evt(FM_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
           break;
                                 
       default:
-          m_NCS_SYSLOG(NCS_LOG_INFO,"Wrong MDS event from GFM.\n");
+          syslog(LOG_INFO,"Wrong MDS event from GFM.\n");
           return_val = NCSCC_RC_FAILURE;
           break;
       }
@@ -484,7 +484,7 @@ uns32 fm_mds_sync_send(FM_CB *fm_cb, NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
    }
    else
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_sync_send: mds_ctxt NULL\n");
+      syslog(LOG_INFO,"fm_mds_sync_send: mds_ctxt NULL\n");
       return NCSCC_RC_FAILURE;
    }
     
@@ -544,13 +544,13 @@ uns32 fm_mds_async_send(FM_CB *fm_cb,NCSCONTEXT msg, NCSMDS_SVC_ID svc_id,
       return_val = ncsmds_api(&info);
       if (NCSCC_RC_FAILURE == return_val)
       {
-         m_NCS_SYSLOG(NCS_LOG_INFO,"fms async send failed \n");
+         syslog(LOG_INFO,"fms async send failed \n");
       }
    }
    else
    {
       return_val = NCSCC_RC_FAILURE;
-      m_NCS_SYSLOG(NCS_LOG_INFO,"fm_mds_async_send: MDS Send fail: alt gfm NOT UP/Invalid svc id.\n");
+      syslog(LOG_INFO,"fm_mds_async_send: MDS Send fail: alt gfm NOT UP/Invalid svc id.\n");
    }
 
    return return_val;
@@ -579,7 +579,7 @@ static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 
       if (enc_info->o_msg_fmt_ver < FM_FM_MSG_FMT_VER_1)
       {
-         m_NCS_SYSLOG(NCS_LOG_INFO,"fm_encode: MSG FMT VER from GFM mis-match\n"); 
+         syslog(LOG_INFO,"fm_encode: MSG FMT VER from GFM mis-match\n"); 
          return NCSCC_RC_FAILURE;
       }
 
@@ -594,14 +594,14 @@ static uns32 fm_encode(MDS_CALLBACK_ENC_INFO *enc_info)
 
       if (enc_info->o_msg_fmt_ver < FM_FMA_MSG_FMT_VER_1)
       {
-          m_NCS_SYSLOG(NCS_LOG_INFO,"fm_encode: MSG FMT VER from FMA mis-match\n"); 
+          syslog(LOG_INFO,"fm_encode: MSG FMT VER from FMA mis-match\n"); 
           return NCSCC_RC_FAILURE;
       }
             
       return fma_fm_mds_enc(enc_info);
    }
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_encode: MDS MSG neither to FMA nor to GFM.\n");
+   syslog(LOG_INFO,"fm_encode: MDS MSG neither to FMA nor to GFM.\n");
 
    return NCSCC_RC_SUCCESS;
 }
@@ -627,7 +627,7 @@ static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
                                  FM_SUBPART_VER_MAX,
                                  fm_fm_msg_fmt_map_table))
       {
-         m_NCS_SYSLOG(NCS_LOG_INFO,"fm_decode: MSG FMT VER from GFM mis-match\n");
+         syslog(LOG_INFO,"fm_decode: MSG FMT VER from GFM mis-match\n");
          return NCSCC_RC_FAILURE;
       }
 
@@ -640,14 +640,14 @@ static uns32 fm_decode(MDS_CALLBACK_DEC_INFO *dec_info)
                         FM_SUBPART_VER_MAX,
                         fm_fma_msg_fmt_map_table))
       {
-         m_NCS_SYSLOG(NCS_LOG_INFO,"fm_decode: MSG FMT VER from FMA mis-match\n");
+         syslog(LOG_INFO,"fm_decode: MSG FMT VER from FMA mis-match\n");
          return NCSCC_RC_FAILURE;
       }
 
       return fma_fm_mds_dec(dec_info);
         
    }
-   m_NCS_SYSLOG(NCS_LOG_INFO,"fm_decode: MDS MSG neither from FMA nor from GFM.\n");
+   syslog(LOG_INFO,"fm_decode: MDS MSG neither from FMA nor from GFM.\n");
 
    return NCSCC_RC_SUCCESS;
 }
@@ -700,7 +700,7 @@ static uns32 fm_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
        break;
 
    default:
-       m_NCS_SYSLOG(NCS_LOG_INFO,"fm_fm_mds_enc: Invalid msg type for encode.\n");
+       syslog(LOG_INFO,"fm_fm_mds_enc: Invalid msg type for encode.\n");
        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
        break;
    }
@@ -762,7 +762,7 @@ static uns32 fm_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
        break;
 
    default:
-       m_NCS_SYSLOG(NCS_LOG_INFO,"fm_fm_mds_dec: Invalid msg for decoding.\n");
+       syslog(LOG_INFO,"fm_fm_mds_dec: Invalid msg for decoding.\n");
        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
        break;
    }

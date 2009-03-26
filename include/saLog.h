@@ -49,10 +49,10 @@ extern "C" {
 typedef SaUint64T SaLogHandleT;
 typedef SaUint64T SaLogStreamHandleT;
 
-/* Well known distinguished names (DNs) for cluster wide log streams */
-#define SA_LOG_STREAM_SYSTEM            "safLgStrCfg=saLogSystem,safApp=safLogService"
-#define SA_LOG_STREAM_NOTIFICATION      "safLgStrCfg=saLogNotification,safApp=safLogService"
-#define SA_LOG_STREAM_ALARM             "safLgStrCfg=saLogAlarm,safApp=safLogService"
+/* Well-known log stream names */
+#define SA_LOG_STREAM_SYSTEM            "safLgStr=saLogSystem"
+#define SA_LOG_STREAM_NOTIFICATION      "safLgStr=saLogNotification"
+#define SA_LOG_STREAM_ALARM             "safLgStr=saLogAlarm"
 
 /* The Log severity level FLAGS */
 #define SA_LOG_SEV_EMERGENCY  0

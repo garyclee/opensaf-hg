@@ -29,6 +29,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hcd.h"
 
 /* local function declaration */
@@ -85,7 +87,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
     {"BATTERY",                    SAHPI_ENT_BATTERY},
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
     {"CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
     {"BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
     {"OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
@@ -110,7 +112,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"ALARM_MANAGER_BLADE",        SAHPI_ENT_ALARM_MANAGER_BLADE},
     {"SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE}
 #else
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"RESERVED_1",                 SAHPI_ENT_RESERVED_1},
     {"RESERVED_2",                 SAHPI_ENT_RESERVED_2},
     {"RESERVED_3",                 SAHPI_ENT_RESERVED_3},
@@ -158,7 +160,7 @@ static ENTITY_TYPE_LIST  gl_etype_list[] = {
     {"PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
     {"AMC_SUB_SLOT",               AMC_SUB_SLOT_TYPE},
 
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
     {"PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
     {"SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
     {"FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
@@ -274,7 +276,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
       remove_spaces(&tok);
 
       /* put the entity instance value in the epath_ptr structure */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       sscanf(tok, "%d", &epath_ptr->Entry[i].EntityInstance);
 #else
       sscanf(tok, "%d", &epath_ptr->Entry[i].EntityLocation);
@@ -289,7 +291,7 @@ string_to_epath(uns8 *epath_str, uns32 epath_len, SaHpiEntityPathT *epath_ptr)
    if (i < SAHPI_MAX_ENTITY_PATH)
    {
       epath_ptr->Entry[i].EntityType = SAHPI_ENT_ROOT;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       epath_ptr->Entry[i++].EntityInstance = 0;
 #else
       epath_ptr->Entry[i++].EntityLocation = 0;
@@ -412,7 +414,7 @@ get_chassis_id(SaHpiEntityPathT *epath, int32 *chassis_id)
    if ((i == 0) || (i >= SAHPI_MAX_ENTITY_PATH))
       return NCSCC_RC_FAILURE;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    *chassis_id = epath->Entry[i-1].EntityInstance;
 #else
    *chassis_id = epath->Entry[i-1].EntityLocation;
@@ -439,7 +441,7 @@ uns32
 discover_domain(HPI_SESSION_ARGS *ptr)
 {
    SaErrorT        err, autoinsert_err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiRptInfoT   rpt_info_before;
 #endif
    SaHpiEntryIdT   current;
@@ -474,14 +476,14 @@ discover_domain(HPI_SESSION_ARGS *ptr)
    }
 
    /* discover the resources on this session */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    err = saHpiResourcesDiscover(session_id);
 #else
    err = saHpiDiscover(session_id);
 #endif
    if (SA_OK != err)
    {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       m_LOG_HISV_DTS_CONS("discover_domain: saHpiResourcesDiscover Error...\n");
 #else
       m_LOG_HISV_DTS_CONS("discover_domain: saHpiDiscover Error...\n");
@@ -490,7 +492,7 @@ discover_domain(HPI_SESSION_ARGS *ptr)
       return NCSCC_RC_FAILURE;
    }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    /* grab copy of the update counter before traversing RPT */
    err = saHpiRptInfoGet(session_id, &rpt_info_before);
    if (SA_OK != err)
@@ -553,7 +555,7 @@ uns32
 print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_num, SaHpiEntityTypeT type)
 {
    /* check if it is normal board */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
@@ -563,11 +565,11 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
 #endif
    {
       m_LOG_HISV_DTS_CONS ("Current Hotswap state of non-board resource is: ");
-      m_NCS_CONS_PRINTF("Current Hotswap state of non-board resource of type %d is: ",type);
+      printf("Current Hotswap state of non-board resource of type %d is: ",type);
    }
    else
    {
-      m_NCS_CONS_PRINTF("Current Hotswap state of board in physical slot %d is: ",board_num);
+      printf("Current Hotswap state of board in physical slot %d is: ",board_num);
       m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
    }
    switch (cur_state)
@@ -578,7 +580,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
       case SAHPI_HS_STATE_INSERTION_PENDING:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_INSERTION_PENDING\n");
          break;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_ACTIVE_HEALTHY\n");
          break;
@@ -601,7 +603,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
          break;
    }
    /* check if it is normal board */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    if ((type != SAHPI_ENT_SYSTEM_BOARD) && (type != SAHPI_ENT_OTHER_SYSTEM_BOARD)
         && (type != SAHPI_ENT_PROCESSOR_BOARD) && (type != SAHPI_ENT_SUBBOARD_CARRIER_BLADE))
 #else
@@ -614,7 +616,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    }
    else
    {
-      m_NCS_CONS_PRINTF("Previous Hotswap state of board in physical slot %d is: ",board_num);
+      printf("Previous Hotswap state of board in physical slot %d is: ",board_num);
       m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_PREV_STATE, board_num);
    }
    switch (prev_state)
@@ -625,7 +627,7 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
       case SAHPI_HS_STATE_INSERTION_PENDING:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_INSERTION_PENDING\n");
          break;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       case SAHPI_HS_STATE_ACTIVE_HEALTHY:
          m_LOG_HISV_DTS_CONS("SAHPI_HS_STATE_ACTIVE_HEALTHY\n");
          break;
@@ -762,7 +764,7 @@ hpi_decode_to_ascii(SaHpiTextTypeT data_type, unsigned char *inbuff,
          return hpi_decode_bcd_plus(inbuff, inlen, outbuff);
          break;
       default:
-         m_NCS_CONS_PRINTF("Unsuported decode type %d may result in FRU Invalidation\n", data_type);
+         printf("Unsuported decode type %d may result in FRU Invalidation\n", data_type);
          return -1;
          break;
    }
@@ -786,19 +788,19 @@ print_invdata(HISV_INV_DATA *inv_data)
    /* check for proper argument */
    if (inv_data == NULL)
    {
-      m_NCS_CONS_PRINTF("null variable in print_invdata\n");
+      printf("null variable in print_invdata\n");
       return NCSCC_RC_FAILURE;
    }
    /* print the inventory data */
    if (inv_data->product_name.Data != NULL)
    {
-      m_NCS_CONS_PRINTF("Product Name = %s\n",inv_data->product_name.Data);
-      m_NCS_CONS_PRINTF("Product Name Length = %d\n",inv_data->product_name.DataLength);
+      printf("Product Name = %s\n",inv_data->product_name.Data);
+      printf("Product Name Length = %d\n",inv_data->product_name.DataLength);
    }
    if (inv_data->product_version.Data != NULL)
    {
-      m_NCS_CONS_PRINTF("Product Version = %s\n",inv_data->product_version.Data);
-      m_NCS_CONS_PRINTF("Product Version Length = %d\n",inv_data->product_version.DataLength);
+      printf("Product Version = %s\n",inv_data->product_version.Data);
+      printf("Product Version Length = %d\n",inv_data->product_version.DataLength);
    }
 
 
@@ -806,22 +808,22 @@ print_invdata(HISV_INV_DATA *inv_data)
    if (inv_data->oem_inv_data.num_mac_entries == 2)
    {
       uns32 i;
-      m_NCS_CONS_PRINTF("OEM Type = %d\n",inv_data->oem_inv_data.type);
-      m_NCS_CONS_PRINTF("mId = %d\n",inv_data->oem_inv_data.mId);
-      m_NCS_CONS_PRINTF("mot_oem_rec_id = %d\n",inv_data->oem_inv_data.mot_oem_rec_id);
-      m_NCS_CONS_PRINTF("rec_format_ver = %d\n",inv_data->oem_inv_data.rec_format_ver);
-      m_NCS_CONS_PRINTF("num_mac_entries = %d\n",inv_data->oem_inv_data.num_mac_entries);
-      m_NCS_CONS_PRINTF("Base Mac Addr 1 :\n");
+      printf("OEM Type = %d\n",inv_data->oem_inv_data.type);
+      printf("mId = %d\n",inv_data->oem_inv_data.mId);
+      printf("mot_oem_rec_id = %d\n",inv_data->oem_inv_data.mot_oem_rec_id);
+      printf("rec_format_ver = %d\n",inv_data->oem_inv_data.rec_format_ver);
+      printf("num_mac_entries = %d\n",inv_data->oem_inv_data.num_mac_entries);
+      printf("Base Mac Addr 1 :\n");
       for (i=0; i<6; i++)
-         m_NCS_CONS_PRINTF("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[0][i]);
+         printf("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[0][i]);
 
-      m_NCS_CONS_PRINTF("\nBase Mac Addr 2 :\n");
+      printf("\nBase Mac Addr 2 :\n");
       for (i=0; i<6; i++)
-         m_NCS_CONS_PRINTF("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[1][i]);
-      m_NCS_CONS_PRINTF("\n");
+         printf("0x%2x  ",inv_data->oem_inv_data.interface_mac_addr[1][i]);
+      printf("\n");
    }
    else
-      m_NCS_CONS_PRINTF("Mac address entries does not exist in inventory data\n");
+      printf("Mac address entries does not exist in inventory data\n");
 
    return NCSCC_RC_SUCCESS;
 }

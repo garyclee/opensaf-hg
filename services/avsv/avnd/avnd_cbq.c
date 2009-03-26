@@ -427,7 +427,7 @@ uns32 avnd_evt_ava_resp (AVND_CB *cb, AVND_EVT *evt)
                {
                    m_NCS_DBG_PRINTF( "\nAvSv: %s got failure for qsd cbk\n",
                          comp->name_net.value);
-                   m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: %s got failure for qsd cbk",
+                   syslog(LOG_ERR,"NCS_AvSv: %s got failure for qsd cbk",
                          comp->name_net.value);
                }
 
@@ -579,7 +579,7 @@ uns32 avnd_evt_tmr_cbk_resp (AVND_CB *cb, AVND_EVT *evt)
       {
           m_NCS_DBG_PRINTF( "\nAvSv: %s got qsd cbk timeout\n",
                 rec->comp->name_net.value);
-          m_NCS_SYSLOG(NCS_LOG_ERR, "NCS_AvSv: %s got qsd cbk timeout",
+          syslog(LOG_ERR, "NCS_AvSv: %s got qsd cbk timeout",
                 rec->comp->name_net.value);
       }
 

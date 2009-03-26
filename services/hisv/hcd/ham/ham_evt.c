@@ -28,6 +28,7 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
 #include <SaHpi.h>
 
 #include "hcd.h"
@@ -136,7 +137,7 @@ ham_resource_power_set(HISV_EVT *evt)
    HISV_MSG *msg = &evt->msg, hisv_msg;
    HAM_CB  *ham_cb;
    SaErrorT       err;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    SaHpiHsPowerStateT  power_state;
 #else
    SaHpiPowerStateT  power_state;
@@ -168,12 +169,12 @@ ham_resource_power_set(HISV_EVT *evt)
       goto ret;
    }
    /* get required power status */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    power_state = (SaHpiHsPowerStateT)msg->info.api_info.arg;
 #else
    power_state = (SaHpiPowerStateT)msg->info.api_info.arg;
 #endif
-   m_NCS_CONS_PRINTF("ham_resource_power_set: power state = %d\n", power_state);
+   printf("ham_resource_power_set: power state = %d\n", power_state);
 
    /** got the resource-id of resource with given entity-path
     ** Invoke HPI call to change the power status of the resource.
@@ -185,7 +186,7 @@ ham_resource_power_set(HISV_EVT *evt)
    {
          rc = NCSCC_RC_FAILURE;
          m_LOG_HISV_DTS_CONS("ham_resource_power_set: error saHpiResourcePowerStateSet\n");
-         m_NCS_CONS_PRINTF ("ham_resource_power_set: saHpiResourcePowerStateSet, HPI error code = %d\n", err);
+         printf ("ham_resource_power_set: saHpiResourcePowerStateSet, HPI error code = %d\n", err);
    }
    /** populate the mds message with return value, to send across to the HPL
     **/
@@ -259,7 +260,7 @@ ham_resource_reset(HISV_EVT *evt)
    }
    /* get the type of 'reset' requested */
    reset_type = (SaHpiResetActionT)msg->info.api_info.arg;
-   m_NCS_CONS_PRINTF("ham_resource_reset: reset type = %d\n", reset_type);
+   printf("ham_resource_reset: reset type = %d\n", reset_type);
 
    /** got the resource-id of resource with given entity-path
     ** Invoke HPI call to reset the resource.
@@ -270,7 +271,7 @@ ham_resource_reset(HISV_EVT *evt)
       SaHpiCtrlNumT ctrlNum;
       SaHpiCtrlStateT state;
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       ctrlNum = 15;
 #else
       ctrlNum = 4608;
@@ -278,7 +279,7 @@ ham_resource_reset(HISV_EVT *evt)
       state.Type = SAHPI_CTRL_TYPE_ANALOG;
       state.StateUnion.Analog = 1;
       m_LOG_HISV_DTS_CONS("Invoking graceful reboot\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       err = saHpiControlStateSet(ham_cb->args->session_id, resourceid, ctrlNum, &state);
 #else
       err = saHpiControlSet(ham_cb->args->session_id, resourceid, ctrlNum, SAHPI_CTRL_MODE_MANUAL, &state);
@@ -294,15 +295,15 @@ ham_resource_reset(HISV_EVT *evt)
    else
    {
       m_LOG_HISV_DTS_CONS("ham_resource_reset: error in saHpiResourceResetStateSet; Attempting cold reset\n");
-      m_NCS_CONS_PRINTF ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
+      printf ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
       err =  saHpiResourceResetStateSet(ham_cb->args->session_id, resourceid,
                                         (SaHpiResetActionT)SAHPI_COLD_RESET);
       if (SA_OK == err)
          rc = NCSCC_RC_SUCCESS;
       else
       {
-         m_NCS_CONS_PRINTF("ham_resource_reset: cold reset attempt failed in saHpiResourceResetStateSet\n");
-         m_NCS_CONS_PRINTF ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
+         printf("ham_resource_reset: cold reset attempt failed in saHpiResourceResetStateSet\n");
+         printf ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
          rc = NCSCC_RC_FAILURE;
       }
    }
@@ -378,7 +379,7 @@ ham_sel_clear(HISV_EVT *evt)
          }
       }
       /* invoke HPI call to clear system event log of entire domain controller */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
 #else
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
@@ -392,7 +393,7 @@ ham_sel_clear(HISV_EVT *evt)
       {
          rc = NCSCC_RC_FAILURE;
          m_LOG_HISV_DTS_CONS("ham_sel_clear: error in saHpiEventLogClear\n");
-         m_NCS_CONS_PRINTF ("ham_sel_clear: error in saHpiEventLogClear , HPI error code = %d\n", err);
+         printf ("ham_sel_clear: error in saHpiEventLogClear , HPI error code = %d\n", err);
       }
    } while (next != SAHPI_LAST_ENTRY);
    /** populate the mds message with return value, to send across to the HPL
@@ -461,7 +462,7 @@ ham_tmr_sel_clear(HISV_EVT *evt)
          else
          {
             m_LOG_HISV_DTS_CONS("ham_tmr_sel_clear: Empty RPT\n");
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
             saHpiResourcesDiscover(ham_cb->args->session_id);
 #else
             saHpiDiscover(ham_cb->args->session_id);
@@ -470,7 +471,7 @@ ham_tmr_sel_clear(HISV_EVT *evt)
          }
       }
       /* invoke HPI call to clear system event log of entire domain controller */
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_SEL)
 #else
       if (entry.ResourceCapabilities & SAHPI_CAPABILITY_EVENT_LOG)
@@ -538,7 +539,7 @@ ham_config_hotswap(HISV_EVT *evt)
    }
    /* get the value of 'timeout' requested */
    Timeout = *(SaHpiResetActionT *)((uns8 *)msg->info.api_info.data+4);
-   m_NCS_CONS_PRINTF("ham_config_hotswap: Timeout = %d\n, Command = %d", 
+   printf("ham_config_hotswap: Timeout = %d\n, Command = %d", 
                      (uns32)Timeout, msg->info.api_info.cmd);
 
    /** Invoke HPI call to configure the hotswap state of the resource.
@@ -563,9 +564,9 @@ ham_config_hotswap(HISV_EVT *evt)
          m_LOG_HISV_DTS_CONS("ham_config_hotswap: saHpiAutoInsertTimeoutSet Error\n");
          rc = NCSCC_RC_FAILURE;
       }
-      m_NCS_CONS_PRINTF (" ham_config_hotswap: saHpiAutoInsertTimeout Error , HPI error code = %d\n", err);
+      printf (" ham_config_hotswap: saHpiAutoInsertTimeout Error , HPI error code = %d\n", err);
    }
-   m_NCS_CONS_PRINTF("ham_config_hotswap: Timeout = %d\n",(uns32)Timeout);
+   printf("ham_config_hotswap: Timeout = %d\n",(uns32)Timeout);
    /** populate the mds message with return value, to send across to the HPL
     **/
    hisv_msg.info.cbk_info.ret_type = HPL_GENERIC_DATA;
@@ -658,7 +659,7 @@ ham_hs_indicator_state(HISV_EVT *evt)
       rc = NCSCC_RC_SUCCESS;
    else
      {
-       m_NCS_CONS_PRINTF (" hot swap Indicator: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
+       printf (" hot swap Indicator: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
        rc = NCSCC_RC_FAILURE;
      }
    /** populate the mds message with return value, to send across to the HPL
@@ -747,7 +748,7 @@ ham_manage_hotswap(HISV_EVT *evt)
    switch (msg->info.api_info.cmd)
    {
    case HS_POLICY_CANCEL:
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       err = saHpiHotSwapControlRequest(ham_cb->args->session_id, resourceid);
 #else
       err = saHpiHotSwapPolicyCancel(ham_cb->args->session_id, resourceid);
@@ -788,7 +789,7 @@ ham_manage_hotswap(HISV_EVT *evt)
       rc = NCSCC_RC_SUCCESS;
    else
      {
-      m_NCS_CONS_PRINTF (" ham_Manage_hotswap: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
+      printf (" ham_Manage_hotswap: Cmd type = %d  , HPI error code = %d\n",msg->info.api_info.cmd, err);
       rc = NCSCC_RC_FAILURE;
      }
 
@@ -867,7 +868,7 @@ ham_hs_cur_state_get(HISV_EVT *evt)
       rc = NCSCC_RC_SUCCESS;
    else
     {
-   m_NCS_CONS_PRINTF("ham_hs_cur_state_get: stateT = %d, err = %d\n", stateT, err);
+   printf("ham_hs_cur_state_get: stateT = %d, err = %d\n", stateT, err);
       rc = NCSCC_RC_FAILURE;
     }
    /** populate the mds message with return value, to send across to the HPL
@@ -947,7 +948,7 @@ ham_config_hs_autoextract(HISV_EVT *evt)
 
    /* get the value of 'timeout' requested */
    Timeout = *(SaHpiTimeoutT *)(msg->info.api_info.data+hpl_tlv->d_len+8);
-   m_NCS_CONS_PRINTF("ham_config_hs_autoextract: Timeout = %d, Command = %d\n", 
+   printf("ham_config_hs_autoextract: Timeout = %d, Command = %d\n", 
                       (uns32)Timeout, msg->info.api_info.cmd);
 
    /** Invoke HPI call to configure hotswap auto extract of the resource.
@@ -962,7 +963,7 @@ ham_config_hs_autoextract(HISV_EVT *evt)
    else
    {
       rc = NCSCC_RC_FAILURE;
-      m_NCS_CONS_PRINTF("ham_config_hs_autoextract: err = %d\n", err);
+      printf("ham_config_hs_autoextract: err = %d\n", err);
       m_LOG_HISV_DTS_CONS("ham_config_hs_autoextract: Error in saHpiAutoExtractTimeout\n");
    }
    /** populate the mds message with return value, to send across to the HPL
@@ -1036,7 +1037,7 @@ ham_alarm_add(HISV_EVT *evt)
    }
    /* get the value of 'timeout' requested */
    AlarmT = (SaHpiAlarmT *)((uns8 *)msg->info.api_info.data+4);
-   m_NCS_CONS_PRINTF("ham_alarm_add: AlarmT = %ld\n", (long)AlarmT);
+   printf("ham_alarm_add: AlarmT = %ld\n", (long)AlarmT);
 
    /** Invoke HPI call to add the alarm on HPI DAT.
     **/
@@ -1111,7 +1112,7 @@ ham_alarm_delete(HISV_EVT *evt)
    /* get the value of 'AlarmId' and SeveritT */
    AlarmId = msg->info.api_info.arg;
    SeverityT = *(SaHpiSeverityT *)((uns8 *)msg->info.api_info.data+4);
-   m_NCS_CONS_PRINTF("ham_alarm_delete: AlarmId = %d\n", AlarmId);
+   printf("ham_alarm_delete: AlarmId = %d\n", AlarmId);
 
    /** Invoke HPI call to delete the alarm from HPI DAT.
     **/
@@ -1186,7 +1187,7 @@ ham_alarm_get(HISV_EVT *evt)
    }
    /* get the value of 'AlarmId'*/
    AlarmId = msg->info.api_info.arg;
-   m_NCS_CONS_PRINTF("ham_alarm_get: given AlarmId = %d\n", AlarmId);
+   printf("ham_alarm_get: given AlarmId = %d\n", AlarmId);
 
    /** Invoke HPI call to get the alarm from the HPI DAT.
     **/
@@ -1275,7 +1276,7 @@ ham_evlog_time(HISV_EVT *evt)
    /* get the value of 'timeout' requested */
    Timeout = *(SaHpiTimeoutT *)(msg->info.api_info.data+hpl_tlv->d_len+8);
 
-   m_NCS_CONS_PRINTF("ham_evlog_time: saHpiEventLogTimeCmd = %d, Timeout = %d\n",
+   printf("ham_evlog_time: saHpiEventLogTimeCmd = %d, Timeout = %d\n",
                       (uns32)Timeout, msg->info.api_info.cmd);
    /** Invoke HPI call to get or set the system event log time.
     **/
@@ -1315,7 +1316,7 @@ ret:
    if (msg->info.api_info.cmd != HS_INDICATOR_STATE_SET)
       m_MMGR_FREE_HISV_DATA(hisv_msg.info.cbk_info.hpl_ret.h_gen.data);
    m_LOG_HISV_DEBUG("ham_evlog_time: ham_evlog_time, Invoked\n");
-   m_NCS_CONS_PRINTF("ham_evlog_time: ham_evlog_time, Invoked, Timeout = %d\n", (uns32)Timeout);
+   printf("ham_evlog_time: ham_evlog_time, Invoked, Timeout = %d\n", (uns32)Timeout);
 
    /* give handle */
    ncshm_give_hdl(gl_ham_hdl);
@@ -1422,7 +1423,7 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
    {
       /* m_LOG_HISV_GEN_STR("get_resourceid: resource does not exist for give entity-path", 
                           epath_str, NCSFL_SEV_INFO); */
-      m_NCS_CONS_PRINTF("get_resourceid: resource does not exist for give entity-path %s\n",
+      printf("get_resourceid: resource does not exist for give entity-path %s\n",
                          epath_str);
       ncshm_give_hdl(gl_ham_hdl);
       return NCSCC_RC_FAILURE;
@@ -1432,7 +1433,7 @@ GET_RES_ID:
    next = SAHPI_FIRST_ENTRY;
    do
    {
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       int32 len = (SAHPI_MAX_ENTITY_PATH - 2) * sizeof(SaHpiEntityT);
 #else
       int32 len = (SAHPI_MAX_ENTITY_PATH - 1) * sizeof(SaHpiEntityT);
@@ -1446,7 +1447,7 @@ GET_RES_ID:
          if (current != SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("get_resourceid: Error first entry\n");
-            m_NCS_CONS_PRINTF ("get_resourceid: saHpiRptEntryGet, HPI error code = %d\n", err);
+            printf ("get_resourceid: saHpiRptEntryGet, HPI error code = %d\n", err);
 
             if (get_res_id_retry_count < 4)
             {
@@ -1464,7 +1465,7 @@ GET_RES_ID:
          }
       }
 
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
       /* got the entry, check for matching entity path, ignore Group tuples */
       if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[2], len))
          continue;
@@ -1519,7 +1520,7 @@ GET_RES_ID:
              (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
              (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)) &&
             (
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
@@ -1560,7 +1561,7 @@ GET_RES_ID:
       /** got the resource-id of resource with given entity-path
        **/
       *resourceid = entry.ResourceId;
-      m_NCS_CONS_PRINTF("get_resourceid success:resource id of the entity %s is %d\n",epath_str, entry.ResourceId);
+      printf("get_resourceid success:resource id of the entity %s is %d\n",epath_str, entry.ResourceId);
 
       rc = NCSCC_RC_SUCCESS;
       break;
@@ -1692,19 +1693,19 @@ ham_process_evt(HISV_EVT *evt)
    ncshm_give_hdl(gl_ham_hdl);
 
    m_LOG_HISV_DTS_CONS("ham_process_evt: Invoked\n");
-   m_NCS_CONS_PRINTF("ham_process_evt: command = %d\n",msg->info.api_info.cmd);
+   printf("ham_process_evt: command = %d\n",msg->info.api_info.cmd);
    if ((msg->info.api_info.cmd < 0) ||
        (msg->info.api_info.cmd >= HISV_MAX_API_CMD))
    {
       m_LOG_HISV_DEBUG("ham_process_evt: Unknow request from HPL client\n");
-      m_NCS_CONS_PRINTF("ham_process_evt: Unknow request %d from HPL client\n", msg->info.api_info.cmd);
+      printf("ham_process_evt: Unknow request %d from HPL client\n", msg->info.api_info.cmd);
       hisv_evt_destroy(evt);
       return NCSCC_RC_FAILURE;
    }
    if (ham_func_tbl[msg->info.api_info.cmd] == NULL)
    {
       m_LOG_HISV_DEBUG("ham_process_evt: No HAM handler installed for this HPL cmd\n");
-      m_NCS_CONS_PRINTF("ham_process_evt: No HAM handler installed for the HPL cmd %d\n", msg->info.api_info.cmd);
+      printf("ham_process_evt: No HAM handler installed for the HPL cmd %d\n", msg->info.api_info.cmd);
       hisv_evt_destroy(evt);
       return NCSCC_RC_FAILURE;
    }
@@ -1856,10 +1857,10 @@ ham_entity_path_lookup(HISV_EVT *evt)
    char 	    *arch_type = NULL;
    uns32	    chassis_type;
 
-#ifdef HPI_B_02
+#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
    m_LOG_HISV_DTS_CONS("ham_entity_path_lookup: HAM processing entity path lookup\n");
 
-   arch_type = m_NCS_OS_PROCESS_GET_ENV_VAR("OPENSAF_TARGET_SYSTEM_ARCH");
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
    /* Set chassis type */
    if (strcmp(arch_type, "ATCA") == 0)
    {
@@ -1909,12 +1910,12 @@ ham_entity_path_lookup(HISV_EVT *evt)
          if (current != SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("entity_path_lookup: Error first entry\n");
-            m_NCS_CONS_PRINTF ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
+            printf ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
          }
          else
          {
             m_LOG_HISV_DTS_CONS("entity_path_lookup: Empty RPT\n");
-            m_NCS_CONS_PRINTF ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
+            printf ("entity_path_lookup: saHpiRptEntryGet, HPI error code = %d\n", err);
          }
          break;
       }
@@ -2065,21 +2066,21 @@ ham_entity_path_lookup(HISV_EVT *evt)
    if ((flag == HPL_EPATH_FLAG_FULLSTR) || (flag == HPL_EPATH_FLAG_NUMSTR) ||
        (flag == HPL_EPATH_FLAG_SHORTSTR)) {
       if (strcmp(hpi_entity_path_buffer, "") != 0) 
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
+         printf("ham_entity_path_lookup: Matched on %s\n", hpi_entity_path_buffer);
       else 
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
+         printf("ham_entity_path_lookup: No match found\n");
       entity_path_len = strlen(hpi_entity_path_buffer);
    } else if (flag == HPL_EPATH_FLAG_ARRAY) {
       if (epath.Entry[1].EntityType != SAHPI_ENT_UNSPECIFIED) { 
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: Matched on\n");
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityType     %d\n", epath.Entry[0].EntityType);
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [0].EntityLocation %d\n", epath.Entry[0].EntityLocation);
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [1].EntityType     %d\n", epath.Entry[1].EntityType);
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [1].EntityLocation %d\n", epath.Entry[1].EntityLocation);
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityType     %d\n", epath.Entry[2].EntityType);
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: [2].EntityLocation %d\n", epath.Entry[2].EntityLocation);
+         printf("ham_entity_path_lookup: Matched on\n");
+         printf("ham_entity_path_lookup: [0].EntityType     %d\n", epath.Entry[0].EntityType);
+         printf("ham_entity_path_lookup: [0].EntityLocation %d\n", epath.Entry[0].EntityLocation);
+         printf("ham_entity_path_lookup: [1].EntityType     %d\n", epath.Entry[1].EntityType);
+         printf("ham_entity_path_lookup: [1].EntityLocation %d\n", epath.Entry[1].EntityLocation);
+         printf("ham_entity_path_lookup: [2].EntityType     %d\n", epath.Entry[2].EntityType);
+         printf("ham_entity_path_lookup: [2].EntityLocation %d\n", epath.Entry[2].EntityLocation);
       } else { 
-         m_NCS_CONS_PRINTF("ham_entity_path_lookup: No match found\n");
+         printf("ham_entity_path_lookup: No match found\n");
          /* Set first entry of array so that caller knows no match was found. */
          epath.Entry[0].EntityType = SAHPI_ENT_UNSPECIFIED;
       }
@@ -2147,7 +2148,7 @@ ham_bootbank_get (HISV_EVT *evt)
    SaErrorT           err;
    SaHpiCtrlStateT    state;
    uns32              rc = NCSCC_RC_FAILURE;
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    uns16              arg_len = sizeof(SaHpiCtrlStateDiscreteT);
    SaHpiCtrlStateDiscreteT discrete_val = 0;
 #else
@@ -2190,11 +2191,11 @@ ham_bootbank_get (HISV_EVT *evt)
 
    /** Invoke HPI call to get the current boot bank of the payload blade.
     **/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    err = saHpiControlStateGet (ham_cb->args->session_id, resourceid,
                                CTRL_NUM_BOOTBANK, &state);
 
-   m_NCS_CONS_PRINTF("ham_bootbank_get: state = %d, err = %d\n", state.StateUnion.Discrete, err);
+   printf("ham_bootbank_get: state = %d, err = %d\n", state.StateUnion.Discrete, err);
    if (SA_OK == err)
       rc = NCSCC_RC_SUCCESS;
    else
@@ -2203,12 +2204,12 @@ ham_bootbank_get (HISV_EVT *evt)
    err = saHpiControlGet (ham_cb->args->session_id, resourceid,
                                CTRL_NUM_BOOT_BANK,&mode,&state);
 
-   m_NCS_CONS_PRINTF("ham_bootbank_get: Boot_bank = %d, err = %d\n",oem->Body[1], err);
+   printf("ham_bootbank_get: Boot_bank = %d, err = %d\n",oem->Body[1], err);
 #endif
 
    /** populate the mds message with return value, to send across to the HPL
     **/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
    hisv_msg.info.cbk_info.ret_type               = HPL_GENERIC_DATA;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.ret_val  = rc;
    hisv_msg.info.cbk_info.hpl_ret.h_gen.data_len = arg_len;
@@ -2307,8 +2308,8 @@ ham_bootbank_set (HISV_EVT *evt)
    }
    /* get the boot bank number to be set */
    i_boot_bank_number = (SaHpiCtrlNumT)msg->info.api_info.arg;
-   m_NCS_CONS_PRINTF("ham_bootbank_set : boot bank number = %d\n", i_boot_bank_number);
-#ifdef HPI_A
+   printf("ham_bootbank_set : boot bank number = %d\n", i_boot_bank_number);
+#ifdef HAVE_HPI_A01
 
    /** got the resource-id of resource with given entity-path
     ** Invoke HPI call to set the boot bank of payload blade.

@@ -797,6 +797,86 @@ saNtfNotificationReadNext(
     SaNtfSearchDirectionT searchDirection,
     SaNtfNotificationsT *notification);
 
+/* 
+** ************************************************  
+** FROM SPECIFICATION VERSION:  SAI-AIS-NTF-A.01.01 
+** ************************************************ 
+** */ 
+/*  3.12.2.1        SaNtfCallbacksT  */
+typedef struct {
+    SaNtfNotificationCallbackT saNtfNotificationCallback;
+    SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
+} SaNtfCallbacksT;
+
+/*  3.13    Library Life Cycle  */
+
+/*  3.13.1  saNtfInitialize()  */
+SaAisErrorT
+saNtfInitialize(
+                SaNtfHandleT *ntfHandle,
+                const SaNtfCallbacksT *ntfCallbacks,
+                SaVersionT *version);
+
+/*  3.12.39 SaNtfStateChangeNotificationFilterT  */
+typedef struct
+{
+    SaNtfNotificationFilterHandleT notificationFilterHandle;
+    /* a handle to the internal notification filter structure */
+
+    SaNtfNotificationFilterHeaderT notificationFilterHeader;
+    /* the notification filter header */
+
+    SaUint16T numSourceIndicators;
+    /* number of source indicators */
+
+    SaNtfSourceIndicatorT *sourceIndicators;
+    /* the array of source indicators */
+
+    SaUint16T numStateChanges;
+    /* number of state changes */
+
+    SaNtfStateChangeT *changedStates;
+    /* the array of changed states */
+
+} SaNtfStateChangeNotificationFilterT;
+
+/*  3.15.2.7	saNtfStateChangeNotificationFilterAllocate()  */
+SaAisErrorT saNtfStateChangeNotificationFilterAllocate( 
+    SaNtfHandleT ntfHandle,
+    SaNtfStateChangeNotificationFilterT *notificationFilter,
+    SaUint16T numEventTypes,
+    SaUint16T numNotificationObjects,
+    SaUint16T numNotifyingObjects,
+    SaUint16T numNotificationClassIds,
+    SaUint32T numSourceIndicators,
+    SaUint32T numChangedStates);
+
+/*  3.15	Consumer Operations  */
+/*  3.15.2	Common Operations  */
+/*  3.15.2.1	saNtfLocalizedMessageGet()  */
+SaAisErrorT saNtfLocalizedMessageGet(
+    SaNtfNotificationHandleT notificationHandle,
+    SaStringT *message);
+
+/*  3.15.3.2	saNtfNotificationUnsubscribe()  */
+SaAisErrorT saNtfNotificationUnsubscribe(
+    SaNtfSubscriptionIdT subscriptionId);
+
+
+/*  3.15.4	 Reader Operations  */
+/*  3.15.4.1	saNtfNotificationReadInitialize()  */
+SaAisErrorT saNtfNotificationReadInitialize(
+	SaNtfSearchCriteriaT searchCriteria,
+	const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
+	SaNtfReadHandleT *readHandle);
+
+/*  saNtfNotificationReadFinalize()  was missing, from SAF Forum? */
+SaAisErrorT saNtfNotificationReadFinalize(
+    	SaNtfReadHandleT readhandle);
+/*  
+** END FROM VERSION:  SAI-AIS-NTF-A.01.01
+*/ 
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

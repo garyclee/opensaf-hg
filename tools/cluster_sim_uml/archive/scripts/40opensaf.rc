@@ -49,6 +49,8 @@ if [ $hostnumber -lt 3 ]; then
 
     ln -s /hostfs/repl-opensaf /repl_opensaf
 
+    mkdir -p /repl_opensaf/saflog
+
     touch /var/lib/opensaf/pssv_spcn_list
     chmod 755 /var/lib/opensaf/pssv_spcn_list
     echo "AVD XML" > /var/lib/opensaf/pssv_spcn_list

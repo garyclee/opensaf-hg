@@ -226,7 +226,7 @@ void cli_get_cmd_from_history(CLI_CB *pCli, int8 *i_str, uns32 i_direction)
 *****************************************************************************/
 uns32 cli_move_char_backward(uns32 i_count)
 {    
-   m_NCS_CONS_PUTCHAR(8);
+   putchar(8);
    i_count--;    
    
    return i_count;
@@ -245,10 +245,10 @@ uns32 cli_move_char_forward(int8 *i_buffer, uns32 i_count)
    uns32 data_len = strlen(i_buffer);
    
    if(i_count < data_len) {
-      m_NCS_CONS_PUTCHAR(i_buffer[i_count]);
+      putchar(i_buffer[i_count]);
       i_count++;
    }
-   else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);   
+   else putchar(CLI_CONS_BEEP);   
    return i_count;
 }
 
@@ -262,9 +262,9 @@ uns32 cli_move_char_forward(int8 *i_buffer, uns32 i_count)
 *****************************************************************************/
 uns32 cli_delete_char(int8 *i_buffer, uns32 i_count)
 {    
-   m_NCS_CONS_PUTCHAR(8);
-   m_NCS_CONS_PUTCHAR(32);
-   m_NCS_CONS_PUTCHAR(8);
+   putchar(8);
+   putchar(32);
+   putchar(8);
    i_buffer[i_count - 1] = 0;
    i_count--;
    
@@ -532,7 +532,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(passwd_flag) goto default_val;  
          
          if(0 != chCnt) chCnt = cli_delete_beginning_of_line(buffer, chCnt);
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);         
+         else putchar(CLI_CONS_BEEP);         
          break; /* CONTROL(CLI_CONS_CLEAR_ALL) */
          
       /* delete the word to left of cursor */
@@ -540,7 +540,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(passwd_flag) goto default_val;  
          
          if(0 != chCnt) chCnt = cli_delete_word(buffer, chCnt);
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);         
+         else putchar(CLI_CONS_BEEP);         
          break; /* CONTROL(CLI_CONS_DELETE_WORD) */
          
       /* Move the cursor to beginning of the line */
@@ -548,7 +548,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(passwd_flag) goto default_val;  
          
          if(0 != chCnt) chCnt = cli_move_beginning_of_line(chCnt);
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);         
+         else putchar(CLI_CONS_BEEP);         
          break; /* CONTROL(CLI_CONS_START_OF_LINE) */
          
       /* Move the cursor to end of the line */
@@ -830,7 +830,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
                   case CLI_SUCCESSFULL_MATCH:
                      /* Display the command */
                      for(index=0; index<param.o_hotkey.hlpstr.count; index++) {
-                        sysf_sprintf(display_str, "\n %-25s %s", 
+                        sprintf(display_str, "\n %-25s %s", 
                            param.o_hotkey.hlpstr.helpargs[index].cmdstring,
                            param.o_hotkey.hlpstr.helpargs[index].helpstr);
                         
@@ -862,7 +862,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
       /* Help */
       case CLI_CONS_HELP:
          if(passwd_flag) goto default_val;                    
-         if (!cmd_help) m_NCS_CONS_PUTCHAR(ch);
+         if (!cmd_help) putchar(ch);
          
          cmd_help = FALSE;
          buffer[chCnt] = (int8)ch;
@@ -915,7 +915,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          case CLI_SUCCESSFULL_MATCH:
             /* Display the command */
             for(index=0; index<param.o_hotkey.hlpstr.count; index++) {
-               sysf_sprintf(display_str, "\n %-25s %s", 
+               sprintf(display_str, "\n %-25s %s", 
                   param.o_hotkey.hlpstr.helpargs[index].cmdstring,
                   param.o_hotkey.hlpstr.helpargs[index].helpstr);
                
@@ -953,7 +953,7 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          if(chCnt > 0)
          {
             if(' ' == buffer[chCnt - 1]) {
-               m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);
+               putchar(CLI_CONS_BEEP);
                break;
             }
          }
@@ -985,21 +985,21 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
             chCnt += strlen(param.o_hotkey.tabstring);
             strcat(buffer, param.o_hotkey.tabstring);                    
          }
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);               
+         else putchar(CLI_CONS_BEEP);               
          break;
             
       /* delete one char backwards */
       case CONTROL(CLI_CONS_DELETE_CHAR):                 
       case CLI_CONS_BACWARD_SLASH:
          if(0 != chCnt && FALSE == passwd_flag) chCnt = cli_delete_char(buffer, chCnt);
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);
+         else putchar(CLI_CONS_BEEP);
          break;
          
       case CLI_CONS_LEFT_ARROW:
          if(!is_arrow  || passwd_flag) goto default_val;
          
          if(0 != chCnt) chCnt = cli_move_char_backward(chCnt);
-         else m_NCS_CONS_PUTCHAR(CLI_CONS_BEEP);
+         else putchar(CLI_CONS_BEEP);
          
          if(is_arrow) is_arrow = FALSE;
          break;
@@ -1013,8 +1013,8 @@ void cli_read_input(CLI_CB *pCli, NCS_VRID vr_id)
          
       default:
 default_val:     
-         if(passwd_flag) m_NCS_CONS_PUTCHAR(CLI_CONS_PWD_MARK);  
-         else m_NCS_CONS_PUTCHAR(ch);  
+         if(passwd_flag) putchar(CLI_CONS_PWD_MARK);  
+         else putchar(ch);  
          
          buffer[chCnt] = (int8)ch;
          chCnt++;  

@@ -176,7 +176,7 @@ static uns32 cpa_create (NCS_LIB_CREATE *create_info)
    gl_cpa_hdl = cb->agent_handle_id;
 
    /* get the process id */
-   cb->process_id = m_NCS_OS_PROCESS_GET_ID();
+   cb->process_id = getpid();
 
    /* initialize the cpa cb lock */
    if(m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS)

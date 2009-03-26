@@ -77,14 +77,14 @@ uns32 edsv_mab_register(EDS_CB *cb)
      {
         /* Log Error */
         m_LOG_EDSV_S(EDS_MIB_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,tbl_id);
-        m_NCS_CONS_PRINTF("oac register failed \n"); 
+        printf("oac register failed \n"); 
         return NCSCC_RC_FAILURE ;
      }
      else
      {
        /* Log Success */
        m_LOG_EDSV_S(EDS_MIB_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,tbl_id);
-       m_NCS_CONS_PRINTF("oac register success \n");
+       printf("oac register success \n");
      }
 
       /* Register the Filter for each table. */

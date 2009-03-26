@@ -316,14 +316,14 @@ void pseudoAmfHealthcheckCallback(SaInvocationT invocation, const SaNameT *compN
    if(pseudoCB.compsReady == TRUE)
    {
       ptr = script;
-      ptr += sysf_sprintf(script, "%s ", PSEUDO_STS_SCRIPT_NAME);
+      ptr += sprintf(script, "%s ", PSEUDO_STS_SCRIPT_NAME);
 
       for(i=0; i<pseudoCB.noOfProxied; i++)
       {
          /* Skip the component if its AMF regn has failed */
          if(pseudoCB.proxied_info[i].regDone == TRUE)
          {
-            ptr += sysf_sprintf(ptr, "%d %s %s ", i, pseudoCB.proxied_info[i].resName, pseudoCB.proxied_info[i].devName);
+            ptr += sprintf(ptr, "%d %s %s ", i, pseudoCB.proxied_info[i].resName, pseudoCB.proxied_info[i].devName);
          }
       }
 

@@ -442,7 +442,7 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_CKPT_EVT(AVD_STBY_UNAVAIL_FOR_RCHG, NCSFL_SEV_NOTICE, 0);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, Stanby OUT OF SYNC\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, Stanby OUT OF SYNC");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, Stanby OUT OF SYNC");
       return NCSCC_RC_FAILURE;
    }
 
@@ -450,7 +450,7 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, DB not found\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, DB not found");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, DB not found");
       return NCSCC_RC_FAILURE;
    }
 
@@ -459,7 +459,7 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_state);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, stdby not in good state\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, stdby not in good state");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, stdby not in good state");
      return NCSCC_RC_FAILURE;
    } 
       
@@ -476,7 +476,7 @@ static uns32 avd_role_failover(AVD_CL_CB  *cb, SaAmfHAStateT role)
       m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_NOTICE, status);
       m_AVD_LOG_INVALID_VAL_ERROR(status);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, MBCSV DISPATCH FAILED\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, MBCSV DISPATCH FAILED");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER StandBy --> Active FAILED, MBCSV DISPATCH FAILED");
       return NCSCC_RC_FAILURE;
    }
    
@@ -565,7 +565,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_CKPT_EVT(AVD_STBY_UNAVAIL_FOR_RCHG, NCSFL_SEV_NOTICE, 0);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, Stanby OUT OF SYNC\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, Stanby OUT OF SYNC");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, Stanby OUT OF SYNC");
       return NCSCC_RC_FAILURE;
    }
 
@@ -573,7 +573,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, DB not found\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, DB not found");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, DB not found");
       return NCSCC_RC_FAILURE;
    }
    
@@ -583,7 +583,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, stdby not in good state\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, stdby not in good state");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, stdby not in good state");
      return NCSCC_RC_FAILURE;
    }
 
@@ -638,7 +638,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_NOTICE, status);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, MBCSV DISPATCH FAILED\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, MBCSV DISPATCH FAILED");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, MBCSV DISPATCH FAILED");
       return NCSCC_RC_FAILURE;
    }
    
@@ -682,7 +682,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
       /* log error */
       m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, MEMALLOC FAILED\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, MEMALLOC FAILED");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, MEMALLOC FAILED");
       return NCSCC_RC_FAILURE;
    }
 
@@ -701,7 +701,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB  *cb, SaAmfHAStateT role)
       /* free the event and return */
       m_MMGR_FREE_AVD_EVT(evt);
       m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED");
+      syslog(LOG_ERR,"NCS_AvSv: FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED");
 
       return NCSCC_RC_FAILURE;
    }
@@ -819,7 +819,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
    {
       m_AVD_LOG_CKPT_EVT(AVD_STBY_UNAVAIL_FOR_RCHG, NCSFL_SEV_NOTICE, role);
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, Standby OUT OF SYNC\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, Standby OUT OF SYNC");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, Standby OUT OF SYNC");
       return NCSCC_RC_FAILURE;
    }
       
@@ -829,7 +829,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
       m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
       m_AVD_LOG_INVALID_VAL_FATAL(status);
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, CKPT role set failed\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, CKPT role set failed");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, CKPT role set failed");
       return NCSCC_RC_FAILURE;
    }
    
@@ -839,7 +839,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
       m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_NOTICE, status);
       m_AVD_LOG_INVALID_VAL_FATAL(status);
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, Dispatch failed\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, Dispatch failed");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, Dispatch failed");
       return NCSCC_RC_FAILURE;
    }
 
@@ -860,7 +860,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
       m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
       m_AVD_LOG_INVALID_VAL_FATAL(status);
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, MDS role set failed\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, MDS role set failed");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, MDS role set failed");
       return NCSCC_RC_FAILURE;
    }
    
@@ -888,7 +888,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
       /* log error */
       m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, MALLOC failed\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, MALLOC failed");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, MALLOC failed");
       return NCSCC_RC_FAILURE;
    }
 
@@ -908,7 +908,7 @@ static uns32 avd_role_switch_stdby_actv (AVD_CL_CB  *cb, SaAmfHAStateT role)
       m_MMGR_FREE_AVD_EVT(evt);
 
       m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, IPC send failed\n");
-      m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, IPC send failed");
+      syslog(LOG_ERR,"NCS_AvSv: Switchover Standby --> Active FAILED, IPC send failed");
       return NCSCC_RC_FAILURE;
    }
 

@@ -254,11 +254,11 @@ uns32 ncs_hisv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
+      printf("\n HISv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF(
+   printf(
       "\n HISv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (uns32)gl_evt_hdl);
 
    /*#########################################################################
@@ -267,11 +267,11 @@ uns32 ncs_hisv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evt_hdl, &evt_sel_obj)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
+      printf("\n HISv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: EDA: Obtained Selection Object successfully !!! \n");
+   printf("\n HISv: EDA: Obtained Selection Object successfully !!! \n");
 
   /*#########################################################################
                   Demonstrating the usage of saEvtChannelOpen()
@@ -286,11 +286,11 @@ uns32 ncs_hisv_run(void)
          (rc = 
             saEvtChannelOpen(gl_evt_hdl, &gl_chan_name, chan_open_flags, timeout, &gl_chan_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
+      printf("\n HISv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Opened HISv EVENTS - Channel successfully !!! \n");
+   printf("\n HISv: Opened HISv EVENTS - Channel successfully !!! \n");
 
   /*#########################################################################
                   Demonstrating the usage of SaEvtEventSubscribe()
@@ -301,11 +301,11 @@ uns32 ncs_hisv_run(void)
    filter_array.filters = hpi_filter_array;
    if (SA_AIS_OK != (rc = saEvtEventSubscribe(gl_chan_hdl, &filter_array, gl_subid)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
+      printf("\n HISv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Subscribed for events on HISv EVENTS channel successfully !!! \n");
+   printf("\n HISv: Subscribed for events on HISv EVENTS channel successfully !!! \n");
 
    m_NCS_TASK_SLEEP(2000);
 
@@ -320,7 +320,7 @@ uns32 ncs_hisv_run(void)
    /* Set the EVT select object on which HISv sample demo waits */
    m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
 
-   m_NCS_CONS_PRINTF("\n HISv: Waiting on event from the HISv EVENTS channel... \n");
+   printf("\n HISv: Waiting on event from the HISv EVENTS channel... \n");
    while (m_NCS_SEL_OBJ_SELECT(evt_ncs_sel_obj,&wait_sel_obj,NULL,NULL,NULL) != -1)
    {
       /* Process HISv evt messages */
@@ -328,7 +328,7 @@ uns32 ncs_hisv_run(void)
       {
          /* Dispatch all pending messages */
          if (raw) {
-            m_NCS_CONS_PRINTF("\n HISv: EDA: Dispatching message received on HISv EVENTS channel\n");
+            printf("\n HISv: EDA: Dispatching message received on HISv EVENTS channel\n");
          }
          
          /*######################################################################
@@ -337,7 +337,7 @@ uns32 ncs_hisv_run(void)
          rc = saEvtDispatch(gl_evt_hdl, SA_DISPATCH_ALL);
 
          if (rc != SA_AIS_OK)
-            m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
+            printf("\n HISv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
          
          /* Rcvd the published event, now loop back to wait on next event. */
          /* break; */
@@ -354,11 +354,11 @@ uns32 ncs_hisv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtEventFree(gl_chan_pub_event_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
+      printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Freed the event successfully !!! \n");
+   printf("\n HISv: Freed the event successfully !!! \n");
 
    /*##########################################################################
                         Demonstrating the usage of saEvtEventUnsubscribe()
@@ -367,11 +367,11 @@ uns32 ncs_hisv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtEventUnsubscribe(gl_chan_hdl, gl_subid)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
+      printf("\n HISv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Unsubscribed for events successfully !!! \n");
+   printf("\n HISv: Unsubscribed for events successfully !!! \n");
 
    /*###########################################################################
                         Demonstrating the usage of saEvtChannelClose()
@@ -380,11 +380,11 @@ uns32 ncs_hisv_run(void)
 
    if (SA_AIS_OK != (rc = saEvtChannelClose(gl_chan_hdl)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
+      printf("\n HISv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Closed HISv EVENTS channel successfully !!! \n");
+   printf("\n HISv: Closed HISv EVENTS channel successfully !!! \n");
 
    /*###########################################################################
                         Demonstrating the usage of SaEvtFinalize()
@@ -395,11 +395,11 @@ uns32 ncs_hisv_run(void)
 
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
+      printf("\n HISv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
       return (NCSCC_RC_FAILURE);
    }
 
-   m_NCS_CONS_PRINTF("\n HISv: Finalized with event service successfully !!! \n");
+   printf("\n HISv: Finalized with event service successfully !!! \n");
 
    return NCSCC_RC_SUCCESS;
 
@@ -498,7 +498,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    if (NCSCC_RC_SUCCESS != 
          (rc = alloc_pattern_array(&pattern_array, num_patterns, pattern_size)))
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
+      printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
       return;
    }
 
@@ -514,12 +514,12 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                                 &event_id);
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
+      printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
       return;
    }
 
    if (raw) {
-      m_NCS_CONS_PRINTF("\n HISv: Got attributes of the HISv event successfully !!! \n");
+      printf("\n HISv: Got attributes of the HISv event successfully !!! \n");
    }
 
   /*#############################################################################
@@ -530,28 +530,28 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
    rc = saEvtEventDataGet(event_hdl, p_data, &data_len);
    if (rc != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventDataGet() failed. rc=%d\n",rc);
+      printf("\n HISv: EDA: SaEvtEventDataGet() failed. rc=%d\n",rc);
       return;
    }
 
    if (raw) {
-      m_NCS_CONS_PRINTF("\n HISv: Got data from the HISv event successfully !!! \n");
+      printf("\n HISv: Got data from the HISv event successfully !!! \n");
    }
 
 
    /* Say what we received */
-   m_NCS_CONS_PRINTF("\n-------------- Received HISv Event ---------------------\n");
+   printf("\n-------------- Received HISv Event ---------------------\n");
 
    if (raw) {
-      m_NCS_CONS_PRINTF(" publisherName  =    %s\n", publisher_name.value);
-      m_NCS_CONS_PRINTF(" patternArray\n");
+      printf(" publisherName  =    %s\n", publisher_name.value);
+      printf(" patternArray\n");
       dump_event_patterns(pattern_array);
-      m_NCS_CONS_PRINTF(" priority       =    %d\n", priority);
-      m_NCS_CONS_PRINTF(" publishTime    =    %llu\n", (uns64)publish_time);
-      m_NCS_CONS_PRINTF(" retentionTime  =    %llu\n", (uns64)retention_time);
-      m_NCS_CONS_PRINTF(" eventId        =    %llu\n", (uns64)event_id);
-      m_NCS_CONS_PRINTF(" dataLen        =    %d\n", (uns32)data_len);
-      m_NCS_CONS_PRINTF(" data           =    %s\n", p_data);
+      printf(" priority       =    %d\n", priority);
+      printf(" publishTime    =    %llu\n", (uns64)publish_time);
+      printf(" retentionTime  =    %llu\n", (uns64)retention_time);
+      printf(" eventId        =    %llu\n", (uns64)event_id);
+      printf(" dataLen        =    %d\n", (uns32)data_len);
+      printf(" data           =    %s\n", p_data);
    }
 
       /* hpi_event = m_MMGR_ALLOC_AVM_DEFAULT_VAL(sizeof(HPI_EVT_T)); */
@@ -559,31 +559,31 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
       memset(hpi_event, '\0', sizeof(HPI_EVT_T));
       rc = hpl_decode_hisv_evt((HPI_HISV_EVT_T *)hpi_event, p_data, data_len, (HISV_SW_VERSION | HISV_EDS_INF_VERSION));
 
-      /* m_NCS_CONS_PRINTF(" hpi rc         =    %d\n", rc); */
+      /* printf(" hpi rc         =    %d\n", rc); */
    if (raw) {
-      m_NCS_CONS_PRINTF(" hpi prod namel =    %d\n", hpi_event->inv_data.product_name.DataLength);
+      printf(" hpi prod namel =    %d\n", hpi_event->inv_data.product_name.DataLength);
       if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
-         m_NCS_CONS_PRINTF(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
+         printf(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
       else
-         m_NCS_CONS_PRINTF(" hpi prod name  = \n");
-      m_NCS_CONS_PRINTF(" hpi prod versl =    %d\n", hpi_event->inv_data.product_version.DataLength);
+         printf(" hpi prod name  = \n");
+      printf(" hpi prod versl =    %d\n", hpi_event->inv_data.product_version.DataLength);
       if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
-         m_NCS_CONS_PRINTF(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
+         printf(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
       else
-         m_NCS_CONS_PRINTF(" hpi prod vers  = \n");
-      m_NCS_CONS_PRINTF(" hpi event res  =    %d\n", hpi_event->hpi_event.Source);
-      m_NCS_CONS_PRINTF(" hpi event type =    %d\n", hpi_event->hpi_event.EventType);
-      m_NCS_CONS_PRINTF(" hpi event sev  =    %d\n", hpi_event->hpi_event.Severity);
-      m_NCS_CONS_PRINTF(" hotswap state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState);
-      m_NCS_CONS_PRINTF(" prev hs state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState);
-      m_NCS_CONS_PRINTF(" entity type 0  =    %d\n", hpi_event->entity_path.Entry[0].EntityType);
-      m_NCS_CONS_PRINTF(" entity loc  0  =    %d\n", hpi_event->entity_path.Entry[0].EntityLocation);
-      m_NCS_CONS_PRINTF(" entity type 1  =    %d\n", hpi_event->entity_path.Entry[1].EntityType);
-      m_NCS_CONS_PRINTF(" entity loc  1  =    %d\n", hpi_event->entity_path.Entry[1].EntityLocation);
-      m_NCS_CONS_PRINTF(" entity type 2  =    %d\n", hpi_event->entity_path.Entry[2].EntityType);
-      m_NCS_CONS_PRINTF(" entity loc  2  =    %d\n", hpi_event->entity_path.Entry[2].EntityLocation);
-      m_NCS_CONS_PRINTF(" entity type 3  =    %d\n", hpi_event->entity_path.Entry[3].EntityType);
-      m_NCS_CONS_PRINTF(" entity loc  3  =    %d\n", hpi_event->entity_path.Entry[3].EntityLocation);
+         printf(" hpi prod vers  = \n");
+      printf(" hpi event res  =    %d\n", hpi_event->hpi_event.Source);
+      printf(" hpi event type =    %d\n", hpi_event->hpi_event.EventType);
+      printf(" hpi event sev  =    %d\n", hpi_event->hpi_event.Severity);
+      printf(" hotswap state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState);
+      printf(" prev hs state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState);
+      printf(" entity type 0  =    %d\n", hpi_event->entity_path.Entry[0].EntityType);
+      printf(" entity loc  0  =    %d\n", hpi_event->entity_path.Entry[0].EntityLocation);
+      printf(" entity type 1  =    %d\n", hpi_event->entity_path.Entry[1].EntityType);
+      printf(" entity loc  1  =    %d\n", hpi_event->entity_path.Entry[1].EntityLocation);
+      printf(" entity type 2  =    %d\n", hpi_event->entity_path.Entry[2].EntityType);
+      printf(" entity loc  2  =    %d\n", hpi_event->entity_path.Entry[2].EntityLocation);
+      printf(" entity type 3  =    %d\n", hpi_event->entity_path.Entry[3].EntityType);
+      printf(" entity loc  3  =    %d\n", hpi_event->entity_path.Entry[3].EntityLocation);
    }
    else {
       switch (hpi_event->hpi_event.EventType) {
@@ -627,7 +627,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             strcpy (hpi_event_type_string, "UNKNOWN");
             break;
       }
-      m_NCS_CONS_PRINTF("       Event Type : %s\n", hpi_event_type_string);
+      printf("       Event Type : %s\n", hpi_event_type_string);
       switch (hpi_event->hpi_event.Severity) {
          case 0:
             strcpy (hpi_event_sev_string, "SAHPI_CRITICAL");
@@ -654,7 +654,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             strcpy (hpi_event_sev_string, "UNKNOWN");
             break;
       }
-      m_NCS_CONS_PRINTF("   Event Severity : %s\n", hpi_event_sev_string);
+      printf("   Event Severity : %s\n", hpi_event_sev_string);
       if (hpi_event->hpi_event.EventType == SAHPI_ET_HOTSWAP) {
          switch (hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState) {
             case 0:
@@ -677,7 +677,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                break;
          } 
   
-         m_NCS_CONS_PRINTF("    HotSwap State : %s\n", hpi_hs_state_string);
+         printf("    HotSwap State : %s\n", hpi_hs_state_string);
       }
       if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
          switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.SensorType) {
@@ -716,7 +716,13 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                break;
          } 
   
-         m_NCS_CONS_PRINTF("      Sensor Type : %s\n", hpi_sensor_type_string);
+         printf("      Sensor Type : %s\n", hpi_sensor_type_string);
+         if (hpi_event->hpi_event.EventDataUnion.SensorEvent.Assertion == 0) {
+            printf("      Event State : DEASSERTED\n");
+         }
+         else {
+            printf("      Event State : ASSERTED\n");
+         }
       }
       if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
           (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_THRESHOLD)) {
@@ -744,7 +750,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                break;
          } 
   
-         m_NCS_CONS_PRINTF(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+         printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
       }
       if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
           (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_SEVERITY)) {
@@ -781,7 +787,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
                break;
          } 
   
-         m_NCS_CONS_PRINTF(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+         printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
       }
       for (i = 0; i<hpi_entity_path_max; i++) {
          hpi_entity_path_depth++;
@@ -830,28 +836,28 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
          strcpy(hpi_entity_path[i], hpi_entity_path_buffer);
       }
 
-      m_NCS_CONS_PRINTF("Entity Path Depth : %d\n", hpi_entity_path_depth);
-      m_NCS_CONS_PRINTF("      Entity Path : ");
+      printf("Entity Path Depth : %d\n", hpi_entity_path_depth);
+      printf("      Entity Path : ");
       for (i = (hpi_entity_path_depth - 1); i > -1; i--) {
          if (i == 0)
-            m_NCS_CONS_PRINTF("%s\n", hpi_entity_path[i]);
+            printf("%s\n", hpi_entity_path[i]);
          else
-            m_NCS_CONS_PRINTF("%s", hpi_entity_path[i]);
+            printf("%s", hpi_entity_path[i]);
       }
       hpi_event_slot = hpi_event->entity_path.Entry[0].EntityLocation;
-      m_NCS_CONS_PRINTF("    Slot Location : %d\n", hpi_event_slot);
+      printf("    Slot Location : %d\n", hpi_event_slot);
 
       /* Make sure we have a good data length before printing product name and version.  */
       if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
-         m_NCS_CONS_PRINTF("     Product Name : %s\n", hpi_event->inv_data.product_name.Data);
+         printf("     Product Name : %s\n", hpi_event->inv_data.product_name.Data);
       if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
-         m_NCS_CONS_PRINTF("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
+         printf("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
 
       /* Now test to see if we shutdown a blade. Use system call to OpenHPI to shutdown the blade. */
       if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
          if ((strcmp(hpi_sensor_type_string, "SAHPI_TEMPERATURE") == 0) &&
              (strcmp(hpi_event_sev_string, "SAHPI_CRITICAL") == 0)) {
-            m_NCS_CONS_PRINTF("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n", hpi_event_slot);
+            printf("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n", hpi_event_slot);
 
 
             /* Uncomment these 2 lines to shut off the blade using OpenHPI, or ... */
@@ -864,7 +870,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             /* ... uncomment this section of lines to shut off the blade using HISv. */
             /*
             rc = hpl_initialize(&hisv_create_info);
-            m_NCS_CONS_PRINTF("\n***** hpl_initialize rc = %d\n", rc);
+            printf("\n***** hpl_initialize rc = %d\n", rc);
             */
 
             /* Need to sleep for a few seconds before calling the HISv APIs. */
@@ -872,19 +878,19 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             sleep(3);
 
             sprintf(hpi_entity_path2, "{{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,2}}", hpi_event_slot);
-            m_NCS_CONS_PRINTF("\n***** Shutting down resource: %s\n", hpi_entity_path2);
+            printf("\n***** Shutting down resource: %s\n", hpi_entity_path2);
             hisv_power_res = hpl_resource_power_set(2, hpi_entity_path2, HISV_RES_POWER_OFF);
-            m_NCS_CONS_PRINTF("\n***** hisv_power_res = %d\n", hisv_power_res);
+            printf("\n***** hisv_power_res = %d\n", hisv_power_res);
             if (hisv_power_res == NCSCC_RC_SUCCESS)
-               m_NCS_CONS_PRINTF("\n*****          BLADE SUCCESSFULLY SHUTDOWN          *****\n");
+               printf("\n*****          BLADE SUCCESSFULLY SHUTDOWN          *****\n");
             else
-               m_NCS_CONS_PRINTF("\n*****          BLADE COULD NOT BE SHUTDOWN          *****\n");
+               printf("\n*****          BLADE COULD NOT BE SHUTDOWN          *****\n");
             */
          }
       }
    }
 
-   m_NCS_CONS_PRINTF("--------------------------------------------------------\n\n");
+   printf("--------------------------------------------------------\n\n");
 
    free(hpi_event);
 
@@ -899,11 +905,11 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
       rc = saEvtEventRetentionTimeClear(gl_chan_hdl, event_id);
       if (rc != SA_AIS_OK)
       {
-         m_NCS_CONS_PRINTF("\n HISv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n",rc);
+         printf("\n HISv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n",rc);
          goto done;
       }
 
-      m_NCS_CONS_PRINTF("\n HISv: Cleared retention timer successfully !!! \n");
+      printf("\n HISv: Cleared retention timer successfully !!! \n");
    }
 
 done:
@@ -915,10 +921,10 @@ done:
    /* Free the rcvd event */
    rc =  saEvtEventFree(event_hdl);
    if (rc != SA_AIS_OK)
-      m_NCS_CONS_PRINTF("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
+      printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
    else
       if (raw) {
-         m_NCS_CONS_PRINTF("\n HISv: Freed the Event successfully \n");
+         printf("\n HISv: Freed the Event successfully \n");
       }
 
    /* Free the pattern_array */
@@ -1035,7 +1041,7 @@ dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
    for (x=0; x<(int32)patternArray->patternsNumber; x++) {
       memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
       buf[pEventPattern->patternSize] = '\0';
-      m_NCS_CONS_PRINTF("     pattern[%ld] =    {%2u, \"%s\"}\n",
+      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
              x, (uns32)pEventPattern->patternSize, buf);
       pEventPattern++;
    }

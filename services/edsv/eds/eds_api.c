@@ -90,12 +90,12 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       /* clean up the CB */
       m_MMGR_FREE_EDS_CB(eds_cb);
       /* log the error */
-      m_NCS_CONS_PRINTF("eds_se_lib_init: eds_cb_init() FAILED\n");
+      printf("eds_se_lib_init: eds_cb_init() FAILED\n");
       return rc;
    }
    
    m_LOG_EDSV_S(EDS_CB_INIT_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init: eds_cb_init()- EDS_CB INIT SUCCESS\n");
+   printf("eds_se_lib_init: eds_cb_init()- EDS_CB INIT SUCCESS\n");
    
    if(NCSCC_RC_SUCCESS != (rc = pcs_rda_get_init_role(eds_cb))) 
    {
@@ -110,7 +110,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
 
    /* Generate the pidfilename. Also assert for string buffer overflow */
-   m_NCS_OS_ASSERT(sprintf(pidfilename, "%s", EDS_PID_FILE)
+   assert(sprintf(pidfilename, "%s", EDS_PID_FILE)
             < sizeof(pidfilename));
 
    /*Open pidfile for writing the process id */
@@ -118,7 +118,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    if(fp == NULL)
    {
       m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid OPEN FOR WRITE FAILED......\n");
+      printf("eds_se_lib_init : " PIDPATH "eds.pid OPEN FOR WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
@@ -131,7 +131,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    {
       fclose(fp);
       m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
+      printf("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
@@ -142,7 +142,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    fclose(fp);
 
    m_LOG_EDSV_S(EDS_PID_FILE_WRITE_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid EDS PID FILE WRITE SUCCESS......\n");
+   printf("eds_se_lib_init : " PIDPATH "eds.pid EDS PID FILE WRITE SUCCESS......\n");
 
    m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
@@ -150,7 +150,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&eds_cb->mbx)))
    {
       m_LOG_EDSV_S(EDS_IPC_CREATE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
+      printf("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
       /* Release EDU handle */
       m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
       /* Destroy the hdl for this CB */
@@ -163,7 +163,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
    /* Attach the IPC to the created thread */ 
    m_NCS_IPC_ATTACH(&eds_cb->mbx);
    m_LOG_EDSV_S(EDS_MAIL_BOX_CREATE_ATTACH_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init : EDS-MAILBOX CREATE & ATTACH SUCCESS\n");
+   printf("eds_se_lib_init : EDS-MAILBOX CREATE & ATTACH SUCCESS\n");
 
    /* Bind to MDS */
    if (NCSCC_RC_SUCCESS != (rc = eds_mds_init(eds_cb)))
@@ -175,29 +175,29 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
       m_MMGR_FREE_EDS_CB(eds_cb);
-      m_NCS_CONS_PRINTF("eds_se_lib_init: eds_mds_init() EDS MDS INIT FAILED\n");
+      printf("eds_se_lib_init: eds_mds_init() EDS MDS INIT FAILED\n");
       return rc;
    }
    m_LOG_EDSV_S(EDS_MDS_INIT_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init: eds_mds_init() EDS MDS INIT SUCCESS\n");
+   printf("eds_se_lib_init: eds_mds_init() EDS MDS INIT SUCCESS\n");
    /* Initialize mbcsv interface */
    if (NCSCC_RC_SUCCESS != (rc = eds_mbcsv_init(eds_cb)))
    {
        m_LOG_EDSV_S(EDS_MBCSV_INIT_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       m_NCS_CONS_PRINTF("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT FAILED\n");
+       printf("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT FAILED\n");
        /* Log it */
    }
    else
      m_LOG_EDSV_S(EDS_MBCSV_INIT_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
 
-   m_NCS_CONS_PRINTF("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT SUCCESS \n");
+   printf("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT SUCCESS \n");
 
    /* initialize the signal handler */
    if ((ncs_app_signal_install(SIGUSR1,eds_amf_sigusr1_handler)) == -1)
    {  
       m_LOG_EDSV_S(EDS_INSTALL_SIGHDLR_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
       eds_mds_finalize(eds_cb);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : INSTALL SIGNAL HANDLER FAILED\n");
+      printf("eds_se_lib_init : INSTALL SIGNAL HANDLER FAILED\n");
       m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL); 
       /* Release EDU handle */
       m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
@@ -252,11 +252,11 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       /* clean up the CB */
       m_MMGR_FREE_EDS_CB(eds_cb);
       /* log the error */
-      m_NCS_CONS_PRINTF("eds_se_lib_init: EDS MAIN PROCESS START FAILED\n");
+      printf("eds_se_lib_init: EDS MAIN PROCESS START FAILED\n");
       return rc; 
    }
    m_LOG_EDSV_S(EDS_MAIN_PROCESS_START_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init: EDS MAIN PROCESS START SUCCESS\n");
+   printf("eds_se_lib_init: EDS MAIN PROCESS START SUCCESS\n");
 
    /* Register with MAB */
    rc = edsv_mab_register(eds_cb);
@@ -273,11 +273,11 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
       m_MMGR_FREE_EDS_CB(eds_cb);
-      m_NCS_CONS_PRINTF("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER FAILED\n");
+      printf("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER FAILED\n");
       return NCSCC_RC_FAILURE;
    }
    m_LOG_EDSV_S(EDS_MAB_REGISTER_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER SUCCESS\n");
+   printf("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER SUCCESS\n");
 
    if((rc = edsv_table_register()) != NCSCC_RC_SUCCESS)
    { 
@@ -293,11 +293,11 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
       gl_eds_hdl = 0;
       m_MMGR_FREE_EDS_CB(eds_cb);
-      m_NCS_CONS_PRINTF("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER FAILED\n");
+      printf("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER FAILED\n");
       return NCSCC_RC_FAILURE;
    }
    m_LOG_EDSV_S(EDS_TBL_REGISTER_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-   m_NCS_CONS_PRINTF("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER SUCCESS\n");
+   printf("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER SUCCESS\n");
 
    return (rc);
 }
@@ -410,7 +410,7 @@ eds_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
 #endif
        gl_eds_hdl = 0;
        m_END_CRITICAL;
-       m_NCS_CONS_PRINTF("EDS-CB-LIB DESTROY CALLED...... \n");
+       printf("EDS-CB-LIB DESTROY CALLED...... \n");
     }
 
     return (NCSCC_RC_SUCCESS);
@@ -477,7 +477,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
    if(rc != PCSRDA_RC_SUCCESS)
    {
       m_LOG_EDSV_S(EDS_PCS_RDA_LIB_INIT_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : pcs_rda_request() for PCS_RDA_LIB_INIT FAILED\n");
+      printf("eds_se_lib_init : pcs_rda_request() for PCS_RDA_LIB_INIT FAILED\n");
       return NCSCC_RC_FAILURE;
    }
    
@@ -488,7 +488,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
    if(rc != PCSRDA_RC_SUCCESS)
    {
       m_LOG_EDSV_S(EDS_PCS_RDA_GET_ROLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init : pcs_rda_request() for PCS_RDA_GET_ROLE FAILED\n");
+      printf("eds_se_lib_init : pcs_rda_request() for PCS_RDA_GET_ROLE FAILED\n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -498,16 +498,16 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
       case PCS_RDA_ACTIVE:
          eds_cb->ha_state = SA_AMF_HA_ACTIVE;
          m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_ACTIVE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,pcs_rda_req.info.io_role,__FILE__,__LINE__,0);
-         m_NCS_CONS_PRINTF("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA ACTIVE\n");
+         printf("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA ACTIVE\n");
          break;
       case PCS_RDA_STANDBY:
          m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_STANDBY,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,pcs_rda_req.info.io_role,__FILE__,__LINE__,0);
          eds_cb->ha_state = SA_AMF_HA_STANDBY;
-         m_NCS_CONS_PRINTF("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA STANDBY\n");
+         printf("eds_se_lib_init : GOT INIT ROLE FROM RDA , I AM HA STANDBY\n");
          break;
       default:
          m_LOG_EDSV_S(EDS_RDA_SET_HA_STATE_NULL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,pcs_rda_req.info.io_role,__FILE__,__LINE__,0);
-         m_NCS_CONS_PRINTF("eds_se_lib_init :GOT INIT ROLE FROM RDA , ROLE = NULL FAILED \n");
+         printf("eds_se_lib_init :GOT INIT ROLE FROM RDA , ROLE = NULL FAILED \n");
          return NCSCC_RC_FAILURE;
    }
    /* RDA finalize */
@@ -517,7 +517,7 @@ pcs_rda_get_init_role(EDS_CB* eds_cb)
    if(rc != PCSRDA_RC_SUCCESS)
    {
       m_LOG_EDSV_S(EDS_PCS_RDA_LIB_INIT_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_CONS_PRINTF("eds_se_lib_init :PCS RDA LIB DESTROY FAILED \n");
+      printf("eds_se_lib_init :PCS RDA LIB DESTROY FAILED \n");
    }
 
    return NCSCC_RC_SUCCESS;

@@ -85,7 +85,7 @@ void event_thread_blocking (NCSCONTEXT arg)
    rc = m_NCS_SEL_OBJ_SELECT(sel_obj, &io_readfds, NULL, NULL, NULL);
    if (rc == -1)
    {
-      m_NCS_CONS_PRINTF(" Select failed\n");
+      printf(" Select failed\n");
       return;
    }
 
@@ -93,9 +93,9 @@ void event_thread_blocking (NCSCONTEXT arg)
    {
       rc = ncs_srmsv_dispatch(srmsvHandle, SA_DISPATCH_BLOCKING);
       if (rc != SA_AIS_OK)
-         m_NCS_CONS_PRINTF(" Dispatching failed %d \n", rc);
+         printf(" Dispatching failed %d \n", rc);
       else
-         m_NCS_CONS_PRINTF(" Thread selected \n");
+         printf(" Thread selected \n");
    }
 }
 

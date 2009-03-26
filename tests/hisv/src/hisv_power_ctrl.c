@@ -54,16 +54,16 @@ short SpecifiedBlade = 0;
  *  
  *****************************************************************************/
 void print_usage(const char* name) {
-   m_NCS_CONS_PRINTF("%s:  Set the power state of an entity\n", name);
-   m_NCS_CONS_PRINTF("USAGE: %s -path=\"<{entity_path}>\" -state=<on|off|cycle> [-f]\n", name);
-   m_NCS_CONS_PRINTF("   OR: %s -chassis=<chassis_id> -blade=<blade_id> -state=<on|off|cycle> [-f]\n", name);
-   m_NCS_CONS_PRINTF("\t-path\tRequired if chassis and blade ID not specified.\n\t\t\tSpecify the path to the entity, e.g., \"{{SYSTEM_BLADE,12},{SYSTEM_CHASSIS,2}}\"\n");
-   m_NCS_CONS_PRINTF("\t\tNOTE: Be sure to quote the path on the command line (braces are interpreted by the shell.\n");
-   m_NCS_CONS_PRINTF("\t-chassis\tRequired if entity_path is not specified.\n\t\t\tSpecify the chassis of the entity\n");
-   m_NCS_CONS_PRINTF("\t-blade\tRequired if entity_path is not specified.\n\t\t\tSpecify the blade-bay of the entity\n");
-   m_NCS_CONS_PRINTF("\t-state\tRequired - Specify the power state, e.g., off, on or (power) cycle\n");
-   m_NCS_CONS_PRINTF("\t-force\tForce %s to use the exact parameters input (no input checking)\n", name);
-   m_NCS_CONS_PRINTF("\n");
+   printf("%s:  Set the power state of an entity\n", name);
+   printf("USAGE: %s -path=\"<{entity_path}>\" -state=<on|off|cycle> [-f]\n", name);
+   printf("   OR: %s -chassis=<chassis_id> -blade=<blade_id> -state=<on|off|cycle> [-f]\n", name);
+   printf("\t-path\tRequired if chassis and blade ID not specified.\n\t\t\tSpecify the path to the entity, e.g., \"{{SYSTEM_BLADE,12},{SYSTEM_CHASSIS,2}}\"\n");
+   printf("\t\tNOTE: Be sure to quote the path on the command line (braces are interpreted by the shell.\n");
+   printf("\t-chassis\tRequired if entity_path is not specified.\n\t\t\tSpecify the chassis of the entity\n");
+   printf("\t-blade\tRequired if entity_path is not specified.\n\t\t\tSpecify the blade-bay of the entity\n");
+   printf("\t-state\tRequired - Specify the power state, e.g., off, on or (power) cycle\n");
+   printf("\t-force\tForce %s to use the exact parameters input (no input checking)\n", name);
+   printf("\n");
    fflush(stdout);
 }
 
@@ -91,25 +91,25 @@ uns32 check_user_input(char* entity_path, HISV_PWR_ARGS pwr_state, int chassis, 
 {
     int ret = NCSCC_RC_SUCCESS;
 
-    m_NCS_CONS_PRINTF("\ncheck_user_input:\n");
-    m_NCS_CONS_PRINTF("\tSpecifiedChassis : %d\n", SpecifiedChassis);
-    m_NCS_CONS_PRINTF("\tSpecifiedBlade : %d\n", SpecifiedBlade);
-    if (strlen(entity_path)) {m_NCS_CONS_PRINTF("\tentity_path : %s\n", entity_path);}
-    m_NCS_CONS_PRINTF("\tchassis : %d\n", chassis);
-    m_NCS_CONS_PRINTF("\tblade : %d\n", blade);
+    printf("\ncheck_user_input:\n");
+    printf("\tSpecifiedChassis : %d\n", SpecifiedChassis);
+    printf("\tSpecifiedBlade : %d\n", SpecifiedBlade);
+    if (strlen(entity_path)) {printf("\tentity_path : %s\n", entity_path);}
+    printf("\tchassis : %d\n", chassis);
+    printf("\tblade : %d\n", blade);
 
     if (!strlen(entity_path)) {
         if ((!SpecifiedChassis) || (!SpecifiedBlade)) {
-		   m_NCS_CONS_PRINTF("\nERROR: Specify an entity path using -path on the command line\n");
-		   m_NCS_CONS_PRINTF("   OR: Specify the chassis ID and blade ID using -chassis and -blade\n");
+		   printf("\nERROR: Specify an entity path using -path on the command line\n");
+		   printf("   OR: Specify the chassis ID and blade ID using -chassis and -blade\n");
            fflush(stdout);
 		   ret = NCSCC_RC_FAILURE;
         }
     }
 
 	if ( (pwr_state > PowerStateMaxIndex) || (pwr_state < 0)) {
-		m_NCS_CONS_PRINTF("\nERROR: User requested an unrecognized power state.\n");
-		m_NCS_CONS_PRINTF("\tAllowed power states are ON (0), OFF (1), CYCLE (2).\n");
+		printf("\nERROR: User requested an unrecognized power state.\n");
+		printf("\tAllowed power states are ON (0), OFF (1), CYCLE (2).\n");
         fflush(stdout);
 		ret = NCSCC_RC_FAILURE;
     }
@@ -256,7 +256,7 @@ int main(int argc, char** argv)
     // Set a default value for the chassis ID if the user gave an entity path.
 	if (strlen(hisv_entity_path) && (!SpecifiedChassis)) {
 	   chassis = 2;
-	   m_NCS_CONS_PRINTF("\tUser specified an entity path, but not chassis ID.  Using %d\n", chassis);
+	   printf("\tUser specified an entity path, but not chassis ID.  Using %d\n", chassis);
 	} 
 
     // Now register a cleanup routine when we exit.  From this
@@ -271,8 +271,8 @@ int main(int argc, char** argv)
     // Check to see if the user input a path or the chassis and
     //  blade IDs to generate one.
     if (!strlen(hisv_entity_path) && (SpecifiedBlade)) {
-       m_NCS_CONS_PRINTF("Looking up path for chassis %d / blade %d\n", chassis, blade);
-       m_NCS_CONS_PRINTF("\thpl_entity_path_lookup(3, chassis, blade, hisv_entity_path, sizeof(hisv_entity_path))\n");
+       printf("Looking up path for chassis %d / blade %d\n", chassis, blade);
+       printf("\thpl_entity_path_lookup(3, chassis, blade, hisv_entity_path, sizeof(hisv_entity_path))\n");
        if ((hpl_entity_path_lookup(3, (uns32) chassis, (uns32) blade, hisv_entity_path, sizeof(hisv_entity_path)) != NCSCC_RC_SUCCESS)
 			|| (!strlen(hisv_entity_path)) )
 	   {
@@ -281,24 +281,24 @@ int main(int argc, char** argv)
        }
     }
 
-    m_NCS_CONS_PRINTF("\n--> Setting power state for %s to ", hisv_entity_path);
+    printf("\n--> Setting power state for %s to ", hisv_entity_path);
     if ( (pwr_state > 0) && (pwr_state <= PowerStateMaxIndex) ) {
-       m_NCS_CONS_PRINTF("%s <--\n", PowerStateDesc[pwr_state]);
+       printf("%s <--\n", PowerStateDesc[pwr_state]);
     }
 	else {
-       m_NCS_CONS_PRINTF("%d <--\n", (int)pwr_state);
+       printf("%d <--\n", (int)pwr_state);
     }
-    m_NCS_CONS_PRINTF("\n");
-    m_NCS_CONS_PRINTF("--> hpl_resource_power_set(%d, %s, %d)\n", chassis, hisv_entity_path, pwr_state);
+    printf("\n");
+    printf("--> hpl_resource_power_set(%d, %s, %d)\n", chassis, hisv_entity_path, pwr_state);
     fflush(stdout);
     ret = hpl_resource_power_set(chassis, hisv_entity_path, pwr_state);
     if (ret != NCSCC_RC_SUCCESS) {
-       m_NCS_CONS_PRINTF("ERROR: Failed to set power to %d on %s\n", pwr_state, hisv_entity_path);
-       m_NCS_CONS_PRINTF("\thpl_resource_power_set(chassis, hisv_entity_path, power_state) returned an error\n");
+       printf("ERROR: Failed to set power to %d on %s\n", pwr_state, hisv_entity_path);
+       printf("\thpl_resource_power_set(chassis, hisv_entity_path, power_state) returned an error\n");
        fflush(stdout);
     }
 	if (ret == NCSCC_RC_SUCCESS) {
- 	 	m_NCS_CONS_PRINTF("Waiting a moment for the request to trickle down to ham\n");
+ 	 	printf("Waiting a moment for the request to trickle down to ham\n");
    		m_NCS_TASK_SLEEP(3000);
 		ret = 0;
 	}

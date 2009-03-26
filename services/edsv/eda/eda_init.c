@@ -126,7 +126,7 @@ uns32 eda_create (NCS_LIB_CREATE *create_info)
    }
 
    /* get the process id */
-   cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   cb->prc_id = getpid();
 
    /* initialize the eda cb lock */
    m_NCS_LOCK_INIT(&cb->cb_lock);

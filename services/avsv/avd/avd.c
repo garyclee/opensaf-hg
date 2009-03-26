@@ -1044,7 +1044,7 @@ void avd_hb_init_proc(uns32 *avd_hdl_ptr)
    } /* end of the infinite loop */
 
   m_AVD_LOG_INVALID_VAL_FATAL(0);
-  m_NCS_SYSLOG(NCS_LOG_CRIT,"NCS_AvSv: Avd-HB Thread Failed");
+  syslog(LOG_CRIT,"NCS_AvSv: Avd-HB Thread Failed");
 
 } /* avd_main_proc */
 

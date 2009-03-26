@@ -60,7 +60,7 @@ static void pssts_destroy_temp_sort_db(NCS_PATRICIA_TREE *pTree);
 
 uns32 mab_dbg_sink(uns32 l, char* f, uns32 code)
   {
-  m_NCS_CONS_PRINTF ("IN MAB_DBG_SINK: line %d, file %s\n",l,f);
+  printf ("IN MAB_DBG_SINK: line %d, file %s\n",l,f);
   return code;
   }
 
@@ -117,44 +117,44 @@ void mab_dbg_dump_fltr_op(MAS_TBL*  inst,
 {
   uns8* role_name = NULL;
 
-  m_NCS_CONS_PRINTF("\n\n===============================================");
-  m_NCS_CONS_PRINTF("\n [MAS_FLTR] MODE:%s.",mode == MFM_CREATE ? "CREATE" :
+  printf("\n\n===============================================");
+  printf("\n [MAS_FLTR] MODE:%s.",mode == MFM_CREATE ? "CREATE" :
                                           mode == MFM_MODIFY ? "MODIFY" : "DESTROY");
-  m_NCS_CONS_PRINTF("\n================================================");
+  printf("\n================================================");
 
 #if (NCS_RMS == 1)    
     role_name = (uns8*) (inst->re.role == NCSFT_ROLE_PRIMARY ? "PRIMARY" : inst->re.role == NCSFT_ROLE_BACKUP ? "BACKUP" : "OTHER");
 #else
     role_name = (uns8*) ("NONE");
 #endif
-  m_NCS_CONS_PRINTF("\n MAS_TBL:%p | role:%s.",inst,role_name);
+  printf("\n MAS_TBL:%p | role:%s.",inst,role_name);
 
-  m_NCS_CONS_PRINTF("\n================================================");
-  m_NCS_CONS_PRINTF("\ntbl_id:%d / vcard:%d / fltr_id[0]:%d / fltr_id[1]:%d.",
+  printf("\n================================================");
+  printf("\ntbl_id:%d / vcard:%d / fltr_id[0]:%d / fltr_id[1]:%d.",
                       tbl_id,fltr->vcard,fltr->fltr_ids[0],fltr->fltr_ids[1]);
-  m_NCS_CONS_PRINTF("\nfltr type: %d.",fltr->fltr.type);
+  printf("\nfltr type: %d.",fltr->fltr.type);
   switch(fltr->fltr.type)
   {
    case NCSMAB_FLTR_RANGE:
-     m_NCS_CONS_PRINTF("\nrange fltr:%d",fltr->fltr.fltr.range.i_min_idx_fltr[0]);
+     printf("\nrange fltr:%d",fltr->fltr.fltr.range.i_min_idx_fltr[0]);
      break;
    case NCSMAB_FLTR_ANY:
-     m_NCS_CONS_PRINTF("\nany fltr.");
+     printf("\nany fltr.");
      break;
    case NCSMAB_FLTR_SAME_AS:
-     m_NCS_CONS_PRINTF("\nsame as fltr:%d",fltr->fltr.fltr.same_as.i_table_id);
+     printf("\nsame as fltr:%d",fltr->fltr.fltr.same_as.i_table_id);
      break;
    case NCSMAB_FLTR_SCALAR:
-     m_NCS_CONS_PRINTF("\nscalar...");
+     printf("\nscalar...");
      break;
    case NCSMAB_FLTR_DEFAULT:
-     m_NCS_CONS_PRINTF("\ndefault...");
+     printf("\ndefault...");
      break;
    default:
      break;
   }
 
-  m_NCS_CONS_PRINTF("\n===============================================\n\n");
+  printf("\n===============================================\n\n");
 
 }
 
@@ -189,7 +189,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the pwe directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -200,7 +200,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the n_pcn directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%s", n_pcn);
+    snprintf((char *)buf2, sizeof(buf2), "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -211,7 +211,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the table file */
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", tbl);
+    snprintf((char *)buf2, sizeof(buf2), "%d", tbl);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = buf_len;
@@ -262,7 +262,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     /* Get the full path for pwe directory */
     memset((char*)&buf2, '\0', sizeof(buf2));
     memset((char*)&path2, '\0', sizeof(path2));
-    m_NCS_OS_SNPRINTF((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -289,7 +289,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     }
 
     /* Get the full path for n_pcn directory */
-    m_NCS_OS_SNPRINTF((char *)buf2, strlen(n_pcn) + 1, "%s", n_pcn);
+    snprintf((char *)buf2, strlen(n_pcn) + 1, "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -1030,7 +1030,7 @@ static uns32 pssts_pwe_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", pwe_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", pwe_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1066,7 +1066,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", pcn_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", pcn_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1075,7 +1075,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
+    snprintf((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf);
@@ -1130,7 +1130,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%d", delete_pcn->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3), "%d", delete_pcn->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1139,7 +1139,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    m_NCS_OS_SNPRINTF((char *)buf3, sizeof(buf3), "%s", delete_pcn->i_pcn);
+    snprintf((char *)buf3, sizeof(buf3), "%s", delete_pcn->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf4);
@@ -1450,7 +1450,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
              while((retval == NCSCC_RC_SUCCESS) && (next_tbl[0] != '\0'))
              {
                 valid_tbl_id = TRUE;
-                m_NCS_CONS_PRINTF("\nnext_tbl : %s", next_tbl);
+                printf("\nnext_tbl : %s", next_tbl);
                 if((strcmp((char *)&next_tbl, ".") == 0) ||
                    (strcmp((char *)&next_tbl, "..") == 0))
                 {

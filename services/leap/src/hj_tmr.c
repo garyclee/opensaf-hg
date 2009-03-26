@@ -53,7 +53,7 @@ ncs_rp_tmr_left_over(NCS_RP_TMR_CB *tmr_cb, NCS_RP_TMR_HDL tmr_id)
    if (tmr_info == NULL)
       return (0);
    m_GET_TIME_STAMP(now);
-   tmr_left = (uns32)sysf_difftime(now, tmr_info->tmr_trig_at);
+   tmr_left = (uns32)difftime(now, tmr_info->tmr_trig_at);
    if (tmr_left < tmr_info->tmr_value)
       tmr_left = (tmr_info->tmr_value - tmr_left);
    else
@@ -82,7 +82,7 @@ rp_tmr_time_left_in_sec(time_t tmr_trig_at, uns32 tmr_value)
    time_t now;
 
    m_GET_TIME_STAMP(now);
-   tmr_left = (uns32)sysf_difftime(now, tmr_trig_at);
+   tmr_left = (uns32)difftime(now, tmr_trig_at);
    if (tmr_left < tmr_value)
       tmr_left = (tmr_value - tmr_left);
    else

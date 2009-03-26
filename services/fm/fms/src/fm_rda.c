@@ -41,7 +41,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
    rc = pcs_rda_request (&rda_req);
    if (rc  != PCSRDA_RC_SUCCESS)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA lib init failed \n");
+      syslog(LOG_INFO,"RDA lib init failed \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -54,7 +54,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
       /* set the error code to be returned */
       status = NCSCC_RC_FAILURE;
       /* finalize */
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA get role failed \n");
+      syslog(LOG_INFO,"RDA get role failed \n");
       goto rda_lib_destroy;
    }
 
@@ -68,7 +68,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
    {
       /* set the error code to be returned */
       status = NCSCC_RC_FAILURE;
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA role is neither Active nor Standby \n");
+      syslog(LOG_INFO,"RDA role is neither Active nor Standby \n");
       goto rda_lib_destroy;
    }
 
@@ -82,7 +82,7 @@ uns32 fm_rda_init(FM_CB *fm_cb)
    {
       /* set the error code to be returned */
       status = NCSCC_RC_FAILURE;
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA callback subscription failed \n");
+      syslog(LOG_INFO,"RDA callback subscription failed \n");
       /* finalize */
       goto rda_lib_destroy;
    }
@@ -91,13 +91,13 @@ uns32 fm_rda_init(FM_CB *fm_cb)
 
    /* finalize the library */
 rda_lib_destroy:
-   m_NCS_SYSLOG(NCS_LOG_INFO,"RDA lib destroy called \n");
+   syslog(LOG_INFO,"RDA lib destroy called \n");
    memset(&rda_req, 0, sizeof(PCS_RDA_REQ));
    rda_req.req_type = PCS_RDA_LIB_DESTROY;
    rc = pcs_rda_request(&rda_req);
    if (rc != PCSRDA_RC_SUCCESS)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA lib destroy failed in fm_rda_init \n");
+      syslog(LOG_INFO,"RDA lib destroy failed in fm_rda_init \n");
       return NCSCC_RC_FAILURE;
    }
 
@@ -128,7 +128,7 @@ uns32 fm_rda_finalize(FM_CB *fm_cb)
    rc = pcs_rda_request(&rda_req);
    if (rc != PCSRDA_RC_SUCCESS)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,"RDA lib destroy failed in fm_rda_finalize \n");
+      syslog(LOG_INFO,"RDA lib destroy failed in fm_rda_finalize \n");
       status = NCSCC_RC_FAILURE;
    }
 
@@ -156,7 +156,7 @@ void fm_rda_callback(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE 
 
    if(cb_info->cb_type == PCS_RDA_ROLE_CHG_IND)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,
+      syslog(LOG_INFO,
             "fm_rda_callback(): CurrentState: %s, NewState: %s\n", 
             role_string[fm_cb->role], role_string[cb_info->info.io_role]);
       if ((cb_info->info.io_role == PCS_RDA_ACTIVE) || 
@@ -199,13 +199,13 @@ uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
    rc = pcs_rda_request(&rda_req);
    if (rc != PCSRDA_RC_SUCCESS)
    {
-      m_NCS_SYSLOG(NCS_LOG_INFO,
+      syslog(LOG_INFO,
             "fm_rda_set_role() Failed: CurrentState: %d, AskedState: %d\n", 
             role_string[fm_cb->role], role_string[role]);
       return NCSCC_RC_FAILURE;
    }
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,
+   syslog(LOG_INFO,
             "fm_rda_set_role() Success: CurrentState: %d, AskedState: %d\n", 
             role_string[fm_cb->role], role_string[role]);
 

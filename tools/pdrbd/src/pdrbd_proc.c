@@ -57,7 +57,7 @@ uns32 pseudoLibReq(NCS_LIB_REQ_INFO *reqInfo)
 
       if((ret = pseudoCreate(reqInfo)) == NCSCC_RC_FAILURE)
       {
-         m_NCS_CONS_PRINTF("ERROR: Pseudo DRBD component creation failed!!");
+         printf("ERROR: Pseudo DRBD component creation failed!!");
       }
 
       else
@@ -100,7 +100,7 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
    /* Register with logging service */
    if(pdrbd_log_bind() == NCSCC_RC_FAILURE)
    {
-      m_NCS_CONS_PRINTF("ERROR: Pseudo DRBD FLS registration failed!!");
+      printf("ERROR: Pseudo DRBD FLS registration failed!!");
       ret = NCSCC_RC_FAILURE;
       goto pcRet;
    }
@@ -153,10 +153,10 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
    }
 
    /* Remove the FIFO (pipe) if it's existing */
-   m_NCS_POSIX_UNLINK(PSEUDO_DRBD_FIFO);
+   unlink(PSEUDO_DRBD_FIFO);
 
    /* Create the FIFO (pipe) */
-   if(m_NCS_POSIX_MKFIFO(PSEUDO_DRBD_FIFO, 0600) < 0)
+   if(mkfifo(PSEUDO_DRBD_FIFO, 0600) < 0)
    {
       m_LOG_PDRBD_HEADLINE(PDRBD_HDLN_PDRBD_PIPE_CREATE_FAILURE, NCSFL_SEV_ERROR, 0);
       ret = NCSCC_RC_FAILURE;
@@ -165,7 +165,7 @@ static uns32 pseudoCreate(NCS_LIB_REQ_INFO *reqInfo)
 
    m_LOG_PDRBD_HEADLINE(PDRBD_HDLN_PDRBD_PIPE_CREATE_SUCCESS, NCSFL_SEV_INFO, 0);
 
-   if((pipeFd = m_NCS_POSIX_OPEN(PSEUDO_DRBD_FIFO, O_RDWR | O_NONBLOCK)) < 0)
+   if((pipeFd = open(PSEUDO_DRBD_FIFO, O_RDWR | O_NONBLOCK)) < 0)
    {
       m_LOG_PDRBD_HEADLINE(PDRBD_HDLN_PDRBD_PIPE_OPEN_FAILURE, NCSFL_SEV_ERROR, 0);
       ret = NCSCC_RC_FAILURE;
@@ -272,7 +272,7 @@ static uns32 parseProxiedConfFile()
    }
 
    /* Start reading the conf file contents */
-   while(m_NCS_OS_FGETS(buff, sizeof(buff), (FILE *) proxiedConfFile.info.open.o_file_handle))
+   while(fgets(buff, sizeof(buff), (FILE *) proxiedConfFile.info.open.o_file_handle))
    {
       /* Skip comments and tabs in the beginning */
       ch = buff;
@@ -645,7 +645,7 @@ uns32 pseudoInitialise()
    for(i=0; i<pseudoCB.noOfProxied; i++)
    {
       memset(buff, 0, sizeof(buff));
-      sysf_sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
+      sprintf(buff, "safComp=%s,safSu=%s,%s", pseudoCB.proxied_info[i].compId, pseudoCB.proxied_info[i].suId,
                      pseudoCB.nodeId);
       strcpy((uns8 *) pseudoCB.proxied_info[i].compName.value, (uns8 *) buff);
       pseudoCB.proxied_info[i].compName.length = strlen(buff);
@@ -676,7 +676,7 @@ uns32 pseudoInitialise()
 
    /* Get and set the health check key */
    memset(&amfHthChkKey, 0, sizeof(amfHthChkKey));
-   hthChkKey = m_NCS_OS_PROCESS_GET_ENV_VAR("PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY");
+   hthChkKey = getenv("PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY");
 
    if(hthChkKey == NULL)
    {
@@ -727,7 +727,7 @@ static void pseudoProcessPipeMsgs()
 
    while(count < (SCRIPT_MSG_SIZE + 1))
    {
-      nBytes = m_NCS_POSIX_READ(pseudoCB.pipeFd, buff + count, (sizeof(buff) - count));
+      nBytes = read(pseudoCB.pipeFd, buff + count, (sizeof(buff) - count));
 
       if (nBytes <= 0)
          break;

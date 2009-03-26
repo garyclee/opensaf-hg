@@ -1,0 +1,54 @@
+#!/bin/sh 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+command=opensaf_ntfd
+ntfsd=$LIBPATH/$command
+pidfile=$PIDPATH/$command.pid
+conf=${SYSCONFDIR}/ntf.conf
+
+test -r $conf || exit 1
+source $conf
+
+test -x $ntfsd || exit 1
+
+case $1 in
+    start)
+        $NTFTOOL $ntfsd > "$NCS_STDOUTS_PATH/$command" 2>&1 &
+        ;;
+    clean)
+        if test -r $pidfile; then
+            PID=`cat $pidfile`
+            if [ "$NTFTOOL" == "" ]; then
+                kill -KILL $PID
+            else
+                kill -TERM $PID
+            fi
+            rm -f $pidfile
+        fi
+        ;;
+    dump)
+        # Dump internal data structures to console
+        kill -USR2 `cat $pidfile` 
+        ;;
+    *)
+        echo "Usage: $0 {start|clean|dump}"
+        exit 1
+esac
+
+exit 0

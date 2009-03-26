@@ -134,19 +134,19 @@ void fill_std_config (char **t_argv)
     tmp_ptr = (char *) getenv("TET_MDS_IF_INDEX");
     mds_ifindex = atoi(tmp_ptr); 
 
-    if ( m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_ENV_NODE_ID") )
+    if ( getenv("NCS_ENV_NODE_ID") )
     {
-        node_id = atoi(m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_ENV_NODE_ID"));
+        node_id = atoi(getenv("NCS_ENV_NODE_ID"));
     }
 
-    if ( m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME") )
+    if ( getenv("SA_AMF_COMPONENT_NAME") )
     {
 
-        printf("\n\nThe  comp name ISSSS %s\n",m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME"));
+        printf("\n\nThe  comp name ISSSS %s\n",getenv("SA_AMF_COMPONENT_NAME"));
 
         if ((f_pid =  fopen(getenv("TET_PID_FILE"),"a")))
         {
-            rc =  fprintf(f_pid,"%s: %d\n",m_NCS_OS_PROCESS_GET_ENV_VAR("SA_AMF_COMPONENT_NAME"),getpid());
+            rc =  fprintf(f_pid,"%s: %d\n",getenv("SA_AMF_COMPONENT_NAME"),getpid());
             fclose(f_pid);
         }
         if ( rc <= 0)

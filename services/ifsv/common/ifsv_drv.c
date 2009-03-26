@@ -221,7 +221,7 @@ ifsv_drv_init (uns32 vrid, uns8 pool_id)
       drv_cb = m_MMGR_ALLOC_IFSV_DRV_CB;
       if (drv_cb == NULL)
       {
-         m_NCS_CONS_PRINTF("\nMemory failure\n");
+         printf("\nMemory failure\n");
          break;
       }
       memset(drv_cb, 0, sizeof(IFSV_DRV_CB));
@@ -239,7 +239,7 @@ ifsv_drv_init (uns32 vrid, uns8 pool_id)
       res = m_NCS_OS_LOCK(&drv_cb->port_reg_lock, NCS_OS_LOCK_CREATE, 0);
       if ( res == NCSCC_RC_FAILURE)
       {     
-         m_NCS_CONS_PRINTF("\nLock create failure\n");
+         printf("\nLock create failure\n");
          goto ifsv_drv_lock_fail;
          break;
       }
@@ -249,7 +249,7 @@ ifsv_drv_init (uns32 vrid, uns8 pool_id)
          (NCSCONTEXT)drv_cb);
       if (drv_hdl == 0)
       {
-         m_NCS_CONS_PRINTF("\nncshm_create_hdl create failure\n");
+         printf("\nncshm_create_hdl create failure\n");
          res = NCSCC_RC_FAILURE;
          goto ifsv_drv_hdl_fail;
          break;
@@ -265,7 +265,7 @@ ifsv_drv_init (uns32 vrid, uns8 pool_id)
       {
          goto ifsv_drv_mds_fail;
       }      
-      m_NCS_CONS_PRINTF("\nDriver Init Done\n");
+      printf("\nDriver Init Done\n");
       goto ifsv_drv_init_done;
    } while(0);
 
@@ -278,7 +278,7 @@ ifsv_drv_lock_fail:
    /* EDU cleanup */
    m_NCS_EDU_HDL_FLUSH(&drv_cb->edu_hdl);
    m_MMGR_FREE_IFSV_DRV_CB(drv_cb);
-   m_NCS_CONS_PRINTF("\nDriver Init failure\n");
+   printf("\nDriver Init failure\n");
    
 ifsv_drv_init_done:
    return (res);
@@ -315,12 +315,12 @@ ifsv_drv_destroy(uns32 vrid)
       /* EDU cleanup */
       m_NCS_EDU_HDL_FLUSH(&drv_cb->edu_hdl);
       m_MMGR_FREE_IFSV_DRV_CB(drv_cb);
-      m_NCS_CONS_PRINTF("\nDriver destroy done\n");
+      printf("\nDriver destroy done\n");
       return(NCSCC_RC_SUCCESS);
    }
    else
    {
-     m_NCS_CONS_PRINTF("\nDriver destroy failure\n");
+     printf("\nDriver destroy failure\n");
      return NCSCC_RC_FAILURE;
    }
 }
@@ -394,7 +394,7 @@ ifsv_register_hw_driver (NCS_IFSV_PORT_REG *reg_msg)
                reg_tbl = m_MMGR_ALLOC_IFSV_DRV_PORT_TBL;
                if (reg_tbl == NULL)
                {
-                  m_NCS_CONS_PRINTF("\nMemory failure\n");
+                  printf("\nMemory failure\n");
                   break;
                }
                memset(reg_tbl, 0, sizeof(IFSV_DRV_PORT_REG_TBL));
@@ -423,9 +423,9 @@ ifsv_register_hw_driver (NCS_IFSV_PORT_REG *reg_msg)
    }
 /*
    if(res == NCSCC_RC_SUCCESS)
-     m_NCS_CONS_PRINTF("\nDriver port reg done\n");
+     printf("\nDriver port reg done\n");
    else
-     m_NCS_CONS_PRINTF("\nDriver port reg failure\n");
+     printf("\nDriver port reg failure\n");
 */
     
    return (res);
@@ -515,7 +515,7 @@ ifsv_drv_mds_msg_send (NCSCONTEXT info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
       hw_info = m_MMGR_ALLOC_IFSV_DRV_IDIM_MSG;
       if (hw_info == NULL)
       {
-         m_NCS_CONS_PRINTF("\nMemory failure\n");
+         printf("\nMemory failure\n");
          return (NCSCC_RC_FAILURE);
       }
       memset(hw_info, 0, sizeof(NCS_IFSV_HW_INFO));
@@ -542,21 +542,21 @@ ifsv_drv_mds_msg_send (NCSCONTEXT info, NCS_IFSV_HW_DRV_MSG_TYPE msg_type,
       {
       case NCS_IFSV_HW_DRV_STATS:
          memcpy(&hw_info->info.stats, info, sizeof(NCS_IFSV_PORT_STATS));
-         m_NCS_CONS_PRINTF("\nDRV Send Hardware Stats To IDIM." 
+         printf("\nDRV Send Hardware Stats To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
                            port_type->port_id,port_type->type);
          break;
       case NCS_IFSV_HW_DRV_PORT_REG:
          memcpy(&hw_info->info.reg_port, info, 
             sizeof(NCS_IFSV_PORT_INFO));
-         m_NCS_CONS_PRINTF("\nDRV Send Port Reg To IDIM." 
+         printf("\nDRV Send Port Reg To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
                            port_type->port_id,port_type->type);
          break;   
       case NCS_IFSV_HW_DRV_PORT_STATUS:
          memcpy(&hw_info->info.port_status, info, 
             sizeof(NCS_IFSV_PORT_STATUS));
-         m_NCS_CONS_PRINTF("\nDRV Send Port Status To IDIM." 
+         printf("\nDRV Send Port Status To IDIM." 
                            " port_type->port_id = %d,port_type->type = %d\n",
                            port_type->port_id,port_type->type);
          break;
@@ -685,7 +685,7 @@ ifsv_send_intf_info (NCS_IFSV_HW_INFO *intf_hw_info)
    msg = m_MMGR_ALLOC_IFSV_DRV_IDIM_MSG;
    if ((msg == NULL) || (intf_hw_info == NULL))
    {
-      m_NCS_CONS_PRINTF("\nMemory failure\n");
+      printf("\nMemory failure\n");
       return (NCSCC_RC_FAILURE);
    }
    memset(msg, 0, sizeof(NCS_IFSV_HW_INFO));
@@ -748,10 +748,10 @@ ifsv_send_intf_info (NCS_IFSV_HW_INFO *intf_hw_info)
                  (NCSCONTEXT)msg, drv_cb->ifnd_dest, NCSMDS_SVC_ID_IFND);      
 
       ncshm_give_hdl(drv_hdl);
-      m_NCS_CONS_PRINTF("\nSend failed from Drv to IDIM\n");
+      printf("\nSend failed from Drv to IDIM\n");
    } else
    {
-      m_NCS_CONS_PRINTF("\nSend success from Drv to IDIM\n");
+      printf("\nSend success from Drv to IDIM\n");
       res = NCSCC_RC_FAILURE;
    }
    m_MMGR_FREE_IFSV_DRV_IDIM_MSG(msg);
@@ -783,7 +783,7 @@ ifsv_drv_get_stats_evt (NCS_IFSV_HW_DRV_REQ *evt, IFSV_DRV_CB *drv_cb)
    port_type.port_id = evt->port_type.port_id;
    port_type.type    = evt->port_type.type;
 
-   m_NCS_CONS_PRINTF("\nDrv receive get stats."
+   printf("\nDrv receive get stats."
                      "port_type.port_id =  %d and port_type.type = %d\n",
                      port_type.port_id, port_type.type);
 
@@ -839,7 +839,7 @@ ifsv_drv_set_hw_param_evt (NCS_IFSV_HW_DRV_REQ *evt, IFSV_DRV_CB *drv_cb)
    port_type.port_id = evt->port_type.port_id;
    port_type.type    = evt->port_type.type;
 
-   m_NCS_CONS_PRINTF("\nDrv receive set stats." 
+   printf("\nDrv receive set stats." 
                      "port_type.port_id = %d and port_type.type = %d\n",
                      port_type.port_id, port_type.type);
 
@@ -890,7 +890,7 @@ ifsv_drv_port_sync_up (NCS_IFSV_HW_DRV_REQ *evt, IFSV_DRV_CB *drv_cb)
    port_type.port_id = evt->port_type.port_id;
    port_type.type    = evt->port_type.type;
 
-   m_NCS_CONS_PRINTF("\nDrv receive port sync req." 
+   printf("\nDrv receive port sync req." 
                      "port_type.port_id = %d and port_type.type = %d",
                      port_type.port_id, port_type.type);
 
@@ -927,7 +927,7 @@ ifsv_drv_ifnd_up_evt (NCS_IFSV_HW_DRV_REQ *evt, IFSV_DRV_CB *drv_cb)
    IFSV_DRV_PORT_REG_TBL *port_reg_tbl;
    uns32                 res = NCSCC_RC_SUCCESS;
 
-   m_NCS_CONS_PRINTF("\nDrv receive IfND UP evt. Node_id = %d",
+   printf("\nDrv receive IfND UP evt. Node_id = %d",
                    m_NCS_NODE_ID_FROM_MDS_DEST(evt->info.ifnd_info.ifnd_addr));
    
    if (drv_cb->vrid == evt->info.ifnd_info.vrid)      
@@ -985,7 +985,7 @@ ifsv_drv_mds_adest_get (IFSV_DRV_CB *cb)
 
    if(rc != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nmds_adest_get failed\n");
+      printf("\nmds_adest_get failed\n");
       return rc;
    }
 
@@ -1095,7 +1095,7 @@ ifsv_drv_mds_install (IFSV_DRV_CB *drv_cb)
 
    if (res != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nmds install failed\n");
+      printf("\nmds install failed\n");
       goto drv_install_err;
    }
 
@@ -1114,7 +1114,7 @@ ifsv_drv_mds_install (IFSV_DRV_CB *drv_cb)
 
    if (res == NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("\nmds subscription Succeeded\n");
+      printf("\nmds subscription Succeeded\n");
       return (NCSCC_RC_SUCCESS);      
    }
 
@@ -1151,8 +1151,8 @@ ifsv_drv_mds_enc (MDS_CALLBACK_ENC_INFO *enc_info, uns32 drv_hdl)
                                DRV_WRT_IFND_MSG_FMT_ARRAY);
    if(0 == enc_info->o_msg_fmt_ver)
    {
-   m_NCS_CONS_PRINTF("\n rem ver not supported:%d",enc_info->i_rem_svc_pvt_ver);
-   m_NCS_CONS_PRINTF("message not encoded\n");
+   printf("\n rem ver not supported:%d",enc_info->i_rem_svc_pvt_ver);
+   printf("message not encoded\n");
    return NCSCC_RC_FAILURE;
    } 
    if ((drv_cb = (IFSV_DRV_CB*) ncshm_take_hdl(NCS_SERVICE_ID_IFDRV, 
@@ -1165,14 +1165,14 @@ ifsv_drv_mds_enc (MDS_CALLBACK_ENC_INFO *enc_info, uns32 drv_hdl)
       if(rc != NCSCC_RC_SUCCESS)
       {
          /* Free calls to be added here. */
-         m_NCS_CONS_PRINTF("\nmds enc failed\n");
+         printf("\nmds enc failed\n");
          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
          return rc;
       }
    }
    else
    {
-      m_NCS_CONS_PRINTF("\nmds enc failed\n");
+      printf("\nmds enc failed\n");
    }
    return rc;
 }
@@ -1201,8 +1201,8 @@ ifsv_drv_mds_dec (MDS_CALLBACK_DEC_INFO *dec_info, uns32 drv_hdl)
                                       DRV_WRT_IFND_SUBPART_VER_AT_MAX_MSG_FMT,
                                       DRV_WRT_IFND_MSG_FMT_ARRAY))
    {
-    m_NCS_CONS_PRINTF("\nmsg fmt ver:%d not supported",dec_info->i_msg_fmt_ver);
-    m_NCS_CONS_PRINTF("msg not decoded\n");
+    printf("\nmsg fmt ver:%d not supported",dec_info->i_msg_fmt_ver);
+    printf("msg not decoded\n");
     return NCSCC_RC_FAILURE;
    }
 
@@ -1213,7 +1213,7 @@ ifsv_drv_mds_dec (MDS_CALLBACK_DEC_INFO *dec_info, uns32 drv_hdl)
       dec_info->o_msg = m_MMGR_ALLOC_IFSV_DRV_REQ_MSG;
       if(dec_info->o_msg == NULL)
       {
-         m_NCS_CONS_PRINTF("\nMemory failure\n");
+         printf("\nMemory failure\n");
          ncshm_give_hdl(drv_hdl);
          return(NCSCC_RC_FAILURE);
       }
@@ -1226,13 +1226,13 @@ ifsv_drv_mds_dec (MDS_CALLBACK_DEC_INFO *dec_info, uns32 drv_hdl)
       {         
          m_MMGR_FREE_IFSV_DRV_REQ_MSG(dec_info->o_msg);
          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-         m_NCS_CONS_PRINTF("\nmds dec failed\n");
+         printf("\nmds dec failed\n");
          return rc;
       }
    }
    else
    {
-      m_NCS_CONS_PRINTF("\nmds dec failed\n");
+      printf("\nmds dec failed\n");
    }
    return rc;
 }
@@ -1261,7 +1261,7 @@ ifsv_drv_mds_cpy (MDS_CALLBACK_COPY_INFO *cpy, uns32 drv_hdl)
    /* cpy->o_msg_fmt_ver is not filled as we assume that driver and ifnd-idim will not lie in the same process and so this function is not called*/ 
    if(stream == NULL)
    {
-      m_NCS_CONS_PRINTF("\nMemory failure\n");
+      printf("\nMemory failure\n");
       return NCSCC_RC_FAILURE;
    } 
 
@@ -2064,7 +2064,7 @@ NCS_IFSV_SUBSCR_SCOPE  ifsv_drv_scope_update(uns8 *name)
    fp = fopen(OSAF_SYSCONFDIR "ncs_ifsv_drv_conf","r");
    if (fp == NULL)
    {
-      m_NCS_CONS_PRINTF("\n " OSAF_SYSCONFDIR "ncs_ifsv_drv_conf file failed to open!!DoesntExist ..\n");
+      printf("\n " OSAF_SYSCONFDIR "ncs_ifsv_drv_conf file failed to open!!DoesntExist ..\n");
       return 0;
    }
 

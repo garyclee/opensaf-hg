@@ -224,7 +224,7 @@ gld_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
    /** start the AMF health check **/   
    memset(&Healthy,0,sizeof(Healthy));
-   health_key = m_NCS_OS_PROCESS_GET_ENV_VAR("GLSV_ENV_HEALTHCHECK_KEY");
+   health_key = getenv("GLSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
       strcpy(Healthy.key,"A1B2");
@@ -587,16 +587,16 @@ void gld_dump_cb()
    
    memset(&mds_dest_id,0,sizeof(MDS_DEST));
    
-   m_NCS_OS_PRINTF("************ GLD CB info *************** \n");
+   printf("************ GLD CB info *************** \n");
    /* print Amf Info */
-   m_NCS_OS_PRINTF("AMF HA state : %d \n",gld_cb->ha_state);
+   printf("AMF HA state : %d \n",gld_cb->ha_state);
    /* print the Node details */
-   m_NCS_OS_PRINTF("GLND info :\n");
+   printf("GLND info :\n");
    while((node_details = (GLSV_GLD_GLND_DETAILS *)ncs_patricia_tree_getnext(&gld_cb->glnd_details, 
                                             (uns8*)&node_id)))
    {
       node_id = node_details->node_id;
-      m_NCS_OS_PRINTF("Node Id - :%d \n",node_details->node_id);
+      printf("Node Id - :%d \n",node_details->node_id);
    }
 
    /* print the Resource details */
@@ -604,20 +604,20 @@ void gld_dump_cb()
    {
       GLSV_NODE_LIST      *list;
       rsc_id = rsc_info->rsc_id;
-      m_NCS_OS_PRINTF("\nResource Id - : %d  Resource Name - %.10s \n",
+      printf("\nResource Id - : %d  Resource Name - %.10s \n",
          (uns32)rsc_info->rsc_id, rsc_info->lck_name.value);
-      m_NCS_OS_PRINTF("Can Orphan - %d Mode - %d \n",rsc_info->can_orphan,
+      printf("Can Orphan - %d Mode - %d \n",rsc_info->can_orphan,
          (uns32)rsc_info->orphan_lck_mode);
       list = rsc_info->node_list;
-      m_NCS_OS_PRINTF("List of Nodes :");   
+      printf("List of Nodes :");   
       while(list != NULL)
       {
-         m_NCS_OS_PRINTF("%d    ",m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
+         printf("%d    ",m_NCS_NODE_ID_FROM_MDS_DEST(list->dest_id));
          list = list->next;
       }
-      m_NCS_OS_PRINTF("\n");
+      printf("\n");
    }
    ncshm_give_hdl(gl_gld_hdl);
-   m_NCS_OS_PRINTF("************************************************** \n");
+   printf("************************************************** \n");
 
 }

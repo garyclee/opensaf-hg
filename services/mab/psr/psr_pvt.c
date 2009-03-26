@@ -6136,12 +6136,12 @@ void pss_stdby_oaa_down_list_dump(PSS_STDBY_OAA_DOWN_BUFFER_NODE *pss_stdby_oaa_
 {
      PSS_STDBY_OAA_DOWN_BUFFER_NODE *oaa_down_node = pss_stdby_oaa_down_buffer; 
      if (NULL == pss_stdby_oaa_down_buffer) {
-           sysf_fprintf(fh, "\t\t - pss_stdby_oaa_down_buffer is EMPTY\n");
+           fprintf(fh, "\t\t - pss_stdby_oaa_down_buffer is EMPTY\n");
            return;
      }
      while(oaa_down_node)
      {
-           sysf_fprintf(fh, "\t\t - oaa mds dest: %llx\n",oaa_down_node->oaa_addr);
+           fprintf(fh, "\t\t - oaa mds dest: %llx\n",oaa_down_node->oaa_addr);
            oaa_down_node = oaa_down_node->next; 
      }
      return;

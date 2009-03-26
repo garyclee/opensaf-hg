@@ -123,7 +123,7 @@ SaAisErrorT  saLckInitialize(SaLckHandleT *lckHandle,
    memset(&initialize_evt, 0, sizeof(GLSV_GLND_EVT));
    initialize_evt.type = GLSV_GLND_EVT_INITIALIZE;
    initialize_evt.info.client_info.agent_mds_dest = gla_cb->gla_mds_dest;
-   initialize_evt.info.client_info.client_proc_id = m_NCS_OS_PROCESS_GET_ID();
+   initialize_evt.info.client_info.client_proc_id = getpid();
    initialize_evt.info.client_info.version = *version;
    initialize_evt.info.client_info.cbk_reg_info = reg_info;
   

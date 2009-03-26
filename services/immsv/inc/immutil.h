@@ -33,6 +33,7 @@
 #include <saImmOm.h>
 #include <sys/types.h>
 #include <regex.h>
+#include <limits.h>
 
 /**
  * @defgroup CcbUtils Defines an interface for simplified handling of CCBs

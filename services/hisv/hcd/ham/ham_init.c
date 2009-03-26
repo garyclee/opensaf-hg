@@ -82,7 +82,7 @@ uns32 ham_initialize(HPI_SESSION_ARGS *args)
 
    ham_cb->args = args;
    /* get the process id */
-   ham_cb->prc_id = m_NCS_OS_PROCESS_GET_ID();
+   ham_cb->prc_id = getpid();
    ham_cb->dest = NULL;
 
    /* Create the mbx to communicate with the HAM thread */

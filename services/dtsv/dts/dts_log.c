@@ -216,7 +216,7 @@ void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc)
     if (id == DTS_SERVICE)
     {
         char tstr[200];
-        sysf_sprintf(tstr, "%d %d - %s", node, svc, str);
+        sprintf(tstr, "%d %d - %s", node, svc, str);
         ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_STR, DTS_FC_STR, 
             NCSFL_LC_MISC, NCSFL_SEV_DEBUG, "TIC", 
             id, tstr);
@@ -240,7 +240,7 @@ void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc)
     if (id == DTS_SERVICE)
     {
         char tstr[200];
-        sysf_sprintf(tstr, "%d %s - %s", svc_id, svc, str);
+        sprintf(tstr, "%d %s - %s", svc_id, svc, str);
         ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_STR, DTS_FC_STR,
             NCSFL_LC_MISC, NCSFL_SEV_DEBUG, "TIC",
             id, tstr);

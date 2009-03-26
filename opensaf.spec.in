@@ -263,6 +263,8 @@ fi
 # TODO Still needed?
 %{_pkglibdir}/find_pid
 %{_bindir}/saflogger
+%{_bindir}/ntfsend
+%{_bindir}/ntfsubscribe
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
@@ -354,6 +356,8 @@ fi
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
 %{_pkglibdir}/opensaf_lgs
+%{_pkglibdir}/opensaf_ntfd
+%{_pkglibdir}/opensaf_ntfs
 %{_pkglibdir}/nis_snmpd_clean
 %{_pkglibdir}/nis_snmpd_start
 %{_bindir}/collect_logs_controller
@@ -398,6 +402,7 @@ fi
 %{_sysconfdir}/%{name}/.drbd_sync_state_4
 %{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/saflog.conf
+%{_sysconfdir}/%{name}/ntf.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_localstatedir}/lib/%{name}/node_ha_state
@@ -477,6 +482,7 @@ fi
 %{_libdir}/libSaImmOm.so.*
 %{_libdir}/libSaLck.so.*
 %{_libdir}/libSaLog.so.*
+%{_libdir}/libSaNtf.so.*
 %{_libdir}/libSaMsg.so.*
 %{_libdir}/libavsv_common.so.*
 %{_libdir}/libcpsv_common.so.*
@@ -520,6 +526,7 @@ fi
 %{_bindir}/immomtest
 %{_bindir}/immoitest
 %{_bindir}/logtest
+%{_bindir}/ntftest
 
 
 %if %is_java

@@ -75,7 +75,7 @@
 #endif 
 
 #if(NCS_EDSV_DEBUG == 1)
-#define m_EDSV_DEBUG_CONS_PRINTF   m_NCS_CONS_PRINTF 
+#define m_EDSV_DEBUG_CONS_PRINTF   printf 
 #else
 #define m_EDSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func  
 #endif

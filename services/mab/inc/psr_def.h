@@ -55,7 +55,7 @@ typedef struct mab_pss_client_list_tag
 
 #ifdef NCS_PSS_DEBUG
 #if (NCS_PSS_DEBUG == 1)
-#define m_PSS_DBG_PRINTF m_NCS_CONS_PRINTF
+#define m_PSS_DBG_PRINTF printf
 #else
 #define m_PSS_DBG_PRINTF 
 #endif

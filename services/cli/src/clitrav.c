@@ -360,7 +360,7 @@ uns32 cli_check_number(int8 *i_str)
          return NCSCC_RC_FAILURE;
       
       memset(buffer, 0, strlen(i_str));
-      sysf_sprintf(buffer, "%d", num);      
+      sprintf(buffer, "%d", num);      
       if(strlen(buffer) == strlen(i_str)) {
          m_MMGR_FREE_CLI_DEFAULT_VAL(buffer);
          return CLI_SUCCESSFULL_MATCH;
@@ -902,7 +902,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
       else {
          /* Arg variable is an invalid number, so update error struct */
          if(NCSCLI_NUMBER == i_argval->i_arg_type)
-            sysf_sprintf(o_cli_cmd_error->errstring, "%d", i_argval->cmd.intval);
+            sprintf(o_cli_cmd_error->errstring, "%d", i_argval->cmd.intval);
          else
             strcpy(o_cli_cmd_error->errstring, i_argval->cmd.strval);
          ret = CLI_NO_MATCH;
@@ -1143,7 +1143,7 @@ cli_check_range(CLI_CB              *pCli,
       hvalue = *(uns32 *)pCli->ctree_cb.cmdElement->range->uLimit;
       /* Commented as a part of fixing the bug 59854 */
       /*if ((i_arg_record->cmd.intval < lvalue) || (i_arg_record->cmd.intval > hvalue)) {          
-         sysf_sprintf(o_cli_cmd_error->errstring, "%u", i_arg_record->cmd.intval);
+         sprintf(o_cli_cmd_error->errstring, "%u", i_arg_record->cmd.intval);
          o_cli_cmd_error->errorpos = 0;
          ret = CLI_NO_MATCH;
          m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_RANGE_NOT_INT);   
@@ -1152,13 +1152,13 @@ cli_check_range(CLI_CB              *pCli,
       if ((i_arg_record->cmd.intval < lvalue) || (i_arg_record->cmd.intval > hvalue) || pCli->outOfBoundaryToken) {
           if( pCli->outOfBoundaryToken)
           {
-              sysf_sprintf(o_cli_cmd_error->errstring, "%s", pCli->outOfBoundaryToken);
+              sprintf(o_cli_cmd_error->errstring, "%s", pCli->outOfBoundaryToken);
               /*free(pCli->outOfBoundaryToken);*/
               m_MMGR_FREE_OUTOFBOUNDARY_TOKEN(pCli->outOfBoundaryToken);
               pCli->outOfBoundaryToken = NULL;
           }
           else 
-              sysf_sprintf(o_cli_cmd_error->errstring, "%u", i_arg_record->cmd.intval);
+              sprintf(o_cli_cmd_error->errstring, "%u", i_arg_record->cmd.intval);
           o_cli_cmd_error->errorpos = 0;
           ret = CLI_NO_MATCH;
           m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_RANGE_NOT_INT);
@@ -2717,7 +2717,7 @@ static void cli_help_str_fill(CLI_CB *pCli, CLI_CMD_HELP *buf)
       if(!lvalue && !hvalue)
          strcpy(buf->cmdstring, pCli->ctree_cb.cmdElement->tokName);
       else {
-         sysf_sprintf(str, "<%u-%u>", lvalue, hvalue);      
+         sprintf(str, "<%u-%u>", lvalue, hvalue);      
          strcpy(buf->cmdstring, str);
       }
    }

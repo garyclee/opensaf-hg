@@ -376,7 +376,7 @@ static uns32 immd_mds_enc(IMMD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
     } else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OM)
     {
         LOG_ER("IMMD can not communicate directly with IMMA OM");
-    } else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OM)
+    } else if (enc_info->i_to_svc_id == NCSMDS_SVC_ID_IMMA_OI)
     {
         LOG_ER("IMMD can not communicate directly with IMMA OI");
     }

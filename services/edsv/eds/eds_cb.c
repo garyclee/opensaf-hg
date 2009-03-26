@@ -253,17 +253,17 @@ eds_main_process(SYSF_MBX *mbx)
         /* Signal handler FD is selected*/
         if(m_NCS_SEL_OBJ_ISSET(eds_cb->sighdlr_sel_obj, &all_sel_obj))
         {
-            m_NCS_CONS_PRINTF(" EDS got SIGUSR1 signal \n");
+            printf(" EDS got SIGUSR1 signal \n");
             status = eds_amf_register(eds_cb);
             if(status != NCSCC_RC_SUCCESS)
             { 
                m_LOG_EDSV_S(EDS_AMF_REG_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,status,__FILE__,__LINE__,0);
-               m_NCS_CONS_PRINTF("eds_main_process : eds_amf_register()- AMF Registration FAILED \n");
+               printf("eds_main_process : eds_amf_register()- AMF Registration FAILED \n");
             }
             else
             {
                m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,status,__FILE__,__LINE__,0);
-               m_NCS_CONS_PRINTF("eds_main_process: AMF Registration SUCCESS...... \n");
+               printf("eds_main_process: AMF Registration SUCCESS...... \n");
             }
             m_NCS_SEL_OBJ_RMV_IND(eds_cb->sighdlr_sel_obj, TRUE, TRUE);
             m_NCS_SEL_OBJ_CLR(eds_cb->sighdlr_sel_obj, &all_sel_obj);
@@ -318,7 +318,7 @@ eds_main_process(SYSF_MBX *mbx)
            /* dispatch all the AMF pending function */
            error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
            if (error != SA_AIS_OK)
-              m_NCS_CONS_PRINTF("CLM Dispatch failed, error \n");
+              printf("CLM Dispatch failed, error \n");
               /* Log it */
         }
          /*eds_dump_reglist();
@@ -327,7 +327,7 @@ eds_main_process(SYSF_MBX *mbx)
       }/*End of If */
       else
       {
-         m_NCS_CONS_PRINTF("eds_main_process: select FAILED ......\n");
+         printf("eds_main_process: select FAILED ......\n");
       } 
     }
 

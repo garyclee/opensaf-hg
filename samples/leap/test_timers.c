@@ -45,9 +45,9 @@ timer_accuracy_test(void)
    uns64  period, start, expired, diff;
    float p;
 
-   m_NCS_CONS_PRINTF("\nTimer Accuracy Test.\n");
+   printf("\nTimer Accuracy Test.\n");
 
-   sysf_srand (m_NCS_GET_TIME_MS); /* seed the generator used to keep out of sync with timer service */
+   srand (m_NCS_GET_TIME_MS); /* seed the generator used to keep out of sync with timer service */
 
    m_NCS_TMR_CREATE (timer, 0, 0, (void *) 0);
 
@@ -55,11 +55,11 @@ timer_accuracy_test(void)
    {
        expired = 0;
 #if NCS_HAVE_FLOATINGPOINT
-       m_NCS_CONS_PRINTF ("Measuring : %5.1f : Seconds...   ", (float) period/1000);
+       printf ("Measuring : %5.1f : Seconds...   ", (float) period/1000);
 #else
-       m_NCS_CONS_PRINTF ("Measuring %d Seconds...   ", period/1000);
+       printf ("Measuring %d Seconds...   ", period/1000);
 #endif
-      m_NCS_TASK_SLEEP (sysf_rand() % 100); /* keep out of sync with timer service tick */
+      m_NCS_TASK_SLEEP (rand() % 100); /* keep out of sync with timer service tick */
       start  = m_NCS_GET_TIME_MS;
       m_NCS_TMR_START (timer, period/10, timer_accuracy_cb_func, (void *) &expired);
 
@@ -71,9 +71,9 @@ timer_accuracy_test(void)
             
       p = ( period ? ((float) diff * 100 / period) : 100 );
 #if NCS_HAVE_FLOATINGPOINT
-      m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-period, p-100);
+      printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-period, p-100);
 #else
-      m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %d\n", diff-period, p-100);
+      printf ("Deviation: (ms) = %3lld, (%%) = %d\n", diff-period, p-100);
 #endif
       if (period < 1000)       /* less than 1 second ? */
          period += 100;        /*        inc by 100 ms */
@@ -121,9 +121,9 @@ timer_ringload_test(void)
 
 
 
-   m_NCS_CONS_PRINTF("\nTimer Ringload Test.\n");
+   printf("\nTimer Ringload Test.\n");
 
-   m_NCS_CONS_PRINTF("..test assumes timer service ticks are 100ms/tick and ringsize is 1024..\n");
+   printf("..test assumes timer service ticks are 100ms/tick and ringsize is 1024..\n");
    ticklength = 100;  /* each tick is 100 ms */
    ringsize   = 1024;
    lap_ms = ringsize * ticklength; /* time to get around ring once */
@@ -131,7 +131,7 @@ timer_ringload_test(void)
    testdepth  = 10;   /* select ring index depth to test */
 
 
-   sysf_srand (m_NCS_GET_TIME_MS); /* seed the generator used for picking laps */
+   srand (m_NCS_GET_TIME_MS); /* seed the generator used for picking laps */
    total_timers = 0;
    tp = &anchor;
    for (rdepth = 0; rdepth < testdepth; rdepth++)    /* go around ring 'testdepth' times */
@@ -140,18 +140,18 @@ timer_ringload_test(void)
       {
          if ((ttmr = m_NCS_MEM_ALLOC (sizeof (struct test_tmr), 0, 0, 0)) == NULL)
          {
-            m_NCS_CONS_PRINTF ("Failed to allocate memory for test_tmr structure.\n");
+            printf ("Failed to allocate memory for test_tmr structure.\n");
             return NCSCC_RC_FAILURE;
          }
          m_NCS_TMR_CREATE (ttmr->timer, 0, 0, (void *) 0);
          if (ttmr->timer == NULL)
          {
-            m_NCS_CONS_PRINTF ("Failed to create timer.\n");
+            printf ("Failed to create timer.\n");
             return NCSCC_RC_FAILURE;
          }
          ttmr->expire_time = 0;
                /* use rand # of laps, add to current index */
-         ttmr->period = (((sysf_rand() % testdepth) * lap_ms) + (rindex * ticklength));
+         ttmr->period = (((rand() % testdepth) * lap_ms) + (rindex * ticklength));
          if (tp == &anchor)
             ttmr->prev = NULL;
          else
@@ -175,10 +175,10 @@ timer_ringload_test(void)
 
    while (total_timers != 0)
    {
-      m_NCS_CONS_PRINTF (".%d.", total_timers);
+      printf (".%d.", total_timers);
       m_NCS_TASK_SLEEP (10000);
    }
-   m_NCS_CONS_PRINTF ("\n");
+   printf ("\n");
 
    ttmr = anchor;
    while (ttmr != NULL)
@@ -190,8 +190,8 @@ timer_ringload_test(void)
       diff = ttmr->expire_time - ttmr->start_time;
       percent = (float) diff * 100 / ttmr->period;
 
-      m_NCS_CONS_PRINTF ("Results for  %5.1f Seconds.   ", (float) ttmr->period/1000);
-      m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-ttmr->period, percent-100);
+      printf ("Results for  %5.1f Seconds.   ", (float) ttmr->period/1000);
+      printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-ttmr->period, percent-100);
 
       m_NCS_TMR_DESTROY (ttmr->timer);
       temp = ttmr;
@@ -245,7 +245,7 @@ timer_stoptimer_test(void)
    float percent;
    uns64 diff;
 
-   m_NCS_CONS_PRINTF("\nTimer StopTimer Test.\n");
+   printf("\nTimer StopTimer Test.\n");
 
    /* init tmr_info array */
    for (tmrcnt = 0; tmrcnt < TMR_MAX; tmrcnt++)
@@ -253,7 +253,7 @@ timer_stoptimer_test(void)
       m_NCS_TMR_CREATE (tmr_info[tmrcnt].timer, 0, 0, (void *) 0);
       if (tmr_info[tmrcnt].timer == NULL)
       {
-         m_NCS_CONS_PRINTF ("Failed to create timer.\n");
+         printf ("Failed to create timer.\n");
          return NCSCC_RC_FAILURE;
       }
       tmr_info[tmrcnt].expire_time = 0;
@@ -280,24 +280,24 @@ timer_stoptimer_test(void)
       /* check results for each timer */
       for (tmrcnt = 0; tmrcnt < 3; tmrcnt++)
       {
-         m_NCS_CONS_PRINTF ("Timer %d: ", tmrcnt);
+         printf ("Timer %d: ", tmrcnt);
          if (tmr_info[tmrcnt].expire_time == 0) /* was there a call back ? */
          {
             if (tmrcnt != test_cntr)            /* is it not the timer that was stopped ? */
-               m_NCS_CONS_PRINTF ("FAILURE!  ");
-            m_NCS_CONS_PRINTF ("did not expire.\n");
+               printf ("FAILURE!  ");
+            printf ("did not expire.\n");
          }
          else
          {                                     /* ... timer call back was executed */
             if (tmrcnt == test_cntr)           /* is it the timer that was stopped ? */
-               m_NCS_CONS_PRINTF ("FAILURE!  ");
+               printf ("FAILURE!  ");
             diff = tmr_info[tmrcnt].expire_time - tmr_info[tmrcnt].start_time;
             percent = (float) diff * 100 / tmr_info[tmrcnt].period;
-            m_NCS_CONS_PRINTF ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
-            m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
+            printf ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
+            printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
          }
       }
-      m_NCS_CONS_PRINTF("\n");
+      printf("\n");
    }
 
    /* perform a lone timer stop tests */
@@ -311,18 +311,18 @@ timer_stoptimer_test(void)
    m_NCS_TASK_SLEEP (TMR_PERIOD + 1000); /* wait for timer to expire (if stop failed) */
 
    /* check result for timer */
-   m_NCS_CONS_PRINTF ("Timer Result: ");
+   printf ("Timer Result: ");
    if (tmr_info[0].expire_time == 0) /* was there a call back ? */
-      m_NCS_CONS_PRINTF ("did not expire.\n");
+      printf ("did not expire.\n");
    else
    {                                 /* ... timer call back was executed */
-      m_NCS_CONS_PRINTF ("FAILURE!  ");
+      printf ("FAILURE!  ");
       diff = tmr_info[0].expire_time - tmr_info[0].start_time;
       percent = (float) diff * 100 / tmr_info[0].period;
-      m_NCS_CONS_PRINTF ("Results for  %5.1f Seconds.   ", (float) tmr_info[0].period/1000);
-      m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[0].period, percent-100);
+      printf ("Results for  %5.1f Seconds.   ", (float) tmr_info[0].period/1000);
+      printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[0].period, percent-100);
    }
-   m_NCS_CONS_PRINTF ("\n");
+   printf ("\n");
 
 
    /* perform 3 expiring timer stop tests: 1) stop expired front, 2) stop expired middle, 3) stop expired end */
@@ -352,24 +352,24 @@ timer_stoptimer_test(void)
       /* check results for each timer */
       for (tmrcnt = 0; tmrcnt < 4; tmrcnt++)
       {
-         m_NCS_CONS_PRINTF ("Timer %d: ", tmrcnt);
+         printf ("Timer %d: ", tmrcnt);
          if (tmr_info[tmrcnt].expire_time == 0) /* was there a call back ? */
          {
             if (tmrcnt != test_cntr)            /* is it not the timer that was stopped ? */
-               m_NCS_CONS_PRINTF ("FAILURE!  ");
-            m_NCS_CONS_PRINTF ("did not expire.\n");
+               printf ("FAILURE!  ");
+            printf ("did not expire.\n");
          }
          else
          {                                     /* ... timer call back was executed */
             if (tmrcnt == test_cntr)           /* is it the timer that was stopped ? */
-               m_NCS_CONS_PRINTF ("FAILURE!  ");
+               printf ("FAILURE!  ");
             diff = tmr_info[tmrcnt].expire_time - tmr_info[tmrcnt].start_time;
             percent = (float) diff * 100 / tmr_info[tmrcnt].period;
-            m_NCS_CONS_PRINTF ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
-            m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
+            printf ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
+            printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
          }
       }
-      m_NCS_CONS_PRINTF("\n");
+      printf("\n");
    }
 
    /* perform a lone expiring timer stop test */
@@ -396,24 +396,24 @@ timer_stoptimer_test(void)
    /* check results for each timer */
    for (tmrcnt = 0; tmrcnt < 2; tmrcnt++)
    {
-      m_NCS_CONS_PRINTF ("Timer %d: ", tmrcnt);
+      printf ("Timer %d: ", tmrcnt);
       if (tmr_info[tmrcnt].expire_time == 0) /* was there a call back ? */
       {
          if (tmrcnt != 1)            /* is it not the timer that was stopped ? */
-            m_NCS_CONS_PRINTF ("FAILURE!  ");
-         m_NCS_CONS_PRINTF ("did not expire.\n");
+            printf ("FAILURE!  ");
+         printf ("did not expire.\n");
       }
       else
       {                                     /* ... timer call back was executed */
          if (tmrcnt == 1)           /* is it the timer that was stopped ? */
-            m_NCS_CONS_PRINTF ("FAILURE!  ");
+            printf ("FAILURE!  ");
          diff = tmr_info[tmrcnt].expire_time - tmr_info[tmrcnt].start_time;
          percent = (float) diff * 100 / tmr_info[tmrcnt].period;
-         m_NCS_CONS_PRINTF ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
-         m_NCS_CONS_PRINTF ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
+         printf ("Results for  %5.1f Seconds.   ", (float) tmr_info[tmrcnt].period/1000);
+         printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-tmr_info[tmrcnt].period, percent-100);
       }
    }
-   m_NCS_CONS_PRINTF("\n");
+   printf("\n");
    }
 
 
@@ -425,7 +425,7 @@ timer_stoptimer_test(void)
 int
 timerService_testSuite (int argc, char **argv)
 {   
-   m_NCS_CONS_PRINTF("\n\n-Timer Manager Test Suite\n");
+   printf("\n\n-Timer Manager Test Suite\n");
    ncs_mem_create ();
 
    timer_accuracy_test();
@@ -433,7 +433,7 @@ timerService_testSuite (int argc, char **argv)
    timer_stoptimer_test();
    
    ncs_mem_destroy ();
-   m_NCS_CONS_PRINTF("-Exiting Timer Manager Test Suite-\n\n");
+   printf("-Exiting Timer Manager Test Suite-\n\n");
    return 0;
 }
 

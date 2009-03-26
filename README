@@ -288,7 +288,6 @@ By default `OpenSAF' will assume to following `configure' options:
     --enable-smidump
     --enable-hpi
     --with-openhpi
-    --with-hpirev=B02
     --disable-java
 
 If you wish to alter the default `configure' options see the list from:
@@ -323,17 +322,12 @@ support.
 Note: In this current release, `OpenSAF' still relies on <SaHpi.h>, even if
 the user thinks he's not using a specific HPI implementation. This is a build
 dependency for now and the user still needs to tell the build system to  be
-using the proper CPPFLAGS/CFLAGS/CXXFLAGS where to find <SaHpi.h>
+using the proper CPPFLAGS/CFLAGS/CXXFLAGS where to find a dummy <SaHpi.h>
 
 By using `./configure --with-openhpi', you are enabling support for `OpenHPI'
 as the HPI implementation to be used. It sets the proper LIBS and CFLAGS
 using the `pkg-config' utility for `opensaf.pc'. By default this option is
 enabled.
-
-By using `./configure --with-hpirev=ARG', you are telling the build system
-what `SAF HPI' version your HPI implementation is supporting. The possible ARGS
-are: B02, B01, and A01. It has to match your HPI implementation support. By
-default B02 support is enabled.
 
 By using `./configure --enable-java', you are enabling the Java AIS mapping
 support in the build system. Specials M4 macros will be used to autodetect

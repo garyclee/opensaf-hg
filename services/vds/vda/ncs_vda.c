@@ -749,14 +749,14 @@ static uns32 vda_uninstantiate(NCS_LIB_REQ_INFO *req)
        /* Invoke MDs API */
        if ((ncsmds_api(&svc_info) != NCSCC_RC_SUCCESS) || (vda_info.o_result != NCSCC_RC_SUCCESS))  
        {
-           m_NCS_CONS_PRINTF("The Destroy API Failed \n");
+           printf("The Destroy API Failed \n");
 
            /* We shall retry once and then give up */
            if ((ncsmds_api(&svc_info) != NCSCC_RC_SUCCESS) ||
               (vda_info.o_result != NCSCC_RC_SUCCESS))
            {
 
-               m_NCS_CONS_PRINTF("The Destroy API Failed 2....... \n");
+               printf("The Destroy API Failed 2....... \n");
                 /* Failed! Put that in the result and go ahead to delete
                 the VDEST */
                return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);

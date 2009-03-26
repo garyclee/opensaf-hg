@@ -37,6 +37,9 @@
    avm_edp_ckpt_msg_upgd_state
 ******************************************************************************
 */
+
+#include <config.h>
+
 #include "avm.h"
 
 static uns32
@@ -748,7 +751,7 @@ avm_edp_entity(
       {EDU_EXEC, ncs_edp_int, 0, 0, 0,
          (long)&((SaHpiEntityT*)0)->EntityType, 0 , NULL }, 
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
          (long)&((SaHpiEntityT*)0)->EntityInstance, 0, NULL  },
 #else
          (long)&((SaHpiEntityT*)0)->EntityLocation, 0, NULL  },

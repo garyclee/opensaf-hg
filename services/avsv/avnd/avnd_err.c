@@ -365,7 +365,7 @@ uns32 avnd_err_process (AVND_CB       *cb,
   {
     m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -%s faulted due to %d -rcvr=%d\n",
           comp->name_net.value, comp->err_info.src, esc_rcvr);
-    m_NCS_SYSLOG(NCS_LOG_ERR,"NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
+    syslog(LOG_ERR,"NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
                     comp->name_net.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr-1]);
   }
    fp=fopen(NODE_HA_STATE,"a");
@@ -379,7 +379,7 @@ uns32 avnd_err_process (AVND_CB       *cb,
      fclose(fp);
    }
 
-   m_NCS_SYSLOG(NCS_LOG_INFO,
+   syslog(LOG_INFO,
                 "Component '%s' faulted due to '%s' - rcvr=%u",
                 comp->name_net.value, g_comp_err[err_info->src], esc_rcvr);
 
@@ -994,7 +994,7 @@ uns32 avnd_err_esc_comp_restart (AVND_CB *cb, AVND_SU *su,
          break;
     
       default:
-         m_NCS_ASSERT(0);
+         assert(0);
    }
 
    m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_ERR_ESC_LEVEL);
@@ -1320,7 +1320,7 @@ uns32 avnd_evt_tmr_node_err_esc (AVND_CB *cb, AVND_EVT *evt)
    
    if(evt->info.tmr.opq_hdl != cb->cb_hdl)
    {
-      m_NCS_ASSERT(0);
+      assert(0);
    }
 
    /* reset all parameters */

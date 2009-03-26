@@ -523,9 +523,9 @@ uns32 pss_create(NCSPSS_CREATE *pwe)
       return NCSCC_RC_FAILURE;
    }
 
-   sysf_fprintf(fh, "%d\n", getpid());
+   fprintf(fh, "%d\n", getpid());
 
-   sysf_fclose(fh);
+   fclose(fh);
    
    return rc;
 }

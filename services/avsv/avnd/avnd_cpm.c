@@ -367,7 +367,7 @@ void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
     /* remove the corresponding element from srm_req list */
    rc = avnd_srm_req_del(cb, rsrc_hdl);
    if( NCSCC_RC_SUCCESS != rc)
-      m_NCS_ASSERT(0);
+      assert(0);
 
    return;
 }
@@ -441,7 +441,7 @@ uns32 avnd_comp_pm_stop_process (AVND_CB                 *cb,
    rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list,(uns8 *)&pid);
 
    /* this rec has to be present */
-   m_NCS_ASSERT(rec);
+   assert(rec);
 
    /* stop monitoring */
    rc = avnd_srm_stop(cb, rec, sa_err);

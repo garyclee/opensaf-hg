@@ -63,7 +63,7 @@ SNMPTM_TBLONE *snmptm_create_tblone_entry(SNMPTM_CB *snmptm,
    if ((tblone = (SNMPTM_TBLONE*)m_MMGR_ALLOC_SNMPTM_TBLONE)
         == SNMPTM_TBLONE_NULL)   
    {
-      m_NCS_CONS_PRINTF("\nNot able to alloc the memory for TBLONE \n");
+      printf("\nNot able to alloc the memory for TBLONE \n");
       return NULL;
    }
 
@@ -78,7 +78,7 @@ SNMPTM_TBLONE *snmptm_create_tblone_entry(SNMPTM_CB *snmptm,
    if(NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&(snmptm->tblone_tree),
                                                 &(tblone->tblone_pat_node)))
    {
-      m_NCS_CONS_PRINTF("\nNot able add TBLONE node to TBLONE tree.\n");
+      printf("\nNot able add TBLONE node to TBLONE tree.\n");
 
       /* Free the alloc memory of TBLONE */
       m_MMGR_FREE_SNMPTM_TBLONE(tblone);
@@ -89,7 +89,7 @@ SNMPTM_TBLONE *snmptm_create_tblone_entry(SNMPTM_CB *snmptm,
    tblone->tblone_row_status = NCSMIB_ROWSTATUS_ACTIVE; 
   
    ip_addr = ntohl(tblone_key->ip_addr.info.v4);
-   m_NCS_CONS_PRINTF("\n\n ROW created in the TBLONE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
+   printf("\n\n ROW created in the TBLONE, INDEX: %d.%d.%d.%d", (uns8)(ip_addr >> 24),
                                             (uns8)(ip_addr >> 16),
                                             (uns8)(ip_addr >> 8),
                                             (uns8)(ip_addr)); 
@@ -370,7 +370,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
                          tlv_size, EDP_OP_TYPE_ENC, &snmptm_tblone, &o_err);
    if (status != NCSCC_RC_SUCCESS)
    {
-      m_NCS_CONS_PRINTF("TLV-EXEC failed, error-value=%d...\n", o_err);
+      printf("TLV-EXEC failed, error-value=%d...\n", o_err);
       /* Probably need to call a function that free's the trap var bind list */
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind->next_trap_varbind);
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind);
@@ -387,7 +387,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
    saStatus = saEvtEventAllocate(snmptm->evtChannelHandle, &eventHandle);
    if (saStatus != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\nsaEvtEventAllocate failed\n");
+      printf("\nsaEvtEventAllocate failed\n");
       /* Probably need to call a function that free's the trap var bind list */
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind->next_trap_varbind);
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind);
@@ -409,7 +409,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
                                       &snmptm->publisherName);
    if (saStatus != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\nsaEvtEventAttributesSet failed\n");
+      printf("\nsaEvtEventAttributesSet failed\n");
       /* Probably need to call a function that free's the trap var bind list */
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind->next_trap_varbind);
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind);
@@ -427,7 +427,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
                                 &eventId);
    if (saStatus != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\nsaEvtEventPublish failed\n");
+      printf("\nsaEvtEventPublish failed\n");
       /* Probably need to call a function that free's the trap var bind list */
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind->next_trap_varbind);
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind);
@@ -442,7 +442,7 @@ uns32 snmptm_tblone_gen_trap(SNMPTM_CB *snmptm,
    saStatus = saEvtEventFree(eventHandle);
    if (saStatus != SA_AIS_OK)
    {
-      m_NCS_CONS_PRINTF("\nsaEvtEventFree failed\n");
+      printf("\nsaEvtEventFree failed\n");
       /* Probably need to call a function that free's the trap var bind list */
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind->next_trap_varbind);
       free(snmptm_tblone.i_trap_vb->next_trap_varbind->next_trap_varbind->next_trap_varbind);

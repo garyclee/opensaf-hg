@@ -177,7 +177,7 @@ ifnd_intf_destroy (IFSV_EVT* evt, IFSV_CB *cb)
                     dest_info->spt_type.subscr_scope,
                     dest_info->orign,
                     dest_info->own_dest);
-   m_NCS_CONS_PRINTF("ifnd_intf_destroy: From s/s/ss/p/t/s - %d/%d/%d/%d/%d/%d\n", dest_info->spt_type.shelf,
+   printf("ifnd_intf_destroy: From s/s/ss/p/t/s - %d/%d/%d/%d/%d/%d\n", dest_info->spt_type.shelf,
                     dest_info->spt_type.slot,
                     dest_info->spt_type.subslot,
                     dest_info->spt_type.port,
@@ -1447,13 +1447,13 @@ static uns32 ifnd_ifd_up_process(IFSV_EVT* evt, IFSV_CB *cb)
                      sizeof(NCS_IPPFX)); 
      ipxs_evt.info.nd.atond_upd.ip_info.delip_list = &del_ipinfo;
 
-     m_NCS_CONS_PRINTF("Sending IP ADDR UPDATE AFTER SWITCH OVER\n");
-     m_NCS_CONS_PRINTF("IP : %x , Type %d, Len %d\n",del_ipinfo.ipaddr.info.v4, 
+     printf("Sending IP ADDR UPDATE AFTER SWITCH OVER\n");
+     printf("IP : %x , Type %d, Len %d\n",del_ipinfo.ipaddr.info.v4, 
                         del_ipinfo.ipaddr.type, del_ipinfo.mask_len);
      if((rc= ifnd_ipxs_proc_ifip_upd(ipxs_cb, &ipxs_evt, NULL))
              != NCSCC_RC_SUCCESS)
      {
-          m_NCS_CONS_PRINTF("Ip addition failed IP %x %s %d \n",del_ipinfo.ipaddr.info.v4,__FILE__,__LINE__);
+          printf("Ip addition failed IP %x %s %d \n",del_ipinfo.ipaddr.info.v4,__FILE__,__LINE__);
           memset(&ipxs_cb->nl_addr_info, '\0', sizeof(ipxs_cb->nl_addr_info));
           ncshm_give_hdl(ipxs_hdl);
           return NCSCC_RC_FAILURE;

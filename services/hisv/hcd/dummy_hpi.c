@@ -30,6 +30,8 @@
 *                                                                            *
 *****************************************************************************/
 
+#include <config.h>
+
 #include "hcd.h"
 
 
@@ -217,7 +219,7 @@ SaErrorT saHpiResourcesDiscover (SaHpiSessionIdT SessionId)
 **   None.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiRptInfoGet (SaHpiSessionIdT SessionId,
                           SaHpiRptInfoT *RptInfo)
 {
@@ -523,7 +525,7 @@ SaErrorT saHpiEntitySchemaGet (SaHpiSessionIdT     SessionId,
 **   None.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
                                SaHpiResourceIdT ResourceId,
                                SaHpiSelInfoT    *Info)
@@ -615,7 +617,7 @@ SaErrorT saHpiEventLogInfoGet (SaHpiSessionIdT  SessionId,
 **   be set to SAHPI_NO_RECORD.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
                                 SaHpiResourceIdT    ResourceId,
                                 SaHpiSelEntryIdT    EntryId,
@@ -673,7 +675,7 @@ SaErrorT saHpiEventLogEntryGet (SaHpiSessionIdT     SessionId,
 **   data is provided than can be written, an error will be returned.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEventLogEntryAdd (SaHpiSessionIdT      SessionId,
                                 SaHpiResourceIdT     ResourceId,
                                 SaHpiSelEntryT       *EvtEntry)
@@ -959,7 +961,7 @@ SaErrorT saHpiEventLogStateSet (SaHpiSessionIdT   SessionId,
 **   None.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiSubscribe (SaHpiSessionIdT  SessionId,
                          SaHpiBoolT       ProvideActiveAlarms)
 {
@@ -1071,7 +1073,7 @@ SaErrorT saHpiUnsubscribe (SaHpiSessionIdT SessionId)
 **   SAHPI_TIME_MAX_RELATIVE, then it is absolute.   6  Resource Functions
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEventGet (SaHpiSessionIdT      SessionId,
                         SaHpiTimeoutT        Timeout,
                         SaHpiEventT          *Event,
@@ -1153,7 +1155,7 @@ SaErrorT saHpiRdrGet (SaHpiSessionIdT       SessionId,
 **   None.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiSensorReadingGet (SaHpiSessionIdT      SessionId,
                                 SaHpiResourceIdT     ResourceId,
                                 SaHpiSensorNumT      SensorNum,
@@ -1368,7 +1370,7 @@ SaErrorT saHpiSensorTypeGet (SaHpiSessionIdT     SessionId,
 **   "DeassertsEvents" element will always have same value.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiSensorEventEnablesGet (SaHpiSessionIdT         SessionId,
                                      SaHpiResourceIdT        ResourceId,
                                      SaHpiSensorNumT         SensorNum,
@@ -1441,7 +1443,7 @@ SaErrorT saHpiSensorEventEnablesGet (SaHpiSessionIdT         SessionId,
 **   () call.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiSensorEventEnablesSet (SaHpiSessionIdT        SessionId,
                                      SaHpiResourceIdT       ResourceId,
                                      SaHpiSensorNumT        SensorNum,
@@ -1642,7 +1644,7 @@ SaErrorT saHpiControlStateSet (SaHpiSessionIdT  SessionId,
 **   details on the format of the returned data.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEntityInventoryDataRead (SaHpiSessionIdT         SessionId,
                                        SaHpiResourceIdT        ResourceId,
                                        SaHpiEirIdT             EirId,
@@ -1693,7 +1695,7 @@ SaErrorT saHpiEntityInventoryDataRead (SaHpiSessionIdT         SessionId,
 **   should identify these restrictions.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiEntityInventoryDataWrite (SaHpiSessionIdT          SessionId,
                                         SaHpiResourceIdT         ResourceId,
                                         SaHpiEirIdT              EirId,
@@ -2240,7 +2242,7 @@ SaErrorT saHpiHotSwapActionRequest (SaHpiSessionIdT  SessionId,
 **   control on the FRU.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiResourcePowerStateGet (SaHpiSessionIdT     SessionId,
                                      SaHpiResourceIdT    ResourceId,
                                      SaHpiHsPowerStateT  *State)
@@ -2286,7 +2288,7 @@ SaErrorT saHpiResourcePowerStateGet (SaHpiSessionIdT     SessionId,
 **   control on the FRU.
 **
 *******************************************************************************/
-#ifdef HPI_A
+#ifdef HAVE_HPI_A01
 SaErrorT saHpiResourcePowerStateSet (SaHpiSessionIdT     SessionId,
                                      SaHpiResourceIdT    ResourceId,
                                      SaHpiHsPowerStateT  State)

@@ -247,7 +247,7 @@ uns32 dts_svc_create(DTS_CREATE* create)
 #ifdef __NCSINC_LINUX__
    {
        char * env_var;
-       env_var = m_NCS_OS_PROCESS_GET_ENV_VAR("NCS_LOG_PATH");
+       env_var = getenv("NCS_LOG_PATH");
        
        if(env_var)
        {
@@ -465,7 +465,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 
         if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
         {
-            sysf_fclose(service->device.svc_fh);
+            fclose(service->device.svc_fh);
             service->device.svc_fh = NULL;
         }
         
@@ -564,7 +564,7 @@ void dtsv_clear_registration_table(DTS_CB *inst)
     /* Close the global level files if any open */
     if((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
     {
-       sysf_fclose(inst->g_policy.device.svc_fh);
+       fclose(inst->g_policy.device.svc_fh);
        inst->g_policy.device.svc_fh = NULL; 
     }
     /* Clear all the console devices for global policy */
