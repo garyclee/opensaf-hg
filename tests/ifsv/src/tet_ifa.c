@@ -4988,11 +4988,11 @@ deletion",NCSCC_RC_SUCCESS);
 
    if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evtHandle, &evt_sel_obj)))
    {
-      m_NCS_CONS_PRINTF("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
+      printf("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
       return;
    }
 
-   m_NCS_CONS_PRINTF("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
+   printf("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
    /* Reset the wait select objects */
    m_NCS_SEL_OBJ_ZERO(&wait_sel_obj);
 
