@@ -1,0 +1,23 @@
+# This contains the test data for the HISv tests
+# Everything after a '#' character is treated as a comment.
+# Note that whitespace is ignored and the '=' is optional.
+# 
+# Required information: Fill in the correct parameters for
+# your installation and uncomment the lines.
+#OA = saf2-oa		# Put in the IP or host name of the OA for the enclosure.
+#Domain=saf.telco	# If your domain is not automatically resolved, or
+			# if you don't input fully-qualified host names or
+			# IP addresses for the OA and iLO, put the domain here.
+			# Note that this can also be set in ../lib/defaults
+#ControllerBlade = 10	# This is the bay number of the STANDBY controller
+#PayloadBlade  11	# This is the bay number of the payload
+#ControllerPath={{SYSTEM_BLADE,10},{SYSTEM_CHASSIS,2}} # The entity path for the
+						       # STANDBY controller
+#PayloadPath={{SYSTEM_BLADE,11},{SYSTEM_CHASSIS,2}}    # The entity path for the payload
+#chassis=2		# This should be the chassis ID in /etc/opensaf/chassis_id
+# 
+# Optional information
+#ControllerILO=saf2-bl465-10-ilo.saf.telco	# IP or hostname of iLO for the standby controller
+#PayloadILO=saf2-bl465-11-ilo.saf.telco		# IP or hostname of 
+#Cluster=9,10,11,12                         # Restrict checking to these systems.
+
