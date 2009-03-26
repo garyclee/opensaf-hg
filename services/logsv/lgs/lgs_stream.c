@@ -180,7 +180,8 @@ void log_stream_print(log_stream_t *stream)
     TRACE_2("  pathName:             %s", stream->pathName);
     TRACE_2("  maxLogFileSize:       %llu", stream->maxLogFileSize);
     TRACE_2("  fixedLogRecordSize:   %u", stream->fixedLogRecordSize);
-    TRACE_2("  haProperty:           %u", stream->haProperty);
+    if (stream->streamType == STREAM_TYPE_APPLICATION)
+        TRACE_2("  haProperty:           %u", stream->haProperty);
     TRACE_2("  logFullAction:        %u", stream->logFullAction);
     TRACE_2("  logFullHaltThreshold: %u", stream->logFullHaltThreshold);
     TRACE_2("  maxFilesRotated:      %u", stream->maxFilesRotated);
