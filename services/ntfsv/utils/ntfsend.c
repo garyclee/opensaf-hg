@@ -57,17 +57,11 @@ static void fill_header_part(SaNtfNotificationHeaderT *notificationHeader,
     *notificationHeader->eventType = notificationParams->eventType;
     *notificationHeader->eventTime = (SaTimeT)notificationParams->eventTime;
 
-    notificationHeader->notificationObject->length =
-        notificationParams->notificationObject.length;
-    (void)memcpy(notificationHeader->notificationObject->value,
-                 notificationParams->notificationObject.value,
-                 notificationParams->notificationObject.length);
+    *notificationHeader->notificationObject =
+        notificationParams->notificationObject;
 
-    notificationHeader->notifyingObject->length =
-        notificationParams->notifyingObject.length;
-    (void)memcpy(notificationHeader->notifyingObject->value,
-                 notificationParams->notifyingObject.value,
-                 notificationParams->notifyingObject.length);
+    *notificationHeader->notifyingObject =
+        notificationParams->notifyingObject;
 
     /* vendor id 33333 is not an existing SNMP enterprise number.
     Just an example */
@@ -206,12 +200,12 @@ static void fillInDefaultValues(
                   DEFAULT_ADDITIONAL_TEXT,
                   notificationAllocationParams->lengthAdditionalText);
     notificationParams->notificationObject.length =
-        sizeof (DEFAULT_NOTIFICATION_OBJECT);
+        strlen(DEFAULT_NOTIFICATION_OBJECT);
     (void)memcpy(notificationParams->notificationObject.value,
                  DEFAULT_NOTIFICATION_OBJECT,
                  notificationParams->notificationObject.length);
     notificationParams->notifyingObject.length =
-        sizeof (DEFAULT_NOTIFYING_OBJECT);
+        strlen(DEFAULT_NOTIFYING_OBJECT);
     (void)memcpy(notificationParams->notifyingObject.value,
                  DEFAULT_NOTIFYING_OBJECT,
                  notificationParams->notifyingObject.length);
@@ -933,18 +927,26 @@ int main(int argc, char *argv[])
 			break;
 		}
 		break;
-	    case 'n' :
+           case 'n' :
 		myNotificationParams.notificationObject.length =
-		    (SaUint16T)(strlen(optarg) + 1);
-
+          (SaUint16T)strlen(optarg);
+      if(SA_MAX_NAME_LENGTH < myNotificationParams.notificationObject.length)
+      {    
+          fprintf(stderr, "notificationObject too long\n");
+          exit(EXIT_FAILURE);
+      }
 		(void)memcpy(myNotificationParams.notificationObject.value,
 			     optarg,
 			     myNotificationParams.notificationObject.length);
 		break;
-	    case 'N' :
+           case 'N' :
 		myNotificationParams.notifyingObject.length =
-		    (SaUint16T)(strlen(optarg) + 1);
-
+		    (SaUint16T)strlen(optarg);
+      if(SA_MAX_NAME_LENGTH < myNotificationParams.notifyingObject.length)
+      {    
+          fprintf(stderr, "notifyingObject too long\n");
+          exit(EXIT_FAILURE);
+      }
 		(void)memcpy(myNotificationParams.notifyingObject.value,
 			     optarg,
 			     myNotificationParams.notifyingObject.length);
