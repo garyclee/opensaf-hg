@@ -35,6 +35,10 @@
 #include <regex.h>
 #include <limits.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * @defgroup CcbUtils Defines an interface for simplified handling of CCBs
  *
@@ -92,7 +96,7 @@ struct CcbUtilOperationData {
 	} create;
 	struct {
 	    const SaNameT *objectName;
-	} delete;
+	} deleteOp;
 	struct {
 	    const SaNameT *objectName;
 	    const SaImmAttrModificationT_2 **attrMods;
@@ -467,5 +471,9 @@ immutil_saImmOmAdminOwnerClear(
     SaImmScopeT scope);
 
 /*@}*/
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
