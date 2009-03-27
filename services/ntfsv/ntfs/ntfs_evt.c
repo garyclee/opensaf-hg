@@ -295,15 +295,9 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
     TRACE_1("notificationObject.length = %u\n", 
             notificationHeader->notificationObject->length);
 
-    TRACE_1("notificationObject value: \"%s\"\n",
-            notificationHeader->notificationObject->value);
-
     /* Notifying Object */
     TRACE_1("notifyingObject->length = %u\n", 
             notificationHeader->notifyingObject->length);
-
-    TRACE_1("notifyingObject value: \"%s\"\n", 
-            notificationHeader->notifyingObject->value);
 
     /* Notification Class ID */
     TRACE_1("VendorID = %d\nmajorID = %d\nminorID = %d\n",   
