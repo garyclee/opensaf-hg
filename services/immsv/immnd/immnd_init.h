@@ -35,8 +35,9 @@ EXTERN_C IMMND_CB *immnd_cb;
 /* file : -  immnd_proc.c */
 
 void immnd_proc_imma_down(IMMND_CB *cb,MDS_DEST dest, NCSMDS_SVC_ID sv_id);
-void immnd_proc_imma_discard_connection(IMMND_CB *cb, 
+uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, 
 					IMMND_IMM_CLIENT_NODE *cl_node);
+void immnd_proc_imma_discard_stales(IMMND_CB  *cb);
 
 void immnd_cb_dump(void);
 void immnd_proc_immd_down(IMMND_CB *cb);
