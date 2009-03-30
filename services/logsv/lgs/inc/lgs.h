@@ -90,8 +90,8 @@ extern uns32 lgs_mds_msg_send(lgs_cb_t          *cb,
                               MDS_SEND_PRIORITY_TYPE prio);
 
 extern SaAisErrorT lgs_imm_activate(lgs_cb_t *cb);
-extern void lgs_imm_failover(lgs_cb_t *cb);
-extern uns32 lgs_imm_init(lgs_cb_t *cb);
+extern void lgs_imm_impl_set(lgs_cb_t *cb);
+extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
 
 #endif   /* ifndef __LGS_H */
 
