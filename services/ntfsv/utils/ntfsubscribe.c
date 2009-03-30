@@ -53,7 +53,7 @@ static void exitIfFalse(int expression) /* instead of assert */
 {
     if (!expression)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -253,9 +253,8 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input >= SA_NTF_OBJECT_NOTIFICATIONS_START);
                 exitIfFalse(input <= SA_NTF_OBJECT_DELETION);
 
-                printf(
-                            "%s\n",
-                            (char *)sa_object_create_delete_event_type_list[listIndex]);
+                printf("%s\n",
+                       (char *)sa_object_create_delete_event_type_list[listIndex]);
             }
             break;
 
@@ -267,9 +266,8 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START);
                 exitIfFalse(input <= SA_NTF_ATTRIBUTE_RESET);
 
-                printf(
-                            "%s\n",
-                            (char *)sa_attribute_change_event_type_list[listIndex]);
+                printf("%s\n",
+                       (char *)sa_attribute_change_event_type_list[listIndex]);
             }
             break;
 
@@ -282,7 +280,7 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input <= SA_NTF_TIME_VIOLATION);
 
                 printf("%s\n",
-                             (char *)sa_security_alarm_event_type_list[listIndex]);
+                       (char *)sa_security_alarm_event_type_list[listIndex]);
             }
             break;
 
