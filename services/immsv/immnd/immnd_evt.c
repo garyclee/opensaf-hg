@@ -770,8 +770,8 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb,
 
     /*Look up client-node*/
     immnd_client_node_get(cb, evt->info.searchInit.client_hdl, &cl_node);
-    if (cl_node == NULL) {
-        LOG_ER("IMMND - Client Node Get Failed for cli_hdl");
+    if (cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client Node Get Failed for cli_hdl");
         TRACE_2("Client Node get failed for handle:%llu", 
             evt->info.searchInit.client_hdl);
 
@@ -844,8 +844,8 @@ search_req_continue(
 
     /*Look up client-node*/
     immnd_client_node_get(cb, *((SaImmHandleT *)  &tmp_hdl), &cl_node);
-    if (cl_node == NULL) {
-        LOG_ER("IMMND - Client Node Get Failed for cli_hdl:%llu", 
+    if (cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client Node Get Failed for cli_hdl:%llu", 
             *((SaImmHandleT *)  &tmp_hdl));
         /*Cant do anything*/
         goto leave;
@@ -1220,8 +1220,8 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
 
     /*Look up client-node*/
     immnd_client_node_get(cb, evt->info.searchOp.client_hdl, &cl_node);
-    if (cl_node == NULL) {
-        LOG_ER("IMMND - Client Node Get Failed for cli_hdl:%llu",
+    if (cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client Node Get Failed for cli_hdl:%llu",
             evt->info.searchOp.client_hdl);
         error = SA_AIS_ERR_BAD_HANDLE;
         goto agent_rsp;
@@ -1290,8 +1290,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
 
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
-            if(oi_cl_node == NULL) {
-                /*Client died ?*/
+            if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
                 LOG_WA("Implementer died");
                 error = SA_AIS_ERR_TRY_AGAIN;
                 goto agent_rsp;
@@ -1410,9 +1409,8 @@ immnd_evt_proc_search_finalize(IMMND_CB *cb,
 
     /*Look up client-node*/
     immnd_client_node_get(cb, evt->info.searchOp.client_hdl, &cl_node);
-    if ( cl_node == NULL ) {
-        LOG_ER("IMMND - Client Node Get Failed for cli_hdl:%llu",
-            evt->info.searchOp.client_hdl);
+    if ( cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client Died");
         send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_BAD_HANDLE;
         goto agent_rsp;
     }
@@ -1552,6 +1550,7 @@ static uns32 immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt,
 
     TRACE_2("finalize for handle: %llu", evt->info.finReq.client_hdl);
     immnd_client_node_get(cb,evt->info.finReq.client_hdl,&cl_node);
+    /* Skipping check for stale client for this case (finalize client call) */
     if ( cl_node == NULL ) {
         LOG_ER("IMMND - Client Node Get Failed for cli_hdl %llu",
             evt->info.finReq.client_hdl);
@@ -1604,8 +1603,8 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt,
 
     client_hdl=evt->info.adminitReq.client_hdl;
     immnd_client_node_get(cb,client_hdl,&cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client %llu went down so no response", client_hdl);
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client %llu went down so no response", client_hdl);
         return rc; 
     } 
 
@@ -1690,8 +1689,8 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt,
 
     client_hdl=evt->info.implSet.client_hdl;
     immnd_client_node_get(cb,client_hdl,&cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client went down so no response");
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client went down so no response");
         return rc; 
     } 
 
@@ -1782,8 +1781,8 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt,
 
     client_hdl=evt->info.ccbinitReq.client_hdl;
     immnd_client_node_get(cb,client_hdl,&cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client went down so no response");
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client went down so no response");
         TRACE_LEAVE();
         return rc; 
     } 
@@ -1871,8 +1870,8 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb,
 
     client_hdl=evt->info.objModify.immHandle;
     immnd_client_node_get(cb,client_hdl,&cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client went down so no response");
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client went down so no response");
         TRACE_LEAVE();
         return rc; 
     } 
@@ -2014,8 +2013,8 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb,
 
     client_hdl=evt->info.fevsReq.client_hdl;
     immnd_client_node_get(cb,client_hdl,&cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client %llu went down so no response", client_hdl);
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client %llu went down so no response", client_hdl);
         error = SA_AIS_ERR_BAD_HANDLE;
         goto agent_rsp;
     } 
@@ -2132,8 +2131,8 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
         tmp_hdl.count = reqConn;
 
         immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             TRACE_LEAVE();
             return;/*Note, this means that regardles of ccb outcome, 
                      we can not reply to the process that started the ccb.*/
@@ -2205,8 +2204,8 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
         tmp_hdl.count = reqConn;
 
         immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             TRACE_LEAVE();
             return;/*Note, this means that regardles of ccb outcome, 
                      we can not reply to the process that started the ccb.*/
@@ -2276,8 +2275,8 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
         tmp_hdl.count = reqConn;
 
         immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             TRACE_LEAVE();
             return;/*Note, this means that regardles of ccb outcome, 
                      we can not reply to the process that started the ccb.*/
@@ -2367,7 +2366,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
                     /*Fetch client node for OI !*/
                     immnd_client_node_get(cb, *((SaImmOiHandleT *) &tmp_hdl), 
                         &oi_cl_node);
-                    if(oi_cl_node == NULL) {
+                    if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
                         /*Implementer client died ?*/
                         LOG_WA("IMMND - Client went down so can not send apply - "
                             "ignoring!");
@@ -2407,8 +2406,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
             tmp_hdl.count = reqConn;
 
             immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-            if(cl_node == NULL) {
-                LOG_ER("IMMND - Client went down so no response");
+            if(cl_node == NULL || cl_node->mIsStale) {
+                LOG_WA("IMMND - Client went down so no response");
                 TRACE_LEAVE();
                 return; /*Note, this means that regardles of ccb outcome, 
                           we can not reply to the process that started the ccb.*/
@@ -2489,8 +2488,7 @@ static uns32 immnd_evt_proc_rt_update_pull(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
 
         /*Fetch client node for OI !*/
         immnd_client_node_get(cb, implHandle, &oi_cl_node);
-        if(oi_cl_node == NULL) {
-            /*Client died ?*/
+        if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
             LOG_WA("Implementer exists in ImmModel but not in client tree.");
             err = SA_AIS_ERR_TRY_AGAIN;
         } else {
@@ -2627,8 +2625,8 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
     if(local) {
         oi_client_hdl=evt->info.admOpRsp.oi_client_hdl;
         immnd_client_node_get(cb,oi_client_hdl,&oi_cl_node);
-        if(oi_cl_node == NULL) {
-            LOG_ER("IMMND - Client %llu went down so no response", oi_client_hdl);
+        if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
+            LOG_WA("IMMND - Client %llu went down so no response", oi_client_hdl);
             return rc; /*Note: Error is ignored. Nothing else we can do since
                          OI reply call was async and we cant find original OM call.
                        */
@@ -2671,8 +2669,8 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
         tmp_hdl.count = reqConn;
 
         immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return rc;/*Note: Error is ignored! should cause bad-handle..if local*/
         }
 
@@ -2808,7 +2806,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 
         /*Fetch client node for OI !*/
         immnd_client_node_get(cb, implHandle, &oi_cl_node);
-        if(oi_cl_node == NULL) {
+        if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
             LOG_ER("IMMND - Client %llu went down so no response", implHandle);
             error = SA_AIS_ERR_NOT_EXIST;
         } else {
@@ -2857,8 +2855,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
     /* Possibly move this code down inside the error!=OK branch. */
     if(originatedAtThisNd) {  
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
+        if(cl_node == NULL || cl_node->mIsStale) {
             LOG_ER("IMMND - Client went down so no response");
             return;
         }
@@ -2958,9 +2955,8 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 
     if(originatedAtThisNd) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client %llu went down so no response", clnt_hdl);
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client %llu went down so no response", clnt_hdl);
             return;
         } else {
             sinfo = &cl_node->tmpSinfo; 
@@ -3023,9 +3019,8 @@ static void immnd_evt_proc_class_delete(IMMND_CB *cb,
 
     if(originatedAtThisNd) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client %llu went down so no response", clnt_hdl);
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client %llu went down so no response", clnt_hdl);
             return;
         } else {
             sinfo = &cl_node->tmpSinfo; 
@@ -3077,8 +3072,8 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb,
 
     client_hdl=evt->info.finReq.client_hdl;
     immnd_client_node_get(cb, client_hdl, &cl_node);
-    if(cl_node == NULL) {
-        LOG_ER("IMMND - Client went down so no response");
+    if(cl_node == NULL || cl_node->mIsStale) {
+        LOG_WA("IMMND - Client went down so no response");
         return 0; 
     } 
 
@@ -3199,8 +3194,8 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
         /*Send ack to client (sync process)*/
 
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         } 
 
@@ -3263,8 +3258,8 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
 
     if(originatedAtThisNd) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -3363,14 +3358,11 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
             implHandle = *((SaImmOiHandleT *) &tmp_hdl);
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
-            if(oi_cl_node == NULL) {
-                /*Client died ?*/
-                LOG_ER("Internal inconsistency in IMMND");
-                /*
+            if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
+                LOG_WA("Client died");
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 delayedReply = SA_FALSE;
-                */
-                assert(0); 
+                assert(oi_cl_node->mIsStale); 
             } else {
                 memset(&send_evt,'\0',sizeof(IMMSV_EVT));
                 send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3410,8 +3402,8 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 
     if(originatedAtThisNd && !delayedReply) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         } 
 
@@ -3510,14 +3502,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
             implHandle = *((SaImmOiHandleT *) &tmp_hdl);
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
-            if(oi_cl_node == NULL) {
-                /*Client died ?*/
-                LOG_ER("Internal inconsistency");
-                /*
+            if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
+                LOG_WA("OI Client died");
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 delayedReply = SA_FALSE;
-                */
-                assert(0); 
+                assert(oi_cl_node->mIsStale); 
             } else {
                 memset(&send_evt,'\0',sizeof(IMMSV_EVT));
                 send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3560,8 +3549,8 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
     if(originatedAtThisNd && !delayedReply) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         } 
 
@@ -3663,8 +3652,8 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
 
     if(originatedAtThisNd) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -3727,8 +3716,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb,
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
             if(oi_cl_node == NULL) {
-                /*Implementer client died ?*/
-                LOG_ER("IMMND - Client went down so can not send abort UC - "
+                LOG_WA("IMMND - Client went down so can not send abort UC - "
                     "ignoring!");
             } else {
                 send_evt.info.imma.info.ccbCompl.ccbId = ccbId;
@@ -3755,9 +3743,8 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb,
         omHandle = *((SaImmHandleT *) &tmp_hdl);
         /*Fetch client node for OM !*/
         immnd_client_node_get(cb, omHandle, &om_cl_node);
-        if(om_cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client went down so can not send reply "
+        if(om_cl_node == NULL || om_cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so can not send reply "
                 "ignoring!");
         } else {
             memset(&send_evt,'\0',sizeof(IMMSV_EVT));
@@ -3849,14 +3836,11 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
                 implHandle = *((SaImmOiHandleT *) &tmp_hdl);
                 /*Fetch client node for OI !*/
                 immnd_client_node_get(cb, implHandle, &oi_cl_node);
-                if(oi_cl_node == NULL) {
-                    /*Client died ?*/
-                    LOG_ER("IMMND - Client went down so no response");
-                    /*
+                if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
+                    LOG_WA("IMMND - Client went down so no response");
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     delayedReply = SA_FALSE;
-                    */
-                    assert(0);
+                    assert(oi_cl_node->mIsStale);
                 } else {
                     send_evt.info.imma.info.objDelete.objectName.size = 
                         strlen(objNameArr[ix]);
@@ -3917,9 +3901,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
     if(originatedAtThisNd && !delayedReply) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         } 
 
@@ -3989,8 +3972,8 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
 
     if(originatedAtThisNd) {
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -4058,8 +4041,8 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
         */
         assert(!client || client == tmp_hdl->count); 
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -4140,14 +4123,11 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
                 implHandle = *((SaImmOiHandleT *) &tmp_hdl);
                 /*Fetch client node for OI !*/
                 immnd_client_node_get(cb, implHandle, &oi_cl_node);
-                if(oi_cl_node == NULL) {
-                    /*Implementer client died ?*/
-                    LOG_ER("IMMND - Client went down so no response");
-                    /*
+                if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
+                    LOG_WA("IMMND - Client went down so no response");
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     delayedReply = SA_FALSE;
-                    */
-                    assert(0);
+                    assert(oi_cl_node->mIsStale);
                 } else {
                     send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
                     send_evt.info.imma.info.ccbCompl.implId = implIdArr[ix];
@@ -4231,9 +4211,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 
         if(originatedAtThisNd) {
             immnd_client_node_get(cb, clnt_hdl, &cl_node);
-            if(cl_node == NULL) {
-                /*Client died ?*/
-                LOG_ER("IMMND - Client went down so no response");
+            if(cl_node == NULL || cl_node->mIsStale) {
+                LOG_WA("IMMND - Client went down so no response");
             } else {
                 sinfo = &cl_node->tmpSinfo; 
                 TRACE_2("send immediate reply to client");
@@ -5033,9 +5012,8 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5151,9 +5129,8 @@ static void immnd_evt_proc_admo_set(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5212,9 +5189,8 @@ static void immnd_evt_proc_admo_release(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            /*Client died ?*/
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5273,8 +5249,8 @@ static void immnd_evt_proc_admo_clear(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5333,8 +5309,8 @@ static void immnd_evt_proc_admo_finalize(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5438,8 +5414,8 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5509,8 +5485,8 @@ static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5569,8 +5545,8 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5634,8 +5610,8 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5701,8 +5677,8 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5765,8 +5741,8 @@ static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
 				   
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5833,8 +5809,8 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
 
     if(originatedAtThisNd) { /*Send reply to client from this ND.*/
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
-        if(cl_node == NULL) {
-            LOG_ER("IMMND - Client went down so no response");
+        if(cl_node == NULL || cl_node->mIsStale) {
+            LOG_WA("IMMND - Client went down so no response");
             return;
         }
 
@@ -5886,7 +5862,6 @@ static uns32 immnd_evt_proc_mds_evt (IMMND_CB *cb,IMMND_EVT *evt)
             evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMA_OI))
     {
         TRACE_2("IMMA DOWN EVENT");
-        assert(immnd_is_immd_up(cb));/*ABT Hmmmm. should be sending from here?*/
         immnd_proc_imma_down(cb,evt->info.mds_info.dest,
             evt->info.mds_info.svc_id);
     }
@@ -5914,8 +5889,10 @@ static uns32 immnd_evt_proc_mds_evt (IMMND_CB *cb,IMMND_EVT *evt)
         ( evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMD))
     {
 
-        TRACE_2("IMMD FAILOVER ??");
+        TRACE_2("IMMD FAILOVER");
         /* The IMMD has failed over. */
+        immnd_proc_imma_discard_stales(cb);
+
     } else if(evt->info.mds_info.svc_id == NCSMDS_SVC_ID_IMMND)
     {
         LOG_NO("MDS SERVICE EVENT OF TYPE IMMND!!");

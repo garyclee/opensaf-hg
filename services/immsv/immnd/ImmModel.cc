@@ -5074,9 +5074,12 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             //classes and objects. If none point to this object then we can
             //actually remove it. 
         } else {
-            LOG_NO("Implementer %u disconnected. Marking it as doomed "
-                "<Conn:%u, Node:%x>", info->mId, info->mConn, info->mNodeId);
-            info->mDying = true;
+            if(!info->mDying) {
+                LOG_NO("Implementer %u disconnected. Marking it as doomed "
+                    "<Conn:%u, Node:%x>", info->mId, info->mConn, 
+                    info->mNodeId);
+                info->mDying = true;
+            }
         }
     }
     TRACE_LEAVE();
@@ -5105,6 +5108,7 @@ ImmModel::discardContinuations(SaUint32T dead)
             TRACE_5("Discarding Adm Impl continuation %llu", ci3->first);
             //TODO Should send fevs message to terminate call that caused
             //the implementer continuation to be created.
+            //I can only do this if I check that IMMD is up first. 
             sAdmImplContinuationMap.erase(ci3);
             ci3=sAdmImplContinuationMap.begin();
         } else {++ci3;}
@@ -5116,6 +5120,7 @@ ImmModel::discardContinuations(SaUint32T dead)
             TRACE_5("Discarding Adm Impl continuation %llu", ci3->first);
             //TODO: Should send fevs message to terminate call that caused
             //the implementer continuation to be created.
+            //I can only do this if I check that IMMD is up first. 
             sSearchImplContinuationMap.erase(ci3);
             ci3=sSearchImplContinuationMap.begin();
         } else {++ci3;}
@@ -5144,7 +5149,7 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
         if((*i)->mOriginatingConn == dead) {
             cv.push_back((*i)->mId);
-            (*i)->mOriginatingConn = 0; //Avoid anyone trying to use it.
+            /*(*i)->mOriginatingConn = 0; //Avoid anyone trying to use it.*/
         }
     }
 }
@@ -5173,7 +5178,7 @@ ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
     for(i=sOwnerVector.begin(); i!=sOwnerVector.end(); ++i) {
         if((*i)->mConn == dead) {
             cv.push_back((*i)->mId);
-            (*i)->mConn = 0; //Avoid anyone trying to use it.
+            /*(*i)->mConn = 0; //Avoid anyone trying to use it.*/
         }
     }
 }
@@ -7079,7 +7084,10 @@ ImmModel::getObjectName(ObjectInfo* info, std::string& objName)
 {
     ObjectMap::iterator oi;
     for(oi=sObjectMap.begin(); oi!=sObjectMap.end(); ++oi) {
-        if(oi->second == info) {objName = oi->first;}
+        if(oi->second == info) {
+            objName = oi->first;
+            return;
+        }
     }
     assert(0);
 }
