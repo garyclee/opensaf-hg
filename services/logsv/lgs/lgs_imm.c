@@ -673,7 +673,7 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
  * Become implementer for config objects.
  * @param cb
  */
-void lgs_imm_failover(lgs_cb_t *cb)
+void lgs_imm_impl_set(lgs_cb_t *cb)
 {
     TRACE_ENTER();
 
@@ -683,14 +683,37 @@ void lgs_imm_failover(lgs_cb_t *cb)
     TRACE_LEAVE();
 }
 
-uns32 lgs_imm_init(lgs_cb_t *cb)
+SaAisErrorT lgs_imm_init(lgs_cb_t *cb)
 {
+    SaAisErrorT rc;
+
     TRACE_ENTER();
 
-    (void) immutil_saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
-    (void) immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
+    /* Wait forever on IMM to become available */
+
+    rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
+    while(rc == SA_AIS_ERR_TRY_AGAIN)
+    {
+	usleep(500000);
+        rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
+    }
+    if (rc != SA_AIS_OK)
+    {
+        LOG_ER("saImmOiInitialize_2 failed %u", rc);
+        return rc;
+    }
+
+    rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
+    while(rc == SA_AIS_ERR_TRY_AGAIN)
+    {
+	usleep(500000);
+        rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
+    }
+
+    if (rc != SA_AIS_OK)
+        LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
 
     TRACE_LEAVE();
 
-    return NCSCC_RC_SUCCESS;
+    return rc;
 }

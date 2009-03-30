@@ -74,8 +74,8 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb,
     }
     else
     {
-        /* fail over or switch over */
-        lgs_imm_failover(cb);
+        /* fail over or switch over, become implementer */
+        lgs_imm_impl_set(cb);
     }
 
     /* Open all streams */
