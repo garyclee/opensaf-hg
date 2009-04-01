@@ -41,12 +41,12 @@
 
 /* static function declarations */
 static uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *, AVND_COMP *);
+static uns32 avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *, AVND_COMP *);
+static uns32 avnd_comp_clc_xxxing_instfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_inst_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_instsucc_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_insting_instfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_term_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_clean_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_insting_cleansucc_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_insting_restart_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_inst_term_hdler(AVND_CB *, AVND_COMP *);
@@ -58,12 +58,10 @@ static uns32 avnd_comp_clc_terming_termfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_terming_cleansucc_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_terming_cleanfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_instsucc_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_restart_instfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_term_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_termsucc_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_termfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_clean_hdler(AVND_CB *, AVND_COMP *);
-static uns32 avnd_comp_clc_restart_cleansucc_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_restart_cleanfail_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_orph_instsucc_hdler(AVND_CB *, AVND_COMP *);
 static uns32 avnd_comp_clc_orph_term_hdler(AVND_CB *, AVND_COMP *);
@@ -105,12 +103,12 @@ static AVND_COMP_CLC_FSM_FN
    {
       avnd_comp_clc_insting_inst_hdler,      /* INST EV */
       avnd_comp_clc_insting_instsucc_hdler,  /* INST_SUCC EV */
-      avnd_comp_clc_insting_instfail_hdler,  /* INST_FAIL EV */
+      avnd_comp_clc_xxxing_instfail_hdler,   /* INST_FAIL EV */
       avnd_comp_clc_insting_term_hdler,      /* TERM EV */
       0,                                     /* TERM_SUCC EV */
       0,                                     /* TERM_FAIL EV */
       avnd_comp_clc_insting_clean_hdler,     /* CLEANUP EV */
-      avnd_comp_clc_insting_cleansucc_hdler, /* CLEANUP_SUCC EV */
+      avnd_comp_clc_xxxing_cleansucc_hdler,  /* CLEANUP_SUCC EV */
       avnd_comp_clc_insting_cleanfail_hdler, /* CLEANUP_FAIL EV */
       avnd_comp_clc_insting_restart_hdler,   /* RESTART EV */
       0,                                     /* ORPH EV */
@@ -150,12 +148,12 @@ static AVND_COMP_CLC_FSM_FN
    {
       0,                                     /* INST EV */
       avnd_comp_clc_restart_instsucc_hdler,  /* INST_SUCC EV */
-      avnd_comp_clc_restart_instfail_hdler,  /* INST_FAIL EV */
+      avnd_comp_clc_xxxing_instfail_hdler,   /* INST_FAIL EV */
       avnd_comp_clc_restart_term_hdler,      /* TERM EV */
       avnd_comp_clc_restart_termsucc_hdler,  /* TERM_SUCC EV */
       avnd_comp_clc_restart_termfail_hdler,  /* TERM_FAIL EV */
       avnd_comp_clc_restart_clean_hdler,     /* CLEANUP EV */
-      avnd_comp_clc_restart_cleansucc_hdler, /* CLEANUP_SUCC EV */
+      avnd_comp_clc_xxxing_cleansucc_hdler,  /* CLEANUP_SUCC EV */
       avnd_comp_clc_restart_cleanfail_hdler, /* CLEANUP_FAIL EV */
       0,                                     /* RESTART EV */
       0,                                     /* ORPH EV */
@@ -1301,10 +1299,10 @@ uns32 avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 
 /****************************************************************************
-  Name          : avnd_comp_clc_insting_instfail_hdler
+  Name          : avnd_comp_clc_xxxing_instfail_hdler
  
   Description   : This routine processes the `instantiate fail` event in 
-                  `instantiating` state.
+                  `instantiating` or 'restarting' states.
  
   Arguments     : cb   - ptr to the AvND control block
                   comp - ptr to the comp
@@ -1313,29 +1311,35 @@ uns32 avnd_comp_clc_insting_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_clc_insting_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
+uns32 avnd_comp_clc_xxxing_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* cleanup the comp */
-   rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
+   if (m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0)
+      rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_CLEAN, 0 ,0);
+   else
+      rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
 
-   /* reset the comp-reg & instantiate params */
-   if(!m_AVND_COMP_TYPE_IS_PROXIED(comp))
-      m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-   m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
-   
-   m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
-
-   /* delete hc-list, cbk-list, pg-list & pm-list */
-   avnd_comp_hc_rec_del_all(cb, comp);
-   avnd_comp_cbq_del(cb, comp, TRUE);
-   
-   /* re-using the funtion to stop all PM started by this comp */
-   avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
-   avnd_comp_pm_rec_del_all(cb, comp); /*if at all anythnig is left behind */
-
-   /* no state transition */ 
+   if (NCSCC_RC_SUCCESS == rc)
+   {
+       /* reset the comp-reg & instantiate params */
+       if(!m_AVND_COMP_TYPE_IS_PROXIED(comp))
+           m_AVND_COMP_REG_PARAM_RESET(cb, comp);
+       m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
+       
+       m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
+       
+       /* delete hc-list, cbk-list, pg-list & pm-list */
+       avnd_comp_hc_rec_del_all(cb, comp);
+       avnd_comp_cbq_del(cb, comp, TRUE);
+       
+       /* re-using the funtion to stop all PM started by this comp */
+       avnd_comp_pm_finalize(cb, comp, comp->reg_hdl);
+       avnd_comp_pm_rec_del_all(cb, comp); /*if at all anythnig is left behind */
+       
+       /* no state transition */ 
+   }
 
    return rc;
 }
@@ -1423,10 +1427,10 @@ uns32 avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 
 /****************************************************************************
-  Name          : avnd_comp_clc_insting_cleansucc_hdler
+  Name          : avnd_comp_clc_xxxing_cleansucc_hdler
  
   Description   : This routine processes the `cleanup success` event in 
-                  `instantiating` state.
+                  `instantiating` or 'restarting' states.
  
   Arguments     : cb   - ptr to the AvND control block
                   comp - ptr to the comp
@@ -1435,7 +1439,7 @@ uns32 avnd_comp_clc_insting_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_clc_insting_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
+uns32 avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
    AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
    uns32 rc = NCSCC_RC_SUCCESS;
@@ -1951,47 +1955,6 @@ uns32 avnd_comp_clc_restart_instsucc_hdler(AVND_CB *cb, AVND_COMP *comp)
    return rc;
 }
 
-
-/****************************************************************************
-  Name          : avnd_comp_clc_restart_instfail_hdler
- 
-  Description   : This routine processes the `instantiate fail` event in 
-                  `restarting` state.
- 
-  Arguments     : cb   - ptr to the AvND control block
-                  comp - ptr to the comp
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_comp_clc_restart_instfail_hdler(AVND_CB *cb, AVND_COMP *comp)
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-
-   /* cleanup the comp */
-   if(m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0)
-      rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_CLEAN,0 ,0);
-   else
-      rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_CLEANUP);
-   if ( NCSCC_RC_SUCCESS == rc )
-   {
-      /* reset the comp-reg & instantiate params */
-      m_AVND_COMP_REG_PARAM_RESET(cb, comp);
-      m_AVND_COMP_CLC_INST_PARAM_RESET(comp);
-      
-      /* transition to 'inst-failed' state */
-      m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_INSTANTIATIONFAILED);
-
-      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CONFIG);
-
-      avnd_gen_comp_inst_failed_trap(cb,comp);
-   }
-
-   return rc;
-}
-
-
 /****************************************************************************
   Name          : avnd_comp_clc_restart_term_hdler
  
@@ -2172,49 +2135,6 @@ uns32 avnd_comp_clc_restart_clean_hdler(AVND_CB *cb, AVND_COMP *comp)
 
    return rc;
 }
-
-
-/****************************************************************************
-  Name          : avnd_comp_clc_restart_cleansucc_hdler
- 
-  Description   : This routine processes the `cleanup success` event in 
-                  `restarting` state.
- 
-  Arguments     : cb  - ptr to the AvND control block
-                  comp - ptr to the comp
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_comp_clc_restart_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
-{
-   uns32 rc = NCSCC_RC_SUCCESS;
-
-   /* re-instantiate the comp */
-   if(m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0 &&
-         m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
-      /* proxied pre-instantiable comp */
-      rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_PXIED_COMP_INST,0 ,0);
-   else if(m_AVND_COMP_TYPE_IS_PROXIED(comp) && comp->pxy_comp != 0 &&
-         !m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp))
-      /* proxied non-pre-instantiable comp */
-      rc = avnd_comp_cbk_send(cb, comp, AVSV_AMF_CSI_SET,0 ,0);
-   else if(m_AVND_COMP_TYPE_IS_PROXIED(comp))
-      ;/* do nothing */
-   else
-      rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_INSTANTIATE);
-
-   if ( NCSCC_RC_SUCCESS == rc )
-   {
-      /* timestamp the start of this instantiation phase */
-      m_GET_TIME_STAMP(comp->clc_info.inst_cmd_ts);
-      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD_TS);
-   }
-
-   return rc;
-}
-
 
 /****************************************************************************
   Name          : avnd_comp_clc_restart_cleanfail_hdler
