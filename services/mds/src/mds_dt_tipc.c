@@ -68,17 +68,38 @@
 #define MDS_NCS_CHASSIS_ID       (tipc_cb.node_id&0x00ff0000)
 #define MDS_TIPC_COMMON_ID       0x01001000
 
-#define MDS_TIPC_NODE_ID_MIN     0x01001010
+/*
+ * In the default addressing scheme TIPC addresses will be 1.1.31, 1.1.47.
+ * The slot ID is shifted 4 bits up and subslot ID is added in the 4 LSB.
+ * When use of subslot ID is disabled (set MDS_USE_SUBSLOT_ID=0 in CFLAGS), the
+ * TIPC addresses will be 1.1.1, 1.1.2, etc.
+ */
+#ifndef MDS_USE_SUBSLOT_ID
+#define MDS_USE_SUBSLOT_ID 1
+#endif
+
+#if (MDS_USE_SUBSLOT_ID == 0)
+#define MDS_TIPC_NODE_ID_MIN     0x01001001
+#define MDS_TIPC_NODE_ID_MAX     0x010010ff
+#define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x0000010f)
+#define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000ff0f)
+#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node) \
+        (NODE_ID)( MDS_NCS_CHASSIS_ID | (((node)&0xff)<<8) | (0xf))
+#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
+        (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>8) )
+#else
+#define MDS_TIPC_NODE_ID_MIN     0x01001001
 #define MDS_TIPC_NODE_ID_MAX     0x0100110f
-
-#define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS)) 
-#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node)   (NODE_ID)( MDS_NCS_CHASSIS_ID | ((node)&0xf) | (((node)&0xff0)<<4))  
-
 #define MDS_NCS_NODE_ID_MIN      (MDS_NCS_CHASSIS_ID|0x00000100)
 #define MDS_NCS_NODE_ID_MAX      (MDS_NCS_CHASSIS_ID|0x0000100f)
+#define m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(node) \
+        (NODE_ID)( MDS_NCS_CHASSIS_ID | ((node)&0xf) | (((node)&0xff0)<<4))  
+#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node) \
+        (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>4) | ((node)&0xf) )
+#endif
 
+#define m_MDS_CHECK_TIPC_NODE_ID_RANGE(node) (((((node)<MDS_TIPC_NODE_ID_MIN)||((node)>MDS_TIPC_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS)) 
 #define m_MDS_CHECK_NCS_NODE_ID_RANGE(node) (((((node)<MDS_NCS_NODE_ID_MIN)||((node)>MDS_NCS_NODE_ID_MAX))?NCSCC_RC_FAILURE:NCSCC_RC_SUCCESS)) 
-#define m_MDS_GET_TIPC_NODE_ID_FROM_NCS_NODE_ID(node)  (NODE_ID)( MDS_TIPC_COMMON_ID | (((node)&0xff00)>>4) | ((node)&0xf) )
 
 typedef struct mdtm_ref_hdl_list{
    struct mdtm_ref_hdl_list *next;
