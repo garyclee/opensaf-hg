@@ -18,13 +18,17 @@
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-# This file will only configure the TIPC in network mode and it is assumed that TIPC 
-#       and tipc-config executable is present in the "/opt/TIPC" directory.     
-# tipc-config can also be located in the path.
+# Configure TIPC in network mode. If the variable TIPC_MODULE points to a file,
+# 'insmod' is used else 'modprobe'. 'tipc-config' needs to be in the path.
+
+# Support for using subslot ID as part the TIPC network address. The subslot
+# ID is by default the last 4 bits of the address and the slot ID is shifted up
+# 4 bits. When TIPC_USE_SUBSLOT_ID is set to "NO", the subslot ID will not be 
+# included in the address and slot ID will not be shifted thus producing TIPC
+# addresses like 1.1.1, 1.1.2, 1.1.3 etc.
+USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"YES"}
 
 # constants
-MASK_LAST_3NIBBLES=4096
-MASK_LAST_1NIBBLE=16
 SHIFT4=4
 NID_SVC_NAME=TIPC
 
@@ -57,11 +61,22 @@ if ! test -f "$SLOT_ID_FILE"; then
    exit 1
 fi
 SLOT_ID=`cat "$SLOT_ID_FILE"`
-if [ "$SLOT_ID" -gt "16" ] || [ "$SLOT_ID" -lt "1" ]  
+if [ "$SLOT_ID" -gt "255" ] || [ "$SLOT_ID" -lt "1" ]  
     then 
-      echo "SLOT ID Should be in the range of 1 to 16"
+      echo "SLOT ID Should be in the range of 1 to 255"
       echo "Quitting......"
       exit 1
+fi
+
+if ! test -f $SUBSLOT_ID_FILE; then
+    echo "$SLOT_ID_FILE doesnt exist, exiting ...." 
+    exit 1
+fi
+SUBSLOT_ID=`cat $SUBSLOT_ID_FILE`
+if [ "$SUBSLOT_ID" -gt "15" ] || [ "$SUBSLOT_ID" -lt "0" ]; then
+    echo "SUBSLOT ID Should be in the range of 0 to 15"
+    echo "Quitting......"
+    exit 1
 fi
 
 if [ "$#" -lt "1" ] ||  [ "$#" -gt "4" ]
@@ -87,22 +102,14 @@ if [ $# -gt 1 ] ; then
     fi
 fi    
 
-printf "00%02x%02x0f\n" "$CHASSIS_ID" "$SLOT_ID" > "$LOCALSTATEDIR/node_id"
+printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $LOCALSTATEDIR/node_id
 
-NODE_ID_READ=`cat "$LOCALSTATEDIR/node_id"`
-
-VAL_MSB_NIBBLE=$((0x$NODE_ID_READ % $MASK_LAST_1NIBBLE)) 
-VAL1=$((0x$NODE_ID_READ >> $SHIFT4))
-VAL_3NIBBLES_AFTER_SHIFT4=$(($VAL1 % $MASK_LAST_3NIBBLES))
-
-if [ "$VAL_3NIBBLES_AFTER_SHIFT4" -gt "256" ]  
-    then 
-    echo "Node id or Physical Slot id out of range"
-    echo "Quitting......"
-    exit 1
+if [ "$USE_SUBSLOT_ID" = "YES" ]; then
+    TIPC_NODEID=$(($SLOT_ID << $SHIFT4))
+    TIPC_NODEID=$(($TIPC_NODEID + $SUBSLOT_ID))
+else    
+    TIPC_NODEID=$SLOT_ID    
 fi
-
-TIPC_NODEID=$(($VAL_MSB_NIBBLE + $VAL_3NIBBLES_AFTER_SHIFT4))
 
 function tipc_configure ()
 {
