@@ -30,6 +30,9 @@
 #include "lgs.h"
 #include "lgs_util.h"
 
+const unsigned int sleep_delay_ms = 500;
+const unsigned int max_waiting_time_ms = 60 * 1000; /* 60 secs */
+
 /* Must be able to index this array using streamType */
 static char *log_file_format[] =
 {
@@ -670,31 +673,90 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 }
 
 /**
- * Become implementer for config objects.
+ * Become object and class implementer. Wait max
+ * 'max_waiting_time_ms'.
+ * @param _cb
+ * 
+ * @return void*
+ */
+static void *imm_impl_set(void *_cb)
+{
+    SaAisErrorT rc;
+    int msecs_waited;
+    lgs_cb_t *cb = (lgs_cb_t*) _cb;
+
+    TRACE_ENTER();
+
+    msecs_waited = 0;
+    rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+    while((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms))
+    {
+        usleep(sleep_delay_ms * 1000);
+        msecs_waited += sleep_delay_ms;
+        rc = saImmOiImplementerSet(cb->immOiHandle, implementerName);
+    }
+    if (rc != SA_AIS_OK)
+    {
+        LOG_ER("saImmOiImplementerSet failed %u", rc);
+        exit(EXIT_FAILURE);
+    }
+
+    msecs_waited = 0;
+    rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+    while((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms))
+    {
+        usleep(sleep_delay_ms * 1000);
+        msecs_waited += sleep_delay_ms;
+        rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
+    }
+
+    if (rc != SA_AIS_OK)
+    {
+        LOG_ER("saImmOiClassImplementerSet failed %u", rc);
+        exit(EXIT_FAILURE);
+    }
+
+    TRACE_LEAVE();
+    return NULL;
+}
+
+/**
+ * Become object and class implementer, non-blocking.
  * @param cb
  */
 void lgs_imm_impl_set(lgs_cb_t *cb)
 {
+    pthread_t thread;
+
     TRACE_ENTER();
-
-    (void) immutil_saImmOiImplementerSet(cb->immOiHandle, implementerName);
-    (void) immutil_saImmOiClassImplementerSet(cb->immOiHandle, "SaLogStreamConfig");
-
+    if (pthread_create(&thread, NULL, imm_impl_set, cb) != 0)
+    {
+        LOG_ER("pthread_create FAILED: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
     TRACE_LEAVE();
 }
 
+/**
+ * Initialize the OI interface and get a selection object. Wait
+ * max 'max_waiting_time_ms'.
+ * @param cb
+ * 
+ * @return SaAisErrorT
+ */
 SaAisErrorT lgs_imm_init(lgs_cb_t *cb)
 {
     SaAisErrorT rc;
+    int msecs_waited;
 
     TRACE_ENTER();
 
-    /* Wait forever on IMM to become available */
-
+    msecs_waited = 0;
     rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
-    while(rc == SA_AIS_ERR_TRY_AGAIN)
+    while((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms))
     {
-	usleep(500000);
+        usleep(sleep_delay_ms * 1000);
+        msecs_waited += sleep_delay_ms;
         rc = saImmOiInitialize_2(&cb->immOiHandle, &callbacks, &immVersion);
     }
     if (rc != SA_AIS_OK)
@@ -703,10 +765,12 @@ SaAisErrorT lgs_imm_init(lgs_cb_t *cb)
         return rc;
     }
 
+    msecs_waited = 0;
     rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
-    while(rc == SA_AIS_ERR_TRY_AGAIN)
+    while((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms))
     {
-	usleep(500000);
+        usleep(sleep_delay_ms * 1000);
+        msecs_waited += sleep_delay_ms;
         rc = saImmOiSelectionObjectGet(cb->immOiHandle, &cb->immSelectionObject);
     }
 

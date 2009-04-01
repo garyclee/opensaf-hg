@@ -229,30 +229,32 @@ done:
 }
 
 /**
- * Wait forever on IMM and do initialize, sel obj get &
- * implementer set.
- * @param arg
+ * Wait a while on IMM and initialize, sel obj get & implementer
+ * set.
+ * 
+ * @param _cb
  * 
  * @return void*
  */
-static void *imm_reinit_thread(void *arg)
+static void *imm_reinit_thread(void *_cb)
 {
     SaAisErrorT error;
+    lgs_cb_t *cb = (lgs_cb_t*) _cb;
 
     TRACE_ENTER();
 
-    if ((error = lgs_imm_init(lgs_cb)) != SA_AIS_OK)
+    if ((error = lgs_imm_init(cb)) != SA_AIS_OK)
     {
         LOG_ER("lgs_imm_init FAILED: %u", error);
         exit(EXIT_FAILURE);
     }
 
     /* If this is the active server, become implementer again. */
-    if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
-        lgs_imm_impl_set(lgs_cb);
+    if (cb->ha_state == SA_AMF_HA_ACTIVE)
+        lgs_imm_impl_set(cb);
 
-    TRACE("New IMM fd: %llu", lgs_cb->immSelectionObject);
-    fds[FD_IMM].fd = lgs_cb->immSelectionObject;
+    TRACE("New IMM fd: %llu", cb->immSelectionObject);
+    fds[FD_IMM].fd = cb->immSelectionObject;
     nfds = FD_IMM + 1;
 
     TRACE_LEAVE();
@@ -262,15 +264,16 @@ static void *imm_reinit_thread(void *arg)
 /**
  * Start a background thread to do IMM reinitialization.
  * 
+ * @param cb
  */
-static void imm_reinit_bg(void)
+static void imm_reinit_bg(lgs_cb_t *cb)
 {
     pthread_t thread;
 
     TRACE_ENTER();
-    if (pthread_create(&thread, NULL, imm_reinit_thread, NULL) != 0)
+    if (pthread_create(&thread, NULL, imm_reinit_thread, cb) != 0)
     {
-        LOG_ER("lgs_imm_init_bg FAILED: %s", strerror(errno));
+        LOG_ER("pthread_create FAILED: %s", strerror(errno));
         exit(EXIT_FAILURE);
     }
     TRACE_LEAVE();
@@ -367,7 +370,7 @@ static void main_process(void)
                 nfds = FD_MBX + 1;
 
                 /* Initiate IMM reinitializtion in the background */
-                imm_reinit_bg();
+                imm_reinit_bg(lgs_cb);
             }
             else if (error != SA_AIS_OK)
             {
