@@ -711,6 +711,9 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             case 10:
                strcpy (hpi_sensor_type_string, "SAHPI_COOLING_DEVICE");
                break;
+            case 160:
+               strcpy (hpi_sensor_type_string, "SAHPI_OPERATIONAL");
+               break;
             default:
                strcpy (hpi_sensor_type_string, "UNKNOWN");
                break;
@@ -827,6 +830,26 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
 
             case SAHPI_ENT_SWITCH_BLADE:
             sprintf(hpi_entity_path_buffer, "{SWITCH_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_COOLING_DEVICE:
+            sprintf(hpi_entity_path_buffer, "{COOLING_DEVICE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_COOLING_UNIT:
+            sprintf(hpi_entity_path_buffer, "{COOLING_UNIT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_POWER_SUPPLY:
+            sprintf(hpi_entity_path_buffer, "{POWER_SUPPLY,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_POWER_UNIT:
+            sprintf(hpi_entity_path_buffer, "{POWER_UNIT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_POWER_MODULE:
+            sprintf(hpi_entity_path_buffer, "{POWER_MODULE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
             default:
