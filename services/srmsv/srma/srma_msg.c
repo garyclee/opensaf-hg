@@ -90,7 +90,7 @@ uns32 srma_send_appl_msg(SRMA_CB *srma,
 
    default:
        /* Invalid message type, so.. */
-       m_SRMSV_ASSERT(0);
+       assert(0);
        break;
    }
 

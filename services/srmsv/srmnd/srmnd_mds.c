@@ -212,7 +212,7 @@ uns32 srmnd_mds_enc(SRMND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
       in SRMA so that 
       this flow is not supposed to execute in SRMND */   
    default:
-      m_SRMSV_ASSERT(0);
+      assert(0);
       break;
    }
 
@@ -271,7 +271,7 @@ uns32 srmnd_mds_dec(SRMND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
        break;
 
    default:
-      m_SRMSV_ASSERT(0);
+      assert(0);
       break;
    }
 
@@ -501,7 +501,7 @@ uns32 srmnd_mds_cbk (NCSMDS_CALLBACK_INFO *info)
        break;
 
    default:
-       m_SRMSV_ASSERT(0);
+       assert(0);
        break;
    }
 
@@ -650,7 +650,7 @@ uns32 srmnd_mds_svc_evt(SRMND_CB *srmnd, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
           break;
 
       default:
-          m_SRMSV_ASSERT(0);
+          assert(0);
       }
       break;
 
@@ -677,7 +677,7 @@ uns32 srmnd_mds_svc_evt(SRMND_CB *srmnd, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
           break;
          
       default:
-          m_SRMSV_ASSERT(0);
+          assert(0);
           break;
       }
       break;

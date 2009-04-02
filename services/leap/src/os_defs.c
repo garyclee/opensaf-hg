@@ -2573,17 +2573,15 @@ sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 
 #ifdef DEBUG_CODE
 
-#define DIAG(x)         PRINTF(x)
-#define DIAG1(x, y)     PRINTF(x, y)
-#define DIAG2(x, y, z)  PRINTF(x, y, z)
-#define PERROR          perror
+#define DIAG(x)         printf(x)
+#define DIAG1(x, y)     printf(x, y)
+#define DIAG2(x, y, z)  printf(x, y, z)
 
 #else
 
 #define DIAG(x)         
 #define DIAG1(x, y)         
 #define DIAG2(x, y, z)  
-#define PERROR          perror
 
 #endif
 
@@ -2596,7 +2594,7 @@ uns32 ncs_sel_obj_create( NCS_SEL_OBJ *o_sel_obj)
     m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
     if (0!=socketpair(AF_UNIX, SOCK_STREAM, 0, s_pair))
     {
-        PERROR("socketpair:");
+        perror("socketpair:");
         m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
         return NCSCC_RC_FAILURE;
     }
@@ -2722,7 +2720,7 @@ int ncs_sel_obj_rmv_ind( NCS_SEL_OBJ i_ind_obj,
             {
                 /* Unknown error. */
                 DIAG("RMV_IND1. Returning -1\n");
-                PERROR("rmv_ind1:");
+                perror("rmv_ind1:");
                 return -1;
             }
         }

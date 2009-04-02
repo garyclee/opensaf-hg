@@ -53,7 +53,7 @@ static void exitIfFalse(int expression) /* instead of assert */
 {
     if (!expression)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -253,9 +253,8 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input >= SA_NTF_OBJECT_NOTIFICATIONS_START);
                 exitIfFalse(input <= SA_NTF_OBJECT_DELETION);
 
-                printf(
-                            "%s\n",
-                            (char *)sa_object_create_delete_event_type_list[listIndex]);
+                printf("%s\n",
+                       (char *)sa_object_create_delete_event_type_list[listIndex]);
             }
             break;
 
@@ -267,9 +266,8 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input >= SA_NTF_ATTRIBUTE_NOTIFICATIONS_START);
                 exitIfFalse(input <= SA_NTF_ATTRIBUTE_RESET);
 
-                printf(
-                            "%s\n",
-                            (char *)sa_attribute_change_event_type_list[listIndex]);
+                printf("%s\n",
+                       (char *)sa_attribute_change_event_type_list[listIndex]);
             }
             break;
 
@@ -282,7 +280,7 @@ static void print_event_type(SaNtfEventTypeT input,
                 exitIfFalse(input <= SA_NTF_TIME_VIOLATION);
 
                 printf("%s\n",
-                             (char *)sa_security_alarm_event_type_list[listIndex]);
+                       (char *)sa_security_alarm_event_type_list[listIndex]);
             }
             break;
 
@@ -367,6 +365,7 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader,
     SaTimeT totalTime;
     SaTimeT ntfTime = (SaTimeT)0;
     char time_str[24];
+    char tmpObj[SA_MAX_NAME_LENGTH+1];
 
     /* Notification ID */
     printf("notificationID = %d\n",
@@ -383,16 +382,21 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader,
     /* Notification Object */
     printf("notificationObject.length = %u\n",
                  notificationHeader->notificationObject->length);
-
-    printf("notificationObject value: \"%s\"\n",
-                 notificationHeader->notificationObject->value);
+    strncpy(tmpObj, 
+            notificationHeader->notificationObject->value,
+            notificationHeader->notificationObject->length);
+    tmpObj[notificationHeader->notificationObject->length]= '\0';
+    printf("notificationObject value: \"%s\"\n", tmpObj);
 
     /* Notifying Object */
+    strncpy(tmpObj, 
+            notificationHeader->notifyingObject->value,
+            notificationHeader->notifyingObject->length);
+    tmpObj[notificationHeader->notifyingObject->length]= '\0';
     printf("notifyingObject.length = %u\n",
                  notificationHeader->notifyingObject->length);
 
-    printf("notifyingObject value: \"%s\"\n",
-                 notificationHeader->notifyingObject->value);
+    printf("notifyingObject value: \"%s\"\n", tmpObj);
 
     /* Notification Class ID */
     printf("VendorID = %d\nmajorID = %d\nminorID = %d\n",

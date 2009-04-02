@@ -476,7 +476,7 @@ NCS_SRMSV_ERR srma_hdl_cbk_dispatch(SRMA_CB *srma,
        ncshm_give_hdl(srmsv_handle);
 
        /* Junk flag so.. */
-       m_SRMSV_ASSERT(0);
+       assert(0);
    } /* switch */
 
    if (rc != NCSCC_RC_SUCCESS)

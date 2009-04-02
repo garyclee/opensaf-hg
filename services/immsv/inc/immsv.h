@@ -52,10 +52,7 @@ it seems to be needed at least for library init, at least for agent. */
 /* DTSv version support */
 #define IMMSV_LOG_VERSION 1 
 
-/*#define m_NCS_OS_SPRINTF         sprintf*/
-
 #define m_IMMSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
 
-/*#define IMM_TRACE 1*/
-
 #endif  /* IMMSV_H */
+

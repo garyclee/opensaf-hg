@@ -235,6 +235,7 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
     }
 
 done:
+    TRACE_LEAVE2("use count %u", imma_use_count);
     pthread_mutex_unlock(&imma_agent_lock);
 
     return rc;
@@ -273,6 +274,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
         imma_use_count = 0;
     }
 
+    TRACE_LEAVE2("use count %u", imma_use_count);
     pthread_mutex_unlock(&imma_agent_lock);
 
     return rc;

@@ -779,6 +779,13 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t  *evt)
     }
     else
     {
+        if (cb->immOiHandle == 0)
+        {
+            TRACE("IMM service unavailable, open stream failed");
+            ais_rv = SA_AIS_ERR_TRY_AGAIN;
+            goto snd_rsp;
+        }
+
         ais_rv = create_new_app_stream(open_sync_param, &logStream);
         if (ais_rv != SA_AIS_OK)
             goto snd_rsp;
@@ -848,16 +855,24 @@ static uns32 proc_stream_close_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 
     TRACE_ENTER2("client_id %u, stream ID %u", close_param->client_id, close_param->lstr_id);
 
-    if (lgs_client_stream_rmv(close_param->client_id, close_param->lstr_id) != 0)
+    if ((stream = log_stream_get_by_id(close_param->lstr_id)) == NULL)
     {
-        TRACE("Bad client or stream ID");
+        TRACE("Bad stream ID");
         ais_rc = SA_AIS_ERR_BAD_HANDLE;
         goto snd_rsp;
     }
 
-    if ((stream = log_stream_get_by_id(close_param->lstr_id)) == NULL)
+    if ((stream->streamType == STREAM_TYPE_APPLICATION) &&
+        (cb->immOiHandle == 0))
     {
-        TRACE("Bad stream ID");
+        TRACE("IMM service unavailable, close stream failed");
+        ais_rc = SA_AIS_ERR_TRY_AGAIN;
+        goto snd_rsp;
+    }
+
+    if (lgs_client_stream_rmv(close_param->client_id, close_param->lstr_id) != 0)
+    {
+        TRACE("Bad client or stream ID");
         ais_rc = SA_AIS_ERR_BAD_HANDLE;
         goto snd_rsp;
     }

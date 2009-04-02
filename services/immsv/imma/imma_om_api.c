@@ -266,9 +266,25 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle,
         proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
         if (proc_rc != NCSCC_RC_SUCCESS)
         {
-            rc = SA_AIS_ERR_LIBRARY;
-            TRACE_1("client_node_add failed"); 
-            goto node_add_fail;
+            IMMA_CLIENT_NODE  *stale_node=NULL;
+            (void) imma_client_node_get(&cb->client_tree, &(cl_node->handle), 
+                &stale_node);
+
+            if((stale_node != NULL) && stale_node->stale)
+            {
+                TRACE_2("Removing stale client");
+                imma_finalize_proc(cb, stale_node);
+                imma_shutdown(NCSMDS_SVC_ID_IMMA_OM);
+                TRACE_2("Retrying add of client node");
+                proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
+            }
+
+            if (proc_rc != NCSCC_RC_SUCCESS)
+            {
+                rc = SA_AIS_ERR_LIBRARY;
+                TRACE_1("client_node_add failed"); 
+                goto node_add_fail;
+            }
         }
         assert(rc == SA_AIS_OK);
     }

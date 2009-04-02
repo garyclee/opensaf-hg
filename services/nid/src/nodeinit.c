@@ -59,8 +59,8 @@
         do{\
             sa.sa_handler = fun;\
             sa.sa_flags = flags;\
-            m_NCS_POSIX_SIGEMPTYSET(&sa.sa_mask);\
-            m_NCS_POSIX_SIGACTION(sig,&sa,NULL);\
+            sigemptyset(&sa.sa_mask);\
+            sigaction(sig,&sa,NULL);\
         }while(0)
 
 /***********************************
@@ -890,9 +890,9 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
    /********************************************************
    *       Block sigchild while forking.                   *
    *******************************************************/
-   m_NCS_POSIX_SIGEMPTYSET(&nmask);
-   m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
-   m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
+   sigemptyset(&nmask);
+   sigaddset(&nmask, SIGCHLD);
+   sigprocmask(SIG_BLOCK, &nmask, &omask);
 
 
    pipe(filedes);
@@ -979,7 +979,7 @@ fork_daemon(NID_SPAWN_INFO * service, char * app,char * args[],
 
    close(filedes[0]);
 
-   m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
+   sigprocmask(SIG_SETMASK, &omask, NULL);
    return tmp_pid;
 
 }
@@ -1013,16 +1013,16 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
    /********************************************************
    *       Block sigchild while forking.                   *
    *******************************************************/
-   m_NCS_POSIX_SIGEMPTYSET(&nmask);
-   m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
-   m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
+   sigemptyset(&nmask);
+   sigaddset(&nmask, SIGCHLD);
+   sigprocmask(SIG_BLOCK, &nmask, &omask);
 
    if ((pid = fork()) == 0)
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
       if (nis_fifofd > 0) close(nis_fifofd);
-      m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
+      sigprocmask(SIG_SETMASK, &omask, NULL);
 
       setsid();
       close(0);
@@ -1055,7 +1055,7 @@ fork_script(NID_SPAWN_INFO * service, char * app,char * args[],
       _exit(2);
    }
 
-   m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
+   sigprocmask(SIG_SETMASK, &omask, NULL);
    return pid;
 
 }
@@ -1088,16 +1088,16 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
    /********************************************************
    *       Block sigchild while forking.                   *
    *******************************************************/
-   m_NCS_POSIX_SIGEMPTYSET(&nmask);
-   m_NCS_POSIX_SIGADDSET(&nmask, SIGCHLD);
-   m_NCS_POSIX_SIGPROCMASK(SIG_BLOCK, &nmask, &omask);
+   sigemptyset(&nmask);
+   sigaddset(&nmask, SIGCHLD);
+   sigprocmask(SIG_BLOCK, &nmask, &omask);
    if ((pid = fork()) == 0)
    {
 
       if (nid_is_ipcopen() == NCSCC_RC_SUCCESS) nid_close_ipc();
       if (nis_fifofd > 0) close(nis_fifofd);
 
-      m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
+      sigprocmask(SIG_SETMASK, &omask, NULL);
 
       close(0);close(1);close(2);
       
@@ -1129,7 +1129,7 @@ fork_process(NID_SPAWN_INFO * service, char * app,char * args[],
       logme(NID_LOG2FILE_CONS,"Failed to exec: %s\n",strerror(errno));
       _exit(2);
    }
-   m_NCS_POSIX_SIGPROCMASK(SIG_SETMASK, &omask, NULL);
+   sigprocmask(SIG_SETMASK, &omask, NULL);
    return pid;
 
 }
