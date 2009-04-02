@@ -1106,8 +1106,7 @@ uns32 immnd_proc_server(uns32 *timeout)
             immnd_cleanTheHouse(cb, coord == 1);
 
             if(coord == 1) {
-                if(cb->mTimer % 5 == 4) {/*Every 5 secs 
-                                           (first time after 4 secs)*/
+                if(cb->mTimer > 1) {/*Every sec but first time after 2 secs. */
                     if(immModel_immNotWritable(cb)) {
                         /*Ooops we have apparently taken over the role of IMMND
                           coordinator during an uncompleted sync. Probably due 
@@ -1128,6 +1127,7 @@ uns32 immnd_proc_server(uns32 *timeout)
                                         " IMM_SERVER_SYNC_SERVER");
                                     cb->mState = IMM_SERVER_SYNC_SERVER;
                                     cb->mTimer = 0;
+                                    *timeout = 100;   /* 0.1 sec */
                                 }
                             }
                         }
