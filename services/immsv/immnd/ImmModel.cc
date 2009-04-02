@@ -5149,7 +5149,9 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
         if((*i)->mOriginatingConn == dead) {
             cv.push_back((*i)->mId);
-            /*(*i)->mOriginatingConn = 0; //Avoid anyone trying to use it.*/
+            /* Do not set: (*i)->mOriginatingConn = 0; 
+               because stale client handling requires repeated invocation
+               of this function. */
         }
     }
 }
@@ -5178,7 +5180,9 @@ ImmModel::getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv)
     for(i=sOwnerVector.begin(); i!=sOwnerVector.end(); ++i) {
         if((*i)->mConn == dead) {
             cv.push_back((*i)->mId);
-            /*(*i)->mConn = 0; //Avoid anyone trying to use it.*/
+            /* Do not set: (*i)->mConn = 0; 
+               because stale client handling requires repeated invocation
+               of this function. */
         }
     }
 }
