@@ -34,8 +34,6 @@
 #define SRMSV_DEF_MONITORING_RATE  5
 #define SRMSV_MAX_PID_DESCENDANTS  100
 
-#define m_SRMSV_ASSERT(cond)  if(!(cond))  assert(0)
-
 typedef enum
 {
     SRMSV_ND_OPER_STATUS_UP = 1,

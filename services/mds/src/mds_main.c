@@ -85,6 +85,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
     uns32 status = NCSCC_RC_SUCCESS;
     uns32        destroy_ack_tmout;
     NCS_SEL_OBJ  destroy_ack_obj;
+    char *ptr;
 
     switch(req->i_op)
     {
@@ -141,9 +142,9 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Get gl_mds_log_level */
 
             /*  setting MDS_LOG_LEVEL from environment variable if given */
-            if ( getenv("MDS_LOG_LEVEL") )
+            if ((ptr = getenv("MDS_LOG_LEVEL")) != NULL )
             {
-                gl_mds_log_level = atoi(getenv("MDS_LOG_LEVEL"));
+                gl_mds_log_level = atoi(ptr);
             }
             else
             {
@@ -172,9 +173,9 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
             /* Get gl_mds_checksum */
 
             /*  setting MDS_CHECKSUM from environment variable if given */
-            if ( getenv("MDS_CHECKSUM") )
+            if ((ptr = getenv("MDS_CHECKSUM")) != NULL )
             {
-                gl_mds_checksum = atoi(getenv("MDS_CHECKSUM"));
+                gl_mds_checksum = atoi(ptr);
             }
             else
             {

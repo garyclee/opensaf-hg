@@ -329,11 +329,6 @@ extern FILE * ncs_os_fopen(const char* fpath, const char* fmode);
 #define m_NCS_OS_LOG_FOPEN(fname,fmode) ncs_os_fopen(fname,fmode)
 #endif
 
-#ifndef m_NCS_OS_FOPEN_R
-#define m_NCS_OS_FOPEN_R(filename)   ncs_os_fopen(filename,"r")
-#endif
-
-
 #define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uns8*)p8<<24)|(*(uns8*)(p8+1)<<16)| \
     (*(uns8*)(p8+2)<<8)|(*(uns8*)(p8+3)))
 #define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uns8*)p8<<8)|*((uns8*)(p8+1)))

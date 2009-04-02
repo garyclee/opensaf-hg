@@ -359,7 +359,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    cb->cpnd_res_shm_name = buffer;
    memset(buffer,'\0',total_length);
    strncpy(buffer,"CPND_CHECKPOINT_INFO",total_length);
-   m_NCS_OS_SPRINTF(buffer+size,"_%d",(uns32)nodeid);
+   sprintf(buffer+size,"_%d",(uns32)nodeid);
 
    
   /* 1. FIRST TRYING TO OPEN IN RDWR MODE */
@@ -504,7 +504,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                    buf = (uns8 *)m_MMGR_ALLOC_CPND_DEFAULT(total_length);
                    memset(buf,'\0',total_length);
                    strncpy(buf,cp_node->ckpt_name.value,size);
-                   m_NCS_OS_SPRINTF(buf+size-1,"_%d_%d",(uns32)nodeid,(uns32)cp_node->ckpt_id);
+                   sprintf(buf+size-1,"_%d_%d",(uns32)nodeid,(uns32)cp_node->ckpt_id);
                    rc = cpnd_ckpt_replica_create_res(&ckpt_rep_open,buf,&cp_node,0,&cp_info);
                    if (rc != NCSCC_RC_SUCCESS)
                    {

@@ -2379,7 +2379,7 @@
                                                         <prototypeName>safCsi=Csi_SAFLOG</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>
-                                                <CSIInstance name="safCsi=Csi_NTF" rank="11">
+                                                <CSIInstance name="safCsi=Csi_NTF" rank="12">
                                                         <prototypeName>safCsi=Csi_NTF</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>

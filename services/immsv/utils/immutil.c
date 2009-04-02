@@ -154,7 +154,7 @@ void ccbutil_ccbAddDeleteOperation(
     struct Chunk* clist = (struct Chunk*)ccb->memref;
     struct CcbUtilOperationData* operation = 
 	newOperationData(ccb, CCBUTIL_DELETE);
-    operation->param.delete.objectName = dupSaNameT(clist, objectName);
+    operation->param.deleteOp.objectName = dupSaNameT(clist, objectName);
 }
 
 void ccbutil_ccbAddModifyOperation(

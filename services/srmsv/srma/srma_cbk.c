@@ -115,7 +115,7 @@ uns32 srma_update_sync_cbk_info(SRMA_CB *srma,
                             SRMA_LOG_SEL_OBJ_FAILURE,
                             NCSFL_SEV_CRITICAL);
 
-         m_SRMSV_ASSERT(0);
+         assert(0);
       }
 
       srmnd_usr = srmnd_usr->next_usr_node;
@@ -188,7 +188,7 @@ void srma_free_cbk_rec(SRMA_RSRC_MON *rsrc_mon)
          /* remove an indication to the application */
          if (m_NCS_SEL_OBJ_RMV_IND(appl->sel_obj, TRUE, TRUE) == -1)
          {
-            m_SRMSV_ASSERT(0);
+            assert(0);
          }
 
          /* Mem free the cbk rec */
@@ -254,7 +254,7 @@ uns32 srma_update_appl_cbk_info(SRMA_CB *srma,
                          SRMA_LOG_SEL_OBJ_FAILURE,
                          NCSFL_SEV_CRITICAL);
 
-      m_SRMSV_ASSERT(0);
+      assert(0);
    }
 
    return rc;
@@ -332,7 +332,7 @@ void srma_hdl_cbk_dispatch_one(SRMA_CB *srma,
       /* remove an indication to the application */
       if (m_NCS_SEL_OBJ_RMV_IND(appl->sel_obj, TRUE, TRUE) == -1)
       {
-         m_SRMSV_ASSERT(0);
+         assert(0);
       }
 
       /* Is it for SRMA, not for application?? */  
@@ -391,7 +391,7 @@ void srma_hdl_cbk_dispatch_all(SRMA_CB *srma,
       /* remove an indication to the application */
       if (m_NCS_SEL_OBJ_RMV_IND(appl->sel_obj, TRUE, TRUE) == -1)
       {
-         m_SRMSV_ASSERT(0);
+         assert(0);
       }
 
       /* going to use MDS svc, so for the time being release cb write lock */

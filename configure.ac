@@ -527,6 +527,7 @@ AC_CONFIG_FILES([opensaf.spec
                  pkgconfig/opensaf-lck.pc
                  pkgconfig/opensaf-log.pc
                  pkgconfig/opensaf-msg.pc
+                 pkgconfig/opensaf-ntf.pc
                  java/Makefile
                  java/ais_api/Makefile
                  java/ais_api_impl/Makefile

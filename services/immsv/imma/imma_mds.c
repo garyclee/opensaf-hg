@@ -431,9 +431,11 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
             TRACE("immnd down");
             m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
             cb->is_immnd_up = FALSE;
-            /*imma_shutdown();*/
-            imma_mark_clients_stale(cb);
             m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+
+            m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
+            imma_mark_clients_stale(cb);
+            m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
             break;
 
         case NCSMDS_UP:

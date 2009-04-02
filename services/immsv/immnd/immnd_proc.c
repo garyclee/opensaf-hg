@@ -49,7 +49,6 @@ static void immnd_ackToNid(uns32 rc)
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *
- * Return Values : NCSCC_RC_SUCCESS/Error.
  * Notes         : Policy used for handling immd down is to blindly cleanup 
  *                :immnd_cb 
  ****************************************************************************/
@@ -58,7 +57,21 @@ void immnd_proc_immd_down(IMMND_CB *cb)
     LOG_WA("ABT immmnd_proc_immd_down - not implemented");
 }
 
-void immnd_proc_imma_discard_connection(IMMND_CB *cb, 
+
+
+/****************************************************************************
+ * Name          : immnd_proc_imma_discard_connection
+ *
+ * Description   : Function to handle Director going down
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMND_IMM_CLIENT_NODE *cl_node - a client node.
+ *
+ * Return Values : FALSE => connection was NOT completely removed (IMMD down)
+ * Notes         : Policy used for handling immd down is to blindly cleanup 
+ *                :immnd_cb 
+ ****************************************************************************/
+uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, 
     IMMND_IMM_CLIENT_NODE *cl_node)
 {
     IMMSV_HANDLE *tmp_hdl;
@@ -86,106 +99,7 @@ void immnd_proc_imma_discard_connection(IMMND_CB *cb,
         free(sn);
     }
 
-    /* 2. Take care of (at most one!) implementer associated with the dead
-       connection. Broadcast the dissapearance of the impementer via IMMD. 
-    */
-
-    implId = /* Assumes there is at most one implementer/conn  */
-        immModel_getImplementerId(cb, tmp_hdl->count);
-    if(implId) {
-
-        TRACE_5("Discarding implementer id:%u for connection: %u", implId, 
-            tmp_hdl->count);
-        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
-        send_evt.type=IMMSV_EVT_TYPE_IMMD;
-        send_evt.info.immd.type=IMMD_EVT_ND2D_DISCARD_IMPL;
-        send_evt.info.immd.info.impl_set.r.impl_id = implId;
-        if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
-               &send_evt) != NCSCC_RC_SUCCESS) {
-            LOG_ER("Failure to broadcast discard implementer for implId:%u", 
-                implId);
-            assert(0); 
-            /* A bit harsh perhaps, but if we dont crash then we have
-               to quarantine this implementer for later cleanup. 
-               090107: System testing has now encountered this assert.
-               Possibly fix by adding a retry loop ? But we ARE already
-               quarantineing the implementer!!
-            */
-        }
-        /*Discard the local implementer directly and redundantly to avoid 
-          race conditions using this implementer (ccb's causing abort upcalls).
-        */
-        immModel_discardImplementer(cb, implId, SA_FALSE);
-    }
-
-    /* 3. Check for Ccbs that where originated from the dead connection.
-       Abort all such ccbs via broadcast over IMMD. 
-    */
-
-    immModel_getCcbIdsForOrigCon(cb, tmp_hdl->count, &arrSize, &idArr);
-    if(arrSize) {
-        SaUint32T ix;
-        assert(immnd_is_immd_up(cb));
-        /*Convert the assert to a test if we can postpone the handling of 
-          terminated connections. Connection is tainted if we get on this 
-          branch*/
-        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
-        send_evt.type=IMMSV_EVT_TYPE_IMMD;
-        send_evt.info.immd.type=IMMD_EVT_ND2D_ABORT_CCB;
-        for(ix=0; ix<arrSize; ++ix) {
-            send_evt.info.immd.info.ccbId = idArr[ix];
-            TRACE_5("Discarding Ccb id:%u originating at dead connection: %u", 
-                idArr[ix],
-                tmp_hdl->count);
-            if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
-                   &send_evt) != NCSCC_RC_SUCCESS) {
-                LOG_ER("Failure to broadcast discard Ccb for ccbId:%u", 
-                    idArr[ix]);
-                /* We should perhaps crash here, but on the other hand, the
-                   failure to abort the ccb should be taken care of by the
-                   periodic cleanup of ccbs based on timeout. */
-            }
-        }
-        free(idArr);
-        idArr=NULL;
-        arrSize=0;
-    }
-
-    /* 4. 
-       Check for admin owners that where associated with the dead connection.
-       Finalize all such admin owners via broadcast over IMMD. */
-
-    immModel_getAdminOwnerIdsForCon(cb, tmp_hdl->count, &arrSize, &idArr);
-    if(arrSize) {
-        SaUint32T ix;
-        assert(immnd_is_immd_up(cb));
-        /*Convert the assert to a test if we can postpone the handling of 
-          terminated connections. Connection is tainted if we get on this
-          branch*/
-        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
-        send_evt.type=IMMSV_EVT_TYPE_IMMD;
-        send_evt.info.immd.type=IMMD_EVT_ND2D_ADMO_HARD_FINALIZE;
-        for(ix=0; ix<arrSize; ++ix) {
-            send_evt.info.immd.info.admoId = idArr[ix];
-            TRACE_5("Hard finalize of AdmOwner id:%u originating at "
-                "dead connection: %u", idArr[ix], tmp_hdl->count);
-            if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
-                   &send_evt) != NCSCC_RC_SUCCESS) {
-                LOG_ER("Failure to broadcast discard admowner for id:%u", 
-                    idArr[ix]);
-                /* We should perhaps crash here? There is no background auto
-                   cleanup of admin owner and they could keep things "owned" 
-                   until cleared manually. */
-            }
-        }
-
-        free(idArr);
-        idArr=NULL;
-        arrSize=0;
-    }
-
-
-    /* 5. Discard any continuations (locally only) that are associated with 
+    /* 2. Discard any continuations (locally only) that are associated with 
        the dead connection. */
 
     immModel_discardContinuations(cb, tmp_hdl->count);
@@ -195,7 +109,117 @@ void immnd_proc_imma_discard_connection(IMMND_CB *cb,
        always look up the connection in the client_tree. Any late arrivals
        destined for this connection will simply not find it and be discarded.
     */
+
+
+    /* 3. Take care of (at most one!) implementer associated with the dead
+       connection. Broadcast the dissapearance of the impementer via IMMD. 
+    */
+
+    implId = /* Assumes there is at most one implementer/conn  */
+        immModel_getImplementerId(cb, tmp_hdl->count);
+
+    if(implId) {
+        TRACE_5("Discarding implementer id:%u for connection: %u", implId, 
+            tmp_hdl->count);
+        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
+        send_evt.type=IMMSV_EVT_TYPE_IMMD;
+        send_evt.info.immd.type=IMMD_EVT_ND2D_DISCARD_IMPL;
+        send_evt.info.immd.info.impl_set.r.impl_id = implId;
+        if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
+               &send_evt) != NCSCC_RC_SUCCESS) {
+            if(immnd_is_immd_up(cb)) {
+                LOG_ER("Discard implementer failed for implId:%u "
+                    "but IMMD is up !? - case not handled. Client will "
+                    "be orphanded", implId);
+            } else {
+                LOG_WA("Discard implementer failed for implId:%u "
+                    "(immd_down)- will retry later", implId);
+            }
+            cl_node->mIsStale = TRUE;
+        }
+        /*Discard the local implementer directly and redundantly to avoid 
+          race conditions using this implementer (ccb's causing abort upcalls).
+        */
+        immModel_discardImplementer(cb, implId, SA_FALSE);
+    }
+
+    if(cl_node->mIsStale) {
+        TRACE_LEAVE();
+        return FALSE;
+    }
+
+    /* 4. Check for Ccbs that where originated from the dead connection.
+       Abort all such ccbs via broadcast over IMMD. 
+    */
+
+    immModel_getCcbIdsForOrigCon(cb, tmp_hdl->count, &arrSize, &idArr);
+    if(arrSize) {
+        SaUint32T ix;
+        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
+        send_evt.type=IMMSV_EVT_TYPE_IMMD;
+        send_evt.info.immd.type=IMMD_EVT_ND2D_ABORT_CCB;
+        for(ix=0; ix<arrSize && !(cl_node->mIsStale); ++ix) {
+            send_evt.info.immd.info.ccbId = idArr[ix];
+            TRACE_5("Discarding Ccb id:%u originating at dead connection: %u", 
+                idArr[ix],
+                tmp_hdl->count);
+            if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
+                   &send_evt) != NCSCC_RC_SUCCESS) {
+                if(immnd_is_immd_up(cb)) {
+                    LOG_ER("Failure to broadcast discard Ccb for ccbId:%u "
+                        "but IMMD is up !? - case not handled. Client will "
+                        "be orphanded", implId);
+                } else {
+                    LOG_WA("Failure to broadcast discard Ccb for ccbId:%u "
+                        "(immd down)- will retry later", idArr[ix]);
+                }
+                cl_node->mIsStale = TRUE;
+            }
+        }
+        free(idArr);
+        idArr=NULL;
+        arrSize=0;
+    }
+
+    if(cl_node->mIsStale) {
+        TRACE_LEAVE();
+        return FALSE;
+    }
+
+    /* 5. 
+       Check for admin owners that where associated with the dead connection.
+       Finalize all such admin owners via broadcast over IMMD. */
+
+    immModel_getAdminOwnerIdsForCon(cb, tmp_hdl->count, &arrSize, &idArr);
+    if(arrSize) {
+        SaUint32T ix;
+        memset(&send_evt,'\0',sizeof(IMMSV_EVT));
+        send_evt.type=IMMSV_EVT_TYPE_IMMD;
+        send_evt.info.immd.type=IMMD_EVT_ND2D_ADMO_HARD_FINALIZE;
+        for(ix=0; ix<arrSize && !(cl_node->mIsStale); ++ix) {
+            send_evt.info.immd.info.admoId = idArr[ix];
+            TRACE_5("Hard finalize of AdmOwner id:%u originating at "
+                "dead connection: %u", idArr[ix], tmp_hdl->count);
+            if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
+                   &send_evt) != NCSCC_RC_SUCCESS) {
+                if(immnd_is_immd_up(cb)) {
+                    LOG_ER("Failure to broadcast discard admo0wner for ccbId:%u "
+                        "but IMMD is up !? - case not handled. Client will "
+                        "be orphanded", implId);
+                } else {
+                    LOG_WA("Failure to broadcast discard admowner for id:%u "
+                        "(immd down)- will retry later", idArr[ix]);
+                }
+                cl_node->mIsStale = TRUE;
+            }
+        }
+        free(idArr);
+        idArr=NULL;
+        arrSize=0;
+    }
+
     TRACE_LEAVE();
+    return !(cl_node->mIsStale);
 }
 
 /****************************************************************************
@@ -207,8 +231,6 @@ void immnd_proc_imma_discard_connection(IMMND_CB *cb,
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *                 MDS_DEST dest - Agent MDS_DEST
  *
- * Return Values : NCSCC_RC_SUCCESS/Error.
- *
  * Notes         : None.
  *****************************************************************************/
 void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
@@ -216,8 +238,9 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
     IMMND_IMM_CLIENT_NODE *cl_node=NULL;
     SaImmHandleT prev_hdl;
     unsigned int count=0;
+    unsigned int failed=0;
 
-    /* go through the client tree ,need to check tmr list ,for close stuff */
+    /* go through the client tree  */
     immnd_client_node_getnext(cb,0,&cl_node);
 
     while(cl_node)
@@ -229,18 +252,78 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
         {
             TRACE_5("Removing client node:%llu sv_id:%u", 
                 cl_node->imm_app_hdl, cl_node->sv_id);
-            immnd_proc_imma_discard_connection(cb, cl_node);
-            immnd_client_node_del(cb,cl_node);
-            memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
-            free(cl_node);
-            prev_hdl = 0LL;  /* Restart iteration*/
-            cl_node = NULL;
-            ++count;
+            if(immnd_proc_imma_discard_connection(cb, cl_node))
+            {
+                immnd_client_node_del(cb, cl_node);
+                memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
+                free(cl_node);
+                prev_hdl = 0LL;  /* Restart iteration*/
+                cl_node = NULL;
+                ++count;
+            } else {
+                ++failed;
+            }
         }
 
         immnd_client_node_getnext(cb,prev_hdl,&cl_node);
     }
-    TRACE_5("Removed %u nodes", count);
+    if(failed) 
+    {TRACE_5("Removed %u IMMA clients, %u STALE IMMA clients pending", count, failed);} 
+    else
+    {TRACE_5("Removed %u IMMA clients", count);}
+}
+
+
+/****************************************************************************
+ * Name          : immnd_proc_imma_discard_stales
+ *
+ * Description   : Function to garbage collect stale client nodes.
+ *                 Should only be needed at IMMD UP events.
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+void immnd_proc_imma_discard_stales(IMMND_CB  *cb)
+{
+    IMMND_IMM_CLIENT_NODE *cl_node=NULL;
+    SaImmHandleT prev_hdl;
+    unsigned int count=0;
+    unsigned int failed=0;
+    TRACE_ENTER();
+
+    /* go through the client tree  */
+    immnd_client_node_getnext(cb,0,&cl_node);
+    while(cl_node) 
+    {
+         prev_hdl=cl_node->imm_app_hdl;
+         if(cl_node->mIsStale) 
+         {
+             TRACE_5("Removing client node:%llu sv_id:%u", 
+                cl_node->imm_app_hdl, cl_node->sv_id);
+             cl_node->mIsStale = FALSE;
+             if(immnd_proc_imma_discard_connection(cb, cl_node))
+             {
+                 immnd_client_node_del(cb, cl_node);
+                 memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
+                 free(cl_node);
+                 prev_hdl = 0LL;  /* Restart iteration*/
+                 cl_node = NULL;
+                 ++count;
+             } else {
+                 ++failed;
+                 /*cl_node->mIsStale = TRUE; done in discard_connection*/
+             }
+         }
+         immnd_client_node_getnext(cb,prev_hdl,&cl_node);
+    }
+    if(failed) 
+    {TRACE_5("Removed %u STALE IMMA clients, %u STALE clients pending", count, failed);} 
+    else
+    {TRACE_5("Removed %u STALE IMMA clients", count);}
+    
+    TRACE_LEAVE();
 }
 
 /**************************************************************************
@@ -529,6 +612,10 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
     uns32 rc = NCSCC_RC_SUCCESS;
     /*TRACE_ENTER();*/
 
+    if(!immnd_is_immd_up(cb)) {return;}
+
+    /*immnd_proc_imma_discard_stales(cb);*/
+
     immModel_cleanTheBasement(cb, 
         cb->mTimer,
         &admReqArr,
@@ -553,7 +640,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             tmp_hdl.nodeId = cb->node_id;
             tmp_hdl.count = reqConn;
             immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
-            if(cl_node == NULL) {
+            if(cl_node == NULL || cl_node->mIsStale) {
                 LOG_WA("IMMND - Client went down so no response");
             }
             send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -1106,8 +1193,7 @@ uns32 immnd_proc_server(uns32 *timeout)
             immnd_cleanTheHouse(cb, coord == 1);
 
             if(coord == 1) {
-                if(cb->mTimer % 5 == 4) {/*Every 5 secs 
-                                           (first time after 4 secs)*/
+                if(cb->mTimer > 1) {/*Every sec but first time after 2 secs. */
                     if(immModel_immNotWritable(cb)) {
                         /*Ooops we have apparently taken over the role of IMMND
                           coordinator during an uncompleted sync. Probably due 
@@ -1128,6 +1214,7 @@ uns32 immnd_proc_server(uns32 *timeout)
                                         " IMM_SERVER_SYNC_SERVER");
                                     cb->mState = IMM_SERVER_SYNC_SERVER;
                                     cb->mTimer = 0;
+                                    *timeout = 100;   /* 0.1 sec */
                                 }
                             }
                         }

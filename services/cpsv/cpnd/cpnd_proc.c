@@ -477,7 +477,7 @@ uns32 cpnd_ckpt_replica_create(CPND_CB *cb,CPND_CKPT_NODE *cp_node)
    strncpy(buf,cp_node->ckpt_name.value,size);
 
 
-   m_NCS_OS_SPRINTF(buf+size-1,"_%d_%llu",(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id),cp_node->ckpt_id);
+   sprintf(buf+size-1,"_%d_%llu",(uns32)m_NCS_NODE_ID_FROM_MDS_DEST(cb->cpnd_mdest_id),cp_node->ckpt_id);
    /* size of chkpt */
    memset(&cp_node->replica_info.open,'\0',sizeof(cp_node->replica_info.open));
 

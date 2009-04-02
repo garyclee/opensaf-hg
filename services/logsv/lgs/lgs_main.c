@@ -42,7 +42,7 @@
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
-#define FD_IMM 3
+#define FD_IMM 3 /* Must be the last in the fds array */
 
 /* ========================================================================
  *   TYPE DEFINITIONS
@@ -58,6 +58,9 @@ static lgs_cb_t _lgs_cb;
 lgs_cb_t *lgs_cb = &_lgs_cb;
 
 static int category_mask;
+
+static struct pollfd fds[4];
+static nfds_t nfds = 4;
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -217,12 +220,63 @@ static uns32 initialize_lgs(const char *progname)
     if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS)
         LOG_ER("lgs_mbcsv_init FAILED");
 
-    if ((rc = lgs_imm_init(lgs_cb)) != NCSCC_RC_SUCCESS)
+    if ((rc = lgs_imm_init(lgs_cb)) != SA_AIS_OK)
         LOG_ER("lgs_imm_init FAILED");
 
 done:
     TRACE_LEAVE();
     return(rc);
+}
+
+/**
+ * Wait a while on IMM and initialize, sel obj get & implementer
+ * set.
+ * 
+ * @param _cb
+ * 
+ * @return void*
+ */
+static void *imm_reinit_thread(void *_cb)
+{
+    SaAisErrorT error;
+    lgs_cb_t *cb = (lgs_cb_t*) _cb;
+
+    TRACE_ENTER();
+
+    if ((error = lgs_imm_init(cb)) != SA_AIS_OK)
+    {
+        LOG_ER("lgs_imm_init FAILED: %u", error);
+        exit(EXIT_FAILURE);
+    }
+
+    /* If this is the active server, become implementer again. */
+    if (cb->ha_state == SA_AMF_HA_ACTIVE)
+        lgs_imm_impl_set(cb);
+
+    TRACE("New IMM fd: %llu", cb->immSelectionObject);
+    fds[FD_IMM].fd = cb->immSelectionObject;
+    nfds = FD_IMM + 1;
+
+    TRACE_LEAVE();
+    return NULL;
+}
+
+/**
+ * Start a background thread to do IMM reinitialization.
+ * 
+ * @param cb
+ */
+static void imm_reinit_bg(lgs_cb_t *cb)
+{
+    pthread_t thread;
+
+    TRACE_ENTER();
+    if (pthread_create(&thread, NULL, imm_reinit_thread, cb) != 0)
+    {
+        LOG_ER("pthread_create FAILED: %s", strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+    TRACE_LEAVE();
 }
 
 /**
@@ -234,7 +288,6 @@ static void main_process(void)
     NCS_SEL_OBJ         mbx_fd;
     SaAisErrorT         error = SA_AIS_OK;
     uns32 rc;
-    struct pollfd fds[4];
 
     TRACE_ENTER();
 
@@ -252,7 +305,7 @@ static void main_process(void)
 
     while (1)
     {
-        int ret = poll(fds, 4, -1);
+        int ret = poll(fds, nfds, -1);
 
         if (ret == -1)
         {
@@ -285,9 +338,41 @@ static void main_process(void)
         if (fds[FD_MBX].revents & POLLIN)
             lgs_process_mbx(&lgs_cb->mbx);
 
-        if (fds[FD_IMM].revents & POLLIN)
+        if (lgs_cb->immOiHandle && fds[FD_IMM].revents & POLLIN)
         {
-            if ((error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL)) != SA_AIS_OK)
+            error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL);
+
+            /*
+            ** BAD_HANDLE is interpreted as an IMM service restart. Try 
+            ** reinitialize the IMM OI API in a background thread and let 
+            ** this thread do business as usual especially handling write 
+            ** requests.
+            **
+            ** All other errors are treated as non-recoverable (fatal) and will
+            ** cause an exit of the process.
+            */
+            if (error == SA_AIS_ERR_BAD_HANDLE)
+            {
+                TRACE("saImmOiDispatch returned BAD_HANDLE");
+
+                /* 
+                ** Invalidate the IMM OI handle, this info is used in other
+                ** locations. E.g. giving TRY_AGAIN responses to a create and
+                ** close app stream requests. That is needed since the IMM OI
+                ** is used in context of these functions.
+                */
+                lgs_cb->immOiHandle = 0;
+
+                /* 
+                ** Skip the IMM file descriptor in next poll(), IMM fd must
+                ** be the last in the fd array.
+                */
+                nfds = FD_MBX + 1;
+
+                /* Initiate IMM reinitializtion in the background */
+                imm_reinit_bg(lgs_cb);
+            }
+            else if (error != SA_AIS_OK)
             {
                 LOG_ER("saImmOiDispatch FAILED: %u", error);
                 break;
@@ -363,7 +448,7 @@ int main(int argc, char *argv[])
     main_process();
 
 done:
-    LOG_ER("lgs initialization failed, exiting...");
+    LOG_ER("failed, exiting...");
     exit(1);
 }
 
