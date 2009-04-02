@@ -1,6 +1,2 @@
 all
-	"Start executing..."
-	:parallel:
-         /reg_srmsv.sh
-        :endparallel:
-        "completed"
+    /reg_srmsv.exe

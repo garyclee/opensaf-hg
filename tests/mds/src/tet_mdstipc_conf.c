@@ -2264,8 +2264,9 @@ uns32   tet_sync_point()
       return NCSCC_RC_FAILURE;
     }
   sync_id++;
-#endif
+
   fill_syncparameters(TET_SV_YES);
+#endif
   return NCSCC_RC_SUCCESS;
 }
 

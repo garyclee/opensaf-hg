@@ -1,3 +1,6 @@
+#ifndef _TET_IFA_H
+#define _TET_IFA_H
+
 #include "ncs_lib.h"
 #include "ncs_iplib.h"
 #include "ifa_papi.h"
@@ -909,5 +912,5 @@ void vip_wait(void);
 void networkaddr_to_ascii(uint32_t net_ip);
 int ip_on_intf(char *intf);
 
-
+#endif
 

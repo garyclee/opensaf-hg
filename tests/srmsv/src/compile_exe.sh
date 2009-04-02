@@ -7,11 +7,14 @@ then
 fi
 
 export HJ_HOME=/opt/opensaf/tetware/
+COMPILER=
+CFLAGS=
+TET_COMP_DIR=/
 
 case $1 in
 
 "linux")
-   $COMPILER $CFLAGS -m32 -DNCS_SRMA_EXE=1 -o $TET_COMP_DIR/srmsv/gcsrmsv_ex_i386.exe $TET_COMP_DIR/srmsv/src/srmsv_exe.c;
+   $COMPILER $CFLAGS -m32 -DNCS_SRMA_EXE=1 -o $TET_COMP_DIR/srmsv/suites/gcsrmsv_ex.exe $TET_COMP_DIR/srmsv/src/srmsv_exe.c;
    ;;
 
 "linux-64")
@@ -20,7 +23,7 @@ case $1 in
       exit 1;
    fi
    fi
-   $COMPILER $CFLAGS -DNCS_SRMA_EXE=1 -o $TET_COMP_DIR/srmsv/gcsrmsv_ex_i386-64.exe $TET_COMP_DIR/srmsv/src/srmsv_exe.c;; 
+   $COMPILER $CFLAGS -DNCS_SRMA_EXE=1 -o $TET_COMP_DIR/srmsv/suites/gcsrmsv_ex.exe $TET_COMP_DIR/srmsv/src/srmsv_exe.c;; 
 
 *) echo "check your input";
    exit 1;;

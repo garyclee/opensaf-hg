@@ -1,3 +1,6 @@
+#ifndef _TET_MDSTIPC_H
+#define _TET_MDSTIPC_H
+
 #include "ncssysf_tsk.h"
 #include "ncssysf_def.h"
 
@@ -420,3 +423,4 @@ uns32 mds_send_redrsp_getack(MDS_HDL mds_hdl,
                              TET_MDS_MSG *response);
 uns32   tet_sync_point(void);
 
+#endif

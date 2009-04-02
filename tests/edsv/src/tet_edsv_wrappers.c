@@ -12,7 +12,7 @@ extern SaTimeT gl_timeout;
 extern SaInvocationT gl_invocation;
 extern SaEvtEventPatternT gl_pattern[2];
 extern SaEvtEventFilterT gl_filter[1];
-extern const char *gl_saf_error[28];
+extern const char *gl_saf_error[32];
 extern int gl_major_version;
 extern int gl_minor_version;
 extern int gl_b03_flag;

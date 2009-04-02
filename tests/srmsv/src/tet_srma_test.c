@@ -12,6 +12,7 @@
 
 void spawn_srmsv_exe(int arg)
 {
+#if 0
    char *tmp_ptr=NULL;
    char arch[4]="xxxx";
    int result=0;
@@ -88,7 +89,21 @@ void spawn_srmsv_exe(int arg)
        m_TET_SRMSV_PRINTF(" Couldnot spawn executable \n");
        tet_printf(" Couldnot spawn executable \n");
     }
+#endif
+    int rc;
 
+    switch(arg)
+    { 
+       case SRMSV_CPU_UTIL:
+           rc = system("./gcsrmsv_ex.exe CPU_UTIL &");
+               break;
+       case SRMSV_MEM_UTIL:
+           rc = system("./gcsrmsv_ex.exe MEM &");
+               break;
+       default:
+           m_TET_SRMSV_PRINTF("\nSpawning nothing\n");
+     }
+    
     if(rc == -1)
     {
        m_TET_SRMSV_PRINTF("system() call failed with -1 - couldnot spawn exe\n");
@@ -5859,187 +5874,5 @@ void tet_srmsv_verify_node_num(TET_SRMSV_INST *inst)
       exit(0);
   }
 }
-
-
-struct tet_testlist tet_srmsv_single_node_testlist[]= {
-   {srma_it_init_01,1,0},
-   {srma_it_init_02,2,0},
-   {srma_it_init_03,3,0},
-
-   {srma_it_sel_obj_01,4,0},
-   {srma_it_sel_obj_02,5,0},
-   {srma_it_sel_obj_03,6,0},
-   {srma_it_sel_obj_04,7,0},
-   {srma_it_sel_obj_05,8,0},
-   {srma_it_sel_obj_06,9,0},
-   {srma_it_sel_obj_07,10,0},
-
-   {srma_it_stop_mon_01,11,0},
-   {srma_it_stop_mon_02,12,0},
-   {srma_it_stop_mon_03,13,0},
-   {srma_it_stop_mon_04,14,0},
-   {srma_it_stop_mon_05,15,0},
-   {srma_it_stop_mon_06,16,0},
-
-   {srma_it_restartmon_01,17,0},
-   {srma_it_restartmon_02,18,0},
-   {srma_it_restartmon_03,19,0},
-   {srma_it_restartmon_04,20,0},
-   {srma_it_restartmon_05,21,0},
-
-   {srma_it_startmon_01,22,0},
-   {srma_it_startmon_02,23,0},
-   {srma_it_startmon_03,24,0},
-   {srma_it_startmon_04,25,0},
-   {srma_it_startmon_05,26,0},
-   {srma_it_startmon_06,27,0},
-   {srma_it_startmon_07,28,0},
-   {srma_it_startmon_08,29,0},
-   {srma_it_startmon_09,30,0},
-   {srma_it_startmon_10,31,0},
-   {srma_it_startmon_11,32,0},
-
-   {srma_it_stop_rsrcmon_01,33,0},
-   {srma_it_stop_rsrcmon_02,34,0},
-   {srma_it_stop_rsrcmon_03,35,0},
-   {srma_it_stop_rsrcmon_04,36,0},
-
-   {srma_it_subscr_rsrcmon_01,37,0},
-   {srma_it_subscr_rsrcmon_02,38,0},
-   {srma_it_subscr_rsrcmon_03,39,0},
-   {srma_it_subscr_rsrcmon_04,40,0},
-   {srma_it_subscr_rsrcmon_05,41,0},
-   {srma_it_subscr_rsrcmon_06,42,0},
-   {srma_it_subscr_rsrcmon_07,43,0},
-   {srma_it_subscr_rsrcmon_08,44,0},
-   {srma_it_subscr_rsrcmon_09,45,0},
-   {srma_it_subscr_rsrcmon_10,46,0},
-   {srma_it_subscr_rsrcmon_11,47,0},
-
-   {srma_it_unsubscr_rsrcmon_01,48,0},
-   {srma_it_unsubscr_rsrcmon_02,49,0},
-   {srma_it_unsubscr_rsrcmon_03,50,0},
-   {srma_it_unsubscr_rsrcmon_04,51,0},
-
-   {srma_it_disp_01,52,0},
-   {srma_it_disp_02,53,0},
-   {srma_it_disp_04,54,0},
-   {srma_it_disp_05,55,0},
-   {srma_it_disp_06,56,0},
-   {srma_it_disp_07,57,0},
-   {srma_it_disp_08,58,0},
-   {srma_it_disp_09,59,0},
-
-   {srma_it_fin_01,60,0},
-   {srma_it_fin_02,61,0},
-   {srma_it_fin_03,62,0},
-   {srma_it_fin_04,63,0},
-
-   {srma_it_clbk_01,64,0},
-   {srma_it_clbk_02,65,0}, /*NULL cbk*/
-   {srma_it_onenode_02,67,0},
-   {srma_it_onenode_03,68,0},
-   {srma_it_onenode_04,69,0},
-   {srma_it_onenode_05,70,0},
-   {srma_it_onenode_06,71,0},
-   {srma_it_onenode_07,72,0},
-   {srma_it_onenode_08,73,0},
-   {srma_it_onenode_09,74,0},
-   {srma_it_onenode_10,75,0},
-   {srma_it_onenode_11,76,0},
-   {srma_it_onenode_12,77,0},
-   {srma_it_onenode_13,78,0},
-   {srma_it_onenode_14,79,0},
-   {srma_it_onenode_15,80,0},
-   {srma_it_onenode_17,82,0},
-   {srma_it_onenode_18,83,0},
-   {srma_it_onenode_19,84,0},
-   {srma_it_onenode_20,85,0},
-   {srma_it_wmk_01,86,0},
-   {srma_it_wmk_02,87,0},
-   {srma_it_wmk_03,88,0},
-   {srma_it_wmk_04,89,0},
-   {srma_it_wmk_05,90,0},
-   {srma_it_wmk_06,91,0},
-   {srma_it_wmk_07,92,0},
-   {srma_it_wmk_08,93,0},
-   {srma_it_wmk_09,94,0},
-   {srma_it_wmk_10,95,0},
-   {srma_it_wmk_11,96,0},
-   {srma_it_wmk_12,97,0},
-   {srma_it_wmk_13,98,0},
-   {srma_it_wmk_14,99,0},
-   {srma_it_wmk_15,100,0},
-   {srma_it_wmk_16,101,0},
-   {srma_it_wmk_17,102,0},
-   {srma_it_wmk_18,103,0},
-   {srma_it_stop_rsrcmon_05,104,0},
-   {srma_it_stop_rsrcmon_06,105,0},
-   {srma_it_startmon_12,106,0},
-   {srma_it_disp_03,107,0},
-   {NULL,-1,0},
-}; 
-
-struct tet_testlist tet_srmsv_single_manual_testlist[]= {
-   {srma_it_threshold_proc_mem,1,0},
-   {srma_it_wmk_proc_mem,2,0},
-   {srma_it_threshold_proc_cpu,3,0},
-   {srma_it_wmk_proc_cpu,4,0},
-   {srma_it_startmon_13,5,0},
-   {srma_it_onenode_21,6,0},
-   {srma_it_onenode_22,7,0},
-   {srma_it_onenode_23,8,0},
-   {srma_it_onenode_24,9,0},
-   {NULL,-1,0},
-}; 
-
-
-void tet_run_srmsv_instance(TET_SRMSV_INST *inst)
-{
-   int test_case_num=1; 
-   int iter;
-#if 0
-   int sysid;
-   int *sysnames;
-#endif
-   struct tet_testlist *srmsv_testlist = tet_srmsv_single_node_testlist;
-
-   if(inst->test_case_num)
-       test_case_num = inst->test_case_num;
-
-   if(inst->test_list == 1)
-   {
-       tet_srmsv_verify_pid(inst);
-       srmsv_testlist = tet_srmsv_single_node_testlist;
-   }
-
-
-   if(inst->test_list == 6) /* manual tests */
-   {
-       tet_srmsv_verify_node_num(inst);
-       srmsv_testlist = tet_srmsv_single_manual_testlist;
-   }
-
-   for(iter=0; iter < (inst->num_of_iter); iter++)
-      tet_test_start(test_case_num,srmsv_testlist);
-}
-
-void tet_run_srmsv()
-{
-   TET_SRMSV_INST inst;
-   tet_srmsv_get_inputs(&inst);
-   fill_srma_testcase_data();
-
-   tware_mem_ign();
-   tet_run_srmsv_instance(&inst);
-#if 0
-   m_TET_SRMSV_PRINTF("\n *** ENTER TO C MEM DUMP ***\n");
-   getchar();
-#endif
-   tware_mem_dump();
-
-   sleep(5);
-   tet_test_cleanup();
-}
-                                                                                                                                                                      
+                                                                                    
 #endif

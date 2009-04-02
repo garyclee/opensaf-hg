@@ -1,3 +1,6 @@
+#ifndef _TET_SRMSV_CONF_H
+#define _TET_SRMSV_CONF_H
+
 #include <stdio.h>
 #include "ncs_lib.h"
 #include "saAis.h"
@@ -294,4 +297,6 @@ void tet_srmsv_verify_numsys(TET_SRMSV_INST *inst);
 void tet_srmsv_verify_node_num(TET_SRMSV_INST *inst);
 void tet_run_srmsv_instance(TET_SRMSV_INST *inst);
 void tet_run_srmsv();
+
+#endif
 

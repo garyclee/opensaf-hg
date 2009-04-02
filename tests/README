@@ -1,152 +1,171 @@
-                                          OpenSAF Test Infrastructure README
-                                          `================================== 
+                     OpenSAF Test Infrastructure README
+                     ==================================
 
 TABLE OF CONTENTS
 =================
 1. INTRODUCTION
 2. PRE-REQUISITES
-3. CONFIGURATION INPUTs 
+3. CONFIGURATION
 4. BUILDING of TEST INFRASTRUCTURE
 5. RUNNING THE TESTs
-6. CROSS COMPILATION
-
+6. TEST RESULTs
 
 1. INTRODUCTION
 ---------------
-This document provides an overview of the OpenSAF test infrastructure. The OpenSAF test infrastructure is implemented using the open source TETware 3.7 tool, with the "tware-patch" applied to it. Detailed information on TETWARE can be obtained from the TETware web-site.
-Test suites are available for single node API and functionality tests of the following services supported by OpenSAF:
-cpsv, edsv, mqsv, glsv, ifsv, srmsv, mds, mbcsv and avsv. 
-The OpenSAF test infrastructure is 32-bit and 64-bit compatible and run on
 
-   (i) OpenSAF running as 32-bit on 32-bit/64-bit machines and,
+This document provides an overview of the OpenSAF test infrastructure. The OpenSAF test infrastructure is implemented using the open source TETware 3.7 tool. Detailed information on TETware can be obtained from the TETware web site, http://tetworks.opengroup.org.  Test suites are available for single node API and functionality tests of the following services supported by OpenSAF: cpsv, edsv, mqsv, glsv, ifsv, srmsv, mds, mbcsv, and avsv.  The OpenSAF test infrastructure is 32-bit and 64-bit compatible and run on
+
+   (1) OpenSAF running as 32-bit on 32-bit/64-bit machines and,
    (2) OpenSAF running as 64-bit on 64-bit machines.
 
 
-2. PRE-REQUISITES
+2. PREREQUISITES
 -----------------
-i) Install open source TETware 3.7 and apply tware-patch on it. TETware 3.7 can be downloaded from http://tetworks.opengroup.org and 'tware-patch' file  from <OpenSAF home>/tests/tetware_patch/. Copy this patch to  <open source TETware 3.7 Dir>
+(1) Download the gzipped open source TETware 3.7 tar file from http://tetworks.opengroup.org and un-tar it:
 
-   Execute the following step, to apply patch:
+      # mkdir ${TETWARE_SRC}
+      # cd ${TETWARE_SRC}
+      # tar -zxvf ${DOWNLD_PATH}/tet3.7a-unsup.src.tar.gz
 
-      # tar -zxvf <open source Tetware 3.7.tgz>
-      # cd <open source Tetware 3.7 Dir>
-      # patch -p0 < tware-patch
-   Execute the following steps, to install open source TETware:
-      # export PATH=$PATH:<open source Tetware 3.7 Dir>/bin
-      # cd <open source Tetware 3.7 Dir>
+(2) Build TETware for the target system.  This might involve cross compilation if the target system has a different architecture from the build machine.
+
+      # cd ${TETWARE_SRC}
       # sh configure -t inet
       # cd src
-      # make clean
-      # make 
-      # make install
+      # gmake clean
+      # gmake 
+      # gmake install
 
-ii)  OpenSAF release 1.6 or above.
+     If the tests are to be run on a different system, create a tar file of the bin and lib directories, then copy it over to the target system:
 
-iii) OpenSAF system controller or payload libraries on 32-bit or 64-bit target machines. Typically the OpenSAF libraries is generated in the <OpenSAF home>/targets/<$host>/<lib/lib64> directory after a successful make and make rpm  of OpenSAF. For more information, refer <OpenSAF home>/README and <OpenSAF home>/INSTALL files.
+      # tar -cf mytetware.tar bin lib
 
-   
-3. CONFIGURATION
-----------------
-Update the following entries in the <OpenSAF home>/tests/setup.sh file accordingly:
- 
-   OPENSAF_HOME    - Specifies the OpenSAF base/home directory. The build fails, if this is not mentioned.
-   OPEN_TWARE_HOME - Specifies the home directory of open source Tetware. The build fails, if this is not mentioned.
+(3) OpenSAF release 1.2.2 or above.
 
-   RESULTS_DIR     - Specifies the directory to store the test results. By default, the results will be collected in
-                      "/opt/tware_result/" directory.
-   TARGET_LIB_PATH - Specifies the lib/lib64 dir location which contains the  OpenSAF libs. The build fails, if this is not mentioned.
-   SAHPI_PATH      - Specifies the Open HPI include directory which contains the 'SaHpi.h' file. The build fails, if this is not mentioned.
+(4) OpenSAF system controller or payload libraries on 32-bit or 64-bit target machines.  The OpenSAF libraries are built in the ${OPENSAF_SRC}/targets/${TARGET_ARCH}/{lib,lib64} directory.  The libraries may be installed in /opt/opensaf/{controller,payload}/{lib/lib64}; see ${OPENSAF_SRC}/INSTALL. 
 
 
-4. BUILDING THE TEST INFRASTRUCTURE
+3. BUILDING THE TEST INFRASTRUCTURE
 -----------------------------------
-Execute the following steps, to build the test infrastructure:
 
-i)  # cd <OpenSAF home>/tests/
 
-ii) # ./test_utils.sh build <linux/linux-64>  
+4. CONFIGURATION
+----------------
 
-      linux - for 32-bit machine
-      linux-64 - for 64-bit machine
-After a successful build, a tar-zipped file also gets created which contains the test-execution deliverables in opensaf/tests/ directory.
+Sets up the environment for running the OpenSAF tests.  It requires root privilege. You only need to run the process once after the installation of TETware is complete.
+
+Execute the following steps:
+
+# ${TET_BASE_DIR}/setup_opensaf_tet.sh ${TET_ROOT}
+
+TET_ROOT -- Path where TETware is installed.
+
 
 5. RUNNING THE TESTs
 --------------------
-The OpenSAF system controller or payload node for 32-bit or 64-bit should be up and running, before you run the test suites. For more information on running OpenSAF system controller and payload blades, refer <OpenSAF home>/README and <OpenSAF home>/INSTALL files.
 
-i) Go to <OpetSAF Test Dir > directory.
-    # cd <OpetSAF Test Dir >
+The OpenSAF system controller or payload node for 32-bit or 64-bit should be up and running before you run the test suites.   
 
-ii) Set up the environment:
-    # ./test_utils.sh setup_env  <linux/linux-64>
-        
-      linux - for 32-bit machine
-      linux-64 - for 64-bit machine
+(1) Log in as root to the system controller or payload node.
 
-iii) Execute the following steps for testing all the services, except the Availability Service (AvSv): 
-     a) # cd  <OpenSAF home>/tests/
-     b) # source run_tests.sh <linux/linux-64>
-     c) Display the command set:
-        # show_cmds
-     d) # run_reg  <service name>
-     e) To track the test status:
-        #tail -f /opt/opensaf/tetware/<svc_name>/suites/results/000<highest number>e/x*
+(2) If you wish to use values other than the defaults for the variables listed below, modify a copy of opensaf_tet_env.sh. If you wish to use another file, supply the name of the file as an argument to the run_opensaf_tests.sh command in the next step.
 
-     Example:
+a) OPENSAF_ROOT -- Installation path of OpenSAF. Default value is /opt/opensaf.
+b) OPENSAF_CONF -- Configuration file path of OPENSAF. Default value is /etc/opt/opensaf.
+c) OPENSAF_VAR -- Log file path of OpenSAF. Default value is /var/opt/opensaf.
+d) OPENSAF_TET_RESULT -- Path for saving test results. Default value is ${PWD}/result.
+e) OPENSAF_TET_LOG -- Path for TETware saving log imformation. Default value is /tmp/tccdlog.
+g) TET_BASE_DIR --  Path where OpenSAF tests installed. Default value is ${PWD} 
 
-        # show_cmds
-          =========== CMD-SET ==============
-                     run_reg
-          ==================================
+For detailed information, refer to opensaf_test_env.sh.
 
-        # run_reg
-          Invalid input - Options <svc_name/all> 
+(3) Copy the executable file or shell script to suites directory. Modify the template files in the suites directory, which are discribed later.
 
-          Get the <svc_name> from the following
-          ************************
-            edsv 
-          ************************
+(4) Execute the following steps for testing all the services: 
 
-        # run_reg cpsv
-        # tail -f /opt/opensaf/tetware/cpsv/suites/results/0001e/x*
+# ${TET_BASE_DIR}/run_opensaf_test.sh/run_opensaf_test.sh \
+    [ -a service_name ] \
+    [ -d ] \
+    [ -e filename ] \
+    [ -p platform] \
+    service_name
+
+Definitions of the Parameters:
+
+(I) -a service_name  (OP)
+
+Add a new test. Create a directory named "service_name". Create src, inc, and suites directories and makefile.am files in "service_name" directory. And create four template files in the suites directory: reg_xxx.scen, reg_xxx.cfg, reg_xxx.dep and xxx_env.sh. xxx represents the service name.
+
+Tree structure of files:
+    - service_name
+     |- src
+     |- inc
+     |- suites
+       |- reg_xxx.scen
+       |- reg_xxx.cfg
+       |- reg_xxx.dep
+       |- xxx_env.sh 
+     |- makefile.am
+  
+a) src -- Store the source files of the new test.
+
+b) inc -- Store the header files of the new test.
+
+c) suites -- Store the files required for running the test.
+
+d) makefile.am -- Generate Makefile
+
+e) reg_xxx.scen -- Template scenario file required by TETware. Detailed information about reg_xxx.scen can be obtained from "TETware user guide". 
+
+   Default content:
+
+       all
+            :parallel:
+            reg_xxx.exe
+            :endparallel:
+
+f) reg_xxx.cfg -- Template configuration file required by TETware. Detailed information about reg_xxx.cfg can be obtained from "TETware user guide". 
+   
+   Default content:
+
+       TET_OUTPUT_CAPTURE=false
+       TET_EXEC_IN_PLACE=false
+       TET_API_COMPLIANT=true
+
+g) reg_xxx.dep -- Indicate the test on which the current test depends. The current test name and its dependent test names are separated by a colon. If current test has more than one dependent test, the dependent tests are separated by a space.
+
+   For example:  cur_test:test1 test2
+
+h) xxx_env.sh -- Export the environment variables required for running the test.
 
 
-        After successful completion of the test, the current directory will be changed to <RESULTS_DIR> and <service_name>.txt file is generated and contains the test result. For the next run of this service the existing <service_name>.txt file will be moved to the <RESULTS_DIR>/<TIME_STAMP> directory. 
+(II) -d service_name  (OP)
+
+Run the test name as "service_name" and other tests on which it depends according to the settings in reg_<service_name>.cfg. If the file reg_<service_name>.cfg does not exist, the execution stops.
+
+  
+(III) -e filename  (OP)
     
-        NOTES : 
-	- Before running the ifsv test update the file "/opt/opensaf/tetware/ifsv/suites/reg_vip.sh" appropriate interface name and IP address.
-	- On certain occassions, UNRESOLVED tests could be observed in a stage when the system has crossed the max =500 TIPC subscriptions. Currently the way to clear TIPC subscriptions in system is to restart the controller/payload.
-           
-iv) Execute the following steps, for testing the Availability service:
-        
-    a) # cp <OpenSAF home>/tests/avsv/suites/AppConfig.xml /etc/opt/opensaf/	
-    b) # cp <OpenSAF home>/tests/avsv/suites/AppConfig.xsd /etc/opt/opensaf/
-    c) Change PSS to XML in the /var/opt/opensaf/pssv_spcn_list file.
-    d) Restart OpenSAF system controller/payload node: 
-       # /opt/opensaf/<controller|payload>/scripts/<nis_scxb|nis_pld> restart
-       An xterm appears with the functionality test result and a Journal file is generated at "/opt/opensaf/tetware/avsv/suites/results/000<N>e/".
-    e) To view the result in a readable format
-       #grw -c 6 -f text -o avsv.txt journal 
+Set the environment variables required for running the test. 
 
 
-6. CROSS COMPILATION
---------------------
-i) Pre-requisites for Building the Test Infrastructure
+(IV) -p platform  (OP)
 
-   a) Open source Tetware 3.7 needs to be cross-compiled and installed on the build and target chassis.     
-   b) OpenSAF system controller or payload libraries have to be cross-compiled for target host.   
- 
-ii) Building the test infrastructure             
-    a) Provide the following cross-compile configuration inputs in <OpenSAF home>/tests/setup.sh file: 
+Set the platform type. The available platforms are: linux, linux64, and solaris. Default value is linux.
 
-       CC_EXEC_PREFIX - Cross-compile prefix, for example "ppc_74xx-".
-       TARGET_HOST    - Target host, for example "ppc-mvl-linux-gnu". (Auto-tools output - See the targets/<> directory to know this value after building OpenSAF base code.)
-    b) Execute the build steps as explained in Section 4.
-    c) After successful build, tet_suites_<ppc-mvl-linux-gnu>.tgz file is generated for the target host at <OpenSAF home>/tests/ directory.
-    d) Copy the tet_suites_<ppc-mvl-linux-gnu>.tgz fie to the target chassis.
 
-iii) Running the test infrastructure
+(V) service_name  (MP)
+    
+Test name or "all". All means to run all the tests in the ${TET_BASE_DIR} directory.
 
-     a) Un-tar the tet_suites<ppc-mvl-linux-gnu>.tgz file on the target system controller or payload node.
-     b) Execute the steps explained in Section 5.
 
+6. TEST RESULTs
+---------------
+
+Test results are saved in ${OPENSAF_TET_RESULT} directory, which contains three files: xxx.jrnl, xxx.html, xxx.log. xxx represents the test module name.    
+
+a) xxx.jrnl -- Test results generated by TETware.
+
+b) xxx.html -- Statistic imformation obtained from xxx.jrnl. This file is in html format.
+
+c) xxx.log -- Log information that is extracted form the file ${OPENSAF_TET_LOG} generated by TETware.

@@ -1,3 +1,7 @@
+#ifndef _TET_SRMSV_H
+#define _TET_SRMSV_H
+
+
 #include <stdio.h>
 #include "ncs_lib.h"
 #include "saAis.h"
@@ -528,4 +532,4 @@ void srma_it_wmk_proc_cpu(void);
 void tet_run_srmsv(void);
 
 
-
+#endif
