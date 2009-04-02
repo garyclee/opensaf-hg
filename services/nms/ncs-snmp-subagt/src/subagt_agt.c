@@ -1,0 +1,674 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+/*****************************************************************************
+..............................................................................
+
+
+  .....................................................................
+
+  DESCRIPTION: This file describes the routines for the Agentx master
+                agent interface
+
+               This file has the OID Database mgmt routines as well.
+  ***************************************************************************/
+#include <limits.h>
+#include "subagt.h"
+
+#include "net-snmp/net-snmp-config.h"
+#include "net-snmp/net-snmp-includes.h"
+#include "net-snmp/agent/net-snmp-agent-includes.h"
+#include "net-snmp/library/snmp_api.h"
+
+#define MAX_ALLOWED_PING_TIME_DISCREPANCY 29
+
+static void
+snmpsubagt_agt_usage(char *subagt);
+
+static void
+snmpsubagt_agt_log_setup(char *logfile);
+
+static void
+snmpsubagt_netsnmp_agentx_pingInterval(const char *token, char *cptr);
+
+/*****************************************************************************\
+ *  Name:          snmpsubagt_netsnmp_lib_initialize                          *
+ *                                                                            *
+ *  Description:   To initialize the session with the Agentx Agent            *
+ *                  To do the above job NetSnmp Supplied APIs are used        *
+ *                                                                            *
+ *  Arguments:     NCSSA_CB *cb - SNMP SubAgent's control block               *
+ *                                                                            *
+ *  Returns:       NCSCC_RC_SUCCESS   - everything is OK                      *
+ *                 NCSCC_RC_FAILURE   -  failure                              *
+ *  NOTE:                                                                     *
+\*****************************************************************************/
+uns32
+snmpsubagt_netsnmp_lib_initialize(struct ncsSa_cb *cb)
+{
+    int32   netsnmp_status = SNMP_ERR_NOERROR;
+#if (SUBAGT_AGT_MONITOR == 1)
+    uns32   status = NCSCC_RC_FAILURE;
+#endif
+
+    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_NETSNMP_LIB_INIT);
+
+    /* As of now CB is not being initialized in this routine,
+     * may be used in future.
+     */
+    /* validate the input */
+    if (cb == NULL)
+    {
+        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AMF_CB_NULL);
+        return NCSCC_RC_FAILURE;
+    }
+
+    /* initialize the logging for the NET-SNMP Lib code */
+    snmp_log(LOG_INFO, "NCS SNMP SubAgt 2.0\n");
+    snmp_log(LOG_INFO, "NET-SNMP version %s\n", netsnmp_get_version());
+
+    /* make us a agentx client. */
+    netsnmp_status =  netsnmp_ds_set_boolean(NETSNMP_DS_APPLICATION_ID,
+                                            NETSNMP_DS_AGENT_ROLE, 1);
+    if (netsnmp_status != SNMP_ERR_NOERROR)
+    {
+        return NCSCC_RC_FAILURE;
+    }
+
+    /* set the type of the application */
+    netsnmp_status = netsnmp_ds_set_string(NETSNMP_DS_LIBRARY_ID,
+                                         NETSNMP_DS_LIB_APPTYPE,
+                                         "ncsSnmpSubagt");
+    if (netsnmp_status != SNMP_ERR_NOERROR)
+    {
+        return NCSCC_RC_FAILURE;
+    }
+
+    m_SNMPSUBAGT_HEADLINE_LOG(NETSNMP_DS_SET_BOOLEAN);
+
+#if (NET_SNMP_5_2_2_SUPPORT == 1)
+ /*From Net-Snmp version 5.3.X  onwards , the equaling call
+  "agentx_config_init" is invoked in "init_agent" API"*/
+    /* initiliaze the function pointers to parse the agentx
+     * configuration paramters
+     */
+    init_agentx_config();
+#endif
+
+    /* initialize the agentxPingInterval handler */
+    snmpd_register_config_handler("agentxPingInterval",
+                                  snmpsubagt_netsnmp_agentx_pingInterval, NULL,
+                                   "Agentx Ping Interval (seconds)");
+
+#if (SUBAGT_AGT_MONITOR == 1)
+    /* initiliaze the default agent monitoring attributes */
+    snmpsubagt_agt_monitor_attribs_init(&cb->agt_mntr_attrib);
+
+    /*
+     * register the tags to read the agent monitoring attributes
+     * from the configuration file (ncsSnmpSubagt.conf)
+     * Please note that, this function should be called before
+     * init_snmp() always.  Otherwise these tags will not be
+     * recognised by the NET-SNMP Library.
+     */
+    snmpsubagt_agt_register_pvt_tags();
+#endif
+
+
+    m_SNMPSUBAGT_HEADLINE_LOG(INIT_SNMP_DONE);
+
+    /* initialize the agent library */
+#if (NET_SNMP_5_2_2_SUPPORT == 1)
+    init_snmp("ncsSnmpSubagt");
+    init_agent("ncsSnmpSubagt");
+#else
+    init_agent("ncsSnmpSubagt");
+    init_snmp("ncsSnmpSubagt");
+#endif
+
+    /* Following are the bug details in NET-SNMP bug data base.
+       http://sourceforge.net/tracker/index.php?func=detail&aid=1047767&group_id=12694&atid=112694*/
+
+    signal (SIGPIPE, SIG_IGN);
+
+#if (SUBAGT_AGT_MONITOR == 1)
+    status = snmpsubagt_agt_monitor_kickoff(cb);
+    if (status == NCSCC_RC_FAILURE)
+    {
+        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_AGT_MONITOR_FAILED);
+    }
+#endif
+
+    m_SNMPSUBAGT_HEADLINE_LOG(INIT_AGENT_DONE);
+    return NCSCC_RC_SUCCESS;
+}
+
+
+/******************************************************************************
+ *  Name:          snmpsubagt_netsnmp_lib_finalize
+ *
+ *  Description:   To Finalize the session with the Agentx Agent
+ *                  To do the above job NetSnmp Supplied APIs are used
+ *
+ *  Arguments:     NCSSA_CB *cb - SNMP SubAgent's control block
+ *
+ *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
+ *                 NCSCC_RC_FAILURE   -  failure
+ *  NOTE:
+ *****************************************************************************/
+uns32
+snmpsubagt_netsnmp_lib_finalize(NCSSA_CB *cb)
+{
+#if (SUBAGT_AGT_MONITOR == 1)
+    uns32   status = NCSCC_RC_FAILURE;
+#endif
+
+    /* Here also CB is not used, useful in future */
+    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_NETSNMP_LIB_FINALIZE);
+
+    if (cb == NULL)
+    {
+        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_NULL);
+        return NCSCC_RC_FAILURE;
+    }
+
+#if (SUBAGT_AGT_MONITOR == 1)
+    /* stop monitoring the Agent */
+    status = snmpsubagt_agt_monitor_stop(cb);
+    if (status != NCSCC_RC_SUCCESS)
+    {
+        /* log the failure */
+        m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AGT_MONITOR_STOP_FAILED,
+                                status,0,0);
+
+        /* continue shutting down*/
+    }
+#endif
+
+    /* shutdown the library */
+    snmp_shutdown("ncsSnmpSubagt"); /* net-snmp library api */
+
+    m_SNMPSUBAGT_HEADLINE_LOG(SNMP_SHUTDOWN_DONE);
+    return NCSCC_RC_SUCCESS;
+}
+
+/******************************************************************************
+ *  Name:          snmpsubagt_request_process
+ *
+ *  Description:   To  Handle Multiple Interfaces of the SubAgent.
+ *                   * 1. Interface with AMF
+ *                   * 2. Interface with Agentx Agent
+ *                   * 3. Interface with EDA
+ *
+ *  Arguments:     NCSSA_CB *cb - SNMP SubAgent's control block
+ *
+ *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
+ *                 NCSCC_RC_FAILURE   -  failure
+ *  NOTE:
+ *****************************************************************************/
+uns32
+snmpsubagt_request_process(NCSSA_CB    *cb)
+{
+    int             numfds;
+    fd_set          readfds;
+    struct timeval  timeout = { LONG_MAX, 0 }, *tvp = &timeout;
+    int             count;
+    int             fakeblock = 0;
+    SaAisErrorT     saf_status = SA_AIS_OK;
+    NCS_SEL_OBJ     mbx_fd;
+    uns32           status = NCSCC_RC_FAILURE;
+    int             ping_interval = 0;
+
+
+    if (cb == NULL)
+    {
+        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_CB_NULL);
+        return NCSCC_RC_FAILURE;
+    }
+
+    numfds = 0;
+    FD_ZERO(&readfds);
+    snmp_select_info(&numfds, &readfds, tvp, &fakeblock);
+    if (cb->block != 0 && fakeblock != 0)
+    {
+        /*
+         * There are no alarms registered, and the caller asked for blocking,
+         * let select() block forever.
+         */
+        tvp = NULL;
+    }
+    else if (cb->block != 0 && fakeblock == 0)
+    {
+        /*
+         * The caller asked for blocking, but there is an alarm due sooner than
+         * LONG_MAX seconds from now, so use the modified timeout returned by
+         * snmp_select_info as the timeout for select().
+         */
+     }
+     else if (cb->block == 0)
+     {
+        /*
+         * The caller does not want us to block at all.
+         */
+         tvp->tv_sec = 0;
+         tvp->tv_usec = 0;
+     }
+     ping_interval = netsnmp_ds_get_int(NETSNMP_DS_APPLICATION_ID, NETSNMP_DS_AGENT_AGENTX_PING_INTERVAL);
+     if((ping_interval > 0) && (tvp != NULL) && (tvp->tv_sec  > ping_interval))
+     {
+         ncs_logmsg(NCS_SERVICE_ID_SNMPSUBAGT, SNMPSUBAGT_FMTID_ERRORS, SNMPSUBAGT_FS_ERRORS,
+                       NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE,
+                       NCSFL_TYPE_TILLL, SNMPSUBAGT_TIME_TO_WAIT_DISCREPANCY, tvp->tv_sec, ping_interval, 0);
+         if (tvp->tv_sec  >= (ping_interval + MAX_ALLOWED_PING_TIME_DISCREPANCY))
+         {
+              if(cb->amfHandle)
+              {
+                  saAmfComponentErrorReport(cb->amfHandle,
+                                            &cb->compName,
+                                            0, /* errorDetectionTime; AvNd will provide this value */
+                                            SA_AMF_COMPONENT_RESTART/* recovery */, 0/*NTF Id*/);
+                  return NCSCC_RC_INVALID_PING_TIMEOUT;
+              }
+              else
+              {
+                  printf("NCS SSA: exiting...\n");
+                  exit(1);
+              }
+         }
+     }
+
+#if (BBS_SNMPSUBAGT == 0)
+    /* Add the external socket interfaces FDs to the list */
+    /*Add the AMF SelectionObject into the list of FDs*/
+    if (cb->amfHandle != 0)
+    {
+        FD_SET((int)cb->amfSelectionObject, &readfds);
+        if ((cb->amfSelectionObject + 1) > numfds)
+        {
+            numfds = cb->amfSelectionObject+1;
+        }
+    }
+    else /* if(cb->amfHandle == 0) */ 
+    {
+        /* add the sigusr1 signal handler fd */
+        FD_SET(m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj), &readfds);
+        if ( (m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj))+1 > numfds)
+        {
+            numfds = (m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj))+1;
+        }
+    }
+#endif
+
+    /*Add the EDA SelectionObject into the list of FDs*/
+    if ((cb->evtHandle != 0) && (cb->evtChannelHandle != 0))
+    {
+        FD_SET((int)cb->evtSelectionObject, &readfds);
+        if ((cb->evtSelectionObject + 1) > numfds)
+        {
+            numfds = cb->evtSelectionObject+1;
+        }
+    }
+
+    /* Get selection object for the mailbox */
+    mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&cb->subagt_mbx);
+
+    /* Add the subagent mail box fd to the select list */
+    FD_SET((m_GET_FD_FROM_SEL_OBJ(mbx_fd)),&readfds);
+
+    if ( (m_GET_FD_FROM_SEL_OBJ(mbx_fd))+1 > numfds)
+    {
+        numfds = (m_GET_FD_FROM_SEL_OBJ(mbx_fd))+1;
+    }
+
+    /* add the SIGHUP signal handler fd */
+    FD_SET(m_GET_FD_FROM_SEL_OBJ(cb->sighdlr_sel_obj), &readfds);
+    if ( (m_GET_FD_FROM_SEL_OBJ(cb->sighdlr_sel_obj))+1 > numfds)
+    {
+        /*numfds = (m_GET_FD_FROM_SEL_OBJ(mbx_fd))+1;*/
+        numfds = (m_GET_FD_FROM_SEL_OBJ(cb->sighdlr_sel_obj))+1;
+    }
+
+    /* add the SIGUSR2 signal handler fd */
+    FD_SET(m_GET_FD_FROM_SEL_OBJ(cb->sigusr2hdlr_sel_obj), &readfds);
+    if ( (m_GET_FD_FROM_SEL_OBJ(cb->sigusr2hdlr_sel_obj))+1 > numfds)
+    {
+        numfds = (m_GET_FD_FROM_SEL_OBJ(cb->sigusr2hdlr_sel_obj))+1;
+    }
+
+
+    /*
+     * Wait for the request from
+     * 1. From AVA
+     * 2. From EDA
+     * 3. From SPA(Destroy)
+     * 4. From SNMP Agent
+     * 5. From Caller thread about register/deregister the OID tree
+     * 6. SIGHUP Handler
+     */
+    count = select(numfds, &readfds, 0, 0, tvp);
+    if (count > 0)
+    {
+#if (BBS_SNMPSUBAGT == 0)
+
+           if (cb->amfHandle == 0)
+           {
+               if (FD_ISSET((m_GET_FD_FROM_SEL_OBJ(cb->sigusr1hdlr_sel_obj)), &readfds))
+               {
+                   subagt_process_sig_usr1_signal(cb);
+                   m_NCS_SEL_OBJ_CLR(cb->sigusr1hdlr_sel_obj, &readfds);
+                   m_NCS_SEL_OBJ_RMV_IND(cb->sigusr1hdlr_sel_obj, TRUE, TRUE);
+                   m_NCS_SEL_OBJ_DESTROY(cb->sigusr1hdlr_sel_obj);
+               }
+           } 
+           else /* if (cb->amfHandle != 0) */
+           {
+
+               /* Event from AMF */
+               if (FD_ISSET((int)cb->amfSelectionObject, &readfds))
+               {
+                   /* process the event from AMF */
+                   saf_status = saAmfDispatch(cb->amfHandle,
+                                        cb->subagt_dispatch_flags);
+                   if (saf_status != SA_AIS_OK)
+                   {
+                       /* log the saf error  */
+                       m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_AMF_DSPATCH_ERR,
+                                            saf_status,0,0);
+                   }
+
+                   /*clear the bit off for this fd*/
+                   FD_CLR((int)cb->amfSelectionObject, &readfds);
+               }
+           }
+#endif
+           /* event from EDA */
+           if (FD_ISSET((int)cb->evtSelectionObject, &readfds))
+           {
+               saf_status = saEvtDispatch(cb->evtHandle,
+                                          cb->subagt_dispatch_flags);
+               if (saf_status != SA_AIS_OK)
+               {
+                   /* log the saf error  */
+                   m_SNMPSUBAGT_ERROR_LOG(SNMPSUBAGT_EDA_DSPATCH_ERR,
+                                           saf_status, 0, 0);
+               }
+
+               /*clear the bit off for this fd*/
+               FD_CLR((int)cb->evtSelectionObject, &readfds);
+           }
+           /* Do snmp_read() before processing mbx fd.  */
+           {
+               /* Check if data is on snmp fds */
+               snmp_read(&readfds);/* by default for all fds */
+           }
+           /* event from SPA to destroy the SubAgent */
+           if (FD_ISSET((m_GET_FD_FROM_SEL_OBJ(mbx_fd)), &readfds))
+           {
+               status = snmpsubagt_mbx_process(cb);
+               if (status != NCSCC_RC_SUCCESS)
+               {
+                   /* log on to the console */
+               }
+           }
+           if (FD_ISSET((m_GET_FD_FROM_SEL_OBJ(cb->sighdlr_sel_obj)), &readfds))
+           {
+               /* Process the SIGHUP only if HAState is ACTIVE */
+               if (cb->haCstate == SNMPSUBAGT_HA_STATE_ACTIVE)
+               {
+                  m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_PROCESSING_SIGHUP);
+                  /* reload the Configuration file */
+                  snmpsubagt_mibs_reload(cb);
+               }
+
+               m_NCS_SEL_OBJ_CLR(cb->sighdlr_sel_obj, &readfds);
+               m_NCS_SEL_OBJ_RMV_IND(cb->sighdlr_sel_obj, TRUE, TRUE);
+           }
+           if (FD_ISSET((m_GET_FD_FROM_SEL_OBJ(cb->sigusr2hdlr_sel_obj)), &readfds))
+           {
+              m_SNMPSUBAGT_INTF_INIT_STATE_LOG(SNMPSUBAGT_PROCESSING_SIGUSR2);
+
+              /* reset the debugging */
+              snmp_set_do_debugging(!snmp_get_do_debugging());
+
+              m_NCS_SEL_OBJ_CLR(cb->sigusr2hdlr_sel_obj, &readfds);
+              m_NCS_SEL_OBJ_RMV_IND(cb->sigusr2hdlr_sel_obj, TRUE, TRUE);
+           }
+    }
+    else /* No packets found */
+    {
+        switch (count)
+        {
+            case 0:
+                m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_SPL_FD_PROCESS, count);
+                snmp_timeout();
+                break;
+
+            case -1:
+                if (errno != EINTR)
+                {
+                    m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_SPL_FD_PROCESS, count);
+                    snmp_log_perror("select");
+                }
+                return NCSCC_RC_FAILURE;
+
+            default:
+                   m_SNMPSUBAGT_DATA_LOG(SNMPSUBAGT_SPL_FD_PROCESS, count);
+                   snmp_log(LOG_ERR, "select returned %d\n", count);
+                return NCSCC_RC_FAILURE;
+          }
+    }
+    /* endif -- count>0 */
+
+    /*
+     * Run requested alarms.
+     */
+    run_alarms();
+
+    return NCSCC_RC_SUCCESS;
+} /* end */
+
+
+
+/******************************************************************************
+ *  Name:          snmpsubagt_agt_startup_params_process
+ *
+ *  Description:   To  process the startup parameters
+ *
+ *  Arguments:     argc         - Number of startup arguments
+ *                 argv         - Pointer to the arguments
+ *
+ *  Returns:       NCSCC_RC_SUCCESS   - everything is OK
+ *                 NCSCC_RC_FAILURE   -  failure
+ *  NOTE:
+ *****************************************************************************/
+uns32
+snmpsubagt_agt_startup_params_process(int32    argc,
+                                      uns8     **argv)
+{
+    uns32       status = NCSCC_RC_SUCCESS;
+
+    /* delimiters for the subagent */
+    char        options[128] = "aAc:CdD:fhHI:l:LP:qrsS:UvV-:";
+    int32       arg;
+    char        logfile[PATH_MAX + 1] = { 0 };
+    int         netsnmp_status = SNMP_ERR_NOERROR;
+
+    /* set the default values for all the startup parameters */
+    strcpy(logfile, SNMPSUBAGT_LOG_FILE);
+
+
+    /* '-h' -- print the help message */
+
+
+    /* '-v' -- version information */
+
+    /* Now process the options */
+    while ((arg = getopt(argc, (char **)argv, options)) != EOF)
+    {
+        switch (arg)
+        {
+            case '-':
+            /* help given as --help */
+            if (strcasecmp(optarg, "help") == 0)
+            {
+                 snmpsubagt_agt_usage(argv[0]);
+            }
+            /* version info  --version */
+            if (strcasecmp(optarg, "version") == 0)
+            {
+                printf("NCS SNMP SubAgt 1.0\n");
+                printf("NET-SNMP Version %s\n", netsnmp_get_version());
+                exit(1);
+            }
+            /* I did not get what this long options is all about?? */
+            break;
+
+            /* '-c' -- config file */
+            case 'c':
+            if (optarg != NULL)
+            {
+                netsnmp_status = netsnmp_ds_set_string(NETSNMP_DS_LIBRARY_ID,
+                                                NETSNMP_DS_LIB_OPTIONALCONFIG, optarg);
+                if (netsnmp_status != SNMP_ERR_NOERROR)
+                {
+                    exit(1);
+                }
+            }
+            else
+            {
+                snmpsubagt_agt_usage(argv[0]);
+            }
+            break;
+
+            /* '-C' -- do not read the default config specs */
+            case 'C':
+            netsnmp_status = netsnmp_ds_set_boolean(NETSNMP_DS_LIBRARY_ID,
+                                   NETSNMP_DS_LIB_DONT_READ_CONFIGS, 1);
+            if (netsnmp_status != SNMP_ERR_NOERROR)
+            {
+                exit(1);
+            }
+            break;
+
+            /* '-d' -- to dump the packets */
+            case 'd':
+            snmp_set_dump_packet(1);
+            netsnmp_status = netsnmp_ds_set_boolean(NETSNMP_DS_APPLICATION_ID,
+                               NETSNMP_DS_AGENT_VERBOSE, 1);
+            if (netsnmp_status != SNMP_ERR_NOERROR)
+            {
+                exit(1);
+            }
+            break;
+
+            /* '-D' -- to dump the debug messages from NET-SNMP code */
+            case 'D':
+            debug_register_tokens(optarg);
+            snmp_set_do_debugging(1);
+            break;
+
+            case 'h':
+            snmpsubagt_agt_usage(argv[0]);
+            break;
+
+            /* '-l' -- log file */
+            case 'l':
+            if (optarg != NULL)
+            {
+               if (strlen(optarg) > PATH_MAX)
+               {
+                   fprintf(stderr,
+                           "%s: logfile path too long (limit %d chars)\n",
+                           argv[0],
+                           PATH_MAX);
+                   exit(1);
+               }
+               strncpy(logfile, optarg, PATH_MAX);
+            }
+            else
+            {
+                 snmpsubagt_agt_usage(argv[0]);
+            }
+            break;
+
+            case 'v':
+            printf("NCS SNMP SubAgt 1.0\n");
+            printf("NET-SNMP Version %s\n", netsnmp_get_version());
+            exit(1);
+            break;
+
+            default:
+            printf("Illegal input...\n");
+            status = NCSCC_RC_FAILURE;
+            break;
+        }
+    }
+    /* enable logging */
+    snmpsubagt_agt_log_setup(logfile);
+    return status;
+}
+
+static void
+snmpsubagt_agt_usage(char *subagt)
+{
+    printf("%s Usage...\n", subagt);
+    printf("NCS SNMP SubAgt 1.0\n");
+    printf("\nNET-SNMP Version %s\n", netsnmp_get_version());
+    printf("  -c FILE\t\tread FILE as a configuration file\n");
+    printf("  -C\t\t\tdo not read the default configuration files\n");
+    printf("  -d\t\t\tdump sent and received SNMP packets\n");
+    printf("  -D\t\t\tturn on debugging output\n");
+    printf("  -h, --help\t\tdisplay this usage message\n");
+    printf("  -l FILE\t\tprint warnings/messages to FILE\n");
+    printf("  -v --version\t\tVersion Information of the subagent\n");
+    printf("\n");
+    exit(1);
+}
+
+static void
+snmpsubagt_agt_log_setup(char *logfile)
+{
+
+    /* SNMP Agent's log function setup_log() takes more number of
+     * parameters as input.  I do not understand them completely.
+     * For the SubAgent it is enough, if we do the following.
+     */
+    /* snmp_enable_stderrlog(); */ 
+
+    if (logfile != NULL)
+    {
+        snmp_enable_filelog(logfile, 0/*dont_zero_log*/);
+    }
+
+    return;
+}
+
+static void
+snmpsubagt_netsnmp_agentx_pingInterval(const char *token, char *cptr)
+{
+    int x = atoi(cptr);
+
+    /* log the function entry */
+     m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_PING_INT_CONF);
+
+    DEBUGMSGTL(("agentx/config/PingInterval", "%s\n", cptr));
+    netsnmp_ds_set_int(NETSNMP_DS_APPLICATION_ID,
+                NETSNMP_DS_AGENT_AGENTX_PING_INTERVAL, x);
+    return;
+}
+
+

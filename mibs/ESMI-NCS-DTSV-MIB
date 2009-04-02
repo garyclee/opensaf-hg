@@ -1,0 +1,230 @@
+ESMI-TABLE-MAPI-DIR-PATH `/dtsv/snmp_integ/`
+ESMI-TABLE-SUBAGT-DIR-PATH `/dtsv/snmp_integ/`
+ESMI-TABLE-PSSV-DIR-PATH `/dtsv/pssv_integ/`
+
+ESMI-TABLE-DETAILS ncsDtsvScalars
+{
+   ESMI-TABLE-ID              NCSMIB_TBL_DTSV_SCLR_GLOBAL
+   ESMI-TABLE-HDR-FILE        `dts.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/dtsv/dts/dts_miblib_gen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-RANK            DTSV_TBL_RANK_GLOBAL 
+   ESMI-TABLE-CAPABILITY      NCSMIB_CAPABILITY_SET 
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalMessageLogging
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL global_logging
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalLogDevice
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.log_dev`
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalLogFileSize
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.log_file_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalFileLogCompFormat
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.file_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalCircularBuffSize
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.cir_buff_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalCirBuffCompFormat
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.buff_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalLoggingState
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.enable`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalCategoryBitMap
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.category_bit_map`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalSeverityBitMap
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL `g_policy.severity_bit_map`
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalNumOfLogFiles
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL g_num_log_files
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvGlobalLogMsgSequencing
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL g_enable_seq
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS ncsDtsvGlobalCloseOpenFiles
+{
+   ESMI-OBJECT-OFFSET      GLOBAL_POLICY_NULL g_close_files
+}
+
+ESMI-TABLE-DETAILS ncsDtsvNodeLogPolicyEntry
+{
+   ESMI-TABLE-ID              NCSMIB_TBL_DTSV_NODE
+   ESMI-TABLE-HDR-FILE        `dts.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/dtsv/dts/dts_miblib_gen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-RANK            DTSV_TBL_RANK_NODE 
+   ESMI-TABLE-CAPABILITY      NCSMIB_CAPABILITY_SET
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeIndexNode
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `my_key.node`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeMessageLogging
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL per_node_logging
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeLogDevice
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.log_dev`
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeLogFileSize
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.log_file_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeRowStatus
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL row_status
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeFileLogCompFormat
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.file_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeCircularBuffSize
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.cir_buff_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeCirBuffCompFormat
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.buff_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeLoggingState
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.enable`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeCategoryBitMap
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.category_bit_map`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvNodeSeverityBitMap 
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.severity_bit_map`
+}
+
+ESMI-TABLE-DETAILS    ncsDtsvServiceLogPolicyEntry 
+{
+   ESMI-TABLE-ID              NCSMIB_TBL_DTSV_SVC_PER_NODE
+   ESMI-TABLE-HDR-FILE        `dts.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/dtsv/dts/dts_miblib_gen/`
+   ESMI-TABLE-IS-PERSISTENT   1
+   ESMI-TABLE-RANK            DTSV_TBL_RANK_SVC 
+   ESMI-TABLE-CAPABILITY      NCSMIB_CAPABILITY_SET
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceIndexNode
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `my_key.node`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceIndexService
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `my_key.ss_svc_id`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceRowStatus 
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL row_status 
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceLogDevice
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.log_dev`
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceLogFileSize
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.log_file_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceFileLogCompFormat
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.file_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceCircularBuffSize
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.cir_buff_size`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceCirBuffCompFormat
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.buff_log_fmt`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceLoggingState
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.enable`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceCategoryBitMap
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.category_bit_map`
+   ESMI-OBJECT-LEN         4
+}
+
+ESMI-OBJECT-DETAILS   ncsDtsvServiceSeverityBitMap
+{
+   ESMI-OBJECT-OFFSET      SVC_POLICY_NULL `svc_policy.severity_bit_map`
+}

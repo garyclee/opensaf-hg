@@ -1,0 +1,3 @@
+../dumps/smiv2/SNMPv2-MIB:542: warning: node `snmpTrapOID' must be contained in at least one conformance group
+../dumps/smiv2/SNMPv2-MIB:552: warning: node `snmpTrapEnterprise' must be contained in at least one conformance group
+../dumps/smiv2/SNMPv2-MIB:600: warning: notification `warmStart' must be contained in at least one conformance group

@@ -1,0 +1,2 @@
+export TET_TMP_DIR=/tmp
+tcc -e -s reg_edsv.scen $TET_BASE_DIR/edsv/suites
