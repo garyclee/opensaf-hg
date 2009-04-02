@@ -59,7 +59,7 @@ struct gl_list
 NCSCONTEXT eda_thread_handle,subscription_handle;
 #define TET_EDSV_NODE1 3
 /*******String Constants*******/
-const char *gl_saf_error[28];
+const char *gl_saf_error[32];
 
 typedef enum 
   {

@@ -19,10 +19,13 @@
 /*****************************************************************************
   DESCRIPTION: This file consists all top level api & structs for test purpose.
 *****************************************************************************/
+#ifndef _MBCSV_API_H
+#define _MBCSV_API_H
 
 /* include files */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncssysf_def.h"
@@ -330,4 +333,4 @@ uns32 mbcstm_perf_sync_msg(uns32 svc_index, uns32 ssn_index,uns32 size,uns32 sen
 uns32 mbcstm_check_inv(MBCSTM_CHECK check, uns32 svc_index, uns32 ssn_index, 
                        void *data);
 
-
+#endif

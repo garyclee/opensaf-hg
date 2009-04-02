@@ -1,3 +1,13 @@
+/******************************************************************************
+#
+# modification:
+# 2008-11   Jony <jiangnan_hw@huawei.com>  Huawei Technologies CO., LTD.
+#  1.  In tet_interface_add_subscription_loop() function, use "select" function 
+#      instead of "while(1)" to wait for EVT.
+#
+*******************************************************************************/
+
+
 #include "tet_api.h"
 #include "tet_startup.h"
 #include "tet_ifa.h"
@@ -4908,6 +4918,14 @@ deletion",NCSCC_RC_SUCCESS);
 void tet_interface_add_subscription_loop()
 {
   char *temp;
+
+ /***************Modify by JN********************/
+   SaAisErrorT 			rc;
+   NCS_SEL_OBJ              evt_ncs_sel_obj;
+   NCS_SEL_OBJ_SET          wait_sel_obj;
+   SaSelectionObjectT       evt_sel_obj;
+/***************Modify end**********************/
+
   SaEvtEventFilterT end[1]=
     { 
       {3,{3,3,(SaUint8T *)"end"}}
@@ -4944,7 +4962,9 @@ deletion",NCSCC_RC_SUCCESS);
   if(gl_eds && gl_eds_on)
     {
       gl_dispatchFlags=1;
-      while(1)
+      
+/**************Modify by JN*******************/
+/*      while(1)
         {
           evt_dispatch(gl_evtHandle);
           sleep(1);
@@ -4964,6 +4984,59 @@ deletion",NCSCC_RC_SUCCESS);
               free(eventData);
             }   
         }
+        */
+
+   if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evtHandle, &evt_sel_obj)))
+   {
+      printf("\n EDSv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
+      return;
+   }
+
+   printf("\n EDSv: EDA: Obtained Selection Object Successfully !!! \n");
+   /* Reset the wait select objects */
+   m_NCS_SEL_OBJ_ZERO(&wait_sel_obj);
+
+   /* derive the fd for EVT selection object */
+   m_SET_FD_IN_SEL_OBJ((uns32)evt_sel_obj, evt_ncs_sel_obj);
+
+   /* Set the EVT select object on which EDSv toolkit application waits */
+   m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
+
+  
+   while (m_NCS_SEL_OBJ_SELECT(evt_ncs_sel_obj,&wait_sel_obj,NULL,NULL,NULL) != -1)
+   {
+      /* Process EDSv evt messages */
+      if (m_NCS_SEL_OBJ_ISSET(evt_ncs_sel_obj, &wait_sel_obj))
+      {
+         /* Dispatch all pending messages */
+         printf ("\n EDSv: EDA: Dispatching message received on demo channel\n");
+         
+         /*######################################################################
+                        Demonstrating the usage of saEvtDispatch()
+         ######################################################################*/
+         evt_dispatch(gl_evtHandle);      
+         /* Rcvd the published event, now escape */
+         if(gl_err==1&&gl_subscriptionId==gl_hide)
+         {
+              eventData=(void *)malloc(3); 
+              gl_eventDataSize=3;
+              evt_eventDataGet(gl_eventDeliverHandle);
+              temp=(char *)eventData; 
+            
+              if(memcmp(temp,"end",gl_eventDataSize)==0)    
+                {
+                  free(eventData);
+                  break;
+                }
+              free(eventData);
+          }   
+      }
+
+      /* Again set EVT select object to wait for another callback */
+      m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
+   }
+
+/**************Modify end****************/      
   
       evt_eventFree(gl_eventHandle);
          
@@ -5046,340 +5119,6 @@ void ifsv_result(char *saf_msg,SaAisErrorT ref)
     }
 }
 
-/**************************************************************************/
-/***************************** TET LIST ARRAYS ****************************/
-/**************************************************************************/
-struct tet_testlist ifsv_api_test[]=
-  {
-
-    {tet_interface_add_subscription_loop,1},
-
-    {tet_ncs_ifsv_svc_req_subscribe,2,1},
-    {tet_ncs_ifsv_svc_req_subscribe,2,2},
-#if 0
-    {tet_ncs_ifsv_svc_req_subscribe,2,3},
-#endif
-    {tet_ncs_ifsv_svc_req_subscribe,2,4},
-    {tet_ncs_ifsv_svc_req_subscribe,2,5},
-    {tet_ncs_ifsv_svc_req_subscribe,2,6},
-    {tet_ncs_ifsv_svc_req_subscribe,2,7},
-    {tet_ncs_ifsv_svc_req_subscribe,2,8},
-    {tet_ncs_ifsv_svc_req_subscribe,2,9},
-    {tet_ncs_ifsv_svc_req_subscribe,2,10},
-    {tet_ncs_ifsv_svc_req_subscribe,2,11},
-    {tet_ncs_ifsv_svc_req_subscribe,2,12},
-    {tet_ncs_ifsv_svc_req_subscribe,2,13},
-    {tet_ncs_ifsv_svc_req_subscribe,2,14},
-    {tet_ncs_ifsv_svc_req_subscribe,2,15}, 
-    {tet_ncs_ifsv_svc_req_subscribe,2,16},
-    {tet_ncs_ifsv_svc_req_subscribe,2,17},
-    {tet_ncs_ifsv_svc_req_subscribe,2,18},
-    {tet_ncs_ifsv_svc_req_subscribe,2,19},
-    {tet_ncs_ifsv_svc_req_subscribe,2,20},
-    {tet_ncs_ifsv_svc_req_subscribe,2,21},
-    {tet_ncs_ifsv_svc_req_subscribe,2,22},
-    {tet_ncs_ifsv_svc_req_subscribe,2,23},
-    {tet_ncs_ifsv_svc_req_subscribe,2,24},
-
-    {tet_ncs_ifsv_svc_req_unsubscribe,3,1},
-    {tet_ncs_ifsv_svc_req_unsubscribe,3,2},
-    {tet_ncs_ifsv_svc_req_unsubscribe,3,3},
-    {tet_ncs_ifsv_svc_req_unsubscribe,3,4},
-
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,1},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,2},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,3},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,4},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,5},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,6},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,7},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,8},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,9},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,10},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,11},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,12},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,13},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,14},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,15},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,16},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,17},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,18},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,19},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,20},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,21},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,22},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,23},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,24},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,25},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,26},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,27},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,28},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,29},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,30},
-#if 0
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,31},
-#endif
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,32},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,33},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,34},
-#if 0
-    /*no cases*/
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,35},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,36},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,37},
-#endif
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,38},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,39},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,40},
-    {tet_ncs_ifsv_svc_req_ifrec_add,4,41},
-
-    {tet_ncs_ifsv_svc_req_ifrec_del,5,1},
-    {tet_ncs_ifsv_svc_req_ifrec_del,5,2},
-    {tet_ncs_ifsv_svc_req_ifrec_del,5,3},
-    {tet_ncs_ifsv_svc_req_ifrec_del,5,4},
-    {tet_ncs_ifsv_svc_req_ifrec_del,5,5},
-
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,1},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,2},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,3},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,4},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,5},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,6},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,7},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,8},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,9},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,10},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,11},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,12},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,13},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,14},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,15},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,16},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,17},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,18},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,19},
-    {tet_ncs_ifsv_svc_req_ifrec_get,6,20},
-
-    /*ipxs test cases*/
-    {tet_ncs_ipxs_svc_req_subscribe,7,1},
-    {tet_ncs_ipxs_svc_req_subscribe,7,2},
-    {tet_ncs_ipxs_svc_req_subscribe,7,3},
-    {tet_ncs_ipxs_svc_req_subscribe,7,4},
-    {tet_ncs_ipxs_svc_req_subscribe,7,5},
-    {tet_ncs_ipxs_svc_req_subscribe,7,6},
-    {tet_ncs_ipxs_svc_req_subscribe,7,7},
-#if 0
-    /*why 8 n 9 r commented:not supported scope*/
-    {tet_ncs_ipxs_svc_req_subscribe,7,8},
-    {tet_ncs_ipxs_svc_req_subscribe,7,9},
-#endif
-    {tet_ncs_ipxs_svc_req_subscribe,7,10},
-    {tet_ncs_ipxs_svc_req_subscribe,7,11},
-    {tet_ncs_ipxs_svc_req_subscribe,7,12},
-    {tet_ncs_ipxs_svc_req_subscribe,7,13},
-    {tet_ncs_ipxs_svc_req_subscribe,7,14},
-    {tet_ncs_ipxs_svc_req_subscribe,7,15},
-    {tet_ncs_ipxs_svc_req_subscribe,7,16},
-    {tet_ncs_ipxs_svc_req_subscribe,7,17},
-    {tet_ncs_ipxs_svc_req_subscribe,7,18},
-    {tet_ncs_ipxs_svc_req_subscribe,7,19},
-    {tet_ncs_ipxs_svc_req_subscribe,7,20},
-    {tet_ncs_ipxs_svc_req_subscribe,7,21},
-    {tet_ncs_ipxs_svc_req_subscribe,7,22},
-    {tet_ncs_ipxs_svc_req_subscribe,7,23},
-    {tet_ncs_ipxs_svc_req_subscribe,7,24},
-    {tet_ncs_ipxs_svc_req_subscribe,7,25},
-    {tet_ncs_ipxs_svc_req_subscribe,7,26},
-    {tet_ncs_ipxs_svc_req_subscribe,7,27},
-    {tet_ncs_ipxs_svc_req_subscribe,7,28},
-    {tet_ncs_ipxs_svc_req_subscribe,7,29},
-    {tet_ncs_ipxs_svc_req_subscribe,7,30},
-
-    {tet_ncs_ipxs_svc_req_unsubscribe,8,1},
-    {tet_ncs_ipxs_svc_req_unsubscribe,8,2},
-    {tet_ncs_ipxs_svc_req_unsubscribe,8,3},
-    {tet_ncs_ipxs_svc_req_unsubscribe,8,4},
-
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,1},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,2},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,3},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,4},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,5},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,6},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,7},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,8},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,9},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,10},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,11},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,12},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,13},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,14},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,15},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,16},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,17},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,18},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,19},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,20},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,21},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,22},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,23},
-    {tet_ncs_ipxs_svc_req_ipinfo_get,9,24},
-
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,1},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,2},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,3},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,4},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,5},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,6},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,7},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,8},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,9},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,10},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,11},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,12},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,13},
-    {tet_ncs_ipxs_svc_req_ipinfo_set,10,14},
-
-
-    {NULL,0},
-  };
-
-struct tet_testlist ifsv_func_test[]=
-  {
-#if 0
-    {tet_interface_get_ifIndex,1},
-    {tet_interface_get_SPT,2},
-    {tet_interface_update,4},
-    {tet_interface_add_subscription,5},
-#endif
-    /*External Subscription*/
-    {tet_interface_subscribe,1},
-    {tet_interface_add_subscribe,2},
-    {tet_interface_upd_subscribe,3},
-    {tet_interface_rmv_subscribe,4},
-    {tet_interface_subscribe_all,5}, 
-    /*Internal Subscription*/
-    {tet_interface_int_subscribe,6},
-    {tet_interface_int_add_subscribe,7},
-    {tet_interface_int_upd_subscribe,8},
-    {tet_interface_int_rmv_subscribe,9},
-    {tet_interface_int_subscribe_all,10}, 
-    {tet_interface_add_after_unsubscribe,11},
-    /*Async*/
-    {tet_interface_get_ifindex,12},
-    {tet_interface_get_ifindex_internal,13},
-    {tet_interface_get_spt,14},
-    {tet_interface_get_spt_internal,15},
-    /*Sync*/
-    {tet_interface_get_ifindex_sync,16},
-    {tet_interface_get_ifindex_internal_sync,17},
-    {tet_interface_get_spt_sync,18},
-    {tet_interface_get_spt_internal_sync,19},
-
-    {tet_interface_add,24},
-    {tet_interface_add_internal,25},
-    {tet_interface_update,25},
-
-    /*ipxs*/
-    {tet_interface_subscribe_ipxs,20},
-    {tet_interface_add_subscribe_ipxs,21},
-    {tet_interface_upd_subscribe_ipxs,22},
-    {tet_interface_rmv_subscribe_ipxs,23},
-
-    {tet_interface_add_ipxs,26},
-    {tet_interface_addip_ipxs,27},
-    /*Async*/
-    {tet_interface_get_ifindex_ipxs,28},
-    {tet_interface_get_spt_ipxs,29},
-    {tet_interface_get_ipaddr_ipxs,30},
-    /*Sync*/
-    {tet_interface_get_sync_ifindex_ipxs,31}, /*fail*/
-    {tet_interface_get_sync_spt_ipxs,32},
-    {tet_interface_get_sync_ipaddr_ipxs,33},
-
-    {tet_interface_disable,34},
-    {tet_interface_enable,35},
-    {tet_interface_modify,36},
-    {tet_interface_seq_alloc,37},
-    {tet_interface_timer_aging,38},
-#if subscription_loop == 1
-    {tet_interface_addip_ipxs_loop,39},
-#endif
-    {NULL,0},
-  };
-
-struct tet_testlist driver_api_test[]=
-  {
-    {tet_ncs_ifsv_drv_svc_init_req,1,1},
-    {tet_ncs_ifsv_drv_svc_init_req,1,2},
-    {tet_ncs_ifsv_drv_svc_init_req,1,3},
-    {tet_ncs_ifsv_drv_svc_destroy_req,2,1},
-    {tet_ncs_ifsv_drv_svc_destroy_req,2,2},
-    {tet_ncs_ifsv_drv_svc_destroy_req,2,3},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,1},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,2},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,3},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,4},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,5},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,6},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,7},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,8},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,9},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,10},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,11},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,12},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,13},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,14},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,15},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,16},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,17},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,18},
-    {tet_ncs_ifsv_drv_svc_port_reg,3,19},
-    {tet_ncs_ifsv_drv_svc_send_req,4,1},
-    {tet_ncs_ifsv_drv_svc_send_req,4,2},
-    {tet_ncs_ifsv_drv_svc_send_req,4,3},/* run this seperately */
-    {NULL,0},
-  };
-
-struct tet_testlist driver_func_test[]=
-  {
-    {tet_ifsv_driver_add_interface,1},
-    {tet_ifsv_driver_add_multiple_interface,2},
-    {tet_ifsv_driver_disable_interface,3},
-    {tet_ifsv_driver_enable_interface,4},
-    {tet_ifsv_driver_modify_interface,5},
-    {tet_ifsv_driver_seq_alloc,6},
-    {tet_ifsv_driver_timer_aging,7},
-    {NULL,0},
-  };
-
-
-struct tet_testlist *ifsv_testlist[]={
-  [IFSV_API_TEST]=ifsv_api_test,
-  [IFSV_FUNC_TEST]=ifsv_func_test,
-};
-
-struct tet_testlist *ifsv_driver_testlist[]={
-  [IFSV_API_TEST]=driver_api_test,
-  [IFSV_FUNC_TEST]=driver_func_test,
-};
-
-void tet_ifsv_startup()
-{
-  /*First Truncate the file bond.text*/
-  FILE *fp;
-  char inputfile[]="/opt/opensaf/tetware/ifsv/suites/bond.text";
-  if( (fp= fopen(inputfile,"w")) == NULL)
-    perror("File not opened");
-  else
-    {
-      if(fclose(fp)==EOF)
-        perror("File not closed");
-    }
-  /*Now run*/
-  tet_run_ifsv_app();
-}
-
 
 void gl_ifsv_defs()
 {
@@ -5451,110 +5190,5 @@ void gl_ifsv_defs()
   printf("\n\n********************\n");
 }
 
-void tet_run_ifsv_app()
-{
-  int iterCount,listCount;
-  char *temp=NULL;
 
-  gl_ifsv_defs();
-
-  temp=(char *)getenv("TET_SHELF_ID");
-  shelf_id=atoi(temp);
-
-  temp=(char *)getenv("TET_SLOT_ID");
-  slot_id=atoi(temp);
-
-  tware_mem_ign();
-
-#ifdef TET_A
-
-#if 0
-
-  req_info=(NCS_IFSV_SVC_REQ *)malloc(sizeof(NCS_IFSV_SVC_REQ));
-  
-  info=(NCS_IPXS_SVC_REQ *)malloc(sizeof(NCS_IPXS_REQ_INFO));
-
-  memset(req_info,'\0',sizeof(NCS_IFSV_SVC_REQ));
-
-  memset(info,'\0',sizeof(NCS_IPXS_REQ_INFO));
-
-#endif
-
-   
-
-  for(iterCount=1;iterCount<=gl_iteration;iterCount++)
-    {
-      if(gl_listNumber==-1)
-        {
-            
-              for(listCount=1;listCount<3;listCount++)
-                {
-                  tet_test_start(gl_tCase,ifsv_testlist[listCount]);
-                }
-            
-        }
-      else
-        {
-          if(gl_listNumber<3) 
-            {
-              tet_test_start(gl_tCase,ifsv_testlist[gl_listNumber]);
-            }
-        }
-        
-      printf("\nNumber of iterations: %d",iterCount);
-      tet_printf("\nNumber of iterations: %d",iterCount);
-#if 0
-      sleep(5);
-#endif
-    }
-
-#endif
-      
-#ifdef TET_DRIVER
-
-#if 0
-
-  drv_info=(NCS_IFSV_DRV_SVC_REQ *)malloc(sizeof(NCS_IFSV_DRV_SVC_REQ));
-
-  memset(info,'\0',sizeof(NCS_IFSV_DRV_SVC_REQ));
-
-#endif
-
-  for(iterCount=1;iterCount<=gl_iteration;iterCount++)
-    {
-      if(gl_listNumber==-1)
-        {
-          for(listCount=1;listCount<3;listCount++)
-            {
-              tet_test_start(gl_tCase,ifsv_driver_testlist[listCount]);
-            }
-        }
-      else
-        {
-          if(gl_listNumber<3)
-            {
-              tet_test_start(gl_tCase,ifsv_driver_testlist[gl_listNumber]);
-            }
-        }
-      printf("\nNumber of iterations: %d",iterCount);
-      tet_printf("\nNumber of iterations: %d",iterCount);
-#if 0
-      sleep(5);
-#endif
-    }
-
-#endif
-
-  printf("\nPRESS ENTER TO GET MEM DUMP");
-  getchar();
-  if(cmpip.info.add.i_ipinfo!=NULL)
-    {
-      free(cmpip.info.add.i_ipinfo); 
-      cmpip.info.add.i_ipinfo=NULL;
-    }
-  tware_mem_dump();
-  sleep(2);
-  tware_mem_dump();
-  tet_test_cleanup(); 
-}
 

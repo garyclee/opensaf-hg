@@ -1,8 +1,0 @@
-all
-	"Start executing..."
-         :parallel:
-            :remote,1:
-             /reg_vip.sh
-            :endremote:
-         :endparallel:
-        "completed"

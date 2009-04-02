@@ -845,6 +845,7 @@ typedef struct tet_cpsv_inst {
  void cpsv_it_seccreate_15(void);
  void cpsv_it_seccreate_16(void);
  void cpsv_it_seccreate_17(void);
+ void cpsv_it_seccreate_18();
  void cpsv_it_secdel_01(void);
  void cpsv_it_secdel_02(void);
  void cpsv_it_secdel_03(void);
