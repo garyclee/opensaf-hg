@@ -174,9 +174,10 @@ uns32 dta_svc_create(NCSDTA_CREATE* create)
 
     m_DTA_UNLK(&inst->lock);
 
-    if (dts_sync_up_flag){
-    /* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
-    m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
+    if (dts_sync_up_flag && inst->dts_exist)
+    {
+        /* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
+        m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
     }
 
     m_DTA_LK(&inst->lock); 
