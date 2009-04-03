@@ -840,6 +840,18 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
             sprintf(hpi_entity_path_buffer, "{COOLING_UNIT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
 
+            case SAHPI_ENT_FAN:
+            sprintf(hpi_entity_path_buffer, "{FAN,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_DISPLAY_PANEL:
+            sprintf(hpi_entity_path_buffer, "{DISPLAY_PANEL,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
+            case SAHPI_ENT_POWER_MGMNT:
+            sprintf(hpi_entity_path_buffer, "{POWER_MGMNT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
+            break;
+
             case SAHPI_ENT_POWER_SUPPLY:
             sprintf(hpi_entity_path_buffer, "{POWER_SUPPLY,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
             break;
@@ -854,6 +866,7 @@ edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
 
             default:
             sprintf(hpi_entity_path_buffer, "{UNKNOWN,0}"); 
+            printf("***** Unknown entity type: %d\n", hpi_event->entity_path.Entry[i].EntityType);
             break; 
          }
          strcpy(hpi_entity_path[i], hpi_entity_path_buffer);
