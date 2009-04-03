@@ -104,6 +104,10 @@ create_rootfs()
     install /usr/bin/pgrep usr/bin
     install /usr/bin/pkill usr/bin
     install /usr/bin/killall usr/bin
+
+    # Needed by dtsv archive rotation
+    install /bin/tar bin
+    install /usr/bin/nice usr/bin
     
     echo "Resolve bash dependencies"
     cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | \
