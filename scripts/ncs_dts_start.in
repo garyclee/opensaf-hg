@@ -16,6 +16,8 @@
 # Author(s): Emerson Network Power
 #
 
+echo "`date`: $0 $*"
+
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 XTERM=""
@@ -28,9 +30,43 @@ DAEMON=ncs_dts
 PIDFILE=ncs_dts.pid
 COMPNAMEFILE="$LOCALSTATEDIR/ncs_dts_comp_name"
 NID_SVC_NAME=DTSV
+MAX_ARCHIVES=${DTSV_MAX_ARCHIVES:-0}
 
-echo "Executing DTSv init-script..."
-echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
+archives_rotate()
+{
+    local archives_dir=${NCS_LOG_PATH}/archives
+    local files_from=/tmp/opensaf_dtsv_files
+
+    mkdir -p $archives_dir
+
+    # Take a snapshot of the current set of files and store away
+    (cd ${NCS_LOG_PATH};ls *.log) > $files_from
+
+    # Remove oldest archive
+    oldest_arch=`ls ${archives_dir}/dtsv_*.tgz.$MAX_ARCHIVES 2> /dev/null`
+    if [ $? -eq 0 ]; then
+        echo "  removing oldest archive `basename $oldest_arch`"
+        rm -f $oldest_arch
+    fi
+
+    # Rename inbetween archives
+    cnt=$MAX_ARCHIVES
+    while [ $cnt -gt 1 ]; do
+        old=$cnt
+        let cnt-=1
+        curr_file=`ls ${archives_dir}/dtsv_*.tgz.$cnt 2> /dev/null`
+        if [ $? -eq 0 ]; then
+            old_file=${curr_file%%tgz.$cnt}tgz.$old
+            echo "  renaming `basename $curr_file` to `basename $old_file`"
+            mv $curr_file $old_file
+        fi
+    done
+
+    # Create new archive in background
+    filename=${archives_dir}/dtsv_`date +%G%m%d_%H%M%S`.tgz.1
+    echo "  archiving current files into `basename $filename`"
+    nice -19 tar -C ${NCS_LOG_PATH} -czf ${filename} --files-from=$files_from --remove-files &
+}
 
 #Function to start/spawn a service.
 start()
@@ -44,6 +80,13 @@ start()
        exit 1
     fi
     killall ncs_dts
+
+    # Active HA role means cold/system/cluster restart => 
+    # rotate archives if configured to.
+    if [ "$1" == "ROLE=1" ] && [ ${MAX_ARCHIVES} -gt 0 ]; then
+        archives_rotate
+    fi
+
     rm -f $PIDPATH/$PIDFILE
     $XTERM "$LIBPATH/ncs_dts" "$*" >"$NCS_STDOUTS_PATH/ncs_dts.log" 2>&1 &
     echo "Starting $DESC: $LIBPATH/$DAEMON";

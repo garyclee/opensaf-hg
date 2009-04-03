@@ -11,6 +11,16 @@ BINPATH="xxBINDIRxx"
 LIBPATH="xxLIBDIRxx"
 
 #########################################
+# DTSv configuration
+#########################################
+# Number of archives with dtsv files from old lives that should be stored
+# in the ${NCS_LOG_PATH}/archives directory. Every cluster restart is a new
+# life.
+# Uncomment this line if you want archive management and rotation.
+# Edit this line if you to change number of archives kept on disk.
+#DTSV_MAX_ARCHIVES=8
+
+#########################################
 # TIPC configuration
 #########################################
 TIPC_MODULE="/lib/modules/$(uname -r)/kernel/net/tipc.ko"
