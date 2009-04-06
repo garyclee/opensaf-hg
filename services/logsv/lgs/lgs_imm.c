@@ -313,8 +313,16 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle,
             }
             else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat"))
             {
+                SaBoolT dummy;
                 char *logFileFormat = *((char**) value);
                 TRACE("logFileFormat: %s", logFileFormat);
+
+                if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy))
+                {
+                    LOG_ER("Invalid logFileFormat: %s", logFileFormat);
+                    rc = SA_AIS_ERR_BAD_OPERATION;
+                    goto done;
+                }
             }
             else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter"))
             {
@@ -418,7 +426,9 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
             else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat"))
             {
                 char *logFileFormat = *((char**) value);
-                strcpy(stream->logFileFormat, logFileFormat);
+                if (stream->logFileFormat != NULL)
+                    free(stream->logFileFormat);
+                stream->logFileFormat = strdup(logFileFormat);
             }
             else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter"))
             {
@@ -594,7 +604,22 @@ static SaAisErrorT stream_create_and_configure(
         }
         else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat"))
         {
-            strcpy(stream->logFileFormat, *((char**) value));
+            SaBoolT dummy;
+            char *logFileFormat = *((char**) value);
+            if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy))
+            {
+                LOG_WA("Invalid logFileFormat for stream %s, using default", stream->name);
+
+                if ((stream->streamType == STREAM_TYPE_SYSTEM) || 
+                    (stream->streamType == STREAM_TYPE_APPLICATION))
+                    logFileFormat = DEFAULT_APP_SYS_FORMAT_EXP;
+
+                if ((stream->streamType == STREAM_TYPE_ALARM) || 
+                     (stream->streamType == STREAM_TYPE_NOTIFICATION))
+                    logFileFormat = DEFAULT_ALM_NOT_FORMAT_EXP;
+            }
+
+            stream->logFileFormat = strdup(logFileFormat);
             TRACE("logFileFormat: %s", stream->logFileFormat);
         }
         else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter"))
@@ -608,7 +633,7 @@ static SaAisErrorT stream_create_and_configure(
     stream->streamType = stream_id;
 
     if (stream->logFileFormat == NULL)
-        stream->logFileFormat = log_file_format[stream->streamType];
+        stream->logFileFormat = strdup(log_file_format[stream->streamType]);
 
     (void) immutil_saImmOmAccessorFinalize(accessorHandle);
     (void) immutil_saImmOmFinalize(omHandle);
