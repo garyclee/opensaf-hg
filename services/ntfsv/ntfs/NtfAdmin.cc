@@ -67,8 +67,8 @@ void NtfAdmin::clientAdded(unsigned int clientId,
 {
     SaAisErrorT rc = SA_AIS_OK;
 
-    if (clientId == 0)
-    {
+    if (clientId == 0) /* clientId == 0, means this is a new client */
+    {                
         clientIdCounter++;
         if (clientIdCounter == 0)
             clientIdCounter++;
