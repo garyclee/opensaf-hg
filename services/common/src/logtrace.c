@@ -46,7 +46,7 @@ static void output(const char* file, unsigned int line, int priority, int catego
     char preamble[512];
     char log_string[1024];
 
-    assert(priority <= LOG_DEBUG && category < CATEGORY_MAX);
+    assert(priority <= LOG_DEBUG && category < CAT_MAX);
 
     /* Create a nice syslog looking date string */
     gettimeofday(&tv, NULL);
@@ -67,28 +67,30 @@ static void output(const char* file, unsigned int line, int priority, int catego
 
     if (trace_fd != -1)
         write(trace_fd, log_string, i);
-
-    /* Do not trace to syslog, allow logging although tracing is not enabled */
-    if (priority < LOG_DEBUG)
-        syslog(priority, &log_string[preamble_len]);
 }
 
-void _log(const char* file, unsigned int line, int priority,
-          const char *format, ...)
+void _logtrace_log(const char* file, unsigned int line, int priority,
+    const char *format, ...)
 {
     va_list ap;
 
     va_start(ap, format);
-    output(file, line, priority, 0, format, ap);
+
+    /* Uncondionally send to syslog */
+    vsyslog(priority, format, ap);
+
+    /* Only output to file if configured to */
+    if (!(category_mask & (1 << CAT_LOG)))
+        return;
+
+    output(file, line, priority, CAT_LOG, format, ap);
     va_end(ap);
 }
 
-void _trace(const char* file, unsigned int line,
-            unsigned int category, const char *format, ...)
+void _logtrace_trace(const char* file, unsigned int line,
+    unsigned int category, const char *format, ...)
 {
     va_list ap;
-
-    assert(category < CATEGORY_MAX);
 
     /* Filter on category */
     if (!(category_mask & (1 << category)))
