@@ -201,6 +201,12 @@ void alarmNotificationTest(void)
 
     /* set probable cause*/
     *(myAlarmNotification.probableCause) = SA_NTF_BANDWIDTH_REDUCED;
+    *myAlarmNotification.trend = SA_NTF_TREND_MORE_SEVERE;
+    myAlarmNotification.thresholdInformation->thresholdValueType = SA_NTF_VALUE_UINT32;
+    myAlarmNotification.thresholdInformation->thresholdValue.uint32Val = 600;
+    myAlarmNotification.thresholdInformation->thresholdHysteresis.uint32Val = 100;
+    myAlarmNotification.thresholdInformation->observedValue.uint32Val = 567;
+    myAlarmNotification.thresholdInformation->armTime = SA_TIME_UNKNOWN;
 
     safassert(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK);
 
@@ -241,7 +247,7 @@ void alarmNotificationTest2(void)
     int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
     subscriptionId = 1;
-
+    int i;
     rc = SA_AIS_OK;
 
     resetCounters();
@@ -284,9 +290,9 @@ void alarmNotificationTest2(void)
 	safassert(saNtfAlarmNotificationAllocate(
 			ntfHandle,
 			&myAlarmNotification,
-			0,
+			2,
 			(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
-			0,
+			2,
 			3,
 			2,
 			3,
@@ -328,6 +334,28 @@ void alarmNotificationTest2(void)
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_INT32;
     myAlarmNotification.proposedRepairActions[0].actionValue.int32Val = 456;
 
+    for (i = 0; i < myAlarmNotification.numSpecificProblems; i++)
+    {
+        myAlarmNotification.specificProblems[i].problemId = i;
+        myAlarmNotification.specificProblems[i].problemClassId.majorId = 1;
+        myAlarmNotification.specificProblems[i].problemClassId.minorId = 2;
+        myAlarmNotification.specificProblems[i].problemClassId.vendorId = 33;
+        myAlarmNotification.specificProblems[i].problemType = SA_NTF_VALUE_UINT32;
+        myAlarmNotification.specificProblems[i].problemValue.uint32Val = (SaUint32T)(600+i);
+    }
+
+    for (i = 0; i < myAlarmNotification.numProposedRepairActions; i++)
+    {
+        myAlarmNotification.proposedRepairActions[i].actionId = i;
+        myAlarmNotification.proposedRepairActions[i].actionValueType = SA_NTF_VALUE_UINT32;
+        myAlarmNotification.proposedRepairActions[i].actionValue.uint32Val = (SaUint32T)(700+i);
+    }
+    *myAlarmNotification.trend = SA_NTF_TREND_MORE_SEVERE;
+    myAlarmNotification.thresholdInformation->thresholdValueType = SA_NTF_VALUE_UINT32;
+    myAlarmNotification.thresholdInformation->thresholdValue.uint32Val = 600;
+    myAlarmNotification.thresholdInformation->thresholdHysteresis.uint32Val = 100;
+    myAlarmNotification.thresholdInformation->observedValue.uint32Val = 567;
+    myAlarmNotification.thresholdInformation->armTime = SA_TIME_UNKNOWN;
 
     safassert(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK);
 

@@ -507,6 +507,8 @@ int cmpSaNtfValueT(const SaNtfValueTypeT type,
  * @params *head
  */
 void fillHeader(SaNtfNotificationHeaderT *head) {
+        int i;
+
 	*(head->eventType) = SA_NTF_ALARM_COMMUNICATION;
 	*(head->eventTime) = SA_TIME_UNKNOWN;
 
@@ -529,6 +531,18 @@ void fillHeader(SaNtfNotificationHeaderT *head) {
     (void)strncpy(head->additionalText,
     		DEFAULT_ADDITIONAL_TEXT,
     		(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1));
+
+    for (i = 0; i < head->numCorrelatedNotifications; i++)
+    {
+        head->correlatedNotifications[i] = (SaNtfIdentifierT) (i + 400);
+    }
+
+    for (i = 0; i < head->numAdditionalInfo; i++)
+    {
+        head->additionalInfo[i].infoId = i; 
+        head->additionalInfo[i].infoType = SA_NTF_VALUE_INT32; 
+        head->additionalInfo[i].infoValue.int32Val = 444 + i; 
+    }
 }
 
 
@@ -556,7 +570,7 @@ int verifyNotificationHeader( const SaNtfNotificationHeaderT *head1,
 			head2->additionalText,
 			head1->lengthAdditionalText) == 0);
 
-    if((errors += assertvalue(head1->numCorrelatedNotifications ==	head2->numCorrelatedNotifications)) == 0) {
+    if((errors += assertvalue(head1->numCorrelatedNotifications == head2->numCorrelatedNotifications)) == 0) {
     	for(iCount = 0; iCount < head1->numCorrelatedNotifications; iCount++) {
     		errors += assertvalue(head1->correlatedNotifications[iCount] ==	head2->correlatedNotifications[iCount]);
     	}
