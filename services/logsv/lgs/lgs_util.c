@@ -182,31 +182,6 @@ SaTimeT lgs_get_SaTime(void)
     return time(NULL) * SA_TIME_ONE_SECOND;
 }
 
-int lgs_dir_exist(char *baseDir)
-{
-    int rv=-1;
-    struct stat statbuf;
-
-    rv=stat(baseDir, &statbuf);
-    if (rv ==-1)
-    {
-        return 0;
-    }
-    else
-    {
-        if (S_ISDIR(statbuf.st_mode))
-        {
-            return 1;
-        }
-        else
-        {
-            TRACE(" File exists but is not a directory");
-            return -1;
-        }
-    }
-
-}
-
 /**
  * Rename a file to include a timestamp in the name
  * @param path
@@ -233,30 +208,6 @@ int lgs_file_rename(const char *path, const char *old_name,
         LOG_ER("rename: FAILED - %s",  strerror(errno));
 
     return ret;
-}
-
-int lgs_file_exist(const char *i_filename)
-{
-  int rv;
-  struct stat statbuf;
-
-  rv=stat(i_filename, &statbuf);
-  if (rv ==-1)
-  {
-    return 0;
-  }
-  else
-  {
-    if (S_ISREG(statbuf.st_mode))
-    {
-      return 1;
-    }
-    else
-    {
-      TRACE("File %s is not a regular file\n", i_filename);
-      return 0;
-    }
-  }
 }
 
 void lgs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr)
