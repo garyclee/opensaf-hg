@@ -402,7 +402,7 @@ static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
     /* Process the received event at IMMA */
     imma_process_evt(cb, evt);
 
-    /*Note: we are 87.5% sure, that pointer structures have been free'd :-) */
+    /*Note: Pointer structures are freed in imma_proc_free_pointers  */
     free(evt);
 
     return NCSCC_RC_SUCCESS;

@@ -425,8 +425,9 @@ static void createImmObject(ParserState* state)
     state->objectName = NULL;
 
     /* Free the DN attrName later since it's re-used */
-    //    free(attrValues[i]->attrValues);
-    //    free(attrValues);
+    /*free(attrValues[i]->attrValues);*/
+    free(attrValues[i]);
+    free(attrValues);
 
 
     for (it = state->attrValues.begin();

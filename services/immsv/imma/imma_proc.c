@@ -24,6 +24,12 @@
 
 #include "imma.h"
 #include "immsv_api.h"
+#include <string.h>
+
+/* For some reason I have to declare the strnlen function prototype.
+   It does not help to include string.h */
+size_t strnlen(const char *s, size_t maxlen);
+
 
 static void imma_process_callback_info(IMMA_CB *cb, 
                                        IMMA_CLIENT_NODE *cl_node,
@@ -885,6 +891,85 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
     TRACE_LEAVE();
 }
 
+void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
+{
+    TRACE_ENTER();
+    switch (evt->type)
+    {
+        case IMMA_EVT_ND2A_IMM_ADMOP:
+            /*TODO See TODO 12345 code repeated (almost) in imma_om_api.c
+              free-1*/
+            if(evt->info.admOpReq.objectName.size) {
+                free(evt->info.admOpReq.objectName.buf);
+                evt->info.admOpReq.objectName.buf = NULL;
+                evt->info.admOpReq.objectName.size = 0;
+            }
+            while(evt->info.admOpReq.params) {
+                IMMSV_ADMIN_OPERATION_PARAM* p = evt->info.admOpReq.params;
+                evt->info.admOpReq.params = p->next;
+
+                if(p->paramName.buf) { /*free-3*/
+                    free(p->paramName.buf);
+                    p->paramName.buf = NULL;
+                    p->paramName.size = 0;
+                }
+                immsv_evt_free_att_val(&(p->paramBuffer), p->paramType); /*free-4*/
+                p->next=NULL;
+                free(p); /*free-2*/
+            }
+            break;
+
+        case IMMA_EVT_ND2A_ADMOP_RSP: 
+            break;
+
+        case IMMA_EVT_ND2A_SEARCH_REMOTE:
+            free(evt->info.searchRemote.objectName.buf);
+            evt->info.searchRemote.objectName.buf=NULL;
+            evt->info.searchRemote.objectName.size=0;
+            immsv_evt_free_attrNames(evt->info.searchRemote.attributeNames);
+            evt->info.searchRemote.attributeNames = NULL;
+            break;
+
+        case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC:
+            free(evt->info.objCreate.className.buf);
+            evt->info.objCreate.className.buf = NULL;
+            evt->info.objCreate.className.size = 0;
+
+            free(evt->info.objCreate.parentName.buf);
+            evt->info.objCreate.parentName.buf = NULL;
+            evt->info.objCreate.parentName.size = 0;
+
+            immsv_free_attrvalues_list(evt->info.objCreate.attrValues);
+            evt->info.objCreate.attrValues = NULL;
+            break;
+
+        case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC:
+            free(evt->info.objDelete.objectName.buf);
+            evt->info.objDelete.objectName.buf = NULL;
+            evt->info.objDelete.objectName.size = 0;
+            break;
+
+        case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC:
+            free(evt->info.objModify.objectName.buf);
+            evt->info.objModify.objectName.buf = NULL;
+            evt->info.objModify.objectName.size = 0;
+
+            immsv_free_attrmods(evt->info.objModify.attrMods);
+            evt->info.objModify.attrMods = NULL;
+            break;
+
+        case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC:
+        case IMMA_EVT_ND2A_OI_CCB_APPLY_UC:
+        case IMMA_EVT_ND2A_OI_CCB_ABORT_UC:
+            break;
+
+        default:
+            TRACE("Unknown event type %u", evt->type);
+            break;
+    }
+    TRACE_LEAVE();
+}
+
 /****************************************************************************
   Name          : imma_process_evt
   Description   : This routine will process the callback event received from
@@ -939,6 +1024,7 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
             TRACE("Unknown event type %u", evt->info.imma.type);
             break;
     }
+    imma_proc_free_pointers(cb, &evt->info.imma);
     return;
 }
 

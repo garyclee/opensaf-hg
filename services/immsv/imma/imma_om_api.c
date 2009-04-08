@@ -1299,7 +1299,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
         {
             TRACE_2("Attribute name too long");
             rc = SA_AIS_ERR_INVALID_PARAM;
-            /*We leak a bit of memory here, but this is a user error case*/
+            free(p);
             goto mds_send_fail;
         }
 
@@ -2204,8 +2204,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
         {
             TRACE_2("Param name too long");
             rc = SA_AIS_ERR_INVALID_PARAM;
-            /* We leak a bit of memory here, but this is an interface 
-           error case */
+            free(p);
             goto mds_send_fail;
         }
         /*alloc-3*/
@@ -2506,8 +2505,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
         {
             TRACE_2("Param name too long");
             rc = SA_AIS_ERR_INVALID_PARAM;
-            /* We leak a bit of memory here, but this is an interface 
-               error case */
+            free(p);
             goto mds_send_fail;
         }
 
@@ -2805,6 +2803,7 @@ SaAisErrorT saImmOmClassCreate_2 (
             rc = SA_AIS_ERR_INVALID_PARAM;
             TRACE("Zero length attribute name in class %s def, not allowed.",
                 evt.info.immnd.info.classDescr.className.buf);
+            free(p);
             goto mds_send_fail;
         }
         p->d.attrName.buf = malloc(p->d.attrName.size);/* alloc-3*/
@@ -2816,6 +2815,7 @@ SaAisErrorT saImmOmClassCreate_2 (
             TRACE("Unknown type not allowed for attr:%s class%s",
                 p->d.attrName.buf, 
                 evt.info.immnd.info.classDescr.className.buf);
+            free(p);
             goto mds_send_fail;
         }
         p->d.attrFlags = attr->attrFlags;
@@ -3720,6 +3720,8 @@ SaAisErrorT saImmOmAccessorFinalize (SaImmAccessorHandleT accessorHandle)
     IMMA_SEARCH_NODE *search_node = NULL;
     uns32           proc_rc = NCSCC_RC_SUCCESS;
 
+    TRACE_ENTER();
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -3766,6 +3768,7 @@ SaAisErrorT saImmOmAccessorFinalize (SaImmAccessorHandleT accessorHandle)
     }
 
     release_cb:
+    TRACE_LEAVE();
     return rc;
 }
 
@@ -4001,7 +4004,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
         {
             TRACE_1("Attribute name too long: %u",  p->n.attrName.size);
             rc = SA_AIS_ERR_INVALID_PARAM;
-            /* We leak memory here, but this is an interface violation case.*/
+            free(p);
             goto mds_send_fail;
         }
 
