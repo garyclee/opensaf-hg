@@ -95,7 +95,7 @@ static void usage(void)
     printf("  -e or --eventType=16384...16389           numeric value of SaNtfEventTypeT\n");
     printf("                                            (SA_NTF_ALARM_NOTIFICATIONS_START...SA_NTF_ALARM_ENVIRONMENT)\n");
     printf("  -E or --eventTime=TIME                    numeric value of SaTimeT\n");
-    printf("  -c or --notificationClassId=VE MA MI      vendorid, majorid, minorid\n");
+    printf("  -c or --notificationClassId=VE,MA,MI      vendorid, majorid, minorid\n");
     printf("  -n or --notificationObject=NOT_OBJ        notification object (string value)\n");
     printf("  -N or --notifyingObject=NOTIFY_OBJ        notififying object (string value)\n");
     printf("  -a or --additionalText=TEXT               additional text (string value)\n");
@@ -906,11 +906,30 @@ static SaAisErrorT
     return SA_AIS_OK;
 }
 
+int get_long_digit(char* str, long *val)
+{
+    char *endptr;
+    errno = 0;    /* To distinguish success/failure after call */
+    *val = strtol(str, &endptr, 0);
+    /* Check for various possible errors */
+    if ((errno == ERANGE && (*val == LONG_MAX || *val == LONG_MIN))
+        || (errno != 0 && *val == 0)) {
+        perror("strtol");
+               return 0;
+    }
+    if (endptr == str) {
+        fprintf(stderr, "No digits were found\n");
+        return 0;
+    }
+    if (*endptr != '\0') /* other chars than digits */  
+        return 0;
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
     long value;
     char *endptr;
-    char c;
     int current_option;
     SaBoolT optionFlag = SA_FALSE;
 
@@ -962,7 +981,7 @@ int main(int argc, char *argv[])
                         (SaStringT)malloc(
                         myNotificationAllocationParams.lengthAdditionalText);
 
-                    (void)strncpy(
+                    (void)strncpy(  
                         myNotificationParams.additionalText,
                         optarg,
                         myNotificationAllocationParams.lengthAdditionalText);
@@ -972,26 +991,38 @@ int main(int argc, char *argv[])
                     myNotificationParams.burstTimeout = (SaInt32T) atoi(optarg);
                     break;
                 case 'c' :
-                    myNotificationParams.notificationClassId.vendorId =
-                        (SaUint32T) atoi(optarg);
-                    if (argv[optind + 1])
                     {
-                        c = (char) *(argv[optind + 1]);
-                        if (isdigit(c))
+                        long val;
+                        char *p = strdup(optarg);
+                        char *vendorId = strtok(p, ",");
+                        char *majorId = strtok(NULL, ",");
+                        char *minorId = strtok(NULL, ",");
+                        if(NULL == vendorId || NULL == majorId || NULL == minorId){
+                            fprintf(stderr, "notificationClassId wrong format\n");
+                            exit(EXIT_FAILURE);                           
+                        }
+                        if (get_long_digit(vendorId, &val)){
+                            myNotificationParams.notificationClassId.vendorId =
+                            (SaUint32T) val;
+                        } else {
+                            fprintf(stderr, "notificationClassId vendorId wrong format\n");
+                            exit(EXIT_FAILURE);                           
+                        }
+                        if (get_long_digit(majorId, &val) && (0 <= val && val <= USHRT_MAX)){
                             myNotificationParams.notificationClassId.majorId =
-                                (SaUint16T) atoi(argv[optind + 1]);
-                        else
-                            break;
-                    }
-
-                    if (argv[optind + 2])
-                    {
-                        c = (char) *(argv[optind + 2]);
-                        if (isdigit(c))
+                            (SaUint16T) val;
+                        } else {
+                            fprintf(stderr, "notificationClassId majorId wrong format\n");
+                            exit(EXIT_FAILURE);                           
+                        } 
+                        if (get_long_digit(minorId, &val) && (0 <= val && val <= USHRT_MAX)){
                             myNotificationParams.notificationClassId.minorId =
-                                (SaUint16T) atoi(argv[optind + 2]);
-                        else
-                            break;
+                            (SaUint16T) val;
+                        } else {
+                            fprintf(stderr, "notificationClassId minorId wrong format\n");
+                            exit(EXIT_FAILURE);
+                        }
+                        free(p);
                     }
                     break;
                 case 'n' :
@@ -1059,7 +1090,12 @@ int main(int argc, char *argv[])
                     break;
             }
         }
-
+        if (optind < argc) {
+            fprintf(stderr, "non-option ARGV-elements: ");
+            while (optind < argc)
+                fprintf(stderr,"%s \n", argv[optind++]);
+            exit(EXIT_FAILURE);        
+        }
         if ((optionFlag == SA_FALSE) && (argc >= 3))
         {
             usage();
