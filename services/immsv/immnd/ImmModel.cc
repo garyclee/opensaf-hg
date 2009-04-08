@@ -128,7 +128,7 @@ typedef SaUint32T ImmObjectFlags;
 
 struct ObjectInfo  
 {
-    void             getAdminOwnerName(std::string& str) const;
+    void             getAdminOwnerName(std::string *str) const;
     
     ImmAttrValue*    mAdminOwnerAttrVal; //Pointer INTO mAttrValueMap
     //CcbInfo* mCcb;    //<- Points INTO CcbVector.
@@ -142,14 +142,13 @@ struct ObjectInfo
 typedef std::set<ObjectInfo*> ObjectSet;
 
 void
-ObjectInfo::getAdminOwnerName(std::string& str) const
+ObjectInfo::getAdminOwnerName(std::string *str) const
 {
     assert(this->mAdminOwnerAttrVal);
-    if(this->mAdminOwnerAttrVal->getValueC_str()) {
-        str.assign(this->mAdminOwnerAttrVal->getValueC_str());
-    } else {
-        str.clear();
-    }
+    str->clear();
+    if(!(this->mAdminOwnerAttrVal->empty())) {
+        str->assign(this->mAdminOwnerAttrVal->getValueC_str());
+    } 
 }
 
 typedef enum {
@@ -1512,6 +1511,9 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                     }
                 }
                 err = attrCreate(classInfo, attr);
+                if(err != SA_AIS_OK) {
+                    illegal = 1;
+                }
                 list = list->next;
             }
             
@@ -1531,6 +1533,14 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                 TRACE_7("Problem with class '%s'", className.c_str());
                 
                 err = SA_AIS_ERR_INVALID_PARAM;
+
+                while(classInfo->mAttrMap.size()) {
+                    AttrMap::iterator ai = classInfo->mAttrMap.begin();
+                    AttrInfo* ainfo = ai->second;
+                    assert(ainfo);
+                    delete(ainfo);
+                    classInfo->mAttrMap.erase(ai);
+                }
                 delete classInfo;
             } else {
                 sClassMap[className] = classInfo;
@@ -1620,7 +1630,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr)
             attrInfo->mFlags = attr->attrFlags;
             attrInfo->mNtfId = attr->attrNtfId;
             if(attr->attrDefaultValue) {
-                IMMSV_OCTET_STRING tmpos; //tmpemporary octet string
+                IMMSV_OCTET_STRING tmpos; //temporary octet string
                 eduAtValToOs(&tmpos, attr->attrDefaultValue,
                     (SaImmValueTypeT) attr->attrValueType);
                 attrInfo->mDefaultValue.setValue(tmpos);
@@ -2776,7 +2786,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     
     if (parent) {
         std::string parentAdminOwnerName;
-        parent->getAdminOwnerName(parentAdminOwnerName);
+        parent->getAdminOwnerName(&parentAdminOwnerName);
         if((parentAdminOwnerName != adminOwner->mAdminOwnerName) && 
             !isLoading) {
             TRACE_7("parent object not owned by '%s'", 
@@ -3287,7 +3297,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     
     object = oi->second;
     
-    object->getAdminOwnerName(objAdminOwnerName);
+    object->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
         TRACE_7("Mismatch on administrative owner %s != %s", 
@@ -3775,7 +3785,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     SaUint32T ccbIdOfObj = 0;
     CcbVector::iterator i1;
     
-    oi->second->getAdminOwnerName(objAdminOwnerName);
+    oi->second->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName) {
         TRACE_7("Mismatch on administrative owner %s != %s", 
             objAdminOwnerName.c_str(),
@@ -4678,7 +4688,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     }
     
     object = oi->second;
-    object->getAdminOwnerName(objAdminOwnerName);
+    object->getAdminOwnerName(&objAdminOwnerName);
     
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
@@ -5817,7 +5827,7 @@ ImmModel::adminOwnerSet(std::string objectName, ObjectInfo* obj,
     std::string oldOwner;
     assert(adm);
     assert(obj);
-    obj->getAdminOwnerName(oldOwner);
+    obj->getAdminOwnerName(&oldOwner);
     
     //TODO: "IMMLOADER" should be environment variable.
     std::string loader("IMMLOADER");  
@@ -5857,7 +5867,7 @@ SaAisErrorT ImmModel::adminOwnerRelease(std::string objectName,
     SaAisErrorT err = SA_AIS_OK;
     std::string oldOwner;
     assert(obj);
-    obj->getAdminOwnerName(oldOwner);
+    obj->getAdminOwnerName(&oldOwner);
     
     std::string loader("IMMLOADER");
     

@@ -275,7 +275,6 @@ static uns32 immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt,
     IMMSV_SEND_INFO *sinfo);
 
 static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT* rsp, SaBoolT freeTop);
-static void freeAttrNameList(IMMSV_ATTR_NAME_LIST* attn);
 
 #if 0 /* Only for debug */
 static void
@@ -382,18 +381,44 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
         free(evt->info.immnd.info.rtAttUpdRpl.sr.objectName.buf);
         evt->info.immnd.info.rtAttUpdRpl.sr.objectName.buf=NULL;
         evt->info.immnd.info.rtAttUpdRpl.sr.objectName.size=0;
-        freeAttrNameList(evt->info.immnd.info.rtAttUpdRpl.sr.attributeNames);
+        immsv_evt_free_attrNames(
+                          evt->info.immnd.info.rtAttUpdRpl.sr.attributeNames);
         evt->info.immnd.info.rtAttUpdRpl.sr.attributeNames = NULL;
     } else if(evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE) 
     {
         free(evt->info.immnd.info.searchRemote.objectName.buf);
         evt->info.immnd.info.searchRemote.objectName.buf=NULL;
         evt->info.immnd.info.searchRemote.objectName.size=0;
-        freeAttrNameList(evt->info.immnd.info.searchRemote.attributeNames);
+        immsv_evt_free_attrNames(
+                             evt->info.immnd.info.searchRemote.attributeNames);
         evt->info.immnd.info.searchRemote.attributeNames = NULL;
     } else if(evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE_RSP)
     {
         freeSearchNext(&evt->info.immnd.info.rspSrchRmte.runtimeAttrs, FALSE);
+    } else if(evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) 
+    {
+        free(evt->info.immnd.info.searchInit.rootName.buf);
+        evt->info.immnd.info.searchInit.rootName.buf = NULL;
+        evt->info.immnd.info.searchInit.rootName.size = 0;
+
+        if(evt->info.immnd.info.searchInit.searchParam.present ==
+            ImmOmSearchParameter_PR_oneAttrParam) 
+        {
+            free(evt->info.immnd.info.searchInit.searchParam.choice.
+                oneAttrParam.attrName.buf);
+            evt->info.immnd.info.searchInit.searchParam.choice.
+                oneAttrParam.attrName.buf = NULL;
+            evt->info.immnd.info.searchInit.searchParam.choice.
+                oneAttrParam.attrName.size = 0;
+            immsv_evt_free_att_val(&(evt->info.immnd.info.searchInit.
+                                       searchParam.choice.oneAttrParam.
+                                       attrValue), evt->info.immnd.info.
+                searchInit.searchParam.choice.oneAttrParam.attrValueType);
+        }
+
+        immsv_evt_free_attrNames(
+                               evt->info.immnd.info.searchInit.attributeNames);
+        evt->info.immnd.info.searchInit.attributeNames = NULL;
     } else if(evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE)
     {
         immsv_evt_free_admo(evt->info.immnd.info.finSync.adminOwners);
@@ -403,7 +428,7 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
         immsv_evt_free_classList(evt->info.immnd.info.finSync.classes);
         evt->info.immnd.info.finSync.classes = NULL;
     } else if((evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE) ||
-        (evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE))
+        (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE))
     {
         free(evt->info.immnd.info.objCreate.className.buf);
         evt->info.immnd.info.objCreate.className.buf = NULL;
@@ -443,6 +468,7 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
         immsv_free_attrvalues_list(evt->info.immnd.info.obj_sync.attrValues);
         evt->info.immnd.info.obj_sync.attrValues = NULL;
     } else if((evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_CREATE) ||
+        (evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DESCR_GET) ||
         (evt->info.immnd.type == IMMND_EVT_A2ND_CLASS_DELETE))
     {
         free(evt->info.immnd.info.classDescr.className.buf);
@@ -452,7 +478,8 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
         immsv_free_attrdefs_list(evt->info.immnd.info.classDescr.attrDefinitions);
         evt->info.immnd.info.classDescr.attrDefinitions = NULL;
         
-    } else if((evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP) ||
+    } else if((evt->info.immnd.type == IMMND_EVT_A2ND_OI_IMPL_SET) ||
+        (evt->info.immnd.type == IMMND_EVT_D2ND_IMPLSET_RSP) ||
         (evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_SET) ||
         (evt->info.immnd.type == IMMND_EVT_A2ND_OI_CL_IMPL_REL) ||
         (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_IMPL_SET) ||
@@ -817,6 +844,10 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb,
     }
 
  agent_rsp:
+    if(error != SA_AIS_OK) {
+        immModel_deleteSearchOp(searchOp);
+        searchOp = NULL;
+    }
     send_evt.info.imma.info.searchInitRsp.error = error;
     rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
     return rc;
@@ -1120,24 +1151,6 @@ static uns32 immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb,
     return rc;
 }
 
-static void freeAttrNameList(IMMSV_ATTR_NAME_LIST* attn)
-{
-    TRACE_ENTER();
-    IMMSV_ATTR_NAME_LIST* tmpa=attn;
-    while(attn)
-    {
-        TRACE_2("Free attr:%s", attn->name.buf);
-        free(attn->name.buf);
-        attn->name.buf=NULL;
-        attn->name.size=0;
-        attn=attn->next;
-        tmpa->next=NULL;
-        free(tmpa);
-        tmpa=attn;
-    }
-    TRACE_LEAVE();
-}
-
 static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT* rsp, SaBoolT freeTop)
 {
     IMMSV_ATTR_VALUES_LIST* al=NULL;
@@ -1152,6 +1165,7 @@ static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT* rsp, SaBoolT freeTop)
     {
         free(al->n.attrName.buf);
         al->n.attrName.buf=NULL;
+        al->n.attrName.size=0;
         if(al->n.attrValuesNumber) 
         {
             immsv_evt_free_att_val(&al->n.attrValue, al->n.attrValueType);
@@ -1171,8 +1185,10 @@ static void freeSearchNext(IMMSV_OM_RSP_SEARCH_NEXT* rsp, SaBoolT freeTop)
                 al->n.attrMoreValues = NULL;
             } //multis deleted
         }
-
+        IMMSV_ATTR_VALUES_LIST* tmp2= al;
         al = al->next;
+        tmp2->next=NULL;
+        free(tmp2);
     }
     rsp->attrValuesList = NULL;
     if(freeTop)
@@ -1343,6 +1359,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
         cl_node->tmpSinfo = *sinfo; //TODO should be part of continuation?
 
         assert(error == SA_AIS_OK);
+        if(rtAttrsToFetch) { immsv_evt_free_attrNames(rtAttrsToFetch); }
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;
     }
@@ -1369,7 +1386,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
 
     if(rsp) { freeSearchNext(rsp, TRUE); }
 
-    if(rtAttrsToFetch) { freeAttrNameList(rtAttrsToFetch); }
+    if(rtAttrsToFetch) { immsv_evt_free_attrNames(rtAttrsToFetch); }
 
     TRACE_LEAVE();
     return rc;
@@ -3894,7 +3911,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
     
         for(ix=0; ix < arrSize; ++ix) {
             free(objNameArr[ix]);
-        }    
+        }
+        free(objNameArr);
         objNameArr=NULL;
         arrSize=0;
     }

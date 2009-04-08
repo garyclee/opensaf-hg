@@ -738,7 +738,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
                    &send_evt) != NCSCC_RC_SUCCESS) {
                 LOG_ER("Failure to broadcast abort Ccb for ccbId:%u", 
                     ccbIdArr[ix]);
-                return SA_FALSE;
+                break; /* out of forloop to free ccbIdArr & return SA_FALSE */
             }
         }
         free(ccbIdArr);
