@@ -412,7 +412,7 @@ SaAisErrorT immutil_get_attrValueType(
     }
 
     (void) saImmOmClassDescriptionMemoryFree_2(omHandle, attrDefinitions);
-
+    free(className);
     return rc;
 }
 

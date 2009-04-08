@@ -166,13 +166,12 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 #else
         cl_node->o.iCallbk = *immOiCallbacks;
 #endif
-
-        proc_rc = imma_callback_ipc_init(cl_node);
     }
+
+    proc_rc = imma_callback_ipc_init(cl_node);
 
     if (proc_rc != NCSCC_RC_SUCCESS)
     {
-        /* Error handling */
         rc = SA_AIS_ERR_LIBRARY;
         /* ALready log'ed by imma_callback_ipc_init */
         goto ipc_init_fail;
@@ -308,8 +307,8 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
         }
     }
 
-    rsp_not_ok:   
-    mds_fail:
+rsp_not_ok:   
+mds_fail:
 
     /* Free the IPC initialized for this client */
     if (rc != SA_AIS_OK)
@@ -317,16 +316,17 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 ipc_init_fail:   
 version_fail:
-    if (rc != SA_AIS_OK)
-        free(cl_node);
 
     if (locked)
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-
-cnode_alloc_fail:
-lock_fail:
     if (out_evt)
         free(out_evt);
+
+lock_fail:
+    if (rc != SA_AIS_OK)
+        free(cl_node);
+
+cnode_alloc_fail:
 
     if (rc == SA_AIS_OK)
     {
@@ -334,7 +334,7 @@ lock_fail:
         *immOiHandle = cl_node->handle;
     }
 
-    end:
+end:
     if (rc != SA_AIS_OK)
     {
         imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
@@ -1943,7 +1943,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
         {
             TRACE_2("Attribute name too long");
             rc = SA_AIS_ERR_INVALID_PARAM;
-            /*We leak a bit of memory here, but this is a user error case*/
+            free(p);
             goto mds_send_fail;
         }
 
