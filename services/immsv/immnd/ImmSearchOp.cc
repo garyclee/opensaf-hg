@@ -28,6 +28,7 @@ ImmSearchOp::ImmSearchOp()
 
 ImmSearchOp::~ImmSearchOp()
 {
+    mResultList.clear();
     mRtsToFetch.clear();
     //Do NOT try to delete mlastResult, it is not owned by this object.
     mLastResult=NULL;

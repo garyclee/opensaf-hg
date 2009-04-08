@@ -1062,7 +1062,7 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
             break;
 
         default:
-            return NCSCC_RC_FAILURE;
+            rc = NCSCC_RC_FAILURE;
             break;
     }
 
