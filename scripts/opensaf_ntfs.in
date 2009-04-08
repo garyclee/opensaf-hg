@@ -15,39 +15,44 @@
 #
 # Author(s): Ericsson AB
 #
+
+echo "`date`: $0 $*"
+
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-command=opensaf_ntfd
-ntfsd=$LIBPATH/$command
-pidfile=$PIDPATH/$command.pid
-conf=${SYSCONFDIR}/ntf.conf
+CMD=$1
 
-test -r $conf || exit 1
-source $conf
+NAME=opensaf_ntfd
+CONFFILE=${SYSCONFDIR}/ntf.conf
 
-test -x $ntfsd || exit 1
+# Start generic part
+BIN=${LIBPATH}/${NAME}
+LOGFILE=${NCS_STDOUTS_PATH}/${NAME}.log
+PIDFILE=${PIDPATH}/${NAME}.pid
 
-case $1 in
-    start)
-        $NTFTOOL $ntfsd > "$NCS_STDOUTS_PATH/$command" 2>&1 &
+test -f $CONFFILE && source $CONFFILE
+test -f $PIDFILE && PID=`cat $PIDFILE`
+
+case "$CMD" in
+    instantiate)
+        if [ ! -x $BIN ]; then
+            logger -s -t $0 "ERROR: File $BIN does not exist or is not executable"
+            exit 1
+        fi
+        $TOOL $BIN >> $LOGFILE 2>&1 &
         ;;
-    clean)
-        if test -r $pidfile; then
-            PID=`cat $pidfile`
-            if [ "$NTFTOOL" == "" ]; then
+    cleanup)
+        if test -r $PIDFILE; then
+            if [ "$TOOL" == "" ]; then
                 kill -KILL $PID
             else
                 kill -TERM $PID
             fi
-            rm -f $pidfile
+            rm -f $PIDFILE
         fi
         ;;
-    dump)
-        # Dump internal data structures to console
-        kill -USR2 `cat $pidfile` 
-        ;;
     *)
-        echo "Usage: $0 {start|clean|dump}"
+        echo "Usage: $0 {instantiate|cleanup}"
         exit 1
 esac
 

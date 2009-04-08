@@ -20,31 +20,35 @@ echo "`date`: $0 $*"
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-BIN=${LIBPATH}/opensaf_saflogd
-LOGFILE=${NCS_STDOUTS_PATH}/opensaf_saflogd.log
-CONFIG=${SYSCONFDIR}/saflog.conf
-PIDFILE=${PIDPATH}/opensaf_saflogd.pid
+CMD=$1
 
-test -x $BIN || exit 1
-test -r $CONFIG || exit 1
-source $CONFIG
+NAME=opensaf_saflogd
+CONFFILE=${SYSCONFDIR}/saflog.conf
 
-mkdir -p $LOGSV_ROOT_DIRECTORY
+# Start generic part
+BIN=${LIBPATH}/${NAME}
+LOGFILE=${NCS_STDOUTS_PATH}/${NAME}.log
+PIDFILE=${PIDPATH}/${NAME}.pid
 
-case $1 in
+test -f $CONFFILE && source $CONFFILE
+test -f $PIDFILE && PID=`cat $PIDFILE`
+
+case "$CMD" in
     instantiate)
-        $LOGTOOL $BIN >> $LOGFILE 2>&1 &
+        if [ ! -x $BIN ]; then
+            logger -s -t $0 "ERROR: File $BIN does not exist or is not executable"
+            exit 1
+        fi
+        $TOOL $BIN >> $LOGFILE 2>&1 &
         ;;
     cleanup)
         if test -r $PIDFILE; then
-            PID=`cat $PIDFILE`
-
-            if [ "$LOGTOOL" == "" ]; then
+            if [ "$TOOL" == "" ]; then
                 kill -KILL $PID
             else
                 kill -TERM $PID
             fi
-            rm -f "$PIDFILE"
+            rm -f $PIDFILE
         fi
         ;;
     *)
