@@ -383,14 +383,14 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader,
     printf("notificationObject.length = %u\n",
                  notificationHeader->notificationObject->length);
     strncpy(tmpObj, 
-            notificationHeader->notificationObject->value,
+            (char*)notificationHeader->notificationObject->value,
             notificationHeader->notificationObject->length);
     tmpObj[notificationHeader->notificationObject->length]= '\0';
     printf("notificationObject value: \"%s\"\n", tmpObj);
 
     /* Notifying Object */
     strncpy(tmpObj, 
-            notificationHeader->notifyingObject->value,
+            (char*)notificationHeader->notifyingObject->value,
             notificationHeader->notifyingObject->length);
     tmpObj[notificationHeader->notifyingObject->length]= '\0';
     printf("notifyingObject.length = %u\n",
