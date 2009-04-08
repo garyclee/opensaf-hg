@@ -16,21 +16,25 @@
 # Author(s): Ericsson AB
 #
 
+echo "`date`: $0 $*"
+
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 CMD=$1
 
-BIN=${LIBPATH}/opensaf_immd
-SERVICE=IMMD
-COMPNAMEFILE=${LOCALSTATEDIR}/immd_comp_name
-LOGFILE=${NCS_STDOUTS_PATH}/opensaf_immd.log
+NAME=immd
+TOOL=$IMMDTOOL
 CONFFILE=${SYSCONFDIR}/imm.conf
-PIDFILE=${PIDPATH}/opensaf_immd.pid
+
+# Start generic part
+SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
+BIN=${LIBPATH}/opensaf_${NAME}
+COMPNAMEFILE=${LOCALSTATEDIR}/${NAME}_comp_name
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_${NAME}.log
+PIDFILE=${PIDPATH}/opensaf_${NAME}.pid
 
 test -f $CONFFILE && source $CONFFILE
 test -f $PIDFILE && PID=`cat $PIDFILE`
-
-TOOL=$IMMDTOOL
 
 start()
 {
@@ -71,10 +75,12 @@ instantiate()
 stop()
 {
     # Allow tools to dump results to file system before exit
-    if [ "$TOOL" == "" ]; then
-        kill -KILL $PID
-    else
-        kill -TERM $PID
+    if test -f $PIDFILE; then
+        if [ "$TOOL" == "" ]; then
+            kill -KILL $PID
+        else
+            kill -TERM $PID
+        fi
     fi
 
     rm -f $COMPNAMEFILE
@@ -94,12 +100,8 @@ case "$CMD" in
     cleanup)
         stop
         ;;
-    dump)
-        # Dump internal data structures to console
-        pkill -USR2 -f $BIN
-        ;;
     *)
-        echo "Usage: $0 {start|stop|instantiate|cleanup|dump}"
+        echo "Usage: $0 {start|stop|instantiate|cleanup}"
         exit 1
 esac
 
