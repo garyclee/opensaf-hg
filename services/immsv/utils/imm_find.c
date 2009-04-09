@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     if (optind < argc)
     {
         strncpy((char *) rootName.value, argv[optind], SA_MAX_NAME_LENGTH);
-        rootName.length = strlen((char *) rootName.value);
+        rootName.length = strnlen((char *) rootName.value, SA_MAX_NAME_LENGTH);
     }
 
     error = saImmOmInitialize(&immHandle, NULL, &immVersion);

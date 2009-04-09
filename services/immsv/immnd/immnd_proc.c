@@ -642,6 +642,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
             if(cl_node == NULL || cl_node->mIsStale) {
                 LOG_WA("IMMND - Client went down so no response");
+                continue;
             }
             send_evt.type = IMMSV_EVT_TYPE_IMMA;
             send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
@@ -955,15 +956,13 @@ uns32 immnd_proc_server(uns32 *timeout)
                 }
             } else { /*Loading is possible*/
                 if(newEpoch) {
-                    if(cb->mTimer >= 0) {/*Extra wait for payloads */
-                        /*Locks out stragglers*/
-                        if(immnd_announceLoading(cb, newEpoch) == 
-                            NCSCC_RC_SUCCESS) {
-                            LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING "
-                                "--> IMM_SERVER_LOADING_SERVER");
-                            cb->mState = IMM_SERVER_LOADING_SERVER;
-                            cb->mTimer = 0;
-                        }
+                    /*Locks out stragglers*/
+                    if(immnd_announceLoading(cb, newEpoch) == 
+                        NCSCC_RC_SUCCESS) {
+                        LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING "
+                            "--> IMM_SERVER_LOADING_SERVER");
+                        cb->mState = IMM_SERVER_LOADING_SERVER;
+                        cb->mTimer = 0;
                     }
                 } else {
                     /*Non loader goes directly to loading client*/

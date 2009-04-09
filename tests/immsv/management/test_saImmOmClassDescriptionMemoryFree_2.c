@@ -49,6 +49,7 @@ void saImmOmClassDescriptionMemoryFree_2_02(void)
     safassert(saImmOmClassDescriptionGet_2(immOmHandle, className, &classCategory, &attrDefinitionsOut), SA_AIS_OK);
     rc = saImmOmClassDescriptionMemoryFree_2(-1, attrDefinitionsOut);
     test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+    safassert(saImmOmClassDescriptionMemoryFree_2(immOmHandle, attrDefinitionsOut), SA_AIS_OK);/* Avoid leaking. */
     safassert(saImmOmClassDelete(immOmHandle, className), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }

@@ -890,13 +890,13 @@ search_req_continue(
         sn = sn->next;
     }
 
-    if(!sn) {
+    if(sn) {
+        immModel_fetchLastResult(sn->searchOp, &rsp);
+        immModel_clearLastResult(sn->searchOp);
+    } else {
         LOG_ER("Could not find search node for search-ID:%u", reply->searchId);
         if(err == SA_AIS_OK) {err = SA_AIS_ERR_LIBRARY;}
     }
-
-    immModel_fetchLastResult(sn->searchOp, &rsp);
-    immModel_clearLastResult(sn->searchOp);
 
     if(err != SA_AIS_OK) {
         goto agent_rsp;

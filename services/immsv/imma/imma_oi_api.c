@@ -367,6 +367,8 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle,
     if (!selectionObject)
         return SA_AIS_ERR_INVALID_PARAM;
 
+    *selectionObject = (-1); /* Ensure non valid descriptor in case of failure. */
+
     /* Take the CB lock */
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {

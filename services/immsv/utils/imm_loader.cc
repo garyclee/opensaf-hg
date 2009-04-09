@@ -337,6 +337,9 @@ static void createImmObject(ParserState* state)
             parentName.length = (SaUint16T)strlen(parent);
             strncpy((char*)parentName.value, parent, parentName.length);
         }
+    } else {
+        LOG_ER("Empty DN for object");
+        exit(1);
     }
 
     /* Get the length of the DN and truncate state->objectName */
@@ -363,7 +366,7 @@ static void createImmObject(ParserState* state)
     if (attrValues == NULL)
     {
         LOG_ER("Failed to malloc attrValues");
-        return;
+        exit(1);
     }
 
     /* Add the NULL termination */
@@ -464,6 +467,7 @@ static void createImmClass(ParserState* state)
     else
     {
         LOG_ER("NO CLASS CATEGORY");
+        exit(1);
     }
 
     /* Set the attrDefinition array */
@@ -473,7 +477,7 @@ static void createImmClass(ParserState* state)
     if (attrDefinition == NULL)
     {
         LOG_ER("Failed to malloc attrDefinition");
-        return;
+        exit(1);
     }
 
     attrDefinition[state->attrDefinitions.size()] = NULL;
@@ -573,6 +577,7 @@ static void errorHandler(void* userData,
                          ...)
 {
     LOG_ER("Error occured during parsing: %s", msg);
+    exit(1);
 }
 
 static void warningHandler(void* userData,
@@ -599,6 +604,7 @@ static void startElementHandler(void* userData,
     if (state->depth >= MAX_DEPTH)
     {
         LOG_ER( "The document is too deply nested");
+        exit(1);
     }
 
     /* <class ...> */
@@ -630,6 +636,7 @@ static void startElementHandler(void* userData,
         else
         {
             LOG_ER( "NAME ATTRIBUTE IS NULL");
+            exit(1);
         }
         /* <object ...> */
     }
@@ -660,6 +667,7 @@ static void startElementHandler(void* userData,
         else
         {
             LOG_ER("OBJECT %s HAS NO CLASS ATTRIBUTE", state->objectName);
+            exit(1);
         }
 
         /* <dn> */
@@ -891,7 +899,7 @@ static void endElementHandler(void* userData,
             errorCode = saImmOmCcbFinalize(state->ccbHandle);
             if (SA_AIS_OK != errorCode)
             {
-                LOG_ER("Failed to finalize the ccb object connection %d",
+                LOG_WA("Failed to finalize the ccb object connection %d",
                        errorCode);
             }
             else
@@ -906,7 +914,7 @@ static void endElementHandler(void* userData,
             errorCode = saImmOmAdminOwnerFinalize(state->ownerHandle);
             if (SA_AIS_OK != errorCode)
             {
-                LOG_ER("Failed on saImmOmAdminOwnerFinalize (%d)", 
+                LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)", 
                        errorCode);
             }
             else
@@ -921,12 +929,10 @@ static void endElementHandler(void* userData,
             errorCode = saImmOmFinalize(state->immHandle);  
             if (SA_AIS_OK != errorCode)
             {
-                LOG_ER("Failed on saImmOmFinalize (%d)", errorCode);
+                LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
             }
-            else
-            {
-                state->immInit = 0;
-            }
+
+            state->immInit = 0;
         }
     }
 
@@ -947,6 +953,7 @@ static void endDocumentHandler(void* userData)
     if (((ParserState*)userData)->depth != 0)
     {
         LOG_ER( "Document ends too early\n");
+        exit(1);
     }
     TRACE_8("endDocument occured\n");
 }
@@ -1019,6 +1026,7 @@ static void charactersHandler(void* userData,
                 if (state->attrName == NULL)
                 {
                     LOG_ER("Failed to malloc state->attrName");
+                    exit(1);
                 }
 
                 strncpy(state->attrName, (const char*)chars, (size_t)len);
@@ -1284,8 +1292,8 @@ static char* getAttributeValue(const char* attr,
 
     if (attrArray == NULL)
     {
-        LOG_ER( "The document is TOO DEEPLY NESTED");
-        return NULL;
+        LOG_ER("The document is TOO DEEPLY NESTED");
+        exit(1);
     }
 
     for (i = 0; attrArray != NULL && attrArray[i*2] != NULL; i++)
@@ -1296,7 +1304,7 @@ static char* getAttributeValue(const char* attr,
         }
     }
 
-    LOG_ER( "RETURNING NULL");
+    LOG_WA( "RETURNING NULL");
     return NULL;
 }
 
@@ -1398,7 +1406,7 @@ static void saveRDNAttribute(ParserState* state)
         if (values.attrName == NULL)
         {
             LOG_ER( "Failed to malloc values.attrName");
-            return;
+            exit(1);
         }
 
         strncpy(values.attrName, state->attrName, len);
@@ -1409,6 +1417,8 @@ static void saveRDNAttribute(ParserState* state)
 
         /* Set the number of attr values */
         values.attrValuesNumber = 1;
+
+        values.attrValues = NULL;
 
         TRACE_8("ADDED CLASS TO RDN MAP");
         state->classRDNMap[std::string(state->className)] =
@@ -1484,6 +1494,7 @@ static void addClassAttributeDefinition(ParserState* state)
     else
     {
         LOG_ER( "NO ATTR NAME");
+        exit(1);
     }
 
     /* Save the attribute definition in classRDNMap if the RDN flag is
@@ -1708,7 +1719,7 @@ int loadImmXML(std::string xmldir, std::string file)
         errorCode = saImmOmCcbFinalize(state.ccbHandle);
         if (SA_AIS_OK != errorCode)
         {
-            LOG_ER("Failed to finalize the ccb object connection %d",
+            LOG_WA("Failed to finalize the ccb object connection %d",
                    errorCode);
         }
     }
@@ -1719,7 +1730,7 @@ int loadImmXML(std::string xmldir, std::string file)
         errorCode = saImmOmAdminOwnerFinalize(state.ownerHandle);
         if (SA_AIS_OK != errorCode)
         {
-            LOG_ER("Failed on saImmOmAdminOwnerFinalize (%d)", errorCode);
+            LOG_WA("Failed on saImmOmAdminOwnerFinalize (%d)", errorCode);
         }
     }
 
@@ -1729,7 +1740,7 @@ int loadImmXML(std::string xmldir, std::string file)
         errorCode = saImmOmFinalize(state.immHandle);  
         if (SA_AIS_OK != errorCode)
         {
-            LOG_ER("Failed on saImmOmFinalize (%d)", errorCode);
+            LOG_WA("Failed on saImmOmFinalize (%d)", errorCode);
         }
     }
 
@@ -2070,7 +2081,7 @@ int main(int argc, char* argv[])
 
     if (argc < 3)
     {
-        LOG_ER("Too few arguments. Please provide a path and a file");
+        syslog(LOG_ERR,"Too few arguments. Please provide a path and a file");
         exit(1);
     }
 
@@ -2078,6 +2089,20 @@ int main(int argc, char* argv[])
     {
         logPath = defaultLog;
     }
+
+    if(strnlen(argv[1], SA_MAX_NAME_LENGTH) == SA_MAX_NAME_LENGTH)
+    {
+        syslog(LOG_ERR, "Unreasonably long directory path");
+        exit(1);
+    }
+
+    if(strnlen(argv[2], SA_MAX_NAME_LENGTH) == SA_MAX_NAME_LENGTH)
+    {
+        syslog(LOG_ERR, "Unreasonably long filename");
+        exit(1);
+    }
+
+
 
     xmldir = std::string(argv[1]);
     file   = std::string(argv[2]);
@@ -2100,7 +2125,7 @@ int main(int argc, char* argv[])
                 if (trace_category_set(CATEGORY_ALL) == -1)
                 {
                     printf("Failed to initialize tracing!\n");
-                    LOG_ER("Failed to initialize tracing!");
+                    LOG_WA("Failed to initialize tracing!");
                 }
             }
 
@@ -2129,7 +2154,7 @@ int main(int argc, char* argv[])
         /* Do not care about categories now, get all */
         if (trace_category_set(CATEGORY_ALL) == -1)
         {
-            LOG_ER("Failed to initialize tracing!");
+            LOG_WA("Failed to initialize tracing!");
         }
     }
 

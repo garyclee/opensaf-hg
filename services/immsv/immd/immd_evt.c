@@ -903,6 +903,11 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb,
             }
             immd_req_sync(cb, node_info);
         }
+
+        LOG_IN("Node %x request sync sync-pid:%d epoch:%u ", 
+            node_info->immnd_key,
+            node_info->immnd_execPid, 
+            node_info->epoch);
     }
     else
     {
@@ -910,10 +915,6 @@ static uns32 immd_evt_proc_immnd_req_sync(IMMD_CB *cb,
         proc_rc = NCSCC_RC_FAILURE;
     }
 
-    LOG_IN("Node %x request sync sync-pid:%d epoch:%u ", 
-           node_info->immnd_key,
-           node_info->immnd_execPid, 
-           node_info->epoch);
     TRACE_LEAVE();
     return proc_rc;
 }
