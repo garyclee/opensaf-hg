@@ -167,7 +167,6 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR
    avsv_encode_ckpt_avd_su_si_rel,
    avsv_encode_ckpt_avd_hlt_config,
    avsv_encode_ckpt_avd_sus_per_si_rank_config,
-   avsv_encode_ckpt_avd_si_dep_config,
 
    /* 
     * Messages to update independent fields.
@@ -217,7 +216,9 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR
    avsv_encode_ckpt_comp_curr_num_csi_stby,
    avsv_encode_ckpt_comp_oper_state,
    avsv_encode_ckpt_comp_pres_state,
-   avsv_encode_ckpt_comp_restart_count
+   avsv_encode_ckpt_comp_restart_count,
+   NULL,  /* AVSV_SYNC_COMMIT */
+   avsv_encode_ckpt_avd_si_dep_config
 };
 
 /*
@@ -242,8 +243,8 @@ const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR
    avsv_encode_cold_sync_rsp_avd_su_si_rel,
    avsv_encode_cold_sync_rsp_avd_hlt_config,
    avsv_encode_cold_sync_rsp_avd_sus_per_si_rank_config,
-   avsv_encode_cold_sync_rsp_avd_si_dep_config,
-   avsv_encode_cold_sync_rsp_avd_async_updt_cnt
+   avsv_encode_cold_sync_rsp_avd_async_updt_cnt,
+   avsv_encode_cold_sync_rsp_avd_si_dep_config
 };
 
 /****************************************************************************\
@@ -2534,7 +2535,14 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb,
     * which is CB. Next time onwards depending on the value of reo_type and reo_handle
     * send the next data structures.
     */
-   status = avsv_enc_cold_sync_rsp_data_func_list[enc->io_reo_type](cb, enc, &num_of_obj);
+   if (enc->io_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG)
+   {
+      status = avsv_encode_cold_sync_rsp_avd_si_dep_config(cb, enc, &num_of_obj);
+   }
+   else
+   {
+      status = avsv_enc_cold_sync_rsp_data_func_list[enc->io_reo_type](cb, enc, &num_of_obj);
+   }
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff,"avd_entire_data_update\n\nSent reotype = %d num_obj = %d -------------\n", enc->io_reo_type, num_of_obj);
@@ -2552,22 +2560,35 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb,
     * response, if yes then send cold sync complete. Else ask MBCSv to call you 
     * back with the next reo_type.
     */
-   if (AVSV_COLD_SYNC_RSP_ASYNC_UPDT_CNT == enc->io_reo_type)
+   if ((AVSV_CKPT_AVD_SI_DEP_CONFIG == enc->io_reo_type) ||
+       ((AVSV_COLD_SYNC_RSP_ASYNC_UPDT_CNT == enc->io_reo_type) && 
+        (cb->avd_peer_ver < 2)))
    {
       if (c_sync)
+      {
          enc->io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
+         
+         /* Start Heart Beating with the peer */
+         avd_init_heartbeat(cb);
+      }
       else
          enc->io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
    }
    else
-      enc->io_reo_type++;
-
-   /* Start Heart Beating with the peer */
-   if(enc->io_msg_type == NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE)
-      avd_init_heartbeat(cb);
+   {
+      if ((AVSV_COLD_SYNC_RSP_ASYNC_UPDT_CNT == enc->io_reo_type) && 
+          (cb->avd_peer_ver >= 2))
+      {
+         /* Jump to next cold sync updt reo_type - AVSV_CKPT_AVD_SI_DEP_CONFIG */
+         enc->io_reo_type = AVSV_CKPT_AVD_SI_DEP_CONFIG;
+      }
+      else
+         enc->io_reo_type++;
+   }
 
    return status;
 }
+
 
 /****************************************************************************\
  * Function: avsv_encode_cold_sync_rsp_avd_cb_config

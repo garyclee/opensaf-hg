@@ -80,7 +80,8 @@ static uns32
 avm_encode_ckpt_ent_adm_op(AVM_CB_T           *cb,
                            NCS_MBCSV_CB_ENC   *enc);
 
-
+static uns32 avm_encode_ckpt_dummy(AVM_CB_T           *cb,
+                                   NCS_MBCSV_CB_ENC   *enc);
 static uns32
 avm_complete_db(
                   AVM_CB_T          *cb,
@@ -135,6 +136,9 @@ const AVM_ENCODE_CKPT_DATA_FUNC_PTR
    /* Event id processed at Active AvM  */
    avm_encode_ckpt_evt_id,
 
+   /* Event id for Health Status, not used now. */
+   avm_encode_ckpt_dummy,
+
    /* To update entity upgrade state */
    avm_encode_ckpt_ent_upgd_state_chg
 };
@@ -150,6 +154,7 @@ const AVM_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR
    avm_encode_cold_sync_rsp_validation_info,   
    avm_encode_cold_sync_rsp_ent_state,
    avm_encode_cold_sync_rsp_async_updt_cnt,
+   avm_encode_ckpt_dummy
 };
 
 
@@ -831,3 +836,40 @@ avm_complete_db(
    
    return rc;
 }
+
+/*************************************************************************\
+* Function: avm_decode_ckpt_dummy
+*
+* Purpose:  Encode Health status. 
+*
+* Input: cb - CB pointer.
+*        enc - Encode arguments passed by MBCSV.
+*
+* Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+*
+* NOTES:
+*
+*
+\************************************************************************/
+
+static uns32 
+avm_encode_ckpt_dummy(AVM_CB_T             *cb,
+                                    NCS_MBCSV_CB_ENC     *enc)
+{
+   uns32               status   = NCSCC_RC_SUCCESS;
+   EDU_ERR             ederror    = 0;
+
+   m_AVM_LOG_FUNC_ENTRY("avm_encode_ckpt_hlt_status");
+
+   status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_dummy, &enc->io_uba, EDP_OP_TYPE_ENC, 
+                                cb, &ederror, enc->i_peer_version);
+
+   if(NCSCC_RC_SUCCESS != status)
+   {
+      m_AVM_LOG_INVALID_VAL_FATAL(ederror);
+      return status;
+   }
+
+   return status;
+}
+

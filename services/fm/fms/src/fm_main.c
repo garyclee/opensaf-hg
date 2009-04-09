@@ -821,17 +821,33 @@ static uns32 fm_can_smh_sw_process(FM_CB *fm_cb,FM_EVT *fm_mbx_evt)
 static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *o_ent_path, uns8 shelf, 
                                                uns8 slot, uns8 sub_slot)
 {
-   if (sub_slot == 0)
+   char *arch_type = NULL;
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if ((sub_slot == 0) || (sub_slot == 15))
    {
+#ifdef HAVE_HPI_A01
+      sprintf((char *)o_ent_path,"{{SYSTEM_BOARD,%d},{SYSTEM_CHASSIS,%d}}",
+                            slot, shelf);
+#else
+      if (strcmp(arch_type, "ATCA") == 0)
       sprintf((char *)o_ent_path,"{{PHYSICAL_SLOT,%d},{ADVANCEDTCA_CHASSIS,%d}}",
                             slot, shelf);
+      else
+      sprintf((char *)o_ent_path,
+       "{{SAHPI_ENT_SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", slot, shelf);
+#endif
    }
    else
    {
       /* Embedding subslot into the entity path in string format */
+      if (strcmp(arch_type, "ATCA") == 0)
       sprintf((char *)o_ent_path,
               "{{AMC_SUB_SLOT, %d},{PHYSICAL_SLOT,%d},{ADVANCEDTCA_CHASSIS,%d}}",
               sub_slot, slot, shelf);
+      else
+       sprintf((char *)o_ent_path,
+       "{{AMC_SUB_SLOT, %d},{SAHPI_ENT_SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", 
+           sub_slot, slot, shelf);
    }
 
    return NCSCC_RC_SUCCESS;

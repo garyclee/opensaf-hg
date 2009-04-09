@@ -312,7 +312,7 @@ typedef  struct  cl_cb_tag {
                                            have been received  */
    AVD_EXT_COMP_INFO ext_comp_info; 
    uns16             peer_msg_fmt_ver;
-
+   uns16             avd_peer_ver;
 
 } AVD_CL_CB;
 

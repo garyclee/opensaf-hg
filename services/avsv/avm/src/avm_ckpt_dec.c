@@ -37,6 +37,7 @@ avm_decode_ckpt_ent_dhcp_state_chg
 avm_decode_ckpt_ent_state_sensor
 avm_decode_ckpt_evt_id
 avm_decode_cold_sync_rsp 
+avm_decode_ckpt_dummy
 avm_decode_ckpt_ent_upgd_state_chg
 ******************************************************************************
 */
@@ -84,6 +85,14 @@ static uns32
 avm_decode_ckpt_evt_id(AVM_CB_T           *cb,
                        NCS_MBCSV_CB_DEC   *dec);
 
+static uns32
+avm_decode_ckpt_dummy(AVM_CB_T           *cb,
+                           NCS_MBCSV_CB_DEC   *dec);
+
+static uns32
+avm_decode_cold_dummy(AVM_CB_T           *cb,
+                           NCS_MBCSV_CB_DEC   *dec);
+
 static uns32 
 avm_decode_ckpt_ent_upgd_state_chg(AVM_CB_T           *cb,
                         NCS_MBCSV_CB_DEC   *dec);
@@ -114,6 +123,9 @@ const AVM_DECODE_CKPT_DATA_FUNC_PTR
    /* EDSv event id processed */
    avm_decode_ckpt_evt_id,
 
+   /* LFM Health Status processing */
+   avm_decode_ckpt_dummy,
+
    /* To update entity upgd state */
    avm_decode_ckpt_ent_upgd_state_chg 
 };
@@ -130,6 +142,7 @@ const AVM_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR
    avm_decode_cold_sync_rsp_validation_info,
    avm_decode_cold_sync_rsp_ent_cfg,
    avm_decode_cold_sync_rsp_async_updt_cnt,
+   avm_decode_cold_dummy
 };
 /****************************************************************************\
  * Function: avm_decode_ckpt_ent_cfg
@@ -939,6 +952,89 @@ avm_decode_warm_sync_rsp(
          
       status = NCSCC_RC_FAILURE;
    }
+
+   return status;
+}
+
+/****************************************************************************\
+ * Function: avm_decode_ckpt_dummy
+ *
+ * Purpose: Dummy Decode Status
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+static uns32
+avm_decode_ckpt_dummy(AVM_CB_T           *cb,
+                           NCS_MBCSV_CB_DEC   *dec)
+{
+   uns32               status   = NCSCC_RC_SUCCESS;
+   EDU_ERR             ederror    = 0;
+
+   m_AVM_LOG_FUNC_ENTRY("avm_decode_ckpt_dummy");
+
+   status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_dummy, &dec->i_uba, EDP_OP_TYPE_DEC,
+                               &cb, &ederror, dec->i_peer_version);
+
+
+   if(NCSCC_RC_SUCCESS != status)
+   {
+      m_AVM_LOG_INVALID_VAL_FATAL(ederror);
+      m_NCS_DBG_PRINTF("Decode BONKED\n");
+   }
+   m_NCS_DBG_PRINTF("AFTER DECODE \n: ");
+   m_NCS_DBG_PRINTF("Plane A: %d", cb->dummy_status[DUMMY_HEALTH_STATUS_PLANE_A]);
+   m_NCS_DBG_PRINTF("SAM A: %d\n", cb->dummy_status[DUMMY_HEALTH_STATUS_SAM_A]);
+   m_NCS_DBG_PRINTF("PlaneB: %d", cb->dummy_status[DUMMY_HEALTH_STATUS_PLANE_B]);
+   m_NCS_DBG_PRINTF("SAM B: %d\n", cb->dummy_status[DUMMY_HEALTH_STATUS_SAM_B]);
+
+   cb->async_updt_cnt.dummy_updt++;
+   return status;
+}
+
+/****************************************************************************\
+ * Function: avm_decode_cold_dummy
+ *
+ * Purpose: Decode Dummy Health Status
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+static uns32
+avm_decode_cold_dummy(AVM_CB_T           *cb,
+                           NCS_MBCSV_CB_DEC   *dec)
+{
+   uns32               status   = NCSCC_RC_SUCCESS;
+   EDU_ERR             ederror    = 0;
+
+   m_AVM_LOG_FUNC_ENTRY("avm_decode_cold_dummy");
+
+   status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avm_edp_ckpt_msg_dummy, &dec->i_uba, EDP_OP_TYPE_DEC,
+                               &cb, &ederror, dec->i_peer_version);
+
+
+   if(NCSCC_RC_SUCCESS != status)
+   {
+      m_AVM_LOG_INVALID_VAL_FATAL(ederror);
+      m_NCS_DBG_PRINTF("Decode BONKED\n");
+   }
+   m_NCS_DBG_PRINTF("AFTER DECODE \n: ");
+   m_NCS_DBG_PRINTF("Plane A: %d", cb->dummy_status[DUMMY_HEALTH_STATUS_PLANE_A]);
+   m_NCS_DBG_PRINTF("SAM A: %d\n", cb->dummy_status[DUMMY_HEALTH_STATUS_SAM_A]);
+   m_NCS_DBG_PRINTF("PlaneB: %d", cb->dummy_status[DUMMY_HEALTH_STATUS_PLANE_B]);
+   m_NCS_DBG_PRINTF("SAM B: %d\n", cb->dummy_status[DUMMY_HEALTH_STATUS_SAM_B]);
 
    return status;
 }

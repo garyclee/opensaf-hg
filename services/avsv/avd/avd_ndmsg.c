@@ -481,6 +481,20 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
    evt->cb_hdl = cb_hdl;
    evt->rcv_evt = (rcv_msg->msg_type - AVSV_N2D_CLM_NODE_UP_MSG) 
                   + AVD_EVT_NODE_UP_MSG;
+   if(rcv_msg->msg_type >= AVSV_N2D_COMP_VALIDATION_MSG)
+   {
+     /* This is for Backward compatibility. If there has been more 
+        messages added in the end of AVSV_DND_MSG_TYPE then we can 
+        map them manually.*/
+     switch(rcv_msg->msg_type)
+     {
+      case AVSV_N2D_COMP_VALIDATION_MSG:
+              evt->rcv_evt = AVD_EVT_COMP_VALIDATION_MSG;
+              break;
+      default:
+              break;
+     }
+   }
    evt->info.avnd_msg = rcv_msg;
 
    m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT,evt->rcv_evt);

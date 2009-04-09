@@ -69,7 +69,6 @@ typedef enum
    AVSV_N2D_DATA_REQUEST_MSG,
    AVSV_N2D_SHUTDOWN_APP_SU_MSG,
    AVSV_N2D_VERIFY_ACK_NACK_MSG,
-   AVSV_N2D_COMP_VALIDATION_MSG,
    AVSV_D2N_CLM_NODE_UPDATE_MSG,
    AVSV_D2N_CLM_NODE_UP_MSG,
    AVSV_D2N_REG_HLT_MSG,   /* This message needs ack if addressed to only one node */
@@ -88,7 +87,7 @@ typedef enum
    AVSV_D2N_SET_LEDS_MSG,
    AVSV_D2N_COMP_VALIDATION_RESP_MSG,
    AVSV_D2N_ROLE_CHANGE_MSG,
-   AVSV_N2N_MSG, /* ND to ND messages. TOBE DELETED LOG HERE*/
+   AVSV_N2D_COMP_VALIDATION_MSG,
    AVSV_DND_MSG_MAX
 } AVSV_DND_MSG_TYPE;
 
@@ -639,7 +638,6 @@ typedef struct avsv_dnd_msg
       AVSV_N2D_DATA_REQUEST_MSG_INFO       n2d_data_req;
       AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO    n2d_ack_nack_info;
       AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO    n2d_shutdown_app_su;      
-      AVSV_N2D_COMP_VALIDATION_INFO        n2d_comp_valid_info;      
       AVSV_D2N_CLM_NODE_UPDATE_MSG_INFO    d2n_clm_node_update;
       AVSV_D2N_CLM_NODE_UP_MSG_INFO        d2n_clm_node_up;
       AVSV_D2N_REG_HLT_MSG_INFO            d2n_reg_hlt;
@@ -658,6 +656,7 @@ typedef struct avsv_dnd_msg
       AVSV_D2N_SET_LEDS_MSG_INFO           d2n_set_leds;      
       AVSV_D2N_COMP_VALIDATION_RESP_INFO   d2n_comp_valid_resp_info;      
       AVSV_D2N_ROLE_CHANGE_INFO            d2n_role_change_info;      
+      AVSV_N2D_COMP_VALIDATION_INFO        n2d_comp_valid_info;      
    } msg_info;
 } AVSV_DND_MSG;
 

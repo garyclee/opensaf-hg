@@ -80,11 +80,10 @@ get_entity_type_from_text(char *str)
       else if(strcmp(str, "SAHPI_ENT_RACK") == 0)
          type = SAHPI_ENT_RACK;
 
+#ifndef HAVE_HPI_A01
       else if(strcmp(str, "SAHPI_ENT_SYSTEM_BLADE") == 0)
          type = SAHPI_ENT_SYSTEM_BLADE;
-
-      else if(strcmp(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
-         type = SAHPI_ENT_SWITCH_BLADE;	 
+#endif
 
       else if(strcmp(str, "SAHPI_ENT_IO_BLADE") == 0)
          type = SAHPI_ENT_IO_BLADE;
@@ -103,10 +102,10 @@ get_entity_type_from_text(char *str)
 #ifndef HAVE_HPI_A01
       else if(strcmp(str, "SAHPI_ENT_PICMG_FRONT_BLADE") == 0)
          type = SAHPI_ENT_PICMG_FRONT_BLADE;
-#endif
+
       else if(strcmp(str, "SAHPI_ENT_SWITCH_BLADE") == 0)
          type = SAHPI_ENT_SWITCH_BLADE;
-#ifndef HAVE_HPI_A01
+
       else if(strcmp(str, "AMC_SUB_SLOT_TYPE") == 0)
          type = AMC_SUB_SLOT_TYPE;
 #endif

@@ -166,7 +166,6 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR
    avsv_decode_ckpt_avd_su_si_rel,
    avsv_decode_ckpt_avd_hlt_config,
    avsv_decode_ckpt_avd_sus_per_si_rank_config,
-   avsv_decode_ckpt_avd_si_dep_config,
 
    /* 
     * Messages to update independent fields.
@@ -216,7 +215,9 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR
    avsv_decode_ckpt_comp_curr_num_csi_stby,
    avsv_decode_ckpt_comp_oper_state,
    avsv_decode_ckpt_comp_pres_state,
-   avsv_decode_ckpt_comp_restart_count
+   avsv_decode_ckpt_comp_restart_count,
+   NULL, /* AVSV_SYNC_COMMIT */
+   avsv_decode_ckpt_avd_si_dep_config
 };
 
 /*
@@ -241,8 +242,8 @@ const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR
    avsv_decode_cold_sync_rsp_avd_su_si_rel,
    avsv_decode_cold_sync_rsp_avd_hlt_config,
    avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config,
-   avsv_decode_cold_sync_rsp_avd_si_dep_config,
-   avsv_decode_cold_sync_rsp_avd_async_updt_cnt
+   avsv_decode_cold_sync_rsp_avd_async_updt_cnt,
+   avsv_decode_cold_sync_rsp_avd_si_dep_config /* not been called for now */
 };
 
 
@@ -2923,8 +2924,16 @@ uns32  avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
    sprintf(logbuff, "\n\nReceived reotype = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
-   status = 
+
+   if (dec->i_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG)
+   {
+      status = avsv_decode_cold_sync_rsp_avd_si_dep_config(cb, dec, num_of_obj);
+   }
+   else
+   {
+      status = 
       avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type](cb, dec, num_of_obj);
+   }
 
    return status;
 }
@@ -3697,11 +3706,18 @@ uns32  avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
     * Decode data received in the message.
     */
    dec->i_action = NCS_MBCSV_ACT_ADD;
-   status = 
+
+   if (dec->i_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG)
+   {
+      status = avsv_decode_cold_sync_rsp_avd_si_dep_config(cb, dec, num_of_obj);
+   }
+   else
+   {
+      status = 
       avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type](cb, dec, num_of_obj);
+   }
 
    return status;
-
 }
 
 

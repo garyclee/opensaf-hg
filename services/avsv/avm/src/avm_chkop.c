@@ -430,6 +430,10 @@ avm_send_ckpt_data(AVM_CB_T    *cb,
          cb->async_updt_cnt.ent_dhstate_updt++;
          break;
 
+      case AVM_CKPT_EVT_DUMMY:
+         cb->async_updt_cnt.dummy_updt++;
+         break;
+
       case AVM_CKPT_ENT_UPGD_STATE_CHG:
          cb->async_updt_cnt.ent_upgd_state_updt++;
          break;

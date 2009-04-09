@@ -14,7 +14,7 @@
  * Author(s): Emerson Network Power
  *
  */
-
+#include <config.h>
 #include "fma.h"
 
 /** Global: CB handle returned by hdl manager **/
@@ -432,7 +432,6 @@ static uns32 fma_create (NCS_LIB_CREATE *create_info)
    uns32 rc = NCSCC_RC_SUCCESS;
    int argc = 0;
    char **argv;
-   NCS_LIB_CREATE hisv_create_info;
  
    m_FMA_LOG_FUNC_ENTRY("fma_create");
 
@@ -675,7 +674,9 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
                                      uns8 slot, uns8 site)
 {
    uns8 shelf  = 0;
+#ifndef HAVE_HPI_A01
    uns32 count = 0;
+#endif
    uns32 rc = NCSCC_RC_FAILURE;
    SaHpiEntityPathT temp_epath;
 
@@ -685,6 +686,7 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
    memset(o_ent_path, 0, sizeof(SaHpiEntityPathT));
    memset(&temp_epath, 0, sizeof(SaHpiEntityPathT));
 
+#ifndef HAVE_HPI_A01
    if ((0 != site) && (15 != site))
    {
       /* Fill the entity type for site (i.e. subslot/amc card).
@@ -693,13 +695,20 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
       o_ent_path->Entry[count].EntityType = SAHPI_ENT_CHASSIS_SPECIFIC + 7;
       o_ent_path->Entry[count++].EntityLocation = (SaHpiEntityLocationT)site;
    }
-
+#endif
    if (cb->is_platform == TRUE)
    {
       /* Attempt to lookup the array-based entity-path first using the HISv lookup fn */
       rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *) &temp_epath, sizeof(temp_epath));
    }
-
+#ifdef HAVE_HPI_A01
+   o_ent_path->Entry[2].EntityType  = SAHPI_ENT_ROOT;
+   o_ent_path->Entry[2].EntityInstance = 0;
+   o_ent_path->Entry[1].EntityType = SAHPI_ENT_SYSTEM_CHASSIS;
+   o_ent_path->Entry[1].EntityInstance = shelf;
+   o_ent_path->Entry[0].EntityType = SAHPI_ENT_SYSTEM_BOARD;
+   o_ent_path->Entry[0].EntityInstance = slot;
+#else
    if ((rc == NCSCC_RC_SUCCESS) && (temp_epath.Entry[0].EntityType != 0)) {
 
        printf("HPL lookup of entity path successful\n");
@@ -725,6 +734,7 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb,
       o_ent_path->Entry[count].EntityType  = SAHPI_ENT_ROOT;
       o_ent_path->Entry[count++].EntityLocation = 0;
    }
+#endif
    return;
 }
 
@@ -755,15 +765,21 @@ uns32 fma_get_slot_site_from_ent_path(SaHpiEntityPathT ent_path, uns8 *o_slot,
    {
       if (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_ROOT)
          break;
-    
+#ifdef HAVE_HPI_A01
+      if((ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SYSTEM_BOARD))
+           *o_slot = ent_path.Entry[tmp_var].EntityInstance;
+#else
+ 
       if ((ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
           (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+          (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SYSTEM_BOARD)  ||
           (ent_path.Entry[tmp_var].EntityType == SAHPI_ENT_SWITCH_BLADE))
            *o_slot = ent_path.Entry[tmp_var].EntityLocation;
         
       /* enum name for site id (subslot/AMC card) is TBD. for now use the offset 7 */
       if (ent_path.Entry[tmp_var].EntityType == (SAHPI_ENT_CHASSIS_SPECIFIC + 7))
          *o_site = ent_path.Entry[tmp_var].EntityLocation;
+#endif
    }
     
    if ((tmp_var == 0) || (tmp_var > SAHPI_MAX_ENTITY_PATH))
