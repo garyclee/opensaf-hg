@@ -1674,7 +1674,7 @@
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>xxLIBDIRxx/opensaf_lgs terminate</command>
+							<command>xxLIBDIRxx/opensaf_lgs cleanup</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
@@ -1763,16 +1763,16 @@
 				<componentPrototype name="safComp=CompT_NTF" finalPrototype="1">
 					<clcCommands>
 						<instantiateCommand>
-							<command>/xxLIBDIRxx/opensaf_ntfs start</command>
+							<command>/xxLIBDIRxx/opensaf_ntfs instantiate</command>
 							<timeout>50000</timeout>
 							<numMaxInstantiate>5</numMaxInstantiate>
 						</instantiateCommand>
 						<terminateCommand>
-							<command>/xxLIBDIRxx/opensaf_ntfs clean</command>
+							<command>/xxLIBDIRxx/opensaf_ntfs cleanup</command>
 							<timeout>5000</timeout>
 						</terminateCommand>
 						<cleanupCommand>
-							<command>/xxLIBDIRxx/opensaf_ntfs clean</command>
+							<command>/xxLIBDIRxx/opensaf_ntfs cleanup</command>
 							<timeout>5000</timeout>
 						</cleanupCommand>
 					</clcCommands>
