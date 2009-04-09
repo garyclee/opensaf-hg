@@ -34,6 +34,7 @@
 #include <saNtf.h>
 #include <ntfclient.h>
 #include <ctype.h>
+#include <limits.h>
 
 /* Name of current testproxy (argv[0]) */
 static char *progname;
