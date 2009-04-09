@@ -25,7 +25,7 @@ SaAisErrorT rc;
 SaImmHandleT immOmHandle;
 SaImmHandleT immOiHandle;
 SaImmOiCallbacksT_2 immOiCallbacks;
-SaImmCallbacksT immOmCallbacks;
+SaImmCallbacksT immOmCallbacks = {NULL};
 SaSelectionObjectT selectionObject;
 
 int main(int argc, char **argv) 

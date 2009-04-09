@@ -185,7 +185,6 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle,
     if (immCallbacks)
     {
         cl_node->o.mCallbk = *immCallbacks;
-
         proc_rc = imma_callback_ipc_init(cl_node);
         if (proc_rc != NCSCC_RC_SUCCESS)
         {
@@ -193,6 +192,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle,
             /* ALready log'ed by imma_callback_ipc_init */
             goto ipc_init_fail;
         }
+
     }
 
     /* populate the EVT structure */
@@ -382,6 +382,9 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle,
     if (!selectionObject)
         return SA_AIS_ERR_INVALID_PARAM;
 
+    *selectionObject = (-1); /* Ensure non valid descriptor in case of failure. */
+
+
     /* Take the CB lock */
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -406,10 +409,17 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle,
         goto stale_handle;
     }
 
+    if(cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback == NULL)
+    {
+        TRACE_2("saImmOmSelectionObjectGet not allowed when saImmOmAdminOperationInvokeCallback is NULL");
+        rc = SA_AIS_ERR_INVALID_PARAM;
+        goto no_callback;
+    }
 
     *selectionObject = (SaSelectionObjectT)
                        m_GET_FD_FROM_SEL_OBJ(m_NCS_IPC_GET_SEL_OBJ(&cl_node->callbk_mbx));
 
+ no_callback:
  stale_handle:    
  node_not_found:
     /* Unlock CB */
@@ -1200,6 +1210,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
     /*alloc-1*/
     evt.info.immnd.info.objCreate.className.buf= 
         malloc(evt.info.immnd.info.objCreate.className.size);
+    if(evt.info.immnd.info.objCreate.className.buf==NULL) {
+        rc = SA_AIS_ERR_NO_MEMORY;
+        goto mds_send_fail;
+    }
     strncpy(evt.info.immnd.info.objCreate.className.buf, className,
             evt.info.immnd.info.objCreate.className.size);
 
@@ -1225,6 +1239,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
         /*alloc-2*/
         evt.info.immnd.info.objCreate.parentName.buf= 
             malloc(evt.info.immnd.info.objCreate.parentName.size);
+        if(evt.info.immnd.info.objCreate.parentName.buf==NULL) {
+            rc = SA_AIS_ERR_NO_MEMORY;
+            goto mds_send_fail;
+        }
         strncpy(evt.info.immnd.info.objCreate.parentName.buf, 
                 (char *) parentName->value,
                 evt.info.immnd.info.objCreate.parentName.size);
@@ -1563,6 +1581,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
         /*alloc-1*/
         evt.info.immnd.info.objModify.objectName.buf= 
             malloc(evt.info.immnd.info.objModify.objectName.size);
+        if(evt.info.immnd.info.objModify.objectName.buf==NULL) {
+            rc = SA_AIS_ERR_NO_MEMORY;
+            goto mds_send_fail;
+        }
         strncpy(evt.info.immnd.info.objModify.objectName.buf, 
                 (char *) objectName->value,
                 evt.info.immnd.info.objModify.objectName.size);
@@ -1826,6 +1848,10 @@ SaAisErrorT saImmOmCcbObjectDelete (SaImmCcbHandleT         ccbHandle,
     /*alloc-1*/
     evt.info.immnd.info.objDelete.objectName.buf= 
         malloc(evt.info.immnd.info.objDelete.objectName.size);
+    if(evt.info.immnd.info.objDelete.objectName.buf==NULL) {
+        rc = SA_AIS_ERR_NO_MEMORY;
+        goto mds_send_fail;
+    }
     strncpy(evt.info.immnd.info.objDelete.objectName.buf, 
             (char *) objectName->value,
             evt.info.immnd.info.objDelete.objectName.size);
@@ -2245,7 +2271,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
         }
         else
         {
-            assert(out_evt->info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP);
+            assert(out_evt->info.imma.type == IMMA_EVT_ND2A_ADMOP_RSP);
             *operationReturnValue = out_evt->info.imma.info.admOpRsp.result;
         }
 

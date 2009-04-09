@@ -414,7 +414,8 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL* p,
                 (void)memcpy(p->val.x.buf, saAnyTp->bufferAddr, valueSize);
                 break;
             default:
-                assert(0);
+                assert(0); /*If I get here then I have introduced a bug 
+                             somewhere above. */
         }
     }
     else

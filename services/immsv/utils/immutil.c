@@ -359,7 +359,7 @@ SaAisErrorT immutil_update_one_rattr(
     SaNameT objectName;
 
     strncpy((char *) objectName.value, dn, SA_MAX_NAME_LENGTH);
-    objectName.length = strlen((char *) objectName.value);
+    objectName.length = strnlen((char *) objectName.value, SA_MAX_NAME_LENGTH);
 
     attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
     attrMod.modAttr.attrName = attributeName;
@@ -462,8 +462,8 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
         {
             SaNameT *mynamet;
             attrValue = mynamet = malloc(sizeof(SaNameT));
-            strcpy((char *) mynamet->value, str);
-            mynamet->length = strlen((char *) mynamet->value);
+            mynamet->length = strnlen(str, SA_MAX_NAME_LENGTH);            
+            strncpy((char *) mynamet->value, str, SA_MAX_NAME_LENGTH);
             break;
         }
         case SA_IMM_ATTR_SASTRINGT:

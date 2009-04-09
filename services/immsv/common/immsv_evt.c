@@ -175,7 +175,9 @@ immsv_evt_enc_att_val(NCS_UBAID* o_ub, IMMSV_EDU_ATTR_VAL* v,
     switch(t) {
         case SA_IMM_ATTR_SANAMET:
             assert(v->val.x.size <= SA_MAX_NAME_LENGTH);
+            /* Intentional fall through */
         case SA_IMM_ATTR_SASTRINGT:
+            /* Intentional fall through */
         case SA_IMM_ATTR_SAANYT:
             os = &(v->val.x);
             p8 = ncs_enc_reserve_space(o_ub, 4);

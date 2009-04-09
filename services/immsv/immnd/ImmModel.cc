@@ -383,7 +383,7 @@ immModel_getNonCriticalCcbs(IMMND_CB *cb,
     
     ImmModel::instance(&cb->immModel)->getNonCriticalCcbs(ccbs);
     *ccbIdArrSize = ccbs.size();
-    if(ccbIdArrSize) {
+    if(*ccbIdArrSize) {
         *ccbIdArr = (SaUint32T *) malloc((*ccbIdArrSize) * sizeof(SaUint32T));
         
         for(ix2=ccbs.begin(), ix=0;

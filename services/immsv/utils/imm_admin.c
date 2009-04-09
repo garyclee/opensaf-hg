@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     while (optind < argc)
     {
         strncpy((char *) objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-        objectName.length = strlen((char *) objectName.value);
+        objectName.length = strnlen((char *) objectName.value, SA_MAX_NAME_LENGTH);
 
         error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_SUBTREE);
         if (error != SA_AIS_OK)

@@ -119,12 +119,16 @@ int immd_proc_elect_coord(IMMD_CB *cb)
             LOG_ER("Failed to find candidate for new IMMND coordinator");
             immd_proc_immd_reset(cb, TRUE);
 
-            /* Send reset order to standby. */
+            /* Make standby aware of IMMND reset order. */
             memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
             mbcp_msg.type = IMMD_A2S_MSG_RESET;
 
             /*Checkpoint the dissapointing reset message to standby
-              director. Syncronous call=>waits for ack*/
+              director. Syncronous call=>waits for ack. We do not check
+              the result because we can not do anything about an error in
+              notifying IMMD standby here. The immd_mbcsv_sync_update 
+              will also log the error. 
+            */
             immd_mbcsv_sync_update(cb,&mbcp_msg);
 
             /*Restart any IMMNDs that are not in epoch 0. */

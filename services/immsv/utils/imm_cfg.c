@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     }
 
     strncpy((char *) objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-    objectName.length = strlen((char *) objectName.value);
+    objectName.length = strnlen((char *) objectName.value, SA_MAX_NAME_LENGTH);
 
     for (i = 0; i < optargs_len; i++)
     {

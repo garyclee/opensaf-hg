@@ -381,8 +381,20 @@ static uns32 comp_name_get_from_file(IMMD_CB *cb)
         goto done;
     }
 
-    strcpy((char *) cb->comp_name.value, comp_name);
     cb->comp_name.length = strlen(comp_name);
+    if(cb->comp_name.length <= SA_MAX_NAME_LENGTH) 
+    {
+        strcpy((char *) cb->comp_name.value, comp_name);
+    } else
+    {
+        LOG_ER("Comp name too long %u", cb->comp_name.length);
+        /* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
+           case. On the other hand, it should be long enough for all
+           reasonable comp names */
+
+        cb->comp_name.length = 0;
+        goto done;
+    }
 
     rc = NCSCC_RC_SUCCESS;
 done:
@@ -445,13 +457,23 @@ uns32 immd_amf_init(IMMD_CB *immd_cb)
     if (health_key == NULL)
     {
         strcpy((char *) healthy.key, "A1B2");
+        healthy.keyLen = strlen((char *) healthy.key);
     }
     else
     {
-        strcpy((char *) healthy.key, health_key);
+        healthy.keyLen = strlen((char *) health_key);
+        if(healthy.keyLen <= SA_MAX_NAME_LENGTH)
+        {
+            strcpy((char *) healthy.key, health_key);
+        } else
+        {
+            LOG_ER("Health check key too long:%u", healthy.keyLen);
+            /* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
+               case. On the other hand, it should be long enough for all
+               reasonable health check keys */
+            goto done;            
+        }
     }
-
-    healthy.keyLen = strlen((char *) healthy.key);
 
     error = saAmfHealthcheckStart(immd_cb->amf_hdl, &immd_cb->comp_name,
                                   &healthy,

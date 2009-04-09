@@ -93,7 +93,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(1, saImmOmInitialize_06, "saImmOmInitialize - SA_AIS_OK - minor version set to 2");
     test_case_add(1, saImmOmInitialize_07, "saImmOmInitialize - SA_AIS_ERR_VERSION - major version set to 3");
 
-    test_case_add(1, saImmOmSelectionObjectGet_01, "saImmOmSelectionObjectGet - SA_AIS_OK");
+    test_case_add(1, saImmOmSelectionObjectGet_01, "saImmOmSelectionObjectGet - SA_AIS_ERR_INVALID_PARAM - no callback defined");
     test_case_add(1, saImmOmSelectionObjectGet_02, "saImmOmSelectionObjectGet - SA_AIS_ERR_BAD_HANDLE - invalid handle");
 
     test_case_add(1, saImmOmDispatch_01, "saImmOmDispatch - SA_AIS_OK SA_DISPATCH_ALL");
