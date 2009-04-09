@@ -43,6 +43,7 @@ typedef struct async_updt_cnt_type
    uns32 evt_id_updt;
    uns32 ent_dhconf_updt;
    uns32 ent_dhstate_updt;
+   uns32 dummy_updt;
    uns32 ent_upgd_state_updt;
 }AVM_ASYNC_CNT_T;
 
@@ -55,7 +56,24 @@ typedef enum
    NCS_BIOS_IPMC
 }AVM_UPGD_MODULE;
 
+typedef enum                
+{  
+   DUMMY_STATUS_UNHEALTHY,        
+   DUMMY_STATUS_HEALTHY,
+   DUMMY_STATUS_NONE              
+}DUMMY_HEALTH_STATUS;
 
+typedef enum
+{  
+   DUMMY_HEALTH_STATUS_PLANE_A = 0,
+   DUMMY_HEALTH_STATUS_PLANE_B,   
+   DUMMY_HEALTH_STATUS_SAM_A,     
+   DUMMY_HEALTH_STATUS_SAM_B,
+   DUMMY_HEALTH_STATUS_PLANE_A_SAM_A,
+   DUMMY_HEALTH_STATUS_PLANE_B_SAM_B,
+   DUMMY_HEALTH_STATUS_NONE,      
+   DUMMY_HEALTH_STATUS_MAX
+} DUMMY_HEALTH_STATUS_ENTITY;     
 
 struct avm_cb
 {
@@ -148,6 +166,7 @@ struct avm_cb
    AVM_VALID_INFO_STATE_T   valid_info_state;  
    uns32                    config_cnt;
    uns32                    dummy_parent_cnt;
+   DUMMY_HEALTH_STATUS      dummy_status[DUMMY_HEALTH_STATUS_MAX];
    AVM_TMR_T                dhcp_fail_tmr;  /* Timer for handling dhcp script failure */
    AVM_UPGD_ERR             upgrade_error_type;
    AVM_UPGD_MODULE          upgrade_module;

@@ -414,7 +414,7 @@ static uns32  avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
              * cold sync response are yet to come.
              */
             if (NCSCC_RC_SUCCESS != avsv_validate_reo_type_in_csync(cb,
-               arg->info.decode.i_reo_type))
+                                                 arg->info.decode.i_reo_type))
             {
                /* Free userbuff and return without decoding */
                ncs_reset_uba(&arg->info.decode.i_uba);
@@ -427,8 +427,10 @@ static uns32  avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
              * when they received. Dont enqueue them.
              */
             if (arg->info.decode.i_reo_type < AVSV_CKPT_MSG_MAX)
-                  status = 
-      avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type](cb, &arg->info.decode);
+            {
+               status = 
+               avsv_dec_ckpt_data_func_list[arg->info.decode.i_reo_type](cb, &arg->info.decode);
+            }
             else
             {
                m_AVD_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
@@ -625,10 +627,13 @@ static uns32  avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 static uns32  avsv_mbcsv_process_peer_info_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_peer_info_cb");
-   /* Compare versions of the peer with self */
+
+   /* Used to refer while sending checkpoint msg to its peer AVD */
+   cb->avd_peer_ver = arg->info.peer.i_peer_version;
 
    return NCSCC_RC_SUCCESS;
 }
+
 
 /****************************************************************************\
  * Function: avsv_mbcsv_process_notify_msg
@@ -1501,7 +1506,12 @@ static uns32  avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
          status = NCSCC_RC_SUCCESS;
       break;
 
+   case AVSV_CKPT_AVD_SI_DEP_CONFIG:
+      if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_DEP_CONFIG)
+         status = NCSCC_RC_SUCCESS;
+      break;
    }
+
    return status;
 }
 

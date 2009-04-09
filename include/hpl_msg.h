@@ -34,7 +34,7 @@
 
 #include <SaHpi.h>
 
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
 #define AMC_SUB_SLOT_TYPE  (SaHpiEntityTypeT)SAHPI_ENT_CHASSIS_SPECIFIC + 7
 #endif
 

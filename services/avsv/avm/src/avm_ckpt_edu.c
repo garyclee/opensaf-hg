@@ -852,6 +852,9 @@ avm_edp_ckpt_msg_async_updt_cnt(
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
          (long)&((AVM_ASYNC_CNT_T*)0)->ent_dhstate_updt, 0, NULL  },
 
+      {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+         (long)&((AVM_ASYNC_CNT_T*)0)->dummy_updt, 0, NULL  },
+
       {EDU_VER_GE, NULL,   0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(base_ver_30a)))},
 
       {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -1717,7 +1720,72 @@ avm_edp_ent_per_label_status(
    return rc;
 
 }
-    
+
+/*************************************************************************
+ * Function:  avm_edp_ckpt_msg_dummy
+ *
+ * Purpose:   EDU program handler for HEALTH_STATUS. This is invoked 
+ *            when EDU has to perform ENCODE and DECODE on HEALTH_STATUS.
+ * 
+ * Input    :
+ *           EDU_HDL    
+ *           EDU_TKN   
+ *           NCSCONTEXT 
+ *           uns32     
+ *           EDU_BUF_ENV  
+ *           EDP_OP_TYPE 
+ *           EDU_ERR    
+ * Output   :
+ * Return Value : NCSCC_RC_SUCCESS/ NCSCC_RC_FAILURE
+ * NOTES    :
+ *
+ ************************************************************************/
+extern uns32
+avm_edp_ckpt_msg_dummy(
+                                 EDU_HDL       *hdl,
+                                 EDU_TKN       *edu_tkn,
+                                 NCSCONTEXT     ptr,
+                                 uns32         *ptr_data_len,
+                                 EDU_BUF_ENV   *buf_env,
+                                 EDP_OP_TYPE    op,
+                                 EDU_ERR       *o_err
+                               )
+{
+
+   uns32               rc  = NCSCC_RC_SUCCESS;
+   AVM_CB_T    *struct_ptr = NULL, **d_ptr = NULL;
+
+   EDU_INST_SET avm_ckpt_hlt_status_rules[] = {
+      {EDU_START, avm_edp_ckpt_msg_dummy, 0, 0, 0,
+           sizeof(AVM_CB_T), 0, NULL},
+      
+      {EDU_EXEC, ncs_edp_uns32,   EDQ_ARRAY, 0, 0,
+         (long)((AVM_CB_T *)0)->dummy_status,     4, NULL },
+      {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+   };
+
+   if(op == EDP_OP_TYPE_ENC)
+   {
+      struct_ptr = (AVM_CB_T*)ptr;
+   }else
+      if(op == EDP_OP_TYPE_DEC)
+      {
+         d_ptr = (AVM_CB_T**)ptr;
+         if(*d_ptr == (AVM_CB_T*)0x0)
+         {
+            *o_err = EDU_ERR_MEM_FAIL;
+            return NCSCC_RC_FAILURE;
+         }
+         struct_ptr = *d_ptr;
+      }else
+      {
+         struct_ptr = ptr;
+      }
+   rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avm_ckpt_hlt_status_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+
+   return rc;
+}
+
 /*************************************************************************
  * Function:  avm_edp_ckpt_msg_upgd_state 
  *

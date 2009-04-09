@@ -700,9 +700,12 @@ dispatch_hotswap(HSM_CB *hsm_cb)
       /* Also, in the case of HP_PROLIANT - just check that his device is considered     */
       /* to be a system blade.                                                           */
       if (((entry.ResourceCapabilities & SAHPI_CAPABILITY_FRU) &&
-           (entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP)) ||
-          ((strcmp(arch_type, "HP_PROLIANT") == 0) &&
-           (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)))
+           (entry.ResourceCapabilities & SAHPI_CAPABILITY_MANAGED_HOTSWAP))
+#ifndef HAVE_HPI_A01
+           || ((strcmp(arch_type, "HP_PROLIANT") == 0) &&
+           (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE))
+#endif
+           )
       {
 
          if (strcmp(arch_type, "HP_PROLIANT") != 0) {

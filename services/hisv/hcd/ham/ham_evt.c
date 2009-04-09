@@ -1403,7 +1403,7 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
    uns32    rc = NCSCC_RC_FAILURE;
    int      get_res_id_retry_count = 0;
 
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
    uns32 i;
 #endif
 
@@ -2274,7 +2274,7 @@ ham_bootbank_set (HISV_EVT *evt)
    uns32               rc = NCSCC_RC_FAILURE;
      
    SaHpiCtrlStateT     state;
-#ifndef HPI_A
+#ifndef HAVE_HPI_A01
    uns8              options_processor_id=0;           
    SaHpiCtrlModeT  mode = SAHPI_CTRL_MODE_MANUAL;
    state.Type           = SAHPI_CTRL_TYPE_OEM;

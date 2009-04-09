@@ -1776,9 +1776,13 @@ uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             
             /* set the value, checkpoint the entire record. */
             rec->row_status = NCS_ROW_ACTIVE;
-        
-            /* Checkpoint the data to standby */
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+ 
+            /* Only update if peer AVD version is >= 2 */      
+            if (avd_cb->avd_peer_ver >= 2) 
+            {
+               /* Checkpoint the data to standby */
+               m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+            }
 
             /* Move the dependent SI to appropriate state, if the configured 
              * sponsor is not in assigned state. Not required to check with
@@ -1807,10 +1811,14 @@ uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
             if(arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY)
             {
                /* check if it is active currently */
-               if(rec->row_status == NCS_ROW_ACTIVE)
+               if (rec->row_status == NCS_ROW_ACTIVE)
                {
-                  /* checkpoint to the standby as this row will be deleted */
-                  m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+                  /* Only update if peer AVD version is >= 2 */      
+                  if (avd_cb->avd_peer_ver >= 2) 
+                  {
+                     /* checkpoint to the standby as this row will be deleted */
+                     m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+                  }
                }
 
                /* If SI is in tolerance timer running state because of this
@@ -1864,8 +1872,12 @@ uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
      rec->tolerance_time = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
      if(rec->row_status == NCS_ROW_ACTIVE)
      {
-        /* Checkpoint the data to standby */
-        m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+        /* Only update if peer AVD version is >= 2 */      
+        if (avd_cb->avd_peer_ver >= 2) 
+        {
+           /* Checkpoint the data to standby */
+           m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
+        }
      }
    }
    else if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSISIDepRowStatus_ID)

@@ -130,6 +130,7 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
             (i_su->si_max_active <= i_su->si_curr_active) ||
             ((i_su->sg_of_su->su_max_active != 0) && (i_su->sg_of_su->su_max_active <= i_su->si_curr_active)))
          {
+            i_su = i_su->sg_list_su_next;
             continue;
          }
 
