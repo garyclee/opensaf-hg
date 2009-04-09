@@ -36,6 +36,7 @@ static uns32 publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_curr_hs_state_evt(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);
 static uns32 publish_extracted(HSM_CB *hsm_cb, uns8 *node_state);
+static uns32 publish_other_evt(HSM_CB *hsm_cb, SaHpiEventT *event, SaHpiRptEntryT *RptEntry);
 static uns32 hsm_rediscover(HCD_CB *hcd_cb, HSM_CB *hsm_cb, SaHpiSessionIdT *session_id);
 static uns32 dispatch_hotswap(HSM_CB *hsm_cb);
 static uns32 hsm_inv_data_proc(SaHpiSessionIdT session_id, SaHpiDomainIdT domain_id,
@@ -201,8 +202,9 @@ uns32 hcd_hsm()
             (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
             (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 4)))))
          {
-            /* don't care about this event */
-            m_LOG_HISV_DTS_CONS("hcd_hsm: Discarding Event, not from Controller or Payload\n");
+            /* publish this event and continue */
+            m_LOG_HISV_DTS_CONS("hcd_hsm: Publishing Event, not from Controller or Payload\n");
+            publish_other_evt(hsm_cb, &event, &RptEntry);
             continue;
          }
 
@@ -229,8 +231,9 @@ uns32 hcd_hsm()
 #endif
               (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
               {
-                /* don't care about this event */
-                m_LOG_HISV_DTS_CONS("Discarding Event, not from Controller or Payload\n");
+                /* publish this event and continue */
+                m_LOG_HISV_DTS_CONS("hcd_hsm: Publishing Event, not from Controller or Payload\n");
+                publish_other_evt(hsm_cb, &event, &RptEntry);
                 continue;
               }
           }
@@ -1336,6 +1339,54 @@ publish_extracted(HSM_CB *hsm_cb, uns8 *node_state)
 }
 
 
+/****************************************************************************
+ * Name          : publish_other_evt
+ *
+ * Description   : This function retrieves and publishes the outstanding
+ *                 events that are not directly from Controller or Payload
+ *
+ * Arguments     : Pointer to HSM control block structure.
+ *                 Pointer to Event structure;
+ *                 Pointer to RptEntry structure;
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+
+static uns32
+publish_other_evt(HSM_CB *hsm_cb, SaHpiEventT *event, SaHpiRptEntryT *RptEntry)
+{
+   uns8 *event_data;
+   uns32 rc, evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
+   uns32 min_evt_len = HISV_MIN_EVT_LEN;
+   SaHpiUint32T invdata_size=sizeof(HISV_INV_DATA);
+
+   event_data = m_MMGR_ALLOC_HPI_INV_DATA(min_evt_len + invdata_size);
+   if (event_data == NULL)
+   {
+      printf("hcd_hsm: memory error\n");
+      return NCSCC_RC_FAILURE;
+   }
+   memset(event_data, 0, min_evt_len + invdata_size);
+   memcpy(event_data, (uns8 *)event, evt_len);
+   memcpy(event_data+evt_len, (uns8 *) &(RptEntry->ResourceEntity), epath_len);
+
+   rc = hsm_eda_event_publish (HSM_FAULT_EVT, event_data, min_evt_len + invdata_size, hsm_cb);
+   if (rc != NCSCC_RC_SUCCESS)
+   {
+      m_LOG_HISV_DTS_CONS("publish_other_event: SaEvtEventPublish() failed.\n");
+      hsm_cb->eds_init_success = 0;
+      m_MMGR_FREE_HPI_INV_DATA(event_data);
+      return NCSCC_RC_FAILURE;
+   }
+   else
+   {
+      m_LOG_HISV_DTS_CONS("publish_other_event: saEvtEventPublish Done\n");
+   }
+   m_MMGR_FREE_HPI_INV_DATA(event_data);
+   return NCSCC_RC_SUCCESS;
+}
 
 
 /****************************************************************************
@@ -1816,6 +1867,7 @@ CHECK:
          if (current_rdr == SAHPI_FIRST_ENTRY)
          {
             m_LOG_HISV_DTS_CONS("hcd_hsm: Empty RDR table\n");
+            return(NCSCC_RC_FAILURE);
          }
          else
          {
