@@ -380,9 +380,12 @@ uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
           }
           break;
       }
-   
-      m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
-      return NCSCC_RC_SUCCESS;
+  
+      if (avd_check_si_state_enabled(cb, si) == NCSCC_RC_SUCCESS)
+      { 
+         m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_ASSIGNED);
+         return NCSCC_RC_SUCCESS;
+      }
    }
 
    return NCSCC_RC_FAILURE;
@@ -1045,19 +1048,6 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
 
    m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_state_modif");
 
-   if (si_dep != NULL)
-   {
-      /* if spons-SI & dep-SI belongs to the same SG, then not required to 
-       * state change for the dep-SI as it can be taken care as part of SG
-       * screening.
-       */
-      if (m_CMP_NORDER_SANAMET(si->sg_of_si->name_net, 
-                               si_dep->sg_of_si->name_net) == 0)
-      {
-         return;
-      }
-   }  
-
    memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
    si_indx.si_name_prim.length  = si->name_net.length;
    memcpy(si_indx.si_name_prim.value,
@@ -1089,16 +1079,6 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
             si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_mib, TRUE);
 
             /* LOG the failure */
-            continue;
-         }
-
-         /* if spons-SI & dep-SI belongs to the same SG, then not required to 
-          * state change for the dep-SI as it can be taken care as part of SG
-          * screening.
-          */
-         if (m_CMP_NORDER_SANAMET(si->sg_of_si->name_net, 
-                                  dep_si->sg_of_si->name_net) == 0)
-         {
             continue;
          }
 
