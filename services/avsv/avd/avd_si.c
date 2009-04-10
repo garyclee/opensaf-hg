@@ -824,7 +824,15 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
                {
                   m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK);
                   return NCSCC_RC_SUCCESS;
-               }            
+               }      
+  
+               /* SI lock should not be done, this SI is been DISABLED because
+                  of SI-SI dependency */
+               if ((si->si_dep_state != AVD_SI_ASSIGNED) &&
+                   (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING))
+               {
+                  return NCSCC_RC_INV_VAL;
+               }      
                
                /* Check if other semantics are happening for other SUs. If yes
                 * return an error.

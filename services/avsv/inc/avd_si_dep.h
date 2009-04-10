@@ -103,6 +103,8 @@ typedef struct avd_si_si_dep
 if ((state != AVD_SI_TOL_TIMER_RUNNING) && (state != AVD_SI_READY_TO_UNASSIGN)) \
    avd_si_dep_stop_tol_timer(cb, si); \
 si->si_dep_state = state; \
+if (state == AVD_SI_SPONSOR_UNASSIGNED)  \
+   avd_screen_sponsor_si_state(cb, si, FALSE); \
 }
 
 EXTERN_C uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, struct avd_si_tag *dep_si, struct avd_si_tag *spons_si);
