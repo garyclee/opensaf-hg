@@ -209,6 +209,27 @@ typedef struct hpi_hisv_evt_type
  */
 #define  HISV_MIN_EVT_LEN     (sizeof(HPI_HISV_EVT_T) - sizeof(HISV_INV_DATA))
 
+typedef union {
+        SaHpiResourceEventT 		ResourceEvent;
+        SaHpiDomainEventT   		DomainEvent;
+        SaHpiSensorEventT   		SensorEvent;
+        SaHpiSensorEnableChangeEventT 	SensorEnableChangeEvent;
+        SaHpiHotSwapEventT  		HotSwapEvent;
+        SaHpiWatchdogEventT 		WatchdogEvent;
+        SaHpiDimiEventT     		DimiEvent;
+        SaHpiDimiUpdateEventT		DimiUpdateEvent;
+        SaHpiFumiEventT 		FumiEvent;
+} HPI_HISV_SIM_EVT_UNION_T;
+
+/* data structure for encapsulating HPI events in UserEventData payloads */
+typedef struct{
+	SaHpiResourceIdT 		Source;
+	SaHpiEventTypeT 		EventType;
+	SaHpiSeverityT    		Severity;
+	HPI_HISV_SIM_EVT_UNION_T	EventDataUnion;
+        SaHpiEntityPathT 		EntityPath;
+}__attribute__((packed)) HPI_HISV_SIM_EVT_T;
+
 
 #endif  /* HPL_MSG_H */
 

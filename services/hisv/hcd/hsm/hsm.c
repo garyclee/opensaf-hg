@@ -197,6 +197,43 @@ uns32 hcd_hsm()
          continue;
 
 #ifndef HAVE_HPI_A01
+      if (event.EventType == SAHPI_ET_USER){
+	      char *ptr;
+	      struct timeval tv;
+	      HPI_HISV_SIM_EVT_T simEvt;
+
+	      /* DEBUG_SIM_EVENTS must be exported and equal to 1 to enable
+	       * simulated HPI events */
+	      if ((ptr = getenv("DEBUG_SIM_EVENTS")) == NULL)
+		      continue;
+
+	      if (atoi(ptr) != 1)
+		      continue;
+
+	      memcpy(&simEvt, &event.EventDataUnion.UserEvent.UserEventData.Data,
+			      event.EventDataUnion.UserEvent.UserEventData.DataLength);
+
+	      /* HPI_SW, OEM and USER are to large to encode in UserEventData,
+	       * which is limited to 255 bytes. */
+	      if (simEvt.EventType == SAHPI_ET_HPI_SW ||
+			      simEvt.EventType == SAHPI_ET_OEM ||
+			      simEvt.EventType == SAHPI_ET_USER)
+		      continue;
+
+	      /* clear out the origional event */
+	      memset(&event, 0, sizeof(SaHpiEventT));
+	      memset(&RptEntry, 0, sizeof(SaHpiRptEntryT));
+
+	      gettimeofday(&tv, NULL);
+	      event.Timestamp = (SaHpiTimeT) tv.tv_sec * 1000000000 + tv.tv_usec * 1000;;
+	      event.EventType = simEvt.EventType;
+	      event.Severity = simEvt.Severity;
+	      RptEntry.ResourceSeverity = simEvt.Severity;
+
+	      memcpy(&event.EventDataUnion, &simEvt.EventDataUnion, sizeof(HPI_HISV_SIM_EVT_UNION_T));
+	      memcpy(&RptEntry.ResourceEntity.Entry[0], &simEvt.EntityPath, sizeof(SaHpiEntityPathT));
+      }
+
       if (!((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)||
             (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE)||
             (RptEntry.ResourceEntity.Entry[0].EntityType == ((SaHpiEntityTypeT)(SAHPI_ENT_PHYSICAL_SLOT + 1)))||
