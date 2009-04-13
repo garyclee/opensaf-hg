@@ -4,21 +4,28 @@ Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B4
 	* LOG IMM Object Implementer
 
 2009-03-08 Anders Bjornerstedt <anders.bjornerstedt@ericsson.com>
-        * IMM-A.02.01 service added
+	* IMMSv-A.02.01 service added
 
 2009-03-08 Hans Feldt <hans.feldt@ericsson.com>
 	* Simple unit test framework added
 
+2009-03-08 Kenneth Andersson <kenneth.k.andersson@ericsson.com>
+	Gábor Balla, Arne Eriksson <Arne.R.Eriksson@ericsson.com>
+	Niklas Nilsson, Hans Feldt
+	* NTFSv A.01.01 initial contribution 
+
 Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B3
 --------------------------------------------
 2009-01-07 Nagendra Kumar <nagendra.kumar@emerson.com>
-        * "Introduction of Platform Adaptation Interface (PAI)".
+	* Introduction of Platform Adaptation Interface (PAI).
+	* External Proxy Support.
 
 2009-01-07 Ramesh Babu <ramesh.betham@emerson.com>
 	* Subslot support.
+	* AMF SI-SI Dependency Support.
 
 2009-01-07 Mahesh <mahesh.alla@emerson.com>
-	* CPSV Subslot support.
+	* CPSv Subslot support.
 
 
 Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B2
@@ -27,22 +34,24 @@ Changes from OpenSAF 3.0.0 to OpenSAF 3.0.B2
 	* Build & Packaging Changes
 
 2008-08-12 Troy Heber <troy.heber@hp.com>
-	* OpenSAF Scripts Unification
+	* OpenSAF Scripts Unification, Build changes
 
+2008-08-12 jozsef.biro <jozsef.biro@nsn.com>
+	* Java Mapping (Java AIS API for OpenSAF) contribution for AMF, CLM.
 
 Changes from OpenSAF 2.0.0 to OpenSAF 3.0.0
 -------------------------------------------
 
 2008-09-24 Mathi <Mathivanan.NP@emerson.com>
-	* EDSV B0301 spec changes with backward compatibility.
+	* EDSv B0301 spec changes with backward compatibility.
 	* Applications can initialize with B0101 OR B0301 functionality.
 
 2008-09-16 Mahesh <mahesh.alla@emerson.com>
-	* CPSV B0202 spec changes with backward compatibility.
+	* CPSv B0202 spec changes with backward compatibility.
 	* Applications can initialize with B0202 OR B0101 functionality.
 
 2008-09-16 Vishal <Vishal.Soni@emerson.com>
-	* MQSV B0301 spec changes with backward compatibility.
+	* MQSv B0301 spec changes with backward compatibility.
 	* Applications can initialize with B0101 OR B0301 functionality.
 
 Changes from OpenSAF 1.2.1 to OpenSAF 1.2.2
@@ -50,7 +59,7 @@ Changes from OpenSAF 1.2.1 to OpenSAF 1.2.2
 The following issues were fixed for 1.2.2
 
 2008-07-24 Michael Bishop <michael.bishop@hp.com>
-	* HiSV needs to handle FRUs that are not ATCA (full 5-state hotswap model).
+	* HiSv needs to handle FRUs that are not ATCA (full 5-state hotswap model).
 
 2008-07-28 Mathivanan <mathivanan.np@emerson.com>
 	* seg fault in ncs_cli_maa pressing tab key.
