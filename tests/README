@@ -56,7 +56,7 @@ Sets up the environment for running the OpenSAF tests.  It requires root privile
 
 Execute the following steps:
 
-# ${TET_BASE_DIR}/setup_opensaf_tet.sh ${TET_ROOT}
+# ${TET_BASE_DIR}/setup_tet_env.sh ${TET_ROOT}
 
 TET_ROOT -- Path where TETware is installed.
 
