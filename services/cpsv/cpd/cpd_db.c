@@ -1243,7 +1243,7 @@ uns32  cpd_get_slot_sub_id_from_mds_dest(MDS_DEST dest)
  
      m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
 
-     return ((sub_slot * 8) + (phy_slot));
+     return ((sub_slot * NCS_SUB_SLOT_MAX) + (phy_slot));
 }
 
 /********************************************************************************
@@ -1263,7 +1263,7 @@ uns32  cpd_get_slot_sub_slot_id_from_node_id( NCS_NODE_ID i_node_id )
  
      m_NCS_GET_PHYINFO_FROM_NODE_ID(i_node_id,NULL,&phy_slot,&sub_slot);
 
-   return ((sub_slot * 8) + (phy_slot));    
+   return ((sub_slot * NCS_SUB_SLOT_MAX) + (phy_slot));    
  
 }
 

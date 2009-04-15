@@ -995,11 +995,11 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb,
             {
                 node_info->isOnController = TRUE;
                 LOG_IN("New IMMND process is on ACTIVE Controller at %x",
-                    node_info->immnd_key);
+                        node_info->immnd_key);
             }
             else if (cb->immd_remote_id && 
                      m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-                                        immd_get_phy_slot_id(sinfo->dest)))
+                     immd_get_slot_and_subslot_id_from_mds_dest(sinfo->dest)))
             {
                 node_info->isOnController = TRUE;
 
@@ -1013,13 +1013,13 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb,
                     cb->rem_immnd_dest = sinfo->dest; 
                 }
                 LOG_IN("New IMMND process is on STANDBY Controller at %x",
-                    node_info->immnd_key);
+                        node_info->immnd_key);
             }
             else /*if(cb->immd_remote_id)*/
             {
                 /*node_info->isOnPayload = TRUE;*/
                 LOG_IN("New IMMND process is on PAYLOAD at:%x",
-                    node_info->immnd_key);
+                        node_info->immnd_key);
             }
             immd_accept_node(cb, node_info, TRUE);
         }
@@ -1780,12 +1780,12 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
     IMMSV_MDS_INFO  *mds_info;
     IMMD_IMMND_INFO_NODE *node_info=NULL;
     NCS_BOOL  add_flag = TRUE;
-    NCS_PHY_SLOT_ID phy_slot;
+    uns32 phy_slot_sub_slot;
     TRACE_ENTER();
 
     mds_info = &evt->info.mds_info;
 
-    memset(&phy_slot,0,sizeof(NCS_PHY_SLOT_ID));
+    memset(&phy_slot_sub_slot,0,sizeof(uns32));
 
     if (mds_info->svc_id == NCSMDS_SVC_ID_IMMND)
         TRACE_5("Received IMMND service event");
@@ -1810,9 +1810,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
                 MDS_DEST tmpDest = 0LL;
                 TRACE_5("Remote IMMD is UP.");
 
-                m_NCS_GET_PHYINFO_FROM_NODE_ID(mds_info->node_id,NULL,
-                                               &phy_slot,NULL);    
-                cb->immd_remote_id = phy_slot;
+                cb->immd_remote_id = immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id);
 
                 /*Check if the SBY IMMND has already identified itself. 
                   If so, we need to mark it as residing on a controller and
@@ -1835,7 +1833,8 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
 
                             node_info->isOnController = TRUE;
                             TRACE_5("Located STDBY IMMND =  %x node_id:%x", 
-                                    phy_slot, mds_info->node_id);
+                                     immd_get_slot_and_subslot_id_from_node_id(mds_info->node_id), 
+                                     mds_info->node_id);
                             immd_accept_node(cb, node_info, TRUE);
                         }
                         /* Break out of while-1. We found*/
@@ -1861,18 +1860,18 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
 
             if (mds_info->svc_id == NCSMDS_SVC_ID_IMMND)
             {
-                phy_slot = immd_get_phy_slot_id(mds_info->dest);
-                cb->immnd_dests[phy_slot] = mds_info->dest;
+                phy_slot_sub_slot = immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest);
+                cb->immnd_dests[phy_slot_sub_slot] = mds_info->dest;
                 immd_immnd_info_node_find_add(&cb->immnd_tree, &mds_info->dest,
                     &node_info, &add_flag);
             }
 
             if (m_IMMND_IS_ON_SCXB(cb->immd_self_id,
-                    immd_get_phy_slot_id(cb->immnd_dests[phy_slot])))
+                 immd_get_slot_and_subslot_id_from_mds_dest(cb->immnd_dests[phy_slot_sub_slot])))
             {
                 TRACE_5("NCSMDS_UP for IMMND local");       
                 cb->is_loc_immnd_up = TRUE;   
-                cb->loc_immnd_dest = cb->immnd_dests[phy_slot];
+                cb->loc_immnd_dest = cb->immnd_dests[phy_slot_sub_slot];
                 if (cb->ha_state == SA_AMF_HA_ACTIVE)
                 {
                     TRACE_5("NCSMDS_UP IMMND THIS IMMD is ACTIVE");
@@ -1881,11 +1880,11 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
 
             /* When IMMND ON STANDBY COMES UP */
             if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-                    immd_get_phy_slot_id(cb->immnd_dests[phy_slot])))
+                immd_get_slot_and_subslot_id_from_mds_dest(cb->immnd_dests[phy_slot_sub_slot])))
             {
                 TRACE_5("REMOTE IMMND UP - node:%x",mds_info->node_id);
                 cb->is_rem_immnd_up = TRUE; /*ABT BUGFIX 080811*/
-                cb->rem_immnd_dest = cb->immnd_dests[phy_slot]; /*??*/
+                cb->rem_immnd_dest = cb->immnd_dests[phy_slot_sub_slot]; /*??*/
                 if (cb->ha_state == SA_AMF_HA_ACTIVE)
                 {
                     TRACE_5("NCSMDS_UP for REMOTE IMMND, THIS IMMD is ACTIVE");
@@ -1935,13 +1934,13 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
             }
 
             if (m_IMMND_IS_ON_SCXB(cb->immd_self_id,
-                    immd_get_phy_slot_id(mds_info->dest)))
+                immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest)))
             {
                 TRACE_5("NCSMDS_DOWN => local IMMND down");
                 cb->is_loc_immnd_up = FALSE;
             }
             else if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-                         immd_get_phy_slot_id(mds_info->dest)))
+                     immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest)))
             {
                 TRACE_5("NCSMDS_DOWN, remote IMMND/IMMD ?? down");
             }

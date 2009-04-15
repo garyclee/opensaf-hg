@@ -153,7 +153,7 @@ int immd_proc_elect_coord(IMMD_CB *cb)
         {
             if (cb->immd_remote_id && 
                 m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-                    immd_get_phy_slot_id(immnd_info_node->immnd_dest)))
+                immd_get_slot_and_subslot_id_from_mds_dest(immnd_info_node->immnd_dest)))
             {
                 cb->is_rem_immnd_up = TRUE; /*ABT BUGFIX 080905*/
                 cb->rem_immnd_dest = immnd_info_node->immnd_dest;
@@ -239,16 +239,15 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info,
             res = immd_proc_elect_coord(cb);
         }
     } else {
-        NCS_PHY_SLOT_ID phy_slot=0;
-        /* Check if it was the IMMND on the active controller that went down.*/
-        m_NCS_GET_PHYINFO_FROM_NODE_ID(immnd_info->immnd_key,NULL,
-            &phy_slot,NULL);
-        if(phy_slot == cb->immd_remote_id)
+          /* Check if it was the IMMND on the active controller that went down.*/
+        if(immd_get_slot_and_subslot_id_from_node_id(immnd_info->immnd_key) ==
+        cb->immd_remote_id)
         {
             LOG_WA("IMMND DOWN on active controller %u "
-                "detected at standby immd!! %u. "
-                "Possible failover", phy_slot, 
-                cb->immd_self_id);
+                   "detected at standby immd!! %u. "
+                   "Possible failover",
+                    immd_get_slot_and_subslot_id_from_node_id(immnd_info->immnd_key), 
+                    cb->immd_self_id);
             possible_fo = TRUE;
         }
     }

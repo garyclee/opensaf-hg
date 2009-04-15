@@ -391,7 +391,6 @@ uns32 immnd_client_node_add(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *imm_node);
 uns32 immnd_client_node_del(IMMND_CB *cb, 
                             IMMND_IMM_CLIENT_NODE *imm_client_node);
 
-NCS_PHY_SLOT_ID  immnd_get_phy_slot_id(MDS_DEST dest);
 
 IMMSV_OCTET_STRING* immnd_dequeue_fevs_msg(IMMSV_OCTET_STRING* msg,
 					   IMMND_CB *cb, 
