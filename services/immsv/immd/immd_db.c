@@ -299,18 +299,40 @@ uns32 immd_cb_db_destroy (IMMD_CB *cb)
 }
 
 /*****************************************************************************
- Name    :  immd_get_phy_slot_id
+ Name    :  immd_get_slot_and_subslot_id_from_mds_dest
 
- Description :  To get the physical slot id from the node id
+ Description :  To get the physical slot & subslot unique  id from the mds_dest
 
  Arguments   :
 *****************************************************************************/
-NCS_PHY_SLOT_ID  immd_get_phy_slot_id(MDS_DEST dest)
+uns32  immd_get_slot_and_subslot_id_from_mds_dest(MDS_DEST dest)
 {
     NCS_PHY_SLOT_ID phy_slot; 
+    NCS_SUB_SLOT_ID sub_slot;
 
     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,
-                                   &phy_slot,NULL);
-    return phy_slot;
+                                   &phy_slot,&sub_slot);
+
+   return ((sub_slot * NCS_SUB_SLOT_MAX ) + (phy_slot)); 
+}
+
+
+
+/*****************************************************************************
+ Name    :  immd_get_slot_and_subslot_id_from_node_id
+
+ Description :  To get the physical slot & sbuslot unique  id from the node id
+
+ Arguments   :
+*****************************************************************************/
+uns32  immd_get_slot_and_subslot_id_from_node_id( NCS_NODE_ID node_id)
+{
+    NCS_PHY_SLOT_ID phy_slot; 
+    NCS_SUB_SLOT_ID sub_slot;
+
+    m_NCS_GET_PHYINFO_FROM_NODE_ID(node_id,NULL,&phy_slot,&sub_slot);
+
+
+    return ((sub_slot * NCS_SUB_SLOT_MAX ) + (phy_slot));
 }
 

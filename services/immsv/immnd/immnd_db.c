@@ -183,20 +183,6 @@ void immnd_client_node_tree_destroy(IMMND_CB *cb)
 }
 
 
-/****************************************************************************
- * Name            : immnd_get_phy_slot_id
- *
- * Description     : To get the physical slot id from node id
- *
- ****************************************************************************/
-NCS_PHY_SLOT_ID  immnd_get_phy_slot_id(MDS_DEST dest)
-{
-    NCS_PHY_SLOT_ID phy_slot;
-
-    m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,
-        &phy_slot,NULL);
-    return phy_slot;
-}
 
 /* FEVS MESSAGE QUEUEING */
 /*************************************************************************

@@ -104,7 +104,6 @@ uns32 immd_mds_register (IMMD_CB *cb)
     NCSMDS_INFO       svc_info;
     MDS_SVC_ID        svc_id[1] = {NCSMDS_SVC_ID_IMMND};
     MDS_SVC_ID        immd_id[1] = {NCSMDS_SVC_ID_IMMD};
-    NCS_PHY_SLOT_ID   phy_slot;
 
     /* Create the virtual Destination for  IMMD */
     rc = immd_mds_vdest_create(cb);
@@ -191,8 +190,8 @@ uns32 immd_mds_register (IMMD_CB *cb)
 
     /* Get the node id of local IMMD */
     cb->node_id = m_NCS_GET_NODE_ID;
-    m_NCS_GET_PHYINFO_FROM_NODE_ID(cb->node_id,NULL,&phy_slot,NULL);
-    cb->immd_self_id = phy_slot;
+
+    cb->immd_self_id = immd_get_slot_and_subslot_id_from_node_id(cb->node_id);
     TRACE_5("NodeId:%x SelfId:%x", cb->node_id, cb->immd_self_id);
     return NCSCC_RC_SUCCESS; 
 }
