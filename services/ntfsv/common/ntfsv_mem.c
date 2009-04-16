@@ -126,16 +126,15 @@ SaAisErrorT ntfsv_alloc_ntf_header(
 {
     TRACE_ENTER();
     SaAisErrorT rc = SA_AIS_OK;
-    /* TODO: improve over all error handling in this function */
+    if (notificationHeader == NULL) {
+        TRACE("NULL pointer in *notificationHeader!");
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
     notificationHeader->numCorrelatedNotifications = numCorrelatedNotifications;
     notificationHeader->lengthAdditionalText = lengthAdditionalText;
     notificationHeader->numAdditionalInfo = numAdditionalInfo;
 
-    if (notificationHeader == NULL) {
-	TRACE("NULL pointer in *notificationHeader!");
-	return SA_AIS_ERR_INVALID_PARAM;
-    }
-    /* freed by free_header() */
+    /* freed by ntfsv_free_header() */
     notificationHeader->notificationObject = NULL; 
     notificationHeader->notifyingObject = NULL; 
     notificationHeader->eventTime = NULL; 
@@ -359,7 +358,6 @@ SaAisErrorT ntfsv_alloc_ntf_obj_create_del(
         malloc(numAttributes * sizeof (SaNtfAttributeT));
         if (objCrDelNotification->objectAttributes == NULL) {
             TRACE_1("Out of memory in objectAttributes field");
-            free(objCrDelNotification->sourceIndicator);
             rc = SA_AIS_ERR_NO_MEMORY;
             goto done;
         }

@@ -536,8 +536,8 @@ void NtfClient::deleteReader(unsigned int readerId, MDS_SYNC_SND_CTXT *mdsCtxt)
                 readerId);
         NtfReader* reader = pos->second;
         error = SA_AIS_OK;
-        reader = NULL;
         delete reader;
+        readerMap.erase(pos);
     }
     else
     {

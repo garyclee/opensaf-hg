@@ -40,7 +40,9 @@ static unsigned int ntfa_create(void)
     m_NCS_SEL_OBJ_CREATE(&ntfa_cb.ntfs_sync_sel);
     m_NCS_SEL_OBJ_ZERO(&set);
     m_NCS_SEL_OBJ_SET(ntfa_cb.ntfs_sync_sel, &set);
+    pthread_mutex_lock(&ntfa_cb.cb_lock);
     ntfa_cb.ntfs_sync_awaited = 1;
+    pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
    /* register with MDS */
     if ( (NCSCC_RC_SUCCESS != (rc = ntfa_mds_init(&ntfa_cb))))
@@ -158,6 +160,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 SA_NTF_ALLOC_SYSTEM_LIMIT);
             if (SA_AIS_OK == rc)
             {
+                pthread_mutex_lock(&ntfa_cb.cb_lock);
                 notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
                     notification->notification.
                     objectCreateDeleteNotification.
@@ -167,6 +170,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     pthread_mutex_unlock(&ntfa_cb.cb_lock);
                     TRACE("ncshm_take_hdl notificationHandle failed"); 
                     rc = SA_AIS_ERR_BAD_HANDLE;
+                    break;
                 }
             /* to be able to delelte cbk_notification in saNtfNotificationFree */
                 notification_hdl_rec->cbk_notification = notification;
@@ -174,6 +178,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     objectCreateDeleteNotification.notificationHandle);
                 ntfsv_copy_ntf_obj_cr_del(&notification->notification.objectCreateDeleteNotification,
                     &not_cbk->notification.objectCreateDelete);
+                pthread_mutex_unlock(&ntfa_cb.cb_lock);
             }
             break;
         case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
@@ -192,6 +197,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 SA_NTF_ALLOC_SYSTEM_LIMIT);
             if (SA_AIS_OK == rc)
             {
+                pthread_mutex_lock(&ntfa_cb.cb_lock);
                 notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
                     notification->notification.
                     attributeChangeNotification.
@@ -201,6 +207,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     pthread_mutex_unlock(&ntfa_cb.cb_lock);
                     TRACE("ncshm_take_hdl notificationHandle failed"); 
                     rc = SA_AIS_ERR_BAD_HANDLE;
+                    break;
                 }
             /* to be able to delelte cbk_notification in saNtfNotificationFree */
                 notification_hdl_rec->cbk_notification = notification;
@@ -208,6 +215,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     attributeChangeNotification.notificationHandle);
                 ntfsv_copy_ntf_attr_change(&notification->notification.attributeChangeNotification,
                     &not_cbk->notification.attributeChange);
+                pthread_mutex_unlock(&ntfa_cb.cb_lock);
             }
             break;
         case SA_NTF_TYPE_STATE_CHANGE:
@@ -226,6 +234,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 SA_NTF_ALLOC_SYSTEM_LIMIT);
             if (SA_AIS_OK == rc)
             {
+                pthread_mutex_lock(&ntfa_cb.cb_lock);
                 notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
                     notification->notification.
                     stateChangeNotification.
@@ -235,6 +244,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     pthread_mutex_unlock(&ntfa_cb.cb_lock);
                     TRACE("ncshm_take_hdl notificationHandle failed"); 
                     rc = SA_AIS_ERR_BAD_HANDLE;
+                    break;
                 }
             /* to be able to delelte cbk_notification in saNtfNotificationFree */
                 notification_hdl_rec->cbk_notification = notification;
@@ -242,6 +252,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     stateChangeNotification.notificationHandle);
                 ntfsv_copy_ntf_state_change(&notification->notification.stateChangeNotification,
                     &not_cbk->notification.stateChange);
+                pthread_mutex_unlock(&ntfa_cb.cb_lock);
             }
             break;
         case SA_NTF_TYPE_ALARM:
@@ -257,6 +268,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 SA_NTF_ALLOC_SYSTEM_LIMIT);
             if (SA_AIS_OK == rc)
             {
+                pthread_mutex_lock(&ntfa_cb.cb_lock);
                 notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
                     notification->notification.
                     alarmNotification.notificationHandle);
@@ -265,6 +277,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     pthread_mutex_unlock(&ntfa_cb.cb_lock);
                     TRACE("ncshm_take_hdl notificationHandle failed"); 
                     rc = SA_AIS_ERR_BAD_HANDLE;
+                    break;
                 }
             /* to be able to delelte cbk_notification in saNtfNotificationFree */
                 notification_hdl_rec->cbk_notification = notification;
@@ -272,6 +285,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     alarmNotification.notificationHandle);
                 ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification,
                     &not_cbk->notification.alarm);
+                pthread_mutex_unlock(&ntfa_cb.cb_lock);
             }
             break;
         case SA_NTF_TYPE_SECURITY_ALARM:
@@ -285,6 +299,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 SA_NTF_ALLOC_SYSTEM_LIMIT);
             if (SA_AIS_OK == rc)
             {
+                pthread_mutex_lock(&ntfa_cb.cb_lock);
                 notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
                     notification->notification.
                     securityAlarmNotification.
@@ -294,6 +309,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                     pthread_mutex_unlock(&ntfa_cb.cb_lock);
                     TRACE("ncshm_take_hdl notificationHandle failed"); 
                     rc = SA_AIS_ERR_BAD_HANDLE;
+                    break;
                 }
             /* to be able to delelte cbk_notification in saNtfNotificationFree */
                 notification_hdl_rec->cbk_notification = notification;
@@ -302,6 +318,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
                 ntfsv_copy_ntf_security_alarm(&notification->notification.
                     securityAlarmNotification,
                     &not_cbk->notification.securityAlarm);
+                pthread_mutex_unlock(&ntfa_cb.cb_lock);
             }
             break;
         default:
@@ -966,7 +983,7 @@ ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb,
         NCS_SERVICE_ID_NTFA,(NCSCONTEXT)rec)))
     {
         TRACE("ncshm_create_hdl failed");
-        goto error;
+        goto err_free;
     }
 
     /* store the registered callbacks */
@@ -979,8 +996,18 @@ ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb,
 
     /** Initialize and attach the IPC/Priority queue
      **/
-    m_NCS_IPC_CREATE(&rec->mbx);
-    m_NCS_IPC_ATTACH(&rec->mbx);
+
+    if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+        TRACE("m_NCS_IPC_CREATE failed");
+        goto err_destroy_hdl;
+    }
+
+    if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+        TRACE("m_NCS_IPC_ATTACH failed");
+        goto err_ipc_release;
+    }
 
     /** Add this to the Link List of 
      ** CLIENT_HDL_RECORDS for this NTFA_CB 
@@ -994,21 +1021,15 @@ ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb,
 
     goto done;
 
-error:
-    if (rec)
-    {
-        /* remove the association with hdl-mngr */
-        if (rec->local_hdl)
+err_ipc_release:
+    (void) m_NCS_IPC_RELEASE(&rec->mbx, NULL);
+
+err_destroy_hdl:
             ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rec->local_hdl);
 
-        /** detach and release the IPC 
-         **/
-        m_NCS_IPC_DETACH(&rec->mbx, ntfa_clear_mbx, NULL);
-        m_NCS_IPC_RELEASE(&rec->mbx, NULL);
-
+err_free:
         free(rec);
         rec = NULL;
-    }
 
 done:
     return rec;

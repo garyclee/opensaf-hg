@@ -748,6 +748,8 @@ static uns32 ntfa_dec_read_next_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
         return 0;
     }
     param->readNotification = calloc(1, sizeof(ntfsv_send_not_req_t));
+    if(NULL == param->readNotification)
+        return 0;
     return ntfsv_dec_not_msg(uba, param->readNotification);
 }
 
