@@ -360,12 +360,18 @@ static SaAisErrorT amf_healthcheck_start(ntfs_cb_t *ntfs_cb)
     health_key = (char*)getenv("NTFSV_ENV_HEALTHCHECK_KEY");
 
     if (health_key == NULL)
+    {
         strcpy((char *)healthy.key, "F1B2");
+        healthy.keyLen = strlen((const char *)healthy.key);
+    }
     else
-        strcpy((char *)healthy.key, health_key);
-
-    healthy.keyLen = strlen((const char *)healthy.key);
-
+    {
+        healthy.keyLen = strlen(health_key);
+        if (healthy.keyLen > sizeof(healthy.key))
+          healthy.keyLen = sizeof(healthy.key);
+        strncpy((char *)healthy.key, health_key, healthy.keyLen);    
+    }
+  
     error = saAmfHealthcheckStart(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, &healthy,
                                   SA_AMF_HEALTHCHECK_AMF_INVOKED,
                                   SA_AMF_COMPONENT_FAILOVER);

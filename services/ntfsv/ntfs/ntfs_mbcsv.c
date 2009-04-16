@@ -69,6 +69,7 @@ static uns32 ckpt_notify_cbk_handler (NCS_MBCSV_CB_ARG *arg);
 static uns32 ckpt_err_ind_cbk_handler (NCS_MBCSV_CB_ARG *arg);
 
 static uns32 process_ckpt_data(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data);
+static void ntfs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr);
 
 static NTFS_CKPT_HDLR ckpt_data_handler[NTFS_CKPT_MSG_MAX] = 
 {
@@ -1142,17 +1143,13 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb,NCS_MBCSV_CB_ARG *cbk_arg)
     ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
 
     /* If we reached here, we are through. Good enough for coldsync with ACTIVE */
-    TRACE_2("COLD SYNC DECODE END........");
-    TRACE_LEAVE();
-    return rc;
-
-    done:
+done:
     if (rc != NCSCC_RC_SUCCESS)
     {
-        LOG_ER("Cold sync failed");
-        assert(rc == NCSCC_RC_SUCCESS); /* try again after reboot */
+        /* Do not allow standby to get out of sync */
+        ntfs_exit("Cold sync failed", SA_AMF_COMPONENT_RESTART);
     }
-    TRACE_LEAVE();
+    TRACE_LEAVE2("COLD SYNC DECODE END........");
     return rc;
 }
 
@@ -1710,4 +1707,12 @@ static uns32 dec_ckpt_header(NCS_UBAID *uba, ntfsv_ckpt_header_t *header)
     TRACE_LEAVE(); 
     return NCSCC_RC_SUCCESS;
 }/*End ntfs_dec_ckpt_header */
+
+static void ntfs_exit(const char* msg, SaAmfRecommendedRecoveryT rec_rcvr)
+{
+    LOG_ER("Exiting with message: %s", msg);
+    (void) saAmfComponentErrorReport(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, 0,
+                                     rec_rcvr, SA_NTF_IDENTIFIER_UNUSED);
+    exit(EXIT_FAILURE);
+}
 
