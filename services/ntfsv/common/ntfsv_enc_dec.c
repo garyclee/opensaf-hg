@@ -79,6 +79,7 @@ static uns32 encodeSaNtfValueT(NCS_UBAID *uba,
             ncs_encode_16bit(&p8, ntfAttr->uint16Val);
             ncs_enc_claim_space(uba, 2);
             total_bytes += 2;
+            break;
         case SA_NTF_VALUE_INT16:
             p8 = ncs_enc_reserve_space(uba, 2);
             if (!p8)
@@ -781,6 +782,10 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
                     (SaNtfAttributeT*) calloc(1,param->notification.
                            objectCreateDelete.numAttributes \
                            *sizeof(SaNtfAttributeT));
+                if (NULL == param->notification.objectCreateDelete.objectAttributes) {
+                    TRACE_1("calloc failed");
+                    return 0;
+                }
 
                 for (i=0; i < param->notification.objectCreateDelete.numAttributes; i++)
                 {
@@ -815,7 +820,7 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
                         param->notification.attributeChange.numAttributes * \
                         sizeof (SaNtfAttributeChangeT));
                 if (param->notification.attributeChange.changedAttributes == NULL) {
-                    TRACE_1("malloc failed");
+                    TRACE_1("calloc failed");
                     return 0;
                 }
             } 
@@ -848,6 +853,11 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
                 (SaNtfStateChangeT*) calloc(1, sizeof (SaNtfStateChangeT)*
                                             param->notification.
                                             stateChange.numStateChanges);
+            if (NULL == param->notification.stateChange.changedStates)
+            {
+                TRACE_1("calloc failed");
+                return 0;
+            }
             for (i=0; i< param->notification.stateChange.numStateChanges; i++)
             {
                 p8 = ncs_dec_flatten_space(uba, local_data, 3);

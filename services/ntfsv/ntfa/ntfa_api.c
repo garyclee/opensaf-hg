@@ -604,13 +604,13 @@ SaAisErrorT saNtfAlarmNotificationAllocate(
      *  into the list of channel hdl record.
      **/
     notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
-    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     if (notification_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -696,6 +696,8 @@ SaAisErrorT saNtfNotificationFree(
         client_handle);
     if (client_rec == NULL)
     {
+        /**                  UnLockntfa_CB            **/
+        pthread_mutex_unlock(&ntfa_cb.cb_lock);
         TRACE("ncshm_take_hdl client_handle failed");
         rc = SA_AIS_ERR_BAD_HANDLE;
         goto done_give_hdl;
@@ -760,7 +762,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
     {
         TRACE("ncshm_take_hdl notificationHandle failed");
         rc = SA_AIS_ERR_BAD_HANDLE;
-        goto done;
+        goto err_free;
     }
 
     client_handle = notification_hdl_rec->parent_hdl->local_hdl;
@@ -925,6 +927,7 @@ done_give_hdls:
     ncshm_give_hdl(client_handle);
 done_give_hdl:
     ncshm_give_hdl(notificationHandle);
+err_free:
     free(send_param);
 done:
     TRACE_LEAVE();
@@ -1173,13 +1176,13 @@ SaAisErrorT
     pthread_mutex_lock(&ntfa_cb.cb_lock);
 
     notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
-    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     if (notification_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
     notification_hdl_rec->ntfNotification.ntfObjectCreateDeleteNotification. 
@@ -1264,13 +1267,13 @@ SaAisErrorT
     pthread_mutex_lock(&ntfa_cb.cb_lock);
 
     notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
-    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     if (notification_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1356,13 +1359,13 @@ SaAisErrorT
     /**                 Lock ntfa_CB                 **/
     pthread_mutex_lock(&ntfa_cb.cb_lock);
     notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
-    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     if (notification_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1443,13 +1446,13 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(
     /**                 Lock ntfa_CB                 **/
     pthread_mutex_lock(&ntfa_cb.cb_lock);
     notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
-    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     if (notification_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1639,16 +1642,15 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(
 
 
     filter_hdl_rec = ntfa_filter_hdl_rec_add(&hdl_rec);
-    TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
     if (filter_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_hdl;
     }
+    TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
     /**                  UnLock ntfa_CB            **/
     pthread_mutex_unlock(&ntfa_cb.cb_lock);
-
 
     /* Set the instance handle */
     filter_hdl_rec->ntfHandle = ntfHandle;
@@ -1893,6 +1895,8 @@ SaAisErrorT saNtfNotificationFilterFree(
         client_handle);
     if (client_rec == NULL)
     {
+        /**                  UnLock ntfa_CB            *   */
+        pthread_mutex_unlock(&ntfa_cb.cb_lock);
         TRACE("ncshm_take_hdl client_handle failed");
         rc = SA_AIS_ERR_BAD_HANDLE;
         goto done_give_hdl;
@@ -2110,28 +2114,14 @@ SaAisErrorT saNtfNotificationReadInitialize(
         {
             TRACE_1("ncshm_take_hdl failed");
             rc = SA_AIS_ERR_BAD_HANDLE;
-            goto done_give_hdl;
+            goto done_give_filter_hdl;
         }
-        /**                 Lock ntfa_CB                 **/
-        pthread_mutex_lock(&ntfa_cb.cb_lock);
-        reader_hdl_rec = ntfa_reader_hdl_rec_add(&client_hdl_rec);
-        TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
-        if (reader_hdl_rec == NULL)
-        {
-            pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            rc = SA_AIS_ERR_NO_MEMORY;
-            goto done_give_hdl;
-        }
-        /**                  UnLock ntfa_CB            **/
-        pthread_mutex_unlock(&ntfa_cb.cb_lock);
-        *readHandle = (SaNtfReadHandleT)reader_hdl_rec->reader_hdl;
-        reader_hdl_rec->ntfHandle = filter_hdl_rec->ntfHandle;
     }
     else
     {
         TRACE_1("No filter except the alarm filter supported!");
         rc = SA_AIS_ERR_NOT_SUPPORTED;
-        goto done_give_hdls;
+        goto done;
     }
 
     /* TODO: Fill in eventTime and notificationId later on */
@@ -2152,7 +2142,7 @@ SaAisErrorT saNtfNotificationReadInitialize(
     {
         TRACE("NTFS down");
         rc = SA_AIS_ERR_TRY_AGAIN;
-        goto done_give_hdls;
+        goto done_give_client_hdl;
     }
 
     /* Send a sync MDS message to obtain a log stream id */
@@ -2162,7 +2152,7 @@ SaAisErrorT saNtfNotificationReadInitialize(
         if (o_msg)
             ntfa_msg_destroy(o_msg);
         rc = SA_AIS_ERR_TRY_AGAIN;
-        goto done_give_hdls;
+        goto done_give_client_hdl;
     }
 
     if (SA_AIS_OK != o_msg->info.api_resp_info.rc)
@@ -2171,23 +2161,37 @@ SaAisErrorT saNtfNotificationReadInitialize(
         TRACE("Bad return status!!! rc = %d", rc);
         if (o_msg)
             ntfa_msg_destroy(o_msg);
-        goto done_give_hdls;
+        goto done_give_client_hdl;
     }
 
     if (o_msg->info.api_resp_info.type != NTFSV_READER_INITIALIZE_RSP)
     {
         TRACE("msg type (%d) failed", (int)&o_msg->info.api_resp_info.type);
         rc = SA_AIS_ERR_LIBRARY;
-        goto done_give_hdls;
+        goto done_give_client_hdl;
     }
 
+    /**                 Lock ntfa_CB                 **/
+    pthread_mutex_lock(&ntfa_cb.cb_lock);
+    reader_hdl_rec = ntfa_reader_hdl_rec_add(&client_hdl_rec);
+    TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
+    if (reader_hdl_rec == NULL)
+    {
+        pthread_mutex_unlock(&ntfa_cb.cb_lock);
+        rc = SA_AIS_ERR_NO_MEMORY;
+        goto done_give_client_hdl;
+    }
+    *readHandle = (SaNtfReadHandleT)reader_hdl_rec->reader_hdl;
+    reader_hdl_rec->ntfHandle = filter_hdl_rec->ntfHandle;
     /* Store the readerId returned from server */
     reader_hdl_rec->reader_id = o_msg->info.api_resp_info.param.reader_init_rsp.readerId;
+    /**                  UnLock ntfa_CB            **/
+    pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
-done_give_hdls:
-    ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
-done_give_hdl:
+done_give_client_hdl:
     ncshm_give_hdl(client_hdl_rec->local_hdl);
+done_give_filter_hdl:
+    ncshm_give_hdl(notificationFilterHandles->alarmFilterHandle);
 done:
     TRACE_LEAVE();
     return rc;
@@ -2223,7 +2227,7 @@ SaAisErrorT saNtfNotificationReadFinalize(
     {
         TRACE_1("ncshm_take_hdl failed");
         rc = SA_AIS_ERR_BAD_HANDLE;
-        goto done_give_hdl;
+        goto done_give_read_hdl;
     }
     TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
@@ -2285,9 +2289,9 @@ SaAisErrorT saNtfNotificationReadFinalize(
         ntfa_msg_destroy(o_msg);
 
 done_give_hdls:
-    ncshm_give_hdl(readhandle);
-done_give_hdl:
     ncshm_give_hdl(client_hdl_rec->local_hdl);
+done_give_read_hdl:
+    ncshm_give_hdl(readhandle);
 done:
     TRACE_LEAVE();
     return rc;
@@ -2325,7 +2329,7 @@ SaAisErrorT saNtfNotificationReadNext(
     {
         TRACE_1("ncshm_take_hdl failed");
         rc = SA_AIS_ERR_BAD_HANDLE;
-        goto done_give_hdl;
+        goto done_give_read_hdl;
     }
     TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
 
@@ -2390,9 +2394,9 @@ SaAisErrorT saNtfNotificationReadNext(
     if (o_msg)
         ntfa_msg_destroy(o_msg);
 done_give_hdls:
-    ncshm_give_hdl(readHandle);
-done_give_hdl:
     ncshm_give_hdl(client_hdl_rec->local_hdl);
+done_give_read_hdl:
+    ncshm_give_hdl(readHandle);
 done:
     TRACE_LEAVE();
     return rc;

@@ -641,10 +641,6 @@ static SaAisErrorT
                     usleep(100000);
                 }
             } while (SA_AIS_ERR_TRY_AGAIN == errorCode);
-            if (SA_AIS_OK != errorCode)
-            {
-                (void)printf("Error: saNtfNotificationSend rc: %d", (int)errorCode);
-            }
 
             ntfId = *(myAlarmNotification.notificationHeader.notificationId);
             (void)printf("NotificationId: %d\n", (SaInt32T) ntfId);
