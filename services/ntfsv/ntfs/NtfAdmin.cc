@@ -52,9 +52,9 @@ NtfAdmin::~NtfAdmin()
  * A new client object is created and a reference to the 
  * connection object is added. 
  *  
- * If the client is located in this node and it has an id higher than
- * the actual value of the client counter, this means that this process
- * was restarted and the client counter value needs to be updated. This could
+ * If the client has an id higher than the actual value of the
+ * client counter, this means that this process was restarted 
+ * and the client counter value needs to be updated. This could 
  * only occur during synchronization. 
  *
  * @param clientId A node-wide unique id for the client that was added. 
@@ -137,7 +137,7 @@ void NtfAdmin::subscriptionAdded(unsigned int clientId,
 
         // create subscription
         // deleted in different methods depending on if object exists or not:
-        // NtfNode::subscriptionAdded
+        // NtfAdmin::subscriptionAdded
         // NtfClient::subscriptionAdded
         // NtfClient::subscriptionRemoved
         // NtfClient::~NtfClient()
@@ -154,7 +154,7 @@ void NtfAdmin::subscriptionAdded(unsigned int clientId,
     }
     else
     {
-        LOG_ER("Node::subscriptionAdded client %u not found", clientId);
+        LOG_ER("NtfAdmin::subscriptionAdded client %u not found", clientId);
         delete subscription;
     }
 }
@@ -487,7 +487,8 @@ void NtfAdmin::clientRemoved(unsigned int clientId)
     }
     else
     {
-        LOG_ER("Node::clientRemoved client %u not found", clientId);
+        TRACE_2("NtfAdmin::clientRemoved client %u not found", clientId);
+        return;
     }
     // notifications do not need to be sent to that client, remove them
     // scan through all notifications, remove subscriptions belonging to
@@ -552,7 +553,7 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
     }
     else
     {
-        LOG_ER("Node::subscriptionRemoved client %u not found", clientId);
+        LOG_ER("NtfAdmin::subscriptionRemoved client %u not found", clientId);
     }
 
     // notifications do not need to be sent on that subscription, remove
@@ -582,7 +583,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba)
     for (pos = clientMap.begin(); pos != clientMap.end(); pos++)
     {
         NtfClient* client = pos->second;
-        TRACE_1("NtfNode::syncRequest sending info about client %u",
+        TRACE_1("NtfAdmin::syncRequest sending info about client %u",
                 client->getClientId());
         int retval = sendNewClient(client->getClientId(),
                                    client->getMdsDest(),
