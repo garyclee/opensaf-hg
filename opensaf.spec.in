@@ -123,6 +123,7 @@ The development libraries and header files for the OpenSAF project.
 Group: Applications/System
 Summary: Small sample applications to demonstrate OpenSAF functionalities
 Requires: %{name}-devel = %{version}-%{release}
+BuildArch: noarch
 
 %description samples
 Small sample applications to demonstrate OpenSAF functionalities
@@ -164,19 +165,16 @@ Optional miscellaneous tools and utilities for use with OpenSAF
 
 %build
 %configure @ac_configure_args@
-
 %{__make} %{_smp_mflags}
 
 
 %install
 %{__rm} -rf $RPM_BUILD_ROOT
 %{__make} install DESTDIR=$RPM_BUILD_ROOT
-
 %{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/*.la
-%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.la
-%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.a
-%{__rm} -rf $RPM_BUILD_ROOT%{_libdir}/%{name}/*.so
-
+%{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.la
+%{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.a
+%{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.so
 %{__rm} -rf $RPM_BUILD_ROOT/usr/share/doc/%{name}-%{version}
 
 
@@ -204,9 +202,7 @@ else # If we're being installed
    /sbin/chkconfig opensafd off
 fi
 
-
 %post libs -p /sbin/ldconfig
-
 
 %post controller
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.controller %{_sysconfdir}/%{name}/nodeinit.conf
@@ -216,6 +212,7 @@ fi
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
 /sbin/ldconfig
 
+
 %preun common
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
@@ -223,21 +220,18 @@ if [ "$1" = "0" ]; then
     /sbin/chkconfig --del opensafd
 fi
 
-
-%postun libs -p /sbin/ldconfig
-
-%postun controller
-/sbin/ldconfig
-
-%postun payload
-/sbin/ldconfig
-
 %preun controller
 %{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
 
-
 %preun payload
 %{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
+
+
+%postun libs -p /sbin/ldconfig
+
+%postun controller -p /sbin/ldconfig
+
+%postun payload -p /sbin/ldconfig
 
 
 %files
@@ -261,10 +255,11 @@ fi
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
 # TODO Still needed?
-%{_pkglibdir}/find_pid
 %{_bindir}/saflogger
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
+%{_bindir}/opensaf_mem_dump_tool
+%{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
 %{_pkglibdir}/ip_inst_script
@@ -294,7 +289,6 @@ fi
 %{_pkglibdir}/openhpisubagt_start
 %endif
 %{_pkglibdir}/immnd_script
-%{_bindir}/opensaf_mem_dump_tool
 %{_pkglibdir}/tipc_reset.sh
 
 
@@ -302,6 +296,12 @@ fi
 %defattr(-,root,root)
 %{_bindir}/get_ha_state
 %{_bindir}/ncs_cli_maa
+%{_bindir}/collect_logs_controller
+%{_bindir}/immadm
+%{_bindir}/immcfg
+%{_bindir}/immdump
+%{_bindir}/immfind
+%{_bindir}/immlist
 %{_pkglibdir}/ncs_cpd
 %{_pkglibdir}/ncs_cpd_clean
 %{_pkglibdir}/ncs_cpd_start
@@ -360,15 +360,9 @@ fi
 %{_pkglibdir}/opensaf_ntfs
 %{_pkglibdir}/nis_snmpd_clean
 %{_pkglibdir}/nis_snmpd_start
-%{_bindir}/collect_logs_controller
 %{_pkglibdir}/immd_script
 %{_pkglibdir}/opensaf_immd
 %{_pkglibdir}/opensaf_immnd
-%{_bindir}/immadm
-%{_bindir}/immcfg
-%{_bindir}/immdump
-%{_bindir}/immfind
-%{_bindir}/immlist
 %{_pkglibdir}/immload
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -472,7 +466,7 @@ fi
 
 %files libs
 %defattr(-,root,root)
-%{_sysconfdir}/ld.so.conf.d/%{name}-%{_target_cpu}.conf
+%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 # TODO split of SAF / non-SAF libs
 %{_libdir}/libSaAmf.so.*
 %{_libdir}/libSaCkpt.so.*
