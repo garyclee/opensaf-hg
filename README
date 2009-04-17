@@ -345,6 +345,32 @@ a specific JDK installed in a non-standard location on your system.
 By using `./configure --with-ant=DIR', you can force the build system to use
 a specific Ant version installed in a non-standard location on your system.
 
+By using `./configure --with-rpm-release', you can change the default release
+token in the generated rpm filename. Predefined values exist like the build
+timestamp, the Mercurial revision used to when building the code, and also you
+can add your own free text token.
+
+By using `./configure --with-hpi-interface', you can force the HPI interface
+version used. By default it's autodetected by scanning the SaHpi.h header, but
+when cross-compiling is used it's not possible to run the test code for that
+autodetection.
+
+By using `./configure --disable-rpm-target', you are masking out the `make rpm'
+target, some build systems provide their own `make rpm` rule, it would then be
+clashing with the OpenSAF rule.
+
+By using `./configure --with-default-mibdirs', you inform the build system where
+to find the SNMP MIBS on your system. Some distro provide a broken
+`net-snmp-config --default-mibdirs' value, force it with this option.
+
+By using `./configure --with-net-snmp-config-bin', you inform the build system
+where to find the `net-snmp-config' script. It's not possible to autodetect the
+proper one when cross-compiling, force its location in this case.
+
+By using `./configure --with-xml2-config-bin', you inform the build system
+where to find the `xml2-config' script. It's not possible to autodetect the
+proper one when cross-compiling, force its location in this case.
+
 
 Building `OpenSAF' RPMS
 =======================
@@ -368,7 +394,7 @@ the following RPMS:
     opensaf-java-<version>.<build_arch>.rpm
     opensaf-libs-<version>.<build_arch>.rpm
     opensaf-payload-<version>.<build_arch>.rpm
-    opensaf-samples-<version>.<build_arch>.rpm
+    opensaf-samples-<version>.noarch.rpm
     opensaf-tools-<version>.<build_arch>.rpm
 
 opensaf: (Virtual)
@@ -453,7 +479,7 @@ To setup a development environment, install following RPMS:
 
     % rpm -ivh opensaf-libs-<version>.<build_arch>.rpm
     % rpm -ivh opensaf-devel-<version>.<build_arch>.rpm
-    % rpm -ivh opensaf-samples-<version>.<build_arch>.rpm
+    % rpm -ivh opensaf-samples-<version>.noarch.rpm
     % rpm -ivh opensaf-debuginfo-<version>.<build_arch>.rpm
 
 If Java AIS mapping was enabled, install the following RPM:
@@ -642,8 +668,6 @@ Using the Simulation Environment
 ================================
 
 See file `00-README.uml' for more information about User Mode Linux and `OpenSAF'
-
-More TODO
 
 
 Linux Distro-Specific Notes
