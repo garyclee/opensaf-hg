@@ -571,19 +571,12 @@ uns32 hcd_hsm()
          slot_ind = 1;
       }
       for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-         /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
-         if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
-            slot_ind = 1;
-            i--;
-         }
-         else
-            epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
+         epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
 
-         /* ATCA */ 
-         if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) {
+         /* Stop copying when we see SAHPI_ENT_ROOT */ 
+         if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
             /* don't need to copy anymore */
             break;
-         }
       }
 #endif
 
@@ -1055,27 +1048,18 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
         }
      }
    else
-    {  
-       if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-           (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-          /* NON-ATCA: Do not strip off leaf entry. */
-          slot_ind = 0;
-       }
-     for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
-       {
-      /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
-      if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
-         slot_ind = 1;
-         i--;
+   {  
+      if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+          (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+         /* NON-ATCA: Do not strip off leaf entry. */
+         slot_ind = 0;
       }
-      else {
+      for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
          epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
-      }
-        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
-          {
-         /* don't need to copy anymore */
-          break;
-          }
+
+         /* Stop copying when we see SAHPI_ENT_ROOT */
+         if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+            break;
       }
    }
    memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
@@ -1202,29 +1186,20 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
         }
      }
    else
-    {  
-       if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-           (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-          /* NON-ATCA: Do not strip off leaf entry. */
-          slot_ind = 0;
-       }
-     for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) 
-       {
-          /* For NON-ATCA, strip the SAHPI_ENT_RACK entry. */
-          if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_RACK) {
-             slot_ind = 1;
-             i--;
-          }
-          else {
-             epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
-          }
-        if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
-          {
-         /* don't need to copy anymore */
-          break;
-          }
-       }
-    }
+   {  
+      if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+          (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+         /* NON-ATCA: Do not strip off leaf entry. */
+         slot_ind = 0;
+      }
+      for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
+         epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
+
+         /* Stop copying when we see SAHPI_ENT_ROOT */
+         if (RptEntry->ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
+            break;
+      }
+   }
 
    memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
