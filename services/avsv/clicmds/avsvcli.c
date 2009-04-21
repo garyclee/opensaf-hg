@@ -47,7 +47,8 @@
 
 #define m_RETURN_AVSV_CLI_DONE(st,s,k)   avsv_cli_done(st,s,k)
 
-#define NCS_CLI_MIB_REQ_TIMEOUT  1000
+/* #define NCS_CLI_MIB_REQ_TIMEOUT  1000 */
+#define NCS_CLI_MIB_REQ_TIMEOUT  3000
 #define AVM_DEFAULT_HIERARCHY_LVL 2
 #define AVM_EXT_HIERARCHY_LVL     3
 

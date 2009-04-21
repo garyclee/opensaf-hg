@@ -834,7 +834,7 @@ static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *o_ent_path, uns8 shelf,
                             slot, shelf);
       else
       sprintf((char *)o_ent_path,
-       "{{SAHPI_ENT_SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", slot, shelf);
+       "{{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", slot, shelf);
 #endif
    }
    else
@@ -846,7 +846,7 @@ static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *o_ent_path, uns8 shelf,
               sub_slot, slot, shelf);
       else
        sprintf((char *)o_ent_path,
-       "{{AMC_SUB_SLOT, %d},{SAHPI_ENT_SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", 
+       "{{AMC_SUB_SLOT, %d},{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,%d}}", 
            sub_slot, slot, shelf);
    }
 
