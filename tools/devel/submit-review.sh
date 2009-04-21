@@ -160,7 +160,7 @@ Remaining Changes (diffstat):
 -----------------------------
 ETX
 if [ $mq ]; then
-   $HG qdiff | diffstat >> $rr/rr
+   $HG diff -r $(hg parents -r qbase --template '#rev#') -r qtip | diffstat >> $rr/rr
 elif [ $cs ]; then
    $HG export -g $rev | diffstat >> $rr/rr
 fi
