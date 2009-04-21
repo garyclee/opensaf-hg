@@ -1,0 +1,477 @@
+#!/bin/bash
+
+set +x
+
+export FLS_LOG_ALL=1
+function show () {
+
+cat << EOF
+=========== CMD-SET =========================
+ncs_avsv_walk
+ncs_dlsv_walk
+ncs_switchover
+ncs_failover
+ncs_status
+ncs_dump_mbcsv
+ncs_install
+ncs_stop
+ncs_start
+ncs_scxb_role
+ncs_cpsv_walk
+ncs_scxb_mem_ign
+ncs_pld_mem_ign
+ncs_scxb_mem_dump
+ncs_pld_mem_dump
+ncs_dump_cpd 
+ncs_dump_scxb_cpnd 
+ncs_dump_pld_cpnd 
+ncs_mem_dump
+ncs_mem_ign
+ncs_pld_start
+ncs_pld_stop
+==============================================
+
+EOF
+
+}
+
+
+function ncs_mem_ign() {
+
+if [ "$#" -lt 1 ]; then
+
+  echo "Usage ncs_mem_ign [process_name]"
+  return
+fi
+
+rm -f /tmp/$$_mem_ign
+echo "call ncs_mem_ignore(1)" > /tmp/$$_mem_ign
+echo "detach" >>/tmp/$$_mem_ign
+echo "quit" >>/tmp/$$_mem_ign
+
+process_id=`pgrep $1`
+echo $process_id
+
+gdb -x /tmp/$$_mem_ign /opt/opensaf/controller/bin/$1 $process_id
+
+}
+
+function ncs_scxb_mem_ign() {
+
+rm -f /tmp/$$_mem_ign
+echo "call ncs_mem_ignore(1)" > /tmp/$$_mem_ign
+echo "detach" >>/tmp/$$_mem_ign
+echo "quit" >>/tmp/$$_mem_ign
+
+process_id=`pgrep ncs_cpd`
+echo $process_id
+
+gdb -x /tmp/$$_mem_ign /opt/opensaf/controller/bin/ncs_cpd $process_id
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+gdb -x /tmp/$$_mem_ign /opt/opensaf/controller/bin/ncs_cpnd $process_id
+}
+
+function ncs_pld_mem_ign() {
+
+rm -f /tmp/$$_mem_ign
+echo "call ncs_mem_ignore(1)" > /tmp/$$_mem_ign
+echo "detach" >>/tmp/$$_mem_ign
+echo "quit" >>/tmp/$$_mem_ign
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+gdb -x /tmp/$$_mem_ign /opt/opensaf/payload/bin/ncs_cpnd $process_id
+}
+
+function ncs_mem_dump() {
+
+
+if [ "$#" -lt 1 ]; then
+
+  echo "Usage ncs_mem_dump [process_name]"
+  return
+fi
+
+rm -f /tmp/$$_mem
+echo "call ncs_mem_whatsout_dump()" > /tmp/$$_mem
+echo "detach" >>/tmp/$$_mem
+echo "quit" >>/tmp/$$_mem
+
+process_id=`pgrep $1`
+echo $process_id
+
+gdb -x /tmp/$$_mem /opt/opensaf/controller/bin/$1 $process_id
+
+tail -n 60 /var/opt/opensaf/stdouts/$1.log
+
+}
+
+function ncs_scxb_mem_dump() {
+
+rm -f /tmp/$$_mem
+echo "call ncs_mem_whatsout_dump()" > /tmp/$$_mem
+echo "detach" >>/tmp/$$_mem
+echo "quit" >>/tmp/$$_mem
+
+process_id=`pgrep ncs_cpd`
+echo $process_id
+
+echo "******* MEM DUMP CPD ********"
+gdb -x /tmp/$$_mem /opt/opensaf/controller/bin/ncs_cpd $process_id
+
+tail -n 60 /var/opt/opensaf/stdouts/ncs_cpd.log
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+echo "******* MEM DUMP CPND ********"
+gdb -x /tmp/$$_mem /opt/opensaf/controller/bin/ncs_cpnd $process_id
+
+tail -n 60 /var/opt/opensaf/stdouts/ncs_cpnd.log
+
+}
+
+function ncs_pld_mem_dump() {
+
+rm -f /tmp/$$_mem
+echo "call ncs_mem_whatsout_dump()" > /tmp/$$_mem
+echo "detach" >>/tmp/$$_mem
+echo "quit" >>/tmp/$$_mem
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+echo "******* MEM DUMP CPND ********"
+gdb -x /tmp/$$_mem /opt/opensaf/payload/bin/ncs_cpnd $process_id
+
+tail -n 60 /var/opt/opensaf/stdouts/ncs_cpnd.log
+
+}
+
+function ncs_scxb_role() {
+
+
+grep -in "avd_avm_role_rsp" /var/opt/opensaf/stdouts/ncs_scap.log | sort
+
+}
+
+function ncs_cpsv_walk () {
+if [ $# -lt 1 ] ; then
+                                                                                                                         
+   echo "Usage: [Active IP address] ";
+   return;
+fi
+                                                                                                                         
+echo "SNMP WALK FOR CKPT SERVICE";
+export MIBDIRS=/usr/share/snmp/mibs/
+export SNMPCONFPATH=/usr/share/snmp/
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptCheckpointTable
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptNodeReplicaLocTable
+}
+                                                                                                                         
+
+
+function ncs_avsv_walk () {
+
+if [ $# -lt 2 ] ; then 
+     
+   echo "Usage: [Active IP address] [AmfTable]";
+   return;
+fi 
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-AMF-MIB $1 $2
+
+}
+
+function ncs_dlsv_walk () {
+
+if [ $# -lt 2 ] ; then
+
+   echo "Usage: [Active IP address] [ncsDlsv]";
+   return;
+fi
+snmpwalk -v2c -c public -m /usr/share/snmp/mibs/NCS-DLSV-MIB $1 $2
+}
+
+
+
+function ncs_switchover () {
+set -x
+
+   if [ $# -lt 1 ] ; then 
+     
+      echo "Usage: [Active IP address]";
+      return;
+   fi 
+
+   snmpset -v2c -c public -m /usr/share/snmp/mibs/NCS-AVM-MIB $1 ncsAvmAdmSwitch.0 i 1
+}
+
+
+function ncs_failover () {
+
+   scap_pid=`pgrep ncs_scap`
+   echo $scap_pid
+
+   if [ ":$scap_pid" == ":" ]; then
+
+      echo "scap does not exist ";
+      return;
+
+   else
+
+      echo $scap_pid
+      kill -9 $scap_pid
+      sleep 5
+      ncs_stop
+      ncs_start STANDBY
+
+   fi
+  
+}
+
+
+
+function ncs_status () {
+
+NCS_MAX_PROCESS=17
+count=0;
+declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_mas ncs_psr ncs_scap ncs_ifnd ncs_srmnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv ncs_snmp_subagt ncs_vds )
+
+for k in `ps -e | grep ncs_ | grep -v ncs_tipc.sh | grep -v xterm | grep -v gdb | awk '{print $4}'`; do
+status=false;
+
+for ((i=0;i<=17;i++)) {
+  if [ ${process[i]} == $k ] ; then 
+   count=`expr $count + 1`;
+   status=true;
+   break; 
+  fi
+}
+if [ $status = "false" ] ; then
+ echo "process $k has been gone"
+fi
+done
+
+if [ $count  != 17 ] ; then echo ncs status is NOTOK $count; return ;fi
+
+echo "NCS status is FINE...Enjoy !!!:-))"
+
+
+
+}
+
+function ncs_pld_stop()  {
+
+
+/opt/motorola/ncs/pld/etc/ncs_pb_initd stop
+rm -vf /dev/shm/*
+
+}
+
+function ncs_pld_start () {
+
+rm -vf /dev/shm/*
+/opt/motorola/ncs/pld/etc/ncs_pb_initd stop
+/opt/motorola/ncs/pld/etc/ncs_pb_initd start
+
+
+}
+
+function ncs_dump_mbcsv () {
+
+
+if [ "$#" -lt 1 ]; then
+
+  echo "Usage ncs_dump_mbcsv [process_name]"
+  return
+fi
+
+rm -f /tmp/$$
+echo "call mbcsv_prt_inv()" > /tmp/$$
+echo "detach" >>/tmp/$$
+echo "quit" >>/tmp/$$
+
+process_id=`pgrep $1`
+echo $process_id
+
+echo "Iterations ---- call ">>/var/opt/opensaf/stdouts/ncs_scap.log
+gdb -x /tmp/$$ /opt/opensaf/controller/bin/$1 $process_id
+tail -n 30 /var/opt/opensaf/stdouts/$1.log
+
+}
+
+
+function ncs_install() {
+
+
+# usage ncs_pkg  and ip address
+#  get_the tar files from IP
+  
+echo "ncs_install"
+
+# Tar files 
+
+#   ncs_tarfiles
+
+}
+
+function ncs_stop() {
+
+/opt/motorola/ncs/scxb/etc/ncs_cb_initd stop
+
+
+}
+
+
+function ncs_dump_cpd () {
+
+rm -f /tmp/$$
+echo "call cpd_cb_dump(1)" > /tmp/$$
+echo "detach" >>/tmp/$$
+echo "quit" >>/tmp/$$
+
+process_id=`pgrep ncs_cpd`
+echo $process_id
+
+echo "Iterations ---- call ">>/var/opt/opensaf/stdouts/ncs_scap.log
+gdb -x /tmp/$$ /opt/opensaf/controller/bin/ncs_cpd $process_id
+tail -n 30 /var/opt/opensaf/stdouts/ncs_cpd.log
+
+}
+
+function ncs_dump_scxb_cpnd () {
+
+rm -f /tmp/$$
+echo "call cpnd_cb_dump()" > /tmp/$$
+echo "detach" >>/tmp/$$
+echo "quit" >>/tmp/$$
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+#echo "Iterations ---- call ">>/var/opt/opensaf/stdouts/ncs_scap.log
+gdb -x /tmp/$$ /opt/opensaf/controller/bin/ncs_cpnd $process_id
+tail -n 30 /var/opt/opensaf/stdouts/ncs_cpnd.log
+
+}
+
+function ncs_dump_pld_cpnd () {
+
+rm -f /tmp/$$
+echo "call cpnd_cb_dump()" > /tmp/$$
+echo "detach" >>/tmp/$$
+echo "quit" >>/tmp/$$
+
+process_id=`pgrep ncs_cpnd`
+echo $process_id
+
+#echo "Iterations ---- call ">>/var/opt/opensaf/stdouts/ncs_scap.log
+gdb -x /tmp/$$ /opt/motorola/ncs/pld/bin/ncs_cpnd $process_id
+tail -n 30 /var/opt/opensaf/stdouts/ncs_cpnd.log
+
+}
+
+function ncs_dump_mbcsv () {
+
+
+if [ "$#" -lt 1 ]; then
+
+  echo "Usage ncs_dump_mbcsv [process_name]"
+  return
+fi
+
+rm -f /tmp/$$
+echo "call mbcsv_prt_inv()" > /tmp/$$
+echo "detach" >>/tmp/$$
+echo "quit" >>/tmp/$$
+
+process_id=`pgrep $1`
+echo $process_id
+
+echo "Iterations ---- call ">>/var/opt/opensaf/stdouts/ncs_scap.log
+gdb -x /tmp/$$ /opt/opensaf/controller/bin/$1 $process_id
+tail -n 30 /var/opt/opensaf/stdouts/$1.log
+
+}
+
+
+function ncs_install() {
+
+
+# usage ncs_pkg  and ip address
+#  get_the tar files from IP
+  
+echo "ncs_install"
+
+# Tar files 
+
+#   ncs_tarfiles
+
+}
+
+function ncs_stop() {
+
+/opt/motorola/ncs/scxb/etc/ncs_cb_initd stop
+pkill ncs_vds
+rm -vf /dev/shm/*
+
+}
+
+function ncs_start( ) {
+
+if [ "$#" -lt 1 ]; then
+
+  echo "Usage ncs_start [ACTIVE|STANDBY] "
+  return
+
+fi
+
+
+ echo "NCS_SCXB_IP_ADDRESS : `/sbin/ifconfig  | grep Bcast | tr : " " | awk '{printf $3}'` ";
+
+if [ $1 == "ACTIVE" ]; then
+
+  echo 1 > /etc/ncs/init_role
+  echo "AVD XML"> /var/opt/opensaf/pssv_spcn_list
+  echo "AVM XML">>/var/opt/opensaf/pssv_spcn_list
+
+  cat /var/opt/opensaf/pssv_spcn_list
+
+else
+
+  echo 2 > /etc/ncs/init_role
+
+fi
+
+ 
+   snmpd_pid=`pgrep snmpd`
+
+   if [ ":$snmpd_pid" == ":" ]; then
+
+      echo "snmpd does not exist ";
+      echo "starting SNMPD ...";
+      /usr/sbin/snmpd -x 705;
+
+   else
+
+      echo "SNMPD is running ...";
+ 
+   fi
+
+   /opt/motorola/ncs/scxb/etc/ncs_cb_initd start
+
+}
+
+alias X_cfg='cd /opt/motorola/ncs/scxb/etc'
+alias X_bin='cd /opt/opensaf/controller/bin/'
+alias X_lib='cd /opt/opensaf/controller/lib'
+
+alias ncs_pkg='cd /opt/06A_03_NCS/ncs_cb_06A_03_linux-pc'
+
+
+
+

@@ -1,0 +1,229 @@
+#!/bin/bash
+#
+#  Name: power_cli_error_handling
+#
+#  Description: Test of OpenSAF command-line interface error handling
+#				for setting power state and resetting a system.
+# 
+#  Notes:
+#	 Uses runCli to make API calls.
+#
+#    The test sequence is
+#		1.  Get the power state of all systems in the enclosure
+#		2.  Set the power state of the system to be tested to a known state
+#		3.  Make a copy of the HISv log to be able to identify new entries.
+#		4.  Use the cli-test interface, runCli to set the power state of a system.
+#		5.  Read the power state of all the systems again.
+#		6.  Verify that the power states of the systems are as expected
+#			- Systems that did not have the API-test code applied to them 
+#			  are in the same state as before.
+#			- The system whose power state was changed by the API is now
+#			  in the new power state.
+#		7.  Read new entries in the HISv log and verify their validity.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+################################################################################
+
+#*******************************************************************************
+#                             Common Environment
+#*******************************************************************************
+shopt -s extglob 		# POSIX regular expression matches
+[[ $DEBUG = 1 ]] && set -o xtrace
+
+#*******************************************************************************
+#                                  Libraries
+#*******************************************************************************
+ # Figure out where the libraries are located and source them
+declare MyPath=$(which ${0##*/} | sed -e "s:/[^/]*$::")
+[[ -z $LIB_PATH ]] && export LIB_PATH=${MyPath}/../lib
+if [[ -s $LIB_PATH/libTestUtils ]]
+then
+   . $LIB_PATH/libTestUtils
+else
+   echo -e "\n**>ERROR: Couldn't find libTestUtils"
+   exit 1
+fi
+if [[ -s $LIB_PATH/libHisvApi ]]
+then
+   . $LIB_PATH/libHisvApi
+else
+   echo -e "\n**>ERROR: Couldn't find libHisvApi"
+   exit 1
+fi
+
+#*******************************************************************************
+#                          Global and Default Variables
+#*******************************************************************************
+ # Test-related Global variables
+export APItest=runCli
+export WaitTime=30
+export InvalidEntityPath="{{SYSTEM_BLADE,32},{SYSTEM_CHASSIS,24}}"
+export CONFIG_SHOWN
+
+#*******************************************************************************
+#                              Local Subroutines
+#*******************************************************************************
+function fCheckInput
+{
+  local inputError=0
+  fFillInVariables
+  [[ -z $ConfigFile ]] && \
+	fError  "You must specify a configuration file with test parameters" && \
+      inputError=1
+
+  [[ -z $ControllerBlade ]] && \
+	fError "You must specify the controller blade number in the configuration file" && \
+      inputError=1
+
+  [[ -z $PayloadBlade ]] && \
+	fError "You must specify the payload blade number in the configuration file" && \
+      inputError=1
+
+  [[ -z $ControllerEntityPath ]] && \
+	fError "You must specify the controller entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $PayloadEntityPath ]] && \
+	fError "You must specify the payload entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $OA ]] && \
+	fError "You must specify the OA host name or IP in the configuration file" && \
+      inputError=1
+
+  if (( inputError ))
+  then
+     exit $NORESULT
+  else
+     return
+  fi
+}
+
+#*******************************************************************************
+#                                    MAIN
+#*******************************************************************************
+ # Insure cleanup on exit
+trap 'fCleanup' EXIT
+
+ # Get the user's data
+fParseCmdline $*
+
+if [[ -z $ConfigFile ]]
+then
+	ConfigFile=$DefaultConfigFile
+	fWarn "User didn't input config file, using default, $ConfigFile"
+fi
+
+ # Verify whether or not the test should be run
+fCheckRunTest
+
+ # Read the data from the configuration file
+if ! fReadCfgFile $ConfigFile
+then
+    fErrorExit $SKIPPED "Failed to read $ConfigFile"
+fi
+
+ # Verify that the user set up the required parameters
+fCheckInput
+
+ # Print the system configuration
+fShowConfig
+
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ #                                 Run Tests
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  # Print the test header
+fInitTest "CLI Power-Command Error Handling"
+
+declare TestGroup=0
+declare system
+
+# First Test Group
+(( TestGroup++ ))
+fPrintHeader "Test Group $TestGroup: Bad Chassis ID" 1
+declare chassis_id
+declare subtest=0
+for chassis_id in -1 32
+do
+	for system in Payload Invalid
+	do
+		declare pwrState
+		for pwrState in off on lock
+		do
+			(( subtest++ ))
+			declare blade=$(eval echo '${'${system}Blade'}')
+			fBeginTest "$TestGroup.$subtest Set power state $pwrState on $system system with invalid chasssis id $chassis_id"
+			if (( $chassis_id < 0 ))
+			then
+				fRunApiTest -t $system -b $blade -s $pwrState -c $chassis_id -fail $ApiInvalidIndexErr 
+			else
+				fRunApiTest -t $system -b $blade -s $pwrState -c $chassis_id -fail $ApiNoHamError
+			fi
+			fEndTest
+		done
+	done
+done
+
+# Second Test Group
+(( TestGroup++ ))
+fPrintHeader "Test Group $TestGroup: Bad Blade ID" 1
+declare subtest=0
+declare blade
+for blade in -1 32
+do
+	declare pwrState
+	for pwrState in off on lock
+	do
+		(( subtest++ ))
+		fBeginTest "$TestGroup.$subtest Set power $pwrState using invalid blade id $blade in chassis $Chassis"
+		if (( blade <= 0 ))
+		then
+			fRunApiTest -t Invalid -b $blade -s $pwrState -c $Chassis -fail $ApiInvalidIndexErr
+		else
+			fRunApiTest -t Invalid -b $blade -s $pwrState -c $Chassis -fail $ApiLookupError $ApiInvalidIndexErr \
+				-lexp $LogEntityError
+		fi
+		fEndTest
+	done
+done
+
+
+# Third Test Group
+(( TestGroup++ ))
+fPrintHeader "Test Group $TestGroup: Bad Power State" 
+declare subtest=0
+
+declare system
+for system in Payload Controller Invalid
+do
+	declare pwrState=reboot
+	declare blade=$(eval echo '${'${system}Blade'}')
+	(( subtest++ ))
+	fBeginTest "$TestGroup.$subtest Set system power-state to $pwrState on system $blade in chassis $Chassis"
+	fRunApiTest -t $system -b $blade -s $pwrState -c $Chassis -fail $ApiInvalidInputErr
+	fEndTest
+done
+
+#  Test is done, exit with the appropriate value
+exit $EXIT_VAL
+
+
+##
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+##

@@ -1,0 +1,292 @@
+#!/usr/bin/expect --
+#*************************************************************************
+#  File: libcmdline
+#  Description: Canonical command-line parsing to set up commonly used
+#               parameters
+#
+#  Subroutines:
+#       ParseCanonicalCmdline - Parse command line for common test
+#				parameters:
+#				 - console (console, ilo, OA),
+#				 - chassis ID,
+#				 - blade ID,
+#				 - timeout,
+#				 - root user,
+#                - root password,
+#				 - OA hostname/IP,
+#				 - OA admin user,
+#                - OA password,
+#				 - iLO hostname/IP,
+#				 - iLO admin user,
+#                - iLO password,
+#				 - network domain,
+#                - request usage message,
+#				 - dryrun,
+#                - and verbose output.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+#
+#*************************************************************************
+if {[info exists __LIBCMDLINE_SOURCED] && $__LIBCMDLINE_SOURCED} {
+   return
+} \
+else {
+    set __LIBCMDLINE_SOURCED 1
+}
+
+
+#************************* Defaults/Globals **************************
+source "$basepath/defaults"
+
+#************************* Source Libraries **************************
+source "$basepath/stdlib"
+
+#******************* Parse Canonical Command Line ********************
+#
+# ParseCanonicalCmdline: Parse the user's command line
+#                        for console information, usage request, 
+#                        verbose output, and timeout
+# Input: rargv  - reference to the argument list
+# Output: Sets variables in the caller's scope
+#         Any unparsed variables will be put back into argv to
+#         be reparsed by the test-specific argument parser.
+#
+#*********************************************************************
+proc ParseCanonicalCmdline {rargv} {
+    global VERBOSE
+    upvar $rargv argv
+
+    if {$VERBOSE} {
+       send_user "\[SM] ParseCanonicalCmdline\n"
+       send_user "\targv = $argv\n"
+    }
+
+    set argv [split $argv {= }]
+    while {[llength $argv] > 0} {
+       set opt [shift argv]
+       set optlen [llength $argv]
+       switch -- $opt {
+          -bay -
+          -blade -
+          -server -
+          -system -
+          -sut { uplevel #0 set sut [shift argv]; continue }
+          -console {
+                     uplevel #0 set console [shift argv]
+                     continue
+                   }
+          -domain  { uplevel #0 set domain [shift argv]; continue }
+          -dryrun  { uplevel #0 set DRYRUN 1; continue }
+          -fw      { uplevel #0 set fwConnect 1; continue }
+          -ilo_login -
+          -iloLogin  -
+          -ilo_user  -
+          -iloUser -
+          -ilo_admin -
+          -iloAdmin  {
+                        uplevel #0 set type "ilo"
+                        uplevel #0 set iloUser [shift argv]
+                        continue
+                     }
+          -ilo_passwd -
+          -iloPasswd  -
+          -ilo_password  -
+          -iloPassword  {
+                        uplevel #0 set type "ilo"
+                        uplevel #0 set iloPasswd [shift argv]
+                        continue
+                     }
+          -ilo     {
+                     uplevel #0 set type "ilo"
+                     if [llength $argv] {
+                       set dummy [shift argv] 
+                       if {[regexp -- {^-.+} $dummy]} {
+		                  # User specified -ilo with no argument
+                          unshift argv $dummy
+                        }  \
+                        else {
+		                   # User specified -ilo=<ilo_hostname>
+                           uplevel #0 set console $dummy
+                           # in case the user gave -ilo=saf4-ilo[.saf]
+                           regsub "\[-_]*\[Ii]lo.*" $dummy "" dummy
+		                   if {![info exists sut]} {
+		                      # Set sut to ${iloHost%*([-_])*([Ii])lo}
+		                      uplevel #0 set sut $dummy
+		                   }
+                       }
+                     }
+                     continue
+                  }
+                     
+          -oa_login -
+          -oaLogin  -
+          -oa_user  -
+          -oaUser -
+          -oa_admin -
+          -oaAdmin  {
+                        uplevel #0 set type "oa"
+                        uplevel #0 set oaUser [shift argv]
+                        continue
+                     }
+          -oa_passwd -
+          -oaPasswd  -
+          -oa_password  -
+          -oaPassword  {
+                        uplevel #0 set type "oa"
+                        uplevel #0 set oaPasswd [shift argv]
+                        continue
+                     }
+          -oa     {
+                     uplevel #0 set type "oa"
+                     if [llength $argv] {
+                       set dummy [shift argv] 
+                       if {[regexp -- {^-.+} $dummy]} {
+		                  # User specified -oa with no argument
+                          unshift argv $dummy
+                        }  \
+                        else {
+		                   # User specified -oa=<oa_hostname>
+                           uplevel #0 set console $dummy
+                       }
+                     }
+                     continue
+                  }
+          -passwd   { uplevel #0 set passwd [shift argv]; continue }
+          -user     { uplevel #0 set user [shift argv]; continue }
+          -timeout  { uplevel #0 set timeout_setting [shift argv]; continue }
+          -verbose -
+          -v  {
+                set dummy [shift argv]
+               if {![regexp "^\[0-9]+$" $dummy]} {
+                   uplevel #0 set VERBOSE 1
+                   unshift argv $dummy
+               } \
+               else {
+                  uplevel #0 set VERBOSE $dummy
+               }
+               continue
+          }
+          default {
+              push unused_args $opt
+              continue
+         }
+       } ;# End switch
+    }    ;# End while
+    if {$VERBOSE} {
+       send_user "\nAfter going through command line\n"
+       upvar console console
+       upvar sut sut
+       upvar type type
+       if [info exists sut] {
+          send_user "\tsut = $sut\n"
+       } else {
+          send_user "\tsut NOT set\n"
+       }
+       if [info exists type] {
+          send_user "\ttype = $type\n"
+       } else {
+          send_user "\ttype NOT set\n"
+       }
+       if [info exists console] {
+          send_user "\tconsole = $console\n"
+       } else {
+          send_user "\tconsole NOT set\n"
+       }
+   }
+    SmartParse
+    # Replace argv with unused args
+   if {[info exists unused_args] && $unused_args != "{}"} {set argv $unused_args}
+} ;# End ParseCanonicalCmdline
+
+#**************************** Smart Parse  ***************************
+#
+# SmartParse: Determine what method to use for console connection
+#             to allow the user to use commands like "sutcon epearl4mp"
+#             or "sutcon dl385g5-1-ilo.ned"
+#             Fills in the details of console type, domain
+# Input: None
+# Output: Sets sut, mpLan, console, type and domain in the global scope
+#
+#*********************************************************************
+proc SmartParse {} {
+    global VERBOSE
+    global sut console type domain
+
+    if {$VERBOSE} {
+       send_user "   Smart (?) parsing:\n"
+       if {[info exists sut]} {send_user "\tsut = $sut\n"}
+       if {[info exists console]} {send_user "\tconsole = $console\n"}
+       if {[info exists type]} {send_user "\ttype = $type\n"}
+       if {[info exists domain]} {send_user "\tdomain = $domain\n"}
+       send_user "\n"
+    }
+       # Set up all variables
+    if {[info exists sut] && ! [info exists console]} {
+       set console $sut
+    }
+    if {[info exists console] && ! [info exists sut]} {
+       set sut $console
+    }
+      # User input -sut=hostname AND -console=hostname-ilo
+    if {[info exists sut] && [regexp -nocase "ilo" $console]} {
+       if {![info exists type]} {set type "ilo"}
+         # Domain is appended to the console, separate it off
+       if { [regexp "(.+)\[-_]\[Ii]lo(.*)" $console full chost cdomain] } {
+          if {$chost != ""} { set sut $chost }
+          if {$cdomain != ""} {
+              regsub {.} $cdomain "" domain
+          }
+       }
+    }
+
+    if {[info exists console] } {
+       if {[info exists sut] && [regexp {^[0-9]+$} $sut]} {
+         # This is the case where the user connects to the system console
+         #  via the OA using "connect system $sut", and sut will be a blade
+         #  number
+          if { [regexp "(.+\[-_]\[Oo]\[Aa])\.(.*)" $console full chost cdomain] } {
+             if {![info exists type]} {upvar #0 set type "oa"}
+             if {$cdomain != ""} {
+                 regsub {.} $cdomain "" domain
+             }
+          }
+       }
+       # Just connecting to ilo
+       if { [regexp "(.+)\[-_]\[Ii]lo(.*)" $console full chost cdomain] } {
+          if {$chost != ""} { set sut $chost }
+          set type "ilo"
+          if {$cdomain != ""} {
+              regsub {.} $cdomain "" domain
+          }
+       }
+       # Just connecting to the OA
+       if { [regexp "\[-_]oa(.*)" $console full cdomain] } {
+          if {![info exists type]} { set type "oa" }
+          set type "oa"
+          if {$cdomain != ""} {
+              regsub {.} $cdomain "" domain
+          }
+       }
+    }
+}  ;# End SmartParse
+
+
+#
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+#

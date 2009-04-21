@@ -1,0 +1,11 @@
+# Version and symbol export for libSaLog.so
+
+# Symbol scoping for libSaNtf.so
+{
+	global:
+		saNtf*;
+
+	local:
+		ntfa*;
+		ntfsv*;
+};

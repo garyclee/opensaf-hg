@@ -1,0 +1,133 @@
+#!/bin/bash
+#
+#  Name: lookup_api
+#
+#  Description: Test of hpl_entity_path_lookup functionaliy.
+# 
+#  Notes:
+#	 Uses ../src/hpl_entity_lookup binary to make API calls.
+#
+#    Tests the output of the API for each of the path types.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+################################################################################
+
+#*******************************************************************************
+#                             Common Environment
+#*******************************************************************************
+shopt -s extglob 		# POSIX regular expression matches
+#*******************************************************************************
+#                                  Libraries
+#*******************************************************************************
+ # Figure out where the libraries are located and source them
+declare MyPath=$(which ${0##*/} | sed -e "s:/[^/]*$::")
+[[ -z $LIB_PATH ]] && export LIB_PATH=${MyPath}/../lib
+if [[ -s $LIB_PATH/libTestUtils ]]
+then
+   . $LIB_PATH/libTestUtils
+else
+   echo -e "\n**>ERROR: Couldn't find libTestUtils"
+   exit 1
+fi
+if [[ -s $LIB_PATH/libHisvApi ]]
+then
+   . $LIB_PATH/libHisvApi
+else
+   echo -e "\n**>ERROR: Couldn't find libHisvApi"
+   exit 1
+fi
+
+#*******************************************************************************
+#                          Global and Default Variables
+#*******************************************************************************
+ # Test-related Global variables
+export APItest=hpl_entity_lookup
+# This is the expected path output
+export -a ExpectedPath
+# This is the path gotten from the API
+export -a EntityPath
+export CONFIG_SHOWN
+
+#*******************************************************************************
+#                              Local Subroutines
+#*******************************************************************************
+function fCheckInput
+{
+	if [[ -z $Chassis ]]
+	then
+		fErrorExit "Valid chassis not set in the configuration file"
+	fi	
+}
+
+#*******************************************************************************
+#                                    MAIN
+#*******************************************************************************
+
+trap 'fCleanup' EXIT
+
+ # Get the user's data
+fParseCmdline $*
+
+if [[ -z $ConfigFile ]]
+then
+    ConfigFile=$DefaultConfigFile
+    fWarn "User didn't input config file, using default, $ConfigFile"
+fi
+
+ # Verify whether or not the test should be run
+fCheckRunTest
+ # Read the data from the configuration file
+if ! fReadCfgFile $ConfigFile
+then
+    fErrorExit $SKIPPED "Failed to read $ConfigFile"
+fi
+
+fCheckInput
+
+ # Print the system configuration
+fShowConfig
+
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ #                                 Run Tests
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+ # Set up entity-enum values (done here, since we need to
+ # parse -dryrun on the command line first:
+export BladeEntityType=$($HpiHeaderParser $HpiBladeEntity)
+export ChassisEntityType=$($HpiHeaderParser $HpiChassisEntity)
+export RootEntityType=$($HpiHeaderParser $HpiRootEntity)
+
+  # Print the test header
+fInitTest "Entity-Path Lookup API Funtional Tests"
+
+# First test group
+fPrintHeader "Valid blade ID and Chassis ID" 1
+
+declare pathType
+declare Blade=$PayloadBlade
+
+for pathType in 0 1 2 3
+do
+	fBeginTest "Path lookup type $pathType for blade $Blade in chassis $Chassis"
+	fRunLookupTest -c $Chassis -b $Blade -t $pathType
+	fEndTest
+done
+
+
+#  Test is done, exit with the appropriate value
+exit $EXIT_VAL

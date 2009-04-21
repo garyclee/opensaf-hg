@@ -1,0 +1,273 @@
+#!/bin/bash
+#
+# Name:  reset_api_error_handling
+#
+# Description:	Test of hpl_resource_reset() error handling.
+#				This test performs error-handling cases described
+#				in the test plan, ../testplan.
+#
+# Notes:
+#	Uses ../src/hisv_power_ctrl to make API calls.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+#################################################################################
+
+#********************************************************************************
+#                              Common Environment
+#********************************************************************************
+shopt -s extglob		 # POSIX regular expressions
+
+ # If DEBUG environment variable is set, set xtrace early to aid with debug
+if [[ -n $DEBUG ]] && [[ $DEBUG = 1 ]]
+then
+   set -o xtrace
+fi
+
+#*******************************************************************************
+#                                  Libraries
+#*******************************************************************************
+ # Figure out where the libraries are located and source them
+declare MyPath=$(which ${0##*/} | sed -e "s:/[^/]*$::")
+[[ -z $LIB_PATH ]] && export LIB_PATH=${MyPath}/../lib
+if [[ -s $LIB_PATH/libTestUtils ]]
+then
+   . $LIB_PATH/libTestUtils
+else
+   echo -e "\n**>ERROR: Couldn't find libTestUtils"
+   exit 1
+fi
+if [[ -s $LIB_PATH/libHisvApi ]]
+then
+   . $LIB_PATH/libHisvApi
+else
+   echo -e "\n**>ERROR: Couldn't find libHisvApi"
+   exit 1
+fi
+#*******************************************************************************
+#                          Global and Default Variables
+#*******************************************************************************
+ # Test-related Global variables
+export APItest=hisv_reset_ctrl
+export WaitTime=20
+export CONFIG_SHOWN
+
+ # Invalid entity path (an enclosure only holds 16 blades)
+declare InvalidEntityPath="{{SYSTEM_BLADE,20},{SYSTEM_CHASSIS,2}}"
+ # Debug and dryrun variables
+export DRYRUN
+    [[ -z $DRYRUN ]] && DRYRUN=0
+export VERBOSE
+    [[ -z $VERBOSE ]] && VERBOSE=0
+
+#*******************************************************************************
+#                              Local Subroutines
+#*******************************************************************************
+function fCheckInput
+{
+  local inputError=0
+  fFillInVariables
+  [[ -z $ConfigFile ]] && \
+    fError  "You must specify a configuration file with test parameters" && \
+      inputError=1
+
+  [[ -z $ControllerEntityPath ]] && \
+    fError "You must specify the controller entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $PayloadEntityPath ]] && \
+    fError "You must specify the payload entity path in the configuration file" && \
+      inputError=1
+
+  [[ -z $OA ]] && \
+    fError "You must specify the OA host name or IP in the configuration file" && \
+      inputError=1
+
+	# Fill in some info on the cluster
+  [[ -z $ControllerBlade ]] && \
+    export ControllerBlade=$(echo $ControllerEntityPath | sed -e "s:[{A-Z_]\{1,\},::" | sed -e "s:},.*::")
+
+  [[ -z $PayloadBlade ]] && \
+    export PayloadBlade=$(echo $PayloadEntityPath | sed -e "s:[{A-Z_]\{1,\},::" | sed -e "s:},.*::")
+
+  [[ -z $Chassis ]] && \
+     export Chassis=$(echo $ControllerEntityPath | sed -e "s:[{A-Z_]\{1,\},::" | sed -e "s:},.*::")
+
+  if (( inputError ))
+  then
+     exit $NORESULT
+  else
+     return
+  fi
+}
+
+#*******************************************************************************
+#                                    MAIN
+#*******************************************************************************
+trap 'fCleanup' EXIT
+
+ # Get the user's data
+fParseCmdline $*
+
+if [[ -z $ConfigFile ]]
+then
+	ConfigFile="$DefaultConfigFile"
+    fWarn "User didn't input config file, using default, $ConfigFile"
+fi
+
+ # Verify whether or not the test should be run
+fCheckRunTest
+
+ # Read the data from the configuration file
+if ! fReadCfgFile $ConfigFile
+then
+    fErrorExit $SKIPPED "Failed to read $ConfigFile"
+fi
+
+ # Verify that the user set up the required parameters
+fCheckInput
+
+ # Show the system configuration
+fShowConfig
+
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+ #                                 Run Tests
+ #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  # Print a test header
+export TestSuiteName="Reset API Error Handling"
+fInitTest "$TestSuiteName"
+
+#  First test group:
+declare TestGroup=0
+(( TestGroup++ ))
+declare testDesc="Test Group $TestGroup : Invalid Chassis ID + Entity Path"
+fPrintHeader "$testDesc" 1
+
+declare chassisID
+ # Invalid chassis IDs -- -1 in an uns32 and another, valid but
+ #  inconsistent chassis ID (32).
+declare subTest=0
+for chassisID in -1 32
+do
+   declare system
+   for system in Invalid Controller
+   do
+		declare path=$(eval echo '${'${system}EntityPath'}')
+		declare resetType
+		for resetType in cold warm assert deassert reboot
+		do
+			(( subTest += 1 ))
+		  	fBeginTest "${TestGroup}.$subTest Apply $resetType reset on invalid chassis $chassisID, path $path"
+   
+			 # Run the test -- since the sends a bad chassis ID, the
+			 # bad API argument should be caught in HAM, so
+			 #  - No system should have its power state change
+			fRunApiTest -r $resetType -c $chassisID -p $path -fail $ApiNoHamError -t $system
+			fEndTest
+       done
+    done
+done
+
+#  Second test cases:
+(( TestGroup++ ))
+testDesc="Test Group $TestGroup : Invalid Entity Path"
+fPrintHeader "$testDesc" 1
+
+declare subTest=0
+declare path
+for path in NULL $InvalidEntityPath
+do
+	declare resetType
+	for resetType in cold warm assert deassert reboot
+    do
+		(( subTest += 1 ))
+		declare logexp
+		[[ $path != "NULL" ]] &&  logexp="-lexp $LogEntityError"
+        fBeginTest "${TestGroup}.$subTest apply $resetType reset on invalid path '$path'"
+        fRunApiTest -p $path -r $resetType -t Invalid -fail -c $Chassis -lexp $LogEntityError
+		fEndTest
+    done
+done
+
+#  Third test cases:
+(( TestGroup++ ))
+testDesc="Test Group $TestGroup : Invalid Reset State"
+fPrintHeader "$testDesc" 1
+
+declare subTest=0
+declare system
+for system in Payload Controller
+do
+    declare resetType
+    for resetType in -1 16
+    do
+		(( subTest += 1 ))
+        fBeginTest "${TestGroup}.$subTest Apply invalid reset $resetType on $system"
+        fRunApiTest -t $system -p $(eval echo '${'${system}EntityPath'}') -r $resetType -fail
+		fEndTest
+    done
+done
+
+#  Fourth test cases:
+(( TestGroup++ ))
+testDesc="Test Group $TestGroup : Invalid Blade ID/Entity Path Lookup"
+fPrintHeader "$testDesc" 1
+
+declare subTest=0
+declare bay
+for bay in 0 17
+do
+	declare resetType
+	for resetType in cold warm assert deassert reboot
+    do
+		(( subTest += 1 ))
+        fBeginTest "${TestGroup}.$subTest Apply $resetType reset to system in chassis $Chassis, invalid bay $bay"
+        fRunApiTest -b $bay -t Invalid -r $resetType -c $Chassis -fail -lexp $LogEntityError
+		fEndTest
+    done
+done
+
+#  Fifth test cases:
+(( TestGroup++ ))
+testDesc="Test Group $TestGroup : Invalid Chassis ID/Entity Path Lookup"
+fPrintHeader "$testDesc" 1
+
+declare subTest=0
+declare chassisID
+for chassisID in -1 32
+do
+	declare system
+	for system in Payload Controller
+	do
+		declare bay=$(eval echo '${'${system}Blade'}')
+		declare resetType
+		for resetType in cold warm assert deassert reboot
+		do
+			(( subTest += 1 ))
+			fBeginTest "${TestGroup}.$subTest Apply $resetType reset for system in invalid chassis $chassisID, bay $bay"
+		   	fRunApiTest -t $system -c $chassisID -b $bay -r $resetType -fail $ApiNoHamError
+			fEndTest
+		done
+	done
+done
+
+exit $EXIT_VAL
+
+##
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+##

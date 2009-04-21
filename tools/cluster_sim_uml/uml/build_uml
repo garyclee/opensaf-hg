@@ -1,0 +1,168 @@
+#! /bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008-2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+#
+
+tipcutilsver=${TIPCUTILSVER:-1.0.4}
+tipcutilsurl="http://prdownloads.sourceforge.net/tipc/tipcutils-$tipcutilsver.tar.gz"
+kver=${KVER:-2.6.24.3}
+kurl=${KURL:-"http://www.kernel.org/pub/linux/kernel/v2.6/linux-$kver.tar.bz2"}
+bbver=${BBVER:-1.9.1}
+bburl="http://busybox.net/downloads/busybox-$bbver.tar.bz2"
+umlutilsver=20070815
+umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
+arch=$(arch)
+gid=$(id -g)
+
+test -x ./uml/build_uml || exit 1
+
+if [ $arch = x86_64 ]; then
+    lib_dir=lib64
+else
+    lib_dir=lib
+fi
+
+get_and_extract()
+{
+    local file=archive/$1
+    local url=$2
+    local dir=$3
+
+    test -d $dir && return
+
+    if ! test -e $file; then
+        if ! wget -O $file $url; then
+            echo "Error, could not download $url"
+            rm -f $file
+            exit 1
+        fi
+    fi
+
+    rm -rf $dir
+
+    if echo $file | grep bz2; then
+        tar xjf $file
+    else
+        tar xzf $file
+    fi
+
+    if [ $? -ne 0 ]; then
+        echo "extraction of '$file' failed, consider delete it and start over"
+        exit 1
+    fi
+}
+
+build_linux()
+{
+    if test -e bin/linux; then
+        return
+    fi
+
+    cp -L config/linux-config-$arch linux-$kver/.config
+    chmod +x linux-$kver/scripts/gen_initramfs_list.sh
+    ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
+        $top/root $top/root/dev/initramfs_list \
+        > linux-$kver/initramfs_list
+    make -C linux-$kver ARCH=um
+
+    # Install modules into initramfs and rebuild Linux kernel
+    INSTALL_MOD_PATH=$top/root make -C linux-$kver arch=um modules_install
+    rm -f root/$lib_dir/modules/$kver/build \
+        root/$lib_dir/modules/$kver/source \
+        linux-$kver/initramfs_list
+    ./linux-$kver/scripts/gen_initramfs_list.sh -u $UID -g $gid \
+        $top/root $top/root/dev/initramfs_list \
+        > linux-$kver/initramfs_list
+    rm -f linux-$kver/usr/initramfs_data.cpio.gz
+    make -C linux-$kver ARCH=um
+    cp linux-$kver/linux bin/linux
+    strip bin/linux
+}
+
+build_busybox()
+{
+    if test -e bin/busybox; then
+        return
+    fi
+
+    mkdir -p bin
+    cp -L config/busybox-config busybox-$bbver/.config
+    make -C busybox-$bbver
+    cp busybox-$bbver/busybox bin
+}
+
+# Build an incomplete ramfs; kernel modules are missing
+# Dependent on busybox
+create_initramfs()
+{
+    if test -d root; then
+        return
+    fi
+
+    rm -rf root
+    cp -rL root_template root
+    cp -L bin/tipc-config root/sbin
+    cp -L bin/busybox root/bin
+    for n in bin/sh sbin/init; do
+        ln -fs /bin/busybox root/$n
+    done
+    cp -L `ldd ./bin/busybox | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` root/$lib_dir
+    cp -L /$lib_dir/libnss_files.so.? /$lib_dir/libpthread.so.? root/$lib_dir
+    chown -hR $UID:$gid root
+}
+
+build_umlutils()
+{
+    if test -e bin/uml_mconsole; then
+        return
+    fi
+
+    make -C tools-$umlutilsver/lib
+    make -C tools-$umlutilsver/uml_switch
+    cp tools-${umlutilsver}/uml_switch/uml_switch bin
+    make -C tools-$umlutilsver/port-helper
+    cp tools-${umlutilsver}/port-helper/port-helper bin
+    make -C tools-$umlutilsver/tunctl
+    cp tools-${umlutilsver}/tunctl/tunctl bin
+    make -C tools-$umlutilsver/mconsole
+    cp tools-${umlutilsver}/mconsole/uml_mconsole bin
+}
+
+build_tipcutils()
+{
+    if test -e bin/tipc-config; then
+        return
+    fi
+    make KERNELDIR=$top/linux-$kver -C tipcutils-$tipcutilsver
+    cp tipcutils-$tipcutilsver/tipc-config bin
+}
+
+cd uml
+mkdir -p archive
+top=$PWD
+get_and_extract tipcutils-$tipcutilsver.tar.gz $tipcutilsurl tipcutils-$tipcutilsver
+get_and_extract linux-$kver.tar.bz2 $kurl linux-$kver
+get_and_extract busybox-$bbver.tar.bz2 $bburl busybox-$bbver
+build_tipcutils
+build_busybox
+create_initramfs
+build_linux
+get_and_extract uml_utilities_${umlutilsver}.tar.bz2 $umlutilsurl tools-${umlutilsver}
+build_umlutils
+cd - > /dev/null
+
+exit 0

@@ -1,0 +1,1538 @@
+#!/usr/bin/expect --
+#
+#********************************************************************
+# liblinux - library of common Linux commands for
+#                system set up.
+# Routines:
+#    GetBootedProcs - Count the number of booted processors
+#    GetModel - Get the model of the system from /var/log/dmesg
+#    Lsmod  - Check if a module is loaded
+#    IsProcessRunning - Use ps -ef to check if a process is running
+#    CheckDmesg - Check dmesg for a given message
+#    GetKernelRev  - Returns kernel revision
+#    CheckFile - Look for a file in the current directory
+#    CheckCmdStatus - Check a command's exit value
+#    DoMake - Compile in a given directory
+#    GetNetworkInterfaceInfo - Gets network interface info
+#                   using ifconfig
+#    GetPrompt   - Gets the exact prompt string.
+#    GetCwd      - Gets the current working directory
+#    GetRunLevel - Determine the system's current run level
+#    SetRunLevel - Set the system's run level
+#    IsLineInFile - Check a file for a specific line
+#    LinuxLogin  - Log into a unix system
+#    RebootLinux - Reboot the OS
+#
+# Copyright 2008 Hewlett-Packard Development Company, L.P.
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+#********************************************************************
+if {[info exists __LIBLINUX_SOURCED] && $__LIBLINUX_SOURCED} {
+   return
+} \
+else {
+    set __LIBLINUX_SOURCED 1
+}
+#************************ Defaults/Globals **************************
+source $basepath/defaults
+
+#********************************************************************
+# Source libraries that we depend on
+#********************************************************************
+source $basepath/stdlib
+source $basepath/libsm
+
+#********************************************************************
+# Subroutines
+#********************************************************************
+
+#********************************************************************
+#
+# GetBootedProcs: Returns a list of booted processors
+#                 Uses /proc/cpuinfo for information.
+# Input:
+#       None (assumes we're already connected to the system)
+# Output:
+#       List of booted processors or "NONE" if we didn't
+#       get the information that we expected.
+#
+#********************************************************************
+proc GetBootedProcs {} {
+    global VERBOSE failures
+    global root_prompt prompt 
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] CountBootedProcs:\n"
+    }
+    send "cat /proc/cpuinfo\r"
+    expect {
+       timeout {
+             lappend failures "HANG"
+	     return "NONE"
+       }
+
+       -re "cat /proc/cpuinfo\r\n" {
+            # command echoed
+	    exp_continue
+       }
+
+       -re "No such file or directory" {
+            # Hmm, something horribly wrong
+	    lappend failures "CPUINFO"
+	    return "NONE"
+        }
+
+       -re "processor\[ \t]+: (\[0-9]+)$endl" {
+              if {$VERBOSE} {
+                  send_user "\tFound processor $expect_out(1,string)\n"
+              }
+              push foundProc "$expect_out(1,string)"
+              exp_continue
+         }
+
+         -re "$endl" {
+             exp_continue
+         }
+
+	 -re "$root_prompt" {}
+
+    } ;# End expect
+
+    if [llength $foundProc] {
+       return $foundProc
+    } \
+    else {
+       return "NONE"
+    }
+}  ;# End CountBootedProcs
+
+#********************************************************************
+#
+# GetModel: Returns the model reported from /var/log/dmesg
+#          
+# Input:
+#       None (assumes we're already connected to the system)
+# Output:
+#       Model string (like rx7620)
+#
+#********************************************************************
+proc GetModel {} {
+    global VERBOSE failures
+    global root_prompt prompt 
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] GetModel:\n"
+    }
+
+    set model "NONE"
+
+    if {![GetPrompt]} { set prompt "$root_prompt" } 
+
+    send "grep 'ACPI: XSDT' /var/log/dmesg\r"
+
+    expect {
+       timeout {
+	     return "NONE"
+       }
+
+       -re "grep ACPI" {
+            # command echoed
+	    exp_continue
+       }
+
+       -re "No such file or directory" {
+            # Hmm, something horribly wrong
+	    return "NONE"
+        }
+
+       -re "ACPI: XSDT\[ \t]+.+\[ \t]+(\[A-z0-9])+\[ \t]" {
+              if {$VERBOSE} {
+                  send_user "\tFound ACPI line with model info\n"
+              }
+              set model "$expect_out(1,string)"
+              exp_continue
+         }
+
+         -re "$endl" {
+             exp_continue
+         }
+
+	 -re "$root_prompt" {}
+
+    } ;# End expect
+
+    return $model
+}  ;# End CountBootedProcs
+
+#********************************************************************
+#
+# Lsmod :  perform lsmod command to check if a module is loaded
+# Input: module - the name of the module to check for
+# Return: 1 if module loaded
+#         0 if not loaded
+#
+#********************************************************************
+proc Lsmod {module} {
+    global VERBOSE DRYRUN DEBUG
+    global endl root_prompt
+    global prompt
+    global failures send_slow
+    global spawn_id
+    global VERBOSE failures
+
+    set foundModule 0
+    # Get rid of last new line in case we got one:
+
+    if {$VERBOSE} {
+        send_user "\n\[SM]Lsmod:\n"
+        send_user "\tModule is $module\n"
+    }
+
+    send -s "lsmod\r"
+    expect {
+       timeout {
+           lappend failures "LSMOD"
+           ErrorMessage "Timed out trying to get listing of modules" 1
+       }
+
+       -re "lsmod\r\n" {
+           # Command echoed
+           exp_continue
+       }
+
+       -re "$module\[ \t]+\[0-9]+\[ \t]+\[0-9]+" {
+           # lsmod output looks like,
+           # Module                  Size  Used by
+           # kgdb_eth               16623  0
+           # vfat                   37550  1
+           # The module's already loaded.  Unload it to make sure that
+           # it's configured correctly
+           set foundModule 1
+           exp_continue
+       }
+
+       -re "$root_prompt" {
+          # ran command and returned
+       }
+           
+       -re "$endl" {
+           exp_continue
+       }
+    } ;# End expect
+    return $foundModule
+}
+
+#********************************************************************
+#
+# IsProcessRunning : use ps -ef to see if a process is running
+# Input: process - enough of the process name to guarantee
+#        the output of ps -ef will match *only* the input
+#        process name.
+# Return: 1 if process is running
+#         0 if not running
+#
+#********************************************************************
+proc IsProcessRunning {process} {
+    global VERBOSE DRYRUN DEBUG
+    global endl root_prompt
+    global prompt
+    global failures send_slow
+    global spawn_id
+    global VERBOSE failures
+
+    set foundProc 0
+#    set sawEcho 0
+
+    send "ps -ef\r"
+    expect {
+
+       timeout {
+           lappend failures "PS"
+           ErrorMessage "Timed out trying to get listing running processes" 1
+       }
+
+       -re "$process" {
+           set foundProc 1
+           if {$VERBOSE} {send_user "\t$process is running!\n"}
+           exp_continue
+       }
+
+       -re "ps -ef\r\n" {
+           # Command echoed
+           exp_continue
+       }
+
+       -re "$root_prompt" {
+          # ran command and returned
+       }
+           
+       -re "$endl" {
+           exp_continue
+       }
+    }
+    return $foundProc
+}
+
+#********************************************************************
+#
+# CheckDmesg: Check for message in dmesg.
+#      Input: 
+#           message -- string search for
+#           lines   -- tail -$lines lines to search
+#                      if lines == "all" don't do tail
+#       
+#     Return: 0 - no match
+#             1 - match found in dmesg
+#
+#********************************************************************
+proc CheckDmesg {message lines} {
+    global VERBOSE send_slow
+    global endl prompt root_prompt
+    global spawn_id timeout_setting
+    global failures
+
+    set foundMsg 0
+    if {$VERBOSE} {
+       send_user "\n\[SM]CheckDmesg\n"
+       send_user "\tmessage is '$message'\n"
+       send_user "\tlines is '$lines'\n"
+    }
+
+     # Set the prompt so we know when the command has
+     # completed.
+    if {![GetPrompt]} { set prompt "$root_prompt" }
+    set partialPrompt [format "%.10s" $prompt]
+
+    set sawEcho 0
+    set cmd "dmesg"
+    if {![regexp -nocase "all" $lines]} {
+       set cmd "$cmd | tail -n $lines"
+    }
+    set timeout 10
+    send -s "$cmd\r"
+    expect {
+        timeout {
+            ErrorMessage "Timed out trying to read dmesg" 1
+        }
+
+        -re "$cmd" {
+            set sawEcho 1
+            exp_continue
+        }
+
+        -re "$message" { 
+            if {$VERBOSE} {send_user "\tFound message in dmesg\n"}
+            set foundMsg 1
+            exp_continue
+        }
+
+        -re "$endl" {
+            exp_continue
+        }
+
+        -re "$prompt" {
+            if {!$sawEcho} { exp_continue }
+        }
+
+        -re "$partialPrompt" {
+            if {!$sawEcho} { exp_continue }
+        }
+     } ;# end expect
+     set timeout $timeout_setting
+     return $foundMsg
+}
+
+#********************************************************************
+#
+# GetKernelRev: Send uname -r to get kernel revision
+#        Input: none
+#       Return: output of uname -r if successful
+#               "" if not.
+# Notes:  Expects kernel revision to be in the format:
+#         d.d.d-<stuff>
+#         where  d = decimal number (e.g, 2, 100, etc.)
+#                <stuff> = anything.
+#
+#********************************************************************
+proc GetKernelRev {} {
+    global VERBOSE
+    global spawn_id
+    global root_prompt prompt
+    global failures endl
+
+    if {$VERBOSE} {
+       send_user "\n\[SM] GetKernelRev:\n"
+    }
+    # Clear the buffer:
+    expect *
+    set kernel ""
+    set sawEcho 0
+
+    send "uname -r\r"
+    expect {
+        timeout {
+            lappend failures "UNAME"
+            ErrorMessage "Timed out getting kernel revision" 1
+        }
+
+        -re "uname -r\r\n" {
+            # Command echoed
+            set sawEcho 1
+            exp_continue
+        }
+
+        -re "(\[0-9]+\.\[0-9]+\.\[0-9]+-.+)$endl" {
+            set kernel "$expect_out(1,string)"
+            exp_continue
+        }
+
+        -re "(\[0-9]+\.\[0-9]+\.\[0-9]+.+)$endl" {
+            # Non-telco kernel
+            set kernel "$expect_out(1,string)"
+            exp_continue
+        }
+
+        -re "$root_prompt" {
+          if {$kernel == ""} {
+            # Haven't determined the kernel revision yet, so wait.
+             exp_continue
+          }
+        }
+        -re "$endl" {
+            # This cleans up newlines, etc. for matching kernel revision
+             exp_continue
+        }
+    } ;# End expect from uname -r
+    if {$VERBOSE} {send_user "\tReturning kernel revision '$kernel'\n"}
+    return $kernel
+}
+
+#********************************************************************
+#
+# CheckFile: Check for the existence of a file
+# Input: file -- file to check for
+# Return:
+#         1 => file found
+#         0 => file not found
+# Note:
+#       Performs ls -1 to find the file
+#
+#********************************************************************
+proc CheckFile {file} {
+    global prompt root_prompt
+    global VERBOSE DRYRUN
+    global endl failures
+    global timeout_setting
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] CheckFile:\n"
+        send_user "\tfile = $file\n"
+    }
+    # Clear the buffer...
+    expect *
+
+    set echoed [format "%.10s" "ls $file"]
+    set partEcho 0
+    set partFile [format "%.10s" $file]
+    set sawEcho 0
+    set foundIt 0
+    
+    # Set the prompt:
+    if {![GetPrompt]} { set prompt "$root_prompt" }
+
+    if {$DRYRUN} {
+       send_user "ls $file\n"
+       return 1
+    }
+
+    # Get a listing of the directory
+    send "ls $file\r"
+    expect {
+       timeout {
+           ErrorMessage "Timed out getting directory listing" 1
+       } 
+
+       -re "$echoed" {
+          # Command echoed
+           if {$VERBOSE} { send_user "\tSaw command echoed\n" }
+           set sawEcho 1
+           exp_continue
+       }
+
+       -re "$file\r" {
+          if {$VERBOSE} {
+             send_user "\n\tFound $file\n"
+          }
+          set foundIt 1
+          exp_continue
+       }
+
+       -re "$partFile" {
+           set foundIt 1
+           exp_continue
+       }
+
+       -re "$endl" {
+           exp_continue
+       }
+
+       -re "$prompt" {
+          if {$VERBOSE} {
+             send_user "Found prompt, sawEcho = $sawEcho\n"
+          }
+          if {!$sawEcho} {exp_continue}
+           # Command completed
+       }
+    }
+
+     # Clear out the buffer
+    expect *
+    set retVal [CheckCmdStatus]
+    return $retVal
+}
+
+#********************************************************************
+#
+# CheckCmdStatus: Check $? for the exit value of a command
+# Input: None
+# Return:
+#         1 => command succeeded
+#         0 => command failed
+#         sets CmdRtn in the caller with the actual
+#         return value
+# Note:
+#       Performs 'echo $?' to find out if a command failed
+#
+#********************************************************************
+proc CheckCmdStatus {} {
+    global prompt root_prompt
+    global endl
+    global VERBOSE
+
+     # In case the caller cares what the real return
+     # value was
+    upvar CmdRtn CmdRtn
+     # Default return value.
+    set retVal 0
+
+    if {$VERBOSE} {
+       send_user "\n\[SM] CheckCmdStatus:\n"
+    }
+    set sawEcho 0
+    send "echo $?\r"
+    expect {
+       timeout {
+            ErrorMessage "Timed out checking command status" 2
+       }
+       -re "echo \\\$\\\?\r\n" {
+            set sawEcho 1
+            exp_continue
+       }
+       -re "0\r\n" {
+            if {$VERBOSE} { send_user "\n\tFound shell success!\n" }
+            set retVal 1
+       }
+       -re "(\[1-9]+)\r\n" {
+            if {$VERBOSE} { send_user "\n\tFound shell failure...\n" }
+            set CmdRtn "$expect_out(1,string)"
+            set retVal 0
+       }
+       -re "$prompt" {
+            if {!$sawEcho} {exp_continue}
+            set retVal 0
+       }
+    }
+
+    # Clear the user-prompt:
+    expect *
+    
+    return $retVal
+}
+
+#********************************************************************
+#
+# DoMake: Perform make:
+# Input:
+# Return:
+#       1 => success
+#       0 => failure
+#
+#********************************************************************
+proc DoMake {} {
+    global VERBOSE failures
+    global root_prompt prompt 
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] DoMake:\n"
+    }
+     # This is for making buncho, in the case that
+     # the modules are already made and insmod'ed.
+    set ignoreMakeErrors 0
+     # Check to see that we saw the make command
+     #  echoed.
+    set sawEcho 0
+    send "make\r"
+    expect {
+       timeout {
+             lappend failures "HANG"
+	     return "NONE"
+       }
+
+       -re "make\r" {
+            # command echoed
+            set sawEcho 1
+	    exp_continue
+       }
+
+       -re "No rule to make target" {
+            # the target doesn't exist!
+	    lappend failures "MAKEFILE"
+            return 0
+       }
+
+       -re "No targets specified and no makefile found" {
+            # Hmm, something horribly wrong
+	    lappend failures "MAKE"
+	    return 0
+       }
+
+       -re "insmod: error inserting" {
+           set ignoreMakeErrors 1
+           exp_continue 
+       }      
+
+       -re "$endl" {
+           exp_continue
+       }
+
+       -re "$root_prompt" {
+           if {!$sawEcho} {exp_continue}
+       }
+
+    } ;# End expect
+    if {!$ignoreMakeErrors} {
+        set status [CheckCmdStatus]
+    } \
+    else {
+        set status 1
+    }
+    return $status
+}  ;# End DoMake
+
+#********************************************************************
+#
+# Chdir:  cd to a given directory
+# Input:
+#       directory -- target directory
+# Return:
+#       1 => success
+#       0 => failure
+#
+# Sets global variable prompt.
+#********************************************************************
+proc Chdir {directory} {
+    global VERBOSE DRYRUN failures
+    global root_prompt prompt 
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] Chdir:\n"
+        send_user "\tdirectory: $directory\n"
+        if {$DRYRUN} {
+           send_user "cd $directory\n"
+           return 1
+        }
+    }
+    set sawEcho 0
+    set cmd "cd $directory"
+    set echoed [format "%.10s" $cmd]
+
+    send "$cmd\r"
+    expect {
+       timeout {
+             lappend failures "HANG"
+             send_user "\nWARNING: Timed out changing to $directory\n"
+	     return 0
+       }
+
+       -re "cd " {
+            # command echoed
+            set sawEcho 1
+	    exp_continue
+       }
+
+       -re "No such file or directory" {
+            # Hmm, something horribly wrong
+	    lappend failures "CD"
+	    return 0
+        }
+         -re "$endl" {
+             exp_continue
+         }
+
+	 -re "$root_prompt" {
+             if {!$sawEcho} {exp_continue}
+         }
+
+    } ;# End expect
+    set status [CheckCmdStatus]
+    return $status
+}  ;# End Chdir
+
+
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#  The next two subroutines are for gathering network
+#  information from the output of ifconfig -a.
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#********************************************************************
+#
+# GetNetworkInterfaceInfo:  Use ifconfig -a to get network
+#                   interface information
+# Input:
+#       none
+# Return:
+#       A string with interface names. 
+#       Will return an empty string if no information found.
+#       Sets up two arrays as globals.  The array indices
+#       are the interface names (eth0, eth1, ...)
+#       ifstate  -- holds the state of each interface
+#                   (e.g., $ifstate(eth0) = "up").
+#       ipAddr   -- holds the IP address of the interface
+#                   (e.g., $ipAddr(eth0) = "10.92.14.101")
+#
+#********************************************************************
+proc GetNetworkInterfaceInfo {} {
+    global VERBOSE
+    global prompt root_prompt
+    global endl send_slow
+    global ipAddr ifstate
+    global failures
+
+    if {![info exists send_slow]} {
+       set send_slow {1 .005}
+    }
+
+    set iflist ""
+    set intf ""
+    set sawEcho 0
+    send -s "ifconfig -a\r"
+    expect {
+         timeout {
+	    lappend failures "IFCONFIG"
+	    ErrorMessage "Timed out trying to get network interface info." 1
+	 }
+
+         "ifconfig" {
+             set sawEcho 1
+             exp_continue
+         }
+
+         -re "\r\n\r\n" {
+             # A blank line indicates we're done with an
+             # interface.
+             SearchBuffer4IfInfo "$expect_out(buffer)" ifstate ipAddr intf iflist
+             if [info exists intf] {
+                if {$VERBOSE} {
+                   send_user "\nDEBUG: Closing info for $intf\n"
+                   if {[info exists ifstate($intf)]} {
+                       send_user "\tifstate($intf) = $ifstate($intf)\n"
+                   } else {
+                       send_user "\tNo ifstate info for $intf\n"
+                   }
+                   if {[info exists ipAddr($intf)]} {
+                       send_user "\tipAddr($intf) = $ipAddr($intf)\n"
+                   } else {
+                       send_user "\tNo IP address for $intf\n"
+                   }
+                   send_user "\n"
+               }
+               unset intf
+             }
+             exp_continue
+         }
+
+         -re "(eth\[0-9]+)\[ \t]+Link" {
+             set intf $expect_out(1,string)
+             lappend iflist "$expect_out(1,string)"
+             if {$VERBOSE} {
+                send_user  "\nDEBUG: Found a network interface, $expect_out(1,string)\n"
+                send_user  "\tiflist is now $iflist\n"
+                send_user  "\tintf is now $intf\n"
+             }
+             exp_continue
+         }
+
+         -re "(lo\[0-9]+)\[ \t]+Link" {
+             set intf $expect_out(1,string)
+             if {$VERBOSE} {
+                send_user  "\nDEBUG: Found a network interface, $expect_out(1,string)\n"
+                send_user  "\tintf is now $intf\n"
+             }
+             exp_continue
+         }
+
+         -re "inet addr:(\[0-9]+\.\[0-9]+\.\[0-9]+\.\[0-9]+)\[ \t]+" {
+             if {$VERBOSE} {
+                  send_user "\nDEBUG: Found an IP address, $expect_out(1,string)\n"
+                  if [info exists intf] {
+                     send_user "\tintf is defined, $intf\n"
+                  } else {
+                     send_user "\tintf is NOT defined\n"
+                  }
+             }
+             if [info exists intf] {
+                set ipAddr($intf) "$expect_out(1,string)"
+                if {$VERBOSE} {
+                   send_user  "\t$intf has address $ipAddr($intf)\n"
+                }
+             }
+             exp_continue
+         }
+
+         -re "\[ \t]+UP BROADCAST" {
+             if {$VERBOSE} {
+                send_user  "\t$intf is up\n"
+             }
+             set ifstate($intf) "up"
+             exp_continue
+         }
+
+         -re "\[^P]\[ \t]+BROADCAST" {
+             if {$VERBOSE} {
+                send_user  "\t$intf is down\n"
+             }
+             set ifstate($intf) "down"
+             exp_continue
+         }
+
+#         -re "Base address:" {
+#             if [info exists intf] {unset intf}
+#             exp_continue
+#         }
+
+         -re "$root_prompt" {
+           # break out of expect loop
+         }
+    }
+    if {$VERBOSE} {
+       send_user "GetNetworkInterfaceInfo:\n"
+       send_user "\tifstate has [array size ifstate] elements\n"
+       foreach intf [array names ifstate] {
+           send_user "\t$intf is $ifstate($intf)\n"
+       }
+    }
+    return "$iflist"
+}   ;# End proc GetNetworkInterfaceInfo
+
+#********************************************************************
+#
+# SearchBuffer4IfInfo:  Search the expect buffer for network
+#                   interface information
+# Input:
+#       expect_out(buffer) to search for info
+#       rifstate  - Reference to ifstate array
+#       ripAddr   - Reference to ipAddr array
+#       rintf     - Reference to the current interface
+#                   being processed
+#       riflist   - Reference to the list of interfaces
+# Return:
+#       Adds any new interfaces to iflist, and
+#       sets info in the two arrays ifstate and ipAddr.
+#       The array indices are the interface names,
+#       eth0, eth1, ...
+#       ifstate  -- holds the state of each interface
+#                   (e.g., $ifstate(eth0) = "up").
+#       ipAddr   -- holds the IP address of the interface
+#                   (e.g., $ipAddr(eth0) = "10.92.14.101")
+#
+#********************************************************************
+proc SearchBuffer4IfInfo {buffer rifstate ripAddr rintf riflist} {
+    global VERBOSE
+    global prompt root_prompt
+    global failures
+
+     # Here's the information passed up to the caller
+    upvar $rifstate ifstate
+    upvar $ripAddr ipAddr
+    upvar $rintf intf
+    upvar $riflist iflist
+   
+    if {$VERBOSE} {
+       send_user "\n\[SM] SearchBuffer: Checking buffer for interface info\n"
+       if {[info exists intf]} {send_user "\tintf = $intf\n"}
+       if {[info exists ifstate]} {
+          send_user "\tifstate has [array size ifstate] elts\n"
+       }
+       if {[info exists ipAddr]} {
+          send_user "\tipAddr has [array size ipAddr] elts\n"
+       }
+    }
+    # Lines are separated by "\r\n", so we split the buffer
+    # into lines.
+    set matchList [split $buffer "\r\n"]
+
+    # A line that ends with "<stuff>\r\n" will be split into two
+    # list entries in matchList, one with <stuff> (split on '\r') and
+    # one that is empty (split on '\n').
+    # If we skip blank lines, we will only look at every other line.
+    # which looks like "\r\n\r\n" (end of the previous line, and then
+    # the blank line), so we know we've finished an entry when we see
+    # three blank entries.
+
+    set skipped 0
+    for {set j 0} { $j < [llength $matchList]} {incr j} {
+        set line "[lindex $matchList $j]"
+        # Skip blank lines
+        if {$line == " *" || $line == "" } {
+           incr skipped
+           continue
+        }
+        # If we get here, the line isn't blank:
+        if {$skipped > 2} {
+           # We've hit the blank line that indicates the next
+           # interface entry
+           if {[info exists intf]} {
+                if {$VERBOSE} {
+                   send_user "\nDEBUG: Closing info for $intf\n"
+                   if {[info exists ifstate($intf)]} {
+                       send_user "\tifstate($intf) = $ifstate($intf)\n"
+                   } else {
+                       send_user "\tNo ifstate info for $intf\n"
+                   }
+                   if {[info exists ipAddr($intf)]} {
+                       send_user "\tipAddr($intf) = $ipAddr($intf)\n"
+                   } else {
+                       send_user "\tNo IP address for $intf\n"
+                   }
+                   send_user "\n"
+               }
+               unset intf
+           }
+        }
+        set skipped 0
+        # Check against all of the lines that give us information
+        if {[regexp {(eth[0-9]+)[ \t]+Link} $line all intf]} {
+           if {$VERBOSE} {
+               send_user "Starting interface information for $intf"
+           }
+           lappend iflist "$intf"
+        }
+        if [regexp {inet addr:([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+) } $line all ip] {
+           if {$VERBOSE} { send_user "\n\tGot an ip address, $ip\n" }
+           if {[info exists intf]} {set ipAddr($intf) "$ip"}
+        }
+        if [regexp {^[ \t]*UP BROADCAST} $line] {
+           if [info exists intf] {
+              if {$VERBOSE} {send_user "\nInterface $intf is UP\n"}
+              set ifstate($intf) "up"
+           } \
+           else {
+              send_user "\nWARNING: Got a interface UP line, but no associated interface\n"
+           }
+        }
+        if [regexp {^[ \t]*BROADCAST MULTICAST} $line] {
+           if [info exists intf] {
+              if {$VERBOSE} {send_user "\nInterface $intf is DOWN\n"}
+              set ifstate($intf) "down"
+           } \
+           else {
+              send_user "\nWARNING: Got a interface DOWN line, but no associated interface\n"
+           }
+        }
+    }   
+}
+
+
+#********************************************************************
+#
+# GetPrompt: Get the exact prompt
+# Input:
+#       none
+# Output: Sets global variable prompt
+# Return:
+#        1 => success
+#        0 => failure
+#
+# Note:  Only run this when it's safe to send a
+#        carriage return and when you don't care about
+#        anything left in expect_out(buffer).
+#
+#********************************************************************
+proc GetPrompt {} {
+    global VERBOSE DRYRUN
+    global prompt root_prompt
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+      if {$spawn_id != "0"} {
+         send_user "\n\[SM] GetPrompt:\n"
+         send_user "\tspawn_id = $spawn_id\n"
+      }
+    }
+
+    if {$DRYRUN && $spawn_id == "0"} {
+       set prompt "$root_prompt"
+       return 1
+    }
+
+    # Clear the expect buffer of anything so we ONLY match
+    #  the root prompt
+    expect *
+
+    # Send a carriage return to 
+    send "\r"
+
+    expect {
+       timeout {
+          send_user "\n\tERROR: Timed out waiting for the prompt\n"
+          return 0
+       }
+
+      -re "$endl" {
+          # Saw our stimulus echoed
+          exp_continue
+      }
+      -re ".*\[#>].*" {
+          set prompt "$expect_out(0,string)"
+          if {$VERBOSE} {send_user "\tSet prompt to '$prompt'\n"}
+          return 1
+      }
+    }
+     # We should NEVER get here...
+    return 0
+}
+
+#********************************************************************
+#
+# GetCwd: Get the current working directory
+# Input:
+#       none
+# Output: none
+# Return:
+#        $PWD (or blank string if we fail to get that
+#
+#********************************************************************
+proc GetCwd {} {
+    global VERBOSE DRYRUN
+    global prompt root_prompt
+    global endl send_slow
+    global spawn_id
+
+    if {$VERBOSE} {
+      if {$spawn_id != "0"} {
+         send_user "\n\[SM] GetCwd:\n"
+         send_user "\tspawn_id = $spawn_id\n"
+      }
+    }
+
+    if {$DRYRUN && $spawn_id == "0"} {
+       return "/root"
+    }
+
+    # Use prompt echo to know when the command has completed
+    if {![info exists prompt]} {set prompt "$root_prompt"}
+
+    # Our current directory
+    set Cwd ""
+
+    # Clear the expect buffer
+    expect *
+
+    # Get current working directory from shell variable PWD
+    send "echo \$PWD\r"
+
+    expect {
+       timeout {
+          send_user "\n\tERROR: Timed out getting current directory\n"
+          return 0
+       }
+
+      -re "echo \\\$PWD" {
+          # Saw our stimulus echoed
+          exp_continue
+      }
+
+      -re "(/.*)\r\n" {
+          set Cwd "$expect_out(1,string)"
+          if {$VERBOSE} {send_user "\tCurrent directory is '$Cwd'\n"}
+          exp_continue
+      }
+
+      -re "$prompt" {}
+    }
+
+    return $Cwd
+}
+
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+# INIT-related routines
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#********************************************************************
+#
+# GetRunLevel: Get run level
+#      Input:  none
+#
+#     Return: 0 - failed to determine run level
+#             or nonzero run level
+#
+#********************************************************************
+proc GetRunLevel {} {
+    global VERBOSE send_slow
+    global endl root_prompt prompt
+    global spawn_id timeout_setting
+    global failures
+    global DRYRUN
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] GetRunLevel:\n"
+    }
+
+    if {$DRYRUN} {
+        send_user "who -r\n"
+        return 2
+    }
+
+    set runlevel 0
+    send "who -r\r"
+    expect {
+
+       timeout {
+           lappend failures "WHO"
+           ErrorMessage "Timed out trying to determine run level" 1
+       }
+
+       -re "who -r\r\n" {
+           # Command echoed
+           exp_continue
+       }
+
+       -re "run-level (\[0-9Ss])" {
+           set runlevel $expect_out(1,string)
+           exp_continue
+       }
+
+       -re "$root_prompt" {
+          # ran command and returned
+       }
+
+       -re "$endl" {
+           exp_continue
+       }
+    }
+    if {$VERBOSE} { send_user "\tReturning run level $runlevel\n"}
+    return $runlevel
+}  ;# End GetRunLevel
+
+#********************************************************************
+#
+# SetRunLevel: Set run level
+#      Input:  level -- run level
+#              rdirection -- reference to direction variable
+#                            this can be used to check daemon
+#                            status.
+#              daemon     -- daemon to watch for.
+#
+#     Return: 0 - failed to setting run level
+#             1 - Succeeded in setting run level
+#
+#********************************************************************
+proc SetRunLevel {level rdirection daemon} {
+    global VERBOSE DRYRUN
+    global root_prompt prompt login_prompt
+    global passwd send_slow
+    global spawn_id timeout_setting
+    global failures endl
+    global mpLan
+
+    upvar $rdirection direction
+
+    if {$VERBOSE} {
+        send_user "\n\[SM] SetRunLevel:\n"
+        send_user "\tlevel = $level\n"
+        send_user "\tdaemon = $daemon\n"
+        if [info exists send_slow] {
+           send_user "\tsend_slow = $send_slow\n"
+        }
+#        if [info exists console] {send_user "\tconsole = $console\n"}
+#        if [info exists sut] {send_user "\tsut = $sut\n"}
+#        if [info exists mpLan] {send_user "\tmpLan = $mpLan\n"}
+    }
+
+    if {![info exists send_slow]} { set send_slow {1 .005} }
+
+     # Keep track if INIT changed
+    set changedLevels 0
+
+    if {$DRYRUN} {
+        send_user "init $level\n"
+        if { $level == "S" || $level == "1" } {
+           set direction "up"
+        } \
+        else {
+           set direction "down"
+        }
+        return 1
+    }
+     # Our return value
+    set success 0
+    send -s "init $level\r"
+     # Wait for 3 seconds to let init do its thing 
+    sleep 3
+    expect {
+
+       timeout {
+           lappend failures "SET INIT"
+           ErrorMessage "Timed out trying to set run level to $level" 1
+       }
+
+       -re "init $level\r\n" {
+           # Command echoed
+           exp_continue
+       }
+
+       -re "INIT: \[A-Z]" {
+           # OK init is doing its thing
+           set success 1
+           exp_continue
+       }
+
+       -re "Shutting down .* $daemon" {
+            set direction "down"
+            if {$VERBOSE && $daemon != ""} { send_user "\tSaw $daemon shut $direction\n"}
+            exp_continue
+       }
+
+       -re "Stopping $daemon" {
+            set direction "down"
+            if {$VERBOSE && $daemon != ""} { send_user "\tSaw $daemon shut $direction\n"}
+            exp_continue
+       }
+
+       -re "Starting $daemon" {
+            set direction "up"
+            if {$VERBOSE && $daemon != ""} { send_user "\tSaw $daemon start $direction\n"}
+            exp_continue
+       }
+
+       -re "Give root password" {
+            send_user "\tSaw login prompt from INIT\n"
+            set changedLevels 1
+            send -s "$passwd\r"
+            exp_continue
+       }
+       
+       -re "$login_prompt" {
+            if {$VERBOSE} {
+               send_user "\tSaw linux login\n"
+            }
+            set success [LinuxLogin "root" "$passwd"]
+            if {!$success} {
+               ErrorMessage "Couldn't log into the system!" 1
+            }
+       }
+
+       -re "$root_prompt" {
+          # ran command and returned
+          if {$changedLevels} {
+             return 1
+          } \
+          else {
+#             set changedLevels 1
+#             send "\r"
+             exp_continue
+          } 
+       }
+
+       -re "$endl" {
+           exp_continue
+       }
+    }
+    if {$VERBOSE} {send_user "\tReturning success = $success\n"}
+    return $success
+}  ;# End SetRunLevel
+
+#********************************************************************
+#
+# IsLineInFile: Check a file for a given string
+#      Input:  file -- file to check
+#              string -- string to find in file
+#
+#     Return: N -- number of times the string appears in
+#                  the file
+#
+# Notes:
+#     This routine uses grep -c to check for the line.
+#     This means that special characters (e.g., *) will
+#     need to be quoted properly.
+#********************************************************************
+proc IsLineInFile {file string} {
+    global VERBOSE DRYRUN
+    global root_prompt prompt
+    global send_slow
+    global failures endl
+
+    if {$VERBOSE} {
+       send_user "\n\[SM] IsLineInFile:\n" 
+       send_user "\tfile = $file\n"
+       send_user "\tstring = '$string'\n"
+    }
+
+    set cmd "grep -c '$string' $file"
+    if {$DRYRUN} {
+       send_user "\t$cmd\n"
+       return 1
+    }
+
+    if {![regexp {[>#]} $prompt]} {set prompt "$root_prompt"}
+    set infile 0
+    send -s "$cmd\r"
+    expect {
+        timeout {TimedOut "Checking $file for '$string'\n" 1}
+        -re "grep -c" {
+            # Command echoed
+            exp_continue
+        }
+        -re "(\[0-9]+)\r\n" {
+            set infile $expect_out(1,string)
+            exp_continue
+        }
+
+        -re "No such file or directory" {
+            set infile -1
+            # File doesn't exist
+            exp_continue
+        }
+        -re "$prompt" {}
+    }
+    return $infile
+}
+
+#********************************************************************
+#
+# LinuxLogin:  Log into a linux system as a given user
+# Input:  user - what login to use
+#         passwd - user's password
+#         (global) linux_prompt (Linux login prompt)
+#         (global) root_prompt  (Linux root prompt)
+#         (global) timeout_setting (Expect timeout)
+#         (global) send_slow  (Don't drop characters)
+# Output: Logged into the system
+#         (global) prompt is set to root_prompt (set by
+#         matching the prompt).
+# Return:  1 -> success
+#          0 -> failure
+#
+#********************************************************************
+proc LinuxLogin {user passwd} {
+    global failures
+    global VERBOSE DRYRUN DEBUG
+    global linux_prompt root_prompt prompt login_prompt
+    global timeout_setting
+
+    # Try three times to log in
+    set try 0
+    set maxTry 3
+
+    if {$VERBOSE} {
+       send_user "\n\[SM] LinuxLogin:\n"
+       send_user "\tuser = $user\n"
+       send_user "\tpasswd = $passwd\n"
+       send_user "\ttimeout = $timeout_setting\n"
+    }
+
+    if {$DRYRUN} {
+       send_user "\nLogin: $user\n"
+       send_user "\nPassword: $passwd\n"
+       send_user "PATH=.:\$PATH\n"
+       send_user "dmesg -n8\n"
+       send_user "unset LS_OPTIONS\n"
+       send_user "unset LS_COLORS\n"
+       return 1
+    }
+
+    set timeout $timeout_setting
+    # Use send_slow to make sure we don't drop
+    #  characters
+    if {![info exists send_slow]} {
+       set send_slow {1 .005}
+    }
+
+    # These flags are to turn off directory colors,
+    # since the control characters often intermix in the
+    # echoed command, which breaks matching.
+    set dircolorsSet 1
+    set lsOptionsSet 1
+    set pathSet 0
+    set dmesgLevelSet 0
+
+    # Send a carriage return to figure out where we are...
+    send "\r"
+    expect {
+        timeout {
+        send_user "\mERROR:  It seems that the system is dead...\n"
+        lappend failures "HANG"
+        Done 1
+    }
+
+        -re "\[Rr]ead only - " {
+         send "\x05"
+         send -s "cf\r"
+             send "\r"
+         exp_continue
+    }
+
+        -re "\[Rr]ead-only" {
+         send "\x05"
+         send -s "cf\r"
+             send "\r"
+         exp_continue
+    }
+
+        -re "no, .* is attached" {
+         send "\x05"
+         send -s "cf\r"
+             send "\r"
+         exp_continue
+    }
+
+    -re "$login_prompt" {
+        # Maybe at the login prompt.
+            if {[regexp "Last" $expect_out(buffer)]} {
+            # Make sure that we aren't parsing the login message,
+        #  "Last login: Wed Mar 23 17:47:07 2005 ..."
+                exp_continue
+            }
+            if {[regexp "login: .+" $expect_out(buffer)]} {
+            # Make sure that we aren't parsing the echoed 
+        #  command line.
+                exp_continue
+            }
+            if [expr $try > $maxTry] {
+               lappend failures "LOGIN"
+               Done 1
+            }
+        # send user name for login
+        send -s "$user\r"
+            exp_continue
+    }
+
+        -re "$user" {
+        # Echoed user
+        exp_continue
+    }
+    -re "\[Pp]assword:" {
+        # Send password
+        send -s "$passwd\r"
+        exp_continue
+    }
+
+        -re "PATH=\.:" {
+            exp_continue
+        }
+
+        -re "unset LS_" {
+            exp_continue
+        }
+
+        -re "dmesg -n8" {
+            exp_continue
+        }
+
+    -re "$root_prompt" {
+         # OK, we're logged into the system.
+             if {$VERBOSE} {
+                send_user "\tdircolorsSet = $dircolorsSet\n"
+                send_user "\tlsOptionsSet = $lsOptionsSet\n"
+                send_user "\tdmesgLevelSet = $dmesgLevelSet\n"
+             }
+         set prompt "$expect_out(0,string)"
+             if {$dircolorsSet} {
+           # Set path first
+            if {! $pathSet } {
+               set pathSet 1
+               send "PATH=.:\$PATH\r"
+                   exp_continue
+                }
+           # Set the dmesg level to get all kernel messages
+            if {! $dmesgLevelSet } {
+               set dmesgLevelSet 1
+               send "dmesg -n8\r"
+                   exp_continue
+                }
+               # Turn off directory colors so that our
+               #  matches don't get hosed.
+                if {$lsOptionsSet} {
+                   set lsOptionsSet 0
+                   send "unset LS_OPTIONS\r"
+                   exp_continue
+                }
+                set dircolorsSet 0
+                send "unset LS_COLORS\r"
+                exp_continue
+             }
+             
+         return 1
+    }
+
+        -re "\[Rr]ead\[- ]\[Oo]nly - " {
+        send -s "\x05cf"
+        sleep .5
+        send "\r"
+        exp_continue
+    }
+     }  ;# End expect
+     # We shouldn't get here
+     send_user "\nERROR: we should have returned before now.  Something's amiss.\n"
+     return 0
+} ;# End LinuxLogin
+
+
+#************************ Reboot Linux  *************************************
+#
+# RebootLinux: Issue the linux reboot command
+# Input: none
+# Return: 1 => success
+#         0 => failure
+#
+#****************************************************************************
+proc RebootLinux {} {
+   global VERBOSE DRYRUN
+   global failures endl
+
+   set send_slow {1 .005}
+   send -s "reboot\r"
+   expect {
+      timeout {
+          send_user "\nERROR: Timed out rebooting the OS\n"
+          return 0
+      }
+      -re "Restarting system" {}
+       # In case we missed chassis codes
+      -re "ProLiant System BIOS" {}
+   }
+   return 1
+       
+} ;# End RebootLinux
