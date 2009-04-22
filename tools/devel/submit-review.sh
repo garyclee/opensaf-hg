@@ -44,6 +44,22 @@ if [ $mq -eq 0 ] && [ $cs -eq 0 ] && [ $og -eq 0 ]; then
         cs=1
 fi
 
+patchbomb_check=`hg email --help > /dev/null 2>&1`
+if [ $? -eq 255 ]; then
+        echo "The patchbomb extension isn't enabled in your .hgrc profile"
+        echo "Add 'hgext.patchbomb =' to the '[extensions]' section"
+        exit 1
+fi
+
+if [ $mq -eq 1 ]; then
+        mq_check=`hg qseries --help > /dev/null 2>&1`
+        if [ $? -eq 255 ]; then
+                echo "The MQ extension isn't enabled in your .hgrc profile"
+                echo "Add 'hgext.mq =' to the '[extensions]' section"
+                exit 1
+        fi
+fi
+
 if [ -z "$dest" ]; then
         rr=`mktemp -d`
         if [ $? != 0 ]; then

@@ -125,8 +125,9 @@ open source project mailing lists.
 
 For now, the script supports two workflows:
 
-   * Submit review based on locally committed changesets
+   * Submit review based on a range of locally committed changesets
    * Submit review based on a patch queue (MQ)
+   * Submit review based on all outgoing changesets
 
 If you need help using the Mercurial patch queue extension, take a look at the
 other document '00-README-hgtips' present in the current directory.
@@ -135,22 +136,23 @@ The script will help you create the following work package:
 
    1. Put the revlevant files for the review in a temp directory
    2. Generate a review template for the [PATCH 0/x]
-   3. Open the generated template in the user $EDITOR of choice
+   3. Open the generated template in the user's $EDITOR of choice
       and allow him to add the necessary comments
-   4. Prompt the user to enter emails of the peer reviewers, the devel
+   4. Prompt the user for a review subject
+   5. Prompt the user to enter emails of the peer reviewers, the devel
       list is added on CC automatically
 
 The script currently accepts the following options:
 
-Usage: submit-review.sh [-t] [-q|-c] [-r rev] [-d dest] [-s subject]
+Usage: submit-review.sh [-t] [-q|-c|-o] [-r rev] [-d dest]
 
 -t    Executes a dry-run (nothing will be emailed)
 -q    Enables patch queue usage for the review process
 -c    Enables local changesets usage for the review process (default)
+-o    Enables all outgoing changes for the review process
 -r    Uses the csX:csY committed revision range for the review process
       (default 'tip')
 -d    Specifies where the review package gets dumped (default 'mktemp -d')
--s    Changes the default "Review Request" subject for [PATCH 0/x]
 
 Using submit-review.sh with patch queue:
 
