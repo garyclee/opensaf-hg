@@ -18,85 +18,107 @@
 HG=`which hg`
 
 if [ -z $EDITOR ]; then
-   EDITOR="vi"
+        EDITOR="vi"
 fi
 
-usage="Usage: submit-review.sh [-t] [-q|-c] [-r rev] [-d dest] [-s subject]"
+dryrun=0; mq=0; cs=0; og=0;
 
-while getopts ":tqcr:b:d:s:" opt; do
-   case $opt in
-      t ) dryrun=1 ;;
-      q ) mq=1 ;;
-      c ) cs=1 ;;
-      r ) rev=$OPTARG ;;
-      d ) dest=$OPTARG ;;
-      s ) subject=$OPTARG ;;
-      \?) echo $usage
-          exit 1 ;;
-   esac
+usage="Usage: submit-review.sh [-t] [-q|-c|-o] [-r rev] [-d dest]"
+
+while getopts ":tqcor:d:" opt; do
+        case $opt in
+                t ) dryrun=1 ;;
+                q ) mq=1 ;;
+                c ) cs=1 ;;
+                o ) og=1 ;;
+                r ) rev=$OPTARG ;;
+                d ) dest=$OPTARG ;;
+                \?) echo $usage
+                    exit 1 ;;
+        esac
 done
 
 shift $(($OPTIND -1))
 
-if [ $mq ] && [ $cs ]; then
-   echo "$0: [-q|-c] are mutually exclusive options"
-   echo $usage
-   exit 1
-elif [ ! $mq ] && [ ! $cs ]; then
-   cs=1
+if [ $mq -eq 0 ] && [ $cs -eq 0 ] && [ $og -eq 0 ]; then
+        cs=1
 fi
 
 if [ -z "$dest" ]; then
-   rr=`mktemp -d`
-   if [ $? != 0 ]; then
-      echo "$0: mktemp failed"
-      exit 1
-   fi
+        rr=`mktemp -d`
+        if [ $? != 0 ]; then
+                echo "$0: mktemp failed"
+                exit 1
+        fi
 else
-   rr=$dest
-   if [ ! -d "$rr" ]; then
-      mkdir $rr
-      if [ $? != 0 ]; then
-         echo "$0: mkdir $rr failed"
-         exit 1
-      fi
-   fi
+        rr=$dest
+        if [ ! -d "$rr" ]; then
+                mkdir $rr
+                if [ $? != 0 ]; then
+                        echo "$0: mkdir $rr failed"
+                        exit 1
+                fi
+        fi
 fi
 
-if [ -z "$subject" ]; then
-   subject="Review Request"
+if [ $dryrun -eq 1 ]; then
+        echo "WARNING: Running in dry-run mode, nothing will be emailed"
 fi
 
-if [ $dryrun ]; then
-   echo "*** Running in dry-run mode, nothing will be emailed ***"
-fi
+if [ $og -eq 1 ]; then
+        if hg outgoing > /dev/null 2>&1; then
+                echo "Exporting all outgoing changes for review"
+        else
+                echo "No changes found, nothing to review!"
+                rm -rf $rr
+                exit 1
+        fi
+elif [ $cs -eq 1 ]; then
+        if [ -z "$rev" ]; then
+                rev="tip"
+        fi
+        echo "Exporting changeset(s) '$rev' for review"
+elif [ $mq -eq 1 ]; then
+        qseries=`hg qseries`
+        qapplied=`hg qapplied`
+        if [ -z "$qseries" ]; then
+                echo "Patch queue empty, nothing to review!"
+                rm -rf $rr
+                exit 1
+        fi
 
-if [ $cs ]; then
-   if [ -z "$rev" ]; then
-      rev="tip"
-   fi
-   echo "Exporting changeset(s) '$rev' for review"
-elif [ $mq ]; then
-   echo "Exporting the patch queue for review"
+        if [ "$qseries" != "$qapplied" ]; then
+                echo "Patch series needs to be fully applied before review!"
+                rm -rf $rr
+                exit 1
+        fi
+
+        echo "Exporting the patch queue for review"
 fi
 
 echo "The review package will be placed under $rr"
 
 hgroot=`$HG root`
 
-if [ $mq ]; then
-   if [ ! -d "$hgroot/.hg/patches" ]; then
-      echo "$0: Did you init the patch queue properly?"
-      exit 1
-   else
-      cp $hgroot/.hg/patches/*.patch $rr
-      cp $hgroot/.hg/patches/series $rr
-   fi
-elif [ $cs ]; then
-   $HG export -g -o $rr/%R.patch $rev
-   cd $rr
-   ls -1 *.patch >> series
-   cd - > /dev/null 2>&1
+if [ $og -eq 1 ]; then
+        $HG outgoing -M -p > $rr/outgoing.patch
+        cd $rr
+        ls -1 *.patch >> series
+        cd - > /dev/null 2>&1
+elif [ $mq -eq 1 ]; then
+        if [ ! -d "$hgroot/.hg/patches" ]; then
+                echo "Did you qinit the patch queue properly?"
+                rm -rf $rr
+                exit 1
+        else
+                cp $hgroot/.hg/patches/*.patch $rr
+                cp $hgroot/.hg/patches/series $rr
+        fi
+elif [ $cs -eq 1 ]; then
+        $HG export -g -o $rr/%R.patch $rev
+        cd $rr
+        ls -1 *.patch >> series
+        cd - > /dev/null 2>&1
 fi
 
 cat <<ETX >> $rr/rr
@@ -127,10 +149,10 @@ Comments (indicate scope for each "y" above):
 ETX
 series=`cat $rr/series`
 for l in $series; do
-   echo " $l:"
-   echo ""
-   echo "  <<PATCH_COMMENTS_HERE>>"
-   echo ""
+        echo " $l:"
+        echo ""
+        echo "  <<PATCH_COMMENTS_HERE>>"
+        echo ""
 done >> $rr/rr
 cat <<ETX >> $rr/rr
 
@@ -139,7 +161,7 @@ Added Files:
 ETX
 new=`egrep -A 2 -s '^new file mode ' $rr/*.patch | grep -s '^+++ ' | awk '{ print $2 }' | sort -u`
 for l in $new; do
-   echo " $l"
+        echo " $l"
 done >> $rr/rr
 
 cat <<ETX >> $rr/rr
@@ -150,7 +172,7 @@ Removed Files:
 ETX
 del=`egrep -A 1 -s '^deleted file mode ' $rr/*.patch | grep -s '^--- ' | awk '{ print $2 }' | sort -u`
 for l in $del; do
-   echo " $l"
+        echo " $l"
 done >> $rr/rr
 
 cat <<ETX >> $rr/rr
@@ -159,10 +181,14 @@ cat <<ETX >> $rr/rr
 Remaining Changes (diffstat):
 -----------------------------
 ETX
-if [ $mq ]; then
-   $HG diff -r $(hg parents -r qbase --template '#rev#') -r qtip | diffstat >> $rr/rr
-elif [ $cs ]; then
-   $HG export -g $rev | diffstat >> $rr/rr
+if [ $og -eq 1 ]; then
+        $HG outgoing -M -p | diffstat >> $rr/rr
+else
+        if [ $mq -eq 1 ]; then
+                $HG diff -r $(hg parents -r qbase --template '#rev#') -r qtip | diffstat >> $rr/rr
+        elif [ $cs -eq 1 ]; then
+                $HG export -g $rev | diffstat >> $rr/rr
+        fi
 fi
 cat <<ETX >> $rr/rr
 
@@ -196,25 +222,32 @@ ETX
 
 $EDITOR $rr/rr
 
-while [ -z "$toline" ]; do
-   read -p "To: " -e toline
+while [ -z "$subject" ]; do
+        read -p "Subject: Review Request for " -e subject
 done
 
-COMMAND="$HG email -s '$subject' --intro --desc $rr/rr --to '$toline' --cc devel@list.opensaf.org"
+while [ -z "$toline" ]; do
+        read -p "To: " -e toline
+done
 
-if [ $dryrun ]; then
-   COMMAND+=" -n"
+COMMAND="$HG email -s 'Review Request for $subject' --intro --desc $rr/rr --to '$toline' --cc devel@list.opensaf.org"
+
+if [ $dryrun -eq 1 ]; then
+        COMMAND+=" -n"
 fi
 
-if [ $mq ]; then
-   COMMAND+=" qbase:qtip"
-elif [ $cs ]; then
-   COMMAND+=" $rev"
+if [ $og -eq 1 ]; then
+        COMMAND+=" -o"
+elif [ $mq -eq 1 ]; then
+        COMMAND+=" qbase:qtip"
+elif [ $cs -eq 1 ]; then
+        COMMAND+=" $rev"
 fi
 
-if [ $dryrun ]; then
-   echo "Email will be dumped as $rr/review.mail"
-   eval $COMMAND > $rr/review.mail
+if [ $dryrun -eq 1 ]; then
+        echo "Email will be dumped as $rr/review.mail"
+        eval $COMMAND > $rr/review.mail
 else
-   eval $COMMAND
+        eval $COMMAND
 fi
+
