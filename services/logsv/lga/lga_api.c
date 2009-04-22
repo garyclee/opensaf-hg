@@ -61,11 +61,8 @@ static void populate_open_params(
     }
     else
     {
-        if (logFileCreateAttributes->logFileFmt != NULL)
-            open_param->logFileFmt = logFileCreateAttributes->logFileFmt;
-        else
-            /* Assign default expression */
-            open_param->logFileFmt = DEFAULT_APP_SYS_FORMAT_EXP;
+        /* Server will assign a def fmt string if needed (logFileFmt==NULL) */
+        open_param->logFileFmt = logFileCreateAttributes->logFileFmt;
             
         strncpy(open_param->logFileName,
                 logFileCreateAttributes->logFileName, NAME_MAX);

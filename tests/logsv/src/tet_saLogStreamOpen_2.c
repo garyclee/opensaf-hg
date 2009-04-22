@@ -264,6 +264,18 @@ void saLogStreamOpen_2_19(void)
     test_validate(rc, SA_AIS_OK);
 }
 
+void saLogStreamOpen_2_20(void)
+{
+    init_file_create_attributes();
+    appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
+    appStream1LogFileCreateAttributes.logFileFmt = "@Cr @Ch:@Cn:@Cs @Ni @Cm/@Cd/@CY @Sv @Sl \"@Cb\"";
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+                           SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+}
+
 extern void saLogStreamOpenAsync_2_01(void);
 extern void saLogStreamOpenCallbackT_01(void);
 extern void saLogWriteLog_01(void);
@@ -307,6 +319,7 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogStreamOpen_2_17, "Open app stream second time with logFileFmt == NULL");
     test_case_add(2, saLogStreamOpen_2_18, "Open app stream with NULL logFilePathName");
     test_case_add(2, saLogStreamOpen_2_19, "Open app stream with '.' logFilePathName");
+    test_case_add(2, saLogStreamOpen_2_20, "Open app stream with invalid logFileFmt");
     test_case_add(2, saLogStreamOpenAsync_2_01, "saLogStreamOpenAsync_2() OK");
     test_case_add(2, saLogStreamOpenCallbackT_01, "saLogStreamOpenCallbackT() OK");
     test_case_add(2, saLogWriteLog_01, "saLogWriteLog() system OK");

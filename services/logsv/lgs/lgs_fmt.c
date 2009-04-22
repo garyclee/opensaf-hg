@@ -21,6 +21,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <assert.h>
 
 #include "lgs_fmt.h"
 
@@ -1143,10 +1144,7 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
     SaStringT fmtExpPtr = &formatExpression[0];
     SaStringT fmtExpPtrSnabel = &formatExpression[1];
 
-    if (formatExpression == NULL)
-    {
-        goto error_exit;
-    }
+    assert(formatExpression != NULL);
 
     /* Main checking loop */
     for (; ;)
