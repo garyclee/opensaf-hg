@@ -47,8 +47,7 @@
 
 #define m_RETURN_AVSV_CLI_DONE(st,s,k)   avsv_cli_done(st,s,k)
 
-/* #define NCS_CLI_MIB_REQ_TIMEOUT  1000 */
-#define NCS_CLI_MIB_REQ_TIMEOUT  3000
+#define NCS_CLI_MIB_REQ_TIMEOUT  1000
 #define AVM_DEFAULT_HIERARCHY_LVL 2
 #define AVM_EXT_HIERARCHY_LVL     3
 
@@ -885,9 +884,19 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    uns8        space[1024];
    NCSMEM_AID   mem_aid;
    uns32       status = NCSCC_RC_SUCCESS;
+   char        *cli_req_timeout_env = NULL;
+   uns32       cli_req_timeout;
 
    if(val == NULL)
       return status;
+
+   /* The CLI request timeout value is configurable.    */
+   /* See if the user has exported an env var for this. */
+   cli_req_timeout_env = getenv("NCS_CLI_MIB_REQ_TIMEOUT");
+   if (cli_req_timeout_env == NULL)
+      cli_req_timeout = NCS_CLI_MIB_REQ_TIMEOUT;    /* default timeout value */
+   else
+      cli_req_timeout = atoi(cli_req_timeout_env);  /* user timeout value    */
 
    memset(&mib_arg, 0, sizeof(NCSMIB_ARG));
    memset(space, 0, sizeof(space));
@@ -914,7 +923,7 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
    ncsmib_pp(&mib_arg);
 
    status = ncsmib_sync_request(&mib_arg, reqfnc,
-                                 NCS_CLI_MIB_REQ_TIMEOUT, &mem_aid);
+                                 cli_req_timeout, &mem_aid);
    if (status != NCSCC_RC_SUCCESS)
    {
       /* Log the error */
