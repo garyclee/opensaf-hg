@@ -29,6 +29,12 @@
 #define LITTERAL_CHAR_OFFSET 1
 #define MAX_FIELD_SIZE 255
 
+/* Default format expression for alm/not streams */
+#define DEFAULT_ALM_NOT_FORMAT_EXP "@Cr @Ct @Nt @Ne6 @No30 @Ng30 \"@Cb\""
+
+/* Default format expression for sys/app streams */
+#define DEFAULT_APP_SYS_FORMAT_EXP "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
+
 typedef enum {
     C_LR_ID_SHIFT_OFFSET,              
     C_LR_TIME_STAMP_SHIFT_OFFSET,      

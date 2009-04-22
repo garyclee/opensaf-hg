@@ -22,7 +22,4 @@
 #define LOG_MAJOR_VERSION 2
 #define LOG_MINOR_VERSION 1
 
-/* Default format expression */
-#define DEFAULT_APP_SYS_FORMAT_EXP "@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl \"@Cb\""
-
 #endif /* LGSV_DEFS_H */

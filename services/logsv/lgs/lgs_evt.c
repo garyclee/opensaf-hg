@@ -606,6 +606,12 @@ static SaAisErrorT create_new_app_stream(
         goto done;
     }
 
+    if (open_sync_param->logFileFmt == NULL)
+    {
+        TRACE("Assigning default format string for app stream");
+        open_sync_param->logFileFmt = strdup(DEFAULT_APP_SYS_FORMAT_EXP);
+    }
+
     /* Check the format string */
     if (!lgs_is_valid_format_expression(open_sync_param->logFileFmt,
                                         STREAM_TYPE_APPLICATION,
