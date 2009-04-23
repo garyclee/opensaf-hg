@@ -40,7 +40,8 @@ logtest_SOURCES = \
 	$(top_srcdir)/tests/logsv/src/tet_saLogWriteLogCallbackT.c \
 	$(top_srcdir)/tests/logsv/src/tet_saLogFilterSetCallbackT.c \
 	$(top_srcdir)/tests/logsv/src/tet_saLogStreamClose.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogLimitGet.c
+	$(top_srcdir)/tests/logsv/src/tet_saLogLimitGet.c \
+	$(top_srcdir)/tests/logsv/src/tet_LogOiOps.c
 
 logtest_LDADD = \
 	$(top_builddir)/lib/lib_SaLog/libSaLog.la
