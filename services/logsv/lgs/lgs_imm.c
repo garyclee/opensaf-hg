@@ -74,6 +74,7 @@ static uns32 lgs_ckpt_stream(log_stream_t *stream)
     ckpt.ckpt_rec.stream_cfg.maxFilesRotated = stream->maxFilesRotated;
     ckpt.ckpt_rec.stream_cfg.logFileFormat = stream->logFileFormat;
     ckpt.ckpt_rec.stream_cfg.severityFilter = stream->severityFilter;
+    ckpt.ckpt_rec.stream_cfg.logFileCurrent = stream->logFileCurrent;
     
     rc = lgs_ckpt_send_async(lgs_cb, &ckpt, NCS_MBCSV_ACT_ADD);
 
@@ -112,17 +113,17 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
         goto done;
     }
 
-    /* Only allowed to update runtime objects (application streams) */
-    if (stream->streamType != STREAM_TYPE_APPLICATION)
-    {
-        LOG_ER("Admin op for non app stream");
-        (void) immutil_saImmOiAdminOperationResult(immOiHandle,
-            invocation, SA_AIS_ERR_INVALID_PARAM);
-        goto done;
-    }
-
     if (opId == SA_LOG_ADMIN_CHANGE_FILTER)
     {
+        /* Only allowed to update runtime objects (application streams) */
+        if (stream->streamType != STREAM_TYPE_APPLICATION)
+        {
+            LOG_ER("Admin op change filter for non app stream");
+            (void) immutil_saImmOiAdminOperationResult(immOiHandle,
+                invocation, SA_AIS_ERR_INVALID_PARAM);
+            goto done;
+        }
+        
         if (param->paramType != SA_IMM_ATTR_SAUINT32T)
         {
             LOG_ER("Invalid parameter type, should be uint32");
@@ -138,6 +139,13 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
             LOG_ER("Invalid severity: %x", severityFilter);
             (void) immutil_saImmOiAdminOperationResult(immOiHandle,
                 invocation, SA_AIS_ERR_INVALID_PARAM);
+            goto done;
+        }
+
+        if (severityFilter == stream->severityFilter)
+        {
+            (void) immutil_saImmOiAdminOperationResult(immOiHandle,
+                invocation, SA_AIS_ERR_NO_OP);
             goto done;
         }
 
@@ -359,6 +367,8 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
     struct CcbUtilOperationData *ccbUtilOperationData;
     log_stream_t *stream;
     const SaImmAttrModificationT_2 *attrMod;
+    int new_cfg_file_needed;
+    char current_file_name[NAME_MAX];
 
     TRACE_ENTER();
 
@@ -383,6 +393,9 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
             goto done;
         }
 
+        strncpy(current_file_name, stream->fileName, sizeof(current_file_name));
+        new_cfg_file_needed = 0;
+
         attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
         while (attrMod != NULL)
         {
@@ -397,21 +410,25 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
             {
                 char *fileName = *((char**) value);
                 strcpy(stream->fileName, fileName);
+                new_cfg_file_needed = 1;
             }
             else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize"))
             {
                 SaUint64T maxLogFileSize = *((SaUint64T*) value);
                 stream->maxLogFileSize = maxLogFileSize;
+                new_cfg_file_needed = 1;
             }
             else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize"))
             {
                 SaUint32T fixedLogRecordSize = *((SaUint32T*) value);
                 stream->fixedLogRecordSize = fixedLogRecordSize;
+                new_cfg_file_needed = 1;
             }
             else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction"))
             {
                 SaLogFileFullActionT logFullAction = *((SaUint32T*) value);
                 stream->logFullAction = logFullAction;
+                new_cfg_file_needed = 1;
             }
             else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold"))
             {
@@ -429,6 +446,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
                 if (stream->logFileFormat != NULL)
                     free(stream->logFileFormat);
                 stream->logFileFormat = strdup(logFileFormat);
+                new_cfg_file_needed = 1;
             }
             else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter"))
             {
@@ -443,6 +461,16 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle,
 
             attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
         }
+
+        if (new_cfg_file_needed)
+        {
+            if (log_stream_config_change(stream, current_file_name) != 0)
+            {
+                LOG_ER("log_stream_config_change failed");
+                exit(1);
+            }
+        }
+
         ccbUtilOperationData = ccbUtilOperationData->next;
     }
 
