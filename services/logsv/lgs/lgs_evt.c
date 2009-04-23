@@ -567,7 +567,6 @@ static uns32 lgs_ckpt_stream_open(
         ckpt.ckpt_rec.stream_open.logFileCurrent = logStream->logFileCurrent;
         ckpt.ckpt_rec.stream_open.fileFmt = logStream->logFileFormat;
         ckpt.ckpt_rec.stream_open.logStreamName = (char*)logStream->name;
-        ckpt.ckpt_rec.stream_open.logFileCurrent = logStream->logFileCurrent;
 
         ckpt.ckpt_rec.stream_open.maxFileSize = logStream->maxLogFileSize;
         ckpt.ckpt_rec.stream_open.maxLogRecordSize = logStream->fixedLogRecordSize;
@@ -719,8 +718,9 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param,
               open_sync_param->logFilePathName, applicationStream->pathName);
         rs = SA_AIS_ERR_INVALID_PARAM;
     }
-    else if (strcmp((const char *)applicationStream->logFileFormat,
-                    (const char *)open_sync_param->logFileFmt)  != 0)
+    else if ((open_sync_param->logFileFmt != NULL) &&
+             strcmp((const char *)applicationStream->logFileFormat,
+                 (const char *)open_sync_param->logFileFmt)  != 0)
     {
         TRACE("logFile format differs, new: %s existing: %s",
               open_sync_param->logFileFmt,

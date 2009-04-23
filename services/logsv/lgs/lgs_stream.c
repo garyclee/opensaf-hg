@@ -1029,3 +1029,63 @@ uns32 log_stream_init(void)
     return ncs_patricia_tree_init(&stream_dn_tree, &param);
 }
 
+/**
+ * Close log file, change name of log file, create new log and
+ * config file. Basically the same logic as described in 3.1.6.4
+ * in A.02.01.
+ * @param stream
+ * @param current_file_name
+ * 
+ * @return int
+ */
+int log_stream_config_change(log_stream_t *stream,
+    const char *current_file_name)
+{
+    int rc;
+    char *current_time;
+
+    TRACE_ENTER2("%s", stream->name);
+
+    if (stream->fd == -1)
+    {
+        rc = -1;
+        goto done;
+    }
+
+    if ((rc = close(stream->fd)) == -1)
+    {
+        LOG_ER("close FAILED: %s",  strerror(errno));
+        goto done;
+    }
+
+    current_time = lgs_get_time();
+
+    if ((rc = lgs_file_rename(stream->pathName, stream->logFileCurrent,
+        current_time, LGS_LOG_FILE_EXT)) == -1)
+    {
+        goto done;
+    }
+    
+    if ((rc = lgs_file_rename(stream->pathName, current_file_name,
+        current_time, LGS_LOG_FILE_CONFIG_EXT)) == -1)
+    {
+        goto done;
+    }
+
+    if ((rc = lgs_create_config_file(stream)) != 0)
+        goto done;
+
+    /* Peer sync needed due to change in logFileCurrent */
+    sprintf(stream->logFileCurrent, "%s_%s", stream->fileName, current_time);
+    stream->fd = log_file_open(stream);
+
+    if (stream->fd == -1)
+        rc = -1;
+    else
+        rc = 0;
+
+ done:
+     TRACE_LEAVE();
+     return rc;
+}
+

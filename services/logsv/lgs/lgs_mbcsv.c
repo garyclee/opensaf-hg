@@ -466,7 +466,6 @@ static uns32 ckpt_stream_open_set(log_stream_t *logStream,
     stream_open->logFileCurrent = logStream->logFileCurrent;
     stream_open->fileFmt = logStream->logFileFormat;
     stream_open->logStreamName = (char*)logStream->name;
-    stream_open->logFileCurrent = logStream->logFileCurrent;
     stream_open->maxFileSize = logStream->maxLogFileSize;
     stream_open->maxLogRecordSize = logStream->fixedLogRecordSize;
     stream_open->logFileFullAction = logStream->logFullAction;
@@ -1402,8 +1401,16 @@ static uns32 ckpt_proc_cfg_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
     stream->maxFilesRotated = param->maxFilesRotated;
     strcpy(stream->logFileFormat, param->logFileFormat);
     stream->severityFilter = param->severityFilter;
+    strcpy(stream->logFileCurrent, param->logFileCurrent);
 
 done:
+    /* Free strings allocated by the EDU encoder */
+    free_edu_mem(param->fileName);
+    free_edu_mem(param->pathName);
+    free_edu_mem(param->logFileFormat);
+    free_edu_mem(param->logFileCurrent);
+    free_edu_mem(param->name);
+
     TRACE_LEAVE();
     return NCSCC_RC_SUCCESS;
 }
@@ -1924,6 +1931,7 @@ static uns32 edp_ed_cfg_stream_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->maxFilesRotated,0, NULL},
         {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->logFileFormat,0, NULL},
         {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->severityFilter,0, NULL},
+        {EDU_EXEC, ncs_edp_string, 0, 0, 0, (long)&((lgs_ckpt_stream_cfg_t*)0)->logFileCurrent,0, NULL},
         {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
     };
 

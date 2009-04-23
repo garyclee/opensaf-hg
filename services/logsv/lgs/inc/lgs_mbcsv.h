@@ -116,6 +116,7 @@ typedef struct
     SaUint32T maxFilesRotated;
     char *logFileFormat;
     SaUint32T severityFilter;
+    char* logFileCurrent;
 } lgs_ckpt_stream_cfg_t;
 
 typedef struct
