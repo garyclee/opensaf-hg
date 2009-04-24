@@ -813,6 +813,26 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
         goto done;
     }
 
+    if (logRecord->logHdrType == SA_LOG_GENERIC_HEADER)
+    {
+        switch (logRecord->logHeader.genericHdr.logSeverity)
+        {
+            case SA_LOG_SEV_EMERGENCY:
+            case SA_LOG_SEV_ALERT:
+            case SA_LOG_SEV_CRITICAL:
+            case SA_LOG_SEV_ERROR:
+            case SA_LOG_SEV_WARNING:
+            case SA_LOG_SEV_NOTICE:
+            case SA_LOG_SEV_INFO:
+                break;
+            default:
+                TRACE("Invalid severity: %x",
+                    logRecord->logHeader.genericHdr.logSeverity);
+                rc = SA_AIS_ERR_INVALID_PARAM;
+                goto done;
+        }
+    }
+
     if (logRecord->logBuffer != NULL)
     {
         if ((logRecord->logBuffer->logBuf == NULL) && 
