@@ -355,6 +355,17 @@ static SaBoolT validateNtfToken(SaStringT fmtExpPtr,
                 *tokenFlags = (*tokenFlags | (1 << shiftOffset));
             }
             break;
+        case N_EVENT_TIME_SECOND_LETTER:
+            shiftOffset = (int)N_EVENT_TIME_SECOND_SHIFT_OFFSET;
+            if ((SaBoolT)((*tokenFlags >> shiftOffset) & 1) == SA_TRUE)
+            {
+                tokenOk = SA_FALSE; /* Same token used two times */
+            }
+            else
+            {
+                *tokenFlags = (*tokenFlags | (1 << shiftOffset));
+            }
+            break;
 
         case N_EVENT_TIME_12_24_MODE_LETTER:
             shiftOffset = (int)N_EVENT_TIME_12_24_MODE_SHIFT_OFFSET;
@@ -1214,7 +1225,6 @@ SaBoolT lgs_is_valid_format_expression(const SaStringT formatExpression,
     }
     formatExpressionOk = tokenOk;
 
-    error_exit:
     return formatExpressionOk;
 }  
 
