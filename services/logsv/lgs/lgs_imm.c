@@ -123,10 +123,18 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
                 invocation, SA_AIS_ERR_INVALID_PARAM);
             goto done;
         }
-        
+
+        if (strcmp(param->paramName, "saLogStreamSeverityFilter") != 0)
+        {
+            LOG_ER("Admin op change filter, invalid param name");
+            (void) immutil_saImmOiAdminOperationResult(immOiHandle,
+                invocation, SA_AIS_ERR_INVALID_PARAM);
+            goto done;
+        }
+
         if (param->paramType != SA_IMM_ATTR_SAUINT32T)
         {
-            LOG_ER("Invalid parameter type, should be uint32");
+            LOG_ER("Admin op change filter: invalid parameter type");
             (void) immutil_saImmOiAdminOperationResult(immOiHandle,
                 invocation, SA_AIS_ERR_INVALID_PARAM);
             goto done;
@@ -136,7 +144,7 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
         if (severityFilter > 0x7f) /* not a level, a bitmap */
         {
-            LOG_ER("Invalid severity: %x", severityFilter);
+            LOG_ER("Admin op change filter: invalid severity");
             (void) immutil_saImmOiAdminOperationResult(immOiHandle,
                 invocation, SA_AIS_ERR_INVALID_PARAM);
             goto done;
@@ -580,6 +588,9 @@ static SaAisErrorT stream_create_and_configure(
         goto done;
     }
 
+    /* Happens to be the same, ugly! FIX */
+    stream->streamType = stream_id;
+
     (void) immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
     (void) immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
@@ -656,9 +667,6 @@ static SaAisErrorT stream_create_and_configure(
             TRACE("severityFilter: %u", stream->severityFilter);
         }
     }
-
-    /* Happens to be the same, ugly! FIX */
-    stream->streamType = stream_id;
 
     if (stream->logFileFormat == NULL)
         stream->logFileFormat = strdup(log_file_format[stream->streamType]);
