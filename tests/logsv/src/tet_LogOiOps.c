@@ -134,7 +134,7 @@ void saLogOi_12(void)
 {
     int rc;
     const char *command =
-        "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Ne5 @No30 @Ng30 \"@Cb\"\" safLgStr=saLogAlarm";
+        "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Nh:@Nn:@Ns @Nm/@Nd/@NY @Ne5 @No30 @Ng30 \"@Cb\"\" safLgStr=saLogAlarm";
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -169,7 +169,8 @@ void saLogOi_16(void)
 {
     int rc;
     char command[256];
-    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null", SA_LOG_STREAM_APPLICATION1);
+    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
@@ -191,7 +192,8 @@ void saLogOi_18(void)
 {
     int rc;
     char command[256];
-    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT64_T:7 %s 2> /dev/null", SA_LOG_STREAM_APPLICATION1);
+    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT64_T:7 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
@@ -205,7 +207,8 @@ void saLogOi_19(void)
 {
     int rc;
     char command[256];
-    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:1024 %s 2> /dev/null", SA_LOG_STREAM_APPLICATION1);
+    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:1024 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
@@ -219,7 +222,23 @@ void saLogOi_20(void)
 {
     int rc;
     char command[256];
-    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null", SA_LOG_STREAM_APPLICATION1);
+    sprintf(command, "immadm -o 1 -p severityFilter:SA_UINT32_T:7 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
+
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
+        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    assert((rc = system(command)) != -1);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(WEXITSTATUS(rc), 1);
+}
+
+void saLogOi_21(void)
+{
+    int rc;
+    char command[256];
+    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
@@ -230,11 +249,12 @@ void saLogOi_20(void)
     test_validate(WEXITSTATUS(rc), 1);
 }
 
-void saLogOi_21(void)
+void saLogOi_22(void)
 {
     int rc;
     char command[256];
-    sprintf(command, "immadm -o 99 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null", SA_LOG_STREAM_APPLICATION1);
+    sprintf(command, "immadm -o 99 -p saLogStreamSeverityFilter:SA_UINT32_T:127 %s 2> /dev/null",
+        SA_LOG_STREAM_APPLICATION1);
 
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
@@ -266,7 +286,8 @@ __attribute__ ((constructor)) static void saOiOperations_constructor(void)
     test_case_add(4, saLogOi_17, "Log Service Administration API, change sev filter, ERR invalid stream");
     test_case_add(4, saLogOi_18, "Log Service Administration API, change sev filter, ERR invalid arg type");
     test_case_add(4, saLogOi_19, "Log Service Administration API, change sev filter, ERR invalid severity");
-    test_case_add(4, saLogOi_20, "Log Service Administration API, no change in sev filter, ERR NO OP");
-    test_case_add(4, saLogOi_21, "Log Service Administration API, invalid opId");
+    test_case_add(4, saLogOi_20, "Log Service Administration API, change sev filter, ERR invalid param name");
+    test_case_add(4, saLogOi_21, "Log Service Administration API, no change in sev filter, ERR NO OP");
+    test_case_add(4, saLogOi_22, "Log Service Administration API, invalid opId");
 }
 
