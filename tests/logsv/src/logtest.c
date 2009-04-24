@@ -87,7 +87,7 @@ SaLogRecordT genLogRecord =
     .logTimeStamp = SA_TIME_UNKNOWN,
     .logHdrType = SA_LOG_GENERIC_HEADER,
     .logHeader.genericHdr.notificationClassId = NULL,
-    .logHeader.genericHdr.logSeverity = SA_LOG_SEV_FLAG_INFO,
+    .logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO,
     .logHeader.genericHdr.logSvcUsrName = &logSvcUsrName,
     .logBuffer = &genLogBuffer
 };
@@ -99,53 +99,6 @@ SaLogStreamHandleT logStreamHandle;
 SaLogCallbacksT logCallbacks = {NULL, NULL, NULL};
 SaSelectionObjectT selectionObject;
 
-#if 0
-static struct tet_testlist api_testlist[] =
-{
-    /* Log Service Operations */
-    {saLogStreamOpen_2_01, 5},
-    {saLogStreamOpen_2_02, 5},
-    {saLogStreamOpen_2_03, 5},
-    {saLogStreamOpen_2_04, 5},
-    {saLogStreamOpen_2_05, 5},
-    {saLogStreamOpen_2_06, 5},
-    {saLogStreamOpen_2_08, 5},
-    {saLogStreamOpen_2_09, 5},
-    {saLogStreamOpen_2_10, 5},
-    {saLogStreamOpen_2_11, 5},
-    {saLogStreamOpen_2_12, 5},
-    {saLogStreamOpen_2_13, 5},
-    {saLogStreamOpen_2_14, 5},
-    {saLogStreamOpen_2_15, 5},
-    {saLogStreamOpen_2_16, 5},
-    {saLogStreamOpen_2_17, 5},
-    {saLogStreamOpen_2_18, 5},
-    {saLogStreamOpen_2_19, 5},
-    {saLogStreamOpenAsync_2_01, 6},
-    {saLogStreamOpenCallbackT_01, 7},
-    {saLogWriteLog_01, 8},
-    {saLogWriteLogAsync_01, 9},
-    {saLogWriteLogAsync_02, 9},
-    {saLogWriteLogAsync_03, 9},
-    {saLogWriteLogAsync_04, 9},
-    {saLogWriteLogAsync_05, 9},
-    {saLogWriteLogAsync_06, 9},
-    {saLogWriteLogAsync_07, 9},
-    {saLogWriteLogAsync_09, 9},
-    {saLogWriteLogAsync_10, 9},
-    {saLogWriteLogAsync_11, 9},
-    {saLogWriteLogAsync_12, 9},
-    {saLogWriteLogAsync_13, 9},
-    {saLogWriteLogCallbackT_01, 10},
-    {saLogWriteLogCallbackT_02, 10},
-    {saLogFilterSetCallbackT_01, 11},
-    {saLogStreamClose_01, 12},
-
-    /* Limit Fetch API */
-    {saLogLimitGet_01, 13},
-    {NULL, 0}
-};
-#endif
 int main(int argc, char **argv) 
 {
     int suite = ALL_SUITES, tcase = ALL_TESTS;

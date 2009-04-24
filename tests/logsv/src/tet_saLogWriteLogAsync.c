@@ -258,3 +258,20 @@ void saLogWriteLogAsync_13(void)
     test_validate(rc, SA_AIS_OK);
 }
 
+void saLogWriteLogAsync_14(void)
+{
+    SaInvocationT invocation;
+
+    strcpy((char*)genLogRecord.logBuffer->logBuf, __FUNCTION__);
+    genLogRecord.logBuffer->logBufSize = strlen(__FUNCTION__);
+    genLogRecord.logHeader.genericHdr.logSeverity = 0xff;
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &systemStreamName, NULL, 0,
+                             SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
+    rc = saLogWriteLogAsync(logStreamHandle, invocation, 0, &genLogRecord);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+    genLogRecord.logHeader.genericHdr.logSeverity = SA_LOG_SEV_INFO;
+}
+

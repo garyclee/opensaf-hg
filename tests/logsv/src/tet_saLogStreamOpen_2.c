@@ -276,6 +276,21 @@ void saLogStreamOpen_2_20(void)
     test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
+void saLogStreamOpen_2_21(void)
+{
+    init_file_create_attributes();
+    appStream1LogFileCreateAttributes.logFileName = (SaStringT) __FUNCTION__;
+    appStream1LogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_HALT;
+    safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
+    safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_ERR_NOT_SUPPORTED);
+    appStream1LogFileCreateAttributes.logFileFullAction = SA_LOG_FILE_FULL_ACTION_WRAP;
+    rc = saLogStreamOpen_2(logHandle, &app1StreamName, &appStream1LogFileCreateAttributes,
+        SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle);
+    safassert(saLogFinalize(logHandle), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_NOT_SUPPORTED);
+}
+
 extern void saLogStreamOpenAsync_2_01(void);
 extern void saLogStreamOpenCallbackT_01(void);
 extern void saLogWriteLog_01(void);
@@ -292,6 +307,7 @@ extern void saLogWriteLogAsync_10(void);
 extern void saLogWriteLogAsync_11(void);
 extern void saLogWriteLogAsync_12(void);
 extern void saLogWriteLogAsync_13(void);
+extern void saLogWriteLogAsync_14(void);
 extern void saLogWriteLogCallbackT_01(void);
 extern void saLogWriteLogCallbackT_02(void);
 extern void saLogWriteLogCallbackT_03(void);
@@ -320,6 +336,7 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogStreamOpen_2_18, "Open app stream with NULL logFilePathName");
     test_case_add(2, saLogStreamOpen_2_19, "Open app stream with '.' logFilePathName");
     test_case_add(2, saLogStreamOpen_2_20, "Open app stream with invalid logFileFmt");
+    test_case_add(2, saLogStreamOpen_2_21, "Open app stream with unsupported logFullAction");
     test_case_add(2, saLogStreamOpenAsync_2_01, "saLogStreamOpenAsync_2() OK");
     test_case_add(2, saLogStreamOpenCallbackT_01, "saLogStreamOpenCallbackT() OK");
     test_case_add(2, saLogWriteLog_01, "saLogWriteLog() system OK");
@@ -335,9 +352,9 @@ __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
     test_case_add(2, saLogWriteLogAsync_11, "saLogWriteAsyncLog() with logTimeStamp set");
     test_case_add(2, saLogWriteLogAsync_12, "saLogWriteAsyncLog() without logTimeStamp set");
     test_case_add(2, saLogWriteLogAsync_13, "saLogWriteAsyncLog() 1800 bytes logrecord (ticket #203)");
+    test_case_add(2, saLogWriteLogAsync_14, "saLogWriteAsyncLog() invalid severity");
     test_case_add(2, saLogWriteLogCallbackT_01, "saLogWriteLogCallbackT() SA_DISPATCH_ONE");
     test_case_add(2, saLogWriteLogCallbackT_02, "saLogWriteLogCallbackT() SA_DISPATCH_ALL");
-    test_case_add(2, saLogWriteLogCallbackT_03, "saLogWriteLogCallbackT() Invalid severity");
     test_case_add(2, saLogFilterSetCallbackT_01, "saLogFilterSetCallbackT OK");
     test_case_add(2, saLogStreamClose_01, "saLogStreamClose OK");
 }
