@@ -592,7 +592,7 @@ static SaAisErrorT create_new_app_stream(
     lgsv_stream_open_req_t *open_sync_param,
     log_stream_t **o_stream)
 {
-    SaAisErrorT ais_rv = SA_AIS_OK;
+    SaAisErrorT rc = SA_AIS_OK;
     log_stream_t *stream;
     SaBoolT twelveHourModeFlag;
 
@@ -601,7 +601,14 @@ static SaAisErrorT create_new_app_stream(
     if (open_sync_param->lstr_name.length > SA_MAX_NAME_LENGTH)
     {
         TRACE("Name too long");
-        ais_rv = SA_AIS_ERR_INVALID_PARAM;
+        rc = SA_AIS_ERR_INVALID_PARAM;
+        goto done;
+    }
+
+    if (open_sync_param->logFileFullAction != SA_LOG_FILE_FULL_ACTION_ROTATE)
+    {
+        TRACE("Unsupported logFileFullAction");
+        rc = SA_AIS_ERR_NOT_SUPPORTED;
         goto done;
     }
 
@@ -617,7 +624,7 @@ static SaAisErrorT create_new_app_stream(
                                         &twelveHourModeFlag))
     {
         TRACE("format expression failure");
-        ais_rv = SA_AIS_ERR_INVALID_PARAM;
+        rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
     }
 
@@ -629,7 +636,7 @@ static SaAisErrorT create_new_app_stream(
             (strncmp(stream->pathName, open_sync_param->logFilePathName, SA_MAX_NAME_LENGTH) == 0))
         {
             TRACE("pathname already exist");
-            ais_rv = SA_AIS_ERR_INVALID_PARAM;
+            rc = SA_AIS_ERR_INVALID_PARAM;
             goto done;
         }
         stream = log_stream_getnext_by_name(stream->name);
@@ -639,7 +646,7 @@ static SaAisErrorT create_new_app_stream(
     if (strncmp("safLgStr=", (char *) open_sync_param->lstr_name.value, sizeof("safLgStr=") != 0))
     {
         TRACE("'%s' is not a valid stream name => invalid param", open_sync_param->lstr_name.value);
-        ais_rv = SA_AIS_ERR_INVALID_PARAM;
+        rc = SA_AIS_ERR_INVALID_PARAM;
         goto done;
     }
 
@@ -658,14 +665,14 @@ static SaAisErrorT create_new_app_stream(
 
     if (stream == NULL)
     {
-        ais_rv = SA_AIS_ERR_NO_MEMORY;
+        rc = SA_AIS_ERR_NO_MEMORY;
         goto done;
     }
     *o_stream = stream;
 
 done:
     TRACE_LEAVE();
-    return ais_rv;
+    return rc;
 }
 
 static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param,
