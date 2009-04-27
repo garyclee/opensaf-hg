@@ -276,13 +276,13 @@ General
 2.  If OpenSAF hangs at "Starting SCAP", there could be
     several causes.
     - DRDB: DRDB is complicated and problematic, disable DRDB,
-      edit /var/lib/opensaf/pssv_spcn_list to start OpenSAF using
+      edit /var/lib/opensaf/pssv_spcn.list to start OpenSAF using
       the XML files (replace PSS everywhere with XML), and try
       restarting.
     - On some platforms (RHEL 5.x, for example), explicitly
       specify no optimization when configuring OpenSAF to build,
       i.e., use the command
-           CFLAGS='-O0' ./configure --with-hprev=B02
+           CFLAGS='-O0' ./configure --with-hpi-interface=B02
       to configure compilation of OpenSAF.
 
 3.  Tests fail because get_resourceid fails (message in the

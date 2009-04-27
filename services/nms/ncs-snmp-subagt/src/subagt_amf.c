@@ -866,7 +866,7 @@ snmpsubagt_appl_mibs_register()
     }
    
     /* register test-mib - to be deleted once SPSV Integration is ready */
-    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib_conf" */, 1 /* REGISTER */);     
+    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib.conf" */, 1 /* REGISTER */);     
     if (status != NCSCC_RC_SUCCESS)
     {
         /* log the error */
@@ -947,7 +947,7 @@ snmpsubagt_appl_mibs_unregister()
     }
     
     /* unregister test-mib - to be deleted once SPSV Integration is ready */
-    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib_conf" */, 0 /* UNREGISTER */);     
+    status = snmpsubagt_spa_job(SNMPSUBAGT_LIB_CONF/* OSAF_SYSCONFDIR "subagt_lib.conf" */, 0 /* UNREGISTER */);     
     if (status != NCSCC_RC_SUCCESS)
     {
         /* log the error */

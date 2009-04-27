@@ -4161,7 +4161,7 @@ uns32 pss_process_set_plbck_option_for_spcn(PSS_CB * inst, NCSMIB_ARG * arg)
   PROCEDURE NAME:    pss_update_entry_in_spcn_conf_file
 
   DESCRIPTION:       This function is a helper function to update the boolean
-                     of an SPCN client in the pssv_spcn_list config file.
+                     of an SPCN client in the pssv_spcn.list config file.
 
   RETURNS:           NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
 

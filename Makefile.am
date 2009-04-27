@@ -281,12 +281,12 @@ common_sysconf = \
 
 controller_sysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
-	$(top_srcdir)/config/cli_cefslib_conf \
+	$(top_srcdir)/config/cli_cefslib.conf \
 	$(top_srcdir)/config/NCSConfig.xsd \
 	$(top_srcdir)/config/NCSSystemBOM.xml \
 	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
-	$(top_srcdir)/config/pssv_lib_conf \
-	$(top_srcdir)/config/subagt_lib_conf \
+	$(top_srcdir)/config/pssv_lib.conf \
+	$(top_srcdir)/config/subagt_lib.conf \
 	$(top_srcdir)/config/ValidationConfig.xml \
 	$(top_srcdir)/config/ValidationConfig.xsd \
 	$(top_srcdir)/config/vipsample.conf \
@@ -317,10 +317,10 @@ nodist_pkgsysconf_DATA = \
 
 dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/node_ha_state \
-	$(top_srcdir)/config/pssv_spcn_list
+	$(top_srcdir)/config/pssv_spcn.list
 
 dist_bin_SCRIPTS = \
-	$(top_srcdir)/scripts/opensaf_mem_dump_tool
+	$(top_srcdir)/scripts/opensaf_mem_dump
 
 nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \

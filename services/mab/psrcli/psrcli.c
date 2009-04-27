@@ -255,14 +255,14 @@ uns32 ncspss_cli_register(NCSCLI_BINDERY  *i_bindery)
     data.i_command_list[cmd_count++].i_cmd_exec_func = 
                         pss_cef_show_profile_clients;
 
-    /* reload pssv_lib_conf config file command */
+    /* reload pssv_lib.conf config file command */
     data.i_command_list[cmd_count].i_cmdstr = 
             "reload!Reload the config file!  pssv_lib_conf-config !Keyword!";
     data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_ADMIN_ACCESS;
     data.i_command_list[cmd_count++].i_cmd_exec_func = 
                         pss_cef_reload_pssv_lib_conf;
 
-    /* reload pssv_spcn_list config file command */
+    /* reload pssv_spcn.list config file command */
     data.i_command_list[cmd_count].i_cmdstr = 
             "reload!Reload the config file!  pssv_spcn_list-config !Keyword!";
     data.i_command_list[cmd_count].i_cmd_access_level = NCSCLI_ADMIN_ACCESS;
@@ -614,7 +614,7 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list,
 
   PROCEDURE NAME: pss_cef_reload_pssv_lib_conf
 
-  DESCRIPTION   : Sends the request to reload the OSAF_SYSCONFDIR/pssv_lib_conf
+  DESCRIPTION   : Sends the request to reload the OSAF_SYSCONFDIR/pssv_lib.conf
                   configuration file.
 
   ARGUMENTS     :
@@ -694,7 +694,7 @@ end:
 
   PROCEDURE NAME: pss_cef_reload_pssv_spcn_list
 
-  DESCRIPTION   : Sends the request to reload the OSAF_LOCALSTATEDIR/pssv_spcn_list
+  DESCRIPTION   : Sends the request to reload the OSAF_LOCALSTATEDIR/pssv_spcn.list
                   configuration file.
 
   ARGUMENTS     :
@@ -970,13 +970,13 @@ uns32 pss_cli_cmd_mib_resp_set_playback_option_from_xml(NCSMIB_ARG *resp)
     switch(resp->rsp.i_status)
     {
     case NCSCC_RC_FAILURE:
-        printf("\nFailed to update SPCN entry in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
+        printf("\nFailed to update SPCN entry in " OSAF_LOCALSTATEDIR "pssv_spcn.list file...\n");
         pss_cli_done(resp->i_usr_key, NCSCC_RC_FAILURE);
         return NCSCC_RC_SUCCESS;
         break;
         
     case NCSCC_RC_SUCCESS:
-        printf("\nSPCN Entry updated in " OSAF_LOCALSTATEDIR "pssv_spcn_list file...\n");
+        printf("\nSPCN Entry updated in " OSAF_LOCALSTATEDIR "pssv_spcn.list file...\n");
         break;
        
     default:
