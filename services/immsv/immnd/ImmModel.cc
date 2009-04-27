@@ -775,12 +775,12 @@ void
 immModel_setSearchImplContinuation(IMMND_CB *cb, SaUint32T searchId,
     SaUint32T reqNodeId, MDS_DEST reply_dest)
 {
-    IMMSV_HANDLE tmp_hdl;
-    tmp_hdl.nodeId = reqNodeId;
-    tmp_hdl.count = searchId;
+    SaInvocationT tmp_hdl;
+    tmp_hdl = searchId;
+    tmp_hdl = (tmp_hdl << 32);
+    tmp_hdl |= reqNodeId;
     ImmModel::instance(&cb->immModel)->
-        setSearchImplContinuation(*((SaInvocationT *) &tmp_hdl), 
-            (SaUint64T) reply_dest);
+        setSearchImplContinuation(tmp_hdl, (SaUint64T) reply_dest);
 }
 
 SaAisErrorT
@@ -928,12 +928,13 @@ immModel_fetchSearchImplContinuation(IMMND_CB *cb, SaUint32T searchId,
     SaUint32T reqNodeId,
     MDS_DEST* reply_dest)
 {
-    IMMSV_HANDLE tmp_hdl;
-    tmp_hdl.nodeId = reqNodeId;
-    tmp_hdl.count = searchId;
+    SaInvocationT tmp_hdl;
+    tmp_hdl = searchId;
+    tmp_hdl = (tmp_hdl << 32);
+    tmp_hdl |= reqNodeId;
+
     ImmModel::instance(&cb->immModel)->
-        fetchSearchImplContinuation(*((SaInvocationT *) &tmp_hdl), 
-            (SaUint64T *) reply_dest);
+        fetchSearchImplContinuation(tmp_hdl, (SaUint64T *) reply_dest);
 }
 
 void

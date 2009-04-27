@@ -655,13 +655,14 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
         goto stale_handle;
     }
 
-    ImmsvInvocation theInvocation = (*((ImmsvInvocation *) &invocation));
+    /* Note NOT unsigned since negative encodes async invoc. */
+    SaInt32T inv = (invocation & 0x00000000ffffffff);
 
     /* populate the structure */
     memset(&adminOpRslt_evt, 0, sizeof(IMMSV_EVT));
     adminOpRslt_evt.type = IMMSV_EVT_TYPE_IMMND;
     /*Need to encode async/sync variant.*/
-    if (theInvocation.inv < 0)
+    if (inv < 0)
     {
         adminOpRslt_evt.info.immnd.type = IMMND_EVT_A2ND_ASYNC_ADMOP_RSP;
     }

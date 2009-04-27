@@ -35,11 +35,6 @@
 
 #define IMMSV_LOADERNAME "IMMLOADER"
 
-typedef struct immsv_handle {
-  SaInt32T nodeId;
-  SaInt32T count;
-} IMMSV_HANDLE;
-
 /*****************************************************************************
  * Event Type of IMMSV
  *****************************************************************************/
