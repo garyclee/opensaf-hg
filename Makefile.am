@@ -273,10 +273,10 @@ SUBDIRS += tools/hisv
 
 endif
 
-common_sysconf = \
+common_pkgsysconf = \
 	$(top_srcdir)/config/imm.conf
 
-controller_sysconf = \
+controller_pkgsysconf = \
 	$(top_srcdir)/config/AppConfig.xsd \
 	$(top_srcdir)/config/cli_cefslib.conf \
 	$(top_srcdir)/config/NCSConfig.xsd \
@@ -288,31 +288,33 @@ controller_sysconf = \
 	$(top_srcdir)/config/ValidationConfig.xsd \
 	$(top_srcdir)/config/vipsample.conf \
 	$(top_srcdir)/config/nodeinit.conf.controller \
-	$(top_srcdir)/config/.drbd_sync_state_0 \
-	$(top_srcdir)/config/.drbd_sync_state_1 \
-	$(top_srcdir)/config/.drbd_sync_state_2 \
-	$(top_srcdir)/config/.drbd_sync_state_3 \
-	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/saflog.conf \
 	$(top_srcdir)/config/ntf.conf \
 	$(top_srcdir)/config/rde.conf \
 	$(top_srcdir)/config/fms.conf \
 	$(top_srcdir)/config/imm.xml \
-	$(top_srcdir)/config/pdrbd_proxied.conf \
-	$(top_srcdir)/config/drbd.conf
+	$(top_srcdir)/config/pdrbd_proxied.conf
 
-payload_sysconf = \
+payload_pkgsysconf = \
 	$(top_srcdir)/config/nodeinit.conf.payload
 
 dist_pkgsysconf_DATA = \
-	$(common_sysconf) \
-	$(controller_sysconf) \
-	$(payload_sysconf)
+	$(common_pkgsysconf) \
+	$(controller_pkgsysconf) \
+	$(payload_pkgsysconf)
 
 nodist_pkgsysconf_DATA = \
 	$(top_builddir)/config/script.conf
 
+dist_sysconf_DATA = \
+	$(top_srcdir)/config/drbd.conf
+
 dist_pkglocalstate_DATA = \
+	$(top_srcdir)/config/.drbd_sync_state_0 \
+	$(top_srcdir)/config/.drbd_sync_state_1 \
+	$(top_srcdir)/config/.drbd_sync_state_2 \
+	$(top_srcdir)/config/.drbd_sync_state_3 \
+	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/node_ha_state \
 	$(top_srcdir)/config/pssv_spcn.list
 
