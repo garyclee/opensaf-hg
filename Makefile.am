@@ -274,9 +274,6 @@ SUBDIRS += tools/hisv
 endif
 
 common_sysconf = \
-	$(top_srcdir)/config/chassis_id \
-	$(top_srcdir)/config/slot_id \
-	$(top_srcdir)/config/subslot_id \
 	$(top_srcdir)/config/imm.conf
 
 controller_sysconf = \
@@ -450,6 +447,13 @@ update-pkgconfig:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
 
+set-default-node-config:
+	@echo "*** Setting default controller node configuration ***"
+	echo "2" > $(DESTDIR)$(pkgsysconfdir)/chassis_id
+	echo "1" > $(DESTDIR)$(pkgsysconfdir)/slot_id
+	echo "15" > $(DESTDIR)$(pkgsysconfdir)/subslot_id
+	echo "controller" > $(DESTDIR)$(pkgsysconfdir)/node_type
+
 install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
@@ -461,7 +465,7 @@ install-data-local: update-ldconfig update-pkgconfig
 		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
 	done
 
-install-data-hook:
+install-data-hook: set-default-node-config
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxPIDPATHxx|$(localstatedir)/run/$(PACKAGE_NAME)|g' "$$i"; \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
