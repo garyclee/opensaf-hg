@@ -257,10 +257,6 @@ fi
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
-# TODO Still needed?
-%{_bindir}/saflogger
-%{_bindir}/ntfsend
-%{_bindir}/ntfsubscribe
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
@@ -304,6 +300,9 @@ fi
 %{_bindir}/immdump
 %{_bindir}/immfind
 %{_bindir}/immlist
+%{_bindir}/saflogger
+%{_bindir}/ntfsend
+%{_bindir}/ntfsubscribe
 %{_pkglibdir}/ncs_cpd
 %{_pkglibdir}/ncs_cpd_clean
 %{_pkglibdir}/ncs_cpd_start
@@ -376,6 +375,7 @@ fi
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
+%{_sysconfdir}/drbd.conf
 %{_sysconfdir}/%{name}/AppConfig.xsd
 %{_sysconfdir}/%{name}/cli_cefslib.conf
 %{_sysconfdir}/%{name}/imm.xml
@@ -386,20 +386,19 @@ fi
 %{_sysconfdir}/%{name}/rde.conf
 %{_sysconfdir}/%{name}/fms.conf
 %{_sysconfdir}/%{name}/pdrbd_proxied.conf
-%{_sysconfdir}/%{name}/drbd.conf
 %{_sysconfdir}/%{name}/subagt_lib.conf
 %{_sysconfdir}/%{name}/ValidationConfig.xml
 %{_sysconfdir}/%{name}/ValidationConfig.xsd
 %{_sysconfdir}/%{name}/vipsample.conf
-%{_sysconfdir}/%{name}/.drbd_sync_state_0
-%{_sysconfdir}/%{name}/.drbd_sync_state_1
-%{_sysconfdir}/%{name}/.drbd_sync_state_2
-%{_sysconfdir}/%{name}/.drbd_sync_state_3
-%{_sysconfdir}/%{name}/.drbd_sync_state_4
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/ntf.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_datadir}/snmp/ncsSnmpSubagt.conf
+%{_localstatedir}/lib/%{name}/.drbd_sync_state_0
+%{_localstatedir}/lib/%{name}/.drbd_sync_state_1
+%{_localstatedir}/lib/%{name}/.drbd_sync_state_2
+%{_localstatedir}/lib/%{name}/.drbd_sync_state_3
+%{_localstatedir}/lib/%{name}/.drbd_sync_state_4
 %{_localstatedir}/lib/%{name}/node_ha_state
 %{_localstatedir}/lib/%{name}/pssv_spcn.list
 %{_libdir}/%{name}/libavm_logstr.so.*
@@ -460,6 +459,9 @@ fi
 %{_pkglibdir}/ncs_pcap_clean
 %{_pkglibdir}/ncs_pcap_start
 %{_pkglibdir}/opensaf_immnd
+%{_bindir}/saflogger
+%{_bindir}/ntfsend
+%{_bindir}/ntfsubscribe
 %{_bindir}/collect_logs_payload
 %{_sysconfdir}/%{name}/nodeinit.conf.payload
 

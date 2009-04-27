@@ -436,7 +436,7 @@ else
          # Test for the SAHPI_INTERFACE_VERSION
          AC_RUN_IFELSE(
             AC_LANG_PROGRAM(
-               [#include <openhpi/SaHpi.h>],
+               [#include <SaHpi.h>],
                [if (SAHPI_INTERFACE_VERSION != 0x010101) return 1;]
             ),
             AC_DEFINE(
@@ -445,7 +445,7 @@ else
          )
          AC_RUN_IFELSE(
             AC_LANG_PROGRAM(
-               [#include <openhpi/SaHpi.h>],
+               [#include <SaHpi.h>],
                [if (SAHPI_INTERFACE_VERSION != 0x020101) return 1;]
             ),
             AC_DEFINE(
@@ -454,7 +454,7 @@ else
          )
          AC_RUN_IFELSE(
             AC_LANG_PROGRAM(
-               [#include <openhpi/SaHpi.h>],
+               [#include <SaHpi.h>],
                [if (SAHPI_INTERFACE_VERSION != 0x020201) return 1;]
             ),
             AC_DEFINE(
@@ -463,7 +463,7 @@ else
          )
          AC_RUN_IFELSE(
             AC_LANG_PROGRAM(
-               [#include <openhpi/SaHpi.h>],
+               [#include <SaHpi.h>],
                [if (SAHPI_INTERFACE_VERSION != 0x020301) return 1;]
             ),
             AC_DEFINE(
