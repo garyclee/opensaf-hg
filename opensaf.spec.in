@@ -123,7 +123,6 @@ The development libraries and header files for the OpenSAF project.
 Group: Applications/System
 Summary: Small sample applications to demonstrate OpenSAF functionalities
 Requires: %{name}-devel = %{version}-%{release}
-BuildArch: noarch
 
 %description samples
 Small sample applications to demonstrate OpenSAF functionalities
