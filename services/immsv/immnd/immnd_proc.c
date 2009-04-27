@@ -74,7 +74,8 @@ void immnd_proc_immd_down(IMMND_CB *cb)
 uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, 
     IMMND_IMM_CLIENT_NODE *cl_node)
 {
-    IMMSV_HANDLE *tmp_hdl;
+    SaUint32T client_id;
+    SaUint32T node_id;
     IMMND_OM_SEARCH_NODE* sn = NULL;
     SaUint32T implId=0;
     IMMSV_EVT send_evt;
@@ -83,8 +84,10 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
 
     TRACE_ENTER();
 
-    tmp_hdl = (IMMSV_HANDLE *) &(cl_node->imm_app_hdl);
-    TRACE_5("Discarding connection %u", tmp_hdl->count);
+    client_id = (cl_node->imm_app_hdl >> 32);
+    node_id = (cl_node->imm_app_hdl & 0x00000000ffffffff);
+    TRACE_5("Attempting discard connection id:%llx <n:%x, c:%u>", 
+        cl_node->imm_app_hdl, node_id, client_id);
     /* Corresponds to "discardConnection" in the older EVS based IMM 
        implementation. */
 
@@ -102,7 +105,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
     /* 2. Discard any continuations (locally only) that are associated with 
        the dead connection. */
 
-    immModel_discardContinuations(cb, tmp_hdl->count);
+    immModel_discardContinuations(cb, client_id);
 
     /* No need to broadcast the discarding of the connection (as compared
        with the EVS based implementation. In the new implementation we 
@@ -116,11 +119,11 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
     */
 
     implId = /* Assumes there is at most one implementer/conn  */
-        immModel_getImplementerId(cb, tmp_hdl->count);
+        immModel_getImplementerId(cb, client_id);
 
     if(implId) {
         TRACE_5("Discarding implementer id:%u for connection: %u", implId, 
-            tmp_hdl->count);
+            client_id);
         memset(&send_evt,'\0',sizeof(IMMSV_EVT));
         send_evt.type=IMMSV_EVT_TYPE_IMMD;
         send_evt.info.immd.type=IMMD_EVT_ND2D_DISCARD_IMPL;
@@ -152,7 +155,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
        Abort all such ccbs via broadcast over IMMD. 
     */
 
-    immModel_getCcbIdsForOrigCon(cb, tmp_hdl->count, &arrSize, &idArr);
+    immModel_getCcbIdsForOrigCon(cb, client_id, &arrSize, &idArr);
     if(arrSize) {
         SaUint32T ix;
         memset(&send_evt,'\0',sizeof(IMMSV_EVT));
@@ -162,7 +165,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
             send_evt.info.immd.info.ccbId = idArr[ix];
             TRACE_5("Discarding Ccb id:%u originating at dead connection: %u", 
                 idArr[ix],
-                tmp_hdl->count);
+                client_id);
             if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
                    &send_evt) != NCSCC_RC_SUCCESS) {
                 if(immnd_is_immd_up(cb)) {
@@ -190,7 +193,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
        Check for admin owners that where associated with the dead connection.
        Finalize all such admin owners via broadcast over IMMD. */
 
-    immModel_getAdminOwnerIdsForCon(cb, tmp_hdl->count, &arrSize, &idArr);
+    immModel_getAdminOwnerIdsForCon(cb, client_id, &arrSize, &idArr);
     if(arrSize) {
         SaUint32T ix;
         memset(&send_evt,'\0',sizeof(IMMSV_EVT));
@@ -199,7 +202,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
         for(ix=0; ix<arrSize && !(cl_node->mIsStale); ++ix) {
             send_evt.info.immd.info.admoId = idArr[ix];
             TRACE_5("Hard finalize of AdmOwner id:%u originating at "
-                "dead connection: %u", idArr[ix], tmp_hdl->count);
+                "dead connection: %u", idArr[ix], client_id);
             if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
                    &send_evt) != NCSCC_RC_SUCCESS) {
                 if(immnd_is_immd_up(cb)) {
@@ -216,6 +219,10 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
         free(idArr);
         idArr=NULL;
         arrSize=0;
+    }
+
+    if(!cl_node->mIsStale) {
+        TRACE_5("Discard connection id:%llx succeeded", cl_node->imm_app_hdl);
     }
 
     TRACE_LEAVE();
@@ -250,10 +257,10 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
         if ((memcmp(&dest,&cl_node->agent_mds_dest,sizeof(MDS_DEST)) == 0) &&
             sv_id == cl_node->sv_id)
         {
-            TRACE_5("Removing client node:%llu sv_id:%u", 
-                cl_node->imm_app_hdl, cl_node->sv_id);
             if(immnd_proc_imma_discard_connection(cb, cl_node))
             {
+                TRACE_5("Removing client id:%llx sv_id:%u", 
+                    cl_node->imm_app_hdl, cl_node->sv_id);
                 immnd_client_node_del(cb, cl_node);
                 memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
                 free(cl_node);
@@ -261,8 +268,13 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
                 cl_node = NULL;
                 ++count;
             } else {
+                TRACE_5("Stale marked client id:%llx sv_id:%u", 
+                    cl_node->imm_app_hdl, cl_node->sv_id);
                 ++failed;
             }
+        } else {
+            TRACE_5("No action client id :%llx sv_id:%u", 
+                cl_node->imm_app_hdl, cl_node->sv_id);
         }
 
         immnd_client_node_getnext(cb,prev_hdl,&cl_node);
@@ -300,11 +312,11 @@ void immnd_proc_imma_discard_stales(IMMND_CB  *cb)
          prev_hdl=cl_node->imm_app_hdl;
          if(cl_node->mIsStale) 
          {
-             TRACE_5("Removing client node:%llu sv_id:%u", 
-                cl_node->imm_app_hdl, cl_node->sv_id);
              cl_node->mIsStale = FALSE;
              if(immnd_proc_imma_discard_connection(cb, cl_node))
              {
+                 TRACE_5("Removing client id:%llx sv_id:%u", 
+                     cl_node->imm_app_hdl, cl_node->sv_id);
                  immnd_client_node_del(cb, cl_node);
                  memset(cl_node, '\0', sizeof(IMMND_IMM_CLIENT_NODE));
                  free(cl_node);
@@ -312,10 +324,16 @@ void immnd_proc_imma_discard_stales(IMMND_CB  *cb)
                  cl_node = NULL;
                  ++count;
              } else {
+                 TRACE_5("Stale marked (again) client id:%llx sv_id:%u", 
+                     cl_node->imm_app_hdl, cl_node->sv_id);
                  ++failed;
                  /*cl_node->mIsStale = TRUE; done in discard_connection*/
              }
+         } else {
+             TRACE_5("No action client id :%llx sv_id:%u", 
+                cl_node->imm_app_hdl, cl_node->sv_id);
          }
+
          immnd_client_node_getnext(cb,prev_hdl,&cl_node);
     }
     if(failed) 
@@ -606,9 +624,8 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
     SaUint32T dummyImplConn =0;
     SaUint64T reply_dest=0LL;
     unsigned int ix;
-    IMMSV_HANDLE tmp_hdl;
+    SaImmHandleT  tmp_hdl=0LL;
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
-    ImmsvInvocation* invp=NULL;
     uns32 rc = NCSCC_RC_SUCCESS;
     /*TRACE_ENTER();*/
 
@@ -637,9 +654,11 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             immModel_fetchAdmOpContinuations(cb, inv, SA_FALSE, &dummyImplConn,
                 &reqConn, &reply_dest);
             assert(reqConn);
-            tmp_hdl.nodeId = cb->node_id;
-            tmp_hdl.count = reqConn;
-            immnd_client_node_get(cb, *((SaImmHandleT *) &tmp_hdl), &cl_node);
+            tmp_hdl = reqConn;
+            tmp_hdl = (tmp_hdl << 32);
+            tmp_hdl |= (cb->node_id);
+
+            immnd_client_node_get(cb, tmp_hdl, &cl_node);
             if(cl_node == NULL || cl_node->mIsStale) {
                 LOG_WA("IMMND - Client went down so no response");
                 continue;
@@ -649,13 +668,13 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             send_evt.info.imma.info.admOpRsp.invocation = inv;
             send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TIMEOUT;
 
-            invp= (ImmsvInvocation *) &inv;
-            if(invp->inv < 0) { //async-admin-op
-                LOG_WA("Timeout on asyncronous admin operation %i", invp->inv);
+            SaUint32T subinv = (inv & 0x00000000ffffffff);
+            if(subinv < 0) { //async-admin-op
+                LOG_WA("Timeout on asyncronous admin operation %i", subinv);
                 rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OM, 
                     cl_node->agent_mds_dest, &send_evt);
             } else { //sync-admin-op
-                LOG_WA("Timeout on syncronous admin operation %i", invp->inv);
+                LOG_WA("Timeout on syncronous admin operation %i", subinv);
                 rc = immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt); 
             }
       
@@ -677,8 +696,9 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             /*Fetch originating request continuation*/
             immModel_fetchSearchReqContinuation(cb, inv, &reqConn);
             assert(reqConn);
-            invp = (ImmsvInvocation *) &inv;
-            reply.searchId = invp->inv;
+
+            reply.searchId = (inv & 0x00000000ffffffff);
+
             reply.result = SA_AIS_ERR_TIMEOUT;
             LOG_WA("Timeout on search op waiting on implementer");
             search_req_continue(cb, &reply, reqConn);

@@ -40,16 +40,6 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
-
-
-/* Internal helper struct for manipulating SaInvocationT.
-   Could be moved to immsv_evt.h ? */
-
-typedef struct {
-  SaInt32T inv;
-  SaInt32T owner;
-} ImmsvInvocation;
-
 /* 
  * Special flags only to be used by the imm-dummper or the imm-loader.
  *

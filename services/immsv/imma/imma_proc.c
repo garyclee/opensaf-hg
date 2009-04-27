@@ -233,11 +233,10 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 
     SaImmHandleT immHandleCont;
     SaInvocationT userInvoc;
-    ImmsvInvocation* invoc = (ImmsvInvocation *) 
-                             &(evt->info.admOpRsp.invocation);
+    SaInt32T inv = (evt->info.admOpRsp.invocation & 0x00000000ffffffff);
+
     /*NOTE: should get handle from immnd also and verify.*/
-    if (!popAsyncAdmOpContinuation(cb, invoc->inv,
-                                   &immHandleCont, &userInvoc))
+    if (!popAsyncAdmOpContinuation(cb, inv, &immHandleCont, &userInvoc))
     {
         TRACE_1("Missmatch on continuation for "
                "SaImmOmAdminOperationInvokeCallbackT");
@@ -388,10 +387,10 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
         callback->type = IMMA_CALLBACK_OM_ADMIN_OP;
         callback->lcl_imm_hdl = implHandle;
 
-        ImmsvInvocation invoc; 
-        invoc.inv = evt->info.admOpReq.invocation;
-        invoc.owner = evt->info.admOpReq.adminOwnerId;
-        SaInvocationT saInv = *((SaInvocationT *) &invoc);
+        SaInvocationT saInv = evt->info.admOpReq.adminOwnerId;
+        saInv = (saInv << 32);
+        saInv |= (evt->info.admOpReq.invocation);
+
         callback->invocation = saInv;
 
         callback->name.length = strnlen(evt->info.admOpReq.objectName.buf,
@@ -494,10 +493,9 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
         callback->attrNames =  evt->info.searchRemote.attributeNames;
         evt->info.searchRemote.attributeNames = NULL;
 
-        ImmsvInvocation invoc; 
-        invoc.inv = evt->info.searchRemote.searchId;
-        invoc.owner = evt->info.searchRemote.remoteNodeId;
-        SaInvocationT saInv = *((SaInvocationT *) &invoc);
+        SaInvocationT saInv = evt->info.searchRemote.remoteNodeId;
+        saInv = (saInv << 32);
+        saInv |= (evt->info.searchRemote.searchId);
         callback->invocation = saInv;
 
         callback->requestNodeId = evt->info.searchRemote.requestNodeId;
@@ -2135,11 +2133,12 @@ static void imma_process_callback_info (IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.result = localEr;
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.client_hdl = 
                     callback->lcl_imm_hdl;
-                ImmsvInvocation* invocp = (ImmsvInvocation *) &(callback->invocation);
 
-                rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.searchId = invocp->inv;
-                rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = 
-                    invocp->owner;
+                SaInt32T inv =   (callback->invocation & 0x00000000ffffffff);
+                SaInt32T owner = (callback->invocation >> 32);
+
+                rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.searchId = inv;
+                rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = owner;
 
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.objectName.size = 
                     callback->name.length + 1; /*Adding one to get the terminating null sent*/
