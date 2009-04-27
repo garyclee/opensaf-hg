@@ -26,7 +26,7 @@
      All SIs inside a SG must have unique order number (SI Rank should be unique).
 
      If you edit this file make sure to tell the AMF to read this file by editing the
-     xxSYSCONFDIRxx/pssv_spcn_list file
+     xxSYSCONFDIRxx/pssv_spcn.list file
 -->
 <SystemConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="NCSConfig.xsd" name="NCSDescription">
 
