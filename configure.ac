@@ -19,7 +19,7 @@ AC_INIT([opensaf], [3.0.FC], [devel@list.opensaf.org])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([OpenSAFCopyRights])
 AC_CONFIG_HEADER([config.h])
-AM_INIT_AUTOMAKE([opensaf], [3.0.FC])
+AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
 
 # (major version) = (first number) - (third number)
 # (minor version) = (third number)
