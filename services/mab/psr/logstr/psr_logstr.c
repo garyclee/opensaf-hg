@@ -118,10 +118,10 @@ const NCSFL_STR pss_hdln_set[] =
     { PSS_HDLN_OAC_PBKE_SUCCESS,    "PSS Sent playback end to OAA - success"           },
     { PSS_HDLN_OAC_PBKE_FAILURE,    "PSS Sent playback end to OAA - failure"           },
     { PSS_HDLN_PAT_TREE_FAILURE,    "PSS Failed to initialize patricia tree"           },
-    { PSS_HDLN_SPCN_LIST_FILE_OPEN_FAIL, "PSS Failed to open pssv_spcn_list file"      },
-    { PSS_HDLN_SPCN_LIST_FILE_OPEN_IN_APPEND_MODE_FAIL, "PSS open pssv_spcn_list file in append-mode FAIL"             },
+    { PSS_HDLN_SPCN_LIST_FILE_OPEN_FAIL, "PSS Failed to open pssv_spcn.list file"      },
+    { PSS_HDLN_SPCN_LIST_FILE_OPEN_IN_APPEND_MODE_FAIL, "PSS open pssv_spcn.list file in append-mode FAIL"             },
     { PSS_HDLN_SPCN_ADD_OP_FAIL,    "PSS Add SPCN entry FAIL"                        },
-    { PSS_HDLN_LIB_CONF_FILE_OPEN_FAIL, "PSS Failed to open pssv_lib_conf file"        },
+    { PSS_HDLN_LIB_CONF_FILE_OPEN_FAIL, "PSS Failed to open pssv_lib.conf file"        },
     { PSS_HDLN_CLIENT_ENTRY_NULL, "PSS Client entry not found"                         },
     { PSS_HDLN_CLIENT_ENTRY_ADD_FAIL, "PSS Client entry add FAIL"                    },
     { PSS_HDLN_WBSORTDB_INIT_FAIL, "PSS Warmboot Sort database init FAIL"            },
@@ -348,7 +348,7 @@ const NCSFL_STR pss_hdln_set[] =
     { PSS_HDLN_MDS_ENC_FAILURE, "Incompatile Message format to encode"},
     { PSS_HDLN_MDS_DEC_FAILURE, "Incompatile Message format to decode"},
     { PSS_HDLN_INVALID_MBCSV_PEER_VER, "Incompatible MBCSv peer version"},
-    { PSS_HDLN_READ_LIB_CONF_FAIL, "read on pssv_lib_conf failed while reading the entry: "},
+    { PSS_HDLN_READ_LIB_CONF_FAIL, "read on pssv_lib.conf failed while reading the entry: "},
     { 0,0 }
 };
 
@@ -452,7 +452,7 @@ const NCSFL_STR pss_hdln2_set[] =
     { PSS_HDLN2_WBREQ_EOP_STATUS_SEND_FAIL, "PSS warmboot playback status: send fail" },
     { PSS_HDLN2_WBREQ_EOP_STATUS_SEND_SUCCESS, "PSS warmboot playback status: send success" },
     { PSS_HDLN2_RE_TBL_REC_ADD_FAIL_MIB_DESC_NULL, "RE TBL ADD FAIL: REASON: mib description NULL" },
-    { PSS_HDLN2_LIB_CONF_FILE_OPEN_IN_APPEND_MODE_FAIL, "PSS open pssv_lib_conf file in append-mode FAIL" },
+    { PSS_HDLN2_LIB_CONF_FILE_OPEN_IN_APPEND_MODE_FAIL, "PSS open pssv_lib.conf file in append-mode FAIL" },
     { PSS_HDLN2_SET_PARAM_VAL_FAIL_VALIDATION_TEST, "PSS SNMP REQ - PARAM_VAL FAIL VALIDATE TEST" },
     { 0,0 }
 };
@@ -619,7 +619,7 @@ const NCSFL_STR pss_store_set[] =
 
 const NCSFL_STR pss_lib_set[] = 
   {
-    { PSS_LIB_OP_CONF_FILE_OPEN_FAIL, "pssv_lib_conf file open FAIL"},
+    { PSS_LIB_OP_CONF_FILE_OPEN_FAIL, "pssv_lib.conf file open FAIL"},
     { PSS_LIB_OP_SYM_LKUP_ERROR, "Symbol lookup FAIL"},
     { PSS_LIB_OP_SYM_RET_ERROR, "Symbol invocation returned error"},
     { 0,0 }
@@ -703,7 +703,7 @@ const NCSFL_STR pss_info_set[] =
 
 const NCSFL_STR pss_lib_info_set[] = 
   {
-    { PSS_LIB_INFO_CONF_FILE_ENTRY, "PSS pssv_lib_conf entry :"},
+    { PSS_LIB_INFO_CONF_FILE_ENTRY, "PSS pssv_lib.conf entry :"},
     { PSS_LIB_INFO_CONF_FILE_ENTRY_LOADED, "PSS MIB symbol loaded:"},
     { PSS_LIB_INFO_CONF_FILE_ENTRY_MBCSV_ENC_DONE, "PSS MBCSV LIB_CONF FILE ENTRY ENC DONE:"},
     { PSS_LIB_INFO_CONF_FILE_ENTRY_MBCSV_DEC_DONE, "PSS MBCSV LIB_CONF FILE ENTRY DEC DONE:"},

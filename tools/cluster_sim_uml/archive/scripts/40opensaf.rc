@@ -51,10 +51,10 @@ if [ $hostnumber -lt 3 ]; then
 
     mkdir -p /repl_opensaf/saflog
 
-    touch /var/lib/opensaf/pssv_spcn_list
-    chmod 755 /var/lib/opensaf/pssv_spcn_list
-    echo "AVD XML" > /var/lib/opensaf/pssv_spcn_list
-    echo "AVM XML" >> /var/lib/opensaf/pssv_spcn_list
+    touch /var/lib/opensaf/pssv_spcn.list
+    chmod 755 /var/lib/opensaf/pssv_spcn.list
+    echo "AVD XML" > /var/lib/opensaf/pssv_spcn.list
+    echo "AVM XML" >> /var/lib/opensaf/pssv_spcn.list
 
     ln -sf /etc/opensaf/nodeinit.conf.controller /etc/opensaf/nodeinit.conf
 else

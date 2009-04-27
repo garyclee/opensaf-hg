@@ -601,7 +601,7 @@ uns32 pss_ckpt_dec_data_resp(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_uba, uns16 peer_m
  *
  * Arguments     : pwe_cb - pointer to the PSS PWE control block. 
  *                 io_uba - Pointer to NCS_UBAID buffer.
- *                 enc_lib_conf - Boolean to know whether pssv_lib_conf contents
+ *                 enc_lib_conf - Boolean to know whether pssv_lib.conf contents
  *                                need to be encoded.
  *                 peer_mbcsv_version - MBCSv version of the Peer PSS given
  *                                      by MBCSv in encode callback.
@@ -759,7 +759,7 @@ uns32 pss_enc_pwe_data_for_sync_with_standby(PSS_PWE_CB *pwe_cb, NCS_UBAID *io_u
  *
  * Arguments     : pwe_cb - pointer to the PSS PWE control block. 
  *                 io_uba - Pointer to NCS_UBAID buffer.
- *                 dec_lib_conf - Boolean to know whether pssv_lib_conf contents
+ *                 dec_lib_conf - Boolean to know whether pssv_lib.conf contents
  *                                need to be decoded.
  *                 peer_mbcsv_version - MBCSv version of the peer PSS given
  *                                      by MBCSv in decode callback.
@@ -3197,7 +3197,7 @@ uns32 pss_ckpt_enc_reload_pssvlibconf(NCS_UBAID *uba, char *file_name)
    uns32 read = 0;
    uns8 *p_line_cnt = NULL;
     
-   /* The "pssv_lib_conf" file is mandatory for PSS to start up */
+   /* The "pssv_lib.conf" file is mandatory for PSS to start up */
    fh = sysf_fopen(file_name, "r");
    if(fh == NULL)
    {
@@ -3295,13 +3295,13 @@ uns32 pss_ckpt_dec_n_updt_reload_pssvlibconf(PSS_PWE_CB *pwe_cb, NCS_UBAID *uba)
 
    if(read != EOF)
    {
-      /* Log error occured while reading pssv_lib_conf, also log loop value */
+      /* Log error occured while reading pssv_lib.conf, also log loop value */
       m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_HDLN_READ_LIB_CONF_FAIL, loop);
       fclose(fh);
       return NCSCC_RC_FAILURE;
    }
 
-   /* Merging the contents of the resident pssv_lib_conf and received lib_conf information */
+   /* Merging the contents of the resident pssv_lib.conf and received lib_conf information */
    for(i = 0; i < cnt; i++)
    {
       memset(&libname, '\0', sizeof(libname));

@@ -436,10 +436,10 @@ fi
 if [ $1 == "ACTIVE" ]; then
 
   echo 1 > /etc/ncs/init_role
-  echo "AVD XML"> /var/opt/opensaf/pssv_spcn_list
-  echo "AVM XML">>/var/opt/opensaf/pssv_spcn_list
+  echo "AVD XML"> /var/opt/opensaf/pssv_spcn.list
+  echo "AVM XML">>/var/opt/opensaf/pssv_spcn.list
 
-  cat /var/opt/opensaf/pssv_spcn_list
+  cat /var/opt/opensaf/pssv_spcn.list
 
 else
 

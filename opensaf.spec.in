@@ -257,7 +257,6 @@ fi
 %{_bindir}/saflogger
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
-%{_bindir}/opensaf_mem_dump_tool
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
@@ -374,17 +373,17 @@ fi
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
 %{_sysconfdir}/%{name}/AppConfig.xsd
-%{_sysconfdir}/%{name}/cli_cefslib_conf
+%{_sysconfdir}/%{name}/cli_cefslib.conf
 %{_sysconfdir}/%{name}/imm.xml
 %{_sysconfdir}/%{name}/NCSConfig.xsd
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml
 %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
-%{_sysconfdir}/%{name}/pssv_lib_conf
+%{_sysconfdir}/%{name}/pssv_lib.conf
 %{_sysconfdir}/%{name}/rde.conf
 %{_sysconfdir}/%{name}/fms.conf
 %{_sysconfdir}/%{name}/pdrbd_proxied.conf
 %{_sysconfdir}/%{name}/drbd.conf
-%{_sysconfdir}/%{name}/subagt_lib_conf
+%{_sysconfdir}/%{name}/subagt_lib.conf
 %{_sysconfdir}/%{name}/ValidationConfig.xml
 %{_sysconfdir}/%{name}/ValidationConfig.xsd
 %{_sysconfdir}/%{name}/vipsample.conf
@@ -399,7 +398,7 @@ fi
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_localstatedir}/lib/%{name}/node_ha_state
-%{_localstatedir}/lib/%{name}/pssv_spcn_list
+%{_localstatedir}/lib/%{name}/pssv_spcn.list
 %{_libdir}/%{name}/libavm_logstr.so.*
 %{_libdir}/%{name}/libavm_pssv.so.*
 %{_libdir}/%{name}/libavm_subagt.so.*
@@ -520,6 +519,7 @@ fi
 %{_bindir}/immoitest
 %{_bindir}/logtest
 %{_bindir}/ntftest
+%{_bindir}/opensaf_mem_dump
 
 
 %if %is_java

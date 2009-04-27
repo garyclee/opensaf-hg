@@ -783,7 +783,7 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
     sprintf((char*)&inst->lib_conf_file, m_PSS_LIB_CONF_FILE_NAME);
     sprintf((char*)&inst->spcn_list_file, m_PSS_SPCN_LIST_FILE_NAME);
 
-    /* Read pssv_lib_conf file, to load the application MIB definition libraries. */
+    /* Read pssv_lib.conf file, to load the application MIB definition libraries. */
     if(pss_read_lib_conf_info(inst, (char*)&inst->lib_conf_file) != NCSCC_RC_SUCCESS)
     {
        m_PSS_UNLK(&inst->lock);
@@ -973,7 +973,7 @@ uns32 pss_read_lib_conf_info(PSS_CB *inst, char *conf_file)
     /* Removes all earlier load MIB description info, if any */
     pss_flush_all_mib_tbl_info(inst);
 
-    /* The "pssv_lib_conf" file is mandatory for PSS to start up */
+    /* The "pssv_lib.conf" file is mandatory for PSS to start up */
     fh = sysf_fopen(conf_file, "r");
     if(fh == NULL)
     {
@@ -1054,7 +1054,7 @@ uns32 pss_read_create_spcn_config_file(PSS_CB *inst)
     inst->spcn_list = NULL;
 
  
-    /* Open the "pssv_spcn_list" file. PSS is the only owner to this file. */
+    /* Open the "pssv_spcn.list" file. PSS is the only owner to this file. */
     fh = sysf_fopen((char*)&inst->spcn_list_file, "r");
     if(fh == NULL)
     {

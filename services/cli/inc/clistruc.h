@@ -442,6 +442,6 @@ typedef struct cli_cb {
 } CLI_CB;
 
 /* location to read the CEFs to be loaded into CLI Engine */ 
-#define m_NCSCLI_CEFS_CONFIG_FILE OSAF_SYSCONFDIR  "cli_cefslib_conf"
+#define m_NCSCLI_CEFS_CONFIG_FILE OSAF_SYSCONFDIR  "cli_cefslib.conf"
 
 #endif

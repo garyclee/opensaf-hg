@@ -95,9 +95,9 @@ ncsPSSvTriggerOperation OBJECT-TYPE
         5. Replace operation removes current profile and replaces with
            the alternate profile.
         6. reloadlibconf operation reloads the application MIB definitions
-           into PSSv from the static configuration file(pssv_lib_conf).
+           into PSSv from the static configuration file (pssv_lib.conf).
         7. reloadspcnlist reloads the system-clients(SPCN) details into 
-           PSSv from the static configuration file(pssv_spcn_list)."
+           PSSv from the static configuration file (pssv_spcn.list)."
         ::= { ncsPSSvScalars 3 }
 
 ncsPSSvCurrentProfile OBJECT-TYPE
