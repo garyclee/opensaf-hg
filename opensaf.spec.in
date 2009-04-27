@@ -249,12 +249,12 @@ fi
 %dir %{_localstatedir}/run/%{name}
 %dir %{_datadir}/snmp/mibs
 %{_datadir}/snmp/mibs/*
-%{_sysconfdir}/%{name}/imm.conf
-%{_sysconfdir}/%{name}/chassis_id
-%{_sysconfdir}/%{name}/slot_id
-%{_sysconfdir}/%{name}/subslot_id
-%{_sysconfdir}/%{name}/node_type
-%{_sysconfdir}/%{name}/script.conf
+%config(noreplace) %{_sysconfdir}/%{name}/imm.conf
+%config(noreplace) %{_sysconfdir}/%{name}/chassis_id
+%config(noreplace) %{_sysconfdir}/%{name}/slot_id
+%config(noreplace) %{_sysconfdir}/%{name}/subslot_id
+%config(noreplace) %{_sysconfdir}/%{name}/node_type
+%config %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd
 %{_pkglibdir}/find_pid
@@ -375,25 +375,25 @@ fi
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
-%{_sysconfdir}/drbd.conf
-%{_sysconfdir}/%{name}/AppConfig.xsd
-%{_sysconfdir}/%{name}/cli_cefslib.conf
-%{_sysconfdir}/%{name}/imm.xml
-%{_sysconfdir}/%{name}/NCSConfig.xsd
-%{_sysconfdir}/%{name}/NCSSystemBOM.xml
-%{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
-%{_sysconfdir}/%{name}/pssv_lib.conf
-%{_sysconfdir}/%{name}/rde.conf
-%{_sysconfdir}/%{name}/fms.conf
-%{_sysconfdir}/%{name}/pdrbd_proxied.conf
-%{_sysconfdir}/%{name}/subagt_lib.conf
-%{_sysconfdir}/%{name}/ValidationConfig.xml
-%{_sysconfdir}/%{name}/ValidationConfig.xsd
-%{_sysconfdir}/%{name}/vipsample.conf
-%{_sysconfdir}/%{name}/saflog.conf
-%{_sysconfdir}/%{name}/ntf.conf
-%{_sysconfdir}/%{name}/nodeinit.conf.controller
-%{_datadir}/snmp/ncsSnmpSubagt.conf
+%config(noreplace) %{_sysconfdir}/drbd.conf
+%config %{_sysconfdir}/%{name}/AppConfig.xsd
+%config %{_sysconfdir}/%{name}/cli_cefslib.conf
+%config %{_sysconfdir}/%{name}/imm.xml
+%config %{_sysconfdir}/%{name}/NCSConfig.xsd
+%config(noreplace) %{_sysconfdir}/%{name}/NCSSystemBOM.xml
+%config(noreplace) %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
+%config %{_sysconfdir}/%{name}/pssv_lib.conf
+%config(noreplace) %{_sysconfdir}/%{name}/rde.conf
+%config(noreplace) %{_sysconfdir}/%{name}/fms.conf
+%config(noreplace) %{_sysconfdir}/%{name}/pdrbd_proxied.conf
+%config %{_sysconfdir}/%{name}/subagt_lib.conf
+%config %{_sysconfdir}/%{name}/ValidationConfig.xml
+%config %{_sysconfdir}/%{name}/ValidationConfig.xsd
+%config(noreplace) %{_sysconfdir}/%{name}/vipsample.conf
+%config(noreplace) %{_sysconfdir}/%{name}/saflog.conf
+%config(noreplace) %{_sysconfdir}/%{name}/ntf.conf
+%config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.controller
+%config %{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_1
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_2
@@ -463,7 +463,7 @@ fi
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
 %{_bindir}/collect_logs_payload
-%{_sysconfdir}/%{name}/nodeinit.conf.payload
+%config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.payload
 
 
 %files libs
