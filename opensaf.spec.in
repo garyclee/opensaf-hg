@@ -205,10 +205,12 @@ fi
 
 %post controller
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.controller %{_sysconfdir}/%{name}/nodeinit.conf
+echo "controller" > %{_sysconfdir}/%{name}/node_type
 /sbin/ldconfig
 
 %post payload
 %{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
+echo "payload" > %{_sysconfdir}/%{name}/node_type
 /sbin/ldconfig
 
 
@@ -251,6 +253,7 @@ fi
 %{_sysconfdir}/%{name}/chassis_id
 %{_sysconfdir}/%{name}/slot_id
 %{_sysconfdir}/%{name}/subslot_id
+%{_sysconfdir}/%{name}/node_type
 %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
 %{_sysconfdir}/init.d/opensafd

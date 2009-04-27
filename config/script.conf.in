@@ -34,14 +34,7 @@ if [ "$SLOT_NUMBER" = "" ] ; then
   export SLOT_NUMBER=$(< "$SYSCONFDIR/slot_id")
 fi
 
-if [ "$SLOT_NUMBER" -eq 1 -o $SLOT_NUMBER -eq 2 ] ; then
-  NODE_TYPE="controller"
-elif [ "$SLOT_NUMBER" -ge 3 ] ; then
-  NODE_TYPE="payload"
-else
-  echo "INVALID SLOT_NUMBER: $SLOT_NUMBER"
-fi
-
+export NODE_TYPE=$(< "$SYSCONFDIR/node_type")
 
 # The following environment variables are useful
 # when running in simulation mode, where multiple
