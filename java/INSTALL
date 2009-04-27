@@ -122,7 +122,7 @@ Running the tests
             - java_test_runner_inst.sh
         Step 5. Start the cluster.
           Keep in mind that the AMF configuration has to be updated on the controller and
-          the PSS strings in the /var/opt/opensaf/pssv_spcn_list file have to be changed to
+          the PSS strings in the $(pkglocalstatedir)/pssv_spcn.list file have to be changed to
           XML.
 
           The components will write their logs in /var/tmp and the pid file is stored here

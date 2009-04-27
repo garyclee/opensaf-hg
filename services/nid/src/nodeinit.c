@@ -1896,7 +1896,7 @@ spawn_services(char * strbuf)
        if((strcmp(service->serv_name ,"SCAP") ==0 ) || 
           (strcmp(service->serv_name ,"PCAP") ==0 ))
        {
-         /* If type is script, nis_scxb && nis_pld start scripts 
+         /* If type is script, init.d/opensafd start script
             will write the pid accordingly
           */
          if(service->app_type == NID_DAEMN)
