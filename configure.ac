@@ -613,7 +613,6 @@ AC_CHECK_FUNCS([ \
 AC_CONFIG_FILES([
         opensaf.spec
         Makefile
-        config/imm.conf
         config/script.conf
         scripts/collect_logs_controller
         scripts/collect_logs_payload
