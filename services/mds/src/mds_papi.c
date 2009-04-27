@@ -30,6 +30,7 @@
 
 #if (NCS_MDS == 1)
 
+#include <configmake.h>
 #include "mds_papi.h"
 #include "mds_core.h"
 #include "mds_log.h"
@@ -304,7 +305,7 @@ uns32 mds_node_link_reset(NCS_NODE_ID node_id)
         return NCSCC_RC_FAILURE;
     }
 
-    sprintf(buffer,"sh /opt/TIPC/tipc_reset.sh %x &",node_id);
+    sprintf(buffer, "sh %s/tipc_reset.sh %x &", PKGLIBDIR, node_id);
     status=system(buffer);
     if(status ==0)
     {
