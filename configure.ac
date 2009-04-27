@@ -670,6 +670,7 @@ AC_CONFIG_FILES([
         scripts/pdrbdctrl
         scripts/rde_script
         scripts/tipc_reset.sh
+        pkgconfig/opensaf.pc
         pkgconfig/opensaf-amf.pc
         pkgconfig/opensaf-ckpt.pc
         pkgconfig/opensaf-clm.pc
