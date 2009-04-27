@@ -1351,7 +1351,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT hdl,
       check if track flag is TRACK_CURRENT and neither buffer nor callback is provided */
    if (( ( (flags & SA_TRACK_CHANGES) || (flags & SA_TRACK_CHANGES_ONLY) ) &&
         (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec)) ) ||
-      ( (flags & SA_TRACK_CURRENT) && ((!buf) || !(buf->notification)) &&
+      ( (flags & SA_TRACK_CURRENT) && (!buf) &&
         (!m_AVA_HDL_IS_PG_CBK_PRESENT(hdl_rec))))
 
    {
