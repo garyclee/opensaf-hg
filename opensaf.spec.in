@@ -247,6 +247,7 @@ fi
 %dir %{_localstatedir}/run/%{name}
 %dir %{_datadir}/snmp/mibs
 %{_datadir}/snmp/mibs/*
+%{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/chassis_id
 %{_sysconfdir}/%{name}/slot_id
 %{_sysconfdir}/%{name}/subslot_id
@@ -392,7 +393,6 @@ fi
 %{_sysconfdir}/%{name}/.drbd_sync_state_2
 %{_sysconfdir}/%{name}/.drbd_sync_state_3
 %{_sysconfdir}/%{name}/.drbd_sync_state_4
-%{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/saflog.conf
 %{_sysconfdir}/%{name}/ntf.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.controller
@@ -458,7 +458,6 @@ fi
 %{_pkglibdir}/ncs_pcap_start
 %{_pkglibdir}/opensaf_immnd
 %{_bindir}/collect_logs_payload
-%{_sysconfdir}/%{name}/imm.conf
 %{_sysconfdir}/%{name}/nodeinit.conf.payload
 
 
