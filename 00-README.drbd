@@ -32,11 +32,11 @@ them:
    * Mount the data replicated partition on /repl_opensaf
    * Install the opensaf RPM or do "make install".
    * Put files to be replicated in /repl_opensaf
-   * Edit the file /etc/opt/opensaf/NCSSystemBOM.xml:
+   * Edit the file /etc/opensaf/NCSSystemBOM.xml:
       - Uncoment PDRBD related lines
       - Uncomment REPL related lines
-   * Uncomment DRBD entry line in /etc/opt/opensaf/nodeinit.conf
-   * Edit /etc/opensaf/drbd.conf:
+   * Uncomment DRBD entry line in /etc/opensaf/nodeinit.conf
+   * Edit /etc/drbd.conf:
       HOST_NAME_LOCAL {
          device     /dev/drbd0;
          disk       /dev/sda5;
@@ -68,8 +68,7 @@ them:
          1. Set user data partition name (for eg:- /dev/sda5)
          2. Set meta-data partition name(for eg:- /dev/sda6)
 
-   * Copy /etc/opensaf/drbd.conf to /etc/drbd.conf and run the 
-     following command (These commands are needed to run on 
+   * Run the following command (These commands are needed to run on
      metadata partition for drbd-8.0.0):
 
          drbdmeta /dev/drbd0 v08 /dev/sda6 0 create-md
@@ -77,3 +76,4 @@ them:
 
      Here /dev/drbd0, /dev/sda6, r0 can be replaced with the attributes as
      specified in drbd.conf.
+
