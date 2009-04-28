@@ -242,6 +242,14 @@
 			<name>saLogStreamPathName</name>
 			<value>.</value>
 		</attr>
+        <attr>
+            <name>saLogStreamLogFileFormat</name>
+            <value>@Cr @Ct @Nt @Ne6 @No30 @Ng30 "@Cb"</value>
+        </attr>
+        <attr>
+            <name>saLogStreamSeverityFilter</name>
+            <value>127</value>
+        </attr>
 	</object>
 	<object class="SaLogStreamConfig">
 		<dn>safLgStr=saLogNotification</dn>
@@ -253,6 +261,14 @@
 			<name>saLogStreamPathName</name>
 			<value>.</value>
 		</attr>
+        <attr>
+            <name>saLogStreamLogFileFormat</name>
+            <value>@Cr @Ct @Nt @Ne6 @No30 @Ng30 "@Cb"</value>
+        </attr>
+        <attr>
+            <name>saLogStreamSeverityFilter</name>
+            <value>127</value>
+        </attr>
 	</object>
 	<object class="SaLogStreamConfig">
 		<dn>safLgStr=saLogSystem</dn>
@@ -264,5 +280,13 @@
 			<name>saLogStreamPathName</name>
 			<value>.</value>
 		</attr>
+        <attr>
+            <name>saLogStreamLogFileFormat</name>
+            <value>@Cr @Ch:@Cn:@Cs @Cm/@Cd/@CY @Sv @Sl "@Cb"</value>
+        </attr>
+        <attr>
+            <name>saLogStreamSeverityFilter</name>
+            <value>127</value>
+        </attr>
 	</object>
 </imm:IMM-contents>
