@@ -500,6 +500,11 @@ fi
 
 %files devel
 %defattr(-,root,root)
+%if %is_java
+#%dir %{javadocdir}
+#%{javadocdir}/%{name}-%{version}/*
+%{_libdir}/libjava_ais_api_native.so
+%endif
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.so
 %{_libdir}/*.a
@@ -529,10 +534,8 @@ fi
 %if %is_java
 %files java
 %defattr(-,root,root)
-#%dir %{_datadir}/doc/%{name}-%{version}/javadoc
 %{_libdir}/libjava_ais_api_native.so.*
-%{_datadir}/java/opensaf_ais_api.jar
-#%{_datadir}/doc/%{name}-%{version}/javadoc/*
+%{_javadir}/opensaf_ais_api.jar
 %endif
 
 %changelog
