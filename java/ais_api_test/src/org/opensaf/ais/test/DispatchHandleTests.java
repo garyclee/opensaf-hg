@@ -17,12 +17,11 @@
 package org.opensaf.ais.test;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.Pipe.SourceChannel;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -59,6 +58,7 @@ public class DispatchHandleTests extends TestCase implements
 
 	public static void main(String[] args) {
 		junit.textui.TestRunner.run(DispatchHandleTests.class);
+		System.out.println("End.");
 	}
 
 	/**
@@ -169,10 +169,13 @@ public class DispatchHandleTests extends TestCase implements
 				selector.select();
 
 				Set<SelectionKey> selectedKeys = selector.selectedKeys();
-				for (SelectionKey key : selectedKeys) {
+				Iterator<SelectionKey> it = selectedKeys.iterator();
+				while (it.hasNext()) {
+					SelectionKey key = it.next(); 
 					for (int i = 0; i < selectionKeys.size(); i++) {
 						SelectionKey selectionKey = selectionKeys.get(i);
 						if (selectionKey.equals(key)) {
+							it.remove(); // Indicate that processing has been started
 							handles.get(i).dispatch(DispatchFlags.DISPATCH_ALL);
 							numDispatch++;
 						}
@@ -298,7 +301,7 @@ public class DispatchHandleTests extends TestCase implements
 
 		// wait a bit
 		try {
-			Thread.sleep(5000);
+			Thread.sleep(3000);
 		} catch (InterruptedException e) {
 		}
 
@@ -345,26 +348,28 @@ public class DispatchHandleTests extends TestCase implements
 		int callbacksNum = 4; // Execute 4 consecutive requests.
 		isGetClusterNodeCallbackCalled = false;
 
-
 		try {
 			SelectableChannel channel = handle.getSelectableChannel();
 			channel.configureBlocking(false);
 			Selector selector = Selector.open();
-			channel.register(selector, SelectionKey.OP_READ);
+			SelectionKey key = channel.register(selector, SelectionKey.OP_READ);
 
 			while (callbacksNum != 0) {
 				clmManager.getClusterAsync();
 
 				System.out.println("selector.select() = " + selector.select());
+				selector.selectedKeys().clear();
 				handle.dispatch(DispatchFlags.DISPATCH_ONE);
 
 				callbacksNum--;
 
 			}
 
-			System.out.println("selector.select(100) = " + selector.select(1000));
-			Set keys = selector.selectedKeys();
-			assertTrue(keys.size() == 0);
+			int last = selector.select(100);
+			
+			// System.out.println("selector.select(1000) = " + last);
+			// System.out.println("key.isReadable()= " + key.isReadable() + "selector.selectedKeys().size()= " + selector.selectedKeys().size());
+			assertTrue(last == 0);
 
 		} catch (AisException e) {
 			e.printStackTrace();

@@ -16,11 +16,23 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
+include $(top_srcdir)/include.mk
+
+nodist_java_DATA = bin/opensaf_ais_api.jar
+
+BUILT_SOURCES = build-jar
+
 EXTRA_DIST = \
 	src \
 	build.xml
 
+uninstall-local:
+	-rm -rf $(DESTDIR)$(javadir)
+
 clean-local:
 	$(ANT) -f build.xml clean
 	-rm -rf $(top_builddir)/java/ais_api_impl/bin
+
+build-jar:
+	$(ANT) -f build.xml build-jar
 

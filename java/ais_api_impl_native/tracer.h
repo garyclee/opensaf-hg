@@ -21,6 +21,8 @@
 #include <libgen.h>
 #include <stdarg.h>
 
+#define NDEBUG
+
 #ifndef NDEBUG
 
 #define _TRACE2(format, ...)\

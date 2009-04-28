@@ -1,3 +1,4 @@
+#!/bin/bash
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2008 The OpenSAF Foundation
@@ -11,13 +12,31 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Andras Kovi (OptXware)
 #
 
-MAINTAINERCLEANFILES = Makefile.in
+source /etc/opensaf/script.conf
 
-EXTRA_DIST = \
-	src \
-	configandscript \
-	build.xml
+CONFIGDIR=deploy
+if [ -n "$1" ]; then 
+	CONFIGDIR=$1
+fi
 
+echo "INFO Using config dir: $CONFIGDIR"
+
+INSTALLDIR=$(cat $CONFIGDIR/.installConf)
+if [ $? -ne 0 ]; then
+	echo "ERROR: Config is invalid."
+	exit -1
+fi
+
+
+echo "Setting AppConfig.xml"
+rm -f $SYSCONFDIR/AppConfig.xml
+ln -s $INSTALLDIR/config/AppConfig.xml $SYSCONFDIR/AppConfig.xml
+
+echo "Resetting PSSV"
+sed "s/PSS/XML/" -i $LOCALSTATEDIR/pssv_spcn_list
+
+echo DONE
+echo

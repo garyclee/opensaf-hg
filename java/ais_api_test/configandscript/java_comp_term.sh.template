@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2008 The OpenSAF Foundation
@@ -11,13 +13,30 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Emerson Network Power
+#            OptXware LLC.
 #
 
-MAINTAINERCLEANFILES = Makefile.in
+source [PATH_TO_INSTALL]/config/scripts.conf
 
-EXTRA_DIST = \
-	src \
-	configandscript \
-	build.xml
+# PID of the script
+SPID="[$$]"
+
+PATTERN=$SA_AMF_COMPONENT_NAME
+
+echo "$SPID TERMINATE: $SA_AMF_COMPONENT_NAME"
+
+for line in $(cat $COMP_PID_MAP_FILE)
+do
+   comp_name=`echo "$line" | cut -d: -f1`
+   pid=`echo "$line" | cut -d: -f2`
+   if [ $comp_name  ==  $PATTERN ]
+   then
+      sed -e "/$PATTERN/ d" -i $COMP_PID_MAP_FILE
+      kill -9 $pid
+      echo "$SPID TERMINATED: $SA_AMF_COMPONENT_NAME [$pid]"
+   fi
+done
+
+exit 0
 

@@ -175,15 +175,15 @@ public class AmfTestRunner implements SetCsiCallback, RemoveCsiCallback, Healthc
 
         // CLASS TestProtectionGroupManager
 
-        //_suite.addTestSuite( TestProtectionGroupManager.class );OpenSAF failure
-    	//_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroup_Simple"));OpenSAF failure
-    	//_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroup_Equals"));OpenSAF failure
+        //_suite.addTestSuite( TestProtectionGroupManager.class );
+    	_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroup_Simple"));
+    	_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroup_Equals"));
     	_suite.addTest(new TestProtectionGroupManager("test_InvalidCsiNameAsync"));
-    	//_suite.addTest(new TestProtectionGroupManager("test_InvalidCsiName"));OpenSAF failure
+    	_suite.addTest(new TestProtectionGroupManager("test_InvalidCsiName"));
     	_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroupAsync_NoCallback"));
-    	//_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroupAsync_EqualsDispatchBlocking"));OpenSAF failure
-    	//_suite.addTest(new TestProtectionGroupManager("testStartProtectionGroupTrackingBZ_EqualsDispatchBlocking"));OpenSAF failure
-    	//_suite.addTest(new TestProtectionGroupManager("testStartProtectionGroupTrackingB_Equals"));OpenSAF failure
+    	_suite.addTest(new TestProtectionGroupManager("testGetProtectionGroupAsync_EqualsDispatchBlocking"));
+    	_suite.addTest(new TestProtectionGroupManager("testStartProtectionGroupTrackingBZ_EqualsDispatchBlocking"));
+    	_suite.addTest(new TestProtectionGroupManager("testStartProtectionGroupTrackingB_Equals"));
     	_suite.addTest(new TestProtectionGroupManager("testFinalizeHandle"));
 
     	//_suite.addTest(new TestProtectionGroupManager("testStartProtectionGroupTrackingB_WaitForever")); Out commented, waits forever

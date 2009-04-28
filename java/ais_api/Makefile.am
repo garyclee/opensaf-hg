@@ -18,24 +18,17 @@ MAINTAINERCLEANFILES = Makefile.in
 
 include $(top_srcdir)/include.mk
 
-nodist_java_DATA = bin/opensaf_ais_api.jar
-
-#BUILT_SOURCES = build-jar build-javadoc
-BUILT_SOURCES = build-jar
+#BUILT_SOURCES = build-javadoc
 
 EXTRA_DIST = \
 	src \
 	overview.html \
 	build.xml
 
-build-jar:
-	$(ANT) -f build.xml build-jar
-
 build-javadoc:
 	$(ANT) -f build.xml javadocAPI
 
 uninstall-local:
-	-rm -rf $(DESTDIR)$(javadir)
 	-rm -rf $(DESTDIR)$(docdir)/java_ais
 
 clean-local:
