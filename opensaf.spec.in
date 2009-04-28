@@ -468,7 +468,7 @@ fi
 
 %files libs
 %defattr(-,root,root)
-%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
+%{_sysconfdir}/ld.so.conf.d/%{name}-%{_host_cpu}.conf
 # TODO split of SAF / non-SAF libs
 %{_libdir}/libSaAmf.so.*
 %{_libdir}/libSaCkpt.so.*
