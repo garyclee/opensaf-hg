@@ -441,9 +441,9 @@ rpm: prep-rpm-dir
 endif
 
 update-ldconfig:
-	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
+	echo "$(pkglibdir)" > $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
-	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
+	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 
 update-pkgconfig:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
@@ -485,7 +485,7 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
-	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(target_cpu).conf
+	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
 	-rm -f $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
 	@for file in $(mibs_files); do \
@@ -499,7 +499,7 @@ if ENABLE_RPM_TARGET
 endif
 
 distclean-local:
-	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(target_cpu).conf
+	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
 if ENABLE_SMIDUMP
 	@if [ -f $(top_builddir)/tools/smidump/bin/smidump ]; then \
 		rm -rf $(top_builddir)/tools/smidump/bin; \
