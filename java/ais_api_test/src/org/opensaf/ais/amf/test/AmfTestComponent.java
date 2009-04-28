@@ -16,20 +16,13 @@
 
 package org.opensaf.ais.amf.test;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.Pipe;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
-import java.nio.channels.Pipe.SourceChannel;
 import java.util.Set;
-
-import junit.framework.Test;
-import junit.framework.TestSuite;
 
 import org.saforum.ais.AisException;
 import org.saforum.ais.AisStatus;
-import org.saforum.ais.Consts;
 import org.saforum.ais.DispatchFlags;
 import org.saforum.ais.Version;
 import org.saforum.ais.amf.AmfHandle;
@@ -115,11 +108,12 @@ public class AmfTestComponent implements SetCsiCallback, RemoveCsiCallback, Heal
     		try {
     			int numSelected = selector.select();
     			System.out.println("Dispatch loop " + System.currentTimeMillis());
-    			Set keys = selector.selectedKeys();
+    			Set<SelectionKey> keys = selector.selectedKeys();
     			//boolean hasPending = amfLibHandle.hasPendingCallback(10 * Consts.SA_TIME_ONE_SECOND);
     			if (keys.size() > 0) {
     				System.out.println("Dispatching.");
     				amfLibHandle.dispatch(DispatchFlags.DISPATCH_ONE);
+    				keys.clear();
     			}
 
 		} catch (Exception e) {

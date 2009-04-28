@@ -208,9 +208,10 @@ public class TestClmMultiThreading extends TestCase {
 		// call getClusterAsync()
 		TestClusterMembershipManager.s_callGetClusterAsync(clmManager);
 		// now check what the threads have done:
+		
 		CallDispatchBlocking[] _finishedDispatchCalls = null;
 		_finishedDispatchCalls = checkDispatchBlockingFinished(
-				_allDispatchCalls, 100);
+				_allDispatchCalls, 500);
 		System.out.println("JAVA TEST: " + _finishedDispatchCalls.length
 				+ " dispatch calls have returned out of "
 				+ _allDispatchCalls.length);
@@ -219,6 +220,12 @@ public class TestClmMultiThreading extends TestCase {
 		// assert that the finished dispatch threads have properly finished
 		assertDispatchBlocking(_finishedDispatchCalls, true);
 		// assert that the proper callback has been called once
+		for (CallDispatchBlocking cdb : _allDispatchCalls) {
+			try {
+				cdb.dispatchThread.join(100);
+			} catch (InterruptedException e) {
+			}
+		}
 		trackClusterCB.assertCalled();
 		Assert.assertEquals(trackClusterCB.cbCount, 1);
 		assertDispatchBlocking_ThreadOK(_finishedDispatchCalls,
@@ -226,6 +233,7 @@ public class TestClmMultiThreading extends TestCase {
 		trackClusterCB.fullReset();
 		// assert that the other callback has not been called
 		getClusterNodeCB.assertNotCalled();
+		
 	}
 
 	/*
@@ -545,7 +553,8 @@ public class TestClmMultiThreading extends TestCase {
 		public synchronized void run() {
 			try {
 				dispatchThread = Thread.currentThread();
-				clmLibHandle.dispatchBlocking();
+				// wait one second to receive the callback
+				clmLibHandle.dispatchBlocking(Consts.SA_TIME_ONE_MILLISECOND * 100);
 				System.out.println("JAVA TEST: dispatch() by " + this
 						+ " returned ");
 			} catch (AisException e) {
@@ -570,6 +579,7 @@ public class TestClmMultiThreading extends TestCase {
 		boolean checkFinishedTimeout(int timeout_ms) {
 			if (!isFinished) {
 				try {
+					System.out.println("JAVA TEST: Sleeping " + timeout_ms + " milliseconds.");
 					Thread.sleep(timeout_ms);
 				} catch (InterruptedException e) {
 				}

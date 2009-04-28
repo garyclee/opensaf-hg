@@ -1,3 +1,5 @@
+#!/bin/sh
+# scripts.conf - Java AIS API test scripts config file
 #      -*- OpenSAF  -*-
 #
 # (C) Copyright 2008 The OpenSAF Foundation
@@ -11,13 +13,21 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Andras Kovi (OptXware)
 #
 
-MAINTAINERCLEANFILES = Makefile.in
 
-EXTRA_DIST = \
-	src \
-	configandscript \
-	build.xml
+# The install directory.
+AIS_API_DIR=[PATH_TO_INSTALL]
 
+# JUnit 3.2.8 library
+JUNIT_LIB=${AIS_API_DIR}/lib/junit.jar
+
+# The standard API and the implementation are packed in one archive.
+AIS_API_JAR=${AIS_API_DIR}/opensaf_ais_api_test.jar
+
+# The native library is in the API directory.
+AIS_API_NATIVE_DIR=${AIS_API_DIR}/lib
+
+# The PID map file for AMF components
+COMP_PID_MAP_FILE="[PATH_TO_INSTALL]/var/java_test_comp_pid_map"

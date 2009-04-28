@@ -17,6 +17,7 @@
 package org.opensaf.ais.clm.test;
 
 import junit.framework.Test;
+import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
@@ -59,10 +60,7 @@ public class PassedTests {
         _suite.addTest(new TestClmLibraryHandle("testFinalizeHandle"));
 
         // CLASS TestClusterMembershipManager
-        try {
-            _suite.addTestSuite( Class.forName("ais.clm.test.TestClusterMembershipManager") );
-        } catch ( ClassNotFoundException e ) {
-        }
+        _suite.addTestSuite( org.opensaf.ais.clm.test.TestClusterMembershipManager.class );
         /*
         _suite.addTest( new TestClusterMembershipManager("testGetCluster_Simple"));
         _suite.addTest( new TestClusterMembershipManager("testGetCluster_Equals"));
@@ -83,10 +81,7 @@ public class PassedTests {
         */
 
         // CLASS TestClmMultiThreading
-        try {
-            _suite.addTestSuite( Class.forName("ais.clm.test.TestClmMultiThreading") );
-        } catch ( ClassNotFoundException e ) {
-        }
+        _suite.addTestSuite( org.opensaf.ais.clm.test.TestClmMultiThreading.class );
         /*
         _suite.addTest( new TestClmMultiThreading("testHasPendingCallback_Threads"));
         _suite.addTest( new TestClmMultiThreading("testHasPendingCallbackTimeout_Threads"));

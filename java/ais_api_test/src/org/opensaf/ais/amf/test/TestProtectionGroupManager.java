@@ -406,7 +406,7 @@ public class TestProtectionGroupManager extends TestCase implements
 		csiNameCurrent = csiName1;
 		// sync call
 		notificationArray = s_callGetProtectionGroup(csiNameCurrent,
-				pgManagerNull, "JAVA TEST: Result of SYNC cluster query: ");
+				pgManagerOK, "JAVA TEST: Result of SYNC cluster query: ");
 		// start tracking and ask for async amf info
 		try {
 			pgManagerOK.startProtectionGroupTracking(csiNameCurrent,

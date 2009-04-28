@@ -632,9 +632,9 @@ public class TestClmLibraryHandle extends TestCase implements
 		Assert.assertNull(_selectedHandleArray); // because no registered callback
 		Assert.assertNull(aisExc);
 		Assert.assertFalse(Utils.s_isDurationTooLong(_before, _after,
-				saTimeout, 5));
+				saTimeout, 30));
 		Assert.assertFalse(Utils.s_isDurationTooShort(_before, _after,
-				saTimeout, 5));
+				saTimeout, 30));
 	}
 
 	/*
