@@ -860,10 +860,15 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
          {
            uns32 temp = 0 ,len =0 ;
            temp = i_argval->cmd.intval;
-           while(temp)
+           if (0==i_argval->cmd.intval)
+              len = 1;
+           else
            {
-               len++;
-               temp/=10;
+              while(temp)
+              {
+                 len++;
+                 temp/=10;
+              }
            }
            temp = i_argval->cmd.intval;
            i_argval->cmd.intval = 0;
