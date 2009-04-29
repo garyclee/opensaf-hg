@@ -34,8 +34,10 @@ static SaLogFileCreateAttributesT_2 appStreamLogFileCreateAttributes =
 void saLogOi_01(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamFileName=notification safLgStr=saLogNotification";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamFileName=notification %s",
+        SA_LOG_STREAM_NOTIFICATION);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -43,8 +45,10 @@ void saLogOi_01(void)
 void saLogOi_02(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamPathName=/var/log safLgStr=saLogAlarm 2> /dev/null";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamPathName=/var/log %s 2> /dev/null",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -52,8 +56,10 @@ void saLogOi_02(void)
 void saLogOi_03(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamMaxLogFileSize=1000000 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamMaxLogFileSize=1000000 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -61,8 +67,10 @@ void saLogOi_03(void)
 void saLogOi_04(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamFixedLogRecordSize=300 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamFixedLogRecordSize=300 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -70,8 +78,10 @@ void saLogOi_04(void)
 void saLogOi_05(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullAction=1 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullAction=1 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -79,8 +89,10 @@ void saLogOi_05(void)
 void saLogOi_06(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullAction=2 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullAction=2 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -88,8 +100,10 @@ void saLogOi_06(void)
 void saLogOi_07(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullAction=3 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullAction=3 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -97,8 +111,11 @@ void saLogOi_07(void)
 void saLogOi_08(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullAction=4 safLgStr=saLogAlarm 2> /dev/null";
+
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullAction=4 %s 2> /dev/null",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -106,8 +123,10 @@ void saLogOi_08(void)
 void saLogOi_09(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullHaltThreshold=90 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullHaltThreshold=90 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -115,8 +134,10 @@ void saLogOi_09(void)
 void saLogOi_10(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFullHaltThreshold=101 safLgStr=saLogAlarm 2> /dev/null";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFullHaltThreshold=101 %s 2> /dev/null",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -124,8 +145,10 @@ void saLogOi_10(void)
 void saLogOi_11(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamMaxFilesRotated=10 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamMaxFilesRotated=10 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -133,8 +156,10 @@ void saLogOi_11(void)
 void saLogOi_12(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Nh:@Nn:@Ns @Nm/@Nd/@NY @Ne5 @No30 @Ng30 \"@Cb\"\" safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Nh:@Nn:@Ns @Nm/@Nd/@NY @Ne5 @No30 @Ng30 \"@Cb\"\" %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -142,8 +167,10 @@ void saLogOi_12(void)
 void saLogOi_13(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Sv @Ne5 @No30 @Ng30 \"@Cb\"\" safLgStr=saLogAlarm 2> /dev/null";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamLogFileFormat=\"@Cr @Ct @Sv @Ne5 @No30 @Ng30 \"@Cb\"\" %s 2> /dev/null",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -151,8 +178,10 @@ void saLogOi_13(void)
 void saLogOi_14(void)
 {
     int rc;
-    const char *command =
-        "immcfg -a saLogStreamSeverityFilter=7 safLgStr=saLogAlarm";
+    char command[256];
+
+    sprintf(command, "immcfg -a saLogStreamSeverityFilter=7 %s",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -160,7 +189,9 @@ void saLogOi_14(void)
 void saLogOi_15(void)
 {
     int rc;
-    const char *command = "immlist safLgStr=saLogAlarm > /dev/null";
+    char command[256];
+
+    sprintf(command, "immlist %s > /dev/null", SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 0);
 }
@@ -169,9 +200,9 @@ void saLogOi_16(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
@@ -183,7 +214,10 @@ void saLogOi_16(void)
 void saLogOi_17(void)
 {
     int rc;
-    const char *command = "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 safLgStr=saLogAlarm 2> /dev/null";
+    char command[256];
+
+    sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
+        SA_LOG_STREAM_ALARM);
     assert((rc = system(command)) != -1);
     test_validate(WEXITSTATUS(rc), 1);
 }
@@ -192,9 +226,9 @@ void saLogOi_18(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT64_T:7 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
@@ -207,9 +241,9 @@ void saLogOi_19(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:1024 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
@@ -222,9 +256,9 @@ void saLogOi_20(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 1 -p severityFilter:SA_UINT32_T:7 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
@@ -237,9 +271,9 @@ void saLogOi_21(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 1 -p saLogStreamSeverityFilter:SA_UINT32_T:7 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
@@ -253,9 +287,9 @@ void saLogOi_22(void)
 {
     int rc;
     char command[256];
+
     sprintf(command, "immadm -o 99 -p saLogStreamSeverityFilter:SA_UINT32_T:127 %s 2> /dev/null",
         SA_LOG_STREAM_APPLICATION1);
-
     safassert(saLogInitialize(&logHandle, &logCallbacks, &logVersion), SA_AIS_OK);
     safassert(saLogStreamOpen_2(logHandle, &app1StreamName, &appStreamLogFileCreateAttributes,
         SA_LOG_STREAM_CREATE, SA_TIME_ONE_SECOND, &logStreamHandle), SA_AIS_OK);
