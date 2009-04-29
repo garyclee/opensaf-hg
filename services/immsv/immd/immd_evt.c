@@ -207,18 +207,20 @@ static uns32 immd_immnd_guard(IMMD_CB *cb, MDS_DEST* dest)
 uns32 immd_evt_proc_fevs_req(
                              IMMD_CB *cb, 
                              IMMD_EVT *evt, 
-                             IMMSV_SEND_INFO *sinfo, 
+                             IMMSV_SEND_INFO *sinfo,
                              NCS_BOOL deallocate)
 {
     IMMSV_EVT               send_evt;
     IMMD_MBCSV_MSG          mbcp_msg;
     uns32                   proc_rc = NCSCC_RC_SUCCESS;
     IMMSV_FEVS             *fevs_req = &evt->info.fevsReq;
+    uns8                   isResend=FALSE;
     TRACE_ENTER();
 
     /* First check that source IMMND is in legal state 
        If sinfo is NULL then the sender is the active IMMD itself
-       and we always accept that sender. 
+       and we always accept that sender. It may also be the standby
+       IMMD in a failover situation.
     */
 
     if (sinfo && !immd_immnd_guard(cb, &sinfo->dest))
@@ -232,9 +234,17 @@ uns32 immd_evt_proc_fevs_req(
     memset(&send_evt, 0, sizeof(IMMSV_EVT));
     send_evt.type = IMMSV_EVT_TYPE_IMMND;
     send_evt.info.immnd.type = IMMND_EVT_D2ND_GLOB_FEVS_REQ;
-    send_evt.info.immnd.info.fevsReq.sender_count = ++(cb->fevsSendCount);
+    if((evt->type == 0) && (fevs_req->sender_count > 0))
+    {
+        TRACE_5("Re-sending fevs message %llu", fevs_req->sender_count);
+        send_evt.info.immnd.info.fevsReq.sender_count = 
+            fevs_req->sender_count; 
+        isResend = TRUE;
+    } else
+    {
+        send_evt.info.immnd.info.fevsReq.sender_count = ++(cb->fevsSendCount);
+    }
     send_evt.info.immnd.info.fevsReq.reply_dest = fevs_req->reply_dest;
-
     send_evt.info.immnd.info.fevsReq.client_hdl = fevs_req->client_hdl;
     send_evt.info.immnd.info.fevsReq.msg.size =  fevs_req->msg.size;
     /*Borrow the buffer from the input message instead of copying*/
@@ -248,31 +258,42 @@ uns32 immd_evt_proc_fevs_req(
             send_evt.info.immnd.info.fevsReq.sender_count,
             send_evt.info.immnd.info.fevsReq.msg.size);
 
-    /*Checkpoint the message to standby director. 
-      Syncronous call=>wait for ack*/
-    proc_rc = immd_mbcsv_sync_update(cb,&mbcp_msg);
+    if(isResend) {
+        LOG_IN("Resend of fevs message %llu, will not mbcp to peer IMMD",
+            send_evt.info.immnd.info.fevsReq.sender_count);
+    } else {
+        /*Checkpoint the message to standby director. 
+          Syncronous call=>wait for ack*/
+        proc_rc = immd_mbcsv_sync_update(cb,&mbcp_msg);
 
-    if (proc_rc != NCSCC_RC_SUCCESS)
-    {
-        /* This case should be handled better.
-          Reply with try again to ND ?
-          We apparently failed to replicate the message to stby.
-          This could be because the standby is crashed ?
-          Is there any way to check this  in the cb ?
-          In any case we do NOT want to disturb this active IMMD
-        */
-        LOG_ER("failed to replicate message to stdby send_count:%llu", 
-               send_evt.info.immnd.info.fevsReq.sender_count);
-        /*Revert the fevs count since we will not send this message.*/
-        --(cb->fevsSendCount);
-        TRACE_LEAVE();
-        return proc_rc;
+        if (proc_rc != NCSCC_RC_SUCCESS)
+        {
+            /* This case should be handled better.
+               Reply with try again to ND ?
+               We apparently failed to replicate the message to stby.
+               This could be because the standby is crashed ?
+               Is there any way to check this  in the cb ?
+               In any case we do NOT want to disturb this active IMMD
+            */
+            LOG_ER("failed to replicate message to stdby send_count:%llu", 
+                send_evt.info.immnd.info.fevsReq.sender_count);
+            /*Revert the fevs count since we will not send this message.*/
+            --(cb->fevsSendCount);
+            TRACE_LEAVE();
+            return proc_rc;
+        }
     }
+
+    /* See ticket #523, uncomment to generate the case
+    if(sinfo && cb->fevsSendCount == 101) {
+        LOG_ER("Fault injected for fevs msg 101 - exiting");
+        exit(1);
+    }
+    */
 
     /* Also save the message in cb for resends untill all NDs have pushed
       their counts passed thiss messageNo.*/
 
-    /*if(cb->fevsSendCount != 3)  Test injection.*/
     proc_rc = immd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_IMMND); 
 
     if (proc_rc != NCSCC_RC_SUCCESS)

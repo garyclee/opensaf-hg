@@ -39,6 +39,12 @@
 #define IMMSV_IMMD_MBCSV_VERSION_MIN 1
 #define IMMSV_IMMD_MBCSV_VERSION 1
 
+typedef struct immd_saved_fevs_msg
+{
+    IMMSV_FEVS  fevsMsg;
+    struct immd_saved_fevs_msg* next;
+} IMMD_SAVED_FEVS_MSG;
+
 typedef struct immd_immnd_info_node
 {
     NCS_PATRICIA_NODE    patnode;
@@ -108,6 +114,9 @@ typedef struct immd_cb_tag
     NCS_NODE_ID          immnd_coord;    //The nodeid of the current IMMND Coord
     NCS_SEL_OBJ          usr1_sel_obj; /* Selection object for USR1 signal events */
     SaSelectionObjectT   amf_sel_obj;  /* Selection Object for AMF events */
+
+    IMMD_SAVED_FEVS_MSG* saved_msgs;
+
 } IMMD_CB;
 
 EXTERN_C uns32 immd_immnd_info_tree_init (IMMD_CB  *cb);

@@ -25,7 +25,7 @@
 
 /*Max # of outstanding fevs messages towards director.*/
 /*Note max-max is 255. cb->messages_pending is an uns8*/
-#define IMMND_FEVS_MAX_PENDING 32 
+#define IMMND_FEVS_MAX_PENDING 16
 
 typedef enum immnd_server_state
     {
