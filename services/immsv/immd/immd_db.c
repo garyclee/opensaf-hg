@@ -336,3 +336,82 @@ uns32  immd_get_slot_and_subslot_id_from_node_id( NCS_NODE_ID node_id)
     return ((sub_slot * NCS_SUB_SLOT_MAX ) + (phy_slot));
 }
 
+void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS* fevs_msg)
+{
+    uns16 nrof_msgs=1;
+    IMMD_SAVED_FEVS_MSG* prior = NULL;
+    IMMD_SAVED_FEVS_MSG* new_msg = calloc(1, sizeof(IMMD_SAVED_FEVS_MSG));
+    TRACE_ENTER();
+    assert(new_msg);
+    /*new_msg->fevsMsg = *fevs_msg;*/
+    new_msg->fevsMsg.sender_count = fevs_msg->sender_count;
+    new_msg->fevsMsg.reply_dest = fevs_msg->reply_dest;
+    new_msg->fevsMsg.client_hdl = fevs_msg->client_hdl;
+    new_msg->fevsMsg.msg.size = fevs_msg->msg.size;
+    new_msg->fevsMsg.msg.buf = fevs_msg->msg.buf;
+    fevs_msg->msg.buf = NULL; /* steal the message */
+    fevs_msg->msg.size = 0;
+
+    prior = cb->saved_msgs;
+    if(prior) {
+        while(prior->next) {
+            ++nrof_msgs;
+            prior = prior->next;
+        }
+        ++nrof_msgs;
+        TRACE_5("%u'th message added. Message no %llu", 
+            nrof_msgs, new_msg->fevsMsg.sender_count);
+        prior->next = new_msg;
+        if(nrof_msgs > IMMD_MBCSV_MAX_MSG_CNT) {
+            /* Discard oldest message */
+            prior = cb->saved_msgs;
+            cb->saved_msgs = cb->saved_msgs->next;
+            TRACE_5("Message no %llu discarded", prior->fevsMsg.sender_count);
+            free(prior->fevsMsg.msg.buf);
+            prior->fevsMsg.msg.buf = NULL;
+            prior->fevsMsg.msg.size = 0;
+            free(prior);
+        }
+    } else {
+        /* first time */
+        TRACE_5("First message no %llu", new_msg->fevsMsg.sender_count);
+        cb->saved_msgs = new_msg;
+    }
+    TRACE_LEAVE();
+}
+
+IMMSV_FEVS*  immd_db_get_fevs(IMMD_CB *cb, const uns16 back_count)
+{
+    uns16 ix=0;
+    IMMD_SAVED_FEVS_MSG* old_msgs[back_count];
+    for(;ix < back_count; ++ix) {
+        old_msgs[ix] = NULL;
+    }
+
+    IMMD_SAVED_FEVS_MSG* old_msg = cb->saved_msgs;
+
+    while(old_msg) {
+        for(ix=0; ix < (back_count - 1); ++ix) {
+            old_msgs[ix] = old_msgs[ix + 1];
+        }
+        old_msgs[back_count - 1] = old_msg;
+        old_msg = old_msg->next;
+    }
+
+    return &(old_msgs[0]->fevsMsg);
+}
+
+void immd_db_purge_fevs(IMMD_CB *cb)
+{
+    TRACE_ENTER();
+    while(cb->saved_msgs) {
+        IMMD_SAVED_FEVS_MSG* old = cb->saved_msgs;
+        cb->saved_msgs = cb->saved_msgs->next;
+        TRACE_5("Message no %llu discarded", old->fevsMsg.sender_count);
+        free(old->fevsMsg.msg.buf);
+        old->fevsMsg.msg.buf = NULL;
+        old->fevsMsg.msg.size = 0;
+        free(old);
+    }
+    TRACE_LEAVE();
+}

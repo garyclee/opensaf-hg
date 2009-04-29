@@ -24,7 +24,7 @@
 #include "immd.h"
 
 /***************************************************************************
- * Name        : immd_sb_proc_fevs
+ * Name        : immd_process_sb_fevs
  
  * Description : This is used to replicate a fevs message at Standby.
 
@@ -48,6 +48,8 @@ uns32 immd_process_sb_fevs(IMMD_CB *cb, IMMSV_FEVS *fevs_msg)
     {
         cb->fevsSendCount++;
     }
+
+    immd_db_save_fevs(cb, fevs_msg);
 
     TRACE_5("cb->fevsSendCount:%llu", cb->fevsSendCount);
     TRACE_5("cb->admo_id_count:%u", cb->admo_id_count);

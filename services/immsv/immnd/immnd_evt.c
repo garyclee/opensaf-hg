@@ -1657,6 +1657,7 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt,
 
     /*aquire a ND sender count and send the fevs to ND (without waiting)*/
     cb->messages_pending++;  /*flow control*/
+    if(cb->messages_pending > 1) {TRACE("Messages pending:%u",  cb->messages_pending);}
 
     send_evt.type=IMMSV_EVT_TYPE_IMMD;
     send_evt.info.immd.type=IMMD_EVT_ND2D_ADMINIT_REQ;
@@ -1673,6 +1674,7 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt,
     if (rc != NCSCC_RC_SUCCESS) {
         LOG_ER("IMMND - AdminOwner Initialize Failed");
         send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
+        cb->messages_pending--;
         goto agent_rsp;
     } 
 
@@ -1742,6 +1744,7 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt,
     }
 
     cb->messages_pending++;  /*flow control*/
+    if(cb->messages_pending > 1) {TRACE("Messages pending:%u",  cb->messages_pending);}
 
     send_evt.type=IMMSV_EVT_TYPE_IMMD;
     send_evt.info.immd.type=IMMD_EVT_ND2D_IMPLSET_REQ;
@@ -1764,6 +1767,7 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt,
     if (rc != NCSCC_RC_SUCCESS) {
         LOG_ER("Problem in sending to IMMD over MDS");
         send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
+        cb->messages_pending--;
         goto agent_rsp;
     } 
 
@@ -1835,6 +1839,7 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt,
     }
 
     cb->messages_pending++;  /*flow control*/
+    if(cb->messages_pending > 1) {TRACE("Messages pending:%u",  cb->messages_pending);}
 
     send_evt.type=IMMSV_EVT_TYPE_IMMD;
     send_evt.info.immd.type=IMMD_EVT_ND2D_CCBINIT_REQ;
@@ -1852,6 +1857,7 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt,
     if (rc != NCSCC_RC_SUCCESS) {
         LOG_ER("Problem in sending ro IMMD over MDS");
         send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
+        cb->messages_pending--;
         goto agent_rsp;
     } 
 
@@ -1941,6 +1947,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb,
          */
 
         cb->messages_pending++;  /*flow control*/
+        if(cb->messages_pending > 1) {TRACE("Messages pending:%u",  cb->messages_pending);}
 
         memset(&send_evt,'\0',sizeof(IMMSV_EVT));
         send_evt.type=IMMSV_EVT_TYPE_IMMD;
@@ -1951,6 +1958,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb,
 
         if(!immnd_is_immd_up(cb)) {
             err = SA_AIS_ERR_TRY_AGAIN;
+            cb->messages_pending--;
             goto agent_rsp;
         }
 
@@ -1960,6 +1968,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb,
         if (rc != NCSCC_RC_SUCCESS) {
             LOG_ER("Problem in sending to IMMD over MDS");
             err = SA_AIS_ERR_TRY_AGAIN;
+            cb->messages_pending--;
             goto agent_rsp;
         } 
 
@@ -2075,6 +2084,7 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb,
     }
 
     cb->messages_pending++;  /*flow control*/
+    if(cb->messages_pending > 1) {TRACE("Messages pending:%u",  cb->messages_pending);}
 
     send_evt.type=IMMSV_EVT_TYPE_IMMD;
     send_evt.info.immd.type=IMMD_EVT_ND2D_FEVS_REQ;
@@ -2093,6 +2103,7 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb,
     if (rc != NCSCC_RC_SUCCESS) {
         LOG_ER("Problem in sending to IMMD over MDS");     
         error = SA_AIS_ERR_TRY_AGAIN;
+        cb->messages_pending--;
         goto agent_rsp;
     } 
 
@@ -4792,24 +4803,26 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb,
     MDS_DEST reply_dest = evt->info.fevsReq.reply_dest;
     TRACE_ENTER();
 
+    if(cb->highestProcessed >= msgNo) {
+        /*We have already received this message, discard it.*/
+        LOG_WA("DISCARD DUPLICATE FEVS message:%llu", msgNo);
+        return NCSCC_RC_FAILURE;  /*TODO: ensure evt is discarded by invoker*/
+    } 
+
     SaBoolT originatedAtThisNd = 
         ((clnt_hdl & 0x00000000ffffffff) == cb->node_id);
 
     if(originatedAtThisNd) {
         assert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
-        --(cb->messages_pending);  /*flow control towards IMMD */
-        TRACE_2("BROADCAST OK! messages from me still pending:%u", 
+        if(cb->messages_pending) {
+            --(cb->messages_pending);  /*flow control towards IMMD */
+        }
+        TRACE_2("FEVS from myself, still pending:%u", 
             cb->messages_pending);
     } else {
-        TRACE_2("REMOTE FEVS BCAST received. messages from me still pending:%u",
+        TRACE_2("REMOTE FEVS received. Messages from me still pending:%u",
             cb->messages_pending);
     }
-
-    if(cb->highestProcessed >= msgNo) {
-        /*We have already received this message, discard it.*/
-        LOG_ER("DISCARD DUPLICATE FEVS message:%llu", msgNo);
-        return NCSCC_RC_FAILURE;  /*TODO: ensure evt is discarded by invoker*/
-    } 
 
     if(cb->highestReceived < msgNo) {
         cb->highestReceived = msgNo;

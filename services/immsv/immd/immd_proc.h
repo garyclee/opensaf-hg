@@ -47,4 +47,7 @@ EXTERN_C uns32 immd_mbcsv_finalize(IMMD_CB *cb);
 EXTERN_C uns32 immd_mbcsv_close(IMMD_CB *cb);
 EXTERN_C uns32 immd_mbcsv_dispatch(IMMD_CB *cb);
 
+EXTERN_C void immd_db_save_fevs(IMMD_CB *cb, IMMSV_FEVS* fevs_msg);
+EXTERN_C IMMSV_FEVS*  immd_db_get_fevs(IMMD_CB *cb, const uns16 back_count);
+EXTERN_C void immd_db_purg_fevs(IMMD_CB *cb);
 #endif
