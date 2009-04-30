@@ -19,16 +19,35 @@
 set -e
 
 if [ ! -f ./tools/smidump/bin/smidump ]; then
-   echo "**********************************"
-   echo "Building SMIDUMP tool"
-   echo "**********************************"
+        echo "**********************************"
+        echo "Building SMIDUMP tool"
+        echo "**********************************"
+
+        # Making sure we are not cross-compiling smidump
+        unset CFLAGS
+        unset CXXFLAGS
+        unset CC
+        unset CXX
+        unset LDFLAGS
+        unset AS
+        unset AR
+        unset CPP
+        unset LD
+        unset NM
+        unset OBJCOPY
+        unset OBJDUMP
+        unset RANLIB
+        unset READELF
+        unset STRIP
+        unset CONFIG_SITE
+        unset PKG_CONFIG_PATH
 
 	cd ./tools/smidump/src
 	./configure --enable-static --disable-shared
 	make
 	cd -
-   mkdir -p ./tools/smidump/bin
+        mkdir -p ./tools/smidump/bin
 	cp ./tools/smidump/src/tools/smidump ./tools/smidump/bin/
 else
-   echo "Nothing to be done for 'build_smidump'"
+        echo "Nothing to be done for 'build_smidump'"
 fi
