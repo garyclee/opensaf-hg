@@ -528,7 +528,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
     if(cl_node->stale)
     {
         TRACE_2("Handle %llu is stale", immOiHandle);
-        rc = SA_AIS_ERR_BAD_HANDLE; 
+        rc = SA_AIS_OK;/* Dont punish the client for closing stale handle*/
         goto stale_handle;
     }
 
@@ -580,11 +580,12 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
         TRACE_1("Received empty reply from server");
     }
 
+ stale_handle:
     /* Do the finalize processing at IMMA */
     if (rc == SA_AIS_OK)
     {
         /* Take the CB lock  */
-        if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+        if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
         {
             rc = SA_AIS_ERR_LIBRARY;
             TRACE_1("LOCK failed");
@@ -598,7 +599,6 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
  lock_fail1:   
  mds_send_fail:   
  node_not_found:
- stale_handle:
     if (locked)
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -656,7 +656,7 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
     }
 
     /* Note NOT unsigned since negative encodes async invoc. */
-    SaInt32T inv = (invocation & 0x00000000ffffffff);
+    SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(invocation);
 
     /* populate the structure */
     memset(&adminOpRslt_evt, 0, sizeof(IMMSV_EVT));

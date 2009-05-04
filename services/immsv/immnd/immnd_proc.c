@@ -84,8 +84,8 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb,
 
     TRACE_ENTER();
 
-    client_id = (cl_node->imm_app_hdl >> 32);
-    node_id = (cl_node->imm_app_hdl & 0x00000000ffffffff);
+    client_id = m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->imm_app_hdl);
+    node_id = m_IMMSV_UNPACK_HANDLE_LOW(cl_node->imm_app_hdl);
     TRACE_5("Attempting discard connection id:%llx <n:%x, c:%u>", 
         cl_node->imm_app_hdl, node_id, client_id);
     /* Corresponds to "discardConnection" in the older EVS based IMM 
@@ -654,9 +654,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             immModel_fetchAdmOpContinuations(cb, inv, SA_FALSE, &dummyImplConn,
                 &reqConn, &reply_dest);
             assert(reqConn);
-            tmp_hdl = reqConn;
-            tmp_hdl = (tmp_hdl << 32);
-            tmp_hdl |= (cb->node_id);
+            tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
             immnd_client_node_get(cb, tmp_hdl, &cl_node);
             if(cl_node == NULL || cl_node->mIsStale) {
@@ -668,7 +666,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             send_evt.info.imma.info.admOpRsp.invocation = inv;
             send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TIMEOUT;
 
-            SaUint32T subinv = (inv & 0x00000000ffffffff);
+            SaUint32T subinv = m_IMMSV_UNPACK_HANDLE_LOW(inv);
             if(subinv < 0) { //async-admin-op
                 LOG_WA("Timeout on asyncronous admin operation %i", subinv);
                 rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OM, 
@@ -697,7 +695,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
             immModel_fetchSearchReqContinuation(cb, inv, &reqConn);
             assert(reqConn);
 
-            reply.searchId = (inv & 0x00000000ffffffff);
+            reply.searchId = m_IMMSV_UNPACK_HANDLE_LOW(inv);
 
             reply.result = SA_AIS_ERR_TIMEOUT;
             LOG_WA("Timeout on search op waiting on implementer");

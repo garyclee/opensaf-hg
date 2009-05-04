@@ -184,8 +184,10 @@ uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
     SaImmAdminOwnerHandleT temp_hdl, *temp_ptr=NULL;
     IMMA_ADMIN_OWNER_NODE  *adm_node=NULL;
-
-    temp_ptr = 0;
+    SaImmCcbHandleT ccb_temp_hdl, *ccb_temp_ptr=NULL;
+    IMMA_CCB_NODE *ccb_node=NULL;
+    SaImmSearchHandleT search_tmp_hdl, *search_tmp_ptr=NULL;
+    IMMA_SEARCH_NODE *search_node=NULL;
 
     /* Scan the entire Adm Owner DB and close the handles opened by client */
     while ((adm_node = (IMMA_ADMIN_OWNER_NODE *)
@@ -197,13 +199,38 @@ uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
         if (adm_node->mImmHandle == cl_node->handle)
         {
             imma_admin_owner_node_delete(cb, adm_node);
+            temp_ptr = NULL; /* Redo iteration from start after delete. */
         }
     }
 
-    /* TODO ABT Close CCB handles and Search handles also!!
-      We assume that the ND takes care of garbage collecting them on its side.
-    */
+    /* Remove any ccb nodes opened by the client */
+    while ((ccb_node = (IMMA_CCB_NODE *) 
+               ncs_patricia_tree_getnext(&cb->ccb_tree,  
+                   (uns8*)ccb_temp_ptr)))
+    {
+        ccb_temp_hdl = ccb_node->ccb_hdl;
+        ccb_temp_ptr = &ccb_temp_hdl;
 
+        if(ccb_node->mImmHandle == cl_node->handle)
+        {
+            imma_ccb_node_delete(cb, ccb_node);
+            ccb_temp_ptr = NULL; /*Redo iteration from start after delete. */
+        }
+    }
+
+    /* Remove any search nodes opened by the client */
+    while ((search_node = (IMMA_SEARCH_NODE *)
+               ncs_patricia_tree_getnext(&cb->search_tree, 
+                   (uns8*)search_tmp_ptr)))
+    {
+        search_tmp_hdl = search_node->search_hdl;
+        search_tmp_ptr = &search_tmp_hdl;
+        if(search_node->mImmHandle == cl_node->handle)
+        {
+            imma_search_node_delete(cb, search_node);
+            search_tmp_ptr = NULL; /*Redo iteration from start after delete. */
+        }
+    }
 
     imma_callback_ipc_destroy(cl_node);
 
@@ -233,7 +260,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 
     SaImmHandleT immHandleCont;
     SaInvocationT userInvoc;
-    SaInt32T inv = (evt->info.admOpRsp.invocation & 0x00000000ffffffff);
+    SaInt32T inv = m_IMMSV_UNPACK_HANDLE_LOW(evt->info.admOpRsp.invocation);
 
     /*NOTE: should get handle from immnd also and verify.*/
     if (!popAsyncAdmOpContinuation(cb, inv, &immHandleCont, &userInvoc))
@@ -387,9 +414,9 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
         callback->type = IMMA_CALLBACK_OM_ADMIN_OP;
         callback->lcl_imm_hdl = implHandle;
 
-        SaInvocationT saInv = evt->info.admOpReq.adminOwnerId;
-        saInv = (saInv << 32);
-        saInv |= (evt->info.admOpReq.invocation);
+        SaInvocationT saInv = 
+            m_IMMSV_PACK_HANDLE(evt->info.admOpReq.adminOwnerId,
+                                evt->info.admOpReq.invocation);
 
         callback->invocation = saInv;
 
@@ -493,9 +520,9 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
         callback->attrNames =  evt->info.searchRemote.attributeNames;
         evt->info.searchRemote.attributeNames = NULL;
 
-        SaInvocationT saInv = evt->info.searchRemote.remoteNodeId;
-        saInv = (saInv << 32);
-        saInv |= (evt->info.searchRemote.searchId);
+        SaInvocationT saInv = 
+            m_IMMSV_PACK_HANDLE(evt->info.searchRemote.remoteNodeId,
+                                evt->info.searchRemote.searchId);
         callback->invocation = saInv;
 
         callback->requestNodeId = evt->info.searchRemote.requestNodeId;
@@ -1939,17 +1966,12 @@ static void imma_process_callback_info (IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
                         attr[i]->modAttr.attrName=0;
                         if (attr[i]->modAttr.attrValuesNumber)
                         {
-                            if ((attr[i]->modAttr.attrValueType == SA_IMM_ATTR_SANAMET) ||
-                                (attr[i]->modAttr.attrValueType == SA_IMM_ATTR_SAANYT) ||
-                                (attr[i]->modAttr.attrValueType == SA_IMM_ATTR_SASTRINGT))
+                            int j;
+                            for (j=0;j<attr[i]->modAttr.attrValuesNumber;++j)
                             {
-                                int j;
-                                for (j=0;j<attr[i]->modAttr.attrValuesNumber;++j)
-                                {
-                                    imma_freeAttrValue3(attr[i]->modAttr.attrValues[j],
-                                                        attr[i]->modAttr.attrValueType); /*free-5*/
-                                    attr[i]->modAttr.attrValues[j] = 0;
-                                }
+                                imma_freeAttrValue3(attr[i]->modAttr.attrValues[j],
+                                    attr[i]->modAttr.attrValueType); /*free-5*/
+                                attr[i]->modAttr.attrValues[j] = 0;
                             }
                             free(attr[i]->modAttr.attrValues); /*4*/
                             //SaImmAttrValueT[] array-of-void*
@@ -2134,8 +2156,10 @@ static void imma_process_callback_info (IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.client_hdl = 
                     callback->lcl_imm_hdl;
 
-                SaInt32T inv =   (callback->invocation & 0x00000000ffffffff);
-                SaInt32T owner = (callback->invocation >> 32);
+                SaInt32T owner =
+                    m_IMMSV_UNPACK_HANDLE_HIGH(callback->invocation);
+                SaInt32T inv =
+                    m_IMMSV_UNPACK_HANDLE_LOW(callback->invocation);
 
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.searchId = inv;
                 rtAttrUpdRpl.info.immnd.info.rtAttUpdRpl.sr.remoteNodeId = owner;

@@ -548,7 +548,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
     if(cl_node->stale)
     {
         TRACE_2("Handle %llu is stale", immHandle);
-        rc = SA_AIS_ERR_BAD_HANDLE; 
+        rc = SA_AIS_OK; /*Dont punish the client for closing stale handle*/
         goto stale_handle;
     }
 
@@ -598,11 +598,12 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
         rc = SA_AIS_ERR_NO_RESOURCES;
     }
 
+ stale_handle:
     /* Do the finalize processing at IMMA */
     if (rc == SA_AIS_OK)
     {
         /* Take the CB lock  */
-        if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+        if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
         {
             rc = SA_AIS_ERR_LIBRARY;
             TRACE_1("Lock failed");
@@ -617,7 +618,6 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
  lock_fail1:   
  mds_send_fail:   
  node_not_found:
- stale_handle:
     if (locked)
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
@@ -680,7 +680,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
     {
         TRACE_2("Admin owner name too long, size: %u max:%u", 
                nameLen, SA_MAX_NAME_LENGTH);
-        return SA_AIS_ERR_LIBRARY;     
+        return SA_AIS_ERR_INVALID_PARAM;
     }
 
     isLoaderName= (strncmp(adminOwnerName,immLoaderName,nameLen) == 0);
@@ -1005,7 +1005,8 @@ SaAisErrorT saImmOmCcbInitialize (SaImmAdminOwnerHandleT adminOwnerHandle,
                               &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No client associated with Admin Owner");
         goto client_not_found;
     }
 
@@ -1162,8 +1163,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
                                         &ao_node);
     if (!ao_node)
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;  /* Or should it be SA_AIS_ERR_LIBRARY ? */
-        TRACE_2("No Amin-Owner associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No Amin-Owner associated with Ccb");
         goto ao_not_found;
     }
 
@@ -1174,8 +1175,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
                                    &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Ccb");
         goto client_not_found;
     }
 
@@ -1524,8 +1525,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
                                         &ao_node);
     if (!ao_node)
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;  /* Or should it be SA_AIS_ERR_LIBRARY ? */
-        TRACE_2("No Amin-Owner associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No Amin-Owner associated with Ccb");
         goto ao_not_found;
     }
 
@@ -1536,8 +1537,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
                                    &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Ccb");
         goto client_not_found;
     }
 
@@ -1793,8 +1794,8 @@ SaAisErrorT saImmOmCcbObjectDelete (SaImmCcbHandleT         ccbHandle,
                                         &ao_node);
     if (!ao_node)
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No Amin-Owner associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No Amin-Owner associated with Ccb");
         goto ao_not_found;
     }
 
@@ -1805,8 +1806,8 @@ SaAisErrorT saImmOmCcbObjectDelete (SaImmCcbHandleT         ccbHandle,
                                    &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Ccb");
         goto client_not_found;
     }
 
@@ -1964,8 +1965,8 @@ SaAisErrorT saImmOmCcbApply (SaImmCcbHandleT ccbHandle)
                                         &ao_node);
     if (!ao_node)
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No Amin-Owner associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No Amin-Owner associated with Ccb");
         goto ao_not_found;
     }
 
@@ -1973,8 +1974,8 @@ SaAisErrorT saImmOmCcbApply (SaImmCcbHandleT ccbHandle)
                                    &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Ccb");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Ccb");
         goto client_not_found;
     }
 
@@ -2149,8 +2150,8 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
                                   &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Admin owner");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Admin owner");
         goto client_not_found;
     }
 
@@ -2453,8 +2454,8 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
                               &cl_node);
     if (!(cl_node&&cl_node->isOm))
     {
-        rc = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_2("No valid SaImmHandleT associated with Admin owner");
+        rc = SA_AIS_ERR_LIBRARY;
+        LOG_ER("No valid SaImmHandleT associated with Admin owner");
         goto client_not_found;
     }
 
@@ -4672,8 +4673,8 @@ SaAisErrorT saImmOmSearchNext_2(
 
     if (!(cl_node&&cl_node->isOm))
     {
-        error = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_1("Invalid SaImmHandleT related to search handle");
+        error = SA_AIS_ERR_LIBRARY;
+        LOG_ER("Invalid SaImmHandleT related to search handle");
         goto release_lock;
     }
 
@@ -4928,15 +4929,16 @@ SaAisErrorT saImmOmSearchFinalize (SaImmSearchHandleT searchHandle)
 
     if (!(cl_node&&cl_node->isOm))
     {
-        error = SA_AIS_ERR_BAD_HANDLE;
-        TRACE_1("Invalid SaImmHandleT related to search handle");
+        error = SA_AIS_ERR_LIBRARY;
+        LOG_ER("Invalid SaImmHandleT related to search handle");
         goto release_lock;
     }
 
     if(cl_node->stale)
     {
         TRACE_2("IMM Handle %llu is stale", search_node->mImmHandle);
-        error = SA_AIS_ERR_BAD_HANDLE; 
+        error = SA_AIS_OK; /*Dont punish the client for closing stale handle*/
+        imma_search_node_delete(cb, search_node);
         goto release_lock;
     }
 
@@ -5068,7 +5070,7 @@ SaAisErrorT saImmOmAdminOwnerSet (SaImmAdminOwnerHandleT adminOwnerHandle,
            I guess we leak the admin-owner in this case. 
         */
 
-        TRACE_1("Admin owner associated with closed client");
+        LOG_ER("Admin owner associated with closed client");
         goto client_not_found;
     }
 
@@ -5220,7 +5222,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
            I guess we leak the admin-owner in this case. 
         */
 
-        TRACE_1("Admin owner associated with closed client");
+        LOG_ER("Admin owner associated with closed client");
         goto client_not_found;
     }
 
@@ -5489,14 +5491,15 @@ SaAisErrorT saImmOmAdminOwnerFinalize (SaImmAdminOwnerHandleT adminOwnerHandle)
           I guess we leak the admin-owner in this case. 
         */
 
-        TRACE_1("Admin owner associated with closed client");
+        LOG_ER("Admin owner associated with closed client");
         goto client_not_found;
     }
 
     if(cl_node->stale)
     {
         TRACE_2("IMM Handle %llu is stale", ao_node->mImmHandle);
-        rc = SA_AIS_ERR_BAD_HANDLE; 
+        rc = SA_AIS_OK; /*Dont punish the client for closing stale handle*/
+        imma_admin_owner_node_delete(cb, ao_node);
         goto stale_handle;
     }
 
@@ -5627,7 +5630,8 @@ SaAisErrorT saImmOmCcbFinalize (SaImmCcbHandleT ccbHandle)
         if(cl_node->stale)
         {
             TRACE_2("IMM Handle %llu is stale", ccb_node->mImmHandle);
-            rc = SA_AIS_ERR_BAD_HANDLE; 
+            rc = SA_AIS_OK;/*Dont punish the client for closing stale handle*/
+            imma_ccb_node_delete(cb, ccb_node);
             goto stale_handle;
         }
 
