@@ -57,7 +57,7 @@ uns32 avnd_clmdb_init(AVND_CB *cb)
    uns32       rc = NCSCC_RC_SUCCESS;
 
    /* timestamp this node */
-   m_GET_TIME_STAMP(clmdb->node_info.bootTimestamp);
+   clmdb->node_info.bootTimestamp = time(NULL) * SA_TIME_ONE_SECOND;
 
    /* initialize the clm dll list */
    clmdb->clm_list.order = NCS_DBLIST_ASSCEND_ORDER;
