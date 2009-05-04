@@ -830,7 +830,8 @@ retry:
     rc = 0;
     stream->curFileSize += stream->fixedLogRecordSize;
 
-    if (stream->curFileSize >= stream->maxLogFileSize)
+    if ((stream->curFileSize + stream->fixedLogRecordSize) > 
+        stream->maxLogFileSize)
     {
         char *current_time = lgs_get_time();
 
