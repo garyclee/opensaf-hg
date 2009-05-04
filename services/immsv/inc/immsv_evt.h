@@ -563,4 +563,11 @@ EXTERN_C void immsv_evt_free_attrNames(IMMSV_ATTR_NAME_LIST* p);
 EXTERN_C void immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST* avl);
 EXTERN_C void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST* adp);
 EXTERN_C void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST* p);
+
+
+/* Macros to pack and unpack imm handles */
+#define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | low)
+#define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) ((imm_handle) >> 32)
+#define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) ((imm_handle) & 0x00000000ffffffff)
+
 #endif

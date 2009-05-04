@@ -742,9 +742,8 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt,
       survives => restart of ND means loss of all client connections.
       Return ND pid in reply to use in handshake ??
     */
-    cl_node->imm_app_hdl = clientId;
-    cl_node->imm_app_hdl = (cl_node->imm_app_hdl << 32);
-    cl_node->imm_app_hdl |= (cb->node_id);
+    
+    cl_node->imm_app_hdl = m_IMMSV_PACK_HANDLE(clientId, cb->node_id);
 
     cl_node->agent_mds_dest=sinfo->dest;
     cl_node->version=evt->info.initReq.version;
@@ -883,10 +882,7 @@ search_req_continue(
     memset(&send_evt,'\0', sizeof(IMMSV_EVT));
     send_evt.type=IMMSV_EVT_TYPE_IMMA;
     SaImmHandleT tmp_hdl =0LL;
-    tmp_hdl = reqConn;
-    tmp_hdl = (tmp_hdl << 32);
-    tmp_hdl |= (cb->node_id);
-
+    tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
     /*Look up client-node*/
     immnd_client_node_get(cb, tmp_hdl, &cl_node);
@@ -1111,16 +1107,15 @@ static uns32 immnd_evt_proc_oi_att_pull_rpl(IMMND_CB *cb,
         TRACE_2("Originating client is local");
         //Case (B) Fetch request continuation locally.
         SaUint32T reqConn;
-        SaInvocationT invoc = 0LL;
-        invoc = evt->info.rtAttUpdRpl.sr.remoteNodeId;
-        invoc = (invoc << 32);
-        invoc |= evt->info.rtAttUpdRpl.sr.searchId;
+        SaInvocationT invoc = 
+            m_IMMSV_PACK_HANDLE(evt->info.rtAttUpdRpl.sr.remoteNodeId,
+                                evt->info.rtAttUpdRpl.sr.searchId);
 
         immModel_fetchSearchReqContinuation(cb, invoc, &reqConn);
         TRACE_2("FETCHED SEARCH REQ CONTINUATION FOR %u|%u->%u",
-            (SaUint32T) (invoc & 0x00000000ffffffff), 
-            (SaUint32T) (invoc >> 32), 
-            reqConn);
+            (SaUint32T) m_IMMSV_UNPACK_HANDLE_LOW(invoc), 
+            (SaUint32T) m_IMMSV_UNPACK_HANDLE_HIGH(invoc), reqConn);
+
         if(!reqConn) {
             LOG_WA("Failed to retrieve search continuation, client died ?");
             //Cant do anything but just drop it.
@@ -1315,10 +1310,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
             rreq->objectName = rsp->objectName;  /* borrow objectName.buf */
             rreq->attributeNames = rtAttrsToFetch; /* borrow this structure */
 
-            implHandle = implConn;
-            implHandle = (implHandle << 32);
-            implHandle |= implNodeId;
-
+            implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
             if(oi_cl_node == NULL || oi_cl_node->mIsStale) {
@@ -1360,11 +1352,9 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb,
         }
 
         /*Register request continuation !*/
-        SaInvocationT invoc = 0LL;
-        invoc = implNodeId;
-        invoc = (invoc << 32);
-        invoc |= sn->searchId;
-        SaUint32T clientId = (evt->info.searchOp.client_hdl >> 32);
+        SaInvocationT invoc = m_IMMSV_PACK_HANDLE(implNodeId, sn->searchId);
+        SaUint32T clientId = 
+            m_IMMSV_UNPACK_HANDLE_HIGH(evt->info.searchOp.client_hdl);
 
         TRACE_2("SETTING SEARCH REQ CONTINUATION FOR %u|%x->%u",
             sn->searchId, implNodeId, clientId);
@@ -1932,8 +1922,8 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb,
         goto agent_rsp;
     }
 
-    clientId = (client_hdl >> 32);
-    clientNode = (client_hdl & 0x00000000ffffffff);
+    clientId = m_IMMSV_UNPACK_HANDLE_HIGH(client_hdl);
+    clientNode = m_IMMSV_UNPACK_HANDLE_LOW(client_hdl);
 
     err = immModel_rtObjectUpdate(cb, &(evt->info.objModify),
         clientId, clientNode, &isPureLocal);
@@ -2169,10 +2159,7 @@ static void immnd_evt_proc_ccb_obj_modify_rsp(IMMND_CB *cb,
         &reqConn);
 
     if(reqConn) {
-        SaImmHandleT tmp_hdl = 0LL;
-        tmp_hdl = reqConn;
-        tmp_hdl = (tmp_hdl << 32);
-        tmp_hdl |= cb->node_id;
+        SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
         immnd_client_node_get(cb, tmp_hdl, &cl_node);
         if(cl_node == NULL || cl_node->mIsStale) {
@@ -2243,10 +2230,7 @@ static void immnd_evt_proc_ccb_obj_create_rsp(IMMND_CB *cb,
         &reqConn);
 
     if(reqConn) {
-        SaImmHandleT tmp_hdl=0LL;
-        tmp_hdl = reqConn;
-        tmp_hdl = (tmp_hdl << 32);
-        tmp_hdl |= cb->node_id;
+        SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
         immnd_client_node_get(cb, tmp_hdl, &cl_node);
         if(cl_node == NULL || cl_node->mIsStale) {
@@ -2315,10 +2299,7 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 
     if(!immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbUpcallRsp.ccbId, &err) 
         && reqConn) {
-        SaImmHandleT tmp_hdl = 0LL;
-        tmp_hdl = reqConn;
-        tmp_hdl = (tmp_hdl << 32);
-        tmp_hdl |= cb->node_id;
+        SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
         immnd_client_node_get(cb, tmp_hdl, &cl_node);
         if(cl_node == NULL || cl_node->mIsStale) {
@@ -2405,11 +2386,8 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
                     /* Send apply callbacks for all implementers at this node involved
                        with the ccb. Re-use evt*/	
                     /*Look up the client node for the implementer, using implConn*/
-
-                    SaImmHandleT tmp_hdl = 0LL;
-                    tmp_hdl = implConnArr[ix];
-                    tmp_hdl = (tmp_hdl << 32);
-                    tmp_hdl |= cb->node_id;
+                    SaImmHandleT tmp_hdl = 
+                        m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
                     /*Fetch client node for OI !*/
                     immnd_client_node_get(cb, tmp_hdl, &oi_cl_node);
@@ -2447,10 +2425,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
         */
 
         if(reqConn) {
-            SaImmHandleT tmp_hdl = 0LL;
-            tmp_hdl = reqConn;
-            tmp_hdl = (tmp_hdl << 32);
-            tmp_hdl |= cb->node_id;
+            SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
             immnd_client_node_get(cb, tmp_hdl, &cl_node);
             if(cl_node == NULL || cl_node->mIsStale) {
@@ -2527,9 +2502,8 @@ static uns32 immnd_evt_proc_rt_update_pull(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_S
         rreq->objectName = req->objectName; /* borrow, objectname.buf freed in immnd_evt_destroy */
         rreq->attributeNames = req->attributeNames; /* borrow, freed in immnd_evt_destroy */
 
-        implHandle = implConn;
-        implHandle = (implHandle << 32);
-        implHandle |= cb->node_id; /* == req->remoteNodeId */
+        implHandle = m_IMMSV_PACK_HANDLE(implConn, 
+            cb->node_id); /* == req->remoteNodeId */
 
         /*Fetch client node for OI !*/
         immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -2610,10 +2584,9 @@ immnd_evt_proc_remote_search_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *
     IMMSV_OM_RSP_SEARCH_REMOTE* rspo = &evt->info.rspSrchRmte;
     assert(cb->node_id == rspo->requestNodeId);
     /*Fetch originating request continuation*/
-    SaInvocationT invoc=0LL;
-    invoc = rspo->remoteNodeId;
-    invoc = (invoc << 32);
-    invoc |=  rspo->searchId;
+    SaInvocationT invoc = 
+        m_IMMSV_PACK_HANDLE(rspo->remoteNodeId, rspo->searchId);
+
     SaUint32T reqConn;
     immModel_fetchSearchReqContinuation(cb, invoc, &reqConn);
 
@@ -2709,10 +2682,7 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 
     if(reqConn) {
         /*Original Request was local, send reply.*/
-        SaImmHandleT tmp_hdl = 0LL;
-        tmp_hdl = reqConn;
-        tmp_hdl = (tmp_hdl << 32);
-        tmp_hdl |= cb->node_id;
+        SaImmHandleT tmp_hdl = m_IMMSV_PACK_HANDLE(reqConn, cb->node_id);
 
         immnd_client_node_get(cb, tmp_hdl, &cl_node);
         if(cl_node == NULL || cl_node->mIsStale) {
@@ -2805,7 +2775,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
     IMMND_IMM_CLIENT_NODE   *oi_cl_node=NULL;
     SaImmOiHandleT          implHandle=0LL;
-    SaUint32T conn = (clnt_hdl >> 32);
+    SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+
     SaUint32T implConn=0;
     NCS_NODE_ID implNodeId=0;
     SaBoolT async=SA_FALSE;
@@ -2822,11 +2793,9 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
       process (thread safe). 
     */
 
-    SaInvocationT saInv = 0LL;
-    saInv = evt->info.admOpReq.adminOwnerId;
-    saInv = (saInv << 32);
-    saInv |= evt->info.admOpReq.invocation;
-
+    SaInvocationT saInv = 
+        m_IMMSV_PACK_HANDLE(evt->info.admOpReq.adminOwnerId,
+            evt->info.admOpReq.invocation);
 
     error = immModel_adminOperationInvoke(cb, &(evt->info.admOpReq),
         originatedAtThisNd?conn:0,
@@ -2843,9 +2812,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
     if(error == SA_AIS_OK && implConn) {
         /*Implementer exists and is local, make the up-call!*/
         assert(implNodeId == cb->node_id);
-        implHandle = implConn;
-        implHandle = (implHandle << 32);
-        implHandle |= implNodeId;
+        implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
         /*Fetch client node for OI !*/
         immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -2913,9 +2880,8 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
             send_evt.type = IMMSV_EVT_TYPE_IMMA;
       
             if(async) {
-                saInv = evt->info.admOpReq.adminOwnerId;
-                saInv = (saInv << 32);
-                saInv |= evt->info.admOpReq.invocation;
+                saInv = m_IMMSV_PACK_HANDLE(evt->info.admOpReq.adminOwnerId,
+                    evt->info.admOpReq.invocation);
 
                 send_evt.info.imma.type = IMMA_EVT_ND2A_ADMOP_RSP;
                 send_evt.info.imma.info.admOpRsp.invocation = saInv;
@@ -3108,7 +3074,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb,
     IMMSV_EVT               send_evt;
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
     SaImmHandleT            client_hdl;
-    uns32 proc_rc;
+    uns32 proc_rc = NCSCC_RC_SUCCESS;
     char* tmpData = NULL;  
     NCS_UBAID uba;
     uba.start=NULL;
@@ -3118,7 +3084,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb,
     immnd_client_node_get(cb, client_hdl, &cl_node);
     if(cl_node == NULL || cl_node->mIsStale) {
         LOG_WA("IMMND - Client went down so no response");
-        return 0; 
+        return NCSCC_RC_SUCCESS; /* no problem for IMMND. */
     } 
 
     if(cl_node->mIsSync) { 
@@ -3287,8 +3253,8 @@ static void immnd_evt_proc_rt_object_create(IMMND_CB *cb,
     IMMSV_EVT               send_evt;
     IMMSV_SEND_INFO         *sinfo=NULL;
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
-    SaUint32T   reqConn = (clnt_hdl >>32);
-    SaUint32T   nodeId = (clnt_hdl & 0x00000000ffffffff);
+    SaUint32T   reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    SaUint32T   nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
     TRACE_ENTER();
 
     if(originatedAtThisNd) {
@@ -3394,9 +3360,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
         if(implConn) {
             /*The implementer is local, make the up-call*/
             assert(implNodeId == cb->node_id);
-            implHandle = implConn;
-            implHandle = (implHandle << 32);
-            implHandle |= implNodeId;
+            implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -3404,7 +3368,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
                 LOG_WA("Client died");
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 delayedReply = SA_FALSE;
-                assert(oi_cl_node->mIsStale); 
+                assert(oi_cl_node != NULL); 
             } else {
                 memset(&send_evt,'\0',sizeof(IMMSV_EVT));
                 send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3525,9 +3489,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
         if(implConn) {
             /*The implementer is local, make the up-call*/
             assert(implNodeId == cb->node_id);
-            implHandle = implConn;
-            implHandle = (implHandle << 32);
-            implHandle |= implNodeId;
+            implHandle = m_IMMSV_PACK_HANDLE(implConn, implNodeId);
 
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -3535,7 +3497,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
                 LOG_WA("OI Client died");
                 err = SA_AIS_ERR_FAILED_OPERATION;
                 delayedReply = SA_FALSE;
-                assert(oi_cl_node->mIsStale); 
+                assert(oi_cl_node != NULL); 
             } else {
                 memset(&send_evt,'\0',sizeof(IMMSV_EVT));
                 send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3623,8 +3585,8 @@ static void immnd_evt_proc_rt_object_modify(IMMND_CB *cb,
     IMMSV_EVT               send_evt;
     IMMSV_SEND_INFO         *sinfo=NULL;
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
-    SaUint32T reqConn = (clnt_hdl >> 32);
-    SaUint32T nodeId = (clnt_hdl & 0x00000000ffffffff);
+    SaUint32T reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
     TRACE_ENTER();
 
 #if 0  /*DEBUG PRINTOUTS START*/
@@ -3722,9 +3684,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb,
         int ix=0;
         for(; ix<arrSize; ++ix) {
             /*Look up the client node for the implementer, using implConn*/
-            implHandle = implConnArr[ix]; 
-            implHandle = (implHandle << 32); 
-            implHandle |= cb->node_id;
+            implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
             /*Fetch client node for OI !*/
             immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -3752,9 +3712,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb,
         IMMND_IMM_CLIENT_NODE   *om_cl_node=NULL;
         SaImmHandleT omHandle;
         /*Look up the client node for the implementer, using implConn*/
-        omHandle = dummyClient;
-        omHandle = (omHandle << 32);
-        omHandle |= cb->node_id;
+        omHandle = m_IMMSV_PACK_HANDLE(dummyClient, cb->node_id);
 
         /*Fetch client node for OM !*/
         immnd_client_node_get(cb, omHandle, &om_cl_node);
@@ -3811,7 +3769,8 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 
     IMMND_IMM_CLIENT_NODE   *oi_cl_node=NULL;
     SaImmOiHandleT          implHandle=0LL;
-    SaUint32T conn = (clnt_hdl >> 32);
+    SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+
 
     SaUint32T* implConnArr=NULL;
     SaUint32T* invocArr=NULL;
@@ -3844,9 +3803,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
             int ix=0;
             for(; ix<arrSize && err==SA_AIS_OK; ++ix) {
                 /*Look up the client node for the implementer, using implConn*/
-                implHandle = implConnArr[ix];
-                implHandle = (implHandle << 32);
-                implHandle |= cb->node_id;
+                implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
                 /*Fetch client node for OI !*/
                 immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -3854,7 +3811,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
                     LOG_WA("IMMND - Client went down so no response");
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     delayedReply = SA_FALSE;
-                    assert(oi_cl_node->mIsStale);
+                    assert(oi_cl_node != NULL);
                 } else {
                     send_evt.info.imma.info.objDelete.objectName.size = 
                         strlen(objNameArr[ix]);
@@ -3956,8 +3913,8 @@ static void immnd_evt_proc_rt_object_delete(IMMND_CB *cb,
     IMMSV_EVT               send_evt;
     IMMSV_SEND_INFO         *sinfo=NULL;
     IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
-    SaUint32T    reqConn = (clnt_hdl >> 32);
-    SaUint32T    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    SaUint32T    reqConn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    SaUint32T    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
     TRACE_ENTER();
 
 #if 0  /*ABT DEBUG PRINTOUTS START*/
@@ -4042,8 +3999,10 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
            This wrong ccbid could accidentally be an existing used ccbId. 
            But in this case it would also have to originate at this node.
         */
-        TRACE_2("client == (clnt_hdl >> 32)) ??: %u == %llu", client, clnt_hdl >> 32);
-        assert(!client || client == (clnt_hdl >> 32)); 
+        TRACE_2("client == m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl))"
+            "??: %u == %u", client, 
+            (SaUint32T) m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl));
+        assert(!client || client == m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl)); 
         immnd_client_node_get(cb, clnt_hdl, &cl_node);
         if(cl_node == NULL || cl_node->mIsStale) {
             LOG_WA("IMMND - Client went down so no response");
@@ -4097,7 +4056,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
     IMMSV_SEND_INFO         *sinfo=NULL;
     IMMND_IMM_CLIENT_NODE   *oi_cl_node=NULL;
     SaImmOiHandleT          implHandle=0LL;
-    SaUint32T conn = (clnt_hdl >> 32);
+    SaUint32T conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
 
     SaUint32T* implConnArr=NULL;
     SaUint32T* implIdArr=NULL;
@@ -4120,9 +4079,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
             for(; ix<arrSize && err==SA_AIS_OK; ++ix) {
 
                 /*Look up the client node for the implementer, using implConn*/
-                implHandle = implConnArr[ix];
-                implHandle = (implHandle << 32);
-                implHandle |= cb->node_id;
+                implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
                 /*Fetch client node for OI !*/
                 immnd_client_node_get(cb, implHandle, &oi_cl_node);
@@ -4130,7 +4087,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
                     LOG_WA("IMMND - Client went down so no response");
                     err = SA_AIS_ERR_FAILED_OPERATION;
                     delayedReply = SA_FALSE;
-                    assert(oi_cl_node->mIsStale);
+                    assert(oi_cl_node != NULL);
                 } else {
                     send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
                     send_evt.info.imma.info.ccbCompl.implId = implIdArr[ix];
@@ -4810,7 +4767,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb,
     } 
 
     SaBoolT originatedAtThisNd = 
-        ((clnt_hdl & 0x00000000ffffffff) == cb->node_id);
+        (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == cb->node_id);
 
     if(originatedAtThisNd) {
         assert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
@@ -4872,7 +4829,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb,
               GC of stored messages. 
             */
             if(msg) {
-                originatedAtThisNd = ((clnt_hdl & 0x00000000ffffffff) == 
+                originatedAtThisNd = (m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl) == 
                     cb->node_id);
             }
         } else {
@@ -4996,8 +4953,8 @@ static void immnd_evt_proc_adminit_rsp(IMMND_CB *cb,
     SaUint32T conn;
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
     err = immModel_adminOwnerCreate(cb, &(evt->info.adminitGlobal.i), 
         evt->info.adminitGlobal.globalOwnerId, 
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5395,8 +5352,8 @@ static void immnd_evt_proc_impl_set_rsp(IMMND_CB *cb,
 
     assert(evt);
     assert(!originatedAtThisNd || reply_dest == cb->immnd_mdest_id);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
     TRACE_2("originated here?:%u nodeId:%x conn: %u", originatedAtThisNd, 
         nodeId, conn);
 
@@ -5468,8 +5425,8 @@ static void immnd_evt_proc_impl_clr(IMMND_CB *cb,
     SaUint32T conn;
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_implementerClear(cb, &(evt->info.implSet),
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5527,8 +5484,8 @@ static void immnd_evt_proc_cl_impl_set(IMMND_CB *cb,
     SaUint32T conn;
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_classImplementerSet(cb, &(evt->info.implSet),
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5591,8 +5548,8 @@ static void immnd_evt_proc_cl_impl_rel(IMMND_CB *cb,
     SaUint32T conn;
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_classImplementerRelease(cb, &(evt->info.implSet),
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5657,8 +5614,8 @@ static void immnd_evt_proc_obj_impl_set(IMMND_CB *cb,
     TRACE_ENTER();
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_objectImplementerSet(cb, &(evt->info.implSet),
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5719,8 +5676,8 @@ static void immnd_evt_proc_obj_impl_rel(IMMND_CB *cb,
     TRACE_ENTER();
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_objectImplementerRelease(cb, &(evt->info.implSet),
         (originatedAtThisNd)?conn:0, nodeId);
@@ -5782,8 +5739,8 @@ static void immnd_evt_proc_ccbinit_rsp(IMMND_CB *cb,
     SaUint32T               conn;
 
     assert(evt);
-    conn = (clnt_hdl >> 32);
-    nodeId = (clnt_hdl & 0x00000000ffffffff);
+    conn = m_IMMSV_UNPACK_HANDLE_HIGH(clnt_hdl);
+    nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnt_hdl);
 
     err = immModel_ccbCreate(cb, 
         evt->info.ccbinitGlobal.i.adminOwnerId,

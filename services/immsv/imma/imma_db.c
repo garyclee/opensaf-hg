@@ -186,7 +186,6 @@ void imma_mark_clients_stale(IMMA_CB *cb)
     while ((clnode = (IMMA_CLIENT_NODE *)
             ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
     {
-        /* delete the client info */
         temp_hdl = clnode->handle;
         temp_ptr = &temp_hdl;
         clnode->stale = TRUE;
@@ -446,7 +445,7 @@ void  imma_ccb_node_getnext(IMMA_CB *cb,
   Arguments     : ccb_tree - Ccb Tree.
                   ccb_node - Ccb Node.
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-  Notes         : The caller takes the cb lock before calling this function                  
+  Notes         : The caller takes the cb lock before calling this function
 ******************************************************************************/
 uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree,  
                         IMMA_CCB_NODE *ccb_node)
@@ -470,8 +469,7 @@ uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree,
                 : IMMA_CC_BNODE *ccb_node - Ccb Node.
   Notes         : None
 ******************************************************************************/
-uns32
-    imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
+uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 {
     uns32 rc = NCSCC_RC_SUCCESS;
 
