@@ -285,6 +285,7 @@ NCSFL_FMAT avd_fmat_set[] =
    { AVD_LID_HDLN_SVAL,      "TICLC",           "%s AVD: %s at %s:%ld val %s\n"},   
    { AVD_PXY_PXD,            "TICCLLLL",        "[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},   
    { AVD_LID_SHUTDOWN_FAILURE,  "TCI",          "%s AVD: Shutdown failed of node %s as %s\n"},
+   { AVD_LID_GENLOG,         "TC",              "%s %s\n"},
    { 0, 0, 0 }
 };
 
