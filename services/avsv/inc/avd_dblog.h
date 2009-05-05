@@ -245,6 +245,7 @@ typedef enum avd_flex_sets
    AVD_FC_SUSI_HA,
    AVD_FC_PXY_PXD,
    AVD_FC_SHUTDOWN_FAILURE,
+   AVD_FC_GENLOG,
 }AVD_FLEX_SETS;
 
 typedef enum avd_log_ids
@@ -270,11 +271,15 @@ typedef enum avd_log_ids
    AVD_LID_HDLN_SVAL,
    AVD_PXY_PXD,
    AVD_LID_SHUTDOWN_FAILURE,
+   AVD_LID_GENLOG,
 } AVD_LOG_IDS;
 
 
 
 #if (NCS_AVD_LOG == 1)
+
+#define avd_log(severity, format, args...) _avd_log((severity), __FUNCTION__, (format), ##args)
+#define avd_trace(format, args...) _avd_trace(__FILE__, __LINE__, (format), ##args)
 
 #define m_AVD_LOG_FUNC_ENTRY(func_name) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN, AVD_FC_HDLN, NCSFL_LC_FUNC_ENTRY, NCSFL_SEV_DEBUG, NCSFL_TYPE_TIC,AVD_ENTERED_FUNC,func_name)
 
@@ -484,5 +489,8 @@ EXTERN_C void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state, SaNameT *su_name_n
                                SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
 void avd_pxy_pxd_log(uns32 sev, uns32 index, uns8 *info, SaNameT *comp_name,
                      uns32   info1, uns32   info2, uns32   info3, uns32   info4);
+
+extern void _avd_log(uns8 severity, const char* function, const char *format, ...);
+extern void _avd_trace(const char* file, unsigned int line, const char *format, ...);
 
 #endif /* AVD_DBLOG_H */
