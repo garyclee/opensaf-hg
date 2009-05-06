@@ -307,7 +307,7 @@ avm_init_proc(uns32 *avm_init_hdl)
              g_avm_hdl = 0;
              return;
           */  
-          m_AVM_LOG_DEBUG("AVM-SSU: Failed to execute AVM_SSU_DHCONF_SCRIPT to initialise DHCP conf file", NCSFL_SEV_ERROR); 
+          m_AVM_LOG_DEBUG("AVM-SSU: Failed to execute AVM_SSU_DHCONF_SCRIPT to initialise DHCP conf file", NCSFL_SEV_WARNING); 
       }
    }
    if(cb->ha_state == SA_AMF_HA_STANDBY)

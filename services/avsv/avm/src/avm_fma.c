@@ -133,6 +133,8 @@ void avm_rcv_fma_node_reset_cb(SaInvocationT inv,
 
    if(AVM_ENT_INFO_NULL == (ent_info = avm_find_ent_info(avm_cb, &ent_path)))
    {
+      m_AVM_LOG_INVALID_VAL_FATAL(0);
+      syslog(LOG_ERR, "Error - Cannot find entity path, wrong configuration?");
       fmResponse(avm_cb->fm_hdl, inv, SA_AIS_ERR_INVALID_PARAM);
       return;
    }
