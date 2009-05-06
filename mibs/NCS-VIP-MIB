@@ -15,8 +15,8 @@ IMPORTS
             TimeInterval, DateAndTime, StorageType, TDomain, TAddress
                     FROM SNMPv2-TC 
 
-            eccgNcsModules, ncsVip
-                    FROM ECC-SMI
+            openSafModules, ncsVip
+                    FROM OPENSAF-SMI
             
             MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
                     FROM SNMPv2-CONF;
@@ -24,16 +24,28 @@ IMPORTS
 
 ncsVIPMibModule MODULE-IDENTITY
 	LAST-UPDATED "200508160000Z"
-	ORGANIZATION "Netplance Core Services"
+	ORGANIZATION "OpenSAF Foundation"
 	CONTACT-INFO
-		"Motorola Inc
-		 Embedded Communications Computing
-		 http://www.motorola.com/computers/"
+		"www.opensaf.org"
 
 	DESCRIPTION
-		"This MIB has objects which help Configuring and show 
-		 statistics of Virtual-IP feature ."
-	::= {eccgNcsModules 12}
+  	     "This MIB has objects which help Configuring and show 
+	      statistics of Virtual-IP feature.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+	::= {openSafModules 12}
 
 
 ncsVIPMibObjects   	OBJECT IDENTIFIER  ::= {ncsVip 1}

@@ -12,33 +12,36 @@
              FROM SNMPv2-TC
          TEXTUAL-CONVENTION FROM SNMPv2-TC
 	
-         eccgNcsModules, dtsv
-             FROM ECC-SMI
+         openSafModules, dtsv
+             FROM OPENSAF-SMI
          ;
 
 
      ncsDtsv MODULE-IDENTITY
          LAST-UPDATED "200402111609Z"  -- April 13, 2004
-         ORGANIZATION "Netplane Core Services"
+         ORGANIZATION "OpenSAF Foundation"
          CONTACT-INFO
-             " 	Motorola Inc
-		Embedded Communications Computing
-		http://www.motorola.com/computers/
-
-		Author: Parag Badge
-		e-mail:	g19470@motorola.com
-		Address: Motorola India Pvt Ltd, 
-			 Auriga Block, Ascendas IT Park,
-			 Madhapur, Hyderabad, AP
-			 INDIA
-		Tel:	 +91-40-55727000
-		Fax:	 +91-40-55727001"
+             "www.opensaf.org"
 
          DESCRIPTION
              "This MIB contains managed object definitions for the
              'Distributed Tracing Service for Netplane Core 
-              Services."
-         ::= { eccgNcsModules 6}
+              Services.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 6}
 
      --****************************************************************
 

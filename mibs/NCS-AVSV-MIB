@@ -18,33 +18,36 @@
         saAmfSUSISuName, saAmfSUSISiName, saAmfSUSIHAState
              FROM SAF-AMF-MIB 
 
-        eccgNcsModules, avsv
-	     FROM ECC-SMI
+        openSafModules, avsv
+	     FROM OPENSAF-SMI
 
          ;
 
      avsvMIB MODULE-IDENTITY
          LAST-UPDATED "200409291609Z"  -- september 29, 2004
-         ORGANIZATION "Netplane Core Services"
+         ORGANIZATION "OpenSAF Foundation"
          CONTACT-INFO
-		"Motorola Inc
-		 Embedded Communications Computing
-		 http://www.motorola.com/computers/
-
-		 Author:  Sugadeesh Gudipalli
-		 e-mail:  g19449@motorola.com
-		 Address: Motorola India Pvt Ltd, 
-			  Auriga Block, Ascendas IT Park,
-			  Madhapur, Hyderabad, AP
-			  INDIA
-		 Tel:	  +91-40-55727000
-		 Fax:	  +91-40-55727001"
+		"www.opensaf.org"
 
          DESCRIPTION
              "This MIB contains managed object definitions for the
              'Availability Service for Netplane Core 
-              Services."
-         ::= { eccgNcsModules 1}
+              Services.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 1}
 
      --****************************************************************
      avsvObjects                  OBJECT IDENTIFIER ::= { avsv 1 }

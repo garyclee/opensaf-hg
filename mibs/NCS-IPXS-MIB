@@ -20,30 +20,33 @@
          InterfaceIndex, ifNumber, ifEntry 
 			 FROM IF-MIB
 	
-		 eccgNcsModules, ifsv
-			FROM ECC-SMI;
+		 openSafModules, ifsv
+			FROM OPENSAF-SMI;
 
      ncsIfsvIfIpMIB MODULE-IDENTITY
          LAST-UPDATED "200411281730Z"
-         ORGANIZATION "Netplane Core Services"
+         ORGANIZATION "OpenSAF Foundation"
          CONTACT-INFO
-	      " Motorola Inc
-		Embedded Communications Computing
-		http://www.motorola.com/computers/
-
-		Author:	Sudhakar Reddy
-		e-mail:	sudhakarr@motorola.com
-		Address: Motorola India Pvt Ltd, 
-			 Auriga Block, Ascendas IT Park,
-			 Madhapur, Hyderabad, AP
-			 INDIA
-		Tel:	 +91-40-55727000
-		Fax:	 +91-40-55727001"
+	      "www.opensaf.org"
          DESCRIPTION
              "This MIB contains managed object definitions for the
-             'IP related parameters on interfaces for Netplane Core 
-              Services."
-         ::= { eccgNcsModules 3}
+              IP related parameters on interfaces for Netplane Core 
+              Services.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 3}
 
      --****************************************************************
      ncsifsvIfIpobjects	       OBJECT IDENTIFIER ::= { ifsv 2 }
