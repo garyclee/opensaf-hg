@@ -451,7 +451,8 @@ static uns32  avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 
          if (cb->init_state < AVD_INIT_DONE)
          {
-            m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+            avd_log(NCSFL_SEV_WARNING, "invalid init state (%u) for cold sync req",
+                cb->init_state);
             status = NCSCC_RC_FAILURE;
          }
       }
@@ -672,8 +673,7 @@ static uns32  avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
    m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_err_ind");
 
-   m_AVD_LOG_CKPT_EVT(AVD_MBCSV_ERROR_IND, 
-            NCSFL_SEV_ERROR, arg->info.error.i_code);
+   avd_log(NCSFL_SEV_WARNING, "%u", arg->info.error.i_code);
 
    switch(arg->info.error.i_code)
    {

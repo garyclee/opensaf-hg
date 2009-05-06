@@ -405,7 +405,6 @@ uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    m_AVD_LOG_FUNC_ENTRY("avd_avm_hb_lost_msg");
-   m_AVD_LOG_INVALID_VAL_ERROR(0);
 
    /* Fill in the message */
    memset(snd_msg,'\0',sizeof(AVD_AVM_MSG_T));

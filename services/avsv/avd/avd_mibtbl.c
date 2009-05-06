@@ -959,7 +959,7 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
       /* Log an information message that the AvD is not yet operationally
        * up to take MIB requests.
        */
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+      avd_log(NCSFL_SEV_WARNING, "invalid avd init_state %u", cb->init_state);
       evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
       evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
       evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);

@@ -136,7 +136,8 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
    if((n2d_msg->msg_info.n2d_clm_node_up.node_id != cb->node_id_avd) &&
       (cb->init_state < AVD_INIT_DONE))
    {
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+      avd_log(NCSFL_SEV_WARNING, "invalid init state (%u), node %x",
+          cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
       avsv_dnd_msg_free(n2d_msg);
       evt->info.avnd_msg = NULL;
       return;
@@ -144,8 +145,8 @@ void avd_node_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
 
    if (avnd->node_state != AVD_AVND_STATE_ABSENT)
    {
-      /* log error that the node is in invalid state */
-      m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
+      avd_log(NCSFL_SEV_WARNING, "invalid node state %u for node %x",
+          avnd->node_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
       avsv_dnd_msg_free(n2d_msg);
       evt->info.avnd_msg = NULL;
       return;
