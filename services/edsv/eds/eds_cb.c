@@ -202,6 +202,13 @@ eds_main_process(SYSF_MBX *mbx)
    /* Give back the handle */
    ncshm_give_hdl(gl_eds_hdl);
 
+   /* Zero the SelectionObjects */
+   amf_ncs_sel_obj.raise_obj=0;
+   amf_ncs_sel_obj.rmv_obj=0;
+
+   clm_ncs_sel_obj.raise_obj=0;
+   clm_ncs_sel_obj.rmv_obj=0;
+ 
    /* Set the fd for mbcsv events */
    m_SET_FD_IN_SEL_OBJ(eds_cb->mbcsv_sel_obj, mbcsv_sel_obj);
    
