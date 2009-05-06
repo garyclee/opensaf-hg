@@ -576,7 +576,8 @@ static uns32 avm_mbcsv_process_dec_cb(AVM_CB_T           *cb,
       case NCS_MBCSV_MSG_DATA_RESP:
       case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
       {  
-         m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP, AVM_MBCSV_SUCCESS, arg->info.decode.i_reo_type, NCSFL_SEV_WARNING);
+         m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP, AVM_MBCSV_SUCCESS,
+             arg->info.decode.i_reo_type, NCSFL_SEV_NOTICE);
          
          status = avm_decode_data_sync_rsp(cb, &arg->info.decode);
          if(NCSCC_RC_SUCCESS != status)
@@ -601,7 +602,8 @@ static uns32 avm_mbcsv_process_dec_cb(AVM_CB_T           *cb,
          if(NCS_MBCSV_MSG_DATA_RESP_COMPLETE == arg->info.decode.i_msg_type)
          {
             cb->stby_in_sync = TRUE;
-            m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP_COMPLETE, AVM_MBCSV_SUCCESS, arg->info.decode.i_reo_type, NCSFL_SEV_WARNING);
+            m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP_COMPLETE, AVM_MBCSV_SUCCESS,
+                arg->info.decode.i_reo_type, NCSFL_SEV_NOTICE);
          }
       }
       break;
@@ -692,7 +694,8 @@ static uns32 avm_mbcsv_process_enc_cb(AVM_CB_T         *cb,
       {
          /*Encode Data Response messge */
          status = avm_encode_data_sync_rsp(cb, &arg->info.encode);
-         m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP, status + AVM_MBCSV_RES_BASE, arg->info.encode.io_msg_type, NCSFL_SEV_WARNING);
+         m_AVM_LOG_CKPT_EVT(AVM_MBCSV_MSG_DATA_RESP, status + AVM_MBCSV_RES_BASE,
+             arg->info.encode.io_msg_type, NCSFL_SEV_INFO);
       }
       break;
 
